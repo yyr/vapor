@@ -308,8 +308,8 @@ void AnimationParams::
 reinit(){
 	Session* session = Session::getInstance();
 	//Get the max, min time ranges:
-	minFrame = session->getMinTimestep();
-	maxFrame = session->getMaxTimestep();
+	minFrame = (int)session->getMinTimestep();
+	maxFrame = (int)session->getMaxTimestep();
 	//Narrow the range to the actual data limits:
 	int numvars = session->getNumVariables();
 	//Find the first framenum with data:
@@ -357,7 +357,8 @@ setSliders(){
 //It should not be called if the UI has changed the frame number; in that case
 //setDirty should be called, and AnimationController::paramsChanged() should be
 //called, to force any ongoing animation to not increment the frame number
-//This returns true if the caller needs to set the change bit.
+//This returns true if the caller needs to set the change bit, because the
+//we have changed to "pause" status
 bool AnimationParams::
 advanceFrame(){
 	assert(playDirection);
@@ -385,7 +386,7 @@ advanceFrame(){
 	if (currentFrame == lastFrameCompleted) {
 		//Change to "pause" status:
 		playDirection = 0;
-		retCode = true;//Need to set the change bit!
+		retCode = true;//Need to set the change bit, for the next rendering
 	}
 	//Only update the dialog if this animation is in the active visualizer
 	int viznum = VizWinMgr::getInstance()->getActiveViz();

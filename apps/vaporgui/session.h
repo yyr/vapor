@@ -137,8 +137,12 @@ public:
 		{dataRange[varnum][0] = minval;}
 	void setNumTransforms(int numtrans) {numTransforms = numtrans;}
 	void setFullDataSize(int dim, size_t size){fullDataSize[dim]=size;}
+	void setMinTimestep(size_t mints){minTimeStep = mints;}
+	void setMaxTimestep(size_t maxts) {maxTimeStep = maxts;}
 	// Get methods:
 	//
+	size_t getMinTimestep() {return minTimeStep;}
+	size_t getMaxTimestep() {return maxTimeStep;}
 	bool dataIsPresent(int varnum, int timestep){
 		return (dataPresent[timestep + varnum*numTimesteps] >= 0);
 	}
@@ -154,6 +158,12 @@ public:
 	int minXFormPresent(int varnum, int timestep){
 		return dataPresent[timestep + varnum*numTimesteps];
 	}
+	//Determine min transform for *any* timestep or variable
+	//Needed for setting region params
+	int minXFormPresent(); 
+	//Determine if variable is present for *any* timestep 
+	//Needed for setting DVR panel
+	bool variableIsPresent(int varnum); 
 	int getNumVariables() {return numVariables;}
 	int getNumTimesteps() {return numTimesteps;}
 	int getNumTransforms() {return numTransforms;}
@@ -188,7 +198,7 @@ public:
 	void save(char* filename);
 	void restore(char* filename);
 	DataMgr* getDataMgr() {return dataMgr;}
-	
+	DataStatus* getDataStatus() {return currentDataStatus;}
 	
 	const Metadata* getCurrentMetadata() {return currentMetadata;}
 	//Datarange is a 2-element float vector, one for each variable
@@ -207,8 +217,8 @@ public:
 		if (currentDataStatus) return currentDataStatus->getNumVariables();
 		else return 0;
 	}
-	size_t getMinTimestep(){return minTimeStep;}
-	size_t getMaxTimestep(){return maxTimeStep;}
+	size_t getMinTimestep(){return currentDataStatus->getMinTimestep();}
+	size_t getMaxTimestep(){return currentDataStatus->getMaxTimestep();}
 	//Set range mapped for a variable.  Currently sets all
 	//variables to same range.
 	//
@@ -277,7 +287,6 @@ protected:
 	const Metadata* currentMetadata;
 	//Cache size in megabytes
 	size_t cacheMB;
-	size_t maxTimeStep, minTimeStep;
 	bool renderOK;
 	//TransferFunctions are kept, by name, in the session:
 	TransferFunction** keptTFs;

@@ -45,7 +45,10 @@ public:
 	virtual void makeCurrent(Params* p, bool newWin);
 	
 		
-	void setNumTrans(int n) {numTrans = Min(n, maxNumTrans); setDirty();}
+	void setNumTrans(int n) {
+		numTrans = Min(n, maxNumTrans); 
+		numTrans = Max(numTrans, minNumTrans);
+		setDirty();}
 	int getNumTrans() {return numTrans;}
 	int getMaxSize() {return maxSize;}
 	//Note: setMaxSize is a hack to make it easy for user to
@@ -84,7 +87,9 @@ public:
 	}
 	void setTab(RegionTab* tab) {myRegionTab = tab;}
 	void setMaxNumTrans(int maxNT) {maxNumTrans = maxNT;}
+	void setMinNumTrans(int minNT) {minNumTrans = minNT;}
 	int getMaxNumTrans() {return maxNumTrans;}
+	int getMinNumTrans() {return minNumTrans;}
 	//void setCurrentTimestep(int val) {currentTimestep = val; setDirty();}
 	//int getCurrentTimestep() {return currentTimestep;}
 	void setDataExtents(const std::vector<double> ext){
@@ -171,7 +176,7 @@ protected:
 	int centerPosition[3];
 	int regionSize[3];
 	int fullSize[3];
-	int maxSize, numTrans, maxNumTrans;
+	int maxSize, numTrans, maxNumTrans, minNumTrans;
 	//int currentTimestep;
 	RegionTab* myRegionTab;
 	std::vector<double> fullDataExtents;

@@ -39,8 +39,9 @@ using namespace VAPoR;
 RegionParams::RegionParams(int winnum): Params(winnum){
 	thisParamType = RegionParamsType;
 	myRegionTab = MainForm::getInstance()->getRegionTab();
-	numTrans = 0;
+	numTrans = 5;
 	maxNumTrans = 9;
+	minNumTrans = 0;
 	maxSize = 256;
 	fullDataExtents.resize(6);
 	selectedFaceNum = -1;
@@ -85,6 +86,7 @@ void RegionParams::updateDialog(){
 	
 	QString strng;
 	Session::getInstance()->blockRecording();
+	myRegionTab->numTransSpin->setMinValue(minNumTrans);
 	myRegionTab->numTransSpin->setMaxValue(maxNumTrans);
 	myRegionTab->numTransSpin->setValue(numTrans);
 	int dataMaxSize = Max(fullSize[0],Max(fullSize[1],fullSize[2]));
@@ -497,8 +499,10 @@ reinit(){
 	setCenterPosition(1, ny/2);
 	setCenterPosition(2, nz/2);
 	int nlevels = md->GetNumTransforms();
+	setMinNumTrans(Session::getInstance()->getDataStatus()->minXFormPresent());
 	setMaxNumTrans(nlevels);
 	setNumTrans(nlevels);
+	
 	//Data extents (user coords) are presented read-only in gui
 	//
 	setDataExtents(md->GetExtents());

@@ -138,7 +138,7 @@ exportData(){
 		assert(maxCoords[i] <= (size_t)(r->getFullSize(i) -1));
 	}
 	
-	int rc = exporter.Export(*currentMetadataPath,
+	exporter.Export(*currentMetadataPath,
 		currentFrame,
 		d->getStdVariableName(),
 		minCoords,
@@ -356,8 +356,8 @@ setupDataStatus(){
 		ds->setFullDataSize(k, currentMetadata->GetDimension()[k]);
 	}
 	//As we go through the variables and timesteps, keepTrack of min and max times
-	minTimeStep = 1000000000;
-	maxTimeStep = 0;
+	unsigned int mints = 1000000000;
+	unsigned int maxts = 0;
 	for (unsigned int ts = 0; ts< numTimeSteps; ts++){
 		for (int var = 0; var< numVariables; var++){
 			//Find the minimum number of transforms available on disk
@@ -372,8 +372,8 @@ setupDataStatus(){
 					xf)) break;
 			}
 			//Aha, there is some data for some variable at this timestep.
-			if (ts > maxTimeStep) maxTimeStep = ts;
-			if (ts < minTimeStep) minTimeStep = ts;
+			if (ts > maxts) maxts = ts;
+			if (ts < mints) mints = ts;
 			//xf is the first one that is *not* present
 			xf++;
 			if (xf > numXForms)
@@ -415,8 +415,33 @@ setupDataStatus(){
 			}
 		}
 	}
-
+	ds->setMinTimestep((size_t)mints);
+	ds->setMaxTimestep((size_t)maxts);
 	return ds;
+}
+//Determine min transform for *any* timestep or variable
+//Needed for setting region params
+//Returns -1 if no data present.
+//
+int DataStatus::minXFormPresent(){
+	int minXForm = 10;
+	for (size_t ts = minTimeStep; ts<maxTimeStep; ts++){
+		for (int varnum = 0; varnum<numVariables; varnum++){
+			int minXF = minXFormPresent(varnum, (int)ts);
+			if (minXF >=0 && minXF < minXForm) minXForm = minXF;
+		}
+	}
+	if (minXForm < 10) return minXForm;
+	else return -1;
+}
+//Determine if variable is present for *any* timestep 
+//Needed for setting DVR panel
+//
+bool DataStatus::variableIsPresent(int varnum){
+	for (size_t ts = minTimeStep; ts<maxTimeStep; ts++){
+		if (dataIsPresent(varnum, ts)) return true;
+	}
+	return false;
 }
 //Methods to keep or remove a transfer function 
 //with the session:

@@ -220,6 +220,7 @@ void DvrParams::updateDialog(){
 		
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
+	myDvrTab->update();
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
 		
@@ -321,6 +322,18 @@ guiSetEnabled(bool value){
 }
 void DvrParams::
 guiSetVarNum(int val){
+	if (val == varNum) return;
+	//Only change the variable to a valid one:
+	if (!Session::getInstance()->getDataStatus()->variableIsPresent(val)){
+		QMessageBox::warning(0, "Invalid variable",
+			"Data for specified variable is not available",
+			QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton );
+		//Set it back to the old value.  This will generate an event that
+		//we will ignore.
+		myDvrTab->variableCombo->setCurrentItem(varNum);
+		myDvrTab->update();
+		return;
+	}
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "set dvr variable");
 	setVarNum(val);
@@ -518,9 +531,20 @@ reinit(){
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	//Get the variable names:
 	variableNames = md->GetVariableNames();
-	//reset to first variable:
-	varNum = 0;
 	numVariables = md->GetVariableNames().size();
+	//reset to first variable that is present:
+	varNum = -1;
+	for (int i = 0; i<numVariables; i++) {
+		if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
+			varNum = i;
+			break;
+		}
+	}
+	if (varNum == -1){
+		QMessageBox::warning(0, "Invalid data",
+			"No data in specified dataset",
+			QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton );
+	}
 	if (minMapBounds) delete minMapBounds;
 	if (maxMapBounds) delete maxMapBounds;
 	minMapBounds = new float[numVariables];
