@@ -293,11 +293,19 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 		if (e->button() == Qt::LeftButton){
 			//Ignore mouse press over margin:
 			if (e->y() >= (height() - COORDMARGIN)) return;
+			//See if we can classify where the mouse is:
+			int index;
+			int type = editor->closestControlPoint(e->x(), e->y(), &index);
+
 			//Notify the DVR that an editing change is starting:
-			if (e->y() >= (height() - BARHEIGHT - COORDMARGIN - SEPARATOR/2)){
+			if (e->y() >= (height() - BARHEIGHT - COORDMARGIN - SEPARATOR/2)){			
 				startTFChange("transfer function color bar edit");
 			} else {
-				startTFChange("transfer function opacity edit");
+				if (type == 2 || type == -2){
+					startTFChange("transfer function domain boundary move");
+				} else {
+					startTFChange("transfer function opacity edit");
+				}
 			}
 			editor->setDragStart(e->x(), e->y());
 			amDragging = false;
@@ -315,8 +323,7 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 			editor->removeConstrainedGrab();
 				
 			//Make changes in selection:
-			int index;
-			int type = editor->closestControlPoint(e->x(), e->y(), &index);
+			
 			
 			if (type == 0) { //New control point, create, select it:
 				if (e->y() >= (height() - BARHEIGHT - COORDMARGIN -SEPARATOR/2)){

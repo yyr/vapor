@@ -56,11 +56,6 @@
 
 #include "mainform.h"
 #include "session.h"
-#if NODATAMGR
-#include "vapor/WaveletBlock3DRegionReader.h"
-#endif
-
-
 #include "glutil.h"
 
 using namespace VAPoR;
@@ -179,7 +174,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	// set up view transform. Really only need to do this if the data
 	// roi changes
 	//
-	if (myVizWin->regionIsDirty()) {
+	if (myVizWin->regionIsDirty()|| myDVRParams->datarangeIsDirty()) {
 		float xc, yc, zc; // center of volume
 		float hmaxdim;
 		int	rc;
@@ -230,29 +225,11 @@ DrawVoxelScene(unsigned /*fast*/)
 		fprintf(stderr, "max_dim == %d %d %d\n", max_dim[0], max_dim[1], max_dim[2]);
 
 		*/
-		//TEST ONLY:  Use wb3dregionreader to access the data:
-#if NODATAMGR
-		if (floatData) delete floatData;
-		nx = (max_bdim[0] - min_bdim[0] + 1) * bs;
-		ny = (max_bdim[1] - min_bdim[1] + 1) * bs;
-		nz = (max_bdim[2] - min_bdim[2] + 1) * bs;
-		floatData = new float[nx*ny*nz];
-		intData = new unsigned char[nx*ny*nz];
-		WaveletBlock3DRegionReader* myReader = 
-			myVizWin->getWinMgr()->getMainWindow()->getSession()->myReader;
-		myReader->OpenVariableRead(0, (myMetadata->GetVariableNames().at(0)).c_str(),numxforms);
-		myReader->ReadRegion((const size_t*)min_dim, (const size_t*)max_dim, floatData);
-		//Quantize, assuming data between 0 and 1
-		for (int q = 0; q<nx*ny*nz; q++){
-			float value = floatData[q]*255.;
-			if (value < 0.f) value = 0.f;
-			if (value > 255.f) value = 255.f;
-			unsigned int intval = (int) value;
-			intData[q] = (unsigned int) intval;
+	
+		if (myDVRParams->datarangeIsDirty()){
+			myDataMgr->SetDataRange(myDVRParams->getCurrentDatarange());
+			myDVRParams->setDatarangeDirty(false);
 		}
-		delete floatData;
-		floatData = 0;
-#else
 		void* data = (void*) myDataMgr->GetRegionUInt8(
 				myRegionParams->getCurrentTimestep(),
 				myDVRParams->getVariableName(),
@@ -261,7 +238,7 @@ DrawVoxelScene(unsigned /*fast*/)
 				(const size_t*)max_bdim,
 				0 //Don't lock!
 			);
-#endif //NODATAMGR
+
 		/*
 		fprintf(stderr, "DataMgr::GetRegion(index=%d, x0=%d, y0=%d, z0=%d, x1=%d, y1=%d, z1=%d, level=%d\n", 
 			myRegionParams->getCurrentTimestep(), min_bdim[0], min_bdim[1], min_bdim[2], 
@@ -344,18 +321,11 @@ DrawVoxelScene(unsigned /*fast*/)
 		//fprintf(stderr, " Setting region in DVR Volumizer\n");
 		//fflush(stderr);
 
-		
-#if NODATAMGR
-		rc = driver->SetRegion(intData,
-			nx, ny, nz,
-			data_roi, extents
-		);
-#else
 		rc = driver->SetRegion(data,
 			nx, ny, nz,
 			data_roi, extents
 		);
-#endif
+
 		if (rc < 0) {
 			fprintf(stderr, "Error in DVRVolumizer::SetRegion\n");
 			fflush(stderr);

@@ -20,7 +20,7 @@
 //		transfer function editor.
 //
 #include "dvrparams.h"
-#include "dvr.h"
+#include "dvr.h" 
 #include "mainform.h"
 #include "glbox.h"
 #include "vizwin.h"
@@ -66,32 +66,34 @@ DvrParams::DvrParams(MainForm* mf, int winnum) : Params(mf, winnum){
 	numVariables = 0;
 	enabled = false;
 	attenuationDirty = true;
-	minDataValue = 0.f;
-	maxDataValue = 1.f;
-	rightTFLimit = 1.f;
-	leftTFLimit = 0.f;
-
+	//Initialize the mapping bounds to [0,1] until data is read
+	minMapBounds = new float[1];
+	maxMapBounds = new float[1];
+	minMapBounds[0] = 0.f;
+	maxMapBounds[0] = 1.f;
 	//Hookup the editor to the frame in the dvr tab:
 	myTransFunc = new TransferFunction(this, numBits);
 	if(myDvrTab) myTFEditor = new TFEditor(this, myTransFunc, myDvrTab->DvrTFFrame, mf->getSession() );
 	else myTFEditor = 0;
 	clutDirty = true;
+	datarangeDirty = true;
 	savedCommand = 0;
-	
+	currentDatarange[0] = 0.f;
+	currentDatarange[1] = 1.f;
+	leftTFLimit = -.5f;
+	rightTFLimit = 1.5f;
+	leftTFELimit = -.5f;
+	rightTFELimit = 1.5f;
 }
 DvrParams::~DvrParams(){
 	delete myTransFunc;
 	delete myTFEditor;
 	if (savedCommand) delete savedCommand;
+	if (minMapBounds) delete minMapBounds;
+	if (maxMapBounds) delete maxMapBounds;
 	
 }
-void DvrParams::
-setDataRange(){
-	rightTFLimit = Max(myTFEditor->getMaxEditValue(),
-		Max(maxDataValue,myTransFunc->getMaxMapValue()));
-	leftTFLimit = Min(myTFEditor->getMinEditValue(),
-		Min(minDataValue, myTransFunc->getMinMapValue()));
-}
+
 void DvrParams::
 setTab(Dvr* tab) {
 	myDvrTab = tab;
@@ -102,6 +104,15 @@ setTab(Dvr* tab) {
 Params* DvrParams::
 deepCopy(){
 	DvrParams* newParams = new DvrParams(*this);
+	//Clone the map bounds arrays:
+	int numVars = Max (numVariables, 1);
+	newParams->minMapBounds = new float[numVars];
+	newParams->maxMapBounds = new float[numVars];
+	for (int i = 0; i<numVars; i++){
+		newParams->minMapBounds[i] = minMapBounds[i];
+		newParams->maxMapBounds[i] = maxMapBounds[i];
+	}
+
 	//Clone the Transfer Function (and TFEditor)??
 	newParams->myTransFunc = new TransferFunction(*myTransFunc);
 	//Need also to update pointers in this Transfer function:
@@ -134,11 +145,11 @@ refreshCtab() {
 	myTransFunc->makeLut((float*)ctab);
 }
 	
-//Set the tab consistent with the dvrparams data here:
+//Set the tab consistent with the dvrparams data here
+//
 void DvrParams::updateDialog(){
 	
 	QString strn;
-	
 	mainWin->getSession()->blockRecording();
 	myDvrTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
 	
@@ -171,23 +182,14 @@ void DvrParams::updateDialog(){
 
 	TFFrame* myTFFrame = myDvrTab->DvrTFFrame;
 	myTFFrame->setEditor(myTFEditor);
-	float edCenter = 0.5f*(myTFEditor->getMinEditValue() +myTFEditor->getMaxEditValue());
-	float edSize = (myTFEditor->getMaxEditValue() -myTFEditor->getMinEditValue());
-	float mapCenter = 0.5f*(myTransFunc->getMinMapValue() +myTransFunc->getMaxMapValue());
-	float mapSize = myTransFunc->getMaxMapValue() -myTransFunc->getMinMapValue();
-	myDvrTab->editCenter->setText(strn.setNum(edCenter,'g', 4));
-	myDvrTab->editSize->setText(strn.setNum(edSize,'g', 4));
-	myDvrTab->editLeftLabel->setText(strn.setNum(myTFEditor->getMinEditValue(),'g', 4));
-	myDvrTab->editRightLabel->setText(strn.setNum(myTFEditor->getMaxEditValue(),'g', 4));
-	myDvrTab->leftMappingBound->setText(strn.setNum(myTransFunc->getMinMapValue(),'g',4));
-	myDvrTab->rightMappingBound->setText(strn.setNum(myTransFunc->getMaxMapValue(),'g',4));
-	myDvrTab->tfDomainCenterEdit->setText(strn.setNum(mapCenter, 'g', 4));
-	myDvrTab->tfDomainSizeEdit->setText(strn.setNum(mapSize, 'g', 4));
+
+	updateTFBounds();
+
 	float sliderVal = myTFEditor->getHistoStretch();
 	sliderVal = 1000.f - logf(sliderVal)/(HISTOSTRETCHCONSTANT*logf(2.f));
 	myDvrTab->histoStretchSlider->setValue((int) sliderVal);
 	setBindButtons();
-	setTFESliders();
+	
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
 	guiSetTextChanged(false);
@@ -195,6 +197,8 @@ void DvrParams::updateDialog(){
 		
 }
 //Update all the panel state associated with textboxes.
+//Performed whenever a textbox changes
+//
 void DvrParams::
 updatePanelState(){
 	QString strn;
@@ -207,77 +211,123 @@ updatePanelState(){
 	ambientAtten = myDvrTab->ambientAttenuation->text().toFloat();
 	specularAtten = myDvrTab->specularAttenuation->text().toFloat();
 	
+
 	myTFEditor->setMinEditValue(myDvrTab->editCenter->text().toFloat() -
 		0.5f* myDvrTab->editSize->text().toFloat());
 	myTFEditor->setMaxEditValue(myDvrTab->editCenter->text().toFloat() +
 		0.5f* myDvrTab->editSize->text().toFloat());
+	//Set the labels consistent with the editboxes
 	myDvrTab->editLeftLabel->setText(strn.setNum(myTFEditor->getMinEditValue(),'g', 4));
 	myDvrTab->editRightLabel->setText(strn.setNum(myTFEditor->getMaxEditValue(),'g', 4));
-	//Need to know whether the min/max values changed or the size
+	//Set the left/right limits if necessary:
+	if (myTFEditor->getMinEditValue() < leftTFELimit)
+		leftTFELimit = myTFEditor->getMinEditValue();
+	if (myTFEditor->getMaxEditValue() > rightTFELimit)
+		rightTFELimit = myTFEditor->getMaxEditValue();
+
+	//For the domain, need to know whether the min/max values changed or the size
 	float newMinMap = myDvrTab->leftMappingBound->text().toFloat();
 	float newMaxMap = myDvrTab->rightMappingBound->text().toFloat();
 	
-	
-
 	//if the left or right domain bounds changed, ignore changes in
-	//the center/size text edits.  Ignore round-off errors
-	if((fabs(myTransFunc->getMinMapValue() - newMinMap) > ROUND_OFF) ||
-		(fabs(myTransFunc->getMaxMapValue() - newMaxMap) > ROUND_OFF)
+	//the center/size text edits.  Ignore round-off errors.
+	//We will also update the left/right limits if necessary to 
+	//include specified interval
+	if((fabs(minMapBounds[varNum] - newMinMap) > ROUND_OFF) ||
+		(fabs(maxMapBounds[varNum] - newMaxMap) > ROUND_OFF)
 	  )
-	{
-		myTransFunc->setMinMapValue(newMinMap);
-		myTransFunc->setMaxMapValue(newMaxMap);
+	{ //get value from left/right bounds edit boxes:
+		//Force the values to be valid:
+		if (newMaxMap <= newMinMap){
+			newMaxMap = newMinMap + 0.001f*(getDataMaxBound()-getDataMinBound());
+		}
+		setMinMapBound(newMinMap);
+		setMaxMapBound(newMaxMap);
 		myDvrTab->tfDomainCenterEdit->setText(strn.setNum(0.5f*(newMaxMap+newMinMap),'g',4));
 		myDvrTab->tfDomainSizeEdit->setText(strn.setNum(newMaxMap-newMinMap,'g',4));
-	} else {
+		rightTFLimit = Max(newMaxMap, rightTFLimit);
+		leftTFLimit = Min(newMinMap, leftTFLimit);
+		setDatarangeDirty(true);
+	} else {  //otherwise, get values from size/center edit boxes
+		//Check first: did the size or center change?  
 		float newMapSize = myDvrTab->tfDomainSizeEdit->text().toFloat();
 		float newMapCenter = myDvrTab->tfDomainCenterEdit->text().toFloat();
-		myTransFunc->setMinMapValue(newMapCenter-.5f*newMapSize);
-		myTransFunc->setMaxMapValue(newMapCenter+.5f*newMapSize);
-		myDvrTab->leftMappingBound->setText(strn.setNum(newMapCenter-.5f*newMapSize,'g',4));
-		myDvrTab->rightMappingBound->setText(strn.setNum(newMapCenter+.5f*newMapSize,'g',4));
+		if ( (fabs(maxMapBounds[varNum] - minMapBounds[varNum] - newMapSize) >
+				ROUND_OFF) || (fabs ((maxMapBounds[varNum]+minMapBounds[varNum])*.5f -
+				newMapCenter) > ROUND_OFF))
+		{
+			leftTFLimit = Min(newMapCenter - newMapSize*0.5f, leftTFLimit);
+			rightTFLimit = Max(newMapCenter + newMapSize*0.5f, rightTFLimit);
+			setMinMapBound(newMapCenter - .5f*newMapSize);
+			setMaxMapBound(newMapCenter + .5f*newMapSize);
+			myDvrTab->leftMappingBound->setText(strn.setNum(minMapBounds[varNum],'g',4));
+			myDvrTab->rightMappingBound->setText(strn.setNum(maxMapBounds[varNum],'g',4));
+			setDatarangeDirty(true);
+		}
 	}
 
 	setTFESliders();
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
 	guiSetTextChanged(false);
-	//updateRenderer();
+	
 }
 //Set the TFE sliders consistent with the bounds settings in params
 void DvrParams::
 setTFESliders(){
 	//first set the domain sliders.
-	//The domain size slider has its max the full data range,
-	//or the size of the domain, whichever is larger.
-	setDataRange();
-	float mapSize = (myTransFunc->getMaxMapValue()- myTransFunc->getMinMapValue());
-	float relSize = mapSize/(rightTFLimit - leftTFLimit);
+	//The   sliders have as max/min the full data range (initially)
+	//but can be changed by the user by typing in text values.
 	
-	myDvrTab->tfDomainSizeSlider->setValue((int)(relSize*1000.f));
-	float centerMax = myTransFunc->getMaxMapValue();
-	float centerMin = myTransFunc->getMinMapValue();
+	float mapSize = (maxMapBounds[varNum]- minMapBounds[varNum]);
+	assert(mapSize > 0.f);
+	float maxsize = rightTFLimit - leftTFLimit;
+	myDvrTab->tfDomainSizeSlider->setValue((int)(mapSize*1000.f/maxsize));
+	float centerMax = getMaxMapBound();
+	float centerMin = getMinMapBound();
 
 	float center = (centerMin+centerMax)*0.5f;
+	//centerSlider represents position of center in interval between
+	//leftTFLimit and rightTFLimit
 	int centerSlider;
 	if (centerMin >= centerMax) centerSlider = 500;
-	else centerSlider = (int)(1000.f * (center - centerMin)/(centerMax - centerMin));
+	else centerSlider = (int)(1000.f * (center - leftTFLimit)/(rightTFLimit - leftTFLimit));
 	myDvrTab->tfDomainCenterSlider->setValue(centerSlider);
 	
 	//then set the edit window sliders:
 	float size = (myTFEditor->getMaxEditValue()- myTFEditor->getMinEditValue());
-	relSize = size/(rightTFLimit - leftTFLimit);
+	float relSize = size/(rightTFELimit - leftTFELimit);
 	
 	myDvrTab->editSizeSlider->setValue((int)(relSize*1000.f));
 	center = ((myTFEditor->getMaxEditValue()+ myTFEditor->getMinEditValue())*0.5f);
 	
-	centerSlider = (int)(1000.f * (center - leftTFLimit)/(rightTFLimit - leftTFLimit));
+	centerSlider = (int)(1000.f * (center - leftTFELimit)/(rightTFELimit - leftTFELimit));
 	myDvrTab->editCenterSlider->setValue(centerSlider);
 
 }
+//Change variable, plus other side-effects, updating tfe as well as tf.
+//The sliders are updated to have range equal to the full map range of
+//the new data, with consequential change in settings
+void DvrParams::
+setVarNum(int val) 
+{
+	varNum = val;
+	leftTFLimit = getMinMapBound();
+	rightTFLimit = getMaxMapBound();
+	//myTFEditor->setMinEditValue(getMinMapBound());
+	//myTFEditor->setMaxEditValue(getMaxMapBound());
+	leftTFELimit = getMinMapBound();
+	rightTFELimit = getMaxMapBound();
+	//reset the editing display range, this also sets dirty flag
+	myTFEditor->setEditingRange(getMinMapBound(), getMaxMapBound());
+	updateTFBounds();
+	//Force a redraw of tfframe
+	myDvrTab->DvrTFFrame->update();	
+	setDatarangeDirty(true);
+}
 /*
  * Method to be invoked after the user has moved the right or left bounds
- * From the TFE editor.  
+ * (e.g. From the TFE editor. ) 
  * Make the textboxes consistent with the new left/right bounds, but
  * don't trigger a new undo/redo event
  * Then make the sliders update.
@@ -285,12 +335,21 @@ setTFESliders(){
 void DvrParams::
 updateTFBounds(){
 	QString strn;
-	float mapCenter = 0.5f*(myTransFunc->getMinMapValue() +myTransFunc->getMaxMapValue());
-	float mapSize = myTransFunc->getMaxMapValue() -myTransFunc->getMinMapValue();
-	myDvrTab->leftMappingBound->setText(strn.setNum(myTransFunc->getMinMapValue(),'g',4));
-	myDvrTab->rightMappingBound->setText(strn.setNum(myTransFunc->getMaxMapValue(),'g',4));
+	myDvrTab->minDataBound->setText(strn.setNum(getDataMinBound()));
+	myDvrTab->maxDataBound->setText(strn.setNum(getDataMaxBound()));	
+	float edCenter = 0.5f*(myTFEditor->getMinEditValue() + myTFEditor->getMaxEditValue());
+	float edSize = (myTFEditor->getMaxEditValue() - myTFEditor->getMinEditValue());
+	float mapCenter = 0.5f*(minMapBounds[varNum] + maxMapBounds[varNum]);
+	float mapSize = maxMapBounds[varNum] - minMapBounds[varNum];
+	myDvrTab->editCenter->setText(strn.setNum(edCenter,'g', 4));
+	myDvrTab->editSize->setText(strn.setNum(edSize,'g', 4));
+	myDvrTab->editLeftLabel->setText(strn.setNum(myTFEditor->getMinEditValue(),'g', 4));
+	myDvrTab->editRightLabel->setText(strn.setNum(myTFEditor->getMaxEditValue(),'g', 4));
+	myDvrTab->leftMappingBound->setText(strn.setNum(minMapBounds[varNum],'g',4));
+	myDvrTab->rightMappingBound->setText(strn.setNum(maxMapBounds[varNum],'g',4));
 	myDvrTab->tfDomainCenterEdit->setText(strn.setNum(mapCenter, 'g', 4));
 	myDvrTab->tfDomainSizeEdit->setText(strn.setNum(mapSize, 'g', 4));
+	setDatarangeDirty(true);
 	setTFESliders();
 }
 void DvrParams::
@@ -317,7 +376,20 @@ guiSetVarNum(int val){
 	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"set dvr variable");
 	setVarNum(val);
 	PanelCommand::captureEnd(cmd, this);
-	//updateRenderer();
+}
+//Make the TFE and TF left, right limits agree with current
+//slider settings:
+//
+void DvrParams::
+guiRecenterSliders(){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"re-center sliders");
+	leftTFLimit = 1.5f*getMinMapBound()- 0.5f*getMaxMapBound();
+	rightTFLimit = 1.5f*getMaxMapBound()- 0.5f*getMinMapBound();
+	leftTFELimit = 1.5f*myTFEditor->getMinEditValue()-0.5f*myTFEditor->getMaxEditValue();
+	rightTFELimit =  1.5f*myTFEditor->getMaxEditValue()-0.5f*myTFEditor->getMinEditValue();
+	setTFESliders();
+	PanelCommand::captureEnd(cmd, this);
 }
 void DvrParams::
 guiSetNumBits(int val){
@@ -333,7 +405,6 @@ guiSetLighting(bool val){
 	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(), "toggle dvr lighting");
 	setLighting(val);
 	PanelCommand::captureEnd(cmd, this);
-	//updateRenderer();
 }
 
 //The start and end of the slider move are captured in history.  Individual
@@ -358,11 +429,11 @@ guiMoveTFECenter(int n){
 	
 	int sizeVal = myDvrTab->editSizeSlider->value();
 	
-	float realHalfSize =  (((float)(sizeVal/2))/1000.f)*(rightTFLimit - leftTFLimit);	
+	float realHalfSize =  (((float)(sizeVal/2))/1000.f)*(rightTFELimit - leftTFELimit);	
 	//Convert n to a float val:
 	float centerRatio = (float)n/1000.f;
-	float realCenter = leftTFLimit*(1.f-centerRatio) +
-		centerRatio*rightTFLimit;
+	float realCenter = leftTFELimit*(1.f-centerRatio) +
+		centerRatio*rightTFELimit;
 	myTFEditor->setMinEditValue(realCenter - realHalfSize);
 	myTFEditor->setMaxEditValue(realCenter + realHalfSize);
 	//Set the line edit
@@ -386,8 +457,8 @@ guiSetTFESize(int n){
 	int centerVal = myDvrTab->editCenterSlider->value();
 	
 	//Convert n to a float val:
-	float realCenter = leftTFLimit + ((float)centerVal/1000.f)*(rightTFLimit - leftTFLimit);
-	float realHalfSize =  (((float)(n/2))/1000.f)*(rightTFLimit - leftTFLimit);	
+	float realCenter = leftTFELimit + ((float)centerVal/1000.f)*(rightTFELimit - leftTFELimit);
+	float realHalfSize =  (((float)(n/2))/1000.f)*(rightTFELimit - leftTFELimit);	
 	
 	myTFEditor->setMinEditValue(realCenter - realHalfSize);
 	myTFEditor->setMaxEditValue(realCenter + realHalfSize);
@@ -418,6 +489,7 @@ guiEndTFDomainCenterSlide(int n){
 	guiMoveTFDomainCenter(n);
 	PanelCommand::captureEnd(savedCommand,this);
 	savedCommand = 0;
+	setDatarangeDirty(true);
 }
 
 //When the domain center-slider moves:
@@ -432,8 +504,8 @@ guiMoveTFDomainCenter(int n){
 	float centerRatio = (float)n/1000.f;
 	float realCenter = leftTFLimit*(1.f-centerRatio) +
 		centerRatio*rightTFLimit;
-	myTransFunc->setMinMapValue(realCenter - realHalfSize);
-	myTransFunc->setMaxMapValue(realCenter + realHalfSize);
+	setMinMapBound(realCenter - realHalfSize);
+	setMaxMapBound(realCenter + realHalfSize);
 	//Set the line edits that are affected:
 	myDvrTab->tfDomainCenterEdit->setText(QString::number(realCenter));
 	myDvrTab->leftMappingBound->setText(QString::number(realCenter - realHalfSize,'g',4));
@@ -442,6 +514,7 @@ guiMoveTFDomainCenter(int n){
 	//Ignore the resulting textChanged events:
 	textChangedFlag = false;
 	myTFEditor->setDirty(true);
+	setDatarangeDirty(true);
 	myDvrTab->DvrTFFrame->update();	
 }
 //Respond to a change in domain size slider
@@ -456,8 +529,8 @@ guiSetTFDomainSize(int n){
 	float realCenter = leftTFLimit + ((float)centerVal/1000.f)*(rightTFLimit - leftTFLimit);
 	float realHalfSize =  (((float)(n/2))/1000.f)*(rightTFLimit - leftTFLimit);	
 	
-	myTransFunc->setMinMapValue(realCenter - realHalfSize);
-	myTransFunc->setMaxMapValue(realCenter + realHalfSize);
+	setMinMapBound(realCenter - realHalfSize);
+	setMaxMapBound(realCenter + realHalfSize);
 	//Set the line edits
 	myDvrTab->tfDomainCenterEdit->setText(QString::number(realCenter));
 	myDvrTab->tfDomainSizeEdit->setText(QString::number(2.f*realHalfSize));
@@ -470,6 +543,7 @@ guiSetTFDomainSize(int n){
 	textChangedFlag = false;
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
+	setDatarangeDirty(true);
 	PanelCommand::captureEnd(cmd,this);
 }
 //Respond to a change in histogram stretch factor
@@ -518,20 +592,6 @@ setBindButtons(){
 	bool enable = myTFEditor->canBind();
 	myDvrTab->OpacityBindButton->setEnabled(enable);
 	myDvrTab->ColorBindButton->setEnabled(enable);
-}
-//Require that the TFE bounds are within the TF bounds. 
-//Return true if anything is changed.
-bool DvrParams::
-enforceConsistency(){
-	bool changed = false;
-	//Make sure Map values are OK.
-	
-	if (myTransFunc->getMaxMapValue()<= myTransFunc->getMinMapValue()){
-		changed = true;
-		myTransFunc->setMaxMapValue( myTransFunc->getMinMapValue() + 1.e-20);
-	}
-	
-	return changed;
 }
 void DvrParams::setClutDirty(bool dirty){ 
 	clutDirty = dirty;
@@ -654,7 +714,38 @@ reinit(){
 	//reset to first variable:
 	varNum = 0;
 	numVariables = md->GetVariableNames().size();
-}
+	if (minMapBounds) delete minMapBounds;
+	if (maxMapBounds) delete maxMapBounds;
+	minMapBounds = new float[numVariables];
+	maxMapBounds = new float[numVariables];
 
+	for (int i = 0; i<numVariables; i++){
+		minMapBounds[i] = mainWin->getSession()->getDataRange(i)[0];
+		maxMapBounds[i] = mainWin->getSession()->getDataRange(i)[1];
+	}
+	leftTFLimit = 1.5f*minMapBounds[0] - 0.5f*maxMapBounds[0];
+	rightTFLimit = 1.5f*maxMapBounds[0] - 0.5f*minMapBounds[0];
+	//Also set the TFE bounds to be the same as the mapping bounds
+	//for the default variable (0)
+	myTFEditor->setMinEditValue(minMapBounds[0]);
+	myTFEditor->setMaxEditValue(maxMapBounds[0]);
+	leftTFELimit = 1.5f*minMapBounds[0] - 0.5f*maxMapBounds[0];
+	rightTFELimit = 1.5f*maxMapBounds[0] - 0.5f*minMapBounds[0];
+	setDatarangeDirty(true);
+	updateDialog();
+}
+//Method to invalidate a datarange, and to force a rendering
+//with new data quantization
+void DvrParams::
+setDatarangeDirty(bool dirty)
+{
+	datarangeDirty = dirty;
+	if (dirty){
+		currentDatarange[0] = minMapBounds[varNum];
+		currentDatarange[1] = maxMapBounds[varNum];
+		VizWinMgr* vizWinMgr = mainWin->getVizWinMgr();
+		if (vizWinMgr) vizWinMgr->setDvrDirty(this);
+	}
+}
 
 	

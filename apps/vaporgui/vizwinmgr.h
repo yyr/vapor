@@ -274,6 +274,7 @@ protected slots:
 	void dvrHistoStretch();
 	void dvrColorBind();
 	void dvrOpacBind();
+	void dvrRecenterSliders();
 	
 	void viewpointReturnPressed();
 	void regionReturnPressed();

@@ -69,6 +69,12 @@ public:
 	void setParams(DvrParams* p) {myParams = p;}
 	int getNumOpacControlPoints() {return numOpacControlPoints;}
 	int getNumColorControlPoints() {return numColorControlPoints;}
+	float getMinMapValue(){
+		return myParams->getMinMapBound();
+	}
+	float getMaxMapValue(){
+		return myParams->getMaxMapBound();
+	}
 	
 	//Map a point to the specified range, and quantize it.
 	//
@@ -77,16 +83,16 @@ public:
 	//i.e., quantize to current transfer function domain
 	//
 	int mapFloatToIndex(float point) {
-		return mapPosition(point, minMapValue, maxMapValue, numEntries-1);
+		return mapPosition(point, getMinMapValue(), getMaxMapValue(), numEntries-1);
 		//return (int)(0.5f+(numEntries*(point - minMapValue)/(maxMapValue-minMapValue)));
 	}
 	float mapIndexToFloat(int indx){
-		return (float)(minMapValue + ((float)indx)*(float)(maxMapValue-minMapValue)/(float)(numEntries-1));
+		return (float)(getMinMapValue() + ((float)indx)*(float)(getMaxMapValue()-getMinMapValue())/(float)(numEntries-1));
 	}
 	float opacCtrlPointPosition(int index){
-		return (minMapValue + opacCtrlPoint[index]*(maxMapValue-minMapValue));}
+		return (getMinMapValue() + opacCtrlPoint[index]*(getMaxMapValue()-getMinMapValue()));}
 	float colorCtrlPointPosition(int index){
-		return (minMapValue + colorCtrlPoint[index]*(maxMapValue-minMapValue));}
+		return (getMinMapValue() + colorCtrlPoint[index]*(getMaxMapValue()-getMinMapValue()));}
 	float controlPointOpacity(int index) { return opac[index];}
 	void hsvValue(float point, float* h, float*sat, float*val);
 	void controlPointHSV(int index, float* h, float*s, float*v){
@@ -102,12 +108,6 @@ public:
 	}
 	QRgb getControlPointRGB(int index);
 	void setControlPointRGB(int index, QRgb newColor);
-	void guiSetMinMapping(float val);
-	void guiSetMaxMapping(float val);
-	float getMinMapValue() {return minMapValue;}
-	float getMaxMapValue() {return maxMapValue;}
-	void setMaxMapValue(float val) {maxMapValue = val;}
-	void setMinMapValue(float val) {minMapValue = val;}
 
 	int getNumEntries() {return numEntries;}
 	void setNumEntries(int val){ numEntries = val;}
@@ -119,11 +119,11 @@ public:
 	//find left index for opacity 
 	//
 	int getLeftOpacityIndex(float val){
-		float normVal = (val-minMapValue)/(maxMapValue-minMapValue);
+		float normVal = (val-getMinMapValue())/(getMaxMapValue()-getMinMapValue());
 		return getLeftIndex(normVal, opacCtrlPoint, numOpacControlPoints);
 	}
 	int getLeftColorIndex(float val){
-		float normVal = (val-minMapValue)/(maxMapValue-minMapValue);
+		float normVal = (val-getMinMapValue())/(getMaxMapValue()-getMinMapValue());
 		return getLeftIndex(normVal, colorCtrlPoint, numColorControlPoints);
 	}
 protected:
@@ -145,9 +145,7 @@ protected:
 	//
 	TFEditor* myTFEditor;
 	DvrParams* myParams;
-	//Min, max values that are mapped
-	//
-	float minMapValue, maxMapValue;
+	
 	//Size of lookup table:
 	//
 	int numEntries;

@@ -25,6 +25,8 @@
 #define HISTOSTRETCHCONSTANT 0.1f
 #include <qwidget.h>
 #include "params.h"
+#include "session.h"
+#include "mainform.h"
 #include <vector>
 #include <string>
 class Dvr;
@@ -68,8 +70,11 @@ public:
 	float getDiffuseAttenuation() {return diffuseAtten;}
 	float getAmbientAttenuation() {return ambientAtten;}
 	float getSpecularAttenuation() {return specularAtten;}
-	
-	void setVarNum(int val) {varNum = val;}
+	//In addition to setting variableNum, must also 
+	//update mapping bounds and edit bounds
+	//as well as force a rebuilding of the transfer function
+	//
+	void setVarNum(int val); 
 	int getVarNum() {return varNum;}
 	const char* getVariableName() {
 		return (const char*) (variableNames[varNum].c_str());
@@ -78,21 +83,37 @@ public:
 	void setAttenuationDirty(bool dirty) {attenuationDirty = dirty;}
 	bool clutIsDirty() {return clutDirty;}
 	void setClutDirty(bool dirty);
+	bool datarangeIsDirty() {return datarangeDirty;}
+	float* getCurrentDatarange(){
+		return currentDatarange;
+	}
+	void setDatarangeDirty(bool dirty);
+
 	float (&getClut())[256][4] {
 		refreshCtab();
 		return ctab;
 	}
-	float getMinDataValue(){return minDataValue;}
-	float getMaxDataValue() {return maxDataValue;}
-	void setMinDataValue(float val) {
-		minDataValue = val;
-		setDataRange();
+	void setMinMapBound(float val) {
+		minMapBounds[varNum] = val;
 	}
-	void setMaxDataValue(float val) {
-		maxDataValue = val;
-		setDataRange();
+	void setMaxMapBound(float val) {
+		maxMapBounds[varNum] = val;
 	}
-	void setDataRange();
+	float getMinMapBound() {
+		return minMapBounds[varNum];
+	}
+	float getMaxMapBound() {
+		return maxMapBounds[varNum];
+	}
+	float getDataMinBound(){
+		if(numVariables == 0) return 0.f;
+		return mainWin->getSession()->getDataRange(varNum)[0];
+	}
+	float getDataMaxBound(){
+		if(numVariables == 0) return 1.f;
+		return mainWin->getSession()->getDataRange(varNum)[1];
+	}
+	
 		
 	void setClut(const float newTable[256][4]);
 	void setBindButtons();
@@ -113,6 +134,7 @@ public:
 	void guiMoveTFDomainCenter(int val);
 	void guiSetTFDomainSize(int val);
 	void guiSetHistoStretch(int val);
+	void guiRecenterSliders();
 	//respond to changes in TF (for undo/redo):
 	//
 	void guiStartChangeTF(char* s);
@@ -125,13 +147,12 @@ public:
 	
 protected:
 	void refreshCtab();
-	bool enforceConsistency();
 	void setTFESliders();
 	bool attenuationDirty;
 	bool clutDirty;
-	
-	
+	bool datarangeDirty;
 	bool lightingOn;
+	float currentDatarange[2];
 	int numBits;
 	float diffuseCoeff, ambientCoeff, specularCoeff;
 	float diffuseAtten, ambientAtten, specularAtten;
@@ -145,11 +166,16 @@ protected:
 	TFEditor* myTFEditor;
 	float histoStretchFactor;
 	PanelCommand* savedCommand;
-	float minDataValue, maxDataValue;
-	float leftTFLimit, rightTFLimit;
 	int varNum;
 	int numVariables;
 	std::vector<std::string> variableNames;
+	float* minMapBounds;
+	float* maxMapBounds;
+	//This value keeps track of the mapping domain size if the user makes it 
+	//larger than the data domain size, by setting value in the text boxes
+	//
+	float leftTFLimit, rightTFLimit;
+	float leftTFELimit, rightTFELimit;
 
 };
 };

@@ -162,11 +162,9 @@ public:
 	float getMaxEditValue(){return maxEditValue;}
 	void setMinEditValue(float val) {
 		minEditValue = val;
-		
 	}
 	void setMaxEditValue(float val) {
 		maxEditValue = val;
-		
 	}
 	TransferFunction* getTransferFunction() {return myTransferFunction;}
 	void setTransferFunction(TransferFunction* tf) {myTransferFunction = tf;}

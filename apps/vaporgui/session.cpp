@@ -77,34 +77,32 @@ restore(char* ){
 }
 
 /**
- * create a new datamgr.  
+ * create a new datamgr.  Also perform related functions such as
+ * constructing histograms and 
  */
 void Session::
 resetMetadata(const char* fileBase)
 {
 	string path(fileBase);
-	if (currentMetadata) delete currentMetadata;
+	if (dataMgr) delete dataMgr;
+	dataMgr = new DataMgr(fileBase, cacheMB, 1);
+	//if (currentMetadata) delete currentMetadata;
 	currentMetadata = new Metadata(path);
 	if (currentMetadata->GetErrCode() != 0) {
 		qWarning( "Error creating Metadata %s\n", currentMetadata->GetErrMsg());
 		return;
 	}
-	if (dataMgr) delete dataMgr;
+	
 
-	dataMgr = new DataMgr(fileBase, cacheMB, 1);
+	
 	if (dataMgr->GetErrCode() != 0) {
 		qWarning( "Error creating DataMgr %s\n", dataMgr->GetErrMsg());
 		return;
 	}
-#if NODATAMGR
-	myReader = new WaveletBlock3DRegionReader(fileBase, 1);
-#else
+
 	myReader = (WaveletBlock3DRegionReader*)dataMgr->GetRegionReader();
-#endif	
-	//Notify all params that there is new data:
-	vizWinMgr->reinitializeParams();
-	//Then make the tab panels refresh:
-	vizWinMgr->updateActiveParams();
+
+	
 	//currentHistogram = new Histo((unsigned char*)dataMgr->GetRegion(
 	//	0, 0, 0, 0, nbx>>1, nby>>1, nbz>>1, 0),
 	//	(nbx*nby*nbz)<<15);
@@ -118,7 +116,9 @@ resetMetadata(const char* fileBase)
 	currentHistograms = new Histo*[numVars];
 	for (int i = 0; i<numVars; i++){
 		//Tell the datamanager to use the overall max/min range
-		//In doing the quantization
+		//In doing the quantization.  Note that this will change
+		//when the range is changed in the TFE
+		//
 		dataMgr->SetDataRange(currentDataStatus->getDataRange(i));
 		//Obtain data dimensions for getting histogram:
 		size_t min_bdim[3];
@@ -151,6 +151,11 @@ resetMetadata(const char* fileBase)
 			}
 		}
 	}
+
+	//Notify all params that there is new data:
+	vizWinMgr->reinitializeParams();
+	//Then make the tab panels refresh:
+	vizWinMgr->updateActiveParams();
 	return;
 }
 //Add a command to the circular command queue

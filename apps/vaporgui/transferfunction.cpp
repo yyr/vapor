@@ -76,8 +76,7 @@ TransferFunction::TransferFunction(DvrParams* p, int nBits){
 	myTFEditor = 0;
 
 	numEntries = 1<<nBits;
-	minMapValue = p->getMinDataValue();
-	maxMapValue = p->getMaxDataValue();
+	
 	myParams->setClutDirty(true);
 }
 	
@@ -94,7 +93,7 @@ insertColorControlPoint(float point){
 	if (numColorControlPoints >= MAXCONTROLPOINTS) return -1;
 	//normalize point to value between 0 and 1:
 	//
-	float normPoint = (point-minMapValue)/(maxMapValue - minMapValue);
+	float normPoint = (point-getMinMapValue())/(getMaxMapValue() - getMinMapValue());
 	if (normPoint > 1.f || normPoint < 0.f) return -1;
 	int indx = getLeftIndex(normPoint, colorCtrlPoint, numColorControlPoints);
 	//Find the value
@@ -130,7 +129,7 @@ insertOpacControlPoint(float point, float opacity){
 	if (numOpacControlPoints >= MAXCONTROLPOINTS) return -1;
 	//normalize point to value between 0 and 1:
 	//
-	float normPoint = (point-minMapValue)/(maxMapValue - minMapValue);
+	float normPoint = (point-getMinMapValue())/(getMaxMapValue() - getMinMapValue());
 	if (normPoint < 0.f || normPoint > 1.f) return -1;
 	int indx = getLeftIndex(normPoint, opacCtrlPoint, numOpacControlPoints);
 	//Find the value at the new point
@@ -165,7 +164,7 @@ float TransferFunction::
 opacityValue(float point){
 	//normalize point to value between 0 and 1:
 	//
-	float normPoint = (point-minMapValue)/(maxMapValue - minMapValue);
+	float normPoint = (point-getMinMapValue())/(getMaxMapValue() - getMinMapValue());
 	
 	int index = getLeftIndex(normPoint, opacCtrlPoint, numOpacControlPoints);
 	float ratio = (normPoint - opacCtrlPoint[index])/(opacCtrlPoint[index+1]-opacCtrlPoint[index]);
@@ -176,7 +175,7 @@ void TransferFunction::
 hsvValue(float point, float*h, float*s, float*v){
 	//normalize point to value between 0 and 1:
 	//
-	float normPoint = (point-minMapValue)/(maxMapValue - minMapValue);
+	float normPoint = (point-getMinMapValue())/(getMaxMapValue() - getMinMapValue());
 	
 	int index = getLeftIndex(normPoint,colorCtrlPoint, numColorControlPoints);
 	float ratio = (normPoint - colorCtrlPoint[index])/(colorCtrlPoint[index+1]-colorCtrlPoint[index]);
@@ -263,7 +262,7 @@ moveOpacControlPoint(int index, float newPoint, float newOpacity){
 	
 	//normalize newPoint to value between 0 and 1:
 	//
-	float normPoint = (newPoint-minMapValue)/(maxMapValue - minMapValue);
+	float normPoint = (newPoint-getMinMapValue())/(getMaxMapValue() - getMinMapValue());
 	if (normPoint < 0.f) normPoint = 0.f;
 	if (normPoint > 1.f) normPoint = 1.f;
 
@@ -312,7 +311,7 @@ moveOpacControlPoint(int index, float newPoint, float newOpacity){
 int TransferFunction::
 moveColorControlPoint(int index, float newPoint){
 	//normalize point to value between 0 and 1:
-	float normPoint = (newPoint-minMapValue)/(maxMapValue - minMapValue);
+	float normPoint = (newPoint-getMinMapValue())/(getMaxMapValue() - getMinMapValue());
 	if (normPoint < 0.f) normPoint = 0.f;
 	if (normPoint > 1.f) normPoint = 1.f;
 
@@ -392,13 +391,13 @@ getLeftIndex(float val, float* ctrlPoint, int numCtrlPoints){
 void TransferFunction::
 makeLut(float* clut){
 	//Find the first control points
-	//int colorCtrlPtNum = getLeftIndex(minMapValue, colorCtrlPoint, numColorControlPoints);
-	//int opacCtrlPtNum = getLeftIndex(minMapValue, opacCtrlPoint, numOpacControlPoints);
+	//int colorCtrlPtNum = getLeftIndex(getMinMapValue(), colorCtrlPoint, numColorControlPoints);
+	//int opacCtrlPtNum = getLeftIndex(getMinMapValue(), opacCtrlPoint, numOpacControlPoints);
 	int colorCtrlPtNum = 0;
 	int opacCtrlPtNum = 0;
 	for (int i = 0; i< numEntries; i++){
 		//map the interval [minmapval,maxmapval] to [0..numEntries-1]
-		//float xvalue = minMapValue + ((float)i)*(maxMapValue-minMapValue)/((float)(numEntries-1));
+		//float xvalue = getMinMapValue() + ((float)i)*(getMaxMapValue()-getMinMapValue())/((float)(numEntries-1));
 		float normXValue = ((float)i)/(float)(numEntries - 1);
 		//Check if need next control point.
 		//find first control point to the right of this point

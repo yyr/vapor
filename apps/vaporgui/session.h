@@ -14,7 +14,12 @@
 //
 //	Date:		October 2004
 //
-//	Description:	Defines the Session class.
+//	Description:	Defines the Session class.  The session class is 
+//  responsible for the undo/redo queue as well as maintaining all
+//  session-wide parameters.  In particular, the session owns the DataMgr and
+//  the Metadata, since these are session-wide objects (only one is open at one time).
+//  The information about the current metadata (e.g. histograms) is stored in 
+//  an auxiliary datastructure, the DataStatus class.
 /**
  * The session class owns all the data associated with a VAPoR session.
  * All of the panel states are in the VizWinMgr class
@@ -87,11 +92,10 @@
  */
 #ifndef SESSION_H
 #define SESSION_H
-//Bypass datamgr by using files directly:
-#define NODATAMGR 0
 #define MAX_HISTORY 1000
 
 #include <vector>
+#include "vapor/DataMgr.h"
 namespace VAPoR {
 class VizWinMgr;
 class Histo;
@@ -102,66 +106,6 @@ class Command;
 class Metadata;
 class DataStatus;
 class WaveletBlock3DRegionReader;
-
-class Session {
-public:
-	Session(MainForm* mf);
-	~Session();
-	void save(char* filename);
-	void restore(char* filename);
-	DataMgr* getDataMgr() {return dataMgr;}
-	VizWinMgr* getWinMgr() {return vizWinMgr;}
-	MainForm* getMainWindow() {return mainWin;}
-	Metadata* getCurrentMetadata() {return currentMetadata;}
-	
-	//Methods to control the command queue:
-	//When a new command is issued, call "addToHistory"
-	//The backup and advance methods are invoked from the
-	//menu or from a script.
-	//
-	void addToHistory(Command* cmd);
-	void backupQueue();
-	void advanceQueue();
-	void resetCommandQueue();
-	Command* currentUndoCommand() {return commandQueue[(currentQueuePos)%MAX_HISTORY];}
-	Command* currentRedoCommand() {return commandQueue[(currentQueuePos+1)%MAX_HISTORY];}
-	//Anytime someone wants to block recording, they call blockRecording,
-	//then unblock when they are done.  No recording happens until everyone has stopped
-	//blocking it.
-	//
-	
-	void blockRecording() {recordingCount++;}
-	void unblockRecording() {recordingCount--;}
-	bool isRecording() {return (recordingCount == 0);}
-	Histo* getCurrentHistogram(int var) {
-		return (currentHistograms ? currentHistograms[var]: 0);}
-	const WaveletBlock3DRegionReader* getRegionReader() {return myReader;}
-	//Create a new Metadata, by specifying vmf file
-	void resetMetadata(const char* vmfile);
-	void setCacheMB(size_t size){cacheMB = size;}
-	size_t getCacheMB() {return cacheMB;}
-
-
-protected:
-	WaveletBlock3DRegionReader* myReader;
-	
-	//setup the DataStatus:
-	DataStatus* setupDataStatus();
-	DataMgr* dataMgr;
-	DataStatus* currentDataStatus;
-	VizWinMgr* vizWinMgr;
-	MainForm* mainWin;
-	Command* commandQueue[MAX_HISTORY];
-	int currentQueuePos;
-	int endQueuePos;
-	int startQueuePos;
-	int recordingCount;
-	Histo** currentHistograms;
-	Metadata* currentMetadata;
-	//Cache size in megabytes
-	size_t cacheMB;
-	
-};
 // Class used by session to keep track of variables, timesteps	
 class DataStatus{
 public:
@@ -223,6 +167,78 @@ private:
 	size_t fullDataSize[3];
 	float** dataRange;
 };
+class Session {
+public:
+	Session(MainForm* mf);
+	~Session();
+	void save(char* filename);
+	void restore(char* filename);
+	DataMgr* getDataMgr() {return dataMgr;}
+	VizWinMgr* getWinMgr() {return vizWinMgr;}
+	MainForm* getMainWindow() {return mainWin;}
+	Metadata* getCurrentMetadata() {return currentMetadata;}
+	//Datarange is a 2-element float vector, one for each variable
+	//
+	float* getDataRange(int variableNum){
+		if (currentDataStatus)
+			return currentDataStatus->getDataRange(variableNum);
+		else return 0;
+	}
+	//Set range mapped for a variable.  Currently sets all
+	//variables to same range.
+	//
+	void setMappingRange(int /*variableNum*/, float leftRight[2]){
+		dataMgr->SetDataRange(leftRight);
+	}
+	//Methods to control the command queue:
+	//When a new command is issued, call "addToHistory"
+	//The backup and advance methods are invoked from the
+	//menu or from a script.
+	//
+	void addToHistory(Command* cmd);
+	void backupQueue();
+	void advanceQueue();
+	void resetCommandQueue();
+	Command* currentUndoCommand() {return commandQueue[(currentQueuePos)%MAX_HISTORY];}
+	Command* currentRedoCommand() {return commandQueue[(currentQueuePos+1)%MAX_HISTORY];}
+	//Anytime someone wants to block recording, they call blockRecording,
+	//then unblock when they are done.  No recording happens until everyone has stopped
+	//blocking it.
+	//
+	
+	void blockRecording() {recordingCount++;}
+	void unblockRecording() {recordingCount--;}
+	bool isRecording() {return (recordingCount == 0);}
+	Histo* getCurrentHistogram(int var) {
+		return (currentHistograms ? currentHistograms[var]: 0);}
+	const WaveletBlock3DRegionReader* getRegionReader() {return myReader;}
+	//Create a new Metadata, by specifying vmf file
+	void resetMetadata(const char* vmfile);
+	void setCacheMB(size_t size){cacheMB = size;}
+	size_t getCacheMB() {return cacheMB;}
+
+
+protected:
+	WaveletBlock3DRegionReader* myReader;
+	
+	//setup the DataStatus:
+	DataStatus* setupDataStatus();
+	DataMgr* dataMgr;
+	DataStatus* currentDataStatus;
+	VizWinMgr* vizWinMgr;
+	MainForm* mainWin;
+	Command* commandQueue[MAX_HISTORY];
+	int currentQueuePos;
+	int endQueuePos;
+	int startQueuePos;
+	int recordingCount;
+	Histo** currentHistograms;
+	Metadata* currentMetadata;
+	//Cache size in megabytes
+	size_t cacheMB;
+	
+};
+
 }; //end VAPoR namespace
 #endif //SESSION_H
 

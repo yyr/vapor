@@ -32,7 +32,7 @@ win32:QMAKE_CXXFLAGS_RELEASE += /EHsc
 DEFINES += VOLUMIZER
 
 
-INCLUDEPATH += ./ui \
+INCLUDEPATH += . \
 	../../include
 
 MOC_DIR = ../../../apps/vaporgui/moc

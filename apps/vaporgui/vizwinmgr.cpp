@@ -555,6 +555,7 @@ VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 	connect (dvrTab->histoStretchSlider, SIGNAL(sliderReleased()), this, SLOT (dvrHistoStretch()));
 	connect (dvrTab->ColorBindButton, SIGNAL(pressed()), this, SLOT(dvrColorBind()));
 	connect (dvrTab->OpacityBindButton, SIGNAL(pressed()), this, SLOT(dvrOpacBind()));
+	connect (dvrTab->recenterButton, SIGNAL(pressed()), this, SLOT(dvrRecenterSliders()));
 	emit enableMultiViz(getNumVisualizers() > 1);
 }
 void
@@ -947,6 +948,10 @@ void VizWinMgr::
 dvrHistoStretch() {
 	getDvrParams(activeViz)->guiSetHistoStretch(
 		myMainWindow->getDvrTab()->histoStretchSlider->value());
+}
+void VizWinMgr::
+dvrRecenterSliders(){
+	getDvrParams(activeViz)->guiRecenterSliders();
 }
 void VizWinMgr::
 beginTFECenterSlide(){

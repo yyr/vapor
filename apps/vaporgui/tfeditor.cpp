@@ -53,7 +53,7 @@ TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm, Session
 	
 }
 TFEditor::~TFEditor(){
-	//Don't delete the image:  QT ref counts them
+	//Don't delete the image:  QT refcounts them
 	//delete editImage;
 }
 // Use the data in the transfer function to construct the editing image
@@ -358,14 +358,15 @@ moveGrabbedControlPoints(int newX, int newY){
 void TFEditor::
 moveDomainBound(int x){
 	float mappedX = mapWin2Var(x);
+	//Check that the user has not moved one bound past the other:
 	if (grabbedState&leftDomainGrab){
-		if(mappedX < myTransferFunction->getMaxMapValue()){
-			myTransferFunction->setMinMapValue(mappedX);
+		if(mappedX < myParams->getMaxMapBound()){
+			myParams->setMinMapBound(mappedX);
 		}
 	}
 	else if (grabbedState&rightDomainGrab){
-		if(mappedX > myTransferFunction->getMinMapValue()){
-			myTransferFunction->setMaxMapValue(mappedX);
+		if(mappedX > myParams->getMinMapBound()){
+			myParams->setMaxMapBound(mappedX);
 		}
 	}
 	else assert(0);
@@ -405,13 +406,13 @@ closestControlPoint(int x, int y, int* index) {
 	int i;
 	//Check if grab on domain edge:
 	//
-	if (abs(y-(TOPMARGIN+(height-BELOWOPACITY-TOPMARGIN)/2)) < CLOSE_DISTANCE){
+	if (abs(y-(TOPMARGIN+(height-BELOWOPACITY-TOPMARGIN)/2)) < 2*CLOSE_DISTANCE){
 		int leftLim = mapVar2Win(myTransferFunction->getMinMapValue(),false);
 		int rightLim = mapVar2Win(myTransferFunction->getMaxMapValue(),false);
-		if (abs (x-leftLim)< CLOSE_DISTANCE){
+		if (abs (x-leftLim)<  2*CLOSE_DISTANCE){
 			return -2;
 		}
-		if (abs (x-rightLim)<CLOSE_DISTANCE){
+		if (abs (x-rightLim)< 2*CLOSE_DISTANCE){
 			return 2;
 		}
 	}
