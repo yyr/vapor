@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="vaporgui"
-	ProjectGUID="{5C8BE076-68E6-3921-94FD-1DF2F47E21C5}">
+	Name="..\..\..\targets\win32\bin\vaporgui"
+	ProjectGUID="{383213E5-0BC1-353D-92BC-EDF1D333656D}">
 	<Platforms>
 		<Platform
 			Name="Win32"/>
@@ -20,12 +20,12 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="1"
-				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,b:\Metadata2\apps\vaporgui\ui,b:\Metadata2\include\wavelet,b:\Metadata2\lib\wavelet,b:\Metadata2\include,$(QTDIR)\include,../../../apps/vaporgui/ui\,b:\Metadata2\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
+				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,b:\Vapor\apps\vaporgui\ui,b:\Vapor\include,$(QTDIR)\include,../../../apps/vaporgui/ui\,b:\Vapor\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
 				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
 				ExceptionHandling="FALSE"
-				RuntimeLibrary="2"
+				RuntimeLibrary="3"
 				BufferSecurityCheck="FALSE"
 				AssemblerListingLocation="Release\"
 				ObjectFile="Release\"
@@ -38,7 +38,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="TRUE"
-				AdditionalDependencies="qt-mt332.lib qtmain.lib opengl32.lib glu32.lib ..\..\..\targets\win32\bin\wavelet.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
+				AdditionalDependencies="qt-mt332.lib qtmain.lib opengl32.lib glu32.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
 				OutputFile="Release\\..\..\..\targets\win32\bin\vaporgui.exe"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="$(QTDIR)\lib"
@@ -82,7 +82,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(VOLUMIZER_ROOT)\include&quot;;&quot;B:\Expat-1.95.8\Source\lib&quot;;b:\Metadata2\include;&quot;$(QTDIR)\include&quot;;../../../apps/vaporgui/ui\;..\..\..\apps\vaporgui\moc\;&quot;C:\Qt\3.3.2\mkspecs\win32-msvc.net&quot;;../../../apps/vaporgui/"
+				AdditionalIncludeDirectories="&quot;$(VOLUMIZER_ROOT)\include&quot;;b:\Vapor\apps\vaporgui\ui;b:\Vapor\include;&quot;$(QTDIR)\include&quot;;../../../apps/vaporgui/ui\;b:\Vapor\make\win32\vaporgui;..\..\..\apps\vaporgui\moc\;&quot;C:\Qt\3.3.2\mkspecs\win32-msvc.net&quot;;&quot;B:\Expat-1.95.8\Source\lib&quot;"
 				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
@@ -91,7 +91,7 @@
 				BufferSecurityCheck="FALSE"
 				AssemblerListingLocation="..\..\..\targets\win32\built\vaporgui\"
 				ObjectFile="..\..\..\targets\win32\built\vaporgui\"
-				ProgramDataBaseFileName="../../../targets/win32/built/vaporgui/vc70.pdb"
+				ProgramDataBaseFileName=".\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"/>
@@ -100,11 +100,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="TRUE"
-				AdditionalDependencies="qt-mt332.lib qtmain.lib opengl32.lib glu32.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib $(NOINHERIT)"
+				AdditionalDependencies="qt-mt332.lib qtmain.lib opengl32.lib glu32.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="$(QTDIR)\lib"
-				IgnoreAllDefaultLibraries="FALSE"
 				DelayLoadDLLs="opengl32.dll"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=""
@@ -762,34 +761,34 @@
 			Name="Generated Form Files"
 			Filter="cpp;c;cxx;h;hpp;hxx;">
 			<File
-				RelativePath="b:\Metadata2\apps\vaporgui\ui\contourplanetab.cpp">
+				RelativePath="b:\Vapor\apps\vaporgui\ui\contourplanetab.cpp">
 			</File>
 			<File
-				RelativePath="b:\Metadata2\apps\vaporgui\ui\contourplanetab.h">
+				RelativePath="b:\Vapor\apps\vaporgui\ui\contourplanetab.h">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\ui\dvr.cpp">
+				RelativePath="b:\Vapor\apps\vaporgui\ui\dvr.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\ui\dvr.h">
+				RelativePath="b:\Vapor\apps\vaporgui\ui\dvr.h">
 			</File>
 			<File
-				RelativePath="b:\Metadata2\apps\vaporgui\ui\isotab.cpp">
+				RelativePath="b:\Vapor\apps\vaporgui\ui\isotab.cpp">
 			</File>
 			<File
-				RelativePath="b:\Metadata2\apps\vaporgui\ui\isotab.h">
+				RelativePath="b:\Vapor\apps\vaporgui\ui\isotab.h">
 			</File>
 			<File
-				RelativePath="b:\Metadata2\apps\vaporgui\ui\regiontab.cpp">
+				RelativePath="b:\Vapor\apps\vaporgui\ui\regiontab.cpp">
 			</File>
 			<File
-				RelativePath="b:\Metadata2\apps\vaporgui\ui\regiontab.h">
+				RelativePath="b:\Vapor\apps\vaporgui\ui\regiontab.h">
 			</File>
 			<File
-				RelativePath="b:\Metadata2\apps\vaporgui\ui\viztab.cpp">
+				RelativePath="b:\Vapor\apps\vaporgui\ui\viztab.cpp">
 			</File>
 			<File
-				RelativePath="b:\Metadata2\apps\vaporgui\ui\viztab.h">
+				RelativePath="b:\Vapor\apps\vaporgui\ui\viztab.h">
 			</File>
 		</Filter>
 		<Filter
