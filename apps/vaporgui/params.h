@@ -85,7 +85,7 @@ public:
 	virtual Params* getCorrespondingGlobalParams(); 
 	virtual Params* getCorrespondingLocalParams() ;
 
-	
+	int getVizNum() {return vizNum;}
 	void setLocal(bool lg){ if (lg) {local = true; assert (vizNum != -1);}
 		else local = false;}
 	bool isLocal() {return local;}

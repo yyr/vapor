@@ -84,6 +84,8 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	mouseDownHere = false;
 	newViewerCoords = true;
 	regionDirty = true;
+	dataRangeDirty = true;
+	clutDirty = true;
 	
 	
     // actions
@@ -512,7 +514,7 @@ addRenderer(Renderer* ren)
 void VizWin::removeRenderer(const char* rendererName){
 	int i;
 	for (i = 0; i<numRenderers; i++) {		
-		if (strcmp(renderer[i]->className(),rendererName)) continue;
+		if (!strcmp(renderer[i]->className(),rendererName)) continue;
 		delete renderer[i];
 		renderer[i] = 0;
 		break;

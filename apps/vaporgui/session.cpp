@@ -156,6 +156,7 @@ exportData(){
 void Session::
 resetMetadata(const char* fileBase)
 {
+	int i;
 	renderOK = false;
 	//Reinitialize the animation controller:
 	AnimationController::getInstance()->restart();
@@ -178,15 +179,24 @@ resetMetadata(const char* fileBase)
 
 	myReader = (WaveletBlock3DRegionReader*)dataMgr->GetRegionReader();
 
+	//If histograms exist, delete them:
+	if (currentHistograms && currentDataStatus){
+		for (i = 0; i< currentDataStatus->getNumVariables(); i++){
+			delete currentHistograms[i];
+		}
+		delete currentHistograms;
+	}
 	
 	if (currentDataStatus) delete currentDataStatus;
 	currentDataStatus = setupDataStatus();
 
 	//Now create histograms for all the variables present.
+	
+	
 	//Initially just use the first (valid)time step.
 	int numVars = currentDataStatus->getNumVariables();
 	currentHistograms = new Histo*[numVars];
-	int i;
+	
 	for (i = 0; i<numVars; i++){
 		//Tell the datamanager to use the overall max/min range
 		//In doing the quantization.  Note that this will change

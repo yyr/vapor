@@ -86,13 +86,12 @@ public:
 	}
 	bool attenuationIsDirty() {return attenuationDirty;}
 	void setAttenuationDirty(bool dirty) {attenuationDirty = dirty;}
-	bool clutIsDirty() {return clutDirty;}
-	void setClutDirty(bool dirty);
-	bool datarangeIsDirty() {return datarangeDirty;}
+	
+	void setClutDirty();
 	float* getCurrentDatarange(){
 		return currentDatarange;
 	}
-	void setDatarangeDirty(bool dirty);
+	void setDatarangeDirty();
 
 	float (&getClut())[256][4] {
 		refreshCtab();
@@ -170,8 +169,6 @@ protected:
 	void refreshCtab();
 	void hookupTF(TransferFunction* t);
 	bool attenuationDirty;
-	bool clutDirty;
-	bool datarangeDirty;
 	bool lightingOn;
 	float currentDatarange[2];
 	int numBits;

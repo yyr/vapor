@@ -251,11 +251,15 @@ DrawVoxelScene(unsigned /*fast*/)
 	//Save the coord trans matrix, to pass to volumizer
 	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
 	
-	
+	if (myVizWin->dataRangeIsDirty()){
+		myDataMgr->SetDataRange(myDVRParams->getVariableName(),
+			myDVRParams->getCurrentDatarange());
+		myVizWin->setDataRangeDirty(false);
+	}
 	// set up region. Only need to do this if the data
 	// roi changes
 	//
-	if (myVizWin->regionIsDirty()|| myDVRParams->datarangeIsDirty()) {
+	if (myVizWin->regionIsDirty()) {
 
 		//float xc, yc, zc; // center of volume
 		//float hmaxdim;
@@ -271,11 +275,7 @@ DrawVoxelScene(unsigned /*fast*/)
 		//Do Region setup as in SetCurrentFile() (mdb.C):
 		//
 
-		if (myDVRParams->datarangeIsDirty()){
-			myDataMgr->SetDataRange(myDVRParams->getVariableName(),
-				myDVRParams->getCurrentDatarange());
-			myDVRParams->setDatarangeDirty(false);
-		}
+		
 		
 		void* data = (void*) myDataMgr->GetRegionUInt8(
 				myAnimationParams->getCurrentFrameNumber(),
@@ -324,15 +324,15 @@ DrawVoxelScene(unsigned /*fast*/)
 		myVizWin->setRegionDirty(false);
 	}
 
-	if (myDVRParams->clutIsDirty()) {
+	if (myVizWin->clutIsDirty()) {
 		
 		//Same table sets CLUT and OLUT
 		//
 		driver->SetCLUT(myDVRParams->getClut());
 		driver->SetOLUT(myDVRParams->getClut());
-		myDVRParams->setClutDirty(false);
+		myVizWin->setClutDirty(false);
 	}
-	
+	/* Attenuation is not supported yet...
 	if (myDVRParams->attenuationIsDirty()) {
 		driver->SetAmbient(myDVRParams->getAmbientAttenuation(),
 			myDVRParams->getAmbientAttenuation(),myDVRParams->getAmbientAttenuation());
@@ -342,7 +342,7 @@ DrawVoxelScene(unsigned /*fast*/)
 			myDVRParams->getSpecularAttenuation(),myDVRParams->getSpecularAttenuation());
 		myDVRParams->setAttenuationDirty(false);
 	}
-
+*/
 	// Modelview matrix
 	//
 	glMatrixMode(GL_MODELVIEW);

@@ -85,8 +85,6 @@ DvrParams::DvrParams(int winnum) : Params(winnum){
 	myTransFunc = new TransferFunction(this, numBits);
 	if(myDvrTab) myTFEditor = new TFEditor(this, myTransFunc, myDvrTab->DvrTFFrame);
 	else myTFEditor = 0;
-	clutDirty = true;
-	datarangeDirty = true;
 	savedCommand = 0;
 	currentDatarange[0] = 0.f;
 	currentDatarange[1] = 1.f;
@@ -154,8 +152,8 @@ makeCurrent(Params* prevParams, bool newWin) {
 	if (formerParams->enabled != enabled || formerParams->local != local || newWin){
 		updateRenderer(formerParams->enabled, formerParams->local, newWin);
 	}
-	setDatarangeDirty(true);
-	clutDirty = true;
+	setDatarangeDirty();
+	setClutDirty();
 }
 
 void DvrParams::
@@ -265,7 +263,8 @@ setVarNum(int val)
 	//Force a redraw of tfframe
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();	
-	setDatarangeDirty(true);
+	//Set region dirty, since new data is needed
+	VizWinMgr::getInstance()->setRegionDirty(this);
 }
 /*
  * Method to be invoked after the user has moved the right or left bounds
@@ -280,7 +279,7 @@ updateTFBounds(){
 	myDvrTab->maxDataBound->setText(strn.setNum(getDataMaxBound()));	
 	myDvrTab->leftMappingBound->setText(strn.setNum(minMapBounds[varNum],'g',4));
 	myDvrTab->rightMappingBound->setText(strn.setNum(maxMapBounds[varNum],'g',4));
-	setDatarangeDirty(true);
+	setDatarangeDirty();
 }
 
 void DvrParams::
@@ -290,7 +289,7 @@ setClut(const float newTable[256][4]){
 			ctab[i][j] = newTable[i][j];
 		}
 	}
-	clutDirty = true;
+	setClutDirty();
 }
 //Change mouse mode to specified value
 //0,1,2 correspond to edit, zoom, pan
@@ -313,11 +312,12 @@ guiSetAligned(){
 }
 void DvrParams::
 guiSetEnabled(bool value){
+	
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle dvr enabled");
 	setEnabled(value);
 	PanelCommand::captureEnd(cmd, this);
-	//updateRenderer();
+	//updateRenderer(prevEnabled, local, false); (unnecessary; called by vizwinmgr)
 }
 void DvrParams::
 guiSetVarNum(int val){
@@ -391,12 +391,8 @@ setBindButtons(){
 	myDvrTab->OpacityBindButton->setEnabled(enable);
 	myDvrTab->ColorBindButton->setEnabled(enable);
 }
-void DvrParams::setClutDirty(bool dirty){ 
-	clutDirty = dirty;
-	if (dirty) {
-		VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-		if (vizWinMgr) vizWinMgr->setDvrDirty(this);
-	}
+void DvrParams::setClutDirty(){ 
+	VizWinMgr::getInstance()->setClutDirty(this);
 }
 
 /* Handle the change of status associated with change of enablement and change
@@ -429,9 +425,17 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	
 	//Four cases to consider:
 	//1.  change of local/global with unchanged disabled renderer; do nothing.
-	// Same for change of local/global with unchanged, enabled renderer
+	// If change of local/global with enabled renderer, just force refresh:
 	
-	if (prevEnabled == enabled) return;
+	if (prevEnabled == enabled) {
+		if (!prevEnabled) return;
+		setClutDirty();
+		setDatarangeDirty();
+		VizWinMgr::getInstance()->setRegionDirty(this);
+		//Need to dirty the region, too, since variable can change as a 
+		//consequence of changing local/global
+		return;
+	}
 	
 	//2.  Change of disable->enable with unchanged local renderer.  Create a new renderer in active window.
 	// Also applies to double change: disable->enable and local->global 
@@ -457,8 +461,11 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		GLBox* myBox = new GLBox (viz);
 		viz->addRenderer(myBox);
 #endif
-		//force the renderer to refresh region data
+		//force the renderer to refresh region data  (why?)
 		viz->setRegionDirty(true);
+		setClutDirty();
+		setDatarangeDirty();
+		//And to get the new transfer function
 		//Quit if not case 3:
 		if (wasLocal || isLocal) return;
 	}
@@ -475,8 +482,10 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 				GLBox* myBox = new GLBox (viz);
 				viz->addRenderer(myBox);
 #endif
-				//force the renderer to refresh region data
+				//force the renderer to refresh region data (??)
 				viz->setRegionDirty(true);
+				setClutDirty();
+				setDatarangeDirty();
 			}
 		}
 		return;
@@ -528,22 +537,18 @@ reinit(){
 		maxEditBounds[i] = Session::getInstance()->getDataRange(i)[1];
 	}
 	
-	setDatarangeDirty(true);
+	setDatarangeDirty();
 	setEnabled(false);
 	updateDialog();
 }
 //Method to invalidate a datarange, and to force a rendering
 //with new data quantization
 void DvrParams::
-setDatarangeDirty(bool dirty)
+setDatarangeDirty()
 {
-	datarangeDirty = dirty;
-	if (dirty){
-		currentDatarange[0] = minMapBounds[varNum];
-		currentDatarange[1] = maxMapBounds[varNum];
-		VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-		if (vizWinMgr) vizWinMgr->setDvrDirty(this);
-	}
+	currentDatarange[0] = minMapBounds[varNum];
+	currentDatarange[1] = maxMapBounds[varNum];
+	VizWinMgr::getInstance()->setDataRangeDirty(this);
 }
 
 //Respond to user request to load/save TF
@@ -628,8 +633,8 @@ hookupTF(TransferFunction* t){
 	//Force a redraw of tfframe
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();	
-	setDatarangeDirty(true);
-	setClutDirty(true);
+	setDatarangeDirty();
+	setClutDirty();
 }
 void DvrParams::
 fileSaveTF(){

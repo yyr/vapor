@@ -86,13 +86,14 @@ void TFEditor::refreshImage(){
 	//find histo max, for the interval that is mapped by the
 	//transfer function:
 	//
-	if (histo && (histoMaxBin < 0)){
+	/*if (histo && (histoMaxBin < 0)){
 		
 		for (int j = 0; j< 256; j++){
 			if (histo->getBinSize(j)> histoMaxBin)
 				histoMaxBin = histo->getBinSize(j);
 		}
-	}
+	}*/
+	if (histo) histoMaxBin = histo->getMaxBinSize();
 	int leftLim = mapVar2Win(myTransferFunction->getMinMapValue(),false);
 	int rightLim = mapVar2Win(myTransferFunction->getMaxMapValue(),false);
 	

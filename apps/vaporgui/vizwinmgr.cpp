@@ -837,14 +837,15 @@ setRegionZSize(){
 
 void VizWinMgr::
 setRegionDirty(RegionParams* rParams){
-	if (activeViz>=0) {
+	int vizNum = rParams->getVizNum();
+	if (vizNum >= 0){
 		vizWin[activeViz]->setRegionDirty(true);
 		vizWin[activeViz]->updateGL();
 	}
 	//If another viz is using these region params, set their region dirty, too
 	if (rParams->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
-		if  ( vizWin[i] && (i != activeViz)  &&
+		if  ( vizWin[i] && (i != vizNum)  &&
 				((!rgParams[i])||!rgParams[i]->isLocal())
 			){
 			vizWin[i]->setRegionDirty(true);
@@ -852,18 +853,40 @@ setRegionDirty(RegionParams* rParams){
 		}
 	}
 }
-//To force the animation to rerender, we set the region dirty
+//Force all windows that share a dvrParams to update
+//their region (i.e. get new data)
+void VizWinMgr::
+setRegionDirty(DvrParams* dParams){
+	int vizNum = dParams->getVizNum();
+	if (vizNum >= 0){
+		vizWin[activeViz]->setRegionDirty(true);
+		vizWin[activeViz]->updateGL();
+	}
+	//If another viz is sharing these dvr params, set their region dirty, too
+	if (dParams->isLocal()) return;
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  ( vizWin[i] && (i != vizNum)  &&
+				((!dvrParams[i])||!dvrParams[i]->isLocal())
+			){
+			vizWin[i]->setRegionDirty(true);
+			vizWin[i]->updateGL();
+		}
+	}
+}
+//To force the animation to rerender, we set the region dirty.  We will need
+//to load the data for another frame
 //
 void VizWinMgr::
 setAnimationDirty(AnimationParams* aParams){
-	if (activeViz>=0) {
+	int vizNum = aParams->getVizNum();
+	if (vizNum >= 0){
 		vizWin[activeViz]->setRegionDirty(true);
 		vizWin[activeViz]->updateGL();
 	}
 	//If another viz is using these animation params, set their region dirty, too
 	if (aParams->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
-		if  ( vizWin[i] && (i != activeViz)  &&
+		if  ( vizWin[i] && (i != vizNum)  &&
 				((!animationParams[i])||!animationParams[i]->isLocal())
 			){
 			vizWin[i]->setRegionDirty(true);
@@ -877,13 +900,14 @@ setAnimationDirty(AnimationParams* aParams){
 void VizWinMgr::
 animationParamsChanged(AnimationParams* aParams){
 	AnimationController* ac = AnimationController::getInstance();
-	if (activeViz>=0) {
-		ac->paramsChanged(activeViz);
+	int vizNum = aParams->getVizNum();
+	if (vizNum>=0) {
+		ac->paramsChanged(vizNum);
 	}
 	//If another viz is using these animation params, set their region dirty, too
 	if (aParams->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
-		if  ( vizWin[i] && (i != activeViz)  &&
+		if  ( vizWin[i] && (i != vizNum)  &&
 				((!animationParams[i])||!animationParams[i]->isLocal())
 			){
 			ac->paramsChanged(i);
@@ -909,8 +933,9 @@ void VizWinMgr::startPlay(AnimationParams* aParams){
 }
 
 void VizWinMgr::
-setDvrDirty(DvrParams* dParams){
+setClutDirty(DvrParams* dParams){
 	if (activeViz>=0) {
+		vizWin[activeViz]->setClutDirty(true);
 		vizWin[activeViz]->updateGL();
 	}
 	if (dParams->isLocal()) return;
@@ -919,6 +944,24 @@ setDvrDirty(DvrParams* dParams){
 		if  ( vizWin[i] && (i != activeViz) &&
 				( (!dvrParams[i])||!dvrParams[i]->isLocal())
 			){
+			vizWin[i]->setClutDirty(true);
+			vizWin[i]->updateGL();
+		}
+	}
+}
+void VizWinMgr::
+setDataRangeDirty(DvrParams* dParams){
+	if (activeViz>=0) {
+		vizWin[activeViz]->setDataRangeDirty(true);
+		vizWin[activeViz]->updateGL();
+	}
+	if (dParams->isLocal()) return;
+	//If another viz is using these dvr params, force them to update, too
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  ( vizWin[i] && (i != activeViz) &&
+				( (!dvrParams[i])||!dvrParams[i]->isLocal())
+			){
+			vizWin[i]->setDataRangeDirty(true);
 			vizWin[i]->updateGL();
 		}
 	}

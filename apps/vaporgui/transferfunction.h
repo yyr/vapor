@@ -104,7 +104,7 @@ public:
 		hue[index] = h;
 		sat[index] = s;
 		val[index] = v;
-		myParams->setClutDirty(true);
+		myParams->setClutDirty();
 	}
 	QRgb getControlPointRGB(int index);
 	void setControlPointRGB(int index, QRgb newColor);

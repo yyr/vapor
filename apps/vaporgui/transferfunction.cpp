@@ -77,7 +77,7 @@ TransferFunction::TransferFunction(DvrParams* p, int nBits){
 
 	numEntries = 1<<nBits;
 	
-	if(myParams) myParams->setClutDirty(true);
+	if(myParams) myParams->setClutDirty();
 }
 	
 TransferFunction::~TransferFunction() {
@@ -118,7 +118,7 @@ insertColorControlPoint(float point){
 	val[indx+1] = TFInterpolator::interpolate(colorInterp[indx],  val[indx], val[indx+2], ratio);
 	colorInterp[indx+1] = colorInterp[indx];
 	numColorControlPoints++;
-	myParams->setClutDirty(true);
+	myParams->setClutDirty();
 	return(indx+1);
 }
 /*
@@ -157,7 +157,7 @@ insertOpacControlPoint(float point, float opacity){
 	opacInterp[indx+1] = opacInterp[indx];
 	opac[indx+1] = opacity;
 	numOpacControlPoints++;
-	myParams->setClutDirty(true);
+	myParams->setClutDirty();
 	return(indx+1);
 }
 /* 
@@ -218,7 +218,7 @@ deleteColorControlPoint(int index){
 		colorInterp[i] = colorInterp[i+1];
 	}
 	numColorControlPoints--;
-	myParams->setClutDirty(true);
+	myParams->setClutDirty();
 	return;
 }
 
@@ -234,7 +234,7 @@ deleteOpacControlPoint(int index){
 		opacInterp[i] = opacInterp[i+1];
 	}
 	numOpacControlPoints--;
-	myParams->setClutDirty(true);
+	myParams->setClutDirty();
 	return;
 }
 /*
@@ -274,7 +274,7 @@ moveOpacControlPoint(int index, float newPoint, float newOpacity){
 	if (leftIndex == index || leftIndex == index-1){
 		opacCtrlPoint[index] = normPoint;
 		opac[index] = saveOpacity;
-		myParams->setClutDirty(true);
+		myParams->setClutDirty();
 		return index;
 	}
 	//Otherwise, move it to a new interval;
@@ -303,7 +303,7 @@ moveOpacControlPoint(int index, float newPoint, float newOpacity){
 	opacCtrlPoint[newIndex] = normPoint;
 	opac[newIndex] = saveOpacity;
 	opacInterp[newIndex] = saveOpacInterp;
-	myParams->setClutDirty(true);
+	myParams->setClutDirty();
 	return newIndex;
 	
 }
@@ -361,7 +361,7 @@ moveColorControlPoint(int index, float newPoint){
 	sat[newIndex] = saveSat;
 	val[newIndex] = saveVal;
 	colorInterp[newIndex] = saveColorInterp;
-	myParams->setClutDirty(true);
+	myParams->setClutDirty();
 	return newIndex;
 	
 }	

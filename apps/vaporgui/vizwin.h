@@ -89,7 +89,12 @@ public:
 	GLWindow* getGLWindow() {return myGLWindow;}
 	
 	void setRegionDirty(bool isDirty){ regionDirty = isDirty;}
+	void setClutDirty(bool isDirty){ clutDirty = isDirty;}
+	void setDataRangeDirty(bool isDirty){ dataRangeDirty = isDirty;}
 	bool regionIsDirty() {return regionDirty;}
+	bool clutIsDirty() {return clutDirty;}
+	bool dataRangeIsDirty() {return dataRangeDirty;}
+
 	bool mouseIsDown() {return mouseDownHere;}
 	int pointOverCube(RegionParams* rParams, float screenCoords[2]);
 	bool viewerCoordsChanged() {return newViewerCoords;}
@@ -114,6 +119,8 @@ protected:
 	bool globalVP;
 	//Indicate whether the region has been changed:
 	bool regionDirty;
+	bool dataRangeDirty;
+	bool clutDirty;
 
 
 public slots:

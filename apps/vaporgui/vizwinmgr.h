@@ -189,12 +189,20 @@ public:
 	//region parameter setting
 	//
 	void setRegionDirty(RegionParams*);
+	//Force all the renderers that share these DvrParams
+	//to set their regions dirty
+	//
+	void setRegionDirty(DvrParams*);
 	//Similarly for AnimationParams:
 	//
 	void setAnimationDirty(AnimationParams*);
-	//Force updates of all renderers using a dvr
+	//Force renderers to get latest CLUT
 	//
-	void setDvrDirty(DvrParams* );
+	void setClutDirty(DvrParams* );
+	//Force renderers to get latest DataRange
+	//
+	void setDataRangeDirty(DvrParams* );
+	
 	//Tell the animationController that the frame counter has changed 
 	//for all the associated windows.
 	//
