@@ -67,6 +67,7 @@ const string Metadata::_stringType = "String";
 const string Metadata::_longType = "Long";
 const string Metadata::_doubleType = "Double";
 
+
 // Initialize the class object
 //
 void Metadata::_init(
@@ -194,8 +195,10 @@ Metadata::Metadata(const string &path) {
 	// specified by 'path'
 	//
 	_expatParser = XML_ParserCreate(NULL);
-	XML_SetElementHandler(_expatParser, startElementHandler, endElementHandler);
-	XML_SetCharacterDataHandler(_expatParser, charDataHandler);
+	XML_SetElementHandler(
+		_expatParser, metadataStartElementHandler, metadataEndElementHandler
+	);
+	XML_SetCharacterDataHandler(_expatParser, metadataCharDataHandler);
 
 	XML_SetUserData(_expatParser, (void *) this);
 
@@ -1235,6 +1238,8 @@ void	Metadata::_endElementHandler3(
 	}
 }
 
+namespace {
+
 void	startNoOp(
 	void *userData, const XML_Char *tag, const char **attrs
 ) {
@@ -1247,6 +1252,8 @@ void	charDataNoOp(
 	void *userData, const XML_Char *s, int len
 ) {
 }
+
+};
 
 // Record an XML file parsing error and terminate file parsing
 //
