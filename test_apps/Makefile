@@ -2,7 +2,7 @@ TOP = ../
 
 include $(TOP)/make/config/arch.mk
 
-SUBDIRS = datamgr
+SUBDIRS = datamgr impexp
 
 include ${TOP}/make/config/base.mk
 
