@@ -100,8 +100,7 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	long ts = opt.numts;
-	if (file.SetNumTimeSteps(ts) < 0) {
+	if (file.SetNumTimeSteps(opt.numts) < 0) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
