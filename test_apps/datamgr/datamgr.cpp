@@ -98,13 +98,8 @@ main(int argc, char **argv) {
 	size_t min[3] = {opt.xregion.min, opt.yregion.min, opt.zregion.min};
 	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
 
-	Metadata	metadata(metafile);
-	if (metadata.GetErrCode() != 0) {
-		cerr << ProgName << " : " << metadata.GetErrMsg() << endl;
-		exit(1);
-	}
 
-	DataMgr	datamgr(&metadata, opt.memsize, 0);
+	DataMgr	datamgr(metafile, opt.memsize, 0);
 
 	const WaveletBlock3DRegionReader	*reader = datamgr.GetRegionReader();
 
