@@ -62,6 +62,7 @@ Session::Session() {
 	rightBounds = 0;
 	tfFilePath = new QString(".");
 	currentMetadataPath = 0;
+	jpegQuality = 75;
 }
 Session::~Session(){
 	int i;

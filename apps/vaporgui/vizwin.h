@@ -99,6 +99,16 @@ public:
 	int pointOverCube(RegionParams* rParams, float screenCoords[2]);
 	bool viewerCoordsChanged() {return newViewerCoords;}
 	void setViewerCoordsChanged(bool isNew) {newViewerCoords = isNew;}
+	bool isCapturing() {return capturing;}
+	void startCapture(QString& name, int startNum) {
+		capturing = true;
+		captureNum = startNum;
+		captureName = new QString(name);
+	}
+	void stopCapture() {capturing = false;}
+	//Routine is called at the end of rendering.  If capture is true, it converts image
+	//to jpeg and saves file.  If it ever encounters an error, it turns off capture.
+	void doFrameCapture();
 	
 	
 protected:
@@ -121,6 +131,9 @@ protected:
 	bool regionDirty;
 	bool dataRangeDirty;
 	bool clutDirty;
+	bool capturing;
+	int captureNum;
+	QString* captureName;
 
 
 public slots:

@@ -238,5 +238,52 @@ pointIsOnQuad(float cor1[3], float cor2[3], float cor3[3], float cor4[3], float 
 	return true;
 }
 
+//Produce an array based on current contents of the (front) buffer
+bool GLWindow::
+getPixelData(unsigned char* data){
+	// set the current window 
+	makeCurrent();
+	 // Must clear previous errors first.
+	while(glGetError() != GL_NO_ERROR);
+
+	//if (front)
+	//
+	//glReadBuffer(GL_FRONT);
+	//
+	//else
+	//  {
+	glReadBuffer(GL_BACK);
+	//  }
+	glDisable( GL_SCISSOR_TEST );
+
+
+ 
+	// Turn off texturing in case it is on - some drivers have a problem
+	// getting / setting pixels with texturing enabled.
+	glDisable( GL_TEXTURE_2D );
+
+	// Calling pack alignment ensures that we can grab the any size window
+	glPixelStorei( GL_PACK_ALIGNMENT, 1 );
+	glReadPixels(0, 0, width(), height(), GL_RGB,
+				GL_UNSIGNED_BYTE, data);
+	if (glGetError() != GL_NO_ERROR)
+		return false;
+	//Unfortunately gl reads these in the reverse order that jpeg expects, so
+	//Now we need to swap top and bottom!
+	unsigned char val;
+	for (int j = 0; j< height()/2; j++){
+		for (int i = 0; i<width()*3; i++){
+			val = data[i+width()*3*j];
+			data[i+width()*3*j] = data[i+width()*3*(height()-j-1)];
+			data[i+width()*3*(height()-j-1)] = val;
+		}
+	}
+	
+	return true;
+		
+  
+}
+
+
 
 

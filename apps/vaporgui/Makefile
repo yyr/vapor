@@ -7,7 +7,7 @@ QT = 1
 PROGRAM	= vaporgui
 
 INCLUDE_DIRS +=  -I"../../include/VAPoR/"   -I"./ui" -I"$(QTDIR)/include" -I$(EXPAT_INC_PATH)
-LIBRARIES += common vdf
+LIBRARIES += common vdf vjpeg
 
 ifeq ($(ARCH),WIN32) 
 CXXFLAGS += /DVOLUMIZER  
@@ -20,13 +20,7 @@ else
 CXXFLAGS += -DVOLUMIZER
 LDFLAGS += -lvz   
 LDFLAGS += -L$(QTDIR)/lib 
-LDFLAGS += -lGLU -lGL  
-endif
-ifeq ($(ARCH),Linux)
-LDFLAGS += -lqt-mt  
-endif
-ifeq ($(ARCH),IRIX64)
-LDFLAGS += -lqt-mt
+LDFLAGS += -lGLU -lGL -lqt-mt 
 endif
 
 

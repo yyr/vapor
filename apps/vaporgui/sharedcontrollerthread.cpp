@@ -25,6 +25,7 @@
 #include <qmutex.h>
 #include <qdatetime.h>
 #include <qregion.h>
+#include <qmessagebox.h>
 #include "animationcontroller.h"
 #include "controllerthread.h"
 #include "vizwinmgr.h"
@@ -214,10 +215,10 @@ run(){
 		}
 		
 		//Now wait for the completion of all overdue renderings.
-		//Again give it up to 10 1-second waits
+		//Give it up to 60 1-second waits
 		if (numOverdue > 0){
 			
-			for (tries = 0; tries< 11; tries++){
+			for (tries = 0; tries< 61; tries++){
 				myAnimationController->animationMutex.unlock();
 				myWaitCondition->wait(1000);
 				//qWarning("Waiting for completion of overdue renderings");
@@ -231,7 +232,21 @@ run(){
 					}
 				}
 				if (numOverdue == 0) break;
-				assert(tries < 10);
+
+				if (tries > 59) {
+					//Stop the animation, don't give a warning message,
+					//That would interfere with other message boxes
+					//QMessageBox::warning(0, "Animation Blocked", 
+					//	"Animation stopped, because rendering was delayed for 10 seconds",
+					//	QMessageBox::Ok, QMessageBox::NoButton);
+					//Turn off the animation in overdue windows:
+					for (viznum = 0; viznum < MAXVIZWINS; viznum++){
+						if (myAnimationController->isActive(viznum)&&myAnimationController->isShared(viznum)&&myAnimationController->renderStarted(viznum))
+							myAnimationController->deActivate(viznum);
+							//Don't set render finished, it could still finish!
+					}			
+
+				}
 			}
 		}
 		

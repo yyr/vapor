@@ -78,7 +78,7 @@ public:
     QPopupMenu *File;
 	QPopupMenu *Edit;
     QPopupMenu *Data;
-    QPopupMenu *View;
+    QPopupMenu *viewMenu;
     
     QPopupMenu *Script;
     QPopupMenu *Rendering;
@@ -111,6 +111,8 @@ public:
     
    //View menu
     QAction* viewLaunch_visualizerAction;
+	QAction* viewStartCaptureAction;
+	QAction* viewEndCaptureAction;
     
    
     //Script menu
@@ -170,6 +172,8 @@ public slots:
 	virtual void loadData();
 	virtual void exportToIDL();
     virtual void launchVisualizer();
+	virtual void startCapture();
+	virtual void endCapture();
   
 	virtual void calcIsosurface();
     virtual void viewpoint();
@@ -209,12 +213,14 @@ protected:
 	AnimationTab* theAnimationTab;
 	ContourPlaneTab* theContourTab;
 	VizSelectCombo* windowSelector;
+	QString imageCaptureDirectory;
 	
 	Vcr* vcrPanel;
 	
 
 protected slots:
     virtual void languageChange();
+	void initViewMenu();
 
 };
 };

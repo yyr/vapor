@@ -253,6 +253,8 @@ public:
 	void exportData();
 	void setCacheMB(size_t size){cacheMB = size;}
 	size_t getCacheMB() {return cacheMB;}
+	void setJpegQuality(int level) {jpegQuality = level;}
+	int getJpegQuality(){return jpegQuality;}
 	bool renderReady() {return renderOK;}
 	int getNumTFs() { return numTFs;}
 	std::string* getTFName(int i) { return tfNames[i];}
@@ -287,6 +289,9 @@ protected:
 	const Metadata* currentMetadata;
 	//Cache size in megabytes
 	size_t cacheMB;
+	// JPeg image quality (1-100)
+	int jpegQuality;
+
 	bool renderOK;
 	//TransferFunctions are kept, by name, in the session:
 	TransferFunction** keptTFs;

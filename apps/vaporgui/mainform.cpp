@@ -101,6 +101,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	theIsoTab = 0;
 	theContourTab = 0;
 	theAnimationTab = 0;
+	imageCaptureDirectory.setAscii(".");
     (void)statusBar();
     if ( !name )
 		setName( "MainForm" );
@@ -180,6 +181,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     
     
     viewLaunch_visualizerAction = new QAction( this, "viewLaunch_visualizerAction" );
+	viewStartCaptureAction = new QAction( this, "viewStartCaptureAction" );
+	viewEndCaptureAction = new QAction( this, "viewEndCaptureAction" );
     
     scriptIDL_scriptAction = new QAction( this, "scriptIDL_scriptAction" );
 	scriptIDL_scriptAction->setEnabled(false);
@@ -301,10 +304,12 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     
     Main_Form->insertItem( QString(""), Data, 3 );
 
-    View = new QPopupMenu(this);
-	viewLaunch_visualizerAction->addTo(View);
+    viewMenu = new QPopupMenu(this);
+	viewLaunch_visualizerAction->addTo(viewMenu);
+	viewStartCaptureAction->addTo(viewMenu);
+	viewEndCaptureAction->addTo(viewMenu);
 	
-    Main_Form->insertItem( QString(""), View, 4 );
+    Main_Form->insertItem( QString(""), viewMenu, 4 );
 
     Script = new QPopupMenu( this );
     scriptIDL_scriptAction->addTo( Script );
@@ -355,9 +360,12 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	connect( dataLoad_MetafileAction, SIGNAL( activated() ), this, SLOT( loadData() ) );
 	connect( dataExportToIDLAction, SIGNAL(activated()), this, SLOT( exportToIDL()));
     
+	connect(viewMenu, SIGNAL(aboutToShow()), this, SLOT(initViewMenu()));
     connect( viewLaunch_visualizerAction, SIGNAL( activated() ), this, SLOT( launchVisualizer() ) );
-
-    connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
+	connect( viewStartCaptureAction, SIGNAL( activated() ), this, SLOT( startCapture() ) );
+	connect( viewEndCaptureAction, SIGNAL( activated() ), this, SLOT( endCapture() ) );
+    
+	connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
 
 	//Toolbar actions:
 	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
@@ -473,6 +481,14 @@ void MainForm::languageChange()
     viewLaunch_visualizerAction->setText( tr( "New Visualizer" ) );
     viewLaunch_visualizerAction->setMenuText( tr( "&New Visualizer" ) );
 	viewLaunch_visualizerAction->setToolTip("Launch a new visualization window");
+
+	viewStartCaptureAction->setText( tr( "Begin image capture" ) );
+    viewStartCaptureAction->setMenuText( tr( "&Begin Image Capture" ) );
+	viewStartCaptureAction->setToolTip("Begin saving image files rendered in current active visualizer");
+	
+	viewEndCaptureAction->setText( tr( "End image capture" ) );
+    viewEndCaptureAction->setMenuText( tr( "&End Image Capture" ) );
+	viewEndCaptureAction->setToolTip("End capture of image files in current active visualizer");
 
     scriptIDL_scriptAction->setText( tr( "Execute IDL script" ) );
     scriptIDL_scriptAction->setMenuText( tr( "Execute &IDL script" ) );
@@ -653,6 +669,7 @@ void MainForm::editSessionParams()
 	Session* currentSession = Session::getInstance();
 	SessionParameters* sessionParamsDlg = new SessionParameters((QWidget*)this);
 	QString str;
+	sessionParamsDlg->jpegQuality->setText(str.setNum(currentSession->getJpegQuality()));
 	sessionParamsDlg->cacheSizeEdit->setText(str.setNum(currentSession->getCacheMB()));
 	int rc = sessionParamsDlg->exec();
 	if (rc){
@@ -665,6 +682,10 @@ void MainForm::editSessionParams()
 				"Cache size will change at next metadata loading", 
 				QMessageBox::Ok);
 		}
+		//Set the image quality:
+		int newQual = sessionParamsDlg->jpegQuality->text().toInt();
+		if (newQual > 0 && newQual <= 100) currentSession->setJpegQuality(newQual);
+
 		//see if the path changed:
 	}
 	delete sessionParamsDlg;
@@ -890,6 +911,34 @@ void MainForm::setRegionSelect(bool on)
 		currentMouseMode = Command::regionMode;
 	}
 }
+//Enable or disable the View menu options:
+void MainForm::initViewMenu(){
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	VizWin* viz = vizWinMgr->getActiveVisualizer();
+	int winNum = vizWinMgr->getActiveViz();
+	QString* vizName;
+	if(winNum >= 0) vizName = vizWinMgr->getVizWinName(winNum);
+	//Disable the start capture if no viz, or if active viz already capturing
+	int pos = viewMenu->idAt(1);
+	if (!viz || viz->isCapturing()) {
+		viewStartCaptureAction->setMenuText( "&Begin Image Capture"  );
+		viewMenu->setItemEnabled(pos, false);
+	}
+	else {
+		viewStartCaptureAction->setMenuText( "&Begin Image Capture in "+(*vizName) );
+		viewMenu->setItemEnabled(pos,true);
+	}
+	//disable the end capture if no viz, or if active viz is not capturing
+	pos = viewMenu->idAt(2);
+	if (!viz || !viz->isCapturing()){
+		viewEndCaptureAction->setText( "End image capture" );
+		viewMenu->setItemEnabled(pos, false);
+	}
+	else {
+		viewEndCaptureAction->setText("End image capture in" +(*vizName) );
+		viewMenu->setItemEnabled(pos, true);
+	}
+}
 void MainForm::setContourSelect(bool on)
 {
 	/* Do nothing until implemented:
@@ -920,4 +969,56 @@ void MainForm::resetModeButtons(){
 //Make all the current region/animation settings available to IDL
 void MainForm::exportToIDL(){
 	Session::getInstance()->exportData();
+}
+//Begin capturing images.
+//Launch a file save dialog to specify the names
+//Then start file saving mode.
+void MainForm::startCapture() {
+	
+    QString s = QFileDialog::getSaveFileName(
+        imageCaptureDirectory,
+        "Jpeg Images (*.jpg)",
+        this,
+        "Start image capture dialog",
+        "Specify JPEG file names for the image capturing" );
+	//Extract the path, and the root name, from the returned string.
+	QFileInfo* fileInfo = new QFileInfo(s);
+	//Save the path for future captures
+	imageCaptureDirectory = fileInfo->dirPath(true);
+	QString fileBaseName = fileInfo->baseName(true);
+	//See if it ends with digits
+	int posn;
+	for (posn = fileBaseName.length()-1; posn >=0; posn--){
+		if (!fileBaseName.at(posn).isDigit()) break;
+	}
+	int startFileNum = 0;
+	unsigned int lastDigitPos = posn+1;
+	if (lastDigitPos < fileBaseName.length()) {
+		startFileNum = fileBaseName.right(fileBaseName.length()-lastDigitPos).toInt();
+		fileBaseName.truncate(lastDigitPos);
+	}
+	QString filePath = imageCaptureDirectory + "/" + fileBaseName;
+	//Determine the active window:
+	//Turn on "image capture mode" in the current active visualizer
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	if (viz) {
+		viz->startCapture(filePath,startFileNum);
+		//Provide a popup stating the capture parameters in effect.
+	//	QMessageBox::info(this, "Image Capture Activated","Images are being captured in",
+	//		QMessageBox::Ok,QMessageBox::NoButton);
+		
+	} else {
+		QMessageBox::warning(this, "Image Capture Error","No active visualizer for capturing images",
+			QMessageBox::Ok,QMessageBox::NoButton);
+	}
+}
+void MainForm::endCapture(){
+	//Turn off capture mode for the current active visualizer (if it is on!)
+	//Otherwise indicate that the visualizer is not capturing.
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	if (viz && viz->isCapturing()) viz->stopCapture();
+	else {
+		QMessageBox::warning(this, "Image Capture Error","Current active visualizer is not capturing images",
+			QMessageBox::Ok,QMessageBox::NoButton);
+	}
 }

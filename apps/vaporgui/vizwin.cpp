@@ -57,6 +57,7 @@
 #include "volumizerrenderer.h"
 #endif
 #include "assert.h"
+#include "vaporinternal/jpegapi.h"
 
 using namespace VAPoR;
 
@@ -86,6 +87,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	regionDirty = true;
 	dataRangeDirty = true;
 	clutDirty = true;
+	capturing = false;
 	
 	
     // actions
@@ -602,6 +604,53 @@ pointOverCube(RegionParams* rParams, float screenCoords[2]){
 	
 	return -1;
 }
+
+void VizWin::
+doFrameCapture(){
+	if (!capturing) return;
+	//Create a string consisting of captureName, followed by nnnn (framenum), 
+	//followed by .jpg
+
+	QString filename(*captureName);
+	filename += (QString("%1").arg(captureNum)).rightJustify(4,'0');
+	filename +=  ".jpg";
+
+	//Now open the jpeg file:
+	FILE* jpegFile = fopen(filename.ascii(), "wb");
+	if (!jpegFile) {
+		//Error!
+		QMessageBox::critical(0, "Image Capture Error","Error opening output Jpeg file",
+			QMessageBox::Ok,QMessageBox::NoButton);
+		capturing = false;
+		return;
+	}
+	//Get the image buffer 
+	unsigned char* buf = new unsigned char[3*myGLWindow->width()*myGLWindow->height()];
+	//Use openGL to fill the buffer:
+	if(!myGLWindow->getPixelData(buf)){
+		//Error!
+		QMessageBox::critical(0, "Image Capture Error","Error obtaining GL data",
+			QMessageBox::Ok,QMessageBox::NoButton);
+		capturing = false;
+		delete buf;
+		return;
+	}
+	//Now call the Jpeg library to compress and write the file
+	//Default quality = 75
+	int quality = Session::getInstance()->getJpegQuality();
+	int rc = write_JPEG_file(jpegFile, myGLWindow->width(), myGLWindow->height(), buf, quality);
+	if (rc){
+		//Error!
+		QMessageBox::critical(0, "Image Capture Error", "Error writing jpeg file",
+			QMessageBox::Ok,QMessageBox::NoButton);
+		capturing = false;
+		delete buf;
+		return;
+	}
+	captureNum++;
+	delete buf;
+}
+
 
     
     

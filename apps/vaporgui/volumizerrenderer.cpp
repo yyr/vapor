@@ -157,6 +157,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	float fullExtent[6];
 	int data_roi[6];
 	int i;
+	bool newRender = false;
 	//Nothing to do if there's no data source!
 	if (!myDataMgr) return;
 	if (!Session::getInstance()->renderReady()) return;
@@ -249,6 +250,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	
 	//If there are new coords, get them from GL, send them to the gui
 	if (myVizWin->viewerCoordsChanged()){ 
+		newRender = true;
 		myGLWindow->changeViewerFrame();
 	}
 	
@@ -261,8 +263,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	//
 	if (myVizWin->regionIsDirty()|| myVizWin->dataRangeIsDirty()) {
 
-		//float xc, yc, zc; // center of volume
-		//float hmaxdim;
+		newRender = true;
 		
 		int	rc;
 		
@@ -329,7 +330,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	}
 
 	if (myVizWin->clutIsDirty()) {
-		
+		newRender = true;
 		//Same table sets CLUT and OLUT
 		//
 		driver->SetCLUT(myDVRParams->getClut());
@@ -379,6 +380,8 @@ DrawVoxelScene(unsigned /*fast*/)
 	}
 
     glPopMatrix();
+	//Capture the image, if not navigating:
+	if (newRender && !myVizWin->mouseIsDown()) myVizWin->doFrameCapture();
 	if (isControlled) AnimationController::getInstance()->endRendering(winNum);
 }
 
@@ -390,43 +393,5 @@ DrawVoxelWindow(unsigned fast)
 	DrawVoxelScene(fast);
 }
 
-// This method draws the faces of the region-cube.
-// The surface of the cube is drawn partially transparent. 
-// This is drawn after the cube is drawn.
-// If a face is selected, it is drawn yellow
-// The z-buffer will continue to be
-// read-only, but is left on so that the grid lines will continue to be visible.
-// Faces of the cube are numbered 0..5 based on view from pos z axis:
-// back, front, bottom, top, left, right
-// selectedFace is -1 if nothing selected
-//	
-// The viewer direction determines which faces are rendered.  If a coordinate
-// of the viewDirection is positive (resp., negative), 
-// then the back side (resp front side) of the corresponding cube side is rendered
-/*
-void VolumizerRenderer::renderRegionBounds(float* extents, int selectedFace, float* camPos, float faceDisplacement){
-	//Copy the extents so they can be stretched
-	int i;
-	float cpExtents[6];
-	int stretchCrd = -1;
-
-	//Determine which coord direction is being stretched:
-	if (selectedFace >= 0) {
-		stretchCrd = (5-selectedFace)/2;
-		if (selectedFace%2) stretchCrd +=3;
-	}
-	for (i = 0; i< 6; i++) {
-		cpExtents[i] = extents[i];
-		//Stretch the "extents" associated with selected face
-		if(i==stretchCrd) cpExtents[i] += faceDisplacement;
-	}
-	for (i = 0; i< 6; i++){
-		if (faceIsVisible(extents, camPos, i)){
-			drawRegionFace(cpExtents, i, (i==selectedFace));
-		}
-	}
-}
-
-*/
 #endif //VOLUMIZER
 

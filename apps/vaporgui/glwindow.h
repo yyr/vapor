@@ -61,6 +61,9 @@ public:
 	//
 	bool pixelToVector(int x, int y, const float cameraPos[3], float dirVec[3]);
 
+	//Get the current image in the front buffer;
+	bool getPixelData(unsigned char* data);
+
 protected:
 
 	//Picking helper functions, saved from last change in GL state.  These

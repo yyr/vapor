@@ -53,6 +53,7 @@ class ContourPlaneTab;
 class VizTab;
 class IsoTab;
 class AnimationTab;
+class QPopupMenu;
 
 
 
@@ -227,7 +228,7 @@ public slots:
 	//Slot that responds when user requests to activate a window:
 	void winActivated(int);
 	void killViz(int viznum);
-
+	
 signals:
 	//Turn on/off multiple viz options:
 
@@ -245,7 +246,7 @@ protected:
 	VizWinMgr ();
 	
     VizWin* vizWin[MAXVIZWINS];
-    //QRect* vizRect[MAXVIZWINS];
+   
     QString* vizName[MAXVIZWINS];
     bool isMax[MAXVIZWINS];
     bool isMin[MAXVIZWINS];
@@ -289,6 +290,8 @@ protected:
 
 
 protected slots:
+	
+
 	//The vizWinMgr has to dispatch signals from gui's to the appropriate parameter panels
 	//First, the viztab slots:
 	//void setLights(const QString& qs);
