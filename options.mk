@@ -29,9 +29,12 @@ EXPAT_INC_PATH="B:/Expat-1.95.8/Source/lib/"
 endif
 ifeq ($(ARCH),IRIX64)
 EXPAT_INC_PATH=/usr/freeware/include
+# Set IDL_INC_PATH to the top of the IDL external include directory
+IDL_INC_PATH = /usr/local/apps/rsi/idl_5.6/external/include
 endif
 ifeq ($(ARCH),Linux)
 EXPAT_INC_PATH=/usr/include
+IDL_INC_PATH=/fs/local/rsi/idl_6.0/external/include
 endif
 
 # Set EXPAT_LIB_PATH to the directory where libexpat.* may be found if not
@@ -66,8 +69,6 @@ endif
 # Set VOLUMIZER_ROOT to the root of the volumizer directory
 #VOLUMIZER_ROOT = 
 
-# Set IDL_INC_PATH to the top of the IDL external include directory
-IDL_INC_PATH = /usr/local/apps/rsi/idl_5.6/external/include
 
 
 # Set to 1 if intel compilers are available on linux systems
