@@ -323,13 +323,17 @@ public:
  //! \param[in] blk A block of voxels
  //! \param[in] bcoord Offset of the start of the block within the 
  //! volume in integer coordinates
- //! \param[in] dim Dimension of the volume in voxels
+ //! \param[in] min Minimum extents of destination volume in voxel 
+ //! coordinates. Must be between 0 and block_size-1
+ //! \param[in] max Maximum extents of destination volume in voxel 
+ //! coordinates. 
  //! \param[out] voxels A pointer to a volume
  //
  void	Block2NonBlock(
 		const float *blk, 
 		const size_t bcoord[3],
-		const size_t dim[3],
+		const size_t min[3],
+		const size_t max[3],
 		float	*voxels
 	) const;
 
