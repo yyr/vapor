@@ -93,6 +93,8 @@ public:
 	void setHomeViewpoint();
 	void useHomeViewpoint();
 	
+	//Reset viewpoint when new session is started:
+	virtual void reinit();
 	
 protected:
 	//Holder for saving state during mouse move:

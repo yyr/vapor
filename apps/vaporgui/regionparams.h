@@ -87,7 +87,14 @@ public:
 	//void setCurrentTimestep(int val) {currentTimestep = val; setDirty();}
 	//int getCurrentTimestep() {return currentTimestep;}
 	void setDataExtents(const std::vector<double> ext){
-		dataExtents = ext;
+		fullDataExtents = ext;
+	}
+	float getFullDataExtent(int i) { return fullDataExtents[i];}
+	float getRegionMin(int coord){ return (float)(fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
+		(centerPosition[coord] - regionSize[coord]*.5)/(double)(fullSize[coord]));
+	}
+	float getRegionMax(int coord){ return (float)(fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
+		(centerPosition[coord] + regionSize[coord]*.5)/(double)(fullSize[coord]));
 	}
 
 	//Update the dialog with values from this:
@@ -120,6 +127,8 @@ protected:
 	//Return true if anything changed.
 	//
 	bool enforceConsistency(int i);
+	//Recalc extents:
+	void setCurrentExtents(int coord);
 	//Region dirty bit is kept in vizWin
 	//
 	void setDirty();  
@@ -129,7 +138,8 @@ protected:
 	int maxSize, numTrans, maxNumTrans;
 	//int currentTimestep;
 	RegionTab* myRegionTab;
-	std::vector<double> dataExtents;
+	std::vector<double> fullDataExtents;
+	
 
 };
 

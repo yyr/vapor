@@ -64,14 +64,15 @@ void GLBox::paintGL()
 	//Check first if the gui has changed coords
 	
 
-    glClear( GL_COLOR_BUFFER_BIT );
+    //glClear( GL_COLOR_BUFFER_BIT );
 	
     glPushMatrix();
 
 	glLoadIdentity();
+	glTranslatef(.5,.5,.5);
     //Note:  this doesn't work right with parallel view.
 	myGLWindow->getTBall()->TrackballSetMatrix();
-	
+	glTranslatef(-.5,-.5,-.5);
 	//If there are new coords, get them from GL, send them to the gui
 	if (myVizWin->newViewerCoords){ 
 		myGLWindow->changeViewerFrame();
@@ -80,7 +81,7 @@ void GLBox::paintGL()
 	myGLWindow->qglColor( Qt::white );		      // Shorthand for glColor3f or glIndex
 
     glLineWidth( 2.0 );
-
+/* center at .5,.5,.5
     glBegin( GL_LINE_LOOP );
     glVertex3f(  0.5,  0.5, -0.5 );
     glVertex3f(  0.5, -0.5, -0.5 );
@@ -101,7 +102,28 @@ void GLBox::paintGL()
     glVertex3f( -0.5, -0.5, -0.5 );   glVertex3f( -0.5, -0.5, 0.5 );
     glVertex3f( -0.5,  0.5, -0.5 );   glVertex3f( -0.5,  0.5, 0.5 );
     glEnd();
+	*/
+// center at .5,.5,.5
+	glBegin( GL_LINE_LOOP );
+    glVertex3f(  1.0,  1.0, 0.0 );
+    glVertex3f(  1.0, 0.0, 0.0 );
+    glVertex3f( 0.0, 0.0, 0.0 );
+    glVertex3f( 0.0,  1.0, 0.0 );
+    glEnd();
 
+    glBegin( GL_LINE_LOOP );
+    glVertex3f(  1.0,  1.0, 1.0 );
+    glVertex3f(  1.0, 0.0, 1.0 );
+    glVertex3f( 0.0, 0.0, 1.0 );
+    glVertex3f( 0.0,  1.0, 1.0 );
+    glEnd();
+
+    glBegin( GL_LINES );
+    glVertex3f(  1.0,  1.0, 0.0 );   glVertex3f(  1.0,  1.0, 1.0 );
+    glVertex3f(  1.0, 0.0, 0.0 );   glVertex3f(  1.0, 0.0, 1.0 );
+    glVertex3f( 0.0, 0.0, 0.0 );   glVertex3f( 0.0, 0.0, 1.0 );
+    glVertex3f( 0.0,  1.0, 0.0 );   glVertex3f( 0.0,  1.0, 1.0 );
+    glEnd();
     
 	
 	glPopMatrix();

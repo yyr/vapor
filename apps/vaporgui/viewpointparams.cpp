@@ -39,13 +39,13 @@ ViewpointParams::ViewpointParams(MainForm* mf,int winnum): Params(mf, winnum){
 	//Set default values in viewpoint:
 	currentViewpoint->setPerspective(true);
 	for (int i = 0; i< 3; i++){
-		setCameraPos(i,0.f);
+		setCameraPos(i,0.5f);
 		setViewDir(i,0.f);
 		setUpVec(i, 0.f);
 	}
 	setUpVec(1,1.f);
 	setViewDir(2,-1.f); 
-	setCameraPos(2,2.0f);
+	setCameraPos(2,2.5f);
 	homeViewpoint = new Viewpoint(*currentViewpoint);
 	
 }
@@ -226,4 +226,35 @@ useHomeViewpoint(){
 	updateDialog();
 	updateRenderer(false, false, false);
 	PanelCommand::captureEnd(cmd, this);
+}
+//Reinitialize viewpoint settings, to center view on the center of full region.
+void ViewpointParams::
+reinit(){
+	float camPos[3];
+	const Metadata* md = mainWin->getSession()->getCurrentMetadata();
+	std::vector<double> extents = md->GetExtents();
+	double maxSide = 0.;
+	int i;
+	for (i = 0; i<3; i++) {
+		camPos[i] = (float)((extents[i]+extents[3+i])*0.5);
+		if (extents[i+3]-extents[i] > maxSide) maxSide = extents[i+3]-extents[i];
+	}
+	//Position the camera in the positive z-direction from the volume center, looking in
+	//the negative z-direction
+	//
+	camPos[2] = (float)(camPos[2]+2.*maxSide);
+	currentViewpoint->setCameraPos(camPos);
+	for (i = 0; i<3; i++){
+		currentViewpoint->setViewDir(i,0.f);
+		currentViewpoint->setUpVec(i, 0);
+	}
+	currentViewpoint->setViewDir(2,-1.f);
+	currentViewpoint->setUpVec(1,1.f);
+	currentViewpoint->setPerspective(true);
+	//Make this the home viewpoint
+	//
+	delete homeViewpoint;
+	homeViewpoint = new Viewpoint(*currentViewpoint);
+	updateRenderer(false, false, false);
+	updateDialog();
 }

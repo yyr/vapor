@@ -195,7 +195,7 @@ int DVRVolumizer::SetRegion(
 
 	// Adjust the geomtry ROI so that volumizer maintains uniformly sized 
 	// voxels.
-
+/* AN:  This code replaced. 2/9/05
 	maxdim = Max(data_roi_c[5] - data_roi_c[2], Max(data_roi_c[3] - data_roi_c[0],data_roi_c[4] - data_roi_c[1])) + 1;
 
 	s = (float) (data_roi_c[3] - data_roi_c[0] + 1) / maxdim;
@@ -209,8 +209,20 @@ int DVRVolumizer::SetRegion(
 	s = (float) (data_roi_c[5] - data_roi_c[2] + 1) / maxdim;
 	geom_roi_c[2] = (1.0 - s) / 2.0;
 	geom_roi_c[5] = geom_roi_c[2] + s;
-
-
+*/
+	float maxCoordRange = Max(extents[3]-extents[0],Max( extents[4]-extents[1], extents[5]-extents[2]));
+	//calculate the geometric extents of the dimensions in the unit cube:
+	float dims[3];
+	dims[0] = nx-1;
+	dims[1] = ny-1;
+	dims[2] = nz-1;
+	for (i = 0; i<3; i++) {
+		float extentRatio = (extents[i+3]-extents[i])/maxCoordRange;
+		float minFull = 0.5f*(1.f - extentRatio);
+		float maxFull = 0.5f*(1.f+extentRatio);
+		geom_roi_c[i] = minFull + (data_roi_c[i]/dims[i])*(maxFull-minFull);
+		geom_roi_c[i+3] = minFull + (data_roi_c[i+3]/dims[i])*(maxFull-minFull);
+	}
 	if (region_dirty_c) {
 		/*
 fprintf(
@@ -346,8 +358,8 @@ int	DVRVolumizer::render()
 {
 	static	GLfloat	l_inv[4];
 	int	i;
-	float sx[3];
-	float tx[3];
+	//float sx[3];
+	//float tx[3];
 
 	// Set up transformations to translate and scale volume to coincide
 	// with real world coordinates as specified by extents_c. The 
@@ -356,12 +368,13 @@ int	DVRVolumizer::render()
 	// are translated and scaled as necessary to match the desired world
 	// coordinate extents
 	//
-	
+	//sx and tx are not used!
+	/*
 	for (i=0; i<3; i++) {
 		sx[i] = (extents_c[i+3]-extents_c[i])/(geom_roi_c[i+3]-geom_roi_c[i]);
 		tx[i] = extents_c[i] - ((geom_roi_c[i] - 0.5) * sx[i]);
 	}
-
+	*/
 	glEnable (GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

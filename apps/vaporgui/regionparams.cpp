@@ -28,6 +28,7 @@
 #include <qcombobox.h>
 #include <qspinbox.h>
 #include <qslider.h>
+#include <qlabel.h>
 #include "params.h"
 #include "vapor/Metadata.h"
 #include "tabmanager.h"
@@ -40,13 +41,14 @@ RegionParams::RegionParams(MainForm* mf, int winnum): Params(mf, winnum){
 	numTrans = 0;
 	maxNumTrans = 9;
 	maxSize = 256;
+	fullDataExtents.resize(6);
 	for (int i = 0; i< 3; i++){
 		centerPosition[i] = 128;
 		regionSize[i] = 256;
 		fullSize[i] = 256;
+		fullDataExtents[i] = 0.;
+		fullDataExtents[i+3] = 1.;
 	}
-	
-	
 }
 Params* RegionParams::
 deepCopy(){
@@ -67,7 +69,7 @@ makeCurrent(Params* ,bool) {
 	setDirty();
 }
 
-//Must turn off undo/redo so events here don't get recorded
+//Insert values from params into tab panel
 //
 void RegionParams::updateDialog(){
 	
@@ -95,6 +97,7 @@ void RegionParams::updateDialog(){
 			centerPosition[i] = fullSize[i] - (1+regionSize[i])/2;
 		if(centerPosition[i] < (1+regionSize[i])/2)
 			centerPosition[i] = (1+regionSize[i])/2;
+		setCurrentExtents(i);
 	}
 
 	myRegionTab->xCntrEdit->setText(strng.setNum(centerPosition[0]));
@@ -110,6 +113,16 @@ void RegionParams::updateDialog(){
 	myRegionTab->ySizeSlider->setValue(regionSize[1]);
 	myRegionTab->zSizeEdit->setText(strng.setNum(regionSize[2]));
 	myRegionTab->zSizeSlider->setValue(regionSize[2]);
+
+	myRegionTab->minXFull->setText(strng.setNum(fullDataExtents[0]));
+	myRegionTab->minYFull->setText(strng.setNum(fullDataExtents[1]));
+	myRegionTab->minZFull->setText(strng.setNum(fullDataExtents[2]));
+	myRegionTab->maxXFull->setText(strng.setNum(fullDataExtents[3]));
+	myRegionTab->maxYFull->setText(strng.setNum(fullDataExtents[4]));
+	myRegionTab->maxZFull->setText(strng.setNum(fullDataExtents[5]));
+	
+	
+	
 
 	if (isLocal())
 		myRegionTab->LocalGlobal->setCurrentItem(1);
@@ -172,18 +185,20 @@ updatePanelState(){
 		myRegionTab->zSizeSlider->setValue(regionSize[2]);
 	if (myRegionTab->maxSizeSlider->value() != maxSize)
 		myRegionTab->maxSizeSlider->setValue(maxSize);
-	
 	if (rgChanged[0]){
 			myRegionTab->xCntrEdit->setText(QString::number(centerPosition[0]));
 			myRegionTab->xSizeEdit->setText(QString::number(regionSize[0]));
+			setCurrentExtents(0);
 	}
 	if (rgChanged[1]){
 			myRegionTab->yCntrEdit->setText(QString::number(centerPosition[1]));
 			myRegionTab->ySizeEdit->setText(QString::number(regionSize[1]));
+			setCurrentExtents(1);
 	}
 	if (rgChanged[2]){
 			myRegionTab->zCntrEdit->setText(QString::number(centerPosition[2]));
 			myRegionTab->zSizeEdit->setText(QString::number(regionSize[2]));
+			setCurrentExtents(2);
 	}
 	setDirty();
 	//Cancel any response to events generated in this method:
@@ -245,6 +260,7 @@ guiSetXCenter(int n){
 			myRegionTab->xCenterSlider->setValue(centerPosition[0]);
 		}
 		myRegionTab->xCntrEdit->setText(QString::number(centerPosition[0]));
+		setCurrentExtents(0);
 		//Ignore the resulting textChanged event:
 		//
 		textChangedFlag = false;
@@ -270,6 +286,7 @@ guiSetXSize(int n){
 			myRegionTab->xCntrEdit->setText(QString::number(centerPosition[0]));
 		}
 		myRegionTab->xSizeEdit->setText(QString::number(regionSize[0]));
+		setCurrentExtents(0);
 		//Ignore the resulting textChanged event:
 		//
 		textChangedFlag = false;
@@ -292,6 +309,7 @@ guiSetYCenter(int n){
 			myRegionTab->yCenterSlider->setValue(centerPosition[1]);
 		}
 		myRegionTab->yCntrEdit->setText(QString::number(centerPosition[1]));
+		setCurrentExtents(1);
 		//Ignore the resulting textChanged event:
 		//
 		textChangedFlag = false;
@@ -316,6 +334,7 @@ guiSetYSize(int n){
 			myRegionTab->yCntrEdit->setText(QString::number(centerPosition[1]));
 		}
 		myRegionTab->ySizeEdit->setText(QString::number(regionSize[1]));
+		setCurrentExtents(1);
 		//Ignore the resulting textChanged event:
 		//
 		textChangedFlag = false;
@@ -338,6 +357,7 @@ guiSetZCenter(int n){
 			myRegionTab->zCenterSlider->setValue(centerPosition[2]);
 		}
 		myRegionTab->zCntrEdit->setText(QString::number(centerPosition[2]));
+		setCurrentExtents(2);
 		//Ignore the resulting textChanged event:
 		//
 		textChangedFlag = false;
@@ -362,6 +382,7 @@ guiSetZSize(int n){
 			myRegionTab->zCntrEdit->setText(QString::number(centerPosition[2]));
 		}
 		myRegionTab->zSizeEdit->setText(QString::number(regionSize[2]));
+		setCurrentExtents(2);
 		//Ignore the resulting textChanged event:
 		//
 		textChangedFlag = false;
@@ -404,18 +425,21 @@ guiSetMaxSize(int n){
 			myRegionTab->xCenterSlider->setValue(centerPosition[0]);
 			myRegionTab->xSizeEdit->setText(QString::number(regionSize[0]));
 			myRegionTab->xCntrEdit->setText(QString::number(centerPosition[0]));
+			setCurrentExtents(0);
 		}
 		if (enforceConsistency(1)||didChange[1]){
 			myRegionTab->ySizeSlider->setValue(regionSize[1]);
 			myRegionTab->yCenterSlider->setValue(centerPosition[1]);
 			myRegionTab->ySizeEdit->setText(QString::number(regionSize[1]));
 			myRegionTab->yCntrEdit->setText(QString::number(centerPosition[1]));
+			setCurrentExtents(1);
 		}
 		if (enforceConsistency(2)||didChange[2]){
 			myRegionTab->zSizeSlider->setValue(regionSize[2]);
 			myRegionTab->zSizeEdit->setText(QString::number(regionSize[2]));
 			myRegionTab->zCenterSlider->setValue(centerPosition[2]);
 			myRegionTab->zCntrEdit->setText(QString::number(centerPosition[2]));
+			setCurrentExtents(2);
 		}
 		
 		myRegionTab->maxSizeEdit->setText(QString::number(maxSize));
@@ -469,12 +493,37 @@ reinit(){
 	int nlevels = md->GetNumTransforms();
 	setMaxNumTrans(nlevels);
 	setNumTrans(nlevels);
-	//Data extents (user coords) will need to be presented in gui
+	//Data extents (user coords) are presented read-only in gui
 	//
 	setDataExtents(md->GetExtents());
 	//This will force the current tab to be reset to values
 	//consistent with the data.
 	//
 	if(mainWin->getTabManager()->isFrontTab(myRegionTab)) updateDialog();
+}
+void RegionParams::
+setCurrentExtents(int coord){
+	double regionMin, regionMax;
+	
+	regionMin = fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
+		(centerPosition[coord] - regionSize[coord]*.5)/(double)(fullSize[coord]);
+	regionMax = fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
+		(centerPosition[coord] + regionSize[coord]*.5)/(double)(fullSize[coord]);
+	switch (coord){
+		case(0):
+			myRegionTab->minXRegion->setText(QString::number(regionMin));
+			myRegionTab->maxXRegion->setText(QString::number(regionMax));
+			break;
+		case (1):
+			myRegionTab->minYRegion->setText(QString::number(regionMin));
+			myRegionTab->maxYRegion->setText(QString::number(regionMax));
+			break;
+		case (2):
+			myRegionTab->minZRegion->setText(QString::number(regionMin));
+			myRegionTab->maxZRegion->setText(QString::number(regionMax));
+			break;
+		default:
+			assert(0);
+	}
 }
 

@@ -154,6 +154,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	glPushMatrix();
 
 	glLoadIdentity();
+	glTranslatef(.5,.5,.5);
     myGLWindow->getTBall()->TrackballSetMatrix();
 	/*
 	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
@@ -248,41 +249,19 @@ DrawVoxelScene(unsigned /*fast*/)
 				(const size_t*)max_bdim,
 				0 //Don't lock!
 			);
-#if 0 //Check for change of data at resolution 2
-		static void* dataSaved = 0;
-		if (numxforms == 2){
-			if (dataSaved && dataSaved != data){
-				int datasize = (max_dim[0]-min_dim[0])*
-					(max_dim[1]-min_dim[1])*(max_dim[2]-min_dim[2]);
-				for (int i = 0; i< datasize; i++){
-					if (((unsigned char *)data)[i] !=
-						((unsigned char *)dataSaved)[i]){
-							qWarning("DIFFERENCE FOUND at position %d", i);
-							break;
-						}
-				}
-				
-				qWarning("END COMPARISON");
-			}
-			if (!dataSaved) qWarning("GETTING FIRST VERSION OF DATA");
-			dataSaved = data;
-		}
-#endif
-		/*
-		fprintf(stderr, "DataMgr::GetRegion(index=%d, x0=%d, y0=%d, z0=%d, x1=%d, y1=%d, z1=%d, level=%d\n", 
-			myRegionParams->getCurrentTimestep(), min_bdim[0], min_bdim[1], min_bdim[2], 
-			max_bdim[0], max_bdim[1], max_bdim[2], level);
-			*/
+
+		
 
 		// make subregion origin (0,0,0)
 		// Note that this doesn't affect the calc of nx,ny,nz.
+		
 		for(i=0; i<3; i++) {
 			while(min_bdim[i] > 0) {
 				min_dim[i] -= bs; max_dim[i] -= bs;
 				min_bdim[i] -= 1; max_bdim[i] -= 1;
 			}
 		}
-
+		
 		nx = (max_bdim[0] - min_bdim[0] + 1) * bs;
 		ny = (max_bdim[1] - min_bdim[1] + 1) * bs;
 		nz = (max_bdim[2] - min_bdim[2] + 1) * bs;
@@ -305,14 +284,21 @@ DrawVoxelScene(unsigned /*fast*/)
 		data_roi[5] = max_subdim[2];
 
 	
-
+/*
 		extents[3] = (float)(max_subdim[0]-min_subdim[0])/2.0;
 		extents[4] = (float)(max_subdim[1]-min_subdim[1])/2.0;
 		extents[5] = (float)(max_subdim[2]-min_subdim[2])/2.0;
 		extents[0] = -extents[3];
 		extents[1] = -extents[4];
 		extents[2] = -extents[5];
-
+*/
+		//AN:  (2/9/05) Extents are now the actual extents in real coords of the full data
+		for (i = 0; i< 3; i++){
+			extents[i] = myRegionParams->getFullDataExtent(i);
+			extents[i+3] = myRegionParams->getFullDataExtent(i+3);
+			//extents[i+3] = (myRegionParams->getRegionMax(i)-myRegionParams->getRegionMin(i))/2.0;
+			//extents[i] = -extents[i+3];
+		}
 		//xc = (extents[3] + extents[0]) * 0.5;
 		//yc = (extents[4] + extents[1]) * 0.5;
 		//zc = (extents[5] + extents[2]) * 0.5;
@@ -328,28 +314,17 @@ DrawVoxelScene(unsigned /*fast*/)
 		//
 	
 		glMatrixMode(GL_MODELVIEW);
-	//Get the matrix from gl, will send it to DVR Volumizer to use for its own purposes.
-		//glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
-		/*
-		fprintf(stderr, "after projection view, modelMatrix is: \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f ",
-		matrix[0], matrix[1],matrix[2],matrix[3],
-		matrix[4], matrix[5],matrix[6],matrix[7],
-		matrix[8], matrix[9],matrix[10],matrix[11],
-		matrix[12], matrix[13],matrix[14],matrix[15]);
-		*/
+		//Get the matrix from gl, will send it to DVR Volumizer to use for its own purposes.
+		
 		glGetIntegerv(GL_DRAW_BUFFER, (GLint *) &buffer);
 		glDrawBuffer(GL_BACK);
 		glClearDepth(1);
 		//Make background color black (0,0,0,0)
-		glClearColor(0.f,0.f,0.f,0.f);
+		//glClearColor(0.f,0.f,0.f,0.f);
 		
 		glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 		glDrawBuffer(buffer);
 		
-
-		//fprintf(stderr, " Setting region in DVR Volumizer\n");
-		//fflush(stderr);
-
 		rc = driver->SetRegion(data,
 			nx, ny, nz,
 			data_roi, extents
@@ -362,17 +337,13 @@ DrawVoxelScene(unsigned /*fast*/)
 			return;
 		}
 		
-		//
-		// Don't force correction of opacity for changing stride. 
-		//
-		//PackColor(NULL);
 		myVizWin->setRegionDirty(false);
 	}
 
 	if (myDVRParams->clutIsDirty()) {
-		//fprintf(stderr, " New CLUT for DVR Volumizer\n");
-		//fflush(stderr);
+		
 		//Same table sets CLUT and OLUT
+		//
 		driver->SetCLUT(myDVRParams->getClut());
 		driver->SetOLUT(myDVRParams->getClut());
 		myDVRParams->setClutDirty(false);
