@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>450</width>
-            <height>559</height>
+            <width>449</width>
+            <height>675</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -40,14 +40,14 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout25</cstring>
+            <cstring>layout20</cstring>
         </property>
         <property name="geometry">
             <rect>
                 <x>10</x>
                 <y>11</y>
                 <width>420</width>
-                <height>519</height>
+                <height>610</height>
             </rect>
         </property>
         <vbox>
@@ -56,7 +56,7 @@
             </property>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>layout43</cstring>
+                    <cstring>layout18</cstring>
                 </property>
                 <hbox>
                     <property name="name">
@@ -74,11 +74,22 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>80</width>
+                                <width>40</width>
                                 <height>21</height>
                             </size>
                         </property>
                     </spacer>
+                    <widget class="QLabel">
+                        <property name="name">
+                            <cstring>textLabel6</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Scope:</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignVCenter|AlignRight</set>
+                        </property>
+                    </widget>
                     <widget class="QComboBox">
                         <item>
                             <property name="text">
@@ -118,7 +129,7 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>70</width>
+                                <width>151</width>
                                 <height>21</height>
                             </size>
                         </property>
@@ -138,7 +149,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>16</height>
+                        <height>24</height>
                     </size>
                 </property>
             </spacer>
@@ -182,7 +193,7 @@
                             </sizepolicy>
                         </property>
                         <property name="text">
-                            <string>X-center</string>
+                            <string>X center</string>
                         </property>
                     </widget>
                     <widget class="QSlider">
@@ -243,23 +254,6 @@
                     </widget>
                 </hbox>
             </widget>
-            <spacer>
-                <property name="name">
-                    <cstring>spacer191_4</cstring>
-                </property>
-                <property name="orientation">
-                    <enum>Vertical</enum>
-                </property>
-                <property name="sizeType">
-                    <enum>Expanding</enum>
-                </property>
-                <property name="sizeHint">
-                    <size>
-                        <width>20</width>
-                        <height>16</height>
-                    </size>
-                </property>
-            </spacer>
             <widget class="QLayoutWidget">
                 <property name="name">
                     <cstring>layout116</cstring>
@@ -281,7 +275,7 @@
                             </sizepolicy>
                         </property>
                         <property name="text">
-                            <string>Y-center</string>
+                            <string>Y center</string>
                         </property>
                     </widget>
                     <widget class="QSlider">
@@ -342,23 +336,6 @@
                     </widget>
                 </hbox>
             </widget>
-            <spacer>
-                <property name="name">
-                    <cstring>spacer191_4_2</cstring>
-                </property>
-                <property name="orientation">
-                    <enum>Vertical</enum>
-                </property>
-                <property name="sizeType">
-                    <enum>Expanding</enum>
-                </property>
-                <property name="sizeHint">
-                    <size>
-                        <width>20</width>
-                        <height>16</height>
-                    </size>
-                </property>
-            </spacer>
             <widget class="QLayoutWidget">
                 <property name="name">
                     <cstring>layout116_12</cstring>
@@ -380,7 +357,7 @@
                             </sizepolicy>
                         </property>
                         <property name="text">
-                            <string>Z-center</string>
+                            <string>Z center</string>
                         </property>
                     </widget>
                     <widget class="QSlider">
@@ -454,7 +431,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>16</height>
+                        <height>23</height>
                     </size>
                 </property>
             </spacer>
@@ -573,7 +550,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>16</height>
+                        <height>24</height>
                     </size>
                 </property>
             </spacer>
@@ -617,7 +594,7 @@
                             </sizepolicy>
                         </property>
                         <property name="text">
-                            <string>X-size</string>
+                            <string>X size</string>
                         </property>
                     </widget>
                     <widget class="QSlider">
@@ -678,23 +655,6 @@
                     </widget>
                 </hbox>
             </widget>
-            <spacer>
-                <property name="name">
-                    <cstring>spacer191_3</cstring>
-                </property>
-                <property name="orientation">
-                    <enum>Vertical</enum>
-                </property>
-                <property name="sizeType">
-                    <enum>Expanding</enum>
-                </property>
-                <property name="sizeHint">
-                    <size>
-                        <width>20</width>
-                        <height>16</height>
-                    </size>
-                </property>
-            </spacer>
             <widget class="QLayoutWidget">
                 <property name="name">
                     <cstring>layout116_9</cstring>
@@ -716,7 +676,7 @@
                             </sizepolicy>
                         </property>
                         <property name="text">
-                            <string>Y-size</string>
+                            <string>Y size</string>
                         </property>
                     </widget>
                     <widget class="QSlider">
@@ -777,23 +737,6 @@
                     </widget>
                 </hbox>
             </widget>
-            <spacer>
-                <property name="name">
-                    <cstring>spacer191</cstring>
-                </property>
-                <property name="orientation">
-                    <enum>Vertical</enum>
-                </property>
-                <property name="sizeType">
-                    <enum>Expanding</enum>
-                </property>
-                <property name="sizeHint">
-                    <size>
-                        <width>20</width>
-                        <height>16</height>
-                    </size>
-                </property>
-            </spacer>
             <widget class="QLayoutWidget">
                 <property name="name">
                     <cstring>layout116_10_2</cstring>
@@ -815,7 +758,7 @@
                             </sizepolicy>
                         </property>
                         <property name="text">
-                            <string>Z-size</string>
+                            <string>Z size</string>
                         </property>
                     </widget>
                     <widget class="QSlider">
@@ -889,7 +832,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>16</height>
+                        <height>23</height>
                     </size>
                 </property>
             </spacer>
@@ -988,7 +931,410 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>16</height>
+                        <height>24</height>
+                    </size>
+                </property>
+            </spacer>
+            <widget class="QLayoutWidget">
+                <property name="name">
+                    <cstring>layout17</cstring>
+                </property>
+                <hbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer20</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>100</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QLabel">
+                        <property name="name">
+                            <cstring>textLabel1_3</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Region Coordinate Extents</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer18_2</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>30</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QLabel">
+                        <property name="name">
+                            <cstring>textLabel1</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Full Coordinate Extents</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer19</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>20</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                    </spacer>
+                </hbox>
+            </widget>
+            <widget class="QLayoutWidget">
+                <property name="name">
+                    <cstring>layout12</cstring>
+                </property>
+                <grid>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QLabel" row="2" column="0">
+                        <property name="name">
+                            <cstring>textLabel2_2_2</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Y extents</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="1" column="4">
+                        <property name="name">
+                            <cstring>maxXFull</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="2" column="3">
+                        <property name="name">
+                            <cstring>minYFull</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>-1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="3" column="0">
+                        <property name="name">
+                            <cstring>textLabel2_2_3</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Z extents</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="3" column="2">
+                        <property name="name">
+                            <cstring>maxZRegion</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="1" column="2">
+                        <property name="name">
+                            <cstring>maxXRegion</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="2" column="1">
+                        <property name="name">
+                            <cstring>minYRegion</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>-1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="2" column="2">
+                        <property name="name">
+                            <cstring>maxYRegion</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="3" column="1">
+                        <property name="name">
+                            <cstring>minZRegion</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>-1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="1" column="3">
+                        <property name="name">
+                            <cstring>minXFull</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>-1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="0" column="2">
+                        <property name="name">
+                            <cstring>textLabel4_2</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Max</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="0" column="3">
+                        <property name="name">
+                            <cstring>textLabel3_2_2</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Min</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="3" column="4">
+                        <property name="name">
+                            <cstring>maxZFull</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="3" column="3">
+                        <property name="name">
+                            <cstring>minZFull</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>-1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="2" column="4">
+                        <property name="name">
+                            <cstring>maxYFull</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="0" column="1">
+                        <property name="name">
+                            <cstring>textLabel3_2</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Min</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="1" column="0">
+                        <property name="name">
+                            <cstring>textLabel2_2</cstring>
+                        </property>
+                        <property name="text">
+                            <string>X extents</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="1" column="1">
+                        <property name="name">
+                            <cstring>minXRegion</cstring>
+                        </property>
+                        <property name="paletteBackgroundColor">
+                            <color>
+                                <red>216</red>
+                                <green>216</green>
+                                <blue>216</blue>
+                            </color>
+                        </property>
+                        <property name="text">
+                            <string>-1.0000</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="0" column="4">
+                        <property name="name">
+                            <cstring>textLabel4_2_2</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Max</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                    </widget>
+                </grid>
+            </widget>
+            <spacer>
+                <property name="name">
+                    <cstring>spacer21</cstring>
+                </property>
+                <property name="orientation">
+                    <enum>Vertical</enum>
+                </property>
+                <property name="sizeType">
+                    <enum>Expanding</enum>
+                </property>
+                <property name="sizeHint">
+                    <size>
+                        <width>20</width>
+                        <height>31</height>
                     </size>
                 </property>
             </spacer>
