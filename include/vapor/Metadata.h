@@ -837,7 +837,7 @@ private:
  int _RecordUserDataTags(vector <string> &keys, const string &tag);
 
  // XML Expat element handlers
- friend void	startElementHandler(
+ friend void	metadataStartElementHandler(
 	void *userData, const XML_Char *tag, const char **attrs
  ) {
 	Metadata *meta = (Metadata *) userData;
@@ -845,17 +845,18 @@ private:
  }
 
 
- friend void endElementHandler(void *userData, const XML_Char *tag) {
+ friend void metadataEndElementHandler(void *userData, const XML_Char *tag) {
 	Metadata *meta = (Metadata *) userData;
 	meta->_endElementHandler(tag);
  }
 
- friend void	charDataHandler(
+ friend void	metadataCharDataHandler(
 	void *userData, const XML_Char *s, int len
  ) {
 	Metadata *meta = (Metadata *) userData;
 	meta->_charDataHandler(s, len);
  }
+
 
  void _startElementHandler(const XML_Char *tag, const char **attrs);
  void _endElementHandler(const XML_Char *tag);

@@ -86,13 +86,13 @@ public:
 
  //! Retrieve the current error message
  //!
- //! Retrieves the last error message set with SetErrMsg() and resets
- //! the error code to zero. It is the 
+ //! Retrieves the last error message set with SetErrMsg().
+ //! It is the 
  //! caller's responsibility to copy the message returned to user space.
  //! \sa SetErrMsg(), SetErrCode()
  //! \retval msg A pointer to null-terminated string.
  //
- static const char	*GetErrMsg() {ErrCode = 0; return(ErrMsg);}
+ static const char	*GetErrMsg() {return(ErrMsg);}
 
  //! Record an error code
  // 
@@ -106,11 +106,11 @@ public:
  //! Retrieve the current error code
  // 
  //! Retrieves the last error code set either explicity with SetErrCode()
- //! or indirectly with a call to SetErrMsg(). Resets the error code to zero.
+ //! or indirectly with a call to SetErrMsg(). 
  //! \sa SetErrMsg(), SetErrCode()
  //! \retval code An erroor code
  //
- static int	GetErrCode() { int rc = ErrCode; ErrCode = 0; return(rc); }
+ static int	GetErrCode() {return(ErrCode); }
 
  //! Set a callback function for error messages
  //!
@@ -180,8 +180,8 @@ public:
 
  // N.B. the error codes/messages are stored in static class members!!!
  static char 	*ErrMsg;
- static int	ErrMsgSize;
  static int	ErrCode;
+ static int	ErrMsgSize;
  static FILE	*ErrMsgFilePtr;
  static ErrMsgCB_T ErrMsgCB;
 
