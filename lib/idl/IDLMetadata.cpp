@@ -229,34 +229,34 @@ int IDL_Load(void)
 	//
 	static IDL_SYSFUN_DEF2 func_addr[] = {
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataCreate, 
-			"VDF_MCREATE", 1, 2, IDL_SYSFUN_DEF_F_KEYWORDS, 0
+			"VDF_CREATE", 1, 2, IDL_SYSFUN_DEF_F_KEYWORDS, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetBlockSize, 
-			"VDF_MGETBLOCKSIZE", 1, 1, 0, 0
+			"VDF_GETBLOCKSIZE", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetDimension, 
-			"VDF_MGETDIMENSION", 1, 1, 0, 0
+			"VDF_GETDIMENSION", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetFilterCoef, 
-			"VDF_MGETFILTERCOEF", 1, 1, 0, 0
+			"VDF_GETFILTERCOEF", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetLiftingCoef, 
-			"VDF_MGETLIFTINGCOEF", 1, 1, 0, 0
+			"VDF_GETLIFTINGCOEF", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetNumTransforms, 
-			"VDF_MGETNUMTRANSFORMS", 1, 1, 0, 0
+			"VDF_GETNUMTRANSFORMS", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataGetMSBFirst, 
-			"VDF_MGETMSBFIRST", 1, 1, 0, 0
+			"VDF_GETMSBFIRST", 1, 1, 0, 0
 		},
 	};
 
 	static IDL_SYSFUN_DEF2 proc_addr[] = {
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataDestroy, 
-			"VDF_MDESTROY", 1, 1, 0, 0
+			"VDF_DESTROY", 1, 1, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdfMetadataWrite, 
-			"VDF_MWRITE", 2, 2, 0, 0
+			"VDF_WRITE", 2, 2, 0, 0
 		},
 	};
 

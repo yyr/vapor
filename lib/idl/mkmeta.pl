@@ -3,7 +3,7 @@
 
 @Table = (
 	{
-		idlname	=> "VDF_MSETGRIDTYPE",
+		idlname	=> "VDF_SETGRIDTYPE",
 		name => "SetGridType",
 		set => 1,
 		type	=> "string",
@@ -13,7 +13,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETGRIDTYPE",
+		idlname	=> "VDF_GETGRIDTYPE",
 		name => "GetGridType",
 		set => 0,
 		type	=> "string",
@@ -23,7 +23,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETCOORDTYPE",
+		idlname	=> "VDF_SETCOORDTYPE",
 		name => "SetCoordSystemType",
 		set => 1,
 		type	=> "string",
@@ -33,7 +33,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETCOORDTYPE",
+		idlname	=> "VDF_GETCOORDTYPE",
 		name => "GetCoordSystemType",
 		set => 0,
 		type	=> "string",
@@ -43,7 +43,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETEXTENTS",
+		idlname	=> "VDF_SETEXTENTS",
 		name => "SetExtents",
 		set => 1,
 		type	=> "double",
@@ -53,7 +53,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETEXTENTS",
+		idlname	=> "VDF_GETEXTENTS",
 		name => "GetExtents",
 		set => 0,
 		type	=> "double",
@@ -63,7 +63,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETNUMTIMESTEPS",
+		idlname	=> "VDF_SETNUMTIMESTEPS",
 		name => "SetNumTimeSteps",
 		set => 1,
 		type	=> "long",
@@ -73,7 +73,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETNUMTIMESTEPS",
+		idlname	=> "VDF_GETNUMTIMESTEPS",
 		name => "GetNumTimeSteps",
 		set => 0,
 		type	=> "long",
@@ -83,7 +83,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETVARNAMES",
+		idlname	=> "VDF_SETVARNAMES",
 		name => "SetVariableNames",
 		set => 1,
 		type	=> "string",
@@ -93,7 +93,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETVARNAMES",
+		idlname	=> "VDF_GETVARNAMES",
 		name => "GetVariableNames",
 		set => 0,
 		type	=> "string",
@@ -103,7 +103,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETCOMMENT",
+		idlname	=> "VDF_SETCOMMENT",
 		name => "SetComment",
 		set => 1,
 		type	=> "string",
@@ -113,7 +113,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETCOMMENT",
+		idlname	=> "VDF_GETCOMMENT",
 		name => "GetComment",
 		set => 0,
 		type	=> "string",
@@ -123,7 +123,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETTUSERTIME",
+		idlname	=> "VDF_SETTUSERTIME",
 		name => "SetTSUserTime",
 		set => 1,
 		type	=> "double",
@@ -133,7 +133,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETTUSERTIME",
+		idlname	=> "VDF_GETTUSERTIME",
 		name => "GetTSUserTime",
 		set => 0,
 		type	=> "double",
@@ -143,7 +143,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETTXCOORDS",
+		idlname	=> "VDF_SETTXCOORDS",
 		name => "SetTSXCoords",
 		set => 1,
 		type	=> "double",
@@ -153,7 +153,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETTXCOORDS",
+		idlname	=> "VDF_GETTXCOORDS",
 		name => "GetTSXCoords",
 		set => 0,
 		type	=> "double",
@@ -163,7 +163,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETTYCOORDS",
+		idlname	=> "VDF_SETTYCOORDS",
 		name => "SetTSYCoords",
 		set => 1,
 		type	=> "double",
@@ -173,7 +173,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETTYCOORDS",
+		idlname	=> "VDF_GETTYCOORDS",
 		name => "GetTSYCoords",
 		set => 0,
 		type	=> "double",
@@ -183,7 +183,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETTZCOORDS",
+		idlname	=> "VDF_SETTZCOORDS",
 		name => "SetTSZCoords",
 		set => 1,
 		type	=> "double",
@@ -193,7 +193,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETTZCOORDS",
+		idlname	=> "VDF_GETTZCOORDS",
 		name => "GetTSZCoords",
 		set => 0,
 		type	=> "double",
@@ -203,7 +203,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETTCOMMENT",
+		idlname	=> "VDF_SETTCOMMENT",
 		name => "SetTSComment",
 		set => 1,
 		type	=> "string",
@@ -213,7 +213,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETTCOMMENT",
+		idlname	=> "VDF_GETTCOMMENT",
 		name => "GetTSComment",
 		set => 0,
 		type	=> "string",
@@ -223,7 +223,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETVCOMMENT",
+		idlname	=> "VDF_SETVCOMMENT",
 		name => "SetVComment",
 		set => 1,
 		type	=> "string",
@@ -233,7 +233,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETVCOMMENT",
+		idlname	=> "VDF_GETVCOMMENT",
 		name => "GetVComment",
 		set => 0,
 		type	=> "string",
@@ -243,7 +243,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETVDRANGE",
+		idlname	=> "VDF_SETVDRANGE",
 		name => "SetVDataRange",
 		set => 1,
 		type	=> "double",
@@ -253,7 +253,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MGETVDRANGE",
+		idlname	=> "VDF_GETVDRANGE",
 		name => "GetVDataRange",
 		set => 0,
 		type	=> "double",
@@ -266,7 +266,7 @@
 	# Top Level (Global) User-Defined Metdata Attributes
 	#
 	{
-		idlname	=> "VDF_MSETLONG",
+		idlname	=> "VDF_SETLONG",
 		name => "SetUserDataLong",
 		set => 1,
 		type	=> "long",
@@ -276,7 +276,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETLONG",
+		idlname	=> "VDF_GETLONG",
 		name	=> "GetUserDataLong",
 		set		=> 0,
 		type	=> "long",
@@ -286,7 +286,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETLONGTAGS",
+		idlname	=> "VDF_GETLONGTAGS",
 		name	=> "GetUserDataLongTags",
 		set		=> 0,
 		type	=> "string",
@@ -296,7 +296,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETDBL",
+		idlname	=> "VDF_SETDBL",
 		name => "SetUserDataDouble",
 		set => 1,
 		type	=> "double",
@@ -306,7 +306,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETDBL",
+		idlname	=> "VDF_GETDBL",
 		name	=> "GetUserDataDouble",
 		set		=> 0,
 		type	=> "double",
@@ -316,7 +316,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETDBLTAGS",
+		idlname	=> "VDF_GETDBLTAGS",
 		name	=> "GetUserDataDoubleTags",
 		set		=> 0,
 		type	=> "string",
@@ -326,7 +326,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETSTR",
+		idlname	=> "VDF_SETSTR",
 		name => "SetUserDataString",
 		set => 1,
 		type	=> "string",
@@ -336,7 +336,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETSTR",
+		idlname	=> "VDF_GETSTR",
 		name	=> "GetUserDataString",
 		set		=> 0,
 		type	=> "string",
@@ -346,7 +346,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETSTRTAGS",
+		idlname	=> "VDF_GETSTRTAGS",
 		name	=> "GetUserDataStringTags",
 		set		=> 0,
 		type	=> "string",
@@ -359,7 +359,7 @@
 	# Time Step User-Defined Metdata Attributes
 	#
 	{
-		idlname	=> "VDF_MSETTLONG",
+		idlname	=> "VDF_SETTLONG",
 		name => "SetTSUserDataLong",
 		set => 1,
 		type	=> "long",
@@ -369,7 +369,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETTLONG",
+		idlname	=> "VDF_GETTLONG",
 		name	=> "GetTSUserDataLong",
 		set		=> 0,
 		type	=> "long",
@@ -379,7 +379,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETTLONGTAGS",
+		idlname	=> "VDF_GETTLONGTAGS",
 		name	=> "GetTSUserDataLongTags",
 		set		=> 0,
 		type	=> "string",
@@ -389,7 +389,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETTDBL",
+		idlname	=> "VDF_SETTDBL",
 		name => "SetTSUserDataDouble",
 		set => 1,
 		type	=> "double",
@@ -399,7 +399,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETTDBL",
+		idlname	=> "VDF_GETTDBL",
 		name	=> "GetTSUserDataDouble",
 		set		=> 0,
 		type	=> "double",
@@ -409,7 +409,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETTDBLTAGS",
+		idlname	=> "VDF_GETTDBLTAGS",
 		name	=> "GetTSUserDataDoubleTags",
 		set		=> 0,
 		type	=> "string",
@@ -419,7 +419,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETTSTR",
+		idlname	=> "VDF_SETTSTR",
 		name => "SetTSUserDataString",
 		set => 1,
 		type	=> "string",
@@ -429,7 +429,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETTSTR",
+		idlname	=> "VDF_GETTSTR",
 		name	=> "GetTSUserDataString",
 		set		=> 0,
 		type	=> "string",
@@ -439,7 +439,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETTSTRTAGS",
+		idlname	=> "VDF_GETTSTRTAGS",
 		name	=> "GetTSUserDataStringTags",
 		set		=> 0,
 		type	=> "string",
@@ -452,7 +452,7 @@
 	# Variable User-Defined Metdata Attributes
 	#
 	{
-		idlname	=> "VDF_MSETVLONG",
+		idlname	=> "VDF_SETVLONG",
 		name => "SetVUserDataLong",
 		set => 1,
 		type	=> "long",
@@ -462,7 +462,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETVLONG",
+		idlname	=> "VDF_GETVLONG",
 		name	=> "GetVUserDataLong",
 		set		=> 0,
 		type	=> "long",
@@ -472,7 +472,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETVLONGTAGS",
+		idlname	=> "VDF_GETVLONGTAGS",
 		name	=> "GetVUserDataLongTags",
 		set		=> 0,
 		type	=> "string",
@@ -482,7 +482,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETVDBL",
+		idlname	=> "VDF_SETVDBL",
 		name => "SetVUserDataDouble",
 		set => 1,
 		type	=> "double",
@@ -492,7 +492,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETVDBL",
+		idlname	=> "VDF_GETVDBL",
 		name	=> "GetVUserDataDouble",
 		set		=> 0,
 		type	=> "double",
@@ -502,7 +502,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETVDBLTAGS",
+		idlname	=> "VDF_GETVDBLTAGS",
 		name	=> "GetVUserDataDoubleTags",
 		set		=> 0,
 		type	=> "string",
@@ -512,7 +512,7 @@
 		tag		=> 0
 	},
 	{
-		idlname	=> "VDF_MSETVSTR",
+		idlname	=> "VDF_SETVSTR",
 		name => "SetVUserDataString",
 		set => 1,
 		type	=> "string",
@@ -522,7 +522,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETVSTR",
+		idlname	=> "VDF_GETVSTR",
 		name	=> "GetVUserDataString",
 		set		=> 0,
 		type	=> "string",
@@ -532,7 +532,7 @@
 		tag		=> 1
 	},
 	{
-		idlname	=> "VDF_MGETVSTRTAGS",
+		idlname	=> "VDF_GETVSTRTAGS",
 		name	=> "GetVUserDataStringTags",
 		set		=> 0,
 		type	=> "string",

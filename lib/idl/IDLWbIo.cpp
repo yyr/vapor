@@ -40,7 +40,7 @@ WaveletBlock3DIO *varGetIO(
 
 
 	if (var->type != IDL_TYP_MEMINT) {
-		errFatal("VDF IO handle must be of type IDL_TYP_MEMINT");
+		errFatal("VDC IO handle must be of type IDL_TYP_MEMINT");
 	}
 
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) var->value.memint;
@@ -50,14 +50,14 @@ WaveletBlock3DIO *varGetIO(
 		(classname.compare("WaveletBlock3DRegionReader") == 0) ||
 		(classname.compare("WaveletBlock3DBufWriter") == 0))) { 
 
-		errFatal("Invalid VDF IO handle type for operation");
+		errFatal("Invalid VDC IO handle type for operation");
 	}
 	return((WaveletBlock3DIO *) var->value.memint);
 }
 
 
 
-IDL_VPTR vdfBufReaderCreate(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcBufReaderCreate(int argc, IDL_VPTR *argv)
 {
 	IDL_VPTR arg = argv[0];
 	WaveletBlock3DBufReader *reader;
@@ -84,14 +84,14 @@ IDL_VPTR vdfBufReaderCreate(int argc, IDL_VPTR *argv)
 	return(result);
 }
 
-void vdfBufReaderDestroy(int argc, IDL_VPTR *argv)
+void vdcBufReaderDestroy(int argc, IDL_VPTR *argv)
 {
 
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
 	const string	&classname = io->GetClassName();
 
 	if (! (classname.compare("WaveletBlock3DBufReader") == 0)) {
-		errFatal("Invalid VDF IO handle type for operation");
+		errFatal("Invalid VDC IO handle type for operation");
 	}
 
 	WaveletBlock3DBufReader	*obj = (WaveletBlock3DBufReader *) io;
@@ -99,7 +99,7 @@ void vdfBufReaderDestroy(int argc, IDL_VPTR *argv)
 	delete obj;
 }
 
-void vdfReadSlice(int argc, IDL_VPTR *argv)
+void vdcReadSlice(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
 	IDL_VPTR	slice_var = argv[1];
@@ -107,7 +107,7 @@ void vdfReadSlice(int argc, IDL_VPTR *argv)
 	const string	&classname = io->GetClassName();
 
 	if (! (classname.compare("WaveletBlock3DBufReader") == 0)) {
-		errFatal("Invalid VDF IO handle type for operation");
+		errFatal("Invalid VDC IO handle type for operation");
 	}
 
 	WaveletBlock3DBufReader	*obj = (WaveletBlock3DBufReader *) io;
@@ -134,7 +134,7 @@ void vdfReadSlice(int argc, IDL_VPTR *argv)
 
 
 
-IDL_VPTR vdfRegionReaderCreate(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcRegionReaderCreate(int argc, IDL_VPTR *argv)
 {
 	IDL_VPTR arg = argv[0];
 	WaveletBlock3DRegionReader *reader;
@@ -161,13 +161,13 @@ IDL_VPTR vdfRegionReaderCreate(int argc, IDL_VPTR *argv)
 	return(result);
 }
 
-void vdfRegionReaderDestroy(int argc, IDL_VPTR *argv)
+void vdcRegionReaderDestroy(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
 	const string	&classname = io->GetClassName();
 
 	if (! (classname.compare("WaveletBlock3DRegionReader") == 0)) {
-		errFatal("Invalid VDF IO handle type for operation");
+		errFatal("Invalid VDC IO handle type for operation");
 	}
 
 	WaveletBlock3DRegionReader	*obj = (WaveletBlock3DRegionReader *) io;
@@ -175,7 +175,7 @@ void vdfRegionReaderDestroy(int argc, IDL_VPTR *argv)
 	delete obj;
 }
 
-void vdfReadRegion(int argc, IDL_VPTR *argv)
+void vdcReadRegion(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
 	IDL_VPTR min_var = IDL_BasicTypeConversion(1, &argv[1],IDL_TYP_LONG);
@@ -185,7 +185,7 @@ void vdfReadRegion(int argc, IDL_VPTR *argv)
 	const string	&classname = io->GetClassName();
 
 	if (! (classname.compare("WaveletBlock3DRegionReader") == 0)) {
-		errFatal("Invalid VDF IO handle type for operation");
+		errFatal("Invalid VDC IO handle type for operation");
 	}
 
 	WaveletBlock3DRegionReader	*obj = (WaveletBlock3DRegionReader *) io;
@@ -225,7 +225,7 @@ void vdfReadRegion(int argc, IDL_VPTR *argv)
 	if (max_var != argv[2]) IDL_Deltmp(max_var);
 }
 
-IDL_VPTR vdfBufWriterCreate(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcBufWriterCreate(int argc, IDL_VPTR *argv)
 {
 	IDL_VPTR arg = argv[0];
 	WaveletBlock3DBufWriter *writer;
@@ -252,13 +252,13 @@ IDL_VPTR vdfBufWriterCreate(int argc, IDL_VPTR *argv)
 	return(result);
 }
 
-void vdfBufWriterDestroy(int argc, IDL_VPTR *argv)
+void vdcBufWriterDestroy(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
 	const string	&classname = io->GetClassName();
 
 	if (! (classname.compare("WaveletBlock3DBufWriter") == 0)) {
-		errFatal("Invalid VDF IO handle type for operation");
+		errFatal("Invalid VDC IO handle type for operation");
 	}
 
 	WaveletBlock3DBufWriter	*obj = (WaveletBlock3DBufWriter *) io;
@@ -266,7 +266,7 @@ void vdfBufWriterDestroy(int argc, IDL_VPTR *argv)
 	delete obj;
 }
 
-void vdfWriteSlice(int argc, IDL_VPTR *argv)
+void vdcWriteSlice(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
 	IDL_VPTR	slice_var = argv[1];
@@ -274,7 +274,7 @@ void vdfWriteSlice(int argc, IDL_VPTR *argv)
 	const string	&classname = io->GetClassName();
 
 	if (! (classname.compare("WaveletBlock3DBufWriter") == 0)) {
-		errFatal("Invalid VDF IO handle type for operation");
+		errFatal("Invalid VDC IO handle type for operation");
 	}
 
 	WaveletBlock3DBufWriter	*obj = (WaveletBlock3DBufWriter *) io;
@@ -294,7 +294,7 @@ void vdfWriteSlice(int argc, IDL_VPTR *argv)
 	myBaseErrChk();
 }
 
-void vdfOpenVarRead(int argc, IDL_VPTR *argv)
+void vdcOpenVarRead(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 	IDL_LONG ts = IDL_LongScalar(argv[1]);
@@ -315,7 +315,7 @@ void vdfOpenVarRead(int argc, IDL_VPTR *argv)
 }
 
 
-void vdfOpenVarWrite(int argc, IDL_VPTR *argv)
+void vdcOpenVarWrite(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
 	IDL_LONG ts = IDL_LongScalar(argv[1]);
@@ -326,7 +326,7 @@ void vdfOpenVarWrite(int argc, IDL_VPTR *argv)
 
 
 	if (! (classname.compare("WaveletBlock3DBufWriter") == 0)) {
-		errFatal("Invalid VDF IO handle type for operation");
+		errFatal("Invalid VDC IO handle type for operation");
 	}
 
 	WaveletBlock3DBufWriter	*obj = (WaveletBlock3DBufWriter *) io;
@@ -336,7 +336,7 @@ void vdfOpenVarWrite(int argc, IDL_VPTR *argv)
 }
 
 
-void vdfCloseVar(int argc, IDL_VPTR *argv)
+void vdcCloseVar(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 
@@ -357,7 +357,7 @@ void vdfCloseVar(int argc, IDL_VPTR *argv)
 	myBaseErrChk();
 }
 
-IDL_VPTR vdfVarExists(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcVarExists(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 	IDL_LONG ts = IDL_LongScalar(argv[1]);
@@ -372,7 +372,7 @@ IDL_VPTR vdfVarExists(int argc, IDL_VPTR *argv)
 
 }
 
-IDL_VPTR vdfGetDim(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcGetDim(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 	IDL_LONG num_xforms = IDL_LongScalar(argv[1]);
@@ -396,7 +396,7 @@ IDL_VPTR vdfGetDim(int argc, IDL_VPTR *argv)
 
 }
 
-IDL_VPTR vdfTransformCoord(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcTransformCoord(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 	IDL_LONG num_xforms = IDL_LongScalar(argv[1]);
@@ -434,7 +434,7 @@ IDL_VPTR vdfTransformCoord(int argc, IDL_VPTR *argv)
 
 }
 
-IDL_VPTR vdfMapVoxToUser(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcMapVoxToUser(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 	IDL_LONG num_xforms = IDL_LongScalar(argv[1]);
@@ -473,7 +473,7 @@ IDL_VPTR vdfMapVoxToUser(int argc, IDL_VPTR *argv)
 
 }
 
-IDL_VPTR vdfMapUserToVox(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcMapUserToVox(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 	IDL_LONG num_xforms = IDL_LongScalar(argv[1]);
@@ -512,7 +512,7 @@ IDL_VPTR vdfMapUserToVox(int argc, IDL_VPTR *argv)
 
 }
 
-IDL_VPTR vdfIsValidRegion(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcIsValidRegion(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 	IDL_LONG num_xforms = IDL_LongScalar(argv[1]);
@@ -548,7 +548,7 @@ IDL_VPTR vdfIsValidRegion(int argc, IDL_VPTR *argv)
 	return(IDL_GettmpLong((IDL_LONG) rc));
 }
 
-IDL_VPTR vdfGetMetadata(int argc, IDL_VPTR *argv)
+IDL_VPTR vdcGetMetadata(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 
@@ -576,65 +576,65 @@ int IDL_LoadIO(void)
 	//tables must be identical to that contained in testmodule.dlm.
 	//
 	static IDL_SYSFUN_DEF2 func_addr[] = {
-		{ (IDL_SYSRTN_GENERIC) vdfBufReaderCreate, 
-			"VDF_BUFREADCREATE", 1, 1, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcBufReaderCreate, 
+			"VDC_BUFREADCREATE", 1, 1, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfRegionReaderCreate, 
-			"VDF_REGREADCREATE", 1, 1, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcRegionReaderCreate, 
+			"VDC_REGREADCREATE", 1, 1, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfBufWriterCreate, 
-			"VDF_BUFWRITECREATE", 1, 1, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcBufWriterCreate, 
+			"VDC_BUFWRITECREATE", 1, 1, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfVarExists, 
-			"VDF_VAREXISTS", 4, 4, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcVarExists, 
+			"VDC_VAREXISTS", 4, 4, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfGetDim, 
-			"VDF_GETDIM", 2, 2, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcGetDim, 
+			"VDC_GETDIM", 2, 2, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfTransformCoord, 
-			"VDF_XFORMCOORD", 3, 3, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcTransformCoord, 
+			"VDC_XFORMCOORD", 3, 3, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfMapVoxToUser, 
-			"VDF_MAPVOX2USER", 4, 4, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcMapVoxToUser, 
+			"VDC_MAPVOX2USER", 4, 4, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfMapUserToVox, 
-			"VDF_MAPUSER2VOX", 4, 4, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcMapUserToVox, 
+			"VDC_MAPUSER2VOX", 4, 4, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfIsValidRegion, 
-			"VDF_ISVALIDREG", 4, 4, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcIsValidRegion, 
+			"VDC_ISVALIDREG", 4, 4, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfGetMetadata, 
-			"VDF_GETMETADATA", 1, 1, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcGetMetadata, 
+			"VDC_GETMETADATA", 1, 1, 0, 0
 		}
 	};
 
 	static IDL_SYSFUN_DEF2 proc_addr[] = {
-		{ (IDL_SYSRTN_GENERIC) vdfBufReaderDestroy, 
-			"VDF_BUFREADDESTROY", 1, 1, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcBufReaderDestroy, 
+			"VDC_BUFREADDESTROY", 1, 1, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfReadSlice, 
-			"VDF_BUFREADSLICE", 2, 2, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcReadSlice, 
+			"VDC_BUFREADSLICE", 2, 2, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfRegionReaderDestroy, 
-			"VDF_REGREADDESTROY", 1, 1, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcRegionReaderDestroy, 
+			"VDC_REGREADDESTROY", 1, 1, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfReadRegion, 
-			"VDF_REGREAD", 4, 4, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcReadRegion, 
+			"VDC_REGREAD", 4, 4, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfBufWriterDestroy, 
-			"VDF_BUFWRITEDESTROY", 1, 1, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcBufWriterDestroy, 
+			"VDC_BUFWRITEDESTROY", 1, 1, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfWriteSlice, 
-			"VDF_BUFWRITESLICE", 2, 2, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcWriteSlice, 
+			"VDC_BUFWRITESLICE", 2, 2, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfOpenVarWrite, 
-			"VDF_OPENVARWRITE", 3, 3, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcOpenVarWrite, 
+			"VDC_OPENVARWRITE", 3, 3, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfOpenVarRead, 
-			"VDF_OPENVARREAD", 4, 4, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcOpenVarRead, 
+			"VDC_OPENVARREAD", 4, 4, 0, 0
 		},
-		{ (IDL_SYSRTN_GENERIC) vdfCloseVar, 
-			"VDF_CLOSEVAR", 1, 1, 0, 0
+		{ (IDL_SYSRTN_GENERIC) vdcCloseVar, 
+			"VDC_CLOSEVAR", 1, 1, 0, 0
 		}
 	};
 

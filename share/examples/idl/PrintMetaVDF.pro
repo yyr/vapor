@@ -14,53 +14,53 @@
 ;	one of the example programs that generates a .vdf file.
 ;
 vdffile = '/tmp/test.vdf'
-mfd = vdf_mcreate(vdffile)
+mfd = vdf_create(vdffile)
 
 
-print, "Block size = ", vdf_mgetblocksize(mfd)
+print, "Block size = ", vdf_getblocksize(mfd)
 
-print, "Dimension = ", vdf_mgetdimension(mfd)
+print, "Dimension = ", vdf_getdimension(mfd)
 
-print, "Num Filter Coefficients = ", vdf_mgetfiltercoef(mfd)
+print, "Num Filter Coefficients = ", vdf_getfiltercoef(mfd)
 
-print, "Num Lifting Coefficients = ", vdf_mgetliftingcoef(mfd)
+print, "Num Lifting Coefficients = ", vdf_getliftingcoef(mfd)
 
-print, "Num Wavelet Transforms = ", vdf_mgetnumtransforms(mfd)
+print, "Num Wavelet Transforms = ", vdf_getnumtransforms(mfd)
 
-print, "Grid Type = ", vdf_mgetgridtype(mfd)
+print, "Grid Type = ", vdf_getgridtype(mfd)
 
-print, "Coordinate Type = ", vdf_mgetcoordtype(mfd)
+print, "Coordinate Type = ", vdf_getcoordtype(mfd)
 
-print, "Volume extents = ", vdf_mgetextents(mfd)
+print, "Volume extents = ", vdf_getextents(mfd)
 
-print, "Num Time Steps = ", vdf_mgetnumtimesteps(mfd)
+print, "Num Time Steps = ", vdf_getnumtimesteps(mfd)
 
-print, "Variable Names = ", vdf_mgetvarnames(mfd)
+print, "Variable Names = ", vdf_getvarnames(mfd)
 
-print, "Global comment = ", vdf_mgetcomment(mfd)
+print, "Global comment = ", vdf_getcomment(mfd)
 
 
-timesteps = vdf_mgetnumtimesteps(mfd)
-varnames = vdf_mgetvarnames(mfd)
+timesteps = vdf_getnumtimesteps(mfd)
+varnames = vdf_getvarnames(mfd)
 nvarnames = n_elements(varnames)
 
 for ts = 0, timesteps[0]-1 do begin
 	print, "Time step ", ts, " metadata"
-	print, "	User Time = ", vdf_mgettusertime(mfd, ts)
-	print, "	XCoords = ", vdf_mgettxcoords(mfd, ts)
-	print, "	YCoords = ", vdf_mgettycoords(mfd, ts)
-	print, "	ZCoords = ", vdf_mgettzcoords(mfd, ts)
-	print, "	Comment = ", vdf_mgettcomment(mfd, ts)
+	print, "	User Time = ", vdf_gettusertime(mfd, ts)
+	print, "	XCoords = ", vdf_gettxcoords(mfd, ts)
+	print, "	YCoords = ", vdf_gettycoords(mfd, ts)
+	print, "	ZCoords = ", vdf_gettzcoords(mfd, ts)
+	print, "	Comment = ", vdf_gettcomment(mfd, ts)
 
 	for v = 0, nvarnames-1 do begin
 		print, "	Variable ", varnames[v], " metadata"
-		print, "		Data Range = ", vdf_mgetvdrange(mfd, ts, varnames[v])
-		print, "		Comment = ", vdf_mgetvcomment(mfd, ts, varnames[v])
+		print, "		Data Range = ", vdf_getvdrange(mfd, ts, varnames[v])
+		print, "		Comment = ", vdf_getvcomment(mfd, ts, varnames[v])
 
 	endfor
 endfor
 
 
-vdf_mdestroy, mfd
+vdf_destroy, mfd
 
 end

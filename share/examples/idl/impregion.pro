@@ -41,17 +41,17 @@ if keyword_set(nxforms) eq 0 then nxforms = 0
 
 	;
 	;   Create a "Buffered Read" object to read the data, passing the
-	;   metadata object handle created by vdf_mcreate() as an argument
+	;   metadata object handle created by vdf_create() as an argument
 	;
-	dfd = vdf_regreadcreate(stateinfo.vdfpath)
+	dfd = vdc_regreadcreate(stateinfo.vdfpath)
 
 	;
 	; Transform coordinates from finest resolution to resolution
 	; of interest. Note. this is a noop if nxforms is zero
 	;
 	;
-	min = vdf_transformcoord(dfd,nxforms,stateinfo.minrange)
-	max = vdf_transformcoord(dfd,nxforms,stateinfo.maxrange)
+	min = vdc_transformcoord(dfd,nxforms,stateinfo.minrange)
+	max = vdc_transformcoord(dfd,nxforms,stateinfo.maxrange)
 
 	; Create an array large enough to hold the volume subregion
 	;
@@ -59,15 +59,15 @@ if keyword_set(nxforms) eq 0 then nxforms = 0
 
 	; Select the variable and time step we want to read
 	;
-	vdf_openvarread, dfd, stateinfo.timestep, stateinfo.varname, num_xforms
+	vdc_openvarread, dfd, stateinfo.timestep, stateinfo.varname, num_xforms
 
 	; Read the subregion
 	;
-	vdf_regread, dfd, min, max, f
+	vdc_regread, dfd, min, max, f
 
-	vdf_closevar, dfd
+	vdc_closevar, dfd
 
-	vdf_regreaddestroy, dvd
+	vdc_regreaddestroy, dvd
 
 	return, f
 

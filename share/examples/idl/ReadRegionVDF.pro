@@ -26,23 +26,23 @@ num_xforms = 0
 ;	one of the example programs that generates a .vdf file.
 ;
 vdffile = '/tmp/test.vdf'
-mfd = vdf_mcreate(vdffile)
+mfd = vdf_create(vdffile)
 
 
 ;
 ;	Create a "Buffered Read" object to read the data, passing the 
-;	metadata object handle created by vdf_mcreate() as an argument
+;	metadata object handle created by vdf_create() as an argument
 ;
-dfd = vdf_regreadcreate(mfd)
+dfd = vdc_regreadcreate(mfd)
 
 ;
 ;	Determine the dimensions of the volume at the given transformation
 ;	level. 
 ;
-;	Note. vdf_getdim() correctly handles dimension calucation for 
+;	Note. vdc_getdim() correctly handles dimension calucation for 
 ;	volumes with non-power-of-two dimensions. 
 ;
-dim = vdf_getdim(dfd, num_xforms)
+dim = vdc_getdim(dfd, num_xforms)
 
 ;
 ;	Compute the coordinates for the desired subregion. In this case, the 
@@ -60,27 +60,27 @@ f = fltarr(dim/2)
 ;	Prepare to read the indicated time step and variable
 ;
 varnames = ['ml']
-vdf_openvarread, dfd, 0, varnames[0], num_xforms
+vdc_openvarread, dfd, 0, varnames[0], num_xforms
 
 ;
 ;	Read the volume subregion. Note, unlike the buffered read/write
 ;	objects, the "Region Reader" object does not read a single slice
 ;	at a time -- it slurps in the entire in single call.
 ;
-vdf_regread, dfd, min, max, f
+vdc_regread, dfd, min, max, f
 
 ;
 ; Close the currently opened variable/time-step. 
 ;
-vdf_closevar, dfd
+vdc_closevar, dfd
 
 
 ;
 ;	Destroy the "buffered read" data transformation object. 
 ;	We're done with it.
 ;
-vdf_regreaddestroy, dfd
+vdc_regreaddestroy, dfd
 
-vdf_mdestroy, mfd
+vdf_destroy, mfd
 
 end

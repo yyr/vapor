@@ -24,10 +24,10 @@ num_xforms = 1
 ;
 ;	Create a new VDF metadata object of the indicated dimension and 
 ;	transform
-;	level. vdf_mcreate() returns a handle for future operations on 
+;	level. vdf_create() returns a handle for future operations on 
 ;	the metadata object.
 ;
-mfd = vdf_mcreate(dim,num_xforms)
+mfd = vdf_create(dim,num_xforms)
 
 ;
 ;	Set the maximum number of timesteps in the data set. Note, valid data 
@@ -35,25 +35,25 @@ mfd = vdf_mcreate(dim,num_xforms)
 ;	but not more
 ;
 timesteps = 10
-vdf_msetnumtimesteps, mfd,timesteps
+vdf_setnumtimesteps, mfd,timesteps
 
 ;
 ;	Set the names of the variables the data set will contain. In this case,
 ;	only a single variable will be present, "ml"
 ;
 varnames = ['ml']
-vdf_msetvarnames, mfd, varnames
+vdf_setvarnames, mfd, varnames
 
 ;
 ;	Store the metadata object in a file for subsequent use
 ;
 vdffile = '/tmp/test.vdf'
-vdf_mwrite, mfd, vdffile
+vdf_write, mfd, vdffile
 
 ;
 ;	Destroy the metadata object. We're done with it.
 ;
-vdf_mdestroy, mfd
+vdf_destroy, mfd
 
 
 ;
@@ -73,7 +73,7 @@ vdf_mdestroy, mfd
 ;	file. The 'vdf_bufwritecreate' returns a handle, 'dfd', for 
 ;	subsequent ;	operations.
 ;
-dfd = vdf_bufwritecreate(vdffile)
+dfd = vdc_bufwritecreate(vdffile)
 
 ;
 ;	Generate a time varying data, set one volume at a time, saving each
@@ -91,21 +91,21 @@ for ts = 0, timesteps-1 do begin
 	; Prepare the data set for writing. We need to identify the time step
 	; and the name of the variable that we wish to store
 	;
-	vdf_openvarwrite, dfd, ts, varnames[0]
+	vdc_openvarwrite, dfd, ts, varnames[0]
 
 
 	;
 	; Write (transform) the volume to the data set one slice at a time
 	;
 	for z = 0, dim[2]-1 do begin
-		vdf_bufwriteslice, dfd, f[*,*,z]
+		vdc_bufwriteslice, dfd, f[*,*,z]
 	endfor
 
 	;
 	; Close the currently opened variable/time-step. We're done writing
 	; to it
 	;
-	vdf_closevar, dfd
+	vdc_closevar, dfd
 
 
 endfor
@@ -115,8 +115,7 @@ endfor
 ;	Destroy the "buffered write" data transformation object. 
 ;	We're done with it.
 ;
-vdf_bufwritedestroy, dfd
+vdc_bufwritedestroy, dfd
 
 
-vdf_mdestroy, mfd
 end

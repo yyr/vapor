@@ -26,23 +26,23 @@ num_xforms = 1
 ;	one of the example programs that generates a .vdf file.
 ;
 vdffile = '/tmp/test.vdf'
-mfd = vdf_mcreate(vdffile)
+mfd = vdf_create(vdffile)
 
 
 ;
 ;	Create a "Buffered Read" object to read the data, passing the 
-;	metadata object handle created by vdf_mcreate() as an argument
+;	metadata object handle created by vdf_create() as an argument
 ;
-dfd = vdf_bufreadcreate(mfd)
+dfd = vdc_bufreadcreate(mfd)
 
 ;
 ;	Determine the dimensions of the volume at the given transformation
 ;	level. 
 ;
-;	Note. vdf_getdim() correctly handles dimension calucation for 
+;	Note. vdc_getdim() correctly handles dimension calucation for 
 ;	volumes with non-power-of-two dimensions. 
 ;
-dim = vdf_getdim(dfd, num_xforms)
+dim = vdc_getdim(dfd, num_xforms)
 
 ;
 ;	Create an appropriately sized array to hold the volume
@@ -55,13 +55,13 @@ slice = fltarr(dim[0], dim[1])
 ;	Prepare to read the indicated time step and variable
 ;
 varnames = ['ml']
-vdf_openvarread, dfd, 0, varnames[0], num_xforms
+vdc_openvarread, dfd, 0, varnames[0], num_xforms
 
 ;
 ;	Read the volume one slice at a time
 ;
 for z = 0, dim[2]-1 do begin
-	vdf_bufreadslice, dfd, slice
+	vdc_bufreadslice, dfd, slice
 	
 	; IDL won't let us read directly into a subscripted array - need 
 	; to read into a 2D array and then copy to 3D :-(
@@ -72,15 +72,15 @@ endfor
 ;
 ; Close the currently opened variable/time-step. 
 ;
-vdf_closevar, dfd
+vdc_closevar, dfd
 
 
 ;
 ;	Destroy the "buffered read" data transformation object. 
 ;	We're done with it.
 ;
-vdf_bufreaddestroy, dfd
+vdc_bufreaddestroy, dfd
 
 
-vdf_mdestroy, mfd
+vdf_destroy, mfd
 end
