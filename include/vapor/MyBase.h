@@ -72,14 +72,27 @@ public:
  //
  static void	SetErrMsg(const char *format, ...);
 
+ //! Record a formatted error message and an error code. 
+ // 
+ //! Formats and records an error message. Subsequent calls will overwrite
+ //! the stored error message. The method will also set the error
+ //! code to \b err_code.
+ //! \param[in] errcode A application-defined error code
+ //! \param[in] format A 'C' style sprintf format string.
+ //! \param[in] arg... Arguments to format 
+ //! \sa GetErrMsg(), GetErrCode()
+ //
+ static void	SetErrMsg(int errcode, const char *format, ...);
+
  //! Retrieve the current error message
  //!
- //! Retrieves the last error message set with \b SetErrMsg(). It is the 
+ //! Retrieves the last error message set with SetErrMsg() and resets
+ //! the error code to zero. It is the 
  //! caller's responsibility to copy the message returned to user space.
  //! \sa SetErrMsg(), SetErrCode()
  //! \retval msg A pointer to null-terminated string.
  //
- static const char	*GetErrMsg() {return(ErrMsg);}
+ static const char	*GetErrMsg() {ErrCode = 0; return(ErrMsg);}
 
  //! Record an error code
  // 
@@ -92,12 +105,12 @@ public:
 
  //! Retrieve the current error code
  // 
- //! Retrieves the last error code set either explicity with \bSetErrCode()
- //! or indirectly with a call to \bSetErrMsg()
+ //! Retrieves the last error code set either explicity with SetErrCode()
+ //! or indirectly with a call to SetErrMsg(). Resets the error code to zero.
  //! \sa SetErrMsg(), SetErrCode()
  //! \retval code An erroor code
  //
- static int	GetErrCode() { return (ErrCode); }
+ static int	GetErrCode() { int rc = ErrCode; ErrCode = 0; return(rc); }
 
  //! Set a callback function for error messages
  //!
@@ -181,6 +194,7 @@ protected:
 	void	SetClassName(const string &name) { _className = name; };
 
 private:
+	static void	_SetErrMsg(const char *format, va_list args);
 	string _className;	// name of class
 
 };

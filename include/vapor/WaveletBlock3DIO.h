@@ -161,8 +161,8 @@ public:
  //
  int	CloseVariable();
 
- int	GetBlockMins(unsigned int level, const float **mins);
- int	GetBlockMaxs(unsigned int level, const float **maxs);
+ int	GetBlockMins(size_t num_xforms, const float **mins);
+ int	GetBlockMaxs(size_t num_xforms, const float **maxs);
 
  //! Get the dimension of a volume
  //! 
@@ -485,7 +485,6 @@ private:
  int	write_mode_c;	// true if file opened for writing
  float	*block_c;		// temp storage for byteswapping blocks;
  int	_doFreeMeta;	// does the class own the metadata object?
- char	*_metafileDirName; // path to metafile parent directory
 
  void	swapbytes(void *vptr, int n) const;
  void	swapbytescopy(const void *src, void *dst, int size, int n) const;

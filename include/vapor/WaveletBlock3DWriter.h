@@ -102,6 +102,7 @@ public:
 private:
 
  double	writer_timer_c;
+ string _metafile;
 
  vector <double>	_dataRange;	// min and max data values 
 

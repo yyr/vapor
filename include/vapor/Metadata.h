@@ -89,6 +89,14 @@ public:
 
  ~Metadata();
 
+ //! Return the file path name to the metafile's parent directory.
+ //! If the class was constructed with a path name, this method
+ //! returns the parent directory of the path name. If the class
+ //! was not constructed with a path name, NULL is returned.
+ //! \retval dirname : parent directory or NULL
+ //
+ const char *GetParentDir() const { return (_metafileDirName); }
+
  //! Write the metadata object to a file
  //!
  //! \param[in] path Name of the file to write to
@@ -221,27 +229,23 @@ public:
 
  //! Set the number of time steps in the data collection
  //!
- //! \param[in] value A single element vector specifying the number
- //! of time steps in the data set
+ //! \param[in] value The number of time steps in the data set
  //! \retval status Returns a non-negative integer on success
  //
- int SetNumTimeSteps(const vector<long> &value);
+ int SetNumTimeSteps(long value);
 
  //! Return the number of time steps in the collection
  //!
- //! \retval vector A single element vector specifying the number
- //! of time steps in the data set
+ //! \retval value The number of time steps or a negative number on error
  //
- const vector<long> &GetNumTimeSteps() const {
-	return(_rootnode->GetElementLong(_numTimeStepsTag));
-	};
+ long GetNumTimeSteps() const;
 
  //! Return true if \p value is a valid time step specification
  //!
  //! \retval boolean True if \p value is a valid argument
  //
- int IsValidTimeStep(const vector<long> &value) const {
-	return(value.size() == 1 && value[0] >= 0);
+ int IsValidTimeStep(long value) const {
+	return(value >= 0);
 	};
 
  //! Set the names of the field variables in the data collection
@@ -749,6 +753,7 @@ private:
  int	_nLiftingCoef;
  int	_numTransforms;		// Number of wavelet transforms
  int	_msbFirst;			// Most Significant Byte First storage order
+ char	*_metafileDirName;	// path to metafile parent directory
 
  vector <double>	_emptyDoubleVec;
  vector <long>		_emptyLongVec;
@@ -827,7 +832,7 @@ private:
 	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst = 1
 	);
 
- int _SetNumTimeSteps(const vector<long> &value);
+ int _SetNumTimeSteps(long value);
  int _SetVariableNames(XmlNode *node, long ts);
  int _RecordUserDataTags(vector <string> &keys, const string &tag);
 

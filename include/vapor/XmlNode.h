@@ -44,6 +44,11 @@ namespace VAPoR {
 //!
 class XmlNode : public VetsUtil::MyBase {
 public:
+	enum ErrCode_T {
+		ERR_DEF = 1,	// default error
+		ERR_TNP			// Tag not present
+	};
+
 
  //! Constructor for the XmlNode class.
  //!
