@@ -62,10 +62,6 @@ private:
 	void DrawVoxelWindow(unsigned fast);
 	
 
-	
-	DvrParams* myDVRParams;
-   
-
 };
 };
 #endif	//	VOLUMIZERRENDERER_H

@@ -69,7 +69,6 @@ using namespace VetsUtil;
 //This constructor just creates the volumizer driver
 //
 VolumizerRenderer::VolumizerRenderer(VizWin* vw) : Renderer(vw) {
-	myDVRParams = VizWinMgr::getInstance()->getDvrParams(vw->getWindowNum());
 	//Construct dvrvolumizer
 	driver = create_driver("vz",1);
 }
@@ -159,7 +158,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
 	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
 	ViewpointParams* myViewpointParams = VizWinMgr::getInstance()->getViewpointParams(winNum);
-	
+	DvrParams* myDVRParams = VizWinMgr::getInstance()->getDvrParams(winNum);
 	//Tell the animation we are starting.  If it returns false, we are not
 	//being monitored by the animation controller
 	bool isControlled = AnimationController::getInstance()->beginRendering(winNum);

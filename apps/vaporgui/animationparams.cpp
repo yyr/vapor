@@ -46,7 +46,7 @@ AnimationParams::AnimationParams(int winnum): Params( winnum){
 	// set everything to default state:
 	playDirection = 0;
 	repeatPlay = false;
-	maxFrameRate = 1; 
+	maxFrameRate = 10; 
 	frameStepSize = 1;
 	startFrame = 1;
 	endFrame = 100;

@@ -142,6 +142,7 @@ deepCopy(){
 	newParams->savedCommand = 0;
 	return newParams;
 }
+//Method called when undo/redo changes params:
 void DvrParams::
 makeCurrent(Params* prevParams, bool newWin) {
 	
@@ -152,6 +153,8 @@ makeCurrent(Params* prevParams, bool newWin) {
 	if (formerParams->enabled != enabled || formerParams->local != local || newWin){
 		updateRenderer(formerParams->enabled, formerParams->local, newWin);
 	}
+	setDatarangeDirty(true);
+	clutDirty = true;
 }
 
 void DvrParams::
@@ -545,6 +548,9 @@ setDatarangeDirty(bool dirty)
 //
 void DvrParams::
 sessionLoadTF(QString* name){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "Load Transfer Function from Session");
+	
 	//Get the transfer function from the session:
 	float leftLimit, rightLimit;
 	std::string s(name->ascii());
@@ -554,9 +560,11 @@ sessionLoadTF(QString* name){
 	setMinMapBound(leftLimit);
 	setMaxMapBound(rightLimit);
 	hookupTF(tf);
+	PanelCommand::captureEnd(cmd, this);
 }
 void DvrParams::
 fileLoadTF(){
+	
 	//Open a file load dialog
 	
     QString s = QFileDialog::getOpenFileName(
@@ -578,15 +586,22 @@ fileLoadTF(){
 			QMessageBox::Ok, QMessageBox::NoButton);
 		return;
 	}
+	//Start the history save:
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "Load Transfer Function from file");
+	
 	TransferFunction* t = TransferFunction::loadFromFile(f, this);
 	if (!t){//Report error if can't load
 		QMessageBox::warning(myDvrTab, "Error loading transfer function",
 			QString("Failed to convert input file: \n %1 ").arg(s),
 			QMessageBox::Ok, QMessageBox::NoButton);
+		//Don't put this in history!
+		delete cmd;
 		return;
 	}
 
 	hookupTF(t);
+	PanelCommand::captureEnd(cmd, this);
 	//Remember the path to the file:
 	Session::getInstance()->updateTFFilePath(&s);
 }

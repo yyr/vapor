@@ -471,8 +471,8 @@ void MainForm::languageChange()
     dataConfigure_MetafileAction->setText( tr( "Configure Metafile" ) );
     dataConfigure_MetafileAction->setMenuText( tr( "&Configure Metafile" ) );
 	dataConfigure_MetafileAction->setToolTip("Launch a tool to construct the metafile associated with a dataset");
-    dataLoad_MetafileAction->setText( tr( "Load Metafile" ) );
-    dataLoad_MetafileAction->setMenuText( tr( "&Load Metafile" ) );
+    dataLoad_MetafileAction->setText( tr( "Load Data" ) );
+    dataLoad_MetafileAction->setMenuText( tr( "&Load Data" ) );
 	dataLoad_MetafileAction->setToolTip("Specify the data set to be loaded via its metafile");
     
 
@@ -522,7 +522,6 @@ void MainForm::languageChange()
     viewViewpointAction->setText( tr( "Viewpoint and Lights" ) );
     viewViewpointAction->setMenuText( tr( "Viewpoint and Lights" ) );
 	viewViewpointAction->setToolTip("Launch a parameter panel setting the viewpoint and light positions");
-    
     
     animationKeyframingAction->setText( tr( "Keyframing" ) );
     animationKeyframingAction->setMenuText( tr( "Keyframing" ) );
