@@ -494,8 +494,8 @@ VizWinMgr::hookUpVizTab(VizTab* vTab)
 	connect (vTab->rotCenter2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (vTab->numLights, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (this, SIGNAL(enableMultiViz(bool)), vTab->LocalGlobal, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyToButton, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyTargetCombo, SLOT(setEnabled(bool)));
+	//connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyToButton, SLOT(setEnabled(bool)));
+	//connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyTargetCombo, SLOT(setEnabled(bool)));
 	emit enableMultiViz(getNumVisualizers() > 1);
 }
 /**********************************************************
@@ -536,8 +536,8 @@ VizWinMgr::hookUpRegionTab(RegionTab* rTab)
 	connect (rTab->maxSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionMaxSize()));
 	
 	connect (this, SIGNAL(enableMultiViz(bool)), rTab->LocalGlobal, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), rTab->copyToButton, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), rTab->copyTargetCombo, SLOT(setEnabled(bool)));
+	//connect (this, SIGNAL(enableMultiViz(bool)), rTab->copyToButton, SLOT(setEnabled(bool)));
+	//connect (this, SIGNAL(enableMultiViz(bool)), rTab->copyTargetCombo, SLOT(setEnabled(bool)));
 
 	emit enableMultiViz(getNumVisualizers() > 1);
 }
@@ -573,8 +573,8 @@ VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 
 	connect (dvrTab->numBitsSpin, SIGNAL (valueChanged(int)), this, SLOT(setDvrNumBits(int)));
 	connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->LocalGlobal, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->copyToButton, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->copyTargetCombo, SLOT(setEnabled(bool)));
+	//connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->copyToButton, SLOT(setEnabled(bool)));
+	//connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->copyTargetCombo, SLOT(setEnabled(bool)));
 	//TFE Editor controls:
 	connect (dvrTab->leftMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
 	connect (dvrTab->rightMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
@@ -622,8 +622,8 @@ VizWinMgr::hookUpContourTab(ContourPlaneTab* cptTab)
 	connect (cptTab->pointz, SIGNAL(textChanged(const QString&) ), this, SLOT( setContourTabTextChanged(const QString&)));
 
 	connect (this, SIGNAL(enableMultiViz(bool)), cptTab->LocalGlobal, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), cptTab->copyToButton, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), cptTab->copyTargetCombo, SLOT(setEnabled(bool)));
+	//connect (this, SIGNAL(enableMultiViz(bool)), cptTab->copyToButton, SLOT(setEnabled(bool)));
+	//connect (this, SIGNAL(enableMultiViz(bool)), cptTab->copyTargetCombo, SLOT(setEnabled(bool)));
 	emit enableMultiViz(getNumVisualizers() > 1);
 
 }
@@ -667,8 +667,8 @@ VizWinMgr::hookUpAnimationTab(AnimationTab* aTab)
 	connect(aTab->stepForwardButton, SIGNAL(clicked()), this, SLOT(animationStepForwardClick()));
 
 	connect (this, SIGNAL(enableMultiViz(bool)), aTab->LocalGlobal, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), aTab->copyToButton, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), aTab->copyTargetCombo, SLOT(setEnabled(bool)));
+	//connect (this, SIGNAL(enableMultiViz(bool)), aTab->copyToButton, SLOT(setEnabled(bool)));
+	//connect (this, SIGNAL(enableMultiViz(bool)), aTab->copyTargetCombo, SLOT(setEnabled(bool)));
 	emit enableMultiViz(getNumVisualizers() > 1);
 	
 }

@@ -137,9 +137,9 @@ int	DVRVolumizer::GraphicsInit(
 	extensions = (const char *) glGetString( GL_EXTENSIONS );
 	if (strstr(extensions, "ARB_fragment_program")) {
 		do_frag_prog_c = 1;
-		fprintf(stderr, "using ARB_fragment_program\n");
+		//fprintf(stderr, "using ARB_fragment_program\n");
 	} else {
-		fprintf(stderr, "Not using ARB_fragment_program\n");
+		//fprintf(stderr, "Not using ARB_fragment_program\n");
 	}
 	//fprintf(stderr, "extensions supported: %s\n", extensions);
 	fflush(stderr);
