@@ -51,6 +51,9 @@ namespace VetsUtil {
 class COMMON_API MyBase {
 public:
 
+ typedef void (*ErrMsgCB_T) (const char *msg, int err_code);
+ typedef void (*DiagMsgCB_T) (const char *msg);
+
  MyBase();
 
  //! Record a formatted error message. 
@@ -65,7 +68,7 @@ public:
  static void	SetErrMsg(const char *format, ...);
 
  //! Retrieve the current error message
- // 
+ //!
  //! Retrieves the last error message set with \b SetErrMsg(). It is the 
  //! caller's responsibility to copy the message returned to user space.
  //! \sa SetErrMsg(), SetErrCode()
@@ -91,10 +94,84 @@ public:
  //
  static int	GetErrCode() { return (ErrCode); }
 
+ //! Set a callback function for error messages
+ //!
+ //! Set the callback function to be called whenever SetErrMsg() 
+ //! is called. The callback function, \p cb, will be called and passed 
+ //! the formatted error message and the error code as an argument. The 
+ //! default callback function is NULL, i.e. no function is called
+ //!
+ //! \param[in] cb A callback function or NULL
+ //
+ static void SetErrMsgCB(ErrMsgCB_T cb) { ErrMsgCB = cb; };
+
+ //! Set the file pointer to whence error messages are written
+ //!
+ //! This method permits the specification of a file pointer to which
+ //! all messages logged with SetErrMsg() will be written. The default
+ //! file pointer is NULL. I.e. by default error messages logged by 
+ //! SetErrMsg() are not written.
+ //! \param[in] A file pointer opened for writing or NULL
+ //! \sa SetErrMsg()
+ //
+ static void SetErrMsgFilePtr(FILE *fp) { ErrMsgFilePtr = fp; };
+
+ //! Record a formatted diagnostic message. 
+ // 
+ //! Formats and records a diagnostic message. Subsequent calls will overwrite
+ //! the stored error message. This method differs from SetErrMsg() only
+ //! in that no associated error code is set - the message is considered
+ //! diagnostic only, not an error.
+ //! \param[in] format A 'C' style sprintf format string.
+ //! \param[in] arg... Arguments to format 
+ //! \sa GetDiagMsg()
+ //
+ static void	SetDiagMsg(const char *format, ...);
+
+ //! Retrieve the current diagnostic message
+ //!
+ //! Retrieves the last error message set with \b SetDiagMsg(). It is the 
+ //! caller's responsibility to copy the message returned to user space.
+ //! \sa SetDiagMsg()
+ //! \retval msg A pointer to null-terminated string.
+ //
+ static const char	*GetDiagMsg() {return(DiagMsg);}
+
+
+ //! Set a callback function for diagnostic messages
+ //!
+ //! Set the callback function to be called whenever SetDiagMsg() 
+ //! is called. The callback function, \p cb, will be called and passed 
+ //! the formatted error message as an argument. The 
+ //! default callback function is NULL, i.e. no function is called
+ //!
+ //! \param[in] cb A callback function or NULL
+ //
+ static void SetDiagMsgCB(DiagMsgCB_T cb) { DiagMsgCB = cb; };
+
+ //! Set the file pointer to whence diagnostic messages are written
+ //!
+ //! This method permits the specification of a file pointer to which
+ //! all messages logged with SetDiagMsg() will be written. The default
+ //! file pointer is NULL. I.e. by default error messages logged by 
+ //! SetDiagMsg() are not written.
+ //! \param[in] A file pointer opened for writing or NULL
+ //! \sa SetDiagMsg()
+ //
+ static void SetDiagMsgFilePtr(FILE *fp) { DiagMsgFilePtr = fp; };
+
  // N.B. the error codes/messages are stored in static class members!!!
  static char 	*ErrMsg;
  static int	ErrMsgSize;
  static int	ErrCode;
+ static FILE	*ErrMsgFilePtr;
+ static ErrMsgCB_T ErrMsgCB;
+
+ static char 	*DiagMsg;
+ static int	DiagMsgSize;
+ static FILE	*DiagMsgFilePtr;
+ static DiagMsgCB_T DiagMsgCB;
+
 
 };
 

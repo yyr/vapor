@@ -16,6 +16,13 @@ using namespace VetsUtil;
 char 	*MyBase::ErrMsg = NULL;
 int	MyBase::ErrMsgSize = 0;
 int	MyBase::ErrCode = 0;
+FILE	*MyBase::ErrMsgFilePtr = NULL;
+void (*MyBase::ErrMsgCB) (const char *msg, int err_code) = NULL;
+
+char 	*MyBase::DiagMsg = NULL;
+int	MyBase::DiagMsgSize = 0;
+FILE	*MyBase::DiagMsgFilePtr = NULL;
+void (*MyBase::DiagMsgCB) (const char *msg) = NULL;
 
 MyBase::MyBase() {
 }
@@ -39,7 +46,6 @@ void	MyBase::SetErrMsg(
 	sprintf(szBuf, "Reporting error message: GetLastError returned %u\n", dw); 
     MessageBox(NULL, szBuf, "Error", MB_OK); 
 #endif
-	vfprintf(stderr, format, args);
 	if (!ErrMsg) {
 		ErrMsg = new char[alloc_size];
 		assert(ErrMsg != NULL);
@@ -95,9 +101,87 @@ void	MyBase::SetErrMsg(
 			}
 		}
 	}
-		
 
 	ErrCode = 1;
+
+	if (ErrMsgCB) (*ErrMsgCB) (ErrMsg, ErrCode);
+
+	if (ErrMsgFilePtr) {
+		(void) fprintf(ErrMsgFilePtr, "%s\n", ErrMsg);
+	}
+}
+
+void	MyBase::SetDiagMsg(
+	const char *format, 
+	...
+) {
+	va_list args;
+	int	done = 0;
+	const int alloc_size = 256;
+	int rc;
+	char *s;
+
+	if (!DiagMsg) {
+		DiagMsg = new char[alloc_size];
+		assert(DiagMsg != NULL);
+		DiagMsgSize = alloc_size;
+	}
+	// Loop until we've successfully buffered the error message, growing
+	// the message buffer as needed
+	//
+	while (! done) {
+		va_start(args, format);
+#ifdef WIN32
+		rc = _vsnprintf(DiagMsg, DiagMsgSize, format, args);
+
+#else
+		rc = vsnprintf(DiagMsg, DiagMsgSize, format, args);
+#endif
+		va_end(args);
+
+		if (rc < (DiagMsgSize-1)) {
+			done = 1;
+		} else {
+			if (DiagMsg) delete [] DiagMsg;
+			DiagMsg = new char[DiagMsgSize + alloc_size];
+			assert(DiagMsg != NULL);
+			DiagMsgSize += alloc_size;
+		}
+	}
+
+	// Now handle any %M format specificers
+	//
+	while (s = strstr("%M", DiagMsg)) {
+		s++;	
+		*s = 's';	// Ugh. Change %M to %s.
+		done = 0;
+		while (! done) {
+#ifdef WIN32
+			rc = _snprintf(DiagMsg, DiagMsgSize, DiagMsg, strerror(errno));
+#else
+			rc = snprintf(DiagMsg, DiagMsgSize, DiagMsg, strerror(errno));
+#endif
+			if (rc < (DiagMsgSize-1)) {
+				done = 1;
+			} else {
+				char *sptr;
+				sptr = new char[DiagMsgSize + alloc_size];
+				assert(sptr != NULL);
+				DiagMsgSize += alloc_size;
+				if (DiagMsg) {
+					strncpy(s, DiagMsg, rc);
+					delete [] DiagMsg;
+				}
+				DiagMsg = s;
+			}
+		}
+	}
+
+	if (DiagMsgCB) (*DiagMsgCB) (DiagMsg);
+
+	if (DiagMsgFilePtr) {
+		(void) fprintf(DiagMsgFilePtr, "%s\n", DiagMsg);
+	}
 }
 
 int	VetsUtil::IsPowerOfTwo(
