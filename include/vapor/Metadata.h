@@ -58,10 +58,13 @@ public:
  //! transforms
  //! \param[in] nLiftingCoef Number of lifting coefficients used by wavelet
  //! transforms
+ //! \param[in] msbFirst Boolean, if true storage order for volume data 
+ //! will be
+ //! most significant byte fist (i.e. big endian).
  //
  Metadata(
 	size_t bs, const size_t dim[3], size_t numTransforms,
-	int nFilterCoef = 1, int nLiftingCoef = 1
+	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst =  1
 	);
 
  //! Create a metadata object from a metadata file stored on disk. 
@@ -106,6 +109,11 @@ public:
  //! \param _numTransforms Number of transforms
  //
  int GetNumTransforms() const { return(_numTransforms); }
+
+ //! Returns true if the storage order for data is most signicant byte first
+ //! \retval _msbFirst Booean
+ //
+ int GetMSBFirst() const { return(_msbFirst); }
 
 
  //------------------------------------------------------------------
@@ -732,6 +740,7 @@ private:
  int	_nFilterCoef;		// Lifting filter coefficients
  int	_nLiftingCoef;
  int	_numTransforms;		// Number of wavelet transforms
+ int	_msbFirst;			// Most Significant Byte First storage order
 
  vector <double>	_emptyDoubleVec;
  vector <long>		_emptyLongVec;
@@ -781,6 +790,7 @@ private:
  static const string _numTransformsAttr;
  static const string _filterCoefficientsAttr;
  static const string _liftingCoefficientsAttr;
+ static const string _msbFirstAttr;
  static const string _numChildrenAttr;
  static const string _typeAttr;
 
@@ -806,7 +816,7 @@ private:
 
  void _init(
 	size_t bs, const size_t dim[3], size_t numTransforms,
-	int nFilterCoef = 1, int nLiftingCoef = 1
+	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst = 1
 	);
 
  int _SetNumTimeSteps(const vector<long> &value);

@@ -374,6 +374,8 @@ protected:
  size_t _timeStep;		// Currently opened timestep
  string _varName;		// Currently opened variable
 
+ int _msbFirst;			// If true, use MSB (big endian) storage order
+
  VAPoR::WaveletBlock3D	*wb3d_c;
 
 

@@ -206,6 +206,10 @@ public:
 	return (_wbreader);
  };
 
+ //! Return the metadata class object associated with this class
+ //!
+ const  Metadata *GetMetadata() const { return (_metadata); };
+
 
 private:
 
