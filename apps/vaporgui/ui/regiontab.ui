@@ -40,14 +40,14 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout25</cstring>
+            <cstring>layout16</cstring>
         </property>
         <property name="geometry">
             <rect>
                 <x>10</x>
-                <y>12</y>
+                <y>20</y>
                 <width>420</width>
-                <height>680</height>
+                <height>725</height>
             </rect>
         </property>
         <vbox>
@@ -149,7 +149,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>22</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -268,7 +268,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>23</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -550,7 +550,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>23</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -832,7 +832,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>21</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -931,13 +931,13 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>31</height>
+                        <height>17</height>
                     </size>
                 </property>
             </spacer>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>layout24</cstring>
+                    <cstring>layout15</cstring>
                 </property>
                 <hbox>
                     <property name="name">
@@ -948,7 +948,10 @@
                             <cstring>centerRegionViewButton</cstring>
                         </property>
                         <property name="text">
-                            <string>Center view on region</string>
+                            <string>Center region view</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Move viewpoint to center on currently specified region</string>
                         </property>
                     </widget>
                     <widget class="QPushButton">
@@ -956,7 +959,10 @@
                             <cstring>centerFullViewButton</cstring>
                         </property>
                         <property name="text">
-                            <string>Center view on full extent</string>
+                            <string>Center full view</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Move viewpoint to where full data volume is visible</string>
                         </property>
                     </widget>
                 </hbox>
@@ -974,7 +980,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>23</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -1008,7 +1014,7 @@
                             <cstring>textLabel1_3</cstring>
                         </property>
                         <property name="text">
-                            <string>Region Coordinate Extents</string>
+                            <string>Region Extents</string>
                         </property>
                         <property name="alignment">
                             <set>AlignCenter</set>
@@ -1036,7 +1042,7 @@
                             <cstring>textLabel1</cstring>
                         </property>
                         <property name="text">
-                            <string>Full Coordinate Extents</string>
+                            <string>Full Extents</string>
                         </property>
                         <property name="alignment">
                             <set>AlignCenter</set>
@@ -1377,7 +1383,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>30</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
