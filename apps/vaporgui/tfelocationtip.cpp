@@ -43,8 +43,8 @@ void TFELocationTip::maybeTip( const QPoint &pos )
 	sat = (int)(sf*255.99f);
 	val = (int)(vf*255.99f);
 	int histcount=0;
-	if (xcoord >=0.f && xcoord <=1.f)
-		histcount = editor->getHistoValue(xcoord);
+	
+	histcount = editor->getHistoValue(xcoord);
 	float opacity = tf->opacityValue(xcoord);
 	QString s;
 	if (r.center().y() > frame->height()-COORDMARGIN) return;

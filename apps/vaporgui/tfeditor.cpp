@@ -109,16 +109,21 @@ void TFEditor::refreshImage(){
 		//Only values between 0 and 1 are nonzero histograms (currently!)
 		//The histogram will be displayed in solid color
 		//
-		int newHistoColumn = (int)(xCoord*255.999f);
+		//int newHistoColumn = (int)(xCoord*255.999f);
 		float histoHeight;
+		
 		int histoInt;
-		if (histo && newHistoColumn >= 0 && newHistoColumn < 256){
-			if (histoColumn != newHistoColumn){
-				histoColumn = newHistoColumn;
-				histoHeight = histoStretchFactor*(float)histo->getBinSize(histoColumn)/(float)histoMaxBin;
-				if (histoHeight > 1.f) histoHeight = 1.f;
+		if (histo){
+			float histoVal = (xCoord - histo->getMinData())/(histo->getMaxData()-histo->getMinData());
+			int newHistoColumn = (int)(histoVal*255.99);
+			if (histoVal >= 0.f && newHistoColumn < 256){
+				if (histoColumn != newHistoColumn){
+					histoColumn = newHistoColumn;
+					histoHeight = histoStretchFactor*(float)histo->getBinSize(histoColumn)/(float)histoMaxBin;
+					if (histoHeight > 1.f) histoHeight = 1.f;
+				}
 			}
-			
+			else histoHeight = 0.f;
 		}
 		else histoHeight = 0.f;
 		
@@ -198,10 +203,10 @@ moveGrabbedControlPoints(int newX, int newY){
 		lastXMove = 0.f;
 		
 		//Start with extreme limits for quantization error:
-		leftMoveMax = 1000000;
-		rightMoveMax = 1000000;
-		upMoveMax = 1000000;
-		downMoveMax = 1000000;
+		leftMoveMax = 10000000;
+		rightMoveMax = 10000000;
+		upMoveMax = 10000000;
+		downMoveMax = 10000000;
 		int otherX, otherY, testX, testY;
 		//For each selected point, find the first unselected control point to the left and right:
 		//
@@ -592,14 +597,15 @@ void TFEditor::setHsv(int h, int s, int v){
 }
 
 
-//Find value of histogram (currently between 0 and 1)
+//Find value of histogram 
 //
 int TFEditor::
 getHistoValue(float point){
 	Histo* hist = session->getCurrentHistogram(myParams->getVarNum());
 	if (!hist) return -1;
-	int index = (int)(point*255.99f);
-	assert(index >= 0 && index <256);
+	float ind = (point - hist->getMinData())/(hist->getMaxData()-hist->getMinData());
+	if (ind < 0.f || ind >= 1.f) return 0;
+	int index = (int)(ind*255.999f);
 	return hist->getBinSize(index);
 }
 void TFEditor::
@@ -691,23 +697,24 @@ bindColorToOpac(){
  */
 int TFEditor::
 mapVar2Win(float v, bool classify){
-	if (v < -1.e6f) v = -1.e6f;
-	if (v > 1.e6f) v = 1.e6f;
+	double va = v;
+	//if (v < -1.e7f) v = -1.e7f;
+	//if (v > 1.e7f) v = 1.e7f;
 	//First map to a float value in pixel space:
 	
-	float cvrt = ((HORIZOVERLAP + (v - minEditValue)/(maxEditValue-minEditValue))*
-		(((float)width - 1.f)/(1.f + 2.f*HORIZOVERLAP)));
+	double cvrt = ((HORIZOVERLAP + (va - minEditValue)/(maxEditValue-minEditValue))*
+		(((double)width - 1.0)/(1.0 + 2.0*HORIZOVERLAP)));
 	
 	int pixVal;
 	if(classify){
-		if (cvrt< 0.f) return -1;
-		if (cvrt > ((float)(width) -.5)) return width;
-		pixVal = (int)(cvrt+0.5f);
+		if (cvrt< 0.0) return -1;
+		if (cvrt > ((double)(width) -.5)) return width;
+		pixVal = (int)(cvrt+0.5);
 		return pixVal;
 	}
-	if (cvrt >= 0.f)
-		pixVal = (int)(cvrt+0.5f);
-	else pixVal = (int)(cvrt - 0.f);
+	if (cvrt >= 0.0)
+		pixVal = (int)(cvrt+0.5);
+	else pixVal = (int)(cvrt - 0.5);
 	return pixVal;
 }
 	 

@@ -25,10 +25,10 @@ Histo::Histo(int numberBins, float mnData, float mxData){
 	binArray = new int[numBins];
 	reset();
 }
-Histo::Histo(unsigned char* data, int dataSize){
+Histo::Histo(unsigned char* data, int dataSize, float mnData, float mxData){
 	binArray = new int[256];
-	minData = 0;
-	maxData = 255;
+	minData = mnData;
+	maxData = mxData;
 	numBins = 256;
 	reset();
 	for (int i = 0; i<dataSize; i++){

@@ -6,13 +6,13 @@ SHARED = 0
 QT = 1
 PROGRAM	= vaporgui
 
-INCLUDE_DIRS +=  -I"../../include/VAPoR/"   -I"./ui" -I$(QTDIR)/include -I$(EXPAT_INC_PATH)
+INCLUDE_DIRS +=  -I"../../include/VAPoR/"   -I"./ui" -I"$(QTDIR)/include" -I$(EXPAT_INC_PATH)
 LIBRARIES += common vdf
 
 ifeq ($(ARCH),WIN32) 
 CXXFLAGS += /DVOLUMIZER  
 LDFLAGS += "$(VOLUMIZER_ROOT)/lib/vz.lib"
-LDFLAGS += "$(QTDIR)/lib/qt-mt332.lib"
+LDFLAGS += "$(QTDIR)/lib/qt-mt334.lib"
 LDFLAGS += "$(QTDIR)/lib/qtmain.lib"
 LDFLAGS += "opengl32.lib"
 LDFLAGS += "glu32.lib"
@@ -26,13 +26,13 @@ ifeq ($(ARCH),Linux)
 LDFLAGS += -lqt-mt  
 endif
 ifeq ($(ARCH),IRIX64)
-LDFLAGS += -lqt
+LDFLAGS += -lqt-mt
 endif
 
 
 
 FILES := \
-	animationparams \
+	animationparams animationcontroller \
 	coloradjustdialog colorpicker command contourparams \
 	DVRBase DVRDebug DVRVolumizer dvrparams glbox glutil glwindow \
 	histo isosurfaceparams main mainform minmaxcombo \

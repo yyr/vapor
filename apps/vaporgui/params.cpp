@@ -85,6 +85,8 @@ QString& Params::paramName(Params::ParamType type){
 			return *(new QString("DVR"));
 		case(ContourParamsType):
 			return *(new QString("Contours"));
+		case(AnimationParamsType):
+			return *(new QString("Animation"));
 		case (UnknownParamsType):
 		default:
 			return *(new QString("Unknown"));

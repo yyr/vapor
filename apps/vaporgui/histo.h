@@ -26,12 +26,14 @@ public:
 	Histo(int numberBins, float mnData, float mxData);
 	//Special constructor for unsigned char data:
 	//
-	Histo(unsigned char* data, int dataSize);
+	Histo(unsigned char* data, int dataSize, float mnData, float mxData);
 	~Histo();
 	void reset(int newNumBins = -1);
 	void addToBin(float val);	
 	int getBinSize(int posn) {return binArray[posn];}
 	int getMaxBinSize() {return maxBinSize;}
+	float getMinData(){return minData;}
+	float getMaxData(){return maxData;}
 private:
 	int* binArray;
 	int numBelow, numAbove;

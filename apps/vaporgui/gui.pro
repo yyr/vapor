@@ -38,6 +38,7 @@ INCLUDEPATH += . \
 MOC_DIR = ../../../apps/vaporgui/moc
 
 SOURCES +=\ 
+	   animationcontroller.cpp \
 	   animationparams.cpp \
 	   coloradjustdialog.cpp \
 	   colorpicker.cpp \
@@ -79,6 +80,7 @@ SOURCES +=\
 	   volumizerrenderer.cpp 
 	   
 HEADERS += \
+	   animationcontroller.h \
 	   animationparams.h \
 	   coloradjustdialog.h \
 	   colorpicker.h \

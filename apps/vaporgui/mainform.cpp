@@ -365,7 +365,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
     connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
 
-	connect( animationControlAction, SIGNAL(activated()), this, SLOT(launchAnimationPanel()));
+	connect( animationControlAction, SIGNAL(activated()), this, SLOT(animationParams()));
 	//Toolbar actions:
 	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
 	connect (regionSelectAction, SIGNAL(toggled(bool)), this, SLOT(setRegionSelect(bool)));
@@ -383,11 +383,12 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	//global params.
 	currentSession->blockRecording();
 	region();
+	animationParams();
 	calcIsosurface();
 	renderDVR();
 	contourPlanes();
 	viewpoint();
-	animationParams();
+	
 	currentSession->unblockRecording();
 	
 

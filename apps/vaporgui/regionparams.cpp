@@ -440,6 +440,7 @@ guiSetTimestep(int n){
 		currentTimestep = n;
 		myRegionTab->timestepEdit->setText(QString::number(currentTimestep));
 		PanelCommand::captureEnd(cmd, this);
+		setDirty();
 	}
 }
 //Just a silly hack to demonstrate use of mouse to control center position

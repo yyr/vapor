@@ -115,6 +115,8 @@ resetMetadata(const char* fileBase)
 		//when the range is changed in the TFE
 		//
 		dataMgr->SetDataRange(currentDataStatus->getDataRange(i));
+		float dataMin = currentDataStatus->getDataRange(i)[0];
+		float dataMax = currentDataStatus->getDataRange(i)[1];
 		//Obtain data dimensions for getting histogram:
 		size_t min_bdim[3];
 		size_t max_bdim[3];
@@ -140,7 +142,8 @@ resetMetadata(const char* fileBase)
 						max_bdim,
 						0 //Don't lock!
 					), 
-				fullDataSize>>(3*currentDataStatus->getNumTransforms())
+				fullDataSize>>(3*currentDataStatus->getNumTransforms()),
+				dataMin, dataMax
 				);
 				break;//stop after first successful construction
 			}
