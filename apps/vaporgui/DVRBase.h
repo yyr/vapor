@@ -71,6 +71,8 @@ public:
  // in integer coordinates, will be mapped (translated and scaled) to the 
  // world coordinates
  // specified by 'extents'
+ // Modification by AN, 2/10/05:  'extents' is subvolume of the unit cube
+ // (0,1)x(0,1)x(0,1).  Actual mapping to real coords must be done in application.
  //
  virtual int SetRegion(
 	void *data,

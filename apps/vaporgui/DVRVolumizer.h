@@ -98,7 +98,6 @@ private:
  int	is_rendering_c;	// true if Render() method has been called
  int	data_dim_c[3];	// Volume dimensions in voxels
  int	data_roi_c[6];	// Volume subregion coords in voxels
- float	extents_c[6];	// Volume subregion coords in real-world coordinates
  double	geom_roi_c[6];	// Volume subregion coords in world coords
  float	lut_c[256][4];	// color and opacity lookup table
  float	llut_c[256][4];	// color and opacity lookup table for gradient shading

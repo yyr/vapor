@@ -93,8 +93,8 @@ void RegionParams::updateDialog(){
 	//Enforce the requirement that center +- size/2 fits in range
 	//
 	for (int i = 0; i<3; i++){
-		if(centerPosition[i] + (1+regionSize[i])/2 > fullSize[i])
-			centerPosition[i] = fullSize[i] - (1+regionSize[i])/2;
+		if(centerPosition[i] + (1+regionSize[i])/2 >= fullSize[i])
+			centerPosition[i] = fullSize[i] - (1+regionSize[i])/2 -1;
 		if(centerPosition[i] < (1+regionSize[i])/2)
 			centerPosition[i] = (1+regionSize[i])/2;
 		setCurrentExtents(i);

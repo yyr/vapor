@@ -250,10 +250,33 @@ DrawVoxelScene(unsigned /*fast*/)
 				0 //Don't lock!
 			);
 
+		//AN:  (2/10/05):  Calculate 'extents' to be the real coords in (0,1) that
+		//the roi is mapped into.  First find the mapping of the full data array.  This
+		//is mapped to the center of the cube with the largest dimension equal to 1.
+		//Then determine what is the subvolume we are dealing with as a portion
+		//of the full mapped data.
+		float fullExtent[6];
+		for (i = 0; i< 3; i++){
+			fullExtent[i] = myRegionParams->getFullDataExtent(i);
+			fullExtent[i+3] = myRegionParams->getFullDataExtent(i+3);
+		}
+		float maxCoordRange = Max(fullExtent[3]-fullExtent[0],Max( fullExtent[4]-fullExtent[1], fullExtent[5]-fullExtent[2]));
+		//calculate the geometric extents of the dimensions in the unit cube:
+		
+		for (i = 0; i<3; i++) {
+			int dim = (myRegionParams->getFullSize(i)>>numxforms) -1;
+			assert (dim>= max_dim[i]);
+			float extentRatio = (fullExtent[i+3]-fullExtent[i])/maxCoordRange;
+			float minFull = 0.5f*(1.f - extentRatio);
+			float maxFull = 0.5f*(1.f + extentRatio);
+			extents[i] = minFull + ((float)min_dim[i]/(float)dim)*(maxFull-minFull);
+			extents[i+3] = minFull + ((float)max_dim[i]/(float)dim)*(maxFull-minFull);
+		}
 		
 
 		// make subregion origin (0,0,0)
 		// Note that this doesn't affect the calc of nx,ny,nz.
+		// Also, save original dims, will need them to find extents.
 		
 		for(i=0; i<3; i++) {
 			while(min_bdim[i] > 0) {
@@ -284,34 +307,8 @@ DrawVoxelScene(unsigned /*fast*/)
 		data_roi[5] = max_subdim[2];
 
 	
-/*
-		extents[3] = (float)(max_subdim[0]-min_subdim[0])/2.0;
-		extents[4] = (float)(max_subdim[1]-min_subdim[1])/2.0;
-		extents[5] = (float)(max_subdim[2]-min_subdim[2])/2.0;
-		extents[0] = -extents[3];
-		extents[1] = -extents[4];
-		extents[2] = -extents[5];
-*/
-		//AN:  (2/9/05) Extents are now the actual extents in real coords of the full data
-		for (i = 0; i< 3; i++){
-			extents[i] = myRegionParams->getFullDataExtent(i);
-			extents[i+3] = myRegionParams->getFullDataExtent(i+3);
-			//extents[i+3] = (myRegionParams->getRegionMax(i)-myRegionParams->getRegionMin(i))/2.0;
-			//extents[i] = -extents[i+3];
-		}
-		//xc = (extents[3] + extents[0]) * 0.5;
-		//yc = (extents[4] + extents[1]) * 0.5;
-		//zc = (extents[5] + extents[2]) * 0.5;
 
-		//hmaxdim = 0.5 * (float) Max(extents[5]-extents[2],Max(extents[3]-extents[0],extents[4]-extents[1]));
-
-		//myGLWindow->setCenter(cntr);
-		//myGLWindow->setMaxSize(hmaxdim);
-		// Recompute projection matrix. Should only need to be called when
-		// volume subregion changes.
-		//
-		// World coordinates are specified in terms of voxels. 
-		//
+		
 	
 		glMatrixMode(GL_MODELVIEW);
 		//Get the matrix from gl, will send it to DVR Volumizer to use for its own purposes.
@@ -364,14 +361,8 @@ DrawVoxelScene(unsigned /*fast*/)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	/*fprintf(stderr, "Matrix is: \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f ",
-		matrix[0], matrix[1],matrix[2],matrix[3],
-		matrix[4], matrix[5],matrix[6],matrix[7],
-		matrix[8], matrix[9],matrix[10],matrix[11],
-		matrix[12], matrix[13],matrix[14],matrix[15]);*/
 	if (driver->Render(
 		(GLfloat *) matrix ) < 0){
-
 		qWarning("Error calling Render()");
 	}
 
@@ -385,10 +376,7 @@ DrawVoxelScene(unsigned /*fast*/)
 void VolumizerRenderer::
 DrawVoxelWindow(unsigned fast)
 {
-
-	//if (fast) glXMakeCurrent(bob->display, bob->vwin, bob->bctx);
 	myGLWindow->makeCurrent();
-
 	DrawVoxelScene(fast);
 }
 
