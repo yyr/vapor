@@ -38,7 +38,7 @@ class Params;
 class Session;
 class Command {
 public:
-	
+	virtual ~Command() {}
 	virtual void reDo() = 0;
 	virtual void unDo() = 0;
 	void setDescription(QString& str){
@@ -71,7 +71,7 @@ protected:
 class MouseModeCommand : public Command{
 public:
 	MouseModeCommand(mouseModeType previousMode, mouseModeType newMode, Session* ses);
-	~MouseModeCommand();
+	virtual ~MouseModeCommand() {}
 	virtual void unDo();
 	virtual void reDo();
 protected:
@@ -84,7 +84,7 @@ protected:
 class TabChangeCommand : public Command{
 public:
 	TabChangeCommand(Params::ParamType oldTab, Params::ParamType newTab, Session* ses);
-	~TabChangeCommand();
+	virtual ~TabChangeCommand() {}
 	virtual void unDo();
 	virtual void reDo();
 protected:

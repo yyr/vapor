@@ -46,7 +46,8 @@ Session::Session(MainForm* mainWindow) {
 Session::~Session(){
 	delete vizWinMgr;
 	if (currentMetadata) delete currentMetadata;
-	if (dataMgr) delete dataMgr;
+	//Note: Datamgr is deleted by metadata
+	//if (dataMgr) delete dataMgr;
 	for (int i = startQueuePos; i<= endQueuePos; i++){
 		if (commandQueue[i%MAX_HISTORY]) {
 			delete commandQueue[i%MAX_HISTORY];
@@ -80,52 +81,19 @@ resetMetadata(const char* fileBase)
 	//Note:  currently hardwired 512 MB cache size.  Should be made
 	//A configuration option
 	//
-	dataMgr = new DataMgr(currentMetadata, 512, 1);
 
+	dataMgr = new DataMgr(fileBase, 512, 1);
 	if (dataMgr->GetErrCode() != 0) {
 		qWarning( "Error creating DataMgr %s\n", dataMgr->GetErrMsg());
 		return;
 	}
+#if NODATAMGR
+	myReader = new WaveletBlock3DRegionReader(fileBase, 1);
+#endif
+	
 	//Notify all params that there is new data:
 	vizWinMgr->reinitializeParams();
-	/* do this in reinit:
-	//Setup the global region parameters based on bounds in Metadata
-	unsigned int nlevels;
-	int nx, ny, nz;
-
-	//Set default data range!
 	
-	dm->SetScale(0.f, 1.f);
-
-	nlevels = dataMgr->GetFLevels();
-	dataMgr->GetDimensionInVoxels(nlevels, &nx, &ny, &nz);
-	//get the global region params:
-	RegionParams* rParams = vizWinMgr->getRegionParams(-1);
-	rParams->setMaxSize(MAX(MAX(nx, ny), nz));
-	rParams->setFullSize(0, nx);
-	rParams->setFullSize(1, ny);
-	rParams->setFullSize(2, nz);
-
-	rParams->setRegionSize(0, nx);
-	rParams->setRegionSize(1, ny);
-	rParams->setRegionSize(2, nz);
-	
-	rParams->setCenterPosition(0, nx/2);
-	rParams->setCenterPosition(1, ny/2);
-	rParams->setCenterPosition(2, nz/2);
-	
-	rParams->setMaxStride(nlevels+1);
-	rParams->setStride(nlevels+1);
-	//This will force the dialog to be reset to values
-	//consistent with the data.
-	//
-	rParams->updateDialog();
-	int nbx, nby, nbz;
-	dataMgr->GetDimensionInBlocks(0, &nbx, &nby, &nbz);
-	
-	
-		
-    */
 	//currentHistogram = new Histo((unsigned char*)dataMgr->GetRegion(
 	//	0, 0, 0, 0, nbx>>1, nby>>1, nbz>>1, 0),
 	//	(nbx*nby*nbz)<<15);
@@ -204,5 +172,6 @@ void Session::resetCommandQueue(){
 	currentQueuePos = 0;
 	startQueuePos = 0;
 	endQueuePos = 0;
+	mainWin->disableUndoRedo();
 }
 

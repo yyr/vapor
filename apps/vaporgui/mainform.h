@@ -144,6 +144,8 @@ public:
 	IsoTab* getIsoTab() {return theIsoTab;}
 	QWorkspace* getWorkspace() {return myWorkspace;}
 	Session* getSession() {return currentSession;}
+	//Disable the editUndo/Redo action:
+	void disableUndoRedo();
 	
 
 public slots:

@@ -87,8 +87,8 @@
  */
 #ifndef SESSION_H
 #define SESSION_H
-
-
+//Bypass datamgr by using files directly:
+#define NODATAMGR 0
 #define MAX_HISTORY 1000
 
 
@@ -100,6 +100,9 @@ class MainForm;
 class Params;
 class Command;
 class Metadata;
+#if NODATAMGR
+class WaveletBlock3DRegionReader;
+#endif
 class Session {
 public:
 	Session(MainForm* mf);
@@ -132,9 +135,13 @@ public:
 	void unblockRecording() {recordingCount--;}
 	bool isRecording() {return (recordingCount == 0);}
 	Histo* getCurrentHistogram() {return currentHistogram;}
+#if NODATAMGR
+	WaveletBlock3DRegionReader* myReader;
+#endif
 
 protected:
 	DataMgr* dataMgr;
+	
 	VizWinMgr* vizWinMgr;
 	MainForm* mainWin;
 	Command* commandQueue[MAX_HISTORY];

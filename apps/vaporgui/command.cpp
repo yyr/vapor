@@ -83,9 +83,7 @@ void MouseModeCommand::reDo(){
 	}
 	currentSession->unblockRecording();
 }
-MouseModeCommand::~MouseModeCommand(){
-	delete description;
-}
+
 const char* MouseModeCommand::
 modeName(mouseModeType t){
 	switch (t){
@@ -170,9 +168,7 @@ void TabChangeCommand::reDo(){
 	}
 	currentSession->unblockRecording();
 }
-TabChangeCommand::~TabChangeCommand(){
-	delete description;
-}
+
 const char* TabChangeCommand::
 tabName(Params::ParamType t){
 	switch (t){

@@ -30,10 +30,11 @@
 class QLabel;
 class QWidget;
 
+
+namespace VAPoR {
+class TFEditor;
+}
 using namespace VAPoR;
-
-class VAPoR::TFEditor;
-
 class TFFrame : public QFrame {
 	Q_OBJECT
 public:

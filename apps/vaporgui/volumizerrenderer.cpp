@@ -54,6 +54,13 @@
 #include "DVRDebug.h"
 #include "renderer.h"
 
+#include "mainform.h"
+#include "session.h"
+#if NODATAMGR
+#include "vapor/WaveletBlock3DRegionReader.h"
+#endif
+
+
 #include "glutil.h"
 
 using namespace VAPoR;
@@ -135,6 +142,8 @@ create_driver(
 void VolumizerRenderer::
 DrawVoxelScene(unsigned /*fast*/)
 {
+	static float* floatData = 0;
+	static unsigned char* intData = 0;
 	float matrix[16];
     GLenum	buffer;
 	static float extents[6];
@@ -189,14 +198,14 @@ DrawVoxelScene(unsigned /*fast*/)
 		//Set up parameters needed to specify region:
 		//level is flevels -stride + 1:
 		//= (maxstride -1) - (stride) + 1
-		int level;
-		if (myVizWin->mouseIsDown()) level = 0;
-		else level = myRegionParams->getMaxStride() - myRegionParams->getStride();
+		int numxforms;
+		if (myVizWin->mouseIsDown()) numxforms = myRegionParams->getMaxStride()-1;
+		else numxforms = myRegionParams->getStride()-1;
 		int bs;
 		bs = myMetadata->GetBlockSize();
 		int i;
 		for(i=0; i<3; i++) {
-			int	s = myRegionParams->getMaxStride()-1 - level;
+			int	s = numxforms;
 
 			min_dim[i] = (int) ((float) (myRegionParams->getCenterPosition(i) >> s) - 0.5 
 				- (((myRegionParams->getRegionSize(i) >> s) / 2.0)-1.0));
@@ -220,20 +229,39 @@ DrawVoxelScene(unsigned /*fast*/)
 		fprintf(stderr, "min_dim == %d %d %d\n", min_dim[0], min_dim[1], min_dim[2]);
 		fprintf(stderr, "max_dim == %d %d %d\n", max_dim[0], max_dim[1], max_dim[2]);
 
-		void* data = myDataMgr->GetRegion(
-				myRegionParams->getCurrentTimestep(),
-				min_bdim[0], min_bdim[1], min_bdim[2], 
-				max_bdim[0], max_bdim[1], max_bdim[2], 
-				level
-			);*/
+		*/
+		//TEST ONLY:  Use wb3dregionreader to access the data:
+#if NODATAMGR
+		if (floatData) delete floatData;
+		nx = (max_bdim[0] - min_bdim[0] + 1) * bs;
+		ny = (max_bdim[1] - min_bdim[1] + 1) * bs;
+		nz = (max_bdim[2] - min_bdim[2] + 1) * bs;
+		floatData = new float[nx*ny*nz];
+		intData = new unsigned char[nx*ny*nz];
+		WaveletBlock3DRegionReader* myReader = 
+			myVizWin->getWinMgr()->getMainWindow()->getSession()->myReader;
+		myReader->OpenVariableRead(0, (myMetadata->GetVariableNames().at(0)).c_str(),numxforms);
+		myReader->ReadRegion((const size_t*)min_dim, (const size_t*)max_dim, floatData);
+		//Quantize, assuming data between 0 and 1
+		for (int q = 0; q<nx*ny*nz; q++){
+			float value = floatData[q]*255.;
+			if (value < 0.f) value = 0.f;
+			if (value > 255.f) value = 255.f;
+			unsigned int intval = (int) value;
+			intData[q] = (unsigned int) intval;
+		}
+		delete floatData;
+		floatData = 0;
+#else
 		void* data = (void*) myDataMgr->GetRegionUInt8(
 				myRegionParams->getCurrentTimestep(),
 				myDVRParams->getVariableName(),
-				level,
+				numxforms,
 				(const size_t*)min_bdim,
 				(const size_t*)max_bdim,
 				0 //Don't lock!
 			);
+#endif //NODATAMGR
 		/*
 		fprintf(stderr, "DataMgr::GetRegion(index=%d, x0=%d, y0=%d, z0=%d, x1=%d, y1=%d, z1=%d, level=%d\n", 
 			myRegionParams->getCurrentTimestep(), min_bdim[0], min_bdim[1], min_bdim[2], 
@@ -292,27 +320,7 @@ DrawVoxelScene(unsigned /*fast*/)
 		//
 		// World coordinates are specified in terms of voxels. 
 		//
-	/*
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-
-		if (myGLWindow->width() > myGLWindow->height()) {
-			float l, r, s;
-			s = (float) myGLWindow->width() / (float) myGLWindow->height();
-			l = xc - (hmaxdim*s);
-			r = xc + (hmaxdim*s);
-			glOrtho(l, r, yc-hmaxdim, yc+hmaxdim, zc-hmaxdim-1.0+10., zc+hmaxdim+1.0+10.); 
-			//fprintf(stderr, "glOrtho(%f, %f, %f, %f, %f, %f\n", l,r,yc-hmaxdim, yc+hmaxdim, zc-hmaxdim-1.0, zc+hmaxdim+1.0);
-		}
-		else {
-			float b, t, s;
-			s = (float) myGLWindow->height() / (float) myGLWindow->width();
-			b = yc - (hmaxdim*s);
-			t = yc + (hmaxdim*s);
-			glOrtho(xc-hmaxdim, yc+hmaxdim, b, t, zc-hmaxdim-1.0+10., zc+hmaxdim+1.0+10.); 
-			//fprintf(stderr, "glOrtho(%f, %f, %f, %f, %f, %f\n", xc-hmaxdim, xc+hmaxdim, b, t, zc-hmaxdim-1.0, zc+hmaxdim+1.0);
-		}
-		*/
+	
 		glMatrixMode(GL_MODELVIEW);
 	//Get the matrix from gl, will send it to DVR Volumizer to use for its own purposes.
 		//glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
@@ -335,10 +343,19 @@ DrawVoxelScene(unsigned /*fast*/)
 
 		//fprintf(stderr, " Setting region in DVR Volumizer\n");
 		//fflush(stderr);
+
+		
+#if NODATAMGR
+		rc = driver->SetRegion(intData,
+			nx, ny, nz,
+			data_roi, extents
+		);
+#else
 		rc = driver->SetRegion(data,
 			nx, ny, nz,
 			data_roi, extents
 		);
+#endif
 		if (rc < 0) {
 			fprintf(stderr, "Error in DVRVolumizer::SetRegion\n");
 			fflush(stderr);

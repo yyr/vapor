@@ -151,7 +151,7 @@ void DvrParams::updateDialog(){
 		//Direct conversion of std:string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
-		myDvrTab->variableCombo->insertItem(text);
+		myDvrTab->variableCombo->changeItem(text,i);
 	}
 	myDvrTab->lightingCheckbox->setChecked(lightingOn);
 	myDvrTab->numBitsSpin->setValue(numBits);

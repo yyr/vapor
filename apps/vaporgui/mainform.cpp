@@ -587,6 +587,13 @@ void MainForm::setupUndoRedoText(){
 	editUndoAction->setMenuText( undoText );
 	editRedoAction->setMenuText( redoText );
 }
+// Disable the undo/redo actions, for when the 
+// command queue is reinitialized
+//
+void MainForm::disableUndoRedo(){
+	editUndoAction->setEnabled(false);
+	editRedoAction->setEnabled(false);
+}
 
 void MainForm::helpIndex()
 {

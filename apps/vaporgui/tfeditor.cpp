@@ -25,6 +25,7 @@
 #include "histo.h"
 #include "dvrparams.h"
 using namespace VAPoR;
+
 TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm, Session* ses){
 	myTransferFunction = tf;
 	myFrame = frm;
@@ -47,11 +48,12 @@ TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm, Session
 	numColorSelect = 0;
 	numOpacSelect = 0;
 	histoMaxBin = -1;
-	//refreshImage();
+	
 	
 }
 TFEditor::~TFEditor(){
-	delete editImage;
+	//Don't delete the image:  QT ref counts them
+	//delete editImage;
 }
 // Use the data in the transfer function to construct the editing image
 //
@@ -166,7 +168,7 @@ moveGrabbedControlPoints(int newX, int newY){
 	static float startingOpacPosition[MAXCONTROLPOINTS];
 	static float startingColorPosition[MAXCONTROLPOINTS];
 	static float startingOpac[MAXCONTROLPOINTS];
-	static float xStart, yStart, lastXMove;
+	static float lastXMove;
 	int i, j;
 	//First, see if this is an undetermined constrained drag.  
 	// Determine if horiz or vert
@@ -192,8 +194,7 @@ moveGrabbedControlPoints(int newX, int newY){
 	//
 	if (leftMoveMax == -1){
 		lastXMove = 0.f;
-		xStart = mapWin2Var(dragStartX);
-		yStart = mapWin2Opac(dragStartY);
+		
 		//Start with extreme limits for quantization error:
 		leftMoveMax = 1000000;
 		rightMoveMax = 1000000;

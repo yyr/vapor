@@ -149,8 +149,8 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	}
 	myGLWindow->myTBall = myTrackball;
 	setValuesFromGui(vpparms->getCurrentViewpoint());
-
-	show();
+	
+	//Note:  Caller must call show()
 	
 }
 
