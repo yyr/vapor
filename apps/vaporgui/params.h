@@ -64,7 +64,7 @@ public:
 	//
 	virtual void makeCurrent(Params* previousPanel, bool newWin) = 0;
 	
-	//Update the dialog with values from associated tab.
+	//Update the panel with values from associated tab.
 	//Must turn off undo/redo while this occurs!
 	//
 	virtual void updateDialog() = 0;

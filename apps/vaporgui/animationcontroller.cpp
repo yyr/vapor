@@ -18,16 +18,20 @@
 //		
 
 
-
+#include <qwaitcondition.h>
 #include <qthread.h>
 #include <qmutex.h>
 #include "animationcontroller.h"
 using namespace VAPoR;
 
 
-AnimationController::AnimationController(){}
+AnimationController::AnimationController(): QThread(){
+	myWaitCondition = new QWaitCondition();
+}
 
-AnimationController::~AnimationController(){}
+AnimationController::~AnimationController(){
+	delete myWaitCondition;
+}
 	
 
 //The run method continues as long as rendering needs to be performed.
@@ -121,8 +125,12 @@ advanceFrame(){
 		return true;
 	}
 }
-
-
+// Call wakeup if the controller has work to do
+//
+void AnimationController::
+wakeup(){
+	myWaitCondition->wakeAll();
+}
 	
 	
 

@@ -28,8 +28,7 @@
 class AnimationTab;
 
 namespace VAPoR {
-
-
+class AnimationController;
 class MainForm;
 class AnimationParams : public Params {
 	
@@ -40,20 +39,27 @@ public:
 	void updateDialog();
 	//And vice-versa:
 	virtual void updatePanelState();
-
+	//Set the sliders consistent with values in tab panel
+	void setSliders();
 	virtual Params* deepCopy();
 
 	virtual void makeCurrent(Params* p, bool newWin);
-	
+
+	virtual void reinit();
+	bool isDirty() {return dirtyBit;}
+	void setDirty(bool dirty) {dirtyBit = dirty;}
 
 	void setTab(AnimationTab* tab) {myAnimationTab = tab;}
 	
 	//Following are set by gui, result in save history state:
 	void guiSetPlay(int direction);
-	void guiGoToStart();
-	void guiGoToEnd();
-	void guiReleasePositionSlider(int position);
-	void guiReleaseStepsizeSlider(int position);
+	void guiJumpToBegin();
+	void guiJumpToEnd();
+	void guiSetPosition(int sliderposition);
+	void guiSetFrameStep(int sliderposition);
+	
+	void guiToggleReplay(bool replay);
+	void guiSingleStep(bool forward);
 	
 protected:
 	int playDirection; //-1, 0, or 1
@@ -64,7 +70,8 @@ protected:
 	int endFrame;
 	int maxFrame, minFrame;
 	int currentFrame;
-
+	bool dirtyBit;  //Indicate values have changed
+	AnimationController* myAnimationController;
 	AnimationTab* myAnimationTab;
 	
 

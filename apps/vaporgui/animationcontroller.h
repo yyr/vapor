@@ -68,7 +68,7 @@
 #include <qthread.h>
 #include <qmutex.h>
 #include <cassert>
-
+class QWaitCondition;
 namespace VAPoR {
 
 class AnimationController : public QThread {
@@ -119,6 +119,8 @@ public:
 	//Renderers call the following two methods:
 	void beginRendering(int vizNum);
 	void endRendering(int vizNum);
+	//To interrupt a controller sleep, call the following:
+	void wakeup();
 
 
 protected:
@@ -153,7 +155,7 @@ protected:
 	//it restarts the controller
 	bool renderStarted;
 	bool renderEnded;
-
+	QWaitCondition* myWaitCondition;
 
 };
 

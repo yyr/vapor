@@ -106,6 +106,7 @@ class Command;
 class Metadata;
 class DataStatus;
 class WaveletBlock3DRegionReader;
+class AnimationController;
 // Class used by session to keep track of variables, timesteps	
 class DataStatus{
 public:
@@ -156,8 +157,11 @@ public:
 	float* getDataRange(int varNum){
 		return dataRange[varNum];
 	}
+	
 
 private:
+	size_t minTimeStep;
+	size_t maxTimeStep;
 	int numTransforms;
 	int numVariables;
 	int numTimesteps;
@@ -166,6 +170,7 @@ private:
 	int* dataPresent;
 	size_t fullDataSize[3];
 	float** dataRange;
+	
 };
 class Session {
 public:
@@ -184,6 +189,8 @@ public:
 			return currentDataStatus->getDataRange(variableNum);
 		else return 0;
 	}
+	size_t getMinTimestep(){return minTimeStep;}
+	size_t getMaxTimestep(){return maxTimeStep;}
 	//Set range mapped for a variable.  Currently sets all
 	//variables to same range.
 	//
@@ -216,9 +223,11 @@ public:
 	void resetMetadata(const char* vmfile);
 	void setCacheMB(size_t size){cacheMB = size;}
 	size_t getCacheMB() {return cacheMB;}
+	AnimationController* getAnimationController() {return theAnimationController;}
 
 
 protected:
+	AnimationController* theAnimationController;
 	WaveletBlock3DRegionReader* myReader;
 	
 	//setup the DataStatus:
@@ -236,6 +245,7 @@ protected:
 	const Metadata* currentMetadata;
 	//Cache size in megabytes
 	size_t cacheMB;
+	size_t maxTimeStep, minTimeStep;
 	
 };
 

@@ -26,6 +26,7 @@
 #include <cstring>
 #include "histo.h"
 #include "vapor/Metadata.h"
+#include "animationcontroller.h"
 using namespace VAPoR;
 Session::Session(MainForm* mainWindow) {
 	recordingCount = 0;
@@ -45,10 +46,11 @@ Session::Session(MainForm* mainWindow) {
 	currentHistograms = 0;
 	currentDataStatus = 0;
 	cacheMB = 512;
+	theAnimationController = new AnimationController();
 }
 Session::~Session(){
 	delete vizWinMgr;
-	
+	delete theAnimationController;
 	//Note: metadata is deleted by Datamgr
 	if (dataMgr) delete dataMgr;
 	for (int i = startQueuePos; i<= endQueuePos; i++){
@@ -242,6 +244,9 @@ setupDataStatus(){
 	for (int k = 0; k< 3; k++){
 		ds->setFullDataSize(k, currentMetadata->GetDimension()[k]);
 	}
+	//As we go through the variables and timesteps, keepTrack of min and max times
+	minTimeStep = 1000000000;
+	maxTimeStep = 0;
 	for (size_t ts = 0; ts<(size_t)numTimeSteps; ts++){
 		for (int var = 0; var< numVariables; var++){
 			//Find the minimum number of transforms available on disk
@@ -255,6 +260,9 @@ setupDataStatus(){
 					currentMetadata->GetVariableNames()[var].c_str(),
 					xf)) break;
 			}
+			//Aha, there is some data for some variable at this timestep.
+			if (ts > maxTimeStep) maxTimeStep = ts;
+			if (ts < minTimeStep) minTimeStep = ts;
 			//xf is the first one that is *not* present
 			xf++;
 			if (xf > numXForms)
@@ -287,6 +295,7 @@ setupDataStatus(){
 			}
 		}
 	}
+
 	return ds;
 }
 //Here is the implementation of the DataStatus.

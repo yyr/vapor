@@ -602,37 +602,43 @@ void
 VizWinMgr::hookUpAnimationTab(AnimationTab* aTab)
 {
 	//Signals and slots:
-	/*
- 	connect (vTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setVpLocalGlobal(int)));
-	connect (vTab->perspectiveCombo, SIGNAL (activated(int)), this, SLOT (setVPPerspective(int)));
-	connect (vTab->numLights, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->camPos0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->camPos1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->camPos2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->viewDir0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->viewDir1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->viewDir2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->upVec0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->upVec1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->upVec2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	
+ 	connect (aTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setAnimationLocalGlobal(int)));
+	
+	connect (aTab->startFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	connect (aTab->currentFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	connect (aTab->endFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	connect (aTab->frameStepEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	connect (aTab->maxFrameRateEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	
 	
 	//Connect all the returnPressed signals, these will update the visualizer.
-	connect (vTab->camPos0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->camPos1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->camPos2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->viewDir0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->viewDir1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->viewDir2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->upVec0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->upVec1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->upVec2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->numLights, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (aTab->startFrameEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (aTab->currentFrameEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (aTab->endFrameEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (aTab->frameStepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (aTab->maxFrameRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 
-	connect (this, SIGNAL(enableMultiViz(bool)), vTab->LocalGlobal, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyToButton, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyTargetCombo, SLOT(setEnabled(bool)));
+	//Sliders only do anything when released
+	connect (aTab->frameStepSlider, SIGNAL(sliderReleased()), this, SLOT (animationSetFrameStep()));
+	connect (aTab->animationSlider, SIGNAL(sliderReleased()), this, SLOT (animationSetPosition()));
+
+	//Button clicking for toggle buttons:
+	connect(aTab->pauseButton, SIGNAL(toggled(bool)), this, SLOT(animationPauseClick(bool)));
+	connect(aTab->playReverseButton, SIGNAL(toggled(bool)), this, SLOT(animationPlayReverseClick(bool)));
+	connect(aTab->playForwardButton, SIGNAL(toggled(bool)), this, SLOT(animationPlayForwardClick(bool)));
+	connect(aTab->replayButton, SIGNAL(clicked()), this, SLOT(animationReplayClick()));
+	//and non-toggle buttons:
+	connect(aTab->toBeginButton, SIGNAL(clicked()), this, SLOT(animationToBeginClick()));
+	connect(aTab->toEndButton, SIGNAL(clicked()), this, SLOT(animationToEndClick()));
+	connect(aTab->stepReverseButton, SIGNAL(clicked()), this, SLOT(animationStepReverseClick()));
+	connect(aTab->stepForwardButton, SIGNAL(clicked()), this, SLOT(animationStepForwardClick()));
+
+	connect (this, SIGNAL(enableMultiViz(bool)), aTab->LocalGlobal, SLOT(setEnabled(bool)));
+	connect (this, SIGNAL(enableMultiViz(bool)), aTab->copyToButton, SLOT(setEnabled(bool)));
+	connect (this, SIGNAL(enableMultiViz(bool)), aTab->copyTargetCombo, SLOT(setEnabled(bool)));
 	emit enableMultiViz(getNumVisualizers() > 1);
-	*/
+	
 }
 void
 VizWinMgr::hookUpIsoTab(IsoTab* isoTab)
@@ -834,6 +840,38 @@ setDvrDirty(DvrParams* dParams){
 		}
 	}
 }
+//Local global selector for all panels are similar.  First, Animation panel:
+//
+void VizWinMgr::
+setAnimationLocalGlobal(int val){
+	//If changes to global, revert to global panel.
+	//If changes to local, may need to create a new local panel
+	//Switch local and global Trackball as appropriate
+	if (val == 0){//toGlobal.  
+		//First set the global status, 
+		//then put  values in tab based on global settings.
+		//Note that updateDialog will trigger events changing values
+		//on the current dialog
+		if(animationParams[activeViz])animationParams[activeViz]->guiSetLocal(false);
+		globalAnimationParams->updateDialog();
+		tabManager->show();
+	} else { //Local: Do we need to create new parameters?
+		if (!animationParams[activeViz]){
+			//create a new parameter panel, copied from global
+			animationParams[activeViz] = new AnimationParams(*globalAnimationParams);
+			animationParams[activeViz]->setVizNum(activeViz);
+			animationParams[activeViz]->guiSetLocal(true);
+			
+			//No need to refresh anything, since the new parameters are same as old! 
+		} else { //need to revert to existing local settings:
+			animationParams[activeViz]->guiSetLocal(true);
+			animationParams[activeViz]->updateDialog();
+			
+			//and then refresh the panel:
+			tabManager->show();
+		}
+	}
+}
 /*****************************************************************************
  * Called when the local/global selector is changed.
  * Separate versions for viztab, regiontab, isotab, contourtab, dvrtab
@@ -934,7 +972,65 @@ setDvrLocalGlobal(int val){
 	getDvrParams(activeViz)->updateRenderer(wasEnabled,!val, false);
 }
 /*************************************************************************************
- * Other slots associated with DvrTab
+ *  slots associated with AnimationTab
+ *************************************************************************************/
+void VizWinMgr::
+animationReturnPressed(void){
+	//Find the appropriate parameter panel, make it update the visualization window
+	getAnimationParams(activeViz)->confirmText(true);
+}
+void VizWinMgr::
+setAtabTextChanged(const QString& ){
+	getAnimationParams(activeViz)->guiSetTextChanged(true);
+}
+//Respond to release of frame-step slider
+void VizWinMgr::
+animationSetFrameStep(){
+	getAnimationParams(activeViz)->guiSetFrameStep(
+		myMainWindow->getAnimationTab()->frameStepSlider->value());
+}
+//Respond to release of animation position slider
+void VizWinMgr::
+animationSetPosition(){
+	getAnimationParams(activeViz)->guiSetPosition(
+		myMainWindow->getAnimationTab()->animationSlider->value());
+}
+//Respond to pause button click
+void VizWinMgr::
+animationPauseClick(bool on){
+	if(on) getAnimationParams(activeViz)->guiSetPlay(0);
+}
+void VizWinMgr::
+animationPlayReverseClick(bool on){
+	if (on) getAnimationParams(activeViz)->guiSetPlay(-1);
+}
+void VizWinMgr::
+animationPlayForwardClick(bool on){
+	if (on) getAnimationParams(activeViz)->guiSetPlay(1);
+}
+void VizWinMgr::
+animationReplayClick(){
+	getAnimationParams(activeViz)->guiToggleReplay(
+		myMainWindow->getAnimationTab()->replayButton->isOn());
+}
+void VizWinMgr::
+animationToBeginClick(){
+	getAnimationParams(activeViz)->guiJumpToBegin();
+}
+void VizWinMgr::
+animationToEndClick(){
+	getAnimationParams(activeViz)->guiJumpToEnd();
+}
+void VizWinMgr::
+animationStepForwardClick(){
+	getAnimationParams(activeViz)->guiSingleStep(true);
+}
+void VizWinMgr::
+animationStepReverseClick(){
+	getAnimationParams(activeViz)->guiSingleStep(false);
+}
+/*************************************************************************************
+ *  slots associated with DvrTab
  *************************************************************************************/
 void VizWinMgr::
 setDvrTabTextChanged(const QString& ){
@@ -1213,6 +1309,8 @@ getLocalParams(Params::ParamType t){
 			return getRealIsoParams(activeViz);
 		case (Params::DvrParamsType):
 			return getRealDvrParams(activeViz);
+		case (Params::AnimationParamsType):
+			return getRealAnimationParams(activeViz);
 		default:  assert(0);
 			return 0;
 	}

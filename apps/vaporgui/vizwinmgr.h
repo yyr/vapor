@@ -48,6 +48,7 @@ class Dvr;
 class ContourPlaneTab;
 class VizTab;
 class IsoTab;
+class AnimationTab;
 
 
 
@@ -264,6 +265,7 @@ protected slots:
 	void setDvrLocalGlobal(int val);
 	void setIsoLocalGlobal(int val);
 	void setContourLocalGlobal(int val);
+	void setAnimationLocalGlobal(int val);
 	void setVPPerspective(int isOn);
 
 	void setVtabTextChanged(const QString& qs);
@@ -271,12 +273,27 @@ protected slots:
 	void setIsoTabTextChanged(const QString& qs);
 	void setDvrTabTextChanged(const QString& qs);
 	void setContourTabTextChanged(const QString& qs);
+	void setAtabTextChanged(const QString& qs);
 	
 	void viewpointReturnPressed();
 	void regionReturnPressed();
 	void dvrReturnPressed();
 	void isoReturnPressed();
 	void contourReturnPressed();
+	void animationReturnPressed();
+
+	//Animation slots:
+	void animationSetFrameStep();
+	void animationSetPosition();
+	void animationPauseClick(bool);
+	void animationPlayReverseClick(bool);
+	void animationPlayForwardClick(bool);
+	void animationReplayClick();
+	void animationToBeginClick();
+	void animationToEndClick();
+	void animationStepForwardClick();
+	void animationStepReverseClick();
+
 
 	//Then the regionTab slots:
 	void setRegionNumTrans(int);
