@@ -36,7 +36,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"comment",	1,	"",				"Top-level comment"},
 	{"gridtype",	1,	"regular",	"Data grid type (regular|streched)"}, 
 	{"coordsystem",	1,	"cartesian","Top-level comment (cartesian|spherical)"},
-	{"extents",	1,	"0:0:0:1:1:1",	"Domain extents in user coordinates"},
+	{"extents",	1,	"0:0:0:0:0:0",	"Domain extents in user coordinates"},
 	{"varnames",1,	"var1",			"Colon delimited list of variable names"},
 	{"help",	0,	"",				"Print this message and exit"},
 	{NULL}
@@ -94,7 +94,7 @@ int	main(int argc, char **argv) {
 	dim[0] = opt.dim.nx;
 	dim[1] = opt.dim.ny;
 	dim[2] = opt.dim.nz;
-	Metadata file(bs,dim,opt.nxforms,opt.nfilter,opt.nlifting);
+	Metadata file(dim,opt.nxforms,bs,opt.nfilter,opt.nlifting);
 	if (Metadata::GetErrCode()) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
@@ -125,13 +125,23 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	vector <double> extents;
-	for(int i=0; i<6; i++) {
-		extents.push_back(opt.extents[i]);
+	int doExtents = 0;
+	for(int i=0; i<5; i++) {
+		if (opt.extents[i] != opt.extents[i+1]) doExtents = 1;
 	}
-	if (file.SetExtents(extents) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
-		exit(1);
+
+	// let Metadata class calculate extents automatically if not 
+	// supplied by user explicitly.
+	//
+	if (doExtents) {
+		vector <double> extents;
+		for(int i=0; i<6; i++) {
+			extents.push_back(opt.extents[i]);
+		}
+		if (file.SetExtents(extents) < 0) {
+			cerr << Metadata::GetErrMsg() << endl;
+			exit(1);
+		}
 	}
 	
 
