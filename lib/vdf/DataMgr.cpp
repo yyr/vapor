@@ -170,6 +170,8 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	int	ny = (int)((max[1]-min[1]+1) * bs);
 	int	nx = (int)((max[0]-min[0]+1) * bs);
 
+cerr << "quantizing" << endl;
+
 	for(z=0;z<nz;z++) {
 	for(y=0;y<ny;y++) {
 	for(x=0;x<nx;x++) {
@@ -449,19 +451,25 @@ void	DataMgr::free_all(int do_native) {
 		for(t = vmap.begin(); t!=vmap.end(); t++) {
 			vector <region_t *> &regvec = t->second;
 
-			vector <region_t *>::reverse_iterator revp;
-			
-			// walk through region vector in reverse order so we
-			// can safely delete elements from the end without
-			// invalidating the iterator
+			// Erase matching elements 
 			//
-			for(revp=regvec.rbegin(); revp!=regvec.rend(); ++revp) {
-				region_t *regptr = *revp;
+			vector <region_t *>::iterator itr;
+			itr = regvec.begin();
+			while (itr != regvec.end()) {
+				region_t *regptr = *itr;
 
 				if (regptr->type != DataMgr::FLOAT32 || do_native) {
 					if (regptr->blks) _blk_mem_mgr->FreeMem(regptr->blks);
 					delete regptr;
-					regvec.erase(revp.base());
+					regvec.erase(itr);
+
+					// Changed the vector. Need to reset the pointer
+					// to the beginning.
+					//
+					itr = regvec.begin();
+				}
+				else {
+					++itr;
 				}
 			}
 		}
