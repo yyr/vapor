@@ -25,6 +25,12 @@ C_DEBUG_FLAGS   += /MDd /Yd /Z7 /EHsc
 LDFLAGS          += /nologo user32.lib kernel32.lib
 LD_RELEASE_FLAGS += 
 LD_DEBUG_FLAGS   += 
+ 
+ifndef $(EXPAT_LIB_PATH)
+EXPAT_LIB_PATH := B:/Expat-1.95.8
+endif
+
+EXPATLIB := "$(EXPAT_LIB_PATH)/libs/libexpat.lib"
 
 QTLIB = "$(QTDIR)/lib/qt-mt332.lib"
 

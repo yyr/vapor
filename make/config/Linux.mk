@@ -14,7 +14,7 @@ endif
 OGLLIBS += -lGLU -lGL  -lX11
 
 ifdef   EXPAT_LIB_PATH
-EXPATLIB = -L$(EXPAT_LIB_PATH)
+EXPATLIB := -L$(EXPAT_LIB_PATH)
 endif
 EXPATLIB += -lexpat
 

@@ -12,9 +12,11 @@ OGLLIBS = -L$(OGL_LIB_PATH)
 endif
 OGLLIBS += -lGLU -lGL  -lX11
 
-ifdef   EXPAT_LIB_PATH
-EXPATLIB = -L$(EXPAT_LIB_PATH)
+ifndef EXPAT_LIB_PATH
+EXPAT_LIB_PATH = /usr/freeware/lib64
 endif
+
+EXPATLIB += -L$(EXPAT_LIB_PATH)
 EXPATLIB += -lexpat
 
 G++-INCLUDE-DIR = /usr/include/g++
