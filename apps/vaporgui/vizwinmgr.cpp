@@ -213,7 +213,7 @@ launchVisualizer(int newWindowNum, const char* newName)
 	}
 	
 	numVizWins++;
-
+	
 	if (brandNew) createDefaultRendererPanels(newWindowNum);
 		
     QPoint* topLeft = new QPoint(0,0);
@@ -245,7 +245,8 @@ launchVisualizer(int newWindowNum, const char* newName)
 		rgParams[newWindowNum]->setLocal(false);
 	if (animationParams[newWindowNum])
 		animationParams[newWindowNum]->setLocal(false);
-
+	//Following seems to be unnecessary on windows and irix:
+	activeViz = newWindowNum;
 	vizWin[newWindowNum]->show();
 
 	
@@ -1428,7 +1429,9 @@ getRegionParams(int winNum){
 //For a renderer, there should always exist a local version.
 DvrParams* VizWinMgr::
 getDvrParams(int winNum){
+
 	if (winNum < 0) return globalDvrParams;
+	assert(dvrParams[winNum]);
 	if (dvrParams[winNum]->isLocal()) return dvrParams[winNum];
 	return globalDvrParams;
 }

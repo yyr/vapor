@@ -43,6 +43,7 @@
 #include <errno.h>
 
 #include <qgl.h>
+#include <qmessagebox.h>
 #include "volumizerrenderer.h"
 #include "dvrparams.h"
 #include "regionparams.h"
@@ -84,8 +85,11 @@ initializeGL(){
 	myGLWindow->makeCurrent();
     
     if (driver->GraphicsInit() < 0) {
-		qWarning("Failure to initialize driver");
-		
+		//qWarning("Failure to initialize driver");
+		QMessageBox::critical(0,
+		"Volumizer Error",
+		"Failure to initialize driver",
+		QMessageBox::Ok, QMessageBox::NoButton);
     }
     
 }
@@ -130,7 +134,7 @@ create_driver(
 	}
 
 	if (driver->GetErrCode() != 0) { 
-		qWarning("DVRBase::DVRBase() : %s\n", driver->GetErrMsg());
+		//qWarning("DVRBase::DVRBase() : %s\n", driver->GetErrMsg());
 		return NULL;
 	}
 
@@ -351,7 +355,13 @@ DrawVoxelScene(unsigned /*fast*/)
 	glDepthMask(GL_FALSE);
 	if (driver->Render(
 		(GLfloat *) matrix ) < 0){
-		qWarning("Error calling Render()");
+
+			qWarning("Error calling Render()");
+			QMessageBox::warning(0,
+			"Volumizer Error",
+			"Error calling Render()",
+			QMessageBox::Ok, QMessageBox::NoButton);
+		return;
 	}
 
 	//Finally render the region geometry, if in region mode

@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <string.h>
 #include <errno.h>
+#include <qmessagebox.h>
 //#include <GL/gl.h>
 #include "glutil.h"
 #include "qgl.h"
@@ -83,7 +84,10 @@ DVRVolumizer::DVRVolumizer(
 	diffuse_c[0] = diffuse_c[1] = diffuse_c[2] = 0.5f;
 
 	if (type != UINT8) {
-		qWarning("Unsupported voxel type : %d", type);
+		QMessageBox::critical(0,
+		"Volumizer Error",
+		QString("Unsupported voxel type: %1").arg(type),
+		QMessageBox::Ok, QMessageBox::NoButton);
 		return;
 	}
 
@@ -233,7 +237,10 @@ int	DVRVolumizer::Render(
 	
 
 	if (! data_c) {
-		qWarning("DVRVolumizer::NULL data - no volume to render");
+		QMessageBox::critical(0,
+		"Volumizer Error",
+		"No data to render, possibly insufficient memory",
+		QMessageBox::Ok, QMessageBox::NoButton);
 		return(-1);
 	}
 
@@ -427,7 +434,10 @@ int	DVRVolumizer::render()
 		//);
 
 		if (matrix4x4_inverse(matrix_c, m_inv) < 0) {
-			qWarning("Singular transformation matrix");
+			QMessageBox::critical(0,
+			"Rendering Error",
+			"Singular Transformation Matrix",
+			QMessageBox::Ok, QMessageBox::NoButton);
 			return(-1);
 		}
 
@@ -461,13 +471,19 @@ vzParameterVolumeTexture	*DVRVolumizer::compute_gradient_volume(
 
 	dataFormat = volume_c->getDataFormat();
 	if(dataFormat != VZ_LUMINANCE) {
-		qWarning("Unsupported voxel format : %d", dataFormat);
+		QMessageBox::critical(0,
+		"Volumizer Error",
+		QString("Unsupported data format: %1").arg(dataFormat),
+		QMessageBox::Ok, QMessageBox::NoButton);
 		return(NULL);
 	}
 
 	dataType = volume_c->getDataType ();
 	if(dataType != VZ_UNSIGNED_BYTE) {
-		qWarning("Unsupported voxel type : %d", dataType);
+		QMessageBox::critical(0,
+		"Volumizer Error",
+		QString("Unsupported voxel type: %1").arg(dataType),
+		QMessageBox::Ok, QMessageBox::NoButton);
 		return(NULL);
 	}
 
@@ -477,7 +493,10 @@ vzParameterVolumeTexture	*DVRVolumizer::compute_gradient_volume(
 		if (grad_data_c) delete [] grad_data_c;
 		grad_data_c = new unsigned char[size];
 		if (! grad_data_c) {
-			qWarning("malloc(%d) : %s", size, strerror(errno));
+			QMessageBox::critical(0,
+			"Volumizer Error",
+			"gradient malloc error, insufficient memory",
+			QMessageBox::Ok, QMessageBox::NoButton);
 			return(NULL);
 		}
 		grad_data_size_c = size;
@@ -497,7 +516,7 @@ vzParameterVolumeTexture	*DVRVolumizer::compute_gradient_volume(
 		data_dim_c, data_roi_c, 0, nthreads_c, NULL, NULL
 	);
 	if (gradient3d->GetErrCode() != 0) {
-		qWarning("Gradient3D : %s", gradient3d->GetErrMsg());
+		//qWarning("Gradient3D : %s", gradient3d->GetErrMsg());
 		return(NULL);
 	}
 

@@ -34,7 +34,7 @@
 
 #include <qpushbutton.h>
 #include <qslider.h>
-
+#include <qmessagebox.h>
 #include <qframe.h>
 #include <qapplication.h>
 #include <qkeycode.h>
@@ -127,7 +127,10 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	fmt.setDirectRendering(true);
     myGLWindow = new GLWindow(fmt, f, "glbox", this);
 	if (!(fmt.directRendering() && fmt.depth() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
-		qWarning("unable to obtain required rendering format");
+		QMessageBox::critical(0,
+		"OpenGL Error",
+		"Unable to obtain required rendering format",
+		QMessageBox::Ok, QMessageBox::NoButton);		
 	}
 
 
@@ -402,17 +405,17 @@ void VizWin::languageChange()
 
 void VizWin::helpIndex()
 {
-    qWarning( "VizWin::helpIndex(): Not implemented yet" );
+    //qWarning( "VizWin::helpIndex(): Not implemented yet" );
 }
 
 void VizWin::helpContents()
 {
-    qWarning( "VizWin::helpContents(): Not implemented yet" );
+    //qWarning( "VizWin::helpContents(): Not implemented yet" );
 }
 
 void VizWin::helpAbout()
 {
-    qWarning( "VizWin::helpAbout(): Not implemented yet" );
+    //qWarning( "VizWin::helpAbout(): Not implemented yet" );
 }
 
 //Due to X11 probs need to check again.  Compare this window with the available space.
