@@ -20,14 +20,33 @@ EXPATLIB += -lexpat
 
 
 G++-INCLUDE-DIR = /usr/include/g++
+
+ifdef	HAVE_INTEL_COMPILERS
+CXX = icpc
+CC = icc
+else
 CXX = g++
 CC = gcc
+endif
 
 # Mike Houston reports 20-30% speed-ups with these compiler flags on
 # P4/Xeon systems:
 #-O3 -DNDEBUG -fno-strict-aliasing -fomit-frame-pointer -fexpensive-optimizations -falign-functions=4 -funroll-loops -malign-double -fprefetch-loop-arrays -march=pentium4 -mcpu=pentium4 -msse2 -mfpmath=sse 
 
 #CXXFLAGS          += -DLINUX -Wall -Werror
+
+ifdef	HAVE_INTEL_COMPILERS
+
+CXXFLAGS          += -DLINUX -fPIC
+CXX_RELEASE_FLAGS += -O -DNDEBUG 
+CXX_DEBUG_FLAGS   += -g
+
+CFLAGS            += -DLINUX -fPIC
+C_RELEASE_FLAGS   += -O
+C_DEBUG_FLAGS     += -g
+
+else
+
 CXXFLAGS          += -DLINUX -Wall -Wno-sign-compare
 CXX_RELEASE_FLAGS += -O3 -DNDEBUG -fno-strict-aliasing
 CXX_DEBUG_FLAGS   += -g
@@ -36,6 +55,9 @@ CXX_DEBUG_FLAGS   += -g
 CFLAGS            += -DLINUX -Wall -Wmissing-prototypes -Wno-sign-compare
 C_RELEASE_FLAGS   += -O3 -DNDEBUG -fno-strict-aliasing
 C_DEBUG_FLAGS     += -g
+
+endif
+
 
 ifeq ($(MACHTYPE),x86_64)
 LDFLAGS           += -L/usr/X11R6/lib64

@@ -220,6 +220,11 @@ CXXFLAGS += -DCHROMIUM_THREADSAFE=1
 RELEASE_STRING += (THREADSAFE)
 endif
 
+ifeq ($(DEBUG), 1)
+CFLAGS += -DDEBUG
+CXXFLAGS += -DDEBUG
+endif
+
 ifdef WINDOWS
 LDFLAGS += /incremental:no 
 #LDFLAGS += /pdb:none
