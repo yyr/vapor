@@ -111,9 +111,7 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 		errFatal("Wrong number of arguments");
 	}
 
-	if (Metadata::GetErrCode()) {
-		errFatal(Metadata::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	IDL_VPTR result = IDL_Gettmp();
 	result->type = IDL_TYP_PTR;
@@ -140,9 +138,7 @@ void vdfMetadataWrite(int argc, IDL_VPTR *argv)
 	char *path = IDL_VarGetString(argv[1]);
 
 	metadata->Write(path);
-	if (Metadata::GetErrCode()) {
-		errFatal(Metadata::GetErrMsg());
-	}
+	myBaseErrChk();
 }
 	
 IDL_VPTR vdfMetadataGetBlockSize(int argc, IDL_VPTR *argv)
@@ -150,9 +146,7 @@ IDL_VPTR vdfMetadataGetBlockSize(int argc, IDL_VPTR *argv)
 	Metadata *metadata = varGetMetadata(argv[0]);
 
 	size_t bs = metadata->GetBlockSize();
-	if (Metadata::GetErrCode()) {
-		errFatal(Metadata::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	return(IDL_GettmpLong((IDL_LONG) bs));
 }
@@ -181,9 +175,7 @@ IDL_VPTR vdfMetadataGetFilterCoef(int argc, IDL_VPTR *argv)
 	Metadata *metadata = varGetMetadata(argv[0]);
 
 	int value = metadata->GetFilterCoef();
-	if (Metadata::GetErrCode()) {
-		errFatal(Metadata::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	return(IDL_GettmpLong((IDL_LONG) value));
 }
@@ -193,9 +185,7 @@ IDL_VPTR vdfMetadataGetLiftingCoef(int argc, IDL_VPTR *argv)
 	Metadata *metadata = varGetMetadata(argv[0]);
 
 	int value = metadata->GetLiftingCoef();
-	if (Metadata::GetErrCode()) {
-		errFatal(Metadata::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	return(IDL_GettmpLong((IDL_LONG) value));
 }
@@ -205,9 +195,7 @@ IDL_VPTR vdfMetadataGetNumTransforms(int argc, IDL_VPTR *argv)
 	Metadata *metadata = varGetMetadata(argv[0]);
 
 	int value = metadata->GetNumTransforms();
-	if (Metadata::GetErrCode()) {
-		errFatal(Metadata::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	return(IDL_GettmpLong((IDL_LONG) value));
 }
@@ -217,9 +205,7 @@ IDL_VPTR vdfMetadataGetMSBFirst(int argc, IDL_VPTR *argv)
 	Metadata *metadata = varGetMetadata(argv[0]);
 
 	int value = metadata->GetMSBFirst();
-	if (Metadata::GetErrCode()) {
-		errFatal(Metadata::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	return(IDL_GettmpLong((IDL_LONG) value));
 }
@@ -233,6 +219,7 @@ int IDL_Load(void)
 {
 	extern int	IDL_LoadMeta();
 	extern int	IDL_LoadIO();
+	extern int	IDL_LoadVaporImport();
 	//
 	//These tables contain information on the functions and procedures
 	//that make up the TESTMODULE DLM. The information contained in these
@@ -273,6 +260,7 @@ int IDL_Load(void)
 
 	if (! IDL_LoadMeta()) return(0);
 	if (! IDL_LoadIO()) return(0);
+	if (! IDL_LoadVaporImport()) return(0);
 
 	return IDL_SysRtnAdd(func_addr, TRUE, IDL_CARRAY_ELTS(func_addr)) && 
 		IDL_SysRtnAdd(proc_addr, FALSE, IDL_CARRAY_ELTS(proc_addr));

@@ -72,9 +72,7 @@ IDL_VPTR vdfBufReaderCreate(int argc, IDL_VPTR *argv)
 		reader = new WaveletBlock3DBufReader(path);
 	}
 
-	if (WaveletBlock3DBufReader::GetErrCode()) {
-		errFatal(WaveletBlock3DBufReader::GetErrMsg());
-	}
+	myBaseErrChk();
 
 
 	IDL_VPTR result = IDL_Gettmp();
@@ -127,11 +125,9 @@ void vdfReadSlice(int argc, IDL_VPTR *argv)
 		errFatal("Input slice must be of type float");
 	}
 
-	int rc = obj->ReadSlice((float *)  slice_var->value.arr->data);
+	obj->ReadSlice((float *)  slice_var->value.arr->data);
 
-	if (rc < 0) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	myBaseErrChk();
 }
 
 
@@ -152,9 +148,7 @@ IDL_VPTR vdfRegionReaderCreate(int argc, IDL_VPTR *argv)
 		reader = new WaveletBlock3DRegionReader(path);
 	}
 
-	if (WaveletBlock3DRegionReader::GetErrCode()) {
-		errFatal(WaveletBlock3DRegionReader::GetErrMsg());
-	}
+	myBaseErrChk();
 
 
 	IDL_VPTR result = IDL_Gettmp();
@@ -220,11 +214,9 @@ void vdfReadRegion(int argc, IDL_VPTR *argv)
 		max[i] = (size_t) maxptr[i];
 	}
 
-	int rc = obj->ReadRegion(min, max, (float *) region_var->value.arr->data);
+	obj->ReadRegion(min, max, (float *) region_var->value.arr->data);
 
-	if (rc < 0) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	if (min_var != argv[1]) IDL_Deltmp(min_var);
 	if (max_var != argv[2]) IDL_Deltmp(max_var);
@@ -246,9 +238,7 @@ IDL_VPTR vdfBufWriterCreate(int argc, IDL_VPTR *argv)
 		writer = new WaveletBlock3DBufWriter(path);
 	}
 
-	if (WaveletBlock3DBufWriter::GetErrCode()) {
-		errFatal(WaveletBlock3DBufWriter::GetErrMsg());
-	}
+	myBaseErrChk();
 
 
 	IDL_VPTR result = IDL_Gettmp();
@@ -296,11 +286,8 @@ void vdfWriteSlice(int argc, IDL_VPTR *argv)
 		errFatal("Input slice must be of type float");
 	}
 
-	int rc = obj->WriteSlice((float *)  slice_var->value.arr->data);
-
-	if (rc < 0) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	obj->WriteSlice((float *)  slice_var->value.arr->data);
+	myBaseErrChk();
 }
 
 void vdfOpenVarRead(int argc, IDL_VPTR *argv)
@@ -310,21 +297,17 @@ void vdfOpenVarRead(int argc, IDL_VPTR *argv)
 	char *varname = IDL_VarGetString(argv[2]);
 	IDL_LONG num_xforms = IDL_LongScalar(argv[3]);
 
-	int	rc;
-
 	const string &classname = io->GetClassName();
 	if (classname.compare("WaveletBlock3DBufReader") == 0) { 
 		WaveletBlock3DBufReader *reader = (WaveletBlock3DBufReader *) io;
-		rc = reader->OpenVariableRead((size_t) ts, varname, num_xforms);
+		reader->OpenVariableRead((size_t) ts, varname, num_xforms);
 	}
 	else {
 		WaveletBlock3DRegionReader *reader = (WaveletBlock3DRegionReader *) io;
-		rc = reader->OpenVariableRead((size_t) ts, varname, num_xforms);
+		reader->OpenVariableRead((size_t) ts, varname, num_xforms);
 	}
 
-	if (rc < 0) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	myBaseErrChk();
 }
 
 
@@ -344,9 +327,8 @@ void vdfOpenVarWrite(int argc, IDL_VPTR *argv)
 
 	WaveletBlock3DBufWriter	*obj = (WaveletBlock3DBufWriter *) io;
 
-	if (obj->OpenVariableWrite((size_t) ts, varname) < 0) {;
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	obj->OpenVariableWrite((size_t) ts, varname);
+	myBaseErrChk();
 }
 
 
@@ -354,25 +336,21 @@ void vdfCloseVar(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 
-	int	rc;
-
 	const string &classname = io->GetClassName();
 	if (classname.compare("WaveletBlock3DBufReader") == 0) { 
 		WaveletBlock3DBufReader *obj = (WaveletBlock3DBufReader *) io;
-		rc = obj->CloseVariable();
+		obj->CloseVariable();
 	}
 	else if (classname.compare("WaveletBlock3DRegionReader") == 0) { 
 		WaveletBlock3DRegionReader *obj = (WaveletBlock3DRegionReader *) io;
-		rc = obj->CloseVariable();
+		obj->CloseVariable();
 	}
 	else {
 		WaveletBlock3DBufWriter *obj = (WaveletBlock3DBufWriter *) io;
-		rc = obj->CloseVariable();
+		obj->CloseVariable();
 	}
 
-	if (rc < 0) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	myBaseErrChk();
 }
 
 IDL_VPTR vdfVarExists(int argc, IDL_VPTR *argv)
@@ -384,9 +362,7 @@ IDL_VPTR vdfVarExists(int argc, IDL_VPTR *argv)
 
 	int rc = io->VariableExists((size_t) ts, varname, (size_t) num_xforms);
 
-	if (WaveletBlock3DIO::GetErrCode()) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	return(IDL_GettmpLong((IDL_LONG) rc));
 
@@ -401,9 +377,7 @@ IDL_VPTR vdfGetDim(int argc, IDL_VPTR *argv)
 	size_t dim[3];
 	io->GetDim(num_xforms, dim);
 
-	if (WaveletBlock3DIO::GetErrCode()) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	IDL_VPTR result;
 	IDL_LONG *result_ptr = (IDL_LONG *) IDL_MakeTempVector(
@@ -439,9 +413,7 @@ IDL_VPTR vdfTransformCoord(int argc, IDL_VPTR *argv)
 
 	io->TransformCoord(num_xforms, vcoord0, vcoord1);
 
-	if (WaveletBlock3DIO::GetErrCode()) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	IDL_VPTR result;
 	IDL_LONG *result_ptr = (IDL_LONG *) IDL_MakeTempVector(
@@ -480,9 +452,7 @@ IDL_VPTR vdfMapVoxToUser(int argc, IDL_VPTR *argv)
 
 	io->MapVoxToUser(num_xforms, ts, vcoord0, vcoord1);
 
-	if (WaveletBlock3DIO::GetErrCode()) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	IDL_VPTR result;
 	double *result_ptr = (double *) IDL_MakeTempVector(
@@ -521,9 +491,7 @@ IDL_VPTR vdfMapUserToVox(int argc, IDL_VPTR *argv)
 
 	io->MapUserToVox(num_xforms, ts, vcoord0, vcoord1);
 
-	if (WaveletBlock3DIO::GetErrCode()) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	IDL_VPTR result;
 	IDL_LONG *result_ptr = (IDL_LONG *) IDL_MakeTempVector(
@@ -568,9 +536,7 @@ IDL_VPTR vdfIsValidRegion(int argc, IDL_VPTR *argv)
 
 	int rc = io->IsValidRegion(num_xforms, min, max);
 
-	if (WaveletBlock3DIO::GetErrCode()) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	myBaseErrChk();
 
 	if (min_var != argv[2]) IDL_Deltmp(min_var);
 	if (max_var != argv[3]) IDL_Deltmp(max_var);
@@ -583,9 +549,7 @@ IDL_VPTR vdfGetMetadata(int argc, IDL_VPTR *argv)
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 
 	const Metadata *metadata = io->GetMetadata();
-	if (WaveletBlock3DIO::GetErrCode()) {
-		errFatal(WaveletBlock3DIO::GetErrMsg());
-	}
+	myBaseErrChk();
 
 
 	IDL_VPTR result = IDL_Gettmp();

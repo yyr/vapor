@@ -5,7 +5,7 @@ include ${TOP}/make/config/arch.mk
 SHARED = 0
 LIBRARY = idl_vdfmodule
 FILES = \
-	IDLMetadata IDLMetadataAuto IDLCommon IDLWbIo
+	IDLMetadata IDLMetadataAuto IDLCommon IDLWbIo IDLVaporImport
 
 #LIB_DEFS = vdf.def
   

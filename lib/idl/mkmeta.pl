@@ -655,9 +655,7 @@ void vdf$name(int argc, IDL_VPTR *argv)
 		$params
 	);
 
-    if (Metadata::GetErrCode()) {
-        errFatal(Metadata::GetErrMsg());
-    }
+	myBaseErrChk();
 
 	$freeTemp
 }
@@ -782,7 +780,7 @@ IDL_VPTR vdf$name(int argc, IDL_VPTR *argv)
     $valueType *valueptr = &value;
     if (int rc = Metadata::GetErrCode()) {
 		if (rc != XmlNode::ERR_TNP) {
-            errFatal(Metadata::GetErrMsg());
+			myBaseErrChk();
         }
         else {
 			IDL_Message(

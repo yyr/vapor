@@ -20,6 +20,7 @@ FUNCTION	vdf_mapvox2user		4	4
 FUNCTION	vdf_mapuser2vox		4	4
 FUNCTION	vdf_isvalidreg		4	4
 FUNCTION	vdf_getmetadata		1	1
+FUNCTION	vaporimport			0	0
 IDL_DLM_FUNCS_HERE
 PROCEDURE	vdf_mdestroy		1	1
 PROCEDURE	vdf_mwrite			2	2
@@ -32,4 +33,5 @@ PROCEDURE	vdf_bufwriteslice	2	2
 PROCEDURE	vdf_openvarwrite	3	3
 PROCEDURE	vdf_openvarread		4	4
 PROCEDURE	vdf_closevar		1	1
+
 IDL_DLM_PROCS_HERE

@@ -10,6 +10,8 @@ void    errFatal(
     ...
 );
 
+void    myBaseErrChk();
+
 Metadata *varGetMetadata(
 	IDL_VPTR var
 );

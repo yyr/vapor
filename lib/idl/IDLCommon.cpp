@@ -21,6 +21,7 @@
 //
 #include <cstdarg>
 #include <cstdio>
+#include <string>
 #include <idl_export.h>
 #include "IDLCommon.h"
 
@@ -37,6 +38,15 @@ void    errFatal(
     va_end(args);
 
     IDL_Message(IDL_M_NAMED_GENERIC, IDL_MSG_LONGJMP, msg);
+}
+
+void	myBaseErrChk() {
+
+	if (Metadata::GetErrCode()) {
+		string msg(Metadata::GetErrMsg());
+		Metadata::SetErrCode(0);
+		errFatal(msg.c_str());
+	}
 }
 
 Metadata *varGetMetadata(
