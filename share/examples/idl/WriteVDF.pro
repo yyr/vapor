@@ -107,4 +107,6 @@ vdf_closevar, dfd
 ;
 vdf_bufwritedestroy, dfd
 
+
+vdf_mdestroy, mfd
 end

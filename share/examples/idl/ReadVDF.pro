@@ -81,4 +81,6 @@ vdf_closevar, dfd
 ;
 vdf_bufreaddestroy, dfd
 
+
+vdf_mdestroy, mfd
 end
