@@ -72,8 +72,9 @@
 				AdditionalIncludeDirectories="../../../include;&quot;B:\Expat-1.95.8\Source\lib&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
-				UsePrecompiledHeader="3"
+				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/raw2vdf/"
+				ProgramDataBaseFileName="../../../targets/win32/built/raw2vdf/vc70.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
