@@ -617,7 +617,11 @@ void MainForm::browseData()
 
 void MainForm::loadData()
 {
+#ifdef WIN32
+	static QString MDFile("F:\\run4\\RUN4.vdf");
+#else
 	static QString MDFile("/cxfs/w4/clyne/wavelet");
+#endif
 	//This launches a panel that enables the
     //user to choose input data files, then to
 	//create a datamanager using those files

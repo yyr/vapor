@@ -196,9 +196,10 @@ void AnimationParams::guiSetPlay(int direction){
 	myAnimationTab->update();
 	setDirty();
 	//May need to wakeup the controller if starting to play.
-	if( direction && !previousDirection) {
-		AnimationController::getInstance()->wakeup();
-	}
+	//No problem:  At most there's a one-second delay!
+	//if( direction && !previousDirection) {
+		//AnimationController::getInstance()->wakeup();
+	//}
 }
 void AnimationParams::
 guiJumpToBegin(){
@@ -334,6 +335,13 @@ reinit(){
 	startFrame = minFrame;
 	endFrame = maxFrame;
 	currentFrame = startFrame;
+	
+	// set other settings to default state:
+	playDirection = 0;
+	repeatPlay = false;
+	maxFrameRate = 10; 
+	frameStepSize = 1;
+
 	setDirty();
 	updateDialog();
 }
@@ -361,6 +369,7 @@ setSliders(){
 //we have changed to "pause" status
 bool AnimationParams::
 advanceFrame(){
+	
 	assert(playDirection);
 	bool retCode = false;
 	int lastFrameCompleted = currentFrame;
@@ -389,9 +398,12 @@ advanceFrame(){
 		retCode = true;//Need to set the change bit, for the next rendering
 	}
 	//Only update the dialog if this animation is in the active visualizer
-	int viznum = VizWinMgr::getInstance()->getActiveViz();
-	if (viznum >= 0 && VizWinMgr::getInstance()->getAnimationParams(viznum) == this)
-		updateDialog();
+	//int viznum = VizWinMgr::getInstance()->getActiveViz();
+	//Don't call Update dialog here because this method can be called from
+	//the controller thread (X11 doesn't like that!!!)
+	//Instead the update is called from AnimationController::endRender()
+	//if (viznum >= 0 && VizWinMgr::getInstance()->getAnimationParams(viznum) == this)
+		//updateDialog();
 	return retCode;
 }
 	

@@ -65,8 +65,9 @@ Session::Session() {
 }
 Session::~Session(){
 	int i;
-	delete VizWinMgr::getInstance();
+	
 	delete AnimationController::getInstance();
+	delete VizWinMgr::getInstance();
 	//Note: metadata is deleted by Datamgr
 	if (dataMgr) delete dataMgr;
 	for (i = startQueuePos; i<= endQueuePos; i++){

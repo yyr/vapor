@@ -64,6 +64,7 @@ SOURCES +=\
 	   renderer.cpp \
 	   savetfdialog.cpp \
 	   session.cpp \
+	   sharedcontrollerthread.cpp \
            tabmanager.cpp \
 	   tfeditor.cpp \
 	   tfelocationtip.cpp \
@@ -71,6 +72,7 @@ SOURCES +=\
 	   tfinterpolator.cpp \
 	   trackball.cpp \
 	   transferfunction.cpp \
+	   unsharedcontrollerthread.cpp \
 	   vcr.cpp \
 	   viewpointparams.cpp \
 	   vizactivatecommand.cpp \
@@ -88,6 +90,7 @@ HEADERS += \
 	   colorpicker.h \
 	   command.h \
 	   contourparams.h \
+	   controllerthread.h \
 	   DVRBase.h \
 	   DVRDebug.h \
 	   DVRVolumizer.h \

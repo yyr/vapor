@@ -37,8 +37,10 @@ FILES := \
 	DVRBase DVRDebug DVRVolumizer dvrparams glbox glutil glwindow \
 	histo isosurfaceparams loadtfdialog main mainform \
 	opacadjustdialog panelcommand params regionparams \
-	renderer savetfdialog session tabmanager tfeditor tfelocationtip \
+	renderer savetfdialog session sharedcontrollerthread\
+	tabmanager tfeditor tfelocationtip \
 	tfframe tfinterpolator trackball transferfunction \
+	unsharedcontrollerthread \
 	vcr viewpointparams vizactivatecommand \
 	vizselectcombo vizwin vizwinmgr volumizerrenderer 
 
