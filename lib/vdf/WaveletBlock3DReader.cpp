@@ -89,7 +89,7 @@ int	WaveletBlock3DReader::ReadSlabs(
 
 		GetDimBlk(max_xforms_c, lambda_nb);
 
-		if (slab_cntr_c+2 <= (int)bdim_c[2]) nb = (int)(lambda_nb[0] * lambda_nb[1] * 2);
+		if (slab_cntr_c+2 <= (int)lambda_nb[2]) nb = (int)(lambda_nb[0] * lambda_nb[1] * 2);
 		else nb = (int)(lambda_nb[0] * lambda_nb[1]); // odd # of slabs
 
 
