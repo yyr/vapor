@@ -38,7 +38,10 @@
 #include <string>
 #include "vaporinternal/common.h"
 
-
+#ifdef WIN32
+//Silence an annoying and unnecessary compiler warning
+#pragma warning(disable : 4251)
+#endif
 using namespace std;
 
 namespace VetsUtil {
@@ -202,6 +205,9 @@ private:
 
 
  COMMON_API inline double	LogBaseN(double x, double n) { return(log(x) / log(n)); };
+
+ //Find integer log, base 2:
+ COMMON_API int ILog2(int n);
 
  //! Case-insensitive string comparison
  //

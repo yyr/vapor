@@ -194,6 +194,14 @@ int	VetsUtil::IsPowerOfTwo(
 	return (x == 1);
 } 
 
+//Find integer log, base 2, of a 32-bit positive integer:
+int VetsUtil::ILog2(int n){
+	int i;
+	for (i = 0; i<31;i++){
+		if (n <= (1<<i)) break;
+	}
+	return i;
+}
 int VetsUtil::StrCmpNoCase(const string &s, const string &t) {
     string::const_iterator sptr = s.begin();
     string::const_iterator tptr = t.begin();
@@ -224,7 +232,6 @@ void	VetsUtil::StrRmWhiteSpace(string &s) {
 	if (s.length() < 1) return;
 	i = s.length() - 1;
 
-	assert(i >= 0);
 	while (isspace(s[i])) i--;
 
 	if (i<(s.length() - 1)) {
