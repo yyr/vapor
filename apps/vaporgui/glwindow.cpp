@@ -54,8 +54,8 @@ GLWindow::~GLWindow()
     makeCurrent();
 	for (int i = 0; i< myVizWin->getNumRenderers(); i++){
 		delete myVizWin->renderer[i];
-		myVizWin->setNumRenderers(0);
 	}
+	myVizWin->setNumRenderers(0);
 }
 
 

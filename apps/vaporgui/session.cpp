@@ -130,7 +130,7 @@ resetMetadata(const char* fileBase)
 
 	myReader = (WaveletBlock3DRegionReader*)dataMgr->GetRegionReader();
 
-	resetCommandQueue();
+	
 	if (currentDataStatus) delete currentDataStatus;
 	currentDataStatus = setupDataStatus();
 
@@ -138,7 +138,8 @@ resetMetadata(const char* fileBase)
 	//Initially just use the first (valid)time step.
 	int numVars = currentDataStatus->getNumVariables();
 	currentHistograms = new Histo*[numVars];
-	for (int i = 0; i<numVars; i++){
+	int i;
+	for (i = 0; i<numVars; i++){
 		//Tell the datamanager to use the overall max/min range
 		//In doing the quantization.  Note that this will change
 		//when the range is changed in the TFE
@@ -178,11 +179,24 @@ resetMetadata(const char* fileBase)
 			}
 		}
 	}
-
+	VizWinMgr* myVizWinMgr = VizWinMgr::getInstance();
 	//Notify all params that there is new data:
-	VizWinMgr::getInstance()->reinitializeParams();
+	myVizWinMgr->reinitializeParams();
+	//Delete all visualizers, then create one new one.
+	
+	for (i = 0; i< MAXVIZWINS; i++){
+		if (myVizWinMgr->getVizWin(i)){
+			myVizWinMgr->killViz(i);
+		}
+	}
+	//This is doing nothing!  There is no active viz window
+	myVizWinMgr->updateActiveParams();
+	myVizWinMgr->launchVisualizer();
+
 	//Then make the tab panels refresh:
-	VizWinMgr::getInstance()->updateActiveParams();
+	
+	//Reset the undo/redo queue
+	resetCommandQueue();
 	renderOK = true;
 	return;
 }

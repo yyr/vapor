@@ -43,6 +43,7 @@ class VolumizerRenderer : public Renderer {
 public:
 
     VolumizerRenderer(VizWin*);
+	~VolumizerRenderer();
     
 	virtual void		initializeGL();
     virtual void		paintGL();

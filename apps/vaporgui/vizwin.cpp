@@ -74,7 +74,8 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
     myParent = parent;
     myWindowNum = winNum;
 	numRenderers = 0;
-            
+    for (int i = 0; i< MAXNUMRENDERERS; i++)
+		renderer[i] = 0;
         
     move(location->topLeft());
     resize(location->size());
@@ -165,6 +166,8 @@ VizWin::~VizWin()
     //qWarning("starting viz win destructor %d", myWindowNum);
     //myWinMgr->vizAboutToDisappear(myWindowNum);
      if (localTrackball) delete localTrackball;
+	 //The renderers are deleted in the glwindow destructor:
+	 //delete myGLWindow;
 }
 
 
@@ -172,6 +175,7 @@ void VizWin::closeEvent(QCloseEvent* e){
 	//Tell the winmgr that we are closing:
     myWinMgr->vizAboutToDisappear(myWindowNum);
 	QWidget::closeEvent(e);
+	delete myGLWindow;
 }
 /******************************************************
  * React when focus is on window:
@@ -449,9 +453,13 @@ changeCoords(float *vpos, float* vdir, float* upvec) {
 }
 /* 
  * Get viewpoint info from GUI
+ * Note:  if the current settings are global, this should be using global params
  */
 void VizWin::
 setValuesFromGui(ViewpointParams* vpparams){
+	if (!vpparams->isLocal()){
+		assert(myWinMgr->getViewpointParams(myWindowNum) == vpparams);
+	}
 	Viewpoint* vp = vpparams->getCurrentViewpoint();
 	float transCameraPos[3];
 	float cubeCoords[3];
@@ -507,6 +515,7 @@ void VizWin::removeRenderer(const char* rendererName){
 	for (i = 0; i<numRenderers; i++) {		
 		if (strcmp(renderer[i]->className(),rendererName)) continue;
 		delete renderer[i];
+		renderer[i] = 0;
 		break;
 	}
 	//Note that we won't always find one to remove!

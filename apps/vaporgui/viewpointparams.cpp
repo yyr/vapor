@@ -173,8 +173,11 @@ updateRenderer(bool, bool , bool ) {
 	//(All global visualizers will be sharing the same trackball)
 	//
 	VizWin* viz = myVizMgr->getActiveVisualizer();
+	//If this panel is associated with the active visualizer, stuff the values
+	//into that viz:
 	if (viz) {
-		viz->setValuesFromGui(this);
+		if (local) viz->setValuesFromGui(this);
+		else viz->setValuesFromGui(myVizMgr->getViewpointParams(viz->getWindowNum()));
 	}
 	
 	if (!local){

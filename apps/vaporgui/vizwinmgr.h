@@ -244,7 +244,7 @@ protected:
 	VizWinMgr ();
 	
     VizWin* vizWin[MAXVIZWINS];
-    QRect* vizRect[MAXVIZWINS];
+    //QRect* vizRect[MAXVIZWINS];
     QString* vizName[MAXVIZWINS];
     bool isMax[MAXVIZWINS];
     bool isMin[MAXVIZWINS];

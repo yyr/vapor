@@ -72,7 +72,9 @@ VolumizerRenderer::VolumizerRenderer(VizWin* vw) : Renderer(vw) {
 	//Construct dvrvolumizer
 	driver = create_driver("vz",1);
 }
-
+VolumizerRenderer::~VolumizerRenderer(){
+	delete driver;
+}
 
 
 void VolumizerRenderer::

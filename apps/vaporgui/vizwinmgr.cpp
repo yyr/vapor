@@ -81,7 +81,7 @@ VizWinMgr::VizWinMgr()
     for (int i = 0; i< MAXVIZWINS; i++){
         vizWin[i] = 0;
         vizName[i] = 0;
-        vizRect[i] = 0;
+        //vizRect[i] = 0;
         isMax[i] = false;
         isMin[i] = false;
 		vpParams[i] = 0;
@@ -143,8 +143,8 @@ vizAboutToDisappear(int i)  {
 	if (activeViz == i) activeViz = getLastActive();
 	
     
-    delete vizRect[i];
-    vizRect[i] = 0;
+    //delete vizRect[i];
+    //vizRect[i] = 0;
     //getLastActive will become the new active Viz.
 	if (activeViz == i) activeViz = getLastActive();
 	//Save the state in history before deleting the params,
@@ -226,16 +226,27 @@ launchVisualizer(int newWindowNum, const char* newName)
 	emit (newViz(*vizName[newWindowNum], newWindowNum));
 	vizWin[newWindowNum] = new VizWin (myWorkspace, vizName[newWindowNum]->ascii(), 0/*Qt::WType_TopLevel*/, this, newRect, newWindowNum);
 	vizWin[newWindowNum]->setWindowNum(newWindowNum);
-	//qWarning("Showing new visualizer in position %d",newWindowNum);
+	
 
 	vizWin[newWindowNum]->setFocusPolicy(QWidget::ClickFocus);
 
 	vizWin[newWindowNum]->showMaximized();
 	maximize(newWindowNum);
+	//Tile if more than one visualizer:
+	if(numVizWins > 1) fitSpace();
+
+	//Set non-renderer tabbed panels to use global parameters:
+	if (vpParams[newWindowNum])
+		vpParams[newWindowNum]->setLocal(false);
+	if (rgParams[newWindowNum])
+		rgParams[newWindowNum]->setLocal(false);
+	if (animationParams[newWindowNum])
+		animationParams[newWindowNum]->setLocal(false);
+
 	vizWin[newWindowNum]->show();
+
 	
-	//qWarning("New window corner %d %d size %d %d", newRect->x(), newRect->y(), newRect->width(), newRect->height());
-	vizRect[newWindowNum] = newRect;
+	
 	//When we go from 1 to 2 windows, need to enable multiple viz panels and signals.
 	if (numVizWins > 1){
 		emit enableMultiViz(true);
@@ -277,7 +288,7 @@ closeEvent()
 		if (vizWin[i]) {
 			vizWin[i]->close();
 			//qWarning("closing viz window %d", i);
-			delete vizRect[i];
+			//delete vizRect[i];
 			
 		}
 	}
@@ -940,7 +951,7 @@ setAnimationLocalGlobal(int val){
 	} else { //Local: Do we need to create new parameters?
 		if (!animationParams[activeViz]){
 			//create a new parameter panel, copied from global
-			animationParams[activeViz] = new AnimationParams(*globalAnimationParams);
+			animationParams[activeViz] = (AnimationParams*)globalAnimationParams->deepCopy();
 			animationParams[activeViz]->setVizNum(activeViz);
 			animationParams[activeViz]->guiSetLocal(true);
 			
@@ -976,7 +987,7 @@ setVpLocalGlobal(int val){
 	} else { //Local: Do we need to create new parameters?
 		if (!vpParams[activeViz]){
 			//create a new parameter panel, copied from global
-			vpParams[activeViz] = new ViewpointParams(*globalVPParams);
+			vpParams[activeViz] = (ViewpointParams*)globalVPParams->deepCopy();
 			vpParams[activeViz]->setVizNum(activeViz);
 			vpParams[activeViz]->guiSetLocal(true);
 			
@@ -1011,7 +1022,7 @@ setRgLocalGlobal(int val){
 	} else { //Local: Do we need to create new parameters?
 		if (!rgParams[activeViz]){
 			//create a new parameter panel, copied from global
-			rgParams[activeViz] = new RegionParams(*globalRegionParams);
+			rgParams[activeViz] = (RegionParams*)globalRegionParams->deepCopy();
 			rgParams[activeViz]->setVizNum(activeViz);
 			rgParams[activeViz]->guiSetLocal(true);
 			//No need to refresh anything, since the new parameters are same as old! 

@@ -23,9 +23,9 @@
 #ifndef VIZWIN_H
 #define VIZWIN_H
 
-//No more than 10 renderers in a window:
+//No more than 1 renderers in a window:
 //Eventually this may be dynamic.
-#define MAXNUMRENDERERS 10
+#define MAXNUMRENDERERS 1
 #include <qvariant.h>
 #include <qmainwindow.h>
 #include "vizwinmgr.h"

@@ -500,7 +500,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 #endif
 	return;
 }
-//Respond to change in Metadata
+//Respond to change in Metadata.  If currently enabled, must disable.
 //
 void DvrParams::
 reinit(){
@@ -527,6 +527,7 @@ reinit(){
 	}
 	
 	setDatarangeDirty(true);
+	setEnabled(false);
 	updateDialog();
 }
 //Method to invalidate a datarange, and to force a rendering
