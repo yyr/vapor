@@ -101,12 +101,12 @@
                     <widget class="QComboBox">
                         <item>
                             <property name="text">
-                                <string>Local </string>
+                                <string>Global</string>
                             </property>
                         </item>
                         <item>
                             <property name="text">
-                                <string>Global </string>
+                                <string>Local</string>
                             </property>
                         </item>
                         <property name="name">

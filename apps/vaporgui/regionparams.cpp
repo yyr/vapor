@@ -45,7 +45,7 @@ RegionParams::RegionParams(MainForm* mf, int winnum): Params(mf, winnum){
 		regionSize[i] = 256;
 		fullSize[i] = 256;
 	}
-	currentTimestep = 0;
+	
 	
 }
 Params* RegionParams::
@@ -111,9 +111,6 @@ void RegionParams::updateDialog(){
 	myRegionTab->zSizeEdit->setText(strng.setNum(regionSize[2]));
 	myRegionTab->zSizeSlider->setValue(regionSize[2]);
 
-	myRegionTab->timestepEdit->setText(strng.setNum(currentTimestep));
-	myRegionTab->timestepSlider->setValue(currentTimestep);
-	
 	if (isLocal())
 		myRegionTab->LocalGlobal->setCurrentItem(1);
 	else 
@@ -129,7 +126,6 @@ void RegionParams::updateDialog(){
 void RegionParams::
 updatePanelState(){
 	
-	currentTimestep = myRegionTab->timestepEdit->text().toInt();
 	
 	centerPosition[0] = myRegionTab->xCntrEdit->text().toFloat();
 	centerPosition[1] = myRegionTab->yCntrEdit->text().toFloat();
@@ -176,8 +172,7 @@ updatePanelState(){
 		myRegionTab->zSizeSlider->setValue(regionSize[2]);
 	if (myRegionTab->maxSizeSlider->value() != maxSize)
 		myRegionTab->maxSizeSlider->setValue(maxSize);
-	if (myRegionTab->timestepSlider->value() != currentTimestep)
-		myRegionTab->timestepSlider->setValue(currentTimestep);
+	
 	if (rgChanged[0]){
 			myRegionTab->xCntrEdit->setText(QString::number(centerPosition[0]));
 			myRegionTab->xSizeEdit->setText(QString::number(regionSize[0]));
@@ -430,19 +425,7 @@ guiSetMaxSize(int n){
 	}
 	setDirty();
 }
-void RegionParams::
-guiSetTimestep(int n){
-	confirmText(false);
-	//Was there a change?
-	//
-	if (n!= currentTimestep) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"slide time step");
-		currentTimestep = n;
-		myRegionTab->timestepEdit->setText(QString::number(currentTimestep));
-		PanelCommand::captureEnd(cmd, this);
-		setDirty();
-	}
-}
+
 //Just a silly hack to demonstrate use of mouse to control center position
 //Not supported (yet) by undo/redo
 //

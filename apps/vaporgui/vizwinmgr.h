@@ -43,6 +43,7 @@ class QMainWidget;
 #include "vaporinternal/common.h"
 #include "params.h"
 #include "command.h"
+
 class RegionTab;
 class Dvr;
 class ContourPlaneTab;
@@ -53,6 +54,7 @@ class AnimationTab;
 
 
 namespace VAPoR{
+class AnimationController;
 class AnimationParams;
 class IsosurfaceParams;
 class VizMgrDialog;
@@ -64,6 +66,7 @@ class DvrParams;
 class ContourParams;
 class Trackball;
 class VizWin;
+
 class VizWinMgr : public QObject
 {
 	Q_OBJECT
@@ -176,10 +179,22 @@ public:
 
 	//Set the dirty bits in all the visualizers that use a
 	//region parameter setting
+	//
 	void setRegionDirty(RegionParams*);
+	//Similarly for AnimationParams:
+	//
+	void setAnimationDirty(AnimationParams*);
 	//Force updates of all renderers using a dvr
 	//
 	void setDvrDirty(DvrParams* );
+	//Tell the animationController that the frame counter has changed 
+	//for all the associated windows.
+	//
+	void animationParamsChanged(AnimationParams* );
+	//Change to play state for the specified renderers:
+	//
+	void startPlay(AnimationParams* aParams);
+	
 	//Tell all parameter panels to reinitialize (based on change of 
 	//Metadata)
 	void reinitializeParams();
@@ -285,9 +300,9 @@ protected slots:
 	//Animation slots:
 	void animationSetFrameStep();
 	void animationSetPosition();
-	void animationPauseClick(bool);
-	void animationPlayReverseClick(bool);
-	void animationPlayForwardClick(bool);
+	void animationPauseClick();
+	void animationPlayReverseClick();
+	void animationPlayForwardClick();
 	void animationReplayClick();
 	void animationToBeginClick();
 	void animationToEndClick();
@@ -305,7 +320,7 @@ protected slots:
 	void setRegionXSize();
 	void setRegionYSize();
 	void setRegionZSize();
-	void setRegionTimestep();
+	//void setRegionTimestep();
 
 	//Slots for dvr panel:
 	void setDvrEnabled(int on);

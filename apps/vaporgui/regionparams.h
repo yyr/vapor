@@ -84,8 +84,8 @@ public:
 	void setTab(RegionTab* tab) {myRegionTab = tab;}
 	void setMaxNumTrans(int maxNT) {maxNumTrans = maxNT;}
 	int getMaxNumTrans() {return maxNumTrans;}
-	void setCurrentTimestep(int val) {currentTimestep = val; setDirty();}
-	int getCurrentTimestep() {return currentTimestep;}
+	//void setCurrentTimestep(int val) {currentTimestep = val; setDirty();}
+	//int getCurrentTimestep() {return currentTimestep;}
 	void setDataExtents(const std::vector<double> ext){
 		dataExtents = ext;
 	}
@@ -107,7 +107,6 @@ public:
 	void guiSetYSize(int n);
 	void guiSetZCenter(int n);
 	void guiSetZSize(int n);
-	void guiSetTimestep(int n);
 	
 	// respond to sliding the mouse for region selection
 	//
@@ -128,7 +127,7 @@ protected:
 	int regionSize[3];
 	int fullSize[3];
 	int maxSize, numTrans, maxNumTrans;
-	int currentTimestep;
+	//int currentTimestep;
 	RegionTab* myRegionTab;
 	std::vector<double> dataExtents;
 

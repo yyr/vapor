@@ -28,7 +28,7 @@
 class AnimationTab;
 
 namespace VAPoR {
-class AnimationController;
+
 class MainForm;
 class AnimationParams : public Params {
 	
@@ -46,18 +46,34 @@ public:
 	virtual void makeCurrent(Params* p, bool newWin);
 
 	virtual void reinit();
-	bool isDirty() {return dirtyBit;}
-	void setDirty(bool dirty) {dirtyBit = dirty;}
+
+	//Need to do more than Params::guiSetLocal():
+	virtual void guiSetLocal(bool lg);
+
+	bool isPlaying() {return (playDirection != 0);}
+
+
+	int getMinTimeToRender() {return ((int)(1000.f/maxFrameRate) );}
+	int getCurrentFrameNumber() {return currentFrame;}
+
+	//When values change that affect the frame to be used in the next rendering, 
+	//call the following:
+	
+	void setDirty();   
+
+
+	//When rendering is finished, renderer calls this:
+	void advanceFrame();
 
 	void setTab(AnimationTab* tab) {myAnimationTab = tab;}
 	
-	//Following are set by gui, result in save history state:
+	//Following are set by gui, result in save history state, 
+	//plus notification to animation controller
 	void guiSetPlay(int direction);
 	void guiJumpToBegin();
 	void guiJumpToEnd();
 	void guiSetPosition(int sliderposition);
 	void guiSetFrameStep(int sliderposition);
-	
 	void guiToggleReplay(bool replay);
 	void guiSingleStep(bool forward);
 	
@@ -70,8 +86,6 @@ protected:
 	int endFrame;
 	int maxFrame, minFrame;
 	int currentFrame;
-	bool dirtyBit;  //Indicate values have changed
-	AnimationController* myAnimationController;
 	AnimationTab* myAnimationTab;
 	
 

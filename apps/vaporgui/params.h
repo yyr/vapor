@@ -84,9 +84,10 @@ public:
 	//
 	virtual Params* getCorrespondingGlobalParams(); 
 	virtual Params* getCorrespondingLocalParams() ;
+
 	
 	void setLocal(bool lg){ if (lg) {local = true; assert (vizNum != -1);}
-	else local = false;}
+		else local = false;}
 	bool isLocal() {return local;}
 	bool isEnabled(){return enabled;}
 	void setEnabled(bool value) {enabled = value;}
@@ -94,8 +95,10 @@ public:
 	void setVizNum(int vnum){vizNum = vnum;}
 	//Methods to be called from gui, get undo/redo support.
 	//Need to capture two different params objects (not just two times of the same object)
+	//Following is virtual so child classes can attach additional behavior.
+	//They should always perform params::guiSetLocal() as well as their own behavior
 	//
-	void guiSetLocal(bool lg);
+	virtual void guiSetLocal(bool lg);
 	//Dirty bit comes on when any text changes in the panel.
 	//Comes off as soon as it gets confirmed.
 	//

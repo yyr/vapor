@@ -50,6 +50,7 @@
 #include "isosurfaceparams.h"
 #include "animationtab.h"
 #include "animationparams.h"
+#include "animationcontroller.h"
 #include "isotab.h"
 #include "assert.h"
 #include "trackball.h"
@@ -122,7 +123,10 @@ VizWinMgr::~VizWinMgr()
 }
 void VizWinMgr::
 vizAboutToDisappear(int i)  {
-    //qWarning("Viz %d about to disappear", i);
+   
+	//Tell the animation controller to drop this viz:
+	AnimationController::getInstance()->finishVisualizer(i);
+
     if (vizWin[i] == 0) return;
 
 	
@@ -237,6 +241,11 @@ launchVisualizer(int newWindowNum, const char* newName)
 	if (numVizWins > 1){
 		emit enableMultiViz(true);
 	}
+
+	//Prepare the visualizer for animation control.  It won't animate until user clicks
+	//play
+	//
+	AnimationController::getInstance()->initializeVisualizer(newWindowNum);
 	myMainWindow->getSession()->unblockRecording();
 	myMainWindow->getSession()->addToHistory(new VizActivateCommand(
 		prevActiveViz, newWindowNum, Command::create, myMainWindow->getSession()));
@@ -489,7 +498,6 @@ VizWinMgr::hookUpRegionTab(RegionTab* rTab)
 	connect (rTab->ySizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 	connect (rTab->zSizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 	connect (rTab->maxSizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
-	connect (rTab->timestepEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 
 	connect (rTab->xCntrEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->yCntrEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
@@ -498,7 +506,6 @@ VizWinMgr::hookUpRegionTab(RegionTab* rTab)
 	connect (rTab->ySizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->zSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->maxSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
-	connect (rTab->timestepEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 
 	connect (rTab->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionXCenter()));
 	connect (rTab->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionYCenter()));
@@ -511,8 +518,7 @@ VizWinMgr::hookUpRegionTab(RegionTab* rTab)
 	connect (this, SIGNAL(enableMultiViz(bool)), rTab->LocalGlobal, SLOT(setEnabled(bool)));
 	connect (this, SIGNAL(enableMultiViz(bool)), rTab->copyToButton, SLOT(setEnabled(bool)));
 	connect (this, SIGNAL(enableMultiViz(bool)), rTab->copyTargetCombo, SLOT(setEnabled(bool)));
-	connect (rTab->timestepSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionTimestep()));
-	
+
 	emit enableMultiViz(getNumVisualizers() > 1);
 }
 void
@@ -628,9 +634,9 @@ VizWinMgr::hookUpAnimationTab(AnimationTab* aTab)
 	connect (aTab->animationSlider, SIGNAL(sliderReleased()), this, SLOT (animationSetPosition()));
 
 	//Button clicking for toggle buttons:
-	connect(aTab->pauseButton, SIGNAL(toggled(bool)), this, SLOT(animationPauseClick(bool)));
-	connect(aTab->playReverseButton, SIGNAL(toggled(bool)), this, SLOT(animationPlayReverseClick(bool)));
-	connect(aTab->playForwardButton, SIGNAL(toggled(bool)), this, SLOT(animationPlayForwardClick(bool)));
+	connect(aTab->pauseButton, SIGNAL(clicked()), this, SLOT(animationPauseClick()));
+	connect(aTab->playReverseButton, SIGNAL(clicked()), this, SLOT(animationPlayReverseClick()));
+	connect(aTab->playForwardButton, SIGNAL(clicked()), this, SLOT(animationPlayForwardClick()));
 	connect(aTab->replayButton, SIGNAL(clicked()), this, SLOT(animationReplayClick()));
 	//and non-toggle buttons:
 	connect(aTab->toBeginButton, SIGNAL(clicked()), this, SLOT(animationToBeginClick()));
@@ -803,14 +809,6 @@ setRegionZSize(){
 		myMainWindow->getRegionTab()->zSizeSlider->value());
 }
 
-/*
- * Respond to a change in slider position
- */
-void VizWinMgr::
-setRegionTimestep(){
-	getRegionParams(activeViz)->guiSetTimestep(
-		myMainWindow->getRegionTab()->timestepSlider->value());
-}
 
 void VizWinMgr::
 setRegionDirty(RegionParams* rParams){
@@ -829,6 +827,62 @@ setRegionDirty(RegionParams* rParams){
 		}
 	}
 }
+//To force the animation to rerender, we set the region dirty
+//
+void VizWinMgr::
+setAnimationDirty(AnimationParams* aParams){
+	if (activeViz>=0) {
+		vizWin[activeViz]->setRegionDirty(true);
+		vizWin[activeViz]->updateGL();
+	}
+	//If another viz is using these animation params, set their region dirty, too
+	if (aParams->isLocal()) return;
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  ( vizWin[i] && (i != activeViz)  &&
+				(animationParams[i] == aParams ||(!animationParams[i]))
+			){
+			vizWin[i]->setRegionDirty(true);
+			vizWin[i]->updateGL();
+		}
+	}
+}
+//set the changed bits for each of the visualizers associated with the
+//specified animationParams, preventing them from updating the frame counter.
+//
+void VizWinMgr::
+animationParamsChanged(AnimationParams* aParams){
+	AnimationController* ac = AnimationController::getInstance();
+	if (activeViz>=0) {
+		ac->paramsChanged(activeViz);
+	}
+	//If another viz is using these animation params, set their region dirty, too
+	if (aParams->isLocal()) return;
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  ( vizWin[i] && (i != activeViz)  &&
+				(animationParams[i] == aParams ||(!animationParams[i]))
+			){
+			ac->paramsChanged(i);
+		}
+	}
+}
+//Cause one or more visualizers to start play-animating, depending on
+//whether or not animation params are shared.
+void VizWinMgr::startPlay(AnimationParams* aParams){
+	AnimationController* ac = AnimationController::getInstance();
+	if (activeViz>=0) {
+		ac->startPlay(activeViz);
+	}
+	//If another viz is using these animation params, start them playing, too
+	if (aParams->isLocal()) return;
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  ( vizWin[i] && (i != activeViz)  &&
+				(animationParams[i] == aParams ||(!animationParams[i]))
+			){
+			ac->startPlay(i);
+		}
+	}
+}
+
 void VizWinMgr::
 setDvrDirty(DvrParams* dParams){
 	if (activeViz>=0) {
@@ -999,18 +1053,34 @@ animationSetPosition(){
 	getAnimationParams(activeViz)->guiSetPosition(
 		myMainWindow->getAnimationTab()->animationSlider->value());
 }
-//Respond to pause button click
+//Respond to pause button press.
+//It it's already down, ignore it.
 void VizWinMgr::
-animationPauseClick(bool on){
-	if(on) getAnimationParams(activeViz)->guiSetPlay(0);
+animationPauseClick(){
+	if (!myMainWindow->getAnimationTab()->pauseButton->isDown()){
+		myMainWindow->getAnimationTab()->pauseButton->setDown(true);
+		myMainWindow->getAnimationTab()->playForwardButton->setDown(false);
+		myMainWindow->getAnimationTab()->playReverseButton->setDown(false);
+		getAnimationParams(activeViz)->guiSetPlay(0);
+	}
 }
 void VizWinMgr::
-animationPlayReverseClick(bool on){
-	if (on) getAnimationParams(activeViz)->guiSetPlay(-1);
+animationPlayReverseClick(){
+	if (!myMainWindow->getAnimationTab()->playReverseButton->isDown()){
+		myMainWindow->getAnimationTab()->pauseButton->setDown(false);
+		myMainWindow->getAnimationTab()->playForwardButton->setDown(false);
+		myMainWindow->getAnimationTab()->playReverseButton->setDown(true);
+		getAnimationParams(activeViz)->guiSetPlay(-1);
+	}
 }
 void VizWinMgr::
-animationPlayForwardClick(bool on){
-	if (on) getAnimationParams(activeViz)->guiSetPlay(1);
+animationPlayForwardClick(){
+	if (!myMainWindow->getAnimationTab()->playForwardButton->isDown()){
+		myMainWindow->getAnimationTab()->pauseButton->setDown(false);
+		myMainWindow->getAnimationTab()->playForwardButton->setDown(true);
+		myMainWindow->getAnimationTab()->playReverseButton->setDown(false);
+		getAnimationParams(activeViz)->guiSetPlay(1);
+	}
 }
 void VizWinMgr::
 animationReplayClick(){

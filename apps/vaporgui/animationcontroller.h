@@ -15,48 +15,68 @@
 //	Date:		January 2005
 //
 //	Description:	Defines the AnimationController class
-//		This class owns all the data associated with the current
-//		animation.  It also has the methods needed for running an
+//		This class has the methods needed for running an
 //		animation. 
-//		There is one of these for each vizwin.  It can schedule
-//		one window's rendering.  This is derived from QThread.
-//		Each animationcontroller tracks an actual time and an ideal time.
-//      Ideal times are based on the minimum frame time, they indicate
-//		what the rendering time would be if each frame were rendered at its
-//		minimum frame time, (normalized so that the minimum frame time
-//		is the ideal rendering time of the fastest frame of any of the
-//		variables in the metadata).
-//		At the completion of a rendering, the thread recalculates its
-//		ideal and actual frame time.  Then (using a semaphore) it finds the
-//		slowest ideal time of any thread.    It then determines how long (W secs) 
-//		this thread will need to wait for its ideal time to coincide with the slowest
-//		thread's ideal time.  It then schedules the next rendering to be the
-//		greater of (slowest thread's actual time + W secs , now + my ideal time).
-//		If the animation panel specifies a frame skip amount K, then the above
-//		algorithm is applied but advancing the counter by K frames, and making
-//		appropriate adjustment of ideal time.
-//	
-//		Once the rendering is triggered (by calling update), this thread
-//		sleeps the ideal time.  If when it wakes up the rendering has not started,
-//		this thread acts as if the rendering were completed in the ideal time.
-//		If the rendering has started but not completed, it sleeps until the rendering 
-//		thread wakes it up.  (Note:  this implies the controller will have a
-//		QWaitCondition, that the renderer will call wake() on.
-//		When the rendering has completed, the algorithm
-//		is repeated.
+//		There is only one of these  It will schedule
+//		all rendering in all windows.  It will separately
+//		time all the animations in local animation windows, as
+//		well as all the renderings that are associated with a shared
+//		animation panel.  
+//		This class is derived from QThread.
+//		The basic operation is as follows (in the AnimationController::run() method):
+//		Do Forever {
+//			Check all renderings that were scheduled to complete by the current time.
+//				Identify which ones are complete.
+//			Start any renderings that are due, advancing the counters in the
+//				animation panels
+//			Determine the next time to start more renderings.
+//			Sleep until the next rendering is due, or until woken up, (or 
+//				a max wait time??) (whichever comes first).
+//		}
+
+//		At the completion of a rendering, the rendering thread checks if it has completed 
+//		late and if it is the last thread.  If so it sends a message to wake up the 
+//		controller, by calling AnimationController::wakeup()
 //
 //		Connection to animationParams:  The settings in animationParams
-//		are used by the controller in the scheduling.  Whenever the state is 
-//		changed, there must be a corresponding change in the controller.  Each
-//		controller stops at its next interruption and restarts its animation.
+//		are used by the controller in the scheduling.  When animationParams are 
+//		changed, in a way that affects
+//		animation scheduling, the AnimationParams calls wakeup().
+//		If a rendering is paused, each step or change in current frame will result in a
+//		new rendering, but not disturb the animation controller.  The animation controller
+//		is only notified when the play button is pressed, or when there is a change in
+//		animation settings while the play is already pressed.
 //
-//		When the animation params are set to "pause", (or the frame advance rate
-//		is set to 0?), the thread sleeps (1 second
-//		intervals) until the pause state is changed.  While in pause state
-//		the user can change frames, which will trigger renderings but not
-//		affect the controller
+//		Each rendering thread is started by an update() issued by the
+//		animation controller or another thread.  If this thread is being timed by
+//		the animation controller, it must report a start and an end to its rendering.
+//		(The start must be reported because some threads may not ever start to render,
+//		if for example they are in windows that are hidden).  The rendering is
+//		complete when all the threads that have started before the minimum rendering time
+//		have also completed.  Note the rendering is complete after the minimum rendering
+//		time elapses, if no thread starts rendering by then.
+//		To report its activities, the rendering thread calls 
+//		AnimationController::startRendering() and AnimationController::endRendering()
+//		
+//		To keep track of the various renderers, the AnimationController maintains
+//		a status code on each visualizer window.  This includes the following information
+//			Is the animation controller for that window global or local?
+//			Is the window animated (versus paused or inactive)
+//			If the window is animated, has it:
+//				not yet started on the current rendering
+//				started but not completed the current rendering
+//				finished the current rendering
+//			Is there a change in the animation settings for this window that has
+//				not yet been processed, and will affect the next frame to be rendered?
+//			
+//		There is a mutex that is locked whenever the status of any renderer is updated.
+//		
+//		The AnimationController is associated with the session.  Whenever a new session
+//		is started, the previous animationcontroller must be destroyed.  When this happens
+//		the controller must cancel any renderings in progress (after a reasonable wait).
+//		The mechanism for cancelling renderings has not yet been defined.
 //
-//		At some point it will become possible to perform animations with
+//		At some point it may become possible to perform animations with
 //		multiple renderers in the same window.  These renderings will need
 //		to operate with identical frame times.
 //		
@@ -69,93 +89,145 @@
 #include <qmutex.h>
 #include <cassert>
 class QWaitCondition;
+class QTime;
+#include "vizwinmgr.h"
 namespace VAPoR {
-
+class VizWinMgr;
 class AnimationController : public QThread {
 public:
-	AnimationController();
+	//Note this is a singleton class:
+	static AnimationController* getInstance(){
+		if (!theAnimationController)
+			theAnimationController = new AnimationController();
+		return theAnimationController;
+	}
+	void restart(VizWinMgr*);
 	~AnimationController();
 	//The run method defines the animation cycle.
 	//It will run continuously (with intermittent waits)
 	//
 	void run();
-	//The setPause method is called when a value is changed that necessitates
-	//restarting the animation.  (such as the user clicking pause).
-	//It does not return until the animation
-	//has been halted.  It can also be used to restart after those values
-	//are changed.
-	//
-	void setPause(bool doPause);
-
-	//The restart method resumes this thread after the values have
-	//been set to new values.
-	//Set methods get results from the gui
-	void setFrameNumber(int frameNum){
-		assert(paused);
-		nextFrameNumber = frameNum;
-	}
-	void setFrameRate(int rate){
-		assert(paused);
-		currentFrameRate = rate;
-	}
-	void setStartFrame(int start){
-		assert(paused);
-		startFrame = start;
-	}
-	void setEndFrame(int end){
-		assert(paused);
-		endFrame = end;
-	}
-	void setMinFrameTime(float minTime){
-		assert(paused);
-		minFrameSeconds = minTime;
-	}
 	
-	void setRepeat (bool repeat){
-		assert(paused);
-		repeating = repeat;
+	//Renderers call the following two methods:
+	bool beginRendering(int vizNum);
+	void endRendering(int vizNum);
+	//To interrupt the controller's sleep, call the following:
+	//Either one renderer needs attention
+	void wakeup(int viznum);
+	//Or any thread needs attention
+	void wakeup();
+	
+	//These status codes record the status of the individual visualizers
+	//A visualizer is active if it exists, if its animation params is not paused
+	//and there is a renderer enabled for it; otherwise it is inactive.
+	//The animation controller ignores inactive visualizers.
+	//The shared bit indicates whether it is using shared or local animation params.
+	//
+	//An active visualizer is either unstarted, started, or finished.  It starts
+	//in the "finished" state, i.e. ready to be animated, when it is made active.
+	//Normally a visualizer cycles finished->unstarted->started->finished repeatedly,
+	//however it can jump from unstarted to finished if the rendering does not start
+	//soon enough.
+	//The startTime indicates the time (millisec) that the visualizer was last
+	//changed to unstarted.
+	//A renderer can be set to "closed" if it fails to change to "started" sufficiently
+	//soon after it enters the unstarted state
+
+	enum animationStatus {
+		inactive =	0,
+		active	 =	1,
+		shared	 =	2,
+		progressBits = 12,
+		unstarted=	4, // Set when initially ask for rendering
+		started	 =	8, // Set when rendering begins
+		finished =	12, //set when rendering done
+		//When the state is changed in the animation params, following bit is set.
+		//Completed renderings do not update the animation params
+		changed  =	16,
+		overdue = 32
+	};
+	//Gui ( calls following when a parameter changes that will alter
+	//next render frame
+	void paramsChanged(int viznum) {
+		animationMutex.lock();
+		setChangeBit(viznum);
+		animationMutex.unlock();
+	}
+	//Following method called  by the vizwinmgr when gui requests play
+	void startPlay(int viznum);
+	//When a visualizer is destroyed, need to change its status to "finished"
+	//Controller will deactivate it.
+	void finishVisualizer(int viznum){
+		animationMutex.lock();
+		setFinishRender(viznum);
+		animationMutex.unlock();
+	}
+	//When a visualizer is created, need to reset its status to "finished inactive"
+	//Controller will activate it the next time "play" is started.
+	void initializeVisualizer(int viznum){
+		animationMutex.lock();
+		statusFlag[viznum] = finished;
+		animationMutex.unlock();
 	}
 
-	//Renderers call the following two methods:
-	void beginRendering(int vizNum);
-	void endRendering(int vizNum);
-	//To interrupt a controller sleep, call the following:
-	void wakeup();
-
-
+		
+	
 protected:
+	static AnimationController* theAnimationController;
+	AnimationController();
+	//Following function compares current time with the minimum time the rendering
+	//should be complete.  Based on the most recent render requested
+	int getTimeToFinish(int viznum, int currentTime);
+	//Tell a renderer to start rendering:
+	void startVisualizer(int viznum, int currentTime);
+	//Inline methods to check status:
+	bool isActive(int viznum) {return (statusFlag[viznum]&active); }
+	bool isShared(int viznum) {return (statusFlag[viznum]&shared); }
+	bool renderStarted(int viznum) {return ((statusFlag[viznum] & progressBits) == started);}
+	bool renderFinished(int viznum) {return ((statusFlag[viznum] & progressBits) == finished);}
+	bool renderUnstarted(int viznum) {return ((statusFlag[viznum] & progressBits) == unstarted);}
+	bool isChanged(int viznum) {return (statusFlag[viznum] & changed);}
+	bool isOverdue(int viznum) {return (statusFlag[viznum] & overdue);}
+
+	//Methods to set status bits:
+	void activate(int viznum) {statusFlag[viznum] = (animationStatus)(statusFlag[viznum]|active);}
+	void deActivate(int viznum) {statusFlag[viznum] = (animationStatus)(statusFlag[viznum]&(~active));}
+	void setStartRender(int viznum) {
+		statusFlag[viznum] = (animationStatus)((statusFlag[viznum]&~progressBits)|started);}
+	void setFinishRender(int viznum) {statusFlag[viznum] = (animationStatus)((statusFlag[viznum]&~progressBits)|finished);}
+	//When render is requested, clear overdue as well as set set unstarted:
+	void setRequestRender(int viznum) {statusFlag[viznum] = 
+		(animationStatus)((statusFlag[viznum]&(~progressBits)&(~overdue))|(unstarted));}
+	void setChangeBit(int viznum) {statusFlag[viznum] = (animationStatus)(statusFlag[viznum]|changed);}
+	void clearChangeBit(int viznum) {statusFlag[viznum] = 
+		(animationStatus)(statusFlag[viznum] & ~changed);}
+	void setGlobal(int viznum){statusFlag[viznum] = (animationStatus)(statusFlag[viznum]|shared);}
+	void setLocal(int viznum) {statusFlag[viznum] = (animationStatus)(statusFlag[viznum]&(~shared));}
+	void setOverdue(int viznum) {statusFlag[viznum] = (animationStatus)(statusFlag[viznum]|overdue);}
+	void setVizWinMgr(VizWinMgr* vm){myVizWinMgr = vm;}
 	// advanceFrame is called by run() every time it's necessary
-	// to do another frame.  Returns true if it needs to be called again soon
-	bool advanceFrame();
+	// to do another frame.  
+	// Returns the number of milliseconds before we need to check for a render completion.
+	// (the controller thread can go to sleep until wakened.)
+	// Returns a negative number if no renderer is active.
+	//
+	int advanceFrame();
 	// animationMutex is needed to ensure serial access to
 	// the renderingStatus bits
+	//
 	QMutex animationMutex;
-	// What frame number is currently rendering
-	int currentFrameNumber;
-	//The gui sets nextFrameNumber.
-	int nextFrameNumber;
-	// frame advance interval (0 halts, negative goes back)
-	int currentFrameRate;
-	// animation occurs between these frame numbers.
-	int startFrame;
-	int endFrame;
-	//Min number of seconds before new frame is started
-	float minFrameSeconds;
-	//Pause (vs play) state
-	bool paused;
-	//Repeating versus stopping at end
-	bool repeating;
+	// Flag to be set if it's time to cancel all current animations:
+	bool animationCancelled;
 	//Status flags for watching multiple windows.
-	//This thread resets them to false before
-	//triggering a window.
-	//Each renderer calls back when it starts and when it ends 
-	//using the mutex.  The controller calls back after waiting
-	//minFrameSeconds.  If not all started renderings have completed,
-	//that thread exits.  When the last started renderer is done,
-	//it restarts the controller
-	bool renderStarted;
-	bool renderEnded;
+	//
+	animationStatus statusFlag[MAXVIZWINS];
+	//Keep track of the starting time for a rendering
+	//
+	int startTime[MAXVIZWINS];
+	
 	QWaitCondition* myWaitCondition;
+	VizWinMgr* myVizWinMgr;
+	QTime* myClock;
 
 };
 

@@ -46,6 +46,7 @@
 #include "volumizerrenderer.h"
 #include "dvrparams.h"
 #include "regionparams.h"
+#include "animationparams.h"
 #include "viewpointparams.h"
 #include "vizwin.h"
 #include "vizwinmgr.h"
@@ -53,6 +54,7 @@
 #include "DVRVolumizer.h"
 #include "DVRDebug.h"
 #include "renderer.h"
+#include "animationcontroller.h"
 
 #include "mainform.h"
 #include "session.h"
@@ -144,6 +146,10 @@ DrawVoxelScene(unsigned /*fast*/)
 
 	//Nothing to do if there's no data source!
 	if (!myDataMgr) return;
+	int winNum = myVizWin->getWindowNum();
+	//Tell the animation we are starting.  If it returns false, we are not
+	//being monitored by the animation controller
+	bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
     // Move to trackball view of scene  
 	glPushMatrix();
 
@@ -187,8 +193,9 @@ DrawVoxelScene(unsigned /*fast*/)
 		int max_subdim[3];
 
 		//Make sure we are using the current regionParams
-		int winNum = myVizWin->getWindowNum();
+		
 		myRegionParams = myVizWin->getWinMgr()->getRegionParams(winNum);
+		AnimationParams* myAnimationParams = myVizWin->getWinMgr()->getAnimationParams(winNum);
 		//Do Region setup as in SetCurrentFile() (mdb.C):
 		//Set up parameters needed to specify region:
 		//level is flevels -stride + 1:
@@ -234,7 +241,7 @@ DrawVoxelScene(unsigned /*fast*/)
 		
 		
 		void* data = (void*) myDataMgr->GetRegionUInt8(
-				myRegionParams->getCurrentTimestep(),
+				myAnimationParams->getCurrentFrameNumber(),
 				myDVRParams->getVariableName(),
 				numxforms,
 				(const size_t*)min_bdim,
@@ -400,7 +407,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	//myGLWindow->swapBuffers();
 
     glPopMatrix();
-
+	if (isControlled) AnimationController::getInstance()->endRendering(winNum);
 }
 
 

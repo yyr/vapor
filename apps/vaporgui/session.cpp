@@ -46,11 +46,11 @@ Session::Session(MainForm* mainWindow) {
 	currentHistograms = 0;
 	currentDataStatus = 0;
 	cacheMB = 512;
-	theAnimationController = new AnimationController();
+	//AnimationController::getInstance()->run();
 }
 Session::~Session(){
 	delete vizWinMgr;
-	delete theAnimationController;
+	delete AnimationController::getInstance();
 	//Note: metadata is deleted by Datamgr
 	if (dataMgr) delete dataMgr;
 	for (int i = startQueuePos; i<= endQueuePos; i++){
@@ -85,6 +85,8 @@ restore(char* ){
 void Session::
 resetMetadata(const char* fileBase)
 {
+	//Reinitialize the animation controller:
+	AnimationController::getInstance()->restart(vizWinMgr);
 	//The metadata is created by (and obtained from) the datamgr
 	string path(fileBase);
 	if (dataMgr) delete dataMgr;

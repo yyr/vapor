@@ -41,11 +41,11 @@ using namespace VAPoR;
 AnimationParams::AnimationParams(MainForm* mf, int winnum): Params(mf, winnum){
 	thisParamType = AnimationParamsType;
 	myAnimationTab = mf->getAnimationTab();
-	myAnimationController = 0;
+	
 	// set everything to default state:
 	playDirection = 0;
 	repeatPlay = false;
-	maxFrameRate = 10; 
+	maxFrameRate = 1; 
 	frameStepSize = 1;
 	startFrame = 1;
 	endFrame = 100;
@@ -57,7 +57,7 @@ AnimationParams::AnimationParams(MainForm* mf, int winnum): Params(mf, winnum){
 AnimationParams::~AnimationParams(){}
 
 
-//Update the dialog with values from this:
+//Update the tab panel with values from this:
 void AnimationParams::updateDialog(){
 	float sliderVal;
 	QString strn;
@@ -76,18 +76,27 @@ void AnimationParams::updateDialog(){
 	myAnimationTab->maxFrameRateEdit->setText(strn.setNum(maxFrameRate,'g',3));
 	myAnimationTab->frameStepEdit->setText(strn.setNum(frameStepSize));
 	
-	if (playDirection==0) {
+	if (playDirection==0) {//pause
 		myAnimationTab->pauseButton->setDown(true);
 		myAnimationTab->playForwardButton->setDown(false);
 		myAnimationTab->playReverseButton->setDown(false);
-	} else if (playDirection==1){
+		//myAnimationTab->playReverseButton->setOn(false);
+		//myAnimationTab->playForwardButton->setOn(false);
+		//myAnimationTab->pauseButton->setOn(true);
+	} else if (playDirection==1){//forward play
 		myAnimationTab->pauseButton->setDown(false);
 		myAnimationTab->playForwardButton->setDown(true);
 		myAnimationTab->playReverseButton->setDown(false);
-	} else {
+		//myAnimationTab->playReverseButton->setOn(false);
+		//myAnimationTab->playForwardButton->setOn(true);
+		//myAnimationTab->pauseButton->setOn(false);
+	} else {//reverse play
 		myAnimationTab->pauseButton->setDown(false);
 		myAnimationTab->playForwardButton->setDown(false);
 		myAnimationTab->playReverseButton->setDown(true);
+		//myAnimationTab->playReverseButton->setOn(true);
+		//myAnimationTab->playForwardButton->setOn(false);
+		//myAnimationTab->pauseButton->setOn(false);
 	}
 	if (repeatPlay){
 		myAnimationTab->replayButton->setDown(true);
@@ -129,6 +138,9 @@ void AnimationParams::updatePanelState(){
 	setSliders();
 
 	maxFrameRate = myAnimationTab->maxFrameRateEdit->text().toFloat();
+	//Constrain to a "reasonable" range:
+	if (maxFrameRate>30.f) maxFrameRate = 30.f;
+	if (maxFrameRate< 0.001f) maxFrameRate = 0.001f;
 	
 	guiSetTextChanged(false);
 }
@@ -145,7 +157,8 @@ void AnimationParams::makeCurrent(Params* /* prev params p*/, bool/* newWin?*/){
 }
 
 
-//Following are set by gui, result in save history state:
+//Following are set by gui, result in save history state.
+//Whenever play is pressed, it wakes up the animation controller.
 
 void AnimationParams::guiSetPlay(int direction){
 	confirmText(false);
@@ -153,38 +166,47 @@ void AnimationParams::guiSetPlay(int direction){
 	switch (direction) {
 		case -1:
 			cmd = PanelCommand::captureStart(this, mainWin->getSession(),"play reverse");
-			myAnimationTab->pauseButton->setOn(false);
-			myAnimationTab->playForwardButton->setOn(false);
-			myAnimationTab->pauseButton->setDown(false);
-			myAnimationTab->playForwardButton->setDown(false);
+			//myAnimationTab->pauseButton->setOn(false);
+			//myAnimationTab->playForwardButton->setOn(false);
+			//myAnimationTab->pauseButton->setDown(false);
+			//myAnimationTab->playForwardButton->setDown(false);
 			myAnimationTab->stepForwardButton->setEnabled(false);
 			myAnimationTab->stepReverseButton->setEnabled(false);
+			
 			break;
 		case 0:
 			cmd = PanelCommand::captureStart(this, mainWin->getSession(),"pause animation");
-			myAnimationTab->playReverseButton->setOn(false);
-			myAnimationTab->playForwardButton->setOn(false);
-			myAnimationTab->playReverseButton->setDown(false);
-			myAnimationTab->playForwardButton->setDown(false);
+			//myAnimationTab->playReverseButton->setOn(false);
+			//myAnimationTab->playForwardButton->setOn(false);
+			//myAnimationTab->pauseButton->setDown(true);
+			//myAnimationTab->playReverseButton->setDown(false);
+			//myAnimationTab->playForwardButton->setDown(false);
 			myAnimationTab->stepForwardButton->setEnabled(true);
 			myAnimationTab->stepReverseButton->setEnabled(true);
 			break;
 		case 1:
 			cmd = PanelCommand::captureStart(this, mainWin->getSession(),"play forward");
-			myAnimationTab->pauseButton->setOn(false);
-			myAnimationTab->playReverseButton->setOn(false);
-			myAnimationTab->pauseButton->setDown(false);
-			myAnimationTab->playReverseButton->setDown(false);
+			//myAnimationTab->pauseButton->setOn(false);
+			//myAnimationTab->playReverseButton->setOn(false);
+			//myAnimationTab->pauseButton->setDown(false);
+			//myAnimationTab->playReverseButton->setDown(false);
 			myAnimationTab->stepForwardButton->setEnabled(false);
 			myAnimationTab->stepReverseButton->setEnabled(false);
+			
 			break;
 		default:
 			assert(0);
 	}
+	int previousDirection = playDirection;
 	playDirection = direction;
 	PanelCommand::captureEnd(cmd, this);
-	dirtyBit = true;
-	if(myAnimationController)myAnimationController->wakeup();
+	if (direction && !previousDirection)mainWin->getVizWinMgr()->startPlay(this);
+	else if (!direction) mainWin->getVizWinMgr()->animationParamsChanged(this);
+	setDirty();
+	//May need to wakeup the controller if starting to play.
+	if( direction && !previousDirection) {
+		AnimationController::getInstance()->wakeup();
+	}
 }
 void AnimationParams::
 guiJumpToBegin(){
@@ -195,8 +217,9 @@ guiJumpToBegin(){
 	setSliders();
 	PanelCommand::captureEnd(cmd, this);
 	guiSetTextChanged(false);
-	dirtyBit = true;
-	if(myAnimationController)myAnimationController->wakeup();
+	mainWin->getVizWinMgr()->animationParamsChanged(this);
+	setDirty();
+	
 }
 void AnimationParams::
 guiJumpToEnd(){
@@ -207,8 +230,8 @@ guiJumpToEnd(){
 	setSliders();
 	PanelCommand::captureEnd(cmd, this);
 	guiSetTextChanged(false);
-	dirtyBit = true;
-	if(myAnimationController)myAnimationController->wakeup();
+	mainWin->getVizWinMgr()->animationParamsChanged(this);
+	setDirty();
 }
 
 
@@ -220,8 +243,8 @@ void AnimationParams::guiSetPosition(int position){
 	myAnimationTab->currentFrameEdit->setText(QString::number(currentFrame));
 	PanelCommand::captureEnd(cmd, this);
 	guiSetTextChanged(false);
-	dirtyBit = true;
-	if(myAnimationController)myAnimationController->wakeup();
+	mainWin->getVizWinMgr()->animationParamsChanged(this);
+	setDirty();
 }
 //Respond to release of stepsize slider.  Max range of slider is full animation length
 void AnimationParams::guiSetFrameStep(int stepsize){
@@ -233,16 +256,13 @@ void AnimationParams::guiSetFrameStep(int stepsize){
 	setSliders();
 	PanelCommand::captureEnd(cmd, this);
 	guiSetTextChanged(false);
-	dirtyBit = true;
-	if(myAnimationController)myAnimationController->wakeup();
 }
 void AnimationParams::guiToggleReplay(bool replay){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"Toggle replay button");
 	repeatPlay = replay;
 	PanelCommand::captureEnd(cmd, this);
-	dirtyBit = true;
-	if(myAnimationController)myAnimationController->wakeup();
+	
 }
 void AnimationParams::guiSingleStep(bool forward){
 	confirmText(false);
@@ -270,8 +290,10 @@ void AnimationParams::guiSingleStep(bool forward){
 	guiSetTextChanged(false);
 	assert(currentFrame >= startFrame && currentFrame <= endFrame);
 	PanelCommand::captureEnd(cmd, this);
-	dirtyBit = true;
-	if(myAnimationController)myAnimationController->wakeup();
+	mainWin->getVizWinMgr()->animationParamsChanged(this);
+	setDirty();
+	
+
 }
 //Respond to change in Metadata
 //
@@ -281,6 +303,28 @@ reinit(){
 	//Get the max, min time ranges:
 	minFrame = session->getMinTimestep();
 	maxFrame = session->getMaxTimestep();
+	//Narrow the range to the actual data limits:
+	int numvars = session->getNumVariables();
+	//Find the first framenum with data:
+	int i;
+	for (i = minFrame; i<= maxFrame; i++){
+		int varnum;
+		for (varnum = 0; varnum<numvars; varnum++){
+			if(session->dataIsPresent(varnum, i)) break;
+		}
+		if (varnum < numvars) break;
+	}
+	minFrame = i;
+	//Find the last framenum with data:
+	for (i = maxFrame; i>= minFrame; i--){
+		int varnum;
+		for (varnum = 0; varnum<numvars; varnum++){
+			if(session->dataIsPresent(varnum, i)) break;
+		}
+		if (varnum < numvars) break;
+	}
+	maxFrame = i;
+
 	//force animation range to be inside limits
 	if (startFrame < minFrame) startFrame = minFrame;
 	if (startFrame > maxFrame) startFrame = maxFrame;
@@ -288,8 +332,7 @@ reinit(){
 	if (endFrame > maxFrame) endFrame = maxFrame;
 	if (currentFrame < minFrame) currentFrame = minFrame;
 	if (currentFrame > maxFrame) currentFrame = maxFrame;
-	myAnimationController = session->getAnimationController();
-	dirtyBit = true;
+	setDirty();
 	updateDialog();
 }
 //Set the position slider consistent with latest value of currentPosition, frameStep, and bounds
@@ -307,3 +350,57 @@ setSliders(){
 		myAnimationTab->frameStepSlider->setValue((int)(1000.f*((float)stepsize/(float)(endFrame-startFrame))));
 	}
 }
+//Following method called when a frame has been rendered, to update the currentFrame, in
+//preparation for next rendering.
+//It should not be called if the UI has changed the frame number; in that case
+//setDirty should be called, and AnimationController::paramsChanged() should be
+//called, to force any ongoing animation to not increment the frame number
+void AnimationParams::
+advanceFrame(){
+	assert(playDirection);
+	int lastFrameCompleted = currentFrame;
+	currentFrame += playDirection*frameStepSize;
+	if (currentFrame > endFrame) {
+		if (repeatPlay) {
+			currentFrame = startFrame + (currentFrame - endFrame);
+			if (currentFrame > endFrame) currentFrame = endFrame;
+		} else {
+			//Stop if we are at the end:
+			currentFrame = endFrame;
+		}
+	}
+	if (currentFrame < startFrame){
+		if (repeatPlay) {
+			currentFrame = endFrame - (startFrame - currentFrame);
+			if (currentFrame < startFrame) currentFrame = startFrame;
+		} else {
+			//Stop if we are at the end:
+			currentFrame = startFrame;
+		}
+	}
+	if (currentFrame == lastFrameCompleted) {
+		//Change to "pause" status:
+		playDirection = 0;
+		mainWin->getVizWinMgr()->animationParamsChanged(this);
+	}
+	//Only update the dialog if this animation is in the active visualizer
+	int viznum = mainWin->getVizWinMgr()->getActiveViz();
+	if (viznum >= 0 && mainWin->getVizWinMgr()->getAnimationParams(viznum) == this)
+		updateDialog();
+}
+	
+void AnimationParams::setDirty(){
+	mainWin->getVizWinMgr()->setAnimationDirty(this);
+}
+//Set change bits when global/local change occurs, so that the animation
+//controller will change the local/global status at the end of the next rendering.
+void AnimationParams::guiSetLocal(bool lg){
+	Params::guiSetLocal(lg);
+	int viznum = vizNum;
+	if (viznum < 0){
+		viznum = mainWin->getVizWinMgr()->getActiveViz();
+		assert(viznum >=0);
+	}
+	AnimationController::getInstance()->paramsChanged(viznum);
+}
+
