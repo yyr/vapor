@@ -138,6 +138,8 @@ public:
 	const WaveletBlock3DRegionReader* getRegionReader() {return myReader;}
 	//Create a new Metadata, by specifying vmf file
 	void resetMetadata(const char* vmfile);
+	void setCacheMB(size_t size){cacheMB = size;}
+	size_t getCacheMB() {return cacheMB;}
 
 
 protected:
@@ -156,6 +158,8 @@ protected:
 	int recordingCount;
 	Histo** currentHistograms;
 	Metadata* currentMetadata;
+	//Cache size in megabytes
+	size_t cacheMB;
 	
 };
 // Class used by session to keep track of variables, timesteps	

@@ -26,6 +26,9 @@ win32:CONFIG += thread
 
 win32:LIBS += $(VOLUMIZER_ROOT)/lib/vz.lib
 win32:INCLUDEPATH += $(VOLUMIZER_ROOT)/include
+win32:INCLUDEPATH += "B:/Expat-1.95.8/Source/lib"
+win32:QMAKE_CXXFLAGS_DEBUG += /EHsc
+win32:QMAKE_CXXFLAGS_RELEASE += /EHsc
 DEFINES += VOLUMIZER
 
 
@@ -116,4 +119,6 @@ FORMS += ./ui/viztab.ui \
 	 ./ui/dvr.ui \
          ./ui/regiontab.ui \ 
 	 ./ui/contourplanetab.ui \
-       	 ./ui/isotab.ui 
+       	 ./ui/isotab.ui \
+	 ./ui/sessionparameters.ui
+

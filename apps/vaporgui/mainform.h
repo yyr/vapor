@@ -88,6 +88,7 @@ public:
 	//
 	QAction* editUndoAction;
 	QAction* editRedoAction;
+	QAction* editSessionParamsAction;
     //Help menu
 	//
     QAction* helpContentsAction;
@@ -180,6 +181,7 @@ public slots:
 	virtual void setProbe(bool);
 	virtual void setNavigate(bool);
 	virtual void setLights(bool);
+	virtual void editSessionParams();
 
 	//Whenever the UndoRedo menu is displayed, need to supply the right text:
 	//

@@ -55,7 +55,7 @@ QT_HEADERS := \
 MOC_DIR = moc
 UI_DIR = ui
 
-UI_FILES := viztab regiontab contourplanetab dvr isotab
+UI_FILES := viztab regiontab contourplanetab dvr isotab sessionparameters
   
 include ${TOP}/make/config/base.mk
 #LDFLAGS += $(QTLIB)

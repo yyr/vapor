@@ -37,8 +37,7 @@
 #include <qpixmap.h>
 #include <qcombobox.h>
 #include <qfiledialog.h>
-#include "vizwin.h"
-#include "isotab.h"
+#include <qlineedit.h>
 #include <qscrollview.h>
 #include <qmessagebox.h>
 #include <qdesktopwidget.h>
@@ -46,6 +45,8 @@
 #include <qworkspace.h>
 #include <qmessagebox.h>
 
+#include "vizwin.h"
+#include "isotab.h"
 #include "vizselectcombo.h"
 #include "tabmanager.h"
 #include "viztab.h"
@@ -55,7 +56,6 @@
 #include "isotab.h"
 #include "contourplanetab.h"
 #include "session.h"
-
 #include "vizmgrdialog.h"
 #include "viewpointparams.h"
 #include "regionparams.h"
@@ -65,6 +65,7 @@
 #include "vcr.h"
 #include "assert.h"
 #include "command.h"
+#include "sessionparameters.h"
 
 //The following are pixmaps that are used in gui:
 #include "images/cascade.xpm"
@@ -149,6 +150,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
 	editUndoAction = new QAction(this, "editUndoAction");
 	editRedoAction = new QAction(this, "editRedoAction");
+	editSessionParamsAction = new QAction(this, "editSessionParamsAction");
 	editUndoAction->setEnabled(false);
 	editRedoAction->setEnabled(false);
     
@@ -273,6 +275,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	Edit = new QPopupMenu(this);
 	editUndoAction->addTo(Edit);
 	editRedoAction->addTo(Edit);
+	editSessionParamsAction->addTo(Edit);
 	Main_Form->insertItem( QString(""), Edit, 2 );
 
     Data = new QPopupMenu( this );
@@ -334,8 +337,9 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
 	connect(editUndoAction, SIGNAL(activated()), this, SLOT (undo()));
 	connect(editRedoAction, SIGNAL(activated()), this, SLOT (redo()));
-	bool foo = connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
-	assert(foo);
+	connect(editSessionParamsAction, SIGNAL(activated()), this, SLOT(editSessionParams()));
+	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
+	
 
     
     connect( helpIndexAction, SIGNAL( activated() ), this, SLOT( helpIndex() ) );
@@ -432,6 +436,9 @@ void MainForm::languageChange()
     editRedoAction->setMenuText( tr( "&Redo" ) );
     editRedoAction->setAccel( tr( "Ctrl+Y" ) );
 	editRedoAction->setToolTip("Redo the last undone session state change");
+	editSessionParamsAction->setText( tr("Edit Session Parameters"));
+    editSessionParamsAction->setMenuText( tr("&Edit Session Parameters"));
+    editSessionParamsAction->setToolTip("Launch a panel for setting session parameters"); 
     
     helpContentsAction->setText( tr( "Contents" ) );
     helpContentsAction->setMenuText( tr( "&Contents..." ) );
@@ -678,6 +685,27 @@ void MainForm::manageVizWindows()
 	vizMgrDlg->exec();
 	delete vizMgrDlg;
 	
+}
+//This creates the popup to edit session parameters
+void MainForm::editSessionParams()
+{
+	
+	SessionParameters* sessionParamsDlg = new SessionParameters((QWidget*)this);
+	QString str;
+	sessionParamsDlg->cacheSizeEdit->setText(str.setNum(currentSession->getCacheMB()));
+	int rc = sessionParamsDlg->exec();
+	if (rc){
+		//see if the memory size changed:
+		int newVal = sessionParamsDlg->cacheSizeEdit->text().toInt();
+		if (newVal > 100 && newVal != currentSession->getCacheMB()){
+			currentSession->setCacheMB(newVal);
+			QMessageBox::information(this,
+				"Information", 
+				"Cache size will change at next metadata loading", 
+				QMessageBox::Ok);
+		}
+	}
+	delete sessionParamsDlg;
 }
 /*
  * Method to launch the viewpoint/lights tab into the tabbed dialog

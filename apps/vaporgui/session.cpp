@@ -44,6 +44,7 @@ Session::Session(MainForm* mainWindow) {
 	}
 	currentHistograms = 0;
 	currentDataStatus = 0;
+	cacheMB = 512;
 }
 Session::~Session(){
 	delete vizWinMgr;
@@ -89,11 +90,8 @@ resetMetadata(const char* fileBase)
 		return;
 	}
 	if (dataMgr) delete dataMgr;
-	//Note:  currently hardwired 512 MB cache size.  Should be made
-	//A configuration option
-	//
 
-	dataMgr = new DataMgr(fileBase, 512, 1);
+	dataMgr = new DataMgr(fileBase, cacheMB, 1);
 	if (dataMgr->GetErrCode() != 0) {
 		qWarning( "Error creating DataMgr %s\n", dataMgr->GetErrMsg());
 		return;
