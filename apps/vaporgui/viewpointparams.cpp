@@ -173,7 +173,9 @@ updateRenderer(bool, bool , bool ) {
 	//(All global visualizers will be sharing the same trackball)
 	//
 	VizWin* viz = myVizMgr->getActiveVisualizer();
-	if (viz) viz->setValuesFromGui(this);
+	if (viz) {
+		viz->setValuesFromGui(this);
+	}
 	
 	if (!local){
 		//Find all the viz windows that are using global settings.
@@ -183,6 +185,7 @@ updateRenderer(bool, bool , bool ) {
 		for (int i = 0; i< MAXVIZWINS; i++){
 			if (i == myVizMgr->getActiveViz()) continue;
 			if( viz = myVizMgr->getVizWin(i)){
+				viz->setViewerCoordsChanged(true);
 				//Bypass normal access to vpParams!
 				if(!(myVizMgr->getRealVPParams(i)) || !(myVizMgr->getRealVPParams(i)->isLocal())){
 					viz->updateGL();
@@ -354,21 +357,3 @@ setCoordTrans(){
 		minCubeCoord[i] = (float)extents[i];
 	}
 }
-//Center all the trackballs using these vizparams
-/*
-void ViewpointParams::
-centerTrackballs()
-{
-	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	if (isLocal()){ 
-		if (vizNum >= 0)
-			vizWinMgr->getVizWin(vizNum)->centerTrackball(rotationCenter);
-	}
-	else {//global
-		for (int i = 0; i<MAXVIZWINS; i++){
-			if (vizWinMgr->getVizWin(i) && !vizWinMgr->getViewpointParams(i)->isLocal())
-				vizWinMgr->getVizWin(i)->centerTrackball(rotationCenter);
-		}
-	}
-}
-*/

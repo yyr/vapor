@@ -91,11 +91,13 @@ void	computeGradientData(
 void	makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* matrix);
 void	makeTransMatrix(float* transVec, float* matrix);
 void	vscale (float *v, float s);
+void	vmult( float *v, float s, float *w); 
 void	vhalf (const float *v1, const float *v2, float *half);
 void	vcross (const float *v1, const float *v2, float *cross);
 void	vreflect (const float *in, const float *mirror, float *out);
 void	vtransform (const float *v, GLfloat *mat, float *vt);
 void	vtransform4 (const float *v, GLfloat *mat, float *vt);
+bool	pointOnRight(float* pt1, float* pt2, float* testPt);
 void	mcopy (GLfloat *m1, GLfloat *m2);
 void	mmult (GLfloat *m1, GLfloat *m2, GLfloat *prod);
 void	minvert (GLfloat *mat, GLfloat *result);

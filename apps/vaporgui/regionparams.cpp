@@ -32,6 +32,7 @@
 #include "params.h"
 #include "vapor/Metadata.h"
 #include "tabmanager.h"
+#include "glutil.h"
 
 using namespace VAPoR;
 
@@ -42,6 +43,9 @@ RegionParams::RegionParams(int winnum): Params(winnum){
 	maxNumTrans = 9;
 	maxSize = 256;
 	fullDataExtents.resize(6);
+	selectedFaceNum = -1;
+	faceDisplacement = 0.f;
+	savedCommand = 0;
 	for (int i = 0; i< 3; i++){
 		centerPosition[i] = 128;
 		regionSize[i] = 256;
@@ -54,10 +58,14 @@ Params* RegionParams::
 deepCopy(){
 	//Just make a shallow copy, since there's nothing (yet) extra
 	//
-	return (Params*)(new RegionParams(*this));
+	RegionParams* p = new RegionParams(*this);
+	//never keep the SavedCommand:
+	p->savedCommand = 0;
+	return (Params*)(p);
 }
 
 RegionParams::~RegionParams(){
+	if (savedCommand) delete savedCommand;
 }
 void RegionParams::
 makeCurrent(Params* ,bool) {
@@ -67,6 +75,7 @@ makeCurrent(Params* ,bool) {
 	//
 	updateDialog();
 	setDirty();
+
 }
 
 //Insert values from params into tab panel
@@ -460,24 +469,6 @@ guiSetMaxSize(int n){
 	}
 	setDirty();
 }
-
-//Just a silly hack to demonstrate use of mouse to control center position
-//Not supported (yet) by undo/redo
-//
-void RegionParams::
-slide (QPoint& ){
-	//Make a nonsensical change in region size:
-	//centerPosition[0] += delta.x()/10;
-	//centerPosition[1] -= delta.y()/10;
-	//centerPosition[2] += (delta.x()-delta.y())/10;
-	//Hack (not the right place to check input values)
-	//for (int i = 0; i< 3; i++){
-	//	if (centerPosition[i] < 0) centerPosition[i] = 0;
-	//	if (centerPosition[i] > regionSize[i]) centerPosition[i] = regionSize[i];
-	//}
-	//then force a UI update:
-	updateDialog();
-}
 //Reinitialize region settings, session has changed:
 void RegionParams::
 reinit(){
@@ -537,4 +528,177 @@ setCurrentExtents(int coord){
 			assert(0);
 	}
 }
+void RegionParams::setRegionMin(int coord, float minval){
+	int regionCrd = (int)(fullSize[coord]*((minval - fullDataExtents[coord])/(fullDataExtents[coord+3]- fullDataExtents[coord])));
+	if (regionCrd < 0) regionCrd = 0;
+	if (regionCrd >= centerPosition[coord]+regionSize[coord]/2)
+		regionCrd = centerPosition[coord]+regionSize[coord]/2 -1;
+	int newSize = centerPosition[coord]+regionSize[coord]/2 - regionCrd;
+	int newCenter = centerPosition[coord]+regionSize[coord]/2 - newSize/2;
+	centerPosition[coord] = newCenter;
+	regionSize[coord] = newSize;
+}
+void RegionParams::setRegionMax(int coord, float maxval){
+	int regionCrd = (int)(fullSize[coord]*((maxval - fullDataExtents[coord])/(fullDataExtents[coord+3]- fullDataExtents[coord])));
+	if (regionCrd > fullSize[coord]) regionCrd = fullSize[coord];
+	if (regionCrd <= centerPosition[coord]-regionSize[coord]/2)
+		regionCrd = centerPosition[coord]-regionSize[coord]/2 +1;
+	int newSize = regionCrd - (centerPosition[coord]-regionSize[coord]/2);
+	int newCenter = centerPosition[coord]-regionSize[coord]/2 + newSize/2;
+	centerPosition[coord] = newCenter;
+	regionSize[coord] = newSize;
+}
 
+//Grab a region face:
+//
+void RegionParams::
+captureMouseDown(int faceNum, float camPos[3], float dirVec[3]){
+	//If text has changed, will ignore it-- don't call confirmText()!
+	//
+	guiSetTextChanged(false);
+	if (savedCommand) delete savedCommand;
+	savedCommand = PanelCommand::captureStart(this,  "slide region boundary");
+	selectedFaceNum = faceNum;
+	faceDisplacement = 0.f;
+	//Calculate intersection of ray with specified plane
+	if (!rayCubeIntersect(dirVec, camPos, faceNum, initialSelectionRay))
+		selectedFaceNum = -1;
+	//The selection ray is the vector from the camera to the intersection point,
+	//So subtract the camera position
+	vsub(initialSelectionRay, camPos, initialSelectionRay);
+	setDirty();
+}
+
+void RegionParams::
+captureMouseUp(){
+	//If no change, can quit;
+	if (faceDisplacement ==0.f || (selectedFaceNum < 0)) {
+		if (savedCommand) delete savedCommand;
+		selectedFaceNum = -1;
+		faceDisplacement = 0.f;
+		return;
+	}
+	int coord = (5-selectedFaceNum)/2;
+	if (selectedFaceNum %2) {
+		setRegionMax(coord, getRegionMax(coord)+faceDisplacement);
+	} else {
+		setRegionMin(coord, getRegionMin(coord)+faceDisplacement);
+	}
+	faceDisplacement = 0.f;
+	selectedFaceNum = -1;
+	
+	enforceConsistency(coord);
+	updateDialog();
+	setDirty();
+	if (!savedCommand) return;
+	PanelCommand::captureEnd(savedCommand, this);
+	savedCommand = 0;
+	
+}
+
+//Intersect the ray with the specified face, determining the intersection
+//in world coordinates.  Note that meaning of faceNum is specified in 
+//renderer.cpp
+// Faces of the cube are numbered 0..5 based on view from pos z axis:
+// back, front, bottom, top, left, right
+// return false if no intersection
+//
+bool RegionParams::
+rayCubeIntersect(float ray[3], float cameraPos[3], int faceNum, float intersect[3]){
+	double val;
+	int coord;// = (5-faceNum)/2;
+	// if (faceNum%2) val = getRegionMin(coord); else val = getRegionMax(coord);
+	switch (faceNum){
+		case(0): //back; z = zmin
+			val = getRegionMin(2);
+			coord = 2;
+			break;
+		case(1): //front; z = zmax
+			val = getRegionMax(2);
+			coord = 2;
+			break;
+		case(2): //bot; y = min
+			val = getRegionMin(1);
+			coord = 1;
+			break;
+		case(3): //top; y = max
+			val = getRegionMax(1);
+			coord = 1;
+			break;
+		case(4): //left; x = min
+			val = getRegionMin(0);
+			coord = 0;
+			break;
+		case(5): //right; x = max
+			val = getRegionMax(0);
+			coord = 0;
+			break;
+		default:
+			return false;
+	}
+	if (ray[coord] == 0.0) return false;
+	float param = (val - cameraPos[coord])/ray[coord];
+	for (int i = 0; i<3; i++){
+		intersect[i] = cameraPos[i]+param*ray[i];
+	}
+	return true;
+}
+
+
+//Slide the face based on mouse move from previous capture.  
+//Requires new direction vector associated with current mouse position
+//The new face position requires finding the planar displacement such that 
+//the ray (in the scene) associated with the new mouse position is as near
+//as possible to the line projected from the original mouse position in the
+//direction of planar motion
+//displacement from the original intersection is as close as possible to the 
+void RegionParams::
+slideCubeFace(float movedRay[3]){
+	float normalVector[3] = {0.f,0.f,0.f};
+	float q[3], r[3], w[3];
+	int coord = (5 - selectedFaceNum)/2;
+	assert(selectedFaceNum >= 0);
+	if (selectedFaceNum < 0) return;
+	normalVector[coord] = 1.f;
+	
+	//Calculate W:
+	vcopy(movedRay, w);
+	vnormal(w);
+	float scaleFactor = 1.f/vdot(w,normalVector);
+	//Calculate q:
+	vmult(w, scaleFactor, q);
+	vsub(q, normalVector, q);
+	
+	//Calculate R:
+	scaleFactor *= vdot(initialSelectionRay, normalVector);
+	vmult(w, scaleFactor, r);
+	vsub(r, initialSelectionRay, r);
+
+	float denom = vdot(q,q);
+	faceDisplacement = 0.f;
+	if (denom != 0.f)
+		faceDisplacement = -vdot(q,r)/denom;
+	
+	//Make sure the faceDisplacement is OK.  Not allowed to
+	//extent face beyond end of data, nor beyond opposite face.
+	//First, convert to a displacement in cube coordinates.  
+	//Then, see what voxel coordinate 
+	
+	double regionMin = fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
+		(centerPosition[coord] - regionSize[coord]*.5)/(double)(fullSize[coord]);
+	double regionMax = fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
+		(centerPosition[coord] + regionSize[coord]*.5)/(double)(fullSize[coord]);
+	if (selectedFaceNum%2) { //Are we moving min or max?
+		//Moving max, since selectedFace is odd:
+		if (regionMax + faceDisplacement > fullDataExtents[coord+3])
+			faceDisplacement = fullDataExtents[coord+3] - regionMax;
+		if (regionMax + faceDisplacement < regionMin)
+			faceDisplacement = regionMin - regionMax;
+	} else { //Moving region min:
+		if (regionMin + faceDisplacement > regionMax)
+			faceDisplacement = regionMax - regionMin;
+		if (regionMin + faceDisplacement < fullDataExtents[coord])
+			faceDisplacement = fullDataExtents[coord] - regionMin;
+	}
+}
+	

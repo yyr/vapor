@@ -44,8 +44,17 @@ public:
 	//
     virtual void		initializeGL() = 0;
     virtual void		paintGL() = 0;
+	void setSelectedFace(int faceNum) {selectedFace = faceNum;}
 	
 protected:
+	//Draw the region bounds and frame it in full domain.
+	//Arguments are in unit cube coordinates
+	void renderDomainFrame(float* extents, float* minFull, float* maxFull);
+	void renderRegionBounds(float* extents, int selectedFace, 
+		float* cameraPos, float faceDisplacement);
+	//One face of the region bounds can be highlighted if selected:
+	int selectedFace;
+
 	GLWindow* myGLWindow;
 	VizWin* myVizWin;
 	//There can exist only one DataMgr during the life of this renderer:
@@ -57,6 +66,12 @@ protected:
 	//
 	RegionParams* myRegionParams;
 	ViewpointParams* myViewpointParams;
+	//Helper functions for drawing region bounds:
+	static float* cornerPoint(float* extents, int faceNum);
+	// Faces of the cube are numbered 0..5 based on view from pos z axis:
+	// back, front, bottom, top, left, right
+	static bool faceIsVisible(float* extents, float* viewerCoords, int faceNum);
+	static void drawRegionFace(float* extents, int faceNum, bool isSelected);
 };
 };
 

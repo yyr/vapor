@@ -78,6 +78,8 @@ void GLWindow::resizeGL( int width, int height )
 	*/
 
 	glViewport( 0, 0, (GLint)width, (GLint)height );
+	//Save the current value...
+	glGetIntegerv(GL_VIEWPORT, winViewport);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	if (perspective) {
@@ -86,6 +88,8 @@ void GLWindow::resizeGL( int width, int height )
 		float mindist = Max(0.2f, wCenter[2]-maxDim-1.0f);
 		//glFrustum( -w, w, -h, h, mindist,(wCenter[2]+ maxDim + 1.0) );
 		gluPerspective(45., w, mindist, (wCenter[2]+ maxDim + 10.0) );
+		//save the current value...
+		glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble *) projectionMatrix);
 		
 	} else {
 		if (width > height) {
@@ -122,6 +126,8 @@ changeViewerFrame(){
 	GLfloat m[16], minv[16];
 	//Get the frame from GL:
 	glGetFloatv(GL_MODELVIEW_MATRIX, m);
+	//Also, save the modelview matrix for picking purposes:
+	glGetDoublev(GL_MODELVIEW_MATRIX, (GLdouble*) modelviewMatrix);
 	//Invert it:
 	minvert(m, minv);
 	vscale(minv+8, -1.f);
@@ -137,6 +143,7 @@ changeViewerFrame(){
 		minv[14] = -trans;
 	}
 	myVizWin->changeCoords(minv+12, minv+8, minv+4);
+	myVizWin->setViewerCoordsChanged(false);
 }
 
 void GLWindow::paintGL()
@@ -168,8 +175,68 @@ void GLWindow::initializeGL()
 	}
     
 }
+//projectPoint returns true if point is in front of camera
+//resulting screen coords returned in 2nd argument.  Note that
+//OpenGL coords are 0 at bottom of window!
+//
+bool GLWindow::projectPointToWin(float cubeCoords[3], float winCoords[2]){
+	double depth;
+	GLdouble wCoords[2];
+	GLdouble cbCoords[3];
+	for (int i = 0; i< 3; i++)
+		cbCoords[i] = (double) cubeCoords[i];
 
-
+	bool success = gluProject(cbCoords[0],cbCoords[1],cbCoords[2],(GLdouble*)modelviewMatrix,
+		(GLdouble*)projectionMatrix, (GLint*)winViewport, wCoords, (wCoords+1),(GLdouble*)(&depth));
+	if (!success) return false;
+	winCoords[0] = (float)wCoords[0];
+	winCoords[1] = (float)wCoords[1];
+	return (depth > 0.0);
+}
+//Convert a screen coord to a direction vector, representing the direction
+//from the camera associated with the screen coords.  Note screen coords
+//are OpenGL style
+//
+bool GLWindow::pixelToVector(int x, int y, const float camPos[3], float dirVec[3]){
+	GLdouble pt[3];
+	float v[3];
+	//Obtain the coords of a point in view:
+	bool success = gluUnProject((GLdouble)x,(GLdouble)y,(GLdouble)1.0, (GLdouble*)modelviewMatrix,
+		(GLdouble*)projectionMatrix, (GLint*)winViewport,pt, pt+1, pt+2);
+	if (success){
+		//Convert point to float
+		v[0] = (float)pt[0];
+		v[1] = (float)pt[1];
+		v[2] = (float)pt[2];
+		//transform position to world coords
+		ViewpointParams::worldFromCube(v,dirVec);
+		//Subtract viewer coords to get a direction vector:
+		vsub(dirVec, camPos, dirVec);
+	}
+	return success;
+}
+//Test if the screen projection of a 3D quad encloses a point on the screen.
+//The 4 corners of the quad must be specified in counter-clockwise order
+//as viewed from the outside (pickable side) of the quad.  
+//Window coords are as in OpenGL (0 at bottom of window)
+//
+bool GLWindow::
+pointIsOnQuad(float cor1[3], float cor2[3], float cor3[3], float cor4[3], float pickPt[2])
+{
+	float winCoord1[2];
+	float winCoord2[2];
+	float winCoord3[2];
+	float winCoord4[2];
+	if(!projectPointToWin(cor1, winCoord1)) return false;
+	if (!projectPointToWin(cor2, winCoord2)) return false;
+	if (pointOnRight(winCoord1, winCoord2, pickPt)) return false;
+	if (!projectPointToWin(cor3, winCoord3)) return false;
+	if (pointOnRight(winCoord2, winCoord3, pickPt)) return false;
+	if (!projectPointToWin(cor4, winCoord4)) return false;
+	if (pointOnRight(winCoord3, winCoord4, pickPt)) return false;
+	if (pointOnRight(winCoord4, winCoord1, pickPt)) return false;
+	return true;
+}
 
 
 

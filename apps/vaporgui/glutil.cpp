@@ -76,7 +76,13 @@ void vscale(float *v, float s)
     v[1] *= s;
     v[2] *= s;
 }
-
+// Scale, putting result in another vector
+//
+void vmult( float *v, float s, float *w) {
+	w[0] = s*v[0]; 
+	w[1] = s*v[1]; 
+	w[2] = s*v[2];
+}
 
 void vhalf(const float *v1, const float *v2, float *half)
 {
@@ -145,7 +151,13 @@ void vtransform4(const float *v, GLfloat *mat, float *vt)
     t[3] = v[0]*mat[12] + v[1]*mat[13] + v[2]*mat[14] + mat[15];
     qcopy(t, vt);
 }
-
+//Test whether a planar point is right (or left) of the oriented line from
+// pt1 to pt2
+bool pointOnRight(float* pt1, float* pt2, float* testPt){
+	float rhs = pt1[0]*(pt1[1]-pt2[1]) + pt1[1]*(pt2[0]-pt1[0]);
+	float test = (pt2[0]-pt1[0])*testPt[1] + (pt1[1]-pt2[1])*testPt[0] - rhs;
+	return (test < 0.f);
+}
 
 void mcopy(GLfloat *m1, GLfloat *m2)
 {

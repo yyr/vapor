@@ -100,6 +100,12 @@ public:
 	float getRegionCenter(int indx) {
 		return (0.5f*(getRegionMin(indx)+getRegionMax(indx)));
 	}
+	//If a face is selected, this value is >= 0:
+	//
+	int getSelectedFaceNum() {return selectedFaceNum;}
+	//While sliding face, the faceDisplacement indicates how far selected face is 
+	//moved.
+	float getFaceDisplacement() {return faceDisplacement;}
 	//Update the dialog with values from this:
 	//
 	virtual void updateDialog();
@@ -121,21 +127,44 @@ public:
 	//Set the rotation/viewpoint 
 	void guiCenterFull(ViewpointParams* vpp);
 	void guiCenterRegion(ViewpointParams* vpp);
-	
-	// respond to sliding the mouse for region selection
 	//
-	void slide (QPoint& p);
-
+	//Start to slide a region face.  Need to save direction vector
+	//
+	void captureMouseDown(int faceNum, float camPos[3], float dirVec[]);
+	//When the mouse goes up, save the face displacement into the region.
+	void captureMouseUp();
+	//Intersect the ray with the specified face, determining the intersection
+	//in world coordinates.  Note that meaning of faceNum is specified in 
+	//renderer.h
+	// Faces of the cube are numbered 0..5 based on view from pos z axis:
+	// back, front, bottom, top, left, right
+	//
+	bool rayCubeIntersect(float ray[3], float cameraPos[3], int faceNum, float intersect[3]);
+	//Slide the face based on mouse move from previous capture.  
+	//Requires new direction vector associated with current mouse position
+	void slideCubeFace(float movedRay[3]);
+	//Indicate we are currently dragging a cube face:
+	bool draggingFace() {return (selectedFaceNum >= 0);}
 	// Reinitialize due to new Session:
 	void reinit();
+	void unSelectFace() { selectedFaceNum = -1;}
+	
 	
 protected:
+	//Holder for saving state during mouse move:
+	//
+	PanelCommand* savedCommand;
 	//Method to force center, size, maxsize to be valid
 	//Return true if anything changed.
 	//
 	bool enforceConsistency(int i);
 	//Recalc extents:
 	void setCurrentExtents(int coord);
+	//Methods to set the region max and min from a float value.
+	//Called at end of region bounds drag
+	//
+	void setRegionMin(int coord, float minval);
+	void setRegionMax(int coord, float maxval);
 	//Region dirty bit is kept in vizWin
 	//
 	void setDirty();  
@@ -146,8 +175,9 @@ protected:
 	//int currentTimestep;
 	RegionTab* myRegionTab;
 	std::vector<double> fullDataExtents;
-	
-
+	int selectedFaceNum;
+	float faceDisplacement;
+	float initialSelectionRay[3];
 };
 
 };

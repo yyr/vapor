@@ -1455,5 +1455,12 @@ reinitializeParams(){
 	globalContourParams->reinit();
 	globalAnimationParams->reinit();
 }
-
+void VizWinMgr::
+setSelectionMode( Command::mouseModeType m){ 
+	selectionMode = m;
+	//Update all visualizers:
+	for (int i = 0; i<MAXVIZWINS; i++){
+		if(vizWin[i]) vizWin[i]->updateGL();
+	}
+}
 

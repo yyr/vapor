@@ -71,17 +71,7 @@ public:
 	bool isActiveWin(){
 		return (myWindowNum == myWinMgr->getActiveViz());
 	}
-    //QToolBar *vizToolBar;
-    
-    //QAction* helpContentsAction;
-    //QAction* helpIndexAction;
-    //QAction* helpAboutAction;
-	//QAction* homeAction;
-	//QAction* sethomeAction;
 
-	//Following flag is set whenever there is mouse navigation, so that we can get the viewer position
-	//at the next rendering
-	bool newViewerCoords;
 	//bool newGuiCoords;
 	//Following method is called when user has navigated
 	void changeCoords(float *vpos, float* vdir, float* upvec);
@@ -97,14 +87,20 @@ public:
 	void addRenderer(Renderer* ren);
 	void removeRenderer(const char* rendererName);
 	GLWindow* getGLWindow() {return myGLWindow;}
-	VizWinMgr* getWinMgr() {return myWinMgr;}
+	
 	void setRegionDirty(bool isDirty){ regionDirty = isDirty;}
 	bool regionIsDirty() {return regionDirty;}
 	bool mouseIsDown() {return mouseDownHere;}
+	int pointOverCube(RegionParams* rParams, float screenCoords[2]);
+	bool viewerCoordsChanged() {return newViewerCoords;}
+	void setViewerCoordsChanged(bool isNew) {newViewerCoords = isNew;}
 	
 	
 protected:
-	
+	//Following flag is set whenever there is mouse navigation, so that we can use 
+	//the new viewer position
+	//at the next rendering
+	bool newViewerCoords;
 	int numRenderers;
     QWorkspace* myParent;
     int myWindowNum;
@@ -118,10 +114,7 @@ protected:
 	bool globalVP;
 	//Indicate whether the region has been changed:
 	bool regionDirty;
-	
 
-	
-	
 
 public slots:
     

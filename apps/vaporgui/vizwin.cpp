@@ -81,7 +81,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
     //qWarning("Launching window %d", winNum);
     myWinMgr = myMgr;
 	mouseDownHere = false;
-	newViewerCoords = false;
+	newViewerCoords = true;
 	regionDirty = true;
 	
 	
@@ -242,10 +242,34 @@ void VizWin::hideEvent(QHideEvent* ){
  */
 void VizWin::
 mousePressEvent(QMouseEvent* e){
-	
+	float screenCoords[2];
+	screenCoords[0] = (float)e->x();
+	//To keep orientation correct in plane, and use
+	//OpenGL convention (Y 0 at bottom of window), reverse
+	//value of y:
+	screenCoords[1] = (float)(height() - e->y());
+
 	switch (myWinMgr->selectionMode){
-		case Command::navigateMode : 
+		//In region mode,first check for clicks on selected region
 		case Command::regionMode :
+			//Find the cube coords of the corners of the region, from
+			//regionParams, transformed 
+			//
+			{
+				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
+				RegionParams* rParams = myWinMgr->getRegionParams(myWindowNum);
+				int faceNum = pointOverCube(rParams, screenCoords);
+				if (faceNum >= 0){
+					float dirVec[3];
+					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+						vParams->getCameraPos(), dirVec);
+					rParams->captureMouseDown(faceNum, vParams->getCameraPos(), dirVec);
+					mouseDownHere = true;
+					break;
+				}
+			}//Otherwise, fall through to navigate mode:
+		case Command::navigateMode : 
+		
 			myWinMgr->getViewpointParams(myWindowNum)->captureMouseDown();
 			myTrackball->MouseOnTrackball(0, e->button(), e->x(), e->y(), width(), height());
 			mouseDownHere = true;
@@ -254,8 +278,6 @@ mousePressEvent(QMouseEvent* e){
 			setRegionDirty(true);
 			break;
 		
-			
-			break;
 		default:
 			break;
 	}
@@ -268,8 +290,14 @@ mousePressEvent(QMouseEvent* e){
 void VizWin:: 
 mouseReleaseEvent(QMouseEvent*e){
 	switch (myWinMgr->selectionMode){
-		case Command::navigateMode : 
+		
 		case Command::regionMode :
+			//Check if the region bounds were moved
+			if (myWinMgr->getRegionParams(myWindowNum)->draggingFace()){
+				myWinMgr->getRegionParams(myWindowNum)->captureMouseUp();
+				break;
+			} //otherwise fall through to navigate mode
+		case Command::navigateMode : 
 			myWinMgr->getViewpointParams(myWindowNum)->captureMouseUp();
 			myTrackball->MouseOnTrackball(2, e->button(), e->x(), e->y(), width(), height());
 			mouseDownHere = false;
@@ -279,8 +307,6 @@ mouseReleaseEvent(QMouseEvent*e){
 			myGLWindow->updateGL();
 			break;
 
-		
-			break;
 		default:
 			break;
 	}
@@ -309,21 +335,35 @@ mouseMoveEvent(QMouseEvent* e){
 	//Respond based on what activity we are tracking
 	//Need to tell the appropriate params about the change,
 	//And it should refresh the panel
-	QPoint deltaPoint = e->globalPos() - mouseDownPosition;
+	
 	switch (myWinMgr->selectionMode){
-		case Command::navigateMode : 
 		case Command::regionMode :
-			myTrackball->MouseOnTrackball(1, e->button(), e->x(), e->y(), width(), height());
-			//Note that the coords have changed:
-			newViewerCoords = true;
+			{
+				RegionParams* rParams = myWinMgr->getRegionParams(myWindowNum);
+				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
+				//In region mode, check first to see if we are dragging face
+				if (rParams->draggingFace()){
+					float dirVec[3];
+					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+						vParams->getCameraPos(), dirVec);
+					rParams->slideCubeFace(dirVec);
+					myGLWindow->updateGL();
+					break;
+				}
+			}
+			//Fall through to navigate if not dragging face
+		case Command::navigateMode : 
+			{
+				QPoint deltaPoint = e->globalPos() - mouseDownPosition;
+				myTrackball->MouseOnTrackball(1, e->button(), e->x(), e->y(), width(), height());
+				//Note that the coords have changed:
+				newViewerCoords = true;
 
-			//?????
-			//setRegionDirty(true);
-			//myGLWindow->updateGL();
-			break;
-		//region mode...
-			myWinMgr->getRegionParams(myWindowNum)->slide(deltaPoint);
-			break;
+				//?????
+				//setRegionDirty(true);
+				myGLWindow->updateGL();
+				break;
+			}
 		default:
 			break;
 	}
@@ -475,15 +515,77 @@ void VizWin::removeRenderer(const char* rendererName){
 	myGLWindow->updateGL();
 	
 }
-//Set the trackball center in world coords
-/*
-void VizWin::
-centerTrackball(float worldCenter[3]){
-	float cubeCoords[3];
-	ViewpointParams::worldToCube(worldCenter, cubeCoords);
-	myTrackball->setCenter(cubeCoords);
+//This determines if the specified point is over one of the faces of the regioncube.
+//ScreenCoords are as in OpenGL:  bottom of window is 0
+//
+int VizWin::
+pointOverCube(RegionParams* rParams, float screenCoords[2]){
+	//First get the cube corners into an array of floats
+	
+	float corners[24];
+	float mincrd[3];
+	float maxcrd[3];
+	for (int i = 0; i<3; i++){
+		mincrd[i] = rParams->getRegionMin(i);
+		maxcrd[i] = rParams->getRegionMax(i);
+	}
+	//Specify corners in counterclockwise order (appearing from front) 
+	//Back first:
+	corners[0+3*0] = mincrd[0];
+	corners[1+3*0] = mincrd[1];
+	corners[2+3*0] = mincrd[2];
+	corners[0+3*1] = maxcrd[0];
+	corners[1+3*1] = mincrd[1];
+	corners[2+3*1] = mincrd[2];
+	corners[0+3*2] = maxcrd[0];
+	corners[1+3*2] = maxcrd[1];
+	corners[2+3*2] = mincrd[2];
+	corners[0+3*3] = mincrd[0];
+	corners[1+3*3] = maxcrd[1];
+	corners[2+3*3] = mincrd[2];
+	//Front (large z)
+	corners[0+3*4] = mincrd[0];
+	corners[1+3*4] = mincrd[1];
+	corners[2+3*4] = maxcrd[2];
+	corners[0+3*5] = maxcrd[0];
+	corners[1+3*5] = mincrd[1];
+	corners[2+3*5] = maxcrd[2];
+	corners[0+3*6] = maxcrd[0];
+	corners[1+3*6] = maxcrd[1];
+	corners[2+3*6] = maxcrd[2];
+	corners[0+3*7] = mincrd[0];
+	corners[1+3*7] = maxcrd[1];
+	corners[2+3*7] = maxcrd[2];
+	
+
+
+	//Then transform them in-place to cube coords.
+	for (int j = 0; j<8; j++)
+		ViewpointParams::worldToCube(corners+j*3, corners+j*3);
+	//Finally, for each face, test the point:
+	
+	//Back
+	if (myGLWindow->pointIsOnQuad(corners+0,corners+9,corners+6,corners+3,
+		screenCoords)) return 0;
+	//Front
+	if (myGLWindow->pointIsOnQuad(corners+12,corners+15,corners+18,corners+21,
+		screenCoords)) return 1;
+	//Bottom
+	if (myGLWindow->pointIsOnQuad(corners+0,corners+3,corners+15,corners+12,
+		screenCoords)) return 2;
+	//Top
+	if (myGLWindow->pointIsOnQuad(corners+6,corners+9,corners+21,corners+18,
+		screenCoords)) return 3;
+	//Left:
+	if (myGLWindow->pointIsOnQuad(corners+9,corners+0,corners+12,corners+21,
+		screenCoords)) return 4;
+	//Right:
+	if (myGLWindow->pointIsOnQuad(corners+3,corners+6,corners+18,corners+15,
+		screenCoords)) return 5;
+	
+	return -1;
 }
-*/
+
     
     
 

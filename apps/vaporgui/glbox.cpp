@@ -74,7 +74,7 @@ void GLBox::paintGL()
 	myGLWindow->getTBall()->TrackballSetMatrix();
 	//glTranslatef(-.5,-.5,-.5);
 	//If there are new coords, get them from GL, send them to the gui
-	if (myVizWin->newViewerCoords){ 
+	if (myVizWin->viewerCoordsChanged()){ 
 		myGLWindow->changeViewerFrame();
 	}
     //glCallList( object );

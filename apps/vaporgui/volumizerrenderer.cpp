@@ -69,7 +69,7 @@ using namespace VetsUtil;
 //This constructor just creates the volumizer driver
 //
 VolumizerRenderer::VolumizerRenderer(VizWin* vw) : Renderer(vw) {
-	myDVRParams = vw->getWinMgr()->getDvrParams(vw->getWindowNum());
+	myDVRParams = VizWinMgr::getInstance()->getDvrParams(vw->getWindowNum());
 	//Construct dvrvolumizer
 	driver = create_driver("vz",1);
 }
@@ -215,7 +215,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	glDrawBuffer(buffer);
 
 	
-	//glTranslatef(.5,.5,.5);
+	
     myGLWindow->getTBall()->TrackballSetMatrix();
 	//In regionMode, draw a grid:
 	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
@@ -223,14 +223,15 @@ DrawVoxelScene(unsigned /*fast*/)
 	}
 	
 	//If there are new coords, get them from GL, send them to the gui
-	if (myVizWin->newViewerCoords){ 
+	if (myVizWin->viewerCoordsChanged()){ 
 		myGLWindow->changeViewerFrame();
 	}
 	
+	//Save the coord trans matrix, to pass to volumizer
 	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
 	
 	
-	// set up view transform. Really only need to do this if the data
+	// set up region. Only need to do this if the data
 	// roi changes
 	//
 	if (myVizWin->regionIsDirty()|| myDVRParams->datarangeIsDirty()) {
@@ -245,8 +246,8 @@ DrawVoxelScene(unsigned /*fast*/)
 		
 		//Make sure we are using the current regionParams
 		
-		myRegionParams = myVizWin->getWinMgr()->getRegionParams(winNum);
-		AnimationParams* myAnimationParams = myVizWin->getWinMgr()->getAnimationParams(winNum);
+		myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+		AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
 		//Do Region setup as in SetCurrentFile() (mdb.C):
 		//
 
@@ -335,7 +336,15 @@ DrawVoxelScene(unsigned /*fast*/)
 
 	//Finally render the region geometry, if in region mode
 	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
-		renderRegionBounds(extents);
+		float camVec[3];
+		ViewpointParams* myViewpointParams = VizWinMgr::getInstance()->getViewpointParams(winNum);
+		ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
+		//Obtain the face displacement in world coordinates,
+		//Then normalize to unit cube coords:
+		float disp = myRegionParams->getFaceDisplacement();
+		disp /= ViewpointParams::getMaxCubeSide();
+		renderRegionBounds(extents, myRegionParams->getSelectedFaceNum(),
+			camVec, disp);
 	}
 
     glPopMatrix();
@@ -348,259 +357,6 @@ DrawVoxelWindow(unsigned fast)
 {
 	myGLWindow->makeCurrent();
 	DrawVoxelScene(fast);
-}
-//OpenGL commands to draw a grid of lines of the full domain.
-//Grid resolution is fine enough to show location of selected subregion
-void VolumizerRenderer::renderDomainFrame(float* extents, float* minFull, float* maxFull){
-
-	//Recalculate these things temporarily:
-
-	float fullExtent[6];
-	int i;
-	for (i = 0; i< 3; i++){
-		fullExtent[i] = myRegionParams->getFullDataExtent(i);
-		fullExtent[i+3] = myRegionParams->getFullDataExtent(i+3);
-	}
-	
-	//Determine how many lines in each dimension to render.  Find the smallest size 
-	//of any of the current region dimensions.  See what power-of-two fraction of the full 
-	//cube is as small as that size in that dimension.  Then subdivide all dimensions 
-	//in that fraction.float minSize = 1.e30f;
-	float regionSize[3], fullSize[3];
-	int logDim[3], numLines[3];
-	
-	int minDim;
-	float minSize = 1.e30f;
-	
-	for (i = 0; i<3; i++){
-		regionSize[i] = extents[i+3]-extents[i];;
-		fullSize[i] = maxFull[i] - minFull[i];
-		if (minSize > regionSize[i]) {
-			minSize = regionSize[i];
-			minDim = i;
-		}
-	}
-	float sizeFraction = (fullSize[minDim])/minSize;
-	//Find the integer log, base 2 of this:
-	
-	logDim[minDim] = ILog2((int)(sizeFraction+0.5f));
-	//The log in the other dimensions will be about the same unless the
-	//full region is substantially different in that dimension
-	for (i = 0; i<3; i++){
-		if (i!= minDim){
-			float sizeRatio =	fullSize[i]/fullSize[minDim];
-			if (sizeRatio > 1.f)
-				logDim[i] = logDim[minDim]+ ILog2((int)sizeRatio);
-			else 
-				logDim[i] = logDim[minDim]- ILog2((int)(1.f/sizeRatio));
-		}
-		numLines[i] = 1<<logDim[i];
-		//Limit to no more than 4-way grid lines
-		if (numLines[i]>4) numLines[i] = 4;
-	}
-	glColor3f(1.f,1.f,1.f);	   
-    glLineWidth( 2.0 );
-	//Now draw the lines.  Divide each dimension into numLines[dim] sections.
-	
-	int x,y,z;
-	//Do the lines in each z-plane
-	//Turn on writing to the z-buffer
-	glDepthMask(GL_TRUE);
-	
-	glBegin( GL_LINES );
-	for (z = 0; z<=numLines[2]; z++){
-		float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
-		//Draw lines in x-direction for each y
-		for (y = 0; y<=numLines[1]; y++){
-			float yCrd = minFull[1] + ((float)y/(float)numLines[1])*fullSize[1];
-			
-			glVertex3f(  minFull[0],  yCrd, zCrd );   
-			glVertex3f( maxFull[0],  yCrd, zCrd );
-			
-		}
-		//Draw lines in y-direction for each x
-		for (x = 0; x<=numLines[0]; x++){
-			float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
-			
-			glVertex3f(  xCrd, minFull[1], zCrd );   
-			glVertex3f( xCrd, maxFull[1], zCrd );
-			
-		}
-	}
-	//Do the lines in each y-plane
-	
-	for (y = 0; y<=numLines[1]; y++){
-		float yCrd = minFull[1] + ((float)y/(float)numLines[1])*fullSize[1];
-		//Draw lines in x direction for each z
-		for (z = 0; z<=numLines[2]; z++){
-			float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
-			
-			glVertex3f(  minFull[0],  yCrd, zCrd );   
-			glVertex3f( maxFull[0],  yCrd, zCrd );
-			
-		}
-		//Draw lines in z direction for each x
-		for (x = 0; x<=numLines[0]; x++){
-			float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
-		
-			glVertex3f(  xCrd, yCrd, minFull[2] );   
-			glVertex3f( xCrd, yCrd, maxFull[2]);
-			
-		}
-	}
-	
-	//Do the lines in each x-plane
-	for (x = 0; x<=numLines[0]; x++){
-		float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
-		//Draw lines in y direction for each z
-		for (z = 0; z<=numLines[2]; z++){
-			float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
-			
-			glVertex3f(  xCrd, minFull[1], zCrd );   
-			glVertex3f( xCrd, maxFull[1], zCrd );
-			
-		}
-		//Draw lines in z direction for each y
-		for (y = 0; y<=numLines[1]; y++){
-			float yCrd = minFull[1] + ((float)y/(float)numLines[1])*fullSize[1];
-			
-			glVertex3f(  xCrd, yCrd, minFull[2] );   
-			glVertex3f( xCrd, yCrd, maxFull[2]);
-			
-		}
-	}
-	glEnd();//GL_LINES
-	
-	
-
-}
-//The "front" surface of the cube is drawn partially transparent, 
-//with  handles to drag the planes.  This is drawn after the cube is drawn.
-// The z-buffer can continue to be
-//read-only, but leave it on so that the grid lines will continue to be visible.
-//A face of the cube is "front" if the camera is in that direction from the
-//cube center.
-void VolumizerRenderer::renderRegionBounds(float* extents){
-	
-	glColor4f(.8f,.8f,.8f,.2f);
-	float sideCoord;
-	if (VizWinMgr::getInstance()->cameraBeyondRegionCenter(0, myVizWin->getWindowNum())){
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		sideCoord = extents[3];
-	}
-	else {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		sideCoord = extents[0];
-	}
-	//draw region end, y and z varying:
-	glPolygonMode(GL_FRONT, GL_FILL);
-	glBegin(GL_QUADS);
-	glVertex3f(extents[0], extents[1], extents[2]);
-	glVertex3f(extents[0], extents[1], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[2]);
-	glEnd();
-	//draw region end, y and z varying:
-	glBegin(GL_QUADS);
-	glVertex3f(extents[3], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[4], extents[5]);
-	glVertex3f(extents[3], extents[4], extents[2]);
-	glEnd();
-/*
-	if (VizWinMgr::getInstance()->cameraBeyondRegionCenter(1, myVizWin->getWindowNum())){
-		glPolygonMode(GL_FRONT, GL_FILL);
-		sideCoord = extents[4];
-	}
-	else {
-		glPolygonMode(GL_FRONT, GL_FILL);
-		sideCoord = extents[1];
-	}
-	*/
-	//draw region top/bottom, x and z varying:
-	glPolygonMode(GL_FRONT, GL_FILL);
-	glBegin(GL_QUADS);
-	glVertex3f(extents[0], extents[4], extents[2]);
-	glVertex3f(extents[3], extents[4], extents[2]);
-	glVertex3f(extents[3], extents[4], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[5]);
-	
-	
-	glEnd();
-	//draw region top/bottom, x and z varying:
-	glBegin(GL_QUADS);
-	glVertex3f(extents[0], extents[1], extents[2]);
-	glVertex3f(extents[0], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[1], extents[2]);
-	glEnd();
-
-	if (VizWinMgr::getInstance()->cameraBeyondRegionCenter(2, myVizWin->getWindowNum())){
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		sideCoord = extents[5];
-	}
-	else {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		sideCoord = extents[2];
-	}
-	
-	//draw region end, x and y varying:
-	glPolygonMode(GL_FRONT, GL_FILL);
-	glBegin(GL_QUADS);
-	glVertex3f(extents[0], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[4], extents[2]);
-	glVertex3f(extents[0], extents[4], extents[2]);
-	glEnd();
-	//make the front more obvious!
-	//glColor4f(.8f,.8f,.3f,0.7f);
-	glPolygonMode(GL_FRONT, GL_FILL);
-	glBegin(GL_QUADS);
-	glVertex3f(extents[0], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[4], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[5]);
-	glEnd();
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//Draw the  8 lines in solid yellow:
-	glColor3f(1.f,1.f,0.f);
-	glBegin(GL_LINES);
-	glVertex3f(extents[0], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[1], extents[5]);
-	
-	glVertex3f(extents[3], extents[4], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[5]);
-	
-	glVertex3f(extents[3], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[4], extents[5]);
-	
-	glVertex3f(extents[0], extents[1], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[5]);
-	
-	glVertex3f(extents[0], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[1], extents[2]);
-	
-	glVertex3f(extents[3], extents[4], extents[2]);
-	glVertex3f(extents[0], extents[4], extents[2]);
-	
-	glVertex3f(extents[3], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[4], extents[2]);
-	
-	glVertex3f(extents[0], extents[1], extents[2]);
-	glVertex3f(extents[0], extents[4], extents[2]);
-	
-	glVertex3f(extents[0], extents[1], extents[2]);
-	glVertex3f(extents[0], extents[1], extents[5]);
-	
-	glVertex3f(extents[0], extents[4], extents[2]);
-	glVertex3f(extents[0], extents[4], extents[5]);
-	
-	glVertex3f(extents[3], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[1], extents[5]);
-	
-	glVertex3f(extents[3], extents[4], extents[2]);
-	glVertex3f(extents[3], extents[4], extents[5]);
-	glEnd();
 }
 
 #endif //VOLUMIZER

@@ -108,6 +108,9 @@ public:
 	static void setCoordTrans();
 
 	float* getRotationCenter(){ return rotationCenter;}
+	//Following determines scale factor in coord transformation:
+	//
+	static float getMaxCubeSide() {return maxCubeSide;}
 	
 protected:
 	//Holder for saving state during mouse move:
@@ -121,6 +124,7 @@ protected:
 	VizTab* myVizTab;
 
 	//Static coeffs for affine coord conversion:
+	//
 	static float minCubeCoord[3];
 	static float maxCubeSide;
 

@@ -181,7 +181,7 @@ public:
 		
 	void createDefaultRendererPanels(int winnum);
 	
-	void setSelectionMode( Command::mouseModeType m) {selectionMode = m;}
+	void setSelectionMode( Command::mouseModeType m);
 	Command::mouseModeType getSelectionMode () {return selectionMode;}
 	Trackball* getGlobalTrackball() {return globalTrackball;}
 	//For a specific coordinate, and a specific window num, determine
@@ -190,6 +190,8 @@ public:
 	//
 	bool cameraBeyondRegionCenter(int coord, int vizWinNum);
 
+	//Following methods notify all params that are associated with a
+	//specific window.
 	//Set the dirty bits in all the visualizers that use a
 	//region parameter setting
 	//

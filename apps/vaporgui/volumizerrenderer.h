@@ -57,8 +57,7 @@ private:
 	DVRBase* driver;
 	void DrawVoxelScene(unsigned fast);
 	void DrawVoxelWindow(unsigned fast);
-	void renderDomainFrame(float* extents, float* minFull, float* maxFull);
-	void renderRegionBounds(float* extents);
+	
 
 	
 	DvrParams* myDVRParams;
