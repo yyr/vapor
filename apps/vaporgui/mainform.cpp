@@ -391,7 +391,9 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	renderDVR();
 	contourPlanes();
 	viewpoint();
-	
+	//Create one initial visualizer:
+	myVizMgr->launchVisualizer();
+
 	Session::getInstance()->unblockRecording();
 	
 

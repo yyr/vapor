@@ -53,6 +53,7 @@ SOURCES +=\
 	   glwindow.cpp \
 	   histo.cpp \
 	   isosurfaceparams.cpp \
+ 	   loadtfdialog.cpp \
 	   main.cpp \
            mainform.cpp \
            minmaxcombo.cpp \
@@ -61,6 +62,7 @@ SOURCES +=\
 	   params.cpp \
 	   regionparams.cpp \
 	   renderer.cpp \
+	   savetfdialog.cpp \
 	   session.cpp \
            tabmanager.cpp \
 	   tfeditor.cpp \
@@ -95,6 +97,7 @@ HEADERS += \
 	   glutil.h \
 	   histo.h \
 	   isosurfaceparams.h \
+	   loadtfdialog.h \
            mainform.h \
            minmaxcombo.h \
 	   opacadjustdialog.h \
@@ -102,6 +105,7 @@ HEADERS += \
 	   params.h \
 	   regionparams.h \
 	   renderer.h \
+	   savetfdialog.h \
 	   session.h \
            tabmanager.h \
 	   tfeditor.h \
@@ -119,11 +123,11 @@ HEADERS += \
 	   vizwin.h \
            vizwinmgr.h \
 	   volumizerrenderer.h 
-FORMS +=  ./ui/animationtab.ui \
-	 ./ui/viztab.ui \
-	 ./ui/dvr.ui \
-         ./ui/regiontab.ui \ 
-	 ./ui/contourplanetab.ui \
-       	 ./ui/isotab.ui \
-	 ./ui/sessionparameters.ui
+FORMS +=  ui/animationtab.ui \
+	 ui/viztab.ui \
+	 ui/dvr.ui \
+         ui/regiontab.ui \ 
+	 ui/contourplanetab.ui \
+       	 ui/isotab.ui \
+	 ui/sessionparameters.ui 
 

@@ -32,6 +32,7 @@
 #include <qcheckbox.h>
 #include <qcolordialog.h>
 #include <qbuttongroup.h>
+#include <qfiledialog.h>
 
 #include "vizwin.h"
 #include "vizwinmgr.h"
@@ -57,6 +58,8 @@
 #include "glbox.h"
 #include "vizactivatecommand.h"
 #include "session.h"
+#include "loadtfdialog.h"
+#include "savetfdialog.h"
 
 #ifdef VOLUMIZER
 #include "volumizerrenderer.h"
@@ -538,6 +541,8 @@ void
 VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 {
 	myDvrTab = dvrTab;
+	connect (dvrTab->loadButton, SIGNAL(clicked()), this, SLOT(dvrLoadTF()));
+	connect (dvrTab->saveButton, SIGNAL(clicked()), this, SLOT(dvrSaveTF()));
 	connect (dvrTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setDvrEnabled(int)));
 	connect (dvrTab->variableCombo, SIGNAL( activated(int) ), this, SLOT( setDvrVariableNum(int) ) );
 	connect (dvrTab->lightingCheckbox, SIGNAL( toggled(bool) ), this, SLOT( setDvrLighting(bool) ) );
@@ -840,7 +845,7 @@ setRegionDirty(RegionParams* rParams){
 	if (rParams->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if  ( vizWin[i] && (i != activeViz)  &&
-				(rgParams[i] == rParams ||(!rgParams[i]))
+				((!rgParams[i])||!rgParams[i]->isLocal())
 			){
 			vizWin[i]->setRegionDirty(true);
 			vizWin[i]->updateGL();
@@ -859,7 +864,7 @@ setAnimationDirty(AnimationParams* aParams){
 	if (aParams->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if  ( vizWin[i] && (i != activeViz)  &&
-				(animationParams[i] == aParams ||(!animationParams[i]))
+				((!animationParams[i])||!animationParams[i]->isLocal())
 			){
 			vizWin[i]->setRegionDirty(true);
 			vizWin[i]->updateGL();
@@ -879,7 +884,7 @@ animationParamsChanged(AnimationParams* aParams){
 	if (aParams->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if  ( vizWin[i] && (i != activeViz)  &&
-				(animationParams[i] == aParams ||(!animationParams[i]))
+				((!animationParams[i])||!animationParams[i]->isLocal())
 			){
 			ac->paramsChanged(i);
 		}
@@ -912,7 +917,7 @@ setDvrDirty(DvrParams* dParams){
 	//If another viz is using these dvr params, force them to update, too
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if  ( vizWin[i] && (i != activeViz) &&
-				(dvrParams[i] == dParams ||(!dvrParams[i]))
+				( (!dvrParams[i])||!dvrParams[i]->isLocal())
 			){
 			vizWin[i]->updateGL();
 		}
@@ -1186,6 +1191,32 @@ dvrHistoStretch() {
 	getDvrParams(activeViz)->guiSetHistoStretch(
 		myMainWindow->getDvrTab()->histoStretchSlider->value());
 }
+//Respond to user click on save/load TF.  This launches the intermediate
+//dialog, then sends the result to the DVR params
+void VizWinMgr::
+dvrSaveTF(void){
+	SaveTFDialog* saveTFDialog = new SaveTFDialog(getDvrParams(activeViz),myMainWindow->getDvrTab(),
+		"Save TF Dialog", true);
+	int rc = saveTFDialog->exec();
+	if (rc == 1) getDvrParams(activeViz)->fileSaveTF();
+	//If rc=2, we already saved it to the session.
+	//else if (rc == 2) getDvrParams(activeViz)->sessionSaveTF();
+}
+void VizWinMgr::
+dvrLoadTF(void){
+	//If there are no TF's currently in Session, just launch file load dialog.
+	if (Session::getInstance()->getNumTFs() > 0){
+		LoadTFDialog* loadTFDialog = new LoadTFDialog(getDvrParams(activeViz),myMainWindow->getDvrTab(),
+			"Load TF Dialog", true);
+		int rc = loadTFDialog->exec();
+		if (rc == 0) return;
+		if (rc == 1) getDvrParams(activeViz)->fileLoadTF();
+		//if rc == 2, we already (probably) loaded a tf from the session
+	} else {
+		getDvrParams(activeViz)->fileLoadTF();
+	}
+}
+
 
 
 /*****************************************************************************

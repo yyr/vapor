@@ -678,7 +678,7 @@
                     </spacer>
                     <widget class="QPushButton">
                         <property name="name">
-                            <cstring>saveAsButton</cstring>
+                            <cstring>saveButton</cstring>
                         </property>
                         <property name="maximumSize">
                             <size>
@@ -1491,7 +1491,7 @@
         </sizehint>
         <container>0</container>
         <sizepolicy>
-            <hordata>5</hordata>
+            <hordata>1</hordata>
             <verdata>5</verdata>
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
@@ -1516,7 +1516,7 @@
         </sizehint>
         <container>0</container>
         <sizepolicy>
-            <hordata>5</hordata>
+            <hordata>1</hordata>
             <verdata>5</verdata>
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>

@@ -31,11 +31,24 @@ TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm){
 	myFrame = frm;
 	myParams = prms;
 	tf->setEditor(this);
-	editImage = new QImage(frm->size(), 32);
+	
+	reset();
+	
+}
+TFEditor::~TFEditor(){
+	//Don't delete the image:  QT refcounts them
+	//delete editImage;
+}
+//Reset to default state.  Should already have frame
+//associated.
+//
+void TFEditor::
+reset(){
+	editImage = new QImage(myFrame->size(), 32);
 	editImage->detach();
-	//opacImage = new QImage(frm->size(), 32);
-	height = frm->height();
-	width = frm->width();
+	
+	height = myFrame->height();
+	width = myFrame->width();
 	for (int i = 0; i< MAXCONTROLPOINTS; i++){
 		selectedColor[i] = false;
 		selectedOpac[i] = false;
@@ -47,12 +60,6 @@ TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm){
 	numColorSelect = 0;
 	numOpacSelect = 0;
 	histoMaxBin = -1;
-	
-	
-}
-TFEditor::~TFEditor(){
-	//Don't delete the image:  QT refcounts them
-	//delete editImage;
 }
 // Use the data in the transfer function to construct the editing image
 //
@@ -96,13 +103,16 @@ void TFEditor::refreshImage(){
 		float xCoord = mapWin2Var(x);
 		int newColumn = mapWin2Discrete(x,false);
 		if (newColumn != column){
-			if (newColumn < 0 || newColumn > 255){
-				color = qRgb(0,0,0);
-			} else {
-				if (xCoord < myTransferFunction->getMinMapValue() ||
-					xCoord > myTransferFunction->getMaxMapValue())
-					color = qRgb(0,0,0); 
-				else color = COLOR(newColumn);
+			if (newColumn < 0)
+				color = COLOR(0);
+			else if (newColumn > 255)
+				color = COLOR(255);
+			else {
+				//if (xCoord < myTransferFunction->getMinMapValue() ||
+				//	xCoord > myTransferFunction->getMaxMapValue())
+				//	color = qRgb(0,0,0); 
+				//else 
+				color = COLOR(newColumn);
 			}
 			column = newColumn;
 		}

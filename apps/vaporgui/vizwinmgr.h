@@ -352,6 +352,9 @@ protected slots:
 	void dvrHistoStretch();
 	void dvrColorBind();
 	void dvrOpacBind();
+	void dvrLoadTF();
+	void dvrSaveTF();
+	
 	
 	//Slots for contour panel:
 	

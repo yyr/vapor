@@ -95,7 +95,9 @@
 #define MAX_HISTORY 1000
 
 #include <vector>
+#include <string>
 #include "vapor/DataMgr.h"
+class QString;
 namespace VAPoR {
 class VizWinMgr;
 class Histo;
@@ -106,6 +108,8 @@ class Command;
 class Metadata;
 class DataStatus;
 class WaveletBlock3DRegionReader;
+class TransferFunction;
+class DvrParams;
 
 // Class used by session to keep track of variables, timesteps	
 class DataStatus{
@@ -238,7 +242,19 @@ public:
 	void setCacheMB(size_t size){cacheMB = size;}
 	size_t getCacheMB() {return cacheMB;}
 	bool renderReady() {return renderOK;}
-	
+	int getNumTFs() { return numTFs;}
+	std::string* getTFName(int i) { return tfNames[i];}
+	void addTF(const char* tfName, DvrParams* );
+	bool removeTF(const std::string* name);
+	//Obtain the Transfer function associated with a name,
+	//plus, return left end right map limits.
+	TransferFunction* getTF(const std::string* tfName,
+		float* leftLim, float* rightLim);
+	bool isValidTFName(const std::string* tfName);
+	QString* getTFFilePath() {
+		return tfFilePath;
+	}
+	void updateTFFilePath(QString* newPath);
 
 
 protected:
@@ -261,6 +277,13 @@ protected:
 	size_t cacheMB;
 	size_t maxTimeStep, minTimeStep;
 	bool renderOK;
+	//TransferFunctions are kept, by name, in the session:
+	TransferFunction** keptTFs;
+	std::string** tfNames;
+	int numTFs, tfListSize;
+	float* leftBounds; 
+	float* rightBounds;
+	QString* tfFilePath;
 	
 };
 

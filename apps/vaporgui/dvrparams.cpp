@@ -28,6 +28,8 @@
 #include <qslider.h>
 #include <qbuttongroup.h>
 #include <qlabel.h>
+#include <qfiledialog.h>
+#include <qmessagebox.h>
 
 #include <vector>
 #include <string>
@@ -252,7 +254,8 @@ setVarNum(int val)
 {
 	varNum = val;
 	
-	//reset the editing display range, this also sets dirty flag
+	//reset the editing display range shown on the tab, 
+	//this also sets dirty flag
 	updateTFBounds();
 	//Force a redraw of tfframe
 	myTFEditor->setDirty(true);
@@ -537,4 +540,109 @@ setDatarangeDirty(bool dirty)
 	}
 }
 
+//Respond to user request to load/save TF
+//Assumes name is valid
+//
+void DvrParams::
+sessionLoadTF(QString* name){
+	//Get the transfer function from the session:
+	float leftLimit, rightLimit;
+	std::string s(name->ascii());
+	TransferFunction* tf = Session::getInstance()->getTF(&s,&leftLimit,&rightLimit);
+	assert(tf);
+	//The min/max map bounds go into the dvrparams:
+	setMinMapBound(leftLimit);
+	setMaxMapBound(rightLimit);
+	hookupTF(tf);
+}
+void DvrParams::
+fileLoadTF(){
+	//Open a file load dialog
+	
+    QString s = QFileDialog::getOpenFileName(
+                    *Session::getInstance()->getTFFilePath(),
+                    "Vapor Transfer Functions (*.vtf)",
+                    myDvrTab,
+                    "load TF dialog",
+                    "Choose a transfer function file to open" );
+	//Null string indicates nothing selected.
+	if (s.length() == 0) return;
+	//Force the name to end with .vtf
+	if (!s.endsWith(".vtf")){
+		s += ".vtf";
+	}
+	FILE* f = fopen(s.ascii(), "r");
+	if (!f){//Report error if you can't open the file
+		QMessageBox::warning(myDvrTab, "Error loading transfer function",
+			QString("Unable to open file: \n %1 ").arg(s),
+			QMessageBox::Ok, QMessageBox::NoButton);
+		return;
+	}
+	TransferFunction* t = TransferFunction::loadFromFile(f, this);
+	if (!t){//Report error if can't load
+		QMessageBox::warning(myDvrTab, "Error loading transfer function",
+			QString("Failed to convert input file: \n %1 ").arg(s),
+			QMessageBox::Ok, QMessageBox::NoButton);
+		return;
+	}
+
+	hookupTF(t);
+	//Remember the path to the file:
+	Session::getInstance()->updateTFFilePath(&s);
+}
+//Hook up the new transfer function,
+//Delete the old one.
+//
+void DvrParams::
+hookupTF(TransferFunction* t){
+
+	t->setParams(this);
+	t->setEditor(myTFEditor);
+	myTFEditor->setTransferFunction(t);
+	myTFEditor->reset();
+	delete myTransFunc;
+	myTransFunc = t;
+	//Align the editor and domain bounds:
+	setMinEditBound(getMinMapBound());
+	setMaxEditBound(getMaxMapBound());
+	//reset the editing display range, this also sets dirty flag
+	updateTFBounds();
+	//Force a redraw of tfframe
+	myTFEditor->setDirty(true);
+	myDvrTab->DvrTFFrame->update();	
+	setDatarangeDirty(true);
+	setClutDirty(true);
+}
+void DvrParams::
+fileSaveTF(){
+	//Launch a file save dialog, open resulting file
+    QString s = QFileDialog::getSaveFileName(
+					*Session::getInstance()->getTFFilePath(),
+                    "Vapor Transfer Functions (*.vtf)",
+                    myDvrTab,
+                    "save TF dialog",
+                    "Choose a filename to save the transfer function" );
+	//Did the user cancel?
+	if (s.length()== 0) return;
+	//Force the name to end with .vtf
+	if (!s.endsWith(".vtf")){
+		s += ".vtf";
+	}
+	FILE* f = fopen(s.ascii(), "w");
+	if (!f){//Report error if you can't open the file
+		QMessageBox::warning(myDvrTab, "Error saving transfer function",
+			QString("Unable to save to file: \n %1 ").arg(s),
+			QMessageBox::Ok, QMessageBox::NoButton);
+		return;
+	}
+	
+	if (!myTransFunc->saveToFile(f)){//Report error if can't save to file
+		QMessageBox::warning(myDvrTab, "Error saving transfer function",
+			QString("Failed to write output file: \n %1 ").arg(s),
+			QMessageBox::Ok, QMessageBox::NoButton);
+		return;
+	}
+
+	Session::getInstance()->updateTFFilePath(&s);
+}
 	

@@ -129,11 +129,17 @@ public:
 	}
 	void setEditMode(bool mode) {editMode = mode;}
 	bool getEditMode() {return editMode;}
+	TransferFunction* getTransferFunction() {return myTransFunc;}
 	
 		
 	void setClut(const float newTable[256][4]);
 	void setBindButtons();
 	void updateTFBounds();
+
+	//Respond to user request to load/save TF
+	void fileLoadTF();
+	void fileSaveTF();
+	void sessionLoadTF(QString* name);
 	
 	//Methods with undo/redo support:
 	//
@@ -159,7 +165,7 @@ public:
 	
 protected:
 	void refreshCtab();
-	
+	void hookupTF(TransferFunction* t);
 	bool attenuationDirty;
 	bool clutDirty;
 	bool datarangeDirty;

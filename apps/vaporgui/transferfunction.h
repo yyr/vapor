@@ -126,6 +126,12 @@ public:
 		float normVal = (val-getMinMapValue())/(getMaxMapValue()-getMinMapValue());
 		return getLeftIndex(normVal, colorCtrlPoint, numColorControlPoints);
 	}
+	//Methods to save and restore transfer functions.
+	//The gui opens the FILEs that are then read/written
+	//Failure results in false/null pointer
+	//
+	bool saveToFile(FILE* f);
+	static TransferFunction* loadFromFile(FILE* f, DvrParams* p);
 protected:
 	//find the index of the largest control point to the left of val
 	//Input value is normalized (note this is protected)
@@ -146,7 +152,7 @@ protected:
 	TFEditor* myTFEditor;
 	DvrParams* myParams;
 	
-	//Size of lookup table:
+	//Size of lookup table.  Always 1<<8 these days!
 	//
 	int numEntries;
 

@@ -27,6 +27,8 @@
 #include "histo.h"
 #include "vapor/Metadata.h"
 #include "animationcontroller.h"
+#include "transferfunction.h"
+#include <qstring.h>
 using namespace VAPoR;
 Session* Session::theSession = 0;
 Session::Session() {
@@ -49,14 +51,21 @@ Session::Session() {
 	currentDataStatus = 0;
 	cacheMB = 512;
 	renderOK = false;
-	//AnimationController::getInstance()->run();
+	numTFs = 0;
+	tfNames = 0;
+	keptTFs = 0;
+	tfListSize = 0;
+	leftBounds = 0;
+	rightBounds = 0;
+	tfFilePath = new QString(".");
 }
 Session::~Session(){
+	int i;
 	delete VizWinMgr::getInstance();
 	delete AnimationController::getInstance();
 	//Note: metadata is deleted by Datamgr
 	if (dataMgr) delete dataMgr;
-	for (int i = startQueuePos; i<= endQueuePos; i++){
+	for (i = startQueuePos; i<= endQueuePos; i++){
 		if (commandQueue[i%MAX_HISTORY]) {
 			delete commandQueue[i%MAX_HISTORY];
 			commandQueue[i%MAX_HISTORY] = 0;
@@ -71,6 +80,18 @@ Session::~Session(){
 		delete currentHistograms;
 	}
 	if(currentDataStatus) delete currentDataStatus;
+
+	//Delete all the saved transfer functions:
+	for (i = 0; i<numTFs; i++){
+		delete keptTFs[i];
+		delete tfNames[i];
+	}
+	if (tfListSize>0){
+		delete keptTFs;
+		delete tfNames;
+		delete rightBounds;
+		delete leftBounds;
+	}
 }
 
 void Session::
@@ -243,7 +264,7 @@ void Session::resetCommandQueue(){
 // This data is inserted into currentDatastatus;
 DataStatus* Session::
 setupDataStatus(){
-	size_t numTimeSteps = currentMetadata->GetNumTimeSteps()[0];
+	unsigned int numTimeSteps = (unsigned int)currentMetadata->GetNumTimeSteps();
 	int numVariables = currentMetadata->GetVariableNames().size();
 	DataStatus* ds = new DataStatus(numVariables, numTimeSteps);
 	int numXForms = currentMetadata->GetNumTransforms();
@@ -254,7 +275,7 @@ setupDataStatus(){
 	//As we go through the variables and timesteps, keepTrack of min and max times
 	minTimeStep = 1000000000;
 	maxTimeStep = 0;
-	for (size_t ts = 0; ts< numTimeSteps; ts++){
+	for (unsigned int ts = 0; ts< numTimeSteps; ts++){
 		for (int var = 0; var< numVariables; var++){
 			//Find the minimum number of transforms available on disk
 			//Start at the max (lowest res) and move down to min
@@ -304,6 +325,103 @@ setupDataStatus(){
 	}
 
 	return ds;
+}
+//Methods to keep or remove a transfer function 
+//with the session:
+//
+void Session::addTF(const char* tfName, DvrParams* dvrParams){
+
+	//Check first if this name is already in the list.  If so, remove it.
+	const std::string tfname(tfName);
+	removeTF(&tfname);
+
+	if (numTFs >= tfListSize){
+		tfListSize += 10;
+		//Not enough space, need to allocate more room:
+		TransferFunction** tempTFHolder = new TransferFunction*[tfListSize];
+		std::string** tempTFNames = new std::string*[tfListSize];
+		float* tempLeftBounds = new float[tfListSize];
+		float* tempRightBounds = new float[tfListSize];
+		for (int i = 0; i<numTFs; i++){
+			tempTFHolder[i] = keptTFs[i];
+			tempTFNames[i] = tfNames[i];
+			tempLeftBounds[i] = leftBounds[i];
+			tempRightBounds[i] = rightBounds[i];
+			delete tfNames[i];
+			delete keptTFs[i];
+		}
+		keptTFs = tempTFHolder;
+		tfNames = tempTFNames;
+		leftBounds = tempLeftBounds;
+		rightBounds = tempRightBounds;
+	}
+	//copy the tf, its name, and domain bounds
+	keptTFs[numTFs] = new TransferFunction(*(dvrParams->getTransferFunction()));
+	tfNames[numTFs] = new std::string(tfName);
+	leftBounds[numTFs] = dvrParams->getMinMapBound();
+	rightBounds[numTFs] = dvrParams->getMaxMapBound();
+	//Don't retain the pointers to dvrParams and TFE:
+	keptTFs[numTFs]->setParams(0);
+	keptTFs[numTFs]->setEditor(0);
+	numTFs++;
+	return;
+}
+bool Session::
+removeTF(const std::string* name){
+	//See if the string is in the list:
+	int i;
+	for (i = 0; i< numTFs; i++){
+		if (!tfNames[i]->compare(*name)) break;
+	}
+	if (i >= numTFs) return false;
+	delete tfNames[i];
+	delete keptTFs[i];
+	//move the others up:
+	for (int j = i; j<numTFs-1; j++){
+		tfNames[j] = tfNames[j+1];
+		keptTFs[j] = keptTFs[j+1];
+		leftBounds[j] = leftBounds[j+1];
+		rightBounds[j] = rightBounds[j+1];
+	}
+	numTFs--;
+	return true;
+
+}
+//Method to get a transfer function from session.  Clones the one
+//that is saved in the session.
+TransferFunction* Session::
+getTF(const std::string* name, float *leftLim, float* rightLim){
+	//See if the string is in the list:
+	int i;
+	for (i = 0; i< numTFs; i++){
+		if (!tfNames[i]->compare(*name)) break;
+	}
+	if (i >= numTFs) return 0;
+	TransferFunction* tf = new TransferFunction(*(keptTFs[i]));
+	if (leftLim) *leftLim = leftBounds[i];
+	if (rightLim) *rightLim = rightBounds[i];
+	return tf;
+}
+//Method to see if a transfer function is in list
+bool Session::
+isValidTFName(const std::string* name){
+	//See if the string is in the list:
+	int i;
+	for (i = 0; i< numTFs; i++){
+		if (!tfNames[i]->compare(*name)) break;
+	}
+	if (i >= numTFs) return false;
+	return true;
+}
+//Save the most recent file path used for save/restore of transfer functions:
+void Session::
+updateTFFilePath(QString* s){
+	//First find the last / or \.  Strip everything to the right:
+	int pos = s->findRev('\\');
+	if (pos < 0) pos = s->findRev('/');
+	assert (pos>= 0);
+	if (pos < 0) return;
+	*tfFilePath = s->left(pos+1);
 }
 //Here is the implementation of the DataStatus.
 //This class is a repository for information about the current data...

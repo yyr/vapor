@@ -78,6 +78,9 @@ class TFEditor{
 public:
 	TFEditor(DvrParams*, TransferFunction* TF, TFFrame*);
 	~TFEditor();
+	//Reset to default state, e.g. when loading new TF:
+	//
+	void reset();
 	void setEditingRange(float minVal, float maxVal){
 		myParams->setMinEditBound(minVal);
 		myParams->setMaxEditBound(maxVal);
@@ -215,7 +218,7 @@ public:
 		leftMoveMax = -1;
 	}
 	void navigate(int x, int y);
-	
+	//Save the TF map bounds during a drag operation:
 	void saveDomainBounds(){
 		leftDomainSaved = myTransferFunction->getMinMapValue();
 		rightDomainSaved = myTransferFunction->getMaxMapValue();
@@ -268,12 +271,12 @@ protected:
 	float histoStretchFactor;
 	int dragStartX, dragStartY;
 	float mappedDragStartX;
+	//floats to hold domain bounds during a full domain grab:
+	//
 	float leftDomainSaved, rightDomainSaved;
-	//Bounds for current drag.  dragMaxX = -1000000.f if not set:
-	//float dragMinX, dragMaxX, dragMinY, dragMaxY;
-	//Bounds expressed in terms of relative screen coords
-	//leftMoveMax = -1 if not set (prior to mouse move)
+
 	//Note that an Up move corresponds to decreasing y coords!
+	//
 	int leftMoveMax, rightMoveMax, upMoveMax, downMoveMax;
 	int histoMaxBin;
 	

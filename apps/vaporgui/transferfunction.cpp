@@ -37,24 +37,24 @@ using namespace VetsUtil;
 TransferFunction::TransferFunction(DvrParams* p, int nBits){
 	myParams = p;
 	//Make a default TF:  Map 0 to 1 to a spectrum with increasing opacity.
-	//Provide 2 extra control points that should never go away
+	//Provide 2 extra control points at ends, that should never go away
 	//
 	numColorControlPoints = 6;
-	colorCtrlPoint[0] = -10000.f;
+	colorCtrlPoint[0] = -1.e6f;
 	colorCtrlPoint[1] = 0.f;
 	colorCtrlPoint[2] = 0.3333f;
 	colorCtrlPoint[3] = 0.66667f;
 	colorCtrlPoint[4] = 1.f;
-	colorCtrlPoint[5] = 10000.f;
+	colorCtrlPoint[5] = 1.e6f;
 	
 	numOpacControlPoints = 6;
 
-	opacCtrlPoint[0] = -10000.f;
+	opacCtrlPoint[0] = -1.e6f;
 	opacCtrlPoint[1] = 0.f;
 	opacCtrlPoint[2] = 0.3333f;
 	opacCtrlPoint[3] = 0.6667f;
 	opacCtrlPoint[4] = 1.f;
-	opacCtrlPoint[5] = 10000.f;
+	opacCtrlPoint[5] = 1.e6f;
 
 	for (int i = 0; i<6; i++){
 		colorInterp[i] = TFInterpolator::linear;
@@ -77,10 +77,11 @@ TransferFunction::TransferFunction(DvrParams* p, int nBits){
 
 	numEntries = 1<<nBits;
 	
-	myParams->setClutDirty(true);
+	if(myParams) myParams->setClutDirty(true);
 }
 	
 TransferFunction::~TransferFunction() {
+
 	
 }
 
@@ -109,6 +110,7 @@ insertColorControlPoint(float point){
 		sat[i] = sat[i-1];
 		val[i] = val[i-1];
 		colorCtrlPoint[i] = colorCtrlPoint[i-1];
+		colorInterp[i] = colorInterp[i-1];
 	}
 	colorCtrlPoint[indx+1] = normPoint;
 	hue[indx+1] = TFInterpolator::interpCirc(colorInterp[indx], hue[indx], hue[indx+2], ratio);
@@ -149,6 +151,7 @@ insertOpacControlPoint(float point, float opacity){
 	for (int i = numOpacControlPoints; i>indx+1; i--){
 		opac[i] = opac[i-1];
 		opacCtrlPoint[i]=opacCtrlPoint[i-1];
+		opacInterp[i] = opacInterp[i-1];
 	}
 	opacCtrlPoint[indx+1] = normPoint;
 	opacInterp[indx+1] = opacInterp[indx];
@@ -528,5 +531,69 @@ setControlPointRGB(int index, QRgb newColor){
 	qc.getHsv(&h, &s, &v);
 	setControlPointHSV(index, (float)h/360.f, (float)s/255.f, (float)v/255.f);
 }
+
+//Methods to save and restore transfer functions.
+	//The gui the FILEs that are then read/written
+	//Failure results in false/null pointer
+	//
+bool TransferFunction::
+saveToFile(FILE* f){
+	int nchar = fprintf(f, "%d %d %g %g \n", numOpacControlPoints, numColorControlPoints, 
+		getMinMapValue(), getMaxMapValue());
+	if (nchar <= 0) return false;
+	int i;
+	for (i = 0; i<numOpacControlPoints; i++){
+		nchar = fprintf(f, "%d %g %g\n", 
+			opacInterp[i],
+			opac[i], opacCtrlPoint[i]);
+		if (nchar <= 0) return false;
+	}
+	for (i = 0; i<numColorControlPoints; i++){
+		nchar = fprintf(f, "%d %g %g %g %g\n", 
+			colorInterp[i],
+			hue[i],sat[i],val[i],
+			colorCtrlPoint[i]);
+		if (nchar <= 0) return false;
+	}
+	fclose(f);
+	return true;
+}
+TransferFunction* TransferFunction::
+loadFromFile(FILE* f, DvrParams* p){
+	int numOpac, numClr, i;
+	float minBnd, maxBnd;
+	int rc = fscanf(f, "%d %d %g %g", &numOpac, &numClr, &minBnd, &maxBnd);
+	if (rc != 4) return 0;
+
+	//Construct default transfer function, 8 bits lut
+	TransferFunction* newTF = new TransferFunction(0,8);
+	newTF->numOpacControlPoints = numOpac;
+	newTF->numColorControlPoints = numClr;
+	//The min/max map bounds go into the dvrparams:
+	p->setMinMapBound(minBnd);
+	p->setMaxMapBound(maxBnd);
+	for (i = 0; i<numOpac; i++){
+		rc = fscanf(f, "%d %g %g", &(newTF->opacInterp[i]), 
+			&(newTF->opac[i]),
+			&(newTF->opacCtrlPoint[i]));
+		if (rc != 3){
+			delete newTF;
+			return false;
+		}
+	}
+	for (i = 0; i<numClr; i++){
+		rc = fscanf(f, "%d %g %g %g %g", &(newTF->colorInterp[i]), 
+			&(newTF->hue[i]),&(newTF->sat[i]),&(newTF->val[i]),
+			&(newTF->colorCtrlPoint[i]));
+		if (rc != 5){
+			delete newTF;
+			return false;
+		}
+	}
+	
+	
+	return newTF;
+}
+
 
 
