@@ -92,7 +92,21 @@ int	WaveletBlock3DRegionReader::_ReadRegion(
 	int	x,y,z;
 	int	rc;
 	int	l0x0, l0x1, l0y0, l0y1, l0z0, l0z1;
-	size_t dim[3] = {max[0]-min[0]+1, max[1]-min[1]+1, max[2]-min[2]+1};
+	size_t minsub[] = {min[0], min[1], min[2]};
+	size_t maxsub[] = {max[0], max[1], max[2]};
+
+	while (minsub[0] >= bs_c) {
+		minsub[0] -= bs_c;
+		maxsub[0] -= bs_c;
+	}
+	while (minsub[1] >= bs_c) {
+		minsub[1] -= bs_c;
+		maxsub[1] -= bs_c;
+	}
+	while (minsub[2] >= bs_c) {
+		minsub[2] -= bs_c;
+		maxsub[2] -= bs_c;
+	}
 
 	if (! unblock) {
 		// sanity check. Region must be defined on block boundaries
@@ -140,7 +154,7 @@ int	WaveletBlock3DRegionReader::_ReadRegion(
 				if (rc < 0) return (rc);
 				for(x=0;x<(int)(x1-x0+1); x++) {
 					const size_t bcoord[3] = {x,y-y0,z-z0};
-					Block2NonBlock(srcptr, bcoord, dim, region);
+					Block2NonBlock(srcptr, bcoord, minsub, maxsub, region);
 					srcptr += block_size_c;
 				}
 					
@@ -393,7 +407,21 @@ int	WaveletBlock3DRegionReader::row_inv_xform(
 	int unblock
 ) {
 	size_t bmin[3], bmax[3];
-	size_t dim[3] = {max[0]-min[0]+1, max[1]-min[1]+1, max[2]-min[2]+1};
+	size_t minsub[] = {min[0], min[1], min[2]};
+	size_t maxsub[] = {max[0], max[1], max[2]};
+
+	while (minsub[0] >= bs_c) {
+		minsub[0] -= bs_c;
+		maxsub[0] -= bs_c;
+	}
+	while (minsub[1] >= bs_c) {
+		minsub[1] -= bs_c;
+		maxsub[1] -= bs_c;
+	}
+	while (minsub[2] >= bs_c) {
+		minsub[2] -= bs_c;
+		maxsub[2] -= bs_c;
+	}
 
 	MapVoxToBlk(min, bmin);
 	MapVoxToBlk(max, bmax);
@@ -539,7 +567,7 @@ int	WaveletBlock3DRegionReader::row_inv_xform(
 			else {
 				for(x=0;x<sljp1nx;x++) {
 					const size_t bcoord[3] = {x,yy,zz};
-					Block2NonBlock(srcptr, bcoord, dim, region);
+					Block2NonBlock(srcptr, bcoord, minsub, maxsub, region);
 					srcptr += block_size_c;
 				}
 			}

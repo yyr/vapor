@@ -110,13 +110,14 @@ int	WaveletBlock3DReader::ReadSlabs(
 			for(z=0; z<2; z++) {
 			for(y=0; y<(int)lambda_nb[1]; y++) {
 			for(x=0; x<(int)lambda_nb[0]; x++) {
-				const size_t bcoord[3] = {x,y,z};
-				const size_t dim[3] = {
-					lambda_nb[0]*bs_c,lambda_nb[1]*bs_c,2*bs_c
+				const size_t bcoord[] = {x,y,z};
+				const size_t min[] = {0,0,0};
+				const size_t max[] = {
+					lambda_nb[0]*bs_c-1,lambda_nb[1]*bs_c-1,2*bs_c-1
 				};
 
 				Block2NonBlock(
-					srcptr, bcoord, dim, two_slabs
+					srcptr, bcoord, min, max, two_slabs
 				);
 				srcptr += block_size_c;
 			}
@@ -200,11 +201,12 @@ int	WaveletBlock3DReader::ReadSlabs(
 			for(y=0; y<(int)dst_nb[1]; y++) {
 			for(x=0; x<(int)dst_nb[0]; x++) {
 				const size_t bcoord[3] = {x,y,z};
-				const size_t dim[3] = {
-					dst_nb[0]*bs_c,dst_nb[1]*bs_c,2*bs_c
+				const size_t min[] = {0,0,0};
+				const size_t max[] = {
+					dst_nb[0]*bs_c-1,dst_nb[1]*bs_c-1,2*bs_c-1
 				};
 				Block2NonBlock(
-					srcptr, bcoord, dim, two_slabs
+					srcptr, bcoord, min, max, two_slabs
 				);
 				srcptr += block_size_c;
 			}

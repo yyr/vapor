@@ -721,29 +721,72 @@ int	WaveletBlock3DIO::writeGammaBlocks(
 void	WaveletBlock3DIO::Block2NonBlock(
 	const float *blk, 
 	const size_t bcoord[3],
-	const size_t dim[3],
+	const size_t min[3],
+	const size_t max[3],
 	float	*voxels
 ) const {
+
+	SetDiagMsg(
+		"WaveletBlock3DIO::Block2NonBlock(,[%d,%d,%d],[%d,%d,%d],[%d,%d,%d])",
+		bcoord[0], bcoord[1], bcoord[2],
+		min[0], min[1], min[2], max[0], max[1], max[2]
+	);
+
 	size_t y,z;
 
+	assert((min[0] < bs_c) && (max[0] > min[0]) && (max[0]/bs_c >= (bcoord[0])));
+	assert((min[1] < bs_c) && (max[1] > min[1]) && (max[1]/bs_c >= (bcoord[1])));
+	assert((min[2] < bs_c) && (max[2] > min[2]) && (max[2]/bs_c >= (bcoord[2])));
+
+	size_t dim[] = {max[0]-min[0]+1, max[1]-min[1]+1, max[2]-min[2]+1};
+	size_t xsize = bs_c;
+	size_t ysize = bs_c;
+	size_t zsize = bs_c;
+
+	//
+	// Address of first destination voxel
+	//
 	voxels += (bcoord[2]*bs_c * dim[1] * dim[0]) + 
 		(bcoord[1]*bs_c*dim[0]) + 
 		(bcoord[0]*bs_c);
 
-	float *voxptr = voxels;
-	const float *blkptr = blk;
+	if (bcoord[0] == 0) {
+		blk += min[0];
+		xsize = bs_c - min[0];
+	}
+	else {
+		if (bcoord[0] == max[0]/bs_c) xsize = max[0] % bs_c + 1;
+		voxels -= min[0];
+	}
 
-	int	yy,zz;
+	if (bcoord[1] == 0) {
+		blk += min[1] * bs_c;
+		ysize = bs_c - min[1];
+	}
+	else {
+		if (bcoord[1] == max[1]/bs_c) ysize = max[1] % bs_c + 1;
+		voxels -= dim[0] * min[1];
+	}
 
-	for(zz=0,z=bcoord[2]*bs_c; zz<bs_c && z<dim[2]; zz++, z++) {
+	if (bcoord[2] == 0) {
+		blk += min[2] * bs_c * bs_c;
+		zsize = bs_c - min[2];
+	}
+	else {
+		if (bcoord[2] == max[2]/bs_c) zsize = max[2] % bs_c + 1;
+		voxels -= dim[1] * dim[0] * min[2];
+	}
 
-		voxptr = voxels + (dim[0]*dim[1]*zz); 
+	float *voxptr;
+	const float *blkptr;
 
-		for(yy=0,y=bcoord[1]*bs_c; yy<bs_c && y<dim[1]; yy++, y++) {
-			size_t size = Min(bs_c, (int)(dim[0]-(bcoord[0]*bs_c)));
-			
+	for(z=0; z<zsize; z++) {
+		voxptr = voxels + (dim[0]*dim[1]*z); 
+		blkptr = blk + (bs_c*bs_c*z);
 
-			memcpy(voxptr,blkptr,size*sizeof(blkptr[0]));
+		for(y=0; y<ysize; y++) {
+
+			memcpy(voxptr,blkptr,xsize*sizeof(blkptr[0]));
 			blkptr += bs_c;
 			voxptr += dim[0];
 		}
