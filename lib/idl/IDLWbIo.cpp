@@ -38,6 +38,7 @@ WaveletBlock3DIO *varGetIO(
 
 	IDL_ENSURE_SCALAR(var);
 
+
 	if (var->type != IDL_TYP_MEMINT) {
 		errFatal("VDF IO handle must be of type IDL_TYP_MEMINT");
 	}
@@ -75,7 +76,10 @@ IDL_VPTR vdfBufReaderCreate(int argc, IDL_VPTR *argv)
 	myBaseErrChk();
 
 
-	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) reader);
+//	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) reader);
+	IDL_VPTR result = IDL_Gettmp();
+	result->value.memint = (IDL_MEMINT) reader;
+	result->type = IDL_TYP_MEMINT;
 
 	return(result);
 }
@@ -149,7 +153,10 @@ IDL_VPTR vdfRegionReaderCreate(int argc, IDL_VPTR *argv)
 	myBaseErrChk();
 
 
-	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) reader);
+//	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) reader);
+	IDL_VPTR result = IDL_Gettmp();
+	result->value.memint = (IDL_MEMINT) reader;
+	result->type = IDL_TYP_MEMINT;
 
 	return(result);
 }
@@ -237,7 +244,10 @@ IDL_VPTR vdfBufWriterCreate(int argc, IDL_VPTR *argv)
 	myBaseErrChk();
 
 
-	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) writer);
+//	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) writer);
+	IDL_VPTR result = IDL_Gettmp();
+	result->value.memint = (IDL_MEMINT) writer;
+	result->type = IDL_TYP_MEMINT;
 
 	return(result);
 }
@@ -546,7 +556,10 @@ IDL_VPTR vdfGetMetadata(int argc, IDL_VPTR *argv)
 	myBaseErrChk();
 
 
-	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) io);
+//	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) io);
+	IDL_VPTR result = IDL_Gettmp();
+	result->value.memint = (IDL_MEMINT) io;
+	result->type = IDL_TYP_MEMINT;
 
 	return(result);
 }

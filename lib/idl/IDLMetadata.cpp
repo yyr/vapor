@@ -113,7 +113,11 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 
 	myBaseErrChk();
 
-	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) metadata);
+//	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) metadata);
+
+	IDL_VPTR result = IDL_Gettmp();
+	result->value.memint = (IDL_MEMINT) metadata;
+	result->type = IDL_TYP_MEMINT;
 
 
 	// Free keyword storage.
