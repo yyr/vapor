@@ -32,13 +32,14 @@ void	MyBase::SetErrMsg(
 	char *s;
 #ifdef WIN32
 	CHAR szBuf[80]; 
-	int foo = 1;
+	
 	
     DWORD dw = GetLastError(); 
  
 	sprintf(szBuf, "Reporting error message: GetLastError returned %u\n", dw); 
     MessageBox(NULL, szBuf, "Error", MB_OK); 
 #endif
+	vfprintf(stderr, format, args);
 	if (!ErrMsg) {
 		ErrMsg = new char[alloc_size];
 		assert(ErrMsg != NULL);
@@ -125,14 +126,12 @@ int VetsUtil::StrCmpNoCase(const string &s, const string &t) {
 
 void	VetsUtil::StrRmWhiteSpace(string &s) {
 	string::size_type	i;
-	int foo = s.length();
+	
 	if (s.length() < 1) return;
 
 	i = 0;
 	while (isspace(s[i])) i++;
-	if (i>1000){
-		int bar = foo;
-	}
+	
 	if (i>0) {
 		s.replace(0, i, "", 0);
 	}
