@@ -581,7 +581,6 @@ sub SetFunc {
 		$tagAssign = "char *tag = IDL_VarGetString(argv[$argc]);";
 		$tagVecAssign = "string tagvec = tag;";
 		$params = $params ? "$params, tag" : "tag";
-			$argc++;
 		$argc++;
 
 	}
