@@ -55,6 +55,8 @@ public:
  typedef void (*DiagMsgCB_T) (const char *msg);
 
  MyBase();
+ const string &GetClassName() const {return (_className); };
+
 
  //! Record a formatted error message. 
  // 
@@ -172,6 +174,11 @@ public:
  static FILE	*DiagMsgFilePtr;
  static DiagMsgCB_T DiagMsgCB;
 
+protected:
+	void	SetClassName(const string &name) { _className = name; };
+
+private:
+	string _className;	// name of class
 
 };
 

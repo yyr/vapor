@@ -36,7 +36,7 @@ public:
  //
  WaveletBlock3DBufWriter(
 	Metadata *metadata,
-	unsigned int    nthreads
+	unsigned int    nthreads = 1
  );
 
  //! Constructor for the WaveletBlock3DBufWriter class.
@@ -51,7 +51,7 @@ public:
  //
  WaveletBlock3DBufWriter(
 	const char	*metafile,
-	unsigned int    nthreads
+	unsigned int    nthreads = 1
  );
 
  ~WaveletBlock3DBufWriter();

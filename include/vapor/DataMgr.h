@@ -44,7 +44,7 @@ public:
  DataMgr(
 	const Metadata *metadata,
 	size_t mem_size,
-	unsigned int nthreads
+	unsigned int nthreads = 1
  );
 
  //! Constructor for the DataMgr class. 
@@ -62,7 +62,7 @@ public:
  DataMgr(
 	const char	*metafile,
 	size_t mem_size,
-	unsigned int nthreads
+	unsigned int nthreads = 1
  );
 
 

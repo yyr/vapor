@@ -17,6 +17,20 @@
 
 namespace VAPoR {
 
+#define	CHK_TS(TS, RETVAL) \
+	if (! _rootnode->GetChild(TS)) { \
+		SetErrMsg("Invalid time step : %d", TS); \
+		return(RETVAL); \
+	}
+#define	CHK_VAR(TS, VAR, RETVAL) \
+	if (! _rootnode->GetChild(TS)) { \
+		SetErrMsg("Invalid time step : %d", TS); \
+		return(RETVAL); \
+	}; \
+	if (! _rootnode->GetChild(TS)->GetChild(VAR)) { \
+		SetErrMsg("Invalid variable name : %s", VAR); \
+		return(RETVAL); \
+	}
 
 //
 //! \class Metadata
@@ -49,11 +63,11 @@ public:
 
  //! Create a metadata object from scratch. 
  //!
- //! \param[in] bs Internal blocking factor for transformed data. Must
- //! be a power of two.
  //! \param[in] dim The X, Y, and Z coordinate dimensions of all
  //! data volumes, specified in grid coordinates (voxels)
  //! \param[in] numTransforms Number of wavelet transforms to perform
+ //! \param[in] bs Internal blocking factor for transformed data. Must
+ //! be a power of two.
  //! \param[in] nFilterCoef Number of filter coefficients used by wavelet
  //! transforms
  //! \param[in] nLiftingCoef Number of lifting coefficients used by wavelet
@@ -63,7 +77,7 @@ public:
  //! most significant byte fist (i.e. big endian).
  //
  Metadata(
-	size_t bs, const size_t dim[3], size_t numTransforms,
+	const size_t dim[3], size_t numTransforms, size_t bs = 32, 
 	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst =  1
 	);
 
@@ -281,7 +295,7 @@ public:
  //!
  //
  const vector<double> &GetTSUserTime(size_t ts) const {
-	if (! _rootnode->GetChild(ts)) return(_emptyDoubleVec);
+	CHK_TS(ts, _emptyDoubleVec)
 	return(_rootnode->GetChild(ts)->GetElementDouble(_userTimeTag));
 	};
 
@@ -305,8 +319,8 @@ public:
  //!
  //! \param[in] ts A valid data set time step in the range from zero to
  //! GetNumTimeSteps() - 1.
- //! \param[i] value An array of monotonically increasing values specifying 
- //! the X // coordinates, in a user-defined coordinate system, of each 
+ //! \param[in] value An array of monotonically increasing values specifying 
+ //! the X coordinates, in a user-defined coordinate system, of each 
  //! YZ sample plane. 
  //! \retval status Returns a non-negative integer on success
  //! \sa SetGridType(), GetGridType(), GetTSXCoords()
@@ -321,7 +335,7 @@ public:
  //! \sa SetGridType(), GetGridType(), GetTSXCoords()
  //
  const vector<double> &GetTSXCoords(size_t ts) const {
-	if (! _rootnode->GetChild(ts)) return(_emptyDoubleVec);
+	CHK_TS(ts, _emptyDoubleVec)
 	return(_rootnode->GetChild(ts)->GetElementDouble(_xCoordsTag));
 	};
 
@@ -339,7 +353,7 @@ public:
  int SetTSYCoords(size_t ts, const vector<double> &value);
 
  const vector<double> &GetTSYCoords(size_t ts) const {
-	if (! _rootnode->GetChild(ts)) return(_emptyDoubleVec);
+	CHK_TS(ts, _emptyDoubleVec)
 	return(_rootnode->GetChild(ts)->GetElementDouble(_yCoordsTag));
 	}
  int IsValidYCoords(const vector<double> &value) const {
@@ -348,7 +362,7 @@ public:
 
  int SetTSZCoords(size_t ts, const vector<double> &value);
  const vector<double> &GetTSZCoords(size_t ts) const {
-	if (! _rootnode->GetChild(ts)) return(_emptyDoubleVec);
+	CHK_TS(ts, _emptyDoubleVec)
 	return(_rootnode->GetChild(ts)->GetElementDouble(_zCoordsTag));
 	}
  int IsValidZCoords(const vector<double> &value) const {
@@ -425,8 +439,7 @@ public:
  //! \retval path Variable base path name
  //
  const vector<double> &GetVDataRange(size_t ts, const string &var) const {
-	if (! _rootnode->GetChild(ts)) return(_emptyDoubleVec);
-	if (! _rootnode->GetChild(ts)->GetChild(var)) return(_emptyDoubleVec);
+	CHK_VAR(ts, var, _emptyDoubleVec)
 	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementDouble(_dataRangeTag));
 	}
 
@@ -569,7 +582,7 @@ public:
  //! \sa GetTSUserDataLongTag(), GetTSUserDataLong()
  //
  int SetTSUserDataLong(size_t ts, const string &tag, const vector<long> &value) {
-	if (! _rootnode->GetChild(ts)) return(-1);
+	CHK_TS(ts, -1)
 	_RecordUserDataTags(_timeStepUserDLTags, tag);
 	return(_rootnode->GetChild(ts)->SetElementLong(tag, value));
  }
@@ -586,20 +599,20 @@ public:
  //! \sa GetTSUserDataLongTag(), SetTSUserDataLong()
  //
  const vector<long> &GetTSUserDataLong( size_t ts, const string &tag) const {
-	if (! _rootnode->GetChild(ts)) return(_emptyLongVec);
+	CHK_TS(ts, _emptyLongVec)
 	return(_rootnode->GetChild(ts)->GetElementLong(tag));
  }
 
  int SetTSUserDataDouble(
 	size_t ts, const string &tag, const vector<double> &value
  ) {
-	if (! _rootnode->GetChild(ts)) return(-1);
+	CHK_TS(ts, -1)
 	_RecordUserDataTags(_timeStepUserDDTags, tag);
 	return(_rootnode->GetChild(ts)->SetElementDouble(tag, value));
  }
 
  const vector<double> &GetTSUserDataDouble(size_t ts, const string &tag) const {
-	if (! _rootnode->GetChild(ts)) return(_emptyDoubleVec);
+	CHK_TS(ts, _emptyDoubleVec)
 	return(_rootnode->GetChild(ts)->GetElementDouble(tag));
  }
  const vector<string> &GetTSUserDataDoubleTags() const {
@@ -609,13 +622,13 @@ public:
  int SetTSUserDataString(
 	size_t ts, const string &tag, const string &value
  ) {
-	if (! _rootnode->GetChild(ts)) return(-1);
+	CHK_TS(ts, -1)
 	_RecordUserDataTags(_timeStepUserDSTags, tag);
 	return(_rootnode->GetChild(ts)->SetElementString(tag, value));
  }
 
  const string &GetTSUserDataString(size_t ts, const string &tag) const {
-	if (! _rootnode->GetChild(ts)) return(_emptyString);
+	CHK_TS(ts, _emptyString)
 	return(_rootnode->GetChild(ts)->GetElementString(tag));
  }
  const vector<string> &GetTSUserDataStringTags() const {
@@ -666,8 +679,7 @@ public:
  int SetVUserDataLong(
 	size_t ts, const string &var, const string &tag, const vector<long> &value
  ) {
-	if (! _rootnode->GetChild(ts)) return(-1);
-	if (! _rootnode->GetChild(ts)->GetChild(var)) return(-1);
+	CHK_VAR(ts, var, -1)
 	_RecordUserDataTags(_variableUserDLTags, tag);
 	return(_rootnode->GetChild(ts)->GetChild(var)->SetElementLong(tag, value));
  }
@@ -687,8 +699,7 @@ public:
  const vector<long> &GetVUserDataLong(
 	size_t ts, const string &var, const string &tag
  ) const {
-	if (! _rootnode->GetChild(ts)) return(_emptyLongVec);
-	if (! _rootnode->GetChild(ts)->GetChild(var)) return(_emptyLongVec);
+	CHK_VAR(ts, var, _emptyLongVec)
 	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementLong(tag));
  }
 
@@ -698,8 +709,7 @@ public:
  int SetVUserDataDouble(
 	size_t ts, const string &var, const string &tag, const vector<double> &value
  ) {
-	if (! _rootnode->GetChild(ts)) return(-1);
-	if (! _rootnode->GetChild(ts)->GetChild(var)) return(-1);
+	CHK_VAR(ts, var, -1)
 	_RecordUserDataTags(_variableUserDDTags, tag);
 	return(_rootnode->GetChild(ts)->GetChild(var)->SetElementDouble(tag, value));
  }
@@ -707,7 +717,7 @@ public:
  const vector<double> &GetVUserDataDouble(
 	size_t ts, const string &var, const string &tag
  ) const {
-	if (! _rootnode->GetChild(ts)) return(_emptyDoubleVec);
+	CHK_VAR(ts, var, _emptyDoubleVec)
 	if (! _rootnode->GetChild(ts)->GetChild(var)) return(_emptyDoubleVec);
 	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementDouble(tag));
  }
@@ -715,8 +725,7 @@ public:
  int SetVUserDataString(
 	size_t ts, const string &var, const string &tag, const string &value
  ) {
-	if (! _rootnode->GetChild(ts)) return(-1);
-	if (! _rootnode->GetChild(ts)->GetChild(var)) return(-1);
+	CHK_VAR(ts,var,-1)
 	_RecordUserDataTags(_variableUserDSTags, tag);
 	return(_rootnode->GetChild(ts)->GetChild(var)->SetElementString(tag, value));
  }
@@ -724,8 +733,7 @@ public:
  const string &GetVUserDataString(
 	size_t ts, const string &var, const string &tag
  ) const {
-	if (! _rootnode->GetChild(ts)) return(_emptyString);
-	if (! _rootnode->GetChild(ts)->GetChild(var)) return(_emptyString);
+	CHK_VAR(ts, var, _emptyString)
 	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementString(tag));
  }
  const vector<string> &GetVUserDataStringTags() const {
@@ -815,13 +823,13 @@ private:
  vector <string> _variableUserDSTags;
 
  void _init(
-	size_t bs, const size_t dim[3], size_t numTransforms,
+	const size_t dim[3], size_t numTransforms, size_t bs = 32, 
 	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst = 1
 	);
 
  int _SetNumTimeSteps(const vector<long> &value);
  int _SetVariableNames(XmlNode *node, long ts);
- int _RecordUserDataTags(vector <string> keys, const string &tag);
+ int _RecordUserDataTags(vector <string> &keys, const string &tag);
 
  // XML Expat element handlers
  friend void	startElementHandler(

@@ -36,7 +36,7 @@ public:
  //
  WaveletBlock3DBufReader(
 	const Metadata *metadata,
-	unsigned int    nthreads
+	unsigned int    nthreads = 1
  );
 
  //! Constructor for the WaveletBlock3DBufReader class.
@@ -51,7 +51,7 @@ public:
  //
  WaveletBlock3DBufReader(
 	const char *metafile,
-	unsigned int    nthreads
+	unsigned int    nthreads = 1
  );
 
  ~WaveletBlock3DBufReader();

@@ -70,7 +70,7 @@ public:
  //
  WaveletBlock3DIO(
 	Metadata *metadata,
-	unsigned int	nthreads
+	unsigned int	nthreads = 1
  );
 
  //! Constructor for the WaveletBlock3DIO class.
@@ -85,7 +85,7 @@ public:
  //
  WaveletBlock3DIO(
 	const char *metafile,
-	unsigned int	nthreads
+	unsigned int	nthreads = 1
  );
 
  virtual ~WaveletBlock3DIO();

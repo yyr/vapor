@@ -39,7 +39,7 @@ public:
  //
  WaveletBlock3DReader(
 	const Metadata *metadata,
-	unsigned int	nthreads
+	unsigned int	nthreads = 1
  );
 
  //! Constructor for the WaveletBlock3DReader class.
@@ -54,7 +54,7 @@ public:
  //
  WaveletBlock3DReader(
 	const char *metafile,
-	unsigned int	nthreads
+	unsigned int	nthreads = 1
  );
 
  ~WaveletBlock3DReader();

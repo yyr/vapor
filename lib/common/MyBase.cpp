@@ -26,6 +26,7 @@ FILE	*MyBase::DiagMsgFilePtr = NULL;
 void (*MyBase::DiagMsgCB) (const char *msg) = NULL;
 
 MyBase::MyBase() {
+	SetClassName("MyBase");
 }
 
 
