@@ -195,9 +195,6 @@
 				RelativePath="..\..\..\apps\vaporgui\mainform.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\minmaxcombo.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\opacadjustdialog.cpp">
 			</File>
 			<File
@@ -247,12 +244,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\vizactivatecommand.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\vizmgrdialog.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\viznameedit.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\vizselectcombo.cpp">
@@ -419,29 +410,6 @@
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_mainform.cpp"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\minmaxcombo.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\minmaxcombo.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\minmaxcombo.h -o ..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\minmaxcombo.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\minmaxcombo.h -o ..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -616,52 +584,6 @@
 				RelativePath="..\..\..\apps\vaporgui\vizactivatecommand.h">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\vizmgrdialog.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizmgrdialog.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizmgrdialog.h -o ..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizmgrdialog.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizmgrdialog.h -o ..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\viznameedit.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\viznameedit.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\viznameedit.h -o ..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\viznameedit.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\viznameedit.h -o ..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp"/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\vizselectcombo.h">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -785,9 +707,6 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_mainform.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp">
 			</File>
 			<File
@@ -810,12 +729,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_vcr.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_vizselectcombo.cpp">

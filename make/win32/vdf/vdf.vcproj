@@ -34,7 +34,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libexpat.lib"
+				AdditionalDependencies="libexpat.lib mpr.lib"
 				OutputFile="../../../targets/win32/bin/vdf.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;B:\Expat-1.95.8\Libs&quot;"
@@ -129,6 +129,9 @@
 				RelativePath="..\..\..\lib\vdf\DataMgr.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\ImpExp.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\Lifting1D.cpp">
 			</File>
 			<File
@@ -171,6 +174,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\DataMgr.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\ImpExp.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\Lifting1D.h">
