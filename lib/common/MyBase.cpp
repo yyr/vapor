@@ -122,7 +122,7 @@ void	MyBase::SetErrMsg(
 	ErrCode = 1;
 
 	va_start(args, format);
-	_SetErrMsg(format, args) 
+	_SetErrMsg(format, args);
 	va_end(args);
 }
 
@@ -136,7 +136,7 @@ void	MyBase::SetErrMsg(
 	ErrCode = errcode;
 
 	va_start(args, format);
-	_SetErrMsg(format, args) 
+	_SetErrMsg(format, args);
 	va_end(args);
 }
 
