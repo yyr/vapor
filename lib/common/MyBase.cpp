@@ -43,15 +43,15 @@ void	MyBase::_SetErrMsg(
 	const int alloc_size = 256;
 	int rc;
 	char *s;
-#ifdef WIN32
-	CHAR szBuf[80]; 
+//#ifdef WIN32
+	//CHAR szBuf[80]; 
 	
 	
-    DWORD dw = GetLastError(); 
+    //DWORD dw = GetLastError(); 
  
-	sprintf(szBuf, "Reporting error message: GetLastError returned %u\n", dw); 
-    MessageBox(NULL, szBuf, "Error", MB_OK); 
-#endif
+	//sprintf(szBuf, "Reporting error message: GetLastError returned %u\n", dw); 
+    //MessageBox(NULL, szBuf, "Error", MB_OK); 
+//#endif
 	if (!ErrMsg) {
 		ErrMsg = new char[alloc_size];
 		assert(ErrMsg != NULL);
