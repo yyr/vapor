@@ -181,8 +181,6 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     
     viewLaunch_visualizerAction = new QAction( this, "viewLaunch_visualizerAction" );
     
-    scriptJournaling_optionsAction = new QAction( this, "scriptJournaling_optionsAction" );
-	scriptJournaling_optionsAction->setEnabled(false);
     scriptIDL_scriptAction = new QAction( this, "scriptIDL_scriptAction" );
 	scriptIDL_scriptAction->setEnabled(false);
     scriptMatlab_scriptAction = new QAction( this, "scriptMatlab_scriptAction" );
@@ -192,6 +190,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     
     animationKeyframingAction = new QAction( this, "animationKeyframingAction" );
 	animationKeyframingAction->setEnabled(false);
+	exportAnimationScriptAction = new QAction(this, "exportAnimationScriptAction");
+	exportAnimationScriptAction->setEnabled(false);
 
 	//Create an exclusive action group for the mouse mode toolbars:
 	mouseModeActions = new QActionGroup(this, "mouse action group", true);
@@ -250,6 +250,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     // toolbars for mouse modes and visualizers
     modeToolBar = new QToolBar( QString(""), this, DockTop); 
 	vizToolBar = new QToolBar( QString(""), this, DockTop); 
+	vizToolBar->setOffset(2000);
 	
 
 	//Add a QComboBox to toolbar to select window
@@ -306,7 +307,6 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     Main_Form->insertItem( QString(""), View, 4 );
 
     Script = new QPopupMenu( this );
-    scriptJournaling_optionsAction->addTo( Script );
     scriptIDL_scriptAction->addTo( Script );
     scriptMatlab_scriptAction->addTo( Script );
     scriptBatchAction->addTo(Script);
@@ -316,6 +316,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
     Animation = new QPopupMenu( this );
     animationKeyframingAction->addTo( Animation );
+	exportAnimationScriptAction->addTo(Animation);
     Main_Form->insertItem( QString(""), Animation, 6 );
     
     helpMenu = new QPopupMenu( this );
@@ -469,20 +470,16 @@ void MainForm::languageChange()
     
     
     
-    viewLaunch_visualizerAction->setText( tr( "Launch Visualizer" ) );
-    viewLaunch_visualizerAction->setMenuText( tr( "L&aunch Visualizer" ) );
+    viewLaunch_visualizerAction->setText( tr( "New Visualizer" ) );
+    viewLaunch_visualizerAction->setMenuText( tr( "&New Visualizer" ) );
 	viewLaunch_visualizerAction->setToolTip("Launch a new visualization window");
 
-    
-    scriptJournaling_optionsAction->setText( tr( "Journaling options" ) );
-    scriptJournaling_optionsAction->setMenuText( tr( "&Journaling options" ) );
-	scriptJournaling_optionsAction->setToolTip("Turn Journaling on or off, or replay a saved journal");
-    scriptIDL_scriptAction->setText( tr( "IDL script" ) );
-    scriptIDL_scriptAction->setMenuText( tr( "&IDL script" ) );
-	scriptIDL_scriptAction->setToolTip("Launch an IDL session in a separate window");
-    scriptMatlab_scriptAction->setText( tr( "Matlab script" ) );
-    scriptMatlab_scriptAction->setMenuText( tr( "&Matlab script" ) );
-	scriptMatlab_scriptAction->setToolTip("Launch a Matlab session in a separate window");
+    scriptIDL_scriptAction->setText( tr( "Execute IDL script" ) );
+    scriptIDL_scriptAction->setMenuText( tr( "Execute &IDL script" ) );
+	scriptIDL_scriptAction->setToolTip("Launch an IDL script");
+    scriptMatlab_scriptAction->setText( tr( "Execute Matlab script" ) );
+    scriptMatlab_scriptAction->setMenuText( tr( "Execute &Matlab script" ) );
+	scriptMatlab_scriptAction->setToolTip("Launch a Matlab script in a separate window");
     scriptBatchAction->setText( tr( "Batch setup" ) );
     scriptBatchAction->setMenuText( tr( "&Batch setup" ) );
 	scriptBatchAction->setToolTip("Launch a panel to script a Batch Rendering session");
@@ -490,6 +487,9 @@ void MainForm::languageChange()
     animationKeyframingAction->setText( tr( "Keyframing" ) );
     animationKeyframingAction->setMenuText( tr( "Keyframing" ) );
 	animationKeyframingAction->setToolTip("Launch a parameter panel that specifies keyframes plus their timing and transitions between them");
+	exportAnimationScriptAction->setText( tr( "Export Animation Script" ) );
+    exportAnimationScriptAction->setMenuText( tr( "Export Animation Script" ) );
+	exportAnimationScriptAction->setToolTip("Export current animation settings as a script");
 
    
     vizToolBar->setLabel( tr( "VizTools" ) );
@@ -661,6 +661,7 @@ void MainForm::editSessionParams()
 				"Cache size will change at next metadata loading", 
 				QMessageBox::Ok);
 		}
+		//see if the path changed:
 	}
 	delete sessionParamsDlg;
 }
@@ -848,20 +849,19 @@ void MainForm::setNavigate(bool on)
 }
 void MainForm::setLights(bool on)
 {
+/*  Until we implement this, do nothing:
 	Session* currentSession = Session::getInstance();
-	//Test minimizing a dock window
-	//setDockEnabled(tabDockWindow, Qt::DockMinimized, true);
-	//moveDockWindow(tabDockWindow, Qt::Minimized,true, 0);
 	if (!on) return;
 	if (currentMouseMode != Command::lightMode){
 		VizWinMgr::getInstance()->setSelectionMode(Command::lightMode);
 		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::lightMode));
 		currentMouseMode = Command::lightMode;
 	}
-	
+	*/
 }
 void MainForm::setProbe(bool on)
 {
+	/* Do nothing until implemented:
 	if (!on) return;
 	if (currentMouseMode != Command::probeMode){
 		VizWinMgr::getInstance()->setSelectionMode(Command::probeMode);
@@ -869,6 +869,7 @@ void MainForm::setProbe(bool on)
 		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::probeMode));
 		currentMouseMode = Command::probeMode;
 	}
+	*/
 }
 void MainForm::setRegionSelect(bool on)
 {
@@ -887,6 +888,7 @@ void MainForm::setRegionSelect(bool on)
 }
 void MainForm::setContourSelect(bool on)
 {
+	/* Do nothing until implemented:
 	if (!on) return;
 	Session* currentSession = Session::getInstance();
 	if (currentMouseMode != Command::contourMode){
@@ -899,6 +901,7 @@ void MainForm::setContourSelect(bool on)
 		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::contourMode));
 		currentMouseMode = Command::contourMode;
 	}
+	*/
 }
 /*
  * Set all the mode buttons off

@@ -251,15 +251,11 @@ DrawVoxelScene(unsigned /*fast*/)
 	//Save the coord trans matrix, to pass to volumizer
 	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
 	
-	if (myVizWin->dataRangeIsDirty()){
-		myDataMgr->SetDataRange(myDVRParams->getVariableName(),
-			myDVRParams->getCurrentDatarange());
-		myVizWin->setDataRangeDirty(false);
-	}
+	
 	// set up region. Only need to do this if the data
 	// roi changes
 	//
-	if (myVizWin->regionIsDirty()) {
+	if (myVizWin->regionIsDirty()|| myVizWin->dataRangeIsDirty()) {
 
 		//float xc, yc, zc; // center of volume
 		//float hmaxdim;
@@ -268,7 +264,11 @@ DrawVoxelScene(unsigned /*fast*/)
 		
 		
 		int nx,ny,nz;
-		
+		if (myVizWin->dataRangeIsDirty()){
+			myDataMgr->SetDataRange(myDVRParams->getVariableName(),
+				myDVRParams->getCurrentDatarange());
+			myVizWin->setDataRangeDirty(false);
+		}
 		//Make sure we are using the current regionParams
 		
 		

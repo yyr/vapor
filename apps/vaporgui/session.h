@@ -162,7 +162,7 @@ public:
 		return dataRange[varNum];
 	}
 	
-
+	
 private:
 	size_t minTimeStep;
 	size_t maxTimeStep;
@@ -258,7 +258,7 @@ public:
 	}
 	void updateTFFilePath(QString* newPath);
 
-
+	static void errorCallbackFcn(const char* msg, int err_code);
 protected:
 	Session();
 	static Session* theSession;

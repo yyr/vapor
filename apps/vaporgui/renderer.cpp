@@ -52,7 +52,7 @@ void Renderer::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	int numLines[3];
 	float regionSize, fullSize[3], modMin[3],modMax[3];
 	
-	//Instead:  either have 2 or 1 lines in each dimension.  2 if the size is < half
+	//Instead:  either have 2 or 1 lines in each dimension.  2 if the size is < 1/3
 	for (i = 0; i<3; i++){
 		regionSize = extents[i+3]-extents[i];
 		//Stretch size by 1%
@@ -60,7 +60,7 @@ void Renderer::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 		float mid = 0.5f*(maxFull[i]+minFull[i]);
 		modMin[i] = mid - 0.5f*fullSize[i];
 		modMax[i] = mid + 0.5f*fullSize[i];
-		if (regionSize < fullSize[i]*.5) numLines[i] = 2;
+		if (regionSize < fullSize[i]*.3) numLines[i] = 2;
 		else numLines[i] = 1;
 	}
 	

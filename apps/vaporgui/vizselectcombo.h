@@ -34,7 +34,7 @@ public:
 	VizSelectCombo(QToolBar* parent, VizWinMgr* mgr);
 protected:
 	//Lookup window num associated with slot
-	int winNum[MAXVIZWINS];
+	int winNum[MAXVIZWINS+1];
 	VizWinMgr* vizWinMgr;
 	int currentActive;
 	
@@ -56,6 +56,7 @@ signals:
 	//This results from "activated(index)" signal of parent
 
 	void winActivated(int winNum);
+	void newWin();
 
 };
 };

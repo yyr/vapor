@@ -140,20 +140,23 @@ vizAboutToDisappear(int i)  {
 	vizWin[i] = 0;
 	//If we are deleting the active viz, revert to the 
 	//most recent active viz.
-	if (activeViz == i) activeViz = getLastActive();
+	if (activeViz == i) {
+		int newActive = getLastActive();
+		if (newActive >= 0) setActiveViz(newActive);
+	}
 	
     
     //delete vizRect[i];
     //vizRect[i] = 0;
     //getLastActive will become the new active Viz.
-	if (activeViz == i) activeViz = getLastActive();
+	//if (activeViz == i) activeViz = getLastActive();
 	//Save the state in history before deleting the params,
 	//the next activeViz is the most recent active visualizer 
 	if (Session::getInstance()->isRecording()){
 		Session::getInstance()->addToHistory(new VizActivateCommand(
 			i, activeViz, Command::remove));
 	}
-
+	setActiveViz(activeViz);
 	if(vpParams[i]) delete vpParams[i];
 	if(rgParams[i]) delete rgParams[i];
 	

@@ -28,11 +28,15 @@ using namespace VAPoR;
 VizSelectCombo::VizSelectCombo(QToolBar* parent, VizWinMgr* mgr)
 	: QComboBox(parent) {
 	vizWinMgr = mgr;
+	MainForm* mainWin = MainForm::getInstance();
 	currentActive = -1;
 	for (int i = 0; i< MAXVIZWINS; i++){
 		winNum[i] = -1;
 	}
-	//This initially has nothing in it.
+	insertItem("Create New Visualizer",0);
+	//Remember this one with -100:
+	winNum[0] = -100;
+	//This initially has just the "New viz" entry.
 	//Hookup signals and slots:
 	connect (this, SIGNAL(activated(int)), this, SLOT(activeWin(int)));
 	connect (this, SIGNAL(winActivated(int)), vizWinMgr, SLOT(winActivated(int)));
@@ -40,9 +44,10 @@ VizSelectCombo::VizSelectCombo(QToolBar* parent, VizWinMgr* mgr)
 	connect (vizWinMgr, SIGNAL(removeViz(int)), this, SLOT(removeWindow(int)));
 	connect (vizWinMgr, SIGNAL(activateViz(int)), this, SLOT(setWindowActive(int)));
 	connect (vizWinMgr, SIGNAL(changeName(QString&, int)), this, SLOT(setWindowName(QString&, int)));
+	connect (this, SIGNAL(newWin()), mainWin, SLOT(launchVisualizer()));
 
 	setMinimumWidth(150);
-	QToolTip::add(this, "Select Active Visualizer");
+	QToolTip::add(this, "Select Active Visualizer or create new one");
 }
 
 /* 
@@ -52,20 +57,21 @@ VizSelectCombo::VizSelectCombo(QToolBar* parent, VizWinMgr* mgr)
 	 */
 void VizSelectCombo:: 
 addWindow(QString& windowName, int windowNum){
-	//First look to find the right place:
+	//First look to find the right place; insert it in a gap if necessary.
 	int i;
-	for (i = 0; i<count(); i++){
+	for (i = 0; i<count()-1; i++){
 		if (winNum[i] > windowNum) break;
 	}
-	//Insert at the specified place:
+	//Insert name at the specified place:
 	insertItem(windowName, i);
 	//Move the corresponding numbering up.
-	//Note that count has now increased by 1.
-	for (int j = i+1; j< count(); j++){
+	//Note that count has now (already) increased by 1.
+	for (int j = count()-1; j> i; j--){
 		winNum[j] = winNum[j-1];
 	}
 	winNum[i] = windowNum;
 	currentActive = currentItem();
+	if (currentActive < 0) setWindowActive(windowNum);
 }
 	/* 
 	 * Remove specified window from the combobox
@@ -74,15 +80,31 @@ addWindow(QString& windowName, int windowNum){
 void VizSelectCombo::
 removeWindow(int windowNum){
 	int i;
-	for (i = 0; i< count(); i++){
+	//It should be found in the bottom part of the combo
+	for (i = 0; i< count()-1; i++){
 		if (winNum[i] == windowNum) break;
 	}
-	assert(i < count());
+	assert(i < count()-1);
 	removeItem(i);
+	//Now count() has already been reduced by one
+	assert(winNum[count()] == -100);
 	for (int j = i; j<count(); j++){
 		winNum[j] = winNum[j+1];
 	}
-	currentActive = currentItem();
+	//need to reset the active setting
+	int activenum = VizWinMgr::getInstance()->getActiveViz();
+	if (activenum >= 0){
+		for (int k = 0; k<count() -1; k++){
+			if (activenum == winNum[k]){
+				setCurrentItem(k);
+				currentActive = k;
+				break;
+			}
+			assert(k < count()-1);
+		}
+	}
+	
+	
 }
 /* 
  * Select a window when it's been made active
@@ -92,10 +114,12 @@ setWindowActive(int win){
 	if (count() <= 0) return;
 	//find which entry this corresponds to:
 	int i;
-	for (i = 0; i<count(); i++){
+	for (i = 0; i<count()-1; i++){
 		if (winNum[i] == win) break;
 	}
-	assert (i < count());
+	if (i >= count() - 1){
+		assert (i < count()-1);
+	}
 	//Avoid generating an event unless there really is an change.
 	if (currentItem() != i){
 		setCurrentItem(i);
@@ -127,15 +151,22 @@ setWindowName(QString& newName, int windowNum){
 }
 
 /*
- *Convert the active index to the active winNum
+ *Convert the active index to the active winNum,
+ * or launch a visualizer
  */
 void VizSelectCombo::
 activeWin(int index){
 	int i;
-	for (i = 0; i< count(); i++){
+	//If they clicked the end, just create a new visualizer:
+	if (index == count()-1) {
+		emit (newWin());
+		return;
+	}
+	//Find the activated window in the list:
+	for (i = 0; i< count()-1; i++){
 		if (winNum[i] == index) break;
 	}
-	assert(i<count());
+	assert(i < count() -1);
 	emit (winActivated(i));
 }
 

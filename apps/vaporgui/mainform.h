@@ -114,13 +114,14 @@ public:
     
    
     //Script menu
-    QAction* scriptJournaling_optionsAction;
+   
     QAction* scriptIDL_scriptAction;
     QAction* scriptMatlab_scriptAction;
     QAction* scriptBatchAction;
     
     //Animation menu
     QAction* animationKeyframingAction;
+	QAction* exportAnimationScriptAction;
     
     
 	//Toolbars:

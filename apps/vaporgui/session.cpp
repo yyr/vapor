@@ -34,6 +34,7 @@
 using namespace VAPoR;
 Session* Session::theSession = 0;
 Session::Session() {
+	MyBase::SetErrMsgCB(errorCallbackFcn);
 	recordingCount = 0;
 	dataMgr = 0;
 	currentMetadata = 0;
@@ -143,10 +144,10 @@ exportData(){
 		minCoords,
 		maxCoords,
 		frameInterval);
-	if (rc < 0){
-		QMessageBox::warning(0, "Export data error",exporter.GetErrMsg(),
-			QMessageBox::Ok,QMessageBox::NoButton);
-	}
+	//if (rc < 0){
+	//	QMessageBox::warning(0, "Export data error",exporter.GetErrMsg(),
+	//		QMessageBox::Ok,QMessageBox::NoButton);
+	//}
 	return;
 }
 /**
@@ -165,15 +166,23 @@ resetMetadata(const char* fileBase)
 	//string path(fileBase);
 	if (dataMgr) delete dataMgr;
 	dataMgr = new DataMgr(currentMetadataPath->c_str(), cacheMB, 1);
-	
-	currentMetadata = dataMgr->GetMetadata();
-	if (currentMetadata->GetErrCode() != 0) {
-		qWarning( "Error creating Metadata %s\n", currentMetadata->GetErrMsg());
+	if (dataMgr->GetErrCode() != 0) {
+		/*QMessageBox::warning(0,
+			"Data Loading error",
+			QString("Error creating Data Manager:\n %1").arg(dataMgr->GetErrMsg()),
+			QMessageBox::Ok, QMessageBox::NoButton);*/
+		delete dataMgr;
+		dataMgr = 0;
 		return;
 	}
-	
-	if (dataMgr->GetErrCode() != 0) {
-		qWarning( "Error creating DataMgr %s\n", dataMgr->GetErrMsg());
+	currentMetadata = dataMgr->GetMetadata();
+	if (currentMetadata->GetErrCode() != 0) {
+		/*QMessageBox::warning(0,
+			"Data Loading error",
+			QString("Error creating Metadata:\n %1").arg(currentMetadata->GetErrMsg()),
+			QMessageBox::Ok, QMessageBox::NoButton);*/
+		delete dataMgr;
+		dataMgr = 0;
 		return;
 	}
 
@@ -377,9 +386,18 @@ setupDataStatus(){
 			// For right now, only deal with data present.
 			// Absent data will get default min/max values, and will
 			// not affect overall maxima/minima
+			vector<double>minMax;
 			if (ds->dataIsPresent(var, ts)){
-				const vector<double>& minMax = currentMetadata->GetVDataRange(ts, 
+				const vector<double>& mnmx = currentMetadata->GetVDataRange(ts, 
 						currentMetadata->GetVariableNames()[var]);
+				if(mnmx.empty()){
+					minMax.push_back(0.);
+					minMax.push_back(1.);
+				}
+				else{
+					minMax.push_back(mnmx[0]);
+					minMax.push_back(mnmx[1]);
+				}
 				
 				if (minMax.size()>1){
 					//Don't set the min or max if it's not valid.
@@ -496,6 +514,17 @@ updateTFFilePath(QString* s){
 	if (pos < 0) return;
 	*tfFilePath = s->left(pos+1);
 }
+//Error callback:
+void Session::
+errorCallbackFcn(const char* msg, int err_code){
+	QMessageBox::warning(0,
+		"VAPoR Error",
+		QString("Error Code %1 ;  Message:\n %2").arg(err_code).arg(msg),
+		QMessageBox::Ok, QMessageBox::NoButton);
+}
+
+
+
 //Here is the implementation of the DataStatus.
 //This class is a repository for information about the current data...
 //Whether or not it exists on disk, what's its max and min
