@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>453</width>
-            <height>542</height>
+            <height>565</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -40,17 +40,14 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout51</cstring>
-        </property>
-        <property name="enabled">
-            <bool>true</bool>
+            <cstring>layout13</cstring>
         </property>
         <property name="geometry">
             <rect>
-                <x>10</x>
-                <y>10</y>
+                <x>12</x>
+                <y>12</y>
                 <width>434</width>
-                <height>520</height>
+                <height>507</height>
             </rect>
         </property>
         <vbox>
@@ -428,7 +425,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>31</width>
-                        <height>30</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -700,7 +697,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>21</width>
-                        <height>30</height>
+                        <height>29</height>
                     </size>
                 </property>
             </spacer>

@@ -72,7 +72,7 @@
                 <x>12</x>
                 <y>12</y>
                 <width>420</width>
-                <height>920</height>
+                <height>1010</height>
             </rect>
         </property>
         <vbox>
@@ -140,7 +140,7 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>16</width>
+                                <width>63</width>
                                 <height>21</height>
                             </size>
                         </property>
@@ -291,7 +291,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>21</width>
-                        <height>20</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -772,7 +772,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>72</height>
+                        <height>22</height>
                     </size>
                 </property>
             </spacer>
@@ -1491,7 +1491,7 @@
         </sizehint>
         <container>0</container>
         <sizepolicy>
-            <hordata>1</hordata>
+            <hordata>5</hordata>
             <verdata>5</verdata>
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
@@ -1516,7 +1516,7 @@
         </sizehint>
         <container>0</container>
         <sizepolicy>
-            <hordata>1</hordata>
+            <hordata>5</hordata>
             <verdata>5</verdata>
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
