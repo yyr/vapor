@@ -75,6 +75,10 @@ DvrParams::DvrParams(MainForm* mf, int winnum) : Params(mf, winnum){
 	maxMapBounds = new float[1];
 	minMapBounds[0] = 0.f;
 	maxMapBounds[0] = 1.f;
+	minEditBounds = new float[1];
+	maxEditBounds = new float[1];
+	minEditBounds[0] = 0.f;
+	maxEditBounds[0] = 1.f;
 	//Hookup the editor to the frame in the dvr tab:
 	myTransFunc = new TransferFunction(this, numBits);
 	if(myDvrTab) myTFEditor = new TFEditor(this, myTransFunc, myDvrTab->DvrTFFrame, mf->getSession());
@@ -85,7 +89,7 @@ DvrParams::DvrParams(MainForm* mf, int winnum) : Params(mf, winnum){
 	currentDatarange[0] = 0.f;
 	currentDatarange[1] = 1.f;
 	
-	mouseMode = 0;   //default is edit mode
+	editMode = true;   //default is edit mode
 }
 DvrParams::~DvrParams(){
 	delete myTransFunc;
@@ -93,6 +97,8 @@ DvrParams::~DvrParams(){
 	if (savedCommand) delete savedCommand;
 	if (minMapBounds) delete minMapBounds;
 	if (maxMapBounds) delete maxMapBounds;
+	if (minEditBounds) delete minEditBounds;
+	if (maxEditBounds) delete maxEditBounds;
 	
 }
 
@@ -110,9 +116,13 @@ deepCopy(){
 	int numVars = Max (numVariables, 1);
 	newParams->minMapBounds = new float[numVars];
 	newParams->maxMapBounds = new float[numVars];
+	newParams->minEditBounds = new float[numVars];
+	newParams->maxEditBounds = new float[numVars];
 	for (int i = 0; i<numVars; i++){
 		newParams->minMapBounds[i] = minMapBounds[i];
 		newParams->maxMapBounds[i] = maxMapBounds[i];
+		newParams->minEditBounds[i] = minEditBounds[i];
+		newParams->maxEditBounds[i] = maxEditBounds[i];
 	}
 
 	//Clone the Transfer Function (and TFEditor)
@@ -176,8 +186,7 @@ void DvrParams::updateDialog(){
 	myDvrTab->diffuseAttenuation->setText(strn.setNum(diffuseAtten, 'g', 3));
 	myDvrTab->ambientAttenuation->setText(strn.setNum(ambientAtten, 'g', 3));
 	myDvrTab->specularAttenuation->setText(strn.setNum(specularAtten, 'g', 3));
-	//Set the labels consistent with the editboxes
-	updateTFEditBounds();
+	
 	if (isLocal())
 		myDvrTab->LocalGlobal->setCurrentItem(1);
 	else 
@@ -195,21 +204,15 @@ void DvrParams::updateDialog(){
 	
 	//Set the mode buttons:
 	
-	switch (mouseMode){
-		case (0):
-			myDvrTab->editButton->setOn(true);
-			break;
-		case(1):
-			myDvrTab->magnifyButton->setOn(true);
-			break;
-		case (2):
-			myDvrTab->panButton->setOn(true);
-			break;
-		default:
-			assert(0);
-			break;
+	if (editMode){
+		
+		myDvrTab->editButton->setOn(true);
+		myDvrTab->navigateButton->setOn(false);
+	} else {
+		myDvrTab->editButton->setOn(false);
+		myDvrTab->navigateButton->setOn(true);
 	}
-	
+		
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
 	guiSetTextChanged(false);
@@ -236,7 +239,6 @@ updatePanelState(){
 	minMapBounds[varNum] = myDvrTab->leftMappingBound->text().toFloat();
 	maxMapBounds[varNum] = myDvrTab->rightMappingBound->text().toFloat();
 	
-	updateTFEditBounds();
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
 	guiSetTextChanged(false);
@@ -244,17 +246,16 @@ updatePanelState(){
 }
 
 //Change variable, plus other side-effects, updating tfe as well as tf.
-//The sliders are updated to have range equal to the full map range of
-//the new data, with consequential change in settings
+//
 void DvrParams::
 setVarNum(int val) 
 {
 	varNum = val;
 	
 	//reset the editing display range, this also sets dirty flag
-	myTFEditor->setEditingRange(getMinMapBound(), getMaxMapBound());
 	updateTFBounds();
 	//Force a redraw of tfframe
+	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();	
 	setDatarangeDirty(true);
 }
@@ -273,15 +274,7 @@ updateTFBounds(){
 	myDvrTab->rightMappingBound->setText(strn.setNum(maxMapBounds[varNum],'g',4));
 	setDatarangeDirty(true);
 }
-//Similarly, invoke the following whenever the editing display range changes:
-void DvrParams::
-updateTFEditBounds(){
-	//Set the labels consistent with the editboxes
-	QString strn;
-	myDvrTab->editLeftLabel->setText(strn.setNum(myTFEditor->getMinEditValue(),'g', 4));
-	myDvrTab->editRightLabel->setText(strn.setNum(myTFEditor->getMaxEditValue(),'g', 4));
-	myDvrTab->update();
-}
+
 void DvrParams::
 setClut(const float newTable[256][4]){
 	for (int i = 0; i< 256; i++) {
@@ -294,10 +287,20 @@ setClut(const float newTable[256][4]){
 //Change mouse mode to specified value
 //0,1,2 correspond to edit, zoom, pan
 void DvrParams::
-guiSetMouseMode(int mode){
+guiSetEditMode(bool mode){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"set mouse mode");
-	setMouseMode(mode);
+	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"set edit/navigate mode");
+	setEditMode(mode);
+	PanelCommand::captureEnd(cmd, this);
+}
+void DvrParams::
+guiSetAligned(){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"align tf in edit frame");
+	setMinEditBound(getMinMapBound());
+	setMaxEditBound(getMaxMapBound());
+	myTFEditor->setDirty(true);
+	myDvrTab->DvrTFFrame->update();
 	PanelCommand::captureEnd(cmd, this);
 }
 void DvrParams::
@@ -505,15 +508,17 @@ reinit(){
 	if (maxMapBounds) delete maxMapBounds;
 	minMapBounds = new float[numVariables];
 	maxMapBounds = new float[numVariables];
+	if (minEditBounds) delete minEditBounds;
+	if (maxEditBounds) delete maxEditBounds;
+	minEditBounds = new float[numVariables];
+	maxEditBounds = new float[numVariables];
 
 	for (int i = 0; i<numVariables; i++){
 		minMapBounds[i] = mainWin->getSession()->getDataRange(i)[0];
 		maxMapBounds[i] = mainWin->getSession()->getDataRange(i)[1];
+		minEditBounds[i] = mainWin->getSession()->getDataRange(i)[0];
+		maxEditBounds[i] = mainWin->getSession()->getDataRange(i)[1];
 	}
-	//Also set the TFE bounds to be the same as the mapping bounds
-	//for the default variable (0)
-	myTFEditor->setMinEditValue(minMapBounds[0]);
-	myTFEditor->setMaxEditValue(maxMapBounds[0]);
 	
 	setDatarangeDirty(true);
 	updateDialog();

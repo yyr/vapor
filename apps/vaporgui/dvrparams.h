@@ -107,6 +107,18 @@ public:
 	float getMaxMapBound() {
 		return maxMapBounds[varNum];
 	}
+	void setMinEditBound(float val) {
+		minEditBounds[varNum] = val;
+	}
+	void setMaxEditBound(float val) {
+		maxEditBounds[varNum] = val;
+	}
+	float getMinEditBound() {
+		return minEditBounds[varNum];
+	}
+	float getMaxEditBound() {
+		return maxEditBounds[varNum];
+	}
 	float getDataMinBound(){
 		if(numVariables == 0) return 0.f;
 		return mainWin->getSession()->getDataRange(varNum)[0];
@@ -115,14 +127,13 @@ public:
 		if(numVariables == 0) return 1.f;
 		return mainWin->getSession()->getDataRange(varNum)[1];
 	}
-	void setMouseMode(int mode) {mouseMode = mode;}
-	int getMouseMode() {return mouseMode;}
+	void setEditMode(bool mode) {editMode = mode;}
+	bool getEditMode() {return editMode;}
 	
 		
 	void setClut(const float newTable[256][4]);
 	void setBindButtons();
 	void updateTFBounds();
-	void updateTFEditBounds();
 	
 	//Methods with undo/redo support:
 	//
@@ -134,7 +145,8 @@ public:
 	
 	
 	void guiSetHistoStretch(int val);
-	void guiSetMouseMode(int val); //values are 0,1,2: edit, zoom, pan
+	void guiSetEditMode(bool val); //edit versus navigate mode
+	void guiSetAligned();
 	//respond to changes in TF (for undo/redo):
 	//
 	void guiStartChangeTF(char* s);
@@ -158,8 +170,7 @@ protected:
 	float diffuseAtten, ambientAtten, specularAtten;
 	int specularExponent;
 	
-	//Mouse mode is 0,1,2 for edit, zoom, pan
-	int mouseMode;
+	bool editMode;
 	//Transfer fcn LUT: (R,G,B,A)
 	//
 	float ctab[256][4];
@@ -173,8 +184,8 @@ protected:
 	std::vector<std::string> variableNames;
 	float* minMapBounds;
 	float* maxMapBounds;
-	
-
+	float* minEditBounds;
+	float* maxEditBounds;
 };
 };
 #endif //DVRPARAMS_H 

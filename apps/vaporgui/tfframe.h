@@ -22,7 +22,7 @@
 //
 #ifndef TFFRAME_H
 #define TFFRAME_H
-
+#define MAXNUMLABELS 10
 #include <qframe.h>
 #include <qwidget.h>
 #include <qimage.h>
@@ -79,8 +79,7 @@ protected:
 	void drawTris(QPainter& p, int x);
 
 	void mouseEditStart(QMouseEvent*);
-	void mouseZoomStart(QMouseEvent*);
-	void mousePanStart(QMouseEvent*);
+	void mouseNavigateStart(QMouseEvent*);
 
 	QPixmap pxMap;
 	
@@ -88,12 +87,12 @@ protected:
 	VAPoR::TFELocationTip *locationTip;
 	bool needUpdate;
 	bool amDragging;
-	int dragType; //0,1,2 for edit, zoom, pan; copied from params at mouse press event
+	int dragType; //0 for edit, 1 for navigate
 	bool mouseIsDown;
 	int unSelectColorIndex, unSelectOpacIndex;
 	//Array of QLabels
-	QLabel* tfColorLabels[10];
-	QLabel* tfOpacLabels[10]; 
+	QLabel* tfColorLabels[MAXNUMLABELS];
+	QLabel* tfOpacLabels[MAXNUMLABELS]; 
 };
 
 

@@ -79,8 +79,8 @@ public:
 	TFEditor(DvrParams*, TransferFunction* TF, TFFrame*, Session* );
 	~TFEditor();
 	void setEditingRange(float minVal, float maxVal){
-		minEditValue = minVal;
-		maxEditValue = maxVal;
+		myParams->setMinEditBound(minVal);
+		myParams->setMaxEditBound(maxVal);
 		dirty = true;
 	}
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
@@ -158,18 +158,22 @@ public:
 	int mapOpac2Win(float op, bool truncate = false);
 
 	//Map a screen horiz coordinate to float.  Results in a
-	//value between minEditValue and maxEditValue.
+	//value between minEditBound and maxEditBound.
 	//float mapScreenXCoord(int x);
 	//Map screen vert coord to Y.  Results in 0..1 for opacity coords,
 	// -1 for color coords
 	//float mapScreenYCoord(int y);
-	float getMinEditValue(){return minEditValue;}
-	float getMaxEditValue(){return maxEditValue;}
+	float getMinEditValue(){
+		return myParams->getMinEditBound();
+	}
+	float getMaxEditValue(){
+		return myParams->getMaxEditBound();
+	}
 	void setMinEditValue(float val) {
-		minEditValue = val;
+		myParams->setMinEditBound(val);
 	}
 	void setMaxEditValue(float val) {
-		maxEditValue = val;
+		myParams->setMaxEditBound(val);
 	}
 	TransferFunction* getTransferFunction() {return myTransferFunction;}
 	void setTransferFunction(TransferFunction* tf) {myTransferFunction = tf;}
@@ -188,8 +192,8 @@ public:
 	void addLeftDomainGrab() {grabbedState = leftDomainGrab;}
 	void addRightDomainGrab() {grabbedState = rightDomainGrab;}
 	void addFullDomainGrab() {grabbedState = fullDomainGrab;}
-	void setZoomGrab() { grabbedState = zoomGrab;}
-	void setPanGrab()  {grabbedState = panGrab;}
+	void setNavigateGrab() { grabbedState = navigateGrab;}
+	
 
 	int numColorSelected() { return numColorSelect;}
 	int numOpacSelected() {return numOpacSelect;}
@@ -205,13 +209,13 @@ public:
 	void setDragStart(int ix, int iy){
 		dragStartX = ix;
 		dragStartY = iy;
-		dragMinStart = minEditValue;
-		dragMaxStart = maxEditValue;
+		dragMinStart = getMinEditValue();
+		dragMaxStart = getMaxEditValue();
 		mappedDragStartX = mapWin2Var(ix);
 		leftMoveMax = -1;
 	}
-	void zoom(int y);
-	void pan(int x);
+	void navigate(int x, int y);
+	
 	void saveDomainBounds(){
 		leftDomainSaved = myTransferFunction->getMinMapValue();
 		rightDomainSaved = myTransferFunction->getMaxMapValue();
@@ -239,8 +243,7 @@ protected:
 		rightDomainGrab = 64,
 		fullDomainGrab = 128,
 		domainGrab = 224, //or of all domain grab types
-		zoomGrab = 256,
-		panGrab = 512
+		navigateGrab = 256
 	};
 	unsigned int grabbedState;
 	//Booleans to indicate what is currently selected;
@@ -253,8 +256,7 @@ protected:
 	//QImage* opacImage;
 	//The min and max values are established in the parent dialog.
 	//They must lie within range of transfer function definition.
-	float minEditValue;
-	float maxEditValue;
+	
 	float dragMinStart;
 	float dragMaxStart;
 	int height;

@@ -138,7 +138,7 @@ Params* AnimationParams::deepCopy(){
 	return (Params*)new AnimationParams(*this);
 }
 //Method to call when a new window comes to front
-void AnimationParams::makeCurrent(Params* p, bool newWin){
+void AnimationParams::makeCurrent(Params* /* prev params p*/, bool/* newWin?*/){
 	VizWinMgr* vwm = mainWin->getVizWinMgr();
 	vwm->setAnimationParams(vizNum, this);
 	updateDialog();

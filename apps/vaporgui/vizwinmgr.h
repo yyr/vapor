@@ -312,7 +312,9 @@ protected slots:
 	void setDvrVariableNum(int);
 	void setDvrLighting(bool);
 	void setDvrNumBits(int);
-	void setDvrMouseMode(int);
+	void setDvrEditMode(bool);
+	void setDvrNavigateMode(bool);
+	void setDvrAligned();
 	void dvrHistoStretch();
 	void dvrColorBind();
 	void dvrOpacBind();

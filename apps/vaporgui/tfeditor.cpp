@@ -31,8 +31,6 @@ TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm, Session
 	myFrame = frm;
 	myParams = prms;
 	tf->setEditor(this);
-	minEditValue = 0.f;
-	maxEditValue = 1.f;
 	editImage = new QImage(frm->size(), 32);
 	editImage->detach();
 	//opacImage = new QImage(frm->size(), 32);
@@ -403,31 +401,26 @@ moveGrabbedControlPoints(int newX, int newY){
 }
 // Set the zoom and pan, based on the new position of the mouse during a drag
 void TFEditor::
-zoom (int y){
+navigate (int x, int y){
 	//Determine zoom amount as a fraction of edit window height. 
 	float zoomAmount = (float)(y-dragStartY)/(float)(height);
 	float zoomRatio = pow(2.f, zoomAmount);
+	//Determine the horizontal pan as a fraction of edit window width:
+	float horizFraction = (float)(x-dragStartX)/(float)(width);
 	//The zoom starts at the original drag start; i.e. that point won't move
 	float startXMapped = ((float)dragStartX/(float)(width))*(dragMaxStart-dragMinStart) + dragMinStart;
-	//stretch the part to the left and the part to the right:
-	minEditValue = startXMapped - (startXMapped - dragMinStart)*zoomRatio;
-	maxEditValue = startXMapped + (dragMaxStart - startXMapped)*zoomRatio;
-	myParams->updateTFEditBounds();
+	//stretch the part to the left and the part to the right by zoom ratio
+	//
+	float minval = startXMapped - (startXMapped - dragMinStart)*zoomRatio;
+	float maxval = startXMapped + (dragMaxStart - startXMapped)*zoomRatio;
+	//Then apply the pan to the zoomed window:
+	setMinEditValue(minval - horizFraction*(maxval - minval));
+	setMaxEditValue(maxval - horizFraction*(maxval - minval));
 	dirty = true;
 	myFrame->update();
 
 }
-void TFEditor::
-pan (int x){
-	//Determine the motion as a fraction of edit window width:
-	float horizFraction = (float)(x-dragStartX)/(float)(width);
-	//Set new left/right edit bounds accordingly:
-	minEditValue = dragMinStart - horizFraction*(dragMaxStart-dragMinStart);
-	maxEditValue = dragMaxStart - horizFraction*(dragMaxStart-dragMinStart);
-	myParams->updateTFEditBounds();
-	myFrame->update();
-	dirty = true;
-}
+
 void TFEditor::
 moveDomainBound(int x){
 	float newX = mapWin2Var(x);
@@ -765,7 +758,7 @@ mapVar2Win(float v, bool classify){
 	//if (v > 1.e7f) v = 1.e7f;
 	//First map to a float value in pixel space:
 	
-	double cvrt = ((HORIZOVERLAP + (va - minEditValue)/(maxEditValue-minEditValue))*
+	double cvrt = ((HORIZOVERLAP + (va - getMinEditValue())/(getMaxEditValue()-getMinEditValue()))*
 		(((double)width - 1.0)/(1.0 + 2.0*HORIZOVERLAP)));
 	
 	int pixVal;
@@ -792,7 +785,7 @@ mapWin2Var(int x){
 	// 0->minEditValue - (max - min)*HORIZOVERLAP
 	// (wid-1)-> maxEditValue + (max-min)*HORIZOVERLAP
 	//
-	float var = minEditValue + (maxEditValue - minEditValue)*
+	float var = getMinEditValue() + (getMaxEditValue() - getMinEditValue())*
 			(ratio*(1.f + 2.f*HORIZOVERLAP) - HORIZOVERLAP);
 	return var;
 }

@@ -554,7 +554,11 @@ VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 	connect (dvrTab->histoStretchSlider, SIGNAL(sliderReleased()), this, SLOT (dvrHistoStretch()));
 	connect (dvrTab->ColorBindButton, SIGNAL(pressed()), this, SLOT(dvrColorBind()));
 	connect (dvrTab->OpacityBindButton, SIGNAL(pressed()), this, SLOT(dvrOpacBind()));
-	bool ok = connect (dvrTab->buttonGroup, SIGNAL(clicked(int)), this, SLOT(setDvrMouseMode(int)));
+	bool ok = connect (dvrTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setDvrNavigateMode(bool)));
+	assert(ok);
+	ok = connect (dvrTab->editButton, SIGNAL(toggled(bool)), this, SLOT(setDvrEditMode(bool)));
+	assert(ok);
+	ok = connect(dvrTab->alignButton, SIGNAL(clicked()), this, SLOT(setDvrAligned()));
 	assert(ok);
 	emit enableMultiViz(getNumVisualizers() > 1);
 }
@@ -1077,8 +1081,18 @@ dvrOpacBind(){
 	getDvrParams(activeViz)->guiBindOpacToColor();
 }
 void VizWinMgr::
-setDvrMouseMode(int mode){
-	getDvrParams(activeViz)->guiSetMouseMode(mode);
+setDvrEditMode(bool mode){
+	myMainWindow->getDvrTab()->navigateButton->setOn(!mode);
+	getDvrParams(activeViz)->guiSetEditMode(mode);
+}
+void VizWinMgr::
+setDvrNavigateMode(bool mode){
+	myMainWindow->getDvrTab()->editButton->setOn(!mode);
+	getDvrParams(activeViz)->guiSetEditMode(!mode);
+}
+void VizWinMgr::
+setDvrAligned(){
+	getDvrParams(activeViz)->guiSetAligned();
 }
 /*
  * Respond to a slider release

@@ -137,8 +137,6 @@ create_driver(
 void VolumizerRenderer::
 DrawVoxelScene(unsigned /*fast*/)
 {
-	static float* floatData = 0;
-	static unsigned char* intData = 0;
 	float matrix[16];
     GLenum	buffer;
 	static float extents[6];
@@ -175,8 +173,10 @@ DrawVoxelScene(unsigned /*fast*/)
 	// roi changes
 	//
 	if (myVizWin->regionIsDirty()|| myDVRParams->datarangeIsDirty()) {
-		float xc, yc, zc; // center of volume
-		float hmaxdim;
+
+		//float xc, yc, zc; // center of volume
+		//float hmaxdim;
+		
 		int	rc;
 		int max_dim[3];
 		int min_dim[3];
@@ -231,7 +231,7 @@ DrawVoxelScene(unsigned /*fast*/)
 				myDVRParams->getCurrentDatarange());
 			myDVRParams->setDatarangeDirty(false);
 		}
-		static void* dataSaved = 0;
+		
 		
 		void* data = (void*) myDataMgr->GetRegionUInt8(
 				myRegionParams->getCurrentTimestep(),
@@ -242,6 +242,7 @@ DrawVoxelScene(unsigned /*fast*/)
 				0 //Don't lock!
 			);
 #if 0 //Check for change of data at resolution 2
+		static void* dataSaved = 0;
 		if (numxforms == 2){
 			if (dataSaved && dataSaved != data){
 				int datasize = (max_dim[0]-min_dim[0])*
@@ -305,11 +306,11 @@ DrawVoxelScene(unsigned /*fast*/)
 		extents[1] = -extents[4];
 		extents[2] = -extents[5];
 
-		xc = (extents[3] + extents[0]) * 0.5;
-		yc = (extents[4] + extents[1]) * 0.5;
-		zc = (extents[5] + extents[2]) * 0.5;
+		//xc = (extents[3] + extents[0]) * 0.5;
+		//yc = (extents[4] + extents[1]) * 0.5;
+		//zc = (extents[5] + extents[2]) * 0.5;
 
-		hmaxdim = 0.5 * (float) Max(extents[5]-extents[2],Max(extents[3]-extents[0],extents[4]-extents[1]));
+		//hmaxdim = 0.5 * (float) Max(extents[5]-extents[2],Max(extents[3]-extents[0],extents[4]-extents[1]));
 
 		//myGLWindow->setCenter(cntr);
 		//myGLWindow->setMaxSize(hmaxdim);

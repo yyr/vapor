@@ -46,7 +46,8 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 	setFocusPolicy(QWidget::StrongFocus);
 	amDragging = false;
 	//Create labels to show with editor
-	for (int i = 0; i<10; i++){
+	//The first and last opacity label will be used for coords
+	for (int i = 0; i<MAXNUMLABELS; i++){
 		tfColorLabels[i] = new QLabel( parent, "tfColorLabel" );
 		tfOpacLabels[i] = new QLabel( parent, "tfOpacLabel" );
 		tfColorLabels[i] ->setEnabled(true);
@@ -67,7 +68,7 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 TFFrame::~TFFrame() {
 	delete locationTip;
 	//Will these be deleted by their parent????
-	for (int i = 0; i<10; i++){
+	for (int i = 0; i<MAXNUMLABELS; i++){
 		delete tfColorLabels[i];
 		delete tfOpacLabels[i];
 	}
@@ -122,21 +123,24 @@ void TFFrame::paintEvent(QPaintEvent* e){
 		}
 	}
 	//Hide labels:
-	for (i = 0; i<10; i++){
+	for (i = 0; i<MAXNUMLABELS; i++){
 		tfColorLabels[i]->hide();
 		tfOpacLabels[i]->hide();
 	}
-	//Draw tic marks for selected control points
+	//Draw tic marks for selected control points, plus left and right
+	//endpoints.  Opacity labels also used for left/right endpoints.
+	//To avoid overlaps, labels are only shown if they have enough room.
+	//
 	painter.setPen(black);
-	int recentTicPosition = -40;
+	int recentTicPosition = 0;
 	int numColorLabels = 0;
-	int numOpacLabels = 0;
+	int numOpacLabels = 1; //first one used for left endpoint.
 	for (i = 0; i<editor->getNumColorControlPoints(); i++){
 		editor->getColorControlPointPosition(i, &x);
 		if (editor->colorSelected(i) && x >=0 && x < width()){
 			painter.drawLine(x,height()-COORDMARGIN+3,x,height());
 			//Possibly put a label here:
-			if (numColorLabels < 10 && x>recentTicPosition+40){
+			if (numColorLabels < MAXNUMLABELS && x>recentTicPosition+40){
 				tfColorLabels[numColorLabels]->move(pos()+QPoint(x-25, height()+15));
 			
 				tfColorLabels[numColorLabels]->setText(QString::number(editor->getTransferFunction()->
@@ -147,13 +151,26 @@ void TFFrame::paintEvent(QPaintEvent* e){
 			}
 		}
 	}
-	recentTicPosition = -40;
+	//Do tic mark for left endpoint:
+	float fx = editor->mapWin2Var(0);
+	painter.drawLine(0,height()-COORDMARGIN+3,0,height());
+	//Use the first color label to indicate left edit margin
+	tfOpacLabels[0]->move(pos()+QPoint(-20, height()));
+			
+	tfOpacLabels[0]->setText(QString::number(fx,'g',4));
+	tfOpacLabels[0]->raise();
+	tfOpacLabels[0]->show();
+	
+
+	
+	//Setup for opacity tic marks:
+	recentTicPosition = 0;
 	for (i = 0; i<editor->getNumOpacControlPoints(); i++){
 		editor->getOpacControlPointPosition(i, &x, &y);
-		if (editor->opacSelected(i) && x >=0 && x < width()){
+		if (editor->opacSelected(i) && x >0 && x < width()){
 			painter.drawLine(x,height()-COORDMARGIN+3,x,height());
 			//Possibly put a label here:
-			if (numOpacLabels < 10 && x>recentTicPosition+40){
+			if (numOpacLabels < MAXNUMLABELS-1 && x>recentTicPosition+40 && x < width()-40){
 				tfOpacLabels[numOpacLabels]->move(pos()+QPoint(x-20, height()));
 			
 				tfOpacLabels[numOpacLabels]->setText(QString::number(editor->getTransferFunction()->
@@ -164,6 +181,16 @@ void TFFrame::paintEvent(QPaintEvent* e){
 			}
 		}
 	}
+	fx = editor->mapWin2Var(width()-1);
+	//Draw right edge tic mark:
+	painter.drawLine(width()-1,height()-COORDMARGIN+3,width()-1,height());
+	//Use the last opac label to indicate right edit margin
+	tfOpacLabels[numOpacLabels]->move(pos()+QPoint(width()-20, height()));
+			
+	tfOpacLabels[numOpacLabels]->setText(QString::number(fx,'g',4));
+	tfOpacLabels[numOpacLabels]->raise();
+	tfOpacLabels[numOpacLabels++]->show();
+
 	//Draw the opacity curve, 2 pixels wide
 	QPen myPen(OPACITYCURVECOLOR, 2);
 	painter.setPen(myPen);
@@ -309,20 +336,10 @@ void TFFrame::mousePressEvent( QMouseEvent * e){
 			return;
 		}
 		//Mouse effect in window is dependent on mode:
-		switch (editor->getParams()->getMouseMode()){
-			case(0): //edit mode
-				mouseEditStart(e);
-				break;
-			case (1):
-				mouseZoomStart(e);
-				break;
-			case(2):
-				mousePanStart(e);
-				break;
-			default:
-				assert(0);
-				break;
-		}
+		if (editor->getParams()->getEditMode())
+			mouseEditStart(e);	
+		else 
+			mouseNavigateStart(e);
 		update();
 		return;
 	}//end response to left-button down
@@ -416,25 +433,16 @@ mouseEditStart(QMouseEvent* e){
 
 // Mark the start of a mouse zoom action
 //
-void TFFrame::
-mouseZoomStart(QMouseEvent* e){
-	
-	startTFChange("transfer function editor zoom");
-	editor->setDragStart(e->x(), e->y());
-	editor->setZoomGrab();
-	amDragging = false;
-	dragType = 1;
-	return;
-}
-// Mark the start of a mouse pan action
+
+// Mark the start of a mouse navigate action
 //
 void TFFrame::
-mousePanStart(QMouseEvent* e){
-	startTFChange("transfer function editor pan");
+mouseNavigateStart(QMouseEvent* e){
+	startTFChange("transfer function editor navigate");
 	editor->setDragStart(e->x(), e->y());
-	editor->setPanGrab();
+	editor->setNavigateGrab();
 	amDragging = false;
-	dragType = 2;
+	dragType = 1;
 	return;
 }
 //When mouse is released, if we were editing, tell the panel that
@@ -494,12 +502,10 @@ void TFFrame::mouseMoveEvent( QMouseEvent * e){
 			editor->moveDomainBound(e->x());
 		} else if (dragType == 0){
 			editor->moveGrabbedControlPoints( e->x(), e->y());
-		} else if (dragType == 1){
-			editor->zoom(e->y());
 		} else {
-			assert (dragType == 2);
-			editor->pan(e->x());
-		}
+			assert(dragType == 1);
+			editor->navigate(e->x(), e->y());
+		} 
 	} 
 }
 void TFFrame::resizeEvent( QResizeEvent *  ){
