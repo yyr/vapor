@@ -108,7 +108,7 @@ Lifting1D::Lifting1D(
 	}
 
 
-#ifdef	DEBUG
+#ifdef	DEBUGGING
 	{
             int Nrows = (n_c>>1) + 1;
             filterPtr = filter_c;
@@ -781,7 +781,7 @@ static flt_t *create_fwd_lifting(
 		noGammas, ntilde
 	);
 
-#ifdef	DEBUG
+#ifdef	DEBUGING
 	fprintf (stdout, "\nLifting Coefficients:\n");
 	liftPtr = lifting;
 	for ( x=0 ; x<(width>>1) ; x++ ) {

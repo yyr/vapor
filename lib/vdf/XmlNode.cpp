@@ -98,7 +98,7 @@ const vector<long> &XmlNode::GetElementLong(const string &tag) const {
 	// see if entry for this key (tag) already exists
 	//
 	if (p == _longmap.end()) { 
-		SetErrMsg("Element tagged \"%s\" does not exist", tag.c_str());
+		SetErrMsg(ERR_TNP, "Element tagged \"%s\" does not exist", tag.c_str());
 		return(_emptyLongVec);
 	}
 
@@ -140,7 +140,7 @@ const vector<double> &XmlNode::GetElementDouble(const string &tag) const {
 	// see if entry for this key (tag) already exists
 	//
 	if (p == _doublemap.end()) { 
-		SetErrMsg("Element tagged \"%s\" does not exist", tag.c_str());
+		SetErrMsg(ERR_TNP, "Element tagged \"%s\" does not exist", tag.c_str());
 		return(_emptyDoubleVec);
 	}
 
@@ -175,7 +175,7 @@ const string &XmlNode::GetElementString(const string &tag) const {
 	// see if entry for this key (tag) already exists
 	//
 	if (p == _stringmap.end()) { 
-		SetErrMsg("Element tagged \"%s\" does not exist", tag.c_str());
+		SetErrMsg(ERR_TNP, "Element tagged \"%s\" does not exist", tag.c_str());
 		return(_emptyString);
 	}
 

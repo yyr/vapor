@@ -13,7 +13,6 @@
 #include <sys/stat.h>
 #include "vapor/WaveletBlock3DIO.h"
 #include "vapor/MyBase.h"
-#include "vapor/CFuncs.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -71,8 +70,6 @@ WaveletBlock3DIO::WaveletBlock3DIO(
 	unsigned int	nthreads
 ) {
 	_doFreeMeta = 0;
-	_metafileDirName = NULL;
-
 
 	metadata_c = metadata;
 	_WaveletBlock3DIO(metadata, nthreads);
@@ -86,11 +83,6 @@ WaveletBlock3DIO::WaveletBlock3DIO(
 
 	metadata_c = new Metadata(metafile);
 	if (metadata_c->GetErrCode() != 0) return;
-
-	_metafileDirName = new char[strlen(metafile)+1];
-
-	// Get directory path of metafile
-	_metafileDirName = Dirname(metafile, _metafileDirName);
 
 	_WaveletBlock3DIO(metadata_c, nthreads);
 }
@@ -108,7 +100,6 @@ WaveletBlock3DIO::~WaveletBlock3DIO() {
 	my_free();
 
 	if (_doFreeMeta && metadata_c) delete metadata_c;
-	if (_metafileDirName) delete [] _metafileDirName;
 }
 
 int    WaveletBlock3DIO::VariableExists(
@@ -125,8 +116,8 @@ int    WaveletBlock3DIO::VariableExists(
 	}
 
 	// Path to variable file is relative to xml file, if it exists
-	if (_metafileDirName && bp[0] != '/') {
-		basename.append(_metafileDirName);
+	if (metadata_c->GetParentDir() && bp[0] != '/') {
+		basename.append(metadata_c->GetParentDir());
 		basename.append("/");
 	}
 	basename.append(bp);
@@ -185,8 +176,8 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 	}
 
 	// Path to variable file is relative to xml file, if it exists
-	if (_metafileDirName && bp[0] != '/') {
-		basename.append(_metafileDirName);
+	if (metadata_c->GetParentDir() && bp[0] != '/') {
+		basename.append(metadata_c->GetParentDir());
 		basename.append("/");
 	}
 	basename.append(bp);
@@ -248,8 +239,8 @@ int	WaveletBlock3DIO::OpenVariableRead(
 	}
 
 	// Path to variable file is relative to xml file, if it exists
-	if (_metafileDirName && bp[0] != '/') {
-		basename.append(_metafileDirName);
+	if (metadata_c->GetParentDir() && bp[0] != '/') {
+		basename.append(metadata_c->GetParentDir());
 		basename.append("/");
 	}
 	basename.append(bp);
@@ -576,7 +567,7 @@ int	WaveletBlock3DIO::seekGammaBlocks(
 }
 
 int	WaveletBlock3DIO::readBlocks(
-	unsigned int n,
+	size_t n,
 	size_t num_xforms,
 	float *blks
 ) {

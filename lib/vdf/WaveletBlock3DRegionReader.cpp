@@ -26,6 +26,8 @@ WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(
 	unsigned int	nthreads
 ) : WaveletBlock3DIO((Metadata *) metadata, nthreads) {
 
+	SetDiagMsg("WaveletBlock3DRegionReader::WaveletBlock3DRegionReader()");
+
 	_WaveletBlock3DRegionReader();
 }
 
@@ -34,11 +36,18 @@ WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(
 	unsigned int	nthreads
 ) : WaveletBlock3DIO(metafile, nthreads) {
 
+	SetDiagMsg(
+		"WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(%s)",
+		metafile
+	);
+
 	_WaveletBlock3DRegionReader();
 }
 
 WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader(
 ) {
+	SetDiagMsg("WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader()");
+
 	CloseVariable();
 }
 
@@ -48,6 +57,11 @@ int	WaveletBlock3DRegionReader::OpenVariableRead(
 	size_t num_xforms
 ) {
 	int	rc;
+
+	SetDiagMsg(
+		"WaveletBlock3DRegionReader::OpenVariableRead(%d, %s, %d)",
+		timestep, varname, num_xforms
+	);
 
 	CloseVariable();	// close any previously opened files.
 	rc = WaveletBlock3DIO::OpenVariableRead(timestep, varname, num_xforms);
@@ -60,6 +74,8 @@ int	WaveletBlock3DRegionReader::OpenVariableRead(
 
 int	WaveletBlock3DRegionReader::CloseVariable(
 ) {
+	SetDiagMsg("WaveletBlock3DRegionReader::CloseVariable()");
+
 	my_free();
 	return(WaveletBlock3DIO::CloseVariable());
 }
@@ -176,6 +192,10 @@ int	WaveletBlock3DRegionReader::ReadRegion(
 	const size_t max[3],
 	float *region
 ) {
+	SetDiagMsg(
+		"WaveletBlock3DRegionReader::ReadRegion((%d,%d,%d),(%d,%d,%d))",
+		min[0], min[1], min[2], max[0], max[1], max[2]
+	);
 
 	if (! IsValidRegion(num_xforms_c, min, max)) {
 		SetErrMsg(
@@ -196,6 +216,11 @@ int	WaveletBlock3DRegionReader::BlockReadRegion(
 	int unblock
 ) {
 	size_t min[3], max[3];
+
+	SetDiagMsg(
+		"WaveletBlock3DRegionReader::BlockReadRegion((%d,%d,%d),(%d,%d,%d))",
+		bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]
+	);
 
 	if (! IsValidRegionBlk(num_xforms_c, bmin, bmax)) {
 		SetErrMsg(

@@ -21,6 +21,10 @@ WaveletBlock3DBufReader::WaveletBlock3DBufReader(
 	unsigned int    nthreads
 ) : WaveletBlock3DReader(metadata, nthreads) {
 
+	SetDiagMsg(
+		"WaveletBlock3DBufReader::WaveletBlock3DBufReader(,%d)", nthreads
+	);
+
 	_WaveletBlock3DBufReader();
 }
 
@@ -29,11 +33,18 @@ WaveletBlock3DBufReader::WaveletBlock3DBufReader(
 	unsigned int    nthreads
 ) : WaveletBlock3DReader(metafile, nthreads) {
 
+	SetDiagMsg(
+		"WaveletBlock3DBufReader::WaveletBlock3DBufReader(%s,%d)", 
+		metafile, nthreads
+	);
+
 	_WaveletBlock3DBufReader();
 }
 
 WaveletBlock3DBufReader::~WaveletBlock3DBufReader(
 ) {
+	SetDiagMsg("WaveletBlock3DBufReader::~WaveletBlock3DBufReader()");
+
 	CloseVariable();
 }
 
@@ -44,6 +55,11 @@ int	WaveletBlock3DBufReader::OpenVariableRead(
 ) {
 	int	rc;
 	size_t size;
+
+	SetDiagMsg(
+		"WaveletBlock3DBufReader::OpenVariableRead(%d,%s,%d)",
+		timestep, varname, num_xforms
+	);
 
 	slice_cntr_c = 0;
 	is_open_c = 1;
@@ -67,6 +83,7 @@ int	WaveletBlock3DBufReader::OpenVariableRead(
 
 int     WaveletBlock3DBufReader::CloseVariable(
 ) {
+	SetDiagMsg("WaveletBlock3DBufReader::CloseVariable()");
 
 	if (! is_open_c) return(0);
 
@@ -83,6 +100,8 @@ int	WaveletBlock3DBufReader::ReadSlice(
 	float *slice
 ) {
 	size_t	size;
+
+	SetDiagMsg("WaveletBlock3DBufReader::ReadSlice()");
 
 	if (! is_open_c) {
 		SetErrMsg("File must be open before reading");

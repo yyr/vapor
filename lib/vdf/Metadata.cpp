@@ -25,11 +25,13 @@
 #include <fstream>
 #include <sstream>
 #include <cstdarg>
+#include <cstring>
 #include <expat.h>
 #include <cassert>
 #include <algorithm>
 #include <vapor/Metadata.h>
 #include <vapor/XmlNode.h>
+#include <vapor/CFuncs.h>
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -142,8 +144,7 @@ void Metadata::_init(
 	vector<double> extentsVec(extents, &extents[sizeof(extents)/sizeof(extents[0])]);
 	SetExtents(extentsVec);
 
-	vector<long> numTimeStepsVec(1,1);
-	if (SetNumTimeSteps(numTimeStepsVec) < 0) return;
+	if (SetNumTimeSteps(1) < 0) return;
 
 	vector<string> varNamesVec(1,"var1");
 	if (SetVariableNames(varNamesVec) < 0) return;
@@ -156,13 +157,23 @@ Metadata::Metadata(
 		const size_t dim[3], size_t numTransforms, size_t bs, 
 		int nFilterCoef, int nLiftingCoef, int msbFirst
 ) {
+	SetDiagMsg(
+		"Metadata::Metadata([%d,%d,%d], %d, %d, %d, %d, %d)", 
+		dim[0], dim[1], dim[2], numTransforms, bs, nFilterCoef, nLiftingCoef,
+		msbFirst
+	);
+
 	_rootnode = NULL;
+	_metafileDirName = NULL;
 
 	_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst);
 }
 
 
 Metadata::Metadata(const string &path) {
+
+	SetDiagMsg("Metadata::Metadata(%s)", path.c_str());
+
 	ifstream is;
 	char line[1024];
 
@@ -173,6 +184,11 @@ Metadata::Metadata(const string &path) {
 		SetErrMsg("Can't open file \"%s\" for reading", path.c_str());
 		return;
 	}
+
+	_metafileDirName = new char[path.length()+1];
+
+	// Get directory path of metafile
+	_metafileDirName = Dirname(path.c_str(), _metafileDirName);
 
 	// Create an Expat XML parser to parse the XML formatted metadata file
 	// specified by 'path'
@@ -211,11 +227,17 @@ Metadata::Metadata(const string &path) {
 }
 
 Metadata::~Metadata() {
+	SetDiagMsg("Metadata::~Metadata()");
+
 	if (_rootnode) delete _rootnode;
+    if (_metafileDirName) delete [] _metafileDirName;
 }
 
 
 int Metadata::Write(const string &path) const {
+
+	SetDiagMsg("Metadata::Write(%s)", path.c_str());
+
 	ofstream fileout;
 	fileout.open(path.c_str());
 	if (! fileout) {
@@ -228,18 +250,28 @@ int Metadata::Write(const string &path) const {
 }
 
 int Metadata::SetGridType(const string &value) {
+
+
 	if (!IsValidGridType(value)) {
 		SetErrMsg("Invalid GridType specification : \"%s\"", value.c_str());
 		return(-1);
 	}
+
+	SetDiagMsg("Metadata::SetGridType(%s)", value.c_str());
+
 	return(_rootnode->SetElementString(_gridTypeTag, value));
 }
 
 int Metadata::SetCoordSystemType(const string &value) {
+
+
 	if (!IsValidCoordSystemType(value)) {
 		SetErrMsg("Invalid CoordinateSystem specification : \"%s\"", value.c_str());
 		return(-1);
 	}
+
+	SetDiagMsg("Metadata::SetCoordSystemType(%s)", value.c_str());
+
 	return(_rootnode->SetElementString(_coordSystemTypeTag, value));
 }
 
@@ -248,6 +280,12 @@ int Metadata::SetExtents(const vector<double> &value) {
 		SetErrMsg("Invalid Extents specification");
 		return(-1);
 	}
+
+	SetDiagMsg(
+		"Metadata::SetExtents([%f %f %f %f %f %f])",
+		value[0], value[1], value[2], value[3], value[4], value[5]
+	);
+
 	return(_rootnode->SetElementDouble(_extentsTag, value));
 }
 
@@ -259,8 +297,8 @@ int Metadata::IsValidExtents(const vector<double> &value) const {
 	return(1);
 }
 
-int Metadata::_SetNumTimeSteps(const vector<long> &value) {
-	size_t newN = (size_t) value[0];
+int Metadata::_SetNumTimeSteps(long value) {
+	size_t newN = (size_t) value;
 	size_t oldN = _rootnode->GetNumChildren();
 	map <const string, string> attrs;
 
@@ -330,18 +368,33 @@ int Metadata::_SetVariableNames(XmlNode *node, long ts) {
 	return(0);
 }
 
-int Metadata::SetNumTimeSteps(const vector<long> &value) {
+int Metadata::SetNumTimeSteps(long value) {
+	vector <long> valvec(1,value);
+
+
 	if (!IsValidTimeStep(value)) {
 		SetErrMsg("Invalid NumTimeSteps specification");
 		return(-1);
 	}
+
+	SetDiagMsg("Metadata::SetNumTimeSteps([%d])", value);
+
 	if (_SetNumTimeSteps(value) < 0) return(-1);
 
-	return(_rootnode->SetElementLong(_numTimeStepsTag, value));
+	return(_rootnode->SetElementLong(_numTimeStepsTag, valvec)); 
 }
+
+long Metadata::GetNumTimeSteps() const {
+	const vector <long> &rvec = _rootnode->GetElementLong(_numTimeStepsTag);
+
+	if (rvec.size()) return(rvec[0]);
+	else return(-1);
+};
 
 int Metadata::SetVariableNames(const vector <string> &value) {
 	size_t numTS = _rootnode->GetNumChildren();
+
+	SetDiagMsg("Metadata::SetVariableNames([%s,...])", value[0].c_str());
 
 	ostringstream oss;
 
@@ -366,10 +419,15 @@ int Metadata::SetVariableNames(const vector <string> &value) {
 }
 
 int Metadata::SetTSUserTime(size_t ts, const vector<double> &value) {
+
+
 	if (! IsValidUserTime(value)) {
 		SetErrMsg("Invalid user time specification");
 		return(-1);
 	}
+
+	SetDiagMsg("Metadata::SetTSUserTime(%d, [%d,...])", ts, value[0]);
+
 	CHK_TS(ts, -1);
 	return(_rootnode->GetChild(ts)->SetElementDouble(_userTimeTag, value));
 }
@@ -379,6 +437,9 @@ int Metadata::SetTSXCoords(size_t ts, const vector<double> &value) {
 		SetErrMsg("Invalid coordinate array specification");
 		return(-1);
 	}
+
+	SetDiagMsg("Metadata::SetTSXCoords(%d, [%d,...])", ts, value[0]);
+
 	CHK_TS(ts, -1);
 	return(_rootnode->GetChild(ts)->SetElementDouble(_xCoordsTag, value));
 }
@@ -388,6 +449,9 @@ int Metadata::SetTSYCoords(size_t ts, const vector<double> &value) {
 		SetErrMsg("Invalid coordinate array specification");
 		return(-1);
 	}
+
+	SetDiagMsg("Metadata::SetTSYCoords(%d, [%d,...])", ts, value[0]);
+
 	CHK_TS(ts, -1);
 	return(_rootnode->GetChild(ts)->SetElementDouble(_yCoordsTag, value));
 }
@@ -397,6 +461,9 @@ int Metadata::SetTSZCoords(size_t ts, const vector<double> &value) {
 		SetErrMsg("Invalid coordinate array specification");
 		return(-1);
 	}
+
+	SetDiagMsg("Metadata::SetTSZCoords(%d, [%d,...])", ts, value[0]);
+
 	CHK_TS(ts, -1);
 	return(_rootnode->GetChild(ts)->SetElementDouble(_zCoordsTag, value));
 }
@@ -405,6 +472,8 @@ int Metadata::SetTSComment(
 	size_t ts, const string &value
 ) {
 	XmlNode	*timenode;
+
+	SetDiagMsg("Metadata::SetTSComment(%d, %s)", ts, value.c_str());
 
 	CHK_TS(ts, -1);
 	if (! (timenode = _rootnode->GetChild(ts))) return(-1);
@@ -417,6 +486,9 @@ const string &Metadata::GetTSComment(
 ) const {
 
 	XmlNode	*timenode;
+
+	SetDiagMsg("Metadata::GetTSComment(%d)", ts);
+
 	CHK_TS(ts, _emptyString);
 	if (! (timenode = _rootnode->GetChild(ts))) return(_emptyString);
 
@@ -428,6 +500,11 @@ int Metadata::SetVComment(
 ) {
 	XmlNode	*timenode;
 	XmlNode	*varnode;
+
+	SetDiagMsg(
+		"Metadata::SetVComment(%d, %s, %s)",
+		ts, var.c_str(), value.c_str()
+	);
 
 	CHK_VAR(ts, var, -1);
 	timenode = _rootnode->GetChild(ts);
@@ -443,6 +520,8 @@ const string &Metadata::GetVComment(
 	XmlNode	*timenode;
 	XmlNode	*varnode;
 
+	SetDiagMsg("Metadata::GetVComment(%d, %s)", ts, var.c_str());
+
 	CHK_VAR(ts, var, _emptyString);
 	timenode = _rootnode->GetChild(ts);
 	varnode = timenode->GetChild(var);
@@ -456,6 +535,8 @@ const string &Metadata::GetVBasePath(
 
 	XmlNode	*timenode;
 	XmlNode	*varnode;
+
+	SetDiagMsg("Metadata::GetVBasePath(%d, %s)", ts, var.c_str());
 
 	CHK_VAR(ts, var, _emptyString);
 	timenode = _rootnode->GetChild(ts);
@@ -474,6 +555,10 @@ int Metadata::SetVDataRange(
         SetErrMsg("Invalid data range specification");
         return(-1);
     }
+
+	SetDiagMsg(
+		"Metadata::SetVDataRange(%d, %s, [%f, ...])", ts, var.c_str(), value[0]
+	);
 
 
 	timenode = _rootnode->GetChild(ts);
@@ -976,7 +1061,7 @@ void	Metadata::_endElementHandler1(
 		} 
 	}
 	else if (StrCmpNoCase(tag, _numTimeStepsTag) == 0) {
-		if (SetNumTimeSteps(_expatLongData) < 0) {
+		if (SetNumTimeSteps(_expatLongData[0]) < 0) {
 			string s(GetErrMsg()); _parseError("%s", s.c_str());
 			return;
 		}
