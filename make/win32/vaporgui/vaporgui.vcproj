@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
@@ -12,45 +12,45 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="."
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			ConfigurationType="1"
 			IntermediateDirectory="Release\"
-			UseOfMfc="0">
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,b:\Vapor\apps\vaporgui,b:\Vapor\include,$(QTDIR)\include,b:\Vapor\apps\vaporgui\ui,../../../apps/vaporgui/ui\,b:\Vapor\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
-				AssemblerListingLocation="Release\"
-				BufferSecurityCheck="FALSE"
-				DebugInformationFormat="3"
-				ExceptionHandling="TRUE"
+				Optimization="1"
+				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,b:\Vapor\apps\vaporgui,b:\Vapor\include,$(QTDIR)\include,b:\Vapor\apps\vaporgui\ui,../../../apps/vaporgui/ui\,b:\Vapor\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
+				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT,NDEBUG"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
-				ObjectFile="Release\"
-				Optimization ="1"
-				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT,NDEBUG"
-				ProgramDataBaseFileName=".\"
+				ExceptionHandling="TRUE"
 				RuntimeLibrary="3"
+				BufferSecurityCheck="FALSE"
+				AssemblerListingLocation="Release\"
+				ObjectFile="Release\"
+				ProgramDataBaseFileName=".\"
+				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
-				WarningLevel="3"/>
+				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				IgnoreImportLibrary="TRUE"
 				AdditionalDependencies="qt-mt332.lib qtmain.lib opengl32.lib glu32.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
+				OutputFile="Release\\..\..\..\targets\win32\bin\vaporgui.exe"
+				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="$(QTDIR)\lib"
 				DelayLoadDLLs="opengl32.dll,comdlg32.dll,oleaut32.dll,winmm.dll,wsock32.dll,winspool.dll"
 				GenerateDebugInformation="FALSE"
-				IgnoreImportLibrary="TRUE"
-				OutputFile="Release\\..\..\..\targets\win32\bin\vaporgui.exe"
 				ProgramDatabaseFile=""
-				SubSystem="2"
-				SuppressStartupBanner="TRUE"/>
+				SubSystem="2"/>
 			<Tool
 				Name="VCMIDLTool"
+				WarningLevel="0"
 				DefaultCharType="0"
-				EnableErrorChecks="1"
-				WarningLevel="0"/>
+				EnableErrorChecks="1"/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
 			<Tool
@@ -60,49 +60,59 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="."
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			ConfigurationType="1"
 			IntermediateDirectory="..\..\..\targets\win32\built\vaporgui\"
-			UseOfMfc="0">
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,b:\Vapor\apps\vaporgui,b:\Vapor\include,$(QTDIR)\include,b:\Vapor\apps\vaporgui\ui,../../../apps/vaporgui/ui\,b:\Vapor\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
-				AssemblerListingLocation="..\..\..\targets\win32\built\vaporgui\"
-				BufferSecurityCheck="FALSE"
-				DebugInformationFormat="3"
-				ExceptionHandling="TRUE"
+				Optimization="4"
+				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,b:\Vapor\apps\vaporgui,b:\Vapor\include,$(QTDIR)\include,b:\Vapor\apps\vaporgui\ui,../../../apps/vaporgui/ui\,b:\Vapor\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
+				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
-				ObjectFile="..\..\..\targets\win32\built\vaporgui\"
-				Optimization ="4"
-				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT"
-				ProgramDataBaseFileName=".\"
+				ExceptionHandling="TRUE"
 				RuntimeLibrary="3"
+				BufferSecurityCheck="FALSE"
+				AssemblerListingLocation="..\..\..\targets\win32\built\vaporgui\"
+				ObjectFile="..\..\..\targets\win32\built\vaporgui\"
+				ProgramDataBaseFileName=".\"
+				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
-				WarningLevel="3"/>
+				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="qt-mt332.lib qtmain.lib opengl32.lib glu32.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
+				IgnoreImportLibrary="TRUE"
+				AdditionalDependencies="qt-mt334.lib qtmain.lib opengl32.lib glu32.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
+				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
+				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="$(QTDIR)\lib"
 				DelayLoadDLLs="opengl32.dll"
 				GenerateDebugInformation="TRUE"
-				IgnoreImportLibrary="TRUE"
-				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				ProgramDatabaseFile=""
-				SubSystem="2"
-				SuppressStartupBanner="TRUE"/>
+				SubSystem="2"/>
 			<Tool
 				Name="VCMIDLTool"
+				WarningLevel="0"
 				DefaultCharType="0"
-				EnableErrorChecks="1"
-				WarningLevel="0"/>
+				EnableErrorChecks="1"/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
 			<Tool
@@ -112,20 +122,26 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\apps\vaporgui\DVRBase.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\DVRDebug.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\DVRVolumizer.cpp">
+				RelativePath="..\..\..\apps\vaporgui\animationcontroller.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\animationparams.cpp">
@@ -143,7 +159,16 @@
 				RelativePath="..\..\..\apps\vaporgui\contourparams.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\DVRBase.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\DVRDebug.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\dvrparams.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\DVRVolumizer.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\glbox.cpp">
@@ -240,13 +265,7 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\apps\vaporgui\DVRBase.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\DVRDebug.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\DVRVolumizer.h">
+				RelativePath="..\..\..\apps\vaporgui\animationcontroller.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\animationparams.h">
@@ -255,42 +274,46 @@
 				RelativePath="..\..\..\apps\vaporgui\coloradjustdialog.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\coloradjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\coloradjustdialog.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\coloradjustdialog.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\coloradjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\coloradjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\coloradjustdialog.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\coloradjustdialog.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\coloradjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\colorpicker.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\colorpicker.h -o ..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\colorpicker.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\colorpicker.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\colorpicker.h -o ..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\colorpicker.h -o ..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\colorpicker.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\colorpicker.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\colorpicker.h -o ..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_colorpicker.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -300,27 +323,38 @@
 				RelativePath="..\..\..\apps\vaporgui\contourparams.h">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\DVRBase.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\DVRDebug.h">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\dvrparams.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\DVRVolumizer.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\glbox.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\glbox.h -o ..\..\..\apps\vaporgui\moc\moc_glbox.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\glbox.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_glbox.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\glbox.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\glbox.h -o ..\..\..\apps\vaporgui\moc\moc_glbox.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_glbox.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\glbox.h -o ..\..\..\apps\vaporgui\moc\moc_glbox.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\glbox.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_glbox.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\glbox.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\glbox.h -o ..\..\..\apps\vaporgui\moc\moc_glbox.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_glbox.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -339,63 +373,69 @@
 				RelativePath="..\..\..\apps\vaporgui\mainform.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\mainform.h -o ..\..\..\apps\vaporgui\moc\moc_mainform.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\mainform.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_mainform.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\mainform.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\mainform.h -o ..\..\..\apps\vaporgui\moc\moc_mainform.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_mainform.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\mainform.h -o ..\..\..\apps\vaporgui\moc\moc_mainform.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\mainform.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_mainform.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\mainform.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\mainform.h -o ..\..\..\apps\vaporgui\moc\moc_mainform.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_mainform.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\minmaxcombo.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\minmaxcombo.h -o ..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\minmaxcombo.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\minmaxcombo.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\minmaxcombo.h -o ..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\minmaxcombo.h -o ..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\minmaxcombo.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\minmaxcombo.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\minmaxcombo.h -o ..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_minmaxcombo.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\opacadjustdialog.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\opacadjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\opacadjustdialog.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\opacadjustdialog.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\opacadjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\opacadjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\opacadjustdialog.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\opacadjustdialog.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\opacadjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -411,21 +451,23 @@
 				RelativePath="..\..\..\apps\vaporgui\renderer.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\renderer.h -o ..\..\..\apps\vaporgui\moc\moc_renderer.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\renderer.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_renderer.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\renderer.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\renderer.h -o ..\..\..\apps\vaporgui\moc\moc_renderer.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_renderer.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\renderer.h -o ..\..\..\apps\vaporgui\moc\moc_renderer.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\renderer.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_renderer.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\renderer.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\renderer.h -o ..\..\..\apps\vaporgui\moc\moc_renderer.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_renderer.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -435,21 +477,23 @@
 				RelativePath="..\..\..\apps\vaporgui\tabmanager.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\tabmanager.h -o ..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\tabmanager.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\tabmanager.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\tabmanager.h -o ..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\tabmanager.h -o ..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\tabmanager.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\tabmanager.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\tabmanager.h -o ..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -462,21 +506,23 @@
 				RelativePath="..\..\..\apps\vaporgui\tfframe.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\tfframe.h -o ..\..\..\apps\vaporgui\moc\moc_tfframe.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\tfframe.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_tfframe.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\tfframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\tfframe.h -o ..\..\..\apps\vaporgui\moc\moc_tfframe.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_tfframe.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\tfframe.h -o ..\..\..\apps\vaporgui\moc\moc_tfframe.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\tfframe.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_tfframe.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\tfframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\tfframe.h -o ..\..\..\apps\vaporgui\moc\moc_tfframe.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_tfframe.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -492,21 +538,23 @@
 				RelativePath="..\..\..\apps\vaporgui\vcr.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vcr.h -o ..\..\..\apps\vaporgui\moc\moc_vcr.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\vcr.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_vcr.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vcr.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vcr.h -o ..\..\..\apps\vaporgui\moc\moc_vcr.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_vcr.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vcr.h -o ..\..\..\apps\vaporgui\moc\moc_vcr.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\vcr.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_vcr.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vcr.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vcr.h -o ..\..\..\apps\vaporgui\moc\moc_vcr.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_vcr.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -519,126 +567,138 @@
 				RelativePath="..\..\..\apps\vaporgui\vizmgrdialog.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizmgrdialog.h -o ..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizmgrdialog.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizmgrdialog.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizmgrdialog.h -o ..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizmgrdialog.h -o ..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizmgrdialog.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizmgrdialog.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizmgrdialog.h -o ..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_vizmgrdialog.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\viznameedit.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\viznameedit.h -o ..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\viznameedit.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\viznameedit.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\viznameedit.h -o ..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\viznameedit.h -o ..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\viznameedit.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\viznameedit.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\viznameedit.h -o ..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_viznameedit.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\vizselectcombo.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizselectcombo.h -o ..\..\..\apps\vaporgui\moc\moc_vizselectcombo.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizselectcombo.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_vizselectcombo.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizselectcombo.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizselectcombo.h -o ..\..\..\apps\vaporgui\moc\moc_vizselectcombo.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_vizselectcombo.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizselectcombo.h -o ..\..\..\apps\vaporgui\moc\moc_vizselectcombo.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizselectcombo.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_vizselectcombo.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizselectcombo.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizselectcombo.h -o ..\..\..\apps\vaporgui\moc\moc_vizselectcombo.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_vizselectcombo.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\vizwin.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizwin.h -o ..\..\..\apps\vaporgui\moc\moc_vizwin.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizwin.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_vizwin.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizwin.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizwin.h -o ..\..\..\apps\vaporgui\moc\moc_vizwin.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_vizwin.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizwin.h -o ..\..\..\apps\vaporgui\moc\moc_vizwin.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizwin.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_vizwin.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizwin.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizwin.h -o ..\..\..\apps\vaporgui\moc\moc_vizwin.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_vizwin.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\vizwinmgr.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizwinmgr.h -o ..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizwinmgr.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizwinmgr.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizwinmgr.h -o ..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizwinmgr.h -o ..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizwinmgr.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vizwinmgr.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vizwinmgr.h -o ..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\volumizerrenderer.h">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\volumizerrenderer.h -o ..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\volumizerrenderer.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\volumizerrenderer.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\volumizerrenderer.h -o ..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-				CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\volumizerrenderer.h -o ..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp"
-				Description="Moc&apos;ing ..\..\..\apps\vaporgui\volumizerrenderer.h..."
-				Outputs="..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp"/>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\volumizerrenderer.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\volumizerrenderer.h -o ..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp"/>
 				</FileConfiguration>
 			</File>
 		</Filter>
@@ -763,181 +823,195 @@
 		</Filter>
 		<Filter
 			Name="Forms"
-			ParseFiles="FALSE"
-			Filter="ui">
+			Filter="ui"
+			ParseFiles="FALSE">
 			<File
 				RelativePath="..\..\..\apps\vaporgui\ui\animationtab.ui">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\animationtab.ui -o ..\..\..\apps\vaporgui\ui\animationtab.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\animationtab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\animationtab.ui -o ..\..\..\apps\vaporgui\ui\animationtab.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\animationtab.ui -i animationtab.h -o ..\..\..\apps\vaporgui\ui\animationtab.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\animationtab.h -o ..\..\..\apps\vaporgui\moc\moc_animationtab.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\animationtab.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\animationtab.h;..\..\..\apps\vaporgui\ui\animationtab.cpp;..\..\..\apps\vaporgui\moc\moc_animationtab.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\animationtab.h -o ..\..\..\apps\vaporgui\moc\moc_animationtab.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\animationtab.h;..\..\..\apps\vaporgui\ui\animationtab.cpp;..\..\..\apps\vaporgui\moc\moc_animationtab.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\animationtab.ui -o ..\..\..\apps\vaporgui\ui\animationtab.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\animationtab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\animationtab.ui -o ..\..\..\apps\vaporgui\ui\animationtab.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\animationtab.ui -i animationtab.h -o ..\..\..\apps\vaporgui\ui\animationtab.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\animationtab.h -o ..\..\..\apps\vaporgui\moc\moc_animationtab.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\animationtab.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\animationtab.h;..\..\..\apps\vaporgui\ui\animationtab.cpp;..\..\..\apps\vaporgui\moc\moc_animationtab.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\animationtab.h -o ..\..\..\apps\vaporgui\moc\moc_animationtab.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\animationtab.h;..\..\..\apps\vaporgui\ui\animationtab.cpp;..\..\..\apps\vaporgui\moc\moc_animationtab.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\ui\contourplanetab.ui">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\contourplanetab.ui -o ..\..\..\apps\vaporgui\ui\contourplanetab.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\contourplanetab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\contourplanetab.ui -o ..\..\..\apps\vaporgui\ui\contourplanetab.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\contourplanetab.ui -i contourplanetab.h -o ..\..\..\apps\vaporgui\ui\contourplanetab.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\contourplanetab.h -o ..\..\..\apps\vaporgui\moc\moc_contourplanetab.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\contourplanetab.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\contourplanetab.h;..\..\..\apps\vaporgui\ui\contourplanetab.cpp;..\..\..\apps\vaporgui\moc\moc_contourplanetab.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\contourplanetab.h -o ..\..\..\apps\vaporgui\moc\moc_contourplanetab.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\contourplanetab.h;..\..\..\apps\vaporgui\ui\contourplanetab.cpp;..\..\..\apps\vaporgui\moc\moc_contourplanetab.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\contourplanetab.ui -o ..\..\..\apps\vaporgui\ui\contourplanetab.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\contourplanetab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\contourplanetab.ui -o ..\..\..\apps\vaporgui\ui\contourplanetab.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\contourplanetab.ui -i contourplanetab.h -o ..\..\..\apps\vaporgui\ui\contourplanetab.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\contourplanetab.h -o ..\..\..\apps\vaporgui\moc\moc_contourplanetab.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\contourplanetab.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\contourplanetab.h;..\..\..\apps\vaporgui\ui\contourplanetab.cpp;..\..\..\apps\vaporgui\moc\moc_contourplanetab.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\contourplanetab.h -o ..\..\..\apps\vaporgui\moc\moc_contourplanetab.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\contourplanetab.h;..\..\..\apps\vaporgui\ui\contourplanetab.cpp;..\..\..\apps\vaporgui\moc\moc_contourplanetab.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\ui\dvr.ui">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\dvr.ui -o ..\..\..\apps\vaporgui\ui\dvr.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\dvr.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\dvr.ui -o ..\..\..\apps\vaporgui\ui\dvr.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\dvr.ui -i dvr.h -o ..\..\..\apps\vaporgui\ui\dvr.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\dvr.h -o ..\..\..\apps\vaporgui\moc\moc_dvr.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\dvr.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\dvr.h;..\..\..\apps\vaporgui\ui\dvr.cpp;..\..\..\apps\vaporgui\moc\moc_dvr.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\dvr.h -o ..\..\..\apps\vaporgui\moc\moc_dvr.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\dvr.h;..\..\..\apps\vaporgui\ui\dvr.cpp;..\..\..\apps\vaporgui\moc\moc_dvr.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\dvr.ui -o ..\..\..\apps\vaporgui\ui\dvr.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\dvr.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\dvr.ui -o ..\..\..\apps\vaporgui\ui\dvr.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\dvr.ui -i dvr.h -o ..\..\..\apps\vaporgui\ui\dvr.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\dvr.h -o ..\..\..\apps\vaporgui\moc\moc_dvr.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\dvr.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\dvr.h;..\..\..\apps\vaporgui\ui\dvr.cpp;..\..\..\apps\vaporgui\moc\moc_dvr.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\dvr.h -o ..\..\..\apps\vaporgui\moc\moc_dvr.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\dvr.h;..\..\..\apps\vaporgui\ui\dvr.cpp;..\..\..\apps\vaporgui\moc\moc_dvr.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\ui\isotab.ui">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\isotab.ui -o ..\..\..\apps\vaporgui\ui\isotab.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\isotab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\isotab.ui -o ..\..\..\apps\vaporgui\ui\isotab.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\isotab.ui -i isotab.h -o ..\..\..\apps\vaporgui\ui\isotab.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\isotab.h -o ..\..\..\apps\vaporgui\moc\moc_isotab.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\isotab.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\isotab.h;..\..\..\apps\vaporgui\ui\isotab.cpp;..\..\..\apps\vaporgui\moc\moc_isotab.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\isotab.h -o ..\..\..\apps\vaporgui\moc\moc_isotab.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\isotab.h;..\..\..\apps\vaporgui\ui\isotab.cpp;..\..\..\apps\vaporgui\moc\moc_isotab.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\isotab.ui -o ..\..\..\apps\vaporgui\ui\isotab.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\isotab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\isotab.ui -o ..\..\..\apps\vaporgui\ui\isotab.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\isotab.ui -i isotab.h -o ..\..\..\apps\vaporgui\ui\isotab.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\isotab.h -o ..\..\..\apps\vaporgui\moc\moc_isotab.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\isotab.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\isotab.h;..\..\..\apps\vaporgui\ui\isotab.cpp;..\..\..\apps\vaporgui\moc\moc_isotab.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\isotab.h -o ..\..\..\apps\vaporgui\moc\moc_isotab.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\isotab.h;..\..\..\apps\vaporgui\ui\isotab.cpp;..\..\..\apps\vaporgui\moc\moc_isotab.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\ui\regiontab.ui">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\regiontab.ui -o ..\..\..\apps\vaporgui\ui\regiontab.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\regiontab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\regiontab.ui -o ..\..\..\apps\vaporgui\ui\regiontab.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\regiontab.ui -i regiontab.h -o ..\..\..\apps\vaporgui\ui\regiontab.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\regiontab.h -o ..\..\..\apps\vaporgui\moc\moc_regiontab.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\regiontab.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\regiontab.h;..\..\..\apps\vaporgui\ui\regiontab.cpp;..\..\..\apps\vaporgui\moc\moc_regiontab.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\regiontab.h -o ..\..\..\apps\vaporgui\moc\moc_regiontab.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\regiontab.h;..\..\..\apps\vaporgui\ui\regiontab.cpp;..\..\..\apps\vaporgui\moc\moc_regiontab.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\regiontab.ui -o ..\..\..\apps\vaporgui\ui\regiontab.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\regiontab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\regiontab.ui -o ..\..\..\apps\vaporgui\ui\regiontab.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\regiontab.ui -i regiontab.h -o ..\..\..\apps\vaporgui\ui\regiontab.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\regiontab.h -o ..\..\..\apps\vaporgui\moc\moc_regiontab.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\regiontab.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\regiontab.h;..\..\..\apps\vaporgui\ui\regiontab.cpp;..\..\..\apps\vaporgui\moc\moc_regiontab.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\regiontab.h -o ..\..\..\apps\vaporgui\moc\moc_regiontab.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\regiontab.h;..\..\..\apps\vaporgui\ui\regiontab.cpp;..\..\..\apps\vaporgui\moc\moc_regiontab.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\ui\sessionparameters.ui">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\sessionparameters.ui -o ..\..\..\apps\vaporgui\ui\sessionparameters.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\sessionparameters.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\sessionparameters.ui -o ..\..\..\apps\vaporgui\ui\sessionparameters.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\sessionparameters.ui -i sessionparameters.h -o ..\..\..\apps\vaporgui\ui\sessionparameters.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\sessionparameters.h -o ..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\sessionparameters.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\sessionparameters.h;..\..\..\apps\vaporgui\ui\sessionparameters.cpp;..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\sessionparameters.h -o ..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\sessionparameters.h;..\..\..\apps\vaporgui\ui\sessionparameters.cpp;..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\sessionparameters.ui -o ..\..\..\apps\vaporgui\ui\sessionparameters.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\sessionparameters.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\sessionparameters.ui -o ..\..\..\apps\vaporgui\ui\sessionparameters.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\sessionparameters.ui -i sessionparameters.h -o ..\..\..\apps\vaporgui\ui\sessionparameters.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\sessionparameters.h -o ..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\sessionparameters.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\sessionparameters.h;..\..\..\apps\vaporgui\ui\sessionparameters.cpp;..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\sessionparameters.h -o ..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\sessionparameters.h;..\..\..\apps\vaporgui\ui\sessionparameters.cpp;..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\ui\viztab.ui">
 				<FileConfiguration
 					Name="Release|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\viztab.ui -o ..\..\..\apps\vaporgui\ui\viztab.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\viztab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\viztab.ui -o ..\..\..\apps\vaporgui\ui\viztab.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\viztab.ui -i viztab.h -o ..\..\..\apps\vaporgui\ui\viztab.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\viztab.h -o ..\..\..\apps\vaporgui\moc\moc_viztab.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\viztab.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\viztab.h;..\..\..\apps\vaporgui\ui\viztab.cpp;..\..\..\apps\vaporgui\moc\moc_viztab.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\viztab.h -o ..\..\..\apps\vaporgui\moc\moc_viztab.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\viztab.h;..\..\..\apps\vaporgui\ui\viztab.cpp;..\..\..\apps\vaporgui\moc\moc_viztab.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
-			<Tool
-				Name="VCCustomBuildTool"
-				AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-				CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\viztab.ui -o ..\..\..\apps\vaporgui\ui\viztab.h
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing ..\..\..\apps\vaporgui\ui\viztab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\viztab.ui -o ..\..\..\apps\vaporgui\ui\viztab.h
 $(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\ui\viztab.ui -i viztab.h -o ..\..\..\apps\vaporgui\ui\viztab.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\viztab.h -o ..\..\..\apps\vaporgui\moc\moc_viztab.cpp"
-				Description="Uic'ing ..\..\..\apps\vaporgui\ui\viztab.ui..."
-				Outputs="..\..\..\apps\vaporgui\ui\viztab.h;..\..\..\apps\vaporgui\ui\viztab.cpp;..\..\..\apps\vaporgui\moc\moc_viztab.cpp"/>
+$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\viztab.h -o ..\..\..\apps\vaporgui\moc\moc_viztab.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="..\..\..\apps\vaporgui\ui\viztab.h;..\..\..\apps\vaporgui\ui\viztab.cpp;..\..\..\apps\vaporgui\moc\moc_viztab.cpp"/>
 				</FileConfiguration>
 			</File>
 		</Filter>
