@@ -70,7 +70,8 @@ restart(){
 	//restart the controller thread (calls run()) after it returns.
 	animationCancelled = false;
 	myClock->start();
-	start(QThread::IdlePriority);
+	start();
+	//start(QThread::IdlePriority);
 }
 
 // The run method continues as long as rendering needs to be performed.
@@ -88,6 +89,7 @@ run(){
 	for (viznum = 0; viznum<MAXVIZWINS; viznum++) {
 		//begin with inactive/finished status:
 		statusFlag[viznum] = finished;
+		startTime[viznum] = 0;
 		//set the shared bit:
 		if (!VizWinMgr::getInstance()->getAnimationParams(viznum)->isLocal())
 			setGlobal(viznum);

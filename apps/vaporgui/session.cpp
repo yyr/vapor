@@ -159,8 +159,7 @@ resetMetadata(const char* fileBase)
 {
 	int i;
 	renderOK = false;
-	//Reinitialize the animation controller:
-	AnimationController::getInstance()->restart();
+	
 	//The metadata is created by (and obtained from) the datamgr
 	currentMetadataPath = new string(fileBase);
 	//string path(fileBase);
@@ -261,8 +260,10 @@ resetMetadata(const char* fileBase)
 	myVizWinMgr->launchVisualizer();
 	myVizWinMgr->updateActiveParams();
 
-	//Then make the tab panels refresh:
+	//Restart the animation controller:
 	
+	AnimationController::getInstance()->restart();
+
 	//Reset the undo/redo queue
 	resetCommandQueue();
 	renderOK = true;
