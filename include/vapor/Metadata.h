@@ -418,7 +418,8 @@ public:
  //
  const vector<double> &GetVDataRange(size_t ts, const string &var) const {
 	if (! _rootnode->GetChild(ts)) return(_emptyDoubleVec);
-	return(_rootnode->GetChild(ts)->GetElementDouble(_dataRangeTag));
+	if (! _rootnode->GetChild(ts)->GetChild(var)) return(_emptyDoubleVec);
+	return(_rootnode->GetChild(ts)->GetChild(var)->GetElementDouble(_dataRangeTag));
 	}
 
  int IsValidVDataRange(const vector<double> &value) const {
