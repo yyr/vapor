@@ -21,6 +21,7 @@ struct {
 	char *varname;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
+	OptionParser::Boolean_T	swapbytes;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
@@ -28,6 +29,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"varname",	1, 	"var1",	"Name of variable"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quitely"},
+	{"swapbytes",	0,	"",	"Swap bytes in raw data as they are read from disk"},
 	{NULL}
 };
 
@@ -37,6 +39,7 @@ OptionParser::Option_T	get_options[] = {
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
+	{"swapbytes", VetsUtil::CvtToBoolean, &opt.swapbytes, sizeof(opt.swapbytes)},
 	{NULL}
 };
 
@@ -86,6 +89,24 @@ void save_file(const char *file) {
 	}
 }
 	
+void    swapbytes(
+	void *vptr,
+	int size,
+	int	n
+) {
+	unsigned char   *ucptr = (unsigned char *) vptr;
+	unsigned char   uc;
+	int             i,j;
+
+	for (j=0; j<n; j++) {
+		for (i=0; i<size/2; i++) {
+			uc = ucptr[i];
+			ucptr[i] = ucptr[size-i-1];
+			ucptr[size-i-1] = uc;
+		}
+		ucptr += size;
+	}
+}
 
 	
 
@@ -180,6 +201,10 @@ int	main(int argc, char **argv) {
 			exit(1);
 		}
 		TIMER_STOP(t1, read_timer);
+
+		if (opt.swapbytes) {
+			swapbytes(slice, sizeof(slice[0]), dim[0]*dim[1]); 
+		}
 
         wbwriter.WriteSlice(slice);
         if (wbwriter.GetErrCode() != 0) {
