@@ -77,7 +77,10 @@ resetMetadata(const char* fileBase)
 		return;
 	}
 	if (dataMgr) delete dataMgr;
-	dataMgr = new DataMgr(currentMetadata, 1024, 1);
+	//Note:  currently hardwired 512 MB cache size.  Should be made
+	//A configuration option
+	//
+	dataMgr = new DataMgr(currentMetadata, 512, 1);
 
 	if (dataMgr->GetErrCode() != 0) {
 		qWarning( "Error creating DataMgr %s\n", dataMgr->GetErrMsg());
