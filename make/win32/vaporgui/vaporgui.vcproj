@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="..\..\..\targets\win32\bin\vaporgui"
+	Name="vaporgui"
 	ProjectGUID="{383213E5-0BC1-353D-92BC-EDF1D333656D}">
 	<Platforms>
 		<Platform
@@ -18,10 +18,10 @@
 			ATLMinimizesCRunTimeLibraryUsage="FALSE">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
+				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189 /EHsc"
 				Optimization="1"
-				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,b:\Vapor\apps\vaporgui,b:\Vapor\include,$(QTDIR)\include,b:\Vapor\apps\vaporgui\ui,../../../apps/vaporgui/ui\,b:\Vapor\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
-				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT,NDEBUG"
+				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,..\..\..\apps\vaporgui,..\..\..\include,$(QTDIR)\include,ui,../../../apps/vaporgui/ui\,.,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.4\mkspecs\win32-msvc.net"
+				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT,NDEBUG,QT_NO_DEBUG"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
 				ExceptionHandling="TRUE"
@@ -38,7 +38,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="TRUE"
-				AdditionalDependencies="qt-mt332.lib qtmain.lib opengl32.lib glu32.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
+				AdditionalDependencies="qt-mt334.lib qtmain.lib opengl32.lib glu32.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
 				OutputFile="Release\\..\..\..\targets\win32\bin\vaporgui.exe"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="$(QTDIR)\lib"
@@ -82,7 +82,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,b:\Vapor\apps\vaporgui,b:\Vapor\include,$(QTDIR)\include,b:\Vapor\apps\vaporgui\ui,../../../apps/vaporgui/ui\,b:\Vapor\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
+				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,..\..\..\apps\vaporgui,..\..\..\include,$(QTDIR)\include,ui,../../../apps/vaporgui/ui\,.,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.4\mkspecs\win32-msvc.net"
 				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
@@ -186,6 +186,9 @@
 				RelativePath="..\..\..\apps\vaporgui\isosurfaceparams.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\loadtfdialog.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\main.cpp">
 			</File>
 			<File
@@ -208,6 +211,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\renderer.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\savetfdialog.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\session.cpp">
@@ -370,6 +376,29 @@
 				RelativePath="..\..\..\apps\vaporgui\isosurfaceparams.h">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\loadtfdialog.h">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\loadtfdialog.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\loadtfdialog.h -o ..\..\..\apps\vaporgui\moc\moc_loadtfdialog.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_loadtfdialog.cpp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\loadtfdialog.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\loadtfdialog.h -o ..\..\..\apps\vaporgui\moc\moc_loadtfdialog.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_loadtfdialog.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\mainform.h">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -471,6 +500,29 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\savetfdialog.h">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\savetfdialog.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\savetfdialog.h -o ..\..\..\apps\vaporgui\moc\moc_savetfdialog.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_savetfdialog.cpp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing ..\..\..\apps\vaporgui\savetfdialog.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\savetfdialog.h -o ..\..\..\apps\vaporgui\moc\moc_savetfdialog.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_savetfdialog.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\session.h">
 			</File>
 			<File
@@ -556,9 +608,6 @@
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_vcr.cpp"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\viewpoint.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\viewpointparams.h">
@@ -730,6 +779,9 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_isotab.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_loadtfdialog.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_mainform.cpp">
 			</File>
 			<File
@@ -743,6 +795,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_renderer.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_savetfdialog.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp">
