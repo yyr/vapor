@@ -136,6 +136,7 @@ OBJS    := $(addprefix $(OBJDIR)/, $(FILES))
 OBJS    := $(addsuffix $(OBJSUFFIX), $(OBJS))
 INCS    := $(addprefix $(INCDIR)/$(PROJECT)/, $(HEADER_FILES))
 INCS    := $(addsuffix .h, $(INCS))
+HEADER_FILES    := $(addsuffix .h, $(HEADER_FILES))
 ifdef LIBRARY
 ifdef SHARED
 	LIBNAME := $(addprefix $(DSO_DIR)/, $(LIBPREFIX)$(LIBRARY)$(DLLSUFFIX))
@@ -314,9 +315,15 @@ endif
 dep: $(DEPS)
 	$(MAKE) $(PARALLELMAKEFLAGS) recurse INCLUDEDEPS=1
 
-headers: $(INCS)
+headers: $(HEADER_FILES)
 ifdef SUBDIRS
 	for i in $(SUBDIRS); do $(MAKE) -C $$i headers; done
+else
+ifdef	HEADER_FILES
+$(HEADER_FILES): 
+	@$(RM) $@
+	@$(LN) $(INCDIR)/$(PROJECT)/$@ $@
+endif
 endif
 
 # XXX this target should also have a dependency on all static Cr libraries.
@@ -463,10 +470,6 @@ endif
 
 .SUFFIXES: .cpp .c .cxx .cc .C .s .l .h
 
-#$(INCDIR)/$(PROJECT)/%.h: %.h
-#	@$(MAKE_INCDIR)
-#	@$(CP) $< $@
-
 %.cpp: %.l
 	@$(ECHO) "Creating $@"
 	@$(LEX) $< > $@
@@ -605,9 +608,13 @@ endif
 endif
 	@$(ECHO) "Removing dependency files (if any)"
 	@$(RM) $(DEPDIR)/*.depend
+ifdef	HEADER_FILES
+	@$(ECHO) "Removing links to header files"
+	@$(RM) $(HEADER_FILES)
+endif
 endif
 
-doc: FRC
+doc: headers FRC
 ifdef SUBDIRS
 	@for i in $(SUBDIRS); do $(MAKE) -C $$i doc; done
 
