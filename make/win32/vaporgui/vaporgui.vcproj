@@ -216,6 +216,9 @@
 				RelativePath="..\..\..\apps\vaporgui\session.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\sharedcontrollerthread.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\tabmanager.cpp">
 			</File>
 			<File
@@ -235,6 +238,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\transferfunction.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\unsharedcontrollerthread.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\vcr.cpp">
@@ -318,6 +324,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\contourparams.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\controllerthread.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\DVRBase.h">
