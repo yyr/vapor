@@ -97,6 +97,14 @@ public:
  //
  const char *GetParentDir() const { return (_metafileDirName); }
 
+ //! Return the base of file path name to the metafile.
+ //! If the class was constructed with a path name, this method
+ //! returns the basename of the path name. If the class
+ //! was not constructed with a path name, NULL is returned.
+ //! \retval dirname : parent directory or NULL
+ //
+ const char *GetMetafileName() const { return (_metafileName); }
+
  //! Write the metadata object to a file
  //!
  //! \param[in] path Name of the file to write to
@@ -754,6 +762,7 @@ private:
  int	_numTransforms;		// Number of wavelet transforms
  int	_msbFirst;			// Most Significant Byte First storage order
  char	*_metafileDirName;	// path to metafile parent directory
+ char	*_metafileName;		// basename of path to metafile 
 
  vector <double>	_emptyDoubleVec;
  vector <long>		_emptyLongVec;

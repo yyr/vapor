@@ -166,6 +166,7 @@ Metadata::Metadata(
 
 	_rootnode = NULL;
 	_metafileDirName = NULL;
+	_metafileName = NULL;
 
 	_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst);
 }
@@ -187,9 +188,11 @@ Metadata::Metadata(const string &path) {
 	}
 
 	_metafileDirName = new char[path.length()+1];
+	_metafileName = new char[path.length()+1];
 
 	// Get directory path of metafile
 	_metafileDirName = Dirname(path.c_str(), _metafileDirName);
+	strcpy(_metafileName, Basename(path.c_str()));
 
 	// Create an Expat XML parser to parse the XML formatted metadata file
 	// specified by 'path'
@@ -234,6 +237,7 @@ Metadata::~Metadata() {
 
 	if (_rootnode) delete _rootnode;
     if (_metafileDirName) delete [] _metafileDirName;
+    if (_metafileName) delete [] _metafileName;
 }
 
 

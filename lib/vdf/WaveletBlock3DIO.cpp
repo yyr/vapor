@@ -120,6 +120,24 @@ int    WaveletBlock3DIO::VariableExists(
 		basename.append(metadata_c->GetParentDir());
 		basename.append("/");
 	}
+
+	// Path to variable file is relative to xml file, if it exists
+	if (metadata_c->GetMetafileName() && bp[0] != '/') {
+		string s = metadata_c->GetMetafileName();
+		string t;
+		size_t p = s.find_first_of(".");
+		if (p != string::npos) {
+			t = s.substr(0, p);
+		}
+		else {
+			t = s;
+		}
+		basename.append(t);
+		basename.append("_data");
+		basename.append("/");
+
+    }
+	
 	basename.append(bp);
 
 	for(int j=0; j< (int)(num_xforms+1); j++) {
@@ -180,6 +198,24 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 		basename.append(metadata_c->GetParentDir());
 		basename.append("/");
 	}
+
+	// Path to variable file is relative to xml file, if it exists
+	if (metadata_c->GetMetafileName() && bp[0] != '/') {
+		string s = metadata_c->GetMetafileName();
+		string t;
+		size_t p = s.find_first_of(".");
+		if (p != string::npos) {
+			t = s.substr(0, p);
+		}
+		else {
+			t = s;
+		}
+		basename.append(t);
+		basename.append("_data");
+		basename.append("/");
+
+    }
+
 	basename.append(bp);
 
 	dirname(basename, dir);
@@ -243,6 +279,24 @@ int	WaveletBlock3DIO::OpenVariableRead(
 		basename.append(metadata_c->GetParentDir());
 		basename.append("/");
 	}
+
+	// Path to variable file is relative to xml file, if it exists
+	if (metadata_c->GetMetafileName() && bp[0] != '/') {
+		string s = metadata_c->GetMetafileName();
+		string t;
+		size_t p = s.find_first_of(".");
+		if (p != string::npos) {
+			t = s.substr(0, p);
+		}
+		else {
+			t = s;
+		}
+		basename.append(t);
+		basename.append("_data");
+		basename.append("/");
+
+    }
+
 	basename.append(bp);
 
 	for(j=0; j<(int)((max_xforms_c-num_xforms)+1); j++) {
