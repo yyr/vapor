@@ -779,46 +779,46 @@
 			Name="Generated Form Files"
 			Filter="cpp;c;cxx;h;hpp;hxx;">
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\animationtab.cpp">
+				RelativePath="..\..\..\apps\vaporgui\ui\animationtab.cpp">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\animationtab.h">
+				RelativePath="..\..\..\apps\vaporgui\ui\animationtab.h">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\contourplanetab.cpp">
+				RelativePath="..\..\..\apps\vaporgui\ui\contourplanetab.cpp">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\contourplanetab.h">
+				RelativePath="..\..\..\apps\vaporgui\ui\contourplanetab.h">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\dvr.cpp">
+				RelativePath="..\..\..\apps\vaporgui\ui\dvr.cpp">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\dvr.h">
+				RelativePath="..\..\..\apps\vaporgui\ui\dvr.h">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\isotab.cpp">
+				RelativePath="..\..\..\apps\vaporgui\ui\isotab.cpp">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\isotab.h">
+				RelativePath="..\..\..\apps\vaporgui\ui\isotab.h">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\regiontab.cpp">
+				RelativePath="..\..\..\apps\vaporgui\ui\regiontab.cpp">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\regiontab.h">
+				RelativePath="..\..\..\apps\vaporgui\ui\regiontab.h">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\sessionparameters.cpp">
+				RelativePath="..\..\..\apps\vaporgui\ui\sessionparameters.cpp">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\sessionparameters.h">
+				RelativePath="..\..\..\apps\vaporgui\ui\sessionparameters.h">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\viztab.cpp">
+				RelativePath="..\..\..\apps\vaporgui\ui\viztab.cpp">
 			</File>
 			<File
-				RelativePath="b:\Vapor\apps\vaporgui\ui\viztab.h">
+				RelativePath="..\..\..\apps\vaporgui\ui\viztab.h">
 			</File>
 		</Filter>
 		<Filter
