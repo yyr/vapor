@@ -204,7 +204,7 @@ int	WaveletBlock3DRegionReader::BlockReadRegion(
 	}
 
 	for(int i=0; i<3; i++) min[i] = bs_c*bmin[i];
-	for(int i=0; i<3; i++) max[i] = (bs_c*(bmin[i]+1))-1;
+	for(int i=0; i<3; i++) max[i] = (bs_c*(bmax[i]+1))-1;
 
 	return(_ReadRegion(min, max, region, unblock));
 
