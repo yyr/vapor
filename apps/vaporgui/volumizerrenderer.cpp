@@ -227,7 +227,8 @@ DrawVoxelScene(unsigned /*fast*/)
 		*/
 	
 		if (myDVRParams->datarangeIsDirty()){
-			myDataMgr->SetDataRange(myDVRParams->getCurrentDatarange());
+			myDataMgr->SetDataRange(myDVRParams->getVariableName(),
+				myDVRParams->getCurrentDatarange());
 			myDVRParams->setDatarangeDirty(false);
 		}
 		static void* dataSaved = 0;

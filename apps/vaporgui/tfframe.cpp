@@ -238,28 +238,25 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 		QPen vpen(ENDLINECOLOR, 3);
 		drawBrush.setColor(ENDLINECOLOR);
 		
-		int halfHt = (height()-BELOWOPACITY)/2;
 		if (leftLim > 0){
-			if (editor->leftDomainGrabbed()){
+			if (editor->leftDomainGrabbed()||editor->fullDomainGrabbed()){
 				vpen.setColor(HIGHLIGHTCOLOR);
 				painter.setPen(vpen);
 			} else {
 				vpen.setColor(ENDLINECOLOR);
 				painter.setPen(vpen);
 			}
-			painter.drawLine(leftLim, height() -BELOWOPACITY, leftLim, 0);
-			painter.fillRect(leftLim - 3, halfHt -3, 6, 6,drawBrush);
+			painter.drawLine(leftLim, height() -BELOWOPACITY, leftLim, DOMAINSLIDERMARGIN);
 		}
 		if (rightLim < width()){
-			if (editor->rightDomainGrabbed()){
+			if (editor->rightDomainGrabbed()||editor->fullDomainGrabbed()){
 				vpen.setColor(HIGHLIGHTCOLOR);
 				painter.setPen(vpen);
 			} else {
 				vpen.setColor(ENDLINECOLOR);
 				painter.setPen(vpen);
 			}
-			painter.drawLine(rightLim, height() -BELOWOPACITY, rightLim, 0);
-			painter.fillRect(rightLim - 3, halfHt -3, 6, 6,drawBrush);
+			painter.drawLine(rightLim, height() -BELOWOPACITY, rightLim, DOMAINSLIDERMARGIN);
 		}
 		//Now bitblt the pixmap to the widget:
 		bitBlt(this, QPoint(0,0),&pxMap);
@@ -278,10 +275,6 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 	 * If the shift button is pressed, remember that fact in the grab.  If this is
 	 * the start of a drag, the drag will be horizontally or vertically 
 	 * constrained.
-	 * If the "b" key is pressed on a control point, and another control point
-	 * (in the other (color/opacity) space is selected, then bind the previously
-	 * selected point to this one (i.e. move it to the same x-coord).  The two
-	 * will continue to move together if this is a drag.
 	 * This always grabs the point created or selected.
 	 * Whenever a color control point is selected (except when ctrl or shift
 	 * is pressed), that color is shown in the color picker.
@@ -293,6 +286,31 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 		if (e->button() == Qt::LeftButton){
 			//Ignore mouse press over margin:
 			if (e->y() >= (height() - COORDMARGIN)) return;
+			//Check for domain grabs:
+			if (e->y() < DOMAINSLIDERMARGIN){
+				int leftLim = editor->mapVar2Win(editor->getTransferFunction()->getMinMapValue(),false);
+				int rightLim = editor->mapVar2Win(editor->getTransferFunction()->getMaxMapValue(),false);
+				if (e->x() < leftLim -DOMAINSLIDERMARGIN ||
+					e->x() > rightLim +DOMAINSLIDERMARGIN ) return;
+				//Notify the DVR that an editing change is starting:
+				startTFChange("transfer function domain boundary move");
+				editor->setDragStart(e->x(), e->y());
+				editor->saveDomainBounds();
+				amDragging = false;
+				editor->unSelectAll();
+				if (e->x() <= leftLim){
+					editor->addLeftDomainGrab();
+					return;
+				}
+				if (e->x() >= rightLim){
+					editor->addRightDomainGrab();
+					return;
+				}
+				editor->addFullDomainGrab();
+				return;
+			}
+
+	
 			//See if we can classify where the mouse is:
 			int index;
 			int type = editor->closestControlPoint(e->x(), e->y(), &index);
@@ -301,12 +319,9 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 			if (e->y() >= (height() - BARHEIGHT - COORDMARGIN - SEPARATOR/2)){			
 				startTFChange("transfer function color bar edit");
 			} else {
-				if (type == 2 || type == -2){
-					startTFChange("transfer function domain boundary move");
-				} else {
-					startTFChange("transfer function opacity edit");
-				}
+				startTFChange("transfer function opacity edit");
 			}
+			
 			editor->setDragStart(e->x(), e->y());
 			amDragging = false;
 			unSelectColorIndex = -1;
@@ -323,7 +338,6 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 			editor->removeConstrainedGrab();
 				
 			//Make changes in selection:
-			
 			
 			if (type == 0) { //New control point, create, select it:
 				if (e->y() >= (height() - BARHEIGHT - COORDMARGIN -SEPARATOR/2)){
@@ -365,16 +379,10 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 			} else if (type == -1) { //type == -1 is existing opacity select
 				editor->selectOpac(index);
 				editor->addOpacGrab();
-			} else if (type == -2){ //left domain grab
-				editor->unSelectAll();
-				editor->addLeftDomainGrab();
-			} else if (type == 2) {
-				editor->unSelectAll();
-				editor->addRightDomainGrab();
-			}
+			} 
 			//In any case, if shift is pressed, we fill selection interval, and
 			//prepare for a constrained drag:
-			if (shiftPressed && !editor->domainGrabbed()) {
+			if (shiftPressed) {
 				editor->selectInterval(type>0);
 				editor->addConstrainedGrab();
 			} 

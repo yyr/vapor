@@ -187,8 +187,8 @@ public:
 	//Set range mapped for a variable.  Currently sets all
 	//variables to same range.
 	//
-	void setMappingRange(int /*variableNum*/, float leftRight[2]){
-		dataMgr->SetDataRange(leftRight);
+	void setMappingRange(int variableNum, float leftRight[2]){
+		dataMgr->SetDataRange(currentMetadata->GetVariableNames()[variableNum].c_str(),leftRight);
 	}
 	//Methods to control the command queue:
 	//When a new command is issued, call "addToHistory"

@@ -114,7 +114,7 @@ resetMetadata(const char* fileBase)
 		//In doing the quantization.  Note that this will change
 		//when the range is changed in the TFE
 		//
-		dataMgr->SetDataRange(currentDataStatus->getDataRange(i));
+		setMappingRange(i, currentDataStatus->getDataRange(i));
 		float dataMin = currentDataStatus->getDataRange(i)[0];
 		float dataMax = currentDataStatus->getDataRange(i)[1];
 		//Obtain data dimensions for getting histogram:

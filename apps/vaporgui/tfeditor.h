@@ -33,14 +33,17 @@
 #define SEPARATOR 4
 //CoordMargin is at bottom 
 #define COORDMARGIN 10
-//Topmargin is between curve and top of image
+//Topmargin is between curve and top of editing window
 #define TOPMARGIN 3
+//DomainSlider is above image
+#define DOMAINSLIDERMARGIN 12
 //space below opacity window
 #define BELOWOPACITY (BARHEIGHT+SEPARATOR+COORDMARGIN)
 //Factor for getting wider than specified window:
 #define HORIZOVERLAP 0.01f
 //Float constants to describe vertical regions:
 #define ABOVEWINDOW 2.f
+#define ONDOMAINSLIDER 1.f
 #define ONSEPARATOR -1.f
 #define ONCOLORBAR -2.f
 #define BELOWCOLORBAR -3.f
@@ -54,6 +57,8 @@
 #define OPACITYCURVECOLOR white
 #define CONTROLPOINTCOLOR darkGray
 #define ENDLINECOLOR lightGray
+#define DOMAINSLIDERCOLOR qRgb(128,0,0) //Dark red
+#define DOMAINENDSLIDERCOLOR qRgb(255,0,0) //Full red
 
 
 class QImage;
@@ -173,7 +178,7 @@ public:
 
 	//Public methods for controlling grabbedState:
 	void unGrab() {grabbedState = notGrabbed;}
-	void unGrabBounds() {grabbedState &= ~(leftDomainGrab|rightDomainGrab);}
+	void unGrabBounds() {grabbedState &= ~(domainGrab);}
 	void removeConstrainedGrab() {grabbedState &= ~allConstrainedGrabs;}
 	void addConstrainedGrab(){grabbedState |= constrainedGrab;}
 	void addOpacGrab(){grabbedState |= opacGrab;}
@@ -182,12 +187,14 @@ public:
 	void removeOpacGrab(){grabbedState &= ~opacGrab;}
 	void addLeftDomainGrab() {grabbedState = leftDomainGrab;}
 	void addRightDomainGrab() {grabbedState = rightDomainGrab;}
+	void addFullDomainGrab() {grabbedState = fullDomainGrab;}
 	int numColorSelected() { return numColorSelect;}
 	int numOpacSelected() {return numOpacSelect;}
 	bool isGrabbed() {return (grabbedState != notGrabbed);}
-	bool domainGrabbed() {return grabbedState&(leftDomainGrab|rightDomainGrab);}
+	bool domainGrabbed() {return grabbedState&(domainGrab);}
 	bool leftDomainGrabbed() {return grabbedState & leftDomainGrab;}
 	bool rightDomainGrabbed() {return grabbedState & rightDomainGrab;}
+	bool fullDomainGrabbed() {return grabbedState & fullDomainGrab;}
 	bool canBind() {return (numColorSelected()==1 && numOpacSelected()==1);}
 	void bindOpacToColor(); 
 	void bindColorToOpac();
@@ -195,7 +202,12 @@ public:
 	void setDragStart(int ix, int iy){
 		dragStartX = ix;
 		dragStartY = iy;
+		mappedDragStartX = mapWin2Var(ix);
 		leftMoveMax = -1;
+	}
+	void saveDomainBounds(){
+		leftDomainSaved = myTransferFunction->getMinMapValue();
+		rightDomainSaved = myTransferFunction->getMaxMapValue();
 	}
 	DvrParams* getParams(){ return myParams;}
 	void setParams(DvrParams* p) {myParams = p;}
@@ -207,7 +219,7 @@ protected:
 	//Whenever a new mouse-down event happens, it must reset
 	//allConstrainedGrabs.  When mouse down occurs without
 	//ctrl or shift keys, it resets opacGrab and colorGrab.
-	//left and right domain grabs remove all other grabs
+	//domain grabs remove all other grabs
 	enum grabType {
 		notGrabbed = 0,
 		colorGrab = 1,
@@ -217,7 +229,9 @@ protected:
 		horizontalGrab = 16,
 		allConstrainedGrabs = 28,
 		leftDomainGrab = 32,
-		rightDomainGrab = 64
+		rightDomainGrab = 64,
+		fullDomainGrab = 128,
+		domainGrab = 224 //or of all domain grab types
 	};
 	unsigned int grabbedState;
 	//Booleans to indicate what is currently selected;
@@ -241,6 +255,8 @@ protected:
 	Session* session;
 	float histoStretchFactor;
 	int dragStartX, dragStartY;
+	float mappedDragStartX;
+	float leftDomainSaved, rightDomainSaved;
 	//Bounds for current drag.  dragMaxX = -1000000.f if not set:
 	//float dragMinX, dragMaxX, dragMinY, dragMaxY;
 	//Bounds expressed in terms of relative screen coords

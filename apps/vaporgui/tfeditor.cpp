@@ -86,9 +86,11 @@ void TFEditor::refreshImage(){
 				histoMaxBin = histo->getBinSize(j);
 		}
 	}
+	int leftLim = mapVar2Win(myTransferFunction->getMinMapValue(),false);
+	int rightLim = mapVar2Win(myTransferFunction->getMaxMapValue(),false);
 	
 	for (int x = 0; x<width; x++){
-		
+		int y;
 		//Find what index corresponds to x
 		//Perform a linear mapping to find point coord,
 		//Then ask transfer function for discrete value
@@ -106,6 +108,46 @@ void TFEditor::refreshImage(){
 			}
 			column = newColumn;
 		}
+
+		//Paint the domainslider region
+		
+		if ((x < leftLim - DOMAINSLIDERMARGIN)||
+				(x> rightLim + DOMAINSLIDERMARGIN)){
+			//paint away from slider
+			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+				editImage->setPixel(x,y,DEFAULTBACKGROUNDCOLOR);
+			}
+		} else if ((x >= leftLim) && (x <= rightLim)){
+			// paint slider
+			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+					editImage->setPixel(x,y,DOMAINSLIDERCOLOR);
+			}
+		} else if (x > rightLim) {
+			// right pointer
+			int top = (x-rightLim)/2;
+			int bot = DOMAINSLIDERMARGIN - top;
+			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+				if (y < top || y >= bot)
+					editImage->setPixel(x,y,DEFAULTBACKGROUNDCOLOR);
+				else
+					editImage->setPixel(x,y,DOMAINENDSLIDERCOLOR);
+			}
+		} else {
+			assert(x<leftLim);
+			// left pointer
+			int top = (leftLim-x)/2;
+			int bot = DOMAINSLIDERMARGIN - top;
+			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+				if (y < top || y >= bot)
+					editImage->setPixel(x,y,DEFAULTBACKGROUNDCOLOR);
+				else
+					editImage->setPixel(x,y,DOMAINENDSLIDERCOLOR);
+			}
+		}
+		//leave a thin margin below the domain slider
+		editImage->setPixel(x,DOMAINSLIDERMARGIN-1,DEFAULTBACKGROUNDCOLOR);
+
+
 		//Only values between 0 and 1 are nonzero histograms (currently!)
 		//The histogram will be displayed in solid color
 		//
@@ -129,9 +171,9 @@ void TFEditor::refreshImage(){
 		
 		//Convert histoHeight to a vertical pixel coord:
 		//
-		histoInt = BELOWOPACITY+(int)(histoHeight*(height-BELOWOPACITY-TOPMARGIN));
+		histoInt = BELOWOPACITY+(int)(histoHeight*(height-BELOWOPACITY-TOPMARGIN-DOMAINSLIDERMARGIN));
 		
-		int y;
+		
 		
 		//Solid  bars for histogram:
 		//
@@ -362,19 +404,25 @@ moveGrabbedControlPoints(int newX, int newY){
 
 void TFEditor::
 moveDomainBound(int x){
-	float mappedX = mapWin2Var(x);
-	//Check that the user has not moved one bound past the other:
-	if (grabbedState&leftDomainGrab){
-		if(mappedX < myParams->getMaxMapBound()){
-			myParams->setMinMapBound(mappedX);
+	float newX = mapWin2Var(x);
+	//fullDomainGrab?
+	if (grabbedState & fullDomainGrab){
+		myParams->setMinMapBound(leftDomainSaved + newX - mappedDragStartX);
+		myParams->setMaxMapBound(rightDomainSaved + newX - mappedDragStartX);
+	} else {
+		float mappedX = mapWin2Var(x);
+		//Check that the user has not moved one bound past the other:
+		if (grabbedState&leftDomainGrab){
+			if(mappedX < myParams->getMaxMapBound()){
+				myParams->setMinMapBound(mappedX);
+			}
 		}
+		else if (grabbedState&rightDomainGrab){
+			if(mappedX > myParams->getMinMapBound()){
+				myParams->setMaxMapBound(mappedX);
+			}
+		} else assert(0);
 	}
-	else if (grabbedState&rightDomainGrab){
-		if(mappedX > myParams->getMinMapBound()){
-			myParams->setMaxMapBound(mappedX);
-		}
-	}
-	else assert(0);
 	dirty = true;
 	myFrame->update();
 }
@@ -409,18 +457,7 @@ int TFEditor::
 closestControlPoint(int x, int y, int* index) {
 	int xc, yc;
 	int i;
-	//Check if grab on domain edge:
-	//
-	if (abs(y-(TOPMARGIN+(height-BELOWOPACITY-TOPMARGIN)/2)) < 2*CLOSE_DISTANCE){
-		int leftLim = mapVar2Win(myTransferFunction->getMinMapValue(),false);
-		int rightLim = mapVar2Win(myTransferFunction->getMaxMapValue(),false);
-		if (abs (x-leftLim)<  2*CLOSE_DISTANCE){
-			return -2;
-		}
-		if (abs (x-rightLim)< 2*CLOSE_DISTANCE){
-			return 2;
-		}
-	}
+	
 	//Color selected?
 	//
 	if (y >= (height - COORDMARGIN - BARHEIGHT -SEPARATOR/2) ){
@@ -759,10 +796,12 @@ mapVar2Discrete(float v){
 /*
  * map vertical window to opacity. special constants for
  * outside window, if classify is true.
+ * So far no one is using "classify = true"...
  */
 float TFEditor::mapWin2Opac(int y, bool classify){
 	if(classify){
-		if (y < TOPMARGIN) return ABOVEWINDOW;
+		if (y < DOMAINSLIDERMARGIN) return ONDOMAINSLIDER;
+		if (y < (TOPMARGIN+DOMAINSLIDERMARGIN)) return ABOVEWINDOW;
 		if (y >= height - BELOWOPACITY) {
 			if (y >= height) return BELOWWINDOW;
 			if (y >= height - COORDMARGIN) return BELOWCOLORBAR;
@@ -772,7 +811,7 @@ float TFEditor::mapWin2Opac(int y, bool classify){
 		}
 	}
 	return ((float)(height - BELOWOPACITY -1 - y)/
-		(float)(height - BELOWOPACITY - TOPMARGIN - 1));
+		(float)(height - BELOWOPACITY - TOPMARGIN - DOMAINSLIDERMARGIN - 1));
 }
 
 /*
@@ -783,5 +822,5 @@ int TFEditor::mapOpac2Win(float opac, bool truncate){
 		if (opac > 1.f) return 0;
 		if (opac < 0.f) return (height - BELOWOPACITY -1);
 	}
-	return TOPMARGIN + (int)((1.-opac)*(float)(height - BELOWOPACITY -TOPMARGIN -1));
+	return TOPMARGIN +DOMAINSLIDERMARGIN + (int)((1.-opac)*(float)(height - BELOWOPACITY -TOPMARGIN -DOMAINSLIDERMARGIN-1));
 }
