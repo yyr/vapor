@@ -18,7 +18,7 @@
 			UseOfMfc="0">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,b:\Vapor\apps\vaporgui\ui,b:\Vapor\include,$(QTDIR)\include,../../../apps/vaporgui/ui\,b:\Vapor\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
+				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,b:\Vapor\apps\vaporgui,b:\Vapor\include,$(QTDIR)\include,b:\Vapor\apps\vaporgui\ui,../../../apps/vaporgui/ui\,b:\Vapor\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
 				AssemblerListingLocation="Release\"
 				BufferSecurityCheck="FALSE"
@@ -70,7 +70,7 @@
 			UseOfMfc="0">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,b:\Vapor\apps\vaporgui\ui,b:\Vapor\include,$(QTDIR)\include,../../../apps/vaporgui/ui\,b:\Vapor\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
+				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,b:\Vapor\apps\vaporgui,b:\Vapor\include,$(QTDIR)\include,b:\Vapor\apps\vaporgui\ui,../../../apps/vaporgui/ui\,b:\Vapor\make\win32\vaporgui,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.2\mkspecs\win32-msvc.net"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
 				AssemblerListingLocation="..\..\..\targets\win32\built\vaporgui\"
 				BufferSecurityCheck="FALSE"
