@@ -22,7 +22,12 @@
 
 
 #include <sys/types.h>
+#ifndef WIN32
 #include <unistd.h>
+#else
+#include "windows.h"
+#include "Winnetwk.h"
+#endif
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -529,9 +534,17 @@ void	ImpExp::_parseError(
 string ImpExp::_getpath() {
 
 	char	buf[128];
+#ifdef WIN32
+	char buf2[50];
+	LPDWORD size;
+	*size = 50;
+	WNetGetUser(0,buf2,size);
+	sprintf (buf, "C:/tmp/vapor.%s.xml", buf2);
+#else
 	uid_t	uid = getuid();
-
 	sprintf (buf, "/tmp/vapor.%6.6d.xml", uid);
+#endif
 	string path(buf);
+
 	return(path);
 }
