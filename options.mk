@@ -26,6 +26,7 @@ DEBUG=0
 #
 ifeq ($(ARCH),WIN32)
 EXPAT_INC_PATH="B:/Expat-1.95.8/Source/lib/"
+IDL_INC_PATH="C:/RSI/IDL61/external/include"
 endif
 ifeq ($(ARCH),IRIX64)
 EXPAT_INC_PATH=/usr/freeware/include
