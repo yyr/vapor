@@ -558,6 +558,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\viewpoint.h">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\viewpointparams.h">
 			</File>
 			<File
