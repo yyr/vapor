@@ -22,7 +22,11 @@ void (*MyBase::ErrMsgCB) (const char *msg, int err_code) = NULL;
 
 char 	*MyBase::DiagMsg = NULL;
 int	MyBase::DiagMsgSize = 0;
+#ifdef	DEBUG
+FILE	*MyBase::DiagMsgFilePtr = stderr;
+#else
 FILE	*MyBase::DiagMsgFilePtr = NULL;
+#endif
 void (*MyBase::DiagMsgCB) (const char *msg) = NULL;
 
 MyBase::MyBase() {
@@ -30,11 +34,10 @@ MyBase::MyBase() {
 }
 
 
-void	MyBase::SetErrMsg(
+void	MyBase::_SetErrMsg(
 	const char *format, 
-	...
+	va_list args
 ) {
-	va_list args;
 	int	done = 0;
 	const int alloc_size = 256;
 	int rc;
@@ -57,14 +60,12 @@ void	MyBase::SetErrMsg(
 	// the message buffer as needed
 	//
 	while (! done) {
-		va_start(args, format);
 #ifdef WIN32
 		rc = _vsnprintf(ErrMsg, ErrMsgSize, format, args);
 
 #else
 		rc = vsnprintf(ErrMsg, ErrMsgSize, format, args);
 #endif
-		va_end(args);
 
 		if (rc < (ErrMsgSize-1)) {
 			done = 1;
@@ -104,13 +105,39 @@ void	MyBase::SetErrMsg(
 		}
 	}
 
-	ErrCode = 1;
 
 	if (ErrMsgCB) (*ErrMsgCB) (ErrMsg, ErrCode);
 
 	if (ErrMsgFilePtr) {
 		(void) fprintf(ErrMsgFilePtr, "%s\n", ErrMsg);
 	}
+}
+
+void	MyBase::SetErrMsg(
+	const char *format, 
+	...
+) {
+	va_list args;
+
+	ErrCode = 1;
+
+	va_start(args, format);
+	_SetErrMsg(format, args) 
+	va_end(args);
+}
+
+void	MyBase::SetErrMsg(
+	int errcode,
+	const char *format, 
+	...
+) {
+	va_list args;
+
+	ErrCode = errcode;
+
+	va_start(args, format);
+	_SetErrMsg(format, args) 
+	va_end(args);
 }
 
 void	MyBase::SetDiagMsg(
