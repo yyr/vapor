@@ -31,7 +31,7 @@ void	DataMgr::_DataMgr(
 
 	block_size = bs * bs * bs;
 
-	num_blks = (long long) mem_size * 1024 / block_size;
+	num_blks = (long long) mem_size * 1024 * 1024 / block_size;
 
 	_blk_mem_mgr = new BlkMemMgr((unsigned int)block_size, (unsigned int)num_blks, 1);
 

@@ -21,8 +21,9 @@ HEADER_FILES = \
 ifeq ($(ARCH),WIN32)
 CXXFLAGS += /D"VDF_EXPORTS" 
 LDFLAGS += ../../targets/win32/bin/common.lib 
-LDFLAGS += $(EXPAT_LIB_PATH)
 endif
+
+LDFLAGS += $(EXPATLIB)
 
 
 ifdef	EXPAT_INC_PATH
