@@ -71,4 +71,5 @@ IDL_INC_PATH = /usr/local/apps/rsi/idl_5.6/external/include
 
 
 # Set to 1 if intel compilers are available on linux systems
-HAVE_INTEL_COMPILERS = 1
+# Better:  set this in your environment
+#HAVE_INTEL_COMPILERS = 1
