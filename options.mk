@@ -49,7 +49,7 @@ endif
 #
 ifndef $(QTDIR)
 ifeq ($(ARCH),WIN32)
-QTDIR = C:/Qt/3.3.2
+QTDIR = C:/Qt/3.3.4
 endif
 ifeq ($(ARCH),Linux)
 QTDIR = /fs/local/apps/qt
