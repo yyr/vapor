@@ -60,7 +60,7 @@ namespace VAPoR{
 class AnimationController;
 class AnimationParams;
 class IsosurfaceParams;
-class VizMgrDialog;
+
 class TabManager;
 class MainForm;
 class ViewpointParams;
@@ -111,13 +111,6 @@ public:
     //Temp method to launch a viz window:
     void launchVisualizer(int num = -1, const char* name = "");
     
-    void setDialog (VizMgrDialog* dlg) {
-        //if (dlg) qWarning("setting dialog to valid no.");
-        currentVizMgrDialog = dlg;
-    }
-    //When the user changes window (max, min, normal), we may need to update the gui:
-    void comboChanged(int newSetting, int vizNum);
-
 	void nameChanged(QString& name, int num);
     
     
@@ -276,7 +269,6 @@ protected:
 	ContourParams* globalContourParams;
 	AnimationParams* globalAnimationParams;
 	
-    VizMgrDialog* currentVizMgrDialog;
     MainForm* myMainWindow;
     TabManager* tabManager;
    

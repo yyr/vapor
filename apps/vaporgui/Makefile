@@ -35,22 +35,22 @@ FILES := \
 	animationparams animationcontroller \
 	coloradjustdialog colorpicker command contourparams \
 	DVRBase DVRDebug DVRVolumizer dvrparams glbox glutil glwindow \
-	histo isosurfaceparams loadtfdialog main mainform minmaxcombo \
+	histo isosurfaceparams loadtfdialog main mainform \
 	opacadjustdialog panelcommand params regionparams \
 	renderer savetfdialog session tabmanager tfeditor tfelocationtip \
 	tfframe tfinterpolator trackball transferfunction \
-	vcr viewpointparams vizactivatecommand vizmgrdialog viznameedit \
+	vcr viewpointparams vizactivatecommand \
 	vizselectcombo vizwin vizwinmgr volumizerrenderer 
 
 QT_HEADERS := \
 	coloradjustdialog colorpicker \
 	glbox \
 	loadtfdialog \
-	mainform minmaxcombo \
+	mainform \
 	opacadjustdialog \
 	renderer savetfdialog tabmanager \
 	tfframe \
-	vcr vizmgrdialog viznameedit \
+	vcr \
 	vizselectcombo vizwin vizwinmgr volumizerrenderer 
 
 

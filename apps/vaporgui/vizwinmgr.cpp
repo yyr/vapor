@@ -36,7 +36,7 @@
 
 #include "vizwin.h"
 #include "vizwinmgr.h"
-#include "vizmgrdialog.h"
+
 #include "math.h"
 #include "mainform.h"
 #include "viewpointparams.h"
@@ -75,7 +75,7 @@ VizWinMgr::VizWinMgr()
 	myMainWindow = MainForm::getInstance();
     myWorkspace = myMainWindow->getWorkspace();
     tabManager = myMainWindow->getTabManager();
-    currentVizMgrDialog = 0;
+    
 	activeViz = -1;
 	activationCount = 0;
     for (int i = 0; i< MAXVIZWINS; i++){
@@ -294,18 +294,7 @@ closeEvent()
 	}
 }
 
-/***********************************************************************
- * The following called by the window when its (max,min,norm) status is updated
- **************************************************************************/
-void VizWinMgr::
-comboChanged(int newSetting, int vizNum)
-{
-	//qWarning("checking combo");
-	if (currentVizMgrDialog){
-		//qWarning("setting combo");
-		currentVizMgrDialog->setCombo(newSetting, vizNum);
-	}
-}
+
 
 /***********************************************************************
  * The following tells relationship of region to viewpoint in a window:

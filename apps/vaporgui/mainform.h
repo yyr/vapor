@@ -105,31 +105,23 @@ public:
     QAction* helpAboutAction;
     //Data menu
     QAction* dataBrowse_DataAction;
-	
+	QAction* dataExportToIDLAction;
     QAction* dataConfigure_MetafileAction;
     QAction* dataLoad_MetafileAction;
-    QAction* regionAction;
+    
    //View menu
     QAction* viewLaunch_visualizerAction;
-    QAction* viewManage_Viz_WindowsAction;
-    QAction* viewViewpointAction;
+    
    
     //Script menu
     QAction* scriptJournaling_optionsAction;
     QAction* scriptIDL_scriptAction;
     QAction* scriptMatlab_scriptAction;
     QAction* scriptBatchAction;
-    //Renderer menu
-    QAction* dataCalculate_IsosurfaceAction;
-    QAction* dataGenerate_Flow_VisAction;
-    QAction* dataProbeAction;
-    QAction* dataContour_PlanesAction;
-    QAction* renderDVRAction;
-    
     
     //Animation menu
     QAction* animationKeyframingAction;
-    QAction* animationControlAction;
+    
     
 	//Toolbars:
 	QActionGroup* mouseModeActions;
@@ -175,8 +167,9 @@ public slots:
     
     virtual void browseData();
 	virtual void loadData();
+	virtual void exportToIDL();
     virtual void launchVisualizer();
-    virtual void manageVizWindows();
+  
 	virtual void calcIsosurface();
     virtual void viewpoint();
     virtual void region();
@@ -196,8 +189,6 @@ public slots:
 	//
 	virtual void setupUndoRedoText();
 	
-
-
 protected:
 	static MainForm* theMainForm;
 	void resetModeButtons();

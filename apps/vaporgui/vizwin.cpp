@@ -203,16 +203,16 @@ void VizWin::windowActivationChange(bool ){
 			//qWarning( " resize due to maximization");
 			
 			myWinMgr->maximize(myWindowNum);
-			myWinMgr->comboChanged(1, myWindowNum);
+			
 		}
 		else if (isMinimized()) {
 			myWinMgr->minimize(myWindowNum);
-			myWinMgr->comboChanged(0, myWindowNum);
+			
 		}	
 		else {
 			//went to normal
 			myWinMgr->normalize(myWindowNum);
-			myWinMgr->comboChanged(2, myWindowNum);
+			
 		}
 		
 }
@@ -223,22 +223,21 @@ void VizWin::resizeEvent(QResizeEvent*){
 		if (isReallyMaximized()) {
 			//qWarning( " resize due to maximization");
 			myWinMgr->maximize(myWindowNum);
-			myWinMgr->comboChanged(1, myWindowNum);
+			
 		}
 		else if (isMinimized()) {
 			myWinMgr->minimize(myWindowNum);
-			myWinMgr->comboChanged(0, myWindowNum);
+			
 		}	
 		else {
 			//User either resized or restored from min/max
 			myWinMgr->normalize(myWindowNum);
-			myWinMgr->comboChanged(2, myWindowNum);
+			
 		}
 }
 
 void VizWin::hideEvent(QHideEvent* ){
 	myWinMgr->minimize(myWindowNum);
-	myWinMgr->comboChanged(0, myWindowNum);
 	
 }
 /* If the user presses the mouse on the active viz window,

@@ -57,7 +57,7 @@
 #include "contourplanetab.h"
 #include "animationtab.h"
 #include "session.h"
-#include "vizmgrdialog.h"
+
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "dvrparams.h"
@@ -148,44 +148,47 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     // actions
     
     fileOpenAction = new QAction( this, "fileOpenAction" );
+	fileOpenAction->setEnabled(false);
     //fileOpenAction->setIconSet( QIconSet( QPixmap::fromMimeSource( "fileopen" ) ) );
     fileSaveAction = new QAction( this, "fileSaveAction" );
+	fileSaveAction->setEnabled(false);
     //fileSaveAction->setIconSet( QIconSet( QPixmap::fromMimeSource( "filesave" ) ) );
     fileSaveAsAction = new QAction( this, "fileSaveAsAction" );
+	fileSaveAsAction->setEnabled(false);
     fileExitAction = new QAction( this, "fileExitAction" );
 
 	editUndoAction = new QAction(this, "editUndoAction");
 	editRedoAction = new QAction(this, "editRedoAction");
 	editSessionParamsAction = new QAction(this, "editSessionParamsAction");
-	editUndoAction->setEnabled(false);
-	editRedoAction->setEnabled(false);
     
     helpContentsAction = new QAction( this, "helpContentsAction" );
+	helpContentsAction->setEnabled(false);
     helpIndexAction = new QAction( this, "helpIndexAction" );
+	helpIndexAction->setEnabled(false);
     helpAboutAction = new QAction( this, "helpAboutAction" );
+	helpAboutAction->setEnabled(false);
     
     dataBrowse_DataAction = new QAction( this, "dataBrowse_DataAction" );
+	dataBrowse_DataAction->setEnabled(false);
     dataConfigure_MetafileAction = new QAction( this, "dataConfigure_MetafileAction" );
+	dataConfigure_MetafileAction->setEnabled(false);
     dataLoad_MetafileAction = new QAction( this, "dataLoad_MetafileAction" );
-    regionAction = new QAction( this, "regionAction" );
+	dataExportToIDLAction = new QAction(this, "dataExportToIDLAction");
     
-    dataProbeAction = new QAction( this, "dataProbeAction" );
-    dataContour_PlanesAction = new QAction( this, "dataContour_PlanesAction" );
-    dataGenerate_Flow_VisAction = new QAction( this, "dataGenerate_Flow_VisAction" );
-    dataCalculate_IsosurfaceAction = new QAction( this, "dataCalculate_IsosurfaceAction" );
-    renderDVRAction = new QAction(this, "renderDVRAction");
     
     viewLaunch_visualizerAction = new QAction( this, "viewLaunch_visualizerAction" );
-    viewManage_Viz_WindowsAction = new QAction(this, "viewManage_Viz_WindowsAction");
-	viewViewpointAction = new QAction( this, "viewViewpointAction" );
     
     scriptJournaling_optionsAction = new QAction( this, "scriptJournaling_optionsAction" );
+	scriptJournaling_optionsAction->setEnabled(false);
     scriptIDL_scriptAction = new QAction( this, "scriptIDL_scriptAction" );
+	scriptIDL_scriptAction->setEnabled(false);
     scriptMatlab_scriptAction = new QAction( this, "scriptMatlab_scriptAction" );
+	scriptMatlab_scriptAction->setEnabled(false);
     scriptBatchAction = new QAction(this, "scriptBatchAction");
+	scriptBatchAction->setEnabled(false);
     
     animationKeyframingAction = new QAction( this, "animationKeyframingAction" );
-    animationControlAction = new QAction( this, "animationControlAction" );
+	animationKeyframingAction->setEnabled(false);
 
 	//Create an exclusive action group for the mouse mode toolbars:
 	mouseModeActions = new QActionGroup(this, "mouse action group", true);
@@ -288,16 +291,15 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     dataBrowse_DataAction->addTo( Data );
     dataConfigure_MetafileAction->addTo( Data );
     dataLoad_MetafileAction->addTo( Data );
-    regionAction->addTo( Data );
-    
+	dataExportToIDLAction->addTo(Data);
+
     
     
     Main_Form->insertItem( QString(""), Data, 3 );
 
     View = new QPopupMenu(this);
-    viewLaunch_visualizerAction->addTo( View );
-    viewManage_Viz_WindowsAction->addTo(View );
-	viewViewpointAction->addTo( View );
+	viewLaunch_visualizerAction->addTo(View);
+	
     Main_Form->insertItem( QString(""), View, 4 );
 
     Script = new QPopupMenu( this );
@@ -307,25 +309,18 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     scriptBatchAction->addTo(Script);
     Main_Form->insertItem( QString(""), Script, 5 );
 
-    Rendering = new QPopupMenu( this );
-	renderDVRAction->addTo(Rendering);
-    dataProbeAction->addTo( Rendering );
-    dataContour_PlanesAction->addTo( Rendering );
-    dataGenerate_Flow_VisAction->addTo( Rendering );
-    dataCalculate_IsosurfaceAction->addTo( Rendering );
-    Main_Form->insertItem( QString(""), Rendering, 6 );
+    
 
     Animation = new QPopupMenu( this );
     animationKeyframingAction->addTo( Animation );
-    animationControlAction->addTo( Animation );
-    Main_Form->insertItem( QString(""), Animation, 7 );
+    Main_Form->insertItem( QString(""), Animation, 6 );
     
     helpMenu = new QPopupMenu( this );
     helpContentsAction->addTo( helpMenu );
     helpIndexAction->addTo( helpMenu );
     helpMenu->insertSeparator();
     helpAboutAction->addTo( helpMenu );
-    Main_Form->insertItem( QString(""), helpMenu, 8 );
+    Main_Form->insertItem( QString(""), helpMenu, 7 );
     
 
 
@@ -354,21 +349,12 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     
     connect( dataBrowse_DataAction, SIGNAL( activated() ), this, SLOT( browseData() ) );
 	connect( dataLoad_MetafileAction, SIGNAL( activated() ), this, SLOT( loadData() ) );
-	
-    connect( regionAction, SIGNAL(activated()), this, SLOT(region()));
-    
-    connect( dataCalculate_IsosurfaceAction, SIGNAL( activated() ), this, SLOT( calcIsosurface() ) );
-    connect( renderDVRAction, SIGNAL(activated()), this, SLOT( renderDVR()));
-	connect( dataContour_PlanesAction, SIGNAL(activated()), this, SLOT (contourPlanes()));
-    
+	connect( dataExportToIDLAction, SIGNAL(activated()), this, SLOT( exportToIDL()));
     
     connect( viewLaunch_visualizerAction, SIGNAL( activated() ), this, SLOT( launchVisualizer() ) );
-    connect( viewManage_Viz_WindowsAction, SIGNAL(activated()), this, SLOT(manageVizWindows()));
-    connect( viewViewpointAction, SIGNAL(activated()), this, SLOT(viewpoint()));
 
     connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
 
-	connect( animationControlAction, SIGNAL(activated()), this, SLOT(animationParams()));
 	//Toolbar actions:
 	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
 	connect (regionSelectAction, SIGNAL(toggled(bool)), this, SLOT(setRegionSelect(bool)));
@@ -467,6 +453,9 @@ void MainForm::languageChange()
     dataBrowse_DataAction->setMenuText( tr( "&Browse Data" ) );
 	dataBrowse_DataAction->setToolTip("Browse filesystem to examine properties of available datasets"); 
 	
+	dataExportToIDLAction->setText(tr("Export to IDL"));
+	dataExportToIDLAction->setMenuText(tr("&Export to IDL"));
+	dataExportToIDLAction->setToolTip("Export current data settings to enable IDL access");
    
     dataConfigure_MetafileAction->setText( tr( "Configure Metafile" ) );
     dataConfigure_MetafileAction->setMenuText( tr( "&Configure Metafile" ) );
@@ -475,35 +464,12 @@ void MainForm::languageChange()
     dataLoad_MetafileAction->setMenuText( tr( "&Load Volume Data" ) );
 	dataLoad_MetafileAction->setToolTip("Specify the data set to be loaded via its metafile");
     
-
-	regionAction->setText( tr( "Region Selection" ) );
-    regionAction->setMenuText( tr( "Region Selection" ) );
-	regionAction->setToolTip("Launch a parameter panel specifying the extent of the region to be visualized");
     
     
     viewLaunch_visualizerAction->setText( tr( "Launch Visualizer" ) );
     viewLaunch_visualizerAction->setMenuText( tr( "L&aunch Visualizer" ) );
 	viewLaunch_visualizerAction->setToolTip("Launch a new visualization window");
 
-    viewManage_Viz_WindowsAction->setText( tr("Manage Visualizers"));
-    viewManage_Viz_WindowsAction->setMenuText( tr("&Manage Visualizers"));
-    viewManage_Viz_WindowsAction->setToolTip("Launch a panel for setting properties of the existing visualizer windows"); 
-    dataCalculate_IsosurfaceAction->setText( tr( "Visualize Isosurface" ) );
-    dataCalculate_IsosurfaceAction->setMenuText( tr( "Visualize &Isosurface" ) );
-	dataCalculate_IsosurfaceAction->setToolTip("Launch a parameter panel specifying properties of an isosurface rendering");
-    dataGenerate_Flow_VisAction->setText( tr( "Visualize Flow" ) );
-    dataGenerate_Flow_VisAction->setMenuText( tr( "Visualize &Flow" ) );
-	dataGenerate_Flow_VisAction->setToolTip("Launch a parameter panel specifying properties of a flow visualization");
-
-    dataProbeAction->setText( tr( "Probe" ) );
-    dataProbeAction->setMenuText( tr( "Probe" ) );
-	dataProbeAction->setToolTip("Launch a parameter panel specifying the positioning of a data probe");
-    dataContour_PlanesAction->setText( tr( "Contour Planes" ) );
-    dataContour_PlanesAction->setMenuText( tr( "Contour Planes" ) );
-	dataContour_PlanesAction->setToolTip("Launch a parameter panel specifying the placement and coloring of contour planes");
-    renderDVRAction->setMenuText( tr( "Volume Rendering"));
-    renderDVRAction->setText(tr("Volume Rendering"));
-	renderDVRAction->setToolTip("Launch a parameter panel specifying the attributes of a volume renderer"); 
     
     scriptJournaling_optionsAction->setText( tr( "Journaling options" ) );
     scriptJournaling_optionsAction->setMenuText( tr( "&Journaling options" ) );
@@ -518,19 +484,11 @@ void MainForm::languageChange()
     scriptBatchAction->setMenuText( tr( "&Batch setup" ) );
 	scriptBatchAction->setToolTip("Launch a panel to script a Batch Rendering session");
     
-   
-    viewViewpointAction->setText( tr( "Viewpoint and Lights" ) );
-    viewViewpointAction->setMenuText( tr( "Viewpoint and Lights" ) );
-	viewViewpointAction->setToolTip("Launch a parameter panel setting the viewpoint and light positions");
-    
     animationKeyframingAction->setText( tr( "Keyframing" ) );
     animationKeyframingAction->setMenuText( tr( "Keyframing" ) );
 	animationKeyframingAction->setToolTip("Launch a parameter panel that specifies keyframes plus their timing and transitions between them");
 
-    animationControlAction->setText( tr( "Animation Control" ) );
-    animationControlAction->setMenuText( tr( "Animation Control" ) );
-	animationControlAction->setToolTip("Launch animation control panel"); 
-    
+   
     vizToolBar->setLabel( tr( "VizTools" ) );
 	modeToolBar->setLabel( tr( "Mouse Modes" ) );
     if (Main_Form->findItem(1))
@@ -543,12 +501,11 @@ void MainForm::languageChange()
         Main_Form->findItem(4)->setText( tr( "&View" ) );
     if (Main_Form->findItem(5))
         Main_Form->findItem(5)->setText( tr( "&Script" ) );
+   
     if (Main_Form->findItem(6))
-        Main_Form->findItem(6)->setText( tr( "&Rendering" ) );
+        Main_Form->findItem(6)->setText( tr( "&Animation" ) );
     if (Main_Form->findItem(7))
-        Main_Form->findItem(7)->setText( tr( "&Animation" ) );
-    if (Main_Form->findItem(8))
-        Main_Form->findItem(8)->setText( tr( "&Help" ) );
+        Main_Form->findItem(7)->setText( tr( "&Help" ) );
 }
 
 
@@ -682,21 +639,7 @@ void MainForm::launchVisualizer()
 		
 }
 
-//This creates the popup to allow viz window management
-void MainForm::manageVizWindows()
-{
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	if (myVizMgr->getNumVisualizers() == 0){
-             QMessageBox::information(this, "VAPoR Information", 
-                     "There are no visualizer windows", 
-                     QMessageBox::Default);
-             return;
-             }
-	VizMgrDialog* vizMgrDlg = new VizMgrDialog((QWidget*)this);
-	vizMgrDlg->exec();
-	delete vizMgrDlg;
-	
-}
+
 //This creates the popup to edit session parameters
 void MainForm::editSessionParams()
 {
@@ -964,4 +907,6 @@ void MainForm::resetModeButtons(){
 	contourAction->setOn(false);
 	moveLightsAction->setOn(false);
 }
-
+//Make all the current region/animation settings available to IDL
+void MainForm::exportToIDL(){
+}
