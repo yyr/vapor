@@ -160,6 +160,9 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	editUndoAction = new QAction(this, "editUndoAction");
 	editRedoAction = new QAction(this, "editRedoAction");
 	editSessionParamsAction = new QAction(this, "editSessionParamsAction");
+	editUndoAction->setEnabled(false);
+	editRedoAction->setEnabled(false);
+    
     
     helpContentsAction = new QAction( this, "helpContentsAction" );
 	helpContentsAction->setEnabled(false);
