@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cassert>
 #include <cerrno>
+#include <cctype>
 #include "vapor/MyBase.h"
 #ifdef WIN32
 #include "windows.h"

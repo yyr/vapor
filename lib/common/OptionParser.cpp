@@ -4,6 +4,7 @@
 #include <string>
 #include "vapor/OptionParser.h"
 #include <cassert>
+#include <cctype>
 
 using namespace VetsUtil;
 
