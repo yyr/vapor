@@ -536,10 +536,10 @@ string ImpExp::_getpath() {
 	char	buf[128];
 #ifdef WIN32
 	char buf2[50];
-	LPDWORD size;
-	*size = 50;
-	WNetGetUser(0,buf2,size);
-	sprintf (buf, "C:/tmp/vapor.%s.xml", buf2);
+	DWORD size = 50;
+	
+	WNetGetUser(0,buf2,&size);
+	sprintf (buf, "C:/TEMP/vapor.%s.xml", buf2);
 #else
 	uid_t	uid = getuid();
 	sprintf (buf, "/tmp/vapor.%6.6d.xml", uid);
