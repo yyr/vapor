@@ -17,6 +17,9 @@ RELEASE=0
 # Set THREADSAFE to 1 if you want thread safety for parallel applications.
 THREADSAFE=0
 
+# Set DEBUG to 1 if you want diagnostic messages turned on
+DEBUG=0
+
 
 # Set EXPAT_INC_PATH to the directory where expat.h may be found if not
 # in a standard location
@@ -53,6 +56,7 @@ QTDIR = C:/Qt/3.3.4
 endif
 ifeq ($(ARCH),Linux)
 QTDIR = /fs/local/apps/qt
+#QTDIR = /usr/local/apps/qt
 endif 
 ifeq ($(ARCH),IRIX64)
 QTDIR=/usr/local/apps/qt
@@ -61,3 +65,10 @@ endif
 
 # Set VOLUMIZER_ROOT to the root of the volumizer directory
 #VOLUMIZER_ROOT = 
+
+# Set IDL_INC_PATH to the top of the IDL external include directory
+IDL_INC_PATH = /usr/local/apps/rsi/idl_5.6/external/include
+
+
+# Set to 1 if intel compilers are available on linux systems
+HAVE_INTEL_COMPILERS = 1
