@@ -69,10 +69,10 @@
         </property>
         <property name="geometry">
             <rect>
-                <x>12</x>
-                <y>12</y>
-                <width>420</width>
-                <height>1010</height>
+                <x>11</x>
+                <y>13</y>
+                <width>412</width>
+                <height>956</height>
             </rect>
         </property>
         <vbox>
@@ -349,10 +349,7 @@
                             <cstring>editButton</cstring>
                         </property>
                         <property name="text">
-                            <string></string>
-                        </property>
-                        <property name="pixmap">
-                            <pixmap>image0</pixmap>
+                            <string>Edit</string>
                         </property>
                         <property name="toggleButton">
                             <bool>true</bool>
@@ -369,10 +366,7 @@
                             <cstring>navigateButton</cstring>
                         </property>
                         <property name="text">
-                            <string></string>
-                        </property>
-                        <property name="pixmap">
-                            <pixmap>image1</pixmap>
+                            <string>Zoom/Pan</string>
                         </property>
                         <property name="toggleButton">
                             <bool>true</bool>
@@ -579,26 +573,32 @@
             </widget>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>layout31</cstring>
+                    <cstring>layout22</cstring>
                 </property>
-                <hbox>
+                <grid>
                     <property name="name">
                         <cstring>unnamed</cstring>
                     </property>
-                    <widget class="QPushButton">
+                    <widget class="QPushButton" row="1" column="3">
                         <property name="name">
-                            <cstring>ColorBindButton</cstring>
+                            <cstring>saveButton</cstring>
+                        </property>
+                        <property name="maximumSize">
+                            <size>
+                                <width>200</width>
+                                <height>32767</height>
+                            </size>
                         </property>
                         <property name="text">
-                            <string>Bind Color-&gt; Opac</string>
+                            <string>Save Transfer Function</string>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Move selected color to same x coord as selected opacity </string>
+                            <string>Save this transfer function to a file or session</string>
                         </property>
                     </widget>
-                    <spacer>
+                    <spacer row="0" column="0">
                         <property name="name">
-                            <cstring>spacer27</cstring>
+                            <cstring>spacer43</cstring>
                         </property>
                         <property name="orientation">
                             <enum>Horizontal</enum>
@@ -608,33 +608,12 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>31</width>
-                                <height>20</height>
+                                <width>30</width>
+                                <height>21</height>
                             </size>
                         </property>
                     </spacer>
-                    <widget class="QPushButton">
-                        <property name="name">
-                            <cstring>OpacityBindButton</cstring>
-                        </property>
-                        <property name="text">
-                            <string>Bind Opac-&gt;Color</string>
-                        </property>
-                        <property name="toolTip" stdset="0">
-                            <string>Move selected opacity to same x coord as selected color</string>
-                        </property>
-                    </widget>
-                </hbox>
-            </widget>
-            <widget class="QLayoutWidget">
-                <property name="name">
-                    <cstring>layout32</cstring>
-                </property>
-                <hbox>
-                    <property name="name">
-                        <cstring>unnamed</cstring>
-                    </property>
-                    <widget class="QPushButton">
+                    <widget class="QPushButton" row="1" column="1">
                         <property name="name">
                             <cstring>loadButton</cstring>
                         </property>
@@ -653,13 +632,75 @@
                             </size>
                         </property>
                         <property name="text">
-                            <string>Load Trans Func</string>
+                            <string>Load Transfer Function</string>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Load transfer function from file or session</string>
                         </property>
                     </widget>
-                    <spacer>
+                    <spacer row="1" column="4">
+                        <property name="name">
+                            <cstring>spacer46</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>41</width>
+                                <height>20</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QPushButton" row="0" column="1">
+                        <property name="name">
+                            <cstring>ColorBindButton</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Bind Color to Opacity</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Move selected color to same x coord as selected opacity </string>
+                        </property>
+                    </widget>
+                    <spacer row="0" column="2">
+                        <property name="name">
+                            <cstring>spacer27</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>20</width>
+                                <height>20</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <spacer row="1" column="0">
+                        <property name="name">
+                            <cstring>spacer45</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>61</width>
+                                <height>20</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <spacer row="1" column="2">
                         <property name="name">
                             <cstring>spacer30</cstring>
                         </property>
@@ -671,29 +712,40 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>16</width>
+                                <width>20</width>
                                 <height>21</height>
                             </size>
                         </property>
                     </spacer>
-                    <widget class="QPushButton">
+                    <widget class="QPushButton" row="0" column="3">
                         <property name="name">
-                            <cstring>saveButton</cstring>
-                        </property>
-                        <property name="maximumSize">
-                            <size>
-                                <width>200</width>
-                                <height>32767</height>
-                            </size>
+                            <cstring>OpacityBindButton</cstring>
                         </property>
                         <property name="text">
-                            <string>Save Trans Func</string>
+                            <string>Bind Opacity to Color</string>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Save this transfer function to a file or session</string>
+                            <string>Move selected opacity to same x coord as selected color</string>
                         </property>
                     </widget>
-                </hbox>
+                    <spacer row="0" column="4">
+                        <property name="name">
+                            <cstring>spacer44</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>40</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                    </spacer>
+                </grid>
             </widget>
             <widget class="QLayoutWidget">
                 <property name="name">
@@ -736,6 +788,9 @@
                         <property name="name">
                             <cstring>numBitsSpin</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="toolTip" stdset="0">
                             <string>Specify number of bits used for volume rendering </string>
                         </property>
@@ -772,7 +827,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>22</height>
+                        <height>77</height>
                     </size>
                 </property>
             </spacer>
@@ -804,6 +859,9 @@
                     <widget class="QCheckBox">
                         <property name="name">
                             <cstring>lightingCheckbox</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                             <sizepolicy>
@@ -1016,6 +1074,9 @@
                         <property name="name">
                             <cstring>diffuseShading</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                             <sizepolicy>
                                 <hsizetype>1</hsizetype>
@@ -1041,6 +1102,9 @@
                         <property name="name">
                             <cstring>ambientShading</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                             <sizepolicy>
                                 <hsizetype>1</hsizetype>
@@ -1065,6 +1129,9 @@
                     <widget class="QLineEdit">
                         <property name="name">
                             <cstring>specularShading</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                             <sizepolicy>
@@ -1093,6 +1160,9 @@
                     <widget class="QLineEdit">
                         <property name="name">
                             <cstring>exponentShading</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                             <sizepolicy>
@@ -1217,6 +1287,9 @@
                                 <property name="name">
                                     <cstring>diffuseAttenuation</cstring>
                                 </property>
+                                <property name="enabled">
+                                    <bool>false</bool>
+                                </property>
                                 <property name="text">
                                     <string>0.566</string>
                                 </property>
@@ -1272,6 +1345,9 @@
                             <widget class="QLineEdit">
                                 <property name="name">
                                     <cstring>ambientAttenuation</cstring>
+                                </property>
+                                <property name="enabled">
+                                    <bool>false</bool>
                                 </property>
                                 <property name="text">
                                     <string>0.885</string>
@@ -1329,6 +1405,9 @@
                                 <property name="name">
                                     <cstring>specularAttenuation</cstring>
                                 </property>
+                                <property name="enabled">
+                                    <bool>false</bool>
+                                </property>
                                 <property name="text">
                                     <string>0.011</string>
                                 </property>
@@ -1369,6 +1448,9 @@
                         <property name="name">
                             <cstring>copyToButton</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>Copy Settings to </string>
                         </property>
@@ -1399,6 +1481,9 @@
                         </item>
                         <property name="name">
                             <cstring>copyTargetCombo</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Copy these settings to another local or global DVR panel</string>
@@ -1452,6 +1537,9 @@
                         <property name="name">
                             <cstring>pushButton6</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>Advanced Renderer Settings</string>
                         </property>
@@ -1496,7 +1584,7 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
         </sizepolicy>
-        <pixmap>image2</pixmap>
+        <pixmap>image0</pixmap>
         <signal>sendRgb(QRgb)</signal>
         <slot access="public" specifier="">newHsv(int,int,int)</slot>
         <slot access="public" specifier="">slot()</slot>
@@ -1521,7 +1609,7 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
         </sizepolicy>
-        <pixmap>image2</pixmap>
+        <pixmap>image0</pixmap>
         <signal>hsvOut(int, int, int)</signal>
         <signal>startColorChange()</signal>
         <signal>endColorChange()</signal>
@@ -1530,12 +1618,6 @@
 </customwidgets>
 <images>
     <image name="image0">
-        <data format="XPM.GZ" length="1596">789c7dd2494fdb401c86f17b3e85856fa832b6636751d503ab81867da7ea6132634320614dd8aa7ef7fa7941560ea3ce2345fae9aff136595a0ccef77782c5a5d6f3d44c4736b0d7e6295874b3c9e4fdd7ef1f7f5a0b6916a449d0c98264e15b6ba1086c10c65a70b3610a076242b02ba60497c536c10d3123b80f931ec10f7148f05074042bb12438122b82eb306d13ec8b39c15ec32e7c110dc107d1d689396c6704dfc53ec16bd1109cc1ac4bf00ee619c103b143f05eac083ec34e4af052ec127c158704f744477055ac08eec26e4ef0546489db0d75e5a958113c873a049de09b680876c4aa57f5355d83fd98e04f3127984293133c8336267824e6041f4543f0467404af1aea2157c492602c5604b7a08bebf4258fc594e04e431dca89d826d816f9aefa130ec51ec1443475165e88438213b174aed4a5b22f96a5ded788554d4d5d433d4604cbd8559f0c1beae3d84fd6e915c6625253d3a786fa5fdd7e31f9bc5129a635358dbe5618f213356b7e1645a6ce3f1bdac895733be767d5153bfdb3ebd1cded78e2bfe6ddfdc3e3f8c97867cfd3d9cb95f5ef7b7d7bff585e899c6fb6bab6be516c6e59df6cfbe7473118143bbed9eede7e511483c2bbefe070b07c747ce29b9dcece66c5f985f77e97719216a3b6f71decd86479d119fb66a10b6ddaed79f785b6bed566df3fd3f18efdb3d0842ef27f6badb983ffefeceff7d63f29f5521a</data>
-    </image>
-    <image name="image1">
-        <data format="XPM.GZ" length="846">789c8d91c14ec3300c86ef7d8aa8be4dc85b46e1827804248e48888393d86bbbed02e38010ef8e9d9494419168a44a5fbec6feebac57eee1feceadd6cdcb894e4374b1a767b74aafc7e3dbe3d3ed7bd36e3bb7f5ce77ceb7174d2b2e3ad8e4c7902b6e0d0f153bc3fd84be7c3c66f4b60c77152f0dc1304962ce182ae65268c89b2405a9e295612aa82bc78819bd62b643c56bc37e425f1ae1fc008519be3b8a8044b0ecf26b96e72e7142884b0e93c84ee5a26311e6e52c906b96b6bffa41620b73ee947bb63db1d3ac4c1a697241678831a0041870640d0b30b9102d8688ec79d4b77e0758ce5189df6b3dc985056a3fd26ad162208c5a0c3962a84ec718ac9bf5b35c41a340ad49837a5d6304dd2fbf41e51c94411d789e0b1437df9e46c43fef88fbf0732e9323bb785a3cf77589ff721f37cd276736bb40</data>
-    </image>
-    <image name="image2">
         <data format="PNG" length="1002">89504e470d0a1a0a0000000d4948445200000016000000160806000000c4b46c3b000003b149444154789cad94514c5b5518c77fe7dc4b7b4b6150bb96324418ca32358bee6192609c51d883892ce083f1718b3ebb185f8dc91e972cf39d2d6a78d0b027b3cd07d9e68c81c625a6c139408a4384f416100aed6d4b7bdb7b8e0fc0921a70c6ed7b3ae7e43bbff3fffedfc927e2f138bbd1dbdbab7902118fc785d8058f8d8de9aeae2e72b91cb66de338ce7f82e47239666767492412b8aefbf0dcdc553a323242f4501d918e2d3a8f15a9784584100809a609526eafd1a0f54e6142e029c5c21f3ef41583bb77a805efbe1ce9d86279e32619678eaab7853fa0f02a16abb64166ad0cdac75307eb3874b84cb0a14aa5a24108cc0688c48c9a4a1e826ddbe6f0b12219678e8ace610502ccdfafe3f68d3c33bf6c01c59dcc209d472c4e0d35d2f3ba81d205d06005e4de60c77170bd2255af80150870f70e8c0eaf009260a349577714e913a4175d16925b5cbe50607931cc3b677c68ca28a5f7066f5b26f00760febec9e8f032a0e81b68a17fc0201415989647a9d8c4c498cbe8f05f5cff3a4d4bac8bfe210b290b35e01afd428257b1b875cd01aaf4bd1de5dd0fea688e1530ad1c1bab16b7af17393558cf997311c0e49bafd670d6258621f6576c9ab09a3248fe5ae6c08103f49f36517213d33070369bf8e2529ee9c90ceb2b2eef7f14617c2c48722a4b7226845143fa87622905ebeb6514253a9eb5084504a66950c88618bee0303d99217cb09e9ed71a09369538fa523d00e9a50a42eed3bc6d8f41281fa0903e8561796cac86f8f2b33c33930ea0f0fb4d5adbeb30ad22866ffbbad226d2a805d7ee0484220208925aaa50deaa67e27b97e9c90ccdcdf5c462cdd8a94d2e7e62f3603244ea410989a4ed191f52a8fd156b056d9d553a9e0bf0e7ef45c6bf7339fd5e90ec7a88575e6d20d6e6e7e2a755ec854dce7fb8885b2cd014f6f3c2714d3a550bae55ac35c1068fb7061b00b87a7995899b25ce9e0b73e24d8fae97b37c7cbe9370b499fce6066eb54adf6098f6ee2a9a7ff9c70841a5023d270deca510d746537c7e29cdf8ad20475fb4307c82d4fc324ec6859d66fdfc6381e44014b36e9fe6e572393ca54068aa22cfd0598b686b3737aeae90bc9725796f0350802414b6e81b7c9a9f7e70708a2e6e5991cfeee3f1ecec2c0b0b3e8c068142a2a8d23728397132c6dc6f2e2b8b0a8da4b5ddc7f3c735ed47146f0cb4502983693a4c25ca7b83138904fa8a412466e00f48b4271086c2901263676c4a6990b615b6ade15b85694af239984a94585bf6f606bbae5b334f1f37e4a3531e031c8fc7c5a312ff17f849c3e3f1b8f81b8be6900aca9b61c90000000049454e44ae426082</data>
     </image>
 </images>

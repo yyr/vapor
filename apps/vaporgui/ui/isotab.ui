@@ -38,8 +38,8 @@
         </property>
         <property name="geometry">
             <rect>
-                <x>13</x>
-                <y>13</y>
+                <x>10</x>
+                <y>10</y>
                 <width>420</width>
                 <height>750</height>
             </rect>
@@ -133,6 +133,9 @@
                         </item>
                         <property name="name">
                             <cstring>EnableDisable</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="editable">
                             <bool>false</bool>
@@ -229,6 +232,9 @@
                     <widget class="QSpinBox">
                         <property name="name">
                             <cstring>numLevelSets</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="value">
                             <number>3</number>
@@ -385,6 +391,9 @@
                                                 <property name="name">
                                                     <cstring>variableCombo1</cstring>
                                                 </property>
+                                                <property name="enabled">
+                                                    <bool>false</bool>
+                                                </property>
                                                 <property name="font">
                                                     <font>
                                                     </font>
@@ -450,6 +459,9 @@
                                                         <property name="name">
                                                             <cstring>valueSlider1</cstring>
                                                         </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
+                                                        </property>
                                                         <property name="minValue">
                                                             <number>0</number>
                                                         </property>
@@ -466,6 +478,9 @@
                                                     <widget class="QLineEdit">
                                                         <property name="name">
                                                             <cstring>valueEdit1</cstring>
+                                                        </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
                                                         </property>
                                                         <property name="font">
                                                             <font>
@@ -873,6 +888,9 @@
                                                         <property name="name">
                                                             <cstring>opacSlider1</cstring>
                                                         </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
+                                                        </property>
                                                         <property name="minValue">
                                                             <number>0</number>
                                                         </property>
@@ -889,6 +907,9 @@
                                                     <widget class="QLineEdit">
                                                         <property name="name">
                                                             <cstring>opacEdit1</cstring>
+                                                        </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
                                                         </property>
                                                         <property name="font">
                                                             <font>
@@ -1043,6 +1064,9 @@
                                                 <property name="name">
                                                     <cstring>varCombo1_2</cstring>
                                                 </property>
+                                                <property name="enabled">
+                                                    <bool>false</bool>
+                                                </property>
                                                 <property name="font">
                                                     <font>
                                                     </font>
@@ -1108,6 +1132,9 @@
                                                         <property name="name">
                                                             <cstring>valSlider_2</cstring>
                                                         </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
+                                                        </property>
                                                         <property name="minValue">
                                                             <number>0</number>
                                                         </property>
@@ -1127,6 +1154,9 @@
                                                     <widget class="QLineEdit">
                                                         <property name="name">
                                                             <cstring>opacEdit1_2_2</cstring>
+                                                        </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
                                                         </property>
                                                         <property name="font">
                                                             <font>
@@ -1534,6 +1564,9 @@
                                                         <property name="name">
                                                             <cstring>opacSlider1_2</cstring>
                                                         </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
+                                                        </property>
                                                         <property name="minValue">
                                                             <number>0</number>
                                                         </property>
@@ -1553,6 +1586,9 @@
                                                     <widget class="QLineEdit">
                                                         <property name="name">
                                                             <cstring>opacEdit1_3</cstring>
+                                                        </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
                                                         </property>
                                                         <property name="font">
                                                             <font>
@@ -1707,6 +1743,9 @@
                                                 <property name="name">
                                                     <cstring>varCombo1_2_2</cstring>
                                                 </property>
+                                                <property name="enabled">
+                                                    <bool>false</bool>
+                                                </property>
                                                 <property name="font">
                                                     <font>
                                                     </font>
@@ -1772,6 +1811,9 @@
                                                         <property name="name">
                                                             <cstring>valSlider_2_2</cstring>
                                                         </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
+                                                        </property>
                                                         <property name="minValue">
                                                             <number>0</number>
                                                         </property>
@@ -1791,6 +1833,9 @@
                                                     <widget class="QLineEdit">
                                                         <property name="name">
                                                             <cstring>opacEdit1_2_2_2</cstring>
+                                                        </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
                                                         </property>
                                                         <property name="font">
                                                             <font>
@@ -2198,6 +2243,9 @@
                                                         <property name="name">
                                                             <cstring>opacSlider1_2_2</cstring>
                                                         </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
+                                                        </property>
                                                         <property name="minValue">
                                                             <number>0</number>
                                                         </property>
@@ -2214,6 +2262,9 @@
                                                     <widget class="QLineEdit">
                                                         <property name="name">
                                                             <cstring>opacEdit1_3_2</cstring>
+                                                        </property>
+                                                        <property name="enabled">
+                                                            <bool>false</bool>
                                                         </property>
                                                         <property name="font">
                                                             <font>
@@ -2344,6 +2395,9 @@
                         <property name="name">
                             <cstring>exponentShading</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>20</string>
                         </property>
@@ -2372,6 +2426,9 @@
                     <widget class="QLineEdit" row="1" column="1">
                         <property name="name">
                             <cstring>ambientShading</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="text">
                             <string>0.2</string>
@@ -2420,6 +2477,9 @@
                         <property name="name">
                             <cstring>diffuseShading</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                             <sizepolicy>
                                 <hsizetype>3</hsizetype>
@@ -2456,6 +2516,9 @@
                     <widget class="QLineEdit" row="1" column="2">
                         <property name="name">
                             <cstring>specularShading</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="text">
                             <string>0.5</string>
@@ -2495,6 +2558,9 @@
                         <property name="name">
                             <cstring>copyButton</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>Copy Settings to </string>
                         </property>
@@ -2525,6 +2591,9 @@
                         </item>
                         <property name="name">
                             <cstring>copyTarget</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Copy these settings to another local or global isosurface panel</string>

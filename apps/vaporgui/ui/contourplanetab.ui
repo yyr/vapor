@@ -132,6 +132,9 @@
                         <property name="name">
                             <cstring>EnableDisable</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="editable">
                             <bool>false</bool>
                         </property>
@@ -207,6 +210,9 @@
                     <widget class="QSpinBox">
                         <property name="name">
                             <cstring>numContours</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="maxValue">
                             <number>10</number>
@@ -338,6 +344,9 @@
                                         <property name="name">
                                             <cstring>variableCombo1</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="toolTip" stdset="0">
                                             <string>Specify which variable is visualized in this contour plane</string>
                                         </property>
@@ -373,6 +382,9 @@
                                         <property name="name">
                                             <cstring>pointz</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="text">
                                             <string>-2.5</string>
                                         </property>
@@ -396,6 +408,9 @@
                                         <property name="name">
                                             <cstring>normalx</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="text">
                                             <string>0.0</string>
                                         </property>
@@ -406,6 +421,9 @@
                                     <widget class="QLineEdit" row="2" column="2">
                                         <property name="name">
                                             <cstring>pointy</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
                                         </property>
                                         <property name="text">
                                             <string>4.0</string>
@@ -436,6 +454,9 @@
                                     <widget class="QLineEdit" row="1" column="2">
                                         <property name="name">
                                             <cstring>normaly</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
                                         </property>
                                         <property name="text">
                                             <string>-0.8</string>
@@ -492,6 +513,9 @@
                                         <property name="name">
                                             <cstring>pointx</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="text">
                                             <string>1.0</string>
                                         </property>
@@ -502,6 +526,9 @@
                                     <widget class="QLineEdit" row="1" column="3">
                                         <property name="name">
                                             <cstring>normalz</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
                                         </property>
                                         <property name="text">
                                             <string>0.6</string>
@@ -595,6 +622,9 @@
                                         <property name="name">
                                             <cstring>textLabel2_4_2</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="font">
                                             <font>
                                             </font>
@@ -638,6 +668,9 @@
                                         <property name="name">
                                             <cstring>loadButton</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="text">
                                             <string>Load</string>
                                         </property>
@@ -648,6 +681,9 @@
                                     <widget class="QPushButton">
                                         <property name="name">
                                             <cstring>saveAsButton</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
                                         </property>
                                         <property name="text">
                                             <string>Save As</string>
@@ -660,6 +696,9 @@
                                         <property name="name">
                                             <cstring>useButton</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="text">
                                             <string>Use</string>
                                         </property>
@@ -670,6 +709,9 @@
                                     <widget class="QPushButton">
                                         <property name="name">
                                             <cstring>shareButton</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
                                         </property>
                                         <property name="text">
                                             <string>Share</string>
@@ -785,6 +827,9 @@
                                         <property name="name">
                                             <cstring>variableCombo_3</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="currentItem">
                                             <number>1</number>
                                         </property>
@@ -823,6 +868,9 @@
                                         <property name="name">
                                             <cstring>viewDir2_3</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="text">
                                             <string>0.5002</string>
                                         </property>
@@ -846,6 +894,9 @@
                                         <property name="name">
                                             <cstring>camPos0_3</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="text">
                                             <string>0.0</string>
                                         </property>
@@ -856,6 +907,9 @@
                                     <widget class="QLineEdit" row="2" column="2">
                                         <property name="name">
                                             <cstring>viewDir1_3</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
                                         </property>
                                         <property name="text">
                                             <string>5.0</string>
@@ -886,6 +940,9 @@
                                     <widget class="QLineEdit" row="1" column="2">
                                         <property name="name">
                                             <cstring>camPos1_3</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
                                         </property>
                                         <property name="text">
                                             <string>0.707</string>
@@ -942,6 +999,9 @@
                                         <property name="name">
                                             <cstring>viewDir0_3</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="text">
                                             <string>1.0</string>
                                         </property>
@@ -952,6 +1012,9 @@
                                     <widget class="QLineEdit" row="1" column="3">
                                         <property name="name">
                                             <cstring>camPos2_3</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
                                         </property>
                                         <property name="text">
                                             <string>-0.707</string>
@@ -1026,6 +1089,9 @@
                                         <property name="name">
                                             <cstring>EditTF</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="font">
                                             <font>
                                             </font>
@@ -1051,6 +1117,9 @@
                                         <property name="name">
                                             <cstring>loadButton_3</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="text">
                                             <string>Load</string>
                                         </property>
@@ -1061,6 +1130,9 @@
                                     <widget class="QPushButton">
                                         <property name="name">
                                             <cstring>saveAsButton_3</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
                                         </property>
                                         <property name="text">
                                             <string>Save As</string>
@@ -1073,6 +1145,9 @@
                                         <property name="name">
                                             <cstring>useButton_3</cstring>
                                         </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
+                                        </property>
                                         <property name="text">
                                             <string>Use</string>
                                         </property>
@@ -1083,6 +1158,9 @@
                                     <widget class="QPushButton">
                                         <property name="name">
                                             <cstring>shareButton_3</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>false</bool>
                                         </property>
                                         <property name="text">
                                             <string>Share</string>
@@ -1219,6 +1297,9 @@
                         <property name="name">
                             <cstring>lightingCheckbox</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                             <sizepolicy>
                                 <hsizetype>7</hsizetype>
@@ -1269,6 +1350,9 @@
                         <property name="name">
                             <cstring>exponentShading</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>20</string>
                         </property>
@@ -1294,6 +1378,9 @@
                     <widget class="QLineEdit" row="1" column="1">
                         <property name="name">
                             <cstring>ambientShading</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="text">
                             <string>0.2</string>
@@ -1336,6 +1423,9 @@
                         <property name="name">
                             <cstring>diffuseShading</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                             <sizepolicy>
                                 <hsizetype>3</hsizetype>
@@ -1369,6 +1459,9 @@
                     <widget class="QLineEdit" row="1" column="2">
                         <property name="name">
                             <cstring>specularShading</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="text">
                             <string>0.5</string>
@@ -1408,6 +1501,9 @@
                         <property name="name">
                             <cstring>copyToButton</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>Copy Settings to </string>
                         </property>
@@ -1438,6 +1534,9 @@
                         </item>
                         <property name="name">
                             <cstring>copyTargetCombo</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Copy these settings to another contour plane panel</string>

@@ -1399,6 +1399,9 @@
                         <property name="name">
                             <cstring>copyToButton</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>Copy Settings to </string>
                         </property>
@@ -1429,6 +1432,9 @@
                         </item>
                         <property name="name">
                             <cstring>copyTargetCombo</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Copy these settings to another local or global region panel</string>

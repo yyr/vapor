@@ -45,7 +45,7 @@
         <property name="geometry">
             <rect>
                 <x>10</x>
-                <y>32</y>
+                <y>30</y>
                 <width>420</width>
                 <height>610</height>
             </rect>
@@ -478,6 +478,9 @@
                         <property name="name">
                             <cstring>numLights</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="sizePolicy">
                             <sizepolicy>
                                 <hsizetype>0</hsizetype>
@@ -575,6 +578,9 @@
                         <property name="name">
                             <cstring>lightPos20</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>1.1</string>
                         </property>
@@ -611,6 +617,9 @@
                         <property name="name">
                             <cstring>lightPos02</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>-2.55</string>
                         </property>
@@ -618,6 +627,9 @@
                     <widget class="QLineEdit" row="1" column="1">
                         <property name="name">
                             <cstring>lightPos00</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="text">
                             <string>2.04</string>
@@ -638,6 +650,9 @@
                         <property name="name">
                             <cstring>lightPos01</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>7.115</string>
                         </property>
@@ -646,6 +661,9 @@
                         <property name="name">
                             <cstring>lightPos21</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>-6.4</string>
                         </property>
@@ -653,6 +671,9 @@
                     <widget class="QLineEdit" row="4" column="1">
                         <property name="name">
                             <cstring>lightPos10</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="text">
                             <string>-1.2</string>
@@ -713,6 +734,9 @@
                         <property name="name">
                             <cstring>lightPos12</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>2.344</string>
                         </property>
@@ -737,6 +761,9 @@
                     <widget class="QLineEdit" row="4" column="2">
                         <property name="name">
                             <cstring>lightPos11</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="text">
                             <string>3.234</string>
@@ -791,6 +818,9 @@
                         <property name="name">
                             <cstring>lightPos22</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>4.5</string>
                         </property>
@@ -842,6 +872,9 @@
                         <property name="name">
                             <cstring>loadButton</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>Load Viewpoint</string>
                         </property>
@@ -869,6 +902,9 @@
                     <widget class="QPushButton">
                         <property name="name">
                             <cstring>saveButton</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="text">
                             <string>Save Viewpoint</string>
@@ -908,6 +944,9 @@
                         <property name="name">
                             <cstring>copyToButton</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>Copy Settings to </string>
                         </property>
@@ -938,6 +977,9 @@
                         </item>
                         <property name="name">
                             <cstring>copyTargetCombo</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Copy these viewpoint/light settings to the global or another local or global viewpoint/lights panel</string>

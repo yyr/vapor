@@ -44,8 +44,8 @@
         </property>
         <property name="geometry">
             <rect>
-                <x>12</x>
-                <y>12</y>
+                <x>10</x>
+                <y>10</y>
                 <width>434</width>
                 <height>507</height>
             </rect>
@@ -809,6 +809,9 @@
                         <property name="name">
                             <cstring>copyToButton</cstring>
                         </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
                         <property name="text">
                             <string>Copy Settings to </string>
                         </property>
@@ -839,6 +842,9 @@
                         </item>
                         <property name="name">
                             <cstring>copyTargetCombo</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Copy these settings to another local or global region panel</string>
