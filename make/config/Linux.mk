@@ -1,0 +1,102 @@
+# Copyright (c) 2001, Stanford University
+# All rights reserved.
+#
+# See the file LICENSE.txt for information on redistributing this software.
+
+ifdef	QTDIR
+QTLIB = -L$(QTDIR)/lib
+endif
+QTLIB += -lqt-mt
+
+ifdef	OGL_LIB_PATH
+OGLLIBS = -L$(OGL_LIB_PATH)
+endif
+OGLLIBS += -lGLU -lGL  -lX11
+
+ifdef   EXPAT_LIB_PATH
+EXPATLIB = -L$(EXPAT_LIB_PATH)
+endif
+EXPATLIB += -lexpat
+
+
+G++-INCLUDE-DIR = /usr/include/g++
+CXX = g++
+CC = gcc
+
+# Mike Houston reports 20-30% speed-ups with these compiler flags on
+# P4/Xeon systems:
+#-O3 -DNDEBUG -fno-strict-aliasing -fomit-frame-pointer -fexpensive-optimizations -falign-functions=4 -funroll-loops -malign-double -fprefetch-loop-arrays -march=pentium4 -mcpu=pentium4 -msse2 -mfpmath=sse 
+
+#CXXFLAGS          += -DLINUX -Wall -Werror
+CXXFLAGS          += -DLINUX -Wall -Wno-sign-compare
+CXX_RELEASE_FLAGS += -O3 -DNDEBUG -fno-strict-aliasing
+CXX_DEBUG_FLAGS   += -g
+
+#CFLAGS            += -DLINUX -Wall -Werror -Wmissing-prototypes -Wsign-compare
+CFLAGS            += -DLINUX -Wall -Wmissing-prototypes -Wno-sign-compare
+C_RELEASE_FLAGS   += -O3 -DNDEBUG -fno-strict-aliasing
+C_DEBUG_FLAGS     += -g
+
+ifeq ($(MACHTYPE),x86_64)
+LDFLAGS           += -L/usr/X11R6/lib64
+CFLAGS            += -fPIC
+else
+LDFLAGS           += -L/usr/X11R6/lib
+endif
+
+LDFLAGS			+= -lrt
+
+LD_RELEASE_FLAGS  += 
+LD_DEBUG_FLAGS    += 
+
+ifeq ($(MACHTYPE), alpha)
+CXXFLAGS          += -mieee 
+CFLAGS            += -mieee
+endif
+
+ifeq ($(MACHTYPE), mips)
+ifeq ($(shell ls /proc/ps2pad), /proc/ps2pad)
+PLAYSTATION2      =   1
+CXXFLAGS          += -DPLAYSTATION2
+CFLAGS            += -DPLAYSTATION2
+endif
+endif
+
+PROFILEFLAGS = -pg -a
+
+CAT = cat
+AS = as
+LEX = flex -t
+LEXLIB = -ll
+YACC = bison -y -d
+LD = $(CXX)
+AR = ar
+ARCREATEFLAGS = cr
+RANLIB = true
+LN = ln -s
+MKDIR = mkdir -p
+RM = rm -f
+CP = cp
+#MAKE = gmake -s
+MAKE = gmake 
+NOWEB = noweb
+LATEX = latex
+BIBTEX = bibtex
+DVIPS = dvips -t letter
+GHOSTSCRIPT = gs
+LIBPREFIX = lib
+DLLSUFFIX = .so
+LIBSUFFIX = .a
+OBJSUFFIX = .o
+MV = mv
+SHARED_LDFLAGS += -shared 
+PERL = perl
+PYTHON = python
+JGRAPH = /u/eldridge/bin/IRIX/jgraph
+PS2TIFF = pstotiff.pl
+PS2TIFFOPTIONS = -alpha -mag 2
+PS2PDF = ps2pdf
+
+MPI_CC = mpicc
+MPI_CXX = mpiCC
+MPI_LDFLAGS =
