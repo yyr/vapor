@@ -44,6 +44,7 @@ class RegionTab;
 class ContourPlaneTab;
 class Dvr;
 class IsoTab;
+class AnimationTab;
 
 namespace VAPoR{
 
@@ -120,7 +121,7 @@ public:
     
     //Animation menu
     QAction* animationKeyframingAction;
-    QAction* animationVCRAction;
+    QAction* animationControlAction;
     
 	//Toolbars:
 	QActionGroup* mouseModeActions;
@@ -141,6 +142,7 @@ public:
 	VizTab* getVizTab() { return theVizTab;}
 	RegionTab * getRegionTab() {return theRegionTab;}
 	Dvr* getDvrTab() {return theDvrTab;}
+	AnimationTab* getAnimationTab() {return theAnimationTab;}
 	ContourPlaneTab* getContourTab() {return theContourTab;}
 	IsoTab* getIsoTab() {return theIsoTab;}
 	QWorkspace* getWorkspace() {return myWorkspace;}
@@ -172,9 +174,9 @@ public slots:
     virtual void viewpoint();
     virtual void region();
     virtual void renderDVR();
+	virtual void animationParams();
 	virtual void contourPlanes();
     virtual void batchSetup();
-	virtual void launchVCRPanel();
 
 	virtual void setContourSelect(bool);
 	virtual void setRegionSelect(bool);
@@ -205,6 +207,7 @@ protected:
 	RegionTab* theRegionTab;
 	IsoTab* theIsoTab;
 	Dvr* theDvrTab;
+	AnimationTab* theAnimationTab;
 	ContourPlaneTab* theContourTab;
 	VizSelectCombo* windowSelector;
 	

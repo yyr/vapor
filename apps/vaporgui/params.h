@@ -48,7 +48,8 @@ public:
 		RegionParamsType,
 		IsoParamsType,
 		DvrParamsType,
-		ContourParamsType
+		ContourParamsType,
+		AnimationParamsType
 	};
 	static QString& paramName(ParamType);
 	virtual ~Params() {}

@@ -47,6 +47,8 @@
 #include "dvr.h"
 #include "contourplanetab.h"
 #include "isosurfaceparams.h"
+#include "animationtab.h"
+#include "animationparams.h"
 #include "isotab.h"
 #include "assert.h"
 #include "trackball.h"
@@ -81,6 +83,7 @@ VizWinMgr::VizWinMgr(MainForm* mainWindow)
 		dvrParams[i] = 0;
 		isoParams[i] = 0;
 		contourParams[i] = 0;
+		animationParams[i] = 0;
 		activationOrder[i] = -1;
     }
 	//Create a default (global) parameter set
@@ -93,6 +96,8 @@ VizWinMgr::VizWinMgr(MainForm* mainWindow)
 	globalIsoParams = new IsosurfaceParams(myMainWindow, -1);
 	
 	globalContourParams = new ContourParams(myMainWindow, -1);
+
+	globalAnimationParams = new AnimationParams(myMainWindow, -1);
 	
 
 	globalTrackball = new Trackball();
@@ -151,11 +156,13 @@ vizAboutToDisappear(int i)  {
 	if (dvrParams[i])delete dvrParams[i];
 	if(isoParams[i]) delete isoParams[i];
 	if(contourParams[i]) delete contourParams[i];
+	if (animationParams[i]) delete animationParams[i];
 	vpParams[i] = 0;
 	rgParams[i] = 0;
 	dvrParams[i] = 0;
 	isoParams[i] = 0;
 	contourParams[i] = 0;
+	animationParams[i] = 0;
     
 	emit (removeViz(i));
 	
@@ -244,7 +251,6 @@ createDefaultRendererPanels(int winnum){
 	dvrParams[winnum]->setLocal(true);
 	dvrParams[winnum]->setEnabled(false);
 	
-
 	isoParams[winnum] = (IsosurfaceParams*)globalIsoParams->deepCopy();
 	isoParams[winnum]->setVizNum(winnum);
 	isoParams[winnum]->setLocal(true);
@@ -364,6 +370,7 @@ updateActiveParams(){
 	getDvrParams(activeViz)->updateDialog();
 	getContourParams(activeViz)->updateDialog();
 	getIsoParams(activeViz)->updateDialog();
+	getAnimationParams(activeViz)->updateDialog();
 }
 
 //Method to enable closing of a vizWin for Undo/Redo
@@ -397,6 +404,14 @@ setDvrParams(int winnum, DvrParams* p){
 		globalDvrParams = p;
 	} else {
 		dvrParams[winnum] = p;
+	}
+}
+void VizWinMgr::
+setAnimationParams(int winnum, AnimationParams* p){
+	if (winnum < 0) { //global params!
+		globalAnimationParams = p;
+	} else {
+		animationParams[winnum] = p;
 	}
 }
 void VizWinMgr::
@@ -594,6 +609,45 @@ VizWinMgr::hookUpContourTab(ContourPlaneTab* cptTab)
 	connect (this, SIGNAL(enableMultiViz(bool)), cptTab->copyTargetCombo, SLOT(setEnabled(bool)));
 	emit enableMultiViz(getNumVisualizers() > 1);
 
+}
+/**********************************************************
+ * Whenever a new tab is created it must be hooked up here
+ ************************************************************/
+void
+VizWinMgr::hookUpAnimationTab(AnimationTab* aTab)
+{
+	//Signals and slots:
+	/*
+ 	connect (vTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setVpLocalGlobal(int)));
+	connect (vTab->perspectiveCombo, SIGNAL (activated(int)), this, SLOT (setVPPerspective(int)));
+	connect (vTab->numLights, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->camPos0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->camPos1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->camPos2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->viewDir0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->viewDir1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->viewDir2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->upVec0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->upVec1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->upVec2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	
+	//Connect all the returnPressed signals, these will update the visualizer.
+	connect (vTab->camPos0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->camPos1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->camPos2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->viewDir0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->viewDir1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->viewDir2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->upVec0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->upVec1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->upVec2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->numLights, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+
+	connect (this, SIGNAL(enableMultiViz(bool)), vTab->LocalGlobal, SLOT(setEnabled(bool)));
+	connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyToButton, SLOT(setEnabled(bool)));
+	connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyTargetCombo, SLOT(setEnabled(bool)));
+	emit enableMultiViz(getNumVisualizers() > 1);
+	*/
 }
 void
 VizWinMgr::hookUpIsoTab(IsoTab* isoTab)
@@ -1156,6 +1210,12 @@ getDvrParams(int winNum){
 	if (dvrParams[winNum]->isLocal()) return dvrParams[winNum];
 	return globalDvrParams;
 }
+AnimationParams* VizWinMgr::
+getAnimationParams(int winNum){
+	if (winNum < 0) return globalAnimationParams;
+	if (animationParams[winNum] && animationParams[winNum]->isLocal()) return animationParams[winNum];
+	return globalAnimationParams;
+}
 ContourParams* VizWinMgr::
 getContourParams(int winNum){
 	if (winNum < 0) return globalContourParams;
@@ -1181,6 +1241,8 @@ getGlobalParams(Params::ParamType t){
 			return globalIsoParams;
 		case (Params::DvrParamsType):
 			return globalDvrParams;
+		case (Params::AnimationParamsType):
+			return globalAnimationParams;
 		default:  assert(0);
 			return 0;
 	}
@@ -1220,6 +1282,8 @@ getApplicableParams(Params::ParamType t){
 			return getIsoParams(activeViz);
 		case (Params::DvrParamsType):
 			return getDvrParams(activeViz);
+		case (Params::AnimationParamsType):
+			return getAnimationParams(activeViz);
 		default:  assert(0);
 			return 0;
 	}
@@ -1234,12 +1298,14 @@ reinitializeParams(){
 		if(dvrParams[i]) dvrParams[i]->reinit();
 		if(isoParams[i]) isoParams[i]->reinit();
 		if(contourParams[i]) contourParams[i]->reinit();
+		if(animationParams[i]) animationParams[i]->reinit();
 	}
 	globalVPParams->reinit();
 	globalRegionParams->reinit();
 	globalIsoParams->reinit();
 	globalDvrParams->reinit();
 	globalContourParams->reinit();
+	globalAnimationParams->reinit();
 }
 
 

@@ -38,6 +38,7 @@ INCLUDEPATH += . \
 MOC_DIR = ../../../apps/vaporgui/moc
 
 SOURCES +=\ 
+	   animationparams.cpp \
 	   coloradjustdialog.cpp \
 	   colorpicker.cpp \
 	   command.cpp \
@@ -78,6 +79,7 @@ SOURCES +=\
 	   volumizerrenderer.cpp 
 	   
 HEADERS += \
+	   animationparams.h \
 	   coloradjustdialog.h \
 	   colorpicker.h \
 	   command.h \
@@ -115,7 +117,8 @@ HEADERS += \
 	   vizwin.h \
            vizwinmgr.h \
 	   volumizerrenderer.h 
-FORMS += ./ui/viztab.ui \
+FORMS +=  ./ui/animationtab.ui \
+	 ./ui/viztab.ui \
 	 ./ui/dvr.ui \
          ./ui/regiontab.ui \ 
 	 ./ui/contourplanetab.ui \

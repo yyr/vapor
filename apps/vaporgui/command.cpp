@@ -136,6 +136,9 @@ void TabChangeCommand::unDo(){
 		case Params::ContourParamsType:
 			currentSession->getMainWindow()->contourPlanes();
 			break;
+		case Params::AnimationParamsType:
+			currentSession->getMainWindow()->animationParams();
+			break;
 		default:
 			assert(0);
 	}
@@ -163,6 +166,9 @@ void TabChangeCommand::reDo(){
 		case Params::ContourParamsType:
 			currentSession->getMainWindow()->contourPlanes();
 			break;
+		case Params::AnimationParamsType:
+			currentSession->getMainWindow()->animationParams();
+			break;
 		default:
 			assert(0);
 	}
@@ -184,6 +190,8 @@ tabName(Params::ParamType t){
 			return " dvr ";
 		case Params::ContourParamsType:
 			return " contours ";
+		case Params::AnimationParamsType:
+			return " animation ";
 		default:  
 			assert(0);
 			return 0;

@@ -55,6 +55,7 @@
 #include "dvr.h"
 #include "isotab.h"
 #include "contourplanetab.h"
+#include "animationtab.h"
 #include "session.h"
 #include "vizmgrdialog.h"
 #include "viewpointparams.h"
@@ -62,6 +63,7 @@
 #include "dvrparams.h"
 #include "contourparams.h"
 #include "isosurfaceparams.h"
+#include "animationparams.h"
 #include "vcr.h"
 #include "assert.h"
 #include "command.h"
@@ -94,6 +96,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	theVizTab = 0;
 	theIsoTab = 0;
 	theContourTab = 0;
+	theAnimationTab = 0;
 	myVizMgr = 0;
     (void)statusBar();
     if ( !name )
@@ -179,7 +182,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     scriptBatchAction = new QAction(this, "scriptBatchAction");
     
     animationKeyframingAction = new QAction( this, "animationKeyframingAction" );
-    animationVCRAction = new QAction( this, "animationVCRAction" );
+    animationControlAction = new QAction( this, "animationControlAction" );
 
 	//Create an exclusive action group for the mouse mode toolbars:
 	mouseModeActions = new QActionGroup(this, "mouse action group", true);
@@ -311,7 +314,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
     Animation = new QPopupMenu( this );
     animationKeyframingAction->addTo( Animation );
-    animationVCRAction->addTo( Animation );
+    animationControlAction->addTo( Animation );
     Main_Form->insertItem( QString(""), Animation, 7 );
     
     helpMenu = new QPopupMenu( this );
@@ -362,7 +365,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
     connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
 
-	connect( animationVCRAction, SIGNAL(activated()), this, SLOT(launchVCRPanel()));
+	connect( animationControlAction, SIGNAL(activated()), this, SLOT(launchAnimationPanel()));
 	//Toolbar actions:
 	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
 	connect (regionSelectAction, SIGNAL(toggled(bool)), this, SLOT(setRegionSelect(bool)));
@@ -384,6 +387,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	renderDVR();
 	contourPlanes();
 	viewpoint();
+	animationParams();
 	currentSession->unblockRecording();
 	
 
@@ -518,9 +522,9 @@ void MainForm::languageChange()
     animationKeyframingAction->setMenuText( tr( "Keyframing" ) );
 	animationKeyframingAction->setToolTip("Launch a parameter panel that specifies keyframes plus their timing and transitions between them");
 
-    animationVCRAction->setText( tr( "VCR Control" ) );
-    animationVCRAction->setMenuText( tr( "VCR Control" ) );
-	animationVCRAction->setToolTip("Launch a toolbar with a VCR-like control to specify replay of time steps from source data"); 
+    animationControlAction->setText( tr( "Animation Control" ) );
+    animationControlAction->setMenuText( tr( "Animation Control" ) );
+	animationControlAction->setToolTip("Launch animation control panel"); 
     
     vizToolBar->setLabel( tr( "VizTools" ) );
 	modeToolBar->setLabel( tr( "Mouse Modes" ) );
@@ -788,6 +792,33 @@ renderDVR(){
 	
 }
 /*
+ * Launch the animation panel
+ */
+void MainForm::
+animationParams(){
+    
+	//Determine which is the current active window:
+	int activeViz = myVizMgr->getActiveViz();
+	//Get the region parameter set (local or global) that applies:
+	AnimationParams* myAnimationParams = myVizMgr->getAnimationParams(activeViz);
+	if (!theAnimationTab){
+		theAnimationTab = new AnimationTab(tabWidget, "Animation");
+		myVizMgr->getAnimationParams(-1)->setTab(theAnimationTab);
+		myVizMgr->hookUpAnimationTab(theAnimationTab);
+	}
+	int posn = tabWidget->findWidget(Params::AnimationParamsType);
+         
+	//Create a new parameter class to work with the widget
+		
+    myAnimationParams->updateDialog();
+	if (posn < 0){
+		tabWidget->insertWidget(theAnimationTab, Params::AnimationParamsType, true );
+	} else {
+		tabWidget->moveToFront(Params::AnimationParamsType);
+	}
+	
+}
+/*
  * Launch the Contour Planes panel
  */
 void MainForm::
@@ -917,13 +948,5 @@ void MainForm::resetModeButtons(){
 	regionSelectAction->setOn(false);
 	contourAction->setOn(false);
 	moveLightsAction->setOn(false);
-}
-/*
- * launch the VCR toolbar
- *
- */
-void MainForm::launchVCRPanel(){
-	vcrToolBar = new QToolBar(QString("VCR"), this, DockTop);
-	vcrPanel = new Vcr(vcrToolBar, "VCR");
 }
 

@@ -32,6 +32,7 @@ endif
 
 
 FILES := \
+	animationparams \
 	coloradjustdialog colorpicker command contourparams \
 	DVRBase DVRDebug DVRVolumizer dvrparams glbox glutil glwindow \
 	histo isosurfaceparams main mainform minmaxcombo \
@@ -55,7 +56,8 @@ QT_HEADERS := \
 MOC_DIR = moc
 UI_DIR = ui
 
-UI_FILES := viztab regiontab contourplanetab dvr isotab sessionparameters
+UI_FILES := animationtab viztab regiontab contourplanetab \
+	dvr isotab sessionparameters
   
 include ${TOP}/make/config/base.mk
 #LDFLAGS += $(QTLIB)

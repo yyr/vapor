@@ -39,6 +39,7 @@ class QMainWidget;
 #include "dvrparams.h"
 #include "contourparams.h"
 #include "isosurfaceparams.h"
+#include "animationparams.h"
 #include "vaporinternal/common.h"
 #include "params.h"
 #include "command.h"
@@ -51,6 +52,7 @@ class IsoTab;
 
 
 namespace VAPoR{
+class AnimationParams;
 class IsosurfaceParams;
 class VizMgrDialog;
 class TabManager;
@@ -128,6 +130,7 @@ public:
 	DvrParams* getDvrParams(int winNum);
 	ContourParams* getContourParams(int winNum);
 	IsosurfaceParams* getIsoParams(int winNum);
+	AnimationParams* getAnimationParams(int winNum);
 	//Get whatever params apply to a particular tab
 	Params* getApplicableParams(Params::ParamType t);
 	//Make all the params for the current window update their tabs:
@@ -140,6 +143,7 @@ public:
 	void hookUpDvrTab(Dvr*);
 	void hookUpIsoTab(IsoTab*);
 	void hookUpContourTab(ContourPlaneTab*);
+	void hookUpAnimationTab(AnimationTab*);
 	//set/get Data describing window states
 	VizWin* getVizWin(int i) {return vizWin[i];}
 	//Direct access to actual params object:
@@ -148,6 +152,7 @@ public:
 	IsosurfaceParams* getRealIsoParams(int i) {return isoParams[i];}
 	DvrParams* getRealDvrParams(int i) {return dvrParams[i];}
 	RegionParams* getRealRegionParams(int i) {return rgParams[i];}
+	AnimationParams* getRealAnimationParams(int i) {return animationParams[i];}
 
 	void setVizWinName(int winNum, QString qs);
 	QString* getVizWinName(int winNum) {return vizName[winNum];}
@@ -160,6 +165,7 @@ public:
 	void setIsoParams(int winNum, IsosurfaceParams* p);
 	void setViewpointParams(int winNum, ViewpointParams* p);
 	void setRegionParams(int winNum, RegionParams* p);
+	void setAnimationParams(int winNum, AnimationParams* p);
 		
 	void createDefaultRendererPanels(int winnum);
 	
@@ -214,6 +220,7 @@ protected:
 	DvrParams* dvrParams[MAXVIZWINS];
 	ContourParams* contourParams[MAXVIZWINS];
 	IsosurfaceParams* isoParams[MAXVIZWINS];
+	AnimationParams* animationParams[MAXVIZWINS];
 
 	//Remember the activation order:
 	int activationOrder[MAXVIZWINS];
@@ -234,6 +241,7 @@ protected:
 	IsosurfaceParams* globalIsoParams;
 	DvrParams* globalDvrParams;
 	ContourParams* globalContourParams;
+	AnimationParams* globalAnimationParams;
 	
     VizMgrDialog* currentVizMgrDialog;
     MainForm* myMainWindow;
