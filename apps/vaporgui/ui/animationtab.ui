@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>450</width>
-            <height>568</height>
+            <width>453</width>
+            <height>542</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -40,13 +40,13 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout38</cstring>
+            <cstring>layout51</cstring>
         </property>
         <property name="geometry">
             <rect>
-                <x>10</x>
-                <y>10</y>
-                <width>420</width>
+                <x>11</x>
+                <y>11</y>
+                <width>434</width>
                 <height>520</height>
             </rect>
         </property>
@@ -149,13 +149,16 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>33</height>
+                        <height>31</height>
                     </size>
                 </property>
             </spacer>
             <widget class="QSlider">
                 <property name="name">
                     <cstring>animationSlider</cstring>
+                </property>
+                <property name="maxValue">
+                    <number>1000</number>
                 </property>
                 <property name="orientation">
                     <enum>Horizontal</enum>
@@ -422,7 +425,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>31</width>
-                        <height>32</height>
+                        <height>30</height>
                     </size>
                 </property>
             </spacer>
@@ -444,6 +447,9 @@
                         <property name="pixmap">
                             <pixmap>image0</pixmap>
                         </property>
+                        <property name="toggleButton">
+                            <bool>true</bool>
+                        </property>
                         <property name="toolTip" stdset="0">
                             <string>Reverse Play</string>
                         </property>
@@ -457,6 +463,12 @@
                         </property>
                         <property name="pixmap">
                             <pixmap>image1</pixmap>
+                        </property>
+                        <property name="toggleButton">
+                            <bool>true</bool>
+                        </property>
+                        <property name="on">
+                            <bool>true</bool>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Pause</string>
@@ -472,6 +484,9 @@
                         <property name="pixmap">
                             <pixmap>image2</pixmap>
                         </property>
+                        <property name="toggleButton">
+                            <bool>true</bool>
+                        </property>
                         <property name="toolTip" stdset="0">
                             <string>Forward Play</string>
                         </property>
@@ -480,7 +495,7 @@
             </widget>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>layout26</cstring>
+                    <cstring>layout50</cstring>
                 </property>
                 <hbox>
                     <property name="name">
@@ -496,8 +511,25 @@
                         <property name="pixmap">
                             <pixmap>image3</pixmap>
                         </property>
+                        <property name="toggleButton">
+                            <bool>false</bool>
+                        </property>
                         <property name="toolTip" stdset="0">
                             <string>Go to Start</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>stepReverseButton</cstring>
+                        </property>
+                        <property name="text">
+                            <string></string>
+                        </property>
+                        <property name="pixmap">
+                            <pixmap>image4</pixmap>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Step Reverse</string>
                         </property>
                     </widget>
                     <widget class="QPushButton">
@@ -508,10 +540,33 @@
                             <string></string>
                         </property>
                         <property name="pixmap">
-                            <pixmap>image4</pixmap>
+                            <pixmap>image5</pixmap>
+                        </property>
+                        <property name="toggleButton">
+                            <bool>true</bool>
+                        </property>
+                        <property name="on">
+                            <bool>false</bool>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Continuous Replay</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>stepForwardButton</cstring>
+                        </property>
+                        <property name="text">
+                            <string></string>
+                        </property>
+                        <property name="pixmap">
+                            <pixmap>image6</pixmap>
+                        </property>
+                        <property name="toggleButton">
+                            <bool>false</bool>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Step Forward</string>
                         </property>
                     </widget>
                     <widget class="QPushButton">
@@ -522,7 +577,10 @@
                             <string></string>
                         </property>
                         <property name="pixmap">
-                            <pixmap>image5</pixmap>
+                            <pixmap>image7</pixmap>
+                        </property>
+                        <property name="toggleButton">
+                            <bool>false</bool>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Go to End</string>
@@ -554,7 +612,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>32</height>
+                        <height>30</height>
                     </size>
                 </property>
             </spacer>
@@ -572,6 +630,9 @@
                         </property>
                         <property name="minValue">
                             <number>1</number>
+                        </property>
+                        <property name="maxValue">
+                            <number>1000</number>
                         </property>
                         <property name="orientation">
                             <enum>Horizontal</enum>
@@ -633,7 +694,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>21</width>
-                        <height>32</height>
+                        <height>30</height>
                     </size>
                 </property>
             </spacer>
@@ -729,7 +790,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>32</height>
+                        <height>30</height>
                     </size>
                 </property>
             </spacer>
@@ -799,9 +860,15 @@
         <data format="XPM.GZ" length="813">789c4d91cd4ec3400c84ef7d8aa87bab9069cb4f41884740e2888438c4c9389b264bcbdf0121de1d8f13103b6da36f773276bda7abeae1feae5a9d2ededeebf7bea99a5cbf56abf6a394cfc7a7dbafc572bbaefcb3b9ae36cb93c5125553a5752ca205ee28620e548a3804b614b110375b8a38069e53c43ef09a22b681a08847e23616f110784111f7815714f1851865a3c9e74050c48688338ad8055e52c43a30dcc444b43545d4c01d4594c05881496a1151a9f9f0a78a44c516d64957f3546b95942de6a3d62369186bffc11e08bf7875912645940d403ba6f06743f222927444060aa0931f7b55791618dccd9339a778be163acdbf392372c4bc90efb8111806589eea2a3d05c5770c146cce71ab1d2285cb8fa6fe7d7b6a631c819e47534e3f04fa660461f67bcee83d190e0553d494df0d069f018ede4d54fdf367f8ff926eb2db6f7e729768e28833fee5abbf2ee203e662f5e33c4fef8277a11c74f22e90630e2f19836ff356c4a7e7efcc753bed2452fc76fc25dee6f2fb66f103c200dbc7</data>
     </image>
     <image name="image4">
-        <data format="XPM.GZ" length="813">789c3591c14ec3300c86ef7d8a6abe4d285b0b9b84108f80c4110971709ac4cdda6c1d8c0342bc3bfe9dad7fabedb39d3f8eb359b76faf2fed7ad37c5df892877618f9b35d87ef527ede3f9e7f9b55bf6df5ed1edb6e75d7aca41d5adada038c867b08180c190266430f010bb0eb21e06cf800018f860c01cf8603045c80fd3d043c1926087800060f014760ec21e060b8838093e11e0226430f013d307510900d7710d019320424437b2ceb8888c9791a4224724c6c71041379fc48104d8c4466ae95e4bda3c14bcc722076563f9123c94144b27e61d6aac97c3885a00e324b4036266f3e932b587f2c825451203b0b8998479418e4a4f52275df18d5c56b470cb7788b2735087a04121278e92aaa3e5ae1bd364ff8a35f8d8fb31d07a85b128cecb250b524510fce3469feeac31a8901ce3a43b27eea7cb235aa6531586be5ba2fc959cab1266d16756eae2e2e5916f4afee5ceb139ac9f09971001cc5f625efd2accbcba037c48e1db91a674559cc405fd60bbcf9e8ccd5877dd2bb70a8ff7b6afe01ed94d939</data>
+        <data format="XPM.GZ" length="2080">789c3d945d531a491486effd159473676d9dc0f031505b7b11138cc6e0470c62dcda0b18984814258a89e3d6fef77ddfa7a9f038c0d3dd73cee9e9836ff61a5767a3c6de9b9da7cd74b32c1be5cdf4b1b1377f5eadeabffff9ebdf9dddbcd9d05f9137f2dd3f7676a36e948dacc90b1fe32d833fe3b9c1d778dbe07778c7e02bbc6bf033bc67f0265e18fc12ef1b7c830f0c3ec1a7066fe13383bfc54b83bfe2738377f085c1aff1cae01776b69bf6ff05e785ffc073839fe06d839fe21d830ff0aec10bbc67f09f7861f08f78dfe05d7c60f0637c6aec5986cf0cf3577869f0aff8c2e03dbc32f8073bc7c97eb3c0d920f39ff1aec13fe15383f7f1d2e06d7c6ef073fbbc6d885fe11d83cff1ae61fd235e187c1f2f0dfe1daf0cfecbce71a6fa4b3c37cc7fc3db86f905de31f814ef1ad63fe03d831fe285c1a977d137f82d3e35c49be133c3fc7bbc3478ca373778aa97177e805706e779d19ea91f8f700e10bfc17383e778dbd8cff9fd541dc3fc08ef1a7c89f70cfe841706673f55dfe03cbf6a60f0177c6af07b7c66f0215e1afc1dce01e2f46fc52bd51b594c75cda28c7964bf3d8b85c8a28a6f7abf49b547a5f9ef71ab6fbee32e56711f0fb2a5eef1ea75fc886cbb368bc77852d485566ee2397ec62f8dbd881bcdd6f11a6f633fd5289cf525de6bd5b3e6ea1892e140f9571af9a09183547f1cc691621ec5478d1debfaa455fb3152ae933855a6335d07dbb8e7acff4cb63a2e74cdc855c79718c7a5224f6298fa5099967145eeaf8a73adcf85f6be568e4d34652ddd9f6fe366ac3bd30e6ad557ab9614b356cc5a51db7a5f6e9f4387b5cebe2163baa7a91c35739db83edf6cf736967755538748c7cc4e147dad6f279abd508e143757848946ef74f5d8dd25df6b9d80efdb4421dea51e54ce55f435764c6e671ef07e167516fa9c682e9d7149e467451c6bec827a465ae5b3ddc8c63c8df41cf655f191c60a8d143c854bf790ea58b393a6f2b662f6fbdce67aa2759c2ad629cf6aa84ef2eab16aae39f783f43f42a734a2835ce19de25cbabbb2996a6bb1b79646525cad544f5659c9ea265d31a3cf7c4de886d7586ccf6d496f0f99f579b5e8c707f59dbb359d48b9adf79e9e3ccce6f4a2ce2f5b28932bbb912f7992a9d7fdab98f39b493d9f6795bedd2aee62fb5b722f0f77fffb73e77fa7b4e13e</data>
     </image>
     <image name="image5">
+        <data format="XPM.GZ" length="813">789c3591c14ec3300c86ef7d8a6abe4d285b0b9b84108f80c4110971709ac4cdda6c1d8c0342bc3bfe9dad7fabedb39d3f8eb359b76faf2fed7ad37c5df892877618f9b35d87ef527ede3f9e7f9b55bf6df5ed1edb6e75d7aca41d5adada038c867b08180c190266430f010bb0eb21e06cf800018f860c01cf8603045c80fd3d043c1926087800060f014760ec21e060b8838093e11e0226430f013d307510900d7710d019320424437b2ceb8888c9791a4224724c6c71041379fc48104d8c4466ae95e4bda3c14bcc722076563f9123c94144b27e61d6aac97c3885a00e324b4036266f3e932b587f2c825451203b0b8998479418e4a4f52275df18d5c56b470cb7788b2735087a04121278e92aaa3e5ae1bd364ff8a35f8d8fb31d07a85b128cecb250b524510fce3469feeac31a8901ce3a43b27eea7cb235aa6531586be5ba2fc959cab1266d16756eae2e2e5916f4afee5ceb139ac9f09971001cc5f625efd2accbcba037c48e1db91a674559cc405fd60bbcf9e8ccd5877dd2bb70a8ff7b6afe01ed94d939</data>
+    </image>
+    <image name="image6">
+        <data format="XPM.GZ" length="2000">789c4d945b531a411046dffd1594fb66a55ab943a5f2a0788917f0ae682a0fbb0b082e28e2dd54fe7bfa3b3331e1b88b6767b6a77ba67575a5d43fea965656971e9fd2a7495ecac7e9a2b432789ecdde7ffcfcf66b69b9b256f29f46b35459feb2b46c45292f256b7cf043bc2cf05dbc22f03e5e15f80caf09bc8bd7057e8a3704dec39b02bfc45b023fc0db027fc05381efe399c037f15ce07bf840e01d7c28f02d7c24f0859c7243fd47381ffc16af08fc15af0afc05af09bc81d705fe8437853c49f09660fc046f0bbc8aa702afe099c0cff05ce0357c28f0163e12f89a9ce30bf57dc7ab026fe23581d7f196c09fe58354e0e77826f07b3c17f80e3e14f83a3e12785b4eba617faff18ac0eff086c0dff0a6c0aff096c01ff1b6c08ff154b0df299e09c683e702bfc149181fe37cf00c1f09e2999cf609fb39c4d9707c8e57043ec1ab021fe135817fe075816fe30d814ff1a6c073bc25f032de16f83b9e0a7c806702dfc073815fe01c90fc987ea5dc503ffd3ae213c62db1d432bfe736f0fbc0867e1ff9756363bf27dc2771eead15cc19dbd4e7e8adc266cc4aecceeefd3eb79bd047f6600b1f1dda631cbfb7279f5b7894cc26eecf1e230939f9bc17bf5e7deccdde2df1efc259d8ab7df8e8ba5f1b16ce33b38e8f6cda16eb6edb8ec7ffee4f76fdea907baa8cc3d9d89eed13e780bc1356ea58d77a76684764b61ee71edb09314e9d33ff3eb70b7238b04bbff77dbdc4aeecfa33df359fa7da15afe7f528e37dde283c36ab85f3f4df35b6472c655e5041b8faf18d307760955877e13b7d126755fdeafab3aed5c8efdf9ed57d8fc31cad39638586afd6e589c6b218f794274ddedff58a5a71c7b4ce3eabdec6b8438ff3ca4878a7efb5a9c28ec7ee390b6a7b8e396cc538275498f8696c729247b10a9ddb5b3cb7c273fbbbaaba4b155cfa9b9bec77eea7d6b6f2676daaa5cfccb19f721277b0177636319dc6e719effa5a33ba370f679c2471952baf67ee3d340dff0b3cb7079b25291d7ea3dcfc49e88db95f65efbd0dbbf82f87a9472dd3e7139e749975e73da6b983d893fa8bc8637f4dbd8a21ddfeee79df7b3c3d83e5df5f97fe00d19eccd0</data>
+    </image>
+    <image name="image7">
         <data format="XPM.GZ" length="783">789c4d91cb4e03310c45f7f315d1785721f7016a55213e01892512623189e7e136d34a501608f1eff87a32a5be6d95e3dcdce6b15c84d797e7b058569f97e6a229a4a1f9080bf91ac7efb7f7a79faadeac827dd6bbb0aeefaa5a420ab4f202aae30e0266c7080193630b010fc0f506020e8e5b08383aee21e011b87980806760f2029e80d240c006d8ee2060ebd840c0ded10bd801bb7b08181db710901cf710901dbd1c5164df8629fa28b28724b1315a2d773d93c8e07fcd2a9889bd7bdb4e0ee27eb681a8d872f255729cfad19a2259c4ed1c0d26ff20a89445b963a24194a61c6bd95cb665d9f662a1255f9262c2f3842c92cb7ebca1be04f3b9e44c5d2d795af2a90464eff9a6e3bfdfd720ca7eaf3993bf9c2fabd2ad5f711fccdd4d8efb6d81dd42c47963d9e7e4a7e9be673fc9885df05cd773e128788cb95feead47974f57bfeae13cbd23ac4473bfb717aa7f1fab3f366dcf55</data>
     </image>
 </images>
