@@ -155,6 +155,7 @@ public:
 	QWorkspace* getWorkspace() {return myWorkspace;}
 	//Disable the editUndo/Redo action:
 	void disableUndoRedo();
+	MouseModeCommand::mouseModeType getCurrentMouseMode() {return currentMouseMode;}
 	
 
 public slots:

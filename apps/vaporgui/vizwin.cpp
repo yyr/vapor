@@ -245,6 +245,7 @@ mousePressEvent(QMouseEvent* e){
 	
 	switch (myWinMgr->selectionMode){
 		case Command::navigateMode : 
+		case Command::regionMode :
 			myWinMgr->getViewpointParams(myWindowNum)->captureMouseDown();
 			myTrackball->MouseOnTrackball(0, e->button(), e->x(), e->y(), width(), height());
 			mouseDownHere = true;
@@ -252,7 +253,7 @@ mousePressEvent(QMouseEvent* e){
 			//Force an update of region params, so low res is shown
 			setRegionDirty(true);
 			break;
-		case Command::regionMode :
+		
 			
 			break;
 		default:
@@ -268,6 +269,7 @@ void VizWin::
 mouseReleaseEvent(QMouseEvent*e){
 	switch (myWinMgr->selectionMode){
 		case Command::navigateMode : 
+		case Command::regionMode :
 			myWinMgr->getViewpointParams(myWindowNum)->captureMouseUp();
 			myTrackball->MouseOnTrackball(2, e->button(), e->x(), e->y(), width(), height());
 			mouseDownHere = false;
@@ -277,7 +279,7 @@ mouseReleaseEvent(QMouseEvent*e){
 			myGLWindow->updateGL();
 			break;
 
-		case Command::regionMode :
+		
 			break;
 		default:
 			break;
@@ -310,11 +312,16 @@ mouseMoveEvent(QMouseEvent* e){
 	QPoint deltaPoint = e->globalPos() - mouseDownPosition;
 	switch (myWinMgr->selectionMode){
 		case Command::navigateMode : 
+		case Command::regionMode :
 			myTrackball->MouseOnTrackball(1, e->button(), e->x(), e->y(), width(), height());
 			//Note that the coords have changed:
 			newViewerCoords = true;
+
+			//?????
+			//setRegionDirty(true);
+			//myGLWindow->updateGL();
 			break;
-		case Command::regionMode :
+		//region mode...
 			myWinMgr->getRegionParams(myWindowNum)->slide(deltaPoint);
 			break;
 		default:

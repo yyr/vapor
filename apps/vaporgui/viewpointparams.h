@@ -45,6 +45,7 @@ public:
 	
 	void setNumLights(int n);
 	float* getCameraPos() {return currentViewpoint->getCameraPos();}
+	float getCameraPos(int coord) {return currentViewpoint->getCameraPos()[coord];}
 	void setCameraPos(int i, float val) { currentViewpoint->setCameraPos(i, val);}
 	void setCameraPos(float* val) {currentViewpoint->setCameraPos(val);}
 	float* getViewDir() {return currentViewpoint->getViewDir();}

@@ -57,10 +57,12 @@
 #include "animationcontroller.h"
 
 #include "mainform.h"
+#include "command.h"
 #include "session.h"
 #include "glutil.h"
 
 using namespace VAPoR;
+using namespace VetsUtil;
 //Most of the one-time setup from setupBob is performed in session,
 //such as construction of DataMgr
 //Gui settings are done in param constructors
@@ -142,40 +144,90 @@ DrawVoxelScene(unsigned /*fast*/)
 	float matrix[16];
     GLenum	buffer;
 	static float extents[6];
+	static float minFull[3], maxFull[3];
+	int max_dim[3];
+	int min_dim[3];
+	int max_bdim[3];
+	int min_bdim[3];
+	float fullExtent[6];
 	int data_roi[6];
-
+	int i;
 	//Nothing to do if there's no data source!
 	if (!myDataMgr) return;
+	if (!Session::getInstance()->renderReady()) return;
 	int winNum = myVizWin->getWindowNum();
 	//Tell the animation we are starting.  If it returns false, we are not
 	//being monitored by the animation controller
 	bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
+
+	//AN:  (2/10/05):  Calculate 'extents' to be the real coords in (0,1) that
+	//the roi is mapped into.  First find the mapping of the full data array.  This
+	//is mapped to the center of the cube with the largest dimension equal to 1.
+	//Then determine what is the subvolume we are dealing with as a portion
+	//of the full mapped data.
+	int numxforms;
+	if (myVizWin->mouseIsDown()) numxforms = myRegionParams->getMaxNumTrans();
+	else numxforms = myRegionParams->getNumTrans();
+		
+	int bs = myMetadata->GetBlockSize();
+		
+	for(i=0; i<3; i++) {
+		int	s = numxforms;
+
+		min_dim[i] = (int) ((float) (myRegionParams->getCenterPosition(i) >> s) - 0.5 
+			- (((myRegionParams->getRegionSize(i) >> s) / 2.0)-1.0));
+		max_dim[i] = (int) ((float) (myRegionParams->getCenterPosition(i) >> s) - 0.5 
+			+ (((myRegionParams->getRegionSize(i) >> s) / 2.0)));
+		min_bdim[i] = min_dim[i] / bs;
+		max_bdim[i] = max_dim[i] / bs;
+	}
+	
+	for (i = 0; i< 3; i++){
+		fullExtent[i] = myRegionParams->getFullDataExtent(i);
+		fullExtent[i+3] = myRegionParams->getFullDataExtent(i+3);
+	}
+	float maxCoordRange = Max(fullExtent[3]-fullExtent[0],Max( fullExtent[4]-fullExtent[1], fullExtent[5]-fullExtent[2]));
+	//calculate the geometric extents of the dimensions in the unit cube:
+	
+	for (i = 0; i<3; i++) {
+		int dim = (myRegionParams->getFullSize(i)>>numxforms) -1;
+		assert (dim>= max_dim[i]);
+		float extentRatio = (fullExtent[i+3]-fullExtent[i])/maxCoordRange;
+		minFull[i] = 0.5f*(1.f - extentRatio);
+		maxFull[i] = 0.5f*(1.f + extentRatio);
+		extents[i] = minFull[i] + ((float)min_dim[i]/(float)dim)*(maxFull[i]-minFull[i]);
+		extents[i+3] = minFull[i] + ((float)max_dim[i]/(float)dim)*(maxFull[i]-minFull[i]);
+	}
     // Move to trackball view of scene  
 	glPushMatrix();
 
 	glLoadIdentity();
+
+	glGetIntegerv(GL_DRAW_BUFFER, (GLint *) &buffer);
+	//Clear out in preparation for rendering
+	glDrawBuffer(GL_BACK);
+	glClearDepth(1);
+	glDepthMask(GL_TRUE);
+	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	glDrawBuffer(buffer);
+
+	
 	glTranslatef(.5,.5,.5);
     myGLWindow->getTBall()->TrackballSetMatrix();
-	/*
-	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
-	fprintf(stderr, "after trackballsetmatrix, modelMatrix is: \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f ",
-		matrix[0], matrix[1],matrix[2],matrix[3],
-		matrix[4], matrix[5],matrix[6],matrix[7],
-		matrix[8], matrix[9],matrix[10],matrix[11],
-		matrix[12], matrix[13],matrix[14],matrix[15]);*/
+	//In regionMode, draw a grid:
+	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
+		renderDomainFrame(extents, minFull, maxFull);
+	}
+	
 	//If there are new coords, get them from GL, send them to the gui
 	if (myVizWin->newViewerCoords){ 
 		myGLWindow->changeViewerFrame();
 	}
 	
 	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
-	/*
-	fprintf(stderr, "after changeViewerframe, modelMatrix is: \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f ",
-		matrix[0], matrix[1],matrix[2],matrix[3],
-		matrix[4], matrix[5],matrix[6],matrix[7],
-		matrix[8], matrix[9],matrix[10],matrix[11],
-		matrix[12], matrix[13],matrix[14],matrix[15]);*/
-	//
+	
+	
 	// set up view transform. Really only need to do this if the data
 	// roi changes
 	//
@@ -185,61 +237,22 @@ DrawVoxelScene(unsigned /*fast*/)
 		//float hmaxdim;
 		
 		int	rc;
-		int max_dim[3];
-		int min_dim[3];
-		int max_bdim[3];
-		int min_bdim[3];
+		
+		
 		int nx,ny,nz;
-		int min_subdim[3];
-		int max_subdim[3];
-
+		
 		//Make sure we are using the current regionParams
 		
 		myRegionParams = myVizWin->getWinMgr()->getRegionParams(winNum);
 		AnimationParams* myAnimationParams = myVizWin->getWinMgr()->getAnimationParams(winNum);
 		//Do Region setup as in SetCurrentFile() (mdb.C):
-		//Set up parameters needed to specify region:
-		//level is flevels -stride + 1:
-		//= (maxstride -1) - (stride) + 1
-		int numxforms;
-		if (myVizWin->mouseIsDown()) numxforms = myRegionParams->getMaxNumTrans();
-		else numxforms = myRegionParams->getNumTrans();
-		int bs;
-		bs = myMetadata->GetBlockSize();
-		int i;
-		for(i=0; i<3; i++) {
-			int	s = numxforms;
+		//
 
-			min_dim[i] = (int) ((float) (myRegionParams->getCenterPosition(i) >> s) - 0.5 
-				- (((myRegionParams->getRegionSize(i) >> s) / 2.0)-1.0));
-			max_dim[i] = (int) ((float) (myRegionParams->getCenterPosition(i) >> s) - 0.5 
-				+ (((myRegionParams->getRegionSize(i) >> s) / 2.0)));
-		
-
-			min_bdim[i] = min_dim[i] / bs;
-			max_bdim[i] = max_dim[i] / bs;
-		}
-/*
-		int* center = myRegionParams->getCenterPos();
-		int* dim = myRegionParams->getRegionSize();
-		fprintf(stderr, "index == %d\n", myRegionParams->getCurrentTimestep());
-		fprintf(stderr, "level == %d\n", level);
-		fprintf(stderr, "flevels == %d\n", myRegionParams->getMaxStride()-1);
-		fprintf(stderr, "stride == %d\n", myRegionParams->getStride());
-		fprintf(stderr, "bs == %d\n", bs);
-		fprintf(stderr, "dim == %d %d %d\n", dim[0], dim[1], dim[2]);
-		fprintf(stderr, "center == %d %d %d\n", center[0], center[1], center[2]);
-		fprintf(stderr, "min_dim == %d %d %d\n", min_dim[0], min_dim[1], min_dim[2]);
-		fprintf(stderr, "max_dim == %d %d %d\n", max_dim[0], max_dim[1], max_dim[2]);
-
-		*/
-	
 		if (myDVRParams->datarangeIsDirty()){
 			myDataMgr->SetDataRange(myDVRParams->getVariableName(),
 				myDVRParams->getCurrentDatarange());
 			myDVRParams->setDatarangeDirty(false);
 		}
-		
 		
 		void* data = (void*) myDataMgr->GetRegionUInt8(
 				myAnimationParams->getCurrentFrameNumber(),
@@ -250,28 +263,7 @@ DrawVoxelScene(unsigned /*fast*/)
 				0 //Don't lock!
 			);
 
-		//AN:  (2/10/05):  Calculate 'extents' to be the real coords in (0,1) that
-		//the roi is mapped into.  First find the mapping of the full data array.  This
-		//is mapped to the center of the cube with the largest dimension equal to 1.
-		//Then determine what is the subvolume we are dealing with as a portion
-		//of the full mapped data.
-		float fullExtent[6];
-		for (i = 0; i< 3; i++){
-			fullExtent[i] = myRegionParams->getFullDataExtent(i);
-			fullExtent[i+3] = myRegionParams->getFullDataExtent(i+3);
-		}
-		float maxCoordRange = Max(fullExtent[3]-fullExtent[0],Max( fullExtent[4]-fullExtent[1], fullExtent[5]-fullExtent[2]));
-		//calculate the geometric extents of the dimensions in the unit cube:
 		
-		for (i = 0; i<3; i++) {
-			int dim = (myRegionParams->getFullSize(i)>>numxforms) -1;
-			assert (dim>= max_dim[i]);
-			float extentRatio = (fullExtent[i+3]-fullExtent[i])/maxCoordRange;
-			float minFull = 0.5f*(1.f - extentRatio);
-			float maxFull = 0.5f*(1.f + extentRatio);
-			extents[i] = minFull + ((float)min_dim[i]/(float)dim)*(maxFull-minFull);
-			extents[i+3] = minFull + ((float)max_dim[i]/(float)dim)*(maxFull-minFull);
-		}
 		
 
 		// make subregion origin (0,0,0)
@@ -288,39 +280,16 @@ DrawVoxelScene(unsigned /*fast*/)
 		nx = (max_bdim[0] - min_bdim[0] + 1) * bs;
 		ny = (max_bdim[1] - min_bdim[1] + 1) * bs;
 		nz = (max_bdim[2] - min_bdim[2] + 1) * bs;
-		min_subdim[0] = min_dim[0];
-		min_subdim[1] = min_dim[1];
-		min_subdim[2] = min_dim[2];
-		max_subdim[0] = max_dim[0];
-		max_subdim[1] = max_dim[1];
-		max_subdim[2] = max_dim[2];
-		//End of SetCurrentFile().
-
-
-		//Now use the above values in calculating roi, extents, in order 
-		//to call setRegion on driver:
-		data_roi[0] = min_subdim[0];
-		data_roi[1] = min_subdim[1];
-		data_roi[2] = min_subdim[2];
-		data_roi[3] = max_subdim[0];
-		data_roi[4] = max_subdim[1];
-		data_roi[5] = max_subdim[2];
-
-	
+		
+		data_roi[0] = min_dim[0];
+		data_roi[1] = min_dim[1];
+		data_roi[2] = min_dim[2];
+		data_roi[3] = max_dim[0];
+		data_roi[4] = max_dim[1];
+		data_roi[5] = max_dim[2];
 
 		
-	
-		glMatrixMode(GL_MODELVIEW);
-		//Get the matrix from gl, will send it to DVR Volumizer to use for its own purposes.
 		
-		glGetIntegerv(GL_DRAW_BUFFER, (GLint *) &buffer);
-		glDrawBuffer(GL_BACK);
-		glClearDepth(1);
-		//Make background color black (0,0,0,0)
-		//glClearColor(0.f,0.f,0.f,0.f);
-		
-		glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
-		glDrawBuffer(buffer);
 		
 		rc = driver->SetRegion(data,
 			nx, ny, nz,
@@ -360,13 +329,17 @@ DrawVoxelScene(unsigned /*fast*/)
 	//
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-
+	//Make the z-buffer read-only for the volume data
+	glDepthMask(GL_FALSE);
 	if (driver->Render(
 		(GLfloat *) matrix ) < 0){
 		qWarning("Error calling Render()");
 	}
 
-	//myGLWindow->swapBuffers();
+	//Finally render the region geometry, if in region mode
+	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
+		renderRegionBounds(extents);
+	}
 
     glPopMatrix();
 	if (isControlled) AnimationController::getInstance()->endRendering(winNum);
@@ -378,6 +351,256 @@ DrawVoxelWindow(unsigned fast)
 {
 	myGLWindow->makeCurrent();
 	DrawVoxelScene(fast);
+}
+//OpenGL commands to draw a grid of lines of the full domain.
+//Grid resolution is fine enough to show location of selected subregion
+void VolumizerRenderer::renderDomainFrame(float* extents, float* minFull, float* maxFull){
+
+	//Recalculate these things temporarily:
+
+	float fullExtent[6];
+	int i;
+	for (i = 0; i< 3; i++){
+		fullExtent[i] = myRegionParams->getFullDataExtent(i);
+		fullExtent[i+3] = myRegionParams->getFullDataExtent(i+3);
+	}
+	
+	//Determine how many lines in each dimension to render.  Find the smallest size 
+	//of any of the current region dimensions.  See what power-of-two fraction of the full 
+	//cube is as small as that size in that dimension.  Then subdivide all dimensions 
+	//in that fraction.float minSize = 1.e30f;
+	float regionSize[3], fullSize[3];
+	int logDim[3], numLines[3];
+	
+	int minDim;
+	float minSize = 1.e30f;
+	
+	for (i = 0; i<3; i++){
+		regionSize[i] = extents[i+3]-extents[i];;
+		fullSize[i] = maxFull[i] - minFull[i];
+		if (minSize > regionSize[i]) {
+			minSize = regionSize[i];
+			minDim = i;
+		}
+	}
+	float sizeFraction = (fullSize[minDim])/minSize;
+	//Find the integer log, base 2 of this:
+	
+	logDim[minDim] = ILog2((int)(sizeFraction+0.5f));
+	//The log in the other dimensions will be about the same unless the
+	//full region is substantially different in that dimension
+	for (i = 0; i<3; i++){
+		if (i!= minDim){
+			float sizeRatio =	fullSize[i]/fullSize[minDim];
+			if (sizeRatio > 1.f)
+				logDim[i] = logDim[minDim]+ ILog2((int)sizeRatio);
+			else 
+				logDim[i] = logDim[minDim]- ILog2((int)(1.f/sizeRatio));
+		}
+		numLines[i] = 1<<logDim[i];
+		//Limit to no more than 8-way grid lines
+		if (numLines[i]>8) numLines[i] = 8;
+	}
+	glColor3f(1.f,1.f,1.f);	   
+    glLineWidth( 2.0 );
+	//Now draw the lines.  Divide each dimension into numLines[dim] sections.
+	
+	int x,y,z;
+	//Do the lines in each z-plane
+	//Turn on writing to the z-buffer
+	glDepthMask(GL_TRUE);
+	glTranslatef(-.5, -.5, -.5);
+	
+	for (z = 0; z<=numLines[2]; z++){
+		float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
+		//Draw lines in x-direction for each y
+		for (y = 0; y<=numLines[1]; y++){
+			float yCrd = minFull[1] + ((float)y/(float)numLines[1])*fullSize[1];
+			glBegin( GL_LINES );
+			glVertex3f(  minFull[0],  yCrd, zCrd );   
+			glVertex3f( maxFull[0],  yCrd, zCrd );
+			glEnd();
+		}
+		//Draw lines in y-direction for each x
+		for (x = 0; x<=numLines[0]; x++){
+			float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
+			glBegin( GL_LINES );
+			glVertex3f(  xCrd, minFull[1], zCrd );   
+			glVertex3f( xCrd, maxFull[1], zCrd );
+			glEnd();
+		}
+	}
+	//Do the lines in each y-plane
+	
+	for (y = 0; y<=numLines[1]; y++){
+		float yCrd = minFull[1] + ((float)y/(float)numLines[1])*fullSize[1];
+		//Draw lines in x direction for each z
+		for (z = 0; z<=numLines[2]; z++){
+			float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
+			glBegin( GL_LINES );
+			glVertex3f(  minFull[0],  yCrd, zCrd );   
+			glVertex3f( maxFull[0],  yCrd, zCrd );
+			glEnd();
+		}
+		//Draw lines in z direction for each x
+		for (x = 0; x<=numLines[0]; x++){
+			float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
+			glBegin( GL_LINES );
+			glVertex3f(  xCrd, yCrd, minFull[2] );   
+			glVertex3f( xCrd, yCrd, maxFull[2]);
+			glEnd();
+		}
+	}
+	//Do the lines in each x-plane
+	for (x = 0; x<=numLines[0]; x++){
+		float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
+		//Draw lines in y direction for each z
+		for (z = 0; z<=numLines[2]; z++){
+			float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
+			glBegin( GL_LINES );
+			glVertex3f(  xCrd, minFull[1], zCrd );   
+			glVertex3f( xCrd, maxFull[1], zCrd );
+			glEnd();
+		}
+		//Draw lines in z direction for each y
+		for (y = 0; y<=numLines[1]; y++){
+			float yCrd = minFull[1] + ((float)y/(float)numLines[1])*fullSize[1];
+			glBegin( GL_LINES );
+			glVertex3f(  xCrd, yCrd, minFull[2] );   
+			glVertex3f( xCrd, yCrd, maxFull[2]);
+			glEnd();
+		}
+	}
+	
+	glTranslatef(.5, .5, .5);
+
+}
+//The "front" surface of the cube is drawn partially transparent, 
+//with  handles to drag the planes.  This is drawn after the cube is drawn.
+// The z-buffer can continue to be
+//read-only, but leave it on so that the grid lines will continue to be visible.
+//A face of the cube is "front" if the camera is in that direction from the
+//cube center.
+void VolumizerRenderer::renderRegionBounds(float* extents){
+	
+	glColor4f(.8f,.8f,.8f,.3f);
+	float sideCoord;
+	if (VizWinMgr::getInstance()->cameraBeyondRegionCenter(0, myVizWin->getWindowNum())){
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		sideCoord = extents[3];
+	}
+	else {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		sideCoord = extents[0];
+	}
+	//draw region end, y and z varying:
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glBegin(GL_QUADS);
+	glVertex3f(extents[0], extents[1], extents[2]);
+	glVertex3f(extents[0], extents[1], extents[5]);
+	glVertex3f(extents[0], extents[4], extents[5]);
+	glVertex3f(extents[0], extents[4], extents[2]);
+	glEnd();
+	//draw region end, y and z varying:
+	glBegin(GL_QUADS);
+	glVertex3f(extents[3], extents[1], extents[2]);
+	glVertex3f(extents[3], extents[1], extents[5]);
+	glVertex3f(extents[3], extents[4], extents[5]);
+	glVertex3f(extents[3], extents[4], extents[2]);
+	glEnd();
+/*
+	if (VizWinMgr::getInstance()->cameraBeyondRegionCenter(1, myVizWin->getWindowNum())){
+		glPolygonMode(GL_FRONT, GL_FILL);
+		sideCoord = extents[4];
+	}
+	else {
+		glPolygonMode(GL_FRONT, GL_FILL);
+		sideCoord = extents[1];
+	}
+	*/
+	//draw region top/bottom, x and z varying:
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glBegin(GL_QUADS);
+	glVertex3f(extents[0], extents[4], extents[2]);
+	glVertex3f(extents[3], extents[4], extents[2]);
+	glVertex3f(extents[3], extents[4], extents[5]);
+	glVertex3f(extents[0], extents[4], extents[5]);
+	
+	
+	glEnd();
+	//draw region top/bottom, x and z varying:
+	glBegin(GL_QUADS);
+	glVertex3f(extents[0], extents[1], extents[2]);
+	glVertex3f(extents[0], extents[1], extents[5]);
+	glVertex3f(extents[3], extents[1], extents[5]);
+	glVertex3f(extents[3], extents[1], extents[2]);
+	glEnd();
+
+	if (VizWinMgr::getInstance()->cameraBeyondRegionCenter(2, myVizWin->getWindowNum())){
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		sideCoord = extents[5];
+	}
+	else {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		sideCoord = extents[2];
+	}
+	
+	//draw region end, x and y varying:
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glBegin(GL_QUADS);
+	glVertex3f(extents[0], extents[1], extents[2]);
+	glVertex3f(extents[3], extents[1], extents[2]);
+	glVertex3f(extents[3], extents[4], extents[2]);
+	glVertex3f(extents[0], extents[4], extents[2]);
+	glEnd();
+	glColor4f(.8f,.8f,.3f,1.f);
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glBegin(GL_QUADS);
+	glVertex3f(extents[0], extents[1], extents[5]);
+	glVertex3f(extents[3], extents[1], extents[5]);
+	glVertex3f(extents[3], extents[4], extents[5]);
+	glVertex3f(extents[0], extents[4], extents[5]);
+	glEnd();
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//Draw the  8 lines in solid yellow:
+	glColor3f(1.f,1.f,0.f);
+	glBegin(GL_LINES);
+	glVertex3f(extents[0], extents[1], extents[5]);
+	glVertex3f(extents[3], extents[1], extents[5]);
+	
+	glVertex3f(extents[3], extents[4], extents[5]);
+	glVertex3f(extents[0], extents[4], extents[5]);
+	
+	glVertex3f(extents[3], extents[1], extents[5]);
+	glVertex3f(extents[3], extents[4], extents[5]);
+	
+	glVertex3f(extents[0], extents[1], extents[5]);
+	glVertex3f(extents[0], extents[4], extents[5]);
+	
+	glVertex3f(extents[0], extents[1], extents[2]);
+	glVertex3f(extents[3], extents[1], extents[2]);
+	
+	glVertex3f(extents[3], extents[4], extents[2]);
+	glVertex3f(extents[0], extents[4], extents[2]);
+	
+	glVertex3f(extents[3], extents[1], extents[2]);
+	glVertex3f(extents[3], extents[4], extents[2]);
+	
+	glVertex3f(extents[0], extents[1], extents[2]);
+	glVertex3f(extents[0], extents[4], extents[2]);
+	
+	glVertex3f(extents[0], extents[1], extents[2]);
+	glVertex3f(extents[0], extents[1], extents[5]);
+	
+	glVertex3f(extents[0], extents[4], extents[2]);
+	glVertex3f(extents[0], extents[4], extents[5]);
+	
+	glVertex3f(extents[3], extents[1], extents[2]);
+	glVertex3f(extents[3], extents[1], extents[5]);
+	
+	glVertex3f(extents[3], extents[4], extents[2]);
+	glVertex3f(extents[3], extents[4], extents[5]);
+	glEnd();
 }
 
 #endif //VOLUMIZER

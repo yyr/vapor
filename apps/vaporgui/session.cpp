@@ -48,6 +48,7 @@ Session::Session() {
 	currentHistograms = 0;
 	currentDataStatus = 0;
 	cacheMB = 512;
+	renderOK = false;
 	//AnimationController::getInstance()->run();
 }
 Session::~Session(){
@@ -87,6 +88,7 @@ restore(char* ){
 void Session::
 resetMetadata(const char* fileBase)
 {
+	renderOK = false;
 	//Reinitialize the animation controller:
 	AnimationController::getInstance()->restart();
 	//The metadata is created by (and obtained from) the datamgr
@@ -160,6 +162,7 @@ resetMetadata(const char* fileBase)
 	VizWinMgr::getInstance()->reinitializeParams();
 	//Then make the tab panels refresh:
 	VizWinMgr::getInstance()->updateActiveParams();
+	renderOK = true;
 	return;
 }
 //Add a command to the circular command queue

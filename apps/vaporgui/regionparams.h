@@ -66,6 +66,7 @@ public:
 	int getFullSize(int indx) {return fullSize[indx];}
 	int* getCenterPos() {return centerPosition;}
 	int getCenterPosition(int indx) {return centerPosition[indx];}
+	
 	int setCenterPosition(int i, int val) { 
 		val = Min(val, fullSize[i]-regionSize[i]/2);
 		centerPosition[i] = Max(val, regionSize[i]/2);
@@ -96,7 +97,9 @@ public:
 	float getRegionMax(int coord){ return (float)(fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
 		(centerPosition[coord] + regionSize[coord]*.5)/(double)(fullSize[coord]));
 	}
-
+	float getRegionCenter(int indx) {
+		return (0.5f*(getRegionMin(indx)+getRegionMax(indx)));
+	}
 	//Update the dialog with values from this:
 	//
 	virtual void updateDialog();

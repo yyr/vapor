@@ -33,6 +33,7 @@ AnimationController* AnimationController::theAnimationController = 0;
 AnimationController::AnimationController(): QThread(){
 	myWaitCondition = new QWaitCondition();
 	myClock = new QTime();
+	controllerActive = false;
 	animationCancelled = true;
 	//Initialize status flags 
 	for (int i = 0; i<MAXVIZWINS; i++) {
@@ -55,10 +56,17 @@ AnimationController::~AnimationController(){
 //Set up when new data is read, by the Session
 void AnimationController::
 restart(){
+	int i;
 	//If animation in progress, terminate it
 	animationCancelled = true;
 	//Wakeup the controller thread.  It should return after rendering is complete
 	myWaitCondition->wakeAll();
+	//Wait until controller thread completes:
+	for (i = 0; i<1000; i++){
+		if (!controllerActive) break;
+		wait(100);
+	}
+	assert(i<1000);
 	//restart the controller thread (calls run()) after it returns.
 	animationCancelled = false;
 	myClock->start();
@@ -73,6 +81,7 @@ void AnimationController::
 run(){
 	VizWinMgr* myVizWinMgr = VizWinMgr::getInstance();
 	int viznum;
+	controllerActive = true;
 	//First, initialize the status bits:
 	
 	animationMutex.lock();
@@ -210,19 +219,24 @@ run(){
 		}
 		
 		animationMutex.unlock();
-		if (allDone) break;
+		if (allDone) {
+			controllerActive = false;
+			break;
+		}
 		//wait for a second; may be woken if someone finishes, or status changes.
 		myWaitCondition->wait(1000);
 	}
-	//Assert that all renderers completed
-	assert(tries < 100);
+	//Assert that all renderers completed in 60 seconds
+	assert(tries < 60);
 	return;
 
 }
 
 //Renderers call the following methods before and after rendering.
-// If beginRendering returns true, the rendering should continue, otherwise it should
-// be cancelled.  
+// If beginRendering returns true, the controller is tracking the rendering, so
+// endRendering must be called.  Otherwise, the rendering is not being timed,
+// and endRendering should not be called.
+//
 bool AnimationController::
 beginRendering(int viznum){
 	if (animationCancelled) return false;

@@ -293,6 +293,17 @@ comboChanged(int newSetting, int vizNum)
 	}
 }
 
+/***********************************************************************
+ * The following tells relationship of region to viewpoint in a window:
+ **************************************************************************/
+bool VizWinMgr::
+cameraBeyondRegionCenter(int coord, int vizWinNum){
+	float regionMid = getRegionParams(vizWinNum)->getRegionCenter(coord);
+	float cameraps = getViewpointParams(vizWinNum)->getCameraPos(coord);
+		return( (getRegionParams(vizWinNum)->getRegionCenter(coord)) <
+			(getViewpointParams(vizWinNum)->getCameraPos(coord)));
+
+}
 /**************************************************************
  * Methods that arrange the viz windows:
  **************************************************************/

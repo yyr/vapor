@@ -184,6 +184,11 @@ public:
 	void setSelectionMode( Command::mouseModeType m) {selectionMode = m;}
 	Command::mouseModeType getSelectionMode () {return selectionMode;}
 	Trackball* getGlobalTrackball() {return globalTrackball;}
+	//For a specific coordinate, and a specific window num, determine
+	//whether or not the camera is situated further from the origin than
+	//the current region center
+	//
+	bool cameraBeyondRegionCenter(int coord, int vizWinNum);
 
 	//Set the dirty bits in all the visualizers that use a
 	//region parameter setting

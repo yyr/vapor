@@ -237,6 +237,7 @@ public:
 	void resetMetadata(const char* vmfile);
 	void setCacheMB(size_t size){cacheMB = size;}
 	size_t getCacheMB() {return cacheMB;}
+	bool renderReady() {return renderOK;}
 	
 
 
@@ -259,6 +260,7 @@ protected:
 	//Cache size in megabytes
 	size_t cacheMB;
 	size_t maxTimeStep, minTimeStep;
+	bool renderOK;
 	
 };
 

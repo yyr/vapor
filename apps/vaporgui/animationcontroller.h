@@ -175,6 +175,7 @@ public:
 protected:
 	static AnimationController* theAnimationController;
 	AnimationController();
+	bool controllerActive;
 	//Following function compares current time with the minimum time the rendering
 	//should be complete.  Based on the most recent render requested
 	int getTimeToFinish(int viznum, int currentTime);
