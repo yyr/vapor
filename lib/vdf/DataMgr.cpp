@@ -42,6 +42,9 @@ DataMgr::DataMgr(
 	size_t mem_size,
 	unsigned int nthreads
 ) {
+
+	SetDiagMsg("DataMgr::DataMgr(,%d,%d)", mem_size, nthreads);
+
 	_metadata = metadata;
 
 	_wbreader = new WaveletBlock3DRegionReader(_metadata, nthreads);
@@ -55,6 +58,8 @@ DataMgr::DataMgr(
 	size_t mem_size,
 	unsigned int nthreads
 ) {
+	SetDiagMsg("DataMgr::DataMgr(%s,%d,%d)", metafile, mem_size, nthreads);
+
 	if (_metadata->GetErrCode() != 0) return;
 
 	_wbreader = new WaveletBlock3DRegionReader(metafile, nthreads);
@@ -68,6 +73,7 @@ DataMgr::DataMgr(
 
 DataMgr::~DataMgr(
 ) {
+	SetDiagMsg("DataMgr::~DataMgr()");
 
 	if (_wbreader) delete _wbreader;
 
@@ -91,8 +97,14 @@ float	*DataMgr::GetRegion(
 	const size_t max[3],
 	int	lock
 ) {
+
 	float	*blks = NULL;
 	int	rc;
+
+	SetDiagMsg(
+		"DataMgr::GetRegion(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d)",
+		ts,varname,num_xforms,min[0],min[1],min[2],max[0],max[1],max[2],lock
+	);
 
 	// See if region is already in cache. If so, return it.
 	blks = (float *) get_region_from_cache(
@@ -142,6 +154,11 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	size_t bs;
 	int	x,y,z;
 
+	SetDiagMsg(
+		"DataMgr::GetRegionUInt8(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d)",
+		ts,varname,num_xforms,min[0],min[1],min[2],max[0],max[1],max[2],lock
+	);
+
 
 	ublks = (unsigned char *) get_region_from_cache(
 		ts, varname, num_xforms, DataMgr::UINT8, min, max, lock
@@ -170,8 +187,6 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	int	ny = (int)((max[1]-min[1]+1) * bs);
 	int	nx = (int)((max[0]-min[0]+1) * bs);
 
-cerr << "quantizing" << endl;
-
 	for(z=0;z<nz;z++) {
 	for(y=0;y<ny;y++) {
 	for(x=0;x<nx;x++) {
@@ -198,6 +213,8 @@ cerr << "quantizing" << endl;
 
 void	DataMgr::SetDataRange(float range[2]) {
 
+	SetDiagMsg("DataMgr::SetDataRange([%f,%f])", range[0], range[1]);
+
 	_dataRange[0] = range[0] < range[1] ? range[0] : range[1];
 	_dataRange[1] = range[1] > range[0] ? range[1] : range[0];
 
@@ -211,6 +228,8 @@ int	DataMgr::UnlockRegion(
 ) {
 	region_t *regptr;
 	map <void *, region_t *>::iterator p;
+
+	SetDiagMsg("DataMgr::UnlockRegion()");
 
 	p = _lockedRegionsMap.find((void *) blks);
 	if (p == _lockedRegionsMap.end()) {
@@ -231,6 +250,8 @@ int	DataMgr::UnlockRegionUInt8(
 ) {
 	region_t *regptr;
 	map <void *, region_t *>::iterator p;
+
+	SetDiagMsg("DataMgr::UnlockRegionUInt8()");
 
 	p = _lockedRegionsMap.find((void *) blks);
 	if (p == _lockedRegionsMap.end()) {

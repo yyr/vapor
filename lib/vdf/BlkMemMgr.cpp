@@ -86,7 +86,7 @@ void	*BlkMemMgr::Alloc(
 		if (free_table_c[i] == 0) {
 			for(j=0; j<(int)n && i<mem_size_c && free_table_c[i+j]==0; j++);
 			if (j>=(int) n) index = i;
-			i += n;
+			i += j;
 		}
 		else {
 			i += free_table_c[i];
