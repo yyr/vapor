@@ -98,10 +98,15 @@ main(int argc, char **argv) {
 	size_t min[3] = {opt.xregion.min, opt.yregion.min, opt.zregion.min};
 	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
 
-	DataMgr	*datamgr;
-	datamgr = new DataMgr(metafile, opt.memsize, 0);
+	Metadata	metadata(metafile);
+	if (metadata.GetErrCode() != 0) {
+		cerr << ProgName << " : " << metadata.GetErrMsg() << endl;
+		exit(1);
+	}
 
-	const WaveletBlock3DRegionReader	*reader = datamgr->GetRegionReader();
+	DataMgr	datamgr(&metadata, opt.memsize, 0);
+
+	const WaveletBlock3DRegionReader	*reader = datamgr.GetRegionReader();
 
 	size_t bdim[3];
 	reader->GetDimBlk(opt.numxforms, bdim);
@@ -120,35 +125,27 @@ main(int argc, char **argv) {
 
 			if (opt.do_float) {
 				float *fptr;
-				fptr = datamgr->GetRegion(
+				fptr = datamgr.GetRegion(
 					ts, opt.varname, opt.numxforms, min, max, 0
 				);
 
 				if (! fptr) {
-					cerr << ProgName << " : " << datamgr->GetErrMsg() << endl;
+					cerr << ProgName << " : " << datamgr.GetErrMsg() << endl;
 					exit(1);
 				}
 			}
 			else {
 				unsigned char *ucptr;
-				float range[2];
-				range[0] = 0.0;
-				range[1] = 1.0 / (float) ts;
-				datamgr->SetDataRange(range);
-				ucptr = datamgr->GetRegionUInt8(
+				ucptr = datamgr.GetRegionUInt8(
 					ts, opt.varname, opt.numxforms, min, max, 0
 				);
 				if (! ucptr) {
-					cerr << ProgName << " : " << datamgr->GetErrMsg() << endl;
+					cerr << ProgName << " : " << datamgr.GetErrMsg() << endl;
 					exit(1);
 				}
 			}
 		}
 	}
-
-	delete datamgr;
-	datamgr = new DataMgr(metafile, opt.memsize, 0);
-	delete datamgr;
 
 
 	TIMER_STOP(t0,timer);
