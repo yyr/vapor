@@ -16,8 +16,6 @@ void	DataMgr::_DataMgr(
 	size_t block_size;
 	size_t num_blks;
 
-
-	_wbreader = NULL;
 	_blk_mem_mgr = NULL;
 
 	_dataRange[0] = 0.0;
