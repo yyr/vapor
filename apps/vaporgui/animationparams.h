@@ -33,7 +33,7 @@ class MainForm;
 class AnimationParams : public Params {
 	
 public: 
-	AnimationParams(MainForm* mainWin, int winnum);
+	AnimationParams(int winnum);
 	~AnimationParams();
 	//Update the dialog with values from this:
 	void updateDialog();
@@ -62,8 +62,9 @@ public:
 	void setDirty();   
 
 
-	//When rendering is finished, renderer calls this:
-	void advanceFrame();
+	//When rendering is finished, renderer calls this.  Returns true if the change bit
+	//needs to be set.
+	bool advanceFrame();
 
 	void setTab(AnimationTab* tab) {myAnimationTab = tab;}
 	

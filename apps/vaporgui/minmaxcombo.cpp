@@ -26,7 +26,7 @@ MinMaxCombo::MinMaxCombo(VizMgrDialog* parent, int winNum)
 	: QComboBox(parent, "minmaxcombo")
 {
 	myWinNum = winNum;
-	vizWinMgr = parent->getManager();
+	vizWinMgr = VizWinMgr::getInstance();
 	dialog = parent;
 	QString* label1 = new QString("Minimize");
 	QString* label2 = new QString("Maximize");

@@ -174,13 +174,18 @@ private:
 };
 class Session {
 public:
-	Session(MainForm* mf);
+	static Session* getInstance(){
+		if (!theSession){
+			theSession = new Session();
+		}
+		return theSession;
+	}
 	~Session();
 	void save(char* filename);
 	void restore(char* filename);
 	DataMgr* getDataMgr() {return dataMgr;}
-	VizWinMgr* getWinMgr() {return vizWinMgr;}
-	MainForm* getMainWindow() {return mainWin;}
+	
+	
 	const Metadata* getCurrentMetadata() {return currentMetadata;}
 	//Datarange is a 2-element float vector, one for each variable
 	//
@@ -236,15 +241,14 @@ public:
 
 
 protected:
-	
+	Session();
+	static Session* theSession;
 	WaveletBlock3DRegionReader* myReader;
 	
 	//setup the DataStatus:
 	DataStatus* setupDataStatus();
 	DataMgr* dataMgr;
 	DataStatus* currentDataStatus;
-	VizWinMgr* vizWinMgr;
-	MainForm* mainWin;
 	Command* commandQueue[MAX_HISTORY];
 	int currentQueuePos;
 	int endQueuePos;

@@ -25,11 +25,10 @@
 #include <qaction.h>
 using namespace VAPoR;
 //Constructor:  called when a new command is issued.
-MouseModeCommand::MouseModeCommand(mouseModeType oldMode, mouseModeType newMode, Session* ses){
+MouseModeCommand::MouseModeCommand(mouseModeType oldMode, mouseModeType newMode){
 	//Make a copy of previous panel:
 	previousMode = oldMode;
 	currentMode = newMode;
-	currentSession = ses;
 	
 	description = QString("change mode");
 	description += modeName(oldMode);
@@ -38,50 +37,50 @@ MouseModeCommand::MouseModeCommand(mouseModeType oldMode, mouseModeType newMode,
 }
 
 void MouseModeCommand::unDo(){
-	currentSession->blockRecording();
+	Session::getInstance()->blockRecording();
 	switch (previousMode){
 		case navigateMode:
-			currentSession->getMainWindow()->navigationAction->setOn(true);
+			MainForm::getInstance()->navigationAction->setOn(true);
 			break;
 		case regionMode:
-			currentSession->getMainWindow()->regionSelectAction->setOn(true);
+			MainForm::getInstance()->regionSelectAction->setOn(true);
 			break;
 		case probeMode:
-			currentSession->getMainWindow()->probeAction->setOn(true);
+			MainForm::getInstance()->probeAction->setOn(true);
 			break;
 		case lightMode:
-			currentSession->getMainWindow()->moveLightsAction->setOn(true);
+			MainForm::getInstance()->moveLightsAction->setOn(true);
 			break;
 		case contourMode:
-			currentSession->getMainWindow()->contourAction->setOn(true);
+			MainForm::getInstance()->contourAction->setOn(true);
 			break;
 		default:
 			assert(0);
 	}
-	currentSession->unblockRecording();
+	Session::getInstance()->unblockRecording();
 }
 void MouseModeCommand::reDo(){
-	currentSession->blockRecording();
+	Session::getInstance()->blockRecording();
 	switch (currentMode){
 		case navigateMode:
-			currentSession->getMainWindow()->navigationAction->setOn(true);
+			MainForm::getInstance()->navigationAction->setOn(true);
 			break;
 		case regionMode:
-			currentSession->getMainWindow()->regionSelectAction->setOn(true);
+			MainForm::getInstance()->regionSelectAction->setOn(true);
 			break;
 		case probeMode:
-			currentSession->getMainWindow()->probeAction->setOn(true);
+			MainForm::getInstance()->probeAction->setOn(true);
 			break;
 		case lightMode:
-			currentSession->getMainWindow()->moveLightsAction->setOn(true);
+			MainForm::getInstance()->moveLightsAction->setOn(true);
 			break;
 		case contourMode:
-			currentSession->getMainWindow()->contourAction->setOn(true);
+			MainForm::getInstance()->contourAction->setOn(true);
 			break;
 		default:
 			assert(0);
 	}
-	currentSession->unblockRecording();
+	Session::getInstance()->unblockRecording();
 }
 
 const char* MouseModeCommand::
@@ -103,11 +102,11 @@ modeName(mouseModeType t){
 	}
 }
 
-TabChangeCommand::TabChangeCommand(Params::ParamType oldTab, Params::ParamType newTab, Session* ses){
+TabChangeCommand::TabChangeCommand(Params::ParamType oldTab, Params::ParamType newTab){
 	//Make a copy of previous panel:
 	previousTab = oldTab;
 	currentTab = newTab;
-	currentSession = ses;
+	
 	
 	description = QString("change tab");
 	description += tabName(oldTab);
@@ -116,63 +115,63 @@ TabChangeCommand::TabChangeCommand(Params::ParamType oldTab, Params::ParamType n
 }
 
 void TabChangeCommand::unDo(){
-	currentSession->blockRecording();
+	Session::getInstance()->blockRecording();
 	switch (previousTab){
 		case Params::UnknownParamsType:
-			currentSession->getMainWindow()->viewpoint();
+			MainForm::getInstance()->viewpoint();
 			break;
 		case Params::ViewpointParamsType:
-			currentSession->getMainWindow()->viewpoint();
+			MainForm::getInstance()->viewpoint();
 			break;
 		case Params::RegionParamsType:
-			currentSession->getMainWindow()->region();
+			MainForm::getInstance()->region();
 			break;
 		case Params::IsoParamsType:
-			currentSession->getMainWindow()->calcIsosurface();
+			MainForm::getInstance()->calcIsosurface();
 			break;
 		case Params::DvrParamsType:
-			currentSession->getMainWindow()->renderDVR();
+			MainForm::getInstance()->renderDVR();
 			break;
 		case Params::ContourParamsType:
-			currentSession->getMainWindow()->contourPlanes();
+			MainForm::getInstance()->contourPlanes();
 			break;
 		case Params::AnimationParamsType:
-			currentSession->getMainWindow()->animationParams();
+			MainForm::getInstance()->animationParams();
 			break;
 		default:
 			assert(0);
 	}
-	currentSession->unblockRecording();
+	Session::getInstance()->unblockRecording();
 }
 
 void TabChangeCommand::reDo(){
-	currentSession->blockRecording();
+	Session::getInstance()->blockRecording();
 	switch (currentTab){
 		case Params::UnknownParamsType:
-			currentSession->getMainWindow()->viewpoint();
+			MainForm::getInstance()->viewpoint();
 			break;
 		case Params::ViewpointParamsType:
-			currentSession->getMainWindow()->viewpoint();
+			MainForm::getInstance()->viewpoint();
 			break;
 		case Params::RegionParamsType:
-			currentSession->getMainWindow()->region();
+			MainForm::getInstance()->region();
 			break;
 		case Params::IsoParamsType:
-			currentSession->getMainWindow()->calcIsosurface();
+			MainForm::getInstance()->calcIsosurface();
 			break;
 		case Params::DvrParamsType:
-			currentSession->getMainWindow()->renderDVR();
+			MainForm::getInstance()->renderDVR();
 			break;
 		case Params::ContourParamsType:
-			currentSession->getMainWindow()->contourPlanes();
+			MainForm::getInstance()->contourPlanes();
 			break;
 		case Params::AnimationParamsType:
-			currentSession->getMainWindow()->animationParams();
+			MainForm::getInstance()->animationParams();
 			break;
 		default:
 			assert(0);
 	}
-	currentSession->unblockRecording();
+	Session::getInstance()->unblockRecording();
 }
 
 const char* TabChangeCommand::

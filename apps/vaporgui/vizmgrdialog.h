@@ -41,11 +41,9 @@ class VizMgrDialog : public QDialog
     Q_OBJECT
 
 public:
-    VizMgrDialog( QWidget* parent, VizWinMgr* vizManager, const char* name = 0, bool modal = TRUE, WFlags fl = 0 );
+    VizMgrDialog( QWidget* parent, const char* name = 0, bool modal = TRUE, WFlags fl = 0 );
     ~VizMgrDialog();
-	VizWinMgr* getManager() {
-		return myVizManager;
-	}
+	
     void comboActivated(int winNum, int selection);
 	void setCombo(int setting, int viznum);
 	
@@ -53,7 +51,7 @@ public:
 	
 
 protected:
-	VizWinMgr* myVizManager;
+	
 	void minimize(int winNum);
 	void maximize(int winNum);
 	void normalize(int winNum);

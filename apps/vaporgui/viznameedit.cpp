@@ -29,7 +29,7 @@ VizNameEdit::VizNameEdit(QString& text, VizMgrDialog* parent, int winNum)
 	: QLineEdit(text, parent, "frontcheck")
 {
 	myWinNum = winNum;
-	vizWinMgr = parent->getManager();
+	vizWinMgr = VizWinMgr::getInstance();
 	dialog = parent;
 	
 		

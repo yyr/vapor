@@ -46,14 +46,13 @@
  *  TRUE to construct a modal dialog.
  */
 using namespace VAPoR;
-VizMgrDialog::VizMgrDialog( QWidget* parent, VizWinMgr* manager, const char* name, bool modal, WFlags fl )
+VizMgrDialog::VizMgrDialog( QWidget* parent,  const char* name, bool modal, WFlags fl )
     : QDialog( parent, name, modal, fl )
 {
     if ( !name )
 		setName( "VizMgrDialog" );
 	
-	myVizManager = manager;
-
+	VizWinMgr* myVizManager = VizWinMgr::getInstance();
 	// Create a VH layout for the whole dialog
 	QVBoxLayout* mainLayout = new QVBoxLayout(this, 11, 6, "mainLayout");
 	
@@ -136,7 +135,7 @@ VizMgrDialog::~VizMgrDialog()
 {
     //qWarning("start vizmgrdialog destructor");
     // no need to delete child widgets, Qt does it all for us
-	myVizManager->setDialog(0);
+	VizWinMgr::getInstance()->setDialog(0);
     
 }
 
@@ -144,14 +143,15 @@ VizMgrDialog::~VizMgrDialog()
 void
 VizMgrDialog::minimize(int winNum){
 	//Set the state in the manager
-	myVizManager->minimize(winNum);
+	VizWinMgr::getInstance()->minimize(winNum);
 	
 	//minimize the window
-	((QWidget*)myVizManager->getVizWin(winNum))->showMinimized();
+	((QWidget*)VizWinMgr::getInstance()->getVizWin(winNum))->showMinimized();
 }
 void
 VizMgrDialog::maximize(int winNum){
 	//Set the state in the manager
+	VizWinMgr* myVizManager = VizWinMgr::getInstance();
 	myVizManager->maximize(winNum);
 	
 	//First normalize, then maximize!  This seems to work on KDE:
@@ -164,6 +164,7 @@ VizMgrDialog::maximize(int winNum){
 void
 VizMgrDialog::normalize(int winNum){
 	//Set the state in the manager
+	VizWinMgr* myVizManager = VizWinMgr::getInstance();
 	myVizManager->normalize(winNum);
 	
 	((QWidget*)myVizManager->getVizWin(winNum))->showNormal();
@@ -195,16 +196,17 @@ VizMgrDialog::setCombo(int setting, int viznum){
 //Methods that arrange the viz windows:
 void 
 VizMgrDialog::cascade(){
+	VizWinMgr* myVizManager = VizWinMgr::getInstance();
 	myVizManager->cascade();
 }
 void 
 VizMgrDialog::coverRight(){
-	myVizManager->coverRight();
+	VizWinMgr::getInstance()->coverRight();
 }
 
 void 
 VizMgrDialog::fitSpace(){
-	myVizManager->fitSpace();
+	VizWinMgr::getInstance()->fitSpace();
 }
 
 	

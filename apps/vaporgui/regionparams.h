@@ -38,7 +38,7 @@ class MainForm;
 class RegionParams : public Params {
 	
 public: 
-	RegionParams(MainForm*, int winnum);
+	RegionParams(int winnum);
 	
 	~RegionParams();
 	virtual Params* deepCopy();

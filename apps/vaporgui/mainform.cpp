@@ -86,18 +86,21 @@
  *
  */
 using namespace VAPoR;
+//Initialize the singleton to 0:
+MainForm* MainForm::theMainForm = 0;
 
+//Only the main program should call the constructor:
+//
 MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     : QMainWindow( parent, name, WDestructiveClose )
 {
-	
+	theMainForm = this;
 	theRegionTab = 0;
 	theDvrTab = 0;
 	theVizTab = 0;
 	theIsoTab = 0;
 	theContourTab = 0;
 	theAnimationTab = 0;
-	myVizMgr = 0;
     (void)statusBar();
     if ( !name )
 		setName( "MainForm" );
@@ -134,11 +137,11 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	tabDockWindow->setWidget(tabWidget);
 	
 	//Setup  the session (hence the viz window manager)
-	currentSession = new Session(this);
-    myVizMgr = currentSession->getWinMgr();
-
+	Session::getInstance();
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+	myVizMgr->createGlobalParams();
 	
-	tabWidget->setSession(currentSession);
+	
 	//Initial state is set in vizmgr
 	currentMouseMode = myVizMgr->getSelectionMode();
 
@@ -381,7 +384,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	
 	//These need to be installed to set the tab pointers in the
 	//global params.
-	currentSession->blockRecording();
+	Session::getInstance()->blockRecording();
 	region();
 	animationParams();
 	calcIsosurface();
@@ -389,7 +392,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	contourPlanes();
 	viewpoint();
 	
-	currentSession->unblockRecording();
+	Session::getInstance()->unblockRecording();
 	
 
     show();
@@ -401,7 +404,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 MainForm::~MainForm()
 {
     //qWarning("mainform destructor start");
-	delete currentSession;
+	delete Session::getInstance();
     // no need to delete child widgets, Qt does it all for us?? (see closeEvent)
 	
 }
@@ -580,13 +583,14 @@ void MainForm::fileExit()
 }
 
 void MainForm::undo(){
-	currentSession->backupQueue();
+	Session::getInstance()->backupQueue();
 }
 
 void MainForm::redo(){
-	currentSession->advanceQueue();
+	Session::getInstance()->advanceQueue();
 }
 void MainForm::setupUndoRedoText(){
+	Session* currentSession = Session::getInstance();
 	QString undoText("Undo ");
 	QString redoText("Redo ");
 	//If it's not active, just set default text:
@@ -664,7 +668,7 @@ void MainForm::loadData()
 		"Choose the Metadata File");
 	if(filename != QString::null){
 		
-		currentSession->resetMetadata(filename.ascii());
+		Session::getInstance()->resetMetadata(filename.ascii());
 
 		MDFile = filename;
 	}
@@ -673,20 +677,21 @@ void MainForm::loadData()
 
 void MainForm::launchVisualizer()
 {
-	myVizMgr->launchVisualizer();
+	VizWinMgr::getInstance()->launchVisualizer();
 		
 }
 
 //This creates the popup to allow viz window management
 void MainForm::manageVizWindows()
 {
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	if (myVizMgr->getNumVisualizers() == 0){
              QMessageBox::information(this, "VAPoR Information", 
                      "There are no visualizer windows", 
                      QMessageBox::Default);
              return;
              }
-	VizMgrDialog* vizMgrDlg = new VizMgrDialog((QWidget*)this, myVizMgr);
+	VizMgrDialog* vizMgrDlg = new VizMgrDialog((QWidget*)this);
 	vizMgrDlg->exec();
 	delete vizMgrDlg;
 	
@@ -694,7 +699,7 @@ void MainForm::manageVizWindows()
 //This creates the popup to edit session parameters
 void MainForm::editSessionParams()
 {
-	
+	Session* currentSession = Session::getInstance();
 	SessionParameters* sessionParamsDlg = new SessionParameters((QWidget*)this);
 	QString str;
 	sessionParamsDlg->cacheSizeEdit->setText(str.setNum(currentSession->getCacheMB()));
@@ -718,6 +723,7 @@ void MainForm::editSessionParams()
 void MainForm::viewpoint()
 {
 	//Determine which is the current active window:
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	int activeViz = myVizMgr->getActiveViz();
 	//Get the viz parameter set (local or global) that applies:
 	ViewpointParams* myVizParams = myVizMgr->getViewpointParams(activeViz);
@@ -743,8 +749,9 @@ void MainForm::viewpoint()
 void MainForm::
 region()
 {
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
     //Determine which is the current active window:
-	int activeViz = myVizMgr->getActiveViz();
+	int activeViz = VizWinMgr::getInstance()->getActiveViz();
 	//Get the region parameter set (local or global) that applies:
 	RegionParams* myRegionParams = myVizMgr->getRegionParams(activeViz);
 	if (!theRegionTab){
@@ -772,6 +779,7 @@ void MainForm::
 renderDVR(){
     //Do the DVR panel here
 	//Determine which is the current active window:
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	int activeViz = myVizMgr->getActiveViz();
 	//Get the region parameter set (local or global) that applies:
 	DvrParams* myDvrParams = myVizMgr->getDvrParams(activeViz);
@@ -797,7 +805,7 @@ renderDVR(){
  */
 void MainForm::
 animationParams(){
-    
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	//Determine which is the current active window:
 	int activeViz = myVizMgr->getActiveViz();
 	//Get the region parameter set (local or global) that applies:
@@ -826,6 +834,7 @@ void MainForm::
 contourPlanes(){
     //Do the contour planes panel here
 	//Determine which is the current active window:
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	int activeViz = myVizMgr->getActiveViz();
 	//Get the region parameter set (local or global) that applies:
 	ContourParams* myContourParams = myVizMgr->getContourParams(activeViz);
@@ -850,7 +859,7 @@ contourPlanes(){
  */
 void MainForm::calcIsosurface()
 {
-	
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	//Determine which is the current active window:
 	int activeViz = myVizMgr->getActiveViz();
 	//Get the region parameter set (local or global) that applies:
@@ -878,26 +887,28 @@ void MainForm::calcIsosurface()
 void MainForm::setNavigate(bool on)
 {
 	if (!on) return;
-	
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+	Session* currentSession = Session::getInstance();
 	//Only do something if this is an actual change of mode
 	if (currentMouseMode != Command::navigateMode){
 		myVizMgr->setSelectionMode(Command::navigateMode);
 		currentSession->blockRecording();
 		viewpoint();
 		currentSession->unblockRecording();
-		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::navigateMode, currentSession));
+		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::navigateMode));
 		currentMouseMode = Command::navigateMode;
 	}
 }
 void MainForm::setLights(bool on)
 {
+	Session* currentSession = Session::getInstance();
 	//Test minimizing a dock window
 	//setDockEnabled(tabDockWindow, Qt::DockMinimized, true);
 	//moveDockWindow(tabDockWindow, Qt::Minimized,true, 0);
 	if (!on) return;
 	if (currentMouseMode != Command::lightMode){
-		myVizMgr->setSelectionMode(Command::lightMode);
-		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::lightMode, currentSession));
+		VizWinMgr::getInstance()->setSelectionMode(Command::lightMode);
+		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::lightMode));
 		currentMouseMode = Command::lightMode;
 	}
 	
@@ -906,37 +917,39 @@ void MainForm::setProbe(bool on)
 {
 	if (!on) return;
 	if (currentMouseMode != Command::probeMode){
-		myVizMgr->setSelectionMode(Command::probeMode);
+		VizWinMgr::getInstance()->setSelectionMode(Command::probeMode);
 	
-		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::probeMode, currentSession));
+		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::probeMode));
 		currentMouseMode = Command::probeMode;
 	}
 }
 void MainForm::setRegionSelect(bool on)
 {
+	Session* currentSession = Session::getInstance();
 	//Only respond to toggling on:
 	if (!on) return;
 	if (currentMouseMode != Command::regionMode){
-		myVizMgr->setSelectionMode(Command::regionMode);
+		VizWinMgr::getInstance()->setSelectionMode(Command::regionMode);
 		//bring up the tab, but don't put into history:
 		currentSession->blockRecording();
 		region();
 		currentSession->unblockRecording();
-		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::regionMode, currentSession));
+		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::regionMode));
 		currentMouseMode = Command::regionMode;
 	}
 }
 void MainForm::setContourSelect(bool on)
 {
 	if (!on) return;
+	Session* currentSession = Session::getInstance();
 	if (currentMouseMode != Command::contourMode){
-		myVizMgr->setSelectionMode(Command::contourMode);
+		VizWinMgr::getInstance()->setSelectionMode(Command::contourMode);
 	
 		//bring up the tab, but don't put into history:
 		currentSession->blockRecording();
 		contourPlanes();
 		currentSession->unblockRecording();
-		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::contourMode, currentSession));
+		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::contourMode));
 		currentMouseMode = Command::contourMode;
 	}
 }

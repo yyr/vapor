@@ -35,9 +35,9 @@
 
 using namespace VAPoR;
 
-RegionParams::RegionParams(MainForm* mf, int winnum): Params(mf, winnum){
+RegionParams::RegionParams(int winnum): Params(winnum){
 	thisParamType = RegionParamsType;
-	myRegionTab = mf->getRegionTab();
+	myRegionTab = MainForm::getInstance()->getRegionTab();
 	numTrans = 0;
 	maxNumTrans = 9;
 	maxSize = 256;
@@ -61,8 +61,8 @@ RegionParams::~RegionParams(){
 }
 void RegionParams::
 makeCurrent(Params* ,bool) {
-	VizWinMgr* vwm = mainWin->getVizWinMgr();
-	vwm->setRegionParams(vizNum, this);
+	
+	VizWinMgr::getInstance()->setRegionParams(vizNum, this);
 	//Also update current Tab.  It's probably visible.
 	//
 	updateDialog();
@@ -75,7 +75,7 @@ void RegionParams::updateDialog(){
 	
 	
 	QString strng;
-	mainWin->getSession()->blockRecording();
+	Session::getInstance()->blockRecording();
 	myRegionTab->numTransSpin->setMaxValue(maxNumTrans);
 	myRegionTab->numTransSpin->setValue(numTrans);
 	int dataMaxSize = Max(fullSize[0],Max(fullSize[1],fullSize[2]));
@@ -129,7 +129,7 @@ void RegionParams::updateDialog(){
 	else 
 		myRegionTab->LocalGlobal->setCurrentItem(0);
 	guiSetTextChanged(false);
-	mainWin->getSession()->unblockRecording();
+	Session::getInstance()->unblockRecording();
 }
 
 //Update all the panel state associated with textboxes.
@@ -210,7 +210,7 @@ updatePanelState(){
 //
 void RegionParams::
 setDirty(){
-	mainWin->getVizWinMgr()->setRegionDirty(this);
+	VizWinMgr::getInstance()->setRegionDirty(this);
 }
 //Method to make center and size values legitimate for specified dimension
 //Returns true if anything changed.
@@ -239,7 +239,7 @@ enforceConsistency(int dim){
 void RegionParams::
 guiSetNumTrans(int n){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"set number of Transformations");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set number of Transformations");
 	setNumTrans(n);
 	PanelCommand::captureEnd(cmd, this);
 }
@@ -252,7 +252,7 @@ guiSetXCenter(int n){
 	//Was there a change?
 	//
 	if (n!= centerPosition[0]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"change region x-center");
+		PanelCommand* cmd = PanelCommand::captureStart(this, "change region x-center");
 		centerPosition[0] = n;
 		//If new position is invalid, move the slider back where it belongs:
 		//
@@ -275,7 +275,7 @@ guiSetXSize(int n){
 	
 	//Was there a change?
 	if (n!= regionSize[0]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"change region x-size");
+		PanelCommand* cmd = PanelCommand::captureStart(this, "change region x-size");
 		regionSize[0] = n;
 		//If new position is invalid, move the slider back where it belongs, and
 		//potentially move other slider as well
@@ -301,7 +301,7 @@ guiSetYCenter(int n){
 	//Was there a change?
 	//
 	if (n!= centerPosition[1]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"change region y-center");
+		PanelCommand* cmd = PanelCommand::captureStart(this, "change region y-center");
 		centerPosition[1] = n;
 		//If new position is invalid, move the slider back where it belongs:
 		//
@@ -324,7 +324,7 @@ guiSetYSize(int n){
 	
 	//Was there a change?
 	if (n!= regionSize[1]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"change region y-size");
+		PanelCommand* cmd = PanelCommand::captureStart(this, "change region y-size");
 		regionSize[1] = n;
 		//If new position is invalid, move the slider back where it belongs:
 		//
@@ -349,7 +349,7 @@ guiSetZCenter(int n){
 	//Was there a change?
 	//
 	if (n!= centerPosition[2]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"change region z-center");
+		PanelCommand* cmd = PanelCommand::captureStart(this, "change region z-center");
 		centerPosition[2] = n;
 		//If new position is invalid, move the slider back where it belongs:
 		//
@@ -372,7 +372,7 @@ guiSetZSize(int n){
 	
 	//Was there a change?
 	if (n!= regionSize[2]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"change region z-size");
+		PanelCommand* cmd = PanelCommand::captureStart(this, "change region z-size");
 		regionSize[2] = n;
 		//If new position is invalid, move the slider back where it belongs:
 		//
@@ -398,7 +398,7 @@ guiSetMaxSize(int n){
 	//Was there a change?
 	//
 	if (n!= maxSize) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"change region Max Size");
+		PanelCommand* cmd = PanelCommand::captureStart(this, "change region Max Size");
 		maxSize = n;
 		didChange[0] = didChange[1] = didChange[2] = false;
 		//If this is an increase, try to increase other sliders:
@@ -470,7 +470,7 @@ slide (QPoint& ){
 //Reinitialize region settings, session has changed:
 void RegionParams::
 reinit(){
-	const Metadata* md = mainWin->getSession()->getCurrentMetadata();
+	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	//Setup the global region parameters based on bounds in Metadata
 	const size_t* dataDim = md->GetDimension();
 	
@@ -499,7 +499,7 @@ reinit(){
 	//This will force the current tab to be reset to values
 	//consistent with the data.
 	//
-	if(mainWin->getTabManager()->isFrontTab(myRegionTab)) updateDialog();
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myRegionTab)) updateDialog();
 }
 void RegionParams::
 setCurrentExtents(int coord){

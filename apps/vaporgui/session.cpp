@@ -28,13 +28,15 @@
 #include "vapor/Metadata.h"
 #include "animationcontroller.h"
 using namespace VAPoR;
-Session::Session(MainForm* mainWindow) {
+Session* Session::theSession = 0;
+Session::Session() {
 	recordingCount = 0;
 	dataMgr = 0;
 	currentMetadata = 0;
 	myReader = 0;
-	vizWinMgr = new VizWinMgr(mainWindow);
-	mainWin = mainWindow;
+	//Note that the session will create the vizwinmgr!
+	VizWinMgr::getInstance();
+	
 	//Setup command queue:
 	//
 	currentQueuePos = 0;
@@ -49,7 +51,7 @@ Session::Session(MainForm* mainWindow) {
 	//AnimationController::getInstance()->run();
 }
 Session::~Session(){
-	delete vizWinMgr;
+	delete VizWinMgr::getInstance();
 	delete AnimationController::getInstance();
 	//Note: metadata is deleted by Datamgr
 	if (dataMgr) delete dataMgr;
@@ -86,7 +88,7 @@ void Session::
 resetMetadata(const char* fileBase)
 {
 	//Reinitialize the animation controller:
-	AnimationController::getInstance()->restart(vizWinMgr);
+	AnimationController::getInstance()->restart();
 	//The metadata is created by (and obtained from) the datamgr
 	string path(fileBase);
 	if (dataMgr) delete dataMgr;
@@ -155,9 +157,9 @@ resetMetadata(const char* fileBase)
 	}
 
 	//Notify all params that there is new data:
-	vizWinMgr->reinitializeParams();
+	VizWinMgr::getInstance()->reinitializeParams();
 	//Then make the tab panels refresh:
-	vizWinMgr->updateActiveParams();
+	VizWinMgr::getInstance()->updateActiveParams();
 	return;
 }
 //Add a command to the circular command queue
@@ -197,8 +199,8 @@ addToHistory(Command* cmd){
 	endQueuePos = currentQueuePos;
 	commandQueue[endQueuePos%MAX_HISTORY] = cmd;
 
-	mainWin->editUndoAction->setEnabled(true);
-	mainWin->editRedoAction->setEnabled(false);
+	MainForm::getInstance()->editUndoAction->setEnabled(true);
+	MainForm::getInstance()->editRedoAction->setEnabled(false);
 }
 void Session::backupQueue(){
 	//Make sure we can do it!
@@ -206,9 +208,9 @@ void Session::backupQueue(){
 	assert(currentQueuePos > startQueuePos);
 	commandQueue[currentQueuePos%MAX_HISTORY]->unDo();
 	currentQueuePos--;
-	mainWin->editRedoAction->setEnabled(true);
+	MainForm::getInstance()->editRedoAction->setEnabled(true);
 	if (currentQueuePos == startQueuePos) 
-		mainWin->editUndoAction->setEnabled(false);
+		MainForm::getInstance()->editUndoAction->setEnabled(false);
 }
 void Session::advanceQueue(){
 	//Make sure we can do it:
@@ -217,9 +219,9 @@ void Session::advanceQueue(){
 	//perform the next command
 	//
 	commandQueue[(++currentQueuePos)%MAX_HISTORY]->reDo();
-	mainWin->editUndoAction->setEnabled(true);
+	MainForm::getInstance()->editUndoAction->setEnabled(true);
 	if (currentQueuePos == endQueuePos) 
-		mainWin->editRedoAction->setEnabled(false);
+		MainForm::getInstance()->editRedoAction->setEnabled(false);
 }
 //Destroy history (e.g. on restoring a session).
 void Session::resetCommandQueue(){
@@ -232,7 +234,7 @@ void Session::resetCommandQueue(){
 	currentQueuePos = 0;
 	startQueuePos = 0;
 	endQueuePos = 0;
-	mainWin->disableUndoRedo();
+	MainForm::getInstance()->disableUndoRedo();
 }
 // Read the Metadata to determine exactly what data is present
 // This data is inserted into currentDatastatus;

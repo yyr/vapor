@@ -30,13 +30,13 @@ class VizTab;
 namespace VAPoR {
 
 class MainForm;
-
+class RegionParams;
 class PanelCommand;
 
 class ViewpointParams : public Params {
 	
 public: 
-	ViewpointParams(MainForm*, int winnum);
+	ViewpointParams(int winnum);
 	
 	virtual ~ViewpointParams();
 	void setTab(VizTab* tab) {myVizTab = tab;}
@@ -88,6 +88,7 @@ public:
 	void captureMouseDown();
 	void captureMouseUp();
 	void guiSetPerspective(bool on);
+	void guiResetView(RegionParams* rParams);
 	
 	//Methods to handle home viewpoint
 	void setHomeViewpoint();

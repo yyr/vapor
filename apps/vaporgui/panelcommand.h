@@ -34,12 +34,12 @@ class Session;
 class PanelCommand : public Command {
 public:
 	//Constructor is called when a command is executed
-	PanelCommand(Params* prev, Session* ses, const char* descr);
+	PanelCommand(Params* prev, const char* descr);
 	void setNext(Params* next);
 	virtual ~PanelCommand();
 	virtual void reDo();
 	virtual void unDo();
-	static PanelCommand* captureStart(Params* p, Session* ses,  char* description);
+	static PanelCommand* captureStart(Params* p,  char* description);
 	static void captureEnd(PanelCommand* pCom, Params *p);
 
 protected:

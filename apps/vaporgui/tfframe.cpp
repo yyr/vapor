@@ -541,7 +541,7 @@ void TFFrame::contextMenuEvent( QContextMenuEvent *e )
 {
 	//Capture for undo/redo:
 	editor->getParams()->confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(editor->getParams(), editor->getSession(),"TF editor right mouse action");
+	PanelCommand* cmd = PanelCommand::captureStart(editor->getParams(), "TF editor right mouse action");
 	
 	
 	//Is this near a control point?

@@ -22,17 +22,16 @@
 #include "session.h"
 #include "vizwinmgr.h"
 using namespace VAPoR;
-VizActivateCommand::VizActivateCommand(int prevViz, int nextViz, Command::activateType t, Session* ses){
+VizActivateCommand::VizActivateCommand(int prevViz, int nextViz, Command::activateType t){
 	lastActiveViznum = prevViz;
 	currentActiveViznum = nextViz;
 	thisType = t;
-	session = ses;
-	vizWinMgr = session->getWinMgr();
 	regionParams=0;
 	vpParams = 0;
 	contourParams = 0;
 	dvrParams = 0;
 	isoParams = 0;
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	
 	
 	//Construct description text, and other data needed:
@@ -46,7 +45,7 @@ VizActivateCommand::VizActivateCommand(int prevViz, int nextViz, Command::activa
 			windowName = vizWinMgr->getVizWinName(prevViz)->ascii();
 			description = (QString("remove ")+windowName).ascii();
 			//clone and save all the applicable (local!) params:
-			cloneStateParams(vizWinMgr, prevViz);
+			cloneStateParams(prevViz);
 			break;
 		case activate:
 			windowName = vizWinMgr->getVizWinName(nextViz)->ascii();
@@ -67,7 +66,8 @@ VizActivateCommand::~VizActivateCommand(){
 }
 
 void VizActivateCommand::unDo(){
-	session->blockRecording();
+	Session::getInstance()->blockRecording();
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	switch (thisType){
 		case create:
 			//delete the specified window.
@@ -113,10 +113,11 @@ void VizActivateCommand::unDo(){
 		default:
 			assert(0);
 	}
-	session->unblockRecording();
+	Session::getInstance()->unblockRecording();
 }
 void VizActivateCommand::reDo(){
-	session->blockRecording();
+	Session::getInstance()->blockRecording();
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	switch (thisType){
 		case create:
 			//Need to create default renderer panels (from global params)
@@ -138,10 +139,11 @@ void VizActivateCommand::reDo(){
 			break;
 		default:  assert(0);
 	}
-	session->unblockRecording();
+	Session::getInstance()->unblockRecording();
 }
 
-void VizActivateCommand::cloneStateParams(VizWinMgr* vizWinMgr, int viznum){
+void VizActivateCommand::cloneStateParams(int viznum){
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	if (vizWinMgr->getRealVPParams(viznum))
 			vpParams = (ViewpointParams*)vizWinMgr->getRealVPParams(viznum)->deepCopy();
 	else vpParams = 0;

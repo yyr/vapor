@@ -76,7 +76,7 @@ class DVRParams;
 
 class TFEditor{
 public:
-	TFEditor(DvrParams*, TransferFunction* TF, TFFrame*, Session* );
+	TFEditor(DvrParams*, TransferFunction* TF, TFFrame*);
 	~TFEditor();
 	void setEditingRange(float minVal, float maxVal){
 		myParams->setMinEditBound(minVal);
@@ -222,7 +222,6 @@ public:
 	}
 	DvrParams* getParams(){ return myParams;}
 	void setParams(DvrParams* p) {myParams = p;}
-	Session* getSession() {return session;}
 
 	
 protected:
@@ -265,7 +264,7 @@ protected:
 	bool dirty;
 	TFFrame* myFrame;
 	DvrParams* myParams;
-	Session* session;
+	
 	float histoStretchFactor;
 	int dragStartX, dragStartY;
 	float mappedDragStartX;

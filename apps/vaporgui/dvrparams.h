@@ -40,7 +40,7 @@ class PanelCommand;
 class DvrParams : public Params{
 	
 public: 
-	DvrParams(MainForm*, int winnum);
+	DvrParams(int winnum);
 	~DvrParams();
 	virtual Params* deepCopy();
 	void setTab(Dvr* tab); 
@@ -121,11 +121,11 @@ public:
 	}
 	float getDataMinBound(){
 		if(numVariables == 0) return 0.f;
-		return mainWin->getSession()->getDataRange(varNum)[0];
+		return Session::getInstance()->getDataRange(varNum)[0];
 	}
 	float getDataMaxBound(){
 		if(numVariables == 0) return 1.f;
-		return mainWin->getSession()->getDataRange(varNum)[1];
+		return Session::getInstance()->getDataRange(varNum)[1];
 	}
 	void setEditMode(bool mode) {editMode = mode;}
 	bool getEditMode() {return editMode;}

@@ -35,8 +35,8 @@ class PanelCommand;
 class Params  {
 	
 public: 
-	Params(MainForm* mainF, int winNum) {
-		mainWin = mainF; vizNum = winNum;
+	Params(int winNum) {
+		vizNum = winNum;
 		if(winNum < 0) local = false; else local = true;
 		textChangedFlag = false;
 		thisParamType = UnknownParamsType;
@@ -127,7 +127,7 @@ protected:
 	//Keep track of which window number corresp to this.  -1 for global parameters.
 	//
 	int vizNum;
-	MainForm* mainWin;
+	
 	bool textChangedFlag;
 	ParamType thisParamType;
 

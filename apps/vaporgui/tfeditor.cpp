@@ -26,7 +26,7 @@
 #include "dvrparams.h"
 using namespace VAPoR;
 
-TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm, Session* ses){
+TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm){
 	myTransferFunction = tf;
 	myFrame = frm;
 	myParams = prms;
@@ -40,7 +40,7 @@ TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm, Session
 		selectedColor[i] = false;
 		selectedOpac[i] = false;
 	}
-	session = ses;
+	
 	histoStretchFactor = 1.f;
 	grabbedState = notGrabbed;
 	leftMoveMax = -1;
@@ -73,7 +73,7 @@ void TFEditor::refreshImage(){
 		editImage->detach();
 	}
 	editImage->fill(0);
-	Histo* histo = session->getCurrentHistogram(myParams->getVarNum());
+	Histo* histo = Session::getInstance()->getCurrentHistogram(myParams->getVarNum());
 	//find histo max, for the interval that is mapped by the
 	//transfer function:
 	//
@@ -657,7 +657,7 @@ void TFEditor::setHsv(int h, int s, int v){
 //
 int TFEditor::
 getHistoValue(float point){
-	Histo* hist = session->getCurrentHistogram(myParams->getVarNum());
+	Histo* hist = Session::getInstance()->getCurrentHistogram(myParams->getVarNum());
 	if (!hist) return -1;
 	float ind = (point - hist->getMinData())/(hist->getMaxData()-hist->getMinData());
 	if (ind < 0.f || ind >= 1.f) return 0;

@@ -38,7 +38,7 @@ TabManager::TabManager(QWidget* parent, const char* name,  WFlags f)
 		widgetTypes[i] = Params::UnknownParamsType;
 	}
 	haveMultipleViz = false;
-	currentSession = 0;
+	
 	int ok = connect(this, SIGNAL(currentChanged(QWidget*)), this, SLOT(newFrontTab(QWidget*)));
 	assert (ok);
 	currentFrontPage = -1;
@@ -144,11 +144,11 @@ newFrontTab(QWidget*) {
 	if(currentFrontPage >= 0) prevType = widgetTypes[currentFrontPage];
 	currentFrontPage = newFrontPosn;
 	//Refresh this tab from the corresponding params:
-	Params* p = currentSession->getWinMgr()->getApplicableParams(widgetTypes[newFrontPosn]);
+	Params* p = VizWinMgr::getInstance()->getApplicableParams(widgetTypes[newFrontPosn]);
 	p->updateDialog();
 	//Put into history
-	TabChangeCommand* cmd = new TabChangeCommand(prevType, widgetTypes[newFrontPosn], currentSession);
-	currentSession->addToHistory(cmd);
+	TabChangeCommand* cmd = new TabChangeCommand(prevType, widgetTypes[newFrontPosn]);
+	Session::getInstance()->addToHistory(cmd);
 
 } 
 	

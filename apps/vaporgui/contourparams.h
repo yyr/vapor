@@ -36,7 +36,7 @@ class MainForm;
 class ContourParams : public Params {
 	
 public: 
-	ContourParams(MainForm* mainWin, int winnum);
+	ContourParams(int winnum);
 	~ContourParams();
 	//Update the dialog with values from this:
 	void updateDialog();

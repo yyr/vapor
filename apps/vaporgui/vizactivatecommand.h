@@ -39,7 +39,7 @@ public:
 	// on removal, prevViz is the viz being removed, named winName, nextViz is the resulting activeViz
 	// on activation, prevViz is previously active viz, nextViz is newly activated one.  Name ignored.
 	//
-	VizActivateCommand ( int prevViz, int nextViz, Command::activateType typ, Session* ses);
+	VizActivateCommand ( int prevViz, int nextViz, Command::activateType typ);
 	~VizActivateCommand();
 	virtual void unDo();
 	virtual void reDo();
@@ -49,13 +49,11 @@ protected:
 	//to clone the params associated with that window, since they will be deleted during
 	//the close event.
 	//
-	void cloneStateParams(VizWinMgr*, int);
+	void cloneStateParams( int viznum);
 	int lastActiveViznum;
 	int currentActiveViznum;
 	Command::activateType thisType;
-	VizWinMgr* vizWinMgr;
 	const char* windowName;
-	Session* session;
 	//If this is a "remove" event, we need the following state as well:
 	//
 	ViewpointParams* vpParams;

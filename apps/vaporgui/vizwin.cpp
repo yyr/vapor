@@ -363,7 +363,7 @@ void VizWin::helpAbout()
 //Due to X11 probs need to check again.  Compare this window with the available space.
 bool VizWin::isReallyMaximized() {
     if (isMaximized() ) return true;
-	QWidget* thisCentralWidget = ((QMainWindow*)myWinMgr->getMainWindow())->centralWidget();
+	QWidget* thisCentralWidget = ((QMainWindow*)MainForm::getInstance())->centralWidget();
     QSize mySize = frameSize();
     QSize spaceSize = thisCentralWidget->size();
     //qWarning(" space is %d by %d, frame is %d by %d ", spaceSize.width(), spaceSize.height(), mySize.width(), mySize.height());

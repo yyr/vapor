@@ -64,13 +64,12 @@ public:
 	};
 protected:
 	QString description;
-	Session* currentSession;
 };
 //Subclass to deal with mouse mode settings
 //
 class MouseModeCommand : public Command{
 public:
-	MouseModeCommand(mouseModeType previousMode, mouseModeType newMode, Session* ses);
+	MouseModeCommand(mouseModeType previousMode, mouseModeType newMode);
 	virtual ~MouseModeCommand() {}
 	virtual void unDo();
 	virtual void reDo();
@@ -83,7 +82,7 @@ protected:
 //
 class TabChangeCommand : public Command{
 public:
-	TabChangeCommand(Params::ParamType oldTab, Params::ParamType newTab, Session* ses);
+	TabChangeCommand(Params::ParamType oldTab, Params::ParamType newTab);
 	virtual ~TabChangeCommand() {}
 	virtual void unDo();
 	virtual void reDo();

@@ -31,11 +31,11 @@ using namespace VAPoR;
 //
 Params* Params::
 getCorrespondingGlobalParams() {
-	return mainWin->getVizWinMgr()->getGlobalParams(thisParamType);
+	return VizWinMgr::getInstance()->getGlobalParams(thisParamType);
 }
 Params* Params::
 getCorrespondingLocalParams() {
-	return mainWin->getVizWinMgr()->getLocalParams(thisParamType);
+	return VizWinMgr::getInstance()->getLocalParams(thisParamType);
 }
 //To make a local->global change, must copy the local params.
 //To make a global->local change, must copy global params
@@ -46,9 +46,9 @@ guiSetLocal(bool lg){
 	if (lg) { //To convert global to local, "this" may be local or global
 		PanelCommand* cmd;
 		if(vizNum == -1){
-			cmd = PanelCommand::captureStart(this, mainWin->getSession(), "set Global to Local");
+			cmd = PanelCommand::captureStart(this,  "set Global to Local");
 		} else {
-			cmd = PanelCommand::captureStart(this->getCorrespondingGlobalParams(), mainWin->getSession(), "set Global to Local");
+			cmd = PanelCommand::captureStart(this->getCorrespondingGlobalParams(),  "set Global to Local");
 		}
 		//always set the local flag on "this"
 		//
@@ -56,7 +56,7 @@ guiSetLocal(bool lg){
 		PanelCommand::captureEnd(cmd, this->getCorrespondingLocalParams());
 	} else { //To convert local to global, "this" is local:
 		assert (vizNum >= 0);
-		PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(), "set Local to Global");
+		PanelCommand* cmd = PanelCommand::captureStart(this,  "set Local to Global");
 		setLocal(lg);
 		PanelCommand::captureEnd(cmd, this->getCorrespondingGlobalParams());
 	} 
@@ -64,7 +64,7 @@ guiSetLocal(bool lg){
 	
 void Params::confirmText(bool render){
 	if (!textChangedFlag) return;
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(), "edit text");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "edit text");
 	updatePanelState();
 	PanelCommand::captureEnd(cmd, this);
 	//since only the text has changed, we know that the enabled and local settings

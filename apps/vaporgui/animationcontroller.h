@@ -101,7 +101,7 @@ public:
 			theAnimationController = new AnimationController();
 		return theAnimationController;
 	}
-	void restart(VizWinMgr*);
+	void restart();
 	~AnimationController();
 	//The run method defines the animation cycle.
 	//It will run continuously (with intermittent waits)
@@ -146,7 +146,7 @@ public:
 		changed  =	16,
 		overdue = 32
 	};
-	//Gui ( calls following when a parameter changes that will alter
+	//Gui calls following when a parameter changes that will alter
 	//next render frame
 	void paramsChanged(int viznum) {
 		animationMutex.lock();
@@ -204,14 +204,9 @@ protected:
 	void setGlobal(int viznum){statusFlag[viznum] = (animationStatus)(statusFlag[viznum]|shared);}
 	void setLocal(int viznum) {statusFlag[viznum] = (animationStatus)(statusFlag[viznum]&(~shared));}
 	void setOverdue(int viznum) {statusFlag[viznum] = (animationStatus)(statusFlag[viznum]|overdue);}
-	void setVizWinMgr(VizWinMgr* vm){myVizWinMgr = vm;}
-	// advanceFrame is called by run() every time it's necessary
-	// to do another frame.  
-	// Returns the number of milliseconds before we need to check for a render completion.
-	// (the controller thread can go to sleep until wakened.)
-	// Returns a negative number if no renderer is active.
-	//
-	int advanceFrame();
+	
+	//Method to be called to set change bits, with mutex already locked:
+	void setChangeBitsLocked(int viznum);
 	// animationMutex is needed to ensure serial access to
 	// the renderingStatus bits
 	//
@@ -226,7 +221,6 @@ protected:
 	int startTime[MAXVIZWINS];
 	
 	QWaitCondition* myWaitCondition;
-	VizWinMgr* myVizWinMgr;
 	QTime* myClock;
 
 };

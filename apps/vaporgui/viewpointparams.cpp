@@ -29,9 +29,9 @@
 #include <qcombobox.h>
 #include "viewpoint.h"
 using namespace VAPoR;
-ViewpointParams::ViewpointParams(MainForm* mf,int winnum): Params(mf, winnum){
+ViewpointParams::ViewpointParams(int winnum): Params(winnum){
 	thisParamType = ViewpointParamsType;
-	myVizTab = mf->getVizTab();
+	myVizTab = MainForm::getInstance()->getVizTab();
 	savedCommand = 0;
 	numLights = 0;
 	lightPositions = 0;
@@ -66,8 +66,8 @@ ViewpointParams::~ViewpointParams(){
 }
 void ViewpointParams::
 makeCurrent(Params* prev, bool) {
-	VizWinMgr* vwm = mainWin->getVizWinMgr();
-	vwm->setViewpointParams(vizNum, this);
+	
+	VizWinMgr::getInstance()->setViewpointParams(vizNum, this);
 	//Also update current Tab.  It's probably visible.
 	updateDialog();
 	updateRenderer(false, prev->isLocal(), false);
@@ -97,7 +97,8 @@ ViewpointParams::setNumLights(int nLights){
 void ViewpointParams::updateDialog(){
 	
 	QString strng;
-	mainWin->getSession()->blockRecording();
+	Session* ses = Session::getInstance();
+	ses->blockRecording();
 	myVizTab->numLights->setText(strng.setNum(numLights));
 	myVizTab->camPos0->setText(strng.setNum(currentViewpoint->getCameraPos(0), 'g', 3));
 	myVizTab->camPos1->setText(strng.setNum(currentViewpoint->getCameraPos(1), 'g', 3));
@@ -115,7 +116,7 @@ void ViewpointParams::updateDialog(){
 	else 
 		myVizTab->LocalGlobal->setCurrentItem(0);
 	guiSetTextChanged(false);
-	mainWin->getSession()->unblockRecording();
+	ses->unblockRecording();
 }
 //Update all the panel state associated with textboxes.
 void ViewpointParams::
@@ -152,7 +153,7 @@ navigate (float* posn, float* viewDir, float* upVec){
  */
 void ViewpointParams::
 updateRenderer(bool, bool , bool ) {
-	VizWinMgr* myVizMgr = mainWin->getVizWinMgr();
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	//Always set the values in the active viz.  This amounts to stuffing
 	//the new values into the trackball.
 	//If the settings are global, then
@@ -184,7 +185,7 @@ captureMouseDown(){
 	//
 	guiSetTextChanged(false);
 	if (savedCommand) delete savedCommand;
-	savedCommand = PanelCommand::captureStart(this, mainWin->getSession(), "drag viewpoint");
+	savedCommand = PanelCommand::captureStart(this,  "drag viewpoint");
 		
 }
 
@@ -205,13 +206,49 @@ guiSetPerspective(bool on){
 		delete savedCommand;
 		savedCommand = 0;
 	}
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"toggle perspective");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle perspective");
 	setPerspective(on);
 	PanelCommand::captureEnd(cmd,this);
 }
 void ViewpointParams::
+guiResetView(RegionParams* rParams){
+	//capture text changes
+	
+	confirmText(false);
+	
+	if (savedCommand) {
+		delete savedCommand;
+		savedCommand = 0;
+	}
+	PanelCommand* cmd = PanelCommand::captureStart(this, "reset viewpoint");
+	//Find the largest of the x and z dimensions of the current region:
+	float maxSide = Max(rParams->getRegionMax(0)-rParams->getRegionMin(0),
+		rParams->getRegionMax(1)-rParams->getRegionMin(1));
+	//Position the camera 2*maxSide units away from the front face of this, centered on 
+	//x and y 
+	float camPos[3];
+	camPos[0] = 0.5f*(rParams->getRegionMax(0)+rParams->getRegionMin(0));
+	camPos[1] = 0.5f*(rParams->getRegionMax(1)+rParams->getRegionMin(1));
+	
+	
+	//Position the camera in the positive z-direction from the volume center, looking in
+	//the negative z-direction
+	//
+	camPos[2] = (float)(rParams->getRegionMax(2)+1.5f*maxSide);
+	currentViewpoint->setCameraPos(camPos);
+	for (int i = 0; i<3; i++){
+		currentViewpoint->setViewDir(i,0.f);
+		currentViewpoint->setUpVec(i, 0);
+	}
+	currentViewpoint->setViewDir(2,-1.f);
+	currentViewpoint->setUpVec(1,1.f);
+	updateDialog();
+	updateRenderer(false, false, false);
+	PanelCommand::captureEnd(cmd,this);
+}
+void ViewpointParams::
 setHomeViewpoint(){
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"Set Home Viewpoint");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "Set Home Viewpoint");
 	delete homeViewpoint;
 	homeViewpoint = new Viewpoint(*currentViewpoint);
 	updateDialog();
@@ -220,7 +257,7 @@ setHomeViewpoint(){
 }
 void ViewpointParams::
 useHomeViewpoint(){
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"Use Home Viewpoint");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "Use Home Viewpoint");
 	delete currentViewpoint;
 	currentViewpoint = new Viewpoint(*homeViewpoint);
 	updateDialog();
@@ -231,7 +268,7 @@ useHomeViewpoint(){
 void ViewpointParams::
 reinit(){
 	float camPos[3];
-	const Metadata* md = mainWin->getSession()->getCurrentMetadata();
+	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	std::vector<double> extents = md->GetExtents();
 	double maxSide = 0.;
 	int i;

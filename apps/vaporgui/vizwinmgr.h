@@ -19,6 +19,9 @@
 //		Its main function is to catch events from the visualizers and
 //		to route them to the appropriate params class, and in reverse,
 //		to route events from tab panels to the appropriate visualizer.
+//		This class knows about which visualizers are active, and what
+//		state to associate with them, so other classes request the VizWinMgr
+//		to perform tasks that require that information
 //
 
 #ifndef VIZWINMGR_H
@@ -71,7 +74,12 @@ class VizWinMgr : public QObject
 {
 	Q_OBJECT
 public:
-    VizWinMgr (MainForm* mainWindow);
+	static VizWinMgr* getInstance() {
+		if (!theVizWinMgr)
+			theVizWinMgr = new VizWinMgr();
+		return theVizWinMgr;
+	}
+	void createGlobalParams();
     ~VizWinMgr();
     //Respond to end:
     void closeEvent();
@@ -116,7 +124,7 @@ public:
     int getNumVisualizers(); 
     
     TabManager* getTabManager() { return tabManager;}
-    MainForm* getMainWindow() {return myMainWindow;}
+    
 	//activeViz is -1 if none is active, otherwise is no. of active viz win.
 	int getActiveViz() {return activeViz;}
 	VizWin* getActiveVisualizer() {
@@ -225,7 +233,9 @@ signals:
 	
 
 protected:
-	//Made public only to allow gui to access
+	static VizWinMgr* theVizWinMgr;
+	VizWinMgr ();
+	
     VizWin* vizWin[MAXVIZWINS];
     QRect* vizRect[MAXVIZWINS];
     QString* vizName[MAXVIZWINS];
@@ -296,6 +306,9 @@ protected slots:
 	void isoReturnPressed();
 	void contourReturnPressed();
 	void animationReturnPressed();
+
+	//Vtab slots:
+	void resetVtabView();
 
 	//Animation slots:
 	void animationSetFrameStep();

@@ -17,7 +17,9 @@
 //	Description:  Definition of MainForm class
 //		This QT Main Window class supports all main window functionality
 //		including menus, tab dialog, docking, visualizer window,
-//		and some of the communication between these classes
+//		and some of the communication between these classes.
+//		There is only one of these, it is created by the main program.
+//		Other classes can use getInstance() to obtain it
 //
 #ifndef MAINFORM_H
 #define MAINFORM_H
@@ -60,6 +62,12 @@ class MainForm : public QMainWindow
     Q_OBJECT
 
 public:
+	//Note this is a singleton class.  Only the main program will create it.
+	static MainForm* getInstance(){
+		if (!theMainForm)
+			assert(0);
+		return theMainForm;
+	}
     MainForm( QWidget* parent = 0, const char* name = 0, WFlags fl = WType_TopLevel );
     ~MainForm();
 
@@ -138,7 +146,6 @@ public:
     QDockWindow* tabDockWindow;
 	TabManager* getTabManager() {return tabWidget;}
 
-	VizWinMgr* getVizWinMgr() {return myVizMgr;}
 	VizTab* getVizTab() { return theVizTab;}
 	RegionTab * getRegionTab() {return theRegionTab;}
 	Dvr* getDvrTab() {return theDvrTab;}
@@ -146,7 +153,6 @@ public:
 	ContourPlaneTab* getContourTab() {return theContourTab;}
 	IsoTab* getIsoTab() {return theIsoTab;}
 	QWorkspace* getWorkspace() {return myWorkspace;}
-	Session* getSession() {return currentSession;}
 	//Disable the editUndo/Redo action:
 	void disableUndoRedo();
 	
@@ -192,6 +198,7 @@ public slots:
 
 
 protected:
+	static MainForm* theMainForm;
 	void resetModeButtons();
 	
 	Params::ParamType currentFrontTab;
@@ -202,7 +209,6 @@ protected:
     QHBoxLayout* tabLayout;
     QHBoxLayout* tabLayout_2;
     QDesktopWidget* myDesktopWidget;
-    VizWinMgr* myVizMgr;
 	VizTab* theVizTab;
 	RegionTab* theRegionTab;
 	IsoTab* theIsoTab;
@@ -212,7 +218,6 @@ protected:
 	VizSelectCombo* windowSelector;
 	
 	Vcr* vcrPanel;
-	Session* currentSession;
 	
 
 protected slots:

@@ -24,11 +24,10 @@
 using namespace VAPoR;
 //Constructor:  called when a new command is issued.
 //
-PanelCommand::PanelCommand(Params* prevParams, Session* ses, const char* descr){
+PanelCommand::PanelCommand(Params* prevParams, const char* descr){
 	//Make a copy of previous panel:
 	previousPanel = prevParams->deepCopy();
 	nextPanel = 0;
-	currentSession = ses;
 	description = *(new QString(descr));
 }
 void PanelCommand::
@@ -37,15 +36,15 @@ setNext(Params* next){
 
 }
 void PanelCommand::unDo(){
-	currentSession->blockRecording();
+	Session::getInstance()->blockRecording();
 	previousPanel->makeCurrent(nextPanel, false);
-	currentSession->unblockRecording();
+	Session::getInstance()->unblockRecording();
 	
 }
 void PanelCommand::reDo(){
-	currentSession->blockRecording();
+	Session::getInstance()->blockRecording();
 	nextPanel->makeCurrent(previousPanel, false);
-	currentSession->unblockRecording();
+	Session::getInstance()->unblockRecording();
 	
 }
 PanelCommand::~PanelCommand(){
@@ -54,16 +53,16 @@ PanelCommand::~PanelCommand(){
 	delete description;
 }
 PanelCommand* PanelCommand::
-captureStart(Params* p, Session* ses,  char* description){
-	if (!ses->isRecording()) return 0;
-	PanelCommand* cmd = new PanelCommand(p, ses, description);
+captureStart(Params* p,   char* description){
+	if (!Session::getInstance()->isRecording()) return 0;
+	PanelCommand* cmd = new PanelCommand(p,   description);
 	return cmd;
 }
 void PanelCommand::
 captureEnd(PanelCommand* pCom, Params *p) {
 	if (!pCom) return;
-	if (!pCom->currentSession->isRecording()) return;
+	if (!Session::getInstance()->isRecording()) return;
 	pCom->setNext(p);
-	pCom->currentSession->addToHistory(pCom);
+	Session::getInstance()->addToHistory(pCom);
 }
 

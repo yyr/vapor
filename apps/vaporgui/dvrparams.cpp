@@ -54,9 +54,9 @@
 
 using namespace VAPoR;
 
-DvrParams::DvrParams(MainForm* mf, int winnum) : Params(mf, winnum){
+DvrParams::DvrParams(int winnum) : Params(winnum){
 	thisParamType = DvrParamsType;
-	myDvrTab = mf->getDvrTab();
+	myDvrTab = MainForm::getInstance()->getDvrTab();
 	varNum = 0;
 	lightingOn = false;
 	numBits = 8;
@@ -81,7 +81,7 @@ DvrParams::DvrParams(MainForm* mf, int winnum) : Params(mf, winnum){
 	maxEditBounds[0] = 1.f;
 	//Hookup the editor to the frame in the dvr tab:
 	myTransFunc = new TransferFunction(this, numBits);
-	if(myDvrTab) myTFEditor = new TFEditor(this, myTransFunc, myDvrTab->DvrTFFrame, mf->getSession());
+	if(myDvrTab) myTFEditor = new TFEditor(this, myTransFunc, myDvrTab->DvrTFFrame);
 	else myTFEditor = 0;
 	clutDirty = true;
 	datarangeDirty = true;
@@ -106,7 +106,7 @@ void DvrParams::
 setTab(Dvr* tab) {
 	myDvrTab = tab;
 	if (myTFEditor) delete myTFEditor;
-	myTFEditor = new TFEditor(this, myTransFunc, myDvrTab->DvrTFFrame, mainWin->getSession() );
+	myTFEditor = new TFEditor(this, myTransFunc, myDvrTab->DvrTFFrame );
 }
 //Deepcopy requires cloning tf and tfeditor
 Params* DvrParams::
@@ -142,8 +142,8 @@ deepCopy(){
 }
 void DvrParams::
 makeCurrent(Params* prevParams, bool newWin) {
-	VizWinMgr* vwm = mainWin->getVizWinMgr();
-	vwm->setDvrParams(vizNum, this);
+	
+	VizWinMgr::getInstance()->setDvrParams(vizNum, this);
 	updateDialog();
 	DvrParams* formerParams = (DvrParams*)prevParams;
 	//Check if the enabled and/or Local settings changed:
@@ -162,7 +162,7 @@ refreshCtab() {
 void DvrParams::updateDialog(){
 	
 	QString strn;
-	mainWin->getSession()->blockRecording();
+	Session::getInstance()->blockRecording();
 	myDvrTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
 	
 	//Set the names in the variable combo
@@ -216,7 +216,7 @@ void DvrParams::updateDialog(){
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
 	guiSetTextChanged(false);
-	mainWin->getSession()->unblockRecording();
+	Session::getInstance()->unblockRecording();
 		
 }
 //Update all the panel state associated with textboxes.
@@ -289,14 +289,14 @@ setClut(const float newTable[256][4]){
 void DvrParams::
 guiSetEditMode(bool mode){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"set edit/navigate mode");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set edit/navigate mode");
 	setEditMode(mode);
 	PanelCommand::captureEnd(cmd, this);
 }
 void DvrParams::
 guiSetAligned(){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"align tf in edit frame");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "align tf in edit frame");
 	setMinEditBound(getMinMapBound());
 	setMaxEditBound(getMaxMapBound());
 	myTFEditor->setDirty(true);
@@ -306,7 +306,7 @@ guiSetAligned(){
 void DvrParams::
 guiSetEnabled(bool value){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"toggle dvr enabled");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle dvr enabled");
 	setEnabled(value);
 	PanelCommand::captureEnd(cmd, this);
 	//updateRenderer();
@@ -314,7 +314,7 @@ guiSetEnabled(bool value){
 void DvrParams::
 guiSetVarNum(int val){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"set dvr variable");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set dvr variable");
 	setVarNum(val);
 	PanelCommand::captureEnd(cmd, this);
 }
@@ -322,7 +322,7 @@ guiSetVarNum(int val){
 void DvrParams::
 guiSetNumBits(int val){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"set dvr number bits");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set dvr number bits");
 	setNumBits(val);
 	PanelCommand::captureEnd(cmd, this);
 	//updateRenderer();
@@ -330,7 +330,7 @@ guiSetNumBits(int val){
 void DvrParams::
 guiSetLighting(bool val){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(), "toggle dvr lighting");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "toggle dvr lighting");
 	setLighting(val);
 	PanelCommand::captureEnd(cmd, this);
 }
@@ -339,7 +339,7 @@ guiSetLighting(bool val){
 void DvrParams::
 guiSetHistoStretch(int val){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"modify histogram stretch slider");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "modify histogram stretch slider");
 	myTFEditor->setHistoStretch( powf(2.f, HISTOSTRETCHCONSTANT*(1000.f - (float)val)));
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
@@ -354,7 +354,7 @@ guiStartChangeTF(char* str){
 	guiSetTextChanged(false);
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
-	savedCommand = PanelCommand::captureStart(this, mainWin->getSession(),str);
+	savedCommand = PanelCommand::captureStart(this, str);
 }
 void DvrParams::
 guiEndChangeTF(){
@@ -366,14 +366,14 @@ guiEndChangeTF(){
 void DvrParams::
 guiBindColorToOpac(){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"bind Color to Opacity");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "bind Color to Opacity");
 	myTFEditor->bindColorToOpac();
 	PanelCommand::captureEnd(cmd, this);
 }
 void DvrParams::
 guiBindOpacToColor(){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"bind Opacity to Color");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "bind Opacity to Color");
 	myTFEditor->bindOpacToColor();
 	PanelCommand::captureEnd(cmd, this);
 }
@@ -386,7 +386,7 @@ setBindButtons(){
 void DvrParams::setClutDirty(bool dirty){ 
 	clutDirty = dirty;
 	if (dirty) {
-		VizWinMgr* vizWinMgr = mainWin->getVizWinMgr();
+		VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 		if (vizWinMgr) vizWinMgr->setDvrDirty(this);
 	}
 }
@@ -413,7 +413,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		isLocal = true;
 	}
 	if (prevEnabled == enabled && wasLocal == local) return;
-	VizWinMgr* vizWinMgr = mainWin->getVizWinMgr();
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	VizWin* viz = vizWinMgr->getActiveVisualizer();
 	if (!viz) return;
 	int activeViz = vizWinMgr->getActiveViz();
@@ -498,7 +498,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 //
 void DvrParams::
 reinit(){
-	const Metadata* md = mainWin->getSession()->getCurrentMetadata();
+	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	//Get the variable names:
 	variableNames = md->GetVariableNames();
 	//reset to first variable:
@@ -514,10 +514,10 @@ reinit(){
 	maxEditBounds = new float[numVariables];
 
 	for (int i = 0; i<numVariables; i++){
-		minMapBounds[i] = mainWin->getSession()->getDataRange(i)[0];
-		maxMapBounds[i] = mainWin->getSession()->getDataRange(i)[1];
-		minEditBounds[i] = mainWin->getSession()->getDataRange(i)[0];
-		maxEditBounds[i] = mainWin->getSession()->getDataRange(i)[1];
+		minMapBounds[i] = Session::getInstance()->getDataRange(i)[0];
+		maxMapBounds[i] = Session::getInstance()->getDataRange(i)[1];
+		minEditBounds[i] = Session::getInstance()->getDataRange(i)[0];
+		maxEditBounds[i] = Session::getInstance()->getDataRange(i)[1];
 	}
 	
 	setDatarangeDirty(true);
@@ -532,7 +532,7 @@ setDatarangeDirty(bool dirty)
 	if (dirty){
 		currentDatarange[0] = minMapBounds[varNum];
 		currentDatarange[1] = maxMapBounds[varNum];
-		VizWinMgr* vizWinMgr = mainWin->getVizWinMgr();
+		VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 		if (vizWinMgr) vizWinMgr->setDvrDirty(this);
 	}
 }

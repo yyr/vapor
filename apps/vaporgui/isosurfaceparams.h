@@ -34,7 +34,7 @@ class MainForm;
 class IsosurfaceParams: public Params {
 	
 public: 
-	IsosurfaceParams(MainForm*, int winnum);
+	IsosurfaceParams(int winnum);
 	
 	~IsosurfaceParams();
 

@@ -67,7 +67,6 @@ class TabManager : public QTabWidget{
 		int moveToFront(Params::ParamType widgetType);
 		//Mainform must set the session before can handle any history changes.
 		//
-		void setSession(Session* ses) {currentSession = ses;}
 		//Determine if a widget is the current front tab
 		bool isFrontTab(QWidget* wid){
 			return (wid == widgets[currentFrontPage]);}
@@ -81,7 +80,6 @@ class TabManager : public QTabWidget{
 		QWidget* widgets[MAX_WIDGETS];
 		Params::ParamType widgetTypes[MAX_WIDGETS];
 		bool haveMultipleViz;
-		Session* currentSession;
 		int currentFrontPage;
 };
 };

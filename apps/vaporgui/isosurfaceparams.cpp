@@ -34,9 +34,9 @@
 #include "params.h"
 #include "panelcommand.h"
 using namespace VAPoR;
-IsosurfaceParams::IsosurfaceParams(MainForm* mf, int winnum) : Params(mf, winnum) {
+IsosurfaceParams::IsosurfaceParams(int winnum) : Params(winnum) {
 	thisParamType = IsoParamsType;
-	myIsoTab = mf->getIsoTab();
+	myIsoTab = MainForm::getInstance()->getIsoTab();
 	enabled = false;
 	//Set default values
 	diffuseCoeff = 0.8f; 
@@ -64,8 +64,8 @@ IsosurfaceParams::~IsosurfaceParams(){
 }
 void IsosurfaceParams::
 makeCurrent(Params* prev, bool newWin) {
-	VizWinMgr* vwm = mainWin->getVizWinMgr();
-	vwm->setIsoParams(vizNum, this);
+	
+	VizWinMgr::getInstance()->setIsoParams(vizNum, this);
 	updateDialog();
 	//Need to create/destroy renderer if there's a change in local/global or enable/disable
 	//or if the window is new
@@ -78,7 +78,7 @@ makeCurrent(Params* prev, bool newWin) {
 
 void IsosurfaceParams::updateDialog(){
 	
-	mainWin->getSession()->blockRecording();
+	Session::getInstance()->blockRecording();
 	myIsoTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
 	QString strn;
 	myIsoTab->variableCombo1->setCurrentItem(variable1);
@@ -104,7 +104,7 @@ void IsosurfaceParams::updateDialog(){
 	else 
 		myIsoTab->LocalGlobal->setCurrentItem(0);
 	guiSetTextChanged(false);
-	mainWin->getSession()->unblockRecording();
+	Session::getInstance()->unblockRecording();
 }
 
 //Update all the panel state associated with textboxes, after user presses return
@@ -131,21 +131,21 @@ updatePanelState(){
 void IsosurfaceParams::
 guiSetEnabled(bool on){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"enable/disable iso render");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "enable/disable iso render");
 	setEnabled(on);
 	PanelCommand::captureEnd(cmd, this);
 }
 void IsosurfaceParams::
 guiSetColor1(QColor* c){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"change iso color");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "change iso color");
 	setColor1(c);
 	PanelCommand::captureEnd(cmd, this);
 }
 void IsosurfaceParams::
 guiSetOpac1(int val){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"change iso opacity");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "change iso opacity");
 	setOpac1((float)val/255.);
 	myIsoTab->opacEdit1->setText(QString::number(opac1, 'g', 2));
 	textChangedFlag = false;
@@ -154,7 +154,7 @@ guiSetOpac1(int val){
 void IsosurfaceParams::
 guiSetValue1(int val){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"change iso value");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "change iso value");
 	setValue1(val*375./1000.);
 	myIsoTab->valueEdit1->setText(QString::number(value1, 'g', 4));
 	
@@ -164,14 +164,14 @@ guiSetValue1(int val){
 void IsosurfaceParams::
 guiSetNumSurfaces(int n){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"set num isosurfaces");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "set num isosurfaces");
 	setNumSurfaces(n);
 	PanelCommand::captureEnd(cmd, this);
 }
 void IsosurfaceParams::
 guiSetVariable1(int n){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"change iso variable");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "change iso variable");
 	//Assume the max value is 375
 	setVariable1((float)n/375.);
 	PanelCommand::captureEnd(cmd, this);
@@ -199,7 +199,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		isLocal = true;
 	}
 	if (prevEnabled == enabled && wasLocal == local) return;
-	VizWinMgr* vizWinMgr = mainWin->getVizWinMgr();
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	VizWin* viz = vizWinMgr->getActiveVisualizer();
 	if (!viz) return;
 	int activeViz = vizWinMgr->getActiveViz();
@@ -235,7 +235,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	if (!isLocal && enabled){ //case 3: create renderers in all *other* global windows, then return
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if (i == activeViz) continue;
-			viz = vizWinMgr->getVizWin(i);
+			viz = VizWinMgr::getInstance()->getVizWin(i);
 			if (viz && !vizWinMgr->getIsoParams(i)->isLocal()){
 				GLBox* myBox = new GLBox (viz);
 				viz->addRenderer(myBox);
@@ -245,7 +245,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	}
 	if (!enabled && prevEnabled && !isLocal && !wasLocal) { //case 5., disable all global renderers
 		for (int i = 0; i<MAXVIZWINS; i++){
-			viz = vizWinMgr->getVizWin(i);
+			viz = VizWinMgr::getInstance()->getVizWin(i);
 			if (viz && !vizWinMgr->getIsoParams(i)->isLocal()){
 				viz->removeRenderer("GLBox");
 			}

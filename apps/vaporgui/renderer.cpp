@@ -36,12 +36,11 @@ Renderer::Renderer( VizWin* vw )
 	//
 	myVizWin = vw;
     myGLWindow = vw->getGLWindow();
-	VizWinMgr* vwm = vw->getWinMgr();
-	MainForm* mf = vwm->getMainWindow();
+	VizWinMgr* vwm = VizWinMgr::getInstance();
 	int winNum = vw->getWindowNum();
 	myViewpointParams = vwm->getViewpointParams(winNum);
 	myRegionParams = vwm->getRegionParams(winNum);
-	myDataMgr = mf->getSession()->getDataMgr();
-	myMetadata = mf->getSession()->getCurrentMetadata();
+	myDataMgr = Session::getInstance()->getDataMgr();
+	myMetadata = Session::getInstance()->getCurrentMetadata();
 
 }

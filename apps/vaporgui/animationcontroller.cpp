@@ -54,8 +54,7 @@ AnimationController::~AnimationController(){
 
 //Set up when new data is read, by the Session
 void AnimationController::
-restart(VizWinMgr* vizmgr){
-	setVizWinMgr(vizmgr);
+restart(){
 	//If animation in progress, terminate it
 	animationCancelled = true;
 	//Wakeup the controller thread.  It should return after rendering is complete
@@ -72,6 +71,7 @@ restart(VizWinMgr* vizmgr){
 //
 void AnimationController::
 run(){
+	VizWinMgr* myVizWinMgr = VizWinMgr::getInstance();
 	int viznum;
 	//First, initialize the status bits:
 	
@@ -80,10 +80,10 @@ run(){
 		//begin with inactive/finished status:
 		statusFlag[viznum] = finished;
 		//set the shared bit:
-		if (!myVizWinMgr->getAnimationParams(viznum)->isLocal())
+		if (!VizWinMgr::getInstance()->getAnimationParams(viznum)->isLocal())
 			setGlobal(viznum);
 	}
-	
+
 	animationMutex.unlock();
 	//Outer loop continues until animationCancelled is set
 	while (1){
@@ -255,8 +255,9 @@ beginRendering(int viznum){
 //
 void AnimationController::
 endRendering(int vizNum){
-	
+	VizWinMgr* myVizWinMgr = VizWinMgr::getInstance();
 	animationMutex.lock();
+	
 	// check if this window is animating, if not just leave
 	if (!isActive(vizNum)) { 
 		
@@ -292,12 +293,15 @@ endRendering(int vizNum){
 				setLocal(vizNum);
 			else setGlobal(vizNum);
 		} else {
-			myVizWinMgr->getAnimationParams(vizNum)->advanceFrame();
+			//Note if the change bit needs to be set:
+			bool setChange = myVizWinMgr->getAnimationParams(vizNum)->advanceFrame();
+			if (setChange) setChangeBitsLocked(vizNum);
 		}
 	}
 	bool doWake = (lastToFinish && isOverdue(vizNum));
 	
 	animationMutex.unlock();
+	
 	//msleep(300);
 	//Do this out of the mutex:
 	if (doWake) wakeup();
@@ -314,15 +318,15 @@ wakeup(){
 //
 int AnimationController::
 getTimeToFinish(int viznum, int currentTime){
-	return(startTime[viznum] + myVizWinMgr->getAnimationParams(viznum)->getMinTimeToRender()- currentTime);
+	return(startTime[viznum] + VizWinMgr::getInstance()->getAnimationParams(viznum)->getMinTimeToRender()- currentTime);
 }
 //Tell a renderer to start at the next rendering:
 //
 void AnimationController::
 startVisualizer(int viznum, int currentTime){
 	startTime[viznum] = currentTime;
-	myVizWinMgr->getVizWin(viznum)->setRegionDirty(true);
-	myVizWinMgr->getVizWin(viznum)->updateGL();
+	VizWinMgr::getInstance()->getVizWin(viznum)->setRegionDirty(true);
+	VizWinMgr::getInstance()->getVizWin(viznum)->updateGL();
 }
 //Activate renderer prior to starting play
 void AnimationController::
@@ -332,11 +336,29 @@ startPlay(int viznum) {
 	assert(!isActive(viznum));
 	activate(viznum);
 	setFinishRender(viznum);
-	if (myVizWinMgr->getAnimationParams(viznum)->isLocal()) setLocal(viznum);
+	if (VizWinMgr::getInstance()->getAnimationParams(viznum)->isLocal()) setLocal(viznum);
 	else setGlobal(viznum);
 	
 	animationMutex.unlock();
 }
+//Set the change bits for all visualizers that are sharing the animation params
+//of the specified visualizer.  Calling routine should have already locked the mutex.
+void AnimationController::
+setChangeBitsLocked(int viznum){
+	setChangeBit(viznum);
+	//If another viz is using these animation params, set their change bit, too
+	AnimationParams* aParams = VizWinMgr::getInstance()->getAnimationParams(viznum);
+	if (aParams->isLocal()) return;
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  (VizWinMgr::getInstance()->getVizWin(i) && (i != viznum)  &&
+				!VizWinMgr::getInstance()->getAnimationParams(viznum)->isLocal() )
+		{
+			setChangeBit(i);
+		}
+	}
+}
+
+
 	
 
 

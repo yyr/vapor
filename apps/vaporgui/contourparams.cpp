@@ -29,9 +29,9 @@
 #include "vizwinmgr.h"
 #include "session.h"
 using namespace VAPoR;
-ContourParams::ContourParams(MainForm* mf, int winnum) : Params(mf, winnum){
+ContourParams::ContourParams(int winnum) : Params(winnum){
 	thisParamType = ContourParamsType;
-	myContourTab = mf->getContourTab();
+	myContourTab = MainForm::getInstance()->getContourTab();
 	enabled = false;
 	varNum = 0;
 	lightingOn = false;
@@ -59,8 +59,8 @@ deepCopy(){
 
 void ContourParams::
 makeCurrent(Params*, bool ) {
-	VizWinMgr* vwm = mainWin->getVizWinMgr();
-	vwm->setContourParams(vizNum, this);
+	
+	VizWinMgr::getInstance()->setContourParams(vizNum, this);
 	//Also update current Tab.  It's probably visible.
 	updateDialog();
 }
@@ -69,7 +69,7 @@ void ContourParams::updateDialog(){
 	
 	QString strn;
 	
-	mainWin->getSession()->blockRecording();
+	Session::getInstance()->blockRecording();
 	myContourTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
 	myContourTab->variableCombo1->setCurrentItem(varNum);
 	myContourTab->lightingCheckbox->setChecked(lightingOn);
@@ -90,7 +90,7 @@ void ContourParams::updateDialog(){
 	else 
 		myContourTab->LocalGlobal->setCurrentItem(0);
 	guiSetTextChanged(false);
-	mainWin->getSession()->unblockRecording();
+	Session::getInstance()->unblockRecording();
 		
 }
 //Update all the panel state associated with textboxes.
@@ -119,7 +119,7 @@ void ContourParams::
 guiSetEnabled(bool value){
 	if (textChangedFlag) confirmText(false);
 	//Capture previous state:
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"toggle contour enabled");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle contour enabled");
 	
 	setEnabled(value);
 	//Save new state
@@ -129,7 +129,7 @@ guiSetEnabled(bool value){
 void ContourParams::
 guiSetLighting(bool val){
 	if (textChangedFlag) confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"toggle contour lighting");
+	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle contour lighting");
 	updatePanelState();
 	setLighting(val);
 	PanelCommand::captureEnd(cmd, this);
@@ -138,7 +138,7 @@ guiSetLighting(bool val){
 void ContourParams::
 guiSetVarNum(int val){
 	if (textChangedFlag) confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"contour set variable");
+	PanelCommand* cmd = PanelCommand::captureStart(this,"contour set variable");
 	setVarNum(val);
 	//Save new state
 	PanelCommand::captureEnd(cmd, this);
