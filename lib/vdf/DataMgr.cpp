@@ -70,13 +70,14 @@ DataMgr::~DataMgr(
 ) {
 
 	if (_wbreader) delete _wbreader;
-	if (_blk_mem_mgr) delete _blk_mem_mgr;
 	if (_doFreeMeta && _metadata) delete _metadata;
 
-	free_all(1);
 	_regionsMap.clear();
 	_lockedRegionsMap.clear();
 	_timestamp = 0;
+
+	free_all(1);
+	if (_blk_mem_mgr) delete _blk_mem_mgr;
 
 	_wbreader = NULL;
 	_blk_mem_mgr = NULL;

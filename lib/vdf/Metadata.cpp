@@ -56,6 +56,7 @@ const string Metadata::_dimensionLengthAttr = "DimensionLength";
 const string Metadata::_numTransformsAttr = "NumTransforms";
 const string Metadata::_filterCoefficientsAttr = "FilterCoefficients";
 const string Metadata::_liftingCoefficientsAttr = "LiftingCoefficients";
+const string Metadata::_msbFirstAttr = "MSBFirst";
 const string Metadata::_numChildrenAttr = "NumChildren";
 const string Metadata::_typeAttr = "Type";
 
@@ -67,7 +68,7 @@ const string Metadata::_doubleType = "Double";
 //
 void Metadata::_init(
 		size_t bs, const size_t dim[3], size_t numTransforms,
-		int nFilterCoef, int nLiftingCoef
+		int nFilterCoef, int nLiftingCoef, int msbFirst
 ) {
 	map <const string, string> attrs;
 	ostringstream oss;
@@ -87,6 +88,7 @@ void Metadata::_init(
 	_numTransforms = (int)numTransforms;
 	_nFilterCoef = nFilterCoef;
 	_nLiftingCoef = nLiftingCoef;
+	_msbFirst = msbFirst;
 
 	_varNames.clear();
 
@@ -109,6 +111,10 @@ void Metadata::_init(
 	oss.str(empty);
 	oss << _nLiftingCoef;
 	attrs[_liftingCoefficientsAttr] = oss.str();
+
+	oss.str(empty);
+	oss << _msbFirst;
+	attrs[_msbFirstAttr] = oss.str();
 
 
 	// Create the root node of an xml tree. The node is named (tagged)
@@ -137,11 +143,11 @@ void Metadata::_init(
 
 Metadata::Metadata(
 		size_t bs, const size_t dim[3], size_t numTransforms,
-		int nFilterCoef, int nLiftingCoef
+		int nFilterCoef, int nLiftingCoef, int msbFirst
 ) {
 	_rootnode = NULL;
 
-	_init(bs, dim, numTransforms, nFilterCoef, nLiftingCoef);
+	_init(bs, dim, numTransforms, nFilterCoef, nLiftingCoef, msbFirst);
 }
 
 
@@ -614,6 +620,7 @@ void	Metadata::_startElementHandler0(
 	size_t dim[3];
 	int nFilterCoef = 1;
 	int nLiftingCoef = 1;
+	int msbFirst = 1;
 	int numTransforms = 0;
 
 
@@ -648,12 +655,15 @@ void	Metadata::_startElementHandler0(
 		else if (StrCmpNoCase(attr, _liftingCoefficientsAttr) == 0) {
 			ist >> nLiftingCoef;
 		}
+		else if (StrCmpNoCase(attr, _msbFirstAttr) == 0) {
+			ist >> msbFirst;
+		}
 		else {
 			_parseError("Invalid tag attribute : \"%s\"", attr.c_str());
 		}
 	}
 
-	_init(bs, dim, numTransforms, nFilterCoef, nLiftingCoef);
+	_init(bs, dim, numTransforms, nFilterCoef, nLiftingCoef, msbFirst);
 	if (GetErrCode()) {
 		string s(GetErrMsg()); _parseError("%s", s.c_str());
 		return;

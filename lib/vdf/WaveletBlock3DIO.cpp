@@ -55,6 +55,7 @@ void	WaveletBlock3DIO::_WaveletBlock3DIO(
 	ntilde_c = metadata_c->GetLiftingCoef();
 	n_c = metadata_c->GetFilterCoef();
 	max_xforms_c = metadata_c->GetNumTransforms();
+	_msbFirst = metadata_c->GetMSBFirst();
 
 	GetDimBlk(0, bdim_c);
 
@@ -579,7 +580,7 @@ int	WaveletBlock3DIO::readBlocks(
 ) {
 	int	rc;
 	FILE	*fp;
-	unsigned long    swaptest = 1;
+	unsigned long    lsbFirstTest = 1;
 	size_t level = max_xforms_c - num_xforms;
 
 	//cerr << level << " reading " << n << " blocks" << endl;
@@ -607,7 +608,12 @@ int	WaveletBlock3DIO::readBlocks(
 		SetErrMsg("fread(%d) : %s",block_size_c*n,strerror(errno));
 		return(-1);
 	}
-	if (*(char *) &swaptest) {
+
+	// Deal with endianess
+	//
+	if ((*(char *) &lsbFirstTest && _msbFirst) || 
+		(! *(char *) &lsbFirstTest && ! _msbFirst)) {
+
 		swapbytescopy(blks, blks, sizeof(blks[0]), block_size_c*n);
 	}
 	TIMER_STOP(t0, read_timer_c)
@@ -645,7 +651,7 @@ int	WaveletBlock3DIO::writeBlocks(
 ) {
 	int	rc;
 	FILE	*fp;
-	unsigned long swaptest = 1;
+	unsigned long lsbFirstTest = 1;
 	size_t level = max_xforms_c - num_xforms;
 
 	//cerr << level << " writing " << n << " blocks" << endl;
@@ -668,7 +674,11 @@ int	WaveletBlock3DIO::writeBlocks(
 	fp = file_ptrs_c[level];
 
 	TIMER_START(t0)
-	if (*(char *) &swaptest) {
+
+	// Deal with endianess
+	//
+	if ((*(char *) &lsbFirstTest && _msbFirst) || 
+		(! *(char *) &lsbFirstTest && ! _msbFirst)) {
 		int	i;
 
 		for(i=0;i<(int)n;i++) {
@@ -754,7 +764,7 @@ int	WaveletBlock3DIO::my_alloc(
 ) {
 
 	int     size;
-	unsigned long	swaptest = 1;
+	unsigned long	lsbFirstTest = 1;
 	int	j;
 
 
@@ -781,7 +791,11 @@ int	WaveletBlock3DIO::my_alloc(
 		return(-1);
 	}
 
-	if ((*(char *) &swaptest)) {
+	// Deal with endianess
+	//
+	if ((*(char *) &lsbFirstTest && _msbFirst) || 
+		(! *(char *) &lsbFirstTest && ! _msbFirst)) {
+
 		block_c = new float[block_size_c];
 		if (! block_c) {
 			SetErrMsg("new float[%d] : %s", block_size_c, strerror(errno));
