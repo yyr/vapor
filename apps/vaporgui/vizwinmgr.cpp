@@ -892,11 +892,11 @@ void VizWinMgr::startPlay(AnimationParams* aParams){
 	if (activeViz>=0) {
 		ac->startPlay(activeViz);
 	}
-	//If another viz is using these animation params, start them playing, too
+	//If another viz is sharing global animation params, start them playing, too
 	if (aParams->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if  ( vizWin[i] && (i != activeViz)  &&
-				(animationParams[i] == aParams ||(!animationParams[i]))
+				((!animationParams[i])||!animationParams[i]->isLocal())
 			){
 			ac->startPlay(i);
 		}
@@ -924,7 +924,6 @@ void VizWinMgr::
 setAnimationLocalGlobal(int val){
 	//If changes to global, revert to global panel.
 	//If changes to local, may need to create a new local panel
-	//Switch local and global Trackball as appropriate
 	if (val == 0){//toGlobal.  
 		//First set the global status, 
 		//then put  values in tab based on global settings.

@@ -167,30 +167,20 @@ void AnimationParams::guiSetPlay(int direction){
 	switch (direction) {
 		case -1:
 			cmd = PanelCommand::captureStart(this, "play reverse");
-			//myAnimationTab->pauseButton->setOn(false);
-			//myAnimationTab->playForwardButton->setOn(false);
-			//myAnimationTab->pauseButton->setDown(false);
-			//myAnimationTab->playForwardButton->setDown(false);
+			
 			myAnimationTab->stepForwardButton->setEnabled(false);
 			myAnimationTab->stepReverseButton->setEnabled(false);
 			
 			break;
 		case 0:
 			cmd = PanelCommand::captureStart(this, "pause animation");
-			//myAnimationTab->playReverseButton->setOn(false);
-			//myAnimationTab->playForwardButton->setOn(false);
-			//myAnimationTab->pauseButton->setDown(true);
-			//myAnimationTab->playReverseButton->setDown(false);
-			//myAnimationTab->playForwardButton->setDown(false);
+			
 			myAnimationTab->stepForwardButton->setEnabled(true);
 			myAnimationTab->stepReverseButton->setEnabled(true);
 			break;
 		case 1:
 			cmd = PanelCommand::captureStart(this, "play forward");
-			//myAnimationTab->pauseButton->setOn(false);
-			//myAnimationTab->playReverseButton->setOn(false);
-			//myAnimationTab->pauseButton->setDown(false);
-			//myAnimationTab->playReverseButton->setDown(false);
+			
 			myAnimationTab->stepForwardButton->setEnabled(false);
 			myAnimationTab->stepReverseButton->setEnabled(false);
 			
