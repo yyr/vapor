@@ -37,8 +37,8 @@ Renderer::Renderer( VizWin* vw )
 	//
 	myVizWin = vw;
     myGLWindow = vw->getGLWindow();
-	VizWinMgr* vwm = VizWinMgr::getInstance();
-	int winNum = vw->getWindowNum();
+	
+	
 	myDataMgr = Session::getInstance()->getDataMgr();
 	myMetadata = Session::getInstance()->getCurrentMetadata();
 
@@ -141,40 +141,6 @@ void Renderer::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	
 
 }
-// This method draws the faces of the region-cube.
-// The surface of the cube is drawn partially transparent. 
-// This is drawn after the cube is drawn.
-// If a face is selected, it is drawn yellow
-// The z-buffer will continue to be
-// read-only, but is left on so that the grid lines will continue to be visible.
-// Faces of the cube are numbered 0..5 based on view from pos z axis:
-// back, front, bottom, top, left, right
-// selectedFace is -1 if nothing selected
-//	
-// The viewer direction determines which faces are rendered.  If a coordinate
-// of the viewDirection is positive (resp., negative), 
-// then the back side (resp front side) of the corresponding cube side is rendered
-void Renderer::renderRegionBounds(float* extents, int selectedFace, float* camPos, float faceDisplacement){
-	//Copy the extents so they can be stretched
-	int i;
-	float cpExtents[6];
-	int stretchCrd = -1;
-	//Determine which coord direction is being stretched:
-	if (selectedFace >= 0) {
-		stretchCrd = (5-selectedFace)/2;
-		if (selectedFace%2) stretchCrd +=3;
-	}
-	for (i = 0; i< 6; i++) {
-		cpExtents[i] = extents[i];
-		//Stretch the "extents" associated with selected face
-		if(i==stretchCrd) cpExtents[i] += faceDisplacement;
-	}
-	for (i = 0; i< 6; i++){
-		if (faceIsVisible(extents, camPos, i)){
-			drawRegionFace(cpExtents, i, (i==selectedFace));
-		}
-	}
-}
 
 float* Renderer::cornerPoint(float* extents, int faceNum){
 	if(faceNum&1) return extents+3;
@@ -207,7 +173,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 	
 	glPolygonMode(GL_FRONT, GL_FILL);
 	if (isSelected)
-			glColor4f(.8f,.8f,0.f,.3f);
+			glColor4f(.8f,.8f,0.f,.8f);
 		else 
 			glColor4f(.8f,.8f,.8f,.2f);
 	switch (faceNum){
@@ -311,5 +277,40 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			return;
 	}
 }
+// This method draws the faces of the region-cube.
+// The surface of the cube is drawn partially transparent. 
+// This is drawn after the cube is drawn.
+// If a face is selected, it is drawn yellow
+// The z-buffer will continue to be
+// read-only, but is left on so that the grid lines will continue to be visible.
+// Faces of the cube are numbered 0..5 based on view from pos z axis:
+// back, front, bottom, top, left, right
+// selectedFace is -1 if nothing selected
+//	
+// The viewer direction determines which faces are rendered.  If a coordinate
+// of the viewDirection is positive (resp., negative), 
+// then the back side (resp front side) of the corresponding cube side is rendered
 
+void Renderer::renderRegionBounds(float* extents, int selectedFace, float* camPos, float faceDisplacement){
+	//Copy the extents so they can be stretched
+	int i;
+	float cpExtents[6];
+	int stretchCrd = -1;
+
+	//Determine which coord direction is being stretched:
+	if (selectedFace >= 0) {
+		stretchCrd = (5-selectedFace)/2;
+		if (selectedFace%2) stretchCrd +=3;
+	}
+	for (i = 0; i< 6; i++) {
+		cpExtents[i] = extents[i];
+		//Stretch the "extents" associated with selected face
+		if(i==stretchCrd) cpExtents[i] += faceDisplacement;
+	}
+	for (i = 0; i< 6; i++){
+		if (faceIsVisible(extents, camPos, i)){
+			drawRegionFace(cpExtents, i, (i==selectedFace));
+		}
+	}
+}
 

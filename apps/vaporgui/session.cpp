@@ -243,7 +243,7 @@ void Session::resetCommandQueue(){
 // This data is inserted into currentDatastatus;
 DataStatus* Session::
 setupDataStatus(){
-	int numTimeSteps = currentMetadata->GetNumTimeSteps()[0];
+	size_t numTimeSteps = currentMetadata->GetNumTimeSteps()[0];
 	int numVariables = currentMetadata->GetVariableNames().size();
 	DataStatus* ds = new DataStatus(numVariables, numTimeSteps);
 	int numXForms = currentMetadata->GetNumTransforms();
@@ -254,7 +254,7 @@ setupDataStatus(){
 	//As we go through the variables and timesteps, keepTrack of min and max times
 	minTimeStep = 1000000000;
 	maxTimeStep = 0;
-	for (size_t ts = 0; ts<(size_t)numTimeSteps; ts++){
+	for (size_t ts = 0; ts< numTimeSteps; ts++){
 		for (int var = 0; var< numVariables; var++){
 			//Find the minimum number of transforms available on disk
 			//Start at the max (lowest res) and move down to min

@@ -147,8 +147,8 @@ DrawVoxelScene(unsigned /*fast*/)
 	static float minFull[3], maxFull[3];
 	int max_dim[3];
 	int min_dim[3];
-	int max_bdim[3];
-	int min_bdim[3];
+	size_t max_bdim[3];
+	size_t min_bdim[3];
 	float fullExtent[6];
 	int data_roi[6];
 	int i;
@@ -182,6 +182,16 @@ DrawVoxelScene(unsigned /*fast*/)
 			- (((myRegionParams->getRegionSize(i) >> s) / 2.0)-1.0));
 		max_dim[i] = (int) ((float) (myRegionParams->getCenterPosition(i) >> s) - 0.5 
 			+ (((myRegionParams->getRegionSize(i) >> s) / 2.0)));
+		//Make sure slab has nonzero thickness (this can only
+		//be a problem while the mouse is pressed):
+		//
+		if (min_dim[i] >= max_dim[i]){
+			if (max_dim[i] < 1){
+				max_dim[i] = 1;
+				min_dim[i] = 0;
+			}
+			else min_dim[i] = max_dim[i] - 1;
+		}
 		min_bdim[i] = min_dim[i] / bs;
 		max_bdim[i] = max_dim[i] / bs;
 	}
@@ -264,8 +274,8 @@ DrawVoxelScene(unsigned /*fast*/)
 				myAnimationParams->getCurrentFrameNumber(),
 				myDVRParams->getVariableName(),
 				numxforms,
-				(const size_t*)min_bdim,
-				(const size_t*)max_bdim,
+				min_bdim,
+				max_bdim,
 				0 //Don't lock!
 			);
 
@@ -345,7 +355,9 @@ DrawVoxelScene(unsigned /*fast*/)
 		//Then normalize to unit cube coords:
 		float disp = myRegionParams->getFaceDisplacement();
 		disp /= ViewpointParams::getMaxCubeSide();
-		renderRegionBounds(extents, myRegionParams->getSelectedFaceNum(),
+		int selectedFace = myRegionParams->getSelectedFaceNum();
+		assert(selectedFace >= -1 && selectedFace < 6);
+		renderRegionBounds(extents, selectedFace,
 			camVec, disp);
 	}
 
@@ -361,5 +373,43 @@ DrawVoxelWindow(unsigned fast)
 	DrawVoxelScene(fast);
 }
 
+// This method draws the faces of the region-cube.
+// The surface of the cube is drawn partially transparent. 
+// This is drawn after the cube is drawn.
+// If a face is selected, it is drawn yellow
+// The z-buffer will continue to be
+// read-only, but is left on so that the grid lines will continue to be visible.
+// Faces of the cube are numbered 0..5 based on view from pos z axis:
+// back, front, bottom, top, left, right
+// selectedFace is -1 if nothing selected
+//	
+// The viewer direction determines which faces are rendered.  If a coordinate
+// of the viewDirection is positive (resp., negative), 
+// then the back side (resp front side) of the corresponding cube side is rendered
+/*
+void VolumizerRenderer::renderRegionBounds(float* extents, int selectedFace, float* camPos, float faceDisplacement){
+	//Copy the extents so they can be stretched
+	int i;
+	float cpExtents[6];
+	int stretchCrd = -1;
+
+	//Determine which coord direction is being stretched:
+	if (selectedFace >= 0) {
+		stretchCrd = (5-selectedFace)/2;
+		if (selectedFace%2) stretchCrd +=3;
+	}
+	for (i = 0; i< 6; i++) {
+		cpExtents[i] = extents[i];
+		//Stretch the "extents" associated with selected face
+		if(i==stretchCrd) cpExtents[i] += faceDisplacement;
+	}
+	for (i = 0; i< 6; i++){
+		if (faceIsVisible(extents, camPos, i)){
+			drawRegionFace(cpExtents, i, (i==selectedFace));
+		}
+	}
+}
+
+*/
 #endif //VOLUMIZER
 

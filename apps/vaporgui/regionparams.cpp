@@ -228,16 +228,20 @@ setDirty(){
 bool RegionParams::
 enforceConsistency(int dim){
 	bool rc = false;
+	//The region size must be positive, i.e. at least
+	//2 in transformed coords
+	if (regionSize[dim]< (1<<(numTrans+1)))
+		regionSize[dim] = (1<<(numTrans+1));
 	if (regionSize[dim]>fullSize[dim]) {
-		setRegionSize(dim,fullSize[dim]); 
+		regionSize[dim] =fullSize[dim]; 
 		rc = true;
 	}
 	if (centerPosition[dim]<(1+regionSize[dim])/2) {
-		setCenterPosition(dim, (1+regionSize[dim])/2);
+		centerPosition[dim]= (1+regionSize[dim])/2;
 		rc = true;
 	}
 	if (centerPosition[dim]+(1+regionSize[dim])/2 > fullSize[dim]){
-		setCenterPosition(dim, fullSize[dim]-(1+regionSize[dim])/2);
+		centerPosition[dim]= fullSize[dim]-(1+regionSize[dim])/2;
 		rc = true;
 	}
 	return rc;
@@ -476,10 +480,10 @@ reinit(){
 	//Setup the global region parameters based on bounds in Metadata
 	const size_t* dataDim = md->GetDimension();
 	
-	
-	int nx = dataDim[0];
-	int ny = dataDim[1];
-	int nz = dataDim[2];
+	//Note:  It's OK to cast to int here:
+	int nx = (int)dataDim[0];
+	int ny = (int)dataDim[1];
+	int nz = (int)dataDim[2];
 	setMaxSize(Max(Max(nx, ny), nz));
 	setFullSize(0, nx);
 	setFullSize(1, ny);
@@ -571,27 +575,27 @@ captureMouseDown(int faceNum, float camPos[3], float dirVec[3]){
 
 void RegionParams::
 captureMouseUp(){
-	//If no change, can quit;
+	//If no change, nothing to do, except
+	//nullify unDo state
 	if (faceDisplacement ==0.f || (selectedFaceNum < 0)) {
 		if (savedCommand) {
 			delete savedCommand;
 			savedCommand = 0;
 		}
-		selectedFaceNum = -1;
-		faceDisplacement = 0.f;
-		return;
-	}
-	int coord = (5-selectedFaceNum)/2;
-	if (selectedFaceNum %2) {
-		setRegionMax(coord, getRegionMax(coord)+faceDisplacement);
-	} else {
-		setRegionMin(coord, getRegionMin(coord)+faceDisplacement);
+		
+	} else { //terminate dragging
+		int coord = (5-selectedFaceNum)/2;
+		if (selectedFaceNum %2) {
+			setRegionMax(coord, getRegionMax(coord)+faceDisplacement);
+		} else {
+			setRegionMin(coord, getRegionMin(coord)+faceDisplacement);
+		}
+		
+		enforceConsistency(coord);
+		updateDialog();
 	}
 	faceDisplacement = 0.f;
 	selectedFaceNum = -1;
-	
-	enforceConsistency(coord);
-	updateDialog();
 	setDirty();
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, this);

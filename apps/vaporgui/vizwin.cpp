@@ -252,10 +252,12 @@ mousePressEvent(QMouseEvent* e){
 	switch (myWinMgr->selectionMode){
 		//In region mode,first check for clicks on selected region
 		case Command::regionMode :
-			//Find the cube coords of the corners of the region, from
-			//regionParams, transformed 
-			//
+			//Only capture if it's the left mouse button:
+			if (e->button() == Qt::LeftButton)
 			{
+				//Find the cube coords of the corners of the region, from
+				//regionParams, transformed 
+				//
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				RegionParams* rParams = myWinMgr->getRegionParams(myWindowNum);
 				int faceNum = pointOverCube(rParams, screenCoords);
@@ -294,6 +296,7 @@ mouseReleaseEvent(QMouseEvent*e){
 		case Command::regionMode :
 			//Check if the region bounds were moved
 			if (myWinMgr->getRegionParams(myWindowNum)->draggingFace()){
+				mouseDownHere = false;
 				myWinMgr->getRegionParams(myWindowNum)->captureMouseUp();
 				break;
 			} //otherwise fall through to navigate mode
@@ -529,7 +532,8 @@ pointOverCube(RegionParams* rParams, float screenCoords[2]){
 		mincrd[i] = rParams->getRegionMin(i);
 		maxcrd[i] = rParams->getRegionMax(i);
 	}
-	//Specify corners in counterclockwise order (appearing from front) 
+	//Specify corners in counterclockwise order 
+	//(appearing from front, i.e. pos z axis) 
 	//Back first:
 	corners[0+3*0] = mincrd[0];
 	corners[1+3*0] = mincrd[1];
@@ -564,7 +568,7 @@ pointOverCube(RegionParams* rParams, float screenCoords[2]){
 		ViewpointParams::worldToCube(corners+j*3, corners+j*3);
 	//Finally, for each face, test the point:
 	
-	//Back
+	//Back (as viewed from the positive z-axis):
 	if (myGLWindow->pointIsOnQuad(corners+0,corners+9,corners+6,corners+3,
 		screenCoords)) return 0;
 	//Front

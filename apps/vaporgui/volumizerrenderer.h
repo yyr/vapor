@@ -50,8 +50,11 @@ public:
 
 protected:
 	DVRBase* create_driver(
-		const char	*name,
-		int	nthreads);
+		const char	*name,int	nthreads);
+	/*
+	void renderRegionBounds(float* extents, int selectedFace, 
+		float* cameraPos, float faceDisplacement);
+	*/
 
 private:
 	DVRBase* driver;
