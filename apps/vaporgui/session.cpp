@@ -220,10 +220,12 @@ resetMetadata(const char* fileBase)
 		size_t max_bdim[3];
 		size_t bs = currentMetadata->GetBlockSize();
 		int fullDataSize = 1;
+		int subDataSize[3];
 		for (int k = 0; k<3; k++){
 			fullDataSize *= currentDataStatus->getFullDataSize(k);
+			subDataSize[k] = currentDataStatus->getFullDataSize(k)>>currentDataStatus->getNumTransforms();
 			min_bdim[k] = 0;
-			max_bdim[k] = (currentDataStatus->getFullDataSize(k)>>currentDataStatus->getNumTransforms())/bs -1;
+			max_bdim[k] = ((currentDataStatus->getFullDataSize(k)-1)>>currentDataStatus->getNumTransforms())/bs;
 		}
 		//Initialize the histograms array to null.
 		currentHistograms[i] = 0;
@@ -240,7 +242,8 @@ resetMetadata(const char* fileBase)
 						max_bdim,
 						0 //Don't lock!
 					), 
-				fullDataSize>>(3*currentDataStatus->getNumTransforms()),
+				subDataSize[0]*subDataSize[1]*subDataSize[2],
+				//fullDataSize>>(3*currentDataStatus->getNumTransforms()),
 				dataMin, dataMax
 				);
 				break;//stop after first successful construction
@@ -440,7 +443,7 @@ int DataStatus::minXFormPresent(){
 //Needed for setting DVR panel
 //
 bool DataStatus::variableIsPresent(int varnum){
-	for (size_t ts = minTimeStep; ts<maxTimeStep; ts++){
+	for (size_t ts = minTimeStep; ts<=maxTimeStep; ts++){
 		if (dataIsPresent(varnum, ts)) return true;
 	}
 	return false;
