@@ -91,7 +91,7 @@
 #define NODATAMGR 0
 #define MAX_HISTORY 1000
 
-
+#include <vector>
 namespace VAPoR {
 class VizWinMgr;
 class Histo;
@@ -100,9 +100,9 @@ class MainForm;
 class Params;
 class Command;
 class Metadata;
-#if NODATAMGR
+class DataStatus;
 class WaveletBlock3DRegionReader;
-#endif
+
 class Session {
 public:
 	Session(MainForm* mf);
@@ -113,8 +113,7 @@ public:
 	VizWinMgr* getWinMgr() {return vizWinMgr;}
 	MainForm* getMainWindow() {return mainWin;}
 	Metadata* getCurrentMetadata() {return currentMetadata;}
-	//Create a new Metadata, by specifying vmf file
-	void resetMetadata(const char* vmfile);
+	
 	//Methods to control the command queue:
 	//When a new command is issued, call "addToHistory"
 	//The backup and advance methods are invoked from the
@@ -134,14 +133,20 @@ public:
 	void blockRecording() {recordingCount++;}
 	void unblockRecording() {recordingCount--;}
 	bool isRecording() {return (recordingCount == 0);}
-	Histo* getCurrentHistogram() {return currentHistogram;}
-#if NODATAMGR
-	WaveletBlock3DRegionReader* myReader;
-#endif
+	Histo* getCurrentHistogram(int var) {
+		return (currentHistograms ? currentHistograms[var]: 0);}
+	const WaveletBlock3DRegionReader* getRegionReader() {return myReader;}
+	//Create a new Metadata, by specifying vmf file
+	void resetMetadata(const char* vmfile);
+
 
 protected:
-	DataMgr* dataMgr;
+	WaveletBlock3DRegionReader* myReader;
 	
+	//setup the DataStatus:
+	DataStatus* setupDataStatus();
+	DataMgr* dataMgr;
+	DataStatus* currentDataStatus;
 	VizWinMgr* vizWinMgr;
 	MainForm* mainWin;
 	Command* commandQueue[MAX_HISTORY];
@@ -149,10 +154,71 @@ protected:
 	int endQueuePos;
 	int startQueuePos;
 	int recordingCount;
-	Histo* currentHistogram;
+	Histo** currentHistograms;
 	Metadata* currentMetadata;
-};
 	
+};
+// Class used by session to keep track of variables, timesteps	
+class DataStatus{
+public:
+	DataStatus(int numvariables, int numtimesteps);
+	~DataStatus();
+	//Set methods:
+	//Either there is a minimum xform present, or none
+	//
+	void setMinXFormPresent(int varnum, int timestep, int xf){
+		dataPresent[timestep + varnum*numTimesteps] = xf;
+	}
+	void setDataAbsent(int varnum, int timestep){
+		dataPresent[timestep + varnum*numTimesteps] = -1;
+	}
+	void setDataMax(int varnum, int timestep, double val){
+		maxData[timestep + varnum*numTimesteps] = val;
+	}
+	void setDataMin(int varnum, int timestep, double val){
+		minData[timestep + varnum*numTimesteps] = val;
+	}
+	void setMaximum(int varnum, float maxval)
+		{dataRange[varnum][1] = maxval;}
+	void setMinimum(int varnum, float minval)
+		{dataRange[varnum][0] = minval;}
+	void setNumTransforms(int numtrans) {numTransforms = numtrans;}
+	void setFullDataSize(int dim, size_t size){fullDataSize[dim]=size;}
+	// Get methods:
+	//
+	bool dataIsPresent(int varnum, int timestep){
+		return (dataPresent[timestep + varnum*numTimesteps] >= 0);
+	}
+	double getDataMax(int varnum, int timestep){
+		return maxData[timestep + varnum*numTimesteps];
+	}
+	double getDataMin(int varnum, int timestep){
+		return minData[timestep + varnum*numTimesteps];
+	}
+	double getDataMaxOverTime(int varnum){return dataRange[varnum][1];}
+	double getDataMinOverTime(int varnum){return dataRange[varnum][0];}
+	
+	int minXFormPresent(int varnum, int timestep){
+		return dataPresent[timestep + varnum*numTimesteps];
+	}
+	int getNumVariables() {return numVariables;}
+	int getNumTimesteps() {return numTimesteps;}
+	int getNumTransforms() {return numTransforms;}
+	size_t getFullDataSize(int dim){return fullDataSize[dim];}
+	float* getDataRange(int varNum){
+		return dataRange[varNum];
+	}
+
+private:
+	int numTransforms;
+	int numVariables;
+	int numTimesteps;
+	double* minData;
+	double* maxData;
+	int* dataPresent;
+	size_t fullDataSize[3];
+	float** dataRange;
+};
 }; //end VAPoR namespace
 #endif //SESSION_H
 

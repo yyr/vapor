@@ -146,12 +146,13 @@ void DvrParams::updateDialog(){
 	myDvrTab->variableCombo->setCurrentItem(varNum);
 	myDvrTab->variableCombo->setMaxCount(numVariables);
 	//Set the names in the variable combo
+	myDvrTab->variableCombo->clear();
 	for (int i = 0; i< numVariables; i++){
 		const std::string& s = variableNames.at(i);
 		//Direct conversion of std:string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
-		myDvrTab->variableCombo->changeItem(text,i);
+		myDvrTab->variableCombo->insertItem(text);
 	}
 	myDvrTab->lightingCheckbox->setChecked(lightingOn);
 	myDvrTab->numBitsSpin->setValue(numBits);

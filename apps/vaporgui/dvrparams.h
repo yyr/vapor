@@ -70,6 +70,7 @@ public:
 	float getSpecularAttenuation() {return specularAtten;}
 	
 	void setVarNum(int val) {varNum = val;}
+	int getVarNum() {return varNum;}
 	const char* getVariableName() {
 		return (const char*) (variableNames[varNum].c_str());
 	}

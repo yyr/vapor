@@ -13,7 +13,8 @@ win32:TARGET = ../../../targets/win32/bin/vaporgui
 win32:OBJECTS_DIR = ../../../targets/win32/built/vaporgui/
 
 
-win32:LIBS += ../../../targets/win32/bin/wavelet.lib
+win32:LIBS += ../../../targets/win32/bin/vdf.lib
+win32:LIBS += ../../../targets/win32/bin/common.lib
 
 CONFIG += opengl 
 CONFIG += debug
@@ -29,8 +30,6 @@ DEFINES += VOLUMIZER
 
 
 INCLUDEPATH += ./ui \
-	../../include/wavelet \
-	../../lib/wavelet \
 	../../include
 
 MOC_DIR = ../../../apps/vaporgui/moc
@@ -73,8 +72,7 @@ SOURCES +=\
 	   vizselectcombo.cpp \
            vizwin.cpp \
            vizwinmgr.cpp \
-	   volumizerrenderer.cpp \
-	   wbfile.cpp 
+	   volumizerrenderer.cpp 
 	   
 HEADERS += \
 	   coloradjustdialog.h \

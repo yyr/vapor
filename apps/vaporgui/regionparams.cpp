@@ -37,8 +37,8 @@ using namespace VAPoR;
 RegionParams::RegionParams(MainForm* mf, int winnum): Params(mf, winnum){
 	thisParamType = RegionParamsType;
 	myRegionTab = mf->getRegionTab();
-	stride = 1;
-	maxStride = 9;
+	numTrans = 0;
+	maxNumTrans = 9;
 	maxSize = 256;
 	for (int i = 0; i< 3; i++){
 		centerPosition[i] = 128;
@@ -74,8 +74,8 @@ void RegionParams::updateDialog(){
 	
 	QString strng;
 	mainWin->getSession()->blockRecording();
-	myRegionTab->strideSpin->setMaxValue(maxStride);
-	myRegionTab->strideSpin->setValue(stride);
+	myRegionTab->numTransSpin->setMaxValue(maxNumTrans);
+	myRegionTab->numTransSpin->setValue(numTrans);
 	int dataMaxSize = Max(fullSize[0],Max(fullSize[1],fullSize[2]));
 	myRegionTab->maxSizeSlider->setMaxValue(dataMaxSize);
 	myRegionTab->maxSizeSlider->setValue(maxSize);
@@ -227,10 +227,10 @@ enforceConsistency(int dim){
 //
 
 void RegionParams::
-guiSetStride(int n){
+guiSetNumTrans(int n){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"set region stride");
-	setStride(n);
+	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"set number of Transformations");
+	setNumTrans(n);
 	PanelCommand::captureEnd(cmd, this);
 }
 //Following are set when slider is released:
@@ -483,8 +483,8 @@ reinit(){
 	setCenterPosition(1, ny/2);
 	setCenterPosition(2, nz/2);
 	int nlevels = md->GetNumTransforms();
-	setMaxStride(nlevels+1);
-	setStride(nlevels+1);
+	setMaxNumTrans(nlevels);
+	setNumTrans(nlevels);
 	//Data extents (user coords) will need to be presented in gui
 	//
 	setDataExtents(md->GetExtents());

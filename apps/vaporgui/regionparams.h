@@ -45,8 +45,8 @@ public:
 	virtual void makeCurrent(Params* p, bool newWin);
 	
 		
-	void setStride(int n) {stride = Min(n, maxStride); setDirty();}
-	int getStride() {return stride;}
+	void setNumTrans(int n) {numTrans = Min(n, maxNumTrans); setDirty();}
+	int getNumTrans() {return numTrans;}
 	int getMaxSize() {return maxSize;}
 	//Note: setMaxSize is a hack to make it easy for user to
 	//Manipulate all 3 sizes
@@ -82,8 +82,8 @@ public:
 		return regionSize[i];
 	}
 	void setTab(RegionTab* tab) {myRegionTab = tab;}
-	void setMaxStride(int maxLev) {maxStride = maxLev;}
-	int getMaxStride() {return maxStride;}
+	void setMaxNumTrans(int maxNT) {maxNumTrans = maxNT;}
+	int getMaxNumTrans() {return maxNumTrans;}
 	void setCurrentTimestep(int val) {currentTimestep = val; setDirty();}
 	int getCurrentTimestep() {return currentTimestep;}
 	void setDataExtents(const std::vector<double> ext){
@@ -100,7 +100,7 @@ public:
 	//Following methods are set from gui, have undo/redo support:
 	//
 	void guiSetMaxSize(int newMax);
-	void guiSetStride(int n);
+	void guiSetNumTrans(int n);
 	void guiSetXCenter(int n);
 	void guiSetXSize(int n);
 	void guiSetYCenter(int n);
@@ -127,7 +127,7 @@ protected:
 	int centerPosition[3];
 	int regionSize[3];
 	int fullSize[3];
-	int maxSize, stride, maxStride;
+	int maxSize, numTrans, maxNumTrans;
 	int currentTimestep;
 	RegionTab* myRegionTab;
 	std::vector<double> dataExtents;

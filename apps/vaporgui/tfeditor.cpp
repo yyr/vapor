@@ -73,7 +73,7 @@ void TFEditor::refreshImage(){
 		editImage = new QImage(myFrame->size(), 32);
 	}
 	editImage->fill(0);
-	Histo* histo = session->getCurrentHistogram();
+	Histo* histo = session->getCurrentHistogram(myParams->getVarNum());
 	//find histo max, for the interval that is mapped by the
 	//transfer function:
 	//
@@ -593,7 +593,7 @@ void TFEditor::setHsv(int h, int s, int v){
 //
 int TFEditor::
 getHistoValue(float point){
-	Histo* hist = session->getCurrentHistogram();
+	Histo* hist = session->getCurrentHistogram(myParams->getVarNum());
 	if (!hist) return -1;
 	int index = (int)(point*255.99f);
 	assert(index >= 0 && index <256);

@@ -344,13 +344,8 @@ setActiveViz(int vizNum){
 		activationOrder[vizNum]= (++activationCount);
 		//Determine if the local viewpoint dialog applies, update the tab dialog
 		//appropriately
+		updateActiveParams();
 		
-		getViewpointParams(activeViz)->updateDialog();
-		getRegionParams(activeViz)->updateDialog();
-		getDvrParams(activeViz)->updateDialog();
-		getContourParams(activeViz)->updateDialog();
-		getIsoParams(activeViz)->updateDialog();
-
 		tabManager->show();
 		//Add to history if this is not during initial creation.
 		if (prevActiveViz >= 0){
@@ -359,6 +354,18 @@ setActiveViz(int vizNum){
 		}
 	}
 }
+//Method to cause all the params to update their tab panels for the active
+//Viz window
+void VizWinMgr::
+updateActiveParams(){
+	if (activeViz < 0) return;
+	getViewpointParams(activeViz)->updateDialog();
+	getRegionParams(activeViz)->updateDialog();
+	getDvrParams(activeViz)->updateDialog();
+	getContourParams(activeViz)->updateDialog();
+	getIsoParams(activeViz)->updateDialog();
+}
+
 //Method to enable closing of a vizWin for Undo/Redo
 void VizWinMgr::
 killViz(int viznum){
@@ -456,7 +463,7 @@ VizWinMgr::hookUpRegionTab(RegionTab* rTab)
 	
 	//Signals and slots:
 	
-	connect (rTab->strideSpin, SIGNAL( valueChanged(int) ), this, SLOT( setRegionStride(int) ) );
+	connect (rTab->numTransSpin, SIGNAL( valueChanged(int) ), this, SLOT( setRegionNumTrans(int) ) );
  	connect (rTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setRgLocalGlobal(int)));
 
 	connect (rTab->xCntrEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
@@ -690,10 +697,10 @@ regionReturnPressed(void){
 	getRegionParams(activeViz)->confirmText(true);
 }
 void VizWinMgr::
-setRegionStride(int str){
+setRegionNumTrans(int nt){
 	//Dispatch the signal to the current active region parameter panel, or to the
 	//global panel:
-	getRegionParams(activeViz)->guiSetStride(str);
+	getRegionParams(activeViz)->guiSetNumTrans(nt);
 	
 }
 /* 
@@ -1188,6 +1195,26 @@ getLocalParams(Params::ParamType t){
 			return getRealIsoParams(activeViz);
 		case (Params::DvrParamsType):
 			return getRealDvrParams(activeViz);
+		default:  assert(0);
+			return 0;
+	}
+}
+//Get the Params that apply.  If there is no current active viz, then
+//return the global params.
+Params* VizWinMgr::
+getApplicableParams(Params::ParamType t){
+	if(activeViz < 0) return getGlobalParams(t);
+	switch (t){
+		case (Params::ViewpointParamsType):
+			return getViewpointParams(activeViz);
+		case (Params::RegionParamsType):
+			return getRegionParams(activeViz);
+		case (Params::ContourParamsType):
+			return getContourParams(activeViz);
+		case (Params::IsoParamsType):
+			return getIsoParams(activeViz);
+		case (Params::DvrParamsType):
+			return getDvrParams(activeViz);
 		default:  assert(0);
 			return 0;
 	}

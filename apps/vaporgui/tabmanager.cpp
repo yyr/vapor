@@ -26,6 +26,7 @@
 #include "params.h"
 #include "command.h"
 #include "session.h"
+#include "vizwinmgr.h"
 using namespace VAPoR;
 TabManager::TabManager(QWidget* parent, const char* name,  WFlags f)
 	: QTabWidget(parent, name, f)
@@ -142,6 +143,9 @@ newFrontTab(QWidget*) {
 	Params::ParamType prevType = Params::UnknownParamsType;
 	if(currentFrontPage >= 0) prevType = widgetTypes[currentFrontPage];
 	currentFrontPage = newFrontPosn;
+	//Refresh this tab from the corresponding params:
+	Params* p = currentSession->getWinMgr()->getApplicableParams(widgetTypes[newFrontPosn]);
+	p->updateDialog();
 	//Put into history
 	TabChangeCommand* cmd = new TabChangeCommand(prevType, widgetTypes[newFrontPosn], currentSession);
 	currentSession->addToHistory(cmd);

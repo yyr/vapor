@@ -128,7 +128,10 @@ public:
 	DvrParams* getDvrParams(int winNum);
 	ContourParams* getContourParams(int winNum);
 	IsosurfaceParams* getIsoParams(int winNum);
-	
+	//Get whatever params apply to a particular tab
+	Params* getApplicableParams(Params::ParamType t);
+	//Make all the params for the current window update their tabs:
+	void updateActiveParams();
 	//Establish connections to this from the viztab.
 	//This class has the responsibility of rerouting messages from
 	//the viz tab to the various viz parameter panels
@@ -279,7 +282,7 @@ protected slots:
 	void contourReturnPressed();
 
 	//Then the regionTab slots:
-	void setRegionStride(int);
+	void setRegionNumTrans(int);
 	void setRegionMaxSize();
 	//Sliders set these:
 	void setRegionXCenter();

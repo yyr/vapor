@@ -199,8 +199,8 @@ DrawVoxelScene(unsigned /*fast*/)
 		//level is flevels -stride + 1:
 		//= (maxstride -1) - (stride) + 1
 		int numxforms;
-		if (myVizWin->mouseIsDown()) numxforms = myRegionParams->getMaxStride()-1;
-		else numxforms = myRegionParams->getStride()-1;
+		if (myVizWin->mouseIsDown()) numxforms = myRegionParams->getMaxNumTrans();
+		else numxforms = myRegionParams->getNumTrans();
 		int bs;
 		bs = myMetadata->GetBlockSize();
 		int i;
