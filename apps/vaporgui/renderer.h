@@ -64,8 +64,8 @@ protected:
 	//Rendering-related parameters (from Bob_App) come from region etc.
 	//These should be reset whenever the region parameters are dirtied.
 	//
-	RegionParams* myRegionParams;
-	ViewpointParams* myViewpointParams;
+	
+	
 	//Helper functions for drawing region bounds:
 	static float* cornerPoint(float* extents, int faceNum);
 	// Faces of the cube are numbered 0..5 based on view from pos z axis:

@@ -573,7 +573,10 @@ void RegionParams::
 captureMouseUp(){
 	//If no change, can quit;
 	if (faceDisplacement ==0.f || (selectedFaceNum < 0)) {
-		if (savedCommand) delete savedCommand;
+		if (savedCommand) {
+			delete savedCommand;
+			savedCommand = 0;
+		}
 		selectedFaceNum = -1;
 		faceDisplacement = 0.f;
 		return;

@@ -156,6 +156,10 @@ DrawVoxelScene(unsigned /*fast*/)
 	if (!myDataMgr) return;
 	if (!Session::getInstance()->renderReady()) return;
 	int winNum = myVizWin->getWindowNum();
+	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
+	ViewpointParams* myViewpointParams = VizWinMgr::getInstance()->getViewpointParams(winNum);
+	
 	//Tell the animation we are starting.  If it returns false, we are not
 	//being monitored by the animation controller
 	bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
@@ -246,8 +250,7 @@ DrawVoxelScene(unsigned /*fast*/)
 		
 		//Make sure we are using the current regionParams
 		
-		myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-		AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
+		
 		//Do Region setup as in SetCurrentFile() (mdb.C):
 		//
 
@@ -337,7 +340,6 @@ DrawVoxelScene(unsigned /*fast*/)
 	//Finally render the region geometry, if in region mode
 	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
 		float camVec[3];
-		ViewpointParams* myViewpointParams = VizWinMgr::getInstance()->getViewpointParams(winNum);
 		ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
 		//Obtain the face displacement in world coordinates,
 		//Then normalize to unit cube coords:

@@ -39,8 +39,6 @@ Renderer::Renderer( VizWin* vw )
     myGLWindow = vw->getGLWindow();
 	VizWinMgr* vwm = VizWinMgr::getInstance();
 	int winNum = vw->getWindowNum();
-	myViewpointParams = vwm->getViewpointParams(winNum);
-	myRegionParams = vwm->getRegionParams(winNum);
 	myDataMgr = Session::getInstance()->getDataMgr();
 	myMetadata = Session::getInstance()->getCurrentMetadata();
 
@@ -52,53 +50,17 @@ void Renderer::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 
 	int i; 
 	int numLines[3];
-	float regionSize[3], fullSize[3];
-	/*
-	//Determine how many lines in each dimension to render.  Find the smallest size 
-	//of any of the current region dimensions.  See what power-of-two fraction of the full 
-	//cube is as small as that size in that dimension.  Then subdivide all dimensions 
-	//in that fraction.float minSize = 1.e30f;
+	float regionSize, fullSize[3], modMin[3],modMax[3];
 	
-	int logDim[3], numLines[3];
-	
-	int minDim;
-	float minSize = 1.e30f;
-	
-	for (i = 0; i<3; i++){
-		regionSize[i] = extents[i+3]-extents[i];;
-		fullSize[i] = maxFull[i] - minFull[i];
-		if (minSize > regionSize[i]) {
-			minSize = regionSize[i];
-			minDim = i;
-		}
-	}
-	if (regionSize[minDim]< fullSize[minDim]*.01){
-		int foo = 3;
-	}
-	float sizeFraction = (fullSize[minDim])/minSize;
-	//Find the integer log, base 2 of this:
-	
-	logDim[minDim] = ILog2((int)(sizeFraction+0.5f));
-	//The log in the other dimensions will be about the same unless the
-	//full region is substantially different in that dimension
-	for (i = 0; i<3; i++){
-		if (i!= minDim){
-			float sizeRatio =	fullSize[i]/fullSize[minDim];
-			if (sizeRatio > 1.f)
-				logDim[i] = logDim[minDim]+ ILog2((int)sizeRatio);
-			else 
-				logDim[i] = logDim[minDim]- ILog2((int)(1.f/sizeRatio));
-		}
-		numLines[i] = 1<<logDim[i];
-		//Limit to no more than 2-way grid lines
-		if (numLines[i]>2) numLines[i] = 2;
-	}
-	*/
 	//Instead:  either have 2 or 1 lines in each dimension.  2 if the size is < half
 	for (i = 0; i<3; i++){
-		regionSize[i] = extents[i+3]-extents[i];;
-		fullSize[i] = maxFull[i] - minFull[i];
-		if (regionSize[i] < fullSize[i]*.5) numLines[i] = 2;
+		regionSize = extents[i+3]-extents[i];
+		//Stretch size by 1%
+		fullSize[i] = (maxFull[i] - minFull[i])*1.01;
+		float mid = 0.5f*(maxFull[i]+minFull[i]);
+		modMin[i] = mid - 0.5f*fullSize[i];
+		modMax[i] = mid + 0.5f*fullSize[i];
+		if (regionSize < fullSize[i]*.5) numLines[i] = 2;
 		else numLines[i] = 1;
 	}
 	
@@ -114,63 +76,63 @@ void Renderer::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	
 	glBegin( GL_LINES );
 	for (z = 0; z<=numLines[2]; z++){
-		float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
+		float zCrd = modMin[2] + ((float)z/(float)numLines[2])*fullSize[2];
 		//Draw lines in x-direction for each y
 		for (y = 0; y<=numLines[1]; y++){
-			float yCrd = minFull[1] + ((float)y/(float)numLines[1])*fullSize[1];
+			float yCrd = modMin[1] + ((float)y/(float)numLines[1])*fullSize[1];
 			
-			glVertex3f(  minFull[0],  yCrd, zCrd );   
-			glVertex3f( maxFull[0],  yCrd, zCrd );
+			glVertex3f(  modMin[0],  yCrd, zCrd );   
+			glVertex3f( modMax[0],  yCrd, zCrd );
 			
 		}
 		//Draw lines in y-direction for each x
 		for (x = 0; x<=numLines[0]; x++){
-			float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
+			float xCrd = modMin[0] + ((float)x/(float)numLines[0])*fullSize[0];
 			
-			glVertex3f(  xCrd, minFull[1], zCrd );   
-			glVertex3f( xCrd, maxFull[1], zCrd );
+			glVertex3f(  xCrd, modMin[1], zCrd );   
+			glVertex3f( xCrd, modMax[1], zCrd );
 			
 		}
 	}
 	//Do the lines in each y-plane
 	
 	for (y = 0; y<=numLines[1]; y++){
-		float yCrd = minFull[1] + ((float)y/(float)numLines[1])*fullSize[1];
+		float yCrd = modMin[1] + ((float)y/(float)numLines[1])*fullSize[1];
 		//Draw lines in x direction for each z
 		for (z = 0; z<=numLines[2]; z++){
-			float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
+			float zCrd = modMin[2] + ((float)z/(float)numLines[2])*fullSize[2];
 			
-			glVertex3f(  minFull[0],  yCrd, zCrd );   
-			glVertex3f( maxFull[0],  yCrd, zCrd );
+			glVertex3f(  modMin[0],  yCrd, zCrd );   
+			glVertex3f( modMax[0],  yCrd, zCrd );
 			
 		}
 		//Draw lines in z direction for each x
 		for (x = 0; x<=numLines[0]; x++){
-			float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
+			float xCrd = modMin[0] + ((float)x/(float)numLines[0])*fullSize[0];
 		
-			glVertex3f(  xCrd, yCrd, minFull[2] );   
-			glVertex3f( xCrd, yCrd, maxFull[2]);
+			glVertex3f(  xCrd, yCrd, modMin[2] );   
+			glVertex3f( xCrd, yCrd, modMax[2]);
 			
 		}
 	}
 	
 	//Do the lines in each x-plane
 	for (x = 0; x<=numLines[0]; x++){
-		float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
+		float xCrd = modMin[0] + ((float)x/(float)numLines[0])*fullSize[0];
 		//Draw lines in y direction for each z
 		for (z = 0; z<=numLines[2]; z++){
-			float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
+			float zCrd = modMin[2] + ((float)z/(float)numLines[2])*fullSize[2];
 			
-			glVertex3f(  xCrd, minFull[1], zCrd );   
-			glVertex3f( xCrd, maxFull[1], zCrd );
+			glVertex3f(  xCrd, modMin[1], zCrd );   
+			glVertex3f( xCrd, modMax[1], zCrd );
 			
 		}
 		//Draw lines in z direction for each y
 		for (y = 0; y<=numLines[1]; y++){
-			float yCrd = minFull[1] + ((float)y/(float)numLines[1])*fullSize[1];
+			float yCrd = modMin[1] + ((float)y/(float)numLines[1])*fullSize[1];
 			
-			glVertex3f(  xCrd, yCrd, minFull[2] );   
-			glVertex3f( xCrd, yCrd, maxFull[2]);
+			glVertex3f(  xCrd, yCrd, modMin[2] );   
+			glVertex3f( xCrd, yCrd, modMax[2]);
 			
 		}
 	}
