@@ -1,0 +1,60 @@
+//
+//      $Id$
+//
+//************************************************************************
+//								*
+//		     Copyright (C)  2005			*
+//     University Corporation for Atmospheric Research		*
+//		     All Rights Reserved			*
+//								*
+//************************************************************************/
+//
+//	File:		
+//
+//	Author:		John Clyne
+//			National Center for Atmospheric Research
+//			PO 3000, Boulder, Colorado
+//
+//	Date:		Wed Feb 16 16:42:51 MST 2005
+//
+//	Description:	
+//
+#include <cstdarg>
+#include <cstdio>
+#include <cassert>
+#include <idl_export.h>
+#include "IDLCommon.h"
+
+
+namespace {
+
+const vector<long> longNullVec(1,0);
+const vector<double> doubleNullVec(1,0.0);
+const vector<string> stringNullVec(1,"");
+
+
+IDL_SYS_FUNCS_HERE
+
+
+};
+
+int IDL_LoadMeta(void)
+{
+	//
+	//These tables contain information on the functions and procedures
+	//that make up the TESTMODULE DLM. The information contained in these
+	//tables must be identical to that contained in testmodule.dlm.
+	//
+	static IDL_SYSFUN_DEF2 func_addr[] = {
+IDL_FUNC_TABLE_HERE
+	};
+
+	static IDL_SYSFUN_DEF2 proc_addr[] = {
+IDL_PROC_TABLE_HERE
+	};
+
+	return IDL_SysRtnAdd(func_addr, TRUE, IDL_CARRAY_ELTS(func_addr)) && 
+		IDL_SysRtnAdd(proc_addr, FALSE, IDL_CARRAY_ELTS(proc_addr));
+
+}
+
