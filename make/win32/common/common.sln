@@ -8,10 +8,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdf", "..\vdf\vdf.vcproj", 
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "..\..\..\targets\win32\bin\vaporgui", "..\vaporgui\vaporgui.vcproj", "{31CFF039-709C-3804-9B46-2ED0A8D45C92}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vaporgui", "..\vaporgui\vaporgui.vcproj", "{31CFF039-709C-3804-9B46-2ED0A8D45C92}"
 	ProjectSection(ProjectDependencies) = postProject
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9} = {3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}
+		{E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05} = {E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "raw2vdf", "..\raw2vdf\raw2vdf.vcproj", "{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}"
@@ -30,6 +32,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdf2raw", "..\vdf2raw\vdf2r
 	ProjectSection(ProjectDependencies) = postProject
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jpeg", "..\jpeg\jpeg.vcproj", "{E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05}"
+	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
 Global
@@ -62,6 +68,10 @@ Global
 		{87B1E7C5-4724-464D-B074-01B5A5A14BFF}.Debug.Build.0 = Debug|Win32
 		{87B1E7C5-4724-464D-B074-01B5A5A14BFF}.Release.ActiveCfg = Release|Win32
 		{87B1E7C5-4724-464D-B074-01B5A5A14BFF}.Release.Build.0 = Release|Win32
+		{E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05}.Debug.ActiveCfg = Debug|Win32
+		{E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05}.Debug.Build.0 = Debug|Win32
+		{E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05}.Release.ActiveCfg = Release|Win32
+		{E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
