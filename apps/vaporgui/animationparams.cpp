@@ -39,48 +39,56 @@ AnimationParams::AnimationParams(MainForm* mf, int winnum): Params(mf, winnum){
 	thisParamType = AnimationParamsType;
 	myAnimationTab = mf->getAnimationTab();
 	// set everything to default state:
-	isPaused = true;
+	playDirection = 0;
 	repeatPlay = true;
-	minFrameSeconds = 0.1f;
+	maxFrameRate = 10; 
 	frameStepSize = 1;
 	startFrame = 1;
 	endFrame = 100;
-	maxFrame = 1; 
-	minFrame = 100;
+	maxFrame = 100; 
+	minFrame = 1;
 	currentFrame = 1;
+	
 }
 AnimationParams::~AnimationParams(){}
 
 
 //Update the dialog with values from this:
 void AnimationParams::updateDialog(){
+	float sliderVal;
 	QString strn;
 	mainWin->getSession()->blockRecording();
-	float sliderVal = 0.f;
+	sliderVal = 0.f;
 	if (endFrame > startFrame)
 		sliderVal = 1000.f*(float)(currentFrame-startFrame)/(float)(endFrame-startFrame);
 	myAnimationTab->animationSlider->setValue((int)sliderVal);
+	sliderVal = 0.f;
+	
 	myAnimationTab->startFrameEdit->setText(strn.setNum(startFrame));
 	myAnimationTab->currentFrameEdit->setText(strn.setNum(currentFrame));
 	myAnimationTab->endFrameEdit->setText(strn.setNum(endFrame));
 	myAnimationTab->minFrameLabel->setText(strn.setNum(minFrame));
 	myAnimationTab->maxFrameLabel->setText(strn.setNum(maxFrame));
-	myAnimationTab->minFrameTimeEdit->setText(strn.setNum(minFrameSeconds,'g',3));
+	myAnimationTab->maxFrameRateEdit->setText(strn.setNum(maxFrameRate,'g',3));
 	myAnimationTab->frameStepEdit->setText(strn.setNum(frameStepSize));
 	
-	if (isPaused) {
+	if (playDirection==0) {
 		myAnimationTab->pauseButton->setDown(true);
-		myAnimationTab->playButton->setDown(false);
+		myAnimationTab->playForwardButton->setDown(false);
+		myAnimationTab->playReverseButton->setDown(false);
+	} else if (playDirection==1){
+		myAnimationTab->pauseButton->setDown(false);
+		myAnimationTab->playForwardButton->setDown(true);
+		myAnimationTab->playReverseButton->setDown(false);
 	} else {
 		myAnimationTab->pauseButton->setDown(false);
-		myAnimationTab->playButton->setDown(true);
+		myAnimationTab->playForwardButton->setDown(false);
+		myAnimationTab->playReverseButton->setDown(true);
 	}
 	if (repeatPlay){
 		myAnimationTab->replayButton->setDown(true);
-		myAnimationTab->onewayButton->setDown(false);
 	} else {
 		myAnimationTab->replayButton->setDown(false);
-		myAnimationTab->onewayButton->setDown(true);
 	}
 	if (isLocal())
 		myAnimationTab->LocalGlobal->setCurrentItem(1);
@@ -98,7 +106,7 @@ void AnimationParams::updatePanelState(){
 	endFrame = myAnimationTab->endFrameEdit->text().toInt();
 	currentFrame = myAnimationTab->currentFrameEdit->text().toInt();
 	frameStepSize = myAnimationTab->frameStepEdit->text().toInt();
-	minFrameSeconds = myAnimationTab->minFrameTimeEdit->text().toFloat();
+	maxFrameRate = myAnimationTab->maxFrameRateEdit->text().toFloat();
 
 	//Update the slider
 	float sliderVal = 0.f;
@@ -118,14 +126,24 @@ void AnimationParams::makeCurrent(Params* p, bool newWin){
 
 
 //Following are set by gui, result in save history state:
-void AnimationParams::guiSetPause(bool val){
+
+void AnimationParams::guiSetPlay(int direction){
 	confirmText(false);
 	PanelCommand* cmd;
-	if (val)
-		cmd = PanelCommand::captureStart(this, mainWin->getSession(),"pause animation");
-	else 
-		cmd = PanelCommand::captureStart(this, mainWin->getSession(),"play animation");
-	isPaused = val;
+	switch (direction) {
+		case -1:
+			cmd = PanelCommand::captureStart(this, mainWin->getSession(),"play reverse");
+			break;
+		case 0:
+			cmd = PanelCommand::captureStart(this, mainWin->getSession(),"pause animation");
+			break;
+		case 1:
+			cmd = PanelCommand::captureStart(this, mainWin->getSession(),"play forward");
+			break;
+		default:
+			assert(0);
+	}
+	playDirection = direction;
 	PanelCommand::captureEnd(cmd, this);
 }
 void AnimationParams::guiGoToStart(){
@@ -140,41 +158,19 @@ void AnimationParams::guiGoToEnd(){
 	currentFrame = endFrame;
 	PanelCommand::captureEnd(cmd, this);
 }
-void AnimationParams::guiFastPlay(bool forward){
+
+
+
+void AnimationParams::guiReleasePositionSlider(int position){
 	confirmText(false);
-	PanelCommand* cmd;
-	if (isPaused){ // single-step forward or reverse
-		cmd = PanelCommand::captureStart(this, mainWin->getSession(),"Frame single step");
-		if (forward) currentFrame += frameStepSize;
-		else currentFrame -= frameStepSize;
-		if (!repeatPlay){
-			if (currentFrame > endFrame)currentFrame = endFrame;
-			if (currentFrame < startFrame) currentFrame = startFrame;
-		} else {
-			if (currentFrame > endFrame) {
-				currentFrame = startFrame + (currentFrame - endFrame);
-				if (currentFrame > endFrame) currentFrame = startFrame;
-			}
-			if (currentFrame < startFrame){
-				currentFrame = endFrame - (startFrame - currentFrame);
-				if (currentFrame < startFrame)
-					currentFrame = endFrame;
-			}
-		}
-	}
-	else { // increase or decrease playback rate
-		cmd = PanelCommand::captureStart(this, mainWin->getSession(),"modify forward/reverse speed");
-		if (forward) {
-			frameStepSize++;
-			if (frameStepSize == 0) frameStepSize = 1;
-			if (frameStepSize >= (endFrame - startFrame)) frameStepSize = 1;
-		} else {
-			frameStepSize--;
-			if (frameStepSize == 0) frameStepSize = -1;
-			if (frameStepSize <= (startFrame - endFrame)) frameStepSize = -1;
-		}
-	}
+	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"Change current frame number");
+	currentFrame = position;
 	PanelCommand::captureEnd(cmd, this);
 }
 
-
+void AnimationParams::guiReleaseStepsizeSlider(int position){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, mainWin->getSession(),"Change current step size");
+	frameStepSize = position;
+	PanelCommand::captureEnd(cmd, this);
+}

@@ -49,17 +49,17 @@ public:
 	void setTab(AnimationTab* tab) {myAnimationTab = tab;}
 	
 	//Following are set by gui, result in save history state:
-	void guiSetPause(bool val);
+	void guiSetPlay(int direction);
 	void guiGoToStart();
 	void guiGoToEnd();
-	void guiFastPlay(bool forward);
-	void guiReleaseSlider(int position);
+	void guiReleasePositionSlider(int position);
+	void guiReleaseStepsizeSlider(int position);
 	
 protected:
-	bool isPaused;
+	int playDirection; //-1, 0, or 1
 	bool repeatPlay;
-	float minFrameSeconds;
-	int frameStepSize;
+	float maxFrameRate;
+	int frameStepSize;// always 1 or greater
 	int startFrame;
 	int endFrame;
 	int maxFrame, minFrame;
