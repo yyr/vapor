@@ -136,7 +136,9 @@ void Renderer::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 			
 		}
 	}
+	
 	glEnd();//GL_LINES
+	
 	
 	
 

@@ -471,8 +471,8 @@ void MainForm::languageChange()
     dataConfigure_MetafileAction->setText( tr( "Configure Metafile" ) );
     dataConfigure_MetafileAction->setMenuText( tr( "&Configure Metafile" ) );
 	dataConfigure_MetafileAction->setToolTip("Launch a tool to construct the metafile associated with a dataset");
-    dataLoad_MetafileAction->setText( tr( "Load Data" ) );
-    dataLoad_MetafileAction->setMenuText( tr( "&Load Data" ) );
+    dataLoad_MetafileAction->setText( tr( "Load Volume Data" ) );
+    dataLoad_MetafileAction->setMenuText( tr( "&Load Volume Data" ) );
 	dataLoad_MetafileAction->setToolTip("Specify the data set to be loaded via its metafile");
     
 
@@ -665,7 +665,7 @@ void MainForm::loadData()
 	QString filename = QFileDialog::getOpenFileName(MDFile,
 		"Vapor Metadata Files (*.vdf)",
 		this,
-		"Load Data Dialog",
+		"Load Volume Data Dialog",
 		"Choose the Metadata File");
 	if(filename != QString::null){
 		

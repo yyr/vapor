@@ -233,7 +233,13 @@ DrawVoxelScene(unsigned /*fast*/)
 	//In regionMode, draw a grid:
 	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
 		renderDomainFrame(extents, minFull, maxFull);
-	}
+	} 
+	//This works around a volumizer/opengl bug!!!
+	//If you issue a non-unit glColor before the volume rendering, it 
+	//affects the subsequent volume rendering on Irix, but not on
+	//Windows or Linux!
+	glColor3f(1.f,1.f,1.f);	   
+	
 	
 	//If there are new coords, get them from GL, send them to the gui
 	if (myVizWin->viewerCoordsChanged()){ 
