@@ -181,7 +181,7 @@ include $(DEPS)
 endif
 endif
 
-INCLUDE_DIRS += -I$(INCDIR) -I.
+INCLUDE_DIRS += -I$(INCDIR) -I. -I$(INCDIR)/vaporinternal
 
 PRINT_COMMAND := lpr
 
