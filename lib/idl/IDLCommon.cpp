@@ -55,8 +55,8 @@ Metadata *varGetMetadata(
 
 	IDL_ENSURE_SCALAR(var);
 
-	if (var->type != IDL_TYP_PTR) {
-        errFatal("Metadata handle must be of type IDL_TYP_PTR");
+	if (var->type != IDL_TYP_MEMINT) {
+        errFatal("Metadata handle must be of type IDL_TYP_MEMINT");
     }
-	return((Metadata *) var->value.hvid);
+	return((Metadata *) var->value.memint);
 }

@@ -38,11 +38,11 @@ WaveletBlock3DIO *varGetIO(
 
 	IDL_ENSURE_SCALAR(var);
 
-	if (var->type != IDL_TYP_PTR) {
-		errFatal("VDF IO handle must be of type IDL_TYP_PTR");
+	if (var->type != IDL_TYP_MEMINT) {
+		errFatal("VDF IO handle must be of type IDL_TYP_MEMINT");
 	}
 
-	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) var->value.hvid;
+	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) var->value.memint;
 	const string	&classname = io->GetClassName();
 
 	if (! ((classname.compare("WaveletBlock3DBufReader") == 0) ||
@@ -51,7 +51,7 @@ WaveletBlock3DIO *varGetIO(
 
 		errFatal("Invalid VDF IO handle type for operation");
 	}
-	return((WaveletBlock3DIO *) var->value.hvid);
+	return((WaveletBlock3DIO *) var->value.memint);
 }
 
 
@@ -63,7 +63,7 @@ IDL_VPTR vdfBufReaderCreate(int argc, IDL_VPTR *argv)
 
 	IDL_ENSURE_SCALAR(arg);
 
-	if (arg->type == IDL_TYP_PTR) {
+	if (arg->type == IDL_TYP_MEMINT) {
 		Metadata *metadata = varGetMetadata(arg);
 		reader = new WaveletBlock3DBufReader(metadata);
 	}
@@ -75,9 +75,7 @@ IDL_VPTR vdfBufReaderCreate(int argc, IDL_VPTR *argv)
 	myBaseErrChk();
 
 
-	IDL_VPTR result = IDL_Gettmp();
-	result->type = IDL_TYP_PTR;
-	result->value.ul = (IDL_ULONG) reader;
+	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) reader);
 
 	return(result);
 }
@@ -139,7 +137,7 @@ IDL_VPTR vdfRegionReaderCreate(int argc, IDL_VPTR *argv)
 
 	IDL_ENSURE_SCALAR(arg);
 
-	if (arg->type == IDL_TYP_PTR) {
+	if (arg->type == IDL_TYP_MEMINT) {
 		Metadata *metadata = varGetMetadata(arg);
 		reader = new WaveletBlock3DRegionReader(metadata);
 	}
@@ -151,9 +149,7 @@ IDL_VPTR vdfRegionReaderCreate(int argc, IDL_VPTR *argv)
 	myBaseErrChk();
 
 
-	IDL_VPTR result = IDL_Gettmp();
-	result->type = IDL_TYP_PTR;
-	result->value.ul = (IDL_ULONG) reader;
+	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) reader);
 
 	return(result);
 }
@@ -229,7 +225,7 @@ IDL_VPTR vdfBufWriterCreate(int argc, IDL_VPTR *argv)
 
 	IDL_ENSURE_SCALAR(arg);
 
-	if (arg->type == IDL_TYP_PTR) {
+	if (arg->type == IDL_TYP_MEMINT) {
 		Metadata *metadata = varGetMetadata(arg);
 		writer = new WaveletBlock3DBufWriter(metadata);
 	}
@@ -241,9 +237,7 @@ IDL_VPTR vdfBufWriterCreate(int argc, IDL_VPTR *argv)
 	myBaseErrChk();
 
 
-	IDL_VPTR result = IDL_Gettmp();
-	result->type = IDL_TYP_PTR;
-	result->value.ul = (IDL_ULONG) writer;
+	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) writer);
 
 	return(result);
 }
@@ -552,9 +546,7 @@ IDL_VPTR vdfGetMetadata(int argc, IDL_VPTR *argv)
 	myBaseErrChk();
 
 
-	IDL_VPTR result = IDL_Gettmp();
-	result->type = IDL_TYP_PTR;
-	result->value.ul = (IDL_ULONG) io;
+	IDL_VPTR result = IDL_GettmpMEMINT((IDL_MEMINT) io);
 
 	return(result);
 }
