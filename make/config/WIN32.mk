@@ -35,6 +35,7 @@ EXPATLIB := "$(EXPAT_LIB_PATH)/libs/libexpat.lib"
 QTLIB = "$(QTDIR)/lib/qt-mt332.lib"
 
 CXXFLAGS += -I"$(VOLUMIZER_ROOT)/include"
+CXXFLAGS += /Fd"$(OBJDIR)/vc70.pdb"
 
 
 CAT = cat
