@@ -51,7 +51,7 @@ protected:
 	//There can exist only one DataMgr during the life of this renderer:
 	//
 	DataMgr* myDataMgr;
-	Metadata* myMetadata;
+	const Metadata* myMetadata;
 	//Rendering-related parameters (from Bob_App) come from region etc.
 	//These should be reset whenever the region parameters are dirtied.
 	//

@@ -230,6 +230,8 @@ DrawVoxelScene(unsigned /*fast*/)
 			myDataMgr->SetDataRange(myDVRParams->getCurrentDatarange());
 			myDVRParams->setDatarangeDirty(false);
 		}
+		static void* dataSaved = 0;
+		
 		void* data = (void*) myDataMgr->GetRegionUInt8(
 				myRegionParams->getCurrentTimestep(),
 				myDVRParams->getVariableName(),
@@ -238,7 +240,25 @@ DrawVoxelScene(unsigned /*fast*/)
 				(const size_t*)max_bdim,
 				0 //Don't lock!
 			);
-
+#if 0 //Check for change of data at resolution 2
+		if (numxforms == 2){
+			if (dataSaved && dataSaved != data){
+				int datasize = (max_dim[0]-min_dim[0])*
+					(max_dim[1]-min_dim[1])*(max_dim[2]-min_dim[2]);
+				for (int i = 0; i< datasize; i++){
+					if (((unsigned char *)data)[i] !=
+						((unsigned char *)dataSaved)[i]){
+							qWarning("DIFFERENCE FOUND at position %d", i);
+							break;
+						}
+				}
+				
+				qWarning("END COMPARISON");
+			}
+			if (!dataSaved) qWarning("GETTING FIRST VERSION OF DATA");
+			dataSaved = data;
+		}
+#endif
 		/*
 		fprintf(stderr, "DataMgr::GetRegion(index=%d, x0=%d, y0=%d, z0=%d, x1=%d, y1=%d, z1=%d, level=%d\n", 
 			myRegionParams->getCurrentTimestep(), min_bdim[0], min_bdim[1], min_bdim[2], 

@@ -462,7 +462,7 @@ slide (QPoint& ){
 //Reinitialize region settings, session has changed:
 void RegionParams::
 reinit(){
-	Metadata* md = mainWin->getSession()->getCurrentMetadata();
+	const Metadata* md = mainWin->getSession()->getCurrentMetadata();
 	//Setup the global region parameters based on bounds in Metadata
 	const size_t* dataDim = md->GetDimension();
 	

@@ -708,7 +708,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 //
 void DvrParams::
 reinit(){
-	Metadata* md = mainWin->getSession()->getCurrentMetadata();
+	const Metadata* md = mainWin->getSession()->getCurrentMetadata();
 	//Get the variable names:
 	variableNames = md->GetVariableNames();
 	//reset to first variable:

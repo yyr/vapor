@@ -6,7 +6,7 @@
 //																		*
 //************************************************************************/
 //					
-//	File:		vizwin.cpp
+//	File:		vizwin.h
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research

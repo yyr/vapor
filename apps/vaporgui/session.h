@@ -176,7 +176,7 @@ public:
 	DataMgr* getDataMgr() {return dataMgr;}
 	VizWinMgr* getWinMgr() {return vizWinMgr;}
 	MainForm* getMainWindow() {return mainWin;}
-	Metadata* getCurrentMetadata() {return currentMetadata;}
+	const Metadata* getCurrentMetadata() {return currentMetadata;}
 	//Datarange is a 2-element float vector, one for each variable
 	//
 	float* getDataRange(int variableNum){
@@ -233,7 +233,7 @@ protected:
 	int startQueuePos;
 	int recordingCount;
 	Histo** currentHistograms;
-	Metadata* currentMetadata;
+	const Metadata* currentMetadata;
 	//Cache size in megabytes
 	size_t cacheMB;
 	

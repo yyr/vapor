@@ -48,9 +48,9 @@ Session::Session(MainForm* mainWindow) {
 }
 Session::~Session(){
 	delete vizWinMgr;
-	if (currentMetadata) delete currentMetadata;
-	//Note: Datamgr is deleted by metadata
-	//if (dataMgr) delete dataMgr;
+	
+	//Note: metadata is deleted by Datamgr
+	if (dataMgr) delete dataMgr;
 	for (int i = startQueuePos; i<= endQueuePos; i++){
 		if (commandQueue[i%MAX_HISTORY]) {
 			delete commandQueue[i%MAX_HISTORY];
@@ -83,17 +83,16 @@ restore(char* ){
 void Session::
 resetMetadata(const char* fileBase)
 {
+	//The metadata is created by (and obtained from) the datamgr
 	string path(fileBase);
 	if (dataMgr) delete dataMgr;
 	dataMgr = new DataMgr(fileBase, cacheMB, 1);
-	//if (currentMetadata) delete currentMetadata;
-	currentMetadata = new Metadata(path);
+	
+	currentMetadata = dataMgr->GetMetadata();
 	if (currentMetadata->GetErrCode() != 0) {
 		qWarning( "Error creating Metadata %s\n", currentMetadata->GetErrMsg());
 		return;
 	}
-	
-
 	
 	if (dataMgr->GetErrCode() != 0) {
 		qWarning( "Error creating DataMgr %s\n", dataMgr->GetErrMsg());
@@ -102,10 +101,6 @@ resetMetadata(const char* fileBase)
 
 	myReader = (WaveletBlock3DRegionReader*)dataMgr->GetRegionReader();
 
-	
-	//currentHistogram = new Histo((unsigned char*)dataMgr->GetRegion(
-	//	0, 0, 0, 0, nbx>>1, nby>>1, nbz>>1, 0),
-	//	(nbx*nby*nbz)<<15);
 	resetCommandQueue();
 	if (currentDataStatus) delete currentDataStatus;
 	currentDataStatus = setupDataStatus();
