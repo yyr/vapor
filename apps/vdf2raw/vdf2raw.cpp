@@ -20,7 +20,7 @@ using namespace VAPoR;
 struct {
 	int	ts;
 	char *varname;
-	int	numxforms;
+	int	nxforms;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
 	OptionParser::Boolean_T	block;
@@ -32,7 +32,7 @@ struct {
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts",		1, 	"0","Timestep of data file starting from 0"},
 	{"varname",	1, 	"var1",	"Name of variable"},
-	{"numxforms",1, "0","Multiresolution volume level. Zero implies native resolution"},
+	{"nxforms",1, "0","Multiresolution volume level. Zero implies native resolution"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quitely"},
 	{"block",	0,	"",	"Preserve internal blockign in output file"},
@@ -46,7 +46,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 OptionParser::Option_T	get_options[] = {
 	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
-	{"numxforms", VetsUtil::CvtToInt, &opt.numxforms, sizeof(opt.numxforms)},
+	{"nxforms", VetsUtil::CvtToInt, &opt.nxforms, sizeof(opt.nxforms)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{"block", VetsUtil::CvtToBoolean, &opt.block, sizeof(opt.block)},
@@ -76,12 +76,12 @@ void	process_volume(
 		}
 		metadata = wbreader.GetMetadata();
 
-		if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.numxforms) < 0) {
+		if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.nxforms) < 0) {
 			cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
 			exit(1);
 		} 
 
-		wbreader.GetDim(opt.numxforms, dim);
+		wbreader.GetDim(opt.nxforms, dim);
 		size = dim[0] * dim[1];
 		buf = new float[size];
 		assert (buf != NULL);
@@ -120,12 +120,12 @@ void	process_volume(
 		metadata = wbreader.GetMetadata();
 		size_t bs = metadata->GetBlockSize();
 
-		if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.numxforms) < 0) {
+		if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.nxforms) < 0) {
 			cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
 			exit(1);
 		} 
 
-		wbreader.GetDimBlk(opt.numxforms, bdim);
+		wbreader.GetDimBlk(opt.nxforms, bdim);
 		
 		size = bdim[0]*bs * bdim[1]*bs;
 
@@ -179,13 +179,13 @@ void	process_region(
 	}
 	metadata = wbreader.GetMetadata();
 
-	if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.numxforms) < 0) {
+	if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.nxforms) < 0) {
 		cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
 		exit(1);
 	} 
 
 	size_t dim[3];
-	wbreader.GetDim(opt.numxforms, dim);
+	wbreader.GetDim(opt.nxforms, dim);
 	size_t min[3] = {opt.xregion.min, opt.yregion.min, opt.zregion.min};
 	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
 
