@@ -45,7 +45,6 @@ void	MyBase::SetErrMsg(
 		assert(ErrMsg != NULL);
 		ErrMsgSize = alloc_size;
 	}
-
 	// Loop until we've successfully buffered the error message, growing
 	// the message buffer as needed
 	//
@@ -136,8 +135,9 @@ void	VetsUtil::StrRmWhiteSpace(string &s) {
 		s.replace(0, i, "", 0);
 	}
 
-	
+	if (s.length() < 1) return;
 	i = s.length() - 1;
+
 	assert(i >= 0);
 	while (isspace(s[i])) i--;
 
