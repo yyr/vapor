@@ -53,8 +53,6 @@ using namespace VAPoR;
 DvrParams::DvrParams(MainForm* mf, int winnum) : Params(mf, winnum){
 	thisParamType = DvrParamsType;
 	myDvrTab = mf->getDvrTab();
-	
-
 	varNum = 0;
 	lightingOn = false;
 	numBits = 8;
@@ -143,10 +141,10 @@ void DvrParams::updateDialog(){
 	
 	mainWin->getSession()->blockRecording();
 	myDvrTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
-	myDvrTab->variableCombo->setCurrentItem(varNum);
-	myDvrTab->variableCombo->setMaxCount(numVariables);
+	
 	//Set the names in the variable combo
 	myDvrTab->variableCombo->clear();
+	myDvrTab->variableCombo->setMaxCount(numVariables);
 	for (int i = 0; i< numVariables; i++){
 		const std::string& s = variableNames.at(i);
 		//Direct conversion of std:string& to QString doesn't seem to work
@@ -154,6 +152,8 @@ void DvrParams::updateDialog(){
 		const QString& text = QString(s.c_str());
 		myDvrTab->variableCombo->insertItem(text);
 	}
+	myDvrTab->variableCombo->setCurrentItem(varNum);
+	
 	myDvrTab->lightingCheckbox->setChecked(lightingOn);
 	myDvrTab->numBitsSpin->setValue(numBits);
 	myDvrTab->diffuseShading->setText(strn.setNum(diffuseCoeff, 'g', 3));

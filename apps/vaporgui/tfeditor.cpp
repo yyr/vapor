@@ -34,6 +34,7 @@ TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm, Session
 	minEditValue = 0.f;
 	maxEditValue = 1.f;
 	editImage = new QImage(frm->size(), 32);
+	editImage->detach();
 	//opacImage = new QImage(frm->size(), 32);
 	height = frm->height();
 	width = frm->width();
@@ -69,8 +70,9 @@ void TFEditor::refreshImage(){
 	width = myFrame->width();
 	height = myFrame->height();
 	if (width != editImage->width() || height != editImage->height()){
-		delete editImage;
+		//delete editImage;
 		editImage = new QImage(myFrame->size(), 32);
+		editImage->detach();
 	}
 	editImage->fill(0);
 	Histo* histo = session->getCurrentHistogram(myParams->getVarNum());
