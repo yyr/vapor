@@ -235,7 +235,18 @@ enforceConsistency(int dim){
 }
 //Methods in support of undo/redo:
 //
-
+void RegionParams::
+guiCenterFull(ViewpointParams* vpparams){
+	confirmText(false);
+	//Undo/redo is done with vpparams
+	vpparams->guiCenterFullRegion(this);
+}
+void RegionParams::
+guiCenterRegion(ViewpointParams* vpparams){
+	confirmText(false);
+	//Undo/redo is done with vpparams
+	vpparams->guiCenterSubRegion(this);
+}
 void RegionParams::
 guiSetNumTrans(int n){
 	confirmText(false);

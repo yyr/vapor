@@ -148,7 +148,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 		globalVP = true;
 	}
 	myGLWindow->myTBall = myTrackball;
-	setValuesFromGui(vpparms->getCurrentViewpoint());
+	setValuesFromGui(vpparms);
 	
 	//Note:  Caller must call show()
 	
@@ -391,7 +391,9 @@ void VizWin::setFocus(){
 
 void VizWin::
 changeCoords(float *vpos, float* vdir, float* upvec) {
-	myWinMgr->getViewpointParams(myWindowNum)->navigate(vpos, vdir, upvec);
+	float worldPos[3];
+	ViewpointParams::worldFromCube(vpos,worldPos);
+	myWinMgr->getViewpointParams(myWindowNum)->navigate(worldPos, vdir, upvec);
 	newViewerCoords = false;
 	//If this window is using global VP, must tell all other global windows to update:
 	if (globalVP){
@@ -406,9 +408,15 @@ changeCoords(float *vpos, float* vdir, float* upvec) {
  * Get viewpoint info from GUI
  */
 void VizWin::
-setValuesFromGui(Viewpoint* vp){
+setValuesFromGui(ViewpointParams* vpparams){
+	Viewpoint* vp = vpparams->getCurrentViewpoint();
+	float transCameraPos[3];
+	float cubeCoords[3];
+	//Must transform from world coords to unit cube coords for trackball.
+	ViewpointParams::worldToCube(vp->getCameraPos(), transCameraPos);
+	ViewpointParams::worldToCube(vpparams->getRotationCenter(), cubeCoords);
+	myTrackball->setFromFrame(transCameraPos, vp->getViewDir(), vp->getUpVec(), cubeCoords, vp->hasPerspective());
 	
-	myTrackball->setFromFrame(vp->getCameraPos(), vp->getViewDir(), vp->getUpVec(), vp->hasPerspective());
 	//If the perspective was changed, a resize event will be triggered at next redraw:
 	
 	myGLWindow->setPerspective(vp->hasPerspective());
@@ -430,7 +438,7 @@ setGlobalViewpoint(bool setGlobal){
 	}
 	myGLWindow->myTBall = myTrackball;
 	ViewpointParams* vpparms = myWinMgr->getViewpointParams(myWindowNum);
-	setValuesFromGui(vpparms->getCurrentViewpoint());
+	setValuesFromGui(vpparms);
 }
 /*
  * Add a renderer to this visualization window
@@ -467,8 +475,15 @@ void VizWin::removeRenderer(const char* rendererName){
 	myGLWindow->updateGL();
 	
 }
-
-
+//Set the trackball center in world coords
+/*
+void VizWin::
+centerTrackball(float worldCenter[3]){
+	float cubeCoords[3];
+	ViewpointParams::worldToCube(worldCenter, cubeCoords);
+	myTrackball->setCenter(cubeCoords);
+}
+*/
     
     
 

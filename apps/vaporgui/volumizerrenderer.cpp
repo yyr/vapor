@@ -188,13 +188,15 @@ DrawVoxelScene(unsigned /*fast*/)
 	}
 	float maxCoordRange = Max(fullExtent[3]-fullExtent[0],Max( fullExtent[4]-fullExtent[1], fullExtent[5]-fullExtent[2]));
 	//calculate the geometric extents of the dimensions in the unit cube:
-	
+	//fit the full region adjacent to the coordinate planes.
 	for (i = 0; i<3; i++) {
 		int dim = (myRegionParams->getFullSize(i)>>numxforms) -1;
 		assert (dim>= max_dim[i]);
 		float extentRatio = (fullExtent[i+3]-fullExtent[i])/maxCoordRange;
-		minFull[i] = 0.5f*(1.f - extentRatio);
-		maxFull[i] = 0.5f*(1.f + extentRatio);
+		minFull[i] = 0.f;
+		maxFull[i] = extentRatio;
+		//minFull[i] = 0.5f*(1.f - extentRatio);
+		//maxFull[i] = 0.5f*(1.f + extentRatio);
 		extents[i] = minFull[i] + ((float)min_dim[i]/(float)dim)*(maxFull[i]-minFull[i]);
 		extents[i+3] = minFull[i] + ((float)max_dim[i]/(float)dim)*(maxFull[i]-minFull[i]);
 	}
@@ -213,7 +215,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	glDrawBuffer(buffer);
 
 	
-	glTranslatef(.5,.5,.5);
+	//glTranslatef(.5,.5,.5);
     myGLWindow->getTBall()->TrackballSetMatrix();
 	//In regionMode, draw a grid:
 	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
@@ -263,9 +265,6 @@ DrawVoxelScene(unsigned /*fast*/)
 				0 //Don't lock!
 			);
 
-		
-		
-
 		// make subregion origin (0,0,0)
 		// Note that this doesn't affect the calc of nx,ny,nz.
 		// Also, save original dims, will need them to find extents.
@@ -288,8 +287,6 @@ DrawVoxelScene(unsigned /*fast*/)
 		data_roi[4] = max_dim[1];
 		data_roi[5] = max_dim[2];
 
-		
-		
 		
 		rc = driver->SetRegion(data,
 			nx, ny, nz,
@@ -398,8 +395,8 @@ void VolumizerRenderer::renderDomainFrame(float* extents, float* minFull, float*
 				logDim[i] = logDim[minDim]- ILog2((int)(1.f/sizeRatio));
 		}
 		numLines[i] = 1<<logDim[i];
-		//Limit to no more than 8-way grid lines
-		if (numLines[i]>8) numLines[i] = 8;
+		//Limit to no more than 4-way grid lines
+		if (numLines[i]>4) numLines[i] = 4;
 	}
 	glColor3f(1.f,1.f,1.f);	   
     glLineWidth( 2.0 );
@@ -409,25 +406,25 @@ void VolumizerRenderer::renderDomainFrame(float* extents, float* minFull, float*
 	//Do the lines in each z-plane
 	//Turn on writing to the z-buffer
 	glDepthMask(GL_TRUE);
-	glTranslatef(-.5, -.5, -.5);
 	
+	glBegin( GL_LINES );
 	for (z = 0; z<=numLines[2]; z++){
 		float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
 		//Draw lines in x-direction for each y
 		for (y = 0; y<=numLines[1]; y++){
 			float yCrd = minFull[1] + ((float)y/(float)numLines[1])*fullSize[1];
-			glBegin( GL_LINES );
+			
 			glVertex3f(  minFull[0],  yCrd, zCrd );   
 			glVertex3f( maxFull[0],  yCrd, zCrd );
-			glEnd();
+			
 		}
 		//Draw lines in y-direction for each x
 		for (x = 0; x<=numLines[0]; x++){
 			float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
-			glBegin( GL_LINES );
+			
 			glVertex3f(  xCrd, minFull[1], zCrd );   
 			glVertex3f( xCrd, maxFull[1], zCrd );
-			glEnd();
+			
 		}
 	}
 	//Do the lines in each y-plane
@@ -437,42 +434,44 @@ void VolumizerRenderer::renderDomainFrame(float* extents, float* minFull, float*
 		//Draw lines in x direction for each z
 		for (z = 0; z<=numLines[2]; z++){
 			float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
-			glBegin( GL_LINES );
+			
 			glVertex3f(  minFull[0],  yCrd, zCrd );   
 			glVertex3f( maxFull[0],  yCrd, zCrd );
-			glEnd();
+			
 		}
 		//Draw lines in z direction for each x
 		for (x = 0; x<=numLines[0]; x++){
 			float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
-			glBegin( GL_LINES );
+		
 			glVertex3f(  xCrd, yCrd, minFull[2] );   
 			glVertex3f( xCrd, yCrd, maxFull[2]);
-			glEnd();
+			
 		}
 	}
+	
 	//Do the lines in each x-plane
 	for (x = 0; x<=numLines[0]; x++){
 		float xCrd = minFull[0] + ((float)x/(float)numLines[0])*fullSize[0];
 		//Draw lines in y direction for each z
 		for (z = 0; z<=numLines[2]; z++){
 			float zCrd = minFull[2] + ((float)z/(float)numLines[2])*fullSize[2];
-			glBegin( GL_LINES );
+			
 			glVertex3f(  xCrd, minFull[1], zCrd );   
 			glVertex3f( xCrd, maxFull[1], zCrd );
-			glEnd();
+			
 		}
 		//Draw lines in z direction for each y
 		for (y = 0; y<=numLines[1]; y++){
 			float yCrd = minFull[1] + ((float)y/(float)numLines[1])*fullSize[1];
-			glBegin( GL_LINES );
+			
 			glVertex3f(  xCrd, yCrd, minFull[2] );   
 			glVertex3f( xCrd, yCrd, maxFull[2]);
-			glEnd();
+			
 		}
 	}
+	glEnd();//GL_LINES
 	
-	glTranslatef(.5, .5, .5);
+	
 
 }
 //The "front" surface of the cube is drawn partially transparent, 
@@ -483,7 +482,7 @@ void VolumizerRenderer::renderDomainFrame(float* extents, float* minFull, float*
 //cube center.
 void VolumizerRenderer::renderRegionBounds(float* extents){
 	
-	glColor4f(.8f,.8f,.8f,.3f);
+	glColor4f(.8f,.8f,.8f,.2f);
 	float sideCoord;
 	if (VizWinMgr::getInstance()->cameraBeyondRegionCenter(0, myVizWin->getWindowNum())){
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -553,7 +552,8 @@ void VolumizerRenderer::renderRegionBounds(float* extents){
 	glVertex3f(extents[3], extents[4], extents[2]);
 	glVertex3f(extents[0], extents[4], extents[2]);
 	glEnd();
-	glColor4f(.8f,.8f,.3f,1.f);
+	//make the front more obvious!
+	//glColor4f(.8f,.8f,.3f,0.7f);
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glBegin(GL_QUADS);
 	glVertex3f(extents[0], extents[1], extents[5]);

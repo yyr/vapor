@@ -89,7 +89,9 @@ public:
 	void captureMouseDown();
 	void captureMouseUp();
 	void guiSetPerspective(bool on);
-	void guiResetView(RegionParams* rParams);
+	
+	void guiCenterFullRegion(RegionParams* rParams);
+	void guiCenterSubRegion(RegionParams* rParams);
 	
 	//Methods to handle home viewpoint
 	void setHomeViewpoint();
@@ -98,15 +100,29 @@ public:
 	//Reset viewpoint when new session is started:
 	virtual void reinit();
 	
+	//Transformations to convert world coords to (unit)render cube and back
+	//
+	static void worldToCube(float fromCoords[3], float toCoords[3]);
+
+	static void worldFromCube(float fromCoords[3], float toCoords[3]);
+	static void setCoordTrans();
+
+	float* getRotationCenter(){ return rotationCenter;}
+	
 protected:
 	//Holder for saving state during mouse move:
 	//
 	PanelCommand* savedCommand;
 	Viewpoint* currentViewpoint;
 	Viewpoint* homeViewpoint;
+	float rotationCenter[3];
 	int numLights;
 	float* lightPositions;
 	VizTab* myVizTab;
+
+	//Static coeffs for affine coord conversion:
+	static float minCubeCoord[3];
+	static float maxCubeSide;
 
 };
 };

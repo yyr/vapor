@@ -34,7 +34,7 @@ class RegionTab;
 
 namespace VAPoR {
 class MainForm;
-
+class ViewpointParams;
 class RegionParams : public Params {
 	
 public: 
@@ -117,6 +117,10 @@ public:
 	void guiSetYSize(int n);
 	void guiSetZCenter(int n);
 	void guiSetZSize(int n);
+
+	//Set the rotation/viewpoint 
+	void guiCenterFull(ViewpointParams* vpp);
+	void guiCenterRegion(ViewpointParams* vpp);
 	
 	// respond to sliding the mouse for region selection
 	//

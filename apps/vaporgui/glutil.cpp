@@ -649,6 +649,18 @@ void StereoPerspective(int fovy, float aspect, float neardist, float fardist,
 
     glMatrixMode(mm);
 }
+/* Make a translation matrix from a vector:
+ */
+void
+makeTransMatrix(float *trans, float* mtrx){
+	for (int i = 0; i<12; i++) mtrx[i] = 0.f;
+	mtrx[0] = 1.f;
+	mtrx[5] = 1.f;
+	mtrx[10] = 1.f;
+	mtrx[15] = 1.f;
+	vcopy(trans, mtrx+12);
+}
+
 /*
  * make a modelview matrix from viewer position, direction, and up vector
  * Vectors must be nonzero

@@ -348,7 +348,7 @@ int	DVRVolumizer::render()
 	//Render() but the lighting in this code seems to need to know the matrix as well
 	
 	glMultMatrixf(matrix_c);
-	glTranslatef(-0.5, -0.5, -0.5);
+	//glTranslatef(-0.5, -0.5, -0.5);
 
 	if (clut_dirty_c || olut_dirty_c) {
 		table_c->setDataFormat(VZ_RGBA);

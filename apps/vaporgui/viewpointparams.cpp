@@ -25,9 +25,13 @@
 #include "params.h"
 #include "panelcommand.h"
 #include "session.h"
+#include "glutil.h"
 #include <qlineedit.h>
 #include <qcombobox.h>
 #include "viewpoint.h"
+float VAPoR::ViewpointParams::maxCubeSide = 1.f;
+float VAPoR::ViewpointParams::minCubeCoord[3] = {0.f,0.f,0.f};
+
 using namespace VAPoR;
 ViewpointParams::ViewpointParams(int winnum): Params(winnum){
 	thisParamType = ViewpointParamsType;
@@ -42,6 +46,7 @@ ViewpointParams::ViewpointParams(int winnum): Params(winnum){
 		setCameraPos(i,0.5f);
 		setViewDir(i,0.f);
 		setUpVec(i, 0.f);
+		rotationCenter[i] = 0.5f;
 	}
 	setUpVec(1,1.f);
 	setViewDir(2,-1.f); 
@@ -110,6 +115,9 @@ void ViewpointParams::updateDialog(){
 	myVizTab->upVec1->setText(strng.setNum(currentViewpoint->getUpVec(1), 'g', 3));
 	myVizTab->upVec2->setText(strng.setNum(currentViewpoint->getUpVec(2), 'g', 3));
 	myVizTab->perspectiveCombo->setCurrentItem(currentViewpoint->hasPerspective());
+	myVizTab->rotCenter0->setText(strng.setNum(rotationCenter[0],'g',3));
+	myVizTab->rotCenter1->setText(strng.setNum(rotationCenter[1],'g',3));
+	myVizTab->rotCenter2->setText(strng.setNum(rotationCenter[2],'g',3));
 	
 	if (isLocal())
 		myVizTab->LocalGlobal->setCurrentItem(1);
@@ -132,6 +140,10 @@ updatePanelState(){
 	setUpVec(0, myVizTab->upVec0->text().toFloat());
 	setUpVec(1, myVizTab->upVec1->text().toFloat());
 	setUpVec(2, myVizTab->upVec2->text().toFloat());
+	rotationCenter[0] = myVizTab->rotCenter0->text().toFloat();
+	rotationCenter[1] = myVizTab->rotCenter1->text().toFloat();
+	rotationCenter[2] = myVizTab->rotCenter2->text().toFloat();
+	updateRenderer(false, false, false);
 	guiSetTextChanged(false);
 }
 
@@ -161,7 +173,7 @@ updateRenderer(bool, bool , bool ) {
 	//(All global visualizers will be sharing the same trackball)
 	//
 	VizWin* viz = myVizMgr->getActiveVisualizer();
-	if (viz) viz->setValuesFromGui(currentViewpoint);
+	if (viz) viz->setValuesFromGui(this);
 	
 	if (!local){
 		//Find all the viz windows that are using global settings.
@@ -211,38 +223,53 @@ guiSetPerspective(bool on){
 	PanelCommand::captureEnd(cmd,this);
 }
 void ViewpointParams::
-guiResetView(RegionParams* rParams){
-	//capture text changes
-	
-	confirmText(false);
-	
+guiCenterSubRegion(RegionParams* rParams){
 	if (savedCommand) {
 		delete savedCommand;
 		savedCommand = 0;
 	}
-	PanelCommand* cmd = PanelCommand::captureStart(this, "reset viewpoint");
-	//Find the largest of the x and z dimensions of the current region:
-	float maxSide = Max(rParams->getRegionMax(0)-rParams->getRegionMin(0),
-		rParams->getRegionMax(1)-rParams->getRegionMin(1));
-	//Position the camera 2*maxSide units away from the front face of this, centered on 
-	//x and y 
-	float camPos[3];
-	camPos[0] = 0.5f*(rParams->getRegionMax(0)+rParams->getRegionMin(0));
-	camPos[1] = 0.5f*(rParams->getRegionMax(1)+rParams->getRegionMin(1));
-	
-	
-	//Position the camera in the positive z-direction from the volume center, looking in
-	//the negative z-direction
-	//
-	camPos[2] = (float)(rParams->getRegionMax(2)+1.5f*maxSide);
-	currentViewpoint->setCameraPos(camPos);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "center sub-region view");
+	//Find the largest of the dimensions of the current region:
+	float maxSide = Max(rParams->getRegionMax(2)-rParams->getRegionMin(2), 
+		Max(rParams->getRegionMax(0)-rParams->getRegionMin(0),
+		rParams->getRegionMax(1)-rParams->getRegionMin(1)));
+	//calculate the camera position: center - 2*viewDir*maxSide;
+	//Position the camera 2.5*maxSide units away from the center, aimed
+	//at the center
+	//Make sure the viewDir is normalized:
+	vnormal(currentViewpoint->getViewDir());
 	for (int i = 0; i<3; i++){
-		currentViewpoint->setViewDir(i,0.f);
-		currentViewpoint->setUpVec(i, 0);
+		float camPosCrd = rParams->getRegionCenter(i) -2.5*maxSide*currentViewpoint->getViewDir(i);
+		currentViewpoint->setCameraPos(i, camPosCrd);
+		rotationCenter[i]= rParams->getRegionCenter(i);
 	}
-	currentViewpoint->setViewDir(2,-1.f);
-	currentViewpoint->setUpVec(1,1.f);
-	updateDialog();
+	
+	updateRenderer(false, false, false);
+	PanelCommand::captureEnd(cmd,this);
+}
+void ViewpointParams::
+guiCenterFullRegion(RegionParams* rParams){
+	if (savedCommand) {
+		delete savedCommand;
+		savedCommand = 0;
+	}
+	PanelCommand* cmd = PanelCommand::captureStart(this, "center full region view");
+	//Find the largest of the dimensions of the current region:
+	float maxSide = Max(rParams->getFullDataExtent(5)-rParams->getFullDataExtent(2), 
+		Max(rParams->getFullDataExtent(3)-rParams->getFullDataExtent(0),
+		rParams->getFullDataExtent(4)-rParams->getFullDataExtent(1)));
+	//calculate the camera position: center - 2.5*viewDir*maxSide;
+	//Position the camera 2.5*maxSide units away from the center, aimed
+	//at the center
+	//Make sure the viewDir is normalized:
+	vnormal(currentViewpoint->getViewDir());
+	for (int i = 0; i<3; i++){
+		float dataCenter = 0.5f*(rParams->getFullDataExtent(i+3)+rParams->getFullDataExtent(i));
+		float camPosCrd = dataCenter -2.5*maxSide*currentViewpoint->getViewDir(i);
+		currentViewpoint->setCameraPos(i, camPosCrd);
+		rotationCenter[i]= rParams->getRegionCenter(i);
+	}
+	
 	updateRenderer(false, false, false);
 	PanelCommand::captureEnd(cmd,this);
 }
@@ -270,16 +297,17 @@ reinit(){
 	float camPos[3];
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	std::vector<double> extents = md->GetExtents();
-	double maxSide = 0.;
 	int i;
+	setCoordTrans();
 	for (i = 0; i<3; i++) {
-		camPos[i] = (float)((extents[i]+extents[3+i])*0.5);
-		if (extents[i+3]-extents[i] > maxSide) maxSide = extents[i+3]-extents[i];
+		rotationCenter[i] = (float)((extents[i]+extents[3+i])*0.5);
+		camPos[i] = rotationCenter[i];
 	}
-	//Position the camera in the positive z-direction from the volume center, looking in
+	
+	//Move the camera in the positive z-direction from the volume center, looking in
 	//the negative z-direction
 	//
-	camPos[2] = (float)(camPos[2]+2.*maxSide);
+	camPos[2] = (float)(camPos[2]+2.5*maxCubeSide);
 	currentViewpoint->setCameraPos(camPos);
 	for (i = 0; i<3; i++){
 		currentViewpoint->setViewDir(i,0.f);
@@ -292,6 +320,55 @@ reinit(){
 	//
 	delete homeViewpoint;
 	homeViewpoint = new Viewpoint(*currentViewpoint);
+	//Make the trackball center on the volume center:
 	updateRenderer(false, false, false);
 	updateDialog();
+	
 }
+//Static methods for converting between world coords and unit cube coords:
+//
+void ViewpointParams::
+worldToCube(float fromCoords[3], float toCoords[3]){
+	for (int i = 0; i<3; i++){
+		toCoords[i] = (fromCoords[i]-minCubeCoord[i])/maxCubeSide;
+	}
+	return;
+}
+
+void ViewpointParams::
+worldFromCube(float fromCoords[3], float toCoords[3]){
+	for (int i = 0; i<3; i++){
+		toCoords[i] = (fromCoords[i]*maxCubeSide) + minCubeCoord[i];
+	}
+	return;
+}
+void ViewpointParams::
+setCoordTrans(){
+	const Metadata* md = Session::getInstance()->getCurrentMetadata();
+	std::vector<double> extents = md->GetExtents();
+	maxCubeSide = -1.f;
+	int i;
+	//find largest cube side, it will map to 1.0
+	for (i = 0; i<3; i++) {
+		if ((float)(extents[i+3]-extents[i]) > maxCubeSide) maxCubeSide = (float)(extents[i+3]-extents[i]);
+		minCubeCoord[i] = (float)extents[i];
+	}
+}
+//Center all the trackballs using these vizparams
+/*
+void ViewpointParams::
+centerTrackballs()
+{
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	if (isLocal()){ 
+		if (vizNum >= 0)
+			vizWinMgr->getVizWin(vizNum)->centerTrackball(rotationCenter);
+	}
+	else {//global
+		for (int i = 0; i<MAXVIZWINS; i++){
+			if (vizWinMgr->getVizWin(i) && !vizWinMgr->getViewpointParams(i)->isLocal())
+				vizWinMgr->getVizWin(i)->centerTrackball(rotationCenter);
+		}
+	}
+}
+*/

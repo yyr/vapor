@@ -312,9 +312,6 @@ protected slots:
 	void contourReturnPressed();
 	void animationReturnPressed();
 
-	//Vtab slots:
-	void resetVtabView();
-
 	//Animation slots:
 	void animationSetFrameStep();
 	void animationSetPosition();
@@ -338,7 +335,9 @@ protected slots:
 	void setRegionXSize();
 	void setRegionYSize();
 	void setRegionZSize();
-	//void setRegionTimestep();
+	//Buttons:
+	void regionCenterFull();
+	void regionCenterRegion();
 
 	//Slots for dvr panel:
 	void setDvrEnabled(int on);

@@ -86,7 +86,7 @@ public:
 	//Following method is called when user has navigated
 	void changeCoords(float *vpos, float* vdir, float* upvec);
 	//Call this when the gui values need to update the visualizer:
-	void setValuesFromGui(Viewpoint* vp);
+	void setValuesFromGui(ViewpointParams* vparams);
 	//Tell this visualizer to use global or local viewpoint:
 	void setGlobalViewpoint(bool);
     //Force an update in the gl window:

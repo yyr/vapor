@@ -89,6 +89,7 @@ void	computeGradientData(
 	int dim[3], int numChan, unsigned char *volume, unsigned char *gradient
 );
 void	makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* matrix);
+void	makeTransMatrix(float* transVec, float* matrix);
 void	vscale (float *v, float s);
 void	vhalf (const float *v1, const float *v2, float *half);
 void	vcross (const float *v1, const float *v2, float *cross);

@@ -74,19 +74,28 @@ public:
 	void	TrackballCopyTo (Trackball *dst);
 	void    TrackballSetTo(float scale, float rvec[3], float radians, float trans[3]);
 	void	TrackballReset ();
+	
 	void	MouseOnTrackball ( int eventType, Qt::ButtonState thisButton, int xcrd, int ycrd, unsigned width, unsigned height);
 	bool	isLocal() {return local;}
-	void	setFromFrame(float* posvec, float* dirvec, float* upvec, bool perspective);
+	//Initialize the trackball, provide viewer position, direction, upvector,
+	//and the center of rotation (all in trackball coordinate space)
+	void	setFromFrame(float* posvec, float* dirvec, float* upvec, float* centerRot,
+				bool perspective);
+	
 	
 private:
+	void	setCenter(float newCenter[3]){
+		center[0]=newCenter[0];center[1]=newCenter[1];center[2]=newCenter[2];}
 	// flag indicating whether this is a local or global tball
 	bool local;
     float	qrot[4];
     float	qinc[4];
     float	trans[3];
     float	scale[3];
+	float	center[3];
     float	ballsize;
     float	lastx, lasty;
+	
 	bool perspective;
 } ;
 };

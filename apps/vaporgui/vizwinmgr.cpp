@@ -299,9 +299,9 @@ comboChanged(int newSetting, int vizNum)
 bool VizWinMgr::
 cameraBeyondRegionCenter(int coord, int vizWinNum){
 	float regionMid = getRegionParams(vizWinNum)->getRegionCenter(coord);
-	float cameraps = getViewpointParams(vizWinNum)->getCameraPos(coord);
-		return( (getRegionParams(vizWinNum)->getRegionCenter(coord)) <
-			(getViewpointParams(vizWinNum)->getCameraPos(coord)));
+	float cameraPos = getViewpointParams(vizWinNum)->getCameraPos(coord);
+	return( regionMid < cameraPos);
+		
 
 }
 /**************************************************************
@@ -468,6 +468,9 @@ VizWinMgr::hookUpVizTab(VizTab* vTab)
 	connect (vTab->upVec0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (vTab->upVec1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (vTab->upVec2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->rotCenter0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->rotCenter1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->rotCenter2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	
 	//Connect all the returnPressed signals, these will update the visualizer.
 	connect (vTab->camPos0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
@@ -479,9 +482,10 @@ VizWinMgr::hookUpVizTab(VizTab* vTab)
 	connect (vTab->upVec0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (vTab->upVec1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (vTab->upVec2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->rotCenter0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->rotCenter1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->rotCenter2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (vTab->numLights, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->resetViewButton, SIGNAL (clicked()), this, SLOT(resetVtabView()));
-	
 	connect (this, SIGNAL(enableMultiViz(bool)), vTab->LocalGlobal, SLOT(setEnabled(bool)));
 	connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyToButton, SLOT(setEnabled(bool)));
 	connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyTargetCombo, SLOT(setEnabled(bool)));
@@ -514,7 +518,8 @@ VizWinMgr::hookUpRegionTab(RegionTab* rTab)
 	connect (rTab->ySizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->zSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->maxSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
-
+	connect (rTab->centerFullViewButton, SIGNAL(clicked()), this, SLOT(regionCenterFull()));
+	connect (rTab->centerRegionViewButton, SIGNAL(clicked()), this, SLOT(regionCenterRegion()));
 	connect (rTab->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionXCenter()));
 	connect (rTab->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionYCenter()));
 	connect (rTab->zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionZCenter()));
@@ -727,12 +732,6 @@ void VizWinMgr::
 setVtabTextChanged(const QString& ){
 	getViewpointParams(activeViz)->guiSetTextChanged(true);
 }
-void VizWinMgr::
-resetVtabView() {
-	getViewpointParams(activeViz)->guiResetView(getRegionParams(activeViz));
-}
-
-
 /* 
  * Following message is sent whenever user presses "return" on a textbox.
  * The changes are then sent to the visualizer:
@@ -755,6 +754,15 @@ sethome()
 /*********************************************************************************
  * Slots associated with RegionTab:
  *********************************************************************************/
+//Center region sets viewpoint values!
+void VizWinMgr::
+regionCenterRegion(){
+	getRegionParams(activeViz)->guiCenterRegion(getViewpointParams(activeViz));
+}
+void VizWinMgr::
+regionCenterFull(){
+	getRegionParams(activeViz)->guiCenterFull(getViewpointParams(activeViz));
+}
 void VizWinMgr::
 setRegionTabTextChanged(const QString& ){
 	getRegionParams(activeViz)->guiSetTextChanged(true);

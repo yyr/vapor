@@ -89,6 +89,10 @@ Trackball::TrackballReset()
     qzero(qrot);
     qzero(qinc);
     vzero(trans);
+	//Default center of rotation:
+	center[0] = 0.5f;
+	center[1] = 0.5f;
+	center[2] = 0.5f;
 }
 
 
@@ -121,21 +125,25 @@ void	Trackball::TrackballSetTo(
 	
 
 
-void Trackball::TrackballSetMatrix()//Note perspective must be set previously in setFromFrame.
+void Trackball::TrackballSetMatrix()
+//Note perspective must be set previously in setFromFrame.
 {
     /* Modify the current gl matrix by the trackball 
      * rotation and translation.
      */
     GLfloat 	m[16];
 	/*Start with the "home" matrix:
+	Currently assuming identity??
 	*/
 	//sendGLHomeViewpoint();
 
     if (perspective) {
+		glTranslatef(center[0], center[1], center[2]);
 	    glTranslatef(trans[0],  trans[1],  trans[2]);
 		//qWarning("translate %f %f %f", trans[0], trans[1], trans[2]);
 	    qmatrix(qrot, m);
 	    glMultMatrixf(m);
+		glTranslatef(-center[0], -center[1], -center[2]);
 		//float* matrix = (float*)m;
 		/*
 		qWarning( "trackball perspective Matrix is: \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f \n %f %f %f %f ",
@@ -332,10 +340,24 @@ void Trackball::MouseOnTrackball(int eventNum, Qt::ButtonState thisButton, int x
 // Set the quaternion and translation from a viewer frame
 // Also happens to construct modelview matrix, but we don't use its translation
 void Trackball::
-setFromFrame(float* posvec, float* dirvec, float* upvec, bool persp){
+setFromFrame(float* posvec, float* dirvec, float* upvec, float* centerRot, bool persp){
 	//First construct the rotation matrix:
+	float mtrx1[16];
+	float trnsMtrx[16];
 	float mtrx[16];
+	setCenter(centerRot);
+	makeTransMatrix(centerRot, trnsMtrx);
 	makeModelviewMatrix(posvec, dirvec, upvec, mtrx);
+	
+	//Translate on both sides by translation
+	//first on left,
+	mmult(trnsMtrx, mtrx, mtrx1);
+	//then on right by negative:
+	trnsMtrx[12] = -trnsMtrx[12];
+	trnsMtrx[13] = -trnsMtrx[13];
+	trnsMtrx[14] = -trnsMtrx[14];
+	mmult(mtrx1,trnsMtrx, mtrx);
+	
 	//convert rotation part to quaternion:
 	rotmatrix2q(mtrx, qrot);
 	//set the translation?
