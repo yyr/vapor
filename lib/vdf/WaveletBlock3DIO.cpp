@@ -139,8 +139,12 @@ int    WaveletBlock3DIO::VariableExists(
     }
 	
 	basename.append(bp);
-
-	for(int j=0; j< (int)(num_xforms+1); j++) {
+	//AN:  Need to check for existence of *.wbn where n goes from 0 to
+	// (max num Transforms) - (requested num transforms)
+	// requested num transforms is num_xforms
+	// max num transforms is max_xforms_c
+	//for(int j=0; j< (int)(num_xforms+1); j++) {
+	for (int j = 0; j< (int) (max_xforms_c - num_xforms + 1); j++){
 #ifdef WIN32
 		struct _stat statbuf;
 #else
