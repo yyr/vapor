@@ -227,6 +227,9 @@
                         <property name="name">
                             <cstring>variableCombo</cstring>
                         </property>
+                        <property name="editable">
+                            <bool>false</bool>
+                        </property>
                         <property name="toolTip" stdset="0">
                             <string>Specify the variable that is visualized</string>
                         </property>

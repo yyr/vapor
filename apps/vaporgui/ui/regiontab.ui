@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>450</width>
-            <height>586</height>
+            <height>603</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -40,14 +40,14 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout30</cstring>
+            <cstring>layout13</cstring>
         </property>
         <property name="geometry">
             <rect>
                 <x>10</x>
                 <y>10</y>
                 <width>420</width>
-                <height>550</height>
+                <height>569</height>
             </rect>
         </property>
         <vbox>
@@ -138,7 +138,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>31</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -256,7 +256,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>31</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -355,7 +355,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>31</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -454,7 +454,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>31</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -496,7 +496,7 @@
                             </sizepolicy>
                         </property>
                         <property name="text">
-                            <string>Stride</string>
+                            <string>Number of Transformations</string>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Specify the visualized data resolution as a power of two multiple of the original data</string>
@@ -521,7 +521,7 @@
                     </spacer>
                     <widget class="QSpinBox">
                         <property name="name">
-                            <cstring>strideSpin</cstring>
+                            <cstring>numTransSpin</cstring>
                         </property>
                         <property name="sizePolicy">
                             <sizepolicy>
@@ -535,10 +535,10 @@
                             <number>9</number>
                         </property>
                         <property name="minValue">
-                            <number>1</number>
+                            <number>0</number>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify the visualized data resolution as a power of two multiple of the original data</string>
+                            <string>Specify the visualized data resolution as a power-of-2 coarsening of the original data</string>
                         </property>
                     </widget>
                     <spacer>
@@ -573,7 +573,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>32</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -691,7 +691,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>31</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -790,7 +790,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>31</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -889,7 +889,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>31</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -988,7 +988,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>24</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -1084,7 +1084,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>31</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
