@@ -18,10 +18,7 @@ void	DataMgr::_DataMgr(
 
 	_blk_mem_mgr = NULL;
 
-	_dataRange[0] = 0.0;
-	_dataRange[1] = 1.0;
-
-
+	_dataRangeMap.clear();
 	_regionsMap.clear();
 	_lockedRegionsMap.clear();
 
@@ -34,6 +31,20 @@ void	DataMgr::_DataMgr(
 	num_blks = (long long) (mem_size * 1024 * 1024) / block_size;
 
 	_blk_mem_mgr = new BlkMemMgr((unsigned int)block_size, (unsigned int)num_blks, 1);
+
+	// Initialize default quantization ranges for each variable
+	//
+	const vector <string> &varnames = _metadata->GetVariableNames();
+	for(int i=0; i<varnames.size(); i++) {
+		float *range = new float[2];
+		assert(range != NULL);
+
+		range[0] = 0.0;
+		range[1] = 1.0;
+
+		// Use of []'s creates an entry in map
+		_dataRangeMap[varnames[i]] = range;
+	}
 
 }
 
@@ -81,8 +92,14 @@ DataMgr::~DataMgr(
 	_lockedRegionsMap.clear();
 	_timestamp = 0;
 
-	free_all(1);
+	free_all();
 	if (_blk_mem_mgr) delete _blk_mem_mgr;
+
+	map<string, float *>::iterator p;
+	for(p = _dataRangeMap.begin(); p!=_dataRangeMap.end(); p++) {
+		if (p->second) delete [] p->second;
+	}
+	_dataRangeMap.clear();
 
 	_wbreader = NULL;
 	_blk_mem_mgr = NULL;
@@ -178,6 +195,12 @@ unsigned char	*DataMgr::GetRegionUInt8(
 
 	// Quantize the floating point data;
 
+	map <string, float *>::iterator p;
+	p = _dataRangeMap.find(varname);
+	assert (p != _dataRangeMap.end());
+
+	float *datarange = p->second;
+
 	fptr = blks;
 	ucptr = ublks;
 
@@ -192,10 +215,10 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	for(x=0;x<nx;x++) {
 		double	f;
 
-		if (*fptr < _dataRange[0]) *ucptr = 0;
-		else if (*fptr > _dataRange[1]) *ucptr = 255;
+		if (*fptr < datarange[0]) *ucptr = 0;
+		else if (*fptr > datarange[1]) *ucptr = 255;
 		else {
-			f = (*fptr - _dataRange[0]) / (_dataRange[1] - _dataRange[0]) * 255;
+			f = (*fptr - datarange[0]) / (datarange[1] - datarange[0]) * 255;
 			*ucptr = (unsigned char) rint(f);
 		}
 		ucptr++;
@@ -211,16 +234,47 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	return(ublks);
 }
 
-void	DataMgr::SetDataRange(float range[2]) {
+int	DataMgr::SetDataRange(const char *varname, float range[2]) {
+	string varstr = varname;
+	float *rangeptr;
 
-	SetDiagMsg("DataMgr::SetDataRange([%f,%f])", range[0], range[1]);
+	SetDiagMsg("DataMgr::SetDataRange(%s, [%f,%f])",varname,range[0],range[1]);
 
-	_dataRange[0] = range[0] < range[1] ? range[0] : range[1];
-	_dataRange[1] = range[1] > range[0] ? range[1] : range[0];
+	map <string, float *>::iterator p;
+	p = _dataRangeMap.find(varname);
 
+	if (p == _dataRangeMap.end()) {
+		SetErrMsg("Unknown variable : %s", varname);
+		return(-1);
+	}
+
+	rangeptr = p->second;
+	if (range[0] <= range[1]) {
+		rangeptr[0] = range[0];
+		rangeptr[1] = range[1];
+	}
+	else {
+		rangeptr[0] = range[1];
+		rangeptr[1] = range[0];
+	}
+	
 	// Invalidate the cache of quantized quantities
 	//
-	free_all(0);
+	free_var(varstr, 0);
+	return(0);
+}
+
+const float	*DataMgr::GetDataRange(const char *varname) const {
+
+	map <string, float *>::const_iterator p;
+	p = _dataRangeMap.find(varname);
+
+	if (p == _dataRangeMap.end()) {
+		SetErrMsg("Unknown variable : %s", varname);
+		return(NULL);
+	}
+
+	return(p->second);
 }
 	
 int	DataMgr::UnlockRegion(
@@ -460,7 +514,7 @@ int	DataMgr::free_region(
 	return(-1);
 }
 
-void	DataMgr::free_all(int do_native) {
+void	DataMgr::free_all() {
 
 	map <size_t, map<string, vector<region_t *> > >::iterator p;
 	for(p = _regionsMap.begin(); p!=_regionsMap.end(); p++) {
@@ -478,19 +532,47 @@ void	DataMgr::free_all(int do_native) {
 			while (itr != regvec.end()) {
 				region_t *regptr = *itr;
 
-				if (regptr->type != DataMgr::FLOAT32 || do_native) {
-					if (regptr->blks) _blk_mem_mgr->FreeMem(regptr->blks);
-					delete regptr;
-					regvec.erase(itr);
+				if (regptr->blks) _blk_mem_mgr->FreeMem(regptr->blks);
+				delete regptr;
+				++itr;
+			}
+			regvec.clear();
+		}
+	}
+}
 
-					// Changed the vector. Need to reset the pointer
-					// to the beginning.
-					//
-					itr = regvec.begin();
-				}
-				else {
-					++itr;
-				}
+void	DataMgr::free_var(const string &varname, int do_native) {
+
+	map <size_t, map<string, vector<region_t *> > >::iterator p;
+	for(p = _regionsMap.begin(); p!=_regionsMap.end(); p++) {
+
+		map<string, vector<region_t *> > &vmap = p->second;
+		map <string, vector<region_t *> >::iterator t;
+
+		t = vmap.find(varname);
+		if (t == vmap.end()) return;
+
+		vector <region_t *> &regvec = t->second;
+
+		// Erase matching elements 
+		//
+		vector <region_t *>::iterator itr;
+		itr = regvec.begin();
+		while (itr != regvec.end()) {
+			region_t *regptr = *itr;
+
+			if (regptr->type != DataMgr::FLOAT32 || do_native) {
+				if (regptr->blks) _blk_mem_mgr->FreeMem(regptr->blks);
+				delete regptr;
+				regvec.erase(itr);
+
+				// Changed the vector. Need to reset the pointer
+				// to the beginning.
+				//
+				itr = regvec.begin();
+			}
+			else {
+				++itr;
 			}
 		}
 	}

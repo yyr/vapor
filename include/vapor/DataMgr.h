@@ -147,20 +147,23 @@ public:
  //! and max is 255. Floating point values between \p range[0] and \p range[1]
  //! are linearly interpolated between min and max.
  //!
+ //! \param[in] varname Name of variable to which data range applies
  //! \param[in] range A two-element vector specifying the minimum and maximum
  //! quantization mapping. 
+ //! \retval status Returns a non-negative value on success
  //! \sa GetRegionUInt8(), GetDataRange()
  //
- void	SetDataRange(float range[2]);
+ int	SetDataRange(const char *varname, float range[2]);
 
  //! Return the current data range as a two-element array
  //!
- //! \retval range A two-element vector containing the current m
- //! inimum and maximum
+ //! \param[in] varname Name of variable to which data range applies
+ //! \retval range A two-element vector containing the current 
+ //! minimum and maximum or NULL if the variable is not known
  //! quantization mapping.
  //! \sa SetDataRange()
  //
- const float	*GetDataRange() const { return(_dataRange); };
+ const float	*GetDataRange(const char *varname) const;
 
  //! Unlock a floating-point region of memory 
  //!
@@ -225,7 +228,8 @@ private:
 	void *blks;
  } region_t;
 
- float _dataRange[2];	// min and max bounds for quantization
+ // min and max bounds for quantization
+ map <string, float *> _dataRangeMap;	
 
  map <size_t, map<string, vector<region_t *> > > _regionsMap;
 
@@ -268,7 +272,8 @@ private:
 	const size_t max[3]
  );
 
- void	free_all(int do_native);
+ void	free_all();
+ void	free_var(const string &, int do_native);
 
  int	free_lru();
 
