@@ -37,11 +37,11 @@ endif
 
 ifdef	HAVE_INTEL_COMPILERS
 
-CXXFLAGS          += -DLINUX -fPIC
+CXXFLAGS          += -DLINUX 
 CXX_RELEASE_FLAGS += -O -DNDEBUG 
 CXX_DEBUG_FLAGS   += -g
 
-CFLAGS            += -DLINUX -fPIC
+CFLAGS            += -DLINUX
 C_RELEASE_FLAGS   += -O
 C_DEBUG_FLAGS     += -g
 
@@ -58,6 +58,11 @@ C_DEBUG_FLAGS     += -g
 
 endif
 
+ifeq ($(MACHTYPE),ia64)
+CXXFLAGS          += -fPIC
+CFLAGS          += -fPIC
+
+endif
 
 ifeq ($(MACHTYPE),x86_64)
 LDFLAGS           += -L/usr/X11R6/lib64
