@@ -239,6 +239,8 @@ public:
 	const WaveletBlock3DRegionReader* getRegionReader() {return myReader;}
 	//Create a new Metadata, by specifying vmf file
 	void resetMetadata(const char* vmfile);
+	//Export current data in active visualizer:
+	void exportData();
 	void setCacheMB(size_t size){cacheMB = size;}
 	size_t getCacheMB() {return cacheMB;}
 	bool renderReady() {return renderOK;}
@@ -284,6 +286,7 @@ protected:
 	float* leftBounds; 
 	float* rightBounds;
 	QString* tfFilePath;
+	string* currentMetadataPath;
 	
 };
 

@@ -94,8 +94,9 @@ DvrParams::DvrParams(int winnum) : Params(winnum){
 	editMode = true;   //default is edit mode
 }
 DvrParams::~DvrParams(){
-	delete myTransFunc;
 	delete myTFEditor;
+	delete myTransFunc;
+	
 	if (savedCommand) delete savedCommand;
 	if (minMapBounds) delete minMapBounds;
 	if (maxMapBounds) delete maxMapBounds;
@@ -168,6 +169,7 @@ void DvrParams::updateDialog(){
 	
 	QString strn;
 	Session::getInstance()->blockRecording();
+	//myDvrTab->DvrTFFrame->setEditor(myTFEditor);
 	myDvrTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
 	
 	//Set the names in the variable combo

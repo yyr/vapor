@@ -37,7 +37,9 @@ TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm){
 }
 TFEditor::~TFEditor(){
 	//Don't delete the image:  QT refcounts them
-	//delete editImage;
+	//However, must notify the frame that I'm no longer here!
+	if(myFrame->getEditor() == this)
+		myFrame->setEditor(0);
 }
 //Reset to default state.  Should already have frame
 //associated.

@@ -26,9 +26,11 @@
 #include <cstring>
 #include "histo.h"
 #include "vapor/Metadata.h"
+#include "vapor/ImpExp.h"
 #include "animationcontroller.h"
 #include "transferfunction.h"
 #include <qstring.h>
+#include <qmessagebox.h>
 using namespace VAPoR;
 Session* Session::theSession = 0;
 Session::Session() {
@@ -58,6 +60,7 @@ Session::Session() {
 	leftBounds = 0;
 	rightBounds = 0;
 	tfFilePath = new QString(".");
+	currentMetadataPath = 0;
 }
 Session::~Session(){
 	int i;
@@ -92,6 +95,7 @@ Session::~Session(){
 		delete rightBounds;
 		delete leftBounds;
 	}
+	if(currentMetadataPath) delete currentMetadataPath;
 }
 
 void Session::
@@ -101,10 +105,53 @@ save(char* ){
 void Session::
 restore(char* ){
 }
-
+// Export the data specification in the current active visualizer:
+//
+void Session::
+exportData(){
+	ImpExp exporter;
+	//Note:  will export data associated with current active visualizer
+	VizWinMgr* winMgr = VizWinMgr::getInstance();
+	int winNum = winMgr->getActiveViz();
+	if (winNum < 0 || (currentMetadata == 0)){
+		QMessageBox::warning(0, "Export data error","Exporting data requires loaded data and active visualizer",
+			QMessageBox::Ok,QMessageBox::NoButton);
+		return;
+	}
+	//Set up arguments to Export():
+	//
+	AnimationParams*  p = winMgr->getAnimationParams(winNum);
+	RegionParams* r = winMgr->getRegionParams(winNum);
+	DvrParams* d = winMgr->getDvrParams(winNum);
+	size_t currentFrame = (size_t)p->getCurrentFrameNumber();
+	size_t frameInterval[2];
+	size_t minCoords[3];
+	size_t maxCoords[3];
+	frameInterval[0] = (size_t)p->getStartFrameNumber();
+	frameInterval[1] = (size_t)p->getEndFrameNumber();
+	for (int i = 0; i<3; i++){
+		int halfsize = r->getRegionSize(i)/2;
+		minCoords[i] = (size_t)(r->getCenterPosition(i) - halfsize); 
+		maxCoords[i] = (size_t)(r->getCenterPosition(i) + halfsize - 1);
+		assert(minCoords[i] >= 0);
+		assert(maxCoords[i] <= (size_t)(r->getFullSize(i) -1));
+	}
+	
+	int rc = exporter.Export(*currentMetadataPath,
+		currentFrame,
+		d->getStdVariableName(),
+		minCoords,
+		maxCoords,
+		frameInterval);
+	if (rc < 0){
+		QMessageBox::warning(0, "Export data error",exporter.GetErrMsg(),
+			QMessageBox::Ok,QMessageBox::NoButton);
+	}
+	return;
+}
 /**
  * create a new datamgr.  Also perform related functions such as
- * constructing histograms and 
+ * constructing histograms 
  */
 void Session::
 resetMetadata(const char* fileBase)
@@ -113,9 +160,10 @@ resetMetadata(const char* fileBase)
 	//Reinitialize the animation controller:
 	AnimationController::getInstance()->restart();
 	//The metadata is created by (and obtained from) the datamgr
-	string path(fileBase);
+	currentMetadataPath = new string(fileBase);
+	//string path(fileBase);
 	if (dataMgr) delete dataMgr;
-	dataMgr = new DataMgr(fileBase, cacheMB, 1);
+	dataMgr = new DataMgr(currentMetadataPath->c_str(), cacheMB, 1);
 	
 	currentMetadata = dataMgr->GetMetadata();
 	if (currentMetadata->GetErrCode() != 0) {
@@ -189,9 +237,10 @@ resetMetadata(const char* fileBase)
 			myVizWinMgr->killViz(i);
 		}
 	}
-	//This is doing nothing!  There is no active viz window
-	myVizWinMgr->updateActiveParams();
+	
+	
 	myVizWinMgr->launchVisualizer();
+	myVizWinMgr->updateActiveParams();
 
 	//Then make the tab panels refresh:
 	

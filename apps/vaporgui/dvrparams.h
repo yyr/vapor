@@ -81,6 +81,9 @@ public:
 	const char* getVariableName() {
 		return (const char*) (variableNames[varNum].c_str());
 	}
+	const std::string& getStdVariableName() {
+		return variableNames[varNum];
+	}
 	bool attenuationIsDirty() {return attenuationDirty;}
 	void setAttenuationDirty(bool dirty) {attenuationDirty = dirty;}
 	bool clutIsDirty() {return clutDirty;}

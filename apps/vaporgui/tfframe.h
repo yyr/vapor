@@ -47,6 +47,7 @@ public:
 	void notifyColorSelector(QRgb clr){
 		emit(sendRgb(clr));
 	}
+	
 		
 public slots:
 	//Receive new color from color picker frame:

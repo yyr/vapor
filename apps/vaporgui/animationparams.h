@@ -55,6 +55,8 @@ public:
 
 	int getMinTimeToRender() {return ((int)(1000.f/maxFrameRate) );}
 	int getCurrentFrameNumber() {return currentFrame;}
+	int getStartFrameNumber() {return startFrame;}
+	int getEndFrameNumber() {return endFrame;}
 
 	//When values change that affect the frame to be used in the next rendering, 
 	//call the following:

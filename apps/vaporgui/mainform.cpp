@@ -912,4 +912,5 @@ void MainForm::resetModeButtons(){
 }
 //Make all the current region/animation settings available to IDL
 void MainForm::exportToIDL(){
+	Session::getInstance()->exportData();
 }

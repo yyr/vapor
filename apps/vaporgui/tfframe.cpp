@@ -77,7 +77,10 @@ TFFrame::~TFFrame() {
 
 void TFFrame::paintEvent(QPaintEvent* e){
 	int i;
-	if (!editor) return;
+	if (!editor){ //just  bitblt the old pixmap to the widget:
+		bitBlt(this, QPoint(0,0),&pxMap);
+		return;
+	}
 	if (editor->isDirty()|| needUpdate){
 		editor->refreshImage();
 		pxMap.convertFromImage(*editor->getImage(),0);
@@ -307,7 +310,7 @@ void TFFrame::paintEvent(QPaintEvent* e){
 	* is pressed), that color is shown in the color picker.
 	*/
 void TFFrame::mousePressEvent( QMouseEvent * e){
-
+	if (!editor) return;
 	mouseIsDown = true;
 	if (e->button() == Qt::LeftButton){
 		//Ignore mouse press over margin:
@@ -349,6 +352,7 @@ void TFFrame::mousePressEvent( QMouseEvent * e){
 //
 void TFFrame::
 mouseEditStart(QMouseEvent* e){
+	if (!editor) return;
 	bool controlPressed=false;
 	bool shiftPressed=false;
 	//See if we can classify where the mouse is:
@@ -438,6 +442,7 @@ mouseEditStart(QMouseEvent* e){
 //
 void TFFrame::
 mouseNavigateStart(QMouseEvent* e){
+	if (!editor) return;
 	startTFChange("transfer function editor navigate");
 	editor->setDragStart(e->x(), e->y());
 	editor->setNavigateGrab();
@@ -449,7 +454,7 @@ mouseNavigateStart(QMouseEvent* e){
 //there has been a change in the transfer function.  May need to 
 //update visualizer and/or tf display
 void TFFrame::mouseReleaseEvent( QMouseEvent *e ){
-	
+	if (!editor) return;
 	if (e->button() == Qt::LeftButton){
 		//If dragging bounds, ungrab, and notify dvrparams to update:
 		if( editor->domainGrabbed()){
@@ -496,6 +501,7 @@ void TFFrame::mouseReleaseEvent( QMouseEvent *e ){
 //control point, or zoom/pan the display
 //
 void TFFrame::mouseMoveEvent( QMouseEvent * e){
+	if (!editor) return;
 	if (editor->isGrabbed()) {
 		amDragging = true;
 		if (editor->domainGrabbed()){
@@ -515,6 +521,7 @@ void TFFrame::resizeEvent( QResizeEvent *  ){
 	*delete all selected control points when delete key is pressed:
 	*/
 void TFFrame::keyPressEvent(QKeyEvent* e){
+	if (!editor) return;
 	if (e->key() == Qt::Key_Delete){
 		editor->deleteSelectedControlPoints();
 		e->accept();
@@ -523,6 +530,7 @@ void TFFrame::keyPressEvent(QKeyEvent* e){
 }
 //New HSV received from color picker.  Ignore it if the mouse is down.
 void TFFrame::newHsv(int h, int s, int v){
+	if (!editor) return;
 	if (mouseIsDown) return;
 	editor->setHsv(h,s,v);
 	
@@ -539,6 +547,7 @@ void TFFrame::drawTris(QPainter& p, int x){
 
 void TFFrame::contextMenuEvent( QContextMenuEvent *e )
 {
+	if (!editor) return;
 	//Capture for undo/redo:
 	editor->getParams()->confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(editor->getParams(), "TF editor right mouse action");
