@@ -19,6 +19,7 @@ WaveletBlock3D::WaveletBlock3D(
 	lift_c = NULL;
 	liftbuf_c = NULL;
 
+	SetClassName("WaveletBlock3D");
 
 	if (! IsPowerOfTwo(bs)) {
 		SetErrMsg("Block dimension is not a power of two: bs=%d", bs);

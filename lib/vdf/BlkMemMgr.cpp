@@ -19,6 +19,8 @@ BlkMemMgr::BlkMemMgr(
 	int	i;
 	size_t	size;
 
+	SetClassName("BlkMemMgr");
+
 	free_table_c = NULL;
 	blks_c = NULL;
 

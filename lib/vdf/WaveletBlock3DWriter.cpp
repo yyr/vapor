@@ -8,6 +8,8 @@ using namespace VAPoR;
 void	WaveletBlock3DWriter::_WaveletBlock3DWriter()
 {
 	int	j;
+
+	SetClassName("WaveletBlock3DWriter");
 	
 	xform_timer_c = 0.0;
 	slab_cntr_c = 0;

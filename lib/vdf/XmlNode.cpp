@@ -31,6 +31,8 @@ XmlNode::XmlNode(
 	const string &tag, const map <const string, string> &attrs, 
 	size_t numChildrenHint
 ) {
+	SetClassName("XmlNode");
+
 	_tag = tag;
 	_attrmap = attrs;
 

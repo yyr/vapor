@@ -60,6 +60,8 @@ Lifting1D::Lifting1D(
 	inv_filter_c = NULL;
 	inv_lifting_c = NULL;
 
+	SetClassName("Lifting1D");
+
 	if (IsOdd(n_c)) {
 		SetErrMsg(
 			"Invalid # lifting coeffs., n=%d, is odd", 

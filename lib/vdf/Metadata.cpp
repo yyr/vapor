@@ -27,6 +27,7 @@
 #include <cstdarg>
 #include <expat.h>
 #include <cassert>
+#include <algorithm>
 #include <vapor/Metadata.h>
 #include <vapor/XmlNode.h>
 
@@ -67,12 +68,14 @@ const string Metadata::_doubleType = "Double";
 // Initialize the class object
 //
 void Metadata::_init(
-		size_t bs, const size_t dim[3], size_t numTransforms,
+		const size_t dim[3], size_t numTransforms, size_t bs,
 		int nFilterCoef, int nLiftingCoef, int msbFirst
 ) {
 	map <const string, string> attrs;
 	ostringstream oss;
 	string empty;
+
+	SetClassName("Metadata");
 
 	if (! IsPowerOfTwo((int)bs)) {
 		SetErrMsg("Block dimension is not a power of two: bs=%d", bs);
@@ -130,24 +133,32 @@ void Metadata::_init(
 	string coordSystemType = "cartesian";
 	_rootnode->SetElementString(_coordSystemTypeTag, coordSystemType);
 
-	double extents[] = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
-	vector<double> extentsVec(extents, &extents[sizeof(extents)/sizeof(extents[0])]);
-	_rootnode->SetElementDouble(_extentsTag, extentsVec);
+	double maxdim = max(dim[0], max(dim[1],dim[2]));
+	double extents[] = {
+		0.0, 0.0, 0.0, 
+		(double) dim[0]/maxdim, (double) dim[1]/maxdim, (double) dim[2]/maxdim
+	};
 
-	vector<long> numTimeStepsVec(1,0);
-	_rootnode->SetElementLong(_numTimeStepsTag, numTimeStepsVec);
+	vector<double> extentsVec(extents, &extents[sizeof(extents)/sizeof(extents[0])]);
+	SetExtents(extentsVec);
+
+	vector<long> numTimeStepsVec(1,1);
+	if (SetNumTimeSteps(numTimeStepsVec) < 0) return;
+
+	vector<string> varNamesVec(1,"var1");
+	if (SetVariableNames(varNamesVec) < 0) return;
 
 	string comment = "";
 	_rootnode->SetElementString(_commentTag, comment);
 }
 
 Metadata::Metadata(
-		size_t bs, const size_t dim[3], size_t numTransforms,
+		const size_t dim[3], size_t numTransforms, size_t bs, 
 		int nFilterCoef, int nLiftingCoef, int msbFirst
 ) {
 	_rootnode = NULL;
 
-	_init(bs, dim, numTransforms, nFilterCoef, nLiftingCoef, msbFirst);
+	_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst);
 }
 
 
@@ -279,40 +290,43 @@ int Metadata::_SetNumTimeSteps(const vector<long> &value) {
 int Metadata::_SetVariableNames(XmlNode *node, long ts) {
 
 	map <const string, string> attrs; // empty map
-	size_t oldN = node->GetNumChildren();
-	size_t newN = _varNames.size();
+	int oldN = node->GetNumChildren();
+	int newN = _varNames.size();
 
 	if (newN > oldN) {
-		string empty;
-		ostringstream oss;
 
 		// Create new children if needed (if not renaming old children);
 		//
-		for (size_t i = oldN; i < newN; i++) {
-			node->NewChild(_varNames[i], attrs, 0);
-		}
-
-		// Set the variable name (superflous if the child is new) and
-		// set the data file path for each variable child node
-		//
-		for (size_t i = 0; i < newN; i++) {
-			XmlNode *var = node->GetChild(i);
-			var->Tag() = _varNames[i]; // superfluous if a new variable
-			oss.str(empty);
-			oss << _varNames[i].c_str() << "/" << _varNames[i].c_str();
-			oss << ".";
-			oss.width(4);
-			oss.fill('0');
-			oss << ts;
-			oss.width(0);
-			var->SetElementString(_basePathTag, oss.str());
+		for (int i = oldN; i < newN; i++) {
+			node->NewChild(_varNames[(size_t) i], attrs, 0);
 		}
 	}
 	else {
-		for (size_t i = newN; i< oldN; i++) {
-			node->DeleteChild(newN);
+		for (int i = oldN-1; i>= newN; i--) {
+			node->DeleteChild((size_t) i);
 		}
 	}
+
+
+	string empty;
+	ostringstream oss;
+
+	// Set the variable name (superflous if the child is new) and
+	// set the data file path for each variable child node
+	//
+	for (size_t i = 0; i < newN; i++) {
+		XmlNode *var = node->GetChild(i);
+		var->Tag() = _varNames[i]; // superfluous if a new variable
+		oss.str(empty);
+		oss << _varNames[i].c_str() << "/" << _varNames[i].c_str();
+		oss << ".";
+		oss.width(4);
+		oss.fill('0');
+		oss << ts;
+		oss.width(0);
+		var->SetElementString(_basePathTag, oss.str());
+	}
+
 	return(0);
 }
 
@@ -356,7 +370,7 @@ int Metadata::SetTSUserTime(size_t ts, const vector<double> &value) {
 		SetErrMsg("Invalid user time specification");
 		return(-1);
 	}
-	if (! _rootnode->GetChild(ts)) return(-1);
+	CHK_TS(ts, -1);
 	return(_rootnode->GetChild(ts)->SetElementDouble(_userTimeTag, value));
 }
 
@@ -365,7 +379,7 @@ int Metadata::SetTSXCoords(size_t ts, const vector<double> &value) {
 		SetErrMsg("Invalid coordinate array specification");
 		return(-1);
 	}
-	if (! _rootnode->GetChild(ts)) return(-1);
+	CHK_TS(ts, -1);
 	return(_rootnode->GetChild(ts)->SetElementDouble(_xCoordsTag, value));
 }
 
@@ -374,7 +388,7 @@ int Metadata::SetTSYCoords(size_t ts, const vector<double> &value) {
 		SetErrMsg("Invalid coordinate array specification");
 		return(-1);
 	}
-	if (! _rootnode->GetChild(ts)) return(-1);
+	CHK_TS(ts, -1);
 	return(_rootnode->GetChild(ts)->SetElementDouble(_yCoordsTag, value));
 }
 
@@ -383,7 +397,7 @@ int Metadata::SetTSZCoords(size_t ts, const vector<double> &value) {
 		SetErrMsg("Invalid coordinate array specification");
 		return(-1);
 	}
-	if (! _rootnode->GetChild(ts)) return(-1);
+	CHK_TS(ts, -1);
 	return(_rootnode->GetChild(ts)->SetElementDouble(_zCoordsTag, value));
 }
 
@@ -392,6 +406,7 @@ int Metadata::SetTSComment(
 ) {
 	XmlNode	*timenode;
 
+	CHK_TS(ts, -1);
 	if (! (timenode = _rootnode->GetChild(ts))) return(-1);
 
 	return(timenode->SetElementString(_commentTag, value));
@@ -402,6 +417,7 @@ const string &Metadata::GetTSComment(
 ) const {
 
 	XmlNode	*timenode;
+	CHK_TS(ts, _emptyString);
 	if (! (timenode = _rootnode->GetChild(ts))) return(_emptyString);
 
 	return(timenode->GetElementString(_commentTag));
@@ -413,8 +429,9 @@ int Metadata::SetVComment(
 	XmlNode	*timenode;
 	XmlNode	*varnode;
 
-	if (! (timenode = _rootnode->GetChild(ts))) return(-1);
-	if (! (varnode = timenode->GetChild(var))) return(-1);
+	CHK_VAR(ts, var, -1);
+	timenode = _rootnode->GetChild(ts);
+	varnode = timenode->GetChild(var);
 
 	return(varnode->SetElementString(_commentTag, value));
 }
@@ -426,8 +443,9 @@ const string &Metadata::GetVComment(
 	XmlNode	*timenode;
 	XmlNode	*varnode;
 
-	if (! (timenode = _rootnode->GetChild(ts))) return(_emptyString);
-	if (! (varnode = timenode->GetChild(var))) return(_emptyString);
+	CHK_VAR(ts, var, _emptyString);
+	timenode = _rootnode->GetChild(ts);
+	varnode = timenode->GetChild(var);
 
 	return(varnode->GetElementString(_commentTag));
 }
@@ -439,8 +457,9 @@ const string &Metadata::GetVBasePath(
 	XmlNode	*timenode;
 	XmlNode	*varnode;
 
-	if (! (timenode = _rootnode->GetChild(ts))) return(_emptyString);
-	if (! (varnode = timenode->GetChild(var))) return(_emptyString);
+	CHK_VAR(ts, var, _emptyString);
+	timenode = _rootnode->GetChild(ts);
+	varnode = timenode->GetChild(var);
 
 	return(varnode->GetElementString(_basePathTag));
 }
@@ -456,13 +475,15 @@ int Metadata::SetVDataRange(
         return(-1);
     }
 
-	if (! (timenode = _rootnode->GetChild(ts))) return(-1);
-	if (! (varnode = timenode->GetChild(var))) return(-1);
+
+	timenode = _rootnode->GetChild(ts);
+	varnode = timenode->GetChild(var);
+	CHK_VAR(ts, var, -1);
 
 	return(varnode->SetElementDouble(_dataRangeTag, value));
 }
 
-int	Metadata::_RecordUserDataTags(vector<string> keys, const string &tag) {
+int	Metadata::_RecordUserDataTags(vector<string> &keys, const string &tag) {
 
 	// See if key has already been defined
 	//
@@ -663,7 +684,7 @@ void	Metadata::_startElementHandler0(
 		}
 	}
 
-	_init(bs, dim, numTransforms, nFilterCoef, nLiftingCoef, msbFirst);
+	_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst);
 	if (GetErrCode()) {
 		string s(GetErrMsg()); _parseError("%s", s.c_str());
 		return;
@@ -779,6 +800,7 @@ void	Metadata::_startElementHandler2(
 	state->user_defined = 0;
 
 	string type;
+
 
 	// Its either a variable element (with no attributes) or a data element
 	//
@@ -909,6 +931,11 @@ void	Metadata::_startElementHandler3(
 		}
 	} else if (StrCmpNoCase(tag, _basePathTag) == 0) {
 		if (StrCmpNoCase(type, _stringType) != 0) {
+			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			return;
+		}
+	} else if (StrCmpNoCase(tag, _dataRangeTag) == 0) {
+		if (StrCmpNoCase(type, _doubleType) != 0) {
 			_parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
@@ -1084,6 +1111,14 @@ void	Metadata::_endElementHandler3(
 	else if (StrCmpNoCase(tag, _basePathTag) == 0) {
 		if (SetVUserDataString(
 			_expatCurrentTS, _expatCurrentVar, tag,  _expatStringData) < 0) {
+
+			string s(GetErrMsg()); _parseError("%s", s.c_str());
+			return;
+		}
+	}
+	else if (StrCmpNoCase(tag, _dataRangeTag) == 0) {
+		if (SetVDataRange(
+			_expatCurrentTS, _expatCurrentVar, _expatDoubleData) < 0) {
 
 			string s(GetErrMsg()); _parseError("%s", s.c_str());
 			return;

@@ -16,6 +16,8 @@ void	DataMgr::_DataMgr(
 	size_t block_size;
 	size_t num_blks;
 
+	SetClassName("DataMgr");
+
 	_blk_mem_mgr = NULL;
 
 	_dataRangeMap.clear();

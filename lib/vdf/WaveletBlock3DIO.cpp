@@ -29,6 +29,8 @@ void	WaveletBlock3DIO::_WaveletBlock3DIO(
 ) {
 	int	j;
 
+	SetClassName("WaveletBlock3DIO");
+
 	nthreads_c = nthreads;
 
 	read_timer_c = 0.0;

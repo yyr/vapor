@@ -9,6 +9,7 @@ using namespace VAPoR;
 void	WaveletBlock3DReader::_WaveletBlock3DReader(
 ) {
 	int	j;
+	SetClassName("WaveletBlock3DReader");
 
 	xform_timer_c = 0.0;
 	slab_cntr_c = 0;

@@ -8,6 +8,8 @@ using namespace VAPoR;
 
 void	WaveletBlock3DBufReader::_WaveletBlock3DBufReader() 
 {
+	SetClassName("WaveletBlock3DBufReader");
+
 	slice_cntr_c = 0;
 	is_open_c = 0;
 	buf_c = NULL;

@@ -7,6 +7,8 @@ using namespace VAPoR;
 
 void	WaveletBlock3DBufWriter::_WaveletBlock3DBufWriter()
 {
+	SetClassName("WaveletBlock3DBufWriter");
+
 	slice_cntr_c = 0;
 	is_open_c = 0;
 	buf_c = NULL;

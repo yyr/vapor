@@ -11,6 +11,8 @@ void	WaveletBlock3DRegionReader::_WaveletBlock3DRegionReader()
 {
 	int	j;
 
+	SetClassName("WaveletBlock3DRegionReader");
+
 	xform_timer_c = 0.0;
 
 	for(j=0; j<MAX_LEVELS; j++) {
