@@ -442,7 +442,7 @@ int	DataMgr::free_region(
 void	DataMgr::free_all(int do_native) {
 
 	map <size_t, map<string, vector<region_t *> > >::iterator p;
-
+	fprintf(stderr, "Regions map size: %d\n",_regionsMap.size());
 	for(p = _regionsMap.begin(); p!=_regionsMap.end(); p++) {
 
 		map<string, vector<region_t *> > &vmap = p->second;
