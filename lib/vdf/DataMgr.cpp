@@ -70,7 +70,6 @@ DataMgr::~DataMgr(
 ) {
 
 	if (_wbreader) delete _wbreader;
-	if (_doFreeMeta && _metadata) delete _metadata;
 
 	_regionsMap.clear();
 	_lockedRegionsMap.clear();

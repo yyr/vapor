@@ -232,7 +232,6 @@ private:
  map <void *, region_t *> _lockedRegionsMap;
 
  const Metadata	*_metadata;
- int _doFreeMeta;
 
  int	_timestamp;	// access time of most recently accessed region
 
