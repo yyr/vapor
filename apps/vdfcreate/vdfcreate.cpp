@@ -100,8 +100,7 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	vector <long> ts(1);
-	ts[0] = opt.numts;
+	long ts = opt.numts;
 	if (file.SetNumTimeSteps(ts) < 0) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
