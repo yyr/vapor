@@ -27,6 +27,7 @@ WaveletBlock3DWriter::WaveletBlock3DWriter(
 	unsigned int    nthreads
 ) : WaveletBlock3DIO(metadata, nthreads) {
 
+	_metafile.clear();
 	_WaveletBlock3DWriter();
 }
 
@@ -35,12 +36,16 @@ WaveletBlock3DWriter::WaveletBlock3DWriter(
 	unsigned int    nthreads
 ) : WaveletBlock3DIO(metafile, nthreads) {
 
+	_metafile.assign(metafile);
 	_WaveletBlock3DWriter();
 }
 
 
 WaveletBlock3DWriter::~WaveletBlock3DWriter(
 ) {
+	if (_metafile.length()) {
+		metadata_c->Write(_metafile.c_str());
+	}
 	CloseVariable();
 }
 
