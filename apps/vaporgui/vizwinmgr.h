@@ -271,18 +271,6 @@ protected slots:
 	void setIsoTabTextChanged(const QString& qs);
 	void setDvrTabTextChanged(const QString& qs);
 	void setContourTabTextChanged(const QString& qs);
-	void endTFECenterSlide();
-	void beginTFECenterSlide();
-	void moveTFECenter(int val);
-	void setTFESize();
-	void endTFDomainCenterSlide();
-	void beginTFDomainCenterSlide();
-	void moveTFDomainCenter(int val);
-	void setTFDomainSize();
-	void dvrHistoStretch();
-	void dvrColorBind();
-	void dvrOpacBind();
-	void dvrRecenterSliders();
 	
 	void viewpointReturnPressed();
 	void regionReturnPressed();
@@ -307,6 +295,11 @@ protected slots:
 	void setDvrVariableNum(int);
 	void setDvrLighting(bool);
 	void setDvrNumBits(int);
+	void setDvrMouseMode(int);
+	void dvrHistoStretch();
+	void dvrColorBind();
+	void dvrOpacBind();
+	
 	//Slots for contour panel:
 	
 	void setContourEnabled(int on);

@@ -50,6 +50,8 @@ public:
 	//And vice-versa:
 	//
 	virtual void updatePanelState();
+	//
+
 
 	virtual void makeCurrent(Params* previousParams, bool newWin);
 	void updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow);
@@ -113,11 +115,14 @@ public:
 		if(numVariables == 0) return 1.f;
 		return mainWin->getSession()->getDataRange(varNum)[1];
 	}
+	void setMouseMode(int mode) {mouseMode = mode;}
+	int getMouseMode() {return mouseMode;}
 	
 		
 	void setClut(const float newTable[256][4]);
 	void setBindButtons();
 	void updateTFBounds();
+	void updateTFEditBounds();
 	
 	//Methods with undo/redo support:
 	//
@@ -125,16 +130,11 @@ public:
 	void guiSetVarNum(int val);
 	void guiSetNumBits(int val);
 	void guiSetLighting(bool val);
-	void guiStartTFECenterSlide();
-	void guiEndTFECenterSlide(int val);
-	void guiMoveTFECenter(int val);
-	void guiSetTFESize(int val);
-	void guiStartTFDomainCenterSlide();
-	void guiEndTFDomainCenterSlide(int val);
-	void guiMoveTFDomainCenter(int val);
-	void guiSetTFDomainSize(int val);
+	
+	
+	
 	void guiSetHistoStretch(int val);
-	void guiRecenterSliders();
+	void guiSetMouseMode(int val); //values are 0,1,2: edit, zoom, pan
 	//respond to changes in TF (for undo/redo):
 	//
 	void guiStartChangeTF(char* s);
@@ -147,7 +147,7 @@ public:
 	
 protected:
 	void refreshCtab();
-	void setTFESliders();
+	
 	bool attenuationDirty;
 	bool clutDirty;
 	bool datarangeDirty;
@@ -158,6 +158,8 @@ protected:
 	float diffuseAtten, ambientAtten, specularAtten;
 	int specularExponent;
 	
+	//Mouse mode is 0,1,2 for edit, zoom, pan
+	int mouseMode;
 	//Transfer fcn LUT: (R,G,B,A)
 	//
 	float ctab[256][4];
@@ -171,11 +173,7 @@ protected:
 	std::vector<std::string> variableNames;
 	float* minMapBounds;
 	float* maxMapBounds;
-	//This value keeps track of the mapping domain size if the user makes it 
-	//larger than the data domain size, by setting value in the text boxes
-	//
-	float leftTFLimit, rightTFLimit;
-	float leftTFELimit, rightTFELimit;
+	
 
 };
 };

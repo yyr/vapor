@@ -31,6 +31,7 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
+#include <qbuttongroup.h>
 
 #include "vizwin.h"
 #include "vizwinmgr.h"
@@ -533,10 +534,6 @@ VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 
 	connect (dvrTab->leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
 	connect (dvrTab->rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->editCenter, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->editSize, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->tfDomainSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->tfDomainCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
 
 	connect (dvrTab->specularShading, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
 	connect (dvrTab->diffuseShading, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
@@ -545,8 +542,6 @@ VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 	connect (dvrTab->specularAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
 	connect (dvrTab->diffuseAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
 	connect (dvrTab->ambientAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
-	connect (dvrTab->tfDomainSizeEdit, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
-	connect (dvrTab->tfDomainCenterEdit, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
 
 	connect (dvrTab->numBitsSpin, SIGNAL (valueChanged(int)), this, SLOT(setDvrNumBits(int)));
 	connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->LocalGlobal, SLOT(setEnabled(bool)));
@@ -555,22 +550,12 @@ VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 	//TFE Editor controls:
 	connect (dvrTab->leftMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
 	connect (dvrTab->rightMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
-	connect (dvrTab->editCenter, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
-	connect (dvrTab->editSize, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
-	connect (dvrTab->editCenterSlider, SIGNAL(sliderPressed()), this, SLOT(beginTFECenterSlide()));
-	connect (dvrTab->editCenterSlider, SIGNAL(sliderReleased()), this, SLOT (endTFECenterSlide()));
-	connect (dvrTab->editCenterSlider, SIGNAL(sliderMoved(int)), this, SLOT(moveTFECenter(int)));
-	connect (dvrTab->editSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setTFESize()));
-
-	connect (dvrTab->tfDomainCenterSlider, SIGNAL(sliderPressed()), this, SLOT(beginTFDomainCenterSlide()));
-	connect (dvrTab->tfDomainCenterSlider, SIGNAL(sliderReleased()), this, SLOT (endTFDomainCenterSlide()));
-	connect (dvrTab->tfDomainCenterSlider, SIGNAL(sliderMoved(int)), this, SLOT(moveTFDomainCenter(int)));
-	connect (dvrTab->tfDomainSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setTFDomainSize()));
 	
 	connect (dvrTab->histoStretchSlider, SIGNAL(sliderReleased()), this, SLOT (dvrHistoStretch()));
 	connect (dvrTab->ColorBindButton, SIGNAL(pressed()), this, SLOT(dvrColorBind()));
 	connect (dvrTab->OpacityBindButton, SIGNAL(pressed()), this, SLOT(dvrOpacBind()));
-	connect (dvrTab->recenterButton, SIGNAL(pressed()), this, SLOT(dvrRecenterSliders()));
+	bool ok = connect (dvrTab->buttonGroup, SIGNAL(clicked(int)), this, SLOT(setDvrMouseMode(int)));
+	assert(ok);
 	emit enableMultiViz(getNumVisualizers() > 1);
 }
 void
@@ -995,6 +980,10 @@ void VizWinMgr::
 dvrOpacBind(){
 	getDvrParams(activeViz)->guiBindOpacToColor();
 }
+void VizWinMgr::
+setDvrMouseMode(int mode){
+	getDvrParams(activeViz)->guiSetMouseMode(mode);
+}
 /*
  * Respond to a slider release
  */
@@ -1003,46 +992,8 @@ dvrHistoStretch() {
 	getDvrParams(activeViz)->guiSetHistoStretch(
 		myMainWindow->getDvrTab()->histoStretchSlider->value());
 }
-void VizWinMgr::
-dvrRecenterSliders(){
-	getDvrParams(activeViz)->guiRecenterSliders();
-}
-void VizWinMgr::
-beginTFECenterSlide(){
-	getDvrParams(activeViz)->guiStartTFECenterSlide();
-}
-void VizWinMgr::
-endTFECenterSlide(){
-	getDvrParams(activeViz)->guiEndTFECenterSlide(
-		myMainWindow->getDvrTab()->editCenterSlider->value());
-}
-void VizWinMgr::
-moveTFECenter(int val){
-	getDvrParams(activeViz)->guiMoveTFECenter(val);
-}
-void VizWinMgr::
-setTFESize(){
-	getDvrParams(activeViz)->guiSetTFESize(
-		myMainWindow->getDvrTab()->editSizeSlider->value());
-}
-void VizWinMgr::
-beginTFDomainCenterSlide(){
-	getDvrParams(activeViz)->guiStartTFDomainCenterSlide();
-}
-void VizWinMgr::
-endTFDomainCenterSlide(){
-	getDvrParams(activeViz)->guiEndTFDomainCenterSlide(
-		myMainWindow->getDvrTab()->tfDomainCenterSlider->value());
-}
-void VizWinMgr::
-moveTFDomainCenter(int val){
-	getDvrParams(activeViz)->guiMoveTFDomainCenter(val);
-}
-void VizWinMgr::
-setTFDomainSize(){
-	getDvrParams(activeViz)->guiSetTFDomainSize(
-		myMainWindow->getDvrTab()->tfDomainSizeSlider->value());
-}
+
+
 /*****************************************************************************
  * Called when the dvr tab local/global selector is changed.
  * Affects only the dvr tab

@@ -188,6 +188,9 @@ public:
 	void addLeftDomainGrab() {grabbedState = leftDomainGrab;}
 	void addRightDomainGrab() {grabbedState = rightDomainGrab;}
 	void addFullDomainGrab() {grabbedState = fullDomainGrab;}
+	void setZoomGrab() { grabbedState = zoomGrab;}
+	void setPanGrab()  {grabbedState = panGrab;}
+
 	int numColorSelected() { return numColorSelect;}
 	int numOpacSelected() {return numOpacSelect;}
 	bool isGrabbed() {return (grabbedState != notGrabbed);}
@@ -202,9 +205,13 @@ public:
 	void setDragStart(int ix, int iy){
 		dragStartX = ix;
 		dragStartY = iy;
+		dragMinStart = minEditValue;
+		dragMaxStart = maxEditValue;
 		mappedDragStartX = mapWin2Var(ix);
 		leftMoveMax = -1;
 	}
+	void zoom(int y);
+	void pan(int x);
 	void saveDomainBounds(){
 		leftDomainSaved = myTransferFunction->getMinMapValue();
 		rightDomainSaved = myTransferFunction->getMaxMapValue();
@@ -231,7 +238,9 @@ protected:
 		leftDomainGrab = 32,
 		rightDomainGrab = 64,
 		fullDomainGrab = 128,
-		domainGrab = 224 //or of all domain grab types
+		domainGrab = 224, //or of all domain grab types
+		zoomGrab = 256,
+		panGrab = 512
 	};
 	unsigned int grabbedState;
 	//Booleans to indicate what is currently selected;
@@ -246,6 +255,8 @@ protected:
 	//They must lie within range of transfer function definition.
 	float minEditValue;
 	float maxEditValue;
+	float dragMinStart;
+	float dragMaxStart;
 	int height;
 	int width;
 	TransferFunction* myTransferFunction;

@@ -110,7 +110,7 @@ void TFEditor::refreshImage(){
 		}
 
 		//Paint the domainslider region
-		
+		//
 		if ((x < leftLim - DOMAINSLIDERMARGIN)||
 				(x> rightLim + DOMAINSLIDERMARGIN)){
 			//paint away from slider
@@ -401,7 +401,33 @@ moveGrabbedControlPoints(int newX, int newY){
 	dirty = true;
 	myFrame->update();
 }
+// Set the zoom and pan, based on the new position of the mouse during a drag
+void TFEditor::
+zoom (int y){
+	//Determine zoom amount as a fraction of edit window height. 
+	float zoomAmount = (float)(y-dragStartY)/(float)(height);
+	float zoomRatio = pow(2.f, zoomAmount);
+	//The zoom starts at the original drag start; i.e. that point won't move
+	float startXMapped = ((float)dragStartX/(float)(width))*(dragMaxStart-dragMinStart) + dragMinStart;
+	//stretch the part to the left and the part to the right:
+	minEditValue = startXMapped - (startXMapped - dragMinStart)*zoomRatio;
+	maxEditValue = startXMapped + (dragMaxStart - startXMapped)*zoomRatio;
+	myParams->updateTFEditBounds();
+	dirty = true;
+	myFrame->update();
 
+}
+void TFEditor::
+pan (int x){
+	//Determine the motion as a fraction of edit window width:
+	float horizFraction = (float)(x-dragStartX)/(float)(width);
+	//Set new left/right edit bounds accordingly:
+	minEditValue = dragMinStart - horizFraction*(dragMaxStart-dragMinStart);
+	maxEditValue = dragMaxStart - horizFraction*(dragMaxStart-dragMinStart);
+	myParams->updateTFEditBounds();
+	myFrame->update();
+	dirty = true;
+}
 void TFEditor::
 moveDomainBound(int x){
 	float newX = mapWin2Var(x);

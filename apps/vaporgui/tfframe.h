@@ -77,12 +77,18 @@ protected:
 	void resizeEvent( QResizeEvent * );
 	void keyPressEvent( QKeyEvent *);
 	void drawTris(QPainter& p, int x);
+
+	void mouseEditStart(QMouseEvent*);
+	void mouseZoomStart(QMouseEvent*);
+	void mousePanStart(QMouseEvent*);
+
 	QPixmap pxMap;
 	
 	VAPoR::TFEditor* editor;
 	VAPoR::TFELocationTip *locationTip;
 	bool needUpdate;
 	bool amDragging;
+	int dragType; //0,1,2 for edit, zoom, pan; copied from params at mouse press event
 	bool mouseIsDown;
 	int unSelectColorIndex, unSelectOpacIndex;
 	//Array of QLabels

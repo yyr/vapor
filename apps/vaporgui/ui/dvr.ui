@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>442</width>
-            <height>1196</height>
+            <height>967</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -50,7 +50,7 @@
         </property>
         <property name="sizeHint">
             <size>
-                <width>16</width>
+                <width>18</width>
                 <height>21</height>
             </size>
         </property>
@@ -65,14 +65,14 @@
     </spacer>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout42</cstring>
+            <cstring>layout37</cstring>
         </property>
         <property name="geometry">
             <rect>
-                <x>12</x>
-                <y>12</y>
+                <x>10</x>
+                <y>21</y>
                 <width>412</width>
-                <height>1090</height>
+                <height>931</height>
             </rect>
         </property>
         <vbox>
@@ -291,7 +291,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>21</width>
-                        <height>69</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -335,6 +335,111 @@
                 <property name="alignment">
                     <set>AlignCenter</set>
                 </property>
+            </widget>
+            <widget class="QButtonGroup">
+                <property name="name">
+                    <cstring>buttonGroup</cstring>
+                </property>
+                <property name="title">
+                    <string>Mouse Mode</string>
+                </property>
+                <property name="exclusive">
+                    <bool>true</bool>
+                </property>
+                <vbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QLayoutWidget">
+                        <property name="name">
+                            <cstring>layout31</cstring>
+                        </property>
+                        <hbox>
+                            <property name="name">
+                                <cstring>unnamed</cstring>
+                            </property>
+                            <widget class="QPushButton">
+                                <property name="name">
+                                    <cstring>editButton</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>edit</string>
+                                </property>
+                                <property name="toggleButton">
+                                    <bool>true</bool>
+                                </property>
+                                <property name="on">
+                                    <bool>true</bool>
+                                </property>
+                                <property name="toolTip" stdset="0">
+                                    <string>Use left mouse to manipulate control points in editor window</string>
+                                </property>
+                            </widget>
+                            <spacer>
+                                <property name="name">
+                                    <cstring>spacer26</cstring>
+                                </property>
+                                <property name="orientation">
+                                    <enum>Horizontal</enum>
+                                </property>
+                                <property name="sizeType">
+                                    <enum>Expanding</enum>
+                                </property>
+                                <property name="sizeHint">
+                                    <size>
+                                        <width>51</width>
+                                        <height>20</height>
+                                    </size>
+                                </property>
+                            </spacer>
+                            <widget class="QPushButton">
+                                <property name="name">
+                                    <cstring>magnifyButton</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>zoom</string>
+                                </property>
+                                <property name="toggleButton">
+                                    <bool>true</bool>
+                                </property>
+                                <property name="toolTip" stdset="0">
+                                    <string>Drag vertically to increase or decrease editor window size</string>
+                                </property>
+                            </widget>
+                            <spacer>
+                                <property name="name">
+                                    <cstring>spacer27_3</cstring>
+                                </property>
+                                <property name="orientation">
+                                    <enum>Horizontal</enum>
+                                </property>
+                                <property name="sizeType">
+                                    <enum>Expanding</enum>
+                                </property>
+                                <property name="sizeHint">
+                                    <size>
+                                        <width>41</width>
+                                        <height>20</height>
+                                    </size>
+                                </property>
+                            </spacer>
+                            <widget class="QPushButton">
+                                <property name="name">
+                                    <cstring>panButton</cstring>
+                                </property>
+                                <property name="text">
+                                    <string>pan</string>
+                                </property>
+                                <property name="toggleButton">
+                                    <bool>true</bool>
+                                </property>
+                                <property name="toolTip" stdset="0">
+                                    <string>Drag horizontally to move editor view left or right</string>
+                                </property>
+                            </widget>
+                        </hbox>
+                    </widget>
+                </vbox>
             </widget>
             <widget class="QLayoutWidget">
                 <property name="name">
@@ -457,398 +562,6 @@
                             </size>
                         </property>
                     </spacer>
-                </hbox>
-            </widget>
-            <widget class="QLayoutWidget">
-                <property name="name">
-                    <cstring>layout49</cstring>
-                </property>
-                <hbox>
-                    <property name="name">
-                        <cstring>unnamed</cstring>
-                    </property>
-                    <widget class="QLayoutWidget">
-                        <property name="name">
-                            <cstring>layout46</cstring>
-                        </property>
-                        <vbox>
-                            <property name="name">
-                                <cstring>unnamed</cstring>
-                            </property>
-                            <widget class="QLabel">
-                                <property name="name">
-                                    <cstring>asdfa</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>1</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="text">
-                                    <string>Edit Display Center</string>
-                                </property>
-                            </widget>
-                            <widget class="QLabel">
-                                <property name="name">
-                                    <cstring>textLabel3_12_2</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>1</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="text">
-                                    <string>Edit Display Size</string>
-                                </property>
-                            </widget>
-                        </vbox>
-                    </widget>
-                    <widget class="QLayoutWidget">
-                        <property name="name">
-                            <cstring>layout47</cstring>
-                        </property>
-                        <vbox>
-                            <property name="name">
-                                <cstring>unnamed</cstring>
-                            </property>
-                            <widget class="QSlider">
-                                <property name="name">
-                                    <cstring>editCenterSlider</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>7</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="minimumSize">
-                                    <size>
-                                        <width>150</width>
-                                        <height>0</height>
-                                    </size>
-                                </property>
-                                <property name="minValue">
-                                    <number>0</number>
-                                </property>
-                                <property name="maxValue">
-                                    <number>1000</number>
-                                </property>
-                                <property name="value">
-                                    <number>100</number>
-                                </property>
-                                <property name="orientation">
-                                    <enum>Horizontal</enum>
-                                </property>
-                                <property name="toolTip" stdset="0">
-                                    <string>Slide transfer function editing display</string>
-                                </property>
-                            </widget>
-                            <widget class="QSlider">
-                                <property name="name">
-                                    <cstring>editSizeSlider</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>7</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="minimumSize">
-                                    <size>
-                                        <width>150</width>
-                                        <height>0</height>
-                                    </size>
-                                </property>
-                                <property name="minValue">
-                                    <number>1</number>
-                                </property>
-                                <property name="maxValue">
-                                    <number>1000</number>
-                                </property>
-                                <property name="value">
-                                    <number>100</number>
-                                </property>
-                                <property name="orientation">
-                                    <enum>Horizontal</enum>
-                                </property>
-                                <property name="toolTip" stdset="0">
-                                    <string>Stretch or shrink editing display size</string>
-                                </property>
-                            </widget>
-                        </vbox>
-                    </widget>
-                    <widget class="QLayoutWidget">
-                        <property name="name">
-                            <cstring>layout48</cstring>
-                        </property>
-                        <vbox>
-                            <property name="name">
-                                <cstring>unnamed</cstring>
-                            </property>
-                            <widget class="QLineEdit">
-                                <property name="name">
-                                    <cstring>editCenter</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>0</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="maximumSize">
-                                    <size>
-                                        <width>100</width>
-                                        <height>25</height>
-                                    </size>
-                                </property>
-                                <property name="text">
-                                    <string>120</string>
-                                </property>
-                                <property name="maxLength">
-                                    <number>200</number>
-                                </property>
-                                <property name="toolTip" stdset="0">
-                                    <string>center of editing domain</string>
-                                </property>
-                            </widget>
-                            <widget class="QLineEdit">
-                                <property name="name">
-                                    <cstring>editSize</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>0</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="maximumSize">
-                                    <size>
-                                        <width>100</width>
-                                        <height>25</height>
-                                    </size>
-                                </property>
-                                <property name="text">
-                                    <string>120</string>
-                                </property>
-                                <property name="maxLength">
-                                    <number>200</number>
-                                </property>
-                                <property name="toolTip" stdset="0">
-                                    <string>Size of editing domain</string>
-                                </property>
-                            </widget>
-                        </vbox>
-                    </widget>
-                </hbox>
-            </widget>
-            <widget class="QLayoutWidget">
-                <property name="name">
-                    <cstring>layout30</cstring>
-                </property>
-                <hbox>
-                    <property name="name">
-                        <cstring>unnamed</cstring>
-                    </property>
-                    <widget class="QLayoutWidget">
-                        <property name="name">
-                            <cstring>layout29</cstring>
-                        </property>
-                        <vbox>
-                            <property name="name">
-                                <cstring>unnamed</cstring>
-                            </property>
-                            <widget class="QLabel">
-                                <property name="name">
-                                    <cstring>asdfa_2</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>1</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="text">
-                                    <string>TF Domain Center</string>
-                                </property>
-                            </widget>
-                            <widget class="QLabel">
-                                <property name="name">
-                                    <cstring>textLabel3_12_2_2</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>1</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="text">
-                                    <string>TF Domain Size</string>
-                                </property>
-                            </widget>
-                        </vbox>
-                    </widget>
-                    <widget class="QLayoutWidget">
-                        <property name="name">
-                            <cstring>layout47_2</cstring>
-                        </property>
-                        <vbox>
-                            <property name="name">
-                                <cstring>unnamed</cstring>
-                            </property>
-                            <widget class="QSlider">
-                                <property name="name">
-                                    <cstring>tfDomainCenterSlider</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>7</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="minimumSize">
-                                    <size>
-                                        <width>150</width>
-                                        <height>0</height>
-                                    </size>
-                                </property>
-                                <property name="minValue">
-                                    <number>0</number>
-                                </property>
-                                <property name="maxValue">
-                                    <number>1000</number>
-                                </property>
-                                <property name="value">
-                                    <number>100</number>
-                                </property>
-                                <property name="orientation">
-                                    <enum>Horizontal</enum>
-                                </property>
-                                <property name="toolTip" stdset="0">
-                                    <string>Move transfer function domain center</string>
-                                </property>
-                            </widget>
-                            <widget class="QSlider">
-                                <property name="name">
-                                    <cstring>tfDomainSizeSlider</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>7</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="minimumSize">
-                                    <size>
-                                        <width>150</width>
-                                        <height>0</height>
-                                    </size>
-                                </property>
-                                <property name="minValue">
-                                    <number>1</number>
-                                </property>
-                                <property name="maxValue">
-                                    <number>1000</number>
-                                </property>
-                                <property name="value">
-                                    <number>100</number>
-                                </property>
-                                <property name="orientation">
-                                    <enum>Horizontal</enum>
-                                </property>
-                                <property name="toolTip" stdset="0">
-                                    <string>Stretch or shrink transfer function domain</string>
-                                </property>
-                            </widget>
-                        </vbox>
-                    </widget>
-                    <widget class="QLayoutWidget">
-                        <property name="name">
-                            <cstring>layout48_2</cstring>
-                        </property>
-                        <vbox>
-                            <property name="name">
-                                <cstring>unnamed</cstring>
-                            </property>
-                            <widget class="QLineEdit">
-                                <property name="name">
-                                    <cstring>tfDomainCenterEdit</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>0</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="maximumSize">
-                                    <size>
-                                        <width>100</width>
-                                        <height>25</height>
-                                    </size>
-                                </property>
-                                <property name="text">
-                                    <string>120</string>
-                                </property>
-                                <property name="maxLength">
-                                    <number>200</number>
-                                </property>
-                                <property name="toolTip" stdset="0">
-                                    <string>center of editing domain</string>
-                                </property>
-                            </widget>
-                            <widget class="QLineEdit">
-                                <property name="name">
-                                    <cstring>tfDomainSizeEdit</cstring>
-                                </property>
-                                <property name="sizePolicy">
-                                    <sizepolicy>
-                                        <hsizetype>0</hsizetype>
-                                        <vsizetype>7</vsizetype>
-                                        <horstretch>0</horstretch>
-                                        <verstretch>0</verstretch>
-                                    </sizepolicy>
-                                </property>
-                                <property name="maximumSize">
-                                    <size>
-                                        <width>100</width>
-                                        <height>25</height>
-                                    </size>
-                                </property>
-                                <property name="text">
-                                    <string>120</string>
-                                </property>
-                                <property name="maxLength">
-                                    <number>200</number>
-                                </property>
-                                <property name="toolTip" stdset="0">
-                                    <string>Size of editing domain</string>
-                                </property>
-                            </widget>
-                        </vbox>
-                    </widget>
                 </hbox>
             </widget>
             <widget class="QLayoutWidget">
@@ -1099,20 +812,12 @@
             </widget>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>layout33</cstring>
+                    <cstring>layout35</cstring>
                 </property>
                 <hbox>
                     <property name="name">
                         <cstring>unnamed</cstring>
                     </property>
-                    <widget class="QPushButton">
-                        <property name="name">
-                            <cstring>recenterButton</cstring>
-                        </property>
-                        <property name="text">
-                            <string>Re-Center Sliders</string>
-                        </property>
-                    </widget>
                     <spacer>
                         <property name="name">
                             <cstring>spacer27_2</cstring>
@@ -1125,7 +830,7 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>21</width>
+                                <width>50</width>
                                 <height>20</height>
                             </size>
                         </property>
@@ -1150,6 +855,23 @@
                             <string>Specify number of bits used for volume rendering </string>
                         </property>
                     </widget>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer28_3</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>151</width>
+                                <height>20</height>
+                            </size>
+                        </property>
+                    </spacer>
                 </hbox>
             </widget>
             <spacer>
@@ -1165,7 +887,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>69</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
