@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>408</width>
-            <height>213</height>
+            <width>422</width>
+            <height>444</height>
         </rect>
     </property>
     <property name="caption">
@@ -18,292 +18,656 @@
     <property name="sizeGripEnabled">
         <bool>true</bool>
     </property>
-    <hbox>
+    <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>unnamed</cstring>
+            <cstring>layout10</cstring>
         </property>
-        <widget class="QLayoutWidget">
+        <property name="geometry">
+            <rect>
+                <x>10</x>
+                <y>10</y>
+                <width>400</width>
+                <height>420</height>
+            </rect>
+        </property>
+        <vbox>
             <property name="name">
-                <cstring>layout6</cstring>
+                <cstring>unnamed</cstring>
             </property>
-            <vbox>
+            <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>unnamed</cstring>
+                    <cstring>layout2</cstring>
                 </property>
-                <widget class="QLayoutWidget">
+                <hbox>
                     <property name="name">
-                        <cstring>layout2</cstring>
+                        <cstring>unnamed</cstring>
                     </property>
-                    <hbox>
+                    <widget class="QLabel">
                         <property name="name">
-                            <cstring>unnamed</cstring>
+                            <cstring>textLabel1</cstring>
                         </property>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel1</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Cache Size (Megabytes)</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>41</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QLineEdit">
-                            <property name="name">
-                                <cstring>cacheSizeEdit</cstring>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer50</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
-                            <height>21</height>
-                        </size>
-                    </property>
-                </spacer>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout2_2_2</cstring>
-                    </property>
-                    <hbox>
+                        <property name="text">
+                            <string>Cache Size (Megabytes)</string>
+                        </property>
+                    </widget>
+                    <spacer>
                         <property name="name">
-                            <cstring>unnamed</cstring>
+                            <cstring>spacer2</cstring>
                         </property>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel1_2_2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>JPEG image quality (1-100)</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer2_2_2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>41</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QLineEdit">
-                            <property name="name">
-                                <cstring>jpegQuality</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>true</bool>
-                            </property>
-                            <property name="text">
-                                <string>75</string>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer7</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
-                            <height>21</height>
-                        </size>
-                    </property>
-                </spacer>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout2_2</cstring>
-                    </property>
-                    <hbox>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>41</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QLineEdit">
                         <property name="name">
-                            <cstring>unnamed</cstring>
+                            <cstring>cacheSizeEdit</cstring>
                         </property>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel1_2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Export Data Directory</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer2_2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>41</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QLineEdit">
-                            <property name="name">
-                                <cstring>exportPath</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="text">
-                                <string>/tmp</string>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-                <spacer>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
+                        </property>
+                    </widget>
+                </hbox>
+            </widget>
+            <spacer>
+                <property name="name">
+                    <cstring>spacer50</cstring>
+                </property>
+                <property name="orientation">
+                    <enum>Vertical</enum>
+                </property>
+                <property name="sizeType">
+                    <enum>Expanding</enum>
+                </property>
+                <property name="sizeHint">
+                    <size>
+                        <width>20</width>
+                        <height>16</height>
+                    </size>
+                </property>
+            </spacer>
+            <widget class="QLayoutWidget">
+                <property name="name">
+                    <cstring>layout2_2_2</cstring>
+                </property>
+                <hbox>
                     <property name="name">
-                        <cstring>spacer3</cstring>
+                        <cstring>unnamed</cstring>
                     </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
-                            <height>20</height>
-                        </size>
-                    </property>
-                </spacer>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>Layout1</cstring>
-                    </property>
-                    <hbox>
+                    <widget class="QLabel">
                         <property name="name">
-                            <cstring>unnamed</cstring>
+                            <cstring>textLabel1_2_2</cstring>
                         </property>
-                        <property name="margin">
-                            <number>0</number>
+                        <property name="text">
+                            <string>JPEG image quality (1-100)</string>
                         </property>
-                        <property name="spacing">
-                            <number>6</number>
+                    </widget>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer2_2_2</cstring>
                         </property>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>buttonHelp</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="text">
-                                <string>&amp;Help</string>
-                            </property>
-                            <property name="accel">
-                                <string>F1</string>
-                            </property>
-                            <property name="autoDefault">
-                                <bool>true</bool>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>Horizontal Spacing2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>20</width>
-                                    <height>20</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>buttonOk</cstring>
-                            </property>
-                            <property name="text">
-                                <string>&amp;OK</string>
-                            </property>
-                            <property name="accel">
-                                <string></string>
-                            </property>
-                            <property name="autoDefault">
-                                <bool>true</bool>
-                            </property>
-                            <property name="default">
-                                <bool>true</bool>
-                            </property>
-                        </widget>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>buttonCancel</cstring>
-                            </property>
-                            <property name="text">
-                                <string>&amp;Cancel</string>
-                            </property>
-                            <property name="accel">
-                                <string></string>
-                            </property>
-                            <property name="autoDefault">
-                                <bool>true</bool>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-            </vbox>
-        </widget>
-    </hbox>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>41</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QLineEdit">
+                        <property name="name">
+                            <cstring>jpegQuality</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>true</bool>
+                        </property>
+                        <property name="text">
+                            <string>75</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
+                        </property>
+                    </widget>
+                </hbox>
+            </widget>
+            <spacer>
+                <property name="name">
+                    <cstring>spacer7</cstring>
+                </property>
+                <property name="orientation">
+                    <enum>Vertical</enum>
+                </property>
+                <property name="sizeType">
+                    <enum>Expanding</enum>
+                </property>
+                <property name="sizeHint">
+                    <size>
+                        <width>20</width>
+                        <height>16</height>
+                    </size>
+                </property>
+            </spacer>
+            <widget class="QLayoutWidget">
+                <property name="name">
+                    <cstring>layout9</cstring>
+                </property>
+                <grid>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QLineEdit" row="2" column="3">
+                        <property name="name">
+                            <cstring>logFileName</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>true</bool>
+                        </property>
+                        <property name="text">
+                            <string>/tmp</string>
+                        </property>
+                    </widget>
+                    <spacer row="1" column="0">
+                        <property name="name">
+                            <cstring>spacer3_2</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Vertical</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>20</width>
+                                <height>16</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QLineEdit" row="0" column="3">
+                        <property name="name">
+                            <cstring>exportPath</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
+                        <property name="text">
+                            <string>/tmp</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="0" column="0" rowspan="1" colspan="2">
+                        <property name="name">
+                            <cstring>textLabel1_2</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Export Data Directory</string>
+                        </property>
+                    </widget>
+                    <spacer row="1" column="3">
+                        <property name="name">
+                            <cstring>spacer3_3</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Vertical</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>30</width>
+                                <height>16</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QLabel" row="2" column="0">
+                        <property name="name">
+                            <cstring>textLabel1_2_3</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Log File</string>
+                        </property>
+                    </widget>
+                    <spacer row="1" column="4">
+                        <property name="name">
+                            <cstring>spacer3_4</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Vertical</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>20</width>
+                                <height>16</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QPushButton" row="2" column="4">
+                        <property name="name">
+                            <cstring>logFileButton</cstring>
+                        </property>
+                        <property name="text">
+                            <string></string>
+                        </property>
+                        <property name="pixmap">
+                            <pixmap>image0</pixmap>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify Log File Name</string>
+                        </property>
+                    </widget>
+                    <spacer row="2" column="1" rowspan="1" colspan="2">
+                        <property name="name">
+                            <cstring>spacer2_2_3</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>140</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <spacer row="0" column="2">
+                        <property name="name">
+                            <cstring>spacer2_2</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>80</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QPushButton" row="0" column="4">
+                        <property name="name">
+                            <cstring>exportDirectoryButton</cstring>
+                        </property>
+                        <property name="text">
+                            <string></string>
+                        </property>
+                        <property name="pixmap">
+                            <pixmap>image1</pixmap>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Choose Export Directory</string>
+                        </property>
+                    </widget>
+                    <spacer row="1" column="2">
+                        <property name="name">
+                            <cstring>spacer3</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Vertical</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>20</width>
+                                <height>16</height>
+                            </size>
+                        </property>
+                    </spacer>
+                </grid>
+            </widget>
+            <widget class="QLabel">
+                <property name="name">
+                    <cstring>textLabel5</cstring>
+                </property>
+                <property name="text">
+                    <string>Message Logging and Popups</string>
+                </property>
+                <property name="alignment">
+                    <set>AlignCenter</set>
+                </property>
+            </widget>
+            <widget class="QLayoutWidget">
+                <property name="name">
+                    <cstring>layout7</cstring>
+                </property>
+                <grid>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QLineEdit" row="2" column="2">
+                        <property name="name">
+                            <cstring>maxWarnLog</cstring>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                    <spacer row="2" column="1">
+                        <property name="name">
+                            <cstring>spacer10_2</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>41</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </spacer>
+                    <spacer row="0" column="1">
+                        <property name="name">
+                            <cstring>spacer9</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>61</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </spacer>
+                    <widget class="QLabel" row="1" column="0">
+                        <property name="name">
+                            <cstring>textLabel4</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Diagnostic Messages</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="1" column="3">
+                        <property name="name">
+                            <cstring>maxInfoPopup</cstring>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="3" column="2">
+                        <property name="name">
+                            <cstring>maxErrorLog</cstring>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                    <spacer row="1" column="1">
+                        <property name="name">
+                            <cstring>spacer10</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>41</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </spacer>
+                    <widget class="QLineEdit" row="1" column="2">
+                        <property name="name">
+                            <cstring>maxInfoLog</cstring>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="0" column="0">
+                        <property name="name">
+                            <cstring>textLabel1_3</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Message Limits</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="2" column="0">
+                        <property name="name">
+                            <cstring>textLabel4_2</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Warning Messages</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="0" column="2">
+                        <property name="name">
+                            <cstring>textLabel2</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Log File Max</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="2" column="3">
+                        <property name="name">
+                            <cstring>maxWarnPopup</cstring>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                    <widget class="QLabel" row="3" column="0">
+                        <property name="name">
+                            <cstring>textLabel4_3</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Error Messages</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit" row="3" column="3">
+                        <property name="name">
+                            <cstring>maxErrorPopup</cstring>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                    <spacer row="3" column="1">
+                        <property name="name">
+                            <cstring>spacer10_3</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>41</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </spacer>
+                    <widget class="QLabel" row="0" column="3">
+                        <property name="name">
+                            <cstring>textLabel3</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Popup Max</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                        </property>
+                    </widget>
+                </grid>
+            </widget>
+            <spacer>
+                <property name="name">
+                    <cstring>spacer13</cstring>
+                </property>
+                <property name="orientation">
+                    <enum>Vertical</enum>
+                </property>
+                <property name="sizeType">
+                    <enum>Expanding</enum>
+                </property>
+                <property name="sizeHint">
+                    <size>
+                        <width>20</width>
+                        <height>20</height>
+                    </size>
+                </property>
+            </spacer>
+            <widget class="QLayoutWidget">
+                <property name="name">
+                    <cstring>Layout1</cstring>
+                </property>
+                <hbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <property name="margin">
+                        <number>0</number>
+                    </property>
+                    <property name="spacing">
+                        <number>6</number>
+                    </property>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>buttonHelp</cstring>
+                        </property>
+                        <property name="enabled">
+                            <bool>false</bool>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Help</string>
+                        </property>
+                        <property name="accel">
+                            <string>F1</string>
+                        </property>
+                        <property name="autoDefault">
+                            <bool>true</bool>
+                        </property>
+                    </widget>
+                    <spacer>
+                        <property name="name">
+                            <cstring>Horizontal Spacing2</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>20</width>
+                                <height>20</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>buttonOk</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;OK</string>
+                        </property>
+                        <property name="accel">
+                            <string></string>
+                        </property>
+                        <property name="autoDefault">
+                            <bool>true</bool>
+                        </property>
+                        <property name="default">
+                            <bool>true</bool>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>buttonCancel</cstring>
+                        </property>
+                        <property name="text">
+                            <string>&amp;Cancel</string>
+                        </property>
+                        <property name="accel">
+                            <string></string>
+                        </property>
+                        <property name="autoDefault">
+                            <bool>true</bool>
+                        </property>
+                    </widget>
+                </hbox>
+            </widget>
+        </vbox>
+    </widget>
 </widget>
+<images>
+    <image name="image0">
+        <data format="XPM.GZ" length="1442">789c7dd2db6eda401006e07b9ec2823b5411ecf50154f582704e20104850a5aa17f68e0dd881100e0112f5ddeb999d2571e5748c8c3efe9dd9b5cc55d9f8391e1ae5abc26eefef97d2900b7f6b94e1b05a9d7ffdfef15e285ab66109c3a91a66f15ba10886344a552aa464da8a73620d2f6483291503a459356d93166f8835539a943e232dd3aa5ab451c4b4155f8975ab66d5913ba6547c440a53f0a9c64c3ed58ba6a05143625dd454fac0948aa1a6a0c9b748db4a8f4ce993a66d21a74c47a50b4d958e88be5d576997098a3748c77278f284c9a33a44dfe1c5d748d7c40b39200a977bfb4ceebd23062eefdb66f2a81ed2131ef7b698dcdb24061ef7be21a52b857aa203d37305728b0417841b207d4d1922cf4ccff6912564e88676488f70227a21a7474d8736da13a330f068a30a330c2572868c9cf4a2f49ee845c2a363ac999e62a259b391f185346aa559a7747921a595526e55e879fcdc2ae5648184af3200fce466f43bde206fa65e73c9c268fe4f74c916cb38816ca4b3a7e52a59c33c788ea2cd5cafe1ec651527eb7592c471fabd854cb68b93344bc3b4f6876cf68a6d47aad3f92d273b9d40976ca4b7eb8f2c8d9a582dac76a70b9ffa38c2b0d7bfb9053d338a93a38e9aadf6a03b84cb7e9b346a71f5ee3aa3317c9ca5710f7d5d83c974fcf93d004cba23aee9c363f6fd41a6be7eeffffb4f64b25925b766c53fdf0b7f01c8506b3f</data>
+    </image>
+    <image name="image1">
+        <data format="XPM.GZ" length="1442">789c7dd2db6eda401006e07b9ec2823b5411ecf50154f582704e20104850a5aa17f68e0dd881100e0112f5ddeb999d2571e5748c8c3efe9dd9b5cc55d9f8391e1ae5abc26eefef97d2900b7f6b94e1b05a9d7ffdfef15e285ab66109c3a91a66f15ba10886344a552aa464da8a73620d2f6483291503a459356d93166f8835539a943e232dd3aa5ab451c4b4155f8975ab66d5913ba6547c440a53f0a9c64c3ed58ba6a05143625dd454fac0948aa1a6a0c9b748db4a8f4ce993a66d21a74c47a50b4d958e88be5d576997098a3748c77278f284c9a33a44dfe1c5d748d7c40b39200a977bfb4ceebd23062eefdb66f2a81ed2131ef7b698dcdb24061ef7be21a52b857aa203d37305728b0417841b207d4d1922cf4ccff6912564e88676488f70227a21a7474d8736da13a330f068a30a330c2572868c9cf4a2f49ee845c2a363ac999e62a259b391f185346aa559a7747921a595526e55e879fcdc2ae5648184af3200fce466f43bde206fa65e73c9c268fe4f74c916cb38816ca4b3a7e52a59c33c788ea2cd5cafe1ec651527eb7592c471fabd854cb68b93344bc3b4f6876cf68a6d47aad3f92d273b9d40976ca4b7eb8f2c8d9a582dac76a70b9ffa38c2b0d7bfb9053d338a93a38e9aadf6a03b84cb7e9b346a71f5ee3aa3317c9ca5710f7d5d83c974fcf93d004cba23aee9c363f6fd41a6be7eeffffb4f64b25925b766c53fdf0b7f01c8506b3f</data>
+    </image>
+</images>
 <connections>
     <connection>
         <sender>buttonOk</sender>
