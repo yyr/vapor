@@ -166,7 +166,7 @@ resetMetadata(const char* fileBase)
 	
 	//The metadata is created by (and obtained from) the datamgr
 	currentMetadataPath = new string(fileBase);
-	//string path(fileBase);
+	
 	if (dataMgr) delete dataMgr;
 	dataMgr = new DataMgr(currentMetadataPath->c_str(), cacheMB, 1);
 	if (dataMgr->GetErrCode() != 0) {
@@ -218,14 +218,13 @@ resetMetadata(const char* fileBase)
 		//Obtain data dimensions for getting histogram:
 		size_t min_bdim[3];
 		size_t max_bdim[3];
-		size_t bs = currentMetadata->GetBlockSize();
-		int fullDataSize = 1;
-		int subDataSize[3];
+		
+		size_t subDataSize[3];
+		myReader->GetDim(currentDataStatus->getNumTransforms(),subDataSize);
+		myReader->GetDimBlk(currentDataStatus->getNumTransforms(),max_bdim);
 		for (int k = 0; k<3; k++){
-			fullDataSize *= currentDataStatus->getFullDataSize(k);
-			subDataSize[k] = currentDataStatus->getFullDataSize(k)>>currentDataStatus->getNumTransforms();
 			min_bdim[k] = 0;
-			max_bdim[k] = ((currentDataStatus->getFullDataSize(k)-1)>>currentDataStatus->getNumTransforms())/bs;
+			max_bdim[k]--;
 		}
 		//Initialize the histograms array to null.
 		currentHistograms[i] = 0;
@@ -243,7 +242,6 @@ resetMetadata(const char* fileBase)
 						0 //Don't lock!
 					), 
 				subDataSize[0]*subDataSize[1]*subDataSize[2],
-				//fullDataSize>>(3*currentDataStatus->getNumTransforms()),
 				dataMin, dataMax
 				);
 				break;//stop after first successful construction
