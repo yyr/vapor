@@ -50,6 +50,7 @@
 #include "regiontab.h"
 #include "viewpointparams.h"
 #include "regionparams.h"
+#include "messagereporter.h"
 #include "glutil.h"
 #include "glbox.h"
 #include "viewpoint.h"
@@ -129,10 +130,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	fmt.setDirectRendering(true);
     myGLWindow = new GLWindow(fmt, f, "glbox", this);
 	if (!(fmt.directRendering() && fmt.depth() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
-		QMessageBox::critical(0,
-		"OpenGL Error",
-		"Unable to obtain required rendering format",
-		QMessageBox::Ok, QMessageBox::NoButton);		
+		BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}
 
 
@@ -619,8 +617,9 @@ doFrameCapture(){
 	FILE* jpegFile = fopen(filename.ascii(), "wb");
 	if (!jpegFile) {
 		//Error!
-		QMessageBox::critical(0, "Image Capture Error","Error opening output Jpeg file",
-			QMessageBox::Ok,QMessageBox::NoButton);
+		QString strng("Image Capture Error: Error opening output Jpeg file: ");
+		strng += filename;
+		MessageReporter::errorMsg(strng.ascii());
 		capturing = false;
 		return;
 	}
@@ -629,8 +628,7 @@ doFrameCapture(){
 	//Use openGL to fill the buffer:
 	if(!myGLWindow->getPixelData(buf)){
 		//Error!
-		QMessageBox::critical(0, "Image Capture Error","Error obtaining GL data",
-			QMessageBox::Ok,QMessageBox::NoButton);
+		MessageReporter::errorMsg("Image Capture Error; error obtaining GL data");
 		capturing = false;
 		delete buf;
 		return;
@@ -641,8 +639,7 @@ doFrameCapture(){
 	int rc = write_JPEG_file(jpegFile, myGLWindow->width(), myGLWindow->height(), buf, quality);
 	if (rc){
 		//Error!
-		QMessageBox::critical(0, "Image Capture Error", "Error writing jpeg file",
-			QMessageBox::Ok,QMessageBox::NoButton);
+		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file");
 		capturing = false;
 		delete buf;
 		return;

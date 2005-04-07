@@ -271,6 +271,7 @@ public:
 	void updateTFFilePath(QString* newPath);
 
 	static void errorCallbackFcn(const char* msg, int err_code);
+	static void infoCallbackFcn(const char* msg);
 protected:
 	Session();
 	static Session* theSession;

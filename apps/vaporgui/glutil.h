@@ -83,7 +83,7 @@ inline void vcopy(const float* a, float* b) {b[0] = a[0], b[1] = a[1], b[2] = a[
 
 /*extern GLfloat *idmatrix;*/
 namespace VAPoR {
-void	BailOut (char *errstr, char *fname, int lineno);
+void	BailOut (const char *errstr, char *fname, int lineno);
 /* glutil.c */
 void	computeGradientData(
 	int dim[3], int numChan, unsigned char *volume, unsigned char *gradient

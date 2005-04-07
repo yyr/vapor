@@ -218,7 +218,7 @@ void minvert(GLfloat *mat, GLfloat *result)
         j = i;
         while (m[i][j] == 0  &&  j < 4)
             j++;
-        Verify(j < 4, "cannot inverse matrix");
+        Verify(j < 4, "cannot invert matrix");
 
         if (i != j)
             for (k = 0;  k < 8;  k++) {

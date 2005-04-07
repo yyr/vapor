@@ -39,12 +39,9 @@
 #include <qfiledialog.h>
 #include <qlineedit.h>
 #include <qscrollview.h>
-#include <qmessagebox.h>
 #include <qdesktopwidget.h>
 #include <qvbox.h>
 #include <qworkspace.h>
-#include <qmessagebox.h>
-
 #include "vizwin.h"
 #include "isotab.h"
 #include "vizselectcombo.h"
@@ -57,17 +54,18 @@
 #include "contourplanetab.h"
 #include "animationtab.h"
 #include "session.h"
-
+#include "messagereporter.h"
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "dvrparams.h"
 #include "contourparams.h"
 #include "isosurfaceparams.h"
 #include "animationparams.h"
-#include "vcr.h"
+
 #include "assert.h"
 #include "command.h"
 #include "sessionparameters.h"
+#include "sessionparams.h"
 
 //The following are pixmaps that are used in gui:
 #include "images/cascade.xpm"
@@ -201,9 +199,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	//Toolbar buttons:
 	QPixmap* wheelIcon = new QPixmap(wheel);
 	
-	if (!wheelIcon){ 
-		QMessageBox::warning(this, "vaporgui", 
-			"Unable to obtain image from images/wheel.xpm");
+	if (!wheelIcon){
+		MessageReporter::warningMsg("Unable to obtain image from images/wheel.xpm");
 	}
 	navigationAction = new QAction("Navigation Mode", *wheelIcon,
 		"&Navigation", CTRL+Key_N, mouseModeActions);
@@ -666,30 +663,10 @@ void MainForm::launchVisualizer()
 //This creates the popup to edit session parameters
 void MainForm::editSessionParams()
 {
-	Session* currentSession = Session::getInstance();
-	SessionParameters* sessionParamsDlg = new SessionParameters((QWidget*)this);
-	QString str;
-	sessionParamsDlg->jpegQuality->setText(str.setNum(currentSession->getJpegQuality()));
-	sessionParamsDlg->cacheSizeEdit->setText(str.setNum(currentSession->getCacheMB()));
-	int rc = sessionParamsDlg->exec();
-	if (rc){
-		//see if the memory size changed:
-		int newVal = sessionParamsDlg->cacheSizeEdit->text().toInt();
-		if (newVal > 100 && newVal != currentSession->getCacheMB()){
-			currentSession->setCacheMB(newVal);
-			QMessageBox::information(this,
-				"Information", 
-				"Cache size will change at next metadata loading", 
-				QMessageBox::Ok);
-		}
-		//Set the image quality:
-		int newQual = sessionParamsDlg->jpegQuality->text().toInt();
-		if (newQual > 0 && newQual <= 100) currentSession->setJpegQuality(newQual);
-
-		//see if the path changed:
-	}
-	delete sessionParamsDlg;
+	SessionParams sP;
+	sP.launch();
 }
+
 /*
  * Method to launch the viewpoint/lights tab into the tabbed dialog
  */
@@ -872,7 +849,7 @@ void MainForm::setNavigate(bool on)
 		currentMouseMode = Command::navigateMode;
 	}
 }
-void MainForm::setLights(bool on)
+void MainForm::setLights(bool /* on*/)
 {
 /*  Until we implement this, do nothing:
 	Session* currentSession = Session::getInstance();
@@ -884,7 +861,7 @@ void MainForm::setLights(bool on)
 	}
 	*/
 }
-void MainForm::setProbe(bool on)
+void MainForm::setProbe(bool /*on*/)
 {
 	/* Do nothing until implemented:
 	if (!on) return;
@@ -939,7 +916,7 @@ void MainForm::initViewMenu(){
 		viewMenu->setItemEnabled(pos, true);
 	}
 }
-void MainForm::setContourSelect(bool on)
+void MainForm::setContourSelect(bool /*on*/)
 {
 	/* Do nothing until implemented:
 	if (!on) return;
@@ -1008,8 +985,7 @@ void MainForm::startCapture() {
 	//		QMessageBox::Ok,QMessageBox::NoButton);
 		
 	} else {
-		QMessageBox::warning(this, "Image Capture Error","No active visualizer for capturing images",
-			QMessageBox::Ok,QMessageBox::NoButton);
+		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing images");
 	}
 }
 void MainForm::endCapture(){
@@ -1018,7 +994,6 @@ void MainForm::endCapture(){
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (viz && viz->isCapturing()) viz->stopCapture();
 	else {
-		QMessageBox::warning(this, "Image Capture Error","Current active visualizer is not capturing images",
-			QMessageBox::Ok,QMessageBox::NoButton);
+		MessageReporter::warningMsg("Image Capture Warning;\nCurrent active visualizer is not capturing images");
 	}
 }

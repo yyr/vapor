@@ -18,7 +18,7 @@
 //
 
 #include "savetfdialog.h"
-#include <qmessagebox.h>
+
 #include <qvariant.h>
 #include <qpushbutton.h>
 #include <qlayout.h>
@@ -27,7 +27,7 @@
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qcombobox.h>
-
+#include <qmessagebox.h>
 #include "session.h"
 #include "dvrparams.h"
 using namespace VAPoR;

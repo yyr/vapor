@@ -56,6 +56,7 @@
 #include "DVRDebug.h"
 #include "renderer.h"
 #include "animationcontroller.h"
+#include "messagereporter.h"
 
 #include "mainform.h"
 #include "command.h"
@@ -85,11 +86,7 @@ initializeGL(){
 	myGLWindow->makeCurrent();
     
     if (driver->GraphicsInit() < 0) {
-		//qWarning("Failure to initialize driver");
-		QMessageBox::critical(0,
-		"Volumizer Error",
-		"Failure to initialize driver",
-		QMessageBox::Ok, QMessageBox::NoButton);
+		BailOut("OpenGL: Failure to initialize driver",__FILE__,__LINE__);
     }
     
 }
@@ -354,14 +351,8 @@ DrawVoxelScene(unsigned /*fast*/)
 	glLoadIdentity();
 	//Make the z-buffer read-only for the volume data
 	glDepthMask(GL_FALSE);
-	if (driver->Render(
-		(GLfloat *) matrix ) < 0){
-
-			qWarning("Error calling Render()");
-			QMessageBox::warning(0,
-			"Volumizer Error",
-			"Error calling Render()",
-			QMessageBox::Ok, QMessageBox::NoButton);
+	if (driver->Render((GLfloat *) matrix ) < 0){
+		MessageReporter::errorMsg("Unable to Render");
 		return;
 	}
 

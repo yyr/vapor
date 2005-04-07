@@ -30,12 +30,12 @@ FILES := \
 	coloradjustdialog colorpicker command contourparams \
 	DVRBase DVRDebug DVRVolumizer dvrparams glbox glutil glwindow \
 	histo isosurfaceparams loadtfdialog main mainform \
-	opacadjustdialog panelcommand params regionparams \
-	renderer savetfdialog session sharedcontrollerthread\
+	messagereporter opacadjustdialog panelcommand params regionparams \
+	renderer savetfdialog session sessionparams sharedcontrollerthread\
 	tabmanager tfeditor tfelocationtip \
 	tfframe tfinterpolator trackball transferfunction \
 	unsharedcontrollerthread \
-	vcr viewpointparams vizactivatecommand \
+	viewpointparams vizactivatecommand \
 	vizselectcombo vizwin vizwinmgr volumizerrenderer 
 
 QT_HEADERS := \
@@ -44,9 +44,8 @@ QT_HEADERS := \
 	loadtfdialog \
 	mainform \
 	opacadjustdialog \
-	renderer savetfdialog tabmanager \
+	renderer savetfdialog sessionparams tabmanager \
 	tfframe \
-	vcr \
 	vizselectcombo vizwin vizwinmgr volumizerrenderer 
 
 

@@ -56,6 +56,7 @@ SOURCES +=\
  	   loadtfdialog.cpp \
 	   main.cpp \
            mainform.cpp \
+	   messagereporter.cpp \	
            minmaxcombo.cpp \
 	   opacadjustdialog.cpp \
 	   panelcommand.cpp \
@@ -64,6 +65,7 @@ SOURCES +=\
 	   renderer.cpp \
 	   savetfdialog.cpp \
 	   session.cpp \
+	   sessionparams.cpp \
 	   sharedcontrollerthread.cpp \
            tabmanager.cpp \
 	   tfeditor.cpp \
@@ -73,7 +75,6 @@ SOURCES +=\
 	   trackball.cpp \
 	   transferfunction.cpp \
 	   unsharedcontrollerthread.cpp \
-	   vcr.cpp \
 	   viewpointparams.cpp \
 	   vizactivatecommand.cpp \
            vizmgrdialog.cpp \
@@ -102,6 +103,7 @@ HEADERS += \
 	   isosurfaceparams.h \
 	   loadtfdialog.h \
            mainform.h \
+	   messagereporter.h \
            minmaxcombo.h \
 	   opacadjustdialog.h \
 	   panelcommand.h \
@@ -110,6 +112,7 @@ HEADERS += \
 	   renderer.h \
 	   savetfdialog.h \
 	   session.h \
+	   sessionparams.h \
            tabmanager.h \
 	   tfeditor.h \
            tfelocationtip.h \
@@ -117,7 +120,6 @@ HEADERS += \
 	   tfframe.h \
 	   trackball.h \
 	   transferfunction.h \
-	   vcr.h \
 	   viewpointparams.h \
 	   vizactivatecommand.h \
            vizmgrdialog.h \

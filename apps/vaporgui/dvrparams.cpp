@@ -29,7 +29,6 @@
 #include <qbuttongroup.h>
 #include <qlabel.h>
 #include <qfiledialog.h>
-#include <qmessagebox.h>
 
 #include <vector>
 #include <string>
@@ -46,6 +45,7 @@
 #include "transferfunction.h"
 #include "tfeditor.h"
 #include "tfframe.h"
+#include "messagereporter.h"
 
 #include <math.h>
 #include <vapor/Metadata.h>
@@ -325,9 +325,7 @@ guiSetVarNum(int val){
 	if (val == varNum) return;
 	//Only change the variable to a valid one:
 	if (!Session::getInstance()->getDataStatus()->variableIsPresent(val)){
-		QMessageBox::warning(0, "Invalid variable",
-			"Data for specified variable is not available",
-			QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton );
+		MessageReporter::errorMsg( "Data for specified variable is not available");
 		//Set it back to the old value.  This will generate an event that
 		//we will ignore.
 		myDvrTab->variableCombo->setCurrentItem(varNum);
@@ -541,9 +539,7 @@ reinit(){
 		}
 	}
 	if (varNum == -1){
-		QMessageBox::warning(0, "Invalid data",
-			"No data in specified dataset",
-			QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton );
+		MessageReporter::errorMsg("No data in specified dataset");
 	}
 	if (minMapBounds) delete minMapBounds;
 	if (maxMapBounds) delete maxMapBounds;
@@ -613,9 +609,9 @@ fileLoadTF(){
 	}
 	FILE* f = fopen(s.ascii(), "r");
 	if (!f){//Report error if you can't open the file
-		QMessageBox::warning(myDvrTab, "Error loading transfer function",
-			QString("Unable to open file: \n %1 ").arg(s),
-			QMessageBox::Ok, QMessageBox::NoButton);
+		QString str("Unable to open file: \n");
+		str+= s;
+		MessageReporter::errorMsg(str.ascii());
 		return;
 	}
 	//Start the history save:
@@ -624,10 +620,10 @@ fileLoadTF(){
 	
 	TransferFunction* t = TransferFunction::loadFromFile(f, this);
 	if (!t){//Report error if can't load
-		QMessageBox::warning(myDvrTab, "Error loading transfer function",
-			QString("Failed to convert input file: \n %1 ").arg(s),
-			QMessageBox::Ok, QMessageBox::NoButton);
-		//Don't put this in history!
+		QString str("Error loading transfer function. /nFailed to convert input file: \n ");
+		str += s;
+		MessageReporter::errorMsg(str.ascii());
+		//Don't put this into history!
 		delete cmd;
 		return;
 	}
@@ -677,16 +673,16 @@ fileSaveTF(){
 	}
 	FILE* f = fopen(s.ascii(), "w");
 	if (!f){//Report error if you can't open the file
-		QMessageBox::warning(myDvrTab, "Error saving transfer function",
-			QString("Unable to save to file: \n %1 ").arg(s),
-			QMessageBox::Ok, QMessageBox::NoButton);
+		QString str("Unable to save to file: \n");
+		str += s;
+		MessageReporter::errorMsg( str.ascii());
 		return;
 	}
 	
 	if (!myTransFunc->saveToFile(f)){//Report error if can't save to file
-		QMessageBox::warning(myDvrTab, "Error saving transfer function",
-			QString("Failed to write output file: \n %1 ").arg(s),
-			QMessageBox::Ok, QMessageBox::NoButton);
+		QString str("Failed to write output file: \n");
+		str += s;
+		MessageReporter::errorMsg(str.ascii());
 		return;
 	}
 

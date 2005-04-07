@@ -21,6 +21,7 @@
 #include "vizwinmgr.h"
 #include "mainform.h"
 #include "command.h"
+#include "messagereporter.h"
 #include <qaction.h>
 #include <cassert>
 #include <cstring>
@@ -30,11 +31,12 @@
 #include "animationcontroller.h"
 #include "transferfunction.h"
 #include <qstring.h>
-#include <qmessagebox.h>
+
 using namespace VAPoR;
 Session* Session::theSession = 0;
 Session::Session() {
 	MyBase::SetErrMsgCB(errorCallbackFcn);
+	MyBase::SetDiagMsgCB(infoCallbackFcn);
 	recordingCount = 0;
 	dataMgr = 0;
 	currentMetadata = 0;
@@ -117,8 +119,7 @@ exportData(){
 	VizWinMgr* winMgr = VizWinMgr::getInstance();
 	int winNum = winMgr->getActiveViz();
 	if (winNum < 0 || (currentMetadata == 0)){
-		QMessageBox::warning(0, "Export data error","Exporting data requires loaded data and active visualizer",
-			QMessageBox::Ok,QMessageBox::NoButton);
+		MessageReporter::errorMsg("Export data error;\nExporting data requires loaded data and active visualizer");
 		return;
 	}
 	//Set up arguments to Export():
@@ -136,20 +137,21 @@ exportData(){
 		int halfsize = r->getRegionSize(i)/2;
 		minCoords[i] = (size_t)(r->getCenterPosition(i) - halfsize); 
 		maxCoords[i] = (size_t)(r->getCenterPosition(i) + halfsize - 1);
-		assert(minCoords[i] >= 0);
+		assert(minCoords[i] < 100000000);
 		assert(maxCoords[i] <= (size_t)(r->getFullSize(i) -1));
 	}
 	
-	exporter.Export(*currentMetadataPath,
+	int rc = exporter.Export(*currentMetadataPath,
 		currentFrame,
 		d->getStdVariableName(),
 		minCoords,
 		maxCoords,
 		frameInterval);
-	//if (rc < 0){
-	//	QMessageBox::warning(0, "Export data error",exporter.GetErrMsg(),
-	//		QMessageBox::Ok,QMessageBox::NoButton);
-	//}
+	if (rc < 0){
+		QString strng("Export data error: \n%s");
+		strng += exporter.GetErrMsg();
+		MessageReporter::errorMsg(strng.ascii());
+	}
 	return;
 }
 /**
@@ -168,20 +170,18 @@ resetMetadata(const char* fileBase)
 	if (dataMgr) delete dataMgr;
 	dataMgr = new DataMgr(currentMetadataPath->c_str(), cacheMB, 1);
 	if (dataMgr->GetErrCode() != 0) {
-		/*QMessageBox::warning(0,
-			"Data Loading error",
-			QString("Error creating Data Manager:\n %1").arg(dataMgr->GetErrMsg()),
-			QMessageBox::Ok, QMessageBox::NoButton);*/
+		QString strng("Data Loading error, creating Data Manager:\n");
+		strng += dataMgr->GetErrMsg();
+		MessageReporter::errorMsg(strng.ascii());
 		delete dataMgr;
 		dataMgr = 0;
 		return;
 	}
 	currentMetadata = dataMgr->GetMetadata();
 	if (currentMetadata->GetErrCode() != 0) {
-		/*QMessageBox::warning(0,
-			"Data Loading error",
-			QString("Error creating Metadata:\n %1").arg(currentMetadata->GetErrMsg()),
-			QMessageBox::Ok, QMessageBox::NoButton);*/
+		QString strng("Data Loading error, creating Metadata:\n");
+		strng += currentMetadata->GetErrMsg();
+		MessageReporter::errorMsg(strng.ascii());
 		delete dataMgr;
 		dataMgr = 0;
 		return;
@@ -548,12 +548,17 @@ updateTFFilePath(QString* s){
 //Error callback:
 void Session::
 errorCallbackFcn(const char* msg, int err_code){
-	QMessageBox::warning(0,
-		"VAPoR Error",
-		QString("Error Code %1 ;  Message:\n %2").arg(err_code).arg(msg),
-		QMessageBox::Ok, QMessageBox::NoButton);
+	QString strng("Error Code: ");
+	strng += QString::number(err_code);
+	strng += "\n Message: ";
+	strng += msg;
+	MessageReporter::warningMsg(strng.ascii());
 }
-
+//Diagnostic message callback:
+void Session::
+infoCallbackFcn(const char* msg){
+	MessageReporter::infoMsg(msg);
+}
 
 
 //Here is the implementation of the DataStatus.

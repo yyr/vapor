@@ -19,8 +19,8 @@
 #include <qapplication.h>
 #include "mainform.h"
 #include <qfont.h>
-#include <qmessagebox.h>
 #include "glutil.h"
+#include "messagereporter.h"
 using namespace VAPoR;
 
 QApplication* app;
@@ -38,7 +38,7 @@ int main( int argc, char ** argv ) {
     a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
     return a.exec();
 }
-void VAPoR::BailOut(char *errstr, char *fname, int lineno)
+void VAPoR::BailOut(const char *errstr, char *fname, int lineno)
 {
     /* Terminate program after printing an error message.
      * Use via the macros Verify and MemCheck.
@@ -51,6 +51,6 @@ void VAPoR::BailOut(char *errstr, char *fname, int lineno)
 	errorMessage += fname;
 	errorMessage += " at line ";
 	errorMessage += QString::number(lineno);
-	QMessageBox::critical(0, "Unrecoverable error", errorMessage, QMessageBox::Ok, QMessageBox::No);
+	MessageReporter::fatalMsg(errorMessage);
     app->quit();
 }

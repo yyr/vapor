@@ -36,7 +36,7 @@
 
 #include "vizwin.h"
 #include "vizwinmgr.h"
-
+#include "messagereporter.h"
 #include "math.h"
 #include "mainform.h"
 #include "viewpointparams.h"
@@ -207,7 +207,7 @@ launchVisualizer(int newWindowNum, const char* newName)
 		}
 		
 		if (i == MAXVIZWINS -1 && newWindowNum == -1) {
-			QMessageBox::information((QWidget*)myMainWindow, "VAPoR", "Unable to create additional visualizers");
+			MessageReporter::errorMsg("Unable to create additional visualizers");
 			return;
 		}	
 	}
