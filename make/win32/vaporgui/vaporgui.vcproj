@@ -195,6 +195,9 @@
 				RelativePath="..\..\..\apps\vaporgui\mainform.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\messagereporter.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\opacadjustdialog.cpp">
 			</File>
 			<File
@@ -214,6 +217,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\session.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\sessionparams.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\sharedcontrollerthread.cpp">
@@ -241,9 +247,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\unsharedcontrollerthread.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\vcr.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\viewpointparams.cpp">
@@ -422,6 +425,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\messagereporter.h">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\opacadjustdialog.h">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -503,6 +509,29 @@
 				RelativePath="..\..\..\apps\vaporgui\session.h">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\sessionparams.h">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing sessionparams.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\sessionparams.h -o tmp\moc\moc_sessionparams.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="tmp\moc\moc_sessionparams.cpp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing sessionparams.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\sessionparams.h -o tmp\moc\moc_sessionparams.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="tmp\moc\moc_sessionparams.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\tabmanager.h">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -562,29 +591,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\transferfunction.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\vcr.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vcr.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vcr.h -o ..\..\..\apps\vaporgui\moc\moc_vcr.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_vcr.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\vcr.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\vcr.h -o ..\..\..\apps\vaporgui\moc\moc_vcr.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_vcr.cpp"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\viewpointparams.h">
@@ -731,13 +737,13 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp">
 			</File>
 			<File
+				RelativePath=".\tmp\moc\moc_sessionparams.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_tfframe.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_vcr.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_vizselectcombo.cpp">
