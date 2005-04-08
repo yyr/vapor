@@ -9,13 +9,16 @@ FILES = \
 
   
 ifeq ($(ARCH),WIN32)
+LIBRARY = libidl_vdfmodule
 CXXFLAGS += /D"IDL_EXPORTS" 
+LDFLAGS += /DEF:"../../make/win32/idl/idl.def"
 LDFLAGS += ../../targets/win32/bin/common.lib 
 LDFLAGS += ../../targets/win32/bin/vdf.lib
 LDFLAGS += $(IDL_INC_PATH)/../../bin/bin.x86/idl32.lib 
 LDFLAGS += $(EXPATLIB)
 else
 
+LIBRARY = idl_vdfmodule
 LDFLAGS += $(EXPATLIB) -lvdf -lcommon
 endif
 
