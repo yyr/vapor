@@ -65,6 +65,7 @@ Session::Session() {
 	tfFilePath = new QString(".");
 	currentMetadataPath = 0;
 	jpegQuality = 75;
+	dataExists = false;
 }
 Session::~Session(){
 	int i;
@@ -200,6 +201,13 @@ resetMetadata(const char* fileBase)
 	if (currentDataStatus) delete currentDataStatus;
 	currentDataStatus = setupDataStatus();
 
+	//Is there any data here?
+	if(!dataExists) {
+		MessageReporter::errorMsg("No data in specified dataset");
+		delete dataMgr;
+		dataMgr = 0;
+		return;
+	}
 	//Now create histograms for all the variables present.
 	
 	
@@ -361,6 +369,7 @@ setupDataStatus(){
 	//As we go through the variables and timesteps, keepTrack of min and max times
 	unsigned int mints = 1000000000;
 	unsigned int maxts = 0;
+	dataExists = false;
 	for (unsigned int ts = 0; ts< numTimeSteps; ts++){
 		for (int var = 0; var< numVariables; var++){
 			//Find the minimum number of transforms available on disk
@@ -374,15 +383,18 @@ setupDataStatus(){
 					currentMetadata->GetVariableNames()[var].c_str(),
 					xf)) break;
 			}
-			//Aha, there is some data for some variable at this timestep.
+			
+			
 			if (ts > maxts) maxts = ts;
 			if (ts < mints) mints = ts;
 			//xf is the first one that is *not* present
 			xf++;
 			if (xf > numXForms)
 				ds->setDataAbsent(var, ts);
-			else
+			else {
 				ds->setMinXFormPresent(var, ts, xf);
+				dataExists = true;
+			}
 			//Now fill in the max and min.
 			//This can be independent of whether or not the data is
 			//present

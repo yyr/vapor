@@ -185,6 +185,7 @@ private:
 	size_t fullDataSize[3];
 	float** dataRange;
 	
+	
 };
 class Session {
 public:
@@ -292,7 +293,7 @@ protected:
 	size_t cacheMB;
 	// JPeg image quality (1-100)
 	int jpegQuality;
-
+	bool dataExists;
 	bool renderOK;
 	//TransferFunctions are kept, by name, in the session:
 	TransferFunction** keptTFs;

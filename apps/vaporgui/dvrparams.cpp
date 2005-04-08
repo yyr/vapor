@@ -540,6 +540,7 @@ reinit(){
 	}
 	if (varNum == -1){
 		MessageReporter::errorMsg("No data in specified dataset");
+		return;
 	}
 	if (minMapBounds) delete minMapBounds;
 	if (maxMapBounds) delete maxMapBounds;
