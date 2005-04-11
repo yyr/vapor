@@ -25,8 +25,8 @@
 
 #ifndef CONTROLLERTHREAD_H
 #define CONTROLLERTHREAD_H
-
-
+//Maximum milliseconds to wait for a slow renderer
+#define MAX_SLOW_WAIT 5000
 #include <qthread.h>
 #include <qmutex.h>
 #include <cassert>

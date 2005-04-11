@@ -30,6 +30,8 @@
 #include "controllerthread.h"
 #include "vizwinmgr.h"
 #include "vizwin.h"
+#include "messagereporter.h"
+#include "glutil.h"
 using namespace VAPoR;
 
 SharedControllerThread::SharedControllerThread() : QThread(){
@@ -44,7 +46,8 @@ SharedControllerThread::~SharedControllerThread(){
 	if (!wait(20000)){
 		//qWarning("terminating thread");
 		terminate();
-		if (!wait(1000)) assert(0);//wait 1 sec more for terminate to succeed
+		if (!wait(MAX_SLOW_WAIT)) 
+			BailOut("Excessive wait for animation thread termination",__FILE__,__LINE__);
 	}
 	//qWarning("deleting wait condition");
 	delete myWaitCondition;
@@ -59,11 +62,11 @@ restart(){
 	//Wakeup the controller thread.  It should return after rendering is complete
 	myWaitCondition->wakeAll();
 	//Wait until controller thread completes:
-	for (i = 0; i<1000; i++){
+	for (i = 0; i<100; i++){
 		if (!controllerActive) break;
-		wait(100);
+		wait(MAX_SLOW_WAIT);
 	}
-	assert(i<1000);
+	if( i>= 100) BailOut("Excessive wait for animation thread completion",__FILE__,__LINE__);
 	//restart the controller thread (calls run()) after it returns.
 	animationCancelled = false;
 	start(QThread::IdlePriority);
@@ -127,7 +130,7 @@ run(){
 		if( numNotHidden == 0) {
 			myAnimationController->animationMutex.unlock();
 			//qWarning("Waiting for an active renderer to start");
-			myWaitCondition->wait(1000);
+			myWaitCondition->wait(MAX_SLOW_WAIT);
 			numSleeping = 0;
 			continue;
 		}
@@ -189,14 +192,14 @@ run(){
 			currentTime = myAnimationController->myClock->elapsed();
 			//Is the missing visualizer more than a second late?
 			//Don't wait longer!
-			if(myAnimationController->getTimeToFinish(missingViz, currentTime)< -1000){
+			if(myAnimationController->getTimeToFinish(missingViz, currentTime)< -MAX_SLOW_WAIT){
 				//qWarning(" visualizer %d is more than a second late", missingViz);
 				numSleeping = numNotHidden - numFinished - numStarted;
 				break;
 			}
 			myAnimationController->animationMutex.unlock();
 			//qWarning("Waiting because started %d < %d ", numStarted, numNotHidden);
-			myWaitCondition->wait(1000);
+			myWaitCondition->wait(MAX_SLOW_WAIT);
 			myAnimationController->animationMutex.lock();
 		}
 		
@@ -220,7 +223,7 @@ run(){
 			
 			for (tries = 0; tries< 61; tries++){
 				myAnimationController->animationMutex.unlock();
-				myWaitCondition->wait(1000);
+				myWaitCondition->wait(MAX_SLOW_WAIT);
 				//qWarning("Waiting for completion of overdue renderings");
 				myAnimationController->animationMutex.lock();
 				numOverdue = 0;
@@ -324,7 +327,7 @@ run(){
 	bool allDone;
 	int tries;
 	
-	for (tries = 0; tries < 100; tries++){
+	for (tries = 0; tries < 60; tries++){
 		//See if any renderings are still in progress; make sure
 		//to cancel unstarted renderings:
 		allDone = true;
@@ -346,11 +349,11 @@ run(){
 		}
 		//wait for a second; may be woken if someone finishes, or status changes.
 		//qWarning("Waiting for completion of started renderings");
-		myWaitCondition->wait(1000);
+		myWaitCondition->wait(MAX_SLOW_WAIT);
 	}
 	
 	//Assert that all renderers completed in 60 seconds
-	assert(tries < 60);
+	if(tries>= 60) BailOut("Excessive wait for shared animation to finish",__FILE__,__LINE__);
 	return;
 
 }

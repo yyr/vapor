@@ -27,6 +27,8 @@
 #include "controllerthread.h"
 #include "vizwinmgr.h"
 #include "vizwin.h"
+#include "messagereporter.h"
+#include "glutil.h"
 #include <qthread.h>
 using namespace VAPoR;
 
@@ -40,8 +42,10 @@ UnsharedControllerThread::~UnsharedControllerThread(){
 	myWaitCondition->wakeAll();
 	//Wait up to 20 seconds for renderings to complete:
 	if (!wait(20000)){
+		//qWarning("terminating thread");
 		terminate();
-		if (!wait(1000)) assert(0);//wait 1 sec more for terminate to succeed
+		if (!wait(MAX_SLOW_WAIT)) 
+			BailOut("Excessive wait for animation thread termination",__FILE__,__LINE__);
 	}
 	delete myWaitCondition;
 }
@@ -55,11 +59,12 @@ restart(){
 	//Wakeup the controller thread.  It should return after rendering is complete
 	myWaitCondition->wakeAll();
 	//Wait until controller thread completes:
-	for (i = 0; i<1000; i++){
+	//Wait until controller thread completes:
+	for (i = 0; i<100; i++){
 		if (!controllerActive) break;
-		wait(100);
+		wait(MAX_SLOW_WAIT);
 	}
-	assert(i<1000);
+	if( i>= 100) BailOut("Excessive wait for animation thread completion",__FILE__,__LINE__);
 	//restart the controller thread (calls run()) after it returns.
 	animationCancelled = false;
 	start();
@@ -102,7 +107,7 @@ run(){
 		if( numActive == 0) {
 			myAnimationController->animationMutex.unlock();
 			//qWarning("Waiting 1 sec for an unshared renderer to start");
-			myWaitCondition->wait(1000);
+			myWaitCondition->wait(MAX_SLOW_WAIT);
 			continue;
 		}
 
@@ -163,11 +168,11 @@ run(){
 			break;
 		}
 		//wait for a second; may be woken if someone finishes, or status changes.
-		myWaitCondition->wait(1000);
+		myWaitCondition->wait(MAX_SLOW_WAIT);
 	}
 	
-	//Assert that all renderers completed in 60 seconds
-	assert(tries < 60);
+	//Assert that all renderers completed in 100*MAX_SLOW_WAIT seconds
+	if(tries>=100) BailOut("Excessive animation wait", __FILE__,__LINE__);
 	return;
 
 }

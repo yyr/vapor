@@ -27,6 +27,7 @@
 #include "animationparams.h"
 #include "vizwinmgr.h"
 #include "vizwin.h"
+#include "messagereporter.h"
 using namespace VAPoR;
 
 //Initialize the singleton to 0:
@@ -132,8 +133,10 @@ void AnimationController::
 startPlay(int viznum) {
 	
 	animationMutex.lock();
-	assert(!isActive(viznum));
-	activate(viznum);
+	//Sometimes we get here with an active visualizer.  That should be OK.
+	if(isActive(viznum))
+		MessageReporter::warningMsg("Animation starting an active visualizer");
+	else activate(viznum);
 	setFinishRender(viznum);
 	//This is where we set the local/global bit, which will determine
 	//which thread is in control:

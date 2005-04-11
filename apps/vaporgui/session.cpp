@@ -193,9 +193,13 @@ resetMetadata(const char* fileBase)
 	//If histograms exist, delete them:
 	if (currentHistograms && currentDataStatus){
 		for (i = 0; i< currentDataStatus->getNumVariables(); i++){
-			delete currentHistograms[i];
+			if (currentHistograms[i]){
+				delete currentHistograms[i];
+				currentHistograms[i] = 0;
+			}
 		}
 		delete currentHistograms;
+		currentHistograms = 0;
 	}
 	
 	if (currentDataStatus) delete currentDataStatus;
@@ -216,6 +220,7 @@ resetMetadata(const char* fileBase)
 	currentHistograms = new Histo*[numVars];
 	
 	for (i = 0; i<numVars; i++){
+		currentHistograms[i] = 0;
 		//Tell the datamanager to use the overall max/min range
 		//In doing the quantization.  Note that this will change
 		//when the range is changed in the TFE
@@ -234,8 +239,7 @@ resetMetadata(const char* fileBase)
 			min_bdim[k] = 0;
 			max_bdim[k]--;
 		}
-		//Initialize the histograms array to null.
-		currentHistograms[i] = 0;
+		
 		//Find the first timestep for which there is data,
 		//Build a histogram , for this variable, on that data
 		
@@ -376,22 +380,23 @@ setupDataStatus(){
 			//Start at the max (lowest res) and move down to min
 			int xf;
 			for (xf = numXForms; xf>= 0; xf--){
-				//If it's not present, we can quit
+				//find the highest transform level that doesn't exist
 				
 				
 				if (!myReader->VariableExists(ts, 
 					currentMetadata->GetVariableNames()[var].c_str(),
 					xf)) break;
 			}
+			//If xf == numXForms, there's no data
 			
 			
-			if (ts > maxts) maxts = ts;
-			if (ts < mints) mints = ts;
 			//xf is the first one that is *not* present
 			xf++;
 			if (xf > numXForms)
 				ds->setDataAbsent(var, ts);
 			else {
+				if (ts > maxts) maxts = ts;
+				if (ts < mints) mints = ts;
 				ds->setMinXFormPresent(var, ts, xf);
 				dataExists = true;
 			}
@@ -404,9 +409,15 @@ setupDataStatus(){
 			// not affect overall maxima/minima
 			vector<double>minMax;
 			if (ds->dataIsPresent(var, ts)){
+				//Turn off error callback, we can handle missing datarange:
+				MyBase::SetErrMsgCB(0);
 				const vector<double>& mnmx = currentMetadata->GetVDataRange(ts, 
 						currentMetadata->GetVariableNames()[var]);
-				if(mnmx.empty()){
+				//Turn it back on:
+				MyBase::SetErrMsgCB(errorCallbackFcn);
+				
+				if(mnmx.size()!= 2){
+					MessageReporter::warningMsg("Missing DataRange in dataset; [0,1] assumed");
 					minMax.push_back(0.);
 					minMax.push_back(1.);
 				}

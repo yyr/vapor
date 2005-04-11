@@ -17,11 +17,22 @@
 //
 //	Description:	Implements the MessageReporter class 
 //
+#include <sys/types.h>
+
+#ifdef WIN32
+#include "windows.h"
+#include "Winnetwk.h"
+#else
+#include <unistd.h>
+#endif
+
 #include "messagereporter.h"
 #include "vapor/DataMgr.h"
 #include "mainform.h"
-#include <qstring.h>
+#include "qstring.h"
 #include <qmessagebox.h>
+
+
 using namespace VAPoR;
 
 MessageReporter* MessageReporter::theReporter = 0;
@@ -29,11 +40,26 @@ MessageReporter* MessageReporter::theReporter = 0;
 MessageReporter::MessageReporter() {
 	logFile = 0;
 	logFileName = 0;
+//#ifdef WIN32
+//	reset("C:\\temp\\vaporlog.txt");
+//#else
+//	reset("/tmp/vaporlog.txt");
+//#endif
+	char buf[50];
 #ifdef WIN32
-	reset("C:\\temp\\vaporlog.txt");
+	//Use the user name in the log file name
+	
+	WCHAR buf2[50];
+	DWORD size = 50;
+	//Use QT to convert from unicode back to ascii
+	WNetGetUser(0,(LPWSTR)buf2,&size);
+	QString qstr((QChar*)buf2, size);
+	sprintf (buf, "C:/TEMP/vaporlog.%s.txt", qstr.latin1());
 #else
-	reset("/tmp/vaporlog.txt");
+	uid_t	uid = getuid();
+	sprintf (buf, "/tmp/vaporlog.%6.6d.txt", uid);
 #endif
+	reset(buf);
 	//setup defaults:
 	maxLogMsg[Fatal] = 1;
 	maxPopup[Fatal] = 1;

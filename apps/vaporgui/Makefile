@@ -16,6 +16,7 @@ LDFLAGS += "$(QTDIR)/lib/qt-mt334.lib"
 LDFLAGS += "$(QTDIR)/lib/qtmain.lib"
 LDFLAGS += "opengl32.lib"
 LDFLAGS += "glu32.lib"
+LDFLAGS += "mpr.lib"
 else   
 CXXFLAGS += -DVOLUMIZER
 LDFLAGS += -lvz   
