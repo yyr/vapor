@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>442</width>
+            <width>451</width>
             <height>1059</height>
         </rect>
     </property>
@@ -38,41 +38,16 @@
     <property name="toolTip" stdset="0">
         <string></string>
     </property>
-    <spacer>
-        <property name="name">
-            <cstring>spacer28</cstring>
-        </property>
-        <property name="orientation">
-            <enum>Horizontal</enum>
-        </property>
-        <property name="sizeType">
-            <enum>Expanding</enum>
-        </property>
-        <property name="sizeHint">
-            <size>
-                <width>18</width>
-                <height>21</height>
-            </size>
-        </property>
-        <property name="geometry">
-            <rect>
-                <x>451</x>
-                <y>587</y>
-                <width>18</width>
-                <height>21</height>
-            </rect>
-        </property>
-    </spacer>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout23</cstring>
+            <cstring>layout22</cstring>
         </property>
         <property name="geometry">
             <rect>
-                <x>11</x>
-                <y>13</y>
-                <width>412</width>
-                <height>956</height>
+                <x>10</x>
+                <y>30</y>
+                <width>435</width>
+                <height>1017</height>
             </rect>
         </property>
         <vbox>
@@ -338,7 +313,7 @@
             </widget>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>layout22</cstring>
+                    <cstring>layout21</cstring>
                 </property>
                 <hbox>
                     <property name="name">
@@ -384,6 +359,17 @@
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Align edit window with transfer function domain</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>newHistoButton</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Histo</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Click to build a new histogram based on the current region settings, animation timestep, and transfer function bounds</string>
                         </property>
                     </widget>
                 </hbox>
@@ -827,7 +813,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>77</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -1579,7 +1565,7 @@
         </sizehint>
         <container>0</container>
         <sizepolicy>
-            <hordata>1</hordata>
+            <hordata>5</hordata>
             <verdata>5</verdata>
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
@@ -1604,7 +1590,7 @@
         </sizehint>
         <container>0</container>
         <sizepolicy>
-            <hordata>1</hordata>
+            <hordata>5</hordata>
             <verdata>5</verdata>
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
