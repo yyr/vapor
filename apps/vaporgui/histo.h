@@ -20,13 +20,15 @@
 //
 #ifndef HISTO_H
 #define HISTO_H
+#include <vapor/MyBase.h>
 namespace VAPoR {
 class Histo{
 public:
 	Histo(int numberBins, float mnData, float mxData);
 	//Special constructor for unsigned char data:
 	//
-	Histo(unsigned char* data, int dataSize, float mnData, float mxData);
+	Histo(unsigned char* data, int min_dim[3], int max_dim[3], 
+			 size_t min_bdim[3],size_t max_bdim[3], float mnData, float mxData);
 	~Histo();
 	void reset(int newNumBins = -1);
 	void addToBin(float val);	

@@ -43,7 +43,8 @@ public:
 	~RegionParams();
 	virtual Params* deepCopy();
 	virtual void makeCurrent(Params* p, bool newWin);
-	
+	void calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max_bdim[3], 
+				  int numxforms, float minFull[3], float maxFull[3], float extents[6]);
 		
 	void setNumTrans(int n) {
 		numTrans = Min(n, maxNumTrans); 

@@ -588,6 +588,8 @@ VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 	assert(ok);
 	ok = connect(dvrTab->alignButton, SIGNAL(clicked()), this, SLOT(setDvrAligned()));
 	assert(ok);
+	ok = connect(dvrTab->newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
+	assert(ok);
 	emit enableMultiViz(getNumVisualizers() > 1);
 }
 void
@@ -1229,6 +1231,23 @@ setDvrNavigateMode(bool mode){
 void VizWinMgr::
 setDvrAligned(){
 	getDvrParams(activeViz)->guiSetAligned();
+}
+void VizWinMgr::
+refreshHisto(){
+	VizWin* vizWin = getActiveVisualizer();
+	if (!vizWin) return;
+	DvrParams* dParams = getDvrParams(activeViz);
+	//Refresh data range:
+	//dParams->setDatarangeDirty();
+	Session::getInstance()->getDataMgr()->SetDataRange(dParams->getVariableName(),
+		dParams->getCurrentDatarange());
+	
+	vizWin->setDataRangeDirty(false);
+	
+	Session::getInstance()->refreshHistogram(dParams->getVarNum(),
+		getRegionParams(activeViz), getAnimationParams(activeViz)->getCurrentFrameNumber(),
+		dParams->getMinMapBound(),  dParams->getMaxMapBound());
+	dParams->refreshTFFrame();
 }
 /*
  * Respond to a slider release

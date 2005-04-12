@@ -133,6 +133,8 @@ public:
 	bool getEditMode() {return editMode;}
 	TransferFunction* getTransferFunction() {return myTransFunc;}
 	
+	void refreshTFFrame();
+	
 		
 	void setClut(const float newTable[256][4]);
 	void setBindButtons();

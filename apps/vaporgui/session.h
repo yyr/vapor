@@ -110,6 +110,7 @@ class DataStatus;
 class WaveletBlock3DRegionReader;
 class TransferFunction;
 class DvrParams;
+class RegionParams;
 
 // Class used by session to keep track of variables, timesteps	
 class DataStatus{
@@ -247,6 +248,10 @@ public:
 	bool isRecording() {return (recordingCount == 0);}
 	Histo* getCurrentHistogram(int var) {
 		return (currentHistograms ? currentHistograms[var]: 0);}
+	//Rebuild a histogram, based on current settings in
+	//Region, DVR, animation panels
+	void refreshHistogram(int varNum, RegionParams* rParams, 
+		int timestep, float dataMin, float dataMax);
 	const WaveletBlock3DRegionReader* getRegionReader() {return myReader;}
 	//Create a new Metadata, by specifying vmf file
 	void resetMetadata(const char* vmfile);

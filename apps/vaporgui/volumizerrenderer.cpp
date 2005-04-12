@@ -151,7 +151,6 @@ DrawVoxelScene(unsigned /*fast*/)
 	int min_dim[3];
 	size_t max_bdim[3];
 	size_t min_bdim[3];
-	float fullExtent[6];
 	int data_roi[6];
 	int i;
 	bool newRender = false;
@@ -178,45 +177,8 @@ DrawVoxelScene(unsigned /*fast*/)
 		
 	int bs = myMetadata->GetBlockSize();
 		
-	for(i=0; i<3; i++) {
-		int	s = numxforms;
-
-		min_dim[i] = (int) ((float) (myRegionParams->getCenterPosition(i) >> s) - 0.5 
-			- (((myRegionParams->getRegionSize(i) >> s) / 2.0)-1.0));
-		max_dim[i] = (int) ((float) (myRegionParams->getCenterPosition(i) >> s) - 0.5 
-			+ (((myRegionParams->getRegionSize(i) >> s) / 2.0)));
-		//Make sure slab has nonzero thickness (this can only
-		//be a problem while the mouse is pressed):
-		//
-		if (min_dim[i] >= max_dim[i]){
-			if (max_dim[i] < 1){
-				max_dim[i] = 1;
-				min_dim[i] = 0;
-			}
-			else min_dim[i] = max_dim[i] - 1;
-		}
-		min_bdim[i] = min_dim[i] / bs;
-		max_bdim[i] = max_dim[i] / bs;
-	}
+	myRegionParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numxforms, minFull, maxFull, extents);
 	
-	for (i = 0; i< 3; i++){
-		fullExtent[i] = myRegionParams->getFullDataExtent(i);
-		fullExtent[i+3] = myRegionParams->getFullDataExtent(i+3);
-	}
-	float maxCoordRange = Max(fullExtent[3]-fullExtent[0],Max( fullExtent[4]-fullExtent[1], fullExtent[5]-fullExtent[2]));
-	//calculate the geometric extents of the dimensions in the unit cube:
-	//fit the full region adjacent to the coordinate planes.
-	for (i = 0; i<3; i++) {
-		int dim = (myRegionParams->getFullSize(i)>>numxforms) -1;
-		assert (dim>= max_dim[i]);
-		float extentRatio = (fullExtent[i+3]-fullExtent[i])/maxCoordRange;
-		minFull[i] = 0.f;
-		maxFull[i] = extentRatio;
-		//minFull[i] = 0.5f*(1.f - extentRatio);
-		//maxFull[i] = 0.5f*(1.f + extentRatio);
-		extents[i] = minFull[i] + ((float)min_dim[i]/(float)dim)*(maxFull[i]-minFull[i]);
-		extents[i+3] = minFull[i] + ((float)max_dim[i]/(float)dim)*(maxFull[i]-minFull[i]);
-	}
     // Move to trackball view of scene  
 	glPushMatrix();
 

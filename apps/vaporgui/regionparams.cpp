@@ -712,4 +712,51 @@ slideCubeFace(float movedRay[3]){
 			faceDisplacement = fullDataExtents[coord] - regionMin;
 	}
 }
+void RegionParams::
+calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max_bdim[3], 
+				  int numxforms, float minFull[3], float maxFull[3], float extents[6])
+{
+	int i;
+	float fullExtent[6];
+	int bs = Session::getInstance()->getCurrentMetadata()->GetBlockSize();
+	for(i=0; i<3; i++) {
+		int	s = numxforms;
+
+		min_dim[i] = (int) ((float) (getCenterPosition(i) >> s) - 0.5 
+			- (((getRegionSize(i) >> s) / 2.0)-1.0));
+		max_dim[i] = (int) ((float) (getCenterPosition(i) >> s) - 0.5 
+			+ (((getRegionSize(i) >> s) / 2.0)));
+		//Make sure slab has nonzero thickness (this can only
+		//be a problem while the mouse is pressed):
+		//
+		if (min_dim[i] >= max_dim[i]){
+			if (max_dim[i] < 1){
+				max_dim[i] = 1;
+				min_dim[i] = 0;
+			}
+			else min_dim[i] = max_dim[i] - 1;
+		}
+		min_bdim[i] = min_dim[i] / bs;
+		max_bdim[i] = max_dim[i] / bs;
+	}
+	
+	for (i = 0; i< 3; i++){
+		fullExtent[i] = getFullDataExtent(i);
+		fullExtent[i+3] = getFullDataExtent(i+3);
+	}
+	float maxCoordRange = Max(fullExtent[3]-fullExtent[0],Max( fullExtent[4]-fullExtent[1], fullExtent[5]-fullExtent[2]));
+	//calculate the geometric extents of the dimensions in the unit cube:
+	//fit the full region adjacent to the coordinate planes.
+	for (i = 0; i<3; i++) {
+		int dim = (getFullSize(i)>>numxforms) -1;
+		assert (dim>= max_dim[i]);
+		float extentRatio = (fullExtent[i+3]-fullExtent[i])/maxCoordRange;
+		minFull[i] = 0.f;
+		maxFull[i] = extentRatio;
+		
+		extents[i] = minFull[i] + ((float)min_dim[i]/(float)dim)*(maxFull[i]-minFull[i]);
+		extents[i+3] = minFull[i] + ((float)max_dim[i]/(float)dim)*(maxFull[i]-minFull[i]);
+	}
+	return;
+}
 	

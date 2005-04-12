@@ -244,7 +244,7 @@ updatePanelState(){
 	
 	minMapBounds[varNum] = myDvrTab->leftMappingBound->text().toFloat();
 	maxMapBounds[varNum] = myDvrTab->rightMappingBound->text().toFloat();
-	
+	setDatarangeDirty();
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
 	guiSetTextChanged(false);
@@ -567,9 +567,12 @@ reinit(){
 void DvrParams::
 setDatarangeDirty()
 {
-	currentDatarange[0] = minMapBounds[varNum];
-	currentDatarange[1] = maxMapBounds[varNum];
-	VizWinMgr::getInstance()->setDataRangeDirty(this);
+	if (currentDatarange[0] != minMapBounds[varNum] ||
+		currentDatarange[1] != maxMapBounds[varNum]){
+			currentDatarange[0] = minMapBounds[varNum];
+			currentDatarange[1] = maxMapBounds[varNum];
+			VizWinMgr::getInstance()->setDataRangeDirty(this);
+	}
 }
 
 //Respond to user request to load/save TF
@@ -688,5 +691,12 @@ fileSaveTF(){
 	}
 
 	Session::getInstance()->updateTFFilePath(&s);
+}
+// Force the tframe to update
+//
+void DvrParams::
+refreshTFFrame(){
+	myTFEditor->setDirty(true);
+	myDvrTab->DvrTFFrame->update();	
 }
 	

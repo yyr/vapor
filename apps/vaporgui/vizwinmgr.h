@@ -357,6 +357,7 @@ protected slots:
 	void dvrOpacBind();
 	void dvrLoadTF();
 	void dvrSaveTF();
+	void refreshHisto();
 	
 	
 	//Slots for contour panel:
