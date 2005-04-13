@@ -193,7 +193,7 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	ublks = (unsigned char *) alloc_region(
 		ts,varname,num_xforms,DataMgr::UINT8,min,max,lock
 	);
-    if (! blks) return(NULL);
+    if (! ublks) return(NULL);
 
 	// Quantize the floating point data;
 
