@@ -93,7 +93,11 @@ void TFEditor::refreshImage(){
 				histoMaxBin = histo->getBinSize(j);
 		}
 	}*/
-	if (histo) histoMaxBin = histo->getMaxBinSize();
+	if (histo) {
+		histoMaxBin = histo->getMaxBinSize();
+		//If all the data is outside, the maxBin can be 0!
+		if (histoMaxBin <= 0) histoMaxBin = 1;
+	}
 	int leftLim = mapVar2Win(myTransferFunction->getMinMapValue(),false);
 	int rightLim = mapVar2Win(myTransferFunction->getMaxMapValue(),false);
 	
@@ -164,16 +168,16 @@ void TFEditor::refreshImage(){
 		//
 		//int newHistoColumn = (int)(xCoord*255.999f);
 		float histoHeight;
-		
 		int histoInt;
 		if (histo){
 			float histoVal = (xCoord - histo->getMinData())/(histo->getMaxData()-histo->getMinData());
-			int newHistoColumn = (int)(histoVal*255.99);
-			if (histoVal >= 0.f && newHistoColumn < 256){
+			if (histoVal >= 0.f && histoVal <= 1.f){
+				int newHistoColumn = (int)(histoVal*255.99);
 				if (histoColumn != newHistoColumn){
 					histoColumn = newHistoColumn;
 					histoHeight = histoStretchFactor*(float)histo->getBinSize(histoColumn)/(float)histoMaxBin;
 					if (histoHeight > 1.f) histoHeight = 1.f;
+					assert(histoHeight >= 0.f);
 				}
 			}
 			else histoHeight = 0.f;
@@ -183,8 +187,9 @@ void TFEditor::refreshImage(){
 		//Convert histoHeight to a vertical pixel coord:
 		//
 		histoInt = BELOWOPACITY+(int)(histoHeight*(height-BELOWOPACITY-TOPMARGIN-DOMAINSLIDERMARGIN));
-		
-		
+		if (histoInt < 0){
+			assert (histoInt >= 0);
+		}
 		
 		//Solid  bars for histogram:
 		//

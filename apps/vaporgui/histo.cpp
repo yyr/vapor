@@ -61,9 +61,6 @@ Histo::Histo(unsigned char* data, int min_dim[3], int max_dim[3],
 			}
 		}
 	}
-	int bin2[256];
-	for (int q = 0; q<256; q++) bin2[q] = binArray[q];
-	int foo = largestBin;
 }
 	
 Histo::~Histo(){
