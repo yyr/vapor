@@ -82,7 +82,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,B:\Expat-1.95.8\Source\lib,..\..\..\apps\vaporgui,..\..\..\include,$(QTDIR)\include,ui,../../../apps/vaporgui/ui\,.,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.4\mkspecs\win32-msvc.net"
+				AdditionalIncludeDirectories="&quot;$(VOLUMIZER_ROOT)\include&quot;;&quot;B:\Expat-1.95.8\Source\lib&quot;;..\..\..\apps\vaporgui;..\..\..\include;&quot;$(QTDIR)\include&quot;;ui;../../../apps/vaporgui/ui\;.;..\..\..\apps\vaporgui\moc\"
 				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
