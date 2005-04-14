@@ -54,7 +54,7 @@ Session::Session() {
 	}
 	currentHistograms = 0;
 	currentDataStatus = 0;
-	cacheMB = 512;
+	cacheMB = 1024;
 	renderOK = false;
 	numTFs = 0;
 	tfNames = 0;
