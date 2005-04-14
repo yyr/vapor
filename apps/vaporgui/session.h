@@ -97,6 +97,7 @@
 #include <vector>
 #include <string>
 #include "vapor/DataMgr.h"
+#include "vapor/MyBase.h"
 class QString;
 namespace VAPoR {
 class VizWinMgr;
@@ -278,6 +279,12 @@ public:
 
 	static void errorCallbackFcn(const char* msg, int err_code);
 	static void infoCallbackFcn(const char* msg);
+	static void pauseErrorCallback() {
+		DataMgr::SetErrMsgCB(0);
+	}
+	static void resumeErrorCallback(){
+		DataMgr::SetErrMsgCB(errorCallbackFcn);
+	}
 protected:
 	Session();
 	static Session* theSession;

@@ -65,7 +65,7 @@ void SessionParams::launch(){
 		int newVal = sessionParamsDlg->cacheSizeEdit->text().toInt();
 		if (newVal > 100 && newVal != currentSession->getCacheMB()){
 			currentSession->setCacheMB(newVal);
-			MessageReporter::infoMsg("Cache size will change at next metadata loading"); 
+			MessageReporter::warningMsg("Cache size will change at next metadata loading"); 
 		}
 		//Set the image quality:
 		int newQual = sessionParamsDlg->jpegQuality->text().toInt();

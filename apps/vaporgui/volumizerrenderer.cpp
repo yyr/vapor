@@ -239,7 +239,8 @@ DrawVoxelScene(unsigned /*fast*/)
 		//Do Region setup as in SetCurrentFile() (mdb.C):
 		//
 
-		
+		//Turn off error callback, look for memory allocation problem.
+		Session::pauseErrorCallback();
 		
 		void* data = (void*) myDataMgr->GetRegionUInt8(
 				myAnimationParams->getCurrentFrameNumber(),
@@ -249,7 +250,17 @@ DrawVoxelScene(unsigned /*fast*/)
 				max_bdim,
 				0 //Don't lock!
 			);
-
+		//Turn it back on:
+		Session::resumeErrorCallback();
+		if (!data){
+			int errCode = myDataMgr->GetErrCode();
+			const char* msg = myDataMgr->GetErrMsg();
+			char buf[200];
+			sprintf(buf, "Unable to obtain volume data\n Datamanager Error code %d\n %s",
+				errCode, msg);
+			MessageReporter::errorMsg(buf);
+			return;
+		}
 		// make subregion origin (0,0,0)
 		// Note that this doesn't affect the calc of nx,ny,nz.
 		// Also, save original dims, will need them to find extents.

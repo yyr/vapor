@@ -33,6 +33,7 @@
 #include "vapor/Metadata.h"
 #include "tabmanager.h"
 #include "glutil.h"
+#include "messagereporter.h"
 
 using namespace VAPoR;
 
@@ -265,6 +266,26 @@ guiCenterRegion(ViewpointParams* vpparams){
 void RegionParams::
 guiSetNumTrans(int n){
 	confirmText(false);
+	
+	//First, if we have a dataMgr, see if we can really handle this new numtrans:
+	if (Session::getInstance()->getDataMgr()){
+		int min_dim[3], max_dim[3];
+		size_t min_bdim[3], max_bdim[3];
+		float minFull[3], maxFull[3], extents[6];
+		calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, n, minFull, maxFull,  extents);
+		//Size needed for data assumes blocksize = 2**5, 4 bytes per voxel, times 2.
+		size_t newFullMB = (max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1);
+		//Left shift by 18, for bytes and  right shift by 20 for mbytes
+		newFullMB >>= 2;
+		if (newFullMB >= Session::getInstance()->getCacheMB()){
+			MessageReporter::warningMsg("Invalid number of Transforms for current region, data cache size");
+			//Reset the value in the gui:
+			myRegionTab->numTransSpin->setValue(numTrans);
+			return;
+		}
+	}
+	//If we passed that test, then go ahead and change the numTrans.
+	
 	PanelCommand* cmd = PanelCommand::captureStart(this, "set number of Transformations");
 	setNumTrans(n);
 	PanelCommand::captureEnd(cmd, this);
@@ -712,6 +733,9 @@ slideCubeFace(float movedRay[3]){
 			faceDisplacement = fullDataExtents[coord] - regionMin;
 	}
 }
+//Utility to calculate extents based on proposed numtransforms.
+//Uses current region size and center.  Does not change regionParams state.
+//Requires an existing dataMgr
 void RegionParams::
 calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max_bdim[3], 
 				  int numxforms, float minFull[3], float maxFull[3], float extents[6])
