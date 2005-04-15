@@ -54,7 +54,11 @@ Session::Session() {
 	}
 	currentHistograms = 0;
 	currentDataStatus = 0;
+#ifdef IRIX
 	cacheMB = 1024;
+#else
+	cacheMB = 512;
+#endif
 	renderOK = false;
 	numTFs = 0;
 	tfNames = 0;
