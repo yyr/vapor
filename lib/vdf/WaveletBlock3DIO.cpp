@@ -148,13 +148,13 @@ int    WaveletBlock3DIO::VariableExists(
 #ifdef WIN32
 		struct _stat statbuf;
 #else
-		struct stat statbuf;
+		struct stat64 statbuf;
 #endif
 		string path;
 
 		mkpath(basename, j, path);
 #ifndef WIN32
-		if (lstat(path.c_str(), &statbuf) < 0) return(0);
+		if (lstat64(path.c_str(), &statbuf) < 0) return(0);
 #else
 		if (_stat(path.c_str(), &statbuf) < 0) return (0);
 #endif
