@@ -245,7 +245,7 @@ resetMetadata(const char* fileBase)
 			max_bdim[k]--;
 			//Setup for full subarray:
 			min_dim[k] = 0;
-			max_dim[k] = subDataSize[k];
+			max_dim[k] = subDataSize[k]-1;
 		}
 		
 		//Find the first timestep for which there is data,
@@ -300,9 +300,9 @@ refreshHistogram(int varNum, RegionParams* rParams, int timestep, float dataMin,
 	float extents[6], minFull[3], maxFull[3];
 	int min_dim[3],max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
-	//size_t subDataSize[3];
+	
 	int numTrans = rParams->getNumTrans();
-	//myReader->GetDim(numTrans,subDataSize);
+	
 	if (currentHistograms[varNum]) delete currentHistograms[varNum];
 	rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numTrans, minFull, maxFull, extents);
 	
