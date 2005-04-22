@@ -6,7 +6,7 @@
 //																		*
 //************************************************************************/
 //
-//	File:		mainform.cpp
+//	File:		mainform.cpp 
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
@@ -76,7 +76,7 @@
 #include "images/planes.xpm"
 #include "images/lightbulb.xpm"
 #include "images/home.xpm"
-#include "images/sethome.xpm"
+#include "images/sethome.xpm" 
 
 /*
  *  Constructs a MainForm as a child of 'parent', with the

@@ -135,12 +135,13 @@ int	DVRVolumizer::GraphicsInit(
 	extensions = (const char *) glGetString( GL_EXTENSIONS );
 	if (strstr(extensions, "ARB_fragment_program")) {
 		do_frag_prog_c = 1;
-		//fprintf(stderr, "using ARB_fragment_program\n");
+		//messageReporter::infoMessage("Using ARB_fragment_program");
 	} else {
-		//fprintf(stderr, "Not using ARB_fragment_program\n");
+		//messageReporter::infoMessage("Not using ARB_fragment_program");
 	}
-	//fprintf(stderr, "extensions supported: %s\n", extensions);
-	fflush(stderr);
+	MessageReporter::infoMsg(extensions);
+	
+	//fflush(stderr);
 
 
 	// Enable standard back-to-front alpha blending:
