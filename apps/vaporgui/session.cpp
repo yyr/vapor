@@ -124,7 +124,7 @@ exportData(){
 	VizWinMgr* winMgr = VizWinMgr::getInstance();
 	int winNum = winMgr->getActiveViz();
 	if (winNum < 0 || (currentMetadata == 0)){
-		MessageReporter::errorMsg("Export data error;\nExporting data requires loaded data and active visualizer");
+		MessageReporter::errorMsg("%s","Export data error;\nExporting data requires loaded data and active visualizer");
 		return;
 	}
 	//Set up arguments to Export():
@@ -153,9 +153,7 @@ exportData(){
 		maxCoords,
 		frameInterval);
 	if (rc < 0){
-		QString strng("Export data error: \n%s");
-		strng += exporter.GetErrMsg();
-		MessageReporter::errorMsg(strng.ascii());
+		MessageReporter::errorMsg("Export data error: \n%s",exporter.GetErrMsg());
 	}
 	return;
 }
@@ -175,18 +173,17 @@ resetMetadata(const char* fileBase)
 	if (dataMgr) delete dataMgr;
 	dataMgr = new DataMgr(currentMetadataPath->c_str(), cacheMB, 1);
 	if (dataMgr->GetErrCode() != 0) {
-		QString strng("Data Loading error, creating Data Manager:\n");
-		strng += dataMgr->GetErrMsg();
-		MessageReporter::errorMsg(strng.ascii());
+		MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
+			dataMgr->GetErrCode(),dataMgr->GetErrMsg);
 		delete dataMgr;
 		dataMgr = 0;
 		return;
 	}
 	currentMetadata = dataMgr->GetMetadata();
 	if (currentMetadata->GetErrCode() != 0) {
-		QString strng("Data Loading error, creating Metadata:\n");
-		strng += currentMetadata->GetErrMsg();
-		MessageReporter::errorMsg(strng.ascii());
+		MessageReporter::errorMsg("Data Loading error %d, creating Metadata:\n %s",
+			currentMetadata->GetErrCode(),currentMetadata->GetErrMsg());
+		
 		delete dataMgr;
 		dataMgr = 0;
 		return;
@@ -211,7 +208,8 @@ resetMetadata(const char* fileBase)
 
 	//Is there any data here?
 	if(!dataExists) {
-		MessageReporter::errorMsg("No data in specified dataset");
+		MessageReporter::errorMsg("%s",
+			"No data in specified dataset");
 		delete dataMgr;
 		dataMgr = 0;
 		return;
@@ -449,7 +447,7 @@ setupDataStatus(){
 				MyBase::SetErrMsgCB(errorCallbackFcn);
 				
 				if(mnmx.size()!= 2){
-					MessageReporter::warningMsg("Missing DataRange in dataset; [0,1] assumed");
+					MessageReporter::warningMsg("%s","Missing DataRange in dataset; [0,1] assumed");
 					minMax.push_back(0.);
 					minMax.push_back(1.);
 				}
@@ -610,7 +608,7 @@ errorCallbackFcn(const char* msg, int err_code){
 //Diagnostic message callback:
 void Session::
 infoCallbackFcn(const char* msg){
-	MessageReporter::infoMsg(msg);
+	MessageReporter::infoMsg("%s",msg);
 }
 
 

@@ -278,7 +278,7 @@ guiSetNumTrans(int n){
 		//Left shift by 18, for bytes and  right shift by 20 for mbytes
 		newFullMB >>= 2;
 		if (newFullMB >= Session::getInstance()->getCacheMB()){
-			MessageReporter::warningMsg("Invalid number of Transforms for current region, data cache size");
+			MessageReporter::warningMsg("%s","Invalid number of Transforms for current region, data cache size");
 			//Reset the value in the gui:
 			myRegionTab->numTransSpin->setValue(numTrans);
 			return;

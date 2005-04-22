@@ -616,10 +616,7 @@ doFrameCapture(){
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen(filename.ascii(), "wb");
 	if (!jpegFile) {
-		//Error!
-		QString strng("Image Capture Error: Error opening output Jpeg file: ");
-		strng += filename;
-		MessageReporter::errorMsg(strng.ascii());
+		MessageReporter::errorMsg("Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
 		capturing = false;
 		return;
 	}
@@ -628,7 +625,7 @@ doFrameCapture(){
 	//Use openGL to fill the buffer:
 	if(!myGLWindow->getPixelData(buf)){
 		//Error!
-		MessageReporter::errorMsg("Image Capture Error; error obtaining GL data");
+		MessageReporter::errorMsg("%s","Image Capture Error; error obtaining GL data");
 		capturing = false;
 		delete buf;
 		return;
@@ -639,7 +636,8 @@ doFrameCapture(){
 	int rc = write_JPEG_file(jpegFile, myGLWindow->width(), myGLWindow->height(), buf, quality);
 	if (rc){
 		//Error!
-		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file");
+		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file %s",
+			filename.ascii());
 		capturing = false;
 		delete buf;
 		return;

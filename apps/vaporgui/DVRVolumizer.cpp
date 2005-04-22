@@ -139,7 +139,7 @@ int	DVRVolumizer::GraphicsInit(
 	} else {
 		//messageReporter::infoMessage("Not using ARB_fragment_program");
 	}
-	MessageReporter::infoMsg(extensions);
+	MessageReporter::infoMsg("OpenGL extensions are %s", extensions);
 	
 	//fflush(stderr);
 

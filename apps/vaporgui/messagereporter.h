@@ -23,6 +23,8 @@
 
 #include <string>
 #include <map>
+#include <stdarg.h>
+class QMutex;
 
 namespace VAPoR{
 
@@ -53,10 +55,10 @@ public:
 	static void postMessage(messagePriority t, const char* message){
 		getInstance()->postMsg(t,message);
 	}
-	static void fatalMsg(const char* message) { postMessage(Fatal, message);}
-	static void errorMsg(const char* message) { postMessage(Error, message);}
-	static void warningMsg(const char* message) { postMessage(Warning, message);}
-	static void infoMsg(const char* message) { postMessage(Info, message);}
+	static void fatalMsg(const char* format, ...); 
+	static void errorMsg(const char* format, ...); 
+	static void warningMsg(const char* format, ...); 
+	static void infoMsg(const char* format, ...); 
 
 	void setMaxLog(messagePriority mP, int num)
 		{maxLogMsg[mP] = num;}
@@ -74,10 +76,18 @@ protected:
 	void postMsg(messagePriority t, const char* message);
 	void writeLog(messagePriority t, const char* message);
 	void doPopup(messagePriority t, const char* message);
+	//Utility to make string from args
+	static char* convertText(const char* format, va_list args);
 	std::map<std::string, int> messageCount;
 	//Keep track of current settings
 	char* logFileName;
 	FILE* logFile;
+	
+	static char* messageString;
+	static int messageSize;
+	//Mutex is so that multiple threads can post messages simultaneously
+	static QMutex* messageMutex;
+ 
 	//Integers to keep result of posting various priority messages:
 	//FATAL cannot be changed, always terminate
 	//Other priorities post the first "N" to either log or popup

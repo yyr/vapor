@@ -255,10 +255,8 @@ DrawVoxelScene(unsigned /*fast*/)
 		if (!data){
 			int errCode = myDataMgr->GetErrCode();
 			const char* msg = myDataMgr->GetErrMsg();
-			char buf[200];
-			sprintf(buf, "Unable to obtain volume data\n Datamanager Error code %d\n %s",
+			MessageReporter::errorMsg("Unable to obtain volume data\n Datamanager Error code %d\n %s",
 				errCode, msg);
-			MessageReporter::errorMsg(buf);
 			return;
 		}
 		// make subregion origin (0,0,0)
@@ -325,7 +323,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	//Make the z-buffer read-only for the volume data
 	glDepthMask(GL_FALSE);
 	if (driver->Render((GLfloat *) matrix ) < 0){
-		MessageReporter::errorMsg("Unable to Render");
+		MessageReporter::errorMsg("%s","Unable to Render");
 		return;
 	}
 
