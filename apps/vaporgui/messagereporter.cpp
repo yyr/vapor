@@ -97,6 +97,7 @@ reset(const char* newLogFileName){
 }
 
 void MessageReporter::fatalMsg(const char* format, ...){
+	getInstance();
 	va_list args;
 	va_start(args, format);
 	messageMutex->lock();
@@ -107,7 +108,7 @@ void MessageReporter::fatalMsg(const char* format, ...){
 	
 }
 void MessageReporter::errorMsg(const char* format, ...){
-	
+	getInstance();
 	va_list args;
 	va_start(args, format);
 	messageMutex->lock();
@@ -118,6 +119,7 @@ void MessageReporter::errorMsg(const char* format, ...){
 	
 }
 void MessageReporter::warningMsg(const char* format, ...){
+	getInstance();
 	va_list args;
 	va_start(args, format);
 	messageMutex->lock();
@@ -128,6 +130,7 @@ void MessageReporter::warningMsg(const char* format, ...){
 	
 }
 void MessageReporter::infoMsg(const char* format, ...){
+	getInstance();
 	va_list args;
 	va_start(args, format);
 	messageMutex->lock();
@@ -139,6 +142,7 @@ void MessageReporter::infoMsg(const char* format, ...){
 	
 void MessageReporter::
 postMsg(messagePriority t, const char* message){
+
 	assert(t>=0 && t <=3);
 	int count = messageCount[message];
 	if (count < maxLogMsg[t]){
