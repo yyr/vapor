@@ -68,14 +68,15 @@ protected:
 
 	//Picking helper functions, saved from last change in GL state.  These
 	//Deal with the cube coordinates (known to the trackball)
+	//Various openGL matrices are kept in the viewpointparams, since
+	//they may be shared (global)
 	//
-	GLdouble* getModelMatrix() {return (GLdouble*) modelviewMatrix;}
-	GLdouble* getProjectionMatrix(){ return (GLdouble*) projectionMatrix;}
-	GLint* getViewport() {return (GLint*) winViewport;}
-
-	double projectionMatrix[16];
-	double modelviewMatrix[16];
-	int winViewport[4];
+	GLdouble* getModelMatrix();
+		
+	GLdouble* getProjectionMatrix();
+		
+	GLint* getViewport();
+		
 
 	
 	 
