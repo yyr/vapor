@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>443</width>
-            <height>711</height>
+            <height>765</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -40,14 +40,14 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout10</cstring>
+            <cstring>layout23</cstring>
         </property>
         <property name="geometry">
             <rect>
                 <x>10</x>
-                <y>30</y>
+                <y>31</y>
                 <width>420</width>
-                <height>610</height>
+                <height>681</height>
             </rect>
         </property>
         <vbox>
@@ -194,7 +194,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>19</height>
+                        <height>23</height>
                     </size>
                 </property>
             </spacer>
@@ -417,7 +417,56 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>19</height>
+                        <height>22</height>
+                    </size>
+                </property>
+            </spacer>
+            <widget class="QLayoutWidget">
+                <property name="name">
+                    <cstring>layout15</cstring>
+                </property>
+                <hbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>centerRegionViewButton</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Center region view</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Move viewpoint to center on currently specified region</string>
+                        </property>
+                    </widget>
+                    <widget class="QPushButton">
+                        <property name="name">
+                            <cstring>centerFullViewButton</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Center full view</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Move viewpoint to where full data volume is visible</string>
+                        </property>
+                    </widget>
+                </hbox>
+            </widget>
+            <spacer>
+                <property name="name">
+                    <cstring>spacer36</cstring>
+                </property>
+                <property name="orientation">
+                    <enum>Vertical</enum>
+                </property>
+                <property name="sizeType">
+                    <enum>Expanding</enum>
+                </property>
+                <property name="sizeHint">
+                    <size>
+                        <width>20</width>
+                        <height>31</height>
                     </size>
                 </property>
             </spacer>
@@ -520,7 +569,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>19</height>
+                        <height>23</height>
                     </size>
                 </property>
             </spacer>
@@ -856,7 +905,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>19</height>
+                        <height>22</height>
                     </size>
                 </property>
             </spacer>
@@ -928,7 +977,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>19</height>
+                        <height>23</height>
                     </size>
                 </property>
             </spacer>
