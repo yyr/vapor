@@ -154,9 +154,12 @@ DrawVoxelScene(unsigned /*fast*/)
 	int data_roi[6];
 	int i;
 	bool newRender = false;
+	if (!Session::getInstance()->renderReady()) return;
+	DataMgr* myDataMgr = Session::getInstance()->getDataMgr();
+	const Metadata* myMetadata = Session::getInstance()->getCurrentMetadata();
 	//Nothing to do if there's no data source!
 	if (!myDataMgr) return;
-	if (!Session::getInstance()->renderReady()) return;
+	
 	int winNum = myVizWin->getWindowNum();
 	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
 	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);

@@ -146,7 +146,12 @@ public:
 	size_t getMinTimestep() {return minTimeStep;}
 	size_t getMaxTimestep() {return maxTimeStep;}
 	bool dataIsPresent(int varnum, int timestep){
+		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
+		if (varnum < 0 || varnum >= numVariables) return false;
 		return (dataPresent[timestep + varnum*numTimesteps] >= 0);
+	}
+	int getDataPresent(int varnum, int timestep){
+		return dataPresent[timestep + varnum*numTimesteps];
 	}
 	double getDataMax(int varnum, int timestep){
 		return maxData[timestep + varnum*numTimesteps];
@@ -186,6 +191,7 @@ private:
 	int* dataPresent;
 	size_t fullDataSize[3];
 	float** dataRange;
+	
 	
 	
 };
@@ -255,7 +261,8 @@ public:
 		int timestep, float dataMin, float dataMax);
 	const WaveletBlock3DRegionReader* getRegionReader() {return myReader;}
 	//Create a new Metadata, by specifying vmf file
-	void resetMetadata(const char* vmfile);
+	//Specify whether or not the state is remembered from previous session
+	void resetMetadata(const char* vmfile, bool newSession);
 	//Export current data in active visualizer:
 	void exportData();
 	void setCacheMB(size_t size){cacheMB = size;}
@@ -315,7 +322,7 @@ protected:
 	float* rightBounds;
 	QString* tfFilePath;
 	string* currentMetadataPath;
-	
+	bool firstData;
 };
 
 }; //end VAPoR namespace

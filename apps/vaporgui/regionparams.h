@@ -106,6 +106,9 @@ public:
 	float getRegionCenter(int indx) {
 		return (0.5f*(getRegionMin(indx)+getRegionMax(indx)));
 	}
+	float getFullCenter(int indx) {
+		return ((float)(0.5*(fullDataExtents[indx]+fullDataExtents[indx+3])));
+	}
 	//If a face is selected, this value is >= 0:
 	//
 	int getSelectedFaceNum() {return selectedFaceNum;}
@@ -153,6 +156,7 @@ public:
 	bool draggingFace() {return (selectedFaceNum >= 0);}
 	// Reinitialize due to new Session:
 	void reinit();
+	void restart();
 	void unSelectFace() { selectedFaceNum = -1;}
 	
 	

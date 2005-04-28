@@ -46,6 +46,7 @@
 #include "tfeditor.h"
 #include "tfframe.h"
 #include "messagereporter.h"
+#include "tabmanager.h"
 
 #include <math.h>
 #include <vapor/Metadata.h>
@@ -429,10 +430,16 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	}
 	if (prevEnabled == enabled && wasLocal == local) return;
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	VizWin* viz = vizWinMgr->getActiveVisualizer();
-	if (!viz) return;
-	int activeViz = vizWinMgr->getActiveViz();
-	assert(activeViz >= 0);
+	VizWin* viz = 0;
+	if(isLocal){//Find the viz that this applies to:
+		for (int j = 0; j<MAXVIZWINS; j++){
+			if (vizWinMgr->getDvrParams(j) == this){
+				viz = vizWinMgr->getVizWin(j);
+				break;
+			}
+		}
+		if (!viz) return;
+	}
 	
 	//Four cases to consider:
 	//1.  change of local/global with unchanged disabled renderer; do nothing.
@@ -464,35 +471,27 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	//For a new renderer
 
 	
-	if (enabled && !prevEnabled){//For cases 2. or 3. :  create a renderer in the active window:
-#ifdef VOLUMIZER
+	if (enabled && !prevEnabled && isLocal){//For case 2.:  create a renderer in the active window:
+
 		VolumizerRenderer* myDvr = new VolumizerRenderer(viz);
 		viz->addRenderer(myDvr);
-#else
-		GLBox* myBox = new GLBox (viz);
-		viz->addRenderer(myBox);
-#endif
+
 		//force the renderer to refresh region data  (why?)
 		viz->setRegionDirty(true);
 		setClutDirty();
 		setDatarangeDirty();
-		//And to get the new transfer function
-		//Quit if not case 3:
-		if (wasLocal || isLocal) return;
+		
+		//Quit 
+		return;
 	}
 	
-	if (!isLocal && enabled){ //case 3: create renderers in all *other* global windows, then return
+	if (!isLocal && enabled){ //case 3: create renderers in all  global windows, then return
 		for (int i = 0; i<MAXVIZWINS; i++){
-			if (i == activeViz) continue;
+			
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
-#ifdef VOLUMIZER
 				VolumizerRenderer* myDvr = new VolumizerRenderer(viz);
 				viz->addRenderer(myDvr);
-#else
-				GLBox* myBox = new GLBox (viz);
-				viz->addRenderer(myBox);
-#endif
 				//force the renderer to refresh region data (??)
 				viz->setRegionDirty(true);
 				setClutDirty();
@@ -505,37 +504,106 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		for (int i = 0; i<MAXVIZWINS; i++){
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
-#ifdef VOLUMIZER
 				viz->removeRenderer("VolumizerRenderer");
-#else
-				viz->removeRenderer("GLBox");
-#endif
 			}
 		}
 		return;
 	}
 	assert(prevEnabled && !enabled && (isLocal ||(isLocal != wasLocal))); //case 6, disable local only
-#ifdef VOLUMIZER
 	viz->removeRenderer("VolumizerRenderer");
-#else
-	viz->removeRenderer("GLBox");
-#endif
+
 	return;
 }
-//Respond to change in Metadata.  If currently enabled, must disable.
+//Initialize for new metadata.  Keep old transfer function
 //
 void DvrParams::
 reinit(){
+	int i;
+	const Metadata* md = Session::getInstance()->getCurrentMetadata();
+	//Get the variable names:
+	variableNames = md->GetVariableNames();
+	int newNumVariables = md->GetVariableNames().size();
+	//See if current varNum is valid
+	//reset to first variable that is present:
+	if (!Session::getInstance()->getDataStatus()->variableIsPresent(varNum)){
+		varNum = -1;
+		for (i = 0; i<newNumVariables; i++) {
+			if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
+				varNum = i;
+				break;
+			}
+		}
+	}
+	if (varNum == -1){
+		MessageReporter::errorMsg("No data in specified dataset");
+		return;
+	}
+	//Did number of variables change?  If so must recreate bounds arrays:
+	if (newNumVariables != numVariables){
+		float* newMinMap = new float[newNumVariables];
+		float* newMaxMap = new float[newNumVariables];
+		float* newMinEdit = new float[newNumVariables];
+		float* newMaxEdit = new float[newNumVariables];
+		for (i = 0; i< numVariables && i<newNumVariables; i++){
+			newMinMap[i] = minMapBounds[i];
+			newMaxMap[i] = maxMapBounds[i];
+			newMinEdit[i] = minEditBounds[i];
+			newMaxEdit[i] = maxEditBounds[i];
+		}
+		delete minMapBounds;
+		delete maxMapBounds;
+		minMapBounds = newMinMap;
+		maxMapBounds = newMaxMap;
+		delete minEditBounds;
+		delete maxEditBounds;
+		minEditBounds = newMinEdit;
+		maxEditBounds = newMaxEdit;
+	}
+	//If newNumVariables > old numVariables, 
+	//Or if previous range is invalid
+	//(the max is < min if no data was there)
+	//Then, set new variables to default ranges:
+	for (i = 0; i<newNumVariables; i++){
+		if (i>= numVariables ||
+			(minMapBounds[i]>= maxMapBounds[i]) ||
+			(minEditBounds[i] >= maxEditBounds[i])){
+			minMapBounds[i] = Session::getInstance()->getDataRange(i)[0];
+			maxMapBounds[i] = Session::getInstance()->getDataRange(i)[1];
+			minEditBounds[i] = Session::getInstance()->getDataRange(i)[0];
+			maxEditBounds[i] = Session::getInstance()->getDataRange(i)[1];
+		}
+	}
+	numVariables = newNumVariables;
+	bool wasEnabled = enabled;
+	setEnabled(false);
+	updateRenderer(wasEnabled, isLocal, false);
+	setClutDirty();
+	setDatarangeDirty();
+	//If dvr is the current front tab, and if it applies to the active visualizer,
+	//update its values
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myDvrTab)) {
+		VizWinMgr* vwm = VizWinMgr::getInstance();
+		int viznum = vwm->getActiveViz();
+		if (viznum >= 0 && (this == vwm->getDvrParams(viznum)))
+			updateDialog();
+	}
+}
+//Initialize to default state
+//
+void DvrParams::
+restart(){
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	//Get the variable names:
 	variableNames = md->GetVariableNames();
 	numVariables = md->GetVariableNames().size();
-	//reset to first variable that is present:
-	varNum = -1;
-	for (int i = 0; i<numVariables; i++) {
-		if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
-			varNum = i;
-			break;
+	//make sure varnum is OK
+	if (varNum < 0 || varNum >numVariables){
+		varNum = -1;
+		for (int i = 0; i<numVariables; i++) {
+			if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
+				varNum = i;
+				break;
+			}
 		}
 	}
 	if (varNum == -1){
@@ -558,9 +626,17 @@ reinit(){
 		maxEditBounds[i] = Session::getInstance()->getDataRange(i)[1];
 	}
 	
-	setDatarangeDirty();
 	setEnabled(false);
-	updateDialog();
+	setClutDirty();
+	setDatarangeDirty();
+	//If dvr is the current front tab, and if it applies to the active visualizer,
+	//update its values
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myDvrTab)) {
+		VizWinMgr* vwm = VizWinMgr::getInstance();
+		int viznum = vwm->getActiveViz();
+		if (viznum >= 0 && (this == vwm->getDvrParams(viznum)))
+			updateDialog();
+	}
 }
 //Method to invalidate a datarange, and to force a rendering
 //with new data quantization

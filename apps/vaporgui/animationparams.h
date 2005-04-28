@@ -45,6 +45,7 @@ public:
 
 	virtual void makeCurrent(Params* p, bool newWin);
 
+	virtual void restart();
 	virtual void reinit();
 
 	//Need to do more than Params::guiSetLocal():

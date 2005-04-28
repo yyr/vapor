@@ -493,6 +493,8 @@ VizWinMgr::hookUpVizTab(VizTab* vTab)
 	connect (vTab->rotCenter1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (vTab->rotCenter2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (vTab->numLights, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (vTab->centerFullViewButton, SIGNAL(clicked()), this, SLOT(regionCenterFull()));
+	connect (vTab->centerRegionViewButton, SIGNAL(clicked()), this, SLOT(regionCenterRegion()));
 	connect (this, SIGNAL(enableMultiViz(bool)), vTab->LocalGlobal, SLOT(setEnabled(bool)));
 	//connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyToButton, SLOT(setEnabled(bool)));
 	//connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyTargetCombo, SLOT(setEnabled(bool)));
@@ -582,14 +584,14 @@ VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 	connect (dvrTab->histoStretchSlider, SIGNAL(sliderReleased()), this, SLOT (dvrHistoStretch()));
 	connect (dvrTab->ColorBindButton, SIGNAL(pressed()), this, SLOT(dvrColorBind()));
 	connect (dvrTab->OpacityBindButton, SIGNAL(pressed()), this, SLOT(dvrOpacBind()));
-	bool ok = connect (dvrTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setDvrNavigateMode(bool)));
-	assert(ok);
-	ok = connect (dvrTab->editButton, SIGNAL(toggled(bool)), this, SLOT(setDvrEditMode(bool)));
-	assert(ok);
-	ok = connect(dvrTab->alignButton, SIGNAL(clicked()), this, SLOT(setDvrAligned()));
-	assert(ok);
-	ok = connect(dvrTab->newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
-	assert(ok);
+	connect (dvrTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setDvrNavigateMode(bool)));
+	
+	connect (dvrTab->editButton, SIGNAL(toggled(bool)), this, SLOT(setDvrEditMode(bool)));
+	
+	connect(dvrTab->alignButton, SIGNAL(clicked()), this, SLOT(setDvrAligned()));
+	
+	connect(dvrTab->newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
+	
 	emit enableMultiViz(getNumVisualizers() > 1);
 }
 void
@@ -770,6 +772,8 @@ void VizWinMgr::
 regionCenterRegion(){
 	getRegionParams(activeViz)->guiCenterRegion(getViewpointParams(activeViz));
 }
+//Region centering buttons are a collaboration between viewpoint and region params
+//
 void VizWinMgr::
 regionCenterFull(){
 	getRegionParams(activeViz)->guiCenterFull(getViewpointParams(activeViz));
@@ -1534,7 +1538,27 @@ getApplicableParams(Params::ParamType t){
 			return 0;
 	}
 }
-// force all the existing params to reinitialize
+// force all the existing params to restart
+//
+void VizWinMgr::
+restartParams(){
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if(vpParams[i]) vpParams[i]->restart();
+		if(rgParams[i]) rgParams[i]->restart();
+		if(dvrParams[i]) dvrParams[i]->restart();
+		if(isoParams[i]) isoParams[i]->restart();
+		if(contourParams[i]) contourParams[i]->restart();
+		if(animationParams[i]) animationParams[i]->restart();
+	}
+	globalVPParams->restart();
+	globalRegionParams->restart();
+	globalIsoParams->restart();
+	globalDvrParams->restart();
+	globalContourParams->restart();
+	globalAnimationParams->restart();
+}
+// force all the existing params to reinitialize, i.e. make minimal
+// changes to use new metadata
 //
 void VizWinMgr::
 reinitializeParams(){

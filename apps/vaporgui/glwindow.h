@@ -68,17 +68,13 @@ protected:
 
 	//Picking helper functions, saved from last change in GL state.  These
 	//Deal with the cube coordinates (known to the trackball)
-	//Various openGL matrices are kept in the viewpointparams, since
-	//they may be shared (global)
+	//openGL model matrix is kept in the viewpointparams, since
+	//it may be shared (global)
 	//
 	GLdouble* getModelMatrix();
 		
-	GLdouble* getProjectionMatrix();
-		
-	GLint* getViewport();
-		
-
-	
+	GLdouble* getProjectionMatrix() { return projectionMatrix;}	
+	GLint* getViewport() {return viewport;}
 	 
 	//These methods cannot be overridden, but the initialize and paint methods
 	//call the corresponding Renderer methods.
@@ -92,6 +88,9 @@ protected:
 	float	maxDim;		//Max of x, y, z size in world coords
 	bool perspective;	//perspective vs parallel coords;
 	bool oldPerspective;
+
+	GLint viewport[4];
+	GLdouble projectionMatrix[16];
 
 };
 };

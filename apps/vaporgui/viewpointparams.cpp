@@ -29,6 +29,7 @@
 #include <qlineedit.h>
 #include <qcombobox.h>
 #include "viewpoint.h"
+#include "tabmanager.h"
 float VAPoR::ViewpointParams::maxCubeSide = 1.f;
 float VAPoR::ViewpointParams::minCubeCoord[3] = {0.f,0.f,0.f};
 
@@ -249,9 +250,10 @@ guiCenterSubRegion(RegionParams* rParams){
 		currentViewpoint->setCameraPos(i, camPosCrd);
 		rotationCenter[i]= rParams->getRegionCenter(i);
 	}
-	
+	updateDialog();
 	updateRenderer(false, false, false);
 	PanelCommand::captureEnd(cmd,this);
+	
 }
 void ViewpointParams::
 guiCenterFullRegion(RegionParams* rParams){
@@ -273,11 +275,12 @@ guiCenterFullRegion(RegionParams* rParams){
 		float dataCenter = 0.5f*(rParams->getFullDataExtent(i+3)+rParams->getFullDataExtent(i));
 		float camPosCrd = dataCenter -2.5*maxSide*currentViewpoint->getViewDir(i);
 		currentViewpoint->setCameraPos(i, camPosCrd);
-		rotationCenter[i]= rParams->getRegionCenter(i);
+		rotationCenter[i]= rParams->getFullCenter(i);
 	}
-	
+	updateDialog();
 	updateRenderer(false, false, false);
 	PanelCommand::captureEnd(cmd,this);
+	
 }
 void ViewpointParams::
 setHomeViewpoint(){
@@ -298,8 +301,9 @@ useHomeViewpoint(){
 	PanelCommand::captureEnd(cmd, this);
 }
 //Reinitialize viewpoint settings, to center view on the center of full region.
+//(this is starting state)
 void ViewpointParams::
-reinit(){
+restart(){
 	float camPos[3];
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	std::vector<double> extents = md->GetExtents();
@@ -328,8 +332,26 @@ reinit(){
 	homeViewpoint = new Viewpoint(*currentViewpoint);
 	//Make the trackball center on the volume center:
 	updateRenderer(false, false, false);
-	updateDialog();
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myVizTab)) {
+		VizWinMgr* vwm = VizWinMgr::getInstance();
+		int viznum = vwm->getActiveViz();
+		if (viznum >= 0 && (this == vwm->getViewpointParams(viznum)))
+			updateDialog();
+	}
 	
+}
+//Reinitialize viewpoint settings, when metadata changes
+//Really nothing to do!
+void ViewpointParams::
+reinit(){
+	setCoordTrans();
+	updateRenderer(false, false, false);
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myVizTab)) {
+		VizWinMgr* vwm = VizWinMgr::getInstance();
+		int viznum = vwm->getActiveViz();
+		if (viznum >= 0 && (this == vwm->getViewpointParams(viznum)))
+			updateDialog();
+	}
 }
 //Static methods for converting between world coords and unit cube coords:
 //

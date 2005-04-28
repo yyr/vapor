@@ -99,6 +99,7 @@ public:
 	
 	//Reset viewpoint when new session is started:
 	virtual void reinit();
+	virtual void restart();
 	
 	//Transformations to convert world coords to (unit)render cube and back
 	//
@@ -112,19 +113,14 @@ public:
 	//
 	static float getMaxCubeSide() {return maxCubeSide;}
 
-	//Maintain the OpenGL Matrices, since they can be shared between visualizers
+	//Maintain the OpenGL Model Matrices, since they can be shared between visualizers
+	
 	double* getModelViewMatrix() {return modelViewMatrix;}
-	double* getProjectionMatrix() {return projectionMatrix;}
-	int* getViewport() {return viewport;}
+	
 	void setModelViewMatrix(double* mtx){
 		for (int i = 0; i<16; i++) modelViewMatrix[i] = mtx[i];
 	}
-	void setProjectionMatrix(double* mtx){
-		for (int i = 0; i<16; i++) projectionMatrix[i] = mtx[i];
-	}
-	void setViewport(int* vp){
-		for (int i = 0; i<4; i++) viewport[i] = vp[i];
-	}
+	
 	
 protected:
 	//Holder for saving state during mouse move:
@@ -141,10 +137,10 @@ protected:
 	//
 	static float minCubeCoord[3];
 	static float maxCubeSide;
-	//GL state
+	//GL state saved here since it may be shared...
+	//
 	double modelViewMatrix[16];
-	double projectionMatrix[16];
-	int viewport[4];
+	
 
 };
 };

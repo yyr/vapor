@@ -36,6 +36,7 @@
 #include "session.h"
 #include "vizwinmgr.h"
 #include "vizwin.h"
+#include "tabmanager.h"
 
 using namespace VAPoR;
 
@@ -303,10 +304,10 @@ void AnimationParams::guiSingleStep(bool forward){
 	
 
 }
-//Respond to change in Metadata
+//Reset to initial state
 //
 void AnimationParams::
-reinit(){
+restart(){
 	Session* session = Session::getInstance();
 	//Get the max, min time ranges:
 	minFrame = (int)session->getMinTimestep();
@@ -343,7 +344,62 @@ reinit(){
 	frameStepSize = 1;
 
 	setDirty();
-	updateDialog();
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myAnimationTab)) {
+		VizWinMgr* vwm = VizWinMgr::getInstance();
+		int viznum = vwm->getActiveViz();
+		if (viznum >= 0 && (this == vwm->getAnimationParams(viznum)))
+			updateDialog();
+	}
+}
+//Respond to change in Metadata
+//
+void AnimationParams::
+reinit(){
+	Session* session = Session::getInstance();
+	//Make min and max conform to new data:
+	minFrame = (int)session->getMinTimestep();
+	maxFrame = (int)session->getMaxTimestep();
+	//Narrow the range to the actual data limits:
+	int numvars = session->getNumVariables();
+	//Find the first framenum with data:
+	int i;
+	for (i = minFrame; i<= maxFrame; i++){
+		int varnum;
+		for (varnum = 0; varnum<numvars; varnum++){
+			if(session->dataIsPresent(varnum, i)) break;
+		}
+		if (varnum < numvars) break;
+	}
+	minFrame = i;
+	//Find the last framenum with data:
+	for (i = maxFrame; i>= minFrame; i--){
+		int varnum;
+		for (varnum = 0; varnum<numvars; varnum++){
+			if(session->dataIsPresent(varnum, i)) break;
+		}
+		if (varnum < numvars) break;
+	}
+	
+	maxFrame = i;
+	//force start & end to be consistent:
+	if (startFrame > maxFrame) startFrame = maxFrame;
+	if (startFrame < minFrame) startFrame = minFrame;
+	if (endFrame < minFrame) endFrame = minFrame;
+	if (endFrame > maxFrame) endFrame = maxFrame;
+
+	if(currentFrame < startFrame) currentFrame = startFrame;
+	if (currentFrame > endFrame) currentFrame = endFrame;
+	
+	// set pause state
+	playDirection = 0;
+
+	setDirty();
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myAnimationTab)) {
+		VizWinMgr* vwm = VizWinMgr::getInstance();
+		int viznum = vwm->getActiveViz();
+		if (viznum >= 0 && (this == vwm->getAnimationParams(viznum)))
+			updateDialog();
+	}
 }
 //Set the position slider consistent with latest value of currentPosition, frameStep, and bounds
 void AnimationParams::

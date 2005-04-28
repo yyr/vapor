@@ -387,7 +387,7 @@ int	DVRVolumizer::render()
 
 			volume_c = new vzParameterVolumeTexture(
 				data_dim_c, data_roi_c, data_c, VZ_UNSIGNED_BYTE,
-				VZ_LUMINANCE, VZ_INTENSITY16
+				VZ_LUMINANCE, VZ_DEFAULT_INTERNAL_FORMAT
 			);
 
 			volume_c->addDeletionCallback(deletion_cb,(void *) "vzParameterVolumeTexture");

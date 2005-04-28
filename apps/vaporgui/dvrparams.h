@@ -165,6 +165,7 @@ public:
 	void guiBindOpacToColor();
 	//Implement virtual function to deal with new session:
 	void reinit();
+	void restart();
 	
 	
 protected:

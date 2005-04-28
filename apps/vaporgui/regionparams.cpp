@@ -496,9 +496,9 @@ guiSetMaxSize(int n){
 	}
 	setDirty();
 }
-//Reinitialize region settings, session has changed:
+//Reset region settings to initial state
 void RegionParams::
-reinit(){
+restart(){
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	//Setup the global region parameters based on bounds in Metadata
 	const size_t* dataDim = md->GetDimension();
@@ -527,10 +527,56 @@ reinit(){
 	//Data extents (user coords) are presented read-only in gui
 	//
 	setDataExtents(md->GetExtents());
-	//This will force the current tab to be reset to values
-	//consistent with the data.
+	//If this params is currently being displayed, 
+	//force the current displayed tab to be reset to values
+	//consistent with the params
 	//
-	if(MainForm::getInstance()->getTabManager()->isFrontTab(myRegionTab)) updateDialog();
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myRegionTab)) {
+		VizWinMgr* vwm = VizWinMgr::getInstance();
+		int viznum = vwm->getActiveViz();
+		if (viznum >= 0 && (this == vwm->getRegionParams(viznum)))
+			updateDialog();
+	}
+}
+//Reinitialize region settings, session has changed:
+void RegionParams::
+reinit(){
+	const Metadata* md = Session::getInstance()->getCurrentMetadata();
+	//Setup the global region parameters based on bounds in Metadata
+	const size_t* dataDim = md->GetDimension();
+	
+	//Note:  It's OK to cast to int here:
+	int nx = (int)dataDim[0];
+	int ny = (int)dataDim[1];
+	int nz = (int)dataDim[2];
+	setMaxSize(Max(Max(nx, ny), nz));
+	setFullSize(0, nx);
+	setFullSize(1, ny);
+	setFullSize(2, nz);
+	int nlevels = md->GetNumTransforms();
+	
+	
+	
+	setMinNumTrans(Session::getInstance()->getDataStatus()->minXFormPresent());
+	setMaxNumTrans(nlevels);
+	if (numTrans> nlevels) numTrans = maxNumTrans;
+	if (numTrans < minNumTrans) numTrans = minNumTrans;
+	for (int i = 0; i< 3; i++)
+		enforceConsistency(i);
+	//Data extents (user coords) are presented read-only in gui
+	//
+	setDataExtents(md->GetExtents());
+	//If this params is currently being displayed, 
+	//force the current displayed tab to be reset to values
+	//consistent with the params
+	//
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myRegionTab)) {
+		VizWinMgr* vwm = VizWinMgr::getInstance();
+		int viznum = vwm->getActiveViz();
+		if (viznum >= 0 && (this == vwm->getRegionParams(viznum)))
+			updateDialog();
+	}
+	setDirty();
 }
 void RegionParams::
 setCurrentExtents(int coord){

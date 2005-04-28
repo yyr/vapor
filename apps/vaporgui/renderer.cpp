@@ -39,8 +39,7 @@ Renderer::Renderer( VizWin* vw )
     myGLWindow = vw->getGLWindow();
 	
 	
-	myDataMgr = Session::getInstance()->getDataMgr();
-	myMetadata = Session::getInstance()->getCurrentMetadata();
+	
 
 }
 //Issue OpenGL commands to draw a grid of lines of the full domain.

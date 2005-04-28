@@ -215,6 +215,9 @@ public:
 	//Tell all parameter panels to reinitialize (based on change of 
 	//Metadata)
 	void reinitializeParams();
+	//reset to starting state
+	//
+	void restartParams();
 	Command::mouseModeType selectionMode;
 
 public slots:

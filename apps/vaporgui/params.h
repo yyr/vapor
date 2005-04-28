@@ -107,12 +107,17 @@ public:
 	//params are updated, if anything has changed.
 	//
 	void confirmText(bool render);
-	//When a new metadata is read, all params are notified to reinit.
+	//When a new metadata is read, all params are notified 
 	//If the params have state that depends on the metadata (e.g. region size,
 	//variable, etc., they should implement reinit() to respond.
 	//Default does nothing.
 	//
 	virtual void reinit() {return;}
+
+	//The restart method goes back to initial state
+	//Default does nothing.
+	//
+	virtual void restart() {return;}
 
 	
 protected:

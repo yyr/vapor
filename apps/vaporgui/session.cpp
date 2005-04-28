@@ -70,6 +70,7 @@ Session::Session() {
 	currentMetadataPath = 0;
 	jpegQuality = 75;
 	dataExists = false;
+	firstData = true;
 }
 Session::~Session(){
 	int i;
@@ -162,11 +163,13 @@ exportData(){
  * constructing histograms 
  */
 void Session::
-resetMetadata(const char* fileBase)
+resetMetadata(const char* fileBase, bool newSession)
 {
 	int i;
 	renderOK = false;
-	
+	//If the user asks for reload on the first load, ignore it 
+	//and do a new session.
+	if (firstData) newSession = true;
 	//The metadata is created by (and obtained from) the datamgr
 	currentMetadataPath = new string(fileBase);
 	
@@ -214,6 +217,7 @@ resetMetadata(const char* fileBase)
 		dataMgr = 0;
 		return;
 	}
+	
 	//Now create histograms for all the variables present.
 	
 	
@@ -223,11 +227,14 @@ resetMetadata(const char* fileBase)
 	
 	for (i = 0; i<numVars; i++){
 		currentHistograms[i] = 0;
-		//Tell the datamanager to use the overall max/min range
+		//If this is a new session, 
+		//tell the datamanager to use the overall max/min range
 		//In doing the quantization.  Note that this will change
 		//when the range is changed in the TFE
 		//
+		//reset the mapping range to the entire range
 		setMappingRange(i, currentDataStatus->getDataRange(i));
+		
 		float dataMin = currentDataStatus->getDataRange(i)[0];
 		float dataMax = currentDataStatus->getDataRange(i)[1];
 		//Obtain data dimensions for getting histogram:
@@ -247,9 +254,9 @@ resetMetadata(const char* fileBase)
 		}
 		
 		//Find the first timestep for which there is data,
-		//Build a histogram , for this variable, on that data
-		
-		for (int ts = 0; ts< currentDataStatus->getNumTimesteps(); ts++){
+		//Build a histogram, for this variable, on that data.
+		for (unsigned int ts = currentDataStatus->getMinTimestep(); 
+				ts <= currentDataStatus->getMaxTimestep(); ts++){
 			if (currentDataStatus->dataIsPresent(i,ts)){
 				currentHistograms[i] = new Histo(
 					(unsigned char*) dataMgr->GetRegionUInt8(
@@ -267,22 +274,25 @@ resetMetadata(const char* fileBase)
 		}
 	}
 	VizWinMgr* myVizWinMgr = VizWinMgr::getInstance();
-	//Notify all params that there is new data:
-	myVizWinMgr->reinitializeParams();
-	//Delete all visualizers, then create one new one.
-	
-	for (i = 0; i< MAXVIZWINS; i++){
-		if (myVizWinMgr->getVizWin(i)){
-			myVizWinMgr->killViz(i);
+
+	//If we're restarting session: Delete all visualizers, then create one new one.
+	//Do this before setting up params, since they will get deleted if their window
+	//vanishes.
+	//
+	if (newSession && !firstData){
+		for (i = 0; i< MAXVIZWINS; i++){
+			if (myVizWinMgr->getVizWin(i)){
+				myVizWinMgr->killViz(i);
+			}
 		}
+		myVizWinMgr->launchVisualizer();
 	}
-	
-	
-	myVizWinMgr->launchVisualizer();
-	myVizWinMgr->updateActiveParams();
+	//First time, restart, 
+	if (newSession || firstData) myVizWinMgr->restartParams();
+	else myVizWinMgr->reinitializeParams();
+	firstData = false;
 
 	//Restart the animation controller:
-	
 	AnimationController::getInstance()->restart();
 
 	//Reset the undo/redo queue
@@ -438,7 +448,7 @@ setupDataStatus(){
 			// Absent data will get default min/max values, and will
 			// not affect overall maxima/minima
 			vector<double>minMax;
-			if (ds->dataIsPresent(var, ts)){
+			if (ds->getDataPresent(var,ts) >= 0){
 				//Turn off error callback, we can handle missing datarange:
 				MyBase::SetErrMsgCB(0);
 				const vector<double>& mnmx = currentMetadata->GetVDataRange(ts, 

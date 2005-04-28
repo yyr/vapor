@@ -68,8 +68,8 @@ GLWindow::~GLWindow()
 
 void GLWindow::resizeGL( int width, int height )
 {
-	int winViewport[4];
-	double projMtx[16];
+	//int winViewport[4];
+	//double projMtx[16];
 	/*
     glViewport( 0, 0, (GLint)width, (GLint)height );
     glMatrixMode( GL_PROJECTION );
@@ -84,9 +84,8 @@ void GLWindow::resizeGL( int width, int height )
 
 	glViewport( 0, 0, (GLint)width, (GLint)height );
 	//Save the current value...
-	glGetIntegerv(GL_VIEWPORT, winViewport);
-	VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum())->
-		setViewport(winViewport);
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	if (perspective) {
@@ -96,9 +95,8 @@ void GLWindow::resizeGL( int width, int height )
 		//glFrustum( -w, w, -h, h, mindist,(wCenter[2]+ maxDim + 1.0) );
 		gluPerspective(45., w, mindist, (wCenter[2]+ maxDim + 10.0) );
 		//save the current value...
-		glGetDoublev(GL_PROJECTION_MATRIX, (GLdouble *) projMtx);
-		VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum())->
-			setProjectionMatrix(projMtx);
+		glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
+		
 	} else {
 		if (width > height) {
 			float l, r, s;
@@ -198,6 +196,9 @@ bool GLWindow::projectPointToWin(float cubeCoords[3], float winCoords[2]){
 	GLdouble cbCoords[3];
 	for (int i = 0; i< 3; i++)
 		cbCoords[i] = (double) cubeCoords[i];
+	//double* mmtrx = getModelMatrix(); 
+	//double* pmtrx = getProjectionMatrix();
+	//int* vprt = getViewport();
 
 	bool success = gluProject(cbCoords[0],cbCoords[1],cbCoords[2], getModelMatrix(),
 		getProjectionMatrix(), getViewport(), wCoords, (wCoords+1),(GLdouble*)(&depth));
@@ -296,19 +297,12 @@ getPixelData(unsigned char* data){
 		
   
 }
-//Routines to exchange gl state with viewpointparams
+//Routine to obtain gl state from viewpointparams
 GLdouble* GLWindow:: 
 getModelMatrix() {
 	return (GLdouble*)VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum())->getModelViewMatrix();
 }
-GLdouble* GLWindow::
-getProjectionMatrix(){ 
-	return (GLdouble*)VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum())->getProjectionMatrix();
-}
-GLint* GLWindow::
-getViewport() {
-	return (GLint*)VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum())->getViewport();
-}
+
 
 
 

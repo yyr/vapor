@@ -251,6 +251,7 @@ void VizWin::hideEvent(QHideEvent* ){
 void VizWin::
 mousePressEvent(QMouseEvent* e){
 	float screenCoords[2];
+	if (numRenderers <= 0) return;
 	screenCoords[0] = (float)e->x();
 	//To keep orientation correct in plane, and use
 	//OpenGL convention (Y 0 at bottom of window), reverse
@@ -299,6 +300,7 @@ mousePressEvent(QMouseEvent* e){
  */
 void VizWin:: 
 mouseReleaseEvent(QMouseEvent*e){
+	if (numRenderers <= 0) return;
 	switch (myWinMgr->selectionMode){
 		
 		case Command::regionMode :

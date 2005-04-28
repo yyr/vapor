@@ -58,10 +58,7 @@ protected:
 
 	GLWindow* myGLWindow;
 	VizWin* myVizWin;
-	//There can exist only one DataMgr during the life of this renderer:
-	//
-	DataMgr* myDataMgr;
-	const Metadata* myMetadata;
+	
 	//Rendering-related parameters (from Bob_App) come from region etc.
 	//These should be reset whenever the region parameters are dirtied.
 	//
