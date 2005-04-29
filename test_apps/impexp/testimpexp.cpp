@@ -103,7 +103,7 @@ int	main(int argc, char **argv) {
 	string varnameImp;
     size_t minImp[3];
     size_t maxImp[3];
-    size_t timesegImp[3];
+    size_t timesegImp[2];
 
 	impexp = new ImpExp();
 
