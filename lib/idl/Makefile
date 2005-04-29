@@ -14,8 +14,12 @@ CXXFLAGS += /D"IDL_EXPORTS"
 LDFLAGS += /DEF:"../../make/win32/idl/idl.def"
 LDFLAGS += ../../targets/win32/bin/common.lib 
 LDFLAGS += ../../targets/win32/bin/vdf.lib
-LDFLAGS += $(IDL_INC_PATH)/../../bin/bin.x86/idl32.lib 
 LDFLAGS += $(EXPATLIB)
+
+ifdef	IDL_INC_PATH
+LDFLAGS += $(IDL_INC_PATH)/../../bin/bin.x86/idl32.lib 
+endif
+
 else
 
 LIBRARY = idl_vdfmodule
@@ -40,3 +44,6 @@ IDLMetadataAuto.cpp: IDLMetadataAuto.cpp.template mkmeta.pl
 libidl_vdfmodule.dlm: libidl_vdfmodule.dlm.template mkmeta.pl
 	./mkmeta.pl < $@.template > $@
 
+
+install:: libidl_vdfmodule.dlm
+	@$(INSTALL_NONEXEC) libidl_vdfmodule.dlm $(INSTALL_LIBDIR)
