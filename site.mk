@@ -80,7 +80,7 @@ EXPAT_LIB_PATH=/usr/lib
 HAVE_IDL = 1
 IDL_INC_PATH=/fs/local/apps/rsi/idl_6.0/external/include
 QTDIR = /fs/local/apps/qt-3.3.2
-HAVE_INTEL_COMPILERS = 1
+HAVE_INTEL_COMPILERS = 0
 
 
 ifdef	BUILD64

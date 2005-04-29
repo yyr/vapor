@@ -21,7 +21,7 @@ EXPATLIB += -lexpat
 
 G++-INCLUDE-DIR = /usr/include/g++
 
-ifdef	HAVE_INTEL_COMPILERS
+ifeq	($(HAVE_INTEL_COMPILERS),1)
 CXX = icpc
 CC = icc
 else
