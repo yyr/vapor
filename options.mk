@@ -3,11 +3,17 @@
 #
 # See the file LICENSE.txt for information on redistributing this software.
 
+# This file lets one set various compile-time options.
+
 #
 #
 #
 
-# This file lets one set various compile-time options.
+
+# Installation prefix directory. Vapor executables will be installed
+# in INSTALL_PREFIX_DIR/bin, libraries in INSTALL_PREFIX_DIR/lib
+# etc,.
+INSTALL_PREFIX_DIR=/usr/local
 
 
 # Set RELEASE to 1 to compile with optimizations and without debug info.
@@ -20,58 +26,50 @@ THREADSAFE=0
 # Set DEBUG to 1 if you want diagnostic messages turned on
 DEBUG=0
 
+# SET BUILD64 to 1 if you want to force the building of 64 bit binaries.
+# Currently only has effect under the IRIX OS
+BUILD_64_BIT=0
 
-# Set EXPAT_INC_PATH to the directory where expat.h may be found if not
+
+# Set EXPAT_INC_PATH to the directory where 'expat.h' may be found if not
 # in a standard location
 #
-ifeq ($(ARCH),WIN32)
-EXPAT_INC_PATH="B:/Expat-1.95.8/Source/lib/"
-IDL_INC_PATH="C:/RSI/IDL61/external/include"
-endif
-ifeq ($(ARCH),IRIX64)
-EXPAT_INC_PATH=/usr/freeware/include
-# Set IDL_INC_PATH to the top of the IDL external include directory
-IDL_INC_PATH = /usr/local/apps/rsi/idl_5.6/external/include
-endif
-ifeq ($(ARCH),Linux)
-EXPAT_INC_PATH=/usr/include
-IDL_INC_PATH=/fs/local/rsi/idl_6.0/external/include
-endif
+EXPAT_INC_PATH=
 
-# Set EXPAT_LIB_PATH to the directory where libexpat.* may be found if not
-# in a standard location
+
+# Set EXPAT_LIB_PATH to the directory where 'libexpat.*' may be found 
+# if not in a standard location
 #
-ifeq ($(ARCH),WIN32)
-EXPAT_LIB_PATH="B:/Expat-1.95.8/libs/libexpat.lib"
-endif
-ifeq ($(ARCH),IRIX64)
-EXPAT_LIB_PATH=/usr/freeware/lib32
-endif
-ifeq ($(ARCH),Linux)
-EXPAT_LIB_PATH=/usr/lib
-endif
+EXPAT_LIB_PATH=
 
 
-# Set QTDIR to the root of the QT directory
+# Set QTDIR to the root of the QT directory where the directories 'bin',
+# 'lib', and 'include' may be found, if not in a standard location.
 #
-ifndef $(QTDIR)
-ifeq ($(ARCH),WIN32)
-QTDIR = C:/Qt/3.3.4
-endif
-ifeq ($(ARCH),Linux)
-QTDIR = /fs/local/apps/qt
-#QTDIR = /usr/local/apps/qt
-endif 
-ifeq ($(ARCH),IRIX64)
-QTDIR=/usr/local/apps/qt
-endif
-endif
+QTDIR = 
 
 # Set VOLUMIZER_ROOT to the root of the volumizer directory
-#VOLUMIZER_ROOT = 
-
+VOLUMIZER_ROOT = 
 
 
 # Set to 1 if intel compilers are available on linux systems
 # Better:  set this in your environment
-#HAVE_INTEL_COMPILERS = 1
+HAVE_INTEL_COMPILERS = 0
+
+
+# Set to 1 if you have IDL installed on your system and you would
+# like to build the VAPoR IDL commands
+#
+HAVE_IDL = 0
+
+# If HAVE_IDL is 1, set to path to IDL include directory. This is the 
+# path to the directory that contains the file "idl_export.h"
+#
+IDL_INC_PATH=
+
+#
+#	If the file `site.mk' exists, include it. It contains site-specific
+#	(host or platform specific) make variables that may override 
+#	values defined above
+#
+-include $(TOP)/site.mk

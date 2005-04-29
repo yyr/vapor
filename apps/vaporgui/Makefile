@@ -6,7 +6,12 @@ SHARED = 0
 QT = 1
 PROGRAM	= vaporgui
 
-INCLUDE_DIRS +=  -I"../../include/VAPoR/"   -I"./ui" -I"$(QTDIR)/include" -I$(EXPAT_INC_PATH)
+INCLUDE_DIRS +=  -I"../../include/VAPoR/"   -I"./ui" -I"$(QTDIR)/include"
+
+ifdef	EXPAT_INC_PATH
+INCLUDE_DIRS +=  -I$(EXPAT_INC_PATH)
+endif
+
 LIBRARIES += common vdf vjpeg
 
 ifeq ($(ARCH),WIN32) 
@@ -60,3 +65,6 @@ include ${TOP}/make/config/base.mk
 #LDFLAGS += $(QTLIB)
 
 #testtarget:;echo $(FILES)
+
+cat:
+	echo "QTDIR=$(QTDIR)"
