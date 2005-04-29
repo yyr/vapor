@@ -71,3 +71,6 @@ JGRAPH = jgraph
 MPI_CC = cl
 MPI_CXX = cl
 MPI_LDFLAGS += mpichd.lib
+
+INSTALL_EXEC = $(CP)
+INSTALL_NONEXEC = $(CP)

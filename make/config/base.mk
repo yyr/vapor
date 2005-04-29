@@ -139,13 +139,13 @@ INCS    := $(addsuffix .h, $(INCS))
 HEADER_FILES    := $(addsuffix .h, $(HEADER_FILES))
 ifdef LIBRARY
 ifdef SHARED
-	LIBNAME := $(addprefix $(DSO_DIR)/, $(LIBPREFIX)$(LIBRARY)$(DLLSUFFIX))
+	LIB_TARGET := $(addprefix $(DSO_DIR)/, $(LIBPREFIX)$(LIBRARY)$(DLLSUFFIX))
 	AIXDLIBNAME := $(addprefix $(OBJDIR)/, $(LIBPREFIX)$(LIBRARY)$(OBJSUFFIX))
 else
-	LIBNAME := $(addprefix $(DSO_DIR)/, $(LIBPREFIX)$(LIBRARY)$(LIBSUFFIX))
+	LIB_TARGET := $(addprefix $(DSO_DIR)/, $(LIBPREFIX)$(LIBRARY)$(LIBSUFFIX))
 endif
 else
-	LIBNAME := dummy_libname
+	LIB_TARGET := dummy_libname
 endif
 
 TEMPFILES := *~ \\\#*\\\# so_locations *.pyc tmpAnyDX.a tmpAnyDX.exp load.map shr.o *.pdb *.idb
@@ -254,8 +254,11 @@ endif
 
 ifndef SUBDIRS
 all: arch $(PRECOMP) headers dep
-recurse: $(PROG_TARGET) $(LIBNAME) copies done
+recurse: $(PROG_TARGET) $(LIB_TARGET) copies done
 else
+
+all: subdirs
+
 SUBDIRS_ALL = $(foreach dir, $(SUBDIRS), $(dir).subdir)
 
 subdirs: $(SUBDIRS_ALL)
@@ -349,14 +352,14 @@ endif
 
 endif
 
-$(LIBNAME): $(OBJS) $(LIB_DEFS) $(STATICLIBRARIES)
+$(LIB_TARGET): $(OBJS) $(LIB_DEFS) $(STATICLIBRARIES)
 ifdef LIBRARY
 	@$(ECHO) "Linking $@"
 ifdef WINDOWS
 ifdef SHARED
-	@$(LD) $(SHARED_LDFLAGS) /Fe$(LIBNAME) $(OBJS) $(LIBRARIES) $(LIB_DEFS) $(LDFLAGS)
+	@$(LD) $(SHARED_LDFLAGS) /Fe$(LIB_TARGET) $(OBJS) $(LIBRARIES) $(LIB_DEFS) $(LDFLAGS)
 else
-	@LIB.EXE /nologo $(OBJS) $(LIBRARIES) /OUT:$(LIBNAME)
+	@LIB.EXE /nologo $(OBJS) $(LIBRARIES) /OUT:$(LIB_TARGET)
 endif #shared
 else #windows
 ifdef SHARED
@@ -365,13 +368,13 @@ ifdef AIXSHAREDLIB
 	@$(ECHO) "Not using LDFLAGS $(LDFLAGS)"
 	rm -f tmpAnyDX.a shr.o
 	rm -f $(AIXDLIBNAME)
-	rm -f $(LIBNAME)
+	rm -f $(LIB_TARGET)
 	ar -ruv tmpAnyDX.a $(OBJS)
 	nm -epC tmpAnyDX.a | awk -f $(TOP)/buildutils/exports.awk > tmpAnyDX.exp
 	pwd
 	@$(ECHO) ld -bnoentry -bloadmap:load.map -bM:SRE -o shr.o -bE:tmpAnyDX.exp tmpAnyDX.a -L$(TOP)/lib/AIX $(SHARED_LDFLAGS) $(LIBRARIES) $(XSLIBS) -ldl -lm -lc
 	ld -bnoentry -bloadmap:load.map -bM:SRE -o shr.o -bE:tmpAnyDX.exp tmpAnyDX.a -L$(TOP)/lib/AIX $(SHARED_LDFLAGS) $(LIBRARIES) $(XSLIBS) -ldl -lm -lc
-	ar $(ARCREATEFLAGS) $(LIBNAME) shr.o
+	ar $(ARCREATEFLAGS) $(LIB_TARGET) shr.o
 	cp shr.o $(AIXDLIBNAME)
 	@$(CP) $(AIXDLIBNAME) $(DSO_DIR)
 	rm -f tmpAnyDX.* shr.o load.map
@@ -382,7 +385,7 @@ ifdef PERSONAL_LIBRARIES
 	@$(PERL) $(TOP)/buildutils/trans_undef_symbols.pl $(SHORT_TARGET_NAME) $(TOP)/built/$(SHORT_TARGET_NAME)/$(ARCH) $(P_LIB_FILES)
 endif
 endif
-	$(LD) $(SHARED_LDFLAGS) -o $(LIBNAME) $(OBJS) $(LDFLAGS) $(LIBRARIES)
+	$(LD) $(SHARED_LDFLAGS) -o $(LIB_TARGET) $(OBJS) $(LDFLAGS) $(LIBRARIES)
 endif #aixsharedlib
 else #shared
 	@$(AR) $(ARCREATEFLAGS) $@ $(OBJS)
@@ -390,7 +393,7 @@ else #shared
 endif #shared
 endif #windows
 
-#	@$(CP) $(LIBNAME) $(DSO_DIR)
+#	@$(CP) $(LIB_TARGET) $(DSO_DIR)
 endif #library
 
 ifdef LIB_COPIES
@@ -602,8 +605,8 @@ clobber::
 else
 clobber:: clean
 ifdef LIBRARY
-	@$(ECHO) "Removing $(LIBNAME) for $(ARCH)."
-	@$(RM) $(LIBNAME)
+	@$(ECHO) "Removing $(LIB_TARGET) for $(ARCH)."
+	@$(RM) $(LIB_TARGET)
 else
 ifdef PROGRAM
 	@$(ECHO) "Removing $(PROGRAM) for $(ARCH)."
@@ -618,6 +621,45 @@ ifdef	HEADER_FILES
 	@$(RM) $(HEADER_FILES)
 endif
 endif
+
+ifndef INSTALL_PREFIX_DIR
+INSTALL_PREFIX_DIR = /usr/local
+endif
+
+INSTALL_BINDIR = $(INSTALL_PREFIX_DIR)/bin
+INSTALL_LIBDIR = $(INSTALL_PREFIX_DIR)/lib
+INSTALL_DOCDIR = $(INSTALL_PREFIX_DIR)/doc
+
+define MAKE_INSTALL_BINDIR
+	if test ! -d $(INSTALL_BINDIR); then $(MKDIR) $(INSTALL_BINDIR); fi
+endef
+
+define MAKE_INSTALL_LIBDIR
+	if test ! -d $(INSTALL_LIBDIR); then $(MKDIR) $(INSTALL_LIBDIR); fi
+endef
+
+define MAKE_INSTALL_DOCDIR
+	if test ! -d $(INSTALL_DOCDIR); then $(MKDIR) $(INSTALL_DOCDIR); fi
+endef
+
+ifdef SUBDIRS
+install:: 
+	@for i in $(SUBDIRS); do $(MAKE) -C $$i install; done
+else
+install:: all
+ifdef LIBRARY
+	@$(ECHO) "Installing library $(LIBRARY) in $(INSTALL_LIBDIR)."
+	@$(MAKE_INSTALL_LIBDIR)
+	@$(INSTALL_EXEC) $(LIB_TARGET) $(INSTALL_LIBDIR)
+else
+ifdef PROGRAM
+	@$(ECHO) "Installing program $(PROGRAM) in $(INSTALL_BINDIR)."
+	@$(MAKE_INSTALL_BINDIR)
+	@$(INSTALL_EXEC) $(PROG_TARGET) $(INSTALL_BINDIR)
+endif
+endif
+endif
+
 
 doc: headers FRC
 ifdef SUBDIRS

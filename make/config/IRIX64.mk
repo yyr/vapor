@@ -1,5 +1,3 @@
-# If you want 64 bit support, then uncomment the following line:
-#IRIX_64BIT = 1
 
 
 ifdef   QTDIR
@@ -26,7 +24,7 @@ CC = cc
 CXX_RELEASE_FLAGS += -O2 -DNDEBUG
 CXX_DEBUG_FLAGS   += -g
 
-ifdef IRIX_64BIT
+ifeq ($(BUILD_64_BIT),1)
 CXXFLAGS          += -DIRIX_64BIT -64 -DIRIX 
 CFLAGS            += -DIRIX_64BIT -64 -DIRIX
 LDFLAGS           += -64 -lm 
@@ -83,3 +81,5 @@ MPI_CXX = CC
 MPI_LDFLAGS = -lmpi
 SLOP += so_locations
 
+INSTALL_EXEC = $(TOP)/buildutils/sgiinstall.sh -m 0755
+INSTALL_NONEXEC = $(TOP)/buildutils/sgiinstall.sh -m 0644

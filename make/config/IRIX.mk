@@ -78,3 +78,5 @@ MPI_CXX = CC
 MPI_LDFLAGS = -lmpi
 SLOP += so_locations
 
+INSTALL_EXEC = $(TOP)/buildutils/sgiinstall.sh -m 0755
+INSTALL_NONEXEC = $(TOP)/buildutils/sgiinstall.sh -m 0644

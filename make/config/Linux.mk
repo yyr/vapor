@@ -127,3 +127,6 @@ PS2PDF = ps2pdf
 MPI_CC = mpicc
 MPI_CXX = mpiCC
 MPI_LDFLAGS =
+
+INSTALL_EXEC = /usr/bin/install -m 0755
+INSTALL_NONEXEC = /usr/bin/install -m 0644
