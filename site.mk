@@ -82,6 +82,7 @@ endif
 #
 ifeq ($(ARCH),Linux)
 
+
 EXPAT_INC_PATH=/usr/include
 EXPAT_LIB_PATH=/usr/lib
 HAVE_IDL = 1
@@ -89,6 +90,10 @@ IDL_INC_PATH=/fs/local/apps/rsi/idl_6.0/external/include
 QTDIR = /fs/local/apps/qt-3.3.2
 HAVE_INTEL_COMPILERS = 1
 
+ifeq ($(MACHTYPE),ia64)
+BUILD64 = 1
+HAVE_IDL = 0
+endif
 
 ifdef	BUILD64
 IDL_INC_PATH=/fs/local/64/apps/rsi/idl_6.0/external/include
