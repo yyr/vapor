@@ -29,6 +29,9 @@ LD_DEBUG_FLAGS   +=
 ifndef $(EXPAT_LIB_PATH)
 EXPAT_LIB_PATH := B:/Expat-1.95.8
 endif
+ifndef $(VOLUMIZER_ROOT)
+VOLUMIZER_ROOT := C:/PROGRA~1/SILICO~1/OPENGL~1
+endif
 
 EXPATLIB := "$(EXPAT_LIB_PATH)/libs/libexpat.lib"
 
