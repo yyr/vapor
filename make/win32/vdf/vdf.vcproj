@@ -37,7 +37,7 @@
 				AdditionalDependencies="libexpat.lib mpr.lib"
 				OutputFile="../../../targets/win32/bin/vdf.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;B:\Expat-1.95.8\Libs&quot;"
+				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="../../../targets/win32/bin/vdf.pdb"
 				GenerateMapFile="TRUE"

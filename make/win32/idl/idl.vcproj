@@ -20,7 +20,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../include/;&quot;B:\Expat-1.95.8\Source\lib&quot;;C:/RSI/IDL61/external/include"
+				AdditionalIncludeDirectories="../../../include/;&quot;$(EXPAT_INC_PATH)&quot;;C:/RSI/IDL61/external/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;IDL_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
