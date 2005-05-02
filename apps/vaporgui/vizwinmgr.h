@@ -173,7 +173,7 @@ public:
 	void setRegionParams(int winNum, RegionParams* p);
 	void setAnimationParams(int winNum, AnimationParams* p);
 		
-	void createDefaultRendererPanels(int winnum);
+	void createDefaultParams(int winnum);
 	
 	void setSelectionMode( Command::mouseModeType m);
 	Command::mouseModeType getSelectionMode () {return selectionMode;}

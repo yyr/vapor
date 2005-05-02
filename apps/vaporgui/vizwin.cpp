@@ -374,7 +374,7 @@ mouseMoveEvent(QMouseEvent* e){
 
 				//?????
 				//setRegionDirty(true);
-				myGLWindow->updateGL();
+				//myGLWindow->updateGL();
 				break;
 			}
 		default:
@@ -651,4 +651,3 @@ doFrameCapture(){
 
     
     
-

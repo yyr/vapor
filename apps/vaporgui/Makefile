@@ -7,6 +7,7 @@ QT = 1
 PROGRAM	= vaporgui
 
 INCLUDE_DIRS +=  -I"../../include/VAPoR/"   -I"./ui" -I"$(QTDIR)/include"
+INCLUDE_DIRS += -I$(VOLUMIZER_ROOT)/include
 
 ifdef	EXPAT_INC_PATH
 INCLUDE_DIRS +=  -I$(EXPAT_INC_PATH)

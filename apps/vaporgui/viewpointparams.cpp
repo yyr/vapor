@@ -74,6 +74,9 @@ void ViewpointParams::
 makeCurrent(Params* prev, bool) {
 	
 	VizWinMgr::getInstance()->setViewpointParams(vizNum, this);
+	//If the local/global changes, need to tell the window, too.
+	if (vizNum >=0 && prev->isLocal() != isLocal())
+		VizWinMgr::getInstance()->getVizWin(vizNum)->setGlobalViewpoint(!isLocal());
 	//Also update current Tab.  It's probably visible.
 	updateDialog();
 	updateRenderer(false, prev->isLocal(), false);

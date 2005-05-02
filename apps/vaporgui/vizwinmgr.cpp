@@ -214,7 +214,7 @@ launchVisualizer(int newWindowNum, const char* newName)
 	
 	numVizWins++;
 	
-	if (brandNew) createDefaultRendererPanels(newWindowNum);
+	if (brandNew) createDefaultParams(newWindowNum);
 		
     QPoint* topLeft = new QPoint(0,0);
     QSize* minSize = new QSize(400, 400);
@@ -239,12 +239,13 @@ launchVisualizer(int newWindowNum, const char* newName)
 	if(numVizWins > 1) fitSpace();
 
 	//Set non-renderer tabbed panels to use global parameters:
-	if (vpParams[newWindowNum])
+	/*if (vpParams[newWindowNum])
 		vpParams[newWindowNum]->setLocal(false);
 	if (rgParams[newWindowNum])
 		rgParams[newWindowNum]->setLocal(false);
 	if (animationParams[newWindowNum])
 		animationParams[newWindowNum]->setLocal(false);
+		*/
 	//Following seems to be unnecessary on windows and irix:
 	activeViz = newWindowNum;
 	vizWin[newWindowNum]->show();
@@ -266,10 +267,10 @@ launchVisualizer(int newWindowNum, const char* newName)
 		
 }
 /*
- *  Create renderers, for a new visualizer:
+ *  Create params, for a new visualizer:
  */
 void VizWinMgr::
-createDefaultRendererPanels(int winnum){
+createDefaultParams(int winnum){
 	dvrParams[winnum] = (DvrParams*)globalDvrParams->deepCopy();
 	dvrParams[winnum]->setVizNum(winnum);
 	dvrParams[winnum]->setLocal(true);
@@ -284,6 +285,22 @@ createDefaultRendererPanels(int winnum){
 	contourParams[winnum]->setVizNum(winnum);
 	contourParams[winnum]->setLocal(true);
 	contourParams[winnum]->setEnabled(false);
+
+	assert(0==vpParams[winnum]);
+	vpParams[winnum] = (ViewpointParams*)globalVPParams->deepCopy();
+	vpParams[winnum]->setVizNum(winnum);
+	vpParams[winnum]->setLocal(false);
+
+	assert(0==animationParams[winnum]);
+	animationParams[winnum] = (AnimationParams*)globalAnimationParams->deepCopy();
+	animationParams[winnum]->setVizNum(winnum);
+	animationParams[winnum]->setLocal(false);
+
+	assert(0==rgParams[winnum]);
+	rgParams[winnum] = (RegionParams*)globalRegionParams->deepCopy();
+	rgParams[winnum]->setVizNum(winnum);
+	rgParams[winnum]->setLocal(false);
+	
 }
 void VizWinMgr::
 closeEvent()
@@ -1585,4 +1602,3 @@ setSelectionMode( Command::mouseModeType m){
 		if(vizWin[i]) vizWin[i]->updateGL();
 	}
 }
-

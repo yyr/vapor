@@ -120,8 +120,8 @@ void VizActivateCommand::reDo(){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	switch (thisType){
 		case create:
-			//Need to create default renderer panels (from global params)
-			vizWinMgr->createDefaultRendererPanels(currentActiveViznum);
+			//Need to create default panels (from global params)
+			vizWinMgr->createDefaultParams(currentActiveViznum);
 			vizWinMgr->launchVisualizer(currentActiveViznum, windowName);
 			break;
 		case remove:

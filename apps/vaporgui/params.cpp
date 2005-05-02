@@ -43,6 +43,7 @@ getCorrespondingLocalParams() {
 void Params::
 guiSetLocal(bool lg){
 	if (textChangedFlag) confirmText(false);
+	/*
 	if (lg) { //To convert global to local, "this" may be local or global
 		PanelCommand* cmd;
 		if(vizNum == -1){
@@ -60,6 +61,15 @@ guiSetLocal(bool lg){
 		setLocal(lg);
 		PanelCommand::captureEnd(cmd, this->getCorrespondingGlobalParams());
 	} 
+	*/
+	PanelCommand* cmd;
+	Params* localParams = getCorrespondingLocalParams();
+	if (lg){
+		cmd = PanelCommand::captureStart(localParams,  "set Global to Local");
+	}
+	else cmd = PanelCommand::captureStart(localParams,  "set Local to Global");
+	localParams->setLocal(lg);
+	PanelCommand::captureEnd(cmd, localParams);
 }
 	
 void Params::confirmText(bool render){
