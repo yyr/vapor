@@ -100,6 +100,7 @@ public:
  int	WriteSlabs(const float *two_slabs);
 
 private:
+ int	_objInitialized;	// has the obj successfully been initialized?
 
  double	writer_timer_c;
  string _metafile;

@@ -22,7 +22,7 @@ void	VDF_API mkpath(const string &basename, int level, string &path);
 void	VDF_API dirname(const string &path, string &dir);
 
 
-void	WaveletBlock3DIO::_WaveletBlock3DIO(
+int	WaveletBlock3DIO::_WaveletBlock3DIO(
 	const Metadata	*metadata,
 	unsigned int	nthreads
 ) {
@@ -60,34 +60,46 @@ void	WaveletBlock3DIO::_WaveletBlock3DIO(
 
 	GetDimBlk(0, bdim_c);
 
-	if (this->my_alloc() < 0) return;
+	if (this->my_alloc() < 0) {
+		this->my_free();
+		return (-1);
+	}
 
 	is_open_c = 0;
+
+	return(0);
 }
 
 WaveletBlock3DIO::WaveletBlock3DIO(
 	Metadata	*metadata,
 	unsigned int	nthreads
 ) {
+	_objInitialized = 0;
 	_doFreeMeta = 0;
 
 	metadata_c = metadata;
-	_WaveletBlock3DIO(metadata, nthreads);
+	if (_WaveletBlock3DIO(metadata, nthreads) < 0) return;
+
+	_objInitialized = 1;
 }
 
 WaveletBlock3DIO::WaveletBlock3DIO(
 	const char *metafile,
 	unsigned int	nthreads
 ) {
+	_objInitialized = 0;
 	_doFreeMeta = 1;
 
 	metadata_c = new Metadata(metafile);
 	if (metadata_c->GetErrCode() != 0) return;
 
-	_WaveletBlock3DIO(metadata_c, nthreads);
+	if (_WaveletBlock3DIO(metadata_c, nthreads) < 0) return;
+	_objInitialized = 1;
 }
 
 WaveletBlock3DIO::~WaveletBlock3DIO() {
+
+	if (! _objInitialized) return;
 
 #ifdef	TIMER
 
@@ -100,6 +112,7 @@ WaveletBlock3DIO::~WaveletBlock3DIO() {
 	my_free();
 
 	if (_doFreeMeta && metadata_c) delete metadata_c;
+	_objInitialized = 0;
 }
 
 int    WaveletBlock3DIO::VariableExists(

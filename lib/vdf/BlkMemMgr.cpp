@@ -16,6 +16,8 @@ BlkMemMgr::BlkMemMgr(
 	unsigned int mem_size,
 	int page_aligned
 ) {
+	_objInitialized = 0;
+
 	int	i;
 	size_t	size;
 
@@ -59,6 +61,7 @@ BlkMemMgr::BlkMemMgr(
 	blks_c = new unsigned char[size];
 	if (! blks_c) {
 		SetErrMsg("malloc(%d) : %s",size, strerror(errno));
+		if (free_table_c) delete [] free_table_c;
 		return;
 	}
 	blkptr_c = blks_c;
@@ -66,15 +69,20 @@ BlkMemMgr::BlkMemMgr(
 		blkptr_c += page_size_c - ((long) blks_c % page_size_c);
 	}
 
+	_objInitialized = 1;
+
 }
 
 BlkMemMgr::~BlkMemMgr() {
+	if (! _objInitialized) return;
 
 	if (free_table_c) delete [] free_table_c;
 	if (blks_c) delete [] blks_c;
 
 	free_table_c = NULL;
 	blks_c = NULL;
+
+	_objInitialized = 0;
 }
 
 void	*BlkMemMgr::Alloc(

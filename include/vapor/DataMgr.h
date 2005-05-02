@@ -215,6 +215,7 @@ public:
 
 
 private:
+ int	_objInitialized;
 
  enum _dataTypes_t {UINT8,UINT16,UINT32,FLOAT32};
 
@@ -277,7 +278,7 @@ private:
 
  int	free_lru();
 
- void	_DataMgr(size_t mem_size, unsigned int nthreads);
+ int	_DataMgr(size_t mem_size, unsigned int nthreads);
 
 };
 

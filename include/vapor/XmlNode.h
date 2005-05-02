@@ -226,6 +226,7 @@ public:
 
 
 private:
+ int	_objInitialized;	// has the obj successfully been initialized?
 
  map <const string, vector<long>*> _longmap;	// node's long data
  map <const string, vector<double>*> _doublemap;	// node's double data

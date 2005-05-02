@@ -25,21 +25,32 @@ WaveletBlock3DReader::WaveletBlock3DReader(
 	unsigned int	nthreads
 ) : WaveletBlock3DIO((Metadata *) metadata, nthreads) {
 
+	_objInitialized = 0;
+
 	_WaveletBlock3DReader();
 	
+	_objInitialized = 1;
 }
 
 WaveletBlock3DReader::WaveletBlock3DReader(
 	const char *metafile,
 	unsigned int	nthreads
 ) : WaveletBlock3DIO(metafile, nthreads) {
+
+	_objInitialized = 0;
 	
 	_WaveletBlock3DReader();
+
+	_objInitialized = 1;
 }
 
 WaveletBlock3DReader::~WaveletBlock3DReader(
 ) {
+	if (! _objInitialized) return;
+
 	CloseVariable();
+
+	_objInitialized = 0;
 }
 
 int	WaveletBlock3DReader::OpenVariableRead(

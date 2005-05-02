@@ -121,6 +121,7 @@ public:
  int	ReadSlabs(float *two_slabs, int unblock);
 
 private:
+ int	_objInitialized;	// has the obj successfully been initialized?
 
  float	*lambda_blks_c[MAX_LEVELS];	// temp storage for lambda blocks
  float	*scratch_block_c;	// scratch space

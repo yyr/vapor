@@ -94,6 +94,7 @@ public:
  );
 
 private:
+ int	_objInitialized;	// has the obj successfully been initialized?
  XmlNode	*_rootnode;		// root node of the xml tree
 
  XML_Parser _expatParser;	// XML Expat parser handle

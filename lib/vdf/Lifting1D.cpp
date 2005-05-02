@@ -52,6 +52,7 @@ Lifting1D::Lifting1D(
 	unsigned int	ntilde,
 	unsigned int	width
 ) {
+	_objInitialized = 0;
 	n_c = n;
 	ntilde_c = ntilde;
 	width_c = width;
@@ -135,10 +136,12 @@ Lifting1D::Lifting1D(
 		SetErrMsg("malloc() : %s", strerror(errno));
 		return;
 	}
+	_objInitialized = 1;
 }
 
 Lifting1D::~Lifting1D()
 {
+	if (! _objInitialized) return;
 
 	if (fwd_filter_c) delete [] fwd_filter_c;
 	fwd_filter_c = NULL;
@@ -151,6 +154,8 @@ Lifting1D::~Lifting1D()
 
 	if (inv_lifting_c) delete [] inv_lifting_c;
 	inv_lifting_c = NULL;
+
+	_objInitialized = 0;
 }
 
 /* CODE FOR THE IN-PLACE FLWT (INTERPOLATION CASE, N EVEN) */

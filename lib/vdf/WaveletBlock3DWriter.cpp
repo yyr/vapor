@@ -27,8 +27,12 @@ WaveletBlock3DWriter::WaveletBlock3DWriter(
 	unsigned int    nthreads
 ) : WaveletBlock3DIO(metadata, nthreads) {
 
+	_objInitialized = 0;
+
 	_metafile.clear();
 	_WaveletBlock3DWriter();
+
+	_objInitialized = 1;
 }
 
 WaveletBlock3DWriter::WaveletBlock3DWriter(
@@ -36,17 +40,25 @@ WaveletBlock3DWriter::WaveletBlock3DWriter(
 	unsigned int    nthreads
 ) : WaveletBlock3DIO(metafile, nthreads) {
 
+	_objInitialized = 0;
+
 	_metafile.assign(metafile);
 	_WaveletBlock3DWriter();
+
+	_objInitialized = 1;
 }
 
 
 WaveletBlock3DWriter::~WaveletBlock3DWriter(
 ) {
+	if (! _objInitialized) return;
+
 	if (_metafile.length()) {
 		metadata_c->Write(_metafile.c_str());
 	}
 	CloseVariable();
+
+	_objInitialized = 0;
 }
 
 int	WaveletBlock3DWriter::OpenVariableWrite(

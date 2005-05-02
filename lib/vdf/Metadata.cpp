@@ -70,7 +70,7 @@ const string Metadata::_doubleType = "Double";
 
 // Initialize the class object
 //
-void Metadata::_init(
+int Metadata::_init(
 		const size_t dim[3], size_t numTransforms, size_t bs,
 		int nFilterCoef, int nLiftingCoef, int msbFirst
 ) {
@@ -82,7 +82,7 @@ void Metadata::_init(
 
 	if (! IsPowerOfTwo((int)bs)) {
 		SetErrMsg("Block dimension is not a power of two: bs=%d", bs);
-		return;
+		return(-1);
 	}
 
 	_emptyDoubleVec.clear();
@@ -127,6 +127,8 @@ void Metadata::_init(
 	// by 'roottag', and will have XML attributes as specified by 'attrs'
 	//
 	_rootnode = new XmlNode(_rootTag, attrs);
+	if (XmlNode::GetErrCode() != 0) return(-1);
+	
 
 	// Set some default metadata attributes. 
 	//
@@ -145,19 +147,22 @@ void Metadata::_init(
 	vector<double> extentsVec(extents, &extents[sizeof(extents)/sizeof(extents[0])]);
 	SetExtents(extentsVec);
 
-	if (SetNumTimeSteps(1) < 0) return;
+	if (SetNumTimeSteps(1) < 0) return(-1);
 
 	vector<string> varNamesVec(1,"var1");
-	if (SetVariableNames(varNamesVec) < 0) return;
+	if (SetVariableNames(varNamesVec) < 0) return(-1);
 
 	string comment = "";
 	_rootnode->SetElementString(_commentTag, comment);
+
+	return(0);
 }
 
 Metadata::Metadata(
 		const size_t dim[3], size_t numTransforms, size_t bs, 
 		int nFilterCoef, int nLiftingCoef, int msbFirst
 ) {
+	_objInitialized = 0;
 	SetDiagMsg(
 		"Metadata::Metadata([%d,%d,%d], %d, %d, %d, %d, %d)", 
 		dim[0], dim[1], dim[2], numTransforms, bs, nFilterCoef, nLiftingCoef,
@@ -168,11 +173,15 @@ Metadata::Metadata(
 	_metafileDirName = NULL;
 	_metafileName = NULL;
 
-	_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst);
+	if (_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst) < 0){
+		return;
+	}
+	_objInitialized = 1;
 }
 
 
 Metadata::Metadata(const string &path) {
+	_objInitialized = 0;
 
 	SetDiagMsg("Metadata::Metadata(%s)", path.c_str());
 
@@ -218,26 +227,38 @@ Metadata::Metadata(const string &path) {
 					path.c_str(), XML_GetCurrentLineNumber(_expatParser),
 					XML_ErrorString(XML_GetErrorCode(_expatParser))
 				);
+				XML_ParserFree(_expatParser);
 				return;
 			}
         }
     }
+	XML_ParserFree(_expatParser);
 
     if (is.bad()) {
 		SetErrMsg("Error reading file \"%s\"", path.c_str());
-        exit(1);
+        return;
     }
     is.close();
 
-	XML_ParserFree(_expatParser);
+	int level = (int) _expatStateStack.size() - 1;  // XML tree depth
+	if (level != -1) {
+		SetErrMsg("Error reading file \"%s\"", path.c_str());
+        return;
+    }
+
+	_objInitialized = 1;
 }
 
 Metadata::~Metadata() {
 	SetDiagMsg("Metadata::~Metadata()");
+	if (! _objInitialized) return;
+
 
 	if (_rootnode) delete _rootnode;
     if (_metafileDirName) delete [] _metafileDirName;
     if (_metafileName) delete [] _metafileName;
+
+	_objInitialized = 0;
 }
 
 

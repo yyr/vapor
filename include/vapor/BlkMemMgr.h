@@ -51,6 +51,7 @@ public:
  void	FreeMem(void *ptr);
 
 private:
+ int	_objInitialized;	// has the obj successfully been initalized?
  unsigned char	*base_c;
  unsigned char	*aligned_base_c;
  int	page_aligned_c;

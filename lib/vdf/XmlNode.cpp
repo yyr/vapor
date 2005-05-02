@@ -31,6 +31,8 @@ XmlNode::XmlNode(
 	const string &tag, const map <const string, string> &attrs, 
 	size_t numChildrenHint
 ) {
+	_objInitialized = 0;
+
 	SetClassName("XmlNode");
 
 	_tag = tag;
@@ -41,9 +43,14 @@ XmlNode::XmlNode(
 	_emptyString.clear();
 
 	if (numChildrenHint) _children.reserve(numChildrenHint);
+
+	_objInitialized = 1;
 }
 
 XmlNode::~XmlNode() {
+
+	if (! _objInitialized) return;
+
 	map <const string, vector<long>*>::iterator plong;
 	map <const string, vector<double>*>::iterator pdouble;
 	int	i;
@@ -61,6 +68,8 @@ XmlNode::~XmlNode() {
 	for (i=0; i<(int)_children.size(); i++) {
 		delete _children[i];
 	}
+
+	_objInitialized = 0;
 }
 
 

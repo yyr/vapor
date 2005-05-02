@@ -172,6 +172,7 @@ public:
 #endif
 
 private:
+ int	_objInitialized;	// has the obj successfully been initialized?
 
  float	*lambda_blks_c[MAX_LEVELS];
  float	*gamma_blks_c[MAX_LEVELS];

@@ -11,6 +11,8 @@ WaveletBlock3D::WaveletBlock3D(
 	unsigned int ntilde,
 	unsigned int nthreads
 ) {
+	_objInitialized = 0;
+
 	temp_blks1_c = NULL;
 	temp_blks2_c = NULL;
 	et_c = NULL;
@@ -78,12 +80,14 @@ WaveletBlock3D::WaveletBlock3D(
 		}
 	}
 	deallocate_c = 1;
+	_objInitialized = 1;
 }
 
 WaveletBlock3D::WaveletBlock3D(
 	WaveletBlock3D *X,
 	int	index
 ) {
+	_objInitialized = 0;
 	*this = *X;
 	this->src_s_blk_ptr_c = &(X->src_super_blk_c);
 	this->dst_s_blk_ptr_c = &(X->dst_super_blk_c);
@@ -92,9 +96,12 @@ WaveletBlock3D::WaveletBlock3D(
 	//
 	this->deallocate_c = 0;
 	et_c->Decompose(bs_c, nthreads_c, index, &z0_c, &zr_c);
+	_objInitialized = 1;
 }
 
 WaveletBlock3D::~WaveletBlock3D() {
+
+	if (! _objInitialized) return;
 
 	if (deallocate_c) {
 		int	i;
@@ -121,6 +128,7 @@ WaveletBlock3D::~WaveletBlock3D() {
 		lift_c = NULL;
 		liftbuf_c = NULL;
 	}
+	_objInitialized = 0;
 }
 
 #include "Transpose.h"

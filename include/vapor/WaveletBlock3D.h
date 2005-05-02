@@ -107,6 +107,7 @@ public:
  void	inverse_transform_thread();
 
 private:
+ int	_objInitialized;	// has the obj successfully been initialized?
  const float **src_super_blk_c;
  float **dst_super_blk_c;
  const float ***src_s_blk_ptr_c;

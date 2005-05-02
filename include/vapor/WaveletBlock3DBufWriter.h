@@ -98,6 +98,7 @@ public:
 
 
 private:
+ int	_objInitialized;	// has the obj successfully been initialized?
 
  int	slice_cntr_c;
 

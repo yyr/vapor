@@ -468,6 +468,7 @@ protected:
 
 
 private:
+ int	_objInitialized;	// has the obj successfully been initialized?
  static const int VERSION  = 2;
 
  typedef int int32_t;
@@ -496,7 +497,7 @@ private:
  int	my_alloc();
  void	my_free();
 
- void	_WaveletBlock3DIO(
+ int	_WaveletBlock3DIO(
 	const VAPoR::Metadata *metadata,
 	unsigned int	nthreads
  );

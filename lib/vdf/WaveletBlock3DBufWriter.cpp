@@ -19,8 +19,11 @@ WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(
 	unsigned int    nthreads
 ) : WaveletBlock3DWriter(metadata, nthreads) {
 
+	_objInitialized = 0;
+
 	_WaveletBlock3DBufWriter();
 
+	_objInitialized = 1;
 }
 
 WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(
@@ -28,12 +31,20 @@ WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(
 	unsigned int    nthreads
 ) : WaveletBlock3DWriter(metafile, nthreads) {
 
+	_objInitialized = 0;
+
 	_WaveletBlock3DBufWriter();
+
+	_objInitialized = 1;
 }
 
 WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter(
 ) {
+	if (! _objInitialized) return;
+
 	CloseVariable();
+
+	_objInitialized = 0;
 }
 
 int	WaveletBlock3DBufWriter::OpenVariableWrite(

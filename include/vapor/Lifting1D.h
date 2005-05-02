@@ -62,6 +62,7 @@ public:
  void	InverseTransform(DataType_T *data);
 
 private:
+ int	_objInitialized;	// has the obj successfully been initialized?
 
  unsigned int	n_c;		// # wavelet filter coefficients
  unsigned int	ntilde_c;	// # wavelet lifting coefficients

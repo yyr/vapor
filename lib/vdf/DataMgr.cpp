@@ -8,7 +8,7 @@
 using namespace VetsUtil;
 using namespace VAPoR;
 
-void	DataMgr::_DataMgr(
+int	DataMgr::_DataMgr(
 	size_t mem_size,
 	unsigned int nthreads
 ) {
@@ -33,6 +33,9 @@ void	DataMgr::_DataMgr(
 	num_blks = (long long) (mem_size * 1024 * 1024) / block_size;
 
 	_blk_mem_mgr = new BlkMemMgr((unsigned int)block_size, (unsigned int)num_blks, 1);
+	if (BlkMemMgr::GetErrCode() != 0) {
+		return(-1);
+	}
 
 	// Initialize default quantization ranges for each variable
 	//
@@ -48,6 +51,7 @@ void	DataMgr::_DataMgr(
 		_dataRangeMap[varnames[i]] = range;
 	}
 
+	return(0);
 }
 
 DataMgr::DataMgr(
@@ -55,6 +59,7 @@ DataMgr::DataMgr(
 	size_t mem_size,
 	unsigned int nthreads
 ) {
+	_objInitialized = 0;
 
 	SetDiagMsg("DataMgr::DataMgr(,%d,%d)", mem_size, nthreads);
 
@@ -63,7 +68,9 @@ DataMgr::DataMgr(
 	_wbreader = new WaveletBlock3DRegionReader(_metadata, nthreads);
 	if (_wbreader->GetErrCode() != 0) return;
 
-	_DataMgr(mem_size, nthreads);
+	if (_DataMgr(mem_size, nthreads) < 0) return;
+
+	_objInitialized = 1;
 }
 
 DataMgr::DataMgr(
@@ -71,6 +78,7 @@ DataMgr::DataMgr(
 	size_t mem_size,
 	unsigned int nthreads
 ) {
+	_objInitialized = 0;
 	SetDiagMsg("DataMgr::DataMgr(%s,%d,%d)", metafile, mem_size, nthreads);
 
 	if (_metadata->GetErrCode() != 0) return;
@@ -80,13 +88,15 @@ DataMgr::DataMgr(
 
 	_metadata = _wbreader->GetMetadata();
 
-	_DataMgr(mem_size, nthreads);
+	if (_DataMgr(mem_size, nthreads) < 0) return;
+	_objInitialized = 1;
 }
 
 
 DataMgr::~DataMgr(
 ) {
 	SetDiagMsg("DataMgr::~DataMgr()");
+	if (! _objInitialized) return;
 
 	if (_wbreader) delete _wbreader;
 
@@ -106,6 +116,7 @@ DataMgr::~DataMgr(
 	_wbreader = NULL;
 	_blk_mem_mgr = NULL;
 
+	_objInitialized = 0;
 }
 
 float	*DataMgr::GetRegion(

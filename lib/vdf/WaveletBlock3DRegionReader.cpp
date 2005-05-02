@@ -26,9 +26,13 @@ WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(
 	unsigned int	nthreads
 ) : WaveletBlock3DIO((Metadata *) metadata, nthreads) {
 
+	_objInitialized = 0;
+
 	SetDiagMsg("WaveletBlock3DRegionReader::WaveletBlock3DRegionReader()");
 
 	_WaveletBlock3DRegionReader();
+
+	_objInitialized = 1;
 }
 
 WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(
@@ -36,19 +40,26 @@ WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(
 	unsigned int	nthreads
 ) : WaveletBlock3DIO(metafile, nthreads) {
 
+	_objInitialized = 0;
+
 	SetDiagMsg(
 		"WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(%s)",
 		metafile
 	);
 
 	_WaveletBlock3DRegionReader();
+
+	_objInitialized = 1;
 }
 
 WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader(
 ) {
 	SetDiagMsg("WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader()");
+	if (! _objInitialized) return;
 
 	CloseVariable();
+
+	_objInitialized = 0;
 }
 
 int	WaveletBlock3DRegionReader::OpenVariableRead(

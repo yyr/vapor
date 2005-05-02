@@ -21,11 +21,14 @@ WaveletBlock3DBufReader::WaveletBlock3DBufReader(
 	unsigned int    nthreads
 ) : WaveletBlock3DReader(metadata, nthreads) {
 
+	_objInitialized = 0;
+
 	SetDiagMsg(
 		"WaveletBlock3DBufReader::WaveletBlock3DBufReader(,%d)", nthreads
 	);
 
 	_WaveletBlock3DBufReader();
+	_objInitialized = 1;
 }
 
 WaveletBlock3DBufReader::WaveletBlock3DBufReader(
@@ -33,19 +36,24 @@ WaveletBlock3DBufReader::WaveletBlock3DBufReader(
 	unsigned int    nthreads
 ) : WaveletBlock3DReader(metafile, nthreads) {
 
+	_objInitialized = 0;
+
 	SetDiagMsg(
 		"WaveletBlock3DBufReader::WaveletBlock3DBufReader(%s,%d)", 
 		metafile, nthreads
 	);
 
 	_WaveletBlock3DBufReader();
+	_objInitialized = 1;
 }
 
 WaveletBlock3DBufReader::~WaveletBlock3DBufReader(
 ) {
 	SetDiagMsg("WaveletBlock3DBufReader::~WaveletBlock3DBufReader()");
+	if (! _objInitialized) return;
 
 	CloseVariable();
+	_objInitialized = 0;
 }
 
 int	WaveletBlock3DBufReader::OpenVariableRead(

@@ -59,17 +59,22 @@ const string ImpExp::_doubleType = "Double";
 
 
 ImpExp::ImpExp() {
+	_objInitialized = 0;
+
 	SetDiagMsg("ImpExp::ImpExp()");
 
 	SetClassName("ImpExp");
 
 	_rootnode = NULL;
+	_objInitialized = 1;
 }
 
 ImpExp::~ImpExp() {
 	SetDiagMsg("ImpExp::~ImpExp()");
+	if (! _objInitialized) return;
 
 	_rootnode = NULL;
+	_objInitialized = 0;
 }
 
 int ImpExp::Export(

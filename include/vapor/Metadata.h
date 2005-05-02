@@ -753,6 +753,7 @@ public:
  }
 
 private:
+ int	_objInitialized;	// has the obj successfully been initialized?
  XmlNode	*_rootnode;		// root node of the xml tree
  vector <string> _varNames;	// Names of all the field variables
  size_t _bs;				// blocking factor to be used by data
@@ -836,7 +837,7 @@ private:
  vector <string> _variableUserDDTags;
  vector <string> _variableUserDSTags;
 
- void _init(
+ int _init(
 	const size_t dim[3], size_t numTransforms, size_t bs = 32, 
 	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst = 1
 	);
