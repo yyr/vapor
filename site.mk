@@ -9,7 +9,14 @@ HOST=$(shell hostname)
 endif
 endif
 
+#
+#	get VAPOR_INSTALL_DIR from the enviornment
+#
+ifdef	VAPOR_INSTALL_DIR
+INSTALL_PREFIX_DIR = $(VAPOR_INSTALL_DIR)
+else
 INSTALL_PREFIX_DIR = /tmp
+endif
 
 DO_FS_PATH=0
 ifeq ($(HOST), nomad)
@@ -80,7 +87,7 @@ EXPAT_LIB_PATH=/usr/lib
 HAVE_IDL = 1
 IDL_INC_PATH=/fs/local/apps/rsi/idl_6.0/external/include
 QTDIR = /fs/local/apps/qt-3.3.2
-HAVE_INTEL_COMPILERS = 0
+HAVE_INTEL_COMPILERS = 1
 
 
 ifdef	BUILD64

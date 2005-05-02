@@ -53,7 +53,6 @@ VOLUMIZER_ROOT =
 
 
 # Set to 1 if intel compilers are available on linux systems
-# Better:  set this in your environment
 HAVE_INTEL_COMPILERS = 0
 
 
