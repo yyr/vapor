@@ -28,6 +28,7 @@
 #include "params.h"
 #include "vizwinmgr.h"
 #include "session.h"
+#include "tabmanager.h"
 using namespace VAPoR;
 ContourParams::ContourParams(int winnum) : Params(winnum){
 	thisParamType = ContourParamsType;
@@ -91,6 +92,7 @@ void ContourParams::updateDialog(){
 		myContourTab->LocalGlobal->setCurrentItem(0);
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
+	VizWinMgr::getInstance()->getTabManager()->update();
 		
 }
 //Update all the panel state associated with textboxes.

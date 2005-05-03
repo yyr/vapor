@@ -31,6 +31,7 @@ VizActivateCommand::VizActivateCommand(int prevViz, int nextViz, Command::activa
 	contourParams = 0;
 	dvrParams = 0;
 	isoParams = 0;
+	animationParams = 0;
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	
 	
@@ -79,6 +80,7 @@ void VizActivateCommand::unDo(){
 			vizWinMgr->setIsoParams(currentActiveViznum, 0);
 			vizWinMgr->setRegionParams(currentActiveViznum, 0);
 			vizWinMgr->setViewpointParams(currentActiveViznum, 0);
+			vizWinMgr->setAnimationParams(currentActiveViznum, 0);
 			vizWinMgr->killViz(currentActiveViznum);
 			break;
 		case remove:
@@ -87,19 +89,10 @@ void VizActivateCommand::unDo(){
 			//Reset all the applicable params.  The "previous" params
 			//are those from the "currentActiveViznum"
 			
-			vizWinMgr->setContourParams(lastActiveViznum, (ContourParams*)contourParams->deepCopy());
-			vizWinMgr->setDvrParams(lastActiveViznum, (DvrParams*)dvrParams->deepCopy());
-			vizWinMgr->setIsoParams(lastActiveViznum, (IsosurfaceParams*)isoParams->deepCopy());
-			if (regionParams)
-				vizWinMgr->setRegionParams(lastActiveViznum, (RegionParams*)regionParams->deepCopy());
-			else vizWinMgr->setRegionParams(lastActiveViznum, 0);
-			if(vpParams) 
-				vizWinMgr->setViewpointParams(lastActiveViznum, (ViewpointParams*)vpParams);
-			else vizWinMgr->setViewpointParams(lastActiveViznum, 0);
-
 			vizWinMgr->launchVisualizer(lastActiveViznum, windowName);
-
-			//And make them current, in the correct order:
+			
+			// make them current, in the correct order:
+			if (animationParams) animationParams->makeCurrent(vizWinMgr->getAnimationParams(currentActiveViznum), true);
 			if(regionParams) regionParams->makeCurrent(vizWinMgr->getRegionParams(currentActiveViznum), true);
 			if(vpParams) vpParams->makeCurrent(vizWinMgr->getViewpointParams(currentActiveViznum),true);
 			
@@ -132,6 +125,7 @@ void VizActivateCommand::reDo(){
 			vizWinMgr->setIsoParams(lastActiveViznum, 0);
 			vizWinMgr->setRegionParams(lastActiveViznum, 0);
 			vizWinMgr->setViewpointParams(lastActiveViznum, 0);
+			vizWinMgr->setAnimationParams(lastActiveViznum, 0);
 			vizWinMgr->killViz(lastActiveViznum);
 			break;
 		case activate:
@@ -150,6 +144,9 @@ void VizActivateCommand::cloneStateParams(int viznum){
 	if (vizWinMgr->getRealRegionParams(viznum))
 		regionParams = (RegionParams*)vizWinMgr->getRealRegionParams(viznum)->deepCopy();
 	else {regionParams = 0;}
+	if (vizWinMgr->getRealAnimationParams(viznum))
+		animationParams = (AnimationParams*)vizWinMgr->getRealAnimationParams(viznum)->deepCopy();
+	else {animationParams = 0;}
 	
 	isoParams = (IsosurfaceParams*)vizWinMgr->getRealIsoParams(viznum)->deepCopy();
 	contourParams = (ContourParams*)vizWinMgr->getRealContourParams(viznum)->deepCopy();

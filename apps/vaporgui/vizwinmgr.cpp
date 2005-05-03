@@ -421,54 +421,78 @@ killViz(int viznum){
 	vizWin[viznum] = 0;
 }
 /*
- *  Methods for changing the parameter panels.
+ *  Methods for changing the parameter panels.  Only done during undo/redo.
  */
 void VizWinMgr::
 setContourParams(int winnum, ContourParams* p){
 	if (winnum < 0) { //global params!
-		globalContourParams = p;
+		if (globalContourParams) delete globalContourParams;
+		if (p) globalContourParams = (ContourParams*)p->deepCopy();
+		else globalContourParams = 0;
 	} else {
-		contourParams[winnum] = p;
+		if(contourParams[winnum]) delete contourParams[winnum];
+		if (p) contourParams[winnum] = (ContourParams*)p->deepCopy();
+		else contourParams[winnum] = 0;
 	}
 }
 void VizWinMgr::
 setIsoParams(int winnum, IsosurfaceParams* p){
 	if (winnum < 0) { //global params!
-		globalIsoParams = p;
+		if (globalIsoParams) delete globalIsoParams;
+		if (p) globalIsoParams = (IsosurfaceParams*)p->deepCopy();
+		else globalIsoParams = 0;
 	} else {
-		isoParams[winnum] = p;
+		if (isoParams[winnum]) delete isoParams[winnum];
+		if (p) isoParams[winnum] = (IsosurfaceParams*)p->deepCopy();
+		else isoParams[winnum] = 0;
 	}
 }
 void VizWinMgr::
 setDvrParams(int winnum, DvrParams* p){
 	if (winnum < 0) { //global params!
-		globalDvrParams = p;
+		if (globalDvrParams) delete globalDvrParams;
+		if (p) globalDvrParams = (DvrParams*)p->deepCopy();
+		else globalDvrParams = p;
 	} else {
-		dvrParams[winnum] = p;
+		if(dvrParams[winnum]) delete dvrParams[winnum];
+		if (p) dvrParams[winnum] = (DvrParams*)p->deepCopy();
+		else dvrParams[winnum] = 0;
 	}
 }
 void VizWinMgr::
 setAnimationParams(int winnum, AnimationParams* p){
 	if (winnum < 0) { //global params!
-		globalAnimationParams = p;
+		if (globalAnimationParams) delete globalAnimationParams;
+		if (p) globalAnimationParams = (AnimationParams*)p->deepCopy();
+		else globalAnimationParams = 0;
 	} else {
-		animationParams[winnum] = p;
+		if (animationParams[winnum]) delete animationParams[winnum];
+		if (p) animationParams[winnum] = (AnimationParams*)p->deepCopy();
+		else animationParams[winnum] = 0;
 	}
 }
 void VizWinMgr::
 setRegionParams(int winnum, RegionParams* p){
 	if (winnum < 0) { //global params!
-		globalRegionParams = p;
+		if (globalRegionParams) delete globalRegionParams;
+		if (p) globalRegionParams = (RegionParams*)p->deepCopy();
+		else globalRegionParams = 0;
 	} else {
-		rgParams[winnum] = p;
+		if (rgParams[winnum]) delete rgParams[winnum];
+		if (p) rgParams[winnum] = (RegionParams*)p->deepCopy();
+		else rgParams[winnum] = 0;
 	}
 }
 void VizWinMgr::
 setViewpointParams(int winnum, ViewpointParams* p){
 	if (winnum < 0) { //global params!
-		globalVPParams = p;
+		if (globalVPParams) delete globalVPParams;
+		if (p) globalVPParams = (ViewpointParams*)p->deepCopy();
+		else globalVPParams = 0;
 	} else {
-		vpParams[winnum] = p;
+		if(vpParams[winnum]) delete vpParams[winnum];
+		if (p) vpParams[winnum] = (ViewpointParams*)p->deepCopy();
+		else vpParams[winnum] = 0;
 	}
 }
 
@@ -1121,7 +1145,8 @@ setDvrLocalGlobal(int val){
 		tabManager->show();
 	
 	}
-	getDvrParams(activeViz)->updateRenderer(wasEnabled,!val, false);
+	//Always invoke the update on the local params
+	dvrParams[activeViz]->updateRenderer(wasEnabled,!val, false);
 }
 /*************************************************************************************
  *  slots associated with AnimationTab
@@ -1471,8 +1496,7 @@ DvrParams* VizWinMgr::
 getDvrParams(int winNum){
 
 	if (winNum < 0) return globalDvrParams;
-	assert(dvrParams[winNum]);
-	if (dvrParams[winNum]->isLocal()) return dvrParams[winNum];
+	if (dvrParams[winNum] && dvrParams[winNum]->isLocal()) return dvrParams[winNum];
 	return globalDvrParams;
 }
 AnimationParams* VizWinMgr::
@@ -1484,13 +1508,13 @@ getAnimationParams(int winNum){
 ContourParams* VizWinMgr::
 getContourParams(int winNum){
 	if (winNum < 0) return globalContourParams;
-	if (contourParams[winNum]->isLocal()) return contourParams[winNum];
+	if (contourParams[winNum] && contourParams[winNum]->isLocal()) return contourParams[winNum];
 	return globalContourParams;
 }
 IsosurfaceParams* VizWinMgr::
 getIsoParams(int winNum){
 	if (winNum < 0) return globalIsoParams;
-	if (isoParams[winNum]->isLocal()) return isoParams[winNum];
+	if (isoParams[winNum] && isoParams[winNum]->isLocal()) return isoParams[winNum];
 	return globalIsoParams;
 }
 Params* VizWinMgr::

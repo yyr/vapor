@@ -460,6 +460,7 @@ setupDataStatus(){
 					MessageReporter::warningMsg("%s","Missing DataRange in dataset; [0,1] assumed");
 					minMax.push_back(0.);
 					minMax.push_back(1.);
+					MyBase::SetErrCode(0);
 				}
 				else{
 					minMax.push_back(mnmx[0]);

@@ -30,6 +30,7 @@ class ViewpointParams;
 class DvrParams;
 class IsosurfaceParams;
 class ContourParams;
+class AnimationParams;
 //Simple Command to handle events associated with creating, deleting, activating visualizers
 //There are only 3:  create, remove, and activate
 //
@@ -61,6 +62,7 @@ protected:
 	IsosurfaceParams* isoParams;
 	ContourParams* contourParams;
 	DvrParams* dvrParams;
+	AnimationParams* animationParams;
 
 };
 };

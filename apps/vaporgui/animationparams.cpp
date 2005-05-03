@@ -105,7 +105,7 @@ void AnimationParams::updateDialog(){
 
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
-	myAnimationTab->update();
+	VizWinMgr::getInstance()->getTabManager()->update();
 		
 }
 //Update the params, in response to one or more text boxes changing
@@ -151,7 +151,7 @@ void AnimationParams::updatePanelState(){
 Params* AnimationParams::deepCopy(){
 	return (Params*)new AnimationParams(*this);
 }
-//Method to call when a new window comes to front
+//Method to call when a new window installed via undo/redo
 void AnimationParams::makeCurrent(Params* /* prev params p*/, bool/* newWin?*/){
 	VizWinMgr* vwm = VizWinMgr::getInstance();
 	vwm->setAnimationParams(vizNum, this);

@@ -33,6 +33,7 @@
 #include "session.h"
 #include "params.h"
 #include "panelcommand.h"
+#include "tabmanager.h"
 using namespace VAPoR;
 IsosurfaceParams::IsosurfaceParams(int winnum) : Params(winnum) {
 	thisParamType = IsoParamsType;
@@ -105,6 +106,7 @@ void IsosurfaceParams::updateDialog(){
 		myIsoTab->LocalGlobal->setCurrentItem(0);
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
+	VizWinMgr::getInstance()->getTabManager()->update();
 }
 
 //Update all the panel state associated with textboxes, after user presses return

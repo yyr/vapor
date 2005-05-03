@@ -224,6 +224,7 @@ void DvrParams::updateDialog(){
 	myDvrTab->update();
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
+	VizWinMgr::getInstance()->getTabManager()->update();
 		
 }
 //Update all the panel state associated with textboxes.
@@ -345,7 +346,7 @@ guiSetNumBits(int val){
 	PanelCommand* cmd = PanelCommand::captureStart(this, "set dvr number bits");
 	setNumBits(val);
 	PanelCommand::captureEnd(cmd, this);
-	//updateRenderer();
+	
 }
 void DvrParams::
 guiSetLighting(bool val){
@@ -423,29 +424,30 @@ void DvrParams::setClutDirty(){
 void DvrParams::
 updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	bool isLocal = local;
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	if (newWindow) {
 		prevEnabled = false;
 		wasLocal = true;
 		isLocal = true;
 	}
-	if (prevEnabled == enabled && wasLocal == local) return;
-	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	//The actual enabled state of "this" depends on whether we are local or global.
+	bool nowEnabled = enabled;
+	if (!local) nowEnabled = vizWinMgr->getGlobalParams(Params::DvrParamsType)->isEnabled();
+	
+	if (prevEnabled == nowEnabled && wasLocal == local) return;
+	
 	VizWin* viz = 0;
-	if(isLocal){//Find the viz that this applies to:
-		for (int j = 0; j<MAXVIZWINS; j++){
-			if (vizWinMgr->getDvrParams(j) == this){
-				viz = vizWinMgr->getVizWin(j);
-				break;
-			}
-		}
-		if (!viz) return;
-	}
+	if(getVizNum() >= 0){//Find the viz that this applies to:
+		//Note that this is only for the cases below where one particular
+		//visualizer is needed
+		viz = vizWinMgr->getVizWin(getVizNum());
+	} 
 	
 	//Four cases to consider:
 	//1.  change of local/global with unchanged disabled renderer; do nothing.
 	// If change of local/global with enabled renderer, just force refresh:
 	
-	if (prevEnabled == enabled) {
+	if (prevEnabled == nowEnabled) {
 		if (!prevEnabled) return;
 		setClutDirty();
 		setDatarangeDirty();
@@ -471,7 +473,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	//For a new renderer
 
 	
-	if (enabled && !prevEnabled && isLocal){//For case 2.:  create a renderer in the active window:
+	if (nowEnabled && !prevEnabled && isLocal){//For case 2.:  create a renderer in the active window:
 
 		VolumizerRenderer* myDvr = new VolumizerRenderer(viz);
 		viz->addRenderer(myDvr);
@@ -485,7 +487,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		return;
 	}
 	
-	if (!isLocal && enabled){ //case 3: create renderers in all  global windows, then return
+	if (!isLocal && nowEnabled){ //case 3: create renderers in all  global windows, then return
 		for (int i = 0; i<MAXVIZWINS; i++){
 			
 			viz = vizWinMgr->getVizWin(i);
@@ -500,7 +502,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		}
 		return;
 	}
-	if (!enabled && prevEnabled && !isLocal && !wasLocal) { //case 5., disable all global renderers
+	if (!nowEnabled && prevEnabled && !isLocal && !wasLocal) { //case 5., disable all global renderers
 		for (int i = 0; i<MAXVIZWINS; i++){
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
@@ -509,7 +511,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		}
 		return;
 	}
-	assert(prevEnabled && !enabled && (isLocal ||(isLocal != wasLocal))); //case 6, disable local only
+	assert(prevEnabled && !nowEnabled && (isLocal ||(isLocal != wasLocal))); //case 6, disable local only
 	viz->removeRenderer("VolumizerRenderer");
 
 	return;

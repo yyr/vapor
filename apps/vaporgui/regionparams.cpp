@@ -142,6 +142,7 @@ void RegionParams::updateDialog(){
 		myRegionTab->LocalGlobal->setCurrentItem(0);
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
+	VizWinMgr::getInstance()->getTabManager()->update();
 }
 
 //Update all the panel state associated with textboxes.

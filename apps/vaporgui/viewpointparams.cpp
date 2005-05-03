@@ -129,6 +129,7 @@ void ViewpointParams::updateDialog(){
 		myVizTab->LocalGlobal->setCurrentItem(0);
 	guiSetTextChanged(false);
 	ses->unblockRecording();
+	VizWinMgr::getInstance()->getTabManager()->update();
 }
 //Update all the panel state associated with textboxes.
 void ViewpointParams::

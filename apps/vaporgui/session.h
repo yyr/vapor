@@ -50,7 +50,8 @@
  *     suspending the Undo/Redo recording for this method.
  *     It is important that in addition, at the end of this method, the method
  *     Params::guiSetTextChanged(false) be called so that the memory of text changes is restarted.
- * Params::makeCurrent():  This method is called whenever the panel is changed and the values in the params object
+ * Params::makeCurrent():  This method is called when the panel is changed during undo/redo,
+ *	   and the values in the params object
  *     need to be be reflected in the session state.  makeCurrent() will call updateDialog to make the gui
  *     current, but it must also update the state of any visualizers that depend on the panel state.
  *   Changes to the panels can include any of the following types:
