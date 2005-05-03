@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cerrno>
+#include <iostream>
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -30,9 +31,9 @@ BlkMemMgr::BlkMemMgr(
 	mem_size_c = mem_size;
 	blk_size_c = blk_size;
 
-	free_table_c = new int[mem_size_c];
+	free_table_c = new(nothrow) int[mem_size_c];
 	if (! free_table_c) {
-		SetErrMsg("malloc(%d) : %s",mem_size_c, strerror(errno));
+		SetErrMsg("new(nothrow) int[%lu] : alloc failed", mem_size_c);
 		return;
 	}
 	for(i=0; i<mem_size_c; i++) free_table_c[i] = 0;
@@ -55,12 +56,12 @@ BlkMemMgr::BlkMemMgr(
 	}
 
 
-	size = blk_size_c * mem_size_c;
-	size += page_size_c;
+	size = (size_t) blk_size_c * (size_t) mem_size_c;
+	size += (size_t) page_size_c;
 
-	blks_c = new unsigned char[size];
+	blks_c = new(nothrow) unsigned char[size];
 	if (! blks_c) {
-		SetErrMsg("malloc(%d) : %s",size, strerror(errno));
+		SetErrMsg("new(nothrow) unsigned char [%u] : alloc failed", size);
 		if (free_table_c) delete [] free_table_c;
 		return;
 	}
