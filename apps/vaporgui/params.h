@@ -112,7 +112,7 @@ public:
 	//variable, etc., they should implement reinit() to respond.
 	//Default does nothing.
 	//
-	virtual void reinit() {return;}
+	virtual void reinit(bool) {return;}
 
 	//The restart method goes back to initial state
 	//Default does nothing.

@@ -37,22 +37,9 @@ using namespace VAPoR;
 ViewpointParams::ViewpointParams(int winnum): Params(winnum){
 	thisParamType = ViewpointParamsType;
 	myVizTab = MainForm::getInstance()->getVizTab();
-	savedCommand = 0;
-	numLights = 0;
-	lightPositions = 0;
-	currentViewpoint = new Viewpoint();
-	//Set default values in viewpoint:
-	currentViewpoint->setPerspective(true);
-	for (int i = 0; i< 3; i++){
-		setCameraPos(i,0.5f);
-		setViewDir(i,0.f);
-		setUpVec(i, 0.f);
-		rotationCenter[i] = 0.5f;
-	}
-	setUpVec(1,1.f);
-	setViewDir(2,-1.f); 
-	setCameraPos(2,2.5f);
-	homeViewpoint = new Viewpoint(*currentViewpoint);
+	homeViewpoint = 0;
+	currentViewpoint = 0;
+	restart();
 	
 }
 Params* ViewpointParams::
@@ -266,6 +253,15 @@ guiCenterFullRegion(RegionParams* rParams){
 		savedCommand = 0;
 	}
 	PanelCommand* cmd = PanelCommand::captureStart(this, "center full region view");
+	centerFullRegion(rParams);
+	
+	updateDialog();
+	updateRenderer(false, false, false);
+	PanelCommand::captureEnd(cmd,this);
+	
+}
+void ViewpointParams::
+centerFullRegion(RegionParams* rParams){
 	//Find the largest of the dimensions of the current region:
 	float maxSide = Max(rParams->getFullDataExtent(5)-rParams->getFullDataExtent(2), 
 		Max(rParams->getFullDataExtent(3)-rParams->getFullDataExtent(0),
@@ -281,10 +277,6 @@ guiCenterFullRegion(RegionParams* rParams){
 		currentViewpoint->setCameraPos(i, camPosCrd);
 		rotationCenter[i]= rParams->getFullCenter(i);
 	}
-	updateDialog();
-	updateRenderer(false, false, false);
-	PanelCommand::captureEnd(cmd,this);
-	
 }
 void ViewpointParams::
 setHomeViewpoint(){
@@ -308,33 +300,27 @@ useHomeViewpoint(){
 //(this is starting state)
 void ViewpointParams::
 restart(){
-	float camPos[3];
-	const Metadata* md = Session::getInstance()->getCurrentMetadata();
-	std::vector<double> extents = md->GetExtents();
-	int i;
-	setCoordTrans();
-	for (i = 0; i<3; i++) {
-		rotationCenter[i] = (float)((extents[i]+extents[3+i])*0.5);
-		camPos[i] = rotationCenter[i];
-	}
-	
-	//Move the camera in the positive z-direction from the volume center, looking in
-	//the negative z-direction
-	//
-	camPos[2] = (float)(camPos[2]+2.5*maxCubeSide);
-	currentViewpoint->setCameraPos(camPos);
-	for (i = 0; i<3; i++){
-		currentViewpoint->setViewDir(i,0.f);
-		currentViewpoint->setUpVec(i, 0);
-	}
-	currentViewpoint->setViewDir(2,-1.f);
-	currentViewpoint->setUpVec(1,1.f);
+	savedCommand = 0;
+	numLights = 0;
+	lightPositions = 0;
+	if (currentViewpoint) delete currentViewpoint;
+	currentViewpoint = new Viewpoint();
+	//Set default values in viewpoint:
 	currentViewpoint->setPerspective(true);
-	//Make this the home viewpoint
-	//
-	delete homeViewpoint;
+	for (int i = 0; i< 3; i++){
+		setCameraPos(i,0.5f);
+		setViewDir(i,0.f);
+		setUpVec(i, 0.f);
+		rotationCenter[i] = 0.5f;
+	}
+	setUpVec(1,1.f);
+	setViewDir(2,-1.f); 
+	setCameraPos(2,2.5f);
+	if (homeViewpoint) delete homeViewpoint;
 	homeViewpoint = new Viewpoint(*currentViewpoint);
-	//Make the trackball center on the volume center:
+	
+	setCoordTrans();
+	
 	updateRenderer(false, false, false);
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myVizTab)) {
 		VizWinMgr* vwm = VizWinMgr::getInstance();
@@ -344,14 +330,27 @@ restart(){
 	}
 	
 }
-//Reinitialize viewpoint settings, when metadata changes
-//Really nothing to do!
+//Reinitialize viewpoint settings, when metadata changes.
+//Really not much to do!
+//If we can override, set to default for current region.
+//Note that this should be called after the region is init'ed
+//
 void ViewpointParams::
-reinit(){
+reinit(bool doOverride){
+	VizWinMgr* vwm = VizWinMgr::getInstance();
 	setCoordTrans();
+	if (doOverride){
+		setViewDir(0,0.f);
+		setViewDir(1,0.f);
+		setUpVec(0,0.f);
+		setUpVec(1,0.f);
+		setUpVec(2,1.f);
+		setViewDir(2,-1.f);
+		centerFullRegion(vwm->getRegionParams(-1));
+	}
 	updateRenderer(false, false, false);
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myVizTab)) {
-		VizWinMgr* vwm = VizWinMgr::getInstance();
+		
 		int viznum = vwm->getActiveViz();
 		if (viznum >= 0 && (this == vwm->getViewpointParams(viznum)))
 			updateDialog();
@@ -377,7 +376,14 @@ worldFromCube(float fromCoords[3], float toCoords[3]){
 void ViewpointParams::
 setCoordTrans(){
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
-	std::vector<double> extents = md->GetExtents();
+	std::vector<double> extents;
+	if (md) extents = md->GetExtents();
+	else { //default values
+		extents = vector<double>(6);
+		extents[3] = 1.;
+		extents[4] = 1.;
+		extents[5] = 1.;
+	}
 	maxCubeSide = -1.f;
 	int i;
 	//find largest cube side, it will map to 1.0

@@ -155,7 +155,7 @@ public:
 	//Indicate we are currently dragging a cube face:
 	bool draggingFace() {return (selectedFaceNum >= 0);}
 	// Reinitialize due to new Session:
-	void reinit();
+	void reinit(bool doOverride);
 	void restart();
 	void unSelectFace() { selectedFaceNum = -1;}
 	
@@ -168,6 +168,8 @@ protected:
 	//Return true if anything changed.
 	//
 	bool enforceConsistency(int i);
+	//See if the proposed number of transformations is OK.  Return a valid value
+	int validateNumTrans(int n);
 	//Recalc extents:
 	void setCurrentExtents(int coord);
 	//Methods to set the region max and min from a float value.

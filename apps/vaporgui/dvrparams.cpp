@@ -60,37 +60,17 @@ using namespace VAPoR;
 DvrParams::DvrParams(int winnum) : Params(winnum){
 	thisParamType = DvrParamsType;
 	myDvrTab = MainForm::getInstance()->getDvrTab();
-	varNum = 0;
-	lightingOn = false;
-	numBits = 8;
-	diffuseCoeff = 0.8f;
-	ambientCoeff = 0.5f;
-	specularCoeff = 0.3f;
-	specularExponent = 20;
-	ambientAtten = .18f;
-	specularAtten = .39f;
-	diffuseAtten = 1.f;
-	numVariables = 0;
-	enabled = false;
-	attenuationDirty = true;
-	//Initialize the mapping bounds to [0,1] until data is read
-	minMapBounds = new float[1];
-	maxMapBounds = new float[1];
-	minMapBounds[0] = 0.f;
-	maxMapBounds[0] = 1.f;
-	minEditBounds = new float[1];
-	maxEditBounds = new float[1];
-	minEditBounds[0] = 0.f;
-	maxEditBounds[0] = 1.f;
+	minMapBounds = 0;
+	maxMapBounds = 0;
+	minEditBounds = 0;
+	maxEditBounds = 0;
+	restart();
 	//Hookup the editor to the frame in the dvr tab:
 	myTransFunc = new TransferFunction(this, numBits);
 	if(myDvrTab) myTFEditor = new TFEditor(this, myTransFunc, myDvrTab->DvrTFFrame);
 	else myTFEditor = 0;
-	savedCommand = 0;
-	currentDatarange[0] = 0.f;
-	currentDatarange[1] = 1.f;
 	
-	editMode = true;   //default is edit mode
+	
 }
 DvrParams::~DvrParams(){
 	delete myTFEditor;
@@ -519,7 +499,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 //Initialize for new metadata.  Keep old transfer function
 //
 void DvrParams::
-reinit(){
+reinit(bool doOverride){
 	int i;
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	//Get the variable names:
@@ -561,12 +541,14 @@ reinit(){
 		minEditBounds = newMinEdit;
 		maxEditBounds = newMaxEdit;
 	}
+	//Decide when to reset edit and map bounds.
 	//If newNumVariables > old numVariables, 
 	//Or if previous range is invalid
 	//(the max is < min if no data was there)
 	//Then, set new variables to default ranges:
+	
 	for (i = 0; i<newNumVariables; i++){
-		if (i>= numVariables ||
+		if (i>= numVariables || (doOverride) ||
 			(minMapBounds[i]>= maxMapBounds[i]) ||
 			(minEditBounds[i] >= maxEditBounds[i])){
 			minMapBounds[i] = Session::getInstance()->getDataRange(i)[0];
@@ -594,40 +576,35 @@ reinit(){
 //
 void DvrParams::
 restart(){
-	const Metadata* md = Session::getInstance()->getCurrentMetadata();
-	//Get the variable names:
-	variableNames = md->GetVariableNames();
-	numVariables = md->GetVariableNames().size();
-	//make sure varnum is OK
-	if (varNum < 0 || varNum >numVariables){
-		varNum = -1;
-		for (int i = 0; i<numVariables; i++) {
-			if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
-				varNum = i;
-				break;
-			}
-		}
-	}
-	if (varNum == -1){
-		MessageReporter::errorMsg("No data in specified dataset");
-		return;
-	}
+	varNum = 0;
+	lightingOn = false;
+	numBits = 8;
+	diffuseCoeff = 0.8f;
+	ambientCoeff = 0.5f;
+	specularCoeff = 0.3f;
+	specularExponent = 20;
+	ambientAtten = .18f;
+	specularAtten = .39f;
+	diffuseAtten = 1.f;
+	numVariables = 0;
+	attenuationDirty = true;
+	//Initialize the mapping bounds to [0,1] until data is read
 	if (minMapBounds) delete minMapBounds;
 	if (maxMapBounds) delete maxMapBounds;
-	minMapBounds = new float[numVariables];
-	maxMapBounds = new float[numVariables];
 	if (minEditBounds) delete minEditBounds;
 	if (maxEditBounds) delete maxEditBounds;
-	minEditBounds = new float[numVariables];
-	maxEditBounds = new float[numVariables];
-
-	for (int i = 0; i<numVariables; i++){
-		minMapBounds[i] = Session::getInstance()->getDataRange(i)[0];
-		maxMapBounds[i] = Session::getInstance()->getDataRange(i)[1];
-		minEditBounds[i] = Session::getInstance()->getDataRange(i)[0];
-		maxEditBounds[i] = Session::getInstance()->getDataRange(i)[1];
-	}
-	
+	minMapBounds = new float[1];
+	maxMapBounds = new float[1];
+	minMapBounds[0] = 0.f;
+	maxMapBounds[0] = 1.f;
+	minEditBounds = new float[1];
+	maxEditBounds = new float[1];
+	minEditBounds[0] = 0.f;
+	maxEditBounds[0] = 1.f;
+	currentDatarange[0] = 0.f;
+	currentDatarange[1] = 1.f;
+	editMode = true;   //default is edit mode
+	savedCommand = 0;
 	setEnabled(false);
 	setClutDirty();
 	setDatarangeDirty();

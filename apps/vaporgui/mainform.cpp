@@ -174,8 +174,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	dataBrowse_DataAction->setEnabled(false);
     dataConfigure_MetafileAction = new QAction( this, "dataConfigure_MetafileAction" );
 	dataConfigure_MetafileAction->setEnabled(false);
-    dataReload_MetafileAction = new QAction( this, "dataReload_MetafileAction" );
-	dataNew_MetafileAction = new QAction( this, "dataNew_MetafileAction" );
+    dataLoad_MetafileAction = new QAction( this, "dataLoad_MetafileAction" );
+	fileNew_SessionAction = new QAction( this, "fileNew_SessionAction" );
 	dataExportToIDLAction = new QAction(this, "dataExportToIDLAction");
     
     
@@ -279,7 +279,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
 
     File = new QPopupMenu( this );
-    
+    fileNew_SessionAction->addTo( File );
     fileOpenAction->addTo( File );
     fileSaveAction->addTo( File );
     fileSaveAsAction->addTo( File );
@@ -295,8 +295,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     Data = new QPopupMenu( this );
     dataBrowse_DataAction->addTo( Data );
     dataConfigure_MetafileAction->addTo( Data );
-    dataReload_MetafileAction->addTo( Data );
-	dataNew_MetafileAction->addTo( Data );
+    dataLoad_MetafileAction->addTo( Data );
+	
 	dataExportToIDLAction->addTo(Data);
 
     
@@ -338,7 +338,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     clearWState( WState_Polished );
 
     // signals and slots connections
-   
+    connect( fileNew_SessionAction, SIGNAL( activated() ), this, SLOT( newSession() ) );
     connect( fileOpenAction, SIGNAL( activated() ), this, SLOT( fileOpen() ) );
     connect( fileSaveAction, SIGNAL( activated() ), this, SLOT( fileSave() ) );
     connect( fileSaveAsAction, SIGNAL( activated() ), this, SLOT( fileSaveAs() ) );
@@ -356,8 +356,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     connect( helpAboutAction, SIGNAL( activated() ), this, SLOT( helpAbout() ) );
     
     connect( dataBrowse_DataAction, SIGNAL( activated() ), this, SLOT( browseData() ) );
-	connect( dataReload_MetafileAction, SIGNAL( activated() ), this, SLOT( reloadData() ) );
-	connect( dataNew_MetafileAction, SIGNAL( activated() ), this, SLOT( newData() ) );
+	connect( dataLoad_MetafileAction, SIGNAL( activated() ), this, SLOT( loadData() ) );
+	
 	connect( dataExportToIDLAction, SIGNAL(activated()), this, SLOT( exportToIDL()));
     
 	connect(viewMenu, SIGNAL(aboutToShow()), this, SLOT(initViewMenu()));
@@ -419,7 +419,11 @@ void MainForm::languageChange()
     QToolTip::add( tabWidget, tr( "Parameter Settings" ) );
     tabWidget->changeTab( tab, tr( "Tab 1" ) );
     tabWidget->changeTab( tab_2, tr( "Tab 2" ) );
-   
+
+    fileNew_SessionAction->setText( tr( "New Session" ) );
+    fileNew_SessionAction->setMenuText( tr( "New Session" ) );
+	fileNew_SessionAction->setToolTip("Restart the session with default settings");
+    
     fileOpenAction->setText( tr( "&Open Session" ) );
     fileOpenAction->setMenuText( tr( "&Open Session" ) );
     fileOpenAction->setAccel( tr( "Ctrl+O" ) );
@@ -472,13 +476,10 @@ void MainForm::languageChange()
     dataConfigure_MetafileAction->setText( tr( "Configure Metafile" ) );
     dataConfigure_MetafileAction->setMenuText( tr( "&Configure Metafile" ) );
 	dataConfigure_MetafileAction->setToolTip("Launch a tool to construct the metafile associated with a dataset");
-    dataReload_MetafileAction->setText( tr( "Load a Dataset into Current Session" ) );
-    dataReload_MetafileAction->setMenuText( tr( "&Load a Dataset into Current Session" ) );
-	dataReload_MetafileAction->setToolTip("Specify a data set to be loaded into current session");
-	dataNew_MetafileAction->setText( tr( "Load Data into New Session" ) );
-    dataNew_MetafileAction->setMenuText( tr( "Load Data into New Session" ) );
-	dataNew_MetafileAction->setToolTip("Specify a data set to be loaded into a new session");
-    
+    dataLoad_MetafileAction->setText( tr( "Load a Dataset into Current Session" ) );
+    dataLoad_MetafileAction->setMenuText( tr( "&Load a Dataset into Current Session" ) );
+	dataLoad_MetafileAction->setToolTip("Specify a data set to be loaded into current session");
+	
     viewLaunch_visualizerAction->setText( tr( "New Visualizer" ) );
     viewLaunch_visualizerAction->setMenuText( tr( "&New Visualizer" ) );
 	viewLaunch_visualizerAction->setToolTip("Launch a new visualization window");
@@ -632,7 +633,7 @@ void MainForm::browseData()
 	
 }
 
-void MainForm::reloadData()
+void MainForm::loadData()
 {
 #ifdef WIN32
 	static QString MDFile("F:\\run4\\RUN4.vdf");
@@ -642,42 +643,24 @@ void MainForm::reloadData()
 	//This launches a panel that enables the
     //user to choose input data files, then to
 	//create a datamanager using those files
-    //or metafiles.  Initially it will just load a wb file.
+    //or metafiles.  
 	QString filename = QFileDialog::getOpenFileName(MDFile,
 		"Vapor Metadata Files (*.vdf)",
 		this,
-		"Reload Volume Data Dialog",
-		"Choose the Metadata File to load into existing session");
+		"Load Volume Data Dialog",
+		"Choose the Metadata File to load into current session");
 	if(filename != QString::null){
 		
-		Session::getInstance()->resetMetadata(filename.ascii(),false);
+		Session::getInstance()->resetMetadata(filename.ascii());
 
 		MDFile = filename;
 	}
 	
 }
-void MainForm::newData()
+void MainForm::newSession()
 {
-#ifdef WIN32
-	static QString MDFile("F:\\run4\\RUN4.vdf");
-#else
-	static QString MDFile("/cxfs/w4/clyne/wavelet");
-#endif
-	//This launches a panel that enables the
-    //user to choose input data files, then to
-	//create a datamanager using those files
-    //or metafiles.  Initially it will just load a wb file.
-	QString filename = QFileDialog::getOpenFileName(MDFile,
-		"Vapor Metadata Files (*.vdf)",
-		this,
-		"Load New Volume Data Dialog",
-		"Choose the Metadata File for New Session");
-	if(filename != QString::null){
-		
-		Session::getInstance()->resetMetadata(filename.ascii(),true);
 
-		MDFile = filename;
-	}
+	Session::getInstance()->resetMetadata(0);
 	
 }
 void MainForm::launchVisualizer()

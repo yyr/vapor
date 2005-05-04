@@ -107,8 +107,8 @@ public:
     QAction* dataBrowse_DataAction;
 	QAction* dataExportToIDLAction;
     QAction* dataConfigure_MetafileAction;
-    QAction* dataReload_MetafileAction;
-	QAction* dataNew_MetafileAction;
+    QAction* dataLoad_MetafileAction;
+	QAction* fileNew_SessionAction;
     
    //View menu
     QAction* viewLaunch_visualizerAction;
@@ -170,8 +170,8 @@ public slots:
     virtual void helpAbout();
     
     virtual void browseData();
-	virtual void reloadData();
-	virtual void newData();
+	virtual void loadData();
+	virtual void newSession();
 	virtual void exportToIDL();
     virtual void launchVisualizer();
 	virtual void startCapture();

@@ -123,10 +123,12 @@ public:
 	}
 	float getDataMinBound(){
 		if(numVariables == 0) return 0.f;
+		if (!Session::getInstance()->getDataRange(varNum)) return 0.f;
 		return Session::getInstance()->getDataRange(varNum)[0];
 	}
 	float getDataMaxBound(){
 		if(numVariables == 0) return 1.f;
+		if (!Session::getInstance()->getDataRange(varNum)) return 1.f;
 		return Session::getInstance()->getDataRange(varNum)[1];
 	}
 	void setEditMode(bool mode) {editMode = mode;}
@@ -164,7 +166,7 @@ public:
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();
 	//Implement virtual function to deal with new session:
-	void reinit();
+	void reinit(bool doOverride);
 	void restart();
 	
 	

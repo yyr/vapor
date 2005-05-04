@@ -213,8 +213,10 @@ public:
 	void startPlay(AnimationParams* aParams);
 	
 	//Tell all parameter panels to reinitialize (based on change of 
-	//Metadata)
-	void reinitializeParams();
+	//Metadata).  If the parameter is true, we can override the panels' 
+	//previous state
+	//
+	void reinitializeParams(bool doOverride);
 	//reset to starting state
 	//
 	void restartParams();

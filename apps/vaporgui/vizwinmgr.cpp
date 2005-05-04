@@ -1285,14 +1285,17 @@ refreshHisto(){
 	DvrParams* dParams = getDvrParams(activeViz);
 	//Refresh data range:
 	//dParams->setDatarangeDirty();
-	Session::getInstance()->getDataMgr()->SetDataRange(dParams->getVariableName(),
-		dParams->getCurrentDatarange());
+	DataMgr* dataManager = Session::getInstance()->getDataMgr();
+	if (dataManager) {
+		dataManager->SetDataRange(dParams->getVariableName(),
+			dParams->getCurrentDatarange());
 	
-	vizWin->setDataRangeDirty(false);
+		vizWin->setDataRangeDirty(false);
 	
-	Session::getInstance()->refreshHistogram(dParams->getVarNum(),
-		getRegionParams(activeViz), getAnimationParams(activeViz)->getCurrentFrameNumber(),
-		dParams->getMinMapBound(),  dParams->getMaxMapBound());
+		Session::getInstance()->refreshHistogram(dParams->getVarNum(),
+			getRegionParams(activeViz), getAnimationParams(activeViz)->getCurrentFrameNumber(),
+			dParams->getMinMapBound(),  dParams->getMaxMapBound());
+	}
 	dParams->refreshTFFrame();
 }
 /*
@@ -1579,7 +1582,7 @@ getApplicableParams(Params::ParamType t){
 			return 0;
 	}
 }
-// force all the existing params to restart
+// force all the existing params to restart (return to initial state)
 //
 void VizWinMgr::
 restartParams(){
@@ -1599,24 +1602,29 @@ restartParams(){
 	globalAnimationParams->restart();
 }
 // force all the existing params to reinitialize, i.e. make minimal
-// changes to use new metadata
+// changes to use new metadata.  If doOverride is false, we can
+// ignore previous settings
 //
 void VizWinMgr::
-reinitializeParams(){
+reinitializeParams(bool doOverride){
+	
+	globalRegionParams->reinit(doOverride);
+	//NOTE that the vpparams need to be initialized after
+	//the global region params, since they use its settings..
+	//
+	globalVPParams->reinit(doOverride);
+	globalIsoParams->reinit(doOverride);
+	globalDvrParams->reinit(doOverride);
+	globalContourParams->reinit(doOverride);
+	globalAnimationParams->reinit(doOverride);
 	for (int i = 0; i< MAXVIZWINS; i++){
-		if(vpParams[i]) vpParams[i]->reinit();
-		if(rgParams[i]) rgParams[i]->reinit();
-		if(dvrParams[i]) dvrParams[i]->reinit();
-		if(isoParams[i]) isoParams[i]->reinit();
-		if(contourParams[i]) contourParams[i]->reinit();
-		if(animationParams[i]) animationParams[i]->reinit();
+		if(vpParams[i]) vpParams[i]->reinit(doOverride);
+		if(rgParams[i]) rgParams[i]->reinit(doOverride);
+		if(dvrParams[i]) dvrParams[i]->reinit(doOverride);
+		if(isoParams[i]) isoParams[i]->reinit(doOverride);
+		if(contourParams[i]) contourParams[i]->reinit(doOverride);
+		if(animationParams[i]) animationParams[i]->reinit(doOverride);
 	}
-	globalVPParams->reinit();
-	globalRegionParams->reinit();
-	globalIsoParams->reinit();
-	globalDvrParams->reinit();
-	globalContourParams->reinit();
-	globalAnimationParams->reinit();
 }
 void VizWinMgr::
 setSelectionMode( Command::mouseModeType m){ 

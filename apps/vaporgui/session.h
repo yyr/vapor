@@ -20,6 +20,14 @@
 //  the Metadata, since these are session-wide objects (only one is open at one time).
 //  The information about the current metadata (e.g. histograms) is stored in 
 //  an auxiliary datastructure, the DataStatus class.
+//  The Session includes in its state the following:
+//	Data (Metadata, Datamgr, and the file names associated)
+//	Command queue (for undo/redo)
+//	TransferFunction list (saved in state)
+//	Image capturing state
+//	VizWinMgr
+//
+
 /**
  * The session class owns all the data associated with a VAPoR session.
  * All of the panel states are in the VizWinMgr class
@@ -227,8 +235,14 @@ public:
 		if (currentDataStatus) return currentDataStatus->getNumVariables();
 		else return 0;
 	}
-	size_t getMinTimestep(){return currentDataStatus->getMinTimestep();}
-	size_t getMaxTimestep(){return currentDataStatus->getMaxTimestep();}
+	size_t getMinTimestep(){
+		if (currentDataStatus) return currentDataStatus->getMinTimestep();
+		return 0;
+	}
+	size_t getMaxTimestep(){
+		if (currentDataStatus)return currentDataStatus->getMaxTimestep();
+		return 1;
+	}
 	//Set range mapped for a variable.  Currently sets all
 	//variables to same range.
 	//
@@ -261,9 +275,10 @@ public:
 	void refreshHistogram(int varNum, RegionParams* rParams, 
 		int timestep, float dataMin, float dataMax);
 	const WaveletBlock3DRegionReader* getRegionReader() {return myReader;}
-	//Create a new Metadata, by specifying vmf file
-	//Specify whether or not the state is remembered from previous session
-	void resetMetadata(const char* vmfile, bool newSession);
+	//Setup session for a new Metadata, by specifying vdf file
+	//If the argument is null, it resets to default state
+	//
+	void resetMetadata(const char* vmfile);
 	//Export current data in active visualizer:
 	void exportData();
 	void setCacheMB(size_t size){cacheMB = size;}
@@ -295,6 +310,7 @@ public:
 	}
 protected:
 	Session();
+	void init();
 	static Session* theSession;
 	WaveletBlock3DRegionReader* myReader;
 	
@@ -314,6 +330,7 @@ protected:
 	// JPeg image quality (1-100)
 	int jpegQuality;
 	bool dataExists;
+	bool newSession;
 	bool renderOK;
 	//TransferFunctions are kept, by name, in the session:
 	TransferFunction** keptTFs;
@@ -323,7 +340,6 @@ protected:
 	float* rightBounds;
 	QString* tfFilePath;
 	string* currentMetadataPath;
-	bool firstData;
 };
 
 }; //end VAPoR namespace

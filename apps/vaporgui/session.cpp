@@ -37,7 +37,7 @@ Session* Session::theSession = 0;
 Session::Session() {
 	MyBase::SetErrMsgCB(errorCallbackFcn);
 	MyBase::SetDiagMsgCB(infoCallbackFcn);
-	recordingCount = 0;
+	
 	dataMgr = 0;
 	currentMetadata = 0;
 	myReader = 0;
@@ -54,23 +54,16 @@ Session::Session() {
 	}
 	currentHistograms = 0;
 	currentDataStatus = 0;
-#ifdef IRIX
-	cacheMB = 1024;
-#else
-	cacheMB = 512;
-#endif
-	renderOK = false;
 	numTFs = 0;
 	tfNames = 0;
 	keptTFs = 0;
 	tfListSize = 0;
 	leftBounds = 0;
 	rightBounds = 0;
-	tfFilePath = new QString(".");
+	tfFilePath = 0;
 	currentMetadataPath = 0;
-	jpegQuality = 75;
-	dataExists = false;
-	firstData = true;
+	newSession = true;
+	init();
 }
 Session::~Session(){
 	int i;
@@ -108,7 +101,46 @@ Session::~Session(){
 	}
 	if(currentMetadataPath) delete currentMetadataPath;
 }
-
+//Set session state to base values:
+//
+void Session::init() {
+	int i;
+	recordingCount = 0;
+	
+#ifdef IRIX
+	cacheMB = 1000;
+#else
+	cacheMB = 500;
+#endif
+	//Delete all the saved transfer functions:
+	for (i = 0; i<numTFs; i++){
+		delete keptTFs[i];
+		delete tfNames[i];
+	}
+	if (tfListSize>0){
+		delete keptTFs;
+		delete tfNames;
+		delete rightBounds;
+		delete leftBounds;
+	}
+	if(currentMetadataPath){ 
+		delete currentMetadataPath;
+	}
+	if (tfFilePath) delete tfFilePath;
+	tfFilePath = new QString(".");
+	numTFs = 0;
+	tfNames = 0;
+	keptTFs = 0;
+	tfListSize = 0;
+	leftBounds = 0;
+	rightBounds = 0;
+	currentMetadataPath = 0;
+	jpegQuality = 75;
+	dataExists = false;
+	renderOK = false;
+	newSession = true;
+	
+}
 void Session::
 save(char* ){
 }
@@ -159,40 +191,50 @@ exportData(){
 	return;
 }
 /**
- * create a new datamgr.  Also perform related functions such as
+ * set up state for a new datamanager or, if argument is null, set to 
+ * default state.  If newSession is true, the current settings are ignored, otherwise
+ * the established session attempts to be compatible with previous settings.
+ * Also perform related functions such as
  * constructing histograms 
  */
 void Session::
-resetMetadata(const char* fileBase, bool newSession)
+resetMetadata(const char* fileBase)
 {
 	int i;
+	//This is a flag used by renderers to avoid rendering while state
+	//is changing.
 	renderOK = false;
-	//If the user asks for reload on the first load, ignore it 
-	//and do a new session.
-	if (firstData) newSession = true;
+	
+	bool defaultSession = (fileBase == 0);
 	//The metadata is created by (and obtained from) the datamgr
-	currentMetadataPath = new string(fileBase);
+	if (!defaultSession) currentMetadataPath = new string(fileBase);
 	
 	if (dataMgr) delete dataMgr;
-	dataMgr = new DataMgr(currentMetadataPath->c_str(), cacheMB, 1);
-	if (dataMgr->GetErrCode() != 0) {
-		MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
-			dataMgr->GetErrCode(),dataMgr->GetErrMsg);
-		delete dataMgr;
+	if (defaultSession){
 		dataMgr = 0;
-		return;
-	}
-	currentMetadata = dataMgr->GetMetadata();
-	if (currentMetadata->GetErrCode() != 0) {
-		MessageReporter::errorMsg("Data Loading error %d, creating Metadata:\n %s",
-			currentMetadata->GetErrCode(),currentMetadata->GetErrMsg());
-		
-		delete dataMgr;
-		dataMgr = 0;
-		return;
-	}
+		currentMetadata = 0;
+		myReader = 0;
+	} else {
+		dataMgr = new DataMgr(currentMetadataPath->c_str(), cacheMB, 1);
+		if (dataMgr->GetErrCode() != 0) {
+			MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
+				dataMgr->GetErrCode(),dataMgr->GetErrMsg());
+			delete dataMgr;
+			dataMgr = 0;
+			return;
+		}
+		currentMetadata = dataMgr->GetMetadata();
+		if (currentMetadata->GetErrCode() != 0) {
+			MessageReporter::errorMsg("Data Loading error %d, creating Metadata:\n %s",
+				currentMetadata->GetErrCode(),currentMetadata->GetErrMsg());
+			
+			delete dataMgr;
+			dataMgr = 0;
+			return;
+		}
 
-	myReader = (WaveletBlock3DRegionReader*)dataMgr->GetRegionReader();
+		myReader = (WaveletBlock3DRegionReader*)dataMgr->GetRegionReader();
+	} 
 
 	//If histograms exist, delete them:
 	if (currentHistograms && currentDataStatus){
@@ -202,74 +244,76 @@ resetMetadata(const char* fileBase, bool newSession)
 				currentHistograms[i] = 0;
 			}
 		}
-		delete currentHistograms;
-		currentHistograms = 0;
 	}
+	if (currentHistograms) delete currentHistograms;
+	currentHistograms = 0;
 	
 	if (currentDataStatus) delete currentDataStatus;
-	currentDataStatus = setupDataStatus();
+	currentDataStatus = 0;
+	if (!defaultSession) {
+		currentDataStatus = setupDataStatus();
 
-	//Is there any data here?
-	if(!dataExists) {
-		MessageReporter::errorMsg("%s",
-			"No data in specified dataset");
-		delete dataMgr;
-		dataMgr = 0;
-		return;
-	}
-	
-	//Now create histograms for all the variables present.
-	
-	
-	//Initially just use the first (valid)time step.
-	int numVars = currentDataStatus->getNumVariables();
-	currentHistograms = new Histo*[numVars];
-	
-	for (i = 0; i<numVars; i++){
-		currentHistograms[i] = 0;
-		//If this is a new session, 
-		//tell the datamanager to use the overall max/min range
-		//In doing the quantization.  Note that this will change
-		//when the range is changed in the TFE
-		//
-		//reset the mapping range to the entire range
-		setMappingRange(i, currentDataStatus->getDataRange(i));
-		
-		float dataMin = currentDataStatus->getDataRange(i)[0];
-		float dataMax = currentDataStatus->getDataRange(i)[1];
-		//Obtain data dimensions for getting histogram:
-		size_t min_bdim[3];
-		size_t max_bdim[3];
-		int min_dim[3], max_dim[3];
-		
-		size_t subDataSize[3];
-		myReader->GetDim(currentDataStatus->getNumTransforms(),subDataSize);
-		myReader->GetDimBlk(currentDataStatus->getNumTransforms(),max_bdim);
-		for (int k = 0; k<3; k++){
-			min_bdim[k] = 0;
-			max_bdim[k]--;
-			//Setup for full subarray:
-			min_dim[k] = 0;
-			max_dim[k] = subDataSize[k]-1;
+		//Is there any data here?
+		if(!dataExists) {
+			MessageReporter::errorMsg("%s",
+				"No data in specified dataset");
+			delete dataMgr;
+			dataMgr = 0;
+			return;
 		}
-		
-		//Find the first timestep for which there is data,
-		//Build a histogram, for this variable, on that data.
-		for (unsigned int ts = currentDataStatus->getMinTimestep(); 
-				ts <= currentDataStatus->getMaxTimestep(); ts++){
-			if (currentDataStatus->dataIsPresent(i,ts)){
-				currentHistograms[i] = new Histo(
-					(unsigned char*) dataMgr->GetRegionUInt8(
-						ts, (const char*) currentMetadata->GetVariableNames()[i].c_str(),
-						currentDataStatus->getNumTransforms(),
-						min_bdim,
-						max_bdim,
-						0 //Don't lock!
-					), 
-				min_dim, max_dim, min_bdim, max_bdim,
-				dataMin, dataMax
-				);
-				break;//stop after first successful construction
+	
+	
+		//Now create histograms for all the variables present.
+		//Initially just use the first (valid)time step.
+		int numVars = currentDataStatus->getNumVariables();
+		currentHistograms = new Histo*[numVars];
+	
+		for (i = 0; i<numVars; i++){
+			currentHistograms[i] = 0;
+			//If this is a new session, 
+			//tell the datamanager to use the overall max/min range
+			//In doing the quantization.  Note that this will change
+			//when the range is changed in the TFE
+			//
+			//reset the mapping range to the entire range
+			setMappingRange(i, currentDataStatus->getDataRange(i));
+			
+			float dataMin = currentDataStatus->getDataRange(i)[0];
+			float dataMax = currentDataStatus->getDataRange(i)[1];
+			//Obtain data dimensions for getting histogram:
+			size_t min_bdim[3];
+			size_t max_bdim[3];
+			int min_dim[3], max_dim[3];
+			
+			size_t subDataSize[3];
+			myReader->GetDim(currentDataStatus->getNumTransforms(),subDataSize);
+			myReader->GetDimBlk(currentDataStatus->getNumTransforms(),max_bdim);
+			for (int k = 0; k<3; k++){
+				min_bdim[k] = 0;
+				max_bdim[k]--;
+				//Setup for full subarray:
+				min_dim[k] = 0;
+				max_dim[k] = subDataSize[k]-1;
+			}
+			
+			//Find the first timestep for which there is data,
+			//Build a histogram, for this variable, on that data.
+			for (unsigned int ts = currentDataStatus->getMinTimestep(); 
+					ts <= currentDataStatus->getMaxTimestep(); ts++){
+				if (currentDataStatus->dataIsPresent(i,ts)){
+					currentHistograms[i] = new Histo(
+						(unsigned char*) dataMgr->GetRegionUInt8(
+							ts, (const char*) currentMetadata->GetVariableNames()[i].c_str(),
+							currentDataStatus->getNumTransforms(),
+							min_bdim,
+							max_bdim,
+							0 //Don't lock!
+						), 
+					min_dim, max_dim, min_bdim, max_bdim,
+					dataMin, dataMax
+					);
+					break;//stop after first successful construction
+				}
 			}
 		}
 	}
@@ -279,18 +323,25 @@ resetMetadata(const char* fileBase, bool newSession)
 	//Do this before setting up params, since they will get deleted if their window
 	//vanishes.
 	//
-	if (newSession && !firstData){
+	if (defaultSession){
 		for (i = 0; i< MAXVIZWINS; i++){
 			if (myVizWinMgr->getVizWin(i)){
 				myVizWinMgr->killViz(i);
 			}
 		}
 		myVizWinMgr->launchVisualizer();
+		//Also must reset image capture, TF list
 	}
-	//First time, restart, 
-	if (newSession || firstData) myVizWinMgr->restartParams();
-	else myVizWinMgr->reinitializeParams();
-	firstData = false;
+	//returning to default, reset values to defaults;
+	if (defaultSession) {
+		myVizWinMgr->restartParams();
+		init();
+	}
+	else {
+		myVizWinMgr->reinitializeParams(newSession);
+		//Set the newSession flag, next time we'll use these settings.
+		newSession = false;
+	}
 
 	//Restart the animation controller:
 	AnimationController::getInstance()->restart();

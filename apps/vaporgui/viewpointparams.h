@@ -98,7 +98,7 @@ public:
 	void useHomeViewpoint();
 	
 	//Reset viewpoint when new session is started:
-	virtual void reinit();
+	virtual void reinit(bool doOverride);
 	virtual void restart();
 	
 	//Transformations to convert world coords to (unit)render cube and back
@@ -123,6 +123,8 @@ public:
 	
 	
 protected:
+	//Set to default viewpoint for specified region
+	void centerFullRegion(RegionParams*);
 	//Holder for saving state during mouse move:
 	//
 	PanelCommand* savedCommand;

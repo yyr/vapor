@@ -40,21 +40,7 @@ using namespace VAPoR;
 RegionParams::RegionParams(int winnum): Params(winnum){
 	thisParamType = RegionParamsType;
 	myRegionTab = MainForm::getInstance()->getRegionTab();
-	numTrans = 5;
-	maxNumTrans = 9;
-	minNumTrans = 0;
-	maxSize = 256;
-	fullDataExtents.resize(6);
-	selectedFaceNum = -1;
-	faceDisplacement = 0.f;
-	savedCommand = 0;
-	for (int i = 0; i< 3; i++){
-		centerPosition[i] = 128;
-		regionSize[i] = 256;
-		fullSize[i] = 256;
-		fullDataExtents[i] = 0.;
-		fullDataExtents[i+3] = 1.;
-	}
+	restart();
 }
 Params* RegionParams::
 deepCopy(){
@@ -268,29 +254,38 @@ void RegionParams::
 guiSetNumTrans(int n){
 	confirmText(false);
 	
-	//First, if we have a dataMgr, see if we can really handle this new numtrans:
-	if (Session::getInstance()->getDataMgr()){
-		int min_dim[3], max_dim[3];
-		size_t min_bdim[3], max_bdim[3];
-		float minFull[3], maxFull[3], extents[6];
-		calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, n, minFull, maxFull,  extents);
-		//Size needed for data assumes blocksize = 2**5, 4 bytes per voxel, times 2.
-		size_t newFullMB = (max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1);
-		//Left shift by 18, for bytes and  right shift by 20 for mbytes
-		newFullMB >>= 2;
-		if (newFullMB >= Session::getInstance()->getCacheMB()){
-			MessageReporter::warningMsg("%s","Invalid number of Transforms for current region, data cache size");
-			//Reset the value in the gui:
-			myRegionTab->numTransSpin->setValue(numTrans);
-			return;
-		}
+	int newNumTrans = validateNumTrans(n);
+	if (newNumTrans != n) {
+		MessageReporter::warningMsg("%s","Invalid number of Transforms for current region, data cache size");
+		myRegionTab->numTransSpin->setValue(numTrans);
 	}
-	//If we passed that test, then go ahead and change the numTrans.
-	
 	PanelCommand* cmd = PanelCommand::captureStart(this, "set number of Transformations");
-	setNumTrans(n);
+	setNumTrans(newNumTrans);
 	PanelCommand::captureEnd(cmd, this);
 }
+//See if the number of trans is ok.  If not, return an OK value
+int RegionParams::
+validateNumTrans(int n){
+	//if we have a dataMgr, see if we can really handle this new numtrans:
+	if (!Session::getInstance()->getDataMgr()) return n;
+	
+	int min_dim[3], max_dim[3];
+	size_t min_bdim[3], max_bdim[3];
+	float minFull[3], maxFull[3], extents[6];
+	calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, n, minFull, maxFull,  extents);
+	//Size needed for data assumes blocksize = 2**5, 4 bytes per voxel, times 2.
+	size_t newFullMB = (max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1);
+	//Left shift by 18, for bytes and  right shift by 20 for mbytes
+	newFullMB >>= 2;
+	while (newFullMB >= Session::getInstance()->getCacheMB()){
+		//find  and return a legitimate value.  Each time we increase n by 1,
+		//we decrease the size needed by 8
+		n++;
+		newFullMB >>= 3;
+	}	
+	return n;
+}
+	//If we passed that test, then go ahead and change the numTrans.
 //Following are set when slider is released:
 //
 void RegionParams::
@@ -500,34 +495,21 @@ guiSetMaxSize(int n){
 //Reset region settings to initial state
 void RegionParams::
 restart(){
-	const Metadata* md = Session::getInstance()->getCurrentMetadata();
-	//Setup the global region parameters based on bounds in Metadata
-	const size_t* dataDim = md->GetDimension();
-	
-	//Note:  It's OK to cast to int here:
-	int nx = (int)dataDim[0];
-	int ny = (int)dataDim[1];
-	int nz = (int)dataDim[2];
-	setMaxSize(Max(Max(nx, ny), nz));
-	setFullSize(0, nx);
-	setFullSize(1, ny);
-	setFullSize(2, nz);
-
-	setRegionSize(0, nx);
-	setRegionSize(1, ny);
-	setRegionSize(2, nz);
-	
-	setCenterPosition(0, nx/2);
-	setCenterPosition(1, ny/2);
-	setCenterPosition(2, nz/2);
-	int nlevels = md->GetNumTransforms();
-	setMinNumTrans(Session::getInstance()->getDataStatus()->minXFormPresent());
-	setMaxNumTrans(nlevels);
-	setNumTrans(nlevels);
-	
-	//Data extents (user coords) are presented read-only in gui
-	//
-	setDataExtents(md->GetExtents());
+	numTrans = 5;
+	maxNumTrans = 9;
+	minNumTrans = 0;
+	maxSize = 256;
+	fullDataExtents.resize(6);
+	selectedFaceNum = -1;
+	faceDisplacement = 0.f;
+	savedCommand = 0;
+	for (int i = 0; i< 3; i++){
+		centerPosition[i] = 128;
+		regionSize[i] = 256;
+		fullSize[i] = 256;
+		fullDataExtents[i] = 0.;
+		fullDataExtents[i+3] = 1.;
+	}
 	//If this params is currently being displayed, 
 	//force the current displayed tab to be reset to values
 	//consistent with the params
@@ -541,7 +523,8 @@ restart(){
 }
 //Reinitialize region settings, session has changed:
 void RegionParams::
-reinit(){
+reinit(bool doOverride){
+	int i;
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	//Setup the global region parameters based on bounds in Metadata
 	const size_t* dataDim = md->GetDimension();
@@ -556,14 +539,21 @@ reinit(){
 	setFullSize(2, nz);
 	int nlevels = md->GetNumTransforms();
 	
-	
-	
 	setMinNumTrans(Session::getInstance()->getDataStatus()->minXFormPresent());
 	setMaxNumTrans(nlevels);
-	if (numTrans> nlevels) numTrans = maxNumTrans;
-	if (numTrans < minNumTrans) numTrans = minNumTrans;
-	for (int i = 0; i< 3; i++)
-		enforceConsistency(i);
+	if (doOverride) {
+		numTrans = maxNumTrans;
+		for (i = 0; i< 3; i++) {
+			setRegionSize(i,fullSize[i]);
+		}
+	} else {
+		if (numTrans> nlevels) numTrans = maxNumTrans;
+		if (numTrans < minNumTrans) numTrans = minNumTrans;
+		//Make sure we really can use the specified numTrans.
+		numTrans = validateNumTrans(numTrans);
+		for (i = 0; i< 3; i++) enforceConsistency(i);
+	}
+	
 	//Data extents (user coords) are presented read-only in gui
 	//
 	setDataExtents(md->GetExtents());
@@ -792,11 +782,13 @@ calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max
 	int bs = Session::getInstance()->getCurrentMetadata()->GetBlockSize();
 	for(i=0; i<3; i++) {
 		int	s = numxforms;
-
 		min_dim[i] = (int) ((float) (getCenterPosition(i) >> s) - 0.5 
 			- (((getRegionSize(i) >> s) / 2.0)-1.0));
 		max_dim[i] = (int) ((float) (getCenterPosition(i) >> s) - 0.5 
 			+ (((getRegionSize(i) >> s) / 2.0)));
+		//Force these to be in data:
+		int dim = (getFullSize(i)>>numxforms) -1;
+		if (max_dim[i] > dim) max_dim[i] = dim;
 		//Make sure slab has nonzero thickness (this can only
 		//be a problem while the mouse is pressed):
 		//
@@ -820,7 +812,7 @@ calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max
 	//fit the full region adjacent to the coordinate planes.
 	for (i = 0; i<3; i++) {
 		int dim = (getFullSize(i)>>numxforms) -1;
-		assert (dim>= max_dim[i]);
+		assert (dim >= max_dim[i]);
 		float extentRatio = (fullExtent[i+3]-fullExtent[i])/maxCoordRange;
 		minFull[i] = 0.f;
 		maxFull[i] = extentRatio;

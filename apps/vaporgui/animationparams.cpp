@@ -43,17 +43,8 @@ using namespace VAPoR;
 AnimationParams::AnimationParams(int winnum): Params( winnum){
 	thisParamType = AnimationParamsType;
 	myAnimationTab = MainForm::getInstance()->getAnimationTab();
+	restart();
 	
-	// set everything to default state:
-	playDirection = 0;
-	repeatPlay = false;
-	maxFrameRate = 10; 
-	frameStepSize = 1;
-	startFrame = 1;
-	endFrame = 100;
-	maxFrame = 100; 
-	minFrame = 1;
-	currentFrame = 1;
 	
 }
 AnimationParams::~AnimationParams(){}
@@ -308,41 +299,16 @@ void AnimationParams::guiSingleStep(bool forward){
 //
 void AnimationParams::
 restart(){
-	Session* session = Session::getInstance();
-	//Get the max, min time ranges:
-	minFrame = (int)session->getMinTimestep();
-	maxFrame = (int)session->getMaxTimestep();
-	//Narrow the range to the actual data limits:
-	int numvars = session->getNumVariables();
-	//Find the first framenum with data:
-	int i;
-	for (i = minFrame; i<= maxFrame; i++){
-		int varnum;
-		for (varnum = 0; varnum<numvars; varnum++){
-			if(session->dataIsPresent(varnum, i)) break;
-		}
-		if (varnum < numvars) break;
-	}
-	minFrame = i;
-	//Find the last framenum with data:
-	for (i = maxFrame; i>= minFrame; i--){
-		int varnum;
-		for (varnum = 0; varnum<numvars; varnum++){
-			if(session->dataIsPresent(varnum, i)) break;
-		}
-		if (varnum < numvars) break;
-	}
-	maxFrame = i;
-	startFrame = minFrame;
-	endFrame = maxFrame;
-	currentFrame = startFrame;
-	
-	// set other settings to default state:
+	// set everything to default state:
 	playDirection = 0;
 	repeatPlay = false;
 	maxFrameRate = 10; 
 	frameStepSize = 1;
-
+	startFrame = 1;
+	endFrame = 100;
+	maxFrame = 100; 
+	minFrame = 1;
+	currentFrame = 0;
 	setDirty();
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myAnimationTab)) {
 		VizWinMgr* vwm = VizWinMgr::getInstance();
@@ -354,7 +320,7 @@ restart(){
 //Respond to change in Metadata
 //
 void AnimationParams::
-reinit(){
+reinit(bool doOverride){
 	Session* session = Session::getInstance();
 	//Make min and max conform to new data:
 	minFrame = (int)session->getMinTimestep();
@@ -382,13 +348,18 @@ reinit(){
 	
 	maxFrame = i;
 	//force start & end to be consistent:
-	if (startFrame > maxFrame) startFrame = maxFrame;
-	if (startFrame < minFrame) startFrame = minFrame;
-	if (endFrame < minFrame) endFrame = minFrame;
-	if (endFrame > maxFrame) endFrame = maxFrame;
-
-	if(currentFrame < startFrame) currentFrame = startFrame;
-	if (currentFrame > endFrame) currentFrame = endFrame;
+	if (doOverride){
+		startFrame = minFrame;
+		endFrame = maxFrame;
+		currentFrame = startFrame;
+	} else {
+		if (startFrame > maxFrame) startFrame = maxFrame;
+		if (startFrame < minFrame) startFrame = minFrame;
+		if (endFrame < minFrame) endFrame = minFrame;
+		if (endFrame > maxFrame) endFrame = maxFrame;
+		if (currentFrame < startFrame) currentFrame = startFrame;
+		if (currentFrame > endFrame) currentFrame = endFrame;
+	}
 	
 	// set pause state
 	playDirection = 0;

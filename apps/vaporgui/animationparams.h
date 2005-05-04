@@ -46,7 +46,7 @@ public:
 	virtual void makeCurrent(Params* p, bool newWin);
 
 	virtual void restart();
-	virtual void reinit();
+	virtual void reinit(bool doOverride);
 
 	//Need to do more than Params::guiSetLocal():
 	virtual void guiSetLocal(bool lg);
