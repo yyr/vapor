@@ -131,7 +131,9 @@ create_driver(
 	}
 
 	if (driver->GetErrCode() != 0) { 
-		//qWarning("DVRBase::DVRBase() : %s\n", driver->GetErrMsg());
+		MessageReporter::errorMsg(
+		"volumizer renderer error: %s\n", driver->GetErrMsg());
+		driver->SetErrCode(0);
 		return NULL;
 	}
 
@@ -260,6 +262,7 @@ DrawVoxelScene(unsigned /*fast*/)
 			const char* msg = myDataMgr->GetErrMsg();
 			MessageReporter::errorMsg("Unable to obtain volume data\n Datamanager Error code %d\n %s",
 				errCode, msg);
+			myDataMgr->SetErrCode(0);
 			return;
 		}
 		// make subregion origin (0,0,0)

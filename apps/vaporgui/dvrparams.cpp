@@ -517,7 +517,7 @@ reinit(bool doOverride){
 		}
 	}
 	if (varNum == -1){
-		MessageReporter::errorMsg("No data in specified dataset");
+		MessageReporter::errorMsg("DVR Params: No data in specified dataset");
 		return;
 	}
 	//Did number of variables change?  If so must recreate bounds arrays:

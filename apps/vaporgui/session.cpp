@@ -108,7 +108,7 @@ void Session::init() {
 	recordingCount = 0;
 	
 #ifdef IRIX
-	cacheMB = 1000;
+	cacheMB = 1024;
 #else
 	cacheMB = 500;
 #endif
@@ -187,6 +187,7 @@ exportData(){
 		frameInterval);
 	if (rc < 0){
 		MessageReporter::errorMsg("Export data error: \n%s",exporter.GetErrMsg());
+		exporter.SetErrCode(0);
 	}
 	return;
 }
@@ -219,6 +220,7 @@ resetMetadata(const char* fileBase)
 		if (dataMgr->GetErrCode() != 0) {
 			MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
 				dataMgr->GetErrCode(),dataMgr->GetErrMsg());
+			dataMgr->SetErrCode(0);
 			delete dataMgr;
 			dataMgr = 0;
 			return;
@@ -227,7 +229,7 @@ resetMetadata(const char* fileBase)
 		if (currentMetadata->GetErrCode() != 0) {
 			MessageReporter::errorMsg("Data Loading error %d, creating Metadata:\n %s",
 				currentMetadata->GetErrCode(),currentMetadata->GetErrMsg());
-			
+			currentMetadata->SetErrCode(0);
 			delete dataMgr;
 			dataMgr = 0;
 			return;
@@ -252,11 +254,11 @@ resetMetadata(const char* fileBase)
 	currentDataStatus = 0;
 	if (!defaultSession) {
 		currentDataStatus = setupDataStatus();
-
+		
 		//Is there any data here?
 		if(!dataExists) {
 			MessageReporter::errorMsg("%s",
-				"No data in specified dataset");
+				"Session: No data in specified dataset");
 			delete dataMgr;
 			dataMgr = 0;
 			return;
