@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cerrno>
 #include <iostream>
+#include <new>
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -33,7 +34,7 @@ BlkMemMgr::BlkMemMgr(
 
 	free_table_c = new(nothrow) int[mem_size_c];
 	if (! free_table_c) {
-		SetErrMsg("new(nothrow) int[%lu] : alloc failed", mem_size_c);
+		SetErrMsg("Memory allocation of %lu bytes failed", mem_size_c);
 		return;
 	}
 	for(i=0; i<mem_size_c; i++) free_table_c[i] = 0;
@@ -61,7 +62,7 @@ BlkMemMgr::BlkMemMgr(
 
 	blks_c = new(nothrow) unsigned char[size];
 	if (! blks_c) {
-		SetErrMsg("new(nothrow) unsigned char [%u] : alloc failed", size);
+		SetErrMsg("Memory allocation of %lu bytes failed", size);
 		if (free_table_c) delete [] free_table_c;
 		return;
 	}
