@@ -76,7 +76,8 @@ TransferFunction::TransferFunction(DvrParams* p, int nBits){
 	myTFEditor = 0;
 
 	numEntries = 1<<nBits;
-	
+	minMapBound = 0.f;
+	maxMapBound = 1.f;
 	if(myParams) myParams->setClutDirty();
 }
 	
@@ -570,8 +571,8 @@ loadFromFile(FILE* f, DvrParams* p){
 	newTF->numOpacControlPoints = numOpac;
 	newTF->numColorControlPoints = numClr;
 	//The min/max map bounds go into the dvrparams:
-	p->setMinMapBound(minBnd);
-	p->setMaxMapBound(maxBnd);
+	newTF->setMinMapValue(minBnd);
+	newTF->setMaxMapValue(maxBnd);
 	for (i = 0; i<numOpac; i++){
 		rc = fscanf(f, "%d %g %g", &(newTF->opacInterp[i]), 
 			&(newTF->opac[i]),

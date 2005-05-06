@@ -70,11 +70,13 @@ public:
 	int getNumOpacControlPoints() {return numOpacControlPoints;}
 	int getNumColorControlPoints() {return numColorControlPoints;}
 	float getMinMapValue(){
-		return myParams->getMinMapBound();
+		return minMapBound;
 	}
 	float getMaxMapValue(){
-		return myParams->getMaxMapBound();
+		return maxMapBound;
 	}
+	void setMinMapValue(float val) {minMapBound = val;}
+	void setMaxMapValue(float val) {maxMapBound = val;}
 	
 	//Map a point to the specified range, and quantize it.
 	//
@@ -147,6 +149,7 @@ protected:
 	float opac[MAXCONTROLPOINTS];
 	TFInterpolator::type opacInterp[MAXCONTROLPOINTS];
 	TFInterpolator::type colorInterp[MAXCONTROLPOINTS];
+	float minMapBound, maxMapBound;
 	//When a TF is being edited, it keeps a pointer to the editor
 	//
 	TFEditor* myTFEditor;

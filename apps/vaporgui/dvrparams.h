@@ -97,18 +97,10 @@ public:
 		refreshCtab();
 		return ctab;
 	}
-	void setMinMapBound(float val) {
-		minMapBounds[varNum] = val;
-	}
-	void setMaxMapBound(float val) {
-		maxMapBounds[varNum] = val;
-	}
-	float getMinMapBound() {
-		return minMapBounds[varNum];
-	}
-	float getMaxMapBound() {
-		return maxMapBounds[varNum];
-	}
+	void setMinMapBound(float val);
+	void setMaxMapBound(float val);
+	float getMinMapBound();	
+	float getMaxMapBound(); 
 	void setMinEditBound(float val) {
 		minEditBounds[varNum] = val;
 	}
@@ -193,8 +185,7 @@ protected:
 	int varNum;
 	int numVariables;
 	std::vector<std::string> variableNames;
-	float* minMapBounds;
-	float* maxMapBounds;
+	
 	float* minEditBounds;
 	float* maxEditBounds;
 };

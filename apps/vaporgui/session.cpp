@@ -58,8 +58,7 @@ Session::Session() {
 	tfNames = 0;
 	keptTFs = 0;
 	tfListSize = 0;
-	leftBounds = 0;
-	rightBounds = 0;
+	
 	tfFilePath = 0;
 	currentMetadataPath = 0;
 	newSession = true;
@@ -96,8 +95,7 @@ Session::~Session(){
 	if (tfListSize>0){
 		delete keptTFs;
 		delete tfNames;
-		delete rightBounds;
-		delete leftBounds;
+		
 	}
 	if(currentMetadataPath) delete currentMetadataPath;
 }
@@ -107,7 +105,7 @@ void Session::init() {
 	int i;
 	recordingCount = 0;
 	
-#ifdef IRIX
+#ifndef WIN32
 	cacheMB = 1024;
 #else
 	cacheMB = 500;
@@ -120,8 +118,6 @@ void Session::init() {
 	if (tfListSize>0){
 		delete keptTFs;
 		delete tfNames;
-		delete rightBounds;
-		delete leftBounds;
 	}
 	if(currentMetadataPath){ 
 		delete currentMetadataPath;
@@ -132,8 +128,7 @@ void Session::init() {
 	tfNames = 0;
 	keptTFs = 0;
 	tfListSize = 0;
-	leftBounds = 0;
-	rightBounds = 0;
+	
 	currentMetadataPath = 0;
 	jpegQuality = 75;
 	dataExists = false;
@@ -577,26 +572,22 @@ void Session::addTF(const char* tfName, DvrParams* dvrParams){
 		//Not enough space, need to allocate more room:
 		TransferFunction** tempTFHolder = new TransferFunction*[tfListSize];
 		std::string** tempTFNames = new std::string*[tfListSize];
-		float* tempLeftBounds = new float[tfListSize];
-		float* tempRightBounds = new float[tfListSize];
+		
 		for (int i = 0; i<numTFs; i++){
 			tempTFHolder[i] = keptTFs[i];
 			tempTFNames[i] = tfNames[i];
-			tempLeftBounds[i] = leftBounds[i];
-			tempRightBounds[i] = rightBounds[i];
+			
 			delete tfNames[i];
 			delete keptTFs[i];
 		}
 		keptTFs = tempTFHolder;
 		tfNames = tempTFNames;
-		leftBounds = tempLeftBounds;
-		rightBounds = tempRightBounds;
+		
 	}
-	//copy the tf, its name, and domain bounds
+	//copy the tf, its name
 	keptTFs[numTFs] = new TransferFunction(*(dvrParams->getTransferFunction()));
 	tfNames[numTFs] = new std::string(tfName);
-	leftBounds[numTFs] = dvrParams->getMinMapBound();
-	rightBounds[numTFs] = dvrParams->getMaxMapBound();
+	
 	//Don't retain the pointers to dvrParams and TFE:
 	keptTFs[numTFs]->setParams(0);
 	keptTFs[numTFs]->setEditor(0);
@@ -617,8 +608,7 @@ removeTF(const std::string* name){
 	for (int j = i; j<numTFs-1; j++){
 		tfNames[j] = tfNames[j+1];
 		keptTFs[j] = keptTFs[j+1];
-		leftBounds[j] = leftBounds[j+1];
-		rightBounds[j] = rightBounds[j+1];
+		
 	}
 	numTFs--;
 	return true;
@@ -627,7 +617,7 @@ removeTF(const std::string* name){
 //Method to get a transfer function from session.  Clones the one
 //that is saved in the session.
 TransferFunction* Session::
-getTF(const std::string* name, float *leftLim, float* rightLim){
+getTF(const std::string* name){
 	//See if the string is in the list:
 	int i;
 	for (i = 0; i< numTFs; i++){
@@ -635,8 +625,7 @@ getTF(const std::string* name, float *leftLim, float* rightLim){
 	}
 	if (i >= numTFs) return 0;
 	TransferFunction* tf = new TransferFunction(*(keptTFs[i]));
-	if (leftLim) *leftLim = leftBounds[i];
-	if (rightLim) *rightLim = rightBounds[i];
+	
 	return tf;
 }
 //Method to see if a transfer function is in list

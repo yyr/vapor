@@ -60,13 +60,13 @@ using namespace VAPoR;
 DvrParams::DvrParams(int winnum) : Params(winnum){
 	thisParamType = DvrParamsType;
 	myDvrTab = MainForm::getInstance()->getDvrTab();
-	minMapBounds = 0;
-	maxMapBounds = 0;
+
 	minEditBounds = 0;
 	maxEditBounds = 0;
-	restart();
+	numBits = 8;
 	//Hookup the editor to the frame in the dvr tab:
 	myTransFunc = new TransferFunction(this, numBits);
+	restart();
 	if(myDvrTab) myTFEditor = new TFEditor(this, myTransFunc, myDvrTab->DvrTFFrame);
 	else myTFEditor = 0;
 	
@@ -77,8 +77,7 @@ DvrParams::~DvrParams(){
 	delete myTransFunc;
 	
 	if (savedCommand) delete savedCommand;
-	if (minMapBounds) delete minMapBounds;
-	if (maxMapBounds) delete maxMapBounds;
+	
 	if (minEditBounds) delete minEditBounds;
 	if (maxEditBounds) delete maxEditBounds;
 	
@@ -96,13 +95,10 @@ deepCopy(){
 	DvrParams* newParams = new DvrParams(*this);
 	//Clone the map bounds arrays:
 	int numVars = Max (numVariables, 1);
-	newParams->minMapBounds = new float[numVars];
-	newParams->maxMapBounds = new float[numVars];
 	newParams->minEditBounds = new float[numVars];
 	newParams->maxEditBounds = new float[numVars];
 	for (int i = 0; i<numVars; i++){
-		newParams->minMapBounds[i] = minMapBounds[i];
-		newParams->maxMapBounds[i] = maxMapBounds[i];
+		
 		newParams->minEditBounds[i] = minEditBounds[i];
 		newParams->maxEditBounds[i] = maxEditBounds[i];
 	}
@@ -217,15 +213,15 @@ updatePanelState(){
 	diffuseCoeff = myDvrTab-> diffuseShading->text().toFloat();
 	ambientCoeff = myDvrTab->ambientShading->text().toFloat();
 	specularCoeff = myDvrTab->specularShading->text().toFloat();
-	specularExponent = myDvrTab->exponentShading->text().toFloat();
+	specularExponent = (int)myDvrTab->exponentShading->text().toFloat();
 	diffuseAtten = myDvrTab->diffuseAttenuation->text().toFloat();
 	ambientAtten = myDvrTab->ambientAttenuation->text().toFloat();
 	specularAtten = myDvrTab->specularAttenuation->text().toFloat();
 	
 
+	myTransFunc->setMinMapValue(myDvrTab->leftMappingBound->text().toFloat());
+	myTransFunc->setMaxMapValue(myDvrTab->rightMappingBound->text().toFloat());
 	
-	minMapBounds[varNum] = myDvrTab->leftMappingBound->text().toFloat();
-	maxMapBounds[varNum] = myDvrTab->rightMappingBound->text().toFloat();
 	setDatarangeDirty();
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
@@ -260,8 +256,8 @@ updateTFBounds(){
 	QString strn;
 	myDvrTab->minDataBound->setText(strn.setNum(getDataMinBound()));
 	myDvrTab->maxDataBound->setText(strn.setNum(getDataMaxBound()));	
-	myDvrTab->leftMappingBound->setText(strn.setNum(minMapBounds[varNum],'g',4));
-	myDvrTab->rightMappingBound->setText(strn.setNum(maxMapBounds[varNum],'g',4));
+	myDvrTab->leftMappingBound->setText(strn.setNum(myTransFunc->getMinMapValue(),'g',4));
+	myDvrTab->rightMappingBound->setText(strn.setNum(myTransFunc->getMaxMapValue(),'g',4));
 	setDatarangeDirty();
 }
 
@@ -403,12 +399,12 @@ void DvrParams::setClutDirty(){
  */
 void DvrParams::
 updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
-	bool isLocal = local;
+	bool newLocal = local;
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	if (newWindow) {
 		prevEnabled = false;
 		wasLocal = true;
-		isLocal = true;
+		newLocal = true;
 	}
 	//The actual enabled state of "this" depends on whether we are local or global.
 	bool nowEnabled = enabled;
@@ -453,7 +449,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	//For a new renderer
 
 	
-	if (nowEnabled && !prevEnabled && isLocal){//For case 2.:  create a renderer in the active window:
+	if (nowEnabled && !prevEnabled && newLocal){//For case 2.:  create a renderer in the active window:
 
 		VolumizerRenderer* myDvr = new VolumizerRenderer(viz);
 		viz->addRenderer(myDvr);
@@ -467,7 +463,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		return;
 	}
 	
-	if (!isLocal && nowEnabled){ //case 3: create renderers in all  global windows, then return
+	if (!newLocal && nowEnabled){ //case 3: create renderers in all  global windows, then return
 		for (int i = 0; i<MAXVIZWINS; i++){
 			
 			viz = vizWinMgr->getVizWin(i);
@@ -482,7 +478,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		}
 		return;
 	}
-	if (!nowEnabled && prevEnabled && !isLocal && !wasLocal) { //case 5., disable all global renderers
+	if (!nowEnabled && prevEnabled && !newLocal && !wasLocal) { //case 5., disable all global renderers
 		for (int i = 0; i<MAXVIZWINS; i++){
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
@@ -491,7 +487,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		}
 		return;
 	}
-	assert(prevEnabled && !nowEnabled && (isLocal ||(isLocal != wasLocal))); //case 6, disable local only
+	assert(prevEnabled && !nowEnabled && (newLocal ||(newLocal != wasLocal))); //case 6, disable local only
 	viz->removeRenderer("VolumizerRenderer");
 
 	return;
@@ -520,28 +516,30 @@ reinit(bool doOverride){
 		MessageReporter::errorMsg("DVR Params: No data in specified dataset");
 		return;
 	}
+	//If we are overriding previous values, 
+	//Set the map bounds to the actual bounds in the data
+	if (doOverride){
+		myTransFunc->setMinMapValue(Session::getInstance()->getDataRange(varNum)[0]);
+		myTransFunc->setMaxMapValue(Session::getInstance()->getDataRange(varNum)[1]);
+	}
 	//Did number of variables change?  If so must recreate bounds arrays:
 	if (newNumVariables != numVariables){
-		float* newMinMap = new float[newNumVariables];
-		float* newMaxMap = new float[newNumVariables];
+		
 		float* newMinEdit = new float[newNumVariables];
 		float* newMaxEdit = new float[newNumVariables];
 		for (i = 0; i< numVariables && i<newNumVariables; i++){
-			newMinMap[i] = minMapBounds[i];
-			newMaxMap[i] = maxMapBounds[i];
+		
 			newMinEdit[i] = minEditBounds[i];
 			newMaxEdit[i] = maxEditBounds[i];
 		}
-		delete minMapBounds;
-		delete maxMapBounds;
-		minMapBounds = newMinMap;
-		maxMapBounds = newMaxMap;
+		
+		
 		delete minEditBounds;
 		delete maxEditBounds;
 		minEditBounds = newMinEdit;
 		maxEditBounds = newMaxEdit;
 	}
-	//Decide when to reset edit and map bounds.
+	//Decide when to reset edit bounds.
 	//If newNumVariables > old numVariables, 
 	//Or if previous range is invalid
 	//(the max is < min if no data was there)
@@ -549,18 +547,17 @@ reinit(bool doOverride){
 	
 	for (i = 0; i<newNumVariables; i++){
 		if (i>= numVariables || (doOverride) ||
-			(minMapBounds[i]>= maxMapBounds[i]) ||
 			(minEditBounds[i] >= maxEditBounds[i])){
-			minMapBounds[i] = Session::getInstance()->getDataRange(i)[0];
-			maxMapBounds[i] = Session::getInstance()->getDataRange(i)[1];
 			minEditBounds[i] = Session::getInstance()->getDataRange(i)[0];
 			maxEditBounds[i] = Session::getInstance()->getDataRange(i)[1];
 		}
 	}
+	
 	numVariables = newNumVariables;
 	bool wasEnabled = enabled;
 	setEnabled(false);
-	updateRenderer(wasEnabled, isLocal, false);
+	//Always disable  don't change local/global 
+	updateRenderer(wasEnabled, isLocal(), false);
 	setClutDirty();
 	setDatarangeDirty();
 	//If dvr is the current front tab, and if it applies to the active visualizer,
@@ -589,14 +586,11 @@ restart(){
 	numVariables = 0;
 	attenuationDirty = true;
 	//Initialize the mapping bounds to [0,1] until data is read
-	if (minMapBounds) delete minMapBounds;
-	if (maxMapBounds) delete maxMapBounds;
+	
 	if (minEditBounds) delete minEditBounds;
 	if (maxEditBounds) delete maxEditBounds;
-	minMapBounds = new float[1];
-	maxMapBounds = new float[1];
-	minMapBounds[0] = 0.f;
-	maxMapBounds[0] = 1.f;
+	
+	
 	minEditBounds = new float[1];
 	maxEditBounds = new float[1];
 	minEditBounds[0] = 0.f;
@@ -622,10 +616,10 @@ restart(){
 void DvrParams::
 setDatarangeDirty()
 {
-	if (currentDatarange[0] != minMapBounds[varNum] ||
-		currentDatarange[1] != maxMapBounds[varNum]){
-			currentDatarange[0] = minMapBounds[varNum];
-			currentDatarange[1] = maxMapBounds[varNum];
+	if (currentDatarange[0] != myTransFunc->getMinMapValue() ||
+		currentDatarange[1] != myTransFunc->getMaxMapValue()){
+			currentDatarange[0] = myTransFunc->getMinMapValue();
+			currentDatarange[1] = myTransFunc->getMaxMapValue();
 			VizWinMgr::getInstance()->setDataRangeDirty(this);
 	}
 }
@@ -639,13 +633,10 @@ sessionLoadTF(QString* name){
 	PanelCommand* cmd = PanelCommand::captureStart(this, "Load Transfer Function from Session");
 	
 	//Get the transfer function from the session:
-	float leftLimit, rightLimit;
+	
 	std::string s(name->ascii());
-	TransferFunction* tf = Session::getInstance()->getTF(&s,&leftLimit,&rightLimit);
+	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
-	//The min/max map bounds go into the dvrparams:
-	setMinMapBound(leftLimit);
-	setMaxMapBound(rightLimit);
 	hookupTF(tf);
 	PanelCommand::captureEnd(cmd, this);
 }
@@ -754,4 +745,17 @@ refreshTFFrame(){
 	myTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();	
 }
-	
+void DvrParams::setMinMapBound(float val){
+	myTransFunc->setMinMapValue(val);
+}
+void DvrParams::setMaxMapBound(float val){
+	myTransFunc->setMaxMapValue(val);
+}
+
+float DvrParams::getMinMapBound(){
+	return myTransFunc->getMinMapValue();
+}
+float DvrParams::getMaxMapBound(){
+	return myTransFunc->getMaxMapValue();
+}
+

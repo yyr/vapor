@@ -292,8 +292,7 @@ public:
 	bool removeTF(const std::string* name);
 	//Obtain the Transfer function associated with a name,
 	//plus, return left end right map limits.
-	TransferFunction* getTF(const std::string* tfName,
-		float* leftLim, float* rightLim);
+	TransferFunction* getTF(const std::string* tfName);
 	bool isValidTFName(const std::string* tfName);
 	QString* getTFFilePath() {
 		return tfFilePath;
@@ -336,8 +335,7 @@ protected:
 	TransferFunction** keptTFs;
 	std::string** tfNames;
 	int numTFs, tfListSize;
-	float* leftBounds; 
-	float* rightBounds;
+	
 	QString* tfFilePath;
 	string* currentMetadataPath;
 };
