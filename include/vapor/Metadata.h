@@ -28,7 +28,7 @@ namespace VAPoR {
 		return(RETVAL); \
 	}; \
 	if (! _rootnode->GetChild(TS)->GetChild(VAR)) { \
-		SetErrMsg("Invalid variable name : %s", VAR); \
+		SetErrMsg("Invalid variable name : %s", VAR.c_str()); \
 		return(RETVAL); \
 	}
 
