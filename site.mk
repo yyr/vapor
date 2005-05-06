@@ -93,7 +93,6 @@ else
 IDL_INC_PATH=/fs/local/apps/rsi/idl_6.0/external/include
 QTDIR = /fs/local/apps/qt-3.3.2
 endif
-HAVE_INTEL_COMPILERS = 1
 
 ifeq ($(MACHTYPE),ia64)
 BUILD64 = 1

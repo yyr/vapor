@@ -53,7 +53,7 @@ VOLUMIZER_ROOT =
 
 
 # Set to 1 if intel compilers are available on linux systems
-HAVE_INTEL_COMPILERS = 0
+#HAVE_INTEL_COMPILERS = 
 
 
 # Set to 1 if you have IDL installed on your system and you would
