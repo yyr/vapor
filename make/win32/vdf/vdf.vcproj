@@ -129,6 +129,9 @@
 				RelativePath="..\..\..\lib\vdf\DataMgr.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\ExpatParseMgr.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\ImpExp.cpp">
 			</File>
 			<File
@@ -174,6 +177,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\DataMgr.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\ExpatParseMgr.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\ImpExp.h">
