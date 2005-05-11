@@ -8,13 +8,13 @@ FILES = \
 	BlkMemMgr DataMgr Lifting1D Metadata WaveletBlock3D \
 	WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	WaveletBlock3DIO WaveletBlock3DReader WaveletBlock3DRegionReader \
-	WaveletBlock3DWriter XmlNode ImpExp vdf
+	WaveletBlock3DWriter XmlNode ImpExp vdf ExpatParseMgr
 
 HEADER_FILES = \
 	BlkMemMgr DataMgr Lifting1D Metadata WaveletBlock3D \
 	WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	WaveletBlock3DIO WaveletBlock3DReader WaveletBlock3DRegionReader \
-	WaveletBlock3DWriter XmlNode ImpExp
+	WaveletBlock3DWriter XmlNode ImpExp ExpatParseMgr
 
 #LIB_DEFS = vdf.def
   

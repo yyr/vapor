@@ -11,6 +11,7 @@
 #include <vapor/MyBase.h>
 #include <vaporinternal/common.h>
 #include "vapor/XmlNode.h"
+#include "vapor/ExpatParseMgr.h"
 #ifdef WIN32
 #pragma warning(disable : 4251)
 #endif
@@ -58,7 +59,7 @@ namespace VAPoR {
 //!	with the GetErrCode() method. If non-zero, an error 
 //!	message can be retrieved with GetErrMsg().
 //!
-class VDF_API Metadata : public VetsUtil::MyBase {
+	class VDF_API Metadata : public VetsUtil::MyBase , public ParsedXml {
 public:
 
  //! Create a metadata object from scratch. 
@@ -769,23 +770,9 @@ private:
  vector <long>		_emptyLongVec;
  string 			_emptyString;
 
- // Structure used for parsing metadata files
- //
- class VDF_API _expatStackElement {
-	public:
-	string tag;			// xml element tag
-	string data_type;	// Type of element data (string, double, or long)
-	int has_data;		// does the element have data?
-	int user_defined;	// is the element user defined?
- };
- stack	<VDF_API _expatStackElement *> _expatStateStack;
-
- XML_Parser _expatParser;	// XML Expat parser handle
- string _expatStringData;	// temp storage for XML element character data
- vector <long> _expatLongData;	// temp storage for XML long data
- vector <double> _expatDoubleData;	// temp storage for XML double  data
- string _expatCurrentVar;	// name of variable currently being processed
- long 	_expatCurrentTS;	// Number of time step currently being processed
+ 
+ string _currentVar;	// name of variable currently being processed
+ long 	_currentTS;	// Number of time step currently being processed
 
 
  // Known xml tags
@@ -846,47 +833,20 @@ private:
  int _SetVariableNames(XmlNode *node, long ts);
  int _RecordUserDataTags(vector <string> &keys, const string &tag);
 
- // XML Expat element handlers
- friend void	metadataStartElementHandler(
-	void *userData, const XML_Char *tag, const char **attrs
- ) {
-	Metadata *meta = (Metadata *) userData;
-	meta->_startElementHandler(tag, attrs);
- }
-
-
- friend void metadataEndElementHandler(void *userData, const XML_Char *tag) {
-	Metadata *meta = (Metadata *) userData;
-	meta->_endElementHandler(tag);
- }
-
- friend void	metadataCharDataHandler(
-	void *userData, const XML_Char *s, int len
- ) {
-	Metadata *meta = (Metadata *) userData;
-	meta->_charDataHandler(s, len);
- }
-
-
- void _startElementHandler(const XML_Char *tag, const char **attrs);
- void _endElementHandler(const XML_Char *tag);
- void _charDataHandler(const XML_Char *s, int len);
+bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);
+bool elementEndHandler(ExpatParseMgr*, int depth , std::string& );
 
  // XML Expat element handler helps. A different handler is defined
  // for each possible state (depth of XML tree) from 0 to 3
  //
- void _startElementHandler0(const string &tag, const char **attrs);
- void _startElementHandler1(const string &tag, const char **attrs);
- void _startElementHandler2(const string &tag, const char **attrs);
- void _startElementHandler3(const string &tag, const char **attrs);
- void _endElementHandler0(const string &tag);
- void _endElementHandler1(const string &tag);
- void _endElementHandler2(const string &tag);
- void _endElementHandler3(const string &tag);
-
- // Report an XML parsing error
- //
- void _parseError(const char *format, ...);
+ void _startElementHandler0(ExpatParseMgr*,const string &tag, const char **attrs);
+ void _startElementHandler1(ExpatParseMgr*,const string &tag, const char **attrs);
+ void _startElementHandler2(ExpatParseMgr*,const string &tag, const char **attrs);
+ void _startElementHandler3(ExpatParseMgr*,const string &tag, const char **attrs);
+ void _endElementHandler0(ExpatParseMgr*,const string &tag);
+ void _endElementHandler1(ExpatParseMgr*,const string &tag);
+ void _endElementHandler2(ExpatParseMgr*,const string &tag);
+ void _endElementHandler3(ExpatParseMgr*,const string &tag);
 
 
 };

@@ -10,7 +10,9 @@
 #include <vector>
 #include <string>
 #include <vapor/MyBase.h>
-
+#ifdef WIN32
+#pragma warning(disable : 4251)
+#endif
 
 namespace VAPoR {
 
@@ -42,7 +44,7 @@ namespace VAPoR {
 //! with the GetErrCode() method. If non-zero, an error 
 //! message can be retrieved with GetErrMsg().
 //!
-class XmlNode : public VetsUtil::MyBase {
+class VDF_API XmlNode : public VetsUtil::MyBase {
 public:
 	enum ErrCode_T {
 		ERR_DEF = 1,	// default error
@@ -223,7 +225,9 @@ public:
  //! Write the XML tree, rooted at this node, to a file in XML format
  //
  friend ostream& operator<<(ostream &s, const XmlNode &);
-
+ //Following is a substitute for exporting the "<<" operator in windows.
+ //I don't know how to export an operator<< !
+ static ostream& streamOut(ostream& os, const XmlNode& node);
 
 private:
  int	_objInitialized;	// has the obj successfully been initialized?
@@ -240,7 +244,7 @@ private:
 
 
 };
-
+//ostream& VAPoR::operator<< (ostream& os, const XmlNode& node);
 };
 
 #endif	//	_XmlNode_h_

@@ -239,9 +239,14 @@ XmlNode	*XmlNode::GetChild(const string &tag) {
 	SetErrMsg("Invalid child tag : %s", tag.c_str());
 	return(NULL);
 }
+ostream&
+XmlNode::streamOut(ostream&os, const XmlNode& node) {
+	os << node;
+	return os;
+}
 
-
-ostream	&VAPoR::operator<<(ostream &os, const XmlNode &node) {
+ostream& 
+VAPoR::operator<<(ostream& os, const XmlNode& node) {
 	map <const string, vector<long>*>::const_iterator plong;
 	map <const string, vector<double>*>::const_iterator pdouble;
 	map <const string, string>::const_iterator pstring;

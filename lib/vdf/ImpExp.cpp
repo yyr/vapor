@@ -24,7 +24,9 @@
 #include <sys/types.h>
 #ifndef WIN32
 #include <unistd.h>
+//Silence an annoying and unnecessary compiler warning
 #else
+#pragma warning(disable : 4251 4267)
 #include "windows.h"
 #include "Winnetwk.h"
 #endif
@@ -52,11 +54,8 @@ const string ImpExp::_regionTag = "Region";
 const string ImpExp::_timeSegmentTag = "TimeSegment";
 
 const string ImpExp::_typeAttr = "Type";
-
 const string ImpExp::_stringType = "String";
 const string ImpExp::_longType = "Long";
-const string ImpExp::_doubleType = "Double";
-
 
 ImpExp::ImpExp() {
 	_objInitialized = 0;
@@ -135,7 +134,6 @@ int ImpExp::Import(
 	SetDiagMsg("ImpExp::Import()");
 
 	ifstream is;
-	char line[1024];
 
 	string xmlpath = _getpath();
 	is.open(xmlpath.c_str());
@@ -150,42 +148,10 @@ int ImpExp::Import(
 	_rootnode = new XmlNode(_rootTag, attrs);
 
 	
-	// Create an Expat XML parser to parse the XML formatted metadata file
-	// specified by 'path'
-	//
-	_expatParser = XML_ParserCreate(NULL);
-	XML_SetElementHandler(
-		_expatParser, impExpStartElementHandler, impExpEndElementHandler
-	);
-	XML_SetCharacterDataHandler(_expatParser, impExpCharDataHandler);
-
-	XML_SetUserData(_expatParser, (void *) this);
-
-	// Parse the file until we run out of elements or a parsing error occurs
-	//
-    while(is.good()) {
-		int	rc;
-
-        is.read(line, sizeof(line)-1);
-        if ((rc=is.gcount()) > 0) {
-			if (XML_Parse(_expatParser, line, rc, 0) == XML_STATUS_ERROR) {
-				SetErrMsg(
-					"Error parsing xml file \"%s\" at line %d : %s",
-					xmlpath.c_str(), XML_GetCurrentLineNumber(_expatParser),
-					XML_ErrorString(XML_GetErrorCode(_expatParser))
-				);
-				return(-1);
-			}
-        }
-    }
-
-    if (is.bad()) {
-		SetErrMsg("Error reading file \"%s\"", xmlpath.c_str());
-		return(-1);
-    }
-    is.close();
-
-	XML_ParserFree(_expatParser);
+	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
+	parseMgr->parse(is);
+	delete parseMgr;
+	
 
     if (GetErrCode()) {
         return(-1);
@@ -211,149 +177,72 @@ int ImpExp::Import(
 }
 
 
+bool ImpExp::
+elementStartHandler(ExpatParseMgr* pm, int level , std::string& tagstr, const char **attrs){
 
-void	ImpExp::_startElementHandler(
-	const XML_Char *tag, const char **attrs
-) {
-	string tagstr(tag);
-	int level = (int) _expatStateStack.size(); // xml tree depth
-
-	_expatStringData.clear();	// XML char data gets stored here
-
-	// Create a new state element associated with the current 
-	// tree level
-	//
-	_expatStackElement *state = new _expatStackElement();
-	state->tag = tagstr;
-	state->has_data = 0;
-	_expatStateStack.push(state);
-	
 	// Invoke the appropriate start element handler depending on 
 	// the XML tree depth
 	//
 	switch  (level) {
 	case 0:
-		ImpExp::_startElementHandler0(tagstr, attrs);
-	break;
+		_startElementHandler0(pm, tagstr, attrs);
+		break;
 	case 1:
-		ImpExp::_startElementHandler1(tagstr, attrs);
-	break;
+		_startElementHandler1(pm, tagstr, attrs);
+		break;
 	default:
-		_parseError("Invalid tag : %s", tagstr.c_str());
-	break;
+		pm->parseError("Invalid tag : %s", tagstr.c_str());
+		return false;
 	}
-
+	return true;
 }
-
-void	ImpExp::_endElementHandler(const  XML_Char *tag)
+bool ImpExp::
+elementEndHandler(ExpatParseMgr* pm, int level , std::string& tagstr)
 {
-	string tagstr(tag);
-
-	_expatStackElement *state = _expatStateStack.top();
-
-	int level = (int) _expatStateStack.size() - 1; 	// XML tree depth
-
-	// remove leading and trailing white space from the XML char data
-	//
-	StrRmWhiteSpace(_expatStringData);
-
-	// Parse the element data, storing results in either the 
-	// _expatStringData, _expatDoubleData, or _expatLongData vectors
-	// as appropriate.
-	//
-	_expatLongData.clear();
-	_expatDoubleData.clear();
-	if (state->has_data) {
-		if (StrCmpNoCase(state->data_type, _doubleType) == 0) {
-			istringstream ist(_expatStringData);
-			double v;
-
-			while (ist >> v) {
-				_expatDoubleData.push_back(v);
-			}
-		}
-		else if (StrCmpNoCase(state->data_type, _longType) == 0) {
-			istringstream ist(_expatStringData);
-			long v;
-
-			while (ist >> v) {
-				_expatLongData.push_back(v);
-			}
-		}
-		else {
-			// do nothing - data already stored in appropriate form
-		}
-	}
-
 	// Invoke the appropriate end element handler for an element at
 	// XML tree depth, 'level'
 	//
 	switch  (level) {
 	case 0:
-		ImpExp::_endElementHandler0(tagstr);
+		_endElementHandler0(pm, tagstr);
 		break;
 
 	case 1:
-		ImpExp::_endElementHandler1(tagstr);
+		_endElementHandler1(pm, tagstr);
 		break;
 
 	default:
-		_parseError("Invalid state");
-	break;
+		pm->parseError("Invalid state");
+		return false;
 	}
-
-	_expatStateStack.pop();
-	delete state;
-
+	return true;
 }
 
-void	ImpExp::_charDataHandler(const XML_Char *s, int len) {
-
-	_expatStackElement *state = _expatStateStack.top();;
-
-	// Make sure this element is allowed to contain data. Note even
-	// elements with no real data seem to have a newline, triggering
-	// the invocation of this handler.  
-	//
-	if (state->has_data == 0 && len > 1) {
-		_parseError(
-			"Element \"%s\" not permitted to have data", state->tag.c_str()
-		);
-		return;
-	}
-
-	// Append the char data for this element to the buffer. Note, XML 
-	// character for a single element may be split into multiple pieces,
-	// triggering this callback more than one time for a given element. Hence
-	// we *append* the data.
-	//
-	_expatStringData.append(s, len);
-}
 
 // Level 0 start element handler. The only element tag permitted at this
 // level is the '_rootTag' tag
 //
-void	ImpExp::_startElementHandler0(
+void	ImpExp::_startElementHandler0(ExpatParseMgr* pm,
 	const string &tag, const char **attrs
 ) {
 
-	_expatStackElement *state = _expatStateStack.top();
+	ExpatStackElement *state = pm->getStateStackTop();
 	state->has_data = 0;
 
 
 	// Verify valid level 0 element
 	//
 	if (StrCmpNoCase(tag, _rootTag) != 0) {
-		_parseError("Invalid tag : \"%s\"", tag.c_str());
+		pm->parseError("Invalid tag : \"%s\"", tag.c_str());
 		return;
 	}
 
 }
 
-void	ImpExp::_startElementHandler1(
+void	ImpExp::_startElementHandler1(ExpatParseMgr* pm,
 	const string &tag, const char **attrs
 ) {
-	_expatStackElement *state = _expatStateStack.top();;
+	ExpatStackElement *state = pm->getStateStackTop();
 	state->has_data = 0;
 
 	string type;
@@ -361,7 +250,7 @@ void	ImpExp::_startElementHandler1(
 	// 
 	//
 	if (! *attrs) {
-		_parseError("Invalid tag : \"%s\"", tag.c_str());
+		pm->parseError("Invalid tag : \"%s\"", tag.c_str());
 		return;
 	}
 
@@ -375,7 +264,7 @@ void	ImpExp::_startElementHandler1(
 	attrs++;
 
 	if (*attrs) {
-		_parseError("Too many attributes");
+		pm->parseError("Too many attributes");
 		return;
 	}
 	istringstream ist(value);
@@ -383,7 +272,7 @@ void	ImpExp::_startElementHandler1(
 
 	state->has_data = 1;
 	if (StrCmpNoCase(attr, _typeAttr) != 0) {
-		_parseError("Invalid attribute : %s", attr.c_str());
+		pm->parseError("Invalid attribute : %s", attr.c_str());
 		return;
 	}
 
@@ -392,150 +281,75 @@ void	ImpExp::_startElementHandler1(
 	state->data_type = type;
 	if (StrCmpNoCase(tag, _pathNameTag) == 0) {
 		if (StrCmpNoCase(type, _stringType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _timeStepTag) == 0) {
 		if (StrCmpNoCase(type, _longType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _varNameTag) == 0) {
 		if (StrCmpNoCase(type, _stringType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _regionTag) == 0) {
 		if (StrCmpNoCase(type, _longType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _timeSegmentTag) == 0) {
 		if (StrCmpNoCase(type, _longType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else {
-		_parseError("Invalid tag : %s", tag.c_str());
+		pm->parseError("Invalid tag : %s", tag.c_str());
 		return;
 	}
 }
 
 
-void	ImpExp::_endElementHandler0(
+void	ImpExp::_endElementHandler0(ExpatParseMgr* pm,
 	const string &tag
 ) {
-	_expatStackElement *state = _expatStateStack.top();;
+	ExpatStackElement *state = pm->getStateStackTop();
 
 	// this test is probably superfluous
 	if (StrCmpNoCase(tag, state->tag) != 0) {
-		_parseError("Invalid tag : \"%s\"", tag.c_str());
+		pm->parseError("Invalid tag : \"%s\"", tag.c_str());
 		return;
 	}
 }
 
-void	ImpExp::_endElementHandler1(
+void	ImpExp::_endElementHandler1(ExpatParseMgr* pm,
 	const string &tag
 ) {
-	_expatStackElement *state = _expatStateStack.top();
+	ExpatStackElement *state = pm->getStateStackTop();
 	int	rc;
 
 
 	if (StrCmpNoCase(state->data_type, _stringType) == 0) {
-		rc = _rootnode->SetElementString(tag, _expatStringData);
+		rc = _rootnode->SetElementString(tag, pm->getStringData());
 	}
 	else if (StrCmpNoCase(state->data_type, _longType) == 0) {
-		rc = _rootnode->SetElementLong(tag, _expatLongData);
+		rc = _rootnode->SetElementLong(tag, pm->getLongData());
 	}
 	else {
-		rc = _rootnode->SetElementDouble(tag, _expatDoubleData);
+		rc = _rootnode->SetElementDouble(tag, pm->getDoubleData());
 	}
 	if (rc < 0) {
-		string s(GetErrMsg()); _parseError("%s", s.c_str());
+		string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 		return;
 	}
 }
 
-
-namespace {
-
-void	startNoOp(
-	void *userData, const XML_Char *tag, const char **attrs
-) {
-}
-
-void endNoOp(void *userData, const XML_Char *tag) {
-}
-
-void	charDataNoOp(
-	void *userData, const XML_Char *s, int len
-) {
-}
-
-};
-
-// Record an XML file parsing error and terminate file parsing
-//
-void	ImpExp::_parseError(
-	const char *format, 
-	...
-) {
-	va_list args;
-	int	done = 0;
-	const int alloc_size = 256;
-	int rc;
-	char	*msg = NULL;
-	size_t	msg_size = 0;
-
-	// Register NoOp handlers with XML parser or we'll continue to 
-	// parse the xml file
-	//
-	XML_SetElementHandler(_expatParser, startNoOp, endNoOp);
-	XML_SetCharacterDataHandler(_expatParser, charDataNoOp);
-
-	// Loop until we've successfully buffered the error message, growing
-	// the message buffer as needed
-	//
-	while (! done) {
-		va_start(args, format);
-#ifdef WIN32
-		rc = _vsnprintf(msg, msg_size, format, args);
-#else
-		rc = vsnprintf(msg, msg_size, format, args);
-#endif
-		va_end(args);
-
-		if (rc < (int)(msg_size-1)) {
-			done = 1;
-		} else {
-			if (msg) delete [] msg;
-			msg = new char[msg_size + alloc_size];
-			assert(msg != NULL);
-			msg_size += alloc_size;
-		}
-	}
-
-	
-	if (XML_GetErrorCode(_expatParser) == XML_ERROR_NONE) {
-		SetErrMsg(
-			"Metafile parsing terminated at line %d : %s", 
-			XML_GetCurrentLineNumber(_expatParser), msg
-		);
-	}
-	else {
-		SetErrMsg(
-			"Metafile parsing terminated at line %d (%s) : %s", 
-			XML_GetCurrentLineNumber(_expatParser), 
-			XML_ErrorString(XML_GetErrorCode(_expatParser)), msg
-		);
-	}
-
-}
 string ImpExp::_getpath() {
 
 	char	buf[128];

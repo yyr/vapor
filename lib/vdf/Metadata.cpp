@@ -186,7 +186,7 @@ Metadata::Metadata(const string &path) {
 	SetDiagMsg("Metadata::Metadata(%s)", path.c_str());
 
 	ifstream is;
-	char line[1024];
+	
 
 	_rootnode = NULL;
 
@@ -203,49 +203,10 @@ Metadata::Metadata(const string &path) {
 	_metafileDirName = Dirname(path.c_str(), _metafileDirName);
 	strcpy(_metafileName, Basename(path.c_str()));
 
-	// Create an Expat XML parser to parse the XML formatted metadata file
-	// specified by 'path'
-	//
-	_expatParser = XML_ParserCreate(NULL);
-	XML_SetElementHandler(
-		_expatParser, metadataStartElementHandler, metadataEndElementHandler
-	);
-	XML_SetCharacterDataHandler(_expatParser, metadataCharDataHandler);
-
-	XML_SetUserData(_expatParser, (void *) this);
-
-	// Parse the file until we run out of elements or a parsing error occurs
-	//
-    while(is.good()) {
-		int	rc;
-
-        is.read(line, sizeof(line)-1);
-        if ((rc=is.gcount()) > 0) {
-			if (XML_Parse(_expatParser, line, rc, 0) == XML_STATUS_ERROR) {
-				SetErrMsg(
-					"Error parsing xml file \"%s\" at line %d : %s",
-					path.c_str(), XML_GetCurrentLineNumber(_expatParser),
-					XML_ErrorString(XML_GetErrorCode(_expatParser))
-				);
-				XML_ParserFree(_expatParser);
-				return;
-			}
-        }
-    }
-	XML_ParserFree(_expatParser);
-
-    if (is.bad()) {
-		SetErrMsg("Error reading file \"%s\"", path.c_str());
-        return;
-    }
-    is.close();
-
-	int level = (int) _expatStateStack.size() - 1;  // XML tree depth
-	if (level != -1) {
-		SetErrMsg("Error reading file \"%s\"", path.c_str());
-        return;
-    }
-
+	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
+	parseMgr->parse(is);
+	delete parseMgr;
+	
 	_objInitialized = 1;
 }
 
@@ -608,147 +569,76 @@ int	Metadata::_RecordUserDataTags(vector<string> &keys, const string &tag) {
 	return(0);
 }
 
-void	Metadata::_startElementHandler(
-	const XML_Char *tag, const char **attrs
-) {
-	string tagstr(tag);
-	int level = (int) _expatStateStack.size(); // xml tree depth
-
-	_expatStringData.clear();	// XML char data gets stored here
-
-	// Create a new state element associated with the current 
-	// tree level
-	//
-	_expatStackElement *state = new _expatStackElement();
-	state->tag = tagstr;
-	state->has_data = 0;
-	state->user_defined = 0;
-	_expatStateStack.push(state);
+bool	Metadata::elementStartHandler(ExpatParseMgr* pm, int level , std::string& tagstr, const char **attrs){
+	//const XML_Char *tag, const char **attrs
+//) {
 	
 	// Invoke the appropriate start element handler depending on 
 	// the XML tree depth
 	//
 	switch  (level) {
-	case 0:
-		Metadata::_startElementHandler0(tagstr, attrs);
-	break;
-	case 1:
-		Metadata::_startElementHandler1(tagstr, attrs);
-	break;
-	case 2:
-		Metadata::_startElementHandler2(tagstr, attrs);
-	break;
-	case 3:
-		Metadata::_startElementHandler3(tagstr, attrs);
-	break;
-	default:
-		_parseError("Invalid tag : %s", tagstr.c_str());
-	break;
+		case 0:
+			_startElementHandler0(pm, tagstr, attrs);
+			break;
+		case 1:
+			_startElementHandler1(pm, tagstr, attrs);
+			break;
+		case 2:
+			_startElementHandler2(pm, tagstr, attrs);
+			break;
+		case 3:
+			_startElementHandler3(pm, tagstr, attrs);
+			break;
+		default:
+			pm->parseError("Invalid tag : %s", tagstr.c_str());
+			return false;
 	}
-
+	return true;
 }
 
-void	Metadata::_endElementHandler(const  XML_Char *tag)
+bool	Metadata::elementEndHandler(ExpatParseMgr* pm, int level , std::string& tagstr)
+ 
 {
-	string tagstr(tag);
 
-	_expatStackElement *state = _expatStateStack.top();
-
-	int level = (int) _expatStateStack.size() - 1; 	// XML tree depth
-
-	// remove leading and trailing white space from the XML char data
-	//
-	StrRmWhiteSpace(_expatStringData);
-
-	// Parse the element data, storing results in either the 
-	// _expatStringData, _expatDoubleData, or _expatLongData vectors
-	// as appropriate.
-	//
-	_expatLongData.clear();
-	_expatDoubleData.clear();
-	if (state->has_data) {
-		if (StrCmpNoCase(state->data_type, _doubleType) == 0) {
-			istringstream ist(_expatStringData);
-			double v;
-
-			while (ist >> v) {
-				_expatDoubleData.push_back(v);
-			}
-		}
-		else if (StrCmpNoCase(state->data_type, _longType) == 0) {
-			istringstream ist(_expatStringData);
-			long v;
-
-			while (ist >> v) {
-				_expatLongData.push_back(v);
-			}
-		}
-		else {
-			// do nothing - data already stored in appropriate form
-		}
-	}
+	
 
 	// Invoke the appropriate end element handler for an element at
 	// XML tree depth, 'level'
 	//
 	switch  (level) {
 	case 0:
-		Metadata::_endElementHandler0(tagstr);
-	break;
+		_endElementHandler0(pm, tagstr);
+		break;
 	case 1:
-		Metadata::_endElementHandler1(tagstr);
-	break;
+		_endElementHandler1(pm, tagstr);
+		break;
 	case 2:
-		Metadata::_endElementHandler2(tagstr);
-	break;
+		_endElementHandler2(pm, tagstr);
+		break;
 	case 3:
-		Metadata::_endElementHandler3(tagstr);
-	break;
+		_endElementHandler3(pm, tagstr);
+		break;
 	default:
-		_parseError("Invalid state");
-	break;
+		pm->parseError("Invalid state");
+		return false;
 	}
-
-	_expatStateStack.pop();
-	delete state;
-
+	return true;
 }
 
-void	Metadata::_charDataHandler(const XML_Char *s, int len) {
 
-	_expatStackElement *state = _expatStateStack.top();;
-
-	// Make sure this element is allowed to contain data. Note even
-	// elements with no real data seem to have a newline, triggering
-	// the invocation of this handler.  
-	//
-	if (state->has_data == 0 && len > 1) {
-		_parseError(
-			"Element \"%s\" not permitted to have data", state->tag.c_str()
-		);
-		return;
-	}
-
-	// Append the char data for this element to the buffer. Note, XML 
-	// character for a single element may be split into multiple pieces,
-	// triggering this callback more than one time for a given element. Hence
-	// we *append* the data.
-	//
-	_expatStringData.append(s, len);
-}
 
 // Level 0 start element handler. The only element tag permitted at this
 // level is the '_rootTag' tag
 //
-void	Metadata::_startElementHandler0(
+void	Metadata::_startElementHandler0(ExpatParseMgr* pm,
 	const string &tag, const char **attrs
 ) {
 
-	_expatStackElement *state = _expatStateStack.top();
+	ExpatStackElement *state = pm->getStateStackTop();
 	state->has_data = 0;
 	state->user_defined = 0;
 
-	_expatCurrentTS = 0;
+	_currentTS = 0;
 
 	size_t bs;
 	size_t dim[3];
@@ -761,7 +651,7 @@ void	Metadata::_startElementHandler0(
 	// Verify valid level 0 element
 	//
 	if (StrCmpNoCase(tag, _rootTag) != 0) {
-		_parseError("Invalid tag : \"%s\"", tag.c_str());
+		pm->parseError("Invalid tag : \"%s\"", tag.c_str());
 		return;
 	}
 
@@ -793,23 +683,23 @@ void	Metadata::_startElementHandler0(
 			ist >> msbFirst;
 		}
 		else {
-			_parseError("Invalid tag attribute : \"%s\"", attr.c_str());
+			pm->parseError("Invalid tag attribute : \"%s\"", attr.c_str());
 		}
 	}
 
 	_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst);
 	if (GetErrCode()) {
-		string s(GetErrMsg()); _parseError("%s", s.c_str());
+		string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 		return;
 	}
 
 
 }
 
-void	Metadata::_startElementHandler1(
+void	Metadata::_startElementHandler1(ExpatParseMgr* pm,
 	const string &tag, const char **attrs
 ) {
-	_expatStackElement *state = _expatStateStack.top();;
+	ExpatStackElement *state = pm->getStateStackTop();
 	state->has_data = 0;
 	state->user_defined = 0;
 
@@ -820,12 +710,12 @@ void	Metadata::_startElementHandler1(
 	if (! *attrs) {
 		if (StrCmpNoCase(tag, _timeStepTag) == 0) {
 			if (*attrs) {
-				_parseError("Unexpected element attribute : %s", *attrs);
+				pm->parseError("Unexpected element attribute : %s", *attrs);
 				return;
 			}
 		}
 		else {
-			_parseError("Invalid tag : \"%s\"", tag.c_str());
+			pm->parseError("Invalid tag : \"%s\"", tag.c_str());
 			return;
 		}
 		return;
@@ -841,7 +731,7 @@ void	Metadata::_startElementHandler1(
 	attrs++;
 
 	if (*attrs) {
-		_parseError("Too many attributes");
+		pm->parseError("Too many attributes");
 		return;
 	}
 	istringstream ist(value);
@@ -849,7 +739,7 @@ void	Metadata::_startElementHandler1(
 
 	state->has_data = 1;
 	if (StrCmpNoCase(attr, _typeAttr) != 0) {
-		_parseError("Invalid attribute : %s", attr.c_str());
+		pm->parseError("Invalid attribute : %s", attr.c_str());
 		return;
 	}
 
@@ -858,37 +748,37 @@ void	Metadata::_startElementHandler1(
 	state->data_type = type;
 	if (StrCmpNoCase(tag, _numTimeStepsTag) == 0) {
 		if (StrCmpNoCase(type, _longType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _extentsTag) == 0) {
 		if (StrCmpNoCase(type, _doubleType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _commentTag) == 0) {
 		if (StrCmpNoCase(type, _stringType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _coordSystemTypeTag) == 0) {
 		if (StrCmpNoCase(type, _stringType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _gridTypeTag) == 0) {
 		if (StrCmpNoCase(type, _stringType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _varNamesTag) == 0) {
 		if (StrCmpNoCase(type, _stringType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
@@ -898,17 +788,17 @@ void	Metadata::_startElementHandler1(
 			(StrCmpNoCase(type, _longType) != 0) || 
 			(StrCmpNoCase(type, _doubleType) != 0))) {
 
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 		state->user_defined = 1;
 	}
 }
 
-void	Metadata::_startElementHandler2(
+void	Metadata::_startElementHandler2(ExpatParseMgr* pm,
 	const string &tag, const char **attrs
 ) {
-	_expatStackElement *state = _expatStateStack.top();;
+	ExpatStackElement *state = pm->getStateStackTop();
 	state->has_data = 0;
 	state->user_defined = 0;
 
@@ -923,11 +813,11 @@ void	Metadata::_startElementHandler2(
 		//
 		for(int i = 0; i<(int)_varNames.size(); i++) {
 			if ((StrCmpNoCase(tag, _varNames[i]) == 0)) {
-				_expatCurrentVar = tag;
+				_currentVar = tag;
 				return;
 			}
 		}
-		_parseError("Invalid tag : \"%s\"", tag.c_str());
+		pm->parseError("Invalid tag : \"%s\"", tag.c_str());
 		return;
 	}
 
@@ -941,7 +831,7 @@ void	Metadata::_startElementHandler2(
 	attrs++;
 
 	if (*attrs) {
-		_parseError("Too many attributes");
+		pm->parseError("Too many attributes");
 		return;
 	}
 	istringstream ist(value);
@@ -951,7 +841,7 @@ void	Metadata::_startElementHandler2(
 	state->has_data = 1;
 
 	if (StrCmpNoCase(attr, _typeAttr) != 0) {
-		_parseError("Invalid attribute : %s", attr.c_str());
+		pm->parseError("Invalid attribute : %s", attr.c_str());
 		return;
 	}
 
@@ -961,25 +851,25 @@ void	Metadata::_startElementHandler2(
 
 	if (StrCmpNoCase(tag, _userTimeTag) == 0) {
 		if (StrCmpNoCase(type, _doubleType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _xCoordsTag) == 0) {
 		if (StrCmpNoCase(type, _doubleType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _yCoordsTag) == 0) {
 		if (StrCmpNoCase(type, _doubleType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _zCoordsTag) == 0) {
 		if (StrCmpNoCase(type, _doubleType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
@@ -989,7 +879,7 @@ void	Metadata::_startElementHandler2(
 			(StrCmpNoCase(type, _longType) != 0) || 
 			(StrCmpNoCase(type, _doubleType) != 0))) {
 
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 		state->user_defined = 1;
@@ -997,17 +887,17 @@ void	Metadata::_startElementHandler2(
 }
 
 
-void	Metadata::_startElementHandler3(
+void	Metadata::_startElementHandler3(ExpatParseMgr* pm,
 	const string &tag, const char **attrs
 ) {
-	_expatStackElement *state = _expatStateStack.top();;
+	ExpatStackElement *state = pm->getStateStackTop();
 	state->has_data = 0;
 	state->user_defined = 0;
 
 	string type;
 
 	if (! *attrs) {
-		_parseError("Expected element attribute");
+		pm->parseError("Expected element attribute");
 		return;
 	}
 
@@ -1017,7 +907,7 @@ void	Metadata::_startElementHandler3(
 	attrs++;
 
 	if (*attrs) {
-		_parseError("Too many attributes");
+		pm->parseError("Too many attributes");
 		return;
 	}
 	istringstream ist(value);
@@ -1029,7 +919,7 @@ void	Metadata::_startElementHandler3(
 	state->has_data = 1;
 
 	if (StrCmpNoCase(attr, _typeAttr) != 0) {
-		_parseError("Invalid attribute : %s", attr.c_str());
+		pm->parseError("Invalid attribute : %s", attr.c_str());
 		return;
 	}
 
@@ -1039,17 +929,17 @@ void	Metadata::_startElementHandler3(
 
 	if (StrCmpNoCase(tag, _commentTag) == 0) {
 		if (StrCmpNoCase(type, _stringType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	} else if (StrCmpNoCase(tag, _basePathTag) == 0) {
 		if (StrCmpNoCase(type, _stringType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	} else if (StrCmpNoCase(tag, _dataRangeTag) == 0) {
 		if (StrCmpNoCase(type, _doubleType) != 0) {
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 	}
@@ -1059,67 +949,67 @@ void	Metadata::_startElementHandler3(
 			(StrCmpNoCase(type, _longType) != 0) || 
 			(StrCmpNoCase(type, _doubleType) != 0))) {
 
-			_parseError("Invalid attribute type : \"%s\"", type.c_str());
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
 		state->user_defined = 1;
 	}
 }
 
-void	Metadata::_endElementHandler0(
+void	Metadata::_endElementHandler0(ExpatParseMgr* pm,
 	const string &tag
 ) {
-	_expatStackElement *state = _expatStateStack.top();;
+	ExpatStackElement *state = pm->getStateStackTop();
 
 	// this test is probably superfluous
 	if (StrCmpNoCase(tag, state->tag) != 0) {
-		_parseError("Invalid tag : \"%s\"", tag.c_str());
+		pm->parseError("Invalid tag : \"%s\"", tag.c_str());
 		return;
 	}
 }
 
-void	Metadata::_endElementHandler1(
+void	Metadata::_endElementHandler1(ExpatParseMgr* pm,
 	const string &tag
 ) {
-	_expatStackElement *state = _expatStateStack.top();
+	ExpatStackElement *state = pm->getStateStackTop();
 
 	if (! state->has_data) {
 		if (StrCmpNoCase(tag, _timeStepTag) == 0) {
-			_expatCurrentTS++;
+			_currentTS++;
 		} 
 	}
 	else if (StrCmpNoCase(tag, _numTimeStepsTag) == 0) {
-		if (SetNumTimeSteps(_expatLongData[0]) < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+		if (SetNumTimeSteps(pm->getLongData()[0]) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _extentsTag) == 0) {
-		if (SetExtents(_expatDoubleData) < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+		if (SetExtents(pm->getDoubleData()) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _commentTag) == 0) {
-		if (SetComment(_expatStringData) < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+		if (SetComment(pm->getStringData()) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _coordSystemTypeTag) == 0) {
-		if (SetCoordSystemType(_expatStringData) < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+		if (SetCoordSystemType(pm->getStringData()) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _gridTypeTag) == 0) {
-		if (SetGridType(_expatStringData) < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+		if (SetGridType(pm->getStringData()) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _varNamesTag) == 0) {
-		istringstream ist(_expatStringData);
+		istringstream ist(pm->getStringData());
 		string v;
 		vector <string> vec;
 
@@ -1127,7 +1017,7 @@ void	Metadata::_endElementHandler1(
 			vec.push_back(v);
 		}
 		if (SetVariableNames(vec) < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
@@ -1136,56 +1026,56 @@ void	Metadata::_endElementHandler1(
 		// must be user data
 
 		if (StrCmpNoCase(state->data_type, _stringType) == 0) {
-			rc = SetUserDataString(tag, _expatStringData);
+			rc = SetUserDataString(tag, pm->getStringData());
 		}
 		else if (StrCmpNoCase(state->data_type, _longType) == 0) {
-			rc = SetUserDataLong(tag, _expatLongData);
+			rc = SetUserDataLong(tag, pm->getLongData());
 		}
 		else {
-			rc = SetUserDataDouble(tag, _expatDoubleData);
+			rc = SetUserDataDouble(tag, pm->getDoubleData());
 		}
 		if (rc < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 }
 
-void	Metadata::_endElementHandler2(
+void	Metadata::_endElementHandler2(ExpatParseMgr* pm,
 	const string &tag
 ) {
-	_expatStackElement *state = _expatStateStack.top();
+	ExpatStackElement *state = pm->getStateStackTop();
 
 	if (! state->has_data) {
 		// do nothing
 
 	} else if (StrCmpNoCase(tag, _userTimeTag) == 0) {
-		if (SetTSUserTime(_expatCurrentTS, _expatDoubleData) < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+		if (SetTSUserTime(_currentTS, pm->getDoubleData()) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _commentTag) == 0) {
-		if (SetTSComment(_expatCurrentTS, _expatStringData) < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+		if (SetTSComment(_currentTS, pm->getStringData()) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _xCoordsTag) == 0) {
-		if (SetTSXCoords(_expatCurrentTS, _expatDoubleData) < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+		if (SetTSXCoords(_currentTS, pm->getDoubleData()) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _yCoordsTag) == 0) {
-		if (SetTSYCoords(_expatCurrentTS, _expatDoubleData) < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+		if (SetTSYCoords(_currentTS, pm->getDoubleData()) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _zCoordsTag) == 0) {
-		if (SetTSZCoords(_expatCurrentTS, _expatDoubleData) < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+		if (SetTSZCoords(_currentTS, pm->getDoubleData()) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
@@ -1194,46 +1084,46 @@ void	Metadata::_endElementHandler2(
 		// must be user data
 
 		if (StrCmpNoCase(state->data_type, _stringType) == 0) {
-			rc = SetTSUserDataString(_expatCurrentTS, tag, _expatStringData);
+			rc = SetTSUserDataString(_currentTS, tag, pm->getStringData());
 		}
 		else if (StrCmpNoCase(state->data_type, _longType) == 0) {
-			rc = SetTSUserDataLong(_expatCurrentTS, tag, _expatLongData);
+			rc = SetTSUserDataLong(_currentTS, tag, pm->getLongData());
 		}
 		else {
-			rc = SetTSUserDataDouble(_expatCurrentTS, tag, _expatDoubleData);
+			rc = SetTSUserDataDouble(_currentTS, tag, pm->getDoubleData());
 		}
 		if (rc < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 }
 
 
-void	Metadata::_endElementHandler3(
+void	Metadata::_endElementHandler3(ExpatParseMgr* pm,
 	const string &tag
 ) {
-	_expatStackElement *state = _expatStateStack.top();
+	ExpatStackElement *state = pm->getStateStackTop();
 
 	if (StrCmpNoCase(tag, _commentTag) == 0) {
-		if (SetVComment(_expatCurrentTS, _expatCurrentVar, _expatStringData)<0){
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+		if (SetVComment(_currentTS, _currentVar, pm->getStringData())<0){
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _basePathTag) == 0) {
 		if (SetVUserDataString(
-			_expatCurrentTS, _expatCurrentVar, tag,  _expatStringData) < 0) {
+			_currentTS, _currentVar, tag,  pm->getStringData()) < 0) {
 
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 	else if (StrCmpNoCase(tag, _dataRangeTag) == 0) {
 		if (SetVDataRange(
-			_expatCurrentTS, _expatCurrentVar, _expatDoubleData) < 0) {
+			_currentTS, _currentVar, pm->getDoubleData()) < 0) {
 
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
@@ -1243,97 +1133,25 @@ void	Metadata::_endElementHandler3(
 
 		if (StrCmpNoCase(state->data_type, _stringType) == 0) {
 			rc = SetVUserDataString(
-				_expatCurrentTS, _expatCurrentVar, tag, _expatStringData
+				_currentTS, _currentVar, tag, pm->getStringData()
 			);
 		}
 		else if (StrCmpNoCase(state->data_type, _longType) == 0) {
 			rc = SetVUserDataLong(
-				_expatCurrentTS, _expatCurrentVar, tag, _expatLongData
+				_currentTS, _currentVar, tag, pm->getLongData()
 			);
 		}
 		else {
 			rc = SetVUserDataDouble(
-				_expatCurrentTS, _expatCurrentVar, tag, _expatDoubleData
+				_currentTS, _currentVar, tag, pm->getDoubleData()
 			);
 		}
 		if (rc < 0) {
-			string s(GetErrMsg()); _parseError("%s", s.c_str());
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}
 	}
 }
 
-namespace {
 
-void	startNoOp(
-	void *userData, const XML_Char *tag, const char **attrs
-) {
-}
 
-void endNoOp(void *userData, const XML_Char *tag) {
-}
-
-void	charDataNoOp(
-	void *userData, const XML_Char *s, int len
-) {
-}
-
-};
-
-// Record an XML file parsing error and terminate file parsing
-//
-void	Metadata::_parseError(
-	const char *format, 
-	...
-) {
-	va_list args;
-	int	done = 0;
-	const int alloc_size = 256;
-	int rc;
-	char	*msg = NULL;
-	size_t	msg_size = 0;
-
-	// Register NoOp handlers with XML parser or we'll continue to 
-	// parse the xml file
-	//
-	XML_SetElementHandler(_expatParser, startNoOp, endNoOp);
-	XML_SetCharacterDataHandler(_expatParser, charDataNoOp);
-
-	// Loop until we've successfully buffered the error message, growing
-	// the message buffer as needed
-	//
-	while (! done) {
-		va_start(args, format);
-#ifdef WIN32
-		rc = _vsnprintf(msg, msg_size, format, args);
-#else
-		rc = vsnprintf(msg, msg_size, format, args);
-#endif
-		va_end(args);
-
-		if (rc < (int)(msg_size-1)) {
-			done = 1;
-		} else {
-			if (msg) delete [] msg;
-			msg = new char[msg_size + alloc_size];
-			assert(msg != NULL);
-			msg_size += alloc_size;
-		}
-	}
-
-	
-	if (XML_GetErrorCode(_expatParser) == XML_ERROR_NONE) {
-		SetErrMsg(
-			"Metafile parsing terminated at line %d : %s", 
-			XML_GetCurrentLineNumber(_expatParser), msg
-		);
-	}
-	else {
-		SetErrMsg(
-			"Metafile parsing terminated at line %d (%s) : %s", 
-			XML_GetCurrentLineNumber(_expatParser), 
-			XML_ErrorString(XML_GetErrorCode(_expatParser)), msg
-		);
-	}
-
-}
