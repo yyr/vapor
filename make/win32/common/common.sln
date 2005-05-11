@@ -44,6 +44,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "idl", "..\idl\idl.vcproj", 
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testimpexp", "..\testimpexp\testimpexp.vcproj", "{58AD122F-0E8E-4F94-A503-E030309B280D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -82,6 +88,10 @@ Global
 		{D6470EA9-EF19-437A-AAB2-794FA21BC76D}.Debug.Build.0 = Debug|Win32
 		{D6470EA9-EF19-437A-AAB2-794FA21BC76D}.Release.ActiveCfg = Release|Win32
 		{D6470EA9-EF19-437A-AAB2-794FA21BC76D}.Release.Build.0 = Release|Win32
+		{58AD122F-0E8E-4F94-A503-E030309B280D}.Debug.ActiveCfg = Debug|Win32
+		{58AD122F-0E8E-4F94-A503-E030309B280D}.Debug.Build.0 = Debug|Win32
+		{58AD122F-0E8E-4F94-A503-E030309B280D}.Release.ActiveCfg = Release|Win32
+		{58AD122F-0E8E-4F94-A503-E030309B280D}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
