@@ -19,6 +19,10 @@
 //		dvr renderer.  Includes a transfer function and a
 //		transfer function editor.
 //
+#ifdef WIN32
+//Annoying unreferenced formal parameter warning
+#pragma warning( disable : 4100 )
+#endif
 
 #include <qlineedit.h>
 #include <qcombobox.h>
@@ -32,6 +36,9 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include "dvrparams.h"
 #include "dvr.h" 
 #include "mainform.h"
@@ -54,6 +61,8 @@
 #ifdef VOLUMIZER
 #include "volumizerrenderer.h"
 #endif
+
+
 
 using namespace VAPoR;
 
@@ -657,8 +666,12 @@ fileLoadTF(){
 	if (!s.endsWith(".vtf")){
 		s += ".vtf";
 	}
-	FILE* f = fopen(s.ascii(), "r");
-	if (!f){//Report error if you can't open the file
+	
+	ifstream is;
+	
+	is.open(s.ascii());
+
+	if (!is){//Report error if you can't open the file
 		QString str("Unable to open file: \n");
 		str+= s;
 		MessageReporter::errorMsg(str.ascii());
@@ -668,7 +681,7 @@ fileLoadTF(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "Load Transfer Function from file");
 	
-	TransferFunction* t = TransferFunction::loadFromFile(f, this);
+	TransferFunction* t = TransferFunction::loadFromFile(is);
 	if (!t){//Report error if can't load
 		QString str("Error loading transfer function. /nFailed to convert input file: \n ");
 		str += s;
@@ -721,6 +734,16 @@ fileSaveTF(){
 	if (!s.endsWith(".vtf")){
 		s += ".vtf";
 	}
+	ofstream fileout;
+	fileout.open(s.ascii());
+	if (! fileout) {
+		QString str("Unable to save to file: \n");
+		str += s;
+		MessageReporter::errorMsg( str.ascii());
+		return;
+	}
+	
+	/*
 	FILE* f = fopen(s.ascii(), "w");
 	if (!f){//Report error if you can't open the file
 		QString str("Unable to save to file: \n");
@@ -728,14 +751,16 @@ fileSaveTF(){
 		MessageReporter::errorMsg( str.ascii());
 		return;
 	}
+	*/
 	
-	if (!myTransFunc->saveToFile(f)){//Report error if can't save to file
+	if (!myTransFunc->saveToFile(fileout)){//Report error if can't save to file
 		QString str("Failed to write output file: \n");
 		str += s;
 		MessageReporter::errorMsg(str.ascii());
+		fileout.close();
 		return;
 	}
-
+	fileout.close();
 	Session::getInstance()->updateTFFilePath(&s);
 }
 // Force the tframe to update

@@ -27,14 +27,18 @@
 #define MAXCONTROLPOINTS 100
 #include "tfinterpolator.h"
 #include "dvrparams.h"
+#include "vapor/ExpatParseMgr.h"
 #include <qcolor.h>
 
 namespace VAPoR {
 class TFEditor;
 class DvrParams;
-class TransferFunction {
+class XmlNode;
+
+class TransferFunction : public ParsedXml {
 public:
 	TransferFunction(DvrParams* p, int nBits);
+	TransferFunction();
 	~TransferFunction();
 	//Insert a control point without disturbing values;
 	//return new index
@@ -132,9 +136,29 @@ public:
 	//The gui opens the FILEs that are then read/written
 	//Failure results in false/null pointer
 	//
-	bool saveToFile(FILE* f);
-	static TransferFunction* loadFromFile(FILE* f, DvrParams* p);
+	bool saveToFile(ofstream& f);
+	static TransferFunction* loadFromFile(ifstream& is);
+	XmlNode* buildNode();
+	//All the parsing can be done with the start handlers
+	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, const char **attr);
+	bool elementEndHandler(ExpatParseMgr*, int , std::string& ) {return true;}
+	
 protected:
+	//Tags and attributes for reading and writing
+	static const string _transferFunctionTag;
+	static const string _leftBoundAttr;
+	static const string _rightBoundAttr;
+	static const string _hsvAttr;
+	static const string _positionAttr;
+	static const string _opacityAttr;
+	static const string _opacityControlPointTag;
+	static const string _colorControlPointTag;
+	//Additional attributes not yet supported:
+	static const string _interpolatorAttr;
+	static const string _rgbAttr;
+	static const string _commentTag;
+	static const string _numEntriesAttr;
+
 	//find the index of the largest control point to the left of val
 	//Input value is normalized (note this is protected)
 	//
@@ -155,10 +179,11 @@ protected:
 	TFEditor* myTFEditor;
 	DvrParams* myParams;
 	
-	//Size of lookup table.  Always 1<<8 these days!
+	//Size of lookup table.  Always 1<<8 currently!
 	//
 	int numEntries;
 
+	
 };
 };
 #endif //TRANSFERFUNCTION_H

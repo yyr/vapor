@@ -985,6 +985,7 @@ void VizWinMgr::startPlay(AnimationParams* aParams){
 
 void VizWinMgr::
 setClutDirty(DvrParams* dParams){
+	if (!dParams) return;
 	if (activeViz>=0) {
 		vizWin[activeViz]->setClutDirty(true);
 		vizWin[activeViz]->updateGL();
