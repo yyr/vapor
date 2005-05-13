@@ -95,7 +95,7 @@ public:
 	string *path, size_t *ts, string *varname, 
 	size_t min[3], size_t max[3], size_t timeseg[2]
  );
-
+static string GetPath();
 private:
 	int	_objInitialized;	// has the obj successfully been initialized?
 	XmlNode	*_rootnode;		// root node of the xml tree
@@ -121,7 +121,7 @@ private:
 	void _endElementHandler0(ExpatParseMgr*,const string &tag);
 	void _endElementHandler1(ExpatParseMgr*,const string &tag);
 
-	string _getpath();
+	
 
 };
 

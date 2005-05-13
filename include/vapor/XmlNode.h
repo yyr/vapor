@@ -187,7 +187,16 @@ public:
 	const string &tag, const map <const string, string> &attrs, 
 	size_t numChildrenHint = 0
  );
-
+ //! Add an existing node as a child of the current node.
+ //!
+ //! The new child node will be 
+ //! appended to the array of child nodes. 
+ //!
+ //! \param[in] child is the XmlNode object to be added as a child
+ //
+ void AddChild(
+	XmlNode* child
+ );
  //! Delete the indicated child node.
  //! 
  //! Delete the indicated child node, decrementing the total number
