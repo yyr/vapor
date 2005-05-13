@@ -9,7 +9,7 @@
 //								*
 //************************************************************************/
 //
-//	File:		XmlNode.cc
+//	File:		XmlNode.cpp
 //
 //	Author:		John Clyne
 //			National Center for Atmospheric Research
@@ -205,6 +205,13 @@ XmlNode	*XmlNode::NewChild(
 	_children.push_back(node);
 	return(node);
 }
+
+void	XmlNode::AddChild( XmlNode* child)
+{
+	_children.push_back(child);
+	return;
+}
+
 
 int	XmlNode::DeleteChild(size_t index) {
 	if (index >= _children.size()) return(-1);

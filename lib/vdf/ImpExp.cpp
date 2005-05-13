@@ -112,7 +112,7 @@ int ImpExp::Export(
 
 
     ofstream fileout;
-	string xmlpath = _getpath();
+	string xmlpath = GetPath();
     fileout.open(xmlpath.c_str());
     if (! fileout) {
         SetErrMsg("Can't open file \"%s\" for writing", xmlpath.c_str());
@@ -135,7 +135,7 @@ int ImpExp::Import(
 
 	ifstream is;
 
-	string xmlpath = _getpath();
+	string xmlpath = GetPath();
 	is.open(xmlpath.c_str());
 	if (! is) {
 		SetErrMsg("Can't open file \"%s\" for reading", xmlpath.c_str());
@@ -350,7 +350,7 @@ void	ImpExp::_endElementHandler1(ExpatParseMgr* pm,
 	}
 }
 
-string ImpExp::_getpath() {
+string ImpExp::GetPath() {
 
 	char	buf[128];
 #ifdef WIN32
