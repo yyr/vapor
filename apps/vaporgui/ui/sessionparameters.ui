@@ -178,6 +178,9 @@
                         <property name="text">
                             <string>/tmp</string>
                         </property>
+                        <property name="readOnly">
+                            <bool>false</bool>
+                        </property>
                     </widget>
                     <spacer row="1" column="0">
                         <property name="name">
@@ -313,7 +316,7 @@
                             <string></string>
                         </property>
                         <property name="pixmap">
-                            <pixmap>image1</pixmap>
+                            <pixmap>image0</pixmap>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Choose Export Directory</string>
@@ -662,9 +665,6 @@
 </widget>
 <images>
     <image name="image0">
-        <data format="XPM.GZ" length="1442">789c7dd2db6eda401006e07b9ec2823b5411ecf50154f582704e20104850a5aa17f68e0dd881100e0112f5ddeb999d2571e5748c8c3efe9dd9b5cc55d9f8391e1ae5abc26eefef97d2900b7f6b94e1b05a9d7ffdfef15e285ab66109c3a91a66f15ba10886344a552aa464da8a73620d2f6483291503a459356d93166f8835539a943e232dd3aa5ab451c4b4155f8975ab66d5913ba6547c440a53f0a9c64c3ed58ba6a05143625dd454fac0948aa1a6a0c9b748db4a8f4ce993a66d21a74c47a50b4d958e88be5d576997098a3748c77278f284c9a33a44dfe1c5d748d7c40b39200a977bfb4ceebd23062eefdb66f2a81ed2131ef7b698dcdb24061ef7be21a52b857aa203d37305728b0417841b207d4d1922cf4ccff6912564e88676488f70227a21a7474d8736da13a330f068a30a330c2572868c9cf4a2f49ee845c2a363ac999e62a259b391f185346aa559a7747921a595526e55e879fcdc2ae5648184af3200fce466f43bde206fa65e73c9c268fe4f74c916cb38816ca4b3a7e52a59c33c788ea2cd5cafe1ec651527eb7592c471fabd854cb68b93344bc3b4f6876cf68a6d47aad3f92d273b9d40976ca4b7eb8f2c8d9a582dac76a70b9ffa38c2b0d7bfb9053d338a93a38e9aadf6a03b84cb7e9b346a71f5ee3aa3317c9ca5710f7d5d83c974fcf93d004cba23aee9c363f6fd41a6be7eeffffb4f64b25925b766c53fdf0b7f01c8506b3f</data>
-    </image>
-    <image name="image1">
         <data format="XPM.GZ" length="1442">789c7dd2db6eda401006e07b9ec2823b5411ecf50154f582704e20104850a5aa17f68e0dd881100e0112f5ddeb999d2571e5748c8c3efe9dd9b5cc55d9f8391e1ae5abc26eefef97d2900b7f6b94e1b05a9d7ffdfef15e285ab66109c3a91a66f15ba10886344a552aa464da8a73620d2f6483291503a459356d93166f8835539a943e232dd3aa5ab451c4b4155f8975ab66d5913ba6547c440a53f0a9c64c3ed58ba6a05143625dd454fac0948aa1a6a0c9b748db4a8f4ce993a66d21a74c47a50b4d958e88be5d576997098a3748c77278f284c9a33a44dfe1c5d748d7c40b39200a977bfb4ceebd23062eefdb66f2a81ed2131ef7b698dcdb24061ef7be21a52b857aa203d37305728b0417841b207d4d1922cf4ccff6912564e88676488f70227a21a7474d8736da13a330f068a30a330c2572868c9cf4a2f49ee845c2a363ac999e62a259b391f185346aa559a7747921a595526e55e879fcdc2ae5648184af3200fce466f43bde206fa65e73c9c268fe4f74c916cb38816ca4b3a7e52a59c33c788ea2cd5cafe1ec651527eb7592c471fabd854cb68b93344bc3b4f6876cf68a6d47aad3f92d273b9d40976ca4b7eb8f2c8d9a582dac76a70b9ffa38c2b0d7bfb9053d338a93a38e9aadf6a03b84cb7e9b346a71f5ee3aa3317c9ca5710f7d5d83c974fcf93d004cba23aee9c363f6fd41a6be7eeffffb4f64b25925b766c53fdf0b7f01c8506b3f</data>
     </image>
 </images>
