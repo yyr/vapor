@@ -392,3 +392,11 @@ setCoordTrans(){
 		minCubeCoord[i] = (float)extents[i];
 	}
 }
+bool ViewpointParams::
+elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){
+	return false;
+}
+bool ViewpointParams::
+elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){
+	return false;
+}

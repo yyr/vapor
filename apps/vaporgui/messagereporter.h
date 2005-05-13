@@ -66,7 +66,7 @@ public:
 		{maxPopup[mP] = num;}
 	int getMaxLog(messagePriority mP) {return maxLogMsg[mP];}
 	int getMaxPopup(messagePriority mP) {return maxPopup[mP];}
-	const char* getLogFileName() { return logFileName;}
+	
 	//Whenever there's a change in settings, reset all error counts to 0
 	//Reopen the Log file (it is always used for fatal messages)
 	void reset(const char* newLogFileName);
@@ -80,7 +80,6 @@ protected:
 	static char* convertText(const char* format, va_list args);
 	std::map<std::string, int> messageCount;
 	//Keep track of current settings
-	char* logFileName;
 	FILE* logFile;
 	
 	static char* messageString;

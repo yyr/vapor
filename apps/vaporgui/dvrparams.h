@@ -32,7 +32,7 @@
 class Dvr;
 
 namespace VAPoR{
-
+class ExpatParseMgr;
 class MainForm;
 class TFEditor;
 class TransferFunction;
@@ -160,7 +160,8 @@ public:
 	//Implement virtual function to deal with new session:
 	void reinit(bool doOverride);
 	void restart();
-	
+	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
+	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	
 protected:
 	void refreshCtab();

@@ -43,8 +43,7 @@ public slots:
 	void logFileChoose();
 	
 protected:
-	QString logFileName;
-	QString exportDirectory;
+	
 	int jpegQuality;
 	int cacheSize;
 	int maxPopup[3];

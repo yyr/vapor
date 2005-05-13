@@ -28,7 +28,7 @@
 class AnimationTab;
 
 namespace VAPoR {
-
+class ExpatParseMgr;
 class MainForm;
 class AnimationParams : public Params {
 	
@@ -80,6 +80,8 @@ public:
 	void guiSetFrameStep(int sliderposition);
 	void guiToggleReplay(bool replay);
 	void guiSingleStep(bool forward);
+	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
+	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	
 protected:
 	int playDirection; //-1, 0, or 1

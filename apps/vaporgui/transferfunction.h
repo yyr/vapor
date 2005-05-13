@@ -138,7 +138,7 @@ public:
 	//
 	bool saveToFile(ofstream& f);
 	static TransferFunction* loadFromFile(ifstream& is);
-	XmlNode* buildNode();
+	XmlNode* buildNode(const string& tfname);
 	//All the parsing can be done with the start handlers
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, const char **attr);
 	bool elementEndHandler(ExpatParseMgr*, int , std::string& ) {return true;}
@@ -146,6 +146,7 @@ public:
 protected:
 	//Tags and attributes for reading and writing
 	static const string _transferFunctionTag;
+	static const string _tfNameAttr;
 	static const string _leftBoundAttr;
 	static const string _rightBoundAttr;
 	static const string _hsvAttr;

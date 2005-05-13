@@ -16,6 +16,9 @@
 //
 //	Description:	Implements the Session class and the DataStatus class
 //
+#ifdef WIN32
+#pragma warning(disable : 4251 4100)
+#endif
 #include "session.h"
 #include "vapor/DataMgr.h"
 #include "vizwinmgr.h"
@@ -25,6 +28,9 @@
 #include <qaction.h>
 #include <cassert>
 #include <cstring>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include "histo.h"
 #include "vapor/Metadata.h"
 #include "vapor/ImpExp.h"
@@ -34,6 +40,16 @@
 
 using namespace VAPoR;
 Session* Session::theSession = 0;
+const string Session::_cacheSize = "CacheSize";
+const string Session::_jpegQuality = "JpegQuality";
+const string Session::_metadataPath = "MetadataPath";
+const string Session::_transferFunctionPath = "TransFuncPath";
+const string Session::_imageCapturePath = "JpegPath";
+const string Session::_logFileName = "LogFileName";
+const string Session::_exportFileName = "ExportFileName";
+const string Session::_maxPopup = "MaxPopups";
+const string Session::_maxLog = "MaxLogMsgs";
+const string Session::_sessionTag = "Session";
 Session::Session() {
 	MyBase::SetErrMsgCB(errorCallbackFcn);
 	MyBase::SetDiagMsgCB(infoCallbackFcn);
@@ -58,9 +74,6 @@ Session::Session() {
 	tfNames = 0;
 	keptTFs = 0;
 	tfListSize = 0;
-	
-	tfFilePath = 0;
-	currentMetadataPath = 0;
 	newSession = true;
 	init();
 }
@@ -97,7 +110,7 @@ Session::~Session(){
 		delete tfNames;
 		
 	}
-	if(currentMetadataPath) delete currentMetadataPath;
+	
 }
 //Set session state to base values:
 //
@@ -105,11 +118,16 @@ void Session::init() {
 	int i;
 	recordingCount = 0;
 	
-#ifndef WIN32
-	cacheMB = 1024;
-#else
+#ifdef WIN32
 	cacheMB = 500;
+	currentMetadataFile = "F:\\run4\\RUN4.vdf";
+	currentJpegDirectory = "C:\\temp";
+#else
+	cacheMB = 1024;
+	currentMetadataFile = "/cxfs/w4/clyne/wavelet";
+	currentJpegDirectory = "/tmp";	
 #endif
+	currentExportFile = ImpExp::GetPath();
 	//Delete all the saved transfer functions:
 	for (i = 0; i<numTFs; i++){
 		delete keptTFs[i];
@@ -119,30 +137,98 @@ void Session::init() {
 		delete keptTFs;
 		delete tfNames;
 	}
-	if(currentMetadataPath){ 
-		delete currentMetadataPath;
-	}
-	if (tfFilePath) delete tfFilePath;
-	tfFilePath = new QString(".");
+	currentTFPath = "/tmp";
+	
 	numTFs = 0;
 	tfNames = 0;
 	keptTFs = 0;
 	tfListSize = 0;
 	
-	currentMetadataPath = 0;
 	jpegQuality = 75;
 	dataExists = false;
 	renderOK = false;
 	newSession = true;
 	
 }
-void Session::
-save(char* ){
+bool Session::
+saveToFile(ofstream& ofs ){
+	XmlNode* const rootNode = buildNode();
+	ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
+	XmlNode::streamOut(ofs,(*rootNode));
+	if (MyBase::GetErrCode() != 0) {
+		MessageReporter::errorMsg("Session Save Error %d, creating Data Manager:\n %s",
+			MyBase::GetErrCode(),MyBase::GetErrMsg());
+		MyBase::SetErrCode(0);
+		delete rootNode;
+		return false;
+	}
+	delete rootNode;
+	return true;
 }
 
-void Session::
-restore(char* ){
+//Construct an XML node from the session parameters
+//
+XmlNode* Session::
+buildNode() {
+	//Construct the main node
+	string empty;
+	std::map <const string, string> attrs;
+	attrs.empty();
+	ostringstream oss;
+
+	oss.str(empty);
+	oss << (long)cacheMB;
+	attrs[_cacheSize] = oss.str();
+	oss.str(empty);
+	oss << (long)jpegQuality;
+	attrs[_jpegQuality] = oss.str();
+	attrs[_metadataPath] = currentMetadataFile;
+	attrs[_transferFunctionPath] = currentTFPath;
+	attrs[_imageCapturePath] = currentJpegDirectory;
+	attrs[_exportFileName] = currentExportFile;
+	MessageReporter* msgRpt = MessageReporter::getInstance();
+	attrs[_logFileName] = getLogfileName();
+	oss.str(empty);
+	oss << (long)msgRpt->getMaxPopup(MessageReporter::Error) << " " <<
+		(long)msgRpt->getMaxPopup(MessageReporter::Warning) << " " <<
+		(long)msgRpt->getMaxPopup(MessageReporter::Info);
+	attrs[_maxPopup] = oss.str();
+	oss.str(empty);
+	oss << (long)msgRpt->getMaxLog(MessageReporter::Error) << " "
+		<< (long)msgRpt->getMaxLog(MessageReporter::Warning) << " "
+		<< (long)msgRpt->getMaxLog(MessageReporter::Info);
+	attrs[_maxLog] = oss.str();
+
+	XmlNode* mainNode = new XmlNode(_sessionTag, attrs, numTFs+2);
+
+	//Now add children:  One for each saved transfer function,
+	//one for the global params, and one for the visualizers
+	
+	
+	int i;
+	
+	for (i = 0; i< numTFs; i++){
+		//Save all the state-saved tf's with their names
+		XmlNode* tfNode = keptTFs[i]->buildNode(*tfNames[i]);
+		mainNode->AddChild(tfNode);
+	}
+	//Add global Param states
+	return mainNode;
 }
+
+bool Session::
+loadFromFile(ifstream& ifs){
+	return false;
+}
+bool Session::
+elementStartHandler(ExpatParseMgr*, int /*depth*/ , std::string& tag, const char **attr){
+	return true;
+}
+bool Session::
+elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& ){
+	return true;
+}
+
 // Export the data specification in the current active visualizer:
 //
 void Session::
@@ -174,14 +260,14 @@ exportData(){
 		assert(maxCoords[i] <= (size_t)(r->getFullSize(i) -1));
 	}
 	
-	int rc = exporter.Export(*currentMetadataPath,
+	int rc = exporter.Export(currentExportFile,
 		currentFrame,
 		d->getStdVariableName(),
 		minCoords,
 		maxCoords,
 		frameInterval);
 	if (rc < 0){
-		MessageReporter::errorMsg("Export data error: \n%s",exporter.GetErrMsg());
+		MessageReporter::errorMsg("Export data error: \n%s", exporter.GetErrMsg());
 		exporter.SetErrCode(0);
 	}
 	return;
@@ -190,8 +276,12 @@ exportData(){
  * set up state for a new datamanager or, if argument is null, set to 
  * default state.  If newSession is true, the current settings are ignored, otherwise
  * the established session attempts to be compatible with previous settings.
+ * (the newSession flag indicates that the user has clicked "new", or this is the first time
+ * a datafile has been loaded, so that the current state is irrelevant)
  * Also perform related functions such as
  * constructing histograms 
+ * When a session is loaded from file, all the session state is loaded up.  But the metadata is
+ * not reloaded.  
  */
 void Session::
 resetMetadata(const char* fileBase)
@@ -203,7 +293,7 @@ resetMetadata(const char* fileBase)
 	
 	bool defaultSession = (fileBase == 0);
 	//The metadata is created by (and obtained from) the datamgr
-	if (!defaultSession) currentMetadataPath = new string(fileBase);
+	if (!defaultSession) currentMetadataFile = fileBase;
 	
 	if (dataMgr) delete dataMgr;
 	if (defaultSession){
@@ -211,7 +301,7 @@ resetMetadata(const char* fileBase)
 		currentMetadata = 0;
 		myReader = 0;
 	} else {
-		dataMgr = new DataMgr(currentMetadataPath->c_str(), cacheMB, 1);
+		dataMgr = new DataMgr(currentMetadataFile.c_str(), cacheMB, 1);
 		if (dataMgr->GetErrCode() != 0) {
 			MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
 				dataMgr->GetErrCode(),dataMgr->GetErrMsg());
@@ -647,7 +737,7 @@ updateTFFilePath(QString* s){
 	if (pos < 0) pos = s->findRev('/');
 	assert (pos>= 0);
 	if (pos < 0) return;
-	*tfFilePath = s->left(pos+1);
+	currentTFPath = s->left(pos+1);
 }
 //Error callback:
 void Session::

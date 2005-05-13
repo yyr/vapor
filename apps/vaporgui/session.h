@@ -107,6 +107,7 @@
 #include <string>
 #include "vapor/DataMgr.h"
 #include "vapor/MyBase.h"
+#include "vapor/ExpatParseMgr.h"
 class QString;
 namespace VAPoR {
 class VizWinMgr;
@@ -204,7 +205,7 @@ private:
 	
 	
 };
-class Session {
+class Session : public ParsedXml {
 public:
 	static Session* getInstance(){
 		if (!theSession){
@@ -213,8 +214,7 @@ public:
 		return theSession;
 	}
 	~Session();
-	void save(char* filename);
-	void restore(char* filename);
+	
 	DataMgr* getDataMgr() {return dataMgr;}
 	DataStatus* getDataStatus() {return currentDataStatus;}
 	
@@ -294,10 +294,7 @@ public:
 	//plus, return left end right map limits.
 	TransferFunction* getTF(const std::string* tfName);
 	bool isValidTFName(const std::string* tfName);
-	QString* getTFFilePath() {
-		return tfFilePath;
-	}
-	void updateTFFilePath(QString* newPath);
+	
 
 	static void errorCallbackFcn(const char* msg, int err_code);
 	static void infoCallbackFcn(const char* msg);
@@ -307,7 +304,34 @@ public:
 	static void resumeErrorCallback(){
 		DataMgr::SetErrMsgCB(errorCallbackFcn);
 	}
+	//Session save/restore:
+	bool saveToFile(ofstream&);
+	bool loadFromFile(ifstream&);
+	string& getTFFilePath() {return currentTFPath;}
+	void updateTFFilePath(QString* newPath);
+	string& getMetadataFile(){return currentMetadataFile;}
+	string& getJpegDirectory() {return currentJpegDirectory;}
+	void setJpegDirectory(const char* dir) {currentJpegDirectory = dir;}
+	string& getExportFile() {return currentExportFile;}
+	string& getLogfileName() {return currentLogfileName;}
+	void setLogfileName(const char* newname){currentLogfileName = newname;}
+	
 protected:
+	static const string _cacheSize;
+	static const string _jpegQuality;
+	static const string _metadataPath;
+	static const string _transferFunctionPath;
+	static const string _imageCapturePath;
+	static const string _logFileName;
+	static const string _maxPopup;
+	static const string _maxLog;
+	static const string _sessionTag;
+	static const string _exportFileName;
+
+	XmlNode* buildNode();
+	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);
+	bool elementEndHandler(ExpatParseMgr*, int depth , std::string& );
+
 	Session();
 	void init();
 	static Session* theSession;
@@ -335,9 +359,13 @@ protected:
 	TransferFunction** keptTFs;
 	std::string** tfNames;
 	int numTFs, tfListSize;
-	
-	QString* tfFilePath;
-	string* currentMetadataPath;
+	// Various filepath and directory paths are kept in session:
+	// the most recent successfully accessed one is part of the state
+	string currentTFPath;
+	string currentMetadataFile;
+	string currentExportFile;
+	string currentJpegDirectory;
+	string currentLogfileName;
 };
 
 }; //end VAPoR namespace

@@ -27,9 +27,10 @@
 #include "params.h"
 class QColor;
 class IsoTab;
+
 namespace VAPoR{
 
-
+class ExpatParseMgr;
 class MainForm;
 class IsosurfaceParams: public Params {
 	
@@ -72,6 +73,8 @@ public:
 	void guiSetValue1(int val);
 	void guiSetNumSurfaces(int n);
 	void guiSetVariable1(int n);
+	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){return true;}
+	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){return true;}
 	
 protected:
 	

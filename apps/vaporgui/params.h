@@ -23,6 +23,7 @@
  
 #include <qwidget.h>
 #include "assert.h"
+#include "vapor/ExpatParseMgr.h"
 class QWidget;
 
 //Error tolerance for gui parameters:
@@ -32,7 +33,7 @@ class MainForm;
 class VizWinMgr;
 class Session;
 class PanelCommand;
-class Params  {
+class Params : public ParsedXml  {
 	
 public: 
 	Params(int winNum) {
@@ -118,7 +119,8 @@ public:
 	//Default does nothing.
 	//
 	virtual void restart() {return;}
-
+	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/) = 0;
+	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/) = 0;
 	
 protected:
 	

@@ -158,7 +158,8 @@ public:
 	void reinit(bool doOverride);
 	void restart();
 	void unSelectFace() { selectedFaceNum = -1;}
-	
+	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
+	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	
 protected:
 	//Holder for saving state during mouse move:

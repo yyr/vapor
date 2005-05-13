@@ -26,6 +26,8 @@
 
 #include <qvariant.h>
 #include <qmainwindow.h>
+#include <qstring.h>
+
 #include "command.h"
 #include "params.h"
 
@@ -153,6 +155,7 @@ public:
 	void disableUndoRedo();
 	MouseModeCommand::mouseModeType getCurrentMouseMode() {return currentMouseMode;}
 	
+	
 
 public slots:
    
@@ -215,7 +218,9 @@ protected:
 	AnimationTab* theAnimationTab;
 	ContourPlaneTab* theContourTab;
 	VizSelectCombo* windowSelector;
-	QString imageCaptureDirectory;
+	
+	QString sessionSaveFile;
+	
 	
 	Vcr* vcrPanel;
 	

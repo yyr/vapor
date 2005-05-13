@@ -31,7 +31,7 @@ class ContourPlaneTab;
 
 namespace VAPoR {
 
-
+class ExpatParseMgr;
 class MainForm;
 class ContourParams : public Params {
 	
@@ -57,7 +57,9 @@ public:
 	virtual void guiSetEnabled(bool value);
 	void guiSetLighting(bool val);
 	void guiSetVarNum(int val);
-	
+	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/)
+	{return true;}
+	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){return true;}
 	
 protected:
 	bool enabled;

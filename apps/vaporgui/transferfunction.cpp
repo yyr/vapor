@@ -57,6 +57,7 @@ const string TransferFunction::_positionAttr = "Position";
 const string TransferFunction::_opacityAttr = "Opacity";
 const string TransferFunction::_opacityControlPointTag = "OpacityControlPoint";
 const string TransferFunction::_colorControlPointTag = "ColorControlPoint";
+const string TransferFunction::_tfNameAttr = "Name";
 
 //Constructor for empty, default transfer function
 TransferFunction::TransferFunction() {
@@ -598,13 +599,16 @@ setControlPointRGB(int index, QRgb newColor){
 	//
 //Construct an XML node from the transfer function
 XmlNode* TransferFunction::
-buildNode() {
+buildNode(const string& tfname) {
 	//Construct the main node
 	string empty;
 	std::map <const string, string> attrs;
 	attrs.empty();
 	ostringstream oss;
 
+	if (!tfname.empty()){
+		attrs[_tfNameAttr] = tfname;
+	}
 	oss.str(empty);
 	oss << (double)minMapBound;
 	attrs[_leftBoundAttr] = oss.str();
@@ -648,33 +652,13 @@ buildNode() {
 
 bool TransferFunction::
 saveToFile(ofstream& ofs){
-	XmlNode* const rootNode = buildNode();
+	const std::string emptyString;
+	XmlNode* rootNode = buildNode(emptyString);
 
 	ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
 	XmlNode::streamOut(ofs,(*rootNode));
 	delete rootNode;
 	return true;
-	/*
-	int nchar = fprintf(f, "%d %d %g %g \n", numOpacControlPoints, numColorControlPoints, 
-		getMinMapValue(), getMaxMapValue());
-	if (nchar <= 0) return false;
-	int i;
-	for (i = 0; i<numOpacControlPoints; i++){
-		nchar = fprintf(f, "%d %g %g\n", 
-			opacInterp[i],
-			opac[i], opacCtrlPoint[i]);
-		if (nchar <= 0) return false;
-	}
-	for (i = 0; i<numColorControlPoints; i++){
-		nchar = fprintf(f, "%d %g %g %g %g\n", 
-			colorInterp[i],
-			hue[i],sat[i],val[i],
-			colorCtrlPoint[i]);
-		if (nchar <= 0) return false;
-	}
-	fclose(f);
-	return true;
-	*/
 }
 //Create a transfer function by parsing a file.
 TransferFunction* TransferFunction::

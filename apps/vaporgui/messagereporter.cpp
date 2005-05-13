@@ -31,6 +31,7 @@
 #include "messagereporter.h"
 #include "vapor/DataMgr.h"
 #include "mainform.h"
+#include "session.h"
 #include <qstring.h>
 #include <qmessagebox.h>
 #include <qmutex.h>
@@ -45,7 +46,7 @@ MessageReporter* MessageReporter::theReporter = 0;
 
 MessageReporter::MessageReporter() {
 	logFile = 0;
-	logFileName = 0;
+	
 	messageMutex = new QMutex();
 	char buf[50];
 #ifdef WIN32
@@ -77,7 +78,7 @@ MessageReporter::MessageReporter() {
 }
 MessageReporter::~MessageReporter(){
 	if (logFile) fclose(logFile);
-	if (logFileName) delete logFileName;
+	
 	delete messageMutex;
 	if (messageString) delete messageString;
 	//Destructor for messageCount should delete its contents?
@@ -87,13 +88,12 @@ void MessageReporter::
 reset(const char* newLogFileName){
 	//Save name, reopen the log file
 	if (logFile) fclose(logFile);
-	if (logFileName) delete logFileName;
-	logFileName = new char[strlen(newLogFileName)+1];
-	strcpy(logFileName,newLogFileName);
-	logFile = fopen(logFileName, "w");
+	
+	logFile = fopen(newLogFileName, "w");
 	//reset message counts
 	messageCount.clear();
 	if (!logFile) doPopup(Error,"VAPoR session log file cannot be opened");
+	else Session::getInstance()->setLogfileName(newLogFileName);
 }
 
 void MessageReporter::fatalMsg(const char* format, ...){

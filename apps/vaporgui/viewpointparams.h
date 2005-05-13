@@ -28,7 +28,7 @@
 class VizTab;
 
 namespace VAPoR {
-
+class ExpatParseMgr;
 class MainForm;
 class RegionParams;
 class PanelCommand;
@@ -120,7 +120,8 @@ public:
 	void setModelViewMatrix(double* mtx){
 		for (int i = 0; i<16; i++) modelViewMatrix[i] = mtx[i];
 	}
-	
+	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
+	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	
 protected:
 	//Set to default viewpoint for specified region

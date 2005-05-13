@@ -34,7 +34,6 @@ SessionParams::SessionParams(){
 	MessageReporter* mReporter = MessageReporter::getInstance();
 	jpegQuality = currentSession->getJpegQuality();
 	cacheSize = currentSession->getCacheMB();
-	logFileName = QString(mReporter->getLogFileName());
 	for (int i = 0; i<3; i++){
 		MessageReporter::messagePriority mP = (MessageReporter::messagePriority) i;
 		maxPopup[i] = mReporter->getMaxPopup(mP);
@@ -48,7 +47,8 @@ void SessionParams::launch(){
 	sessionParamsDlg->cacheSizeEdit->setText(str.setNum(cacheSize));
 	sessionParamsDlg->jpegQuality->setText(str.setNum(jpegQuality));
 	sessionParamsDlg->cacheSizeEdit->setText(str.setNum(cacheSize));
-	sessionParamsDlg->logFileName->setText(logFileName);
+	string logFileName = Session::getInstance()->getLogfileName();
+	sessionParamsDlg->logFileName->setText(logFileName.c_str());
 	
 	connect(sessionParamsDlg->logFileButton,SIGNAL(pressed()),this, SLOT(logFileChoose()));
 	sessionParamsDlg->maxErrorLog->setText(str.setNum(maxLog[2]));
@@ -83,8 +83,8 @@ void SessionParams::launch(){
 			if (maxLog[i] >= 0) mReporter->setMaxLog((MessageReporter::messagePriority)i,maxLog[i]);
 		}
 		//see if the filename changed:
-		if (logFileName != mReporter->getLogFileName())
-			mReporter->reset(logFileName.ascii());
+		if (logFileName != sessionParamsDlg->logFileName->text().ascii())
+			mReporter->reset(sessionParamsDlg->logFileName->text().ascii());
 	}
 	delete sessionParamsDlg;
 	sessionParamsDlg = 0;
@@ -92,12 +92,10 @@ void SessionParams::launch(){
 //Slot to launch a file-chooser dialog.  Save its results 
 void SessionParams::
 logFileChoose(){
-	MessageReporter* mReporter = MessageReporter::getInstance();
-	QString s = QFileDialog::getSaveFileName (mReporter->getLogFileName(), "Text files (*.txt)", 0, 0, 
+	QString s = QFileDialog::getSaveFileName (Session::getInstance()->getLogfileName().c_str(), "Text files (*.txt)", 0, 0, 
 		"Select Log File Name" );
 	if (s) {
-		logFileName = s;
-		sessionParamsDlg->logFileName->setText(logFileName);
+		sessionParamsDlg->logFileName->setText(s);
 		sessionParamsDlg->update();
 	}
 }

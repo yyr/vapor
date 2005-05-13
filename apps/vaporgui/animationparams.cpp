@@ -452,4 +452,11 @@ void AnimationParams::guiSetLocal(bool lg){
 	viz->setRegionDirty(true);
 	viz->updateGL();
 }
-
+bool AnimationParams::
+elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){
+	return false;
+}
+bool AnimationParams::
+elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){
+	return false;
+}

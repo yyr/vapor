@@ -822,4 +822,11 @@ calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max
 	}
 	return;
 }
-	
+bool RegionParams::
+elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){
+	return false;
+}
+bool RegionParams::
+elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){
+	return false;
+}

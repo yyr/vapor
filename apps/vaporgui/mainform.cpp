@@ -19,9 +19,10 @@
 //		including menus, tab dialog, docking, visualizer window,
 //		and some of the communication between these classes
 //
-
+#ifdef WIN32
+#pragma warning(disable : 4251 4100)
+#endif
 #include "mainform.h"
-
 #include <qvariant.h>
 #include <qpushbutton.h>
 #include <qtabwidget.h>
@@ -42,6 +43,9 @@
 #include <qdesktopwidget.h>
 #include <qvbox.h>
 #include <qworkspace.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include "vizwin.h"
 #include "isotab.h"
 #include "vizselectcombo.h"
@@ -99,7 +103,9 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	theIsoTab = 0;
 	theContourTab = 0;
 	theAnimationTab = 0;
-	imageCaptureDirectory.setAscii(".");
+	
+	sessionSaveFile.setAscii("/tmp/VaporSaved.vss");
+
     (void)statusBar();
     if ( !name )
 		setName( "MainForm" );
@@ -147,13 +153,13 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     // actions
     
     fileOpenAction = new QAction( this, "fileOpenAction" );
-	fileOpenAction->setEnabled(false);
+	fileOpenAction->setEnabled(true);
     //fileOpenAction->setIconSet( QIconSet( QPixmap::fromMimeSource( "fileopen" ) ) );
     fileSaveAction = new QAction( this, "fileSaveAction" );
-	fileSaveAction->setEnabled(false);
+	fileSaveAction->setEnabled(true);
     //fileSaveAction->setIconSet( QIconSet( QPixmap::fromMimeSource( "filesave" ) ) );
     fileSaveAsAction = new QAction( this, "fileSaveAsAction" );
-	fileSaveAsAction->setEnabled(false);
+	fileSaveAsAction->setEnabled(true);
     fileExitAction = new QAction( this, "fileExitAction" );
 
 	editUndoAction = new QAction(this, "editUndoAction");
@@ -535,18 +541,88 @@ void MainForm::languageChange()
 void MainForm::fileOpen()
 {
 
+	//This launches a panel that enables the
+    //user to choose input session save files, then to
+	QString filename = QFileDialog::getOpenFileName(sessionSaveFile,
+		"Vapor Session Save Files (*.vss)",
+		this,
+		"Open Session Dialog",
+		"Choose the Session File to restore a session");
+	if(filename.length() == 0) return;
+		
+	
+	//Force the name to end with .vss
+	if (!filename.endsWith(".vss")){
+		filename += ".vss";
+	}
+	
+	ifstream is;
+	
+	is.open(filename.ascii());
+
+	if (!is){//Report error if you can't open the file
+		MessageReporter::errorMsg("Unable to open session file: %s", filename.ascii());
+		return;
+	}
+	//Remember file if load is successful:
+	if(Session::getInstance()->loadFromFile(is)){
+		sessionSaveFile = filename;
+	}
 }
 
 
 void MainForm::fileSave()
 {
-
+	//This directly saves the session to the current session save file.
+    //It does not prompt the user unless there is an error
+	ofstream fileout;
+	fileout.open(sessionSaveFile.ascii());
+	if (! fileout) {
+		MessageReporter::errorMsg( "Unable to open session file:\n %s", sessionSaveFile.ascii());
+		return;
+	}
+	
+	if (!Session::getInstance()->saveToFile(fileout)){//Report error if can't save to file
+		MessageReporter::errorMsg("Failed to write session file: \n %s", sessionSaveFile.ascii());
+		fileout.close();
+		return;
+	}
+	fileout.close();
 }
 
 
 void MainForm::fileSaveAs()
 {
+	
+	//This launches a panel that enables the
+    //user to choose output session save files, saves to it
+	QString filename = QFileDialog::getSaveFileName(sessionSaveFile,
+		"Vapor Session Save Files (*.vss)",
+		this,
+		"Save Session Dialog",
+		"Choose the output Session File to save current session");
 
+	if(filename.length() == 0) return;
+		
+	
+	//Force the name to end with .vss
+	if (!filename.endsWith(".vss")){
+		filename += ".vss";
+	}
+	ofstream fileout;
+	fileout.open(filename.ascii());
+	if (! fileout) {
+		MessageReporter::errorMsg( "Unable to save to file: \n %s", filename.ascii());
+		return;
+	}
+	
+	if (!Session::getInstance()->saveToFile(fileout)){//Report error if can't save to file
+		MessageReporter::errorMsg("Failed to save session to: \n %s", filename);
+		fileout.close();
+		return;
+	}
+	fileout.close();
+	sessionSaveFile = filename;
 }
 
 
@@ -635,25 +711,18 @@ void MainForm::browseData()
 
 void MainForm::loadData()
 {
-#ifdef WIN32
-	static QString MDFile("F:\\run4\\RUN4.vdf");
-#else
-	static QString MDFile("/cxfs/w4/clyne/wavelet");
-#endif
+
 	//This launches a panel that enables the
     //user to choose input data files, then to
 	//create a datamanager using those files
     //or metafiles.  
-	QString filename = QFileDialog::getOpenFileName(MDFile,
+	QString filename = QFileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
 		"Vapor Metadata Files (*.vdf)",
 		this,
 		"Load Volume Data Dialog",
 		"Choose the Metadata File to load into current session");
 	if(filename != QString::null){
-		
 		Session::getInstance()->resetMetadata(filename.ascii());
-
-		MDFile = filename;
 	}
 	
 }
@@ -963,7 +1032,7 @@ void MainForm::exportToIDL(){
 void MainForm::startCapture() {
 	
     QString s = QFileDialog::getSaveFileName(
-        imageCaptureDirectory,
+		Session::getInstance()->getJpegDirectory().c_str(),
         "Jpeg Images (*.jpg)",
         this,
         "Start image capture dialog",
@@ -971,7 +1040,7 @@ void MainForm::startCapture() {
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(s);
 	//Save the path for future captures
-	imageCaptureDirectory = fileInfo->dirPath(true);
+	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
 	QString fileBaseName = fileInfo->baseName(true);
 	//See if it ends with digits
 	int posn;
@@ -984,15 +1053,15 @@ void MainForm::startCapture() {
 		startFileNum = fileBaseName.right(fileBaseName.length()-lastDigitPos).toInt();
 		fileBaseName.truncate(lastDigitPos);
 	}
-	QString filePath = imageCaptureDirectory + "/" + fileBaseName;
+	QString filePath = fileInfo->dirPath(true) + "/" + fileBaseName;
 	//Determine the active window:
 	//Turn on "image capture mode" in the current active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (viz) {
 		viz->startCapture(filePath,startFileNum);
 		//Provide a popup stating the capture parameters in effect.
-	//	QMessageBox::info(this, "Image Capture Activated","Images are being captured in",
-	//		QMessageBox::Ok,QMessageBox::NoButton);
+		MessageReporter::infoMsg("Image Capture Activated \n Image is being captured to %s",
+			filePath.ascii());
 		
 	} else {
 		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing images");

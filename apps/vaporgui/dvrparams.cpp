@@ -655,7 +655,7 @@ fileLoadTF(){
 	//Open a file load dialog
 	
     QString s = QFileDialog::getOpenFileName(
-                    *Session::getInstance()->getTFFilePath(),
+                    Session::getInstance()->getTFFilePath().c_str(),
                     "Vapor Transfer Functions (*.vtf)",
                     myDvrTab,
                     "load TF dialog",
@@ -723,7 +723,7 @@ void DvrParams::
 fileSaveTF(){
 	//Launch a file save dialog, open resulting file
     QString s = QFileDialog::getSaveFileName(
-					*Session::getInstance()->getTFFilePath(),
+					Session::getInstance()->getTFFilePath().c_str(),
                     "Vapor Transfer Functions (*.vtf)",
                     myDvrTab,
                     "save TF dialog",
@@ -743,15 +743,7 @@ fileSaveTF(){
 		return;
 	}
 	
-	/*
-	FILE* f = fopen(s.ascii(), "w");
-	if (!f){//Report error if you can't open the file
-		QString str("Unable to save to file: \n");
-		str += s;
-		MessageReporter::errorMsg( str.ascii());
-		return;
-	}
-	*/
+	
 	
 	if (!myTransFunc->saveToFile(fileout)){//Report error if can't save to file
 		QString str("Failed to write output file: \n");
@@ -783,4 +775,11 @@ float DvrParams::getMinMapBound(){
 float DvrParams::getMaxMapBound(){
 	return myTransFunc->getMaxMapValue();
 }
-
+bool DvrParams::
+elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){
+	return false;
+}
+bool DvrParams::
+elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){
+	return false;
+}
