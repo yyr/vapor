@@ -67,7 +67,7 @@ if keyword_set(nxforms) eq 0 then nxforms = 0
 
 	vdc_closevar, dfd
 
-	vdc_regreaddestroy, dvd
+	vdc_regreaddestroy, dfd
 
 	return, f
 
