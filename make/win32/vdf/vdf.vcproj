@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;B:\Expat-1.95.8\Source\lib&quot;;../../../lib/vdf;../../../include/"
+				AdditionalIncludeDirectories="&quot;C:\Expat-1.95.8\Source\lib&quot;;../../../lib/vdf;../../../include/"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VDF_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
