@@ -82,6 +82,7 @@ void TFFrame::paintEvent(QPaintEvent* e){
 		return;
 	}
 	if (editor->isDirty()|| needUpdate){
+		erase();
 		editor->refreshImage();
 		pxMap.convertFromImage(*editor->getImage(),0);
 		

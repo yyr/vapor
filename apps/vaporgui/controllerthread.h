@@ -27,6 +27,8 @@
 #define CONTROLLERTHREAD_H
 //Maximum milliseconds to wait for a slow renderer
 #define MAX_SLOW_WAIT 5000
+//Maximum milliseconds to idle before checking for new user response
+#define IDLE_WAIT 500
 #include <qthread.h>
 #include <qmutex.h>
 #include <cassert>

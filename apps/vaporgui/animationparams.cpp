@@ -19,6 +19,15 @@
 //		It contains all the parameters required for animation
 
 //
+#ifdef WIN32
+//Annoying unreferenced formal parameter warning
+#pragma warning( disable : 4100 )
+#endif
+
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include <qwidget.h>
 #include <qslider.h>
@@ -26,6 +35,7 @@
 #include <qpushbutton.h>
 #include <qlabel.h>
 #include <qcombobox.h>
+
 #include "params.h"
 #include "animationparams.h"
 #include "mainform.h"
@@ -37,15 +47,20 @@
 #include "vizwinmgr.h"
 #include "vizwin.h"
 #include "tabmanager.h"
+#include "vapor/XmlNode.h"
 
 using namespace VAPoR;
+const string AnimationParams::_repeatAttr = "RepeatPlay";
+const string AnimationParams::_maxRateAttr = "MaxFrameRate";
+const string AnimationParams::_stepSizeAttr = "FrameStepSize";
+const string AnimationParams::_startFrameAttr = "StartFrame";
+const string AnimationParams::_endFrameAttr = "EndFrame";
+const string AnimationParams::_currentFrameAttr = "CurrentFrame";
 
 AnimationParams::AnimationParams(int winnum): Params( winnum){
 	thisParamType = AnimationParamsType;
 	myAnimationTab = MainForm::getInstance()->getAnimationTab();
 	restart();
-	
-	
 }
 AnimationParams::~AnimationParams(){}
 
@@ -453,10 +468,112 @@ void AnimationParams::guiSetLocal(bool lg){
 	viz->updateGL();
 }
 bool AnimationParams::
-elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){
-	return false;
+elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& tag, const char ** attrs){
+	if (StrCmpNoCase(tag, _animationParamsTag) == 0) {
+		//If it's a Animation params tag, save 7 attributes (2 are from Params class)
+		//Do this by repeatedly pulling off the attribute name and value
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			if (StrCmpNoCase(attribName, _vizNumAttr) == 0) {
+				ist >> vizNum;
+			}
+			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
+				if (value == "true") setLocal(true); else setLocal(false);
+			}
+			else if (StrCmpNoCase(attribName, _repeatAttr) == 0) {
+				if (value == "true") repeatPlay = true; else repeatPlay = false;
+			}
+			else if (StrCmpNoCase(attribName, _stepSizeAttr) == 0) {
+				ist >> frameStepSize;
+			}
+			else if (StrCmpNoCase(attribName, _maxRateAttr) == 0) {
+				ist >> maxFrameRate;
+			}
+			else if (StrCmpNoCase(attribName, _startFrameAttr) == 0) {
+				ist >> startFrame;
+			}
+			else if (StrCmpNoCase(attribName, _endFrameAttr) == 0) {
+				ist >> endFrame;
+			}
+			else if (StrCmpNoCase(attribName, _currentFrameAttr) == 0) {
+				ist >> currentFrame;
+			}
+			else return false;
+		}
+		return true;
+	}
+	return false;  //Not an animationParams tag
 }
 bool AnimationParams::
-elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){
-	return false;
+elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
+	//Check only for the animation params tag
+	if (StrCmpNoCase(tag, _animationParamsTag) == 0) {
+		//If this is a dvrparams, need to
+		//pop the parse stack.  
+		ParsedXml* px = pm->popClassStack();
+		bool ok = px->elementEndHandler(pm, depth, tag);
+		return ok;
+	} 
+	else {
+		pm->parseError("Unrecognized end tag in AnimationParams %s",tag.c_str());
+		return false;  //Could there be other end tags that we ignore??
+	}
+	return true;  
+}
+XmlNode* AnimationParams::
+buildNode(){
+		//Construct the animation node
+	string empty;
+	std::map <const string, string> attrs;
+	attrs.clear();
+	
+	ostringstream oss;
+
+	oss.str(empty);
+	oss << (long)vizNum;
+	attrs[_vizNumAttr] = oss.str();
+
+	oss.str(empty);
+	if (local)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_localAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)maxFrameRate;
+	attrs[_maxRateAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)frameStepSize;
+	attrs[_stepSizeAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)startFrame;
+	attrs[_startFrameAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)endFrame;
+	attrs[_endFrameAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)currentFrame;
+	attrs[_currentFrameAttr] = oss.str();
+
+	oss.str(empty);
+	if (repeatPlay)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_repeatAttr] = oss.str();
+
+	XmlNode* animationNode = new XmlNode(_animationParamsTag, attrs, 0);
+
+	//No Children!
+	
+	return animationNode;
 }

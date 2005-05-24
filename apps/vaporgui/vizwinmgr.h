@@ -71,7 +71,7 @@ class ContourParams;
 class Trackball;
 class VizWin;
 
-class VizWinMgr : public QObject
+class VizWinMgr : public QObject, public ParsedXml
 {
 	Q_OBJECT
 public:
@@ -109,8 +109,8 @@ public:
 	//Method that returns the current params that apply in the current
 	//active visualizer if it is local.
 	Params* getLocalParams(Params::ParamType);
-    //Temp method to launch a viz window:
-    void launchVisualizer(int num = -1, const char* name = "");
+    //method to launch a viz window, returns vizNum
+    int launchVisualizer(int num = -1, const char* name = "");
     
 	void nameChanged(QString& name, int num);
     
@@ -173,6 +173,7 @@ public:
 	void setRegionParams(int winNum, RegionParams* p);
 	void setAnimationParams(int winNum, AnimationParams* p);
 		
+	void replaceGlobalParams(Params* p, Params::ParamType typ);
 	void createDefaultParams(int winnum);
 	
 	void setSelectionMode( Command::mouseModeType m);
@@ -222,6 +223,14 @@ public:
 	void restartParams();
 	Command::mouseModeType selectionMode;
 
+	//Methods to handle save/restore
+	XmlNode* buildNode();
+	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
+	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
+	//this tag needs to be visible in session class
+	static const string _visualizersTag;
+
+
 public slots:
 	//arrange the viz windows:
     void cascade();
@@ -244,9 +253,9 @@ signals:
 	void activateViz(int);
 	void changeName(QString&, int);
 	
-	
-
 protected:
+	static const string _vizWinTag;
+	static const string _vizWinNameAttr;
 	static VizWinMgr* theVizWinMgr;
 	VizWinMgr ();
 	
@@ -287,7 +296,7 @@ protected:
     TabManager* tabManager;
    
     int activeViz;
-	
+	int parsingVizNum;
 	
     QWorkspace* myWorkspace;
 	ContourPlaneTab* myContourPlaneTab;

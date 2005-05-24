@@ -21,7 +21,12 @@
 #ifndef HISTO_H
 #define HISTO_H
 #include <vapor/MyBase.h>
+
 namespace VAPoR {
+class RegionParams;
+class AnimationParams;
+class DvrParams;
+	
 class Histo{
 public:
 	Histo(int numberBins, float mnData, float mxData);
@@ -36,7 +41,12 @@ public:
 	int getMaxBinSize() {return maxBinSize;}
 	float getMinData(){return minData;}
 	float getMaxData(){return maxData;}
+	static void releaseHistograms();
+	static Histo* getHistogram(int varNum, int vizNum);
+	static void refreshHistogram(int vizNum);
 private:
+	static Histo** histoArray;
+	static int histoArraySize;
 	int* binArray;
 	int numBelow, numAbove;
 	int numBins;

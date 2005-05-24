@@ -58,7 +58,7 @@ restart(){
 	animationCancelled = true;
 	//Wakeup the controller thread.  It should return after rendering is complete
 	myWaitCondition->wakeAll();
-	//Wait until controller thread completes:
+	
 	//Wait until controller thread completes:
 	for (i = 0; i<100; i++){
 		if (!controllerActive) break;
@@ -106,8 +106,8 @@ run(){
 		//Go try again if nothing is running:
 		if( numActive == 0) {
 			myAnimationController->animationMutex.unlock();
-			//qWarning("Waiting 1 sec for an unshared renderer to start");
-			myWaitCondition->wait(MAX_SLOW_WAIT);
+			//qWarning("Waiting for an unshared renderer to start");
+			myWaitCondition->wait(IDLE_WAIT);
 			continue;
 		}
 
@@ -167,8 +167,8 @@ run(){
 			controllerActive = false;
 			break;
 		}
-		//wait for a second; may be woken if someone finishes, or status changes.
-		myWaitCondition->wait(MAX_SLOW_WAIT);
+		//wait; may be woken if someone finishes, or status changes.
+		myWaitCondition->wait(IDLE_WAIT);
 	}
 	
 	//Assert that all renderers completed in 100*MAX_SLOW_WAIT seconds

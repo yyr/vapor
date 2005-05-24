@@ -55,8 +55,8 @@ public slots:
     void newHsv( int h, int s, int v );
 	//Catch color changes
 	//
-	void startColorChange(){editor->getTransferFunction()->startChange("select TF color");}
-	void endColorChange() {editor->getTransferFunction()->endChange();}
+	void startColorChange(){if(editor)editor->getTransferFunction()->startChange("select TF color");}
+	void endColorChange() {if(editor)editor->getTransferFunction()->endChange();}
 	void delColorPoint(int indx);
 	void delOpacPoint(int intx);
 	void newColor(int x);

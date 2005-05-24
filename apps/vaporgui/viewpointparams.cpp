@@ -17,6 +17,17 @@
 //	Description:	Implements the ViewpointParams class
 //		This class contains the parameters associated with viewpoint and lights
 //
+#ifdef WIN32
+//Annoying unreferenced formal parameter warning
+#pragma warning( disable : 4100 )
+#endif
+
+#include <vector>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 #include "viewpointparams.h"
 #include "viztab.h"
 #include "mainform.h"
@@ -30,10 +41,14 @@
 #include <qcombobox.h>
 #include "viewpoint.h"
 #include "tabmanager.h"
+#include "vapor/XmlNode.h"
 float VAPoR::ViewpointParams::maxCubeSide = 1.f;
 float VAPoR::ViewpointParams::minCubeCoord[3] = {0.f,0.f,0.f};
 
 using namespace VAPoR;
+const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
+const string ViewpointParams::_homeViewTag = "HomeViewpoint";
+
 ViewpointParams::ViewpointParams(int winnum): Params(winnum){
 	thisParamType = ViewpointParamsType;
 	myVizTab = MainForm::getInstance()->getVizTab();
@@ -106,9 +121,9 @@ void ViewpointParams::updateDialog(){
 	myVizTab->upVec1->setText(strng.setNum(currentViewpoint->getUpVec(1), 'g', 3));
 	myVizTab->upVec2->setText(strng.setNum(currentViewpoint->getUpVec(2), 'g', 3));
 	myVizTab->perspectiveCombo->setCurrentItem(currentViewpoint->hasPerspective());
-	myVizTab->rotCenter0->setText(strng.setNum(rotationCenter[0],'g',3));
-	myVizTab->rotCenter1->setText(strng.setNum(rotationCenter[1],'g',3));
-	myVizTab->rotCenter2->setText(strng.setNum(rotationCenter[2],'g',3));
+	myVizTab->rotCenter0->setText(strng.setNum(getRotationCenter(0),'g',3));
+	myVizTab->rotCenter1->setText(strng.setNum(getRotationCenter(1),'g',3));
+	myVizTab->rotCenter2->setText(strng.setNum(getRotationCenter(2),'g',3));
 	
 	if (isLocal())
 		myVizTab->LocalGlobal->setCurrentItem(1);
@@ -132,9 +147,9 @@ updatePanelState(){
 	setUpVec(0, myVizTab->upVec0->text().toFloat());
 	setUpVec(1, myVizTab->upVec1->text().toFloat());
 	setUpVec(2, myVizTab->upVec2->text().toFloat());
-	rotationCenter[0] = myVizTab->rotCenter0->text().toFloat();
-	rotationCenter[1] = myVizTab->rotCenter1->text().toFloat();
-	rotationCenter[2] = myVizTab->rotCenter2->text().toFloat();
+	setRotationCenter(0,myVizTab->rotCenter0->text().toFloat());
+	setRotationCenter(1,myVizTab->rotCenter1->text().toFloat());
+	setRotationCenter(2,myVizTab->rotCenter2->text().toFloat());
 	updateRenderer(false, false, false);
 	guiSetTextChanged(false);
 }
@@ -239,7 +254,7 @@ guiCenterSubRegion(RegionParams* rParams){
 	for (int i = 0; i<3; i++){
 		float camPosCrd = rParams->getRegionCenter(i) -2.5*maxSide*currentViewpoint->getViewDir(i);
 		currentViewpoint->setCameraPos(i, camPosCrd);
-		rotationCenter[i]= rParams->getRegionCenter(i);
+		setRotationCenter(i,rParams->getRegionCenter(i));
 	}
 	updateDialog();
 	updateRenderer(false, false, false);
@@ -275,7 +290,7 @@ centerFullRegion(RegionParams* rParams){
 		float dataCenter = 0.5f*(rParams->getFullDataExtent(i+3)+rParams->getFullDataExtent(i));
 		float camPosCrd = dataCenter -2.5*maxSide*currentViewpoint->getViewDir(i);
 		currentViewpoint->setCameraPos(i, camPosCrd);
-		rotationCenter[i]= rParams->getFullCenter(i);
+		setRotationCenter(i,rParams->getFullCenter(i));
 	}
 }
 void ViewpointParams::
@@ -311,7 +326,7 @@ restart(){
 		setCameraPos(i,0.5f);
 		setViewDir(i,0.f);
 		setUpVec(i, 0.f);
-		rotationCenter[i] = 0.5f;
+		setRotationCenter(i,0.5f);
 	}
 	setUpVec(1,1.f);
 	setViewDir(2,-1.f); 
@@ -393,10 +408,88 @@ setCoordTrans(){
 	}
 }
 bool ViewpointParams::
-elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){
-	return false;
+elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, const char ** attrs){
+	//Get the attributes, and then make the viewpoints parse the children
+	if (StrCmpNoCase(tagString, _viewpointParamsTag) == 0) {
+		//If it's a Dvr tag, save 5 attributes (2 are from Params class)
+		//Do this by repeatedly pulling off the attribute name and value
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			if (StrCmpNoCase(attribName, _vizNumAttr) == 0) {
+				ist >> vizNum;
+			}
+			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
+				if (value == "true") setLocal(true); else setLocal(false);
+			}
+			else return false;
+		}
+		return true;
+	}
+	//Parse current and home viewpoints
+	else if (StrCmpNoCase(tagString, _currentViewTag) == 0) {
+		//Need to "push" to viewpoint parser.
+		//That parser will "pop" back to viewpointparams when done.
+		pm->pushClassStack(currentViewpoint);
+		currentViewpoint->elementStartHandler(pm, depth, tagString, attrs);
+		return true;
+	}
+	else if (StrCmpNoCase(tagString, _homeViewTag) == 0) {
+		//Need to "push" to viewpoint parser.
+		//That parser will "pop" back to viewpointparams when done.
+		pm->pushClassStack(homeViewpoint);
+		homeViewpoint->elementStartHandler(pm, depth, tagString, attrs);
+		return true;
+	}
+	else return false;
 }
 bool ViewpointParams::
-elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){
-	return false;
+elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
+	if (StrCmpNoCase(tag, _viewpointParamsTag) == 0) {
+		//If this is a viewpointparams, need to
+		//pop the parse stack.  
+		ParsedXml* px = pm->popClassStack();
+		bool ok = px->elementEndHandler(pm, depth, tag);
+		return ok;
+	} else if (StrCmpNoCase(tag, _homeViewTag) == 0){
+		return true;
+	} else if (StrCmpNoCase(tag, _currentViewTag) == 0){
+		return true;
+	} else {
+		pm->parseError("Unrecognized end tag in ViewpointParams %s",tag.c_str());
+		return false;  //Could there be other end tags that we ignore??
+	}
+}
+XmlNode* ViewpointParams::
+buildNode(){
+	//Construct the viewpoint node
+	string empty;
+	std::map <const string, string> attrs;
+	attrs.clear();
+	
+	ostringstream oss;
+
+	oss.str(empty);
+	oss << (long)vizNum;
+	attrs[_vizNumAttr] = oss.str();
+
+	oss.str(empty);
+	if (local)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_localAttr] = oss.str();
+	
+	XmlNode* vpParamsNode = new XmlNode(_viewpointParamsTag, attrs, 2);
+
+	//Now add children: home and current viewpoints  
+	attrs.clear();
+	XmlNode* currVP = vpParamsNode->NewChild(_currentViewTag, attrs, 1);
+	currVP->AddChild(currentViewpoint->buildNode());
+	XmlNode* homeVP = vpParamsNode->NewChild(_homeViewTag, attrs, 1);
+	homeVP->AddChild(homeViewpoint->buildNode());
+	return vpParamsNode;
 }

@@ -40,16 +40,18 @@
 
 using namespace VAPoR;
 Session* Session::theSession = 0;
-const string Session::_cacheSize = "CacheSize";
-const string Session::_jpegQuality = "JpegQuality";
-const string Session::_metadataPath = "MetadataPath";
-const string Session::_transferFunctionPath = "TransFuncPath";
-const string Session::_imageCapturePath = "JpegPath";
-const string Session::_logFileName = "LogFileName";
-const string Session::_exportFileName = "ExportFileName";
-const string Session::_maxPopup = "MaxPopups";
-const string Session::_maxLog = "MaxLogMsgs";
+const string Session::_cacheSizeAttr = "CacheSize";
+const string Session::_jpegQualityAttr = "JpegQuality";
+const string Session::_metadataPathAttr = "MetadataPath";
+const string Session::_transferFunctionPathAttr = "TransferFunctionPath";
+const string Session::_imageCapturePathAttr = "JpegPath";
+const string Session::_logFileNameAttr = "LogFileName";
+const string Session::_exportFileNameAttr = "ExportFileName";
+const string Session::_maxPopupAttr = "MaxPopups";
+const string Session::_maxLogAttr = "MaxLogMsgs";
 const string Session::_sessionTag = "Session";
+const string Session::_globalParameterPanelsTag = "GlobalParameterPanels";
+const string Session::_globalTransferFunctionsTag = "GlobalTransferFunctions";
 Session::Session() {
 	MyBase::SetErrMsgCB(errorCallbackFcn);
 	MyBase::SetDiagMsgCB(infoCallbackFcn);
@@ -68,7 +70,6 @@ Session::Session() {
 	for (int i = 0; i<MAX_HISTORY; i++){
 		commandQueue[i] = 0;
 	}
-	currentHistograms = 0;
 	currentDataStatus = 0;
 	numTFs = 0;
 	tfNames = 0;
@@ -79,7 +80,8 @@ Session::Session() {
 }
 Session::~Session(){
 	int i;
-	
+	tempParsedTF = 0;
+	tempParsedPanel = 0;
 	delete AnimationController::getInstance();
 	delete VizWinMgr::getInstance();
 	//Note: metadata is deleted by Datamgr
@@ -91,13 +93,7 @@ Session::~Session(){
 		}
 	}
 	//Must delete the histograms before the currentDataStatus:
-	if (currentHistograms){
-		int numVars = currentDataStatus->getNumVariables();
-		for (int j = 0; j<numVars; j++){
-			if (currentHistograms[j]) delete currentHistograms[j];
-		}
-		delete currentHistograms;
-	}
+	Histo::releaseHistograms();
 	if(currentDataStatus) delete currentDataStatus;
 
 	//Delete all the saved transfer functions:
@@ -173,60 +169,240 @@ buildNode() {
 	//Construct the main node
 	string empty;
 	std::map <const string, string> attrs;
-	attrs.empty();
+	attrs.clear();
 	ostringstream oss;
 
 	oss.str(empty);
 	oss << (long)cacheMB;
-	attrs[_cacheSize] = oss.str();
+	attrs[_cacheSizeAttr] = oss.str();
 	oss.str(empty);
 	oss << (long)jpegQuality;
-	attrs[_jpegQuality] = oss.str();
-	attrs[_metadataPath] = currentMetadataFile;
-	attrs[_transferFunctionPath] = currentTFPath;
-	attrs[_imageCapturePath] = currentJpegDirectory;
-	attrs[_exportFileName] = currentExportFile;
+	attrs[_jpegQualityAttr] = oss.str();
+	attrs[_metadataPathAttr] = currentMetadataFile;
+	attrs[_transferFunctionPathAttr] = currentTFPath;
+	attrs[_imageCapturePathAttr] = currentJpegDirectory;
+	attrs[_exportFileNameAttr] = currentExportFile;
 	MessageReporter* msgRpt = MessageReporter::getInstance();
-	attrs[_logFileName] = getLogfileName();
+	attrs[_logFileNameAttr] = getLogfileName();
 	oss.str(empty);
-	oss << (long)msgRpt->getMaxPopup(MessageReporter::Error) << " " <<
+	oss << (long)msgRpt->getMaxPopup(MessageReporter::Info) << " " <<
 		(long)msgRpt->getMaxPopup(MessageReporter::Warning) << " " <<
-		(long)msgRpt->getMaxPopup(MessageReporter::Info);
-	attrs[_maxPopup] = oss.str();
+		(long)msgRpt->getMaxPopup(MessageReporter::Error);
+	attrs[_maxPopupAttr] = oss.str();
 	oss.str(empty);
-	oss << (long)msgRpt->getMaxLog(MessageReporter::Error) << " "
+	oss << (long)msgRpt->getMaxLog(MessageReporter::Info) << " "
 		<< (long)msgRpt->getMaxLog(MessageReporter::Warning) << " "
-		<< (long)msgRpt->getMaxLog(MessageReporter::Info);
-	attrs[_maxLog] = oss.str();
+		<< (long)msgRpt->getMaxLog(MessageReporter::Error);
+	attrs[_maxLogAttr] = oss.str();
 
 	XmlNode* mainNode = new XmlNode(_sessionTag, attrs, numTFs+2);
 
-	//Now add children:  One for each saved transfer function,
+	//Now add children:  One for all the saved transfer functions,
 	//one for the global params, and one for the visualizers
 	
-	
-	int i;
-	
-	for (i = 0; i< numTFs; i++){
-		//Save all the state-saved tf's with their names
-		XmlNode* tfNode = keptTFs[i]->buildNode(*tfNames[i]);
-		mainNode->AddChild(tfNode);
+	//Create a global transfer function node
+	if (numTFs > 0){
+		attrs.clear();
+		XmlNode* globalTFs = mainNode->NewChild(_globalTransferFunctionsTag, attrs, numTFs);
+		for (int i = 0; i< numTFs; i++){
+			//Save all the state-saved tf's with their names
+			XmlNode* tfNode = keptTFs[i]->buildNode(*tfNames[i]);
+			globalTFs->AddChild(tfNode);
+		}
 	}
-	//Add global Param states
+	//Create a global params node, and populate it.
+	attrs.clear();
+	XmlNode* globalPanels = mainNode->NewChild(_globalParameterPanelsTag, attrs, 5);
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	//Have the global parameters populate this:
+	XmlNode* dvrNode = vizMgr->getGlobalParams(Params::DvrParamsType)->buildNode();
+	if(dvrNode) globalPanels->AddChild(dvrNode);
+	XmlNode* rgNode = vizMgr->getGlobalParams(Params::RegionParamsType)->buildNode();
+	if(rgNode) globalPanels->AddChild(rgNode);
+	XmlNode* animNode = vizMgr->getGlobalParams(Params::AnimationParamsType)->buildNode();
+	if(animNode) globalPanels->AddChild(animNode);
+	XmlNode* vpNode = vizMgr->getGlobalParams(Params::ViewpointParamsType)->buildNode();
+	if (vpNode) globalPanels->AddChild(vpNode);
+
+	//have vizwinmgr populate the vizwin nodes
+	mainNode->AddChild(vizMgr->buildNode());
+	
 	return mainNode;
 }
 
 bool Session::
 loadFromFile(ifstream& ifs){
-	return false;
-}
-bool Session::
-elementStartHandler(ExpatParseMgr*, int /*depth*/ , std::string& tag, const char **attr){
+	//Call resetMetadata to clean stuff out
+	resetMetadata(0,true);
+	//Then set values from file.
+	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
+	tempParsedTF = 0;
+	parseMgr->parse(ifs);
+	delete parseMgr;
+	//We should return pointer to 0 when done!
+	
+	//assert(tempParsedTF == 0);
+	//Don't activate anything until user opens a new metadata file.
 	return true;
 }
 bool Session::
-elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& ){
-	return true;
+elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char **attrs){
+	switch (depth){
+	//Parse the global session parameters, depth = 0
+		case(0): 
+		{
+			if (StrCmpNoCase(tag, _sessionTag) != 0) return false;
+			MessageReporter* msgRpt = MessageReporter::getInstance();
+			while (*attrs) {
+				string attr = *attrs;
+				attrs++;
+				string value = *attrs;
+				attrs++;
+
+				istringstream ist(value);
+				int int1, int2, int3;
+				
+				if (StrCmpNoCase(attr, _cacheSizeAttr) == 0) {
+					ist >> cacheMB;
+				}
+				else if (StrCmpNoCase(attr, _jpegQualityAttr) == 0) {
+					ist >> jpegQuality;
+				}
+				else if (StrCmpNoCase(attr, _transferFunctionPathAttr) == 0) {
+					ist >> currentTFPath;
+				}
+				else if (StrCmpNoCase(attr, _imageCapturePathAttr) == 0) {
+					ist >> currentJpegDirectory;
+				}
+				else if (StrCmpNoCase(attr, _metadataPathAttr) == 0) {
+					ist >> currentMetadataFile;
+				}
+				else if (StrCmpNoCase(attr, _exportFileNameAttr) == 0) {
+					ist >> currentExportFile;
+				}
+				else if (StrCmpNoCase(attr, _logFileNameAttr) == 0) {
+					ist >> currentLogfileName;
+				}
+				else if (StrCmpNoCase(attr, _maxPopupAttr) == 0) {
+					ist >> int1; ist>>int2; ist>>int3;
+					msgRpt->setMaxPopup(MessageReporter::Info, int1);
+					msgRpt->setMaxPopup(MessageReporter::Warning, int2);
+					msgRpt->setMaxPopup(MessageReporter::Error, int3);
+				}
+				else if (StrCmpNoCase(attr, _maxLogAttr) == 0) {
+					ist >> int1; ist>>int2; ist>>int3;
+					msgRpt->setMaxLog(MessageReporter::Info, int1);
+					msgRpt->setMaxLog(MessageReporter::Warning, int2);
+					msgRpt->setMaxLog(MessageReporter::Error, int3);
+				}
+				else {
+					pm->parseError("Invalid session tag attribute : \"%s\"", attr.c_str());
+				}
+			}
+			return true;
+		}
+		case(1): 
+			//Parse child tags
+			if (StrCmpNoCase(tag, _globalParameterPanelsTag) == 0){
+				return true;//The Params class will parse it at level 2 
+			} else if (StrCmpNoCase(tag, VizWinMgr::_visualizersTag) == 0) {
+				//The vizwinmgr will parse it
+				//Need to "push" to vizwinmgr parser.
+				//That parser will "pop" back to session when done.
+				
+				pm->pushClassStack(VizWinMgr::getInstance());
+				VizWinMgr::getInstance()->elementStartHandler(pm, depth, tag, attrs);
+				return true;
+			} else if (StrCmpNoCase(tag, _globalTransferFunctionsTag) == 0){
+				return true;
+			} else return false;
+		case(2):
+			if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0){
+				//Need to "push" to transfer function parser.
+				//That parser will "pop" back to session when done.
+				tempParsedTF = new TransferFunction();
+				pm->pushClassStack(tempParsedTF);
+				tempParsedTF->elementStartHandler(pm, depth, tag, attrs);
+				return true;
+			} else if (StrCmpNoCase(tag, Params::_dvrParamsTag) == 0){
+				//Need to "push" to dvr parser.
+				//That parser will "pop" back to session when done.
+				tempParsedPanel = new DvrParams(-1);
+				pm->pushClassStack(tempParsedPanel);
+				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
+				return true;
+			} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
+				//Need to "push" to dvr parser.
+				//That parser will "pop" back to session when done.
+				tempParsedPanel = new RegionParams(-1);
+				pm->pushClassStack(tempParsedPanel);
+				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
+				return true;
+			} else if (StrCmpNoCase(tag, Params::_viewpointParamsTag) == 0){
+				//Need to "push" to dvr parser.
+				//That parser will "pop" back to session when done.
+				tempParsedPanel = new ViewpointParams(-1);
+				pm->pushClassStack(tempParsedPanel);
+				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
+				return true;
+			} else if (StrCmpNoCase(tag, Params::_animationParamsTag) == 0){
+				//Need to "push" to dvr parser.
+				//That parser will "pop" back to session when done.
+				tempParsedPanel = new AnimationParams(-1);
+				pm->pushClassStack(tempParsedPanel);
+				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
+				return true;
+			} else return false;
+		default: return false;
+	}
+}
+//assemble transfer function and global params after they are parsed.
+//Also check validity.  0-level is session tag.
+//	1-level is either global TF, global Params, or visualizers
+//  2-level need to actually save the parsed TF's or parsed params
+bool Session::
+elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	switch (depth){
+		case (0):
+			if(StrCmpNoCase(tag, _sessionTag) != 0) return false;
+			return true;
+		case (1):
+			if (StrCmpNoCase(tag, _globalTransferFunctionsTag) == 0) return true;
+			if (StrCmpNoCase(tag, _globalParameterPanelsTag) == 0) return true;
+			if (StrCmpNoCase(tag, VizWinMgr::_visualizersTag) == 0) return true;
+			return false;
+		case (2): //process transfer functions and global parameter panels
+			if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0){
+				//At completion of parsing a transfer function, save it.
+				assert(tempParsedTF);
+				//save the tf, its name
+				addTF(tempParsedTF->getName(), tempParsedTF);
+				tempParsedTF = 0;
+				return true;
+			} else if (StrCmpNoCase(tag, Params::_dvrParamsTag) == 0){
+				assert(tempParsedPanel);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::DvrParamsType);
+				tempParsedPanel = 0;
+				return true;
+			} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
+				assert(tempParsedPanel);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::RegionParamsType);
+				tempParsedPanel = 0;
+				return true;
+			} else if (StrCmpNoCase(tag, Params::_animationParamsTag) == 0){
+				assert(tempParsedPanel);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::AnimationParamsType);
+				tempParsedPanel = 0;
+				return true;
+			} else if (StrCmpNoCase(tag, Params::_viewpointParamsTag) == 0){
+				assert(tempParsedPanel);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::ViewpointParamsType);
+				tempParsedPanel = 0;
+				return true;	
+			} else return false;
+		default: return false;
+	}
 }
 
 // Export the data specification in the current active visualizer:
@@ -278,13 +454,12 @@ exportData(){
  * the established session attempts to be compatible with previous settings.
  * (the newSession flag indicates that the user has clicked "new", or this is the first time
  * a datafile has been loaded, so that the current state is irrelevant)
- * Also perform related functions such as
- * constructing histograms 
- * When a session is loaded from file, all the session state is loaded up.  But the metadata is
+ * Also perform related functions 
+ * When a session is restored from file, all the session state is loaded up.  But the metadata is
  * not reloaded.  
  */
 void Session::
-resetMetadata(const char* fileBase)
+resetMetadata(const char* fileBase, bool restoredSession)
 {
 	int i;
 	//This is a flag used by renderers to avoid rendering while state
@@ -292,6 +467,7 @@ resetMetadata(const char* fileBase)
 	renderOK = false;
 	
 	bool defaultSession = (fileBase == 0);
+	if (restoredSession) assert(defaultSession);
 	//The metadata is created by (and obtained from) the datamgr
 	if (!defaultSession) currentMetadataFile = fileBase;
 	
@@ -323,20 +499,11 @@ resetMetadata(const char* fileBase)
 		myReader = (WaveletBlock3DRegionReader*)dataMgr->GetRegionReader();
 	} 
 
-	//If histograms exist, delete them:
-	if (currentHistograms && currentDataStatus){
-		for (i = 0; i< currentDataStatus->getNumVariables(); i++){
-			if (currentHistograms[i]){
-				delete currentHistograms[i];
-				currentHistograms[i] = 0;
-			}
-		}
-	}
-	if (currentHistograms) delete currentHistograms;
-	currentHistograms = 0;
+	Histo::releaseHistograms();
 	
 	if (currentDataStatus) delete currentDataStatus;
 	currentDataStatus = 0;
+	
 	if (!defaultSession) {
 		currentDataStatus = setupDataStatus();
 		
@@ -348,60 +515,15 @@ resetMetadata(const char* fileBase)
 			dataMgr = 0;
 			return;
 		}
-	
-	
-		//Now create histograms for all the variables present.
-		//Initially just use the first (valid)time step.
+
 		int numVars = currentDataStatus->getNumVariables();
-		currentHistograms = new Histo*[numVars];
-	
 		for (i = 0; i<numVars; i++){
-			currentHistograms[i] = 0;
 			//If this is a new session, 
 			//tell the datamanager to use the overall max/min range
 			//In doing the quantization.  Note that this will change
 			//when the range is changed in the TFE
-			//
-			//reset the mapping range to the entire range
+			
 			setMappingRange(i, currentDataStatus->getDataRange(i));
-			
-			float dataMin = currentDataStatus->getDataRange(i)[0];
-			float dataMax = currentDataStatus->getDataRange(i)[1];
-			//Obtain data dimensions for getting histogram:
-			size_t min_bdim[3];
-			size_t max_bdim[3];
-			int min_dim[3], max_dim[3];
-			
-			size_t subDataSize[3];
-			myReader->GetDim(currentDataStatus->getNumTransforms(),subDataSize);
-			myReader->GetDimBlk(currentDataStatus->getNumTransforms(),max_bdim);
-			for (int k = 0; k<3; k++){
-				min_bdim[k] = 0;
-				max_bdim[k]--;
-				//Setup for full subarray:
-				min_dim[k] = 0;
-				max_dim[k] = subDataSize[k]-1;
-			}
-			
-			//Find the first timestep for which there is data,
-			//Build a histogram, for this variable, on that data.
-			for (unsigned int ts = currentDataStatus->getMinTimestep(); 
-					ts <= currentDataStatus->getMaxTimestep(); ts++){
-				if (currentDataStatus->dataIsPresent(i,ts)){
-					currentHistograms[i] = new Histo(
-						(unsigned char*) dataMgr->GetRegionUInt8(
-							ts, (const char*) currentMetadata->GetVariableNames()[i].c_str(),
-							currentDataStatus->getNumTransforms(),
-							min_bdim,
-							max_bdim,
-							0 //Don't lock!
-						), 
-					min_dim, max_dim, min_bdim, max_bdim,
-					dataMin, dataMax
-					);
-					break;//stop after first successful construction
-				}
-			}
 		}
 	}
 	VizWinMgr* myVizWinMgr = VizWinMgr::getInstance();
@@ -416,13 +538,14 @@ resetMetadata(const char* fileBase)
 				myVizWinMgr->killViz(i);
 			}
 		}
-		myVizWinMgr->launchVisualizer();
-		//Also must reset image capture, TF list
-	}
-	//returning to default, reset values to defaults;
-	if (defaultSession) {
-		myVizWinMgr->restartParams();
-		init();
+		if(!restoredSession) { 
+			//Create one new visualizer, set all params to default
+			myVizWinMgr->launchVisualizer();
+			myVizWinMgr->restartParams();
+			init();
+		// if we are restoring, the next time want the newSession flag off, so 
+		// we will respect the values set in the params on loading the datamgr.
+		} else newSession = false;
 	}
 	else {
 		myVizWinMgr->reinitializeParams(newSession);
@@ -438,30 +561,7 @@ resetMetadata(const char* fileBase)
 	renderOK = true;
 	return;
 }
-//Rebuild a specific histogram
-//
-void Session::
-refreshHistogram(int varNum, RegionParams* rParams, int timestep, float dataMin, float dataMax)
-{
-	float extents[6], minFull[3], maxFull[3];
-	int min_dim[3],max_dim[3];
-	size_t min_bdim[3], max_bdim[3];
-	
-	int numTrans = rParams->getNumTrans();
-	
-	if (currentHistograms[varNum]) delete currentHistograms[varNum];
-	rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numTrans, minFull, maxFull, extents);
-	
-	currentHistograms[varNum] = new Histo((unsigned char*) dataMgr->GetRegionUInt8(
-					timestep, (const char*) currentMetadata->GetVariableNames()[varNum].c_str(),
-					numTrans,
-					min_bdim, max_bdim,
-					0 //Don't lock!
-				), 
-			min_dim, max_dim, min_bdim, max_bdim, dataMin, dataMax
-		);
 
-}
 //Add a command to the circular command queue
 //
 void Session::
@@ -684,6 +784,40 @@ void Session::addTF(const char* tfName, DvrParams* dvrParams){
 	numTFs++;
 	return;
 }
+//Add a transfer function not associated with a dvrParams
+//Don't clone it, add it directly
+void Session::addTF(const std::string tfName, TransferFunction* tf){
+
+	//Check first if this name is already in the list.  If so, remove it.
+	removeTF(&tfName);
+
+	if (numTFs >= tfListSize){
+		tfListSize += 10;
+		//Not enough space, need to allocate more room:
+		TransferFunction** tempTFHolder = new TransferFunction*[tfListSize];
+		std::string** tempTFNames = new std::string*[tfListSize];
+		
+		for (int i = 0; i<numTFs; i++){
+			tempTFHolder[i] = keptTFs[i];
+			tempTFNames[i] = tfNames[i];
+			
+			delete tfNames[i];
+			delete keptTFs[i];
+		}
+		keptTFs = tempTFHolder;
+		tfNames = tempTFNames;
+		
+	}
+	//copy the tf, its name
+	keptTFs[numTFs] = tf;
+	tfNames[numTFs] = new string(tfName);
+	
+	//Don't retain the pointers to dvrParams and TFE:
+	keptTFs[numTFs]->setParams(0);
+	keptTFs[numTFs]->setEditor(0);
+	numTFs++;
+	return;
+}
 bool Session::
 removeTF(const std::string* name){
 	//See if the string is in the list:
@@ -737,7 +871,7 @@ updateTFFilePath(QString* s){
 	if (pos < 0) pos = s->findRev('/');
 	assert (pos>= 0);
 	if (pos < 0) return;
-	currentTFPath = s->left(pos+1);
+	currentTFPath = s->left(pos+1).ascii();
 }
 //Error callback:
 void Session::

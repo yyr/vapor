@@ -24,6 +24,7 @@
 #include "session.h"
 #include "histo.h"
 #include "dvrparams.h"
+#include "vizwinmgr.h"
 using namespace VAPoR;
 
 TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm){
@@ -82,17 +83,14 @@ void TFEditor::refreshImage(){
 		editImage->detach();
 	}
 	editImage->fill(0);
-	Histo* histo = Session::getInstance()->getCurrentHistogram(myParams->getVarNum());
-	//find histo max, for the interval that is mapped by the
-	//transfer function:
-	//
-	/*if (histo && (histoMaxBin < 0)){
-		
-		for (int j = 0; j< 256; j++){
-			if (histo->getBinSize(j)> histoMaxBin)
-				histoMaxBin = histo->getBinSize(j);
-		}
-	}*/
+	//Determine relevant vizNum
+	int viznum = myParams->getVizNum();
+	if (viznum < 0) {
+		viznum = VizWinMgr::getInstance()->getActiveViz();
+		assert(viznum >= 0);
+	}
+	Histo* histo = Histo::getHistogram(myParams->getVarNum(),viznum);
+	
 	if (histo) {
 		histoMaxBin = histo->getMaxBinSize();
 		//If all the data is outside, the maxBin can be 0!
@@ -671,11 +669,17 @@ void TFEditor::setHsv(int h, int s, int v){
 }
 
 
-//Find value of histogram 
+//Find value of histogram.  Just used by tfelocationtip
 //
 int TFEditor::
 getHistoValue(float point){
-	Histo* hist = Session::getInstance()->getCurrentHistogram(myParams->getVarNum());
+	//Determine relevant vizNum
+	int viznum = myParams->getVizNum();
+	if (viznum < 0) {
+		viznum = VizWinMgr::getInstance()->getActiveViz();
+		assert(viznum >= 0);
+	}
+	Histo* hist = Histo::getHistogram(myParams->getVarNum(),viznum);
 	if (!hist) return -1;
 	float ind = (point - hist->getMinData())/(hist->getMaxData()-hist->getMinData());
 	if (ind < 0.f || ind >= 1.f) return 0;

@@ -130,7 +130,7 @@ run(){
 		if( numNotHidden == 0) {
 			myAnimationController->animationMutex.unlock();
 			//qWarning("Waiting for an active renderer to start");
-			myWaitCondition->wait(MAX_SLOW_WAIT);
+			myWaitCondition->wait(IDLE_WAIT);
 			numSleeping = 0;
 			continue;
 		}
@@ -347,9 +347,9 @@ run(){
 			controllerActive = false;
 			break;
 		}
-		//wait for a second; may be woken if someone finishes, or status changes.
+		//wait for a bit; may be woken if someone finishes, or status changes.
 		//qWarning("Waiting for completion of started renderings");
-		myWaitCondition->wait(MAX_SLOW_WAIT);
+		myWaitCondition->wait(IDLE_WAIT);
 	}
 	
 	//Assert that all renderers completed in 60 seconds

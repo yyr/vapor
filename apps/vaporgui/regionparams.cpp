@@ -18,6 +18,11 @@
 //		This class supports parameters associted with the
 //		region panel
 //
+#ifdef WIN32
+//Annoying unreferenced formal parameter warning
+#pragma warning( disable : 4100 )
+#endif
+
 #include "regionparams.h"
 #include "regiontab.h"
 #include "mainform.h"
@@ -29,13 +34,26 @@
 #include <qspinbox.h>
 #include <qslider.h>
 #include <qlabel.h>
+
+#include <vector>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 #include "params.h"
 #include "vapor/Metadata.h"
+#include "vapor/XmlNode.h"
 #include "tabmanager.h"
 #include "glutil.h"
 #include "messagereporter.h"
 
 using namespace VAPoR;
+
+const string RegionParams::_regionCenterTag = "RegionCenter";
+const string RegionParams::_regionSizeTag = "RegionSize";
+const string RegionParams::_maxSizeAttr = "MaxSizeSlider";
+const string RegionParams::_numTransAttr = "NumTrans";
 
 RegionParams::RegionParams(int winnum): Params(winnum){
 	thisParamType = RegionParamsType;
@@ -213,7 +231,7 @@ setDirty(){
 }
 //Method to make center and size values legitimate for specified dimension
 //Returns true if anything changed.
-//Ignores MaxSize, since it's just a guideline.
+//ignores maxSize, since it's just a guideline.
 //
 bool RegionParams::
 enforceConsistency(int dim){
@@ -225,6 +243,9 @@ enforceConsistency(int dim){
 	if (regionSize[dim]>fullSize[dim]) {
 		regionSize[dim] =fullSize[dim]; 
 		rc = true;
+	}
+	if (regionSize[dim] > maxSize) {
+		maxSize = regionSize[dim]; 
 	}
 	if (centerPosition[dim]<(1+regionSize[dim])/2) {
 		centerPosition[dim]= (1+regionSize[dim])/2;
@@ -533,7 +554,7 @@ reinit(bool doOverride){
 	int nx = (int)dataDim[0];
 	int ny = (int)dataDim[1];
 	int nz = (int)dataDim[2];
-	setMaxSize(Max(Max(nx, ny), nz));
+	
 	setFullSize(0, nx);
 	setFullSize(1, ny);
 	setFullSize(2, nz);
@@ -823,10 +844,126 @@ calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max
 	return;
 }
 bool RegionParams::
-elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){
-	return false;
+elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, const char **attrs){
+	if (StrCmpNoCase(tagString, _regionParamsTag) == 0) {
+		//If it's a region tag, save 4 attributes (2 are from Params class)
+		//Do this by repeatedly pulling off the attribute name and value
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			if (StrCmpNoCase(attribName, _vizNumAttr) == 0) {
+				ist >> vizNum;
+			}
+			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
+				if (value == "true") setLocal(true); else setLocal(false);
+			}
+			else if (StrCmpNoCase(attribName, _maxSizeAttr) == 0) {
+				ist >> maxSize;
+			}
+			else if (StrCmpNoCase(attribName, _numTransAttr) == 0) {
+				ist >> numTrans;
+			}
+			else return false;
+		}
+		return true;
+	}
+	//prepare for center position, regionSize nodes
+	else if ((StrCmpNoCase(tagString, _regionCenterTag) == 0) ||
+		(StrCmpNoCase(tagString, _regionSizeTag) == 0) ) {
+		//Should have a long type attribute
+		string attribName = *attrs;
+		attrs++;
+		string value = *attrs;
+
+		ExpatStackElement *state = pm->getStateStackTop();
+		
+		state->has_data = 1;
+		if (StrCmpNoCase(attribName, _typeAttr) != 0) {
+			pm->parseError("Invalid attribute : %s", attribName.c_str());
+			return false;
+		}
+		if (StrCmpNoCase(value, _longType) != 0) {
+			pm->parseError("Invalid type : %s", value.c_str());
+			return false;
+		}
+		state->data_type = value;
+		return true;  
+	}
+	else return false;
 }
 bool RegionParams::
-elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){
-	return false;
+elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
+	if (StrCmpNoCase(tag, _regionParamsTag) == 0) {
+		//If this is a regionparams, need to
+		//pop the parse stack.  
+		ParsedXml* px = pm->popClassStack();
+		bool ok = px->elementEndHandler(pm, depth, tag);
+		return ok;
+	} else if (StrCmpNoCase(tag, _regionCenterTag) == 0){
+		vector<long> posn = pm->getLongData();
+		centerPosition[0] = posn[0];
+		centerPosition[1] = posn[1];
+		centerPosition[2] = posn[2];
+		return true;
+	} else if (StrCmpNoCase(tag, _regionSizeTag) == 0){
+		vector<long> sz = pm->getLongData();
+		regionSize[0] = sz[0];
+		regionSize[1] = sz[1];
+		regionSize[2] = sz[2];
+		return true;
+	}
+	else {
+		pm->parseError("Unrecognized end tag in RegionParams %s",tag.c_str());
+		return false;  
+	}
+}
+XmlNode* RegionParams::
+buildNode(){
+	//Construct the region node
+	string empty;
+	std::map <const string, string> attrs;
+	attrs.clear();
+	
+	ostringstream oss;
+
+	oss.str(empty);
+	oss << (long)vizNum;
+	attrs[_vizNumAttr] = oss.str();
+
+	oss.str(empty);
+	if (local)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_localAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)numTrans;
+	attrs[_numTransAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)maxSize;
+	attrs[_maxSizeAttr] = oss.str();
+
+	XmlNode* regionNode = new XmlNode(_regionParamsTag, attrs, 2);
+
+	//Now add children:  
+	
+	vector<long> longvec;
+	int i;
+	longvec.clear();
+	for (i = 0; i< 3; i++){
+		longvec.push_back((long) centerPosition[i]);
+	}
+	regionNode->SetElementLong(_regionCenterTag,longvec);
+	longvec.clear();
+	for (i = 0; i< 3; i++){
+		longvec.push_back((long) regionSize[i]);
+	}
+	regionNode->SetElementLong(_regionSizeTag, longvec);	
+		
+	return regionNode;
 }

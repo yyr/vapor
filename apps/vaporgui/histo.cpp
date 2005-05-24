@@ -18,7 +18,15 @@
 //
 #include "histo.h"
 #include "session.h"
+#include "regionparams.h"
+#include "dvrparams.h"
+#include "animationparams.h"
+#include "vizwinmgr.h"
+#include "vapor/Metadata.h"
 using namespace VAPoR;
+int Histo::histoArraySize = 0;
+Histo** Histo::histoArray = 0;
+
 Histo::Histo(int numberBins, float mnData, float mxData){
 	numBins = numberBins;
 	minData = mnData;
@@ -91,3 +99,73 @@ void Histo::addToBin(float val) {
 		}
 	}
 }
+//Static stuff to maintain "cache" of histograms:
+void Histo::releaseHistograms(){
+	if (!histoArray) return;
+	for (int i = 0; i<histoArraySize; i++) {
+		if (histoArray[i]){
+			delete histoArray[i];
+			histoArray[i] = 0;
+		}
+	}
+	delete histoArray;
+	histoArray = 0;
+	histoArraySize = 0;
+}
+	
+Histo* Histo::
+getHistogram(int varNum, int vizNum){
+	assert (vizNum >=0 && varNum >= 0);
+	//Check if there exists a histogram array:
+	if (!histoArray || histoArraySize <= 0){
+		int numVars = Session::getInstance()->getNumVariables();
+		if (numVars <= 0) return 0;
+		histoArray = new Histo*[numVars*MAXVIZWINS];
+		histoArraySize = numVars*MAXVIZWINS;
+		for (int j = 0; j<histoArraySize; j++) histoArray[j] = 0;
+	}
+	
+	if (!histoArray[varNum*MAXVIZWINS + vizNum]) {
+		//Need to construct one:
+		refreshHistogram(vizNum);
+	}
+	return histoArray[varNum*MAXVIZWINS + vizNum];
+}
+// Force the construction of a new histogram, valid for a particular visualizer
+// It will be saved in the cache
+void Histo::
+refreshHistogram(int vizNum)
+{
+	float extents[6], minFull[3], maxFull[3];
+	int min_dim[3],max_dim[3];
+	size_t min_bdim[3], max_bdim[3];
+	assert (vizNum >= 0);
+	assert (histoArraySize > 0);
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	DvrParams* dParams = vizWinMgr->getDvrParams(vizNum);
+	int varNum = dParams->getVarNum();
+	if (histoArray[varNum*MAXVIZWINS + vizNum]){
+		delete histoArray[varNum*MAXVIZWINS + vizNum];
+		histoArray[varNum*MAXVIZWINS + vizNum] = 0;
+	}
+	RegionParams* rParams = vizWinMgr->getRegionParams(vizNum);
+	int numTrans = rParams->getNumTrans();
+	int timeStep = vizWinMgr->getAnimationParams(vizNum)->getCurrentFrameNumber();
+	float dataMin = dParams->getMinMapBound();
+	float dataMax = dParams->getMaxMapBound();
+	
+	rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numTrans, minFull, maxFull, extents);
+	DataMgr* dataMgr = Session::getInstance()->getDataMgr();
+	assert (dataMgr);
+	const Metadata* metaData = Session::getInstance()->getCurrentMetadata();
+	histoArray[varNum*MAXVIZWINS + vizNum] = new Histo((unsigned char*) dataMgr->GetRegionUInt8(
+					timeStep, (const char*) metaData->GetVariableNames()[varNum].c_str(),
+					numTrans,
+					min_bdim, max_bdim,
+					0 //Don't lock!
+				), 
+			min_dim, max_dim, min_bdim, max_bdim, dataMin, dataMax
+		);
+
+}
+	

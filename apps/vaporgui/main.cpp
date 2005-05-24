@@ -22,9 +22,24 @@
 #include "glutil.h"
 #include "messagereporter.h"
 using namespace VAPoR;
-
+void myMessageOutput( QtMsgType type, const char *msg )
+{
+    switch ( type ) {
+        case QtDebugMsg:
+			MessageReporter::infoMsg("qDebug: %s\n", msg );
+            break;
+        case QtWarningMsg:
+            MessageReporter::infoMsg("qWarning: %s\n", msg );
+            break;
+        case QtFatalMsg:
+            MessageReporter::fatalMsg("qFatal %s\n", msg ); 
+			break;
+    }
+}
 QApplication* app;
 int main( int argc, char ** argv ) {
+	//Install our own message handler 
+	qInstallMsgHandler( myMessageOutput );
 	//Needed for SGI to avoid dithering:
 	QApplication::setColorSpec( QApplication::ManyColor );
     QApplication a( argc, argv );

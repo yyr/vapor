@@ -122,7 +122,8 @@ void MessageReporter::warningMsg(const char* format, ...){
 	getInstance();
 	va_list args;
 	va_start(args, format);
-	messageMutex->lock();
+	bool gotIt = messageMutex->tryLock();
+	if (!gotIt) return;
 	char* message = convertText(format, args);
 	va_end(args);
 	postMessage(Warning, message);
@@ -133,7 +134,8 @@ void MessageReporter::infoMsg(const char* format, ...){
 	getInstance();
 	va_list args;
 	va_start(args, format);
-	messageMutex->lock();
+	bool gotIt = messageMutex->tryLock();
+	if (!gotIt) return;
 	char* message = convertText(format, args);
 	va_end(args);
 	postMessage(Info, message);

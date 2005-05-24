@@ -37,6 +37,7 @@ class MainForm;
 class TFEditor;
 class TransferFunction;
 class PanelCommand;
+class XmlNode;
 class DvrParams : public Params{
 	
 public: 
@@ -101,6 +102,8 @@ public:
 	void setMaxMapBound(float val);
 	float getMinMapBound();	
 	float getMaxMapBound(); 
+	void resetMinEditBounds(std::vector<double>& newBounds);
+	void resetMaxEditBounds(std::vector<double>& newBounds);
 	void setMinEditBound(float val) {
 		minEditBounds[varNum] = val;
 	}
@@ -160,10 +163,17 @@ public:
 	//Implement virtual function to deal with new session:
 	void reinit(bool doOverride);
 	void restart();
-	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
-	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
+	XmlNode* buildNode(); 
+	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
+	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	
 protected:
+	static const string _leftEditBoundsTag;
+	static const string _rightEditBoundsTag;
+	static const string _numVariablesAttr;
+	static const string _editModeAttr;
+	static const string _histoStretchAttr;
+	static const string _variableNumAttr;
 	void refreshCtab();
 	void hookupTF(TransferFunction* t);
 	bool attenuationDirty;
@@ -181,7 +191,7 @@ protected:
 	Dvr* myDvrTab;
 	TransferFunction* myTransFunc;
 	TFEditor* myTFEditor;
-	float histoStretchFactor;
+	
 	PanelCommand* savedCommand;
 	int varNum;
 	int numVariables;

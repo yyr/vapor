@@ -20,6 +20,9 @@
 //		to route them to the appropriate params class, and in reverse,
 //		to route events from tab panels to the appropriate visualizer.
 //
+#ifdef WIN32
+#pragma warning(disable : 4251 4100)
+#endif
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qmessagebox.h>
@@ -33,7 +36,11 @@
 #include <qcolordialog.h>
 #include <qbuttongroup.h>
 #include <qfiledialog.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
+#include "histo.h"
 #include "vizwin.h"
 #include "vizwinmgr.h"
 #include "messagereporter.h"
@@ -61,11 +68,18 @@
 #include "loadtfdialog.h"
 #include "savetfdialog.h"
 
+#include "vapor/XmlNode.h"
+#include "vapor/ExpatParseMgr.h"
+
 #ifdef VOLUMIZER
 #include "volumizerrenderer.h"
 #endif
 using namespace VAPoR;
 VizWinMgr* VizWinMgr::theVizWinMgr = 0;
+const string VizWinMgr::_visualizersTag = "Visualizers";
+const string VizWinMgr::_vizWinTag = "VizWindow";
+const string VizWinMgr::_vizWinNameAttr = "WindowName";
+
 /******************************************************************
  *  Constructor sets up an array of MAXVIZWINS windows
  *
@@ -142,27 +156,25 @@ vizAboutToDisappear(int i)  {
 	//most recent active viz.
 	if (activeViz == i) {
 		int newActive = getLastActive();
-		if (newActive >= 0) setActiveViz(newActive);
+		if (newActive >= 0 && vizWin[newActive]) setActiveViz(newActive);
+		else activeViz = -1;
 	}
 	
     
-    //delete vizRect[i];
-    //vizRect[i] = 0;
-    //getLastActive will become the new active Viz.
-	//if (activeViz == i) activeViz = getLastActive();
+   
 	//Save the state in history before deleting the params,
 	//the next activeViz is the most recent active visualizer 
 	if (Session::getInstance()->isRecording()){
 		Session::getInstance()->addToHistory(new VizActivateCommand(
 			i, activeViz, Command::remove));
 	}
-	setActiveViz(activeViz);
+	if(activeViz >= 0) setActiveViz(activeViz);
 	if(vpParams[i]) delete vpParams[i];
 	if(rgParams[i]) delete rgParams[i];
 	
-	if (dvrParams[i])delete dvrParams[i];
-	if(isoParams[i]) delete isoParams[i];
-	if(contourParams[i]) delete contourParams[i];
+	if (dvrParams[i]) delete dvrParams[i];
+	if (isoParams[i]) delete isoParams[i];
+	if (contourParams[i]) delete contourParams[i];
 	if (animationParams[i]) delete animationParams[i];
 	vpParams[i] = 0;
 	rgParams[i] = 0;
@@ -184,7 +196,7 @@ vizAboutToDisappear(int i)  {
 //When a visualizer is launched, we may optionally specify a number and a name
 //if this is a relaunch of a previously created visualizer.  If newWindowNum == -1,
 //this is a brand new visualizer.  Otherwise it's a relaunch.
-void VizWinMgr::
+int VizWinMgr::
 launchVisualizer(int newWindowNum, const char* newName)
 {
 	//launch to right of tab dialog, maximize
@@ -208,7 +220,7 @@ launchVisualizer(int newWindowNum, const char* newName)
 		
 		if (i == MAXVIZWINS -1 && newWindowNum == -1) {
 			MessageReporter::errorMsg("Unable to create additional visualizers");
-			return;
+			return -1;
 		}	
 	}
 	
@@ -264,7 +276,7 @@ launchVisualizer(int newWindowNum, const char* newName)
 	Session::getInstance()->unblockRecording();
 	Session::getInstance()->addToHistory(new VizActivateCommand(
 		prevActiveViz, newWindowNum, Command::create));
-		
+	return newWindowNum;
 }
 /*
  *  Create params, for a new visualizer:
@@ -301,6 +313,37 @@ createDefaultParams(int winnum){
 	rgParams[winnum]->setVizNum(winnum);
 	rgParams[winnum]->setLocal(false);
 	
+}
+//Replace a specific global params with specified one
+//
+void VizWinMgr::replaceGlobalParams(Params* p, Params::ParamType typ){
+	switch (typ){
+		case (Params::DvrParamsType):
+			if(globalDvrParams) delete globalDvrParams;
+			globalDvrParams = (DvrParams*)p;
+			return;
+		case (Params::RegionParamsType):
+			if(globalRegionParams) delete globalRegionParams;
+			globalRegionParams = (RegionParams*)p;
+			return;
+		case (Params::ViewpointParamsType):
+			if(globalVPParams) delete globalVPParams;
+			globalVPParams = (ViewpointParams*)p;
+			return;
+		case (Params::AnimationParamsType):
+			if(globalAnimationParams) delete globalAnimationParams;
+			globalAnimationParams = (AnimationParams*)p;
+			return;
+		case (Params::ContourParamsType):
+			if(globalContourParams) delete globalContourParams;
+			globalContourParams = (ContourParams*)p;
+			return;
+		case (Params::IsoParamsType):
+			if(globalIsoParams) delete globalIsoParams;
+			globalIsoParams = (IsosurfaceParams*)p;
+			return;
+		default:  assert(0); return;
+	}
 }
 void VizWinMgr::
 closeEvent()
@@ -986,16 +1029,18 @@ void VizWinMgr::startPlay(AnimationParams* aParams){
 void VizWinMgr::
 setClutDirty(DvrParams* dParams){
 	if (!dParams) return;
-	if (activeViz>=0) {
-		vizWin[activeViz]->setClutDirty(true);
-		vizWin[activeViz]->updateGL();
+	
+	if (dParams->isLocal()){
+		int vn = dParams->getVizNum();
+		vizWin[vn]->setClutDirty(true);
+		vizWin[vn]->updateGL();
+		return;
 	}
-	if (dParams->isLocal()) return;
+		
 	//If another viz is using these dvr params, force them to update, too
 	for (int i = 0; i< MAXVIZWINS; i++){
-		if  ( vizWin[i] && (i != activeViz) &&
-				( (!dvrParams[i])||!dvrParams[i]->isLocal())
-			){
+		if  ( vizWin[i] && !dvrParams[i]->isLocal())
+		{
 			vizWin[i]->setClutDirty(true);
 			vizWin[i]->updateGL();
 		}
@@ -1293,9 +1338,7 @@ refreshHisto(){
 	
 		vizWin->setDataRangeDirty(false);
 	
-		Session::getInstance()->refreshHistogram(dParams->getVarNum(),
-			getRegionParams(activeViz), getAnimationParams(activeViz)->getCurrentFrameNumber(),
-			dParams->getMinMapBound(),  dParams->getMaxMapBound());
+		Histo::refreshHistogram(activeViz);
 	}
 	dParams->refreshTFFrame();
 }
@@ -1633,5 +1676,119 @@ setSelectionMode( Command::mouseModeType m){
 	//Update all visualizers:
 	for (int i = 0; i<MAXVIZWINS; i++){
 		if(vizWin[i]) vizWin[i]->updateGL();
+	}
+}
+
+XmlNode* VizWinMgr::buildNode() { 
+	//Create a visualizers node, put in one child for each visualizer
+	
+	string empty;
+	std::map <const string, string> attrs;
+	attrs.empty();
+	XmlNode* vizMgrNode = new XmlNode(_visualizersTag, attrs, getNumVisualizers());
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if (vizWin[i]){
+			attrs.empty();
+			attrs[_vizWinNameAttr] = vizName[i]->ascii();
+			XmlNode* locals = vizMgrNode->NewChild(_vizWinTag, attrs, 5);
+			//Now add local params
+			XmlNode* dvrNode = dvrParams[i]->buildNode();
+			if(dvrNode) locals->AddChild(dvrNode);
+			XmlNode* rgNode = rgParams[i]->buildNode();
+			if(rgNode) locals->AddChild(rgNode);
+			XmlNode* animNode = animationParams[i]->buildNode();
+			if(animNode) locals->AddChild(animNode);
+			XmlNode* vpNode = vpParams[i]->buildNode();
+			if (vpNode) locals->AddChild(vpNode);
+		}
+	}
+	return vizMgrNode;
+}
+//To parse, just get the visualizer name, and pass on the params-parsing
+//The Visualizers node starts at depth 2, each visualizer is at depth 3
+bool VizWinMgr::
+elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char ** attrs){
+	switch (depth){
+	case(1):
+		if (StrCmpNoCase(tag, _visualizersTag) == 0) return true; 
+		else return false;
+	case(2):
+		{
+		parsingVizNum = -1;
+		//Expect only a vizwin tag here:
+		if (StrCmpNoCase(tag, _vizWinTag) != 0) return false;
+		//Create a visualizer
+		//Get the name & num
+		string winName;
+		while (*attrs) {
+			string attr = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);	
+			if (StrCmpNoCase(attr, _vizWinNameAttr) == 0) {
+				winName = value;
+			} else return false;
+		}
+		//Create the window:
+		parsingVizNum = launchVisualizer(-1, winName.c_str());
+		return true;
+		}
+	case(3):
+		//push the subsequent parsing to the params for current window 
+		if (parsingVizNum < 0) return false;//we should have already created a visualizer
+		if (StrCmpNoCase(tag, Params::_dvrParamsTag) == 0){
+			//Need to "push" to dvr parser.
+			//That parser will "pop" back to vizwinmgr when done.
+			pm->pushClassStack(dvrParams[parsingVizNum]);
+			dvrParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
+			return true;
+		} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
+			//Need to "push" to region parser.
+			//That parser will "pop" back to session when done.
+			pm->pushClassStack(rgParams[parsingVizNum]);
+			rgParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
+			return true;
+		} else if (StrCmpNoCase(tag, Params::_viewpointParamsTag) == 0){
+			//Need to "push" to viewpoint parser.
+			//That parser will "pop" back to session when done.
+			pm->pushClassStack(vpParams[parsingVizNum]);
+			vpParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
+			return true;
+		} else if (StrCmpNoCase(tag, Params::_animationParamsTag) == 0){
+			//Need to "push" to animation parser.
+			//That parser will "pop" back to session when done.
+			
+			pm->pushClassStack(animationParams[parsingVizNum]);
+			animationParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
+			return true;
+		} else return false;
+	default:
+		return false;
+	}
+}
+//End handler has nothing to do except for checking validity, except at end
+//need to pop back to session.
+bool VizWinMgr::elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
+	switch (depth) {
+		case(1):
+			{
+			if (StrCmpNoCase(tag, _visualizersTag) != 0) return false;
+			//need to pop the parse stack
+			ParsedXml* px = pm->popClassStack();
+			bool ok = px->elementEndHandler(pm, depth, tag);
+			return ok;
+			}
+		case (2):
+			if (StrCmpNoCase(tag, _vizWinTag) != 0) return false;
+			//End of parsing all the params for a visualizer.
+			parsingVizNum = -1;
+			return true;
+		case(3):
+			//End of parsing a params for a visualizer (popped back from params parsing)
+			if (parsingVizNum < 0) return false;
+			return true;
+		default:
+			return false;
 	}
 }

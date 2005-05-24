@@ -278,7 +278,7 @@ public:
 	//Setup session for a new Metadata, by specifying vdf file
 	//If the argument is null, it resets to default state
 	//
-	void resetMetadata(const char* vmfile);
+	void resetMetadata(const char* vmfile, bool restoringSession);
 	//Export current data in active visualizer:
 	void exportData();
 	void setCacheMB(size_t size){cacheMB = size;}
@@ -289,6 +289,7 @@ public:
 	int getNumTFs() { return numTFs;}
 	std::string* getTFName(int i) { return tfNames[i];}
 	void addTF(const char* tfName, DvrParams* );
+	void addTF(const std::string tfName, TransferFunction* tf);
 	bool removeTF(const std::string* name);
 	//Obtain the Transfer function associated with a name,
 	//plus, return left end right map limits.
@@ -317,16 +318,18 @@ public:
 	void setLogfileName(const char* newname){currentLogfileName = newname;}
 	
 protected:
-	static const string _cacheSize;
-	static const string _jpegQuality;
-	static const string _metadataPath;
-	static const string _transferFunctionPath;
-	static const string _imageCapturePath;
-	static const string _logFileName;
-	static const string _maxPopup;
-	static const string _maxLog;
+	static const string _cacheSizeAttr;
+	static const string _jpegQualityAttr;
+	static const string _metadataPathAttr;
+	static const string _transferFunctionPathAttr;
+	static const string _imageCapturePathAttr;
+	static const string _logFileNameAttr;
+	static const string _maxPopupAttr;
+	static const string _maxLogAttr;
+	static const string _exportFileNameAttr;
 	static const string _sessionTag;
-	static const string _exportFileName;
+	static const string _globalParameterPanelsTag;
+	static const string _globalTransferFunctionsTag;
 
 	XmlNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);
@@ -357,6 +360,10 @@ protected:
 	bool renderOK;
 	//TransferFunctions are kept, by name, in the session:
 	TransferFunction** keptTFs;
+	//hold a transfer function during parsing (between when the start and end tags
+	//are parsed.)
+	TransferFunction* tempParsedTF;
+	Params* tempParsedPanel;
 	std::string** tfNames;
 	int numTFs, tfListSize;
 	// Various filepath and directory paths are kept in session:

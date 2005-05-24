@@ -27,7 +27,7 @@ else
 CXXFLAGS += -DVOLUMIZER
 LDFLAGS += -lvz   
 LDFLAGS += -L$(QTDIR)/lib 
-LDFLAGS += -lGLU -lGL -lqt-mt 
+LDFLAGS += -lqt-mt -lGL -lGLU
 endif
 
 
@@ -42,7 +42,7 @@ FILES := \
 	tabmanager tfeditor tfelocationtip \
 	tfframe tfinterpolator trackball transferfunction \
 	unsharedcontrollerthread \
-	viewpointparams vizactivatecommand \
+	viewpointparams viewpoint vizactivatecommand \
 	vizselectcombo vizwin vizwinmgr volumizerrenderer 
 
 QT_HEADERS := \

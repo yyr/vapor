@@ -30,6 +30,7 @@ class AnimationTab;
 namespace VAPoR {
 class ExpatParseMgr;
 class MainForm;
+class XmlNode;
 class AnimationParams : public Params {
 	
 public: 
@@ -80,10 +81,18 @@ public:
 	void guiSetFrameStep(int sliderposition);
 	void guiToggleReplay(bool replay);
 	void guiSingleStep(bool forward);
-	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
-	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
+	XmlNode* buildNode();
+	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
+	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	
 protected:
+	static const string _repeatAttr;
+	static const string _maxRateAttr;
+	static const string _stepSizeAttr;
+	static const string _startFrameAttr;
+	static const string _endFrameAttr;
+	static const string _currentFrameAttr;
+
 	int playDirection; //-1, 0, or 1
 	bool repeatPlay;
 	float maxFrameRate;

@@ -18,6 +18,7 @@
 //		This is an abstract class for all the tabbed panel params classes.
 //		Supports functionality common to all the tabbed panel params.
 //
+#include <cstring>
 #include <qwidget.h>
 #include "mainform.h"
 #include "vizwinmgr.h"
@@ -25,8 +26,16 @@
 #include "session.h"
 #include "assert.h"
 #include "params.h"
-	
+
+
 using namespace VAPoR;
+
+const string Params::_dvrParamsTag = "DvrPanelParameters";
+const string Params::_regionParamsTag = "RegionPanelParameters";
+const string Params::_animationParamsTag = "AnimationPanelParameters";
+const string Params::_viewpointParamsTag = "ViewpointPanelParameters";
+const string Params::_localAttr = "Local";
+const string Params::_vizNumAttr = "VisualizerNum";
 //Methods to find the "other" params in a local/global switch:
 //
 Params* Params::
@@ -103,5 +112,3 @@ QString& Params::paramName(Params::ParamType type){
 	}
 	
 }
-
-	

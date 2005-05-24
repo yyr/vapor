@@ -30,6 +30,7 @@
 #include "assert.h"
 #include "vaporinternal/common.h"
 #include "dvrparams.h"
+#include "messagereporter.h"
 #include "vapor/MyBase.h"
 #include <vapor/XmlNode.h>
 #include <iostream>
@@ -61,8 +62,13 @@ const string TransferFunction::_tfNameAttr = "Name";
 
 //Constructor for empty, default transfer function
 TransferFunction::TransferFunction() {
-	myParams = 0;
 	
+	myParams = 0;
+	myTFEditor = 0;
+	init();
+}
+void TransferFunction::
+init(){  //reset to starting values:
 	numColorControlPoints = 2;
 	colorCtrlPoint[0] = -1.e6f;
 	colorCtrlPoint[1] = 1.e6f;
@@ -70,7 +76,6 @@ TransferFunction::TransferFunction() {
 	numOpacControlPoints = 2;
 	opacCtrlPoint[0] = -1.e6f;
 	opacCtrlPoint[1] = 1.e6f;
-
 	colorInterp[0] = TFInterpolator::linear;
 	opacInterp[0] = TFInterpolator::linear;
 	hue[0] = 0.f;
@@ -83,9 +88,6 @@ TransferFunction::TransferFunction() {
 	sat[1] = 1.f;
 	val[1] = 1.f;
 	opac[1] = 1.f;
-		
-	myTFEditor = 0;
-
 	numEntries = 256;
 	minMapBound = 0.f;
 	maxMapBound = 1.f;
@@ -183,6 +185,41 @@ insertColorControlPoint(float point){
 	return(indx+1);
 }
 /*
+* Insert a color control point with normalized coord.
+* return new index
+*/
+int TransferFunction::
+insertNormColorControlPoint(float point, float h, float s, float v){
+	if (numColorControlPoints >= MAXCONTROLPOINTS) return -1;
+	//normalize point to value between 0 and 1:
+	//
+	
+	if (point > 1.f || point < 0.f) return -1;
+	int indx = getLeftIndex(point, colorCtrlPoint, numColorControlPoints);
+	//Find the value
+	//
+	float leftVal = colorCtrlPoint[indx];
+	float rightVal = colorCtrlPoint[indx+1];
+	assert (rightVal > leftVal);
+	
+	//Create a space to insert the value
+	for (int i = numColorControlPoints; i>indx+1; i--){
+		hue[i] = hue[i-1];
+		sat[i] = sat[i-1];
+		val[i] = val[i-1];
+		colorCtrlPoint[i] = colorCtrlPoint[i-1];
+		colorInterp[i] = colorInterp[i-1];
+	}
+	colorCtrlPoint[indx+1] = point;
+	hue[indx+1] = h;
+	sat[indx+1] = s;
+	val[indx+1] = v;
+	colorInterp[indx+1] = colorInterp[indx];
+	numColorControlPoints++;
+	myParams->setClutDirty();
+	return(indx+1);
+}
+/*
  * Insert an opacity control point possibly changing opacity
  * If opacity < 0, it is not changed.
  */
@@ -215,6 +252,35 @@ insertOpacControlPoint(float point, float opacity){
 		opacInterp[i] = opacInterp[i-1];
 	}
 	opacCtrlPoint[indx+1] = normPoint;
+	opacInterp[indx+1] = opacInterp[indx];
+	opac[indx+1] = opacity;
+	numOpacControlPoints++;
+	myParams->setClutDirty();
+	return(indx+1);
+}
+/*
+ * Insert an opacity control point setting opacity
+ * Uses normalized x-coord
+ */
+
+int TransferFunction::
+insertNormOpacControlPoint(float point, float opacity){
+	if (numOpacControlPoints >= MAXCONTROLPOINTS) return -1;
+	//normalize point to value between 0 and 1:
+	//
+	
+	if (point < 0.f || point > 1.f) return -1;
+	int indx = getLeftIndex(point, opacCtrlPoint, numOpacControlPoints);
+	assert(opacity <= 1.f);
+	
+	//Create a space to insert the value
+	//
+	for (int i = numOpacControlPoints; i>indx+1; i--){
+		opac[i] = opac[i-1];
+		opacCtrlPoint[i]=opacCtrlPoint[i-1];
+		opacInterp[i] = opacInterp[i-1];
+	}
+	opacCtrlPoint[indx+1] = point;
 	opacInterp[indx+1] = opacInterp[indx];
 	opac[indx+1] = opacity;
 	numOpacControlPoints++;
@@ -390,6 +456,7 @@ moveColorControlPoint(int index, float newPoint){
 		hue[index] = saveHue;
 		sat[index] = saveSat;
 		val[index] = saveVal;
+		myParams->setClutDirty();
 		return index;
 	}
 	//Otherwise, move it to a new interval;
@@ -676,26 +743,33 @@ loadFromFile(ifstream& is){
 
 
 //Handlers for Expat parsing.
-//The parse state is determined by the depth (parseDepth) and by
+//The parse state is determined by
 //whether it's parsing a color or opacity.
 //
 bool TransferFunction::
-elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const char **attrs){
+elementStartHandler(ExpatParseMgr* pm, int /*depth*/ , std::string& tagString, const char **attrs){
 	if (StrCmpNoCase(tagString, _transferFunctionTag) == 0) {
 		//If it's a TransferFunction tag, save the left/right bounds attributes.
-		//Do this by twice pulling off the attribute name and value
-		for (int q = 0; q<2; q++){
+		//Ignore the name tag
+		//Do this by repeatedly pulling off the attribute name and value
+		//begin by  resetting everything to starting values.
+		init();
+		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
 			string value = *attrs;
 			attrs++;
 			istringstream ist(value);
-			if (StrCmpNoCase(attribName, _leftBoundAttr) == 0) {
+			if (StrCmpNoCase(attribName, _tfNameAttr) == 0) {
+				ist >> tfName;
+			}
+			else if (StrCmpNoCase(attribName, _leftBoundAttr) == 0) {
 				ist >> minMapBound;
 			}
 			else if (StrCmpNoCase(attribName, _rightBoundAttr) == 0) {
 				ist >> maxMapBound;
 			}
+			
 			else return false;
 		}
 		return true;
@@ -722,9 +796,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			} else return false;//Unknown attribute
 		}
 		//Then insert color control point
-		int indx = insertColorControlPoint(posn);
-		if (indx >= 0) setControlPointHSV(indx, hue, sat, val);
-		return true;
+		int indx = insertNormColorControlPoint(posn,hue,sat,val);
+		if (indx >= 0)return true;
+		return false;
 	}
 	else if (StrCmpNoCase(tagString, _opacityControlPointTag) == 0) {
 		//peel off position and opacity
@@ -743,9 +817,23 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			} else return false; //Unknown attribute
 		}
 		//Then insert color control point
-		insertOpacControlPoint(posn, opacity);
-		return true;
+		if(insertNormOpacControlPoint(posn, opacity)>=0) return true;
+		else return false;
 	}
 	else return false;
 }
+//The end handler needs to pop the parse stack, if this is not the top level.
+bool TransferFunction::
+elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
+	//Check only for the transferfunction tag, ignore others.
+	if (StrCmpNoCase(tag, _transferFunctionTag) != 0) return true;
+	//If depth is 0, this is a transfer function file; otherwise need to
+	//pop the parse stack.  The caller will need to save the resulting
+	//transfer function (i.e. this)
+	if (depth == 0) return true;
+	ParsedXml* px = pm->popClassStack();
+	bool ok = px->elementEndHandler(pm, depth, tag);
+	return ok;
+}
+
 

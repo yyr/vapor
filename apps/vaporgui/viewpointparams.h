@@ -32,6 +32,7 @@ class ExpatParseMgr;
 class MainForm;
 class RegionParams;
 class PanelCommand;
+class XmlNode;
 
 class ViewpointParams : public Params {
 	
@@ -56,6 +57,7 @@ public:
 	void setUpVec(float* val) {currentViewpoint->setUpVec(val);}
 	bool hasPerspective(){return currentViewpoint->hasPerspective();}
 	void setPerspective(bool on) {currentViewpoint->setPerspective(on);}
+	
 	Viewpoint* getCurrentViewpoint() { return currentViewpoint;}
 
 	float* getLightPos(int i) {return lightPositions + 3*i;}
@@ -70,7 +72,9 @@ public:
 	//
 	virtual void updatePanelState();
 	
-	
+	float* getRotationCenter(){return currentViewpoint->getRotationCenter();}
+	float getRotationCenter(int i){ return currentViewpoint->getRotationCenter(i);}
+	void setRotationCenter(int i, float val){currentViewpoint->setRotationCenter(i,val);}
 	//Respond to mouse motion, changing viewer frame
 	//
 	void navigate(float* posn, float* viewDir, float* upVec);
@@ -108,7 +112,6 @@ public:
 	static void worldFromCube(float fromCoords[3], float toCoords[3]);
 	static void setCoordTrans();
 
-	float* getRotationCenter(){ return rotationCenter;}
 	//Following determines scale factor in coord transformation:
 	//
 	static float getMaxCubeSide() {return maxCubeSide;}
@@ -120,10 +123,13 @@ public:
 	void setModelViewMatrix(double* mtx){
 		for (int i = 0; i<16; i++) modelViewMatrix[i] = mtx[i];
 	}
-	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
-	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
-	
+	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
+	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
+	XmlNode* buildNode();
+
 protected:
+	static const string _currentViewTag;
+	static const string _homeViewTag;
 	//Set to default viewpoint for specified region
 	void centerFullRegion(RegionParams*);
 	//Holder for saving state during mouse move:
@@ -131,7 +137,7 @@ protected:
 	PanelCommand* savedCommand;
 	Viewpoint* currentViewpoint;
 	Viewpoint* homeViewpoint;
-	float rotationCenter[3];
+	
 	int numLights;
 	float* lightPositions;
 	VizTab* myVizTab;
@@ -143,8 +149,6 @@ protected:
 	//GL state saved here since it may be shared...
 	//
 	double modelViewMatrix[16];
-	
-
 };
 };
 #endif //VIEWPOINTPARAMS_H 

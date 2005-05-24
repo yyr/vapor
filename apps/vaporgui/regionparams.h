@@ -35,6 +35,7 @@ class RegionTab;
 namespace VAPoR {
 class MainForm;
 class ViewpointParams;
+class XmlNode;
 class RegionParams : public Params {
 	
 public: 
@@ -158,10 +159,16 @@ public:
 	void reinit(bool doOverride);
 	void restart();
 	void unSelectFace() { selectedFaceNum = -1;}
-	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
-	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
+	XmlNode* buildNode();
+	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
+	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	
 protected:
+	static const string _regionCenterTag;
+	static const string _regionSizeTag;
+	static const string _maxSizeAttr;
+	static const string _numTransAttr;
+	
 	//Holder for saving state during mouse move:
 	//
 	PanelCommand* savedCommand;
@@ -185,7 +192,7 @@ protected:
 	int regionSize[3];
 	int fullSize[3];
 	int maxSize, numTrans, maxNumTrans, minNumTrans;
-	//int currentTimestep;
+	
 	RegionTab* myRegionTab;
 	std::vector<double> fullDataExtents;
 	int selectedFaceNum;

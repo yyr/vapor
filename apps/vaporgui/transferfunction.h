@@ -40,10 +40,13 @@ public:
 	TransferFunction(DvrParams* p, int nBits);
 	TransferFunction();
 	~TransferFunction();
+	//Set to starting values
+	//
+	void init();  
 	//Insert a control point without disturbing values;
 	//return new index
 	//Note:  All public methods use actual real coords.
-	//Protected methods normalize points to lie in [0,1]
+	//(Protected methods use normalized points in [0,1]
 	//
 	int insertColorControlPoint(float point);
 
@@ -141,11 +144,25 @@ public:
 	XmlNode* buildNode(const string& tfname);
 	//All the parsing can be done with the start handlers
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, const char **attr);
-	bool elementEndHandler(ExpatParseMgr*, int , std::string& ) {return true;}
+	bool elementEndHandler(ExpatParseMgr*, int , std::string&);
+	//Transfer function tag is visible to session 
+	static const string _transferFunctionTag;
+	string& getName() {return tfName;}
 	
 protected:
+
+	//Insert a control point without disturbing values;
+	//return new index
+	//Note:  All public methods use actual real coords.
+	//These Protected methods use normalized points in [0,1]
+	//
+	int insertNormColorControlPoint(float point, float h, float s, float v);
+
+	//Insert a control point with specified opacity
+	//
+	int insertNormOpacControlPoint(float point, float opacity);
 	//Tags and attributes for reading and writing
-	static const string _transferFunctionTag;
+	
 	static const string _tfNameAttr;
 	static const string _leftBoundAttr;
 	static const string _rightBoundAttr;
@@ -183,6 +200,8 @@ protected:
 	//Size of lookup table.  Always 1<<8 currently!
 	//
 	int numEntries;
+	//transfer function name, if it's named.
+	string tfName;
 
 	
 };

@@ -41,6 +41,7 @@
 #include <qlineedit.h>
 #include <qscrollview.h>
 #include <qdesktopwidget.h>
+#include <qmessagebox.h>
 #include <qvbox.h>
 #include <qworkspace.h>
 #include <iostream>
@@ -609,6 +610,12 @@ void MainForm::fileSaveAs()
 	if (!filename.endsWith(".vss")){
 		filename += ".vss";
 	}
+	QFileInfo finfo(filename);
+	if (finfo.exists()){
+		int rc = QMessageBox::warning(0, "Session File Exists", QString("OK to replace session file?\n %1 ").arg(filename), QMessageBox::Ok, 
+			QMessageBox::No);
+		if (rc != QMessageBox::Ok) return;
+	}
 	ofstream fileout;
 	fileout.open(filename.ascii());
 	if (! fileout) {
@@ -722,14 +729,14 @@ void MainForm::loadData()
 		"Load Volume Data Dialog",
 		"Choose the Metadata File to load into current session");
 	if(filename != QString::null){
-		Session::getInstance()->resetMetadata(filename.ascii());
+		Session::getInstance()->resetMetadata(filename.ascii(), false);
 	}
 	
 }
 void MainForm::newSession()
 {
 
-	Session::getInstance()->resetMetadata(0);
+	Session::getInstance()->resetMetadata(0, false);
 	
 }
 void MainForm::launchVisualizer()

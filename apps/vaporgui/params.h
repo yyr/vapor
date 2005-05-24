@@ -33,6 +33,7 @@ class MainForm;
 class VizWinMgr;
 class Session;
 class PanelCommand;
+class XmlNode;
 class Params : public ParsedXml  {
 	
 public: 
@@ -53,6 +54,12 @@ public:
 		AnimationParamsType
 	};
 	static QString& paramName(ParamType);
+	static const string _dvrParamsTag;
+	static const string _regionParamsTag;
+	static const string _viewpointParamsTag;
+	static const string _animationParamsTag;
+	static const string _vizNumAttr;
+	static const string _localAttr;
 	virtual ~Params() {}
 	//Each params must be able to make a "deep" copy,
 	//I.e. copy everything that is unique to this object
@@ -118,7 +125,10 @@ public:
 	//The restart method goes back to initial state
 	//Default does nothing.
 	//
+	
 	virtual void restart() {return;}
+	//Methods for restore/save:
+	virtual XmlNode* buildNode() { return 0;}
 	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/) = 0;
 	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/) = 0;
 	

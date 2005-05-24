@@ -33,6 +33,7 @@
 #include <qbuttongroup.h>
 #include <qlabel.h>
 #include <qfiledialog.h>
+#include <qmessagebox.h>
 
 #include <vector>
 #include <string>
@@ -65,6 +66,13 @@
 
 
 using namespace VAPoR;
+
+const string DvrParams::_leftEditBoundsTag = "LeftEditBounds";
+const string DvrParams::_rightEditBoundsTag = "RightEditBounds";
+const string DvrParams::_numVariablesAttr = "NumVariables";
+const string DvrParams::_variableNumAttr = "VariableNum";
+const string DvrParams::_editModeAttr = "TFEditMode";
+const string DvrParams::_histoStretchAttr = "HistoStretchFactor";
 
 DvrParams::DvrParams(int winnum) : Params(winnum){
 	thisParamType = DvrParamsType;
@@ -160,11 +168,13 @@ void DvrParams::updateDialog(){
 	myDvrTab->variableCombo->clear();
 	myDvrTab->variableCombo->setMaxCount(numVariables);
 	for (int i = 0; i< numVariables; i++){
-		const std::string& s = variableNames.at(i);
-		//Direct conversion of std::string& to QString doesn't seem to work
-		//Maybe std was not enabled when QT was built?
-		const QString& text = QString(s.c_str());
-		myDvrTab->variableCombo->insertItem(text);
+		if (variableNames.size() > (unsigned int)i){
+			const std::string& s = variableNames.at(i);
+			//Direct conversion of std::string& to QString doesn't seem to work
+			//Maybe std was not enabled when QT was built?
+			const QString& text = QString(s.c_str());
+			myDvrTab->variableCombo->insertItem(text);
+		} else myDvrTab->variableCombo->insertItem("");
 	}
 	myDvrTab->variableCombo->setCurrentItem(varNum);
 	
@@ -734,6 +744,12 @@ fileSaveTF(){
 	if (!s.endsWith(".vtf")){
 		s += ".vtf";
 	}
+	QFileInfo finfo(s);
+	if (finfo.exists()){
+		int rc = QMessageBox::warning(0, "Transfer Function File Exists", QString("OK to replace transfer function file \n%1 ?").arg(s), QMessageBox::Ok, 
+			QMessageBox::No);
+		if (rc != QMessageBox::Ok) return;
+	}
 	ofstream fileout;
 	fileout.open(s.ascii());
 	if (! fileout) {
@@ -775,11 +791,176 @@ float DvrParams::getMinMapBound(){
 float DvrParams::getMaxMapBound(){
 	return myTransFunc->getMaxMapValue();
 }
+//Handlers for Expat parsing.
+//The parse state is determined by
+//whether it's parsing a color or opacity.
+//
 bool DvrParams::
-elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){
-	return false;
+elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const char **attrs){
+	if (StrCmpNoCase(tagString, _dvrParamsTag) == 0) {
+		//If it's a Dvr tag, save 5 attributes (2 are from Params class)
+		//Do this by repeatedly pulling off the attribute name and value
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			if (StrCmpNoCase(attribName, _vizNumAttr) == 0) {
+				ist >> vizNum;
+			}
+			else if (StrCmpNoCase(attribName, _numVariablesAttr) == 0) {
+				ist >> numVariables;
+			}
+			else if (StrCmpNoCase(attribName, _variableNumAttr) == 0) {
+				ist >> varNum;
+			}
+			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
+				if (value == "true") setLocal(true); else setLocal(false);
+			}
+			else if (StrCmpNoCase(attribName, _histoStretchAttr) == 0){
+				float histStretch;
+				ist >> histStretch;
+				myTFEditor->setHistoStretch(histStretch);
+			}
+			else if (StrCmpNoCase(attribName, _editModeAttr) == 0){
+				if (value == "true") setEditMode(true); 
+				else setEditMode(false);
+			}
+			else return false;
+		}
+		return true;
+	}
+	//Parse a transferFunction
+	else if (StrCmpNoCase(tagString, TransferFunction::_transferFunctionTag) == 0) {
+		//Need to "push" to transfer function parser.
+		//That parser will "pop" back to dvrparams when done.
+		pm->pushClassStack(myTransFunc);
+		myTransFunc->elementStartHandler(pm, depth, tagString, attrs);
+		return true;
+	}
+	else if ((StrCmpNoCase(tagString, _leftEditBoundsTag) == 0) ||
+		(StrCmpNoCase(tagString, _rightEditBoundsTag) == 0))
+	{
+		//Should have a type attribute
+		string attribName = *attrs;
+		attrs++;
+		string value = *attrs;
+		attrs++;
+
+		ExpatStackElement *state = pm->getStateStackTop();
+		if (numVariables>0) {
+			state->has_data = 1;
+			if (StrCmpNoCase(attribName, _typeAttr) != 0) {
+				pm->parseError("Invalid attribute : %s", attribName.c_str());
+				return false;
+			}
+			state->data_type = value;
+		}
+		return true;  
+	}
+	else return false;
 }
+//The end handler needs to pop the parse stack
 bool DvrParams::
-elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){
-	return false;
+elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
+	
+	if (StrCmpNoCase(tag, _dvrParamsTag) == 0) {
+		//If this is a dvrparams, need to
+		//pop the parse stack.  The caller will need to save the resulting
+		//transfer function (i.e. this)
+		ParsedXml* px = pm->popClassStack();
+		bool ok = px->elementEndHandler(pm, depth, tag);
+		return ok;
+	} else if (StrCmpNoCase(tag, _leftEditBoundsTag) == 0){
+		resetMinEditBounds(pm->getDoubleData());
+		return true;
+	} else if (StrCmpNoCase(tag, _rightEditBoundsTag) == 0){
+		resetMaxEditBounds(pm->getDoubleData());
+		return true;
+	} else if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0) {
+		return true;
+	}
+	else {
+		pm->parseError("Unrecognized end tag in DVRParams %s",tag.c_str());
+		return false;  //Could there be other end tags that we ignore??
+	}
 }
+
+//Method to construct Xml for state saving
+XmlNode* DvrParams::
+buildNode() {
+	//Construct the dvr node
+	string empty;
+	std::map <const string, string> attrs;
+	attrs.clear();
+	
+	ostringstream oss;
+
+	oss.str(empty);
+	oss << (long)vizNum;
+	attrs[_vizNumAttr] = oss.str();
+
+	oss.str(empty);
+	if (local)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_localAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)numVariables;
+	attrs[_numVariablesAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)varNum;
+	attrs[_variableNumAttr] = oss.str();
+
+	oss.str(empty);
+	if (editMode)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_editModeAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)myTFEditor->getHistoStretch();
+	attrs[_histoStretchAttr] = oss.str();
+	
+	XmlNode* dvrNode = new XmlNode(_dvrParamsTag, attrs, 3);
+
+	//Now add children:  
+	//Create a transfer function node
+
+	XmlNode* tfNode = myTransFunc->buildNode(empty);
+	dvrNode->AddChild(tfNode);
+	vector<double> dblvec;
+	if (numVariables > 0){
+		dblvec.clear();
+		for (int i = 0; i<numVariables; i++){
+			dblvec.push_back((double) minEditBounds[i]);
+			//Also put an empty string in the variableNames array:
+			variableNames.push_back("");
+		}
+		dvrNode->SetElementDouble(_leftEditBoundsTag,dblvec);
+		dblvec.clear();
+		for (int i = 0; i<numVariables; i++)
+			dblvec.push_back((double) maxEditBounds[i]);
+		dvrNode->SetElementDouble(_rightEditBoundsTag,dblvec);
+	}
+	return dvrNode;
+}
+void DvrParams::resetMinEditBounds(vector<double>& newBounds){
+	if (minEditBounds) delete minEditBounds;
+	minEditBounds = new float[newBounds.size()];
+	
+	for (unsigned int i = 0; i<newBounds.size(); i++){ 
+		minEditBounds[i] = newBounds[i];
+	}
+}
+void DvrParams::resetMaxEditBounds(vector<double>& newBounds){
+	if (maxEditBounds) delete maxEditBounds;
+	maxEditBounds = new float[newBounds.size()];
+	for (unsigned int i = 0; i<newBounds.size(); i++) 
+		maxEditBounds[i] = newBounds[i];
+}
+
