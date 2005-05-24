@@ -10,6 +10,8 @@ QTLIB += -lqt-mt
 
 ifdef	OGL_LIB_PATH
 OGLLIBS = -L$(OGL_LIB_PATH)
+else
+OGLLIBS = -L/usr/lib
 endif
 OGLLIBS += -lGLU -lGL  -lX11
 
