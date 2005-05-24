@@ -18,14 +18,6 @@ else
 INSTALL_PREFIX_DIR = /tmp
 endif
 
-DO_FS_PATH=0
-ifeq ($(HOST), nomad)
-DO_FS_PATH=1
-endif
-ifeq ($(HOST), newcyclone)
-DO_FS_PATH=1
-endif
-
 #
 # Windows
 #
@@ -53,25 +45,15 @@ EXPAT_INC_PATH=/usr/freeware/include
 EXPAT_LIB_PATH=/usr/freeware/lib32
 HAVE_IDL = 1
 
-ifneq ($(DO_FS_PATH), 1)
-IDL_INC_PATH = /usr/local/apps/rsi/idl_6.0/external/include/
-QTDIR=/usr/local/apps/qt
-else
 IDL_INC_PATH = /fs/local/apps/rsi/idl_6.1/external/include/
 QTDIR=/fs/local/apps/qt-3.3.2
-endif
 
 ifdef BUILD64
 
 EXPAT_LIB_PATH=/usr/freeware/lib64
 
-ifneq ($(DO_FS_PATH), 1)
-IDL_INC_PATH = /usr/local/apps/rsi/idl_6.0/external/include/
-QTDIR=/usr/local/apps64/qt
-else
 IDL_INC_PATH = /fs/local/64/apps/rsi/idl_6.1/external/include/
 QTDIR=/fs/local/64/apps/qt-3.3.2
-endif
 
 endif
 
@@ -86,13 +68,8 @@ ifeq ($(ARCH),Linux)
 EXPAT_INC_PATH=/usr/include
 EXPAT_LIB_PATH=/usr/lib
 HAVE_IDL = 1
-ifeq ($(HOST), bushnell)
-IDL_INC_PATH=/fs/local/rsi/idl_6.0/external/include
-QTDIR = /fs/local/apps/qt
-else
 IDL_INC_PATH=/fs/local/apps/rsi/idl_6.0/external/include
 QTDIR = /fs/local/apps/qt-3.3.2
-endif
 
 ifeq ($(MACHTYPE),ia64)
 BUILD64 = 1
