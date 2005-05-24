@@ -106,9 +106,6 @@ private:
 	static const string _varNameTag;
 	static const string _regionTag;
 	static const string _timeSegmentTag;
-	static const string _stringType;
-	static const string _longType;
-	static const string _typeAttr;
 
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);
 	bool elementEndHandler(ExpatParseMgr*, int depth , std::string& );

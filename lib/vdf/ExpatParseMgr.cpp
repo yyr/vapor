@@ -48,6 +48,10 @@ using namespace VetsUtil;
 const string ExpatParseMgr::_stringType = "String";
 const string ExpatParseMgr::_longType = "Long";
 const string ExpatParseMgr::_doubleType = "Double";
+const string ParsedXml::_stringType = "String";
+const string ParsedXml::_longType = "Long";
+const string ParsedXml::_doubleType = "Double";
+const string ParsedXml::_typeAttr = "Type";
 
 ExpatParseMgr::ExpatParseMgr(ParsedXml* pc){
 	SetDiagMsg("ExpatParseMgr::ExpatParseMgr()");

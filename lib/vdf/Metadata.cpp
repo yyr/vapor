@@ -61,11 +61,6 @@ const string Metadata::_filterCoefficientsAttr = "FilterCoefficients";
 const string Metadata::_liftingCoefficientsAttr = "LiftingCoefficients";
 const string Metadata::_msbFirstAttr = "MSBFirst";
 const string Metadata::_numChildrenAttr = "NumChildren";
-const string Metadata::_typeAttr = "Type";
-
-const string Metadata::_stringType = "String";
-const string Metadata::_longType = "Long";
-const string Metadata::_doubleType = "Double";
 
 
 // Initialize the class object

@@ -53,10 +53,6 @@ const string ImpExp::_varNameTag = "VariableName";
 const string ImpExp::_regionTag = "Region";
 const string ImpExp::_timeSegmentTag = "TimeSegment";
 
-const string ImpExp::_typeAttr = "Type";
-const string ImpExp::_stringType = "String";
-const string ImpExp::_longType = "Long";
-
 ImpExp::ImpExp() {
 	_objInitialized = 0;
 

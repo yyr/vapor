@@ -25,10 +25,18 @@ public:
 	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/) = 0;
 	virtual bool charHandler (ExpatParseMgr*, const XML_Char *, int ) {return true;}
 	//Prepare the class for subsequent parsing.  Default does nothing.
-	virtual void startParse(ExpatParseMgr* ) {return;}
-	virtual void finishParse(ExpatParseMgr*) {return;}
+	//These methods must be implemented if a class is to be handed-off the parsing from
+	//another class during parse tree traversal
 	//Store previous class for stack
 	ParsedXml* previousClass;
+protected:
+	// known xml attribute values
+	//
+	static const string _stringType;
+	static const string _longType;
+	static const string _doubleType;
+	static const string _typeAttr;
+
 };
 // Structure used for parsing metadata files
 //
@@ -55,15 +63,18 @@ public:
 	vector<double>& getDoubleData() {return _expatDoubleData;}
 	string& getStringData() {return _expatStringData;}
 	//Following two methods are to allow different classes to be created during one
-	//XML parsing.  These help maintain a stack of classes
+	//XML parsing.  These help maintain a stack of classes.
+	//When the parsing is to be passed to another class, the original class must call
+	//pushClassStack when the xml for the new class is encountered in the startElementHandler.
+	
+	// (If these are not needed, I may remove them!)
 	void pushClassStack(ParsedXml* pc) {
 		pc->previousClass = currentParsedClass;
 		currentParsedClass = pc;
-		pc->startParse(this);
 	}
-	void popClassStack(){
-		currentParsedClass->finishParse(this);
+	ParsedXml* popClassStack(){
 		currentParsedClass = currentParsedClass->previousClass;
+		return currentParsedClass;
 	}
 	
 protected:

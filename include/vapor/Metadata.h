@@ -802,13 +802,7 @@ private:
  static const string _liftingCoefficientsAttr;
  static const string _msbFirstAttr;
  static const string _numChildrenAttr;
- static const string _typeAttr;
-
- // known xml attribute values
- //
- static const string _stringType;
- static const string _longType;
- static const string _doubleType;
+ 
 
  // Names of tags for user-defined data of type long, double, or string
  //
