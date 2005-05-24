@@ -1,18 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 8.00
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common.vcproj", "{29C8AC86-3D4B-4081-9D20-0770B10C4D30}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdf", "..\vdf\vdf.vcproj", "{91C4E098-BC79-4784-94B7-C96B3548682D}"
-	ProjectSection(ProjectDependencies) = postProject
-		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vaporgui", "..\vaporgui\vaporgui.vcproj", "{31CFF039-709C-3804-9B46-2ED0A8D45C92}"
 	ProjectSection(ProjectDependencies) = postProject
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
-		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9} = {3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}
 		{E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05} = {E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05}
 	EndProjectSection
 EndProject
@@ -41,13 +31,22 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "idl", "..\idl\idl.vcproj", "{D6470EA9-EF19-437A-AAB2-794FA21BC76D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
-		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testimpexp", "..\testimpexp\testimpexp.vcproj", "{58AD122F-0E8E-4F94-A503-E030309B280D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+		{D6470EA9-EF19-437A-AAB2-794FA21BC76D} = {D6470EA9-EF19-437A-AAB2-794FA21BC76D}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdf", "..\vdf\vdf.vcproj", "{91C4E098-BC79-4784-94B7-C96B3548682D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common.vcproj", "{29C8AC86-3D4B-4081-9D20-0770B10C4D30}"
+	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
 Global
@@ -56,14 +55,6 @@ Global
 		Release = Release
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
-		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Debug.ActiveCfg = Debug|Win32
-		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Debug.Build.0 = Debug|Win32
-		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Release.ActiveCfg = Release|Win32
-		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Release.Build.0 = Release|Win32
-		{91C4E098-BC79-4784-94B7-C96B3548682D}.Debug.ActiveCfg = Debug|Win32
-		{91C4E098-BC79-4784-94B7-C96B3548682D}.Debug.Build.0 = Debug|Win32
-		{91C4E098-BC79-4784-94B7-C96B3548682D}.Release.ActiveCfg = Release|Win32
-		{91C4E098-BC79-4784-94B7-C96B3548682D}.Release.Build.0 = Release|Win32
 		{31CFF039-709C-3804-9B46-2ED0A8D45C92}.Debug.ActiveCfg = Debug|Win32
 		{31CFF039-709C-3804-9B46-2ED0A8D45C92}.Debug.Build.0 = Debug|Win32
 		{31CFF039-709C-3804-9B46-2ED0A8D45C92}.Release.ActiveCfg = Release|Win32
@@ -92,6 +83,14 @@ Global
 		{58AD122F-0E8E-4F94-A503-E030309B280D}.Debug.Build.0 = Debug|Win32
 		{58AD122F-0E8E-4F94-A503-E030309B280D}.Release.ActiveCfg = Release|Win32
 		{58AD122F-0E8E-4F94-A503-E030309B280D}.Release.Build.0 = Release|Win32
+		{91C4E098-BC79-4784-94B7-C96B3548682D}.Debug.ActiveCfg = Debug|Win32
+		{91C4E098-BC79-4784-94B7-C96B3548682D}.Debug.Build.0 = Debug|Win32
+		{91C4E098-BC79-4784-94B7-C96B3548682D}.Release.ActiveCfg = Release|Win32
+		{91C4E098-BC79-4784-94B7-C96B3548682D}.Release.Build.0 = Release|Win32
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Debug.ActiveCfg = Debug|Win32
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Debug.Build.0 = Debug|Win32
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Release.ActiveCfg = Release|Win32
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
