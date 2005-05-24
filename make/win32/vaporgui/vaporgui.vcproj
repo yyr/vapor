@@ -83,7 +83,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;$(VOLUMIZER_ROOT)\include&quot;;&quot;B:\Expat-1.95.8\Source\lib&quot;;..\..\..\apps\vaporgui;..\..\..\include;&quot;$(QTDIR)\include&quot;;ui;../../../apps/vaporgui/ui\;.;..\..\..\apps\vaporgui\moc\"
+				AdditionalIncludeDirectories="&quot;$(VOLUMIZER_ROOT)\include&quot;;&quot;C:\Expat-1.95.8\Source\lib&quot;;..\..\..\apps\vaporgui;..\..\..\include;&quot;$(QTDIR)\include&quot;;ui;../../../apps/vaporgui/ui\;.;..\..\..\apps\vaporgui\moc\"
 				PreprocessorDefinitions="_WINDOWS;UNICODE;WIN32;VOLUMIZER;QT_DLL;QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
@@ -248,6 +248,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\unsharedcontrollerthread.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\viewpoint.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\viewpointparams.cpp">
@@ -592,6 +595,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\transferfunction.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\viewpoint.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\viewpointparams.h">
