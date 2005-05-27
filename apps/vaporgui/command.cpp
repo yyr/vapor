@@ -14,13 +14,15 @@
 //
 //	Date:		October 2004
 //
-//	Description:	Implements two subclasses of the Command class including 
-//		MouseModeCommand and TabChangeCommand
+//	Description:	Implements three small subclasses of the Command class including 
+//		MouseModeCommand, TabChangeCommand, ColorChangeCommand
 //
 #include "command.h"
 #include "params.h"
 #include "session.h"
 #include "mainform.h"
+#include "vizwinmgr.h"
+#include "vizwin.h"
 #include "assert.h"
 #include <qaction.h>
 using namespace VAPoR;
@@ -196,6 +198,38 @@ tabName(Params::ParamType t){
 			return 0;
 	}
 }
+
+
+ColorChangeCommand::ColorChangeCommand(QColor& oldColor, QColor& newColor, int vizNum){
+	//Make a copy of previous panel:
+	previousColor = oldColor;
+	currentColor = newColor;
+	windowNum = vizNum;
+	QString* vizName;
+	vizName = VizWinMgr::getInstance()->getVizWinName(vizNum);
+	description = QString("change background color in " + (*vizName));
+	
+}
+
+void ColorChangeCommand::unDo(){
+	Session::getInstance()->blockRecording();
+	VizWin* win = VizWinMgr::getInstance()->getVizWin(windowNum);
+	win->setGLBackgroundColor(previousColor);
+	Session::getInstance()->unblockRecording();
+	win->updateGL();
+}
+
+void ColorChangeCommand::reDo(){
+	Session::getInstance()->blockRecording();
+	VizWin* win = VizWinMgr::getInstance()->getVizWin(windowNum);
+	win->setGLBackgroundColor(currentColor);
+	Session::getInstance()->unblockRecording();
+	win->updateGL();
+}
+
+
+
+
 
 
 

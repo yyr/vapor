@@ -21,8 +21,10 @@
 #include "vizactivatecommand.h"
 #include "session.h"
 #include "vizwinmgr.h"
+#include "vizwin.h"
+#include <qcolor.h>
 using namespace VAPoR;
-VizActivateCommand::VizActivateCommand(int prevViz, int nextViz, Command::activateType t){
+VizActivateCommand::VizActivateCommand(VizWin* win, int prevViz, int nextViz, Command::activateType t){
 	lastActiveViznum = prevViz;
 	currentActiveViznum = nextViz;
 	thisType = t;
@@ -33,7 +35,7 @@ VizActivateCommand::VizActivateCommand(int prevViz, int nextViz, Command::activa
 	isoParams = 0;
 	animationParams = 0;
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	
+	backgroundColor = QColor(0,0,0);
 	
 	//Construct description text, and other data needed:
 	switch (thisType){
@@ -46,7 +48,7 @@ VizActivateCommand::VizActivateCommand(int prevViz, int nextViz, Command::activa
 			windowName = vizWinMgr->getVizWinName(prevViz)->ascii();
 			description = (QString("remove ")+windowName).ascii();
 			//clone and save all the applicable (local!) params:
-			cloneStateParams(prevViz);
+			cloneStateParams(win, prevViz);
 			break;
 		case activate:
 			windowName = vizWinMgr->getVizWinName(nextViz)->ascii();
@@ -69,6 +71,7 @@ VizActivateCommand::~VizActivateCommand(){
 void VizActivateCommand::unDo(){
 	Session::getInstance()->blockRecording();
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	int newWinNum;
 	switch (thisType){
 		case create:
 			//delete the specified window.
@@ -89,8 +92,8 @@ void VizActivateCommand::unDo(){
 			//Reset all the applicable params.  The "previous" params
 			//are those from the "currentActiveViznum"
 			
-			vizWinMgr->launchVisualizer(lastActiveViznum, windowName);
-			
+			newWinNum = vizWinMgr->launchVisualizer(lastActiveViznum, windowName);
+			vizWinMgr->getVizWin(newWinNum)->setGLBackgroundColor(backgroundColor);
 			// make them current, in the correct order:
 			if (animationParams) animationParams->makeCurrent(vizWinMgr->getAnimationParams(currentActiveViznum), true);
 			if(regionParams) regionParams->makeCurrent(vizWinMgr->getRegionParams(currentActiveViznum), true);
@@ -111,11 +114,13 @@ void VizActivateCommand::unDo(){
 void VizActivateCommand::reDo(){
 	Session::getInstance()->blockRecording();
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	int newWinNum;
 	switch (thisType){
 		case create:
 			//Need to create default panels (from global params)
 			vizWinMgr->createDefaultParams(currentActiveViznum);
-			vizWinMgr->launchVisualizer(currentActiveViznum, windowName);
+			newWinNum = vizWinMgr->launchVisualizer(currentActiveViznum, windowName);
+			vizWinMgr->getVizWin(newWinNum)->setGLBackgroundColor(backgroundColor);
 			break;
 		case remove:
 			//Note that normally killing a viz has the side-effect of deleting its params.
@@ -136,7 +141,7 @@ void VizActivateCommand::reDo(){
 	Session::getInstance()->unblockRecording();
 }
 
-void VizActivateCommand::cloneStateParams(int viznum){
+void VizActivateCommand::cloneStateParams(VizWin* win, int viznum){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	if (vizWinMgr->getRealVPParams(viznum))
 			vpParams = (ViewpointParams*)vizWinMgr->getRealVPParams(viznum)->deepCopy();
@@ -151,4 +156,5 @@ void VizActivateCommand::cloneStateParams(int viznum){
 	isoParams = (IsosurfaceParams*)vizWinMgr->getRealIsoParams(viznum)->deepCopy();
 	contourParams = (ContourParams*)vizWinMgr->getRealContourParams(viznum)->deepCopy();
 	dvrParams = (DvrParams*)vizWinMgr->getRealDvrParams(viznum)->deepCopy();
+	if(win) backgroundColor = win->getGLBackgroundColor();
 }

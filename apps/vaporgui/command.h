@@ -14,8 +14,8 @@
 //
 //	Date:		October 2004
 //
-//	Description:	Defines the Command class, and two of its
-//		subclasses, TabChangeCommand and MouseModeCommand.  
+//	Description:	Defines the Command class, and three of its
+//		subclasses, TabChangeCommand MouseModeCommand and ColorChangeCommand  
 //		Command class is abstract base class for user commands that can be
 //		Redone/Undone.  Each command must have enough info to support undo/redo.
 //		Also:  It is essential that the undo and redo operations not alter any of the
@@ -25,6 +25,7 @@
 //		e.g. navigation versus moving contour planes in the scene.
 //		The TabChangeCommand supports undo/redo of selection of the
 //		tabs in the tabmanager
+//		The ColorChangeCommand is for changing the background color in a visualizer window
 //
 #ifndef COMMAND_H
 #define COMMAND_H
@@ -90,6 +91,20 @@ protected:
 	const char* tabName(Params::ParamType t);
 	int previousTab;
 	int currentTab;
+
+};
+//Subclass to deal with changes in the background color
+//
+class ColorChangeCommand : public Command{
+public:
+	ColorChangeCommand(QColor& oldColor, QColor& newColor, int vizNum);
+	virtual ~ColorChangeCommand() {}
+	virtual void unDo();
+	virtual void reDo();
+protected:
+	QColor previousColor;
+	QColor currentColor;
+	int windowNum;
 
 };
 };

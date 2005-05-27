@@ -44,6 +44,9 @@
 #include <qmessagebox.h>
 #include <qvbox.h>
 #include <qworkspace.h>
+#include <qcolordialog.h>
+
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -189,6 +192,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     viewLaunch_visualizerAction = new QAction( this, "viewLaunch_visualizerAction" );
 	viewStartCaptureAction = new QAction( this, "viewStartCaptureAction" );
 	viewEndCaptureAction = new QAction( this, "viewEndCaptureAction" );
+	viewSetBackgroundColorAction = new QAction( this, "viewSetBackgroundColorAction");
     
     scriptIDL_scriptAction = new QAction( this, "scriptIDL_scriptAction" );
 	scriptIDL_scriptAction->setEnabled(false);
@@ -314,6 +318,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	viewLaunch_visualizerAction->addTo(viewMenu);
 	viewStartCaptureAction->addTo(viewMenu);
 	viewEndCaptureAction->addTo(viewMenu);
+	viewSetBackgroundColorAction->addTo(viewMenu);
 	
     Main_Form->insertItem( QString(""), viewMenu, 4 );
 
@@ -371,6 +376,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     connect( viewLaunch_visualizerAction, SIGNAL( activated() ), this, SLOT( launchVisualizer() ) );
 	connect( viewStartCaptureAction, SIGNAL( activated() ), this, SLOT( startCapture() ) );
 	connect( viewEndCaptureAction, SIGNAL( activated() ), this, SLOT( endCapture() ) );
+	connect (viewSetBackgroundColorAction, SIGNAL(activated()), this, SLOT(setBackground()));
     
 	connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
 
@@ -498,6 +504,10 @@ void MainForm::languageChange()
 	viewEndCaptureAction->setText( tr( "End image capture" ) );
     viewEndCaptureAction->setMenuText( tr( "&End Image Capture" ) );
 	viewEndCaptureAction->setToolTip("End capture of image files in current active visualizer");
+
+	viewSetBackgroundColorAction->setText( tr ("Set background color"));
+	viewSetBackgroundColorAction->setMenuText( tr ("&Set background color"));
+	viewSetBackgroundColorAction->setToolTip( "Specify background color in current active visualizer");
 
     scriptIDL_scriptAction->setText( tr( "Execute IDL script" ) );
     scriptIDL_scriptAction->setMenuText( tr( "Execute &IDL script" ) );
@@ -991,6 +1001,7 @@ void MainForm::initViewMenu(){
 		viewStartCaptureAction->setMenuText( "&Begin Image Capture in "+(*vizName) );
 		viewMenu->setItemEnabled(pos,true);
 	}
+	
 	//disable the end capture if no viz, or if active viz is not capturing
 	pos = viewMenu->idAt(2);
 	if (!viz || !viz->isCapturing()){
@@ -1001,6 +1012,16 @@ void MainForm::initViewMenu(){
 		viewEndCaptureAction->setText("End image capture in" +(*vizName) );
 		viewMenu->setItemEnabled(pos, true);
 	}
+	pos = viewMenu->idAt(3);
+	//Enable the background color selector if there is a visualizer:
+	if (!viz) {
+		viewSetBackgroundColorAction->setMenuText("Set background color");
+		viewMenu->setItemEnabled(pos, false);
+	} else {
+		viewSetBackgroundColorAction->setMenuText("Set background color in "+(*vizName));
+		viewMenu->setItemEnabled(pos,true);
+	}
+
 }
 void MainForm::setContourSelect(bool /*on*/)
 {
@@ -1033,6 +1054,19 @@ void MainForm::resetModeButtons(){
 void MainForm::exportToIDL(){
 	Session::getInstance()->exportData();
 }
+//Launch a color selector to set background color
+void MainForm::setBackground(){
+	QColor oldColor(black);
+	VizWin* win = VizWinMgr::getInstance()->getActiveVisualizer();
+	if (win) {
+		oldColor = win->getGLBackgroundColor();
+		QColor newColor = QColorDialog::getColor(oldColor,0,0);
+		win->setGLBackgroundColor(newColor);
+		Session::getInstance()->addToHistory(new ColorChangeCommand(oldColor, newColor, 
+			win->getWindowNum()));
+	}
+}
+	
 //Begin capturing images.
 //Launch a file save dialog to specify the names
 //Then start file saving mode.

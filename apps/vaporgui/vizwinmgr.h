@@ -256,6 +256,7 @@ signals:
 protected:
 	static const string _vizWinTag;
 	static const string _vizWinNameAttr;
+	static const string _vizWinColorAttr;
 	static VizWinMgr* theVizWinMgr;
 	VizWinMgr ();
 	

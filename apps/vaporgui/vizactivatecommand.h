@@ -22,8 +22,10 @@
 #define VIZACTIVATECOMMAND_H
 
 #include "command.h"
+#include <qcolor.h>
 namespace VAPoR {
 class VizWinMgr;
+class VizWin;
 class Session;
 class RegionParams;
 class ViewpointParams;
@@ -40,7 +42,7 @@ public:
 	// on removal, prevViz is the viz being removed, named winName, nextViz is the resulting activeViz
 	// on activation, prevViz is previously active viz, nextViz is newly activated one.  Name ignored.
 	//
-	VizActivateCommand ( int prevViz, int nextViz, Command::activateType typ);
+	VizActivateCommand (VizWin*,  int prevViz, int nextViz, Command::activateType typ);
 	~VizActivateCommand();
 	virtual void unDo();
 	virtual void reDo();
@@ -50,7 +52,7 @@ protected:
 	//to clone the params associated with that window, since they will be deleted during
 	//the close event.
 	//
-	void cloneStateParams( int viznum);
+	void cloneStateParams(VizWin*, int viznum);
 	int lastActiveViznum;
 	int currentActiveViznum;
 	Command::activateType thisType;
@@ -63,6 +65,7 @@ protected:
 	ContourParams* contourParams;
 	DvrParams* dvrParams;
 	AnimationParams* animationParams;
+	QColor backgroundColor;
 
 };
 };

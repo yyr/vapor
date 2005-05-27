@@ -89,7 +89,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	dataRangeDirty = true;
 	clutDirty = true;
 	capturing = false;
-	
+	backgroundColor =  QColor(black);
 	
     // actions
    

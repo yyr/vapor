@@ -79,6 +79,7 @@ VizWinMgr* VizWinMgr::theVizWinMgr = 0;
 const string VizWinMgr::_visualizersTag = "Visualizers";
 const string VizWinMgr::_vizWinTag = "VizWindow";
 const string VizWinMgr::_vizWinNameAttr = "WindowName";
+const string VizWinMgr::_vizWinColorAttr = "BackgroundColor";
 
 /******************************************************************
  *  Constructor sets up an array of MAXVIZWINS windows
@@ -151,7 +152,10 @@ vizAboutToDisappear(int i)  {
 			numVizWins++;
 		}
 	}
+	//Remember the vizwin just to save its color:
+	VizWin* vwin = vizWin[i];
 	vizWin[i] = 0;
+	
 	//If we are deleting the active viz, revert to the 
 	//most recent active viz.
 	if (activeViz == i) {
@@ -166,7 +170,7 @@ vizAboutToDisappear(int i)  {
 	//the next activeViz is the most recent active visualizer 
 	if (Session::getInstance()->isRecording()){
 		Session::getInstance()->addToHistory(new VizActivateCommand(
-			i, activeViz, Command::remove));
+			vwin, i, activeViz, Command::remove));
 	}
 	if(activeViz >= 0) setActiveViz(activeViz);
 	if(vpParams[i]) delete vpParams[i];
@@ -275,7 +279,7 @@ launchVisualizer(int newWindowNum, const char* newName)
 	AnimationController::getInstance()->initializeVisualizer(newWindowNum);
 	Session::getInstance()->unblockRecording();
 	Session::getInstance()->addToHistory(new VizActivateCommand(
-		prevActiveViz, newWindowNum, Command::create));
+		vizWin[newWindowNum],prevActiveViz, newWindowNum, Command::create));
 	return newWindowNum;
 }
 /*
@@ -440,7 +444,7 @@ setActiveViz(int vizNum){
 		//Add to history if this is not during initial creation.
 		if (prevActiveViz >= 0){
 			Session::getInstance()->addToHistory(new VizActivateCommand(
-				prevActiveViz, vizNum, Command::activate));
+				vizWin[vizNum],prevActiveViz, vizNum, Command::activate));
 		}
 	}
 }
@@ -1680,11 +1684,19 @@ XmlNode* VizWinMgr::buildNode() {
 	string empty;
 	std::map <const string, string> attrs;
 	attrs.empty();
+	ostringstream oss;
 	XmlNode* vizMgrNode = new XmlNode(_visualizersTag, attrs, getNumVisualizers());
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if (vizWin[i]){
 			attrs.empty();
 			attrs[_vizWinNameAttr] = vizName[i]->ascii();
+			oss.str(empty);
+			QColor bgClr = vizWin[i]->getGLBackgroundColor();
+			oss << (long)bgClr.red() << " "
+				<< (long)bgClr.green() << " "
+				<< (long)bgClr.blue();
+			attrs[_vizWinColorAttr] = oss.str();
+
 			XmlNode* locals = vizMgrNode->NewChild(_vizWinTag, attrs, 5);
 			//Now add local params
 			XmlNode* dvrNode = dvrParams[i]->buildNode();
@@ -1715,6 +1727,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 		//Create a visualizer
 		//Get the name & num
 		string winName;
+		QColor winBgColor(black);
 		while (*attrs) {
 			string attr = *attrs;
 			attrs++;
@@ -1723,10 +1736,15 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 			istringstream ist(value);	
 			if (StrCmpNoCase(attr, _vizWinNameAttr) == 0) {
 				winName = value;
+			} else if (StrCmpNoCase(attr, _vizWinColorAttr) == 0) {
+				int r,g,b;
+				ist >> r; ist>>g; ist>>b;
+				winBgColor.setRgb(r,g,b);
 			} else return false;
 		}
 		//Create the window:
 		parsingVizNum = launchVisualizer(-1, winName.c_str());
+		vizWin[parsingVizNum]->setGLBackgroundColor(winBgColor);
 		return true;
 		}
 	case(3):

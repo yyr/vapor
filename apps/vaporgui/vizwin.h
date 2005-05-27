@@ -28,6 +28,7 @@
 #define MAXNUMRENDERERS 1
 #include <qvariant.h>
 #include <qmainwindow.h>
+#include <qcolor.h>
 #include "vizwinmgr.h"
 #include "trackball.h"
 
@@ -109,6 +110,8 @@ public:
 	//Routine is called at the end of rendering.  If capture is true, it converts image
 	//to jpeg and saves file.  If it ever encounters an error, it turns off capture.
 	void doFrameCapture();
+	void setGLBackgroundColor(QColor& c) {backgroundColor = c;}
+	QColor& getGLBackgroundColor() {return backgroundColor;}
 	
 	
 protected:
@@ -134,6 +137,8 @@ protected:
 	bool capturing;
 	int captureNum;
 	QString* captureName;
+	QColor backgroundColor;
+	
 
 
 public slots:

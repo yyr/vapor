@@ -116,6 +116,7 @@ public:
     QAction* viewLaunch_visualizerAction;
 	QAction* viewStartCaptureAction;
 	QAction* viewEndCaptureAction;
+	QAction* viewSetBackgroundColorAction;
     
    
     //Script menu
@@ -179,6 +180,7 @@ public slots:
     virtual void launchVisualizer();
 	virtual void startCapture();
 	virtual void endCapture();
+	virtual void setBackground();
   
 	virtual void calcIsosurface();
     virtual void viewpoint();
