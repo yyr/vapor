@@ -393,9 +393,9 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	region();
 	animationParams();
 	calcIsosurface();
-	renderDVR();
 	contourPlanes();
 	viewpoint();
+	renderDVR();
 	//Create one initial visualizer:
 	myVizMgr->launchVisualizer();
 

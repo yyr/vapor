@@ -40,7 +40,7 @@
 //space below opacity window
 #define BELOWOPACITY (BARHEIGHT+SEPARATOR+COORDMARGIN)
 //Factor for getting wider than specified window:
-#define HORIZOVERLAP 0.01f
+#define HORIZOVERLAP 0.02f
 //Float constants to describe vertical regions:
 #define ABOVEWINDOW 2.f
 #define ONDOMAINSLIDER 1.f
