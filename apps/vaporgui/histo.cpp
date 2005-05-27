@@ -22,6 +22,7 @@
 #include "dvrparams.h"
 #include "animationparams.h"
 #include "vizwinmgr.h"
+#include "vizwin.h"
 #include "vapor/Metadata.h"
 using namespace VAPoR;
 int Histo::histoArraySize = 0;
@@ -158,6 +159,13 @@ refreshHistogram(int vizNum)
 	DataMgr* dataMgr = Session::getInstance()->getDataMgr();
 	assert (dataMgr);
 	const Metadata* metaData = Session::getInstance()->getCurrentMetadata();
+	//Set the datarange in the datamanager:
+	dataMgr->SetDataRange(dParams->getVariableName(),
+			dParams->getCurrentDatarange());
+	
+	vizWinMgr->getVizWin(vizNum)->setDataRangeDirty(false);
+	
+
 	histoArray[varNum*MAXVIZWINS + vizNum] = new Histo((unsigned char*) dataMgr->GetRegionUInt8(
 					timeStep, (const char*) metaData->GetVariableNames()[varNum].c_str(),
 					numTrans,

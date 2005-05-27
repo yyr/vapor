@@ -55,6 +55,7 @@
 #include "tfframe.h"
 #include "messagereporter.h"
 #include "tabmanager.h"
+#include "histo.h"
 
 #include <math.h>
 #include <vapor/Metadata.h>
@@ -577,8 +578,11 @@ reinit(bool doOverride){
 	setEnabled(false);
 	//Always disable  don't change local/global 
 	updateRenderer(wasEnabled, isLocal(), false);
+	//Get a new histogram (if necessary) based on current settings:
+	if (vizNum >= 0) Histo::getHistogram(varNum, vizNum);
 	setClutDirty();
 	setDatarangeDirty();
+	myTFEditor->setDirty(true);
 	//If dvr is the current front tab, and if it applies to the active visualizer,
 	//update its values
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myDvrTab)) {
@@ -614,8 +618,6 @@ restart(){
 	maxEditBounds = new float[1];
 	minEditBounds[0] = 0.f;
 	maxEditBounds[0] = 1.f;
-	currentDatarange[0] = 0.f;
-	currentDatarange[1] = 1.f;
 	editMode = true;   //default is edit mode
 	savedCommand = 0;
 	setEnabled(false);
@@ -635,14 +637,18 @@ restart(){
 void DvrParams::
 setDatarangeDirty()
 {
-	if (currentDatarange[0] != myTransFunc->getMinMapValue() ||
-		currentDatarange[1] != myTransFunc->getMaxMapValue()){
-			currentDatarange[0] = myTransFunc->getMinMapValue();
-			currentDatarange[1] = myTransFunc->getMaxMapValue();
-			VizWinMgr::getInstance()->setDataRangeDirty(this);
-	}
+	VizWinMgr::getInstance()->setDataRangeDirty(this);
 }
-
+//Return current valid dataRange from transfer function 
+//
+float* DvrParams::
+getCurrentDatarange()
+{
+	static float rangeHolder[2];
+	rangeHolder[0] = myTransFunc->getMinMapValue();
+	rangeHolder[1] = myTransFunc->getMaxMapValue();
+	return rangeHolder;
+}
 //Respond to user request to load/save TF
 //Assumes name is valid
 //

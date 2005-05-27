@@ -1333,11 +1333,6 @@ refreshHisto(){
 	//dParams->setDatarangeDirty();
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
-		dataManager->SetDataRange(dParams->getVariableName(),
-			dParams->getCurrentDatarange());
-	
-		vizWin->setDataRangeDirty(false);
-	
 		Histo::refreshHistogram(activeViz);
 	}
 	dParams->refreshTFFrame();

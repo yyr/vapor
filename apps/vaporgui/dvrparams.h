@@ -89,9 +89,8 @@ public:
 	void setAttenuationDirty(bool dirty) {attenuationDirty = dirty;}
 	
 	void setClutDirty();
-	float* getCurrentDatarange(){
-		return currentDatarange;
-	}
+	float* getCurrentDatarange();
+		
 	void setDatarangeDirty();
 
 	float (&getClut())[256][4] {
@@ -178,7 +177,7 @@ protected:
 	void hookupTF(TransferFunction* t);
 	bool attenuationDirty;
 	bool lightingOn;
-	float currentDatarange[2];
+	
 	int numBits;
 	float diffuseCoeff, ambientCoeff, specularCoeff;
 	float diffuseAtten, ambientAtten, specularAtten;
