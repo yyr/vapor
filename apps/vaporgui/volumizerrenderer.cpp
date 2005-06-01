@@ -155,7 +155,13 @@ DrawVoxelScene(unsigned /*fast*/)
 	size_t min_bdim[3];
 	int data_roi[6];
 	int i;
-	bool newRender = false;
+	//If we are doing the first capture of a sequence then set the
+	//newRender flag to true, whether or not it's a real new render.
+	//Then turn off the flag, subsequent renderings will only be captured
+	//if they really are new.
+	//
+	bool newRender = myVizWin->captureIsNew();
+	myVizWin->setCaptureNew(false);
 	if (!Session::getInstance()->renderReady()) return;
 	DataMgr* myDataMgr = Session::getInstance()->getDataMgr();
 	const Metadata* myMetadata = Session::getInstance()->getCurrentMetadata();

@@ -89,6 +89,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	dataRangeDirty = true;
 	clutDirty = true;
 	capturing = false;
+	newCapture = false;
 	backgroundColor =  QColor(black);
 	
     // actions
@@ -607,19 +608,22 @@ pointOverCube(RegionParams* rParams, float screenCoords[2]){
 
 void VizWin::
 doFrameCapture(){
-	if (!capturing) return;
+	if (capturing == 0) return;
 	//Create a string consisting of captureName, followed by nnnn (framenum), 
 	//followed by .jpg
-
-	QString filename(*captureName);
-	filename += (QString("%1").arg(captureNum)).rightJustify(4,'0');
-	filename +=  ".jpg";
-
+	QString filename;
+	if (capturing == 2){
+		filename = captureName;
+		filename += (QString("%1").arg(captureNum)).rightJustify(4,'0');
+		filename +=  ".jpg";
+	} //Otherwise we are just capturing one frame:
+	else filename = captureName;
+	if (!filename.endsWith(".jpg")) filename += ".jpg";
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen(filename.ascii(), "wb");
 	if (!jpegFile) {
 		MessageReporter::errorMsg("Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
-		capturing = false;
+		capturing = 0;
 		return;
 	}
 	//Get the image buffer 
@@ -628,23 +632,25 @@ doFrameCapture(){
 	if(!myGLWindow->getPixelData(buf)){
 		//Error!
 		MessageReporter::errorMsg("%s","Image Capture Error; error obtaining GL data");
-		capturing = false;
+		capturing = 0;
 		delete buf;
 		return;
 	}
 	//Now call the Jpeg library to compress and write the file
-	//Default quality = 75
+	//
 	int quality = Session::getInstance()->getJpegQuality();
 	int rc = write_JPEG_file(jpegFile, myGLWindow->width(), myGLWindow->height(), buf, quality);
 	if (rc){
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file %s",
 			filename.ascii());
-		capturing = false;
+		capturing = 0;
 		delete buf;
 		return;
 	}
-	captureNum++;
+	//If just capturing single frame, turn it off, otherwise advance frame number
+	if(capturing > 1) captureNum++;
+	else capturing = 0;
 	delete buf;
 }
 

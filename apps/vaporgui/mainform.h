@@ -116,6 +116,7 @@ public:
     QAction* viewLaunch_visualizerAction;
 	QAction* viewStartCaptureAction;
 	QAction* viewEndCaptureAction;
+	QAction* viewSingleCaptureAction;
 	QAction* viewSetBackgroundColorAction;
     
    
@@ -180,6 +181,7 @@ public slots:
     virtual void launchVisualizer();
 	virtual void startCapture();
 	virtual void endCapture();
+	virtual void captureSingle();
 	virtual void setBackground();
   
 	virtual void calcIsosurface();

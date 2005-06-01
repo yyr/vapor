@@ -100,15 +100,27 @@ public:
 	int pointOverCube(RegionParams* rParams, float screenCoords[2]);
 	bool viewerCoordsChanged() {return newViewerCoords;}
 	void setViewerCoordsChanged(bool isNew) {newViewerCoords = isNew;}
-	bool isCapturing() {return capturing;}
+	bool isCapturing() {return (capturing != 0);}
+	bool isSingleCapturing() {return (capturing == 1);}
 	void startCapture(QString& name, int startNum) {
-		capturing = true;
+		capturing = 2;
 		captureNum = startNum;
-		captureName = new QString(name);
+		captureName = name;
+		newCapture = true;
+		updateGL();
 	}
-	void stopCapture() {capturing = false;}
-	//Routine is called at the end of rendering.  If capture is true, it converts image
+	void singleCapture(QString& name){
+		capturing = 1;
+		captureName = name;
+		newCapture = true;
+		updateGL();
+	}
+	bool captureIsNew() { return newCapture;}
+	void setCaptureNew(bool isNew){ newCapture = isNew;}
+	void stopCapture() {capturing = 0;}
+	//Routine is called at the end of rendering.  If capture is 1 or 2, it converts image
 	//to jpeg and saves file.  If it ever encounters an error, it turns off capture.
+	//If capture is 1 (single frame capture) it turns off capture.
 	void doFrameCapture();
 	void setGLBackgroundColor(QColor& c) {backgroundColor = c;}
 	QColor& getGLBackgroundColor() {return backgroundColor;}
@@ -134,9 +146,11 @@ protected:
 	bool regionDirty;
 	bool dataRangeDirty;
 	bool clutDirty;
-	bool capturing;
+	int capturing;
 	int captureNum;
-	QString* captureName;
+	//Flag to set indicating start of capture sequence.
+	bool newCapture;
+	QString captureName;
 	QColor backgroundColor;
 	
 

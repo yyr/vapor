@@ -37,10 +37,6 @@ Renderer::Renderer( VizWin* vw )
 	//
 	myVizWin = vw;
     myGLWindow = vw->getGLWindow();
-	
-	
-	
-
 }
 //Issue OpenGL commands to draw a grid of lines of the full domain.
 //Grid resolution is up to 4x4x4

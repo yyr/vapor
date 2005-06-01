@@ -192,6 +192,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     viewLaunch_visualizerAction = new QAction( this, "viewLaunch_visualizerAction" );
 	viewStartCaptureAction = new QAction( this, "viewStartCaptureAction" );
 	viewEndCaptureAction = new QAction( this, "viewEndCaptureAction" );
+	viewSingleCaptureAction = new QAction(this, "viewCaptureSingleAction");
 	viewSetBackgroundColorAction = new QAction( this, "viewSetBackgroundColorAction");
     
     scriptIDL_scriptAction = new QAction( this, "scriptIDL_scriptAction" );
@@ -316,8 +317,11 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
     viewMenu = new QPopupMenu(this);
 	viewLaunch_visualizerAction->addTo(viewMenu);
+
+	viewSingleCaptureAction->addTo(viewMenu);
 	viewStartCaptureAction->addTo(viewMenu);
 	viewEndCaptureAction->addTo(viewMenu);
+	
 	viewSetBackgroundColorAction->addTo(viewMenu);
 	
     Main_Form->insertItem( QString(""), viewMenu, 4 );
@@ -376,6 +380,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     connect( viewLaunch_visualizerAction, SIGNAL( activated() ), this, SLOT( launchVisualizer() ) );
 	connect( viewStartCaptureAction, SIGNAL( activated() ), this, SLOT( startCapture() ) );
 	connect( viewEndCaptureAction, SIGNAL( activated() ), this, SLOT( endCapture() ) );
+	connect (viewSingleCaptureAction, SIGNAL(activated()), this, SLOT (captureSingle()));
 	connect (viewSetBackgroundColorAction, SIGNAL(activated()), this, SLOT(setBackground()));
     
 	connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
@@ -497,13 +502,17 @@ void MainForm::languageChange()
     viewLaunch_visualizerAction->setMenuText( tr( "&New Visualizer" ) );
 	viewLaunch_visualizerAction->setToolTip("Launch a new visualization window");
 
-	viewStartCaptureAction->setText( tr( "Begin image capture" ) );
-    viewStartCaptureAction->setMenuText( tr( "&Begin Image Capture" ) );
-	viewStartCaptureAction->setToolTip("Begin saving image files rendered in current active visualizer");
+	viewStartCaptureAction->setText( tr( "Begin image capture sequence " ) );
+    viewStartCaptureAction->setMenuText( tr( "&Begin image capture sequence " ) );
+	viewStartCaptureAction->setToolTip("Begin saving jpeg image files rendered in current active visualizer");
 	
 	viewEndCaptureAction->setText( tr( "End image capture" ) );
     viewEndCaptureAction->setMenuText( tr( "&End Image Capture" ) );
 	viewEndCaptureAction->setToolTip("End capture of image files in current active visualizer");
+
+	viewSingleCaptureAction->setText( tr( "Single image capture" ) );
+    viewSingleCaptureAction->setMenuText( tr( "&Single Image Capture" ) );
+	viewSingleCaptureAction->setToolTip("Capture one image from current active visualizer");
 
 	viewSetBackgroundColorAction->setText( tr ("Set background color"));
 	viewSetBackgroundColorAction->setMenuText( tr ("&Set background color"));
@@ -992,34 +1001,42 @@ void MainForm::initViewMenu(){
 	QString* vizName;
 	if(winNum >= 0) vizName = vizWinMgr->getVizWinName(winNum);
 	//Disable the start capture if no viz, or if active viz already capturing
-	int pos = viewMenu->idAt(1);
+	//pos2 is start sequence capture,
+	//pos3 is end sequence
+	//pos1 is single capture
+	int pos1 = viewMenu->idAt(1);
+	int pos2 = viewMenu->idAt(2);
+	int pos3 = viewMenu->idAt(3);
 	if (!viz || viz->isCapturing()) {
-		viewStartCaptureAction->setMenuText( "&Begin Image Capture"  );
-		viewMenu->setItemEnabled(pos, false);
+		viewStartCaptureAction->setMenuText( "&Begin image capture sequence"  );
+		viewMenu->setItemEnabled(pos2, false);
+		viewSingleCaptureAction->setMenuText("Capture single image");
+		viewMenu->setItemEnabled(pos1, false);
 	}
-	else {
-		viewStartCaptureAction->setMenuText( "&Begin Image Capture in "+(*vizName) );
-		viewMenu->setItemEnabled(pos,true);
+	else {// there is a visualizer, but it's not capturing
+		viewStartCaptureAction->setMenuText( "&Begin image capture sequence in "+(*vizName) );
+		viewMenu->setItemEnabled(pos2,true);
+		viewSingleCaptureAction->setMenuText("Capture single image of "+(*vizName) );
+		viewMenu->setItemEnabled(pos1,true);
 	}
 	
 	//disable the end capture if no viz, or if active viz is not capturing
-	pos = viewMenu->idAt(2);
 	if (!viz || !viz->isCapturing()){
-		viewEndCaptureAction->setText( "End image capture" );
-		viewMenu->setItemEnabled(pos, false);
+		viewEndCaptureAction->setMenuText( "End capture sequence" );
+		viewMenu->setItemEnabled(pos3, false);
 	}
 	else {
-		viewEndCaptureAction->setText("End image capture in" +(*vizName) );
-		viewMenu->setItemEnabled(pos, true);
+		viewEndCaptureAction->setMenuText("End capture sequence in " +(*vizName) );
+		viewMenu->setItemEnabled(pos3, true);
 	}
-	pos = viewMenu->idAt(3);
+	int pos4 = viewMenu->idAt(4);
 	//Enable the background color selector if there is a visualizer:
 	if (!viz) {
 		viewSetBackgroundColorAction->setMenuText("Set background color");
-		viewMenu->setItemEnabled(pos, false);
+		viewMenu->setItemEnabled(pos4, false);
 	} else {
 		viewSetBackgroundColorAction->setMenuText("Set background color in "+(*vizName));
-		viewMenu->setItemEnabled(pos,true);
+		viewMenu->setItemEnabled(pos4,true);
 	}
 
 }
@@ -1106,6 +1123,37 @@ void MainForm::startCapture() {
 		
 	} else {
 		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing images");
+	}
+}
+
+//Capture just one image
+//Launch a file save dialog to specify the names
+//Then put jpeg in it.
+//
+void MainForm::captureSingle() {
+	
+    QString filename = QFileDialog::getSaveFileName(
+		Session::getInstance()->getJpegDirectory().c_str(),
+        "Jpeg Images (*.jpg)",
+        this,
+        "Single image capture dialog",
+        "Specify JPEG file name for the image file" );
+	//Extract the path, and the root name, from the returned string.
+	QFileInfo* fileInfo = new QFileInfo(filename);
+	//Save the path for future captures
+	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
+	
+	//Determine the active window:
+	//Turn on "image capture mode" in the current active visualizer
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	if (viz) {
+		viz->singleCapture(filename);
+		//Provide a message stating the capture in effect.
+		MessageReporter::infoMsg("Single Image is captured to %s",
+			filename.ascii());
+		
+	} else {
+		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing image");
 	}
 }
 void MainForm::endCapture(){
