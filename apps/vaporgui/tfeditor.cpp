@@ -27,10 +27,9 @@
 #include "vizwinmgr.h"
 using namespace VAPoR;
 
-TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm){
+TFEditor::TFEditor(TransferFunction* tf,  TFFrame* frm){
 	myTransferFunction = tf;
 	myFrame = frm;
-	myParams = prms;
 	tf->setEditor(this);
 	
 	reset();
@@ -39,6 +38,8 @@ TFEditor::TFEditor(DvrParams* prms, TransferFunction* tf,  TFFrame* frm){
 TFEditor::~TFEditor(){
 	//Don't delete the image:  QT refcounts them
 	//However, must notify the frame that I'm no longer here!
+	//Also, be sure to delete the transfer function!
+	delete myTransferFunction;
 	if(myFrame->getEditor() == this)
 		myFrame->setEditor(0);
 }
@@ -57,7 +58,7 @@ reset(){
 		selectedOpac[i] = false;
 	}
 	
-	histoStretchFactor = 1.f;
+	
 	grabbedState = notGrabbed;
 	leftMoveMax = -1;
 	numColorSelect = 0;
@@ -84,12 +85,12 @@ void TFEditor::refreshImage(){
 	}
 	editImage->fill(0);
 	//Determine relevant vizNum
-	int viznum = myParams->getVizNum();
+	int viznum = getParams()->getVizNum();
 	if (viznum < 0) {
 		viznum = VizWinMgr::getInstance()->getActiveViz();
 		assert(viznum >= 0);
 	}
-	Histo* histo = Histo::getHistogram(myParams->getVarNum(),viznum);
+	Histo* histo = Histo::getHistogram(getParams()->getVarNum(),viznum);
 	
 	if (histo) {
 		histoMaxBin = histo->getMaxBinSize();
@@ -167,13 +168,14 @@ void TFEditor::refreshImage(){
 		//int newHistoColumn = (int)(xCoord*255.999f);
 		float histoHeight;
 		int histoInt;
+		float histStretch = getParams()->getHistoStretch();
 		if (histo){
 			float histoVal = (xCoord - histo->getMinData())/(histo->getMaxData()-histo->getMinData());
 			if (histoVal >= 0.f && histoVal <= 1.f){
 				int newHistoColumn = (int)(histoVal*255.99);
 				if (histoColumn != newHistoColumn){
 					histoColumn = newHistoColumn;
-					histoHeight = histoStretchFactor*(float)histo->getBinSize(histoColumn)/(float)histoMaxBin;
+					histoHeight = histStretch*(float)histo->getBinSize(histoColumn)/(float)histoMaxBin;
 					if (histoHeight > 1.f) histoHeight = 1.f;
 					assert(histoHeight >= 0.f);
 				}
@@ -442,19 +444,19 @@ moveDomainBound(int x){
 	float newX = mapWin2Var(x);
 	//fullDomainGrab?
 	if (grabbedState & fullDomainGrab){
-		myParams->setMinMapBound(leftDomainSaved + newX - mappedDragStartX);
-		myParams->setMaxMapBound(rightDomainSaved + newX - mappedDragStartX);
+		getParams()->setMinMapBound(leftDomainSaved + newX - mappedDragStartX);
+		getParams()->setMaxMapBound(rightDomainSaved + newX - mappedDragStartX);
 	} else {
 		float mappedX = mapWin2Var(x);
 		//Check that the user has not moved one bound past the other:
 		if (grabbedState&leftDomainGrab){
-			if(mappedX < myParams->getMaxMapBound()){
-				myParams->setMinMapBound(mappedX);
+			if(mappedX < getParams()->getMaxMapBound()){
+				getParams()->setMinMapBound(mappedX);
 			}
 		}
 		else if (grabbedState&rightDomainGrab){
-			if(mappedX > myParams->getMinMapBound()){
-				myParams->setMaxMapBound(mappedX);
+			if(mappedX > getParams()->getMinMapBound()){
+				getParams()->setMaxMapBound(mappedX);
 			}
 		} else assert(0);
 	}
@@ -674,12 +676,12 @@ void TFEditor::setHsv(int h, int s, int v){
 int TFEditor::
 getHistoValue(float point){
 	//Determine relevant vizNum
-	int viznum = myParams->getVizNum();
+	int viznum = getParams()->getVizNum();
 	if (viznum < 0) {
 		viznum = VizWinMgr::getInstance()->getActiveViz();
 		assert(viznum >= 0);
 	}
-	Histo* hist = Histo::getHistogram(myParams->getVarNum(),viznum);
+	Histo* hist = Histo::getHistogram(getParams()->getVarNum(),viznum);
 	if (!hist) return -1;
 	float ind = (point - hist->getMinData())/(hist->getMaxData()-hist->getMinData());
 	if (ind < 0.f || ind >= 1.f) return 0;

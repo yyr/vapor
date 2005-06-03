@@ -65,6 +65,7 @@ TransferFunction::TransferFunction() {
 	
 	myParams = 0;
 	myTFEditor = 0;
+	previousClass = 0;
 	init();
 }
 void TransferFunction::
@@ -97,7 +98,7 @@ init(){  //reset to starting values:
 //
 TransferFunction::TransferFunction(DvrParams* p, int nBits){
 	myParams = p;
-	
+	previousClass = 0;
 	//Make a default TF:  Map 0 to 1 to a spectrum with increasing opacity.
 	//Provide 2 extra control points at ends, that should never go away
 	//

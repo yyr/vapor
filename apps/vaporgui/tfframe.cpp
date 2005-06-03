@@ -36,10 +36,6 @@
 
 TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 	QFrame(parent, name, f) {
-	//TFFrame is created by the dvr frame
-	pxMap.resize(size());
-	pxMap.fill(QColor(255,0,0));
-	
 	editor = 0;
 	needUpdate = true;
 	locationTip = new TFELocationTip(this);
@@ -77,7 +73,9 @@ TFFrame::~TFFrame() {
 
 void TFFrame::paintEvent(QPaintEvent* e){
 	int i;
-	if (!editor){ //just  bitblt the old pixmap to the widget:
+	if (!editor){ //just  bitblt a blank pixmap to the widget:
+		pxMap.resize(size());
+		pxMap.fill(QColor(0,0,0));
 		bitBlt(this, QPoint(0,0),&pxMap);
 		return;
 	}

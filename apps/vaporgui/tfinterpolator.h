@@ -21,7 +21,7 @@
 #ifndef TFINTERPOLATOR_H
 #define TFINTERPOLATOR_H
 #include "math.h"
-
+namespace VAPoR {
 class TFInterpolator{
 public:
 	//Default is linear
@@ -43,7 +43,7 @@ public:
 	static float interpCirc(type t, float leftVal, float rightVal, float r);	
 };
 
-
+};
 
 #endif //TFINTERPOLATOR_H
 

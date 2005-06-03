@@ -21,7 +21,7 @@
 #include "math.h"
 #include "tfinterpolator.h"
 #include "assert.h"
-
+using namespace VAPoR;
 	// Determine the interpolated value at intermediate value 0<=r<=1
 	// where the value at left and right endpoint is known
 	// This method is just a stand-in until we get more sophistication

@@ -90,7 +90,7 @@ VizWinMgr::VizWinMgr()
 	myMainWindow = MainForm::getInstance();
     myWorkspace = myMainWindow->getWorkspace();
     tabManager = myMainWindow->getTabManager();
-    
+    previousClass = 0;
 	activeViz = -1;
 	activationCount = 0;
     for (int i = 0; i< MAXVIZWINS; i++){

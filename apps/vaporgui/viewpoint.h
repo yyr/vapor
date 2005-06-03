@@ -10,7 +10,7 @@ class XmlNode;
 class Viewpoint : public ParsedXml {
 	
 public: 
-	Viewpoint() {}
+	Viewpoint() {previousClass = 0;}
 	
 	~Viewpoint(){}
 	

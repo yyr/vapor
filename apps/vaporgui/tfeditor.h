@@ -76,18 +76,17 @@ class DVRParams;
 
 class TFEditor{
 public:
-	TFEditor(DvrParams*, TransferFunction* TF, TFFrame*);
+	TFEditor(TransferFunction* TF, TFFrame*);
 	~TFEditor();
 	//Reset to default state, e.g. when loading new TF:
 	//
 	void reset();
 	void setEditingRange(float minVal, float maxVal){
-		myParams->setMinEditBound(minVal);
-		myParams->setMaxEditBound(maxVal);
+		getParams()->setMinEditBound(minVal);
+		getParams()->setMaxEditBound(maxVal);
 		dirty = true;
 	}
-	void setHistoStretch(float factor){histoStretchFactor = factor;}
-	float getHistoStretch(){return histoStretchFactor;}
+	
 	void refreshImage();
 	QImage* getImage(){
 		return editImage;
@@ -167,19 +166,20 @@ public:
 	// -1 for color coords
 	//float mapScreenYCoord(int y);
 	float getMinEditValue(){
-		return myParams->getMinEditBound();
+		return getParams()->getMinEditBound();
 	}
 	float getMaxEditValue(){
-		return myParams->getMaxEditBound();
+		return getParams()->getMaxEditBound();
 	}
 	void setMinEditValue(float val) {
-		myParams->setMinEditBound(val);
+		getParams()->setMinEditBound(val);
 	}
 	void setMaxEditValue(float val) {
-		myParams->setMaxEditBound(val);
+		getParams()->setMaxEditBound(val);
 	}
 	TransferFunction* getTransferFunction() {return myTransferFunction;}
 	void setTransferFunction(TransferFunction* tf) {myTransferFunction = tf;}
+	void setFrame(TFFrame* frm) {myFrame = frm;}
 	//Currently histogram is assumed to be limited to interval [0,1]:
 	int getHistoValue(float point);
 
@@ -223,8 +223,7 @@ public:
 		leftDomainSaved = myTransferFunction->getMinMapValue();
 		rightDomainSaved = myTransferFunction->getMaxMapValue();
 	}
-	DvrParams* getParams(){ return myParams;}
-	void setParams(DvrParams* p) {myParams = p;}
+	DvrParams* getParams() {return myTransferFunction->getParams();}
 
 	
 protected:
@@ -247,6 +246,7 @@ protected:
 		domainGrab = 224, //or of all domain grab types
 		navigateGrab = 256
 	};
+	
 	unsigned int grabbedState;
 	//Booleans to indicate what is currently selected;
 	//Not really part of transfer function definition
@@ -266,9 +266,7 @@ protected:
 	TransferFunction* myTransferFunction;
 	bool dirty;
 	TFFrame* myFrame;
-	DvrParams* myParams;
 	
-	float histoStretchFactor;
 	int dragStartX, dragStartY;
 	float mappedDragStartX;
 	//floats to hold domain bounds during a full domain grab:

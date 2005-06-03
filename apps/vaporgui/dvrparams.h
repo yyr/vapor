@@ -89,8 +89,9 @@ public:
 	void setAttenuationDirty(bool dirty) {attenuationDirty = dirty;}
 	
 	void setClutDirty();
-	float* getCurrentDatarange();
-		
+	float* getCurrentDatarange(){
+		return currentDatarange;
+	}
 	void setDatarangeDirty();
 
 	float (&getClut())[256][4] {
@@ -127,7 +128,6 @@ public:
 	}
 	void setEditMode(bool mode) {editMode = mode;}
 	bool getEditMode() {return editMode;}
-	TransferFunction* getTransferFunction() {return myTransFunc;}
 	
 	void refreshTFFrame();
 	
@@ -165,19 +165,25 @@ public:
 	XmlNode* buildNode(); 
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
-	
+	TFEditor* getTFEditor();
+	TransferFunction* getTransFunc();
+	void setHistoStretch(float factor){histoStretchFactor = factor;}
+	float getHistoStretch(){return histoStretchFactor;}
 protected:
-	static const string _leftEditBoundsTag;
-	static const string _rightEditBoundsTag;
+	static const string _variableTag;
+	static const string _leftEditBoundAttr;
+	static const string _rightEditBoundAttr;
 	static const string _numVariablesAttr;
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
+	static const string _activeVariableNumAttr;
 	static const string _variableNumAttr;
+	static const string _variableNameAttr;
 	void refreshCtab();
-	void hookupTF(TransferFunction* t);
+	void hookupTF(TransferFunction* t, int index);
 	bool attenuationDirty;
 	bool lightingOn;
-	
+	float currentDatarange[2];
 	int numBits;
 	float diffuseCoeff, ambientCoeff, specularCoeff;
 	float diffuseAtten, ambientAtten, specularAtten;
@@ -188,9 +194,9 @@ protected:
 	//
 	float ctab[256][4];
 	Dvr* myDvrTab;
-	TransferFunction* myTransFunc;
-	TFEditor* myTFEditor;
+	TransferFunction** transFunc;
 	
+	float histoStretchFactor;
 	PanelCommand* savedCommand;
 	int varNum;
 	int numVariables;

@@ -24,7 +24,7 @@
 //
 #ifndef TRANSFERFUNCTION_H
 #define TRANSFERFUNCTION_H
-#define MAXCONTROLPOINTS 100
+#define MAXCONTROLPOINTS 50
 #include "tfinterpolator.h"
 #include "dvrparams.h"
 #include "vapor/ExpatParseMgr.h"
@@ -73,7 +73,9 @@ public:
 		return opac[controlPointNum];
 	}
 	void setEditor(TFEditor* e) {myTFEditor = e;}
+	TFEditor* getEditor() {return myTFEditor;}
 	void setParams(DvrParams* p) {myParams = p;}
+	DvrParams* getParams() {return myParams;}
 	int getNumOpacControlPoints() {return numOpacControlPoints;}
 	int getNumColorControlPoints() {return numColorControlPoints;}
 	float getMinMapValue(){

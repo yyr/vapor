@@ -67,13 +67,16 @@
 
 
 using namespace VAPoR;
-
-const string DvrParams::_leftEditBoundsTag = "LeftEditBounds";
-const string DvrParams::_rightEditBoundsTag = "RightEditBounds";
+const string DvrParams::_variableTag = "Variable";
+const string DvrParams::_leftEditBoundAttr = "LeftEditBound";
+const string DvrParams::_rightEditBoundAttr = "RightEditBound";
 const string DvrParams::_numVariablesAttr = "NumVariables";
 const string DvrParams::_variableNumAttr = "VariableNum";
+const string DvrParams::_activeVariableNumAttr = "ActiveVariableNum";
 const string DvrParams::_editModeAttr = "TFEditMode";
 const string DvrParams::_histoStretchAttr = "HistoStretchFactor";
+const string DvrParams::_variableNameAttr = "VariableName";
+
 
 DvrParams::DvrParams(int winnum) : Params(winnum){
 	thisParamType = DvrParamsType;
@@ -82,30 +85,32 @@ DvrParams::DvrParams(int winnum) : Params(winnum){
 	minEditBounds = 0;
 	maxEditBounds = 0;
 	numBits = 8;
-	//Hookup the editor to the frame in the dvr tab:
-	myTransFunc = new TransferFunction(this, numBits);
+	numVariables = 0;
 	restart();
-	if(myDvrTab) myTFEditor = new TFEditor(this, myTransFunc, myDvrTab->DvrTFFrame);
-	else myTFEditor = 0;
-	
 	
 }
 DvrParams::~DvrParams(){
-	delete myTFEditor;
-	delete myTransFunc;
+	
+
+
 	
 	if (savedCommand) delete savedCommand;
 	
 	if (minEditBounds) delete minEditBounds;
 	if (maxEditBounds) delete maxEditBounds;
+	for (int i = 0; i< numVariables; i++){
+		delete transFunc[i];  //destructor will delete TFEditor
+	}
+	if (transFunc) delete transFunc;
 	
 }
 
 void DvrParams::
 setTab(Dvr* tab) {
 	myDvrTab = tab;
-	if (myTFEditor) delete myTFEditor;
-	myTFEditor = new TFEditor(this, myTransFunc, myDvrTab->DvrTFFrame );
+	for (int i = 0; i<numVariables; i++){
+		transFunc[i]->getEditor()->setFrame(myDvrTab->DvrTFFrame);
+	}
 }
 //Deepcopy requires cloning tf and tfeditor
 Params* DvrParams::
@@ -121,17 +126,18 @@ deepCopy(){
 		newParams->maxEditBounds[i] = maxEditBounds[i];
 	}
 
-	//Clone the Transfer Function (and TFEditor)
-	newParams->myTransFunc = new TransferFunction(*myTransFunc);
-	//Need also to update pointers in this Transfer function:
-	newParams->myTransFunc->setParams(newParams);
-	//if(myDvrTab) newParams->myTFEditor = new TFEditor(newParams->myTransFunc, myDvrTab->DvrTFFrame, mainWin->getSession() );
-	if (myDvrTab) {
-		newParams->myTFEditor = new TFEditor(*myTFEditor);
-		newParams->myTFEditor->setParams(newParams);
-		newParams->myTransFunc->setEditor(newParams->myTFEditor);
-		newParams->myTFEditor->setTransferFunction(newParams->myTransFunc);
+	//Clone the Transfer Function and the TFEditor
+	newParams->transFunc = new TransferFunction*[numVariables];
+	for (int i = 0; i<numVariables; i++){
+		newParams->transFunc[i] = new TransferFunction(*transFunc[i]);
+		//clone the tfe, hook it to the trans func
+		TFEditor* newTFEditor = new TFEditor(*(transFunc[i]->getEditor()));
+		newParams->transFunc[i]->setEditor(newTFEditor);
+		newParams->transFunc[i]->setParams(newParams);
+		newTFEditor->setTransferFunction(newParams->transFunc[i]);
+		newTFEditor->setFrame(myDvrTab->DvrTFFrame);
 	}
+	
 	//never keep the SavedCommand:
 	newParams->savedCommand = 0;
 	return newParams;
@@ -141,6 +147,7 @@ void DvrParams::
 makeCurrent(Params* prevParams, bool newWin) {
 	
 	VizWinMgr::getInstance()->setDvrParams(vizNum, this);
+
 	updateDialog();
 	DvrParams* formerParams = (DvrParams*)prevParams;
 	//Check if the enabled and/or Local settings changed:
@@ -153,7 +160,7 @@ makeCurrent(Params* prevParams, bool newWin) {
 
 void DvrParams::
 refreshCtab() {
-	myTransFunc->makeLut((float*)ctab);
+	getTransFunc()->makeLut((float*)ctab);
 }
 	
 //Set the tab consistent with the dvrparams data here
@@ -162,7 +169,7 @@ void DvrParams::updateDialog(){
 	
 	QString strn;
 	Session::getInstance()->blockRecording();
-	//myDvrTab->DvrTFFrame->setEditor(myTFEditor);
+	myDvrTab->DvrTFFrame->setEditor(getTFEditor());
 	myDvrTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
 	
 	//Set the names in the variable combo
@@ -195,11 +202,12 @@ void DvrParams::updateDialog(){
 		myDvrTab->LocalGlobal->setCurrentItem(0);
 
 	TFFrame* myTFFrame = myDvrTab->DvrTFFrame;
-	myTFFrame->setEditor(myTFEditor);
+	myTFFrame->setEditor(getTFEditor());
 
 	updateTFBounds();
-
-	float sliderVal = myTFEditor->getHistoStretch();
+	float sliderVal = 1.f;
+	if (getTFEditor())
+		sliderVal = getHistoStretch();
 	sliderVal = 1000.f - logf(sliderVal)/(HISTOSTRETCHCONSTANT*logf(2.f));
 	myDvrTab->histoStretchSlider->setValue((int) sliderVal);
 	setBindButtons();
@@ -215,7 +223,7 @@ void DvrParams::updateDialog(){
 		myDvrTab->navigateButton->setOn(true);
 	}
 		
-	myTFEditor->setDirty(true);
+	if(getTFEditor())getTFEditor()->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
 	myDvrTab->update();
 	guiSetTextChanged(false);
@@ -239,11 +247,11 @@ updatePanelState(){
 	specularAtten = myDvrTab->specularAttenuation->text().toFloat();
 	
 
-	myTransFunc->setMinMapValue(myDvrTab->leftMappingBound->text().toFloat());
-	myTransFunc->setMaxMapValue(myDvrTab->rightMappingBound->text().toFloat());
+	getTransFunc()->setMinMapValue(myDvrTab->leftMappingBound->text().toFloat());
+	getTransFunc()->setMaxMapValue(myDvrTab->rightMappingBound->text().toFloat());
 	
 	setDatarangeDirty();
-	myTFEditor->setDirty(true);
+	getTFEditor()->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
 	guiSetTextChanged(false);
 	
@@ -260,8 +268,10 @@ setVarNum(int val)
 	//this also sets dirty flag
 	updateTFBounds();
 	//Force a redraw of tfframe
-	myTFEditor->setDirty(true);
+	getTFEditor()->setDirty(true);
+	myDvrTab->DvrTFFrame->setEditor(getTFEditor());
 	myDvrTab->DvrTFFrame->update();	
+	setClutDirty();
 	//Set region dirty, since new data is needed
 	VizWinMgr::getInstance()->setRegionDirty(this);
 }
@@ -275,9 +285,14 @@ void DvrParams::
 updateTFBounds(){
 	QString strn;
 	myDvrTab->minDataBound->setText(strn.setNum(getDataMinBound()));
-	myDvrTab->maxDataBound->setText(strn.setNum(getDataMaxBound()));	
-	myDvrTab->leftMappingBound->setText(strn.setNum(myTransFunc->getMinMapValue(),'g',4));
-	myDvrTab->rightMappingBound->setText(strn.setNum(myTransFunc->getMaxMapValue(),'g',4));
+	myDvrTab->maxDataBound->setText(strn.setNum(getDataMaxBound()));
+	if (getTransFunc()){
+		myDvrTab->leftMappingBound->setText(strn.setNum(getTransFunc()->getMinMapValue(),'g',4));
+		myDvrTab->rightMappingBound->setText(strn.setNum(getTransFunc()->getMaxMapValue(),'g',4));
+	} else {
+		myDvrTab->leftMappingBound->setText("0.0");
+		myDvrTab->rightMappingBound->setText("1.0");
+	}
 	setDatarangeDirty();
 }
 
@@ -305,7 +320,7 @@ guiSetAligned(){
 	PanelCommand* cmd = PanelCommand::captureStart(this, "align tf in edit frame");
 	setMinEditBound(getMinMapBound());
 	setMaxEditBound(getMaxMapBound());
-	myTFEditor->setDirty(true);
+	getTFEditor()->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
 	PanelCommand::captureEnd(cmd, this);
 }
@@ -357,8 +372,8 @@ void DvrParams::
 guiSetHistoStretch(int val){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "modify histogram stretch slider");
-	myTFEditor->setHistoStretch( powf(2.f, HISTOSTRETCHCONSTANT*(1000.f - (float)val)));
-	myTFEditor->setDirty(true);
+	setHistoStretch( powf(2.f, HISTOSTRETCHCONSTANT*(1000.f - (float)val)));
+	getTFEditor()->setDirty(true);
 	myDvrTab->DvrTFFrame->update();
 	PanelCommand::captureEnd(cmd,this);
 }
@@ -384,19 +399,21 @@ void DvrParams::
 guiBindColorToOpac(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "bind Color to Opacity");
-	myTFEditor->bindColorToOpac();
+	getTFEditor()->bindColorToOpac();
 	PanelCommand::captureEnd(cmd, this);
 }
 void DvrParams::
 guiBindOpacToColor(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "bind Opacity to Color");
-	myTFEditor->bindOpacToColor();
+	getTFEditor()->bindOpacToColor();
 	PanelCommand::captureEnd(cmd, this);
 }
 void DvrParams::
 setBindButtons(){
-	bool enable = myTFEditor->canBind();
+	bool enable = false;
+	if (getTFEditor())
+		enable = getTFEditor()->canBind();
 	myDvrTab->OpacityBindButton->setEnabled(enable);
 	myDvrTab->ColorBindButton->setEnabled(enable);
 }
@@ -512,7 +529,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 
 	return;
 }
-//Initialize for new metadata.  Keep old transfer function
+//Initialize for new metadata.  Keep old transfer functions
 //
 void DvrParams::
 reinit(bool doOverride){
@@ -534,55 +551,87 @@ reinit(bool doOverride){
 	}
 	if (varNum == -1){
 		MessageReporter::errorMsg("DVR Params: No data in specified dataset");
+		for (i = 0; i<numVariables; i++){
+			delete transFunc[i];
+		}
+		delete transFunc;
+		numVariables = 0;
 		return;
 	}
-	//If we are overriding previous values, 
+	//Create new arrays to hold bounds and transfer functions:
+	TransferFunction** newTransFunc = new TransferFunction*[newNumVariables];
+	float* newMinEdit = new float[newNumVariables];
+	float* newMaxEdit = new float[newNumVariables];
+	//If we are overriding previous values, delete the transfer functions, create new ones.
 	//Set the map bounds to the actual bounds in the data
 	if (doOverride){
-		myTransFunc->setMinMapValue(Session::getInstance()->getDataRange(varNum)[0]);
-		myTransFunc->setMaxMapValue(Session::getInstance()->getDataRange(varNum)[1]);
-	}
-	//Did number of variables change?  If so must recreate bounds arrays:
-	if (newNumVariables != numVariables){
-		
-		float* newMinEdit = new float[newNumVariables];
-		float* newMaxEdit = new float[newNumVariables];
-		for (i = 0; i< numVariables && i<newNumVariables; i++){
-		
-			newMinEdit[i] = minEditBounds[i];
-			newMaxEdit[i] = maxEditBounds[i];
+		for (i = 0; i<numVariables; i++){
+			delete transFunc[i];
 		}
+		//Create new transfer functions, their editors, hook them up:
 		
-		
-		delete minEditBounds;
-		delete maxEditBounds;
-		minEditBounds = newMinEdit;
-		maxEditBounds = newMaxEdit;
-	}
-	//Decide when to reset edit bounds.
-	//If newNumVariables > old numVariables, 
-	//Or if previous range is invalid
-	//(the max is < min if no data was there)
-	//Then, set new variables to default ranges:
-	
-	for (i = 0; i<newNumVariables; i++){
-		if (i>= numVariables || (doOverride) ||
-			(minEditBounds[i] >= maxEditBounds[i])){
-			minEditBounds[i] = Session::getInstance()->getDataRange(i)[0];
-			maxEditBounds[i] = Session::getInstance()->getDataRange(i)[1];
+		for (i = 0; i<newNumVariables; i++){
+			newTransFunc[i] = new TransferFunction(this, numBits);
+			//create new tfe, hook it to the trans func
+			TFEditor* newTFEditor = new TFEditor(newTransFunc[i], myDvrTab->DvrTFFrame);
+			newTransFunc[i]->setEditor(newTFEditor);
+			newTransFunc[i]->setMinMapValue(Session::getInstance()->getDataRange(i)[0]);
+			newTransFunc[i]->setMaxMapValue(Session::getInstance()->getDataRange(i)[1]);
+			newMinEdit[i] = Session::getInstance()->getDataRange(i)[0];
+			newMaxEdit[i] = Session::getInstance()->getDataRange(i)[1];
+		}
+	} else { 
+		//attempt to make use of existing transfer functions, edit ranges.
+		//delete any that are no longer referenced
+		for (i = 0; i<newNumVariables; i++){
+			if(i<numVariables){
+				newTransFunc[i] = transFunc[i];
+				newMinEdit[i] = minEditBounds[i];
+				newMaxEdit[i] = maxEditBounds[i];
+			} else { //create new tfe, hook it to the trans func
+				newTransFunc[i] = new TransferFunction(this, numBits);
+				TFEditor* newTFEditor = new TFEditor(transFunc[i], myDvrTab->DvrTFFrame);
+				newTransFunc[i]->setEditor(newTFEditor);
+				newTransFunc[i]->setMinMapValue(Session::getInstance()->getDataRange(i)[0]);
+				newTransFunc[i]->setMaxMapValue(Session::getInstance()->getDataRange(i)[1]);
+				newMinEdit[i] = Session::getInstance()->getDataRange(i)[0];
+				newMaxEdit[i] = Session::getInstance()->getDataRange(i)[1];
+			}
+		}
+			//Delete trans funcs (and associated tfe's that are no longer referenced.
+		for (i = newNumVariables; i<numVariables; i++){
+			delete transFunc[i];
+		}
+	} //end if(doOverride)
+	//Make sure edit bounds are valid
+	for(i = 0; i<newNumVariables; i++){
+		if (newMinEdit[i] >= newMaxEdit[i]){
+			newMinEdit[i] = Session::getInstance()->getDataRange(i)[0];
+			newMaxEdit[i] = Session::getInstance()->getDataRange(i)[1];
+		}
+		//And check again...
+		if (newMinEdit[i] >= newMaxEdit[i]){
+			newMinEdit[i] = 0.f;
+			newMaxEdit[i] = 1.f;
 		}
 	}
+	//Hook up new stuff
+	delete minEditBounds;
+	delete maxEditBounds;
+	delete transFunc;
+	minEditBounds = newMinEdit;
+	maxEditBounds = newMaxEdit;
+	transFunc = newTransFunc;
 	
 	numVariables = newNumVariables;
 	bool wasEnabled = enabled;
 	setEnabled(false);
 	//Always disable  don't change local/global 
 	updateRenderer(wasEnabled, isLocal(), false);
-	//Get a new histogram (if necessary) based on current settings:
-	if (vizNum >= 0) Histo::getHistogram(varNum, vizNum);
+	
 	setClutDirty();
 	setDatarangeDirty();
-	myTFEditor->setDirty(true);
+	if(numVariables>0) getTFEditor()->setDirty(true);
 	//If dvr is the current front tab, and if it applies to the active visualizer,
 	//update its values
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myDvrTab)) {
@@ -596,6 +645,7 @@ reinit(bool doOverride){
 //
 void DvrParams::
 restart(){
+	histoStretchFactor = 1.f;
 	varNum = 0;
 	lightingOn = false;
 	numBits = 8;
@@ -606,8 +656,15 @@ restart(){
 	ambientAtten = .18f;
 	specularAtten = .39f;
 	diffuseAtten = 1.f;
+	if(numVariables > 0){
+		for (int i = 0; i<numVariables; i++){
+			delete transFunc[i];
+		}
+		delete transFunc;
+	}
 	numVariables = 0;
 	attenuationDirty = true;
+	transFunc = 0;
 	//Initialize the mapping bounds to [0,1] until data is read
 	
 	if (minEditBounds) delete minEditBounds;
@@ -618,6 +675,8 @@ restart(){
 	maxEditBounds = new float[1];
 	minEditBounds[0] = 0.f;
 	maxEditBounds[0] = 1.f;
+	currentDatarange[0] = 0.f;
+	currentDatarange[1] = 1.f;
 	editMode = true;   //default is edit mode
 	savedCommand = 0;
 	setEnabled(false);
@@ -637,18 +696,15 @@ restart(){
 void DvrParams::
 setDatarangeDirty()
 {
-	VizWinMgr::getInstance()->setDataRangeDirty(this);
+	if (!getTransFunc()) return;
+	if (currentDatarange[0] != getTransFunc()->getMinMapValue() ||
+		currentDatarange[1] != getTransFunc()->getMaxMapValue()){
+			currentDatarange[0] = getTransFunc()->getMinMapValue();
+			currentDatarange[1] = getTransFunc()->getMaxMapValue();
+			VizWinMgr::getInstance()->setDataRangeDirty(this);
+	}
 }
-//Return current valid dataRange from transfer function 
-//
-float* DvrParams::
-getCurrentDatarange()
-{
-	static float rangeHolder[2];
-	rangeHolder[0] = myTransFunc->getMinMapValue();
-	rangeHolder[1] = myTransFunc->getMaxMapValue();
-	return rangeHolder;
-}
+
 //Respond to user request to load/save TF
 //Assumes name is valid
 //
@@ -662,7 +718,7 @@ sessionLoadTF(QString* name){
 	std::string s(name->ascii());
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
-	hookupTF(tf);
+	hookupTF(tf, varNum);
 	PanelCommand::captureEnd(cmd, this);
 }
 void DvrParams::
@@ -707,30 +763,31 @@ fileLoadTF(){
 		return;
 	}
 
-	hookupTF(t);
+	hookupTF(t, varNum);
 	PanelCommand::captureEnd(cmd, this);
 	//Remember the path to the file:
 	Session::getInstance()->updateTFFilePath(&s);
 }
-//Hook up the new transfer function,
+//Hook up the new transfer function in specified slot,
 //Delete the old one.
 //
 void DvrParams::
-hookupTF(TransferFunction* t){
+hookupTF(TransferFunction* t, int index){
 
+	//Create a new TFEditor
+	TFEditor* newTFEditor = new TFEditor(t, myDvrTab->DvrTFFrame);
+	t->setEditor(newTFEditor);
+	minEditBounds[index] = t->getMinMapValue();
+	maxEditBounds[index] = t->getMaxMapValue();
 	t->setParams(this);
-	t->setEditor(myTFEditor);
-	myTFEditor->setTransferFunction(t);
-	myTFEditor->reset();
-	delete myTransFunc;
-	myTransFunc = t;
-	//Align the editor and domain bounds:
-	setMinEditBound(getMinMapBound());
-	setMaxEditBound(getMaxMapBound());
+	newTFEditor->reset();
+	delete transFunc[index];
+	transFunc[index] = t;
+	
 	//reset the editing display range, this also sets dirty flag
 	updateTFBounds();
 	//Force a redraw of tfframe
-	myTFEditor->setDirty(true);
+	newTFEditor->setDirty(true);
 	myDvrTab->DvrTFFrame->update();	
 	setDatarangeDirty();
 	setClutDirty();
@@ -767,7 +824,7 @@ fileSaveTF(){
 	
 	
 	
-	if (!myTransFunc->saveToFile(fileout)){//Report error if can't save to file
+	if (!getTransFunc()->saveToFile(fileout)){//Report error if can't save to file
 		QString str("Failed to write output file: \n");
 		str += s;
 		MessageReporter::errorMsg(str.ascii());
@@ -781,29 +838,30 @@ fileSaveTF(){
 //
 void DvrParams::
 refreshTFFrame(){
-	myTFEditor->setDirty(true);
+	getTFEditor()->setDirty(true);
 	myDvrTab->DvrTFFrame->update();	
 }
 void DvrParams::setMinMapBound(float val){
-	myTransFunc->setMinMapValue(val);
+	getTransFunc()->setMinMapValue(val);
 }
 void DvrParams::setMaxMapBound(float val){
-	myTransFunc->setMaxMapValue(val);
+	getTransFunc()->setMaxMapValue(val);
 }
 
 float DvrParams::getMinMapBound(){
-	return myTransFunc->getMinMapValue();
+	return getTransFunc()->getMinMapValue();
 }
 float DvrParams::getMaxMapBound(){
-	return myTransFunc->getMaxMapValue();
+	return getTransFunc()->getMaxMapValue();
 }
 //Handlers for Expat parsing.
-//The parse state is determined by
-//whether it's parsing a color or opacity.
 //
 bool DvrParams::
 elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const char **attrs){
+	static int parsedVarnum;
+	int i;
 	if (StrCmpNoCase(tagString, _dvrParamsTag) == 0) {
+		int newNumVariables = 0;
 		//If it's a Dvr tag, save 5 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -816,9 +874,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				ist >> vizNum;
 			}
 			else if (StrCmpNoCase(attribName, _numVariablesAttr) == 0) {
-				ist >> numVariables;
+				ist >> newNumVariables;
 			}
-			else if (StrCmpNoCase(attribName, _variableNumAttr) == 0) {
+			else if (StrCmpNoCase(attribName, _activeVariableNumAttr) == 0) {
 				ist >> varNum;
 			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
@@ -827,7 +885,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _histoStretchAttr) == 0){
 				float histStretch;
 				ist >> histStretch;
-				myTFEditor->setHistoStretch(histStretch);
+				setHistoStretch(histStretch);
 			}
 			else if (StrCmpNoCase(attribName, _editModeAttr) == 0){
 				if (value == "true") setEditMode(true); 
@@ -835,39 +893,89 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			}
 			else return false;
 		}
+		//Create space for the variables:
+		int numVars = Max (newNumVariables, 1);
+		if(minEditBounds) delete minEditBounds;
+		minEditBounds = new float[numVars];
+		if(maxEditBounds) delete maxEditBounds;
+		maxEditBounds = new float[numVars];
+		variableNames.clear();
+		for (i = 0; i<newNumVariables; i++){
+			variableNames.push_back("");
+		}
+		//Setup with default values, in case not specified:
+		for (i = 0; i< newNumVariables; i++){
+			minEditBounds[i] = 0.f;
+			maxEditBounds[i] = 1.f;
+		}
+
+		//create default Transfer Function and TFEditor
+		//Are they gone?
+		if (transFunc){
+			for (int j = 0; j<numVariables; j++){
+				delete transFunc[j];
+			}
+			delete transFunc;
+		}
+		numVariables = newNumVariables;
+		transFunc = new TransferFunction*[numVariables];
+		//Create default transfer functions and editors
+		for (int j = 0; j<numVariables; j++){
+			transFunc[j] = new TransferFunction(this, numBits);
+			TFEditor* newTFEditor = new TFEditor(transFunc[j],myDvrTab->DvrTFFrame);
+			transFunc[j]->setEditor(newTFEditor);
+		}
+		return true;
+	}
+	//Parse a Variable:
+	else if (StrCmpNoCase(tagString, _variableTag) == 0) {
+		parsedVarnum = 0;
+		float leftEdit = 0.f;
+		float rightEdit = 1.f;
+		string varName;
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			
+			if (StrCmpNoCase(attribName, _variableNumAttr) == 0) {
+				ist >> parsedVarnum;
+				if (parsedVarnum < 0 || parsedVarnum >= numVariables) {
+					pm->parseError("Invalid variable number %d", parsedVarnum);
+				}
+			}
+			else if (StrCmpNoCase(attribName, _leftEditBoundAttr) == 0) {
+				ist >> leftEdit;
+			}
+			else if (StrCmpNoCase(attribName, _rightEditBoundAttr) == 0) {
+				ist >> rightEdit;
+			}
+			else if (StrCmpNoCase(attribName, _variableNameAttr) == 0){
+				ist >> varName;
+			}
+			else return false;
+		}
+		// Now set the values obtained from attribute parsing.
+	
+		variableNames[parsedVarnum] =  varName;
+		minEditBounds[parsedVarnum] = leftEdit;
+		maxEditBounds[parsedVarnum] = rightEdit;
 		return true;
 	}
 	//Parse a transferFunction
+	//Note we are relying on parsedvarnum obtained by previous start handler:
 	else if (StrCmpNoCase(tagString, TransferFunction::_transferFunctionTag) == 0) {
 		//Need to "push" to transfer function parser.
 		//That parser will "pop" back to dvrparams when done.
-		pm->pushClassStack(myTransFunc);
-		myTransFunc->elementStartHandler(pm, depth, tagString, attrs);
+		pm->pushClassStack(transFunc[parsedVarnum]);
+		transFunc[parsedVarnum]->elementStartHandler(pm, depth, tagString, attrs);
 		return true;
-	}
-	else if ((StrCmpNoCase(tagString, _leftEditBoundsTag) == 0) ||
-		(StrCmpNoCase(tagString, _rightEditBoundsTag) == 0))
-	{
-		//Should have a type attribute
-		string attribName = *attrs;
-		attrs++;
-		string value = *attrs;
-		attrs++;
-
-		ExpatStackElement *state = pm->getStateStackTop();
-		if (numVariables>0) {
-			state->has_data = 1;
-			if (StrCmpNoCase(attribName, _typeAttr) != 0) {
-				pm->parseError("Invalid attribute : %s", attribName.c_str());
-				return false;
-			}
-			state->data_type = value;
-		}
-		return true;  
 	}
 	else return false;
 }
-//The end handler needs to pop the parse stack
+//The end handler needs to pop the parse stack, nothing else
 bool DvrParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	
@@ -878,16 +986,11 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		ParsedXml* px = pm->popClassStack();
 		bool ok = px->elementEndHandler(pm, depth, tag);
 		return ok;
-	} else if (StrCmpNoCase(tag, _leftEditBoundsTag) == 0){
-		resetMinEditBounds(pm->getDoubleData());
-		return true;
-	} else if (StrCmpNoCase(tag, _rightEditBoundsTag) == 0){
-		resetMaxEditBounds(pm->getDoubleData());
-		return true;
 	} else if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0) {
 		return true;
-	}
-	else {
+	} else if (StrCmpNoCase(tag, _variableTag) == 0){
+		return true;
+	} else {
 		pm->parseError("Unrecognized end tag in DVRParams %s",tag.c_str());
 		return false;  //Could there be other end tags that we ignore??
 	}
@@ -920,7 +1023,7 @@ buildNode() {
 
 	oss.str(empty);
 	oss << (long)varNum;
-	attrs[_variableNumAttr] = oss.str();
+	attrs[_activeVariableNumAttr] = oss.str();
 
 	oss.str(empty);
 	if (editMode)
@@ -929,29 +1032,38 @@ buildNode() {
 		oss << "false";
 	attrs[_editModeAttr] = oss.str();
 	oss.str(empty);
-	oss << (double)myTFEditor->getHistoStretch();
+	oss << (double)getHistoStretch();
 	attrs[_histoStretchAttr] = oss.str();
 	
 	XmlNode* dvrNode = new XmlNode(_dvrParamsTag, attrs, 3);
 
 	//Now add children:  
-	//Create a transfer function node
+	//Create the Variables nodes
+	for (int i = 0; i<numVariables; i++){
+		attrs.clear();
+	
+		oss.str(empty);
+		oss << (long)i;
+		attrs[_variableNumAttr] = oss.str();
 
-	XmlNode* tfNode = myTransFunc->buildNode(empty);
-	dvrNode->AddChild(tfNode);
-	vector<double> dblvec;
-	if (numVariables > 0){
-		dblvec.clear();
-		for (int i = 0; i<numVariables; i++){
-			dblvec.push_back((double) minEditBounds[i]);
-			//Also put an empty string in the variableNames array:
-			variableNames.push_back("");
-		}
-		dvrNode->SetElementDouble(_leftEditBoundsTag,dblvec);
-		dblvec.clear();
-		for (int i = 0; i<numVariables; i++)
-			dblvec.push_back((double) maxEditBounds[i]);
-		dvrNode->SetElementDouble(_rightEditBoundsTag,dblvec);
+		oss.str(empty);
+		oss << variableNames[i];
+		attrs[_variableNameAttr] = oss.str();
+
+		oss.str(empty);
+		oss << (double)minEditBounds[i];
+		attrs[_leftEditBoundAttr] = oss.str();
+
+		oss.str(empty);
+		oss << (double)maxEditBounds[i];
+		attrs[_rightEditBoundAttr] = oss.str();
+
+		XmlNode* varNode = new XmlNode(_variableTag,attrs,1);
+
+		//Create a transfer function node, add it as child
+		XmlNode* tfNode = transFunc[i]->buildNode(empty);
+		varNode->AddChild(tfNode);
+		dvrNode->AddChild(varNode);
 	}
 	return dvrNode;
 }
@@ -969,4 +1081,9 @@ void DvrParams::resetMaxEditBounds(vector<double>& newBounds){
 	for (unsigned int i = 0; i<newBounds.size(); i++) 
 		maxEditBounds[i] = newBounds[i];
 }
-
+TFEditor* DvrParams::getTFEditor(){
+	return (numVariables > 0 ? transFunc[varNum]->getEditor() : 0);
+}
+TransferFunction* DvrParams::getTransFunc() {
+	return (numVariables > 0 ? transFunc[varNum] : 0);
+}

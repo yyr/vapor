@@ -42,6 +42,7 @@ public:
 		if(winNum < 0) local = false; else local = true;
 		textChangedFlag = false;
 		thisParamType = UnknownParamsType;
+		previousClass = 0;
 	}
 	
 	enum ParamType {

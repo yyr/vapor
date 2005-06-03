@@ -55,7 +55,7 @@ const string Session::_globalTransferFunctionsTag = "GlobalTransferFunctions";
 Session::Session() {
 	MyBase::SetErrMsgCB(errorCallbackFcn);
 	MyBase::SetDiagMsgCB(infoCallbackFcn);
-	
+	previousClass = 0;
 	dataMgr = 0;
 	currentMetadata = 0;
 	myReader = 0;
@@ -749,7 +749,7 @@ bool DataStatus::variableIsPresent(int varnum){
 	return false;
 }
 //Methods to keep or remove a transfer function 
-//with the session:
+//with the session.  The transFunc is always the current one from the dvrParams
 //
 void Session::addTF(const char* tfName, DvrParams* dvrParams){
 
@@ -775,7 +775,7 @@ void Session::addTF(const char* tfName, DvrParams* dvrParams){
 		
 	}
 	//copy the tf, its name
-	keptTFs[numTFs] = new TransferFunction(*(dvrParams->getTransferFunction()));
+	keptTFs[numTFs] = new TransferFunction(*(dvrParams->getTransFunc()));
 	tfNames[numTFs] = new std::string(tfName);
 	
 	//Don't retain the pointers to dvrParams and TFE:
