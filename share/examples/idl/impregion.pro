@@ -50,8 +50,8 @@ if keyword_set(nxforms) eq 0 then nxforms = 0
 	; of interest. Note. this is a noop if nxforms is zero
 	;
 	;
-	min = vdc_transformcoord(dfd,nxforms,stateinfo.minrange)
-	max = vdc_transformcoord(dfd,nxforms,stateinfo.maxrange)
+	min = vdc_xformcoord(dfd,nxforms,stateinfo.minrange)
+	max = vdc_xformcoord(dfd,nxforms,stateinfo.maxrange)
 
 	; Create an array large enough to hold the volume subregion
 	;
@@ -59,7 +59,7 @@ if keyword_set(nxforms) eq 0 then nxforms = 0
 
 	; Select the variable and time step we want to read
 	;
-	vdc_openvarread, dfd, stateinfo.timestep, stateinfo.varname, num_xforms
+	vdc_openvarread, dfd, stateinfo.timestep, stateinfo.varname, nxforms
 
 	; Read the subregion
 	;
