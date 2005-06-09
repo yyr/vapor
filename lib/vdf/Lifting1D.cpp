@@ -47,6 +47,16 @@ static flt_t	*create_inv_lifting(flt_t *, unsigned int, unsigned int);
 static void FLWT1D_Predict(Lifting1D::DataType_T*, const long, const long, flt_t*);
 static void FLWT1D_Update (Lifting1D::DataType_T *, const long, const long, const flt_t*);
 
+static void	forward_transform1d_haar(
+	float *data,
+	int width
+);
+
+static void	inverse_transform1d_haar(
+	float *data,
+	int width
+);
+
 Lifting1D::Lifting1D(
 	unsigned int	n,
 	unsigned int	ntilde,
@@ -62,6 +72,13 @@ Lifting1D::Lifting1D(
 	inv_lifting_c = NULL;
 
 	SetClassName("Lifting1D");
+
+	// Check for haar wavelets which are handled differently
+	//
+	if (n_c == 1 && ntilde_c == 1) {
+		_objInitialized = 1;
+		return;
+	}
 
 	if (IsOdd(n_c)) {
 		SetErrMsg(
@@ -171,8 +188,13 @@ Lifting1D::~Lifting1D()
 void   Lifting1D::ForwardTransform(
 	DataType_T *data
 ) {
-	FLWT1D_Predict (data, width_c, n_c, fwd_filter_c);
-	FLWT1D_Update (data, width_c, ntilde_c, fwd_lifting_c);
+	if (n_c == 1 && ntilde_c == 1) {
+		forward_transform1d_haar(data, width_c);
+	}
+	else {
+		FLWT1D_Predict (data, width_c, n_c, fwd_filter_c);
+		FLWT1D_Update (data, width_c, ntilde_c, fwd_lifting_c);
+	}
 }
 
 //
@@ -186,8 +208,13 @@ void   Lifting1D::ForwardTransform(
 void   Lifting1D::InverseTransform(
 	DataType_T *data
 ) {
-	FLWT1D_Update (data, width_c, ntilde_c, inv_lifting_c);
-	FLWT1D_Predict (data, width_c, n_c, inv_filter_c);
+	if (n_c == 1 && ntilde_c == 1) {
+		inverse_transform1d_haar(data, width_c);
+	}
+	else {
+		FLWT1D_Update (data, width_c, ntilde_c, inv_lifting_c);
+		FLWT1D_Predict (data, width_c, n_c, inv_filter_c);
+	}
 }
 
 static const flt_t	Flt_Epsilon = 	(flt_t) 6E-8;
@@ -759,7 +786,7 @@ static flt_t *create_fwd_lifting(
 
 	int col;
 
-	moment = create_moment(ntilde, width, 1);
+	moment = create_moment(ntilde, width, 0);
 	if (! moment) return NULL;
 
 
@@ -989,5 +1016,92 @@ static void FLWT1D_Update (
         } while(--j);   /* use all nTilde lifting coefficients */
         /* Go to next Gamma coefficient */
         vG += stepIncr;
+    }
+}
+
+static void	forward_transform1d_haar(
+	float *data,
+	int width
+) {
+	int	i;
+
+	int	nG;	// # gamma coefficients
+	int	nL;	// # lambda coefficients
+	double	lsum = 0.0;	// sum of lambda values
+	double	lave;	// average of lambda values
+
+    nG = (width >> 1);
+    nL = width - nG;
+
+	//
+	// Need to preserve average for odd sizes
+	//
+	if (IsOdd(width)) {
+		double	t = 0.0;
+
+		for(i=0;i<width;i++) {
+			t += data[i];
+		}
+		lave = t / (double) width;
+	}
+
+	for (i=0; i<nG; i++) {
+		data[1] = data[1] - data[0];	// gamma
+		data[0] = (float)(data[0] + (data[1] /2.0)); // lambda
+		lsum += data[0];
+
+		data += 2;
+	}
+
+    // If IsOdd(width), then we have one additional case for */
+    // the Lambda calculations. This is a boundary case  */
+    // and, therefore, has different filter values.      */
+	//
+	if (IsOdd(width)) {
+		data[0] = (float)((lave * (double) nL) - lsum);
+	}
+}
+
+
+
+static void	inverse_transform1d_haar(
+	float *data,
+	int width
+) {
+	int	i;
+	int	nG;	// # gamma coefficients
+	int	nL;	// # lambda coefficients
+	double	lsum = 0.0;	// sum of lambda values
+	double	lave;	// average of lambda values
+
+	nG = (width >> 1);
+	nL = width - nG;
+
+    // Odd # of coefficients require special handling at boundary
+	// Calculate Lambda average 
+	//
+    if (IsOdd(width) ) {
+        double  t = 0.0;
+
+		for(i=0;i<nL;i++) {
+            t += data[i];
+        }
+        lave = t/(double)nL;   // average we've to maintain
+    }
+
+	for (i=0; i<nG; i++) {
+		data[0] = (float)(data[0] - (data[1] * 0.5));
+		data[1] = data[1] + data[0];
+		lsum += data[0] +  data[1];
+
+		data += 2;
+	}
+
+    // If ODD(len), then we have one additional case for */
+    // the Lambda calculations. This is a boundary case  */
+    // and, therefore, has different filter values.      */
+	//
+    if (IsOdd(width)) {
+        *data = (float)((lave * (double) width) - lsum);
     }
 }
