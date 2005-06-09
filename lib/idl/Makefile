@@ -5,7 +5,7 @@ include ${TOP}/make/config/arch.mk
 SHARED = 0
 LIBRARY = idl_vdfmodule
 FILES = \
-	IDLMetadata IDLMetadataAuto IDLCommon IDLWbIo IDLVaporImport
+	IDLMetadata IDLMetadataAuto IDLCommon IDLWbIo IDLVaporImport IDLLifting1D
 
   
 ifeq ($(ARCH),WIN32)
@@ -36,14 +36,14 @@ endif
 
 include ${TOP}/make/config/base.mk
 
-IDLMetadata.cpp: libidl_vdfmodule.dlm
+IDLMetadata.cpp: $(DSO_DIR)/libidl_vdfmodule.dlm
 
 IDLMetadataAuto.cpp: IDLMetadataAuto.cpp.template mkmeta.pl
 	./mkmeta.pl < $@.template > $@
 
-libidl_vdfmodule.dlm: libidl_vdfmodule.dlm.template mkmeta.pl
-	./mkmeta.pl < $@.template > $@
+$(DSO_DIR)/libidl_vdfmodule.dlm: libidl_vdfmodule.dlm.template mkmeta.pl
+	./mkmeta.pl < libidl_vdfmodule.dlm.template > $@
 
 
-install:: libidl_vdfmodule.dlm
-	@$(INSTALL_NONEXEC) libidl_vdfmodule.dlm $(INSTALL_LIBDIR)
+install:: $(DSO_DIR)/libidl_vdfmodule.dlm
+	@$(INSTALL_NONEXEC) $(DSO_DIR)/libidl_vdfmodule.dlm $(INSTALL_LIBDIR)

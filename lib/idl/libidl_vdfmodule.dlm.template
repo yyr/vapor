@@ -21,6 +21,7 @@ FUNCTION	vdc_mapuser2vox		4	4
 FUNCTION	vdc_isvalidreg		4	4
 FUNCTION	vdc_getmetadata		1	1
 FUNCTION	vaporimport			0	0
+FUNCTION	lifting1d_create	1	2	KEYWORDS
 IDL_DLM_FUNCS_HERE
 PROCEDURE	vdf_destroy		1	1
 PROCEDURE	vdf_write			2	2
@@ -33,5 +34,8 @@ PROCEDURE	vdc_bufwriteslice	2	2
 PROCEDURE	vdc_openvarwrite	3	3
 PROCEDURE	vdc_openvarread		4	4
 PROCEDURE	vdc_closevar		1	1
+PROCEDURE	lifting1d_destroy	1	1
+PROCEDURE	lifting1d_forwardtransform	2	2
+PROCEDURE	lifting1d_inversetransform	2	2
 
 IDL_DLM_PROCS_HERE
