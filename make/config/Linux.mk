@@ -68,6 +68,7 @@ endif
 
 ifeq ($(MACHTYPE),x86_64)
 LDFLAGS           += -L/usr/X11R6/lib64
+CXXFLAGS          += -fPIC
 CFLAGS            += -fPIC
 else
 LDFLAGS           += -L/usr/X11R6/lib
