@@ -19,6 +19,7 @@ using namespace VAPoR;
 struct {
 	int	ts;
 	char *varname;
+	int nxforms;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
 	OptionParser::Boolean_T	swapbytes;
@@ -27,6 +28,7 @@ struct {
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts",		1, 	"0","Timestep of data file starting from 0"},
 	{"varname",	1, 	"var1",	"Name of variable"},
+	{"nxforms",	1, 	"0",	"Transformation levels saved. 0=>all, 1=>all but finest, etc."},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quitely"},
 	{"swapbytes",	0,	"",	"Swap bytes in raw data as they are read from disk"},
@@ -37,6 +39,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 OptionParser::Option_T	get_options[] = {
 	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
+	{"nxforms", VetsUtil::CvtToInt, &opt.nxforms, sizeof(opt.nxforms)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{"swapbytes", VetsUtil::CvtToBoolean, &opt.swapbytes, sizeof(opt.swapbytes)},
@@ -158,7 +161,7 @@ int	main(int argc, char **argv) {
 	}
 	metadata = wbwriter.GetMetadata();
 
-	if (wbwriter.OpenVariableWrite(opt.ts, opt.varname) < 0) {
+	if (wbwriter.OpenVariableWrite(opt.ts, opt.varname, opt.nxforms) < 0) {
 		cerr << ProgName << " : " << wbwriter.GetErrMsg() << endl;
 		exit(1);
 	} 

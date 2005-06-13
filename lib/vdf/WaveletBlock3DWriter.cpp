@@ -29,6 +29,11 @@ WaveletBlock3DWriter::WaveletBlock3DWriter(
 
 	_objInitialized = 0;
 
+	SetDiagMsg(
+		"WaveletBlock3DWriter::WaveletBlock3DWriter(,%d)",
+		nthreads
+	);
+
 	_metafile.clear();
 	_WaveletBlock3DWriter();
 
@@ -42,6 +47,11 @@ WaveletBlock3DWriter::WaveletBlock3DWriter(
 
 	_objInitialized = 0;
 
+	SetDiagMsg(
+		"WaveletBlock3DWriter::WaveletBlock3DWriter(%s,%d)",
+		metafile, nthreads
+	);
+
 	_metafile.assign(metafile);
 	_WaveletBlock3DWriter();
 
@@ -53,6 +63,10 @@ WaveletBlock3DWriter::~WaveletBlock3DWriter(
 ) {
 	if (! _objInitialized) return;
 
+	SetDiagMsg(
+		"WaveletBlock3DWriter::~WaveletBlock3DWriter()"
+	);
+
 	if (_metafile.length()) {
 		metadata_c->Write(_metafile.c_str());
 	}
@@ -63,19 +77,29 @@ WaveletBlock3DWriter::~WaveletBlock3DWriter(
 
 int	WaveletBlock3DWriter::OpenVariableWrite(
 	size_t timestep,
-	const char *varname
+	const char *varname,
+	size_t num_xforms
 ) {
 	int	rc;
 	slab_cntr_c = 0;
 	is_open_c = 1;
 
-	rc = WaveletBlock3DIO::OpenVariableWrite(timestep, varname);
+	SetDiagMsg(
+		"WaveletBlock3DWriter::OpenVariableWrite(%d, %s, %d)",
+		timestep, varname, num_xforms
+	);
+
+	rc = WaveletBlock3DIO::OpenVariableWrite(timestep, varname, num_xforms);
 	if (rc<0) return(rc);
 	return(my_alloc());
 }
 
 int     WaveletBlock3DWriter::CloseVariable(
 ) {
+
+	SetDiagMsg(
+		"WaveletBlock3DWriter::CloseVariable()"
+	);
 
 	if (! is_open_c) return(0);
 
@@ -106,6 +130,9 @@ int     WaveletBlock3DWriter::CloseVariable(
 int	WaveletBlock3DWriter::WriteSlabs(
 	const float *two_slabs
 ) {
+	SetDiagMsg(
+		"WaveletBlock3DWriter::WriteSlabs()"
+	);
 
 	const float *fptr = two_slabs;
 
@@ -256,9 +283,13 @@ int	WaveletBlock3DWriter::write_gamma_slabs(
 
 		wb3d_c->ForwardTransform(src_super_blk,dst_super_blk);
 
-		size =  1;
-		rc = writeGammaBlocks(super_block_c, size, j);
-		if (rc<0) return(-1);
+		// only save gamma coefficients for requested levels
+		//
+		if (j >= num_xforms_c) {
+			size =  1;
+			rc = writeGammaBlocks(super_block_c, size, j);
+			if (rc<0) return(-1);
+		}
 
 		dst_super_blk[0] += block_size_c;
 	}

@@ -21,6 +21,11 @@ WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(
 
 	_objInitialized = 0;
 
+	SetDiagMsg(
+		"WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(,%d)", nthreads
+	);
+
+
 	_WaveletBlock3DBufWriter();
 
 	_objInitialized = 1;
@@ -33,6 +38,11 @@ WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(
 
 	_objInitialized = 0;
 
+	SetDiagMsg(
+		"WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(%s,%d)", 
+		metafile, nthreads
+	);
+
 	_WaveletBlock3DBufWriter();
 
 	_objInitialized = 1;
@@ -40,6 +50,8 @@ WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(
 
 WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter(
 ) {
+	SetDiagMsg("WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter()");
+
 	if (! _objInitialized) return;
 
 	CloseVariable();
@@ -49,15 +61,21 @@ WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter(
 
 int	WaveletBlock3DBufWriter::OpenVariableWrite(
 	size_t timestep,
-	const char *varname
+	const char *varname,
+	size_t num_xforms
 ) {
 	int	rc;
 	size_t size;
 
+	SetDiagMsg(
+		"WaveletBlock3DBufWriter::OpenVariableWrite(%d, %s,%d)", 
+		timestep, varname, num_xforms
+	);
+
 	slice_cntr_c = 0;
 	is_open_c = 1;
 
-	rc = WaveletBlock3DWriter::OpenVariableWrite(timestep, varname);
+	rc = WaveletBlock3DWriter::OpenVariableWrite(timestep, varname, num_xforms);
 	if (rc<0) return(rc);
 
 	size = bdim_c[0] * bdim_c[1] * bs_c * bs_c * bs_c * 2;
@@ -72,6 +90,10 @@ int	WaveletBlock3DBufWriter::OpenVariableWrite(
 
 int     WaveletBlock3DBufWriter::CloseVariable(
 ) {
+
+	SetDiagMsg(
+		"WaveletBlock3DBufWriter::CloseVariable()"
+	);
 
 	if (! is_open_c) return(0);
 
@@ -135,6 +157,10 @@ int	WaveletBlock3DBufWriter::WriteSlice(
 	const float *slice
 ) {
 	size_t	size;
+
+	SetDiagMsg(
+		"WaveletBlock3DBufWriter::WriteSlice()"
+	);
 
 	if (! is_open_c) {
 		SetErrMsg("File must be open before writing");

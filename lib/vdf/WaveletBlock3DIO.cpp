@@ -177,7 +177,8 @@ int    WaveletBlock3DIO::VariableExists(
 
 int	WaveletBlock3DIO::OpenVariableWrite(
 	size_t timestep,
-	const char *varname
+	const char *varname,
+	size_t num_xforms
 ) {
 	string dir;
 	int	min;
@@ -195,6 +196,11 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 
 	min = Min((int)bdim_c[0],(int) bdim_c[1]);
 	min = Min((int)min, (int)bdim_c[2]);
+
+	if (num_xforms > max_xforms_c) {
+		SetErrMsg("Requested transform level out of range (%d)", num_xforms);
+		return(-1);
+	}
 
 	if (LogBaseN(min, 2.0) < max_xforms_c) {
 		SetErrMsg("Too many levels (%d) in transform ", max_xforms_c);
@@ -239,7 +245,7 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 	if (mkdirhier(dir) < 0) return(-1);
 	
 
-	for(j=0; j<max_xforms_c+1; j++) {
+	for(j=0; j<(max_xforms_c-num_xforms)+1; j++) {
 		string path;
 
 		mkpath(basename, j, path);
@@ -251,9 +257,10 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 		}
 
 	}
+	num_xforms_c = (int) num_xforms;
 
-	GetDim(max_xforms_c, xdim_c);
-	GetDimBlk(max_xforms_c, xbdim_c);
+	GetDim(num_xforms_c, xdim_c);
+	GetDimBlk(num_xforms_c, xbdim_c);
 
 	is_open_c = 1;
 
@@ -272,6 +279,10 @@ int	WaveletBlock3DIO::OpenVariableRead(
 
 	CloseVariable(); // close previously opened files
 
+	if (num_xforms > max_xforms_c) {
+		SetErrMsg("Requested transform level out of range (%d)", num_xforms);
+		return(-1);
+	}
 
 	if (!VariableExists(timestep, varname, num_xforms)) {
 		SetErrMsg(
