@@ -25,7 +25,7 @@ ifeq ($(ARCH),WIN32)
 
 EXPAT_INC_PATH="B:/Expat-1.95.8/Source/lib/"
 EXPAT_LIB_PATH="B:/Expat-1.95.8/libs/libexpat.lib"
-HAVE_IDL = 1
+BUILD_IDL_WRAPPERS = 1
 IDL_INC_PATH="C:/RSI/IDL61/external/include"
 QTDIR = C:/Qt/3.3.4
 
@@ -43,7 +43,7 @@ endif
 
 EXPAT_INC_PATH=/usr/freeware/include
 EXPAT_LIB_PATH=/usr/freeware/lib32
-HAVE_IDL = 1
+BUILD_IDL_WRAPPERS = 1
 
 IDL_INC_PATH = /fs/local/apps/rsi/idl_6.1/external/include/
 QTDIR=/fs/local/apps/qt-3.3.2
@@ -67,18 +67,32 @@ ifeq ($(ARCH),Linux)
 
 EXPAT_INC_PATH=/usr/include
 EXPAT_LIB_PATH=/usr/lib
-HAVE_IDL = 1
-IDL_INC_PATH=/fs/local/apps/rsi/idl_6.0/external/include
+BUILD_IDL_WRAPPERS = 1
+IDL_INC_PATH=/fs/local/apps/rsi/idl_6.1/external/include
 QTDIR = /fs/local/apps/qt-3.3.2
 
 ifeq ($(MACHTYPE),ia64)
 BUILD64 = 1
-HAVE_IDL = 0
+BUILD_IDL_WRAPPERS = 0
 endif
 
 ifdef	BUILD64
-IDL_INC_PATH=/fs/local/64/apps/rsi/idl_6.0/external/include
+IDL_INC_PATH=/fs/local/64/apps/rsi/idl_6.1/external/include
 QTDIR = /fs/local/64/apps/qt-3.3.2
 endif
+
+endif
+
+#
+# AIX
+#
+ifeq ($(ARCH),AIX)
+
+EXPAT_INC_PATH=/home/bluesky/clyne/include
+EXPAT_LIB_PATH=/home/bluesky/clyne/lib
+BUILD_IDL_WRAPPERS = 0
+BUILD_GUI	= 0
+IDL_INC_PATH=/dev/null
+QTDIR = /dev/null
 
 endif

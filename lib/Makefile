@@ -5,7 +5,7 @@ include $(TOP)/make/config/arch.mk
 
 SUBDIRS = common vdf jpeg
 
-ifeq ($(HAVE_IDL), 1)
+ifeq ($(BUILD_IDL_WRAPPERS), 1)
 SUBDIRS += idl 
 endif
 

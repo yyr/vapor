@@ -69,7 +69,7 @@ int Metadata::_init(
 		const size_t dim[3], size_t numTransforms, size_t bs,
 		int nFilterCoef, int nLiftingCoef, int msbFirst
 ) {
-	map <const string, string> attrs;
+	map <string, string> attrs;
 	ostringstream oss;
 	string empty;
 
@@ -284,7 +284,7 @@ int Metadata::IsValidExtents(const vector<double> &value) const {
 int Metadata::_SetNumTimeSteps(long value) {
 	size_t newN = (size_t) value;
 	size_t oldN = _rootnode->GetNumChildren();
-	map <const string, string> attrs;
+	map <string, string> attrs;
 
 	// Add children
 	//
@@ -311,7 +311,7 @@ int Metadata::_SetNumTimeSteps(long value) {
 
 int Metadata::_SetVariableNames(XmlNode *node, long ts) {
 
-	map <const string, string> attrs; // empty map
+	map <string, string> attrs; // empty map
 	int oldN = node->GetNumChildren();
 	int newN = _varNames.size();
 
@@ -1147,6 +1147,3 @@ void	Metadata::_endElementHandler3(ExpatParseMgr* pm,
 		}
 	}
 }
-
-
-

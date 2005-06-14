@@ -254,7 +254,7 @@ endif
 
 ifndef SUBDIRS
 all: arch $(PRECOMP) headers dep
-recurse: $(PROG_TARGET) $(LIB_TARGET) copies done
+recurse: $(PROG_TARGET) $(LIB_TARGET) done
 else
 
 all: subdirs
@@ -310,7 +310,11 @@ else
 ifeq ($(ARCH), IRIX64)
 LDFLAGS += -L$(DSO_DIR) -rpath $(DSO_DIR)
 else
+ifeq ($(ARCH), Linux)
 LDFLAGS += -L$(DSO_DIR) -Xlinker -rpath -Xlinker $(DSO_DIR)
+else
+LDFLAGS += -L$(DSO_DIR) 
+endif
 endif
 
 STATICLIBRARIES := $(foreach lib,$(LIBRARIES),$(wildcard $(TOP)/lib/$(ARCH)/lib$(lib)$(LIBSUFFIX)))
@@ -331,6 +335,11 @@ ifdef	HEADER_FILES
 $(HEADER_FILES): 
 	@$(RM) $@
 	@$(LN) $(INCDIR)/$(PROJECT)/$@ $@
+
+install:: all
+	@$(ECHO) "Installing header files $(HEADER_FILES) in $(INSTALL_INCDIR)."
+	@$(MAKE_INSTALL_INCDIR)
+	@for i in $(HEADER_FILES); do $(INSTALL_NONEXEC) $(INCDIR)/$(PROJECT)/$$i $(INSTALL_INCDIR); done
 endif
 endif
 
@@ -364,21 +373,12 @@ endif #shared
 else #windows
 ifdef SHARED
 ifdef AIXSHAREDLIB
-	@$(ECHO) "AIX shared obj link"
-	@$(ECHO) "Not using LDFLAGS $(LDFLAGS)"
-	rm -f tmpAnyDX.a shr.o
+	@$(ECHO) "AIX shared obj link "
 	rm -f $(AIXDLIBNAME)
 	rm -f $(LIB_TARGET)
-	ar -ruv tmpAnyDX.a $(OBJS)
-	nm -epC tmpAnyDX.a | awk -f $(TOP)/buildutils/exports.awk > tmpAnyDX.exp
-	pwd
-	@$(ECHO) ld -bnoentry -bloadmap:load.map -bM:SRE -o shr.o -bE:tmpAnyDX.exp tmpAnyDX.a -L$(TOP)/lib/AIX $(SHARED_LDFLAGS) $(LIBRARIES) $(XSLIBS) -ldl -lm -lc
-	ld -bnoentry -bloadmap:load.map -bM:SRE -o shr.o -bE:tmpAnyDX.exp tmpAnyDX.a -L$(TOP)/lib/AIX $(SHARED_LDFLAGS) $(LIBRARIES) $(XSLIBS) -ldl -lm -lc
+	$(CXX) -qmkshrobj -G -o shr.o $(OBJS) $(LDFLAGS) $(LIBRARIES)
 	ar $(ARCREATEFLAGS) $(LIB_TARGET) shr.o
-	cp shr.o $(AIXDLIBNAME)
-	@$(CP) $(AIXDLIBNAME) $(DSO_DIR)
-	rm -f tmpAnyDX.* shr.o load.map
-	rm -f $(DSO_DIR)/$(LIBPREFIX)$(SHORT_TARGET_NAME)$(DLLSUFFIX)
+	rm -f shr.o 
 else #aixsharedlib
 ifdef BINUTIL_LINK_HACK
 ifdef PERSONAL_LIBRARIES
@@ -395,85 +395,6 @@ endif #windows
 
 #	@$(CP) $(LIB_TARGET) $(DSO_DIR)
 endif #library
-
-ifdef LIB_COPIES
-COPY_TARGETS := $(foreach copy, $(LIB_COPIES), $(TOP)/built/$(SHORT_TARGET_NAME)/$(ARCH)/$(LIBPREFIX)$(copy)_$(SHORT_TARGET_NAME)_copy$(DLLSUFFIX) )
-
-copies: 
-	@$(MAKE) relink
-else 
-ifdef SPU_COPIES
-COPY_TARGETS := $(foreach copy, $(SPU_COPIES), $(TOP)/built/$(SHORT_TARGET_NAME)/$(ARCH)/$(LIBPREFIX)$(copy)$(DLLSUFFIX) )
-
-copies: 
-	@$(MAKE) relink
-else
-copies:
-endif
-endif
-
-relink: $(COPY_TARGETS)
-
-$(TOP)/built/$(SHORT_TARGET_NAME)/$(ARCH)/$(LIBPREFIX)%_$(SHORT_TARGET_NAME)_copy$(DLLSUFFIX): $(OBJS) $(STATICLIBRARIES)
-	@$(ECHO) "Linking $(LIBPREFIX)$*_$(SHORT_TARGET_NAME)_copy$(DLLSUFFIX)"
-	$(MKDIR) $(TOP)/built/$(SHORT_TARGET_NAME)/$(ARCH)
-ifdef WINDOWS
-	@$(LD) $(SHARED_LDFLAGS) /Fe$@ $(OBJS) $(LIBRARIES) $(LIB_DEFS) $(LDFLAGS)
-else
-ifdef AIXSHAREDLIB
-	@$(ECHO) "AIX shared obj link"
-	@$(ECHO) "Not using LDFLAGS $(LDFLAGS)"
-	ar -ruv tmpAnyDX.a $(OBJS)
-	nm -epC tmpAnyDX.a | awk -f $(TOP)/buildutils/exports.awk > tmpAnyDX.exp
-	pwd
-	@$(ECHO) ld -bnoentry -bloadmap:load.map -bM:SRE -o shr.o -bE:tmpAnyDX.exp tmpAnyDX.a -L$(TOP)/lib/AIX $(SHARED_LDFLAGS) $(LIBRARIES) $(XSLIBS) -ldl -lm -lc
-	ld -bnoentry -bloadmap:load.map -bM:SRE -o shr.o -bE:tmpAnyDX.exp tmpAnyDX.a -L$(TOP)/lib/AIX $(SHARED_LDFLAGS) $(LIBRARIES) $(XSLIBS) -ldl -lm -lc
-	ar $(ARCREATEFLAGS)  $@ shr.o
-	cp shr.o $(AIXDLIBNAME)
-	@$(CP) $(AIXDLIBNAME) $(DSO_DIR)
-	rm -f $(DSO_DIR)/$(LIBPREFIX)$@_$(SHORT_TARGET_NAME)_copy$(DLLSUFFIX)
-	rm -f tmpAnyDX.* shr.o load.map
-
-else
-ifdef BINUTIL_LINK_HACK
-	@$(MKDIR) $(TOP)/built/$(LIBPREFIX)$*$(SHORT_TARGET_NAME)_copy$(DLLSUFFIX)/$(ARCH)
-	@$(PERL) $(TOP)/buildutils/trans_def_symbols.pl $* $(TOP)/built/$(SHORT_TARGET_NAME)/$(ARCH)/$(LIBPREFIX)$(SHORT_TARGET_NAME)$(DLLSUFFIX) $(TOP)/built/$(SHORT_TARGET_NAME)/$(ARCH) $(TOP)/built/$(LIBPREFIX)$*$(SHORT_TARGET_NAME)_copy$(DLLSUFFIX)/$(ARCH)
-	@$(LD) $(SHARED_LDFLAGS) -o $@ $(TOP)/built/$(LIBPREFIX)$*$(SHORT_TARGET_NAME)_copy$(DLLSUFFIX)/$(ARCH)/*.o $(LDFLAGS) $(LIBRARIES)
-else
-	@$(LD) $(SHARED_LDFLAGS) -o $@ $(OBJS) $(LDFLAGS) $(LIBRARIES)
-endif
-endif
-endif
-	@$(CP) $@ $(DSO_DIR)
-
-$(TOP)/built/$(SHORT_TARGET_NAME)/$(ARCH)/$(LIBPREFIX)%$(DLLSUFFIX): $(OBJS) $(STATICLIBRARIES)
-	@$(ECHO) "Linking $(LIBPREFIX)$*$(DLLSUFFIX)"
-	$(MKDIR) $(TOP)/built/$*/$(ARCH)
-ifdef WINDOWS
-	@$(LD) $(SHARED_LDFLAGS) /Fe$@ $(OBJS) $(LIBRARIES) $(LIB_DEFS) $(LDFLAGS)
-else
-ifdef AIXSHAREDLIB
-	@$(ECHO) "AIX shared obj link"
-	@$(ECHO) "Not using LDFLAGS $(LDFLAGS)"
-	ar -ruv tmpAnyDX.a $(OBJS)
-	nm -epC tmpAnyDX.a | awk -f $(TOP)/buildutils/exports.awk > tmpAnyDX.exp
-	pwd
-	@$(ECHO) ld -bnoentry -bloadmap:load.map -bM:SRE -o shr.o -bE:tmpAnyDX.exp tmpAnyDX.a -L$(TOP)/lib/AIX $(SHARED_LDFLAGS) $(LIBRARIES) $(XSLIBS) -ldl -lm -lc
-	ld -bnoentry -bloadmap:load.map -bM:SRE -o shr.o -bE:tmpAnyDX.exp tmpAnyDX.a -L$(TOP)/lib/AIX $(SHARED_LDFLAGS) $(LIBRARIES) $(XSLIBS) -ldl -lm -lc
-	#ar $(ARCREATEFLAGS)  $(TOP)/built/$@/$(ARCH)/$(LIBPREFIX)$@$(DLLSUFFIX) shr.o
-	ar $(ARCREATEFLAGS)  $@ shr.o
-	cp shr.o $(AIXDLIBNAME)
-	@$(CP) $(AIXDLIBNAME) $(DSO_DIR)
-	echo still have not done cleanup
-	#rm -f $(DSO_DIR)/$(LIBPREFIX)$@_$(SHORT_TARGET_NAME)_copy$(DLLSUFFIX)
-	rm -f tmpAnyDX.* shr.o load.map
-
-else
-	@$(LD) $(SHARED_LDFLAGS) -o $@ $(OBJS) $(LDFLAGS) $(LIBRARIES)
-endif
-endif
-	@$(CP) $@ $(DSO_DIR)
-
 
 
 .SUFFIXES: .cpp .c .cxx .cc .C .s .l .h
@@ -629,6 +550,7 @@ endif
 INSTALL_BINDIR = $(INSTALL_PREFIX_DIR)/bin
 INSTALL_LIBDIR = $(INSTALL_PREFIX_DIR)/lib
 INSTALL_DOCDIR = $(INSTALL_PREFIX_DIR)/doc
+INSTALL_INCDIR = $(INSTALL_PREFIX_DIR)/include/$(PROJECT)
 
 define MAKE_INSTALL_BINDIR
 	if test ! -d $(INSTALL_BINDIR); then $(MKDIR) $(INSTALL_BINDIR); fi
@@ -642,6 +564,10 @@ define MAKE_INSTALL_DOCDIR
 	if test ! -d $(INSTALL_DOCDIR); then $(MKDIR) $(INSTALL_DOCDIR); fi
 endef
 
+define MAKE_INSTALL_INCDIR
+	if test ! -d $(INSTALL_INCDIR); then $(MKDIR) $(INSTALL_INCDIR); fi
+endef
+
 ifdef SUBDIRS
 install:: 
 	@for i in $(SUBDIRS); do $(MAKE) -C $$i install; done
@@ -650,12 +576,12 @@ install:: all
 ifdef LIBRARY
 	@$(ECHO) "Installing library $(LIBRARY) in $(INSTALL_LIBDIR)."
 	@$(MAKE_INSTALL_LIBDIR)
-	@$(INSTALL_EXEC) $(LIB_TARGET) $(INSTALL_LIBDIR)
+	$(INSTALL_EXEC) $(LIB_TARGET) $(INSTALL_LIBDIR)
 else
 ifdef PROGRAM
 	@$(ECHO) "Installing program $(PROGRAM) in $(INSTALL_BINDIR)."
 	@$(MAKE_INSTALL_BINDIR)
-	@$(INSTALL_EXEC) $(PROG_TARGET) $(INSTALL_BINDIR)
+	$(INSTALL_EXEC) $(PROG_TARGET) $(INSTALL_BINDIR)
 endif
 endif
 endif

@@ -69,6 +69,7 @@ main(int argc, char **argv) {
 	double	timer = 0.0;
 	string	s;
 
+	MyBase::SetDiagMsgFilePtr(stderr);
 	ProgName = Basename(argv[0]);
 
 	if (op.AppendOptions(set_opts) < 0) {
@@ -99,48 +100,77 @@ main(int argc, char **argv) {
 	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
 
 
-	DataMgr	datamgr(metafile, opt.memsize, 0);
-
-	const WaveletBlock3DRegionReader	*reader = datamgr.GetRegionReader();
-
-	size_t bdim[3];
-	reader->GetDimBlk(opt.numxforms, bdim);
-	for(int i = 0; i<3; i++) {
-		if (min[i] == -1) min[i] = 0;
-		if (max[i] == -1) max[i] = bdim[i]-1;
-	}
+	DataMgr	*datamgr;
 
 
 	TIMER_START(t0);
 
+opt.memsize = 1024;
+cerr << "allocate " << opt.memsize << endl;
+datamgr = new DataMgr(metafile, opt.memsize, 1);
+if (DataMgr::GetErrCode() != 0) {
+	cerr << "DataMgr::DataMgr() : " << DataMgr::GetErrMsg() << endl;
+	exit (1);
+}
+const WaveletBlock3DRegionReader *reader = datamgr->GetRegionReader();
+WaveletBlock3DRegionReader *reader0 = (WaveletBlock3DRegionReader *) reader;
+int jk = reader0->VariableExists(0,opt.varname, 0);
+cerr << "var exists" << jk << endl;
+delete datamgr;
+opt.memsize = 1111;
+cerr << "allocate " << opt.memsize << endl;
+	datamgr = new DataMgr(metafile, opt.memsize, 1);
+	if (DataMgr::GetErrCode() != 0) {
+		cerr << "DataMgr::DataMgr() : " << DataMgr::GetErrMsg() << endl;
+		exit (1);
+	}
+
+	const Metadata *md = datamgr->GetMetadata();
+
 	for(int l = 0; l<opt.loop; l++) {
 		cout << "Processing loop " << l << endl;
+
+
+		const WaveletBlock3DRegionReader	*reader = datamgr->GetRegionReader();
+
+		size_t bdim[3];
+		reader->GetDimBlk(opt.numxforms, bdim);
+		for(int i = 0; i<3; i++) {
+			if (min[i] == -1) min[i] = 0;
+			if (max[i] == -1) max[i] = bdim[i]-1;
+		}
+
 		for(int ts = 0; ts<opt.nts; ts++) {
 			cout << "Processing time step " << ts << endl;
 
 			if (opt.do_float) {
 				float *fptr;
-				fptr = datamgr.GetRegion(
+				fptr = datamgr->GetRegion(
 					ts, opt.varname, opt.numxforms, min, max, 0
 				);
 
 				if (! fptr) {
-					cerr << ProgName << " : " << datamgr.GetErrMsg() << endl;
+					cerr << ProgName << " : " << datamgr->GetErrMsg() << endl;
+					delete datamgr;
 					exit(1);
 				}
 			}
 			else {
 				unsigned char *ucptr;
-				ucptr = datamgr.GetRegionUInt8(
+				ucptr = datamgr->GetRegionUInt8(
 					ts, opt.varname, opt.numxforms, min, max, 0
 				);
 				if (! ucptr) {
-					cerr << ProgName << " : " << datamgr.GetErrMsg() << endl;
+					delete datamgr;
+					cerr << ProgName << " : " << datamgr->GetErrMsg() << endl;
 					exit(1);
 				}
 			}
 		}
+
 	}
+
+	delete datamgr;
 
 
 	TIMER_STOP(t0,timer);

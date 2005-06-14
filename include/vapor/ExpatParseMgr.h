@@ -94,9 +94,10 @@ protected:
 	static const string _longType;
 	static const string _doubleType;
 
+#ifdef	DEAD
 	// XML Expat element handlers
 	friend void	_StartElementHandler(
-		void *userData, const XML_Char *tag, const char **attrs
+		void *userData, const XML_Char *tag, const XML_Char **attrs
 	) {
 		ExpatParseMgr* mgr = (ExpatParseMgr *) userData;
 		mgr->_startElementHandler(tag, attrs);
@@ -114,6 +115,21 @@ protected:
 		ExpatParseMgr* mgr = (ExpatParseMgr *) userData;
 		mgr->_charDataHandler(s, len);
 	}
+
+#else
+	// XML Expat element handlers
+	friend void	_StartElementHandler(
+		void *userData, const XML_Char *tag, const XML_Char **attrs
+	);
+
+
+	friend void _EndElementHandler(void *userData, const XML_Char *tag);
+
+	friend void	_CharDataHandler(
+		void *userData, const XML_Char *s, int len
+	);
+
+#endif
 	void _startElementHandler(const XML_Char *tag, const char **attrs);
 	void _endElementHandler(const XML_Char *tag);
 	void _charDataHandler(const XML_Char *s, int len);

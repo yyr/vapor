@@ -81,7 +81,7 @@ public:
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
  int	OpenVariableRead(
-	size_t timestep, const char *varname, size_t num_xforms
+	size_t timestep, const char *varname, size_t num_xforms = 0
  );
 
  //! Close the data volume opened by the most recent call to 

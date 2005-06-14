@@ -63,7 +63,7 @@ public:
  //! the NewChild() method
  //!
  XmlNode(
-	const string &tag, const map<const string, string> &attrs, 
+	const string &tag, const map<string, string> &attrs, 
 	size_t numChildrenHint = 0
  );
  ~XmlNode();
@@ -184,7 +184,7 @@ public:
  //! could not be created
  //
  XmlNode *NewChild(
-	const string &tag, const map <const string, string> &attrs, 
+	const string &tag, const map <string, string> &attrs, 
 	size_t numChildrenHint = 0
  );
  //! Add an existing node as a child of the current node.
@@ -233,7 +233,8 @@ public:
 
  //! Write the XML tree, rooted at this node, to a file in XML format
  //
- friend ostream& operator<<(ostream &s, const XmlNode &);
+ friend ostream& operator<<(ostream &s, const XmlNode& node);
+
  //Following is a substitute for exporting the "<<" operator in windows.
  //I don't know how to export an operator<< !
  static ostream& streamOut(ostream& os, const XmlNode& node);
@@ -241,12 +242,12 @@ public:
 private:
  int	_objInitialized;	// has the obj successfully been initialized?
 
- map <const string, vector<long>*> _longmap;	// node's long data
- map <const string, vector<double>*> _doublemap;	// node's double data
- map <const string, string> _stringmap;		// node's string data
- map <const string, string> _attrmap;		// node's attributes
+ map <string, vector<long>*> _longmap;	// node's long data
+ map <string, vector<double>*> _doublemap;	// node's double data
+ map <string, string> _stringmap;		// node's string data
+ map <string, string> _attrmap;		// node's attributes
  vector <XmlNode *> _children;				// node's children
- string _tag;								// node's tag name
+ string _tag;						// node's tag name
  vector <long> _emptyLongVec;				// empty elements 
  vector <double> _emptyDoubleVec;
  string _emptyString;

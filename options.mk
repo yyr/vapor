@@ -59,12 +59,18 @@ VOLUMIZER_ROOT =
 # Set to 1 if you have IDL installed on your system and you would
 # like to build the VAPoR IDL commands
 #
-HAVE_IDL = 0
+BUILD_IDL_WRAPPERS = 0
 
-# If HAVE_IDL is 1, set to path to IDL include directory. This is the 
+# If BUILD_IDL_WRAPPERS is 1, set to path to IDL include directory. 
+# This is the 
 # path to the directory that contains the file "idl_export.h"
 #
 IDL_INC_PATH=
+
+# Set to 1 if you want the VAPoR GUI to be built. Otherwise only the 
+# VAPoR libraries and support utilities are compiled
+#
+BUILD_GUI = 1
 
 #
 #	If the file `site.mk' exists, include it. It contains site-specific

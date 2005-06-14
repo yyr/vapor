@@ -1,3 +1,26 @@
+//
+//      $Id$
+//
+//***********************************************************************
+//                                                                       *
+//                            Copyright (C)  2005                        *
+//            University Corporation for Atmospheric Research            *
+//                            All Rights Reserved                        *
+//                                                                       *
+//***********************************************************************/
+//
+//      File:		raw2vdf.cpp
+//
+//      Author:         John Clyne
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           Tue Jun 14 15:01:13 MDT 2005
+//
+//      Description:	Read a file containing a raw data volume. Translate
+//			and append the volume to an existing
+//			Vapor Data Collection
+//
 #include <iostream>
 #include <string>
 #include <vector>
@@ -16,6 +39,9 @@ using namespace VetsUtil;
 using namespace VAPoR;
 
 
+//
+//	Command line argument stuff
+//
 struct {
 	int	ts;
 	char *varname;
@@ -48,6 +74,9 @@ OptionParser::Option_T	get_options[] = {
 
 const char	*ProgName;
 
+//
+// Backup a .vdf file
+//
 void save_file(const char *file) {
 	FILE	*ifp, *ofp;
 	int	c;
@@ -126,6 +155,9 @@ int	main(int argc, char **argv) {
 	int	rc;
 	const Metadata	*metadata;
 
+	//
+	// Parse command line arguments
+	//
 	ProgName = Basename(argv[0]);
 
 	if (op.AppendOptions(set_opts) < 0) {
@@ -150,22 +182,38 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	metafile = argv[1];
-	datafile = argv[2];
+	metafile = argv[1];	// Path to a vdf file
+	datafile = argv[2];	// Path to raw data file 
 
 
+	//
+	// Create a buffered WaveletBlock writer. Initialize with
+	// path to .vdf file
+	//
 	WaveletBlock3DBufWriter	wbwriter(metafile, 0);
 	if (wbwriter.GetErrCode() != 0) {
 		cerr << ProgName << " : " << wbwriter.GetErrMsg() << endl;
 		exit(1);
 	}
+
+	// Get a pointer to the Metdata object associated with
+	// the WaveletBlock3DBufWriter object
+	//
 	metadata = wbwriter.GetMetadata();
 
+
+	//
+	// Open a variable for writing at the indicated time step
+	//
 	if (wbwriter.OpenVariableWrite(opt.ts, opt.varname, opt.nxforms) < 0) {
 		cerr << ProgName << " : " << wbwriter.GetErrMsg() << endl;
 		exit(1);
 	} 
 
+	//
+	// Create a backup of the .vdf file. The translation process will
+	// generate a new .vdf file
+	//
 	save_file(metafile);
 
 #ifndef WIN32
@@ -180,10 +228,18 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+	// Get the dimensions of the volume
+	//
 	const size_t *dim = metadata->GetDimension();
+
+	// Allocate a buffer large enough to hold one slice of data
+	//
 	float *slice = new float[dim[0]*dim[1]];
 
 
+	//
+	// Translate the volume one slice at a time
+	//
 	TIMER_START(t0);
 	for(int z=0; z<dim[2]; z++) {
 
@@ -205,19 +261,28 @@ int	main(int argc, char **argv) {
 		}
 		TIMER_STOP(t1, read_timer);
 
+		//
+		// If the data stored on disk are byte swapped relative
+		// to the machine we're running on...
+		//
 		if (opt.swapbytes) {
 			swapbytes(slice, sizeof(slice[0]), dim[0]*dim[1]); 
 		}
 
-        wbwriter.WriteSlice(slice);
-        if (wbwriter.GetErrCode() != 0) {
+		//
+		// Write a single slice of data
+		//
+		wbwriter.WriteSlice(slice);
+		if (wbwriter.GetErrCode() != 0) {
 			cerr << ProgName << ": " << wbwriter.GetErrMsg() << endl;
-            exit(1);
-        }
+			exit(1);
+		}
 
 	}
 	TIMER_STOP(t0,timer);
 
+	// Close the variable. We're done writing.
+	//
 	wbwriter.CloseVariable();
 
 	if (! opt.quiet) {
@@ -230,7 +295,9 @@ int	main(int argc, char **argv) {
 		fprintf(stdout, "total transform time : %f\n", timer);
 	}
 
-	// Write out the updated metafile
+	// Write out the updated metafile. If we don't call this then
+	// the .vdf file will not be updated with stats gathered from
+	// the volume we just translated.
 	//
 	metadata->Write(metafile);
 

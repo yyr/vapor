@@ -42,8 +42,8 @@
 #include "vapor/XmlNode.h"
 
 
-using namespace VAPoR;
 using namespace VetsUtil;
+using namespace VAPoR;
 
 const string ExpatParseMgr::_stringType = "String";
 const string ExpatParseMgr::_longType = "Long";
@@ -52,6 +52,28 @@ const string ParsedXml::_stringType = "String";
 const string ParsedXml::_longType = "Long";
 const string ParsedXml::_doubleType = "Double";
 const string ParsedXml::_typeAttr = "Type";
+
+namespace VAPoR {
+
+void	_StartElementHandler(
+	void *userData, const XML_Char *tag, const XML_Char **attrs
+) {
+	ExpatParseMgr* mgr = (ExpatParseMgr *) userData;
+	mgr->_startElementHandler(tag, attrs);
+}
+void _EndElementHandler(void *userData, const XML_Char *tag) {
+	ExpatParseMgr* mgr = (ExpatParseMgr *) userData;
+	mgr->_endElementHandler(tag);
+}
+
+void	_CharDataHandler(
+	void *userData, const XML_Char *s, int len
+) {
+	ExpatParseMgr* mgr = (ExpatParseMgr *) userData;
+	mgr->_charDataHandler(s, len);
+}
+
+};
 
 ExpatParseMgr::ExpatParseMgr(ParsedXml* pc){
 	SetDiagMsg("ExpatParseMgr::ExpatParseMgr()");

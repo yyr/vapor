@@ -28,7 +28,7 @@ using namespace VetsUtil;
 
 
 XmlNode::XmlNode(
-	const string &tag, const map <const string, string> &attrs, 
+	const string &tag, const map <string, string> &attrs, 
 	size_t numChildrenHint
 ) {
 	_objInitialized = 0;
@@ -51,8 +51,8 @@ XmlNode::~XmlNode() {
 
 	if (! _objInitialized) return;
 
-	map <const string, vector<long>*>::iterator plong;
-	map <const string, vector<double>*>::iterator pdouble;
+	map <string, vector<long>*>::iterator plong;
+	map <string, vector<double>*>::iterator pdouble;
 	int	i;
 
 	for (plong = _longmap.begin(); plong != _longmap.end(); plong++) {
@@ -77,7 +77,7 @@ int XmlNode::SetElementLong(const string &tag, const vector<long> &values) {
 
 	vector<long> *vptr;
 
-	map <const string, vector<long>*>::iterator p = _longmap.find(tag);
+	map <string, vector<long>*>::iterator p = _longmap.find(tag);
 	int	i;
 
 	// see if entry for this key (tag) already exists
@@ -102,7 +102,7 @@ int XmlNode::SetElementLong(const string &tag, const vector<long> &values) {
 	
 const vector<long> &XmlNode::GetElementLong(const string &tag) const {
 
-	map <const string, vector<long>*>::const_iterator p = _longmap.find(tag);
+	map <string, vector<long>*>::const_iterator p = _longmap.find(tag);
 
 	// see if entry for this key (tag) already exists
 	//
@@ -119,7 +119,7 @@ int XmlNode::SetElementDouble(const string &tag, const vector<double> &values) {
 
 	vector<double> *vptr;
 
-	map <const string, vector<double>*>::iterator p = _doublemap.find(tag);
+	map <string, vector<double>*>::iterator p = _doublemap.find(tag);
 	int	i;
 
 	// see if entry for this key (tag) already exists
@@ -144,7 +144,7 @@ int XmlNode::SetElementDouble(const string &tag, const vector<double> &values) {
 	
 const vector<double> &XmlNode::GetElementDouble(const string &tag) const {
 
-	map <const string, vector<double>*>::const_iterator p = _doublemap.find(tag);
+	map <string, vector<double>*>::const_iterator p = _doublemap.find(tag);
 
 	// see if entry for this key (tag) already exists
 	//
@@ -161,7 +161,7 @@ const vector<double> &XmlNode::GetElementDouble(const string &tag) const {
 int XmlNode::SetElementString(const string &tag, const string &str) {
 
 
-	map <const string, string>::iterator p = _stringmap.find(tag);
+	map <string, string>::iterator p = _stringmap.find(tag);
 	string s = str;
 	StrRmWhiteSpace(s);
 
@@ -179,7 +179,7 @@ int XmlNode::SetElementString(const string &tag, const string &str) {
 	
 const string &XmlNode::GetElementString(const string &tag) const {
 
-	map <const string, string>::const_iterator p = _stringmap.find(tag);
+	map <string, string>::const_iterator p = _stringmap.find(tag);
 
 	// see if entry for this key (tag) already exists
 	//
@@ -193,7 +193,7 @@ const string &XmlNode::GetElementString(const string &tag) const {
 }
 
 XmlNode	*XmlNode::NewChild(
-	const string &tag, const map <const string, string> &attrs, 
+	const string &tag, const map <string, string> &attrs, 
 	size_t numChildrenHint
 ) {
 
@@ -252,12 +252,13 @@ XmlNode::streamOut(ostream&os, const XmlNode& node) {
 	return os;
 }
 
-ostream& 
-VAPoR::operator<<(ostream& os, const XmlNode& node) {
-	map <const string, vector<long>*>::const_iterator plong;
-	map <const string, vector<double>*>::const_iterator pdouble;
-	map <const string, string>::const_iterator pstring;
-	map <const string, string>::const_iterator pattr;
+namespace VAPoR {
+std::ostream& operator<<(ostream& os, const VAPoR::XmlNode& node) {
+
+	map <string, vector<long>*>::const_iterator plong;
+	map <string, vector<double>*>::const_iterator pdouble;
+	map <string, string>::const_iterator pstring;
+	map <string, string>::const_iterator pattr;
 
 	int	i;
 
@@ -338,4 +339,5 @@ VAPoR::operator<<(ostream& os, const XmlNode& node) {
 
 	return (os);
 }
+};
 

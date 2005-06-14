@@ -82,7 +82,7 @@ int ImpExp::Export(
 		min[0], min[1], min[2], max[0], max[1], max[2]
 	);
 
-	map <const string, string> attrs;
+	map <string, string> attrs;
 	attrs.clear();
 
 	_rootnode = new XmlNode(_rootTag, attrs);
@@ -138,7 +138,7 @@ int ImpExp::Import(
 		return(-1);
 	}
 
-	map <const string, string> attrs;
+	map <string, string> attrs;
 	attrs.clear();
 
 	_rootnode = new XmlNode(_rootTag, attrs);

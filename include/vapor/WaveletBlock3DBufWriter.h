@@ -58,20 +58,28 @@ public:
 
  //! Open the named variable for writing
  //!
- //! Prepare a vapor data file for the creation of a multiresolution 
+ //! Prepare a vapor data file for the creation of a multiresolution
  //! data volume via subsequent write operations by
- //! other methods of this class.  
- //! The data volume is identified by the specfied time step and 
- //! variable name. The number of forward transforms applied to 
+ //! other methods of this class.
+ //! The data volume is identified by the specfied time step and
+ //! variable name. The number of forward transforms applied to
  //! the volume is determined by the Metadata object used to
- //! initialize the class.
+ //! initialize the class. The transformation levels actually
+ //! saved to the data collection are determined by \p num_xforms. If
+ //! \p num_xforms is zero, the default, all transformation levels are
+ //! saved. If \p num_xforms is one, all but the finest resolution
+ //! coefficents are saved, and so on.
  //!
  //! \param[in] timestep Time step of the variable to read
  //! \param[in] varname Name of the variable to read
+ //! \param[in] num_xforms Transformation levels to save, 0 => all
  //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
- virtual int	OpenVariableWrite(size_t timestep, const char *varname);
+ virtual int	OpenVariableWrite(
+	size_t timestep, const char *varname,size_t num_xforms = 0
+ );
+
  virtual int	CloseVariable();
 
  //! Transform and write a single slice of voxels to the current file
