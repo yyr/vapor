@@ -528,7 +528,7 @@ XmlNode* AnimationParams::
 buildNode(){
 		//Construct the animation node
 	string empty;
-	std::map <const string, string> attrs;
+	std::map <string, string> attrs;
 	attrs.clear();
 	
 	ostringstream oss;

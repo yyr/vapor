@@ -670,7 +670,7 @@ XmlNode* TransferFunction::
 buildNode(const string& tfname) {
 	//Construct the main node
 	string empty;
-	std::map <const string, string> attrs;
+	std::map <string, string> attrs;
 	attrs.empty();
 	ostringstream oss;
 
@@ -690,11 +690,11 @@ buildNode(const string& tfname) {
 	//ignore first and last.
 	
 	
-	map <const string, string> emptyAttrs;  //empty attribs
+	map <string, string> emptyAttrs;  //empty attribs
 	int i;
 	
 	for (i = 1; i< numOpacControlPoints-1; i++){
-		map <const string, string> cpAttrs;
+		map <string, string> cpAttrs;
 		
 		oss.str(empty);
 		oss << (double)opacCtrlPoint[i];
@@ -705,7 +705,7 @@ buildNode(const string& tfname) {
 		mainNode->NewChild(_opacityControlPointTag, cpAttrs, 0);
 	}
 	for (i = 1; i< numColorControlPoints-1; i++){
-		map <const string, string> cpAttrs;
+		map <string, string> cpAttrs;
 		
 		oss.str(empty);
 		oss << (double)colorCtrlPoint[i]; //Put the value in the control point node

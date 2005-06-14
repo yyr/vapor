@@ -1682,7 +1682,7 @@ XmlNode* VizWinMgr::buildNode() {
 	//Create a visualizers node, put in one child for each visualizer
 	
 	string empty;
-	std::map <const string, string> attrs;
+	std::map <string, string> attrs;
 	attrs.empty();
 	ostringstream oss;
 	XmlNode* vizMgrNode = new XmlNode(_visualizersTag, attrs, getNumVisualizers());

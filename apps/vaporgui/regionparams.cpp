@@ -924,7 +924,7 @@ XmlNode* RegionParams::
 buildNode(){
 	//Construct the region node
 	string empty;
-	std::map <const string, string> attrs;
+	std::map <string, string> attrs;
 	attrs.clear();
 	
 	ostringstream oss;
