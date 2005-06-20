@@ -16,6 +16,8 @@
 //
 //	Description:	Implements the Session class and the DataStatus class
 //
+#include <cstdlib>
+#include <cstdio>
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
@@ -53,6 +55,9 @@ const string Session::_sessionTag = "Session";
 const string Session::_globalParameterPanelsTag = "GlobalParameterPanels";
 const string Session::_globalTransferFunctionsTag = "GlobalTransferFunctions";
 Session::Session() {
+	if (getenv("VAPOR_DEBUG")) {
+		MyBase::SetDiagMsgFilePtr(stderr);
+	}
 	MyBase::SetErrMsgCB(errorCallbackFcn);
 	MyBase::SetDiagMsgCB(infoCallbackFcn);
 	previousClass = 0;
