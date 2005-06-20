@@ -320,6 +320,7 @@ void vdcOpenVarWrite(int argc, IDL_VPTR *argv)
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
 	IDL_LONG ts = IDL_LongScalar(argv[1]);
 	char *varname = IDL_VarGetString(argv[2]);
+	IDL_LONG num_xforms = IDL_LongScalar(argv[3]);
 
 
 	const string	&classname = io->GetClassName();
@@ -331,7 +332,7 @@ void vdcOpenVarWrite(int argc, IDL_VPTR *argv)
 
 	WaveletBlock3DBufWriter	*obj = (WaveletBlock3DBufWriter *) io;
 
-	obj->OpenVariableWrite((size_t) ts, varname);
+	obj->OpenVariableWrite((size_t) ts, varname, num_xforms);
 	myBaseErrChk();
 }
 

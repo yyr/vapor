@@ -31,7 +31,7 @@ PROCEDURE	vdc_regreaddestroy	1	1
 PROCEDURE	vdc_regread			4	4
 PROCEDURE	vdc_bufwritedestroy	1	1
 PROCEDURE	vdc_bufwriteslice	2	2
-PROCEDURE	vdc_openvarwrite	3	3
+PROCEDURE	vdc_openvarwrite	4	4
 PROCEDURE	vdc_openvarread		4	4
 PROCEDURE	vdc_closevar		1	1
 PROCEDURE	lifting1d_destroy	1	1
