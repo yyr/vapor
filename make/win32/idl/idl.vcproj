@@ -125,6 +125,9 @@
 				RelativePath="..\..\..\lib\idl\IDLCommon.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\idl\IDLLifting1D.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\idl\IDLMetadata.cpp">
 			</File>
 			<File
@@ -146,6 +149,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\ImpExp.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\Lifting1D.h">
 			</File>
 		</Filter>
 		<Filter
