@@ -20,7 +20,7 @@ namespace VAPoR {
 //! This class provides an interface to the Liftpack wavelet transformation
 //! library.
 //
-class Lifting1D : public VetsUtil::MyBase {
+class VDF_API Lifting1D : public VetsUtil::MyBase {
 
 public:
  typedef	double	Flt;
