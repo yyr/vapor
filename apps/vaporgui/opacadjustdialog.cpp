@@ -173,7 +173,7 @@ finalize(){
 	if (!changed ) accept();
 	if (pointModified) pointChanged();
 	tfe->getTransferFunction()->moveOpacControlPoint(pointIndex, newPoint, newOpac);
-	tfe->setDirty(true);
+	tfe->setDirty();
 	accept();
 }
 //When user stops editing, need to validate

@@ -47,6 +47,7 @@ public:
 	void notifyColorSelector(QRgb clr){
 		emit(sendRgb(clr));
 	}
+	void setDirtyEditor(TFEditor* ed) {dirtyEditor = ed;}
 	
 		
 public slots:
@@ -67,7 +68,7 @@ signals:
 	//send a new color out
 	void sendRgb(QRgb rgb);
 protected:
-	
+	TFEditor* dirtyEditor;
 	//Virtual, Reimplemented here:
 	void paintEvent(QPaintEvent* event);
 	void mousePressEvent( QMouseEvent * );

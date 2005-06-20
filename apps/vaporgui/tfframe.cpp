@@ -25,6 +25,7 @@
 #include <qpainter.h>
 #include "tfeditor.h"
 #include "tfelocationtip.h"
+#include "messagereporter.h"
 #include "dvrparams.h"
 #include <qlabel.h>
 #include <qpopupmenu.h>
@@ -37,6 +38,7 @@
 TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 	QFrame(parent, name, f) {
 	editor = 0;
+	dirtyEditor = 0;
 	needUpdate = true;
 	locationTip = new TFELocationTip(this);
 	setFocusPolicy(QWidget::StrongFocus);
@@ -79,14 +81,16 @@ void TFFrame::paintEvent(QPaintEvent* e){
 		bitBlt(this, QPoint(0,0),&pxMap);
 		return;
 	}
-	if (editor->isDirty()|| needUpdate){
+	if (editor == dirtyEditor || needUpdate){
 		erase();
 		editor->refreshImage();
 		pxMap.convertFromImage(*editor->getImage(),0);
 		
 		needUpdate = false;
-		
-		
+	} else {
+		if (editor != dirtyEditor)
+			MessageReporter::infoMsg("Editor change on TF frame update");
+		return;
 	}
 	TransferFunction* tf = editor->getTransferFunction();
 	//Debugging code to look at image column 100

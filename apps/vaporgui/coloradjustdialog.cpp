@@ -177,7 +177,7 @@ finalize(){
 	if (pointModified) pointChanged();
 	tfe->getTransferFunction()->moveColorControlPoint(pointIndex, newPoint);
 	tfe->getTransferFunction()->setControlPointRGB(pointIndex,newRGB);
-	tfe->setDirty(true);
+	tfe->setDirty();
 	accept();
 }
 //When user stops editing, need to validate

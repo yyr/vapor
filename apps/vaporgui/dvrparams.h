@@ -179,8 +179,10 @@ protected:
 	static const string _activeVariableNumAttr;
 	static const string _variableNumAttr;
 	static const string _variableNameAttr;
+
 	void refreshCtab();
 	void hookupTF(TransferFunction* t, int index);
+	void connectTransferFunction(TransferFunction* tf, TFEditor* tfe);
 	bool attenuationDirty;
 	bool lightingOn;
 	float currentDatarange[2];

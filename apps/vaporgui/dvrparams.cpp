@@ -98,10 +98,12 @@ DvrParams::~DvrParams(){
 	
 	if (minEditBounds) delete minEditBounds;
 	if (maxEditBounds) delete maxEditBounds;
-	for (int i = 0; i< numVariables; i++){
-		delete transFunc[i];  //destructor will delete TFEditor
+	if (transFunc){
+		for (int i = 0; i< numVariables; i++){
+			delete transFunc[i];  //destructor will delete TFEditor
+		}
+		delete transFunc;
 	}
-	if (transFunc) delete transFunc;
 	
 }
 
@@ -132,10 +134,7 @@ deepCopy(){
 		newParams->transFunc[i] = new TransferFunction(*transFunc[i]);
 		//clone the tfe, hook it to the trans func
 		TFEditor* newTFEditor = new TFEditor(*(transFunc[i]->getEditor()));
-		newParams->transFunc[i]->setEditor(newTFEditor);
-		newParams->transFunc[i]->setParams(newParams);
-		newTFEditor->setTransferFunction(newParams->transFunc[i]);
-		newTFEditor->setFrame(myDvrTab->DvrTFFrame);
+		newParams->connectTransferFunction(newParams->transFunc[i],newTFEditor); 
 	}
 	
 	//never keep the SavedCommand:
@@ -201,9 +200,6 @@ void DvrParams::updateDialog(){
 	else 
 		myDvrTab->LocalGlobal->setCurrentItem(0);
 
-	TFFrame* myTFFrame = myDvrTab->DvrTFFrame;
-	myTFFrame->setEditor(getTFEditor());
-
 	updateTFBounds();
 	float sliderVal = 1.f;
 	if (getTFEditor())
@@ -223,7 +219,7 @@ void DvrParams::updateDialog(){
 		myDvrTab->navigateButton->setOn(true);
 	}
 		
-	if(getTFEditor())getTFEditor()->setDirty(true);
+	if(getTFEditor())getTFEditor()->setDirty();
 	myDvrTab->DvrTFFrame->update();
 	myDvrTab->update();
 	guiSetTextChanged(false);
@@ -251,13 +247,14 @@ updatePanelState(){
 	getTransFunc()->setMaxMapValue(myDvrTab->rightMappingBound->text().toFloat());
 	
 	setDatarangeDirty();
-	getTFEditor()->setDirty(true);
+	getTFEditor()->setDirty();
 	myDvrTab->DvrTFFrame->update();
 	guiSetTextChanged(false);
 	
 }
 
 //Change variable, plus other side-effects, updating tfe as well as tf.
+//Should only be called by gui
 //
 void DvrParams::
 setVarNum(int val) 
@@ -267,8 +264,8 @@ setVarNum(int val)
 	//reset the editing display range shown on the tab, 
 	//this also sets dirty flag
 	updateTFBounds();
-	//Force a redraw of tfframe
-	getTFEditor()->setDirty(true);
+	//Force a redraw of tfframe 
+	getTFEditor()->setDirty();
 	myDvrTab->DvrTFFrame->setEditor(getTFEditor());
 	myDvrTab->DvrTFFrame->update();	
 	setClutDirty();
@@ -320,7 +317,7 @@ guiSetAligned(){
 	PanelCommand* cmd = PanelCommand::captureStart(this, "align tf in edit frame");
 	setMinEditBound(getMinMapBound());
 	setMaxEditBound(getMaxMapBound());
-	getTFEditor()->setDirty(true);
+	getTFEditor()->setDirty();
 	myDvrTab->DvrTFFrame->update();
 	PanelCommand::captureEnd(cmd, this);
 }
@@ -373,7 +370,7 @@ guiSetHistoStretch(int val){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "modify histogram stretch slider");
 	setHistoStretch( powf(2.f, HISTOSTRETCHCONSTANT*(1000.f - (float)val)));
-	getTFEditor()->setDirty(true);
+	getTFEditor()->setDirty();
 	myDvrTab->DvrTFFrame->update();
 	PanelCommand::captureEnd(cmd,this);
 }
@@ -574,7 +571,7 @@ reinit(bool doOverride){
 			newTransFunc[i] = new TransferFunction(this, numBits);
 			//create new tfe, hook it to the trans func
 			TFEditor* newTFEditor = new TFEditor(newTransFunc[i], myDvrTab->DvrTFFrame);
-			newTransFunc[i]->setEditor(newTFEditor);
+			connectTransferFunction(newTransFunc[i], newTFEditor);
 			newTransFunc[i]->setMinMapValue(Session::getInstance()->getDataRange(i)[0]);
 			newTransFunc[i]->setMaxMapValue(Session::getInstance()->getDataRange(i)[1]);
 			newMinEdit[i] = Session::getInstance()->getDataRange(i)[0];
@@ -591,7 +588,7 @@ reinit(bool doOverride){
 			} else { //create new tfe, hook it to the trans func
 				newTransFunc[i] = new TransferFunction(this, numBits);
 				TFEditor* newTFEditor = new TFEditor(transFunc[i], myDvrTab->DvrTFFrame);
-				newTransFunc[i]->setEditor(newTFEditor);
+				connectTransferFunction(transFunc[i], newTFEditor);
 				newTransFunc[i]->setMinMapValue(Session::getInstance()->getDataRange(i)[0]);
 				newTransFunc[i]->setMaxMapValue(Session::getInstance()->getDataRange(i)[1]);
 				newMinEdit[i] = Session::getInstance()->getDataRange(i)[0];
@@ -631,7 +628,7 @@ reinit(bool doOverride){
 	
 	setClutDirty();
 	setDatarangeDirty();
-	if(numVariables>0) getTFEditor()->setDirty(true);
+	if(numVariables>0) getTFEditor()->setDirty();
 	//If dvr is the current front tab, and if it applies to the active visualizer,
 	//update its values
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myDvrTab)) {
@@ -769,28 +766,36 @@ fileLoadTF(){
 	Session::getInstance()->updateTFFilePath(&s);
 }
 //Hook up the new transfer function in specified slot,
-//Delete the old one.
+//Delete the old one.  This is called whenever a new tf is loaded.
 //
 void DvrParams::
-hookupTF(TransferFunction* t, int index){
+hookupTF(TransferFunction* tf, int index){
 
 	//Create a new TFEditor
-	TFEditor* newTFEditor = new TFEditor(t, myDvrTab->DvrTFFrame);
-	t->setEditor(newTFEditor);
-	minEditBounds[index] = t->getMinMapValue();
-	maxEditBounds[index] = t->getMaxMapValue();
-	t->setParams(this);
+	TFEditor* newTFEditor = new TFEditor(tf, myDvrTab->DvrTFFrame);
+	if (transFunc[index]) delete transFunc[index];
+	transFunc[index] = tf;
+	connectTransferFunction(tf, newTFEditor);
+	myDvrTab->DvrTFFrame->setEditor(newTFEditor);
 	newTFEditor->reset();
-	delete transFunc[index];
-	transFunc[index] = t;
-	
+	minEditBounds[index] = tf->getMinMapValue();
+	maxEditBounds[index] = tf->getMaxMapValue();
 	//reset the editing display range, this also sets dirty flag
 	updateTFBounds();
 	//Force a redraw of tfframe
-	newTFEditor->setDirty(true);
+	newTFEditor->setDirty();
 	myDvrTab->DvrTFFrame->update();	
 	setDatarangeDirty();
 	setClutDirty();
+}
+// Setup pointers between transfer function, editor, and this:
+//
+void DvrParams::
+connectTransferFunction(TransferFunction* tf, TFEditor* tfe){
+	tf->setEditor(tfe);
+	tfe->setFrame(myDvrTab->DvrTFFrame);
+	tfe->setTransferFunction(tf);
+	tf->setParams(this);
 }
 void DvrParams::
 fileSaveTF(){
@@ -838,7 +843,7 @@ fileSaveTF(){
 //
 void DvrParams::
 refreshTFFrame(){
-	getTFEditor()->setDirty(true);
+	getTFEditor()->setDirty();
 	myDvrTab->DvrTFFrame->update();	
 }
 void DvrParams::setMinMapBound(float val){
@@ -895,9 +900,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		}
 		//Create space for the variables:
 		int numVars = Max (newNumVariables, 1);
-		if(minEditBounds) delete minEditBounds;
+		if (minEditBounds) delete minEditBounds;
 		minEditBounds = new float[numVars];
-		if(maxEditBounds) delete maxEditBounds;
+		if (maxEditBounds) delete maxEditBounds;
 		maxEditBounds = new float[numVars];
 		variableNames.clear();
 		for (i = 0; i<newNumVariables; i++){
@@ -923,7 +928,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		for (int j = 0; j<numVariables; j++){
 			transFunc[j] = new TransferFunction(this, numBits);
 			TFEditor* newTFEditor = new TFEditor(transFunc[j],myDvrTab->DvrTFFrame);
-			transFunc[j]->setEditor(newTFEditor);
+			connectTransferFunction(transFunc[j], newTFEditor);
 		}
 		return true;
 	}

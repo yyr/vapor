@@ -84,7 +84,7 @@ public:
 	void setEditingRange(float minVal, float maxVal){
 		getParams()->setMinEditBound(minVal);
 		getParams()->setMaxEditBound(maxVal);
-		dirty = true;
+		setDirty();
 	}
 	
 	void refreshImage();
@@ -92,8 +92,8 @@ public:
 		return editImage;
 	}
 	
-	bool isDirty(){ return dirty;}
-	void setDirty(bool val) {dirty = val;}
+	
+	void setDirty();
 	//Responses to mouse events:
 	void moveGrabbedControlPoints(int x, int y);
 	void moveDomainBound(int x);
@@ -264,7 +264,7 @@ protected:
 	int height;
 	int width;
 	TransferFunction* myTransferFunction;
-	bool dirty;
+	
 	TFFrame* myFrame;
 	
 	int dragStartX, dragStartY;

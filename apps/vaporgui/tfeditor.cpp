@@ -213,9 +213,6 @@ void TFEditor::refreshImage(){
 		}
 	}
 	
-	
-	dirty = false;
-	
 }
 	
 /*
@@ -414,7 +411,7 @@ moveGrabbedControlPoints(int newX, int newY){
 		lastXMove = xMoveFloat;
 	}
 	
-	dirty = true;
+	setDirty();
 	myFrame->update();
 }
 // Set the zoom and pan, based on the new position of the mouse during a drag
@@ -434,7 +431,7 @@ navigate (int x, int y){
 	//Then apply the pan to the zoomed window:
 	setMinEditValue(minval - horizFraction*(maxval - minval));
 	setMaxEditValue(maxval - horizFraction*(maxval - minval));
-	dirty = true;
+	setDirty();
 	myFrame->update();
 
 }
@@ -460,7 +457,7 @@ moveDomainBound(int x){
 			}
 		} else assert(0);
 	}
-	dirty = true;
+	setDirty();
 	myFrame->update();
 }
 
@@ -541,7 +538,7 @@ insertOpacControlPoint(int x, int y){
 		selectedOpac[i] = selectedOpac[i-1];
 	selectedOpac[ptNum] = true;
 	numOpacSelect++;
-	dirty = true;
+	setDirty();
 	return ptNum;
 }
 int TFEditor::
@@ -555,7 +552,7 @@ insertColorControlPoint(int x){
 		selectedColor[i] = selectedColor[i-1];
 	selectedColor[ptNum] = true;
 	numColorSelect++;
-	dirty = true;
+	setDirty();
 	return ptNum;
 }
 void TFEditor::
@@ -569,7 +566,7 @@ unSelectAll(){
 	}
 	numColorSelect = 0;
 	numOpacSelect = 0;
-	dirty = true;
+	setDirty();
 }
 
 
@@ -608,7 +605,7 @@ selectInterval(bool colorPoint){
 		}
 	} 
 	
-	dirty = true;
+	setDirty();
 }
 /* 
  * When a control point is deleted, selection must also be modified.
@@ -629,7 +626,7 @@ deleteControlPoint(int pointNum, bool colorPoint){
 		myTransferFunction->deleteOpacControlPoint(pointNum);
 	}
 	
-	dirty = true;
+	setDirty();
 
 }
 /*  
@@ -665,7 +662,7 @@ void TFEditor::setHsv(int h, int s, int v){
 		}
 	}
 	if (change) {
-		dirty = true;
+		setDirty();
 		myFrame->update();
 	}
 }
@@ -726,7 +723,7 @@ bindOpacToColor(){
 		
 	}
 	
-	dirty = true;
+	setDirty();
 	myFrame->update();
 }
 void TFEditor::
@@ -766,7 +763,7 @@ bindColorToOpac(){
 		selectedColor[newColorIndex] = true;
 		selectedColor[colorNum] = false;
 	}
-	dirty = true;
+	setDirty();
 	myFrame->update();
 }
 
@@ -866,4 +863,8 @@ int TFEditor::mapOpac2Win(float opac, bool truncate){
 		if (opac < 0.f) return (height - BELOWOPACITY -1);
 	}
 	return TOPMARGIN +DOMAINSLIDERMARGIN + (int)((1.-opac)*(float)(height - BELOWOPACITY -TOPMARGIN -DOMAINSLIDERMARGIN-1));
+}
+
+void TFEditor::setDirty(){
+	myFrame->setDirtyEditor(this);
 }
