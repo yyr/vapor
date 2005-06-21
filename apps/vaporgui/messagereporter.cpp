@@ -87,13 +87,21 @@ MessageReporter::~MessageReporter(){
 void MessageReporter::
 reset(const char* newLogFileName){
 	//Save name, reopen the log file
-	if (logFile) fclose(logFile);
-	
-	logFile = fopen(newLogFileName, "w");
+	if (logFile && logFile != stderr ) fclose(logFile);
+	//Special case for stderr log file
+	if(strcmp(newLogFileName, "stderr") != 0) {
+		logFile = fopen(newLogFileName, "w");
+		if (!logFile) {
+			doPopup(Error,"VAPoR session log file cannot be opened");
+			return;
+		}
+	} else {
+		logFile = stderr;
+	}
 	//reset message counts
 	messageCount.clear();
-	if (!logFile) doPopup(Error,"VAPoR session log file cannot be opened");
-	else Session::getInstance()->setLogfileName(newLogFileName);
+	
+	Session::getInstance()->setLogfileName(newLogFileName);
 }
 
 void MessageReporter::fatalMsg(const char* format, ...){

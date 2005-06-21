@@ -147,6 +147,13 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	
 	//Setup  the session (hence the viz window manager)
 	Session::getInstance();
+	if (getenv("VAPOR_DEBUG")) {
+		MessageReporter* msgRpt = MessageReporter::getInstance();
+		msgRpt->setMaxLog(MessageReporter::Info, 100);
+		msgRpt->setMaxLog(MessageReporter::Warning, 100);
+		msgRpt->setMaxLog(MessageReporter::Error, 100);
+		msgRpt->reset("stderr");
+	}
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	myVizMgr->createGlobalParams();
 	

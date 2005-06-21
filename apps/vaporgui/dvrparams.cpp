@@ -587,8 +587,8 @@ reinit(bool doOverride){
 				newMaxEdit[i] = maxEditBounds[i];
 			} else { //create new tfe, hook it to the trans func
 				newTransFunc[i] = new TransferFunction(this, numBits);
-				TFEditor* newTFEditor = new TFEditor(transFunc[i], myDvrTab->DvrTFFrame);
-				connectTransferFunction(transFunc[i], newTFEditor);
+				TFEditor* newTFEditor = new TFEditor(newTransFunc[i], myDvrTab->DvrTFFrame);
+				connectTransferFunction(newTransFunc[i], newTFEditor);
 				newTransFunc[i]->setMinMapValue(Session::getInstance()->getDataRange(i)[0]);
 				newTransFunc[i]->setMaxMapValue(Session::getInstance()->getDataRange(i)[1]);
 				newMinEdit[i] = Session::getInstance()->getDataRange(i)[0];

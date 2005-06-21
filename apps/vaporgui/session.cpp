@@ -55,9 +55,7 @@ const string Session::_sessionTag = "Session";
 const string Session::_globalParameterPanelsTag = "GlobalParameterPanels";
 const string Session::_globalTransferFunctionsTag = "GlobalTransferFunctions";
 Session::Session() {
-	if (getenv("VAPOR_DEBUG")) {
-		MyBase::SetDiagMsgFilePtr(stderr);
-	}
+	
 	MyBase::SetErrMsgCB(errorCallbackFcn);
 	MyBase::SetDiagMsgCB(infoCallbackFcn);
 	previousClass = 0;
@@ -244,9 +242,11 @@ loadFromFile(ifstream& ifs){
 	tempParsedTF = 0;
 	parseMgr->parse(ifs);
 	delete parseMgr;
+
+	//Reopen the logfile
+	MessageReporter::getInstance()->reset(currentLogfileName.c_str());
 	//We should return pointer to 0 when done!
 	
-	//assert(tempParsedTF == 0);
 	//Don't activate anything until user opens a new metadata file.
 	return true;
 }
