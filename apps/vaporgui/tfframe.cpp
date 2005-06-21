@@ -73,7 +73,7 @@ TFFrame::~TFFrame() {
 }
 	
 
-void TFFrame::paintEvent(QPaintEvent* e){
+void TFFrame::paintEvent(QPaintEvent* ){
 	int i;
 	if (!editor){ //just  bitblt a blank pixmap to the widget:
 		pxMap.resize(size());
@@ -115,7 +115,10 @@ void TFFrame::paintEvent(QPaintEvent* e){
 	}
 */
 	QPainter painter(&pxMap);
-    painter.setClipRect(e->rect());
+	//Workaround for QT bug:  the clip rect is wrong, so
+	//specify the whole window as the clip rect:
+	painter.setClipRect(rect());
+    //painter.setClipRect(e->rect());
 	
 	
 	int x, y;
@@ -198,6 +201,7 @@ void TFFrame::paintEvent(QPaintEvent* e){
 	tfOpacLabels[numOpacLabels++]->show();
 
 	//Draw the opacity curve, 2 pixels wide
+	
 	QPen myPen(OPACITYCURVECOLOR, 2);
 	painter.setPen(myPen);
 	float prevX = editor->mapWin2Var(0);
