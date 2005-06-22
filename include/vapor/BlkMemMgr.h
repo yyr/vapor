@@ -16,8 +16,12 @@ namespace VAPoR {
 //! \version $Revision$
 //! \date    $Date$
 //!
-//! A block-based memory allocator. Allocates memory contiguous runs of
+//! A block-based memory allocator. Allocates contiguous runs of
 //! memory blocks from a memory pool of user defined size.
+//!
+//! N.B. the memory pool is stored in a static class member and
+//! can only be freed by calling RequestMemSize() with a zero value 
+//! after all instances of this class have been destroyed
 // 
 class BlkMemMgr : public VetsUtil::MyBase {
 
@@ -25,14 +29,8 @@ public:
  //! Initialize a memory allocator
  //
  //! Initialize a block-based memory allocator
- //! \param[in] blk_size Size of a single memory block in bytes
- //! \param[in] num_blks Size of memory pool in blocks. This is the
- //! maximum amount that will be available through subsequent 
- //! \b Alloc() calls.
- //! \param[in] page_aligned If true, start address of memory pool 
- //! will be page aligned
  //
- BlkMemMgr(unsigned int blk_size, unsigned int num_blks, int page_aligned);
+ BlkMemMgr();
  ~BlkMemMgr();
 
  //! Alloc space from memory pool
@@ -50,17 +48,43 @@ public:
  //! \b Alloc().
  void	FreeMem(void *ptr);
 
+ //! Set the size of the memory pool used by the memory allocator
+ //
+ //! Initialize a block-based memory allocator. The static memory pool
+ //! is not changed until the first instance of an object of this
+ //! class is created, or if there are no instances of objects the
+ //! memmory pool is changed immediately. The only way to free memory
+ //! from the static memory pool is to call this static method with
+ //! either \p blk_size or \p num_blks set to zero. 
+ //!
+ //! \param[in] blk_size Size of a single memory block in bytes
+ //! \param[in] num_blks Size of memory pool in blocks. This is the
+ //! maximum amount that will be available through subsequent 
+ //! \b Alloc() calls.
+ //! \param[in] page_aligned If true, start address of memory pool 
+ //! will be page aligned
+ //
+ static void RequestMemSize(
+	unsigned int blk_size, unsigned int num_blks, int page_aligned = 1
+ );
+
 private:
+ static int	_page_aligned_req;	// requested page align memory (boolean)
+ static int	_mem_size_req;	// requested size of mem in blocks
+ static int	_blk_size_req;	// requested size of block in bytes
+
+ static int	_page_aligned;	// page align memory (boolean)
+ static int	_mem_size;	// size of mem in blocks
+ static int	_blk_size;	// size of block in bytes
+
+ static int	*_free_table;	// free block table
+ static unsigned char	*_blks;	// memory pool
+ static unsigned char	*_blkptr;	// page-aligned memory pool
+ static int _ref_count;	// # instances of object.
+
  int	_objInitialized;	// has the obj successfully been initalized?
- unsigned char	*base_c;
- unsigned char	*aligned_base_c;
- int	page_aligned_c;
- int	mem_size_c;	// size of mem in blocks
- int	blk_size_c;	// size of block in bytes
- int	*free_table_c;	// free block table
- int	page_size_c;	// page size in bytes of OS
- unsigned char	*blks_c;	// memory pool
- unsigned char	*blkptr_c;	// page-aligned memory pool
+
+ static int	_Reinit();
 
 };
 };

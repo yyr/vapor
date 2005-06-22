@@ -32,7 +32,8 @@ int	DataMgr::_DataMgr(
 
 	num_blks = (long long) (mem_size * 1024 * 1024) / block_size;
 
-	_blk_mem_mgr = new BlkMemMgr((unsigned int)block_size, (unsigned int)num_blks, 1);
+	BlkMemMgr::RequestMemSize((unsigned int)block_size, (unsigned int)num_blks);
+	_blk_mem_mgr = new BlkMemMgr();
 	if (BlkMemMgr::GetErrCode() != 0) {
 		return(-1);
 	}
