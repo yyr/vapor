@@ -46,14 +46,14 @@ EXPAT_LIB_PATH=/usr/freeware/lib32
 BUILD_IDL_WRAPPERS = 1
 
 IDL_INC_PATH = /fs/local/apps/rsi/idl_6.1/external/include/
-QTDIR=/fs/local/apps/qt-3.3.2
+QTDIR=/fs/local/apps/qt-3.3.4
 
 ifdef BUILD64
 
 EXPAT_LIB_PATH=/usr/freeware/lib64
 
 IDL_INC_PATH = /fs/local/64/apps/rsi/idl_6.1/external/include/
-QTDIR=/fs/local/64/apps/qt-3.3.2
+QTDIR=/fs/local/64/apps/qt-3.3.4
 
 endif
 
@@ -69,7 +69,7 @@ EXPAT_INC_PATH=/usr/include
 EXPAT_LIB_PATH=/usr/lib
 BUILD_IDL_WRAPPERS = 1
 IDL_INC_PATH=/fs/local/apps/rsi/idl_6.1/external/include
-QTDIR = /fs/local/apps/qt-3.3.2
+QTDIR = /fs/local/apps/qt-3.3.4
 
 ifeq ($(MACHTYPE),ia64)
 BUILD64 = 1
@@ -78,7 +78,7 @@ endif
 
 ifdef	BUILD64
 IDL_INC_PATH=/fs/local/64/apps/rsi/idl_6.1/external/include
-QTDIR = /fs/local/64/apps/qt-3.3.2
+QTDIR = /fs/local/64/apps/qt-3.3.4
 endif
 
 endif
