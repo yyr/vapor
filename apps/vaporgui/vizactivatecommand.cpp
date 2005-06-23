@@ -40,18 +40,18 @@ VizActivateCommand::VizActivateCommand(VizWin* win, int prevViz, int nextViz, Co
 	//Construct description text, and other data needed:
 	switch (thisType){
 		case create:
-			windowName = vizWinMgr->getVizWinName(nextViz)->ascii();
+			windowName = vizWinMgr->getVizWinName(nextViz).ascii();
 			description = (QString("create ")+windowName).ascii();
 			
 			break;
 		case remove:
-			windowName = vizWinMgr->getVizWinName(prevViz)->ascii();
+			windowName = vizWinMgr->getVizWinName(prevViz).ascii();
 			description = (QString("remove ")+windowName).ascii();
 			//clone and save all the applicable (local!) params:
 			cloneStateParams(win, prevViz);
 			break;
 		case activate:
-			windowName = vizWinMgr->getVizWinName(nextViz)->ascii();
+			windowName = vizWinMgr->getVizWinName(nextViz).ascii();
 			description = (QString("activate ")+windowName).ascii();
 			break;
 		default:
@@ -93,7 +93,7 @@ void VizActivateCommand::unDo(){
 			//are those from the "currentActiveViznum"
 			
 			newWinNum = vizWinMgr->launchVisualizer(lastActiveViznum, windowName);
-			vizWinMgr->getVizWin(newWinNum)->setGLBackgroundColor(backgroundColor);
+			vizWinMgr->getVizWin(newWinNum)->setBackgroundColor(backgroundColor);
 			// make them current, in the correct order:
 			if (animationParams) animationParams->makeCurrent(vizWinMgr->getAnimationParams(currentActiveViznum), true);
 			if(regionParams) regionParams->makeCurrent(vizWinMgr->getRegionParams(currentActiveViznum), true);
@@ -120,7 +120,7 @@ void VizActivateCommand::reDo(){
 			//Need to create default panels (from global params)
 			vizWinMgr->createDefaultParams(currentActiveViznum);
 			newWinNum = vizWinMgr->launchVisualizer(currentActiveViznum, windowName);
-			vizWinMgr->getVizWin(newWinNum)->setGLBackgroundColor(backgroundColor);
+			vizWinMgr->getVizWin(newWinNum)->setBackgroundColor(backgroundColor);
 			break;
 		case remove:
 			//Note that normally killing a viz has the side-effect of deleting its params.
@@ -156,5 +156,5 @@ void VizActivateCommand::cloneStateParams(VizWin* win, int viznum){
 	isoParams = (IsosurfaceParams*)vizWinMgr->getRealIsoParams(viznum)->deepCopy();
 	contourParams = (ContourParams*)vizWinMgr->getRealContourParams(viznum)->deepCopy();
 	dvrParams = (DvrParams*)vizWinMgr->getRealDvrParams(viznum)->deepCopy();
-	if(win) backgroundColor = win->getGLBackgroundColor();
+	if(win) backgroundColor = win->getBackgroundColor();
 }

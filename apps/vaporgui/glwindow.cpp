@@ -164,7 +164,7 @@ void GLWindow::paintGL()
 		resizeGL(width(), height());
 		oldPerspective = perspective;
 	}
-	qglClearColor(myVizWin->getGLBackgroundColor()); 
+	qglClearColor(myVizWin->getBackgroundColor()); 
 	glClear( GL_COLOR_BUFFER_BIT );
 	//assert(myVizWin->getNumRenderers() <= 1);
 	for (int i = 0; i< myVizWin->getNumRenderers(); i++){
@@ -179,7 +179,7 @@ void GLWindow::paintGL()
 
 void GLWindow::initializeGL()
 {
-    qglClearColor(myVizWin->getGLBackgroundColor()); 		// Let OpenGL clear to black
+    qglClearColor(myVizWin->getBackgroundColor()); 		// Let OpenGL clear to black
 	//Initialize existing renderers:
 	//
 	for (int i = 0; i< myVizWin->getNumRenderers(); i++){

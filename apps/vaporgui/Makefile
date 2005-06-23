@@ -42,7 +42,7 @@ FILES := \
 	tabmanager tfeditor tfelocationtip \
 	tfframe tfinterpolator trackball transferfunction \
 	unsharedcontrollerthread \
-	viewpointparams viewpoint vizactivatecommand \
+	viewpointparams viewpoint vizactivatecommand vizfeatureparams \
 	vizselectcombo vizwin vizwinmgr volumizerrenderer 
 
 QT_HEADERS := \
@@ -53,14 +53,14 @@ QT_HEADERS := \
 	opacadjustdialog \
 	renderer savetfdialog sessionparams tabmanager \
 	tfframe \
-	vizselectcombo vizwin vizwinmgr volumizerrenderer 
+	vizselectcombo vizwin vizfeatureparams vizwinmgr volumizerrenderer 
 
 
 MOC_DIR = moc
 UI_DIR = ui
 
 UI_FILES := animationtab viztab regiontab contourplanetab \
-	dvr isotab sessionparameters
+	dvr isotab sessionparameters vizfeatures
   
 include ${TOP}/make/config/base.mk
 #LDFLAGS += $(QTLIB)

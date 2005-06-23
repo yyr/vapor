@@ -79,7 +79,15 @@ VizWinMgr* VizWinMgr::theVizWinMgr = 0;
 const string VizWinMgr::_visualizersTag = "Visualizers";
 const string VizWinMgr::_vizWinTag = "VizWindow";
 const string VizWinMgr::_vizWinNameAttr = "WindowName";
-const string VizWinMgr::_vizWinColorAttr = "BackgroundColor";
+const string VizWinMgr::_vizBgColorAttr = "BackgroundColor";
+const string VizWinMgr::_vizRegionColorAttr = "RegionFrameColor";
+const string VizWinMgr::_vizSubregionColorAttr = "SubregionFrameColor";
+const string VizWinMgr::_vizAxisPositionAttr = "AxisPosition";
+const string VizWinMgr::_vizColorbarPositionAttr = "ColorbarPosition";
+const string VizWinMgr::_vizAxesEnabledAttr = "AxesEnabled";
+const string VizWinMgr::_vizColorbarEnabledAttr = "ColorbarEnabled";
+const string VizWinMgr::_vizRegionFrameEnabledAttr = "RegionFrameEnabled";
+const string VizWinMgr::_vizSubregionFrameEnabledAttr = "SubregionFrameEnabled";
 
 /******************************************************************
  *  Constructor sets up an array of MAXVIZWINS windows
@@ -95,7 +103,7 @@ VizWinMgr::VizWinMgr()
 	activationCount = 0;
     for (int i = 0; i< MAXVIZWINS; i++){
         vizWin[i] = 0;
-        vizName[i] = 0;
+        vizName[i] = "";
         //vizRect[i] = 0;
         isMax[i] = false;
         isMin[i] = false;
@@ -195,7 +203,7 @@ vizAboutToDisappear(int i)  {
 	
 	//Don't delete vizName, it's handled by ref counts
     
-    vizName[i] = 0;
+    vizName[i] = "";
 }
 //When a visualizer is launched, we may optionally specify a number and a name
 //if this is a relaunch of a previously created visualizer.  If newWindowNum == -1,
@@ -240,10 +248,10 @@ launchVisualizer(int newWindowNum, const char* newName)
     Session::getInstance()->blockRecording();
 	//Default name is just "Visualizer No. N"
     //qWarning("Creating new visualizer in position %d",newWindowNum);
-	if (strlen(newName) != 0) vizName[newWindowNum] = new QString(newName);
-	else vizName[newWindowNum] = new QString((QString("Visualizer No. ")+QString::number(newWindowNum)));
-	emit (newViz(*vizName[newWindowNum], newWindowNum));
-	vizWin[newWindowNum] = new VizWin (myWorkspace, vizName[newWindowNum]->ascii(), 0/*Qt::WType_TopLevel*/, this, newRect, newWindowNum);
+	if (strlen(newName) != 0) vizName[newWindowNum] = newName;
+	else vizName[newWindowNum] = ((QString("Visualizer No. ")+QString::number(newWindowNum)));
+	emit (newViz(vizName[newWindowNum], newWindowNum));
+	vizWin[newWindowNum] = new VizWin (myWorkspace, vizName[newWindowNum].ascii(), 0/*Qt::WType_TopLevel*/, this, newRect, newWindowNum);
 	vizWin[newWindowNum]->setWindowNum(newWindowNum);
 	
 
@@ -419,8 +427,8 @@ getNumVisualizers(){
     return num;
 }
 void VizWinMgr::
-setVizWinName(int winNum, QString qs) {
-		vizName[winNum] = &qs;
+setVizWinName(int winNum, QString& qs) {
+		vizName[winNum] = qs;
 		vizWin[winNum]->setCaption(qs);
 		nameChanged(qs, winNum);
 }
@@ -1689,14 +1697,60 @@ XmlNode* VizWinMgr::buildNode() {
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if (vizWin[i]){
 			attrs.empty();
-			attrs[_vizWinNameAttr] = vizName[i]->ascii();
+			attrs[_vizWinNameAttr] = vizName[i].ascii();
 			oss.str(empty);
-			QColor bgClr = vizWin[i]->getGLBackgroundColor();
-			oss << (long)bgClr.red() << " "
-				<< (long)bgClr.green() << " "
-				<< (long)bgClr.blue();
-			attrs[_vizWinColorAttr] = oss.str();
+			QColor clr = vizWin[i]->getBackgroundColor();
+			oss << (long)clr.red() << " "
+				<< (long)clr.green() << " "
+				<< (long)clr.blue();
+			attrs[_vizBgColorAttr] = oss.str();
 
+			oss.str(empty);
+			clr = vizWin[i]->getRegionFrameColor();
+			oss << (long)clr.red() << " "
+				<< (long)clr.green() << " "
+				<< (long)clr.blue();
+			attrs[_vizRegionColorAttr] = oss.str();
+
+			oss.str(empty);
+			clr = vizWin[i]->getSubregionFrameColor();
+			oss << (long)clr.red() << " "
+				<< (long)clr.green() << " "
+				<< (long)clr.blue();
+			attrs[_vizSubregionColorAttr] = oss.str();
+			
+			oss.str(empty);
+			if (vizWin[i]->axesAreEnabled()) oss<<"true";
+				else oss << "false";
+			attrs[_vizAxesEnabledAttr] = oss.str();
+
+			
+			oss.str(empty);
+			if (vizWin[i]->regionFrameIsEnabled()) oss<<"true";
+				else oss<<"false";
+			attrs[_vizRegionFrameEnabledAttr] = oss.str();
+
+			oss.str(empty);
+			if (vizWin[i]->subregionFrameIsEnabled()) oss<<"true";
+				else oss<<"false";
+			attrs[_vizSubregionFrameEnabledAttr] = oss.str();
+			
+			oss.str(empty);
+			oss << (float)vizWin[i]->getAxisCoord(0) << " "
+				<< (float)vizWin[i]->getAxisCoord(1) << " "
+				<< (float)vizWin[i]->getAxisCoord(2);
+			attrs[_vizAxisPositionAttr] = oss.str();
+
+			oss.str(empty);
+			if (vizWin[i]->colorbarIsEnabled()) oss << "true";
+				else oss << "false";
+			attrs[_vizColorbarEnabledAttr] = oss.str();
+
+			oss.str(empty);
+			oss << (int)vizWin[i]->getColorbarCoord(0) << " "
+				<< (int)vizWin[i]->getColorbarCoord(1);
+			attrs[_vizColorbarPositionAttr] = oss.str();
+			
 			XmlNode* locals = vizMgrNode->NewChild(_vizWinTag, attrs, 5);
 			//Now add local params
 			XmlNode* dvrNode = dvrParams[i]->buildNode();
@@ -1728,6 +1782,16 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 		//Get the name & num
 		string winName;
 		QColor winBgColor(black);
+		QColor winRgColor(white);
+		QColor winSubrgColor(red);
+		float axisPos[3];
+		axisPos[0]=axisPos[1]=axisPos[2]=0.f;
+		int colorbarPos[2];
+		colorbarPos[0]=colorbarPos[1]=0;
+		bool axesEnabled = false;
+		bool colorbarEnabled = false;
+		bool regionEnabled = false;
+		bool subregionEnabled = false;
 		while (*attrs) {
 			string attr = *attrs;
 			attrs++;
@@ -1736,15 +1800,58 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 			istringstream ist(value);	
 			if (StrCmpNoCase(attr, _vizWinNameAttr) == 0) {
 				winName = value;
-			} else if (StrCmpNoCase(attr, _vizWinColorAttr) == 0) {
+			} else if (StrCmpNoCase(attr, _vizBgColorAttr) == 0) {
 				int r,g,b;
 				ist >> r; ist>>g; ist>>b;
 				winBgColor.setRgb(r,g,b);
+			} 
+			else if (StrCmpNoCase(attr, _vizRegionColorAttr) == 0) {
+				int r,g,b;
+				ist >> r; ist>>g; ist>>b;
+				winRgColor.setRgb(r,g,b);
+			}
+			else if (StrCmpNoCase(attr, _vizSubregionColorAttr) == 0) {
+				int r,g,b;
+				ist >> r; ist>>g; ist>>b;
+				winSubrgColor.setRgb(r,g,b);
+			}
+			else if (StrCmpNoCase(attr, _vizAxisPositionAttr) == 0) {
+				ist >> axisPos[0]; ist>>axisPos[1]; ist>>axisPos[2];
+			}
+			else if (StrCmpNoCase(attr, _vizColorbarPositionAttr) == 0) {
+				ist >> colorbarPos[0]; ist>>colorbarPos[1];
+			}
+			else if (StrCmpNoCase(attr, _vizAxesEnabledAttr) == 0) {
+				if (value == "true") axesEnabled = true; 
+				else axesEnabled = false; 
+			}
+			else if (StrCmpNoCase(attr, _vizColorbarEnabledAttr) == 0) {
+				if (value == "true") colorbarEnabled = true; 
+				else colorbarEnabled = false; 
+			}
+			else if (StrCmpNoCase(attr, _vizRegionFrameEnabledAttr) == 0) {
+			if (value == "true") regionEnabled = true; 
+				else regionEnabled = false; 
+			}
+			else if (StrCmpNoCase(attr, _vizSubregionFrameEnabledAttr) == 0) {
+				if (value == "true") subregionEnabled = true; 
+				else subregionEnabled = false; 
 			} else return false;
 		}
 		//Create the window:
 		parsingVizNum = launchVisualizer(-1, winName.c_str());
-		vizWin[parsingVizNum]->setGLBackgroundColor(winBgColor);
+		vizWin[parsingVizNum]->setBackgroundColor(winBgColor);
+		vizWin[parsingVizNum]->setRegionFrameColor(winRgColor);
+		vizWin[parsingVizNum]->setSubregionFrameColor(winSubrgColor);
+		vizWin[parsingVizNum]->enableAxes(axesEnabled);
+		vizWin[parsingVizNum]->enableColorbar(colorbarEnabled);
+		vizWin[parsingVizNum]->enableRegionFrame(regionEnabled);
+		vizWin[parsingVizNum]->enableSubregionFrame(subregionEnabled);
+		for (int j = 0; j< 3; j++){
+			vizWin[parsingVizNum]->setAxisCoord(j, axisPos[j]);
+		}
+		vizWin[parsingVizNum]->setColorbarCoord(0, colorbarPos[0]);
+		vizWin[parsingVizNum]->setColorbarCoord(1, colorbarPos[1]);
 		return true;
 		}
 	case(3):

@@ -160,8 +160,8 @@ public:
 	RegionParams* getRealRegionParams(int i) {return rgParams[i];}
 	AnimationParams* getRealAnimationParams(int i) {return animationParams[i];}
 
-	void setVizWinName(int winNum, QString qs);
-	QString* getVizWinName(int winNum) {return vizName[winNum];}
+	void setVizWinName(int winNum, QString& qs);
+	QString& getVizWinName(int winNum) {return vizName[winNum];}
 	bool isMinimized(int winNum) {return isMin[winNum];}
 	bool isMaximized(int winNum) {return isMax[winNum];}
 	//Setting a params changes the previous params to the
@@ -256,13 +256,21 @@ signals:
 protected:
 	static const string _vizWinTag;
 	static const string _vizWinNameAttr;
-	static const string _vizWinColorAttr;
+	static const string _vizBgColorAttr;
+	static const string _vizRegionColorAttr;
+	static const string _vizSubregionColorAttr;
+	static const string _vizAxisPositionAttr;
+	static const string _vizColorbarPositionAttr;
+	static const string _vizAxesEnabledAttr;
+	static const string _vizColorbarEnabledAttr;
+	static const string _vizRegionFrameEnabledAttr;
+	static const string _vizSubregionFrameEnabledAttr;
 	static VizWinMgr* theVizWinMgr;
 	VizWinMgr ();
 	
     VizWin* vizWin[MAXVIZWINS];
    
-    QString* vizName[MAXVIZWINS];
+    QString vizName[MAXVIZWINS];
     bool isMax[MAXVIZWINS];
     bool isMin[MAXVIZWINS];
 	ViewpointParams* vpParams[MAXVIZWINS];

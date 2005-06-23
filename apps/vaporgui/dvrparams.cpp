@@ -91,11 +91,7 @@ DvrParams::DvrParams(int winnum) : Params(winnum){
 }
 DvrParams::~DvrParams(){
 	
-
-
-	
 	if (savedCommand) delete savedCommand;
-	
 	if (minEditBounds) delete minEditBounds;
 	if (maxEditBounds) delete maxEditBounds;
 	if (transFunc){
@@ -123,7 +119,6 @@ deepCopy(){
 	newParams->minEditBounds = new float[numVars];
 	newParams->maxEditBounds = new float[numVars];
 	for (int i = 0; i<numVars; i++){
-		
 		newParams->minEditBounds[i] = minEditBounds[i];
 		newParams->maxEditBounds[i] = maxEditBounds[i];
 	}
@@ -241,7 +236,6 @@ updatePanelState(){
 	diffuseAtten = myDvrTab->diffuseAttenuation->text().toFloat();
 	ambientAtten = myDvrTab->ambientAttenuation->text().toFloat();
 	specularAtten = myDvrTab->specularAttenuation->text().toFloat();
-	
 
 	getTransFunc()->setMinMapValue(myDvrTab->leftMappingBound->text().toFloat());
 	getTransFunc()->setMaxMapValue(myDvrTab->rightMappingBound->text().toFloat());

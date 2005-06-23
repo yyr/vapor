@@ -70,13 +70,13 @@ using namespace VAPoR;
 VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
     : QMainWindow( (QWidget*)parent, name, fl )
 {
-	
+	int i;
     if ( !name )
 		setName( "VizWin" );
     myParent = parent;
     myWindowNum = winNum;
 	numRenderers = 0;
-    for (int i = 0; i< MAXNUMRENDERERS; i++)
+    for (i = 0; i< MAXNUMRENDERERS; i++)
 		renderer[i] = 0;
         
     move(location->topLeft());
@@ -90,7 +90,19 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	clutDirty = true;
 	capturing = false;
 	newCapture = false;
+
+	//values of features:
 	backgroundColor =  QColor(black);
+	regionFrameColor = QColor(white);
+	subregionFrameColor = QColor(red);
+	axesEnabled = false;
+	regionFrameEnabled = false;
+	subregionFrameEnabled = false;
+	colorbarEnabled = false;
+	for (i = 0; i<3; i++)
+	    axisCoord[i] = 0.f;
+	colorbarCoord[0] = 0;
+	colorbarCoord[1] = 0;
 	
     // actions
    

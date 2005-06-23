@@ -73,6 +73,7 @@
 #include "assert.h"
 #include "command.h"
 #include "sessionparameters.h"
+#include "vizfeatureparams.h"
 #include "sessionparams.h"
 
 //The following are pixmaps that are used in gui:
@@ -176,6 +177,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	editUndoAction = new QAction(this, "editUndoAction");
 	editRedoAction = new QAction(this, "editRedoAction");
 	editSessionParamsAction = new QAction(this, "editSessionParamsAction");
+	editVizFeaturesAction = new QAction(this, "editVizFeaturesAction");
 	editUndoAction->setEnabled(false);
 	editRedoAction->setEnabled(false);
     
@@ -200,8 +202,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	viewStartCaptureAction = new QAction( this, "viewStartCaptureAction" );
 	viewEndCaptureAction = new QAction( this, "viewEndCaptureAction" );
 	viewSingleCaptureAction = new QAction(this, "viewCaptureSingleAction");
-	viewSetBackgroundColorAction = new QAction( this, "viewSetBackgroundColorAction");
-    
+	
     scriptIDL_scriptAction = new QAction( this, "scriptIDL_scriptAction" );
 	scriptIDL_scriptAction->setEnabled(false);
     scriptMatlab_scriptAction = new QAction( this, "scriptMatlab_scriptAction" );
@@ -309,6 +310,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	editUndoAction->addTo(Edit);
 	editRedoAction->addTo(Edit);
 	editSessionParamsAction->addTo(Edit);
+	editVizFeaturesAction->addTo(Edit);
 	Main_Form->insertItem( QString(""), Edit, 2 );
 
     Data = new QPopupMenu( this );
@@ -323,13 +325,12 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     Main_Form->insertItem( QString(""), Data, 3 );
 
     viewMenu = new QPopupMenu(this);
+	//Note that the ordering of the following 4 is significant, so that image
+	//capture actions correctly activate each other.
 	viewLaunch_visualizerAction->addTo(viewMenu);
-
 	viewSingleCaptureAction->addTo(viewMenu);
 	viewStartCaptureAction->addTo(viewMenu);
-	viewEndCaptureAction->addTo(viewMenu);
-	
-	viewSetBackgroundColorAction->addTo(viewMenu);
+	viewEndCaptureAction->addTo(viewMenu); 
 	
     Main_Form->insertItem( QString(""), viewMenu, 4 );
 
@@ -370,6 +371,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	connect(editUndoAction, SIGNAL(activated()), this, SLOT (undo()));
 	connect(editRedoAction, SIGNAL(activated()), this, SLOT (redo()));
 	connect(editSessionParamsAction, SIGNAL(activated()), this, SLOT(editSessionParams()));
+	connect( editVizFeaturesAction, SIGNAL(activated()), this, SLOT(launchVizFeaturesPanel()));
 	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
 	
 
@@ -385,10 +387,10 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     
 	connect(viewMenu, SIGNAL(aboutToShow()), this, SLOT(initViewMenu()));
     connect( viewLaunch_visualizerAction, SIGNAL( activated() ), this, SLOT( launchVisualizer() ) );
+	
 	connect( viewStartCaptureAction, SIGNAL( activated() ), this, SLOT( startCapture() ) );
 	connect( viewEndCaptureAction, SIGNAL( activated() ), this, SLOT( endCapture() ) );
 	connect (viewSingleCaptureAction, SIGNAL(activated()), this, SLOT (captureSingle()));
-	connect (viewSetBackgroundColorAction, SIGNAL(activated()), this, SLOT(setBackground()));
     
 	connect( scriptBatchAction, SIGNAL(activated()), this, SLOT(batchSetup()));
 
@@ -509,6 +511,10 @@ void MainForm::languageChange()
     viewLaunch_visualizerAction->setMenuText( tr( "&New Visualizer" ) );
 	viewLaunch_visualizerAction->setToolTip("Launch a new visualization window");
 
+	editVizFeaturesAction->setText(tr("Edit Visualizer Features"));
+	editVizFeaturesAction->setMenuText(tr("Edit Visualizer Features"));
+	editVizFeaturesAction->setToolTip(tr("View or change various visualizer settings"));
+
 	viewStartCaptureAction->setText( tr( "Begin image capture sequence " ) );
     viewStartCaptureAction->setMenuText( tr( "&Begin image capture sequence " ) );
 	viewStartCaptureAction->setToolTip("Begin saving jpeg image files rendered in current active visualizer");
@@ -520,10 +526,6 @@ void MainForm::languageChange()
 	viewSingleCaptureAction->setText( tr( "Single image capture" ) );
     viewSingleCaptureAction->setMenuText( tr( "&Single Image Capture" ) );
 	viewSingleCaptureAction->setToolTip("Capture one image from current active visualizer");
-
-	viewSetBackgroundColorAction->setText( tr ("Set background color"));
-	viewSetBackgroundColorAction->setMenuText( tr ("&Set background color"));
-	viewSetBackgroundColorAction->setToolTip( "Specify background color in current active visualizer");
 
     scriptIDL_scriptAction->setText( tr( "Execute IDL script" ) );
     scriptIDL_scriptAction->setMenuText( tr( "Execute &IDL script" ) );
@@ -1005,7 +1007,7 @@ void MainForm::initViewMenu(){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	VizWin* viz = vizWinMgr->getActiveVisualizer();
 	int winNum = vizWinMgr->getActiveViz();
-	QString* vizName;
+	QString vizName = "";
 	if(winNum >= 0) vizName = vizWinMgr->getVizWinName(winNum);
 	//Disable the start capture if no viz, or if active viz already capturing
 	//pos2 is start sequence capture,
@@ -1021,9 +1023,9 @@ void MainForm::initViewMenu(){
 		viewMenu->setItemEnabled(pos1, false);
 	}
 	else {// there is a visualizer, but it's not capturing
-		viewStartCaptureAction->setMenuText( "&Begin image capture sequence in "+(*vizName) );
+		viewStartCaptureAction->setMenuText( "&Begin image capture sequence in "+(vizName) );
 		viewMenu->setItemEnabled(pos2,true);
-		viewSingleCaptureAction->setMenuText("Capture single image of "+(*vizName) );
+		viewSingleCaptureAction->setMenuText("Capture single image of "+(vizName) );
 		viewMenu->setItemEnabled(pos1,true);
 	}
 	
@@ -1033,19 +1035,10 @@ void MainForm::initViewMenu(){
 		viewMenu->setItemEnabled(pos3, false);
 	}
 	else {
-		viewEndCaptureAction->setMenuText("End capture sequence in " +(*vizName) );
+		viewEndCaptureAction->setMenuText("End capture sequence in " +(vizName) );
 		viewMenu->setItemEnabled(pos3, true);
 	}
-	int pos4 = viewMenu->idAt(4);
-	//Enable the background color selector if there is a visualizer:
-	if (!viz) {
-		viewSetBackgroundColorAction->setMenuText("Set background color");
-		viewMenu->setItemEnabled(pos4, false);
-	} else {
-		viewSetBackgroundColorAction->setMenuText("Set background color in "+(*vizName));
-		viewMenu->setItemEnabled(pos4,true);
-	}
-
+	
 }
 void MainForm::setContourSelect(bool /*on*/)
 {
@@ -1077,18 +1070,6 @@ void MainForm::resetModeButtons(){
 //Make all the current region/animation settings available to IDL
 void MainForm::exportToIDL(){
 	Session::getInstance()->exportData();
-}
-//Launch a color selector to set background color
-void MainForm::setBackground(){
-	QColor oldColor(black);
-	VizWin* win = VizWinMgr::getInstance()->getActiveVisualizer();
-	if (win) {
-		oldColor = win->getGLBackgroundColor();
-		QColor newColor = QColorDialog::getColor(oldColor,0,0);
-		win->setGLBackgroundColor(newColor);
-		Session::getInstance()->addToHistory(new ColorChangeCommand(oldColor, newColor, 
-			win->getWindowNum()));
-	}
 }
 	
 //Begin capturing images.
@@ -1172,3 +1153,8 @@ void MainForm::endCapture(){
 		MessageReporter::warningMsg("Image Capture Warning;\nCurrent active visualizer is not capturing images");
 	}
 }
+void MainForm::launchVizFeaturesPanel(){
+	VizFeatureParams vFP;
+	vFP.launch();
+}
+

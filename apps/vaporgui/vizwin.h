@@ -122,9 +122,27 @@ public:
 	//to jpeg and saves file.  If it ever encounters an error, it turns off capture.
 	//If capture is 1 (single frame capture) it turns off capture.
 	void doFrameCapture();
-	void setGLBackgroundColor(QColor& c) {backgroundColor = c;}
-	QColor& getGLBackgroundColor() {return backgroundColor;}
-	
+
+	//Access visualizer features
+	void setBackgroundColor(QColor& c) {backgroundColor = c;}
+	QColor& getBackgroundColor() {return backgroundColor;}
+	QColor& getRegionFrameColor() {return regionFrameColor;}
+	QColor& getSubregionFrameColor() {return subregionFrameColor;}
+	bool axesAreEnabled() {return axesEnabled;}
+	bool colorbarIsEnabled() {return colorbarEnabled;}
+	bool regionFrameIsEnabled() {return regionFrameEnabled;}
+	bool subregionFrameIsEnabled() {return subregionFrameEnabled;}
+	float getAxisCoord(int i){return axisCoord[i];}
+	int getColorbarCoord(int i) {return colorbarCoord[i];}
+
+	void setRegionFrameColor(QColor& c) {regionFrameColor = c;}
+	void setSubregionFrameColor(QColor& c) {subregionFrameColor = c;}
+	void enableAxes(bool enable) {axesEnabled = enable;}
+	void enableColorbar(bool enable) {colorbarEnabled = enable;}
+	void enableRegionFrame(bool enable) {regionFrameEnabled = enable;}
+	void enableSubregionFrame(bool enable) {subregionFrameEnabled = enable;}
+	void setAxisCoord(int i, float val){axisCoord[i] = val;}
+	void setColorbarCoord(int i, int crd) {colorbarCoord[i] = crd;}
 	
 protected:
 	//Following flag is set whenever there is mouse navigation, so that we can use 
@@ -151,10 +169,18 @@ protected:
 	//Flag to set indicating start of capture sequence.
 	bool newCapture;
 	QString captureName;
+
+	//values in vizFeature
 	QColor backgroundColor;
+	QColor regionFrameColor;
+	QColor subregionFrameColor;
+	bool axesEnabled;
+	bool regionFrameEnabled;
+	bool subregionFrameEnabled;
+	bool colorbarEnabled;
+	float axisCoord[3];
+	int colorbarCoord[2];
 	
-
-
 public slots:
     
     virtual void helpIndex();
@@ -181,10 +207,7 @@ protected:
     virtual void windowActivationChange(bool oldActive);
     virtual void resizeEvent(QResizeEvent*);
     bool isReallyMaximized();
-	
-
-
-	
+		
 protected slots:
     virtual void languageChange();
     

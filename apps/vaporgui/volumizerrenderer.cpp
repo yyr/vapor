@@ -208,8 +208,11 @@ DrawVoxelScene(unsigned /*fast*/)
 	
     myGLWindow->getTBall()->TrackballSetMatrix();
 	//In regionMode, draw a grid:
-	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
+	if(myVizWin->regionFrameIsEnabled()|| MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
 		renderDomainFrame(extents, minFull, maxFull);
+	} 
+	if(myVizWin->subregionFrameIsEnabled()&& !(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode)){
+		drawSubregionBounds(extents);
 	} 
 	//This works around a volumizer/opengl bug!!!
 	//If you issue a non-unit glColor before the volume rendering, it 
@@ -351,7 +354,8 @@ DrawVoxelScene(unsigned /*fast*/)
 		assert(selectedFace >= -1 && selectedFace < 6);
 		renderRegionBounds(extents, selectedFace,
 			camVec, disp);
-	}
+	} 
+
 
     glPopMatrix();
 	//Capture the image, if not navigating:

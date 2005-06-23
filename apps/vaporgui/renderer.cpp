@@ -39,13 +39,15 @@ Renderer::Renderer( VizWin* vw )
     myGLWindow = vw->getGLWindow();
 }
 //Issue OpenGL commands to draw a grid of lines of the full domain.
-//Grid resolution is up to 4x4x4
+//Grid resolution is up to 2x2x2
 //
 void Renderer::renderDomainFrame(float* extents, float* minFull, float* maxFull){
 
 	int i; 
 	int numLines[3];
 	float regionSize, fullSize[3], modMin[3],modMax[3];
+	setRegionFrameColor( myVizWin->getRegionFrameColor());
+	setSubregionFrameColor(myVizWin->getSubregionFrameColor());
 	
 	//Instead:  either have 2 or 1 lines in each dimension.  2 if the size is < 1/3
 	for (i = 0; i<3; i++){
@@ -60,7 +62,7 @@ void Renderer::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	}
 	
 
-	glColor3f(1.f,1.f,1.f);	   
+	glColor3fv(regionFrameColor);	   
     glLineWidth( 2.0 );
 	//Now draw the lines.  Divide each dimension into numLines[dim] sections.
 	
@@ -166,6 +168,33 @@ bool Renderer::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
 			return false;
 	}
 }
+void Renderer::drawSubregionBounds(float* extents) {
+	glColor3fv(subregionFrameColor);
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(extents[0], extents[1], extents[2]);
+	glVertex3f(extents[0], extents[1], extents[5]);
+	glVertex3f(extents[0], extents[4], extents[5]);
+	glVertex3f(extents[0], extents[4], extents[2]);
+	glEnd();
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(extents[3], extents[1], extents[2]);
+	glVertex3f(extents[3], extents[1], extents[5]);
+	glVertex3f(extents[3], extents[4], extents[5]);
+	glVertex3f(extents[3], extents[4], extents[2]);
+	glEnd();		
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(extents[0], extents[4], extents[2]);
+	glVertex3f(extents[3], extents[4], extents[2]);
+	glVertex3f(extents[3], extents[4], extents[5]);
+	glVertex3f(extents[0], extents[4], extents[5]);
+	glEnd();
+	glBegin(GL_LINE_LOOP);
+	glVertex3f(extents[0], extents[1], extents[2]);
+	glVertex3f(extents[3], extents[1], extents[2]);
+	glVertex3f(extents[3], extents[1], extents[5]);
+	glVertex3f(extents[0], extents[1], extents[5]);
+	glEnd();
+}
 void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 	
 	glPolygonMode(GL_FRONT, GL_FILL);
@@ -181,7 +210,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[0], extents[4], extents[5]);
 			glVertex3f(extents[0], extents[4], extents[2]);
 			glEnd();
-			glColor3f(1,0,0);
+			glColor3fv(subregionFrameColor);
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[0], extents[1], extents[5]);
@@ -198,7 +227,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[4], extents[5]);
 			glVertex3f(extents[3], extents[4], extents[2]);
 			glEnd();
-			glColor3f(1,0,0);
+			glColor3fv(subregionFrameColor);
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[3], extents[1], extents[2]);
 			glVertex3f(extents[3], extents[1], extents[5]);
@@ -213,7 +242,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[4], extents[5]);
 			glVertex3f(extents[0], extents[4], extents[5]);
 			glEnd();
-			glColor3f(1,0,0);
+			glColor3fv(subregionFrameColor);
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[4], extents[2]);
 			glVertex3f(extents[3], extents[4], extents[2]);
@@ -228,7 +257,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[1], extents[5]);
 			glVertex3f(extents[3], extents[1], extents[2]);
 			glEnd();
-			glColor3f(1,0,0);
+			glColor3fv(subregionFrameColor);
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[0], extents[1], extents[5]);
@@ -245,7 +274,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[4], extents[2]);
 			glVertex3f(extents[0], extents[4], extents[2]);
 			glEnd();
-			glColor3f(1,0,0);
+			glColor3fv(subregionFrameColor);
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[3], extents[1], extents[2]);
@@ -262,7 +291,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[4], extents[5]);
 			glVertex3f(extents[0], extents[4], extents[5]);
 			glEnd();
-			glColor3f(1,0,0);
+			glColor3fv(subregionFrameColor);
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[5]);
 			glVertex3f(extents[3], extents[1], extents[5]);
@@ -310,4 +339,14 @@ void Renderer::renderRegionBounds(float* extents, int selectedFace, float* camPo
 		}
 	}
 }
-
+//Set colors to use in bound rendering:
+void Renderer::setSubregionFrameColor(QColor& c){
+	subregionFrameColor[0]= (float)c.red()/255.;
+	subregionFrameColor[1]= (float)c.green()/255.;
+	subregionFrameColor[2]= (float)c.blue()/255.;
+}
+void Renderer::setRegionFrameColor(QColor& c){
+	regionFrameColor[0]= (float)c.red()/255.;
+	regionFrameColor[1]= (float)c.green()/255.;
+	regionFrameColor[2]= (float)c.blue()/255.;
+}

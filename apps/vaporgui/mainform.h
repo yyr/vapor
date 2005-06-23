@@ -100,6 +100,7 @@ public:
 	QAction* editUndoAction;
 	QAction* editRedoAction;
 	QAction* editSessionParamsAction;
+	QAction* editVizFeaturesAction;
     //Help menu
 	//
     QAction* helpContentsAction;
@@ -117,9 +118,7 @@ public:
 	QAction* viewStartCaptureAction;
 	QAction* viewEndCaptureAction;
 	QAction* viewSingleCaptureAction;
-	QAction* viewSetBackgroundColorAction;
-    
-   
+	
     //Script menu
    
     QAction* scriptIDL_scriptAction;
@@ -179,10 +178,10 @@ public slots:
 	virtual void newSession();
 	virtual void exportToIDL();
     virtual void launchVisualizer();
+	virtual void launchVizFeaturesPanel();
 	virtual void startCapture();
 	virtual void endCapture();
 	virtual void captureSingle();
-	virtual void setBackground();
   
 	virtual void calcIsosurface();
     virtual void viewpoint();

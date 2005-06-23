@@ -23,6 +23,7 @@
 #include "mainform.h"
 #include "vizwinmgr.h"
 #include "vizwin.h"
+#include "vizfeatureparams.h"
 #include "assert.h"
 #include <qaction.h>
 using namespace VAPoR;
@@ -200,34 +201,48 @@ tabName(Params::ParamType t){
 }
 
 
-ColorChangeCommand::ColorChangeCommand(QColor& oldColor, QColor& newColor, int vizNum){
-	//Make a copy of previous panel:
-	previousColor = oldColor;
-	currentColor = newColor;
+VizFeatureCommand::VizFeatureCommand(VizFeatureParams* prevFeatures, const char* descr, int vizNum){
+	//Make a copy of previous features
+	previousFeatures = new VizFeatureParams(*prevFeatures);
+	currentFeatures = 0;
 	windowNum = vizNum;
-	QString* vizName;
-	vizName = VizWinMgr::getInstance()->getVizWinName(vizNum);
-	description = QString("change background color in " + (*vizName));
-	
+	QString vizName = VizWinMgr::getInstance()->getVizWinName(vizNum);
+	description = QString(descr) + " on " + (vizName);	
 }
 
-void ColorChangeCommand::unDo(){
+VizFeatureCommand::~VizFeatureCommand(){
+	if (previousFeatures) delete previousFeatures;
+	if (currentFeatures) delete currentFeatures;
+}
+void VizFeatureCommand::
+setNext(VizFeatureParams* nextFeatures){
+	currentFeatures = new VizFeatureParams(*nextFeatures);
+}
+void VizFeatureCommand::unDo(){
 	Session::getInstance()->blockRecording();
-	VizWin* win = VizWinMgr::getInstance()->getVizWin(windowNum);
-	win->setGLBackgroundColor(previousColor);
+	previousFeatures->applyToViz(windowNum);
 	Session::getInstance()->unblockRecording();
-	win->updateGL();
 }
 
-void ColorChangeCommand::reDo(){
+void VizFeatureCommand::reDo(){
 	Session::getInstance()->blockRecording();
-	VizWin* win = VizWinMgr::getInstance()->getVizWin(windowNum);
-	win->setGLBackgroundColor(currentColor);
+	currentFeatures->applyToViz(windowNum);
 	Session::getInstance()->unblockRecording();
-	win->updateGL();
 }
 
-
+VizFeatureCommand* VizFeatureCommand::
+captureStart(VizFeatureParams* p, char* description, int viznum){
+	if (!Session::getInstance()->isRecording()) return 0;
+	VizFeatureCommand* cmd = new VizFeatureCommand(p, description, viznum);
+	return cmd;
+}
+void VizFeatureCommand::
+captureEnd(VizFeatureCommand* vCom, VizFeatureParams *p) {
+	if (!vCom) return;
+	if (!Session::getInstance()->isRecording()) return;
+	vCom->setNext(p);
+	Session::getInstance()->addToHistory(vCom);
+}
 
 
 

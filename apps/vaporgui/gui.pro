@@ -26,7 +26,7 @@ win32:CONFIG += thread
 
 win32:LIBS += $(VOLUMIZER_ROOT)/lib/vz.lib
 win32:INCLUDEPATH += $(VOLUMIZER_ROOT)/include
-win32:INCLUDEPATH += "B:/Expat-1.95.8/Source/lib"
+win32:INCLUDEPATH += "C:/Expat-1.95.8/Source/lib"
 win32:QMAKE_CXXFLAGS_DEBUG += /EHsc
 win32:QMAKE_CXXFLAGS_RELEASE += /EHsc
 DEFINES += VOLUMIZER
@@ -57,7 +57,6 @@ SOURCES +=\
 	   main.cpp \
            mainform.cpp \
 	   messagereporter.cpp \	
-           minmaxcombo.cpp \
 	   opacadjustdialog.cpp \
 	   panelcommand.cpp \
 	   params.cpp \
@@ -75,10 +74,9 @@ SOURCES +=\
 	   trackball.cpp \
 	   transferfunction.cpp \
 	   unsharedcontrollerthread.cpp \
+	   viewpoint.cpp \
 	   viewpointparams.cpp \
 	   vizactivatecommand.cpp \
-           vizmgrdialog.cpp \
-           viznameedit.cpp \
 	   vizselectcombo.cpp \
            vizwin.cpp \
            vizwinmgr.cpp \
@@ -104,7 +102,6 @@ HEADERS += \
 	   loadtfdialog.h \
            mainform.h \
 	   messagereporter.h \
-           minmaxcombo.h \
 	   opacadjustdialog.h \
 	   panelcommand.h \
 	   params.h \
@@ -122,17 +119,18 @@ HEADERS += \
 	   transferfunction.h \
 	   viewpointparams.h \
 	   vizactivatecommand.h \
-           vizmgrdialog.h \
-           viznameedit.h \
 	   vizselectcombo.h \
 	   vizwin.h \
            vizwinmgr.h \
 	   volumizerrenderer.h 
+
 FORMS +=  ui/animationtab.ui \
 	 ui/viztab.ui \
 	 ui/dvr.ui \
          ui/regiontab.ui \ 
 	 ui/contourplanetab.ui \
        	 ui/isotab.ui \
-	 ui/sessionparameters.ui 
+	 ui/sessionparameters.ui \ 
+	 ui/vizfeatures.ui
+
 

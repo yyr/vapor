@@ -21,6 +21,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 #include <qobject.h>
+class QColor;
 
 namespace VAPoR {
 class VizWin;
@@ -29,6 +30,7 @@ class DataMgr;
 class RegionParams;
 class ViewpointParams;
 class Metadata;
+
 
 class Renderer: public QObject
 {
@@ -48,28 +50,30 @@ public:
 	void setSelectedFace(int faceNum) {selectedFace = faceNum;}
 	
 protected:
+	//Set colors to use in bound rendering:
+	void setSubregionFrameColor(QColor& c);
+	void setRegionFrameColor(QColor& c);
 	//Draw the region bounds and frame it in full domain.
 	//Arguments are in unit cube coordinates
 	void renderDomainFrame(float* extents, float* minFull, float* maxFull);
 	void renderRegionBounds(float* extents, int selectedFace, 
 		float* cameraPos, float faceDisplacement);
+	void drawSubregionBounds(float* extents);
 	//One face of the region bounds can be highlighted if selected:
 	int selectedFace;
 
 	GLWindow* myGLWindow;
 	VizWin* myVizWin;
 	
-	//Rendering-related parameters (from Bob_App) come from region etc.
-	//These should be reset whenever the region parameters are dirtied.
-	//
-	
-	
+	float regionFrameColor[3];
+	float subregionFrameColor[3];
+
 	//Helper functions for drawing region bounds:
 	static float* cornerPoint(float* extents, int faceNum);
 	// Faces of the cube are numbered 0..5 based on view from pos z axis:
 	// back, front, bottom, top, left, right
 	static bool faceIsVisible(float* extents, float* viewerCoords, int faceNum);
-	static void drawRegionFace(float* extents, int faceNum, bool isSelected);
+	void drawRegionFace(float* extents, int faceNum, bool isSelected);
 };
 };
 
