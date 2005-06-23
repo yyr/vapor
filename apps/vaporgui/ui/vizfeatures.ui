@@ -322,7 +322,7 @@
                             <set>AlignRight</set>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify z-coord of axis in voxel coordinates</string>
+                            <string>Specify z-coord of axis relative to data cube</string>
                         </property>
                     </widget>
                     <widget class="QLineEdit" row="1" column="2">
@@ -336,7 +336,7 @@
                             <set>AlignRight</set>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify y-coord of axis in voxel coordinates</string>
+                            <string>Specify y-coord of axis relative to data cube</string>
                         </property>
                     </widget>
                     <spacer row="0" column="1">
@@ -367,7 +367,7 @@
                             <set>AlignRight</set>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify x-coord of axis in voxel coordinates</string>
+                            <string>Specify x-coord of axis relative to data cube</string>
                         </property>
                     </widget>
                     <spacer row="2" column="1">
