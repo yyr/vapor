@@ -100,7 +100,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	subregionFrameEnabled = false;
 	colorbarEnabled = false;
 	for (i = 0; i<3; i++)
-	    axisCoord[i] = 0.f;
+	    axisCoord[i] = -.05f;
 	colorbarCoord[0] = 0;
 	colorbarCoord[1] = 0;
 	

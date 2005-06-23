@@ -59,6 +59,7 @@ protected:
 	void renderRegionBounds(float* extents, int selectedFace, 
 		float* cameraPos, float faceDisplacement);
 	void drawSubregionBounds(float* extents);
+	void drawAxes(float* minfull, float* maxfull);
 	//One face of the region bounds can be highlighted if selected:
 	int selectedFace;
 
