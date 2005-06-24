@@ -350,79 +350,83 @@ void Renderer::setRegionFrameColor(QColor& c){
 	regionFrameColor[1]= (float)c.green()/255.;
 	regionFrameColor[2]= (float)c.blue()/255.;
 }
-void Renderer::drawAxes(float* minFull, float* maxFull){
-	float origin[3], len[3];
+void Renderer::drawAxes(float* extents){
+	float origin[3];
+	float maxLen = -1.f;
 	for (int i = 0; i<3; i++){
-		origin[i] = minFull[i] + (myVizWin->getAxisCoord(i))*(maxFull[i]-minFull[i]);
-		len[i] = (maxFull[i]-minFull[i])*0.2;
+		origin[i] = extents[i] + (myVizWin->getAxisCoord(i))*(extents[i+3]-extents[i]);
+		if (extents[i+3] - extents[i] > maxLen) {
+			maxLen = extents[i+3] - extents[i];
+		}
 	}
+	float len = maxLen*0.2f;
 	glColor3f(1.f,0.f,0.f);
 	glLineWidth( 4.0 );
 	glBegin(GL_LINES);
 	glVertex3fv(origin);
-	glVertex3f(origin[0]+len[0],origin[1],origin[2]);
+	glVertex3f(origin[0]+len,origin[1],origin[2]);
 	
 	glEnd();
 	glBegin(GL_TRIANGLES);
-	glVertex3f(origin[0]+len[0],origin[1],origin[2]);
-	glVertex3f(origin[0]+.8*len[0], origin[1]+.1*len[1], origin[2]);
-	glVertex3f(origin[0]+.8*len[0], origin[1], origin[2]+.1*len[2]);
+	glVertex3f(origin[0]+len,origin[1],origin[2]);
+	glVertex3f(origin[0]+.8*len, origin[1]+.1*len, origin[2]);
+	glVertex3f(origin[0]+.8*len, origin[1], origin[2]+.1*len);
 
-	glVertex3f(origin[0]+len[0],origin[1],origin[2]);
-	glVertex3f(origin[0]+.8*len[0], origin[1], origin[2]+.1*len[2]);
-	glVertex3f(origin[0]+.8*len[0], origin[1]-.1*len[1], origin[2]);
+	glVertex3f(origin[0]+len,origin[1],origin[2]);
+	glVertex3f(origin[0]+.8*len, origin[1], origin[2]+.1*len);
+	glVertex3f(origin[0]+.8*len, origin[1]-.1*len, origin[2]);
 
-	glVertex3f(origin[0]+len[0],origin[1],origin[2]);
-	glVertex3f(origin[0]+.8*len[0], origin[1]-.1*len[1], origin[2]);
-	glVertex3f(origin[0]+.8*len[0], origin[1], origin[2]-.1*len[2]);
+	glVertex3f(origin[0]+len,origin[1],origin[2]);
+	glVertex3f(origin[0]+.8*len, origin[1]-.1*len, origin[2]);
+	glVertex3f(origin[0]+.8*len, origin[1], origin[2]-.1*len);
 
-	glVertex3f(origin[0]+len[0],origin[1],origin[2]);
-	glVertex3f(origin[0]+.8*len[0], origin[1], origin[2]-.1*len[2]);
-	glVertex3f(origin[0]+.8*len[0], origin[1]+.1*len[1], origin[2]);
+	glVertex3f(origin[0]+len,origin[1],origin[2]);
+	glVertex3f(origin[0]+.8*len, origin[1], origin[2]-.1*len);
+	glVertex3f(origin[0]+.8*len, origin[1]+.1*len, origin[2]);
 	glEnd();
 
 	glColor3f(0.f,1.f,0.f);
 	glBegin(GL_LINES);
 	glVertex3fv(origin);
-	glVertex3f(origin[0],origin[1]+len[1],origin[2]);
+	glVertex3f(origin[0],origin[1]+len,origin[2]);
 	glEnd();
 	glBegin(GL_TRIANGLES);
-	glVertex3f(origin[0],origin[1]+len[1],origin[2]);
-	glVertex3f(origin[0]+.1*len[0], origin[1]+.8*len[1], origin[2]);
-	glVertex3f(origin[0], origin[1]+.8*len[1], origin[2]+.1*len[2]);
+	glVertex3f(origin[0],origin[1]+len,origin[2]);
+	glVertex3f(origin[0]+.1*len, origin[1]+.8*len, origin[2]);
+	glVertex3f(origin[0], origin[1]+.8*len, origin[2]+.1*len);
 
-	glVertex3f(origin[0],origin[1]+len[1],origin[2]);
-	glVertex3f(origin[0], origin[1]+.8*len[1], origin[2]+.1*len[2]);
-	glVertex3f(origin[0]-.1*len[0], origin[1]+.8*len[1], origin[2]);
+	glVertex3f(origin[0],origin[1]+len,origin[2]);
+	glVertex3f(origin[0], origin[1]+.8*len, origin[2]+.1*len);
+	glVertex3f(origin[0]-.1*len, origin[1]+.8*len, origin[2]);
 
-	glVertex3f(origin[0],origin[1]+len[1],origin[2]);
-	glVertex3f(origin[0]-.1*len[0], origin[1]+.8*len[1], origin[2]);
-	glVertex3f(origin[0], origin[1]+.8*len[1], origin[2]-.1*len[2]);
+	glVertex3f(origin[0],origin[1]+len,origin[2]);
+	glVertex3f(origin[0]-.1*len, origin[1]+.8*len, origin[2]);
+	glVertex3f(origin[0], origin[1]+.8*len, origin[2]-.1*len);
 
-	glVertex3f(origin[0],origin[1]+len[1],origin[2]);
-	glVertex3f(origin[0], origin[1]+.8*len[1], origin[2]-.1*len[2]);
-	glVertex3f(origin[0]+.1*len[0], origin[1]+.8*len[1], origin[2]);
+	glVertex3f(origin[0],origin[1]+len,origin[2]);
+	glVertex3f(origin[0], origin[1]+.8*len, origin[2]-.1*len);
+	glVertex3f(origin[0]+.1*len, origin[1]+.8*len, origin[2]);
 	glEnd();
 	glColor3f(0.f,0.3f,1.f);
 	glBegin(GL_LINES);
 	glVertex3fv(origin);
-	glVertex3f(origin[0],origin[1],origin[2]+len[2]);
+	glVertex3f(origin[0],origin[1],origin[2]+len);
 	glEnd();
 	glBegin(GL_TRIANGLES);
-	glVertex3f(origin[0],origin[1],origin[2]+len[2]);
-	glVertex3f(origin[0]+.1*len[0], origin[1], origin[2]+.8*len[2]);
-	glVertex3f(origin[0], origin[1]+.1*len[1], origin[2]+.8*len[2]);
+	glVertex3f(origin[0],origin[1],origin[2]+len);
+	glVertex3f(origin[0]+.1*len, origin[1], origin[2]+.8*len);
+	glVertex3f(origin[0], origin[1]+.1*len, origin[2]+.8*len);
 
-	glVertex3f(origin[0],origin[1],origin[2]+len[2]);
-	glVertex3f(origin[0], origin[1]+.1*len[1], origin[2]+.8*len[2]);
-	glVertex3f(origin[0]-.1*len[0], origin[1], origin[2]+.8*len[2]);
+	glVertex3f(origin[0],origin[1],origin[2]+len);
+	glVertex3f(origin[0], origin[1]+.1*len, origin[2]+.8*len);
+	glVertex3f(origin[0]-.1*len, origin[1], origin[2]+.8*len);
 
-	glVertex3f(origin[0],origin[1],origin[2]+len[2]);
-	glVertex3f(origin[0]-.1*len[0], origin[1], origin[2]+.8*len[2]);
-	glVertex3f(origin[0], origin[1]-.1*len[1], origin[2]+.8*len[2]);
+	glVertex3f(origin[0],origin[1],origin[2]+len);
+	glVertex3f(origin[0]-.1*len, origin[1], origin[2]+.8*len);
+	glVertex3f(origin[0], origin[1]-.1*len, origin[2]+.8*len);
 
-	glVertex3f(origin[0],origin[1],origin[2]+len[2]);
-	glVertex3f(origin[0], origin[1]-.1*len[1], origin[2]+.8*len[2]);
-	glVertex3f(origin[0]+.1*len[0], origin[1], origin[2]+.8*len[2]);
+	glVertex3f(origin[0],origin[1],origin[2]+len);
+	glVertex3f(origin[0], origin[1]-.1*len, origin[2]+.8*len);
+	glVertex3f(origin[0]+.1*len, origin[1], origin[2]+.8*len);
 	glEnd();
 }

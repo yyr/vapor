@@ -80,10 +80,13 @@ const string VizWinMgr::_visualizersTag = "Visualizers";
 const string VizWinMgr::_vizWinTag = "VizWindow";
 const string VizWinMgr::_vizWinNameAttr = "WindowName";
 const string VizWinMgr::_vizBgColorAttr = "BackgroundColor";
+const string VizWinMgr::_vizColorbarBackgroundColorAttr = "ColorbarBackgroundColor";
 const string VizWinMgr::_vizRegionColorAttr = "RegionFrameColor";
 const string VizWinMgr::_vizSubregionColorAttr = "SubregionFrameColor";
 const string VizWinMgr::_vizAxisPositionAttr = "AxisPosition";
-const string VizWinMgr::_vizColorbarPositionAttr = "ColorbarPosition";
+const string VizWinMgr::_vizColorbarLLPositionAttr = "ColorbarLLPosition";
+const string VizWinMgr::_vizColorbarURPositionAttr = "ColorbarURPosition";
+const string VizWinMgr::_vizColorbarNumTicsAttr = "ColorbarNumTics";
 const string VizWinMgr::_vizAxesEnabledAttr = "AxesEnabled";
 const string VizWinMgr::_vizColorbarEnabledAttr = "ColorbarEnabled";
 const string VizWinMgr::_vizRegionFrameEnabledAttr = "RegionFrameEnabled";
@@ -1718,6 +1721,13 @@ XmlNode* VizWinMgr::buildNode() {
 				<< (long)clr.green() << " "
 				<< (long)clr.blue();
 			attrs[_vizSubregionColorAttr] = oss.str();
+
+			oss.str(empty);
+			clr = vizWin[i]->getColorbarBackgroundColor();
+			oss << (long)clr.red() << " "
+				<< (long)clr.green() << " "
+				<< (long)clr.blue();
+			attrs[_vizColorbarBackgroundColorAttr] = oss.str();
 			
 			oss.str(empty);
 			if (vizWin[i]->axesAreEnabled()) oss<<"true";
@@ -1747,9 +1757,18 @@ XmlNode* VizWinMgr::buildNode() {
 			attrs[_vizColorbarEnabledAttr] = oss.str();
 
 			oss.str(empty);
-			oss << (int)vizWin[i]->getColorbarCoord(0) << " "
-				<< (int)vizWin[i]->getColorbarCoord(1);
-			attrs[_vizColorbarPositionAttr] = oss.str();
+			oss << (float)vizWin[i]->getColorbarLLCoord(0) << " "
+				<< (float)vizWin[i]->getColorbarLLCoord(1);
+			attrs[_vizColorbarLLPositionAttr] = oss.str();
+
+			oss.str(empty);
+			oss << (float)vizWin[i]->getColorbarURCoord(0) << " "
+				<< (float)vizWin[i]->getColorbarURCoord(1);
+			attrs[_vizColorbarURPositionAttr] = oss.str();
+
+			oss.str(empty);
+			oss << (int) vizWin[i]->getColorbarNumTics();
+			attrs[_vizColorbarNumTicsAttr] = oss.str();
 			
 			XmlNode* locals = vizMgrNode->NewChild(_vizWinTag, attrs, 5);
 			//Now add local params
@@ -1784,10 +1803,14 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 		QColor winBgColor(black);
 		QColor winRgColor(white);
 		QColor winSubrgColor(red);
+		QColor winColorbarColor(white);
 		float axisPos[3];
 		axisPos[0]=axisPos[1]=axisPos[2]=0.f;
-		int colorbarPos[2];
-		colorbarPos[0]=colorbarPos[1]=0;
+		float colorbarLLPos[2], colorbarURPos[2];
+		colorbarLLPos[0]=colorbarLLPos[1]=0.f;
+		colorbarURPos[0]=0.1f;
+		colorbarURPos[1]=0.3f;
+		int colorbarTics = 11;
 		bool axesEnabled = false;
 		bool colorbarEnabled = false;
 		bool regionEnabled = false;
@@ -1815,11 +1838,22 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 				ist >> r; ist>>g; ist>>b;
 				winSubrgColor.setRgb(r,g,b);
 			}
+			else if (StrCmpNoCase(attr, _vizColorbarBackgroundColorAttr) == 0) {
+				int r,g,b;
+				ist >> r; ist>>g; ist>>b;
+				winColorbarColor.setRgb(r,g,b);
+			}
 			else if (StrCmpNoCase(attr, _vizAxisPositionAttr) == 0) {
 				ist >> axisPos[0]; ist>>axisPos[1]; ist>>axisPos[2];
 			}
-			else if (StrCmpNoCase(attr, _vizColorbarPositionAttr) == 0) {
-				ist >> colorbarPos[0]; ist>>colorbarPos[1];
+			else if (StrCmpNoCase(attr, _vizColorbarNumTicsAttr) == 0) {
+				ist >> colorbarTics;
+			}
+			else if (StrCmpNoCase(attr, _vizColorbarLLPositionAttr) == 0) {
+				ist >> colorbarLLPos[0]; ist>>colorbarLLPos[1];
+			}
+			else if (StrCmpNoCase(attr, _vizColorbarURPositionAttr) == 0) {
+				ist >> colorbarURPos[0]; ist>>colorbarURPos[1];
 			}
 			else if (StrCmpNoCase(attr, _vizAxesEnabledAttr) == 0) {
 				if (value == "true") axesEnabled = true; 
@@ -1843,6 +1877,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 		vizWin[parsingVizNum]->setBackgroundColor(winBgColor);
 		vizWin[parsingVizNum]->setRegionFrameColor(winRgColor);
 		vizWin[parsingVizNum]->setSubregionFrameColor(winSubrgColor);
+		vizWin[parsingVizNum]->setColorbarBackgroundColor(winColorbarColor);
 		vizWin[parsingVizNum]->enableAxes(axesEnabled);
 		vizWin[parsingVizNum]->enableColorbar(colorbarEnabled);
 		vizWin[parsingVizNum]->enableRegionFrame(regionEnabled);
@@ -1850,8 +1885,12 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 		for (int j = 0; j< 3; j++){
 			vizWin[parsingVizNum]->setAxisCoord(j, axisPos[j]);
 		}
-		vizWin[parsingVizNum]->setColorbarCoord(0, colorbarPos[0]);
-		vizWin[parsingVizNum]->setColorbarCoord(1, colorbarPos[1]);
+		vizWin[parsingVizNum]->setColorbarLLCoord(0, colorbarLLPos[0]);
+		vizWin[parsingVizNum]->setColorbarLLCoord(1, colorbarLLPos[1]);
+		vizWin[parsingVizNum]->setColorbarURCoord(0, colorbarURPos[0]);
+		vizWin[parsingVizNum]->setColorbarURCoord(1, colorbarURPos[1]);
+		vizWin[parsingVizNum]->setColorbarNumTics(colorbarTics);
+		
 		return true;
 		}
 	case(3):

@@ -214,7 +214,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	if(myVizWin->subregionFrameIsEnabled()&& !(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode)){
 		drawSubregionBounds(extents);
 	} 
-	if (myVizWin->axesAreEnabled()) drawAxes(minFull, maxFull);
+	if (myVizWin->axesAreEnabled()) drawAxes(extents);
 	//This works around a volumizer/opengl bug!!!
 	//If you issue a non-unit glColor before the volume rendering, it 
 	//affects the subsequent volume rendering on Irix, but not on

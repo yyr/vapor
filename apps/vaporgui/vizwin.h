@@ -124,17 +124,22 @@ public:
 	void doFrameCapture();
 
 	//Access visualizer features
-	void setBackgroundColor(QColor& c) {backgroundColor = c;}
+	
 	QColor& getBackgroundColor() {return backgroundColor;}
 	QColor& getRegionFrameColor() {return regionFrameColor;}
 	QColor& getSubregionFrameColor() {return subregionFrameColor;}
+	QColor& getColorbarBackgroundColor() {return colorbarBackgroundColor;}
 	bool axesAreEnabled() {return axesEnabled;}
 	bool colorbarIsEnabled() {return colorbarEnabled;}
 	bool regionFrameIsEnabled() {return regionFrameEnabled;}
 	bool subregionFrameIsEnabled() {return subregionFrameEnabled;}
 	float getAxisCoord(int i){return axisCoord[i];}
-	int getColorbarCoord(int i) {return colorbarCoord[i];}
+	float getColorbarLLCoord(int i) {return colorbarLLCoord[i];}
+	float getColorbarURCoord(int i) {return colorbarLLCoord[i];}
+	float getColorbarNumTics() {return numColorbarTics;}
 
+	void setBackgroundColor(QColor& c) {backgroundColor = c;}
+	void setColorbarBackgroundColor(QColor& c) {colorbarBackgroundColor = c;}
 	void setRegionFrameColor(QColor& c) {regionFrameColor = c;}
 	void setSubregionFrameColor(QColor& c) {subregionFrameColor = c;}
 	void enableAxes(bool enable) {axesEnabled = enable;}
@@ -142,7 +147,9 @@ public:
 	void enableRegionFrame(bool enable) {regionFrameEnabled = enable;}
 	void enableSubregionFrame(bool enable) {subregionFrameEnabled = enable;}
 	void setAxisCoord(int i, float val){axisCoord[i] = val;}
-	void setColorbarCoord(int i, int crd) {colorbarCoord[i] = crd;}
+	void setColorbarLLCoord(int i, float crd) {colorbarLLCoord[i] = crd;}
+	void setColorbarURCoord(int i, float crd) {colorbarURCoord[i] = crd;}
+	void setColorbarNumTics(int i) {numColorbarTics = i;}
 	
 protected:
 	//Following flag is set whenever there is mouse navigation, so that we can use 
@@ -174,12 +181,15 @@ protected:
 	QColor backgroundColor;
 	QColor regionFrameColor;
 	QColor subregionFrameColor;
+	QColor colorbarBackgroundColor;
 	bool axesEnabled;
 	bool regionFrameEnabled;
 	bool subregionFrameEnabled;
 	bool colorbarEnabled;
 	float axisCoord[3];
-	int colorbarCoord[2];
+	float colorbarLLCoord[2];
+	float colorbarURCoord[2];
+	int numColorbarTics;
 	
 public slots:
     

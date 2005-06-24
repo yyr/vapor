@@ -259,8 +259,11 @@ protected:
 	static const string _vizBgColorAttr;
 	static const string _vizRegionColorAttr;
 	static const string _vizSubregionColorAttr;
+	static const string _vizColorbarBackgroundColorAttr;
 	static const string _vizAxisPositionAttr;
-	static const string _vizColorbarPositionAttr;
+	static const string _vizColorbarLLPositionAttr;
+	static const string _vizColorbarURPositionAttr;
+	static const string _vizColorbarNumTicsAttr;
 	static const string _vizAxesEnabledAttr;
 	static const string _vizColorbarEnabledAttr;
 	static const string _vizRegionFrameEnabledAttr;

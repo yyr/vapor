@@ -123,7 +123,7 @@ void Session::init() {
 	currentJpegDirectory = "C:\\temp";
 #else
 	cacheMB = 1024;
-	currentMetadataFile = "/cxfs/w4/clyne/wavelet";
+	currentMetadataFile = "*.vdf";
 	currentJpegDirectory = "/tmp";	
 #endif
 	currentExportFile = ImpExp::GetPath();

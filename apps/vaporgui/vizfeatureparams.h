@@ -51,6 +51,7 @@ protected slots:
 	void selectRegionFrameColor();
 	void selectSubregionFrameColor();
 	void selectBackgroundColor();
+	void selectColorbarBackgroundColor();
 	
 protected:
 	//Copy data from vizwin to and from dialog (shadowed in this class)
@@ -71,10 +72,13 @@ protected:
 	bool showRegion;
 	bool showSubregion;
 	float axisCoords[3];
-	int colorbarCoords[2];
+	float colorbarLLCoords[2];
+	float colorbarURCoords[2];
+	int numColorbarTics;
 	QColor backgroundColor;
 	QColor regionFrameColor;
 	QColor subregionFrameColor;
+	QColor colorbarBackgroundColor;
 	
 	
 	

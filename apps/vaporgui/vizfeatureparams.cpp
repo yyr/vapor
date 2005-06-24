@@ -50,9 +50,13 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	axisCoords[0] = vfParams.axisCoords[0];
 	axisCoords[1] = vfParams.axisCoords[1];
 	axisCoords[2] = vfParams.axisCoords[2];
-	colorbarCoords[0] = vfParams.colorbarCoords[0];
-	colorbarCoords[1] = vfParams.colorbarCoords[1];
+	colorbarLLCoords[0] = vfParams.colorbarLLCoords[0];
+	colorbarLLCoords[1] = vfParams.colorbarLLCoords[1];
+	colorbarURCoords[0] = vfParams.colorbarURCoords[0];
+	colorbarURCoords[1] = vfParams.colorbarURCoords[1];
+	numColorbarTics = vfParams.numColorbarTics;
 	backgroundColor = vfParams.backgroundColor;
+	colorbarBackgroundColor = vfParams.colorbarBackgroundColor;
 	regionFrameColor = vfParams.regionFrameColor;
 	subregionFrameColor = vfParams.subregionFrameColor;
 }
@@ -74,12 +78,17 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->backgroundColorButton, SIGNAL(clicked()), this, SLOT(selectBackgroundColor()));
 	connect (vizFeatureDlg->regionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectRegionFrameColor()));
 	connect (vizFeatureDlg->subregionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectSubregionFrameColor()));
-	connect (vizFeatureDlg->vizNameEdit, SIGNAL(returnPressed()), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->axisXEdit, SIGNAL(returnPressed()), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->axisYEdit, SIGNAL(returnPressed()), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->axisZEdit, SIGNAL(returnPressed()), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->colorbarXEdit, SIGNAL(returnPressed()), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->colorbarYEdit, SIGNAL(returnPressed()), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->vizNameEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	
+	connect (vizFeatureDlg->axisXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->axisYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->axisZEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->colorbarLLXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->colorbarLLYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->colorbarURXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->colorbarURYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->numTicsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->colorbarBackgroundButton, SIGNAL(clicked()), this, SLOT(selectColorbarBackgroundColor()));
 	connect (vizFeatureDlg->axisCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->regionCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->subregionCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
@@ -104,11 +113,12 @@ void VizFeatureParams::launch(){
 	delete vizFeatureDlg;
 	vizFeatureDlg = 0;
 }
-//Slot to respond to user pressing "enter" in textbox, or making other change
+//Slots to identify that a change has occurred
 void VizFeatureParams::
 panelChanged(){
 	dialogChanged = true;
 }
+
 //Slot to respond to user changing selected visualizer in combo box
 void VizFeatureParams::
 visualizerSelected(int comboIndex){
@@ -152,6 +162,13 @@ selectBackgroundColor(){
 	vizFeatureDlg->backgroundColorButton->setPaletteBackgroundColor(bgColor);
 	dialogChanged = true;
 }
+void VizFeatureParams::
+selectColorbarBackgroundColor(){
+	//Launch colorselector, put result into the button
+	QColor bgColor = QColorDialog::getColor(colorbarBackgroundColor,0,0);
+	vizFeatureDlg->colorbarBackgroundButton->setPaletteBackgroundColor(bgColor);
+	dialogChanged = true;
+}
 	
 //Copy values into 'this' and into the dialog, using current comboIndex
 //Also set up the visualizer combo
@@ -180,10 +197,14 @@ setDialog(){
 	vizFeatureDlg->axisYEdit->setText(QString::number(axisCoords[1]));
 	vizFeatureDlg->axisZEdit->setText(QString::number(axisCoords[2]));
 	
-	colorbarCoords[0] = vizWin->getColorbarCoord(0);
-	colorbarCoords[1] = vizWin->getColorbarCoord(1);
-	vizFeatureDlg->colorbarXEdit->setText(QString::number(colorbarCoords[0]));
-	vizFeatureDlg->colorbarYEdit->setText(QString::number(colorbarCoords[1]));
+	colorbarLLCoords[0] = vizWin->getColorbarLLCoord(0);
+	colorbarLLCoords[1] = vizWin->getColorbarLLCoord(1);
+	vizFeatureDlg->colorbarLLXEdit->setText(QString::number(colorbarLLCoords[0]));
+	vizFeatureDlg->colorbarLLYEdit->setText(QString::number(colorbarLLCoords[1]));
+	colorbarURCoords[0] = vizWin->getColorbarURCoord(0);
+	colorbarURCoords[1] = vizWin->getColorbarURCoord(1);
+	vizFeatureDlg->colorbarURXEdit->setText(QString::number(colorbarURCoords[0]));
+	vizFeatureDlg->colorbarURYEdit->setText(QString::number(colorbarURCoords[1]));
 
 	
 	showBar = vizWin->colorbarIsEnabled();
@@ -222,8 +243,10 @@ copyFromDialog(){
 	axisCoords[1] = vizFeatureDlg->axisYEdit->text().toFloat();
 	axisCoords[2] = vizFeatureDlg->axisZEdit->text().toFloat();
 	
-	colorbarCoords[0] = vizFeatureDlg->colorbarXEdit->text().toInt();
-	colorbarCoords[1] = vizFeatureDlg->colorbarYEdit->text().toInt();
+	colorbarLLCoords[0] = vizFeatureDlg->colorbarLLXEdit->text().toFloat();
+	colorbarLLCoords[1] = vizFeatureDlg->colorbarLLYEdit->text().toFloat();
+	colorbarURCoords[0] = vizFeatureDlg->colorbarURXEdit->text().toFloat();
+	colorbarURCoords[1] = vizFeatureDlg->colorbarURYEdit->text().toFloat();
 	
 	showBar = vizFeatureDlg->colorbarCheckbox->isChecked();
 	showAxes = vizFeatureDlg->axisCheckbox->isChecked();
@@ -249,8 +272,10 @@ applyToViz(int vizNum){
 	for (i = 0; i<3; i++){
 		vizWin->setAxisCoord(i, axisCoords[i]);
 	}
-	vizWin->setColorbarCoord(0,colorbarCoords[0]);
-	vizWin->setColorbarCoord(1,colorbarCoords[1]);
+	vizWin->setColorbarLLCoord(0,colorbarLLCoords[0]);
+	vizWin->setColorbarLLCoord(1,colorbarLLCoords[1]);
+	vizWin->setColorbarURCoord(0,colorbarURCoords[0]);
+	vizWin->setColorbarURCoord(1,colorbarURCoords[1]);
 	vizWin->enableColorbar(showBar);
 	vizWin->enableAxes(showAxes);
 	vizWin->enableRegionFrame(showRegion);
