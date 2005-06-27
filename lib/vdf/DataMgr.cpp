@@ -46,7 +46,7 @@ int	DataMgr::_DataMgr(
 		assert(range != NULL);
 
 		range[0] = 0.0;
-		range[1] = 1.0;
+		range[1] = 0.0;
 
 		// Use of []'s creates an entry in map
 		_dataRangeMap[varnames[i]] = range;
@@ -177,6 +177,7 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	size_t num_xforms,
 	const size_t min[3],
 	const size_t max[3],
+	const float range[2],
 	int lock
 ) {
 	unsigned char	*ublks = NULL;
@@ -186,10 +187,17 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	int	x,y,z;
 
 	SetDiagMsg(
-		"DataMgr::GetRegionUInt8(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d)",
-		ts,varname,num_xforms,min[0],min[1],min[2],max[0],max[1],max[2],lock
+		"DataMgr::GetRegionUInt8(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],[%f,%f],%d)",
+		ts,varname,num_xforms,min[0],min[1],min[2],max[0],max[1],max[2],
+		range[0], range[1], lock
 	);
 
+	// 
+	// Set the data range for the quantization mapping. This operation 
+	// is a no-op if the value specified does not differ from the
+	// current mapping for this variable.
+	//
+	if (set_data_range(varname, range) < 0) return (NULL);
 
 	ublks = (unsigned char *) get_region_from_cache(
 		ts, varname, num_xforms, DataMgr::UINT8, min, max, lock
@@ -209,12 +217,6 @@ unsigned char	*DataMgr::GetRegionUInt8(
 
 	// Quantize the floating point data;
 
-	map <string, float *>::iterator p;
-	p = _dataRangeMap.find(varname);
-	assert (p != _dataRangeMap.end());
-
-	float *datarange = p->second;
-
 	fptr = blks;
 	ucptr = ublks;
 
@@ -229,10 +231,10 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	for(x=0;x<nx;x++) {
 		double	f;
 
-		if (*fptr < datarange[0]) *ucptr = 0;
-		else if (*fptr > datarange[1]) *ucptr = 255;
+		if (*fptr < range[0]) *ucptr = 0;
+		else if (*fptr > range[1]) *ucptr = 255;
 		else {
-			f = (*fptr - datarange[0]) / (datarange[1] - datarange[0]) * 255;
+			f = (*fptr - range[0]) / (range[1] - range[0]) * 255;
 			*ucptr = (unsigned char) rint(f);
 		}
 		ucptr++;
@@ -248,36 +250,8 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	return(ublks);
 }
 
-int	DataMgr::SetDataRange(const char *varname, float range[2]) {
-	string varstr = varname;
-	float *rangeptr;
 
-	SetDiagMsg("DataMgr::SetDataRange(%s, [%f,%f])",varname,range[0],range[1]);
-
-	map <string, float *>::iterator p;
-	p = _dataRangeMap.find(varname);
-
-	if (p == _dataRangeMap.end()) {
-		SetErrMsg("Unknown variable : %s", varname);
-		return(-1);
-	}
-
-	rangeptr = p->second;
-	if (range[0] <= range[1]) {
-		rangeptr[0] = range[0];
-		rangeptr[1] = range[1];
-	}
-	else {
-		rangeptr[0] = range[1];
-		rangeptr[1] = range[0];
-	}
-	
-	// Invalidate the cache of quantized quantities
-	//
-	free_var(varstr, 0);
-	return(0);
-}
-
+#ifdef	DEAD
 const float	*DataMgr::GetDataRange(const char *varname) const {
 
 	map <string, float *>::const_iterator p;
@@ -290,6 +264,7 @@ const float	*DataMgr::GetDataRange(const char *varname) const {
 
 	return(p->second);
 }
+#endif
 	
 int	DataMgr::UnlockRegion(
 	float *blks
@@ -638,5 +613,35 @@ int	DataMgr::free_lru(
 
 	delete regptr;
 
+	return(0);
+}
+
+int	DataMgr::set_data_range(const char *varname, const float range[2]) {
+	string varstr = varname;
+	float *rangeptr;
+
+	map <string, float *>::iterator p;
+	p = _dataRangeMap.find(varname);
+
+	if (p == _dataRangeMap.end()) {
+		SetErrMsg("Unknown variable : %s", varname);
+		return(-1);
+	}
+
+	rangeptr = p->second;
+	if (range[0] <= range[1]) {
+		if (range[0] == rangeptr[0] && range[1] == rangeptr[1]) return(0);
+		rangeptr[0] = range[0];
+		rangeptr[1] = range[1];
+	}
+	else {
+		if (range[0] == rangeptr[1] && range[1] == rangeptr[0]) return(0);
+		rangeptr[0] = range[1];
+		rangeptr[1] = range[0];
+	}
+	
+	// Invalidate the cache of quantized quantities
+	//
+	free_var(varstr, 0);
 	return(0);
 }

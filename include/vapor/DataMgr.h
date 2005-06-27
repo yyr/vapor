@@ -119,9 +119,25 @@ public:
  //! Read in, quantize and return a subregion from the multiresolution dataset
  //!
  //! This method is identical to the GetRegion() method except that the
- //! data are returned as quantized, 8-bit unsigned integers. The quantization
- //! mapping applied is controlled by the SetDataRange() method.
+ //! data are returned as quantized, 8-bit unsigned integers. 
+ //! Regions with integer data types are created by quantizing
+ //! native floating point representations such that floating values
+ //! less than or equal to \p range[0] are mapped to min, and values 
+ //! greater than or equal to \p range[1] are mapped to max, where "min" and
+ //! "max" are the minimum and maximum values that may be represented 
+ //! by the integer type. For example, for 8-bit, unsigned ints min is 0
+ //! and max is 255. Floating point values between \p range[0] and \p range[1]
+ //! are linearly interpolated between min and max.
  //!
+ //! \param[in] ts A valid time step from the Metadata object used 
+ //! to initialize the class
+ //! \param[in] varname A valid variable name 
+ //! \param[in] num_xforms Transformation number requested
+ //! \param[in] min Minimum region bounds in blocks
+ //! \param[in] max Maximum region bounds in blocks
+ //! \param[in] range A two-element vector specifying the minimum and maximum
+ //! quantization mapping. 
+ //! \param[in] lock If true, the memory region will be locked into the 
  //! \retval ptr A pointer to a region containing the desired data, 
  //! quantized to 8 bits, or NULL
  //! if the region can not be extracted.
@@ -133,29 +149,12 @@ public:
     size_t num_xforms,
     const size_t min[3],
     const size_t max[3],
+	const float range[2],
     int lock = 0
 );
 
- //! Specify the quantization bounds for non-floating point (integer)
- //! regions. 
- //!
- //! Regions with integer data types are created by quantizing
- //! native floating point representations such that floating values
- //! less than or equal to \p range[0] are mapped to min, and values 
- //! greater than or equal to \p range[1] are mapped to max, where "min" and
- //! "max" are the minimum and maximum values that may be represented 
- //! by the integer type. For example, for 8-bit, unsigned ints min is 0
- //! and max is 255. Floating point values between \p range[0] and \p range[1]
- //! are linearly interpolated between min and max.
- //!
- //! \param[in] varname Name of variable to which data range applies
- //! \param[in] range A two-element vector specifying the minimum and maximum
- //! quantization mapping. 
- //! \retval status Returns a non-negative value on success
- //! \sa GetRegionUInt8(), GetDataRange()
- //
- int	SetDataRange(const char *varname, float range[2]);
 
+#ifdef	DEAD
  //! Return the current data range as a two-element array
  //!
  //! \param[in] varname Name of variable to which data range applies
@@ -165,6 +164,7 @@ public:
  //! \sa SetDataRange()
  //
  const float	*GetDataRange(const char *varname) const;
+#endif
 
  //! Unlock a floating-point region of memory 
  //!
@@ -273,6 +273,8 @@ private:
 	const size_t min[3],
 	const size_t max[3]
  );
+
+ int	set_data_range(const char *varname, const float range[2]);
 
  void	free_all();
  void	free_var(const string &, int do_native);
