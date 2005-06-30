@@ -1025,7 +1025,7 @@ $(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\sessionparameters.h -o ..\..\..\a
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing vizfeatures.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.ui&quot; -o &quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.ui&quot; -i &quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot; -o &quot;..\..\..\apps\vaporgui\ui\vizfeatures.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_vizfeatures.cpp&quot;
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.ui&quot; -o &quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.ui&quot; -i &quot;vizfeatures.h&quot; -o &quot;..\..\..\apps\vaporgui\ui\vizfeatures.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_vizfeatures.cpp&quot;
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot;;&quot;..\..\..\apps\vaporgui\ui\vizfeatures.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_vizfeatures.cpp&quot;"/>
@@ -1035,7 +1035,7 @@ $(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\ui\sessionparameters.h -o ..\..\..\a
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Uic&apos;ing vizfeatures.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.ui&quot; -o &quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.ui&quot; -i &quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot; -o &quot;..\..\..\apps\vaporgui\ui\vizfeatures.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_vizfeatures.cpp&quot;
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.ui&quot; -o &quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.ui&quot; -i &quot;vizfeatures.h&quot; -o &quot;..\..\..\apps\vaporgui\ui\vizfeatures.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_vizfeatures.cpp&quot;
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
 						Outputs="&quot;..\..\..\apps\vaporgui\ui\vizfeatures.h&quot;;&quot;..\..\..\apps\vaporgui\ui\vizfeatures.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_vizfeatures.cpp&quot;"/>
