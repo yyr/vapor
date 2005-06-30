@@ -390,8 +390,12 @@ mouseEditStart(QMouseEvent* e){
 	editor->removeConstrainedGrab();
 		
 	//Make changes in selection:
-	
-	if (type == 0) { //New control point, create, select it:
+	//Turn off left-mouse creation:
+
+	if (type == 0) { 
+		return;
+		/*
+		//New control point, create, select it:
 		if (e->y() >= (height() - BARHEIGHT - COORDMARGIN -SEPARATOR/2)){
 			//new color control point, modify index
 			index = editor->insertColorControlPoint(e->x());
@@ -409,7 +413,7 @@ mouseEditStart(QMouseEvent* e){
 				type = -1;
 			}
 		}
-		
+		*/
 	}
 	//Possibly prepare for unselecting a selected point.
 	//If the user ctrl-clicks without dragging a selected
