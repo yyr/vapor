@@ -441,7 +441,7 @@ exportData(){
 		assert(maxCoords[i] <= (size_t)(r->getFullSize(i) -1));
 	}
 	
-	int rc = exporter.Export(currentExportFile,
+	int rc = exporter.Export(currentMetadataFile,
 		currentFrame,
 		d->getStdVariableName(),
 		minCoords,
