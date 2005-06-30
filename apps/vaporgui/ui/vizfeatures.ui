@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>400</width>
-            <height>691</height>
+            <width>411</width>
+            <height>692</height>
         </rect>
     </property>
     <property name="caption">
@@ -20,14 +20,14 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout21</cstring>
+            <cstring>layout17</cstring>
         </property>
         <property name="geometry">
             <rect>
-                <x>20</x>
-                <y>23</y>
-                <width>366</width>
-                <height>654</height>
+                <x>21</x>
+                <y>24</y>
+                <width>370</width>
+                <height>656</height>
             </rect>
         </property>
         <vbox>
@@ -64,7 +64,7 @@
                             <cstring>textLabel1</cstring>
                         </property>
                         <property name="text">
-                            <string>Current Visualizer</string>
+                            <string>Apply to Visualizer</string>
                         </property>
                     </widget>
                     <widget class="QComboBox">
@@ -943,17 +943,11 @@
             </spacer>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>Layout1</cstring>
+                    <cstring>layout16</cstring>
                 </property>
                 <hbox>
                     <property name="name">
                         <cstring>unnamed</cstring>
-                    </property>
-                    <property name="margin">
-                        <number>0</number>
-                    </property>
-                    <property name="spacing">
-                        <number>6</number>
                     </property>
                     <widget class="QPushButton">
                         <property name="name">
@@ -972,23 +966,20 @@
                             <bool>false</bool>
                         </property>
                     </widget>
-                    <spacer>
+                    <widget class="QPushButton">
                         <property name="name">
-                            <cstring>Horizontal Spacing2</cstring>
+                            <cstring>applyButton</cstring>
                         </property>
-                        <property name="orientation">
-                            <enum>Horizontal</enum>
+                        <property name="text">
+                            <string>Apply</string>
                         </property>
-                        <property name="sizeType">
-                            <enum>Expanding</enum>
+                        <property name="accel">
+                            <string></string>
                         </property>
-                        <property name="sizeHint">
-                            <size>
-                                <width>20</width>
-                                <height>20</height>
-                            </size>
+                        <property name="autoDefault">
+                            <bool>false</bool>
                         </property>
-                    </spacer>
+                    </widget>
                     <widget class="QPushButton">
                         <property name="name">
                             <cstring>buttonOk</cstring>
