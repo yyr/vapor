@@ -472,6 +472,7 @@ buildColorscaleImage(){
 	//Setup font:
 	int numtics = myVizWin->getColorbarNumTics();
 	int textHeight = imgHeight/(2*numtics);
+	if (textHeight > imgHeight/15) textHeight = imgHeight/15;
 	QFont textFont;
 	textFont.setPixelSize(textHeight);
 	painter.setFont(textFont);

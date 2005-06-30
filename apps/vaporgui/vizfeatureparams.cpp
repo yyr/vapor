@@ -93,6 +93,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->regionCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->subregionCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->applyButton, SIGNAL(clicked()), this, SLOT(applySettings()));
 	
 	
 	
@@ -118,7 +119,15 @@ void VizFeatureParams::
 panelChanged(){
 	dialogChanged = true;
 }
-
+//Respond to clicking "apply" button
+//
+void VizFeatureParams::
+applySettings(){
+	if (dialogChanged){
+		copyFromDialog();
+		dialogChanged = false;
+	}
+}
 //Slot to respond to user changing selected visualizer in combo box
 void VizFeatureParams::
 visualizerSelected(int comboIndex){
@@ -206,7 +215,8 @@ setDialog(){
 	vizFeatureDlg->colorbarXSizeEdit->setText(QString::number(colorbarURCoords[0]-colorbarLLCoords[0]));
 	vizFeatureDlg->colorbarYSizeEdit->setText(QString::number(colorbarURCoords[1]-colorbarLLCoords[1]));
 
-	
+	numColorbarTics = vizWin->getColorbarNumTics();
+	vizFeatureDlg->numTicsEdit->setText(QString::number(numColorbarTics));
 	showBar = vizWin->colorbarIsEnabled();
 	vizFeatureDlg->colorbarCheckbox->setChecked(showBar);
 	showAxes = vizWin->axesAreEnabled();

@@ -52,6 +52,7 @@ protected slots:
 	void selectSubregionFrameColor();
 	void selectBackgroundColor();
 	void selectColorbarBackgroundColor();
+	void applySettings();
 	
 protected:
 	//Copy data from vizwin to and from dialog (shadowed in this class)

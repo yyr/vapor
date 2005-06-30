@@ -95,13 +95,13 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	backgroundColor =  QColor(black);
 	regionFrameColor = QColor(white);
 	subregionFrameColor = QColor(red);
-	colorbarBackgroundColor = QColor(white);
+	colorbarBackgroundColor = QColor(black);
 	axesEnabled = false;
 	regionFrameEnabled = false;
 	subregionFrameEnabled = false;
 	colorbarEnabled = false;
 	for (i = 0; i<3; i++)
-	    axisCoord[i] = -.05f;
+	    axisCoord[i] = -0.f;
 	colorbarLLCoord[0] = 0.1f;
 	colorbarLLCoord[1] = 0.1f;
 	colorbarURCoord[0] = 0.3f;
