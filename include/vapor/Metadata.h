@@ -33,6 +33,8 @@ namespace VAPoR {
 		return(RETVAL); \
 	}
 
+const int VDF_VERSION = 1;
+
 //
 //! \class Metadata
 //! \brief A class for managing data set metadata
@@ -59,7 +61,7 @@ namespace VAPoR {
 //!	with the GetErrCode() method. If non-zero, an error 
 //!	message can be retrieved with GetErrMsg().
 //!
-	class VDF_API Metadata : public VetsUtil::MyBase , public ParsedXml {
+class VDF_API Metadata : public VetsUtil::MyBase , public ParsedXml {
 public:
 
  //! Create a metadata object from scratch. 
@@ -76,10 +78,13 @@ public:
  //! \param[in] msbFirst Boolean, if true storage order for volume data 
  //! will be
  //! most significant byte fist (i.e. big endian).
+ //! \param[in] vdfVersion VDF file version number. In general this
+ //! should not be changed from the default
  //
  Metadata(
 	const size_t dim[3], size_t numTransforms, size_t bs = 32, 
-	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst =  1
+	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst =  1,
+	int vdfVersion = VDF_VERSION
 	);
 
  //! Create a metadata object from a metadata file stored on disk. 
@@ -145,6 +150,11 @@ public:
  //! \retval _msbFirst Booean
  //
  int GetMSBFirst() const { return(_msbFirst); }
+
+ //! Returns vdf file version number
+ //! \retval _vdfVersion Version number
+ //
+ int GetVDFVersion() const { return(_vdfVersion); }
 
 
  //------------------------------------------------------------------
@@ -763,6 +773,7 @@ private:
  int	_nLiftingCoef;
  int	_numTransforms;		// Number of wavelet transforms
  int	_msbFirst;			// Most Significant Byte First storage order
+ int	_vdfVersion;		// VDF file version number
  char	*_metafileDirName;	// path to metafile parent directory
  char	*_metafileName;		// basename of path to metafile 
 
@@ -801,6 +812,7 @@ private:
  static const string _filterCoefficientsAttr;
  static const string _liftingCoefficientsAttr;
  static const string _msbFirstAttr;
+ static const string _vdfVersionAttr;
  static const string _numChildrenAttr;
  
 
@@ -820,7 +832,8 @@ private:
 
  int _init(
 	const size_t dim[3], size_t numTransforms, size_t bs = 32, 
-	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst = 1
+	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst = 1,
+	int vdfVersion = VDF_VERSION
 	);
 
  int _SetNumTimeSteps(long value);

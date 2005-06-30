@@ -482,6 +482,7 @@ private:
  FILE	*file_ptrs_c[MAX_LEVELS+1];
  float	*mins_c[MAX_LEVELS];	// min value contained in a block
  float	*maxs_c[MAX_LEVELS];	// max value contained in a block
+ long	_fileOffsets[MAX_LEVELS];	// seek offsets to the start of data
 
  double	read_timer_c;
  double	write_timer_c;
@@ -502,6 +503,7 @@ private:
  int	verify(int a, int b);
  int	my_alloc();
  void	my_free();
+ int	get_file_offset(size_t level);
 
  int	_WaveletBlock3DIO(
 	const VAPoR::Metadata *metadata,

@@ -60,6 +60,7 @@ const string Metadata::_numTransformsAttr = "NumTransforms";
 const string Metadata::_filterCoefficientsAttr = "FilterCoefficients";
 const string Metadata::_liftingCoefficientsAttr = "LiftingCoefficients";
 const string Metadata::_msbFirstAttr = "MSBFirst";
+const string Metadata::_vdfVersionAttr = "VDFVersion";
 const string Metadata::_numChildrenAttr = "NumChildren";
 
 
@@ -67,7 +68,7 @@ const string Metadata::_numChildrenAttr = "NumChildren";
 //
 int Metadata::_init(
 		const size_t dim[3], size_t numTransforms, size_t bs,
-		int nFilterCoef, int nLiftingCoef, int msbFirst
+		int nFilterCoef, int nLiftingCoef, int msbFirst, int vdfVersion
 ) {
 	map <string, string> attrs;
 	ostringstream oss;
@@ -90,6 +91,7 @@ int Metadata::_init(
 	_nFilterCoef = nFilterCoef;
 	_nLiftingCoef = nLiftingCoef;
 	_msbFirst = msbFirst;
+	_vdfVersion = vdfVersion;
 
 	_varNames.clear();
 
@@ -116,6 +118,10 @@ int Metadata::_init(
 	oss.str(empty);
 	oss << _msbFirst;
 	attrs[_msbFirstAttr] = oss.str();
+
+	oss.str(empty);
+	oss << _vdfVersion;
+	attrs[_vdfVersionAttr] = oss.str();
 
 
 	// Create the root node of an xml tree. The node is named (tagged)
@@ -155,20 +161,20 @@ int Metadata::_init(
 
 Metadata::Metadata(
 		const size_t dim[3], size_t numTransforms, size_t bs, 
-		int nFilterCoef, int nLiftingCoef, int msbFirst
+		int nFilterCoef, int nLiftingCoef, int msbFirst, int vdfVersion
 ) {
 	_objInitialized = 0;
 	SetDiagMsg(
-		"Metadata::Metadata([%d,%d,%d], %d, %d, %d, %d, %d)", 
+		"Metadata::Metadata([%d,%d,%d], %d, %d, %d, %d, %d, %d)", 
 		dim[0], dim[1], dim[2], numTransforms, bs, nFilterCoef, nLiftingCoef,
-		msbFirst
+		msbFirst, vdfVersion
 	);
 
 	_rootnode = NULL;
 	_metafileDirName = NULL;
 	_metafileName = NULL;
 
-	if (_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst) < 0){
+	if (_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst, vdfVersion) < 0){
 		return;
 	}
 	_objInitialized = 1;
@@ -640,6 +646,7 @@ void	Metadata::_startElementHandler0(ExpatParseMgr* pm,
 	int nFilterCoef = 1;
 	int nLiftingCoef = 1;
 	int msbFirst = 1;
+	int vdfVersion = VDF_VERSION;
 	int numTransforms = 0;
 
 
@@ -677,12 +684,15 @@ void	Metadata::_startElementHandler0(ExpatParseMgr* pm,
 		else if (StrCmpNoCase(attr, _msbFirstAttr) == 0) {
 			ist >> msbFirst;
 		}
+		else if (StrCmpNoCase(attr, _vdfVersionAttr) == 0) {
+			ist >> vdfVersion;
+		}
 		else {
 			pm->parseError("Invalid tag attribute : \"%s\"", attr.c_str());
 		}
 	}
 
-	_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst);
+	_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst, vdfVersion);
 	if (GetErrCode()) {
 		string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 		return;

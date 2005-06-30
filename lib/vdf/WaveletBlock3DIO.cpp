@@ -41,7 +41,10 @@ int	WaveletBlock3DIO::_WaveletBlock3DIO(
 		file_ptrs_c[j] = NULL;
 		mins_c[j] = NULL;
 		maxs_c[j] = NULL;
+		_fileOffsets[j] = 0;
 	}
+	file_ptrs_c[MAX_LEVELS] = NULL;	// file_ptrs_c is size MAX_LEVELS+1
+
 	super_block_c = NULL;
 	block_c = NULL;
 	wb3d_c = NULL;
@@ -57,6 +60,14 @@ int	WaveletBlock3DIO::_WaveletBlock3DIO(
 	n_c = metadata_c->GetFilterCoef();
 	max_xforms_c = metadata_c->GetNumTransforms();
 	_msbFirst = metadata_c->GetMSBFirst();
+
+	// Backwords compatibility for pre version 1 files
+	//
+	if (metadata_c->GetVDFVersion() < 1) {
+		for (j=0; j<max_xforms_c+1; j++) {
+			_fileOffsets[j] = get_file_offset(j);
+		}
+	}
 
 	GetDimBlk(0, bdim_c);
 
@@ -342,6 +353,13 @@ int	WaveletBlock3DIO::OpenVariableRead(
 				break;
 			}
 		}
+		if (_fileOffsets[j]) {	// seek to start of data
+			int rc = fseek(file_ptrs_c[j], _fileOffsets[j], SEEK_SET);
+			if (rc<0) {
+				SetErrMsg("fseek(%d) : %s",_fileOffsets[j],strerror(errno));
+				return(-1);
+			}
+		}
 	}
 	num_xforms_c = (int)num_xforms;
 
@@ -562,6 +580,7 @@ int	WaveletBlock3DIO::seekBlocks(
 	size_t level = max_xforms_c - num_xforms;
 
 	long long byteoffset = offset * block_size_c * sizeof(float);
+	byteoffset += _fileOffsets[level];
 
 	//cerr << level << " seeking " << offset << " blocks" << endl;
 
@@ -990,6 +1009,27 @@ void    WaveletBlock3DIO::swapbytescopy(
 	}
 }
 
+int	WaveletBlock3DIO::get_file_offset(
+	size_t level
+) {
+	int	fixed_part;
+	int	var_part;
+	size_t bdim[3];
+	const int BLOCK_FACTOR = 8192;
+	const int STATIC_HEADER_SIZE = 512;
+
+	int	minsize;
+
+	fixed_part = STATIC_HEADER_SIZE;
+
+	GetDimBlk(max_xforms_c-level, bdim);
+
+	minsize = bdim[0] * bdim[1] * bdim[2] * sizeof(float) * 2;
+
+	for(var_part = -fixed_part; var_part<(minsize + fixed_part); var_part += BLOCK_FACTOR);
+
+	return(fixed_part + var_part);
+}
 
 int    mkdirhier(const string &dir) {
 
@@ -1044,3 +1084,5 @@ void    dirname(const string &path, string &dir) {
 		dir = path.substr(0, idx+1);
 	}
 }
+
+
