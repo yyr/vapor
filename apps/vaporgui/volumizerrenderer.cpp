@@ -233,7 +233,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	
 	
 	// set up region. Only need to do this if the data
-	// roi changes
+	// roi changes, or if the datarange has changed.
 	//
 	if (myVizWin->regionIsDirty()|| myVizWin->dataRangeIsDirty()) {
 
@@ -241,15 +241,7 @@ DrawVoxelScene(unsigned /*fast*/)
 		
 		int	rc;
 		
-		
 		int nx,ny,nz;
-		if (myVizWin->dataRangeIsDirty()){
-			myDataMgr->SetDataRange(myDVRParams->getVariableName(),
-				myDVRParams->getCurrentDatarange());
-			myVizWin->setDataRangeDirty(false);
-		}
-		//Make sure we are using the current regionParams
-		
 		
 		//Do Region setup as in SetCurrentFile() (mdb.C):
 		//
@@ -263,6 +255,7 @@ DrawVoxelScene(unsigned /*fast*/)
 				numxforms,
 				min_bdim,
 				max_bdim,
+				myDVRParams->getCurrentDatarange(),
 				0 //Don't lock!
 			);
 		//Turn it back on:
@@ -319,7 +312,7 @@ DrawVoxelScene(unsigned /*fast*/)
 		//
 		driver->SetCLUT(myDVRParams->getClut());
 		driver->SetOLUT(myDVRParams->getClut());
-		myVizWin->setClutDirty(false);
+		
 	}
 	/* Attenuation is not supported yet...
 	if (myDVRParams->attenuationIsDirty()) {
@@ -356,9 +349,22 @@ DrawVoxelScene(unsigned /*fast*/)
 		renderRegionBounds(extents, selectedFace,
 			camVec, disp);
 	} 
-
-
-    glPopMatrix();
+	if(myVizWin->colorbarIsEnabled()){
+		//Now go to default 2D window
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		
+		renderColorscale(myVizWin->colorbarIsDirty()||myVizWin->clutIsDirty()||myVizWin->dataRangeIsDirty());
+	
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+	}
+	glPopMatrix();
+	myVizWin->setClutDirty(false);
+	myVizWin->setDataRangeDirty(false);
 	//Capture the image, if not navigating:
 	if (newRender && !myVizWin->mouseIsDown()) myVizWin->doFrameCapture();
 	if (isControlled) AnimationController::getInstance()->endRendering(winNum);

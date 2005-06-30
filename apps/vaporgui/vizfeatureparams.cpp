@@ -85,8 +85,8 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->axisZEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarLLXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarLLYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->colorbarURXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->colorbarURYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->colorbarXSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->colorbarYSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->numTicsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarBackgroundButton, SIGNAL(clicked()), this, SLOT(selectColorbarBackgroundColor()));
 	connect (vizFeatureDlg->axisCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
@@ -203,8 +203,8 @@ setDialog(){
 	vizFeatureDlg->colorbarLLYEdit->setText(QString::number(colorbarLLCoords[1]));
 	colorbarURCoords[0] = vizWin->getColorbarURCoord(0);
 	colorbarURCoords[1] = vizWin->getColorbarURCoord(1);
-	vizFeatureDlg->colorbarURXEdit->setText(QString::number(colorbarURCoords[0]));
-	vizFeatureDlg->colorbarURYEdit->setText(QString::number(colorbarURCoords[1]));
+	vizFeatureDlg->colorbarXSizeEdit->setText(QString::number(colorbarURCoords[0]-colorbarLLCoords[0]));
+	vizFeatureDlg->colorbarYSizeEdit->setText(QString::number(colorbarURCoords[1]-colorbarLLCoords[1]));
 
 	
 	showBar = vizWin->colorbarIsEnabled();
@@ -222,6 +222,8 @@ setDialog(){
 	vizFeatureDlg->regionFrameColorButton->setPaletteBackgroundColor(regionFrameColor);
 	subregionFrameColor = vizWin->getSubregionFrameColor();
 	vizFeatureDlg->subregionFrameColorButton->setPaletteBackgroundColor(subregionFrameColor);
+	colorbarBackgroundColor = vizWin->getColorbarBackgroundColor();
+	vizFeatureDlg->colorbarBackgroundButton->setPaletteBackgroundColor(colorbarBackgroundColor);
 
 }
 //Copy values from the dialog into 'this', and also to the visualizer state specified
@@ -245,9 +247,25 @@ copyFromDialog(){
 	
 	colorbarLLCoords[0] = vizFeatureDlg->colorbarLLXEdit->text().toFloat();
 	colorbarLLCoords[1] = vizFeatureDlg->colorbarLLYEdit->text().toFloat();
-	colorbarURCoords[0] = vizFeatureDlg->colorbarURXEdit->text().toFloat();
-	colorbarURCoords[1] = vizFeatureDlg->colorbarURYEdit->text().toFloat();
+	float wid = vizFeatureDlg->colorbarXSizeEdit->text().toFloat();
+	float ht = vizFeatureDlg->colorbarYSizeEdit->text().toFloat();
+
+	//Make sure they're valid.  It's OK to place off-screen, but can't have negative dimensions
+	if (wid < 0.01){
+		wid = 0.1f;
+		vizFeatureDlg->colorbarXSizeEdit->setText(QString::number(wid));
+	}
+	if (ht < 0.01){
+		ht = 0.1f;
+		vizFeatureDlg->colorbarYSizeEdit->setText(QString::number(ht));
+	}
+	colorbarURCoords[0] = colorbarLLCoords[0]+wid;
+	colorbarURCoords[1] = colorbarLLCoords[1]+ht;
 	
+
+	numColorbarTics = vizFeatureDlg->numTicsEdit->text().toInt();
+	if (numColorbarTics <2) numColorbarTics = 2;
+	if (numColorbarTics > 50) numColorbarTics = 50;
 	showBar = vizFeatureDlg->colorbarCheckbox->isChecked();
 	showAxes = vizFeatureDlg->axisCheckbox->isChecked();
 	showRegion = vizFeatureDlg->regionCheckbox->isChecked();
@@ -256,6 +274,7 @@ copyFromDialog(){
 	regionFrameColor = vizFeatureDlg->regionFrameColorButton->paletteBackgroundColor();
 	subregionFrameColor = vizFeatureDlg->subregionFrameColorButton->paletteBackgroundColor();
 	backgroundColor = vizFeatureDlg->backgroundColorButton->paletteBackgroundColor();
+	colorbarBackgroundColor = vizFeatureDlg->colorbarBackgroundButton->paletteBackgroundColor();
 
 	applyToViz(vizNum);
 
@@ -280,11 +299,12 @@ applyToViz(int vizNum){
 	vizWin->enableAxes(showAxes);
 	vizWin->enableRegionFrame(showRegion);
 	vizWin->enableSubregionFrame(showSubregion);
-	
+	vizWin->setColorbarNumTics(numColorbarTics);
 	vizWin->setBackgroundColor(backgroundColor);
+	vizWin->setColorbarBackgroundColor(colorbarBackgroundColor);
 	vizWin->setRegionFrameColor(regionFrameColor);
 	vizWin->setSubregionFrameColor(subregionFrameColor);
-
+	vizWin->setColorbarDirty(true);
 	vizWin->updateGL();
 }
 int VizFeatureParams::

@@ -18,6 +18,8 @@
 //		A pure virtual class that is implemented for each renderer.
 //		Methods are called by the glwindow class as needed.
 //
+#include <qpixmap.h>
+#include <qpainter.h>
 
 #include "renderer.h"
 #include "vapor/DataMgr.h"
@@ -28,6 +30,7 @@
 #include "session.h"
 #include "vizwin.h"
 #include "glutil.h"
+#include "transferfunction.h"
 
 using namespace VAPoR;
 
@@ -196,10 +199,11 @@ void Renderer::drawSubregionBounds(float* extents) {
 	glEnd();
 }
 void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
-	
+	glEnable (GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPolygonMode(GL_FRONT, GL_FILL);
 	if (isSelected)
-			glColor4f(.8f,.8f,0.f,.8f);
+			glColor4f(.8f,.8f,0.f,.6f);
 		else 
 			glColor4f(.8f,.8f,.8f,.2f);
 	switch (faceNum){
@@ -217,7 +221,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[0], extents[4], extents[5]);
 			glVertex3f(extents[0], extents[4], extents[2]);
 			glEnd();
-			return;
+			break;
 		
 		case 5:
 		//do right 
@@ -234,7 +238,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[4], extents[5]);
 			glVertex3f(extents[3], extents[4], extents[2]);
 			glEnd();
-			return;
+			break;
 		case(3)://top
 			glBegin(GL_QUADS);
 			glVertex3f(extents[0], extents[4], extents[2]);
@@ -249,7 +253,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[4], extents[5]);
 			glVertex3f(extents[0], extents[4], extents[5]);
 			glEnd();
-			return;
+			break;
 		case(2)://bottom
 			glBegin(GL_QUADS);
 			glVertex3f(extents[0], extents[1], extents[2]);
@@ -264,7 +268,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[1], extents[5]);
 			glVertex3f(extents[3], extents[1], extents[2]);
 			glEnd();
-			return;
+			break;
 	
 		case(0):
 			//back
@@ -281,7 +285,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[4], extents[2]);
 			glVertex3f(extents[0], extents[4], extents[2]);
 			glEnd();
-			return;
+			break;
 		case(1):
 			//do the front:
 			//
@@ -298,10 +302,12 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[4], extents[5]);
 			glVertex3f(extents[0], extents[4], extents[5]);
 			glEnd();
-			return;
+			break;
 		default: 
-			return;
+			break;
 	}
+	glColor4f(1,1,1,1);
+	glDisable(GL_BLEND);
 }
 // This method draws the faces of the region-cube.
 // The surface of the cube is drawn partially transparent. 
@@ -429,4 +435,125 @@ void Renderer::drawAxes(float* extents){
 	glVertex3f(origin[0], origin[1]-.1*len, origin[2]+.8*len);
 	glVertex3f(origin[0]+.1*len, origin[1], origin[2]+.8*len);
 	glEnd();
+}
+//Following methods are to support display of a colorscale in front of the data.
+//
+void Renderer::
+buildColorscaleImage(){
+	//Get the image size from the VizWin:
+	float fwidth = myVizWin->getColorbarURCoord(0) - myVizWin->getColorbarLLCoord(0);
+	float fheight = myVizWin->getColorbarURCoord(1) - myVizWin->getColorbarLLCoord(1);
+	imgWidth = (int)(fwidth*myVizWin->width());
+	imgHeight = (int)(fheight*myVizWin->height());
+	if (imgWidth < 2 || imgHeight < 2) return;
+
+	//Now push up to the next power of two
+	int pow2 = 0;
+	while (imgWidth>>pow2) {pow2++;}
+	imgWidth = 1<<(pow2+1);
+	pow2= 0;
+	while (imgHeight>>pow2) {pow2++;}
+	imgHeight = 1<<(pow2+1);
+
+	
+	
+	//First, create a QPixmap (specified background color) and draw the coordinates on it.
+	QPixmap colorbarPixmap(imgWidth, imgHeight);
+
+	QColor bgColor = myVizWin->getColorbarBackgroundColor();
+	colorbarPixmap.fill(bgColor);
+	//assert(colorbarPixmap.depth()==32);
+	
+	QPainter painter(&colorbarPixmap);
+	QColor penColor(255-bgColor.red(), 255-bgColor.green(),255-bgColor.blue());
+	QPen myPen(penColor, 6);
+	painter.setPen(myPen);
+
+	//Setup font:
+	int numtics = myVizWin->getColorbarNumTics();
+	int textHeight = imgHeight/(2*numtics);
+	QFont textFont;
+	textFont.setPixelSize(textHeight);
+	painter.setFont(textFont);
+
+	//Draw outline:
+	painter.drawLine(0,3, imgWidth, 3);
+	painter.drawLine(imgWidth-3,0, imgWidth-3, imgHeight);
+	painter.drawLine(imgWidth, imgHeight-3, 0, imgHeight-3);
+	painter.drawLine(3, imgHeight, 3, 0);
+
+	//Obtain the relevant transfer function:
+	TransferFunction* myTransFunc = 
+		VizWinMgr::getInstance()->getDvrParams(myVizWin->getWindowNum())->getTransFunc();
+	
+	
+	
+	for (int i = 0; i< numtics; i++){
+		int ticPos = i*(imgHeight/numtics)+(imgHeight/(2*numtics));
+		painter.drawLine((int)(imgWidth*.35), ticPos, (int)(imgWidth*.45), ticPos);
+		double ycoord = myTransFunc->getMinMapValue() + (1.f - (float)i/(float)(numtics-1.f))*(myTransFunc->getMaxMapValue() -myTransFunc->getMinMapValue());
+		QString ytext = QString::number(ycoord);
+		painter.drawText(imgWidth/2 , ticPos - textHeight/2, imgWidth/2, textHeight, Qt::AlignLeft, ytext);
+	}
+	
+	//Then, convert the pxmap to a QImage and draw the colormap colors on it.
+	QImage colorbarImage = colorbarPixmap.convertToImage();
+
+	//Calculate coefficients that convert screen coords to ycoords, 
+	//Inverting above calc of ycoord.
+	//
+	double A = (myTransFunc->getMaxMapValue() - myTransFunc->getMinMapValue())*(double)(numtics)/
+		((double)(1.-numtics)*(double)imgHeight);
+	double B = myTransFunc->getMaxMapValue() - A*(double)imgHeight*.5/(double)(numtics);
+	
+	//check it out, should work at top and bottom:
+	/*
+	int topTicPosn = imgHeight/(2*numtics);
+	int botTicPosn = (numtics-1)*(imgHeight/numtics)+(imgHeight/(2*numtics));
+	double topFloat = A*(double)topTicPosn + B;
+	double botFloat = A*(double)botTicPosn + B;
+	*/
+
+
+	for (int line = imgHeight-16; line>=16; line--){
+		float ycoord = A*(float)line + B;
+		QRgb clr = myTransFunc->getRgbValue(ycoord);
+		for (int col = 16; col<(int)(imgWidth*.35); col++){
+			colorbarImage.setPixel(col, line, clr);
+		}
+	}
+	
+	//Finally create the gl-formatted texture 
+	//assert(colorbarImage.depth()==32);
+	glColorbarImage = QGLWidget::convertToGLFormat(colorbarImage);
+	
+	
+}
+void Renderer::
+renderColorscale(bool dorebuild){
+	if (dorebuild) buildColorscaleImage();
+	myVizWin->setColorbarDirty(false);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	//Disable z-buffer compare, always overwrite:
+	glDepthFunc(GL_ALWAYS);
+    glEnable( GL_TEXTURE_2D );
+	
+	//create a polygon appropriately positioned in the scene.  It's inside the unit cube--
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+		glColorbarImage.bits());
+	
+	float llx = 2.f*myVizWin->getColorbarLLCoord(0) - 1.f; 
+	float lly = 2.f*myVizWin->getColorbarLLCoord(1) - 1.f; 
+	float urx = 2.f*myVizWin->getColorbarURCoord(0) - 1.f; 
+	float ury = 2.f*myVizWin->getColorbarURCoord(1) - 1.f; 
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, 0.0f);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, 0.0f);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(urx, ury, 0.0f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(urx, lly, 0.0f);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+	//Reset to default:
+	glDepthFunc(GL_LESS);
 }

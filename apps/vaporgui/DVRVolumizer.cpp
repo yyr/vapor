@@ -448,7 +448,7 @@ int	DVRVolumizer::render()
 //OGLCheckState();
 	render_action_c->draw(shape_c);
 	render_action_c->endDraw();
-	
+	glDisable(GL_BLEND);
 
 	return(0);
 }

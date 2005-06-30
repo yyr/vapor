@@ -21,6 +21,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 #include <qobject.h>
+#include <qimage.h>
 class QColor;
 
 namespace VAPoR {
@@ -60,9 +61,14 @@ protected:
 		float* cameraPos, float faceDisplacement);
 	void drawSubregionBounds(float* extents);
 	void drawAxes(float* extents);
+	void buildColorscaleImage();
+	void renderColorscale(bool rebuild);
 	//One face of the region bounds can be highlighted if selected:
 	int selectedFace;
 
+	//Dimensions of colormap image:
+	int imgWidth, imgHeight;
+	QImage glColorbarImage;
 	GLWindow* myGLWindow;
 	VizWin* myVizWin;
 	

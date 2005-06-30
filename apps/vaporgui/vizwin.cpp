@@ -102,11 +102,12 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	colorbarEnabled = false;
 	for (i = 0; i<3; i++)
 	    axisCoord[i] = -.05f;
-	colorbarLLCoord[0] = 0.f;
-	colorbarLLCoord[1] = 0.f;
-	colorbarURCoord[0] = 0.1f;
-	colorbarURCoord[1] = 0.3f;
+	colorbarLLCoord[0] = 0.1f;
+	colorbarLLCoord[1] = 0.1f;
+	colorbarURCoord[0] = 0.3f;
+	colorbarURCoord[1] = 0.5f;
 	numColorbarTics = 11;
+	colorbarDirty = true;
 	
     // actions
    

@@ -159,9 +159,6 @@ refreshHistogram(int vizNum)
 	DataMgr* dataMgr = Session::getInstance()->getDataMgr();
 	assert (dataMgr);
 	const Metadata* metaData = Session::getInstance()->getCurrentMetadata();
-	//Set the datarange in the datamanager:
-	dataMgr->SetDataRange(dParams->getVariableName(),
-			dParams->getCurrentDatarange());
 	
 	vizWinMgr->getVizWin(vizNum)->setDataRangeDirty(false);
 	
@@ -170,6 +167,7 @@ refreshHistogram(int vizNum)
 					timeStep, (const char*) metaData->GetVariableNames()[varNum].c_str(),
 					numTrans,
 					min_bdim, max_bdim,
+					dParams->getCurrentDatarange(),
 					0 //Don't lock!
 				), 
 			min_dim, max_dim, min_bdim, max_bdim, dataMin, dataMax

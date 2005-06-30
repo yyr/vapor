@@ -135,7 +135,7 @@ public:
 	bool subregionFrameIsEnabled() {return subregionFrameEnabled;}
 	float getAxisCoord(int i){return axisCoord[i];}
 	float getColorbarLLCoord(int i) {return colorbarLLCoord[i];}
-	float getColorbarURCoord(int i) {return colorbarLLCoord[i];}
+	float getColorbarURCoord(int i) {return colorbarURCoord[i];}
 	float getColorbarNumTics() {return numColorbarTics;}
 
 	void setBackgroundColor(QColor& c) {backgroundColor = c;}
@@ -150,12 +150,15 @@ public:
 	void setColorbarLLCoord(int i, float crd) {colorbarLLCoord[i] = crd;}
 	void setColorbarURCoord(int i, float crd) {colorbarURCoord[i] = crd;}
 	void setColorbarNumTics(int i) {numColorbarTics = i;}
+	bool colorbarIsDirty() {return colorbarDirty;}
+	void setColorbarDirty(bool val){colorbarDirty = val;}
 	
 protected:
 	//Following flag is set whenever there is mouse navigation, so that we can use 
 	//the new viewer position
 	//at the next rendering
 	bool newViewerCoords;
+	bool colorbarDirty;
 	int numRenderers;
     QWorkspace* myParent;
     int myWindowNum;

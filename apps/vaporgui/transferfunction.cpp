@@ -661,6 +661,20 @@ setControlPointRGB(int index, QRgb newColor){
 	setControlPointHSV(index, (float)h/360.f, (float)s/255.f, (float)v/255.f);
 }
 
+QRgb TransferFunction::
+getRgbValue(float point){
+	float hsv[3], rgb[3];
+	int r,g,b;
+	hsvValue(point, hsv, hsv+1, hsv+2);
+	hsvToRgb(hsv,rgb);
+	r =(int)(rgb[0]*255.f);
+	g = (int)(rgb[1]*255.f);
+	b =(int)(rgb[2]*255.f);
+	QRgb retVal;
+	retVal = qRgb(r,g,b);
+	return retVal;
+}
+
 //Methods to save and restore transfer functions.
 	//The gui specifies FILEs that are then read/written
 	//Failure results in false/null pointer

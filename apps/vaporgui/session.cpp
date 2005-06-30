@@ -521,15 +521,7 @@ resetMetadata(const char* fileBase, bool restoredSession)
 			return;
 		}
 
-		int numVars = currentDataStatus->getNumVariables();
-		for (i = 0; i<numVars; i++){
-			//If this is a new session, 
-			//tell the datamanager to use the overall max/min range
-			//In doing the quantization.  Note that this will change
-			//when the range is changed in the TFE
-			
-			setMappingRange(i, currentDataStatus->getDataRange(i));
-		}
+		
 	}
 	VizWinMgr* myVizWinMgr = VizWinMgr::getInstance();
 

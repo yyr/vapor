@@ -106,6 +106,7 @@ public:
 		return (getMinMapValue() + colorCtrlPoint[index]*(getMaxMapValue()-getMinMapValue()));}
 	float controlPointOpacity(int index) { return opac[index];}
 	void hsvValue(float point, float* h, float*sat, float*val);
+	QRgb getRgbValue(float point);
 	void controlPointHSV(int index, float* h, float*s, float*v){
 		*h = hue[index];
 		*s = sat[index];
