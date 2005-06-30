@@ -712,7 +712,7 @@
                     </widget>
                     <widget class="QLineEdit" row="1" column="2">
                         <property name="name">
-                            <cstring>colorbarURXEdit</cstring>
+                            <cstring>colorbarXSizeEdit</cstring>
                         </property>
                         <property name="text">
                             <string>1</string>
@@ -721,7 +721,7 @@
                             <set>AlignRight</set>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>specify color bar upper-right x in [0,1]</string>
+                            <string>specify color scale width in [0,1]</string>
                         </property>
                     </widget>
                     <widget class="QLineEdit" row="0" column="2">
@@ -735,7 +735,7 @@
                             <set>AlignRight</set>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>specify color bar lower-left x corner in [0,1]</string>
+                            <string>specify color scale lower-left x corner in [0,1]</string>
                         </property>
                     </widget>
                     <spacer row="0" column="1">
@@ -766,7 +766,7 @@
                             <set>AlignRight</set>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>specify color bar lower-left y corner in [0,1]</string>
+                            <string>specify color scale lower-left y corner in [0,1]</string>
                         </property>
                     </widget>
                     <spacer row="1" column="1">
@@ -788,7 +788,7 @@
                     </spacer>
                     <widget class="QLineEdit" row="1" column="3">
                         <property name="name">
-                            <cstring>colorbarURYEdit</cstring>
+                            <cstring>colorbarYSizeEdit</cstring>
                         </property>
                         <property name="text">
                             <string>1</string>
@@ -797,7 +797,7 @@
                             <set>AlignRight</set>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>specify color bar upper-right y in [0,1]</string>
+                            <string>specify color scale height in [0,1]</string>
                         </property>
                     </widget>
                     <widget class="QLabel" row="1" column="0">
@@ -805,7 +805,7 @@
                             <cstring>textLabel4_2_2</cstring>
                         </property>
                         <property name="text">
-                            <string>Color scale upper-right coords</string>
+                            <string>Color scale size</string>
                         </property>
                         <property name="indent">
                             <number>0</number>
