@@ -23,7 +23,8 @@ struct {
 	char *gridtype;
 	float extents[6];
 	vector <string> varnames;
-	OptionParser::Boolean_T	*help;
+	OptionParser::Boolean_T	mtkcompat;
+	OptionParser::Boolean_T	help;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
@@ -38,6 +39,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"coordsystem",	1,	"cartesian","Top-level comment (cartesian|spherical)"},
 	{"extents",	1,	"0:0:0:0:0:0",	"Domain extents in user coordinates"},
 	{"varnames",1,	"var1",			"Colon delimited list of variable names"},
+	{"mtkcompat",	0,	"",			"Force compatibility with older mtk files"},
 	{"help",	0,	"",				"Print this message and exit"},
 	{NULL}
 };
@@ -55,6 +57,7 @@ OptionParser::Option_T	get_options[] = {
 	{"coordsystem", VetsUtil::CvtToString, &opt.coordsystem, sizeof(opt.coordsystem)},
 	{"extents", cvtToExtents, &opt.extents, sizeof(opt.extents)},
 	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
+	{"mtkcompat", VetsUtil::CvtToBoolean, &opt.mtkcompat, sizeof(opt.mtkcompat)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{NULL}
 };
@@ -66,6 +69,7 @@ int	main(int argc, char **argv) {
 	size_t bs;
 	size_t dim[3];
 	string	s;
+	Metadata *file;
 
 
 	if (op.AppendOptions(set_opts) < 0) {
@@ -94,31 +98,38 @@ int	main(int argc, char **argv) {
 	dim[0] = opt.dim.nx;
 	dim[1] = opt.dim.ny;
 	dim[2] = opt.dim.nz;
-	Metadata file(dim,opt.nxforms,bs,opt.nfilter,opt.nlifting);
+
+	if (opt.mtkcompat) {
+		file = new Metadata(dim,opt.nxforms,bs,opt.nfilter,opt.nlifting, 0, 0);
+	}
+	else {
+		file = new Metadata(dim,opt.nxforms,bs,opt.nfilter,opt.nlifting);
+	}
+
 	if (Metadata::GetErrCode()) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
 
-	if (file.SetNumTimeSteps(opt.numts) < 0) {
+	if (file->SetNumTimeSteps(opt.numts) < 0) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
 
 	s.assign(opt.comment);
-	if (file.SetComment(s) < 0) {
+	if (file->SetComment(s) < 0) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
 
 	s.assign(opt.gridtype);
-	if (file.SetGridType(s) < 0) {
+	if (file->SetGridType(s) < 0) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
 
 	s.assign(opt.coordsystem);
-	if (file.SetCoordSystemType(s) < 0) {
+	if (file->SetCoordSystemType(s) < 0) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
@@ -136,20 +147,20 @@ int	main(int argc, char **argv) {
 		for(int i=0; i<6; i++) {
 			extents.push_back(opt.extents[i]);
 		}
-		if (file.SetExtents(extents) < 0) {
+		if (file->SetExtents(extents) < 0) {
 			cerr << Metadata::GetErrMsg() << endl;
 			exit(1);
 		}
 	}
 	
 
-	if (file.SetVariableNames(opt.varnames) < 0) {
+	if (file->SetVariableNames(opt.varnames) < 0) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
 
 
-	if (file.Write(argv[1]) < 0) {
+	if (file->Write(argv[1]) < 0) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
