@@ -69,7 +69,7 @@ public:
 
  virtual void	SetCLUT(const float ctab[256][4]);
 
- virtual void	SetOLUT(const float ftab[256][4]);
+ virtual void	SetOLUT(const float ftab[256][4], const int numRefinenements);
 
  virtual int	HasLighting() const { return (1); };
 

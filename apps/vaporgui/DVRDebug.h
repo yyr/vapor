@@ -64,7 +64,7 @@ int SetRegionStretched(
 
  virtual void	SetCLUT(const float ctab[256][4]);
 
- virtual void	SetOLUT(const float ftab[256][4]);
+ virtual void	SetOLUT(const float ftab[256][4], const int numRefinements);
 
  virtual int	HasAmbient() const;
 

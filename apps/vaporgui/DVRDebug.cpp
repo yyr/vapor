@@ -164,11 +164,12 @@ void	DVRDebug::SetCLUT(
 }
 
 void	DVRDebug::SetOLUT(
-	const float atab[256][4]
+	const float atab[256][4],
+	const int numRefinements
 ) {
 	int	i;
 
-	fprintf(stdout, "\nDVRDebug::SetOLUT() called\n");
+	fprintf(stdout, "\nDVRDebug::SetOLUT() called with %d refinements\n",numRefinements);
 
 	for(i=0; i<256; i++) {
 		fprintf(

@@ -137,9 +137,9 @@ public:
  // 
  virtual void	SetCLUT(const float ctab[256][4]) = 0;
 
- // Sets the alpha lookup table. 
+ // Sets the alpha lookup table, performing opacity correction 
  // 
- virtual void	SetOLUT(const float ftab[256][4]) = 0;
+ virtual void	SetOLUT(const float ftab[256][4], const int numRefinements) = 0;
 
  // Returns true if the driver supports a lighting model
  //

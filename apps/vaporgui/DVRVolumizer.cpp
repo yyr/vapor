@@ -278,13 +278,26 @@ void	DVRVolumizer::SetCLUT(
 
 
 void	DVRVolumizer::SetOLUT(
-	const float atab[256][4]
+	const float atab[256][4],
+	const int numRefinements
 ) {
 	int	i;
-
+	//Calculate opacity correction
+	//Delta is 1 for the coarsest refinement, multiplied by 1/2^n (the sampling distance)
+	//If the data is sampled finer.
+	double delta = 1./(double)(1<<numRefinements);
 	for(i=0; i<256; i++) {
-		lut_c[i][3] = atab[i][3];
-		llut_c[i][3] = atab[i][3];
+		double opac = atab[i][3];
+		opac = 1.0 - pow((1.0 - opac), delta);
+		if (opac > 1.0) opac = 1.0;
+//Special correction for volumizer/windows (or possibly nvidia.  It seems to 
+//truncate to 0 values less than .034
+//
+#ifdef WIN32
+		if (opac > 0.015 && opac < 0.034) opac = 0.034;
+#endif
+		lut_c[i][3] = (float)opac;
+		llut_c[i][3] = (float)opac;
 	}
 	olut_dirty_c = 1;
 }

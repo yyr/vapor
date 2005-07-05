@@ -74,7 +74,7 @@ protected:
 	
 	float regionFrameColor[3];
 	float subregionFrameColor[3];
-
+	int savedNumXForms;
 	//Helper functions for drawing region bounds:
 	static float* cornerPoint(float* extents, int faceNum);
 	// Faces of the cube are numbered 0..5 based on view from pos z axis:

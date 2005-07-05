@@ -183,8 +183,17 @@ DrawVoxelScene(unsigned /*fast*/)
 	//Then determine what is the subvolume we are dealing with as a portion
 	//of the full mapped data.
 	int numxforms;
-	if (myVizWin->mouseIsDown()) numxforms = myRegionParams->getMaxNumTrans();
+	if (myVizWin->mouseIsDown()) {
+		numxforms = myRegionParams->getMaxNumTrans();
+	}
 	else numxforms = myRegionParams->getNumTrans();
+	//Whenever numxforms changes, we need to dirty the clut, since
+	//that affects the opacity correction.
+	if (numxforms != savedNumXForms){
+		myVizWin->setClutDirty(true);
+		savedNumXForms = numxforms;
+	}
+
 		
 	int bs = myMetadata->GetBlockSize();
 		
@@ -311,7 +320,8 @@ DrawVoxelScene(unsigned /*fast*/)
 		//Same table sets CLUT and OLUT
 		//
 		driver->SetCLUT(myDVRParams->getClut());
-		driver->SetOLUT(myDVRParams->getClut());
+		driver->SetOLUT(myDVRParams->getClut(), 
+			myRegionParams->getMaxNumTrans()-numxforms);
 		
 	}
 	/* Attenuation is not supported yet...
