@@ -50,7 +50,7 @@ void Renderer::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	int numLines[3];
 	float regionSize, fullSize[3], modMin[3],modMax[3];
 	setRegionFrameColor( myVizWin->getRegionFrameColor());
-	setSubregionFrameColor(myVizWin->getSubregionFrameColor());
+	
 	
 	//Instead:  either have 2 or 1 lines in each dimension.  2 if the size is < 1/3
 	for (i = 0; i<3; i++){
@@ -172,6 +172,8 @@ bool Renderer::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
 	}
 }
 void Renderer::drawSubregionBounds(float* extents) {
+	setSubregionFrameColor(myVizWin->getSubregionFrameColor());
+	glLineWidth( 2.0 );
 	glColor3fv(subregionFrameColor);
 	glBegin(GL_LINE_LOOP);
 	glVertex3f(extents[0], extents[1], extents[2]);
@@ -199,6 +201,7 @@ void Renderer::drawSubregionBounds(float* extents) {
 	glEnd();
 }
 void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
+	glLineWidth( 2.0 );
 	glEnable (GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPolygonMode(GL_FRONT, GL_FILL);
@@ -309,7 +312,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 	glColor4f(1,1,1,1);
 	glDisable(GL_BLEND);
 }
-// This method draws the faces of the region-cube.
+// This method draws the faces of the subregion-cube.
 // The surface of the cube is drawn partially transparent. 
 // This is drawn after the cube is drawn.
 // If a face is selected, it is drawn yellow
@@ -324,6 +327,7 @@ void Renderer::drawRegionFace(float* extents, int faceNum, bool isSelected){
 // then the back side (resp front side) of the corresponding cube side is rendered
 
 void Renderer::renderRegionBounds(float* extents, int selectedFace, float* camPos, float faceDisplacement){
+	setSubregionFrameColor(myVizWin->getSubregionFrameColor());
 	//Copy the extents so they can be stretched
 	int i;
 	float cpExtents[6];
