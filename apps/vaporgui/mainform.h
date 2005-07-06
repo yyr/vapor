@@ -111,6 +111,7 @@ public:
 	QAction* dataExportToIDLAction;
     QAction* dataConfigure_MetafileAction;
     QAction* dataLoad_MetafileAction;
+	QAction* dataLoad_DefaultMetafileAction;
 	QAction* fileNew_SessionAction;
     
    //View menu
@@ -175,6 +176,7 @@ public slots:
     
     virtual void browseData();
 	virtual void loadData();
+	virtual void defaultLoadData();
 	virtual void newSession();
 	virtual void exportToIDL();
     virtual void launchVisualizer();

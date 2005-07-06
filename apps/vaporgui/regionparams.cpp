@@ -294,10 +294,12 @@ validateNumTrans(int n){
 	size_t min_bdim[3], max_bdim[3];
 	float minFull[3], maxFull[3], extents[6];
 	calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, n, minFull, maxFull,  extents);
-	//Size needed for data assumes blocksize = 2**5, 4 bytes per voxel, times 2.
+	//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
 	size_t newFullMB = (max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1);
-	//Left shift by 18, for bytes and  right shift by 20 for mbytes
-	newFullMB >>= 2;
+	//right shift by 20 for megavoxels
+	newFullMB >>= 20;
+	//Multiply by 6 for 6 bytes per voxel
+	newFullMB *= 6;
 	while (newFullMB >= Session::getInstance()->getCacheMB()){
 		//find  and return a legitimate value.  Each time we increase n by 1,
 		//we decrease the size needed by 8

@@ -194,6 +194,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     dataConfigure_MetafileAction = new QAction( this, "dataConfigure_MetafileAction" );
 	dataConfigure_MetafileAction->setEnabled(false);
     dataLoad_MetafileAction = new QAction( this, "dataLoad_MetafileAction" );
+	dataLoad_DefaultMetafileAction = new QAction(this, "dataLoad_DefaultMetafileAction");
 	fileNew_SessionAction = new QAction( this, "fileNew_SessionAction" );
 	dataExportToIDLAction = new QAction(this, "dataExportToIDLAction");
     
@@ -317,6 +318,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     dataBrowse_DataAction->addTo( Data );
     dataConfigure_MetafileAction->addTo( Data );
     dataLoad_MetafileAction->addTo( Data );
+	dataLoad_DefaultMetafileAction->addTo( Data );
 	
 	dataExportToIDLAction->addTo(Data);
 
@@ -382,6 +384,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     
     connect( dataBrowse_DataAction, SIGNAL( activated() ), this, SLOT( browseData() ) );
 	connect( dataLoad_MetafileAction, SIGNAL( activated() ), this, SLOT( loadData() ) );
+	connect( dataLoad_DefaultMetafileAction, SIGNAL( activated() ), this, SLOT( defaultLoadData() ) );
 	
 	connect( dataExportToIDLAction, SIGNAL(activated()), this, SLOT( exportToIDL()));
     
@@ -506,6 +509,9 @@ void MainForm::languageChange()
     dataLoad_MetafileAction->setText( tr( "Load a Dataset into Current Session" ) );
     dataLoad_MetafileAction->setMenuText( tr( "&Load a Dataset into Current Session" ) );
 	dataLoad_MetafileAction->setToolTip("Specify a data set to be loaded into current session");
+	dataLoad_DefaultMetafileAction->setText( tr( "Load a Dataset into &Default Session" ) );
+    dataLoad_DefaultMetafileAction->setMenuText( tr( "Load a Dataset into &Default Session" ) );
+	dataLoad_DefaultMetafileAction->setToolTip("Specify a data set to be loaded into a new session with default settings");
 	
     viewLaunch_visualizerAction->setText( tr( "New Visualizer" ) );
     viewLaunch_visualizerAction->setMenuText( tr( "&New Visualizer" ) );
@@ -743,7 +749,8 @@ void MainForm::browseData()
 	}
 	
 }
-
+//Load data into current session
+//
 void MainForm::loadData()
 {
 
@@ -757,6 +764,26 @@ void MainForm::loadData()
 		"Load Volume Data Dialog",
 		"Choose the Metadata File to load into current session");
 	if(filename != QString::null){
+		Session::getInstance()->resetMetadata(filename.ascii(), false);
+	}
+	
+}
+//Load data into default session
+//
+void MainForm::defaultLoadData()
+{
+
+	//This launches a panel that enables the
+    //user to choose input data files, then to
+	//create a datamanager using those files
+    //or metafiles.  
+	QString filename = QFileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
+		"Vapor Metadata Files (*.vdf)",
+		this,
+		"Load Volume Data Dialog",
+		"Choose the Metadata File to load into new session");
+	if(filename != QString::null){
+		Session::getInstance()->resetMetadata(0, false);
 		Session::getInstance()->resetMetadata(filename.ascii(), false);
 	}
 	

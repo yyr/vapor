@@ -24,6 +24,7 @@
 #include "vizwinmgr.h"
 #include "vizwin.h"
 #include "vapor/Metadata.h"
+#include "messagereporter.h"
 using namespace VAPoR;
 int Histo::histoArraySize = 0;
 Histo** Histo::histoArray = 0;
@@ -46,7 +47,7 @@ Histo::Histo(unsigned char* data, int min_dim[3], int max_dim[3],
 	int bs = Session::getInstance()->getCurrentMetadata()->GetBlockSize();
 	// make subregion origin (0,0,0)
 	// Note that this doesn't affect the calc of nx,ny,nz.
-		
+	//
 	for(int i=0; i<3; i++) {
 		while(min_bdim[i] > 0) {
 			min_dim[i] -= bs; max_dim[i] -= bs;
@@ -162,16 +163,22 @@ refreshHistogram(int vizNum)
 	
 	vizWinMgr->getVizWin(vizNum)->setDataRangeDirty(false);
 	
-
-	histoArray[varNum*MAXVIZWINS + vizNum] = new Histo((unsigned char*) dataMgr->GetRegionUInt8(
+	unsigned char* data = (unsigned char*) dataMgr->GetRegionUInt8(
 					timeStep, (const char*) metaData->GetVariableNames()[varNum].c_str(),
 					numTrans,
 					min_bdim, max_bdim,
 					dParams->getCurrentDatarange(),
 					0 //Don't lock!
-				), 
-			min_dim, max_dim, min_bdim, max_bdim, dataMin, dataMax
-		);
+				);
+	//Make sure we can build a histogram
+	if (!data) {
+		MessageReporter::errorMsg("Invalid/nonexistent data cannot be histogrammed");
+		histoArray[varNum*MAXVIZWINS + vizNum] = 0;
+		return;
+	}
+
+	histoArray[varNum*MAXVIZWINS + vizNum] = new Histo(data,
+			min_dim, max_dim, min_bdim, max_bdim, dataMin, dataMax);
 
 }
 	
