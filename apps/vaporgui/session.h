@@ -171,7 +171,7 @@ public:
 	}
 	double getDataMaxOverTime(int varnum){return dataRange[varnum][1];}
 	double getDataMinOverTime(int varnum){return dataRange[varnum][0];}
-	
+	//Return the minimum transform present, or -1 if none is present.
 	int minXFormPresent(int varnum, int timestep){
 		return dataPresent[timestep + varnum*numTimesteps];
 	}

@@ -727,7 +727,7 @@ setupDataStatus(){
 //
 int DataStatus::minXFormPresent(){
 	int minXForm = 10;
-	for (size_t ts = minTimeStep; ts<maxTimeStep; ts++){
+	for (size_t ts = minTimeStep; ts<=maxTimeStep; ts++){
 		for (int varnum = 0; varnum<numVariables; varnum++){
 			int minXF = minXFormPresent(varnum, (int)ts);
 			if (minXF >=0 && minXF < minXForm) minXForm = minXF;

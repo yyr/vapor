@@ -561,8 +561,9 @@ reinit(bool doOverride){
 	setFullSize(1, ny);
 	setFullSize(2, nz);
 	int nlevels = md->GetNumTransforms();
-	
-	setMinNumTrans(Session::getInstance()->getDataStatus()->minXFormPresent());
+	int minTrans = Session::getInstance()->getDataStatus()->minXFormPresent();
+	if(minTrans < 0) minTrans = nlevels; 
+	setMinNumTrans(minTrans);
 	setMaxNumTrans(nlevels);
 	if (doOverride) {
 		numTrans = maxNumTrans;
