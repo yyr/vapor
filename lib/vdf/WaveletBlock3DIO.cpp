@@ -261,7 +261,11 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 
 		mkpath(basename, j, path);
 
+#ifdef	WIN32
 		file_ptrs_c[j] = fopen(path.c_str(), "wb");
+#else
+		file_ptrs_c[j] = fopen64(path.c_str(), "wb");
+#endif
 		if (! file_ptrs_c[j]) {
 			SetErrMsg("fopen(%s, wb) : %s", path.c_str(), strerror(errno));
 			return(-1);
@@ -343,7 +347,11 @@ int	WaveletBlock3DIO::OpenVariableRead(
 
 		mkpath(basename, j, path);
 
+#ifdef	WIN32
 		file_ptrs_c[j] = fopen(path.c_str(), "rb");
+#else
+		file_ptrs_c[j] = fopen64(path.c_str(), "rb");
+#endif
 		if (! file_ptrs_c[j]) {
 			if (errno != ENOENT) {
 				SetErrMsg("fopen(%s, rb) : %s", path.c_str(), strerror(errno));
@@ -597,14 +605,17 @@ int	WaveletBlock3DIO::seekBlocks(
 	fp = file_ptrs_c[level];
 
 	TIMER_START(t0);
-#ifdef	__sgi
-	rc = fseek64(fp, byteoffset, SEEK_SET);
+#ifdef	WIN32
+	rc = fseek(fp, (long) byteoffset, SEEK_SET);
 #else
-	rc = fseek(fp, (long)byteoffset, SEEK_SET);
-	//	rc = lseek64(fileno(fp), byteoffset, SEEK_SET);
+#if     defined(Linux) || defined(AIX)
+	rc = fseeko64(fp, byteoffset, SEEK_SET);
+#else
+	rc = fseek64(fp, byteoffset, SEEK_SET);
+#endif
 #endif
 	if (rc<0) {
-		SetErrMsg("fseek64(%d) : %s",byteoffset,strerror(errno));
+		SetErrMsg("fseek(%lld) : %s",(long long) byteoffset,strerror(errno));
 		return(-1);
 	}
 	TIMER_STOP(t0, seek_timer_c);

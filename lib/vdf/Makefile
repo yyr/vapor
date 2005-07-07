@@ -19,16 +19,16 @@ HEADER_FILES = \
 #LIB_DEFS = vdf.def
   
 ifeq ($(ARCH),WIN32)
-CXXFLAGS += /D"VDF_EXPORTS" 
-LDFLAGS += ../../targets/win32/bin/common.lib 
-LDFLAGS += "mpr.lib"
+MAKEFILE_CXXFLAGS += /D"VDF_EXPORTS" 
+MAKEFILE_LDFLAGS += ../../targets/win32/bin/common.lib 
+MAKEFILE_LDFLAGS += "mpr.lib"
 endif
 
-LDFLAGS += $(EXPATLIB)
+MAKEFILE_LDFLAGS += $(EXPATLIB)
 
 
 ifdef	EXPAT_INC_PATH
-CXXFLAGS += -I$(EXPAT_INC_PATH)
+MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
 endif
 
 include ${TOP}/make/config/base.mk
