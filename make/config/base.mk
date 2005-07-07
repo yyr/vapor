@@ -14,6 +14,14 @@ ifndef	ARCH
 include $(TOP)/make/config/arch.mk
 endif
 
+#
+#	Prevent local makefiles which source this file from overwriting 
+#	these variables
+#
+CXXFLAGS :=
+CFLAGS :=
+LDFLAGS :=
+
 include $(TOP)/make/config/$(ARCH).mk
 
 
@@ -31,11 +39,46 @@ endif
 CR_CC = $(CC)
 CR_CXX = $(CXX)
 
-ifdef MATH
-ifndef WINDOWS
-LDFLAGS += -lm
-endif
-endif
+
+
+OBJDIR := $(BUILDDIR)
+DEPDIR := $(BUILDDIR)/dependencies
+BINDIR := $(TOP)/targets/$(ARCH)/bin
+INCDIR := $(TOP)/include
+DSO_DIR := $(BINDIR)
+#DSO_DIR := $(TOP)/targets/$(ARCH)/lib/
+DOCDIR := $(TOP)/targets/common/doc
+
+INCLUDE_DIRS := -I$(INCDIR) -I. -I$(INCDIR)/vaporinternal
+
+define MAKE_MOCDIR
+	if test ! -d $(MOC_DIR); then $(MKDIR) $(MOC_DIR); fi
+endef
+
+define MAKE_OBJDIR
+	if test ! -d $(OBJDIR); then $(MKDIR) $(OBJDIR); fi
+endef
+
+define MAKE_BINDIR
+	if test ! -d $(BINDIR); then $(MKDIR) $(BINDIR); fi
+endef
+
+define MAKE_DEPDIR
+	if test ! -d $(DEPDIR); then $(MKDIR) $(DEPDIR); fi
+endef
+
+define MAKE_DSODIR
+	if test ! -d $(DSO_DIR); then $(MKDIR) $(DSO_DIR); fi
+endef
+
+define MAKE_INCDIR
+	if test ! -d $(INCDIR)/$(PROJECT); then $(MKDIR) $(INCDIR)/$(PROJECT); fi
+endef
+
+define MAKE_DOCDIR
+	if test ! -d $(DOCDIR); then $(MKDIR) $(DOCDIR); fi
+endef
+
 
 ifdef QT
 # Whenever QT is used in a directory, the Makefile must
@@ -86,45 +129,9 @@ $(MOC_DIR)/moc_%.cpp : $(UI_DIR)/%.h
 	@$(MAKE_MOCDIR)
 	@$(MOC) $< -o $@ 
 
-INCLUDE_DIRS += -I"$(QTDIR)/include" -I$(UI_DIR)
+INCLUDE_DIRS += -I$(QTDIR)/include -I$(UI_DIR)
 #END OF ifdef QT
 endif
-
-OBJDIR := $(BUILDDIR)
-DEPDIR := $(BUILDDIR)/dependencies
-BINDIR := $(TOP)/targets/$(ARCH)/bin
-INCDIR := $(TOP)/include
-DSO_DIR := $(BINDIR)
-#DSO_DIR := $(TOP)/targets/$(ARCH)/lib/
-DOCDIR := $(TOP)/targets/common/doc
-
-define MAKE_MOCDIR
-	if test ! -d $(MOC_DIR); then $(MKDIR) $(MOC_DIR); fi
-endef
-
-define MAKE_OBJDIR
-	if test ! -d $(OBJDIR); then $(MKDIR) $(OBJDIR); fi
-endef
-
-define MAKE_BINDIR
-	if test ! -d $(BINDIR); then $(MKDIR) $(BINDIR); fi
-endef
-
-define MAKE_DEPDIR
-	if test ! -d $(DEPDIR); then $(MKDIR) $(DEPDIR); fi
-endef
-
-define MAKE_DSODIR
-	if test ! -d $(DSO_DIR); then $(MKDIR) $(DSO_DIR); fi
-endef
-
-define MAKE_INCDIR
-	if test ! -d $(INCDIR)/$(PROJECT); then $(MKDIR) $(INCDIR)/$(PROJECT); fi
-endef
-
-define MAKE_DOCDIR
-	if test ! -d $(DOCDIR); then $(MKDIR) $(DOCDIR); fi
-endef
 
 ifdef TEST
 FILES := $(TEST)
@@ -181,12 +188,9 @@ include $(DEPS)
 endif
 endif
 
-INCLUDE_DIRS += -I$(INCDIR) -I. -I$(INCDIR)/vaporinternal
 
 PRINT_COMMAND := lpr
 
-CFLAGS += -D$(ARCH) $(INCLUDE_DIRS)
-CXXFLAGS += -D$(ARCH) -DQT_THREAD_SUPPORT $(INCLUDE_DIRS)
 
 ifdef LESSWARN
 WARN_STRING = (NOWARN)
@@ -234,23 +238,14 @@ endif
 LDFLAGS := /link $(LDFLAGS)
 endif
 
-ifdef TRACKS_STATE
-# May God forgive me for this hack
-STATE_STRING += (STATE)
-PERSONAL_LIBRARIES += crstate
-endif
+CFLAGS += -D$(ARCH) $(INCLUDE_DIRS)
+CXXFLAGS += -D$(ARCH) -DQT_THREAD_SUPPORT $(INCLUDE_DIRS)
 
-ifdef PACKS
-# May God forgive me for this hack
-PACK_STRING += (PACK)
-PERSONAL_LIBRARIES += crpacker
-endif
-
-ifdef UNPACKS
-# May God forgive me for this hack
-UNPACK_STRING += (UNPACK)
-PERSONAL_LIBRARIES += crunpacker
-endif
+#
+#	Append flags which may have been set from the makefile
+#
+CXXFLAGS += $(MAKEFILE_CXXFLAGS)
+CFLAGS += $(MAKEFILE_CFLAGS)
 
 ifndef SUBDIRS
 all: arch $(PRECOMP) headers dep
@@ -316,6 +311,8 @@ else
 LDFLAGS += -L$(DSO_DIR) 
 endif
 endif
+
+LDFLAGS += $(MAKEFILE_LDFLAGS)
 
 STATICLIBRARIES := $(foreach lib,$(LIBRARIES),$(wildcard $(TOP)/lib/$(ARCH)/lib$(lib)$(LIBSUFFIX)))
 LIBRARIES := $(foreach lib,$(LIBRARIES),-l$(lib))

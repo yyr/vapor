@@ -39,22 +39,22 @@ endif
 
 ifdef	HAVE_INTEL_COMPILERS
 
-CXXFLAGS          += -DLINUX 
-CXX_RELEASE_FLAGS += -O -DNDEBUG 
+CXXFLAGS          += -DLINUX -D__USE_LARGEFILE64
+CXX_RELEASE_FLAGS += -O -DNDEBUG
 CXX_DEBUG_FLAGS   += -g
 
-CFLAGS            += -DLINUX
+CFLAGS            += -DLINUX -D__USE_LARGEFILE64
 C_RELEASE_FLAGS   += -O
 C_DEBUG_FLAGS     += -g
 
 else
 
-CXXFLAGS          += -DLINUX -Wall -Wno-sign-compare
+CXXFLAGS          += -DLINUX -Wall -Wno-sign-compare -D__USE_LARGEFILE64
 CXX_RELEASE_FLAGS += -O3 -DNDEBUG -fno-strict-aliasing
 CXX_DEBUG_FLAGS   += -g
 
 #CFLAGS            += -DLINUX -Wall -Werror -Wmissing-prototypes -Wsign-compare
-CFLAGS            += -DLINUX -Wall -Wmissing-prototypes -Wno-sign-compare
+CFLAGS            += -DLINUX -Wall -Wmissing-prototypes -Wno-sign-compare -D__USE_LARGEFILE64
 C_RELEASE_FLAGS   += -O3 -DNDEBUG -fno-strict-aliasing
 C_DEBUG_FLAGS     += -g
 
