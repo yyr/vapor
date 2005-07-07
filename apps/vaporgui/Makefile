@@ -6,28 +6,29 @@ SHARED = 0
 QT = 1
 PROGRAM	= vaporgui
 
-INCLUDE_DIRS +=  -I"../../include/VAPoR/"   -I"./ui" -I"$(QTDIR)/include"
-INCLUDE_DIRS += -I$(VOLUMIZER_ROOT)/include
+ifdef	VOLUMIZER_ROOT
+MAKEFILE_CXXFLAGS += -I$(VOLUMIZER_ROOT)/include
+endif
 
 ifdef	EXPAT_INC_PATH
-INCLUDE_DIRS +=  -I$(EXPAT_INC_PATH)
+MAKEFILE_CXXFLAGS +=  -I$(EXPAT_INC_PATH)
 endif
 
 LIBRARIES += common vdf vjpeg
 
 ifeq ($(ARCH),WIN32) 
-CXXFLAGS += /DVOLUMIZER  
-LDFLAGS += "$(VOLUMIZER_ROOT)/lib/vz.lib"
-LDFLAGS += "$(QTDIR)/lib/qt-mt334.lib"
-LDFLAGS += "$(QTDIR)/lib/qtmain.lib"
-LDFLAGS += "opengl32.lib"
-LDFLAGS += "glu32.lib"
-LDFLAGS += "mpr.lib"
+MAKEFILE_CXXFLAGS += /DVOLUMIZER  
+MAKEFILE_LDFLAGS += "$(VOLUMIZER_ROOT)/lib/vz.lib"
+MAKEFILE_LDFLAGS += "$(QTDIR)/lib/qt-mt334.lib"
+MAKEFILE_LDFLAGS += "$(QTDIR)/lib/qtmain.lib"
+MAKEFILE_LDFLAGS += "opengl32.lib"
+MAKEFILE_LDFLAGS += "glu32.lib"
+MAKEFILE_LDFLAGS += "mpr.lib"
 else   
-CXXFLAGS += -DVOLUMIZER
-LDFLAGS += -lvz   
-LDFLAGS += -L$(QTDIR)/lib 
-LDFLAGS += -lqt-mt -lGL -lGLU
+MAKEFILE_CXXFLAGS += -DVOLUMIZER
+MAKEFILE_LDFLAGS += -lvz   
+MAKEFILE_LDFLAGS += -L$(QTDIR)/lib 
+MAKEFILE_LDFLAGS += -lqt-mt -lGL -lGLU
 endif
 
 
@@ -63,7 +64,7 @@ UI_FILES := animationtab viztab regiontab contourplanetab \
 	dvr isotab sessionparameters vizfeatures
   
 include ${TOP}/make/config/base.mk
-#LDFLAGS += $(QTLIB)
+#MAKEFILE_LDFLAGS += $(QTLIB)
 
 #testtarget:;echo $(FILES)
 

@@ -8,7 +8,7 @@ FILES = MyBase OptionParser EasyThreads CFuncs
 HEADER_FILES = MyBase OptionParser EasyThreads CFuncs 
 
 ifeq ($(ARCH), WIN32)
-CXXFLAGS += /D"COMMON_EXPORTS"
+MAKEFILE_CXXFLAGS += /D"COMMON_EXPORTS"
 endif
 
 #LIB_DEFS = common.def

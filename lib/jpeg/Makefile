@@ -3,9 +3,9 @@ TOP = ../..
 include ${TOP}/make/config/arch.mk
 
 ifeq ($(ARCH),WIN32)
-CFLAGS += /D"JPEG_EXPORTS" 
+MAKEFILE_CFLAGS += /D"JPEG_EXPORTS" 
 else
-CFLAGS += -DJPEG_EXPORTS
+MAKEFILE_CFLAGS += -DJPEG_EXPORTS
 endif
 
 SHARED = 0
