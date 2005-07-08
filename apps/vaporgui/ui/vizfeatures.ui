@@ -418,10 +418,10 @@
                             <cstring>regionCheckbox</cstring>
                         </property>
                         <property name="text">
-                            <string>Display region bounds</string>
+                            <string>Display full domain bounds</string>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Turn on/off wireframe display of full region</string>
+                            <string>Turn on/off wireframe display of full data domain</string>
                         </property>
                     </widget>
                     <spacer>
@@ -456,7 +456,7 @@
                             <cstring>textLabel2_2</cstring>
                         </property>
                         <property name="text">
-                            <string>Region frame color</string>
+                            <string>Domain frame color</string>
                         </property>
                         <property name="indent">
                             <number>0</number>
