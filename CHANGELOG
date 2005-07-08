@@ -1,0 +1,71 @@
+Vapor Revision History
+----------------------
+
+
+
+
+
+Alpha3 (Release 0.3) 7/8/05
+===========================
+
+New Features
+------------
+
+Support for session save and restore capability.
+
+Support for capturing one or a series of images as jpeg file(s).
+
+
+The DVR panel now has support for separate transfer functions for each
+variable
+
+In the DVR transfer function editor, there is a "Histo" button to
+refresh the current histogram.
+
+In the DVR panel, transfer functions can be saved and retrieved to/from
+the session.
+
+There is a new session parameters panel, in which you can specify: 
+	Cache size
+    Handling of logfiles, popups for application messages. 
+	(including use of stderr for log messages)
+    Jpeg image quality
+
+There is a new visualizer features panel, in which you can specify 
+(on a per-visualizer basis):
+    Visualizer name
+    Enablement and position of coordinate axes
+    Visualizer background color
+    Enablement and color of wireframes to show the full domain and
+    subregion bounds.
+
+    Enablement, background color, positioning, and 
+	annotation of color scale.
+
+Added IDL interface for 1D Wavelet Lifting functions
+
+Added support for limiting number of transformations saved to .vdf files
+
+Usability improvements
+----------------------
+
+In the DVR panel, more horizontal space to the left and right ends of 
+the default domain bar, to make it easier to grab with the mouse.
+
+There are buttons in the viewpoint and region panels that switch the 
+viewpoint to either a full domain view or a sub-region view.
+
+In the DVR transfer function editor, clicking the left mouse no longer
+creates a new control point.  They must be created with the right mouse
+menu.
+
+
+Major Bug Fixes
+---------------
+
+Opacity correction enabled for direct volume rendering multiresolution
+data
+
+Fixed memory allocation bug in data cache that restricted memory sizes
+to 2 GBs
+
