@@ -57,6 +57,7 @@ RM = rm -f
 CP = cp
 MV = mv
 MAKE = make --no-print-directory
+#MAKE = make -n
 NOWEB = noweb
 LATEX = latex
 BIBTEX = bibtex

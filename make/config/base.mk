@@ -312,7 +312,6 @@ LDFLAGS += -L$(DSO_DIR)
 endif
 endif
 
-LDFLAGS += $(MAKEFILE_LDFLAGS)
 
 STATICLIBRARIES := $(foreach lib,$(LIBRARIES),$(wildcard $(TOP)/lib/$(ARCH)/lib$(lib)$(LIBSUFFIX)))
 LIBRARIES := $(foreach lib,$(LIBRARIES),-l$(lib))
@@ -320,6 +319,7 @@ LIBRARIES += $(foreach lib,$(PERSONAL_LIBRARIES),-l$(SHORT_TARGET_NAME)_$(lib)_c
 P_LIB_FILES := $(foreach lib,$(PERSONAL_LIBRARIES),$(TOP)/lib/$(ARCH)/$(LIBPREFIX)$(SHORT_TARGET_NAME)_$(lib)_copy$(DLLSUFFIX) )
 endif
 
+LDFLAGS += $(MAKEFILE_LDFLAGS)
 
 dep: $(DEPS)
 	$(MAKE) $(PARALLELMAKEFLAGS) recurse INCLUDEDEPS=1
