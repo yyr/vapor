@@ -92,7 +92,7 @@
 				BufferSecurityCheck="FALSE"
 				AssemblerListingLocation="..\..\..\targets\win32\built\vaporgui\"
 				ObjectFile="..\..\..\targets\win32\built\vaporgui\"
-				ProgramDataBaseFileName=".\"
+				ProgramDataBaseFileName="..\..\..\targets\win32\built\vaporgui\vc70.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"/>
