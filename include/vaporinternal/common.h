@@ -9,11 +9,6 @@
 #else
 #define VDF_API __declspec(dllimport)
 #endif
-#ifdef VPANEL_EXPORTS
-#define VPANEL_API __declspec(dllexport)
-#else
-#define VPANEL_API __declspec(dllimport)
-#endif
 #ifdef JPEG_EXPORTS
 //Slightly different definitions for jpeg project:
 #     define JPEG_GLOBAL(type) __declspec(dllexport) type
