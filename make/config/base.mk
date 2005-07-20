@@ -106,7 +106,9 @@ QTTEMPS += $(UI_FILES:%=$(MOC_DIR)/moc_%.cpp)
 	@$(UIC) $*.ui  -i $< -o $@
 
 #specify that QT_HEADERS result in compiled moc_* files 
-MOCS := $(QT_HEADERS:%=moc_%)
+#Remove the directory, then add moc_
+QT_HEAD_NOTDIR = $(notdir $(QT_HEADERS))
+MOCS := $(QT_HEAD_NOTDIR:%=moc_%)
 FILES += $(MOCS)
 
 #rule to generate moc*.cpp from QT_HEADERS,
@@ -137,9 +139,10 @@ ifdef TEST
 FILES := $(TEST)
 endif
 
-DEPS    := $(addprefix $(DEPDIR)/, $(FILES))
+FILES_NOTDIR := $(notdir $(FILES))
+DEPS    := $(addprefix $(DEPDIR)/, $(FILES_NOTDIR))
 DEPS    := $(addsuffix .depend, $(DEPS))
-OBJS    := $(addprefix $(OBJDIR)/, $(FILES))
+OBJS    := $(addprefix $(OBJDIR)/, $(FILES_NOTDIR))
 OBJS    := $(addsuffix $(OBJSUFFIX), $(OBJS))
 INCS    := $(addprefix $(INCDIR)/$(PROJECT)/, $(HEADER_FILES))
 INCS    := $(addsuffix .h, $(INCS))
