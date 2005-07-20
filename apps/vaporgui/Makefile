@@ -13,6 +13,7 @@ endif
 ifdef	EXPAT_INC_PATH
 MAKEFILE_CXXFLAGS +=  -I$(EXPAT_INC_PATH)
 endif
+MAKEFILE_CXXFLAGS += -Iguis -Iparams -Irender -Imain
 
 LIBRARIES += common vdf vjpeg
 
@@ -31,34 +32,39 @@ MAKEFILE_LDFLAGS += -L$(QTDIR)/lib
 MAKEFILE_LDFLAGS += -lqt-mt -lGL -lGLU
 endif
 
+VPATH = guis params render main
 
 
 FILES := \
-	animationparams animationcontroller \
-	coloradjustdialog colorpicker command contourparams \
-	DVRBase DVRDebug DVRVolumizer dvrparams glbox glutil glwindow \
-	histo isosurfaceparams loadtfdialog main mainform \
-	messagereporter opacadjustdialog panelcommand params regionparams \
-	renderer savetfdialog session sessionparams sharedcontrollerthread\
-	tabmanager tfeditor tfelocationtip \
-	tfframe tfinterpolator trackball transferfunction \
-	unsharedcontrollerthread \
-	viewpointparams viewpoint vizactivatecommand vizfeatureparams \
-	vizselectcombo vizwin vizwinmgr volumizerrenderer 
+	params/animationparams params/animationcontroller \
+	params/contourparams  params/dvrparams params/histo\
+	params/isosurfaceparams params/params params/regionparams \
+	params/sessionparams  params/sharedcontrollerthread\
+	params/tfeditor  params/tfinterpolator \
+	params/transferfunction params/unsharedcontrollerthread \
+	params/viewpointparams params/viewpoint params/vizfeatureparams \
+	guis/coloradjustdialog guis/colorpicker guis/loadtfdialog \
+	guis/opacadjustdialog guis/savetfdialog \
+	guis/tfelocationtip guis/tfframe guis/vizselectcombo \
+	main/command main/main main/mainform main/messagereporter \
+	main/panelcommand main/session main/tabmanager \
+	main/vizactivatecommand main/vizwinmgr \
+	render/DVRBase render/DVRDebug render/DVRVolumizer \
+	render/glbox render/glutil render/glwindow render/renderer \
+	render/trackball render/vizwin  render/volumizerrenderer 
 
 QT_HEADERS := \
-	coloradjustdialog colorpicker \
-	glbox \
-	loadtfdialog \
-	mainform \
-	opacadjustdialog \
-	renderer savetfdialog sessionparams tabmanager \
-	tfframe \
-	vizselectcombo vizwin vizfeatureparams vizwinmgr volumizerrenderer 
+	guis/coloradjustdialog guis/colorpicker \
+	guis/loadtfdialog guis/opacadjustdialog \
+	guis/savetfdialog guis/tfframe guis/vizselectcombo \
+	render/glbox render/renderer \
+	render/vizwin render/volumizerrenderer \
+	main/mainform main/tabmanager main/vizwinmgr \
+	params/sessionparams params/vizfeatureparams 
 
 
 MOC_DIR = moc
-UI_DIR = ui
+UI_DIR = guis/ui
 
 UI_FILES := animationtab viztab regiontab contourplanetab \
 	dvr isotab sessionparameters vizfeatures
