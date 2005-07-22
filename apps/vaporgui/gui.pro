@@ -48,6 +48,7 @@ SOURCES +=\
 	   render/DVRDebug.cpp \
 	   render/DVRVolumizer.cpp \
 	   params/dvrparams.cpp \
+	   params/flowparams.cpp \
 	   render/glbox.cpp \
 	   render/glutil.cpp \
 	   render/glwindow.cpp \
@@ -91,6 +92,7 @@ HEADERS += \
 	   main/command.h \
 	   params/contourparams.h \
 	   params/controllerthread.h \
+	   params/flowparams.h \
 	   render/DVRBase.h \
 	   render/DVRDebug.h \
 	   render/DVRVolumizer.h \
@@ -129,6 +131,7 @@ HEADERS += \
 FORMS +=  guis/ui/animationtab.ui \
 	 guis/ui/viztab.ui \
 	 guis/ui/dvr.ui \
+	 guis/ui/flowtab.ui \
          guis/ui/regiontab.ui \ 
 	 guis/ui/contourplanetab.ui \
        	 guis/ui/isotab.ui \
