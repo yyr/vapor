@@ -52,7 +52,8 @@ public:
 		IsoParamsType,
 		DvrParamsType,
 		ContourParamsType,
-		AnimationParamsType
+		AnimationParamsType,
+		FlowParamsType
 	};
 	static QString& paramName(ParamType);
 	static const string _dvrParamsTag;

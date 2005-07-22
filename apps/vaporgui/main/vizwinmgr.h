@@ -42,6 +42,7 @@ class QMainWidget;
 #include "dvrparams.h"
 #include "contourparams.h"
 #include "isosurfaceparams.h"
+#include "flowparams.h"
 #include "animationparams.h"
 #include "vaporinternal/common.h"
 #include "params.h"
@@ -52,6 +53,7 @@ class Dvr;
 class ContourPlaneTab;
 class VizTab;
 class IsoTab;
+class FlowTab;
 class AnimationTab;
 class QPopupMenu;
 
@@ -136,6 +138,7 @@ public:
 	DvrParams* getDvrParams(int winNum);
 	ContourParams* getContourParams(int winNum);
 	IsosurfaceParams* getIsoParams(int winNum);
+	FlowParams* getFlowParams(int winNum);
 	AnimationParams* getAnimationParams(int winNum);
 	//Get whatever params apply to a particular tab
 	Params* getApplicableParams(Params::ParamType t);
@@ -150,12 +153,14 @@ public:
 	void hookUpIsoTab(IsoTab*);
 	void hookUpContourTab(ContourPlaneTab*);
 	void hookUpAnimationTab(AnimationTab*);
+	void hookUpFlowTab(FlowTab*);
 	//set/get Data describing window states
 	VizWin* getVizWin(int i) {return vizWin[i];}
 	//Direct access to actual params object:
 	ViewpointParams* getRealVPParams(int i) {return vpParams[i];}
 	ContourParams* getRealContourParams(int i) {return contourParams[i];}
 	IsosurfaceParams* getRealIsoParams(int i) {return isoParams[i];}
+	FlowParams* getRealFlowParams(int i) {return flowParams[i];}
 	DvrParams* getRealDvrParams(int i) {return dvrParams[i];}
 	RegionParams* getRealRegionParams(int i) {return rgParams[i];}
 	AnimationParams* getRealAnimationParams(int i) {return animationParams[i];}
@@ -169,6 +174,7 @@ public:
 	void setContourParams(int winNum, ContourParams* p);
 	void setDvrParams(int winNum, DvrParams* p);
 	void setIsoParams(int winNum, IsosurfaceParams* p);
+	void setFlowParams(int winNum, FlowParams* p);
 	void setViewpointParams(int winNum, ViewpointParams* p);
 	void setRegionParams(int winNum, RegionParams* p);
 	void setAnimationParams(int winNum, AnimationParams* p);
@@ -281,6 +287,7 @@ protected:
 	DvrParams* dvrParams[MAXVIZWINS];
 	ContourParams* contourParams[MAXVIZWINS];
 	IsosurfaceParams* isoParams[MAXVIZWINS];
+	FlowParams* flowParams[MAXVIZWINS];
 	AnimationParams* animationParams[MAXVIZWINS];
 
 	//Remember the activation order:
@@ -300,6 +307,7 @@ protected:
 	ViewpointParams* globalVPParams;
 	RegionParams* globalRegionParams;
 	IsosurfaceParams* globalIsoParams;
+	FlowParams* globalFlowParams;
 	DvrParams* globalDvrParams;
 	ContourParams* globalContourParams;
 	AnimationParams* globalAnimationParams;
@@ -332,6 +340,7 @@ protected slots:
 	void setVtabTextChanged(const QString& qs);
 	void setRegionTabTextChanged(const QString& qs);
 	void setIsoTabTextChanged(const QString& qs);
+	void setFlowTabTextChanged(const QString& qs);
 	void setDvrTabTextChanged(const QString& qs);
 	void setContourTabTextChanged(const QString& qs);
 	void setAtabTextChanged(const QString& qs);

@@ -37,7 +37,8 @@ VPATH = guis params render main
 
 FILES := \
 	params/animationparams params/animationcontroller \
-	params/contourparams  params/dvrparams params/histo\
+	params/contourparams  params/dvrparams params/flowparams \
+	params/histo \
 	params/isosurfaceparams params/params params/regionparams \
 	params/sessionparams  params/sharedcontrollerthread\
 	params/tfeditor  params/tfinterpolator \
@@ -66,7 +67,7 @@ QT_HEADERS := \
 MOC_DIR = moc
 UI_DIR = guis/ui
 
-UI_FILES := animationtab viztab regiontab contourplanetab \
+UI_FILES := animationtab flowtab viztab regiontab contourplanetab \
 	dvr isotab sessionparameters vizfeatures
   
 include ${TOP}/make/config/base.mk

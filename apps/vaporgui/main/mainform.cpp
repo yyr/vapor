@@ -52,13 +52,13 @@
 #include <sstream>
 #include "vizwin.h"
 #include "isotab.h"
+#include "flowtab.h"
 #include "vizselectcombo.h"
 #include "tabmanager.h"
 #include "viztab.h"
 #include "regiontab.h"
 #include "vizwinmgr.h"
 #include "dvr.h"
-#include "isotab.h"
 #include "contourplanetab.h"
 #include "animationtab.h"
 #include "session.h"
@@ -108,6 +108,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	theIsoTab = 0;
 	theContourTab = 0;
 	theAnimationTab = 0;
+	theFlowTab = 0;
 	
 	sessionSaveFile.setAscii("/tmp/VaporSaved.vss");
 
@@ -413,12 +414,15 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	//These need to be installed to set the tab pointers in the
 	//global params.
 	Session::getInstance()->blockRecording();
-	region();
-	animationParams();
+	
 	calcIsosurface();
 	contourPlanes();
+	animationParams();
 	viewpoint();
+	region();
+	launchFlowTab();
 	renderDVR();
+	
 	//Create one initial visualizer:
 	myVizMgr->launchVisualizer();
 
@@ -967,6 +971,31 @@ void MainForm::calcIsosurface()
 		tabWidget->insertWidget( theIsoTab, Params::IsoParamsType, true );
 	} else {
 		tabWidget->moveToFront(Params::IsoParamsType);
+	}
+	
+}
+/*
+ * Launch the Flow rendering tab
+ */
+void MainForm::launchFlowTab()
+{
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+	//Determine which is the current active window:
+	int activeViz = myVizMgr->getActiveViz();
+	//Get the flow parameter set (local or global) that applies:
+	FlowParams* myFlowParams = myVizMgr->getFlowParams(activeViz);
+	if (!theFlowTab){
+		theFlowTab = new FlowTab(tabWidget, "flowtab");
+		myVizMgr->getFlowParams(-1)->setTab(theFlowTab);
+		myVizMgr->hookUpFlowTab(theFlowTab);
+	}
+	myFlowParams->updateDialog();
+	
+	int posn = tabWidget->findWidget(Params::FlowParamsType);
+	if (posn < 0){
+		tabWidget->insertWidget( theFlowTab, Params::FlowParamsType, true );
+	} else {
+		tabWidget->moveToFront(Params::FlowParamsType);
 	}
 	
 }

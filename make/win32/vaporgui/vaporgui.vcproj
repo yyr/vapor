@@ -171,6 +171,9 @@
 				RelativePath="..\..\..\apps\vaporgui\render\DVRVolumizer.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\params\flowparams.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\render\glbox.cpp">
 			</File>
 			<File
@@ -348,6 +351,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\render\DVRVolumizer.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\params\flowparams.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\render\glbox.h">
@@ -729,6 +735,9 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_dvr.cpp">
 			</File>
 			<File
+				RelativePath=".\tmp\moc\moc_flowtab.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_glbox.cpp">
 			</File>
 			<File
@@ -806,6 +815,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\dvr.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\flowtab.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\flowtab.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\isotab.cpp">
@@ -921,6 +936,29 @@ $(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\dvr.h -o ..\..\..\apps\vapor
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\dvr.h;..\..\..\apps\vaporgui\guis\ui\dvr.cpp;..\..\..\apps\vaporgui\moc\moc_dvr.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\flowtab.ui">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing flowtab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot; -o &quot;tmp\moc\moc_flowtab.cpp&quot;
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\flowtab.cpp&quot;;&quot;tmp\moc\moc_flowtab.cpp&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing flowtab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot; -o &quot;tmp\moc\moc_flowtab.cpp&quot;
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\flowtab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\flowtab.cpp&quot;;&quot;tmp\moc\moc_flowtab.cpp&quot;"/>
 				</FileConfiguration>
 			</File>
 			<File

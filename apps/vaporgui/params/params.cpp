@@ -100,6 +100,8 @@ QString& Params::paramName(Params::ParamType type){
 			return *(new QString("Region"));
 		case(IsoParamsType):
 			return *(new QString("Isosurface"));
+		case(FlowParamsType):
+			return *(new QString("Flow"));
 		case(DvrParamsType):
 			return *(new QString("DVR"));
 		case(ContourParamsType):

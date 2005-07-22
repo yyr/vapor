@@ -48,6 +48,7 @@ class RegionTab;
 class ContourPlaneTab;
 class Dvr;
 class IsoTab;
+class FlowTab;
 class AnimationTab;
 
 namespace VAPoR{
@@ -152,6 +153,7 @@ public:
 	AnimationTab* getAnimationTab() {return theAnimationTab;}
 	ContourPlaneTab* getContourTab() {return theContourTab;}
 	IsoTab* getIsoTab() {return theIsoTab;}
+	FlowTab* getFlowTab() {return theFlowTab;}
 	QWorkspace* getWorkspace() {return myWorkspace;}
 	//Disable the editUndo/Redo action:
 	void disableUndoRedo();
@@ -190,6 +192,7 @@ public slots:
     virtual void region();
     virtual void renderDVR();
 	virtual void animationParams();
+	virtual void launchFlowTab();
 	virtual void contourPlanes();
     virtual void batchSetup();
 
@@ -220,6 +223,7 @@ protected:
 	RegionTab* theRegionTab;
 	IsoTab* theIsoTab;
 	Dvr* theDvrTab;
+	FlowTab* theFlowTab;
 	AnimationTab* theAnimationTab;
 	ContourPlaneTab* theContourTab;
 	VizSelectCombo* windowSelector;

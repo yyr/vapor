@@ -132,6 +132,9 @@ void TabChangeCommand::unDo(){
 		case Params::IsoParamsType:
 			MainForm::getInstance()->calcIsosurface();
 			break;
+		case Params::FlowParamsType:
+			MainForm::getInstance()->launchFlowTab();
+			break;
 		case Params::DvrParamsType:
 			MainForm::getInstance()->renderDVR();
 			break;
@@ -161,6 +164,9 @@ void TabChangeCommand::reDo(){
 			break;
 		case Params::IsoParamsType:
 			MainForm::getInstance()->calcIsosurface();
+			break;
+		case Params::FlowParamsType:
+			MainForm::getInstance()->launchFlowTab();
 			break;
 		case Params::DvrParamsType:
 			MainForm::getInstance()->renderDVR();
@@ -194,6 +200,8 @@ tabName(Params::ParamType t){
 			return " contours ";
 		case Params::AnimationParamsType:
 			return " animation ";
+		case Params::FlowParamsType:
+			return " flow ";
 		default:  
 			assert(0);
 			return 0;

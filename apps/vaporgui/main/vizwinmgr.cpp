@@ -60,6 +60,7 @@
 #include "animationparams.h"
 #include "animationcontroller.h"
 #include "isotab.h"
+#include "flowtab.h"
 #include "assert.h"
 #include "trackball.h"
 #include "glbox.h"
@@ -114,6 +115,7 @@ VizWinMgr::VizWinMgr()
 		rgParams[i] = 0;
 		dvrParams[i] = 0;
 		isoParams[i] = 0;
+		flowParams[i] = 0;
 		contourParams[i] = 0;
 		animationParams[i] = 0;
 		activationOrder[i] = -1;
@@ -127,6 +129,7 @@ createGlobalParams() {
 	globalRegionParams = new RegionParams( -1);
 	globalDvrParams = new DvrParams( -1);
 	globalIsoParams = new IsosurfaceParams( -1);
+	globalFlowParams = new FlowParams(-1);
 	globalContourParams = new ContourParams( -1);
 	globalAnimationParams = new AnimationParams( -1);
 	globalTrackball = new Trackball();
@@ -189,6 +192,7 @@ vizAboutToDisappear(int i)  {
 	
 	if (dvrParams[i]) delete dvrParams[i];
 	if (isoParams[i]) delete isoParams[i];
+	if (flowParams[i]) delete flowParams[i];
 	if (contourParams[i]) delete contourParams[i];
 	if (animationParams[i]) delete animationParams[i];
 	vpParams[i] = 0;
@@ -197,6 +201,7 @@ vizAboutToDisappear(int i)  {
 	isoParams[i] = 0;
 	contourParams[i] = 0;
 	animationParams[i] = 0;
+	flowParams[i] = 0;
     
 	emit (removeViz(i));
 	
@@ -308,6 +313,11 @@ createDefaultParams(int winnum){
 	isoParams[winnum]->setLocal(true);
 	isoParams[winnum]->setEnabled(false);
 
+	flowParams[winnum] = (FlowParams*)globalFlowParams->deepCopy();
+	flowParams[winnum]->setVizNum(winnum);
+	flowParams[winnum]->setLocal(true);
+	flowParams[winnum]->setEnabled(false);
+
 	contourParams[winnum] = (ContourParams*)globalContourParams->deepCopy();
 	contourParams[winnum]->setVizNum(winnum);
 	contourParams[winnum]->setLocal(true);
@@ -356,6 +366,10 @@ void VizWinMgr::replaceGlobalParams(Params* p, Params::ParamType typ){
 		case (Params::IsoParamsType):
 			if(globalIsoParams) delete globalIsoParams;
 			globalIsoParams = (IsosurfaceParams*)p;
+			return;
+		case (Params::FlowParamsType):
+			if(globalFlowParams) delete globalFlowParams;
+			globalFlowParams = (FlowParams*)p;
 			return;
 		default:  assert(0); return;
 	}
@@ -469,6 +483,7 @@ updateActiveParams(){
 	getDvrParams(activeViz)->updateDialog();
 	getContourParams(activeViz)->updateDialog();
 	getIsoParams(activeViz)->updateDialog();
+	getFlowParams(activeViz)->updateDialog();
 	getAnimationParams(activeViz)->updateDialog();
 }
 
@@ -503,6 +518,18 @@ setIsoParams(int winnum, IsosurfaceParams* p){
 		if (isoParams[winnum]) delete isoParams[winnum];
 		if (p) isoParams[winnum] = (IsosurfaceParams*)p->deepCopy();
 		else isoParams[winnum] = 0;
+	}
+}
+void VizWinMgr::
+setFlowParams(int winnum, FlowParams* p){
+	if (winnum < 0) { //global params!
+		if (globalFlowParams) delete globalFlowParams;
+		if (p) globalFlowParams = (FlowParams*)p->deepCopy();
+		else globalFlowParams = 0;
+	} else {
+		if (flowParams[winnum]) delete flowParams[winnum];
+		if (p) flowParams[winnum] = (FlowParams*)p->deepCopy();
+		else flowParams[winnum] = 0;
 	}
 }
 void VizWinMgr::
@@ -805,6 +832,13 @@ VizWinMgr::hookUpIsoTab(IsoTab* isoTab)
 	connect (this, SIGNAL(enableMultiViz(bool)), isoTab->copyButton, SLOT(setEnabled(bool)));
 	connect (this, SIGNAL(enableMultiViz(bool)), isoTab->copyTarget, SLOT(setEnabled(bool)));
 	emit enableMultiViz(getNumVisualizers() > 1);
+}
+void
+VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
+{
+	connect (flowTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setFlowEnabled(int)));
+	//connect (isoTab->variableCombo1, SIGNAL( activated(int) ), this, SLOT( setIsoVariable1Num(int) ) );
+	
 }
 /*
  * Tell the parameter panels when there are or are not multiple viz's
@@ -1111,7 +1145,7 @@ setAnimationLocalGlobal(int val){
 }
 /*****************************************************************************
  * Called when the local/global selector is changed.
- * Separate versions for viztab, regiontab, isotab, contourtab, dvrtab
+ * Separate versions for viztab, regiontab, isotab, contourtab, dvrtab, flowtab
  ******************************************************************************/
 void VizWinMgr::
 setVpLocalGlobal(int val){
@@ -1534,6 +1568,13 @@ setIsoColor1(){
 	//Set parameter value of the appropriate parameter set:
 	getIsoParams(activeViz)->guiSetColor1(new QColor(newColor));
 }
+/*************************************************************************************
+ * slots associated with FlowTab
+ *************************************************************************************/
+void VizWinMgr::
+setFlowTabTextChanged(const QString&){
+	getFlowParams(activeViz)->guiSetTextChanged(true);
+}
 ViewpointParams* VizWinMgr::
 getViewpointParams(int winNum){
 	if (winNum < 0) return globalVPParams;
@@ -1574,6 +1615,12 @@ getIsoParams(int winNum){
 	if (isoParams[winNum] && isoParams[winNum]->isLocal()) return isoParams[winNum];
 	return globalIsoParams;
 }
+FlowParams* VizWinMgr::
+getFlowParams(int winNum){
+	if (winNum < 0) return globalFlowParams;
+	if (flowParams[winNum] && flowParams[winNum]->isLocal()) return flowParams[winNum];
+	return globalFlowParams;
+}
 Params* VizWinMgr::
 getGlobalParams(Params::ParamType t){
 	switch (t){
@@ -1589,6 +1636,8 @@ getGlobalParams(Params::ParamType t){
 			return globalDvrParams;
 		case (Params::AnimationParamsType):
 			return globalAnimationParams;
+		case (Params::FlowParamsType):
+			return globalFlowParams;
 		default:  assert(0);
 			return 0;
 	}
@@ -1610,6 +1659,8 @@ getLocalParams(Params::ParamType t){
 			return getRealDvrParams(activeViz);
 		case (Params::AnimationParamsType):
 			return getRealAnimationParams(activeViz);
+		case (Params::FlowParamsType):
+			return getRealFlowParams(activeViz);
 		default:  assert(0);
 			return 0;
 	}
@@ -1632,6 +1683,8 @@ getApplicableParams(Params::ParamType t){
 			return getDvrParams(activeViz);
 		case (Params::AnimationParamsType):
 			return getAnimationParams(activeViz);
+		case (Params::FlowParamsType):
+			return getFlowParams(activeViz);
 		default:  assert(0);
 			return 0;
 	}
@@ -1645,12 +1698,14 @@ restartParams(){
 		if(rgParams[i]) rgParams[i]->restart();
 		if(dvrParams[i]) dvrParams[i]->restart();
 		if(isoParams[i]) isoParams[i]->restart();
+		if(flowParams[i]) flowParams[i]->restart();
 		if(contourParams[i]) contourParams[i]->restart();
 		if(animationParams[i]) animationParams[i]->restart();
 	}
 	globalVPParams->restart();
 	globalRegionParams->restart();
 	globalIsoParams->restart();
+	globalFlowParams->restart();
 	globalDvrParams->restart();
 	globalContourParams->restart();
 	globalAnimationParams->restart();
@@ -1668,6 +1723,7 @@ reinitializeParams(bool doOverride){
 	//
 	globalVPParams->reinit(doOverride);
 	globalIsoParams->reinit(doOverride);
+	globalFlowParams->reinit(doOverride);
 	globalDvrParams->reinit(doOverride);
 	globalContourParams->reinit(doOverride);
 	globalAnimationParams->reinit(doOverride);
@@ -1676,6 +1732,7 @@ reinitializeParams(bool doOverride){
 		if(rgParams[i]) rgParams[i]->reinit(doOverride);
 		if(dvrParams[i]) dvrParams[i]->reinit(doOverride);
 		if(isoParams[i]) isoParams[i]->reinit(doOverride);
+		if(flowParams[i]) flowParams[i]->reinit(doOverride);
 		if(contourParams[i]) contourParams[i]->reinit(doOverride);
 		if(animationParams[i]) animationParams[i]->reinit(doOverride);
 	}
