@@ -321,6 +321,7 @@ protected:
     QWorkspace* myWorkspace;
 	ContourPlaneTab* myContourPlaneTab;
 	Dvr* myDvrTab;
+	FlowTab* myFlowTab;
 
 
 protected slots:
@@ -335,6 +336,8 @@ protected slots:
 	void setIsoLocalGlobal(int val);
 	void setContourLocalGlobal(int val);
 	void setAnimationLocalGlobal(int val);
+	void setFlowLocalGlobal(int val);
+
 	void setVPPerspective(int isOn);
 
 	void setVtabTextChanged(const QString& qs);
@@ -351,6 +354,7 @@ protected slots:
 	void isoReturnPressed();
 	void contourReturnPressed();
 	void animationReturnPressed();
+	void flowTabReturnPressed();
 
 	//Animation slots:
 	void animationSetFrameStep();
@@ -408,7 +412,26 @@ protected slots:
 	void setIsoOpac1();
 	void setIsoColor1();
 
-	
+	//slots for flow tab:
+	void setFlowEnabled(int);
+	void setFlowInstance(int);
+	void setFlowType(int);
+	void setFlowNumTrans(int);
+	void setFlowXVar(int);
+	void setFlowYVar(int);
+	void setFlowZVar(int);
+	void clickFlowRecalc();
+	void checkFlowRandom(bool isRandom);
+	void setFlowXCenter();
+	void setFlowYCenter();
+	void setFlowZCenter();
+	void setFlowXSize();
+	void setFlowYSize();
+	void setFlowZSize();
+	void setFlowGeneratorDimension(int);
+	void setFlowGeometry(int);
+	void setFlowMapEntity(int);
+
 	
 
 };

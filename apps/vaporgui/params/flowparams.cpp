@@ -25,24 +25,63 @@
 #include <qpushbutton.h>
 #include <qspinbox.h>
 #include <qslider.h>
+#include <qlabel.h>
+#include <qcheckbox.h>
 #include "mainform.h"
 #include "session.h"
 #include "params.h"
 #include "panelcommand.h"
 #include "tabmanager.h"
+#include "vizwinmgr.h"
+#include "messagereporter.h"
 using namespace VAPoR;
 FlowParams::FlowParams(int winnum) : Params(winnum) {
 	thisParamType = FlowParamsType;
 	myFlowTab = MainForm::getInstance()->getFlowTab();
 	enabled = false;
 	//Set default values
+	flowType = 0; //steady
+	instance = 1;
+	numTrans = 4; 
+	maxNumTrans = 4; 
+	minNumTrans = 0;
+	numVariables = 0;
+	variableNames.empty();
+	varNum[0] = varNum [1] = varNum[2] = 0;
+	integrationAccuracy = 0.5f;
+	userTimeStepSize = 1.0f;
+	timeSamplingInterval = 1;
 	
+
+	randomGen = false;
+	randomSeed = 1;
+	seedBoxMin[0] = seedBoxMin[1] = seedBoxMin[2] = 0.f;
+	seedBoxMax[0] = seedBoxMax[1] = seedBoxMax[2] = 1.f;
+	regionMin[0] = regionMin[1] = regionMin[2] = 0.f;
+	regionMax[0] = regionMax[1] = regionMax[2] = 1.f;
+	generatorCount[0]=generatorCount[1]=generatorCount[2] = 1;
+
+	allGeneratorCount = 1;
+	seedTimeStart = 1; 
+	seedTimeEnd = 100; 
+	seedTimeIncrement = 1;
+	currentDimension = 0;
+
+	geometryType = 1;  //0= point, 1=curve, 2 = arrow
+	objectsPerTimestep = 1.f;
+	minAgeShown = 0;
+	maxAgeShown = 100;
+	shapeDiameter = 0.f;
+	colorMappedEntity = 0; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
+	colorMapMin = 0.f; 
+	colorMapMax = 1.f;
 	
 }
 
 //Make a copy of  parameters:
 Params* FlowParams::
 deepCopy(){
+	//For now, copy is not deep...
 	FlowParams* newFlowParams = new FlowParams(*this);
 	return (Params*)newFlowParams;
 }
@@ -67,15 +106,111 @@ makeCurrent(Params* prev, bool newWin) {
 void FlowParams::updateDialog(){
 	
 	Session::getInstance()->blockRecording();
+	//Get the region corners from the current applicable region panel,
+	//or the global one:
+	
 	myFlowTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
 	
+	myFlowTab->flowTypeCombo->setCurrentItem(flowType);
+	myFlowTab->numTransSpin->setMinValue(minNumTrans);
+	myFlowTab->numTransSpin->setMaxValue(maxNumTrans);
+	myFlowTab->numTransSpin->setValue(numTrans);
+	myFlowTab->xCoordVarCombo->clear();
+	myFlowTab->xCoordVarCombo->setMaxCount(numVariables);
+	myFlowTab->yCoordVarCombo->clear();
+	myFlowTab->yCoordVarCombo->setMaxCount(numVariables);
+	myFlowTab->zCoordVarCombo->clear();
+	myFlowTab->zCoordVarCombo->setMaxCount(numVariables);
+	for (int i = 0; i< numVariables; i++){
+		if (variableNames.size() > (unsigned int)i){
+			const std::string& s = variableNames.at(i);
+			//Direct conversion of std::string& to QString doesn't seem to work
+			//Maybe std was not enabled when QT was built?
+			const QString& text = QString(s.c_str());
+			myFlowTab->xCoordVarCombo->insertItem(text);
+			myFlowTab->yCoordVarCombo->insertItem(text);
+			myFlowTab->zCoordVarCombo->insertItem(text);
+		} else {
+			myFlowTab->xCoordVarCombo->insertItem("");
+			myFlowTab->yCoordVarCombo->insertItem("");
+			myFlowTab->zCoordVarCombo->insertItem("");
+		}
+	}
+	myFlowTab->xCoordVarCombo->setCurrentItem(varNum[0]);
+	myFlowTab->yCoordVarCombo->setCurrentItem(varNum[1]);
+	myFlowTab->zCoordVarCombo->setCurrentItem(varNum[2]);
 	
+	myFlowTab->timeSampleEdit->setEnabled(flowType == 1);
+	myFlowTab->recalcButton->setEnabled(flowType == 1);
+	myFlowTab->seedtimeIncrementEdit->setEnabled(flowType == 1);
+	myFlowTab->seedtimeEndEdit->setEnabled(flowType == 1);
+
+	myFlowTab->randomCheckbox->setChecked(randomGen);
 	
+	myFlowTab->randomSeedEdit->setEnabled(randomGen);
+	myFlowTab->generatorDimensionCombo->setCurrentItem(currentDimension);
+
+	//To set the seed region extents, find the region panel that applies in the current
+	//active visualizer, make those region bounds be the limits of the seed sliders.
+	//Then force the seed region to fit in there.
+	int viznum = getVizNum();
+	RegionParams* rParams;
+	if (viznum >= 0) rParams = VizWinMgr::getInstance()->getRegionParams(viznum);
+	else rParams = (RegionParams*)VizWinMgr::getInstance()->getGlobalParams(RegionParamsType);
+	for (int i = 0; i< 3; i++){
+		regionMin[i] = rParams->getRegionMin(i);
+		regionMax[i] = rParams->getRegionMax(i);
+		if (seedBoxMin[i]<regionMin[i]) seedBoxMin[i] = regionMin[i];
+		if (seedBoxMax[i]>regionMax[i]) seedBoxMax[i] = regionMax[i];
+		if (seedBoxMin[i]>seedBoxMax[i]) seedBoxMin[i] = seedBoxMax[i];
+		textToSlider(i, (seedBoxMin[i]+seedBoxMax[i])*0.5f,
+			seedBoxMax[i]-seedBoxMin[i]);
+	}
+
+
+	//Geometric parameters:
+	myFlowTab->geometryCombo->setCurrentItem(geometryType);
+	
+	myFlowTab->colormapEntityCombo->setCurrentItem(colorMappedEntity);
 	
 	if (isLocal())
 		myFlowTab->LocalGlobal->setCurrentItem(1);
 	else 
 		myFlowTab->LocalGlobal->setCurrentItem(0);
+
+	if (randomGen){
+		myFlowTab->dimensionLabel->setEnabled(false);
+		myFlowTab->generatorDimensionCombo->setEnabled(false);
+	} else {
+		myFlowTab->dimensionLabel->setEnabled(true);
+		myFlowTab->generatorDimensionCombo->setEnabled(true);
+		myFlowTab->generatorDimensionCombo->setCurrentItem(currentDimension);
+	}
+	//Put all the setText messages here, so they won't trigger a textChanged message
+	if (randomGen){
+		myFlowTab->generatorCountEdit->setText(QString::number(allGeneratorCount));
+	} else {
+		myFlowTab->generatorCountEdit->setText(QString::number(generatorCount[currentDimension]));
+	}
+	myFlowTab->integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
+	myFlowTab->userTimestepEdit->setText(QString::number(userTimeStepSize));
+	myFlowTab->timeSampleEdit->setText(QString::number(timeSamplingInterval));
+	myFlowTab->randomSeedEdit->setText(QString::number(randomSeed));
+	myFlowTab->objectsPerTimestepEdit->setText(QString::number(objectsPerTimestep));
+	myFlowTab->minAgeEdit->setText(QString::number(minAgeShown));
+	myFlowTab->maxAgeEdit->setText(QString::number(maxAgeShown));
+	myFlowTab->diameterEdit->setText(QString::number(shapeDiameter));
+	myFlowTab->minColormapEdit->setText(QString::number(colorMapMin));
+	myFlowTab->maxColormapEdit->setText(QString::number(colorMapMax));
+	myFlowTab->xSizeEdit->setText(QString::number(seedBoxMax[0]-seedBoxMin[0],'g', 4));
+	myFlowTab->xCenterEdit->setText(QString::number(0.5f*(seedBoxMax[0]+seedBoxMin[0]),'g',5));
+	myFlowTab->ySizeEdit->setText(QString::number(seedBoxMax[1]-seedBoxMin[1],'g', 4));
+	myFlowTab->yCenterEdit->setText(QString::number(0.5f*(seedBoxMax[1]+seedBoxMin[1]),'g',5));
+	myFlowTab->zSizeEdit->setText(QString::number(seedBoxMax[2]-seedBoxMin[2],'g', 4));
+	myFlowTab->zCenterEdit->setText(QString::number(0.5f*(seedBoxMax[2]+seedBoxMin[2]),'g',5));
+	myFlowTab->seedtimeIncrementEdit->setText(QString::number(seedTimeIncrement));
+	myFlowTab->seedtimeStartEdit->setText(QString::number(seedTimeStart));
+	myFlowTab->seedtimeEndEdit->setText(QString::number(seedTimeEnd));
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
 	VizWinMgr::getInstance()->getTabManager()->update();
@@ -86,10 +221,300 @@ void FlowParams::updateDialog(){
 void FlowParams::
 updatePanelState(){
 	
+	integrationAccuracy = myFlowTab->integrationAccuracyEdit->text().toFloat();
+	if (integrationAccuracy < 0.f || integrationAccuracy > 1.f) {
+		if (integrationAccuracy > 1.f) integrationAccuracy = 1.f;
+		if (integrationAccuracy < 0.f) integrationAccuracy = 0.f;
+		myFlowTab->integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
+	}
+
+	userTimeStepSize = myFlowTab->userTimestepEdit->text().toFloat();
+	if (userTimeStepSize < 1.e-30){
+		userTimeStepSize = 1.f;
+		myFlowTab->userTimestepEdit->setText(QString::number(userTimeStepSize));
+	}
+	timeSamplingInterval = myFlowTab->timeSampleEdit->text().toInt();
+	if (timeSamplingInterval < 1){
+		timeSamplingInterval = 1;
+		myFlowTab->timeSampleEdit->setText(QString::number(timeSamplingInterval));
+	}
+	randomSeed = myFlowTab->randomSeedEdit->text().toUInt();
+
+	//Get slider positions from text boxes:
 	
+	float boxCtr = myFlowTab->xCenterEdit->text().toFloat();
+	float boxSize = myFlowTab->xSizeEdit->text().toFloat();
+	seedBoxMin[0] = boxCtr - 0.5*boxSize;
+	seedBoxMax[0] = boxCtr + 0.5*boxSize;
+	textToSlider(0, boxCtr, boxSize);
+	boxCtr = myFlowTab->yCenterEdit->text().toFloat();
+	boxSize = myFlowTab->ySizeEdit->text().toFloat();
+	seedBoxMin[1] = boxCtr - 0.5*boxSize;
+	seedBoxMax[1] = boxCtr + 0.5*boxSize;
+	textToSlider(1, boxCtr, boxSize);
+	boxCtr = myFlowTab->zCenterEdit->text().toFloat();
+	boxSize = myFlowTab->zSizeEdit->text().toFloat();
+	seedBoxMin[2] = boxCtr - 0.5*boxSize;
+	seedBoxMax[2] = boxCtr + 0.5*boxSize;
+	textToSlider(2, boxCtr, boxSize);
+
+	int genCount = myFlowTab->generatorCountEdit->text().toInt();
+	if (genCount < 1) {
+		genCount = 1;
+		myFlowTab->generatorCountEdit->setText(QString::number(genCount));
+	}
+	if (randomGen) {
+		allGeneratorCount = genCount;
+	} else {
+		generatorCount[currentDimension] = genCount;
+	}
 	
+	seedTimeStart = myFlowTab->seedtimeStartEdit->text().toUInt();
+	seedTimeEnd = myFlowTab->seedtimeEndEdit->text().toUInt(); 
+	if (seedTimeEnd < seedTimeStart) {
+		seedTimeEnd = seedTimeStart;
+		myFlowTab->seedtimeEndEdit->setText(QString::number(seedTimeEnd));
+	}
+
+	seedTimeIncrement = myFlowTab->seedtimeIncrementEdit->text().toUInt();
+
+	objectsPerTimestep = myFlowTab->objectsPerTimestepEdit->text().toUInt();
+	if (objectsPerTimestep < 1) {
+		objectsPerTimestep = 1;
+		myFlowTab->objectsPerTimestepEdit->setText(QString::number(objectsPerTimestep));
+	}
+
+	minAgeShown = myFlowTab->minAgeEdit->text().toUInt();
+	maxAgeShown = myFlowTab->maxAgeEdit->text().toUInt();
+	if (minAgeShown > maxAgeShown) {
+		maxAgeShown = minAgeShown;
+		myFlowTab->maxAgeEdit->setText(QString::number(maxAgeShown));
+	}
+	shapeDiameter = myFlowTab->diameterEdit->text().toFloat();
+	if (shapeDiameter < 0.f) {
+		shapeDiameter = 0.f;
+		myFlowTab->diameterEdit->setText(QString::number(shapeDiameter));
+	}
+	colorMapMin = myFlowTab->minColormapEdit->text().toFloat();
+	colorMapMax = myFlowTab->maxColormapEdit->text().toFloat();
+	if (colorMapMin > colorMapMax){
+		colorMapMax = colorMapMin;
+		myFlowTab->maxColormapEdit->setText(QString::number(colorMapMax));
+	}
 	guiSetTextChanged(false);
+	myFlowTab->update();
 }
+//Reinitialize settings, session has changed:
+void FlowParams::
+reinit(bool doOverride){
+	int i;
+	const Metadata* md = Session::getInstance()->getCurrentMetadata();
+	int nlevels = md->GetNumTransforms();
+	int minTrans = Session::getInstance()->getDataStatus()->minXFormPresent();
+	if(minTrans < 0) minTrans = nlevels; 
+	setMinNumTrans(minTrans);
+	setMaxNumTrans(nlevels);
+	if (doOverride) {
+		numTrans = maxNumTrans;
+	
+	} else {
+		if (numTrans> nlevels) numTrans = maxNumTrans;
+		if (numTrans < minNumTrans) numTrans = minNumTrans;
+		//Make sure we really can use the specified numTrans.
+		RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->
+			getRegionParams(vizNum);
+		numTrans = rParams->validateNumTrans(numTrans);
+	}
+	//Set up variables:
+	//Get the variable names:
+	variableNames = md->GetVariableNames();
+	int newNumVariables = md->GetVariableNames().size();
+	for (int dim = 0; dim < 3; dim++){
+		//See if current varNums is valid
+		//reset to first variable that is present:
+		if (!Session::getInstance()->getDataStatus()->variableIsPresent(varNum[dim])){
+			varNum[dim] = -1;
+			for (i = 0; i<newNumVariables; i++) {
+				if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
+					varNum[dim] = i;
+					break;
+				}
+			}
+		}
+	}
+	if (varNum[0] == -1){
+		MessageReporter::errorMsg("Flow Params: No data in specified dataset");
+		numVariables = 0;
+		return;
+	}
+	numVariables = newNumVariables;
+	//If flow is the current front tab, and if it applies to the active visualizer,
+	//update its values
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myFlowTab)) {
+		VizWinMgr* vwm = VizWinMgr::getInstance();
+		int viznum = vwm->getActiveViz();
+		if (viznum == vizNum)
+			updateDialog();
+	}
+	//setDirty();
+}
+//Set slider position, based on text change. 
+//
+void FlowParams::
+textToSlider(int coord, float newCenter, float newSize){
+	//force the size to be no greater than the max possible.
+	//And force the center to fit in the region.  
+	//Then push the center to the middle if the region doesn't fit
+	bool centerChanged = false;
+	bool sizeChanged = false;
+	if (newSize > (regionMax[coord] - regionMin[coord])){
+		newSize = (regionMax[coord] - regionMin[coord]);
+		sizeChanged = true;
+	}
+	if (newSize < 0.f) {
+		newSize = 0.f;
+		sizeChanged = true;
+	}
+	if (newCenter < regionMin[coord]) {
+		newCenter = regionMin[coord];
+		centerChanged = true;
+	}
+	if (newCenter > regionMax[coord]) {
+		newCenter = regionMax[coord];
+		centerChanged = true;
+	}
+	if ((newCenter - newSize*0.5f) < regionMin[coord]){
+		newCenter = regionMin[coord]+ newSize*0.5f;
+		centerChanged = true;
+	}
+	if ((newCenter + newSize*0.5f) > regionMax[coord]){
+		newCenter = regionMax[coord]- newSize*0.5f;
+		centerChanged = true;
+	}
+	if (newSize <= 0.f && !randomGen){
+		if (generatorCount[coord] != 1) {
+			generatorCount[coord] = 1;
+			if (currentDimension == coord)
+				myFlowTab->generatorCountEdit->setText("1");
+		}
+	}
+	seedBoxMin[coord] = newCenter - newSize*0.5f; 
+	seedBoxMax[coord] = newCenter + newSize*0.5f; 
+	int sliderSize = (int)(0.5f+ 256.f*newSize/(regionMax[coord] - regionMin[coord]));
+	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regionMin[coord])/(regionMax[coord] - regionMin[coord]));
+	int oldSliderSize, oldSliderCenter;
+	switch(coord) {
+		case 0:
+			oldSliderSize = myFlowTab->xSizeSlider->value();
+			oldSliderCenter = myFlowTab->xCenterSlider->value();
+			if (oldSliderSize != sliderSize)
+				myFlowTab->xSizeSlider->setValue(sliderSize);
+			if(sizeChanged) myFlowTab->xSizeEdit->setText(QString::number(newSize));
+			
+			if (oldSliderCenter != sliderCenter)
+				myFlowTab->xCenterSlider->setValue(sliderCenter);
+			if(centerChanged) myFlowTab->xCenterEdit->setText(QString::number(newCenter));
+			
+			break;
+		case 1:
+			oldSliderSize = myFlowTab->ySizeSlider->value();
+			oldSliderCenter = myFlowTab->yCenterSlider->value();
+			if (oldSliderSize != sliderSize)
+				myFlowTab->ySizeSlider->setValue(sliderSize);
+			if(sizeChanged) myFlowTab->ySizeEdit->setText(QString::number(newSize));
+			
+			if (oldSliderCenter != sliderCenter)
+				myFlowTab->yCenterSlider->setValue(sliderCenter);
+			if(centerChanged) myFlowTab->yCenterEdit->setText(QString::number(newCenter));
+			
+			break;
+		case 2:
+			oldSliderSize = myFlowTab->zSizeSlider->value();
+			oldSliderCenter = myFlowTab->zCenterSlider->value();
+			if (oldSliderSize != sliderSize)
+				myFlowTab->zSizeSlider->setValue(sliderSize);
+			if(sizeChanged) myFlowTab->zSizeEdit->setText(QString::number(newSize));
+			
+			if (oldSliderCenter != sliderCenter)
+				myFlowTab->zCenterSlider->setValue(sliderCenter);
+			if(centerChanged) myFlowTab->zCenterEdit->setText(QString::number(newCenter));
+			
+			break;
+		default:
+			assert(0);
+	}
+	guiSetTextChanged(false);
+	myFlowTab->update();
+	return;
+}
+//Set text when a slider changes.
+//Move the center if the size is too big
+//
+void FlowParams::
+sliderToText(int coord, int slideCenter, int slideSize){
+	//force the size to be no greater than the max possible.
+	//And force the center to fit in the region.  
+	//Then push the center to the middle if the region doesn't fit
+	bool sliderChanged = false;
+	
+	float newSize = slideSize*(regionMax[coord]-regionMin[coord])/256.f;
+	float newCenter = regionMin[coord]+ slideCenter*(regionMax[coord]-regionMin[coord])/256.f;
+	
+	if (newCenter < regionMin[coord]) {
+		newCenter = regionMin[coord];
+	}
+	if (newCenter > regionMax[coord]) {
+		newCenter = regionMax[coord];
+	}
+	if ((newCenter - newSize*0.5f) < regionMin[coord]){
+		newCenter = regionMin[coord]+ newSize*0.5f;
+		sliderChanged = true;
+	}
+	if ((newCenter + newSize*0.5f) > regionMax[coord]){
+		newCenter = regionMax[coord]- newSize*0.5f;
+		sliderChanged = true;
+	}
+	seedBoxMin[coord] = newCenter - newSize*0.5f; 
+	seedBoxMax[coord] = newCenter + newSize*0.5f; 
+	if (newSize <= 0.f && !randomGen){
+		if (generatorCount[coord] != 1) {
+			generatorCount[coord] = 1;
+			if (currentDimension == coord)
+				myFlowTab->generatorCountEdit->setText("1");
+		}
+	}
+	int newSliderCenter = (int)(0.5f+ 256.f*(newCenter - regionMin[coord])/(regionMax[coord] - regionMin[coord]));
+	//Always need to change text.  Possibly also change slider if it was moved
+	switch(coord) {
+		case 0:
+			if (sliderChanged) 
+				myFlowTab->xCenterSlider->setValue(newSliderCenter);
+			myFlowTab->xSizeEdit->setText(QString::number(newSize));
+			myFlowTab->xCenterEdit->setText(QString::number(newCenter));
+			break;
+		case 1:
+			if (sliderChanged) 
+				myFlowTab->yCenterSlider->setValue(newSliderCenter);
+			myFlowTab->ySizeEdit->setText(QString::number(newSize));
+			myFlowTab->yCenterEdit->setText(QString::number(newCenter));
+			break;
+		case 2:
+			if (sliderChanged) 
+				myFlowTab->zCenterSlider->setValue(newSliderCenter);
+			myFlowTab->zSizeEdit->setText(QString::number(newSize));
+			myFlowTab->zCenterEdit->setText(QString::number(newCenter));
+			break;
+		default:
+			assert(0);
+	}
+	guiSetTextChanged(false);
+	myFlowTab->update();
+	return;
+}	
+
+
+
+
 //Methods that record changes in the history:
 //
 void FlowParams::
@@ -99,8 +524,160 @@ guiSetEnabled(bool on){
 	setEnabled(on);
 	PanelCommand::captureEnd(cmd, this);
 }
-
-
+void FlowParams::
+guiSetFlowType(int typenum){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow type");
+	setFlowType(typenum);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetNumTrans(int n){
+	confirmText(false);
+	
+	int newNumTrans = ((RegionParams*)(VizWinMgr::getInstance()->getRegionParams(vizNum)))->validateNumTrans(n);
+	if (newNumTrans != n) {
+		MessageReporter::warningMsg("%s","Invalid number of Transforms for current region, data cache size");
+		myFlowTab->numTransSpin->setValue(newNumTrans);
+	}
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set number of Transformations in Flow data");
+	setNumTrans(newNumTrans);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetXVarNum(int varnum){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "set X field variable");
+	setXVarNum(varnum);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetYVarNum(int varnum){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "set Y field variable");
+	setYVarNum(varnum);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetZVarNum(int varnum){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "set Z field variable");
+	setZVarNum(varnum);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiRecalc(){ //Not covered by redo/undo
+	confirmText(false);
+	//Need to implement!
+}
+void FlowParams::
+guiSetRandom(bool rand){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "toggle random setting");
+	setRandom(rand);
+	//Also display the appropriate numGenerators
+	int genCount = allGeneratorCount;
+	if (!rand) genCount = generatorCount[currentDimension];
+	myFlowTab->generatorCountEdit->setText(QString::number(genCount));
+	guiSetTextChanged(false);
+	myFlowTab->update();
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetXCenter(int sliderval){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator X center");
+	setXCenter(sliderval);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetYCenter(int sliderval){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Y center");
+	setYCenter(sliderval);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetZCenter(int sliderval){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Z center");
+	setZCenter(sliderval);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetXSize(int sliderval){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator X size");
+	setXSize(sliderval);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetYSize(int sliderval){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Y size");
+	setYSize(sliderval);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetZSize(int sliderval){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Z size");
+	setZSize(sliderval);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetFlowGeometry(int geomNum){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow geometry type");
+	setFlowGeometry(geomNum);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetMapEntity( int entityNum){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow colormap entity");
+	setMapEntity(entityNum);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetGeneratorDimension( int dimNum){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "specify generator dimension");
+	setCurrentDimension(dimNum);
+	myFlowTab->generatorCountEdit->setText(QString::number(generatorCount[dimNum]));
+	guiSetTextChanged(false);
+	PanelCommand::captureEnd(cmd, this);
+	myFlowTab->update();
+}
+//When the center slider moves, set the seedBoxMin and seedBoxMax
+void FlowParams::
+setXCenter(int sliderval){
+	//new min and max are center -+ size/2.  
+	//center is min + (slider/256)*(max-min)
+	sliderToText(0, sliderval, myFlowTab->xSizeSlider->value());
+}
+void FlowParams::
+setYCenter(int sliderval){
+	sliderToText(1, sliderval, myFlowTab->ySizeSlider->value());
+}
+void FlowParams::
+setZCenter(int sliderval){
+	sliderToText(2, sliderval, myFlowTab->zSizeSlider->value());
+}
+//Min and Max are center -+ size/2
+//size is regionsize*sliderval/256
+void FlowParams::
+setXSize(int sliderval){
+	sliderToText(0, myFlowTab->xCenterSlider->value(),sliderval);
+}
+void FlowParams::
+setYSize(int sliderval){
+	sliderToText(1, myFlowTab->yCenterSlider->value(),sliderval);
+}
+void FlowParams::
+setZSize(int sliderval){
+	sliderToText(2, myFlowTab->zCenterSlider->value(),sliderval);
+}
 	
 /* Handle the change of status associated with change of enablement and change
  * of local/global.  If we are enabling global, a renderer must be created in every

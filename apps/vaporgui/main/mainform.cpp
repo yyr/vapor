@@ -449,7 +449,7 @@ MainForm::~MainForm()
  */
 void MainForm::languageChange()
 {
-    setCaption( tr( "VAPoR Gui Prototype" ) );
+	setCaption( tr( "VAPoR:  NCAR Visualization and Analysis Platform for Research" ) );
     QToolTip::add( tabWidget, tr( "Parameter Settings" ) );
     tabWidget->changeTab( tab, tr( "Tab 1" ) );
     tabWidget->changeTab( tab_2, tr( "Tab 2" ) );

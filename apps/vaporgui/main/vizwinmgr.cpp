@@ -36,6 +36,7 @@
 #include <qcolordialog.h>
 #include <qbuttongroup.h>
 #include <qfiledialog.h>
+#include <qlabel.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -836,9 +837,74 @@ VizWinMgr::hookUpIsoTab(IsoTab* isoTab)
 void
 VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 {
+	myFlowTab = flowTab;
 	connect (flowTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setFlowEnabled(int)));
-	//connect (isoTab->variableCombo1, SIGNAL( activated(int) ), this, SLOT( setIsoVariable1Num(int) ) );
+	connect (flowTab->instanceSpin, SIGNAL(valueChanged(int)), this, SLOT(setFlowInstance(int)));
+	connect (flowTab->flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( setFlowType(int) ) );
+	connect (flowTab->numTransSpin, SIGNAL(activated(int)),this, SLOT(setFlowNumTrans(int)));
+	connect (flowTab->xCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowXVar(int)));
+	connect (flowTab->yCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowYVar(int)));
+	connect (flowTab->zCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowZVar(int)));
+	connect (flowTab->recalcButton,SIGNAL(clicked()),this,SLOT(clickFlowRecalc()));
+	connect (flowTab->randomCheckbox,SIGNAL(toggled(bool)),this, SLOT(checkFlowRandom(bool)));
+	connect (flowTab->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXCenter()));
+	connect (flowTab->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYCenter()));
+	connect (flowTab->zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowZCenter()));
+	connect (flowTab->xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXSize()));
+	connect (flowTab->ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYSize()));
+	connect (flowTab->zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowZSize()));
+	connect (flowTab->generatorDimensionCombo,SIGNAL(activated(int)), SLOT(setFlowGeneratorDimension(int)));
+	connect (flowTab->geometryCombo, SIGNAL(activated(int)),SLOT(setFlowGeometry(int)));
+	connect (flowTab->colormapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowMapEntity(int)));
+
+	connect (flowTab->integrationAccuracyEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->integrationAccuracyEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->userTimestepEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->userTimestepEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->timeSampleEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->timeSampleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->userTimestepEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->userTimestepEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->randomSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->randomSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->xCenterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->xCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->yCenterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->yCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->zCenterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->zCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->xSizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->xSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->ySizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->ySizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->zSizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->zSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->xSizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->xSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->generatorCountEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->generatorCountEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->seedtimeStartEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->seedtimeStartEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->seedtimeEndEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->seedtimeEndEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->seedtimeIncrementEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->seedtimeIncrementEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->objectsPerTimestepEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->objectsPerTimestepEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->minAgeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->minAgeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->maxAgeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->maxAgeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->diameterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->diameterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->minColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->minColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->maxColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->maxColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+
+
 	
+	connect (this, SIGNAL(enableMultiViz(bool)), flowTab->LocalGlobal, SLOT(setEnabled(bool)));
 }
 /*
  * Tell the parameter panels when there are or are not multiple viz's
@@ -1143,6 +1209,36 @@ setAnimationLocalGlobal(int val){
 		}
 	}
 }
+//Version for Flow:
+void VizWinMgr::
+setFlowLocalGlobal(int val){
+	//If changes to global, revert to global panel.
+	//If changes to local, may need to create a new local panel
+	if (val == 0){//toGlobal.  
+		//First set the global status, 
+		//then put  values in tab based on global settings.
+		//Note that updateDialog will trigger events changing values
+		//on the current dialog
+		if(flowParams[activeViz])flowParams[activeViz]->guiSetLocal(false);
+		globalFlowParams->updateDialog();
+		tabManager->show();
+	} else { //Local: Do we need to create new parameters?
+		if (!flowParams[activeViz]){
+			//create a new parameter panel, copied from global
+			flowParams[activeViz] = (FlowParams*)globalFlowParams->deepCopy();
+			flowParams[activeViz]->setVizNum(activeViz);
+			flowParams[activeViz]->guiSetLocal(true);
+			
+			//No need to refresh anything, since the new parameters are same as old! 
+		} else { //need to revert to existing local settings:
+			flowParams[activeViz]->guiSetLocal(true);
+			flowParams[activeViz]->updateDialog();
+			
+			//and then refresh the panel:
+			tabManager->show();
+		}
+	}
+}
 /*****************************************************************************
  * Called when the local/global selector is changed.
  * Separate versions for viztab, regiontab, isotab, contourtab, dvrtab, flowtab
@@ -1243,6 +1339,7 @@ setDvrLocalGlobal(int val){
 	//Always invoke the update on the local params
 	dvrParams[activeViz]->updateRenderer(wasEnabled,!val, false);
 }
+
 /*************************************************************************************
  *  slots associated with AnimationTab
  *************************************************************************************/
@@ -1575,6 +1672,124 @@ void VizWinMgr::
 setFlowTabTextChanged(const QString&){
 	getFlowParams(activeViz)->guiSetTextChanged(true);
 }
+void VizWinMgr::
+flowTabReturnPressed(void){
+	getFlowParams(activeViz)->confirmText(true);
+}
+void VizWinMgr::
+setFlowEnabled(int val){
+	//If there's no window, or no datamgr, ignore this.
+	
+	if ((activeViz < 0) || Session::getInstance()->getDataMgr() == 0) {
+		myFlowTab->EnableDisable->setCurrentItem(0);
+		return;
+	}
+	getFlowParams(activeViz)->guiSetEnabled(val==1);
+	//Make the change in enablement occur in the rendering window, 
+	// Local/Global is not changing.
+	getFlowParams(activeViz)->updateRenderer(!val, flowParams[activeViz]->isLocal(), false);
+}
+
+void VizWinMgr::
+setFlowInstance(int numInstance){
+	//Not implemented yet
+}
+void VizWinMgr::
+setFlowType(int typenum){
+	getFlowParams(activeViz)->guiSetFlowType(typenum);
+	//Activate/deactivate components associated with flow type:
+	if(typenum == 0){//steady:
+		myFlowTab->recalcButton->setEnabled(false);
+		myFlowTab->seedtimeEndEdit->setEnabled(false);
+		myFlowTab->seedtimeIncrementEdit->setEnabled(false);
+		myFlowTab->timeSampleEdit->setEnabled(false);
+	} else {//unsteady:
+		myFlowTab->recalcButton->setEnabled(true);
+		myFlowTab->seedtimeEndEdit->setEnabled(true);
+		myFlowTab->seedtimeIncrementEdit->setEnabled(true);
+		myFlowTab->timeSampleEdit->setEnabled(true);
+	}
+}
+void VizWinMgr::
+setFlowNumTrans(int numTrans){
+	getFlowParams(activeViz)->guiSetNumTrans(numTrans);
+}
+void VizWinMgr::
+setFlowXVar(int varnum){
+	getFlowParams(activeViz)->guiSetXVarNum(varnum);
+}
+void VizWinMgr::
+setFlowYVar(int varnum){
+	getFlowParams(activeViz)->guiSetYVarNum(varnum);
+}
+void VizWinMgr::
+setFlowZVar(int varnum){
+	getFlowParams(activeViz)->guiSetZVarNum(varnum);
+}
+void VizWinMgr::
+clickFlowRecalc(){
+	getFlowParams(activeViz)->guiRecalc();
+}
+void VizWinMgr::
+checkFlowRandom(bool isRandom){
+	
+	if (myFlowTab->randomCheckbox->isChecked()) isRandom = true;
+	getFlowParams(activeViz)->guiSetRandom(isRandom);
+	if (isRandom){
+		myFlowTab->randomSeedEdit->setEnabled(true);
+		myFlowTab->dimensionLabel->setEnabled(false);
+		myFlowTab->generatorDimensionCombo->setEnabled(false);
+	} else {
+		myFlowTab->randomSeedEdit->setEnabled(false);
+		myFlowTab->dimensionLabel->setEnabled(true);
+		myFlowTab->generatorDimensionCombo->setEnabled(true);
+	}
+}
+void VizWinMgr::
+setFlowXCenter(){
+	getFlowParams(activeViz)->guiSetXCenter(
+		myFlowTab->xCenterSlider->value());
+}
+void VizWinMgr::
+setFlowYCenter(){
+	getFlowParams(activeViz)->guiSetYCenter(
+		myFlowTab->yCenterSlider->value());
+}
+void VizWinMgr::
+setFlowZCenter(){
+	getFlowParams(activeViz)->guiSetZCenter(
+		myFlowTab->zCenterSlider->value());
+}
+void VizWinMgr::
+setFlowXSize(){
+	getFlowParams(activeViz)->guiSetXSize(
+		myFlowTab->xSizeSlider->value());
+}
+void VizWinMgr::
+setFlowYSize(){
+	getFlowParams(activeViz)->guiSetYSize(
+		myFlowTab->ySizeSlider->value());
+}
+void VizWinMgr::
+setFlowZSize(){
+	getFlowParams(activeViz)->guiSetZSize(
+		myFlowTab->zSizeSlider->value());
+}
+void VizWinMgr::
+setFlowGeneratorDimension(int flowGenDim){
+	//This establishes which dimension is displayed in GUI
+	getFlowParams(activeViz)->guiSetGeneratorDimension(flowGenDim);
+	myFlowTab->generatorCountEdit->setText(QString::number(getFlowParams(activeViz)->getNumGenerators(flowGenDim)));
+}
+void VizWinMgr::
+setFlowGeometry(int geomNum){
+	getFlowParams(activeViz)->guiSetFlowGeometry(geomNum);
+}
+void VizWinMgr::
+setFlowMapEntity(int entityNum){
+	getFlowParams(activeViz)->guiSetMapEntity(entityNum);
+}
+
 ViewpointParams* VizWinMgr::
 getViewpointParams(int winNum){
 	if (winNum < 0) return globalVPParams;

@@ -34,14 +34,14 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout45</cstring>
+            <cstring>layout26</cstring>
         </property>
         <property name="geometry">
             <rect>
                 <x>10</x>
-                <y>10</y>
+                <y>20</y>
                 <width>430</width>
-                <height>811</height>
+                <height>812</height>
             </rect>
         </property>
         <vbox>
@@ -127,7 +127,7 @@
                             <cstring>instanceSpin</cstring>
                         </property>
                         <property name="maxValue">
-                            <number>2</number>
+                            <number>1</number>
                         </property>
                         <property name="minValue">
                             <number>1</number>
@@ -198,7 +198,7 @@
             </widget>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>layout38</cstring>
+                    <cstring>layout25</cstring>
                 </property>
                 <hbox>
                     <property name="name">
@@ -227,7 +227,7 @@
                             </property>
                         </item>
                         <property name="name">
-                            <cstring>steadyCombo</cstring>
+                            <cstring>flowTypeCombo</cstring>
                         </property>
                         <property name="currentItem">
                             <number>1</number>
@@ -251,7 +251,7 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>51</width>
+                                <width>161</width>
                                 <height>20</height>
                             </size>
                         </property>
@@ -264,40 +264,15 @@
                             <string>Num Transforms</string>
                         </property>
                     </widget>
-                    <widget class="QComboBox">
-                        <item>
-                            <property name="text">
-                                <string>0</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>1</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>2</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>3</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>4</string>
-                            </property>
-                        </item>
+                    <widget class="QSpinBox">
                         <property name="name">
-                            <cstring>numTransCombo</cstring>
+                            <cstring>numTransSpin</cstring>
                         </property>
-                        <property name="currentItem">
-                            <number>3</number>
+                        <property name="maxValue">
+                            <number>10</number>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify the number of coarsening transforms to be applied to the data</string>
+                            <string>Specify the number of coarsening tranformation to be applied to the data</string>
                         </property>
                     </widget>
                 </hbox>
@@ -545,12 +520,29 @@
             </widget>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>layout104</cstring>
+                    <cstring>layout25</cstring>
                 </property>
                 <hbox>
                     <property name="name">
                         <cstring>unnamed</cstring>
                     </property>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer25</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>101</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                    </spacer>
                     <widget class="QLabel">
                         <property name="name">
                             <cstring>textLabel3_12_4_3_2</cstring>
@@ -565,34 +557,6 @@
                         </property>
                         <property name="text">
                             <string>Integration accuracy</string>
-                        </property>
-                    </widget>
-                    <widget class="QSlider">
-                        <property name="name">
-                            <cstring>integrationAccuracySlider</cstring>
-                        </property>
-                        <property name="sizePolicy">
-                            <sizepolicy>
-                                <hsizetype>7</hsizetype>
-                                <vsizetype>7</vsizetype>
-                                <horstretch>0</horstretch>
-                                <verstretch>0</verstretch>
-                            </sizepolicy>
-                        </property>
-                        <property name="minValue">
-                            <number>2</number>
-                        </property>
-                        <property name="maxValue">
-                            <number>256</number>
-                        </property>
-                        <property name="value">
-                            <number>128</number>
-                        </property>
-                        <property name="orientation">
-                            <enum>Horizontal</enum>
-                        </property>
-                        <property name="toolTip" stdset="0">
-                            <string>Control integration accuracy (between 0 and 1)</string>
                         </property>
                     </widget>
                     <widget class="QLineEdit">
@@ -626,6 +590,23 @@
                             <string>Control integration accuracy (between 0 and 1)</string>
                         </property>
                     </widget>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer26_2</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>91</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                    </spacer>
                 </hbox>
             </widget>
             <widget class="QLayoutWidget">
@@ -654,7 +635,7 @@
                     </widget>
                     <widget class="QLineEdit">
                         <property name="name">
-                            <cstring>userTimeStepEdit</cstring>
+                            <cstring>userTimestepEdit</cstring>
                         </property>
                         <property name="sizePolicy">
                             <sizepolicy>
@@ -844,7 +825,7 @@
                                     </property>
                                     <widget class="QCheckBox">
                                         <property name="name">
-                                            <cstring>RandomCheck</cstring>
+                                            <cstring>randomCheckbox</cstring>
                                         </property>
                                         <property name="text">
                                             <string>Random</string>
@@ -880,7 +861,7 @@
                                     </widget>
                                     <widget class="QLineEdit">
                                         <property name="name">
-                                            <cstring>RandomSeedEdit</cstring>
+                                            <cstring>randomSeedEdit</cstring>
                                         </property>
                                         <property name="enabled">
                                             <bool>false</bool>
@@ -939,7 +920,7 @@
                                                     </sizepolicy>
                                                 </property>
                                                 <property name="minValue">
-                                                    <number>2</number>
+                                                    <number>0</number>
                                                 </property>
                                                 <property name="maxValue">
                                                     <number>256</number>
@@ -977,6 +958,9 @@
                                                 </property>
                                                 <property name="maxLength">
                                                     <number>200</number>
+                                                </property>
+                                                <property name="alignment">
+                                                    <set>AlignHCenter</set>
                                                 </property>
                                                 <property name="toolTip" stdset="0">
                                                     <string>Specify the Z coordinate of the seed region center</string>
@@ -1079,6 +1063,9 @@
                                                 <property name="maxLength">
                                                     <number>200</number>
                                                 </property>
+                                                <property name="alignment">
+                                                    <set>AlignHCenter</set>
+                                                </property>
                                                 <property name="toolTip" stdset="0">
                                                     <string>Specify the Y-size of the seed region</string>
                                                 </property>
@@ -1122,7 +1109,7 @@
                                                     </sizepolicy>
                                                 </property>
                                                 <property name="minValue">
-                                                    <number>2</number>
+                                                    <number>0</number>
                                                 </property>
                                                 <property name="maxValue">
                                                     <number>256</number>
@@ -1160,6 +1147,9 @@
                                                 </property>
                                                 <property name="maxLength">
                                                     <number>200</number>
+                                                </property>
+                                                <property name="alignment">
+                                                    <set>AlignHCenter</set>
                                                 </property>
                                                 <property name="toolTip" stdset="0">
                                                     <string>Specify the X coordinate of the seed region center</string>
@@ -1204,7 +1194,7 @@
                                                     </sizepolicy>
                                                 </property>
                                                 <property name="minValue">
-                                                    <number>2</number>
+                                                    <number>0</number>
                                                 </property>
                                                 <property name="maxValue">
                                                     <number>256</number>
@@ -1242,6 +1232,9 @@
                                                 </property>
                                                 <property name="maxLength">
                                                     <number>200</number>
+                                                </property>
+                                                <property name="alignment">
+                                                    <set>AlignHCenter</set>
                                                 </property>
                                                 <property name="toolTip" stdset="0">
                                                     <string>Specify the Y coordinate of the seed region center</string>
@@ -1286,7 +1279,7 @@
                                                     </sizepolicy>
                                                 </property>
                                                 <property name="minValue">
-                                                    <number>2</number>
+                                                    <number>0</number>
                                                 </property>
                                                 <property name="maxValue">
                                                     <number>256</number>
@@ -1324,6 +1317,9 @@
                                                 </property>
                                                 <property name="maxLength">
                                                     <number>200</number>
+                                                </property>
+                                                <property name="alignment">
+                                                    <set>AlignHCenter</set>
                                                 </property>
                                                 <property name="toolTip" stdset="0">
                                                     <string>Specify the X-size of the seed region</string>
@@ -1407,6 +1403,9 @@
                                                 <property name="maxLength">
                                                     <number>200</number>
                                                 </property>
+                                                <property name="alignment">
+                                                    <set>AlignHCenter</set>
+                                                </property>
                                                 <property name="toolTip" stdset="0">
                                                     <string>Specify the Z-size of the seed region</string>
                                                 </property>
@@ -1486,7 +1485,10 @@
                                     </widget>
                                     <widget class="QLabel">
                                         <property name="name">
-                                            <cstring>textLabel6</cstring>
+                                            <cstring>dimensionLabel</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>true</bool>
                                         </property>
                                         <property name="text">
                                             <string>in dimension:</string>
@@ -1496,11 +1498,6 @@
                                         </property>
                                     </widget>
                                     <widget class="QComboBox">
-                                        <item>
-                                            <property name="text">
-                                                <string>Total</string>
-                                            </property>
-                                        </item>
                                         <item>
                                             <property name="text">
                                                 <string>X</string>
@@ -1518,6 +1515,9 @@
                                         </item>
                                         <property name="name">
                                             <cstring>generatorDimensionCombo</cstring>
+                                        </property>
+                                        <property name="enabled">
+                                            <bool>true</bool>
                                         </property>
                                         <property name="currentItem">
                                             <number>2</number>
@@ -1611,7 +1611,7 @@
                                             <cstring>seedtimeIncrementEdit</cstring>
                                         </property>
                                         <property name="text">
-                                            <string></string>
+                                            <string>1</string>
                                         </property>
                                         <property name="alignment">
                                             <set>AlignHCenter</set>
@@ -1964,7 +1964,7 @@
                                             </property>
                                         </item>
                                         <property name="name">
-                                            <cstring>colorMapEntityCombo</cstring>
+                                            <cstring>colormapEntityCombo</cstring>
                                         </property>
                                         <property name="toolTip" stdset="0">
                                             <string>Specify the entity that will be mapped to color</string>
@@ -2004,7 +2004,7 @@
                                     </property>
                                     <widget class="QLineEdit">
                                         <property name="name">
-                                            <cstring>minColorMapEdit</cstring>
+                                            <cstring>minColormapEdit</cstring>
                                         </property>
                                         <property name="text">
                                             <string>-2..731</string>
@@ -2029,7 +2029,7 @@
                                     </widget>
                                     <widget class="QLineEdit">
                                         <property name="name">
-                                            <cstring>maxColorMapEdit</cstring>
+                                            <cstring>maxColormapEdit</cstring>
                                         </property>
                                         <property name="text">
                                             <string>2.80</string>

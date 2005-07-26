@@ -162,7 +162,9 @@ public:
 	XmlNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
-	
+	//See if the proposed number of transformations is OK.  Return a valid value
+	int validateNumTrans(int n);
+
 protected:
 	static const string _regionCenterTag;
 	static const string _regionSizeTag;
@@ -176,8 +178,7 @@ protected:
 	//Return true if anything changed.
 	//
 	bool enforceConsistency(int i);
-	//See if the proposed number of transformations is OK.  Return a valid value
-	int validateNumTrans(int n);
+	
 	//Recalc extents:
 	void setCurrentExtents(int coord);
 	//Methods to set the region max and min from a float value.
