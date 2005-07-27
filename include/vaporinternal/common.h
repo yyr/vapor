@@ -30,6 +30,7 @@
 #else //not WIN32
 #define COMMON_API
 #define VDF_API
+#define FLOW_API
 #define JPEG_GLOBAL(type) type
 //Assume all outside projects depending on JPEG are C++
 #ifdef JPEG_EXPORTS
