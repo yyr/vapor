@@ -1,0 +1,31 @@
+TOP = ../..
+
+include ${TOP}/make/config/arch.mk
+
+SHARED = 0
+LIBRARY = flow
+FILES = \
+	Field Grid Interpolator Rake Solution \
+	VTFieldLine VTPathLine VTStreamLine VTStreakLine VTTimeLine \
+	VTTimeVaryingFieldLine VaporFlow VectorMatrix
+
+HEADER_FILES = \
+	Field Grid header Interpolator Rake Solution \
+	VaporFlow VectorMatrix VTFieldLine 
+
+#LIB_DEFS = vdf.def
+  
+ifeq ($(ARCH),WIN32)
+MAKEFILE_LDFLAGS += ../../targets/win32/bin/common.lib 
+MAKEFILE_LDFLAGS += "mpr.lib"
+endif
+
+MAKEFILE_LDFLAGS += $(EXPATLIB)
+
+
+ifdef	EXPAT_INC_PATH
+MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
+endif
+
+include ${TOP}/make/config/base.mk
+
