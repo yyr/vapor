@@ -9,6 +9,11 @@
 #else
 #define VDF_API __declspec(dllimport)
 #endif
+#ifdef FLOW_EXPORTS
+#define FLOW_API __declspec(dllexport)
+#else
+#define FLOW_API __declspec(dllimport)
+#endif
 #ifdef JPEG_EXPORTS
 //Slightly different definitions for jpeg project:
 #     define JPEG_GLOBAL(type) __declspec(dllexport) type

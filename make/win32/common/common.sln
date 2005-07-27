@@ -49,6 +49,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common.vcproj", "
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "flow", "..\flow\flow.vcproj", "{9410E1BA-CC62-46BF-B19D-69473EDDCE03}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -91,6 +95,10 @@ Global
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Debug.Build.0 = Debug|Win32
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Release.ActiveCfg = Release|Win32
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30}.Release.Build.0 = Release|Win32
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Debug.ActiveCfg = Debug|Win32
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Debug.Build.0 = Debug|Win32
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Release.ActiveCfg = Release|Win32
+		{9410E1BA-CC62-46BF-B19D-69473EDDCE03}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
