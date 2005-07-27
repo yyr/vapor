@@ -16,8 +16,10 @@ HEADER_FILES = \
 #LIB_DEFS = vdf.def
   
 ifeq ($(ARCH),WIN32)
+MAKEFILE_CXXFLAGS += /D"FLOW_EXPORTS"
 MAKEFILE_LDFLAGS += ../../targets/win32/bin/common.lib 
 MAKEFILE_LDFLAGS += "mpr.lib"
+MAKEFILE_LDFLAGS += ../../targets/win32/bin/vdf.lib
 endif
 
 MAKEFILE_LDFLAGS += $(EXPATLIB)
