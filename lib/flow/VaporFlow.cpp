@@ -53,11 +53,11 @@ void VaporFlow::SetFieldComponents(const char* xvar,
 								   const char* zvar)
 {
 	if(!xVarName)
-		xVarName = new char[_MAX_PATH];
+		xVarName = new char[260];
 	if(!yVarName)
-		yVarName = new char[_MAX_PATH];
+		yVarName = new char[260];
 	if(!zVarName)
-		zVarName = new char[_MAX_PATH];
+		zVarName = new char[260];
 
 	strcpy(xVarName, xvar);
 	strcpy(yVarName, yvar);
