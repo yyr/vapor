@@ -155,14 +155,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	size_t min_bdim[3];
 	int data_roi[6];
 	int i;
-	//If we are doing the first capture of a sequence then set the
-	//newRender flag to true, whether or not it's a real new render.
-	//Then turn off the flag, subsequent renderings will only be captured
-	//if they really are new.
-	//
-	//bool newRender = myVizWin->captureIsNew();
-	//myVizWin->setCaptureNew(false);
-	//if (!Session::getInstance()->renderReady()) return;
+	
 	DataMgr* myDataMgr = Session::getInstance()->getDataMgr();
 	const Metadata* myMetadata = Session::getInstance()->getCurrentMetadata();
 	//Nothing to do if there's no data source!
@@ -173,9 +166,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
 	
 	DvrParams* myDVRParams = VizWinMgr::getInstance()->getDvrParams(winNum);
-	//Tell the animation we are starting.  If it returns false, we are not
-	//being monitored by the animation controller
-	//bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
+	
 
 	//AN:  (2/10/05):  Calculate 'extents' to be the real coords in (0,1) that
 	//the roi is mapped into.  First find the mapping of the full data array.  This
@@ -200,37 +191,19 @@ DrawVoxelScene(unsigned /*fast*/)
 	//Note that this function will be called again by the renderer
 	myRegionParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numxforms, minFull, maxFull, extents);
 	
-    // Move to trackball view of scene  
-	//glPushMatrix();
-
-	//glLoadIdentity();
 
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
 	//and readable
 	glEnable(GL_DEPTH_TEST);
 	
-    //myGLWindow->getTBall()->TrackballSetMatrix();
-	//In regionMode, draw a grid:
-	//if(myVizWin->regionFrameIsEnabled()|| MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
-	//	renderDomainFrame(extents, minFull, maxFull);
-	//} 
-	//if(myVizWin->subregionFrameIsEnabled()&& !(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode)){
-		//drawSubregionBounds(extents);
-	//} 
-	//if (myVizWin->axesAreEnabled()) drawAxes(extents);
+    
 	//This works around a volumizer/opengl bug!!!
 	//If you issue a non-unit glColor before the volume rendering, it 
 	//affects the subsequent volume rendering on Irix, but not on
 	//Windows or Linux!
 	glColor3f(1.f,1.f,1.f);	   
 	
-	
-	//If there are new coords, get them from GL, send them to the gui
-	//if (myVizWin->viewerCoordsChanged()){ 
-		//myGLWindow->setRenderNew();
-		//myGLWindow->changeViewerFrame();
-	//}
 	
 	//Save the coord trans matrix, to pass to volumizer
 	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
@@ -242,13 +215,8 @@ DrawVoxelScene(unsigned /*fast*/)
 	if (myVizWin->regionIsDirty()|| myVizWin->dataRangeIsDirty()) {
 
 		myGLWindow->setRenderNew();
-		
 		int	rc;
-		
 		int nx,ny,nz;
-		
-		//Do Region setup as in SetCurrentFile() (mdb.C):
-		//
 
 		//Turn off error callback, look for memory allocation problem.
 		Session::pauseErrorCallback();
@@ -341,21 +309,8 @@ DrawVoxelScene(unsigned /*fast*/)
 		return;
 	}
 
-	//Finally render the region geometry, if in region mode
-	/*
-	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
-		float camVec[3];
-		ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
-		//Obtain the face displacement in world coordinates,
-		//Then normalize to unit cube coords:
-		float disp = myRegionParams->getFaceDisplacement();
-		disp /= ViewpointParams::getMaxCubeSide();
-		int selectedFace = myRegionParams->getSelectedFaceNum();
-		assert(selectedFace >= -1 && selectedFace < 6);
-		renderRegionBounds(extents, selectedFace,
-			camVec, disp);
-	} */
-	//Colorbar is only rendered with DVR renderer:
+	
+	//Colorbar is rendered with DVR renderer:
 	if(myVizWin->colorbarIsEnabled()){
 		//Now go to default 2D window
 		glLoadIdentity();
@@ -369,12 +324,9 @@ DrawVoxelScene(unsigned /*fast*/)
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
-	//glPopMatrix();
+	
 	myVizWin->setClutDirty(false);
 	myVizWin->setDataRangeDirty(false);
-	//Capture the image, if not navigating:
-	//if (newRender && !myVizWin->mouseIsDown()) myVizWin->doFrameCapture();
-	//if (isControlled) AnimationController::getInstance()->endRendering(winNum);
 }
 
 

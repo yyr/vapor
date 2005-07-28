@@ -88,6 +88,8 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	regionDirty = true;
 	dataRangeDirty = true;
 	clutDirty = true;
+	flowDataDirty = true;
+	flowGeomDirty = true;
 	capturing = false;
 	newCapture = false;
 
@@ -537,7 +539,7 @@ appendRenderer(Renderer* ren, Params::ParamType rendererType)
  * This happens when a flow renderer or iso renderer is added
  */
 void VizWin::
-insertRenderer(Renderer* ren, Params::ParamType rendererType)
+prependRenderer(Renderer* ren, Params::ParamType rendererType)
 {
 	if (numRenderers < MAXNUMRENDERERS){
 		for (int i = numRenderers; i> 0; i--){

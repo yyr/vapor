@@ -88,7 +88,7 @@ public:
 	void setNumRenderers(int num) {numRenderers = num;}
 	//Renderers can be added early or late, depending on whether
 	//they should render last.  DVR's need to be last, since they don't write the z buffer
-	void insertRenderer(Renderer* ren, Params::ParamType rendererType);
+	void prependRenderer(Renderer* ren, Params::ParamType rendererType);
 	void appendRenderer(Renderer* ren, Params::ParamType rendererType);
 	void removeRenderer(Params::ParamType rendererType);
 	GLWindow* getGLWindow() {return myGLWindow;}
@@ -96,9 +96,13 @@ public:
 	void setRegionDirty(bool isDirty){ regionDirty = isDirty;}
 	void setClutDirty(bool isDirty){ clutDirty = isDirty;}
 	void setDataRangeDirty(bool isDirty){ dataRangeDirty = isDirty;}
+	void setFlowDataDirty(bool isDirty) {flowDataDirty = isDirty;}
+	void setFlowGeometryDirty(bool isDirty) {flowGeomDirty = isDirty;}
 	bool regionIsDirty() {return regionDirty;}
 	bool clutIsDirty() {return clutDirty;}
 	bool dataRangeIsDirty() {return dataRangeDirty;}
+	bool flowDataIsDirty() {return flowDataDirty;}
+	bool flowGeometryIsDirty() {return flowGeomDirty;}
 
 	bool mouseIsDown() {return mouseDownHere;}
 	int pointOverCube(RegionParams* rParams, float screenCoords[2]);
@@ -178,6 +182,8 @@ protected:
 	bool regionDirty;
 	bool dataRangeDirty;
 	bool clutDirty;
+	bool flowDataDirty;
+	bool flowGeomDirty;
 	int capturing;
 	int captureNum;
 	//Flag to set indicating start of capture sequence.
