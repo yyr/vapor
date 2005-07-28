@@ -15,7 +15,7 @@ MAKEFILE_CXXFLAGS +=  -I$(EXPAT_INC_PATH)
 endif
 MAKEFILE_CXXFLAGS += -Iguis -Iparams -Irender -Imain
 
-LIBRARIES += common vdf vjpeg
+LIBRARIES += common vdf vjpeg flow
 
 ifeq ($(ARCH),WIN32) 
 MAKEFILE_CXXFLAGS += /DVOLUMIZER  
