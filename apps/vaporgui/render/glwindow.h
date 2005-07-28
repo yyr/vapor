@@ -64,6 +64,8 @@ public:
 	//Get the current image in the front buffer;
 	bool getPixelData(unsigned char* data);
 
+	void setRenderNew() {renderNew = true;}
+
 protected:
 
 	//Picking helper functions, saved from last change in GL state.  These
@@ -82,12 +84,35 @@ protected:
     void		initializeGL();
     void		paintGL();
     void		resizeGL( int w, int h );
-	
+
+	//Methods to support drawing domain bounds, axes etc.
+	//Set colors to use in domain-bound rendering:
+	void setSubregionFrameColor(QColor& c);
+	void setRegionFrameColor(QColor& c);
+	//Draw the region bounds and frame it in full domain.
+	//Arguments are in unit cube coordinates
+	void renderDomainFrame(float* extents, float* minFull, float* maxFull);
+	void renderRegionBounds(float* extents, int selectedFace, 
+		float* cameraPos, float faceDisplacement);
+	void drawSubregionBounds(float* extents);
+	void drawAxes(float* extents);
+	//Helper functions for drawing region bounds:
+	static float* cornerPoint(float* extents, int faceNum);
+	// Faces of the cube are numbered 0..5 based on view from pos z axis:
+	// back, front, bottom, top, left, right
+	static bool faceIsVisible(float* extents, float* viewerCoords, int faceNum);
+	void drawRegionFace(float* extents, int faceNum, bool isSelected);
+
+	float regionFrameColor[3];
+	float subregionFrameColor[3];
 	VizWin* myVizWin;
 	float	wCenter[3]; //World center coords
 	float	maxDim;		//Max of x, y, z size in world coords
 	bool perspective;	//perspective vs parallel coords;
 	bool oldPerspective;
+	//Indicate if the current render is different from previous,
+	//Used for frame capture:
+	bool renderNew;  
 
 	GLint viewport[4];
 	GLdouble projectionMatrix[16];

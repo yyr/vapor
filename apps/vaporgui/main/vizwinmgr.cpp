@@ -841,7 +841,7 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setFlowEnabled(int)));
 	connect (flowTab->instanceSpin, SIGNAL(valueChanged(int)), this, SLOT(setFlowInstance(int)));
 	connect (flowTab->flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( setFlowType(int) ) );
-	connect (flowTab->numTransSpin, SIGNAL(activated(int)),this, SLOT(setFlowNumTrans(int)));
+	connect (flowTab->numTransSpin, SIGNAL(valueChanged(int)),this, SLOT(setFlowNumTrans(int)));
 	connect (flowTab->xCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowXVar(int)));
 	connect (flowTab->yCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowYVar(int)));
 	connect (flowTab->zCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowZVar(int)));

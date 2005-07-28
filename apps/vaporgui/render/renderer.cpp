@@ -45,6 +45,7 @@ Renderer::Renderer( VizWin* vw )
 //Issue OpenGL commands to draw a grid of lines of the full domain.
 //Grid resolution is up to 2x2x2
 //
+/*
 void Renderer::renderDomainFrame(float* extents, float* minFull, float* maxFull){
 
 	int i; 
@@ -441,6 +442,7 @@ void Renderer::drawAxes(float* extents){
 	glVertex3f(origin[0]+.1*len, origin[1], origin[2]+.8*len);
 	glEnd();
 }
+*/
 //Following methods are to support display of a colorscale in front of the data.
 //
 void Renderer::

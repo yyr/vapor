@@ -52,15 +52,15 @@ public:
 	
 protected:
 	//Set colors to use in bound rendering:
-	void setSubregionFrameColor(QColor& c);
-	void setRegionFrameColor(QColor& c);
+	//void setSubregionFrameColor(QColor& c);
+	//void setRegionFrameColor(QColor& c);
 	//Draw the region bounds and frame it in full domain.
 	//Arguments are in unit cube coordinates
-	void renderDomainFrame(float* extents, float* minFull, float* maxFull);
-	void renderRegionBounds(float* extents, int selectedFace, 
-		float* cameraPos, float faceDisplacement);
-	void drawSubregionBounds(float* extents);
-	void drawAxes(float* extents);
+	//void renderDomainFrame(float* extents, float* minFull, float* maxFull);
+	//void renderRegionBounds(float* extents, int selectedFace, 
+	//	float* cameraPos, float faceDisplacement);
+	//void drawSubregionBounds(float* extents);
+	//void drawAxes(float* extents);
 	void buildColorscaleImage();
 	void renderColorscale(bool rebuild);
 	//One face of the region bounds can be highlighted if selected:
@@ -76,11 +76,11 @@ protected:
 	float subregionFrameColor[3];
 	int savedNumXForms;
 	//Helper functions for drawing region bounds:
-	static float* cornerPoint(float* extents, int faceNum);
+	//static float* cornerPoint(float* extents, int faceNum);
 	// Faces of the cube are numbered 0..5 based on view from pos z axis:
 	// back, front, bottom, top, left, right
-	static bool faceIsVisible(float* extents, float* viewerCoords, int faceNum);
-	void drawRegionFace(float* extents, int faceNum, bool isSelected);
+	//static bool faceIsVisible(float* extents, float* viewerCoords, int faceNum);
+	//void drawRegionFace(float* extents, int faceNum, bool isSelected);
 };
 };
 

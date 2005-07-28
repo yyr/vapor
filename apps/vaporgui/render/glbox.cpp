@@ -66,12 +66,12 @@ void GLBox::paintGL()
 
     //glClear( GL_COLOR_BUFFER_BIT );
 	
-    glPushMatrix();
+    //glPushMatrix();
 
-	glLoadIdentity();
+	//glLoadIdentity();
 	//glTranslatef(.5,.5,.5);
     //Note:  this doesn't work right with parallel view.
-	myGLWindow->getTBall()->TrackballSetMatrix();
+	//myGLWindow->getTBall()->TrackballSetMatrix();
 	//glTranslatef(-.5,-.5,-.5);
 	//If there are new coords, get them from GL, send them to the gui
 	if (myVizWin->viewerCoordsChanged()){ 
@@ -126,7 +126,7 @@ void GLBox::paintGL()
     glEnd();
     
 	
-	glPopMatrix();
+	//glPopMatrix();
 	
 }
 

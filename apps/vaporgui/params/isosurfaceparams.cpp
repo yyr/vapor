@@ -229,7 +229,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	
 	if (enabled && !prevEnabled){//For cases 2. or 3. :  create a renderer in the active window:
 		GLBox* myBox = new GLBox (viz);
-		viz->addRenderer(myBox);
+		viz->insertRenderer(myBox, IsoParamsType);
 		//Quit if not case 3:
 		if (wasLocal || isLocal) return;
 	}
@@ -240,7 +240,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 			viz = VizWinMgr::getInstance()->getVizWin(i);
 			if (viz && !vizWinMgr->getIsoParams(i)->isLocal()){
 				GLBox* myBox = new GLBox (viz);
-				viz->addRenderer(myBox);
+				viz->insertRenderer(myBox, IsoParamsType);
 			}
 		}
 		return;
@@ -249,12 +249,12 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		for (int i = 0; i<MAXVIZWINS; i++){
 			viz = VizWinMgr::getInstance()->getVizWin(i);
 			if (viz && !vizWinMgr->getIsoParams(i)->isLocal()){
-				viz->removeRenderer("GLBox");
+				viz->removeRenderer(IsoParamsType);
 			}
 		}
 		return;
 	}
 	assert(prevEnabled && !enabled && (isLocal ||(isLocal != wasLocal))); //case 6, disable local only
-	viz->removeRenderer("GLBox");
+	viz->removeRenderer(IsoParamsType);
 	return;
 }

@@ -65,7 +65,7 @@
 
 using namespace VAPoR;
 using namespace VetsUtil;
-//Most of the one-time setup from setupBob is performed in session,
+//Most of the one-time setup from setupBob is performed in Session,
 //such as construction of DataMgr
 //Gui settings are done in param constructors
 //This constructor just creates the volumizer driver
@@ -146,7 +146,7 @@ void VolumizerRenderer::
 DrawVoxelScene(unsigned /*fast*/)
 {
 	float matrix[16];
-    GLenum	buffer;
+    
 	static float extents[6];
 	static float minFull[3], maxFull[3];
 	int max_dim[3];
@@ -160,9 +160,9 @@ DrawVoxelScene(unsigned /*fast*/)
 	//Then turn off the flag, subsequent renderings will only be captured
 	//if they really are new.
 	//
-	bool newRender = myVizWin->captureIsNew();
-	myVizWin->setCaptureNew(false);
-	if (!Session::getInstance()->renderReady()) return;
+	//bool newRender = myVizWin->captureIsNew();
+	//myVizWin->setCaptureNew(false);
+	//if (!Session::getInstance()->renderReady()) return;
 	DataMgr* myDataMgr = Session::getInstance()->getDataMgr();
 	const Metadata* myMetadata = Session::getInstance()->getCurrentMetadata();
 	//Nothing to do if there's no data source!
@@ -171,11 +171,11 @@ DrawVoxelScene(unsigned /*fast*/)
 	int winNum = myVizWin->getWindowNum();
 	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
 	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
-	ViewpointParams* myViewpointParams = VizWinMgr::getInstance()->getViewpointParams(winNum);
+	
 	DvrParams* myDVRParams = VizWinMgr::getInstance()->getDvrParams(winNum);
 	//Tell the animation we are starting.  If it returns false, we are not
 	//being monitored by the animation controller
-	bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
+	//bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
 
 	//AN:  (2/10/05):  Calculate 'extents' to be the real coords in (0,1) that
 	//the roi is mapped into.  First find the mapping of the full data array.  This
@@ -197,33 +197,28 @@ DrawVoxelScene(unsigned /*fast*/)
 		
 	int bs = myMetadata->GetBlockSize();
 		
+	//Note that this function will be called again by the renderer
 	myRegionParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numxforms, minFull, maxFull, extents);
 	
     // Move to trackball view of scene  
-	glPushMatrix();
+	//glPushMatrix();
 
-	glLoadIdentity();
+	//glLoadIdentity();
 
-	glGetIntegerv(GL_DRAW_BUFFER, (GLint *) &buffer);
-	//Clear out in preparation for rendering
-	glDrawBuffer(GL_BACK);
-	glClearDepth(1);
+	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
-	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+	//and readable
 	glEnable(GL_DEPTH_TEST);
-	glDrawBuffer(buffer);
-
 	
-	
-    myGLWindow->getTBall()->TrackballSetMatrix();
+    //myGLWindow->getTBall()->TrackballSetMatrix();
 	//In regionMode, draw a grid:
-	if(myVizWin->regionFrameIsEnabled()|| MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
-		renderDomainFrame(extents, minFull, maxFull);
-	} 
-	if(myVizWin->subregionFrameIsEnabled()&& !(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode)){
-		drawSubregionBounds(extents);
-	} 
-	if (myVizWin->axesAreEnabled()) drawAxes(extents);
+	//if(myVizWin->regionFrameIsEnabled()|| MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
+	//	renderDomainFrame(extents, minFull, maxFull);
+	//} 
+	//if(myVizWin->subregionFrameIsEnabled()&& !(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode)){
+		//drawSubregionBounds(extents);
+	//} 
+	//if (myVizWin->axesAreEnabled()) drawAxes(extents);
 	//This works around a volumizer/opengl bug!!!
 	//If you issue a non-unit glColor before the volume rendering, it 
 	//affects the subsequent volume rendering on Irix, but not on
@@ -232,10 +227,10 @@ DrawVoxelScene(unsigned /*fast*/)
 	
 	
 	//If there are new coords, get them from GL, send them to the gui
-	if (myVizWin->viewerCoordsChanged()){ 
-		newRender = true;
-		myGLWindow->changeViewerFrame();
-	}
+	//if (myVizWin->viewerCoordsChanged()){ 
+		//myGLWindow->setRenderNew();
+		//myGLWindow->changeViewerFrame();
+	//}
 	
 	//Save the coord trans matrix, to pass to volumizer
 	glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
@@ -246,7 +241,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	//
 	if (myVizWin->regionIsDirty()|| myVizWin->dataRangeIsDirty()) {
 
-		newRender = true;
+		myGLWindow->setRenderNew();
 		
 		int	rc;
 		
@@ -316,7 +311,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	}
 
 	if (myVizWin->clutIsDirty()) {
-		newRender = true;
+		myGLWindow->setRenderNew();
 		//Same table sets CLUT and OLUT
 		//
 		driver->SetCLUT(myDVRParams->getClut());
@@ -347,6 +342,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	}
 
 	//Finally render the region geometry, if in region mode
+	/*
 	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
 		float camVec[3];
 		ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
@@ -358,7 +354,8 @@ DrawVoxelScene(unsigned /*fast*/)
 		assert(selectedFace >= -1 && selectedFace < 6);
 		renderRegionBounds(extents, selectedFace,
 			camVec, disp);
-	} 
+	} */
+	//Colorbar is only rendered with DVR renderer:
 	if(myVizWin->colorbarIsEnabled()){
 		//Now go to default 2D window
 		glLoadIdentity();
@@ -372,19 +369,20 @@ DrawVoxelScene(unsigned /*fast*/)
 		glPopMatrix();
 		glMatrixMode(GL_MODELVIEW);
 	}
-	glPopMatrix();
+	//glPopMatrix();
 	myVizWin->setClutDirty(false);
 	myVizWin->setDataRangeDirty(false);
 	//Capture the image, if not navigating:
-	if (newRender && !myVizWin->mouseIsDown()) myVizWin->doFrameCapture();
-	if (isControlled) AnimationController::getInstance()->endRendering(winNum);
+	//if (newRender && !myVizWin->mouseIsDown()) myVizWin->doFrameCapture();
+	//if (isControlled) AnimationController::getInstance()->endRendering(winNum);
 }
 
 
 void VolumizerRenderer::
 DrawVoxelWindow(unsigned fast)
 {
-	myGLWindow->makeCurrent();
+	//Already current!
+	//myGLWindow->makeCurrent();
 	DrawVoxelScene(fast);
 }
 

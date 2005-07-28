@@ -25,7 +25,7 @@
 
 //No more than 1 renderers in a window:
 //Eventually this may be dynamic.
-#define MAXNUMRENDERERS 1
+#define MAXNUMRENDERERS 3
 #include <qvariant.h>
 #include <qmainwindow.h>
 #include <qcolor.h>
@@ -84,9 +84,13 @@ public:
 	void updateGL() { if (myGLWindow) myGLWindow->update();}
 	int getNumRenderers() { return numRenderers;}
 	Renderer* renderer[MAXNUMRENDERERS];
+	Params::ParamType renderType[MAXNUMRENDERERS];
 	void setNumRenderers(int num) {numRenderers = num;}
-	void addRenderer(Renderer* ren);
-	void removeRenderer(const char* rendererName);
+	//Renderers can be added early or late, depending on whether
+	//they should render last.  DVR's need to be last, since they don't write the z buffer
+	void insertRenderer(Renderer* ren, Params::ParamType rendererType);
+	void appendRenderer(Renderer* ren, Params::ParamType rendererType);
+	void removeRenderer(Params::ParamType rendererType);
 	GLWindow* getGLWindow() {return myGLWindow;}
 	
 	void setRegionDirty(bool isDirty){ regionDirty = isDirty;}

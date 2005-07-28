@@ -480,7 +480,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	if (nowEnabled && !prevEnabled && newLocal){//For case 2.:  create a renderer in the active window:
 
 		VolumizerRenderer* myDvr = new VolumizerRenderer(viz);
-		viz->addRenderer(myDvr);
+		viz->appendRenderer(myDvr, DvrParamsType);
 
 		//force the renderer to refresh region data  (why?)
 		viz->setRegionDirty(true);
@@ -497,7 +497,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
 				VolumizerRenderer* myDvr = new VolumizerRenderer(viz);
-				viz->addRenderer(myDvr);
+				viz->appendRenderer(myDvr, DvrParamsType);
 				//force the renderer to refresh region data (??)
 				viz->setRegionDirty(true);
 				setClutDirty();
@@ -510,13 +510,13 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		for (int i = 0; i<MAXVIZWINS; i++){
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
-				viz->removeRenderer("VolumizerRenderer");
+				viz->removeRenderer(DvrParamsType);
 			}
 		}
 		return;
 	}
 	assert(prevEnabled && !nowEnabled && (newLocal ||(newLocal != wasLocal))); //case 6, disable local only
-	viz->removeRenderer("VolumizerRenderer");
+	viz->removeRenderer(DvrParamsType);
 
 	return;
 }

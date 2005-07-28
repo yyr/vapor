@@ -517,36 +517,60 @@ setGlobalViewpoint(bool setGlobal){
 }
 /*
  * Add a renderer to this visualization window
- * This happens when the renderer is enabled, or if
+ * Add it at the end of the list.
+ * This happens when the dvr renderer is enabled, or if
  * the local/global switch causes a new one to be enabled
  */
 void VizWin::
-addRenderer(Renderer* ren)
+appendRenderer(Renderer* ren, Params::ParamType rendererType)
 {
 	if (numRenderers < MAXNUMRENDERERS){
-		//Don't allow more than one renderer in a window (yet)
-		assert(numRenderers == 0);
-		renderer[numRenderers++] = ren;
+		renderer[numRenderers] = ren;
+		renderType[numRenderers++] = rendererType;
+		ren->initializeGL();
+		myGLWindow->update();
+	}
+}
+/*
+ * Insert a renderer to this visualization window
+ * Add it at the start of the list.
+ * This happens when a flow renderer or iso renderer is added
+ */
+void VizWin::
+insertRenderer(Renderer* ren, Params::ParamType rendererType)
+{
+	if (numRenderers < MAXNUMRENDERERS){
+		for (int i = numRenderers; i> 0; i--){
+			renderer[i] = renderer[i-1];
+			renderType[i] = renderType[i-1];
+		}
+		renderer[0] = ren;
+		renderType[0] = rendererType;
+		numRenderers++;
 		ren->initializeGL();
 		myGLWindow->update();
 	}
 }
 /* 
- * Remove renderer of specified classname (only one can exist).
+ * Remove renderer of specified renderer type (only one can exist currently).
  */
-void VizWin::removeRenderer(const char* rendererName){
+void VizWin::removeRenderer(Params::ParamType rendererType){
 	int i;
 	for (i = 0; i<numRenderers; i++) {		
-		if (!strcmp(renderer[i]->className(),rendererName)) continue;
+		if (rendererType != renderType[i]) continue;
 		delete renderer[i];
 		renderer[i] = 0;
 		break;
 	}
-	//Note that we won't always find one to remove!
-	if (i == numRenderers) return;
+	//Note that we won't always find one to remove??
+	if (i == numRenderers){ 
+		assert(0);
+		return;
+	}
 	numRenderers--;
 	for (int j = i; j<numRenderers; j++){
 		renderer[j] = renderer[j+1];
+		renderType[j] = renderType[j+1];
 	}
 	myGLWindow->updateGL();
 	
