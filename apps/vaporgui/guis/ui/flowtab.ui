@@ -176,7 +176,7 @@
                             <cstring>EnableDisable</cstring>
                         </property>
                         <property name="enabled">
-                            <bool>false</bool>
+                            <bool>true</bool>
                         </property>
                         <property name="editable">
                             <bool>false</bool>
@@ -630,7 +630,7 @@
                             </sizepolicy>
                         </property>
                         <property name="text">
-                            <string>User time step size</string>
+                            <string>User time step multiplier</string>
                         </property>
                     </widget>
                     <widget class="QLineEdit">
