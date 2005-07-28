@@ -52,13 +52,14 @@ FILES := \
 	main/vizactivatecommand main/vizwinmgr \
 	render/DVRBase render/DVRDebug render/DVRVolumizer \
 	render/glbox render/glutil render/glwindow render/renderer \
-	render/trackball render/vizwin  render/volumizerrenderer 
+	render/trackball render/vizwin  render/volumizerrenderer \
+	render/flowrenderer
 
 QT_HEADERS := \
 	guis/coloradjustdialog guis/colorpicker \
 	guis/loadtfdialog guis/opacadjustdialog \
 	guis/savetfdialog guis/tfframe guis/vizselectcombo \
-	render/glbox render/renderer \
+	render/glbox render/renderer render/flowrenderer \
 	render/vizwin render/volumizerrenderer \
 	main/mainform main/tabmanager main/vizwinmgr \
 	params/sessionparams params/vizfeatureparams 
