@@ -2,7 +2,9 @@
 #pragma warning(disable : 4251 4100)
 #endif
 
-#include "VaporFlow.h"
+#include "vapor/VaporFlow.h"
+#include "Rake.h"
+#include "VTFieldLine.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -24,8 +26,9 @@ VaporFlow::VaporFlow(DataMgr* dm)
 
 VaporFlow::~VaporFlow()
 {
-	if(dataMgr != NULL)
-		delete dataMgr;
+	//Don't delete dataMgr, it can still be used by calling program.
+	//if(dataMgr != NULL)
+		//delete dataMgr;
 
 	if(xVarName)
 	{

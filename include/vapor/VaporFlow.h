@@ -14,11 +14,14 @@
 #include "vapor/DataMgr.h"
 #include "vapor/MyBase.h"
 #include "vaporinternal/common.h"
-#include "Rake.h"
-#include "VTFieldLine.h"
+
+//#include "Rake.h"
+//#include "VTFieldLine.h"
 
 namespace VAPoR
 {
+	class VECTOR3;
+
 	class FLOW_API VaporFlow : public VetsUtil::MyBase
 	{
 	public:
