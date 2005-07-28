@@ -863,8 +863,6 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->userTimestepEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->timeSampleEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->timeSampleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
-	connect (flowTab->userTimestepEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->userTimestepEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->randomSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->randomSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->xCenterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
