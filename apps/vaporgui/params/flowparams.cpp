@@ -18,8 +18,10 @@
 //
 #include "flowparams.h"
 #include "flowtab.h"
+#include "flowrenderer.h"
 #include "vizwinmgr.h"
 #include "vizwin.h"
+#include "vapor/VaporFlow.h"
 #include <qlineedit.h>
 #include <qcombobox.h>
 #include <qpushbutton.h>
@@ -49,11 +51,14 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	variableNames.empty();
 	varNum[0] = varNum [1] = varNum[2] = 0;
 	integrationAccuracy = 0.5f;
-	userTimeStepSize = 1.0f;
+	userTimeStepMultiplier = 1.0f;
 	timeSamplingInterval = 1;
+	minFrame = maxFrame = 1;
 	
 
 	randomGen = false;
+	dirty = true;
+	geomDirty = true;
 	randomSeed = 1;
 	seedBoxMin[0] = seedBoxMin[1] = seedBoxMin[2] = 0.f;
 	seedBoxMax[0] = seedBoxMax[1] = seedBoxMax[2] = 1.f;
@@ -75,6 +80,12 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	colorMappedEntity = 0; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
 	colorMapMin = 0.f; 
 	colorMapMax = 1.f;
+	myFlowLib = 0;
+	//Set up flow data cache:
+	flowData = 0;
+	maxPoints = 1;
+	numSeedPoints = 1;
+	numInjections = 1;
 	
 }
 
@@ -193,7 +204,7 @@ void FlowParams::updateDialog(){
 		myFlowTab->generatorCountEdit->setText(QString::number(generatorCount[currentDimension]));
 	}
 	myFlowTab->integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
-	myFlowTab->userTimestepEdit->setText(QString::number(userTimeStepSize));
+	myFlowTab->userTimestepEdit->setText(QString::number(userTimeStepMultiplier));
 	myFlowTab->timeSampleEdit->setText(QString::number(timeSamplingInterval));
 	myFlowTab->randomSeedEdit->setText(QString::number(randomSeed));
 	myFlowTab->objectsPerTimestepEdit->setText(QString::number(objectsPerTimestep));
@@ -228,10 +239,10 @@ updatePanelState(){
 		myFlowTab->integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
 	}
 
-	userTimeStepSize = myFlowTab->userTimestepEdit->text().toFloat();
-	if (userTimeStepSize < 1.e-30){
-		userTimeStepSize = 1.f;
-		myFlowTab->userTimestepEdit->setText(QString::number(userTimeStepSize));
+	userTimeStepMultiplier = myFlowTab->userTimestepEdit->text().toFloat();
+	if (userTimeStepMultiplier < 1.e-30){
+		userTimeStepMultiplier = 1.f;
+		myFlowTab->userTimestepEdit->setText(QString::number(userTimeStepMultiplier));
 	}
 	timeSamplingInterval = myFlowTab->timeSampleEdit->text().toInt();
 	if (timeSamplingInterval < 1){
@@ -271,8 +282,12 @@ updatePanelState(){
 	
 	seedTimeStart = myFlowTab->seedtimeStartEdit->text().toUInt();
 	seedTimeEnd = myFlowTab->seedtimeEndEdit->text().toUInt(); 
-	if (seedTimeEnd < seedTimeStart) {
-		seedTimeEnd = seedTimeStart;
+	bool changed = false;
+	if (seedTimeStart < minFrame) {seedTimeStart = minFrame; changed = true;}
+	if (seedTimeEnd > maxFrame) {seedTimeEnd = maxFrame; changed = true;}
+	if (seedTimeEnd < seedTimeStart) {seedTimeEnd = seedTimeStart; changed = true;}
+	if (changed){
+		myFlowTab->seedtimeStartEdit->setText(QString::number(seedTimeStart));
 		myFlowTab->seedtimeEndEdit->setText(QString::number(seedTimeEnd));
 	}
 
@@ -303,17 +318,22 @@ updatePanelState(){
 	}
 	guiSetTextChanged(false);
 	myFlowTab->update();
+	dirty = true;
 }
 //Reinitialize settings, session has changed:
 void FlowParams::
 reinit(bool doOverride){
 	int i;
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
+	Session* session = Session::getInstance();
 	int nlevels = md->GetNumTransforms();
-	int minTrans = Session::getInstance()->getDataStatus()->minXFormPresent();
+	int minTrans = session->getDataStatus()->minXFormPresent();
 	if(minTrans < 0) minTrans = nlevels; 
 	setMinNumTrans(minTrans);
 	setMaxNumTrans(nlevels);
+	//Make min and max conform to new data:
+	minFrame = (int)(session->getMinTimestep());
+	maxFrame = (int)(session->getMaxTimestep());
 	if (doOverride) {
 		numTrans = maxNumTrans;
 	
@@ -347,7 +367,13 @@ reinit(bool doOverride){
 		numVariables = 0;
 		return;
 	}
+	
 	numVariables = newNumVariables;
+	//Always disable
+	bool wasEnabled = enabled;
+	setEnabled(false);
+	//don't change local/global 
+	updateRenderer(wasEnabled, isLocal(), false);
 	//If flow is the current front tab, and if it applies to the active visualizer,
 	//update its values
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myFlowTab)) {
@@ -356,7 +382,8 @@ reinit(bool doOverride){
 		if (viznum == vizNum)
 			updateDialog();
 	}
-	//setDirty();
+	//force a new render
+	dirty = true;
 }
 //Set slider position, based on text change. 
 //
@@ -509,6 +536,7 @@ sliderToText(int coord, int slideCenter, int slideSize){
 	}
 	guiSetTextChanged(false);
 	myFlowTab->update();
+	dirty = true;
 	return;
 }	
 
@@ -726,10 +754,10 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	
 	//For a new renderer
 
-	/*
+	
 	if (enabled && !prevEnabled){//For cases 2. or 3. :  create a renderer in the active window:
-		GLBox* myBox = new GLBox (viz);
-		viz->addRenderer(myBox);
+		FlowRenderer* myRenderer = new FlowRenderer (viz);
+		viz->prependRenderer(myRenderer, Params::FlowParamsType);
 		//Quit if not case 3:
 		if (wasLocal || isLocal) return;
 	}
@@ -739,8 +767,8 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 			if (i == activeViz) continue;
 			viz = VizWinMgr::getInstance()->getVizWin(i);
 			if (viz && !vizWinMgr->getFlowParams(i)->isLocal()){
-				GLBox* myBox = new GLBox (viz);
-				viz->addRenderer(myBox);
+				FlowRenderer* myRenderer = new FlowRenderer (viz);
+				viz->prependRenderer(myRenderer, Params::FlowParamsType);
 			}
 		}
 		return;
@@ -749,13 +777,88 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		for (int i = 0; i<MAXVIZWINS; i++){
 			viz = VizWinMgr::getInstance()->getVizWin(i);
 			if (viz && !vizWinMgr->getFlowParams(i)->isLocal()){
-				viz->removeRenderer("GLBox");
+				viz->removeRenderer(Params::FlowParamsType);
 			}
 		}
 		return;
 	}
 	assert(prevEnabled && !enabled && (isLocal ||(isLocal != wasLocal))); //case 6, disable local only
-	viz->removeRenderer("GLBox");
-	*/
+	viz->removeRenderer(Params::FlowParamsType);
+	
 	return;
+
+}
+
+void FlowParams::
+setEnabled(bool on){
+	if (enabled == on) return;
+	enabled = on;
+	if (!enabled){//delete existing flow lib
+		if (myFlowLib) delete myFlowLib;
+		myFlowLib = 0;
+		return;
+	}
+	//create a new flow lib:
+	assert(myFlowLib == 0);
+	DataMgr* dataMgr = Session::getInstance()->getDataMgr();
+	assert(dataMgr);
+	myFlowLib = new VaporFlow(dataMgr);
+	return;
+	
+}
+
+void FlowParams::
+regenerateFlowData(){
+	int min_dim[3], max_dim[3]; 
+	size_t min_bdim[3], max_bdim[3];
+	float minFull[3], maxFull[3], extents[6];
+	if (!myFlowLib) return;
+	if (flowData) delete flowData;
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	//specify field components:
+	const char* xVar = variableNames[varNum[0]].c_str();
+	const char* yVar = variableNames[varNum[1]].c_str();
+	const char* zVar = variableNames[varNum[2]].c_str();
+	myFlowLib->SetFieldComponents(xVar, yVar, zVar);
+	//If these flowparams are shared, we have a problem here; 
+	//Different windows could have different regions
+	RegionParams* rParams;
+	if (vizNum < 0) {
+		MessageReporter::warningMsg("FlowParams: Multiple region params could apply to flow");
+		rParams = vizMgr->getRegionParams(vizMgr->getActiveViz());
+	}
+	else rParams = VizWinMgr::getInstance()->getRegionParams(vizNum);
+	rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, 
+		numTrans, minFull, maxFull, extents);
+	myFlowLib->SetRegion(numTrans, min_bdim, max_bdim);
+	myFlowLib->SetTimeStepInterval(seedTimeStart, maxFrame, timeSamplingInterval);
+	myFlowLib->ScaleTimeStepSizes(userTimeStepMultiplier, 1.0);
+	if (randomGen) {
+		myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, allGeneratorCount);
+		numSeedPoints = allGeneratorCount;
+	} else {
+		myFlowLib->SetRegularSeedPoints(seedBoxMin, seedBoxMax, generatorCount);
+		numSeedPoints = generatorCount[0]*generatorCount[1]*generatorCount[2];
+	}
+	// setup integration parameters:
+	float minIntegStep = (1.f - integrationAccuracy)* 5.f;//go from 0 to 5
+	float maxIntegStep = 3.f*minIntegStep;
+	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
+	//Parameters controlling flowDataAccess.  These are established each time
+	//The flow data is regenerated:
+	maxPoints = maxAgeShown;
+	int lastTime = seedTimeEnd;
+	if (flowType == 0) { //steady
+		numInjections = 1;
+	} else {
+		if (lastTime > seedTimeStart + maxAgeShown) lastTime = seedTimeStart+maxAgeShown;
+		numInjections = 1+ (lastTime - seedTimeStart)/seedTimeIncrement;
+	}
+	flowData = new float[3*maxPoints*numSeedPoints*numInjections];
+	if (flowType == 0){ //steady
+		myFlowLib->GenStreamLines(flowData, maxPoints, randomSeed);
+	} else {
+		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, lastTime, seedTimeIncrement);
+	}
+	dirty = false;
 }

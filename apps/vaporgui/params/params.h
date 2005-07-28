@@ -100,7 +100,7 @@ public:
 		else local = false;}
 	bool isLocal() {return local;}
 	bool isEnabled(){return enabled;}
-	void setEnabled(bool value) {enabled = value;}
+	virtual void setEnabled(bool value) {enabled = value;}
 	virtual void guiSetEnabled(bool value) {enabled = value;}//default does nothing
 	void setVizNum(int vnum){vizNum = vnum;}
 	//Methods to be called from gui, get undo/redo support.

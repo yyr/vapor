@@ -26,7 +26,10 @@
 
 class FlowTab;
 
+
 namespace VAPoR{
+	
+class VaporFlow;
 
 class ExpatParseMgr;
 class MainForm;
@@ -45,7 +48,6 @@ public:
 	//
 	virtual void updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow);
 
-	
 	//Update the dialog with values from this:
 	//
 	virtual void updateDialog();
@@ -55,7 +57,8 @@ public:
 
 	// Reinitialize due to new Session:
 	void reinit(bool doOverride);
-
+	//Override default set-enabled to create/destroy FlowLib
+	virtual void setEnabled(bool value);
 	
 	//Methods that record changes in the history:
 	//
@@ -64,8 +67,19 @@ public:
 	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){return true;}
 	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){return true;}
 	
+	//set dirty-flag, to force rerender:
+	void setDirty(bool flagValue){dirty = flagValue;}
+	bool isDirty() {return dirty;}
 	int getNumGenerators(int dimNum) { return generatorCount[dimNum];}
 	int getTotalNumGenerators() { return allGeneratorCount;}
+	VaporFlow* getFlowLib(){return myFlowLib;}
+	void regenerateFlowData();
+	int getMaxPoints(){ return maxPoints;}
+	int getNumSeedPoints() { return numSeedPoints;}
+	int getNumInjections() { return numInjections;}
+	int getMinAge() {return minAgeShown;}
+	int getMaxAge() {return maxAgeShown;}
+	int getStartFrame() {return seedTimeStart;}
 
 	//Methods called from vizwinmgr due to settings in gui:
 	void guiSetFlowType(int typenum);
@@ -103,7 +117,7 @@ protected:
 	static const string _instanceAttr;
 	static const string _numTransAttr;
 	static const string _integrationAccuracyAttr;
-	static const string _userTimeStepSizeAttr;
+	static const string _userTimeStepMultAttr;
 	static const string _timeSamplingIntervalAttr;
 	
 	//Geometry variables:
@@ -115,22 +129,22 @@ protected:
 	static const string _colorMappedEntityAttr;
 	static const string _colorMappingBoundsAttr;
 
-	void setFlowType(int typenum){flowType = typenum;}
-	void setNumTrans(int numtrans){numTrans = numtrans;}
+	void setFlowType(int typenum){flowType = typenum; dirty = true;}
+	void setNumTrans(int numtrans){numTrans = numtrans; dirty = true;}
 	void setMaxNumTrans(int maxNT) {maxNumTrans = maxNT;}
 	void setMinNumTrans(int minNT) {minNumTrans = minNT;}
-	void setXVarNum(int varnum){varNum[0] = varnum;}
-	void setYVarNum(int varnum){varNum[1] = varnum;}
-	void setZVarNum(int varnum){varNum[2] = varnum;}
-	void setRandom(bool rand){randomGen = rand;}
+	void setXVarNum(int varnum){varNum[0] = varnum; dirty = true;}
+	void setYVarNum(int varnum){varNum[1] = varnum; dirty = true;}
+	void setZVarNum(int varnum){varNum[2] = varnum; dirty = true;}
+	void setRandom(bool rand){randomGen = rand; dirty = true;}
 	void setXCenter(int sliderval);
 	void setYCenter(int sliderval);
 	void setZCenter(int sliderval);
 	void setXSize(int sliderval);
 	void setYSize(int sliderval);
 	void setZSize(int sliderval);
-	void setFlowGeometry(int geomNum){geometryType = geomNum;}
-	void setMapEntity( int entityNum){colorMappedEntity = entityNum;}
+	void setFlowGeometry(int geomNum){geometryType = geomNum; geomDirty = true;}
+	void setMapEntity( int entityNum){colorMappedEntity = entityNum; geomDirty = true;}
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 
 	//Methods to make sliders and text consistent for seed region:
@@ -145,14 +159,17 @@ protected:
 	std::vector<std::string> variableNames;
 	int varNum[3]; //variable num's in x, y, and z.
 	float integrationAccuracy;
-	float userTimeStepSize;
+	float userTimeStepMultiplier;
 	int timeSamplingInterval;
 
+	
 	bool randomGen;
+	bool dirty;
+	bool geomDirty;
 	unsigned int randomSeed;
 	
-	int generatorCount[3];
-	int allGeneratorCount;
+	size_t generatorCount[3];
+	size_t allGeneratorCount;
 	int seedTimeStart, seedTimeEnd, seedTimeIncrement;
 	int currentDimension;
 
@@ -164,10 +181,22 @@ protected:
 	float colorMapMin, colorMapMax;
 	float regionMin[3], regionMax[3];
 	float seedBoxMin[3], seedBoxMax[3];
-	
+	VaporFlow* myFlowLib;
 
-
-	
+	//Array to hold all the points returned from flow lib
+	float* flowData;
+	//Parameters controlling flowDataAccess.  These are established each time
+	//The flow data is regenerated:
+	int maxPoints;
+	int numSeedPoints;
+	int numInjections;
+	float getFloatData(int coord, int timeStep, int seedNum, int injectionNum){
+		assert ((coord+3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)))<
+			3*maxPoints*numSeedPoints*numInjections );
+		return flowData[coord+3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum))];
+	}
+	//Keep track of min, max frames in available data:
+	int maxFrame, minFrame;
 
 };
 };
