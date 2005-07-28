@@ -49,6 +49,7 @@ SOURCES +=\
 	   render/DVRVolumizer.cpp \
 	   params/dvrparams.cpp \
 	   params/flowparams.cpp \
+	   render/flowrenderer.cpp \
 	   render/glbox.cpp \
 	   render/glutil.cpp \
 	   render/glwindow.cpp \
@@ -97,6 +98,7 @@ HEADERS += \
 	   render/DVRDebug.h \
 	   render/DVRVolumizer.h \
 	   params/dvrparams.h \
+	   render/flowrenderer.h \
 	   render/glbox.h \
 	   render/glwindow.h \
 	   render/glutil.h \
