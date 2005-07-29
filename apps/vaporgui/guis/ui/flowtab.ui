@@ -34,12 +34,12 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout26</cstring>
+            <cstring>layout31</cstring>
         </property>
         <property name="geometry">
             <rect>
                 <x>10</x>
-                <y>20</y>
+                <y>10</y>
                 <width>430</width>
                 <height>812</height>
             </rect>
@@ -611,7 +611,7 @@
             </widget>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>layout26</cstring>
+                    <cstring>layout30</cstring>
                 </property>
                 <hbox>
                     <property name="name">
@@ -630,7 +630,7 @@
                             </sizepolicy>
                         </property>
                         <property name="text">
-                            <string>User time step multiplier</string>
+                            <string>Time scale factor</string>
                         </property>
                     </widget>
                     <widget class="QLineEdit">
@@ -647,7 +647,7 @@
                         </property>
                         <property name="maximumSize">
                             <size>
-                                <width>32767</width>
+                                <width>100</width>
                                 <height>25</height>
                             </size>
                         </property>
@@ -676,7 +676,7 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>21</width>
+                                <width>78</width>
                                 <height>21</height>
                             </size>
                         </property>
@@ -686,12 +686,18 @@
                             <cstring>textLabel1_4</cstring>
                         </property>
                         <property name="text">
-                            <string>Time sampling interval</string>
+                            <string>Sampling interval</string>
                         </property>
                     </widget>
                     <widget class="QLineEdit">
                         <property name="name">
                             <cstring>timeSampleEdit</cstring>
+                        </property>
+                        <property name="maximumSize">
+                            <size>
+                                <width>50</width>
+                                <height>50</height>
+                            </size>
                         </property>
                         <property name="text">
                             <string>1</string>
@@ -1679,7 +1685,7 @@
                     </property>
                     <widget class="QLayoutWidget">
                         <property name="name">
-                            <cstring>layout53</cstring>
+                            <cstring>layout28</cstring>
                         </property>
                         <vbox>
                             <property name="name">
@@ -1996,7 +2002,7 @@
                             </widget>
                             <widget class="QLayoutWidget">
                                 <property name="name">
-                                    <cstring>layout113</cstring>
+                                    <cstring>layout27</cstring>
                                 </property>
                                 <hbox>
                                     <property name="name">
@@ -2005,6 +2011,12 @@
                                     <widget class="QLineEdit">
                                         <property name="name">
                                             <cstring>minColormapEdit</cstring>
+                                        </property>
+                                        <property name="maximumSize">
+                                            <size>
+                                                <width>100</width>
+                                                <height>32767</height>
+                                            </size>
                                         </property>
                                         <property name="text">
                                             <string>-2..731</string>
@@ -2030,6 +2042,12 @@
                                     <widget class="QLineEdit">
                                         <property name="name">
                                             <cstring>maxColormapEdit</cstring>
+                                        </property>
+                                        <property name="maximumSize">
+                                            <size>
+                                                <width>100</width>
+                                                <height>32767</height>
+                                            </size>
                                         </property>
                                         <property name="text">
                                             <string>2.80</string>
