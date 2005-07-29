@@ -59,12 +59,27 @@ void FlowRenderer::paintGL()
 	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(myVizWin->getWindowNum());
 	//Do we need to regenerate the flow data?
 	if (myFlowParams->isDirty()){
-		myFlowParams->regenerateFlowData();
+		flowDataArray = myFlowParams->regenerateFlowData();
+		maxPoints = myFlowParams->getMaxPoints();
+		numSeedPoints = myFlowParams->getNumSeedPoints();
+		numInjections = myFlowParams->getNumInjections();
 	}
 
 	//Do we need to regenerate the rendering geometry?
 
 	//just convert the flow data to a set of lines...
+	glColor3f(1.,0.,0.);
+	glLineWidth(4.0);
+	for (int i = 0; i< numSeedPoints; i++){
+		glBegin (GL_LINE_STRIP);
+		for (int j = 0; j<maxPoints; j++){
+			glVertex3fv(getFlowPoint(j, i, 0));
+		}
+		glEnd();
+	}
+
+
+/*
     
 	myGLWindow->qglColor( Qt::white );		      // Shorthand for glColor3f or glIndex
 
@@ -92,7 +107,7 @@ void FlowRenderer::paintGL()
     glVertex3f( 0.0,  1.0, 0.0 );   glVertex3f( 0.0,  1.0, 1.0 );
     glEnd();
     
-	
+	*/
 }
 
 

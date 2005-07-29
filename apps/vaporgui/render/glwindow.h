@@ -116,7 +116,7 @@ protected:
 
 	GLint viewport[4];
 	GLdouble projectionMatrix[16];
-
+	bool nowPainting;
 };
 };
 

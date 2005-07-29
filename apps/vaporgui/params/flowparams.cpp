@@ -336,7 +336,8 @@ reinit(bool doOverride){
 	maxFrame = (int)(session->getMaxTimestep());
 	if (doOverride) {
 		numTrans = maxNumTrans;
-	
+		seedTimeStart = minFrame;
+		seedTimeEnd = maxFrame;
 	} else {
 		if (numTrans> nlevels) numTrans = maxNumTrans;
 		if (numTrans < minNumTrans) numTrans = minNumTrans;
@@ -344,6 +345,10 @@ reinit(bool doOverride){
 		RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->
 			getRegionParams(vizNum);
 		numTrans = rParams->validateNumTrans(numTrans);
+		if (seedTimeStart > maxFrame) seedTimeStart = maxFrame;
+		if (seedTimeStart < minFrame) seedTimeStart = minFrame;
+		if (seedTimeEnd > maxFrame) seedTimeEnd = maxFrame;
+		if (seedTimeEnd < minFrame) seedTimeEnd = minFrame;
 	}
 	//Set up variables:
 	//Get the variable names:
@@ -807,12 +812,12 @@ setEnabled(bool on){
 	
 }
 
-void FlowParams::
+float* FlowParams::
 regenerateFlowData(){
 	int min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
 	float minFull[3], maxFull[3], extents[6];
-	if (!myFlowLib) return;
+	if (!myFlowLib) return 0;
 	if (flowData) delete flowData;
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//specify field components:
@@ -846,7 +851,7 @@ regenerateFlowData(){
 	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
-	maxPoints = maxAgeShown;
+	maxPoints = maxAgeShown+1;
 	int lastTime = seedTimeEnd;
 	if (flowType == 0) { //steady
 		numInjections = 1;
@@ -861,4 +866,5 @@ regenerateFlowData(){
 		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, lastTime, seedTimeIncrement);
 	}
 	dirty = false;
+	return flowData;
 }

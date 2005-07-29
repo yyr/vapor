@@ -47,6 +47,7 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, Viz
 	perspective = false;
 	oldPerspective = false;
 	renderNew = false;
+	nowPainting = false;
 }
 
 
@@ -161,6 +162,7 @@ changeViewerFrame(){
 
 void GLWindow::paintGL()
 {
+	
 	GLenum	buffer;
 	float extents[6];
 	float minFull[3], maxFull[3];
@@ -168,6 +170,8 @@ void GLWindow::paintGL()
 	int min_dim[3];
 	size_t max_bdim[3];
 	size_t min_bdim[3];
+	if (nowPainting) return;
+	nowPainting = true;
 	int winNum = myVizWin->getWindowNum();
 	//Force a resize if perspective has changed:
 	if (perspective != oldPerspective){
@@ -189,6 +193,7 @@ void GLWindow::paintGL()
 	
 	if (!Session::getInstance()->renderReady()) {
 		swapBuffers();
+		nowPainting = false;
 		return;
 	}
 	//If we are doing the first capture of a sequence then set the
@@ -249,6 +254,7 @@ void GLWindow::paintGL()
 	if (isControlled) AnimationController::getInstance()->endRendering(winNum);
 	//Capture the image, if not navigating:
 	if (renderNew && !myVizWin->mouseIsDown()) myVizWin->doFrameCapture();
+	nowPainting = false;
 }
 
 //

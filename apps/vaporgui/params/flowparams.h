@@ -73,7 +73,7 @@ public:
 	int getNumGenerators(int dimNum) { return generatorCount[dimNum];}
 	int getTotalNumGenerators() { return allGeneratorCount;}
 	VaporFlow* getFlowLib(){return myFlowLib;}
-	void regenerateFlowData();
+	float* regenerateFlowData();
 	int getMaxPoints(){ return maxPoints;}
 	int getNumSeedPoints() { return numSeedPoints;}
 	int getNumInjections() { return numInjections;}
@@ -190,11 +190,7 @@ protected:
 	int maxPoints;
 	int numSeedPoints;
 	int numInjections;
-	float getFloatData(int coord, int timeStep, int seedNum, int injectionNum){
-		assert ((coord+3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)))<
-			3*maxPoints*numSeedPoints*numInjections );
-		return flowData[coord+3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum))];
-	}
+	
 	//Keep track of min, max frames in available data:
 	int maxFrame, minFrame;
 

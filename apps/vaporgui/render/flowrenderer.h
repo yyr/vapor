@@ -20,7 +20,7 @@
 #define FLOWRENDERER_H
 
 #include <qgl.h>
-
+#include "assert.h"
 #include "renderer.h"
 namespace VAPoR {
 class VizWin;
@@ -37,9 +37,14 @@ public:
     virtual void		paintGL();
 
 protected:
-
+	float* flowDataArray;
+	int maxPoints, numSeedPoints, numInjections;
 	void buildFlowGeometry();
-
+	float* getFlowPoint(int timeStep, int seedNum, int injectionNum){
+		assert ((3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)))<
+			3*maxPoints*numSeedPoints*numInjections );
+		return (flowDataArray+ 3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)));
+	}
 
 };
 };
