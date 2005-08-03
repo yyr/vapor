@@ -46,6 +46,7 @@
 
 //#include <GL/gl.h>
 #include <qgl.h>
+#include <math.h>
 
 /* These vector and quaternion macros complement similar
  * routines.
@@ -60,23 +61,11 @@
 #define tanf(fval)	((float)tan((double)(fval)))
 #endif
 
-#define vset(a,x,y,z)	(a[0] = x, a[1] = y, a[2] = z)
+//#define vset(a,x,y,z)	(a[0] = x, a[1] = y, a[2] = z)
 #define Verify(expr,estr)	if (!(expr)) BailOut(estr,__FILE__,__LINE__)
 #define MemCheck(ptr)	if (!(ptr)) BailOut("Out of memory",__FILE__,__LINE__)
 #define CallocType(type,i)	(type *) calloc(i,sizeof(type))
 
-inline void vcopy(const float* a, float* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
-#define vzero(a)	(a[0] = a[1] = a[2] = 0)
-#define vadd(a,b,c)	(c[0]=a[0]+b[0], c[1]=a[1]+b[1], c[2]=a[2]+b[2])
-#define vsub(a,b,c)	(c[0]=a[0]-b[0], c[1]=a[1]-b[1], c[2]=a[2]-b[2])
-#define vdot(a,b)	(a[0]*b[0] + a[1]*b[1] + a[2]*b[2])
-#define vlength(a)	sqrt((double) vdot(a,a))
-#define vnormal(a)	vscale(a, 1/vlength(a))
-
-#define qset(a,x,y,z,w)	(a[0] = x, a[1] = y, a[2] = z, a[3] = w)
-#define qcopy(a,b)	(b[0] = a[0], b[1] = a[1], b[2] = a[2], b[3] = a[3])
-#define qzero(a)	(a[0] = a[1] = a[2] = 0, a[3] = 1)
-#define qadd(a,b,c)	(vadd(a,b,c), c[3]=a[3]+b[3])
 
 #define	YMAXSTEREO	491
 #define	YOFFSET		532
@@ -91,7 +80,7 @@ void	computeGradientData(
 void	makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* matrix);
 void	makeTransMatrix(float* transVec, float* matrix);
 void	vscale (float *v, float s);
-void	vmult( float *v, float s, float *w); 
+void	vmult(const float *v, float s, float *w); 
 void	vhalf (const float *v1, const float *v2, float *half);
 void	vcross (const float *v1, const float *v2, float *cross);
 void	vreflect (const float *in, const float *mirror, float *out);
@@ -111,6 +100,24 @@ float	ScalePoint (long pt, long origin, long size);
 void	rvec2q(const float	rvec[3],float		radians,float		q[4]);
 void	rotmatrix2q(float* m, float *q );
 float   getScale(GLfloat* rotmatrix);
+inline void vset(float* a, const float x, const float y, const float z){a[0] = x, a[1] = y, a[2] = z;}
+inline float vdot(const float* a, const float* b)
+	{return (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]);}
+inline float vlength(const float*a) {return sqrt((double)vdot(a,a));}
+inline void vnormal(float *a) {vscale(a, 1/vlength(a));}
+inline void vcopy(const float* a, float* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
+inline void vsub(const float* a, const float* b, float* c)
+	{c[0] = a[0]-b[0], c[1] = a[1]-b[1], c[2] = a[2]-b[2];}
+inline void vadd(const float* a, const float* b, float* c)
+	{c[0] = a[0]+b[0], c[1] = a[1]+b[1], c[2] = a[2]+b[2];}
+inline void vzero(float *a) {a[0] = a[1] = a[2] = 0.f;}
+inline void qset(float* a,  float x,  float y,  float z,  float w)
+	{a[0] = x, a[1] = y, a[2] = z, a[3] = w;}
+inline void qcopy(const float*a, float* b)	
+	{b[0] = a[0], b[1] = a[1], b[2] = a[2], b[3] = a[3];}
+inline void qzero(float* a)	{a[0] = a[1] = a[2] = 0, a[3] = 1;}
+inline void qadd(const float* a,const float* b,float* c)	
+	{vadd(a,b,c), c[3]=a[3]+b[3];}
 
 //Forward declarations for utility functions.
 //These should really go in glutil!

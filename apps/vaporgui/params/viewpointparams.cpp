@@ -48,6 +48,9 @@ float VAPoR::ViewpointParams::minCubeCoord[3] = {0.f,0.f,0.f};
 using namespace VAPoR;
 const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
 const string ViewpointParams::_homeViewTag = "HomeViewpoint";
+const string ViewpointParams::_lightTag = "Light";
+const string ViewpointParams::_lightDirectionTag = "";
+const string ViewpointParams::_lightNumAttr = "LightNum";
 
 ViewpointParams::ViewpointParams(int winnum): Params(winnum){
 	thisParamType = ViewpointParamsType;
@@ -67,7 +70,6 @@ deepCopy(){
 	return (Params*)(p);
 }
 ViewpointParams::~ViewpointParams(){
-	if (lightPositions) delete lightPositions;
 	if (savedCommand) delete savedCommand;
 	delete currentViewpoint;
 	delete homeViewpoint;
@@ -84,27 +86,7 @@ makeCurrent(Params* prev, bool) {
 	updateRenderer(false, prev->isLocal(), false);
 }
 
-//Add or delete lights
-void 
-ViewpointParams::setNumLights(int nLights){
-	int i;
-	if (nLights <= numLights) {
-		numLights = nLights;
-		if (numLights < 0) numLights = 0;
-		return;
-	}
-	float* newLights = new float[3*nLights];
-	for (i = 0; i< numLights; i++){
-		for (int j= 0; j<3; j++) newLights[j+3*i] = lightPositions[j+3*i];
-	}
-	for (i = numLights; i<nLights; i++){
-		for (int j= 0; j<3; j++) newLights[j+3*i] = 0.f;
-	}
-	if (numLights > 0) delete lightPositions;
-	numLights = nLights;
-	lightPositions = newLights;
-	
-}
+
 void ViewpointParams::updateDialog(){
 	
 	QString strng;
@@ -125,6 +107,31 @@ void ViewpointParams::updateDialog(){
 	myVizTab->rotCenter1->setText(strng.setNum(getRotationCenter(1),'g',3));
 	myVizTab->rotCenter2->setText(strng.setNum(getRotationCenter(2),'g',3));
 	
+	myVizTab->lightPos00->setText(QString::number(lightDirection[0][0]));
+	myVizTab->lightPos01->setText(QString::number(lightDirection[0][1]));
+	myVizTab->lightPos02->setText(QString::number(lightDirection[0][2]));
+	myVizTab->lightPos10->setText(QString::number(lightDirection[1][0]));
+	myVizTab->lightPos11->setText(QString::number(lightDirection[1][1]));
+	myVizTab->lightPos12->setText(QString::number(lightDirection[1][2]));
+	myVizTab->lightPos20->setText(QString::number(lightDirection[2][0]));
+	myVizTab->lightPos21->setText(QString::number(lightDirection[2][1]));
+	myVizTab->lightPos22->setText(QString::number(lightDirection[2][2]));
+
+	//Enable light direction text boxes as needed:
+	bool lightOn;
+	lightOn = (numLights > 0);
+	myVizTab->lightPos00->setEnabled(lightOn);
+	myVizTab->lightPos01->setEnabled(lightOn);
+	myVizTab->lightPos02->setEnabled(lightOn);
+	lightOn = (numLights > 1);
+	myVizTab->lightPos10->setEnabled(lightOn);
+	myVizTab->lightPos11->setEnabled(lightOn);
+	myVizTab->lightPos12->setEnabled(lightOn);
+	lightOn = (numLights > 2);
+	myVizTab->lightPos20->setEnabled(lightOn);
+	myVizTab->lightPos21->setEnabled(lightOn);
+	myVizTab->lightPos22->setEnabled(lightOn);
+
 	if (isLocal())
 		myVizTab->LocalGlobal->setCurrentItem(1);
 	else 
@@ -136,10 +143,54 @@ void ViewpointParams::updateDialog(){
 //Update all the panel state associated with textboxes.
 void ViewpointParams::
 updatePanelState(){
+	//Did numLights change?
+	int nLights = myVizTab->numLights->text().toInt();
 	
-	numLights = myVizTab->numLights->text().toInt();
-	setCameraPos(0,myVizTab->camPos0->text().toFloat());
-	setCameraPos(1,myVizTab->camPos1->text().toFloat());
+	//make sure it's a valid number:
+	bool changed = false;
+	if (nLights < 0 ){
+		nLights = 0; changed = true;
+	}
+	if (nLights > 3){
+		nLights = 3; changed = true;
+	}
+	if (changed) {
+		myVizTab->numLights->setText(QString::number(nLights));
+	}
+	if (nLights != numLights){
+		numLights = nLights;
+		bool lightOn;
+		lightOn = (nLights > 0);
+		myVizTab->lightPos00->setEnabled(lightOn);
+		myVizTab->lightPos01->setEnabled(lightOn);
+		myVizTab->lightPos02->setEnabled(lightOn);
+		lightOn = (nLights > 1);
+		myVizTab->lightPos10->setEnabled(lightOn);
+		myVizTab->lightPos11->setEnabled(lightOn);
+		myVizTab->lightPos12->setEnabled(lightOn);
+		lightOn = (nLights > 2);
+		myVizTab->lightPos20->setEnabled(lightOn);
+		myVizTab->lightPos21->setEnabled(lightOn);
+		myVizTab->lightPos22->setEnabled(lightOn);
+	}
+	//Get the light directions from the gui:
+	lightDirection[0][0] = myVizTab->lightPos00->text().toFloat();
+	lightDirection[0][1] = myVizTab->lightPos01->text().toFloat();
+	lightDirection[0][2] = myVizTab->lightPos02->text().toFloat();
+	lightDirection[1][0] = myVizTab->lightPos10->text().toFloat();
+	lightDirection[1][1] = myVizTab->lightPos11->text().toFloat();
+	lightDirection[1][2] = myVizTab->lightPos12->text().toFloat();
+	lightDirection[2][0] = myVizTab->lightPos20->text().toFloat();
+	lightDirection[2][1] = myVizTab->lightPos21->text().toFloat();
+	lightDirection[2][2] = myVizTab->lightPos22->text().toFloat();
+	//final component is 0 (for gl directional light)
+	lightDirection[0][3] = 0.f;
+	lightDirection[1][3] = 0.f;
+	lightDirection[2][3] = 0.f;
+	
+
+	setCameraPos(0, myVizTab->camPos0->text().toFloat());
+	setCameraPos(1, myVizTab->camPos1->text().toFloat());
 	setCameraPos(2, myVizTab->camPos2->text().toFloat());
 	setViewDir(0, myVizTab->viewDir0->text().toFloat());
 	setViewDir(1, myVizTab->viewDir1->text().toFloat());
@@ -150,6 +201,7 @@ updatePanelState(){
 	setRotationCenter(0,myVizTab->rotCenter0->text().toFloat());
 	setRotationCenter(1,myVizTab->rotCenter1->text().toFloat());
 	setRotationCenter(2,myVizTab->rotCenter2->text().toFloat());
+	
 	updateRenderer(false, false, false);
 	guiSetTextChanged(false);
 }
@@ -317,7 +369,19 @@ void ViewpointParams::
 restart(){
 	savedCommand = 0;
 	numLights = 0;
-	lightPositions = 0;
+	lightDirection[0][0] = 1.f;
+	lightDirection[0][1] = 0.f;
+	lightDirection[0][2] = 0.f;
+	lightDirection[1][0] = 0.f;
+	lightDirection[1][1] = 1.f;
+	lightDirection[1][2] = 0.f;
+	lightDirection[2][0] = 0.f;
+	lightDirection[2][1] = 0.f;
+	lightDirection[2][2] = 1.f;
+	//final component is 0 (for gl directional light)
+	lightDirection[0][3] = 0.f;
+	lightDirection[1][3] = 0.f;
+	lightDirection[2][3] = 0.f;
 	if (currentViewpoint) delete currentViewpoint;
 	currentViewpoint = new Viewpoint();
 	//Set default values in viewpoint:
@@ -409,9 +473,10 @@ setCoordTrans(){
 }
 bool ViewpointParams::
 elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, const char ** attrs){
-	//Get the attributes, and then make the viewpoints parse the children
+	//Get the attributes, make the viewpoints parse the children
+	//Lights get parsed at the end of lightDirection tag
 	if (StrCmpNoCase(tagString, _viewpointParamsTag) == 0) {
-		//If it's a Dvr tag, save 5 attributes (2 are from Params class)
+		//If it's a viewpoint tag, save 2 from Params class
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
 			string attribName = *attrs;
@@ -427,6 +492,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 			}
 			else return false;
 		}
+		//Start by assuming no lights...
+		parsingLightNum = -1;  
+		numLights = 0;
 		return true;
 	}
 	//Parse current and home viewpoints
@@ -444,6 +512,44 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 		homeViewpoint->elementStartHandler(pm, depth, tagString, attrs);
 		return true;
 	}
+	else if (StrCmpNoCase(tagString, _lightTag) == 0) {
+		//Get the lightNum
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			if (StrCmpNoCase(attribName, _lightNumAttr) == 0) {
+				ist >> parsingLightNum;
+				//Make sure that numLights is > lightNum
+				if(numLights <= parsingLightNum) numLights = parsingLightNum+1;
+			}
+			else return false;
+		}
+		return true;
+	}
+	else if (StrCmpNoCase(tagString, _lightDirectionTag) == 0) {
+		//Prepare for receiving the direction vector
+		//Should have a double type attribute
+		string attribName = *attrs;
+		attrs++;
+		string value = *attrs;
+
+		ExpatStackElement *state = pm->getStateStackTop();
+		
+		state->has_data = 1;
+		if (StrCmpNoCase(attribName, _typeAttr) != 0) {
+			pm->parseError("Invalid attribute : %s", attribName.c_str());
+			return false;
+		}
+		if (StrCmpNoCase(value, _doubleType) != 0) {
+			pm->parseError("Invalid type : %s", value.c_str());
+			return false;
+		}
+		state->data_type = value;
+		return true;
+	}
 	else return false;
 }
 bool ViewpointParams::
@@ -457,6 +563,16 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 	} else if (StrCmpNoCase(tag, _homeViewTag) == 0){
 		return true;
 	} else if (StrCmpNoCase(tag, _currentViewTag) == 0){
+		return true;
+	} else if (StrCmpNoCase(tag, _lightTag) == 0){
+		return true;
+	} else if (StrCmpNoCase(tag, _lightDirectionTag) == 0){
+		vector<double> posn = pm->getDoubleData();
+		assert(parsingLightNum >= 0 && parsingLightNum < 3);
+		lightDirection[parsingLightNum][0] = (float)posn[0];
+		lightDirection[parsingLightNum][1] = (float)posn[1];
+		lightDirection[parsingLightNum][2] = (float)posn[2];
+		lightDirection[parsingLightNum][3] = 0.f;
 		return true;
 	} else {
 		pm->parseError("Unrecognized end tag in ViewpointParams %s",tag.c_str());
@@ -484,8 +600,24 @@ buildNode(){
 	attrs[_localAttr] = oss.str();
 	
 	XmlNode* vpParamsNode = new XmlNode(_viewpointParamsTag, attrs, 2);
-
-	//Now add children: home and current viewpoints  
+	
+	//Now add children: lights, and home and current viewpoints:
+	//There is one light node for each light source
+	
+	
+	for (int i = 0; i< numLights; i++){
+		attrs.clear();
+		oss.str(empty);
+		oss << (long)i;
+		attrs[_lightNumAttr] = oss.str();
+		XmlNode* lightNode = vpParamsNode->NewChild(_lightTag, attrs, 1);
+		vector<double> dbvec;
+		dbvec.clear();
+		for (int j = 0; j< 3; j++){
+			dbvec.push_back((double) lightDirection[i][j]);
+		}
+		lightNode->SetElementDouble(_lightDirectionTag, dbvec);
+	}
 	attrs.clear();
 	XmlNode* currVP = vpParamsNode->NewChild(_currentViewTag, attrs, 1);
 	currVP->AddChild(currentViewpoint->buildNode());

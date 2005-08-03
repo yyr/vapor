@@ -44,7 +44,6 @@ public:
 	virtual Params* deepCopy();
 	virtual void makeCurrent(Params* p, bool newWin);
 	
-	void setNumLights(int n);
 	float* getCameraPos() {return currentViewpoint->getCameraPos();}
 	float getCameraPos(int coord) {return currentViewpoint->getCameraPos()[coord];}
 	void setCameraPos(int i, float val) { currentViewpoint->setCameraPos(i, val);}
@@ -57,14 +56,11 @@ public:
 	void setUpVec(float* val) {currentViewpoint->setUpVec(val);}
 	bool hasPerspective(){return currentViewpoint->hasPerspective();}
 	void setPerspective(bool on) {currentViewpoint->setPerspective(on);}
+	int getNumLights() { return numLights;}
+	const float* getLightDirection(int lightNum){return lightDirection[lightNum];}
 	
 	Viewpoint* getCurrentViewpoint() { return currentViewpoint;}
 
-	float* getLightPos(int i) {return lightPositions + 3*i;}
-	void setLightPos(int i, float* posn) {
-		for (int j= 0; j< 3; j++)
-			lightPositions[3*i+j] = posn[j];
-	}
 	//Update the dialog with values from this:
 	//
 	virtual void updateDialog();
@@ -111,6 +107,7 @@ public:
 
 	static void worldFromCube(float fromCoords[3], float toCoords[3]);
 	static void setCoordTrans();
+	static float* getMinCubeCoords() {return minCubeCoord;}
 
 	//Following determines scale factor in coord transformation:
 	//
@@ -130,6 +127,9 @@ public:
 protected:
 	static const string _currentViewTag;
 	static const string _homeViewTag;
+	static const string _lightTag;
+	static const string _lightDirectionTag;
+	static const string _lightNumAttr;
 	//Set to default viewpoint for specified region
 	void centerFullRegion(RegionParams*);
 	//Holder for saving state during mouse move:
@@ -139,7 +139,8 @@ protected:
 	Viewpoint* homeViewpoint;
 	
 	int numLights;
-	float* lightPositions;
+	int parsingLightNum;
+	float lightDirection[3][4];
 	VizTab* myVizTab;
 
 	//Static coeffs for affine coord conversion:

@@ -593,6 +593,15 @@ VizWinMgr::hookUpVizTab(VizTab* vTab)
  	connect (vTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setVpLocalGlobal(int)));
 	connect (vTab->perspectiveCombo, SIGNAL (activated(int)), this, SLOT (setVPPerspective(int)));
 	connect (vTab->numLights, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->lightPos00, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->lightPos01, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->lightPos02, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->lightPos10, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->lightPos11, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->lightPos12, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->lightPos20, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->lightPos21, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (vTab->lightPos22, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (vTab->camPos0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (vTab->camPos1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (vTab->camPos2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
@@ -607,6 +616,15 @@ VizWinMgr::hookUpVizTab(VizTab* vTab)
 	connect (vTab->rotCenter2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	
 	//Connect all the returnPressed signals, these will update the visualizer.
+	connect (vTab->lightPos00, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (vTab->lightPos01, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (vTab->lightPos02, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (vTab->lightPos10, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (vTab->lightPos11, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (vTab->lightPos12, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (vTab->lightPos20, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (vTab->lightPos21, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (vTab->lightPos22, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
 	connect (vTab->camPos0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (vTab->camPos1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (vTab->camPos2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
@@ -1076,6 +1094,24 @@ setRegionDirty(DvrParams* dParams){
 				((!dvrParams[i])||!dvrParams[i]->isLocal())
 			){
 			vizWin[i]->setRegionDirty(true);
+			vizWin[i]->updateGL();
+		}
+	}
+}
+//Force all windows that share a params to rerender
+//(possibly with new data)
+void VizWinMgr::
+setFlowDirty(FlowParams* fParams){
+	int vizNum = fParams->getVizNum();
+	if (vizNum >= 0){
+		vizWin[activeViz]->updateGL();
+	}
+	//If another viz is sharing these flow params, make them rerender, too
+	if (fParams->isLocal()) return;
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  ( vizWin[i] && (i != vizNum)  &&
+				((!flowParams[i])||!flowParams[i]->isLocal())
+			){
 			vizWin[i]->updateGL();
 		}
 	}

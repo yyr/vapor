@@ -204,6 +204,9 @@ public:
 	//Similarly for AnimationParams:
 	//
 	void setAnimationDirty(AnimationParams*);
+	//Similarly for FlowParams:
+	//
+	void setFlowDirty(FlowParams*);
 	//Force renderers to get latest CLUT
 	//
 	void setClutDirty(DvrParams* );

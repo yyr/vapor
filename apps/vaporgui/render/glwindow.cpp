@@ -196,6 +196,12 @@ void GLWindow::paintGL()
 		nowPainting = false;
 		return;
 	}
+	//Check if there are any active renderers:
+	if (myVizWin->getNumRenderers()==0){
+		swapBuffers();
+		nowPainting = false;
+		return;
+	}
 	//If we are doing the first capture of a sequence then set the
 	//newRender flag to true, whether or not it's a real new render.
 	//Then turn off the flag, subsequent renderings will only be captured

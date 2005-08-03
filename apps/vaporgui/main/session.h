@@ -281,6 +281,7 @@ public:
 	void setJpegQuality(int level) {jpegQuality = level;}
 	int getJpegQuality(){return jpegQuality;}
 	bool renderReady() {return renderOK;}
+	void setRenderReady(bool nowOK) {renderOK = nowOK;}
 	int getNumTFs() { return numTFs;}
 	std::string* getTFName(int i) { return tfNames[i];}
 	void addTF(const char* tfName, DvrParams* );

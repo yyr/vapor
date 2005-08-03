@@ -35,7 +35,10 @@ using namespace VAPoR;
 FlowRenderer::FlowRenderer(VizWin* vw )
 :Renderer(vw)
 {
-    
+    maxPoints = 0;
+	minAge = 0;
+	numSeedPoints = 0;
+	numInjections = 0;
 }
 
 
@@ -56,58 +59,87 @@ FlowRenderer::~FlowRenderer()
 
 void FlowRenderer::paintGL()
 {
+	GLfloat white_light[] = {1.f,1.f,1.f,1.f};
+	GLfloat lmodel_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	GLfloat diffuse_tube_color[] = {0.1f, 0.8f, 0.1f, 1.0f};
 	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(myVizWin->getWindowNum());
 	//Do we need to regenerate the flow data?
 	if (myFlowParams->isDirty()){
 		flowDataArray = myFlowParams->regenerateFlowData();
-		maxPoints = myFlowParams->getMaxPoints();
+		maxPoints = myFlowParams->getMaxAge()+1;
+		minAge = myFlowParams->getMinAge();
 		numSeedPoints = myFlowParams->getNumSeedPoints();
 		numInjections = myFlowParams->getNumInjections();
 	}
+	//Make the depth buffer writable
+	glDepthMask(GL_TRUE);
+	//and readable
+	glEnable(GL_DEPTH_TEST);
 
-	//Do we need to regenerate the rendering geometry?
+	//Apply a coord transform that moves the full region to the unit cube.
+	
+	glPushMatrix();
+	
 
-	//just convert the flow data to a set of lines...
+	//scale:
+	float scaleFactor = 1.f/ViewpointParams::getMaxCubeSide();
+	glScalef(scaleFactor, scaleFactor, scaleFactor);
+
+	//translate to put origin at corner:
+	float* transVec = ViewpointParams::getMinCubeCoords();
+	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
 	glColor3f(1.,0.,0.);
-	glLineWidth(4.0);
-	for (int i = 0; i< numSeedPoints; i++){
-		glBegin (GL_LINE_STRIP);
-		for (int j = 0; j<maxPoints; j++){
-			glVertex3fv(getFlowPoint(j, i, 0));
+	//do lines if diameter = 0
+	float diam = myFlowParams->getShapeDiameter();
+	if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
+		//Set up lighting:
+		ViewpointParams* vpParams = VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum());
+		int nLights = vpParams->getNumLights();
+		if (nLights > 0){
+			glShadeModel(GL_SMOOTH);
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_tube_color);
+			glMaterialfv(GL_FRONT, GL_SPECULAR, diffuse_tube_color);
+			glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
+			glLightfv(GL_LIGHT0, GL_DIFFUSE, white_light);
+			//glLightfv(GL_LIGHT0, GL_SPECULAR, white_light);
+			//glLightfv(GL_LIGHT0, GL_AMBIENT, white_light);
+			glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
+			glEnable(GL_LIGHTING);
+			glEnable(GL_LIGHT0);
+			if (nLights > 1){
+				glLightfv(GL_LIGHT1, GL_POSITION, vpParams->getLightDirection(1));
+				glLightfv(GL_LIGHT1, GL_DIFFUSE, white_light);
+				//glLightfv(GL_LIGHT1, GL_SPECULAR, white_light);
+				glEnable(GL_LIGHT1);
+			}
+			if (nLights > 2){
+				glLightfv(GL_LIGHT2, GL_POSITION, vpParams->getLightDirection(2));
+				glLightfv(GL_LIGHT2, GL_DIFFUSE, white_light);
+				//glLightfv(GL_LIGHT2, GL_SPECULAR, white_light);
+				glEnable(GL_LIGHT2);
+			}
 		}
-		glEnd();
+			
+		if (diam < 1.f){//Render as lines, not cylinders
+			renderCurves(diam, (nLights>0), flowDataArray);
+		
+		} else { //render as cylinders
+			//Determine cylinder radius in actual coords.
+			//One voxel is (full region size)/(region array size)
+			RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(myVizWin->getWindowNum());
+			float rad = 0.5*diam*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
+				rParams->getFullSize()[0];
+			glPolygonMode(GL_FRONT, GL_FILL);
+			//Render all tubes
+			renderTubes(rad, (nLights > 0), flowDataArray);
+			
+		}
+	} else { //rendering points (or arrows?)
+		//just convert the flow data to a set of points..
+		renderPoints(diam, flowDataArray);
 	}
-
-
-/*
-    
-	myGLWindow->qglColor( Qt::white );		      // Shorthand for glColor3f or glIndex
-
-    glLineWidth( 2.0 );
-
-// center at .5,.5,.5
-	glBegin( GL_LINE_LOOP );
-    glVertex3f(  1.0,  1.0, 0.0 );
-    glVertex3f(  1.0, 0.0, 0.0 );
-    glVertex3f( 0.0, 0.0, 0.0 );
-    glVertex3f( 0.0,  1.0, 0.0 );
-    glEnd();
-
-    glBegin( GL_LINE_LOOP );
-    glVertex3f(  1.0,  1.0, 1.0 );
-    glVertex3f(  1.0, 0.0, 1.0 );
-    glVertex3f( 0.0, 0.0, 1.0 );
-    glVertex3f( 0.0,  1.0, 1.0 );
-    glEnd();
-
-    glBegin( GL_LINES );
-    glVertex3f(  1.0,  1.0, 0.0 );   glVertex3f(  1.0,  1.0, 1.0 );
-    glVertex3f(  1.0, 0.0, 0.0 );   glVertex3f(  1.0, 0.0, 1.0 );
-    glVertex3f( 0.0, 0.0, 0.0 );   glVertex3f( 0.0, 0.0, 1.0 );
-    glVertex3f( 0.0,  1.0, 0.0 );   glVertex3f( 0.0,  1.0, 1.0 );
-    glEnd();
-    
-	*/
+	glDisable(GL_LIGHTING);
+	glPopMatrix();
 }
 
 
@@ -120,45 +152,272 @@ void FlowRenderer::initializeGL()
 	myGLWindow->makeCurrent();
 	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
    
-    glShadeModel( GL_FLAT );
 }
+//  Issue OpenGL calls for point list
+void FlowRenderer::
+renderPoints(float radius, float* data){
+	
+	//just convert the flow data to a set of points..
+	glPointSize(radius);
+	glDisable(GL_LIGHTING);
+	glBegin (GL_POINTS);
+	for (int i = 0; i< numSeedPoints; i++){
+		
+		for (int j = minAge; j<maxPoints; j++){
+			float* point = data+ 3*(j+ maxPoints*i);
+			if (*point == 1.e30) break;
+			glVertex3fv(point);
+		}	
+	}
+	glEnd();
+	
+}
+//  Issue OpenGL calls for a set of lines associated with a number of seed points.
+void FlowRenderer::
+renderCurves(float radius, bool isLit, float* data){
+	float dirVec[3];
+	float testVec[3];
+	float normVec[3];
+	glLineWidth(radius);
+	if (isLit){
+		//Get light direction vector of first light:
+		ViewpointParams* vpParams = VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum());
+		const float* lightDir = vpParams->getLightDirection(0);
+		for (int i = 0; i< numSeedPoints; i++){
+			glBegin (GL_LINE_STRIP);
+			for (int j = minAge; j<maxPoints; j++){
+				//For each point after first, calc vector from prev vector to this one
+				//then calculate corresponding normal
+				float* point = data+ 3*(j+ maxPoints*i);
+				if (*point == 1.e30) break;
+				if (j > minAge){
+					vsub(point, point-3, dirVec);
+					float len = vdot(dirVec,dirVec);
+					if (len == 0.f){//If 2nd is same as first, set default normal
+						vset(dirVec, 0.f,0.f,1.f);
+					} else {
+						vscale(dirVec, 1.f/sqrt(len));
+					} 
+					//Project light direction vector orthogonal to dirvec:
+					
+					vmult(dirVec, vdot(dirVec,lightDir), testVec);
+					vsub(lightDir, testVec, normVec);
+					//Now normalize it:
+					len = vdot(normVec,normVec);
+					if (len == 0.f){//  0 projection, take normvec = 0,0,1
+						vset(normVec, 0.,0.,1.);
+					} 
+					glNormal3fv(normVec);
+				}
+				glVertex3fv(point);
+			}
+			glEnd();
+		}
+	} else { //No lights
+		//just convert the flow data to a set of lines...
+		glDisable(GL_LIGHTING);
+		for (int i = 0; i< numSeedPoints; i++){
+			glBegin (GL_LINE_STRIP);
+			for (int j = minAge; j<maxPoints; j++){
+				float* point = data+ 3*(j+ maxPoints*i);
+				if (*point == 1.e30) break;
+				glVertex3fv(point);
+			}
+			glEnd();
+		}
+	}//end no lights
+}
+//  Issue OpenGL calls for a cylindrical (hexagonal cross-section) tube 
+//  following the stream or streak line
+//  tubeNum specifies which tube in the flowdata array to render
+//
+void FlowRenderer::
+renderTubes(float radius, bool /*isLit*/, float* data){
+	//Constants are needed for cosines and sines, at 60 degree intervals
+	const float sines[6] = {0.f, sqrt(3.)/2., sqrt(3.)/2., 0.f, -sqrt(3.)/2., -sqrt(3.)/2.};
+	const float coses[6] = {1.f, 0.5, -0.5, -1., -.5, 0.5};
+	//Declare values used repeatedly (toggle between even and odd)
+	//Tube will actually be hexagonal
+	float evenVertex[18];
+	float oddVertex[18];
+	float evenNormal[18];
+	float oddNormal[18];
+	float evenU[3];//vector in plane of points, orthog to A
+	float oddU[3];
+	
+	float evenN[3];//vector pointing in direction to next point
+	float oddN[3];
+	float evenA[3];//normalized average of previous and next N
+	float oddA[3];
+	float currentB[3];//Binormal, U cross A
+	
+	float len;
+	float testVec[3];
+	float testVec2[3];
+	if (minAge >= maxPoints) return;
+	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
+		//Need at least two points to do anything:
+		if ((*(data + 3*tubeNum*maxPoints) == 1.e30) ||
+			(*(data + 3*(tubeNum*maxPoints+1)) == 1.e30)) continue;
+		
+		int tubeStartIndex = 3*(tubeNum*maxPoints+minAge);
+		//data point is three floats starting at data[tubeStartIndex]
+		//evenA is the direction the line is pointing
+		vsub(data+(tubeStartIndex+3), data+tubeStartIndex, evenA);
+		//Normalize evenA
+		len = vdot(evenA,evenA);
+		if (len == 0.f){//If 2nd is same as first set default normal
+			vset(evenA, 0.f,0.f,1.f);
+		} else {
+			vscale(evenA, 1.f/sqrt(len));
+		}
+		//The first time, N is equal to A:
+		vcopy(evenA, evenN);
+		//Calculate evenU, orthogonal to evenA:
+		vset(testVec, 1.,0.,0.);
+		vcross(evenA, testVec, evenU);
+		len = vdot(evenU,evenU);
+		if (len == 0.f){
+			vset(testVec, 0.,1.,0.);
+			vcross(evenA, testVec, evenU);
+			len = vdot(evenU, evenU);
+			assert(len != 0.f);
+		} 
+		vscale( evenU, 1.f/sqrt(len));
+		vcross(evenU, evenA, currentB);
+		//set up initial even 6 vertices around point P = P(0)
+		//These are P + 
+		for (int i = 0; i<6; i++){
+			vmult(evenU, coses[i], testVec);
+			vmult(currentB, sines[i], testVec2);
+			//Calc outward normal as a sideEffect..
+			vadd(testVec, testVec2, evenNormal+3*i);
+			vmult(evenNormal+3*i, radius, evenVertex+3*i);
+			vadd(evenVertex+3*i, data+tubeStartIndex, evenVertex+3*i);
+		}
+		//Draw an end-cap on the cylinder:
+		glBegin(GL_POLYGON);
+		glNormal3fv(evenA);
+		for (int k = 0; k<6; k++){
+			glVertex3fv(evenVertex+3*k);
+		}
+		glEnd();
+		//Now loop over points, starting with no. 1.
+		//toggle even and odd.
+		float* currentN;
+		float* currentU;
+		float* currentA;
+		float* prevN;
+		float* prevA;
+		float* prevU;
+		float* currentVertex;
+		float* currentNormal;
+		float* prevVertex;
+		float* prevNormal;
 
-/*!
-  construct the geometry to be rendered
-*/
 
-void FlowRenderer::buildFlowGeometry()
-{	
-    
 
-	myGLWindow->qglColor( Qt::white );		      // Shorthand for glColor3f or glIndex
+		for (int pointNum = minAge+ 1; pointNum < maxPoints; pointNum++){
+			float* point = data+3*(tubeNum*maxPoints+pointNum);
+			if (*point == 1.e30) break;
+			//Toggle the meaning of "current" and "prev"
+			if (0 == (pointNum - minAge)%2) {
+				currentN = evenN;
+				prevN = oddN;
+				currentA = evenA;
+				prevA = oddA;
+				currentU = evenU;
+				prevU = oddU;
+				currentVertex = evenVertex;
+				prevVertex = oddVertex;
+				currentNormal = evenNormal;
+				prevNormal = oddNormal;
+			} else {
+				currentN = oddN;
+				prevN = evenN;
+				currentA = oddA;
+				prevA = evenA;
+				currentU = oddU;
+				prevU = evenU;
+				currentVertex = oddVertex;
+				prevVertex = evenVertex;
+				currentNormal = oddNormal;
+				prevNormal = evenNormal;
+			}
+			
+			//Calc currentN
+			vsub(point+3, point, currentN);
+			//Normalize currentN:
+			len = vdot(currentN,currentN);
+			if (len == 0.f){// keep previous normal
+				vcopy(prevN,currentN);
+			} else {
+				vscale(currentN, 1.f/sqrt(len));
+			}
+			//Calc currentA, as sum (average) of prevN and currentN:
+			vadd(prevN, currentN, currentA);
+			//Normalize currentA
+			len = vdot(currentA,currentA);
+			if (len == 0.f){// keep previous normal
+				vcopy(prevA,currentA);
+			} else {
+				vscale(currentA, 1.f/sqrt(len));
+			}
+			//Now get next U, by projecting previous U orthog to currentA:
+			vmult(currentA, vdot(prevU,currentA), testVec);
+			vsub(prevU, testVec, currentU);
+			//Now normalize it:
+			len = vdot(currentU,currentU);
+			if (len == 0.f){
+				//If U is in direction of A, the previous A should work
+				vcopy(prevA, currentU);
+				len = vdot(currentU, currentU);
+				assert(len != 0.f);
+			} 
+			vscale(currentU, 1.f/sqrt(len));
+			vcross(currentU, currentA, currentB);
 
-    glLineWidth( 2.0 );
+			//Now calculate 6 points in plane orthog to currentA, in plane of point:
+			for (int i = 0; i<6; i++){
+				//testVec and testVec2 are components of point in plane
+				vmult(currentU, coses[i], testVec);
+				vmult(currentB, sines[i], testVec2);
+				//Calc outward normal as a sideEffect..
+				//It is the vector sum of x,y components (norm 1)
+				vadd(testVec, testVec2, currentNormal+3*i);
+				//stretch by radius to get current displacement
+				vmult(currentNormal+3*i, radius, currentVertex+3*i);
+				//add to current point
+				vadd(currentVertex+3*i, point, currentVertex+3*i);
+				//qWarning(" current Vertex, normal: %f %f %f, %f %f %f",
+					//currentVertex[3*i],currentVertex[3*i+1],currentVertex[3*i+2],
+					//currentNormal[3*i],currentNormal[3*i+1],currentNormal[3*i+2]);
+			}
 
-    glBegin( GL_LINE_LOOP );
-    glVertex3f(  0.5,  0.5, -0.5 );
-    glVertex3f(  0.5, -0.5, -0.5 );
-    glVertex3f( -0.5, -0.5, -0.5 );
-    glVertex3f( -0.5,  0.5, -0.5 );
-    glEnd();
-
-    glBegin( GL_LINE_LOOP );
-    glVertex3f(  0.5,  0.5, 0.5 );
-    glVertex3f(  0.5, -0.5, 0.5 );
-    glVertex3f( -0.5, -0.5, 0.5 );
-    glVertex3f( -0.5,  0.5, 0.5 );
-    glEnd();
-
-    glBegin( GL_LINES );
-    glVertex3f(  0.5,  0.5, -0.5 );   glVertex3f(  0.5,  0.5, 0.5 );
-    glVertex3f(  0.5, -0.5, -0.5 );   glVertex3f(  0.5, -0.5, 0.5 );
-    glVertex3f( -0.5, -0.5, -0.5 );   glVertex3f( -0.5, -0.5, 0.5 );
-    glVertex3f( -0.5,  0.5, -0.5 );   glVertex3f( -0.5,  0.5, 0.5 );
-    glEnd();
-
-    glEndList();
-
-    
+			//Now make a triangle strip:
+			glBegin(GL_TRIANGLE_STRIP);
+			for (int i = 0; i< 6; i++){
+				glNormal3fv(currentNormal+3*i);
+				glVertex3fv(currentVertex+3*i);
+				glNormal3fv(prevNormal+3*i);
+				glVertex3fv(prevVertex+3*i);
+			}
+			//repeat first two vertices to close cylinder:
+			glNormal3fv(currentNormal);
+			glVertex3fv(currentVertex);
+			glNormal3fv(prevNormal);
+			glVertex3fv(prevVertex);
+			glEnd();
+		}
+		//Draw an end-cap on the cylinder:
+		glBegin(GL_POLYGON);
+		glNormal3fv(currentA);
+		for (int ka = 0; ka<6; ka++){
+			glVertex3fv(currentVertex+3*ka);
+		}
+		glEnd();
+	} //end of loop over seedPoints
+		
 }
 
 

@@ -67,19 +67,21 @@ public:
 	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){return true;}
 	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){return true;}
 	
-	//set dirty-flag, to force rerender:
-	void setDirty(bool flagValue){dirty = flagValue;}
+	//set dirty-flag, and force rerender:
+	void setDirty(bool flagValue);
 	bool isDirty() {return dirty;}
 	int getNumGenerators(int dimNum) { return generatorCount[dimNum];}
 	int getTotalNumGenerators() { return allGeneratorCount;}
 	VaporFlow* getFlowLib(){return myFlowLib;}
 	float* regenerateFlowData();
-	int getMaxPoints(){ return maxPoints;}
+	
 	int getNumSeedPoints() { return numSeedPoints;}
 	int getNumInjections() { return numInjections;}
 	int getMinAge() {return minAgeShown;}
 	int getMaxAge() {return maxAgeShown;}
 	int getStartFrame() {return seedTimeStart;}
+	float getShapeDiameter() {return shapeDiameter;}
+	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 
 	//Methods called from vizwinmgr due to settings in gui:
 	void guiSetFlowType(int typenum);
@@ -129,22 +131,22 @@ protected:
 	static const string _colorMappedEntityAttr;
 	static const string _colorMappingBoundsAttr;
 
-	void setFlowType(int typenum){flowType = typenum; dirty = true;}
-	void setNumTrans(int numtrans){numTrans = numtrans; dirty = true;}
+	void setFlowType(int typenum){flowType = typenum; setDirty(true);}
+	void setNumTrans(int numtrans){numTrans = numtrans; setDirty(true);}
 	void setMaxNumTrans(int maxNT) {maxNumTrans = maxNT;}
 	void setMinNumTrans(int minNT) {minNumTrans = minNT;}
-	void setXVarNum(int varnum){varNum[0] = varnum; dirty = true;}
-	void setYVarNum(int varnum){varNum[1] = varnum; dirty = true;}
-	void setZVarNum(int varnum){varNum[2] = varnum; dirty = true;}
-	void setRandom(bool rand){randomGen = rand; dirty = true;}
+	void setXVarNum(int varnum){varNum[0] = varnum; setDirty(true);}
+	void setYVarNum(int varnum){varNum[1] = varnum; setDirty(true);}
+	void setZVarNum(int varnum){varNum[2] = varnum; setDirty(true);}
+	void setRandom(bool rand){randomGen = rand; setDirty(true);}
 	void setXCenter(int sliderval);
 	void setYCenter(int sliderval);
 	void setZCenter(int sliderval);
 	void setXSize(int sliderval);
 	void setYSize(int sliderval);
 	void setZSize(int sliderval);
-	void setFlowGeometry(int geomNum){geometryType = geomNum; geomDirty = true;}
-	void setMapEntity( int entityNum){colorMappedEntity = entityNum; geomDirty = true;}
+	void setFlowGeometry(int geomNum){geometryType = geomNum;}
+	void setMapEntity( int entityNum){colorMappedEntity = entityNum;}
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 
 	//Methods to make sliders and text consistent for seed region:
@@ -165,7 +167,7 @@ protected:
 	
 	bool randomGen;
 	bool dirty;
-	bool geomDirty;
+	
 	unsigned int randomSeed;
 	
 	size_t generatorCount[3];
@@ -173,7 +175,7 @@ protected:
 	int seedTimeStart, seedTimeEnd, seedTimeIncrement;
 	int currentDimension;
 
-	int geometryType;  //0= point, 1=curve, 2 = arrow
+	int geometryType;  //0= tube, 1=point, 2 = arrow
 	float objectsPerTimestep;
 	int minAgeShown, maxAgeShown;
 	float shapeDiameter;
@@ -187,7 +189,7 @@ protected:
 	float* flowData;
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
-	int maxPoints;
+	
 	int numSeedPoints;
 	int numInjections;
 	

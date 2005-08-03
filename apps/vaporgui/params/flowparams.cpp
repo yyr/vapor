@@ -22,6 +22,7 @@
 #include "vizwinmgr.h"
 #include "vizwin.h"
 #include "vapor/VaporFlow.h"
+#include "glutil.h"
 #include <qlineedit.h>
 #include <qcombobox.h>
 #include <qpushbutton.h>
@@ -58,7 +59,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 
 	randomGen = false;
 	dirty = true;
-	geomDirty = true;
+	
 	randomSeed = 1;
 	seedBoxMin[0] = seedBoxMin[1] = seedBoxMin[2] = 0.f;
 	seedBoxMax[0] = seedBoxMax[1] = seedBoxMax[2] = 1.f;
@@ -72,7 +73,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	seedTimeIncrement = 1;
 	currentDimension = 0;
 
-	geometryType = 1;  //0= point, 1=curve, 2 = arrow
+	geometryType = 0;  //0= tube, 1=point, 2 = arrow
 	objectsPerTimestep = 1.f;
 	minAgeShown = 0;
 	maxAgeShown = 100;
@@ -83,7 +84,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	myFlowLib = 0;
 	//Set up flow data cache:
 	flowData = 0;
-	maxPoints = 1;
+	
 	numSeedPoints = 1;
 	numInjections = 1;
 	
@@ -318,7 +319,8 @@ updatePanelState(){
 	}
 	guiSetTextChanged(false);
 	myFlowTab->update();
-	dirty = true;
+	setDirty(true);
+	
 }
 //Reinitialize settings, session has changed:
 void FlowParams::
@@ -387,8 +389,8 @@ reinit(bool doOverride){
 		if (viznum == vizNum)
 			updateDialog();
 	}
-	//force a new render
-	dirty = true;
+	//force a new render with new flow data
+	setDirty(true);
 }
 //Set slider position, based on text change. 
 //
@@ -541,7 +543,8 @@ sliderToText(int coord, int slideCenter, int slideSize){
 	}
 	guiSetTextChanged(false);
 	myFlowTab->update();
-	dirty = true;
+	//force a new render with new flow data
+	setDirty(true);
 	return;
 }	
 
@@ -563,6 +566,7 @@ guiSetFlowType(int typenum){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow type");
 	setFlowType(typenum);
 	PanelCommand::captureEnd(cmd, this);
+	
 }
 void FlowParams::
 guiSetNumTrans(int n){
@@ -590,6 +594,7 @@ guiSetYVarNum(int varnum){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set Y field variable");
 	setYVarNum(varnum);
 	PanelCommand::captureEnd(cmd, this);
+
 }
 void FlowParams::
 guiSetZVarNum(int varnum){
@@ -597,6 +602,7 @@ guiSetZVarNum(int varnum){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set Z field variable");
 	setZVarNum(varnum);
 	PanelCommand::captureEnd(cmd, this);
+
 }
 void FlowParams::
 guiRecalc(){ //Not covered by redo/undo
@@ -622,6 +628,7 @@ guiSetXCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator X center");
 	setXCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
+	setDirty(true);
 }
 void FlowParams::
 guiSetYCenter(int sliderval){
@@ -629,6 +636,7 @@ guiSetYCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Y center");
 	setYCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
+	setDirty(true);
 }
 void FlowParams::
 guiSetZCenter(int sliderval){
@@ -636,6 +644,7 @@ guiSetZCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Z center");
 	setZCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
+	setDirty(true);
 }
 void FlowParams::
 guiSetXSize(int sliderval){
@@ -643,6 +652,7 @@ guiSetXSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator X size");
 	setXSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
+	setDirty(true);
 }
 void FlowParams::
 guiSetYSize(int sliderval){
@@ -650,6 +660,7 @@ guiSetYSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Y size");
 	setYSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
+	setDirty(true);
 }
 void FlowParams::
 guiSetZSize(int sliderval){
@@ -657,6 +668,7 @@ guiSetZSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Z size");
 	setZSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
+	setDirty(true);
 }
 void FlowParams::
 guiSetFlowGeometry(int geomNum){
@@ -664,6 +676,8 @@ guiSetFlowGeometry(int geomNum){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow geometry type");
 	setFlowGeometry(geomNum);
 	PanelCommand::captureEnd(cmd, this);
+	//Just force rerender
+	VizWinMgr::getInstance()->setFlowDirty(this);
 }
 void FlowParams::
 guiSetMapEntity( int entityNum){
@@ -671,6 +685,8 @@ guiSetMapEntity( int entityNum){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow colormap entity");
 	setMapEntity(entityNum);
 	PanelCommand::captureEnd(cmd, this);
+	//Just force rerender
+	VizWinMgr::getInstance()->setFlowDirty(this);
 }
 void FlowParams::
 guiSetGeneratorDimension( int dimNum){
@@ -681,6 +697,7 @@ guiSetGeneratorDimension( int dimNum){
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, this);
 	myFlowTab->update();
+	setDirty(true);
 }
 //When the center slider moves, set the seedBoxMin and seedBoxMax
 void FlowParams::
@@ -688,28 +705,34 @@ setXCenter(int sliderval){
 	//new min and max are center -+ size/2.  
 	//center is min + (slider/256)*(max-min)
 	sliderToText(0, sliderval, myFlowTab->xSizeSlider->value());
+	setDirty(true);
 }
 void FlowParams::
 setYCenter(int sliderval){
 	sliderToText(1, sliderval, myFlowTab->ySizeSlider->value());
+	setDirty(true);
 }
 void FlowParams::
 setZCenter(int sliderval){
 	sliderToText(2, sliderval, myFlowTab->zSizeSlider->value());
+	setDirty(true);
 }
 //Min and Max are center -+ size/2
 //size is regionsize*sliderval/256
 void FlowParams::
 setXSize(int sliderval){
 	sliderToText(0, myFlowTab->xCenterSlider->value(),sliderval);
+	setDirty(true);
 }
 void FlowParams::
 setYSize(int sliderval){
 	sliderToText(1, myFlowTab->yCenterSlider->value(),sliderval);
+	setDirty(true);
 }
 void FlowParams::
 setZSize(int sliderval){
 	sliderToText(2, myFlowTab->zCenterSlider->value(),sliderval);
+	setDirty(true);
 }
 	
 /* Handle the change of status associated with change of enablement and change
@@ -851,7 +874,7 @@ regenerateFlowData(){
 	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
-	maxPoints = maxAgeShown+1;
+	int maxPoints = maxAgeShown+1;
 	int lastTime = seedTimeEnd;
 	if (flowType == 0) { //steady
 		numInjections = 1;
@@ -860,11 +883,47 @@ regenerateFlowData(){
 		numInjections = 1+ (lastTime - seedTimeStart)/seedTimeIncrement;
 	}
 	flowData = new float[3*maxPoints*numSeedPoints*numInjections];
+
+	/* For now, don't call the flowlib
 	if (flowType == 0){ //steady
 		myFlowLib->GenStreamLines(flowData, maxPoints, randomSeed);
 	} else {
 		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, lastTime, seedTimeIncrement);
 	}
+	*/
+	//test code, not using flowlib:
+	float* seeds = new float[3*numSeedPoints];
+	float seedSep = (extents[3]-extents[0])*0.1f;
+    //Put the seed(s) at the middle of the bottom:
+	for (int j = 0; j < numSeedPoints; j++){
+		seeds[3*j] = 0.5*(rParams->getFullDataExtent(0) + rParams->getFullDataExtent(3));
+		seeds[3*j+1] = rParams->getFullDataExtent(1);
+		seeds[3*j+2] = 0.5*(rParams->getFullDataExtent(2) + rParams->getFullDataExtent(5));
+		//increment one coord by seedSep.
+		//seeds[numSeedPoints%3+3*j] += seedSep;
+	}
+
+	//Just specify a line up the center of the region
+	float diag[3];
+	diag[0] = 0.01f;
+	diag[1] = rParams->getFullDataExtent(4) - rParams->getFullDataExtent(1);
+	diag[2] = 0.01f;
+	
+	
+	for (int j = 0; j< numSeedPoints; j++){
+		for (int k = 0; k< maxPoints; k++) {
+			for (int coord = 0; coord < 3; coord++){
+				flowData[coord + 3*(k + maxPoints *j)] = 
+					seeds[coord+3*j] + k*diag[coord]/maxPoints;
+			}
+		}
+	}
+	delete seeds;
+	//end test code
 	dirty = false;
 	return flowData;
+}
+void FlowParams::setDirty(bool isDirty){
+	dirty = isDirty;
+	if (dirty) VizWinMgr::getInstance()->setFlowDirty(this);
 }

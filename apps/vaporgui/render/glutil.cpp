@@ -78,7 +78,7 @@ void vscale(float *v, float s)
 }
 // Scale, putting result in another vector
 //
-void vmult( float *v, float s, float *w) {
+void vmult(const float *v, float s, float *w) {
 	w[0] = s*v[0]; 
 	w[1] = s*v[1]; 
 	w[2] = s*v[2];

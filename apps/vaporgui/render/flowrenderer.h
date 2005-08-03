@@ -38,13 +38,17 @@ public:
 
 protected:
 	float* flowDataArray;
-	int maxPoints, numSeedPoints, numInjections;
-	void buildFlowGeometry();
+	int maxPoints, minAge, numSeedPoints, numInjections;
+	
+	void renderTubes(float radius, bool isLit, float* data);
+	void renderCurves(float radius, bool isLit, float* data);
+	void renderPoints(float radius, float* data);
 	float* getFlowPoint(int timeStep, int seedNum, int injectionNum){
 		assert ((3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)))<
 			3*maxPoints*numSeedPoints*numInjections );
 		return (flowDataArray+ 3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)));
 	}
+
 
 };
 };
