@@ -1729,7 +1729,7 @@
                                     <widget class="QComboBox">
                                         <item>
                                             <property name="text">
-                                                <string>Curve</string>
+                                                <string>Tube</string>
                                             </property>
                                         </item>
                                         <item>

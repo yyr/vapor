@@ -45,7 +45,7 @@
         <property name="geometry">
             <rect>
                 <x>10</x>
-                <y>31</y>
+                <y>30</y>
                 <width>420</width>
                 <height>681</height>
             </rect>
@@ -528,7 +528,7 @@
                             <cstring>numLights</cstring>
                         </property>
                         <property name="enabled">
-                            <bool>false</bool>
+                            <bool>true</bool>
                         </property>
                         <property name="sizePolicy">
                             <sizepolicy>
@@ -545,10 +545,10 @@
                             </size>
                         </property>
                         <property name="text">
-                            <string>3</string>
+                            <string>0</string>
                         </property>
                         <property name="alignment">
-                            <set>AlignRight</set>
+                            <set>AlignHCenter</set>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Set number of light sources</string>
@@ -620,7 +620,7 @@
                             <cstring>textLabel8_3</cstring>
                         </property>
                         <property name="text">
-                            <string>light position 1</string>
+                            <string>light direction 1</string>
                         </property>
                     </widget>
                     <widget class="QLineEdit" row="6" column="1">
@@ -632,6 +632,9 @@
                         </property>
                         <property name="text">
                             <string>1.1</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
                         </property>
                     </widget>
                     <spacer row="5" column="2">
@@ -672,6 +675,9 @@
                         <property name="text">
                             <string>-2.55</string>
                         </property>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
+                        </property>
                     </widget>
                     <widget class="QLineEdit" row="1" column="1">
                         <property name="name">
@@ -682,6 +688,9 @@
                         </property>
                         <property name="text">
                             <string>2.04</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
                         </property>
                     </widget>
                     <widget class="QLabel" row="0" column="2">
@@ -705,6 +714,9 @@
                         <property name="text">
                             <string>7.115</string>
                         </property>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
+                        </property>
                     </widget>
                     <widget class="QLineEdit" row="6" column="2">
                         <property name="name">
@@ -716,6 +728,9 @@
                         <property name="text">
                             <string>-6.4</string>
                         </property>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
+                        </property>
                     </widget>
                     <widget class="QLineEdit" row="4" column="1">
                         <property name="name">
@@ -726,6 +741,9 @@
                         </property>
                         <property name="text">
                             <string>-1.2</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
                         </property>
                     </widget>
                     <spacer row="2" column="1" rowspan="2" colspan="1">
@@ -789,6 +807,9 @@
                         <property name="text">
                             <string>2.344</string>
                         </property>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
+                        </property>
                     </widget>
                     <spacer row="0" column="0">
                         <property name="name">
@@ -816,6 +837,9 @@
                         </property>
                         <property name="text">
                             <string>3.234</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
                         </property>
                     </widget>
                     <widget class="QLabel" row="0" column="1">
@@ -873,13 +897,16 @@
                         <property name="text">
                             <string>4.5</string>
                         </property>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
+                        </property>
                     </widget>
                     <widget class="QLabel" row="4" column="0">
                         <property name="name">
                             <cstring>textLabel8_2_3</cstring>
                         </property>
                         <property name="text">
-                            <string>light position 2</string>
+                            <string>light direction 2</string>
                         </property>
                     </widget>
                     <widget class="QLabel" row="6" column="0">
@@ -887,7 +914,7 @@
                             <cstring>textLabel8_2_2_2</cstring>
                         </property>
                         <property name="text">
-                            <string>light position 3</string>
+                            <string>light direction 3</string>
                         </property>
                     </widget>
                 </grid>
