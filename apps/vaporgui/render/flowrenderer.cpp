@@ -91,6 +91,8 @@ void FlowRenderer::paintGL()
 	glColor3f(1.,0.,0.);
 	//do lines if diameter = 0
 	float diam = myFlowParams->getShapeDiameter();
+	//Don't allow zero diameter, it causes OpenGL error code 1281
+	if (diam < 1.e-10) diam = 1.e-10;
 	if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 		//Set up lighting:
 		ViewpointParams* vpParams = VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum());
