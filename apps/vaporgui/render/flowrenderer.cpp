@@ -48,8 +48,6 @@ FlowRenderer::FlowRenderer(VizWin* vw )
 
 FlowRenderer::~FlowRenderer()
 {
-    
-    
 }
 
 
@@ -62,11 +60,14 @@ void FlowRenderer::paintGL()
 	GLfloat white_light[] = {1.f,1.f,1.f,1.f};
 	GLfloat lmodel_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
 	GLfloat diffuse_tube_color[] = {0.1f, 0.8f, 0.1f, 1.0f};
-	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(myVizWin->getWindowNum());
+	int winNum = myVizWin->getWindowNum();
+	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
 	//Do we need to regenerate the flow data?
-	if (myFlowParams->isDirty()){
+	if (myFlowParams->isDirty() || myVizWin->regionIsDirty()){
 		flowDataArray = myFlowParams->regenerateFlowData();
-		maxPoints = myFlowParams->getMaxAge()+1;
+		
+		maxPoints = myFlowParams->getMaxPoints();
+
 		minAge = myFlowParams->getMinAge();
 		numSeedPoints = myFlowParams->getNumSeedPoints();
 		numInjections = myFlowParams->getNumInjections();
@@ -92,11 +93,14 @@ void FlowRenderer::paintGL()
 	//do lines if diameter = 0
 	float diam = myFlowParams->getShapeDiameter();
 	//Don't allow zero diameter, it causes OpenGL error code 1281
-	if (diam < 1.e-10) diam = 1.e-10;
+	if (diam < 1.e-10) diam = 1.e-10f;
+
+	//Set up lighting, if we are rendering tubes or lines:
+	int nLights = 0;
 	if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
-		//Set up lighting:
-		ViewpointParams* vpParams = VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum());
-		int nLights = vpParams->getNumLights();
+		
+		ViewpointParams* vpParams = VizWinMgr::getInstance()->getViewpointParams(winNum);
+		nLights = vpParams->getNumLights();
 		if (nLights > 0){
 			glShadeModel(GL_SMOOTH);
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_tube_color);
@@ -120,26 +124,101 @@ void FlowRenderer::paintGL()
 				//glLightfv(GL_LIGHT2, GL_SPECULAR, white_light);
 				glEnable(GL_LIGHT2);
 			}
-		}
-			
-		if (diam < 1.f){//Render as lines, not cylinders
-			renderCurves(diam, (nLights>0), flowDataArray);
-		
-		} else { //render as cylinders
-			//Determine cylinder radius in actual coords.
-			//One voxel is (full region size)/(region array size)
-			RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(myVizWin->getWindowNum());
-			float rad = 0.5*diam*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
-				rParams->getFullSize()[0];
-			glPolygonMode(GL_FRONT, GL_FILL);
-			//Render all tubes
-			renderTubes(rad, (nLights > 0), flowDataArray);
-			
-		}
-	} else { //rendering points (or arrows?)
-		//just convert the flow data to a set of points..
-		renderPoints(diam, flowDataArray);
+		} else glDisable(GL_LIGHTING); //No lights
+	} else {//points are not lit..
+		glDisable(GL_LIGHTING);
 	}
+	//If we are doing unsteady flow, handle setup differently:
+	if (myFlowParams->flowIsSteady()){
+		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
+				
+			if (diam <= 1.f){//Render as lines, not cylinders
+				renderCurves(diam, (nLights>0), minAge, maxPoints-1, flowDataArray);
+			
+			} else { //render as cylinders
+				//Determine cylinder radius in actual coords.
+				//One voxel is (full region size)/(region array size)
+				RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+				float rad = 0.5*diam*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
+					rParams->getFullSize()[0];
+				glPolygonMode(GL_FRONT, GL_FILL);
+				//Render all tubes
+				//Note that maxAge is maxPoints -1
+				renderTubes(rad, (nLights > 0), minAge, maxPoints-1, flowDataArray);
+				
+			}
+		} else { //rendering points (or arrows?)
+			//just convert the flow data to a set of points..
+			renderPoints(diam, minAge, maxPoints-1, flowDataArray);
+		}
+	} else { //unsteady flow:
+		//Determine first and last seeding that is visible.
+		//The portion of a flow that is visible is that portion whose age
+		//goes from minAge to maxAge.  In other words, go from the
+		//part corresponding to times 
+		//currentFrame-maxAge to currentFrame-minAge
+		//This is reduced on the front end if currentFrame-maxAge
+		//precedes seedStartFrame.
+		//It is reduced on the back end if the calculation is not complete.
+		
+		//Seeding no. K is injected at frame
+		//startFrame + (seedingIncrement*(injectionNum -1))
+		//Can ignore if this number is > currentFrame
+		// I.e., want injectionNum <= 1+ (currentFrame - startFrame)/increment)
+		int seedingIncrement = myFlowParams->getSeedingIncrement();
+		int currentFrameNum = VizWinMgr::getInstance()->getAnimationParams(winNum)->getCurrentFrameNumber();
+		int maxAge = myFlowParams->getMaxAge();
+
+		//Check if first injection has happened yet:
+		int startFrame = myFlowParams->getStartFrame();
+		if (currentFrameNum < startFrame) return;
+		int firstInjectionNum = 1;
+		int lastInjectionFrame = min(currentFrameNum, myFlowParams->getLastSeeding());
+		int lastInjectionNum = 1 + (lastInjectionFrame - startFrame)/seedingIncrement;
+		
+		//Do special case of just one seeding:
+		if (seedingIncrement <= 0 || numInjections <= 1){
+			firstInjectionNum = 1;
+			lastInjectionNum = 1;
+		} 
+		//Loop over the active seedings.  A value of injectionNum corresponds to an
+		//injection at time startFrame + (injectionNum-1)*seedingIncrement
+		for (int injectionNum = firstInjectionNum; injectionNum <= lastInjectionNum; injectionNum++){
+			int flowStartFrame = myFlowParams->getStartFrame()+(injectionNum-1)*seedingIncrement;
+			//Use the ages to determine what part of the flow is to be seen
+			int lastAge = currentFrameNum - flowStartFrame - minAge;
+			int firstAge = currentFrameNum - flowStartFrame - maxAge;
+			if (firstAge < 0) firstAge = 0;
+			if (lastAge < 0) lastAge = 0;
+			if (lastAge > maxPoints) lastAge = maxPoints;
+			if (firstAge > lastAge) continue;
+			
+			if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
+					
+				if (diam <= 1.f){//Render as lines, not cylinders
+					renderCurves(diam, (nLights>0), firstAge, lastAge,
+						flowDataArray+3*maxPoints*numSeedPoints*(injectionNum-1));
+				
+				} else { //render as cylinders
+					//Determine cylinder radius in actual coords.
+					//One voxel is (full region size)/(region array size)
+					RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+					float rad = 0.5*diam*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
+						rParams->getFullSize()[0];
+					glPolygonMode(GL_FRONT, GL_FILL);
+					//Render all tubes
+					renderTubes(rad, (nLights > 0), firstAge, lastAge,
+						flowDataArray+3*maxPoints*numSeedPoints*(injectionNum-1));
+					
+				}
+			} else { //rendering points (or arrows?)
+				//just convert the flow data to a set of points..
+				renderPoints(diam, firstAge, lastAge,
+						flowDataArray+3*maxPoints*numSeedPoints*(injectionNum-1));
+			}
+		}
+	}
+
 	glDisable(GL_LIGHTING);
 	glPopMatrix();
 }
@@ -157,7 +236,7 @@ void FlowRenderer::initializeGL()
 }
 //  Issue OpenGL calls for point list
 void FlowRenderer::
-renderPoints(float radius, float* data){
+renderPoints(float radius, int firstAge, int lastAge, float* data){
 	
 	//just convert the flow data to a set of points..
 	glPointSize(radius);
@@ -165,7 +244,7 @@ renderPoints(float radius, float* data){
 	glBegin (GL_POINTS);
 	for (int i = 0; i< numSeedPoints; i++){
 		
-		for (int j = minAge; j<maxPoints; j++){
+		for (int j = firstAge; j<=lastAge; j++){
 			float* point = data+ 3*(j+ maxPoints*i);
 			if (*point == 1.e30) break;
 			glVertex3fv(point);
@@ -176,10 +255,11 @@ renderPoints(float radius, float* data){
 }
 //  Issue OpenGL calls for a set of lines associated with a number of seed points.
 void FlowRenderer::
-renderCurves(float radius, bool isLit, float* data){
+renderCurves(float radius, bool isLit, int firstAge, int lastAge, float* data){
 	float dirVec[3];
 	float testVec[3];
 	float normVec[3];
+	if (firstAge >= lastAge) return;
 	glLineWidth(radius);
 	if (isLit){
 		//Get light direction vector of first light:
@@ -187,12 +267,12 @@ renderCurves(float radius, bool isLit, float* data){
 		const float* lightDir = vpParams->getLightDirection(0);
 		for (int i = 0; i< numSeedPoints; i++){
 			glBegin (GL_LINE_STRIP);
-			for (int j = minAge; j<maxPoints; j++){
+			for (int j = firstAge; j<=lastAge; j++){
 				//For each point after first, calc vector from prev vector to this one
 				//then calculate corresponding normal
 				float* point = data+ 3*(j+ maxPoints*i);
 				if (*point == 1.e30) break;
-				if (j > minAge){
+				if (j > firstAge){
 					vsub(point, point-3, dirVec);
 					float len = vdot(dirVec,dirVec);
 					if (len == 0.f){//If 2nd is same as first, set default normal
@@ -220,7 +300,7 @@ renderCurves(float radius, bool isLit, float* data){
 		glDisable(GL_LIGHTING);
 		for (int i = 0; i< numSeedPoints; i++){
 			glBegin (GL_LINE_STRIP);
-			for (int j = minAge; j<maxPoints; j++){
+			for (int j = firstAge; j<=lastAge; j++){
 				float* point = data+ 3*(j+ maxPoints*i);
 				if (*point == 1.e30) break;
 				glVertex3fv(point);
@@ -234,7 +314,7 @@ renderCurves(float radius, bool isLit, float* data){
 //  tubeNum specifies which tube in the flowdata array to render
 //
 void FlowRenderer::
-renderTubes(float radius, bool /*isLit*/, float* data){
+renderTubes(float radius, bool /*isLit*/, int firstAge, int lastAge, float* data){
 	//Constants are needed for cosines and sines, at 60 degree intervals
 	const float sines[6] = {0.f, sqrt(3.)/2., sqrt(3.)/2., 0.f, -sqrt(3.)/2., -sqrt(3.)/2.};
 	const float coses[6] = {1.f, 0.5, -0.5, -1., -.5, 0.5};
@@ -256,13 +336,13 @@ renderTubes(float radius, bool /*isLit*/, float* data){
 	float len;
 	float testVec[3];
 	float testVec2[3];
-	if (minAge >= maxPoints) return;
+	if (firstAge >= lastAge) return;
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
 		//Need at least two points to do anything:
 		if ((*(data + 3*tubeNum*maxPoints) == 1.e30) ||
 			(*(data + 3*(tubeNum*maxPoints+1)) == 1.e30)) continue;
 		
-		int tubeStartIndex = 3*(tubeNum*maxPoints+minAge);
+		int tubeStartIndex = 3*(tubeNum*maxPoints+firstAge);
 		//data point is three floats starting at data[tubeStartIndex]
 		//evenA is the direction the line is pointing
 		vsub(data+(tubeStartIndex+3), data+tubeStartIndex, evenA);
@@ -319,11 +399,11 @@ renderTubes(float radius, bool /*isLit*/, float* data){
 
 
 
-		for (int pointNum = minAge+ 1; pointNum < maxPoints; pointNum++){
+		for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
 			float* point = data+3*(tubeNum*maxPoints+pointNum);
 			if (*point == 1.e30) break;
 			//Toggle the meaning of "current" and "prev"
-			if (0 == (pointNum - minAge)%2) {
+			if (0 == (pointNum - firstAge)%2) {
 				currentN = evenN;
 				prevN = oddN;
 				currentA = evenA;
@@ -348,7 +428,7 @@ renderTubes(float radius, bool /*isLit*/, float* data){
 			}
 			
 			//Calc currentN
-			vsub(point+3, point, currentN);
+			vsub(point, point-3, currentN);
 			//Normalize currentN:
 			len = vdot(currentN,currentN);
 			if (len == 0.f){// keep previous normal

@@ -269,10 +269,11 @@ run(){
 		for (viznum = 0; viznum<MAXVIZWINS; viznum++){
 			if (myAnimationController->isActive(viznum)&&myAnimationController->isShared(viznum)){
 				assert(myAnimationController->renderFinished(viznum));
-				//has the animation stopped?
+				//has the animation stopped, or was the renderer disabled?
 				if ((!myVizWinMgr->getVizWin(viznum)) ||
 						(!myVizWinMgr->getAnimationParams(viznum)->isPlaying()) ||
-						(!myVizWinMgr->getDvrParams(viznum)->isEnabled())){
+						((!myVizWinMgr->getDvrParams(viznum)->isEnabled())&&
+						(!myVizWinMgr->getFlowParams(viznum)->isEnabled()))){
 					
 					myAnimationController->deActivate(viznum);
 				} else if (myAnimationController->isChanged(viznum)) {

@@ -294,9 +294,9 @@ updatePanelState(){
 
 	seedTimeIncrement = myFlowTab->seedtimeIncrementEdit->text().toUInt();
 
-	objectsPerTimestep = myFlowTab->objectsPerTimestepEdit->text().toUInt();
-	if (objectsPerTimestep < 1) {
-		objectsPerTimestep = 1;
+	objectsPerTimestep = myFlowTab->objectsPerTimestepEdit->text().toFloat();
+	if (objectsPerTimestep <= 0.f) {
+		objectsPerTimestep = 1.f;
 		myFlowTab->objectsPerTimestepEdit->setText(QString::number(objectsPerTimestep));
 	}
 
@@ -852,7 +852,7 @@ regenerateFlowData(){
 	//Different windows could have different regions
 	RegionParams* rParams;
 	if (vizNum < 0) {
-		MessageReporter::warningMsg("FlowParams: Multiple region params could apply to flow");
+		MessageReporter::warningMsg("FlowParams: Multiple region params may apply to flow");
 		rParams = vizMgr->getRegionParams(vizMgr->getActiveViz());
 	}
 	else rParams = VizWinMgr::getInstance()->getRegionParams(vizNum);
@@ -860,7 +860,7 @@ regenerateFlowData(){
 		numTrans, minFull, maxFull, extents);
 	myFlowLib->SetRegion(numTrans, min_bdim, max_bdim);
 	myFlowLib->SetTimeStepInterval(seedTimeStart, maxFrame, timeSamplingInterval);
-	myFlowLib->ScaleTimeStepSizes(userTimeStepMultiplier, 1.0);
+	myFlowLib->ScaleTimeStepSizes(userTimeStepMultiplier, 1./objectsPerTimestep);
 	if (randomGen) {
 		myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, allGeneratorCount);
 		numSeedPoints = allGeneratorCount;
@@ -874,13 +874,18 @@ regenerateFlowData(){
 	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
-	int maxPoints = maxAgeShown+1;
-	int lastTime = seedTimeEnd;
+	
+	
 	if (flowType == 0) { //steady
 		numInjections = 1;
-	} else {
-		if (lastTime > seedTimeStart + maxAgeShown) lastTime = seedTimeStart+maxAgeShown;
-		numInjections = 1+ (lastTime - seedTimeStart)/seedTimeIncrement;
+		maxPoints = maxAgeShown+1;
+	} else {// determine largest possible number of injections
+		numInjections = 1+ (seedTimeEnd - seedTimeStart)/seedTimeIncrement;
+		//For unsteady flow, the minAge and maxAge give a window
+		//on a longer timespan that potentially goes from 
+		//the first seed start time to the last frame in the animation.
+		//maxAge does not limit the length of the flow
+		maxPoints = maxFrame - seedTimeStart+1;
 	}
 	flowData = new float[3*maxPoints*numSeedPoints*numInjections];
 
@@ -891,35 +896,69 @@ regenerateFlowData(){
 		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, lastTime, seedTimeIncrement);
 	}
 	*/
-	//test code, not using flowlib:
-	float* seeds = new float[3*numSeedPoints];
-	float seedSep = (extents[3]-extents[0])*0.1f;
-    //Put the seed(s) at the middle of the bottom:
-	for (int j = 0; j < numSeedPoints; j++){
-		seeds[3*j] = 0.5*(rParams->getFullDataExtent(0) + rParams->getFullDataExtent(3));
-		seeds[3*j+1] = rParams->getFullDataExtent(1);
-		seeds[3*j+2] = 0.5*(rParams->getFullDataExtent(2) + rParams->getFullDataExtent(5));
-		//increment one coord by seedSep.
-		//seeds[numSeedPoints%3+3*j] += seedSep;
-	}
+	//test stream code, not using flowlib:
+	if (flowType == 0){
+		float* seeds = new float[3*numSeedPoints];
+		float seedSep = (extents[3]-extents[0])*0.1f;
+		//Put the seed(s) at the middle of the bottom:
+		for (int j = 0; j < numSeedPoints; j++){
+			seeds[3*j] = 0.5*(rParams->getFullDataExtent(0) + rParams->getFullDataExtent(3));
+			seeds[3*j+1] = rParams->getFullDataExtent(1);
+			seeds[3*j+2] = 0.5*(rParams->getFullDataExtent(2) + rParams->getFullDataExtent(5));
+			//increment x coord by seedSep.
+			seeds[3*j] += (seedSep*(float)j);
+		}
 
-	//Just specify a line up the center of the region
-	float diag[3];
-	diag[0] = 0.01f;
-	diag[1] = rParams->getFullDataExtent(4) - rParams->getFullDataExtent(1);
-	diag[2] = 0.01f;
-	
-	
-	for (int j = 0; j< numSeedPoints; j++){
-		for (int k = 0; k< maxPoints; k++) {
-			for (int coord = 0; coord < 3; coord++){
-				flowData[coord + 3*(k + maxPoints *j)] = 
-					seeds[coord+3*j] + k*diag[coord]/maxPoints;
+		//Just specify a line up the center of the region
+		float diag[3];
+		diag[0] = 0.01f;
+		diag[1] = rParams->getFullDataExtent(4) - rParams->getFullDataExtent(1);
+		diag[2] = 0.01f;
+		
+		
+		for (int j = 0; j< numSeedPoints; j++){
+			for (int k = 0; k< maxPoints; k++) {
+				for (int coord = 0; coord < 3; coord++){
+					flowData[coord + 3*(k + maxPoints *j)] = 
+						seeds[coord+3*j] + k*diag[coord]/maxPoints;
+				}
 			}
 		}
+		delete seeds;
+	} else { //unsteady flow data, repeat same seed at each injectionTime
+		float* seeds = new float[3*numSeedPoints];
+		float seedSep = (extents[3]-extents[0])*0.1f;
+		//Put the seed(s) at the middle of the bottom:
+		for (int j = 0; j < numSeedPoints; j++){
+			seeds[3*j] = 0.5*(rParams->getFullDataExtent(0) + rParams->getFullDataExtent(3));
+			seeds[3*j+1] = rParams->getFullDataExtent(1);
+			seeds[3*j+2] = 0.5*(rParams->getFullDataExtent(2) + rParams->getFullDataExtent(5));
+			//increment x coord by seedSep.
+			seeds[3*j] += (seedSep*(float)j);
+		}
+
+		//Just specify a line up the center of the region, slightly off to avoid aliasing
+		float diag[3];
+		
+		
+		for (int q = 0; q<numInjections; q++){
+			//Make line tilt more (x and z) with each subsequent injection:
+			diag[0] = 0.01f + 0.05*(float)q;
+			diag[1] = 0.01f + rParams->getFullDataExtent(4) - rParams->getFullDataExtent(1);
+			diag[2] = 0.01f + 0.05*(float)q;
+			for (int j = 0; j< numSeedPoints; j++){
+				for (int k = 0; k< maxPoints; k++) {
+					for (int coord = 0; coord < 3; coord++){
+						flowData[coord + 3*(k + maxPoints *(j + numSeedPoints*q))] = 
+							seeds[coord+3*j] + k*diag[coord]/maxPoints;
+					}
+				}
+			}
+		}
+		delete seeds;
 	}
-	delete seeds;
 	//end test code
+	//Clear the dirty flag (just for the one renderer).
 	dirty = false;
 	return flowData;
 }

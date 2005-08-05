@@ -275,7 +275,7 @@ DrawVoxelScene(unsigned /*fast*/)
 			return;
 		}
 		
-		myVizWin->setRegionDirty(false);
+		
 	}
 
 	if (myVizWin->clutIsDirty()) {

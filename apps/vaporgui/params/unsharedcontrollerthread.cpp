@@ -121,7 +121,8 @@ run(){
 				//If a visualizer is local, finished, and late
 				if ((!myVizWinMgr->getVizWin(viznum)) ||
 					(!myVizWinMgr->getAnimationParams(viznum)->isPlaying()) ||
-					(!myVizWinMgr->getDvrParams(viznum)->isEnabled())){
+					((!myVizWinMgr->getDvrParams(viznum)->isEnabled()) &&
+					(!myVizWinMgr->getFlowParams(viznum)->isEnabled()))){
 					//deactivate stopped animations
 					myAnimationController->deActivate(viznum);
 				} else { //start it if it's ready to go

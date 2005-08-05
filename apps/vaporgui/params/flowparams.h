@@ -75,12 +75,18 @@ public:
 	VaporFlow* getFlowLib(){return myFlowLib;}
 	float* regenerateFlowData();
 	
+	int getMinFrame() {return minFrame;}
+	int getMaxFrame() {return maxFrame;}
+	int getMaxPoints() {return maxPoints;}
 	int getNumSeedPoints() { return numSeedPoints;}
 	int getNumInjections() { return numInjections;}
 	int getMinAge() {return minAgeShown;}
 	int getMaxAge() {return maxAgeShown;}
 	int getStartFrame() {return seedTimeStart;}
+	int getLastSeeding() {return seedTimeEnd;}
+	int getSeedingIncrement() {return seedTimeIncrement;}
 	float getShapeDiameter() {return shapeDiameter;}
+	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 
 	//Methods called from vizwinmgr due to settings in gui:
@@ -178,6 +184,7 @@ protected:
 	int geometryType;  //0= tube, 1=point, 2 = arrow
 	float objectsPerTimestep;
 	int minAgeShown, maxAgeShown;
+	int maxPoints;  //largest length of any flow
 	float shapeDiameter;
 	int colorMappedEntity; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
 	float colorMapMin, colorMapMax;

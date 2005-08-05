@@ -257,6 +257,8 @@ void GLWindow::paintGL()
 	} 
 	swapBuffers();
 	glPopMatrix();
+	//Always clear the regionDirty flag:
+	myVizWin->setRegionDirty(false);
 	if (isControlled) AnimationController::getInstance()->endRendering(winNum);
 	//Capture the image, if not navigating:
 	if (renderNew && !myVizWin->mouseIsDown()) myVizWin->doFrameCapture();
