@@ -38,7 +38,7 @@ public:
 
 protected:
 	float* flowDataArray;
-	int maxPoints, minAge, numSeedPoints, numInjections;
+	int maxPoints, firstDisplayFrame, lastDisplayFrame, numSeedPoints, numInjections;
 	
 	void renderTubes(float radius, bool isLit, int firstAge, int lastAge, float* data);
 	void renderCurves(float radius, bool isLit, int firstAge, int lastAge, float* data);

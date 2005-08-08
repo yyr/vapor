@@ -49,6 +49,8 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	maxNumTrans = 4; 
 	minNumTrans = 0;
 	numVariables = 0;
+	firstDisplayFrame = 0;
+	lastDisplayFrame = 20;
 	variableNames.empty();
 	varNum[0] = varNum [1] = varNum[2] = 0;
 	integrationAccuracy = 0.5f;
@@ -75,8 +77,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 
 	geometryType = 0;  //0= tube, 1=point, 2 = arrow
 	objectsPerTimestep = 1.f;
-	minAgeShown = 0;
-	maxAgeShown = 100;
+
 	shapeDiameter = 0.f;
 	colorMappedEntity = 0; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
 	colorMapMin = 0.f; 
@@ -156,6 +157,7 @@ void FlowParams::updateDialog(){
 	myFlowTab->recalcButton->setEnabled(flowType == 1);
 	myFlowTab->seedtimeIncrementEdit->setEnabled(flowType == 1);
 	myFlowTab->seedtimeEndEdit->setEnabled(flowType == 1);
+	myFlowTab->firstDisplayFrameEdit->setEnabled(flowType == 1);
 
 	myFlowTab->randomCheckbox->setChecked(randomGen);
 	
@@ -209,8 +211,8 @@ void FlowParams::updateDialog(){
 	myFlowTab->timeSampleEdit->setText(QString::number(timeSamplingInterval));
 	myFlowTab->randomSeedEdit->setText(QString::number(randomSeed));
 	myFlowTab->objectsPerTimestepEdit->setText(QString::number(objectsPerTimestep));
-	myFlowTab->minAgeEdit->setText(QString::number(minAgeShown));
-	myFlowTab->maxAgeEdit->setText(QString::number(maxAgeShown));
+	myFlowTab->firstDisplayFrameEdit->setText(QString::number(firstDisplayFrame));
+	myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
 	myFlowTab->diameterEdit->setText(QString::number(shapeDiameter));
 	myFlowTab->minColormapEdit->setText(QString::number(colorMapMin));
 	myFlowTab->maxColormapEdit->setText(QString::number(colorMapMax));
@@ -300,11 +302,11 @@ updatePanelState(){
 		myFlowTab->objectsPerTimestepEdit->setText(QString::number(objectsPerTimestep));
 	}
 
-	minAgeShown = myFlowTab->minAgeEdit->text().toUInt();
-	maxAgeShown = myFlowTab->maxAgeEdit->text().toUInt();
-	if (minAgeShown > maxAgeShown) {
-		maxAgeShown = minAgeShown;
-		myFlowTab->maxAgeEdit->setText(QString::number(maxAgeShown));
+	firstDisplayFrame = myFlowTab->firstDisplayFrameEdit->text().toInt();
+	lastDisplayFrame = myFlowTab->lastDisplayFrameEdit->text().toInt();
+	if (lastDisplayFrame < -firstDisplayFrame) {
+		lastDisplayFrame = -firstDisplayFrame;
+		myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
 	}
 	shapeDiameter = myFlowTab->diameterEdit->text().toFloat();
 	if (shapeDiameter < 0.f) {
@@ -565,6 +567,9 @@ guiSetFlowType(int typenum){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow type");
 	setFlowType(typenum);
+	myFlowTab->firstDisplayFrameEdit->setEnabled(flowType == 1);
+	if (typenum == 0) 
+		firstDisplayFrame = 0;
 	PanelCommand::captureEnd(cmd, this);
 	
 }
@@ -878,14 +883,14 @@ regenerateFlowData(){
 	
 	if (flowType == 0) { //steady
 		numInjections = 1;
-		maxPoints = maxAgeShown+1;
+		maxPoints = (lastDisplayFrame+1)*objectsPerTimestep;
 	} else {// determine largest possible number of injections
 		numInjections = 1+ (seedTimeEnd - seedTimeStart)/seedTimeIncrement;
-		//For unsteady flow, the minAge and maxAge give a window
+		//For unsteady flow, the firstDisplayFrame and lastDisplayFrame give a window
 		//on a longer timespan that potentially goes from 
 		//the first seed start time to the last frame in the animation.
-		//maxAge does not limit the length of the flow
-		maxPoints = maxFrame - seedTimeStart+1;
+		//lastDisplayFrame does not limit the length of the flow
+		maxPoints = (maxFrame - seedTimeStart+1)*objectsPerTimestep;
 	}
 	flowData = new float[3*maxPoints*numSeedPoints*numInjections];
 
@@ -893,7 +898,7 @@ regenerateFlowData(){
 	if (flowType == 0){ //steady
 		myFlowLib->GenStreamLines(flowData, maxPoints, randomSeed);
 	} else {
-		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, lastTime, seedTimeIncrement);
+		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement);
 	}
 	*/
 	//test stream code, not using flowlib:

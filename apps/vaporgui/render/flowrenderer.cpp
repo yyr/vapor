@@ -36,7 +36,6 @@ FlowRenderer::FlowRenderer(VizWin* vw )
 :Renderer(vw)
 {
     maxPoints = 0;
-	minAge = 0;
 	numSeedPoints = 0;
 	numInjections = 0;
 }
@@ -68,7 +67,8 @@ void FlowRenderer::paintGL()
 		
 		maxPoints = myFlowParams->getMaxPoints();
 
-		minAge = myFlowParams->getMinAge();
+		firstDisplayFrame = myFlowParams->getFirstDisplayFrame();
+		lastDisplayFrame = myFlowParams->getLastDisplayFrame();
 		numSeedPoints = myFlowParams->getNumSeedPoints();
 		numInjections = myFlowParams->getNumInjections();
 	}
@@ -133,7 +133,7 @@ void FlowRenderer::paintGL()
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
 			if (diam <= 1.f){//Render as lines, not cylinders
-				renderCurves(diam, (nLights>0), minAge, maxPoints-1, flowDataArray);
+				renderCurves(diam, (nLights>0), 0, maxPoints-1, flowDataArray);
 			
 			} else { //render as cylinders
 				//Determine cylinder radius in actual coords.
@@ -143,13 +143,15 @@ void FlowRenderer::paintGL()
 					rParams->getFullSize()[0];
 				glPolygonMode(GL_FRONT, GL_FILL);
 				//Render all tubes
-				//Note that maxAge is maxPoints -1
-				renderTubes(rad, (nLights > 0), minAge, maxPoints-1, flowDataArray);
+				//Note that lastDisplayFrame is maxPoints -1
+				//and firstDisplayFrame is 0
+				//
+				renderTubes(rad, (nLights > 0), 0, maxPoints-1, flowDataArray);
 				
 			}
 		} else { //rendering points (or arrows?)
 			//just convert the flow data to a set of points..
-			renderPoints(diam, minAge, maxPoints-1, flowDataArray);
+			renderPoints(diam, 0, maxPoints-1, flowDataArray);
 		}
 	} else { //unsteady flow:
 		//Determine first and last seeding that is visible.
@@ -167,7 +169,7 @@ void FlowRenderer::paintGL()
 		// I.e., want injectionNum <= 1+ (currentFrame - startFrame)/increment)
 		int seedingIncrement = myFlowParams->getSeedingIncrement();
 		int currentFrameNum = VizWinMgr::getInstance()->getAnimationParams(winNum)->getCurrentFrameNumber();
-		int maxAge = myFlowParams->getMaxAge();
+		
 
 		//Check if first injection has happened yet:
 		int startFrame = myFlowParams->getStartFrame();
@@ -176,6 +178,8 @@ void FlowRenderer::paintGL()
 		int lastInjectionFrame = min(currentFrameNum, myFlowParams->getLastSeeding());
 		int lastInjectionNum = 1 + (lastInjectionFrame - startFrame)/seedingIncrement;
 		
+		int objectsPerTimestep = myFlowParams->getObjectsPerTimestep();
+
 		//Do special case of just one seeding:
 		if (seedingIncrement <= 0 || numInjections <= 1){
 			firstInjectionNum = 1;
@@ -185,18 +189,21 @@ void FlowRenderer::paintGL()
 		//injection at time startFrame + (injectionNum-1)*seedingIncrement
 		for (int injectionNum = firstInjectionNum; injectionNum <= lastInjectionNum; injectionNum++){
 			int flowStartFrame = myFlowParams->getStartFrame()+(injectionNum-1)*seedingIncrement;
-			//Use the ages to determine what part of the flow is to be seen
-			int lastAge = currentFrameNum - flowStartFrame - minAge;
-			int firstAge = currentFrameNum - flowStartFrame - maxAge;
-			if (firstAge < 0) firstAge = 0;
-			if (lastAge < 0) lastAge = 0;
-			if (lastAge > maxPoints) lastAge = maxPoints;
-			if (firstAge > lastAge) continue;
+			//Use the display interval to determine what part of the flow is to be visible
+			int lastFrame = (currentFrameNum - flowStartFrame) + lastDisplayFrame;
+			int firstFrame = currentFrameNum - flowStartFrame - firstDisplayFrame;
+			//The rendered geometry depends on how many objects per timestep:
+			int firstGeom = (int)(firstFrame*objectsPerTimestep + 0.5f);
+			int lastGeom = (int)(lastFrame*objectsPerTimestep+0.5f);
+			if (firstGeom < 0) firstGeom = 0;
+			if (lastGeom < 0) lastGeom = 0;
+			if (lastGeom >= maxPoints) lastGeom = maxPoints-1;
+			if (firstGeom > lastGeom) continue;
 			
 			if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 					
 				if (diam <= 1.f){//Render as lines, not cylinders
-					renderCurves(diam, (nLights>0), firstAge, lastAge,
+					renderCurves(diam, (nLights>0), firstGeom, lastGeom,
 						flowDataArray+3*maxPoints*numSeedPoints*(injectionNum-1));
 				
 				} else { //render as cylinders
@@ -207,13 +214,13 @@ void FlowRenderer::paintGL()
 						rParams->getFullSize()[0];
 					glPolygonMode(GL_FRONT, GL_FILL);
 					//Render all tubes
-					renderTubes(rad, (nLights > 0), firstAge, lastAge,
+					renderTubes(rad, (nLights > 0), firstGeom, lastGeom,
 						flowDataArray+3*maxPoints*numSeedPoints*(injectionNum-1));
 					
 				}
 			} else { //rendering points (or arrows?)
 				//just convert the flow data to a set of points..
-				renderPoints(diam, firstAge, lastAge,
+				renderPoints(diam, firstGeom, lastGeom,
 						flowDataArray+3*maxPoints*numSeedPoints*(injectionNum-1));
 			}
 		}

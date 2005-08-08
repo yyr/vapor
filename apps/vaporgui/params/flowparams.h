@@ -80,14 +80,15 @@ public:
 	int getMaxPoints() {return maxPoints;}
 	int getNumSeedPoints() { return numSeedPoints;}
 	int getNumInjections() { return numInjections;}
-	int getMinAge() {return minAgeShown;}
-	int getMaxAge() {return maxAgeShown;}
+	int getFirstDisplayFrame() {return firstDisplayFrame;}
+	int getLastDisplayFrame() {return lastDisplayFrame;}
 	int getStartFrame() {return seedTimeStart;}
 	int getLastSeeding() {return seedTimeEnd;}
 	int getSeedingIncrement() {return seedTimeIncrement;}
 	float getShapeDiameter() {return shapeDiameter;}
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
+	float getObjectsPerTimestep() {return objectsPerTimestep;}
 
 	//Methods called from vizwinmgr due to settings in gui:
 	void guiSetFlowType(int typenum);
@@ -183,7 +184,7 @@ protected:
 
 	int geometryType;  //0= tube, 1=point, 2 = arrow
 	float objectsPerTimestep;
-	int minAgeShown, maxAgeShown;
+	int firstDisplayFrame, lastDisplayFrame;
 	int maxPoints;  //largest length of any flow
 	float shapeDiameter;
 	int colorMappedEntity; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
