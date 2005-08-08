@@ -1792,71 +1792,26 @@
                             </widget>
                             <widget class="QLayoutWidget">
                                 <property name="name">
-                                    <cstring>layout52</cstring>
+                                    <cstring>layout27</cstring>
                                 </property>
                                 <hbox>
                                     <property name="name">
                                         <cstring>unnamed</cstring>
                                     </property>
-                                    <spacer>
-                                        <property name="name">
-                                            <cstring>spacer36</cstring>
-                                        </property>
-                                        <property name="orientation">
-                                            <enum>Horizontal</enum>
-                                        </property>
-                                        <property name="sizeType">
-                                            <enum>Expanding</enum>
-                                        </property>
-                                        <property name="sizeHint">
-                                            <size>
-                                                <width>31</width>
-                                                <height>21</height>
-                                            </size>
-                                        </property>
-                                    </spacer>
                                     <widget class="QLabel">
                                         <property name="name">
                                             <cstring>textLabel6_2</cstring>
                                         </property>
                                         <property name="text">
-                                            <string>Min, max age shown</string>
+                                            <string>Display interval before, after current timestep</string>
                                         </property>
                                         <property name="alignment">
                                             <set>AlignCenter</set>
                                         </property>
                                     </widget>
-                                    <widget class="QLineEdit">
-                                        <property name="name">
-                                            <cstring>minAgeEdit</cstring>
-                                        </property>
-                                        <property name="text">
-                                            <string>0</string>
-                                        </property>
-                                        <property name="alignment">
-                                            <set>AlignHCenter</set>
-                                        </property>
-                                        <property name="toolTip" stdset="0">
-                                            <string>Specify the minimum age that the flow shapes will start to appear</string>
-                                        </property>
-                                    </widget>
-                                    <widget class="QLineEdit">
-                                        <property name="name">
-                                            <cstring>maxAgeEdit</cstring>
-                                        </property>
-                                        <property name="text">
-                                            <string>100</string>
-                                        </property>
-                                        <property name="alignment">
-                                            <set>AlignHCenter</set>
-                                        </property>
-                                        <property name="toolTip" stdset="0">
-                                            <string>Specify the max age after which no flow shapes will appear</string>
-                                        </property>
-                                    </widget>
                                     <spacer>
                                         <property name="name">
-                                            <cstring>spacer37</cstring>
+                                            <cstring>spacer27</cstring>
                                         </property>
                                         <property name="orientation">
                                             <enum>Horizontal</enum>
@@ -1867,10 +1822,50 @@
                                         <property name="sizeHint">
                                             <size>
                                                 <width>21</width>
-                                                <height>21</height>
+                                                <height>20</height>
                                             </size>
                                         </property>
                                     </spacer>
+                                    <widget class="QLineEdit">
+                                        <property name="name">
+                                            <cstring>firstDisplayFrameEdit</cstring>
+                                        </property>
+                                        <property name="maximumSize">
+                                            <size>
+                                                <width>40</width>
+                                                <height>32767</height>
+                                            </size>
+                                        </property>
+                                        <property name="text">
+                                            <string>0</string>
+                                        </property>
+                                        <property name="alignment">
+                                            <set>AlignHCenter</set>
+                                        </property>
+                                        <property name="toolTip" stdset="0">
+                                            <string>Specify the max number of timesteps before the current timestep for the first flow step</string>
+                                        </property>
+                                    </widget>
+                                    <widget class="QLineEdit">
+                                        <property name="name">
+                                            <cstring>lastDisplayFrameEdit</cstring>
+                                        </property>
+                                        <property name="maximumSize">
+                                            <size>
+                                                <width>40</width>
+                                                <height>32767</height>
+                                            </size>
+                                        </property>
+                                        <property name="text">
+                                            <string>100</string>
+                                        </property>
+                                        <property name="alignment">
+                                            <set>AlignHCenter</set>
+                                        </property>
+                                        <property name="toolTip" stdset="0">
+                                            <string>Specify the max number of timesteps after the current time for the flow to display</string>
+                                        </property>
+                                    </widget>
                                 </hbox>
                             </widget>
                             <widget class="QLayoutWidget">

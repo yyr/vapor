@@ -907,10 +907,10 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->seedtimeIncrementEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->objectsPerTimestepEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->objectsPerTimestepEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
-	connect (flowTab->minAgeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->minAgeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
-	connect (flowTab->maxAgeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->maxAgeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->firstDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->firstDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->lastDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->lastDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->diameterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->diameterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->minColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
