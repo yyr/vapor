@@ -135,8 +135,9 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				backTrace = new vtListSeedTrace;
 				stepList = new list<float>;
 				computeFieldLine(BACKWARD,m_integrationOrder, STEADY, *backTrace, *stepList, thisSeed->m_pointInfo);
-				backTrace->clear();
 				SampleStreamline(points, posInPoints, backTrace, stepList);
+				backTrace->clear();
+				stepList->clear();
 			}
 			if(m_itsTraceDir & FORWARD_DIR)
 			{
@@ -145,8 +146,9 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				forwardTrace = new vtListSeedTrace;
 				stepList = new list<float>;
 				computeFieldLine(FORWARD,m_integrationOrder, STEADY, *forwardTrace, *stepList, thisSeed->m_pointInfo);
-				forwardTrace->clear();
 				SampleStreamline(points, posInPoints, forwardTrace, stepList);
+				forwardTrace->clear();
+				stepList->clear();
 			}
 		}
 	}
@@ -238,7 +240,7 @@ void vtCStreamLine::SampleStreamline(float* positions,
 	pIter1 = seedTrace->begin();
 	pIter2 = pIter1++;
 	pStepIter = stepList->begin();
-	stepsizeLeft = 0;
+	stepsizeLeft = *pStepIter;
 	
 	// the first one is seed
 	positions[ptr++] = (**pIter1)[0];
@@ -249,19 +251,26 @@ void vtCStreamLine::SampleStreamline(float* positions,
 	// other advecting result
 	while((count < m_nMaxsize) && (pStepIter != stepList->end()))
 	{
-		if((stepsizeLeft+ (*pStepIter)) < 1.0)			// not enough for sampling
+		float ratio;
+		if(stepsizeLeft < 1.0)
 		{
 			pIter1++;
 			pIter2++;
+			pStepIter++;
 			stepsizeLeft += *pStepIter;
 		}
-		else											// should generate a sampling point
+		else
 		{
-			float ratio = 1 - stepsizeLeft;				// interpolation ratio
-			stepsizeLeft = (*pStepIter) - ratio;		// left
+			stepsizeLeft -= 1;
+			ratio = (*pStepIter - stepsizeLeft)/(*pStepIter);
 			positions[ptr++] = Lerp((**pIter1)[0], (**pIter2)[0], ratio);
 			positions[ptr++] = Lerp((**pIter1)[1], (**pIter2)[1], ratio);
 			positions[ptr++] = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
+			count++;
 		}
 	}
+
+	// if # of sampled points < maximal points asked
+	if(count < m_nMaxsize)
+		positions[ptr] = 1.0e+30f;
 }

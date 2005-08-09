@@ -34,11 +34,12 @@ Solution::Solution()
 //		nodeNum:	number of total nodes
 //		timeSteps:	how many time steps, for static data, this is 1
 //////////////////////////////////////////////////////////////////////////
-Solution::Solution(VECTOR3** pData, int nodeNum, int timeSteps)
+Solution::Solution(float** pUData, float** pVData, float** pWData,
+				   int nodeNum, int timeSteps)
 {
-	assert((pData != NULL) && (nodeNum > 0) && (timeSteps > 0));
-
-	m_pDataArray = pData;
+	m_pUDataArray = pUData;
+	m_pVDataArray = pVData;
+	m_pWDataArray = pWData;
 	m_nNodeNum = nodeNum;
 	m_nTimeSteps = timeSteps;			
 }
@@ -46,18 +47,32 @@ Solution::Solution(VECTOR3** pData, int nodeNum, int timeSteps)
 Solution::~Solution()
 {
 	int iFor;
-
-	if(m_pDataArray != NULL)
+/*	
+	if(m_pUDataArray != NULL)
 	{
 		for(iFor = 0; iFor < m_nTimeSteps; iFor++)
-			delete m_pDataArray[iFor];
-		delete[] m_pDataArray;
+			delete m_pUDataArray[iFor];
+		delete[] m_pUDataArray;
 	}
+	if(m_pVDataArray != NULL)
+	{
+		for(iFor = 0; iFor < m_nTimeSteps; iFor++)
+			delete m_pVDataArray[iFor];
+		delete[] m_pVDataArray;
+	}
+	if(m_pWDataArray != NULL)
+	{
+		for(iFor = 0; iFor < m_nTimeSteps; iFor++)
+			delete m_pWDataArray[iFor];
+		delete[] m_pWDataArray;
+	}*/
 }
 
 void Solution::Reset()
 {
-	m_pDataArray = NULL;
+	m_pUDataArray = NULL;
+	m_pVDataArray = NULL;
+	m_pWDataArray = NULL;
 	m_nNodeNum = 0;
 	m_nTimeSteps = 1;		
 	m_nStartT = 0;
@@ -68,10 +83,14 @@ void Solution::Reset()
 //////////////////////////////////////////////////////////////////////////
 // change vector data on-the-fly
 //////////////////////////////////////////////////////////////////////////
-void Solution::SetValue(int t, VECTOR3* pData)
+void Solution::SetValue(int t, float* pUData, float* pVData, float* pWData)
 {
 	if((t > 0) && (t < m_nTimeSteps))
-		m_pDataArray[t] = pData;
+	{
+		m_pUDataArray[t] = pUData;
+		m_pVDataArray[t] = pVData;
+		m_pWDataArray[t] = pWData;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -101,7 +120,7 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 		return -1;
 
 	if(!isTimeVarying())
-		nodeData = m_pDataArray[(int)t][id];
+		nodeData.Set(m_pUDataArray[(int)t][id], m_pVDataArray[(int)t][id], m_pWDataArray[(int)t][id]);
 	else
 	{
 		int lowT, highT;
@@ -116,9 +135,9 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 			highT = lowT;
 			ratio = 0.0;
 		}
-		nodeData.Set(Lerp(m_pDataArray[lowT][id][0], m_pDataArray[highT][id][0], ratio), 
-					 Lerp(m_pDataArray[lowT][id][1], m_pDataArray[highT][id][1], ratio),
-					 Lerp(m_pDataArray[lowT][id][2], m_pDataArray[highT][id][2], ratio));
+		nodeData.Set(Lerp(m_pUDataArray[lowT][id], m_pUDataArray[highT][id], ratio), 
+					 Lerp(m_pVDataArray[lowT][id], m_pVDataArray[highT][id], ratio),
+					 Lerp(m_pWDataArray[lowT][id], m_pWDataArray[highT][id], ratio));
 	}
 	
 	return 1;
@@ -145,13 +164,17 @@ void Solution::Normalize(bool bLocal)
 		{
 			for(jFor = 0; jFor < m_nNodeNum; jFor++)
 			{
-				mag = m_pDataArray[iFor][jFor].GetMag();
+				VECTOR3 tmpVec;
+				tmpVec.Set(m_pUDataArray[iFor][jFor], m_pVDataArray[iFor][jFor], m_pWDataArray[iFor][jFor]);
+				mag = tmpVec.GetMag();
 				if(mag != 0.0)
 				{
-					u = m_pDataArray[iFor][jFor][0]/mag;
-					v = m_pDataArray[iFor][jFor][1]/mag;
-					w = m_pDataArray[iFor][jFor][2]/mag;
-					m_pDataArray[iFor][jFor].Set(u, v, w);
+					u = m_pUDataArray[iFor][jFor]/mag;
+					v = m_pVDataArray[iFor][jFor]/mag;
+					w = m_pWDataArray[iFor][jFor]/mag;
+					m_pUDataArray[iFor][jFor] = u;
+					m_pVDataArray[iFor][jFor] = v;
+					m_pWDataArray[iFor][jFor] = w;
 				}
 				
 				if(mag < m_fMinMag)
@@ -167,7 +190,9 @@ void Solution::Normalize(bool bLocal)
 		{
 			for(jFor = 0; jFor < m_nNodeNum; jFor++)
 			{
-				mag = m_pDataArray[iFor][jFor].GetMag();
+				VECTOR3 tmpVec;
+				tmpVec.Set(m_pUDataArray[iFor][jFor], m_pVDataArray[iFor][jFor], m_pWDataArray[iFor][jFor]);
+				mag = tmpVec.GetMag();
 				if(mag < m_fMinMag)
 					m_fMinMag = mag;
 				if(mag > m_fMaxMag)
@@ -179,10 +204,12 @@ void Solution::Normalize(bool bLocal)
 		{
 			for(jFor = 0; jFor < m_nNodeNum; jFor++)
 			{
-				u = m_pDataArray[iFor][jFor][0]/m_fMaxMag;
-				v = m_pDataArray[iFor][jFor][1]/m_fMaxMag;
-				w = m_pDataArray[iFor][jFor][2]/m_fMaxMag;
-				m_pDataArray[iFor][jFor].Set(u, v, w);
+				u = m_pUDataArray[iFor][jFor]/mag;
+				v = m_pVDataArray[iFor][jFor]/mag;
+				w = m_pWDataArray[iFor][jFor]/mag;
+				m_pUDataArray[iFor][jFor] = u;
+				m_pVDataArray[iFor][jFor] = v;
+				m_pWDataArray[iFor][jFor] = w;
 			}
 		}
 	}

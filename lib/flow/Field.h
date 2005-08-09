@@ -54,7 +54,7 @@ public:
 	CellType GetCellType(void) {return m_pGrid->GetCellType();}
 	void Boundary(VECTOR3& minB, VECTOR3& maxB) { m_pGrid->Boundary(minB, maxB); }
 	bool isCellOnBoundary(int cellId);
-	void SetSolutionData(int t, VECTOR3* pData) {m_pSolution->SetValue(t, pData);}
+	void SetSolutionData(int t, float* pUData, float* pVData, float* pWData) {m_pSolution->SetValue(t, pUData, pVData, pWData);}
 };
 };
 //////////////////////////////////////////////////////////////////////////

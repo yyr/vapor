@@ -121,8 +121,8 @@ void VaporFlow::SetRandomSeedPoints(const float min[3],
 {
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
-		minRakeExt[iFor] = min[iFor];
-		maxRakeExt[iFor] = max[iFor];
+		minRakeExt[iFor] = min[iFor]*dataMgr->GetMetadata()->GetBlockSize();
+		maxRakeExt[iFor] = max[iFor]*dataMgr->GetMetadata()->GetBlockSize();
 	}
 	this->numSeeds[0] = numSeeds;
 	this->numSeeds[1] = 1;
@@ -160,10 +160,9 @@ void VaporFlow::SetIntegrationParams(float initStepSize, float maxStepSize)
 //////////////////////////////////////////////////////////////////////////
 // prepare the necessary data
 //////////////////////////////////////////////////////////////////////////
-void VaporFlow::GetData(size_t ts, VECTOR3* pData, const int numNode)
+float* VaporFlow::GetData(size_t ts, const char* varName, const int numNode)
 {
-	float *vx, *vy, *vz;
-
+	float *lowPtr, *highPtr;
 	// find low and high ts to sample data
 	size_t lowT, highT;
 	float ratio;
@@ -172,20 +171,15 @@ void VaporFlow::GetData(size_t ts, VECTOR3* pData, const int numNode)
 	ratio = (float)((ts - startTimeStep)%timeStepIncrement)/(float)timeStepIncrement;
 	
 	// get low data
-	vx = dataMgr->GetRegion(lowT, xVarName, numXForms, minRegion, maxRegion);
-	vy = dataMgr->GetRegion(lowT, yVarName, numXForms, minRegion, maxRegion);
-	vz = dataMgr->GetRegion(lowT, zVarName, numXForms, minRegion, maxRegion);
-	for(int iFor = 0; iFor < numNode; iFor++)
-		pData[iFor].Set(vx[iFor], vy[iFor], vz[iFor]);
-
+	lowPtr = dataMgr->GetRegion(lowT, varName, numXForms, minRegion, maxRegion);
+		
 	// get high data and interpolate
-	vx = dataMgr->GetRegion(highT, xVarName, numXForms, minRegion, maxRegion);
-	vy = dataMgr->GetRegion(highT, yVarName, numXForms, minRegion, maxRegion);
-	vz = dataMgr->GetRegion(highT, zVarName, numXForms, minRegion, maxRegion);
+	highPtr = dataMgr->GetRegion(highT, varName, numXForms, minRegion, maxRegion);
+	
 	for(int iFor = 0; iFor < numNode; iFor++)
-		pData[iFor].Set(Lerp(pData[iFor][0], vx[iFor], ratio),
-						Lerp(pData[iFor][1], vy[iFor], ratio),
-						Lerp(pData[iFor][2], vz[iFor], ratio));
+		lowPtr[iFor] = Lerp(lowPtr[iFor], highPtr[iFor], ratio);
+
+	return lowPtr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -203,20 +197,25 @@ bool VaporFlow::GenStreamLines(float* positions,
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
 	pSeedGenerator->GetSeeds(seedPtr, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
-
+	
 	// create field object
 	CVectorField* pField;
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
-	VECTOR3** ppVector;
-	int totalNum = (int)(maxRegion[0]-minRegion[0]+1)*(int)(maxRegion[1]-minRegion[1]+1)*(int)(maxRegion[2]-minRegion[2]+1);
-	ppVector = new VECTOR3*[1];
-	ppVector[0] = new VECTOR3[totalNum];
-	GetData(0, ppVector[0], totalNum);
-	pSolution = new Solution(ppVector, totalNum, 1);
-	pCartesianGrid = new CartesianGrid( (int)(maxRegion[0]-minRegion[0]+1), 
-										(int)(maxRegion[1]-minRegion[1]+1), 
-										(int)(maxRegion[2]-minRegion[2]+1));
+	float **pUData, **pVData, **pWData;
+	int totalXNum = (maxRegion[0]-minRegion[0])* dataMgr->GetMetadata()->GetBlockSize();
+	int totalYNum = (maxRegion[1]-minRegion[1])* dataMgr->GetMetadata()->GetBlockSize();
+	int totalZNum = (maxRegion[2]-minRegion[2])* dataMgr->GetMetadata()->GetBlockSize();
+	int totalNum = totalXNum*totalYNum*totalZNum;
+	pUData = new float*[1];
+	pVData = new float*[1];
+	pWData = new float*[1];
+	pUData[0] = GetData(startTimeStep, xVarName, totalNum);
+	pVData[0] = GetData(startTimeStep, yVarName, totalNum);
+	pWData[0] = GetData(startTimeStep, zVarName, totalNum);
+	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
+	pSolution->SetTime(startTimeStep, startTimeStep, 1);
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
 	pCartesianGrid->ComputeBBox();
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
 	
@@ -227,9 +226,9 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pStreamLine->setBackwardTracing(false);
 	pStreamLine->SetLowerUpperAngle(3.0, 15.0);
 	pStreamLine->setMaxPoints(maxPoints);
-	pStreamLine->SetMaxStepSize(2.0);
 	pStreamLine->setSeedPoints(seedPtr, seedNum, currentT);
 	pStreamLine->SetInitStepSize(initialStepSize);
+	pStreamLine->SetMaxStepSize(maxStepSize);
 	pStreamLine->setIntegrationOrder(FOURTH);
 	pStreamLine->execute((void *)&currentT, positions);
 	
@@ -263,20 +262,29 @@ bool VaporFlow::GenStreakLines(float* positions,
 	CVectorField* pField;
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
-	VECTOR3** ppVector;
+	float **pUData, **pVData, **pWData;
 	int numInjections;						// times to inject new seeds
 	int timeSteps;							// total "time steps"
-	int totalNum = (int)(maxRegion[0]-minRegion[0]+1)*(int)(maxRegion[1]-minRegion[1]+1)*(int)(maxRegion[2]-minRegion[2]+1);
+	int totalXNum = (maxRegion[0]-minRegion[0])* dataMgr->GetMetadata()->GetBlockSize();
+	int totalYNum = (maxRegion[1]-minRegion[1])* dataMgr->GetMetadata()->GetBlockSize();
+	int totalZNum = (maxRegion[2]-minRegion[2])* dataMgr->GetMetadata()->GetBlockSize();
+	int totalNum = totalXNum*totalYNum*totalZNum;
 	numInjections = 1 + ((endInjection - startInjection)/injectionTimeIncrement);
 	timeSteps = numInjections+1;
-	ppVector = new VECTOR3*[timeSteps];
-	for(int iFor = 0; iFor < timeSteps; iFor++)		ppVector[iFor] = NULL;
-	pSolution = new Solution(ppVector, totalNum, timeSteps);
+	pUData = new float*[timeSteps];
+	pVData = new float*[timeSteps];
+	pWData = new float*[timeSteps];
+	for(int iFor = 0; iFor < timeSteps; iFor++)		
+	{
+		pUData[iFor] = NULL;
+		pVData[iFor] = NULL;
+		pWData[iFor] = NULL;
+	}
+	pSolution = new Solution(pUData, pVData, pWData, totalNum, timeSteps);
+
 	int temp = (endInjection+injectionTimeIncrement)<endTimeStep?(endInjection+injectionTimeIncrement):endTimeStep;
 	pSolution->SetTime(startInjection, temp, injectionTimeIncrement);
-	pCartesianGrid = new CartesianGrid((int)(maxRegion[0]-minRegion[0]+1), 
-									   (int)(maxRegion[1]-minRegion[1]+1), 
-									   (int)(maxRegion[2]-minRegion[2]+1));
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
 	pCartesianGrid->ComputeBBox();
 	pField = new CVectorField(pCartesianGrid, pSolution, timeSteps);
 
@@ -287,8 +295,9 @@ bool VaporFlow::GenStreakLines(float* positions,
 	pStreakLine->SetTimeDir(FORWARD);
 	pStreakLine->setParticleLife(maxPoints);
 	pStreakLine->SetLowerUpperAngle(3.0, 15.0);
-	pStreakLine->SetMaxStepSize(2.0);
 	pStreakLine->setSeedPoints(seedPtr, seedNum, currentT);
+	pStreakLine->SetInitStepSize(initialStepSize);
+	pStreakLine->SetMaxStepSize(maxStepSize);
 	pStreakLine->setIntegrationOrder(FOURTH);
 
 	// start to computer streakline
@@ -302,18 +311,21 @@ bool VaporFlow::GenStreakLines(float* positions,
 		{
 			if(index == 0)
 			{
-				VECTOR3* pData1 = new VECTOR3[totalNum];
-				VECTOR3* pData2 = new VECTOR3[totalNum];
-				GetData(iFor, pData1, totalNum);
-				GetData(iFor+injectionTimeIncrement, pData2, totalNum);
-				pField->SetSolutionData(iInjection, pData1);
-				pField->SetSolutionData(iInjection+1, pData2);
+				pField->SetSolutionData(iInjection, 
+										GetData(iFor, xVarName, totalNum),
+										GetData(iFor, yVarName, totalNum),
+										GetData(iFor, zVarName, totalNum));
+				pField->SetSolutionData(iInjection+1, 
+										GetData(iFor+injectionTimeIncrement, xVarName, totalNum),
+										GetData(iFor+injectionTimeIncrement, yVarName, totalNum),
+										GetData(iFor+injectionTimeIncrement, zVarName, totalNum));
 			}
 			else if((index/injectionTimeIncrement) == 0)
 			{
-				VECTOR3* pData2 = new VECTOR3[totalNum];
-				GetData(iFor+injectionTimeIncrement, pData2, totalNum);
-				pField->SetSolutionData(iInjection+1, pData2);
+				pField->SetSolutionData(iInjection+1, 
+										GetData(iFor+injectionTimeIncrement, xVarName, totalNum),
+										GetData(iFor+injectionTimeIncrement, yVarName, totalNum),
+										GetData(iFor+injectionTimeIncrement, zVarName, totalNum));
 			}
 		}
 		

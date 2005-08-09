@@ -194,7 +194,7 @@ void vtCFieldLine::setSeedPoints(float* points, int numPoints, float t)
 	if(points == NULL)
 		return;
 
-	// if the rake size has changed, forget the previous seed points
+	// if the rake size has changed, forget the previous seed pointsQ
 	if( m_nNumSeeds != numPoints )
 		releaseSeedMemory();
 

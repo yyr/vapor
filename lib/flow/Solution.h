@@ -21,7 +21,9 @@ namespace VAPoR
 class FLOW_API Solution : public VetsUtil::MyBase
 {
 private:
-	VECTOR3** m_pDataArray;				// data value
+	float** m_pUDataArray;				// U data value
+	float** m_pVDataArray;				// V data value
+	float** m_pWDataArray;				// W data value
 	int m_nNodeNum;						// how many nodes each time step
 	float m_fMinMag;					// minimal magnitude
 	float m_fMaxMag;					// maximum magnitude
@@ -36,13 +38,13 @@ private:
 public:
 	// constructor
 	Solution();
-	Solution(VECTOR3** pData, int nodeNum, int timeSteps);
+	Solution(float** pUData, float** pVData, float** pWData, int nodeNum, int timeSteps);
 	~Solution();
 
 	void Reset();
 
 	// solution functions
-	void SetValue(int t, VECTOR3* pData);
+	void SetValue(int t, float* pUData, float* pVData, float* pWData);
 	bool isTimeVarying(void);
 	int GetValue(int id, const float t, VECTOR3& nodeData);
 	void Normalize(bool bLocal);
