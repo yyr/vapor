@@ -70,7 +70,6 @@ using namespace VAPoR;
 const string DvrParams::_variableTag = "Variable";
 const string DvrParams::_leftEditBoundAttr = "LeftEditBound";
 const string DvrParams::_rightEditBoundAttr = "RightEditBound";
-const string DvrParams::_numVariablesAttr = "NumVariables";
 const string DvrParams::_variableNumAttr = "VariableNum";
 const string DvrParams::_activeVariableNumAttr = "ActiveVariableNum";
 const string DvrParams::_editModeAttr = "TFEditMode";

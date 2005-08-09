@@ -226,7 +226,8 @@ buildNode() {
 	if(animNode) globalPanels->AddChild(animNode);
 	XmlNode* vpNode = vizMgr->getGlobalParams(Params::ViewpointParamsType)->buildNode();
 	if (vpNode) globalPanels->AddChild(vpNode);
-
+	XmlNode* flowNode = vizMgr->getGlobalParams(Params::FlowParamsType)->buildNode();
+	if (flowNode) globalPanels->AddChild(flowNode);
 	//have vizwinmgr populate the vizwin nodes
 	mainNode->AddChild(vizMgr->buildNode());
 	

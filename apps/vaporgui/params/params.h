@@ -60,8 +60,10 @@ public:
 	static const string _regionParamsTag;
 	static const string _viewpointParamsTag;
 	static const string _animationParamsTag;
+	static const string _flowParamsTag;
 	static const string _vizNumAttr;
 	static const string _localAttr;
+	static const string _numVariablesAttr;
 	virtual ~Params() {}
 	//Each params must be able to make a "deep" copy,
 	//I.e. copy everything that is unique to this object

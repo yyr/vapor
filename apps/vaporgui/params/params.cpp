@@ -34,8 +34,10 @@ const string Params::_dvrParamsTag = "DvrPanelParameters";
 const string Params::_regionParamsTag = "RegionPanelParameters";
 const string Params::_animationParamsTag = "AnimationPanelParameters";
 const string Params::_viewpointParamsTag = "ViewpointPanelParameters";
+const string Params::_flowParamsTag = "FlowPanelParameters";
 const string Params::_localAttr = "Local";
 const string Params::_vizNumAttr = "VisualizerNum";
+const string Params::_numVariablesAttr = "NumVariables";
 //Methods to find the "other" params in a local/global switch:
 //
 Params* Params::

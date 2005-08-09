@@ -2086,6 +2086,8 @@ XmlNode* VizWinMgr::buildNode() {
 			if(animNode) locals->AddChild(animNode);
 			XmlNode* vpNode = vpParams[i]->buildNode();
 			if (vpNode) locals->AddChild(vpNode);
+			XmlNode* flowNode = flowParams[i]->buildNode();
+			if (flowNode) locals->AddChild(flowNode);
 		}
 	}
 	return vizMgrNode;

@@ -63,7 +63,9 @@ public:
 	//Methods that record changes in the history:
 	//
 	virtual void guiSetEnabled(bool);
-	
+
+	//Save, restore stuff:
+	XmlNode* buildNode(); 
 	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){return true;}
 	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){return true;}
 	
@@ -111,7 +113,16 @@ public:
 
 protected:
 	//Tags for attributes in session save
-	//flow seeding variables:
+	//Top level labels
+	static const string _mappedVariablesAttr;
+	static const string _steadyFlowAttr;
+	static const string _instanceAttr;
+	static const string _numTransformsAttr;
+	static const string _integrationAccuracyAttr;
+	static const string _userTimeStepMultAttr;
+	static const string _timeSamplingIntervalAttr;
+
+	//flow seeding tags and attributss
 	static const string _seedingTag;
 	static const string _seedRegionMinAttr;
 	static const string _seedRegionMaxAttr;
@@ -121,25 +132,21 @@ protected:
 	static const string _totalGeneratorCountAttr;
 	static const string _seedTimesAttr;
 
-	static const string _mappedVariablesTag;
-	static const string _flowTypeAttr;
-	static const string _instanceAttr;
-	static const string _numTransAttr;
-	static const string _integrationAccuracyAttr;
-	static const string _userTimeStepMultAttr;
-	static const string _timeSamplingIntervalAttr;
-	
-	//Geometry variables:
+	//Geometry attributes
 	static const string _geometryTag;
 	static const string _geometryTypeAttr;
 	static const string _objectsPerTimestepAttr;
-	static const string _ageRangeAttr;
+	static const string _displayIntervalAttr;
 	static const string _shapeDiameterAttr;
 	static const string _colorMappedEntityAttr;
 	static const string _colorMappingBoundsAttr;
+	static const string _hsvAttr;
+	static const string _positionAttr;
+	static const string _colorControlPointTag;
+	static const string _numControlPointsAttr;
 
 	void setFlowType(int typenum){flowType = typenum; setDirty(true);}
-	void setNumTrans(int numtrans){numTrans = numtrans; setDirty(true);}
+	void setNumTrans(int numtrans){numTransforms = numtrans; setDirty(true);}
 	void setMaxNumTrans(int maxNT) {maxNumTrans = maxNT;}
 	void setMinNumTrans(int minNT) {minNumTrans = minNT;}
 	void setXVarNum(int varnum){varNum[0] = varnum; setDirty(true);}
@@ -153,7 +160,7 @@ protected:
 	void setYSize(int sliderval);
 	void setZSize(int sliderval);
 	void setFlowGeometry(int geomNum){geometryType = geomNum;}
-	void setMapEntity( int entityNum){colorMappedEntity = entityNum;}
+	void setMapEntity( int entityNum){colorMapEntityIndex = entityNum;}
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 
 	//Methods to make sliders and text consistent for seed region:
@@ -163,7 +170,7 @@ protected:
 	FlowTab* myFlowTab;
 	int flowType; //steady = 0, unsteady = 1;
 	int instance;
-	int numTrans, maxNumTrans, minNumTrans;
+	int numTransforms, maxNumTrans, minNumTrans;
 	int numVariables;
 	std::vector<std::string> variableNames;
 	int varNum[3]; //variable num's in x, y, and z.
@@ -176,21 +183,30 @@ protected:
 	bool dirty;
 	
 	unsigned int randomSeed;
-	
+	float seedBoxMin[3], seedBoxMax[3];
 	size_t generatorCount[3];
 	size_t allGeneratorCount;
 	int seedTimeStart, seedTimeEnd, seedTimeIncrement;
-	int currentDimension;
+	int currentDimension;//Which dimension is showing in generator count
 
 	int geometryType;  //0= tube, 1=point, 2 = arrow
 	float objectsPerTimestep;
 	int firstDisplayFrame, lastDisplayFrame;
 	int maxPoints;  //largest length of any flow
 	float shapeDiameter;
-	int colorMappedEntity; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
+	int colorMapEntityIndex; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
 	float colorMapMin, colorMapMax;
+	struct colorControlPoint {
+		float position;
+		float hsv[3];
+	};
+	
+	std::vector<colorControlPoint> colorControlPoints;
+	std::vector<string> colorMapEntity;
+	int numControlPoints;
+
 	float regionMin[3], regionMax[3];
-	float seedBoxMin[3], seedBoxMax[3];
+	
 	VaporFlow* myFlowLib;
 
 	//Array to hold all the points returned from flow lib

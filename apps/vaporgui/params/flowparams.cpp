@@ -16,6 +16,16 @@
 //
 //	Description:  Implementation of flowparams class 
 //
+#ifdef WIN32
+//Annoying unreferenced formal parameter warning
+#pragma warning( disable : 4100 )
+#endif
+
+#include <vector>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include "flowparams.h"
 #include "flowtab.h"
 #include "flowrenderer.h"
@@ -38,6 +48,36 @@
 #include "vizwinmgr.h"
 #include "messagereporter.h"
 using namespace VAPoR;
+	const string FlowParams::_seedingTag = "FlowSeeding";
+	const string FlowParams::_seedRegionMinAttr = "SeedRegionMins";
+	const string FlowParams::_seedRegionMaxAttr = "SeedRegionMaxes";
+	const string FlowParams::_randomGenAttr = "RandomSeeding";
+	const string FlowParams::_randomSeedAttr = "RandomSeed";
+	const string FlowParams::_generatorCountsAttr = "GeneratorCountsByDimension";
+	const string FlowParams::_totalGeneratorCountAttr = "TotalGeneratorCount";
+	const string FlowParams::_seedTimesAttr = "SeedInjectionTimes";
+
+	const string FlowParams::_mappedVariablesAttr = "MappedVariables";
+	const string FlowParams::_steadyFlowAttr = "SteadyFlow";
+	const string FlowParams::_instanceAttr = "FlowRendererInstance";
+	const string FlowParams::_numTransformsAttr = "NumTransforms";
+	const string FlowParams::_integrationAccuracyAttr = "IntegrationAccuracy";
+	const string FlowParams::_userTimeStepMultAttr = "UserTimeStepMultiplier";
+	const string FlowParams::_timeSamplingIntervalAttr = "TimeSamplingInterval";
+	
+	//Geometry variables:
+	const string FlowParams::_geometryTag = "FlowGeometry";
+	const string FlowParams::_geometryTypeAttr = "GeometryType";
+	const string FlowParams::_objectsPerTimestepAttr = "ObjectsPerTimestep";
+	const string FlowParams::_displayIntervalAttr = "DisplayInterval";
+	const string FlowParams::_shapeDiameterAttr = "ShapeDiameter";
+	const string FlowParams::_colorMappedEntityAttr = "ColorMappedEntity";
+	const string FlowParams::_colorMappingBoundsAttr = "ColorMappingBounds";
+	const string FlowParams::_hsvAttr = "HSV";
+	const string FlowParams::_positionAttr = "Position";
+	const string FlowParams::_colorControlPointTag = "ColorControlPoint";
+	const string FlowParams::_numControlPointsAttr = "NumColorControlPoints";
+
 FlowParams::FlowParams(int winnum) : Params(winnum) {
 	thisParamType = FlowParamsType;
 	myFlowTab = MainForm::getInstance()->getFlowTab();
@@ -45,13 +85,15 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	//Set default values
 	flowType = 0; //steady
 	instance = 1;
-	numTrans = 4; 
+	numTransforms = 4; 
 	maxNumTrans = 4; 
 	minNumTrans = 0;
 	numVariables = 0;
 	firstDisplayFrame = 0;
 	lastDisplayFrame = 20;
 	variableNames.empty();
+	//Initially just make one blank:
+	variableNames.push_back(" ");
 	varNum[0] = varNum [1] = varNum[2] = 0;
 	integrationAccuracy = 0.5f;
 	userTimeStepMultiplier = 1.0f;
@@ -79,9 +121,37 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	objectsPerTimestep = 1.f;
 
 	shapeDiameter = 0.f;
-	colorMappedEntity = 0; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
+	colorMapEntityIndex = 0; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
 	colorMapMin = 0.f; 
 	colorMapMax = 1.f;
+	colorMapEntity.clear();
+	colorMapEntity.push_back("Constant");
+	colorMapEntity.push_back("Age");
+	colorMapEntity.push_back("Speed");
+
+	colorControlPoints.clear();
+	colorControlPoints.push_back(*new colorControlPoint);
+	colorControlPoints.push_back(*new colorControlPoint);
+	colorControlPoints.push_back(*new colorControlPoint);
+	colorControlPoints.push_back(*new colorControlPoint);
+	colorControlPoints[0].position = -1.e30f;
+	colorControlPoints[1].position = 0.f;
+	colorControlPoints[2].position = 1.f;
+	colorControlPoints[3].position = 1.e30f;
+	colorControlPoints[0].hsv[0] = 0.f;
+	colorControlPoints[1].hsv[0] = 0.f;
+	colorControlPoints[2].hsv[0] = 0.9f;
+	colorControlPoints[3].hsv[0] = 0.9f;
+	colorControlPoints[0].hsv[1] = 1.f;
+	colorControlPoints[1].hsv[1] = 1.f;
+	colorControlPoints[2].hsv[1] = 1.f;
+	colorControlPoints[3].hsv[1] = 1.f;
+	colorControlPoints[0].hsv[2] = 1.f;
+	colorControlPoints[1].hsv[2] = 1.f;
+	colorControlPoints[2].hsv[2] = 1.f;
+	colorControlPoints[3].hsv[2] = 1.f;
+	numControlPoints = 4;
+	
 	myFlowLib = 0;
 	//Set up flow data cache:
 	flowData = 0;
@@ -127,7 +197,7 @@ void FlowParams::updateDialog(){
 	myFlowTab->flowTypeCombo->setCurrentItem(flowType);
 	myFlowTab->numTransSpin->setMinValue(minNumTrans);
 	myFlowTab->numTransSpin->setMaxValue(maxNumTrans);
-	myFlowTab->numTransSpin->setValue(numTrans);
+	myFlowTab->numTransSpin->setValue(numTransforms);
 	myFlowTab->xCoordVarCombo->clear();
 	myFlowTab->xCoordVarCombo->setMaxCount(numVariables);
 	myFlowTab->yCoordVarCombo->clear();
@@ -185,7 +255,7 @@ void FlowParams::updateDialog(){
 	//Geometric parameters:
 	myFlowTab->geometryCombo->setCurrentItem(geometryType);
 	
-	myFlowTab->colormapEntityCombo->setCurrentItem(colorMappedEntity);
+	myFlowTab->colormapEntityCombo->setCurrentItem(colorMapEntityIndex);
 	
 	if (isLocal())
 		myFlowTab->LocalGlobal->setCurrentItem(1);
@@ -199,6 +269,11 @@ void FlowParams::updateDialog(){
 		myFlowTab->dimensionLabel->setEnabled(true);
 		myFlowTab->generatorDimensionCombo->setEnabled(true);
 		myFlowTab->generatorDimensionCombo->setCurrentItem(currentDimension);
+	}
+	//Set up the color map entity combo:
+	myFlowTab->colormapEntityCombo->clear();
+	for (int i = 0; i< (int)colorMapEntity.size(); i++){
+		myFlowTab->colormapEntityCombo->insertItem(QString(colorMapEntity[i].c_str()));
 	}
 	//Put all the setText messages here, so they won't trigger a textChanged message
 	if (randomGen){
@@ -339,25 +414,34 @@ reinit(bool doOverride){
 	minFrame = (int)(session->getMinTimestep());
 	maxFrame = (int)(session->getMaxTimestep());
 	if (doOverride) {
-		numTrans = maxNumTrans;
+		numTransforms = maxNumTrans;
 		seedTimeStart = minFrame;
 		seedTimeEnd = maxFrame;
 	} else {
-		if (numTrans> nlevels) numTrans = maxNumTrans;
-		if (numTrans < minNumTrans) numTrans = minNumTrans;
+		if (numTransforms> nlevels) numTransforms = maxNumTrans;
+		if (numTransforms < minNumTrans) numTransforms = minNumTrans;
 		//Make sure we really can use the specified numTrans.
 		RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->
 			getRegionParams(vizNum);
-		numTrans = rParams->validateNumTrans(numTrans);
+		numTransforms = rParams->validateNumTrans(numTransforms);
 		if (seedTimeStart > maxFrame) seedTimeStart = maxFrame;
 		if (seedTimeStart < minFrame) seedTimeStart = minFrame;
 		if (seedTimeEnd > maxFrame) seedTimeEnd = maxFrame;
 		if (seedTimeEnd < minFrame) seedTimeEnd = minFrame;
 	}
+	
+
 	//Set up variables:
 	//Get the variable names:
 	variableNames = md->GetVariableNames();
 	int newNumVariables = md->GetVariableNames().size();
+	colorMapEntity.clear();
+	colorMapEntity.push_back("Constant");
+	colorMapEntity.push_back("Age");
+	colorMapEntity.push_back("Speed");
+	for (i = 0; i< newNumVariables; i++){
+		colorMapEntity.push_back(variableNames[i]);
+	}
 	for (int dim = 0; dim < 3; dim++){
 		//See if current varNums is valid
 		//reset to first variable that is present:
@@ -378,6 +462,11 @@ reinit(bool doOverride){
 	}
 	
 	numVariables = newNumVariables;
+	//Put the variable names and other possibilities into mapping selector:
+
+
+
+
 	//Always disable
 	bool wasEnabled = enabled;
 	setEnabled(false);
@@ -862,8 +951,8 @@ regenerateFlowData(){
 	}
 	else rParams = VizWinMgr::getInstance()->getRegionParams(vizNum);
 	rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, 
-		numTrans, minFull, maxFull, extents);
-	myFlowLib->SetRegion(numTrans, min_bdim, max_bdim);
+		numTransforms, minFull, maxFull, extents);
+	myFlowLib->SetRegion(numTransforms, min_bdim, max_bdim);
 	myFlowLib->SetTimeStepInterval(seedTimeStart, maxFrame, timeSamplingInterval);
 	myFlowLib->ScaleTimeStepSizes(userTimeStepMultiplier, 1./objectsPerTimestep);
 	if (randomGen) {
@@ -971,4 +1060,150 @@ regenerateFlowData(){
 void FlowParams::setDirty(bool isDirty){
 	dirty = isDirty;
 	if (dirty) VizWinMgr::getInstance()->setFlowDirty(this);
+}
+//Method to construct Xml for state saving
+XmlNode* FlowParams::
+buildNode() {
+	//Construct the flow node
+	string empty;
+	std::map <string, string> attrs;
+	attrs.clear();
+	
+	ostringstream oss;
+
+	oss.str(empty);
+	oss << (long)vizNum;
+	attrs[_vizNumAttr] = oss.str();
+
+	oss.str(empty);
+	if (local)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_localAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)numVariables;
+	attrs[_numVariablesAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)numTransforms;
+	attrs[_numTransformsAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)integrationAccuracy;
+	attrs[_integrationAccuracyAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)userTimeStepMultiplier;
+	attrs[_userTimeStepMultAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)integrationAccuracy;
+	attrs[_integrationAccuracyAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)timeSamplingInterval;
+	attrs[_timeSamplingIntervalAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)instance;
+	attrs[_instanceAttr] = oss.str();
+
+	oss.str(empty);
+	if (flowType == 0) oss << "true";
+	else oss << "false";
+	attrs[_steadyFlowAttr] = oss.str();
+
+	oss.str(empty);
+	oss << variableNames[varNum[0]]<<" "<<variableNames[varNum[1]]<<" "<<variableNames[varNum[2]];
+	attrs[_mappedVariablesAttr] = oss.str();
+
+	XmlNode* flowNode = new XmlNode(_flowParamsTag, attrs, 2);
+
+	//Now add children:  
+	//There's a child for geometry and a child for
+	//Seeding.
+	
+	
+	attrs.clear();
+
+	oss.str(empty);
+	oss << (double)seedBoxMin[0]<<" "<<(double)seedBoxMin[1]<<" "<<(double)seedBoxMin[2];
+	attrs[_seedRegionMinAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)seedBoxMax[0]<<" "<<(double)seedBoxMax[1]<<" "<<(double)seedBoxMax[2];
+	attrs[_seedRegionMaxAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)generatorCount[0]<<" "<<(long)generatorCount[1]<<" "<<(long)generatorCount[2];
+	attrs[_generatorCountsAttr] = oss.str();
+	
+	oss.str(empty);
+	oss << (long)seedTimeStart<<" "<<(long)seedTimeEnd<<" "<<(long)seedTimeIncrement;
+	attrs[_seedTimesAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)allGeneratorCount;
+	attrs[_totalGeneratorCountAttr] = oss.str();
+
+	oss.str(empty);
+	if (randomGen)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_randomGenAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (unsigned long)randomSeed;
+	attrs[_randomSeedAttr] = oss.str();
+
+	XmlNode* seedNode = new XmlNode(_seedingTag,attrs,0);
+	flowNode->AddChild(seedNode);
+	//Now do graphic parameters.  It has one child node for the
+	//control points
+	
+	
+	attrs.clear();
+	oss.str(empty);
+	oss << (long)geometryType;
+	attrs[_geometryTypeAttr] = oss.str();
+	oss.str(empty);
+	oss << (long)objectsPerTimestep;
+	attrs[_objectsPerTimestepAttr] = oss.str();
+	oss.str(empty);
+	oss << (long)firstDisplayFrame <<" "<<(long)lastDisplayFrame;
+	attrs[_displayIntervalAttr] = oss.str();
+	oss.str(empty);
+	oss << (float)shapeDiameter;
+	attrs[_shapeDiameterAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)colorMapMin <<" "<<(double)colorMapMax;
+	attrs[_colorMappingBoundsAttr] = oss.str();
+
+	oss.str(empty);
+	oss << colorMapEntity[colorMapEntityIndex];
+	attrs[_colorMappedEntityAttr] = oss.str();
+	oss.str(empty);
+	oss << (long)numControlPoints;
+	attrs[_numControlPointsAttr] = oss.str();
+
+	XmlNode* graphicNode = new XmlNode(_geometryTag,attrs,numControlPoints);
+
+	for (int i = 0; i< numControlPoints; i++){
+		attrs.clear();
+		oss.str(empty);
+		oss << (double)colorControlPoints[i].position;
+		attrs[_positionAttr] = oss.str();
+
+		oss.str(empty);
+		oss << (double)colorControlPoints[i].hsv[0]<<" "<<(double)colorControlPoints[i].hsv[1]<<" "<<(double)colorControlPoints[i].hsv[2];
+		attrs[_hsvAttr] = oss.str();
+		XmlNode* colorControlPointNode = new XmlNode(_colorControlPointTag, attrs,0);
+		graphicNode->AddChild(colorControlPointNode);
+	}
+	
+	flowNode->AddChild(graphicNode);
+	return flowNode;
 }

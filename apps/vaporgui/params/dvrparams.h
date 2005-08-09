@@ -173,7 +173,7 @@ protected:
 	static const string _variableTag;
 	static const string _leftEditBoundAttr;
 	static const string _rightEditBoundAttr;
-	static const string _numVariablesAttr;
+	
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
 	static const string _activeVariableNumAttr;
