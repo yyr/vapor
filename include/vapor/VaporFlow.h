@@ -40,7 +40,7 @@ namespace VAPoR
 		bool GenStreamLines(float* positions, int maxPoints, unsigned int randomSeed);
 		bool GenStreakLines(float*, int, unsigned int, int, int, int);
 		//bool GenIncrementalStreakLines(float* positions, int maxTimeSteps, unsigned int* randomSeed, int injectionTime, (void progressCB)(int completedTimeStep));
-		void GetData(size_t ts, VECTOR3* pData, const int numNode);
+		float* GetData(size_t ts, const char* varName, const int numNode);
 
 	private:
 		size_t userTimeUnit;						// time unit in the original data
@@ -65,7 +65,7 @@ namespace VAPoR
 
 		DataMgr* dataMgr;							// data manager
 		char *xVarName, *yVarName, *zVarName;		// name of three variables for vector field
-		size_t numXForms, minRegion[3], maxRegion[3];
+		size_t numXForms, minRegion[3], maxRegion[3];// in block coordinate
 	};
 };
 
