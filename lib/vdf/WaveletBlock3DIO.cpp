@@ -178,7 +178,7 @@ int    WaveletBlock3DIO::VariableExists(
 
 		mkpath(basename, j, path);
 #ifndef WIN32
-		if (lstat64(path.c_str(), &statbuf) < 0) return(0);
+		if (stat64(path.c_str(), &statbuf) < 0) return(0);
 #else
 		if (_stat(path.c_str(), &statbuf) < 0) return (0);
 #endif
