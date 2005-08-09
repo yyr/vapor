@@ -894,13 +894,13 @@ regenerateFlowData(){
 	}
 	flowData = new float[3*maxPoints*numSeedPoints*numInjections];
 
-	/* For now, don't call the flowlib
+	///call the flowlib
 	if (flowType == 0){ //steady
 		myFlowLib->GenStreamLines(flowData, maxPoints, randomSeed);
 	} else {
 		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement);
 	}
-	*/
+	/*
 	//test stream code, not using flowlib:
 	if (flowType == 0){
 		float* seeds = new float[3*numSeedPoints];
@@ -962,6 +962,7 @@ regenerateFlowData(){
 		}
 		delete seeds;
 	}
+	*/
 	//end test code
 	//Clear the dirty flag (just for the one renderer).
 	dirty = false;
