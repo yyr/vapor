@@ -16,12 +16,12 @@
 
 using namespace VetsUtil;
 using namespace VAPoR;
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //	definition of Cartesian Grid Class									//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-
 // constructor and deconstructor
 CartesianGrid::CartesianGrid()
 {
@@ -54,6 +54,9 @@ void CartesianGrid::SetBoundary(VECTOR3& minB, VECTOR3& maxB)
 {
 	m_vMinBound = minB;
 	m_vMaxBound = maxB;
+	mappingFactorX = (float)(xdim()-1)/(m_vMaxBound[0] - m_vMinBound[0]);
+	mappingFactorY = (float)(ydim()-1)/(m_vMaxBound[1] - m_vMinBound[1]);
+	mappingFactorZ = (float)(zdim()-1)/(m_vMaxBound[2] - m_vMinBound[2]);
 }
 
 void CartesianGrid::Boundary(VECTOR3& minB, VECTOR3& maxB)
@@ -92,6 +95,7 @@ bool CartesianGrid::isCellOnBoundary(int cellId)
 {
 	return true;
 }
+
 //////////////////////////////////////////////////////////////////////////
 // for Cartesian grid, this funcion means whether the physical point is 
 // in the boundary
@@ -123,7 +127,7 @@ int CartesianGrid::getCellVertices(int cellId,
 	int xidx, yidx, zidx, index;
 
 	if((cellId < 0) || (cellId >= totalCell))
-		return 0;
+		return -1;
 
 	vVertices.clear();
 	zidx = cellId / (xcelldim() * ycelldim());
@@ -182,17 +186,23 @@ bool CartesianGrid::isInCell(PointInfo& pInfo, const int cellId)
 		return false;
 
 	int xidx, yidx, zidx;
-	xidx = (int)floor(pInfo.phyCoord[0]);
-	yidx = (int)floor(pInfo.phyCoord[1]);
-	zidx = (int)floor(pInfo.phyCoord[2]);
+	VECTOR3 compVec;		// position in computational space
+	compVec.Set(UCGridPhy2Comp(pInfo.phyCoord[0], m_vMinBound[0], mappingFactorX), 
+				UCGridPhy2Comp(pInfo.phyCoord[1], m_vMinBound[1], mappingFactorY),
+				UCGridPhy2Comp(pInfo.phyCoord[2], m_vMinBound[2], mappingFactorZ));
+
+	xidx = (int)floor(compVec[0]);
+	yidx = (int)floor(compVec[1]);
+	zidx = (int)floor(compVec[2]);
+
 	int inCell = zidx * ycelldim() * xcelldim() + yidx * xcelldim() + xidx;
 	if(cellId == inCell)
 	{
-		pInfo.interpolant.Set(pInfo.phyCoord[0] - (float)xidx, pInfo.phyCoord[1] - (float)yidx, pInfo.phyCoord[2] - (float)zidx);
+		pInfo.interpolant.Set(compVec[0] - (float)xidx, compVec[1] - (float)yidx, compVec[2] - (float)zidx);
 		return true;
 	}
 	else
-		return true;
+		return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -215,13 +225,19 @@ int CartesianGrid::phys_to_cell(PointInfo& pInfo)
 	if(!isInBBox(pInfo.phyCoord))
 		return -1;
 
-	xidx = (int)floor(pInfo.phyCoord[0]);
-	yidx = (int)floor(pInfo.phyCoord[1]);
-	zidx = (int)floor(pInfo.phyCoord[2]);
+	VECTOR3 compVec;		// position in computational space
+	compVec.Set(UCGridPhy2Comp(pInfo.phyCoord[0], m_vMinBound[0], mappingFactorX), 
+				UCGridPhy2Comp(pInfo.phyCoord[1], m_vMinBound[1], mappingFactorY),
+				UCGridPhy2Comp(pInfo.phyCoord[2], m_vMinBound[2], mappingFactorZ));
+
+	xidx = (int)floor(compVec[0]);
+	yidx = (int)floor(compVec[1]);
+	zidx = (int)floor(compVec[2]);
+
 	int inCell = zidx * ycelldim() * xcelldim() + yidx * xcelldim() + xidx;
 
 	pInfo.inCell = inCell;
-	pInfo.interpolant.Set(pInfo.phyCoord[0] - (float)xidx, pInfo.phyCoord[1] - (float)yidx, pInfo.phyCoord[2] - (float)zidx);
+	pInfo.interpolant.Set(compVec[0] - (float)xidx, compVec[1] - (float)yidx, compVec[2] - (float)zidx);
 	return 1;
 }
 

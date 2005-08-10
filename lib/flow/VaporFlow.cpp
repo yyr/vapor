@@ -21,6 +21,9 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	minRegion[0] = minRegion[1] = minRegion[2] = 0;
 	maxRegion[0] = maxRegion[1] = maxRegion[2] = 0;
 
+	userTimeStepSize = 1.0;
+	animationTimeStepSize = 1.0;
+
 	bUseRandomSeeds = true;
 }
 
@@ -121,8 +124,8 @@ void VaporFlow::SetRandomSeedPoints(const float min[3],
 {
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
-		minRakeExt[iFor] = min[iFor]*dataMgr->GetMetadata()->GetBlockSize();
-		maxRakeExt[iFor] = max[iFor]*dataMgr->GetMetadata()->GetBlockSize();
+		minRakeExt[iFor] = min[iFor];
+		maxRakeExt[iFor] = max[iFor];
 	}
 	this->numSeeds[0] = numSeeds;
 	this->numSeeds[1] = 1;
@@ -216,7 +219,13 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
 	pSolution->SetTime(startTimeStep, startTimeStep, 1);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
-	pCartesianGrid->ComputeBBox();
+	
+	VECTOR3 minB, maxB;
+	vector<double> vExtent;
+	vExtent = dataMgr->GetMetadata()->GetExtents();
+	minB.Set(vExtent[0], vExtent[1], vExtent[2]);
+	maxB.Set(vExtent[3], vExtent[4], vExtent[5]);
+	pCartesianGrid->SetBoundary(minB, maxB);
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
 	
 	// execute streamline
@@ -227,8 +236,11 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pStreamLine->SetLowerUpperAngle(3.0, 15.0);
 	pStreamLine->setMaxPoints(maxPoints);
 	pStreamLine->setSeedPoints(seedPtr, seedNum, currentT);
-	pStreamLine->SetInitStepSize(initialStepSize);
-	pStreamLine->SetMaxStepSize(maxStepSize);
+	pStreamLine->SetSamplingRate(userTimeStepSize);
+//	pStreamLine->SetInitStepSize(initialStepSize);
+//	pStreamLine->SetMaxStepSize(maxStepSize);
+	pStreamLine->SetInitStepSize(0.1);
+	pStreamLine->SetMaxStepSize(1.0);
 	pStreamLine->setIntegrationOrder(FOURTH);
 	pStreamLine->execute((void *)&currentT, positions);
 	

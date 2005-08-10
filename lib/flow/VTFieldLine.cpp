@@ -238,6 +238,4 @@ void vtCFieldLine::setSeedPoints(float* points, int numPoints, float t)
 	}
 
 	m_nNumSeeds = numPoints;
-	if( m_nMaxsize < m_nNumSeeds )
-		setMaxPoints(m_nNumSeeds);
 }

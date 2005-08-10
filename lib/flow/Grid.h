@@ -111,11 +111,16 @@ public:
 // cartesian grid
 //
 //////////////////////////////////////////////////////////////////////////
+#define UCGridPhy2Comp(x, y, f) (((x) - (y))*(f))
+
 class FLOW_API CartesianGrid : public Grid
 {
 private:
 	int m_nDimension[3];				// dimension
 	VECTOR3 m_vMinBound, m_vMaxBound;	// min and maximal boundary
+	float mappingFactorX;				// mapping from physical space to computational space
+	float mappingFactorY;
+	float mappingFactorZ;
 
 public:
 	// constructor and deconstructor

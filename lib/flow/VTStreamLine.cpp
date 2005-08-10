@@ -21,9 +21,12 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // definition of class FieldLine
 //////////////////////////////////////////////////////////////////////////
+//FILE* fDebugOut = fopen("C:\\Liya\\debug.txt", "w");
+
 vtCStreamLine::vtCStreamLine(CVectorField* pField):
 vtCFieldLine(pField),
 m_itsTraceDir(BACKWARD_AND_FORWARD),
+m_fSamplingRate(1.0),
 m_fCurrentTime(0.0)
 {
 }
@@ -126,8 +129,8 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 		posInPoints = count * m_nMaxsize * 3;
 		count++;
 
-		if(thisSeed->itsValidFlag == 1)			// valid seed
-		{
+		//if(thisSeed->itsValidFlag == 1)			// valid seed
+		//{
 			if(m_itsTraceDir & BACKWARD_DIR)
 			{
 				vtListSeedTrace* backTrace;
@@ -150,8 +153,9 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				forwardTrace->clear();
 				stepList->clear();
 			}
-		}
+		//}
 	}
+	//fclose(fDebugOut);
 }
 
 void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
@@ -173,6 +177,7 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 		return;
 	thisParticle = seedInfo;
 	seedTrace.push_back(new VECTOR3(seedInfo.phyCoord));
+	//fprintf(fDebugOut, "Seed (%f, %f, %f)\n", seedInfo.phyCoord[0], seedInfo.phyCoord[1], seedInfo.phyCoord[2]);
 	curTime = m_fCurrentTime;
 	
 	// get the initial stepsize
@@ -197,7 +202,7 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	}
 
 	// start to advect
-	while(totalStepsize < (float)(m_nMaxsize-1))
+	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
 	{
 		second_prevParticle = prevParticle;
 		prevParticle = thisParticle;
@@ -238,21 +243,25 @@ void vtCStreamLine::SampleStreamline(float* positions,
 
 	ptr = posInPoints;
 	pIter1 = seedTrace->begin();
-	pIter2 = pIter1++;
-	pStepIter = stepList->begin();
-	stepsizeLeft = *pStepIter;
-	
 	// the first one is seed
 	positions[ptr++] = (**pIter1)[0];
 	positions[ptr++] = (**pIter1)[1];
 	positions[ptr++] = (**pIter1)[2];
 	count = 1;
+	if((int)seedTrace->size() == 1)
+	{
+		positions[ptr] = 1.0e+30f;
+		return;
+	}
 
 	// other advecting result
+	pIter2 = pIter1++;
+	pStepIter = stepList->begin();
+	stepsizeLeft = *pStepIter;
 	while((count < m_nMaxsize) && (pStepIter != stepList->end()))
 	{
 		float ratio;
-		if(stepsizeLeft < 1.0)
+		if(stepsizeLeft < m_fSamplingRate)
 		{
 			pIter1++;
 			pIter2++;
@@ -261,15 +270,17 @@ void vtCStreamLine::SampleStreamline(float* positions,
 		}
 		else
 		{
-			stepsizeLeft -= 1;
+			stepsizeLeft -= m_fSamplingRate;
 			ratio = (*pStepIter - stepsizeLeft)/(*pStepIter);
 			positions[ptr++] = Lerp((**pIter1)[0], (**pIter2)[0], ratio);
 			positions[ptr++] = Lerp((**pIter1)[1], (**pIter2)[1], ratio);
 			positions[ptr++] = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
+			//fprintf(fDebugOut, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
 			count++;
 		}
 	}
 
+	//fprintf(fDebugOut, "****************\n");
 	// if # of sampled points < maximal points asked
 	if(count < m_nMaxsize)
 		positions[ptr] = 1.0e+30f;

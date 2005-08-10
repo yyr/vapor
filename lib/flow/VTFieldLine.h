@@ -257,6 +257,7 @@ public:
 	int  getForwardTracing(void);
 	int  getBackwardTracing(void);
 	void SampleStreamline(float*, const unsigned int, vtListSeedTrace*, list<float>*);
+	void SetSamplingRate(float rate) {m_fSamplingRate = rate;}
 	
 protected:
 	void computeStreamLine(const void* userData, float* positions);
@@ -264,6 +265,7 @@ protected:
 
 	TRACE_DIR m_itsTraceDir;
 	float m_fCurrentTime;
+	float m_fSamplingRate;
 };
 
 };
