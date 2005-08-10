@@ -15,9 +15,6 @@
 #include "vapor/MyBase.h"
 #include "vaporinternal/common.h"
 
-//#include "Rake.h"
-//#include "VTFieldLine.h"
-
 namespace VAPoR
 {
 	class VECTOR3;
