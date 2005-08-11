@@ -254,6 +254,7 @@ renderPoints(float radius, int firstAge, int lastAge, float* data){
 		for (int j = firstAge; j<=lastAge; j++){
 			float* point = data+ 3*(j+ maxPoints*i);
 			if (*point == 1.e30) break;
+			qWarning("point is %f %f %f", *point, *(point+1), *(point+2));
 			glVertex3fv(point);
 		}	
 	}
