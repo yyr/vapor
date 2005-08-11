@@ -15,6 +15,8 @@
 #include "vapor/MyBase.h"
 #include "vaporinternal/common.h"
 
+#define END_FLOW_FLAG 1.e30f
+
 namespace VAPoR
 {
 	class VECTOR3;
