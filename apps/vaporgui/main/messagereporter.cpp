@@ -92,7 +92,9 @@ reset(const char* newLogFileName){
 	if(strcmp(newLogFileName, "stderr") != 0) {
 		logFile = fopen(newLogFileName, "w");
 		if (!logFile) {
-			doPopup(Error,"VAPoR session log file cannot be opened");
+			std::string s("VAPoR session log file cannot be opened:\n");
+			s += newLogFileName;
+			doPopup(Error,s.c_str());
 			return;
 		}
 	} else {

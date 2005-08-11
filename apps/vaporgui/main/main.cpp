@@ -45,11 +45,15 @@ int main( int argc, char ** argv ) {
 	QApplication::setColorSpec( QApplication::ManyColor );
     QApplication a( argc, argv );
 	app = &a;
+	a.setStyle("windows");
+	a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));
 	//Depending on the platform, we may want nondefault fonts!
     //QFont myFont(QString("Helvetica"), 11, 55);
     //a.setFont(myFont);
     MainForm* mw = new MainForm();
-    mw->setCaption( "VAPoR GUI prototype" );
+	
+	
+    mw->setCaption( "VAPoR User Interface" );
     mw->show();
     a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
     return a.exec();
