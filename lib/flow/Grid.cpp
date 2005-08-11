@@ -270,7 +270,7 @@ void CartesianGrid::interpolate(VECTOR3& nodeData,
 // get tetra volume
 // input
 // cellId:	which cell
-// return the volume of this cell
+// return the volume of this cell in physical space
 //////////////////////////////////////////////////////////////////////////
 float CartesianGrid::cellVolume(int cellId)
 {
