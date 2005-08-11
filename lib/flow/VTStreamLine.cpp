@@ -22,7 +22,7 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // definition of class FieldLine
 //////////////////////////////////////////////////////////////////////////
-FILE* fDebugOut = fopen("C:\\Liya\\debug.txt", "w");
+//FILE* fDebugOut = fopen("C:\\Liya\\debug.txt", "w");
 
 vtCStreamLine::vtCStreamLine(CVectorField* pField):
 vtCFieldLine(pField),
@@ -156,7 +156,7 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 			}
 		}
 	}
-	fclose(fDebugOut);
+	//fclose(fDebugOut);
 }
 
 void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
@@ -178,7 +178,7 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 		return;
 	thisParticle = seedInfo;
 	seedTrace.push_back(new VECTOR3(seedInfo.phyCoord));
-	fprintf(fDebugOut, "Seed (%f, %f, %f)\n", seedInfo.phyCoord[0], seedInfo.phyCoord[1], seedInfo.phyCoord[2]);
+	//fprintf(fDebugOut, "Seed (%f, %f, %f)\n", seedInfo.phyCoord[0], seedInfo.phyCoord[1], seedInfo.phyCoord[2]);
 	curTime = m_fCurrentTime;
 	
 	// get the initial stepsize
@@ -256,7 +256,8 @@ void vtCStreamLine::SampleStreamline(float* positions,
 	}
 
 	// other advecting result
-	pIter2 = pIter1++;
+	pIter2 = seedTrace->begin();
+	pIter2++;
 	pStepIter = stepList->begin();
 	stepsizeLeft = *pStepIter;
 	while((count < m_nMaxsize) && (pStepIter != stepList->end()))
@@ -276,12 +277,12 @@ void vtCStreamLine::SampleStreamline(float* positions,
 			positions[ptr++] = Lerp((**pIter1)[0], (**pIter2)[0], ratio);
 			positions[ptr++] = Lerp((**pIter1)[1], (**pIter2)[1], ratio);
 			positions[ptr++] = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
-			fprintf(fDebugOut, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
+			//fprintf(fDebugOut, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
 			count++;
 		}
 	}
 
-	fprintf(fDebugOut, "****************\n");
+	//fprintf(fDebugOut, "****************\n");
 	// if # of sampled points < maximal points asked
 	if(count < m_nMaxsize)
 		positions[ptr] = END_FLOW_FLAG;
