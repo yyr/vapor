@@ -44,6 +44,7 @@ FILES := \
 	params/tfeditor  params/tfinterpolator \
 	params/transferfunction params/unsharedcontrollerthread \
 	params/viewpointparams params/viewpoint params/vizfeatureparams \
+	params/mapperfunction \
 	guis/coloradjustdialog guis/colorpicker guis/loadtfdialog \
 	guis/opacadjustdialog guis/savetfdialog \
 	guis/tfelocationtip guis/tfframe guis/vizselectcombo \
