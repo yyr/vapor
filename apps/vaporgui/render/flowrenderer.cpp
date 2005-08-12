@@ -19,6 +19,7 @@
 
 
 #include "flowrenderer.h"
+#include "vapor/VaporFlow.h"
 #include "glwindow.h"
 #include "trackball.h"
 #include "glutil.h"
@@ -253,7 +254,7 @@ renderPoints(float radius, int firstAge, int lastAge, float* data){
 		
 		for (int j = firstAge; j<=lastAge; j++){
 			float* point = data+ 3*(j+ maxPoints*i);
-			if (*point == 1.e30) break;
+			if (*point == END_FLOW_FLAG) break;
 			qWarning("point is %f %f %f", *point, *(point+1), *(point+2));
 			glVertex3fv(point);
 		}	
@@ -279,7 +280,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, float* data){
 				//For each point after first, calc vector from prev vector to this one
 				//then calculate corresponding normal
 				float* point = data+ 3*(j+ maxPoints*i);
-				if (*point == 1.e30) break;
+				if (*point == END_FLOW_FLAG) break;
 				if (j > firstAge){
 					vsub(point, point-3, dirVec);
 					float len = vdot(dirVec,dirVec);
@@ -310,7 +311,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, float* data){
 			glBegin (GL_LINE_STRIP);
 			for (int j = firstAge; j<=lastAge; j++){
 				float* point = data+ 3*(j+ maxPoints*i);
-				if (*point == 1.e30) break;
+				if (*point == END_FLOW_FLAG) break;
 				glVertex3fv(point);
 			}
 			glEnd();
@@ -347,8 +348,8 @@ renderTubes(float radius, bool /*isLit*/, int firstAge, int lastAge, float* data
 	if (firstAge >= lastAge) return;
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
 		//Need at least two points to do anything:
-		if ((*(data + 3*tubeNum*maxPoints) == 1.e30) ||
-			(*(data + 3*(tubeNum*maxPoints+1)) == 1.e30)) continue;
+		if ((*(data + 3*tubeNum*maxPoints) == END_FLOW_FLAG) ||
+			(*(data + 3*(tubeNum*maxPoints+1)) == END_FLOW_FLAG)) continue;
 		
 		int tubeStartIndex = 3*(tubeNum*maxPoints+firstAge);
 		//data point is three floats starting at data[tubeStartIndex]
@@ -409,7 +410,7 @@ renderTubes(float radius, bool /*isLit*/, int firstAge, int lastAge, float* data
 
 		for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
 			float* point = data+3*(tubeNum*maxPoints+pointNum);
-			if (*point == 1.e30) break;
+			if (*point == END_FLOW_FLAG) break;
 			//Toggle the meaning of "current" and "prev"
 			if (0 == (pointNum - firstAge)%2) {
 				currentN = evenN;
