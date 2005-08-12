@@ -66,8 +66,8 @@ public:
 
 	//Save, restore stuff:
 	XmlNode* buildNode(); 
-	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/){return true;}
-	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/){return true;}
+	virtual bool elementStartHandler(ExpatParseMgr*, int  depth , std::string& tag, const char ** attribs);
+	virtual bool elementEndHandler(ExpatParseMgr*, int depth , std::string& tag);
 	
 	//set dirty-flag, and force rerender:
 	void setDirty(bool flagValue);
@@ -92,6 +92,7 @@ public:
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 	float getObjectsPerTimestep() {return objectsPerTimestep;}
 
+	int insertColorControlPoint(float posn, float hue, float sat, float val);
 	//Methods called from vizwinmgr due to settings in gui:
 	void guiSetFlowType(int typenum);
 	void guiSetNumTrans(int numtrans);
@@ -192,16 +193,18 @@ protected:
 	int geometryType;  //0= tube, 1=point, 2 = arrow
 	float objectsPerTimestep;
 	int firstDisplayFrame, lastDisplayFrame;
-	int maxPoints;  //largest length of any flow
+	
 	float shapeDiameter;
 	int colorMapEntityIndex; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
 	float colorMapMin, colorMapMax;
-	struct colorControlPoint {
+	struct ColorControlPoint {
 		float position;
 		float hsv[3];
 	};
+
+	int maxPoints;  //largest length of any flow
 	
-	std::vector<colorControlPoint> colorControlPoints;
+	std::vector<ColorControlPoint> colorControlPoints;
 	std::vector<string> colorMapEntity;
 	int numControlPoints;
 

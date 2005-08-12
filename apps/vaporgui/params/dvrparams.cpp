@@ -371,7 +371,7 @@ guiSetHistoStretch(int val){
 //These are just for undo/redo.  Also may need to update visualizer and/or editor
 //
 void DvrParams::
-guiStartChangeTF(char* str){
+guiStartChangeMapFcn(char* str){
 	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
 	guiSetTextChanged(false);
 	//If another command is in process, don't disturb it:
@@ -379,7 +379,7 @@ guiStartChangeTF(char* str){
 	savedCommand = PanelCommand::captureStart(this, str);
 }
 void DvrParams::
-guiEndChangeTF(){
+guiEndChangeMapFcn(){
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand,this);
 	savedCommand = 0;

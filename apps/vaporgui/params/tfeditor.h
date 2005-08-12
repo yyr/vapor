@@ -62,7 +62,7 @@
 
 
 class QImage;
-
+#include "dvrparams.h"
 #include "transferfunction.h"
 class TFFrame;
 namespace VAPoR {
@@ -223,7 +223,7 @@ public:
 		leftDomainSaved = myTransferFunction->getMinMapValue();
 		rightDomainSaved = myTransferFunction->getMaxMapValue();
 	}
-	DvrParams* getParams() {return myTransferFunction->getParams();}
+	DvrParams* getParams() {return (DvrParams*)myTransferFunction->getParams();}
 
 	
 protected:

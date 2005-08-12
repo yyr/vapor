@@ -126,6 +126,11 @@ public:
 	//
 	virtual void reinit(bool) {return;}
 
+	//respond to changes in TF (for undo/redo):
+	// Default does nothing (if class doesn't have a clut or tf)
+	virtual void guiStartChangeMapFcn(char* ) {}
+	virtual void guiEndChangeMapFcn() {}
+	virtual void setClutDirty() {}
 	//The restart method goes back to initial state
 	//Default does nothing.
 	//

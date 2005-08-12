@@ -61,15 +61,20 @@ const string TransferFunction::_colorControlPointTag = "ColorControlPoint";
 const string TransferFunction::_tfNameAttr = "Name";
 
 //Constructor for empty, default transfer function
-TransferFunction::TransferFunction() {
-	
-	myParams = 0;
-	myTFEditor = 0;
-	previousClass = 0;
+TransferFunction::TransferFunction() : MapperFunction(){
 	init();
 }
 void TransferFunction::
 init(){  //reset to starting values:
+	
+	colorCtrlPoint.resize(2);
+	opacCtrlPoint.resize(2);
+	colorInterp.resize(2);
+	opacInterp.resize(2);
+	hue.resize(2);
+	sat.resize(2);
+	val.resize(2);
+	opac.resize(2);
 	numColorControlPoints = 2;
 	colorCtrlPoint[0] = -1.e6f;
 	colorCtrlPoint[1] = 1.e6f;
@@ -90,19 +95,27 @@ init(){  //reset to starting values:
 	val[1] = 1.f;
 	opac[1] = 1.f;
 	numEntries = 256;
-	minMapBound = 0.f;
-	maxMapBound = 1.f;
+	setMinMapValue(0.f);
+	setMaxMapValue(1.f);
 }
 //Currently this is only for use in a dvrparams panel
 //Need eventually to also support contours
 //
-TransferFunction::TransferFunction(DvrParams* p, int nBits){
-	myParams = p;
-	previousClass = 0;
+TransferFunction::TransferFunction(Params* p, int nBits): MapperFunction(p,nBits){
+	
 	//Make a default TF:  Map 0 to 1 to a spectrum with increasing opacity.
 	//Provide 2 extra control points at ends, that should never go away
 	//
+
 	numColorControlPoints = 6;
+	colorCtrlPoint.resize(6);
+	opacCtrlPoint.resize(6);
+	colorInterp.resize(6);
+	opacInterp.resize(6);
+	hue.resize(6);
+	sat.resize(6);
+	val.resize(6);
+	opac.resize(6);
 	colorCtrlPoint[0] = -1.e6f;
 	colorCtrlPoint[1] = 0.f;
 	colorCtrlPoint[2] = 0.3333f;
@@ -136,17 +149,11 @@ TransferFunction::TransferFunction(DvrParams* p, int nBits){
 	opac[3] = .6667f;
 	opac[4] = 1.f;
 	opac[5] = 1.f;
-	myTFEditor = 0;
-
-	numEntries = 1<<nBits;
-	minMapBound = 0.f;
-	maxMapBound = 1.f;
-	if(myParams) myParams->setClutDirty();
+	
 }
 	
 TransferFunction::~TransferFunction() {
 
-	
 }
 
 /*
@@ -168,19 +175,14 @@ insertColorControlPoint(float point){
 	assert (rightVal > leftVal);
 	float ratio = (normPoint-leftVal)/(rightVal-leftVal);
 	
-	//Create a space to insert the value
-	for (int i = numColorControlPoints; i>indx+1; i--){
-		hue[i] = hue[i-1];
-		sat[i] = sat[i-1];
-		val[i] = val[i-1];
-		colorCtrlPoint[i] = colorCtrlPoint[i-1];
-		colorInterp[i] = colorInterp[i-1];
-	}
-	colorCtrlPoint[indx+1] = normPoint;
-	hue[indx+1] = TFInterpolator::interpCirc(colorInterp[indx], hue[indx], hue[indx+2], ratio);
-	sat[indx+1] = TFInterpolator::interpolate(colorInterp[indx],  sat[indx], sat[indx+2], ratio);
-	val[indx+1] = TFInterpolator::interpolate(colorInterp[indx],  val[indx], val[indx+2], ratio);
-	colorInterp[indx+1] = colorInterp[indx];
+	//Insert at the position indx+1
+	colorCtrlPoint.insert(colorCtrlPoint.begin()+indx+1, normPoint);
+	
+	hue.insert(hue.begin()+indx+1, TFInterpolator::interpCirc(colorInterp[indx], hue[indx], hue[indx+1], ratio));
+	sat.insert(sat.begin()+indx+1, TFInterpolator::interpolate(colorInterp[indx], sat[indx], sat[indx+1], ratio));
+	val.insert(val.begin()+indx+1, TFInterpolator::interpolate(colorInterp[indx], val[indx], val[indx+1], ratio));
+	colorInterp.insert(colorInterp.begin()+indx+1, colorInterp[indx]);
+	
 	numColorControlPoints++;
 	myParams->setClutDirty();
 	return(indx+1);
@@ -202,22 +204,16 @@ insertNormColorControlPoint(float point, float h, float s, float v){
 	float leftVal = colorCtrlPoint[indx];
 	float rightVal = colorCtrlPoint[indx+1];
 	assert (rightVal > leftVal);
+	//Insert at the position indx+1
+	colorCtrlPoint.insert(colorCtrlPoint.begin()+indx+1, point);
 	
-	//Create a space to insert the value
-	for (int i = numColorControlPoints; i>indx+1; i--){
-		hue[i] = hue[i-1];
-		sat[i] = sat[i-1];
-		val[i] = val[i-1];
-		colorCtrlPoint[i] = colorCtrlPoint[i-1];
-		colorInterp[i] = colorInterp[i-1];
-	}
-	colorCtrlPoint[indx+1] = point;
-	hue[indx+1] = h;
-	sat[indx+1] = s;
-	val[indx+1] = v;
-	colorInterp[indx+1] = colorInterp[indx];
+	hue.insert(hue.begin()+indx+1, h);
+	sat.insert(sat.begin()+indx+1, s);
+	val.insert(val.begin()+indx+1, v);
+	colorInterp.insert(colorInterp.begin()+indx+1, colorInterp[indx]);
+	
 	numColorControlPoints++;
-	myParams->setClutDirty();
+	if(myParams) myParams->setClutDirty();
 	return(indx+1);
 }
 /*
@@ -244,23 +240,20 @@ insertOpacControlPoint(float point, float opacity){
 	}
 	
 	assert(opacity <= 1.f);
+
+	opacCtrlPoint.insert(opacCtrlPoint.begin()+indx+1, normPoint);
 	
-	//Create a space to insert the value
-	//
-	for (int i = numOpacControlPoints; i>indx+1; i--){
-		opac[i] = opac[i-1];
-		opacCtrlPoint[i]=opacCtrlPoint[i-1];
-		opacInterp[i] = opacInterp[i-1];
-	}
-	opacCtrlPoint[indx+1] = normPoint;
-	opacInterp[indx+1] = opacInterp[indx];
-	opac[indx+1] = opacity;
+	opac.insert(opac.begin()+indx+1, opacity);
+	
+	opacInterp.insert(opacInterp.begin()+indx+1, colorInterp[indx]);
+	
 	numOpacControlPoints++;
+	assert(opacCtrlPoint.size() == numOpacControlPoints);
 	myParams->setClutDirty();
 	return(indx+1);
 }
 /*
- * Insert an opacity control point setting opacity
+ * Insert a new opacity control point setting opacity
  * Uses normalized x-coord
  */
 
@@ -274,18 +267,12 @@ insertNormOpacControlPoint(float point, float opacity){
 	int indx = getLeftIndex(point, opacCtrlPoint, numOpacControlPoints);
 	assert(opacity <= 1.f);
 	
-	//Create a space to insert the value
-	//
-	for (int i = numOpacControlPoints; i>indx+1; i--){
-		opac[i] = opac[i-1];
-		opacCtrlPoint[i]=opacCtrlPoint[i-1];
-		opacInterp[i] = opacInterp[i-1];
-	}
-	opacCtrlPoint[indx+1] = point;
-	opacInterp[indx+1] = opacInterp[indx];
-	opac[indx+1] = opacity;
+	opacCtrlPoint.insert(opacCtrlPoint.begin()+indx+1, point);
+	opacInterp.insert(opacInterp.begin()+indx+1, opacInterp[indx]);
+	opac.insert(opac.begin()+indx+1, opacity);
+	
 	numOpacControlPoints++;
-	myParams->setClutDirty();
+	if(myParams) myParams->setClutDirty();
 	return(indx+1);
 }
 /* 
@@ -320,16 +307,6 @@ hsvValue(float point, float*h, float*s, float*v){
 		*v = TFInterpolator::interpolate(colorInterp[index], val[index], val[index+1], ratio);
 	}
 }
-//static utility function to map and quantize a float
-//
-int TransferFunction::
-mapPosition(float x,  float minValue, float maxValue, int hSize){
-	double psn = (0.5+((((double)x - (double)minValue)*hSize)/((double)maxValue - (double)minValue)));
-	//constrain to integer size limit
-	if(psn < -1000000000.f) psn = -1000000000.f;
-	if(psn > 1000000000.f) psn = 1000000000.f;
-	return (int)psn;
-}
 
 
 void TransferFunction::
@@ -337,15 +314,14 @@ deleteColorControlPoint(int index){
 	assert( index > 0 && index < numColorControlPoints-1);
 	if (index >= numColorControlPoints -1) return;
 	if (index <= 0) return;
-	//Move all higher values down:
-	for (int i = index; i<numColorControlPoints-1; i++){
-		colorCtrlPoint[i] = colorCtrlPoint[i+1];
-		hue[i] = hue[i+1];
-		sat[i] = sat[i+1];
-		val[i] = val[i+1];
-		colorInterp[i] = colorInterp[i+1];
-	}
+	colorCtrlPoint.erase(colorCtrlPoint.begin()+index);
+	hue.erase(hue.begin()+index);
+	sat.erase(sat.begin()+index);
+	val.erase(val.begin()+index);
+	colorInterp.erase(colorInterp.begin()+index);
+	
 	numColorControlPoints--;
+	assert(numColorControlPoints == colorCtrlPoint.size());
 	myParams->setClutDirty();
 	return;
 }
@@ -355,13 +331,12 @@ deleteOpacControlPoint(int index){
 	assert( index > 0 && index < numOpacControlPoints-1);
 	if (index >= numOpacControlPoints -1) return;
 	if (index <= 0) return;
-	//Move all higher values down:
-	for (int i = index; i<numOpacControlPoints-1; i++){
-		opacCtrlPoint[i] = opacCtrlPoint[i+1];
-		opac[i] = opac[i+1];
-		opacInterp[i] = opacInterp[i+1];
-	}
+	opacCtrlPoint.erase(opacCtrlPoint.begin()+index);
+	opac.erase(opac.begin()+index);
+	opacInterp.erase(opacInterp.begin()+index);
+	
 	numOpacControlPoints--;
+	assert(numOpacControlPoints == opacCtrlPoint.size());
 	myParams->setClutDirty();
 	return;
 }
@@ -405,32 +380,23 @@ moveOpacControlPoint(int index, float newPoint, float newOpacity){
 		myParams->setClutDirty();
 		return index;
 	}
-	//Otherwise, move it to a new interval;
-	
 	TFInterpolator::type saveOpacInterp = opacInterp[index];
-	int newIndex;
-	if (leftIndex < index-1) { //move intermediate values to the right
-		for (int i = index; i > leftIndex+1; i--){
-			opacCtrlPoint[i] = opacCtrlPoint[i-1];
-			opac[i] = opac[i-1];
-			opacInterp[i] = opacInterp[i-1];
-		}
-		//Fill in new values at target point, newIndex
-		//
-		newIndex = leftIndex+1;
-	} else { //move intermediate values to left
-		for (int i = index; i < leftIndex; i++){
-			opacCtrlPoint[i] = opacCtrlPoint[i+1];
-			opac[i] = opac[i+1];
-			opacInterp[i] = opacInterp[i+1];
-		}
-		//Fill in new values at newIndex:
-		newIndex = leftIndex;
-	}
-	//Fill in the values at the moved control point.
-	opacCtrlPoint[newIndex] = normPoint;
-	opac[newIndex] = saveOpacity;
-	opacInterp[newIndex] = saveOpacInterp;
+	//Otherwise move it.  This is done by removing from old position, then
+	//inserting in new position:
+	
+	opacCtrlPoint.erase(opacCtrlPoint.begin()+index);
+	opac.erase(opac.begin()+index);
+	opacInterp.erase(opacInterp.begin()+index);
+
+	//New index depends on whether index was left or right of old position
+	//If it was to the right, the removal reduced its position by 1.
+	int newIndex = leftIndex+1;
+	if (leftIndex > index) newIndex = leftIndex;
+	opacCtrlPoint.insert(opacCtrlPoint.begin()+newIndex, normPoint);
+	opac.insert(opac.begin()+newIndex, saveOpacity);
+	opacInterp.insert(opacInterp.begin()+newIndex, saveOpacInterp);
+
+	
 	myParams->setClutDirty();
 	return newIndex;
 	
@@ -462,60 +428,31 @@ moveColorControlPoint(int index, float newPoint){
 	}
 	//Otherwise, move it to a new interval;
 	TFInterpolator::type saveColorInterp = colorInterp[index];
-	int newIndex;
-	if (leftIndex < index-1) { //move intermediate values to the right
-		for (int i = index; i > leftIndex+1; i--){
-			colorCtrlPoint[i] = colorCtrlPoint[i-1];
-			hue[i] = hue[i-1];
-			sat[i] = sat[i-1];
-			val[i] = val[i-1];
-			colorInterp[i] = colorInterp[i-1];
-		}
-		//Fill in new values at target point, newIndex
-		newIndex = leftIndex+1;
-	} else { //move intermediate values to left
-		for (int i = index; i < leftIndex; i++){
-			colorCtrlPoint[i] = colorCtrlPoint[i+1];
-			hue[i] = hue[i+1];
-			sat[i] = sat[i+1];
-			val[i] = val[i+1];
-			colorInterp[i] = colorInterp[i+1];
-		}
-		//Fill in new values at newIndex:
-		newIndex = leftIndex;
-	}
-	//Fill in the values at the moved control point.
-	colorCtrlPoint[newIndex] = normPoint;
-	hue[newIndex] = saveHue;
-	sat[newIndex] = saveSat;
-	val[newIndex] = saveVal;
-	colorInterp[newIndex] = saveColorInterp;
+	
+	//Otherwise move it.  This is done by removing from old position, then
+	//inserting in new position:
+	
+	colorCtrlPoint.erase(colorCtrlPoint.begin()+index);
+	hue.erase(hue.begin()+index);
+	sat.erase(sat.begin()+index);
+	val.erase(val.begin()+index);
+	colorInterp.erase(colorInterp.begin()+index);
+
+	//New index depends on whether index was left or right of old position
+	//If it was to the right, the removal reduced its position by 1.
+	int newIndex = leftIndex+1;
+	if (leftIndex > index) newIndex = leftIndex;
+	colorCtrlPoint.insert(colorCtrlPoint.begin()+newIndex, normPoint);
+	hue.insert(hue.begin()+newIndex, saveHue);
+	sat.insert(sat.begin()+newIndex, saveSat);
+	val.insert(val.begin()+newIndex, saveVal);
+	colorInterp.insert(colorInterp.begin()+newIndex, saveColorInterp);
+
 	myParams->setClutDirty();
 	return newIndex;
 	
 }	
-/*
- * binary search , find the index of the largest control point <= val
- * Requires that control points are increasing.
- * Used for either color or opacity
- * Protected, since uses normalized points.
- */
-int TransferFunction::
-getLeftIndex(float val, float* ctrlPoint, int numCtrlPoints){
-	int left = 0;
-	int right = numCtrlPoints-1;
-	//Iterate, keeping left to the left of ctrl point
-	//
-	while (right-left > 1){
-		int mid = left+ (right-left)/2;
-		if (ctrlPoint[mid] > val) {
-			right = mid;
-		} else {
-			left = mid;
-		}
-	}
-	return left;
-}
+
 /*  
  *   Build a lookup table[numEntries][4](?) from the TF
  *   Caller must pass in an empty clut array to be filled in
@@ -563,85 +500,8 @@ makeLut(float* clut){
 		clut[4*i+3] = opacVal;
 	}
 }
-/*	
- *  hsv-rgb Conversion functions.  inputs and outputs	between 0 and 1
- *	copied (with corrections) from Hearn/Baker
- */
-void TransferFunction::
-hsvToRgb(float* hsv, float* rgb){
-	if (hsv[1] == 0.f) { //grey
-		rgb[0] = rgb[1] = rgb[2] = hsv[2];
-		return;
-	}
 
-	int sector = (int)(hsv[0]*6.f); 
 
-	float sectCrd = hsv[0]*6.f - (float) sector;
-	if (sector == 6) sector = 0;
-	float a = hsv[2]*(1.f - hsv[1]);
-	float b = hsv[2]*(1.f - sectCrd*hsv[1]);
-	float c = hsv[2]*(1.f - (hsv[1]*(1.f - sectCrd)));
-
-	switch (sector){
-		case (0):
-			//red to green, r>g
-			rgb[0] = hsv[2];
-			rgb[1] = c;
-			rgb[2] = a;
-			break;
-		case (1): // red to green, g>r
-			rgb[1] = hsv[2];
-			rgb[2] = a;
-			rgb[0] = b;
-			break;
-		case (2): //green to blue, gr>bl
-			rgb[0] = a;
-			rgb[1] = hsv[2];
-			rgb[2] = c;
-			break;
-		case (3): //green to blue, gr<bl
-			rgb[0] = a;
-			rgb[2] = hsv[2];
-			rgb[1] = b;
-			break;
-		case (4): //blue to red, bl>red
-			rgb[1] = a;
-			rgb[2] = hsv[2];
-			rgb[0] = c;
-			break;
-		case (5): //blue to red, bl<red
-			rgb[1] = a;
-			rgb[0] = hsv[2];
-			rgb[2] = b;
-			break;
-		default: assert(0);
-	}
-	return;
-
-}
-void TransferFunction::
-rgbToHsv(float* rgb, float* hsv){
-	//value is max (r,g,b)
-	float maxval = Max(rgb[0],Max(rgb[1],rgb[2]));
-	float minval = Min(rgb[0],Min(rgb[1],rgb[2]));
-	float delta = maxval - minval;
-	hsv[2] = maxval;
-	if (maxval != 0.f) hsv[1] = delta/maxval;
-	else hsv[1] = 0.f;
-	if (hsv[1] == 0.f) hsv[0] = 0.f; //no hue!
-	else {
-		if (rgb[0] == maxval){
-			hsv[0] = (rgb[1]-rgb[0])/delta;
-			if (hsv[0]< 0.f) hsv[0]+= 6.f;
-		} else if (rgb[1] == maxval){
-			hsv[0] = 2.f + (rgb[2]-rgb[0])/delta;
-		} else {
-			hsv[0] = 4.f + (rgb[0]-rgb[1])/delta;
-		}
-		hsv[0] /= 6.f; //Put between 0 and 1
-	}
-	return;
-}
 QRgb TransferFunction::
 getControlPointRGB(int index){
 	float hsv[3], rgb[3];
@@ -653,27 +513,7 @@ getControlPointRGB(int index){
 	return qRgb((int)(rgb[0]*255.999f),(int)(rgb[1]*255.999f),(int)(rgb[2]*255.999f));
 }
 	
-void TransferFunction::
-setControlPointRGB(int index, QRgb newColor){
-	QColor qc(newColor);
-	int h, s, v;
-	qc.getHsv(&h, &s, &v);
-	setControlPointHSV(index, (float)h/360.f, (float)s/255.f, (float)v/255.f);
-}
 
-QRgb TransferFunction::
-getRgbValue(float point){
-	float hsv[3], rgb[3];
-	int r,g,b;
-	hsvValue(point, hsv, hsv+1, hsv+2);
-	hsvToRgb(hsv,rgb);
-	r =(int)(rgb[0]*255.f);
-	g = (int)(rgb[1]*255.f);
-	b =(int)(rgb[2]*255.f);
-	QRgb retVal;
-	retVal = qRgb(r,g,b);
-	return retVal;
-}
 
 //Methods to save and restore transfer functions.
 	//The gui specifies FILEs that are then read/written
@@ -692,10 +532,10 @@ buildNode(const string& tfname) {
 		attrs[_tfNameAttr] = tfname;
 	}
 	oss.str(empty);
-	oss << (double)minMapBound;
+	oss << (double)getMinMapValue();
 	attrs[_leftBoundAttr] = oss.str();
 	oss.str(empty);
-	oss << (double)maxMapBound;
+	oss << (double)getMaxMapValue();
 	attrs[_rightBoundAttr] = oss.str();
 
 	XmlNode* mainNode = new XmlNode(_transferFunctionTag, attrs, numOpacControlPoints+numColorControlPoints);
@@ -732,16 +572,7 @@ buildNode(const string& tfname) {
 	return mainNode;
 }
 
-bool TransferFunction::
-saveToFile(ofstream& ofs){
-	const std::string emptyString;
-	XmlNode* rootNode = buildNode(emptyString);
 
-	ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
-	XmlNode::streamOut(ofs,(*rootNode));
-	delete rootNode;
-	return true;
-}
 //Create a transfer function by parsing a file.
 TransferFunction* TransferFunction::
 loadFromFile(ifstream& is){
@@ -754,8 +585,16 @@ loadFromFile(ifstream& is){
 	delete parseMgr;
 	return newTF;
 }
+bool TransferFunction::
+saveToFile(ofstream& ofs){
+	const std::string emptyString;
+	XmlNode* rootNode = buildNode(emptyString);
 
-
+	ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
+	XmlNode::streamOut(ofs,(*rootNode));
+	delete rootNode;
+	return true;
+}
 
 //Handlers for Expat parsing.
 //The parse state is determined by
@@ -776,13 +615,17 @@ elementStartHandler(ExpatParseMgr* pm, int /*depth*/ , std::string& tagString, c
 			attrs++;
 			istringstream ist(value);
 			if (StrCmpNoCase(attribName, _tfNameAttr) == 0) {
-				ist >> tfName;
+				ist >> mapperName;
 			}
 			else if (StrCmpNoCase(attribName, _leftBoundAttr) == 0) {
-				ist >> minMapBound;
+				float floatval;
+				ist >> floatval;
+				setMinMapValue(floatval);
 			}
 			else if (StrCmpNoCase(attribName, _rightBoundAttr) == 0) {
-				ist >> maxMapBound;
+				float floatval;
+				ist >> floatval;
+				setMaxMapValue(floatval);
 			}
 			
 			else return false;

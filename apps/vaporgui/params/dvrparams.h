@@ -88,7 +88,7 @@ public:
 	bool attenuationIsDirty() {return attenuationDirty;}
 	void setAttenuationDirty(bool dirty) {attenuationDirty = dirty;}
 	
-	void setClutDirty();
+	virtual void setClutDirty();
 	float* getCurrentDatarange(){
 		return currentDatarange;
 	}
@@ -131,7 +131,6 @@ public:
 	
 	void refreshTFFrame();
 	
-		
 	void setClut(const float newTable[256][4]);
 	void setBindButtons();
 	void updateTFBounds();
@@ -155,8 +154,8 @@ public:
 	void guiSetAligned();
 	//respond to changes in TF (for undo/redo):
 	//
-	void guiStartChangeTF(char* s);
-	void guiEndChangeTF();
+	virtual void guiStartChangeMapFcn(char* s);
+	virtual void guiEndChangeMapFcn();
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();
 	//Implement virtual function to deal with new session:

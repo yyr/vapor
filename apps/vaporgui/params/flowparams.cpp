@@ -94,7 +94,9 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	variableNames.empty();
 	//Initially just make one blank:
 	variableNames.push_back(" ");
-	varNum[0] = varNum [1] = varNum[2] = 0;
+	varNum[0]= 0;
+	varNum[1] = 1;
+	varNum[2] = 2;
 	integrationAccuracy = 0.5f;
 	userTimeStepMultiplier = 1.0f;
 	timeSamplingInterval = 1;
@@ -130,10 +132,10 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	colorMapEntity.push_back("Speed");
 
 	colorControlPoints.clear();
-	colorControlPoints.push_back(*new colorControlPoint);
-	colorControlPoints.push_back(*new colorControlPoint);
-	colorControlPoints.push_back(*new colorControlPoint);
-	colorControlPoints.push_back(*new colorControlPoint);
+	colorControlPoints.push_back(*new ColorControlPoint);
+	colorControlPoints.push_back(*new ColorControlPoint);
+	colorControlPoints.push_back(*new ColorControlPoint);
+	colorControlPoints.push_back(*new ColorControlPoint);
 	colorControlPoints[0].position = -1.e30f;
 	colorControlPoints[1].position = 0.f;
 	colorControlPoints[2].position = 1.f;
@@ -442,8 +444,11 @@ reinit(bool doOverride){
 	for (i = 0; i< newNumVariables; i++){
 		colorMapEntity.push_back(variableNames[i]);
 	}
+	if (doOverride){
+		varNum[0] = 0; varNum[1] = 1; varNum[2] = 2;
+	}
 	for (int dim = 0; dim < 3; dim++){
-		//See if current varNums is valid
+		//See if current varNum is valid.  If not, 
 		//reset to first variable that is present:
 		if (!Session::getInstance()->getDataStatus()->variableIsPresent(varNum[dim])){
 			varNum[dim] = -1;
@@ -1206,4 +1211,194 @@ buildNode() {
 	
 	flowNode->AddChild(graphicNode);
 	return flowNode;
+}
+//Parse flow params from file:
+bool FlowParams::
+elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const char ** attrs){
+	
+	//Take care of attributes of flowParamsNode
+	if (StrCmpNoCase(tagString, _flowParamsTag) == 0) {
+		int newNumVariables = 0;
+		//If it's a Flow tag, save 10 attributes (2 are from Params class)
+		//Do this by repeatedly pulling off the attribute name and value
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			if (StrCmpNoCase(attribName, _vizNumAttr) == 0) {
+				ist >> vizNum;
+			}
+			else if (StrCmpNoCase(attribName, _numVariablesAttr) == 0) {
+				ist >> newNumVariables;
+			}
+			else if (StrCmpNoCase(attribName, _mappedVariablesAttr) == 0) {
+				ist >> varNum[0]; ist>>varNum[1]; ist>>varNum[2];
+			}
+			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
+				if (value == "true") setLocal(true); else setLocal(false);
+			}
+			else if (StrCmpNoCase(attribName, _steadyFlowAttr) == 0) {
+				if (value == "true") setFlowType(0); else setFlowType(1);
+			}
+			else if (StrCmpNoCase(attribName, _instanceAttr) == 0){
+				ist >> instance;
+			}
+			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
+				ist >> numTransforms;
+			}
+			else if (StrCmpNoCase(attribName, _integrationAccuracyAttr) == 0){
+				ist >> integrationAccuracy;
+			}
+			else if (StrCmpNoCase(attribName, _userTimeStepMultAttr) == 0){
+				ist >> userTimeStepMultiplier;
+			}
+			else if (StrCmpNoCase(attribName, _timeSamplingIntervalAttr) == 0){
+				ist >> timeSamplingInterval;
+			}
+			else return false;
+		}
+		//Empty out the colorControlPoints:
+		colorControlPoints.empty();
+		return true;
+	}
+	//Parse the seeding node:
+	else if (StrCmpNoCase(tagString, _seedingTag) == 0) {
+		
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			
+			if (StrCmpNoCase(attribName, _seedRegionMinAttr) == 0) {
+				ist >> seedBoxMin[0];ist >> seedBoxMin[1];ist >> seedBoxMin[2];
+			}
+			else if (StrCmpNoCase(attribName, _seedRegionMaxAttr) == 0) {
+				ist >> seedBoxMax[0];ist >> seedBoxMax[1];ist >> seedBoxMax[2];
+			}
+			else if (StrCmpNoCase(attribName, _randomGenAttr) == 0) {
+				if (value == "true") setRandom(true); else setRandom(false);
+			}
+			else if (StrCmpNoCase(attribName, _randomSeedAttr) == 0) {
+				ist >> randomSeed;
+			}
+			else if (StrCmpNoCase(attribName, _generatorCountsAttr) == 0) {
+				ist >> generatorCount[0];ist >> generatorCount[1];ist >> generatorCount[2];
+			}
+			else if (StrCmpNoCase(attribName, _totalGeneratorCountAttr) == 0) {
+				ist >> allGeneratorCount;
+			}
+			else if (StrCmpNoCase(attribName, _seedTimesAttr) == 0) {
+				ist >> seedTimeStart;
+				ist >> seedTimeEnd;
+				ist >> seedTimeIncrement;
+			}
+			else return false;
+		}
+		return true;
+	}
+	// Parse the values from geometry:
+	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			if (StrCmpNoCase(attribName, _geometryTypeAttr) == 0) {
+				ist >> geometryType;
+			}
+			else if (StrCmpNoCase(attribName, _objectsPerTimestepAttr) == 0) {
+				ist >> objectsPerTimestep;
+			}
+			else if (StrCmpNoCase(attribName, _displayIntervalAttr) == 0) {
+				ist >> firstDisplayFrame;ist >> lastDisplayFrame;
+			}
+			else if (StrCmpNoCase(attribName, _shapeDiameterAttr) == 0) {
+				ist >> shapeDiameter;
+			}
+			else if (StrCmpNoCase(attribName, _colorMappedEntityAttr) == 0) {
+				ist >> colorMapEntityIndex;
+			}
+			else if (StrCmpNoCase(attribName, _colorMappingBoundsAttr) == 0) {
+				ist >> colorMapMin;ist >> colorMapMax;
+			}
+			else if (StrCmpNoCase(attribName, _numControlPointsAttr) == 0) {
+				ist >> numControlPoints;
+			}
+			else return false;
+		}
+	}
+	//Parse a color control point node:
+	else if (StrCmpNoCase(tagString, _colorControlPointTag) == 0) {
+		//Create a color control point with default values,
+		//and with specified position
+		//Currently only support HSV colors
+		//Repeatedly pull off attribute name and values
+		string attribName;
+		float hue = 0.f, sat = 1.f, val=1.f, posn=0.f;
+		while (*attrs){
+			attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			if (StrCmpNoCase(attribName, _positionAttr) == 0) {
+				ist >> posn;
+			} else if (StrCmpNoCase(attribName, _hsvAttr) == 0) { 
+				ist >> hue;
+				ist >> sat;
+				ist >> val;
+			} else return false; //Unknown attribute
+		}
+		//Then insert color control point
+		int indx = insertColorControlPoint(posn,hue,sat,val);
+		if (indx >= 0) return true;
+		return false;
+	}//end of color control point tag
+	return true;
+}
+	
+	//static const string _numControlPointsAttr;?? notneeded?
+	
+	
+bool FlowParams::
+elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
+	if (StrCmpNoCase(tag, _flowParamsTag) == 0) {
+		//If this is a flowparams, need to
+		//pop the parse stack.  
+		ParsedXml* px = pm->popClassStack();
+		bool ok = px->elementEndHandler(pm, depth, tag);
+		return ok;
+	} 
+	else if (StrCmpNoCase(tag, _seedingTag) == 0)
+		return true;
+	else if (StrCmpNoCase(tag, _geometryTag) == 0)
+		return true;
+	else if (StrCmpNoCase(tag, _colorControlPointTag) == 0)
+		return true;
+	else {
+		pm->parseError("Unrecognized end tag in FlowParams %s",tag.c_str());
+		return false; 
+	}
+}
+	
+int FlowParams::
+insertColorControlPoint(float posn, float hue, float sat, float val){
+	int i;
+	for (i = 0; i<(int)colorControlPoints.size(); i++){
+		if (posn > colorControlPoints[i].position) break;
+	}
+	if (i == 0) i = 1;
+	size_t newpos = (size_t) (i-1);
+	ColorControlPoint* ccp = new ColorControlPoint();
+	ccp->position = posn;
+	ccp->hsv[0] = hue;
+	ccp->hsv[1] = sat;
+	ccp->hsv[2] = val;
+	colorControlPoints.insert(colorControlPoints.begin()+newpos, *ccp);
+	return i-1;
 }

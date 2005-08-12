@@ -26,7 +26,8 @@
 #define TRANSFERFUNCTION_H
 #define MAXCONTROLPOINTS 50
 #include "tfinterpolator.h"
-#include "dvrparams.h"
+#include "params.h"
+#include "mapperfunction.h"
 #include "vapor/ExpatParseMgr.h"
 #include <qcolor.h>
 
@@ -35,14 +36,14 @@ class TFEditor;
 class DvrParams;
 class XmlNode;
 
-class TransferFunction : public ParsedXml {
+class TransferFunction : public MapperFunction {
 public:
-	TransferFunction(DvrParams* p, int nBits);
+	TransferFunction(Params* p, int nBits);
 	TransferFunction();
 	~TransferFunction();
 	//Set to starting values
 	//
-	void init();  
+	virtual void init();  
 	//Insert a control point without disturbing values;
 	//return new index
 	//Note:  All public methods use actual real coords.
@@ -54,14 +55,14 @@ public:
 	//
 	int insertOpacControlPoint(float point, float opacity = -1.f);
 	
-	void deleteColorControlPoint(int index);
-	void deleteOpacControlPoint(int index);
+	virtual void deleteColorControlPoint(int index);
+	virtual void deleteOpacControlPoint(int index);
 	//Move a control point with specified index to new position.  
 	//If newOpacity < 0, don't change opacity at new point. Returns
 	//new index of point
 	//
-	int moveColorControlPoint(int index, float newPoint);
-	int moveOpacControlPoint(int index, float newPoint, float newOpacity = -1.f);
+	virtual int moveColorControlPoint(int index, float newPoint);
+	virtual int moveOpacControlPoint(int index, float newPoint, float newOpacity = -1.f);
 	//Build a lookup table[numEntries][4]? from the TF
 	//Caller must pass in an empty array to fill in
 	//
@@ -72,72 +73,56 @@ public:
 	float opacityValue(int controlPointNum) {
 		return opac[controlPointNum];
 	}
-	void setEditor(TFEditor* e) {myTFEditor = e;}
-	TFEditor* getEditor() {return myTFEditor;}
-	void setParams(DvrParams* p) {myParams = p;}
-	DvrParams* getParams() {return myParams;}
-	int getNumOpacControlPoints() {return numOpacControlPoints;}
-	int getNumColorControlPoints() {return numColorControlPoints;}
-	float getMinMapValue(){
-		return minMapBound;
-	}
-	float getMaxMapValue(){
-		return maxMapBound;
-	}
-	void setMinMapValue(float val) {minMapBound = val;}
-	void setMaxMapValue(float val) {maxMapBound = val;}
 	
-	//Map a point to the specified range, and quantize it.
-	//
-	static int mapPosition(float x,  float minValue, float maxValue, int hSize);
-	//Map and quantize a real value to the corresponding table index
-	//i.e., quantize to current transfer function domain
-	//
-	int mapFloatToIndex(float point) {
-		return mapPosition(point, getMinMapValue(), getMaxMapValue(), numEntries-1);
-		//return (int)(0.5f+(numEntries*(point - minMapValue)/(maxMapValue-minMapValue)));
-	}
-	float mapIndexToFloat(int indx){
-		return (float)(getMinMapValue() + ((float)indx)*(float)(getMaxMapValue()-getMinMapValue())/(float)(numEntries-1));
-	}
-	float opacCtrlPointPosition(int index){
+	
+	virtual float opacCtrlPointPosition(int index){
 		return (getMinMapValue() + opacCtrlPoint[index]*(getMaxMapValue()-getMinMapValue()));}
-	float colorCtrlPointPosition(int index){
+	virtual float colorCtrlPointPosition(int index){
 		return (getMinMapValue() + colorCtrlPoint[index]*(getMaxMapValue()-getMinMapValue()));}
-	float controlPointOpacity(int index) { return opac[index];}
-	void hsvValue(float point, float* h, float*sat, float*val);
-	QRgb getRgbValue(float point);
-	void controlPointHSV(int index, float* h, float*s, float*v){
+	virtual float controlPointOpacity(int index) { return opac[index];}
+	virtual void hsvValue(float point, float* h, float*sat, float*val);
+	
+	virtual void controlPointHSV(int index, float* h, float*s, float*v){
 		*h = hue[index];
 		*s = sat[index];
 		*v = val[index];
 	}
-	void setControlPointHSV(int index, float h, float s, float v){
+	virtual void setControlPointHSV(int index, float h, float s, float v){
 		hue[index] = h;
 		sat[index] = s;
 		val[index] = v;
 		myParams->setClutDirty();
 	}
-	QRgb getControlPointRGB(int index);
-	void setControlPointRGB(int index, QRgb newColor);
-
-	int getNumEntries() {return numEntries;}
-	void setNumEntries(int val){ numEntries = val;}
-	void startChange(char* s){ myParams->guiStartChangeTF(s);}
-	void endChange(){ myParams->guiEndChangeTF();}
-	//color conversion 
-	static void hsvToRgb(float* hsv, float* rgb);
-	static void rgbToHsv(float* rgb, float* hsv);
-	//find left index for opacity 
-	//
-	int getLeftOpacityIndex(float val){
+	virtual int getLeftOpacityIndex(float val){
 		float normVal = (val-getMinMapValue())/(getMaxMapValue()-getMinMapValue());
 		return getLeftIndex(normVal, opacCtrlPoint, numOpacControlPoints);
 	}
-	int getLeftColorIndex(float val){
+	virtual int getLeftColorIndex(float val){
 		float normVal = (val-getMinMapValue())/(getMaxMapValue()-getMinMapValue());
 		return getLeftIndex(normVal, colorCtrlPoint, numColorControlPoints);
 	}
+	virtual QRgb getControlPointRGB(int index);
+	
+	int getNumEntries() {return numEntries;}
+	void setNumEntries(int val){ numEntries = val;}
+	void startChange(char* s){ myParams->guiStartChangeMapFcn(s);}
+	void endChange(){ myParams->guiEndChangeMapFcn();}
+	
+	//Transfer function has identical min,max map bounds, but
+	//Parent class has them potentially unequal.
+	void setMinMapValue(float minVal){
+		setMinOpacMapValue(minVal);
+		setMinColorMapValue(minVal);
+	}
+	void setMaxMapValue(float minVal){
+		setMaxOpacMapValue(minVal);
+		setMaxColorMapValue(minVal);
+	}
+	float getMinMapValue() {return getMinOpacMapValue();}
+	float getMaxMapValue() {return getMaxOpacMapValue();}
+
+	int mapFloatToIndex(float f) { return mapFloatToOpacIndex(f);}
+	float mapIndexToFloat(int indx) {return mapOpacIndexToFloat(indx);}
 	//Methods to save and restore transfer functions.
 	//The gui opens the FILEs that are then read/written
 	//Failure results in false/null pointer
@@ -150,7 +135,7 @@ public:
 	bool elementEndHandler(ExpatParseMgr*, int , std::string&);
 	//Transfer function tag is visible to session 
 	static const string _transferFunctionTag;
-	string& getName() {return tfName;}
+
 	
 protected:
 
@@ -180,33 +165,15 @@ protected:
 	static const string _commentTag;
 	static const string _numEntriesAttr;
 
-	//find the index of the largest control point to the left of val
-	//Input value is normalized (note this is protected)
-	//
-	int getLeftIndex(float val, float* ctrlPointArray, int arraySize);
-	int numOpacControlPoints;
-	int numColorControlPoints;
-	float opacCtrlPoint[MAXCONTROLPOINTS];
-	float colorCtrlPoint[MAXCONTROLPOINTS];
-	float hue[MAXCONTROLPOINTS];
-	float sat[MAXCONTROLPOINTS];
-	float val[MAXCONTROLPOINTS];
-	float opac[MAXCONTROLPOINTS];
-	TFInterpolator::type opacInterp[MAXCONTROLPOINTS];
-	TFInterpolator::type colorInterp[MAXCONTROLPOINTS];
-	float minMapBound, maxMapBound;
-	//When a TF is being edited, it keeps a pointer to the editor
-	//
-	TFEditor* myTFEditor;
-	DvrParams* myParams;
-	
-	//Size of lookup table.  Always 1<<8 currently!
-	//
-	int numEntries;
-	//transfer function name, if it's named.
-	string tfName;
 
-	
+	std::vector<float> opacCtrlPoint;
+	std::vector<float> colorCtrlPoint;
+	std::vector<float> hue;
+	std::vector<float> sat;
+	std::vector<float> val;
+	std::vector<float> opac;
+	std::vector<TFInterpolator::type> opacInterp;
+	std::vector<TFInterpolator::type> colorInterp;
 };
 };
 #endif //TRANSFERFUNCTION_H

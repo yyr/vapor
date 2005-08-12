@@ -345,16 +345,21 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_viewpointParamsTag) == 0){
-				//Need to "push" to dvr parser.
-				//That parser will "pop" back to session when done.
+				
 				tempParsedPanel = new ViewpointParams(-1);
 				pm->pushClassStack(tempParsedPanel);
 				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_animationParamsTag) == 0){
-				//Need to "push" to dvr parser.
-				//That parser will "pop" back to session when done.
+				
 				tempParsedPanel = new AnimationParams(-1);
+				pm->pushClassStack(tempParsedPanel);
+				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
+				return true;
+			} else if (StrCmpNoCase(tag, Params::_flowParamsTag) == 0){
+				//Need to "push" to flow parser.
+				//That parser will "pop" back to session when done.
+				tempParsedPanel = new FlowParams(-1);
 				pm->pushClassStack(tempParsedPanel);
 				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
 				return true;
@@ -404,6 +409,11 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 			} else if (StrCmpNoCase(tag, Params::_viewpointParamsTag) == 0){
 				assert(tempParsedPanel);
 				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::ViewpointParamsType);
+				tempParsedPanel = 0;
+				return true;	
+			} else if (StrCmpNoCase(tag, Params::_flowParamsTag) == 0){
+				assert(tempParsedPanel);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::FlowParamsType);
 				tempParsedPanel = 0;
 				return true;	
 			} else return false;

@@ -826,7 +826,8 @@ mapWin2Discrete(int x, bool truncate){
 	return val;
 }
 /*
- *map variable to discrete
+ * map variable to discrete.  Note that color and opac maps are same
+ * with transfer functions
  */
 int TFEditor::
 mapVar2Discrete(float v){

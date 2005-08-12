@@ -1104,6 +1104,7 @@ void VizWinMgr::
 setFlowDirty(FlowParams* fParams){
 	int vizNum = fParams->getVizNum();
 	if (vizNum >= 0){
+		vizWin[activeViz]->setFlowDataDirty(true);
 		vizWin[activeViz]->updateGL();
 	}
 	//If another viz is sharing these flow params, make them rerender, too
@@ -1112,6 +1113,7 @@ setFlowDirty(FlowParams* fParams){
 		if  ( vizWin[i] && (i != vizNum)  &&
 				((!flowParams[i])||!flowParams[i]->isLocal())
 			){
+			vizWin[i]->setFlowDataDirty(true);
 			vizWin[i]->updateGL();
 		}
 	}
@@ -2228,6 +2230,12 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 			
 			pm->pushClassStack(animationParams[parsingVizNum]);
 			animationParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
+			return true;
+		} else if (StrCmpNoCase(tag, Params::_flowParamsTag) == 0){
+			//Need to "push" to flow parser.
+			//That parser will "pop" back to session when done.
+			pm->pushClassStack(flowParams[parsingVizNum]);
+			flowParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
 			return true;
 		} else return false;
 	default:
