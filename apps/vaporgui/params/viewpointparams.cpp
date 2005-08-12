@@ -49,7 +49,7 @@ using namespace VAPoR;
 const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
 const string ViewpointParams::_homeViewTag = "HomeViewpoint";
 const string ViewpointParams::_lightTag = "Light";
-const string ViewpointParams::_lightDirectionTag = "";
+const string ViewpointParams::_lightDirectionAttr = "LightDirection";
 const string ViewpointParams::_lightNumAttr = "LightNum";
 
 ViewpointParams::ViewpointParams(int winnum): Params(winnum){
@@ -513,7 +513,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 		return true;
 	}
 	else if (StrCmpNoCase(tagString, _lightTag) == 0) {
-		//Get the lightNum
+		double dir[3];
+		//Get the lightNum and direction
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -525,29 +526,16 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 				//Make sure that numLights is > lightNum
 				if(numLights <= parsingLightNum) numLights = parsingLightNum+1;
 			}
+			else if (StrCmpNoCase(attribName, _lightDirectionAttr) == 0) {
+				ist >> dir[0]; ist >> dir[1]; ist >>dir[2];
+			}
 			else return false;
-		}
-		return true;
-	}
-	else if (StrCmpNoCase(tagString, _lightDirectionTag) == 0) {
-		//Prepare for receiving the direction vector
-		//Should have a double type attribute
-		string attribName = *attrs;
-		attrs++;
-		string value = *attrs;
-
-		ExpatStackElement *state = pm->getStateStackTop();
-		
-		state->has_data = 1;
-		if (StrCmpNoCase(attribName, _typeAttr) != 0) {
-			pm->parseError("Invalid attribute : %s", attribName.c_str());
-			return false;
-		}
-		if (StrCmpNoCase(value, _doubleType) != 0) {
-			pm->parseError("Invalid type : %s", value.c_str());
-			return false;
-		}
-		state->data_type = value;
+		}// We should now have a lightnum and a direction
+		if (parsingLightNum < 0 || parsingLightNum >2) return false;
+		lightDirection[parsingLightNum][0] = (float)dir[0];
+		lightDirection[parsingLightNum][1] = (float)dir[1];
+		lightDirection[parsingLightNum][2] = (float)dir[2];
+		lightDirection[parsingLightNum][3] = 0.f;
 		return true;
 	}
 	else return false;
@@ -565,14 +553,6 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 	} else if (StrCmpNoCase(tag, _currentViewTag) == 0){
 		return true;
 	} else if (StrCmpNoCase(tag, _lightTag) == 0){
-		return true;
-	} else if (StrCmpNoCase(tag, _lightDirectionTag) == 0){
-		vector<double> posn = pm->getDoubleData();
-		assert(parsingLightNum >= 0 && parsingLightNum < 3);
-		lightDirection[parsingLightNum][0] = (float)posn[0];
-		lightDirection[parsingLightNum][1] = (float)posn[1];
-		lightDirection[parsingLightNum][2] = (float)posn[2];
-		lightDirection[parsingLightNum][3] = 0.f;
 		return true;
 	} else {
 		pm->parseError("Unrecognized end tag in ViewpointParams %s",tag.c_str());
@@ -610,13 +590,13 @@ buildNode(){
 		oss.str(empty);
 		oss << (long)i;
 		attrs[_lightNumAttr] = oss.str();
-		XmlNode* lightNode = vpParamsNode->NewChild(_lightTag, attrs, 1);
-		vector<double> dbvec;
-		dbvec.clear();
+		oss.str(empty);
 		for (int j = 0; j< 3; j++){
-			dbvec.push_back((double) lightDirection[i][j]);
+			oss << (double)(lightDirection[i][j]);
+			oss <<" ";
 		}
-		lightNode->SetElementDouble(_lightDirectionTag, dbvec);
+		attrs[_lightDirectionAttr] = oss.str();
+		vpParamsNode->NewChild(_lightTag, attrs, 0);
 	}
 	attrs.clear();
 	XmlNode* currVP = vpParamsNode->NewChild(_currentViewTag, attrs, 1);

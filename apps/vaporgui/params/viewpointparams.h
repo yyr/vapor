@@ -128,7 +128,7 @@ protected:
 	static const string _currentViewTag;
 	static const string _homeViewTag;
 	static const string _lightTag;
-	static const string _lightDirectionTag;
+	static const string _lightDirectionAttr;
 	static const string _lightNumAttr;
 	//Set to default viewpoint for specified region
 	void centerFullRegion(RegionParams*);

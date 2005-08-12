@@ -200,13 +200,16 @@ void FlowParams::updateDialog(){
 	myFlowTab->numTransSpin->setMinValue(minNumTrans);
 	myFlowTab->numTransSpin->setMaxValue(maxNumTrans);
 	myFlowTab->numTransSpin->setValue(numTransforms);
+	//Always allow at least 3 variables in combo:
+	int numVars = numVariables;
+	if (numVars < 3) numVars = 3;
 	myFlowTab->xCoordVarCombo->clear();
-	myFlowTab->xCoordVarCombo->setMaxCount(numVariables);
+	myFlowTab->xCoordVarCombo->setMaxCount(numVars);
 	myFlowTab->yCoordVarCombo->clear();
-	myFlowTab->yCoordVarCombo->setMaxCount(numVariables);
+	myFlowTab->yCoordVarCombo->setMaxCount(numVars);
 	myFlowTab->zCoordVarCombo->clear();
-	myFlowTab->zCoordVarCombo->setMaxCount(numVariables);
-	for (int i = 0; i< numVariables; i++){
+	myFlowTab->zCoordVarCombo->setMaxCount(numVars);
+	for (int i = 0; i< numVars; i++){
 		if (variableNames.size() > (unsigned int)i){
 			const std::string& s = variableNames.at(i);
 			//Direct conversion of std::string& to QString doesn't seem to work
@@ -990,7 +993,9 @@ regenerateFlowData(){
 
 	///call the flowlib
 	if (flowType == 0){ //steady
+		qWarning("generating stream lines, maxpoints = %d", maxPoints);
 		myFlowLib->GenStreamLines(flowData, maxPoints, randomSeed);
+		qWarning("finished generating stream lines");
 	} else {
 		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement);
 	}
