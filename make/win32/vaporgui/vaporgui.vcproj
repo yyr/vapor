@@ -201,6 +201,9 @@
 				RelativePath="..\..\..\apps\vaporgui\main\mainform.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\params\mapeditor.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\params\mapperfunction.cpp">
 			</File>
 			<File
@@ -464,6 +467,9 @@
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_mainform.cpp"/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\params\mapeditor.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\mapperfunction.h">
