@@ -21,6 +21,7 @@ namespace VAPoR
 //////////////////////////////////////////////////////////////////////////
 #define MAX_LENGTH 1000
 const double RAD_TO_DEG = 57.2957795130823208768;	// 180 / PI
+const double	DEG_TO_RAD = 0.0174532925199432957692;	// PI / 180
 
 enum INTEG_ORD{ SECOND = 2, FOURTH = 4};		// integration order
 enum TIME_DIR{ BACKWARD = -1, FORWARD = 1};		// advection direction

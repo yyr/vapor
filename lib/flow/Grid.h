@@ -121,6 +121,9 @@ private:
 	float mappingFactorX;				// mapping from physical space to computational space
 	float mappingFactorY;
 	float mappingFactorZ;
+	float oneOvermappingFactorX;
+	float oneOvermappingFactorY;
+	float oneOvermappingFactorZ;
 
 public:
 	// constructor and deconstructor

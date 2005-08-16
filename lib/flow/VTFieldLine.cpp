@@ -159,28 +159,58 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir, TIME_DEP time_dep,
 //////////////////////////////////////////////////////////////////////////
 // aptive step size
 //////////////////////////////////////////////////////////////////////////
+#define STREAM_ACCURACY 1.0e-14
+
 int vtCFieldLine::adapt_step(const VECTOR3& p2,
 							 const VECTOR3& p1,
 							 const VECTOR3& p0,
 							 float dt_estimate,
 							 float* dt)
 {
+	int retrace = false;
+	VECTOR3 p2p1 = p1 - p2;
+	VECTOR3 p1p0 = p0 - p1;
+	
+	float denom = p1p0.GetMag() * p2p1.GetMag();
+	float cos_p2p1p0;
+	if(denom > STREAM_ACCURACY)
+		cos_p2p1p0 = dot(p1p0, p2p1)/denom;
+	else
+		cos_p2p1p0 = m_fLowerAngleAccuracy;
+	if(cos_p2p1p0 < m_fLowerAngleAccuracy)
+	{
+		*dt = (*dt) * (float)0.5;
+		retrace = true;
+	}
+	else if(cos_p2p1p0 > m_fUpperAngleAccuracy)
+	{
+		*dt = (*dt) * (float)1.25;
+		//if(*dt >= m_fMaxStepSize)
+		//	*dt = m_fMaxStepSize;
+	}
+	
+	return retrace;
+
+	/*int retrace = false;
 	float angle;
 	VECTOR3 p2p1 = p2 - p1;
 	VECTOR3 p1p0 = p1 - p0;
-		
+
 	angle = (float)acos(dot(p1p0, p2p1)/(p1p0.GetMag() * p2p1.GetMag()))*(float)RAD_TO_DEG;
 	if(angle > m_fUpperAngleAccuracy)
+	{
 		*dt = (*dt) * (float)0.5;
+		retrace = true;
+	}
 	else
 		if(angle < m_fLowerAngleAccuracy)
 		{
-			*dt = (*dt) * (float)2.0;
+			*dt = (*dt) * (float)1.25;
 			if(*dt >= m_fMaxStepSize)
 				*dt = m_fMaxStepSize;
 		}
-	
-	return true;
+
+	return retrace;*/
 }
 
 //////////////////////////////////////////////////////////////////////////

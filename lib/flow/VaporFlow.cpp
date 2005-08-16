@@ -24,15 +24,11 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	userTimeStepSize = 1.0;
 	animationTimeStepSize = 1.0;
 
-	bUseRandomSeeds = true;
+	bUseRandomSeeds = false;
 }
 
 VaporFlow::~VaporFlow()
 {
-	//Don't delete dataMgr, it can still be used by calling program.
-	//if(dataMgr != NULL)
-		//delete dataMgr;
-
 	if(xVarName)
 	{
 		delete[] xVarName;
@@ -48,6 +44,18 @@ VaporFlow::~VaporFlow()
 		delete[] zVarName;
 		zVarName = NULL;
 	}
+}
+
+void VaporFlow::Reset(void)
+{
+	numXForms = 0;
+	minRegion[0] = minRegion[1] = minRegion[2] = 0;
+	maxRegion[0] = maxRegion[1] = maxRegion[2] = 0;
+
+	userTimeStepSize = 1.0;
+	animationTimeStepSize = 1.0;
+
+	bUseRandomSeeds = false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -170,18 +178,20 @@ float* VaporFlow::GetData(size_t ts, const char* varName, const int numNode)
 	size_t lowT, highT;
 	float ratio;
 	lowT = (ts - startTimeStep)/timeStepIncrement;
-	highT = lowT = 1;
+	highT = lowT + 1;
 	ratio = (float)((ts - startTimeStep)%timeStepIncrement)/(float)timeStepIncrement;
 	
 	// get low data
 	lowPtr = dataMgr->GetRegion(lowT, varName, numXForms, minRegion, maxRegion);
 		
 	// get high data and interpolate
-	highPtr = dataMgr->GetRegion(highT, varName, numXForms, minRegion, maxRegion);
+	if(ratio != 0.0)
+	{
+		highPtr = dataMgr->GetRegion(highT, varName, numXForms, minRegion, maxRegion);
+		for(int iFor = 0; iFor < numNode; iFor++)
+			lowPtr[iFor] = Lerp(lowPtr[iFor], highPtr[iFor], ratio);
+	}
 	
-	for(int iFor = 0; iFor < numNode; iFor++)
-		lowPtr[iFor] = Lerp(lowPtr[iFor], highPtr[iFor], ratio);
-
 	return lowPtr;
 }
 
@@ -206,9 +216,9 @@ bool VaporFlow::GenStreamLines(float* positions,
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
 	float **pUData, **pVData, **pWData;
-	int totalXNum = (maxRegion[0]-minRegion[0])* dataMgr->GetMetadata()->GetBlockSize();
-	int totalYNum = (maxRegion[1]-minRegion[1])* dataMgr->GetMetadata()->GetBlockSize();
-	int totalZNum = (maxRegion[2]-minRegion[2])* dataMgr->GetMetadata()->GetBlockSize();
+	int totalXNum = (maxRegion[0]-minRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize();
+	int totalYNum = (maxRegion[1]-minRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize();
+	int totalZNum = (maxRegion[2]-minRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize();
 	int totalNum = totalXNum*totalYNum*totalZNum;
 	pUData = new float*[1];
 	pVData = new float*[1];
@@ -233,17 +243,17 @@ bool VaporFlow::GenStreamLines(float* positions,
 	float currentT = 0.0;
 	pStreamLine = new vtCStreamLine(pField);
 	pStreamLine->setBackwardTracing(false);
-	pStreamLine->SetLowerUpperAngle(3.0, 15.0);
+	pStreamLine->SetLowerUpperAngle(cos(15.0*DEG_TO_RAD), cos(3.0*DEG_TO_RAD));
+	//pStreamLine->SetLowerUpperAngle(3.0, 15.0);
 	pStreamLine->setMaxPoints(maxPoints);
 	pStreamLine->setSeedPoints(seedPtr, seedNum, currentT);
 	pStreamLine->SetSamplingRate(userTimeStepSize);
-//	pStreamLine->SetInitStepSize(initialStepSize);
-//	pStreamLine->SetMaxStepSize(maxStepSize);
-	pStreamLine->SetInitStepSize(0.1);
-	pStreamLine->SetMaxStepSize(1.0);
+	pStreamLine->SetInitStepSize(initialStepSize);
+	pStreamLine->SetMaxStepSize(maxStepSize);
 	pStreamLine->setIntegrationOrder(FOURTH);
 	pStreamLine->execute((void *)&currentT, positions);
 	
+	Reset();
 	// release resource
 	delete[] seedPtr;
 	delete pStreamLine;

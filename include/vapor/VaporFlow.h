@@ -27,6 +27,7 @@ namespace VAPoR
 		// constructor and destructor
 		VaporFlow(DataMgr* dm = NULL);
 		~VaporFlow();
+		void Reset(void);
 
 		void SetFieldComponents(const char* xvar, const char* yvar, const char* zvar);
 		void SetRegion(size_t num_xforms, const size_t min[3], const size_t max[3]);

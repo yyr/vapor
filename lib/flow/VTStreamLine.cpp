@@ -22,7 +22,7 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // definition of class FieldLine
 //////////////////////////////////////////////////////////////////////////
-//FILE* fDebugOut = fopen("C:\\Liya\\debug.txt", "w");
+//FILE* fDebugOut;
 
 vtCStreamLine::vtCStreamLine(CVectorField* pField):
 vtCFieldLine(pField),
@@ -30,6 +30,7 @@ m_itsTraceDir(BACKWARD_AND_FORWARD),
 m_fSamplingRate(1.0),
 m_fCurrentTime(0.0)
 {
+//	fDebugOut = fopen("C:\\Liya\\debug.txt", "w");
 }
 
 vtCStreamLine::~vtCStreamLine(void)
@@ -167,7 +168,8 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 									 PointInfo& seedInfo)
 {
 	int istat, res;
-	PointInfo thisParticle, prevParticle, second_prevParticle;
+	PointInfo thisParticle;
+	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
 	float dt, dt_estimate, cell_volume, mag, curTime;
 	VECTOR3 vel;
 	float totalStepsize = 0.0;
@@ -177,54 +179,74 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	if(res == -1)
 		return;
 	thisParticle = seedInfo;
+	prevInterpolant = thisInterpolant = thisParticle.interpolant;
 	seedTrace.push_back(new VECTOR3(seedInfo.phyCoord));
 	//fprintf(fDebugOut, "Seed (%f, %f, %f)\n", seedInfo.phyCoord[0], seedInfo.phyCoord[1], seedInfo.phyCoord[2]);
 	curTime = m_fCurrentTime;
 	
-	// get the initial stepsize
-	switch(m_pField->GetCellType())
-	{
-	case CUBE:
-		dt = dt_estimate = m_fInitStepSize;
-		break;
-
-	case TETRAHEDRON:
-		cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
-		mag = vel.GetMag();
-		if(fabs(mag) < 1.0e-6f)
-			dt_estimate = 1.0e-5f;
-		else
-			dt_estimate = pow(cell_volume, (float)0.3333333f) / mag;
-		dt = dt_estimate;
-		break;
-
-	default:
-		break; 
-	}
+	// get the initial step size
+	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
+	mag = vel.GetMag();
+	if(fabs(mag) < 1.0e-6f)
+		dt_estimate = 1.0e-5f;
+	else
+		dt_estimate = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
+	dt = dt_estimate;
 
 	// start to advect
 	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
 	{
-		second_prevParticle = prevParticle;
-		prevParticle = thisParticle;
+		second_prevInterpolant = prevInterpolant;
+		prevInterpolant = thisInterpolant;
+		int retrace = true;
 
-		if(integ_ord == SECOND)
-			istat = runge_kutta2(time_dir, time_dep, thisParticle, &curTime, dt);
-		else
-			istat = runge_kutta4(time_dir, time_dep, thisParticle, &curTime, dt);
-
-		if(istat != 1)			// out of boundary
-			return;
-		else
+		while(retrace)
 		{
+			retrace = false;
+
+			if(integ_ord == SECOND)
+				istat = runge_kutta2(time_dir, time_dep, thisParticle, &curTime, dt);
+			else
+				istat = runge_kutta4(time_dir, time_dep, thisParticle, &curTime, dt);
+
+			if(istat != 1)			// out of boundary
+				return;
+
+			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
+			//fprintf(fDebugOut, "temp (%f, %f, %f)\n", thisParticle.phyCoord[0], thisParticle.phyCoord[1], thisParticle.phyCoord[2]);
 			stepList.push_back(dt);
 			totalStepsize += dt;			// accumulation of step size
-		}
 
-		if((int)seedTrace.size() > 2)
-			adapt_step(second_prevParticle.phyCoord, prevParticle.phyCoord, thisParticle.phyCoord, dt_estimate, &dt);
-	}
+			// just generate valid new point
+			if((int)seedTrace.size() > 2)
+			{
+				VECTOR3 thisPhy, prevPhy, second_prevPhy;
+				list<VECTOR3*>::iterator pIter = seedTrace.end();
+				pIter--;
+				thisPhy = **pIter;
+				pIter--;
+				prevPhy = **pIter;
+				pIter--;
+				second_prevPhy = **pIter;
+				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, dt_estimate, &dt);
+				retrace = false;
+			}
+
+			// roll back and retrace
+			if(retrace == true)			
+			{
+				thisInterpolant = prevInterpolant = second_prevInterpolant;
+				seedTrace.pop_back();
+				seedTrace.pop_back();
+				thisParticle.Set(*(seedTrace.back()), thisInterpolant, -1, -1);
+				totalStepsize -= stepList.back();
+				stepList.pop_back();
+				totalStepsize -= stepList.back();
+				stepList.pop_back();
+			}
+		}// end of retrace
+	}// end of advection
 }
 
 //////////////////////////////////////////////////////////////////////////

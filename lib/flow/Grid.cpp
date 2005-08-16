@@ -57,6 +57,9 @@ void CartesianGrid::SetBoundary(VECTOR3& minB, VECTOR3& maxB)
 	mappingFactorX = (float)(xdim()-1)/(m_vMaxBound[0] - m_vMinBound[0]);
 	mappingFactorY = (float)(ydim()-1)/(m_vMaxBound[1] - m_vMinBound[1]);
 	mappingFactorZ = (float)(zdim()-1)/(m_vMaxBound[2] - m_vMinBound[2]);
+	oneOvermappingFactorX = (m_vMaxBound[0] - m_vMinBound[0])/(float)(xdim()-1);
+	oneOvermappingFactorY = (m_vMaxBound[1] - m_vMinBound[1])/(float)(ydim()-1);
+	oneOvermappingFactorZ = (m_vMaxBound[2] - m_vMinBound[2])/(float)(zdim()-1);
 }
 
 void CartesianGrid::Boundary(VECTOR3& minB, VECTOR3& maxB)
@@ -276,7 +279,7 @@ float CartesianGrid::cellVolume(int cellId)
 {
 	float volume;
 	
-	volume = 1.0;
+	volume = oneOvermappingFactorX * oneOvermappingFactorY * oneOvermappingFactorZ;
 	
 	return volume;
 }
