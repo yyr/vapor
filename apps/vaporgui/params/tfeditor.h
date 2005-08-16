@@ -64,6 +64,7 @@
 class QImage;
 #include "dvrparams.h"
 #include "transferfunction.h"
+#include "mapeditor.h"
 class TFFrame;
 namespace VAPoR {
 class TransferFunction;
@@ -74,17 +75,16 @@ class Histo;
 class TFELocationTip;
 class DVRParams;
 
-class TFEditor{
+class TFEditor : public MapEditor {
 public:
-	TFEditor(TransferFunction* TF, TFFrame*);
+	TFEditor(MapperFunction* TF, TFFrame*);
 	~TFEditor();
 	//Reset to default state, e.g. when loading new TF:
 	//
 	void reset();
 	void setEditingRange(float minVal, float maxVal){
-		getParams()->setMinEditBound(minVal);
-		getParams()->setMaxEditBound(maxVal);
-		setDirty();
+		setMinColorEditValue(minVal);
+		setMaxColorEditValue(maxVal);
 	}
 	
 	void refreshImage();
@@ -93,7 +93,7 @@ public:
 	}
 	
 	
-	void setDirty();
+	virtual void setDirty();
 	//Responses to mouse events:
 	void moveGrabbedControlPoints(int x, int y);
 	void moveDomainBound(int x);
@@ -103,11 +103,9 @@ public:
 	//Find where on the image are two versions of a specific control point
 	void getOpacControlPointPosition(int index, int* xpos, int* ypos);
 	void getColorControlPointPosition(int index, int* xpos);
-	int getNumColorControlPoints() {return myTransferFunction->getNumColorControlPoints();}
-	int getNumOpacControlPoints() {return myTransferFunction->getNumOpacControlPoints();}
-	QRgb getControlPointColor(int index){
-		return myTransferFunction->getControlPointRGB(index);
-	}
+	int getNumColorControlPoints() {return myMapperFunction->getNumColorControlPoints();}
+	int getNumOpacControlPoints() {return myMapperFunction->getNumOpacControlPoints();}
+	
 	int getBarHeight(){ return BARHEIGHT;}
 	int closestControlPoint(int x, int y, int* index);
 	void unSelectAll();
@@ -166,20 +164,19 @@ public:
 	// -1 for color coords
 	//float mapScreenYCoord(int y);
 	float getMinEditValue(){
-		return getParams()->getMinEditBound();
+		return (getMinColorEditValue());
 	}
 	float getMaxEditValue(){
-		return getParams()->getMaxEditBound();
+		return (getMaxColorEditValue());
 	}
 	void setMinEditValue(float val) {
-		getParams()->setMinEditBound(val);
+		setMinColorEditValue(val);
 	}
 	void setMaxEditValue(float val) {
-		getParams()->setMaxEditBound(val);
+		setMaxColorEditValue(val);
 	}
-	TransferFunction* getTransferFunction() {return myTransferFunction;}
-	void setTransferFunction(TransferFunction* tf) {myTransferFunction = tf;}
-	void setFrame(TFFrame* frm) {myFrame = frm;}
+	TransferFunction* getTransferFunction() {return (TransferFunction*)myMapperFunction;}
+	void setTransferFunction(TransferFunction* tf) {myMapperFunction = tf;}
 	//Currently histogram is assumed to be limited to interval [0,1]:
 	int getHistoValue(float point);
 
@@ -220,10 +217,10 @@ public:
 	void navigate(int x, int y);
 	//Save the TF map bounds during a drag operation:
 	void saveDomainBounds(){
-		leftDomainSaved = myTransferFunction->getMinMapValue();
-		rightDomainSaved = myTransferFunction->getMaxMapValue();
+		leftDomainSaved = getTransferFunction()->getMinMapValue();
+		rightDomainSaved = getTransferFunction()->getMaxMapValue();
 	}
-	DvrParams* getParams() {return (DvrParams*)myTransferFunction->getParams();}
+	DvrParams* getParams() {return (DvrParams*)myMapperFunction->getParams();}
 
 	
 protected:
@@ -263,9 +260,6 @@ protected:
 	float dragMaxStart;
 	int height;
 	int width;
-	TransferFunction* myTransferFunction;
-	
-	TFFrame* myFrame;
 	
 	int dragStartX, dragStartY;
 	float mappedDragStartX;

@@ -27,21 +27,16 @@
 #include "vizwinmgr.h"
 using namespace VAPoR;
 
-TFEditor::TFEditor(TransferFunction* tf,  TFFrame* frm){
-	myTransferFunction = tf;
-	myFrame = frm;
-	tf->setEditor(this);
-	
+TFEditor::TFEditor(MapperFunction* tf,  TFFrame* frm): MapEditor(tf, frm){
 	reset();
-	
 }
 TFEditor::~TFEditor(){
 	//Don't delete the image:  QT refcounts them
 	//However, must notify the frame that I'm no longer here!
 	//Also, be sure to delete the transfer function!
-	delete myTransferFunction;
-	if(myFrame->getEditor() == this)
-		myFrame->setEditor(0);
+	
+	if(((TFFrame*)myFrame)->getEditor() == this)
+		((TFFrame*)myFrame)->setEditor(0);
 }
 //Reset to default state.  Should already have frame
 //associated.
@@ -71,7 +66,7 @@ reset(){
 
 void TFEditor::refreshImage(){
 	float clut[256*4];
-	myTransferFunction->makeLut(clut);
+	getTransferFunction()->makeLut(clut);
 
 	QRgb color;
 	int column = -1;
@@ -97,8 +92,8 @@ void TFEditor::refreshImage(){
 		//If all the data is outside, the maxBin can be 0!
 		if (histoMaxBin <= 0) histoMaxBin = 1;
 	}
-	int leftLim = mapVar2Win(myTransferFunction->getMinMapValue(),false);
-	int rightLim = mapVar2Win(myTransferFunction->getMaxMapValue(),false);
+	int leftLim = mapVar2Win(getTransferFunction()->getMinMapValue(),false);
+	int rightLim = mapVar2Win(getTransferFunction()->getMaxMapValue(),false);
 	
 	for (int x = 0; x<width; x++){
 		int y;
@@ -114,8 +109,8 @@ void TFEditor::refreshImage(){
 			else if (newColumn > 255)
 				color = COLOR(255);
 			else {
-				//if (xCoord < myTransferFunction->getMinMapValue() ||
-				//	xCoord > myTransferFunction->getMaxMapValue())
+				//if (xCoord < getTransferFunction()->getMinMapValue() ||
+				//	xCoord > getTransferFunction()->getMaxMapValue())
 				//	color = qRgb(0,0,0); 
 				//else 
 				color = COLOR(newColumn);
@@ -272,7 +267,7 @@ moveGrabbedControlPoints(int newX, int newY){
 					getColorControlPointPosition(i, &testX);
 					//Save the coords of starting selected points:
 					//
-					startingColorPosition[i] = myTransferFunction->colorCtrlPointPosition(i);
+					startingColorPosition[i] = getTransferFunction()->colorCtrlPointPosition(i);
 					//check left:
 					for (j = i-1; j>0; j--){
 						if (!selectedColor[j]){
@@ -300,8 +295,8 @@ moveGrabbedControlPoints(int newX, int newY){
 			for (i = 0; i< getNumOpacControlPoints(); i++){
 				if (selectedOpac[i]){
 					getOpacControlPointPosition(i, &testX, &testY);
-					startingOpacPosition[i] = myTransferFunction->opacCtrlPointPosition(i);
-					startingOpac[i] = myTransferFunction->opacityValue(i);
+					startingOpacPosition[i] = getTransferFunction()->opacCtrlPointPosition(i);
+					startingOpac[i] = getTransferFunction()->opacityValue(i);
 					//check left:
 					for (j = i-1; j>0; j--){
 						if (!selectedOpac[j]){
@@ -374,7 +369,7 @@ moveGrabbedControlPoints(int newX, int newY){
 		for (i = 0; i< getNumColorControlPoints(); i++) {
 			if (selectedColor[i]){
 				 
-				myTransferFunction->moveColorControlPoint(i, startingColorPosition[i]+xMoveFloat);
+				getTransferFunction()->moveColorControlPoint(i, startingColorPosition[i]+xMoveFloat);
 				//assert(newIndex == i);
 			}
 		}
@@ -390,7 +385,7 @@ moveGrabbedControlPoints(int newX, int newY){
 						yMoveFloat = 1.f-startingOpac[i];
 					}
 					//int newIndex = 
-					myTransferFunction->moveOpacControlPoint(i, startingOpacPosition[i]+xMoveFloat,
+					getTransferFunction()->moveOpacControlPoint(i, startingOpacPosition[i]+xMoveFloat,
 						startingOpac[i]+yMoveFloat);
 					//assert(newIndex == i);
 				}
@@ -402,7 +397,7 @@ moveGrabbedControlPoints(int newX, int newY){
 						yMoveFloat = 1.f-startingOpac[i];
 					}
 					//int newIndex = 
-					myTransferFunction->moveOpacControlPoint(i, startingOpacPosition[i]+xMoveFloat,
+					getTransferFunction()->moveOpacControlPoint(i, startingOpacPosition[i]+xMoveFloat,
 						startingOpac[i]+yMoveFloat);
 					//assert(newIndex == i);
 				}
@@ -464,21 +459,21 @@ moveDomainBound(int x){
 //Find where on the image is a specific control point
 void TFEditor::
 getColorControlPointPosition(int index, int* xpos){
-	float xvar = myTransferFunction->colorCtrlPointPosition(index);
+	float xvar = getTransferFunction()->colorCtrlPointPosition(index);
 	*xpos = mapVar2Win(xvar);
-	//*xpos = myTransferFunction->mapColorControlPoint(index, minEditValue, maxEditValue, width);
+	//*xpos = getTransferFunction()->mapColorControlPoint(index, minEditValue, maxEditValue, width);
 }
 //Find where on the image is a specific control point
 //Can return values outside of window, but only about 1000000 each way
 //
 void TFEditor::
 getOpacControlPointPosition(int index, int* xpos, int* ypos){
-	float xvar = myTransferFunction->opacCtrlPointPosition(index);
-	float opac = myTransferFunction->controlPointOpacity(index);
+	float xvar = getTransferFunction()->opacCtrlPointPosition(index);
+	float opac = getTransferFunction()->controlPointOpacity(index);
 	*xpos = mapVar2Win(xvar);
 	*ypos = mapOpac2Win(opac);
-	//*xpos = myTransferFunction->mapOpacControlPoint(index, minEditValue, maxEditValue, width);
-	//*ypos = (int)((1.f-myTransferFunction->opacityValue(index))*(height - BELOWOPACITY));
+	//*xpos = getTransferFunction()->mapOpacControlPoint(index, minEditValue, maxEditValue, width);
+	//*ypos = (int)((1.f-getTransferFunction()->opacityValue(index))*(height - BELOWOPACITY));
 }
 /* 
  * Determine if the specified point is close to a control point.  Return the
@@ -531,7 +526,7 @@ insertOpacControlPoint(int x, int y){
 		opacity = 1.f - (float)y/(float)(height-BELOWOPACITY);
 	}
 	*/
-	int ptNum = myTransferFunction->insertOpacControlPoint(point, opacity);
+	int ptNum = getTransferFunction()->insertOpacControlPoint(point, opacity);
 	if (ptNum < 0) return -1;
 	//Must move selection of existing control points:
 	for (int i = getNumOpacControlPoints()-1; i>ptNum;  i--)
@@ -544,7 +539,7 @@ insertOpacControlPoint(int x, int y){
 int TFEditor::
 insertColorControlPoint(int x){
 	float point = mapWin2Var(x);
-	int ptNum = myTransferFunction->insertColorControlPoint(point);
+	int ptNum = getTransferFunction()->insertColorControlPoint(point);
 	if (ptNum < 0) return -1;
 	//Must also move selection of existing control points:
 	//
@@ -558,10 +553,10 @@ insertColorControlPoint(int x){
 void TFEditor::
 unSelectAll(){
 	int i;
-	for (i = 0; i< myTransferFunction->getNumColorControlPoints(); i++) {
+	for (i = 0; i< getTransferFunction()->getNumColorControlPoints(); i++) {
 		selectedColor[i] = false;
 	}
-	for (i = 0; i< myTransferFunction->getNumOpacControlPoints(); i++) {
+	for (i = 0; i< getTransferFunction()->getNumOpacControlPoints(); i++) {
 		selectedOpac[i] = false;
 	}
 	numColorSelect = 0;
@@ -614,16 +609,16 @@ void TFEditor::
 deleteControlPoint(int pointNum, bool colorPoint){
 	if (colorPoint){
 		if (selectedColor[pointNum]) numColorSelect--;
-		for (int i = pointNum; i< myTransferFunction->getNumColorControlPoints(); i++){
+		for (int i = pointNum; i< getTransferFunction()->getNumColorControlPoints(); i++){
 			selectedColor[i] = selectedColor[i+1];
 		}
-		myTransferFunction->deleteColorControlPoint(pointNum);
+		getTransferFunction()->deleteColorControlPoint(pointNum);
 	} else {
 		if (selectedOpac[pointNum]) numOpacSelect--;
-		for (int i = pointNum; i< myTransferFunction->getNumOpacControlPoints(); i++){
+		for (int i = pointNum; i< getTransferFunction()->getNumOpacControlPoints(); i++){
 			selectedOpac[i] = selectedOpac[i+1];
 		}
-		myTransferFunction->deleteOpacControlPoint(pointNum);
+		getTransferFunction()->deleteOpacControlPoint(pointNum);
 	}
 	
 	setDirty();
@@ -636,10 +631,10 @@ deleteControlPoint(int pointNum, bool colorPoint){
 void TFEditor::
 deleteSelectedControlPoints(){
 	int i;
-	for (i = myTransferFunction->getNumColorControlPoints() -2; i> 0; i--){
+	for (i = getTransferFunction()->getNumColorControlPoints() -2; i> 0; i--){
 		if (selectedColor[i]) deleteControlPoint(i, true);
 	}
-	for (i = myTransferFunction->getNumOpacControlPoints() -2; i> 0; i--){
+	for (i = getTransferFunction()->getNumOpacControlPoints() -2; i> 0; i--){
 		if (selectedOpac[i]) deleteControlPoint(i, false);
 	}
 	assert(numColorSelect == 0);
@@ -657,7 +652,7 @@ void TFEditor::setHsv(int h, int s, int v){
 	bool change = false;
 	for (int i = 0; i<getNumColorControlPoints(); i++){
 		if (selectedColor[i]){
-			myTransferFunction->setControlPointHSV(i, newHue, newSat, newVal);
+			getTransferFunction()->setControlPointHSV(i, newHue, newSat, newVal);
 			change = true;
 		}
 	}
@@ -707,14 +702,14 @@ bindOpacToColor(){
 	//Don't allow the binding if an existing opac control point is already
 	//in the proposed place:
 	//
-	int existingPt = myTransferFunction->getLeftOpacityIndex(
-		myTransferFunction->colorCtrlPointPosition(colorNum));
-	if (myTransferFunction->opacCtrlPointPosition(existingPt) ==
-		myTransferFunction->colorCtrlPointPosition(colorNum)) return;
+	int existingPt = getTransferFunction()->getLeftOpacityIndex(
+		getTransferFunction()->colorCtrlPointPosition(colorNum));
+	if (getTransferFunction()->opacCtrlPointPosition(existingPt) ==
+		getTransferFunction()->colorCtrlPointPosition(colorNum)) return;
 
-	int newOpacIndex = myTransferFunction->moveOpacControlPoint(opacNum,
-		myTransferFunction->colorCtrlPointPosition(colorNum),
-		myTransferFunction->opacityValue(opacNum));
+	int newOpacIndex = getTransferFunction()->moveOpacControlPoint(opacNum,
+		getTransferFunction()->colorCtrlPointPosition(colorNum),
+		getTransferFunction()->opacityValue(opacNum));
 	if (newOpacIndex!= opacNum){
 		//Swap the selections:
 		
@@ -748,13 +743,13 @@ bindColorToOpac(){
 	//Don't allow the binding if an existing color control point is already
 	//in the proposed place:
 	//
-	int existingPt = myTransferFunction->getLeftColorIndex(
-		myTransferFunction->opacCtrlPointPosition(opacNum));
-	if (myTransferFunction->colorCtrlPointPosition(existingPt) ==
-		myTransferFunction->opacCtrlPointPosition(opacNum)) return;
+	int existingPt = getTransferFunction()->getLeftColorIndex(
+		getTransferFunction()->opacCtrlPointPosition(opacNum));
+	if (getTransferFunction()->colorCtrlPointPosition(existingPt) ==
+		getTransferFunction()->opacCtrlPointPosition(opacNum)) return;
 
-	int newColorIndex = myTransferFunction->moveColorControlPoint(colorNum,
-		myTransferFunction->opacCtrlPointPosition(opacNum));
+	int newColorIndex = getTransferFunction()->moveColorControlPoint(colorNum,
+		getTransferFunction()->opacCtrlPointPosition(opacNum));
 	//Must update selection if the index changed:
 	//
 	if (newColorIndex!= colorNum){
@@ -867,5 +862,5 @@ int TFEditor::mapOpac2Win(float opac, bool truncate){
 }
 
 void TFEditor::setDirty(){
-	myFrame->setDirtyEditor(this);
+	((TFFrame*)myFrame)->setDirtyEditor(this);
 }

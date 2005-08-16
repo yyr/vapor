@@ -28,7 +28,7 @@
 #include <qcolor.h>
 
 namespace VAPoR {
-class TFEditor;
+class MapEditor;
 class Params;
 class XmlNode;
 
@@ -65,8 +65,8 @@ public:
 	virtual float opacityValue(float point) = 0;
 	virtual float opacityValue(int controlPointNum) = 0;
 		
-	void setEditor(TFEditor* e) {myMapEditor = e;}
-	TFEditor* getEditor() {return myMapEditor;}
+	void setEditor(MapEditor* e) {myMapEditor = e;}
+	MapEditor* getEditor() {return myMapEditor;}
 	void setParams(Params* p) {myParams = p;}
 	Params* getParams() {return myParams;}
 	int getNumOpacControlPoints() {return numOpacControlPoints;}
@@ -172,7 +172,7 @@ protected:
 	float minOpacMapBound, maxOpacMapBound;
 	//When a TF is being edited, it keeps a pointer to the editor
 	//
-	TFEditor* myMapEditor;
+	MapEditor* myMapEditor;
 	Params* myParams;
 	
 	//Size of lookup table.  Always 1<<8 currently!

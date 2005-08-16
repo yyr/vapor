@@ -124,7 +124,7 @@ deepCopy(){
 	for (int i = 0; i<numVariables; i++){
 		newParams->transFunc[i] = new TransferFunction(*transFunc[i]);
 		//clone the tfe, hook it to the trans func
-		TFEditor* newTFEditor = new TFEditor(*(transFunc[i]->getEditor()));
+		TFEditor* newTFEditor = new TFEditor(*(TFEditor*)(transFunc[i]->getEditor()));
 		newParams->connectTransferFunction(newParams->transFunc[i],newTFEditor); 
 	}
 	
@@ -786,6 +786,7 @@ connectTransferFunction(TransferFunction* tf, TFEditor* tfe){
 	tfe->setFrame(myDvrTab->DvrTFFrame);
 	tfe->setTransferFunction(tf);
 	tf->setParams(this);
+	tfe->setVarNum(varNum);
 }
 void DvrParams::
 fileSaveTF(){
@@ -1052,7 +1053,7 @@ buildNode() {
 }
 
 TFEditor* DvrParams::getTFEditor(){
-	return (numVariables > 0 ? transFunc[varNum]->getEditor() : 0);
+	return (numVariables > 0 ? (TFEditor*)transFunc[varNum]->getEditor() : 0);
 }
 MapperFunction* DvrParams::getMapperFunc() {
 	return (numVariables > 0 ? transFunc[varNum] : 0);

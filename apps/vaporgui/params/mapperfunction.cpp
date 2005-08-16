@@ -1,6 +1,6 @@
 //************************************************************************
 //																		*
-//		     Copyright (C)  2004										*
+//		     Copyright (C)  2005										*
 //     University Corporation for Atmospheric Research					*
 //		     All Rights Reserved										*
 //																		*
@@ -70,6 +70,7 @@ MapperFunction::MapperFunction(Params* p, int nBits){
 }
 	
 MapperFunction::~MapperFunction() {
+	
 }
 
 
