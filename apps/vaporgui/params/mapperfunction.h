@@ -75,10 +75,10 @@ public:
 		return minColorMapBound;
 	}
 	float getMaxColorMapValue(){
-		return maxOpacMapBound;
+		return maxColorMapBound;
 	}
 	float getMinOpacMapValue(){
-		return minColorMapBound;
+		return minOpacMapBound;
 	}
 	float getMaxOpacMapValue(){
 		return maxOpacMapBound;

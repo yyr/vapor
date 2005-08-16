@@ -81,8 +81,6 @@ DvrParams::DvrParams(int winnum) : Params(winnum){
 	thisParamType = DvrParamsType;
 	myDvrTab = MainForm::getInstance()->getDvrTab();
 
-	minEditBounds = 0;
-	maxEditBounds = 0;
 	numBits = 8;
 	numVariables = 0;
 	restart();
@@ -91,8 +89,7 @@ DvrParams::DvrParams(int winnum) : Params(winnum){
 DvrParams::~DvrParams(){
 	
 	if (savedCommand) delete savedCommand;
-	if (minEditBounds) delete minEditBounds;
-	if (maxEditBounds) delete maxEditBounds;
+	
 	if (transFunc){
 		for (int i = 0; i< numVariables; i++){
 			delete transFunc[i];  //destructor will delete TFEditor
@@ -115,11 +112,11 @@ deepCopy(){
 	DvrParams* newParams = new DvrParams(*this);
 	//Clone the map bounds arrays:
 	int numVars = Max (numVariables, 1);
-	newParams->minEditBounds = new float[numVars];
-	newParams->maxEditBounds = new float[numVars];
+	newParams->minColorEditBounds = new float[numVars];
+	newParams->maxColorEditBounds = new float[numVars];
 	for (int i = 0; i<numVars; i++){
-		newParams->minEditBounds[i] = minEditBounds[i];
-		newParams->maxEditBounds[i] = maxEditBounds[i];
+		newParams->minColorEditBounds[i] = minColorEditBounds[i];
+		newParams->maxColorEditBounds[i] = maxColorEditBounds[i];
 	}
 
 	//Clone the Transfer Function and the TFEditor
@@ -153,7 +150,7 @@ makeCurrent(Params* prevParams, bool newWin) {
 
 void DvrParams::
 refreshCtab() {
-	getTransFunc()->makeLut((float*)ctab);
+	((TransferFunction*)getMapperFunc())->makeLut((float*)ctab);
 }
 	
 //Set the tab consistent with the dvrparams data here
@@ -236,8 +233,8 @@ updatePanelState(){
 	ambientAtten = myDvrTab->ambientAttenuation->text().toFloat();
 	specularAtten = myDvrTab->specularAttenuation->text().toFloat();
 
-	getTransFunc()->setMinMapValue(myDvrTab->leftMappingBound->text().toFloat());
-	getTransFunc()->setMaxMapValue(myDvrTab->rightMappingBound->text().toFloat());
+	getMapperFunc()->setMinColorMapValue(myDvrTab->leftMappingBound->text().toFloat());
+	getMapperFunc()->setMaxColorMapValue(myDvrTab->rightMappingBound->text().toFloat());
 	
 	setDatarangeDirty();
 	getTFEditor()->setDirty();
@@ -276,9 +273,9 @@ updateTFBounds(){
 	QString strn;
 	myDvrTab->minDataBound->setText(strn.setNum(getDataMinBound()));
 	myDvrTab->maxDataBound->setText(strn.setNum(getDataMaxBound()));
-	if (getTransFunc()){
-		myDvrTab->leftMappingBound->setText(strn.setNum(getTransFunc()->getMinMapValue(),'g',4));
-		myDvrTab->rightMappingBound->setText(strn.setNum(getTransFunc()->getMaxMapValue(),'g',4));
+	if (getMapperFunc()){
+		myDvrTab->leftMappingBound->setText(strn.setNum(getMapperFunc()->getMinColorMapValue(),'g',4));
+		myDvrTab->rightMappingBound->setText(strn.setNum(getMapperFunc()->getMaxColorMapValue(),'g',4));
 	} else {
 		myDvrTab->leftMappingBound->setText("0.0");
 		myDvrTab->rightMappingBound->setText("1.0");
@@ -308,8 +305,8 @@ void DvrParams::
 guiSetAligned(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "align tf in edit frame");
-	setMinEditBound(getMinMapBound());
-	setMaxEditBound(getMaxMapBound());
+	setMinEditBound(getMinColorMapBound());
+	setMaxEditBound(getMaxColorMapBound());
 	getTFEditor()->setDirty();
 	myDvrTab->DvrTFFrame->update();
 	PanelCommand::captureEnd(cmd, this);
@@ -576,8 +573,8 @@ reinit(bool doOverride){
 		for (i = 0; i<newNumVariables; i++){
 			if(i<numVariables){
 				newTransFunc[i] = transFunc[i];
-				newMinEdit[i] = minEditBounds[i];
-				newMaxEdit[i] = maxEditBounds[i];
+				newMinEdit[i] = minColorEditBounds[i];
+				newMaxEdit[i] = maxColorEditBounds[i];
 			} else { //create new tfe, hook it to the trans func
 				newTransFunc[i] = new TransferFunction(this, numBits);
 				TFEditor* newTFEditor = new TFEditor(newTransFunc[i], myDvrTab->DvrTFFrame);
@@ -606,11 +603,11 @@ reinit(bool doOverride){
 		}
 	}
 	//Hook up new stuff
-	delete minEditBounds;
-	delete maxEditBounds;
+	delete minColorEditBounds;
+	delete maxColorEditBounds;
 	delete transFunc;
-	minEditBounds = newMinEdit;
-	maxEditBounds = newMaxEdit;
+	minColorEditBounds = newMinEdit;
+	maxColorEditBounds = newMaxEdit;
 	transFunc = newTransFunc;
 	
 	numVariables = newNumVariables;
@@ -657,14 +654,14 @@ restart(){
 	transFunc = 0;
 	//Initialize the mapping bounds to [0,1] until data is read
 	
-	if (minEditBounds) delete minEditBounds;
-	if (maxEditBounds) delete maxEditBounds;
+	if (minColorEditBounds) delete minColorEditBounds;
+	if (maxColorEditBounds) delete maxColorEditBounds;
 	
 	
-	minEditBounds = new float[1];
-	maxEditBounds = new float[1];
-	minEditBounds[0] = 0.f;
-	maxEditBounds[0] = 1.f;
+	minColorEditBounds = new float[1];
+	maxColorEditBounds = new float[1];
+	minColorEditBounds[0] = 0.f;
+	maxColorEditBounds[0] = 1.f;
 	currentDatarange[0] = 0.f;
 	currentDatarange[1] = 1.f;
 	editMode = true;   //default is edit mode
@@ -686,11 +683,11 @@ restart(){
 void DvrParams::
 setDatarangeDirty()
 {
-	if (!getTransFunc()) return;
-	if (currentDatarange[0] != getTransFunc()->getMinMapValue() ||
-		currentDatarange[1] != getTransFunc()->getMaxMapValue()){
-			currentDatarange[0] = getTransFunc()->getMinMapValue();
-			currentDatarange[1] = getTransFunc()->getMaxMapValue();
+	if (!getMapperFunc()) return;
+	if (currentDatarange[0] != getMapperFunc()->getMinColorMapValue() ||
+		currentDatarange[1] != getMapperFunc()->getMaxColorMapValue()){
+			currentDatarange[0] = getMapperFunc()->getMinColorMapValue();
+			currentDatarange[1] = getMapperFunc()->getMaxColorMapValue();
 			VizWinMgr::getInstance()->setDataRangeDirty(this);
 	}
 }
@@ -771,8 +768,8 @@ hookupTF(TransferFunction* tf, int index){
 	connectTransferFunction(tf, newTFEditor);
 	myDvrTab->DvrTFFrame->setEditor(newTFEditor);
 	newTFEditor->reset();
-	minEditBounds[index] = tf->getMinMapValue();
-	maxEditBounds[index] = tf->getMaxMapValue();
+	minColorEditBounds[index] = tf->getMinMapValue();
+	maxColorEditBounds[index] = tf->getMaxMapValue();
 	//reset the editing display range, this also sets dirty flag
 	updateTFBounds();
 	//Force a redraw of tfframe
@@ -822,7 +819,7 @@ fileSaveTF(){
 	
 	
 	
-	if (!getTransFunc()->saveToFile(fileout)){//Report error if can't save to file
+	if (!((TransferFunction*)getMapperFunc())->saveToFile(fileout)){//Report error if can't save to file
 		QString str("Failed to write output file: \n");
 		str += s;
 		MessageReporter::errorMsg(str.ascii());
@@ -839,19 +836,7 @@ refreshTFFrame(){
 	getTFEditor()->setDirty();
 	myDvrTab->DvrTFFrame->update();	
 }
-void DvrParams::setMinMapBound(float val){
-	getTransFunc()->setMinMapValue(val);
-}
-void DvrParams::setMaxMapBound(float val){
-	getTransFunc()->setMaxMapValue(val);
-}
 
-float DvrParams::getMinMapBound(){
-	return getTransFunc()->getMinMapValue();
-}
-float DvrParams::getMaxMapBound(){
-	return getTransFunc()->getMaxMapValue();
-}
 //Handlers for Expat parsing.
 //
 bool DvrParams::
@@ -893,18 +878,18 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		}
 		//Create space for the variables:
 		int numVars = Max (newNumVariables, 1);
-		if (minEditBounds) delete minEditBounds;
-		minEditBounds = new float[numVars];
-		if (maxEditBounds) delete maxEditBounds;
-		maxEditBounds = new float[numVars];
+		if (minColorEditBounds) delete minColorEditBounds;
+		minColorEditBounds = new float[numVars];
+		if (maxColorEditBounds) delete maxColorEditBounds;
+		maxColorEditBounds = new float[numVars];
 		variableNames.clear();
 		for (i = 0; i<newNumVariables; i++){
 			variableNames.push_back("");
 		}
 		//Setup with default values, in case not specified:
 		for (i = 0; i< newNumVariables; i++){
-			minEditBounds[i] = 0.f;
-			maxEditBounds[i] = 1.f;
+			minColorEditBounds[i] = 0.f;
+			maxColorEditBounds[i] = 1.f;
 		}
 
 		//create default Transfer Function and TFEditor
@@ -958,8 +943,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		// Now set the values obtained from attribute parsing.
 	
 		variableNames[parsedVarnum] =  varName;
-		minEditBounds[parsedVarnum] = leftEdit;
-		maxEditBounds[parsedVarnum] = rightEdit;
+		minColorEditBounds[parsedVarnum] = leftEdit;
+		maxColorEditBounds[parsedVarnum] = rightEdit;
 		return true;
 	}
 	//Parse a transferFunction
@@ -1049,11 +1034,11 @@ buildNode() {
 		attrs[_variableNameAttr] = oss.str();
 
 		oss.str(empty);
-		oss << (double)minEditBounds[i];
+		oss << (double)minColorEditBounds[i];
 		attrs[_leftEditBoundAttr] = oss.str();
 
 		oss.str(empty);
-		oss << (double)maxEditBounds[i];
+		oss << (double)maxColorEditBounds[i];
 		attrs[_rightEditBoundAttr] = oss.str();
 
 		XmlNode* varNode = new XmlNode(_variableTag,attrs,1);
@@ -1065,23 +1050,10 @@ buildNode() {
 	}
 	return dvrNode;
 }
-void DvrParams::resetMinEditBounds(vector<double>& newBounds){
-	if (minEditBounds) delete minEditBounds;
-	minEditBounds = new float[newBounds.size()];
-	
-	for (unsigned int i = 0; i<newBounds.size(); i++){ 
-		minEditBounds[i] = newBounds[i];
-	}
-}
-void DvrParams::resetMaxEditBounds(vector<double>& newBounds){
-	if (maxEditBounds) delete maxEditBounds;
-	maxEditBounds = new float[newBounds.size()];
-	for (unsigned int i = 0; i<newBounds.size(); i++) 
-		maxEditBounds[i] = newBounds[i];
-}
+
 TFEditor* DvrParams::getTFEditor(){
 	return (numVariables > 0 ? transFunc[varNum]->getEditor() : 0);
 }
-TransferFunction* DvrParams::getTransFunc() {
+MapperFunction* DvrParams::getMapperFunc() {
 	return (numVariables > 0 ? transFunc[varNum] : 0);
 }

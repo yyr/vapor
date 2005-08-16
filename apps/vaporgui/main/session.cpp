@@ -783,7 +783,7 @@ void Session::addTF(const char* tfName, DvrParams* dvrParams){
 		
 	}
 	//copy the tf, its name
-	keptTFs[numTFs] = new TransferFunction(*(dvrParams->getTransFunc()));
+	keptTFs[numTFs] = new TransferFunction(*((TransferFunction*)dvrParams->getMapperFunc()));
 	tfNames[numTFs] = new std::string(tfName);
 	
 	//Don't retain the pointers to dvrParams and TFE:

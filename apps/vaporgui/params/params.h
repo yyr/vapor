@@ -34,6 +34,7 @@ class VizWinMgr;
 class Session;
 class PanelCommand;
 class XmlNode;
+class MapperFunction;
 class Params : public ParsedXml  {
 	
 public: 
@@ -43,6 +44,16 @@ public:
 		textChangedFlag = false;
 		thisParamType = UnknownParamsType;
 		previousClass = 0;
+		minColorEditBounds = 0;
+		maxColorEditBounds = 0;
+		minOpacEditBounds = 0;
+		maxOpacEditBounds = 0;
+	}
+	virtual ~Params(){
+		if (minColorEditBounds) delete minColorEditBounds;
+		if (maxColorEditBounds) delete maxColorEditBounds;
+		if (minOpacEditBounds) delete minOpacEditBounds;
+		if (maxOpacEditBounds) delete maxOpacEditBounds;
 	}
 	
 	enum ParamType {
@@ -64,7 +75,7 @@ public:
 	static const string _vizNumAttr;
 	static const string _localAttr;
 	static const string _numVariablesAttr;
-	virtual ~Params() {}
+	
 	//Each params must be able to make a "deep" copy,
 	//I.e. copy everything that is unique to this object
 	//
@@ -126,11 +137,49 @@ public:
 	//
 	virtual void reinit(bool) {return;}
 
-	//respond to changes in TF (for undo/redo):
+	//Following are only implemented for renderer params
+	//Should really have a renderer params class!
 	// Default does nothing (if class doesn't have a clut or tf)
 	virtual void guiStartChangeMapFcn(char* ) {}
 	virtual void guiEndChangeMapFcn() {}
 	virtual void setClutDirty() {}
+	void setMinColorMapBound(float val);
+	void setMaxColorMapBound(float val);
+	float getMinColorMapBound();	
+	float getMaxColorMapBound(); 
+	
+	void setMinColorEditBound(float val, int var) {
+		minColorEditBounds[var] = val;
+	}
+	void setMaxColorEditBound(float val, int var) {
+		maxColorEditBounds[var] = val;
+	}
+	float getMinColorEditBound(int var) {
+		return minColorEditBounds[var];
+	}
+	float getMaxColorEditBound(int var) {
+		return maxColorEditBounds[var];
+	}
+	//And opacity:
+	void setMinOpacMapBound(float val);
+	void setMaxOpacMapBound(float val);
+	float getMinOpacMapBound();	
+	float getMaxOpacMapBound(); 
+	void resetMinOpacEditBounds(std::vector<double>& newBounds);
+	void resetMaxOpacEditBounds(std::vector<double>& newBounds);
+	void setMinOpacEditBound(float val, int var) {
+		minOpacEditBounds[var] = val;
+	}
+	void setMaxOpacEditBound(float val, int var) {
+		maxOpacEditBounds[var] = val;
+	}
+	float getMinOpacEditBound(int var) {
+		return minOpacEditBounds[var];
+	}
+	float getMaxOpacEditBound(int var) {
+		return maxOpacEditBounds[var];
+	}
+	virtual MapperFunction* getMapperFunc(){return 0;}
 	//The restart method goes back to initial state
 	//Default does nothing.
 	//
@@ -156,6 +205,13 @@ protected:
 	
 	bool textChangedFlag;
 	ParamType thisParamType;
+
+	//Needed for renderer params:
+	float* minColorEditBounds;
+	float* maxColorEditBounds;
+	float* minOpacEditBounds;
+	float* maxOpacEditBounds;
+
 
 };
 };

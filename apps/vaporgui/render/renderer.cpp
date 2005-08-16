@@ -492,7 +492,7 @@ buildColorscaleImage(){
 
 	//Obtain the relevant transfer function:
 	TransferFunction* myTransFunc = 
-		VizWinMgr::getInstance()->getDvrParams(myVizWin->getWindowNum())->getTransFunc();
+		(TransferFunction*)VizWinMgr::getInstance()->getDvrParams(myVizWin->getWindowNum())->getMapperFunc();
 	
 	
 	

@@ -26,6 +26,7 @@
 #include "session.h"
 #include "assert.h"
 #include "params.h"
+#include "mapperfunction.h"
 
 
 using namespace VAPoR;
@@ -115,4 +116,30 @@ QString& Params::paramName(Params::ParamType type){
 			return *(new QString("Unknown"));
 	}
 	
+}
+void Params::setMinColorMapBound(float val){
+	getMapperFunc()->setMinColorMapValue(val);
+}
+void Params::setMaxColorMapBound(float val){
+	getMapperFunc()->setMaxColorMapValue(val);
+}
+
+float Params::getMinColorMapBound(){
+	return getMapperFunc()->getMinColorMapValue();
+}
+float Params::getMaxColorMapBound(){
+	return getMapperFunc()->getMaxColorMapValue();
+}
+void Params::setMinOpacMapBound(float val){
+	getMapperFunc()->setMinOpacMapValue(val);
+}
+void Params::setMaxOpacMapBound(float val){
+	getMapperFunc()->setMaxOpacMapValue(val);
+}
+
+float Params::getMinOpacMapBound(){
+	return getMapperFunc()->getMinOpacMapValue();
+}
+float Params::getMaxOpacMapBound(){
+	return getMapperFunc()->getMaxOpacMapValue();
 }

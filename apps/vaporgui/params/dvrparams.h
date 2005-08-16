@@ -98,23 +98,24 @@ public:
 		refreshCtab();
 		return ctab;
 	}
-	void setMinMapBound(float val);
-	void setMaxMapBound(float val);
-	float getMinMapBound();	
-	float getMaxMapBound(); 
-	void resetMinEditBounds(std::vector<double>& newBounds);
-	void resetMaxEditBounds(std::vector<double>& newBounds);
+	void setMinMapBound(float val)
+		{setMinColorMapBound(val);}
+	void setMaxMapBound(float val)
+		{setMaxColorMapBound(val);}
+	float getMinMapBound(){return getMinColorMapBound();} 	
+	float getMaxMapBound(){return getMaxColorMapBound();}  
+	
 	void setMinEditBound(float val) {
-		minEditBounds[varNum] = val;
+		setMinColorEditBound(val, varNum);
 	}
 	void setMaxEditBound(float val) {
-		maxEditBounds[varNum] = val;
+		setMaxColorEditBound(val, varNum);
 	}
 	float getMinEditBound() {
-		return minEditBounds[varNum];
+		return minColorEditBounds[varNum];
 	}
 	float getMaxEditBound() {
-		return maxEditBounds[varNum];
+		return maxColorEditBounds[varNum];
 	}
 	float getDataMinBound(){
 		if(numVariables == 0) return 0.f;
@@ -165,7 +166,7 @@ public:
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	TFEditor* getTFEditor();
-	TransferFunction* getTransFunc();
+	virtual MapperFunction* getMapperFunc();
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	float getHistoStretch(){return histoStretchFactor;}
 protected:
@@ -203,8 +204,7 @@ protected:
 	int numVariables;
 	std::vector<std::string> variableNames;
 	
-	float* minEditBounds;
-	float* maxEditBounds;
+	
 };
 };
 #endif //DVRPARAMS_H 

@@ -114,12 +114,12 @@ public:
 		setMinOpacMapValue(minVal);
 		setMinColorMapValue(minVal);
 	}
-	void setMaxMapValue(float minVal){
-		setMaxOpacMapValue(minVal);
-		setMaxColorMapValue(minVal);
+	void setMaxMapValue(float val){
+		setMaxOpacMapValue(val);
+		setMaxColorMapValue(val);
 	}
-	float getMinMapValue() {return getMinOpacMapValue();}
-	float getMaxMapValue() {return getMaxOpacMapValue();}
+	float getMinMapValue() {return getMinColorMapValue();}
+	float getMaxMapValue() {return getMaxColorMapValue();}
 
 	int mapFloatToIndex(float f) { return mapFloatToOpacIndex(f);}
 	float mapIndexToFloat(int indx) {return mapOpacIndexToFloat(indx);}
