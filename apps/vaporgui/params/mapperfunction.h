@@ -39,31 +39,33 @@ public:
 	~MapperFunction();
 	//Set to starting values
 	//
-	virtual void init() = 0;  
+	virtual void init();  
 	//Insert a control point without disturbing values;
 	//return new index
 	//Note:  All public methods use actual real coords.
 	//(Protected methods use normalized points in [0,1]
 	//
-	virtual int insertColorControlPoint(float point)= 0;
+	int insertColorControlPoint(float point);
 
 	//Insert a control point possibly disturbing opacity
 	//
-	virtual int insertOpacControlPoint(float point, float opacity = -1.f) = 0;
+	int insertOpacControlPoint(float point, float opacity = -1.f);
 	
-	virtual void deleteColorControlPoint(int index) = 0;
-	virtual void deleteOpacControlPoint(int index) = 0;
+	void deleteColorControlPoint(int index);
+	void deleteOpacControlPoint(int index);
 	//Move a control point with specified index to new position.  
 	//If newOpacity < 0, don't change opacity at new point. Returns
 	//new index of point
 	//
-	virtual int moveColorControlPoint(int index, float newPoint) = 0;
-	virtual int moveOpacControlPoint(int index, float newPoint, float newOpacity = -1.f) = 0;
+	int moveColorControlPoint(int index, float newPoint);
+	int moveOpacControlPoint(int index, float newPoint, float newOpacity = -1.f);
 	
 	//Evaluate the opacity:
 	//
-	virtual float opacityValue(float point) = 0;
-	virtual float opacityValue(int controlPointNum) = 0;
+	float opacityValue(float point);
+	float opacityValue(int controlPointNum) {
+		return opac[controlPointNum];
+	}
 		
 	void setEditor(MapEditor* e) {myMapEditor = e;}
 	MapEditor* getEditor() {return myMapEditor;}
@@ -108,18 +110,48 @@ public:
 	float mapOpacIndexToFloat(int indx){
 		return (float)(getMinOpacMapValue() + ((float)indx)*(float)(getMaxOpacMapValue()-getMinOpacMapValue())/(float)(numEntries-1));
 	}
-	virtual float opacCtrlPointPosition(int index) = 0;
-	virtual float colorCtrlPointPosition(int index) = 0;
-	virtual float controlPointOpacity(int index) = 0;
-	virtual void hsvValue(float point, float* h, float*sat, float*val) = 0;
+	
+	
+	float opacCtrlPointPosition(int index){
+		return (getMinOpacMapValue() + opacCtrlPoint[index]*(getMaxOpacMapValue()-getMinOpacMapValue()));}
+	float colorCtrlPointPosition(int index){
+		return (getMinColorMapValue() + colorCtrlPoint[index]*(getMaxColorMapValue()-getMinColorMapValue()));}
+	float controlPointOpacity(int index) { return opac[index];}
+	void hsvValue(float point, float* h, float* sat, float* val);
+	
 	QRgb getRgbValue(float point);
-	virtual void controlPointHSV(int index, float* h, float*s, float*v) = 0;
+	
+	
+	void controlPointHSV(int index, float* h, float*s, float*v){
+		*h = hue[index];
+		*s = sat[index];
+		*v = val[index];
+	}
+	void setControlPointHSV(int index, float h, float s, float v){
+		hue[index] = h;
+		sat[index] = s;
+		val[index] = v;
+		myParams->setClutDirty();
+	}
+	int getLeftOpacityIndex(float val){
+		float normVal = (val-getMinOpacMapValue())/(getMaxOpacMapValue()-getMinOpacMapValue());
+		return getLeftIndex(normVal, opacCtrlPoint, numOpacControlPoints);
+	}
+	int getLeftColorIndex(float val){
+		float normVal = (val-getMinColorMapValue())/(getMaxColorMapValue()-getMinColorMapValue());
+		return getLeftIndex(normVal, colorCtrlPoint, numColorControlPoints);
+	}
+	
+	
 		
-	virtual void setControlPointHSV(int index, float h, float s, float v) = 0;
-		
-	virtual QRgb getControlPointRGB(int index) = 0;
+	virtual QRgb getControlPointRGB(int index);
 	void setControlPointRGB(int index, QRgb newColor);
 
+	//Build a lookup table[numEntries][4]? from the TF
+	//Caller must pass in an empty array to fill in
+	//
+	void makeLut(float* clut);
+	
 	int getNumEntries() {return numEntries;}
 	void setNumEntries(int val){ numEntries = val;}
 	void startChange(char* s){ myParams->guiStartChangeMapFcn(s);}
@@ -127,11 +159,7 @@ public:
 	//color conversion 
 	static void hsvToRgb(float* hsv, float* rgb);
 	static void rgbToHsv(float* rgb, float* hsv);
-	//find left index for opacity 
-	//
-	virtual int getLeftOpacityIndex(float val) = 0;
-		
-	virtual int getLeftColorIndex(float val)= 0;
+	
 		
 	//Methods to save and restore Mapper functions.
 	//The gui opens the FILEs that are then read/written
@@ -147,20 +175,18 @@ public:
 	string& getName() {return mapperName;}
 	
 protected:
-
 	//Insert a control point without disturbing values;
 	//return new index
 	//Note:  All public methods use actual real coords.
 	//These Protected methods use normalized points in [0,1]
 	//
-	virtual int insertNormColorControlPoint(float point, float h, float s, float v) = 0;
+	int insertNormColorControlPoint(float point, float h, float s, float v);
 
 	//Insert a control point with specified opacity
 	//
-	virtual int insertNormOpacControlPoint(float point, float opacity) = 0;
-	//Tags and attributes for reading and writing
+	int insertNormOpacControlPoint(float point, float opacity);
 	
-
+	
 	//find the index of the largest control point to the left of val
 	//Input value is normalized (note this is protected)
 	//
@@ -180,7 +206,15 @@ protected:
 	int numEntries;
 	//Mapper function name, if it's named.
 	string mapperName;
-
+	//Data defining the functions:
+	std::vector<float> opacCtrlPoint;
+	std::vector<float> colorCtrlPoint;
+	std::vector<float> hue;
+	std::vector<float> sat;
+	std::vector<float> val;
+	std::vector<float> opac;
+	std::vector<TFInterpolator::type> opacInterp;
+	std::vector<TFInterpolator::type> colorInterp;
 	
 };
 };

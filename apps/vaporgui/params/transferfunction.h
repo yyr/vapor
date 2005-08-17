@@ -44,69 +44,10 @@ public:
 	//Set to starting values
 	//
 	virtual void init();  
-	//Insert a control point without disturbing values;
-	//return new index
+	
 	//Note:  All public methods use actual real coords.
 	//(Protected methods use normalized points in [0,1]
 	//
-	int insertColorControlPoint(float point);
-
-	//Insert a control point possibly disturbing opacity
-	//
-	int insertOpacControlPoint(float point, float opacity = -1.f);
-	
-	virtual void deleteColorControlPoint(int index);
-	virtual void deleteOpacControlPoint(int index);
-	//Move a control point with specified index to new position.  
-	//If newOpacity < 0, don't change opacity at new point. Returns
-	//new index of point
-	//
-	virtual int moveColorControlPoint(int index, float newPoint);
-	virtual int moveOpacControlPoint(int index, float newPoint, float newOpacity = -1.f);
-	//Build a lookup table[numEntries][4]? from the TF
-	//Caller must pass in an empty array to fill in
-	//
-	void makeLut(float* clut);
-	//Evaluate the opacity:
-	//
-	float opacityValue(float point);
-	float opacityValue(int controlPointNum) {
-		return opac[controlPointNum];
-	}
-	
-	
-	virtual float opacCtrlPointPosition(int index){
-		return (getMinMapValue() + opacCtrlPoint[index]*(getMaxMapValue()-getMinMapValue()));}
-	virtual float colorCtrlPointPosition(int index){
-		return (getMinMapValue() + colorCtrlPoint[index]*(getMaxMapValue()-getMinMapValue()));}
-	virtual float controlPointOpacity(int index) { return opac[index];}
-	virtual void hsvValue(float point, float* h, float*sat, float*val);
-	
-	virtual void controlPointHSV(int index, float* h, float*s, float*v){
-		*h = hue[index];
-		*s = sat[index];
-		*v = val[index];
-	}
-	virtual void setControlPointHSV(int index, float h, float s, float v){
-		hue[index] = h;
-		sat[index] = s;
-		val[index] = v;
-		myParams->setClutDirty();
-	}
-	virtual int getLeftOpacityIndex(float val){
-		float normVal = (val-getMinMapValue())/(getMaxMapValue()-getMinMapValue());
-		return getLeftIndex(normVal, opacCtrlPoint, numOpacControlPoints);
-	}
-	virtual int getLeftColorIndex(float val){
-		float normVal = (val-getMinMapValue())/(getMaxMapValue()-getMinMapValue());
-		return getLeftIndex(normVal, colorCtrlPoint, numColorControlPoints);
-	}
-	virtual QRgb getControlPointRGB(int index);
-	
-	int getNumEntries() {return numEntries;}
-	void setNumEntries(int val){ numEntries = val;}
-	void startChange(char* s){ myParams->guiStartChangeMapFcn(s);}
-	void endChange(){ myParams->guiEndChangeMapFcn();}
 	
 	//Transfer function has identical min,max map bounds, but
 	//Parent class has them potentially unequal.
@@ -121,8 +62,8 @@ public:
 	float getMinMapValue() {return getMinColorMapValue();}
 	float getMaxMapValue() {return getMaxColorMapValue();}
 
-	int mapFloatToIndex(float f) { return mapFloatToOpacIndex(f);}
-	float mapIndexToFloat(int indx) {return mapOpacIndexToFloat(indx);}
+	int mapFloatToIndex(float f) { return mapFloatToColorIndex(f);}
+	float mapIndexToFloat(int indx) {return mapColorIndexToFloat(indx);}
 	//Methods to save and restore transfer functions.
 	//The gui opens the FILEs that are then read/written
 	//Failure results in false/null pointer
@@ -139,17 +80,6 @@ public:
 	
 protected:
 
-	//Insert a control point without disturbing values;
-	//return new index
-	//Note:  All public methods use actual real coords.
-	//These Protected methods use normalized points in [0,1]
-	//
-	int insertNormColorControlPoint(float point, float h, float s, float v);
-
-	//Insert a control point with specified opacity
-	//
-	int insertNormOpacControlPoint(float point, float opacity);
-	//Tags and attributes for reading and writing
 	
 	static const string _tfNameAttr;
 	static const string _leftBoundAttr;
@@ -166,14 +96,6 @@ protected:
 	static const string _numEntriesAttr;
 
 
-	std::vector<float> opacCtrlPoint;
-	std::vector<float> colorCtrlPoint;
-	std::vector<float> hue;
-	std::vector<float> sat;
-	std::vector<float> val;
-	std::vector<float> opac;
-	std::vector<TFInterpolator::type> opacInterp;
-	std::vector<TFInterpolator::type> colorInterp;
 };
 };
 #endif //TRANSFERFUNCTION_H
