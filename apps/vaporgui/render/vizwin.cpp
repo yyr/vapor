@@ -88,8 +88,8 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	regionDirty = true;
 	dataRangeDirty = true;
 	clutDirty = true;
-	flowDataDirty = true;
-	flowGeomDirty = true;
+	flowDirty = true;
+	regionNavigating = true;
 	capturing = false;
 	newCapture = false;
 
@@ -306,7 +306,7 @@ mousePressEvent(QMouseEvent* e){
 			mouseDownHere = true;
 			mouseDownPosition = e->pos();
 			//Force an update of region params, so low res is shown
-			setRegionDirty(true);
+			regionNavigating = true;
 			break;
 		
 		default:

@@ -96,13 +96,14 @@ public:
 	void setRegionDirty(bool isDirty){ regionDirty = isDirty;}
 	void setClutDirty(bool isDirty){ clutDirty = isDirty;}
 	void setDataRangeDirty(bool isDirty){ dataRangeDirty = isDirty;}
-	void setFlowDataDirty(bool isDirty) {flowDataDirty = isDirty;}
-	void setFlowGeometryDirty(bool isDirty) {flowGeomDirty = isDirty;}
+	void setFlowDirty(bool isDirty) {flowDirty = isDirty;}
+	//Tweak is just a dirty flag for forcing region dirty during navigation
+	void setRegionNavigating(bool dirty) {regionNavigating = dirty;}
 	bool regionIsDirty() {return regionDirty;}
 	bool clutIsDirty() {return clutDirty;}
 	bool dataRangeIsDirty() {return dataRangeDirty;}
-	bool flowDataIsDirty() {return flowDataDirty;}
-	bool flowGeometryIsDirty() {return flowGeomDirty;}
+	bool flowIsDirty() {return flowDirty;}
+	bool regionIsNavigating() {return regionNavigating;}
 
 	bool mouseIsDown() {return mouseDownHere;}
 	int pointOverCube(RegionParams* rParams, float screenCoords[2]);
@@ -182,8 +183,8 @@ protected:
 	bool regionDirty;
 	bool dataRangeDirty;
 	bool clutDirty;
-	bool flowDataDirty;
-	bool flowGeomDirty;
+	bool flowDirty;
+	bool regionNavigating;
 	int capturing;
 	int captureNum;
 	//Flag to set indicating start of capture sequence.

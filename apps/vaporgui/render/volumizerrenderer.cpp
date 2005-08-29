@@ -212,7 +212,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	// set up region. Only need to do this if the data
 	// roi changes, or if the datarange has changed.
 	//
-	if (myVizWin->regionIsDirty()|| myVizWin->dataRangeIsDirty()) {
+	if (myVizWin->regionIsDirty()|| myVizWin->dataRangeIsDirty()||myVizWin->regionIsNavigating()) {
 
 		myGLWindow->setRenderNew();
 		int	rc;
@@ -327,6 +327,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	
 	myVizWin->setClutDirty(false);
 	myVizWin->setDataRangeDirty(false);
+	myVizWin->setRegionNavigating(false);
 }
 
 

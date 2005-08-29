@@ -63,15 +63,16 @@ void FlowRenderer::paintGL()
 	int winNum = myVizWin->getWindowNum();
 	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
 	//Do we need to regenerate the flow data?
-	if (myFlowParams->isDirty() || myVizWin->regionIsDirty()){
+	if (myVizWin->flowIsDirty()){
 		flowDataArray = myFlowParams->regenerateFlowData();
-		
+
 		maxPoints = myFlowParams->getMaxPoints();
 
 		firstDisplayFrame = myFlowParams->getFirstDisplayFrame();
 		lastDisplayFrame = myFlowParams->getLastDisplayFrame();
 		numSeedPoints = myFlowParams->getNumSeedPoints();
 		numInjections = myFlowParams->getNumInjections();
+		myVizWin->setFlowDirty(false);
 	}
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
