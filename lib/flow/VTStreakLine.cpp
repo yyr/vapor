@@ -13,6 +13,7 @@
 #endif
 
 #include "VTFieldLine.h"
+#include "vapor/VaporFlow.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -20,7 +21,6 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // class implementation of Numerical StreakLine
 //////////////////////////////////////////////////////////////////////////
-
 vtCStreakLine::vtCStreakLine(CVectorField* pField) : 
 vtCTimeVaryingFieldLine(pField)
 {
@@ -28,6 +28,7 @@ vtCTimeVaryingFieldLine(pField)
 
 vtCStreakLine::~vtCStreakLine(void)
 {
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,14 +40,16 @@ vtCStreakLine::~vtCStreakLine(void)
 //////////////////////////////////////////////////////////////////////////
 void vtCStreakLine::execute(const void* userData, 
 							float* positions, 
+							unsigned int* pointers,
 							bool bInjectSeeds,
 							int iInjection)
 {
-	computeStreakLine(userData, positions, bInjectSeeds, iInjection);
+	computeStreakLine(userData, positions, pointers, bInjectSeeds, iInjection);
 }
 
 void vtCStreakLine::computeStreakLine(const void* userData, 
 									  float* points, 
+									  unsigned int* pointers,
 									  bool bInjectSeeds,
 									  int iInjection)
 {
@@ -54,39 +57,47 @@ void vtCStreakLine::computeStreakLine(const void* userData,
 	float finalT = currentT + m_timeDir * m_itsTimeInc;
 	int numPreParticles;
 	vector<vtListParticleIter> deadList;
-	
+	int istat;
+		
 	// how many particles alive from last time
 	numPreParticles = (int)m_itsParticles.size();
 
 	// advect the previous old particles
 	deadList.clear();
-	advectOldParticles(m_itsParticles.begin(), m_itsParticles.end(), points, currentT, finalT, deadList);
+	advectOldParticles(m_itsParticles.begin(), m_itsParticles.end(), points, pointers, currentT, finalT, deadList);
 
 	if(bInjectSeeds)
 	{
+		unsigned int posInPoints, count;
+		count = -1;			// enumerate seed in this injection
+		posInPoints = 0;	// enumerate output position in Points array
+
 		// advect the new generated particles from this time step
 		vtListParticleIter pIter = m_lSeeds.begin();
-		int index = iInjection*(int)m_lSeeds.size();
-		for(; pIter != m_lSeeds.end(); pIter++, index++)
+		for(; pIter != m_lSeeds.end(); pIter++)
 		{
-			vtParticleInfo *thisSeed = *pIter;
+            vtParticleInfo *thisSeed = *pIter;
 			vtParticleInfo nextP;
+			count++;
+			posInPoints = iInjection*(int)m_lSeeds.size()*m_nMaxsize*3 + count * m_nMaxsize * 3;
 
 			if(thisSeed->itsValidFlag == 1)
 			{
-				int res = advectParticle(m_integrationOrder, *thisSeed, currentT, nextP, finalT);
-				if(res == 1)
+				vtListSeedTrace* forwardTrace;
+				list<float>* stepList;
+				forwardTrace = new vtListSeedTrace;
+				stepList = new list<float>;
+				istat = advectParticle(m_integrationOrder, *thisSeed, currentT, finalT, *forwardTrace, *stepList, true);
+				SampleFieldline(points, posInPoints, forwardTrace, stepList);	
+				if(points[posInPoints] == END_FLOW_FLAG)
+					pointers[iInjection*(int)m_lSeeds.size()+count] = posInPoints;
+				
+				// for next timestep's advection
+				if(istat == 1)
 				{
-					// for output
-					int offset;
-					offset = index*m_itsMaxParticleLife*3;
-					points[offset++] = nextP.m_pointInfo.phyCoord[0];
-					points[offset++] = nextP.m_pointInfo.phyCoord[1];
-					points[offset++] = nextP.m_pointInfo.phyCoord[2];
-					points[offset++] = 1.0e+30f;
-					
-					// for next timestep's advection
-					nextP.ptId = index;
+					nextP.m_pointInfo.Set(thisSeed->m_pointInfo);
+					nextP.m_fStartTime = currentT;
+					nextP.ptId = iInjection*(int)m_lSeeds.size()+count;
 					m_itsParticles.push_back(new vtParticleInfo(nextP));
 				}
 			}
@@ -110,38 +121,33 @@ void vtCStreakLine::computeStreakLine(const void* userData,
 void vtCStreakLine::advectOldParticles( vtListParticleIter start, 
 										vtListParticleIter end, 
 										float* points,
+										unsigned int* pointers,
 										float initialTime,
 										float finalTime,
 										vector<vtListParticleIter>& deadList)
 {
 	// advect the old particles first
 	vtListParticleIter pIter = start;
+	unsigned int posInPoints;
+	int istat;
+	
 	while(pIter != end)
 	{
 		vtParticleInfo* thisParticle = *pIter;
+		vtListSeedTrace* forwardTrace;
+		list<float>* stepList;
+		forwardTrace = new vtListSeedTrace;
+		stepList = new list<float>;
+		posInPoints = pointers[thisParticle->ptId];
+		istat = advectParticle(m_integrationOrder, *thisParticle, initialTime, finalTime, *forwardTrace, *stepList, true);
+		SampleFieldline(points, posInPoints, forwardTrace, stepList);	
+		if(points[posInPoints] == END_FLOW_FLAG)
+			pointers[thisParticle->ptId] = posInPoints;
 
-		// kill this particle, too old
-		if(thisParticle->itsNumStepsAlive > m_itsMaxParticleLife)
-		{
-			deadList.push_back(pIter++);
-			continue;
-		}
-
-		// advect more
-		int res = advectParticle(m_integrationOrder, *thisParticle, initialTime, *thisParticle, finalTime);
-
-		if(res == 1)
-		{
-			int offset;
-			offset = thisParticle->ptId*m_itsMaxParticleLife*3 + thisParticle->itsNumStepsAlive*3;
-			points[offset++] = thisParticle->m_pointInfo.phyCoord[0];
-			points[offset++] = thisParticle->m_pointInfo.phyCoord[1];
-			points[offset++] = thisParticle->m_pointInfo.phyCoord[2];
-			points[offset++] = 1.0e+30f;
-			++thisParticle->itsNumStepsAlive;
+		// for next timestep's advection
+		if(istat == 1)
 			++pIter;
-		}
-		else
+		else				
 			deadList.push_back(pIter++);
 	}
 }

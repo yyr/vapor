@@ -85,7 +85,7 @@ void Solution::Reset()
 //////////////////////////////////////////////////////////////////////////
 void Solution::SetValue(int t, float* pUData, float* pVData, float* pWData)
 {
-	if((t > 0) && (t < m_nTimeSteps))
+	if((t >= 0) && (t < m_nTimeSteps))
 	{
 		m_pUDataArray[t] = pUData;
 		m_pVDataArray[t] = pVData;
@@ -135,9 +135,12 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 			highT = lowT;
 			ratio = 0.0;
 		}
-		nodeData.Set(Lerp(m_pUDataArray[lowT][id], m_pUDataArray[highT][id], ratio), 
-					 Lerp(m_pVDataArray[lowT][id], m_pVDataArray[highT][id], ratio),
-					 Lerp(m_pWDataArray[lowT][id], m_pWDataArray[highT][id], ratio));
+		if(ratio == 0.0)
+			nodeData.Set(m_pUDataArray[lowT][id], m_pVDataArray[lowT][id], m_pWDataArray[lowT][id]);
+		else
+            nodeData.Set(Lerp(m_pUDataArray[lowT][id], m_pUDataArray[highT][id], ratio), 
+						 Lerp(m_pVDataArray[lowT][id], m_pVDataArray[highT][id], ratio),
+						 Lerp(m_pWDataArray[lowT][id], m_pWDataArray[highT][id], ratio));
 	}
 	
 	return 1;

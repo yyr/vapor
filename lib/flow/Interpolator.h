@@ -21,7 +21,7 @@ namespace VAPoR
 	FLOW_API float Lerp(float x, float y, float ratio);
 
 	// bilinear interpolation
-	FLOW_API float BiLerp(float ll, float hl, float hh, float lh, float coeff[2]);
+	FLOW_API float BiLerp(float ll, float hl, float lh, float hh, float coeff[2]);
 
 	// barycentric interpolation
 	FLOW_API float BaryInterp(float dataValue[4], float coeff[3]);

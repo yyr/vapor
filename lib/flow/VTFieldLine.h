@@ -21,7 +21,8 @@ namespace VAPoR
 //////////////////////////////////////////////////////////////////////////
 #define MAX_LENGTH 1000
 const double RAD_TO_DEG = 57.2957795130823208768;	// 180 / PI
-const double	DEG_TO_RAD = 0.0174532925199432957692;	// PI / 180
+const double DEG_TO_RAD = 0.0174532925199432957692;	// PI / 180
+const double EPS = 1.0e-6;
 
 enum INTEG_ORD{ SECOND = 2, FOURTH = 4};		// integration order
 enum TIME_DIR{ BACKWARD = -1, FORWARD = 1};		// advection direction
@@ -98,6 +99,7 @@ protected:
 	int m_nMaxsize;					// maximal number of particles this line advects
 	vtListParticle m_lSeeds;		// list of seeds
 	CVectorField* m_pField;			// vector field
+	float m_fSamplingRate;
 
 public:
 	vtCFieldLine(CVectorField* pField);
@@ -112,14 +114,17 @@ public:
 	float GetMaxStepSize(void) {return m_fMaxStepSize;}
 	void SetInitStepSize(float initStep) { m_fInitStepSize = initStep; }
 	float GetInitStepSize(void) { return m_fInitStepSize; }
-	void SetLowerUpperAngle(float lowerAngle, float upperAngle) {m_fLowerAngleAccuracy = lowerAngle; m_fUpperAngleAccuracy = upperAngle;}
-
+	void SetSamplingRate(float rate) {m_fSamplingRate = rate;}
+	
 protected:
 	void releaseSeedMemory(void);
 	int euler_cauchy(TIME_DIR, TIME_DEP,float*, float);
+	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, float*, float, float*);
 	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, float*, float);
 	int runge_kutta2(TIME_DIR, TIME_DEP, PointInfo&, float*, float);
 	int adapt_step(const VECTOR3& p2, const VECTOR3& p1, const VECTOR3& p0, float dt_estimate,float* dt);
+	int adapt_step(const float diff, const float accuracy, float* dt);
+	void SampleFieldline(float*, unsigned int&, vtListSeedTrace*, list<float>*);
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -154,11 +159,15 @@ protected:
 						vtParticleInfo& initialPoint,
 						float initialTime,
 						vtParticleInfo& finalPoint,
-						float finalTime);
+						float finalTime,
+						bool bAdaptive);
 	int advectParticle( INTEG_ORD int_order, 
 						vtParticleInfo& initialPoint,
 						float initialTime,
-						vtListSeedTrace& seedTrace);
+						float finalTime,
+						vtListSeedTrace& seedTrace,
+						list<float>& stepList,
+                        bool bAdaptive);
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -203,14 +212,15 @@ class FLOW_API vtCStreakLine : public vtCTimeVaryingFieldLine
 public:
 	vtCStreakLine(CVectorField* pField);
 	~vtCStreakLine(void);
-	void execute(const void* userData, float* points, bool bInjectSeeds, int iInjection);
+	void execute(const void* userData, float* points, unsigned int* pointers, bool bInjectSeeds, int iInjection);
 
 protected:
 	// code specific to streakline
-	void computeStreakLine(const void* userData, float* points, bool bInjectSeeds, int iInjection);
+	void computeStreakLine(const void* userData, float* points, unsigned int* pointers, bool bInjectSeeds, int iInjection);
 	void advectOldParticles(vtListParticleIter start, 
 							vtListParticleIter end, 
 							float* points,
+							unsigned int* pointers,
 							float initialTime, 
 							float finalTime,
 							vector<vtListParticleIter>& deadList);
@@ -257,8 +267,6 @@ public:
 	void setBackwardTracing(int enabled);
 	int  getForwardTracing(void);
 	int  getBackwardTracing(void);
-	void SampleStreamline(float*, const unsigned int, vtListSeedTrace*, list<float>*);
-	void SetSamplingRate(float rate) {m_fSamplingRate = rate;}
 	
 protected:
 	void computeStreamLine(const void* userData, float* positions);
@@ -266,7 +274,6 @@ protected:
 
 	TRACE_DIR m_itsTraceDir;
 	float m_fCurrentTime;
-	float m_fSamplingRate;
 };
 
 };

@@ -104,6 +104,8 @@ public:
 	virtual void Boundary(VECTOR3& minB, VECTOR3& maxB) = 0;
 	// whether the point is in the bounding box
 	virtual bool isInBBox(VECTOR3& pos) = 0;
+	// get the minimal cell spacing in x,y,z dimensions for cell cellId
+	virtual float GetGridSpacing(int cellId) = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -124,6 +126,7 @@ private:
 	float oneOvermappingFactorX;
 	float oneOvermappingFactorY;
 	float oneOvermappingFactorZ;
+	float gridSpacing;
 
 public:
 	// constructor and deconstructor
@@ -176,6 +179,7 @@ public:
 	void Boundary(VECTOR3& minB, VECTOR3& maxB);
 	// whether the point is in the bounding box
 	bool isInBBox(VECTOR3& pos);
+	float GetGridSpacing(int cellId){ return gridSpacing; }
 };
 
 //////////////////////////////////////////////////////////////////////////

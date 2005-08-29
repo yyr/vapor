@@ -40,7 +40,7 @@ float VAPoR::TriLerp(float lll, float hll, float lhl, float hhl,
 }
 
 // bilinear interpolation
-float VAPoR::BiLerp(float ll, float hl, float hh, float lh, float coeff[2])
+float VAPoR::BiLerp(float ll, float hl, float lh, float hh, float coeff[2])
 {
 	return (Lerp(Lerp(ll, hl, coeff[0]), Lerp(lh, hh, coeff[0]), coeff[1]));
 }

@@ -60,6 +60,8 @@ void CartesianGrid::SetBoundary(VECTOR3& minB, VECTOR3& maxB)
 	oneOvermappingFactorX = (m_vMaxBound[0] - m_vMinBound[0])/(float)(xdim()-1);
 	oneOvermappingFactorY = (m_vMaxBound[1] - m_vMinBound[1])/(float)(ydim()-1);
 	oneOvermappingFactorZ = (m_vMaxBound[2] - m_vMinBound[2])/(float)(zdim()-1);
+	// grid spacing
+	gridSpacing = min(min(oneOvermappingFactorX, oneOvermappingFactorY), oneOvermappingFactorZ);
 }
 
 void CartesianGrid::Boundary(VECTOR3& minB, VECTOR3& maxB)

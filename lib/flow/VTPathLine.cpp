@@ -63,7 +63,7 @@ void vtCPathLine::computePathLine(const void* userData,
 		
 		if(thisParticle->itsValidFlag == 1)
 		{
-			res = advectParticle(m_integrationOrder, *thisParticle, currentT, *trace);
+//			res = advectParticle(m_integrationOrder, *thisParticle, currentT, FLT_MAX, *trace, false);
 			if((int)trace->size() > 1)
 				listSeedTraces.push_back(trace);
 		}
@@ -109,7 +109,7 @@ void vtCPathLine::computePathLine(const void* userData,
 
 		if(thisParticle->itsValidFlag == 1)
 		{
-			int res = advectParticle(m_integrationOrder, *thisParticle, currentT, *thisParticle, finalT);
+			int res = advectParticle(m_integrationOrder, *thisParticle, currentT, *thisParticle, finalT, false);
 			if(res == 1)
 			{
 				// for output

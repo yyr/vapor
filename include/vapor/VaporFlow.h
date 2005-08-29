@@ -33,7 +33,6 @@ namespace VAPoR
 		void SetRegion(size_t num_xforms, const size_t min[3], const size_t max[3]);
 		void SetTimeStepInterval(size_t startT, size_t endT, size_t tInc);
 		void ScaleTimeStepSizes(double userTimeStepMultiplier, double animationTimeStepMultiplier);
-		void GetUserTimeStepSize(int frameNum);
 		void SetRandomSeedPoints(const float min[3], const float max[3], int numSeeds);
 		void SetRegularSeedPoints(const float min[3], const float max[3], const size_t numSeeds[3]);
 		void SetIntegrationParams(float initStepSize, float maxStepSize);
@@ -47,8 +46,10 @@ namespace VAPoR
 		size_t userTimeStep;						// enumerate time steps in source data
 		double userTimeStepSize;					// number of userTimeUnits between consecutive steps, which
 													// may not be constant
-		double animationTimeStep;					// which frame in animation
 		double animationTimeStepSize;				// successive positions in userTimeUnits
+		double userTimeStepMultiplier;
+		double animationTimeStepMultiplier;
+		double animationTimeStep;					// which frame in animation
 		double integrationTimeStepSize;				// used for integration
 
 		size_t startTimeStep;						// refer to userTimeUnit

@@ -27,6 +27,7 @@ m_itsMaxParticleLife(200),
 m_itsTimeInc(1.0)
 {
 	m_timeDir = FORWARD;
+	m_itsParticles.clear();
 }
 
 vtCTimeVaryingFieldLine::~vtCTimeVaryingFieldLine(void)
@@ -38,6 +39,7 @@ vtCTimeVaryingFieldLine::~vtCTimeVaryingFieldLine(void)
 
 void vtCTimeVaryingFieldLine::setParticleLife(int steps)
 {
+	m_nMaxsize = steps;
 	m_itsMaxParticleLife = steps;
 }
 
@@ -64,7 +66,8 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 											vtParticleInfo& initialPoint,
 											float initialTime,
 											vtParticleInfo& finalPoint,
-											float finalTime)
+											float finalTime,
+											bool bAdaptive)
 {
 	int istat;
 	float curTime, dt;
@@ -101,67 +104,106 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order, 
 											vtParticleInfo& initialPoint,
 											float initialTime,
-											vtListSeedTrace& seedTrace)
+											float finalTime,
+											vtListSeedTrace& seedTrace,
+											list<float>& stepList,
+											bool bAdaptive)
 {  
-	int count = 0, istat, res;
+	int istat, res;
 	PointInfo seedInfo;
-	PointInfo thisParticle, prevParticle, second_prevParticle;
+	PointInfo thisParticle;
+	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
 	float dt, dt_estimate, cell_volume, mag, curTime;
 	VECTOR3 vel;
 
 	// the first particle
 	seedInfo = initialPoint.m_pointInfo;
-	res = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, initialTime, vel);
 	thisParticle = seedInfo;
 	seedTrace.push_back(new VECTOR3(seedInfo.phyCoord));
 	curTime = initialTime;
-	count++;
 
 	// get the initial stepsize
-	switch(m_pField->GetCellType())
-	{
-	case CUBE:
-		dt = dt_estimate = m_fInitStepSize;
-		break;
-
-	case TETRAHEDRON:
-		cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
-		mag = vel.GetMag();
-		if(fabs(mag) < 1.0e-6f)
-			dt_estimate = 1.0e-5f;
-		else
-			dt_estimate = pow(cell_volume, (float)0.3333333f) / mag;
-		dt = dt_estimate;
-		break;
-
-	default:
-		break;
-	}
-
+	res = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, initialTime, vel);
+	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
+	mag = vel.GetMag();
+	if(fabs(mag) < 1.0e-6f)
+		dt_estimate = 1.0e-5f;
+	else
+		dt_estimate = pow(cell_volume, (float)0.3333333f) / mag;
+	dt = dt_estimate;
+	
 	// start to advect
-	while(count < m_nMaxsize)
+	while(curTime < finalTime)
 	{
-		second_prevParticle = prevParticle;
-		prevParticle = thisParticle;
+		// how much advection time left
+		if((finalTime-curTime)<dt)
+			dt = finalTime-curTime;
 
-		if(int_order == SECOND)
-			istat = runge_kutta2(m_timeDir, UNSTEADY, thisParticle, &curTime, dt);
-		else
-			istat = runge_kutta4(m_timeDir, UNSTEADY, thisParticle, &curTime, dt);
+		second_prevInterpolant = prevInterpolant;
+		prevInterpolant = thisInterpolant;
+		int retrace = true;
 
-		if(istat != 1)			// out of boundary
-			return -1;
-		else
+		while(retrace)
 		{
+			retrace = false;
+
+			if(int_order == SECOND)
+				istat = runge_kutta2(m_timeDir, UNSTEADY, thisParticle, &curTime, dt);
+			else
+				istat = runge_kutta4(m_timeDir, UNSTEADY, thisParticle, &curTime, dt);
+
+			if(istat != 1)			// out of boundary
+				return -1;
+
+			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, curTime, vel);
+			if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
+				return -1;
+			int xc, yc, zc;
+			xc = (int)(thisParticle.phyCoord[0]*63);
+			yc = (int)(thisParticle.phyCoord[1]*63);
+			zc = (int)(thisParticle.phyCoord[2]*63);
+			
+			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
-			count++;
-		}
+			stepList.push_back(dt);
+			
+			if(bAdaptive)
+			{
+				// just generate valid new point
+				if((int)seedTrace.size() > 2)
+				{
+					VECTOR3 thisPhy, prevPhy, second_prevPhy;
+					list<VECTOR3*>::iterator pIter = seedTrace.end();
+					pIter--;
+					thisPhy = **pIter;
+					pIter--;
+					prevPhy = **pIter;
+					pIter--;
+					second_prevPhy = **pIter;
+					retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, dt_estimate, &dt);
+					retrace = false;
+				}
 
-		if((curTime < 0) || (curTime >= (float)(m_pField->GetTimeSteps()-1)))
-			return -1;
+				// roll back and retrace
+				if(retrace == true)			
+				{
+					thisInterpolant = prevInterpolant = second_prevInterpolant;
+					seedTrace.pop_back();
+					seedTrace.pop_back();
+					thisParticle.Set(*(seedTrace.back()), thisInterpolant, -1, -1);
+					list<float>::iterator pIter = stepList.end();
+					pIter--;
+					curTime -= *pIter;
+					pIter--;
+					curTime -= *pIter;
+					stepList.pop_back();
+					stepList.pop_back();
+				}
+			}
+		}// end of retrace
+	}// end of advection
 
-		if(count > 2)
-			adapt_step(second_prevParticle.phyCoord, prevParticle.phyCoord, thisParticle.phyCoord, dt_estimate, &dt);
-	}
+	initialPoint.m_pointInfo.Set(thisParticle);
+	return 1;
 }
 

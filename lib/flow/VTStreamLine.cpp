@@ -22,15 +22,12 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // definition of class FieldLine
 //////////////////////////////////////////////////////////////////////////
-//FILE* fDebugOut;
 
 vtCStreamLine::vtCStreamLine(CVectorField* pField):
 vtCFieldLine(pField),
 m_itsTraceDir(BACKWARD_AND_FORWARD),
-m_fSamplingRate(1.0),
 m_fCurrentTime(0.0)
 {
-//	fDebugOut = fopen("C:\\Liya\\debug.txt", "w");
 }
 
 vtCStreamLine::~vtCStreamLine(void)
@@ -140,7 +137,7 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				backTrace = new vtListSeedTrace;
 				stepList = new list<float>;
 				computeFieldLine(BACKWARD,m_integrationOrder, STEADY, *backTrace, *stepList, thisSeed->m_pointInfo);
-				SampleStreamline(points, posInPoints, backTrace, stepList);
+				SampleFieldline(points, posInPoints, backTrace, stepList);
 				backTrace->clear();
 				stepList->clear();
 			}
@@ -151,14 +148,14 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				forwardTrace = new vtListSeedTrace;
 				stepList = new list<float>;
 				computeFieldLine(FORWARD,m_integrationOrder, STEADY, *forwardTrace, *stepList, thisSeed->m_pointInfo);
-				SampleStreamline(points, posInPoints, forwardTrace, stepList);
+				SampleFieldline(points, posInPoints, forwardTrace, stepList);
 				forwardTrace->clear();
 				stepList->clear();
 			}
 		}
 	}
-	//fclose(fDebugOut);
 }
+
 
 void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 									 INTEG_ORD integ_ord,
@@ -175,15 +172,17 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	float totalStepsize = 0.0;
 
 	// the first particle
-	res = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, m_fCurrentTime, vel);
-	if(res == -1)
-		return;
 	thisParticle = seedInfo;
 	prevInterpolant = thisInterpolant = thisParticle.interpolant;
 	seedTrace.push_back(new VECTOR3(seedInfo.phyCoord));
-	//fprintf(fDebugOut, "Seed (%f, %f, %f)\n", seedInfo.phyCoord[0], seedInfo.phyCoord[1], seedInfo.phyCoord[2]);
 	curTime = m_fCurrentTime;
-	
+
+	res = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, m_fCurrentTime, vel);
+	if(res == -1)
+		return;
+	if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
+		return;
+		
 	// get the initial step size
 	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
 	mag = vel.GetMag();
@@ -192,6 +191,29 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	else
 		dt_estimate = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
 	dt = dt_estimate;
+
+/*	// start to advect
+	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
+	{
+		float diff;
+		int retrace = true;
+		PointInfo tempParticle;
+
+		while(retrace)
+		{
+			tempParticle = thisParticle;
+			retrace = false;
+			istat = runge_kutta4(time_dir, time_dep, tempParticle, &curTime, dt, &diff);
+			if(istat != 1)			// out of boundary
+				return;
+			retrace = adapt_step(diff, m_fIntegrationAccurace, &dt);
+		}
+		thisParticle = tempParticle;
+		seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
+		fprintf(fDebugOut, "temp (%f, %f, %f)\n", thisParticle.phyCoord[0], thisParticle.phyCoord[1], thisParticle.phyCoord[2]);
+		stepList.push_back(dt);
+		totalStepsize += dt;			// accumulation of step size
+	}// end of advection*/
 
 	// start to advect
 	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
@@ -212,9 +234,16 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 			if(istat != 1)			// out of boundary
 				return;
 
+			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, m_fCurrentTime, vel);
+			if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
+				return;
+			int xc, yc, zc;
+			xc = (int)(thisParticle.phyCoord[0]*63);
+			yc = (int)(thisParticle.phyCoord[1]*63);
+			zc = (int)(thisParticle.phyCoord[2]*63);
+
 			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
-			//fprintf(fDebugOut, "temp (%f, %f, %f)\n", thisParticle.phyCoord[0], thisParticle.phyCoord[1], thisParticle.phyCoord[2]);
 			stepList.push_back(dt);
 			totalStepsize += dt;			// accumulation of step size
 
@@ -230,7 +259,6 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 				pIter--;
 				second_prevPhy = **pIter;
 				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, dt_estimate, &dt);
-				retrace = false;
 			}
 
 			// roll back and retrace
@@ -247,65 +275,4 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 			}
 		}// end of retrace
 	}// end of advection
-}
-
-//////////////////////////////////////////////////////////////////////////
-// sample streamline to get points with correct interval
-//////////////////////////////////////////////////////////////////////////
-void vtCStreamLine::SampleStreamline(float* positions,
-									 const unsigned int posInPoints,
-									 vtListSeedTrace* seedTrace,
-									 list<float>* stepList)
-{
-	list<VECTOR3*>::iterator pIter1;
-	list<VECTOR3*>::iterator pIter2;
-	list<float>::iterator pStepIter;
-	float stepsizeLeft;
-	int count;
-	unsigned int ptr;
-
-	ptr = posInPoints;
-	pIter1 = seedTrace->begin();
-	// the first one is seed
-	positions[ptr++] = (**pIter1)[0];
-	positions[ptr++] = (**pIter1)[1];
-	positions[ptr++] = (**pIter1)[2];
-	count = 1;
-	if((int)seedTrace->size() == 1)
-	{
-		positions[ptr] = END_FLOW_FLAG;
-		return;
-	}
-
-	// other advecting result
-	pIter2 = seedTrace->begin();
-	pIter2++;
-	pStepIter = stepList->begin();
-	stepsizeLeft = *pStepIter;
-	while((count < m_nMaxsize) && (pStepIter != stepList->end()))
-	{
-		float ratio;
-		if(stepsizeLeft < m_fSamplingRate)
-		{
-			pIter1++;
-			pIter2++;
-			pStepIter++;
-			stepsizeLeft += *pStepIter;
-		}
-		else
-		{
-			stepsizeLeft -= m_fSamplingRate;
-			ratio = (*pStepIter - stepsizeLeft)/(*pStepIter);
-			positions[ptr++] = Lerp((**pIter1)[0], (**pIter2)[0], ratio);
-			positions[ptr++] = Lerp((**pIter1)[1], (**pIter2)[1], ratio);
-			positions[ptr++] = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
-			//fprintf(fDebugOut, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
-			count++;
-		}
-	}
-
-	//fprintf(fDebugOut, "****************\n");
-	// if # of sampled points < maximal points asked
-	if(count < m_nMaxsize)
-		positions[ptr] = END_FLOW_FLAG;
 }

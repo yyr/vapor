@@ -207,9 +207,9 @@ void PlaneRake::GenSeedRandom(const unsigned int numSeeds[3],
 		coeff[0] = (float)rand()/(float)RAND_MAX;
 		coeff[1] = (float)rand()/(float)RAND_MAX;
 		
-		pSeed[3*iFor + 0] = BiLerp(ll[0], hl[0], hh[0], lh[0], coeff);
-		pSeed[3*iFor + 1] = BiLerp(ll[1], hl[1], hh[1], lh[1], coeff);
-		pSeed[3*iFor + 2] = BiLerp(ll[2], hl[2], hh[2], lh[2], coeff);
+		pSeed[3*iFor + 0] = BiLerp(ll[0], hl[0], lh[0], hh[0], coeff);
+		pSeed[3*iFor + 1] = BiLerp(ll[1], hl[1], lh[1], hh[1], coeff);
+		pSeed[3*iFor + 2] = BiLerp(ll[2], hl[2], lh[2], hh[2], coeff);
 	}
 }
 
@@ -244,6 +244,7 @@ void PlaneRake::GenSeedRegular(const unsigned int numSeeds[3],
 
 	widthUnit = (float)1.0/float(numPerRow+1);
 	heightUnit = (float)1.0/float(numPerCol+1);
+	int index = 0;
 	for(jFor = 0; jFor < numPerCol; jFor++)
 		for(iFor = 0; iFor < numPerRow; iFor++)
 		{
@@ -251,9 +252,9 @@ void PlaneRake::GenSeedRegular(const unsigned int numSeeds[3],
 			coeff[0] = (float)(iFor+1) * widthUnit;
 			coeff[1] = (float)(jFor+1) * heightUnit;
 
-			pSeed[3*iFor + 0] = BiLerp(ll[0], hl[0], hh[0], lh[0], coeff);
-			pSeed[3*iFor + 1] = BiLerp(ll[1], hl[1], hh[1], lh[1], coeff);
-			pSeed[3*iFor + 2] = BiLerp(ll[2], hl[2], hh[2], lh[2], coeff);
+			pSeed[index++] = BiLerp(ll[0], hl[0], lh[0], hh[0], coeff);
+			pSeed[index++] = BiLerp(ll[1], hl[1], lh[1], hh[1], coeff);
+			pSeed[index++] = BiLerp(ll[2], hl[2], lh[2], hh[2], coeff);
 		}
 }
 
@@ -335,9 +336,11 @@ void SolidRake::GenSeedRegular(const unsigned int numSeeds[3],
 	numPerZ = numSeeds[2];
 
 	float xUnit, yUnit, zUnit;
+	int index;
 	xUnit = (float)1.0/(float)(numPerX+1);
 	yUnit = (float)1.0/(float)(numPerY+1);
 	zUnit = (float)1.0/(float)(numPerZ+1);
+	index = 0;
 	for(kFor = 0; kFor < numPerZ; kFor++)
 		for(jFor = 0; jFor < numPerY; jFor++)
 			for(iFor = 0; iFor < numPerX; iFor++)
@@ -347,8 +350,8 @@ void SolidRake::GenSeedRegular(const unsigned int numSeeds[3],
 				coeff[1] = (float)(jFor+1) * yUnit;
 				coeff[2] = (float)(kFor+1) * zUnit;
 
-				pSeed[3*iFor + 0] = TriLerp(lll[0], hll[0], lhl[0], hhl[0], llh[0], hlh[0], lhh[0], hhh[0], coeff);
-				pSeed[3*iFor + 1] = TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);
-				pSeed[3*iFor + 2] = TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
+				pSeed[index++] = TriLerp(lll[0], hll[0], lhl[0], hhl[0], llh[0], hlh[0], lhh[0], hhh[0], coeff);
+				pSeed[index++] = TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);
+				pSeed[index++] = TriLerp(lll[2], hll[2], lhl[2], hhl[2], llh[2], hlh[2], lhh[2], hhh[2], coeff);
 			}
 }
