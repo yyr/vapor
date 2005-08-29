@@ -52,6 +52,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "common", "common.vcproj", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "flow", "..\flow\flow.vcproj", "{9410E1BA-CC62-46BF-B19D-69473EDDCE03}"
 	ProjectSection(ProjectDependencies) = postProject
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
 EndProject
 Global
