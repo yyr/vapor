@@ -38,7 +38,7 @@ VPATH = guis params render main
 FILES := \
 	params/animationparams params/animationcontroller \
 	params/contourparams  params/dvrparams params/flowparams \
-	params/histo \
+	params/flowmapeditor params/histo \
 	params/isosurfaceparams params/params params/regionparams \
 	params/sessionparams  params/sharedcontrollerthread\
 	params/tfeditor  params/tfinterpolator \
@@ -48,6 +48,7 @@ FILES := \
 	guis/coloradjustdialog guis/colorpicker guis/loadtfdialog \
 	guis/opacadjustdialog guis/savetfdialog \
 	guis/tfelocationtip guis/tfframe guis/vizselectcombo \
+	guis/flowmapframe \
 	main/command main/main main/mainform main/messagereporter \
 	main/panelcommand main/session main/tabmanager \
 	main/vizactivatecommand main/vizwinmgr \
@@ -60,6 +61,7 @@ QT_HEADERS := \
 	guis/coloradjustdialog guis/colorpicker \
 	guis/loadtfdialog guis/opacadjustdialog \
 	guis/savetfdialog guis/tfframe guis/vizselectcombo \
+	guis/flowmapframe \
 	render/glbox render/renderer render/flowrenderer \
 	render/vizwin render/volumizerrenderer \
 	main/mainform main/tabmanager main/vizwinmgr \
