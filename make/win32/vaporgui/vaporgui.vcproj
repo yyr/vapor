@@ -171,6 +171,12 @@
 				RelativePath="..\..\..\apps\vaporgui\render\DVRVolumizer.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\params\flowmapeditor.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\flowmapframe.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\params\flowparams.cpp">
 			</File>
 			<File
@@ -360,6 +366,32 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\render\DVRVolumizer.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\params\flowmapeditor.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\flowmapframe.h">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing flowmapframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\flowmapframe.h -o ..\..\..\apps\vaporgui\moc\moc_flowmapframe.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_flowmapframe.cpp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing flowmapframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\flowmapframe.h -o ..\..\..\apps\vaporgui\moc\moc_flowmapframe.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_flowmapframe.cpp"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\flowparams.h">
@@ -771,6 +803,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_dvr.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_flowmapframe.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_flowrenderer.cpp">
