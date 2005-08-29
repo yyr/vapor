@@ -420,8 +420,9 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	animationParams();
 	viewpoint();
 	region();
-	launchFlowTab();
+	
 	renderDVR();
+	launchFlowTab();
 	
 	//Create one initial visualizer:
 	myVizMgr->launchVisualizer();

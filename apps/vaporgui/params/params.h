@@ -35,6 +35,7 @@ class Session;
 class PanelCommand;
 class XmlNode;
 class MapperFunction;
+class MapEditor;
 class Params : public ParsedXml  {
 	
 public: 
@@ -95,14 +96,7 @@ public:
 	//Panel, after the user clicks "enter".  Should always set textChangedFlag to false.
 	//
 	virtual void updatePanelState() = 0;
-	//Send params to the active renderer(s) that depend on these
-	//panel settings, tell renderers that the values must be updated
-	//Default method does nothing.  
-	//Arguments are "wasEnabled, wasLocal, newWindow"
-	// identify if previous panel was enabled (for renderer panels)
-	//was local, and whether this is the first rendering in a window
-	//
-	virtual void updateRenderer(bool, bool, bool) {return;}
+	
 	//Methods to find the "other" params in a local/global switch:
 	//
 	virtual Params* getCorrespondingGlobalParams(); 
@@ -142,6 +136,7 @@ public:
 	// Default does nothing (if class doesn't have a clut or tf)
 	virtual void guiStartChangeMapFcn(char* ) {}
 	virtual void guiEndChangeMapFcn() {}
+	virtual void connectMapperFunction(MapperFunction* , MapEditor* ){}
 	virtual void setClutDirty() {}
 	void setMinColorMapBound(float val);
 	void setMaxColorMapBound(float val);
@@ -165,8 +160,7 @@ public:
 	void setMaxOpacMapBound(float val);
 	float getMinOpacMapBound();	
 	float getMaxOpacMapBound(); 
-	void resetMinOpacEditBounds(std::vector<double>& newBounds);
-	void resetMaxOpacEditBounds(std::vector<double>& newBounds);
+	
 	void setMinOpacEditBound(float val, int var) {
 		minOpacEditBounds[var] = val;
 	}
@@ -180,10 +174,20 @@ public:
 		return maxOpacEditBounds[var];
 	}
 	virtual MapperFunction* getMapperFunc(){return 0;}
+	//Send params to the active renderer(s) that depend on these
+	//panel settings, tell renderers that the values must be updated
+	//Default method does nothing.  
+	//Arguments are "wasEnabled, wasLocal, newWindow"
+	// identify if previous panel was enabled (for renderer panels)
+	//was local, and whether this is the first rendering in a window
+	//
+	virtual void updateRenderer(bool, bool, bool) {return;}
+	virtual void updateMapBounds() {}
+
+
 	//The restart method goes back to initial state
 	//Default does nothing.
 	//
-	
 	virtual void restart() {return;}
 	//Methods for restore/save:
 	virtual XmlNode* buildNode() { return 0;}

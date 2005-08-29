@@ -55,7 +55,7 @@ public:
 
 
 	virtual void makeCurrent(Params* previousParams, bool newWin);
-	void updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow);
+	virtual void updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow);
 	void setNumBits(int val) {numBits = val;}
 	void setLighting(bool val) {lightingOn = val;}
 
@@ -99,17 +99,19 @@ public:
 		return ctab;
 	}
 	void setMinMapBound(float val)
-		{setMinColorMapBound(val);}
+		{setMinColorMapBound(val);setMinOpacMapBound(val);}
 	void setMaxMapBound(float val)
-		{setMaxColorMapBound(val);}
+		{setMaxColorMapBound(val);setMaxOpacMapBound(val);}
 	float getMinMapBound(){return getMinColorMapBound();} 	
 	float getMaxMapBound(){return getMaxColorMapBound();}  
 	
 	void setMinEditBound(float val) {
 		setMinColorEditBound(val, varNum);
+		setMinOpacEditBound(val, varNum);
 	}
 	void setMaxEditBound(float val) {
 		setMaxColorEditBound(val, varNum);
+		setMaxOpacEditBound(val, varNum);
 	}
 	float getMinEditBound() {
 		return minColorEditBounds[varNum];
@@ -134,7 +136,7 @@ public:
 	
 	void setClut(const float newTable[256][4]);
 	void setBindButtons();
-	void updateTFBounds();
+	virtual void updateMapBounds();
 
 	//Respond to user request to load/save TF
 	void fileLoadTF();
@@ -182,7 +184,7 @@ protected:
 
 	void refreshCtab();
 	void hookupTF(TransferFunction* t, int index);
-	void connectTransferFunction(TransferFunction* tf, TFEditor* tfe);
+	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);
 	bool attenuationDirty;
 	bool lightingOn;
 	float currentDatarange[2];

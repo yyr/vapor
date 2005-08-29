@@ -16,10 +16,10 @@
 //
 //	Description:	Implements the TFELocationTip class.  This provides
 //		a tooltip that displays the coordinates of the mouse in the
-//		transfer function editing window.
+//		Mapper function editing window.
 //
 #include "tfelocationtip.h"
-#include "tfeditor.h"
+#include "mapeditor.h"
 using namespace VAPoR;
 TFELocationTip::TFELocationTip( QWidget * parent )
     : QToolTip( parent )
@@ -34,42 +34,53 @@ void TFELocationTip::maybeTip( const QPoint &pos )
     QRect r( pos - QPoint(1,1), pos + QPoint(1,1));
     if ( !r.isValid() || !editor)
         return;
-	float xcoord = editor->mapWin2Var(r.center().x());
-	TransferFunction* tf = editor->getTransferFunction();
+	float xOpacCoord = editor->mapOpacWin2Var(r.center().x());
+	float xColorCoord = editor->mapColorWin2Var(r.center().x());
+	MapperFunction* tf = editor->getMapperFunction();
 	float hf,sf,vf;
 	int hue, sat, val;
-	tf->hsvValue(xcoord,&hf,&sf,&vf);
+	tf->hsvValue(xColorCoord,&hf,&sf,&vf);
 	hue = (int)(hf*359.99f);
 	sat = (int)(sf*255.99f);
 	val = (int)(vf*255.99f);
 	int histcount=0;
-	
-	histcount = editor->getHistoValue(xcoord);
-	float opacity = tf->opacityValue(xcoord);
+	//If there's a histo, it's based on opacity coord
+	histcount = editor->getHistoValue(xOpacCoord);
+	float opacity = tf->opacityValue(xOpacCoord);
 	QString s;
 	if (r.center().y() > frame->height()-COORDMARGIN) return;
 	//See if this is over the color bar:
 	if (r.center().y() > frame->height()-BELOWOPACITY) {
 		if (r.center().y() < frame->height() - BARHEIGHT-COORDMARGIN) return;
-		if (histcount >= 0){
-			s.sprintf( "Variable: %.4g; Opacity: %.3f;\n Color(HSV): %3d %3d %3d;\nHistogram: %d",
-			xcoord, opacity, hue, sat, val, histcount);
+		if(xOpacCoord == xColorCoord){
+			if (histcount >= 0){
+				s.sprintf( "Variable: %.4g; Opacity: %.3f;\n Color(HSV): %3d %3d %3d;\nHistogram: %d",
+				xOpacCoord, opacity, hue, sat, val, histcount);
+			} else {
+				s.sprintf( "Variable: %.4g; Opacity: %.3f;\n Color(HSV): %3d %3d %3d",
+				xOpacCoord, opacity, hue, sat, val);
+			}
 		} else {
-			s.sprintf( "Variable: %.4g; Opacity: %.3f;\n Color(HSV): %3d %3d %3d",
-			xcoord, opacity, hue, sat, val);
+			s.sprintf( "Opacity Variable: %.4g; Opacity: %.3f;\n Color Variable: %.4g; Color(HSV): %3d %3d %3d",
+				xOpacCoord, opacity, xColorCoord, hue, sat, val);
 		}
 		tip( r, s );
 		return;
 	}
 	
 	float ycoord = (float)(frame->height() - r.center().y() - BELOWOPACITY)/(float)(frame->height() - BELOWOPACITY);
-	
-	if (histcount >= 0){
-		s.sprintf( "Variable: %.4g; Y-Coord: %.3f;\nOpacity: %.3f; Color(HSV): %3d %3d %3d;\nHistogram: %d",
-			xcoord, ycoord, opacity, hue, sat, val, histcount);
+	if(xOpacCoord == xColorCoord){
+		if (histcount >= 0){
+			s.sprintf( "Variable: %.4g; Y-Coord: %.3f;\nOpacity: %.3f; Color(HSV): %3d %3d %3d;\nHistogram: %d",
+				xOpacCoord, ycoord, opacity, hue, sat, val, histcount);
+		} else {
+			s.sprintf( "Variable: %.4g; Y-Coord: %.3f;\nOpacity: %.3f; Color(HSV): %3d %3d %3d",
+				xOpacCoord, ycoord, opacity, hue, sat, val);
+		}
 	} else {
-		s.sprintf( "Variable: %.4g; Y-Coord: %.3f;\nOpacity: %.3f; Color(HSV): %3d %3d %3d",
-			xcoord, ycoord, opacity, hue, sat, val);
+		s.sprintf( "Opacity Variable: %.4g; Y-Coord: %3f; Opacity: %.3f;\n Color Variable: %.4g; Color(HSV): %3d %3d %3d",
+				xOpacCoord, ycoord, opacity, xColorCoord, hue, sat, val);
 	}
+
     tip( r, s );
 }

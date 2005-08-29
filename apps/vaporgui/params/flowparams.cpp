@@ -47,6 +47,10 @@
 #include "tabmanager.h"
 #include "vizwinmgr.h"
 #include "messagereporter.h"
+#include "mapperfunction.h"
+#include "mapeditor.h"
+#include "flowmapeditor.h"
+#include "flowmapframe.h"
 using namespace VAPoR;
 	const string FlowParams::_seedingTag = "FlowSeeding";
 	const string FlowParams::_seedRegionMinAttr = "SeedRegionMins";
@@ -101,10 +105,11 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	userTimeStepMultiplier = 1.0f;
 	timeSamplingInterval = 1;
 	minFrame = maxFrame = 1;
-	
+	editMode = true;
+	savedCommand = 0;
 
 	randomGen = false;
-	dirty = true;
+	
 	
 	randomSeed = 1;
 	seedBoxMin[0] = seedBoxMin[1] = seedBoxMin[2] = 0.f;
@@ -124,37 +129,29 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 
 	shapeDiameter = 0.f;
 	colorMapEntityIndex = 0; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
-	colorMapMin = 0.f; 
-	colorMapMax = 1.f;
+
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Age");
 	colorMapEntity.push_back("Speed");
-
-	colorControlPoints.clear();
-	colorControlPoints.push_back(*new ColorControlPoint);
-	colorControlPoints.push_back(*new ColorControlPoint);
-	colorControlPoints.push_back(*new ColorControlPoint);
-	colorControlPoints.push_back(*new ColorControlPoint);
-	colorControlPoints[0].position = -1.e30f;
-	colorControlPoints[1].position = 0.f;
-	colorControlPoints[2].position = 1.f;
-	colorControlPoints[3].position = 1.e30f;
-	colorControlPoints[0].hsv[0] = 0.f;
-	colorControlPoints[1].hsv[0] = 0.f;
-	colorControlPoints[2].hsv[0] = 0.9f;
-	colorControlPoints[3].hsv[0] = 0.9f;
-	colorControlPoints[0].hsv[1] = 1.f;
-	colorControlPoints[1].hsv[1] = 1.f;
-	colorControlPoints[2].hsv[1] = 1.f;
-	colorControlPoints[3].hsv[1] = 1.f;
-	colorControlPoints[0].hsv[2] = 1.f;
-	colorControlPoints[1].hsv[2] = 1.f;
-	colorControlPoints[2].hsv[2] = 1.f;
-	colorControlPoints[3].hsv[2] = 1.f;
-	numControlPoints = 4;
-	
+	opacMapEntity.clear();
+	opacMapEntityIndex = 0;
+	opacMapEntity.push_back("Constant");
+	opacMapEntity.push_back("Age");
+	opacMapEntity.push_back("Speed");
+	minColorEditBounds = new float[3];
+	maxColorEditBounds = new float[3];
+	minOpacEditBounds = new float[3];
+	maxOpacEditBounds = new float[3];
+	for (int i = 0; i< 3; i++){
+		minColorEditBounds[i]= 0.f;
+		maxColorEditBounds[i]= 1.f;
+		minOpacEditBounds[i]=0.f;
+		maxOpacEditBounds[i]=1.f;
+	}
 	myFlowLib = 0;
+	mapperFunction = 0;
+	flowMapEditor = 0;
 	//Set up flow data cache:
 	flowData = 0;
 	
@@ -162,18 +159,46 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	numInjections = 1;
 	
 }
+FlowParams::~FlowParams(){
+	if (savedCommand) delete savedCommand;
+	if (mapperFunction){
+		delete mapperFunction;//this will delete the editor
+	}
+}
 
 //Make a copy of  parameters:
 Params* FlowParams::
 deepCopy(){
-	//For now, copy is not deep...
+	
 	FlowParams* newFlowParams = new FlowParams(*this);
+	//Clone the map bounds arrays:
+	int numVars = numVariables+3;
+	newFlowParams->minColorEditBounds = new float[numVars];
+	newFlowParams->maxColorEditBounds = new float[numVars];
+	newFlowParams->minOpacEditBounds = new float[numVars];
+	newFlowParams->maxOpacEditBounds = new float[numVars];
+	for (int i = 0; i<numVars; i++){
+		newFlowParams->minColorEditBounds[i] = minColorEditBounds[i];
+		newFlowParams->maxColorEditBounds[i] = maxColorEditBounds[i];
+		newFlowParams->minOpacEditBounds[i] = minOpacEditBounds[i];
+		newFlowParams->maxOpacEditBounds[i] = maxOpacEditBounds[i];
+	}
+	//Clone the Transfer Function and the TFEditor
+	if (mapperFunction) {
+		newFlowParams->mapperFunction = new MapperFunction(*mapperFunction);
+		FlowMapEditor* newFlowMapEditor = new FlowMapEditor((const FlowMapEditor &)(*flowMapEditor));
+		newFlowParams->connectMapperFunction(newFlowParams->mapperFunction,newFlowMapEditor); 
+	} else {
+		newFlowParams->mapperFunction = 0;
+	}
+	
+
+	//never keep the SavedCommand:
+	newFlowParams->savedCommand = 0;
 	return (Params*)newFlowParams;
 }
 
-FlowParams::~FlowParams(){
-	
-}
+
 void FlowParams::
 makeCurrent(Params* prev, bool newWin) {
 	
@@ -191,6 +216,7 @@ makeCurrent(Params* prev, bool newWin) {
 void FlowParams::updateDialog(){
 	
 	Session::getInstance()->blockRecording();
+	myFlowTab->flowMapFrame->setEditor(flowMapEditor);
 	//Get the region corners from the current applicable region panel,
 	//or the global one:
 	
@@ -261,7 +287,7 @@ void FlowParams::updateDialog(){
 	myFlowTab->geometryCombo->setCurrentItem(geometryType);
 	
 	myFlowTab->colormapEntityCombo->setCurrentItem(colorMapEntityIndex);
-	
+	myFlowTab->opacmapEntityCombo->setCurrentItem(opacMapEntityIndex);
 	if (isLocal())
 		myFlowTab->LocalGlobal->setCurrentItem(1);
 	else 
@@ -275,11 +301,7 @@ void FlowParams::updateDialog(){
 		myFlowTab->generatorDimensionCombo->setEnabled(true);
 		myFlowTab->generatorDimensionCombo->setCurrentItem(currentDimension);
 	}
-	//Set up the color map entity combo:
-	myFlowTab->colormapEntityCombo->clear();
-	for (int i = 0; i< (int)colorMapEntity.size(); i++){
-		myFlowTab->colormapEntityCombo->insertItem(QString(colorMapEntity[i].c_str()));
-	}
+	
 	//Put all the setText messages here, so they won't trigger a textChanged message
 	if (randomGen){
 		myFlowTab->generatorCountEdit->setText(QString::number(allGeneratorCount));
@@ -294,8 +316,12 @@ void FlowParams::updateDialog(){
 	myFlowTab->firstDisplayFrameEdit->setText(QString::number(firstDisplayFrame));
 	myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
 	myFlowTab->diameterEdit->setText(QString::number(shapeDiameter));
-	myFlowTab->minColormapEdit->setText(QString::number(colorMapMin));
-	myFlowTab->maxColormapEdit->setText(QString::number(colorMapMax));
+	if (mapperFunction){
+		myFlowTab->minColormapEdit->setText(QString::number(mapperFunction->getMinColorMapValue()));
+		myFlowTab->maxColormapEdit->setText(QString::number(mapperFunction->getMaxColorMapValue()));
+		myFlowTab->minOpacmapEdit->setText(QString::number(mapperFunction->getMinOpacMapValue()));
+		myFlowTab->maxOpacmapEdit->setText(QString::number(mapperFunction->getMaxOpacMapValue()));
+	}
 	myFlowTab->xSizeEdit->setText(QString::number(seedBoxMax[0]-seedBoxMin[0],'g', 4));
 	myFlowTab->xCenterEdit->setText(QString::number(0.5f*(seedBoxMax[0]+seedBoxMin[0]),'g',5));
 	myFlowTab->ySizeEdit->setText(QString::number(seedBoxMax[1]-seedBoxMin[1],'g', 4));
@@ -306,6 +332,7 @@ void FlowParams::updateDialog(){
 	myFlowTab->seedtimeStartEdit->setText(QString::number(seedTimeStart));
 	myFlowTab->seedtimeEndEdit->setText(QString::number(seedTimeEnd));
 	guiSetTextChanged(false);
+	if(getFlowMapEditor())getFlowMapEditor()->setDirty();
 	Session::getInstance()->unblockRecording();
 	VizWinMgr::getInstance()->getTabManager()->update();
 }
@@ -393,15 +420,28 @@ updatePanelState(){
 		shapeDiameter = 0.f;
 		myFlowTab->diameterEdit->setText(QString::number(shapeDiameter));
 	}
-	colorMapMin = myFlowTab->minColormapEdit->text().toFloat();
-	colorMapMax = myFlowTab->maxColormapEdit->text().toFloat();
+	float colorMapMin = myFlowTab->minColormapEdit->text().toFloat();
+	float colorMapMax = myFlowTab->maxColormapEdit->text().toFloat();
 	if (colorMapMin > colorMapMax){
 		colorMapMax = colorMapMin;
 		myFlowTab->maxColormapEdit->setText(QString::number(colorMapMax));
 	}
+	float opacMapMin = myFlowTab->minOpacmapEdit->text().toFloat();
+	float opacMapMax = myFlowTab->maxOpacmapEdit->text().toFloat();
+	if (opacMapMin > opacMapMax){
+		opacMapMax = opacMapMin;
+		myFlowTab->maxOpacmapEdit->setText(QString::number(opacMapMax));
+	}
+	if (mapperFunction){
+		mapperFunction->setMaxColorMapValue(colorMapMax);
+		mapperFunction->setMinColorMapValue(colorMapMin);
+		mapperFunction->setMaxOpacMapValue(opacMapMax);
+		mapperFunction->setMinOpacMapValue(opacMapMin);
+	}
+
 	guiSetTextChanged(false);
 	myFlowTab->update();
-	setDirty(true);
+	setDirty();
 	
 }
 //Reinitialize settings, session has changed:
@@ -410,6 +450,8 @@ reinit(bool doOverride){
 	int i;
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	Session* session = Session::getInstance();
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->
+			getRegionParams(vizNum);
 	int nlevels = md->GetNumTransforms();
 	int minTrans = session->getDataStatus()->minXFormPresent();
 	if(minTrans < 0) minTrans = nlevels; 
@@ -418,6 +460,7 @@ reinit(bool doOverride){
 	//Make min and max conform to new data:
 	minFrame = (int)(session->getMinTimestep());
 	maxFrame = (int)(session->getMaxTimestep());
+	editMode = true;
 	if (doOverride) {
 		numTransforms = maxNumTrans;
 		seedTimeStart = minFrame;
@@ -426,15 +469,31 @@ reinit(bool doOverride){
 		if (numTransforms> nlevels) numTransforms = maxNumTrans;
 		if (numTransforms < minNumTrans) numTransforms = minNumTrans;
 		//Make sure we really can use the specified numTrans.
-		RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->
-			getRegionParams(vizNum);
+		
 		numTransforms = rParams->validateNumTrans(numTransforms);
 		if (seedTimeStart > maxFrame) seedTimeStart = maxFrame;
 		if (seedTimeStart < minFrame) seedTimeStart = minFrame;
 		if (seedTimeEnd > maxFrame) seedTimeEnd = maxFrame;
 		if (seedTimeEnd < minFrame) seedTimeEnd = minFrame;
 	}
-	
+	//Set up the seed region:
+	if (doOverride){
+		for (i = 0; i<3; i++){
+			seedBoxMin[i] = rParams->getRegionMin(i);
+			seedBoxMax[i] = rParams->getRegionMax(i);
+		}
+	} else {
+		for (i = 0; i<3; i++){
+			if((seedBoxMin[i] < rParams->getRegionMin(i))||
+				seedBoxMin[i] > rParams->getRegionMax(i))
+					seedBoxMin[i] = rParams->getRegionMin(i);
+			if((seedBoxMax[i] < rParams->getRegionMin(i))||
+				seedBoxMax[i] > rParams->getRegionMax(i))
+					seedBoxMax[i] = rParams->getRegionMax(i);
+			if(seedBoxMax[i] < seedBoxMin[i]) 
+				seedBoxMax[i] = seedBoxMin[i];
+		}
+	}
 
 	//Set up variables:
 	//Get the variable names:
@@ -444,12 +503,34 @@ reinit(bool doOverride){
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Age");
 	colorMapEntity.push_back("Speed");
+	opacMapEntity.clear();
+	opacMapEntity.push_back("Constant");
+	opacMapEntity.push_back("Age");
+	opacMapEntity.push_back("Speed");
 	for (i = 0; i< newNumVariables; i++){
 		colorMapEntity.push_back(variableNames[i]);
+		opacMapEntity.push_back(variableNames[i]);
+	}
+	//Set up the color, opac map entity combos:
+	//This is done when we load a new dataset!
+	assert(myFlowTab);
+	myFlowTab->colormapEntityCombo->clear();
+	for (i = 0; i< (int)colorMapEntity.size(); i++){
+		myFlowTab->colormapEntityCombo->insertItem(QString(colorMapEntity[i].c_str()));
+	}
+	myFlowTab->opacmapEntityCombo->clear();
+	for (i = 0; i< (int)colorMapEntity.size(); i++){
+		myFlowTab->opacmapEntityCombo->insertItem(QString(opacMapEntity[i].c_str()));
+	}
+	if(doOverride || opacMapEntityIndex >= newNumVariables+3){
+		opacMapEntityIndex = 0;
+	}
+	if(doOverride || colorMapEntityIndex >= newNumVariables+3){
+		colorMapEntityIndex = 0;
 	}
 	if (doOverride){
 		varNum[0] = 0; varNum[1] = 1; varNum[2] = 2;
-	}
+	} 
 	for (int dim = 0; dim < 3; dim++){
 		//See if current varNum is valid.  If not, 
 		//reset to first variable that is present:
@@ -468,18 +549,94 @@ reinit(bool doOverride){
 		numVariables = 0;
 		return;
 	}
-	
+	//For now, assume 8-bits mapping
+	MapperFunction* newMapperFunction = new MapperFunction(this, 8);
+	//The edit and tf bounds need to be set up with const, speed, etc in mind.
+	FlowMapEditor* newFlowMapEditor = new FlowMapEditor(newMapperFunction, myFlowTab->flowMapFrame);
+	connectMapperFunction(newMapperFunction, newFlowMapEditor);
+	//If we are overriding, setup for constant color map.  Otherwise,
+	//use previous values.
+	float* newMinOpacEditBounds = new float[newNumVariables+3];
+	float* newMaxOpacEditBounds = new float[newNumVariables+3];
+	float* newMinColorEditBounds = new float[newNumVariables+3];
+	float* newMaxColorEditBounds = new float[newNumVariables+3];
+	if (doOverride){
+		//Set to default map bounds
+		newMapperFunction->setMinColorMapValue(0.f);
+		newMapperFunction->setMaxColorMapValue(1.f);
+		newMapperFunction->setMinOpacMapValue(0.f);
+		newMapperFunction->setMaxOpacMapValue(1.f);
+		//const
+		newMinOpacEditBounds[0] = 0.f;
+		newMaxOpacEditBounds[0] = 1.f;
+		newMinColorEditBounds[0] = 0.f;
+		newMaxColorEditBounds[0] = 1.f;
+		//speed
+		newMinOpacEditBounds[1] = 0.f;
+		newMaxOpacEditBounds[1] = 1.f;
+		newMinColorEditBounds[1] = 0.f;
+		newMaxColorEditBounds[1] = 1.f;
+		//age
+		newMinOpacEditBounds[2] = 0.f;
+		newMaxOpacEditBounds[2] = 10.f;
+		newMinColorEditBounds[2] = 0.f;
+		newMaxColorEditBounds[2] = 10.f;
+		//Other variables:
+		for (i = 0; i< newNumVariables; i++){
+			if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
+				newMinOpacEditBounds[i+3] = Session::getInstance()->getDataRange(i)[0];
+				newMaxOpacEditBounds[i+3] = Session::getInstance()->getDataRange(i)[1];
+				newMinColorEditBounds[i+3] = Session::getInstance()->getDataRange(i)[0];
+				newMaxColorEditBounds[i+3] = Session::getInstance()->getDataRange(i)[1];
+			} else {
+				newMinOpacEditBounds[i+3] = 0.f;
+				newMaxOpacEditBounds[i+3] = 1.f;
+				newMinColorEditBounds[i+3] = 0.f;
+				newMaxColorEditBounds[i+3] = 1.f;
+			}
+		} 
+	} else { //Try to reuse existing bounds:
+		//Set to default map bounds
+		newMapperFunction->setMinColorMapValue(mapperFunction->getMinColorMapValue());
+		newMapperFunction->setMaxColorMapValue(mapperFunction->getMaxColorMapValue());
+		newMapperFunction->setMinOpacMapValue(mapperFunction->getMinOpacMapValue());
+		newMapperFunction->setMaxOpacMapValue(mapperFunction->getMaxOpacMapValue());
+		for (i = 0; i< newNumVariables; i++){
+			if (i >= numVariables){
+				newMinOpacEditBounds[i+3] = Session::getInstance()->getDataRange(i)[0];
+				newMaxOpacEditBounds[i+3] = Session::getInstance()->getDataRange(i)[1];
+				newMinColorEditBounds[i+3] = Session::getInstance()->getDataRange(i)[0];
+				newMaxColorEditBounds[i+3] = Session::getInstance()->getDataRange(i)[1];
+			} else {
+				newMinOpacEditBounds[i+3] = minOpacEditBounds[i+3];
+				newMaxOpacEditBounds[i+3] = maxOpacEditBounds[i+3];
+				newMinColorEditBounds[i+3] = minColorEditBounds[i+3];
+				newMaxColorEditBounds[i+3] = maxColorEditBounds[i+3];
+			}
+		} 
+	}
+	if (mapperFunction) {
+		delete mapperFunction;
+		delete minOpacEditBounds;
+		delete minColorEditBounds;
+		delete maxOpacEditBounds;
+		delete maxColorEditBounds;
+	}
+	minOpacEditBounds = newMinOpacEditBounds;
+	maxOpacEditBounds = newMaxOpacEditBounds;
+	minColorEditBounds = newMinColorEditBounds;
+	maxColorEditBounds = newMaxColorEditBounds;
+	mapperFunction = newMapperFunction;
+	flowMapEditor = newFlowMapEditor;
 	numVariables = newNumVariables;
-	//Put the variable names and other possibilities into mapping selector:
-
-
-
-
+	
 	//Always disable
 	bool wasEnabled = enabled;
 	setEnabled(false);
 	//don't change local/global 
 	updateRenderer(wasEnabled, isLocal(), false);
+	
+	if(numVariables>0) getFlowMapEditor()->setDirty();
 	//If flow is the current front tab, and if it applies to the active visualizer,
 	//update its values
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myFlowTab)) {
@@ -489,7 +646,7 @@ reinit(bool doOverride){
 			updateDialog();
 	}
 	//force a new render with new flow data
-	setDirty(true);
+	setDirty();
 }
 //Set slider position, based on text change. 
 //
@@ -643,7 +800,7 @@ sliderToText(int coord, int slideCenter, int slideSize){
 	guiSetTextChanged(false);
 	myFlowTab->update();
 	//force a new render with new flow data
-	setDirty(true);
+	setDirty();
 	return;
 }	
 
@@ -730,7 +887,7 @@ guiSetXCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator X center");
 	setXCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty(true);
+	setDirty();
 }
 void FlowParams::
 guiSetYCenter(int sliderval){
@@ -738,7 +895,7 @@ guiSetYCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Y center");
 	setYCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty(true);
+	setDirty();
 }
 void FlowParams::
 guiSetZCenter(int sliderval){
@@ -746,7 +903,7 @@ guiSetZCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Z center");
 	setZCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty(true);
+	setDirty();
 }
 void FlowParams::
 guiSetXSize(int sliderval){
@@ -754,7 +911,7 @@ guiSetXSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator X size");
 	setXSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty(true);
+	setDirty();
 }
 void FlowParams::
 guiSetYSize(int sliderval){
@@ -762,7 +919,7 @@ guiSetYSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Y size");
 	setYSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty(true);
+	setDirty();
 }
 void FlowParams::
 guiSetZSize(int sliderval){
@@ -770,7 +927,7 @@ guiSetZSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Z size");
 	setZSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty(true);
+	setDirty();
 }
 void FlowParams::
 guiSetFlowGeometry(int geomNum){
@@ -778,17 +935,32 @@ guiSetFlowGeometry(int geomNum){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow geometry type");
 	setFlowGeometry(geomNum);
 	PanelCommand::captureEnd(cmd, this);
-	//Just force rerender
-	VizWinMgr::getInstance()->setFlowDirty(this);
+	updateMapBounds();
+	updateDialog();
+	myFlowTab->update();
+	setDirty();
 }
 void FlowParams::
-guiSetMapEntity( int entityNum){
+guiSetColorMapEntity( int entityNum){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow colormap entity");
-	setMapEntity(entityNum);
+	setColorMapEntity(entityNum);
 	PanelCommand::captureEnd(cmd, this);
-	//Just force rerender
-	VizWinMgr::getInstance()->setFlowDirty(this);
+	updateMapBounds();
+	
+	updateDialog();
+	myFlowTab->update();
+	setDirty();
+}
+void FlowParams::
+guiSetOpacMapEntity( int entityNum){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow opacity map entity");
+	setOpacMapEntity(entityNum);
+	
+	PanelCommand::captureEnd(cmd, this);
+	myFlowTab->update();
+	setDirty();
 }
 void FlowParams::
 guiSetGeneratorDimension( int dimNum){
@@ -799,7 +971,28 @@ guiSetGeneratorDimension( int dimNum){
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, this);
 	myFlowTab->update();
-	setDirty(true);
+	setDirty();
+}
+//Change mouse mode to specified value
+//0,1,2 correspond to edit, zoom, pan
+void FlowParams::
+guiSetEditMode(bool mode){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set edit/navigate mode");
+	setEditMode(mode);
+	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiSetAligned(){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "align map function in edit frame");
+	setMinColorEditBound(getMinColorMapBound(),colorMapEntityIndex);
+	setMaxColorEditBound(getMaxColorMapBound(),colorMapEntityIndex);
+	setMinOpacEditBound(getMinOpacMapBound(),opacMapEntityIndex);
+	setMaxOpacEditBound(getMaxOpacMapBound(),opacMapEntityIndex);
+	getFlowMapEditor()->setDirty();
+	myFlowTab->flowMapFrame->update();
+	PanelCommand::captureEnd(cmd, this);
 }
 //When the center slider moves, set the seedBoxMin and seedBoxMax
 void FlowParams::
@@ -807,34 +1000,34 @@ setXCenter(int sliderval){
 	//new min and max are center -+ size/2.  
 	//center is min + (slider/256)*(max-min)
 	sliderToText(0, sliderval, myFlowTab->xSizeSlider->value());
-	setDirty(true);
+	setDirty();
 }
 void FlowParams::
 setYCenter(int sliderval){
 	sliderToText(1, sliderval, myFlowTab->ySizeSlider->value());
-	setDirty(true);
+	setDirty();
 }
 void FlowParams::
 setZCenter(int sliderval){
 	sliderToText(2, sliderval, myFlowTab->zSizeSlider->value());
-	setDirty(true);
+	setDirty();
 }
 //Min and Max are center -+ size/2
 //size is regionsize*sliderval/256
 void FlowParams::
 setXSize(int sliderval){
 	sliderToText(0, myFlowTab->xCenterSlider->value(),sliderval);
-	setDirty(true);
+	setDirty();
 }
 void FlowParams::
 setYSize(int sliderval){
 	sliderToText(1, myFlowTab->yCenterSlider->value(),sliderval);
-	setDirty(true);
+	setDirty();
 }
 void FlowParams::
 setZSize(int sliderval){
 	sliderToText(2, myFlowTab->zCenterSlider->value(),sliderval);
-	setDirty(true);
+	setDirty();
 }
 	
 /* Handle the change of status associated with change of enablement and change
@@ -939,8 +1132,10 @@ setEnabled(bool on){
 
 float* FlowParams::
 regenerateFlowData(){
+	int i;
 	int min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
+	
 	float minFull[3], maxFull[3], extents[6];
 	if (!myFlowLib) return 0;
 	if (flowData) delete flowData;
@@ -967,7 +1162,17 @@ regenerateFlowData(){
 		myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, allGeneratorCount);
 		numSeedPoints = allGeneratorCount;
 	} else {
-		myFlowLib->SetRegularSeedPoints(seedBoxMin, seedBoxMax, generatorCount);
+		float boxmin[3], boxmax[3];
+		for (i = 0; i<3; i++){
+			if (generatorCount[i] <= 1) {
+				boxmin[i] = (seedBoxMin[i]+seedBoxMax[i])*0.5f;
+				boxmax[i] = boxmin[i];
+			} else {
+				boxmin[i] = seedBoxMin[i];
+				boxmax[i] = seedBoxMax[i];
+			}
+		}
+		myFlowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);
 		numSeedPoints = generatorCount[0]*generatorCount[1]*generatorCount[2];
 	}
 	// setup integration parameters:
@@ -1063,13 +1268,11 @@ regenerateFlowData(){
 	}
 	*/
 	//end test code
-	//Clear the dirty flag (just for the one renderer).
-	dirty = false;
+	// the dirty flag is reset during flow rendering
 	return flowData;
 }
-void FlowParams::setDirty(bool isDirty){
-	dirty = isDirty;
-	if (dirty) VizWinMgr::getInstance()->setFlowDirty(this);
+void FlowParams::setDirty(){
+	VizWinMgr::getInstance()->setFlowDirty(this);
 }
 //Method to construct Xml for state saving
 XmlNode* FlowParams::
@@ -1188,9 +1391,6 @@ buildNode() {
 	oss.str(empty);
 	oss << (float)shapeDiameter;
 	attrs[_shapeDiameterAttr] = oss.str();
-	oss.str(empty);
-	oss << (double)colorMapMin <<" "<<(double)colorMapMax;
-	attrs[_colorMappingBoundsAttr] = oss.str();
 
 	oss.str(empty);
 	oss << colorMapEntity[colorMapEntityIndex];
@@ -1200,7 +1400,7 @@ buildNode() {
 	attrs[_numControlPointsAttr] = oss.str();
 
 	XmlNode* graphicNode = new XmlNode(_geometryTag,attrs,numControlPoints);
-
+/*
 	for (int i = 0; i< numControlPoints; i++){
 		attrs.clear();
 		oss.str(empty);
@@ -1213,7 +1413,7 @@ buildNode() {
 		XmlNode* colorControlPointNode = new XmlNode(_colorControlPointTag, attrs,0);
 		graphicNode->AddChild(colorControlPointNode);
 	}
-	
+	*/
 	flowNode->AddChild(graphicNode);
 	return flowNode;
 }
@@ -1265,7 +1465,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else return false;
 		}
 		//Empty out the colorControlPoints:
-		colorControlPoints.empty();
+		//colorControlPoints.empty();
 		return true;
 	}
 	//Parse the seeding node:
@@ -1328,9 +1528,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _colorMappedEntityAttr) == 0) {
 				ist >> colorMapEntityIndex;
 			}
-			else if (StrCmpNoCase(attribName, _colorMappingBoundsAttr) == 0) {
-				ist >> colorMapMin;ist >> colorMapMax;
-			}
 			else if (StrCmpNoCase(attribName, _numControlPointsAttr) == 0) {
 				ist >> numControlPoints;
 			}
@@ -1360,8 +1557,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			} else return false; //Unknown attribute
 		}
 		//Then insert color control point
-		int indx = insertColorControlPoint(posn,hue,sat,val);
-		if (indx >= 0) return true;
+		//int indx = insertColorControlPoint(posn,hue,sat,val);
+		//if (indx >= 0) return true;
 		return false;
 	}//end of color control point tag
 	return true;
@@ -1391,19 +1588,60 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	}
 }
 	
-int FlowParams::
-insertColorControlPoint(float posn, float hue, float sat, float val){
-	int i;
-	for (i = 0; i<(int)colorControlPoints.size(); i++){
-		if (posn > colorControlPoints[i].position) break;
+
+// Setup pointers between mapper function, editor, and this:
+//
+void FlowParams::
+connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
+	tf->setEditor(tfe);
+	tfe->setFrame((QFrame*)(myFlowTab->flowMapFrame));
+	tfe->setMapperFunction(tf);
+	tf->setParams(this);
+	tfe->setColorVarNum(colorMapEntityIndex);
+	tfe->setOpacVarNum(opacMapEntityIndex);
+}
+void FlowParams::
+setTab(FlowTab* tab) {
+	myFlowTab = tab;
+	if (mapperFunction)
+		mapperFunction->getEditor()->setFrame(myFlowTab->flowMapFrame);
+}
+/*
+ * Method to be invoked after the user has moved the right or left bounds
+ * (e.g. From the MapEditor. ) 
+ * Make the textboxes consistent with the new left/right bounds, but
+ * don't trigger a new undo/redo event
+ */
+void FlowParams::
+updateMapBounds(){
+	QString strn;
+	if (getMapperFunc()){
+		myFlowTab->minOpacmapEdit->setText(strn.setNum(getMapperFunc()->getMinOpacMapValue(),'g',4));
+		myFlowTab->maxOpacmapEdit->setText(strn.setNum(getMapperFunc()->getMaxOpacMapValue(),'g',4));
+		myFlowTab->minColormapEdit->setText(strn.setNum(getMapperFunc()->getMinColorMapValue(),'g',4));
+		myFlowTab->maxColormapEdit->setText(strn.setNum(getMapperFunc()->getMaxColorMapValue(),'g',4));
+	} else {
+		myFlowTab->minOpacmapEdit->setText("0.0");
+		myFlowTab->maxOpacmapEdit->setText("1.0");
+		myFlowTab->minColormapEdit->setText("0.0");
+		myFlowTab->maxColormapEdit->setText("1.0");
 	}
-	if (i == 0) i = 1;
-	size_t newpos = (size_t) (i-1);
-	ColorControlPoint* ccp = new ColorControlPoint();
-	ccp->position = posn;
-	ccp->hsv[0] = hue;
-	ccp->hsv[1] = sat;
-	ccp->hsv[2] = val;
-	colorControlPoints.insert(colorControlPoints.begin()+newpos, *ccp);
-	return i-1;
+
+}
+//Respond to a change in mapper function (from color selection or mouse down/release events)
+//These are just for undo/redo.  Also may need to update visualizer and/or editor
+//
+void FlowParams::
+guiStartChangeMapFcn(char* str){
+	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
+	guiSetTextChanged(false);
+	//If another command is in process, don't disturb it:
+	if (savedCommand) return;
+	savedCommand = PanelCommand::captureStart(this, str);
+}
+void FlowParams::
+guiEndChangeMapFcn(){
+	if (!savedCommand) return;
+	PanelCommand::captureEnd(savedCommand,this);
+	savedCommand = 0;
 }

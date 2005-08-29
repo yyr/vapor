@@ -433,7 +433,11 @@ protected slots:
 	void setFlowZSize();
 	void setFlowGeneratorDimension(int);
 	void setFlowGeometry(int);
-	void setFlowMapEntity(int);
+	void setFlowColorMapEntity(int);
+	void setFlowOpacMapEntity(int);
+	void setFlowEditMode(bool);
+	void setFlowNavigateMode(bool);
+	void setFlowAligned();
 
 	
 

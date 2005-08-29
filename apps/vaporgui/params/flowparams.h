@@ -26,11 +26,10 @@
 
 class FlowTab;
 
-
-namespace VAPoR{
-	
+namespace VAPoR {
+class MapperFunction;
+class FlowMapEditor;
 class VaporFlow;
-
 class ExpatParseMgr;
 class MainForm;
 class FlowParams: public Params {
@@ -41,13 +40,17 @@ public:
 	~FlowParams();
 
 	
-	void setTab(FlowTab* tab) {myFlowTab = tab;}
+	void setTab(FlowTab* tab); 
 	virtual Params* deepCopy();
 	virtual void makeCurrent(Params* p, bool newWin);
 	//implement change of enablement, or change of local/global
 	//
 	virtual void updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow);
-
+	virtual void updateMapBounds();
+	virtual void guiStartChangeMapFcn(char* );
+	virtual void guiEndChangeMapFcn();
+	
+	
 	//Update the dialog with values from this:
 	//
 	virtual void updateDialog();
@@ -69,9 +72,9 @@ public:
 	virtual bool elementStartHandler(ExpatParseMgr*, int  depth , std::string& tag, const char ** attribs);
 	virtual bool elementEndHandler(ExpatParseMgr*, int depth , std::string& tag);
 	
-	//set dirty-flag, and force rerender:
-	void setDirty(bool flagValue);
-	bool isDirty() {return dirty;}
+	//set dirty-flag, and force rebuilding geometry
+	void setDirty();
+	
 	int getNumGenerators(int dimNum) { return generatorCount[dimNum];}
 	int getTotalNumGenerators() { return allGeneratorCount;}
 	VaporFlow* getFlowLib(){return myFlowLib;}
@@ -91,8 +94,13 @@ public:
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 	float getObjectsPerTimestep() {return objectsPerTimestep;}
+	void guiSetEditMode(bool val); //edit versus navigate mode
+	void guiSetAligned();
 
-	int insertColorControlPoint(float posn, float hue, float sat, float val);
+	
+	void setEditMode(bool mode) {editMode = mode;}
+	bool getEditMode() {return editMode;}
+	virtual MapperFunction* getMapperFunc() {return mapperFunction;}
 	//Methods called from vizwinmgr due to settings in gui:
 	void guiSetFlowType(int typenum);
 	void guiSetNumTrans(int numtrans);
@@ -109,7 +117,8 @@ public:
 	void guiSetYSize(int sliderval);
 	void guiSetZSize(int sliderval);
 	void guiSetFlowGeometry(int geomNum);
-	void guiSetMapEntity( int entityNum);
+	void guiSetColorMapEntity( int entityNum);
+	void guiSetOpacMapEntity( int entityNum);
 
 
 protected:
@@ -146,14 +155,14 @@ protected:
 	static const string _colorControlPointTag;
 	static const string _numControlPointsAttr;
 
-	void setFlowType(int typenum){flowType = typenum; setDirty(true);}
-	void setNumTrans(int numtrans){numTransforms = numtrans; setDirty(true);}
+	void setFlowType(int typenum){flowType = typenum; setDirty();}
+	void setNumTrans(int numtrans){numTransforms = numtrans; setDirty();}
 	void setMaxNumTrans(int maxNT) {maxNumTrans = maxNT;}
 	void setMinNumTrans(int minNT) {minNumTrans = minNT;}
-	void setXVarNum(int varnum){varNum[0] = varnum; setDirty(true);}
-	void setYVarNum(int varnum){varNum[1] = varnum; setDirty(true);}
-	void setZVarNum(int varnum){varNum[2] = varnum; setDirty(true);}
-	void setRandom(bool rand){randomGen = rand; setDirty(true);}
+	void setXVarNum(int varnum){varNum[0] = varnum; setDirty();}
+	void setYVarNum(int varnum){varNum[1] = varnum; setDirty();}
+	void setZVarNum(int varnum){varNum[2] = varnum; setDirty();}
+	void setRandom(bool rand){randomGen = rand; setDirty();}
 	void setXCenter(int sliderval);
 	void setYCenter(int sliderval);
 	void setZCenter(int sliderval);
@@ -161,27 +170,28 @@ protected:
 	void setYSize(int sliderval);
 	void setZSize(int sliderval);
 	void setFlowGeometry(int geomNum){geometryType = geomNum;}
-	void setMapEntity( int entityNum){colorMapEntityIndex = entityNum;}
+	void setColorMapEntity( int entityNum){colorMapEntityIndex = entityNum;}
+	void setOpacMapEntity( int entityNum){opacMapEntityIndex = entityNum;}
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
-
+	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);
 	//Methods to make sliders and text consistent for seed region:
 	void textToSlider(int coord, float center, float size);
 	void sliderToText(int coord, int center, int size);
-	
+	FlowMapEditor* getFlowMapEditor() {return flowMapEditor;}
 	FlowTab* myFlowTab;
 	int flowType; //steady = 0, unsteady = 1;
 	int instance;
 	int numTransforms, maxNumTrans, minNumTrans;
 	int numVariables;
 	std::vector<std::string> variableNames;
-	int varNum[3]; //variable num's in x, y, and z.
+	int varNum[3]; //field variable num's in x, y, and z.
 	float integrationAccuracy;
 	float userTimeStepMultiplier;
 	int timeSamplingInterval;
-
+	bool editMode;
 	
 	bool randomGen;
-	bool dirty;
+	
 	
 	unsigned int randomSeed;
 	float seedBoxMin[3], seedBoxMax[3];
@@ -196,16 +206,17 @@ protected:
 	
 	float shapeDiameter;
 	int colorMapEntityIndex; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
-	float colorMapMin, colorMapMax;
-	struct ColorControlPoint {
-		float position;
-		float hsv[3];
-	};
+	int opacMapEntityIndex;
+	
+	PanelCommand* savedCommand;
+	MapperFunction* mapperFunction;
+	FlowMapEditor* flowMapEditor;
 
 	int maxPoints;  //largest length of any flow
 	
-	std::vector<ColorControlPoint> colorControlPoints;
+	
 	std::vector<string> colorMapEntity;
+	std::vector<string> opacMapEntity;
 	int numControlPoints;
 
 	float regionMin[3], regionMax[3];

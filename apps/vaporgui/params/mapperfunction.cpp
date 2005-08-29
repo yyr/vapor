@@ -24,6 +24,7 @@
 #endif
 #include "tfinterpolator.h"
 #include "mapperfunction.h"
+#include "mapeditor.h"
 #include "assert.h"
 #include "vaporinternal/common.h"
 #include "params.h"
@@ -68,11 +69,58 @@ MapperFunction::MapperFunction(Params* p, int nBits){
 	maxColorMapBound = 1.f;
 	minOpacMapBound = 0.f;
 	maxOpacMapBound = 1.f;
+	//Make a default TF:  Map 0 to 1 to a spectrum with increasing opacity.
+	//Provide 2 extra control points at ends, that should never go away
+	//
+
+	numColorControlPoints = 6;
+	colorCtrlPoint.resize(6);
+	opacCtrlPoint.resize(6);
+	colorInterp.resize(6);
+	opacInterp.resize(6);
+	hue.resize(6);
+	sat.resize(6);
+	val.resize(6);
+	opac.resize(6);
+	colorCtrlPoint[0] = -1.e6f;
+	colorCtrlPoint[1] = 0.f;
+	colorCtrlPoint[2] = 0.3333f;
+	colorCtrlPoint[3] = 0.66667f;
+	colorCtrlPoint[4] = 1.f;
+	colorCtrlPoint[5] = 1.e6f;
+	
+	numOpacControlPoints = 6;
+
+	opacCtrlPoint[0] = -1.e6f;
+	opacCtrlPoint[1] = 0.f;
+	opacCtrlPoint[2] = 0.3333f;
+	opacCtrlPoint[3] = 0.6667f;
+	opacCtrlPoint[4] = 1.f;
+	opacCtrlPoint[5] = 1.e6f;
+
+	for (int i = 0; i<6; i++){
+		colorInterp[i] = TFInterpolator::linear;
+		opacInterp[i] = TFInterpolator::linear;
+		hue[i] = 0.f;
+		sat[i] = 1.f;
+		val[i] = 1.f;
+		opac[i] = 0.f;
+	}
+	hue[2]=  .3f;
+	hue[3] = .6f;
+	hue[4]=  .9f;
+	hue[5] = .9f;
+	
+	opac[2] = .3333f;
+	opac[3] = .6667f;
+	opac[4] = 1.f;
+	opac[5] = 1.f;
+	
 	if(myParams) myParams->setClutDirty();
 }
 	
 MapperFunction::~MapperFunction() {
-	
+	if (myMapEditor) delete myMapEditor;
 }
 
 void MapperFunction::

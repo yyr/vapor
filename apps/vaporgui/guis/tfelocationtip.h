@@ -30,10 +30,10 @@ class TFELocationTip : public QToolTip {
 
 public:
     TFELocationTip( QWidget *parent );
-	void setEditor(TFEditor* ed) {editor = ed;}
+	void setEditor(MapEditor* ed) {editor = ed;}
 protected:
     void maybeTip( const QPoint& );
-	TFEditor* editor;
+	MapEditor* editor;
 	QWidget* frame;
 };
 };

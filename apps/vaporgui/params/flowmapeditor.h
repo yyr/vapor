@@ -6,7 +6,7 @@
 //																		*
 //************************************************************************/
 //
-//	File:		tfeditor.h
+//	File:		FlowMapEditor.h
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
@@ -14,43 +14,37 @@
 //
 //	Date:		November 2004
 //
-//	Description:	Defines the TFEditor class.  This is the class
-//		that manages a transfer function editing panel
-//		This class provides Transfer Function editing capability.
-//		One of these is created whenever the users requests to edit a
-//		Transfer function.  One is associated with each DVR panel.
-//		This also manages the editing session, responds to mouse events
-//		Contains a number of definitions associated with the editor window,
-//		controlling layout and colors.
+//	Description:	Defines the FlowMapEditor class.  This is the class
+//		that manages a mapper function editing panel for flow viz
 //
-#ifndef TFEDITOR_H
-#define TFEDITOR_H
+#ifndef FLOWMAPEDITOR_H
+#define FLOWMAPEDITOR_H
 
 
 class QImage;
-#include "dvrparams.h"
-#include "transferfunction.h"
+#include "flowparams.h"
+#include "mapperfunction.h"
 #include "mapeditor.h"
-class TFFrame;
+class FlowMapFrame;
 namespace VAPoR {
-class TransferFunction;
+class MapperFunction;
 class TFInterpolator;
 class Session;
-
-class Histo;
 class TFELocationTip;
-class DVRParams;
+class FlowParams;
 
-class TFEditor : public MapEditor {
+class FlowMapEditor : public MapEditor {
 public:
-	TFEditor(MapperFunction* TF, TFFrame*);
-	~TFEditor();
+	FlowMapEditor(MapperFunction* TF, FlowMapFrame*);
+	~FlowMapEditor();
 	//Reset to default state, e.g. when loading new TF:
 	//
-	virtual void reset();
-	void setEditingRange(float minVal, float maxVal){
+	void reset();
+	void setColorEditingRange(float minVal, float maxVal){
 		setMinColorEditValue(minVal);
 		setMaxColorEditValue(maxVal);
+	}
+	void setOpacEditingRange(float minVal, float maxVal){
 		setMinOpacEditValue(minVal);
 		setMaxOpacEditValue(maxVal);
 	}
@@ -60,11 +54,11 @@ public:
 		return editImage;
 	}
 	
-	
 	virtual void setDirty();
 	//Responses to mouse events:
 	void moveGrabbedControlPoints(int x, int y);
-	void moveDomainBound(int x);
+	void moveColorDomainBound(int x);
+	void moveOpacDomainBound(int x);
 	
 	int insertColorControlPoint(int xcoord);
 	int insertOpacControlPoint(int xcoord, int ycoord = -1);
@@ -108,48 +102,15 @@ public:
 	void deleteSelectedControlPoints();
 	//Set all selected color control points to an HSV:
 	void setHsv(int h, int s, int v);
-	//Coordinate mapping functions:
-	//map TF variable to window coords.  
-	// if classify, Left goes to -1, right goes to width.
-	int mapVar2Win(float x, bool classify = false);
-	//map window to variable, can go to any value
-	float mapWin2Var(int x);
-	//map window to discrete mapping value (0..2**nbits - 1)
-	//if truncate, limits are mapped to ending discrete value
-	int  mapWin2Discrete(int x, bool truncate = false);
-	//map variable to discrete, optionally limits to end values
-	int mapVar2Discrete(float x);
 	
-	//Map verticalWin to opacity, optionally  special constants
-	float mapWin2Opac(int y, bool classify = false);
-	//map opacity to window position, optionally truncate to valid
-	int mapOpac2Win(float op, bool truncate = false);
-
 	//Map a screen horiz coordinate to float.  Results in a
 	//value between minEditBound and maxEditBound.
 	//float mapScreenXCoord(int x);
 	//Map screen vert coord to Y.  Results in 0..1 for opacity coords,
 	// -1 for color coords
 	//float mapScreenYCoord(int y);
-	float getMinEditValue(){
-		return (getMinColorEditValue());
-	}
-	float getMaxEditValue(){
-		return (getMaxColorEditValue());
-	}
-	void setMinEditValue(float val) {
-		setMinColorEditValue(val);
-		setMinOpacEditValue(val);
-	}
-	void setMaxEditValue(float val) {
-		setMaxColorEditValue(val);
-		setMaxOpacEditValue(val);
-	}
-	TransferFunction* getTransferFunction() {return (TransferFunction*)myMapperFunction;}
-	void setTransferFunction(TransferFunction* tf) {myMapperFunction = tf;}
-	//Currently histogram is assumed to be limited to interval [0,1]:
-	int getHistoValue(float point);
-
+	
+	
 	//Public methods for controlling grabbedState:
 	void unGrab() {grabbedState = notGrabbed;}
 	void unGrabBounds() {grabbedState &= ~(domainGrab);}
@@ -179,21 +140,21 @@ public:
 	void setDragStart(int ix, int iy){
 		dragStartX = ix;
 		dragStartY = iy;
-		dragMinStart = getMinEditValue();
-		dragMaxStart = getMaxEditValue();
-		mappedDragStartX = mapWin2Var(ix);
+		dragMinStart = getMinOpacEditValue();
+		dragMaxStart = getMaxOpacEditValue();
+		mappedOpacDragStartX = mapOpacWin2Var(ix);
 		leftMoveMax = -1;
 	}
 	void navigate(int x, int y);
 	//Save the TF map bounds during a drag operation:
 	void saveDomainBounds(){
-		leftDomainSaved = getTransferFunction()->getMinMapValue();
-		rightDomainSaved = getTransferFunction()->getMaxMapValue();
+		leftColorDomainSaved = getMapperFunction()->getMinColorMapValue();
+		rightColorDomainSaved = getMapperFunction()->getMaxColorMapValue();
+		leftOpacDomainSaved = getMapperFunction()->getMinOpacMapValue();
+		rightOpacDomainSaved = getMapperFunction()->getMaxOpacMapValue();
 	}
-	DvrParams* getParams() {return (DvrParams*)myMapperFunction->getParams();}
-	void setVarNum(int varnum){ setColorVarNum(varnum); setOpacVarNum(varnum);}
-	int getVarNum() {return colorVarNum;}
-
+	FlowParams* getParams() {return (FlowParams*)myMapperFunction->getParams();}
+	void moveDomainBound(int x);
 	
 protected:
 	//grabbedState is "or" of some of following masks.
@@ -226,22 +187,23 @@ protected:
 	QImage* editImage;
 	//QImage* opacImage;
 	//The min and max values are established in the parent dialog.
-	//They must lie within range of transfer function definition.
+	//They must lie within range of opacity mapping definition.
 	
 	float dragMinStart;
 	float dragMaxStart;
 	
-	
 	int dragStartX, dragStartY;
-	float mappedDragStartX;
+	float mappedColorDragStartX;
+	float mappedOpacDragStartX;
 	//floats to hold domain bounds during a full domain grab:
 	//
-	float leftDomainSaved, rightDomainSaved;
+	float leftColorDomainSaved, rightColorDomainSaved;
+	float leftOpacDomainSaved, rightOpacDomainSaved;
 
 	//Note that an Up move corresponds to decreasing y coords!
 	//
 	int leftMoveMax, rightMoveMax, upMoveMax, downMoveMax;
-	int histoMaxBin;
+	
 	
 };
 };

@@ -873,7 +873,8 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowZSize()));
 	connect (flowTab->generatorDimensionCombo,SIGNAL(activated(int)), SLOT(setFlowGeneratorDimension(int)));
 	connect (flowTab->geometryCombo, SIGNAL(activated(int)),SLOT(setFlowGeometry(int)));
-	connect (flowTab->colormapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowMapEntity(int)));
+	connect (flowTab->colormapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowColorMapEntity(int)));
+	connect (flowTab->opacmapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowOpacMapEntity(int)));
 
 	connect (flowTab->integrationAccuracyEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->integrationAccuracyEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
@@ -917,7 +918,9 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->minColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->maxColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->maxColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
-
+	connect (flowTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setFlowNavigateMode(bool)));
+	connect (flowTab->editButton, SIGNAL(toggled(bool)), this, SLOT(setFlowEditMode(bool)));
+	connect(flowTab->alignButton, SIGNAL(clicked()), this, SLOT(setFlowAligned()));
 
 	
 	connect (this, SIGNAL(enableMultiViz(bool)), flowTab->LocalGlobal, SLOT(setEnabled(bool)));
@@ -1065,6 +1068,7 @@ setRegionDirty(RegionParams* rParams){
 	int vizNum = rParams->getVizNum();
 	if (vizNum >= 0){
 		vizWin[activeViz]->setRegionDirty(true);
+		vizWin[activeViz]->setFlowDirty(true);
 		vizWin[activeViz]->updateGL();
 	}
 	//If another viz is using these region params, set their region dirty, too
@@ -1074,6 +1078,7 @@ setRegionDirty(RegionParams* rParams){
 				((!rgParams[i])||!rgParams[i]->isLocal())
 			){
 			vizWin[i]->setRegionDirty(true);
+			vizWin[i]->setFlowDirty(true);
 			vizWin[i]->updateGL();
 		}
 	}
@@ -1098,13 +1103,13 @@ setRegionDirty(DvrParams* dParams){
 		}
 	}
 }
-//Force all windows that share a params to rerender
+//Force all windows that share a flow params to rerender
 //(possibly with new data)
 void VizWinMgr::
 setFlowDirty(FlowParams* fParams){
 	int vizNum = fParams->getVizNum();
 	if (vizNum >= 0){
-		vizWin[activeViz]->setFlowDataDirty(true);
+		vizWin[activeViz]->setFlowDirty(true);
 		vizWin[activeViz]->updateGL();
 	}
 	//If another viz is sharing these flow params, make them rerender, too
@@ -1113,7 +1118,7 @@ setFlowDirty(FlowParams* fParams){
 		if  ( vizWin[i] && (i != vizNum)  &&
 				((!flowParams[i])||!flowParams[i]->isLocal())
 			){
-			vizWin[i]->setFlowDataDirty(true);
+			vizWin[i]->setFlowDirty(true);
 			vizWin[i]->updateGL();
 		}
 	}
@@ -1822,10 +1827,28 @@ setFlowGeometry(int geomNum){
 	getFlowParams(activeViz)->guiSetFlowGeometry(geomNum);
 }
 void VizWinMgr::
-setFlowMapEntity(int entityNum){
-	getFlowParams(activeViz)->guiSetMapEntity(entityNum);
+setFlowColorMapEntity(int entityNum){
+	getFlowParams(activeViz)->guiSetColorMapEntity(entityNum);
+}
+void VizWinMgr::
+setFlowOpacMapEntity(int entityNum){
+	getFlowParams(activeViz)->guiSetOpacMapEntity(entityNum);
 }
 
+void VizWinMgr::
+setFlowEditMode(bool mode){
+	myMainWindow->getFlowTab()->navigateButton->setOn(!mode);
+	getFlowParams(activeViz)->guiSetEditMode(mode);
+}
+void VizWinMgr::
+setFlowNavigateMode(bool mode){
+	myMainWindow->getFlowTab()->editButton->setOn(!mode);
+	getFlowParams(activeViz)->guiSetEditMode(!mode);
+}
+void VizWinMgr::
+setFlowAligned(){
+	getFlowParams(activeViz)->guiSetAligned();
+}
 ViewpointParams* VizWinMgr::
 getViewpointParams(int winNum){
 	if (winNum < 0) return globalVPParams;

@@ -166,10 +166,10 @@ public:
 	//Failure results in false/null pointer
 	//
 	
-	virtual XmlNode* buildNode(const string& tfname) = 0;
+	virtual XmlNode* buildNode(const string& /*tfname*/) {return 0;}
 	//All the parsing can be done with the start handlers
-	virtual bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, const char **attr) = 0;
-	virtual bool elementEndHandler(ExpatParseMgr*, int , std::string&) = 0;
+	virtual bool elementStartHandler(ExpatParseMgr*, int /*depth*/ , std::string& , const char **){return false;}
+	virtual bool elementEndHandler(ExpatParseMgr*, int , std::string&) {return false;}
 	//Mapper function tag is visible to session 
 	static const string _MapperFunctionTag;
 	string& getName() {return mapperName;}

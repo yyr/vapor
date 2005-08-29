@@ -6,27 +6,27 @@
 //																		*
 //************************************************************************/
 //
-//	File:		tfframe.cpp
+//	File:		flowmapframe.cpp
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
 //			PO 3000, Boulder, Colorado
 //
-//	Date:		November 2004
+//	Date:		August 2005
 //
-//	Description:	Implements the TFFrame class.  This provides
-//		a frame in which the transfer function editing occurs.
+//	Description:	Implements the FlowMapFrame class.  This provides
+//		a frame in which the flow mapping editing occurs.
 //		Principally involved in drawing and responding to mouse events.
 //
-#include "tfframe.h"
+#include "flowmapframe.h"
 #include <qframe.h>
 #include <qwidget.h>
 #include <qimage.h>
 #include <qpainter.h>
-#include "tfeditor.h"
+#include "flowmapeditor.h"
 #include "tfelocationtip.h"
 #include "messagereporter.h"
-#include "dvrparams.h"
+#include "params.h"
 #include <qlabel.h>
 #include <qpopupmenu.h>
 #include <qcursor.h>
@@ -35,7 +35,7 @@
 #include "opacadjustdialog.h"
 #include "panelcommand.h"
 
-TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
+FlowMapFrame::FlowMapFrame( QWidget * parent, const char * name, WFlags f ) :
 	QFrame(parent, name, f) {
 	editor = 0;
 	dirtyEditor = 0;
@@ -63,7 +63,7 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 	}
 
 }
-TFFrame::~TFFrame() {
+FlowMapFrame::~FlowMapFrame() {
 	delete locationTip;
 	//Will these be deleted by their parent????
 	for (int i = 0; i<MAXNUMLABELS; i++){
@@ -73,7 +73,7 @@ TFFrame::~TFFrame() {
 }
 	
 
-void TFFrame::paintEvent(QPaintEvent* ){
+void FlowMapFrame::paintEvent(QPaintEvent* ){
 	int i;
 	if (!editor){ //just  bitblt a blank pixmap to the widget:
 		pxMap.resize(size());
@@ -92,28 +92,8 @@ void TFFrame::paintEvent(QPaintEvent* ){
 			MessageReporter::infoMsg("Editor change on TF frame update");
 		return;
 	}
-	TransferFunction* tf = editor->getTransferFunction();
-	//Debugging code to look at image column 100
-	/*
-	QImage* img0 = editor->getImage();
-	QImage* img1  = editor->getOpacImage();
-	int ra[200], ga[200], ba[200], alphaa[200];
-	int ro[200], go[200], bo[200], alphao[200];
-	QRgb rgbaa, rgbab;
-	for (int j = 0; j< height()-BELOWOPACITY; j++){
-		rgbaa = img0->pixel(100,j);
-		rgbab = img1->pixel(100,j);
-		ra[j] = qRed(rgbaa);
-		ga[j] = qGreen(rgbaa);
-		ba[j] = qBlue(rgbaa);
-
-		alphaa[j]  = qAlpha(rgbab);
-		ro[j] = qRed(rgbab);
-		go[j] = qGreen(rgbab);
-		bo[j] = qBlue(rgbab);
-		alphao[j]  = qAlpha(rgbab);
-	}
-*/
+	MapperFunction* tf = editor->getMapperFunction();
+	
 	QPainter painter(&pxMap);
 	//Workaround for QT bug:  the clip rect is wrong, so
 	//specify the whole window as the clip rect:
@@ -152,7 +132,7 @@ void TFFrame::paintEvent(QPaintEvent* ){
 			if (numColorLabels < MAXNUMLABELS && x>recentTicPosition+40){
 				tfColorLabels[numColorLabels]->move(pos()+QPoint(x-25, height()+15));
 			
-				tfColorLabels[numColorLabels]->setText(QString::number(editor->getTransferFunction()->
+				tfColorLabels[numColorLabels]->setText(QString::number(editor->getMapperFunction()->
 					colorCtrlPointPosition(i),'g',4));
 				tfColorLabels[numColorLabels]->raise();
 				tfColorLabels[numColorLabels++]->show();
@@ -161,7 +141,7 @@ void TFFrame::paintEvent(QPaintEvent* ){
 		}
 	}
 	//Do tic mark for left endpoint:
-	float fx = editor->mapWin2Var(0);
+	float fx = editor->mapColorWin2Var(0);
 	painter.drawLine(0,height()-COORDMARGIN+3,0,height());
 	//Use the first color label to indicate left edit margin
 	tfOpacLabels[0]->move(pos()+QPoint(-20, height()));
@@ -182,7 +162,7 @@ void TFFrame::paintEvent(QPaintEvent* ){
 			if (numOpacLabels < MAXNUMLABELS-1 && x>recentTicPosition+40 && x < width()-40){
 				tfOpacLabels[numOpacLabels]->move(pos()+QPoint(x-20, height()));
 			
-				tfOpacLabels[numOpacLabels]->setText(QString::number(editor->getTransferFunction()->
+				tfOpacLabels[numOpacLabels]->setText(QString::number(editor->getMapperFunction()->
 					opacCtrlPointPosition(i),'g',4));
 				tfOpacLabels[numOpacLabels]->raise();
 				tfOpacLabels[numOpacLabels++]->show();
@@ -190,7 +170,7 @@ void TFFrame::paintEvent(QPaintEvent* ){
 			}
 		}
 	}
-	fx = editor->mapWin2Var(width()-1);
+	fx = editor->mapColorWin2Var(width()-1);
 	//Draw right edge tic mark:
 	painter.drawLine(width()-1,height()-COORDMARGIN+3,width()-1,height());
 	//Use the last opac label to indicate right edit margin
@@ -204,18 +184,18 @@ void TFFrame::paintEvent(QPaintEvent* ){
 	
 	QPen myPen(OPACITYCURVECOLOR, 2);
 	painter.setPen(myPen);
-	float prevX = editor->mapWin2Var(0);
+	float prevX = editor->mapOpacWin2Var(0);
 	float prevY = tf->opacityValue(prevX);
 	int atEnd = 0;
 	int prevIndex = tf->getLeftOpacityIndex(prevX);
 	int prevIntX = 0;
 	int prevIntY = (int)((1.f - prevY)*(height() -BELOWOPACITY + 0.5f));
 	int nextIntX, nextIntY;
-	int lastX = editor->mapVar2Win(tf->getMaxMapValue());
+	int lastX = editor->mapOpacVar2Win(tf->getMaxOpacMapValue());
 	//Draw a curve on the x-axis before domain start:
-	if (prevX < tf->getMinMapValue()){
+	if (prevX < tf->getMinOpacMapValue()){
 		//Find out what xcoord maps to minMapValue:
-		nextIntX = editor->mapVar2Win(tf->getMinMapValue(),false);
+		nextIntX = editor->mapOpacVar2Win(tf->getMinOpacMapValue(),false);
 		painter.drawLine(prevIntX, height()-BELOWOPACITY, nextIntX, height()-BELOWOPACITY);
 		prevIntX=nextIntX;
 	}
@@ -269,8 +249,8 @@ void TFFrame::paintEvent(QPaintEvent* ){
 		}
 	}
 	//Draw left and right limits (if on screen):
-	int leftLim = editor->mapVar2Win(tf->getMinMapValue(),false);
-	int rightLim = editor->mapVar2Win(tf->getMaxMapValue(),false);
+	int leftLim = editor->mapOpacVar2Win(tf->getMinOpacMapValue(),false);
+	int rightLim = editor->mapOpacVar2Win(tf->getMaxOpacMapValue(),false);
 	
 	QPen vpen(ENDLINECOLOR, 3);
 	drawBrush.setColor(ENDLINECOLOR);
@@ -316,20 +296,21 @@ void TFFrame::paintEvent(QPaintEvent* ){
 	* Whenever a color control point is selected (except when ctrl or shift
 	* is pressed), that color is shown in the color picker.
 	*/
-void TFFrame::mousePressEvent( QMouseEvent * e){
+void FlowMapFrame::mousePressEvent( QMouseEvent * e){
 	if (!editor) return;
 	mouseIsDown = true;
 	if (e->button() == Qt::LeftButton){
 		//Ignore mouse press over margin:
 		if (e->y() >= (height() - COORDMARGIN)) return;
 		//Check for domain grabs:
+		//Domain will be based on opacity
 		if (e->y() < DOMAINSLIDERMARGIN){
-			int leftLim = editor->mapVar2Win(editor->getTransferFunction()->getMinMapValue(),false);
-			int rightLim = editor->mapVar2Win(editor->getTransferFunction()->getMaxMapValue(),false);
+			int leftLim = editor->mapOpacVar2Win(editor->getMapperFunction()->getMinOpacMapValue(),false);
+			int rightLim = editor->mapOpacVar2Win(editor->getMapperFunction()->getMaxOpacMapValue(),false);
 			if (e->x() < leftLim -DOMAINSLIDERMARGIN ||
 				e->x() > rightLim +DOMAINSLIDERMARGIN ) return;
 			//Notify the DVR that an editing change is starting:
-			startTFChange("transfer function domain boundary move");
+			startTFChange("Mapper function domain boundary move");
 			editor->setDragStart(e->x(), e->y());
 			editor->saveDomainBounds();
 			amDragging = false;
@@ -357,7 +338,7 @@ void TFFrame::mousePressEvent( QMouseEvent * e){
 
 // Mark the start of a mouse edit
 //
-void TFFrame::
+void FlowMapFrame::
 mouseEditStart(QMouseEvent* e){
 	if (!editor) return;
 	bool controlPressed=false;
@@ -368,9 +349,9 @@ mouseEditStart(QMouseEvent* e){
 
 	//Notify the DVR that an editing change is starting:
 	if (e->y() >= (height() - BARHEIGHT - COORDMARGIN - SEPARATOR/2)){			
-		startTFChange("transfer function color bar edit");
+		startTFChange("Mapper function color bar edit");
 	} else {
-		startTFChange("transfer function opacity edit");
+		startTFChange("Mapper function opacity edit");
 	}
 	
 	editor->setDragStart(e->x(), e->y());
@@ -451,10 +432,10 @@ mouseEditStart(QMouseEvent* e){
 
 // Mark the start of a mouse navigate action
 //
-void TFFrame::
+void FlowMapFrame::
 mouseNavigateStart(QMouseEvent* e){
 	if (!editor) return;
-	startTFChange("transfer function editor navigate");
+	startTFChange("Mapper function editor navigate");
 	editor->setDragStart(e->x(), e->y());
 	editor->setNavigateGrab();
 	amDragging = false;
@@ -462,9 +443,9 @@ mouseNavigateStart(QMouseEvent* e){
 	return;
 }
 //When mouse is released, if we were editing, tell the panel that
-//there has been a change in the transfer function.  May need to 
+//there has been a change in the Mapper function.  May need to 
 //update visualizer and/or tf display
-void TFFrame::mouseReleaseEvent( QMouseEvent *e ){
+void FlowMapFrame::mouseReleaseEvent( QMouseEvent *e ){
 	if (!editor) return;
 	if (e->button() == Qt::LeftButton){
 		//If dragging bounds, ungrab, and notify dvrparams to update:
@@ -494,8 +475,6 @@ void TFFrame::mouseReleaseEvent( QMouseEvent *e ){
 						}
 					}
 				}
-				//Check whether to enable the bind option:
-				editor->getParams()->setBindButtons();
 			}
 		}
 		//In any case, clean up, and TFE gui:
@@ -511,7 +490,7 @@ void TFFrame::mouseReleaseEvent( QMouseEvent *e ){
 //When the mouse moves, display its new coordinates.  Move the "grabbed" 
 //control point, or zoom/pan the display
 //
-void TFFrame::mouseMoveEvent( QMouseEvent * e){
+void FlowMapFrame::mouseMoveEvent( QMouseEvent * e){
 	if (!editor) return;
 	if (editor->isGrabbed()) {
 		amDragging = true;
@@ -525,13 +504,13 @@ void TFFrame::mouseMoveEvent( QMouseEvent * e){
 		} 
 	} 
 }
-void TFFrame::resizeEvent( QResizeEvent *  ){
+void FlowMapFrame::resizeEvent( QResizeEvent *  ){
 	needUpdate = true;
 }
 /* 
 	*delete all selected control points when delete key is pressed:
 	*/
-void TFFrame::keyPressEvent(QKeyEvent* e){
+void FlowMapFrame::keyPressEvent(QKeyEvent* e){
 	if (!editor) return;
 	if (e->key() == Qt::Key_Delete){
 		editor->deleteSelectedControlPoints();
@@ -540,14 +519,14 @@ void TFFrame::keyPressEvent(QKeyEvent* e){
 	}
 }
 //New HSV received from color picker.  Ignore it if the mouse is down.
-void TFFrame::newHsv(int h, int s, int v){
+void FlowMapFrame::newHsv(int h, int s, int v){
 	if (!editor) return;
 	if (mouseIsDown) return;
 	editor->setHsv(h,s,v);
 	
 }
 //Draw triangles at top and bottom of color bar
-void TFFrame::drawTris(QPainter& p, int x){
+void FlowMapFrame::drawTris(QPainter& p, int x){
 	for (int i = 0; i<BARHEIGHT/2; i++){
 		int wid = (BARHEIGHT/2 -i)/2;
 		p.drawLine(x -wid, height()-COORDMARGIN-i, x+wid, height()-COORDMARGIN-i);
@@ -556,7 +535,7 @@ void TFFrame::drawTris(QPainter& p, int x){
 }
 
 
-void TFFrame::contextMenuEvent( QContextMenuEvent *e )
+void FlowMapFrame::contextMenuEvent( QContextMenuEvent *e )
 {
 	if (!editor) return;
 	//Capture for undo/redo:
@@ -602,19 +581,19 @@ void TFFrame::contextMenuEvent( QContextMenuEvent *e )
 }
 /* SLOTS:
 */
-void TFFrame::
+void FlowMapFrame::
 delColorPoint(int indx){
 	editor->deleteControlPoint(indx, true);
 }
-void TFFrame::
+void FlowMapFrame::
 delOpacPoint(int indx){
 	editor->deleteControlPoint(indx, false);
 }
-void TFFrame::
+void FlowMapFrame::
 newColor(int x){
 	editor->insertColorControlPoint(x);
 }
-void TFFrame::
+void FlowMapFrame::
 newOpac(int code){
 	//decode the x and y from the int code:
 	int y = code>>16;
@@ -622,16 +601,16 @@ newOpac(int code){
 	editor->insertOpacControlPoint(x,y);
 }
 
-void TFFrame::
+void FlowMapFrame::
 adjColor(int indx){
-	ColorAdjustDialog* dlg = new ColorAdjustDialog(this, indx);
-	if(dlg->exec()) update();
-	delete dlg;
+	//ColorAdjustDialog* dlg = new ColorAdjustDialog(this, indx);
+	//if(dlg->exec()) update();
+	//delete dlg;
 }
 
-void TFFrame::
+void FlowMapFrame::
 adjOpac(int indx){
-	OpacAdjustDialog* dlg = new OpacAdjustDialog(this, indx);
-	if(dlg->exec()) update();
-	delete dlg;
+	//OpacAdjustDialog* dlg = new OpacAdjustDialog(this, indx);
+	//if(dlg->exec()) update();
+	//delete dlg;
 }
