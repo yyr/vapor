@@ -41,7 +41,8 @@ Solution::Solution(float** pUData, float** pVData, float** pWData,
 	m_pVDataArray = pVData;
 	m_pWDataArray = pWData;
 	m_nNodeNum = nodeNum;
-	m_nTimeSteps = timeSteps;			
+	m_nTimeSteps = timeSteps;		
+	m_fTimeScaleFactor = 1.0;
 }
 
 Solution::~Solution()
@@ -75,6 +76,7 @@ void Solution::Reset()
 	m_pWDataArray = NULL;
 	m_nNodeNum = 0;
 	m_nTimeSteps = 1;		
+	m_fTimeScaleFactor = 1.0;
 	m_nStartT = 0;
 	m_nEndT = 0;
 	m_nTimeIncrement = 0;
@@ -120,7 +122,9 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 		return -1;
 
 	if(!isTimeVarying())
-		nodeData.Set(m_pUDataArray[(int)t][id], m_pVDataArray[(int)t][id], m_pWDataArray[(int)t][id]);
+		nodeData.Set(m_pUDataArray[(int)t][id]*m_fTimeScaleFactor, 
+					 m_pVDataArray[(int)t][id]*m_fTimeScaleFactor, 
+					 m_pWDataArray[(int)t][id]*m_fTimeScaleFactor);
 	else
 	{
 		int lowT, highT;
@@ -136,11 +140,13 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 			ratio = 0.0;
 		}
 		if(ratio == 0.0)
-			nodeData.Set(m_pUDataArray[lowT][id], m_pVDataArray[lowT][id], m_pWDataArray[lowT][id]);
+			nodeData.Set(m_pUDataArray[lowT][id]*m_fTimeScaleFactor, 
+						 m_pVDataArray[lowT][id]*m_fTimeScaleFactor, 
+						 m_pWDataArray[lowT][id]*m_fTimeScaleFactor);
 		else
-            nodeData.Set(Lerp(m_pUDataArray[lowT][id], m_pUDataArray[highT][id], ratio), 
-						 Lerp(m_pVDataArray[lowT][id], m_pVDataArray[highT][id], ratio),
-						 Lerp(m_pWDataArray[lowT][id], m_pWDataArray[highT][id], ratio));
+            nodeData.Set(m_fTimeScaleFactor*Lerp(m_pUDataArray[lowT][id], m_pUDataArray[highT][id], ratio), 
+						 m_fTimeScaleFactor*Lerp(m_pVDataArray[lowT][id], m_pVDataArray[highT][id], ratio),
+						 m_fTimeScaleFactor*Lerp(m_pWDataArray[lowT][id], m_pWDataArray[highT][id], ratio));
 	}
 	
 	return 1;

@@ -360,7 +360,8 @@ void vtCFieldLine::setSeedPoints(float* points, int numPoints, float t)
 void vtCFieldLine::SampleFieldline(float* positions,
 								   unsigned int& posInPoints,
 								   vtListSeedTrace* seedTrace,
-								   list<float>* stepList)
+								   list<float>* stepList,
+								   float* speeds)
 {
 	list<VECTOR3*>::iterator pIter1;
 	list<VECTOR3*>::iterator pIter2;
@@ -368,8 +369,11 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	float stepsizeLeft;
 	int count;
 	unsigned int ptr;
+	unsigned int ptrSpeed;
 
 	ptr = posInPoints;
+	ptrSpeed = posInPoints/3;
+
 	pIter1 = seedTrace->begin();
 	// the first one is seed
 	positions[ptr++] = (**pIter1)[0];

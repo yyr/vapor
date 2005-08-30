@@ -42,7 +42,8 @@ void vtCStreakLine::execute(const void* userData,
 							float* positions, 
 							unsigned int* pointers,
 							bool bInjectSeeds,
-							int iInjection)
+							int iInjection,
+							float* speeds)
 {
 	computeStreakLine(userData, positions, pointers, bInjectSeeds, iInjection);
 }

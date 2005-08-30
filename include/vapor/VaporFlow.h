@@ -36,8 +36,8 @@ namespace VAPoR
 		void SetRandomSeedPoints(const float min[3], const float max[3], int numSeeds);
 		void SetRegularSeedPoints(const float min[3], const float max[3], const size_t numSeeds[3]);
 		void SetIntegrationParams(float initStepSize, float maxStepSize);
-		bool GenStreamLines(float* positions, int maxPoints, unsigned int randomSeed);
-		bool GenStreakLines(float*, int, unsigned int, int, int, int);
+		bool GenStreamLines(float* positions, int maxPoints, unsigned int randomSeed, float* speeds=0);
+		bool GenStreakLines(float* positions, int maxPoints, unsigned int randomSeed, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
 		//bool GenIncrementalStreakLines(float* positions, int maxTimeSteps, unsigned int* randomSeed, int injectionTime, (void progressCB)(int completedTimeStep));
 		float* GetData(size_t ts, const char* varName, const int numNode);
 

@@ -200,7 +200,8 @@ float* VaporFlow::GetData(size_t ts, const char* varName, const int numNode)
 //////////////////////////////////////////////////////////////////////////
 bool VaporFlow::GenStreamLines(float* positions, 
 							   int maxPoints, 
-							   unsigned int randomSeed)
+							   unsigned int randomSeed, 
+							   float* speeds)
 {
 	//first generate seeds
 	float* seedPtr;
@@ -233,6 +234,7 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pVData[0] = GetData(startTimeStep, yVarName, totalNum);
 	pWData[0] = GetData(startTimeStep, zVarName, totalNum);
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
+	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
 	pSolution->SetTime(startTimeStep, startTimeStep, 1);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
 	
@@ -256,7 +258,7 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pStreamLine->SetInitStepSize(initialStepSize);
 	pStreamLine->SetMaxStepSize(maxStepSize);
 	pStreamLine->setIntegrationOrder(FOURTH);
-	pStreamLine->execute((void *)&currentT, positions);
+	pStreamLine->execute((void *)&currentT, positions, speeds);
 	
 	Reset();
 	// release resource
@@ -274,7 +276,8 @@ bool VaporFlow::GenStreakLines(float* positions,
 							   unsigned int randomSeed, 
 							   int startInjection, 
 							   int endInjection,
-							   int injectionTimeIncrement)
+							   int injectionTimeIncrement, 
+							   float* speeds)
 {
 	//first generate seeds
 	float* seedPtr;
@@ -308,6 +311,7 @@ bool VaporFlow::GenStreakLines(float* positions,
 	memset(pVData, 0, sizeof(float*)*timeSteps);
 	memset(pWData, 0, sizeof(float*)*timeSteps);
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, timeSteps);
+	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
 
 	// I use "1" as usertimestep for test
 	pSolution->SetTime(startInjection, realEndTime, 1);
@@ -365,12 +369,12 @@ bool VaporFlow::GenStreakLines(float* positions,
 		// execute streakline
 		if((index%injectionTimeIncrement) == 0)			// with injection of new seeds
 		{
-			pStreakLine->execute((void *)&iFor, positions, pointers, true, iInjection);
+			pStreakLine->execute((void *)&iFor, positions, pointers, true, iInjection, speeds);
 			iInjection++;
 		}	
 		else											// without injection of new seeds
 		{
-			pStreakLine->execute((void *)&iFor, positions, pointers, false, iInjection);
+			pStreakLine->execute((void *)&iFor, positions, pointers, false, iInjection, speeds);
 		}
 	}
 

@@ -107,14 +107,16 @@ int vtCStreamLine::getBackwardTracing(void)
 //					advects
 //////////////////////////////////////////////////////////////////////////
 void vtCStreamLine::execute(const void* userData, 
-							float* points)
+							float* points,
+							float* speeds)
 {
 	m_fCurrentTime = *(float *)userData;
-	computeStreamLine(userData, points);
+	computeStreamLine(userData, points, speeds);
 }
 
 void vtCStreamLine::computeStreamLine(const void* userData,
-									  float* points)
+									  float* points,
+									  float* speeds)
 {
 	vtListParticleIter sIter;
 	unsigned int posInPoints;			// used to record the current points usage

@@ -27,6 +27,7 @@ private:
 	int m_nNodeNum;						// how many nodes each time step
 	float m_fMinMag;					// minimal magnitude
 	float m_fMaxMag;					// maximum magnitude
+	float m_fTimeScaleFactor;			
 
     int m_nTimeSteps;					// how many time steps in logic
 	int m_nStartT;						// start timestep in physical space
@@ -52,6 +53,7 @@ public:
 	int GetValue(int id, const float t, VECTOR3& nodeData);
 	void Normalize(bool bLocal);
 	void SetTime(int startT, int endT, int timeInc) { m_nStartT = startT; m_nEndT = endT; m_nTimeIncrement = timeInc; }
+	void SetTimeScaleFactor(float timeScaleFactor) { m_fTimeScaleFactor = timeScaleFactor; }
 };
 };
 #endif

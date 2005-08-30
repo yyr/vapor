@@ -124,7 +124,7 @@ protected:
 	int runge_kutta2(TIME_DIR, TIME_DEP, PointInfo&, float*, float);
 	int adapt_step(const VECTOR3& p2, const VECTOR3& p1, const VECTOR3& p0, float dt_estimate,float* dt);
 	int adapt_step(const float diff, const float accuracy, float* dt);
-	void SampleFieldline(float*, unsigned int&, vtListSeedTrace*, list<float>*);
+	void SampleFieldline(float*, unsigned int&, vtListSeedTrace*, list<float>*, float* speeds=0);
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -212,7 +212,7 @@ class FLOW_API vtCStreakLine : public vtCTimeVaryingFieldLine
 public:
 	vtCStreakLine(CVectorField* pField);
 	~vtCStreakLine(void);
-	void execute(const void* userData, float* points, unsigned int* pointers, bool bInjectSeeds, int iInjection);
+	void execute(const void* userData, float* points, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
 
 protected:
 	// code specific to streakline
@@ -262,14 +262,14 @@ public:
 	vtCStreamLine(CVectorField* pField);
 	~vtCStreamLine(void);
 
-	void execute(const void* userData, float* positions);
+	void execute(const void* userData, float* positions, float* speeds=0);
 	void setForwardTracing(int enabled);
 	void setBackwardTracing(int enabled);
 	int  getForwardTracing(void);
 	int  getBackwardTracing(void);
 	
 protected:
-	void computeStreamLine(const void* userData, float* positions);
+	void computeStreamLine(const void* userData, float* positions, float* speeds=0);
 	void computeFieldLine(TIME_DIR, INTEG_ORD, TIME_DEP, vtListSeedTrace&, list<float>&, PointInfo&);
 
 	TRACE_DIR m_itsTraceDir;
