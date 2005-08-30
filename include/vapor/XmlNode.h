@@ -112,6 +112,13 @@ public:
  //!
  const vector<long> &GetElementLong(const string &tag) const;
 
+ //! Return true if the named element of type long exists
+ //!
+ //! \param[in] tag Name of element
+ //! \retval bool 
+ //!
+ int HasElementLong(const string &tag) const;
+
  //! Set an Xml element of type double
  //!
  //! This method defines and sets an Xml element. The Xml character 
@@ -137,6 +144,13 @@ public:
  //!
  const vector<double> &GetElementDouble(const string &tag) const;
 
+ //! Return true if the named element of type double exists
+ //!
+ //! \param[in] tag Name of element
+ //! \retval bool 
+ //!
+ int HasElementDouble(const string &tag) const;
+
  //! Set an Xml element of type string
  //!
  //! This method defines and sets an Xml element. The Xml character 
@@ -161,6 +175,13 @@ public:
  //! \retval vector Vector of doubles associated with the named elemented
  //!
  const string &GetElementString(const string &tag) const;
+
+ //! Return true if the named element of type string exists
+ //!
+ //! \param[in] tag Name of element
+ //! \retval bool 
+ //!
+ int HasElementString(const string &tag) const;
 
  //! Return the number of children nodes this node has
  //!

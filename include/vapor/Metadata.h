@@ -322,6 +322,18 @@ public:
 	return(_rootnode->GetChild(ts)->GetElementDouble(_userTimeTag));
 	};
 
+ //! Return true if a user time exists for the indicated time step
+ //!
+ //! \param[in] ts A valid data set time step in the range from zero to
+ //! GetNumTimeSteps() - 1.
+ //!
+ //! \retval boolean True if \p value is a valid argument
+ //
+ int HasTSUserTime(size_t ts) const {
+	CHK_TS(ts, 0)
+	return(_rootnode->GetChild(ts)->HasElementDouble(_userTimeTag));
+	};
+
  //! Return true if \p value is a valid time specification.
  //!
  //! \retval boolean True if \p value is a valid argument
