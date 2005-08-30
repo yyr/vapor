@@ -299,16 +299,19 @@ int Metadata::_SetNumTimeSteps(long value) {
 		string empty;
 		empty.clear();
 
-		for (size_t i = oldN; i < newN; i++) {
+		for (size_t ts = oldN; ts < newN; ts++) {
 			XmlNode *child;
 			child = _rootnode->NewChild(_timeStepTag, attrs, _varNames.size());
-			_SetVariableNames(child, (long)i);
+			_SetVariableNames(child, (long)ts);
+
+			vector <double> valvec(1, (double) ts);
+			SetTSUserTime(ts, valvec);
 		}
 	}
 	// Delete children
 	//
 	else {
-		for (size_t i = newN; i< oldN; i++) {
+		for (size_t ts = newN; ts< oldN; ts++) {
 			_rootnode->DeleteChild(newN);
 		}
 	}
