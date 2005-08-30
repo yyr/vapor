@@ -1176,8 +1176,10 @@ regenerateFlowData(){
 		numSeedPoints = generatorCount[0]*generatorCount[1]*generatorCount[2];
 	}
 	// setup integration parameters:
-	float minIntegStep = (1.f - integrationAccuracy)* 5.f;//go from 0 to 5
-	float maxIntegStep = 3.f*minIntegStep;
+	//float minIntegStep = (1.f - integrationAccuracy)* 5.f;//go from 0 to 5
+	//float maxIntegStep = 3.f*minIntegStep;
+	float minIntegStep =  2.25f  - 2.f*integrationAccuracy;  //Ranges between 0.25 and 2.25
+	float maxIntegStep =  11.f - 10.f*integrationAccuracy;  //Ranges between 1.0 and 11.0
 	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
