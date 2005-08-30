@@ -115,6 +115,11 @@ const vector<long> &XmlNode::GetElementLong(const string &tag) const {
 	return(*vptr);
 }
 
+int XmlNode::HasElementLong(const string &tag) const {
+	map <string, vector<long>*>::const_iterator p = _longmap.find(tag);
+	return(p != _longmap.end());
+}
+
 int XmlNode::SetElementDouble(const string &tag, const vector<double> &values) {
 
 	vector<double> *vptr;
@@ -158,6 +163,11 @@ const vector<double> &XmlNode::GetElementDouble(const string &tag) const {
 	return(*vptr);
 }
 
+int XmlNode::HasElementDouble(const string &tag) const {
+	map <string, vector<double>*>::const_iterator p = _doublemap.find(tag);
+	return(p != _doublemap.end());
+}
+
 int XmlNode::SetElementString(const string &tag, const string &str) {
 
 
@@ -190,6 +200,11 @@ const string &XmlNode::GetElementString(const string &tag) const {
 
 
 	return(p->second);
+}
+
+int XmlNode::HasElementString(const string &tag) const {
+	map <string, string>::const_iterator p = _stringmap.find(tag);
+	return(p != _stringmap.end());
 }
 
 XmlNode	*XmlNode::NewChild(
