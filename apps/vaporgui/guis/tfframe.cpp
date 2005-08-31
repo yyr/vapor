@@ -35,6 +35,9 @@
 #include "opacadjustdialog.h"
 #include "panelcommand.h"
 
+//space below opacity window.  
+#define BELOWOPACITY (COLORBARWIDTH+SEPARATOR+COORDMARGIN)
+
 TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 	QFrame(parent, name, f) {
 	editor = 0;
@@ -283,7 +286,7 @@ void TFFrame::paintEvent(QPaintEvent* ){
 			vpen.setColor(ENDLINECOLOR);
 			painter.setPen(vpen);
 		}
-		painter.drawLine(leftLim, height() -BELOWOPACITY, leftLim, DOMAINSLIDERMARGIN);
+		painter.drawLine(leftLim, height() -BELOWOPACITY, leftLim, SLIDERWIDTH);
 	}
 	if (rightLim < width()){
 		if (editor->rightDomainGrabbed()||editor->fullDomainGrabbed()){
@@ -293,7 +296,7 @@ void TFFrame::paintEvent(QPaintEvent* ){
 			vpen.setColor(ENDLINECOLOR);
 			painter.setPen(vpen);
 		}
-		painter.drawLine(rightLim, height() -BELOWOPACITY, rightLim, DOMAINSLIDERMARGIN);
+		painter.drawLine(rightLim, height() -BELOWOPACITY, rightLim, SLIDERWIDTH);
 	}
 	//Now bitblt the pixmap to the widget:
 	bitBlt(this, QPoint(0,0),&pxMap);
@@ -323,11 +326,11 @@ void TFFrame::mousePressEvent( QMouseEvent * e){
 		//Ignore mouse press over margin:
 		if (e->y() >= (height() - COORDMARGIN)) return;
 		//Check for domain grabs:
-		if (e->y() < DOMAINSLIDERMARGIN){
+		if (e->y() < SLIDERWIDTH){
 			int leftLim = editor->mapVar2Win(editor->getTransferFunction()->getMinMapValue(),false);
 			int rightLim = editor->mapVar2Win(editor->getTransferFunction()->getMaxMapValue(),false);
-			if (e->x() < leftLim -DOMAINSLIDERMARGIN ||
-				e->x() > rightLim +DOMAINSLIDERMARGIN ) return;
+			if (e->x() < leftLim -SLIDERWIDTH ||
+				e->x() > rightLim +SLIDERWIDTH ) return;
 			//Notify the DVR that an editing change is starting:
 			startTFChange("transfer function domain boundary move");
 			editor->setDragStart(e->x(), e->y());
@@ -367,7 +370,7 @@ mouseEditStart(QMouseEvent* e){
 	int type = editor->closestControlPoint(e->x(), e->y(), &index);
 
 	//Notify the DVR that an editing change is starting:
-	if (e->y() >= (height() - BARHEIGHT - COORDMARGIN - SEPARATOR/2)){			
+	if (e->y() >= (height() - COLORBARWIDTH - COORDMARGIN - SEPARATOR/2)){			
 		startTFChange("transfer function color bar edit");
 	} else {
 		startTFChange("transfer function opacity edit");
@@ -396,7 +399,7 @@ mouseEditStart(QMouseEvent* e){
 		return;
 		/*
 		//New control point, create, select it:
-		if (e->y() >= (height() - BARHEIGHT - COORDMARGIN -SEPARATOR/2)){
+		if (e->y() >= (height() - COLORBARWIDTH - COORDMARGIN -SEPARATOR/2)){
 			//new color control point, modify index
 			index = editor->insertColorControlPoint(e->x());
 			if (index >=0){
@@ -548,10 +551,10 @@ void TFFrame::newHsv(int h, int s, int v){
 }
 //Draw triangles at top and bottom of color bar
 void TFFrame::drawTris(QPainter& p, int x){
-	for (int i = 0; i<BARHEIGHT/2; i++){
-		int wid = (BARHEIGHT/2 -i)/2;
+	for (int i = 0; i<COLORBARWIDTH/2; i++){
+		int wid = (COLORBARWIDTH/2 -i)/2;
 		p.drawLine(x -wid, height()-COORDMARGIN-i, x+wid, height()-COORDMARGIN-i);
-		p.drawLine(x-wid, height()-COORDMARGIN-BARHEIGHT+i, x+wid, height() -COORDMARGIN-BARHEIGHT+i);
+		p.drawLine(x-wid, height()-COORDMARGIN-COLORBARWIDTH+i, x+wid, height() -COORDMARGIN-COLORBARWIDTH+i);
 	}
 }
 

@@ -34,6 +34,9 @@
 #include "coloradjustdialog.h"
 #include "opacadjustdialog.h"
 #include "panelcommand.h"
+//space below opacity window.  
+//Include space for color slider bar
+#define BELOWOPACITY (COLORBARWIDTH+SEPARATOR+COORDMARGIN+SLIDERWIDTH)
 
 FlowMapFrame::FlowMapFrame( QWidget * parent, const char * name, WFlags f ) :
 	QFrame(parent, name, f) {
@@ -248,32 +251,32 @@ void FlowMapFrame::paintEvent(QPaintEvent* ){
 			painter.fillRect(x-3,y-3,6,6,drawBrush);
 		}
 	}
-	//Draw left and right limits (if on screen):
-	int leftLim = editor->mapOpacVar2Win(tf->getMinOpacMapValue(),false);
-	int rightLim = editor->mapOpacVar2Win(tf->getMaxOpacMapValue(),false);
+	//Draw left and right opacity limits (if on screen):
+	int leftOpacLim = editor->mapOpacVar2Win(tf->getMinOpacMapValue(),false);
+	int rightOpacLim = editor->mapOpacVar2Win(tf->getMaxOpacMapValue(),false);
 	
 	QPen vpen(ENDLINECOLOR, 3);
 	drawBrush.setColor(ENDLINECOLOR);
 	
-	if (leftLim > 0){
-		if (editor->leftDomainGrabbed()||editor->fullDomainGrabbed()){
+	if (leftOpacLim > 0){
+		if (editor->leftOpacDomainGrabbed()||editor->fullOpacDomainGrabbed()){
 			vpen.setColor(HIGHLIGHTCOLOR);
 			painter.setPen(vpen);
 		} else {
 			vpen.setColor(ENDLINECOLOR);
 			painter.setPen(vpen);
 		}
-		painter.drawLine(leftLim, height() -BELOWOPACITY, leftLim, DOMAINSLIDERMARGIN);
+		painter.drawLine(leftOpacLim, height() -BELOWOPACITY, leftOpacLim, SLIDERWIDTH);
 	}
-	if (rightLim < width()){
-		if (editor->rightDomainGrabbed()||editor->fullDomainGrabbed()){
+	if (rightOpacLim < width()){
+		if (editor->rightOpacDomainGrabbed()||editor->fullOpacDomainGrabbed()){
 			vpen.setColor(HIGHLIGHTCOLOR);
 			painter.setPen(vpen);
 		} else {
 			vpen.setColor(ENDLINECOLOR);
 			painter.setPen(vpen);
 		}
-		painter.drawLine(rightLim, height() -BELOWOPACITY, rightLim, DOMAINSLIDERMARGIN);
+		painter.drawLine(rightOpacLim, height() -BELOWOPACITY, rightOpacLim, SLIDERWIDTH);
 	}
 	//Now bitblt the pixmap to the widget:
 	bitBlt(this, QPoint(0,0),&pxMap);
@@ -303,27 +306,50 @@ void FlowMapFrame::mousePressEvent( QMouseEvent * e){
 		//Ignore mouse press over margin:
 		if (e->y() >= (height() - COORDMARGIN)) return;
 		//Check for domain grabs:
-		//Domain will be based on opacity
-		if (e->y() < DOMAINSLIDERMARGIN){
+		//Look for both Opacity and Color grabs:
+		if (e->y() < SLIDERWIDTH){
 			int leftLim = editor->mapOpacVar2Win(editor->getMapperFunction()->getMinOpacMapValue(),false);
 			int rightLim = editor->mapOpacVar2Win(editor->getMapperFunction()->getMaxOpacMapValue(),false);
-			if (e->x() < leftLim -DOMAINSLIDERMARGIN ||
-				e->x() > rightLim +DOMAINSLIDERMARGIN ) return;
+			if (e->x() < leftLim -SLIDERWIDTH ||
+				e->x() > rightLim +SLIDERWIDTH ) return;
 			//Notify the DVR that an editing change is starting:
-			startTFChange("Mapper function domain boundary move");
-			editor->setDragStart(e->x(), e->y());
+			startTFChange("Mapper function opacity domain boundary move");
+			editor->setOpacDragStart(e->x(), e->y());
 			editor->saveDomainBounds();
 			amDragging = false;
 			editor->unSelectAll();
 			if (e->x() <= leftLim){
-				editor->addLeftDomainGrab();
+				editor->addLeftOpacDomainGrab();
 				return;
 			}
 			if (e->x() >= rightLim){
-				editor->addRightDomainGrab();
+				editor->addRightOpacDomainGrab();
 				return;
 			}
-			editor->addFullDomainGrab();
+			editor->addFullOpacDomainGrab();
+			return;
+		//check for color slider grab:
+		} else if (((e->y()) >= height() - (COLORBARWIDTH+COORDMARGIN+SLIDERWIDTH)) 
+				&& ((e->y()) < height() - (COLORBARWIDTH+COORDMARGIN) )){
+			int leftLim = editor->mapColorVar2Win(editor->getMapperFunction()->getMinColorMapValue(),false);
+			int rightLim = editor->mapColorVar2Win(editor->getMapperFunction()->getMaxColorMapValue(),false);
+			if (e->x() < leftLim -SLIDERWIDTH ||
+				e->x() > rightLim +SLIDERWIDTH ) return;
+			//Notify the DVR that an editing change is starting:
+			startTFChange("Mapper function color domain boundary move");
+			editor->setColorDragStart(e->x(), e->y());
+			editor->saveDomainBounds();
+			amDragging = false;
+			editor->unSelectAll();
+			if (e->x() <= leftLim){
+				editor->addLeftColorDomainGrab();
+				return;
+			}
+			if (e->x() >= rightLim){
+				editor->addRightColorDomainGrab();
+				return;
+			}
+			editor->addFullColorDomainGrab();
 			return;
 		}
 		//Mouse effect in window is dependent on mode:
@@ -348,13 +374,14 @@ mouseEditStart(QMouseEvent* e){
 	int type = editor->closestControlPoint(e->x(), e->y(), &index);
 
 	//Notify the DVR that an editing change is starting:
-	if (e->y() >= (height() - BARHEIGHT - COORDMARGIN - SEPARATOR/2)){			
+	if (e->y() >= (height() - COLORBARWIDTH - COORDMARGIN - SLIDERWIDTH - SEPARATOR/2)){			
 		startTFChange("Mapper function color bar edit");
+		editor->setColorDragStart(e->x(), e->y());
 	} else {
 		startTFChange("Mapper function opacity edit");
+		editor->setOpacDragStart(e->x(), e->y());
 	}
 	
-	editor->setDragStart(e->x(), e->y());
 	amDragging = false;
 	dragType = 0;
 	unSelectColorIndex = -1;
@@ -377,7 +404,7 @@ mouseEditStart(QMouseEvent* e){
 		return;
 		/*
 		//New control point, create, select it:
-		if (e->y() >= (height() - BARHEIGHT - COORDMARGIN -SEPARATOR/2)){
+		if (e->y() >= (height() - COLORBARWIDTH - COORDMARGIN -SEPARATOR/2)){
 			//new color control point, modify index
 			index = editor->insertColorControlPoint(e->x());
 			if (index >=0){
@@ -436,7 +463,12 @@ void FlowMapFrame::
 mouseNavigateStart(QMouseEvent* e){
 	if (!editor) return;
 	startTFChange("Mapper function editor navigate");
-	editor->setDragStart(e->x(), e->y());
+	//Decide if we are navigating in color or opacity:
+	if (e->y() >= (height() - COLORBARWIDTH - COORDMARGIN - SLIDERWIDTH - SEPARATOR/2)){			
+		editor->setColorDragStart(e->x(), e->y());
+	} else {
+		editor->setOpacDragStart(e->x(), e->y());
+	}
 	editor->setNavigateGrab();
 	amDragging = false;
 	dragType = 1;
@@ -449,7 +481,7 @@ void FlowMapFrame::mouseReleaseEvent( QMouseEvent *e ){
 	if (!editor) return;
 	if (e->button() == Qt::LeftButton){
 		//If dragging bounds, ungrab, and notify dvrparams to update:
-		if( editor->domainGrabbed()){
+		if( editor->anyDomainGrabbed()){
 			editor->unGrabBounds();
 			editor->getParams()->updateMapBounds();
 		} else { //otherwise, depends on mode 
@@ -494,9 +526,12 @@ void FlowMapFrame::mouseMoveEvent( QMouseEvent * e){
 	if (!editor) return;
 	if (editor->isGrabbed()) {
 		amDragging = true;
-		if (editor->domainGrabbed()){
-			editor->moveDomainBound(e->x());
-		} else if (dragType == 0){
+		if (editor->opacDomainGrabbed()){
+			editor->moveOpacDomainBound(e->x());
+		} else if (editor->colorDomainGrabbed()){
+			editor->moveColorDomainBound(e->x());
+		} 
+		else if (dragType == 0){
 			editor->moveGrabbedControlPoints( e->x(), e->y());
 		} else {
 			assert(dragType == 1);
@@ -527,10 +562,10 @@ void FlowMapFrame::newHsv(int h, int s, int v){
 }
 //Draw triangles at top and bottom of color bar
 void FlowMapFrame::drawTris(QPainter& p, int x){
-	for (int i = 0; i<BARHEIGHT/2; i++){
-		int wid = (BARHEIGHT/2 -i)/2;
+	for (int i = 0; i<COLORBARWIDTH/2; i++){
+		int wid = (COLORBARWIDTH/2 -i)/2;
 		p.drawLine(x -wid, height()-COORDMARGIN-i, x+wid, height()-COORDMARGIN-i);
-		p.drawLine(x-wid, height()-COORDMARGIN-BARHEIGHT+i, x+wid, height() -COORDMARGIN-BARHEIGHT+i);
+		p.drawLine(x-wid, height()-COORDMARGIN-COLORBARWIDTH+i, x+wid, height() -COORDMARGIN-COLORBARWIDTH+i);
 	}
 }
 

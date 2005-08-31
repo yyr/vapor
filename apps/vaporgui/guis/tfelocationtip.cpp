@@ -21,6 +21,9 @@
 #include "tfelocationtip.h"
 #include "mapeditor.h"
 using namespace VAPoR;
+//space below opacity window.  
+#define BELOWOPACITY (COLORBARWIDTH+SEPARATOR+COORDMARGIN)
+
 TFELocationTip::TFELocationTip( QWidget * parent )
     : QToolTip( parent )
 {
@@ -51,7 +54,7 @@ void TFELocationTip::maybeTip( const QPoint &pos )
 	if (r.center().y() > frame->height()-COORDMARGIN) return;
 	//See if this is over the color bar:
 	if (r.center().y() > frame->height()-BELOWOPACITY) {
-		if (r.center().y() < frame->height() - BARHEIGHT-COORDMARGIN) return;
+		if (r.center().y() < frame->height() - COLORBARWIDTH-COORDMARGIN) return;
 		if(xOpacCoord == xColorCoord){
 			if (histcount >= 0){
 				s.sprintf( "Variable: %.4g; Opacity: %.3f;\n Color(HSV): %3d %3d %3d;\nHistogram: %d",
