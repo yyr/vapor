@@ -124,7 +124,7 @@ protected:
 	int runge_kutta2(TIME_DIR, TIME_DEP, PointInfo&, float*, float);
 	int adapt_step(const VECTOR3& p2, const VECTOR3& p1, const VECTOR3& p0, float dt_estimate,float* dt);
 	int adapt_step(const float diff, const float accuracy, float* dt);
-	void SampleFieldline(float*, unsigned int&, vtListSeedTrace*, list<float>*, float* speeds=0);
+	void SampleFieldline(float*, unsigned int&, vtListSeedTrace*, list<float>*, bool bRecordSeed, float* speeds=0);
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -163,6 +163,7 @@ protected:
 						bool bAdaptive);
 	int advectParticle( INTEG_ORD int_order, 
 						vtParticleInfo& initialPoint,
+						vtParticleInfo& finalPoint,
 						float initialTime,
 						float finalTime,
 						vtListSeedTrace& seedTrace,

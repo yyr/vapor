@@ -9,6 +9,10 @@
 using namespace VetsUtil;
 using namespace VAPoR;
 
+#ifdef DEBUG
+	FILE* fDebug;
+#endif
+
 VaporFlow::VaporFlow(DataMgr* dm)
 {
 	dataMgr = dm;
@@ -27,6 +31,10 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	animationTimeStepMultiplier = 1.0;
 	
 	bUseRandomSeeds = false;
+
+#ifdef DEBUG
+	fDebug = fopen("C:\\Liya\\debug.txt", "w");
+#endif
 }
 
 VaporFlow::~VaporFlow()
@@ -46,6 +54,10 @@ VaporFlow::~VaporFlow()
 		delete[] zVarName;
 		zVarName = NULL;
 	}
+
+#ifdef DEBUG
+	fclose(fDebug);
+#endif
 }
 
 void VaporFlow::Reset(void)
@@ -213,10 +225,16 @@ bool VaporFlow::GenStreamLines(float* positions,
 	delete pSeedGenerator;
 	
 	// scale animationTimeStep and userTimeStep
-	//userTimeStepSize = dataMgr->GetMetadata()->GetTSUserTime(0)[0]*userTimeStepMultiplier;
-	//animationTimeStepSize = dataMgr->GetMetadata()->GetTSUserTime(0)[0]*animationTimeStepMultiplier;
-	userTimeStepSize = userTimeStepMultiplier;
-	animationTimeStepSize = animationTimeStepMultiplier;
+	//if(dataMgr->GetMetadata()->HasTSUserTime(1))
+	//{
+	//	userTimeStepSize = dataMgr->GetMetadata()->GetTSUserTime(0)[0]*userTimeStepMultiplier;
+	//	animationTimeStepSize = dataMgr->GetMetadata()->GetTSUserTime(0)[0]*animationTimeStepMultiplier;
+	//}
+	//else
+	//{
+		userTimeStepSize = userTimeStepMultiplier;
+		animationTimeStepSize = animationTimeStepMultiplier;
+	//}
 
 	// create field object
 	CVectorField* pField;
@@ -342,7 +360,7 @@ bool VaporFlow::GenStreakLines(float* positions,
 	unsigned int* pointers = new unsigned int[seedNum*numInjections];
 	memset(pointers, 0, sizeof(unsigned int)*seedNum*numInjections);
 	int iInjection = 0;
-	for(int iFor = startInjection; iFor <= realEndTime; iFor++)
+	for(int iFor = startInjection; iFor < realEndTime; iFor++)
 	{
 		int index = iFor - startInjection;
 
@@ -384,6 +402,5 @@ bool VaporFlow::GenStreakLines(float* positions,
 	delete[] seedPtr;
 	delete pStreakLine;
 	delete pField;
-	return true;
 	return true;
 }

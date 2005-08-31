@@ -22,6 +22,7 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // definition of class FieldLine
 //////////////////////////////////////////////////////////////////////////
+extern FILE* fDebug;
 
 vtCStreamLine::vtCStreamLine(CVectorField* pField):
 vtCFieldLine(pField),
@@ -139,7 +140,7 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				backTrace = new vtListSeedTrace;
 				stepList = new list<float>;
 				computeFieldLine(BACKWARD,m_integrationOrder, STEADY, *backTrace, *stepList, thisSeed->m_pointInfo);
-				SampleFieldline(points, posInPoints, backTrace, stepList);
+				SampleFieldline(points, posInPoints, backTrace, stepList, true);
 				backTrace->clear();
 				stepList->clear();
 			}
@@ -150,7 +151,7 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				forwardTrace = new vtListSeedTrace;
 				stepList = new list<float>;
 				computeFieldLine(FORWARD,m_integrationOrder, STEADY, *forwardTrace, *stepList, thisSeed->m_pointInfo);
-				SampleFieldline(points, posInPoints, forwardTrace, stepList);
+				SampleFieldline(points, posInPoints, forwardTrace, stepList, true);
 				forwardTrace->clear();
 				stepList->clear();
 			}
@@ -194,6 +195,10 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 		dt_estimate = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
 	dt = dt_estimate;
 
+#ifdef DEBUG
+	fprintf(fDebug, "************************************************\n");
+#endif
+
 /*	// start to advect
 	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
 	{
@@ -223,6 +228,11 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 		second_prevInterpolant = prevInterpolant;
 		prevInterpolant = thisInterpolant;
 		int retrace = true;
+
+#ifdef DEBUG
+		fprintf(fDebug, "Point(%f, %f, %f), stepSize = %f\n", 
+				thisParticle.phyCoord[0], thisParticle.phyCoord[1], thisParticle.phyCoord[2],dt);
+#endif
 
 		while(retrace)
 		{

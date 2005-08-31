@@ -20,6 +20,10 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // methods common to all time varying field lines
 //////////////////////////////////////////////////////////////////////////
+#ifdef DEBUG
+	extern FILE* fStreakDebug;
+#endif
+
 vtCTimeVaryingFieldLine::vtCTimeVaryingFieldLine(CVectorField* pField) : 
 vtCFieldLine(pField),
 m_itsTimeAdaptionFlag(1),
@@ -103,6 +107,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 //////////////////////////////////////////////////////////////////////////
 int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order, 
 											vtParticleInfo& initialPoint,
+											vtParticleInfo& finalPoint,
 											float initialTime,
 											float finalTime,
 											vtListSeedTrace& seedTrace,
@@ -203,7 +208,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 		}// end of retrace
 	}// end of advection
 
-	initialPoint.m_pointInfo.Set(thisParticle);
+	finalPoint.m_pointInfo.Set(thisParticle);
 	return 1;
 }
 

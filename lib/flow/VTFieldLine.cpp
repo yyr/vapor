@@ -21,6 +21,10 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // definition of class FieldLine
 //////////////////////////////////////////////////////////////////////////
+#ifdef DEBUG
+	extern FILE* fDebug;
+#endif
+
 vtCFieldLine::vtCFieldLine(CVectorField* pField):
 m_nNumSeeds(0),
 m_integrationOrder(FOURTH),
@@ -361,6 +365,7 @@ void vtCFieldLine::SampleFieldline(float* positions,
 								   unsigned int& posInPoints,
 								   vtListSeedTrace* seedTrace,
 								   list<float>* stepList,
+								   bool bRecordSeed,
 								   float* speeds)
 {
 	list<VECTOR3*>::iterator pIter1;
@@ -375,10 +380,18 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	ptrSpeed = posInPoints/3;
 
 	pIter1 = seedTrace->begin();
-	// the first one is seed
-	positions[ptr++] = (**pIter1)[0];
-	positions[ptr++] = (**pIter1)[1];
-	positions[ptr++] = (**pIter1)[2];
+	if(bRecordSeed)
+	{
+		// the first one is seed
+		positions[ptr++] = (**pIter1)[0];
+		positions[ptr++] = (**pIter1)[1];
+		positions[ptr++] = (**pIter1)[2];
+
+#ifdef DEBUG
+		fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
+#endif
+	}
+	
 	count = 1;
 	if((int)seedTrace->size() == 1)
 	{
@@ -392,14 +405,24 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	pIter2++;
 	pStepIter = stepList->begin();
 	stepsizeLeft = *pStepIter;
+	int temp = 0;
+	float len = 0;
+	while(pStepIter != stepList->end())
+	{
+		len += *pStepIter;
+		pStepIter++;
+	}
+
+	pStepIter = stepList->begin();
 	while((count < m_nMaxsize) && (pStepIter != stepList->end()))
 	{
 		float ratio;
-		if(stepsizeLeft < m_fSamplingRate)
+		if(stepsizeLeft < (m_fSamplingRate-EPS))
 		{
 			pIter1++;
 			pIter2++;
 			pStepIter++;
+			temp++;
 			stepsizeLeft += *pStepIter;
 		}
 		else
@@ -409,6 +432,15 @@ void vtCFieldLine::SampleFieldline(float* positions,
 			positions[ptr++] = Lerp((**pIter1)[0], (**pIter2)[0], ratio);
 			positions[ptr++] = Lerp((**pIter1)[1], (**pIter2)[1], ratio);
 			positions[ptr++] = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
+
+			// get the velocity value of this point
+			if(speeds != NULL)
+			{
+			}
+
+#ifdef DEBUG
+			fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
+#endif
 			count++;
 		}
 	}
