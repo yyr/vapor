@@ -62,9 +62,11 @@ void FlowRenderer::paintGL()
 	GLfloat diffuse_tube_color[] = {0.1f, 0.8f, 0.1f, 1.0f};
 	int winNum = myVizWin->getWindowNum();
 	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
+	float* speeds = 0;
 	//Do we need to regenerate the flow data?
 	if (myVizWin->flowIsDirty()){
-		flowDataArray = myFlowParams->regenerateFlowData();
+		
+		flowDataArray = myFlowParams->regenerateFlowData(&speeds);
 
 		maxPoints = myFlowParams->getMaxPoints();
 
@@ -134,7 +136,7 @@ void FlowRenderer::paintGL()
 	if (myFlowParams->flowIsSteady()){
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
-			if (diam <= 1.f){//Render as lines, not cylinders
+			if (diam < 0.05f){//Render as lines, not cylinders
 				renderCurves(diam, (nLights>0), 0, maxPoints-1, flowDataArray);
 			
 			} else { //render as cylinders
