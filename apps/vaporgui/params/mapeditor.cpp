@@ -162,34 +162,4 @@ mapOpacVar2Discrete(float v){
 	return getMapperFunction()->mapFloatToOpacIndex(v);
 }
 
-/*
- * map vertical window to opacity. special constants for
- * outside window, if classify is true.
- * So far no one is using "classify = true"...
- */
-float MapEditor::mapWin2Opac(int y, bool classify){
-	if(classify){
-		if (y < DOMAINSLIDERMARGIN) return ONDOMAINSLIDER;
-		if (y < (TOPMARGIN+DOMAINSLIDERMARGIN)) return ABOVEWINDOW;
-		if (y >= height - BELOWOPACITY) {
-			if (y >= height) return BELOWWINDOW;
-			if (y >= height - COORDMARGIN) return BELOWCOLORBAR;
-			if (y >= height - COORDMARGIN - BARHEIGHT)
-				return ONCOLORBAR;
-			return ONSEPARATOR;
-		}
-	}
-	return ((float)(height - BELOWOPACITY -1 - y)/
-		(float)(height - BELOWOPACITY - TOPMARGIN - DOMAINSLIDERMARGIN - 1));
-}
 
-/*
- *  map opacity to window position.  possibly truncate
- */
-int MapEditor::mapOpac2Win(float opac, bool truncate){
-	if (truncate){
-		if (opac > 1.f) return 0;
-		if (opac < 0.f) return (height - BELOWOPACITY -1);
-	}
-	return TOPMARGIN +DOMAINSLIDERMARGIN + (int)((1.-opac)*(float)(height - BELOWOPACITY -TOPMARGIN -DOMAINSLIDERMARGIN-1));
-}

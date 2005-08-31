@@ -74,7 +74,7 @@ public:
 	int getNumColorControlPoints() {return myMapperFunction->getNumColorControlPoints();}
 	int getNumOpacControlPoints() {return myMapperFunction->getNumOpacControlPoints();}
 	
-	int getBarHeight(){ return BARHEIGHT;}
+	int getBarHeight(){ return COLORBARWIDTH;}
 	int closestControlPoint(int x, int y, int* index);
 	void unSelectAll();
 	void selectInterval(bool colorPoint);
@@ -111,19 +111,23 @@ public:
 	//Coordinate mapping functions:
 	//map TF variable to window coords.  
 	// if classify, Left goes to -1, right goes to width.
-	int mapVar2Win(float x, bool classify = false);
+	int mapVar2Win(float x, bool classify = false) 
+	{return mapOpacVar2Win(x,classify);}
 	//map window to variable, can go to any value
-	float mapWin2Var(int x);
+	float mapWin2Var(int x)
+	{return mapOpacWin2Var(x);}
 	//map window to discrete mapping value (0..2**nbits - 1)
 	//if truncate, limits are mapped to ending discrete value
-	int  mapWin2Discrete(int x, bool truncate = false);
+	int  mapWin2Discrete(int x, bool truncate = false)
+	{return mapOpacWin2Discrete(x, truncate);}
 	//map variable to discrete, optionally limits to end values
-	int mapVar2Discrete(float x);
+	int mapVar2Discrete(float x)
+	{return mapOpacVar2Discrete(x);}
 	
 	//Map verticalWin to opacity, optionally  special constants
-	float mapWin2Opac(int y, bool classify = false);
+	virtual float mapWin2Opac(int y, bool classify = false);
 	//map opacity to window position, optionally truncate to valid
-	int mapOpac2Win(float op, bool truncate = false);
+	virtual int mapOpac2Win(float op, bool truncate = false);
 
 	//Map a screen horiz coordinate to float.  Results in a
 	//value between minEditBound and maxEditBound.

@@ -23,26 +23,26 @@
 // distance for being "close" to a pixel
 #define CLOSE_DISTANCE 4
 //Layout parameters for bar
-#define BARHEIGHT 15
+#define COLORBARWIDTH 15
 //Separator is between color bar and opacity graph
 #define SEPARATOR 4
 //CoordMargin is at bottom 
 #define COORDMARGIN 10
 //Topmargin is between curve and top of editing window
 #define TOPMARGIN 3
-//DomainSlider is above image
-#define DOMAINSLIDERMARGIN 12
-//space below opacity window
-#define BELOWOPACITY (BARHEIGHT+SEPARATOR+COORDMARGIN)
+//DomainSlider is above image and possibly above color bar
+#define SLIDERWIDTH 12
+
 //Factor for getting wider than specified window:
 #define HORIZOVERLAP 0.02f
 //Float constants to describe vertical regions:
 #define ABOVEWINDOW 2.f
-#define ONDOMAINSLIDER 1.f
+#define ONOPACITYSLIDER 1.f
 #define ONSEPARATOR -1.f
-#define ONCOLORBAR -2.f
-#define BELOWCOLORBAR -3.f
-#define BELOWWINDOW -4.f
+#define ONCOLORSLIDER -2.f
+#define ONCOLORBAR -3.f
+#define BELOWCOLORBAR -4.f
+#define BELOWWINDOW -5.f
 
 //COLORS:
 #define SEPARATORCOLOR qRgb(64,64,64)
@@ -103,9 +103,9 @@ public:
 	int mapOpacVar2Discrete(float x);
 	
 	//Map verticalWin to opacity, optionally  special constants
-	float mapWin2Opac(int y, bool classify = false);
+	virtual float mapWin2Opac(int y, bool classify = false) = 0;
 	//map opacity to window position, optionally truncate to valid
-	int mapOpac2Win(float op, bool truncate = false);
+	virtual int mapOpac2Win(float op, bool truncate = false) = 0;
 
 	void setColorVarNum(int varnum) {colorVarNum = varnum;}
 	int getColorVarNum() {return colorVarNum;}

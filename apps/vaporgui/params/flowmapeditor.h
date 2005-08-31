@@ -68,7 +68,7 @@ public:
 	int getNumColorControlPoints() {return myMapperFunction->getNumColorControlPoints();}
 	int getNumOpacControlPoints() {return myMapperFunction->getNumOpacControlPoints();}
 	
-	int getBarHeight(){ return BARHEIGHT;}
+	int getBarHeight(){ return COLORBARWIDTH;}
 	int closestControlPoint(int x, int y, int* index);
 	void unSelectAll();
 	void selectInterval(bool colorPoint);
@@ -113,36 +113,52 @@ public:
 	
 	//Public methods for controlling grabbedState:
 	void unGrab() {grabbedState = notGrabbed;}
-	void unGrabBounds() {grabbedState &= ~(domainGrab);}
+	void unGrabBounds() {grabbedState &= ~(opacDomainGrab|colorDomainGrab);}
 	void removeConstrainedGrab() {grabbedState &= ~allConstrainedGrabs;}
 	void addConstrainedGrab(){grabbedState |= constrainedGrab;}
 	void addOpacGrab(){grabbedState |= opacGrab;}
 	void addColorGrab() {grabbedState |= colorGrab;}
 	void removeColorGrab() {grabbedState &= ~colorGrab;}
 	void removeOpacGrab(){grabbedState &= ~opacGrab;}
-	void addLeftDomainGrab() {grabbedState = leftDomainGrab;}
-	void addRightDomainGrab() {grabbedState = rightDomainGrab;}
-	void addFullDomainGrab() {grabbedState = fullDomainGrab;}
+	void addLeftColorDomainGrab() {grabbedState = leftColorDomainGrab;}
+	void addRightColorDomainGrab() {grabbedState = rightColorDomainGrab;}
+	void addFullColorDomainGrab() {grabbedState = fullColorDomainGrab;}
+	void addLeftOpacDomainGrab() {grabbedState = leftOpacDomainGrab;}
+	void addRightOpacDomainGrab() {grabbedState = rightOpacDomainGrab;}
+	void addFullOpacDomainGrab() {grabbedState = fullOpacDomainGrab;}
 	void setNavigateGrab() { grabbedState = navigateGrab;}
 	
 
 	int numColorSelected() { return numColorSelect;}
 	int numOpacSelected() {return numOpacSelect;}
 	bool isGrabbed() {return (grabbedState != notGrabbed);}
-	bool domainGrabbed() {return grabbedState&(domainGrab);}
-	bool leftDomainGrabbed() {return grabbedState & leftDomainGrab;}
-	bool rightDomainGrabbed() {return grabbedState & rightDomainGrab;}
-	bool fullDomainGrabbed() {return grabbedState & fullDomainGrab;}
+	bool anyDomainGrabbed() {return grabbedState & (opacDomainGrab|colorDomainGrab);}
+	bool opacDomainGrabbed() {return grabbedState&(opacDomainGrab);}
+	bool leftOpacDomainGrabbed() {return grabbedState & leftOpacDomainGrab;}
+	bool rightOpacDomainGrabbed() {return grabbedState & rightOpacDomainGrab;}
+	bool fullOpacDomainGrabbed() {return grabbedState & fullOpacDomainGrab;}
+	bool colorDomainGrabbed() {return grabbedState&(colorDomainGrab);}
+	bool leftColorDomainGrabbed() {return grabbedState & leftColorDomainGrab;}
+	bool rightColorDomainGrabbed() {return grabbedState & rightColorDomainGrab;}
+	bool fullColorDomainGrabbed() {return grabbedState & fullColorDomainGrab;}
 	bool canBind() {return (numColorSelected()==1 && numOpacSelected()==1);}
 	void bindOpacToColor(); 
 	void bindColorToOpac();
 	//Mouse-down event starts with this:
-	void setDragStart(int ix, int iy){
+	void setOpacDragStart(int ix, int iy){
 		dragStartX = ix;
 		dragStartY = iy;
 		dragMinStart = getMinOpacEditValue();
 		dragMaxStart = getMaxOpacEditValue();
 		mappedOpacDragStartX = mapOpacWin2Var(ix);
+		leftMoveMax = -1;
+	}
+	void setColorDragStart(int ix, int iy){
+		dragStartX = ix;
+		dragStartY = iy;
+		dragMinStart = getMinColorEditValue();
+		dragMaxStart = getMaxColorEditValue();
+		mappedColorDragStartX = mapColorWin2Var(ix);
 		leftMoveMax = -1;
 	}
 	void navigate(int x, int y);
@@ -154,7 +170,11 @@ public:
 		rightOpacDomainSaved = getMapperFunction()->getMaxOpacMapValue();
 	}
 	FlowParams* getParams() {return (FlowParams*)myMapperFunction->getParams();}
-	void moveDomainBound(int x);
+	
+	//Map verticalWin to opacity, optionally  special constants
+	virtual float mapWin2Opac(int y, bool classify = false);
+	//map opacity to window position, optionally truncate to valid
+	virtual int mapOpac2Win(float op, bool truncate = false);
 	
 protected:
 	//grabbedState is "or" of some of following masks.
@@ -170,11 +190,15 @@ protected:
 		verticalGrab = 8,
 		horizontalGrab = 16,
 		allConstrainedGrabs = 28,
-		leftDomainGrab = 32,
-		rightDomainGrab = 64,
-		fullDomainGrab = 128,
-		domainGrab = 224, //or of all domain grab types
-		navigateGrab = 256
+		leftOpacDomainGrab = 32,
+		rightOpacDomainGrab = 64,
+		fullOpacDomainGrab = 128,
+		opacDomainGrab = 224, //or of all opac domain grab types
+		leftColorDomainGrab = 256,
+		rightColorDomainGrab = 512,
+		fullColorDomainGrab = 1024,
+		colorDomainGrab = 1792, //or of all opac domain grab types
+		navigateGrab = 2048
 	};
 	
 	unsigned int grabbedState;

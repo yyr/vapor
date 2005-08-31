@@ -25,6 +25,10 @@
 #include "flowparams.h"
 #include "vizwinmgr.h"
 using namespace VAPoR;
+//space below opacity window.  
+//Include space for color slider bar
+#define BELOWOPACITY (COLORBARWIDTH+SEPARATOR+COORDMARGIN+SLIDERWIDTH)
+
 
 FlowMapEditor::FlowMapEditor(MapperFunction* tf,  FlowMapFrame* frm): MapEditor(tf, frm){
 	reset();
@@ -88,6 +92,8 @@ void FlowMapEditor::refreshImage(){
 	
 	int leftOpacLim = mapOpacVar2Win(getMapperFunction()->getMinOpacMapValue(),false);
 	int rightOpacLim = mapOpacVar2Win(getMapperFunction()->getMaxOpacMapValue(),false);
+	int leftColorLim = mapColorVar2Win(getMapperFunction()->getMinColorMapValue(),false);
+	int rightColorLim = mapColorVar2Win(getMapperFunction()->getMaxColorMapValue(),false);
 	
 	for (int x = 0; x<width; x++){
 		int y;
@@ -111,24 +117,24 @@ void FlowMapEditor::refreshImage(){
 			column = newColorColumn;
 		}
 
-		//Paint the domainslider region.  Use it on opacity only
+		//Paint the opacityslider region.  Use it on opacity only
 		//
-		if ((x < leftOpacLim - DOMAINSLIDERMARGIN)||
-				(x> rightOpacLim + DOMAINSLIDERMARGIN)){
+		if ((x < leftOpacLim - SLIDERWIDTH)||
+				(x> rightOpacLim + SLIDERWIDTH)){
 			//paint away from slider
-			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+			for (y = 0; y<SLIDERWIDTH-1; y++){
 				editImage->setPixel(x,y,DEFAULTBACKGROUNDCOLOR);
 			}
 		} else if ((x >= leftOpacLim) && (x <= rightOpacLim)){
 			// paint slider
-			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+			for (y = 0; y<SLIDERWIDTH-1; y++){
 					editImage->setPixel(x,y,DOMAINSLIDERCOLOR);
 			}
 		} else if (x > rightOpacLim) {
 			// right pointer
 			int top = (x-rightOpacLim)/2;
-			int bot = DOMAINSLIDERMARGIN - top;
-			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+			int bot = SLIDERWIDTH - top;
+			for (y = 0; y<SLIDERWIDTH-1; y++){
 				if (y < top || y >= bot)
 					editImage->setPixel(x,y,DEFAULTBACKGROUNDCOLOR);
 				else
@@ -138,8 +144,8 @@ void FlowMapEditor::refreshImage(){
 			assert(x<leftOpacLim);
 			// left pointer
 			int top = (leftOpacLim-x)/2;
-			int bot = DOMAINSLIDERMARGIN - top;
-			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+			int bot = SLIDERWIDTH - top;
+			for (y = 0; y<SLIDERWIDTH-1; y++){
 				if (y < top || y >= bot)
 					editImage->setPixel(x,y,DEFAULTBACKGROUNDCOLOR);
 				else
@@ -147,18 +153,55 @@ void FlowMapEditor::refreshImage(){
 			}
 		}
 		//leave a thin margin below the domain slider
-		editImage->setPixel(x,DOMAINSLIDERMARGIN-1,DEFAULTBACKGROUNDCOLOR);
+		editImage->setPixel(x,SLIDERWIDTH-1,DEFAULTBACKGROUNDCOLOR);
 
 		
 		//Solid dark grey for separator
 		//
-		for (y = height - BELOWOPACITY; y< height-BARHEIGHT-COORDMARGIN; y++){
+		for (y = height - BELOWOPACITY; y< height-COLORBARWIDTH-COORDMARGIN-SLIDERWIDTH; y++){
 			editImage->setPixel(x,y, SEPARATORCOLOR/*darkGray*/);
 		}
-		
+		//Color slider:
+		//Paint the color slider region.  Use it on color
+		//
+		if ((x < leftColorLim - SLIDERWIDTH)||
+				(x> rightColorLim + SLIDERWIDTH)){
+			//paint sides away from slider
+			for (y = 0; y<SLIDERWIDTH-1; y++){
+				editImage->setPixel(x,y+height-COORDMARGIN-COLORBARWIDTH-SLIDERWIDTH,DEFAULTBACKGROUNDCOLOR);
+			}
+		} else if ((x >= leftColorLim) && (x <= rightColorLim)){
+			// paint slider
+			for (y = 0; y<SLIDERWIDTH-1; y++){
+					editImage->setPixel(x,y+height-COORDMARGIN-COLORBARWIDTH-SLIDERWIDTH,DOMAINSLIDERCOLOR);
+			}
+		} else if (x > rightColorLim) {
+			// right pointer
+			int top = (x-rightColorLim)/2;
+			int bot = SLIDERWIDTH - top;
+			for (y = 0; y<SLIDERWIDTH-1; y++){
+				if (y < top || y >= bot)
+					editImage->setPixel(x,y+height-COORDMARGIN-COLORBARWIDTH-SLIDERWIDTH,DEFAULTBACKGROUNDCOLOR);
+				else
+					editImage->setPixel(x,y+height-COORDMARGIN-COLORBARWIDTH-SLIDERWIDTH,DOMAINENDSLIDERCOLOR);
+			}
+		} else {
+			assert(x<leftColorLim);
+			// left pointer
+			int top = (leftColorLim-x)/2;
+			int bot = SLIDERWIDTH - top;
+			for (y = 0; y<SLIDERWIDTH-1; y++){
+				if (y < top || y >= bot)
+					editImage->setPixel(x,y+height-COORDMARGIN-COLORBARWIDTH-SLIDERWIDTH,DEFAULTBACKGROUNDCOLOR);
+				else
+					editImage->setPixel(x,y+height-COORDMARGIN-COLORBARWIDTH-SLIDERWIDTH,DOMAINENDSLIDERCOLOR);
+			}
+		}
+		//leave a thin margin below the domain slider
+		editImage->setPixel(x,height-COORDMARGIN-COLORBARWIDTH-1,DEFAULTBACKGROUNDCOLOR);
 		//Color bar:
 		//
-		for (y = height - BARHEIGHT-COORDMARGIN; y< height-COORDMARGIN; y++){
+		for (y = height - COLORBARWIDTH-COORDMARGIN; y< height-COORDMARGIN; y++){
 			editImage->setPixel(x,y, color);
 		}
 
@@ -278,7 +321,6 @@ moveGrabbedControlPoints(int newX, int newY){
 			}
 			//With opacity grab, must find vertical constraints 
 			//Can't go above or below window, so find the least
-			//up or down distance that any of the selected points
 			//can move to leave the window.
 			//Note that "up" corresponds to decreasing Y coord.
 			//
@@ -396,18 +438,18 @@ void FlowMapEditor::
 moveOpacDomainBound(int x){
 	float newX = mapOpacWin2Var(x);
 	//fullDomainGrab?
-	if (grabbedState & fullDomainGrab){
+	if (grabbedState & fullOpacDomainGrab){
 		getParams()->setMinOpacMapBound(leftOpacDomainSaved + newX - mappedOpacDragStartX);
 		getParams()->setMaxOpacMapBound(rightOpacDomainSaved + newX - mappedOpacDragStartX);
 	} else {
 		float mappedX = mapOpacWin2Var(x);
 		//Check that the user has not moved one bound past the other:
-		if (grabbedState&leftDomainGrab){
+		if (grabbedState&leftOpacDomainGrab){
 			if(mappedX < getParams()->getMaxOpacMapBound()){
 				getParams()->setMinOpacMapBound(mappedX);
 			}
 		}
-		else if (grabbedState&rightDomainGrab){
+		else if (grabbedState&rightOpacDomainGrab){
 			if(mappedX > getParams()->getMinOpacMapBound()){
 				getParams()->setMaxOpacMapBound(mappedX);
 			}
@@ -421,18 +463,18 @@ void FlowMapEditor::
 moveColorDomainBound(int x){
 	float newX = mapColorWin2Var(x);
 	//fullDomainGrab?
-	if (grabbedState & fullDomainGrab){
+	if (grabbedState & fullColorDomainGrab){
 		getParams()->setMinColorMapBound(leftColorDomainSaved + newX - mappedColorDragStartX);
 		getParams()->setMaxColorMapBound(rightColorDomainSaved + newX - mappedColorDragStartX);
 	} else {
 		float mappedX = mapColorWin2Var(x);
 		//Check that the user has not moved one bound past the other:
-		if (grabbedState&leftDomainGrab){
+		if (grabbedState&leftColorDomainGrab){
 			if(mappedX < getParams()->getMaxColorMapBound()){
 				getParams()->setMinColorMapBound(mappedX);
 			}
 		}
-		else if (grabbedState&rightDomainGrab){
+		else if (grabbedState&rightColorDomainGrab){
 			if(mappedX > getParams()->getMinColorMapBound()){
 				getParams()->setMaxColorMapBound(mappedX);
 			}
@@ -474,7 +516,7 @@ closestControlPoint(int x, int y, int* index) {
 	
 	//Color selected?
 	//
-	if (y >= (height - COORDMARGIN - BARHEIGHT -SEPARATOR/2) ){
+	if (y >= (height - COORDMARGIN - COLORBARWIDTH -SEPARATOR/2) ){
 		for (i = 0; i< getNumColorControlPoints(); i++){
 			getColorControlPointPosition(i, &xc);
 			if (abs(xc-x) > CLOSE_DISTANCE) continue;
@@ -736,27 +778,37 @@ bindColorToOpac(){
 void FlowMapEditor::setDirty(){
 	((FlowMapFrame*)myFrame)->setDirtyEditor(this);
 }
-void FlowMapEditor::
-moveDomainBound(int x){
-	float newX = mapOpacWin2Var(x);
-	//fullDomainGrab?
-	if (grabbedState & fullDomainGrab){
-		getParams()->setMinOpacMapBound(leftOpacDomainSaved + newX - mappedOpacDragStartX);
-		getParams()->setMaxOpacMapBound(rightOpacDomainSaved + newX - mappedOpacDragStartX);
-	} else {
-		float mappedX = mapOpacWin2Var(x);
-		//Check that the user has not moved one bound past the other:
-		if (grabbedState&leftDomainGrab){
-			if(mappedX < getParams()->getMaxOpacMapBound()){
-				getParams()->setMinOpacMapBound(mappedX);
-			}
+
+/*
+ * map vertical window to opacity. special constants for
+ * outside window, if classify is true.
+ * So far no one is using "classify = true"...
+ */
+float FlowMapEditor::mapWin2Opac(int y, bool classify){
+	if(classify){
+		if (y < SLIDERWIDTH) return ONOPACITYSLIDER;
+		if (y < (TOPMARGIN+SLIDERWIDTH)) return ABOVEWINDOW;
+		if (y >= height - BELOWOPACITY) {
+			if (y >= height) return BELOWWINDOW;
+			if (y >= height - COORDMARGIN) return BELOWCOLORBAR;
+			if (y >= height - COORDMARGIN - COLORBARWIDTH)
+				return ONCOLORBAR;
+			if (y >= height -COORDMARGIN-COLORBARWIDTH-SLIDERWIDTH)
+				return ONCOLORSLIDER;
+			return ONSEPARATOR;
 		}
-		else if (grabbedState&rightDomainGrab){
-			if(mappedX > getParams()->getMinOpacMapBound()){
-				getParams()->setMaxOpacMapBound(mappedX);
-			}
-		} else assert(0);
 	}
-	setDirty();
-	myFrame->update();
+	return ((float)(height - BELOWOPACITY -1 - y)/
+		(float)(height - BELOWOPACITY - TOPMARGIN - SLIDERWIDTH - 1));
+}
+
+/*
+ *  map opacity to window position.  possibly truncate
+ */
+int FlowMapEditor::mapOpac2Win(float opac, bool truncate){
+	if (truncate){
+		if (opac > 1.f) return 0;
+		if (opac < 0.f) return (height - BELOWOPACITY -1);
+	}
+	return TOPMARGIN +SLIDERWIDTH + (int)((1.-opac)*(float)(height - BELOWOPACITY -TOPMARGIN -SLIDERWIDTH-1));
 }

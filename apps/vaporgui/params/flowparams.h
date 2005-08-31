@@ -78,7 +78,7 @@ public:
 	int getNumGenerators(int dimNum) { return generatorCount[dimNum];}
 	int getTotalNumGenerators() { return allGeneratorCount;}
 	VaporFlow* getFlowLib(){return myFlowLib;}
-	float* regenerateFlowData();
+	float* regenerateFlowData(float** speeds);
 	
 	int getMinFrame() {return minFrame;}
 	int getMaxFrame() {return maxFrame;}
@@ -91,6 +91,7 @@ public:
 	int getLastSeeding() {return seedTimeEnd;}
 	int getSeedingIncrement() {return seedTimeIncrement;}
 	float getShapeDiameter() {return shapeDiameter;}
+	
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 	float getObjectsPerTimestep() {return objectsPerTimestep;}
@@ -172,6 +173,8 @@ protected:
 	void setFlowGeometry(int geomNum){geometryType = geomNum;}
 	void setColorMapEntity( int entityNum){colorMapEntityIndex = entityNum;}
 	void setOpacMapEntity( int entityNum){opacMapEntityIndex = entityNum;}
+	int getColorMapEntityIndex() {return colorMapEntityIndex;}
+	int getOpacMapEntityIndex() {return opacMapEntityIndex;}
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);
 	//Methods to make sliders and text consistent for seed region:
@@ -223,8 +226,9 @@ protected:
 	
 	VaporFlow* myFlowLib;
 
-	//Array to hold all the points returned from flow lib
+	//Arrays to hold all the points returned from flow lib
 	float* flowData;
+	
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
 	

@@ -51,6 +51,11 @@
 #include "mapeditor.h"
 #include "flowmapeditor.h"
 #include "flowmapframe.h"
+//Step sizes for integration accuracy:
+#define SMALLEST_MIN_STEP 0.25f
+#define LARGEST_MIN_STEP 10.f
+#define SMALLEST_MAX_STEP 2.f
+#define LARGEST_MAX_STEP 25.f
 using namespace VAPoR;
 	const string FlowParams::_seedingTag = "FlowSeeding";
 	const string FlowParams::_seedRegionMinAttr = "SeedRegionMins";
@@ -154,6 +159,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	flowMapEditor = 0;
 	//Set up flow data cache:
 	flowData = 0;
+	
 	
 	numSeedPoints = 1;
 	numInjections = 1;
@@ -1131,7 +1137,7 @@ setEnabled(bool on){
 }
 
 float* FlowParams::
-regenerateFlowData(){
+regenerateFlowData(float** speeds){
 	int i;
 	int min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
@@ -1139,6 +1145,8 @@ regenerateFlowData(){
 	float minFull[3], maxFull[3], extents[6];
 	if (!myFlowLib) return 0;
 	if (flowData) delete flowData;
+	float* flowSpeeds = 0;
+	*speeds = flowSpeeds;
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//specify field components:
 	const char* xVar = variableNames[varNum[0]].c_str();
@@ -1178,8 +1186,11 @@ regenerateFlowData(){
 	// setup integration parameters:
 	//float minIntegStep = (1.f - integrationAccuracy)* 5.f;//go from 0 to 5
 	//float maxIntegStep = 3.f*minIntegStep;
-	float minIntegStep =  2.25f  - 2.f*integrationAccuracy;  //Ranges between 0.25 and 2.25
-	float maxIntegStep =  11.f - 10.f*integrationAccuracy;  //Ranges between 1.0 and 11.0
+	float minIntegStep = SMALLEST_MIN_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MIN_STEP; 
+	float maxIntegStep = SMALLEST_MAX_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MAX_STEP; 
+	
+	//float minIntegStep =  2.25f  - 2.f*integrationAccuracy;  //Ranges between 0.25 and 2.25
+	//float maxIntegStep =  11.f - 10.f*integrationAccuracy;  //Ranges between 1.0 and 11.0
 	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
@@ -1197,14 +1208,18 @@ regenerateFlowData(){
 		maxPoints = (maxFrame - seedTimeStart+1)*objectsPerTimestep;
 	}
 	flowData = new float[3*maxPoints*numSeedPoints*numInjections];
+	if (colorMapEntityIndex == 2 || opacMapEntityIndex == 2){
+		//map speed, need to calculate it:
+		flowSpeeds = new float[maxPoints*numSeedPoints*numInjections];
+	}
 
 	///call the flowlib
 	if (flowType == 0){ //steady
 		qWarning("generating stream lines, maxpoints = %d", maxPoints);
-		myFlowLib->GenStreamLines(flowData, maxPoints, randomSeed);
+		myFlowLib->GenStreamLines(flowData, maxPoints, randomSeed,flowSpeeds);
 		qWarning("finished generating stream lines");
 	} else {
-		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement);
+		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, flowSpeeds);
 	}
 	/*
 	//test stream code, not using flowlib:

@@ -26,6 +26,8 @@
 #include "dvrparams.h"
 #include "vizwinmgr.h"
 using namespace VAPoR;
+//space below opacity window.  
+#define BELOWOPACITY (COLORBARWIDTH+SEPARATOR+COORDMARGIN)
 
 TFEditor::TFEditor(MapperFunction* tf,  TFFrame* frm): MapEditor(tf, frm){
 	reset();
@@ -120,22 +122,22 @@ void TFEditor::refreshImage(){
 
 		//Paint the domainslider region
 		//
-		if ((x < leftLim - DOMAINSLIDERMARGIN)||
-				(x> rightLim + DOMAINSLIDERMARGIN)){
+		if ((x < leftLim - SLIDERWIDTH)||
+				(x> rightLim + SLIDERWIDTH)){
 			//paint away from slider
-			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+			for (y = 0; y<SLIDERWIDTH-1; y++){
 				editImage->setPixel(x,y,DEFAULTBACKGROUNDCOLOR);
 			}
 		} else if ((x >= leftLim) && (x <= rightLim)){
 			// paint slider
-			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+			for (y = 0; y<SLIDERWIDTH-1; y++){
 					editImage->setPixel(x,y,DOMAINSLIDERCOLOR);
 			}
 		} else if (x > rightLim) {
 			// right pointer
 			int top = (x-rightLim)/2;
-			int bot = DOMAINSLIDERMARGIN - top;
-			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+			int bot = SLIDERWIDTH - top;
+			for (y = 0; y<SLIDERWIDTH-1; y++){
 				if (y < top || y >= bot)
 					editImage->setPixel(x,y,DEFAULTBACKGROUNDCOLOR);
 				else
@@ -145,8 +147,8 @@ void TFEditor::refreshImage(){
 			assert(x<leftLim);
 			// left pointer
 			int top = (leftLim-x)/2;
-			int bot = DOMAINSLIDERMARGIN - top;
-			for (y = 0; y<DOMAINSLIDERMARGIN-1; y++){
+			int bot = SLIDERWIDTH - top;
+			for (y = 0; y<SLIDERWIDTH-1; y++){
 				if (y < top || y >= bot)
 					editImage->setPixel(x,y,DEFAULTBACKGROUNDCOLOR);
 				else
@@ -154,7 +156,7 @@ void TFEditor::refreshImage(){
 			}
 		}
 		//leave a thin margin below the domain slider
-		editImage->setPixel(x,DOMAINSLIDERMARGIN-1,DEFAULTBACKGROUNDCOLOR);
+		editImage->setPixel(x,SLIDERWIDTH-1,DEFAULTBACKGROUNDCOLOR);
 
 
 		//Only values between 0 and 1 are nonzero histograms (currently!)
@@ -181,7 +183,7 @@ void TFEditor::refreshImage(){
 		
 		//Convert histoHeight to a vertical pixel coord:
 		//
-		histoInt = BELOWOPACITY+(int)(histoHeight*(height-BELOWOPACITY-TOPMARGIN-DOMAINSLIDERMARGIN));
+		histoInt = BELOWOPACITY+(int)(histoHeight*(height-BELOWOPACITY-TOPMARGIN-SLIDERWIDTH));
 		if (histoInt < 0){
 			assert (histoInt >= 0);
 		}
@@ -194,13 +196,13 @@ void TFEditor::refreshImage(){
 		
 		//Solid dark grey for separator
 		//
-		for (y = height - BELOWOPACITY; y< height-BARHEIGHT-COORDMARGIN; y++){
+		for (y = height - BELOWOPACITY; y< height-COLORBARWIDTH-COORDMARGIN; y++){
 			editImage->setPixel(x,y, SEPARATORCOLOR/*darkGray*/);
 		}
 		
 		//Color bar:
 		//
-		for (y = height - BARHEIGHT-COORDMARGIN; y< height-COORDMARGIN; y++){
+		for (y = height - COLORBARWIDTH-COORDMARGIN; y< height-COORDMARGIN; y++){
 			editImage->setPixel(x,y, color);
 		}
 		for (y = height - COORDMARGIN; y<height; y++){
@@ -489,7 +491,7 @@ closestControlPoint(int x, int y, int* index) {
 	
 	//Color selected?
 	//
-	if (y >= (height - COORDMARGIN - BARHEIGHT -SEPARATOR/2) ){
+	if (y >= (height - COORDMARGIN - COLORBARWIDTH -SEPARATOR/2) ){
 		for (i = 0; i< getNumColorControlPoints(); i++){
 			getColorControlPointPosition(i, &xc);
 			if (abs(xc-x) > CLOSE_DISTANCE) continue;
@@ -763,71 +765,6 @@ bindColorToOpac(){
 }
 
 	
-/*
- * Coordinate mapping functions:
- * Map TF variable to window coords.  Left goes to -1, right goes to width.
- */
-int TFEditor::
-mapVar2Win(float v, bool classify){
-	double va = v;
-	//if (v < -1.e7f) v = -1.e7f;
-	//if (v > 1.e7f) v = 1.e7f;
-	//First map to a float value in pixel space:
-	
-	double cvrt = ((HORIZOVERLAP + (va - getMinEditValue())/(getMaxEditValue()-getMinEditValue()))*
-		(((double)width - 1.0)/(1.0 + 2.0*HORIZOVERLAP)));
-	
-	int pixVal;
-	if(classify){
-		if (cvrt< 0.0) return -1;
-		if (cvrt > ((double)(width) -.5)) return width;
-		pixVal = (int)(cvrt+0.5);
-		return pixVal;
-	}
-	if (cvrt >= 0.0)
-		pixVal = (int)(cvrt+0.5);
-	else pixVal = (int)(cvrt - 0.5);
-	return pixVal;
-}
-	 
-	
-/*
- * map window to variable.  Inverse of above function.
- */
-float TFEditor::
-mapWin2Var(int x){
-	float ratio = (float)x/(float)(width -1);	
-	// Adjust coord based on slight overlap:
-	// 0->minEditValue - (max - min)*HORIZOVERLAP
-	// (wid-1)-> maxEditValue + (max-min)*HORIZOVERLAP
-	//
-	float var = getMinEditValue() + (getMaxEditValue() - getMinEditValue())*
-			(ratio*(1.f + 2.f*HORIZOVERLAP) - HORIZOVERLAP);
-	return var;
-}
-/*
- * Map window to discrete mapping value (0..2**nbits - 1)
- * if truncate, limits are mapped to ending discrete value
- */
-int TFEditor::
-mapWin2Discrete(int x, bool truncate){
-	int val = mapVar2Discrete(mapWin2Var(x));
-	if(truncate){
-		if (val < 0) val = 0;
-		if (val >= getTransferFunction()->getNumEntries()){
-			val = getTransferFunction()->getNumEntries()-1;
-		}
-	}
-	return val;
-}
-/*
- * map variable to discrete.  Note that color and opac maps are same
- * with transfer functions
- */
-int TFEditor::
-mapVar2Discrete(float v){
-	return getTransferFunction()->mapFloatToIndex(v);
-}
 
 /*
  * map vertical window to opacity. special constants for
@@ -836,18 +773,18 @@ mapVar2Discrete(float v){
  */
 float TFEditor::mapWin2Opac(int y, bool classify){
 	if(classify){
-		if (y < DOMAINSLIDERMARGIN) return ONDOMAINSLIDER;
-		if (y < (TOPMARGIN+DOMAINSLIDERMARGIN)) return ABOVEWINDOW;
+		if (y < SLIDERWIDTH) return ONOPACITYSLIDER;
+		if (y < (TOPMARGIN+SLIDERWIDTH)) return ABOVEWINDOW;
 		if (y >= height - BELOWOPACITY) {
 			if (y >= height) return BELOWWINDOW;
 			if (y >= height - COORDMARGIN) return BELOWCOLORBAR;
-			if (y >= height - COORDMARGIN - BARHEIGHT)
+			if (y >= height - COORDMARGIN - COLORBARWIDTH)
 				return ONCOLORBAR;
 			return ONSEPARATOR;
 		}
 	}
 	return ((float)(height - BELOWOPACITY -1 - y)/
-		(float)(height - BELOWOPACITY - TOPMARGIN - DOMAINSLIDERMARGIN - 1));
+		(float)(height - BELOWOPACITY - TOPMARGIN - SLIDERWIDTH - 1));
 }
 
 /*
@@ -858,7 +795,7 @@ int TFEditor::mapOpac2Win(float opac, bool truncate){
 		if (opac > 1.f) return 0;
 		if (opac < 0.f) return (height - BELOWOPACITY -1);
 	}
-	return TOPMARGIN +DOMAINSLIDERMARGIN + (int)((1.-opac)*(float)(height - BELOWOPACITY -TOPMARGIN -DOMAINSLIDERMARGIN-1));
+	return TOPMARGIN +SLIDERWIDTH + (int)((1.-opac)*(float)(height - BELOWOPACITY -TOPMARGIN -SLIDERWIDTH-1));
 }
 
 void TFEditor::setDirty(){
