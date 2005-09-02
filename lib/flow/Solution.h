@@ -52,7 +52,8 @@ public:
 	bool isTimeVarying(void);
 	int GetValue(int id, const float t, VECTOR3& nodeData);
 	void Normalize(bool bLocal);
-	void SetTime(int startT, int endT, int timeInc) { m_nStartT = startT; m_nEndT = endT; m_nTimeIncrement = timeInc; }
+	void SetTime(int startT, int endT) { m_nStartT = startT; m_nEndT = endT;}
+	void SetTimeInc(int timeInc) { m_nTimeIncrement = timeInc; }
 	void SetTimeScaleFactor(float timeScaleFactor) { m_fTimeScaleFactor = timeScaleFactor; }
 };
 };

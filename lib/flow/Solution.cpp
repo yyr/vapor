@@ -43,6 +43,7 @@ Solution::Solution(float** pUData, float** pVData, float** pWData,
 	m_nNodeNum = nodeNum;
 	m_nTimeSteps = timeSteps;		
 	m_fTimeScaleFactor = 1.0;
+	m_nTimeIncrement = 1;
 }
 
 Solution::~Solution()
@@ -79,7 +80,7 @@ void Solution::Reset()
 	m_fTimeScaleFactor = 1.0;
 	m_nStartT = 0;
 	m_nEndT = 0;
-	m_nTimeIncrement = 0;
+	m_nTimeIncrement = 1;
 }
 
 //////////////////////////////////////////////////////////////////////////

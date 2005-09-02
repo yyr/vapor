@@ -31,6 +31,6 @@
 #include "vapor/MyBase.h"
 #include "vaporinternal/common.h"
 
-//#define DEBUG
+#define DEBUG
 
 #endif

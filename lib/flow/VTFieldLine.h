@@ -122,8 +122,7 @@ protected:
 	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, float*, float, float*);
 	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, float*, float);
 	int runge_kutta2(TIME_DIR, TIME_DEP, PointInfo&, float*, float);
-	int adapt_step(const VECTOR3& p2, const VECTOR3& p1, const VECTOR3& p0, float dt_estimate,float* dt);
-	int adapt_step(const float diff, const float accuracy, float* dt);
+	int adapt_step(const VECTOR3& p2, const VECTOR3& p1, const VECTOR3& p0, const float& minStepsize, const float& maxStepsize, float* dt);
 	void SampleFieldline(float*, unsigned int&, vtListSeedTrace*, list<float>*, bool bRecordSeed, float* speeds=0);
 };
 

@@ -189,38 +189,11 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	// get the initial step size
 	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
 	mag = vel.GetMag();
-	if(fabs(mag) < 1.0e-6f)
-		dt_estimate = 1.0e-5f;
-	else
-		dt_estimate = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
-	dt = dt_estimate;
+	dt = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
 
 #ifdef DEBUG
 	fprintf(fDebug, "************************************************\n");
 #endif
-
-/*	// start to advect
-	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
-	{
-		float diff;
-		int retrace = true;
-		PointInfo tempParticle;
-
-		while(retrace)
-		{
-			tempParticle = thisParticle;
-			retrace = false;
-			istat = runge_kutta4(time_dir, time_dep, tempParticle, &curTime, dt, &diff);
-			if(istat != 1)			// out of boundary
-				return;
-			retrace = adapt_step(diff, m_fIntegrationAccurace, &dt);
-		}
-		thisParticle = tempParticle;
-		seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
-		fprintf(fDebugOut, "temp (%f, %f, %f)\n", thisParticle.phyCoord[0], thisParticle.phyCoord[1], thisParticle.phyCoord[2]);
-		stepList.push_back(dt);
-		totalStepsize += dt;			// accumulation of step size
-	}// end of advection*/
 
 	// start to advect
 	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
@@ -249,11 +222,7 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, m_fCurrentTime, vel);
 			if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
 				return;
-			int xc, yc, zc;
-			xc = (int)(thisParticle.phyCoord[0]*63);
-			yc = (int)(thisParticle.phyCoord[1]*63);
-			zc = (int)(thisParticle.phyCoord[2]*63);
-
+			
 			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);
@@ -262,6 +231,7 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 			// just generate valid new point
 			if((int)seedTrace.size() > 2)
 			{
+				float minStepsize, maxStepsize;
 				VECTOR3 thisPhy, prevPhy, second_prevPhy;
 				list<VECTOR3*>::iterator pIter = seedTrace.end();
 				pIter--;
@@ -270,7 +240,12 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 				prevPhy = **pIter;
 				pIter--;
 				second_prevPhy = **pIter;
-				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, dt_estimate, &dt);
+
+				cell_volume = m_pField->volume_of_cell(thisParticle.inCell);
+				mag = vel.GetMag();
+				minStepsize = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
+				maxStepsize = m_fMaxStepSize * pow(cell_volume, (float)0.3333333f) / mag;
+				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt);
 			}
 
 			// roll back and retrace

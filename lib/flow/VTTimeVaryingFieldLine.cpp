@@ -129,13 +129,14 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 
 	// get the initial stepsize
 	res = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, initialTime, vel);
+	if(res == -1)
+		return -1;
+	if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
+		return -1;
+
 	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
 	mag = vel.GetMag();
-	if(fabs(mag) < 1.0e-6f)
-		dt_estimate = 1.0e-5f;
-	else
-		dt_estimate = pow(cell_volume, (float)0.3333333f) / mag;
-	dt = dt_estimate;
+	dt = pow(cell_volume, (float)0.3333333f) / mag;
 	
 	// start to advect
 	while(curTime < finalTime)
@@ -163,11 +164,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, curTime, vel);
 			if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
 				return -1;
-			int xc, yc, zc;
-			xc = (int)(thisParticle.phyCoord[0]*63);
-			yc = (int)(thisParticle.phyCoord[1]*63);
-			zc = (int)(thisParticle.phyCoord[2]*63);
-			
+						
 			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);
@@ -177,6 +174,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 				// just generate valid new point
 				if((int)seedTrace.size() > 2)
 				{
+					float minStepsize, maxStepsize;
 					VECTOR3 thisPhy, prevPhy, second_prevPhy;
 					list<VECTOR3*>::iterator pIter = seedTrace.end();
 					pIter--;
@@ -185,8 +183,12 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 					prevPhy = **pIter;
 					pIter--;
 					second_prevPhy = **pIter;
-					retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, dt_estimate, &dt);
-					retrace = false;
+
+					cell_volume = m_pField->volume_of_cell(thisParticle.inCell);
+					mag = vel.GetMag();
+					minStepsize = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
+					maxStepsize = m_fMaxStepSize * pow(cell_volume, (float)0.3333333f) / mag;
+					retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt);
 				}
 
 				// roll back and retrace

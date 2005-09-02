@@ -225,16 +225,16 @@ bool VaporFlow::GenStreamLines(float* positions,
 	delete pSeedGenerator;
 	
 	// scale animationTimeStep and userTimeStep
-	//if(dataMgr->GetMetadata()->HasTSUserTime(1))
-	//{
-	//	userTimeStepSize = dataMgr->GetMetadata()->GetTSUserTime(0)[0]*userTimeStepMultiplier;
-	//	animationTimeStepSize = dataMgr->GetMetadata()->GetTSUserTime(0)[0]*animationTimeStepMultiplier;
-	//}
-	//else
-	//{
+	if(dataMgr->GetMetadata()->HasTSUserTime(1))
+	{
+		userTimeStepSize = dataMgr->GetMetadata()->GetTSUserTime(1)[0]*userTimeStepMultiplier;
+		animationTimeStepSize = dataMgr->GetMetadata()->GetTSUserTime(1)[0]*animationTimeStepMultiplier;
+	}
+	else
+	{
 		userTimeStepSize = userTimeStepMultiplier;
 		animationTimeStepSize = animationTimeStepMultiplier;
-	//}
+	}
 
 	// create field object
 	CVectorField* pField;
@@ -253,7 +253,8 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pWData[0] = GetData(startTimeStep, zVarName, totalNum);
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
 	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
-	pSolution->SetTime(startTimeStep, startTimeStep, 1);
+	pSolution->SetTime(startTimeStep, startTimeStep);
+	pSolution->SetTimeInc(1);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
 	
 	// set the boundary of physical grid
@@ -315,13 +316,16 @@ bool VaporFlow::GenStreakLines(float* positions,
 	float **pUData, **pVData, **pWData;
 	int numInjections;						// times to inject new seeds
 	int timeSteps;							// total "time steps"
-	int totalXNum = (maxRegion[0]-minRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize();
-	int totalYNum = (maxRegion[1]-minRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize();
-	int totalZNum = (maxRegion[2]-minRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize();
-	int totalNum = totalXNum*totalYNum*totalZNum;
+	int totalXNum, totalYNum, totalZNum, totalNum;
+	int realStartTime, realEndTime;
+    totalXNum = (maxRegion[0]-minRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize();
+	totalYNum = (maxRegion[1]-minRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize();
+	totalZNum = (maxRegion[2]-minRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize();
+	totalNum = totalXNum*totalYNum*totalZNum;
 	numInjections = 1 + ((endInjection - startInjection)/injectionTimeIncrement);
-	int realEndTime = (endInjection+injectionTimeIncrement)<endTimeStep?(endInjection+injectionTimeIncrement):endTimeStep;
-	timeSteps = realEndTime - startInjection + 1;
+	realStartTime = (startInjection < startTimeStep)? startTimeStep: startInjection;
+	realEndTime = endTimeStep;
+	timeSteps = realEndTime - realStartTime + 1;
 	pUData = new float*[timeSteps];
 	pVData = new float*[timeSteps];
 	pWData = new float*[timeSteps];
@@ -331,8 +335,7 @@ bool VaporFlow::GenStreakLines(float* positions,
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, timeSteps);
 	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
 
-	// I use "1" as usertimestep for test
-	pSolution->SetTime(startInjection, realEndTime, 1);
+	pSolution->SetTime(realStartTime, realEndTime);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
 
 	// set the boundary of physical grid
@@ -359,13 +362,16 @@ bool VaporFlow::GenStreakLines(float* positions,
 	// start to computer streakline
 	unsigned int* pointers = new unsigned int[seedNum*numInjections];
 	memset(pointers, 0, sizeof(unsigned int)*seedNum*numInjections);
-	int iInjection = 0;
-	for(int iFor = startInjection; iFor < realEndTime; iFor++)
+	int index, iInjection = 0;
+	bool bInject;
+	for(int iFor = realStartTime; iFor < realEndTime; iFor++)
 	{
-		int index = iFor - startInjection;
+		index = iFor - realStartTime;
+		pSolution->SetTimeInc(1);
+		bInject = false;
 
 		// need get new data
-		if(iFor == startInjection)
+		if(iFor == realStartTime)
 		{
 			pField->SetSolutionData(index, 
 									GetData(iFor, xVarName, totalNum),
@@ -384,13 +390,17 @@ bool VaporFlow::GenStreakLines(float* positions,
 									GetData(iFor+1, zVarName, totalNum));
 		}
 
+		// whether inject new seeds this time?
+		if((iFor >= startInjection) && (iFor <= endInjection) && ((index%injectionTimeIncrement) == 0))
+			bInject = true;
+
 		// execute streakline
-		if((index%injectionTimeIncrement) == 0)			// with injection of new seeds
+		if(bInject)				// inject new seeds
 		{
 			pStreakLine->execute((void *)&iFor, positions, pointers, true, iInjection, speeds);
 			iInjection++;
 		}	
-		else											// without injection of new seeds
+		else					// do not inject new seeds
 		{
 			pStreakLine->execute((void *)&iFor, positions, pointers, false, iInjection, speeds);
 		}

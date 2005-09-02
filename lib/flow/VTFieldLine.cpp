@@ -79,7 +79,7 @@ int vtCFieldLine::runge_kutta2(TIME_DIR time_dir, TIME_DEP time_dep,
 							   float* t, float dt)
 {
 	int istat;
-
+	istat = -1;
 	return istat;
 }
 
@@ -251,10 +251,11 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir, TIME_DEP time_dep,
 #define STREAM_ACCURACY 1.0e-14
 
 // according to curvature
-int vtCFieldLine::adapt_step(const VECTOR3& p2,
-							 const VECTOR3& p1,
+int vtCFieldLine::adapt_step(const VECTOR3& p2, 
+							 const VECTOR3& p1, 
 							 const VECTOR3& p0,
-							 float dt_estimate,
+							 const float& minStepsize, 
+							 const float& maxStepsize,
 							 float* dt)
 {
 	int retrace = false;
@@ -267,44 +268,33 @@ int vtCFieldLine::adapt_step(const VECTOR3& p2,
 		cos_p2p1p0 = dot(p1p0, p2p1)/denom;
 	else
 		cos_p2p1p0 = m_fLowerAngleAccuracy;
+
 	if(cos_p2p1p0 < m_fLowerAngleAccuracy)
 	{
 		*dt = (*dt) * (float)0.5;
 		retrace = true;
+		if(*dt < minStepsize)
+		{
+			*dt = minStepsize;
+			retrace = false;
+		}
 	}
 	else if(cos_p2p1p0 > m_fUpperAngleAccuracy)
 	{
 		*dt = (*dt) * (float)1.25;
-		//if(*dt >= m_fMaxStepSize)
-		//	*dt = m_fMaxStepSize;
+		if(*dt >= maxStepsize)
+			*dt = maxStepsize;
 	}
 	
 	return retrace;
 }
 
-// according to integration difference, FastLIC paper
-int vtCFieldLine::adapt_step(const float diff, const float accuracy, float* dt)
-{
-	float delta = diff / 6.0;
-	int retrace = false;
-
-	// regular Cartesian Grid, so cells have same spacing
-	float gridSpacing = m_pField->GetGridSpacing(0)*accuracy;
-
-	if(delta > (gridSpacing))
-	{
-		retrace = true;
-		*dt = pow(*dt, 2) * sqrt(0.75 * (gridSpacing/delta));
-	}
-
-	return retrace;
-}
 //////////////////////////////////////////////////////////////////////////
 // initialize seeds
 //////////////////////////////////////////////////////////////////////////
 void vtCFieldLine::setSeedPoints(float* points, int numPoints, float t)
 {
-	int i, res;
+	int i;
 	VECTOR3 nodeData;
 
 	if(points == NULL)
@@ -377,8 +367,7 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	unsigned int ptrSpeed;
 
 	ptr = posInPoints;
-	ptrSpeed = posInPoints/3;
-
+	
 	pIter1 = seedTrace->begin();
 	if(bRecordSeed)
 	{
@@ -388,7 +377,7 @@ void vtCFieldLine::SampleFieldline(float* positions,
 		positions[ptr++] = (**pIter1)[2];
 
 #ifdef DEBUG
-		fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
+		//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
 #endif
 	}
 	
@@ -433,14 +422,24 @@ void vtCFieldLine::SampleFieldline(float* positions,
 			positions[ptr++] = Lerp((**pIter1)[1], (**pIter2)[1], ratio);
 			positions[ptr++] = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
 
+#ifdef DEBUG
+			//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
+#endif
+
 			// get the velocity value of this point
 			if(speeds != NULL)
 			{
+				ptrSpeed = (ptr-3)/3;
+				PointInfo pointInfo;
+				VECTOR3 nodeData;
+				float t;
+
+				pointInfo.phyCoord.Set(positions[ptr-3], positions[ptr-2], positions[ptr-1]);
+				t = m_fSamplingRate*(ptrSpeed-((int)((float)ptrSpeed/(float)m_nMaxsize)*m_nMaxsize));
+				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
+				speeds[ptrSpeed] = nodeData.GetMag();
 			}
 
-#ifdef DEBUG
-			fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
-#endif
 			count++;
 		}
 	}
