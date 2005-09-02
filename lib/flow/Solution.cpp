@@ -48,26 +48,6 @@ Solution::Solution(float** pUData, float** pVData, float** pWData,
 
 Solution::~Solution()
 {
-	int iFor;
-/*	
-	if(m_pUDataArray != NULL)
-	{
-		for(iFor = 0; iFor < m_nTimeSteps; iFor++)
-			delete m_pUDataArray[iFor];
-		delete[] m_pUDataArray;
-	}
-	if(m_pVDataArray != NULL)
-	{
-		for(iFor = 0; iFor < m_nTimeSteps; iFor++)
-			delete m_pVDataArray[iFor];
-		delete[] m_pVDataArray;
-	}
-	if(m_pWDataArray != NULL)
-	{
-		for(iFor = 0; iFor < m_nTimeSteps; iFor++)
-			delete m_pWDataArray[iFor];
-		delete[] m_pWDataArray;
-	}*/
 }
 
 void Solution::Reset()

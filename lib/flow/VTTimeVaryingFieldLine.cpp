@@ -120,6 +120,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
 	float dt, dt_estimate, cell_volume, mag, curTime;
 	VECTOR3 vel;
+	int nSetAdaptiveCount = 0;
 
 	// the first particle
 	seedInfo = initialPoint.m_pointInfo;
@@ -164,32 +165,35 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, curTime, vel);
 			if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
 				return -1;
-						
+
 			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);
-			
-			if(bAdaptive)
-			{
-				// just generate valid new point
-				if((int)seedTrace.size() > 2)
-				{
-					float minStepsize, maxStepsize;
-					VECTOR3 thisPhy, prevPhy, second_prevPhy;
-					list<VECTOR3*>::iterator pIter = seedTrace.end();
-					pIter--;
-					thisPhy = **pIter;
-					pIter--;
-					prevPhy = **pIter;
-					pIter--;
-					second_prevPhy = **pIter;
+			nSetAdaptiveCount++;
 
-					cell_volume = m_pField->volume_of_cell(thisParticle.inCell);
-					mag = vel.GetMag();
-					minStepsize = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
-					maxStepsize = m_fMaxStepSize * pow(cell_volume, (float)0.3333333f) / mag;
-					retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt);
-				}
+			if((nSetAdaptiveCount == 2) && (bAdaptive == false))
+				bAdaptive = true;
+
+			// just generate valid new point
+			if(((int)seedTrace.size() > 2) && (bAdaptive))
+			{
+				float minStepsize, maxStepsize;
+				VECTOR3 thisPhy, prevPhy, second_prevPhy;
+				list<VECTOR3*>::iterator pIter = seedTrace.end();
+				pIter--;
+				thisPhy = **pIter;
+				pIter--;
+				prevPhy = **pIter;
+				pIter--;
+				second_prevPhy = **pIter;
+
+				cell_volume = m_pField->volume_of_cell(thisParticle.inCell);
+				mag = vel.GetMag();
+				minStepsize = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
+				maxStepsize = m_fMaxStepSize * pow(cell_volume, (float)0.3333333f) / mag;
+				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, bAdaptive);
+				if(bAdaptive == false)
+					nSetAdaptiveCount = 0;
 
 				// roll back and retrace
 				if(retrace == true)			

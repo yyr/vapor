@@ -170,9 +170,11 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	int istat, res;
 	PointInfo thisParticle;
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
-	float dt, dt_estimate, cell_volume, mag, curTime;
+	float dt, cell_volume, mag, curTime;
 	VECTOR3 vel;
 	float totalStepsize = 0.0;
+	bool onAdaptive = true;
+	int nSetAdaptiveCount = 0;
 
 	// the first particle
 	thisParticle = seedInfo;
@@ -227,9 +229,13 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);
 			totalStepsize += dt;			// accumulation of step size
+			nSetAdaptiveCount++;
+
+			if((nSetAdaptiveCount == 2) && (onAdaptive == false))
+				onAdaptive = true;
 
 			// just generate valid new point
-			if((int)seedTrace.size() > 2)
+			if(((int)seedTrace.size() > 2)&&(onAdaptive))
 			{
 				float minStepsize, maxStepsize;
 				VECTOR3 thisPhy, prevPhy, second_prevPhy;
@@ -245,20 +251,24 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 				mag = vel.GetMag();
 				minStepsize = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
 				maxStepsize = m_fMaxStepSize * pow(cell_volume, (float)0.3333333f) / mag;
-				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt);
-			}
-
-			// roll back and retrace
-			if(retrace == true)			
-			{
-				thisInterpolant = prevInterpolant = second_prevInterpolant;
-				seedTrace.pop_back();
-				seedTrace.pop_back();
-				thisParticle.Set(*(seedTrace.back()), thisInterpolant, -1, -1);
-				totalStepsize -= stepList.back();
-				stepList.pop_back();
-				totalStepsize -= stepList.back();
-				stepList.pop_back();
+				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, onAdaptive);
+				if(onAdaptive == false)
+					nSetAdaptiveCount = 0;
+#ifdef DEBUG
+				fprintf(fDebug, "retrace = %d\n", retrace);
+#endif
+				// roll back and retrace
+				if(retrace == true)			
+				{
+					thisInterpolant = prevInterpolant = second_prevInterpolant;
+					seedTrace.pop_back();
+					seedTrace.pop_back();
+					thisParticle.Set(*(seedTrace.back()), thisInterpolant, -1, -1);
+					totalStepsize -= stepList.back();
+					stepList.pop_back();
+					totalStepsize -= stepList.back();
+					stepList.pop_back();
+				}
 			}
 		}// end of retrace
 	}// end of advection

@@ -45,7 +45,6 @@ void vtCPathLine::execute(const void* userData,
 void vtCPathLine::computePathLine(const void* userData,
 								  list<vtListSeedTrace*>& listSeedTraces)
 {
-	int res;
 	float currentT = *(float *)userData;
 	vtListParticleIter pIter = m_lSeeds.begin();
 	for(; pIter != m_lSeeds.end(); pIter++)

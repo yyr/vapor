@@ -256,7 +256,8 @@ int vtCFieldLine::adapt_step(const VECTOR3& p2,
 							 const VECTOR3& p0,
 							 const float& minStepsize, 
 							 const float& maxStepsize,
-							 float* dt)
+							 float* dt,
+							 bool& bAdaptive)
 {
 	int retrace = false;
 	VECTOR3 p2p1 = p1 - p2;
@@ -276,6 +277,7 @@ int vtCFieldLine::adapt_step(const VECTOR3& p2,
 		if(*dt < minStepsize)
 		{
 			*dt = minStepsize;
+			bAdaptive = false;
 			retrace = false;
 		}
 	}
