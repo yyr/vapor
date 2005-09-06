@@ -103,9 +103,9 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 		return -1;
 
 	if(!isTimeVarying())
-		nodeData.Set(m_pUDataArray[(int)t][id]*m_fTimeScaleFactor, 
-					 m_pVDataArray[(int)t][id]*m_fTimeScaleFactor, 
-					 m_pWDataArray[(int)t][id]*m_fTimeScaleFactor);
+		nodeData.Set(m_pUDataArray[(int)(t - m_nStartT)][id]*m_fTimeScaleFactor, 
+					 m_pVDataArray[(int)(t - m_nStartT)][id]*m_fTimeScaleFactor, 
+					 m_pWDataArray[(int)(t - m_nStartT)][id]*m_fTimeScaleFactor);
 	else
 	{
 		int lowT, highT;

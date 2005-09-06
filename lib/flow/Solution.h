@@ -53,6 +53,9 @@ public:
 	int GetValue(int id, const float t, VECTOR3& nodeData);
 	void Normalize(bool bLocal);
 	void SetTime(int startT, int endT) { m_nStartT = startT; m_nEndT = endT;}
+	int GetStartTime(void) {return m_nStartT;}
+	int GetEndTime(void) {return m_nEndT;}
+	int GetTimeIncrement(void) {return m_nTimeIncrement;}
 	void SetTimeInc(int timeInc) { m_nTimeIncrement = timeInc; }
 	void SetTimeScaleFactor(float timeScaleFactor) { m_fTimeScaleFactor = timeScaleFactor; }
 };

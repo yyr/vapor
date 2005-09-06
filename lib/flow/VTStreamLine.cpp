@@ -140,7 +140,7 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				backTrace = new vtListSeedTrace;
 				stepList = new list<float>;
 				computeFieldLine(BACKWARD,m_integrationOrder, STEADY, *backTrace, *stepList, thisSeed->m_pointInfo);
-				SampleFieldline(points, posInPoints, backTrace, stepList, true);
+				SampleFieldline(points, posInPoints, backTrace, stepList, true, speeds);
 				backTrace->clear();
 				stepList->clear();
 			}
@@ -151,7 +151,7 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				forwardTrace = new vtListSeedTrace;
 				stepList = new list<float>;
 				computeFieldLine(FORWARD,m_integrationOrder, STEADY, *forwardTrace, *stepList, thisSeed->m_pointInfo);
-				SampleFieldline(points, posInPoints, forwardTrace, stepList, true);
+				SampleFieldline(points, posInPoints, forwardTrace, stepList, true, speeds);
 				forwardTrace->clear();
 				stepList->clear();
 			}

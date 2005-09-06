@@ -57,6 +57,9 @@ public:
 	float GetGridSpacing(int cellId){return m_pGrid->GetGridSpacing(cellId);}
 	void SetSolutionData(int t, float* pUData, float* pVData, float* pWData) {m_pSolution->SetValue(t, pUData, pVData, pWData);}
 	float* GetSolutionData(int t) {return m_pSolution->GetUValue(t);}
+	int GetStartTime(void) { return m_pSolution->GetStartTime(); }
+	int GetEndTime(void) { return m_pSolution->GetEndTime(); }
+	int GetTimeIncrement(void) { return m_pSolution->GetTimeIncrement(); }
 };
 };
 //////////////////////////////////////////////////////////////////////////

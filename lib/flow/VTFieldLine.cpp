@@ -378,6 +378,21 @@ void vtCFieldLine::SampleFieldline(float* positions,
 		positions[ptr++] = (**pIter1)[1];
 		positions[ptr++] = (**pIter1)[2];
 
+		if(speeds != NULL)
+		{
+			PointInfo pointInfo;
+			VECTOR3 nodeData;
+			float t;
+
+			ptrSpeed = (ptr-3)/3;
+			pointInfo.phyCoord.Set(positions[ptr-3], positions[ptr-2], positions[ptr-1]);
+			if(!m_pField->isTimeVarying())
+				t = m_pField->GetStartTime();
+			else
+				t = m_pField->GetStartTime() + m_fSamplingRate*(ptrSpeed-((int)((float)ptrSpeed/(float)m_nMaxsize)*m_nMaxsize));
+			m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
+			speeds[ptrSpeed] = nodeData.GetMag();
+		}
 #ifdef DEBUG
 		//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
 #endif
@@ -396,15 +411,6 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	pIter2++;
 	pStepIter = stepList->begin();
 	stepsizeLeft = *pStepIter;
-	int temp = 0;
-	float len = 0;
-	while(pStepIter != stepList->end())
-	{
-		len += *pStepIter;
-		pStepIter++;
-	}
-
-	pStepIter = stepList->begin();
 	while((count < m_nMaxsize) && (pStepIter != stepList->end()))
 	{
 		float ratio;
@@ -413,7 +419,6 @@ void vtCFieldLine::SampleFieldline(float* positions,
 			pIter1++;
 			pIter2++;
 			pStepIter++;
-			temp++;
 			stepsizeLeft += *pStepIter;
 		}
 		else
@@ -431,13 +436,16 @@ void vtCFieldLine::SampleFieldline(float* positions,
 			// get the velocity value of this point
 			if(speeds != NULL)
 			{
-				ptrSpeed = (ptr-3)/3;
 				PointInfo pointInfo;
 				VECTOR3 nodeData;
 				float t;
 
+				ptrSpeed = (ptr-3)/3;
 				pointInfo.phyCoord.Set(positions[ptr-3], positions[ptr-2], positions[ptr-1]);
-				t = m_fSamplingRate*(ptrSpeed-((int)((float)ptrSpeed/(float)m_nMaxsize)*m_nMaxsize));
+				if(!m_pField->isTimeVarying())
+					t = m_pField->GetStartTime();
+				else
+					t = m_pField->GetStartTime() + m_fSamplingRate*(ptrSpeed-((int)((float)ptrSpeed/(float)m_nMaxsize)*m_nMaxsize));
 				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
 				speeds[ptrSpeed] = nodeData.GetMag();
 			}

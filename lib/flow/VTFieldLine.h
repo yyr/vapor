@@ -216,14 +216,15 @@ public:
 
 protected:
 	// code specific to streakline
-	void computeStreakLine(const void* userData, float* points, unsigned int* pointers, bool bInjectSeeds, int iInjection);
+	void computeStreakLine(const void* userData, float* points, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
 	void advectOldParticles(vtListParticleIter start, 
 							vtListParticleIter end, 
 							float* points,
 							unsigned int* pointers,
 							float initialTime, 
 							float finalTime,
-							vector<vtListParticleIter>& deadList);
+							vector<vtListParticleIter>& deadList,
+							float* speeds=0);
 };
 
 //////////////////////////////////////////////////////////////////////////

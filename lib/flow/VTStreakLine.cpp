@@ -48,14 +48,15 @@ void vtCStreakLine::execute(const void* userData,
 							int iInjection,
 							float* speeds)
 {
-	computeStreakLine(userData, positions, pointers, bInjectSeeds, iInjection);
+	computeStreakLine(userData, positions, pointers, bInjectSeeds, iInjection, speeds);
 }
 
 void vtCStreakLine::computeStreakLine(const void* userData, 
 									  float* points, 
 									  unsigned int* pointers,
 									  bool bInjectSeeds,
-									  int iInjection)
+									  int iInjection,
+									  float* speeds)
 {
 	float currentT = *(float*)userData;
 	float finalT = currentT + m_timeDir * m_itsTimeInc;
@@ -72,7 +73,14 @@ void vtCStreakLine::computeStreakLine(const void* userData,
 
 	// advect the previous old particles
 	deadList.clear();
-	advectOldParticles(m_itsParticles.begin(), m_itsParticles.end(), points, pointers, currentT, finalT, deadList);
+	advectOldParticles( m_itsParticles.begin(), 
+						m_itsParticles.end(), 
+						points, 
+						pointers, 
+						currentT, 
+						finalT, 
+						deadList,
+						speeds);
 
 	if(bInjectSeeds)
 	{
@@ -100,20 +108,27 @@ void vtCStreakLine::computeStreakLine(const void* userData,
 				list<float>* stepList;
 				forwardTrace = new vtListSeedTrace;
 				stepList = new list<float>;
-				istat = advectParticle(m_integrationOrder, *thisSeed, nextP, currentT, finalT, *forwardTrace, *stepList, true);
+				istat = advectParticle( m_integrationOrder, 
+										*thisSeed, 
+										nextP, 
+										currentT, 
+										finalT, 
+										*forwardTrace, 
+										*stepList, 
+										true);
 
 #ifdef DEBUG
 				fprintf(fDebug, "************************************************\n");
 				fprintf(fDebug, "Start(%f, %f, %f), end(%f, %f, %f)\n", 
-					thisSeed->m_pointInfo.phyCoord[0], 
-					thisSeed->m_pointInfo.phyCoord[1], 
-					thisSeed->m_pointInfo.phyCoord[2], 
-					nextP.m_pointInfo.phyCoord[0], 
-					nextP.m_pointInfo.phyCoord[1], 
-					nextP.m_pointInfo.phyCoord[2]);
+						thisSeed->m_pointInfo.phyCoord[0], 
+						thisSeed->m_pointInfo.phyCoord[1], 
+						thisSeed->m_pointInfo.phyCoord[2], 
+						nextP.m_pointInfo.phyCoord[0], 
+						nextP.m_pointInfo.phyCoord[1], 
+						nextP.m_pointInfo.phyCoord[2]);
 #endif
 
-				SampleFieldline(points, posInPoints, forwardTrace, stepList, true);	
+				SampleFieldline(points, posInPoints, forwardTrace, stepList, true, speeds);	
 				if(points[posInPoints] == END_FLOW_FLAG)
 					pointers[iInjection*(int)m_lSeeds.size()+count] = posInPoints;
 
@@ -156,7 +171,8 @@ void vtCStreakLine::advectOldParticles( vtListParticleIter start,
 										unsigned int* pointers,
 										float initialTime,
 										float finalTime,
-										vector<vtListParticleIter>& deadList)
+										vector<vtListParticleIter>& deadList,
+										float* speeds)
 {
 	// advect the old particles first
 	vtListParticleIter pIter = start;
@@ -180,7 +196,14 @@ void vtCStreakLine::advectOldParticles( vtListParticleIter start,
 				thisParticle->m_pointInfo.phyCoord[2]);
 #endif
 
-		istat = advectParticle(m_integrationOrder, *thisParticle, *thisParticle, initialTime, finalTime, *forwardTrace, *stepList, true);
+		istat = advectParticle( m_integrationOrder,
+								*thisParticle, 
+								*thisParticle, 
+								initialTime, 
+								finalTime, 
+								*forwardTrace, 
+								*stepList, 
+								true);
 
 #ifdef DEBUG
 		fprintf(fDebug, "End(%f, %f, %f)\n", 
@@ -189,7 +212,7 @@ void vtCStreakLine::advectOldParticles( vtListParticleIter start,
 				thisParticle->m_pointInfo.phyCoord[2]);
 #endif
 
-		SampleFieldline(points, posInPoints, forwardTrace, stepList, false);	
+		SampleFieldline(points, posInPoints, forwardTrace, stepList, false, speeds);	
 		if(points[posInPoints] == END_FLOW_FLAG)
 			pointers[thisParticle->ptId] = posInPoints;
 
