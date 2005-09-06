@@ -427,8 +427,13 @@ navigate (int x, int y){
 	float minval = startXMapped - (startXMapped - dragMinStart)*zoomRatio;
 	float maxval = startXMapped + (dragMaxStart - startXMapped)*zoomRatio;
 	//Then apply the pan to the zoomed windows:
-	setMinOpacEditValue(minval - horizFraction*(maxval - minval));
-	setMaxOpacEditValue(maxval - horizFraction*(maxval - minval));
+	if (colorNavigateGrabbed()){
+		setMinColorEditValue(minval - horizFraction*(maxval - minval));
+		setMaxColorEditValue(maxval - horizFraction*(maxval - minval));
+	} else {
+		setMinOpacEditValue(minval - horizFraction*(maxval - minval));
+		setMaxOpacEditValue(maxval - horizFraction*(maxval - minval));
+	}
 	setDirty();
 	myFrame->update();
 

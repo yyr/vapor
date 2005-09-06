@@ -368,10 +368,10 @@ useHomeViewpoint(){
 void ViewpointParams::
 restart(){
 	savedCommand = 0;
-	numLights = 0;
-	lightDirection[0][0] = 1.f;
-	lightDirection[0][1] = 0.f;
-	lightDirection[0][2] = 0.f;
+	numLights = 1;
+	lightDirection[0][0] = .6f;
+	lightDirection[0][1] = 0.53f;
+	lightDirection[0][2] = 0.6f;
 	lightDirection[1][0] = 0.f;
 	lightDirection[1][1] = 1.f;
 	lightDirection[1][2] = 0.f;

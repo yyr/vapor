@@ -121,7 +121,7 @@ public:
 	
 	QRgb getRgbValue(float point);
 	
-	
+	void mapPointToRGBA(float point, float* rgba);
 	void controlPointHSV(int index, float* h, float*s, float*v){
 		*h = hue[index];
 		*s = sat[index];
@@ -146,6 +146,7 @@ public:
 		
 	virtual QRgb getControlPointRGB(int index);
 	void setControlPointRGB(int index, QRgb newColor);
+	void setOpaque();
 
 	//Build a lookup table[numEntries][4]? from the TF
 	//Caller must pass in an empty array to fill in

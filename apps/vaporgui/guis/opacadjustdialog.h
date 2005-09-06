@@ -33,16 +33,16 @@ class QSpacerItem;
 class QLabel;
 class QLineEdit;
 class QPushButton;
-class TFFrame;
+class QFrame;
 
 namespace VAPoR {
-class TFEditor;
+class MapEditor;
 class OpacAdjustDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    OpacAdjustDialog( TFFrame* parent, int index, const char* name = 0, bool modal = TRUE, WFlags fl = 0 );
+    OpacAdjustDialog( QFrame* parent, MapEditor* ed, int index, const char* name = 0, bool modal = TRUE, WFlags fl = 0 );
     ~OpacAdjustDialog();
     QLabel* textLabel1;
     QLineEdit* xValueEdit;
@@ -63,7 +63,7 @@ protected:
     QSpacerItem* spacer11;
     QHBoxLayout* layout7;
     QSpacerItem* spacer8;
-	TFEditor* tfe;
+	MapEditor* tfe;
 	bool changed;
 	bool pointModified;
 	bool changingFloat;

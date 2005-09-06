@@ -28,6 +28,7 @@
 #include <qgl.h>
 #include <qcolor.h>
 #include "renderer.h"
+#include "mapperfunction.h"
 
 /*!
   Create a FlowRenderer widget
@@ -59,17 +60,19 @@ void FlowRenderer::paintGL()
 {
 	GLfloat white_light[] = {1.f,1.f,1.f,1.f};
 	GLfloat lmodel_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
-	GLfloat diffuse_tube_color[] = {0.1f, 0.8f, 0.1f, 1.0f};
+	float constFlowColor[4];
 	int winNum = myVizWin->getWindowNum();
 	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
-	float* speeds = 0;
+	
+	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex()) == 0);
 	//Do we need to regenerate the flow data?
 	if (myVizWin->flowIsDirty()){
 		
-		flowDataArray = myFlowParams->regenerateFlowData(&speeds);
-
+		flowDataArray = myFlowParams->regenerateFlowData();
+		if (!constColors) {
+			flowRGBAs = myFlowParams->getRGBAs();
+		} 
 		maxPoints = myFlowParams->getMaxPoints();
-
 		firstDisplayFrame = myFlowParams->getFirstDisplayFrame();
 		lastDisplayFrame = myFlowParams->getLastDisplayFrame();
 		numSeedPoints = myFlowParams->getNumSeedPoints();
@@ -80,6 +83,9 @@ void FlowRenderer::paintGL()
 	glDepthMask(GL_TRUE);
 	//and readable
 	glEnable(GL_DEPTH_TEST);
+	//Prepare for alpha values:
+	glEnable (GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//Apply a coord transform that moves the full region to the unit cube.
 	
@@ -93,22 +99,26 @@ void FlowRenderer::paintGL()
 	//translate to put origin at corner:
 	float* transVec = ViewpointParams::getMinCubeCoords();
 	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
-	glColor3f(1.,0.,0.);
-	//do lines if diameter = 0
+	
+	//Setup constant color/opacity by default
+	
+	myFlowParams->getMapperFunc()->mapPointToRGBA(0.0f, constFlowColor);
+	
+	
 	float diam = myFlowParams->getShapeDiameter();
 	//Don't allow zero diameter, it causes OpenGL error code 1281
 	if (diam < 1.e-10) diam = 1.e-10f;
 
 	//Set up lighting, if we are rendering tubes or lines:
 	int nLights = 0;
-	if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
+	if (myFlowParams->getShapeType() != 1) {//rendering tubes/lines/arrows
 		
 		ViewpointParams* vpParams = VizWinMgr::getInstance()->getViewpointParams(winNum);
 		nLights = vpParams->getNumLights();
 		if (nLights > 0){
 			glShadeModel(GL_SMOOTH);
-			glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_tube_color);
-			glMaterialfv(GL_FRONT, GL_SPECULAR, diffuse_tube_color);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, constFlowColor);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, constFlowColor);
 			glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
 			glLightfv(GL_LIGHT0, GL_DIFFUSE, white_light);
 			//glLightfv(GL_LIGHT0, GL_SPECULAR, white_light);
@@ -128,16 +138,20 @@ void FlowRenderer::paintGL()
 				//glLightfv(GL_LIGHT2, GL_SPECULAR, white_light);
 				glEnable(GL_LIGHT2);
 			}
-		} else glDisable(GL_LIGHTING); //No lights
+		} else {
+			glDisable(GL_LIGHTING); //No lights
+			glColor4fv(constFlowColor);
+		}
 	} else {//points are not lit..
 		glDisable(GL_LIGHTING);
+		glColor4fv(constFlowColor);
 	}
 	//If we are doing unsteady flow, handle setup differently:
 	if (myFlowParams->flowIsSteady()){
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
-			if (diam < 0.05f){//Render as lines, not cylinders
-				renderCurves(diam, (nLights>0), 0, maxPoints-1, flowDataArray);
+			if (diam < 0.5f){//Render as lines, not cylinders
+				renderCurves(diam, (nLights>0), 0, maxPoints-1, 0, constColors);
 			
 			} else { //render as cylinders
 				//Determine cylinder radius in actual coords.
@@ -150,12 +164,12 @@ void FlowRenderer::paintGL()
 				//Note that lastDisplayFrame is maxPoints -1
 				//and firstDisplayFrame is 0
 				//
-				renderTubes(rad, (nLights > 0), 0, maxPoints-1, flowDataArray);
+				renderTubes(rad, (nLights > 0), 0, maxPoints-1, 0,constColors);
 				
 			}
 		} else { //rendering points (or arrows?)
 			//just convert the flow data to a set of points..
-			renderPoints(diam, 0, maxPoints-1, flowDataArray);
+			renderPoints(diam, 0, maxPoints-1, 0, constColors);
 		}
 	} else { //unsteady flow:
 		//Determine first and last seeding that is visible.
@@ -206,9 +220,9 @@ void FlowRenderer::paintGL()
 			
 			if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 					
-				if (diam <= 1.f){//Render as lines, not cylinders
+				if (diam < 0.5f){//Render as lines, not cylinders
 					renderCurves(diam, (nLights>0), firstGeom, lastGeom,
-						flowDataArray+3*maxPoints*numSeedPoints*(injectionNum-1));
+						maxPoints*numSeedPoints*(injectionNum-1),constColors);
 				
 				} else { //render as cylinders
 					//Determine cylinder radius in actual coords.
@@ -219,18 +233,19 @@ void FlowRenderer::paintGL()
 					glPolygonMode(GL_FRONT, GL_FILL);
 					//Render all tubes
 					renderTubes(rad, (nLights > 0), firstGeom, lastGeom,
-						flowDataArray+3*maxPoints*numSeedPoints*(injectionNum-1));
+						maxPoints*numSeedPoints*(injectionNum-1), constColors);
 					
 				}
 			} else { //rendering points (or arrows?)
 				//just convert the flow data to a set of points..
 				renderPoints(diam, firstGeom, lastGeom,
-						flowDataArray+3*maxPoints*numSeedPoints*(injectionNum-1));
+						maxPoints*numSeedPoints*(injectionNum-1), constColors);
 			}
 		}
 	}
 
 	glDisable(GL_LIGHTING);
+	glDisable(GL_BLEND);
 	glPopMatrix();
 }
 
@@ -247,7 +262,7 @@ void FlowRenderer::initializeGL()
 }
 //  Issue OpenGL calls for point list
 void FlowRenderer::
-renderPoints(float radius, int firstAge, int lastAge, float* data){
+renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool constMap){
 	
 	//just convert the flow data to a set of points..
 	glPointSize(radius);
@@ -256,9 +271,13 @@ renderPoints(float radius, int firstAge, int lastAge, float* data){
 	for (int i = 0; i< numSeedPoints; i++){
 		
 		for (int j = firstAge; j<=lastAge; j++){
-			float* point = data+ 3*(j+ maxPoints*i);
+			float* point = flowDataArray+ 3*(startIndex+j+ maxPoints*i);
 			if (*point == END_FLOW_FLAG) break;
-			qWarning("point is %f %f %f", *point, *(point+1), *(point+2));
+			//qWarning("point is %f %f %f", *point, *(point+1), *(point+2));
+			if (!constMap){
+				float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
+				glColor4fv(rgba);
+			}
 			glVertex3fv(point);
 		}	
 	}
@@ -267,7 +286,7 @@ renderPoints(float radius, int firstAge, int lastAge, float* data){
 }
 //  Issue OpenGL calls for a set of lines associated with a number of seed points.
 void FlowRenderer::
-renderCurves(float radius, bool isLit, int firstAge, int lastAge, float* data){
+renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap){
 	float dirVec[3];
 	float testVec[3];
 	float normVec[3];
@@ -282,7 +301,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, float* data){
 			for (int j = firstAge; j<=lastAge; j++){
 				//For each point after first, calc vector from prev vector to this one
 				//then calculate corresponding normal
-				float* point = data+ 3*(j+ maxPoints*i);
+				float* point = flowDataArray + 3*(startIndex+ j+ maxPoints*i);
 				if (*point == END_FLOW_FLAG) break;
 				if (j > firstAge){
 					vsub(point, point-3, dirVec);
@@ -303,6 +322,10 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, float* data){
 					} 
 					glNormal3fv(normVec);
 				}
+				if (!constMap){
+					float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
+					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
+				}
 				glVertex3fv(point);
 			}
 			glEnd();
@@ -313,9 +336,13 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, float* data){
 		for (int i = 0; i< numSeedPoints; i++){
 			glBegin (GL_LINE_STRIP);
 			for (int j = firstAge; j<=lastAge; j++){
-				float* point = data+ 3*(j+ maxPoints*i);
+				float* point = flowDataArray +  3*(startIndex+ j+ maxPoints*i);
 				if (*point == END_FLOW_FLAG) break;
 				glVertex3fv(point);
+				if (!constMap){
+					float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
+					glColor4fv(rgba);
+				}
 			}
 			glEnd();
 		}
@@ -326,7 +353,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, float* data){
 //  tubeNum specifies which tube in the flowdata array to render
 //
 void FlowRenderer::
-renderTubes(float radius, bool /*isLit*/, int firstAge, int lastAge, float* data){
+renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap ){
 	//Constants are needed for cosines and sines, at 60 degree intervals
 	const float sines[6] = {0.f, sqrt(3.)/2., sqrt(3.)/2., 0.f, -sqrt(3.)/2., -sqrt(3.)/2.};
 	const float coses[6] = {1.f, 0.5, -0.5, -1., -.5, 0.5};
@@ -351,13 +378,13 @@ renderTubes(float radius, bool /*isLit*/, int firstAge, int lastAge, float* data
 	if (firstAge >= lastAge) return;
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
 		//Need at least two points to do anything:
-		if ((*(data + 3*tubeNum*maxPoints) == END_FLOW_FLAG) ||
-			(*(data + 3*(tubeNum*maxPoints+1)) == END_FLOW_FLAG)) continue;
+		if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints)) == END_FLOW_FLAG) ||
+			(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) == END_FLOW_FLAG) continue;
 		
-		int tubeStartIndex = 3*(tubeNum*maxPoints+firstAge);
+		int tubeStartIndex = 3*(startIndex + tubeNum*maxPoints+firstAge);
 		//data point is three floats starting at data[tubeStartIndex]
 		//evenA is the direction the line is pointing
-		vsub(data+(tubeStartIndex+3), data+tubeStartIndex, evenA);
+		vsub(flowDataArray+(tubeStartIndex+3), flowDataArray+tubeStartIndex, evenA);
 		//Normalize evenA
 		len = vdot(evenA,evenA);
 		if (len == 0.f){//If 2nd is same as first set default normal
@@ -387,9 +414,16 @@ renderTubes(float radius, bool /*isLit*/, int firstAge, int lastAge, float* data
 			//Calc outward normal as a sideEffect..
 			vadd(testVec, testVec2, evenNormal+3*i);
 			vmult(evenNormal+3*i, radius, evenVertex+3*i);
-			vadd(evenVertex+3*i, data+tubeStartIndex, evenVertex+3*i);
+			vadd(evenVertex+3*i, flowDataArray+tubeStartIndex, evenVertex+3*i);
 		}
 		//Draw an end-cap on the cylinder:
+		if (!constMap){
+			float* rgba = flowRGBAs + 4*(startIndex + tubeNum*maxPoints+firstAge);
+			if(isLit)
+				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
+			else
+				glColor4fv(rgba);
+		}
 		glBegin(GL_POLYGON);
 		glNormal3fv(evenA);
 		for (int k = 0; k<6; k++){
@@ -408,11 +442,12 @@ renderTubes(float radius, bool /*isLit*/, int firstAge, int lastAge, float* data
 		float* currentNormal;
 		float* prevVertex;
 		float* prevNormal;
+		float* prevRGBA, *nextRGBA;
 
 
 
 		for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
-			float* point = data+3*(tubeNum*maxPoints+pointNum);
+			float* point = flowDataArray+3*(startIndex+tubeNum*maxPoints+pointNum);
 			if (*point == END_FLOW_FLAG) break;
 			//Toggle the meaning of "current" and "prev"
 			if (0 == (pointNum - firstAge)%2) {
@@ -487,26 +522,71 @@ renderTubes(float radius, bool /*isLit*/, int firstAge, int lastAge, float* data
 					//currentVertex[3*i],currentVertex[3*i+1],currentVertex[3*i+2],
 					//currentNormal[3*i],currentNormal[3*i+1],currentNormal[3*i+2]);
 			}
-
+			
+			if (!constMap){
+				prevRGBA = flowRGBAs + 4*(startIndex+tubeNum*maxPoints+pointNum-1);
+				nextRGBA = flowRGBAs + 4*(startIndex+tubeNum*maxPoints+pointNum);
+			}
+			
+				
+		
 			//Now make a triangle strip:
 			glBegin(GL_TRIANGLE_STRIP);
-			for (int i = 0; i< 6; i++){
-				glNormal3fv(currentNormal+3*i);
-				glVertex3fv(currentVertex+3*i);
-				glNormal3fv(prevNormal+3*i);
-				glVertex3fv(prevVertex+3*i);
+			if (constMap){
+				for (int i = 0; i< 6; i++){
+
+					glNormal3fv(currentNormal+3*i);
+					glVertex3fv(currentVertex+3*i);
+					glNormal3fv(prevNormal+3*i);
+					glVertex3fv(prevVertex+3*i);
+				}
+				//repeat first two vertices to close cylinder:
+				glNormal3fv(currentNormal);
+				glVertex3fv(currentVertex);
+				glNormal3fv(prevNormal);
+				glVertex3fv(prevVertex);
+			} else if (isLit){
+				for (int i = 0; i< 6; i++){
+					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
+					glNormal3fv(currentNormal+3*i);
+					glVertex3fv(currentVertex+3*i);
+					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
+					glNormal3fv(prevNormal+3*i);
+					glVertex3fv(prevVertex+3*i);
+				}
+				//repeat first two vertices to close cylinder:
+				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
+				glNormal3fv(currentNormal);
+				glVertex3fv(currentVertex);
+				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
+				glNormal3fv(prevNormal);
+				glVertex3fv(prevVertex);
+			} else {//unlit, mapped
+				for (int i = 0; i< 6; i++){
+					glColor4fv(nextRGBA);
+					glVertex3fv(currentVertex+3*i);
+					glColor4fv(prevRGBA);
+					glVertex3fv(prevVertex+3*i);
+				}
+				//repeat first two vertices to close cylinder:
+				glColor4fv(nextRGBA);
+				glVertex3fv(currentVertex);
+				glColor4fv(prevRGBA);
+				glVertex3fv(prevVertex);
 			}
-			//repeat first two vertices to close cylinder:
-			glNormal3fv(currentNormal);
-			glVertex3fv(currentVertex);
-			glNormal3fv(prevNormal);
-			glVertex3fv(prevVertex);
 			glEnd();
 		}
 		//Draw an end-cap on the cylinder:
+		
+		if (!constMap){
+			if(isLit)
+				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
+			else
+				glColor4fv(nextRGBA);
+		}
 		glBegin(GL_POLYGON);
 		glNormal3fv(currentA);
-		for (int ka = 0; ka<6; ka++){
+		for (int ka = 5; ka>=0; ka--){
 			glVertex3fv(currentVertex+3*ka);
 		}
 		glEnd();

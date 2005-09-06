@@ -466,10 +466,12 @@ mouseNavigateStart(QMouseEvent* e){
 	//Decide if we are navigating in color or opacity:
 	if (e->y() >= (height() - COLORBARWIDTH - COORDMARGIN - SLIDERWIDTH - SEPARATOR/2)){			
 		editor->setColorDragStart(e->x(), e->y());
+		editor->setColorNavigateGrab();
 	} else {
 		editor->setOpacDragStart(e->x(), e->y());
+		editor->setOpacNavigateGrab();
 	}
-	editor->setNavigateGrab();
+	
 	amDragging = false;
 	dragType = 1;
 	return;
@@ -638,14 +640,14 @@ newOpac(int code){
 
 void FlowMapFrame::
 adjColor(int indx){
-	//ColorAdjustDialog* dlg = new ColorAdjustDialog(this, indx);
-	//if(dlg->exec()) update();
-	//delete dlg;
+	ColorAdjustDialog* dlg = new ColorAdjustDialog(this, editor, indx);
+	if(dlg->exec()) update();
+	delete dlg;
 }
 
 void FlowMapFrame::
 adjOpac(int indx){
-	//OpacAdjustDialog* dlg = new OpacAdjustDialog(this, indx);
-	//if(dlg->exec()) update();
-	//delete dlg;
+	OpacAdjustDialog* dlg = new OpacAdjustDialog(this, editor, indx);
+	if(dlg->exec()) update();
+	delete dlg;
 }

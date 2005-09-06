@@ -29,7 +29,7 @@
 #include <qvalidator.h>
 #include "tfframe.h"
 #include "tfeditor.h"
-#include "transferfunction.h"
+#include "mapperfunction.h"
 #include <qcolordialog.h>
 using namespace VAPoR;
 /*
@@ -39,16 +39,16 @@ using namespace VAPoR;
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  TRUE to construct a modal dialog.
  */
-ColorAdjustDialog::ColorAdjustDialog( TFFrame* parent, int index, const char* name, bool modal, WFlags fl )
+ColorAdjustDialog::ColorAdjustDialog( QFrame* parent, MapEditor* ed, int index, const char* name, bool modal, WFlags fl )
     : QDialog( parent, name, modal, fl )
 {
 	//Get values from parent:
-	tfe = parent->getEditor();
+	tfe = ed;
 	pointIndex = index;
 	
-	newPoint = tfe->getTransferFunction()->colorCtrlPointPosition(index);
-    newRGB = tfe->getTransferFunction()->getControlPointRGB(index);
-	newXInt = tfe->getTransferFunction()->mapFloatToIndex(newPoint);
+	newPoint = tfe->getMapperFunction()->colorCtrlPointPosition(index);
+    newRGB = tfe->getMapperFunction()->getControlPointRGB(index);
+	newXInt = tfe->getMapperFunction()->mapFloatToColorIndex(newPoint);
 	changed = false;
 	pointModified = false;
 	changingFloat = false;
@@ -175,8 +175,8 @@ void ColorAdjustDialog::
 finalize(){
 	if (!changed ) accept();
 	if (pointModified) pointChanged();
-	tfe->getTransferFunction()->moveColorControlPoint(pointIndex, newPoint);
-	tfe->getTransferFunction()->setControlPointRGB(pointIndex,newRGB);
+	tfe->getMapperFunction()->moveColorControlPoint(pointIndex, newPoint);
+	tfe->getMapperFunction()->setControlPointRGB(pointIndex,newRGB);
 	tfe->setDirty();
 	accept();
 }
@@ -185,19 +185,19 @@ void ColorAdjustDialog::
 pointChanged(){
 	bool fixed = false;
 	float pt = xValueEdit->text().toFloat();
-	float minVal = tfe->getTransferFunction()->getMinMapValue();
+	float minVal = tfe->getMapperFunction()->getMinColorMapValue();
 	if(pt < minVal) {
 		fixed = true;
 		pt = minVal;
 	}
-	float maxVal = tfe->getTransferFunction()->getMaxMapValue();
+	float maxVal = tfe->getMapperFunction()->getMaxColorMapValue();
 	if(pt >maxVal) {
 		fixed = true;
 		pt = maxVal;
 	}
 	if (fixed) xValueEdit->setText(QString::number(pt));
 	newPoint = pt;
-	int tempInt = tfe->getTransferFunction()->mapFloatToIndex(newPoint);
+	int tempInt = tfe->getMapperFunction()->mapFloatToColorIndex(newPoint);
 	changingFloat = true;
 	mapValueEdit->setText(QString::number(tempInt));
 	changingFloat = false;
@@ -212,7 +212,7 @@ mapValueChanged(const QString& qs){
 		//Don't propagate a change that came
 		//from the valueEdit
 		if (!changingFloat){
-			newPoint = tfe->getTransferFunction()->mapIndexToFloat(newXInt);
+			newPoint = tfe->getMapperFunction()->mapColorIndexToFloat(newXInt);
 			xValueEdit->setText(QString::number(newPoint));
 		}
 		changed = true;

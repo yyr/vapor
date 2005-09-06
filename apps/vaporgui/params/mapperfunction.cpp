@@ -572,7 +572,13 @@ opacityValue(float point){
 	if (ratio < 0.f || ratio > 1.f) return 0.f;
 	return TFInterpolator::interpolate(opacInterp[index], opac[index], opac[index+1], ratio);
 }
-
+void MapperFunction::
+mapPointToRGBA(float point, float* rgba){
+	float hsv[3];
+	hsvValue(point, hsv, hsv+1,hsv+2);
+	hsvToRgb(hsv, rgba);
+	rgba[3] = opacityValue(point);
+}
 
 void MapperFunction::
 hsvValue(float point, float*h, float*s, float*v){
@@ -653,4 +659,10 @@ getControlPointRGB(int index){
 	return qRgb((int)(rgb[0]*255.999f),(int)(rgb[1]*255.999f),(int)(rgb[2]*255.999f));
 }
 	
+void MapperFunction::
+setOpaque(){
+	for (int i = 0; i<numOpacControlPoints; i++){
+		opac[i] = 1.f;
+	}
+}
 

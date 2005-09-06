@@ -33,6 +33,7 @@ class Session;
 class TFELocationTip;
 class FlowParams;
 
+
 class FlowMapEditor : public MapEditor {
 public:
 	FlowMapEditor(MapperFunction* TF, FlowMapFrame*);
@@ -40,14 +41,7 @@ public:
 	//Reset to default state, e.g. when loading new TF:
 	//
 	void reset();
-	void setColorEditingRange(float minVal, float maxVal){
-		setMinColorEditValue(minVal);
-		setMaxColorEditValue(maxVal);
-	}
-	void setOpacEditingRange(float minVal, float maxVal){
-		setMinOpacEditValue(minVal);
-		setMaxOpacEditValue(maxVal);
-	}
+	
 	
 	void refreshImage();
 	QImage* getImage(){
@@ -126,7 +120,8 @@ public:
 	void addLeftOpacDomainGrab() {grabbedState = leftOpacDomainGrab;}
 	void addRightOpacDomainGrab() {grabbedState = rightOpacDomainGrab;}
 	void addFullOpacDomainGrab() {grabbedState = fullOpacDomainGrab;}
-	void setNavigateGrab() { grabbedState = navigateGrab;}
+	void setColorNavigateGrab() { grabbedState = colorNavigateGrab;}
+	void setOpacNavigateGrab() { grabbedState = opacNavigateGrab;}
 	
 
 	int numColorSelected() { return numColorSelect;}
@@ -141,6 +136,9 @@ public:
 	bool leftColorDomainGrabbed() {return grabbedState & leftColorDomainGrab;}
 	bool rightColorDomainGrabbed() {return grabbedState & rightColorDomainGrab;}
 	bool fullColorDomainGrabbed() {return grabbedState & fullColorDomainGrab;}
+	bool colorNavigateGrabbed(){return grabbedState & colorNavigateGrab;}
+	bool opacNavigateGrabbed(){return grabbedState & opacNavigateGrab;}
+
 	bool canBind() {return (numColorSelected()==1 && numOpacSelected()==1);}
 	void bindOpacToColor(); 
 	void bindColorToOpac();
@@ -198,7 +196,8 @@ protected:
 		rightColorDomainGrab = 512,
 		fullColorDomainGrab = 1024,
 		colorDomainGrab = 1792, //or of all opac domain grab types
-		navigateGrab = 2048
+		colorNavigateGrab = 2048,
+		opacNavigateGrab = 4096
 	};
 	
 	unsigned int grabbedState;

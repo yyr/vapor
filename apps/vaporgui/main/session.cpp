@@ -931,6 +931,12 @@ DataStatus::
 	if (dataPresent) delete dataPresent;
 	if (dataRange) delete [] dataRange;
 }
-
+int DataStatus::
+getFirstTimestep(int varnum){
+	for (int i = 0; i< numTimesteps; i++){
+		if(dataIsPresent(varnum,i)) return i;
+	}
+	return -1;
+}
 		
 

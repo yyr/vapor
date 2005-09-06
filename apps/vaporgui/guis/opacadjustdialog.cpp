@@ -27,9 +27,9 @@
 #include <qtooltip.h>
 #include <qwhatsthis.h>
 #include <qvalidator.h>
-#include "tfframe.h"
-#include "tfeditor.h"
-#include "transferfunction.h"
+#include <qframe.h>
+#include "mapeditor.h"
+#include "mapperfunction.h"
 
 using namespace VAPoR;
 /*
@@ -39,16 +39,16 @@ using namespace VAPoR;
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  TRUE to construct a modal dialog.
  */
-OpacAdjustDialog::OpacAdjustDialog( TFFrame* parent, int index, const char* name, bool modal, WFlags fl )
+OpacAdjustDialog::OpacAdjustDialog( QFrame* parent, MapEditor* ed, int index, const char* name, bool modal, WFlags fl )
     : QDialog( parent, name, modal, fl )
 {
-	//Get values from parent:
-	tfe = parent->getEditor();
+	
+	tfe = ed;
 	pointIndex = index;
 	
-	newPoint = tfe->getTransferFunction()->opacCtrlPointPosition(index);
-    newOpac = tfe->getTransferFunction()->controlPointOpacity(index);
-	newXInt = tfe->getTransferFunction()->mapFloatToIndex(newPoint);
+	newPoint = tfe->getMapperFunction()->opacCtrlPointPosition(index);
+    newOpac = tfe->getMapperFunction()->controlPointOpacity(index);
+	newXInt = tfe->getMapperFunction()->mapFloatToOpacIndex(newPoint);
 	changed = false;
 	pointModified = false;
 	changingFloat = false;
@@ -172,7 +172,7 @@ void OpacAdjustDialog::
 finalize(){
 	if (!changed ) accept();
 	if (pointModified) pointChanged();
-	tfe->getTransferFunction()->moveOpacControlPoint(pointIndex, newPoint, newOpac);
+	tfe->getMapperFunction()->moveOpacControlPoint(pointIndex, newPoint, newOpac);
 	tfe->setDirty();
 	accept();
 }
@@ -182,19 +182,19 @@ void OpacAdjustDialog::
 pointChanged(){
 	bool fixed = false;
 	float pt = xValueEdit->text().toFloat();
-	float minVal = tfe->getTransferFunction()->getMinMapValue();
+	float minVal = tfe->getMapperFunction()->getMinOpacMapValue();
 	if(pt < minVal) {
 		fixed = true;
 		pt = minVal;
 	}
-	float maxVal = tfe->getTransferFunction()->getMaxMapValue();
+	float maxVal = tfe->getMapperFunction()->getMaxOpacMapValue();
 	if(pt >maxVal) {
 		fixed = true;
 		pt = maxVal;
 	}
 	if (fixed) xValueEdit->setText(QString::number(pt));
 	newPoint = pt;
-	int tempInt = tfe->getTransferFunction()->mapFloatToIndex(newPoint);
+	int tempInt = tfe->getMapperFunction()->mapFloatToOpacIndex(newPoint);
 	changingFloat = true;
 	mapValueEdit->setText(QString::number(tempInt));
 	changingFloat = false;
@@ -220,7 +220,7 @@ mapValueChanged(const QString& qs){
 		//from the valueEdit
 		//
 		if (!changingFloat){
-			newPoint = tfe->getTransferFunction()->mapIndexToFloat(newXInt);
+			newPoint = tfe->getMapperFunction()->mapOpacIndexToFloat(newXInt);
 			xValueEdit->setText(QString::number(newPoint));
 		}
 		changed = true;

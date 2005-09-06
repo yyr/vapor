@@ -53,9 +53,9 @@
 #include "flowmapframe.h"
 //Step sizes for integration accuracy:
 #define SMALLEST_MIN_STEP 0.25f
-#define LARGEST_MIN_STEP 10.f
+#define LARGEST_MIN_STEP 4.f
 #define SMALLEST_MAX_STEP 2.f
-#define LARGEST_MAX_STEP 25.f
+#define LARGEST_MAX_STEP 10.f
 using namespace VAPoR;
 	const string FlowParams::_seedingTag = "FlowSeeding";
 	const string FlowParams::_seedRegionMinAttr = "SeedRegionMins";
@@ -133,14 +133,14 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	objectsPerTimestep = 1.f;
 
 	shapeDiameter = 0.f;
-	colorMapEntityIndex = 0; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
+	
 
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Age");
 	colorMapEntity.push_back("Speed");
 	opacMapEntity.clear();
-	opacMapEntityIndex = 0;
+	
 	opacMapEntity.push_back("Constant");
 	opacMapEntity.push_back("Age");
 	opacMapEntity.push_back("Speed");
@@ -159,6 +159,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	flowMapEditor = 0;
 	//Set up flow data cache:
 	flowData = 0;
+	flowRGBAs = 0;
 	
 	
 	numSeedPoints = 1;
@@ -170,6 +171,8 @@ FlowParams::~FlowParams(){
 	if (mapperFunction){
 		delete mapperFunction;//this will delete the editor
 	}
+	if (flowRGBAs) delete flowRGBAs;
+	if (flowData) delete flowData;
 }
 
 //Make a copy of  parameters:
@@ -197,7 +200,9 @@ deepCopy(){
 	} else {
 		newFlowParams->mapperFunction = 0;
 	}
-	
+	//Don't copy flow data pointers (not that deep!)
+	newFlowParams->flowRGBAs = 0;
+	newFlowParams->flowData = 0;
 
 	//never keep the SavedCommand:
 	newFlowParams->savedCommand = 0;
@@ -292,8 +297,8 @@ void FlowParams::updateDialog(){
 	//Geometric parameters:
 	myFlowTab->geometryCombo->setCurrentItem(geometryType);
 	
-	myFlowTab->colormapEntityCombo->setCurrentItem(colorMapEntityIndex);
-	myFlowTab->opacmapEntityCombo->setCurrentItem(opacMapEntityIndex);
+	myFlowTab->colormapEntityCombo->setCurrentItem(getColorMapEntityIndex());
+	myFlowTab->opacmapEntityCombo->setCurrentItem(getOpacMapEntityIndex());
 	if (isLocal())
 		myFlowTab->LocalGlobal->setCurrentItem(1);
 	else 
@@ -428,14 +433,14 @@ updatePanelState(){
 	}
 	float colorMapMin = myFlowTab->minColormapEdit->text().toFloat();
 	float colorMapMax = myFlowTab->maxColormapEdit->text().toFloat();
-	if (colorMapMin > colorMapMax){
-		colorMapMax = colorMapMin;
+	if (colorMapMin >= colorMapMax){
+		colorMapMax = colorMapMin+1.e-6;
 		myFlowTab->maxColormapEdit->setText(QString::number(colorMapMax));
 	}
 	float opacMapMin = myFlowTab->minOpacmapEdit->text().toFloat();
 	float opacMapMax = myFlowTab->maxOpacmapEdit->text().toFloat();
-	if (opacMapMin > opacMapMax){
-		opacMapMax = opacMapMin;
+	if (opacMapMin >= opacMapMax){
+		opacMapMax = opacMapMin+1.e-6;
 		myFlowTab->maxOpacmapEdit->setText(QString::number(opacMapMax));
 	}
 	if (mapperFunction){
@@ -444,9 +449,9 @@ updatePanelState(){
 		mapperFunction->setMaxOpacMapValue(opacMapMax);
 		mapperFunction->setMinOpacMapValue(opacMapMin);
 	}
-
+	getFlowMapEditor()->setDirty();
+	myFlowTab->flowMapFrame->update();
 	guiSetTextChanged(false);
-	myFlowTab->update();
 	setDirty();
 	
 }
@@ -528,11 +533,11 @@ reinit(bool doOverride){
 	for (i = 0; i< (int)colorMapEntity.size(); i++){
 		myFlowTab->opacmapEntityCombo->insertItem(QString(opacMapEntity[i].c_str()));
 	}
-	if(doOverride || opacMapEntityIndex >= newNumVariables+3){
-		opacMapEntityIndex = 0;
+	if(doOverride || getOpacMapEntityIndex() >= newNumVariables+3){
+		setOpacMapEntity(0);
 	}
-	if(doOverride || colorMapEntityIndex >= newNumVariables+3){
-		colorMapEntityIndex = 0;
+	if(doOverride || getColorMapEntityIndex() >= newNumVariables+3){
+		setColorMapEntity(0);
 	}
 	if (doOverride){
 		varNum[0] = 0; varNum[1] = 1; varNum[2] = 2;
@@ -557,6 +562,8 @@ reinit(bool doOverride){
 	}
 	//For now, assume 8-bits mapping
 	MapperFunction* newMapperFunction = new MapperFunction(this, 8);
+	//Initialize to be fully opaque:
+	newMapperFunction->setOpaque();
 	//The edit and tf bounds need to be set up with const, speed, etc in mind.
 	FlowMapEditor* newFlowMapEditor = new FlowMapEditor(newMapperFunction, myFlowTab->flowMapFrame);
 	connectMapperFunction(newMapperFunction, newFlowMapEditor);
@@ -992,10 +999,10 @@ void FlowParams::
 guiSetAligned(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "align map function in edit frame");
-	setMinColorEditBound(getMinColorMapBound(),colorMapEntityIndex);
-	setMaxColorEditBound(getMaxColorMapBound(),colorMapEntityIndex);
-	setMinOpacEditBound(getMinOpacMapBound(),opacMapEntityIndex);
-	setMaxOpacEditBound(getMaxOpacMapBound(),opacMapEntityIndex);
+	setMinColorEditBound(getMinColorMapBound(),getColorMapEntityIndex());
+	setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
+	setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
+	setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
 	getFlowMapEditor()->setDirty();
 	myFlowTab->flowMapFrame->update();
 	PanelCommand::captureEnd(cmd, this);
@@ -1137,7 +1144,7 @@ setEnabled(bool on){
 }
 
 float* FlowParams::
-regenerateFlowData(float** speeds){
+regenerateFlowData(){
 	int i;
 	int min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
@@ -1145,8 +1152,7 @@ regenerateFlowData(float** speeds){
 	float minFull[3], maxFull[3], extents[6];
 	if (!myFlowLib) return 0;
 	if (flowData) delete flowData;
-	float* flowSpeeds = 0;
-	*speeds = flowSpeeds;
+	float* speeds = 0;
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//specify field components:
 	const char* xVar = variableNames[varNum[0]].c_str();
@@ -1184,13 +1190,11 @@ regenerateFlowData(float** speeds){
 		numSeedPoints = generatorCount[0]*generatorCount[1]*generatorCount[2];
 	}
 	// setup integration parameters:
-	//float minIntegStep = (1.f - integrationAccuracy)* 5.f;//go from 0 to 5
-	//float maxIntegStep = 3.f*minIntegStep;
+	
 	float minIntegStep = SMALLEST_MIN_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MIN_STEP; 
 	float maxIntegStep = SMALLEST_MAX_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MAX_STEP; 
 	
-	//float minIntegStep =  2.25f  - 2.f*integrationAccuracy;  //Ranges between 0.25 and 2.25
-	//float maxIntegStep =  11.f - 10.f*integrationAccuracy;  //Ranges between 1.0 and 11.0
+	
 	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
@@ -1208,19 +1212,33 @@ regenerateFlowData(float** speeds){
 		maxPoints = (maxFrame - seedTimeStart+1)*objectsPerTimestep;
 	}
 	flowData = new float[3*maxPoints*numSeedPoints*numInjections];
-	if (colorMapEntityIndex == 2 || opacMapEntityIndex == 2){
-		//map speed, need to calculate it:
-		flowSpeeds = new float[maxPoints*numSeedPoints*numInjections];
+	if (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2){
+		//to map speed, need to calculate it:
+		speeds = new float[maxPoints*numSeedPoints*numInjections];
 	}
 
 	///call the flowlib
 	if (flowType == 0){ //steady
-		qWarning("generating stream lines, maxpoints = %d", maxPoints);
-		myFlowLib->GenStreamLines(flowData, maxPoints, randomSeed,flowSpeeds);
-		qWarning("finished generating stream lines");
+		
+		myFlowLib->GenStreamLines(flowData, maxPoints, randomSeed, speeds);
+		
 	} else {
-		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, flowSpeeds);
+		qWarning("generating streak lines, maxpoints = %d", maxPoints);
+		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
 	}
+	//Map colors and opacity?
+	if (flowRGBAs) {
+		delete flowRGBAs;
+		flowRGBAs = 0;
+	}
+		
+	if ((getColorMapEntityIndex() + getOpacMapEntityIndex()) > 0){
+		flowRGBAs = new float[maxPoints*numSeedPoints*numInjections*4];
+		mapColors(speeds);
+		//Now we can release the speeds:
+		if (speeds) delete speeds;
+	}
+
 	/*
 	//test stream code, not using flowlib:
 	if (flowType == 0){
@@ -1410,7 +1428,7 @@ buildNode() {
 	attrs[_shapeDiameterAttr] = oss.str();
 
 	oss.str(empty);
-	oss << colorMapEntity[colorMapEntityIndex];
+	oss << colorMapEntity[getColorMapEntityIndex()];
 	attrs[_colorMappedEntityAttr] = oss.str();
 	oss.str(empty);
 	oss << (long)numControlPoints;
@@ -1543,7 +1561,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				ist >> shapeDiameter;
 			}
 			else if (StrCmpNoCase(attribName, _colorMappedEntityAttr) == 0) {
-				ist >> colorMapEntityIndex;
+				int indx;
+				ist >> indx;
+				setColorMapEntity(indx);
 			}
 			else if (StrCmpNoCase(attribName, _numControlPointsAttr) == 0) {
 				ist >> numControlPoints;
@@ -1614,8 +1634,8 @@ connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
 	tfe->setFrame((QFrame*)(myFlowTab->flowMapFrame));
 	tfe->setMapperFunction(tf);
 	tf->setParams(this);
-	tfe->setColorVarNum(colorMapEntityIndex);
-	tfe->setOpacVarNum(opacMapEntityIndex);
+	tfe->setColorVarNum(getColorMapEntityIndex());
+	tfe->setOpacVarNum(getOpacMapEntityIndex());
 }
 void FlowParams::
 setTab(FlowTab* tab) {
@@ -1661,4 +1681,149 @@ guiEndChangeMapFcn(){
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand,this);
 	savedCommand = 0;
+}
+//Generate a list of colors and opacities, one per (valid) vertex.
+//The number of points is maxPoints*numSeedings*numInjections
+//Note that, if a variable is mapped, only the first time step is used for
+//the mapping
+//
+void FlowParams::
+mapColors(float* speeds){
+	//Create lut based on current mapping data
+	float* lut = new float[256*4];
+	mapperFunction->makeLut(lut);
+	//Setup mapping
+	
+	float opacMin = mapperFunction->getMinOpacMapValue();
+	float colorMin = mapperFunction->getMinColorMapValue();
+	float opacMax = mapperFunction->getMaxOpacMapValue();
+	float colorMax = mapperFunction->getMaxColorMapValue();
+
+	float opacVar, colorVar;
+	float* opacRegion, *colorRegion;
+	float opacVarMin[3], opacVarMax[3], colorVarMin[3], colorVarMax[3];
+	int opacSize[3],colorSize[3];
+	DataStatus* ds = Session::getInstance()->getDataStatus();
+	//Get the variable (entire region) if needed
+	if (getOpacMapEntityIndex() > 3){
+		//set up args for GetRegion
+		int timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-3);
+		if (timeStep < 0) MessageReporter::errorMsg("No data for mapped variable");
+		size_t minSize[3];
+		size_t maxSize[3];
+		int bs = Session::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
+		for (int i = 0; i< 3; i++){
+			minSize[i] = 0;
+			opacSize[i] = (ds->getFullDataSize(i) >> numTransforms);
+			maxSize[i] = opacSize[i]/bs;
+			opacVarMin[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i];
+			opacVarMax[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i+3];
+		}
+		
+		opacRegion = Session::getInstance()->getDataMgr()->GetRegion((size_t)timeStep,
+			opacMapEntity[getOpacMapEntityIndex()].c_str(),
+			numTransforms, (size_t*) minSize, (size_t*) maxSize, 0);
+	}
+	if (getColorMapEntityIndex() > 3){
+		//set up args for GetRegion
+		int timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-3);
+		if (timeStep < 0) MessageReporter::errorMsg("No data for mapped variable");
+		size_t minSize[3];
+		size_t maxSize[3];
+		int bs = Session::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
+		for (int i = 0; i< 3; i++){
+			minSize[i] = 0;
+			colorSize[i] = (ds->getFullDataSize(i) >> numTransforms);
+			maxSize[i] = colorSize[i]/bs;
+			colorVarMin[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i];
+			colorVarMax[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i+3];
+		}
+		
+		colorRegion = Session::getInstance()->getDataMgr()->GetRegion((size_t)timeStep,
+			colorMapEntity[getColorMapEntityIndex()].c_str(),
+			numTransforms, (size_t*) minSize, (size_t*) maxSize, 0);
+
+	}
+	
+	//Cycle through all the points.  Map to rgba as we go.
+	//
+	for (int i = 0; i<numInjections; i++){
+		for (int j = 0; j<numSeedPoints; j++){
+			for (int k = 0; k<maxPoints; k++) {
+				//check for end of flow:
+				if (flowData[3*(k+ maxPoints*(j+ (numSeedPoints*i)))] == END_FLOW_FLAG)
+					break;
+				switch (getOpacMapEntityIndex()){
+					case (0): //constant
+						opacVar = 0.f;
+						break;
+					case (1): //age
+						opacVar = (float)k/(objectsPerTimestep);
+						break;
+					case (2): //speed
+						opacVar = speeds[(k+ maxPoints*(j+ (numSeedPoints*i)))];
+						break;
+					default : //variable
+						int x,y,z;
+						float* dataPoint = flowData+3*(k+ maxPoints*(j+ (numSeedPoints*i)));
+						x = (int)(dataPoint[0] - opacVarMin[0])*opacSize[0]/(opacVarMax[0]-opacVarMin[0]);
+						y = (int)(dataPoint[1] - opacVarMin[1])*opacSize[1]/(opacVarMax[1]-opacVarMin[1]);
+						z = (int)(dataPoint[2] - opacVarMin[2])*opacSize[2]/(opacVarMax[2]-opacVarMin[2]);
+						opacVar = opacRegion[x+opacSize[0]*(y+opacSize[1]*z)];
+						break;
+				}
+				int opacIndex = (int)((opacVar - opacMin)*255.99/(opacMax-opacMin));
+				if (opacIndex<0) opacIndex = 0;
+				if (opacIndex> 255) opacIndex =255;
+				//opacity = lut[3+4*opacIndex];
+				switch (getColorMapEntityIndex()){
+					case (0): //constant
+						colorVar = 0.f;
+						break;
+					case (1): //age
+						colorVar = (float)k/(objectsPerTimestep);
+						break;
+					case (2): //speed
+						colorVar = speeds[(k+ maxPoints*(j+ (numSeedPoints*i)))];
+						break;
+					default : //variable
+						int x,y,z;
+						float* dataPoint = flowData+3*(k+ maxPoints*(j+ (numSeedPoints*i)));
+						x = (int)(dataPoint[0] - colorVarMin[0])*colorSize[0]/(colorVarMax[0]-colorVarMin[0]);
+						y = (int)(dataPoint[1] - colorVarMin[1])*colorSize[1]/(colorVarMax[1]-colorVarMin[1]);
+						z = (int)(dataPoint[2] - colorVarMin[2])*colorSize[2]/(colorVarMax[2]-colorVarMin[2]);
+						colorVar = colorRegion[x+colorSize[0]*(y+colorSize[1]*z)];
+						break;
+				}
+				int colorIndex = (int)((colorVar - colorMin)*255.99/(colorMax-colorMin));
+				if (colorIndex<0) colorIndex = 0;
+				if (colorIndex> 255) colorIndex =255;
+				flowRGBAs[4*(k+ maxPoints*(j+ (numSeedPoints*i)))+3]= lut[3+4*opacIndex];
+				flowRGBAs[4*(k+ maxPoints*(j+ (numSeedPoints*i)))]= lut[4*colorIndex];
+				flowRGBAs[4*(k+ maxPoints*(j+ (numSeedPoints*i)))+1]= lut[4*colorIndex+1];
+				flowRGBAs[4*(k+ maxPoints*(j+ (numSeedPoints*i)))+2]= lut[4*colorIndex+2];
+			}
+		}
+	}
+}
+int FlowParams::
+getColorMapEntityIndex() {
+	if (!flowMapEditor) return 0;
+	return flowMapEditor->getColorVarNum();
+}
+
+int FlowParams::
+getOpacMapEntityIndex() {
+	if (!flowMapEditor) return 0;
+	return flowMapEditor->getOpacVarNum();
+}
+void FlowParams::
+setColorMapEntity( int entityNum){
+	if (!flowMapEditor) return;
+	flowMapEditor->setColorVarNum(entityNum);
+}
+void FlowParams::
+setOpacMapEntity( int entityNum){
+	if (!flowMapEditor) return;
+	flowMapEditor->setOpacVarNum(entityNum);
 }

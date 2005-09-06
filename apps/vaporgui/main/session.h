@@ -184,6 +184,8 @@ public:
 	int getNumVariables() {return numVariables;}
 	int getNumTimesteps() {return numTimesteps;}
 	int getNumTransforms() {return numTransforms;}
+	//Find the first timestep that has any data
+	int getFirstTimestep(int varnum);
 	size_t getFullDataSize(int dim){return fullDataSize[dim];}
 	float* getDataRange(int varNum){
 		return dataRange[varNum];

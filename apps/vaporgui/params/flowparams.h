@@ -28,10 +28,11 @@ class FlowTab;
 
 namespace VAPoR {
 class MapperFunction;
-class FlowMapEditor;
+
 class VaporFlow;
 class ExpatParseMgr;
 class MainForm;
+class FlowMapEditor;
 class FlowParams: public Params {
 	
 public: 
@@ -78,7 +79,9 @@ public:
 	int getNumGenerators(int dimNum) { return generatorCount[dimNum];}
 	int getTotalNumGenerators() { return allGeneratorCount;}
 	VaporFlow* getFlowLib(){return myFlowLib;}
-	float* regenerateFlowData(float** speeds);
+	float* regenerateFlowData();
+	//Get an array of rgba's (immediately after calling regenerateFlowData)
+	float* getRGBAs() {return flowRGBAs;}
 	
 	int getMinFrame() {return minFrame;}
 	int getMaxFrame() {return maxFrame;}
@@ -91,7 +94,8 @@ public:
 	int getLastSeeding() {return seedTimeEnd;}
 	int getSeedingIncrement() {return seedTimeIncrement;}
 	float getShapeDiameter() {return shapeDiameter;}
-	
+	int getColorMapEntityIndex() ;
+	int getOpacMapEntityIndex() ;
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 	float getObjectsPerTimestep() {return objectsPerTimestep;}
@@ -171,16 +175,17 @@ protected:
 	void setYSize(int sliderval);
 	void setZSize(int sliderval);
 	void setFlowGeometry(int geomNum){geometryType = geomNum;}
-	void setColorMapEntity( int entityNum){colorMapEntityIndex = entityNum;}
-	void setOpacMapEntity( int entityNum){opacMapEntityIndex = entityNum;}
-	int getColorMapEntityIndex() {return colorMapEntityIndex;}
-	int getOpacMapEntityIndex() {return opacMapEntityIndex;}
+	void setColorMapEntity( int entityNum);
+	void setOpacMapEntity( int entityNum);
+	
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);
 	//Methods to make sliders and text consistent for seed region:
 	void textToSlider(int coord, float center, float size);
 	void sliderToText(int coord, int center, int size);
-	FlowMapEditor* getFlowMapEditor() {return flowMapEditor;}
+	
+	void mapColors(float* speeds);
+
 	FlowTab* myFlowTab;
 	int flowType; //steady = 0, unsteady = 1;
 	int instance;
@@ -208,12 +213,12 @@ protected:
 	int firstDisplayFrame, lastDisplayFrame;
 	
 	float shapeDiameter;
-	int colorMapEntityIndex; //0 = constant, 1=age, 2 = speed, 3+varnum = variable
-	int opacMapEntityIndex;
+	
 	
 	PanelCommand* savedCommand;
 	MapperFunction* mapperFunction;
 	FlowMapEditor* flowMapEditor;
+	FlowMapEditor* getFlowMapEditor() {return flowMapEditor;}
 
 	int maxPoints;  //largest length of any flow
 	
@@ -226,8 +231,13 @@ protected:
 	
 	VaporFlow* myFlowLib;
 
-	//Arrays to hold all the points returned from flow lib
+	//Arrays to hold data associated with a flow.
+	//The flowData comes from the flowLib, potentially with speeds 
+	//These are mapped to flowRGBs and speeds are released
+	//after the data is obtained.
 	float* flowData;
+	float* flowRGBAs;
+
 	
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:

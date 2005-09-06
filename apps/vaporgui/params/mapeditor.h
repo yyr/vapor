@@ -75,16 +75,7 @@ public:
 	
 	//set to default state:
 	virtual void reset()=0;
-	void setColorEditingRange(float minVal, float maxVal){
-		getParams()->setMinColorEditBound(minVal, colorVarNum);
-		getParams()->setMaxColorEditBound(maxVal, colorVarNum);
-		setDirty();
-	}
-	void setOpacEditingRange(float minVal, float maxVal){
-		getParams()->setMinOpacEditBound(minVal,opacVarNum);
-		getParams()->setMaxOpacEditBound(maxVal,opacVarNum);
-		setDirty();
-	}
+	
 	//map window to variable, can go to any value
 	float mapColorWin2Var(int x);
 	float mapOpacWin2Var(int x);

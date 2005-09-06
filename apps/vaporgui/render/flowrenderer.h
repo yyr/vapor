@@ -38,20 +38,18 @@ public:
 
 protected:
 	float* flowDataArray;
+	float* flowRGBAs;
 	int maxPoints, firstDisplayFrame, lastDisplayFrame, numSeedPoints, numInjections;
 	
-	void renderTubes(float radius, bool isLit, int firstAge, int lastAge, float* data);
-	void renderCurves(float radius, bool isLit, int firstAge, int lastAge, float* data);
-	void renderPoints(float radius, int firstAge, int lastAge, float* data);
-	void mapColors(float opacInput, float colorInput, float* rgba);
+	void renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
+	void renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
+	void renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool constMap);
+	
 	float* getFlowPoint(int timeStep, int seedNum, int injectionNum){
 		assert ((3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)))<
 			3*maxPoints*numSeedPoints*numInjections );
 		return (flowDataArray+ 3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)));
 	}
-	//Color and opacity lookup tables:
-	float* clut;
-	float* olut;
 
 
 };

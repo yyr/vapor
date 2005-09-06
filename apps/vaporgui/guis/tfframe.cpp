@@ -627,14 +627,14 @@ newOpac(int code){
 
 void TFFrame::
 adjColor(int indx){
-	ColorAdjustDialog* dlg = new ColorAdjustDialog(this, indx);
+	ColorAdjustDialog* dlg = new ColorAdjustDialog(this, editor, indx);
 	if(dlg->exec()) update();
 	delete dlg;
 }
 
 void TFFrame::
 adjOpac(int indx){
-	OpacAdjustDialog* dlg = new OpacAdjustDialog(this, indx);
+	OpacAdjustDialog* dlg = new OpacAdjustDialog(this, editor, indx);
 	if(dlg->exec()) update();
 	delete dlg;
 }
