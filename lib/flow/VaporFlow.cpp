@@ -215,7 +215,7 @@ bool VaporFlow::GenStreamLines(float* positions,
 							   unsigned int randomSeed, 
 							   float* speeds)
 {
-	//first generate seeds
+	// first generate seeds
 	float* seedPtr;
 	int seedNum;
 	seedNum = numSeeds[0]*numSeeds[1]*numSeeds[2];
@@ -225,10 +225,12 @@ bool VaporFlow::GenStreamLines(float* positions,
 	delete pSeedGenerator;
 	
 	// scale animationTimeStep and userTimeStep
-	if(dataMgr->GetMetadata()->HasTSUserTime(1))
+	if(dataMgr->GetMetadata()->HasTSUserTime(startTimeStep))
 	{
-		userTimeStepSize = dataMgr->GetMetadata()->GetTSUserTime(1)[0]*userTimeStepMultiplier;
-		animationTimeStepSize = dataMgr->GetMetadata()->GetTSUserTime(1)[0]*animationTimeStepMultiplier;
+		double diff;
+		diff =  dataMgr->GetMetadata()->GetTSUserTime(startTimeStep+1)[0] - dataMgr->GetMetadata()->GetTSUserTime(startTimeStep)[0];
+		userTimeStepSize = diff*userTimeStepMultiplier;
+		animationTimeStepSize = diff*animationTimeStepMultiplier;
 	}
 	else
 	{
@@ -364,10 +366,17 @@ bool VaporFlow::GenStreakLines(float* positions,
 	memset(pointers, 0, sizeof(unsigned int)*seedNum*numInjections);
 	int index, iInjection = 0;
 	bool bInject;
+	double diff;
 	for(int iFor = realStartTime; iFor < realEndTime; iFor++)
 	{
-		index = iFor - realStartTime;
-		pSolution->SetTimeInc(1);
+		index = iFor - realStartTime;				// index to solution instance
+
+		// scale animationTimeStep and userTimeStep
+		if(dataMgr->GetMetadata()->HasTSUserTime(iFor))
+			diff = dataMgr->GetMetadata()->GetTSUserTime(iFor+1)[0] - dataMgr->GetMetadata()->GetTSUserTime(iFor)[0];
+		else
+			diff = 1.0;
+		pSolution->SetTimeInc((int)diff);
 		bInject = false;
 
 		// need get new data
