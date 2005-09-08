@@ -79,98 +79,12 @@ int vtCFieldLine::runge_kutta2(TIME_DIR time_dir, TIME_DEP time_dep,
 							   float* t, float dt)
 {
 	int istat;
-	istat = -1;
+	istat = OKAY;
 	return istat;
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Integrate along a field line using the 4th order Runge-Kutta method.
-// This routine is used for both steady and unsteady vector fields. 
-//////////////////////////////////////////////////////////////////////////
-int vtCFieldLine::runge_kutta4(TIME_DIR time_dir, TIME_DEP time_dep, 
-							   PointInfo& ci, 
-							   float* t,			// initial time
-							   float dt,			// stepsize
-							   float *diff)			
-{
-	int i, istat;
-	VECTOR3 pt0;
-	VECTOR3 vel;
-	VECTOR3 k1, k2, k3, k4;
-	VECTOR3 pt;
-	int fromCell;
-
-	pt = ci.phyCoord;
-	// 1st step of the Runge-Kutta scheme
-	istat = m_pField->at_phys(ci.fromCell, pt, ci, *t, vel);
-
-	if ( istat != 1 )
-		return( istat );
-
-	for( i=0; i<3; i++ )
-	{
-		pt0[i] = pt[i];
-		k1[i] = time_dir*dt*vel[i];
-		pt[i] = pt0[i]+k1[i]*(float)0.5;
-	}
-
-	// 2nd step of the Runge-Kutta scheme
-	fromCell = ci.inCell;
-	if ( time_dep  == UNSTEADY)
-		*t += (float)0.5*time_dir*dt;
-
-	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
-	if ( istat!= 1 )
-		return( istat );
-
-	for( i=0; i<3; i++ )
-	{
-		k2[i] = time_dir*dt*vel[i];
-		pt[i] = pt0[i]+k2[i]*(float)0.5;
-	}
-
-	// 3rd step of the Runge-Kutta scheme
-	fromCell = ci.inCell;
-	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
-	if ( istat != 1 )
-	{
-		return( istat );
-	}
-
-	for( i=0; i<3; i++ )
-	{
-		k3[i] = time_dir*dt*vel[i];
-		pt[i] = pt0[i]+k3[i];
-	}
-
-	//    4th step of the Runge-Kutta scheme
-	if ( time_dep  == UNSTEADY)
-		*t += (float)0.5*time_dir*dt;
-
-	fromCell = ci.inCell;
-	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
-	if ( istat != 1 )
-	{
-		return( istat );
-	}
-
-	for( i=0; i<3; i++ )
-	{
-		pt[i] = pt0[i]+(k1[i]+(float)2.0*(k2[i]+k3[i])+time_dir*dt*vel[i])/(float)6.0;
-		k4[i] = time_dir*dt*vel[i];
-	}
-	ci.phyCoord = pt;
-
-	istat = m_pField->at_phys(ci.fromCell, pt, ci, *t, vel);
-	*diff = (k4[0]-dt*time_dir*vel[0])*(k4[0]-dt*time_dir*vel[0]) + 
-		(k4[1]-dt*time_dir*vel[1])*(k4[1]-dt*time_dir*vel[1]) +
-		(k4[2]-dt*time_dir*vel[2])*(k4[2]-dt*time_dir*vel[2]);
-	*diff = sqrt(*diff);
-
-	return( istat );
-}
-
-int vtCFieldLine::runge_kutta4(TIME_DIR time_dir, TIME_DEP time_dep, 
+int vtCFieldLine::runge_kutta4(TIME_DIR time_dir, 
+							   TIME_DEP time_dep, 
 							   PointInfo& ci, 
 							   float* t,			// initial time
 							   float dt)			// stepsize
@@ -183,12 +97,11 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir, TIME_DEP time_dep,
 	int fromCell;
 
 	pt = ci.phyCoord;
+
 	// 1st step of the Runge-Kutta scheme
 	istat = m_pField->at_phys(ci.fromCell, pt, ci, *t, vel);
-
 	if ( istat != 1 )
-		return( istat );
-	
+		return OUT_OF_BOUND;
 	for( i=0; i<3; i++ )
 	{
 		pt0[i] = pt[i];
@@ -200,11 +113,12 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir, TIME_DEP time_dep,
 	fromCell = ci.inCell;
 	if ( time_dep  == UNSTEADY)
 		*t += (float)0.5*time_dir*dt;
-	
 	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
 	if ( istat!= 1 )
-		return( istat );
-	
+	{
+		ci.phyCoord = pt;
+		return OUT_OF_BOUND;
+	}
 	for( i=0; i<3; i++ )
 	{
 		k2[i] = time_dir*dt*vel[i];
@@ -216,9 +130,9 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir, TIME_DEP time_dep,
 	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
 	if ( istat != 1 )
 	{
-		return( istat );
+		ci.phyCoord = pt;
+		return OUT_OF_BOUND;
 	}
-
 	for( i=0; i<3; i++ )
 	{
 		k3[i] = time_dir*dt*vel[i];
@@ -228,21 +142,19 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir, TIME_DEP time_dep,
 	//    4th step of the Runge-Kutta scheme
 	if ( time_dep  == UNSTEADY)
 		*t += (float)0.5*time_dir*dt;
-	
 	fromCell = ci.inCell;
 	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
 	if ( istat != 1 )
 	{
-		return( istat );
+		ci.phyCoord = pt;
+		return OUT_OF_BOUND;
 	}
 
 	for( i=0; i<3; i++ )
-	{
 		pt[i] = pt0[i]+(k1[i]+(float)2.0*(k2[i]+k3[i])+time_dir*dt*vel[i])/(float)6.0;
-	}
 	ci.phyCoord = pt;
 
-	return( istat );
+	return istat;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -358,11 +270,13 @@ void vtCFieldLine::SampleFieldline(float* positions,
 								   vtListSeedTrace* seedTrace,
 								   list<float>* stepList,
 								   bool bRecordSeed,
+								   int traceState,
 								   float* speeds)
 {
 	list<VECTOR3*>::iterator pIter1;
 	list<VECTOR3*>::iterator pIter2;
 	list<float>::iterator pStepIter;
+	list<float>::iterator pStepIterEnd;
 	float stepsizeLeft;
 	int count;
 	unsigned int ptr;
@@ -411,7 +325,14 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	pIter2++;
 	pStepIter = stepList->begin();
 	stepsizeLeft = *pStepIter;
-	while((count < m_nMaxsize) && (pStepIter != stepList->end()))
+	if(traceState != OUT_OF_BOUND)
+		pStepIterEnd = stepList->end();
+	else
+	{
+		pStepIterEnd = stepList->end();
+		pStepIterEnd--;
+	}
+	while((count < m_nMaxsize) && (pStepIter != pStepIterEnd))
 	{
 		float ratio;
 		if(stepsizeLeft < (m_fSamplingRate-EPS))
@@ -455,7 +376,23 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	}
 
 	// if # of sampled points < maximal points asked
-	if(count < m_nMaxsize)
+	if((count < m_nMaxsize)&& (traceState == OUT_OF_BOUND))				// out of boundary
+	{
+	 	pIter1 = seedTrace->end();
+		pIter1--;
+		positions[ptr++] = (**pIter1)[0];
+		positions[ptr++] = (**pIter1)[1];
+		positions[ptr++] = (**pIter1)[2];
+		positions[ptr] = END_FLOW_FLAG;
+
+		if(speeds != NULL)
+		{
+			ptrSpeed = (ptr-3)/3;
+			speeds[ptrSpeed] = speeds[ptrSpeed-1];
+		}
+
+	}
+	else if(count < m_nMaxsize)
 		positions[ptr] = END_FLOW_FLAG;
 
 	posInPoints = ptr; 

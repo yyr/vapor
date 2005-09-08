@@ -66,7 +66,6 @@ void vtCStreakLine::computeStreakLine(const void* userData,
 
 	// how many particles alive from last time
 	numPreParticles = (int)m_itsParticles.size();
-
 #ifdef DEBUG
 	fprintf(fDebug, "**********************Advect Old Particles**************************\n");
 #endif
@@ -128,7 +127,7 @@ void vtCStreakLine::computeStreakLine(const void* userData,
 						nextP.m_pointInfo.phyCoord[2]);
 #endif
 
-				SampleFieldline(points, posInPoints, forwardTrace, stepList, true, speeds);	
+				SampleFieldline(points, posInPoints, forwardTrace, stepList, true, istat, speeds);	
 				if(points[posInPoints] == END_FLOW_FLAG)
 					pointers[iInjection*(int)m_lSeeds.size()+count] = posInPoints;
 
@@ -141,7 +140,7 @@ void vtCStreakLine::computeStreakLine(const void* userData,
 #endif
 
 				// for next timestep's advection
-				if(istat == 1)
+				if(istat == OKAY)
 				{
 					nextP.m_fStartTime = currentT;
 					nextP.ptId = iInjection*(int)m_lSeeds.size()+count;
@@ -212,7 +211,7 @@ void vtCStreakLine::advectOldParticles( vtListParticleIter start,
 				thisParticle->m_pointInfo.phyCoord[2]);
 #endif
 
-		SampleFieldline(points, posInPoints, forwardTrace, stepList, false, speeds);	
+		SampleFieldline(points, posInPoints, forwardTrace, stepList, false, istat, speeds);	
 		if(points[posInPoints] == END_FLOW_FLAG)
 			pointers[thisParticle->ptId] = posInPoints;
 
@@ -225,7 +224,7 @@ void vtCStreakLine::advectOldParticles( vtListParticleIter start,
 #endif
 
 		// for next timestep's advection
-		if(istat == 1)
+		if(istat == OKAY)
 			++pIter;
 		else				
 			deadList.push_back(pIter++);

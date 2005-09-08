@@ -28,6 +28,7 @@ enum INTEG_ORD{ SECOND = 2, FOURTH = 4};		// integration order
 enum TIME_DIR{ BACKWARD = -1, FORWARD = 1};		// advection direction
 enum TIME_DEP{ STEADY=0,UNSTEADY=1 };	
 enum TRACE_DIR{OFF=0, BACKWARD_DIR=1, FORWARD_DIR=2, BACKWARD_AND_FORWARD=3};
+enum ADVECT_STATUS{OUT_OF_BOUND = -1, CRITICAL_POINT = 0, OKAY = 1};
 
 //////////////////////////////////////////////////////////////////////////
 // information about particles
@@ -119,11 +120,22 @@ public:
 protected:
 	void releaseSeedMemory(void);
 	int euler_cauchy(TIME_DIR, TIME_DEP,float*, float);
-	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, float*, float, float*);
 	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, float*, float);
 	int runge_kutta2(TIME_DIR, TIME_DEP, PointInfo&, float*, float);
-	int adapt_step(const VECTOR3& p2, const VECTOR3& p1, const VECTOR3& p0, const float& minStepsize, const float& maxStepsize, float* dt, bool& bAdaptive);
-	void SampleFieldline(float*, unsigned int&, vtListSeedTrace*, list<float>*, bool bRecordSeed, float* speeds=0);
+	int adapt_step( const VECTOR3& p2, 
+					const VECTOR3& p1, 
+					const VECTOR3& p0, 
+					const float& minStepsize, 
+					const float& maxStepsize, 
+					float* dt, 
+					bool& bAdaptive);
+	void SampleFieldline(float* positions,
+						 unsigned int& posInPoints,
+						 vtListSeedTrace* seedTrace,
+						 list<float>* stepList,
+						 bool bRecordSeed,
+						 int traceState,
+						 float* speeds=0);
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -271,7 +283,7 @@ public:
 	
 protected:
 	void computeStreamLine(const void* userData, float* positions, float* speeds=0);
-	void computeFieldLine(TIME_DIR, INTEG_ORD, TIME_DEP, vtListSeedTrace&, list<float>&, PointInfo&);
+	int computeFieldLine(TIME_DIR, INTEG_ORD, TIME_DEP, vtListSeedTrace&, list<float>&, PointInfo&);
 
 	TRACE_DIR m_itsTraceDir;
 	float m_fCurrentTime;

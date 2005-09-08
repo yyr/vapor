@@ -122,6 +122,7 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 	vtListParticleIter sIter;
 	unsigned int posInPoints;			// used to record the current points usage
 	int count;
+	int istat;
 		
 	posInPoints = 0;
 	count = 0;
@@ -130,7 +131,7 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 		vtParticleInfo* thisSeed = *sIter;
 		posInPoints = count * m_nMaxsize * 3;
 		count++;
-
+	
 		if(thisSeed->itsValidFlag == 1)			// valid seed
 		{
 			if(m_itsTraceDir & BACKWARD_DIR)
@@ -139,8 +140,8 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				list<float>* stepList;
 				backTrace = new vtListSeedTrace;
 				stepList = new list<float>;
-				computeFieldLine(BACKWARD,m_integrationOrder, STEADY, *backTrace, *stepList, thisSeed->m_pointInfo);
-				SampleFieldline(points, posInPoints, backTrace, stepList, true, speeds);
+				istat = computeFieldLine(BACKWARD,m_integrationOrder, STEADY, *backTrace, *stepList, thisSeed->m_pointInfo);
+				SampleFieldline(points, posInPoints, backTrace, stepList, true, istat, speeds);
 				backTrace->clear();
 				stepList->clear();
 			}
@@ -150,8 +151,8 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				list<float>* stepList;
 				forwardTrace = new vtListSeedTrace;
 				stepList = new list<float>;
-				computeFieldLine(FORWARD,m_integrationOrder, STEADY, *forwardTrace, *stepList, thisSeed->m_pointInfo);
-				SampleFieldline(points, posInPoints, forwardTrace, stepList, true, speeds);
+				istat = computeFieldLine(FORWARD,m_integrationOrder, STEADY, *forwardTrace, *stepList, thisSeed->m_pointInfo);
+				SampleFieldline(points, posInPoints, forwardTrace, stepList, true, istat, speeds);
 				forwardTrace->clear();
 				stepList->clear();
 			}
@@ -160,14 +161,14 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 }
 
 
-void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
+int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 									 INTEG_ORD integ_ord,
 									 TIME_DEP time_dep, 
 									 vtListSeedTrace& seedTrace,
 									 list<float>& stepList,
 									 PointInfo& seedInfo)
 {
-	int istat, res;
+	int istat;
 	PointInfo thisParticle;
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
 	float dt, cell_volume, mag, curTime;
@@ -182,11 +183,11 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	seedTrace.push_back(new VECTOR3(seedInfo.phyCoord));
 	curTime = m_fCurrentTime;
 
-	res = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, m_fCurrentTime, vel);
-	if(res == -1)
-		return;
+	istat = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, m_fCurrentTime, vel);
+	if(istat == OUT_OF_BOUND)
+		return OUT_OF_BOUND;			// the advection is out of boundary
 	if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
-		return;
+		return CRITICAL_POINT;			// this is critical point
 		
 	// get the initial step size
 	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
@@ -218,19 +219,20 @@ void vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 			else
 				istat = runge_kutta4(time_dir, time_dep, thisParticle, &curTime, dt);
 
-			if(istat != 1)			// out of boundary
-				return;
-
-			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, m_fCurrentTime, vel);
-			if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
-				return;
-			
 			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);
+
+			if(istat == OUT_OF_BOUND)			// out of boundary
+				return OUT_OF_BOUND;
+
+			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, m_fCurrentTime, vel);
+			if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
+				return CRITICAL_POINT;
+
 			totalStepsize += dt;			// accumulation of step size
 			nSetAdaptiveCount++;
-
+			
 			if((nSetAdaptiveCount == 2) && (onAdaptive == false))
 				onAdaptive = true;
 

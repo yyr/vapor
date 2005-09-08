@@ -114,7 +114,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 											list<float>& stepList,
 											bool bAdaptive)
 {  
-	int istat, res;
+	int istat;
 	PointInfo seedInfo;
 	PointInfo thisParticle;
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
@@ -128,13 +128,13 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	seedTrace.push_back(new VECTOR3(seedInfo.phyCoord));
 	curTime = initialTime;
 
-	// get the initial stepsize
-	res = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, initialTime, vel);
-	if(res == -1)
-		return -1;
+	istat = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, initialTime, vel);
+	if(istat == OUT_OF_BOUND)
+		return OUT_OF_BOUND;
 	if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
-		return -1;
+		return CRITICAL_POINT;
 
+	// get the initial stepsize
 	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
 	mag = vel.GetMag();
 	dt = pow(cell_volume, (float)0.3333333f) / mag;
@@ -159,16 +159,17 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 			else
 				istat = runge_kutta4(m_timeDir, UNSTEADY, thisParticle, &curTime, dt);
 
-			if(istat != 1)			// out of boundary
-				return -1;
-
-			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, curTime, vel);
-			if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
-				return -1;
-
 			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);
+
+			if(istat == OUT_OF_BOUND)			// out of boundary
+				return OUT_OF_BOUND;
+
+			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, curTime, vel);
+			if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
+				return CRITICAL_POINT;
+
 			nSetAdaptiveCount++;
 
 			if((nSetAdaptiveCount == 2) && (bAdaptive == false))
