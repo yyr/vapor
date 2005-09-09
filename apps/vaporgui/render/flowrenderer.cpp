@@ -63,22 +63,26 @@ void FlowRenderer::paintGL()
 	float constFlowColor[4];
 	int winNum = myVizWin->getWindowNum();
 	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
-	
+	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
+	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
+	int timeStep = currentFrameNum;
+	if (!myFlowParams->flowIsSteady()) timeStep = 0;
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex()) == 0);
 	//Do we need to regenerate the flow data?
-	if (myVizWin->flowIsDirty()){
+	if (myFlowParams->flowDataIsDirty(timeStep)){
 		
-		flowDataArray = myFlowParams->regenerateFlowData();
-		if (!constColors) {
-			flowRGBAs = myFlowParams->getRGBAs();
-		} 
+		flowDataArray = myFlowParams->regenerateFlowData(timeStep);
 		maxPoints = myFlowParams->getMaxPoints();
 		firstDisplayFrame = myFlowParams->getFirstDisplayFrame();
 		lastDisplayFrame = myFlowParams->getLastDisplayFrame();
 		numSeedPoints = myFlowParams->getNumSeedPoints();
 		numInjections = myFlowParams->getNumInjections();
 		myVizWin->setFlowDirty(false);
-	}
+	} 
+	if (!constColors && myFlowParams->flowMappingIsDirty(timeStep)){
+		flowRGBAs = myFlowParams->getRGBAs(timeStep);
+	} 
+
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
 	//and readable
@@ -186,7 +190,6 @@ void FlowRenderer::paintGL()
 		//Can ignore if this number is > currentFrame
 		// I.e., want injectionNum <= 1+ (currentFrame - startFrame)/increment)
 		int seedingIncrement = myFlowParams->getSeedingIncrement();
-		int currentFrameNum = VizWinMgr::getInstance()->getAnimationParams(winNum)->getCurrentFrameNumber();
 		
 
 		//Check if first injection has happened yet:
@@ -273,7 +276,7 @@ renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool const
 		for (int j = firstAge; j<=lastAge; j++){
 			float* point = flowDataArray+ 3*(startIndex+j+ maxPoints*i);
 			if (*point == END_FLOW_FLAG) break;
-			//qWarning("point is %f %f %f", *point, *(point+1), *(point+2));
+			qWarning("point is %f %f %f", *point, *(point+1), *(point+2));
 			if (!constMap){
 				float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
 				glColor4fv(rgba);

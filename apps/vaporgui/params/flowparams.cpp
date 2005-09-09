@@ -52,9 +52,9 @@
 #include "flowmapeditor.h"
 #include "flowmapframe.h"
 //Step sizes for integration accuracy:
-#define SMALLEST_MIN_STEP 0.25f
+#define SMALLEST_MIN_STEP 0.15f
 #define LARGEST_MIN_STEP 4.f
-#define SMALLEST_MAX_STEP 2.f
+#define SMALLEST_MAX_STEP 1.f
 #define LARGEST_MAX_STEP 10.f
 using namespace VAPoR;
 	const string FlowParams::_seedingTag = "FlowSeeding";
@@ -171,8 +171,14 @@ FlowParams::~FlowParams(){
 	if (mapperFunction){
 		delete mapperFunction;//this will delete the editor
 	}
-	if (flowRGBAs) delete flowRGBAs;
-	if (flowData) delete flowData;
+	if (flowData) {
+		for (int i = 0; i<= maxFrame; i++){
+			if (flowRGBAs && flowRGBAs[i]) delete flowRGBAs[i];
+			if (flowData[i]) delete flowData[i];
+		}
+		delete flowData;
+		if(flowRGBAs)delete flowRGBAs;
+	}
 }
 
 //Make a copy of  parameters:
@@ -270,6 +276,7 @@ void FlowParams::updateDialog(){
 	myFlowTab->seedtimeIncrementEdit->setEnabled(flowType == 1);
 	myFlowTab->seedtimeEndEdit->setEnabled(flowType == 1);
 	myFlowTab->firstDisplayFrameEdit->setEnabled(flowType == 1);
+	myFlowTab->seedtimeStartEdit->setEnabled(flowType == 1);
 
 	myFlowTab->randomCheckbox->setChecked(randomGen);
 	
@@ -452,7 +459,7 @@ updatePanelState(){
 	getFlowMapEditor()->setDirty();
 	myFlowTab->flowMapFrame->update();
 	guiSetTextChanged(false);
-	setDirty();
+	setFlowDataDirty();
 	
 }
 //Reinitialize settings, session has changed:
@@ -468,6 +475,17 @@ reinit(bool doOverride){
 	if(minTrans < 0) minTrans = nlevels; 
 	setMinNumTrans(minTrans);
 	setMaxNumTrans(nlevels);
+	//Clean out any existing caches:
+	if (flowData){
+		for (i = 0; i<= maxFrame; i++){
+			if (flowData[i]) delete flowData[i];
+			if (flowRGBAs && flowRGBAs[i]) delete flowRGBAs[i];
+		}
+		delete flowData;
+		if (flowRGBAs) delete flowRGBAs;
+		flowData = 0;
+		flowRGBAs = 0;
+	}
 	//Make min and max conform to new data:
 	minFrame = (int)(session->getMinTimestep());
 	maxFrame = (int)(session->getMaxTimestep());
@@ -646,6 +664,11 @@ reinit(bool doOverride){
 	//Always disable
 	bool wasEnabled = enabled;
 	setEnabled(false);
+
+	//setup the caches
+	flowData = new float*[maxFrame+1];
+	for (int j = 0; j<= maxFrame; j++) flowData[j] = 0;
+
 	//don't change local/global 
 	updateRenderer(wasEnabled, isLocal(), false);
 	
@@ -659,7 +682,7 @@ reinit(bool doOverride){
 			updateDialog();
 	}
 	//force a new render with new flow data
-	setDirty();
+	setFlowDataDirty();
 }
 //Set slider position, based on text change. 
 //
@@ -813,7 +836,7 @@ sliderToText(int coord, int slideCenter, int slideSize){
 	guiSetTextChanged(false);
 	myFlowTab->update();
 	//force a new render with new flow data
-	setDirty();
+	setFlowDataDirty();
 	return;
 }	
 
@@ -900,7 +923,7 @@ guiSetXCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator X center");
 	setXCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty();
+	setFlowDataDirty();
 }
 void FlowParams::
 guiSetYCenter(int sliderval){
@@ -908,7 +931,7 @@ guiSetYCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Y center");
 	setYCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty();
+	setFlowDataDirty();
 }
 void FlowParams::
 guiSetZCenter(int sliderval){
@@ -916,7 +939,7 @@ guiSetZCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Z center");
 	setZCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty();
+	setFlowDataDirty();
 }
 void FlowParams::
 guiSetXSize(int sliderval){
@@ -924,7 +947,7 @@ guiSetXSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator X size");
 	setXSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty();
+	setFlowDataDirty();
 }
 void FlowParams::
 guiSetYSize(int sliderval){
@@ -932,7 +955,7 @@ guiSetYSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Y size");
 	setYSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty();
+	setFlowDataDirty();
 }
 void FlowParams::
 guiSetZSize(int sliderval){
@@ -940,7 +963,7 @@ guiSetZSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Z size");
 	setZSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setDirty();
+	setFlowDataDirty();
 }
 void FlowParams::
 guiSetFlowGeometry(int geomNum){
@@ -951,7 +974,9 @@ guiSetFlowGeometry(int geomNum){
 	updateMapBounds();
 	updateDialog();
 	myFlowTab->update();
-	setDirty();
+	//If you change the geometry, you do not need to recalculate the flow,
+	//But you need to rerender
+	VizWinMgr::getInstance()->setFlowDirty(this);
 }
 void FlowParams::
 guiSetColorMapEntity( int entityNum){
@@ -963,7 +988,9 @@ guiSetColorMapEntity( int entityNum){
 	
 	updateDialog();
 	myFlowTab->update();
-	setDirty();
+	//We only need to redo the flowData if the entity is changing to "speed"
+	if(entityNum == 2) setFlowDataDirty();
+	else setFlowMappingDirty();
 }
 void FlowParams::
 guiSetOpacMapEntity( int entityNum){
@@ -973,7 +1000,9 @@ guiSetOpacMapEntity( int entityNum){
 	
 	PanelCommand::captureEnd(cmd, this);
 	myFlowTab->update();
-	setDirty();
+	//We only need to redo the flowData if the entity is changing to "speed"
+	if(entityNum == 2) setFlowDataDirty();
+	else setFlowMappingDirty();
 }
 void FlowParams::
 guiSetGeneratorDimension( int dimNum){
@@ -984,7 +1013,7 @@ guiSetGeneratorDimension( int dimNum){
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, this);
 	myFlowTab->update();
-	setDirty();
+	setFlowDataDirty();
 }
 //Change mouse mode to specified value
 //0,1,2 correspond to edit, zoom, pan
@@ -1013,34 +1042,34 @@ setXCenter(int sliderval){
 	//new min and max are center -+ size/2.  
 	//center is min + (slider/256)*(max-min)
 	sliderToText(0, sliderval, myFlowTab->xSizeSlider->value());
-	setDirty();
+	setFlowDataDirty();
 }
 void FlowParams::
 setYCenter(int sliderval){
 	sliderToText(1, sliderval, myFlowTab->ySizeSlider->value());
-	setDirty();
+	setFlowDataDirty();
 }
 void FlowParams::
 setZCenter(int sliderval){
 	sliderToText(2, sliderval, myFlowTab->zSizeSlider->value());
-	setDirty();
+	setFlowDataDirty();
 }
 //Min and Max are center -+ size/2
 //size is regionsize*sliderval/256
 void FlowParams::
 setXSize(int sliderval){
 	sliderToText(0, myFlowTab->xCenterSlider->value(),sliderval);
-	setDirty();
+	setFlowDataDirty();
 }
 void FlowParams::
 setYSize(int sliderval){
 	sliderToText(1, myFlowTab->yCenterSlider->value(),sliderval);
-	setDirty();
+	setFlowDataDirty();
 }
 void FlowParams::
 setZSize(int sliderval){
 	sliderToText(2, myFlowTab->zCenterSlider->value(),sliderval);
-	setDirty();
+	setFlowDataDirty();
 }
 	
 /* Handle the change of status associated with change of enablement and change
@@ -1144,14 +1173,14 @@ setEnabled(bool on){
 }
 
 float* FlowParams::
-regenerateFlowData(){
+regenerateFlowData(int timeStep){
 	int i;
 	int min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
 	
 	float minFull[3], maxFull[3], extents[6];
 	if (!myFlowLib) return 0;
-	if (flowData) delete flowData;
+	
 	float* speeds = 0;
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//specify field components:
@@ -1170,7 +1199,11 @@ regenerateFlowData(){
 	rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, 
 		numTransforms, minFull, maxFull, extents);
 	myFlowLib->SetRegion(numTransforms, min_bdim, max_bdim);
-	myFlowLib->SetTimeStepInterval(seedTimeStart, maxFrame, timeSamplingInterval);
+	if (flowType == 0) { //steady
+		myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
+	} else {
+		myFlowLib->SetTimeStepInterval(seedTimeStart, maxFrame, timeSamplingInterval);
+	}
 	myFlowLib->ScaleTimeStepSizes(userTimeStepMultiplier, 1./objectsPerTimestep);
 	if (randomGen) {
 		myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, allGeneratorCount);
@@ -1201,8 +1234,10 @@ regenerateFlowData(){
 	
 	
 	if (flowType == 0) { //steady
+		if (flowData[timeStep]) delete flowData[timeStep];
 		numInjections = 1;
 		maxPoints = (lastDisplayFrame+1)*objectsPerTimestep;
+		flowData[timeStep] = new float[3*maxPoints*numSeedPoints*numInjections];
 	} else {// determine largest possible number of injections
 		numInjections = 1+ (seedTimeEnd - seedTimeStart)/seedTimeIncrement;
 		//For unsteady flow, the firstDisplayFrame and lastDisplayFrame give a window
@@ -1210,8 +1245,10 @@ regenerateFlowData(){
 		//the first seed start time to the last frame in the animation.
 		//lastDisplayFrame does not limit the length of the flow
 		maxPoints = (maxFrame - seedTimeStart+1)*objectsPerTimestep;
+		if (flowData[0]) delete flowData[0];
+		flowData[0] = new float[3*maxPoints*numSeedPoints*numInjections];
 	}
-	flowData = new float[3*maxPoints*numSeedPoints*numInjections];
+	
 	if (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2){
 		//to map speed, need to calculate it:
 		speeds = new float[maxPoints*numSeedPoints*numInjections];
@@ -1220,93 +1257,79 @@ regenerateFlowData(){
 	///call the flowlib
 	if (flowType == 0){ //steady
 		
-		myFlowLib->GenStreamLines(flowData, maxPoints, randomSeed, speeds);
+		myFlowLib->GenStreamLines(flowData[timeStep], maxPoints, randomSeed, speeds);
 		
 	} else {
 		qWarning("generating streak lines, maxpoints = %d", maxPoints);
-		myFlowLib->GenStreakLines(flowData, maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
+		myFlowLib->GenStreakLines(flowData[0], maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
 	}
-	//Map colors and opacity?
-	if (flowRGBAs) {
-		delete flowRGBAs;
-		flowRGBAs = 0;
+	//Invalidate colors and opacities:
+	if (flowRGBAs && flowRGBAs[timeStep]) {
+		delete flowRGBAs[timeStep];
+		flowRGBAs[timeStep] = 0;
 	}
 		
 	if ((getColorMapEntityIndex() + getOpacMapEntityIndex()) > 0){
-		flowRGBAs = new float[maxPoints*numSeedPoints*numInjections*4];
-		mapColors(speeds);
+		if (!flowRGBAs){
+			flowRGBAs = new float*[maxFrame+1];
+			for (int j = 0; j<= maxFrame; j++) flowRGBAs[j] = 0;
+		}
+		flowRGBAs[timeStep] = new float[maxPoints*numSeedPoints*numInjections*4];
+		mapColors(speeds, timeStep);
 		//Now we can release the speeds:
 		if (speeds) delete speeds;
 	}
 
-	/*
-	//test stream code, not using flowlib:
-	if (flowType == 0){
-		float* seeds = new float[3*numSeedPoints];
-		float seedSep = (extents[3]-extents[0])*0.1f;
-		//Put the seed(s) at the middle of the bottom:
-		for (int j = 0; j < numSeedPoints; j++){
-			seeds[3*j] = 0.5*(rParams->getFullDataExtent(0) + rParams->getFullDataExtent(3));
-			seeds[3*j+1] = rParams->getFullDataExtent(1);
-			seeds[3*j+2] = 0.5*(rParams->getFullDataExtent(2) + rParams->getFullDataExtent(5));
-			//increment x coord by seedSep.
-			seeds[3*j] += (seedSep*(float)j);
-		}
-
-		//Just specify a line up the center of the region
-		float diag[3];
-		diag[0] = 0.01f;
-		diag[1] = rParams->getFullDataExtent(4) - rParams->getFullDataExtent(1);
-		diag[2] = 0.01f;
-		
-		
-		for (int j = 0; j< numSeedPoints; j++){
-			for (int k = 0; k< maxPoints; k++) {
-				for (int coord = 0; coord < 3; coord++){
-					flowData[coord + 3*(k + maxPoints *j)] = 
-						seeds[coord+3*j] + k*diag[coord]/maxPoints;
-				}
-			}
-		}
-		delete seeds;
-	} else { //unsteady flow data, repeat same seed at each injectionTime
-		float* seeds = new float[3*numSeedPoints];
-		float seedSep = (extents[3]-extents[0])*0.1f;
-		//Put the seed(s) at the middle of the bottom:
-		for (int j = 0; j < numSeedPoints; j++){
-			seeds[3*j] = 0.5*(rParams->getFullDataExtent(0) + rParams->getFullDataExtent(3));
-			seeds[3*j+1] = rParams->getFullDataExtent(1);
-			seeds[3*j+2] = 0.5*(rParams->getFullDataExtent(2) + rParams->getFullDataExtent(5));
-			//increment x coord by seedSep.
-			seeds[3*j] += (seedSep*(float)j);
-		}
-
-		//Just specify a line up the center of the region, slightly off to avoid aliasing
-		float diag[3];
-		
-		
-		for (int q = 0; q<numInjections; q++){
-			//Make line tilt more (x and z) with each subsequent injection:
-			diag[0] = 0.01f + 0.05*(float)q;
-			diag[1] = 0.01f + rParams->getFullDataExtent(4) - rParams->getFullDataExtent(1);
-			diag[2] = 0.01f + 0.05*(float)q;
-			for (int j = 0; j< numSeedPoints; j++){
-				for (int k = 0; k< maxPoints; k++) {
-					for (int coord = 0; coord < 3; coord++){
-						flowData[coord + 3*(k + maxPoints *(j + numSeedPoints*q))] = 
-							seeds[coord+3*j] + k*diag[coord]/maxPoints;
-					}
-				}
-			}
-		}
-		delete seeds;
-	}
-	*/
-	//end test code
+	
 	// the dirty flag is reset during flow rendering
-	return flowData;
+	return flowData[timeStep];
 }
-void FlowParams::setDirty(){
+float* FlowParams::getRGBAs(int timeStep){
+	if (flowRGBAs && flowRGBAs[timeStep]) return flowRGBAs[timeStep];
+	assert((getOpacMapEntityIndex() != 2)&&(getColorMapEntityIndex() != 2)); //Can't map speeds here!
+	assert(flowData && flowData[timeStep]);
+	if (!flowRGBAs){
+		flowRGBAs = new float*[maxFrame+1];
+		for (int j = 0; j<= maxFrame; j++) flowRGBAs[j] = 0;
+	}
+	flowRGBAs[timeStep] = new float[maxPoints*numSeedPoints*numInjections*4];
+	mapColors(0, timeStep);
+	return flowRGBAs[timeStep];
+}
+
+
+
+void FlowParams::setFlowMappingDirty(){
+	// delete colors and opacities
+	// If we are mapping speed, must regenerate flowData
+	if ((getOpacMapEntityIndex() == 2)||(getColorMapEntityIndex() == 2)) {
+		setFlowDataDirty();
+		return;
+	}
+	if(flowRGBAs){
+		for (int i = 0; i<=maxFrame; i++){
+			if (flowRGBAs[i]){
+				delete flowRGBAs[i];
+				flowRGBAs[i] = 0;
+			}
+		}
+	}
+	VizWinMgr::getInstance()->setFlowDirty(this);
+}
+void FlowParams::setFlowDataDirty(){
+	//The data pointers themselves are the valid flags
+	if(flowData){
+		for (int i = 0; i<=maxFrame; i++){
+			if (flowData[i]) {
+				delete flowData[i];
+				flowData[i] = 0;
+			}
+			if (flowRGBAs && flowRGBAs[i]){
+				delete flowRGBAs[i];
+				flowRGBAs[i] = 0;
+			}
+		}
+	}
 	VizWinMgr::getInstance()->setFlowDirty(this);
 }
 //Method to construct Xml for state saving
@@ -1688,7 +1711,7 @@ guiEndChangeMapFcn(){
 //the mapping
 //
 void FlowParams::
-mapColors(float* speeds){
+mapColors(float* speeds, int currentTimeStep){
 	//Create lut based on current mapping data
 	float* lut = new float[256*4];
 	mapperFunction->makeLut(lut);
@@ -1707,8 +1730,12 @@ mapColors(float* speeds){
 	//Get the variable (entire region) if needed
 	if (getOpacMapEntityIndex() > 3){
 		//set up args for GetRegion
-		int timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-3);
-		if (timeStep < 0) MessageReporter::errorMsg("No data for mapped variable");
+		//If flow is unsteady, just get the first available timestep
+		int timeStep = currentTimeStep;
+		if(flowType != 0){//unsteady flow
+			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-3);
+			if (timeStep < 0) MessageReporter::errorMsg("No data for mapped variable");
+		}
 		size_t minSize[3];
 		size_t maxSize[3];
 		int bs = Session::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
@@ -1751,7 +1778,7 @@ mapColors(float* speeds){
 		for (int j = 0; j<numSeedPoints; j++){
 			for (int k = 0; k<maxPoints; k++) {
 				//check for end of flow:
-				if (flowData[3*(k+ maxPoints*(j+ (numSeedPoints*i)))] == END_FLOW_FLAG)
+				if (flowData[currentTimeStep][3*(k+ maxPoints*(j+ (numSeedPoints*i)))] == END_FLOW_FLAG)
 					break;
 				switch (getOpacMapEntityIndex()){
 					case (0): //constant
@@ -1765,7 +1792,7 @@ mapColors(float* speeds){
 						break;
 					default : //variable
 						int x,y,z;
-						float* dataPoint = flowData+3*(k+ maxPoints*(j+ (numSeedPoints*i)));
+						float* dataPoint = flowData[currentTimeStep]+3*(k+ maxPoints*(j+ (numSeedPoints*i)));
 						x = (int)(dataPoint[0] - opacVarMin[0])*opacSize[0]/(opacVarMax[0]-opacVarMin[0]);
 						y = (int)(dataPoint[1] - opacVarMin[1])*opacSize[1]/(opacVarMax[1]-opacVarMin[1]);
 						z = (int)(dataPoint[2] - opacVarMin[2])*opacSize[2]/(opacVarMax[2]-opacVarMin[2]);
@@ -1788,7 +1815,7 @@ mapColors(float* speeds){
 						break;
 					default : //variable
 						int x,y,z;
-						float* dataPoint = flowData+3*(k+ maxPoints*(j+ (numSeedPoints*i)));
+						float* dataPoint = flowData[currentTimeStep]+3*(k+ maxPoints*(j+ (numSeedPoints*i)));
 						x = (int)(dataPoint[0] - colorVarMin[0])*colorSize[0]/(colorVarMax[0]-colorVarMin[0]);
 						y = (int)(dataPoint[1] - colorVarMin[1])*colorSize[1]/(colorVarMax[1]-colorVarMin[1]);
 						z = (int)(dataPoint[2] - colorVarMin[2])*colorSize[2]/(colorVarMax[2]-colorVarMin[2]);
@@ -1798,10 +1825,10 @@ mapColors(float* speeds){
 				int colorIndex = (int)((colorVar - colorMin)*255.99/(colorMax-colorMin));
 				if (colorIndex<0) colorIndex = 0;
 				if (colorIndex> 255) colorIndex =255;
-				flowRGBAs[4*(k+ maxPoints*(j+ (numSeedPoints*i)))+3]= lut[3+4*opacIndex];
-				flowRGBAs[4*(k+ maxPoints*(j+ (numSeedPoints*i)))]= lut[4*colorIndex];
-				flowRGBAs[4*(k+ maxPoints*(j+ (numSeedPoints*i)))+1]= lut[4*colorIndex+1];
-				flowRGBAs[4*(k+ maxPoints*(j+ (numSeedPoints*i)))+2]= lut[4*colorIndex+2];
+				flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+3]= lut[3+4*opacIndex];
+				flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))]= lut[4*colorIndex];
+				flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+1]= lut[4*colorIndex+1];
+				flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+2]= lut[4*colorIndex+2];
 			}
 		}
 	}

@@ -73,15 +73,20 @@ public:
 	virtual bool elementStartHandler(ExpatParseMgr*, int  depth , std::string& tag, const char ** attribs);
 	virtual bool elementEndHandler(ExpatParseMgr*, int depth , std::string& tag);
 	
-	//set dirty-flag, and force rebuilding geometry
-	void setDirty();
+	//set geometry/flow data dirty-flags, and force rebuilding all geometry
+	void setFlowMappingDirty();
+	void setFlowDataDirty();
+	//The mapper function calls this when the mapping changes
+	virtual void setClutDirty() { setFlowMappingDirty();}
+	
 	
 	int getNumGenerators(int dimNum) { return generatorCount[dimNum];}
 	int getTotalNumGenerators() { return allGeneratorCount;}
 	VaporFlow* getFlowLib(){return myFlowLib;}
-	float* regenerateFlowData();
-	//Get an array of rgba's (immediately after calling regenerateFlowData)
-	float* getRGBAs() {return flowRGBAs;}
+	float* regenerateFlowData(int frameNum);
+	//Get an array of rgba's (valid immediately after calling regenerateFlowData)
+	//Must test for a valid flowData array first
+	float* getRGBAs(int frameNum); 
 	
 	int getMinFrame() {return minFrame;}
 	int getMaxFrame() {return maxFrame;}
@@ -97,6 +102,14 @@ public:
 	int getColorMapEntityIndex() ;
 	int getOpacMapEntityIndex() ;
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
+	bool flowDataIsDirty(int timeStep){
+		if(flowData && flowData[timeStep]) return false;
+		return true;
+	}
+	bool flowMappingIsDirty(int timeStep) {
+		if (flowRGBAs && flowRGBAs[timeStep]) return false;
+		return true;
+	}
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 	float getObjectsPerTimestep() {return objectsPerTimestep;}
 	void guiSetEditMode(bool val); //edit versus navigate mode
@@ -160,14 +173,14 @@ protected:
 	static const string _colorControlPointTag;
 	static const string _numControlPointsAttr;
 
-	void setFlowType(int typenum){flowType = typenum; setDirty();}
-	void setNumTrans(int numtrans){numTransforms = numtrans; setDirty();}
+	void setFlowType(int typenum){flowType = typenum; setFlowDataDirty();}
+	void setNumTrans(int numtrans){numTransforms = numtrans; setFlowDataDirty();}
 	void setMaxNumTrans(int maxNT) {maxNumTrans = maxNT;}
 	void setMinNumTrans(int minNT) {minNumTrans = minNT;}
-	void setXVarNum(int varnum){varNum[0] = varnum; setDirty();}
-	void setYVarNum(int varnum){varNum[1] = varnum; setDirty();}
-	void setZVarNum(int varnum){varNum[2] = varnum; setDirty();}
-	void setRandom(bool rand){randomGen = rand; setDirty();}
+	void setXVarNum(int varnum){varNum[0] = varnum; setFlowDataDirty();}
+	void setYVarNum(int varnum){varNum[1] = varnum; setFlowDataDirty();}
+	void setZVarNum(int varnum){varNum[2] = varnum; setFlowDataDirty();}
+	void setRandom(bool rand){randomGen = rand; setFlowDataDirty();}
 	void setXCenter(int sliderval);
 	void setYCenter(int sliderval);
 	void setZCenter(int sliderval);
@@ -184,7 +197,7 @@ protected:
 	void textToSlider(int coord, float center, float size);
 	void sliderToText(int coord, int center, int size);
 	
-	void mapColors(float* speeds);
+	void mapColors(float* speeds, int timeStep);
 
 	FlowTab* myFlowTab;
 	int flowType; //steady = 0, unsteady = 1;
@@ -235,8 +248,10 @@ protected:
 	//The flowData comes from the flowLib, potentially with speeds 
 	//These are mapped to flowRGBs and speeds are released
 	//after the data is obtained.
-	float* flowData;
-	float* flowRGBAs;
+	//There is potentially one array for each timestep (with streamlines)
+	//With streaklines, there is one array, flowData[0].
+	float** flowData;
+	float** flowRGBAs;
 
 	
 	//Parameters controlling flowDataAccess.  These are established each time
