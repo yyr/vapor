@@ -225,7 +225,7 @@ bool VaporFlow::GenStreamLines(float* positions,
 	delete pSeedGenerator;
 	
 	// scale animationTimeStep and userTimeStep
-	if(dataMgr->GetMetadata()->HasTSUserTime(startTimeStep))
+	if((dataMgr->GetMetadata()->HasTSUserTime(startTimeStep))&&(dataMgr->GetMetadata()->HasTSUserTime(startTimeStep+1)))
 	{
 		double diff;
 		diff =  dataMgr->GetMetadata()->GetTSUserTime(startTimeStep+1)[0] - dataMgr->GetMetadata()->GetTSUserTime(startTimeStep)[0];
@@ -279,6 +279,7 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pStreamLine->SetInitStepSize(initialStepSize);
 	pStreamLine->SetMaxStepSize(maxStepSize);
 	pStreamLine->setIntegrationOrder(FOURTH);
+	pStreamLine->SetStationaryCutoff(0.00005f*pCartesianGrid->GetGridSpacing(0)/(userTimeStepSize*maxPoints));
 	pStreamLine->execute((void *)&currentT, positions, speeds);
 	
 	Reset();

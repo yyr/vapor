@@ -186,7 +186,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	istat = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, m_fCurrentTime, vel);
 	if(istat == OUT_OF_BOUND)
 		return OUT_OF_BOUND;			// the advection is out of boundary
-	if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
+	if((abs(vel[0]) < m_fStationaryCutoff) && (abs(vel[1]) < m_fStationaryCutoff) && (abs(vel[2]) < m_fStationaryCutoff))
 		return CRITICAL_POINT;			// this is critical point
 		
 	// get the initial step size
@@ -227,7 +227,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 				return OUT_OF_BOUND;
 
 			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, m_fCurrentTime, vel);
-			if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
+			if((abs(vel[0]) < m_fStationaryCutoff) && (abs(vel[1]) < m_fStationaryCutoff) && (abs(vel[2]) < m_fStationaryCutoff))
 				return CRITICAL_POINT;
 
 			totalStepsize += dt;			// accumulation of step size

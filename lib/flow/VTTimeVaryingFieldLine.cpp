@@ -167,8 +167,9 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 				return OUT_OF_BOUND;
 
 			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, curTime, vel);
-			if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
-				return CRITICAL_POINT;
+			// Don't test for critical points on streaklines!
+			//if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
+			//	return CRITICAL_POINT;
 
 			nSetAdaptiveCount++;
 

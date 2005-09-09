@@ -313,12 +313,12 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	}
 	
 	count = 1;
-	if((int)seedTrace->size() == 1)
-	{
-		positions[ptr] = END_FLOW_FLAG;
-		posInPoints = ptr;
-		return;
-	}
+	if((int)seedTrace->size() == 1) assert(traceState == CRITICAL_POINT);
+	//{
+	//	positions[ptr] = END_FLOW_FLAG;
+	//	posInPoints = ptr;
+	//	return;
+	//}
 
 	// other advecting result
 	pIter2 = seedTrace->begin();
@@ -392,8 +392,20 @@ void vtCFieldLine::SampleFieldline(float* positions,
 		}
 
 	}
-	else if(count < m_nMaxsize)
-		positions[ptr] = END_FLOW_FLAG;
+	// if # of sampled points < maximal points asked
+	else if((count < m_nMaxsize)&& (traceState == CRITICAL_POINT))				// critical pt
+	{
+		positions[ptr] = STATIONARY_STREAM_FLAG;
+
+		if(speeds != NULL)
+		{
+			ptrSpeed = ptr/3;
+			speeds[ptrSpeed] = 0.f;
+		}
+
+	}
+	else if(count < m_nMaxsize) assert(0); //This should never happen!
+	
 
 	posInPoints = ptr; 
 }

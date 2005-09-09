@@ -101,6 +101,7 @@ protected:
 	vtListParticle m_lSeeds;		// list of seeds
 	CVectorField* m_pField;			// vector field
 	float m_fSamplingRate;
+	float m_fStationaryCutoff;		//defines when flowline is stationary
 
 public:
 	vtCFieldLine(CVectorField* pField);
@@ -116,6 +117,7 @@ public:
 	void SetInitStepSize(float initStep) { m_fInitStepSize = initStep; }
 	float GetInitStepSize(void) { return m_fInitStepSize; }
 	void SetSamplingRate(float rate) {m_fSamplingRate = rate;}
+	void SetStationaryCutoff(float cutoff) {m_fStationaryCutoff = cutoff;}
 	
 protected:
 	void releaseSeedMemory(void);
