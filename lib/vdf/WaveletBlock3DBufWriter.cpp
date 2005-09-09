@@ -103,7 +103,7 @@ int     WaveletBlock3DBufWriter::CloseVariable(
 
 	// May need to flush the buffer
 	//
-	if (slice_cntr_c % bs_c != 0) {	
+	if ((slice_cntr_c % (bs_c*2)) != 0) {	
 		int rc; 
 
 		rc = WaveletBlock3DWriter::WriteSlabs(buf_c);
