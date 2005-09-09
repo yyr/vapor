@@ -50,6 +50,9 @@ protected:
 			3*maxPoints*numSeedPoints*numInjections );
 		return (flowDataArray+ 3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)));
 	}
+	// Render a "stationary symbol" at the specified point
+	void renderStationary(float* point, float rad);
+
 
 
 };

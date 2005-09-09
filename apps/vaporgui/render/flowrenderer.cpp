@@ -270,21 +270,34 @@ renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool const
 	//just convert the flow data to a set of points..
 	glPointSize(radius);
 	glDisable(GL_LIGHTING);
-	glBegin (GL_POINTS);
+	
 	for (int i = 0; i< numSeedPoints; i++){
-		
+		glBegin (GL_POINTS);
+		bool endGL = false;
 		for (int j = firstAge; j<=lastAge; j++){
 			float* point = flowDataArray+ 3*(startIndex+j+ maxPoints*i);
 			if (*point == END_FLOW_FLAG) break;
 			qWarning("point is %f %f %f", *point, *(point+1), *(point+2));
+			
 			if (!constMap){
 				float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
 				glColor4fv(rgba);
 			}
+			//Use the last point for a stationary marker
+			if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
+				glEnd();
+				int winNum = myVizWin->getWindowNum();
+				RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+				float rad = 0.5*(radius+1.f)*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
+					rParams->getFullSize()[0];
+				renderStationary(point, rad);
+				break;
+			}
 			glVertex3fv(point);
 		}	
+		if(!endGL) glEnd();
 	}
-	glEnd();
+	
 	
 }
 //  Issue OpenGL calls for a set of lines associated with a number of seed points.
@@ -301,6 +314,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 		const float* lightDir = vpParams->getLightDirection(0);
 		for (int i = 0; i< numSeedPoints; i++){
 			glBegin (GL_LINE_STRIP);
+			bool endGL = false;
 			for (int j = firstAge; j<=lastAge; j++){
 				//For each point after first, calc vector from prev vector to this one
 				//then calculate corresponding normal
@@ -329,25 +343,47 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 					float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
 					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
 				}
+				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
+					glEnd();//Terminate current curve
+					int winNum = myVizWin->getWindowNum();
+					RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+					float rad = 0.5*(radius+1.f)*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
+						rParams->getFullSize()[0];
+					renderStationary(point, rad);
+					endGL = true;
+					break;
+				}
 				glVertex3fv(point);
 			}
-			glEnd();
+			if(!endGL) glEnd();
 		}
 	} else { //No lights
 		//just convert the flow data to a set of lines...
 		glDisable(GL_LIGHTING);
 		for (int i = 0; i< numSeedPoints; i++){
+			bool endGL = false;
 			glBegin (GL_LINE_STRIP);
 			for (int j = firstAge; j<=lastAge; j++){
 				float* point = flowDataArray +  3*(startIndex+ j+ maxPoints*i);
 				if (*point == END_FLOW_FLAG) break;
-				glVertex3fv(point);
+				
 				if (!constMap){
 					float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
 					glColor4fv(rgba);
 				}
+				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
+					glEnd();//Terminate current curve
+					int winNum = myVizWin->getWindowNum();
+					RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+					float rad = 0.5*(radius+1.f)*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
+						rParams->getFullSize()[0];
+					renderStationary(point,rad);
+					endGL = true;
+					break;
+				}
+				glVertex3fv(point);
 			}
-			glEnd();
+			if(!endGL) glEnd();
 		}
 	}//end no lights
 }
@@ -380,46 +416,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 	float testVec2[3];
 	if (firstAge >= lastAge) return;
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
-		//Need at least two points to do anything:
-		if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints)) == END_FLOW_FLAG) ||
-			(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) == END_FLOW_FLAG) continue;
-		
-		int tubeStartIndex = 3*(startIndex + tubeNum*maxPoints+firstAge);
-		//data point is three floats starting at data[tubeStartIndex]
-		//evenA is the direction the line is pointing
-		vsub(flowDataArray+(tubeStartIndex+3), flowDataArray+tubeStartIndex, evenA);
-		//Normalize evenA
-		len = vdot(evenA,evenA);
-		if (len == 0.f){//If 2nd is same as first set default normal
-			vset(evenA, 0.f,0.f,1.f);
-		} else {
-			vscale(evenA, 1.f/sqrt(len));
-		}
-		//The first time, N is equal to A:
-		vcopy(evenA, evenN);
-		//Calculate evenU, orthogonal to evenA:
-		vset(testVec, 1.,0.,0.);
-		vcross(evenA, testVec, evenU);
-		len = vdot(evenU,evenU);
-		if (len == 0.f){
-			vset(testVec, 0.,1.,0.);
-			vcross(evenA, testVec, evenU);
-			len = vdot(evenU, evenU);
-			assert(len != 0.f);
-		} 
-		vscale( evenU, 1.f/sqrt(len));
-		vcross(evenU, evenA, currentB);
-		//set up initial even 6 vertices around point P = P(0)
-		//These are P + 
-		for (int i = 0; i<6; i++){
-			vmult(evenU, coses[i], testVec);
-			vmult(currentB, sines[i], testVec2);
-			//Calc outward normal as a sideEffect..
-			vadd(testVec, testVec2, evenNormal+3*i);
-			vmult(evenNormal+3*i, radius, evenVertex+3*i);
-			vadd(evenVertex+3*i, flowDataArray+tubeStartIndex, evenVertex+3*i);
-		}
-		//Draw an end-cap on the cylinder:
+		//Start the colors for the start of the tube or the stationary symbol
 		if (!constMap){
 			float* rgba = flowRGBAs + 4*(startIndex + tubeNum*maxPoints+firstAge);
 			if(isLit)
@@ -427,177 +424,274 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 			else
 				glColor4fv(rgba);
 		}
-		glBegin(GL_POLYGON);
-		glNormal3fv(evenA);
-		for (int k = 0; k<6; k++){
-			glVertex3fv(evenVertex+3*k);
-		}
-		glEnd();
-		//Now loop over points, starting with no. 1.
-		//toggle even and odd.
-		float* currentN;
-		float* currentU;
-		float* currentA;
-		float* prevN;
-		float* prevA;
-		float* prevU;
-		float* currentVertex;
-		float* currentNormal;
-		float* prevVertex;
-		float* prevNormal;
-		float* prevRGBA, *nextRGBA;
-
-
-
-		for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
-			float* point = flowDataArray+3*(startIndex+tubeNum*maxPoints+pointNum);
-			if (*point == END_FLOW_FLAG) break;
-			//Toggle the meaning of "current" and "prev"
-			if (0 == (pointNum - firstAge)%2) {
-				currentN = evenN;
-				prevN = oddN;
-				currentA = evenA;
-				prevA = oddA;
-				currentU = evenU;
-				prevU = oddU;
-				currentVertex = evenVertex;
-				prevVertex = oddVertex;
-				currentNormal = evenNormal;
-				prevNormal = oddNormal;
-			} else {
-				currentN = oddN;
-				prevN = evenN;
-				currentA = oddA;
-				prevA = evenA;
-				currentU = oddU;
-				prevU = evenU;
-				currentVertex = oddVertex;
-				prevVertex = evenVertex;
-				currentNormal = oddNormal;
-				prevNormal = evenNormal;
-			}
+		//Check if the second point is a stationary flag:
+		if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) == STATIONARY_STREAM_FLAG) {
+			//If so just render the stationary symbol, and continue
+			float *point = flowDataArray+3*(startIndex+tubeNum*maxPoints+firstAge);
+			renderStationary(point, radius);
+			continue;
+		} else {//do a cylinder
+			//Need at least two points to do a cylinder.  There should always be 2 points
+			//before an end flow flag, since an extra outside point is always provided
+			//in that situation
+			assert(((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints)) != END_FLOW_FLAG) &&
+				(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) != END_FLOW_FLAG) );
 			
-			//Calc currentN
-			vsub(point, point-3, currentN);
-			//Normalize currentN:
-			len = vdot(currentN,currentN);
-			if (len == 0.f){// keep previous normal
-				vcopy(prevN,currentN);
+			int tubeStartIndex = 3*(startIndex + tubeNum*maxPoints+firstAge);
+			//data point is three floats starting at data[tubeStartIndex]
+			//evenA is the direction the line is pointing
+			vsub(flowDataArray+(tubeStartIndex+3), flowDataArray+tubeStartIndex, evenA);
+			//Normalize evenA
+			len = vdot(evenA,evenA);
+			if (len == 0.f){//If 2nd is same as first set default normal
+				vset(evenA, 0.f,0.f,1.f);
 			} else {
-				vscale(currentN, 1.f/sqrt(len));
+				vscale(evenA, 1.f/sqrt(len));
 			}
-			//Calc currentA, as sum (average) of prevN and currentN:
-			vadd(prevN, currentN, currentA);
-			//Normalize currentA
-			len = vdot(currentA,currentA);
-			if (len == 0.f){// keep previous normal
-				vcopy(prevA,currentA);
-			} else {
-				vscale(currentA, 1.f/sqrt(len));
-			}
-			//Now get next U, by projecting previous U orthog to currentA:
-			vmult(currentA, vdot(prevU,currentA), testVec);
-			vsub(prevU, testVec, currentU);
-			//Now normalize it:
-			len = vdot(currentU,currentU);
+			//The first time, N is equal to A:
+			vcopy(evenA, evenN);
+			//Calculate evenU, orthogonal to evenA:
+			vset(testVec, 1.,0.,0.);
+			vcross(evenA, testVec, evenU);
+			len = vdot(evenU,evenU);
 			if (len == 0.f){
-				//If U is in direction of A, the previous A should work
-				vcopy(prevA, currentU);
-				len = vdot(currentU, currentU);
+				vset(testVec, 0.,1.,0.);
+				vcross(evenA, testVec, evenU);
+				len = vdot(evenU, evenU);
 				assert(len != 0.f);
 			} 
-			vscale(currentU, 1.f/sqrt(len));
-			vcross(currentU, currentA, currentB);
-
-			//Now calculate 6 points in plane orthog to currentA, in plane of point:
+			vscale( evenU, 1.f/sqrt(len));
+			vcross(evenU, evenA, currentB);
+			//set up initial even 6 vertices around point P = P(0)
+			//These are P + 
 			for (int i = 0; i<6; i++){
-				//testVec and testVec2 are components of point in plane
-				vmult(currentU, coses[i], testVec);
+				vmult(evenU, coses[i], testVec);
 				vmult(currentB, sines[i], testVec2);
 				//Calc outward normal as a sideEffect..
-				//It is the vector sum of x,y components (norm 1)
-				vadd(testVec, testVec2, currentNormal+3*i);
-				//stretch by radius to get current displacement
-				vmult(currentNormal+3*i, radius, currentVertex+3*i);
-				//add to current point
-				vadd(currentVertex+3*i, point, currentVertex+3*i);
-				//qWarning(" current Vertex, normal: %f %f %f, %f %f %f",
-					//currentVertex[3*i],currentVertex[3*i+1],currentVertex[3*i+2],
-					//currentNormal[3*i],currentNormal[3*i+1],currentNormal[3*i+2]);
+				vadd(testVec, testVec2, evenNormal+3*i);
+				vmult(evenNormal+3*i, radius, evenVertex+3*i);
+				vadd(evenVertex+3*i, flowDataArray+tubeStartIndex, evenVertex+3*i);
 			}
+			//Draw an end-cap on the cylinder:
 			
-			if (!constMap){
-				prevRGBA = flowRGBAs + 4*(startIndex+tubeNum*maxPoints+pointNum-1);
-				nextRGBA = flowRGBAs + 4*(startIndex+tubeNum*maxPoints+pointNum);
-			}
-			
-				
-		
-			//Now make a triangle strip:
-			glBegin(GL_TRIANGLE_STRIP);
-			if (constMap){
-				for (int i = 0; i< 6; i++){
-
-					glNormal3fv(currentNormal+3*i);
-					glVertex3fv(currentVertex+3*i);
-					glNormal3fv(prevNormal+3*i);
-					glVertex3fv(prevVertex+3*i);
-				}
-				//repeat first two vertices to close cylinder:
-				glNormal3fv(currentNormal);
-				glVertex3fv(currentVertex);
-				glNormal3fv(prevNormal);
-				glVertex3fv(prevVertex);
-			} else if (isLit){
-				for (int i = 0; i< 6; i++){
-					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
-					glNormal3fv(currentNormal+3*i);
-					glVertex3fv(currentVertex+3*i);
-					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
-					glNormal3fv(prevNormal+3*i);
-					glVertex3fv(prevVertex+3*i);
-				}
-				//repeat first two vertices to close cylinder:
-				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
-				glNormal3fv(currentNormal);
-				glVertex3fv(currentVertex);
-				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
-				glNormal3fv(prevNormal);
-				glVertex3fv(prevVertex);
-			} else {//unlit, mapped
-				for (int i = 0; i< 6; i++){
-					glColor4fv(nextRGBA);
-					glVertex3fv(currentVertex+3*i);
-					glColor4fv(prevRGBA);
-					glVertex3fv(prevVertex+3*i);
-				}
-				//repeat first two vertices to close cylinder:
-				glColor4fv(nextRGBA);
-				glVertex3fv(currentVertex);
-				glColor4fv(prevRGBA);
-				glVertex3fv(prevVertex);
+			glBegin(GL_POLYGON);
+			glNormal3fv(evenA);
+			for (int k = 0; k<6; k++){
+				glVertex3fv(evenVertex+3*k);
 			}
 			glEnd();
-		}
-		//Draw an end-cap on the cylinder:
+			//Now loop over points, starting with no. 1.
+			//toggle even and odd.
+			float* currentN;
+			float* currentU;
+			float* currentA;
+			float* prevN;
+			float* prevA;
+			float* prevU;
+			float* currentVertex;
+			float* currentNormal;
+			float* prevVertex;
+			float* prevNormal;
+			float* prevRGBA, *nextRGBA;
+
+
+			float* point;
+			for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
+				point = flowDataArray+3*(startIndex+tubeNum*maxPoints+pointNum);
+				if (*point == END_FLOW_FLAG || *point == STATIONARY_STREAM_FLAG) break;
+				//Toggle the meaning of "current" and "prev"
+				if (0 == (pointNum - firstAge)%2) {
+					currentN = evenN;
+					prevN = oddN;
+					currentA = evenA;
+					prevA = oddA;
+					currentU = evenU;
+					prevU = oddU;
+					currentVertex = evenVertex;
+					prevVertex = oddVertex;
+					currentNormal = evenNormal;
+					prevNormal = oddNormal;
+				} else {
+					currentN = oddN;
+					prevN = evenN;
+					currentA = oddA;
+					prevA = evenA;
+					currentU = oddU;
+					prevU = evenU;
+					currentVertex = oddVertex;
+					prevVertex = evenVertex;
+					currentNormal = oddNormal;
+					prevNormal = evenNormal;
+				}
+				
+				//Calc currentN
+				vsub(point, point-3, currentN);
+				//Normalize currentN:
+				len = vdot(currentN,currentN);
+				if (len == 0.f){// keep previous normal
+					vcopy(prevN,currentN);
+				} else {
+					vscale(currentN, 1.f/sqrt(len));
+				}
+				//Calc currentA, as sum (average) of prevN and currentN:
+				vadd(prevN, currentN, currentA);
+				//Normalize currentA
+				len = vdot(currentA,currentA);
+				if (len == 0.f){// keep previous normal
+					vcopy(prevA,currentA);
+				} else {
+					vscale(currentA, 1.f/sqrt(len));
+				}
+				//Now get next U, by projecting previous U orthog to currentA:
+				vmult(currentA, vdot(prevU,currentA), testVec);
+				vsub(prevU, testVec, currentU);
+				//Now normalize it:
+				len = vdot(currentU,currentU);
+				if (len == 0.f){
+					//If U is in direction of A, the previous A should work
+					vcopy(prevA, currentU);
+					len = vdot(currentU, currentU);
+					assert(len != 0.f);
+				} 
+				vscale(currentU, 1.f/sqrt(len));
+				vcross(currentU, currentA, currentB);
+
+				//Now calculate 6 points in plane orthog to currentA, in plane of point:
+				for (int i = 0; i<6; i++){
+					//testVec and testVec2 are components of point in plane
+					vmult(currentU, coses[i], testVec);
+					vmult(currentB, sines[i], testVec2);
+					//Calc outward normal as a sideEffect..
+					//It is the vector sum of x,y components (norm 1)
+					vadd(testVec, testVec2, currentNormal+3*i);
+					//stretch by radius to get current displacement
+					vmult(currentNormal+3*i, radius, currentVertex+3*i);
+					//add to current point
+					vadd(currentVertex+3*i, point, currentVertex+3*i);
+					//qWarning(" current Vertex, normal: %f %f %f, %f %f %f",
+						//currentVertex[3*i],currentVertex[3*i+1],currentVertex[3*i+2],
+						//currentNormal[3*i],currentNormal[3*i+1],currentNormal[3*i+2]);
+				}
+				
+				if (!constMap){
+					prevRGBA = flowRGBAs + 4*(startIndex+tubeNum*maxPoints+pointNum-1);
+					nextRGBA = flowRGBAs + 4*(startIndex+tubeNum*maxPoints+pointNum);
+				}
+				
+					
+			
+				//Now make a triangle strip:
+				glBegin(GL_TRIANGLE_STRIP);
+				if (constMap){
+					for (int i = 0; i< 6; i++){
+
+						glNormal3fv(currentNormal+3*i);
+						glVertex3fv(currentVertex+3*i);
+						glNormal3fv(prevNormal+3*i);
+						glVertex3fv(prevVertex+3*i);
+					}
+					//repeat first two vertices to close cylinder:
+					glNormal3fv(currentNormal);
+					glVertex3fv(currentVertex);
+					glNormal3fv(prevNormal);
+					glVertex3fv(prevVertex);
+				} else if (isLit){
+					for (int i = 0; i< 6; i++){
+						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
+						glNormal3fv(currentNormal+3*i);
+						glVertex3fv(currentVertex+3*i);
+						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
+						glNormal3fv(prevNormal+3*i);
+						glVertex3fv(prevVertex+3*i);
+					}
+					//repeat first two vertices to close cylinder:
+					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
+					glNormal3fv(currentNormal);
+					glVertex3fv(currentVertex);
+					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
+					glNormal3fv(prevNormal);
+					glVertex3fv(prevVertex);
+				} else {//unlit, mapped
+					for (int i = 0; i< 6; i++){
+						glColor4fv(nextRGBA);
+						glVertex3fv(currentVertex+3*i);
+						glColor4fv(prevRGBA);
+						glVertex3fv(prevVertex+3*i);
+					}
+					//repeat first two vertices to close cylinder:
+					glColor4fv(nextRGBA);
+					glVertex3fv(currentVertex);
+					glColor4fv(prevRGBA);
+					glVertex3fv(prevVertex);
+				}
+				glEnd();
+			}
+			//Draw an end-cap on the cylinder, and potentially a stationary symbol:
+			
+			if (!constMap){
+				if(isLit)
+					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
+				else
+					glColor4fv(nextRGBA);
+			}
+			glBegin(GL_POLYGON);
+			glNormal3fv(currentA);
+			for (int ka = 5; ka>=0; ka--){
+				glVertex3fv(currentVertex+3*ka);
+			}
+			glEnd();
+			if ((*point) == STATIONARY_STREAM_FLAG)
+				renderStationary(point-3,radius);
+			
+		} //end of one tube rendering.  
 		
-		if (!constMap){
-			if(isLit)
-				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
-			else
-				glColor4fv(nextRGBA);
-		}
-		glBegin(GL_POLYGON);
-		glNormal3fv(currentA);
-		for (int ka = 5; ka>=0; ka--){
-			glVertex3fv(currentVertex+3*ka);
-		}
-		glEnd();
+
 	} //end of loop over seedPoints
+	//Special symbol at stationary flow:
+	
 		
 }
-
-
+//Render a symbol for stationary flowline (octahedron?)
+void FlowRenderer::renderStationary(float* point, float radius){
+	radius *= 3.f;
+	glBegin(GL_TRIANGLES);
+	glNormal3f(0.5f,.5f,.707f);
+	glVertex3f(point[0],point[1],point[2]+radius);
+	glVertex3f(point[0]+radius, point[1], point[2]);
+	glVertex3f(point[0], point[1]+radius, point[2]);
+	glNormal3f(-0.5f,.5f,.707f);
+	glVertex3f(point[0],point[1],point[2]+radius);
+	glVertex3f(point[0], point[1]+radius, point[2]);
+	glVertex3f(point[0]-radius, point[1], point[2]);
+	
+	glNormal3f(-0.5f,-.5f,.707f);
+	glVertex3f(point[0],point[1],point[2]+radius);
+	glVertex3f(point[0]-radius, point[1], point[2]);
+	glVertex3f(point[0], point[1]-radius, point[2]);
+	glNormal3f(0.5f,-.5f,.707f);
+	glVertex3f(point[0],point[1],point[2]+radius);
+	glVertex3f(point[0], point[1]-radius, point[2]);
+	glVertex3f(point[0]+radius, point[1], point[2]);
+	
+	glNormal3f(0.5f,.5f,-.707f);
+	glVertex3f(point[0],point[1],point[2]-radius);
+	glVertex3f(point[0], point[1]+radius, point[2]);
+	glVertex3f(point[0]+radius, point[1], point[2]);
+	glNormal3f(-0.5f,.5f,-.707f);
+	glVertex3f(point[0],point[1],point[2]-radius);
+	glVertex3f(point[0]-radius, point[1], point[2]);
+	glVertex3f(point[0], point[1]+radius, point[2]);
+	glNormal3f(-0.5f,-.5f,-.707f);
+	glVertex3f(point[0],point[1],point[2]-radius);
+	glVertex3f(point[0], point[1]-radius, point[2]);
+	glVertex3f(point[0]-radius, point[1], point[2]);
+	glNormal3f(0.5f,-.5f,-.707f);
+	glVertex3f(point[0],point[1],point[2]-radius);
+	glVertex3f(point[0]+radius, point[1], point[2]);
+	glVertex3f(point[0], point[1]-radius, point[2]);
+	glEnd();
+	
+}
 
 
 
