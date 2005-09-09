@@ -237,8 +237,8 @@ updatePanelState(){
 	ambientAtten = myDvrTab->ambientAttenuation->text().toFloat();
 	specularAtten = myDvrTab->specularAttenuation->text().toFloat();
 
-	getMapperFunc()->setMinColorMapValue(myDvrTab->leftMappingBound->text().toFloat());
-	getMapperFunc()->setMaxColorMapValue(myDvrTab->rightMappingBound->text().toFloat());
+	((TransferFunction*)getMapperFunc())->setMinMapValue(myDvrTab->leftMappingBound->text().toFloat());
+	((TransferFunction*)getMapperFunc())->setMaxMapValue(myDvrTab->rightMappingBound->text().toFloat());
 	
 	setDatarangeDirty();
 	getTFEditor()->setDirty();

@@ -918,6 +918,11 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->minColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->maxColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->maxColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->minOpacmapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->minOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->maxOpacmapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->maxOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	
 	connect (flowTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setFlowNavigateMode(bool)));
 	connect (flowTab->editButton, SIGNAL(toggled(bool)), this, SLOT(setFlowEditMode(bool)));
 	connect(flowTab->alignButton, SIGNAL(clicked()), this, SLOT(setFlowAligned()));
