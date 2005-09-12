@@ -53,7 +53,7 @@ protected:
 	// Render a "stationary symbol" at the specified point
 	void renderStationary(float* point, float rad);
 
-
+	float constFlowColor[4];
 
 };
 };

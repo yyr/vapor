@@ -17,7 +17,6 @@
 //	Description:	Implementation of the flowrenderer class
 //
 
-
 #include "flowrenderer.h"
 #include "vapor/VaporFlow.h"
 #include "glwindow.h"
@@ -60,7 +59,13 @@ void FlowRenderer::paintGL()
 {
 	GLfloat white_light[] = {1.f,1.f,1.f,1.f};
 	GLfloat lmodel_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
-	float constFlowColor[4];
+	
+	GLdouble topPlane[] = {0., -1., 0., 1.};
+	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
+	GLdouble leftPlane[] = {1., 0., 0., 0.};
+	GLdouble botPlane[] = {0., 1., 0., 0.};
+	GLdouble frontPlane[] = {0., 0., -1., 1.};//z largest
+	GLdouble backPlane[] = {0., 0., 1., 0.};
 	int winNum = myVizWin->getWindowNum();
 	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
 	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
@@ -104,6 +109,30 @@ void FlowRenderer::paintGL()
 	float* transVec = ViewpointParams::getMinCubeCoords();
 	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
 	
+	//Set up clipping planes
+	float* maxPlanes = ViewpointParams::getMaxCubeCoords();
+	topPlane[3] = maxPlanes[1];
+	botPlane[3] = -transVec[1];
+	leftPlane[3] = -transVec[0];
+	rightPlane[3] = maxPlanes[0];
+	frontPlane[3] = maxPlanes[2];
+	backPlane[3] = -transVec[2];
+	glClipPlane(GL_CLIP_PLANE0, topPlane);
+	glEnable(GL_CLIP_PLANE0);
+	glClipPlane(GL_CLIP_PLANE1, rightPlane);
+	glEnable(GL_CLIP_PLANE1);
+	glClipPlane(GL_CLIP_PLANE2, botPlane);
+	glEnable(GL_CLIP_PLANE2);
+	glClipPlane(GL_CLIP_PLANE3, leftPlane);
+	glEnable(GL_CLIP_PLANE3);
+	glClipPlane(GL_CLIP_PLANE4, frontPlane);
+	glEnable(GL_CLIP_PLANE4);
+	glClipPlane(GL_CLIP_PLANE5, backPlane);
+	glEnable(GL_CLIP_PLANE5);
+
+
+
+
 	//Setup constant color/opacity by default
 	
 	myFlowParams->getMapperFunc()->mapPointToRGBA(0.0f, constFlowColor);
@@ -144,11 +173,11 @@ void FlowRenderer::paintGL()
 			}
 		} else {
 			glDisable(GL_LIGHTING); //No lights
-			glColor4fv(constFlowColor);
+			
 		}
 	} else {//points are not lit..
 		glDisable(GL_LIGHTING);
-		glColor4fv(constFlowColor);
+		
 	}
 	//If we are doing unsteady flow, handle setup differently:
 	if (myFlowParams->flowIsSteady()){
@@ -249,6 +278,12 @@ void FlowRenderer::paintGL()
 
 	glDisable(GL_LIGHTING);
 	glDisable(GL_BLEND);
+	glDisable(GL_CLIP_PLANE0);
+	glDisable(GL_CLIP_PLANE1);
+	glDisable(GL_CLIP_PLANE2);
+	glDisable(GL_CLIP_PLANE3);
+	glDisable(GL_CLIP_PLANE4);
+	glDisable(GL_CLIP_PLANE5);
 	glPopMatrix();
 }
 
@@ -274,10 +309,11 @@ renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool const
 	for (int i = 0; i< numSeedPoints; i++){
 		glBegin (GL_POINTS);
 		bool endGL = false;
+		if(constMap) glColor4fv(constFlowColor);
 		for (int j = firstAge; j<=lastAge; j++){
 			float* point = flowDataArray+ 3*(startIndex+j+ maxPoints*i);
 			if (*point == END_FLOW_FLAG) break;
-			qWarning("point is %f %f %f", *point, *(point+1), *(point+2));
+			//qWarning("point is %f %f %f", *point, *(point+1), *(point+2));
 			
 			if (!constMap){
 				float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
@@ -313,6 +349,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 		ViewpointParams* vpParams = VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum());
 		const float* lightDir = vpParams->getLightDirection(0);
 		for (int i = 0; i< numSeedPoints; i++){
+			if (constMap)glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE, constFlowColor);
 			glBegin (GL_LINE_STRIP);
 			bool endGL = false;
 			for (int j = firstAge; j<=lastAge; j++){
@@ -344,7 +381,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
 				}
 				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
-					glEnd();//Terminate current curve
+					if(!endGL) glEnd();//Terminate current curve
 					int winNum = myVizWin->getWindowNum();
 					RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
 					float rad = 0.5*(radius+1.f)*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
@@ -361,6 +398,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 		//just convert the flow data to a set of lines...
 		glDisable(GL_LIGHTING);
 		for (int i = 0; i< numSeedPoints; i++){
+			glColor4fv(constFlowColor);
 			bool endGL = false;
 			glBegin (GL_LINE_STRIP);
 			for (int j = firstAge; j<=lastAge; j++){
@@ -372,7 +410,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 					glColor4fv(rgba);
 				}
 				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
-					glEnd();//Terminate current curve
+					if(!endGL) glEnd();//Terminate current curve
 					int winNum = myVizWin->getWindowNum();
 					RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
 					float rad = 0.5*(radius+1.f)*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
@@ -423,6 +461,9 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
 			else
 				glColor4fv(rgba);
+		} else {
+			if(isLit) glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE, constFlowColor);
+			else glColor4fv(constFlowColor);
 		}
 		//Check if the second point is a stationary flag:
 		if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) == STATIONARY_STREAM_FLAG) {
@@ -653,7 +694,10 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 }
 //Render a symbol for stationary flowline (octahedron?)
 void FlowRenderer::renderStationary(float* point, float radius){
-	radius *= 3.f;
+	
+	const float stationaryColor[4] = {.5f,.5f,.5f,1.f};
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, stationaryColor);
+	glColor4fv(stationaryColor);
 	glBegin(GL_TRIANGLES);
 	glNormal3f(0.5f,.5f,.707f);
 	glVertex3f(point[0],point[1],point[2]+radius);
