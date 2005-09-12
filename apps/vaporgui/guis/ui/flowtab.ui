@@ -365,6 +365,12 @@
                         <property name="name">
                             <cstring>xCoordVarCombo</cstring>
                         </property>
+                        <property name="minimumSize">
+                            <size>
+                                <width>80</width>
+                                <height>0</height>
+                            </size>
+                        </property>
                         <property name="toolTip" stdset="0">
                             <string>Specify the variable that is mapped to the X coord of the field</string>
                         </property>
@@ -415,6 +421,12 @@
                         <property name="name">
                             <cstring>yCoordVarCombo</cstring>
                         </property>
+                        <property name="minimumSize">
+                            <size>
+                                <width>80</width>
+                                <height>0</height>
+                            </size>
+                        </property>
                         <property name="currentItem">
                             <number>1</number>
                         </property>
@@ -450,6 +462,12 @@
                         </item>
                         <property name="name">
                             <cstring>zCoordVarCombo</cstring>
+                        </property>
+                        <property name="minimumSize">
+                            <size>
+                                <width>80</width>
+                                <height>0</height>
+                            </size>
                         </property>
                         <property name="currentItem">
                             <number>2</number>
