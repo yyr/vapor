@@ -108,6 +108,7 @@ public:
 	static void worldFromCube(float fromCoords[3], float toCoords[3]);
 	static void setCoordTrans();
 	static float* getMinCubeCoords() {return minCubeCoord;}
+	static float* getMaxCubeCoords() {return maxCubeCoord;}
 
 	//Following determines scale factor in coord transformation:
 	//
@@ -147,6 +148,8 @@ protected:
 	//
 	static float minCubeCoord[3];
 	static float maxCubeSide;
+	//Max sides
+	static float maxCubeCoord[3];
 	//GL state saved here since it may be shared...
 	//
 	double modelViewMatrix[16];

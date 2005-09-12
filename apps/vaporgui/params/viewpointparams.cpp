@@ -44,6 +44,7 @@
 #include "vapor/XmlNode.h"
 float VAPoR::ViewpointParams::maxCubeSide = 1.f;
 float VAPoR::ViewpointParams::minCubeCoord[3] = {0.f,0.f,0.f};
+float VAPoR::ViewpointParams::maxCubeCoord[3] = {1.f,1.f,1.f};
 
 using namespace VAPoR;
 const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
@@ -469,6 +470,7 @@ setCoordTrans(){
 	for (i = 0; i<3; i++) {
 		if ((float)(extents[i+3]-extents[i]) > maxCubeSide) maxCubeSide = (float)(extents[i+3]-extents[i]);
 		minCubeCoord[i] = (float)extents[i];
+		maxCubeCoord[i] = (float)extents[i+3];
 	}
 }
 bool ViewpointParams::

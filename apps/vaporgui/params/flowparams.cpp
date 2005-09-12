@@ -52,9 +52,9 @@
 #include "flowmapeditor.h"
 #include "flowmapframe.h"
 //Step sizes for integration accuracy:
-#define SMALLEST_MIN_STEP 0.15f
+#define SMALLEST_MIN_STEP 0.05f
 #define LARGEST_MIN_STEP 4.f
-#define SMALLEST_MAX_STEP 1.f
+#define SMALLEST_MAX_STEP 0.25f
 #define LARGEST_MAX_STEP 10.f
 using namespace VAPoR;
 	const string FlowParams::_seedingTag = "FlowSeeding";

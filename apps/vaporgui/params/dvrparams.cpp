@@ -261,6 +261,7 @@ setVarNum(int val)
 	//Force a redraw of tfframe 
 	getTFEditor()->setDirty();
 	myDvrTab->DvrTFFrame->setEditor(getTFEditor());
+	connectMapperFunction(getMapperFunc(),getTFEditor());
 	myDvrTab->DvrTFFrame->update();	
 	setClutDirty();
 	//Set region dirty, since new data is needed
