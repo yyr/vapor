@@ -255,6 +255,22 @@ void GLWindow::paintGL()
 		renderRegionBounds(extents, selectedFace,
 			camVec, disp);
 	} 
+	//or render the seed geometry, if in probe mode
+	else if(MainForm::getInstance()->getCurrentMouseMode() == Command::probeMode){
+		float camVec[3];
+		float seedExtents[6];
+		FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
+		myFlowParams->calcSeedExtents(seedExtents);
+		ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
+		//Obtain the face displacement in world coordinates,
+		//Then normalize to unit cube coords:
+		float disp = myFlowParams->getSeedFaceDisplacement();
+		disp /= ViewpointParams::getMaxCubeSide();
+		int selectedFace = myFlowParams->getSelectedFaceNum();
+		assert(selectedFace >= -1 && selectedFace < 6);
+		renderRegionBounds(seedExtents, selectedFace,
+			camVec, disp);
+	} 
 	swapBuffers();
 	glPopMatrix();
 	//Always clear the regionDirty flag:

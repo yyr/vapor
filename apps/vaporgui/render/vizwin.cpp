@@ -648,7 +648,78 @@ pointOverCube(RegionParams* rParams, float screenCoords[2]){
 	
 	return -1;
 }
+//This determines if the specified point is over one of the faces of the regioncube.
+//ScreenCoords are as in OpenGL:  bottom of window is 0.  Same as code above, except
+//for doing seed region, not subregion
+//
+int VizWin::
+pointOverCube(FlowParams* fParams, float screenCoords[2]){
+	//First get the cube corners into an array of floats
+	
+	float corners[24];
+	float mincrd[3];
+	float maxcrd[3];
+	for (int i = 0; i<3; i++){
+		mincrd[i] = fParams->getSeedRegionMin(i);
+		maxcrd[i] = fParams->getSeedRegionMax(i);
+	}
+	//Specify corners in counterclockwise order 
+	//(appearing from front, i.e. pos z axis) 
+	//Back first:
+	corners[0+3*0] = mincrd[0];
+	corners[1+3*0] = mincrd[1];
+	corners[2+3*0] = mincrd[2];
+	corners[0+3*1] = maxcrd[0];
+	corners[1+3*1] = mincrd[1];
+	corners[2+3*1] = mincrd[2];
+	corners[0+3*2] = maxcrd[0];
+	corners[1+3*2] = maxcrd[1];
+	corners[2+3*2] = mincrd[2];
+	corners[0+3*3] = mincrd[0];
+	corners[1+3*3] = maxcrd[1];
+	corners[2+3*3] = mincrd[2];
+	//Front (large z)
+	corners[0+3*4] = mincrd[0];
+	corners[1+3*4] = mincrd[1];
+	corners[2+3*4] = maxcrd[2];
+	corners[0+3*5] = maxcrd[0];
+	corners[1+3*5] = mincrd[1];
+	corners[2+3*5] = maxcrd[2];
+	corners[0+3*6] = maxcrd[0];
+	corners[1+3*6] = maxcrd[1];
+	corners[2+3*6] = maxcrd[2];
+	corners[0+3*7] = mincrd[0];
+	corners[1+3*7] = maxcrd[1];
+	corners[2+3*7] = maxcrd[2];
+	
 
+
+	//Then transform them in-place to cube coords.
+	for (int j = 0; j<8; j++)
+		ViewpointParams::worldToCube(corners+j*3, corners+j*3);
+	//Finally, for each face, test the point:
+	
+	//Back (as viewed from the positive z-axis):
+	if (myGLWindow->pointIsOnQuad(corners+0,corners+9,corners+6,corners+3,
+		screenCoords)) return 0;
+	//Front
+	if (myGLWindow->pointIsOnQuad(corners+12,corners+15,corners+18,corners+21,
+		screenCoords)) return 1;
+	//Bottom
+	if (myGLWindow->pointIsOnQuad(corners+0,corners+3,corners+15,corners+12,
+		screenCoords)) return 2;
+	//Top
+	if (myGLWindow->pointIsOnQuad(corners+6,corners+9,corners+21,corners+18,
+		screenCoords)) return 3;
+	//Left:
+	if (myGLWindow->pointIsOnQuad(corners+9,corners+0,corners+12,corners+21,
+		screenCoords)) return 4;
+	//Right:
+	if (myGLWindow->pointIsOnQuad(corners+3,corners+6,corners+18,corners+15,
+		screenCoords)) return 5;
+	
+	return -1;
+}
 void VizWin::
 doFrameCapture(){
 	if (capturing == 0) return;

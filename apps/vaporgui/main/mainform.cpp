@@ -1032,17 +1032,21 @@ void MainForm::setLights(bool /* on*/)
 	}
 	*/
 }
-void MainForm::setProbe(bool /*on*/)
+void MainForm::setProbe(bool on)
 {
-	/* Do nothing until implemented:
+	
 	if (!on) return;
+	Session* currentSession = Session::getInstance();
 	if (currentMouseMode != Command::probeMode){
 		VizWinMgr::getInstance()->setSelectionMode(Command::probeMode);
-	
+		//bring up the flowtab, but don't put into history:
+		currentSession->blockRecording();
+		launchFlowTab();
+		currentSession->unblockRecording();
 		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::probeMode));
 		currentMouseMode = Command::probeMode;
 	}
-	*/
+	
 }
 void MainForm::setRegionSelect(bool on)
 {

@@ -107,6 +107,7 @@ public:
 
 	bool mouseIsDown() {return mouseDownHere;}
 	int pointOverCube(RegionParams* rParams, float screenCoords[2]);
+	int pointOverCube(FlowParams* rParams, float screenCoords[2]);
 	bool viewerCoordsChanged() {return newViewerCoords;}
 	void setViewerCoordsChanged(bool isNew) {newViewerCoords = isNew;}
 	bool isCapturing() {return (capturing != 0);}

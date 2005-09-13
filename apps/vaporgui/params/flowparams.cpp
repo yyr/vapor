@@ -91,6 +91,9 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	thisParamType = FlowParamsType;
 	myFlowTab = MainForm::getInstance()->getFlowTab();
 	enabled = false;
+	selectedFaceNum = -1;
+	faceDisplacement = 0.f;
+	
 	//Set default values
 	flowType = 0; //steady
 	instance = 1;
@@ -293,9 +296,7 @@ void FlowParams::updateDialog(){
 	for (int i = 0; i< 3; i++){
 		regionMin[i] = rParams->getRegionMin(i);
 		regionMax[i] = rParams->getRegionMax(i);
-		if (seedBoxMin[i]<regionMin[i]) seedBoxMin[i] = regionMin[i];
-		if (seedBoxMax[i]>regionMax[i]) seedBoxMax[i] = regionMax[i];
-		if (seedBoxMin[i]>seedBoxMax[i]) seedBoxMin[i] = seedBoxMax[i];
+		enforceConsistency(i);
 		textToSlider(i, (seedBoxMin[i]+seedBoxMax[i])*0.5f,
 			seedBoxMax[i]-seedBoxMin[i]);
 	}
@@ -1261,7 +1262,10 @@ regenerateFlowData(int timeStep){
 		
 	} else {
 		qWarning("generating streak lines, maxpoints = %d", maxPoints);
+		float val = flowData[0][3*maxPoints*numSeedPoints*numInjections];
 		myFlowLib->GenStreakLines(flowData[0], maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
+		float val1 = flowData[0][3*maxPoints*numSeedPoints*numInjections];
+		assert (val1 == val);
 	}
 	//Invalidate colors and opacities:
 	if (flowRGBAs && flowRGBAs[timeStep]) {
@@ -1853,4 +1857,188 @@ void FlowParams::
 setOpacMapEntity( int entityNum){
 	if (!flowMapEditor) return;
 	flowMapEditor->setOpacVarNum(entityNum);
+}
+//Methods for seed box manipulation... Copied from regionparams.cpp
+//Grab a region face:
+//
+void FlowParams::
+captureMouseDown(int faceNum, float camPos[3], float dirVec[3]){
+	//If text has changed, will ignore it-- don't call confirmText()!
+	//
+	guiSetTextChanged(false);
+	if (savedCommand) delete savedCommand;
+	savedCommand = PanelCommand::captureStart(this,  "slide seed region boundary");
+	selectedFaceNum = faceNum;
+	faceDisplacement = 0.f;
+	//Calculate intersection of ray with specified plane
+	if (!rayCubeIntersect(dirVec, camPos, faceNum, initialSelectionRay))
+		selectedFaceNum = -1;
+	//The selection ray is the vector from the camera to the intersection point,
+	//So subtract the camera position
+	vsub(initialSelectionRay, camPos, initialSelectionRay);
+	setFlowDataDirty();
+}
+
+void FlowParams::
+captureMouseUp(){
+	//If no change, nothing to do, except
+	//nullify unDo state
+	if (faceDisplacement ==0.f || (selectedFaceNum < 0)) {
+		if (savedCommand) {
+			delete savedCommand;
+			savedCommand = 0;
+		}
+		
+	} else { //terminate dragging
+		int coord = (5-selectedFaceNum)/2;
+		if (selectedFaceNum %2) {
+			setSeedRegionMax(coord, getSeedRegionMax(coord)+faceDisplacement);
+		} else {
+			setSeedRegionMin(coord, getSeedRegionMin(coord)+faceDisplacement);
+		}
+		
+		enforceConsistency(coord);
+		updateDialog();
+	}
+	faceDisplacement = 0.f;
+	selectedFaceNum = -1;
+	setFlowDataDirty();
+	if (!savedCommand) return;
+	PanelCommand::captureEnd(savedCommand, this);
+	savedCommand = 0;
+	
+}
+
+//Intersect the ray with the specified face, determining the intersection
+//in world coordinates.  Note that meaning of faceNum is specified in 
+//renderer.cpp
+// Faces of the cube are numbered 0..5 based on view from pos z axis:
+// back, front, bottom, top, left, right
+// return false if no intersection
+//
+bool FlowParams::
+rayCubeIntersect(float ray[3], float cameraPos[3], int faceNum, float intersect[3]){
+	double val;
+	int coord;// = (5-faceNum)/2;
+	// if (faceNum%2) val = getRegionMin(coord); else val = getRegionMax(coord);
+	switch (faceNum){
+		case(0): //back; z = zmin
+			val = getSeedRegionMin(2);
+			coord = 2;
+			break;
+		case(1): //front; z = zmax
+			val = getSeedRegionMax(2);
+			coord = 2;
+			break;
+		case(2): //bot; y = min
+			val = getSeedRegionMin(1);
+			coord = 1;
+			break;
+		case(3): //top; y = max
+			val = getSeedRegionMax(1);
+			coord = 1;
+			break;
+		case(4): //left; x = min
+			val = getSeedRegionMin(0);
+			coord = 0;
+			break;
+		case(5): //right; x = max
+			val = getSeedRegionMax(0);
+			coord = 0;
+			break;
+		default:
+			return false;
+	}
+	if (ray[coord] == 0.0) return false;
+	float param = (val - cameraPos[coord])/ray[coord];
+	for (int i = 0; i<3; i++){
+		intersect[i] = cameraPos[i]+param*ray[i];
+	}
+	return true;
+}
+
+
+//Slide the face based on mouse move from previous capture.  
+//Requires new direction vector associated with current mouse position
+//The new face position requires finding the planar displacement such that 
+//the ray (in the scene) associated with the new mouse position is as near
+//as possible to the line projected from the original mouse position in the
+//direction of planar motion
+//displacement from the original intersection is as close as possible to the 
+void FlowParams::
+slideCubeFace(float movedRay[3]){
+	float normalVector[3] = {0.f,0.f,0.f};
+	float q[3], r[3], w[3];
+	int coord = (5 - selectedFaceNum)/2;
+	assert(selectedFaceNum >= 0);
+	if (selectedFaceNum < 0) return;
+	normalVector[coord] = 1.f;
+	
+	//Calculate W:
+	vcopy(movedRay, w);
+	vnormal(w);
+	float scaleFactor = 1.f/vdot(w,normalVector);
+	//Calculate q:
+	vmult(w, scaleFactor, q);
+	vsub(q, normalVector, q);
+	
+	//Calculate R:
+	scaleFactor *= vdot(initialSelectionRay, normalVector);
+	vmult(w, scaleFactor, r);
+	vsub(r, initialSelectionRay, r);
+
+	float denom = vdot(q,q);
+	faceDisplacement = 0.f;
+	if (denom != 0.f)
+		faceDisplacement = -vdot(q,r)/denom;
+	
+	//Make sure the faceDisplacement is OK.  Not allowed to
+	//extent face beyond end of data, nor beyond opposite face.
+	//First, convert to a displacement in cube coordinates.  
+	//Then, see what voxel coordinate 
+	double regMin = seedBoxMin[coord];
+	double regMax = seedBoxMax[coord];
+	/*
+	double regionMin = fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
+		(centerPosition[coord] - regionSize[coord]*.5)/(double)(fullSize[coord]);
+	double regionMax = fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
+		(centerPosition[coord] + regionSize[coord]*.5)/(double)(fullSize[coord]);
+		*/
+	if (selectedFaceNum%2) { //Are we moving min or max?
+		//Moving max, since selectedFace is odd:
+		if (regMax + faceDisplacement > regionMax[coord])
+			faceDisplacement = regionMax[coord] - regMax;
+		if (regMax + faceDisplacement < regMin)
+			faceDisplacement = regMin - regMax;
+	} else { //Moving region min:
+		if (regMin + faceDisplacement > regMax)
+			faceDisplacement = regMax - regMin;
+		if (regMin + faceDisplacement < regionMin[coord])
+			faceDisplacement = regionMin[coord] - regMin;
+	}
+	
+}
+void FlowParams::
+calcSeedExtents(float* extents){
+	for (int i = 0; i<3; i++){
+		extents[i] = seedBoxMin[i];
+		extents[i+3] = seedBoxMax[i];
+	}
+}
+bool FlowParams::
+enforceConsistency(int i){
+	bool unchanged = true;
+	if (seedBoxMin[i]< regionMin[i]) {
+		seedBoxMin[i] = regionMin[i];
+		unchanged = false;
+	}
+	if (seedBoxMax[i]> regionMax[i]) {
+		seedBoxMax[i] = regionMax[i];
+		unchanged = false;
+	}
+	if (seedBoxMin[i]> seedBoxMax[i]) {
+		seedBoxMin[i] = seedBoxMax[i];
+		unchanged = false;
+	}
+	return unchanged;
 }

@@ -1746,11 +1746,13 @@ setFlowType(int typenum){
 	//Activate/deactivate components associated with flow type:
 	if(typenum == 0){//steady:
 		myFlowTab->recalcButton->setEnabled(false);
+		myFlowTab->seedtimeStartEdit->setEnabled(false);
 		myFlowTab->seedtimeEndEdit->setEnabled(false);
 		myFlowTab->seedtimeIncrementEdit->setEnabled(false);
 		myFlowTab->timeSampleEdit->setEnabled(false);
 	} else {//unsteady:
 		myFlowTab->recalcButton->setEnabled(true);
+		myFlowTab->seedtimeStartEdit->setEnabled(true);
 		myFlowTab->seedtimeEndEdit->setEnabled(true);
 		myFlowTab->seedtimeIncrementEdit->setEnabled(true);
 		myFlowTab->timeSampleEdit->setEnabled(true);
