@@ -40,7 +40,7 @@ namespace VAPoR
 		bool GenStreamLines(float* positions, int maxPoints, unsigned int randomSeed, float* speeds=0);
 		bool GenStreakLines(float* positions, int maxPoints, unsigned int randomSeed, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
 		//bool GenIncrementalStreakLines(float* positions, int maxTimeSteps, unsigned int* randomSeed, int injectionTime, (void progressCB)(int completedTimeStep));
-		float* GetData(size_t ts, const char* varName, const int numNode);
+		float* GetData(size_t ts, const char* varName);
 
 	private:
 		size_t userTimeUnit;						// time unit in the original data

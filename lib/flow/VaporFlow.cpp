@@ -183,28 +183,9 @@ void VaporFlow::SetIntegrationParams(float initStepSize, float maxStepSize)
 //////////////////////////////////////////////////////////////////////////
 // prepare the necessary data
 //////////////////////////////////////////////////////////////////////////
-float* VaporFlow::GetData(size_t ts, const char* varName, const int numNode)
+float* VaporFlow::GetData(size_t ts, const char* varName)
 {
-	float *lowPtr, *highPtr;
-	// find low and high ts to sample data
-	size_t lowT, highT;
-	float ratio;
-	lowT = (ts - startTimeStep)/timeStepIncrement;
-	highT = lowT + 1;
-	ratio = (float)((ts - startTimeStep)%timeStepIncrement)/(float)timeStepIncrement;
-	
-	// get low data
-	lowPtr = dataMgr->GetRegion(lowT, varName, numXForms, minRegion, maxRegion);
-		
-	// get high data and interpolate
-	if(ratio != 0.0)
-	{
-		highPtr = dataMgr->GetRegion(highT, varName, numXForms, minRegion, maxRegion);
-		for(int iFor = 0; iFor < numNode; iFor++)
-			lowPtr[iFor] = Lerp(lowPtr[iFor], highPtr[iFor], ratio);
-	}
-	
-	return lowPtr;
+	return dataMgr->GetRegion(ts, varName, numXForms, minRegion, maxRegion);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -250,13 +231,12 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pUData = new float*[1];
 	pVData = new float*[1];
 	pWData = new float*[1];
-	pUData[0] = GetData(startTimeStep, xVarName, totalNum);
-	pVData[0] = GetData(startTimeStep, yVarName, totalNum);
-	pWData[0] = GetData(startTimeStep, zVarName, totalNum);
+	pUData[0] = GetData(startTimeStep, xVarName);
+	pVData[0] = GetData(startTimeStep, yVarName);
+	pWData[0] = GetData(startTimeStep, zVarName);
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
 	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
 	pSolution->SetTime(startTimeStep, startTimeStep);
-	pSolution->SetTimeInc(1);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
 	
 	// set the boundary of physical grid
@@ -267,10 +247,11 @@ bool VaporFlow::GenStreamLines(float* positions,
 	maxB.Set(vExtent[3], vExtent[4], vExtent[5]);
 	pCartesianGrid->SetBoundary(minB, maxB);
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
+	pField->SetUserTimeStepInc(0, 1);
 	
 	// execute streamline
 	vtCStreamLine* pStreamLine;
-	float currentT = 0.0;
+	float currentT = (float)startTimeStep;
 	pStreamLine = new vtCStreamLine(pField);
 	pStreamLine->setBackwardTracing(false);
 	pStreamLine->setMaxPoints(maxPoints);
@@ -327,8 +308,8 @@ bool VaporFlow::GenStreakLines(float* positions,
 	totalNum = totalXNum*totalYNum*totalZNum;
 	numInjections = 1 + ((endInjection - startInjection)/injectionTimeIncrement);
 	realStartTime = (startInjection < startTimeStep)? startTimeStep: startInjection;
-	realEndTime = endTimeStep;
-	timeSteps = realEndTime - realStartTime + 1;
+	timeSteps = (endTimeStep - realStartTime)/timeStepIncrement + 1;
+	realEndTime = realStartTime + (timeSteps-1)*timeStepIncrement;
 	pUData = new float*[timeSteps];
 	pVData = new float*[timeSteps];
 	pWData = new float*[timeSteps];
@@ -337,6 +318,7 @@ bool VaporFlow::GenStreakLines(float* positions,
 	memset(pWData, 0, sizeof(float*)*timeSteps);
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, timeSteps);
 	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
+	pSolution->SetTimeIncrement(timeStepIncrement);
 
 	pSolution->SetTime(realStartTime, realEndTime);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
@@ -349,6 +331,21 @@ bool VaporFlow::GenStreakLines(float* positions,
 	maxB.Set(vExtent[3], vExtent[4], vExtent[5]);
 	pCartesianGrid->SetBoundary(minB, maxB);
 	pField = new CVectorField(pCartesianGrid, pSolution, timeSteps);
+	
+	// get the userTimeStep between two sampled timesteps
+	int* pUserTimeSteps;
+	int tIndex = 0;
+	pUserTimeSteps = new int[timeSteps-1];
+	for(int nSampledStep = realStartTime; nSampledStep < realEndTime; nSampledStep += timeStepIncrement)
+	{
+		int nextSampledStep = nSampledStep + timeStepIncrement;
+		if(dataMgr->GetMetadata()->HasTSUserTime(nSampledStep))
+			pUserTimeSteps[tIndex++] = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
+									   dataMgr->GetMetadata()->GetTSUserTime(nSampledStep)[0];
+		else
+			pUserTimeSteps[tIndex++] = timeStepIncrement;
+	}
+	pField->SetUserTimeSteps(pUserTimeSteps);
 
 	// initialize streak line
 	vtCStreakLine* pStreakLine;
@@ -365,39 +362,43 @@ bool VaporFlow::GenStreakLines(float* positions,
 	// start to computer streakline
 	unsigned int* pointers = new unsigned int[seedNum*numInjections];
 	memset(pointers, 0, sizeof(unsigned int)*seedNum*numInjections);
-	int index, iInjection = 0;
+	int index = -1, iInjection = 0;
 	bool bInject;
-	double diff;
 	for(int iFor = realStartTime; iFor < realEndTime; iFor++)
 	{
-		index = iFor - realStartTime;				// index to solution instance
-
-		// scale animationTimeStep and userTimeStep
-		if(dataMgr->GetMetadata()->HasTSUserTime(iFor))
-			diff = dataMgr->GetMetadata()->GetTSUserTime(iFor+1)[0] - dataMgr->GetMetadata()->GetTSUserTime(iFor)[0];
-		else
-			diff = 1.0;
-		pSolution->SetTimeInc((int)diff);
 		bInject = false;
+		index++;								// index to solution instance
+        int iTemp = iFor/timeStepIncrement;		// index to lower sampled time step
 
-		// need get new data
-		if(iFor == realStartTime)
+		// get usertimestep between current time step and previous sampled time step
+		double diff = 0.0, curDiff = 0.0;
+		if(dataMgr->GetMetadata()->HasTSUserTime(iFor))
 		{
-			pField->SetSolutionData(index, 
-									GetData(iFor, xVarName, totalNum),
-									GetData(iFor, yVarName, totalNum),
-									GetData(iFor, zVarName, totalNum));
-			pField->SetSolutionData(index+1, 
-									GetData(iFor+1, xVarName, totalNum),
-									GetData(iFor+1, yVarName, totalNum),
-									GetData(iFor+1, zVarName, totalNum));
+			int lowerT = realStartTime+iTemp*timeStepIncrement;
+			for(; lowerT < iFor; lowerT++)
+				diff += dataMgr->GetMetadata()->GetTSUserTime(lowerT+1)[0] - 
+						dataMgr->GetMetadata()->GetTSUserTime(lowerT)[0];
+			curDiff = dataMgr->GetMetadata()->GetTSUserTime(iFor+1)[0] - 
+					  dataMgr->GetMetadata()->GetTSUserTime(iFor)[0];
 		}
 		else
 		{
-			pField->SetSolutionData(index+1, 
-									GetData(iFor+1, xVarName, totalNum),
-									GetData(iFor+1, yVarName, totalNum),
-									GetData(iFor+1, zVarName, totalNum));
+			diff = iFor-(realStartTime+iTemp*timeStepIncrement);
+			diff = (diff < 0.0) ? 0.0 : diff;
+			curDiff = 1.0;
+		}
+		pField->SetUserTimeStepInc((int)diff, (int)curDiff);
+
+		// need get new data
+		if((iFor%timeStepIncrement) == 0)
+		{
+			if(iFor == realStartTime)
+				pField->SetSolutionData(iTemp,GetData(iFor, xVarName),GetData(iFor, yVarName),GetData(iFor, zVarName));
+			
+			pField->SetSolutionData(iTemp+1, 
+									GetData(iFor+timeStepIncrement, xVarName),
+									GetData(iFor+timeStepIncrement, yVarName),
+									GetData(iFor+timeStepIncrement, zVarName));
 		}
 
 		// whether inject new seeds this time?
@@ -406,18 +407,14 @@ bool VaporFlow::GenStreakLines(float* positions,
 
 		// execute streakline
 		if(bInject)				// inject new seeds
-		{
-			pStreakLine->execute((void *)&iFor, positions, pointers, true, iInjection, speeds);
-			iInjection++;
-		}	
+			pStreakLine->execute((float)index, positions, pointers, true, iInjection++, speeds);
 		else					// do not inject new seeds
-		{
-			pStreakLine->execute((void *)&iFor, positions, pointers, false, iInjection, speeds);
-		}
+			pStreakLine->execute((float)index, positions, pointers, false, iInjection, speeds);
 	}
 
 	Reset();
 	// release resource
+	delete[] pUserTimeSteps;
 	delete[] pointers;
 	delete[] seedPtr;
 	delete pStreakLine;

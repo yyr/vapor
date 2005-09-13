@@ -41,25 +41,25 @@ vtCStreakLine::~vtCStreakLine(void)
 // listSeedTraces:	the output position of particles for the current time
 //					step
 //////////////////////////////////////////////////////////////////////////
-void vtCStreakLine::execute(const void* userData, 
+void vtCStreakLine::execute(const float t, 
 							float* positions, 
 							unsigned int* pointers,
 							bool bInjectSeeds,
 							int iInjection,
 							float* speeds)
 {
-	computeStreakLine(userData, positions, pointers, bInjectSeeds, iInjection, speeds);
+	computeStreakLine(t, positions, pointers, bInjectSeeds, iInjection, speeds);
 }
 
-void vtCStreakLine::computeStreakLine(const void* userData, 
+void vtCStreakLine::computeStreakLine(const float t, 
 									  float* points, 
 									  unsigned int* pointers,
 									  bool bInjectSeeds,
 									  int iInjection,
 									  float* speeds)
 {
-	float currentT = *(float*)userData;
-	float finalT = currentT + m_timeDir * m_itsTimeInc;
+	float currentT = t;
+	float finalT = currentT + m_timeDir;
 	int numPreParticles;
 	vector<vtListParticleIter> deadList;
 	int istat;

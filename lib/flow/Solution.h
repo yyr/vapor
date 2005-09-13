@@ -35,6 +35,10 @@ private:
 	int m_nTimeIncrement;				// timesteps sampling rate
 										// for example, if m_nTimeIncrement = 4, the T0 is data0, 
 										// T1 is data4, and data between T0 an T1 is interpolated
+	int m_nUserTimeStepInc;				// usertimestep between previous time step and previous
+										// sampled time step
+	int m_nUserTimeStep;				// usertimestep between current time step and next time step
+	int* m_pUserTimeSteps;				// time step increment between two sampled time steps
 
 public:
 	// constructor
@@ -55,8 +59,10 @@ public:
 	void SetTime(int startT, int endT) { m_nStartT = startT; m_nEndT = endT;}
 	int GetStartTime(void) {return m_nStartT;}
 	int GetEndTime(void) {return m_nEndT;}
-	int GetTimeIncrement(void) {return m_nTimeIncrement;}
-	void SetTimeInc(int timeInc) { m_nTimeIncrement = timeInc; }
+	void SetTimeIncrement(int timeInc) { m_nTimeIncrement = timeInc; }
+	int GetTimeIncrement(void) { return m_nTimeIncrement; }
+	void SetUserTimeStepInc(int timeInc, int curTimeInc) { m_nUserTimeStepInc = timeInc; m_nUserTimeStep = curTimeInc; }
+	void SetUserTimeSteps(int* pUserTimeSteps) { m_pUserTimeSteps = pUserTimeSteps; }
 	void SetTimeScaleFactor(float timeScaleFactor) { m_fTimeScaleFactor = timeScaleFactor; }
 };
 };

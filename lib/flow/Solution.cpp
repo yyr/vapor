@@ -44,10 +44,14 @@ Solution::Solution(float** pUData, float** pVData, float** pWData,
 	m_nTimeSteps = timeSteps;		
 	m_fTimeScaleFactor = 1.0;
 	m_nTimeIncrement = 1;
+	m_nUserTimeStepInc = 0;
+	m_nUserTimeStep = 1;
+	m_pUserTimeSteps = NULL;
 }
 
 Solution::~Solution()
 {
+	m_pUserTimeSteps = NULL;
 }
 
 void Solution::Reset()
@@ -61,6 +65,9 @@ void Solution::Reset()
 	m_nStartT = 0;
 	m_nEndT = 0;
 	m_nTimeIncrement = 1;
+	m_nUserTimeStepInc = 0;
+	m_nUserTimeStep = 1;
+	m_pUserTimeSteps = NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -109,17 +116,21 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 	else
 	{
 		int lowT, highT;
-		float ratio;
+		float ratio = 0.0;
 		float offset;
 		offset = (t - (float)m_nStartT)/(float)m_nTimeIncrement;
 		lowT = (int)floor(offset);
-		ratio = t - (float)floor(t);
-		highT = lowT + 1;
-		if(lowT >= (m_nTimeSteps-1))
+		if(offset != (float)lowT)
 		{
-			highT = lowT;
-			ratio = 0.0;
+			highT = lowT + 1;
+			ratio = (m_nUserTimeStepInc + (t - (int)t)*m_nUserTimeStep)/(float)m_pUserTimeSteps[lowT];
 		}
+		else
+			ratio = 0.0;
+
+		if(lowT >= m_nEndT)
+			ratio = 0.0;
+		
 		if(ratio == 0.0)
 			nodeData.Set(m_pUDataArray[lowT][id]*m_fTimeScaleFactor, 
 						 m_pVDataArray[lowT][id]*m_fTimeScaleFactor, 
