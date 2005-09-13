@@ -404,7 +404,9 @@ void vtCFieldLine::SampleFieldline(float* positions,
 		}
 
 	}
-	else if(count < m_nMaxsize) assert(0); //This should never happen!
+	else if(count < m_nMaxsize) 
+		positions[ptr] = END_FLOW_FLAG;
+
 	
 
 	posInPoints = ptr; 
