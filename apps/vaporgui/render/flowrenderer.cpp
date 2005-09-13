@@ -84,7 +84,7 @@ void FlowRenderer::paintGL()
 		numInjections = myFlowParams->getNumInjections();
 		myVizWin->setFlowDirty(false);
 	} 
-	if (!constColors && myFlowParams->flowMappingIsDirty(timeStep)){
+	if (!constColors){
 		flowRGBAs = myFlowParams->getRGBAs(timeStep);
 	} 
 
