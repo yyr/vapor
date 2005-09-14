@@ -330,7 +330,7 @@ public:
  //! \retval boolean True if \p value is a valid argument
  //
  int HasTSUserTime(size_t ts) const {
-	CHK_TS(ts, 0)
+	if (! _rootnode->GetChild(ts)) return(0);
 	return(_rootnode->GetChild(ts)->HasElementDouble(_userTimeTag));
 	};
 
