@@ -361,7 +361,11 @@ bool VaporFlow::GenStreakLines(float* positions,
 
 	// start to computer streakline
 	unsigned int* pointers = new unsigned int[seedNum*numInjections];
+	unsigned int* startPositions = new unsigned int[seedNum*numInjections];
 	memset(pointers, 0, sizeof(unsigned int)*seedNum*numInjections);
+	for(int iFor = 0; iFor < (seedNum*numInjections); iFor++)
+		startPositions[iFor] = iFor * maxPoints * 3;
+	
 	int index = -1, iInjection = 0;
 	bool bInject;
 	for(int iFor = realStartTime; iFor < realEndTime; iFor++)
@@ -407,9 +411,9 @@ bool VaporFlow::GenStreakLines(float* positions,
 
 		// execute streakline
 		if(bInject)				// inject new seeds
-			pStreakLine->execute((float)index, positions, pointers, true, iInjection++, speeds);
+			pStreakLine->execute((float)index, positions, startPositions, pointers, true, iInjection++, speeds);
 		else					// do not inject new seeds
-			pStreakLine->execute((float)index, positions, pointers, false, iInjection, speeds);
+			pStreakLine->execute((float)index, positions, startPositions, pointers, false, iInjection, speeds);
 	}
 
 	Reset();

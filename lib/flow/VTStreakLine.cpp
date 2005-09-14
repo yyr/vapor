@@ -43,16 +43,18 @@ vtCStreakLine::~vtCStreakLine(void)
 //////////////////////////////////////////////////////////////////////////
 void vtCStreakLine::execute(const float t, 
 							float* positions, 
+							const unsigned int* startPositions, 
 							unsigned int* pointers,
 							bool bInjectSeeds,
 							int iInjection,
 							float* speeds)
 {
-	computeStreakLine(t, positions, pointers, bInjectSeeds, iInjection, speeds);
+	computeStreakLine(t, positions, startPositions, pointers, bInjectSeeds, iInjection, speeds);
 }
 
 void vtCStreakLine::computeStreakLine(const float t, 
 									  float* points, 
+									  const unsigned int* startPositions, 
 									  unsigned int* pointers,
 									  bool bInjectSeeds,
 									  int iInjection,
@@ -75,6 +77,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 	advectOldParticles( m_itsParticles.begin(), 
 						m_itsParticles.end(), 
 						points, 
+						startPositions, 
 						pointers, 
 						currentT, 
 						finalT, 
@@ -127,7 +130,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 						nextP.m_pointInfo.phyCoord[2]);
 #endif
 
-				SampleFieldline(points, posInPoints, forwardTrace, stepList, true, istat, speeds);	
+				SampleFieldline(points, startPositions, posInPoints, forwardTrace, stepList, true, istat, speeds);	
 				if(points[posInPoints] == END_FLOW_FLAG)
 					pointers[iInjection*(int)m_lSeeds.size()+count] = posInPoints;
 
@@ -167,6 +170,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 void vtCStreakLine::advectOldParticles( vtListParticleIter start, 
 										vtListParticleIter end, 
 										float* points,
+										const unsigned int* startPositions, 
 										unsigned int* pointers,
 										float initialTime,
 										float finalTime,
@@ -211,7 +215,7 @@ void vtCStreakLine::advectOldParticles( vtListParticleIter start,
 				thisParticle->m_pointInfo.phyCoord[2]);
 #endif
 
-		SampleFieldline(points, posInPoints, forwardTrace, stepList, false, istat, speeds);	
+		SampleFieldline(points, startPositions, posInPoints, forwardTrace, stepList, false, istat, speeds);	
 		if(points[posInPoints] == END_FLOW_FLAG)
 			pointers[thisParticle->ptId] = posInPoints;
 

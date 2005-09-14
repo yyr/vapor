@@ -123,7 +123,12 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 	unsigned int posInPoints;			// used to record the current points usage
 	int count;
 	int istat;
-		
+	unsigned int* startPositions;
+	
+	startPositions = new unsigned int[(int)m_lSeeds.size()];
+	for(int iFor = 0; iFor < (int)m_lSeeds.size(); iFor++)
+		startPositions[iFor] = iFor * m_nMaxsize * 3;
+	
 	posInPoints = 0;
 	count = 0;
 	for(sIter = m_lSeeds.begin(); sIter != m_lSeeds.end(); ++sIter)
@@ -141,7 +146,7 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				backTrace = new vtListSeedTrace;
 				stepList = new list<float>;
 				istat = computeFieldLine(BACKWARD,m_integrationOrder, STEADY, *backTrace, *stepList, thisSeed->m_pointInfo);
-				SampleFieldline(points, posInPoints, backTrace, stepList, true, istat, speeds);
+				SampleFieldline(points, startPositions, posInPoints, backTrace, stepList, true, istat, speeds);
 				backTrace->clear();
 				stepList->clear();
 			}
@@ -152,12 +157,14 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				forwardTrace = new vtListSeedTrace;
 				stepList = new list<float>;
 				istat = computeFieldLine(FORWARD,m_integrationOrder, STEADY, *forwardTrace, *stepList, thisSeed->m_pointInfo);
-				SampleFieldline(points, posInPoints, forwardTrace, stepList, true, istat, speeds);
+				SampleFieldline(points, startPositions, posInPoints, forwardTrace, stepList, true, istat, speeds);
 				forwardTrace->clear();
 				stepList->clear();
 			}
 		}
 	}
+
+	delete[] startPositions;
 }
 
 

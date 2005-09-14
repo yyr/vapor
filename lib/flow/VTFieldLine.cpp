@@ -266,6 +266,7 @@ void vtCFieldLine::setSeedPoints(float* points, int numPoints, float t)
 // sample streamline to get points with correct interval
 //////////////////////////////////////////////////////////////////////////
 void vtCFieldLine::SampleFieldline(float* positions,
+								   const unsigned int* startPositions,
 								   unsigned int& posInPoints,
 								   vtListSeedTrace* seedTrace,
 								   list<float>* stepList,
@@ -376,7 +377,10 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	}
 
 	// if # of sampled points < maximal points asked
-	if((count < m_nMaxsize)&& (traceState == OUT_OF_BOUND))				// out of boundary
+	int numSampled, whichSeed;
+	whichSeed = (ptr-1)/(m_nMaxsize*3);
+	numSampled = (ptr - startPositions[whichSeed])/3;
+	if((numSampled < m_nMaxsize)&& (traceState == OUT_OF_BOUND))				// out of boundary
 	{
 	 	pIter1 = seedTrace->end();
 		pIter1--;
@@ -393,7 +397,7 @@ void vtCFieldLine::SampleFieldline(float* positions,
 
 	}
 	// if # of sampled points < maximal points asked
-	else if((count < m_nMaxsize)&& (traceState == CRITICAL_POINT))				// critical pt
+	else if((numSampled < m_nMaxsize)&& (traceState == CRITICAL_POINT))				// critical pt
 	{
 		positions[ptr] = STATIONARY_STREAM_FLAG;
 
@@ -404,10 +408,8 @@ void vtCFieldLine::SampleFieldline(float* positions,
 		}
 
 	}
-	else if(count < m_nMaxsize) 
+	else if(numSampled < m_nMaxsize) 
 		positions[ptr] = END_FLOW_FLAG;
-
-	
 
 	posInPoints = ptr; 
 }
