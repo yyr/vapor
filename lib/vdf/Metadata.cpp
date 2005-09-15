@@ -550,7 +550,7 @@ int Metadata::SetVDataRange(
     }
 
 	SetDiagMsg(
-		"Metadata::SetVDataRange(%d, %s, [%f, ...])", ts, var.c_str(), value[0]
+		"Metadata::SetVDataRange(%d, %s, [%f, %f])", ts, var.c_str(), value[0], value[1]
 	);
 
 

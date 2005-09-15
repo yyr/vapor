@@ -248,6 +248,12 @@ XmlNode	*XmlNode::GetChild(size_t index) {
 	return(_children[index]);
 }
 
+int XmlNode::HasChild(size_t index) {
+
+	return(index < _children.size());
+	
+}
+
 XmlNode	*XmlNode::GetChild(const string &tag) {
 
 	XmlNode *child;
@@ -261,6 +267,22 @@ XmlNode	*XmlNode::GetChild(const string &tag) {
 	SetErrMsg("Invalid child tag : %s", tag.c_str());
 	return(NULL);
 }
+
+int XmlNode::HasChild(const string &tag) {
+
+	XmlNode *child;
+
+	for (size_t i = 0; i<_children.size(); i++) {
+		if (! HasChild(i)) return(0);
+		assert ((child = GetChild(i)) != NULL);
+	
+		if (StrCmpNoCase(child->_tag, tag) == 0) return(1);
+	}
+	return(0);
+}
+
+
+
 ostream&
 XmlNode::streamOut(ostream&os, const XmlNode& node) {
 	os << node;

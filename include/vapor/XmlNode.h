@@ -242,6 +242,13 @@ public:
  //
  XmlNode *GetChild(size_t index);
 
+ //! Return true if the indicated child node exists
+ //!
+ //! \param[in] index Index of the child. The first child is zero
+ //! \retval bool 
+ //!
+ int HasChild(size_t index);
+
  //! Return the indicated child node. 
  //!
  //! Return the indicated tagged child node. Return NULL if the child 
@@ -251,6 +258,13 @@ public:
  //! could does not exist
  //
  XmlNode *GetChild(const string &tag);
+
+ //! Return true if the indicated child node exists
+ //!
+ //! \param[in] tag Name of the child node 
+ //! \retval bool 
+ //!
+ int HasChild(const string &tag);
 
  //! Write the XML tree, rooted at this node, to a file in XML format
  //
