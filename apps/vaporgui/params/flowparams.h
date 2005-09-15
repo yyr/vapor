@@ -277,8 +277,6 @@ protected:
 	std::vector<string> colorMapEntity;
 	std::vector<string> opacMapEntity;
 	int numControlPoints;
-
-	float regionMin[3], regionMax[3];
 	
 	VaporFlow* myFlowLib;
 

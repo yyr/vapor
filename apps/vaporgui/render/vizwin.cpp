@@ -99,7 +99,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	subregionFrameColor = QColor(red);
 	colorbarBackgroundColor = QColor(black);
 	axesEnabled = false;
-	regionFrameEnabled = false;
+	regionFrameEnabled = true;
 	subregionFrameEnabled = false;
 	colorbarEnabled = false;
 	for (i = 0; i<3; i++)
@@ -277,7 +277,8 @@ mousePressEvent(QMouseEvent* e){
 	//OpenGL convention (Y 0 at bottom of window), reverse
 	//value of y:
 	screenCoords[1] = (float)(height() - e->y());
-
+	//possibly navigate after other activities
+	bool doNavigate = false;
 	switch (myWinMgr->selectionMode){
 		//In region mode,first check for clicks on selected region
 		case Command::regionMode :
@@ -298,19 +299,48 @@ mousePressEvent(QMouseEvent* e){
 					mouseDownHere = true;
 					break;
 				}
-			}//Otherwise, fall through to navigate mode:
-		case Command::navigateMode : 
-		
-			myWinMgr->getViewpointParams(myWindowNum)->captureMouseDown();
-			myTrackball->MouseOnTrackball(0, e->button(), e->x(), e->y(), width(), height());
-			mouseDownHere = true;
-			mouseDownPosition = e->pos();
-			//Force an update of region params, so low res is shown
-			regionNavigating = true;
+				
+			}
+			//Otherwise, fall through to navigate mode:
+			doNavigate = true;
 			break;
-		
+		//Seedmode is like regionmode
+		case Command::probeMode :
+			//Only capture if it's the left mouse button:
+			if (e->button() == Qt::LeftButton)
+			{
+				//Find the cube coords of the corners of the region, from
+				//flowParams, transformed 
+				//
+				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
+				FlowParams* fParams = myWinMgr->getFlowParams(myWindowNum);
+				int faceNum = pointOverCube(fParams, screenCoords);
+				if (faceNum >= 0){
+					float dirVec[3];
+					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+						vParams->getCameraPos(), dirVec);
+					fParams->captureMouseDown(faceNum, vParams->getCameraPos(), dirVec);
+					mouseDownHere = true;
+					break;
+				}
+			}
+			//Otherwise, fall through to navigate mode:
+			doNavigate = true;
+			break;
+		case Command::navigateMode : 
+			doNavigate = true;
+			break;
+			
 		default:
 			break;
+	}
+	if (doNavigate){
+		myWinMgr->getViewpointParams(myWindowNum)->captureMouseDown();
+		myTrackball->MouseOnTrackball(0, e->button(), e->x(), e->y(), width(), height());
+		mouseDownHere = true;
+		mouseDownPosition = e->pos();
+		//Force an update of region params, so low res is shown
+		regionNavigating = true;
 	}
 	
 }
@@ -321,6 +351,7 @@ mousePressEvent(QMouseEvent* e){
 void VizWin:: 
 mouseReleaseEvent(QMouseEvent*e){
 	if (numRenderers <= 0) return;
+	bool doNavigate = false;
 	switch (myWinMgr->selectionMode){
 		
 		case Command::regionMode :
@@ -330,18 +361,32 @@ mouseReleaseEvent(QMouseEvent*e){
 				myWinMgr->getRegionParams(myWindowNum)->captureMouseUp();
 				break;
 			} //otherwise fall through to navigate mode
+			doNavigate = true;
+			break;
+		case Command::probeMode :
+			//Check if the seed bounds were moved
+			if (myWinMgr->getFlowParams(myWindowNum)->draggingFace()){
+				mouseDownHere = false;
+				myWinMgr->getFlowParams(myWindowNum)->captureMouseUp();
+				break;
+			} //otherwise fall through to navigate mode
+			doNavigate = true;
+			break;
 		case Command::navigateMode : 
-			myWinMgr->getViewpointParams(myWindowNum)->captureMouseUp();
-			myTrackball->MouseOnTrackball(2, e->button(), e->x(), e->y(), width(), height());
-			mouseDownHere = false;
-			
-			//Force an update of region params, so low res is shown
-			setRegionDirty(true);
-			myGLWindow->updateGL();
+			doNavigate = true;
 			break;
 
 		default:
 			break;
+	}
+	if(doNavigate){
+		myWinMgr->getViewpointParams(myWindowNum)->captureMouseUp();
+		myTrackball->MouseOnTrackball(2, e->button(), e->x(), e->y(), width(), height());
+		mouseDownHere = false;
+		
+		//Force an update of region params, so low res is shown
+		setRegionDirty(true);
+		myGLWindow->updateGL();
 	}
 	
 }	
@@ -364,7 +409,7 @@ void VizWin::
 mouseMoveEvent(QMouseEvent* e){
 	if (!mouseDownHere) return;
 
-	
+	bool doNavigate = false;
 	//Respond based on what activity we are tracking
 	//Need to tell the appropriate params about the change,
 	//And it should refresh the panel
@@ -385,20 +430,36 @@ mouseMoveEvent(QMouseEvent* e){
 				}
 			}
 			//Fall through to navigate if not dragging face
-		case Command::navigateMode : 
+			doNavigate = true;
+			break;
+		case Command::probeMode :
 			{
-				QPoint deltaPoint = e->globalPos() - mouseDownPosition;
-				myTrackball->MouseOnTrackball(1, e->button(), e->x(), e->y(), width(), height());
-				//Note that the coords have changed:
-				newViewerCoords = true;
-
-				//?????
-				//setRegionDirty(true);
-				//myGLWindow->updateGL();
-				break;
+				FlowParams* fParams = myWinMgr->getFlowParams(myWindowNum);
+				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
+				//In seed mode, check first to see if we are dragging face
+				if (fParams->draggingFace()){
+					float dirVec[3];
+					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+						vParams->getCameraPos(), dirVec);
+					fParams->slideCubeFace(dirVec);
+					myGLWindow->updateGL();
+					break;
+				}
 			}
+			//Fall through to navigate if not dragging face
+			doNavigate = true;
+			break;
+		case Command::navigateMode : 
+			doNavigate = true;
+			break;
 		default:
 			break;
+	}
+	if(doNavigate){
+		QPoint deltaPoint = e->globalPos() - mouseDownPosition;
+		myTrackball->MouseOnTrackball(1, e->button(), e->x(), e->y(), width(), height());
+		//Note that the coords have changed:
+		newViewerCoords = true;
 	}
 	myGLWindow->updateGL();
 	return;

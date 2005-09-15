@@ -122,8 +122,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	randomSeed = 1;
 	seedBoxMin[0] = seedBoxMin[1] = seedBoxMin[2] = 0.f;
 	seedBoxMax[0] = seedBoxMax[1] = seedBoxMax[2] = 1.f;
-	regionMin[0] = regionMin[1] = regionMin[2] = 0.f;
-	regionMax[0] = regionMax[1] = regionMax[2] = 1.f;
+	
 	generatorCount[0]=generatorCount[1]=generatorCount[2] = 1;
 
 	allGeneratorCount = 1;
@@ -286,16 +285,7 @@ void FlowParams::updateDialog(){
 	myFlowTab->randomSeedEdit->setEnabled(randomGen);
 	myFlowTab->generatorDimensionCombo->setCurrentItem(currentDimension);
 
-	//To set the seed region extents, find the region panel that applies in the current
-	//active visualizer, make those region bounds be the limits of the seed sliders.
-	//Then force the seed region to fit in there.
-	int viznum = getVizNum();
-	RegionParams* rParams;
-	if (viznum >= 0) rParams = VizWinMgr::getInstance()->getRegionParams(viznum);
-	else rParams = (RegionParams*)VizWinMgr::getInstance()->getGlobalParams(RegionParamsType);
 	for (int i = 0; i< 3; i++){
-		regionMin[i] = rParams->getRegionMin(i);
-		regionMax[i] = rParams->getRegionMax(i);
 		enforceConsistency(i);
 		textToSlider(i, (seedBoxMin[i]+seedBoxMax[i])*0.5f,
 			seedBoxMax[i]-seedBoxMin[i]);
@@ -507,19 +497,18 @@ reinit(bool doOverride){
 		if (seedTimeEnd < minFrame) seedTimeEnd = minFrame;
 	}
 	//Set up the seed region:
+	
 	if (doOverride){
 		for (i = 0; i<3; i++){
-			seedBoxMin[i] = rParams->getRegionMin(i);
-			seedBoxMax[i] = rParams->getRegionMax(i);
+			seedBoxMin[i] = rParams->getFullDataExtent(i);
+			seedBoxMax[i] = rParams->getFullDataExtent(i+3);
 		}
 	} else {
 		for (i = 0; i<3; i++){
-			if((seedBoxMin[i] < rParams->getRegionMin(i))||
-				seedBoxMin[i] > rParams->getRegionMax(i))
-					seedBoxMin[i] = rParams->getRegionMin(i);
-			if((seedBoxMax[i] < rParams->getRegionMin(i))||
-				seedBoxMax[i] > rParams->getRegionMax(i))
-					seedBoxMax[i] = rParams->getRegionMax(i);
+			if(seedBoxMin[i] < rParams->getFullDataExtent(i))
+				seedBoxMin[i] = rParams->getFullDataExtent(i);
+			if(seedBoxMax[i] > rParams->getFullDataExtent(i+3))
+				seedBoxMax[i] = rParams->getFullDataExtent(i+3);
 			if(seedBoxMax[i] < seedBoxMin[i]) 
 				seedBoxMax[i] = seedBoxMin[i];
 		}
@@ -694,28 +683,31 @@ textToSlider(int coord, float newCenter, float newSize){
 	//Then push the center to the middle if the region doesn't fit
 	bool centerChanged = false;
 	bool sizeChanged = false;
-	if (newSize > (regionMax[coord] - regionMin[coord])){
-		newSize = (regionMax[coord] - regionMin[coord]);
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	float regMin = rParams->getFullDataExtent(coord);
+	float regMax = rParams->getFullDataExtent(coord+3);
+	if (newSize > (regMax-regMin)){
+		newSize = regMax-regMin;
 		sizeChanged = true;
 	}
 	if (newSize < 0.f) {
 		newSize = 0.f;
 		sizeChanged = true;
 	}
-	if (newCenter < regionMin[coord]) {
-		newCenter = regionMin[coord];
+	if (newCenter < regMin) {
+		newCenter = regMin;
 		centerChanged = true;
 	}
-	if (newCenter > regionMax[coord]) {
-		newCenter = regionMax[coord];
+	if (newCenter > regMax) {
+		newCenter = regMax;
 		centerChanged = true;
 	}
-	if ((newCenter - newSize*0.5f) < regionMin[coord]){
-		newCenter = regionMin[coord]+ newSize*0.5f;
+	if ((newCenter - newSize*0.5f) < regMin){
+		newCenter = regMin+ newSize*0.5f;
 		centerChanged = true;
 	}
-	if ((newCenter + newSize*0.5f) > regionMax[coord]){
-		newCenter = regionMax[coord]- newSize*0.5f;
+	if ((newCenter + newSize*0.5f) > regMax){
+		newCenter = regMax- newSize*0.5f;
 		centerChanged = true;
 	}
 	if (newSize <= 0.f && !randomGen){
@@ -727,8 +719,8 @@ textToSlider(int coord, float newCenter, float newSize){
 	}
 	seedBoxMin[coord] = newCenter - newSize*0.5f; 
 	seedBoxMax[coord] = newCenter + newSize*0.5f; 
-	int sliderSize = (int)(0.5f+ 256.f*newSize/(regionMax[coord] - regionMin[coord]));
-	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regionMin[coord])/(regionMax[coord] - regionMin[coord]));
+	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
+	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
 	int oldSliderSize, oldSliderCenter;
 	switch(coord) {
 		case 0:
@@ -782,23 +774,26 @@ sliderToText(int coord, int slideCenter, int slideSize){
 	//force the size to be no greater than the max possible.
 	//And force the center to fit in the region.  
 	//Then push the center to the middle if the region doesn't fit
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	float regMin = rParams->getFullDataExtent(coord);
+	float regMax = rParams->getFullDataExtent(coord+3);
 	bool sliderChanged = false;
 	
-	float newSize = slideSize*(regionMax[coord]-regionMin[coord])/256.f;
-	float newCenter = regionMin[coord]+ slideCenter*(regionMax[coord]-regionMin[coord])/256.f;
+	float newSize = slideSize*(regMax-regMin)/256.f;
+	float newCenter = regMin+ slideCenter*(regMax-regMin)/256.f;
 	
-	if (newCenter < regionMin[coord]) {
-		newCenter = regionMin[coord];
+	if (newCenter < regMin) {
+		newCenter = regMin;
 	}
-	if (newCenter > regionMax[coord]) {
-		newCenter = regionMax[coord];
+	if (newCenter > regMax) {
+		newCenter = regMax;
 	}
-	if ((newCenter - newSize*0.5f) < regionMin[coord]){
-		newCenter = regionMin[coord]+ newSize*0.5f;
+	if ((newCenter - newSize*0.5f) < regMin){
+		newCenter = regMin+ newSize*0.5f;
 		sliderChanged = true;
 	}
-	if ((newCenter + newSize*0.5f) > regionMax[coord]){
-		newCenter = regionMax[coord]- newSize*0.5f;
+	if ((newCenter + newSize*0.5f) > regMax){
+		newCenter = regMax- newSize*0.5f;
 		sliderChanged = true;
 	}
 	seedBoxMin[coord] = newCenter - newSize*0.5f; 
@@ -810,7 +805,7 @@ sliderToText(int coord, int slideCenter, int slideSize){
 				myFlowTab->generatorCountEdit->setText("1");
 		}
 	}
-	int newSliderCenter = (int)(0.5f+ 256.f*(newCenter - regionMin[coord])/(regionMax[coord] - regionMin[coord]));
+	int newSliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
 	//Always need to change text.  Possibly also change slider if it was moved
 	switch(coord) {
 		case 0:
@@ -1993,47 +1988,63 @@ slideCubeFace(float movedRay[3]){
 		faceDisplacement = -vdot(q,r)/denom;
 	
 	//Make sure the faceDisplacement is OK.  Not allowed to
-	//extent face beyond end of data, nor beyond opposite face.
+	//extent face beyond end of current region, nor beyond opposite face.
 	//First, convert to a displacement in cube coordinates.  
-	//Then, see what voxel coordinate 
-	double regMin = seedBoxMin[coord];
-	double regMax = seedBoxMax[coord];
-	/*
-	double regionMin = fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
-		(centerPosition[coord] - regionSize[coord]*.5)/(double)(fullSize[coord]);
-	double regionMax = fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
-		(centerPosition[coord] + regionSize[coord]*.5)/(double)(fullSize[coord]);
-		*/
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	double regMin = rParams->getRegionMin(coord);
+	double regMax = rParams->getRegionMax(coord);
+	
 	if (selectedFaceNum%2) { //Are we moving min or max?
 		//Moving max, since selectedFace is odd:
-		if (regMax + faceDisplacement > regionMax[coord])
-			faceDisplacement = regionMax[coord] - regMax;
-		if (regMax + faceDisplacement < regMin)
-			faceDisplacement = regMin - regMax;
+		if (seedBoxMax[coord] + faceDisplacement > regMax)
+			faceDisplacement = regMax - seedBoxMax[coord];
+		if (seedBoxMax[coord] + faceDisplacement < regMin)
+			faceDisplacement = regMin - seedBoxMax[coord];
 	} else { //Moving region min:
-		if (regMin + faceDisplacement > regMax)
-			faceDisplacement = regMax - regMin;
-		if (regMin + faceDisplacement < regionMin[coord])
-			faceDisplacement = regionMin[coord] - regMin;
+		if (seedBoxMin[coord] + faceDisplacement > regMax)
+			faceDisplacement = regMax - seedBoxMin[coord];
+		if (seedBoxMin[coord] + faceDisplacement < regMin)
+			faceDisplacement = regMin - seedBoxMin[coord];
 	}
 	
 }
+//Calculate the extents of the seed region when transformed into the unit cube
 void FlowParams::
 calcSeedExtents(float* extents){
-	for (int i = 0; i<3; i++){
-		extents[i] = seedBoxMin[i];
-		extents[i+3] = seedBoxMax[i];
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	
+	int i;
+	float maxCrd = -1.f;
+	float mappedExtents[3];
+	float regSize[3];
+	for (i=0; i<3; i++){
+		regSize[i] =  rParams->getFullDataExtent(i+3) - rParams->getFullDataExtent(i);
+		if(regSize[i] > maxCrd ) {
+			maxCrd = regSize[i];
+		}
+	}
+	for (i = 0; i< 3; i++) {
+		mappedExtents[i] = regSize[i]/maxCrd;
+	}
+
+	for (i = 0; i<3; i++){
+		extents[i] = (seedBoxMin[i] - rParams->getFullDataExtent(i))/maxCrd;
+		extents[i+3] = (seedBoxMax[i] - rParams->getFullDataExtent(i))/maxCrd;
 	}
 }
+//Force the seed region to fit inside the current Region
 bool FlowParams::
 enforceConsistency(int i){
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	float regMin = rParams->getRegionMin(i);
+	float regMax = rParams->getRegionMax(i);
 	bool unchanged = true;
-	if (seedBoxMin[i]< regionMin[i]) {
-		seedBoxMin[i] = regionMin[i];
+	if (seedBoxMin[i]< regMin) {
+		seedBoxMin[i] = regMin;
 		unchanged = false;
 	}
-	if (seedBoxMax[i]> regionMax[i]) {
-		seedBoxMax[i] = regionMax[i];
+	if (seedBoxMax[i]> regMax) {
+		seedBoxMax[i] = regMax;
 		unchanged = false;
 	}
 	if (seedBoxMin[i]> seedBoxMax[i]) {
