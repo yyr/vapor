@@ -37,10 +37,10 @@ enum CellTopoType
 
 typedef struct PointInfo
 {
-	VECTOR3 phyCoord;
-	VECTOR3 interpolant;	// interpolation coefficients
-	int		fromCell;		
-	int		inCell;			// in which cell
+	VECTOR3 phyCoord;			// physical coordinates
+	VECTOR3 interpolant;		// interpolation coefficients
+	int		fromCell;			// from which cell, used for advection of tetrahedra grids
+	int		inCell;				// in which cell
 
 	void Set(VECTOR3& pcoord, VECTOR3& coeff, int fCell, int iCell)
 	{
@@ -110,9 +110,12 @@ public:
 
 //////////////////////////////////////////////////////////////////////////
 //
-// cartesian grid
+//							cartesian grid
 //
+//-------> Regular Cartesian Grid
 //////////////////////////////////////////////////////////////////////////
+
+// map coordinates in computational space to physical space
 #define UCGridPhy2Comp(x, y, f) (((x) - (y))*(f))
 
 class FLOW_API CartesianGrid : public Grid
@@ -126,7 +129,7 @@ private:
 	float oneOvermappingFactorX;
 	float oneOvermappingFactorY;
 	float oneOvermappingFactorZ;
-	float gridSpacing;
+	float gridSpacing;					// the minimal grid spacing of all dimensions
 
 public:
 	// constructor and deconstructor

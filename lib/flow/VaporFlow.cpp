@@ -307,7 +307,10 @@ bool VaporFlow::GenStreakLines(float* positions,
 	totalZNum = (maxRegion[2]-minRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize();
 	totalNum = totalXNum*totalYNum*totalZNum;
 	numInjections = 1 + ((endInjection - startInjection)/injectionTimeIncrement);
+	//realStartTime and realEndTime are actual limits of time steps for which positions
+	//are calculated.
 	realStartTime = (startInjection < startTimeStep)? startTimeStep: startInjection;
+	//timeSteps is the number of sampled time steps:
 	timeSteps = (endTimeStep - realStartTime)/timeStepIncrement + 1;
 	realEndTime = realStartTime + (timeSteps-1)*timeStepIncrement;
 	pUData = new float*[timeSteps];
@@ -319,7 +322,6 @@ bool VaporFlow::GenStreakLines(float* positions,
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, timeSteps);
 	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
 	pSolution->SetTimeIncrement(timeStepIncrement);
-
 	pSolution->SetTime(realStartTime, realEndTime);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
 
@@ -336,10 +338,12 @@ bool VaporFlow::GenStreakLines(float* positions,
 	int* pUserTimeSteps;
 	int tIndex = 0;
 	pUserTimeSteps = new int[timeSteps-1];
+	//Calculate the time differences between successive sampled timesteps.
+	//save that value in pUserTimeSteps, available in pField.
 	for(int nSampledStep = realStartTime; nSampledStep < realEndTime; nSampledStep += timeStepIncrement)
 	{
 		int nextSampledStep = nSampledStep + timeStepIncrement;
-		if(dataMgr->GetMetadata()->HasTSUserTime(nSampledStep))
+		if(dataMgr->GetMetadata()->HasTSUserTime(nSampledStep)&&dataMgr->GetMetadata()->HasTSUserTime(nextSampledStep))
 			pUserTimeSteps[tIndex++] = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
 									   dataMgr->GetMetadata()->GetTSUserTime(nSampledStep)[0];
 		else
@@ -371,6 +375,7 @@ bool VaporFlow::GenStreakLines(float* positions,
 	for(int iFor = realStartTime; iFor < realEndTime; iFor++)
 	{
 		bInject = false;
+		//index counts advections
 		index++;								// index to solution instance
         int iTemp = iFor/timeStepIncrement;		// index to lower sampled time step
 
@@ -380,8 +385,12 @@ bool VaporFlow::GenStreakLines(float* positions,
 		{
 			int lowerT = realStartTime+iTemp*timeStepIncrement;
 			for(; lowerT < iFor; lowerT++)
+				//diff is the time from the previous sample to the current timestep
+				//or is 0 if this is a sample timestep
+				//This is needed for time interpolation
 				diff += dataMgr->GetMetadata()->GetTSUserTime(lowerT+1)[0] - 
 						dataMgr->GetMetadata()->GetTSUserTime(lowerT)[0];
+			//curDiff is the time from the current timestep to the next timestep
 			curDiff = dataMgr->GetMetadata()->GetTSUserTime(iFor+1)[0] - 
 					  dataMgr->GetMetadata()->GetTSUserTime(iFor)[0];
 		}
@@ -396,9 +405,10 @@ bool VaporFlow::GenStreakLines(float* positions,
 		// need get new data
 		if((iFor%timeStepIncrement) == 0)
 		{
+			//For the first sample time, get data for current time (get the next sampled timestep in next line)
 			if(iFor == realStartTime)
 				pField->SetSolutionData(iTemp,GetData(iFor, xVarName),GetData(iFor, yVarName),GetData(iFor, zVarName));
-			
+			//otherwise just get next sampled timestep.
 			pField->SetSolutionData(iTemp+1, 
 									GetData(iFor+timeStepIncrement, xVarName),
 									GetData(iFor+timeStepIncrement, yVarName),

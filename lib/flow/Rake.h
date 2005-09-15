@@ -39,7 +39,7 @@ namespace VAPoR
 		
 	private:
 		float rakeMin[3], rakeMax[3];		// minimal and maximal positions
-		size_t numSeeds[3];				// number of seeds
+		size_t numSeeds[3];					// number of seeds
 		int rakeDimension;					// 0, 1, 2, 3
 	};
 

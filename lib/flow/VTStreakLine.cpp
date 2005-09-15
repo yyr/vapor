@@ -74,6 +74,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 
 	// advect the previous old particles
 	deadList.clear();
+	//m_itsParticles is the current list of particles being advected.
 	advectOldParticles( m_itsParticles.begin(), 
 						m_itsParticles.end(), 
 						points, 
@@ -150,10 +151,15 @@ void vtCStreakLine::computeStreakLine(const float t,
 					m_itsParticles.push_back(new vtParticleInfo(nextP));
 				}
 			}
+			else
+			{//set flag to indicate particle is out of region 
+				//This happens multiple times if there are multiple injections.
+			}
 		}
 	}
 
-	// process those dead particles
+	// process those particles that have exited the region.
+	// These are removed from m_itsParticles, so they won't be advected again.
 	vector<vtListParticleIter>::iterator deadIter = deadList.begin();
 	for(; deadIter != deadList.end(); deadIter++)
 	{
