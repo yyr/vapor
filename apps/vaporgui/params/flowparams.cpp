@@ -447,7 +447,7 @@ updatePanelState(){
 		mapperFunction->setMaxOpacMapValue(opacMapMax);
 		mapperFunction->setMinOpacMapValue(opacMapMin);
 	}
-	getFlowMapEditor()->setDirty();
+	if(flowMapEditor)flowMapEditor->setDirty();
 	myFlowTab->flowMapFrame->update();
 	guiSetTextChanged(false);
 	setFlowDataDirty();
@@ -972,7 +972,7 @@ guiSetFlowGeometry(int geomNum){
 	myFlowTab->update();
 	//If you change the geometry, you do not need to recalculate the flow,
 	//But you need to rerender
-	VizWinMgr::getInstance()->setFlowDirty(this);
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
 guiSetColorMapEntity( int entityNum){
@@ -1313,7 +1313,7 @@ void FlowParams::setFlowMappingDirty(){
 			}
 		}
 	}
-	VizWinMgr::getInstance()->setFlowDirty(this);
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::setFlowDataDirty(){
 	//The data pointers themselves are the valid flags
@@ -1329,7 +1329,7 @@ void FlowParams::setFlowDataDirty(){
 			}
 		}
 	}
-	VizWinMgr::getInstance()->setFlowDirty(this);
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
 //Method to construct Xml for state saving
 XmlNode* FlowParams::
@@ -2015,16 +2015,13 @@ calcSeedExtents(float* extents){
 	
 	int i;
 	float maxCrd = -1.f;
-	float mappedExtents[3];
+	
 	float regSize[3];
 	for (i=0; i<3; i++){
 		regSize[i] =  rParams->getFullDataExtent(i+3) - rParams->getFullDataExtent(i);
 		if(regSize[i] > maxCrd ) {
 			maxCrd = regSize[i];
 		}
-	}
-	for (i = 0; i< 3; i++) {
-		mappedExtents[i] = regSize[i]/maxCrd;
 	}
 
 	for (i = 0; i<3; i++){

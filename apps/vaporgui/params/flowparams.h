@@ -139,6 +139,9 @@ public:
 		if (flowRGBAs && flowRGBAs[timeStep]) return false;
 		return true;
 	}
+	float* getFlowData(int timeStep){
+		return flowData[timeStep];
+	}
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 	float getObjectsPerTimestep() {return objectsPerTimestep;}
 	void guiSetEditMode(bool val); //edit versus navigate mode
