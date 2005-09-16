@@ -229,12 +229,21 @@ void vtCFieldLine::setSeedPoints(float* points, int numPoints, float t)
 			newParticle->ptId = i;
 			newParticle->itsNumStepsAlive = 0;
 			
+			//Here we test whether the seed particle is in the region
+			//If it's out, we set the flag to invalid.  At the first step
+			//of the advection, the invalid seeds get marked as being out of region.
+			//Note that invalid seeds are still inserted into the seed list.
+			
+			if (!m_pField->is_in_grid(newParticle->m_pointInfo.phyCoord)) {
+				newParticle->itsValidFlag = 0;
+				
+			} else newParticle->itsValidFlag = 1;
 			// query the field in order to get the starting cell interpolant for the seed point
 			//VECTOR3 pos;
 			//pos.Set(points[3*i+0], points[3*i+1], points[3*i+2]);
 			//res = m_pField->at_phys(-1, pos, newParticle->m_pointInfo, t, nodeData);
 			//newParticle->itsValidFlag =  (res == 1) ? 1 : 0 ;
-			newParticle->itsValidFlag = 1;
+			
 			m_lSeeds.push_back( newParticle );
 		}
 	} 

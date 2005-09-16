@@ -162,6 +162,13 @@ void vtCStreamLine::computeStreamLine(const void* userData,
 				stepList->clear();
 			}
 		}
+		else                // out of data region.  Just mark seed as end, don't advect.
+        {
+            points[posInPoints++] = thisSeed->m_pointInfo.phyCoord.x();
+            points[posInPoints++] = thisSeed->m_pointInfo.phyCoord.y();
+            points[posInPoints++] = thisSeed->m_pointInfo.phyCoord.z();
+            points[posInPoints] = END_FLOW_FLAG;
+        }
 	}
 
 	delete[] startPositions;
@@ -204,7 +211,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 #ifdef DEBUG
 	fprintf(fDebug, "************************************************\n");
 #endif
-
+	int rollbackCount = 0;
 	// start to advect
 	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
 	{
@@ -266,8 +273,11 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 #ifdef DEBUG
 				fprintf(fDebug, "retrace = %d\n", retrace);
 #endif
+				if (rollbackCount == 50)
+					fprintf(stderr, "Too many rollbacks in ComputeFieldLine.  Shorten your integration step?\n");
 				// roll back and retrace
-				if(retrace == true)			
+				//A hack to stop infinite looping because I don't understand this code! - Alan 
+				if(retrace == true && rollbackCount < 50)			
 				{
 					thisInterpolant = prevInterpolant = second_prevInterpolant;
 					seedTrace.pop_back();
@@ -277,8 +287,10 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 					stepList.pop_back();
 					totalStepsize -= stepList.back();
 					stepList.pop_back();
+					rollbackCount++;
 				}
 			}
 		}// end of retrace
 	}// end of advection
+	return (OKAY);
 }

@@ -243,8 +243,18 @@ bool VaporFlow::GenStreamLines(float* positions,
 	VECTOR3 minB, maxB;
 	vector<double> vExtent;
 	vExtent = dataMgr->GetMetadata()->GetExtents();
-	minB.Set(vExtent[0], vExtent[1], vExtent[2]);
-	maxB.Set(vExtent[3], vExtent[4], vExtent[5]);
+	//Use current region to determine coords of grid boundary:
+	const size_t* fullDim = dataMgr->GetMetadata()->GetDimension();
+	
+	//Now adjust minB, maxB to actual region extents:
+	for (int i = 0; i< 3; i++){
+		minB[i] = vExtent[i]+ (vExtent[i+3] - vExtent[i])*
+			(float)(minRegion[i]*(dataMgr->GetMetadata()->GetBlockSize())/(float)((fullDim[i] >> numXForms)-1));
+		maxB[i] = vExtent[i]+ (vExtent[i+3] - vExtent[i])*
+			(float)(((maxRegion[i]+1)*(dataMgr->GetMetadata()->GetBlockSize())-1)/(float)((fullDim[i] >> numXForms)-1));
+	}
+	
+
 	pCartesianGrid->SetBoundary(minB, maxB);
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
 	pField->SetUserTimeStepInc(0, 1);

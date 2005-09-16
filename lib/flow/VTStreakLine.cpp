@@ -151,9 +151,12 @@ void vtCStreakLine::computeStreakLine(const float t,
 					m_itsParticles.push_back(new vtParticleInfo(nextP));
 				}
 			}
-			else
-			{//set flag to indicate particle is out of region 
-				//This happens multiple times if there are multiple injections.
+			else                // out of data region.  Just mark seed as end, don't advect.
+			{
+				points[posInPoints++] = thisSeed->m_pointInfo.phyCoord.x();
+				points[posInPoints++] = thisSeed->m_pointInfo.phyCoord.y();
+				points[posInPoints++] = thisSeed->m_pointInfo.phyCoord.z();
+				points[posInPoints] = END_FLOW_FLAG;
 			}
 		}
 	}
