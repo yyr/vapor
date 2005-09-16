@@ -204,9 +204,9 @@ public:
 	//Similarly for AnimationParams:
 	//
 	void setAnimationDirty(AnimationParams*);
-	//Similarly for FlowParams:
+	//Force rerender of all windows that share a flowParams:
 	//
-	void setFlowDirty(FlowParams*);
+	void refreshFlow(FlowParams*);
 	//Force renderers to get latest CLUT
 	//
 	void setClutDirty(DvrParams* );

@@ -88,7 +88,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	regionDirty = true;
 	dataRangeDirty = true;
 	clutDirty = true;
-	flowDirty = true;
+	
 	regionNavigating = true;
 	capturing = false;
 	newCapture = false;

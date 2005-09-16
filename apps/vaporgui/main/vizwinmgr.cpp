@@ -1073,7 +1073,7 @@ setRegionDirty(RegionParams* rParams){
 	int vizNum = rParams->getVizNum();
 	if (vizNum >= 0){
 		vizWin[activeViz]->setRegionDirty(true);
-		vizWin[activeViz]->setFlowDirty(true);
+		getFlowParams(vizNum)->setFlowDataDirty();
 		vizWin[activeViz]->updateGL();
 	}
 	//If another viz is using these region params, set their region dirty, too
@@ -1083,7 +1083,7 @@ setRegionDirty(RegionParams* rParams){
 				((!rgParams[i])||!rgParams[i]->isLocal())
 			){
 			vizWin[i]->setRegionDirty(true);
-			vizWin[i]->setFlowDirty(true);
+			getFlowParams(i)->setFlowDataDirty();
 			vizWin[i]->updateGL();
 		}
 	}
@@ -1111,10 +1111,9 @@ setRegionDirty(DvrParams* dParams){
 //Force all windows that share a flow params to rerender
 //(possibly with new data)
 void VizWinMgr::
-setFlowDirty(FlowParams* fParams){
+refreshFlow(FlowParams* fParams){
 	int vizNum = fParams->getVizNum();
 	if (vizNum >= 0){
-		vizWin[activeViz]->setFlowDirty(true);
 		vizWin[activeViz]->updateGL();
 	}
 	//If another viz is sharing these flow params, make them rerender, too
@@ -1123,7 +1122,6 @@ setFlowDirty(FlowParams* fParams){
 		if  ( vizWin[i] && (i != vizNum)  &&
 				((!flowParams[i])||!flowParams[i]->isLocal())
 			){
-			vizWin[i]->setFlowDirty(true);
 			vizWin[i]->updateGL();
 		}
 	}

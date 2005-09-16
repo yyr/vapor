@@ -69,21 +69,25 @@ void FlowRenderer::paintGL()
 	int winNum = myVizWin->getWindowNum();
 	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
 	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
+	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
 	int timeStep = currentFrameNum;
 	if (!myFlowParams->flowIsSteady()) timeStep = 0;
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex()) == 0);
 	//Do we need to regenerate the flow data?
-	if (myFlowParams->flowDataIsDirty(timeStep)){
-		
+	if (myFlowParams->flowDataIsDirty(timeStep))
 		flowDataArray = myFlowParams->regenerateFlowData(timeStep);
-		maxPoints = myFlowParams->getMaxPoints();
-		firstDisplayFrame = myFlowParams->getFirstDisplayFrame();
-		lastDisplayFrame = myFlowParams->getLastDisplayFrame();
-		numSeedPoints = myFlowParams->getNumSeedPoints();
-		numInjections = myFlowParams->getNumInjections();
-		myVizWin->setFlowDirty(false);
-	} 
+	else
+		flowDataArray = myFlowParams->getFlowData(timeStep);
+	
+
+	maxPoints = myFlowParams->getMaxPoints();
+	firstDisplayFrame = myFlowParams->getFirstDisplayFrame();
+	lastDisplayFrame = myFlowParams->getLastDisplayFrame();
+	numSeedPoints = myFlowParams->getNumSeedPoints();
+	numInjections = myFlowParams->getNumInjections();
+		
+
 	if (!constColors){
 		flowRGBAs = myFlowParams->getRGBAs(timeStep);
 	} 
@@ -110,13 +114,19 @@ void FlowRenderer::paintGL()
 	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
 	
 	//Set up clipping planes
-	float* maxPlanes = ViewpointParams::getMaxCubeCoords();
+	topPlane[3] = myRegionParams->getRegionMax(1);
+	botPlane[3] = -myRegionParams->getRegionMin(1);
+	leftPlane[3] = -myRegionParams->getRegionMin(0);
+	rightPlane[3] = myRegionParams->getRegionMax(0);
+	frontPlane[3] = myRegionParams->getRegionMax(2);
+	backPlane[3] = -myRegionParams->getRegionMin(2);
+	/*float* maxPlanes = ViewpointParams::getMaxCubeCoords();
 	topPlane[3] = maxPlanes[1];
 	botPlane[3] = -transVec[1];
 	leftPlane[3] = -transVec[0];
 	rightPlane[3] = maxPlanes[0];
 	frontPlane[3] = maxPlanes[2];
-	backPlane[3] = -transVec[2];
+	backPlane[3] = -transVec[2];*/
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);
 	glClipPlane(GL_CLIP_PLANE1, rightPlane);
@@ -189,9 +199,9 @@ void FlowRenderer::paintGL()
 			} else { //render as cylinders
 				//Determine cylinder radius in actual coords.
 				//One voxel is (full region size)/(region array size)
-				RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-				float rad = 0.5*diam*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
-					rParams->getFullSize()[0];
+				
+				float rad = 0.5*diam*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
+					myRegionParams->getFullSize()[0];
 				glPolygonMode(GL_FRONT, GL_FILL);
 				//Render all tubes
 				//Note that lastDisplayFrame is maxPoints -1
@@ -259,9 +269,9 @@ void FlowRenderer::paintGL()
 				} else { //render as cylinders
 					//Determine cylinder radius in actual coords.
 					//One voxel is (full region size)/(region array size)
-					RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-					float rad = 0.5*diam*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
-						rParams->getFullSize()[0];
+					
+					float rad = 0.5*diam*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
+						myRegionParams->getFullSize()[0];
 					glPolygonMode(GL_FRONT, GL_FILL);
 					//Render all tubes
 					renderTubes(rad, (nLights > 0), firstGeom, lastGeom,
@@ -323,9 +333,9 @@ renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool const
 			if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
 				glEnd();
 				int winNum = myVizWin->getWindowNum();
-				RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-				float rad = 0.5*(radius+1.f)*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
-					rParams->getFullSize()[0];
+				RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+				float rad = 0.5*(radius+1.f)*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
+					myRegionParams->getFullSize()[0];
 				renderStationary(point, rad);
 				break;
 			}
@@ -383,9 +393,9 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
 					if(!endGL) glEnd();//Terminate current curve
 					int winNum = myVizWin->getWindowNum();
-					RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-					float rad = 0.5*(radius+1.f)*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
-						rParams->getFullSize()[0];
+					RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+					float rad = 0.5*(radius+1.f)*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
+						myRegionParams->getFullSize()[0];
 					renderStationary(point, rad);
 					endGL = true;
 					break;
@@ -412,9 +422,9 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
 					if(!endGL) glEnd();//Terminate current curve
 					int winNum = myVizWin->getWindowNum();
-					RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-					float rad = 0.5*(radius+1.f)*(rParams->getFullDataExtent(3)- rParams->getFullDataExtent(0))/
-						rParams->getFullSize()[0];
+					RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+					float rad = 0.5*(radius+1.f)*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
+						myRegionParams->getFullSize()[0];
 					renderStationary(point,rad);
 					endGL = true;
 					break;
@@ -471,13 +481,12 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 			float *point = flowDataArray+3*(startIndex+tubeNum*maxPoints+firstAge);
 			renderStationary(point, radius);
 			continue;
-		} else {//do a cylinder
-			//Need at least two points to do a cylinder.  There should always be 2 points
-			//before an end flow flag, since an extra outside point is always provided
-			//in that situation
-			assert(((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints)) != END_FLOW_FLAG) &&
-				(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) != END_FLOW_FLAG) );
-			
+		} else if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) == END_FLOW_FLAG) {//render nothing:
+				//We could potentially have the second point be an end flow flag
+				continue;
+		} else {
+			assert(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints)) != END_FLOW_FLAG);
+
 			int tubeStartIndex = 3*(startIndex + tubeNum*maxPoints+firstAge);
 			//data point is three floats starting at data[tubeStartIndex]
 			//evenA is the direction the line is pointing

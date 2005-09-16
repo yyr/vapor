@@ -96,13 +96,13 @@ public:
 	void setRegionDirty(bool isDirty){ regionDirty = isDirty;}
 	void setClutDirty(bool isDirty){ clutDirty = isDirty;}
 	void setDataRangeDirty(bool isDirty){ dataRangeDirty = isDirty;}
-	void setFlowDirty(bool isDirty) {flowDirty = isDirty;}
+	
 	//Tweak is just a dirty flag for forcing region dirty during navigation
 	void setRegionNavigating(bool dirty) {regionNavigating = dirty;}
 	bool regionIsDirty() {return regionDirty;}
 	bool clutIsDirty() {return clutDirty;}
 	bool dataRangeIsDirty() {return dataRangeDirty;}
-	bool flowIsDirty() {return flowDirty;}
+	
 	bool regionIsNavigating() {return regionNavigating;}
 
 	bool mouseIsDown() {return mouseDownHere;}
@@ -184,7 +184,7 @@ protected:
 	bool regionDirty;
 	bool dataRangeDirty;
 	bool clutDirty;
-	bool flowDirty;
+	
 	bool regionNavigating;
 	int capturing;
 	int captureNum;
