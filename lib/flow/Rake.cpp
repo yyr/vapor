@@ -294,7 +294,7 @@ void SolidRake::GenSeedRandom(const unsigned int numSeeds[3],
 	lhh[0] = lll[0];	lhh[1] = hhh[1];	lhh[2] = hhh[2];
 
 	// initialize random number generator
-	srand(randomSeed);
+	srand(RAND_MAX-randomSeed);
 
 	totalNum = numSeeds[0] * numSeeds[1] * numSeeds[2];
 	for(iFor = 0; iFor < totalNum; iFor++)

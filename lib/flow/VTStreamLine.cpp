@@ -215,6 +215,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	// start to advect
 	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
 	{
+		bool doingRetrace = false;
 		second_prevInterpolant = prevInterpolant;
 		prevInterpolant = thisInterpolant;
 		int retrace = true;
@@ -227,7 +228,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 		while(retrace)
 		{
 			retrace = false;
-
+			
 			if(integ_ord == SECOND)
 				istat = runge_kutta2(time_dir, time_dep, thisParticle, &curTime, dt);
 			else
@@ -273,11 +274,11 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 #ifdef DEBUG
 				fprintf(fDebug, "retrace = %d\n", retrace);
 #endif
-				if (rollbackCount == 50)
-					fprintf(stderr, "Too many rollbacks in ComputeFieldLine.  Shorten your integration step?\n");
+				assert (rollbackCount < 1000);//If we got here, it's surely an infinite loop!
+					
 				// roll back and retrace
-				//A hack to stop infinite looping because I don't understand this code! - Alan 
-				if(retrace == true && rollbackCount < 50)			
+				//A hack to stop double retracing (which results in infinite loop!)
+				if(retrace == true && !doingRetrace)			
 				{
 					thisInterpolant = prevInterpolant = second_prevInterpolant;
 					seedTrace.pop_back();
@@ -288,7 +289,8 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 					totalStepsize -= stepList.back();
 					stepList.pop_back();
 					rollbackCount++;
-				}
+					doingRetrace = true;
+				} else doingRetrace = false;
 			}
 		}// end of retrace
 	}// end of advection
