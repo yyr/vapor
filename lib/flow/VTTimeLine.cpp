@@ -111,7 +111,7 @@ void vtCTimeLine::computeTimeLine(const void* userData, vtListStreakParticle& li
 		if(thisSeed->itsValidFlag == 1)
 		{
 			int res = advectParticle(m_integrationOrder, *thisSeed, currentT, nextP, finalT, false);
-			if(res = 1)
+			if(res == 1)
 			{
 				// for output
 				vtStreakParticle* newParticle = new vtStreakParticle;

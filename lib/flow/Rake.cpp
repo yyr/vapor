@@ -9,7 +9,7 @@ using namespace VAPoR;
 
 SeedGenerator::SeedGenerator(const float min[3], 
 							 const float max[3], 
-							 const unsigned int numSeeds[3])
+							 const size_t numSeeds[3])
 {
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
@@ -94,7 +94,7 @@ PointRake::~PointRake()
 //////////////////////////////////////////////////////////////////////////
 // numSeeds should be 1
 //////////////////////////////////////////////////////////////////////////
-void PointRake::GenSeedRandom(const unsigned int numSeeds[3], 
+void PointRake::GenSeedRandom(const size_t numSeeds[3], 
 							  const float min[3], 
 							  const float max[3], 
 							  float* pSeed,
@@ -104,7 +104,7 @@ void PointRake::GenSeedRandom(const unsigned int numSeeds[3],
 		pSeed[iFor] = min[iFor];
 }
 
-void PointRake::GenSeedRegular(const unsigned int numSeeds[3], 
+void PointRake::GenSeedRegular(const size_t numSeeds[3], 
 							  const float min[3], 
 							  const float max[3], 
 							  float* pSeed)
@@ -123,7 +123,7 @@ LineRake::~LineRake()
 {
 }
 
-void LineRake::GenSeedRandom(const unsigned int numSeeds[3], 
+void LineRake::GenSeedRandom(const size_t numSeeds[3], 
 							 const float min[3], 
 							 const float max[3], 
 							 float* pSeed,
@@ -147,7 +147,7 @@ void LineRake::GenSeedRandom(const unsigned int numSeeds[3],
 	}
 }
 
-void LineRake::GenSeedRegular(const unsigned int numSeeds[3], 
+void LineRake::GenSeedRegular(const size_t numSeeds[3], 
 							 const float min[3], 
 							 const float max[3], 
 							 float* pSeed)
@@ -177,7 +177,7 @@ PlaneRake::~PlaneRake()
 {
 }
 
-void PlaneRake::GenSeedRandom(const unsigned int numSeeds[3], 
+void PlaneRake::GenSeedRandom(const size_t numSeeds[3], 
 							  const float min[3], 
 							  const float max[3], 
 							  float* pSeed,
@@ -213,7 +213,7 @@ void PlaneRake::GenSeedRandom(const unsigned int numSeeds[3],
 	}
 }
 
-void PlaneRake::GenSeedRegular(const unsigned int numSeeds[3], 
+void PlaneRake::GenSeedRegular(const size_t numSeeds[3], 
 							  const float min[3], 
 							  const float max[3], 
 							  float* pSeed)
@@ -269,7 +269,7 @@ SolidRake::~SolidRake()
 {
 }
 
-void SolidRake::GenSeedRandom(const unsigned int numSeeds[3], 
+void SolidRake::GenSeedRandom(const size_t numSeeds[3], 
 							  const float min[3], 
 							  const float max[3], 
 							  float* pSeed,
@@ -310,7 +310,7 @@ void SolidRake::GenSeedRandom(const unsigned int numSeeds[3],
 	}
 }
 
-void SolidRake::GenSeedRegular(const unsigned int numSeeds[3], 
+void SolidRake::GenSeedRegular(const size_t numSeeds[3], 
 							  const float min[3], 
 							  const float max[3], 
 							  float* pSeed)
