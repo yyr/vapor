@@ -59,7 +59,7 @@ namespace VAPoR
 
 		float minRakeExt[3];						// minimal rake range 
 		float maxRakeExt[3];						// maximal rake range
-		unsigned int numSeeds[3];							// number of seeds
+		size_t numSeeds[3];							// number of seeds
 		bool bUseRandomSeeds;						// whether use randomly or regularly generated seeds
 
 		float initialStepSize;						// for integration
@@ -72,3 +72,4 @@ namespace VAPoR
 };
 
 #endif
+
