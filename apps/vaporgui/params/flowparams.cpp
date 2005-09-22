@@ -134,7 +134,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	geometryType = 0;  //0= tube, 1=point, 2 = arrow
 	objectsPerTimestep = 1.f;
 
-	shapeDiameter = 0.f;
+	shapeDiameter = 1.f;
 	
 
 	colorMapEntity.clear();

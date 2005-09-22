@@ -29,6 +29,11 @@
 #include "renderer.h"
 #include "mapperfunction.h"
 
+//Constants used for arrow design:
+	//VERTEX_ANGLE = 45 degrees (angle between direction vector and head edge
+#define ARROW_LENGTH_FACTOR  0.75f //fraction of full length used by cylinder
+#define ARROW_HEAD_WIDTH_FACTOR 3.f //radius of arrowhead compared to cylinder radius
+#define MIN_ARROW_HEAD_RADIUS 3.f //minimum in voxels of head radius
 /*!
   Create a FlowRenderer widget
 */
@@ -210,10 +215,24 @@ void FlowRenderer::paintGL()
 				renderTubes(rad, (nLights > 0), 0, maxPoints-1, 0,constColors);
 				
 			}
-		} else { //rendering points (or arrows?)
+		} else if (myFlowParams->getShapeType() == 1 ){ //rendering points 
 			//just convert the flow data to a set of points..
 			renderPoints(diam, 0, maxPoints-1, 0, constColors);
+		} else { //render arrows
+			float rad = 0.5*diam*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
+					myRegionParams->getFullSize()[0];
+			arrowHeadRadius = ARROW_HEAD_WIDTH_FACTOR*rad;
+			float minHeadRad = MIN_ARROW_HEAD_RADIUS*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
+					myRegionParams->getFullSize()[0];
+			if (arrowHeadRadius < minHeadRad) arrowHeadRadius = minHeadRad;
+			glPolygonMode(GL_FRONT, GL_FILL);
+			//Render arrows
+			//Note that lastDisplayFrame is maxPoints -1
+			//and firstDisplayFrame is 0
+			//
+			renderArrows(rad, (nLights > 0), 0, maxPoints-1, 0, constColors);
 		}
+
 	} else { //unsteady flow:
 		//Determine first and last seeding that is visible.
 		//The portion of a flow that is visible is that portion whose age
@@ -278,10 +297,17 @@ void FlowRenderer::paintGL()
 						maxPoints*numSeedPoints*(injectionNum-1), constColors);
 					
 				}
-			} else { //rendering points (or arrows?)
+			} else if(myFlowParams->getShapeType() == 1) { //rendering points 
 				//just convert the flow data to a set of points..
 				renderPoints(diam, firstGeom, lastGeom,
 						maxPoints*numSeedPoints*(injectionNum-1), constColors);
+			} else { //rendering arrows:
+				float rad = 0.5*diam*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
+						myRegionParams->getFullSize()[0];
+				glPolygonMode(GL_FRONT, GL_FILL);
+				//Render all tubes
+				renderTubes(rad, (nLights > 0), firstGeom, lastGeom,
+					maxPoints*numSeedPoints*(injectionNum-1), constColors);
 			}
 		}
 	}
@@ -700,6 +726,297 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 	//Special symbol at stationary flow:
 	
 		
+}
+//  Issue OpenGL calls for a cylindrical (hexagonal cross-section) arrow 
+//  following the stream or streak line
+//  tubeNum specifies which tube in the flowdata array to render
+//
+void FlowRenderer::
+renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap ){
+	
+	//Declare values used repeatedly (toggle between even and odd)
+	//Tube will actually be hexagonal
+	
+	float evenU[3];//vector in plane of points, orthog to A
+	float oddU[3];
+	
+	float evenN[3];//vector pointing in direction to next point
+	float oddN[3];
+	
+	float currentB[3];//Binormal, U cross A
+	
+	float len;
+	float testVec[3];
+	
+	if (firstAge >= lastAge) return;
+
+
+	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
+		//Start the colors for the start of the tube or the stationary symbol
+		if (!constMap){
+			float* rgba = flowRGBAs + 4*(startIndex + tubeNum*maxPoints+firstAge);
+			if(isLit)
+				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
+			else
+				glColor4fv(rgba);
+		} else {
+			if(isLit) glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE, constFlowColor);
+			else glColor4fv(constFlowColor);
+		}
+		//Check if the second point is a stationary flag:
+		if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) == STATIONARY_STREAM_FLAG) {
+			//If so just render the stationary symbol, and continue
+			float *point = flowDataArray+3*(startIndex+tubeNum*maxPoints+firstAge);
+			renderStationary(point, radius);
+			continue;
+		} else if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) == END_FLOW_FLAG) {//render nothing:
+				//We could potentially have the second point be an end flow flag
+				continue;
+		} else { //Legitimate flow line
+			assert(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints)) != END_FLOW_FLAG);
+
+			int tubeStartIndex = 3*(startIndex + tubeNum*maxPoints+firstAge);
+			//data point is three floats starting at data[tubeStartIndex]
+			//evenN is the direction the line is pointing
+			vsub(flowDataArray+(tubeStartIndex+3), flowDataArray+tubeStartIndex, evenN);
+			//Normalize even
+			len = vdot(evenN,evenN);
+			if (len == 0.f){//If 2nd is same as first set default normal
+				vset(evenN, 0.f,0.f,1.f);
+			} else {
+				vscale(evenN, 1.f/sqrt(len));
+			}
+			
+			//Calculate evenU, orthogonal to evenN:
+			vset(testVec, 1.,0.,0.);
+			vcross(evenN, testVec, evenU);
+			len = vdot(evenU,evenU);
+			if (len == 0.f){
+				vset(testVec, 0.,1.,0.);
+				vcross(evenN, testVec, evenU);
+				len = vdot(evenU, evenU);
+				assert(len != 0.f);
+			} 
+			vscale( evenU, 1.f/sqrt(len));
+			vcross(evenU, evenN, currentB);
+			
+			//Now loop over points, starting with no. 1.
+			//toggle even and odd.
+			float* currentN;
+			float* currentU;
+			float* prevN;
+			float* prevU;
+			float* point;
+			for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
+				point = flowDataArray+3*(startIndex+tubeNum*maxPoints+pointNum);
+				if (*point == END_FLOW_FLAG || *point == STATIONARY_STREAM_FLAG) break;
+				//Toggle the meaning of "current" and "prev"
+				if (0 == (pointNum - firstAge)%2) {
+					currentN = evenN;
+					prevN = oddN;
+					currentU = evenU;
+					prevU = oddU;
+				} else {
+					currentN = oddN;
+					prevN = evenN;
+					currentU = oddU;
+					prevU = evenU;
+				}
+				
+				//Calc currentN
+				vsub(point, point-3, currentN);
+				//Normalize currentN:
+				len = vdot(currentN,currentN);
+				if (len == 0.f){// keep previous direction vector
+					vcopy(prevN,currentN);
+				} else {
+					vscale(currentN, 1.f/sqrt(len));
+				}
+				
+				//Now get next U, by projecting previous U orthog to currentN:
+				vmult(currentN, vdot(prevU,currentN), testVec);
+				vsub(prevU, testVec, currentU);
+				//Now normalize it:
+				len = vdot(currentU,currentU);
+				if (len == 0.f){
+					//If U is in direction of N, the previous N should work
+					vcopy(prevN, currentU);
+					len = vdot(currentU, currentU);
+					assert(len != 0.f);
+				} 
+				vscale(currentU, 1.f/sqrt(len));
+				vcross(currentU, currentN, currentB);
+				
+
+				drawArrow(isLit, startIndex+tubeNum*maxPoints+pointNum-1, currentN, currentB, currentU, radius, constMap);
+
+				
+				
+				if ((*point) == STATIONARY_STREAM_FLAG)
+					renderStationary(point-3,radius);
+			} //end of arrows along one flow line
+			
+		} //legitimate flow line
+		
+
+	} //end of loop over seedPoints
+	//Special symbol at stationary flow:
+	
+		
+}
+//Issue OpenGL calls to draw a cylinder with orthogonal ends from one point to another.
+//center points indexed by startIndex and startIndex+1
+//Orthogonal frame at first point is (dirVec, UVec, bVec)
+//U and B are orthog to direction of cylinder, determine plane for 6 points
+//
+void FlowRenderer::drawArrow(bool isLit, int firstIndex, float* dirVec, float* bVec, float* uVec, float radius, bool constMap) {
+	//Constants are needed for cosines and sines, at 60 degree intervals
+	const float sines[6] = {0.f, sqrt(3.)/2., sqrt(3.)/2., 0.f, -sqrt(3.)/2., -sqrt(3.)/2.};
+	const float coses[6] = {1.f, 0.5, -0.5, -1., -.5, 0.5};
+	//Parameters that control arrow head:
+
+	float* startPoint = flowDataArray+3*(firstIndex);
+	float* endPoint = flowDataArray+3*(firstIndex+1);
+	
+	float* nextRGBA = flowRGBAs + 4*(firstIndex+1);
+	float nextPoint[3];
+	float vertexPoint[3];
+	float headCenter[3];
+	float startNormal[18];
+	float nextNormal[18];
+	float startVertex[18];
+	float nextVertex[18];
+	float testVec[3];
+	float testVec2[3];
+	int i;
+	//Calculate nextPoint and vertexPoint, for arrowhead
+	
+	for (i = 0; i< 3; i++){
+		nextPoint[i] = (1. - ARROW_LENGTH_FACTOR)*startPoint[i]+ ARROW_LENGTH_FACTOR*endPoint[i];
+		//Assume a vertex angle of 45 degrees:
+		vertexPoint[i] = nextPoint[i] + dirVec[i]*radius;
+		headCenter[i] = nextPoint[i] - dirVec[i]*(arrowHeadRadius-radius); 
+	}
+	//calculate 6 points in plane orthog to dirVec, in plane of point
+	for (i = 0; i<6; i++){
+		//testVec and testVec2 are components of point in plane
+		vmult(uVec, coses[i], testVec);
+		vmult(bVec, sines[i], testVec2);
+		//Calc outward normal as a sideEffect..
+		//It is the vector sum of x,y components (norm 1)
+		vadd(testVec, testVec2, startNormal+3*i);
+		//stretch by radius to get current displacement
+		vmult(startNormal+3*i, radius, startVertex+3*i);
+		//add to current point
+		vadd(startVertex+3*i, startPoint, startVertex+3*i);
+	}
+	//send nonconstant colors, will apply to entire arrow:
+	if (!constMap){
+		if (isLit) glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
+		else glColor4fv(nextRGBA);
+	}
+	
+	glBegin(GL_POLYGON);
+	glNormal3fv(dirVec);
+	for (int k = 0; k<6; k++){
+		glVertex3fv(startVertex+3*k);
+	}
+	glEnd();
+			
+	//calc for endpoints:
+	for (i = 0; i<6; i++){
+		//testVec and testVec2 are components of point in plane
+		vmult(uVec, coses[i], testVec);
+		vmult(bVec, sines[i], testVec2);
+		//Calc outward normal as a sideEffect..
+		//It is the vector sum of x,y components (norm 1)
+		vadd(testVec, testVec2, nextNormal+3*i);
+		//stretch by radius to get current displacement
+		vmult(nextNormal+3*i, radius, nextVertex+3*i);
+		//add to current point
+		vadd(nextVertex+3*i, nextPoint, nextVertex+3*i);
+					
+	}
+	
+	//Now make a triangle strip for cylinder sides:
+	glBegin(GL_TRIANGLE_STRIP);
+	if (constMap){
+		for (i = 0; i< 6; i++){
+
+			glNormal3fv(nextNormal+3*i);
+			glVertex3fv(nextVertex+3*i);
+			glNormal3fv(startNormal+3*i);
+			glVertex3fv(startVertex+3*i);
+		}
+		//repeat first two vertices to close cylinder:
+		glNormal3fv(nextNormal);
+		glVertex3fv(nextVertex);
+		glNormal3fv(startNormal);
+		glVertex3fv(startVertex);
+	} else if (isLit){
+		for (i = 0; i< 6; i++){
+			
+			glNormal3fv(nextNormal+3*i);
+			glVertex3fv(nextVertex+3*i);
+			
+			glNormal3fv(startNormal+3*i);
+			glVertex3fv(startVertex+3*i);
+		}
+		//repeat first two vertices to close cylinder:
+		
+		glNormal3fv(nextNormal);
+		glVertex3fv(nextVertex);
+		
+		glNormal3fv(startNormal);
+		glVertex3fv(startVertex);
+	} else {//unlit, color mapped
+		for (i = 0; i< 6; i++){
+			
+			glVertex3fv(nextVertex+3*i);
+			
+			glVertex3fv(startVertex+3*i);
+		}
+		//repeat first two vertices to close cylinder:
+		
+		glVertex3fv(nextVertex);
+		
+		glVertex3fv(startVertex);
+	}
+	glEnd();
+	//Now draw the arrow head.  First calc 6 vertices at back of arrowhead
+	//Reuse startNormal and startVertex vectors
+	//calc for endpoints:
+	for (i = 0; i<6; i++){
+		//testVec and testVec2 are components of point in plane
+		//Can reuse them from previous (cylinder end) calculation
+		vmult(uVec, coses[i], testVec);
+		vmult(bVec, sines[i], testVec2);
+		//Calc outward normal as a sideEffect..
+		//It is the vector sum of x,y components (norm 1)
+		vadd(testVec, testVec2, startNormal+3*i);
+		//stretch by radius to get current displacement
+		vmult(startNormal+3*i, arrowHeadRadius, startVertex+3*i);
+		//add to current point
+		vadd(startVertex+3*i, headCenter, startVertex+3*i);
+		//Now tilt normals in direction of arrow:
+		for (int k = 0; k<3; k++){
+			startNormal[3*i+k] = 0.5*startNormal[3*i+k] + 0.5*dirVec[k];
+		}
+	}
+	//Create a triangle fan from these 6 vertices.  Continue to use
+	//previous color settings
+	
+	glBegin(GL_TRIANGLE_FAN);
+	glNormal3fv(dirVec);
+	glVertex3fv(vertexPoint);
+	for (i = 0; i< 6; i++){
+		glNormal3fv(startNormal+3*i);
+		glVertex3fv(startVertex+3*i);
+	}
+	//Repeat first point to close fan:
+	glNormal3fv(startNormal);
+	glVertex3fv(startVertex);
+	glEnd();
 }
 //Render a symbol for stationary flowline (octahedron?)
 void FlowRenderer::renderStationary(float* point, float radius){

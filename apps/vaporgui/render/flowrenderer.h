@@ -44,7 +44,7 @@ protected:
 	void renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
 	void renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
 	void renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool constMap);
-	
+	void renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
 	float* getFlowPoint(int timeStep, int seedNum, int injectionNum){
 		assert ((3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)))<
 			3*maxPoints*numSeedPoints*numInjections );
@@ -52,8 +52,11 @@ protected:
 	}
 	// Render a "stationary symbol" at the specified point
 	void renderStationary(float* point, float rad);
+	//draw one arrow
+	void drawArrow(bool isLit, int firstIndex, float* dirVec, float* bVec, float* UVec, float radius, bool constMap);
 
 	float constFlowColor[4];
+	float arrowHeadRadius;
 
 };
 };
