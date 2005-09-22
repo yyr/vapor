@@ -207,7 +207,7 @@ void	Lifting1DInverseTransform(int argc, IDL_VPTR *argv)
 
 		lambda_ptr = data;
 		gamma_ptr = data + width;
-		for(i=0,j=0; i<width; i+=2,j++) {
+		for(i=0,j=0; j<width; i+=2,j++) {
 			lh->buf[i] = lambda_ptr[j];
 			lh->buf[i+1] = gamma_ptr[j];
 		}
