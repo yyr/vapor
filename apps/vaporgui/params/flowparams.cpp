@@ -1418,11 +1418,32 @@ regenerateFlowData(int timeStep){
 		myFlowLib->GenStreamLines(flowData[timeStep], maxPoints, randomSeed, speeds);
 		
 	} else {
-		qWarning("generating streak lines, maxpoints = %d", maxPoints);
-		float val = flowData[0][3*maxPoints*numSeedPoints*numInjections];
+		
 		myFlowLib->GenStreakLines(flowData[0], maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
-		float val1 = flowData[0][3*maxPoints*numSeedPoints*numInjections];
-		assert (val1 == val);
+		// With streaklines, need to fill flags to end, and fill speeds as well
+		for (int q = 0; q< numSeedPoints*numInjections; q++){
+			//Scan streakline for flags
+			for (int posn = 0; posn<maxPoints; posn++){
+				if(*(flowData[0]+3*(posn +q*maxPoints)) == END_FLOW_FLAG){
+					//fill rest of streakline with END_FLOW:
+					for (int fillIndex = posn+1; fillIndex<maxPoints; fillIndex++){
+						*(flowData[0]+3*(fillIndex +q*maxPoints)) = END_FLOW_FLAG;
+					}
+					//Done with this streakline:
+					break;
+				}
+				if(*(flowData[0]+3*(posn +q*maxPoints)) == STATIONARY_STREAM_FLAG){
+					//fill rest of streakline with STATIONARY_FLOW_FLAG
+					for (int fillIndex = posn+1; fillIndex<maxPoints; fillIndex++){
+						*(flowData[0]+3*(fillIndex +q*maxPoints)) = STATIONARY_STREAM_FLAG;
+					}
+					//Done with this streakline:
+					break;
+				}
+			}
+		}
+
+
 	}
 	//Invalidate colors and opacities:
 	if (flowRGBAs && flowRGBAs[timeStep]) {
