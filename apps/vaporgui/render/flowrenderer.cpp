@@ -34,7 +34,7 @@
 #define ARROW_LENGTH_FACTOR  0.90f //fraction of full length used by cylinder
 #define ARROW_HEAD_WIDTH_FACTOR 3.f //radius of arrowhead compared to cylinder radius
 #define MIN_ARROW_HEAD_RADIUS 3.f //minimum in voxels of head radius
-#define MIN_STATIONARY_RADIUS 3.f //minimum in voxels of stationary octahedron
+#define MIN_STATIONARY_RADIUS 5.f //minimum in voxels of stationary octahedron
 /*!
   Create a FlowRenderer widget
 */

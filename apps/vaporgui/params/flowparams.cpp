@@ -2018,7 +2018,7 @@ mapColors(float* speeds, int currentTimeStep){
 					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+1]= ((float)qGreen(constantColor))/255.f;
 					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+2]= ((float)qBlue(constantColor))/255.f;
 				} else {
-					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))]= lut[4*opacIndex];
+					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))]= lut[4*colorIndex];
 					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+1]= lut[4*colorIndex+1];
 					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+2]= lut[4*colorIndex+2];
 				}
