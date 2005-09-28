@@ -137,13 +137,7 @@ void FlowRenderer::paintGL()
 	rightPlane[3] = myRegionParams->getRegionMax(0);
 	frontPlane[3] = myRegionParams->getRegionMax(2);
 	backPlane[3] = -myRegionParams->getRegionMin(2);
-	/*float* maxPlanes = ViewpointParams::getMaxCubeCoords();
-	topPlane[3] = maxPlanes[1];
-	botPlane[3] = -transVec[1];
-	leftPlane[3] = -transVec[0];
-	rightPlane[3] = maxPlanes[0];
-	frontPlane[3] = maxPlanes[2];
-	backPlane[3] = -transVec[2];*/
+	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);
 	glClipPlane(GL_CLIP_PLANE1, rightPlane);
@@ -161,6 +155,25 @@ void FlowRenderer::paintGL()
 	float diam = myFlowParams->getShapeDiameter();
 	//Don't allow zero diameter, it causes OpenGL error code 1281
 	if (diam < 1.e-10) diam = 1.e-10f;
+
+	//Set up size constants:
+	//voxelSize is actually the max of the sides of the voxel in user coords
+	voxelSize = Max((myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
+					myRegionParams->getFullSize()[0],
+			Max((myRegionParams->getFullDataExtent(4)- myRegionParams->getFullDataExtent(1))/
+						myRegionParams->getFullSize()[1],
+				(myRegionParams->getFullDataExtent(5)- myRegionParams->getFullDataExtent(2))/
+					myRegionParams->getFullSize()[2]));
+	//stationary radius is radius of stationary point symbol in user coords
+	if (diam > 2*MIN_STATIONARY_RADIUS)
+		stationaryRadius = voxelSize*0.5*diam;
+	else stationaryRadius = voxelSize*MIN_STATIONARY_RADIUS;
+	float userRadius = 0.5f*diam*voxelSize;
+	arrowHeadRadius = ARROW_HEAD_WIDTH_FACTOR*userRadius;
+	float minHeadRad = MIN_ARROW_HEAD_RADIUS*voxelSize;
+	if (arrowHeadRadius < minHeadRad) arrowHeadRadius = minHeadRad;
+
+	
 
 	//Set up lighting, if we are rendering tubes or lines:
 	int nLights = 0;
@@ -213,32 +226,26 @@ void FlowRenderer::paintGL()
 				//Determine cylinder radius in actual coords.
 				//One voxel is (full region size)/(region array size)
 				
-				float rad = 0.5*diam*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
-					myRegionParams->getFullSize()[0];
 				glPolygonMode(GL_FRONT, GL_FILL);
 				//Render all tubes
 				//Note that lastDisplayFrame is maxPoints -1
 				//and firstDisplayFrame is 0
 				//
-				renderTubes(rad, (nLights > 0), 0, maxPoints-1, 0,constColors);
+				renderTubes(userRadius, (nLights > 0), 0, maxPoints-1, 0,constColors);
 				
 			}
 		} else if (myFlowParams->getShapeType() == 1 ){ //rendering points 
 			//just convert the flow data to a set of points..
 			renderPoints(diam, 0, maxPoints-1, 0, constColors);
 		} else { //render arrows
-			float rad = 0.5*diam*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
-					myRegionParams->getFullSize()[0];
-			arrowHeadRadius = ARROW_HEAD_WIDTH_FACTOR*rad;
-			float minHeadRad = MIN_ARROW_HEAD_RADIUS*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
-					myRegionParams->getFullSize()[0];
-			if (arrowHeadRadius < minHeadRad) arrowHeadRadius = minHeadRad;
+			
+			
 			glPolygonMode(GL_FRONT, GL_FILL);
 			//Render arrows
 			//Note that lastDisplayFrame is maxPoints -1
 			//and firstDisplayFrame is 0
 			//
-			renderArrows(rad, (nLights > 0), 0, maxPoints-1, 0, constColors);
+			renderArrows(userRadius, (nLights > 0), 0, maxPoints-1, 0, constColors);
 		}
 
 	} else { //unsteady flow:
@@ -294,14 +301,10 @@ void FlowRenderer::paintGL()
 						maxPoints*numSeedPoints*(injectionNum-1),constColors);
 				
 				} else { //render as cylinders
-					//Determine cylinder radius in actual coords.
-					//One voxel is (full region size)/(region array size)
 					
-					float rad = 0.5*diam*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
-						myRegionParams->getFullSize()[0];
 					glPolygonMode(GL_FRONT, GL_FILL);
 					//Render all tubes
-					renderTubes(rad, (nLights > 0), firstGeom, lastGeom,
+					renderTubes(userRadius, (nLights > 0), firstGeom, lastGeom,
 						maxPoints*numSeedPoints*(injectionNum-1), constColors);
 					
 				}
@@ -310,11 +313,10 @@ void FlowRenderer::paintGL()
 				renderPoints(diam, firstGeom, lastGeom,
 						maxPoints*numSeedPoints*(injectionNum-1), constColors);
 			} else { //rendering arrows:
-				float rad = 0.5*diam*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
-						myRegionParams->getFullSize()[0];
+				
 				glPolygonMode(GL_FRONT, GL_FILL);
-				//Render all tubes
-				renderTubes(rad, (nLights > 0), firstGeom, lastGeom,
+				
+				renderArrows(userRadius, (nLights > 0), firstGeom, lastGeom,
 					maxPoints*numSeedPoints*(injectionNum-1), constColors);
 			}
 		}
@@ -366,11 +368,8 @@ renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool const
 			//Use the last point for a stationary marker
 			if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
 				glEnd();
-				int winNum = myVizWin->getWindowNum();
-				RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-				float rad = 0.5*(radius+1.f)*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
-					myRegionParams->getFullSize()[0];
-				renderStationary(point, rad);
+				
+				renderStationary(point);
 				break;
 			}
 			glVertex3fv(point);
@@ -426,11 +425,9 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 				}
 				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
 					if(!endGL) glEnd();//Terminate current curve
-					int winNum = myVizWin->getWindowNum();
-					RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-					float rad = 0.5*(radius+1.f)*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
-						myRegionParams->getFullSize()[0];
-					renderStationary(point, rad);
+					
+					
+					renderStationary(point);
 					endGL = true;
 					break;
 				}
@@ -455,11 +452,8 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 				}
 				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
 					if(!endGL) glEnd();//Terminate current curve
-					int winNum = myVizWin->getWindowNum();
-					RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-					float rad = 0.5*(radius+1.f)*(myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
-						myRegionParams->getFullSize()[0];
-					renderStationary(point,rad);
+					
+					renderStationary(point);
 					endGL = true;
 					break;
 				}
@@ -498,6 +492,13 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 	float testVec2[3];
 	if (firstAge >= lastAge) return;
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
+		//Skip the tube entirely if first point is end-flow or stationary flag
+		//This can occur in the middle of a streakline
+		if(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge)) == END_FLOW_FLAG)
+			continue;
+		if(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge)) == STATIONARY_STREAM_FLAG)
+			continue;
+
 		//Start the colors for the start of the tube or the stationary symbol
 		if (!constMap){
 			float* rgba = flowRGBAs + 4*(startIndex + tubeNum*maxPoints+firstAge);
@@ -510,17 +511,16 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 			else glColor4fv(constFlowColor);
 		}
 		//Check if the second point is a stationary flag:
-		if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) == STATIONARY_STREAM_FLAG) {
+		if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+firstAge+1))) == STATIONARY_STREAM_FLAG) {
 			//If so just render the stationary symbol, and continue
 			float *point = flowDataArray+3*(startIndex+tubeNum*maxPoints+firstAge);
-			renderStationary(point, radius);
+			renderStationary(point);
 			continue;
-		} else if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) == END_FLOW_FLAG) {//render nothing:
+		} else if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+firstAge+1))) == END_FLOW_FLAG) {//render nothing:
 				//We could potentially have the second point be an end flow flag
 				continue;
 		} else {
-			assert(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints)) != END_FLOW_FLAG);
-
+			
 			int tubeStartIndex = 3*(startIndex + tubeNum*maxPoints+firstAge);
 			//data point is three floats starting at data[tubeStartIndex]
 			//evenA is the direction the line is pointing
@@ -725,7 +725,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 			}
 			glEnd();
 			if ((*point) == STATIONARY_STREAM_FLAG)
-				renderStationary(point-3,radius);
+				renderStationary(point-3);
 			
 		} //end of one tube rendering.  
 		
@@ -760,7 +760,14 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 
 
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
-		//Start the colors for the start of the tube or the stationary symbol
+		//Skip the arrow entirely if first point is end-flow or stationary flag
+		//This can occur in the middle of a streakline
+		if(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge)) == END_FLOW_FLAG)
+			continue;
+		if(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge)) == STATIONARY_STREAM_FLAG)
+			continue;
+
+		//Start the colors for the start of the arrow or the stationary symbol
 		if (!constMap){
 			float* rgba = flowRGBAs + 4*(startIndex + tubeNum*maxPoints+firstAge);
 			if(isLit)
@@ -772,17 +779,16 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 			else glColor4fv(constFlowColor);
 		}
 		//Check if the second point is a stationary flag:
-		if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) == STATIONARY_STREAM_FLAG) {
+		if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+firstAge+1))) == STATIONARY_STREAM_FLAG) {
 			//If so just render the stationary symbol, and continue
 			float *point = flowDataArray+3*(startIndex+tubeNum*maxPoints+firstAge);
-			renderStationary(point, radius);
+			renderStationary(point);
 			continue;
-		} else if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+1))) == END_FLOW_FLAG) {//render nothing:
+		} else if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+firstAge+1))) == END_FLOW_FLAG) {//render nothing:
 				//We could potentially have the second point be an end flow flag
 				continue;
 		} else { //Legitimate flow line
-			assert(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints)) != END_FLOW_FLAG);
-
+			
 			int tubeStartIndex = 3*(startIndex + tubeNum*maxPoints+firstAge);
 			//data point is three floats starting at data[tubeStartIndex]
 			//evenN is the direction the line is pointing
@@ -861,7 +867,7 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 				
 				
 				if ((*point) == STATIONARY_STREAM_FLAG)
-					renderStationary(point-3,radius);
+					renderStationary(point-3);
 			} //end of arrows along one flow line
 			
 		} //legitimate flow line
@@ -1027,47 +1033,47 @@ void FlowRenderer::drawArrow(bool isLit, int firstIndex, float* dirVec, float* b
 	glEnd();
 }
 //Render a symbol for stationary flowline (octahedron?)
-void FlowRenderer::renderStationary(float* point, float radius){
+void FlowRenderer::renderStationary(float* point){
 	
 	const float stationaryColor[4] = {.5f,.5f,.5f,1.f};
-	if (radius < MIN_STATIONARY_RADIUS) radius = MIN_STATIONARY_RADIUS;
+	
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, stationaryColor);
 	glColor4fv(stationaryColor);
 	glBegin(GL_TRIANGLES);
 	glNormal3f(0.5f,.5f,.707f);
-	glVertex3f(point[0],point[1],point[2]+radius);
-	glVertex3f(point[0]+radius, point[1], point[2]);
-	glVertex3f(point[0], point[1]+radius, point[2]);
+	glVertex3f(point[0],point[1],point[2]+stationaryRadius);
+	glVertex3f(point[0]+stationaryRadius, point[1], point[2]);
+	glVertex3f(point[0], point[1]+stationaryRadius, point[2]);
 	glNormal3f(-0.5f,.5f,.707f);
-	glVertex3f(point[0],point[1],point[2]+radius);
-	glVertex3f(point[0], point[1]+radius, point[2]);
-	glVertex3f(point[0]-radius, point[1], point[2]);
+	glVertex3f(point[0],point[1],point[2]+stationaryRadius);
+	glVertex3f(point[0], point[1]+stationaryRadius, point[2]);
+	glVertex3f(point[0]-stationaryRadius, point[1], point[2]);
 	
 	glNormal3f(-0.5f,-.5f,.707f);
-	glVertex3f(point[0],point[1],point[2]+radius);
-	glVertex3f(point[0]-radius, point[1], point[2]);
-	glVertex3f(point[0], point[1]-radius, point[2]);
+	glVertex3f(point[0],point[1],point[2]+stationaryRadius);
+	glVertex3f(point[0]-stationaryRadius, point[1], point[2]);
+	glVertex3f(point[0], point[1]-stationaryRadius, point[2]);
 	glNormal3f(0.5f,-.5f,.707f);
-	glVertex3f(point[0],point[1],point[2]+radius);
-	glVertex3f(point[0], point[1]-radius, point[2]);
-	glVertex3f(point[0]+radius, point[1], point[2]);
+	glVertex3f(point[0],point[1],point[2]+stationaryRadius);
+	glVertex3f(point[0], point[1]-stationaryRadius, point[2]);
+	glVertex3f(point[0]+stationaryRadius, point[1], point[2]);
 	
 	glNormal3f(0.5f,.5f,-.707f);
-	glVertex3f(point[0],point[1],point[2]-radius);
-	glVertex3f(point[0], point[1]+radius, point[2]);
-	glVertex3f(point[0]+radius, point[1], point[2]);
+	glVertex3f(point[0],point[1],point[2]-stationaryRadius);
+	glVertex3f(point[0], point[1]+stationaryRadius, point[2]);
+	glVertex3f(point[0]+stationaryRadius, point[1], point[2]);
 	glNormal3f(-0.5f,.5f,-.707f);
-	glVertex3f(point[0],point[1],point[2]-radius);
-	glVertex3f(point[0]-radius, point[1], point[2]);
-	glVertex3f(point[0], point[1]+radius, point[2]);
+	glVertex3f(point[0],point[1],point[2]-stationaryRadius);
+	glVertex3f(point[0]-stationaryRadius, point[1], point[2]);
+	glVertex3f(point[0], point[1]+stationaryRadius, point[2]);
 	glNormal3f(-0.5f,-.5f,-.707f);
-	glVertex3f(point[0],point[1],point[2]-radius);
-	glVertex3f(point[0], point[1]-radius, point[2]);
-	glVertex3f(point[0]-radius, point[1], point[2]);
+	glVertex3f(point[0],point[1],point[2]-stationaryRadius);
+	glVertex3f(point[0], point[1]-stationaryRadius, point[2]);
+	glVertex3f(point[0]-stationaryRadius, point[1], point[2]);
 	glNormal3f(0.5f,-.5f,-.707f);
-	glVertex3f(point[0],point[1],point[2]-radius);
-	glVertex3f(point[0]+radius, point[1], point[2]);
-	glVertex3f(point[0], point[1]-radius, point[2]);
+	glVertex3f(point[0],point[1],point[2]-stationaryRadius);
+	glVertex3f(point[0]+stationaryRadius, point[1], point[2]);
+	glVertex3f(point[0], point[1]-stationaryRadius, point[2]);
 	glEnd();
 	
 }

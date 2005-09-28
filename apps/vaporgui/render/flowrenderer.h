@@ -51,12 +51,15 @@ protected:
 		return (flowDataArray+ 3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)));
 	}
 	// Render a "stationary symbol" at the specified point
-	void renderStationary(float* point, float rad);
+	void renderStationary(float* point);
 	//draw one arrow
 	void drawArrow(bool isLit, int firstIndex, float* dirVec, float* bVec, float* UVec, float radius, bool constMap);
 
+	//Constants that are used, recalculated in each rendering:
 	float constFlowColor[4];
 	float arrowHeadRadius;
+	float voxelSize;
+	float stationaryRadius;
 
 };
 };
