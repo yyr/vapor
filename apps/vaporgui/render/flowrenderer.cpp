@@ -31,9 +31,10 @@
 
 //Constants used for arrow design:
 	//VERTEX_ANGLE = 45 degrees (angle between direction vector and head edge
-#define ARROW_LENGTH_FACTOR  0.75f //fraction of full length used by cylinder
+#define ARROW_LENGTH_FACTOR  0.90f //fraction of full length used by cylinder
 #define ARROW_HEAD_WIDTH_FACTOR 3.f //radius of arrowhead compared to cylinder radius
 #define MIN_ARROW_HEAD_RADIUS 3.f //minimum in voxels of head radius
+#define MIN_STATIONARY_RADIUS 3.f //minimum in voxels of stationary octahedron
 /*!
   Create a FlowRenderer widget
 */
@@ -44,6 +45,9 @@ FlowRenderer::FlowRenderer(VizWin* vw )
     maxPoints = 0;
 	numSeedPoints = 0;
 	numInjections = 0;
+	for (int i = 0; i<4; i++) constFlowColor[i] = 1.f;
+
+
 }
 
 
@@ -95,7 +99,15 @@ void FlowRenderer::paintGL()
 
 	if (!constColors){
 		flowRGBAs = myFlowParams->getRGBAs(timeStep);
-	} 
+	} else {
+		constFlowColor[3] = myFlowParams->getConstantOpacity();
+		QRgb constRgb = myFlowParams->getConstantColor();
+
+		constFlowColor[0] = qRed(constRgb)/255.f;
+		constFlowColor[1] = qGreen(constRgb)/255.f;
+		constFlowColor[2] = qBlue(constRgb)/255.f;
+	}
+
 
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
@@ -145,13 +157,6 @@ void FlowRenderer::paintGL()
 	glClipPlane(GL_CLIP_PLANE5, backPlane);
 	glEnable(GL_CLIP_PLANE5);
 
-
-
-
-	//Setup constant color/opacity by default
-	
-	myFlowParams->getMapperFunc()->mapPointToRGBA(0.0f, constFlowColor);
-	
 	
 	float diam = myFlowParams->getShapeDiameter();
 	//Don't allow zero diameter, it causes OpenGL error code 1281
@@ -166,7 +171,10 @@ void FlowRenderer::paintGL()
 		if (nLights > 0){
 			glShadeModel(GL_SMOOTH);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, constFlowColor);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, constFlowColor);
+			const float specColor[4] = {.2f,.2f,.2f,1.f};
+			//Specify low specular color
+
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
 			glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
 			glLightfv(GL_LIGHT0, GL_DIFFUSE, white_light);
 			//glLightfv(GL_LIGHT0, GL_SPECULAR, white_light);
@@ -257,7 +265,7 @@ void FlowRenderer::paintGL()
 		int lastInjectionFrame = min(currentFrameNum, myFlowParams->getLastSeeding());
 		int lastInjectionNum = 1 + (lastInjectionFrame - startFrame)/seedingIncrement;
 		
-		int objectsPerTimestep = myFlowParams->getObjectsPerTimestep();
+		float objectsPerTimestep = myFlowParams->getObjectsPerTimestep();
 
 		//Do special case of just one seeding:
 		if (seedingIncrement <= 0 || numInjections <= 1){
@@ -1022,6 +1030,7 @@ void FlowRenderer::drawArrow(bool isLit, int firstIndex, float* dirVec, float* b
 void FlowRenderer::renderStationary(float* point, float radius){
 	
 	const float stationaryColor[4] = {.5f,.5f,.5f,1.f};
+	if (radius < MIN_STATIONARY_RADIUS) radius = MIN_STATIONARY_RADIUS;
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, stationaryColor);
 	glColor4fv(stationaryColor);
 	glBegin(GL_TRIANGLES);

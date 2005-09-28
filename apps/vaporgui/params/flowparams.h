@@ -22,6 +22,7 @@
 #define FLOWPARAMS_H
 
 #include <qwidget.h>
+#include <qcolor.h>
 #include "params.h"
 
 class FlowTab;
@@ -142,6 +143,8 @@ public:
 	float* getFlowData(int timeStep){
 		return flowData[timeStep];
 	}
+	float getConstantOpacity() {return constantOpacity;}
+	QRgb getConstantColor() {return constantColor;}
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 	float getObjectsPerTimestep() {return objectsPerTimestep;}
 	void guiSetEditMode(bool val); //edit versus navigate mode
@@ -169,6 +172,8 @@ public:
 	void guiSetFlowGeometry(int geomNum);
 	void guiSetColorMapEntity( int entityNum);
 	void guiSetOpacMapEntity( int entityNum);
+	void guiSetConstantColor(QColor& newColor);
+	void guiSetGeomSamples(int sliderVal);
 
 
 protected:
@@ -179,7 +184,7 @@ protected:
 	static const string _instanceAttr;
 	static const string _numTransformsAttr;
 	static const string _integrationAccuracyAttr;
-	static const string _userTimeStepMultAttr;
+	static const string _velocityScaleAttr;
 	static const string _timeSamplingIntervalAttr;
 
 	//flow seeding tags and attributss
@@ -248,7 +253,7 @@ protected:
 	std::vector<std::string> variableNames;
 	int varNum[3]; //field variable num's in x, y, and z.
 	float integrationAccuracy;
-	float userTimeStepMultiplier;
+	float velocityScale;
 	int timeSamplingInterval;
 	bool editMode;
 	
@@ -267,13 +272,21 @@ protected:
 	int firstDisplayFrame, lastDisplayFrame;
 	
 	float shapeDiameter;
+	QRgb constantColor;
+	float constantOpacity;
 	
 	
 	PanelCommand* savedCommand;
 	MapperFunction* mapperFunction;
 	FlowMapEditor* flowMapEditor;
 	FlowMapEditor* getFlowMapEditor() {return flowMapEditor;}
-
+	//Save the min and max bounds for each of the flow mappings, plus 
+	//min and max for each variable
+	float* minOpacBounds;
+	float* maxOpacBounds;
+	float* minColorBounds;
+	float* maxColorBounds;
+	
 	int maxPoints;  //largest length of any flow
 	
 	

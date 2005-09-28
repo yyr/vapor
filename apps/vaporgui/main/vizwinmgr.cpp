@@ -871,15 +871,20 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXSize()));
 	connect (flowTab->ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYSize()));
 	connect (flowTab->zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowZSize()));
+	connect (flowTab->geometrySamplesSlider, SIGNAL(sliderReleased()), this, SLOT(setFlowGeomSamples()));
 	connect (flowTab->generatorDimensionCombo,SIGNAL(activated(int)), SLOT(setFlowGeneratorDimension(int)));
 	connect (flowTab->geometryCombo, SIGNAL(activated(int)),SLOT(setFlowGeometry(int)));
+	connect (flowTab->constantColorButton, SIGNAL(clicked()), this, SLOT(setFlowConstantColor()));
+	
 	connect (flowTab->colormapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowColorMapEntity(int)));
 	connect (flowTab->opacmapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowOpacMapEntity(int)));
 
+	connect (flowTab->constantOpacityEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->constantOpacityEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->integrationAccuracyEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->integrationAccuracyEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
-	connect (flowTab->userTimestepEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->userTimestepEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->scaleFieldEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->scaleFieldEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->timeSampleEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->timeSampleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->randomSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
@@ -906,8 +911,8 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->seedtimeEndEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->seedtimeIncrementEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->seedtimeIncrementEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
-	connect (flowTab->objectsPerTimestepEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->objectsPerTimestepEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->geometrySamplesEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->geometrySamplesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->firstDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->firstDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
 	connect (flowTab->lastDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -1820,6 +1825,24 @@ void VizWinMgr::
 setFlowZSize(){
 	getFlowParams(activeViz)->guiSetZSize(
 		myFlowTab->zSizeSlider->value());
+}
+void VizWinMgr::
+setFlowGeomSamples(){
+	int sliderPos = myFlowTab->geometrySamplesSlider->value();
+	getFlowParams(activeViz)->guiSetGeomSamples(sliderPos);
+}
+/*
+ * Respond to user clicking the color button
+ */
+void VizWinMgr::
+setFlowConstantColor(){
+	
+	//Bring up a color selector dialog:
+	QColor newColor = QColorDialog::getColor(myFlowTab->constantColorButton->paletteBackgroundColor(), myFlowTab, "Constant Color Selection");
+	//Set button color
+	myFlowTab->constantColorButton->setPaletteBackgroundColor(newColor);
+	//Set parameter value of the appropriate parameter set:
+	getFlowParams(activeViz)->guiSetConstantColor(newColor);
 }
 void VizWinMgr::
 setFlowGeneratorDimension(int flowGenDim){
