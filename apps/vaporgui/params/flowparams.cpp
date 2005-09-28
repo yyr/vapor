@@ -1885,6 +1885,7 @@ void FlowParams::
 guiEndChangeMapFcn(){
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand,this);
+	setFlowMappingDirty();
 	savedCommand = 0;
 }
 //Generate a list of colors and opacities, one per (valid) vertex.
