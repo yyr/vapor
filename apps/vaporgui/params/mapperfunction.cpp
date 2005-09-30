@@ -278,6 +278,7 @@ setControlPointRGB(int index, QRgb newColor){
 	QColor qc(newColor);
 	int h, s, v;
 	qc.getHsv(&h, &s, &v);
+	if (h<0) { h= 0;}  //white, grey get indeterminate hue
 	setControlPointHSV(index, (float)h/360.f, (float)s/255.f, (float)v/255.f);
 }
 

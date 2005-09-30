@@ -254,6 +254,7 @@ makeCurrent(Params* prev, bool newWin) {
 	if (formerParams->enabled != enabled || formerParams->local != local || newWin){
 		updateRenderer(formerParams->enabled, formerParams->local, newWin);
 	}
+	setFlowDataDirty();
 }
 
 void FlowParams::updateDialog(){
@@ -395,6 +396,7 @@ void FlowParams::updateDialog(){
 			myFlowTab->maxColorBound->setText(QString::number(maxSpeed));
 			break;
 		default:
+			assert(var>2);
 			myFlowTab->minColorBound->setText(QString::number(Session::getInstance()->getDataStatus()->getDataMinOverTime(var-3)));
 			myFlowTab->maxColorBound->setText(QString::number(Session::getInstance()->getDataStatus()->getDataMaxOverTime(var-3)));
 			break;
@@ -422,6 +424,7 @@ void FlowParams::updateDialog(){
 			myFlowTab->maxOpacityBound->setText(QString::number(maxSpeed));
 			break;
 		default:
+			assert(var>2);
 			myFlowTab->minOpacityBound->setText(QString::number(Session::getInstance()->getDataStatus()->getDataMinOverTime(var-3)));
 			myFlowTab->maxOpacityBound->setText(QString::number(Session::getInstance()->getDataStatus()->getDataMaxOverTime(var-3)));
 			break;
@@ -543,7 +546,10 @@ updatePanelState(){
 	setFlowDataDirty();
 	
 }
-//Reinitialize settings, session has changed:
+//Reinitialize settings, session has changed
+//If dooverride is true, then go back to default state.  If it's false, try to 
+//make use of previous settings
+//
 void FlowParams::
 reinit(bool doOverride){
 	int i;
@@ -571,6 +577,7 @@ reinit(bool doOverride){
 	minFrame = (int)(session->getMinTimestep());
 	maxFrame = (int)(session->getMaxTimestep());
 	editMode = true;
+	// set the params state based on whether we are overriding or not:
 	if (doOverride) {
 		numTransforms = maxNumTrans;
 		seedTimeStart = minFrame;
@@ -607,7 +614,8 @@ reinit(bool doOverride){
 	//Set up variables:
 	//Get the variable names:
 	variableNames = md->GetVariableNames();
-	int newNumVariables = md->GetVariableNames().size();
+	int newNumVariables = (int)variableNames.size();
+	//int newNumVariables = md->GetVariableNames().size();
 
 	//Rebuild map bounds arrays:
 	if(minOpacBounds) delete minOpacBounds;
@@ -633,7 +641,7 @@ reinit(bool doOverride){
 		opacMapEntity.push_back(variableNames[i]);
 	}
 	//Set up the color, opac map entity combos:
-	//This is done when we load a new dataset!
+	
 	assert(myFlowTab);
 	myFlowTab->colormapEntityCombo->clear();
 	for (i = 0; i< (int)colorMapEntity.size(); i++){
@@ -700,22 +708,20 @@ reinit(bool doOverride){
 			maxOpacBounds[k+3] = maxColorBounds[k+3] = 1.f;
 		}
 	}
-	
-	//For now, assume 8-bits mapping
-	MapperFunction* newMapperFunction = new MapperFunction(this, 8);
-	//Initialize to be fully opaque:
-	newMapperFunction->setOpaque();
-	//The edit and tf bounds need to be set up with const, speed, etc in mind.
-	FlowMapEditor* newFlowMapEditor = new FlowMapEditor(newMapperFunction, myFlowTab->flowMapFrame);
-	connectMapperFunction(newMapperFunction, newFlowMapEditor);
-	//If we are overriding, setup for constant color map.  Otherwise,
-	//use previous values.
+	//Create new edit bounds whether we override or not
 	float* newMinOpacEditBounds = new float[newNumVariables+3];
 	float* newMaxOpacEditBounds = new float[newNumVariables+3];
 	float* newMinColorEditBounds = new float[newNumVariables+3];
 	float* newMaxColorEditBounds = new float[newNumVariables+3];
-	if (doOverride){
-		//Set to default map bounds
+	//Either try to reuse existing MapperFunction, MapEditor, or create new ones.
+	if (doOverride){ //create new ones:
+		//For now, assume 8-bits mapping
+		MapperFunction* newMapperFunction = new MapperFunction(this, 8);
+		//Initialize to be fully opaque:
+		newMapperFunction->setOpaque();
+		//The edit and tf bounds need to be set up with const, speed, etc in mind.
+		FlowMapEditor* newFlowMapEditor = new FlowMapEditor(newMapperFunction, myFlowTab->flowMapFrame);
+				//Set to default map bounds
 		newMapperFunction->setMinColorMapValue(0.f);
 		newMapperFunction->setMaxColorMapValue(1.f);
 		newMapperFunction->setMinOpacMapValue(0.f);
@@ -749,12 +755,15 @@ reinit(bool doOverride){
 				newMaxColorEditBounds[i+3] = 1.f;
 			}
 		} 
-	} else { //Try to reuse existing bounds:
-		//Set to default map bounds
-		newMapperFunction->setMinColorMapValue(mapperFunction->getMinColorMapValue());
-		newMapperFunction->setMaxColorMapValue(mapperFunction->getMaxColorMapValue());
-		newMapperFunction->setMinOpacMapValue(mapperFunction->getMinOpacMapValue());
-		newMapperFunction->setMaxOpacMapValue(mapperFunction->getMaxOpacMapValue());
+		delete mapperFunction;
+		connectMapperFunction(newMapperFunction, newFlowMapEditor);
+		setColorMapEntity(0);
+		setOpacMapEntity(0);
+		
+		// don't delete flowMapEditor, the mapperFunction did it already
+	}
+	else { //Try to reuse existing bounds:
+		
 		for (i = 0; i< newNumVariables; i++){
 			if (i >= numVariables){
 				newMinOpacEditBounds[i+3] = Session::getInstance()->getDataRange(i)[0];
@@ -769,19 +778,19 @@ reinit(bool doOverride){
 			}
 		} 
 	}
-	if (mapperFunction) {
-		delete mapperFunction;
-		delete minOpacEditBounds;
-		delete minColorEditBounds;
-		delete maxOpacEditBounds;
-		delete maxColorEditBounds;
-	}
+	
+		
+	delete minOpacEditBounds;
+	delete minColorEditBounds;
+	delete maxOpacEditBounds;
+	delete maxColorEditBounds;
+	
 	minOpacEditBounds = newMinOpacEditBounds;
 	maxOpacEditBounds = newMaxOpacEditBounds;
 	minColorEditBounds = newMinColorEditBounds;
 	maxColorEditBounds = newMaxColorEditBounds;
-	mapperFunction = newMapperFunction;
-	flowMapEditor = newFlowMapEditor;
+
+	
 	numVariables = newNumVariables;
 	
 	//Always disable
@@ -1387,7 +1396,12 @@ regenerateFlowData(int timeStep){
 	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
-	
+	if (!flowData) {
+		//setup the caches
+		flowData = new float*[maxFrame+1];
+		for (int j = 0; j<= maxFrame; j++) flowData[j] = 0;
+	}
+
 	
 	if (flowType == 0) { //steady
 		if (flowData[timeStep]) delete flowData[timeStep];
@@ -1835,6 +1849,8 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 //
 void FlowParams::
 connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
+	flowMapEditor = (FlowMapEditor*)tfe;
+	mapperFunction = tf;
 	tf->setEditor(tfe);
 	tfe->setFrame((QFrame*)(myFlowTab->flowMapFrame));
 	tfe->setMapperFunction(tf);
