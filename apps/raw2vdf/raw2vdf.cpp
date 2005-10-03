@@ -56,7 +56,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"varname",	1, 	"var1",	"Name of variable"},
 	{"nxforms",	1, 	"0",	"Transformation levels saved. 0=>all, 1=>all but finest, etc."},
 	{"help",	0,	"",	"Print this message and exit"},
-	{"quiet",	0,	"",	"Operate quitely"},
+	{"quiet",	0,	"",	"Operate quietly"},
 	{"swapbytes",	0,	"",	"Swap bytes in raw data as they are read from disk"},
 	{NULL}
 };
@@ -141,6 +141,23 @@ void    swapbytes(
 }
 
 	
+void    calcMaxMin(
+	float* data,
+	int	n,
+	float* maxVal,
+	float* minVal
+) {
+
+	int j;
+	float mx = *maxVal;
+	float mn = *minVal;
+	for (j=0; j<n; j++) {
+		if(data[j] > mx) mx = data[j];
+		if(data[j] < mn) mn = data[j];
+	}
+	*maxVal = mx;
+	*minVal = mn;
+}
 
 int	main(int argc, char **argv) {
 
@@ -154,6 +171,8 @@ int	main(int argc, char **argv) {
 	string	s;
 	int	rc;
 	const Metadata	*metadata;
+	float maxData = -1.e35f;
+	float minData = 1.e35f;
 
 	//
 	// Parse command line arguments
@@ -268,7 +287,9 @@ int	main(int argc, char **argv) {
 		if (opt.swapbytes) {
 			swapbytes(slice, sizeof(slice[0]), dim[0]*dim[1]); 
 		}
-
+		if(!opt.quiet){
+			calcMaxMin(slice, dim[0]*dim[1], &maxData, &minData);
+		}
 		//
 		// Write a single slice of data
 		//
@@ -293,6 +314,7 @@ int	main(int argc, char **argv) {
 		fprintf(stdout, "write time : %f\n", write_timer);
 		fprintf(stdout, "transform time : %f\n", xform_timer - write_timer);
 		fprintf(stdout, "total transform time : %f\n", timer);
+		fprintf(stdout, "min and max values of data output: %g, %g\n",minData, maxData);
 	}
 
 	// Write out the updated metafile. If we don't call this then
