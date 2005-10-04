@@ -49,6 +49,7 @@ struct {
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
 	OptionParser::Boolean_T	swapbytes;
+	OptionParser::Boolean_T	dbl;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
@@ -58,6 +59,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quietly"},
 	{"swapbytes",	0,	"",	"Swap bytes in raw data as they are read from disk"},
+	{"dbl",	0,	"",	"Input data are 64-bit floats"},
 	{NULL}
 };
 
@@ -69,6 +71,7 @@ OptionParser::Option_T	get_options[] = {
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{"swapbytes", VetsUtil::CvtToBoolean, &opt.swapbytes, sizeof(opt.swapbytes)},
+	{"dbl", VetsUtil::CvtToBoolean, &opt.dbl, sizeof(opt.dbl)},
 	{NULL}
 };
 
@@ -253,7 +256,11 @@ int	main(int argc, char **argv) {
 
 	// Allocate a buffer large enough to hold one slice of data
 	//
-	float *slice = new float[dim[0]*dim[1]];
+	int element_sz;
+	if (opt.dbl) element_sz = sizeof(double);
+	else element_sz = sizeof (float);
+
+	unsigned char *slice = new unsigned char [dim[0]*dim[1]*element_sz];
 
 
 	//
@@ -267,7 +274,7 @@ int	main(int argc, char **argv) {
 		}
 
 		TIMER_START(t1);
-		rc = fread(slice, sizeof(slice[0]), dim[0]*dim[1], fp);
+		rc = fread(slice, element_sz, dim[0]*dim[1], fp);
 		if (rc != dim[0]*dim[1]) {
 			if (rc<0) {
 				cerr << ProgName << ": Could not read data file \"" << 
@@ -285,15 +292,22 @@ int	main(int argc, char **argv) {
 		// to the machine we're running on...
 		//
 		if (opt.swapbytes) {
-			swapbytes(slice, sizeof(slice[0]), dim[0]*dim[1]); 
+			swapbytes(slice, element_sz, dim[0]*dim[1]); 
+		}
+
+		// Convert data from double to float if needed.
+		if (opt.dbl) {
+			float *fptr = (float *) slice;
+			double *dptr = (double *) slice;
+			for(int i=0; i<dim[0]*dim[1]; i++) *fptr++ = (float) *dptr++;
 		}
 		if(!opt.quiet){
-			calcMaxMin(slice, dim[0]*dim[1], &maxData, &minData);
+			calcMaxMin((float *) slice, dim[0]*dim[1], &maxData, &minData);
 		}
 		//
 		// Write a single slice of data
 		//
-		wbwriter.WriteSlice(slice);
+		wbwriter.WriteSlice((float *) slice);
 		if (wbwriter.GetErrCode() != 0) {
 			cerr << ProgName << ": " << wbwriter.GetErrMsg() << endl;
 			exit(1);
