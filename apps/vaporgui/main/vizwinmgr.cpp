@@ -880,53 +880,51 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->opacmapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowOpacMapEntity(int)));
 
 	connect (flowTab->constantOpacityEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->constantOpacityEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->constantOpacityEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (flowTab->integrationAccuracyEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->integrationAccuracyEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->integrationAccuracyEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->scaleFieldEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->scaleFieldEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->scaleFieldEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->timeSampleEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->timeSampleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
-	connect (flowTab->randomSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->timeSampleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (flowTab->randomSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->randomSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->xCenterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->xCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->xCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->yCenterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->yCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->yCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->zCenterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->zCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->zCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->xSizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->xSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->xSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->ySizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->ySizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->ySizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->zSizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->zSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
-	connect (flowTab->xSizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->xSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->zSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->generatorCountEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->generatorCountEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->generatorCountEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->seedtimeStartEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->seedtimeStartEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->seedtimeStartEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->seedtimeEndEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->seedtimeEndEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->seedtimeEndEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->seedtimeIncrementEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->seedtimeIncrementEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->seedtimeIncrementEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->geometrySamplesEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->geometrySamplesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->geometrySamplesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->firstDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->firstDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->firstDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (flowTab->lastDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->lastDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->lastDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->diameterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->diameterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->diameterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (flowTab->minColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->minColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->minColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
 	connect (flowTab->maxColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->maxColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->maxColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
 	connect (flowTab->minOpacmapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->minOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->minOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
 	connect (flowTab->maxOpacmapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->maxOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabTextChanged(const QString&)));
+	connect (flowTab->maxOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
 	
 	connect (flowTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setFlowNavigateMode(bool)));
 	connect (flowTab->editButton, SIGNAL(toggled(bool)), this, SLOT(setFlowEditMode(bool)));
@@ -1717,9 +1715,23 @@ setIsoColor1(){
 /*************************************************************************************
  * slots associated with FlowTab
  *************************************************************************************/
-void VizWinMgr::
-setFlowTabTextChanged(const QString&){
-	getFlowParams(activeViz)->guiSetTextChanged(true);
+//There are text changed events for flow (requiring rebuilding flow data),
+//for graphics (requiring regenerating flow graphics), and
+//for dataRange (requiring change of data mapping range, hence regenerating flow graphics)
+void VizWinMgr::setFlowTabFlowTextChanged(const QString&){
+	FlowParams* myFlowParams = getFlowParams(activeViz);
+	myFlowParams->setFlowDataChanged(true);
+	myFlowParams->guiSetTextChanged(true);
+}
+void VizWinMgr::setFlowTabGraphicsTextChanged(const QString&){
+	FlowParams* myFlowParams = getFlowParams(activeViz);
+	myFlowParams->setFlowGraphicsChanged(true);
+	myFlowParams->guiSetTextChanged(true);
+}
+void VizWinMgr::setFlowTabRangeTextChanged(const QString&){
+	FlowParams* myFlowParams = getFlowParams(activeViz);
+	myFlowParams->setMapBoundsChanged(true);
+	myFlowParams->guiSetTextChanged(true);
 }
 void VizWinMgr::
 flowTabReturnPressed(void){

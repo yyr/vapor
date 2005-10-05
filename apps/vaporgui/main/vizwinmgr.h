@@ -346,7 +346,10 @@ protected slots:
 	void setVtabTextChanged(const QString& qs);
 	void setRegionTabTextChanged(const QString& qs);
 	void setIsoTabTextChanged(const QString& qs);
-	void setFlowTabTextChanged(const QString& qs);
+	//three kinds of text changed for flow tab
+	void setFlowTabFlowTextChanged(const QString&);
+	void setFlowTabGraphicsTextChanged(const QString&);
+	void setFlowTabRangeTextChanged(const QString&);
 	void setDvrTabTextChanged(const QString& qs);
 	void setContourTabTextChanged(const QString& qs);
 	void setAtabTextChanged(const QString& qs);
