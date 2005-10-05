@@ -150,8 +150,9 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 		return OUT_OF_BOUND;
 	}
 
-	for( i=0; i<3; i++ )
+	for( i=0; i<3; i++ ){
 		pt[i] = pt0[i]+(k1[i]+(float)2.0*(k2[i]+k3[i])+time_dir*dt*vel[i])/(float)6.0;
+	}
 	ci.phyCoord = pt;
 
 	return istat;
@@ -323,12 +324,16 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	}
 	
 	count = 1;
-	if((int)seedTrace->size() == 1) assert(traceState == CRITICAL_POINT);
-	//{
-	//	positions[ptr] = END_FLOW_FLAG;
-	//	posInPoints = ptr;
-	//	return;
-	//}
+	//AN:  Removed this assert, 10/05/05.
+	//The problem is that sometimes a point will be very slightly out, and the 
+	//bounds test in the runge-kutta is imprecise enough to not detect it.
+	//if((int)seedTrace->size() == 1) assert(traceState == CRITICAL_POINT);
+	if((int)seedTrace->size() == 1 && traceState != CRITICAL_POINT)
+	{
+		positions[ptr] = END_FLOW_FLAG;
+		posInPoints = ptr;
+		return;
+	}
 
 	// other advecting result
 	pIter2 = seedTrace->begin();
