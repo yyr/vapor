@@ -79,7 +79,13 @@ public:
 	void setFlowDataDirty();
 	//The mapper function calls this when the mapping changes
 	virtual void setClutDirty() { setFlowMappingDirty();}
-	
+
+	//Virtual methods to set map bounds.  Get is in parent class
+	//Needed here because the map bounds are saved in params class for each mapped variable
+	virtual void setMinColorMapBound(float val);
+	virtual void setMaxColorMapBound(float val);
+	virtual void setMinOpacMapBound(float val);
+	virtual void setMaxOpacMapBound(float val);
 	
 	int getNumGenerators(int dimNum) { return generatorCount[dimNum];}
 	int getTotalNumGenerators() { return allGeneratorCount;}
@@ -174,6 +180,9 @@ public:
 	void guiSetOpacMapEntity( int entityNum);
 	void guiSetConstantColor(QColor& newColor);
 	void guiSetGeomSamples(int sliderVal);
+	void setMapBoundsChanged(bool on){mapBoundsChanged = on; flowGraphicsChanged = on;}
+	void setFlowDataChanged(bool on){flowDataChanged = on;}
+	void setFlowGraphicsChanged(bool on){flowGraphicsChanged = on;}
 
 
 protected:
@@ -255,6 +264,12 @@ protected:
 	float integrationAccuracy;
 	float velocityScale;
 	int timeSamplingInterval;
+
+	//Flags to know what has changed when text changes:
+	bool flowDataChanged;
+	bool flowGraphicsChanged;
+	bool mapBoundsChanged;
+
 	bool editMode;
 	
 	bool randomGen;

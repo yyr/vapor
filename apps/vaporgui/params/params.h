@@ -138,8 +138,13 @@ public:
 	virtual void guiEndChangeMapFcn() {}
 	virtual void connectMapperFunction(MapperFunction* , MapEditor* ){}
 	virtual void setClutDirty() {}
-	void setMinColorMapBound(float val);
-	void setMaxColorMapBound(float val);
+
+	//The following must be redefined by renderer params.  Parent version should never happen
+	virtual void setMinColorMapBound(float ) {assert(0);}
+	virtual void setMaxColorMapBound(float ){assert(0);}
+	virtual void setMinOpacMapBound(float ){assert(0);}
+	virtual void setMaxOpacMapBound(float ){assert(0);}
+
 	float getMinColorMapBound();	
 	float getMaxColorMapBound(); 
 	
@@ -156,8 +161,7 @@ public:
 		return maxColorEditBounds[var];
 	}
 	//And opacity:
-	void setMinOpacMapBound(float val);
-	void setMaxOpacMapBound(float val);
+	
 	float getMinOpacMapBound();	
 	float getMaxOpacMapBound(); 
 	

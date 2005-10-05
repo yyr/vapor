@@ -117,12 +117,7 @@ QString& Params::paramName(Params::ParamType type){
 	}
 	
 }
-void Params::setMinColorMapBound(float val){
-	getMapperFunc()->setMinColorMapValue(val);
-}
-void Params::setMaxColorMapBound(float val){
-	getMapperFunc()->setMaxColorMapValue(val);
-}
+
 
 float Params::getMinColorMapBound(){
 	return getMapperFunc()->getMinColorMapValue();
@@ -130,13 +125,6 @@ float Params::getMinColorMapBound(){
 float Params::getMaxColorMapBound(){
 	return getMapperFunc()->getMaxColorMapValue();
 }
-void Params::setMinOpacMapBound(float val){
-	getMapperFunc()->setMinOpacMapValue(val);
-}
-void Params::setMaxOpacMapBound(float val){
-	getMapperFunc()->setMaxOpacMapValue(val);
-}
-
 float Params::getMinOpacMapBound(){
 	return getMapperFunc()->getMinOpacMapValue();
 }

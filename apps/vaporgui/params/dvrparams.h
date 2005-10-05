@@ -103,7 +103,13 @@ public:
 	void setMaxMapBound(float val)
 		{setMaxColorMapBound(val);setMaxOpacMapBound(val);}
 	float getMinMapBound(){return getMinColorMapBound();} 	
-	float getMaxMapBound(){return getMaxColorMapBound();}  
+	float getMaxMapBound(){return getMaxColorMapBound();} 
+	//Virtual methods to set map bounds.  Get() is in parent class
+	//this causes it to be set in the mapperfunction (transfer function)
+	virtual void setMinColorMapBound(float val);
+	virtual void setMaxColorMapBound(float val);
+	virtual void setMinOpacMapBound(float val);
+	virtual void setMaxOpacMapBound(float val);
 	
 	void setMinEditBound(float val) {
 		setMinColorEditBound(val, varNum);

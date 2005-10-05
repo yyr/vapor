@@ -179,7 +179,9 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 		minColorBounds[k] = minOpacBounds[k] = 0.f;
 		maxColorBounds[k] = maxOpacBounds[k] = 1.f;
 	}
-	
+	flowDataChanged = false;
+	mapBoundsChanged = false;
+	flowGraphicsChanged = false;
 	
 }
 FlowParams::~FlowParams(){
@@ -194,6 +196,12 @@ FlowParams::~FlowParams(){
 		}
 		delete flowData;
 		if(flowRGBAs)delete flowRGBAs;
+	}
+	if (minColorBounds) {
+		delete minColorBounds;
+		delete minOpacBounds;
+		delete maxColorBounds;
+		delete maxOpacBounds;
 	}
 }
 
@@ -440,110 +448,139 @@ void FlowParams::updateDialog(){
 //
 void FlowParams::
 updatePanelState(){
-	
-	integrationAccuracy = myFlowTab->integrationAccuracyEdit->text().toFloat();
-	if (integrationAccuracy < 0.f || integrationAccuracy > 1.f) {
-		if (integrationAccuracy > 1.f) integrationAccuracy = 1.f;
-		if (integrationAccuracy < 0.f) integrationAccuracy = 0.f;
-		myFlowTab->integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
-	}
+	if (flowDataChanged){
+		integrationAccuracy = myFlowTab->integrationAccuracyEdit->text().toFloat();
+		if (integrationAccuracy < 0.f || integrationAccuracy > 1.f) {
+			if (integrationAccuracy > 1.f) integrationAccuracy = 1.f;
+			if (integrationAccuracy < 0.f) integrationAccuracy = 0.f;
+			myFlowTab->integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
+		}
 
-	velocityScale = myFlowTab->scaleFieldEdit->text().toFloat();
-	if (velocityScale < 1.e-20f){
-		velocityScale = 1.e-20f;
-		myFlowTab->scaleFieldEdit->setText(QString::number(velocityScale));
-	}
-	timeSamplingInterval = myFlowTab->timeSampleEdit->text().toInt();
-	if (timeSamplingInterval < 1){
-		timeSamplingInterval = 1;
-		myFlowTab->timeSampleEdit->setText(QString::number(timeSamplingInterval));
-	}
-	randomSeed = myFlowTab->randomSeedEdit->text().toUInt();
+		velocityScale = myFlowTab->scaleFieldEdit->text().toFloat();
+		if (velocityScale < 1.e-20f){
+			velocityScale = 1.e-20f;
+			myFlowTab->scaleFieldEdit->setText(QString::number(velocityScale));
+		}
+		timeSamplingInterval = myFlowTab->timeSampleEdit->text().toInt();
+		if (timeSamplingInterval < 1){
+			timeSamplingInterval = 1;
+			myFlowTab->timeSampleEdit->setText(QString::number(timeSamplingInterval));
+		}
+		randomSeed = myFlowTab->randomSeedEdit->text().toUInt();
 
-	//Get slider positions from text boxes:
-	
-	float boxCtr = myFlowTab->xCenterEdit->text().toFloat();
-	float boxSize = myFlowTab->xSizeEdit->text().toFloat();
-	seedBoxMin[0] = boxCtr - 0.5*boxSize;
-	seedBoxMax[0] = boxCtr + 0.5*boxSize;
-	textToSlider(0, boxCtr, boxSize);
-	boxCtr = myFlowTab->yCenterEdit->text().toFloat();
-	boxSize = myFlowTab->ySizeEdit->text().toFloat();
-	seedBoxMin[1] = boxCtr - 0.5*boxSize;
-	seedBoxMax[1] = boxCtr + 0.5*boxSize;
-	textToSlider(1, boxCtr, boxSize);
-	boxCtr = myFlowTab->zCenterEdit->text().toFloat();
-	boxSize = myFlowTab->zSizeEdit->text().toFloat();
-	seedBoxMin[2] = boxCtr - 0.5*boxSize;
-	seedBoxMax[2] = boxCtr + 0.5*boxSize;
-	textToSlider(2, boxCtr, boxSize);
+		//Get slider positions from text boxes:
+		
+		float boxCtr = myFlowTab->xCenterEdit->text().toFloat();
+		float boxSize = myFlowTab->xSizeEdit->text().toFloat();
+		seedBoxMin[0] = boxCtr - 0.5*boxSize;
+		seedBoxMax[0] = boxCtr + 0.5*boxSize;
+		textToSlider(0, boxCtr, boxSize);
+		boxCtr = myFlowTab->yCenterEdit->text().toFloat();
+		boxSize = myFlowTab->ySizeEdit->text().toFloat();
+		seedBoxMin[1] = boxCtr - 0.5*boxSize;
+		seedBoxMax[1] = boxCtr + 0.5*boxSize;
+		textToSlider(1, boxCtr, boxSize);
+		boxCtr = myFlowTab->zCenterEdit->text().toFloat();
+		boxSize = myFlowTab->zSizeEdit->text().toFloat();
+		seedBoxMin[2] = boxCtr - 0.5*boxSize;
+		seedBoxMax[2] = boxCtr + 0.5*boxSize;
+		textToSlider(2, boxCtr, boxSize);
 
-	int genCount = myFlowTab->generatorCountEdit->text().toInt();
-	if (genCount < 1) {
-		genCount = 1;
-		myFlowTab->generatorCountEdit->setText(QString::number(genCount));
-	}
-	if (randomGen) {
-		allGeneratorCount = genCount;
-	} else {
-		generatorCount[currentDimension] = genCount;
-	}
-	
-	seedTimeStart = myFlowTab->seedtimeStartEdit->text().toUInt();
-	seedTimeEnd = myFlowTab->seedtimeEndEdit->text().toUInt(); 
-	bool changed = false;
-	if (seedTimeStart < minFrame) {seedTimeStart = minFrame; changed = true;}
-	if (seedTimeEnd > maxFrame) {seedTimeEnd = maxFrame; changed = true;}
-	if (seedTimeEnd < seedTimeStart) {seedTimeEnd = seedTimeStart; changed = true;}
-	if (changed){
-		myFlowTab->seedtimeStartEdit->setText(QString::number(seedTimeStart));
-		myFlowTab->seedtimeEndEdit->setText(QString::number(seedTimeEnd));
-	}
+		int genCount = myFlowTab->generatorCountEdit->text().toInt();
+		if (genCount < 1) {
+			genCount = 1;
+			myFlowTab->generatorCountEdit->setText(QString::number(genCount));
+		}
+		if (randomGen) {
+			allGeneratorCount = genCount;
+		} else {
+			generatorCount[currentDimension] = genCount;
+		}
+		
+		seedTimeStart = myFlowTab->seedtimeStartEdit->text().toUInt();
+		seedTimeEnd = myFlowTab->seedtimeEndEdit->text().toUInt(); 
+		bool changed = false;
+		if (seedTimeStart < minFrame) {seedTimeStart = minFrame; changed = true;}
+		if (seedTimeEnd > maxFrame) {seedTimeEnd = maxFrame; changed = true;}
+		if (seedTimeEnd < seedTimeStart) {seedTimeEnd = seedTimeStart; changed = true;}
+		if (changed){
+			myFlowTab->seedtimeStartEdit->setText(QString::number(seedTimeStart));
+			myFlowTab->seedtimeEndEdit->setText(QString::number(seedTimeEnd));
+		}
 
-	seedTimeIncrement = myFlowTab->seedtimeIncrementEdit->text().toUInt();
+		seedTimeIncrement = myFlowTab->seedtimeIncrementEdit->text().toUInt();
+		if (seedTimeIncrement < 1) seedTimeIncrement = 1;
 
-	objectsPerTimestep = myFlowTab->geometrySamplesEdit->text().toFloat();
-	if (objectsPerTimestep <= 0.01f || objectsPerTimestep > 100.f) {
-		objectsPerTimestep = 1.f;
-		myFlowTab->geometrySamplesEdit->setText(QString::number(objectsPerTimestep));
+		objectsPerTimestep = myFlowTab->geometrySamplesEdit->text().toFloat();
+		if (objectsPerTimestep <= 0.01f || objectsPerTimestep > 100.f) {
+			objectsPerTimestep = 1.f;
+			myFlowTab->geometrySamplesEdit->setText(QString::number(objectsPerTimestep));
+		}
+		myFlowTab->geometrySamplesSlider->setValue((int)(64.0*log10(100.0*objectsPerTimestep)));
+		firstDisplayFrame = myFlowTab->firstDisplayFrameEdit->text().toInt();
+		lastDisplayFrame = myFlowTab->lastDisplayFrameEdit->text().toInt();
+		if (lastDisplayFrame < -firstDisplayFrame) {
+			lastDisplayFrame = -firstDisplayFrame;
+			myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
+		}
 	}
-	myFlowTab->geometrySamplesSlider->setValue((int)(64.0*log10(100.0*objectsPerTimestep)));
-	firstDisplayFrame = myFlowTab->firstDisplayFrameEdit->text().toInt();
-	lastDisplayFrame = myFlowTab->lastDisplayFrameEdit->text().toInt();
-	if (lastDisplayFrame < -firstDisplayFrame) {
-		lastDisplayFrame = -firstDisplayFrame;
-		myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
+	if (flowGraphicsChanged){
+		shapeDiameter = myFlowTab->diameterEdit->text().toFloat();
+		if (shapeDiameter < 0.f) {
+			shapeDiameter = 0.f;
+			myFlowTab->diameterEdit->setText(QString::number(shapeDiameter));
+		}
+		constantOpacity = myFlowTab->constantOpacityEdit->text().toFloat();
+		if (constantOpacity < 0.f) constantOpacity = 0.f;
+		if (constantOpacity > 1.f) constantOpacity = 1.f;
 	}
-	shapeDiameter = myFlowTab->diameterEdit->text().toFloat();
-	if (shapeDiameter < 0.f) {
-		shapeDiameter = 0.f;
-		myFlowTab->diameterEdit->setText(QString::number(shapeDiameter));
+	if (mapBoundsChanged){
+		float colorMapMin = myFlowTab->minColormapEdit->text().toFloat();
+		float colorMapMax = myFlowTab->maxColormapEdit->text().toFloat();
+		if (colorMapMin >= colorMapMax){
+			colorMapMax = colorMapMin+1.e-6;
+			myFlowTab->maxColormapEdit->setText(QString::number(colorMapMax));
+		}
+		float opacMapMin = myFlowTab->minOpacmapEdit->text().toFloat();
+		float opacMapMax = myFlowTab->maxOpacmapEdit->text().toFloat();
+		if (opacMapMin >= opacMapMax){
+			opacMapMax = opacMapMin+1.e-6;
+			myFlowTab->maxOpacmapEdit->setText(QString::number(opacMapMax));
+		}
+		if (mapperFunction){
+			mapperFunction->setMaxColorMapValue(colorMapMax);
+			mapperFunction->setMinColorMapValue(colorMapMin);
+			mapperFunction->setMaxOpacMapValue(opacMapMax);
+			mapperFunction->setMinOpacMapValue(opacMapMin);
+		}
+		assert(getColorMapEntityIndex()< (int)colorMapEntity.size());
+		minColorBounds[getColorMapEntityIndex()] = colorMapMin;
+		maxColorBounds[getColorMapEntityIndex()] = colorMapMax;
+		assert(getOpacMapEntityIndex()< (int)opacMapEntity.size());
+		minOpacBounds[getOpacMapEntityIndex()] = opacMapMin;
+		maxOpacBounds[getOpacMapEntityIndex()] = opacMapMax;
+		//Align the editor:
+		setMinColorEditBound(getMinColorMapBound(),getColorMapEntityIndex());
+		setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
+		setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
+		setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
+		if(flowMapEditor)flowMapEditor->setDirty();
 	}
-	constantOpacity = myFlowTab->constantOpacityEdit->text().toFloat();
-	if (constantOpacity < 0.f) constantOpacity = 0.f;
-	if (constantOpacity > 1.f) constantOpacity = 1.f;
-	float colorMapMin = myFlowTab->minColormapEdit->text().toFloat();
-	float colorMapMax = myFlowTab->maxColormapEdit->text().toFloat();
-	if (colorMapMin >= colorMapMax){
-		colorMapMax = colorMapMin+1.e-6;
-		myFlowTab->maxColormapEdit->setText(QString::number(colorMapMax));
-	}
-	float opacMapMin = myFlowTab->minOpacmapEdit->text().toFloat();
-	float opacMapMax = myFlowTab->maxOpacmapEdit->text().toFloat();
-	if (opacMapMin >= opacMapMax){
-		opacMapMax = opacMapMin+1.e-6;
-		myFlowTab->maxOpacmapEdit->setText(QString::number(opacMapMax));
-	}
-	if (mapperFunction){
-		mapperFunction->setMaxColorMapValue(colorMapMax);
-		mapperFunction->setMinColorMapValue(colorMapMin);
-		mapperFunction->setMaxOpacMapValue(opacMapMax);
-		mapperFunction->setMinOpacMapValue(opacMapMin);
-	}
-	if(flowMapEditor)flowMapEditor->setDirty();
 	myFlowTab->flowMapFrame->update();
+	
 	guiSetTextChanged(false);
-	setFlowDataDirty();
+	//If the data changed, need to setFlowDataDirty; otherwise
+	//just need to setFlowMappingDirty.
+	mapBoundsChanged = false;
+	flowGraphicsChanged = false;
+	if(flowDataChanged){
+		flowDataChanged = false;
+		setFlowDataDirty();
+	} else {
+		setFlowMappingDirty();
+	}
+
+
 	
 }
 //Reinitialize settings, session has changed
@@ -684,9 +721,9 @@ reinit(bool doOverride){
 	minColorBounds[0] = 0.f;
 	maxColorBounds[0] = 1.f;
 	minOpacBounds[1] = (float)getFirstDisplayFrame(); //min age
-	maxOpacBounds[1] = (float)getFirstDisplayFrame(); //min age
-	minColorBounds[1] = (float)getLastDisplayFrame(); //min age
-	maxColorBounds[1] = (float)getLastDisplayFrame(); //min age
+	maxOpacBounds[1] = (float)getLastDisplayFrame(); //max age
+	minColorBounds[1] = (float)getFirstDisplayFrame(); //min age
+	maxColorBounds[1] = (float)getLastDisplayFrame(); //max age
 	minOpacBounds[2] = 0.f;
 	minColorBounds[2] = 0.f;
 	float maxSpeed = 0.f;
@@ -1145,11 +1182,18 @@ void FlowParams::
 guiSetColorMapEntity( int entityNum){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow colormap entity");
+	//set the entity, put the entity bounds into the mapper function
 	setColorMapEntity(entityNum);
+
+	//Align the color part of the editor:
+	setMinColorEditBound(getMinColorMapBound(),entityNum);
+	setMaxColorEditBound(getMaxColorMapBound(),entityNum);
+	
 	PanelCommand::captureEnd(cmd, this);
 	updateMapBounds();
 	
 	updateDialog();
+	myFlowTab->flowMapFrame->update();
 	myFlowTab->update();
 	//We only need to redo the flowData if the entity is changing to "speed"
 	if(entityNum == 2) setFlowDataDirty();
@@ -1159,11 +1203,15 @@ void FlowParams::
 guiSetOpacMapEntity( int entityNum){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow opacity map entity");
+	//Change the entity, putting entity bounds into mapperFunction
 	setOpacMapEntity(entityNum);
-	
+	//Align the opacity part of the editor
+	setMinOpacEditBound(getMinOpacMapBound(),entityNum);
+	setMaxOpacEditBound(getMaxOpacMapBound(),entityNum);
 	PanelCommand::captureEnd(cmd, this);
 	updateMapBounds();
 	updateDialog();
+	myFlowTab->flowMapFrame->update();
 	myFlowTab->update();
 	//We only need to redo the flowData if the entity is changing to "speed"
 	if(entityNum == 2) setFlowDataDirty();
@@ -2057,11 +2105,15 @@ getOpacMapEntityIndex() {
 void FlowParams::
 setColorMapEntity( int entityNum){
 	if (!flowMapEditor) return;
+	mapperFunction->setMinColorMapValue(minColorBounds[entityNum]);
+	mapperFunction->setMaxColorMapValue(maxColorBounds[entityNum]);
 	flowMapEditor->setColorVarNum(entityNum);
 }
 void FlowParams::
 setOpacMapEntity( int entityNum){
 	if (!flowMapEditor) return;
+	mapperFunction->setMinOpacMapValue(minOpacBounds[entityNum]);
+	mapperFunction->setMaxOpacMapValue(maxOpacBounds[entityNum]);
 	flowMapEditor->setOpacVarNum(entityNum);
 }
 //Methods for seed box manipulation... Copied from regionparams.cpp
@@ -2260,4 +2312,21 @@ enforceConsistency(int i){
 		unchanged = false;
 	}
 	return unchanged;
+}
+//When we set the min/map bounds, must save them locally and in the mapper function
+void FlowParams::setMinColorMapBound(float val){
+	minColorBounds[getColorMapEntityIndex()] = val;	
+	getMapperFunc()->setMinColorMapValue(val);
+}
+void FlowParams::setMaxColorMapBound(float val){
+	maxColorBounds[getColorMapEntityIndex()] = val;
+	getMapperFunc()->setMaxColorMapValue(val);
+}
+void FlowParams::setMinOpacMapBound(float val){
+	minOpacBounds[getOpacMapEntityIndex()] = val;
+	getMapperFunc()->setMinOpacMapValue(val);
+}
+void FlowParams::setMaxOpacMapBound(float val){
+	maxOpacBounds[getOpacMapEntityIndex()] = val;
+	getMapperFunc()->setMaxOpacMapValue(val);
 }

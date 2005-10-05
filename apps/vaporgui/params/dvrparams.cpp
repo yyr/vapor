@@ -1079,3 +1079,18 @@ TFEditor* DvrParams::getTFEditor(){
 MapperFunction* DvrParams::getMapperFunc() {
 	return (numVariables > 0 ? transFunc[varNum] : 0);
 }
+
+void DvrParams::setMinColorMapBound(float val){
+	getMapperFunc()->setMinColorMapValue(val);
+}
+void DvrParams::setMaxColorMapBound(float val){
+	getMapperFunc()->setMaxColorMapValue(val);
+}
+
+
+void DvrParams::setMinOpacMapBound(float val){
+	getMapperFunc()->setMinOpacMapValue(val);
+}
+void DvrParams::setMaxOpacMapBound(float val){
+	getMapperFunc()->setMaxOpacMapValue(val);
+}
