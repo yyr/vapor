@@ -92,7 +92,8 @@ void vtCStreakLine::computeStreakLine(const float t,
 		fprintf(fDebug, "**********************Advect New Particles**************************\n");
 #endif
 
-		unsigned int posInPoints, count;
+		unsigned int posInPoints;
+		int count;
 		count = -1;			// enumerate seed in this injection
 		posInPoints = 0;	// enumerate output position in Points array
 

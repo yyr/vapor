@@ -387,7 +387,10 @@ bool VaporFlow::GenStreakLines(float* positions,
 		bInject = false;
 		//index counts advections
 		index++;								// index to solution instance
-        int iTemp = iFor/timeStepIncrement;		// index to lower sampled time step
+		//AN: Changed iTemp to start at 0
+		//  10/05/05
+		//
+        int iTemp = (iFor-realStartTime)/timeStepIncrement;		// index to lower sampled time step
 
 		// get usertimestep between current time step and previous sampled time step
 		double diff = 0.0, curDiff = 0.0;
@@ -430,10 +433,12 @@ bool VaporFlow::GenStreakLines(float* positions,
 			bInject = true;
 
 		// execute streakline
+		//AN:  Changed these so that (float)iFor (not (float)index ) is passed as the start time
+		//  10/05/05
 		if(bInject)				// inject new seeds
-			pStreakLine->execute((float)index, positions, startPositions, pointers, true, iInjection++, speeds);
+			pStreakLine->execute((float)iFor, positions, startPositions, pointers, true, iInjection++, speeds);
 		else					// do not inject new seeds
-			pStreakLine->execute((float)index, positions, startPositions, pointers, false, iInjection, speeds);
+			pStreakLine->execute((float)iFor, positions, startPositions, pointers, false, iInjection, speeds);
 	}
 
 	Reset();
