@@ -270,7 +270,7 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pStreamLine->SetInitStepSize(initialStepSize);
 	pStreamLine->SetMaxStepSize(maxStepSize);
 	pStreamLine->setIntegrationOrder(FOURTH);
-	pStreamLine->SetStationaryCutoff(0.5f*pCartesianGrid->GetGridSpacing(0)/(userTimeStepSize*maxPoints));
+	pStreamLine->SetStationaryCutoff((0.1f*pCartesianGrid->GetGridSpacing(0))/(userTimeStepSize*maxPoints*animationTimeStepMultiplier));
 	pStreamLine->execute((void *)&currentT, positions, speeds);
 	
 	Reset();
