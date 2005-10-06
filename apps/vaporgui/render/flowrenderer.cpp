@@ -267,57 +267,58 @@ void FlowRenderer::paintGL()
 
 		//Check if first injection has happened yet:
 		int startFrame = myFlowParams->getStartFrame();
-		if (currentFrameNum < startFrame) return;
-		int firstInjectionNum = 1;
-		int lastInjectionFrame = min(currentFrameNum, myFlowParams->getLastSeeding());
-		int lastInjectionNum = 1 + (lastInjectionFrame - startFrame)/seedingIncrement;
-		
-		float objectsPerTimestep = myFlowParams->getObjectsPerTimestep();
-
-		//Do special case of just one seeding:
-		if (seedingIncrement <= 0 || numInjections <= 1){
-			firstInjectionNum = 1;
-			lastInjectionNum = 1;
-		} 
-		//Loop over the active seedings.  A value of injectionNum corresponds to an
-		//injection at time startFrame + (injectionNum-1)*seedingIncrement
-		for (int injectionNum = firstInjectionNum; injectionNum <= lastInjectionNum; injectionNum++){
-			int flowStartFrame = myFlowParams->getStartFrame()+(injectionNum-1)*seedingIncrement;
-			//Use the display interval to determine what part of the flow is to be visible
-			int lastFrame = (currentFrameNum - flowStartFrame) + lastDisplayFrame;
-			int firstFrame = currentFrameNum - flowStartFrame - firstDisplayFrame;
-			//The rendered geometry depends on how many objects per timestep:
-			int firstGeom = (int)(firstFrame*objectsPerTimestep + 0.5f);
-			int lastGeom = (int)(lastFrame*objectsPerTimestep+0.5f);
-			if (firstGeom < 0) firstGeom = 0;
-			if (lastGeom < 0) lastGeom = 0;
-			if (lastGeom >= maxPoints) lastGeom = maxPoints-1;
-			if (firstGeom > lastGeom) continue;
+		if (currentFrameNum >= startFrame){//Only do rendering if the frame is valid:
+			int firstInjectionNum = 1;
+			int lastInjectionFrame = min(currentFrameNum, myFlowParams->getLastSeeding());
+			int lastInjectionNum = 1 + (lastInjectionFrame - startFrame)/seedingIncrement;
 			
-			if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
-					
-				if (diam < 0.5f){//Render as lines, not cylinders
-					renderCurves(diam, (nLights>0), firstGeom, lastGeom,
-						maxPoints*numSeedPoints*(injectionNum-1),constColors);
+			float objectsPerTimestep = myFlowParams->getObjectsPerTimestep();
+
+			//Do special case of just one seeding:
+			if (seedingIncrement <= 0 || numInjections <= 1){
+				firstInjectionNum = 1;
+				lastInjectionNum = 1;
+			} 
+			//Loop over the active seedings.  A value of injectionNum corresponds to an
+			//injection at time startFrame + (injectionNum-1)*seedingIncrement
+			for (int injectionNum = firstInjectionNum; injectionNum <= lastInjectionNum; injectionNum++){
+				int flowStartFrame = myFlowParams->getStartFrame()+(injectionNum-1)*seedingIncrement;
+				//Use the display interval to determine what part of the flow is to be visible
+				int lastFrame = (currentFrameNum - flowStartFrame) + lastDisplayFrame;
+				int firstFrame = currentFrameNum - flowStartFrame - firstDisplayFrame;
+				//The rendered geometry depends on how many objects per timestep:
+				int firstGeom = (int)(firstFrame*objectsPerTimestep + 0.5f);
+				int lastGeom = (int)(lastFrame*objectsPerTimestep+0.5f);
+				if (firstGeom < 0) firstGeom = 0;
+				if (lastGeom < 0) lastGeom = 0;
+				if (lastGeom >= maxPoints) lastGeom = maxPoints-1;
+				if (firstGeom > lastGeom) continue;
 				
-				} else { //render as cylinders
+				if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
+						
+					if (diam < 0.5f){//Render as lines, not cylinders
+						renderCurves(diam, (nLights>0), firstGeom, lastGeom,
+							maxPoints*numSeedPoints*(injectionNum-1),constColors);
+					
+					} else { //render as cylinders
+						
+						glPolygonMode(GL_FRONT, GL_FILL);
+						//Render all tubes
+						renderTubes(userRadius, (nLights > 0), firstGeom, lastGeom,
+							maxPoints*numSeedPoints*(injectionNum-1), constColors);
+						
+					}
+				} else if(myFlowParams->getShapeType() == 1) { //rendering points 
+					//just convert the flow data to a set of points..
+					renderPoints(diam, firstGeom, lastGeom,
+							maxPoints*numSeedPoints*(injectionNum-1), constColors);
+				} else { //rendering arrows:
 					
 					glPolygonMode(GL_FRONT, GL_FILL);
-					//Render all tubes
-					renderTubes(userRadius, (nLights > 0), firstGeom, lastGeom,
-						maxPoints*numSeedPoints*(injectionNum-1), constColors);
 					
-				}
-			} else if(myFlowParams->getShapeType() == 1) { //rendering points 
-				//just convert the flow data to a set of points..
-				renderPoints(diam, firstGeom, lastGeom,
+					renderArrows(userRadius, (nLights > 0), firstGeom, lastGeom,
 						maxPoints*numSeedPoints*(injectionNum-1), constColors);
-			} else { //rendering arrows:
-				
-				glPolygonMode(GL_FRONT, GL_FILL);
-				
-				renderArrows(userRadius, (nLights > 0), firstGeom, lastGeom,
-					maxPoints*numSeedPoints*(injectionNum-1), constColors);
+				}
 			}
 		}
 	}
