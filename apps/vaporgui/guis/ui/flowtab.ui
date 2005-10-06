@@ -6,7 +6,7 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>1</x>
+            <x>0</x>
             <y>0</y>
             <width>450</width>
             <height>1149</height>
@@ -1734,7 +1734,7 @@
                                                 <cstring>textLabel5_2</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Geometry samples per time unit</string>
+                                                <string>Geometry samples per flow line</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -1779,7 +1779,7 @@
                                                 </size>
                                             </property>
                                             <property name="text">
-                                                <string>0.5</string>
+                                                <string>20.0</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignHCenter</set>

@@ -272,7 +272,7 @@ void FlowRenderer::paintGL()
 			int lastInjectionFrame = min(currentFrameNum, myFlowParams->getLastSeeding());
 			int lastInjectionNum = 1 + (lastInjectionFrame - startFrame)/seedingIncrement;
 			
-			float objectsPerTimestep = myFlowParams->getObjectsPerTimestep();
+			float objectsPerFlowline = (float)myFlowParams->getObjectsPerFlowline();
 
 			//Do special case of just one seeding:
 			if (seedingIncrement <= 0 || numInjections <= 1){
@@ -287,6 +287,7 @@ void FlowRenderer::paintGL()
 				int lastFrame = (currentFrameNum - flowStartFrame) + lastDisplayFrame;
 				int firstFrame = currentFrameNum - flowStartFrame - firstDisplayFrame;
 				//The rendered geometry depends on how many objects per timestep:
+				float objectsPerTimestep = (objectsPerFlowline+1.f)/(float)(lastDisplayFrame - firstDisplayFrame);
 				int firstGeom = (int)(firstFrame*objectsPerTimestep + 0.5f);
 				int lastGeom = (int)(lastFrame*objectsPerTimestep+0.5f);
 				if (firstGeom < 0) firstGeom = 0;
