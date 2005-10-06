@@ -28,9 +28,9 @@ using namespace VAPoR;
 	//
 float TFInterpolator::interpolate(type, float leftVal, float rightVal, float r){
 	float val = (float)(leftVal*(1.-r) + r*rightVal);
-	if (val < 0.f || val > 1.f){
-		assert(val <= 1.f && val >= 0.f);
-	}
+	//if (val < 0.f || val > 1.f){
+		//assert(val <= 1.f && val >= 0.f);
+	//}
 	return val;
 }
 	//Linear interpolation for circular (hue) fcn.  values in [0,1).

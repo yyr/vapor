@@ -152,7 +152,7 @@ public:
 	float getConstantOpacity() {return constantOpacity;}
 	QRgb getConstantColor() {return constantColor;}
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
-	float getObjectsPerTimestep() {return objectsPerTimestep;}
+	int getObjectsPerFlowline() {return objectsPerFlowline;}
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	void guiSetAligned();
 
@@ -209,7 +209,7 @@ protected:
 	//Geometry attributes
 	static const string _geometryTag;
 	static const string _geometryTypeAttr;
-	static const string _objectsPerTimestepAttr;
+	static const string _objectsPerFlowlineAttr;
 	static const string _displayIntervalAttr;
 	static const string _shapeDiameterAttr;
 	static const string _colorMappedEntityAttr;
@@ -283,7 +283,7 @@ protected:
 	int currentDimension;//Which dimension is showing in generator count
 
 	int geometryType;  //0= tube, 1=point, 2 = arrow
-	float objectsPerTimestep;
+	int objectsPerFlowline;
 	int firstDisplayFrame, lastDisplayFrame;
 	
 	float shapeDiameter;

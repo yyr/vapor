@@ -77,7 +77,7 @@ using namespace VAPoR;
 	//Geometry variables:
 	const string FlowParams::_geometryTag = "FlowGeometry";
 	const string FlowParams::_geometryTypeAttr = "GeometryType";
-	const string FlowParams::_objectsPerTimestepAttr = "ObjectsPerTimestep";
+	const string FlowParams::_objectsPerFlowlineAttr = "ObjectsPerFlowline";
 	const string FlowParams::_displayIntervalAttr = "DisplayInterval";
 	const string FlowParams::_shapeDiameterAttr = "ShapeDiameter";
 	const string FlowParams::_colorMappedEntityAttr = "ColorMappedEntity";
@@ -134,7 +134,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	currentDimension = 0;
 
 	geometryType = 0;  //0= tube, 1=point, 2 = arrow
-	objectsPerTimestep = 1.f;
+	objectsPerFlowline = 20;
 
 	shapeDiameter = 1.f;
 	
@@ -355,9 +355,9 @@ void FlowParams::updateDialog(){
 	myFlowTab->scaleFieldEdit->setText(QString::number(velocityScale));
 	myFlowTab->timeSampleEdit->setText(QString::number(timeSamplingInterval));
 	myFlowTab->randomSeedEdit->setText(QString::number(randomSeed));
-	myFlowTab->geometrySamplesEdit->setText(QString::number(objectsPerTimestep,'g',4));
+	myFlowTab->geometrySamplesEdit->setText(QString::number(objectsPerFlowline));
 	
-	myFlowTab->geometrySamplesSlider->setValue((int)(64.0*log10(100.0*objectsPerTimestep)));
+	myFlowTab->geometrySamplesSlider->setValue((int)(256.0*log10((float)objectsPerFlowline)*0.33333));
 	myFlowTab->firstDisplayFrameEdit->setText(QString::number(firstDisplayFrame));
 	myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
 	myFlowTab->diameterEdit->setText(QString::number(shapeDiameter));
@@ -511,16 +511,17 @@ updatePanelState(){
 		seedTimeIncrement = myFlowTab->seedtimeIncrementEdit->text().toUInt();
 		if (seedTimeIncrement < 1) seedTimeIncrement = 1;
 
-		objectsPerTimestep = myFlowTab->geometrySamplesEdit->text().toFloat();
-		if (objectsPerTimestep <= 0.01f || objectsPerTimestep > 100.f) {
-			objectsPerTimestep = 1.f;
-			myFlowTab->geometrySamplesEdit->setText(QString::number(objectsPerTimestep));
+		objectsPerFlowline = myFlowTab->geometrySamplesEdit->text().toInt();
+		if (objectsPerFlowline < 1 || objectsPerFlowline > 1000) {
+			objectsPerFlowline = (lastDisplayFrame+firstDisplayFrame);
+			myFlowTab->geometrySamplesEdit->setText(QString::number(objectsPerFlowline));
 		}
-		myFlowTab->geometrySamplesSlider->setValue((int)(64.0*log10(100.0*objectsPerTimestep)));
+		myFlowTab->geometrySamplesSlider->setValue((int)(256.0*log10((float)objectsPerFlowline)*0.33333));
+		
 		firstDisplayFrame = myFlowTab->firstDisplayFrameEdit->text().toInt();
 		lastDisplayFrame = myFlowTab->lastDisplayFrameEdit->text().toInt();
-		if (lastDisplayFrame < -firstDisplayFrame) {
-			lastDisplayFrame = -firstDisplayFrame;
+		if (lastDisplayFrame < 1 - firstDisplayFrame) {
+			lastDisplayFrame = 1 - firstDisplayFrame;
 			myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
 		}
 	}
@@ -1094,10 +1095,9 @@ guiSetGeomSamples(int sliderPos){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set geometry sampling rate");
 	float s = ((float)(sliderPos))/256.f;
-	objectsPerTimestep = 0.01f*pow(10.f,4.f*s);
-	//Make it easy to get 1.0:
-	if (objectsPerTimestep < 1.05f && objectsPerTimestep > 0.95) objectsPerTimestep = 1.0f;
-	myFlowTab->geometrySamplesEdit->setText(QString::number(objectsPerTimestep,'g',4));
+	objectsPerFlowline = (int)pow(10.f,3.f*s);
+	
+	myFlowTab->geometrySamplesEdit->setText(QString::number(objectsPerFlowline));
 	guiSetTextChanged(false);
 	
 	PanelCommand::captureEnd(cmd, this);
@@ -1417,7 +1417,7 @@ regenerateFlowData(int timeStep){
 	} else {
 		myFlowLib->SetTimeStepInterval(seedTimeStart, maxFrame, timeSamplingInterval);
 	}
-	myFlowLib->ScaleTimeStepSizes(velocityScale, 1./objectsPerTimestep);
+	myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(lastDisplayFrame + firstDisplayFrame))/(float)objectsPerFlowline);
 	if (randomGen) {
 		myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, allGeneratorCount);
 		numSeedPoints = allGeneratorCount;
@@ -1454,19 +1454,19 @@ regenerateFlowData(int timeStep){
 	if (flowType == 0) { //steady
 		if (flowData[timeStep]) delete flowData[timeStep];
 		numInjections = 1;
-		maxPoints = (lastDisplayFrame+1)*objectsPerTimestep;
+		maxPoints = objectsPerFlowline+1;
 		if (maxPoints < 2) maxPoints = 2;
-		flowData[timeStep] = new float[3*maxPoints*numSeedPoints*numInjections];
+		flowData[timeStep] = new float[3*maxPoints*numSeedPoints*numInjections+3];
 	} else {// determine largest possible number of injections
 		numInjections = 1+ (seedTimeEnd - seedTimeStart)/seedTimeIncrement;
 		//For unsteady flow, the firstDisplayFrame and lastDisplayFrame give a window
 		//on a longer timespan that potentially goes from 
 		//the first seed start time to the last frame in the animation.
 		//lastDisplayFrame does not limit the length of the flow
-		maxPoints = (maxFrame - seedTimeStart+1)*objectsPerTimestep;
+		maxPoints = objectsPerFlowline+1;
 		if (maxPoints < 2) maxPoints = 2;
 		if (flowData[0]) delete flowData[0];
-		flowData[0] = new float[3*maxPoints*numSeedPoints*numInjections];
+		flowData[0] = new float[3*maxPoints*numSeedPoints*numInjections+3];
 	}
 	
 	if (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2){
@@ -1685,8 +1685,8 @@ buildNode() {
 	oss << (long)geometryType;
 	attrs[_geometryTypeAttr] = oss.str();
 	oss.str(empty);
-	oss << (double)objectsPerTimestep;
-	attrs[_objectsPerTimestepAttr] = oss.str();
+	oss << (int)objectsPerFlowline;
+	attrs[_objectsPerFlowlineAttr] = oss.str();
 	oss.str(empty);
 	oss << (long)firstDisplayFrame <<" "<<(long)lastDisplayFrame;
 	attrs[_displayIntervalAttr] = oss.str();
@@ -1818,8 +1818,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			if (StrCmpNoCase(attribName, _geometryTypeAttr) == 0) {
 				ist >> geometryType;
 			}
-			else if (StrCmpNoCase(attribName, _objectsPerTimestepAttr) == 0) {
-				ist >> objectsPerTimestep;
+			else if (StrCmpNoCase(attribName, _objectsPerFlowlineAttr) == 0) {
+				ist >> objectsPerFlowline;
 			}
 			else if (StrCmpNoCase(attribName, _displayIntervalAttr) == 0) {
 				ist >> firstDisplayFrame;ist >> lastDisplayFrame;
@@ -2032,7 +2032,7 @@ mapColors(float* speeds, int currentTimeStep){
 						opacVar = 0.f;
 						break;
 					case (1): //age
-						opacVar = (float)k/(objectsPerTimestep);
+						opacVar = (float)k*((float)(lastDisplayFrame+firstDisplayFrame))/(objectsPerFlowline+1.f);
 						break;
 					case (2): //speed
 						opacVar = speeds[(k+ maxPoints*(j+ (numSeedPoints*i)))];
@@ -2055,7 +2055,7 @@ mapColors(float* speeds, int currentTimeStep){
 						colorVar = 0.f;
 						break;
 					case (1): //age
-						colorVar = (float)k/(objectsPerTimestep);
+						colorVar = (float)k*((float)(lastDisplayFrame+firstDisplayFrame))/(objectsPerFlowline+1.f);
 						break;
 					case (2): //speed
 						colorVar = speeds[(k+ maxPoints*(j+ (numSeedPoints*i)))];
