@@ -79,6 +79,7 @@ Session::Session() {
 	keptTFs = 0;
 	tfListSize = 0;
 	newSession = true;
+	
 	init();
 }
 Session::~Session(){

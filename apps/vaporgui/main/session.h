@@ -314,6 +314,9 @@ public:
 	string& getExportFile() {return currentExportFile;}
 	string& getLogfileName() {return currentLogfileName;}
 	void setLogfileName(const char* newname){currentLogfileName = newname;}
+
+	double getDataMaxOverTime(int varnum){return (currentDataStatus ? currentDataStatus->getDataMaxOverTime(varnum) : 1.0);}
+	double getDataMinOverTime(int varnum){return (currentDataStatus ? currentDataStatus->getDataMinOverTime(varnum) : 0.0);}
 	
 protected:
 	static const string _cacheSizeAttr;
