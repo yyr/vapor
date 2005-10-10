@@ -245,6 +245,11 @@ protected:
 	void setFlowGeometry(int geomNum){geometryType = geomNum;}
 	void setColorMapEntity( int entityNum);
 	void setOpacMapEntity( int entityNum);
+
+	//Calculate max and min range for variables based on current data/flow settings
+	//Only used for guidance in setting info in flowtab
+	float minRange(int varNum);
+	float maxRange(int varNum);
 	
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);

@@ -157,7 +157,8 @@ restart() {
 	constantColor = qRgb(255,0,0);
 	constantOpacity = 1.f;
 	timeSamplingInterval = 1;
-	minFrame = maxFrame = 1;
+	minFrame = 0;
+	maxFrame = 1;
 	editMode = true;
 	savedCommand = 0;
 
@@ -406,12 +407,14 @@ void FlowParams::updateDialog(){
 	myFlowTab->seedtimeEndEdit->setText(QString::number(seedTimeEnd));
 
 	//Put the opacity and color bounds for the currently chosen mappings
+	//These should be the actual range of the variables
 	int var = getColorMapEntityIndex();
-	myFlowTab->minColorBound->setText(QString::number(minColorBounds[var]));
-	myFlowTab->minColorBound->setText(QString::number(maxColorBounds[var]));
+
+	myFlowTab->minColorBound->setText(QString::number(minRange(var)));
+	myFlowTab->maxColorBound->setText(QString::number(maxRange(var)));
 	var = getOpacMapEntityIndex();
-	myFlowTab->minOpacityBound->setText(QString::number(minOpacBounds[var]));
-	myFlowTab->maxOpacityBound->setText(QString::number(maxOpacBounds[var]));
+	myFlowTab->minOpacityBound->setText(QString::number(minRange(var)));
+	myFlowTab->maxOpacityBound->setText(QString::number(maxRange(var)));
 	
 	guiSetTextChanged(false);
 	if(getFlowMapEditor())getFlowMapEditor()->setDirty();
@@ -692,35 +695,12 @@ reinit(bool doOverride){
 		return;
 	}
 	//Now set up bounds arrays based on current mapped variable settings:
-	minOpacBounds[0] = 0.f;
-	maxOpacBounds[0] = 1.f;
-	minColorBounds[0] = 0.f;
-	maxColorBounds[0] = 1.f;
-	minOpacBounds[1] = (float)getFirstDisplayFrame(); //min age
-	maxOpacBounds[1] = (float)getLastDisplayFrame(); //max age
-	minColorBounds[1] = (float)getFirstDisplayFrame(); //min age
-	maxColorBounds[1] = (float)getLastDisplayFrame(); //max age
-	minOpacBounds[2] = 0.f;
-	minColorBounds[2] = 0.f;
-	float maxSpeed = 0.f;
-	for (int k = 0; k<3; k++){
-		int var = varNum[k];
-		if (maxSpeed < fabs(Session::getInstance()->getDataStatus()->getDataMaxOverTime(var)))
-			maxSpeed = fabs(Session::getInstance()->getDataStatus()->getDataMaxOverTime(var));
-		if (maxSpeed < fabs(Session::getInstance()->getDataStatus()->getDataMinOverTime(var)))
-			maxSpeed = fabs(Session::getInstance()->getDataStatus()->getDataMinOverTime(var));
+	for (i = 0; i< newNumVariables+3; i++){
+		minOpacBounds[i] = minColorBounds[i] = minRange(i);
+		maxOpacBounds[i] = maxColorBounds[i] = maxRange(i);
 	}
-	maxOpacBounds[2] = maxColorBounds[2] = maxSpeed;
-	for (int k = 0; k<newNumVariables; k++){
-		if (Session::getInstance()->getDataStatus()->variableIsPresent(k)){
-			minOpacBounds[k+3] = minColorBounds[k+3] = Session::getInstance()->getDataStatus()->getDataMinOverTime(k);
-			maxOpacBounds[k+3] = maxColorBounds[k+3] = Session::getInstance()->getDataStatus()->getDataMaxOverTime(k);
-		}
-		else {
-			minOpacBounds[k+3] = minColorBounds[k+3] = 0.f;
-			maxOpacBounds[k+3] = maxColorBounds[k+3] = 1.f;
-		}
-	}
+	
+	
 	//Create new edit bounds whether we override or not
 	float* newMinOpacEditBounds = new float[newNumVariables+3];
 	float* newMaxOpacEditBounds = new float[newNumVariables+3];
@@ -1401,10 +1381,12 @@ regenerateFlowData(int timeStep){
 	myFlowLib->SetRegion(numTransforms, min_bdim, max_bdim);
 	if (flowType == 0) { //steady
 		myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
+		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(lastDisplayFrame))/(float)objectsPerFlowline);
 	} else {
 		myFlowLib->SetTimeStepInterval(seedTimeStart, maxFrame, timeSamplingInterval);
+		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(maxFrame - minFrame))/(float)objectsPerFlowline);
 	}
-	myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(lastDisplayFrame + firstDisplayFrame))/(float)objectsPerFlowline);
+	
 	if (randomGen) {
 		myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, allGeneratorCount);
 		numSeedPoints = allGeneratorCount;
@@ -1443,7 +1425,7 @@ regenerateFlowData(int timeStep){
 		numInjections = 1;
 		maxPoints = objectsPerFlowline+1;
 		if (maxPoints < 2) maxPoints = 2;
-		flowData[timeStep] = new float[3*maxPoints*numSeedPoints*numInjections+3];
+		flowData[timeStep] = new float[3*maxPoints*numSeedPoints*numInjections];
 	} else {// determine largest possible number of injections
 		numInjections = 1+ (seedTimeEnd - seedTimeStart)/seedTimeIncrement;
 		//For unsteady flow, the firstDisplayFrame and lastDisplayFrame give a window
@@ -1453,7 +1435,7 @@ regenerateFlowData(int timeStep){
 		maxPoints = objectsPerFlowline+1;
 		if (maxPoints < 2) maxPoints = 2;
 		if (flowData[0]) delete flowData[0];
-		flowData[0] = new float[3*maxPoints*numSeedPoints*numInjections+3];
+		flowData[0] = new float[3*maxPoints*numSeedPoints*numInjections];
 	}
 	
 	if (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2){
@@ -2416,3 +2398,38 @@ void FlowParams::setMaxOpacMapBound(float val){
 	getMapperFunc()->setMaxOpacMapValue(val);
 }
 
+//Determine the max and min (likely range) associated with a mapped index:
+float FlowParams::minRange(int index){
+	switch(index){
+		case (0): return 0.f;
+		case (1): return 0.f; //minimum age is always 0
+		case (2): return (0.f);//speed
+		default:
+			int varnum = index -3;
+			if (Session::getInstance()->getDataStatus()->variableIsPresent(varnum))
+				return( Session::getInstance()->getDataMinOverTime(varnum));
+			else return 0.f;
+	}
+}
+float FlowParams::maxRange(int index){
+	float maxSpeed = 0.f;
+	switch(index){
+		case (0): return 1.f;
+		case (1): if (flowIsSteady()) return (float)(getLastDisplayFrame());
+				  else return (float)maxFrame;
+		case (2): //speed
+			for (int k = 0; k<3; k++){
+				int var = varNum[k];
+				if (maxSpeed < fabs(Session::getInstance()->getDataMaxOverTime(var)))
+					maxSpeed = fabs(Session::getInstance()->getDataMaxOverTime(var));
+				if (maxSpeed < fabs(Session::getInstance()->getDataMinOverTime(var)))
+					maxSpeed = fabs(Session::getInstance()->getDataMinOverTime(var));
+			}
+			return maxSpeed;
+		default:
+			int varnum = index -3;
+			if (Session::getInstance()->getDataStatus()->variableIsPresent(varnum))
+				return( Session::getInstance()->getDataMaxOverTime(varnum));
+			else return 1.f;
+	}
+}
