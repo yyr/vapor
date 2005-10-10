@@ -80,21 +80,64 @@ using namespace VAPoR;
 	const string FlowParams::_objectsPerFlowlineAttr = "ObjectsPerFlowline";
 	const string FlowParams::_displayIntervalAttr = "DisplayInterval";
 	const string FlowParams::_shapeDiameterAttr = "ShapeDiameter";
-	const string FlowParams::_colorMappedEntityAttr = "ColorMappedEntity";
-	const string FlowParams::_colorMappingBoundsAttr = "ColorMappingBounds";
-	const string FlowParams::_hsvAttr = "HSV";
-	const string FlowParams::_positionAttr = "Position";
-	const string FlowParams::_colorControlPointTag = "ColorControlPoint";
-	const string FlowParams::_numControlPointsAttr = "NumColorControlPoints";
+	const string FlowParams::_colorMappedEntityAttr = "ColorMappedEntityIndex";
+	const string FlowParams::_opacityMappedEntityAttr = "OpacityMappedEntityIndex";
+	const string FlowParams::_constantColorAttr = "ConstantColorRGBValue";
+	const string FlowParams::_constantOpacityAttr = "ConstantOpacityValue";
+	//Mapping bounds (for all variables, mapped or not) are inside geometry node
+	const string FlowParams::_variableTag = "Variable";
+	const string FlowParams::_variableNumAttr = "VariableNum";
+	const string FlowParams::_variableNameAttr = "VariableName";
+	const string FlowParams::_leftColorBoundAttr = "LeftColorBound";
+	const string FlowParams::_rightColorBoundAttr = "RightColorBound";
+	const string FlowParams::_leftOpacityBoundAttr = "LeftOpacityBound";
+	const string FlowParams::_rightOpacityBoundAttr = "RightOpacityBound";
+
 
 FlowParams::FlowParams(int winnum) : Params(winnum) {
 	thisParamType = FlowParamsType;
 	myFlowTab = MainForm::getInstance()->getFlowTab();
+	
+	myFlowLib = 0;
+	mapperFunction = 0;
+	flowMapEditor = 0;
+	//Set up flow data cache:
+	flowData = 0;
+	flowRGBAs = 0;
+
+	//Set all parameters to default values
+	restart();
+	
+}
+FlowParams::~FlowParams(){
+	if (savedCommand) delete savedCommand;
+	if (mapperFunction){
+		delete mapperFunction;//this will delete the editor
+	}
+	if (flowData) {
+		for (int i = 0; i<= maxFrame; i++){
+			if (flowRGBAs && flowRGBAs[i]) delete flowRGBAs[i];
+			if (flowData[i]) delete flowData[i];
+		}
+		delete flowData;
+		if(flowRGBAs)delete flowRGBAs;
+	}
+	if (minColorBounds) {
+		delete minColorBounds;
+		delete minOpacBounds;
+		delete maxColorBounds;
+		delete maxOpacBounds;
+	}
+}
+//Set everything in sight to default state:
+void FlowParams::
+restart() {
+	
+	
 	enabled = false;
 	selectedFaceNum = -1;
 	faceDisplacement = 0.f;
 	
-	//Set default values
 	flowType = 0; //steady
 	instance = 1;
 	numTransforms = 4; 
@@ -158,18 +201,11 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 		minOpacEditBounds[i]=0.f;
 		maxOpacEditBounds[i]=1.f;
 	}
-	myFlowLib = 0;
-	mapperFunction = 0;
-	flowMapEditor = 0;
-	//Set up flow data cache:
-	flowData = 0;
-	flowRGBAs = 0;
-	
 	
 	numSeedPoints = 1;
 	numInjections = 1;
 	maxPoints = 0;
-	numControlPoints = 0;  //obsolete
+	
 
 	minOpacBounds = new float[3];
 	maxOpacBounds= new float[3];
@@ -182,27 +218,15 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	flowDataChanged = false;
 	mapBoundsChanged = false;
 	flowGraphicsChanged = false;
+	//If flow is the current front tab, and if it applies to the active visualizer,
+	//update its values
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myFlowTab)) {
+		VizWinMgr* vwm = VizWinMgr::getInstance();
+		int viznum = vwm->getActiveViz();
+		if (viznum >= 0 && (this == vwm->getFlowParams(viznum)))
+			updateDialog();
+	}
 	
-}
-FlowParams::~FlowParams(){
-	if (savedCommand) delete savedCommand;
-	if (mapperFunction){
-		delete mapperFunction;//this will delete the editor
-	}
-	if (flowData) {
-		for (int i = 0; i<= maxFrame; i++){
-			if (flowRGBAs && flowRGBAs[i]) delete flowRGBAs[i];
-			if (flowData[i]) delete flowData[i];
-		}
-		delete flowData;
-		if(flowRGBAs)delete flowRGBAs;
-	}
-	if (minColorBounds) {
-		delete minColorBounds;
-		delete minOpacBounds;
-		delete maxColorBounds;
-		delete maxOpacBounds;
-	}
 }
 
 //Make a copy of  parameters:
@@ -235,8 +259,10 @@ deepCopy(){
 	//Clone the Transfer Function and the TFEditor
 	if (mapperFunction) {
 		newFlowParams->mapperFunction = new MapperFunction(*mapperFunction);
-		FlowMapEditor* newFlowMapEditor = new FlowMapEditor((const FlowMapEditor &)(*flowMapEditor));
-		newFlowParams->connectMapperFunction(newFlowParams->mapperFunction,newFlowMapEditor); 
+		if (flowMapEditor){
+			FlowMapEditor* newFlowMapEditor = new FlowMapEditor((const FlowMapEditor &)(*flowMapEditor));
+			newFlowParams->connectMapperFunction(newFlowParams->mapperFunction,newFlowMapEditor); 
+		} 
 	} else {
 		newFlowParams->mapperFunction = 0;
 	}
@@ -381,62 +407,11 @@ void FlowParams::updateDialog(){
 
 	//Put the opacity and color bounds for the currently chosen mappings
 	int var = getColorMapEntityIndex();
-	float maxSpeed;
-	switch (var){
-		case(0):
-			myFlowTab->minColorBound->setText("0.0");
-			myFlowTab->maxColorBound->setText("1.0");
-			break;
-		case (1):
-			myFlowTab->minColorBound->setText(QString::number(firstDisplayFrame));
-			myFlowTab->maxColorBound->setText(QString::number(lastDisplayFrame));
-			break;
-		case(2)://speed
-			myFlowTab->minColorBound->setText("0.0");
-			maxSpeed = 0.f;
-			for (int k = 0; k<3; k++){
-				int v = varNum[k];
-				if (maxSpeed < fabs(Session::getInstance()->getDataStatus()->getDataMaxOverTime(v)))
-					maxSpeed = fabs(Session::getInstance()->getDataStatus()->getDataMaxOverTime(v));
-				if (maxSpeed < fabs(Session::getInstance()->getDataStatus()->getDataMinOverTime(v)))
-					maxSpeed = fabs(Session::getInstance()->getDataStatus()->getDataMinOverTime(v));
-			}
-			myFlowTab->maxColorBound->setText(QString::number(maxSpeed));
-			break;
-		default:
-			assert(var>2);
-			myFlowTab->minColorBound->setText(QString::number(Session::getInstance()->getDataStatus()->getDataMinOverTime(var-3)));
-			myFlowTab->maxColorBound->setText(QString::number(Session::getInstance()->getDataStatus()->getDataMaxOverTime(var-3)));
-			break;
-	}
+	myFlowTab->minColorBound->setText(QString::number(minColorBounds[var]));
+	myFlowTab->minColorBound->setText(QString::number(maxColorBounds[var]));
 	var = getOpacMapEntityIndex();
-	switch (var){
-		case(0):
-			myFlowTab->minOpacityBound->setText(QString("0.0"));
-			myFlowTab->maxOpacityBound->setText(QString("1.0"));
-			break;
-		case (1)://age
-			myFlowTab->minOpacityBound->setText(QString::number(firstDisplayFrame));
-			myFlowTab->maxOpacityBound->setText(QString::number(lastDisplayFrame));
-			break;
-		case(2)://speed
-			myFlowTab->minOpacityBound->setText(QString("0.0"));
-			maxSpeed = 0.f;
-			for (int k = 0; k<3; k++){
-				int v = varNum[k];
-				if (maxSpeed < fabs(Session::getInstance()->getDataStatus()->getDataMaxOverTime(v)))
-					maxSpeed = fabs(Session::getInstance()->getDataStatus()->getDataMaxOverTime(v));
-				if (maxSpeed < fabs(Session::getInstance()->getDataStatus()->getDataMinOverTime(v)))
-					maxSpeed = fabs(Session::getInstance()->getDataStatus()->getDataMinOverTime(v));
-			}
-			myFlowTab->maxOpacityBound->setText(QString::number(maxSpeed));
-			break;
-		default:
-			assert(var>2);
-			myFlowTab->minOpacityBound->setText(QString::number(Session::getInstance()->getDataStatus()->getDataMinOverTime(var-3)));
-			myFlowTab->maxOpacityBound->setText(QString::number(Session::getInstance()->getDataStatus()->getDataMaxOverTime(var-3)));
-			break;
-	}
+	myFlowTab->minOpacityBound->setText(QString::number(minOpacBounds[var]));
+	myFlowTab->maxOpacityBound->setText(QString::number(maxOpacBounds[var]));
 	
 	guiSetTextChanged(false);
 	if(getFlowMapEditor())getFlowMapEditor()->setDirty();
@@ -797,10 +772,13 @@ reinit(bool doOverride){
 		connectMapperFunction(newMapperFunction, newFlowMapEditor);
 		setColorMapEntity(0);
 		setOpacMapEntity(0);
+
 		
 		// don't delete flowMapEditor, the mapperFunction did it already
 	}
-	else { //Try to reuse existing bounds:
+	else { 
+		
+		//Try to reuse existing bounds:
 		
 		for (i = 0; i< newNumVariables; i++){
 			if (i >= numVariables){
@@ -815,6 +793,11 @@ reinit(bool doOverride){
 				newMaxColorEditBounds[i+3] = maxColorEditBounds[i+3];
 			}
 		} 
+		//Create a new mapeditor if one doesn't exist:
+		if(!flowMapEditor){
+			flowMapEditor = new FlowMapEditor(mapperFunction, myFlowTab->flowMapFrame);
+			connectMapperFunction(mapperFunction, flowMapEditor);
+		}
 	}
 	
 		
@@ -834,7 +817,11 @@ reinit(bool doOverride){
 	//Always disable
 	bool wasEnabled = enabled;
 	setEnabled(false);
-
+	//Align the editor:
+	setMinColorEditBound(getMinColorMapBound(),getColorMapEntityIndex());
+	setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
+	setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
+	setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
 	//setup the caches
 	flowData = new float*[maxFrame+1];
 	for (int j = 0; j<= maxFrame; j++) flowData[j] = 0;
@@ -1631,14 +1618,15 @@ buildNode() {
 	attrs[_steadyFlowAttr] = oss.str();
 
 	oss.str(empty);
-	oss << variableNames[varNum[0]]<<" "<<variableNames[varNum[1]]<<" "<<variableNames[varNum[2]];
+	oss << varNum[0]<<" "<<varNum[1]<<" "<<varNum[2];
 	attrs[_mappedVariablesAttr] = oss.str();
 
-	XmlNode* flowNode = new XmlNode(_flowParamsTag, attrs, 2);
+	XmlNode* flowNode = new XmlNode(_flowParamsTag, attrs, 2+numVariables);
 
 	//Now add children:  
-	//There's a child for geometry and a child for
-	//Seeding.
+	//There's a child for geometry, a child for
+	//Seeding, and a child for each variable.
+	//The geometry child contains the mapperFunction
 	
 	
 	attrs.clear();
@@ -1676,8 +1664,8 @@ buildNode() {
 
 	XmlNode* seedNode = new XmlNode(_seedingTag,attrs,0);
 	flowNode->AddChild(seedNode);
-	//Now do graphic parameters.  It has one child node for the
-	//control points
+
+	//Now do graphic parameters.  
 	
 	
 	attrs.clear();
@@ -1693,30 +1681,62 @@ buildNode() {
 	oss.str(empty);
 	oss << (float)shapeDiameter;
 	attrs[_shapeDiameterAttr] = oss.str();
-
 	oss.str(empty);
-	oss << colorMapEntity[getColorMapEntityIndex()];
+	oss << getColorMapEntityIndex();
 	attrs[_colorMappedEntityAttr] = oss.str();
 	oss.str(empty);
-	oss << (long)numControlPoints;
-	attrs[_numControlPointsAttr] = oss.str();
+	oss << getOpacMapEntityIndex();
+	attrs[_opacityMappedEntityAttr] = oss.str();
+	oss.str(empty);
+	int r = qRed(constantColor);
+	int g = qGreen(constantColor);
+	int b = qBlue(constantColor);
+	oss << r << " " << g << " " << b;
+	attrs[_constantColorAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)constantOpacity;
+	attrs[_constantOpacityAttr] = oss.str();
+	XmlNode* graphicNode = new XmlNode(_geometryTag,attrs,2*numVariables+1);
 
-	XmlNode* graphicNode = new XmlNode(_geometryTag,attrs,numControlPoints);
-/*
-	for (int i = 0; i< numControlPoints; i++){
-		attrs.clear();
-		oss.str(empty);
-		oss << (double)colorControlPoints[i].position;
-		attrs[_positionAttr] = oss.str();
-
-		oss.str(empty);
-		oss << (double)colorControlPoints[i].hsv[0]<<" "<<(double)colorControlPoints[i].hsv[1]<<" "<<(double)colorControlPoints[i].hsv[2];
-		attrs[_hsvAttr] = oss.str();
-		XmlNode* colorControlPointNode = new XmlNode(_colorControlPointTag, attrs,0);
-		graphicNode->AddChild(colorControlPointNode);
+	//Create a mapper function node, add it as child
+	if(mapperFunction) {
+		XmlNode* mfNode = mapperFunction->buildNode(empty);
+		graphicNode->AddChild(mfNode);
 	}
-	*/
+
 	flowNode->AddChild(graphicNode);
+	//Create a node for each of the variables
+	for (int i = 0; i< numVariables+3; i++){
+		map <string, string> varAttrs;
+		oss.str(empty);
+		if (i >= 3){
+			oss << variableNames[i-3];
+		} else {
+			if (i == 0) oss << "Constant";
+			else if (i == 1) oss << "Age";
+			else if (i == 2) oss << "Speed";
+		}
+		varAttrs[_variableNameAttr] = oss.str();
+		oss.str(empty);
+		oss << (int)i;
+		varAttrs[_variableNumAttr] = oss.str();
+		oss.str(empty);
+		oss << (double)minColorBounds[i];
+		varAttrs[_leftColorBoundAttr] = oss.str();
+		oss.str(empty);
+		oss << (double)maxColorBounds[i];
+		varAttrs[_rightColorBoundAttr] = oss.str();
+		oss.str(empty);
+		oss << (double)minOpacBounds[i];
+		varAttrs[_leftOpacityBoundAttr] = oss.str();
+		oss.str(empty);
+		oss << (double)maxOpacBounds[i];
+		varAttrs[_rightOpacityBoundAttr] = oss.str();
+		flowNode->NewChild(_variableTag, varAttrs, 0);
+	}
+	
+	
+	
 	return flowNode;
 }
 //Parse flow params from file:
@@ -1725,6 +1745,11 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 	
 	//Take care of attributes of flowParamsNode
 	if (StrCmpNoCase(tagString, _flowParamsTag) == 0) {
+		//Start with a new, default mapperFunction and mapEditor:
+		if (mapperFunction) delete mapperFunction;
+		mapperFunction = new MapperFunction(this, 8);
+		flowMapEditor = new FlowMapEditor(mapperFunction, myFlowTab->flowMapFrame);
+		connectMapperFunction(mapperFunction, flowMapEditor);
 		int newNumVariables = 0;
 		//If it's a Flow tag, save 10 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
@@ -1766,8 +1791,18 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else return false;
 		}
-		//Empty out the colorControlPoints:
-		//colorControlPoints.empty();
+		//Reset the variable Names, Nums, bounds.  These will be initialized
+		//by the geometry nodes
+		numVariables = newNumVariables;
+		variableNames.resize(numVariables);
+		delete minOpacBounds;
+		delete maxOpacBounds;
+		delete minColorBounds;
+		delete maxColorBounds;
+		minOpacBounds = new float[numVariables+3];
+		maxOpacBounds = new float[numVariables+3];
+		minColorBounds = new float[numVariables+3];
+		maxColorBounds = new float[numVariables+3];
 		return true;
 	}
 	//Parse the seeding node:
@@ -1807,7 +1842,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		}
 		return true;
 	}
-	// Parse the values from geometry:
+	// Parse the geometry node:
 	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
 		while (*attrs) {
 			string attribName = *attrs;
@@ -1832,48 +1867,94 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				ist >> indx;
 				setColorMapEntity(indx);
 			}
-			else if (StrCmpNoCase(attribName, _numControlPointsAttr) == 0) {
-				ist >> numControlPoints;
+			else if (StrCmpNoCase(attribName, _opacityMappedEntityAttr) == 0) {
+				int indx;
+				ist >> indx;
+				setOpacMapEntity(indx);
 			}
+			else if (StrCmpNoCase(attribName, _constantColorAttr) == 0){
+				int r,g,b;
+				ist >> r; ist >>g; ist >> b;
+				constantColor = qRgb(r,g,b);
+			} 
+			else if (StrCmpNoCase(attribName, _constantOpacityAttr) == 0){
+				ist >> constantOpacity;
+			}
+			
 			else return false;
 		}
-	}
-	//Parse a color control point node:
-	else if (StrCmpNoCase(tagString, _colorControlPointTag) == 0) {
-		//Create a color control point with default values,
-		//and with specified position
-		//Currently only support HSV colors
-		//Repeatedly pull off attribute name and values
-		string attribName;
-		float hue = 0.f, sat = 1.f, val=1.f, posn=0.f;
-		while (*attrs){
-			attribName = *attrs;
+	//Parse a mapperFunction node (inside the geometry node):
+	} else if (StrCmpNoCase(tagString, MapperFunction::_mapperFunctionTag) == 0) {
+		//Need to "push" to mapper function parser.
+		//That parser will "pop" back to flowparams when done.
+		
+		pm->pushClassStack(mapperFunction);
+		mapperFunction->elementStartHandler(pm, depth, tagString, attrs);
+		return true;
+	//Parse variableMapping tags:
+	} else if (StrCmpNoCase(tagString,_variableTag) == 0){
+		//Save the attributes:
+		string varName = "";
+		int varNum = -1;
+		float leftColorBound = 0.f;
+		float rightColorBound = 1.f;
+		float leftOpacBound = 0.f;
+		float rightOpacBound = 1.f;
+		while (*attrs) {
+			string attribName = *attrs;
 			attrs++;
 			string value = *attrs;
 			attrs++;
 			istringstream ist(value);
-			if (StrCmpNoCase(attribName, _positionAttr) == 0) {
-				ist >> posn;
-			} else if (StrCmpNoCase(attribName, _hsvAttr) == 0) { 
-				ist >> hue;
-				ist >> sat;
-				ist >> val;
-			} else return false; //Unknown attribute
+			if (StrCmpNoCase(attribName, _variableNameAttr) == 0) {
+				ist >> varName;
+			}
+			else if (StrCmpNoCase(attribName, _variableNumAttr) == 0) {
+				ist >> varNum;
+			}
+			else if (StrCmpNoCase(attribName, _leftColorBoundAttr) == 0) {
+				ist >> leftColorBound;
+			}
+			else if (StrCmpNoCase(attribName, _rightColorBoundAttr) == 0) {
+				ist >> rightColorBound;
+			}
+			else if (StrCmpNoCase(attribName, _leftOpacityBoundAttr) == 0) {
+				ist >> leftOpacBound;
+			}
+			else if (StrCmpNoCase(attribName, _rightOpacityBoundAttr) == 0) {
+				ist >> rightOpacBound;
+			}
+			else return false;
 		}
-		//Then insert color control point
-		//int indx = insertColorControlPoint(posn,hue,sat,val);
-		//if (indx >= 0) return true;
-		return false;
-	}//end of color control point tag
+		//Plug in these values:
+		if (varNum < 0 || varNum > numVariables+3) {
+			pm->parseError("Invalid variable num, name in FlowParams: %d, %s",varNum, varName);
+			return false;
+		}
+		//Only get the variable names after the constant, age, speed:
+		//This isn't too important because they may change when new 
+		//data is loaded.
+		if (varNum > 2)
+			variableNames[varNum-3] = varName;
+		minColorBounds[varNum]= leftColorBound;
+		maxColorBounds[varNum] = rightColorBound;
+		minOpacBounds[varNum]= leftOpacBound;
+		maxOpacBounds[varNum] = rightOpacBound;
+	}
 	return true;
 }
-	
-	//static const string _numControlPointsAttr;?? notneeded?
 	
 	
 bool FlowParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	if (StrCmpNoCase(tag, _flowParamsTag) == 0) {
+		//Align the editor:
+		
+		setMinColorEditBound(getMinColorMapBound(),getColorMapEntityIndex());
+		setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
+		setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
+		setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
+		if (isCurrent()) updateDialog();
 		//If this is a flowparams, need to
 		//pop the parse stack.  
 		ParsedXml* px = pm->popClassStack();
@@ -1884,9 +1965,11 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		return true;
 	else if (StrCmpNoCase(tag, _geometryTag) == 0)
 		return true;
-	else if (StrCmpNoCase(tag, _colorControlPointTag) == 0)
+	else if (StrCmpNoCase(tag, _variableTag) == 0)
 		return true;
-	else {
+	else if (StrCmpNoCase(tag, MapperFunction::_mapperFunctionTag) == 0) {
+		return true;
+	} else {
 		pm->parseError("Unrecognized end tag in FlowParams %s",tag.c_str());
 		return false; 
 	}
@@ -1901,6 +1984,8 @@ connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
 	mapperFunction = tf;
 	tf->setEditor(tfe);
 	tfe->setFrame((QFrame*)(myFlowTab->flowMapFrame));
+	//Only do the other direction when this panel is to be displayed!
+	//myFlowTab->flowMapFrame->setEditor(flowMapEditor);
 	tfe->setMapperFunction(tf);
 	tf->setParams(this);
 	tfe->setColorVarNum(getColorMapEntityIndex());
@@ -2330,3 +2415,4 @@ void FlowParams::setMaxOpacMapBound(float val){
 	maxOpacBounds[getOpacMapEntityIndex()] = val;
 	getMapperFunc()->setMaxOpacMapValue(val);
 }
+

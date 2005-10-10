@@ -84,16 +84,7 @@ protected:
 	static const string _tfNameAttr;
 	static const string _leftBoundAttr;
 	static const string _rightBoundAttr;
-	static const string _hsvAttr;
-	static const string _positionAttr;
-	static const string _opacityAttr;
-	static const string _opacityControlPointTag;
-	static const string _colorControlPointTag;
-	//Additional attributes not yet supported:
-	static const string _interpolatorAttr;
-	static const string _rgbAttr;
-	static const string _commentTag;
-	static const string _numEntriesAttr;
+
 
 
 };

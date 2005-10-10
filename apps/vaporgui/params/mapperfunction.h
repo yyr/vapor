@@ -166,16 +166,33 @@ public:
 	//The gui opens the FILEs that are then read/written
 	//Failure results in false/null pointer
 	//
-	
-	virtual XmlNode* buildNode(const string& /*tfname*/) {return 0;}
+	//These methods are the same as the transfer function methods,
+	//except for specifying separate color and opacity bounds,
+	//and not having a name attribute
+	virtual XmlNode* buildNode(const string& tfname) ;
 	//All the parsing can be done with the start handlers
-	virtual bool elementStartHandler(ExpatParseMgr*, int /*depth*/ , std::string& , const char **){return false;}
-	virtual bool elementEndHandler(ExpatParseMgr*, int , std::string&) {return false;}
-	//Mapper function tag is visible to session 
-	static const string _MapperFunctionTag;
-	string& getName() {return mapperName;}
+	virtual bool elementStartHandler(ExpatParseMgr*, int depth , std::string& , const char **);
+	virtual bool elementEndHandler(ExpatParseMgr*, int , std::string&) ;
 	
+	
+	string& getName() {return mapperName;}
+	//Mapper function tag is public, visible to flowparams
+	static const string _mapperFunctionTag;
 protected:
+	
+	static const string _leftColorBoundAttr;
+	static const string _rightColorBoundAttr;
+	static const string _leftOpacityBoundAttr;
+	static const string _rightOpacityBoundAttr;
+	static const string _hsvAttr;
+	static const string _positionAttr;
+	static const string _opacityAttr;
+	static const string _opacityControlPointTag;
+	static const string _colorControlPointTag;
+	//Additional attributes not yet supported:
+	static const string _interpolatorAttr;
+	static const string _rgbAttr;
+	
 	//Insert a control point without disturbing values;
 	//return new index
 	//Note:  All public methods use actual real coords.

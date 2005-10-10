@@ -45,6 +45,16 @@
 using namespace VAPoR;
 using namespace VetsUtil;
 
+const string MapperFunction::_mapperFunctionTag = "MapperFunction";
+const string MapperFunction::_leftColorBoundAttr = "LeftColorBound";
+const string MapperFunction::_rightColorBoundAttr = "RightColorBound";
+const string MapperFunction::_leftOpacityBoundAttr = "LeftOpacityBound";
+const string MapperFunction::_rightOpacityBoundAttr = "RightOpacityBound";
+const string MapperFunction::_hsvAttr = "HSV";
+const string MapperFunction::_positionAttr = "Position";
+const string MapperFunction::_opacityAttr = "Opacity";
+const string MapperFunction::_opacityControlPointTag = "OpacityControlPoint";
+const string MapperFunction::_colorControlPointTag = "ColorControlPoint";
 
 //Constructor for empty, default Mapper function
 MapperFunction::MapperFunction() {
@@ -666,4 +676,167 @@ setOpaque(){
 		opac[i] = 1.f;
 	}
 }
+//Construct an XML node from the transfer function
+XmlNode* MapperFunction::
+buildNode(const string& tfname) {
+	//Construct the main node
+	string empty;
+	std::map <string, string> attrs;
+	attrs.empty();
+	ostringstream oss;
 
+	oss.str(empty);
+	oss << (double)getMinColorMapValue();
+	attrs[_leftColorBoundAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)getMaxColorMapValue();
+	attrs[_rightColorBoundAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)getMinOpacMapValue();
+	attrs[_leftOpacityBoundAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)getMaxOpacMapValue();
+	attrs[_rightOpacityBoundAttr] = oss.str();
+
+	XmlNode* mainNode = new XmlNode(_mapperFunctionTag, attrs, numOpacControlPoints+numColorControlPoints);
+
+	//Now add children:  One for each control point.
+	//ignore first and last.
+	
+	
+	map <string, string> emptyAttrs;  //empty attribs
+	int i;
+	
+	for (i = 1; i< numOpacControlPoints-1; i++){
+		map <string, string> cpAttrs;
+		
+		oss.str(empty);
+		oss << (double)opacCtrlPoint[i];
+		cpAttrs[_positionAttr] = oss.str();
+		oss.str(empty);
+		oss << (double)opac[i];
+		cpAttrs[_opacityAttr] = oss.str();
+		mainNode->NewChild(_opacityControlPointTag, cpAttrs, 0);
+	}
+	for (i = 1; i< numColorControlPoints-1; i++){
+		map <string, string> cpAttrs;
+		
+		oss.str(empty);
+		oss << (double)colorCtrlPoint[i]; //Put the value in the control point node
+		cpAttrs[_positionAttr] = oss.str();
+		oss.str(empty);
+		oss << (double)hue[i] << " " << (double)sat[i] << " " << (double)val[i];
+		cpAttrs[_hsvAttr] = oss.str();
+		mainNode->NewChild(_colorControlPointTag, cpAttrs, 0);
+	}
+	return mainNode;
+}
+
+
+
+
+//Handlers for Expat parsing.
+//The parse state is determined by
+//whether it's parsing a color or opacity.
+//
+bool MapperFunction::
+elementStartHandler(ExpatParseMgr* pm, int /*depth*/ , std::string& tagString, const char **attrs){
+	if (StrCmpNoCase(tagString, _mapperFunctionTag) == 0) {
+		//If it's a MapperFunction tag, save the left/right bounds attributes.
+		//Ignore the name tag
+		//Do this by repeatedly pulling off the attribute name and value
+		//begin by  resetting everything to starting values.
+		init();
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			
+			if (StrCmpNoCase(attribName, _leftColorBoundAttr) == 0) {
+				float floatval;
+				ist >> floatval;
+				setMinColorMapValue(floatval);
+			}
+			else if (StrCmpNoCase(attribName, _rightColorBoundAttr) == 0) {
+				float floatval;
+				ist >> floatval;
+				setMaxColorMapValue(floatval);
+			}
+			else if (StrCmpNoCase(attribName, _leftOpacityBoundAttr) == 0) {
+				float floatval;
+				ist >> floatval;
+				setMinOpacMapValue(floatval);
+			}
+			else if (StrCmpNoCase(attribName, _rightOpacityBoundAttr) == 0) {
+				float floatval;
+				ist >> floatval;
+				setMaxOpacMapValue(floatval);
+			}
+			
+			else return false;
+		}
+		return true;
+	}
+	else if (StrCmpNoCase(tagString, _colorControlPointTag) == 0) {
+		//Create a color control point with default values,
+		//and with specified position
+		//Currently only support HSV colors
+		//Repeatedly pull off attribute name and values
+		string attribName;
+		float hue = 0.f, sat = 1.f, val=1.f, posn=0.f;
+		while (*attrs){
+			attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			if (StrCmpNoCase(attribName, _positionAttr) == 0) {
+				ist >> posn;
+			} else if (StrCmpNoCase(attribName, _hsvAttr) == 0) { 
+				ist >> hue;
+				ist >> sat;
+				ist >> val;
+			} else return false;//Unknown attribute
+		}
+		//Then insert color control point
+		int indx = insertNormColorControlPoint(posn,hue,sat,val);
+		if (indx >= 0)return true;
+		return false;
+	}
+	else if (StrCmpNoCase(tagString, _opacityControlPointTag) == 0) {
+		//peel off position and opacity
+		string attribName;
+		float opacity = 1.f, posn = 0.f;
+		while (*attrs){
+			attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			if (StrCmpNoCase(attribName, _positionAttr) == 0) {
+				ist >> posn;
+			} else if (StrCmpNoCase(attribName, _opacityAttr) == 0) { 
+				ist >> opacity;
+			} else return false; //Unknown attribute
+		}
+		//Then insert color control point
+		if(insertNormOpacControlPoint(posn, opacity)>=0) return true;
+		else return false;
+	}
+	else return false;
+}
+//The end handler needs to pop the parse stack, if this is not the top level.
+bool MapperFunction::
+elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
+	//Check only for the MapperFunction tag, ignore others.
+	if (StrCmpNoCase(tag, _mapperFunctionTag) != 0) return true;
+	//If depth is 0, this is a transfer function file; otherwise need to
+	//pop the parse stack.  The caller will need to save the resulting
+	//mapper function (i.e. this)
+	if (depth == 0) return true;
+	ParsedXml* px = pm->popClassStack();
+	bool ok = px->elementEndHandler(pm, depth, tag);
+	return ok;
+}

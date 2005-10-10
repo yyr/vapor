@@ -131,3 +131,7 @@ float Params::getMinOpacMapBound(){
 float Params::getMaxOpacMapBound(){
 	return getMapperFunc()->getMaxOpacMapValue();
 }
+bool Params::isCurrent() {
+		return (VizWinMgr::getInstance()->getApplicableParams(thisParamType) == this);
+}
+

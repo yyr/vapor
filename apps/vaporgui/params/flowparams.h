@@ -80,12 +80,14 @@ public:
 	//The mapper function calls this when the mapping changes
 	virtual void setClutDirty() { setFlowMappingDirty();}
 
-	//Virtual methods to set map bounds.  Get is in parent class
+	//Virtual methods to set map bounds.  Get() is in parent class
 	//Needed here because the map bounds are saved in params class for each mapped variable
 	virtual void setMinColorMapBound(float val);
 	virtual void setMaxColorMapBound(float val);
 	virtual void setMinOpacMapBound(float val);
 	virtual void setMaxOpacMapBound(float val);
+
+	virtual void restart();
 	
 	int getNumGenerators(int dimNum) { return generatorCount[dimNum];}
 	int getTotalNumGenerators() { return allGeneratorCount;}
@@ -213,12 +215,19 @@ protected:
 	static const string _displayIntervalAttr;
 	static const string _shapeDiameterAttr;
 	static const string _colorMappedEntityAttr;
-	static const string _colorMappingBoundsAttr;
-	static const string _hsvAttr;
-	static const string _positionAttr;
-	static const string _colorControlPointTag;
-	static const string _numControlPointsAttr;
+	static const string _opacityMappedEntityAttr;
+	static const string _constantColorAttr;
+	static const string _constantOpacityAttr;
 
+	//Mapping bounds, variable names (for all variables, mapped or not) are in variableMapping node
+	static const string _variableTag;
+	static const string _variableNumAttr;
+	static const string _variableNameAttr;
+	static const string _leftColorBoundAttr;
+	static const string _rightColorBoundAttr;
+	static const string _leftOpacityBoundAttr;
+	static const string _rightOpacityBoundAttr;
+	
 	void setFlowType(int typenum){flowType = typenum; setFlowDataDirty();}
 	void setNumTrans(int numtrans){numTransforms = numtrans; setFlowDataDirty();}
 	void setMaxNumTrans(int maxNT) {maxNumTrans = maxNT;}
@@ -307,7 +316,7 @@ protected:
 	
 	std::vector<string> colorMapEntity;
 	std::vector<string> opacMapEntity;
-	int numControlPoints;
+	
 	
 	VaporFlow* myFlowLib;
 

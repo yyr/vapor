@@ -856,6 +856,7 @@ void
 VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 {
 	myFlowTab = flowTab;
+	connect (flowTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setFlowLocalGlobal(int)));
 	connect (flowTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setFlowEnabled(int)));
 	connect (flowTab->instanceSpin, SIGNAL(valueChanged(int)), this, SLOT(setFlowInstance(int)));
 	connect (flowTab->flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( setFlowType(int) ) );
@@ -932,6 +933,7 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 
 	
 	connect (this, SIGNAL(enableMultiViz(bool)), flowTab->LocalGlobal, SLOT(setEnabled(bool)));
+	emit enableMultiViz(getNumVisualizers() > 1);
 }
 /*
  * Tell the parameter panels when there are or are not multiple viz's

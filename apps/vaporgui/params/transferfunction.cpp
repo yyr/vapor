@@ -50,15 +50,9 @@ using namespace VetsUtil;
 // Sooner or later we may want to support 
 //
 const string TransferFunction::_transferFunctionTag = "TransferFunction";
-const string TransferFunction::_commentTag = "Comment";
+const string TransferFunction::_tfNameAttr = "Name";
 const string TransferFunction::_leftBoundAttr = "LeftBound";
 const string TransferFunction::_rightBoundAttr = "RightBound";
-const string TransferFunction::_hsvAttr = "HSV";
-const string TransferFunction::_positionAttr = "Position";
-const string TransferFunction::_opacityAttr = "Opacity";
-const string TransferFunction::_opacityControlPointTag = "OpacityControlPoint";
-const string TransferFunction::_colorControlPointTag = "ColorControlPoint";
-const string TransferFunction::_tfNameAttr = "Name";
 
 //Constructor for empty, default transfer function
 TransferFunction::TransferFunction() : MapperFunction(){

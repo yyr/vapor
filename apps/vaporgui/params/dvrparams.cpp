@@ -985,6 +985,11 @@ bool DvrParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	
 	if (StrCmpNoCase(tag, _dvrParamsTag) == 0) {
+		//Align the editor
+		setMinEditBound(getMinColorMapBound());
+		setMaxEditBound(getMaxColorMapBound());
+		//If we are current, update the tab panel
+		if (isCurrent()) updateDialog();
 		//If this is a dvrparams, need to
 		//pop the parse stack.  The caller will need to save the resulting
 		//transfer function (i.e. this)

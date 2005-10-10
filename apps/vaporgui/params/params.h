@@ -197,6 +197,9 @@ public:
 	virtual XmlNode* buildNode() { return 0;}
 	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/) = 0;
 	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/) = 0;
+	//Identify if this params is at the front of the tabbed params
+	bool isCurrent(); 
+		
 	
 protected:
 	
