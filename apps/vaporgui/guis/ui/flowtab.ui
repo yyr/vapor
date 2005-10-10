@@ -1932,7 +1932,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify the max number of timesteps before the current timestep for the first flow step</string>
+                                                <string>Specify the max number of timesteps before the current timestep for the flow to display</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
