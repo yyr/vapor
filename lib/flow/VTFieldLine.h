@@ -118,6 +118,9 @@ public:
 	float GetInitStepSize(void) { return m_fInitStepSize; }
 	void SetSamplingRate(float rate) {m_fSamplingRate = rate;}
 	void SetStationaryCutoff(float cutoff) {m_fStationaryCutoff = cutoff;}
+
+	//For Debugging:
+	int fullArraySize;
 	
 protected:
 	void releaseSeedMemory(void);

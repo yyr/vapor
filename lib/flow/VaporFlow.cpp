@@ -261,8 +261,17 @@ bool VaporFlow::GenStreamLines(float* positions,
 	
 	// execute streamline
 	vtCStreamLine* pStreamLine;
+
+
+	
+
 	float currentT = (float)startTimeStep;
 	pStreamLine = new vtCStreamLine(pField);
+
+	//AN: for memory debugging:
+	pStreamLine->fullArraySize = maxPoints*seedNum*3;
+
+
 	pStreamLine->setBackwardTracing(false);
 	pStreamLine->setMaxPoints(maxPoints);
 	pStreamLine->setSeedPoints(seedPtr, seedNum, currentT);
@@ -372,6 +381,10 @@ bool VaporFlow::GenStreakLines(float* positions,
 	pStreakLine->SetInitStepSize(initialStepSize);
 	pStreakLine->SetMaxStepSize(maxStepSize);
 	pStreakLine->setIntegrationOrder(FOURTH);
+
+	//AN: for memory debugging:
+	int numInj = 1+(endInjection-startInjection)/injectionTimeIncrement;
+	pStreakLine->fullArraySize = numInj*maxPoints*seedNum*3;
 
 	// start to computer streakline
 	unsigned int* pointers = new unsigned int[seedNum*numInjections];

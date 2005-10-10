@@ -298,6 +298,7 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	pIter1 = seedTrace->begin();
 	if(bRecordSeed)
 	{
+		assert(ptr < fullArraySize);
 		// the first one is seed
 		positions[ptr++] = (**pIter1)[0];
 		positions[ptr++] = (**pIter1)[1];
@@ -330,6 +331,7 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	//if((int)seedTrace->size() == 1) assert(traceState == CRITICAL_POINT);
 	if((int)seedTrace->size() == 1 && traceState != CRITICAL_POINT)
 	{
+		assert(ptr < fullArraySize);
 		positions[ptr] = END_FLOW_FLAG;
 		posInPoints = ptr;
 		return;
@@ -361,6 +363,7 @@ void vtCFieldLine::SampleFieldline(float* positions,
 		{
 			stepsizeLeft -= m_fSamplingRate;
 			ratio = (*pStepIter - stepsizeLeft)/(*pStepIter);
+			assert(ptr < fullArraySize);
 			positions[ptr++] = Lerp((**pIter1)[0], (**pIter2)[0], ratio);
 			positions[ptr++] = Lerp((**pIter1)[1], (**pIter2)[1], ratio);
 			positions[ptr++] = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
@@ -398,11 +401,17 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	{
 	 	pIter1 = seedTrace->end();
 		pIter1--;
+		assert(ptr < fullArraySize);
 		positions[ptr++] = (**pIter1)[0];
 		positions[ptr++] = (**pIter1)[1];
 		positions[ptr++] = (**pIter1)[2];
-		positions[ptr] = END_FLOW_FLAG;
-
+		//AN: 10/10/05
+		//Set the END_FLOW_FLAG if this is not the last point in the flow:
+		if (numSampled < m_nMaxsize -1){
+			positions[ptr] = END_FLOW_FLAG;
+			assert(ptr < fullArraySize);
+		}
+		
 		if(speeds != NULL)
 		{
 			ptrSpeed = (ptr-3)/3;
@@ -422,8 +431,10 @@ void vtCFieldLine::SampleFieldline(float* positions,
 		}
 
 	}
-	else if(numSampled < m_nMaxsize) 
+	else if(numSampled < m_nMaxsize) {
 		positions[ptr] = END_FLOW_FLAG;
+		assert(ptr < fullArraySize);
+	}
 
 	posInPoints = ptr; 
 }
