@@ -9,13 +9,13 @@
             <x>0</x>
             <y>0</y>
             <width>450</width>
-            <height>1149</height>
+            <height>1071</height>
         </rect>
     </property>
     <property name="sizePolicy">
         <sizepolicy>
             <hsizetype>3</hsizetype>
-            <vsizetype>7</vsizetype>
+            <vsizetype>3</vsizetype>
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
         </sizepolicy>
@@ -723,61 +723,6 @@
                                 <string>For unsteady flow, specify the time interval between data samples</string>
                             </property>
                         </widget>
-                    </hbox>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout49</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer33</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>61</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>recalcButton</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Recalculate</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Refresh the unsteady flow visualization based on current settings</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer34</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>81</width>
-                                    <height>20</height>
-                                </size>
-                            </property>
-                        </spacer>
                     </hbox>
                 </widget>
                 <spacer>
@@ -1892,7 +1837,7 @@
                                                 <cstring>textLabel6_2</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Min, max age (time units) displayed</string>
+                                                <string>Display interval before/after current timestep</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
@@ -1952,7 +1897,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify the max number of timesteps after the current time for the flow to display</string>
+                                                <string>Specify the max number of timesteps after the current timestep for the flow to display</string>
                                             </property>
                                         </widget>
                                     </hbox>
