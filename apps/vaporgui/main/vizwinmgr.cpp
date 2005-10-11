@@ -864,7 +864,6 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->xCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowXVar(int)));
 	connect (flowTab->yCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowYVar(int)));
 	connect (flowTab->zCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowZVar(int)));
-	connect (flowTab->recalcButton,SIGNAL(clicked()),this,SLOT(clickFlowRecalc()));
 	connect (flowTab->randomCheckbox,SIGNAL(toggled(bool)),this, SLOT(checkFlowRandom(bool)));
 	connect (flowTab->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXCenter()));
 	connect (flowTab->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYCenter()));
@@ -1762,13 +1761,11 @@ setFlowType(int typenum){
 	getFlowParams(activeViz)->guiSetFlowType(typenum);
 	//Activate/deactivate components associated with flow type:
 	if(typenum == 0){//steady:
-		myFlowTab->recalcButton->setEnabled(false);
 		myFlowTab->seedtimeStartEdit->setEnabled(false);
 		myFlowTab->seedtimeEndEdit->setEnabled(false);
 		myFlowTab->seedtimeIncrementEdit->setEnabled(false);
 		myFlowTab->timeSampleEdit->setEnabled(false);
 	} else {//unsteady:
-		myFlowTab->recalcButton->setEnabled(true);
 		myFlowTab->seedtimeStartEdit->setEnabled(true);
 		myFlowTab->seedtimeEndEdit->setEnabled(true);
 		myFlowTab->seedtimeIncrementEdit->setEnabled(true);
