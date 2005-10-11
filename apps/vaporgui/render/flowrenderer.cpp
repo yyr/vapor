@@ -91,8 +91,8 @@ void FlowRenderer::paintGL()
 	
 
 	maxPoints = myFlowParams->getMaxPoints();
-	firstDisplayFrame = myFlowParams->getFirstDisplayFrame();
-	lastDisplayFrame = myFlowParams->getLastDisplayFrame();
+	firstDisplayFrame = myFlowParams->getFirstDisplayAge();
+	lastDisplayFrame = myFlowParams->getLastDisplayAge();
 	numSeedPoints = myFlowParams->getNumSeedPoints();
 	numInjections = myFlowParams->getNumInjections();
 		
@@ -252,43 +252,36 @@ void FlowRenderer::paintGL()
 	} else { //unsteady flow:
 		//Determine first and last seeding that is visible.
 		//The portion of a flow that is visible is that portion whose age
-		//goes from minAge to maxAge.  In other words, go from the
-		//part corresponding to times 
-		//currentFrame-maxAge to currentFrame-minAge
-		//This is reduced on the front end if currentFrame-maxAge
+		//goes from currentFrame - firstDisplayAge to currentFrame + lastDisplayAge.  
+		
+		//This is reduced on the front end if currentFrame-firstDisplayAge
 		//precedes seedStartFrame.
-		//It is reduced on the back end if the calculation is not complete.
-		
-		//Seeding no. K is injected at frame
-		//startFrame + (seedingIncrement*(injectionNum -1))
-		//Can ignore if this number is > currentFrame
-		// I.e., want injectionNum <= 1+ (currentFrame - startFrame)/increment)
-		int seedingIncrement = myFlowParams->getSeedingIncrement();
-		
+		//It shouldn't need to be reduced on the back end since all streaklines are calculated
+		//potentially to the endFrame
 
-		//Check if first injection has happened yet:
-		int startFrame = myFlowParams->getStartFrame();
-	
-		int firstInjectionNum = 1;
-		int lastInjectionFrame = min(currentFrameNum, myFlowParams->getLastSeeding());
-		int lastInjectionNum = 1 + (lastInjectionFrame - startFrame)/seedingIncrement;
-		
+		int seedIncrement = myFlowParams->getSeedingIncrement();
+		if (seedIncrement < 1) seedIncrement = 1;
+		int startSeed = myFlowParams->getSeedStartFrame();
+		int endSeed = myFlowParams->getLastSeeding();
+		int firstDisplayAge = myFlowParams->getFirstDisplayAge();
+		int lastDisplayAge = myFlowParams->getLastDisplayAge();
 		float objectsPerFlowline = (float)myFlowParams->getObjectsPerFlowline();
-
-		//Do special case of just one seeding:
-		if (seedingIncrement <= 0 || numInjections <= 1){
-			firstInjectionNum = 1;
-			lastInjectionNum = 1;
-		} 
-		//Loop over the active seedings.  A value of injectionNum corresponds to an
-		//injection at time startFrame + (injectionNum-1)*seedingIncrement
-		for (int injectionNum = firstInjectionNum; injectionNum <= lastInjectionNum; injectionNum++){
-			int flowStartFrame = myFlowParams->getStartFrame()+(injectionNum-1)*seedingIncrement;
-			//Use the display interval to determine what part of the flow is to be visible
-			int lastFrame = (currentFrameNum - flowStartFrame) + lastDisplayFrame;
-			int firstFrame = currentFrameNum - flowStartFrame - firstDisplayFrame;
-			//The rendered geometry depends on how many objects per timestep:
-			float objectsPerTimestep = (objectsPerFlowline+1.f)/(float)(maxFrame - minFrame);
+		float objectsPerTimestep = (objectsPerFlowline+1.f)/(float)(maxFrame - minFrame);
+		
+		for (int seedFrame = startSeed; seedFrame <= endSeed; seedFrame+= seedIncrement){
+			//Count the seedings:
+			int injectionNum = (seedFrame-startSeed)/seedIncrement;
+			//Find the display window for this seeding associated with the current frame:
+			int minDisplayFrame = Max( seedFrame, currentFrameNum - firstDisplayAge);
+			int maxDisplayFrame = currentFrameNum + lastDisplayAge;
+			//Make sure that the current frame is in the display window for this seeding.
+			//It gets excluded if current seeding hasn't started by the maxDisplayFrame,
+			
+			if (seedFrame > maxDisplayFrame) continue;
+			//firstFrame and lastFrame translate the display interval to be relative to the 
+			//current seeding:
+			int firstFrame = minDisplayFrame - seedFrame;
+			int lastFrame = maxDisplayFrame - seedFrame;
 			//firstGeom and lastGeom provide the interval of instances of points along
 			//the flowline that is to be converted to geometry:
 			int firstGeom = (int)(firstFrame*objectsPerTimestep + 0.5f);
@@ -297,35 +290,35 @@ void FlowRenderer::paintGL()
 			if (lastGeom < 0) lastGeom = 0;
 			if (lastGeom >= maxPoints) lastGeom = maxPoints-1;
 			if (firstGeom > lastGeom) continue;
-			
+
+			//Now do the rendering of this interval:
 			if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 					
 				if (diam < 0.5f){//Render as lines, not cylinders
 					renderCurves(diam, (nLights>0), firstGeom, lastGeom,
-						maxPoints*numSeedPoints*(injectionNum-1),constColors);
+						maxPoints*numSeedPoints*injectionNum,constColors);
 				
 				} else { //render as cylinders
 					
 					glPolygonMode(GL_FRONT, GL_FILL);
 					//Render all tubes
 					renderTubes(userRadius, (nLights > 0), firstGeom, lastGeom,
-						maxPoints*numSeedPoints*(injectionNum-1), constColors);
+						maxPoints*numSeedPoints*injectionNum, constColors);
 					
 				}
 			} else if(myFlowParams->getShapeType() == 1) { //rendering points 
 				//just convert the flow data to a set of points..
 				renderPoints(diam, firstGeom, lastGeom,
-						maxPoints*numSeedPoints*(injectionNum-1), constColors);
+						maxPoints*numSeedPoints*injectionNum, constColors);
 			} else { //rendering arrows:
 				
 				glPolygonMode(GL_FRONT, GL_FILL);
 				
 				renderArrows(userRadius, (nLights > 0), firstGeom, lastGeom,
-					maxPoints*numSeedPoints*(injectionNum-1), constColors);
+					maxPoints*numSeedPoints*injectionNum, constColors);
 			}
 		}
-	}
-	
+	} //End unsteady flow 
 	glDisable(GL_LIGHTING);
 	glDisable(GL_BLEND);
 	glDisable(GL_CLIP_PLANE0);
