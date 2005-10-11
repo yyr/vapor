@@ -40,7 +40,7 @@ m_pField(pField)
 
 vtCFieldLine::~vtCFieldLine(void)
 {
-	printf("called in vtCFieldLine\n");
+	//printf("called in vtCFieldLine\n");
 	releaseSeedMemory();
 }
 
@@ -57,7 +57,7 @@ void vtCFieldLine::releaseSeedMemory(void)
 	}
 	m_lSeeds.erase(m_lSeeds.begin(), m_lSeeds.end() );
 	m_nNumSeeds = 0;
-	printf("Release memory!\n");
+	//printf("Release memory!\n");
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -33,7 +33,7 @@ m_fCurrentTime(0.0)
 
 vtCStreamLine::~vtCStreamLine(void)
 {
-	printf("called in vtCStreamLine\n");
+	//printf("called in vtCStreamLine\n");
 }
 
 //////////////////////////////////////////////////////////////////////////

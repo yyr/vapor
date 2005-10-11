@@ -38,7 +38,7 @@ CVectorField::CVectorField(Grid* pGrid, Solution* pSolution, int timesteps)
 
 CVectorField::~CVectorField()
 {
-	printf("called CVectorField\n");
+	//printf("called CVectorField\n");
 	if(m_pGrid != NULL)	delete m_pGrid;
 	if(m_pSolution != NULL) delete m_pSolution;
 }
