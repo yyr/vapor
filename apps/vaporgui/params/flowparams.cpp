@@ -335,7 +335,6 @@ void FlowParams::updateDialog(){
 	
 	
 	myFlowTab->timeSampleEdit->setEnabled(flowType == 1);
-	myFlowTab->recalcButton->setEnabled(flowType == 1);
 	myFlowTab->seedtimeIncrementEdit->setEnabled(flowType == 1);
 	myFlowTab->seedtimeEndEdit->setEnabled(flowType == 1);
 	myFlowTab->firstDisplayFrameEdit->setEnabled(flowType == 1);
@@ -581,8 +580,8 @@ reinit(bool doOverride){
 	//Clean out any existing caches:
 	if (flowData){
 		for (i = 0; i<= maxFrame; i++){
-			if (flowData[i]) delete flowData[i];
-			if (flowRGBAs && flowRGBAs[i]) delete flowRGBAs[i];
+			if (flowData[i]) { delete flowData[i]; flowData[i] = 0;}
+			if (flowRGBAs && flowRGBAs[i]) {delete flowRGBAs[i]; flowRGBAs[i] = 0;}
 		}
 		delete flowData;
 		if (flowRGBAs) delete flowRGBAs;
@@ -2042,7 +2041,7 @@ mapColors(float* speeds, int currentTimeStep){
 	int opacSize[3],colorSize[3];
 	DataStatus* ds = Session::getInstance()->getDataStatus();
 	//Get the variable (entire region) if needed
-	if (getOpacMapEntityIndex() > 3){
+	if (getOpacMapEntityIndex() > 2){
 		//set up args for GetRegion
 		//If flow is unsteady, just get the first available timestep
 		int timeStep = currentTimeStep;
@@ -2056,7 +2055,7 @@ mapColors(float* speeds, int currentTimeStep){
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
 			opacSize[i] = (ds->getFullDataSize(i) >> numTransforms);
-			maxSize[i] = opacSize[i]/bs;
+			maxSize[i] = opacSize[i]/bs -1;
 			opacVarMin[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i];
 			opacVarMax[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i+3];
 		}
@@ -2065,7 +2064,7 @@ mapColors(float* speeds, int currentTimeStep){
 			opacMapEntity[getOpacMapEntityIndex()].c_str(),
 			numTransforms, (size_t*) minSize, (size_t*) maxSize, 0);
 	}
-	if (getColorMapEntityIndex() > 3){
+	if (getColorMapEntityIndex() > 2){
 		//set up args for GetRegion
 		int timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-3);
 		if (timeStep < 0) MessageReporter::errorMsg("No data for mapped variable");
@@ -2075,7 +2074,7 @@ mapColors(float* speeds, int currentTimeStep){
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
 			colorSize[i] = (ds->getFullDataSize(i) >> numTransforms);
-			maxSize[i] = colorSize[i]/bs;
+			maxSize[i] = (colorSize[i]/bs - 1);
 			colorVarMin[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i];
 			colorVarMax[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i+3];
 		}
@@ -2107,9 +2106,13 @@ mapColors(float* speeds, int currentTimeStep){
 					default : //variable
 						int x,y,z;
 						float* dataPoint = flowData[currentTimeStep]+3*(k+ maxPoints*(j+ (numSeedPoints*i)));
-						x = (int)(dataPoint[0] - opacVarMin[0])*opacSize[0]/(opacVarMax[0]-opacVarMin[0]);
-						y = (int)(dataPoint[1] - opacVarMin[1])*opacSize[1]/(opacVarMax[1]-opacVarMin[1]);
-						z = (int)(dataPoint[2] - opacVarMin[2])*opacSize[2]/(opacVarMax[2]-opacVarMin[2]);
+						x = (int)(0.5f+((dataPoint[0] - opacVarMin[0])*opacSize[0])/(opacVarMax[0]-opacVarMin[0]));
+						y = (int)(0.5f+((dataPoint[1] - opacVarMin[1])*opacSize[1])/(opacVarMax[1]-opacVarMin[1]));
+						z = (int)(0.5f+((dataPoint[2] - opacVarMin[2])*opacSize[2])/(opacVarMax[2]-opacVarMin[2]));
+						if (x>=opacSize[0]) x = opacSize[0]-1;
+						if (y>=opacSize[1]) y = opacSize[1]-1;
+						if (z>=opacSize[2]) z = opacSize[2]-1;
+						
 						opacVar = opacRegion[x+opacSize[0]*(y+opacSize[1]*z)];
 						break;
 				}
@@ -2130,9 +2133,12 @@ mapColors(float* speeds, int currentTimeStep){
 					default : //variable
 						int x,y,z;
 						float* dataPoint = flowData[currentTimeStep]+3*(k+ maxPoints*(j+ (numSeedPoints*i)));
-						x = (int)(dataPoint[0] - colorVarMin[0])*colorSize[0]/(colorVarMax[0]-colorVarMin[0]);
-						y = (int)(dataPoint[1] - colorVarMin[1])*colorSize[1]/(colorVarMax[1]-colorVarMin[1]);
-						z = (int)(dataPoint[2] - colorVarMin[2])*colorSize[2]/(colorVarMax[2]-colorVarMin[2]);
+						x = (int)(0.5f+((dataPoint[0] - colorVarMin[0])*colorSize[0])/(colorVarMax[0]-colorVarMin[0]));
+						y = (int)(0.5f+((dataPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
+						z = (int)(0.5f+((dataPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
+						if (x>=colorSize[0]) x = colorSize[0]-1;
+						if (y>=colorSize[1]) y = colorSize[1]-1;
+						if (z>=colorSize[2]) z = colorSize[2]-1;
 						colorVar = colorRegion[x+colorSize[0]*(y+colorSize[1]*z)];
 						break;
 				}
@@ -2406,7 +2412,7 @@ float FlowParams::minRange(int index){
 		case (2): return (0.f);//speed
 		default:
 			int varnum = index -3;
-			if (Session::getInstance()->getDataStatus()->variableIsPresent(varnum))
+			if (Session::getInstance()->getDataStatus() && Session::getInstance()->getDataStatus()->variableIsPresent(varnum))
 				return( Session::getInstance()->getDataMinOverTime(varnum));
 			else return 0.f;
 	}
@@ -2415,7 +2421,7 @@ float FlowParams::maxRange(int index){
 	float maxSpeed = 0.f;
 	switch(index){
 		case (0): return 1.f;
-		case (1): if (flowIsSteady()) return (float)(getLastDisplayFrame());
+		case (1): if (flowIsSteady()) return (float)(getLastDisplayAge());
 				  else return (float)maxFrame;
 		case (2): //speed
 			for (int k = 0; k<3; k++){
@@ -2428,7 +2434,7 @@ float FlowParams::maxRange(int index){
 			return maxSpeed;
 		default:
 			int varnum = index -3;
-			if (Session::getInstance()->getDataStatus()->variableIsPresent(varnum))
+			if (Session::getInstance()->getDataStatus() && Session::getInstance()->getDataStatus()->variableIsPresent(varnum))
 				return( Session::getInstance()->getDataMaxOverTime(varnum));
 			else return 1.f;
 	}

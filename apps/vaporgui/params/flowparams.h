@@ -131,9 +131,9 @@ public:
 	int getMaxPoints() {return maxPoints;}
 	int getNumSeedPoints() { return numSeedPoints;}
 	int getNumInjections() { return numInjections;}
-	int getFirstDisplayFrame() {return firstDisplayFrame;}
-	int getLastDisplayFrame() {return lastDisplayFrame;}
-	int getStartFrame() {return seedTimeStart;}
+	int getFirstDisplayAge() {return firstDisplayFrame;}
+	int getLastDisplayAge() {return lastDisplayFrame;}
+	int getSeedStartFrame() {return seedTimeStart;}
 	int getLastSeeding() {return seedTimeEnd;}
 	int getSeedingIncrement() {return seedTimeIncrement;}
 	float getShapeDiameter() {return shapeDiameter;}
