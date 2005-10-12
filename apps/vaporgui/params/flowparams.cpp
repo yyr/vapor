@@ -174,7 +174,7 @@ restart() {
 	allGeneratorCount = 10;
 	seedTimeStart = 1; 
 	seedTimeEnd = 100; 
-	seedTimeIncrement = 1;
+	seedTimeIncrement = 100;
 	currentDimension = 0;
 
 	geometryType = 0;  //0= tube, 1=point, 2 = arrow
@@ -531,10 +531,10 @@ updatePanelState(){
 			mapperFunction->setMaxOpacMapValue(opacMapMax);
 			mapperFunction->setMinOpacMapValue(opacMapMin);
 		}
-		assert(getColorMapEntityIndex()< (int)colorMapEntity.size());
+		if(enabled) assert(getColorMapEntityIndex()< (int)colorMapEntity.size());
 		minColorBounds[getColorMapEntityIndex()] = colorMapMin;
 		maxColorBounds[getColorMapEntityIndex()] = colorMapMax;
-		assert(getOpacMapEntityIndex()< (int)opacMapEntity.size());
+		if(enabled) assert(getOpacMapEntityIndex()< (int)opacMapEntity.size());
 		minOpacBounds[getOpacMapEntityIndex()] = opacMapMin;
 		maxOpacBounds[getOpacMapEntityIndex()] = opacMapMax;
 		//Align the editor:
@@ -597,6 +597,7 @@ reinit(bool doOverride){
 		numTransforms = maxNumTrans;
 		seedTimeStart = minFrame;
 		seedTimeEnd = maxFrame;
+		seedTimeIncrement = maxFrame;
 	} else {
 		if (numTransforms> nlevels) numTransforms = maxNumTrans;
 		if (numTransforms < minNumTrans) numTransforms = minNumTrans;
@@ -2149,7 +2150,7 @@ mapColors(float* speeds, int currentTimeStep){
 				if (getOpacMapEntityIndex() == 0){
 					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+3]= constantOpacity;
 				} else {
-					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+3]= lut[4*colorIndex+3];
+					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+3]= lut[4*opacIndex+3];
 				}
 				if (getColorMapEntityIndex() == 0){
 					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))]= ((float)qRed(constantColor))/255.f;
