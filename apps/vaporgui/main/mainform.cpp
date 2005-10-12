@@ -141,6 +141,10 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	tabWidget = new TabManager(tabDockWindow, "tab manager");
 	//tabWidget->setMinimumWidth(420);
 	tabWidget->setMaximumWidth(600);
+	//This is just large enough to show the whole width of flow tab, with a scrollbar
+	//on right (on windows, linux, and irix)  Using default settings of 
+	//qtconfig (8 pt font)
+	tabWidget->setMinimumWidth(475);
     tabWidget->setMinimumHeight(500);
 	
 	
