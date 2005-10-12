@@ -8,14 +8,14 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>443</width>
-            <height>765</height>
+            <width>450</width>
+            <height>673</height>
         </rect>
     </property>
     <property name="sizePolicy">
         <sizepolicy>
-            <hsizetype>4</hsizetype>
-            <vsizetype>7</vsizetype>
+            <hsizetype>7</hsizetype>
+            <vsizetype>3</vsizetype>
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
         </sizepolicy>
@@ -28,7 +28,7 @@
     </property>
     <property name="maximumSize">
         <size>
-            <width>500</width>
+            <width>450</width>
             <height>32767</height>
         </size>
     </property>
@@ -40,14 +40,14 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout23</cstring>
+            <cstring>layout100</cstring>
         </property>
         <property name="geometry">
             <rect>
-                <x>10</x>
-                <y>30</y>
-                <width>420</width>
-                <height>681</height>
+                <x>12</x>
+                <y>12</y>
+                <width>430</width>
+                <height>633</height>
             </rect>
         </property>
         <vbox>
@@ -194,7 +194,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>23</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -417,7 +417,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>22</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -466,7 +466,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>31</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -569,7 +569,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>23</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -932,7 +932,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>22</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
@@ -1004,7 +1004,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>23</height>
+                        <height>16</height>
                     </size>
                 </property>
             </spacer>
