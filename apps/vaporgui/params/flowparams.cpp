@@ -174,7 +174,7 @@ restart() {
 	allGeneratorCount = 10;
 	seedTimeStart = 1; 
 	seedTimeEnd = 100; 
-	seedTimeIncrement = 100;
+	seedTimeIncrement = 1;
 	currentDimension = 0;
 
 	geometryType = 0;  //0= tube, 1=point, 2 = arrow
@@ -478,7 +478,7 @@ updatePanelState(){
 		seedTimeEnd = myFlowTab->seedtimeEndEdit->text().toUInt(); 
 		bool changed = false;
 		if (seedTimeStart < minFrame) {seedTimeStart = minFrame; changed = true;}
-		if (seedTimeEnd > maxFrame) {seedTimeEnd = maxFrame; changed = true;}
+		if (seedTimeEnd >= maxFrame) {seedTimeEnd = maxFrame-1; changed = true;}
 		if (seedTimeEnd < seedTimeStart) {seedTimeEnd = seedTimeStart; changed = true;}
 		if (changed){
 			myFlowTab->seedtimeStartEdit->setText(QString::number(seedTimeStart));
@@ -596,18 +596,18 @@ reinit(bool doOverride){
 	if (doOverride) {
 		numTransforms = maxNumTrans;
 		seedTimeStart = minFrame;
-		seedTimeEnd = maxFrame;
-		seedTimeIncrement = maxFrame;
+		seedTimeEnd = minFrame;
+		seedTimeIncrement = 1;
 	} else {
 		if (numTransforms> nlevels) numTransforms = maxNumTrans;
 		if (numTransforms < minNumTrans) numTransforms = minNumTrans;
 		//Make sure we really can use the specified numTrans.
 		
 		numTransforms = rParams->validateNumTrans(numTransforms);
-		if (seedTimeStart > maxFrame) seedTimeStart = maxFrame;
+		if (seedTimeStart >= maxFrame) seedTimeStart = maxFrame-1;
 		if (seedTimeStart < minFrame) seedTimeStart = minFrame;
-		if (seedTimeEnd > maxFrame) seedTimeEnd = maxFrame;
-		if (seedTimeEnd < minFrame) seedTimeEnd = minFrame;
+		if (seedTimeEnd >= maxFrame) seedTimeEnd = maxFrame-1;
+		if (seedTimeEnd < seedTimeStart) seedTimeEnd = seedTimeStart;
 	}
 	//Set up the seed region:
 	
