@@ -9,12 +9,12 @@
             <x>0</x>
             <y>0</y>
             <width>450</width>
-            <height>1071</height>
+            <height>1118</height>
         </rect>
     </property>
     <property name="sizePolicy">
         <sizepolicy>
-            <hsizetype>3</hsizetype>
+            <hsizetype>7</hsizetype>
             <vsizetype>3</vsizetype>
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout77</cstring>
+                <cstring>layout64</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -121,6 +121,9 @@
                         <widget class="QSpinBox">
                             <property name="name">
                                 <cstring>instanceSpin</cstring>
+                            </property>
+                            <property name="enabled">
+                                <bool>false</bool>
                             </property>
                             <property name="maxValue">
                                 <number>1</number>
@@ -534,97 +537,6 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout25</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer25</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>101</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel3_12_4_3_2</cstring>
-                            </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>1</hsizetype>
-                                    <vsizetype>7</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="text">
-                                <string>Integration accuracy</string>
-                            </property>
-                        </widget>
-                        <widget class="QLineEdit">
-                            <property name="name">
-                                <cstring>integrationAccuracyEdit</cstring>
-                            </property>
-                            <property name="sizePolicy">
-                                <sizepolicy>
-                                    <hsizetype>0</hsizetype>
-                                    <vsizetype>7</vsizetype>
-                                    <horstretch>0</horstretch>
-                                    <verstretch>0</verstretch>
-                                </sizepolicy>
-                            </property>
-                            <property name="maximumSize">
-                                <size>
-                                    <width>32767</width>
-                                    <height>25</height>
-                                </size>
-                            </property>
-                            <property name="text">
-                                <string>0.5</string>
-                            </property>
-                            <property name="maxLength">
-                                <number>200</number>
-                            </property>
-                            <property name="alignment">
-                                <set>AlignHCenter</set>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Control integration accuracy (between 0 and 1)</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer26_2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>91</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                    </hbox>
-                </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
                         <cstring>layout30</cstring>
                     </property>
                     <hbox>
@@ -644,7 +556,7 @@
                                 </sizepolicy>
                             </property>
                             <property name="text">
-                                <string>Vector field scale factor</string>
+                                <string>Vector scale factor</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit">
@@ -690,8 +602,82 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>78</width>
+                                    <width>20</width>
                                     <height>21</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel3_12_4_3_2</cstring>
+                            </property>
+                            <property name="sizePolicy">
+                                <sizepolicy>
+                                    <hsizetype>1</hsizetype>
+                                    <vsizetype>7</vsizetype>
+                                    <horstretch>0</horstretch>
+                                    <verstretch>0</verstretch>
+                                </sizepolicy>
+                            </property>
+                            <property name="text">
+                                <string>Integration accuracy</string>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>integrationAccuracyEdit</cstring>
+                            </property>
+                            <property name="sizePolicy">
+                                <sizepolicy>
+                                    <hsizetype>0</hsizetype>
+                                    <vsizetype>7</vsizetype>
+                                    <horstretch>0</horstretch>
+                                    <verstretch>0</verstretch>
+                                </sizepolicy>
+                            </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>100</width>
+                                    <height>25</height>
+                                </size>
+                            </property>
+                            <property name="text">
+                                <string>0.5</string>
+                            </property>
+                            <property name="maxLength">
+                                <number>200</number>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Control integration accuracy (between 0 and 1)</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout63</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer63</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>41</width>
+                                    <height>20</height>
                                 </size>
                             </property>
                         </spacer>
@@ -700,12 +686,46 @@
                                 <cstring>textLabel1_4</cstring>
                             </property>
                             <property name="text">
-                                <string>Sampling interval</string>
+                                <string>Timestep sample start, end, increment</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit">
                             <property name="name">
-                                <cstring>timeSampleEdit</cstring>
+                                <cstring>timesampleStartEdit</cstring>
+                            </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>50</width>
+                                    <height>32767</height>
+                                </size>
+                            </property>
+                            <property name="text">
+                                <string>1</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>timesampleEndEdit</cstring>
+                            </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>50</width>
+                                    <height>32767</height>
+                                </size>
+                            </property>
+                            <property name="text">
+                                <string>100</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>timesampleIncrementEdit</cstring>
                             </property>
                             <property name="maximumSize">
                                 <size>
@@ -723,6 +743,23 @@
                                 <string>For unsteady flow, specify the time interval between data samples</string>
                             </property>
                         </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer32_2</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>20</width>
+                                    <height>21</height>
+                                </size>
+                            </property>
+                        </spacer>
                     </hbox>
                 </widget>
                 <spacer>
@@ -1547,6 +1584,12 @@
                                             <property name="name">
                                                 <cstring>seedtimeStartEdit</cstring>
                                             </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>50</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
                                             <property name="text">
                                                 <string>10</string>
                                             </property>
@@ -1561,6 +1604,12 @@
                                             <property name="name">
                                                 <cstring>seedtimeEndEdit</cstring>
                                             </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>50</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
                                             <property name="text">
                                                 <string>100</string>
                                             </property>
@@ -1574,6 +1623,12 @@
                                         <widget class="QLineEdit">
                                             <property name="name">
                                                 <cstring>seedtimeIncrementEdit</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>50</width>
+                                                    <height>32767</height>
+                                                </size>
                                             </property>
                                             <property name="text">
                                                 <string>1</string>
@@ -1947,7 +2002,7 @@
                                                 <cstring>textLabel1_5</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Opacity mapped from</string>
+                                                <string>Opacity map:</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -1963,7 +2018,7 @@
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>Speed</string>
+                                                    <string>Field Magnitude</string>
                                                 </property>
                                             </item>
                                             <item>
@@ -2020,7 +2075,7 @@
                                                 <cstring>textLabel15</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Color mapped from</string>
+                                                <string>Color map:</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -2036,7 +2091,7 @@
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>Speed</string>
+                                                    <string>Field Magnitude</string>
                                                 </property>
                                             </item>
                                             <item>
@@ -2535,7 +2590,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
