@@ -196,7 +196,7 @@ protected:
 	static const string _numTransformsAttr;
 	static const string _integrationAccuracyAttr;
 	static const string _velocityScaleAttr;
-	static const string _timeSamplingIntervalAttr;
+	static const string _timeSamplingAttr;
 
 	//flow seeding tags and attributss
 	static const string _seedingTag;
@@ -268,6 +268,15 @@ protected:
 	//Force seed box to be inside region
 	//Return true if anything changed.
 	bool enforceConsistency(int coord);
+
+	//Check the variables in the flow data for missing timesteps 
+	//Independent of animation params
+	//Provide an info message if data does not match input request
+	//Return false if anything changed
+	bool validateSampling();
+	//check if vector field is present for a timestep
+	bool validateVectorField(int timestep);
+
 	FlowTab* myFlowTab;
 	int flowType; //steady = 0, unsteady = 1;
 	int instance;
@@ -278,6 +287,8 @@ protected:
 	float integrationAccuracy;
 	float velocityScale;
 	int timeSamplingInterval;
+	int timeSamplingStart;
+	int timeSamplingEnd;
 
 	//Flags to know what has changed when text changes:
 	bool flowDataChanged;
@@ -347,6 +358,49 @@ protected:
 	int selectedFaceNum;
 	float faceDisplacement;
 	float initialSelectionRay[3];
+
+	//The following is to support asynchronous streakline calculation.
+	//There is a semaphore controlling access to the state variables, which include:
+	///////////////////////////
+	//  int lastCompletedTimestep //indicates how many valid timesteps are in the data
+	//								//note that this is -1 is equivalent to dataDirty = true
+	//  enum flowCalcState  // can be idle, busy, or ending
+	//////////////////////////////
+	// When flowDataDirty is set, if streaklines are being done, then instead of deleting
+	// the flowdata, 
+	//		if flowCalcState is busy it is set to "ending"
+	//		if flowCalcState is idle, lastCompletedTimestep is set to -1
+	///////////////////////////
+	// When the flowlib completes a timestep, 
+	//	if flowCalcState is ending, flowcalcstate is set to idle and lastCompletedTimestep to -1, and
+	//	a rerender is requested, and the calculation is stopped.
+	//  if flowCalcState is not ending, the lastCompletedStep is incremented. and rerender is requested
+	//  flowCalcState should not be idle
+	/////////////////////////////////////////
+	// When a new render begins:
+	//	 if lastCompletedTimestep is -1, regen is called, plus:
+	//      the flowdata is reallocated
+	//		flowCalcState is set to busy (it should already be idle)
+	//   otherwise the valid frames are rendered
+	///////////////////////////////////////////////////
+	//  question: do we always need to lock the semaphore???
+	////////////////////////////////////////////////////////////////////////
+	//  FOllowing is probably wrong::::::>>>>>>>
+	//		When a new streakline calculation is started, set
+	// isEnding = false, isWorking = true, needData = false, lastCompletedTimestep = -1
+	//		When flowlib completes a timestep:
+	// set lastCompletedTimestep to the correct value
+	// request GLUpdate of visualizer
+	// check the isEnding flag.  If isEnding==true, set isWorking = false and 
+	// return false (cancelling further streak calculations)
+	//		When users set data dirty (necessitating a new streakline calc):
+	// set isEnding = true
+	// set needData = true
+	//		When there is a new rendering:
+	// If the dataDirty flag is true, then perform the above steps for starting a streakline calc
+	//	  perform the above steps f
+	// check needData (don't need to get a lock for this)
+	//////////////////////////////////// 
 
 };
 };

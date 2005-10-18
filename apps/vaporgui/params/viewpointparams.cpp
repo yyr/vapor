@@ -455,15 +455,7 @@ worldFromCube(float fromCoords[3], float toCoords[3]){
 }
 void ViewpointParams::
 setCoordTrans(){
-	const Metadata* md = Session::getInstance()->getCurrentMetadata();
-	std::vector<double> extents;
-	if (md) extents = md->GetExtents();
-	else { //default values
-		extents = vector<double>(6);
-		extents[3] = 1.;
-		extents[4] = 1.;
-		extents[5] = 1.;
-	}
+	float* extents = Session::getInstance()->getExtents();
 	maxCubeSide = -1.f;
 	int i;
 	//find largest cube side, it will map to 1.0

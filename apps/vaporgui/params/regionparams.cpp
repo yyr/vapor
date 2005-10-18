@@ -522,7 +522,7 @@ restart(){
 	maxNumTrans = 9;
 	minNumTrans = 0;
 	maxSize = 256;
-	fullDataExtents.resize(6);
+	
 	selectedFaceNum = -1;
 	faceDisplacement = 0.f;
 	savedCommand = 0;
@@ -530,8 +530,8 @@ restart(){
 		centerPosition[i] = 128;
 		regionSize[i] = 256;
 		fullSize[i] = 256;
-		fullDataExtents[i] = 0.;
-		fullDataExtents[i+3] = 1.;
+		fullDataExtents[i] = Session::getInstance()->getExtents(i);
+		fullDataExtents[i+3] = Session::getInstance()->getExtents(i+3);
 	}
 	//If this params is currently being displayed, 
 	//force the current displayed tab to be reset to values
@@ -580,7 +580,7 @@ reinit(bool doOverride){
 	
 	//Data extents (user coords) are presented read-only in gui
 	//
-	setDataExtents(md->GetExtents());
+	setDataExtents(Session::getInstance()->getExtents());
 	//If this params is currently being displayed, 
 	//force the current displayed tab to be reset to values
 	//consistent with the params

@@ -72,7 +72,7 @@ using namespace VAPoR;
 	const string FlowParams::_numTransformsAttr = "NumTransforms";
 	const string FlowParams::_integrationAccuracyAttr = "IntegrationAccuracy";
 	const string FlowParams::_velocityScaleAttr = "velocityScale";
-	const string FlowParams::_timeSamplingIntervalAttr = "TimeSamplingInterval";
+	const string FlowParams::_timeSamplingAttr = "SamplingTimes";
 	
 	//Geometry variables:
 	const string FlowParams::_geometryTag = "FlowGeometry";
@@ -157,6 +157,8 @@ restart() {
 	constantColor = qRgb(255,0,0);
 	constantOpacity = 1.f;
 	timeSamplingInterval = 1;
+	timeSamplingStart = 1;
+	timeSamplingEnd = 100;
 	minFrame = 0;
 	maxFrame = 1;
 	editMode = true;
@@ -186,12 +188,12 @@ restart() {
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Age");
-	colorMapEntity.push_back("Speed");
+	colorMapEntity.push_back("Field Magnitude");
 	opacMapEntity.clear();
 	
 	opacMapEntity.push_back("Constant");
 	opacMapEntity.push_back("Age");
-	opacMapEntity.push_back("Speed");
+	opacMapEntity.push_back("Field Magnitude");
 	minColorEditBounds = new float[3];
 	maxColorEditBounds = new float[3];
 	minOpacEditBounds = new float[3];
@@ -334,7 +336,10 @@ void FlowParams::updateDialog(){
 	myFlowTab->zCoordVarCombo->setCurrentItem(varNum[2]);
 	
 	
-	myFlowTab->timeSampleEdit->setEnabled(flowType == 1);
+	myFlowTab->timesampleStartEdit->setEnabled(flowType == 1);
+	myFlowTab->timesampleEndEdit->setEnabled(flowType == 1);
+	myFlowTab->timesampleIncrementEdit->setEnabled(flowType == 1);
+
 	myFlowTab->seedtimeIncrementEdit->setEnabled(flowType == 1);
 	myFlowTab->seedtimeEndEdit->setEnabled(flowType == 1);
 	myFlowTab->firstDisplayFrameEdit->setEnabled(flowType == 1);
@@ -379,7 +384,9 @@ void FlowParams::updateDialog(){
 	}
 	myFlowTab->integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
 	myFlowTab->scaleFieldEdit->setText(QString::number(velocityScale));
-	myFlowTab->timeSampleEdit->setText(QString::number(timeSamplingInterval));
+	myFlowTab->timesampleIncrementEdit->setText(QString::number(timeSamplingInterval));
+	myFlowTab->timesampleStartEdit->setText(QString::number(timeSamplingStart));
+	myFlowTab->timesampleEndEdit->setText(QString::number(timeSamplingEnd));
 	myFlowTab->randomSeedEdit->setText(QString::number(randomSeed));
 	myFlowTab->geometrySamplesEdit->setText(QString::number(objectsPerFlowline));
 	
@@ -425,6 +432,38 @@ void FlowParams::updateDialog(){
 //
 void FlowParams::
 updatePanelState(){
+	if (mapBoundsChanged){
+		float colorMapMin = myFlowTab->minColormapEdit->text().toFloat();
+		float colorMapMax = myFlowTab->maxColormapEdit->text().toFloat();
+		if (colorMapMin >= colorMapMax){
+			colorMapMax = colorMapMin+1.e-6;
+			myFlowTab->maxColormapEdit->setText(QString::number(colorMapMax));
+		}
+		float opacMapMin = myFlowTab->minOpacmapEdit->text().toFloat();
+		float opacMapMax = myFlowTab->maxOpacmapEdit->text().toFloat();
+		if (opacMapMin >= opacMapMax){
+			opacMapMax = opacMapMin+1.e-6;
+			myFlowTab->maxOpacmapEdit->setText(QString::number(opacMapMax));
+		}
+		if (mapperFunction){
+			mapperFunction->setMaxColorMapValue(colorMapMax);
+			mapperFunction->setMinColorMapValue(colorMapMin);
+			mapperFunction->setMaxOpacMapValue(opacMapMax);
+			mapperFunction->setMinOpacMapValue(opacMapMin);
+		}
+		if(enabled) assert(getColorMapEntityIndex()< (int)colorMapEntity.size());
+		minColorBounds[getColorMapEntityIndex()] = colorMapMin;
+		maxColorBounds[getColorMapEntityIndex()] = colorMapMax;
+		if(enabled) assert(getOpacMapEntityIndex()< (int)opacMapEntity.size());
+		minOpacBounds[getOpacMapEntityIndex()] = opacMapMin;
+		maxOpacBounds[getOpacMapEntityIndex()] = opacMapMax;
+		//Align the editor:
+		setMinColorEditBound(getMinColorMapBound(),getColorMapEntityIndex());
+		setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
+		setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
+		setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
+		if(flowMapEditor)flowMapEditor->setDirty();
+	}
 	if (flowDataChanged){
 		integrationAccuracy = myFlowTab->integrationAccuracyEdit->text().toFloat();
 		if (integrationAccuracy < 0.f || integrationAccuracy > 1.f) {
@@ -438,10 +477,15 @@ updatePanelState(){
 			velocityScale = 1.e-20f;
 			myFlowTab->scaleFieldEdit->setText(QString::number(velocityScale));
 		}
-		timeSamplingInterval = myFlowTab->timeSampleEdit->text().toInt();
-		if (timeSamplingInterval < 1){
-			timeSamplingInterval = 1;
-			myFlowTab->timeSampleEdit->setText(QString::number(timeSamplingInterval));
+		if (flowType == 1){ //unsteady flow
+			timeSamplingInterval = myFlowTab->timesampleIncrementEdit->text().toInt();
+			timeSamplingStart = myFlowTab->timesampleStartEdit->text().toInt();
+			timeSamplingEnd = myFlowTab->timesampleEndEdit->text().toInt();
+			if (!validateSampling()){//did anything change?
+				myFlowTab->timesampleIncrementEdit->setText(QString::number(timeSamplingInterval));
+				myFlowTab->timesampleStartEdit->setText(QString::number(timeSamplingStart));
+				myFlowTab->timesampleEndEdit->setText(QString::number(timeSamplingEnd));
+			}
 		}
 		randomSeed = myFlowTab->randomSeedEdit->text().toUInt();
 
@@ -495,7 +539,6 @@ updatePanelState(){
 		}
 		myFlowTab->geometrySamplesSlider->setValue((int)(256.0*log10((float)objectsPerFlowline)*0.33333));
 		
-		firstDisplayFrame = myFlowTab->firstDisplayFrameEdit->text().toInt();
 		lastDisplayFrame = myFlowTab->lastDisplayFrameEdit->text().toInt();
 		if (lastDisplayFrame < 1 - firstDisplayFrame) {
 			lastDisplayFrame = 1 - firstDisplayFrame;
@@ -503,6 +546,7 @@ updatePanelState(){
 		}
 	}
 	if (flowGraphicsChanged){
+		firstDisplayFrame = myFlowTab->firstDisplayFrameEdit->text().toInt();
 		shapeDiameter = myFlowTab->diameterEdit->text().toFloat();
 		if (shapeDiameter < 0.f) {
 			shapeDiameter = 0.f;
@@ -512,38 +556,7 @@ updatePanelState(){
 		if (constantOpacity < 0.f) constantOpacity = 0.f;
 		if (constantOpacity > 1.f) constantOpacity = 1.f;
 	}
-	if (mapBoundsChanged){
-		float colorMapMin = myFlowTab->minColormapEdit->text().toFloat();
-		float colorMapMax = myFlowTab->maxColormapEdit->text().toFloat();
-		if (colorMapMin >= colorMapMax){
-			colorMapMax = colorMapMin+1.e-6;
-			myFlowTab->maxColormapEdit->setText(QString::number(colorMapMax));
-		}
-		float opacMapMin = myFlowTab->minOpacmapEdit->text().toFloat();
-		float opacMapMax = myFlowTab->maxOpacmapEdit->text().toFloat();
-		if (opacMapMin >= opacMapMax){
-			opacMapMax = opacMapMin+1.e-6;
-			myFlowTab->maxOpacmapEdit->setText(QString::number(opacMapMax));
-		}
-		if (mapperFunction){
-			mapperFunction->setMaxColorMapValue(colorMapMax);
-			mapperFunction->setMinColorMapValue(colorMapMin);
-			mapperFunction->setMaxOpacMapValue(opacMapMax);
-			mapperFunction->setMinOpacMapValue(opacMapMin);
-		}
-		if(enabled) assert(getColorMapEntityIndex()< (int)colorMapEntity.size());
-		minColorBounds[getColorMapEntityIndex()] = colorMapMin;
-		maxColorBounds[getColorMapEntityIndex()] = colorMapMax;
-		if(enabled) assert(getOpacMapEntityIndex()< (int)opacMapEntity.size());
-		minOpacBounds[getOpacMapEntityIndex()] = opacMapMin;
-		maxOpacBounds[getOpacMapEntityIndex()] = opacMapMax;
-		//Align the editor:
-		setMinColorEditBound(getMinColorMapBound(),getColorMapEntityIndex());
-		setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
-		setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
-		setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
-		if(flowMapEditor)flowMapEditor->setDirty();
-	}
+	
 	myFlowTab->flowMapFrame->update();
 	
 	guiSetTextChanged(false);
@@ -647,11 +660,11 @@ reinit(bool doOverride){
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Age");
-	colorMapEntity.push_back("Speed");
+	colorMapEntity.push_back("Field Magnitude");
 	opacMapEntity.clear();
 	opacMapEntity.push_back("Constant");
 	opacMapEntity.push_back("Age");
-	opacMapEntity.push_back("Speed");
+	opacMapEntity.push_back("Field Magnitude");
 	for (i = 0; i< newNumVariables; i++){
 		colorMapEntity.push_back(variableNames[i]);
 		opacMapEntity.push_back(variableNames[i]);
@@ -694,6 +707,14 @@ reinit(bool doOverride){
 		numVariables = 0;
 		return;
 	}
+	//Set up sampling.  
+	if (doOverride){
+		timeSamplingStart = minFrame;
+		timeSamplingEnd = maxFrame;
+		timeSamplingInterval = 1;
+	}
+	validateSampling();
+
 	//Now set up bounds arrays based on current mapped variable settings:
 	for (i = 0; i< newNumVariables+3; i++){
 		minOpacBounds[i] = minColorBounds[i] = minRange(i);
@@ -1301,6 +1322,9 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 
 	
 	if (enabled && !prevEnabled){//For cases 2. or 3. :  create a renderer in the active window:
+		//First, make sure we have valid fielddata:
+		validateSampling();
+
 		FlowRenderer* myRenderer = new FlowRenderer (viz);
 		viz->prependRenderer(myRenderer, Params::FlowParamsType);
 		//Quit if not case 3:
@@ -1383,7 +1407,7 @@ regenerateFlowData(int timeStep){
 		myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
 		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(lastDisplayFrame))/(float)objectsPerFlowline);
 	} else {
-		myFlowLib->SetTimeStepInterval(seedTimeStart, maxFrame, timeSamplingInterval);
+		myFlowLib->SetTimeStepInterval(timeSamplingStart,timeSamplingEnd, timeSamplingInterval);
 		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(maxFrame - minFrame))/(float)objectsPerFlowline);
 	}
 	
@@ -1587,8 +1611,8 @@ buildNode() {
 	attrs[_integrationAccuracyAttr] = oss.str();
 
 	oss.str(empty);
-	oss << (long)timeSamplingInterval;
-	attrs[_timeSamplingIntervalAttr] = oss.str();
+	oss << (long)timeSamplingStart<<" "<<timeSamplingEnd<<" "<<timeSamplingInterval;
+	attrs[_timeSamplingAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (long)instance;
@@ -1696,7 +1720,7 @@ buildNode() {
 		} else {
 			if (i == 0) oss << "Constant";
 			else if (i == 1) oss << "Age";
-			else if (i == 2) oss << "Speed";
+			else if (i == 2) oss << "FieldMagnitude";
 		}
 		varAttrs[_variableNameAttr] = oss.str();
 		oss.str(empty);
@@ -1768,8 +1792,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _velocityScaleAttr) == 0){
 				ist >> velocityScale;
 			}
-			else if (StrCmpNoCase(attribName, _timeSamplingIntervalAttr) == 0){
-				ist >> timeSamplingInterval;
+			else if (StrCmpNoCase(attribName, _timeSamplingAttr) == 0){
+				ist >> timeSamplingStart;ist >>timeSamplingEnd; ist>>timeSamplingInterval;
 			}
 			else return false;
 		}
@@ -1796,11 +1820,12 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			string value = *attrs;
 			attrs++;
 			istringstream ist(value);
-			
+		
 			if (StrCmpNoCase(attribName, _seedRegionMinAttr) == 0) {
 				ist >> seedBoxMin[0];ist >> seedBoxMin[1];ist >> seedBoxMin[2];
 			}
 			else if (StrCmpNoCase(attribName, _seedRegionMaxAttr) == 0) {
+				
 				ist >> seedBoxMax[0];ist >> seedBoxMax[1];ist >> seedBoxMax[2];
 			}
 			else if (StrCmpNoCase(attribName, _randomGenAttr) == 0) {
@@ -2057,8 +2082,8 @@ mapColors(float* speeds, int currentTimeStep){
 			minSize[i] = 0;
 			opacSize[i] = (ds->getFullDataSize(i) >> numTransforms);
 			maxSize[i] = opacSize[i]/bs -1;
-			opacVarMin[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i];
-			opacVarMax[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i+3];
+			opacVarMin[i] = Session::getInstance()->getExtents(i);
+			opacVarMax[i] = Session::getInstance()->getExtents(i+3);
 		}
 		
 		opacRegion = Session::getInstance()->getDataMgr()->GetRegion((size_t)timeStep,
@@ -2076,8 +2101,8 @@ mapColors(float* speeds, int currentTimeStep){
 			minSize[i] = 0;
 			colorSize[i] = (ds->getFullDataSize(i) >> numTransforms);
 			maxSize[i] = (colorSize[i]/bs - 1);
-			colorVarMin[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i];
-			colorVarMax[i] = Session::getInstance()->getDataMgr()->GetMetadata()->GetExtents()[i+3];
+			colorVarMin[i] = Session::getInstance()->getExtents(i);
+			colorVarMax[i] = Session::getInstance()->getExtents(i+3);
 		}
 		
 		colorRegion = Session::getInstance()->getDataMgr()->GetRegion((size_t)timeStep,
@@ -2440,3 +2465,93 @@ float FlowParams::maxRange(int index){
 			else return 1.f;
 	}
 }
+//Method to validate and fix time sampling values used in streaklines
+//This tries to keep previously set values of timeSamplingInterval, timeSamplingStart,
+//and timeSamplingEnd.  If they don't work, info message is provided and
+//they are set to new values as follows:
+//if not valid, timeSamplingStart is set to the first valid frame after previously set timeSamplingStart
+//if not valid, i.e. if second frame does not exist, then
+//timeSamplingInterval is set to difference between second and first valid frame.
+//if not valid, timeSamplingEnd is set to last valid frame in sequence established by 
+//timeSamplingStart and timeSamplingInterval
+bool FlowParams::
+validateSampling()
+{
+	bool changed = false;
+	if (timeSamplingStart < minFrame || timeSamplingStart > maxFrame){
+		timeSamplingStart = minFrame;
+		changed = true;
+	}
+	//See if start is valid; if not set to first valid start:
+	int ts;
+	for (ts = timeSamplingStart; ts <= maxFrame; ts++) {
+		if (validateVectorField(ts)) break;
+	}
+	//do there exist valid frames?
+	if (ts > maxFrame) {
+		timeSamplingStart = minFrame;
+		timeSamplingEnd = minFrame;
+		timeSamplingInterval = 1;
+		return false;
+	}
+	//was the proposed start invalid?
+	if (ts > timeSamplingStart) {
+		timeSamplingStart = ts;
+		changed = true;
+	}
+	//If the proposed sampling is just one frame, it's ok
+	if (timeSamplingEnd < timeSamplingStart+timeSamplingInterval) {
+		if (timeSamplingEnd < timeSamplingStart) {
+			timeSamplingEnd = timeSamplingStart;
+			changed = true;
+		}
+		return !changed;
+	}
+	//Now we have a valid start, see if the increment is invalid.
+	//It is OK if the second one is valid or if there is no second one:
+	if (!validateVectorField(timeSamplingStart+timeSamplingInterval)){
+		//Need to find the first valid increment:
+		for (ts = timeSamplingStart+1; ts <= maxFrame; ts++){
+			if (validateVectorField(ts)) break;
+		}
+		//Is there a valid second timestep?
+		if (ts > maxFrame){
+			timeSamplingInterval = 1;
+			timeSamplingEnd = timeSamplingStart;
+			return false;
+		}
+		//Use the second valid step to define interval:
+		timeSamplingInterval = ts - timeSamplingStart;
+		changed = true;
+	}
+	//Now establish the last frame
+	for (ts = timeSamplingStart; ts <= timeSamplingEnd; ts+= timeSamplingInterval){
+		if (!validateVectorField(ts)) break;
+	}
+	if (ts > timeSamplingEnd) return (!changed);
+	timeSamplingEnd = ts - timeSamplingInterval;
+	return false;
+}
+
+//Check to see if there is valid field data for specified timestep
+//Finds the largest min transforms that works for all three variables,
+//and the smallest max trans that works for all, returns true if
+//smallestMax is >= largestMin
+bool FlowParams::
+validateVectorField(int ts) {
+	DataStatus* dStatus = Session::getInstance()->getDataStatus();
+	if (!dStatus) return false;
+	int largestminx = -100;
+	int smallestmaxx = 100;
+	for (int var = 0; var<3; var++){
+		if(dStatus->minXFormPresent(var, ts) > largestminx)
+			largestminx = dStatus->minXFormPresent(varNum[var], ts);
+		if(dStatus->maxXFormPresent(var, ts)< smallestmaxx)
+			smallestmaxx = dStatus->maxXFormPresent(varNum[var], ts);
+	}
+	return (smallestmaxx >= largestminx);
+}
+
+			
+
+

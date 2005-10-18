@@ -120,16 +120,16 @@ QString& Params::paramName(Params::ParamType type){
 
 
 float Params::getMinColorMapBound(){
-	return getMapperFunc()->getMinColorMapValue();
+	return (getMapperFunc()? getMapperFunc()->getMinColorMapValue(): 0.f);
 }
 float Params::getMaxColorMapBound(){
-	return getMapperFunc()->getMaxColorMapValue();
+	return (getMapperFunc()? getMapperFunc()->getMaxColorMapValue(): 1.f);
 }
 float Params::getMinOpacMapBound(){
-	return getMapperFunc()->getMinOpacMapValue();
+	return (getMapperFunc()? getMapperFunc()->getMinOpacMapValue(): 0.f);
 }
 float Params::getMaxOpacMapBound(){
-	return getMapperFunc()->getMaxOpacMapValue();
+	return (getMapperFunc()? getMapperFunc()->getMaxOpacMapValue(): 1.f);
 }
 bool Params::isCurrent() {
 		return (VizWinMgr::getInstance()->getApplicableParams(thisParamType) == this);
