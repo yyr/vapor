@@ -123,6 +123,17 @@ public:
  //
  static void SetErrMsgCB(ErrMsgCB_T cb) { ErrMsgCB = cb; };
 
+ //! Get the callback function for error messages
+ //!
+ //! Get the callback function to be called whenever SetErrMsg() 
+ //! is called. This method returns the address of the callback function
+ //! set with the most recent call to SetErrMsgCB(). If no callback function
+ //! is defined, NULL is returned.
+ //! 
+ //! \sa SetErrMsgCB
+ //
+ static ErrMsgCB_T GetErrMsgCB() { return(ErrMsgCB); };
+
  //! Set the file pointer to whence error messages are written
  //!
  //! This method permits the specification of a file pointer to which
@@ -133,6 +144,15 @@ public:
  //! \sa SetErrMsg()
  //
  static void SetErrMsgFilePtr(FILE *fp) { ErrMsgFilePtr = fp; };
+
+ //! Get the file pointer to whence error messages are written
+ //!
+ //! This method returns the error message file pointer most recently
+ //! set with SetErrMsgFilePtr().
+ //!
+ //! \sa SetErrMsgFilePtr()
+ //
+ static const FILE  *SetErrMsgFilePtr() { return(ErrMsgFilePtr); };
 
  //! Record a formatted diagnostic message. 
  // 
@@ -167,6 +187,17 @@ public:
  //
  static void SetDiagMsgCB(DiagMsgCB_T cb) { DiagMsgCB = cb; };
 
+ //! Get the callback function for error messages
+ //!
+ //! Get the callback function to be called whenever SetDiagMsg() 
+ //! is called. This method returns the address of the callback function
+ //! set with the most recent call to SetDiagMsgCB(). If no callback function
+ //! is defined, NULL is returned.
+ //! 
+ //! \sa SetDiagMsgCB
+ //
+ static DiagMsgCB_T GetDiagMsgCB() { return(DiagMsgCB); };
+
  //! Set the file pointer to whence diagnostic messages are written
  //!
  //! This method permits the specification of a file pointer to which
@@ -177,6 +208,14 @@ public:
  //! \sa SetDiagMsg()
  //
  static void SetDiagMsgFilePtr(FILE *fp) { DiagMsgFilePtr = fp; };
+
+ //! Get the file pointer to whence diagnostic messages are written
+ //!
+ //! This method returns the error message file pointer most recently
+ //! set with SetDiagMsgFilePtr().
+ //!
+ //! \sa SetDiagMsgFilePtr()
+ //
 
  // N.B. the error codes/messages are stored in static class members!!!
  static char 	*ErrMsg;
