@@ -255,8 +255,8 @@ void GLWindow::paintGL()
 		renderRegionBounds(extents, selectedFace,
 			camVec, disp);
 	} 
-	//or render the seed geometry, if in probe mode
-	else if(MainForm::getInstance()->getCurrentMouseMode() == Command::probeMode){
+	//or render the seed geometry, if in rake mode
+	else if(MainForm::getInstance()->getCurrentMouseMode() == Command::rakeMode){
 		float camVec[3];
 		float seedExtents[6];
 		FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);

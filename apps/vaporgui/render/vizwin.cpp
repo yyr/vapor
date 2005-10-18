@@ -304,8 +304,8 @@ mousePressEvent(QMouseEvent* e){
 			//Otherwise, fall through to navigate mode:
 			doNavigate = true;
 			break;
-		//Seedmode is like regionmode
-		case Command::probeMode :
+		//Rakemode is like regionmode
+		case Command::rakeMode :
 			//Only capture if it's the left mouse button:
 			if (e->button() == Qt::LeftButton)
 			{
@@ -363,7 +363,7 @@ mouseReleaseEvent(QMouseEvent*e){
 			} //otherwise fall through to navigate mode
 			doNavigate = true;
 			break;
-		case Command::probeMode :
+		case Command::rakeMode :
 			//Check if the seed bounds were moved
 			if (myWinMgr->getFlowParams(myWindowNum)->draggingFace()){
 				mouseDownHere = false;
@@ -432,7 +432,7 @@ mouseMoveEvent(QMouseEvent* e){
 			//Fall through to navigate if not dragging face
 			doNavigate = true;
 			break;
-		case Command::probeMode :
+		case Command::rakeMode :
 			{
 				FlowParams* fParams = myWinMgr->getFlowParams(myWindowNum);
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
