@@ -55,6 +55,7 @@ public:
 		regionMode,
 		contourMode,
 		probeMode,
+		rakeMode,
 		lightMode
 	};
 

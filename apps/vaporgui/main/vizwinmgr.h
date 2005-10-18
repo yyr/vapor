@@ -112,7 +112,11 @@ public:
 	//active visualizer if it is local.
 	Params* getLocalParams(Params::ParamType);
     //method to launch a viz window, returns vizNum
-    int launchVisualizer(int num = -1, const char* name = "");
+	//Default values create a new vis use whatever available number.
+	//If usenum is >= 0 it relaunches a previously used visualizer.
+	//If usenum is < 0 and newNum is >=0, it creates a new visualizer
+	//at position "newNum"
+    int launchVisualizer(int usenum = -1, const char* name = "", int newNum = -1);
     
 	void nameChanged(QString& name, int num);
     
@@ -277,6 +281,7 @@ protected:
 	static const string _vizColorbarEnabledAttr;
 	static const string _vizRegionFrameEnabledAttr;
 	static const string _vizSubregionFrameEnabledAttr;
+	static const string _visualizerNumAttr;
 	static VizWinMgr* theVizWinMgr;
 	VizWinMgr ();
 	

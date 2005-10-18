@@ -51,6 +51,7 @@ const string Session::_logFileNameAttr = "LogFileName";
 const string Session::_exportFileNameAttr = "ExportFileName";
 const string Session::_maxPopupAttr = "MaxPopups";
 const string Session::_maxLogAttr = "MaxLogMsgs";
+const string Session::_dataExtentsAttr = "DataExtents";
 const string Session::_sessionTag = "Session";
 const string Session::_globalParameterPanelsTag = "GlobalParameterPanels";
 const string Session::_globalTransferFunctionsTag = "GlobalTransferFunctions";
@@ -148,6 +149,8 @@ void Session::init() {
 	dataExists = false;
 	renderOK = false;
 	newSession = true;
+	extents[0] = extents[1] = extents[2] = 0.f;
+	extents[3] = extents[4] = extents[5] = 1.f;
 	
 }
 bool Session::
@@ -193,6 +196,10 @@ buildNode() {
 		(long)msgRpt->getMaxPopup(MessageReporter::Warning) << " " <<
 		(long)msgRpt->getMaxPopup(MessageReporter::Error);
 	attrs[_maxPopupAttr] = oss.str();
+	oss.str(empty);
+	oss << extents[0]<<" "<<extents[1]<<" "<<extents[2]<<" "<<extents[3]<<" "<<extents[4]<<" "<<extents[5];
+	attrs[_dataExtentsAttr] = oss.str();
+	
 	oss.str(empty);
 	oss << (long)msgRpt->getMaxLog(MessageReporter::Info) << " "
 		<< (long)msgRpt->getMaxLog(MessageReporter::Warning) << " "
@@ -295,6 +302,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					msgRpt->setMaxPopup(MessageReporter::Info, int1);
 					msgRpt->setMaxPopup(MessageReporter::Warning, int2);
 					msgRpt->setMaxPopup(MessageReporter::Error, int3);
+				}
+				else if (StrCmpNoCase(attr, _dataExtentsAttr) == 0) {
+					ist >> extents[0]; ist>>extents[1]; ist>>extents[2];
+					ist >> extents[3]; ist>>extents[4]; ist>>extents[5];
 				}
 				else if (StrCmpNoCase(attr, _maxLogAttr) == 0) {
 					ist >> int1; ist>>int2; ist>>int3;
@@ -516,6 +527,12 @@ resetMetadata(const char* fileBase, bool restoredSession)
 		myReader = (WaveletBlock3DRegionReader*)dataMgr->GetRegionReader();
 	} 
 
+	//Get the extents from the metadata, if it exists:
+	if (currentMetadata){
+		std::vector<double> mdExtents = currentMetadata->GetExtents();
+		for (i = 0; i< 6; i++)
+			extents[i] = (float)mdExtents[i];
+	}
 	Histo::releaseHistograms();
 	
 	if (currentDataStatus) delete currentDataStatus;
@@ -663,28 +680,34 @@ setupDataStatus(){
 	dataExists = false;
 	for (unsigned int ts = 0; ts< numTimeSteps; ts++){
 		for (int var = 0; var< numVariables; var++){
-			//Find the minimum number of transforms available on disk
+			//Find the minimum and maximum number of transforms available on disk
 			//Start at the max (lowest res) and move down to min
 			int xf;
+			//Find the highest transform level  (lowest resolution) that exists,
+			//then the first one lower than that that doesn't exist:
+			int maxXLevel = -1;
 			for (xf = numXForms; xf>= 0; xf--){
-				//find the highest transform level that doesn't exist
-				
-				
-				if (!myReader->VariableExists(ts, 
+				if (myReader->VariableExists(ts, 
 					currentMetadata->GetVariableNames()[var].c_str(),
-					xf)) break;
+					xf)) {
+						if (maxXLevel < 0) maxXLevel = xf;
+					}
+				else { //data is missing
+					if (maxXLevel >= 0) break; //we have found an interval of data
+				}
 			}
-			//If xf == numXForms, there's no data
+			
 			
 			
 			//xf is the first one that is *not* present
 			xf++;
-			if (xf > numXForms)
+			if (maxXLevel == -1)//is there nothing at all?
 				ds->setDataAbsent(var, ts);
 			else {
 				if (ts > maxts) maxts = ts;
 				if (ts < mints) mints = ts;
 				ds->setMinXFormPresent(var, ts, xf);
+				ds->setMaxXFormPresent(var, ts, maxXLevel);
 				dataExists = true;
 			}
 			//Now fill in the max and min.
@@ -695,7 +718,7 @@ setupDataStatus(){
 			// Absent data will get default min/max values, and will
 			// not affect overall maxima/minima
 			vector<double>minMax;
-			if (ds->getDataPresent(var,ts) >= 0){
+			if (ds->minXFormPresent(var,ts) >= 0){
 				//Turn off error callback, we can handle missing datarange:
 				MyBase::SetErrMsgCB(0);
 				const vector<double>& mnmx = currentMetadata->GetVDataRange(ts, 
@@ -906,15 +929,20 @@ infoCallbackFcn(const char* msg){
 DataStatus::
 DataStatus(int numvariables, int numtimesteps)
 {
+	//Initially, assume all timesteps are valid:
+	minTimeStep = 0;
+	maxTimeStep = numtimesteps-1;
 	numVariables = numvariables;
 	numTimesteps = numtimesteps;
 	minData = new double[numvariables*numTimesteps];
 	maxData = new double[numvariables*numTimesteps];
 	dataPresent = new int[numvariables*numTimesteps];
+	maxXPresent = new int[numvariables*numTimesteps];
 	for (int i = 0; i< numVariables*numTimesteps; i++){
 		minData[i] = 1.e30;
 		maxData[i] = -1.e30;
 		dataPresent[i] = -1;
+		maxXPresent[i] = -1;
 	}
 	
 	
@@ -930,6 +958,7 @@ DataStatus::
 	if (minData) delete minData;
 	if (maxData) delete maxData;
 	if (dataPresent) delete dataPresent;
+	if (maxXPresent) delete maxXPresent;
 	if (dataRange) delete [] dataRange;
 }
 int DataStatus::

@@ -134,8 +134,12 @@ public:
 	void setMinXFormPresent(int varnum, int timestep, int xf){
 		dataPresent[timestep + varnum*numTimesteps] = xf;
 	}
+	void setMaxXFormPresent(int varnum, int timestep, int xf){
+		maxXPresent[timestep + varnum*numTimesteps] = xf;
+	}
 	void setDataAbsent(int varnum, int timestep){
 		dataPresent[timestep + varnum*numTimesteps] = -1;
+		maxXPresent[timestep + varnum*numTimesteps] = -1;
 	}
 	void setDataMax(int varnum, int timestep, double val){
 		maxData[timestep + varnum*numTimesteps] = val;
@@ -160,9 +164,7 @@ public:
 		if (varnum < 0 || varnum >= numVariables) return false;
 		return (dataPresent[timestep + varnum*numTimesteps] >= 0);
 	}
-	int getDataPresent(int varnum, int timestep){
-		return dataPresent[timestep + varnum*numTimesteps];
-	}
+	
 	double getDataMax(int varnum, int timestep){
 		return maxData[timestep + varnum*numTimesteps];
 	}
@@ -173,7 +175,14 @@ public:
 	double getDataMinOverTime(int varnum){return dataRange[varnum][0];}
 	//Return the minimum transform present, or -1 if none is present.
 	int minXFormPresent(int varnum, int timestep){
+		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
+		if (varnum < 0 || varnum >= numVariables) return -1;
 		return dataPresent[timestep + varnum*numTimesteps];
+	}
+	int maxXFormPresent(int varnum, int timestep){
+		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
+		if (varnum < 0 || varnum >= numVariables) return -1;
+		return maxXPresent[timestep + varnum*numTimesteps];
 	}
 	//Determine min transform for *any* timestep or variable
 	//Needed for setting region params
@@ -201,6 +210,7 @@ private:
 	double* minData;
 	double* maxData;
 	int* dataPresent;
+	int* maxXPresent;
 	size_t fullDataSize[3];
 	float** dataRange;
 	
@@ -314,6 +324,8 @@ public:
 	string& getExportFile() {return currentExportFile;}
 	string& getLogfileName() {return currentLogfileName;}
 	void setLogfileName(const char* newname){currentLogfileName = newname;}
+	float* getExtents() {return extents;}
+	float getExtents(int i) {return extents[i];}
 
 	double getDataMaxOverTime(int varnum){return (currentDataStatus ? currentDataStatus->getDataMaxOverTime(varnum) : 1.0);}
 	double getDataMinOverTime(int varnum){return (currentDataStatus ? currentDataStatus->getDataMinOverTime(varnum) : 0.0);}
@@ -331,6 +343,7 @@ protected:
 	static const string _sessionTag;
 	static const string _globalParameterPanelsTag;
 	static const string _globalTransferFunctionsTag;
+	static const string _dataExtentsAttr;
 
 	XmlNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);
@@ -359,6 +372,7 @@ protected:
 	bool dataExists;
 	bool newSession;
 	bool renderOK;
+	float extents[6];
 	//TransferFunctions are kept, by name, in the session:
 	TransferFunction** keptTFs;
 	//hold a transfer function during parsing (between when the start and end tags

@@ -51,6 +51,9 @@ void MouseModeCommand::unDo(){
 		case probeMode:
 			MainForm::getInstance()->probeAction->setOn(true);
 			break;
+		case rakeMode:
+			MainForm::getInstance()->rakeAction->setOn(true);
+			break;
 		case lightMode:
 			MainForm::getInstance()->moveLightsAction->setOn(true);
 			break;
@@ -74,6 +77,9 @@ void MouseModeCommand::reDo(){
 		case probeMode:
 			MainForm::getInstance()->probeAction->setOn(true);
 			break;
+		case rakeMode:
+			MainForm::getInstance()->rakeAction->setOn(true);
+			break;
 		case lightMode:
 			MainForm::getInstance()->moveLightsAction->setOn(true);
 			break;
@@ -95,6 +101,8 @@ modeName(mouseModeType t){
 			return " region-set ";
 		case probeMode:
 			return " probe-set ";
+		case rakeMode:
+			return " rake-set ";
 		case contourMode:
 			return " contour-set ";
 		case lightMode:

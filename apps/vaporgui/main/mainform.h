@@ -137,6 +137,7 @@ public:
 	QAction* navigationAction;
 	QAction* regionSelectAction;
 	QAction* probeAction;
+	QAction* rakeAction;
 	QAction* contourAction;
 	QAction* moveLightsAction;
 	QAction* tileAction;
@@ -199,6 +200,7 @@ public slots:
 	virtual void setContourSelect(bool);
 	virtual void setRegionSelect(bool);
 	virtual void setProbe(bool);
+	virtual void setRake(bool);
 	virtual void setNavigate(bool);
 	virtual void setLights(bool);
 	virtual void editSessionParams();

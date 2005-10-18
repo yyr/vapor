@@ -80,6 +80,7 @@
 #include "images/cascade.xpm"
 #include "images/tiles.xpm"
 #include "images/probe.xpm"
+#include "images/rake.xpm"
 #include "images/wheel.xpm"
 #include "images/cube.xpm"
 #include "images/planes.xpm"
@@ -140,11 +141,12 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
 	tabWidget = new TabManager(tabDockWindow, "tab manager");
 	//tabWidget->setMinimumWidth(420);
-	tabWidget->setMaximumWidth(600);
+	tabWidget->setMaximumWidth(470);
+	
 	//This is just large enough to show the whole width of flow tab, with a scrollbar
 	//on right (on windows, linux, and irix)  Using default settings of 
-	//qtconfig (8 pt font)
-	tabWidget->setMinimumWidth(475);
+	//qtconfig (10 pt font)
+	tabWidget->setMinimumWidth(200);
     tabWidget->setMinimumHeight(500);
 	
 	
@@ -252,6 +254,12 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	probeAction->setToggleAction(true);
 	probeAction->setOn(false);
 
+	QPixmap* rakeIcon = new QPixmap(rake);
+	rakeAction = new QAction("Rake Mode", *rakeIcon,
+		"&Rake", CTRL+Key_R, mouseModeActions);
+	rakeAction->setToggleAction(true);
+	rakeAction->setOn(false);
+
 	QPixmap* lightsIcon = new QPixmap(lightbulb);
 	moveLightsAction = new QAction("Move Lights Mode", *lightsIcon,
 		"&Lights", CTRL+Key_L, mouseModeActions);
@@ -285,6 +293,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	//add navigation button
 	navigationAction->addTo(modeToolBar);
 	regionSelectAction->addTo(modeToolBar);
+	rakeAction->addTo(modeToolBar);
 	contourAction->addTo(modeToolBar);
 	probeAction->addTo(modeToolBar);
 	moveLightsAction->addTo(modeToolBar);
@@ -407,6 +416,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	connect (regionSelectAction, SIGNAL(toggled(bool)), this, SLOT(setRegionSelect(bool)));
 	connect (contourAction, SIGNAL(toggled(bool)), this, SLOT(setContourSelect(bool)));
 	connect (probeAction, SIGNAL(toggled(bool)), this, SLOT(setProbe(bool)));
+	connect (rakeAction, SIGNAL(toggled(bool)), this, SLOT(setRake(bool)));
 	connect (moveLightsAction, SIGNAL(toggled(bool)), this, SLOT(setLights(bool)));
 	connect (cascadeAction, SIGNAL(activated()), myVizMgr, SLOT(cascade()));
 	connect (tileAction, SIGNAL(activated()), myVizMgr, SLOT(fitSpace()));
@@ -1018,37 +1028,57 @@ void MainForm::setNavigate(bool on)
 	if (currentMouseMode != Command::navigateMode){
 		myVizMgr->setSelectionMode(Command::navigateMode);
 		currentSession->blockRecording();
-		viewpoint();
+		//viewpoint();
 		currentSession->unblockRecording();
 		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::navigateMode));
 		currentMouseMode = Command::navigateMode;
 	}
+	//resetModeButtons();
 }
-void MainForm::setLights(bool /* on*/)
+void MainForm::setLights(bool  on)
 {
-/*  Until we implement this, do nothing:
+// Until we implement this, does nothing:
 	Session* currentSession = Session::getInstance();
+	if (!on && moveLightsAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
 	if (currentMouseMode != Command::lightMode){
 		VizWinMgr::getInstance()->setSelectionMode(Command::lightMode);
 		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::lightMode));
 		currentMouseMode = Command::lightMode;
 	}
-	*/
+	
 }
 void MainForm::setProbe(bool on)
 {
-	
+	//Probe mode right now does nothing
+	if (!on && probeAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
-	Session* currentSession = Session::getInstance();
+	//Session* currentSession = Session::getInstance();
 	if (currentMouseMode != Command::probeMode){
 		VizWinMgr::getInstance()->setSelectionMode(Command::probeMode);
+		
+		//currentSession->blockRecording();
+		//launchFlowTab();
+		//currentSession->unblockRecording();
+		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::probeMode));
+		currentMouseMode = Command::probeMode;
+	}
+	
+}
+void MainForm::setRake(bool on)
+{
+	
+	if (!on && rakeAction->isOn()){navigationAction->toggle(); return;}
+	if (!on) return;
+	Session* currentSession = Session::getInstance();
+	if (currentMouseMode != Command::rakeMode){
+		VizWinMgr::getInstance()->setSelectionMode(Command::rakeMode);
 		//bring up the flowtab, but don't put into history:
 		currentSession->blockRecording();
 		launchFlowTab();
 		currentSession->unblockRecording();
-		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::probeMode));
-		currentMouseMode = Command::probeMode;
+		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::rakeMode));
+		currentMouseMode = Command::rakeMode;
 	}
 	
 }
@@ -1056,6 +1086,7 @@ void MainForm::setRegionSelect(bool on)
 {
 	Session* currentSession = Session::getInstance();
 	//Only respond to toggling on:
+	if (!on && regionSelectAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
 	if (currentMouseMode != Command::regionMode){
 		VizWinMgr::getInstance()->setSelectionMode(Command::regionMode);
@@ -1065,6 +1096,25 @@ void MainForm::setRegionSelect(bool on)
 		currentSession->unblockRecording();
 		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::regionMode));
 		currentMouseMode = Command::regionMode;
+	}
+}
+void MainForm::setContourSelect(bool on)
+{
+	bool myState = contourAction->isOn();
+	// If someone clicks to undo this, then switch to navigate
+	if (!on && contourAction->isOn()){navigationAction->toggle(); return;}
+	if (!on) return;
+	//if (!on) {navigationAction->toggle(); return;}
+	Session* currentSession = Session::getInstance();
+	if (currentMouseMode != Command::contourMode){
+		VizWinMgr::getInstance()->setSelectionMode(Command::contourMode);
+	
+		//bring up the tab, but don't put into history:
+		currentSession->blockRecording();
+		contourPlanes();
+		currentSession->unblockRecording();
+		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::contourMode));
+		currentMouseMode = Command::contourMode;
 	}
 }
 //Enable or disable the View menu options:
@@ -1105,32 +1155,17 @@ void MainForm::initViewMenu(){
 	}
 	
 }
-void MainForm::setContourSelect(bool /*on*/)
-{
-	/* Do nothing until implemented:
-	if (!on) return;
-	Session* currentSession = Session::getInstance();
-	if (currentMouseMode != Command::contourMode){
-		VizWinMgr::getInstance()->setSelectionMode(Command::contourMode);
-	
-		//bring up the tab, but don't put into history:
-		currentSession->blockRecording();
-		contourPlanes();
-		currentSession->unblockRecording();
-		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::contourMode));
-		currentMouseMode = Command::contourMode;
-	}
-	*/
-}
+
 /*
- * Set all the mode buttons off
+ * Set all the mode buttons off, except navigation
  */
 void MainForm::resetModeButtons(){
-	navigationAction->setOn(false);
+	navigationAction->setOn(true);
 	probeAction->setOn(false);
 	regionSelectAction->setOn(false);
 	contourAction->setOn(false);
 	moveLightsAction->setOn(false);
+	rakeAction->setOn(false);
 }
 //Make all the current region/animation settings available to IDL
 void MainForm::exportToIDL(){
