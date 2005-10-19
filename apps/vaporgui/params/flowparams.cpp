@@ -1470,10 +1470,16 @@ regenerateFlowData(int timeStep){
 	///call the flowlib
 	if (flowType == 0){ //steady
 		
-		myFlowLib->GenStreamLines(flowData[timeStep], maxPoints, randomSeed, speeds);
-		
+		bool rc = myFlowLib->GenStreamLines(flowData[timeStep], maxPoints, randomSeed, speeds);
+		//If failed to build streamline, force  rendering to stop by inserting
+		//END_FLOW_FLAG at the start of each streamline
+		if (!rc){
+			for (int q = 0; q < numSeedPoints; q++){
+				*(flowData[timeStep]+3*q*maxPoints) = END_FLOW_FLAG;
+			}
+		}
 	} else {
-		
+		//Can ignore false return code, streaks will just stop at bad frame(?)
 		myFlowLib->GenStreakLines(flowData[0], maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
 		// With streaklines, need to fill flags to end, and fill speeds as well
 		for (int q = 0; q< numSeedPoints*numInjections; q++){

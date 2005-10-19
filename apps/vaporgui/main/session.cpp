@@ -727,7 +727,8 @@ setupDataStatus(){
 				MyBase::SetErrMsgCB(errorCallbackFcn);
 				
 				if(mnmx.size()!= 2){
-					MessageReporter::warningMsg("%s","Missing DataRange in dataset; [0,1] assumed");
+					MessageReporter::warningMsg("Missing DataRange in variable %s, at timestep %d \n Interval [0,1] assumed",
+						currentMetadata->GetVariableNames()[var].c_str(), ts);
 					minMax.push_back(0.);
 					minMax.push_back(1.);
 					MyBase::SetErrCode(0);
@@ -913,6 +914,8 @@ errorCallbackFcn(const char* msg, int err_code){
 	strng += "\n Message: ";
 	strng += msg;
 	MessageReporter::warningMsg(strng.ascii());
+	//Turn off error:
+	MyBase::SetErrCode(0);
 }
 //Diagnostic message callback:
 void Session::

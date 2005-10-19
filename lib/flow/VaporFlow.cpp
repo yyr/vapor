@@ -185,7 +185,17 @@ void VaporFlow::SetIntegrationParams(float initStepSize, float maxStepSize)
 //////////////////////////////////////////////////////////////////////////
 float* VaporFlow::GetData(size_t ts, const char* varName)
 {
-	return dataMgr->GetRegion(ts, varName, numXForms, minRegion, maxRegion);
+	//AN 10/19/05
+	//Trap read errors:
+	//
+	ErrMsgCB_T errorCallback = GetErrMsgCB();
+	SetErrMsgCB(0);
+	float *regionData = dataMgr->GetRegion(ts, varName, numXForms, minRegion, maxRegion);
+	SetErrMsgCB(errorCallback);
+	if (!regionData) {
+		SetErrMsg("Error loading field data for timestep %d, variable %s",ts, varName);
+	}
+	return regionData;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -234,6 +244,15 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pUData[0] = GetData(startTimeStep, xVarName);
 	pVData[0] = GetData(startTimeStep, yVarName);
 	pWData[0] = GetData(startTimeStep, zVarName);
+	//AN 10/19/05
+	//Check for invalid data
+	//Note that read errors were already reported by GetData
+	//
+	if (pUData[0] == 0 || pVData[0] == 0 || pWData[0] == 0){
+		delete[] seedPtr;
+		return false;
+	}
+
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
 	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
 	pSolution->SetTime(startTimeStep, startTimeStep);
@@ -432,13 +451,38 @@ bool VaporFlow::GenStreakLines(float* positions,
 		if((iFor%timeStepIncrement) == 0)
 		{
 			//For the first sample time, get data for current time (get the next sampled timestep in next line)
-			if(iFor == realStartTime)
-				pField->SetSolutionData(iTemp,GetData(iFor, xVarName),GetData(iFor, yVarName),GetData(iFor, zVarName));
+			if(iFor == realStartTime){
+				//AN 10/19/05
+				//Check for valid data, return false if invalid
+				//
+				float* xDataPtr = GetData(iFor,xVarName); 
+				float* yDataPtr = GetData(iFor,yVarName); 
+				float* zDataPtr = GetData(iFor,zVarName); 
+				if (xDataPtr == 0 || yDataPtr == 0 || zDataPtr == 0){
+					// release resources
+					delete[] pUserTimeSteps;
+					delete[] pointers;
+					delete[] seedPtr;
+					delete pStreakLine;
+					delete pField;
+					return false;
+				}
+				pField->SetSolutionData(iTemp,xDataPtr,yDataPtr,zDataPtr);
+			}
 			//otherwise just get next sampled timestep.
-			pField->SetSolutionData(iTemp+1, 
-									GetData(iFor+timeStepIncrement, xVarName),
-									GetData(iFor+timeStepIncrement, yVarName),
-									GetData(iFor+timeStepIncrement, zVarName));
+			float* xDataPtr = GetData(iFor+timeStepIncrement,xVarName); 
+			float* yDataPtr = GetData(iFor+timeStepIncrement,yVarName); 
+			float* zDataPtr = GetData(iFor+timeStepIncrement,zVarName); 
+			if (!xDataPtr || !yDataPtr || !zDataPtr){
+				// release resources
+				delete[] pUserTimeSteps;
+				delete[] pointers;
+				delete[] seedPtr;
+				delete pStreakLine;
+				delete pField;
+				return false;
+			}
+			pField->SetSolutionData(iTemp+1,xDataPtr,yDataPtr,zDataPtr); 
 		}
 
 		// whether inject new seeds this time?
