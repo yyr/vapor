@@ -2130,7 +2130,10 @@ mapColors(float* speeds, int currentTimeStep){
 						opacVar = 0.f;
 						break;
 					case (1): //age
-						opacVar = (float)k*((float)(lastDisplayFrame+firstDisplayFrame))/(objectsPerFlowline+1.f);
+						if (flowIsSteady())
+							opacVar = (float)k*((float)(lastDisplayFrame))/((float)objectsPerFlowline);
+						else
+							opacVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
 						break;
 					case (2): //speed
 						opacVar = speeds[(k+ maxPoints*(j+ (numSeedPoints*i)))];
@@ -2157,7 +2160,10 @@ mapColors(float* speeds, int currentTimeStep){
 						colorVar = 0.f;
 						break;
 					case (1): //age
-						colorVar = (float)k*((float)(lastDisplayFrame+firstDisplayFrame))/(objectsPerFlowline+1.f);
+						if (flowIsSteady())
+							colorVar = (float)k*((float)(lastDisplayFrame))/((float)objectsPerFlowline);
+						else
+							colorVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
 						break;
 					case (2): //speed
 						colorVar = speeds[(k+ maxPoints*(j+ (numSeedPoints*i)))];
@@ -2483,6 +2489,8 @@ float FlowParams::maxRange(int index){
 bool FlowParams::
 validateSampling()
 {
+	//Don't do anything if no data has been read:
+	if (!Session::getInstance()->getDataMgr()) return false;
 	bool changed = false;
 	if (timeSamplingStart < minFrame || timeSamplingStart > maxFrame){
 		timeSamplingStart = minFrame;
