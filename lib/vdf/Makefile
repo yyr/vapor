@@ -25,6 +25,7 @@ ifeq ($(BUILD_AMR_SUPPORT), 1)
 
 FILES +=     AMRTree AMRTreeBranch AMRData AMRDataIO
 HEADER_FILES +=     AMRTree AMRTreeBranch AMRData AMRDataIO
+endif
 
 ifdef	NETCDF_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
@@ -34,7 +35,6 @@ ifdef NETCDF_LIB_PATH
 MAKEFILE_LDFLAGS += -L$(NETCDF_LIB_PATH) -lnetcdf_c++ -lnetcdf 
 endif
 
-endif
 
 #LIB_DEFS = vdf.def
   
