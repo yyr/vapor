@@ -14,5 +14,9 @@ ifdef   EXPAT_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
 endif
 
+ifdef   NETCDF_INC_PATH
+MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
+endif
+
 include ${TOP}/make/config/base.mk
 

@@ -11,7 +11,7 @@ void	WaveletBlock3DReader::_WaveletBlock3DReader(
 	int	j;
 	SetClassName("WaveletBlock3DReader");
 
-	xform_timer_c = 0.0;
+	_xform_timer = 0.0;
 	slab_cntr_c = 0;
 	scratch_block_c = NULL;
 
@@ -26,6 +26,7 @@ WaveletBlock3DReader::WaveletBlock3DReader(
 ) : WaveletBlock3DIO((Metadata *) metadata, nthreads) {
 
 	_objInitialized = 0;
+	if (WaveletBlock3DIO::GetErrCode()) return;
 
 	_WaveletBlock3DReader();
 	
@@ -38,6 +39,7 @@ WaveletBlock3DReader::WaveletBlock3DReader(
 ) : WaveletBlock3DIO(metafile, nthreads) {
 
 	_objInitialized = 0;
+	if (WaveletBlock3DIO::GetErrCode()) return;
 	
 	_WaveletBlock3DReader();
 
@@ -48,7 +50,9 @@ WaveletBlock3DReader::~WaveletBlock3DReader(
 ) {
 	if (! _objInitialized) return;
 
-	CloseVariable();
+	this->VAPoR::WaveletBlock3DIO::~WaveletBlock3DIO();
+
+	WaveletBlock3DReader::CloseVariable();
 
 	_objInitialized = 0;
 }
@@ -56,13 +60,13 @@ WaveletBlock3DReader::~WaveletBlock3DReader(
 int	WaveletBlock3DReader::OpenVariableRead(
 	size_t timestep,
 	const char	*varname,
-	size_t num_xforms
+	int reflevel
 ) {
 	int	rc;
 
 	slab_cntr_c = 0;
 
-	rc = WaveletBlock3DIO::OpenVariableRead(timestep, varname, num_xforms);
+	rc = WaveletBlock3DIO::OpenVariableRead(timestep, varname, reflevel);
 	if (rc<0) return(rc);
 	rc = my_alloc();
 	if (rc<0) return(rc);
@@ -82,7 +86,6 @@ int	WaveletBlock3DReader::ReadSlabs(
 ) {
 	float		*dst_buf;
 	float		*src_buf;
-	int levels = max_xforms_c - num_xforms_c;
 
 	size_t dst_nb[3]; // # of lambda blocks in each dimension
 	size_t lambda_nb[3]; // # of lambda blocks in each dimension
@@ -93,18 +96,16 @@ int	WaveletBlock3DReader::ReadSlabs(
 	static int	first = 1;
 
 	// if reading from the coarsest level
-	if (levels==0) {
+	if (_reflevel==0) {
 		int	nb;
 
-		TIMER_START(t0)
-
-		GetDimBlk(max_xforms_c, lambda_nb);
+		GetDimBlk(lambda_nb, 0);
 
 		if (slab_cntr_c+2 <= (int)lambda_nb[2]) nb = (int)(lambda_nb[0] * lambda_nb[1] * 2);
 		else nb = (int)(lambda_nb[0] * lambda_nb[1]); // odd # of slabs
 
 
-		memset(two_slabs, 0, nb*block_size_c*4);
+		memset(two_slabs, 0, nb*_block_size*4);
 		if (! first) return(0);
 
 		if (! unblock) {
@@ -124,19 +125,18 @@ int	WaveletBlock3DReader::ReadSlabs(
 				const size_t bcoord[] = {x,y,z};
 				const size_t min[] = {0,0,0};
 				const size_t max[] = {
-					lambda_nb[0]*bs_c-1,lambda_nb[1]*bs_c-1,2*bs_c-1
+					lambda_nb[0]*_bs[0]-1,lambda_nb[1]*_bs[1]-1,2*_bs[2]-1
 				};
 
 				Block2NonBlock(
 					srcptr, bcoord, min, max, two_slabs
 				);
-				srcptr += block_size_c;
+				srcptr += _block_size;
 			}
 			}
 			}
 			slab_cntr_c += 2;
 		}
-		TIMER_STOP(t0, xform_timer_c)
 		return(0);
 	}
 
@@ -150,19 +150,19 @@ int	WaveletBlock3DReader::ReadSlabs(
 	// largest 2^(levels-j), that is a factor of the current slab counter
 	//
 	for(
-		j=levels;
-		((slab_cntr_c % (1 << (levels-j+1))) == 0) && j>0; 
+		j=_reflevel;
+		((slab_cntr_c % (1 << (_reflevel-j+1))) == 0) && j>0; 
 		j--
 	);
 
 
 	if (j==0) { // top of tree => read lambda blocks
 
-		GetDimBlk(max_xforms_c, lambda_nb);
+		GetDimBlk(lambda_nb, 0);
 
 		// altenate between slab 0 and slab 1
-		if (((slab_cntr_c / (1<<levels)) % 2) == 1) {
-			offset = (int)(lambda_nb[0] * lambda_nb[1] * block_size_c);
+		if (((slab_cntr_c / (1<<_reflevel)) % 2) == 1) {
+			offset = (int)(lambda_nb[0] * lambda_nb[1] * _block_size);
 		}
 		else {
 			offset = 0;
@@ -176,35 +176,35 @@ int	WaveletBlock3DReader::ReadSlabs(
 
 	}
 
-	while (j<levels) {
+	while (j<_reflevel) {
 
-		GetDimBlk(max_xforms_c-j, lambda_nb);
-		GetDimBlk(max_xforms_c-j-1, dst_nb);
+		GetDimBlk(lambda_nb, j);
+		GetDimBlk(dst_nb, j+1);
 
 		// Calculate offset into temp storage for lambda blocks
 		// at the current level. Alternate between "left" and
 		// "right" side of the tree at every level.
 		//
-		if (((slab_cntr_c / (1<<(levels-j))) % 2) == 1) {
-			offset = (int)(lambda_nb[0] * lambda_nb[1] * block_size_c);
+		if (((slab_cntr_c / (1<<(_reflevel-j))) % 2) == 1) {
+			offset = (int)(lambda_nb[0] * lambda_nb[1] * _block_size);
 		}
 		else {
 			offset = 0;
 		}
 		src_buf = &lambda_blks_c[j][offset];
 
-		if (j==levels-1 && !unblock) {
+		if (j==_reflevel-1 && !unblock) {
 			dst_buf = two_slabs;
 		} else {
 			dst_buf = lambda_blks_c[j+1];
 		}
 
 		rc = read_slabs(
-			max_xforms_c-j-1, src_buf, (int)lambda_nb[0], (int)lambda_nb[1], 
+			j+1, src_buf, (int)lambda_nb[0], (int)lambda_nb[1], 
 			dst_buf, (int)dst_nb[0], (int)dst_nb[1]
 		);
 
-		if (j==levels-1 && unblock) {
+		if (j==_reflevel-1 && unblock) {
 			int x,y,z;
 			float *srcptr = lambda_blks_c[j+1];
 
@@ -214,12 +214,12 @@ int	WaveletBlock3DReader::ReadSlabs(
 				const size_t bcoord[3] = {x,y,z};
 				const size_t min[] = {0,0,0};
 				const size_t max[] = {
-					dst_nb[0]*bs_c-1,dst_nb[1]*bs_c-1,2*bs_c-1
+					dst_nb[0]*_bs[0]-1,dst_nb[1]*_bs[1]-1,2*_bs[2]-1
 				};
 				Block2NonBlock(
 					srcptr, bcoord, min, max, two_slabs
 				);
-				srcptr += block_size_c;
+				srcptr += _block_size;
 			}
 			}
 			}
@@ -231,7 +231,6 @@ int	WaveletBlock3DReader::ReadSlabs(
 	}
 	slab_cntr_c += 2;
 
-	TIMER_STOP(t0, xform_timer_c)
 	return(0);
 }
 
@@ -248,14 +247,14 @@ int	WaveletBlock3DReader::read_slabs(
 	int	x,y;
 
 	float	*slab1 = two_slabs;
-	float	*slab2 = slab1 + (block_size_c * dst_nbx * dst_nby);
+	float	*slab2 = slab1 + (_block_size * dst_nbx * dst_nby);
 
 	const float	*src_super_blk[8];
 	float		*dst_super_blk[8];
 
 	src_super_blk[0] = src_lambda_buf;
 	for(i=1; i<8; i++) {
-		src_super_blk[i] = super_block_c + (block_size_c * (i-1));
+		src_super_blk[i] = super_block_c + (_block_size * (i-1));
 	}
 
 	//
@@ -264,20 +263,20 @@ int	WaveletBlock3DReader::read_slabs(
 	for(y=0; y<src_nby; y++) {
 	for(x=0; x<src_nbx; x++) {
 
-		rc = readGammaBlocks(1, level, super_block_c);
+		rc = readGammaBlocks(1, super_block_c, level);
 		if (rc<0) return(rc);
 
 		dst_super_blk[0] = slab1;
-		dst_super_blk[1] = slab1 + block_size_c;
-		dst_super_blk[2] = slab1 + (block_size_c * dst_nbx);
-		dst_super_blk[3] = slab1 + (block_size_c * dst_nbx) + block_size_c;
+		dst_super_blk[1] = slab1 + _block_size;
+		dst_super_blk[2] = slab1 + (_block_size * dst_nbx);
+		dst_super_blk[3] = slab1 + (_block_size * dst_nbx) + _block_size;
 		dst_super_blk[4] = slab2;
-		dst_super_blk[5] = slab2 + block_size_c;
-		dst_super_blk[6] = slab2 + (block_size_c * dst_nbx);
-		dst_super_blk[7] = slab2 + (block_size_c * dst_nbx) + block_size_c;
+		dst_super_blk[5] = slab2 + _block_size;
+		dst_super_blk[6] = slab2 + (_block_size * dst_nbx);
+		dst_super_blk[7] = slab2 + (_block_size * dst_nbx) + _block_size;
 
-		slab1 += 2*block_size_c;
-		slab2 += 2*block_size_c;
+		slab1 += 2*_block_size;
+		slab2 += 2*_block_size;
 
         // Deal with boundary conditions for slabs with odd dimensions
         //
@@ -288,16 +287,18 @@ int	WaveletBlock3DReader::read_slabs(
         if ((x*2)+2 > dst_nbx) {
             dst_super_blk[1] = dst_super_blk[3] = dst_super_blk[5] =
             dst_super_blk[7] = scratch_block_c;
-			slab1 -= block_size_c;
-			slab2 -= block_size_c;
+			slab1 -= _block_size;
+			slab2 -= _block_size;
         }
 
+		TIMER_START(t0)
 		wb3d_c->InverseTransform(src_super_blk,dst_super_blk);
+		TIMER_STOP(t0, _xform_timer)
 
-		src_super_blk[0] += block_size_c;
+		src_super_blk[0] += _block_size;
 	}
-	slab1 += (block_size_c * dst_nbx);
-	slab2 += (block_size_c * dst_nbx);
+	slab1 += (_block_size * dst_nbx);
+	slab2 += (_block_size * dst_nbx);
 	}
 	return(0);
 }
@@ -309,12 +310,12 @@ int	WaveletBlock3DReader::my_alloc(
 	int	j;
 
 	// alloc space from coarsest (j==0) to finest level
-	for(j=0; j<=max_xforms_c; j++) {
+	for(j=0; j<_num_reflevels; j++) {
 		size_t nb_j[3];
 
-		GetDimBlk(max_xforms_c-j, nb_j);
+		GetDimBlk(nb_j, j);
 
-		size = (int)(nb_j[0] * nb_j[1] * block_size_c * 2);
+		size = (int)(nb_j[0] * nb_j[1] * _block_size * 2);
 
 		lambda_blks_c[j] = new float[size];
 		if (! lambda_blks_c[j]) {
@@ -323,7 +324,7 @@ int	WaveletBlock3DReader::my_alloc(
 		}
 
 	}
-	scratch_block_c = new float[block_size_c];
+	scratch_block_c = new float[_block_size];
 
 	return(0);
 }

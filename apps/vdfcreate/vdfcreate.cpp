@@ -13,9 +13,9 @@ int	cvtToExtents(const char *from, void *to);
 
 struct {
 	OptionParser::Dimension3D_T	dim;
+	OptionParser::Dimension3D_T	bs;
 	int	numts;
-	int	bs;
-	int	nxforms;
+	int	level;
 	int	nfilter;
 	int	nlifting;
 	char *comment;
@@ -30,8 +30,8 @@ struct {
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"dimension",1, "512x512x512",	"Volume dimensions (NXxNYxNZ)"},
 	{"numts",	1, 	"1",			"Number of timesteps"},
-	{"bs",		1, 	"32",			"Internal storage blocking factor"},
-	{"nxforms",	1, 	"0",			"Number of forward wavelet transforms to apply"},
+	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor"},
+	{"level",	1, 	"0",			"Maximum refinement level. 0 => no refinement"},
 	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients"},
 	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients"},
 	{"comment",	1,	"",				"Top-level comment"},
@@ -47,9 +47,9 @@ OptionParser::OptDescRec_T	set_opts[] = {
 
 OptionParser::Option_T	get_options[] = {
 	{"dimension", VetsUtil::CvtToDimension3D, &opt.dim, sizeof(opt.dim)},
+	{"bs", VetsUtil::CvtToDimension3D, &opt.bs, sizeof(opt.bs)},
 	{"numts", VetsUtil::CvtToInt, &opt.numts, sizeof(opt.numts)},
-	{"bs", VetsUtil::CvtToInt, &opt.bs, sizeof(opt.bs)},
-	{"nxforms", VetsUtil::CvtToInt, &opt.nxforms, sizeof(opt.nxforms)},
+	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"nfilter", VetsUtil::CvtToInt, &opt.nfilter, sizeof(opt.nfilter)},
 	{"nlifting", VetsUtil::CvtToInt, &opt.nlifting, sizeof(opt.nlifting)},
 	{"comment", VetsUtil::CvtToString, &opt.comment, sizeof(opt.comment)},
@@ -66,7 +66,7 @@ int	main(int argc, char **argv) {
 
 	OptionParser op;
 
-	size_t bs;
+	size_t bs[3];
 	size_t dim[3];
 	string	s;
 	Metadata *file;
@@ -94,16 +94,18 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	bs = opt.bs;
+	bs[0] = opt.bs.nx;
+	bs[1] = opt.bs.ny;
+	bs[2] = opt.bs.nz;
 	dim[0] = opt.dim.nx;
 	dim[1] = opt.dim.ny;
 	dim[2] = opt.dim.nz;
 
 	if (opt.mtkcompat) {
-		file = new Metadata(dim,opt.nxforms,bs,opt.nfilter,opt.nlifting, 0, 0);
+		file = new Metadata(dim,opt.level,bs,opt.nfilter,opt.nlifting, 0, 0);
 	}
 	else {
-		file = new Metadata(dim,opt.nxforms,bs,opt.nfilter,opt.nlifting);
+		file = new Metadata(dim,opt.level,bs,opt.nfilter,opt.nlifting);
 	}
 
 	if (Metadata::GetErrCode()) {

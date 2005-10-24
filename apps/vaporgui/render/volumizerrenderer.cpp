@@ -186,7 +186,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	}
 
 		
-	int bs = myMetadata->GetBlockSize();
+	const size_t *bs = myMetadata->GetBlockSize();
 		
 	//Note that this function will be called again by the renderer
 	myRegionParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numxforms, minFull, maxFull, extents);
@@ -246,14 +246,14 @@ DrawVoxelScene(unsigned /*fast*/)
 		
 		for(i=0; i<3; i++) {
 			while(min_bdim[i] > 0) {
-				min_dim[i] -= bs; max_dim[i] -= bs;
+				min_dim[i] -= bs[i]; max_dim[i] -= bs[i];
 				min_bdim[i] -= 1; max_bdim[i] -= 1;
 			}
 		}
 		
-		nx = (max_bdim[0] - min_bdim[0] + 1) * bs;
-		ny = (max_bdim[1] - min_bdim[1] + 1) * bs;
-		nz = (max_bdim[2] - min_bdim[2] + 1) * bs;
+		nx = (max_bdim[0] - min_bdim[0] + 1) * bs[0];
+		ny = (max_bdim[1] - min_bdim[1] + 1) * bs[1];
+		nz = (max_bdim[2] - min_bdim[2] + 1) * bs[2];
 		
 		data_roi[0] = min_dim[0];
 		data_roi[1] = min_dim[1];

@@ -73,15 +73,15 @@ public:
  //!
  //! GetRegion() will first check to see if the requested region resides
  //! in cache. If so, no reads are performed.
- //! The \p ts, \p varname, and \p num_xforms pararmeter tuple identifies 
- //! the time step, variable name, and forward transformation level, 
+ //! The \p ts, \p varname, and \p level pararmeter tuple identifies 
+ //! the time step, variable name, and refinement level, 
  //! respectively, of the requested volume.
  //! The \p min and \p max vectors identify the minium and
  //! maximum extents, in block coordinates, of the subregion of interest. The
  //! minimum valid value of \p min is (0,0,0), the maximum valid value of
  //! \p max is (nbx-1,nby-1,nbz-1), where nbx, nby, and nbz are the block
  //! dimensions
- //! of the volume at the resolution indicated by \p num_xforms. I.e.
+ //! of the volume at the resolution indicated by \p level. I.e.
  //! the coordinates are specified relative to the desired volume
  //! resolution. If the requested region is available, GetRegion() returns 
  //! a pointer to memory containing the region. Subsequent calls to GetRegion()
@@ -98,7 +98,7 @@ public:
  //! \param[in] ts A valid time step from the Metadata object used 
  //! to initialize the class
  //! \param[in] varname A valid variable name 
- //! \param[in] num_xforms Transformation number requested
+ //! \param[in] level Refinement level requested
  //! \param[in] min Minimum region bounds in blocks
  //! \param[in] max Maximum region bounds in blocks
  //! \param[in] lock If true, the memory region will be locked into the 
@@ -110,7 +110,7 @@ public:
  float   *GetRegion(
     size_t ts,
     const char *varname,
-    size_t num_xforms,
+    int reflevel,
     const size_t min[3],
     const size_t max[3],
     int lock = 0
@@ -132,7 +132,7 @@ public:
  //! \param[in] ts A valid time step from the Metadata object used 
  //! to initialize the class
  //! \param[in] varname A valid variable name 
- //! \param[in] num_xforms Transformation number requested
+ //! \param[in] reflevel Transformation number requested
  //! \param[in] min Minimum region bounds in blocks
  //! \param[in] max Maximum region bounds in blocks
  //! \param[in] range A two-element vector specifying the minimum and maximum
@@ -146,7 +146,7 @@ public:
  unsigned char   *GetRegionUInt8(
     size_t ts,
     const char *varname,
-    size_t num_xforms,
+    int reflevel,
     const size_t min[3],
     const size_t max[3],
 	const float range[2],
@@ -161,9 +161,9 @@ public:
  //! \retval range A two-element vector containing the current 
  //! minimum and maximum or NULL if the variable is not known
  //! quantization mapping.
- //! \sa SetDataRange()
+ //! \sa SetQuantizationRange()
  //
- const float	*GetDataRange(const char *varname) const;
+ const float	*GetQuantizationRange(const char *varname) const;
 #endif
 
  //! Unlock a floating-point region of memory 
@@ -198,6 +198,21 @@ public:
     unsigned char *region
  );
 
+ //! Return the current data range as a two-element array
+ //!
+ //! This method returns the minimum and maximum data values
+ //! for the indicated time step and variable
+ //!
+ //! \param[in] ts A valid time step from the Metadata object used 
+ //! to initialize the class
+ //! \param[in] varname Name of variable 
+ //! \retval range A two-element vector containing the current 
+ //! minimum and maximum or NULL if the variable is not known
+ //! quantization mapping.
+ //!
+ //
+ const float	*GetDataRange(size_t ts, const char *varname);
+
  
  //! Return the WaveletBlock3DRegionReader class object associated
  //! with this class instance.
@@ -221,7 +236,7 @@ private:
  enum _dataTypes_t {UINT8,UINT16,UINT32,FLOAT32};
 
  typedef struct {
-	size_t num_xforms;
+	int reflevel;
 	size_t min[3];
 	size_t max[3];
 	_dataTypes_t	type;
@@ -231,7 +246,9 @@ private:
  } region_t;
 
  // min and max bounds for quantization
- map <string, float *> _dataRangeMap;	
+ map <string, float *> _quantizationRangeMap;	
+
+ map <size_t, map<string, float *> > _dataRangeMap;
 
  map <size_t, map<string, vector<region_t *> > > _regionsMap;
 
@@ -248,7 +265,7 @@ private:
  void	*get_region_from_cache(
 	size_t ts,
 	const char *varname,
-	size_t num_xforms,
+	int reflevel,
 	_dataTypes_t    type,
 	const size_t min[3],
 	const size_t max[3],
@@ -258,7 +275,7 @@ private:
  void    *alloc_region(
 	size_t ts,
 	const char *varname,
-	size_t num_xforms,
+	int reflevel,
 	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3],
@@ -268,13 +285,13 @@ private:
  int	free_region(
 	size_t ts,
 	const char *varname,
-	size_t num_xforms,
+	int reflevel,
 	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3]
  );
 
- int	set_data_range(const char *varname, const float range[2]);
+ int	set_quantization_range(const char *varname, const float range[2]);
 
  void	free_all();
  void	free_var(const string &, int do_native);

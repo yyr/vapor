@@ -21,6 +21,7 @@
 //
 #include <iostream>
 #include <cassert>
+#include "vapor/Base64.h"
 #include "vapor/XmlNode.h"
 
 using namespace VAPoR;
@@ -41,6 +42,7 @@ XmlNode::XmlNode(
 	_emptyLongVec.clear();
 	_emptyDoubleVec.clear();
 	_emptyString.clear();
+	_asciiLimit = 1024;
 
 	if (numChildrenHint) _children.reserve(numChildrenHint);
 
@@ -73,7 +75,9 @@ XmlNode::~XmlNode() {
 }
 
 
-int XmlNode::SetElementLong(const string &tag, const vector<long> &values) {
+vector<long> &XmlNode::SetElementLong(
+	const string &tag, const vector<long> &values
+) {
 
 	vector<long> *vptr;
 
@@ -97,10 +101,10 @@ int XmlNode::SetElementLong(const string &tag, const vector<long> &values) {
 		v[i] = values[i];
 	}
 
-	return(0);
+	return(v);
 }
 	
-const vector<long> &XmlNode::GetElementLong(const string &tag) const {
+vector<long> &XmlNode::GetElementLong(const string &tag) {
 
 	map <string, vector<long>*>::const_iterator p = _longmap.find(tag);
 
@@ -111,7 +115,7 @@ const vector<long> &XmlNode::GetElementLong(const string &tag) const {
 		return(_emptyLongVec);
 	}
 
-	const vector<long> *vptr = p->second;
+	vector<long> *vptr = p->second;
 	return(*vptr);
 }
 
@@ -120,7 +124,9 @@ int XmlNode::HasElementLong(const string &tag) const {
 	return(p != _longmap.end());
 }
 
-int XmlNode::SetElementDouble(const string &tag, const vector<double> &values) {
+vector<double> &XmlNode::SetElementDouble(
+	const string &tag, const vector<double> &values
+) {
 
 	vector<double> *vptr;
 
@@ -144,10 +150,10 @@ int XmlNode::SetElementDouble(const string &tag, const vector<double> &values) {
 		v[i] = values[i];
 	}
 
-	return(0);
+	return(v);
 }
 	
-const vector<double> &XmlNode::GetElementDouble(const string &tag) const {
+vector<double> &XmlNode::GetElementDouble(const string &tag) {
 
 	map <string, vector<double>*>::const_iterator p = _doublemap.find(tag);
 
@@ -168,12 +174,10 @@ int XmlNode::HasElementDouble(const string &tag) const {
 	return(p != _doublemap.end());
 }
 
-int XmlNode::SetElementString(const string &tag, const string &str) {
-
-
+string &XmlNode::SetElementString(
+	const string &tag, const string &str
+) {
 	map <string, string>::iterator p = _stringmap.find(tag);
-	string s = str;
-	StrRmWhiteSpace(s);
 
 	// see if entry for this key (tag) already exists
 	//
@@ -184,12 +188,12 @@ int XmlNode::SetElementString(const string &tag, const string &str) {
 		_stringmap[tag] = str;
 	}
 
-	return(0);
+	return(_stringmap[tag]);
 }
 	
-const string &XmlNode::GetElementString(const string &tag) const {
+string &XmlNode::GetElementString(const string &tag) {
 
-	map <string, string>::const_iterator p = _stringmap.find(tag);
+	map <string, string>::iterator p = _stringmap.find(tag);
 
 	// see if entry for this key (tag) already exists
 	//
@@ -227,12 +231,23 @@ void	XmlNode::AddChild( XmlNode* child)
 	return;
 }
 
+void XmlNode::_deleteChildren(XmlNode *node) {
+
+	for(int i = 0; i<_children.size(); i++) {
+		_deleteChildren(_children[i]);
+		delete _children[i];
+	}
+}
 
 int	XmlNode::DeleteChild(size_t index) {
 	if (index >= _children.size()) return(-1);
 
 	XmlNode	*node = _children[index];
+
+	_deleteChildren(node);	// recursively delete this node's children, if any
+
 	delete node;
+
 	_children.erase(_children.begin()+index);
 	return(0);
 }
@@ -318,15 +333,42 @@ std::ostream& operator<<(ostream& os, const VAPoR::XmlNode& node) {
 	for(; plong != node._longmap.end(); plong++) {
 		const string &tag = plong->first;
 
-		os << "<" << tag << " Type=\"Long\">" << endl << "  ";
 
 		vector<long> *vptr = plong->second;
 		vector<long> &v = *vptr;
 
-		for(i=0; i<(int)v.size(); i++) {
-			os << v[i] << " ";
+//		if (v.size() <= node._asciiLimit) {
+		if (1) {
+
+			os << "<" << tag << " Type=\"Long\">" << endl << "  ";
+
+			for(i=0; i<(int)v.size(); i++) {
+				os << v[i] << " ";
+			}
+			os << endl;
 		}
-		os << endl;
+		else {
+			unsigned long    lsb_first_test = 1;
+			int msbfirst = ! (*(char *) &lsb_first_test);
+
+			Base64 base64;
+			string str;
+			long l;
+
+			os << "<" << tag << " Type=\"Long\" Encoding=\"base64\" MSBFirst=";
+			os << msbfirst << ">" << endl;
+
+			str.reserve(base64.GetEncodeSize(sizeof(l) * v.size()));
+			str.clear();
+			base64.EncodeStreamBegin(str);
+			for(i=0; i<(int)v.size(); i++) {
+				l = v[i];
+				base64.EncodeStreamNext((unsigned char *) &l, sizeof(l), str);
+			}
+			base64.EncodeStreamEnd(str);
+			os << str;
+
+		}
 
 		os << "</" << tag << ">" << endl;
 	}

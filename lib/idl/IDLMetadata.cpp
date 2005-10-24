@@ -101,8 +101,10 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 		dim[1] = dimptr[1];
 		dim[2] = dimptr[2];
 
+		size_t bs[3] = {kw.bs,kw.bs,kw.bs};
+
 		metadata = new Metadata(
-			dim, nxforms,kw.bs, kw.nFilterCoef,kw.nLiftingCoef, kw.msbFirst
+			dim, nxforms,bs, kw.nFilterCoef,kw.nLiftingCoef, kw.msbFirst
 		);
 
 		if (dim_var != argv[0]) IDL_Deltmp(dim_var);
@@ -147,10 +149,19 @@ IDL_VPTR vdfMetadataGetBlockSize(int argc, IDL_VPTR *argv)
 {
 	Metadata *metadata = varGetMetadata(argv[0]);
 
-	size_t bs = metadata->GetBlockSize();
-	myBaseErrChk();
+	const size_t *bs = metadata->GetBlockSize();
 
-	return(IDL_GettmpLong((IDL_LONG) bs));
+	IDL_VPTR result;
+	IDL_LONG *lptr;
+
+	lptr = (IDL_LONG *) IDL_MakeTempVector(
+		IDL_TYP_LONG, 3, IDL_ARR_INI_NOP, &result
+	);
+	lptr[0] = bs[0];
+	lptr[1] = bs[1];
+	lptr[2] = bs[2];
+
+	return(result);
 }
 	
 IDL_VPTR vdfMetadataGetDimension(int argc, IDL_VPTR *argv)

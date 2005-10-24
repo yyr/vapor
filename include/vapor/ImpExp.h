@@ -36,7 +36,7 @@ public:
  ImpExp();
 
 
- ~ImpExp();
+ virtual ~ImpExp();
 
 
  //! Export a volume subregion description for use by another application

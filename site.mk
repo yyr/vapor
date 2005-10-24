@@ -9,6 +9,8 @@ HOST=$(shell hostname)
 endif
 endif
 
+BUILD_AMR_SUPPORT = 1
+
 #
 #	get VAPOR_INSTALL_DIR from the enviornment
 #
@@ -43,6 +45,8 @@ endif
 
 EXPAT_INC_PATH=/usr/freeware/include
 EXPAT_LIB_PATH=/usr/freeware/lib32
+NETCDF_INC_PATH=/fs/local/include
+NETCDF_LIB_PATH=/fs/local/lib
 BUILD_IDL_WRAPPERS = 1
 
 IDL_INC_PATH = /fs/local/apps/rsi/idl_6.1/external/include/
@@ -51,6 +55,7 @@ QTDIR=/fs/local/apps/qt-3.3.4
 ifdef BUILD64
 
 EXPAT_LIB_PATH=/usr/freeware/lib64
+NETCDF_LIB_PATH=/fs/local/64/lib
 
 IDL_INC_PATH = /fs/local/64/apps/rsi/idl_6.1/external/include/
 QTDIR=/fs/local/64/apps/qt-3.3.4
@@ -67,6 +72,8 @@ ifeq ($(ARCH),Linux)
 
 EXPAT_INC_PATH=/usr/include
 EXPAT_LIB_PATH=/usr/lib
+NETCDF_INC_PATH=/fs/local/include
+NETCDF_LIB_PATH=/fs/local/lib
 BUILD_IDL_WRAPPERS = 1
 IDL_INC_PATH=/fs/local/apps/rsi/idl_6.1/external/include
 QTDIR = /fs/local/apps/qt-3.3.4
@@ -90,6 +97,8 @@ ifeq ($(ARCH),AIX)
 
 EXPAT_INC_PATH=/home/bluesky/clyne/include
 EXPAT_LIB_PATH=/home/bluesky/clyne/lib
+NETCDF_INC_PATH=/usr/local/include
+NETCDF_LIB_PATH=/usr/local/lib
 BUILD_IDL_WRAPPERS = 0
 BUILD_GUI	= 0
 IDL_INC_PATH=/dev/null

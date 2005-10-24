@@ -44,20 +44,20 @@ Histo::Histo(unsigned char* data, int min_dim[3], int max_dim[3],
 	maxData = mxData;
 	numBins = 256;
 	reset();
-	int bs = Session::getInstance()->getCurrentMetadata()->GetBlockSize();
+	const size_t *bs = Session::getInstance()->getCurrentMetadata()->GetBlockSize();
 	// make subregion origin (0,0,0)
 	// Note that this doesn't affect the calc of nx,ny,nz.
 	//
 	for(int i=0; i<3; i++) {
 		while(min_bdim[i] > 0) {
-			min_dim[i] -= bs; max_dim[i] -= bs;
+			min_dim[i] -= bs[i]; max_dim[i] -= bs[i];
 			min_bdim[i] -= 1; max_bdim[i] -= 1;
 		}
 	}
 		
-	int nx = (max_bdim[0] - min_bdim[0] + 1) * bs;
-	int ny = (max_bdim[1] - min_bdim[1] + 1) * bs;
-	//int nz = (max_bdim[2] - min_bdim[2] + 1) * bs;
+	int nx = (max_bdim[0] - min_bdim[0] + 1) * bs[0];
+	int ny = (max_bdim[1] - min_bdim[1] + 1) * bs[1];
+	//int nz = (max_bdim[2] - min_bdim[2] + 1) * bs[2];
 	int ix, iy, iz;
 	for (ix = min_dim[0]; ix <= max_dim[0]; ix++){
 		for (iy = min_dim[1]; iy <= max_dim[1]; iy++) {

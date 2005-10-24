@@ -15,7 +15,6 @@ FUNCTION	vdc_regreadcreate	1	1
 FUNCTION	vdc_bufwritecreate	1	1
 FUNCTION	vdc_varexists		4	4
 FUNCTION	vdc_getdim			2	2
-FUNCTION	vdc_xformcoord		3	3
 FUNCTION	vdc_mapvox2user		4	4
 FUNCTION	vdc_mapuser2vox		4	4
 FUNCTION	vdc_isvalidreg		4	4

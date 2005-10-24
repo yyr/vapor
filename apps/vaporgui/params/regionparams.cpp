@@ -803,7 +803,7 @@ calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max
 {
 	int i;
 	float fullExtent[6];
-	int bs = Session::getInstance()->getCurrentMetadata()->GetBlockSize();
+	const size_t *bs = Session::getInstance()->getCurrentMetadata()->GetBlockSize();
 	for(i=0; i<3; i++) {
 		int	s = numxforms;
 		min_dim[i] = (int) ((float) (getCenterPosition(i) >> s) - 0.5 
@@ -823,8 +823,8 @@ calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max
 			}
 			else min_dim[i] = max_dim[i] - 1;
 		}
-		min_bdim[i] = min_dim[i] / bs;
-		max_bdim[i] = max_dim[i] / bs;
+		min_bdim[i] = min_dim[i] / bs[i];
+		max_bdim[i] = max_dim[i] / bs[i];
 	}
 	
 	for (i = 0; i< 3; i++){

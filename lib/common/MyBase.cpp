@@ -267,3 +267,21 @@ void	VetsUtil::StrRmWhiteSpace(string &s) {
 	}
 }
 
+unsigned long long VetsUtil::GetBits64(
+    unsigned long long targ,
+    int pos,
+    int n
+) {
+    return ((targ >> (pos+1-n)) & ~(~0ULL <<n));
+}
+
+unsigned long long VetsUtil::SetBits64(
+    unsigned long long targ,
+    int pos,
+    int n,
+    unsigned long long src
+) {
+        targ &= ~(~(~0ULL << n) << (pos+1 - n));
+        targ |= (src & ~(~0ULL << n)) << (pos+1-n);
+        return(targ);
+}

@@ -61,30 +61,34 @@ public:
 
  //! Open the named variable for reading
  //!
- //! This method prepares the multiresolution data volume indicated by a
+ //! This method prepares the multiresolution data volume, indicated by a
  //! variable name and time step pair, for subsequent read operations by
- //! methods of this class.  Furthermore, the number of forward transforms
- //! parameter, \p num_xforms indicates the resolution of the volume in
+ //! methods of this class.  Furthermore, the number of the refinement level
+ //! parameter, \p reflevel indicates the resolution of the volume in
  //! the multiresolution hierarchy. The valid range of values for
- //! \p num_xforms is [0..max_xforms], where \p max_xforms is the
- //! maximum number of forward transforms applied to the multiresolution
+ //! \p reflevel is [0..max_refinement], where \p max_refinement is the
+ //! maximum finement level of the data set: Metadata::GetNumTransforms() - 1.
  //! volume when the volume was created. A value of zero indicates the
- //! finest resolution data, a value of \p max_xforms indicates the
- //! coarsest resolution data.
+ //! coarsest resolution data, a value of \p max_refinement indicates the
+ //! finest resolution data.
  //!
  //! An error occurs, indicated by a negative return value, if the
- //! volume identified by the {varname, timestep, num_xforms} tripple
+ //! volume identified by the {varname, timestep, reflevel} tripple
  //! is not present on disk. Note the presence of a volume can be tested
  //! for with the VariableExists() method.
  //! \param[in] timestep Time step of the variable to read
  //! \param[in] varname Name of the variable to read
- //! \param[in] num_xforms Transformation level of the variable
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC
  //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
- int    OpenVariableRead(
-	size_t timestep, const char *varname, size_t num_xforms = 0
+ virtual int	OpenVariableRead(
+	size_t timestep,
+	const char *varname,
+	int reflevel = 0
  );
+
 
  int	CloseVariable();
 

@@ -20,6 +20,7 @@ WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(
 ) : WaveletBlock3DWriter(metadata, nthreads) {
 
 	_objInitialized = 0;
+	if (WaveletBlock3DWriter::GetErrCode()) return;
 
 	SetDiagMsg(
 		"WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(,%d)", nthreads
@@ -37,6 +38,7 @@ WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(
 ) : WaveletBlock3DWriter(metafile, nthreads) {
 
 	_objInitialized = 0;
+	if (WaveletBlock3DWriter::GetErrCode()) return;
 
 	SetDiagMsg(
 		"WaveletBlock3DBufWriter::WaveletBlock3DBufWriter(%s,%d)", 
@@ -54,7 +56,9 @@ WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter(
 
 	if (! _objInitialized) return;
 
-	CloseVariable();
+	this->VAPoR::WaveletBlock3DWriter::~WaveletBlock3DWriter();
+
+	WaveletBlock3DBufWriter::CloseVariable();
 
 	_objInitialized = 0;
 }
@@ -62,23 +66,23 @@ WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter(
 int	WaveletBlock3DBufWriter::OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	size_t num_xforms
+	int reflevel
 ) {
 	int	rc;
 	size_t size;
 
 	SetDiagMsg(
 		"WaveletBlock3DBufWriter::OpenVariableWrite(%d, %s,%d)", 
-		timestep, varname, num_xforms
+		timestep, varname, reflevel
 	);
 
 	slice_cntr_c = 0;
 	is_open_c = 1;
 
-	rc = WaveletBlock3DWriter::OpenVariableWrite(timestep, varname, num_xforms);
+	rc = WaveletBlock3DWriter::OpenVariableWrite(timestep, varname, reflevel);
 	if (rc<0) return(rc);
 
-	size = bdim_c[0] * bdim_c[1] * bs_c * bs_c * bs_c * 2;
+	size = _bdim[0] * _bdim[1] * _bs[0] * _bs[1] * _bs[2] * 2;
 	buf_c = new float[size];
 	if (! buf_c) {
 		SetErrMsg("new float[%d] : %s", size, strerror(errno));
@@ -97,13 +101,13 @@ int     WaveletBlock3DBufWriter::CloseVariable(
 
 	if (! is_open_c) return(0);
 
-	if (slice_cntr_c != dim_c[2]) {
-		SetErrMsg("File closed before exactly %d slices written", dim_c[2]);
+	if (slice_cntr_c != _dim[2]) {
+		SetErrMsg("File closed before exactly %d slices written", _dim[2]);
 	}
 
 	// May need to flush the buffer
 	//
-	if ((slice_cntr_c % (bs_c*2)) != 0) {	
+	if ((slice_cntr_c % (_bs[2]*2)) != 0) {	
 		int rc; 
 
 		rc = WaveletBlock3DWriter::WriteSlabs(buf_c);
@@ -125,7 +129,7 @@ static void	blockit(
 	int	ny,
 	int	nbx,
 	int	nby,
-	int	bs,
+	const size_t	bs[3],
 	int z
 ) {
 	const float *slcptr, *sptr;
@@ -133,19 +137,19 @@ static void	blockit(
 	int xx,yy;
 	int x,y;
 
-	int block_size = bs * bs * bs;
+	int block_size = bs[0] * bs[1] * bs[2];
 
 	for(yy=0; yy<nby; yy++) {
 	for(xx=0; xx<nbx; xx++) {
 
-		blkptr = slab + ((yy*nbx + xx) * block_size) + (z*bs*bs);
-		slcptr = slice + (yy*nx + xx) * bs;
+		blkptr = slab + ((yy*nbx + xx) * block_size) + (z*bs[0]*bs[1]);
+		slcptr = slice + (yy*nx + xx) * bs[0];
 
-		for(y=0;y<bs && yy*bs+y<ny; y++) {
+		for(y=0;y<bs[1] && yy*bs[1]+y<ny; y++) {
 			sptr = slcptr + (nx*y);
-			bptr = blkptr + (bs*y);
+			bptr = blkptr + (bs[1]*y);
 
-			for(x=0;x<bs && xx*bs+x<nx; x++) {
+			for(x=0;x<bs[0] && xx*bs[0]+x<nx; x++) {
 				*bptr++ = *sptr++;
 			}
 		}
@@ -167,30 +171,30 @@ int	WaveletBlock3DBufWriter::WriteSlice(
 		return(-1);
 	}
 
-	if (slice_cntr_c >= (int)dim_c[2]) {
-		SetErrMsg("WriteSlice() must be invoked exactly %d times", dim_c[2]);
+	if (slice_cntr_c >= (int)_dim[2]) {
+		SetErrMsg("WriteSlice() must be invoked exactly %d times", _dim[2]);
 		return(-1);
 	}
 
-	if (slice_cntr_c % (bs_c*2) == 0) {	
-		size = bdim_c[0] * bdim_c[1] * bs_c * bs_c * bs_c * 2;
+	if (slice_cntr_c % (_bs[2]*2) == 0) {	
+		size = _bdim[0] * _bdim[1] * _bs[0] * _bs[1] * _bs[2] * 2;
 		memset(buf_c, 0, size*sizeof(buf_c[0]));
 		bufptr_c = buf_c;
 	}
 
-	if ((slice_cntr_c + bs_c) % (bs_c*2) == 0) {
-		size = bdim_c[0] * bdim_c[1] * bs_c * bs_c * bs_c;
+	if ((slice_cntr_c + _bs[2]) % (_bs[2]*2) == 0) {
+		size = _bdim[0] * _bdim[1] * _bs[0] * _bs[1] * _bs[2];
 		bufptr_c = buf_c + size;
 	}
 
 	blockit(
-		slice, bufptr_c, (int)dim_c[0], (int)dim_c[1], (int)bdim_c[0],(int)bdim_c[1],(int)bs_c,
-		slice_cntr_c % bs_c
+		slice, bufptr_c, (int)_dim[0], (int)_dim[1], (int)_bdim[0],(int)_bdim[1],_bs,
+		slice_cntr_c % _bs[2]
 	);
 
 	slice_cntr_c++;
 
-	if (slice_cntr_c % (bs_c*2) == 0) {	
+	if (slice_cntr_c % (_bs[2]*2) == 0) {	
 		int rc; 
 
 		rc = WaveletBlock3DWriter::WriteSlabs(buf_c);

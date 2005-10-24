@@ -328,21 +328,16 @@ void	ImpExp::_endElementHandler1(ExpatParseMgr* pm,
 	const string &tag
 ) {
 	ExpatStackElement *state = pm->getStateStackTop();
-	int	rc;
 
 
 	if (StrCmpNoCase(state->data_type, _stringType) == 0) {
-		rc = _rootnode->SetElementString(tag, pm->getStringData());
+		_rootnode->SetElementString(tag, pm->getStringData());
 	}
 	else if (StrCmpNoCase(state->data_type, _longType) == 0) {
-		rc = _rootnode->SetElementLong(tag, pm->getLongData());
+		_rootnode->SetElementLong(tag, pm->getLongData());
 	}
 	else {
-		rc = _rootnode->SetElementDouble(tag, pm->getDoubleData());
-	}
-	if (rc < 0) {
-		string s(GetErrMsg()); pm->parseError("%s", s.c_str());
-		return;
+		_rootnode->SetElementDouble(tag, pm->getDoubleData());
 	}
 }
 

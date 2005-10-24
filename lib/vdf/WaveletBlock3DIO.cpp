@@ -18,58 +18,63 @@ using namespace VetsUtil;
 using namespace VAPoR;
 
 int    VDF_API mkdirhier(const string &dir);
-void	VDF_API mkpath(const string &basename, int level, string &path);
+void	VDF_API mkpath(const string &basename, int level, string &path, int v);
 void	VDF_API dirname(const string &path, string &dir);
+
+const string WaveletBlock3DIO::_blockDimXName = "BlockNx";
+const string WaveletBlock3DIO::_blockDimYName = "BlockNy";
+const string WaveletBlock3DIO::_blockDimZName = "BlockNz";
+const string WaveletBlock3DIO::_nBlocksDimName = "NumBlocks";
+const string WaveletBlock3DIO::_fileVersionName = "FileVersion";
+const string WaveletBlock3DIO::_refLevelName = "RefinementLevel";
+const string WaveletBlock3DIO::_nativeResName = "NativeResolution";
+const string WaveletBlock3DIO::_refLevelResName = "refinementLevelResolution";
+const string WaveletBlock3DIO::_filterCoeffName = "NumFilterCoeff";
+const string WaveletBlock3DIO::_liftingCoeffName = "NumLiftingCoeff";
+const string WaveletBlock3DIO::_scalarRangeName = "ScalarDataRange";
+const string WaveletBlock3DIO::_lambdaName = "Lambda";
+const string WaveletBlock3DIO::_gammaName = "Gamma";
 
 
 int	WaveletBlock3DIO::_WaveletBlock3DIO(
-	const Metadata	*metadata,
-	unsigned int	nthreads
 ) {
 	int	j;
 
 	SetClassName("WaveletBlock3DIO");
 
-	nthreads_c = nthreads;
+	if (_num_reflevels > MAX_LEVELS) {
+		SetErrMsg("Too many refinement levels");
+		return(-1);
+	}
 
-	read_timer_c = 0.0;
-	write_timer_c = 0.0;
-	seek_timer_c = 0.0;
-	xform_timer_c = 0.0;
+	_xform_timer = 0.0;
 
 	for(j=0; j<MAX_LEVELS; j++) {
 		file_ptrs_c[j] = NULL;
 		mins_c[j] = NULL;
 		maxs_c[j] = NULL;
 		_fileOffsets[j] = 0;
+		_ncfiles[j] = NULL;
+		_ncvars[j] = NULL;
+		_ncoffsets[j] = 0;
 	}
-	file_ptrs_c[MAX_LEVELS] = NULL;	// file_ptrs_c is size MAX_LEVELS+1
 
 	super_block_c = NULL;
 	block_c = NULL;
 	wb3d_c = NULL;
 
-	const size_t *dim = metadata_c->GetDimension();
-	for(int i=0; i<3; i++) dim_c[i] = dim[i];
 
-	bs_c = (int)metadata_c->GetBlockSize();
-
-	block_size_c = bs_c * bs_c * bs_c;
-
-	ntilde_c = metadata_c->GetLiftingCoef();
-	n_c = metadata_c->GetFilterCoef();
-	max_xforms_c = metadata_c->GetNumTransforms();
-	_msbFirst = metadata_c->GetMSBFirst();
+	ntilde_c = _metadata->GetLiftingCoef();
+	n_c = _metadata->GetFilterCoef();
+	_msbFirst = _metadata->GetMSBFirst();
 
 	// Backwords compatibility for pre version 1 files
 	//
-	if (metadata_c->GetVDFVersion() < 1) {
-		for (j=0; j<max_xforms_c+1; j++) {
+	if (_version < 1) {
+		for (j=0; j<_num_reflevels; j++) {
 			_fileOffsets[j] = get_file_offset(j);
 		}
 	}
-
-	GetDimBlk(0, bdim_c);
 
 	if (this->my_alloc() < 0) {
 		this->my_free();
@@ -84,12 +89,12 @@ int	WaveletBlock3DIO::_WaveletBlock3DIO(
 WaveletBlock3DIO::WaveletBlock3DIO(
 	Metadata	*metadata,
 	unsigned int	nthreads
-) {
-	_objInitialized = 0;
-	_doFreeMeta = 0;
+) : VDFIOBase(metadata, nthreads) {
 
-	metadata_c = metadata;
-	if (_WaveletBlock3DIO(metadata, nthreads) < 0) return;
+	_objInitialized = 0;
+	if (VDFIOBase::GetErrCode()) return;
+
+	if (_WaveletBlock3DIO() < 0) return;
 
 	_objInitialized = 1;
 }
@@ -97,14 +102,13 @@ WaveletBlock3DIO::WaveletBlock3DIO(
 WaveletBlock3DIO::WaveletBlock3DIO(
 	const char *metafile,
 	unsigned int	nthreads
-) {
+) : VDFIOBase(metafile, nthreads) {
 	_objInitialized = 0;
-	_doFreeMeta = 1;
 
-	metadata_c = new Metadata(metafile);
-	if (metadata_c->GetErrCode() != 0) return;
+	if (VDFIOBase::GetErrCode()) return;
 
-	if (_WaveletBlock3DIO(metadata_c, nthreads) < 0) return;
+	if (_WaveletBlock3DIO() < 0) return;
+
 	_objInitialized = 1;
 }
 
@@ -112,42 +116,37 @@ WaveletBlock3DIO::~WaveletBlock3DIO() {
 
 	if (! _objInitialized) return;
 
-#ifdef	TIMER
+	this->VAPoR::VDFIOBase::~VDFIOBase();
 
-	fprintf(stderr, "Read timer: %f\n", (float) read_timer_c);
-	fprintf(stderr, "Write timer: %f\n", (float) write_timer_c);
-	fprintf(stderr, "Seek timer: %f\n", (float) seek_timer_c);
-	fprintf(stderr, "Transform timer: %f\n", (float) xform_timer_c);
-
-#endif
 	my_free();
 
-	if (_doFreeMeta && metadata_c) delete metadata_c;
 	_objInitialized = 0;
 }
 
 int    WaveletBlock3DIO::VariableExists(
     size_t timestep,
     const char *varname,
-    size_t num_xforms
+    int reflevel
 ) {
 	string basename;
 
-	const string &bp = metadata_c->GetVBasePath(timestep, varname);
-	if (wb3d_c->GetErrCode() != 0 || bp.length() == 0) {
-		wb3d_c->SetErrCode(0);
+    if (reflevel < 0) reflevel = _num_reflevels - 1;
+
+	const string &bp = _metadata->GetVBasePath(timestep, varname);
+	if (_metadata->GetErrCode() != 0 || bp.length() == 0) {
+		_metadata->SetErrCode(0);
 		return (0);
 	}
 
 	// Path to variable file is relative to xml file, if it exists
-	if (metadata_c->GetParentDir() && bp[0] != '/') {
-		basename.append(metadata_c->GetParentDir());
+	if (_metadata->GetParentDir() && bp[0] != '/') {
+		basename.append(_metadata->GetParentDir());
 		basename.append("/");
 	}
 
 	// Path to variable file is relative to xml file, if it exists
-	if (metadata_c->GetMetafileName() && bp[0] != '/') {
-		string s = metadata_c->GetMetafileName();
+	if (_metadata->GetMetafileName() && bp[0] != '/') {
+		string s = _metadata->GetMetafileName();
 		string t;
 		size_t p = s.find_first_of(".");
 		if (p != string::npos) {
@@ -163,12 +162,8 @@ int    WaveletBlock3DIO::VariableExists(
     }
 	
 	basename.append(bp);
-	//AN:  Need to check for existence of *.wbn where n goes from 0 to
-	// (max num Transforms) - (requested num transforms)
-	// requested num transforms is num_xforms
-	// max num transforms is max_xforms_c
-	//for(int j=0; j< (int)(num_xforms+1); j++) {
-	for (int j = 0; j< (int) (max_xforms_c - num_xforms + 1); j++){
+
+	for (int j = 0; j<=reflevel; j++){
 #ifdef WIN32
 		struct _stat statbuf;
 #else
@@ -176,7 +171,7 @@ int    WaveletBlock3DIO::VariableExists(
 #endif
 		string path;
 
-		mkpath(basename, j, path);
+		mkpath(basename, j, path, _version);
 #ifndef WIN32
 		if (stat64(path.c_str(), &statbuf) < 0) return(0);
 #else
@@ -189,37 +184,39 @@ int    WaveletBlock3DIO::VariableExists(
 int	WaveletBlock3DIO::OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	size_t num_xforms
+	int reflevel
 ) {
 	string dir;
 	int	min;
-	int	j;
 	string basename;
+
+	_dataRange[0] = _dataRange[1] = 0.0;
+
+    if (reflevel < 0) reflevel = _num_reflevels - 1;
 
 	write_mode_c = 1;
 
-	num_xforms_c = 0;
-
 	_timeStep = timestep;
 	_varName.assign(varname);
+	_reflevel = reflevel;
 
-	CloseVariable(); // close any previously opened files
+	WaveletBlock3DIO::CloseVariable(); // close any previously opened files
 
-	min = Min((int)bdim_c[0],(int) bdim_c[1]);
-	min = Min((int)min, (int)bdim_c[2]);
+	min = Min((int)_bdim[0],(int) _bdim[1]);
+	min = Min((int)min, (int)_bdim[2]);
 
-	if (num_xforms > max_xforms_c) {
-		SetErrMsg("Requested transform level out of range (%d)", num_xforms);
+	if (reflevel >= _num_reflevels) {
+		SetErrMsg("Requested refinement level out of range (%d)", reflevel);
 		return(-1);
 	}
 
-	if (LogBaseN(min, 2.0) < max_xforms_c) {
-		SetErrMsg("Too many levels (%d) in transform ", max_xforms_c);
+	if (LogBaseN(min, 2.0) < 0) {
+		SetErrMsg("Too many levels (%d) in transform ", reflevel);
 		return(-1);
 	}
 
-	const string &bp = metadata_c->GetVBasePath(timestep, varname);
-	if (wb3d_c->GetErrCode() != 0 || bp.length() == 0) {
+	const string &bp = _metadata->GetVBasePath(timestep, varname);
+	if (_metadata->GetErrCode() != 0 || bp.length() == 0) {
 		SetErrMsg(
 			"Failed to find variable \"%s\" in metadata object", 
 			varname
@@ -228,14 +225,14 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 	}
 
 	// Path to variable file is relative to xml file, if it exists
-	if (metadata_c->GetParentDir() && bp[0] != '/') {
-		basename.append(metadata_c->GetParentDir());
+	if (_metadata->GetParentDir() && bp[0] != '/') {
+		basename.append(_metadata->GetParentDir());
 		basename.append("/");
 	}
 
 	// Path to variable file is relative to xml file, if it exists
-	if (metadata_c->GetMetafileName() && bp[0] != '/') {
-		string s = metadata_c->GetMetafileName();
+	if (_metadata->GetMetafileName() && bp[0] != '/') {
+		string s = _metadata->GetMetafileName();
 		string t;
 		size_t p = s.find_first_of(".");
 		if (p != string::npos) {
@@ -256,50 +253,143 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 	if (mkdirhier(dir) < 0) return(-1);
 	
 
-	for(j=0; j<(max_xforms_c-num_xforms)+1; j++) {
-		string path;
+	int rc = open_var_write(basename);
+	if (rc<0) return(-1);
 
-		mkpath(basename, j, path);
-
-#ifdef	WIN32
-		file_ptrs_c[j] = fopen(path.c_str(), "wb");
-#else
-		file_ptrs_c[j] = fopen64(path.c_str(), "wb");
-#endif
-		if (! file_ptrs_c[j]) {
-			SetErrMsg("fopen(%s, wb) : %s", path.c_str(), strerror(errno));
-			return(-1);
-		}
-
-	}
-	num_xforms_c = (int) num_xforms;
-
-	GetDim(num_xforms_c, xdim_c);
-	GetDimBlk(num_xforms_c, xbdim_c);
 
 	is_open_c = 1;
 
 	return(0);
 }
 
+int WaveletBlock3DIO::open_var_write(
+	const string &basename
+) {
+
+	if (_version < 2) {
+		for(int j=0; j<=_reflevel; j++) {
+			string path;
+
+			mkpath(basename, j, path, _version);
+
+#ifdef	WIN32
+			file_ptrs_c[j] = fopen(path.c_str(), "wb");
+#else
+			file_ptrs_c[j] = fopen64(path.c_str(), "wb");
+#endif
+			if (! file_ptrs_c[j]) {
+				SetErrMsg("fopen(%s, wb) : %s", path.c_str(), strerror(errno));
+				return(-1);
+			}
+		}
+		return(0);
+	}
+
+
+	for(int j=0; j<=_reflevel; j++) {
+		string path;
+		int e;
+
+		_ncoffsets[j] = 0;
+
+		mkpath(basename, j, path, _version);
+
+		NcError ncerror(NcError::silent_nonfatal);
+
+		_ncfiles[j] = new NcFile(path.c_str(), NcFile::Replace);
+		if (! _ncfiles[j]->is_valid()) {
+			SetErrMsg("Failed to create NCDF file \"%s\"", path.c_str());
+			return(-1);
+		}
+
+		_ncfiles[j]->set_fill(NcFile::NoFill);
+		if ((e = ncerror.get_err()) != NC_NOERR) {
+			SetErrMsg("NcFile::set_fill() : %s", nc_strerror(e));
+			return(-1);
+		}
+
+		NcDim *bx_dim = _ncfiles[j]->add_dim(_blockDimXName.c_str(), _bs[0]);
+		NcDim *by_dim = _ncfiles[j]->add_dim(_blockDimYName.c_str(), _bs[1]);
+		NcDim *bz_dim = _ncfiles[j]->add_dim(_blockDimZName.c_str(), _bs[2]);
+		if ((e = ncerror.get_err()) != NC_NOERR) {
+			SetErrMsg("NcFile::add_dim() : %s", nc_strerror(e));
+			return(-1);
+		}
+
+		size_t bdim[3];
+		GetDimBlk(bdim,j);
+		int nb = bdim[0]*bdim[1]*bdim[2];
+
+		if (j>0) nb *= 7;
+		NcDim *nblk_dim = _ncfiles[j]->add_dim(_nBlocksDimName.c_str(), nb);
+		if ((e = ncerror.get_err()) != NC_NOERR) {
+			SetErrMsg("NcFile::add_dim() : %s", nc_strerror(e));
+			return(-1);
+		}
+
+		_ncfiles[j]->add_att(_fileVersionName.c_str(), _version);
+
+		_ncfiles[j]->add_att(_refLevelName.c_str(), j);
+
+		int dim[] = {_dim[0], _dim[1], _dim[2]};
+		_ncfiles[j]->add_att(_nativeResName.c_str(), 3, dim);
+
+		size_t dimj[3];
+		GetDim(dimj,j);
+		int dimj_int[] = {dimj[0], dimj[1], dimj[2]};
+		_ncfiles[j]->add_att(_refLevelResName.c_str(), 3, dimj_int);
+
+		_ncfiles[j]->add_att(_filterCoeffName.c_str(), n_c);
+		_ncfiles[j]->add_att(_liftingCoeffName.c_str(), ntilde_c);
+
+		_ncfiles[j]->add_att(_scalarRangeName.c_str(), 2, _dataRange);
+
+		if ((e = ncerror.get_err()) != NC_NOERR) {
+			SetErrMsg("NcFile::add_att() : %s", nc_strerror(e));
+			return(-1);
+		}
+
+		if (j==0) {
+			_ncvars[j] = _ncfiles[j]->add_var(
+				_lambdaName.c_str(), ncFloat, nblk_dim, bz_dim, by_dim, bx_dim
+			);
+		}
+		else {
+			_ncvars[j] = _ncfiles[j]->add_var(
+				_gammaName.c_str(), ncFloat, nblk_dim, bz_dim, by_dim, bx_dim
+			);
+		}
+		if ((e = ncerror.get_err()) != NC_NOERR) {
+			SetErrMsg("NcFile::add_var() : %s", nc_strerror(e));
+			return(-1);
+		}
+	}
+	return(0);
+		
+}
+
 int	WaveletBlock3DIO::OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	size_t num_xforms
+	int reflevel
 ) {
-	int	j;
 	string basename;
 
 	write_mode_c = 0;
+	_dataRange[0] = _dataRange[1] = 0.0;
 
-	CloseVariable(); // close previously opened files
+	_timeStep = timestep;
+	_varName.assign(varname);
+	_reflevel = reflevel;
 
-	if (num_xforms > max_xforms_c) {
-		SetErrMsg("Requested transform level out of range (%d)", num_xforms);
+	WaveletBlock3DIO::CloseVariable(); // close previously opened files
+
+	if (reflevel >= _num_reflevels) {
+		SetErrMsg("Requested refinement level out of range (%d)", reflevel);
 		return(-1);
 	}
 
-	if (!VariableExists(timestep, varname, num_xforms)) {
+	if (!VariableExists(timestep, varname, reflevel)) {
 		SetErrMsg(
 			"Variable \"%s\" not present at requested timestep or level",
 			varname
@@ -308,8 +398,8 @@ int	WaveletBlock3DIO::OpenVariableRead(
 	}
 
 
-	const string &bp = metadata_c->GetVBasePath(timestep, varname);
-	if (wb3d_c->GetErrCode() != 0 || bp.length() == 0) {
+	const string &bp = _metadata->GetVBasePath(timestep, varname);
+	if (_metadata->GetErrCode() != 0 || bp.length() == 0) {
 		SetErrMsg(
 			"Failed to find variable \"%s\" in metadata object", 
 			varname
@@ -318,14 +408,14 @@ int	WaveletBlock3DIO::OpenVariableRead(
 	}
 
 	// Path to variable file is relative to xml file, if it exists
-	if (metadata_c->GetParentDir() && bp[0] != '/') {
-		basename.append(metadata_c->GetParentDir());
+	if (_metadata->GetParentDir() && bp[0] != '/') {
+		basename.append(_metadata->GetParentDir());
 		basename.append("/");
 	}
 
 	// Path to variable file is relative to xml file, if it exists
-	if (metadata_c->GetMetafileName() && bp[0] != '/') {
-		string s = metadata_c->GetMetafileName();
+	if (_metadata->GetMetafileName() && bp[0] != '/') {
+		string s = _metadata->GetMetafileName();
 		string t;
 		size_t p = s.find_first_of(".");
 		if (p != string::npos) {
@@ -342,54 +432,212 @@ int	WaveletBlock3DIO::OpenVariableRead(
 
 	basename.append(bp);
 
-	for(j=0; j<(int)((max_xforms_c-num_xforms)+1); j++) {
-		string path;
+	int rc = open_var_read(basename);
+	if (rc<0) return(-1);
 
-		mkpath(basename, j, path);
-
-#ifdef	WIN32
-		file_ptrs_c[j] = fopen(path.c_str(), "rb");
-#else
-		file_ptrs_c[j] = fopen64(path.c_str(), "rb");
-#endif
-		if (! file_ptrs_c[j]) {
-			if (errno != ENOENT) {
-				SetErrMsg("fopen(%s, rb) : %s", path.c_str(), strerror(errno));
-				return(-1);
-			}
-			else {
-				break;
-			}
-		}
-		if (_fileOffsets[j]) {	// seek to start of data
-			int rc = fseek(file_ptrs_c[j], _fileOffsets[j], SEEK_SET);
-			if (rc<0) {
-				SetErrMsg("fseek(%d) : %s",_fileOffsets[j],strerror(errno));
-				return(-1);
-			}
-		}
-	}
-	num_xforms_c = (int)num_xforms;
-
-	GetDim(num_xforms_c, xdim_c);
-	GetDimBlk(num_xforms_c, xbdim_c);
 
 	is_open_c = 1;
 
 	return(0);
 }
 
+#define	NC_ERR_CHK(f) \
+	{ \
+	int e; \
+	if ((e = ncerror.get_err()) != NC_NOERR) { \
+		SetErrMsg("Error reading netcdf file %s : %s",f.c_str(),nc_strerror(e)); \
+		return(-1); \
+	}} 
+
+int WaveletBlock3DIO::open_var_read(
+	const string &basename
+) {
+
+	if (_version < 2) {
+		for(int j=0; j<=_reflevel; j++) {
+			string path;
+
+			mkpath(basename, j, path, _version);
+
+#ifdef	WIN32
+			file_ptrs_c[j] = fopen(path.c_str(), "rb");
+#else
+			file_ptrs_c[j] = fopen64(path.c_str(), "rb");
+#endif
+			if (! file_ptrs_c[j]) {
+				if (errno != ENOENT) {
+					SetErrMsg("fopen(%s, rb) : %s", path.c_str(), strerror(errno));
+					return(-1);
+				}
+				else {
+					break;
+				}
+			}
+			if (_fileOffsets[j]) {	// seek to start of data
+				int rc = fseek(file_ptrs_c[j], _fileOffsets[j], SEEK_SET);
+				if (rc<0) {
+					SetErrMsg("fseek(%d) : %s",_fileOffsets[j],strerror(errno));
+					return(-1);
+				}
+			}
+		}
+		return(0);
+	}
+
+
+	for(int j=0; j<=_reflevel; j++) {
+
+		NcAtt	*ncatt;
+		NcDim	*ncdim;
+		string path;
+
+		_ncoffsets[j] = 0;
+
+		mkpath(basename, j, path, _version);
+
+		NcError ncerror(NcError::silent_nonfatal);
+
+		_ncfiles[j] = new NcFile(path.c_str(), NcFile::ReadOnly);
+		if (! _ncfiles[j]->is_valid()) {
+			SetErrMsg("Failed to open NCDF file \"%s\"", path.c_str());
+			return(-1);
+		}
+
+		//
+		// Verify coefficient file metadata matches VDF metadata
+		//
+		
+		ncdim = _ncfiles[j]->get_dim(_blockDimXName.c_str());
+		NC_ERR_CHK(path)
+		if (ncdim->size() != _bs[0]) {
+			SetErrMsg("Metadata file and data file mismatch");
+			return(-1);
+		}
+
+		ncdim = _ncfiles[j]->get_dim(_blockDimYName.c_str());
+		NC_ERR_CHK(path)
+		if (ncdim->size() != _bs[1]) {
+			SetErrMsg("Metadata file and data file mismatch");
+			return(-1);
+		}
+
+		ncdim = _ncfiles[j]->get_dim(_blockDimZName.c_str());
+		NC_ERR_CHK(path)
+		if (ncdim->size() != _bs[2]) {
+			SetErrMsg("Metadata file and data file mismatch");
+			return(-1);
+		}
+
+		size_t bdim[3];
+		GetDimBlk(bdim,j);
+		int nb = bdim[0]*bdim[1]*bdim[2];
+
+		if (j>0) nb *= 7;
+
+		NcDim *nblk_dim = _ncfiles[j]->get_dim(_nBlocksDimName.c_str());
+		NC_ERR_CHK(path)
+		if (nb != nblk_dim->size()) {
+			SetErrMsg("Metadata file and data file mismatch");
+			return(-1);
+		}
+
+
+		ncatt = _ncfiles[j]->get_att(_fileVersionName.c_str());
+		NC_ERR_CHK(path)
+
+		ncatt = _ncfiles[j]->get_att(_refLevelName.c_str());
+		NC_ERR_CHK(path)
+		if (ncatt->as_int(0) != j) {
+			SetErrMsg("Metadata file and data file mismatch");
+			return(-1);
+		}
+
+		ncatt = _ncfiles[j]->get_att(_nativeResName.c_str());
+		NC_ERR_CHK(path)
+		for(int i = 0; i<3; i++) {
+			if (ncatt->as_int(i) != _dim[i]) {
+				SetErrMsg("Metadata file and data file mismatch");
+				return(-1);
+			}
+		}
+
+		size_t dimj[3];
+		GetDim(dimj,j);
+
+		ncatt = _ncfiles[j]->get_att(_refLevelResName.c_str());
+		NC_ERR_CHK(path)
+		for(int i = 0; i<3; i++) {
+			if (ncatt->as_int(i) != dimj[i]) {
+				SetErrMsg("Metadata file and data file mismatch");
+				return(-1);
+			}
+		}
+
+		ncatt = _ncfiles[j]->get_att(_filterCoeffName.c_str());
+		NC_ERR_CHK(path)
+		if (ncatt->as_int(0) != n_c) {
+			SetErrMsg("Metadata file and data file mismatch");
+			return(-1);
+		}
+
+		ncatt = _ncfiles[j]->get_att(_liftingCoeffName.c_str());
+		NC_ERR_CHK(path)
+		if (ncatt->as_int(0) != ntilde_c) {
+			SetErrMsg("Metadata file and data file mismatch");
+			return(-1);
+		}
+
+		ncatt = _ncfiles[j]->get_att(_scalarRangeName.c_str());
+		NC_ERR_CHK(path)
+		for (int i=0; i<2; i++) {
+			_dataRange[i] = ncatt->as_float(i);
+		}
+
+		if (j==0) {
+			_ncvars[j] = _ncfiles[j]->get_var(_lambdaName.c_str());
+		}
+		else {
+			_ncvars[j] = _ncfiles[j]->get_var(_gammaName.c_str());
+		}
+		NC_ERR_CHK(path)
+
+	}
+	return(0);
+
+}
+
 int	WaveletBlock3DIO::CloseVariable()
 {
 	int	j;
 
+
 	if (! is_open_c) return(0);
 
-	for(j=0; j<max_xforms_c+1; j++) {
-		if (file_ptrs_c[j]) (void) fclose (file_ptrs_c[j]);
-		file_ptrs_c[j] = NULL;
+	if (_version < 2) {
+		for(j=0; j<MAX_LEVELS; j++) {
+			if (file_ptrs_c[j]) (void) fclose (file_ptrs_c[j]);
+			file_ptrs_c[j] = NULL;
+		}
 	}
+	else {
+		TIMER_START(t0)
+		for(j=0; j<MAX_LEVELS; j++) {
 
+			if (_ncfiles[j]) {
+				if (write_mode_c) {
+					_ncfiles[j]->add_att(_scalarRangeName.c_str(),2,_dataRange);
+					_ncfiles[j]->sync();
+				}
+				delete _ncfiles[j];
+			}
+			_ncfiles[j] = NULL;
+			_ncvars[j] = NULL;
+			_ncoffsets[j] = 0;
+		}
+		if (write_mode_c) TIMER_STOP(t0, _write_timer)
+		else TIMER_STOP(t0, _read_timer)
+	}
+				
 	is_open_c = 0;
 
 	return(0);
@@ -397,228 +645,78 @@ int	WaveletBlock3DIO::CloseVariable()
 
 
 int	WaveletBlock3DIO::GetBlockMins(
-	size_t num_xforms,
-	const float	**mins
+	const float	**mins,
+	int reflevel
 ) {
-	if ((int)num_xforms > max_xforms_c) {
-		SetErrMsg("Invalid transform level : %d", num_xforms);
+	if (reflevel >= _num_reflevels) {
+		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
 
-	*mins = mins_c[num_xforms];
+	*mins = mins_c[reflevel];
 	return(0);
 }
 
 int	WaveletBlock3DIO::GetBlockMaxs(
-	size_t num_xforms,
-	const float	**maxs
+	const float	**maxs,
+	int reflevel
 ) {
-	if ((int)num_xforms > max_xforms_c) {
-		SetErrMsg("Invalid transform level : %d", num_xforms);
+	if (reflevel >= _num_reflevels) {
+		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
 
-	*maxs = maxs_c[num_xforms];
+	*maxs = maxs_c[reflevel];
 	return(0);
-}
-
-void	WaveletBlock3DIO::GetDim(
-	size_t num_xforms, size_t dim[3]
-) const {
-	for (int i=0; i<3; i++) {
-		dim[i] = dim_c[i] >> num_xforms;
-	}
-}
-
-void	WaveletBlock3DIO::GetDimBlk(
-	size_t num_xforms, size_t bdim[3]
-) const {
-	size_t dim[3];
-
-	GetDim(num_xforms, dim);
-
-	for (int i=0; i<3; i++) {
-		bdim[i] = (size_t) ceil ((double) dim[i] / (double) bs_c);
-	}
-}
-
-void	WaveletBlock3DIO::TransformCoord(
-	size_t num_xforms, const size_t vcoord0[3], size_t vcoord1[3]
-) const {
-	vcoord1[0] = vcoord0[0] >> num_xforms;
-	vcoord1[1] = vcoord0[1] >> num_xforms;
-	vcoord1[2] = vcoord0[2] >> num_xforms;
-}
-
-void	WaveletBlock3DIO::MapVoxToBlk(
-	const size_t vcoord[3], size_t bcoord[3]
-) const {
-	bcoord[0] = vcoord[0] / bs_c;
-	bcoord[1] = vcoord[1] / bs_c;
-	bcoord[2] = vcoord[2] / bs_c;
-}
-
-void	WaveletBlock3DIO::MapVoxToUser(
-    size_t num_xforms, size_t timestep, 
-	const size_t vcoord0[3], double vcoord1[3]
-) const {
-	string stretched = "stretched";
-
-	const string &sptr = metadata_c->GetGridType();
-	if (StrCmpNoCase(sptr, stretched) == 0) {
-		//const vector <double> &xcoords = metadata_c->GetTSXCoords(timestep);
-		//const vector <double> &ycoords = metadata_c->GetTSYCoords(timestep);
-		//const vector <double> &zcoords = metadata_c->GetTSZCoords(timestep);
-
-		cerr << "MapVoxToUser : Function not implemented yet" << endl;
-		
-	} 
-	else {
-		size_t	dim[3];
-
-		const vector <double> &extents = metadata_c->GetExtents();
-		GetDim(0, dim);
-		for(int i = 0; i<3; i++) {
-
-			// distance between voxels along dimension 'i' in user coords
-			double deltax = (extents[i+3] - extents[i]) / (dim[i] - 1);
-
-			// coordinate of first voxel in user space
-			double x0 = extents[i];
-
-			// Boundary shrinks and step size increases with each transform
-			for(int j=0; j<(int)num_xforms; j++) {
-				x0 += 0.5 * deltax;
-				deltax *= 2.0;
-			}
-			vcoord1[i] = x0 + (vcoord0[i] * deltax);
-		}
-	}
-}
-
-void	WaveletBlock3DIO::MapUserToVox(
-    size_t num_xforms, size_t timestep,
-	const double vcoord0[3], size_t vcoord1[3]
-) const {
-	string stretched = "stretched";
-
-	const string &sptr = metadata_c->GetGridType();
-	if (StrCmpNoCase(sptr, stretched) == 0) {
-		//const vector <double> &xcoords = metadata_c->GetTSXCoords(timestep);
-		//const vector <double> &ycoords = metadata_c->GetTSYCoords(timestep);
-		//const vector <double> &zcoords = metadata_c->GetTSZCoords(timestep);
-		//assert(metadata_c->GetErrCode() == 0);
-
-		cerr << "MapVoxToUser : Function not implemented yet" << endl;
-		
-	} 
-	else {
-		size_t	dim[3];
-		const vector <double> &extents = metadata_c->GetExtents();
-		assert(metadata_c->GetErrCode() == 0);
-
-		vector <double> lextents = extents;
-
-		GetDim(0, dim);
-		for(int i = 0; i<3; i++) {
-
-			// distance between voxels along dimension 'i' in user coords
-			double deltax = (lextents[i+3] - lextents[i]) / (dim[i] - 1);
-
-			// coordinate of first voxel in user space
-			double x0 = lextents[i];
-
-			// Boundary shrinks and step size increases with each transform
-			for(int j=0; j<(int)num_xforms; j++) {
-				x0 += 0.5 * deltax;
-				deltax *= 2.0;
-			}
-			lextents[i] += x0;
-			lextents[i+3] -= x0;
-
-			vcoord1[i] = (size_t) rint (
-				(vcoord0[i]-lextents[i])/(lextents[i+3]-lextents[i])*(dim[i]-1)
-			);
-		}
-	}
-}
-
-
-int	WaveletBlock3DIO::IsValidRegion(
-	size_t num_xforms,
-	const size_t min[3],
-	const size_t max[3]
-) const {
-	size_t dim[3];
-
-	GetDim(num_xforms, dim);
-
-	for(int i=0; i<3; i++) {
-		if (min[i] > max[i]) return (0);
-		if (max[i] >= dim[i]) return (0);
-	}
-	return(1);
-
-}
-
-int	WaveletBlock3DIO::IsValidRegionBlk(
-	size_t num_xforms,
-	const size_t min[3],
-	const size_t max[3]
-) const {
-	size_t dim[3];
-
-	GetDimBlk(num_xforms, dim);
-
-	for(int i=0; i<3; i++) {
-		if (min[i] > max[i]) return (0);
-		if (max[i] >= dim[i]) return (0);
-	}
-	return(1);
 }
 
 
 
 int	WaveletBlock3DIO::seekBlocks(
 	unsigned int offset, 
-	size_t num_xforms
+	int reflevel
 ) {
-	int	rc;
-	FILE	*fp;
-	size_t level = max_xforms_c - num_xforms;
-
-	long long byteoffset = offset * block_size_c * sizeof(float);
-	byteoffset += _fileOffsets[level];
-
-	//cerr << level << " seeking " << offset << " blocks" << endl;
+	//cerr << reflevel << " seeking " << offset << " blocks" << endl;
 
 	if (! is_open_c) {
 		SetErrMsg("File not open");
 		return(-1);
 	}
 
-	if ((int)num_xforms > max_xforms_c) {
-		SetErrMsg("Invalid transform level : %d", num_xforms);
+	if (reflevel > _reflevel) {
+		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
 
-	fp = file_ptrs_c[level];
+	if (_version < 2) {
 
-	TIMER_START(t0);
+		TIMER_START(t0);
+
+		long long byteoffset = offset * _block_size * sizeof(float);
+		byteoffset += _fileOffsets[reflevel];
+		FILE	*fp = file_ptrs_c[reflevel];
+		int	rc;
+
 #ifdef	WIN32
-	rc = fseek(fp, (long) byteoffset, SEEK_SET);
+		rc = fseek(fp, (long) byteoffset, SEEK_SET);
 #else
 #if     defined(Linux) || defined(AIX)
-	rc = fseeko64(fp, byteoffset, SEEK_SET);
+		rc = fseeko64(fp, byteoffset, SEEK_SET);
 #else
-	rc = fseek64(fp, byteoffset, SEEK_SET);
+		rc = fseek64(fp, byteoffset, SEEK_SET);
 #endif
 #endif
-	if (rc<0) {
-		SetErrMsg("fseek(%lld) : %s",(long long) byteoffset,strerror(errno));
-		return(-1);
+		if (rc<0) {
+			SetErrMsg("fseek(%lld) : %s",(long long) byteoffset,strerror(errno));
+			return(-1);
+		}
+
+		TIMER_STOP(t0, _seek_timer);
 	}
-	TIMER_STOP(t0, seek_timer_c);
+	else {
+		_ncoffsets[reflevel] = offset;
+	}
+
 	return(0);
 }
 
@@ -629,7 +727,7 @@ int	WaveletBlock3DIO::seekLambdaBlocks(
 	unsigned int	offset;
 	size_t bdim[3];
 
-	GetDimBlk(max_xforms_c, bdim);
+	GetDimBlk(bdim, 0);
 
 	for(int i=0; i<3; i++) {
 		if (bcoord[i] >= bdim[i]) {
@@ -643,25 +741,23 @@ int	WaveletBlock3DIO::seekLambdaBlocks(
 
 	offset = (int)(bcoord[2] * bdim[0] * bdim[1] + (bcoord[1]*bdim[0]) + (bcoord[0]));
 
-	return(seekBlocks(offset, max_xforms_c));
+	return(seekBlocks(offset, 0));
 }
 
 int	WaveletBlock3DIO::seekGammaBlocks(
-	size_t num_xforms,
-	const size_t bcoord[3]
+	const size_t bcoord[3],
+	int reflevel
 ) {
 	size_t bdim[3];
 
 	unsigned int	offset;
 
-	// there are num_xforms_c-1 levels of gamma blocks
-	//
-	if ((int)num_xforms >= max_xforms_c) {
-		SetErrMsg("Invalid transform number : %d\n", num_xforms);
+	if (reflevel < 0 || reflevel > _reflevel) {
+		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
 
-	GetDimBlk(num_xforms+1, bdim);
+	GetDimBlk(bdim, reflevel-1);
 
 	for(int i=0; i<3; i++) {
 		if (bcoord[i] >= bdim[i]) {
@@ -675,20 +771,18 @@ int	WaveletBlock3DIO::seekGammaBlocks(
 
 	offset = (unsigned int)((bcoord[2] * bdim[0] * bdim[1]) + (bcoord[1]*bdim[0]) + (bcoord[0])) *  7;
 
-	return(seekBlocks(offset, num_xforms));
+	return(seekBlocks(offset, reflevel));
 }
 
 int	WaveletBlock3DIO::readBlocks(
 	size_t n,
-	size_t num_xforms,
-	float *blks
+	float *blks,
+	int reflevel
 ) {
 	int	rc;
-	FILE	*fp;
 	unsigned long    lsbFirstTest = 1;
-	size_t level = max_xforms_c - num_xforms;
 
-	//cerr << level << " reading " << n << " blocks" << endl;
+	//cerr << reflevel << " reading " << n << " blocks" << endl;
 
 	if (! is_open_c) {
 		SetErrMsg("File not open");
@@ -696,32 +790,59 @@ int	WaveletBlock3DIO::readBlocks(
 	}
 
 	if (write_mode_c) {
-		SetErrMsg("WaveletBlock3DIO : object created for reading");
+		SetErrMsg("WaveletBlock3DIO : object created for writing");
 		return(-1);
 	}
 
-	if ((int)num_xforms > max_xforms_c) {
-		SetErrMsg("Invalid transform number : %d\n", num_xforms);
+	if (reflevel > _reflevel) {
+		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
 
-	fp = file_ptrs_c[level];
 
-	TIMER_START(t0)
-	rc = (int)fread(blks, sizeof(blks[0]), (block_size_c*n), fp);
-	if (rc != block_size_c*n) {
-		SetErrMsg("fread(%d) : %s",block_size_c*n,strerror(errno));
-		return(-1);
+
+	if (_version < 2) {
+
+		FILE	*fp = file_ptrs_c[reflevel];
+		TIMER_START(t0)
+
+		rc = (int)fread(blks, sizeof(blks[0]), (_block_size*n), fp);
+		if (rc != _block_size*n) {
+			SetErrMsg("fread(%d) : %s",_block_size*n,strerror(errno));
+			return(-1);
+		}
+		TIMER_STOP(t0, _read_timer)
+
+		// Deal with endianess
+		//
+		if ((*(char *) &lsbFirstTest && _msbFirst) || 
+			(! *(char *) &lsbFirstTest && ! _msbFirst)) {
+
+			swapbytescopy(blks, blks, sizeof(blks[0]), _block_size*n);
+		}
 	}
+	else {
+		int e;
+		TIMER_START(t0)
+		NcError ncerror(NcError::silent_nonfatal);
 
-	// Deal with endianess
-	//
-	if ((*(char *) &lsbFirstTest && _msbFirst) || 
-		(! *(char *) &lsbFirstTest && ! _msbFirst)) {
+		TIMER_START(t1)
+		_ncvars[reflevel]->set_cur(_ncoffsets[reflevel], 0,0,0);
+		if ((e = ncerror.get_err()) != NC_NOERR) {
+			SetErrMsg("NcVar::set_cur() : %s", nc_strerror(e));
+			return(-1);
+		}
+		TIMER_STOP(t0, _seek_timer)
 
-		swapbytescopy(blks, blks, sizeof(blks[0]), block_size_c*n);
+		_ncvars[reflevel]->get(blks, (int) n,_bs[2],_bs[1],_bs[0]);
+		if ((e = ncerror.get_err()) != NC_NOERR) {
+			SetErrMsg("NcVar::get() : %s", nc_strerror(e));
+			return(-1);
+		}
+		TIMER_STOP(t0, _read_timer)
+
+		_ncoffsets[reflevel] += n;
 	}
-	TIMER_STOP(t0, read_timer_c)
 
 	return(0);
 }
@@ -731,35 +852,34 @@ int	WaveletBlock3DIO::readLambdaBlocks(
 	float *blks
 ) {
 	//cerr << "Read lambda ";
-	return(readBlocks(n, max_xforms_c, blks));
+	return(readBlocks(n, blks, 0));
 }
 
 int	WaveletBlock3DIO::readGammaBlocks(
 	size_t n, 
-	size_t num_xforms,
-	float *blks
+	float *blks,
+	int reflevel
 ) {
 
-	//cerr << "Read gamma ";
-	if ((int)num_xforms >= max_xforms_c) {
-		SetErrMsg("No gamma blocks");
+	if (reflevel < 0 || reflevel > _reflevel) {
+		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
-	return(readBlocks(n*7, num_xforms, blks));
+
+	return(readBlocks(n*7, blks, reflevel));
 }
 
 
 int	WaveletBlock3DIO::writeBlocks(
 	const float *blks, 
 	size_t n,
-	size_t num_xforms
+	int reflevel
 ) {
 	int	rc;
 	FILE	*fp;
 	unsigned long lsbFirstTest = 1;
-	size_t level = max_xforms_c - num_xforms;
 
-	//cerr << level << " writing " << n << " blocks" << endl;
+	//cerr << reflevel << " writing " << n << " blocks" << endl;
 
 	if (! is_open_c) {
 		SetErrMsg("File not open");
@@ -771,40 +891,69 @@ int	WaveletBlock3DIO::writeBlocks(
 		return(-1);
 	}
 
-	if ((int)num_xforms > max_xforms_c) {
-		SetErrMsg("Invalid transform number : %d\n", num_xforms);
+	if (reflevel > _reflevel) {
+		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
 
-	fp = file_ptrs_c[level];
+	if (_version < 2) {
 
-	TIMER_START(t0)
+		fp = file_ptrs_c[reflevel];
 
-	// Deal with endianess
-	//
-	if ((*(char *) &lsbFirstTest && _msbFirst) || 
-		(! *(char *) &lsbFirstTest && ! _msbFirst)) {
-		int	i;
 
-		for(i=0;i<(int)n;i++) {
-			swapbytescopy(
-				&blks[i*block_size_c], block_c, sizeof(blks[0]), block_size_c
-			);
-			rc = (int)fwrite(block_c, sizeof(block_c[0]), block_size_c, fp);
-			if (rc != block_size_c) {
-				SetErrMsg("fwrite(%d) : %s",block_size_c*n,strerror(errno));
+		// Deal with endianess
+		//
+		if ((*(char *) &lsbFirstTest && _msbFirst) || 
+			(! *(char *) &lsbFirstTest && ! _msbFirst)) {
+			int	i;
+
+			for(i=0;i<(int)n;i++) {
+				swapbytescopy(
+					&blks[i*_block_size], block_c, sizeof(blks[0]), _block_size
+				);
+
+				TIMER_START(t0)
+				rc = (int)fwrite(block_c, sizeof(block_c[0]), _block_size, fp);
+				if (rc != _block_size) {
+					SetErrMsg("fwrite(%d) : %s",_block_size*n,strerror(errno));
+					return(-1);
+				}
+				TIMER_STOP(t0, _write_timer)
+			}
+		}
+		else {
+			TIMER_START(t0)
+			rc = (int)fwrite(blks, sizeof(blks[0]), _block_size*n, fp);
+			if (rc != _block_size*n) {
+				SetErrMsg("fwrite(%d) : %s",_block_size*n,strerror(errno));
 				return(-1);
 			}
+			TIMER_STOP(t0, _write_timer)
 		}
 	}
 	else {
-		rc = (int)fwrite(blks, sizeof(blks[0]), block_size_c*n, fp);
-		if (rc != block_size_c*n) {
-			SetErrMsg("fwrite(%d) : %s",block_size_c*n,strerror(errno));
+		int e;
+		TIMER_START(t0)
+		NcError ncerror(NcError::silent_nonfatal);
+
+		TIMER_START(t1)
+		_ncvars[reflevel]->set_cur(_ncoffsets[reflevel], 0,0,0);
+		if ((e = ncerror.get_err()) != NC_NOERR) {
+			SetErrMsg("NcVar::set_cur() : %s", nc_strerror(e));
 			return(-1);
 		}
+		TIMER_STOP(t0, _seek_timer)
+
+		_ncvars[reflevel]->put(blks, (int) n,_bs[2],_bs[1],_bs[0]);
+		if ((e = ncerror.get_err()) != NC_NOERR) {
+			SetErrMsg("NcVar::put() : %s", nc_strerror(e));
+			return(-1);
+		}
+
+		TIMER_STOP(t0, _write_timer)
+
+		_ncoffsets[reflevel] += n;
 	}
-	TIMER_STOP(t0, write_timer_c)
 
 	return(0);
 }
@@ -814,20 +963,20 @@ int	WaveletBlock3DIO::writeLambdaBlocks(
 	size_t n
 ) {
 	//cerr << "Write lambda ";
-	return(writeBlocks(blks, n, max_xforms_c));
+	return(writeBlocks(blks, n, 0));
 }
 
 int	WaveletBlock3DIO::writeGammaBlocks(
 	const float *blks, 
 	size_t n, 
-	size_t num_xforms
+	int reflevel
 ) {
 	//cerr << "Write gamma ";
-	if ((int)num_xforms >= max_xforms_c) {
-		SetErrMsg("No gamma blocks");
+	if (reflevel < 0 || reflevel > _reflevel) {
+		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
-	return(writeBlocks(blks, n*7, num_xforms));
+	return(writeBlocks(blks, n*7, reflevel));
 }
 
 void	WaveletBlock3DIO::Block2NonBlock(
@@ -846,65 +995,64 @@ void	WaveletBlock3DIO::Block2NonBlock(
 
 	size_t y,z;
 
-	assert((min[0] < bs_c) && (max[0] > min[0]) && (max[0]/bs_c >= (bcoord[0])));
-	assert((min[1] < bs_c) && (max[1] > min[1]) && (max[1]/bs_c >= (bcoord[1])));
-	assert((min[2] < bs_c) && (max[2] > min[2]) && (max[2]/bs_c >= (bcoord[2])));
+	assert((min[0] < _bs[0]) && (max[0] > min[0]) && (max[0]/_bs[0] >= (bcoord[0])));
+	assert((min[1] < _bs[1]) && (max[1] > min[1]) && (max[1]/_bs[1] >= (bcoord[1])));
+	assert((min[2] < _bs[2]) && (max[2] > min[2]) && (max[2]/_bs[2] >= (bcoord[2])));
 
 	size_t dim[] = {max[0]-min[0]+1, max[1]-min[1]+1, max[2]-min[2]+1};
-	size_t xsize = bs_c;
-	size_t ysize = bs_c;
-	size_t zsize = bs_c;
+	size_t xsize = _bs[0];
+	size_t ysize = _bs[1];
+	size_t zsize = _bs[2];
 
 	//
 	// Address of first destination voxel
 	//
-	voxels += (bcoord[2]*bs_c * dim[1] * dim[0]) + 
-		(bcoord[1]*bs_c*dim[0]) + 
-		(bcoord[0]*bs_c);
+	voxels += (bcoord[2]*_bs[2] * dim[1] * dim[0]) + 
+		(bcoord[1]*_bs[1]*dim[0]) + 
+		(bcoord[0]*_bs[0]);
 
 	if (bcoord[0] == 0) {
 		blk += min[0];
-		xsize = bs_c - min[0];
+		xsize = _bs[0] - min[0];
 	}
 	else {
-		if (bcoord[0] == max[0]/bs_c) xsize = max[0] % bs_c + 1;
 		voxels -= min[0];
 	}
+	if (bcoord[0] == max[0]/_bs[0]) xsize -= _bs[0] - (max[0] % _bs[0] + 1);
 
 	if (bcoord[1] == 0) {
-		blk += min[1] * bs_c;
-		ysize = bs_c - min[1];
+		blk += min[1] * _bs[0];
+		ysize = _bs[1] - min[1];
 	}
 	else {
-		if (bcoord[1] == max[1]/bs_c) ysize = max[1] % bs_c + 1;
 		voxels -= dim[0] * min[1];
 	}
+	if (bcoord[1] == max[1]/_bs[1]) ysize -= _bs[1] - (max[1] % _bs[1] + 1);
 
 	if (bcoord[2] == 0) {
-		blk += min[2] * bs_c * bs_c;
-		zsize = bs_c - min[2];
+		blk += min[2] * _bs[1] * _bs[0];
+		zsize = _bs[2] - min[2];
 	}
 	else {
-		if (bcoord[2] == max[2]/bs_c) zsize = max[2] % bs_c + 1;
 		voxels -= dim[1] * dim[0] * min[2];
 	}
+	if (bcoord[2] == max[2]/_bs[2]) zsize -= _bs[2] - (max[2] % _bs[2] + 1);
 
 	float *voxptr;
 	const float *blkptr;
 
 	for(z=0; z<zsize; z++) {
 		voxptr = voxels + (dim[0]*dim[1]*z); 
-		blkptr = blk + (bs_c*bs_c*z);
+		blkptr = blk + (_bs[0]*_bs[1]*z);
 
 		for(y=0; y<ysize; y++) {
 
 			memcpy(voxptr,blkptr,xsize*sizeof(blkptr[0]));
-			blkptr += bs_c;
+			blkptr += _bs[0];
 			voxptr += dim[0];
 		}
 	}
 }
-
 
 
 
@@ -917,10 +1065,10 @@ int	WaveletBlock3DIO::my_alloc(
 
 
 	// alloc space from coarsest (j==0) to finest level
-	for(j=0; j<=max_xforms_c; j++) {
+	for(j=0; j<_num_reflevels; j++) {
 		size_t nb_j[3];
 
-		GetDimBlk(max_xforms_c - j, nb_j);
+		GetDimBlk(nb_j, j);
 
 		size = (int)(nb_j[0] * nb_j[1] * nb_j[2]);
 
@@ -932,7 +1080,7 @@ int	WaveletBlock3DIO::my_alloc(
 		}
 	}
 
-	size = block_size_c * 8;
+	size = _block_size * 8;
 	super_block_c = new float[size];
 	if (! super_block_c) {
 		SetErrMsg("new float[%d] : %s", size, strerror(errno));
@@ -944,18 +1092,18 @@ int	WaveletBlock3DIO::my_alloc(
 	if ((*(char *) &lsbFirstTest && _msbFirst) || 
 		(! *(char *) &lsbFirstTest && ! _msbFirst)) {
 
-		block_c = new float[block_size_c];
+		block_c = new float[_block_size];
 		if (! block_c) {
-			SetErrMsg("new float[%d] : %s", block_size_c, strerror(errno));
+			SetErrMsg("new float[%d] : %s", _block_size, strerror(errno));
 			return(-1);
 		}
 	}
 
-	wb3d_c = new WaveletBlock3D(bs_c, n_c, ntilde_c, nthreads_c);
+	wb3d_c = new WaveletBlock3D(_bs[0], n_c, ntilde_c, _nthreads);
 	if (wb3d_c->GetErrCode() != 0) {
 		SetErrMsg(
 			"WaveletBlock3D(%d,%d,%d,%d) : %s",
-			bs_c, n_c, ntilde_c, nthreads_c, wb3d_c->GetErrMsg()
+			_bs[0], n_c, ntilde_c, _nthreads, wb3d_c->GetErrMsg()
 		);
 		return(-1);
 	}
@@ -1033,7 +1181,7 @@ int	WaveletBlock3DIO::get_file_offset(
 
 	fixed_part = STATIC_HEADER_SIZE;
 
-	GetDimBlk(max_xforms_c-level, bdim);
+	GetDimBlk(bdim, level);
 
 	minsize = bdim[0] * bdim[1] * bdim[2] * sizeof(float) * 2;
 
@@ -1078,10 +1226,15 @@ int    mkdirhier(const string &dir) {
     return(0);
 }
 
-void    mkpath(const string &basename, int level, string &path) {
+void    mkpath(const string &basename, int level, string &path, int version) {
 	ostringstream oss;
 
-	oss << basename << ".wb" << level;
+	if (version < 2) {
+		oss << basename << ".wb" << level;
+	}
+	else {
+		oss << basename << ".nc" << level;
+	}
 	path = oss.str();
 }
 

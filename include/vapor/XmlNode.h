@@ -96,9 +96,11 @@ public:
  //! \param[in] tag Name of the element to define/set
  //! \param[in] values Vector of longs to be converted to character data
  //!
- //! \retval status Returns a non-negative value on success
+ //! \retval status Returns a reference to vector containing the data
  //
- int	SetElementLong(const string &tag, const vector<long> &values);
+ vector<long> &SetElementLong(
+	const string &tag, const vector<long> &values
+ );
 
  //! Get an Xml element's data of type long
  //!
@@ -110,7 +112,7 @@ public:
  //! \param[in] tag Name of element
  //! \retval vector Vector of longs associated with the named elemented
  //!
- const vector<long> &GetElementLong(const string &tag) const;
+ vector<long> &GetElementLong(const string &tag);
 
  //! Return true if the named element of type long exists
  //!
@@ -128,9 +130,11 @@ public:
  //! \param[in] tag Name of the element to define/set
  //! \param[in] values Vector of doubles to be converted to character data
  //!
- //! \retval status Returns a non-negative value on success
+ //! \retval status Returns a reference to vector containing the data
  //
- int	SetElementDouble(const string &tag, const vector<double> &values);
+ vector<double> &SetElementDouble(
+	const string &tag, const vector<double> &values
+ );
 
  //! Get an Xml element's data of type double
  //!
@@ -142,7 +146,7 @@ public:
  //! \param[in] tag Name of element
  //! \retval vector Vector of doubles associated with the named elemented
  //!
- const vector<double> &GetElementDouble(const string &tag) const;
+ vector<double> &GetElementDouble(const string &tag);
 
  //! Return true if the named element of type double exists
  //!
@@ -161,8 +165,9 @@ public:
  //! \param[in] values Vector of characters to be converted to character data
  //!
  //! \retval status Returns a non-negative value on success
+ //! \retval status Returns a reference to string containing the data
  //
- int	SetElementString(const string &tag, const string &str);
+ string &SetElementString(const string &tag, const string &str);
 
  //! Get an Xml element's data of type string
  //!
@@ -174,7 +179,7 @@ public:
  //! \param[in] tag Name of element
  //! \retval vector Vector of doubles associated with the named elemented
  //!
- const string &GetElementString(const string &tag) const;
+ string &GetElementString(const string &tag);
 
  //! Return true if the named element of type string exists
  //!
@@ -286,7 +291,12 @@ private:
  vector <long> _emptyLongVec;				// empty elements 
  vector <double> _emptyDoubleVec;
  string _emptyString;
+ size_t _asciiLimit;	// length limit beyond which element data are encoded
 
+ // Recursively delete all chidren of the specified node. The node itself
+ // is not deleted.
+ //
+ void _deleteChildren(XmlNode *node);
 
 };
 //ostream& VAPoR::operator<< (ostream& os, const XmlNode& node);

@@ -45,8 +45,9 @@ using namespace VAPoR;
 struct {
 	int	ts;
 	char *varname;
-	int nxforms;
+	int level;
 	OptionParser::Boolean_T	help;
+	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
 	OptionParser::Boolean_T	swapbytes;
 	OptionParser::Boolean_T	dbl;
@@ -55,8 +56,9 @@ struct {
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts",		1, 	"0","Timestep of data file starting from 0"},
 	{"varname",	1, 	"var1",	"Name of variable"},
-	{"nxforms",	1, 	"0",	"Transformation levels saved. 0=>all, 1=>all but finest, etc."},
+	{"level",	1, 	"-1",	"Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
 	{"help",	0,	"",	"Print this message and exit"},
+	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
 	{"swapbytes",	0,	"",	"Swap bytes in raw data as they are read from disk"},
 	{"dbl",	0,	"",	"Input data are 64-bit floats"},
@@ -67,8 +69,9 @@ OptionParser::OptDescRec_T	set_opts[] = {
 OptionParser::Option_T	get_options[] = {
 	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
-	{"nxforms", VetsUtil::CvtToInt, &opt.nxforms, sizeof(opt.nxforms)},
+	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
+	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{"swapbytes", VetsUtil::CvtToBoolean, &opt.swapbytes, sizeof(opt.swapbytes)},
 	{"dbl", VetsUtil::CvtToBoolean, &opt.dbl, sizeof(opt.dbl)},
@@ -207,6 +210,7 @@ int	main(int argc, char **argv) {
 	metafile = argv[1];	// Path to a vdf file
 	datafile = argv[2];	// Path to raw data file 
 
+    if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
 	//
 	// Create a buffered WaveletBlock writer. Initialize with
@@ -227,16 +231,16 @@ int	main(int argc, char **argv) {
 	//
 	// Open a variable for writing at the indicated time step
 	//
-	if (wbwriter.OpenVariableWrite(opt.ts, opt.varname, opt.nxforms) < 0) {
+	if (wbwriter.OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
 		cerr << ProgName << " : " << wbwriter.GetErrMsg() << endl;
 		exit(1);
 	} 
 
 	//
-	// Create a backup of the .vdf file. The translation process will
-	// generate a new .vdf file
+	// If pre version 2, create a backup of the .vdf file. The 
+	// translation process will generate a new .vdf file
 	//
-	save_file(metafile);
+	if (metadata->GetVDFVersion() < 2) save_file(metafile);
 
 #ifndef WIN32
 	fp = fopen64(datafile, "r");
@@ -331,11 +335,12 @@ int	main(int argc, char **argv) {
 		fprintf(stdout, "min and max values of data output: %g, %g\n",minData, maxData);
 	}
 
-	// Write out the updated metafile. If we don't call this then
+	// For pre-version 2 vdf files we need to write out the updated metafile. 
+	// If we don't call this then
 	// the .vdf file will not be updated with stats gathered from
 	// the volume we just translated.
 	//
-	metadata->Write(metafile);
+	if (metadata->GetVDFVersion() < 2) metadata->Write(metafile);
 
 	exit(0);
 }

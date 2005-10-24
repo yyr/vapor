@@ -62,24 +62,28 @@ public:
  //!
  //! Prepare a vapor data file for the creation of a multiresolution
  //! data volume via subsequent write operations by
- //! other methods of this class.
+ //! other methods of this classes derived from this class.
  //! The data volume is identified by the specfied time step and
  //! variable name. The number of forward transforms applied to
  //! the volume is determined by the Metadata object used to
- //! initialize the class. The transformation levels actually
- //! saved to the data collection are determined by \p num_xforms. If
- //! \p num_xforms is zero, the default, all transformation levels are
- //! saved. If \p num_xforms is one, all but the finest resolution
- //! coefficents are saved, and so on.
+ //! initialize the class. The number of refinement levels actually 
+ //! saved to the data collection are determined by \p reflevels. If
+ //! \p reflevels is zero, the default, only the coarsest approximation is
+ //! saved. If \p reflevels is one, all the coarsest and first refinement 
+ //! level is saved, and so on. A value of -1 indicates the maximum
+ //! refinment level permitted by the VDF
  //!
  //! \param[in] timestep Time step of the variable to read
  //! \param[in] varname Name of the variable to read
- //! \param[in] num_xforms Transformation levels to save, 0 => all
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level.
  //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
  virtual int	OpenVariableWrite(
-	size_t timestep, const char *varname, size_t num_xforms = 0
+	size_t timestep,
+	const char *varname,
+	int reflevel = 0
  );
 
  virtual int	CloseVariable();
@@ -109,10 +113,7 @@ public:
 private:
  int	_objInitialized;	// has the obj successfully been initialized?
 
- double	writer_timer_c;
  string _metafile;
-
- vector <double>	_dataRange;	// min and max data values 
 
  int	slab_cntr_c;
  int	is_open_c;
@@ -120,8 +121,8 @@ private:
  float	*zero_block_c;	// a block of zero data for padding
 
  int	write_slabs(
-	size_t	num_xforms,
-	const float *two_slabs
+	const float *two_slabs,
+	int reflevel
 	);
 
  int	write_gamma_slabs(

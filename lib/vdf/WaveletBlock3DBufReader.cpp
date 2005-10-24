@@ -22,6 +22,7 @@ WaveletBlock3DBufReader::WaveletBlock3DBufReader(
 ) : WaveletBlock3DReader(metadata, nthreads) {
 
 	_objInitialized = 0;
+	if (WaveletBlock3DReader::GetErrCode()) return;
 
 	SetDiagMsg(
 		"WaveletBlock3DBufReader::WaveletBlock3DBufReader(,%d)", nthreads
@@ -37,6 +38,7 @@ WaveletBlock3DBufReader::WaveletBlock3DBufReader(
 ) : WaveletBlock3DReader(metafile, nthreads) {
 
 	_objInitialized = 0;
+	if (WaveletBlock3DReader::GetErrCode()) return;
 
 	SetDiagMsg(
 		"WaveletBlock3DBufReader::WaveletBlock3DBufReader(%s,%d)", 
@@ -52,34 +54,38 @@ WaveletBlock3DBufReader::~WaveletBlock3DBufReader(
 	SetDiagMsg("WaveletBlock3DBufReader::~WaveletBlock3DBufReader()");
 	if (! _objInitialized) return;
 
-	CloseVariable();
+	this->VAPoR::WaveletBlock3DReader::~WaveletBlock3DReader();
+
+	WaveletBlock3DBufReader::CloseVariable();
 	_objInitialized = 0;
 }
 
 int	WaveletBlock3DBufReader::OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	size_t num_xforms
+	int reflevel
 ) {
 	int	rc;
 	size_t size;
 
 	SetDiagMsg(
 		"WaveletBlock3DBufReader::OpenVariableRead(%d,%s,%d)",
-		timestep, varname, num_xforms
+		timestep, varname, reflevel
 	);
 
 	slice_cntr_c = 0;
 	is_open_c = 1;
 
-	rc = WaveletBlock3DReader::OpenVariableRead(timestep, varname, num_xforms);
+	rc = WaveletBlock3DReader::OpenVariableRead(timestep, varname, reflevel);
 	if (rc<0) return(rc);
 
 
 	// allocate a buffer large enough to hold two slabs of the 
 	// volume at the desired resolution.
 	//
-	size = xbdim_c[0] * xbdim_c[1] * bs_c * bs_c * bs_c * 2;
+	size_t bdim[3];
+	GetDimBlk(bdim, reflevel);
+	size = bdim[0] * bdim[1] * _bs[0] * _bs[1] * _bs[2] * 2;
 	buf_c = new float[size];
 	if (! buf_c) {
 		SetErrMsg("new float[%d] : %s", size, strerror(errno));
@@ -111,16 +117,22 @@ int	WaveletBlock3DBufReader::ReadSlice(
 
 	SetDiagMsg("WaveletBlock3DBufReader::ReadSlice()");
 
+	size_t bdim[3];
+	size_t dim[3];
+	GetDimBlk(bdim, _reflevel);
+	GetDim(dim, _reflevel);
+
+
 	if (! is_open_c) {
 		SetErrMsg("File must be open before reading");
 		return(-1);
 	}
 
-	if (slice_cntr_c >= (int)xdim_c[2]) return (0);	
+	if (slice_cntr_c >= (int)dim[2]) return (0);	
 
 	// Read slabs as needed
 	//
-	if (slice_cntr_c % (bs_c*2) == 0) {	
+	if (slice_cntr_c % (_bs[2]*2) == 0) {	
 		int	rc;
 
 		rc = ReadSlabs(buf_c, 1);
@@ -131,17 +143,17 @@ int	WaveletBlock3DBufReader::ReadSlice(
 	// Copy data to user space. If volume isn't padded along X axis we
 	// can perform a single copy
 	//
-	if ((xdim_c[0] % bs_c) == 0) {
-		size = xdim_c[0] * xdim_c[1] * sizeof(*bufptr_c);
+	if ((bdim[0] % _bs[0]) == 0) {
+		size = bdim[0] * dim[1] * sizeof(*bufptr_c);
 		memcpy(slice, bufptr_c, size);
 	}
 	else {
-		size = xdim_c[0] * sizeof(*bufptr_c);
-		for(int y=0;y<(int)xdim_c[1]; y++) {
-			memcpy(slice+(y*xdim_c[0]), bufptr_c+(y*xbdim_c[0]*bs_c), size);
+		size = dim[0] * sizeof(*bufptr_c);
+		for(int y=0;y<(int)dim[1]; y++) {
+			memcpy(slice+(y*dim[0]), bufptr_c+(y*bdim[0]*_bs[0]), size);
 		}
 	}
-	bufptr_c += xbdim_c[0]*bs_c * xbdim_c[1]*bs_c;
+	bufptr_c += bdim[0]*_bs[0] * bdim[1]*_bs[1];
 	slice_cntr_c++;
 
 	return(0);

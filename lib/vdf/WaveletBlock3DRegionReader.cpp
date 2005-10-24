@@ -13,7 +13,7 @@ void	WaveletBlock3DRegionReader::_WaveletBlock3DRegionReader()
 
 	SetClassName("WaveletBlock3DRegionReader");
 
-	xform_timer_c = 0.0;
+	_xform_timer = 0.0;
 
 	for(j=0; j<MAX_LEVELS; j++) {
 		lambda_blks_c[j] = NULL;
@@ -27,6 +27,7 @@ WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(
 ) : WaveletBlock3DIO((Metadata *) metadata, nthreads) {
 
 	_objInitialized = 0;
+	if (WaveletBlock3DRegionReader::GetErrCode()) return;
 
 	SetDiagMsg("WaveletBlock3DRegionReader::WaveletBlock3DRegionReader()");
 
@@ -41,6 +42,7 @@ WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(
 ) : WaveletBlock3DIO(metafile, nthreads) {
 
 	_objInitialized = 0;
+	if (WaveletBlock3DRegionReader::GetErrCode()) return;
 
 	SetDiagMsg(
 		"WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(%s)",
@@ -57,7 +59,9 @@ WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader(
 	SetDiagMsg("WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader()");
 	if (! _objInitialized) return;
 
-	CloseVariable();
+	this->VAPoR::WaveletBlock3DIO::~WaveletBlock3DIO();
+
+	WaveletBlock3DRegionReader::CloseVariable();
 
 	_objInitialized = 0;
 }
@@ -65,17 +69,17 @@ WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader(
 int	WaveletBlock3DRegionReader::OpenVariableRead(
 	size_t	timestep,
 	const char	*varname,
-	size_t num_xforms
+	int reflevels
 ) {
 	int	rc;
 
 	SetDiagMsg(
 		"WaveletBlock3DRegionReader::OpenVariableRead(%d, %s, %d)",
-		timestep, varname, num_xforms
+		timestep, varname, reflevels
 	);
 
-	CloseVariable();	// close any previously opened files.
-	rc = WaveletBlock3DIO::OpenVariableRead(timestep, varname, num_xforms);
+	WaveletBlock3DRegionReader::CloseVariable();	// close any previously opened files.
+	rc = WaveletBlock3DIO::OpenVariableRead(timestep, varname, reflevels);
 	if (rc<0) return(rc);
 	rc = my_alloc();
 	if (rc<0) return(rc);
@@ -106,25 +110,25 @@ int	WaveletBlock3DRegionReader::_ReadRegion(
 	size_t minsub[] = {min[0], min[1], min[2]};
 	size_t maxsub[] = {max[0], max[1], max[2]};
 
-	while (minsub[0] >= bs_c) {
-		minsub[0] -= bs_c;
-		maxsub[0] -= bs_c;
+	while (minsub[0] >= _bs[0]) {
+		minsub[0] -= _bs[0];
+		maxsub[0] -= _bs[0];
 	}
-	while (minsub[1] >= bs_c) {
-		minsub[1] -= bs_c;
-		maxsub[1] -= bs_c;
+	while (minsub[1] >= _bs[1]) {
+		minsub[1] -= _bs[1];
+		maxsub[1] -= _bs[1];
 	}
-	while (minsub[2] >= bs_c) {
-		minsub[2] -= bs_c;
-		maxsub[2] -= bs_c;
+	while (minsub[2] >= _bs[2]) {
+		minsub[2] -= _bs[2];
+		maxsub[2] -= _bs[2];
 	}
 
 	if (! unblock) {
 		// sanity check. Region must be defined on block boundaries
 		// to preserve blocking
 		//
-		for(int i=0; i<3; i++) assert((min[i] % bs_c) == 0);
-		for(int i=0; i<3; i++) assert(((max[i]+1) % bs_c) == 0);
+		for(int i=0; i<3; i++) assert((min[i] % _bs[i]) == 0);
+		for(int i=0; i<3; i++) assert(((max[i]+1) % _bs[i]) == 0);
 	}
 
 	MapVoxToBlk(min, bmin);
@@ -141,8 +145,7 @@ int	WaveletBlock3DRegionReader::_ReadRegion(
 	// Max transform request => read raw blocks directly into buffer. Do no
 	// processing.
 	//
-	if (num_xforms_c == max_xforms_c) {
-		TIMER_START(t0)
+	if (_reflevel == 0) {
 
 		float *regptr = region;
 
@@ -156,7 +159,7 @@ int	WaveletBlock3DRegionReader::_ReadRegion(
 			if (! unblock) {
 				rc = readLambdaBlocks(x1-x0+1, regptr);
 				if (rc < 0) return (rc);
-				regptr += block_size_c * (x1-x0+1);
+				regptr += _block_size * (x1-x0+1);
 			}
 			else {
 				float *srcptr = lambda_blks_c[0];
@@ -166,26 +169,23 @@ int	WaveletBlock3DRegionReader::_ReadRegion(
 				for(x=0;x<(int)(x1-x0+1); x++) {
 					const size_t bcoord[3] = {x,y-y0,z-z0};
 					Block2NonBlock(srcptr, bcoord, minsub, maxsub, region);
-					srcptr += block_size_c;
+					srcptr += _block_size;
 				}
 					
 			}
 		}
 		}
-		TIMER_STOP(t0, xform_timer_c)
 		return(0);
 	}
 
-	TIMER_START(t0)
-
 	// Get bounds of subregion at coarsest level
 	//
-	l0x0 = (int)x0 >> (max_xforms_c - num_xforms_c);
-	l0x1 = (int)x1 >> (max_xforms_c - num_xforms_c);
-	l0y0 = (int)y0 >> (max_xforms_c - num_xforms_c);
-	l0y1 = (int)y1 >> (max_xforms_c - num_xforms_c);
-	l0z0 = (int)z0 >> (max_xforms_c - num_xforms_c);
-	l0z1 = (int)z1 >> (max_xforms_c - num_xforms_c);
+	l0x0 = (int)x0 >> _reflevel;
+	l0x1 = (int)x1 >> _reflevel;
+	l0y0 = (int)y0 >> _reflevel;
+	l0y1 = (int)y1 >> _reflevel;
+	l0z0 = (int)z0 >> _reflevel;
+	l0z1 = (int)z1 >> _reflevel;
 
 	// read in blocks from level 0 a row at a time.
 	for(z=l0z0; z<=l0z1; z++) {
@@ -200,13 +200,12 @@ int	WaveletBlock3DRegionReader::_ReadRegion(
 		// transform blocks from level 0 to desired level
 		rc = row_inv_xform(
 			lambda_blks_c[0], l0x0, y, z, l0x1-l0x0+1, 0,
-			region, min, max, max_xforms_c - num_xforms_c, unblock
+			region, min, max, _reflevel, unblock
 		);
 		if (rc < 0) return (rc);
 	}
 	}
 
-	TIMER_STOP(t0, xform_timer_c)
 
 	return(0);
 			
@@ -222,7 +221,7 @@ int	WaveletBlock3DRegionReader::ReadRegion(
 		min[0], min[1], min[2], max[0], max[1], max[2]
 	);
 
-	if (! IsValidRegion(num_xforms_c, min, max)) {
+	if (! IsValidRegion(min, max, _reflevel)) {
 		SetErrMsg(
 			"Invalid region : (%d %d %d) (%d %d %d)", 
 			min[0], min[1], min[2], max[0], max[1], max[2]
@@ -247,7 +246,7 @@ int	WaveletBlock3DRegionReader::BlockReadRegion(
 		bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]
 	);
 
-	if (! IsValidRegionBlk(num_xforms_c, bmin, bmax)) {
+	if (! IsValidRegionBlk(bmin, bmax, _reflevel)) {
 		SetErrMsg(
 			"Invalid region : (%d %d %d) (%d %d %d)", 
 			bmin[0], bmin[1], bmin[2], bmax[0], bmax[1], bmax[2]
@@ -255,8 +254,8 @@ int	WaveletBlock3DRegionReader::BlockReadRegion(
 		return(-1);
 	}
 
-	for(int i=0; i<3; i++) min[i] = bs_c*bmin[i];
-	for(int i=0; i<3; i++) max[i] = (bs_c*(bmax[i]+1))-1;
+	for(int i=0; i<3; i++) min[i] = _bs[i]*bmin[i];
+	for(int i=0; i<3; i++) max[i] = (_bs[i]*(bmax[i]+1))-1;
 
 	return(_ReadRegion(min, max, region, unblock));
 
@@ -421,17 +420,17 @@ int	WaveletBlock3DRegionReader::row_inv_xform(
 	size_t minsub[] = {min[0], min[1], min[2]};
 	size_t maxsub[] = {max[0], max[1], max[2]};
 
-	while (minsub[0] >= bs_c) {
-		minsub[0] -= bs_c;
-		maxsub[0] -= bs_c;
+	while (minsub[0] >= _bs[0]) {
+		minsub[0] -= _bs[0];
+		maxsub[0] -= _bs[0];
 	}
-	while (minsub[1] >= bs_c) {
-		minsub[1] -= bs_c;
-		maxsub[1] -= bs_c;
+	while (minsub[1] >= _bs[1]) {
+		minsub[1] -= _bs[1];
+		maxsub[1] -= _bs[1];
 	}
-	while (minsub[2] >= bs_c) {
-		minsub[2] -= bs_c;
-		maxsub[2] -= bs_c;
+	while (minsub[2] >= _bs[2]) {
+		minsub[2] -= _bs[2];
+		maxsub[2] -= _bs[2];
 	}
 
 	MapVoxToBlk(min, bmin);
@@ -473,42 +472,44 @@ int	WaveletBlock3DRegionReader::row_inv_xform(
 	// Get gamma coefficients for next level
 	//
 	const size_t bcoord[3] = {ljx0, ljy0, ljz0};
-	rc = seekGammaBlocks(max_xforms_c - j - 1, bcoord);
+	rc = seekGammaBlocks(bcoord, j+1);
 	if (rc<0) return(rc);
 
-	rc = readGammaBlocks(ljnx, max_xforms_c - j - 1, gamma_blks_c[j+1]);
+	rc = readGammaBlocks(ljnx, gamma_blks_c[j+1], j+1);
 	if (rc<0) return(rc);
 
 	dst_nbx = ljp1nx;
 	dst_nby = 2;
 
 	slab1 = lambda_blks_c[j+1];
-	slab2 = slab1 + (block_size_c * dst_nbx * dst_nby);
+	slab2 = slab1 + (_block_size * dst_nbx * dst_nby);
 
 	// Apply inverse transform to go from level j to j+1
 	//
 	for(x=0; x<(int)ljnx; x++) {
 
-		src_super_blk[0] = lambda_row + (x * block_size_c);
+		src_super_blk[0] = lambda_row + (x * _block_size);
 		for(i=1; i<8; i++) {
 			src_super_blk[i] = gamma_blks_c[j+1] + 
-				(x*block_size_c*7) + (block_size_c * (i-1));
+				(x*_block_size*7) + (_block_size * (i-1));
 		}
 
 		dst_super_blk[0] = slab1;
-		dst_super_blk[1] = slab1 + block_size_c;
-		dst_super_blk[2] = slab1 + (block_size_c * dst_nbx);
-		dst_super_blk[3] = slab1 + (block_size_c * dst_nbx) + block_size_c;
+		dst_super_blk[1] = slab1 + _block_size;
+		dst_super_blk[2] = slab1 + (_block_size * dst_nbx);
+		dst_super_blk[3] = slab1 + (_block_size * dst_nbx) + _block_size;
 		dst_super_blk[4] = slab2;
-		dst_super_blk[5] = slab2 + block_size_c;
-		dst_super_blk[6] = slab2 + (block_size_c * dst_nbx);
-		dst_super_blk[7] = slab2 + (block_size_c * dst_nbx) + block_size_c;
+		dst_super_blk[5] = slab2 + _block_size;
+		dst_super_blk[6] = slab2 + (_block_size * dst_nbx);
+		dst_super_blk[7] = slab2 + (_block_size * dst_nbx) + _block_size;
 
 
+		TIMER_START(t0)
 		wb3d_c->InverseTransform(src_super_blk,dst_super_blk);
+		TIMER_STOP(t0, _xform_timer)
 
-		slab1 += 2*block_size_c;
-		slab2 += 2*block_size_c;
+		slab1 += 2*_block_size;
+		slab2 += 2*_block_size;
 	}
 
 
@@ -522,10 +523,10 @@ int	WaveletBlock3DRegionReader::row_inv_xform(
 			if (y+ljp1y0 < sljp1y0 || y+ljp1y0 > sljp1y1) continue;
 
 			srcptr = lambda_blks_c[j+1] + 
-				(block_size_c * 
+				(_block_size * 
 				((z*2*ljp1nx) + (y*ljp1nx)));
 
-			if (sljp1x0 % 2) srcptr += block_size_c;
+			if (sljp1x0 % 2) srcptr += _block_size;
 
 			rc = row_inv_xform(
 				srcptr, sljp1x0, ljp1y0+y, ljp1z0+z, sljp1nx,
@@ -557,29 +558,29 @@ int	WaveletBlock3DRegionReader::row_inv_xform(
 
 
 			srcptr = lambda_blks_c[j+1] + 
-				(block_size_c * 
+				(_block_size * 
 				((z*2*ljp1nx) + (y*ljp1nx)));
 
-			if (sljp1x0 % 2) srcptr += block_size_c;
+			if (sljp1x0 % 2) srcptr += _block_size;
 
 			zz = z + ljp1z0 - sljp1z0;
 			yy = y + ljp1y0 - sljp1y0;
 			dstptr = region + 
-				(block_size_c *
+				(_block_size *
 				((zz * regny * regnx) + 
 				(yy * regnx)));
 
 			if (! unblock) {
 				memcpy(
 					dstptr, srcptr, 
-					sljp1nx*block_size_c*sizeof(srcptr[0])
+					sljp1nx*_block_size*sizeof(srcptr[0])
 				);
 			}
 			else {
 				for(x=0;x<sljp1nx;x++) {
 					const size_t bcoord[3] = {x,yy,zz};
 					Block2NonBlock(srcptr, bcoord, minsub, maxsub, region);
-					srcptr += block_size_c;
+					srcptr += _block_size;
 				}
 			}
 			yy++;
@@ -603,12 +604,12 @@ int	WaveletBlock3DRegionReader::my_alloc(
 	int	j;
 
 	// alloc space from coarsest (j==0) to finest level
-	for(j=0; j<=max_xforms_c-num_xforms_c; j++) {
+	for(j=0; j<_num_reflevels; j++) {
 
-		GetDimBlk(max_xforms_c - j, nb_j);
+		GetDimBlk(nb_j, j);
 		nb_j[0] += 1;	// fudge (deal with odd size dimensions)
 
-		size = (int)(nb_j[0] * block_size_c * 2 * 2);
+		size = (int)(nb_j[0] * _block_size * 2 * 2);
 
 		lambda_blks_c[j] = new float[size];
 		if (! lambda_blks_c[j]) {
@@ -616,7 +617,7 @@ int	WaveletBlock3DRegionReader::my_alloc(
 			return(-1);
 		}
 
-		size = (int)(nb_j[0] * block_size_c * 2 * 2 * 7);
+		size = (int)(nb_j[0] * _block_size * 2 * 2 * 7);
 
 		gamma_blks_c[j] = new float[size];
 		if (! gamma_blks_c[j]) {

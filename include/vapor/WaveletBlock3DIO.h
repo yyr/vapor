@@ -7,41 +7,12 @@
 #define	_WavletBlock3DIO_h_
 
 #include <cstdio>
+#include <netcdfcpp.h>
 #include <vapor/MyBase.h>
-#include "WaveletBlock3D.h"
+#include <vapor/WaveletBlock3D.h>
+#include <vapor/VDFIOBase.h>
 
 namespace VAPoR {
-
-
-#if	defined(IRIX) || defined(LINUX)
-#define	WAVELET_BLOCK_TIMER
-#endif
-
-#ifdef	WAVELET_BLOCK_TIMER
-#include <time.h>
-#include <assert.h>
-
-
-double  inline gettime() {
-        struct timespec ts;
-        double  t;
-
-        assert(clock_gettime(CLOCK_REALTIME, &ts) >= 0);
-
-
-        t = (double) ts.tv_sec + (double) ts.tv_nsec*1.0e-9;
-        return(t);
-}
-
-#define	TIMER_START(T0)		double (T0) = VAPoR::gettime();
-#define	TIMER_STOP(T0, T1)	(T1) += VAPoR::gettime() - (T0);
-
-#else
-
-#define	TIMER_START(T0)
-#define	TIMER_STOP(T0, T1)
-
-#endif
 
 
 //
@@ -54,7 +25,7 @@ double  inline gettime() {
 //! This class provides an API for performing low-level IO 
 //! to/from VDF files
 //
-class VDF_API	WaveletBlock3DIO : public VetsUtil::MyBase {
+class VDF_API	WaveletBlock3DIO : public VAPoR::VDFIOBase {
 
 public:
 
@@ -93,72 +64,78 @@ public:
  //! Returns true if indicated data volume exists on disk
  //!
  //! Returns true if the variable identified by the timestep, variable
- //! name, and number of transforms is present on disk. Returns 0 if
+ //! name, and refinement level is present on disk. Returns 0 if
  //! the variable is not present.
  //! \param[in] ts A valid time step from the Metadata object used
  //! to initialize the class
  //! \param[in] varname A valid variable name
- //! \param[in] num_xforms Transformation number requested
+ //! \param[in] reflevel Refinement level requested. The coarsest
+ //! refinement level is 0 (zero). A value of -1 indicates the finest
+ //! refinement level contained in the VDC.
  //
- int	VariableExists(
+ int    VariableExists(
 	size_t ts,
 	const char *varname,
-	size_t num_xforms
+	int reflevel = 0
  );
+
 
  //! Open the named variable for writing
  //!
  //! Prepare a vapor data file for the creation of a multiresolution
  //! data volume via subsequent write operations by
- //! other methods of this class.
+ //! other methods of this classes derived from this class.
  //! The data volume is identified by the specfied time step and
  //! variable name. The number of forward transforms applied to
  //! the volume is determined by the Metadata object used to
- //! initialize the class. The transformation levels actually 
- //! saved to the data collection are determined by \p num_xforms. If
- //! \p num_xforms is zero, the default, all transformation levels are
- //! saved. If \p num_xforms is one, all but the finest resolution 
- //! coefficents are saved, and so on.
+ //! initialize the class. The number of refinement levels actually 
+ //! saved to the data collection are determined by \p reflevels. If
+ //! \p reflevels is zero, the default, only the coarsest approximation is
+ //! saved. If \p reflevels is one, all the coarsest and first refinement 
+ //! level is saved, and so on. A value of -1 indicates the maximum
+ //! refinment level permitted by the VDF
  //!
  //! \param[in] timestep Time step of the variable to read
  //! \param[in] varname Name of the variable to read
- //! \param[in] num_xforms Transformation levels to save, 0 => all
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level.
  //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
  int	OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	size_t num_xforms = 0
+	int reflevel = 0
  );
 
  //! Open the named variable for reading
  //!
- //! This method prepares the multiresolution data volume indicated by a
+ //! This method prepares the multiresolution data volume, indicated by a
  //! variable name and time step pair, for subsequent read operations by
- //! methods of this class.  Furthermore, the number of forward transforms
- //! parameter, \p num_xforms indicates the resolution of the volume in
+ //! methods of this class.  Furthermore, the number of the refinement level
+ //! parameter, \p reflevel indicates the resolution of the volume in
  //! the multiresolution hierarchy. The valid range of values for
- //! \p num_xforms is [0..max_xforms], where \p max_xforms is the
- //! maximum number of forward transforms applied to the multiresolution
+ //! \p reflevel is [0..max_refinement], where \p max_refinement is the
+ //! maximum finement level of the data set: Metadata::GetNumTransforms() - 1.
  //! volume when the volume was created. A value of zero indicates the
- //! finest resolution data, a value of \p max_xforms indicates the
- //! coarsest resolution data.
+ //! coarsest resolution data, a value of \p max_refinement indicates the
+ //! finest resolution data.
  //!
  //! An error occurs, indicated by a negative return value, if the
- //! volume identified by the {varname, timestep, num_xforms} tripple
+ //! volume identified by the {varname, timestep, reflevel} tripple
  //! is not present on disk. Note the presence of a volume can be tested
  //! for with the VariableExists() method.
  //! \param[in] timestep Time step of the variable to read
  //! \param[in] varname Name of the variable to read
- //! \param[in] num_xforms Transformation level of the variable
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC
  //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
  int	OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	size_t num_xforms
+	int reflevel = 0
  );
 
  //! Close the currently opened variable.
@@ -167,161 +144,8 @@ public:
  //
  int	CloseVariable();
 
- int	GetBlockMins(size_t num_xforms, const float **mins);
- int	GetBlockMaxs(size_t num_xforms, const float **maxs);
-
- //! Get the dimension of a volume
- //! 
- //! Get the resulting dimension of the volume
- //! after undergoing a specified number of forward transforms. 
- //! If the number of transforms is zero, the
- //! value returned is the native volume dimension as specified in the
- //! Metadata structure used to construct the class.
- //! \param[in] num_xforms Transformation level of the variable
- //! \param[out] dim Transformed dimension.
- //!
- //! \sa Metadata::GetDimension()
- //
- void	GetDim(size_t num_xforms, size_t dim[3]) const;
-
- //! Get dimesion of a volume in blocks
- //!
- //! Performs same operation as GetDim() except returns
- //! dimensions in block coordinates instead of voxels.
- //! \param[in] num_xforms Transformation level of the variable
- //! \param[out] bdim Transformed dimension in blocks.
- //!
- //! \sa Metadata::GetDimension()
- //
- void	GetDimBlk(size_t num_xforms, size_t bdim[3]) const;
-
- //! Compute coordinates of a transformed voxel 
- //!
- //! Compute the resulting coordinates of a voxel after it undergoes
- //! a specified number of forward transforms, \p num_xforms.
- //! If num_xforms is zero, the operation performed is
- //! the identity  function.
- //! \note The coordinates returned may be 
- //! outside the 
- //! volume boundary and should always be checked to ensure that
- //! they are within the volume boundary with 
- //! the GetDim() method.
- //! \param[in] num_xforms Transformation level of the variable
- //! \param[in] vcoord0 Coordinate of input voxel in integer (voxel) 
- //! coordinates
- //! \param[out] vcoord1 Coordinate of transformed voxel in integer (voxel) 
- //! coordinates
- //
- void	TransformCoord(
-	size_t num_xforms, const size_t vcoord0[3], size_t vcoord1[3]
- ) const;
-
- //! Map integer voxel coordinates into integer block coordinates. 
- //! 
- //! Compute the integer coordinate of the block containing
- //! a specified voxel. 
- //! \param[in] vcoord Coordinate of input voxel in integer (voxel)
- //! coordinates
- //! \param[out] bcoord Coordinate of block in integer coordinates containing
- //! the voxel. 
- //!
- void	MapVoxToBlk(const size_t vcoord[3], size_t bcoord[3]) const;
-		
-
- //! Map integer voxel coordinates to user-defined floating point coords.
- //!
- //! Map the integer coordinates of the specified voxel to floating
- //! point coordinates in a user defined space. The voxel coordinates,
- //! \p vcoord0 are specified relative to the number of transforms 
- //! indicated by \p num_xforms for time step \p timestep.  
- //! I.e. vcoord0 are the integer offsets
- //! of a voxel from a coarsened volume that has undergone \p num_xform
- //! forward transforms.
- //! The mapping is performed by using linear interpolation 
- //! The user-defined coordinate system is obtained
- //! from the Metadata structure passed to the class constructor.
- //! The user coordinates are returned in \p vcoord1.
- //! Results are undefined if vcoord is outside of the volume 
- //! boundary.
- //!
- //! \param[in] num_xforms Transformation level of the variable
- //! \param[in] timestep Time step of the variable 
- //! \param[in] vcoord0 Coordinate of input voxel in integer (voxel)
- //! coordinates
- //! \param[out] vcoord1 Coordinate of transformed voxel in user-defined,
- //! floating point  coordinates
- //!
- //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
- //! GetTSXCoords()
- //
- void	MapVoxToUser(
-	size_t num_xforms, size_t timestep,
-	const size_t vcoord0[3], double vcoord1[3]
- ) const;
-
- //! Map floating point voxel coordinates to integer offsets.
- //!
- //! Map floating point coordinates, specified relative to a 
- //! user-defined coordinate system, to the closest integer voxel 
- //! coordinates for a voxel at a given transformation level. 
- //! The integer voxel coordinates, \p vcoord1
- //! are specified relative to the number of transforms 
- //! indicated by \p num_xforms for time step, \p timestep.
- //! I.e. \p vcoord1 are the integer offsets
- //! of a voxel from a coarsened volume that has undergone \p num_xform 
- //! forward transforms.
- //! The mapping is performed by using linear interpolation 
- //! The user defined coordinate system is obtained
- //! from the Metadata structure passed to the class constructor.
- //! The user coordinates are returned in \p vcoord1.
- //! Results are undefined if \p vcoord0 is outside of the volume 
- //! boundary.
- //!
- //! \param[in] num_xforms Transformation level of the variable
- //! \param[in] timestep Time step of the variable 
- //! \param[in] vcoord0 Coordinate of input voxel in floating point
- //! coordinates
- //! \param[out] vcoord1 Coordinate of closes, transformed voxel in i
- //! integer coordinates
- //!
- //! \sa Metatdata::GetGridType(), Metadata::GetExtents(), 
- //! GetTSXCoords()
- //
- void	MapUserToVox(
-	size_t num_xforms, size_t timestep,
-	const double vcoord0[3], size_t vcoord1[3]
- ) const;
-
- //! Return true if indicated region coordinates are valid
- //!
- //! Returns true if the region defined by \p num_xforms, 
- //! \p min, \p max is valid. I.e. returns true if the indicated 
- //! volume subregion is contained within the volume.
- //! 
- //! \param[in] num_xforms Transformation level of the variable
- //! \param[in] min Minimum region extents in voxel coordinates
- //! \param[in] max Maximum region extents in voxel coordinates
- //! \retval boolean True if region is valid
- //
- int IsValidRegion(
-	size_t num_xforms, const size_t min[3], const size_t max[3]
- ) const;
-
- //! Return true if indicated region coordinates are valid
- //!
- //! Returns true if the region defined by \p num_xforms, and the block
- //! coordinates  
- //! \p min, \p max are valid. I.e. returns true if the indicated 
- //! volume subregion is contained within the volume.
- //! 
- //! \param[in] num_xforms Transformation level of the variable
- //! \param[in] min Minimum region extents in block coordinates
- //! \param[in] max Maximum region extents in block coordinates
- //! \retval boolean True if region is valid
- //
- int IsValidRegionBlk(
-	size_t num_xforms, const size_t min[3], const size_t max[3]
- ) const;
+ int	GetBlockMins(const float **mins, int reflevel);
+ int	GetBlockMaxs(const float **maxs, int reflevel);
 
  //! Unpack a block into a contiguous volume
  //!
@@ -343,43 +167,24 @@ public:
 		float	*voxels
 	) const;
 
- //! Return the metadata class object associated with this class
+ //! Return the transform timer
  //!
- const	Metadata *GetMetadata() const { return (metadata_c); };
-
- double	GetReadTimer() const { return(read_timer_c); };
- double	GetSeekTimer() const { return(seek_timer_c); };
- double	GetWriteTimer() const { return(write_timer_c); };
- double	GetXFormTimer() const { return(xform_timer_c); };
+ //! This method returns the accumulated clock time, in seconds,
+ //! spent peforming wavelet transforms. There is presently no
+ //! way to reset the counter (without creating a new class object)
+ //!
+ double	GetXFormTimer() const { return(_xform_timer); };
 
 
 protected:
  static const int MAX_LEVELS = 16;	// Max # of forward transforms permitted
- VAPoR::Metadata *metadata_c;
- size_t	dim_c[3];		// volume dimensions in voxels (finest resolution)
- size_t	bdim_c[3];		// volume dimensions in blocks (finest resolution)
- size_t xdim_c[3];		// vol dim in voxels after 'num_xforms' forward
-						// transforms
 
- size_t xbdim_c[3];		// vol dim in blocks after 'num_xforms' forward
-						// transforms
 
- int	bs_c;			// block dimensions in voxels
- int	block_size_c;	// block size in voxels
-
- int	max_xforms_c;	// # of forward transforms applied/to-apply
-						// 0 => none, 1 => one coarsening, etc.
-						//
-
- int	num_xforms_c;	// Minimum transform number requested
-						// num_xforms_c == 0 => finest.
-						// num_xforms_c == max_xforms_c => coarsest.
-						// For writes, num_xforms_c == 0
-						// For reads, 0 <= num_xforms_c <= max_xforms_c.
+ int	_reflevel;	// refinement level of currently opened file.
 						
  float	*super_block_c;		// temp storage for gamma blocks;
 
- double	xform_timer_c;	// records transform time by derived classes
+ double	_xform_timer;	// records transform time by derived classes
 
  size_t _timeStep;		// Currently opened timestep
  string _varName;		// Currently opened variable
@@ -391,13 +196,13 @@ protected:
 
  // This method moves the file pointer associated with the currently
  // open variable to the disk block indicated by 'offset' and
- // 'num_xforms', where 'offset' indicates the desired position, in 
- // blocks, and 'num_xforms' indicates the number of 
- // forward transformations. If 'num_xforms' is zero, for example, 
+ // 'reflevel', where 'offset' indicates the desired position, in 
+ // blocks, and 'reflevel' indicates the refinement level
+ // If 'reflevel' is zero, for example, 
  // the file pointer is moved 'offset' blocks past the beginning
- // of the coefficients associated with the finest data resolution.
+ // of the coefficients associated with the coarsest data resolution.
  //
- int	seekBlocks(unsigned int offset, size_t num_xforms);
+ int	seekBlocks(unsigned int offset, int reflevel = 0);
 
  // This method moves the file pointer associated with the currently
  // open variable to the disk block containing lambda coefficients
@@ -409,23 +214,23 @@ protected:
 
  // This method moves the file pointer associated with the currently
  // open variable to the disk block containing gamma coefficients
- // indicated by the block coordinates 'bcoord', and the number of
- // forward transformations, 'num_xforms'. The parameter 'num_xforms'
- // must be in the range [0..max_xforms_c-1]. Note, if max_xforms_c is 
+ // indicated by the block coordinates 'bcoord', and the refinement level
+ // 'reflevel'. The parameter 'reflevel'
+ // must be in the range [1.._max_reflevel]. Note, if max_xforms_c is 
  // zero, an error is generated as there are no gamma coefficients.
  //
  // A non-negative return value indicates success
  //
- int	seekGammaBlocks(size_t num_xforms, const size_t bcoord[3]);
+ int	seekGammaBlocks(const size_t bcoord[3], int reflevel);
 
- // Read 'n' contiguous coefficient blocks, associated with the indicated
- // number of transforms, 'num_xforms', from the currently open variable
- // file. The 'num_xforms' parameter must be in the range [0..max_xforms_c],
+ // Read 'n' contiguous coefficient blocks, associated with the refinement
+ // level, 'reflevel', from the currently open variable
+ // file. The 'reflevel' parameter must be in the range [0.._max_reflevel],
  // where a value of zero indicates the coefficients for the
  // finest resolution. The results are stored in 'blks', which must 
  // point to an area of adequately sized memory.
  //
- int	readBlocks(size_t n, size_t num_xforms, float *blks);
+ int	readBlocks(size_t n, float *blks, int reflevel);
 
  //
  // Read 'n' contiguous lambda coefficient blocks
@@ -437,23 +242,23 @@ protected:
 
  //
  // Read 'n' contiguous gamma coefficient blocks, associated with
- // the indicated number of transforms, 'num_xforms',
+ // the indicated refinement level, 'ref_level',
  // from the currently open variable file. 
  // The results are stored in 'blks', which must 
  // point to an area of adequately sized memory.
- // An error is generated if max_xforms_c is less than one or
- // 'num_xforms' is greater than max_xforms_c.
+ // An error is generated if 'reflevel' is less than one or
+ // 'reflevel' is greater than _max_reflevel.
  //
- int	readGammaBlocks(size_t n, size_t num_xforms, float *blks);
+ int	readGammaBlocks(size_t n, float *blks, int reflevel);
 
  // Write 'n' contiguous coefficient blocks, associated with the indicated
  // number of transforms, 'num_xforms', from the currently open variable
- // file. The 'num_xforms' parameter must be in the range [0..max_xforms_c],
+ // file. The 'num_xforms' parameter must be in the range [0.._max_reflevel],
  // where a value of zero indicates the coefficients for the
  // finest resolution. The coefficients are copied from the memory area
  // pointed to by 'blks'
  //
- int	writeBlocks(const float *blks, size_t n, size_t num_xforms);
+ int	writeBlocks(const float *blks, size_t n, int reflevel);
 
  // Write 'n' contiguous lambda coefficient blocks
  // from the currently open variable file. 
@@ -463,40 +268,36 @@ protected:
  int	writeLambdaBlocks(const float *blks, size_t n);
 
  // Write 'n' contiguous gamma coefficient blocks, associated with
- // the indicated number of transforms, 'num_xforms',
+ // the indicated refinement level, 'ref_level',
  // from the currently open variable file. 
  // The data are copied from the area of memory pointed to by 'blks'.
- // An error is generated if max_xforms_c is less than one or
- // 'num_xforms' is greater than max_xforms_c.
+ // An error is generated if ref_level is less than one or
+ // 'ref_level' is greater than _max_reflevel.
  //
- int	writeGammaBlocks(const float *blks, size_t n, size_t num_xforms);
+ int	writeGammaBlocks(const float *blks, size_t n, int reflevel);
 
 
 
 private:
  int	_objInitialized;	// has the obj successfully been initialized?
- static const int VERSION  = 2;
 
  typedef int int32_t;
 
- FILE	*file_ptrs_c[MAX_LEVELS+1];
+ FILE	*file_ptrs_c[MAX_LEVELS];
  float	*mins_c[MAX_LEVELS];	// min value contained in a block
  float	*maxs_c[MAX_LEVELS];	// max value contained in a block
  long	_fileOffsets[MAX_LEVELS];	// seek offsets to the start of data
 
- double	read_timer_c;
- double	write_timer_c;
- double	seek_timer_c;
+ NcFile *_ncfiles[MAX_LEVELS];
+ NcVar *_ncvars[MAX_LEVELS];
+ int _ncoffsets[MAX_LEVELS];	// file ptr offset for netcdf
 
- int	version_c;
  int	n_c;		// # filter coefficients
  int	ntilde_c;	// # lifting coefficients
- int	nthreads_c;	// # execution threads
  int	type_c;		// data type;
  int	is_open_c;	// true if a file is open
  int	write_mode_c;	// true if file opened for writing
  float	*block_c;		// temp storage for byteswapping blocks;
- int	_doFreeMeta;	// does the class own the metadata object?
 
  void	swapbytes(void *vptr, int n) const;
  void	swapbytescopy(const void *src, void *dst, int size, int n) const;
@@ -505,10 +306,25 @@ private:
  void	my_free();
  int	get_file_offset(size_t level);
 
- int	_WaveletBlock3DIO(
-	const VAPoR::Metadata *metadata,
-	unsigned int	nthreads
- );
+ static const string _blockDimXName;
+ static const string _blockDimYName;
+ static const string _blockDimZName;
+ static const string _nBlocksDimName;
+ static const string _fileVersionName;
+ static const string _refLevelName;
+ static const string _nativeResName;
+ static const string _refLevelResName;
+ static const string _filterCoeffName;
+ static const string _liftingCoeffName;
+ static const string _scalarRangeName;
+ static const string _lambdaName;
+ static const string _gammaName;
+
+ int	_WaveletBlock3DIO();
+
+ int open_var_write(const string &basename);
+ int open_var_read(const string &basename);
+
 
 };
 

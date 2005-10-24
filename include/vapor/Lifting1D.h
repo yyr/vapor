@@ -5,6 +5,7 @@
 #ifndef	_Lifting1D_h_
 #define	_Lifting1D_h_
 
+#include <iostream>
 #include <vapor/EasyThreads.h>
 #include <vapor/MyBase.h>
 

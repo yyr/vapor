@@ -46,6 +46,7 @@ const string Metadata::_extentsTag = "Extents";
 const string Metadata::_gridTypeTag = "GridType";
 const string Metadata::_numTimeStepsTag = "NumTimeSteps";
 const string Metadata::_basePathTag = "BasePath";
+const string Metadata::_auxBasePathTag = "AuxBasePath";
 const string Metadata::_rootTag = "Metadata";
 const string Metadata::_userTimeTag = "UserTime";
 const string Metadata::_timeStepTag = "TimeStep";
@@ -67,7 +68,7 @@ const string Metadata::_numChildrenAttr = "NumChildren";
 // Initialize the class object
 //
 int Metadata::_init(
-		const size_t dim[3], size_t numTransforms, size_t bs,
+		const size_t dim[3], size_t numTransforms, size_t bs[3],
 		int nFilterCoef, int nLiftingCoef, int msbFirst, int vdfVersion
 ) {
 	map <string, string> attrs;
@@ -76,17 +77,26 @@ int Metadata::_init(
 
 	SetClassName("Metadata");
 
-	if (! IsPowerOfTwo((int)bs)) {
-		SetErrMsg("Block dimension is not a power of two: bs=%d", bs);
+	if (! (bs[0] == bs[1] && bs[1] == bs[2])) {
+		SetErrMsg("Block dimensions not symmetric");
 		return(-1);
+	}
+
+	for(int i=0; i<3; i++) {
+		if (! IsPowerOfTwo((int)bs[i])) {
+			SetErrMsg("Block dimension is not a power of two: bs=%d", bs[i]);
+			return(-1);
+		}
 	}
 
 	_emptyDoubleVec.clear();
 	_emptyLongVec.clear();
 	_emptyString.clear();
 
-	_bs = bs;
-	_dim[0] = dim[0]; _dim[1] = dim[1]; _dim[2] = dim[2];
+	for(int i=0; i<3; i++) {
+		_bs[i] = bs[i];
+		_dim[i] = dim[i];
+	}
 	_numTransforms = (int)numTransforms;
 	_nFilterCoef = nFilterCoef;
 	_nLiftingCoef = nLiftingCoef;
@@ -96,7 +106,7 @@ int Metadata::_init(
 	_varNames.clear();
 
 	oss.str(empty);
-	oss << (unsigned int)_bs;
+	oss << (unsigned int)_bs[0] << " " << (unsigned int)_bs[1] << " " << (unsigned int)_bs[2];
 	attrs[_blockSizeAttr] = oss.str();
 
 	oss.str(empty);
@@ -160,14 +170,14 @@ int Metadata::_init(
 }
 
 Metadata::Metadata(
-		const size_t dim[3], size_t numTransforms, size_t bs, 
+		const size_t dim[3], size_t numTransforms, size_t bs[3], 
 		int nFilterCoef, int nLiftingCoef, int msbFirst, int vdfVersion
 ) {
 	_objInitialized = 0;
 	SetDiagMsg(
-		"Metadata::Metadata([%d,%d,%d], %d, %d, %d, %d, %d, %d)", 
-		dim[0], dim[1], dim[2], numTransforms, bs, nFilterCoef, nLiftingCoef,
-		msbFirst, vdfVersion
+		"Metadata::Metadata([%d,%d,%d], %d, [%d,%d%d] %d, %d, %d, %d)", 
+		dim[0], dim[1], dim[2], numTransforms, bs[0],bs[1],bs[2], 
+		nFilterCoef, nLiftingCoef, msbFirst, vdfVersion
 	);
 
 	_rootnode = NULL;
@@ -249,7 +259,8 @@ int Metadata::SetGridType(const string &value) {
 
 	SetDiagMsg("Metadata::SetGridType(%s)", value.c_str());
 
-	return(_rootnode->SetElementString(_gridTypeTag, value));
+	_rootnode->SetElementString(_gridTypeTag, value);
+	return(0);
 }
 
 int Metadata::SetCoordSystemType(const string &value) {
@@ -262,7 +273,8 @@ int Metadata::SetCoordSystemType(const string &value) {
 
 	SetDiagMsg("Metadata::SetCoordSystemType(%s)", value.c_str());
 
-	return(_rootnode->SetElementString(_coordSystemTypeTag, value));
+	_rootnode->SetElementString(_coordSystemTypeTag, value);
+	return(0);
 }
 
 int Metadata::SetExtents(const vector<double> &value) {
@@ -276,7 +288,8 @@ int Metadata::SetExtents(const vector<double> &value) {
 		value[0], value[1], value[2], value[3], value[4], value[5]
 	);
 
-	return(_rootnode->SetElementDouble(_extentsTag, value));
+	_rootnode->SetElementDouble(_extentsTag, value);
+	return(0);
 }
 
 int Metadata::IsValidExtents(const vector<double> &value) const {
@@ -306,6 +319,19 @@ int Metadata::_SetNumTimeSteps(long value) {
 
 			vector <double> valvec(1, (double) ts);
 			SetTSUserTime(ts, valvec);
+
+
+			// Set the base path for any auxiliary data.
+			//
+			oss.str(empty);
+			oss << "aux/aux";
+			oss << ".";
+			oss.width(4);
+			oss.fill('0');
+			oss << ts;
+			oss.width(0);
+			child->SetElementString(_auxBasePathTag, oss.str());
+
 		}
 	}
 	// Delete children
@@ -374,7 +400,8 @@ int Metadata::SetNumTimeSteps(long value) {
 
 	if (_SetNumTimeSteps(value) < 0) return(-1);
 
-	return(_rootnode->SetElementLong(_numTimeStepsTag, valvec)); 
+	_rootnode->SetElementLong(_numTimeStepsTag, valvec); 
+	return(0);
 }
 
 long Metadata::GetNumTimeSteps() const {
@@ -406,7 +433,7 @@ int Metadata::SetVariableNames(const vector <string> &value) {
 		if (_SetVariableNames(_rootnode->GetChild(i), (long)i) < 0) return(-1);
 	}
 
-	return(_rootnode->SetElementString(_varNamesTag, oss.str()));
+	_rootnode->SetElementString(_varNamesTag, oss.str());
 
 	return(0);
 }
@@ -422,7 +449,8 @@ int Metadata::SetTSUserTime(size_t ts, const vector<double> &value) {
 	SetDiagMsg("Metadata::SetTSUserTime(%d, [%d,...])", ts, value[0]);
 
 	CHK_TS(ts, -1);
-	return(_rootnode->GetChild(ts)->SetElementDouble(_userTimeTag, value));
+	_rootnode->GetChild(ts)->SetElementDouble(_userTimeTag, value);
+	return(0);
 }
 
 int Metadata::SetTSXCoords(size_t ts, const vector<double> &value) {
@@ -434,7 +462,8 @@ int Metadata::SetTSXCoords(size_t ts, const vector<double> &value) {
 	SetDiagMsg("Metadata::SetTSXCoords(%d, [%d,...])", ts, value[0]);
 
 	CHK_TS(ts, -1);
-	return(_rootnode->GetChild(ts)->SetElementDouble(_xCoordsTag, value));
+	_rootnode->GetChild(ts)->SetElementDouble(_xCoordsTag, value);
+	return(0);
 }
 
 int Metadata::SetTSYCoords(size_t ts, const vector<double> &value) {
@@ -446,7 +475,8 @@ int Metadata::SetTSYCoords(size_t ts, const vector<double> &value) {
 	SetDiagMsg("Metadata::SetTSYCoords(%d, [%d,...])", ts, value[0]);
 
 	CHK_TS(ts, -1);
-	return(_rootnode->GetChild(ts)->SetElementDouble(_yCoordsTag, value));
+	_rootnode->GetChild(ts)->SetElementDouble(_yCoordsTag, value);
+	return(0);
 }
 
 int Metadata::SetTSZCoords(size_t ts, const vector<double> &value) {
@@ -458,7 +488,8 @@ int Metadata::SetTSZCoords(size_t ts, const vector<double> &value) {
 	SetDiagMsg("Metadata::SetTSZCoords(%d, [%d,...])", ts, value[0]);
 
 	CHK_TS(ts, -1);
-	return(_rootnode->GetChild(ts)->SetElementDouble(_zCoordsTag, value));
+	_rootnode->GetChild(ts)->SetElementDouble(_zCoordsTag, value);
+	return(0);
 }
 
 int Metadata::SetTSComment(
@@ -471,7 +502,8 @@ int Metadata::SetTSComment(
 	CHK_TS(ts, -1);
 	if (! (timenode = _rootnode->GetChild(ts))) return(-1);
 
-	return(timenode->SetElementString(_commentTag, value));
+	timenode->SetElementString(_commentTag, value);
+	return(0);
 }
 
 const string &Metadata::GetTSComment(
@@ -503,7 +535,8 @@ int Metadata::SetVComment(
 	timenode = _rootnode->GetChild(ts);
 	varnode = timenode->GetChild(var);
 
-	return(varnode->SetElementString(_commentTag, value));
+	varnode->SetElementString(_commentTag, value);
+	return(0);
 }
 
 const string &Metadata::GetVComment(
@@ -541,6 +574,11 @@ const string &Metadata::GetVBasePath(
 int Metadata::SetVDataRange(
 	size_t ts, const string &var, const vector<double> &value
 ) {
+
+	SetDiagMsg(
+		"Metadata::SetVDataRange(%d, %s, [%f, %f])", ts, var.c_str(), value[0], value[1]
+	);
+
 	XmlNode	*timenode;
 	XmlNode	*varnode;
 
@@ -549,16 +587,18 @@ int Metadata::SetVDataRange(
         return(-1);
     }
 
-	SetDiagMsg(
-		"Metadata::SetVDataRange(%d, %s, [%f, %f])", ts, var.c_str(), value[0], value[1]
-	);
+	if (_vdfVersion > 1) {
+		SetErrMsg("Operation only permitted on pre-version 2 files");
+		return(-1);
+	}
 
 
 	timenode = _rootnode->GetChild(ts);
 	varnode = timenode->GetChild(var);
 	CHK_VAR(ts, var, -1);
 
-	return(varnode->SetElementDouble(_dataRangeTag, value));
+	varnode->SetElementDouble(_dataRangeTag, value);
+	return(0);
 }
 
 int	Metadata::_RecordUserDataTags(vector<string> &keys, const string &tag) {
@@ -644,7 +684,7 @@ void	Metadata::_startElementHandler0(ExpatParseMgr* pm,
 
 	_currentTS = 0;
 
-	size_t bs;
+	size_t bs[3];
 	size_t dim[3];
 	int nFilterCoef = 1;
 	int nLiftingCoef = 1;
@@ -670,7 +710,11 @@ void	Metadata::_startElementHandler0(ExpatParseMgr* pm,
 
 		istringstream ist(value);
 		if (StrCmpNoCase(attr, _blockSizeAttr) == 0) {
-			ist >> bs;
+			ist >> bs[0]; 
+
+			// Pre version 2, block size was a scalar;
+			if (! ist.eof()) ist >> bs[1]; 
+			if (! ist.eof()) ist >> bs[2];
 		}
 		else if (StrCmpNoCase(attr, _dimensionLengthAttr) == 0) {
 			ist >> dim[0]; ist >> dim[1]; ist >> dim[2];
@@ -693,6 +737,10 @@ void	Metadata::_startElementHandler0(ExpatParseMgr* pm,
 		else {
 			pm->parseError("Invalid tag attribute : \"%s\"", attr.c_str());
 		}
+	}
+
+	if (vdfVersion < 2) {
+		bs[1] = bs[2] = bs[0];
 	}
 
 	_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst, vdfVersion);
@@ -859,6 +907,12 @@ void	Metadata::_startElementHandler2(ExpatParseMgr* pm,
 
 	if (StrCmpNoCase(tag, _userTimeTag) == 0) {
 		if (StrCmpNoCase(type, _doubleType) != 0) {
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
+			return;
+		}
+	}
+	else if (StrCmpNoCase(tag, _auxBasePathTag) == 0) {
+		if (StrCmpNoCase(type, _stringType) != 0) {
 			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
 			return;
 		}
@@ -1059,6 +1113,12 @@ void	Metadata::_endElementHandler2(ExpatParseMgr* pm,
 
 	} else if (StrCmpNoCase(tag, _userTimeTag) == 0) {
 		if (SetTSUserTime(_currentTS, pm->getDoubleData()) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
+			return;
+		}
+	}
+	else if (StrCmpNoCase(tag, _auxBasePathTag) == 0) {
+		if (SetTSUserDataString(_currentTS, tag, pm->getStringData()) < 0) {
 			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}

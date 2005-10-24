@@ -33,7 +33,7 @@ namespace VAPoR {
 		return(RETVAL); \
 	}
 
-const int VDF_VERSION = 1;
+const int VDF_VERSION = 2;
 
 //
 //! \class Metadata
@@ -82,7 +82,7 @@ public:
  //! should not be changed from the default
  //
  Metadata(
-	const size_t dim[3], size_t numTransforms, size_t bs = 32, 
+	const size_t dim[3], size_t numTransforms, size_t bs[3],
 	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst =  1,
 	int vdfVersion = VDF_VERSION
 	);
@@ -93,7 +93,7 @@ public:
  //
  Metadata(const string &path);
 
- ~Metadata();
+ virtual ~Metadata();
 
  //! Return the file path name to the metafile's parent directory.
  //! If the class was constructed with a path name, this method
@@ -123,7 +123,7 @@ public:
  //!
  //! \retval size Internal block factor
  //
- size_t GetBlockSize() const { return(_bs); }
+ const size_t *GetBlockSize() const { return(_bs); }
 
  //! Returns the X,Y,Z coordinate dimensions of the data in grid coordinates
  //! \retval dim A three element vector containing the voxel dimension of 
@@ -191,7 +191,8 @@ public:
  int IsValidGridType(const string &value) const {
 	return(
 		(VetsUtil::StrCmpNoCase(value,"regular") == 0) || 
-		(VetsUtil::StrCmpNoCase(value,"stretched") == 0)
+		(VetsUtil::StrCmpNoCase(value,"stretched") == 0) || 
+		(VetsUtil::StrCmpNoCase(value,"block_amr") == 0)
 	);
 	}
 
@@ -290,7 +291,8 @@ public:
  //! \retval status Returns a non-negative integer on success
  //
  int SetComment(const string &value) {
-	return(_rootnode->SetElementString(_commentTag, value));
+	_rootnode->SetElementString(_commentTag, value);
+	return(0);
 	}
 
  //! Return the global comment, if it exists
@@ -320,6 +322,19 @@ public:
  const vector<double> &GetTSUserTime(size_t ts) const {
 	CHK_TS(ts, _emptyDoubleVec)
 	return(_rootnode->GetChild(ts)->GetElementDouble(_userTimeTag));
+	};
+
+ //! Return the base path for auxiliary data, indicated by the time 
+ //! step, \p ts, if it exists.  
+ //!
+ //! Paths to data files are constructed from the base path.
+ //! \param[in] ts A valid data set time step in the range from zero to
+ //! GetNumTimeSteps() - 1.
+ //! \retval path Auxiliary data base path name
+ //
+ const string &GetTSAuxBasePath(size_t ts) const {
+	CHK_TS(ts, _emptyString)
+	return(_rootnode->GetChild(ts)->GetElementString(_auxBasePathTag));
 	};
 
  //! Return true if a user time exists for the indicated time step
@@ -472,6 +487,8 @@ public:
  //! GetNumTimeSteps() - 1.
  //! \param[in] var A valid data set variable name
  //! \retval path Variable base path name
+ //!
+ //! \nb This method is deprecated and should no longer be used.
  //
  const vector<double> &GetVDataRange(size_t ts, const string &var) const {
 	CHK_VAR(ts, var, _emptyDoubleVec)
@@ -544,7 +561,8 @@ public:
  //
  int SetUserDataLong(const string &tag, const vector<long> &value) {
 	_RecordUserDataTags(_userDLTags, tag);
-	return(_rootnode->SetElementLong(tag, value));
+	_rootnode->SetElementLong(tag, value);
+	return(0);
  }
 
  //! Get global, user-defined metadata
@@ -565,7 +583,8 @@ public:
 
  int SetUserDataDouble(const string &tag, const vector<double> &value) {
 	_RecordUserDataTags(_userDDTags, tag);
-	return(_rootnode->SetElementDouble(tag, value));
+	_rootnode->SetElementDouble(tag, value);
+	return(0);
  }
  const vector<double> &GetUserDataDouble(const string &tag) const {
 	return(_rootnode->GetElementDouble(tag));
@@ -575,7 +594,8 @@ public:
 
  int SetUserDataString(const string &tag, const string &value) {
 	_RecordUserDataTags(_userDSTags, tag);
-	return(_rootnode->SetElementString(tag, value));
+	_rootnode->SetElementString(tag, value);
+	return(0);
  }
  const string &GetUserDataString(const string &tag) const {
 	return(_rootnode->GetElementString(tag));
@@ -613,13 +633,13 @@ public:
  //! \param[in] ts The time step this metadata field applies to  
  //! \param[in] tag Name of metadata tag
  //! \param[in] value A vector of one or more metadata values
- //! \retval status Returns a non-negative integer on success
  //! \sa GetTSUserDataLongTag(), GetTSUserDataLong()
  //
  int SetTSUserDataLong(size_t ts, const string &tag, const vector<long> &value) {
 	CHK_TS(ts, -1)
 	_RecordUserDataTags(_timeStepUserDLTags, tag);
-	return(_rootnode->GetChild(ts)->SetElementLong(tag, value));
+	_rootnode->GetChild(ts)->SetElementLong(tag, value);
+	return(0);
  }
 
  //! Get time step, user-defined metadata
@@ -643,7 +663,8 @@ public:
  ) {
 	CHK_TS(ts, -1)
 	_RecordUserDataTags(_timeStepUserDDTags, tag);
-	return(_rootnode->GetChild(ts)->SetElementDouble(tag, value));
+	_rootnode->GetChild(ts)->SetElementDouble(tag, value);
+	return(0);
  }
 
  const vector<double> &GetTSUserDataDouble(size_t ts, const string &tag) const {
@@ -659,7 +680,8 @@ public:
  ) {
 	CHK_TS(ts, -1)
 	_RecordUserDataTags(_timeStepUserDSTags, tag);
-	return(_rootnode->GetChild(ts)->SetElementString(tag, value));
+	_rootnode->GetChild(ts)->SetElementString(tag, value);
+	return(0);
  }
 
  const string &GetTSUserDataString(size_t ts, const string &tag) const {
@@ -716,7 +738,8 @@ public:
  ) {
 	CHK_VAR(ts, var, -1)
 	_RecordUserDataTags(_variableUserDLTags, tag);
-	return(_rootnode->GetChild(ts)->GetChild(var)->SetElementLong(tag, value));
+	_rootnode->GetChild(ts)->GetChild(var)->SetElementLong(tag, value);
+	return(0);
  }
 
  //! Get variable, user-defined metadata
@@ -746,7 +769,8 @@ public:
  ) {
 	CHK_VAR(ts, var, -1)
 	_RecordUserDataTags(_variableUserDDTags, tag);
-	return(_rootnode->GetChild(ts)->GetChild(var)->SetElementDouble(tag, value));
+	_rootnode->GetChild(ts)->GetChild(var)->SetElementDouble(tag, value);
+	return(0);
  }
 
  const vector<double> &GetVUserDataDouble(
@@ -762,7 +786,8 @@ public:
  ) {
 	CHK_VAR(ts,var,-1)
 	_RecordUserDataTags(_variableUserDSTags, tag);
-	return(_rootnode->GetChild(ts)->GetChild(var)->SetElementString(tag, value));
+	_rootnode->GetChild(ts)->GetChild(var)->SetElementString(tag, value);
+	return(0);
  }
 
  const string &GetVUserDataString(
@@ -779,7 +804,7 @@ private:
  int	_objInitialized;	// has the obj successfully been initialized?
  XmlNode	*_rootnode;		// root node of the xml tree
  vector <string> _varNames;	// Names of all the field variables
- size_t _bs;				// blocking factor to be used by data
+ size_t _bs[3];				// blocking factor to be used by data
  size_t _dim[3];			// data dimensions
  int	_nFilterCoef;		// Lifting filter coefficients
  int	_nLiftingCoef;
@@ -808,6 +833,7 @@ private:
  static const string _gridTypeTag;
  static const string _numTimeStepsTag;
  static const string _basePathTag;
+ static const string _auxBasePathTag;
  static const string _rootTag;
  static const string _userTimeTag;
  static const string _timeStepTag;
@@ -843,7 +869,7 @@ private:
  vector <string> _variableUserDSTags;
 
  int _init(
-	const size_t dim[3], size_t numTransforms, size_t bs = 32, 
+	const size_t dim[3], size_t numTransforms, size_t bs[3],
 	int nFilterCoef = 1, int nLiftingCoef = 1, int msbFirst = 1,
 	int vdfVersion = VDF_VERSION
 	);

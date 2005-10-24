@@ -7,14 +7,34 @@ LIBRARY = vdf
 FILES = \
 	BlkMemMgr DataMgr Lifting1D Metadata WaveletBlock3D \
 	WaveletBlock3DBufReader WaveletBlock3DBufWriter \
-	WaveletBlock3DIO WaveletBlock3DReader WaveletBlock3DRegionReader \
-	WaveletBlock3DWriter XmlNode ImpExp vdf ExpatParseMgr
+	VDFIOBase WaveletBlock3DIO WaveletBlock3DReader \
+	WaveletBlock3DRegionReader \
+	WaveletBlock3DWriter XmlNode ImpExp vdf ExpatParseMgr 
 
 HEADER_FILES = \
 	BlkMemMgr DataMgr Lifting1D Metadata WaveletBlock3D \
 	WaveletBlock3DBufReader WaveletBlock3DBufWriter \
-	WaveletBlock3DIO WaveletBlock3DReader WaveletBlock3DRegionReader \
-	WaveletBlock3DWriter XmlNode ImpExp ExpatParseMgr
+	VDFIOBase WaveletBlock3DIO WaveletBlock3DReader \
+	WaveletBlock3DRegionReader \
+	WaveletBlock3DWriter XmlNode ImpExp ExpatParseMgr 
+
+
+
+
+ifeq ($(BUILD_AMR_SUPPORT), 1)
+
+FILES +=     AMRTree AMRTreeBranch AMRData AMRDataIO
+HEADER_FILES +=     AMRTree AMRTreeBranch AMRData AMRDataIO
+
+ifdef	NETCDF_INC_PATH
+MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
+endif
+
+ifdef NETCDF_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(NETCDF_LIB_PATH) -lnetcdf_c++ -lnetcdf 
+endif
+
+endif
 
 #LIB_DEFS = vdf.def
   

@@ -276,6 +276,37 @@ private:
  //! \param[in,out] s The string.
  COMMON_API void	StrRmWhiteSpace(string &s);
 
+ //! Retrieve a sequence of bits
+ //!
+ //! Extract \p n bits from \p targ starting at position
+ //! \p pos counting from the left. E.g. GetBits64(I,4,3) will
+ //! extract bits at bit position 4,3,2, right adjusted
+ //!
+ //! \retval returns the extracted bits
+ //! \sa GetBits64()
+ //
+ COMMON_API unsigned long long GetBits64(
+    unsigned long long targ,
+    int pos,
+    int n
+ );
+
+ //! Set a sequence of bits
+ //!
+ //! Set \p n bits in \p targ starting at position
+ //! \p pos counting from the left. The bits are obtained from
+ //! \p src 
+ //!
+ //! \retval returns \targ with the indicated bits set 
+ //! \sa GetBits64()
+ //
+ COMMON_API unsigned long long SetBits64(
+    unsigned long long targ,
+    int pos,
+    int n,
+	unsigned long long src
+ );
+
 #ifdef WIN32
  COMMON_API inline int rint(float X) {
 	 return ((X)>0)?((int)(X+0.5)):((int)(X-0.5));

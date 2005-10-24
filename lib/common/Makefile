@@ -4,8 +4,8 @@ include ${TOP}/make/config/arch.mk
 
 SHARED = 0
 LIBRARY = common
-FILES = MyBase OptionParser EasyThreads CFuncs
-HEADER_FILES = MyBase OptionParser EasyThreads CFuncs 
+FILES = MyBase OptionParser EasyThreads CFuncs Base64
+HEADER_FILES = MyBase OptionParser EasyThreads CFuncs Base64 
 
 ifeq ($(ARCH), WIN32)
 MAKEFILE_CXXFLAGS += /D"COMMON_EXPORTS"

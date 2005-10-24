@@ -72,6 +72,24 @@ IDL_INC_PATH=
 #
 BUILD_GUI = 1
 
+# Set to 1 if you want to add support for Adaptive Mesh Refinement grids
+#
+BUILD_AMR_SUPPORT = 0
+
+# Set NETCDF_INC_PATH to the directory where 'netcdfcpp.h' may be found if not
+# in a standard location
+#
+NETCDF_INC_PATH=
+
+
+# Set NETCDF_LIB_PATH to the directory where 'ibnetcdf_c++.*' may be found 
+# if not in a standard location
+#
+NETCDF_LIB_PATH=
+
+
+
+
 #
 #	If the file `site.mk' exists, include it. It contains site-specific
 #	(host or platform specific) make variables that may override 

@@ -12,7 +12,6 @@ int	DataMgr::_DataMgr(
 	size_t mem_size,
 	unsigned int nthreads
 ) {
-	size_t bs;
 	size_t block_size;
 	size_t num_blks;
 
@@ -20,15 +19,16 @@ int	DataMgr::_DataMgr(
 
 	_blk_mem_mgr = NULL;
 
-	_dataRangeMap.clear();
+	_quantizationRangeMap.clear();
 	_regionsMap.clear();
 	_lockedRegionsMap.clear();
+	_dataRangeMap.clear();
 
 	_timestamp = 0;
 
-	bs = _metadata->GetBlockSize();
+	const size_t *bs = _metadata->GetBlockSize();
 
-	block_size = bs * bs * bs;
+	block_size = bs[0] * bs[1] * bs[2];
 
 	num_blks = (long long) (mem_size * 1024 * 1024) / block_size;
 
@@ -49,7 +49,7 @@ int	DataMgr::_DataMgr(
 		range[1] = 0.0;
 
 		// Use of []'s creates an entry in map
-		_dataRangeMap[varnames[i]] = range;
+		_quantizationRangeMap[varnames[i]] = range;
 	}
 
 	return(0);
@@ -108,11 +108,24 @@ DataMgr::~DataMgr(
 	free_all();
 	if (_blk_mem_mgr) delete _blk_mem_mgr;
 
-	map<string, float *>::iterator p;
-	for(p = _dataRangeMap.begin(); p!=_dataRangeMap.end(); p++) {
-		if (p->second) delete [] p->second;
+	map <size_t, map<string, float *> >::iterator p0;
+	for(p0 = _dataRangeMap.begin(); p0!=_dataRangeMap.end(); p0++) {
+
+		map<string, float * > &vmap = p0->second;
+		map <string, float * >::iterator t;
+
+		for(t = vmap.begin(); t!=vmap.end(); t++) {
+			if (t->second) delete [] t->second;
+		}
 	}
 	_dataRangeMap.clear();
+
+	
+	map <string, float * >::iterator p;
+	for(p = _quantizationRangeMap.begin(); p!=_quantizationRangeMap.end(); p++){
+		if (p->second) delete [] p->second;
+	}
+	_quantizationRangeMap.clear();
 
 	_wbreader = NULL;
 	_blk_mem_mgr = NULL;
@@ -123,7 +136,7 @@ DataMgr::~DataMgr(
 float	*DataMgr::GetRegion(
 	size_t ts,
 	const char *varname,
-	size_t num_xforms,
+	int reflevel,
 	const size_t min[3],
 	const size_t max[3],
 	int	lock
@@ -134,23 +147,34 @@ float	*DataMgr::GetRegion(
 
 	SetDiagMsg(
 		"DataMgr::GetRegion(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d)",
-		ts,varname,num_xforms,min[0],min[1],min[2],max[0],max[1],max[2],lock
+		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2],lock
 	);
 
 	// See if region is already in cache. If so, return it.
 	blks = (float *) get_region_from_cache(
-		ts, varname, num_xforms, DataMgr::FLOAT32, min, max, lock
+		ts, varname, reflevel, DataMgr::FLOAT32, min, max, lock
 	);
 	if (blks) return(blks);
 
 
 	// Else, read it from disk
 	//
-	rc = _wbreader->OpenVariableRead(ts, varname, num_xforms);
+	rc = _wbreader->OpenVariableRead(ts, varname, reflevel);
 	if (rc < 0) return (NULL);
 
+	const float *r = _wbreader->GetDataRange();
+
+	float *range = new float[2];
+	assert(range != NULL);
+
+	range[0] = r[0];
+	range[1] = r[1];
+
+	// Use of []'s creates an entry in map
+	_dataRangeMap[ts][varname] = range;
+
 	blks = (float *) alloc_region(
-		ts,varname,num_xforms,DataMgr::FLOAT32,min,max,lock
+		ts,varname,reflevel,DataMgr::FLOAT32,min,max,lock
 	);
     if (! blks) return(NULL);
 
@@ -160,7 +184,7 @@ float	*DataMgr::GetRegion(
 		SetErrMsg(
 			"Failed to read region from disk : %s", s.c_str()
 		);
-		(void) free_region(ts,varname,num_xforms,FLOAT32,min,max);
+		(void) free_region(ts,varname,reflevel,FLOAT32,min,max);
 		_wbreader->CloseVariable();
 		return (NULL);
 	}
@@ -174,7 +198,7 @@ float	*DataMgr::GetRegion(
 unsigned char	*DataMgr::GetRegionUInt8(
 	size_t ts,
 	const char *varname,
-	size_t num_xforms,
+	int reflevel,
 	const size_t min[3],
 	const size_t max[3],
 	const float range[2],
@@ -183,12 +207,11 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	unsigned char	*ublks = NULL;
 	const float	*fptr;
 	unsigned char *ucptr;
-	size_t bs;
 	int	x,y,z;
 
 	SetDiagMsg(
 		"DataMgr::GetRegionUInt8(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],[%f,%f],%d)",
-		ts,varname,num_xforms,min[0],min[1],min[2],max[0],max[1],max[2],
+		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2],
 		range[0], range[1], lock
 	);
 
@@ -197,21 +220,21 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	// is a no-op if the value specified does not differ from the
 	// current mapping for this variable.
 	//
-	if (set_data_range(varname, range) < 0) return (NULL);
+	if (set_quantization_range(varname, range) < 0) return (NULL);
 
 	ublks = (unsigned char *) get_region_from_cache(
-		ts, varname, num_xforms, DataMgr::UINT8, min, max, lock
+		ts, varname, reflevel, DataMgr::UINT8, min, max, lock
 	);
 
 	if (ublks) return(ublks);
 
 	float	*blks = NULL;
 
-	blks = GetRegion(ts, varname, num_xforms, min, max, 1);
+	blks = GetRegion(ts, varname, reflevel, min, max, 1);
 	if (! blks) return (NULL);
 
 	ublks = (unsigned char *) alloc_region(
-		ts,varname,num_xforms,DataMgr::UINT8,min,max,lock
+		ts,varname,reflevel,DataMgr::UINT8,min,max,lock
 	);
     if (! ublks) return(NULL);
 
@@ -220,11 +243,11 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	fptr = blks;
 	ucptr = ublks;
 
-	bs = _metadata->GetBlockSize();
+	const size_t *bs = _metadata->GetBlockSize();
 
-	int	nz = (int)((max[2]-min[2]+1) * bs);
-	int	ny = (int)((max[1]-min[1]+1) * bs);
-	int	nx = (int)((max[0]-min[0]+1) * bs);
+	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
+	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
+	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
 
 	for(z=0;z<nz;z++) {
 	for(y=0;y<ny;y++) {
@@ -250,14 +273,74 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	return(ublks);
 }
 
+const float	*DataMgr::GetDataRange(
+	size_t ts,
+	const char *varname
+) {
+	int	rc;
+
+	SetDiagMsg("DataMgr::GetDataRange(%d,%s)", ts, varname);
+
+		
+
+	// See if we've already cache'd it.
+	//
+	if (! _dataRangeMap.empty()) {
+
+		map <size_t, map<string, float *> >::iterator p;
+
+		p = _dataRangeMap.find(ts);
+
+		if (! (p == _dataRangeMap.end())) {
+
+			map <string, float *> &vmap = p->second;
+			map <string, float *>::iterator t;
+
+			t = vmap.find(varname);
+			if (! (t == vmap.end())) {
+				return (t->second);
+			}
+		}
+	}
+
+	// Range isn't cache'd. Need to read it from the file
+	//
+	float *range = new float[2];
+	assert(range != NULL);
+
+	if (_metadata->GetVDFVersion() < 2) {
+		const vector <double> &rvec = _metadata->GetVDataRange(ts, varname);
+
+		range[0] = rvec[0];
+		range[1] = rvec[1];
+	}
+	else {
+		rc = _wbreader->OpenVariableRead(ts, varname, 0);
+		if (rc < 0) return (NULL);
+
+		const float *r = _wbreader->GetDataRange();
+
+
+		range[0] = r[0];
+		range[1] = r[1];
+	}
+
+	// Use of []'s creates an entry in map
+	_dataRangeMap[ts][varname] = range;
+
+	_wbreader->CloseVariable();
+
+	return(range);
+}
+
 
 #ifdef	DEAD
-const float	*DataMgr::GetDataRange(const char *varname) const {
+const float	*DataMgr::GetQuantizationRange(const char *varname) const {
 
 	map <string, float *>::const_iterator p;
-	p = _dataRangeMap.find(varname);
+	p = _quantizationRangeMap.find(varname);
 
-	if (p == _dataRangeMap.end()) {
+	if (p == _quantizationRangeMap.end()) {
 		SetErrMsg("Unknown variable : %s", varname);
 		return(NULL);
 	}
@@ -314,7 +397,7 @@ int	DataMgr::UnlockRegionUInt8(
 void	*DataMgr::get_region_from_cache(
 	size_t ts,
 	const char *varname,
-	size_t num_xforms,
+	int reflevel,
 	_dataTypes_t	type,
 	const size_t min[3],
 	const size_t max[3],
@@ -342,7 +425,7 @@ void	*DataMgr::get_region_from_cache(
 		regptr = regvec[i];
 
 		if (regptr->type == type &&
-			regptr->num_xforms == num_xforms &&
+			regptr->reflevel == reflevel &&
 			regptr->min[0] == min[0] && 
 			regptr->min[1] == min[1] &&
 			regptr->min[2] == min[2] &&
@@ -368,7 +451,7 @@ void	*DataMgr::get_region_from_cache(
 void	*DataMgr::alloc_region(
 	size_t ts,
 	const char *varname,
-	size_t num_xforms,
+	int reflevel,
 	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3],
@@ -406,7 +489,7 @@ void	*DataMgr::alloc_region(
 		regptr = regvec[i];
 
 		if (regptr->type == type &&
-			regptr->num_xforms == num_xforms &&
+			regptr->reflevel == reflevel &&
 			regptr->min[0] == min[0] && 
 			regptr->min[1] == min[1] &&
 			regptr->min[2] == min[2] &&
@@ -426,7 +509,7 @@ void	*DataMgr::alloc_region(
 
 	if (! regptr) {
 		regptr = new region_t;
-		regptr->num_xforms = num_xforms;
+		regptr->reflevel = reflevel;
 		regptr->type = type;
 		regptr->min[0] = min[0];
 		regptr->min[1] = min[1];
@@ -459,7 +542,7 @@ void	*DataMgr::alloc_region(
 int	DataMgr::free_region(
 	size_t ts,
 	const char *varname,
-	size_t num_xforms,
+	int reflevel,
 	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3]
@@ -483,7 +566,7 @@ int	DataMgr::free_region(
 		region_t *regptr = regvec[i];
 
 		if (regptr->type == type &&
-			regptr->num_xforms == num_xforms &&
+			regptr->reflevel == reflevel &&
 			regptr->min[0] == min[0] && 
 			regptr->min[1] == min[1] &&
 			regptr->min[2] == min[2] &&
@@ -616,14 +699,14 @@ int	DataMgr::free_lru(
 	return(0);
 }
 
-int	DataMgr::set_data_range(const char *varname, const float range[2]) {
+int	DataMgr::set_quantization_range(const char *varname, const float range[2]) {
 	string varstr = varname;
 	float *rangeptr;
 
 	map <string, float *>::iterator p;
-	p = _dataRangeMap.find(varname);
+	p = _quantizationRangeMap.find(varname);
 
-	if (p == _dataRangeMap.end()) {
+	if (p == _quantizationRangeMap.end()) {
 		SetErrMsg("Unknown variable : %s", varname);
 		return(-1);
 	}

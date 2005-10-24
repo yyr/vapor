@@ -20,8 +20,9 @@ using namespace VAPoR;
 struct {
 	int	ts;
 	char *varname;
-	int	nxforms;
+	int	level;
 	OptionParser::Boolean_T	help;
+	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
 	OptionParser::Boolean_T	block;
 	OptionParser::IntRange_T xregion;
@@ -32,8 +33,9 @@ struct {
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts",		1, 	"0","Timestep of data file starting from 0"},
 	{"varname",	1, 	"var1",	"Name of variable"},
-	{"nxforms",1, "0","Multiresolution volume level. Zero implies native resolution"},
+	{"level",1, "0","Multiresution refinement level. Zero implies coarsest resolution"},
 	{"help",	0,	"",	"Print this message and exit"},
+	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quitely"},
 	{"block",	0,	"",	"Preserve internal blockign in output file"},
     {"xregion", 1, "-1:-1", "X dimension subregion bounds (min:max)"},
@@ -46,8 +48,9 @@ OptionParser::OptDescRec_T	set_opts[] = {
 OptionParser::Option_T	get_options[] = {
 	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
-	{"nxforms", VetsUtil::CvtToInt, &opt.nxforms, sizeof(opt.nxforms)},
+	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
+	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{"block", VetsUtil::CvtToBoolean, &opt.block, sizeof(opt.block)},
 	{"xregion", VetsUtil::CvtToIntRange, &opt.xregion, sizeof(opt.xregion)},
@@ -76,12 +79,12 @@ void	process_volume(
 		}
 		metadata = wbreader.GetMetadata();
 
-		if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.nxforms) < 0) {
+		if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
 			cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
 			exit(1);
 		} 
 
-		wbreader.GetDim(opt.nxforms, dim);
+		wbreader.GetDim(dim, opt.level);
 		size = dim[0] * dim[1];
 		buf = new float[size];
 		assert (buf != NULL);
@@ -108,6 +111,10 @@ void	process_volume(
 		*xform_timer = wbreader.GetXFormTimer();
 		*read_timer = wbreader.GetReadTimer();
 		wbreader.CloseVariable();
+
+		if (! opt.quiet) {
+			fprintf(stdout, "Wrote %dx%dx%d volume\n", dim[0],dim[1],dim[2]);
+		}
 	}
 	else {
 		size_t bdim[3];
@@ -118,16 +125,16 @@ void	process_volume(
 			exit(1);
 		}
 		metadata = wbreader.GetMetadata();
-		size_t bs = metadata->GetBlockSize();
+		const size_t *bs = metadata->GetBlockSize();
 
-		if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.nxforms) < 0) {
+		if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
 			cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
 			exit(1);
 		} 
 
-		wbreader.GetDimBlk(opt.nxforms, bdim);
+		wbreader.GetDimBlk(bdim, opt.level);
 		
-		size = bdim[0]*bs * bdim[1]*bs;
+		size = bdim[0]*bs[0] * bdim[1]*bs[1] * bs[2]*2;
 
 		buf = new float[size];
 		assert (buf != NULL);
@@ -160,6 +167,14 @@ void	process_volume(
 		*xform_timer = wbreader.GetXFormTimer();
 		*read_timer = wbreader.GetReadTimer();
 		wbreader.CloseVariable();
+
+		size = bdim[0]*bs[0] * bdim[1]*bs[1];
+		if (! opt.quiet) {
+			fprintf(
+				stdout, "Wrote %dx%dx%d volume\n", 
+				bdim[0]*bs[0],bdim[1]*bs[0],bdim[2]*bs[0]
+			);
+		}
 	}
 }
 
@@ -179,13 +194,13 @@ void	process_region(
 	}
 	metadata = wbreader.GetMetadata();
 
-	if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.nxforms) < 0) {
+	if (wbreader.OpenVariableRead(opt.ts, opt.varname,opt.level) < 0) {
 		cerr << ProgName << " : " << wbreader.GetErrMsg() << endl;
 		exit(1);
 	} 
 
 	size_t dim[3];
-	wbreader.GetDim(opt.nxforms, dim);
+	wbreader.GetDim(dim, opt.level);
 	size_t min[3] = {opt.xregion.min, opt.yregion.min, opt.zregion.min};
 	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
 
@@ -216,11 +231,15 @@ void	process_region(
 		}
 
 		TIMER_STOP(t0, *write_timer);
+
+		if (! opt.quiet) {
+			fprintf(stdout, "Wrote %dx%dx%d volume\n", dim[0],dim[1],dim[2]);
+		}
 	}
 	else {
 		size_t bmin[3];
 		size_t bmax[3];
-		size_t bs = metadata->GetBlockSize();
+		const size_t *bs = metadata->GetBlockSize();
 
 		wbreader.MapVoxToBlk(min,bmin);
 		wbreader.MapVoxToBlk(max,bmax);
@@ -231,7 +250,7 @@ void	process_region(
 			bmax[2]-bmin[2]+1
 		};
 
-		size = bdim[0]*bs * bdim[1]*bs * bdim[2]*bs;
+		size = bdim[0]*bs[0] * bdim[1]*bs[1] * bdim[2]*bs[2];
 		buf = new float[size];
 		assert (buf != NULL);
 
@@ -249,6 +268,13 @@ void	process_region(
 		}
 
 		TIMER_STOP(t0, *write_timer);
+
+		if (! opt.quiet) {
+			fprintf(
+				stdout, "Wrote %dx%dx%d volume\n", 
+				bdim[0]*bs[0],bdim[1]*bs[0],bdim[2]*bs[0]
+			);
+		}
 	}
 	*xform_timer = wbreader.GetXFormTimer();
 	*read_timer = wbreader.GetReadTimer();
@@ -294,6 +320,8 @@ int	main(int argc, char **argv) {
 
 	metafile = argv[1];
 	datafile = argv[2];
+
+	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
 
 #ifdef WIN32

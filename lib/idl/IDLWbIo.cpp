@@ -299,16 +299,16 @@ void vdcOpenVarRead(int argc, IDL_VPTR *argv)
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 	IDL_LONG ts = IDL_LongScalar(argv[1]);
 	char *varname = IDL_VarGetString(argv[2]);
-	IDL_LONG num_xforms = IDL_LongScalar(argv[3]);
+	IDL_LONG reflevel = IDL_LongScalar(argv[3]);
 
 	const string &classname = io->GetClassName();
 	if (classname.compare("WaveletBlock3DBufReader") == 0) { 
 		WaveletBlock3DBufReader *reader = (WaveletBlock3DBufReader *) io;
-		reader->OpenVariableRead((size_t) ts, varname, num_xforms);
+		reader->OpenVariableRead((size_t) ts, varname, reflevel);
 	}
 	else {
 		WaveletBlock3DRegionReader *reader = (WaveletBlock3DRegionReader *) io;
-		reader->OpenVariableRead((size_t) ts, varname, num_xforms);
+		reader->OpenVariableRead((size_t) ts, varname, reflevel);
 	}
 
 	myBaseErrChk();
@@ -335,8 +335,8 @@ void vdcOpenVarWrite(int argc, IDL_VPTR *argv)
 		obj->OpenVariableWrite((size_t) ts, varname);
 	}
 	else {
-		IDL_LONG num_xforms = IDL_LongScalar(argv[3]);
-		obj->OpenVariableWrite((size_t) ts, varname, num_xforms);
+		IDL_LONG reflevel = IDL_LongScalar(argv[3]);
+		obj->OpenVariableWrite((size_t) ts, varname, reflevel);
 	}
 	myBaseErrChk();
 }
@@ -368,9 +368,9 @@ IDL_VPTR vdcVarExists(int argc, IDL_VPTR *argv)
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 	IDL_LONG ts = IDL_LongScalar(argv[1]);
 	char *varname = IDL_VarGetString(argv[2]);
-	IDL_LONG num_xforms = IDL_LongScalar(argv[3]);
+	IDL_LONG reflevel = IDL_LongScalar(argv[3]);
 
-	int rc = io->VariableExists((size_t) ts, varname, (size_t) num_xforms);
+	int rc = io->VariableExists((size_t) ts, varname, (size_t) reflevel);
 
 	myBaseErrChk();
 
@@ -381,11 +381,11 @@ IDL_VPTR vdcVarExists(int argc, IDL_VPTR *argv)
 IDL_VPTR vdcGetDim(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
-	IDL_LONG num_xforms = IDL_LongScalar(argv[1]);
+	IDL_LONG reflevel = IDL_LongScalar(argv[1]);
 
 
 	size_t dim[3];
-	io->GetDim(num_xforms, dim);
+	io->GetDim(dim, reflevel);
 
 	myBaseErrChk();
 
@@ -402,48 +402,11 @@ IDL_VPTR vdcGetDim(int argc, IDL_VPTR *argv)
 
 }
 
-IDL_VPTR vdcTransformCoord(int argc, IDL_VPTR *argv)
-{
-	WaveletBlock3DIO	*io = varGetIO(argv[0]);
-	IDL_LONG num_xforms = IDL_LongScalar(argv[1]);
-	IDL_VPTR vcoord_var = IDL_BasicTypeConversion(1, &argv[2],IDL_TYP_LONG);
-
-	if (vcoord_var->value.arr->n_dim != 1 || vcoord_var->value.arr->n_elts != 3) {
-		errFatal("Input dimension must be a 3-element, 1D array");
-	}
-	IDL_LONG    *vcoord0ptr = (IDL_LONG *) vcoord_var->value.arr->data;
-
-
-	size_t vcoord0[3];
-	size_t vcoord1[3];
-
-	for(int i=0; i<3; i++) {
-		vcoord0[i] = (size_t) vcoord0ptr[i];
-	}
-
-	io->TransformCoord(num_xforms, vcoord0, vcoord1);
-
-	myBaseErrChk();
-
-	IDL_VPTR result;
-	IDL_LONG *result_ptr = (IDL_LONG *) IDL_MakeTempVector(
-		IDL_TYP_LONG, 3, IDL_ARR_INI_NOP, &result
-	);
-
-	for(int i=0; i<3; i++) {
-		result_ptr[i] = (IDL_LONG) vcoord1[i];
-	}
-
-	if (vcoord_var != argv[2]) IDL_Deltmp(vcoord_var);
-
-    return(result);
-
-}
 
 IDL_VPTR vdcMapVoxToUser(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
-	IDL_LONG num_xforms = IDL_LongScalar(argv[1]);
+	IDL_LONG reflevel = IDL_LongScalar(argv[1]);
 	IDL_LONG ts = IDL_LongScalar(argv[2]);
 	IDL_VPTR vcoord_var = IDL_BasicTypeConversion(1, &argv[3],IDL_TYP_LONG);
 
@@ -460,7 +423,7 @@ IDL_VPTR vdcMapVoxToUser(int argc, IDL_VPTR *argv)
 		vcoord0[i] = (size_t) vcoord0ptr[i];
 	}
 
-	io->MapVoxToUser(num_xforms, ts, vcoord0, vcoord1);
+	io->MapVoxToUser(ts, vcoord0, vcoord1, reflevel);
 
 	myBaseErrChk();
 
@@ -482,7 +445,7 @@ IDL_VPTR vdcMapVoxToUser(int argc, IDL_VPTR *argv)
 IDL_VPTR vdcMapUserToVox(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
-	IDL_LONG num_xforms = IDL_LongScalar(argv[1]);
+	IDL_LONG reflevel = IDL_LongScalar(argv[1]);
 	IDL_LONG ts = IDL_LongScalar(argv[2]);
 	IDL_VPTR vcoord_var = IDL_BasicTypeConversion(1, &argv[3],IDL_TYP_DOUBLE);
 
@@ -499,7 +462,7 @@ IDL_VPTR vdcMapUserToVox(int argc, IDL_VPTR *argv)
 		vcoord0[i] = (size_t) vcoord0ptr[i];
 	}
 
-	io->MapUserToVox(num_xforms, ts, vcoord0, vcoord1);
+	io->MapUserToVox(ts, vcoord0, vcoord1, reflevel);
 
 	myBaseErrChk();
 
@@ -521,7 +484,7 @@ IDL_VPTR vdcMapUserToVox(int argc, IDL_VPTR *argv)
 IDL_VPTR vdcIsValidRegion(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
-	IDL_LONG num_xforms = IDL_LongScalar(argv[1]);
+	IDL_LONG reflevel = IDL_LongScalar(argv[1]);
 	IDL_VPTR min_var = IDL_BasicTypeConversion(1, &argv[2],IDL_TYP_LONG);
 	IDL_VPTR max_var = IDL_BasicTypeConversion(1, &argv[3],IDL_TYP_LONG);
 
@@ -544,7 +507,7 @@ IDL_VPTR vdcIsValidRegion(int argc, IDL_VPTR *argv)
 		max[i] = (size_t) maxptr[i];
 	}
 
-	int rc = io->IsValidRegion(num_xforms, min, max);
+	int rc = io->IsValidRegion(min, max, reflevel);
 
 	myBaseErrChk();
 
@@ -596,9 +559,6 @@ int IDL_LoadIO(void)
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcGetDim, 
 			"VDC_GETDIM", 2, 2, 0, 0
-		},
-		{ (IDL_SYSRTN_GENERIC) vdcTransformCoord, 
-			"VDC_XFORMCOORD", 3, 3, 0, 0
 		},
 		{ (IDL_SYSRTN_GENERIC) vdcMapVoxToUser, 
 			"VDC_MAPVOX2USER", 4, 4, 0, 0

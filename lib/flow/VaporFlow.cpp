@@ -234,9 +234,9 @@ bool VaporFlow::GenStreamLines(float* positions,
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
 	float **pUData, **pVData, **pWData;
-	int totalXNum = (maxRegion[0]-minRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize();
-	int totalYNum = (maxRegion[1]-minRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize();
-	int totalZNum = (maxRegion[2]-minRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize();
+	int totalXNum = (maxRegion[0]-minRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize()[0];
+	int totalYNum = (maxRegion[1]-minRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize()[1];
+	int totalZNum = (maxRegion[2]-minRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize()[2];
 	int totalNum = totalXNum*totalYNum*totalZNum;
 	pUData = new float*[1];
 	pVData = new float*[1];
@@ -268,9 +268,9 @@ bool VaporFlow::GenStreamLines(float* positions,
 	//Now adjust minB, maxB to actual region extents:
 	for (int i = 0; i< 3; i++){
 		minB[i] = vExtent[i]+ (vExtent[i+3] - vExtent[i])*
-			(float)(minRegion[i]*(dataMgr->GetMetadata()->GetBlockSize())/(float)((fullDim[i] >> numXForms)-1));
+			(float)(minRegion[i]*(dataMgr->GetMetadata()->GetBlockSize()[i])/(float)((fullDim[i] >> numXForms)-1));
 		maxB[i] = vExtent[i]+ (vExtent[i+3] - vExtent[i])*
-			(float)(((maxRegion[i]+1)*(dataMgr->GetMetadata()->GetBlockSize())-1)/(float)((fullDim[i] >> numXForms)-1));
+			(float)(((maxRegion[i]+1)*(dataMgr->GetMetadata()->GetBlockSize()[i])-1)/(float)((fullDim[i] >> numXForms)-1));
 	}
 	
 
@@ -340,9 +340,9 @@ bool VaporFlow::GenStreakLines(float* positions,
 	int timeSteps;							// total "time steps"
 	int totalXNum, totalYNum, totalZNum, totalNum;
 	int realStartTime, realEndTime;
-    totalXNum = (maxRegion[0]-minRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize();
-	totalYNum = (maxRegion[1]-minRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize();
-	totalZNum = (maxRegion[2]-minRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize();
+    totalXNum = (maxRegion[0]-minRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize()[0];
+	totalYNum = (maxRegion[1]-minRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize()[1];
+	totalZNum = (maxRegion[2]-minRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize()[2];
 	totalNum = totalXNum*totalYNum*totalZNum;
 	numInjections = 1 + ((endInjection - startInjection)/injectionTimeIncrement);
 	//realStartTime and realEndTime are actual limits of time steps for which positions

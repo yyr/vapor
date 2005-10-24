@@ -2083,11 +2083,11 @@ mapColors(float* speeds, int currentTimeStep){
 		}
 		size_t minSize[3];
 		size_t maxSize[3];
-		int bs = Session::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
+		const size_t *bs = Session::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
 			opacSize[i] = (ds->getFullDataSize(i) >> numTransforms);
-			maxSize[i] = opacSize[i]/bs -1;
+			maxSize[i] = opacSize[i]/bs[i] -1;
 			opacVarMin[i] = Session::getInstance()->getExtents(i);
 			opacVarMax[i] = Session::getInstance()->getExtents(i+3);
 		}
@@ -2102,11 +2102,11 @@ mapColors(float* speeds, int currentTimeStep){
 		if (timeStep < 0) MessageReporter::errorMsg("No data for mapped variable");
 		size_t minSize[3];
 		size_t maxSize[3];
-		int bs = Session::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
+		const size_t *bs = Session::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
 			colorSize[i] = (ds->getFullDataSize(i) >> numTransforms);
-			maxSize[i] = (colorSize[i]/bs - 1);
+			maxSize[i] = (colorSize[i]/bs[i] - 1);
 			colorVarMin[i] = Session::getInstance()->getExtents(i);
 			colorVarMax[i] = Session::getInstance()->getExtents(i+3);
 		}
