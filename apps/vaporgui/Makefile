@@ -15,6 +15,10 @@ MAKEFILE_CXXFLAGS +=  -I$(EXPAT_INC_PATH)
 endif
 MAKEFILE_CXXFLAGS += -Iguis -Iparams -Irender -Imain
 
+ifdef   NETCDF_INC_PATH
+MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
+endif
+
 LIBRARIES += common vdf vjpeg flow
 
 ifeq ($(ARCH),WIN32) 

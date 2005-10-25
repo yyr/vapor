@@ -683,7 +683,7 @@ setupDataStatus(){
 			//Find the minimum and maximum number of transforms available on disk
 			//Start at the max (lowest res) and move down to min
 			int xf;
-			//Find the highest transform level  (lowest resolution) that exists,
+			//Find the highest transform level  (highest resolution) that exists,
 			//then the first one lower than that that doesn't exist:
 			int maxXLevel = -1;
 			for (xf = numXForms; xf>= 0; xf--){

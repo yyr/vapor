@@ -303,7 +303,7 @@ validateNumTrans(int n){
 	while (newFullMB >= Session::getInstance()->getCacheMB()){
 		//find  and return a legitimate value.  Each time we increase n by 1,
 		//we decrease the size needed by 8
-		n++;
+		n--;
 		newFullMB >>= 3;
 	}	
 	return n;
@@ -566,7 +566,7 @@ reinit(bool doOverride){
 	setMinNumTrans(minTrans);
 	setMaxNumTrans(nlevels);
 	if (doOverride) {
-		numTrans = maxNumTrans;
+		numTrans = minTrans;
 		for (i = 0; i< 3; i++) {
 			setRegionSize(i,fullSize[i]);
 		}
