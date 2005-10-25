@@ -19,11 +19,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Expat-1.95.8\Source\lib&quot;;../../../lib/vdf;../../../include/"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;VDF_EXPORTS"
+				AdditionalIncludeDirectories="&quot;C:\Expat-1.95.8\Source\lib&quot;;&quot;$(NETCDF_INC_PATH)&quot;;../../../lib/vdf;../../../include/"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VDF_EXPORTS;DLL_NETCDF;_USRDLL"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				DisableLanguageExtensions="FALSE"
+				TreatWChar_tAsBuiltInType="FALSE"
 				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/vdf/"
 				ProgramDataBaseFileName="../../../targets/win32/built/vdf/vc70.pdb"
@@ -34,10 +36,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libexpat.lib mpr.lib"
+				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib C:\NCDF\lib\netcdf.lib"
 				OutputFile="../../../targets/win32/bin/vdf.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;"
+				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="../../../targets/win32/bin/vdf.pdb"
 				GenerateMapFile="TRUE"
@@ -141,7 +143,24 @@
 				RelativePath="..\..\..\lib\vdf\Metadata.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\ncvalues.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\netcdf.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						MinimalRebuild="FALSE"
+						BasicRuntimeChecks="0"
+						RuntimeLibrary="3"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\vdf.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\VDFIOBase.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\vdf\WaveletBlock3D.cpp">
@@ -189,6 +208,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\Metadata.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\VDFIOBase.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlock3D.h">

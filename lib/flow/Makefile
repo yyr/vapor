@@ -10,6 +10,10 @@ FILES = \
 	VTTimeVaryingFieldLine VaporFlow VectorMatrix
 
 #LIB_DEFS = vdf.def
+ifdef   NETCDF_INC_PATH
+MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
+endif
+
   
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"FLOW_EXPORTS"

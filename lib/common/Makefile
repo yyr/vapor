@@ -7,7 +7,7 @@ LIBRARY = common
 FILES = MyBase OptionParser EasyThreads CFuncs Base64
 HEADER_FILES = MyBase OptionParser EasyThreads CFuncs Base64 
 
-ifeq ($(ARCH), WIN32)
+ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"COMMON_EXPORTS"
 endif
 

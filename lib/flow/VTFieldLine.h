@@ -102,6 +102,8 @@ protected:
 	CVectorField* m_pField;			// vector field
 	float m_fSamplingRate;
 	float m_fStationaryCutoff;		//defines when flowline is stationary
+	float m_fLeftoverTime;			//AN: 10/24/05 Used in streaklines when there is time left after
+									//completion of one sampling step
 
 public:
 	vtCFieldLine(CVectorField* pField);
