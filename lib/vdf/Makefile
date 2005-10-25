@@ -22,7 +22,6 @@ HEADER_FILES = \
 
 
 ifeq ($(BUILD_AMR_SUPPORT), 1)
-
 FILES +=     AMRTree AMRTreeBranch AMRData AMRDataIO
 HEADER_FILES +=     AMRTree AMRTreeBranch AMRData AMRDataIO
 endif
@@ -32,14 +31,20 @@ MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
 endif
 
 ifdef NETCDF_LIB_PATH
+ifeq ($(ARCH),WIN32)
+MAKEFILE_LDFLAGS += $(NETCDF_LIB_PATH)/netcdf.lib
+else
 MAKEFILE_LDFLAGS += -L$(NETCDF_LIB_PATH) -lnetcdf_c++ -lnetcdf 
+endif
 endif
 
 
 #LIB_DEFS = vdf.def
   
 ifeq ($(ARCH),WIN32)
+FILES += netcdf ncvalues
 MAKEFILE_CXXFLAGS += /D"VDF_EXPORTS" 
+MAKEFILE_CXXFLAGS += /D"DLL_NETCDF"
 MAKEFILE_LDFLAGS += ../../targets/win32/bin/common.lib 
 MAKEFILE_LDFLAGS += "mpr.lib"
 endif

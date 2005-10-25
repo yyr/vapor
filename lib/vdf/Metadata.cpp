@@ -689,7 +689,7 @@ void	Metadata::_startElementHandler0(ExpatParseMgr* pm,
 	int nFilterCoef = 1;
 	int nLiftingCoef = 1;
 	int msbFirst = 1;
-	int vdfVersion = VDF_VERSION;
+	int vdfVersion = 1;  //If it's not set it should be 1 ?? not VDF_VERSION;?
 	int numTransforms = 0;
 
 
@@ -711,7 +711,7 @@ void	Metadata::_startElementHandler0(ExpatParseMgr* pm,
 		istringstream ist(value);
 		if (StrCmpNoCase(attr, _blockSizeAttr) == 0) {
 			ist >> bs[0]; 
-
+			
 			// Pre version 2, block size was a scalar;
 			if (! ist.eof()) ist >> bs[1]; 
 			if (! ist.eof()) ist >> bs[2];

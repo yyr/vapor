@@ -634,8 +634,8 @@ int	WaveletBlock3DIO::CloseVariable()
 			_ncvars[j] = NULL;
 			_ncoffsets[j] = 0;
 		}
-		if (write_mode_c) TIMER_STOP(t0, _write_timer)
-		else TIMER_STOP(t0, _read_timer)
+		if (write_mode_c) {TIMER_STOP(t0, _write_timer)}
+		else {TIMER_STOP(t0, _read_timer)}
 	}
 				
 	is_open_c = 0;
