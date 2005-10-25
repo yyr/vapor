@@ -9,7 +9,7 @@ HOST=$(shell hostname)
 endif
 endif
 
-BUILD_AMR_SUPPORT = 1
+BUILD_AMR_SUPPORT = 0
 
 #
 #	get VAPOR_INSTALL_DIR from the enviornment
@@ -29,6 +29,8 @@ EXPAT_INC_PATH="B:/Expat-1.95.8/Source/lib/"
 EXPAT_LIB_PATH="B:/Expat-1.95.8/libs/libexpat.lib"
 BUILD_IDL_WRAPPERS = 1
 IDL_INC_PATH="C:/RSI/IDL61/external/include"
+NETCDF_INC_PATH="C:/NCDF/include"
+NETCDF_LIB_PATH="C:/NCDF/lib"
 QTDIR = C:/Qt/3.3.4
 
 endif
