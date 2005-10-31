@@ -260,7 +260,7 @@
                                 <cstring>textLabel1_2</cstring>
                             </property>
                             <property name="text">
-                                <string>Num Transforms</string>
+                                <string>Num Refinements</string>
                             </property>
                         </widget>
                         <widget class="QSpinBox">
@@ -271,7 +271,7 @@
                                 <number>10</number>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Specify the number of coarsening tranformation to be applied to the data</string>
+                                <string>Specify the number of power-of-two refinements of the data</string>
                             </property>
                         </widget>
                     </hbox>

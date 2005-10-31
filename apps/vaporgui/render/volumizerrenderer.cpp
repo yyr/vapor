@@ -175,7 +175,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	//of the full mapped data.
 	int numxforms;
 	if (myVizWin->mouseIsDown()) {
-		numxforms = myRegionParams->getMaxNumTrans();
+		numxforms = myRegionParams->getMinNumTrans();
 	}
 	else numxforms = myRegionParams->getNumTrans();
 	//Whenever numxforms changes, we need to dirty the clut, since

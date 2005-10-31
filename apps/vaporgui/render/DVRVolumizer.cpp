@@ -296,6 +296,7 @@ void	DVRVolumizer::SetOLUT(
 #ifdef WIN32
 		if (opac > 0.015 && opac < 0.034) opac = 0.034;
 #endif
+	
 		lut_c[i][3] = (float)opac;
 		llut_c[i][3] = (float)opac;
 	}

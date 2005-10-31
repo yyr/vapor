@@ -140,7 +140,7 @@ restart() {
 	
 	flowType = 0; //steady
 	instance = 1;
-	numTransforms = 4; 
+	numTransforms = 0; 
 	maxNumTrans = 4; 
 	minNumTrans = 0;
 	numVariables = 0;
@@ -587,7 +587,7 @@ reinit(bool doOverride){
 			getRegionParams(vizNum);
 	int nlevels = md->GetNumTransforms();
 	int minTrans = session->getDataStatus()->minXFormPresent();
-	if(minTrans < 0) minTrans = nlevels; 
+	if(minTrans < 0) minTrans = 0; 
 	setMinNumTrans(minTrans);
 	setMaxNumTrans(nlevels);
 	//Clean out any existing caches:
@@ -607,12 +607,13 @@ reinit(bool doOverride){
 	editMode = true;
 	// set the params state based on whether we are overriding or not:
 	if (doOverride) {
-		numTransforms = maxNumTrans;
+		numTransforms = minNumTrans;
+		numTransforms = rParams->validateNumTrans(numTransforms);
 		seedTimeStart = minFrame;
 		seedTimeEnd = minFrame;
 		seedTimeIncrement = 1;
 	} else {
-		if (numTransforms> nlevels) numTransforms = maxNumTrans;
+		if (numTransforms> maxNumTrans) numTransforms = maxNumTrans;
 		if (numTransforms < minNumTrans) numTransforms = minNumTrans;
 		//Make sure we really can use the specified numTrans.
 		

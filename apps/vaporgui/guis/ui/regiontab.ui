@@ -6,7 +6,7 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>1</x>
+            <x>0</x>
             <y>0</y>
             <width>450</width>
             <height>706</height>
@@ -191,7 +191,7 @@
                             </sizepolicy>
                         </property>
                         <property name="text">
-                            <string>Number of Transformations</string>
+                            <string>Number of Refinements</string>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Specify the visualized data resolution as a power of two multiple of the original data</string>
@@ -233,7 +233,7 @@
                             <number>0</number>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify the visualized data resolution as a power-of-2 coarsening of the original data</string>
+                            <string>Specify the number of refinements of the visualized data</string>
                         </property>
                     </widget>
                     <spacer>

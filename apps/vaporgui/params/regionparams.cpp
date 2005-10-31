@@ -91,8 +91,8 @@ void RegionParams::updateDialog(){
 	
 	QString strng;
 	Session::getInstance()->blockRecording();
-	myRegionTab->numTransSpin->setMinValue(minNumTrans);
 	myRegionTab->numTransSpin->setMaxValue(maxNumTrans);
+	myRegionTab->numTransSpin->setMinValue(minNumTrans);
 	myRegionTab->numTransSpin->setValue(numTrans);
 	int dataMaxSize = Max(fullSize[0],Max(fullSize[1],fullSize[2]));
 	myRegionTab->maxSizeSlider->setMaxValue(dataMaxSize);
@@ -518,7 +518,7 @@ guiSetMaxSize(int n){
 //Reset region settings to initial state
 void RegionParams::
 restart(){
-	numTrans = 5;
+	numTrans = 0;
 	maxNumTrans = 9;
 	minNumTrans = 0;
 	maxSize = 256;
@@ -562,16 +562,20 @@ reinit(bool doOverride){
 	setFullSize(2, nz);
 	int nlevels = md->GetNumTransforms();
 	int minTrans = Session::getInstance()->getDataStatus()->minXFormPresent();
-	if(minTrans < 0) minTrans = nlevels; 
+	if(minTrans < 0) minTrans = 0; 
+	int maxTrans = nlevels;
 	setMinNumTrans(minTrans);
-	setMaxNumTrans(nlevels);
+	setMaxNumTrans(maxTrans);
 	if (doOverride) {
+		//Start with minTrans, make sure it works with current data
 		numTrans = minTrans;
+		numTrans = validateNumTrans(numTrans);
 		for (i = 0; i< 3; i++) {
 			setRegionSize(i,fullSize[i]);
 		}
 	} else {
-		if (numTrans> nlevels) numTrans = maxNumTrans;
+		//Make sure the numTrans value is available in this dataset
+		if (numTrans > maxNumTrans) numTrans = maxNumTrans;
 		if (numTrans < minNumTrans) numTrans = minNumTrans;
 		//Make sure we really can use the specified numTrans.
 		numTrans = validateNumTrans(numTrans);
@@ -805,13 +809,13 @@ calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max
 	float fullExtent[6];
 	const size_t *bs = Session::getInstance()->getCurrentMetadata()->GetBlockSize();
 	for(i=0; i<3; i++) {
-		int	s = numxforms;
+		int	s = getMaxNumTrans()-numxforms;
 		min_dim[i] = (int) ((float) (getCenterPosition(i) >> s) - 0.5 
 			- (((getRegionSize(i) >> s) / 2.0)-1.0));
 		max_dim[i] = (int) ((float) (getCenterPosition(i) >> s) - 0.5 
 			+ (((getRegionSize(i) >> s) / 2.0)));
 		//Force these to be in data:
-		int dim = (getFullSize(i)>>numxforms) -1;
+		int dim = (getFullSize(i)>>(getMaxNumTrans()-numxforms)) -1;
 		if (max_dim[i] > dim) max_dim[i] = dim;
 		//Make sure slab has nonzero thickness (this can only
 		//be a problem while the mouse is pressed):
@@ -835,7 +839,7 @@ calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max
 	//calculate the geometric extents of the dimensions in the unit cube:
 	//fit the full region adjacent to the coordinate planes.
 	for (i = 0; i<3; i++) {
-		int dim = (getFullSize(i)>>numxforms) -1;
+		int dim = (getFullSize(i)>>(getMaxNumTrans()-numxforms)) -1;
 		assert (dim >= max_dim[i]);
 		float extentRatio = (fullExtent[i+3]-fullExtent[i])/maxCoordRange;
 		minFull[i] = 0.f;
