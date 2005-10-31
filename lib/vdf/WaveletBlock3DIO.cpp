@@ -698,7 +698,8 @@ int	WaveletBlock3DIO::seekBlocks(
 		int	rc;
 
 #ifdef	WIN32
-		rc = fseek(fp, (long) byteoffset, SEEK_SET);
+		//Note: win32 won't seek beyond 32 bits
+		rc = fseek(fp,  byteoffset, SEEK_SET);
 #else
 #if     defined(Linux) || defined(AIX)
 		rc = fseeko64(fp, byteoffset, SEEK_SET);
