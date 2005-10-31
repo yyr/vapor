@@ -264,13 +264,13 @@ bool VaporFlow::GenStreamLines(float* positions,
 	vExtent = dataMgr->GetMetadata()->GetExtents();
 	//Use current region to determine coords of grid boundary:
 	const size_t* fullDim = dataMgr->GetMetadata()->GetDimension();
-	
+	int nlevels = dataMgr->GetMetadata()->GetNumTransforms();
 	//Now adjust minB, maxB to actual region extents:
 	for (int i = 0; i< 3; i++){
 		minB[i] = vExtent[i]+ (vExtent[i+3] - vExtent[i])*
-			(float)(minRegion[i]*(dataMgr->GetMetadata()->GetBlockSize()[i])/(float)((fullDim[i] >> numXForms)-1));
+			(float)(minRegion[i]*(dataMgr->GetMetadata()->GetBlockSize()[i])/(float)((fullDim[i] >> (nlevels -numXForms))-1));
 		maxB[i] = vExtent[i]+ (vExtent[i+3] - vExtent[i])*
-			(float)(((maxRegion[i]+1)*(dataMgr->GetMetadata()->GetBlockSize()[i])-1)/(float)((fullDim[i] >> numXForms)-1));
+			(float)(((maxRegion[i]+1)*(dataMgr->GetMetadata()->GetBlockSize()[i])-1)/(float)((fullDim[i] >> (nlevels -numXForms))-1));
 	}
 	
 
