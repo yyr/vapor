@@ -41,6 +41,8 @@ public:
 	int itsValidFlag;			// whether this particle is valid or not
 	int itsNumStepsAlive;		// number of steps alive
 	int ptId;					// particle ID
+	float unusedTime;			//AN:  remember time remaining from previous
+								//sampling
 
 public:
 	vtParticleInfo(void)
@@ -54,6 +56,7 @@ public:
 		itsValidFlag = source->itsValidFlag;
 		itsNumStepsAlive = source->itsNumStepsAlive;
 		ptId = source->ptId;
+		unusedTime = source->unusedTime;
 	}
 
 	vtParticleInfo(vtParticleInfo& source)
@@ -63,6 +66,7 @@ public:
 		itsValidFlag = source.itsValidFlag;
 		ptId = source.ptId;
 		itsNumStepsAlive = source.itsNumStepsAlive;
+		unusedTime = source.unusedTime;
 	}
 
 	void Set(PointInfo& pInfo, float startT, int validFlag, int life, int id)
@@ -102,8 +106,7 @@ protected:
 	CVectorField* m_pField;			// vector field
 	float m_fSamplingRate;
 	float m_fStationaryCutoff;		//defines when flowline is stationary
-	float m_fLeftoverTime;			//AN: 10/24/05 Used in streaklines when there is time left after
-									//completion of one sampling step
+	
 
 public:
 	vtCFieldLine(CVectorField* pField);
@@ -136,14 +139,15 @@ protected:
 					const float& maxStepsize, 
 					float* dt, 
 					bool& bAdaptive);
-	void SampleFieldline(float* positions,
+	float SampleFieldline(float* positions,
 						 const unsigned int* startPositions,	// start positions for each sampled line
 						 unsigned int& posInPoints,
 						 vtListSeedTrace* seedTrace,
 						 list<float>* stepList,
 						 bool bRecordSeed,
 						 int traceState,
-						 float* speeds=0);
+						 float* speeds=0,
+						 float timeLeft = 0.f);
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -235,6 +239,7 @@ public:
 	void execute(const float t, float* points, const unsigned int* startPositions, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
 
 protected:
+	
 	// code specific to streakline
 	void computeStreakLine(const float t, float* points, const unsigned int* startPositions, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
 	void advectOldParticles(vtListParticleIter start, 

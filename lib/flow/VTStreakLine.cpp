@@ -131,8 +131,8 @@ void vtCStreakLine::computeStreakLine(const float t,
 						nextP.m_pointInfo.phyCoord[1], 
 						nextP.m_pointInfo.phyCoord[2]);
 #endif
-
-				SampleFieldline(points, startPositions, posInPoints, forwardTrace, stepList, true, istat, speeds);	
+	
+				nextP.unusedTime = SampleFieldline(points, startPositions, posInPoints, forwardTrace, stepList, true, istat, speeds, 0.f);	
 				if(points[posInPoints] == END_FLOW_FLAG)
 					pointers[iInjection*(int)m_lSeeds.size()+count] = posInPoints;
 
@@ -224,8 +224,8 @@ void vtCStreakLine::advectOldParticles( vtListParticleIter start,
 				thisParticle->m_pointInfo.phyCoord[1], 
 				thisParticle->m_pointInfo.phyCoord[2]);
 #endif
-
-		SampleFieldline(points, startPositions, posInPoints, forwardTrace, stepList, false, istat, speeds);	
+		float timeLeft = thisParticle->unusedTime;
+		thisParticle->unusedTime = SampleFieldline(points, startPositions, posInPoints, forwardTrace, stepList, false, istat, speeds, timeLeft);	
 		if(points[posInPoints] == END_FLOW_FLAG)
 			pointers[thisParticle->ptId] = posInPoints;
 

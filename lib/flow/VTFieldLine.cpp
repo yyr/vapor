@@ -274,15 +274,18 @@ void vtCFieldLine::setSeedPoints(float* points, int numPoints, float t)
 
 //////////////////////////////////////////////////////////////////////////
 // sample streamline to get points with correct interval
+//AN:  Returns the amount of (unused) time remaining, to be used
+//in next step.  Only used in streaklines, not streamlines.
 //////////////////////////////////////////////////////////////////////////
-void vtCFieldLine::SampleFieldline(float* positions,
+float vtCFieldLine::SampleFieldline(float* positions,
 								   const unsigned int* startPositions,
 								   unsigned int& posInPoints,
 								   vtListSeedTrace* seedTrace,
 								   list<float>* stepList,
 								   bool bRecordSeed,
 								   int traceState,
-								   float* speeds)
+								   float* speeds,
+								   float remainingTime)
 {
 	list<VECTOR3*>::iterator pIter1;
 	list<VECTOR3*>::iterator pIter2;
@@ -292,6 +295,7 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	int count;
 	unsigned int ptr;
 	unsigned int ptrSpeed;
+	float leftoverTime = 0.f;
 
 	ptr = posInPoints;
 	
@@ -334,14 +338,14 @@ void vtCFieldLine::SampleFieldline(float* positions,
 		assert(ptr < fullArraySize);
 		positions[ptr] = END_FLOW_FLAG;
 		posInPoints = ptr;
-		return;
+		return 0.f;
 	}
 
 	// other advecting result
 	pIter2 = seedTrace->begin();
 	pIter2++;
 	pStepIter = stepList->begin();
-	stepsizeLeft = *pStepIter;
+	stepsizeLeft = *pStepIter + remainingTime;
 	if(traceState != OUT_OF_BOUND)
 		pStepIterEnd = stepList->end();
 	else
@@ -352,12 +356,17 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	while((count < m_nMaxsize) && (pStepIter != pStepIterEnd))
 	{
 		float ratio;
-		if(stepsizeLeft < (m_fSamplingRate-EPS))
+		//AN:  Reduced the threshold to 100*EPS because we were clipping
+		//off the last sample point in path lines
+		if(stepsizeLeft < (m_fSamplingRate-(1.e-4)))
 		{
 			pIter1++;
 			pIter2++;
 			pStepIter++;
-			stepsizeLeft += *pStepIter;
+			if (pStepIter == pStepIterEnd){
+				leftoverTime = stepsizeLeft;
+			} else 
+				stepsizeLeft += *pStepIter;
 		}
 		else
 		{
@@ -437,4 +446,5 @@ void vtCFieldLine::SampleFieldline(float* positions,
 	}
 
 	posInPoints = ptr; 
+	return leftoverTime;
 }
