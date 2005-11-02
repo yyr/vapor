@@ -56,10 +56,9 @@ WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(
 
 WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader(
 ) {
+
 	SetDiagMsg("WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader()");
 	if (! _objInitialized) return;
-
-	this->VAPoR::WaveletBlock3DIO::~WaveletBlock3DIO();
 
 	WaveletBlock3DRegionReader::CloseVariable();
 

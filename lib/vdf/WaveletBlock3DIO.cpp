@@ -116,8 +116,6 @@ WaveletBlock3DIO::~WaveletBlock3DIO() {
 
 	if (! _objInitialized) return;
 
-	this->VAPoR::VDFIOBase::~VDFIOBase();
-
 	my_free();
 
 	_objInitialized = 0;

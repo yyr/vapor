@@ -54,8 +54,6 @@ WaveletBlock3DBufReader::~WaveletBlock3DBufReader(
 	SetDiagMsg("WaveletBlock3DBufReader::~WaveletBlock3DBufReader()");
 	if (! _objInitialized) return;
 
-	this->VAPoR::WaveletBlock3DReader::~WaveletBlock3DReader();
-
 	WaveletBlock3DBufReader::CloseVariable();
 	_objInitialized = 0;
 }

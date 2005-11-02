@@ -56,8 +56,6 @@ WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter(
 
 	if (! _objInitialized) return;
 
-	this->VAPoR::WaveletBlock3DWriter::~WaveletBlock3DWriter();
-
 	WaveletBlock3DBufWriter::CloseVariable();
 
 	_objInitialized = 0;

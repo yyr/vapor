@@ -50,8 +50,6 @@ WaveletBlock3DReader::~WaveletBlock3DReader(
 ) {
 	if (! _objInitialized) return;
 
-	this->VAPoR::WaveletBlock3DIO::~WaveletBlock3DIO();
-
 	WaveletBlock3DReader::CloseVariable();
 
 	_objInitialized = 0;
