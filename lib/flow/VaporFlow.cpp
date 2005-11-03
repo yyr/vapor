@@ -262,6 +262,7 @@ bool VaporFlow::GenStreamLines(float* positions,
 	VECTOR3 minB, maxB;
 	vector<double> vExtent;
 	vExtent = dataMgr->GetMetadata()->GetExtents();
+	
 	//Use current region to determine coords of grid boundary:
 	const size_t* fullDim = dataMgr->GetMetadata()->GetDimension();
 	int nlevels = dataMgr->GetMetadata()->GetNumTransforms();
@@ -301,7 +302,8 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pStreamLine->SetStationaryCutoff((0.01f*pCartesianGrid->GetGridSpacing(0))/(userTimeStepSize*maxPoints*animationTimeStepMultiplier));
 	pStreamLine->execute((void *)&currentT, positions, speeds);
 	
-	Reset();
+	//AN: Removed a call to Reset() here. This requires all vapor flow state to be
+	// reestablished each time flow lines are generated.
 	// release resource
 	delete[] seedPtr;
 	delete pStreamLine;
@@ -498,7 +500,7 @@ bool VaporFlow::GenStreakLines(float* positions,
 			pStreakLine->execute((float)iFor, positions, startPositions, pointers, false, iInjection, speeds);
 	}
 
-	Reset();
+	//Reset();
 	// release resource
 	delete[] pUserTimeSteps;
 	delete[] pointers;
