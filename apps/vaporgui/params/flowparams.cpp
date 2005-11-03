@@ -104,6 +104,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	//Set up flow data cache:
 	flowData = 0;
 	flowRGBAs = 0;
+	flowDataOK = 0;
 
 	//Set all parameters to default values
 	restart();
@@ -121,6 +122,7 @@ FlowParams::~FlowParams(){
 		}
 		delete flowData;
 		if(flowRGBAs)delete flowRGBAs;
+		if(flowDataOK) delete flowDataOK;
 	}
 	if (minColorBounds) {
 		delete minColorBounds;
@@ -342,7 +344,6 @@ void FlowParams::updateDialog(){
 
 	myFlowTab->seedtimeIncrementEdit->setEnabled(flowType == 1);
 	myFlowTab->seedtimeEndEdit->setEnabled(flowType == 1);
-	myFlowTab->firstDisplayFrameEdit->setEnabled(flowType == 1);
 	myFlowTab->seedtimeStartEdit->setEnabled(flowType == 1);
 
 	myFlowTab->randomCheckbox->setChecked(randomGen);
@@ -531,7 +532,13 @@ updatePanelState(){
 
 		seedTimeIncrement = myFlowTab->seedtimeIncrementEdit->text().toUInt();
 		if (seedTimeIncrement < 1) seedTimeIncrement = 1;
-
+		lastDisplayFrame = myFlowTab->lastDisplayFrameEdit->text().toInt();
+		firstDisplayFrame = myFlowTab->firstDisplayFrameEdit->text().toInt();
+		//Make sure at least one display frame
+		if (lastDisplayFrame < 1 - firstDisplayFrame) {
+			lastDisplayFrame = 1 - firstDisplayFrame;
+			myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
+		}
 		objectsPerFlowline = myFlowTab->geometrySamplesEdit->text().toInt();
 		if (objectsPerFlowline < 1 || objectsPerFlowline > 1000) {
 			objectsPerFlowline = (lastDisplayFrame+firstDisplayFrame);
@@ -539,14 +546,10 @@ updatePanelState(){
 		}
 		myFlowTab->geometrySamplesSlider->setValue((int)(256.0*log10((float)objectsPerFlowline)*0.33333));
 		
-		lastDisplayFrame = myFlowTab->lastDisplayFrameEdit->text().toInt();
-		if (lastDisplayFrame < 1 - firstDisplayFrame) {
-			lastDisplayFrame = 1 - firstDisplayFrame;
-			myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
-		}
+		
 	}
 	if (flowGraphicsChanged){
-		firstDisplayFrame = myFlowTab->firstDisplayFrameEdit->text().toInt();
+		
 		shapeDiameter = myFlowTab->diameterEdit->text().toFloat();
 		if (shapeDiameter < 0.f) {
 			shapeDiameter = 0.f;
@@ -595,11 +598,14 @@ reinit(bool doOverride){
 		for (i = 0; i<= maxFrame; i++){
 			if (flowData[i]) { delete flowData[i]; flowData[i] = 0;}
 			if (flowRGBAs && flowRGBAs[i]) {delete flowRGBAs[i]; flowRGBAs[i] = 0;}
+		
 		}
 		delete flowData;
 		if (flowRGBAs) delete flowRGBAs;
+		if (flowDataOK) delete flowDataOK;
 		flowData = 0;
 		flowRGBAs = 0;
+		flowDataOK = 0;
 	}
 	//Make min and max conform to new data:
 	minFrame = (int)(session->getMinTimestep());
@@ -826,7 +832,11 @@ reinit(bool doOverride){
 	setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
 	//setup the caches
 	flowData = new float*[maxFrame+1];
-	for (int j = 0; j<= maxFrame; j++) flowData[j] = 0;
+	flowDataOK = new bool[maxFrame+1];
+	for (int j = 0; j<= maxFrame; j++) {
+		flowData[j] = 0;
+		flowDataOK[j] = false;
+	}
 
 	//don't change local/global 
 	updateRenderer(wasEnabled, isLocal(), false);
@@ -1022,9 +1032,6 @@ guiSetFlowType(int typenum){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow type");
 	setFlowType(typenum);
-	myFlowTab->firstDisplayFrameEdit->setEnabled(flowType == 1);
-	if (typenum == 0) 
-		firstDisplayFrame = 0;
 	PanelCommand::captureEnd(cmd, this);
 	
 }
@@ -1404,13 +1411,7 @@ regenerateFlowData(int timeStep){
 	rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, 
 		numTransforms, minFull, maxFull, extents);
 	myFlowLib->SetRegion(numTransforms, min_bdim, max_bdim);
-	if (flowType == 0) { //steady
-		myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
-		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(lastDisplayFrame))/(float)objectsPerFlowline);
-	} else {
-		myFlowLib->SetTimeStepInterval(timeSamplingStart,timeSamplingEnd, timeSamplingInterval);
-		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(maxFrame - minFrame))/(float)objectsPerFlowline);
-	}
+	
 	
 	if (randomGen) {
 		myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, allGeneratorCount);
@@ -1436,22 +1437,64 @@ regenerateFlowData(int timeStep){
 	
 	
 	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
+
+	if (flowType == 0) { //steady
+		myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
+		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
+	} else {
+		myFlowLib->SetTimeStepInterval(timeSamplingStart,timeSamplingEnd, timeSamplingInterval);
+		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(maxFrame - minFrame))/(float)objectsPerFlowline);
+	}
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
 	if (!flowData) {
 		//setup the caches
 		flowData = new float*[maxFrame+1];
-		for (int j = 0; j<= maxFrame; j++) flowData[j] = 0;
+		flowDataOK = new bool[maxFrame+1];
+		for (int j = 0; j<= maxFrame; j++) {
+			flowData[j] = 0;
+			flowDataOK[j] = false;
+		}
 	}
 
-	
+	int numPrePoints=0, numPostPoints=0;
+	float *prePointData = 0, *postPointData=0, *preSpeeds=0, *postSpeeds=0;
 	if (flowType == 0) { //steady
-		if (flowData[timeStep]) delete flowData[timeStep];
+		
+		if (flowData[timeStep]) {
+			delete flowData[timeStep];
+			flowData[timeStep] = 0;
+			flowDataOK[timeStep] = false;
+		}
 		numInjections = 1;
 		maxPoints = objectsPerFlowline+1;
 		if (maxPoints < 2) maxPoints = 2;
-		flowData[timeStep] = new float[3*maxPoints*numSeedPoints*numInjections];
-	} else {// determine largest possible number of injections
+		//If bidirectional allocate between prePoints and postPoints
+		numPrePoints = (int)(0.5f+(float)maxPoints* (float)(firstDisplayFrame)/(float)(firstDisplayFrame+lastDisplayFrame));
+		//Mace sure these are valid (i.e. not == 1) and
+		//adjust maxPoints accordingly
+		if (numPrePoints == 1) numPrePoints = 2;
+		numPostPoints = maxPoints - numPrePoints;
+		if (numPostPoints == 1) numPostPoints = 2;
+		if (numPrePoints > 0){
+			if( numPostPoints > 0) maxPoints = numPrePoints+numPostPoints -1;
+			else maxPoints = numPrePoints;
+		}
+
+		//If there are prePoints, temporarily allocate space for pre- and post-points
+		
+		flowData[timeStep] = new float[3*maxPoints*numSeedPoints];
+		if (numPrePoints > 0){
+			prePointData = new float[3*numPrePoints*numSeedPoints];
+			if (numPostPoints > 0) {
+				postPointData = new float[3*numPostPoints*numSeedPoints];
+				
+			}
+		} else {  //use same pointer if just have postPoints
+			postPointData = flowData[timeStep];
+		}
+		
+	} else {// unsteady: determine largest possible number of injections
 		numInjections = 1+ (seedTimeEnd - seedTimeStart)/seedTimeIncrement;
 		//For unsteady flow, the firstDisplayFrame and lastDisplayFrame give a window
 		//on a longer timespan that potentially goes from 
@@ -1466,18 +1509,88 @@ regenerateFlowData(int timeStep){
 	if (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2){
 		//to map speed, need to calculate it:
 		speeds = new float[maxPoints*numSeedPoints*numInjections];
+		if (numPrePoints > 0){
+			preSpeeds = new float[numPrePoints*numSeedPoints];
+			if (numPostPoints > 0){
+				postSpeeds = new float[numPostPoints*numSeedPoints];
+			}
+		} else {
+			postSpeeds = speeds;
+		}
+		
 	}
 
 	///call the flowlib
 	if (flowType == 0){ //steady
-		
-		bool rc = myFlowLib->GenStreamLines(flowData[timeStep], maxPoints, randomSeed, speeds);
-		//If failed to build streamline, force  rendering to stop by inserting
+		bool rc = true;
+		if (numPrePoints>0){
+			myFlowLib->ScaleTimeStepSizes(-velocityScale, ((float)(firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
+			rc = myFlowLib->GenStreamLines(prePointData, numPrePoints, randomSeed, preSpeeds);
+		}
+		if (rc && numPostPoints > 0) {
+			myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
+			rc = myFlowLib->GenStreamLines(postPointData, numPostPoints, randomSeed, postSpeeds);
+		}
+		flowDataOK[timeStep] = true;
+		//If failed to build streamlines, force  rendering to stop by inserting
 		//END_FLOW_FLAG at the start of each streamline
 		if (!rc){
 			for (int q = 0; q < numSeedPoints; q++){
 				*(flowData[timeStep]+3*q*maxPoints) = END_FLOW_FLAG;
 			}
+		}
+		//Rearrange points to reverse prePoints and attach them to postPoints
+		else if (numPrePoints > 0) {
+			for (int j = 0; j<numSeedPoints; j++){
+				//When an end-flow flag is found, it and all preceding points
+				//get marked with IGNORE_FLAG
+				//If stationary flag is found, then preceding points get the
+				// IGNORE_FLAG
+				bool flowEnded = false;
+				
+				//move the prePoints in forward order.
+				//position k goes to numPrePoints-k-1;
+				
+				for (int k = 0; k< numPrePoints; k++){
+					int krev = numPrePoints -k -1;
+					if (prePointData[3*(k+ j*numPrePoints)] == END_FLOW_FLAG){
+						flowEnded = true;
+					}
+					if (flowEnded) {
+						*(flowData[timeStep]+3*(krev+j*maxPoints)) = IGNORE_FLAG;
+					} else for (int q = 0; q<3; q++){
+						*(flowData[timeStep]+3*(krev+j*maxPoints)+q) = 
+							prePointData[3*(k+ j*numPrePoints)+q];
+					}
+					if (prePointData[3*(k+ j*numPrePoints)] == STATIONARY_STREAM_FLAG){
+						flowEnded = true;
+					}
+					if (speeds && !flowEnded){
+						speeds[krev+j*maxPoints] = 
+							preSpeeds[k+j*numPrePoints];
+					}
+				}
+				for (int ip = 0; ip < numPostPoints; ip++){
+					for (int q = 0; q<3; q++){
+						
+						*(flowData[timeStep]+q+3*((numPrePoints+ip-1) + j*maxPoints)) = 
+							postPointData[3*(ip + j*numPostPoints)+q];
+						assert(q+3*((numPrePoints+ip-1) + j*maxPoints) < 
+							3*maxPoints*numSeedPoints);
+					}
+					if (speeds){
+						speeds[numPrePoints+ip-1+j*maxPoints] = 
+							postSpeeds[ip+j*numPostPoints];
+					}
+				}
+
+			}
+			//Now release the saved arrays:
+			delete prePointData;
+			assert(postPointData != flowData[timeStep]);
+			if (postPointData) delete postPointData;
+			if (preSpeeds) delete preSpeeds;
+			if (postSpeeds) delete postSpeeds;
 		}
 	} else {
 		//Can ignore false return code, streaks will just stop at bad frame(?)
@@ -1495,7 +1608,7 @@ regenerateFlowData(int timeStep){
 					break;
 				}
 				if(*(flowData[0]+3*(posn +q*maxPoints)) == STATIONARY_STREAM_FLAG){
-					//fill rest of streakline with STATIONARY_FLOW_FLAG
+					//fill rest of streakline with STATIONARY_STREAM_FLAG
 					for (int fillIndex = posn+1; fillIndex<maxPoints; fillIndex++){
 						*(flowData[0]+3*(fillIndex +q*maxPoints)) = STATIONARY_STREAM_FLAG;
 					}
@@ -1561,17 +1674,10 @@ void FlowParams::setFlowMappingDirty(){
 	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::setFlowDataDirty(){
-	//The data pointers themselves are the valid flags
-	if(flowData){
+	
+	if(flowDataOK){
 		for (int i = 0; i<=maxFrame; i++){
-			if (flowData[i]) {
-				delete flowData[i];
-				flowData[i] = 0;
-			}
-			if (flowRGBAs && flowRGBAs[i]){
-				delete flowRGBAs[i];
-				flowRGBAs[i] = 0;
-			}
+			flowDataOK[i] = false;
 		}
 	}
 	VizWinMgr::getInstance()->refreshFlow(this);
@@ -2132,7 +2238,9 @@ mapColors(float* speeds, int currentTimeStep){
 						break;
 					case (1): //age
 						if (flowIsSteady())
-							opacVar = (float)k*((float)(lastDisplayFrame))/((float)objectsPerFlowline);
+							//Map k in [0..objectsPerFlowline] to the interval (-firstDisplayFrame, lastDisplayFrame)
+							opacVar = - (float)firstDisplayFrame +
+								(float)k*((float)(lastDisplayFrame+firstDisplayFrame))/((float)objectsPerFlowline);
 						else
 							opacVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
 						break;
@@ -2162,7 +2270,8 @@ mapColors(float* speeds, int currentTimeStep){
 						break;
 					case (1): //age
 						if (flowIsSteady())
-							colorVar = (float)k*((float)(lastDisplayFrame))/((float)objectsPerFlowline);
+							colorVar = -(float)firstDisplayFrame +
+								(float)k*((float)(lastDisplayFrame+firstDisplayFrame))/((float)objectsPerFlowline);
 						else
 							colorVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
 						break;
@@ -2447,7 +2556,10 @@ void FlowParams::setMaxOpacMapBound(float val){
 float FlowParams::minRange(int index){
 	switch(index){
 		case (0): return 0.f;
-		case (1): return 0.f; //minimum age is always 0
+		case (1): 
+			//Need to fix this for unsteady
+			if (flowIsSteady())return (float)(-firstDisplayFrame);
+			else return (0.f);
 		case (2): return (0.f);//speed
 		default:
 			int varnum = index -3;

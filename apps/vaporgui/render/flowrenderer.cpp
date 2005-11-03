@@ -341,6 +341,30 @@ void FlowRenderer::initializeGL()
 	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
    
 }
+/****************************************************************************
+ * 
+ *  Following rendering loops are to render points, lines, tubes, or arrows
+ *  Based on a sequence of points, possibly with flags.
+ *  These loops must deal with the following cases
+ *  1.  Sequence starts with END_FLOW_FLAG.  Render nothing
+ *  2.  Sequence starts with STATIONARY_FLAG and has no valid points.
+ *		The next element in the sequence is STATIONARY_FLAG (if any).
+ *		Render nothing.
+ *  3.  Otherwise, sequence contains a sequence of 1 or more valid points.
+ *      These points can be preceded by:
+ *		A.  Nothing
+ *		B.  Zero or more IGNORE FLAGS, followed by zero or one STATIONARY_FLAG
+ *		C.  Zero or one STATIONARY_FLAG
+ *		These points can be followed by:
+ *		A.  Nothing
+ *		B.  Zero or one STATIONARY_FLAG
+ *		C.  Zero or one END_FLOW_FLAG
+ *
+ *  The rendering loops must deal with these correctly; i.e.
+ *  There may be a stationary symbol rendered at the last coord on either end.
+ *  Otherwise the sequence of points results in the appropriate geometric entities.
+ *
+ ********************************************************************************/
 //  Issue OpenGL calls for point list
 void FlowRenderer::
 renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool constMap){
@@ -350,23 +374,48 @@ renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool const
 	glDisable(GL_LIGHTING);
 	
 	for (int i = 0; i< numSeedPoints; i++){
-		glBegin (GL_POINTS);
-		bool endGL = false;
-		if(constMap) glColor4fv(constFlowColor);
+		//glBegin (GL_POINTS);
+		bool endGL = true;
+		bool firstPoint = true;
+		bool stationaryStart = false;
+		
 		for (int j = firstAge; j<=lastAge; j++){
 			float* point = flowDataArray+ 3*(startIndex+j+ maxPoints*i);
 			if (*point == END_FLOW_FLAG) break;
+			if ((*point) == IGNORE_FLAG) continue;
+			
+			//Check for an initial STATIONARY_FLAG
+			if (firstPoint && (*point == STATIONARY_STREAM_FLAG)){
+				stationaryStart = true;
+				continue;
+			}
+			
+			if (stationaryStart){
+				if (*point == STATIONARY_STREAM_FLAG) break;
+				renderStationary(point);
+				stationaryStart = false;
+			}
+			if(firstPoint){
+				firstPoint = false;
+				if(constMap) glColor4fv(constFlowColor);
+				glBegin(GL_POINTS);
+				endGL = false;
+			}
+			
 			//qWarning("point is %f %f %f", *point, *(point+1), *(point+2));
 			
 			if (!constMap){
 				float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
 				glColor4fv(rgba);
 			}
+
 			//Use the last point for a stationary marker
 			if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
+				glVertex3fv(point);
 				glEnd();
 				
 				renderStationary(point);
+				endGL = true;
 				break;
 			}
 			glVertex3fv(point);
@@ -390,14 +439,33 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 		const float* lightDir = vpParams->getLightDirection(0);
 		for (int i = 0; i< numSeedPoints; i++){
 			if (constMap)glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE, constFlowColor);
-			glBegin (GL_LINE_STRIP);
-			bool endGL = false;
+			//glBegin (GL_LINE_STRIP);
+			bool endGL = true;
+			bool firstPoint = true;
+			bool stationaryStart = false;
 			for (int j = firstAge; j<=lastAge; j++){
 				//For each point after first, calc vector from prev vector to this one
 				//then calculate corresponding normal
 				float* point = flowDataArray + 3*(startIndex+ j+ maxPoints*i);
 				if (*point == END_FLOW_FLAG) break;
-				if (j > firstAge){
+				if (*point == IGNORE_FLAG) continue;
+				//Check for an initial STATIONARY_FLAG
+				if (firstPoint && (*point == STATIONARY_STREAM_FLAG)){
+					stationaryStart = true;
+					continue;
+				}
+				if (stationaryStart){
+					if (*point == STATIONARY_STREAM_FLAG) break;
+					renderStationary(point);
+					stationaryStart = false;
+				}
+				if(firstPoint){
+					firstPoint = false;
+					if(constMap) glColor4fv(constFlowColor);
+					glBegin(GL_LINE_STRIP);
+					endGL = false;
+				}
+				else{
 					vsub(point, point-3, dirVec);
 					float len = vdot(dirVec,dirVec);
 					if (len == 0.f){//If 2nd is same as first, set default normal
@@ -421,9 +489,8 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
 				}
 				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
-					if(!endGL) glEnd();//Terminate current curve
-					
-					
+					glVertex3fv(point);//Terminate current curve
+					glEnd();
 					renderStationary(point);
 					endGL = true;
 					break;
@@ -437,18 +504,38 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 		glDisable(GL_LIGHTING);
 		for (int i = 0; i< numSeedPoints; i++){
 			glColor4fv(constFlowColor);
-			bool endGL = false;
-			glBegin (GL_LINE_STRIP);
+			
+			//glBegin (GL_LINE_STRIP);
+			bool endGL = true;
+			bool firstPoint = true;
+			bool stationaryStart = false;
 			for (int j = firstAge; j<=lastAge; j++){
 				float* point = flowDataArray +  3*(startIndex+ j+ maxPoints*i);
 				if (*point == END_FLOW_FLAG) break;
-				
+				if (*point == IGNORE_FLAG) continue;
+				//Check for an initial STATIONARY_FLAG
+				if (firstPoint && (*point == STATIONARY_STREAM_FLAG)){
+					stationaryStart = true;
+					continue;
+				}
+				if (stationaryStart){
+					if (*point == STATIONARY_STREAM_FLAG) break;
+					renderStationary(point);
+					stationaryStart = false;
+				}
+				if(firstPoint){
+					firstPoint = false;
+					if(constMap) glColor4fv(constFlowColor);
+					glBegin(GL_LINE_STRIP);
+					endGL = false;
+				}
 				if (!constMap){
 					float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
 					glColor4fv(rgba);
 				}
 				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
-					if(!endGL) glEnd();//Terminate current curve
+					glVertex3fv(point);
+					glEnd();//Terminate current curve
 					
 					renderStationary(point);
 					endGL = true;
@@ -489,16 +576,53 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 	float testVec2[3];
 	if (firstAge >= lastAge) return;
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
-		//Skip the tube entirely if first point is end-flow or stationary flag
+		//Skip the tube entirely if first point is end-flow 
 		//This can occur in the middle of a streakline
-		if(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge)) == END_FLOW_FLAG)
-			continue;
-		if(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge)) == STATIONARY_STREAM_FLAG)
-			continue;
-
-		//Start the colors for the start of the tube or the stationary symbol
+		float* point = flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge); 
+		if(*point == END_FLOW_FLAG) continue;
+		//Cycle through the points looking for a valid tubeStartIndex.
+		//If the first one is at the end, we don't render anything
+		//
+		int tubeStartIndex;
+		bool stationaryStart = false;
+		for (tubeStartIndex = (startIndex + tubeNum*maxPoints+firstAge);
+		 tubeStartIndex < (startIndex + tubeNum*maxPoints+lastAge);
+		 tubeStartIndex++){
+			point = flowDataArray + 3*tubeStartIndex;
+			if (*point == IGNORE_FLAG) continue;
+			if (*point == STATIONARY_STREAM_FLAG) {
+				//Multiple STATIONARY_FLAGS, render nothing
+				if (stationaryStart) {
+					stationaryStart = false;
+					tubeStartIndex = (startIndex + tubeNum*maxPoints+lastAge);
+					break;
+				}
+				stationaryStart = true;
+				continue;
+			}
+			//At this point we know it's a valid point
+			assert (*point != END_FLOW_FLAG);
+			break;
+		}
+		//check if we didn't find anything.  Possibly render a solitary
+		//stationary point if we didn't find anything else.
+		if (tubeStartIndex == (startIndex + tubeNum*maxPoints+lastAge)){
+			if (stationaryStart) {
+				point = flowDataArray + 3*tubeStartIndex;
+				renderStationary(point);
+			}
+			break;
+		}
+		//Check if the first point was preceded by stationary flag:
+		if (stationaryStart){
+			point = flowDataArray + 3*tubeStartIndex;
+			renderStationary(point);
+		}
+		assert(tubeStartIndex < startIndex + tubeNum*maxPoints + lastAge);
+		//OK, we are at the start of a real tube.
+		//Start the colors for the start of the tube 
 		if (!constMap){
-			float* rgba = flowRGBAs + 4*(startIndex + tubeNum*maxPoints+firstAge);
+			float* rgba = flowRGBAs + 4*(tubeStartIndex);
 			if(isLit)
 				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
 			else
@@ -508,20 +632,20 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 			else glColor4fv(constFlowColor);
 		}
 		//Check if the second point is a stationary flag:
-		if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+firstAge+1))) == STATIONARY_STREAM_FLAG) {
-			//If so just render the stationary symbol, and continue
-			float *point = flowDataArray+3*(startIndex+tubeNum*maxPoints+firstAge);
+		if ((*(flowDataArray + 3*(tubeStartIndex+1))) == STATIONARY_STREAM_FLAG) {
+			//If so just render the stationary symbol, and we are done.
+			float *point = flowDataArray+3*tubeStartIndex;
 			renderStationary(point);
 			continue;
-		} else if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+firstAge+1))) == END_FLOW_FLAG) {//render nothing:
+		} else if ((*(flowDataArray + 3*(tubeStartIndex+1))) == END_FLOW_FLAG) {//render nothing:
 				//We could potentially have the second point be an end flow flag
 				continue;
-		} else {
+		} else {  //OK, now we can render a tube:
 			
-			int tubeStartIndex = 3*(startIndex + tubeNum*maxPoints+firstAge);
-			//data point is three floats starting at data[tubeStartIndex]
+			
+			//data point is three floats starting at data[3*tubeStartIndex]
 			//evenA is the direction the line is pointing
-			vsub(flowDataArray+(tubeStartIndex+3), flowDataArray+tubeStartIndex, evenA);
+			vsub(flowDataArray+3*(tubeStartIndex+1), flowDataArray+3*tubeStartIndex, evenA);
 			//Normalize evenA
 			len = vdot(evenA,evenA);
 			if (len == 0.f){//If 2nd is same as first set default normal
@@ -551,7 +675,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 				//Calc outward normal as a sideEffect..
 				vadd(testVec, testVec2, evenNormal+3*i);
 				vmult(evenNormal+3*i, radius, evenVertex+3*i);
-				vadd(evenVertex+3*i, flowDataArray+tubeStartIndex, evenVertex+3*i);
+				vadd(evenVertex+3*i, flowDataArray+3*tubeStartIndex, evenVertex+3*i);
 			}
 			//Draw an end-cap on the cylinder:
 			
@@ -576,12 +700,15 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 			float* prevRGBA, *nextRGBA;
 
 
-			float* point;
-			for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
-				point = flowDataArray+3*(startIndex+tubeNum*maxPoints+pointNum);
+			//float* point;
+			//for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
+			for (int tubeIndex = tubeStartIndex+1; tubeIndex <= startIndex+tubeNum*maxPoints+lastAge;
+				tubeIndex++){
+				point = flowDataArray+3*tubeIndex;
 				if (*point == END_FLOW_FLAG || *point == STATIONARY_STREAM_FLAG) break;
 				//Toggle the meaning of "current" and "prev"
-				if (0 == (pointNum - firstAge)%2) {
+				//First time thru current is odd
+				if (0 == (tubeIndex - tubeStartIndex)%2) {
 					currentN = evenN;
 					prevN = oddN;
 					currentA = evenA;
@@ -655,12 +782,10 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 				}
 				
 				if (!constMap){
-					prevRGBA = flowRGBAs + 4*(startIndex+tubeNum*maxPoints+pointNum-1);
-					nextRGBA = flowRGBAs + 4*(startIndex+tubeNum*maxPoints+pointNum);
+					prevRGBA = flowRGBAs + 4*(tubeIndex-1);
+					nextRGBA = flowRGBAs + 4*(tubeIndex);
 				}
 				
-					
-			
 				//Now make a triangle strip:
 				glBegin(GL_TRIANGLE_STRIP);
 				if (constMap){
@@ -728,7 +853,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 		
 
 	} //end of loop over seedPoints
-	//Special symbol at stationary flow:
+	
 	
 		
 }
@@ -757,16 +882,53 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 
 
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
-		//Skip the arrow entirely if first point is end-flow or stationary flag
+		//Skip the tube entirely if first point is end-flow 
 		//This can occur in the middle of a streakline
-		if(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge)) == END_FLOW_FLAG)
-			continue;
-		if(*(flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge)) == STATIONARY_STREAM_FLAG)
-			continue;
-
-		//Start the colors for the start of the arrow or the stationary symbol
+		float* point = flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge); 
+		if(*point == END_FLOW_FLAG) continue;
+		//Cycle through the points looking for a valid tubeStartIndex.
+		//If the first one is at the end, we don't render anything
+		//
+		int tubeStartIndex;
+		bool stationaryStart = false;
+		for (tubeStartIndex = (startIndex + tubeNum*maxPoints+firstAge);
+		 tubeStartIndex < (startIndex + tubeNum*maxPoints+lastAge);
+		 tubeStartIndex++){
+			point = flowDataArray + 3*tubeStartIndex;
+			if (*point == IGNORE_FLAG) continue;
+			if (*point == STATIONARY_STREAM_FLAG) {
+				//Multiple STATIONARY_FLAGS, render nothing
+				if (stationaryStart) {
+					stationaryStart = false;
+					tubeStartIndex = (startIndex + tubeNum*maxPoints+lastAge);
+					break;
+				}
+				stationaryStart = true;
+				continue;
+			}
+			//At this point we know it's a valid point
+			assert (*point != END_FLOW_FLAG);
+			break;
+		}
+		//check if we didn't find anything.  Possibly render a solitary
+		//stationary point if we didn't find anything else.
+		if (tubeStartIndex == (startIndex + tubeNum*maxPoints+lastAge)){
+			if (stationaryStart) {
+				point = flowDataArray + 3*tubeStartIndex;
+				renderStationary(point);
+			}
+			break;
+		}
+		//Check if the first point was preceded by stationary flag:
+		if (stationaryStart){
+			point = flowDataArray + 3*tubeStartIndex;
+			renderStationary(point);
+		}
+		assert(tubeStartIndex < startIndex + tubeNum*maxPoints + lastAge);
+		//OK, we are at the start of a real tube.
+		//Start the colors for the start of the tube 
 		if (!constMap){
-			float* rgba = flowRGBAs + 4*(startIndex + tubeNum*maxPoints+firstAge);
+			float* rgba = flowRGBAs + 4*(tubeStartIndex);
 			if(isLit)
 				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
 			else
@@ -776,20 +938,20 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 			else glColor4fv(constFlowColor);
 		}
 		//Check if the second point is a stationary flag:
-		if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+firstAge+1))) == STATIONARY_STREAM_FLAG) {
-			//If so just render the stationary symbol, and continue
-			float *point = flowDataArray+3*(startIndex+tubeNum*maxPoints+firstAge);
+		if ((*(flowDataArray + 3*(tubeStartIndex+1))) == STATIONARY_STREAM_FLAG) {
+			//If so just render the stationary symbol, and we are done.
+			float *point = flowDataArray+3*tubeStartIndex;
 			renderStationary(point);
 			continue;
-		} else if ((*(flowDataArray + 3*(startIndex+tubeNum*maxPoints+firstAge+1))) == END_FLOW_FLAG) {//render nothing:
+		} else if ((*(flowDataArray + 3*(tubeStartIndex+1))) == END_FLOW_FLAG) {//render nothing:
 				//We could potentially have the second point be an end flow flag
 				continue;
-		} else { //Legitimate flow line
+		} else {  //OK, legitimate flow line
+		
 			
-			int tubeStartIndex = 3*(startIndex + tubeNum*maxPoints+firstAge);
-			//data point is three floats starting at data[tubeStartIndex]
+			//data point is three floats starting at data[3*tubeStartIndex]
 			//evenN is the direction the line is pointing
-			vsub(flowDataArray+(tubeStartIndex+3), flowDataArray+tubeStartIndex, evenN);
+			vsub(flowDataArray+3*(tubeStartIndex+1), flowDataArray+3*tubeStartIndex, evenN);
 			//Normalize even
 			len = vdot(evenN,evenN);
 			if (len == 0.f){//If 2nd is same as first set default normal
@@ -817,12 +979,17 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 			float* currentU;
 			float* prevN;
 			float* prevU;
-			float* point;
-			for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
-				point = flowDataArray+3*(startIndex+tubeNum*maxPoints+pointNum);
+			
+			//tubeIndex counts the arrow coords along the data,
+			//tubeIndex is pointNum +startIndex+tubeNum*maxPoints
+			for (int tubeIndex = tubeStartIndex+1; tubeIndex <= startIndex+tubeNum*maxPoints+lastAge;
+				tubeIndex++){
+				point = flowDataArray+3*tubeIndex;
+			//for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
+			//	point = flowDataArray+3*(startIndex+tubeNum*maxPoints+pointNum);
 				if (*point == END_FLOW_FLAG || *point == STATIONARY_STREAM_FLAG) break;
 				//Toggle the meaning of "current" and "prev"
-				if (0 == (pointNum - firstAge)%2) {
+				if (0 == (tubeIndex-tubeStartIndex)%2) {
 					currentN = evenN;
 					prevN = oddN;
 					currentU = evenU;
@@ -859,7 +1026,7 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 				vcross(currentU, currentN, currentB);
 				
 
-				drawArrow(isLit, startIndex+tubeNum*maxPoints+pointNum-1, currentN, currentB, currentU, radius, constMap);
+				drawArrow(isLit, tubeIndex-1, currentN, currentB, currentU, radius, constMap);
 
 				
 				

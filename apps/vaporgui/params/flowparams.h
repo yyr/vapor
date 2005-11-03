@@ -26,7 +26,7 @@
 #include "params.h"
 
 class FlowTab;
-
+#define IGNORE_FLAG 2.e30f
 namespace VAPoR {
 class MapperFunction;
 
@@ -141,7 +141,7 @@ public:
 	int getOpacMapEntityIndex() ;
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
 	bool flowDataIsDirty(int timeStep){
-		if(flowData && flowData[timeStep]) return false;
+		if(flowData && flowDataOK[timeStep]) return false;
 		return true;
 	}
 	bool flowMappingIsDirty(int timeStep) {
@@ -343,6 +343,7 @@ protected:
 	//There is potentially one array for each timestep (with streamlines)
 	//With streaklines, there is one array, flowData[0].
 	float** flowData;
+	bool* flowDataOK;
 	float** flowRGBAs;
 
 	
