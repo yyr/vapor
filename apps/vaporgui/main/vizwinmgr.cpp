@@ -926,7 +926,7 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->geometrySamplesEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->geometrySamplesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->firstDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->firstDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
+	connect (flowTab->firstDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->lastDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->lastDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->diameterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
