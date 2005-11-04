@@ -25,8 +25,8 @@ endif
 #
 ifeq ($(ARCH),WIN32)
 
-EXPAT_INC_PATH="B:/Expat-1.95.8/Source/lib/"
-EXPAT_LIB_PATH="B:/Expat-1.95.8/libs/libexpat.lib"
+EXPAT_INC_PATH="C:/Expat-1.95.8/Source/lib/"
+EXPAT_LIB_PATH="C:/Expat-1.95.8/libs/libexpat.lib"
 BUILD_IDL_WRAPPERS = 1
 IDL_INC_PATH="C:/RSI/IDL61/external/include"
 NETCDF_INC_PATH="C:/NCDF/include"
