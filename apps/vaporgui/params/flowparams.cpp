@@ -274,6 +274,7 @@ deepCopy(){
 	//Don't copy flow data pointers (not that deep!)
 	newFlowParams->flowRGBAs = 0;
 	newFlowParams->flowData = 0;
+	newFlowParams->flowDataOK = 0;
 
 	//never keep the SavedCommand:
 	newFlowParams->savedCommand = 0;
@@ -534,10 +535,13 @@ updatePanelState(){
 		if (seedTimeIncrement < 1) seedTimeIncrement = 1;
 		lastDisplayFrame = myFlowTab->lastDisplayFrameEdit->text().toInt();
 		firstDisplayFrame = myFlowTab->firstDisplayFrameEdit->text().toInt();
-		//Make sure at least one display frame
-		if (lastDisplayFrame < 1 - firstDisplayFrame) {
-			lastDisplayFrame = 1 - firstDisplayFrame;
+		//Make sure both are nonnegative, and at least one frame is displayed
+		if (lastDisplayFrame < 0 || firstDisplayFrame < 0 || (firstDisplayFrame+lastDisplayFrame)<1) {
+			firstDisplayFrame = Max(0,firstDisplayFrame);
+			lastDisplayFrame = Max(0,lastDisplayFrame);
+			if (firstDisplayFrame+lastDisplayFrame == 0) lastDisplayFrame = 1;
 			myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
+			myFlowTab->firstDisplayFrameEdit->setText(QString::number(firstDisplayFrame));
 		}
 		objectsPerFlowline = myFlowTab->geometrySamplesEdit->text().toInt();
 		if (objectsPerFlowline < 1 || objectsPerFlowline > 1000) {
