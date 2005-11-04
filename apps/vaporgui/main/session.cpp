@@ -721,12 +721,12 @@ setupDataStatus(){
 			if (ds->minXFormPresent(var,ts) >= 0){
 				//Turn off error callback, we can handle missing datarange:
 				MyBase::SetErrMsgCB(0);
-				const vector<double>& mnmx = currentMetadata->GetVDataRange(ts, 
-						currentMetadata->GetVariableNames()[var]);
+				const float* mnmx = dataMgr->GetDataRange(ts, 
+						currentMetadata->GetVariableNames()[var].c_str());
 				//Turn it back on:
 				MyBase::SetErrMsgCB(errorCallbackFcn);
 				
-				if(mnmx.size()!= 2){
+				if(!mnmx){
 					MessageReporter::warningMsg("Missing DataRange in variable %s, at timestep %d \n Interval [0,1] assumed",
 						currentMetadata->GetVariableNames()[var].c_str(), ts);
 					minMax.push_back(0.);
