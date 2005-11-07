@@ -310,6 +310,9 @@ void FlowParams::updateDialog(){
 	myFlowTab->numTransSpin->setMinValue(minNumTrans);
 	myFlowTab->numTransSpin->setMaxValue(maxNumTrans);
 	myFlowTab->numTransSpin->setValue(numTransforms);
+
+	myFlowTab->seedRefreshButton->setEnabled( rakeMoved &&
+		MainForm::getInstance()->getCurrentMouseMode() == MouseModeCommand::rakeMode);
 	//Always allow at least 3 variables in combo:
 	int numVars = numVariables;
 	if (numVars < 3) numVars = 3;
@@ -1030,6 +1033,22 @@ guiSetEnabled(bool on){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "enable/disable flow render");
 	setEnabled(on);
 	PanelCommand::captureEnd(cmd, this);
+}
+void FlowParams::
+guiRefreshRake(){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "refresh rake position");
+	for (int i = 0; i< 3; i++){
+		seedBoxMin[i] = sceneRakeMin[i];
+		seedBoxMax[i] = sceneRakeMax[i];
+		enforceConsistency(i);
+	}
+	rakeMoved = false;
+	
+	
+	PanelCommand::captureEnd(cmd, this);
+	updateDialog();
+	setFlowDataDirty();
 }
 void FlowParams::
 guiSetFlowType(int typenum){
@@ -2375,17 +2394,19 @@ captureMouseUp(){
 	} else { //terminate dragging
 		int coord = (5-selectedFaceNum)/2;
 		if (selectedFaceNum %2) {
-			setSeedRegionMax(coord, getSeedRegionMax(coord)+faceDisplacement);
+			setSceneRakeMax(coord, getSceneRakeMax(coord)+faceDisplacement);
 		} else {
-			setSeedRegionMin(coord, getSeedRegionMin(coord)+faceDisplacement);
+			setSceneRakeMin(coord, getSceneRakeMin(coord)+faceDisplacement);
 		}
-		
-		enforceConsistency(coord);
-		updateDialog();
+		rakeMoved = true;
+		//Enable button 
+		myFlowTab->seedRefreshButton->setEnabled(true);
+		//enforceConsistency(coord);
+		//updateDialog();
 	}
 	faceDisplacement = 0.f;
 	selectedFaceNum = -1;
-	setFlowDataDirty();
+	//setFlowDataDirty();
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, this);
 	savedCommand = 0;
@@ -2484,19 +2505,20 @@ slideCubeFace(float movedRay[3]){
 	
 	if (selectedFaceNum%2) { //Are we moving min or max?
 		//Moving max, since selectedFace is odd:
-		if (seedBoxMax[coord] + faceDisplacement > regMax)
-			faceDisplacement = regMax - seedBoxMax[coord];
-		if (seedBoxMax[coord] + faceDisplacement < regMin)
-			faceDisplacement = regMin - seedBoxMax[coord];
+		if (sceneRakeMax[coord] + faceDisplacement > regMax)
+			faceDisplacement = regMax - sceneRakeMax[coord];
+		if (sceneRakeMax[coord] + faceDisplacement < regMin)
+			faceDisplacement = regMin - sceneRakeMax[coord];
 	} else { //Moving region min:
-		if (seedBoxMin[coord] + faceDisplacement > regMax)
-			faceDisplacement = regMax - seedBoxMin[coord];
-		if (seedBoxMin[coord] + faceDisplacement < regMin)
-			faceDisplacement = regMin - seedBoxMin[coord];
+		if (sceneRakeMin[coord] + faceDisplacement > regMax)
+			faceDisplacement = regMax - sceneRakeMin[coord];
+		if (sceneRakeMin[coord] + faceDisplacement < regMin)
+			faceDisplacement = regMin - sceneRakeMin[coord];
 	}
+	rakeMoved = true;
 	
 }
-//Calculate the extents of the seed region when transformed into the unit cube
+//Calculate the extents of the sceneRake region when transformed into the unit cube
 void FlowParams::
 calcSeedExtents(float* extents){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
@@ -2513,8 +2535,8 @@ calcSeedExtents(float* extents){
 	}
 
 	for (i = 0; i<3; i++){
-		extents[i] = (seedBoxMin[i] - rParams->getFullDataExtent(i))/maxCrd;
-		extents[i+3] = (seedBoxMax[i] - rParams->getFullDataExtent(i))/maxCrd;
+		extents[i] = (sceneRakeMin[i] - rParams->getFullDataExtent(i))/maxCrd;
+		extents[i+3] = (sceneRakeMax[i] - rParams->getFullDataExtent(i))/maxCrd;
 	}
 }
 //Force the seed region to fit inside the current Region

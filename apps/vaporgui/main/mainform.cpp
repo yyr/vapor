@@ -1077,6 +1077,8 @@ void MainForm::setRake(bool on)
 		currentSession->blockRecording();
 		launchFlowTab();
 		currentSession->unblockRecording();
+		//Each flow params must reset its in-scene rake
+		VizWinMgr::getInstance()->resetRakes();
 		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::rakeMode));
 		currentMouseMode = Command::rakeMode;
 	}

@@ -885,7 +885,7 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->generatorDimensionCombo,SIGNAL(activated(int)), SLOT(setFlowGeneratorDimension(int)));
 	connect (flowTab->geometryCombo, SIGNAL(activated(int)),SLOT(setFlowGeometry(int)));
 	connect (flowTab->constantColorButton, SIGNAL(clicked()), this, SLOT(setFlowConstantColor()));
-	
+	connect (flowTab->seedRefreshButton, SIGNAL(clicked()), this, SLOT(refreshFlowRake()));
 	connect (flowTab->colormapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowColorMapEntity(int)));
 	connect (flowTab->opacmapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowOpacMapEntity(int)));
 
@@ -1144,6 +1144,19 @@ refreshFlow(FlowParams* fParams){
 		}
 	}
 }
+//Make all the active flowParams reset their rakes to default
+//Prior to moving rake in scene
+//
+void VizWinMgr::resetRakes(){
+	//reset the global flow rake:
+	globalFlowParams->resetSceneRake();
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  ( flowParams[i] && flowParams[i]->isLocal()){
+			flowParams[i]->resetSceneRake();
+		}		
+	}
+}
+
 //To force the animation to rerender, we set the region dirty.  We will need
 //to load the data for another frame
 //
@@ -1749,6 +1762,10 @@ void VizWinMgr::setFlowTabRangeTextChanged(const QString&){
 	FlowParams* myFlowParams = getFlowParams(activeViz);
 	myFlowParams->setMapBoundsChanged(true);
 	myFlowParams->guiSetTextChanged(true);
+}
+void VizWinMgr::
+refreshFlowRake() {
+	getFlowParams(activeViz)->guiRefreshRake();
 }
 void VizWinMgr::
 flowTabReturnPressed(void){

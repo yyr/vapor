@@ -211,6 +211,12 @@ public:
 	//Force rerender of all windows that share a flowParams:
 	//
 	void refreshFlow(FlowParams*);
+	//Make all flow params reset their rakes to match the 
+	//current slider settings.  Performed whenever enter
+	//rake mode
+	//
+	void resetRakes();
+	
 	//Force renderers to get latest CLUT
 	//
 	void setClutDirty(DvrParams* );
@@ -355,6 +361,7 @@ protected slots:
 	void setFlowTabFlowTextChanged(const QString&);
 	void setFlowTabGraphicsTextChanged(const QString&);
 	void setFlowTabRangeTextChanged(const QString&);
+	
 	void setDvrTabTextChanged(const QString& qs);
 	void setContourTabTextChanged(const QString& qs);
 	void setAtabTextChanged(const QString& qs);
@@ -426,6 +433,7 @@ protected slots:
 	//slots for flow tab:
 	void setFlowEnabled(int);
 	void setFlowInstance(int);
+	void refreshFlowRake();
 	void setFlowType(int);
 	void setFlowNumTrans(int);
 	void setFlowXVar(int);

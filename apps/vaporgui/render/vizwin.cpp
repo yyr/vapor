@@ -721,8 +721,8 @@ pointOverCube(FlowParams* fParams, float screenCoords[2]){
 	float mincrd[3];
 	float maxcrd[3];
 	for (int i = 0; i<3; i++){
-		mincrd[i] = fParams->getSeedRegionMin(i);
-		maxcrd[i] = fParams->getSeedRegionMax(i);
+		mincrd[i] = fParams->getSceneRakeMin(i);
+		maxcrd[i] = fParams->getSceneRakeMax(i);
 	}
 	//Specify corners in counterclockwise order 
 	//(appearing from front, i.e. pos z axis) 

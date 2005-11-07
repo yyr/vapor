@@ -126,6 +126,8 @@ public:
 	void calcSeedExtents(float *extents);
 	float getSeedRegionMin(int coord){ return seedBoxMin[coord];}
 	float getSeedRegionMax(int coord){ return seedBoxMax[coord];}
+	float getSceneRakeMax(int coord){ return sceneRakeMax[coord];}
+	float getSceneRakeMin(int coord){ return sceneRakeMin[coord];}
 	int getMinFrame() {return minFrame;}
 	int getMaxFrame() {return maxFrame;}
 	int getMaxPoints() {return maxPoints;}
@@ -182,9 +184,18 @@ public:
 	void guiSetOpacMapEntity( int entityNum);
 	void guiSetConstantColor(QColor& newColor);
 	void guiSetGeomSamples(int sliderVal);
+	void guiRefreshRake(); 
 	void setMapBoundsChanged(bool on){mapBoundsChanged = on; flowGraphicsChanged = on;}
 	void setFlowDataChanged(bool on){flowDataChanged = on;}
 	void setFlowGraphicsChanged(bool on){flowGraphicsChanged = on;}
+	//Prepare for rake mode
+	void resetSceneRake(){
+		for (int i = 0; i< 3; i++){
+			sceneRakeMin[i] = seedBoxMin[i];
+			sceneRakeMax[i] = seedBoxMax[i];
+		}
+		rakeMoved = false;
+	}
 
 
 protected:
@@ -265,6 +276,12 @@ protected:
 	void setSeedRegionMin(int coord, float val){
 		seedBoxMin[coord] = val;
 	}
+	void setSceneRakeMax(int coord, float val){
+		sceneRakeMax[coord] = val;
+	}
+	void setSceneRakeMin(int coord, float val){
+		sceneRakeMin[coord] = val;
+	}
 	//Force seed box to be inside region
 	//Return true if anything changed.
 	bool enforceConsistency(int coord);
@@ -302,6 +319,9 @@ protected:
 	
 	unsigned int randomSeed;
 	float seedBoxMin[3], seedBoxMax[3];
+	//Copies of seed positions only used during in-scene rake motion.
+	float sceneRakeMin[3], sceneRakeMax[3];
+	bool rakeMoved;
 	size_t generatorCount[3];
 	size_t allGeneratorCount;
 	int seedTimeStart, seedTimeEnd, seedTimeIncrement;
