@@ -1618,6 +1618,7 @@ regenerateFlowData(int timeStep){
 	} else {
 		//Can ignore false return code, streaks will just stop at bad frame(?)
 		myFlowLib->GenStreakLines(flowData[0], maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
+		flowDataOK[0] = true;
 		// With streaklines, need to fill flags to end, and fill speeds as well
 		for (int q = 0; q< numSeedPoints*numInjections; q++){
 			//Scan streakline for flags
