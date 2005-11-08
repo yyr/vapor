@@ -311,8 +311,13 @@ const float	*DataMgr::GetDataRange(
 	if (_metadata->GetVDFVersion() < 2) {
 		const vector <double> &rvec = _metadata->GetVDataRange(ts, varname);
 
-		range[0] = rvec[0];
-		range[1] = rvec[1];
+		if (_metadata->GetErrCode() != 0) {
+			range[0] = range[1] = 0.0;
+		}
+		else {
+			range[0] = rvec[0];
+			range[1] = rvec[1];
+		}
 	}
 	else {
 		rc = _wbreader->OpenVariableRead(ts, varname, 0);
