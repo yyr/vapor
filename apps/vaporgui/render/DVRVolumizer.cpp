@@ -283,9 +283,9 @@ void	DVRVolumizer::SetOLUT(
 ) {
 	int	i;
 	//Calculate opacity correction
-	//Delta is 1 for the coarsest refinement, multiplied by 1/2^n (the sampling distance)
-	//If the data is sampled finer.
-	double delta = 1./(double)(1<<numRefinements);
+	//Delta is 1 for the fineest refinement, multiplied by 2^n (the sampling distance)
+	//If the data is sampled coarser
+	double delta = (double)(1<<numRefinements);
 	for(i=0; i<256; i++) {
 		double opac = atab[i][3];
 		opac = 1.0 - pow((1.0 - opac), delta);
