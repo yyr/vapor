@@ -11,7 +11,7 @@
 ;       IMPREGION
 ;
 ; KEYWORD PARAMETERS:
-;       NXFORMS:    The number of forward transforms. If this keyword is 
+;       REFLEVEL:    The desired refinement levele. If this keyword is 
 ;			not set, the subregion will be imported at full resolution
 ;
 ; OUTPUTS:
@@ -21,11 +21,11 @@
 ;       None.
 ;
 ;-
-function impregion, NXFORMS=nxforms
+function impregion, REFLEVEL=reflevel
 
 
 on_error,2                      ;Return to caller if an error occurs
-if keyword_set(nxforms) eq 0 then nxforms = 0
+if keyword_set(reflevel) eq 0 then reflevel = -1
 
 	; Get the state info exported from VAPoR that describes the 
 	; region of interest. vaporimport() returns a structure with 
@@ -47,11 +47,18 @@ if keyword_set(nxforms) eq 0 then nxforms = 0
 
 	;
 	; Transform coordinates from finest resolution to resolution
-	; of interest. Note. this is a noop if nxforms is zero
+	; of interest. Note, the coordinates returned in 'stateinfo' 
+	; are in voxel coordinates relative to the finest resolution level.
+	; We first convert voxel coordinates to user coordinates, then 
+	; convert user coordinates back to voxel coordinates, but at 
+	; the requested refinement level. 
 	;
-	;
-	min = vdc_xformcoord(dfd,nxforms,stateinfo.minrange)
-	max = vdc_xformcoord(dfd,nxforms,stateinfo.maxrange)
+	minu = vdc_mapvox2user(dfd, -1, stateinfo.timestep,stateinfo.minrange)
+	min = vdc_mapuser2vox(dfd,reflevel,stateinfo.timestep,minu)
+
+	maxu = vdc_mapvox2user(dfd, -1, stateinfo.timestep,stateinfo.maxrange)
+	max = vdc_mapuser2vox(dfd,reflevel,stateinfo.timestep,maxu)
+
 
 	; Create an array large enough to hold the volume subregion
 	;
@@ -59,7 +66,7 @@ if keyword_set(nxforms) eq 0 then nxforms = 0
 
 	; Select the variable and time step we want to read
 	;
-	vdc_openvarread, dfd, stateinfo.timestep, stateinfo.varname, nxforms
+	vdc_openvarread, dfd, stateinfo.timestep, stateinfo.varname, reflevel
 
 	; Read the subregion
 	;

@@ -13,12 +13,13 @@
 
 
 ;
-;	Number of forward wavelet transforms.
-;	A value of 0 indicates that the data should be read at full  (native)
-;	resolution. A value of 1 implies a single transform - 1/8th 
-;	resolution.
+;	The refinement level of the multiresolution data
+;	A value of 0 indicates that the data should be read at the
+;	coarsest resolution, a value of 1 indicates the next refinement
+;	level, and so on
+;	A value of -1 implies a the finest (native) resolution
 ;
-num_xforms = 0
+reflevel = -1
 
 ;
 ;	Create a VDF metadata object from an existing metadata file. The
@@ -42,7 +43,7 @@ dfd = vdc_regreadcreate(mfd)
 ;	Note. vdc_getdim() correctly handles dimension calucation for 
 ;	volumes with non-power-of-two dimensions. 
 ;
-dim = vdc_getdim(dfd, num_xforms)
+dim = vdc_getdim(dfd, reflevel)
 
 ;
 ;	Compute the coordinates for the desired subregion. In this case, the 
@@ -60,7 +61,7 @@ f = fltarr(dim/2)
 ;	Prepare to read the indicated time step and variable
 ;
 varnames = ['ml']
-vdc_openvarread, dfd, 0, varnames[0], num_xforms
+vdc_openvarread, dfd, 0, varnames[0], reflevel
 
 ;
 ;	Read the volume subregion. Note, unlike the buffered read/write

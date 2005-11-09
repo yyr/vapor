@@ -12,14 +12,13 @@
 dim = [64,64,64]
 
 ;
-;	Number of forward wavelet transforms to apply to data stored in
-;	the data set. A value of 0 indicates that the data should not 
-;	be transformed. A value of 1 implies a single transform. The resulting
-;	data will be accessible at the original resolution and 1/8th resolution 
-;	(half resolution in each dimension). A value of two implies two 
-;	coarsenings, and so on.
 ;
-num_xforms = 1
+; The number of coarsened approximations to create. A value of 0
+; indicates that the data should not be transformed, i.e. the
+; data will only exist at it's native resolution. A value of 1
+; indicates that a single coarsening should be applied, and so on.
+;
+num_levels = 1
 
 ;
 ;	Create a new VDF metadata object of the indicated dimension and 
@@ -27,7 +26,7 @@ num_xforms = 1
 ;	level. vdf_create() returns a handle for future operations on 
 ;	the metadata object.
 ;
-mfd = vdf_create(dim,num_xforms)
+mfd = vdf_create(dim,num_levels)
 
 ;
 ;	Set the maximum number of timesteps in the data set. Note, valid data 

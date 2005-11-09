@@ -12,13 +12,12 @@
 
 
 
+;   A value of 0 indicates that the data should be read at the
+;   coarsest resolution, a value of 1 indicates the next refinement
+;   level, and so on
+;   A value of -1 implies a the finest (native) resolution
 ;
-;	Number of forward wavelet transforms.
-;	A value of 0 indicates that the data should be read at full  (native)
-;	resolution. A value of 1 implies a single transform - 1/8th 
-;	resolution.
-;
-num_xforms = 1
+reflevel = 1
 
 ;
 ;	Create a VDF metadata object from an existing metadata file. The
@@ -42,7 +41,7 @@ dfd = vdc_bufreadcreate(mfd)
 ;	Note. vdc_getdim() correctly handles dimension calucation for 
 ;	volumes with non-power-of-two dimensions. 
 ;
-dim = vdc_getdim(dfd, num_xforms)
+dim = vdc_getdim(dfd, reflevel)
 
 ;
 ;	Create an appropriately sized array to hold the volume
@@ -55,7 +54,7 @@ slice = fltarr(dim[0], dim[1])
 ;	Prepare to read the indicated time step and variable
 ;
 varnames = ['ml']
-vdc_openvarread, dfd, 0, varnames[0], num_xforms
+vdc_openvarread, dfd, 0, varnames[0], reflevel
 
 ;
 ;	Read the volume one slice at a time
