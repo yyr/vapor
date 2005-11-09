@@ -126,6 +126,7 @@ public:
 	void calcSeedExtents(float *extents);
 	float getSeedRegionMin(int coord){ return seedBoxMin[coord];}
 	float getSeedRegionMax(int coord){ return seedBoxMax[coord];}
+	//The "rake" version just gets the in-scene rake coords
 	float getSceneRakeMax(int coord){ return sceneRakeMax[coord];}
 	float getSceneRakeMin(int coord){ return sceneRakeMin[coord];}
 	int getMinFrame() {return minFrame;}

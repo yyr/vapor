@@ -2420,6 +2420,8 @@ captureMouseUp(){
 // Faces of the cube are numbered 0..5 based on view from pos z axis:
 // back, front, bottom, top, left, right
 // return false if no intersection
+// Note that this is always with reference to the seed region in the scene,
+// not the gui version.
 //
 bool FlowParams::
 rayCubeIntersect(float ray[3], float cameraPos[3], int faceNum, float intersect[3]){
@@ -2428,27 +2430,27 @@ rayCubeIntersect(float ray[3], float cameraPos[3], int faceNum, float intersect[
 	// if (faceNum%2) val = getRegionMin(coord); else val = getRegionMax(coord);
 	switch (faceNum){
 		case(0): //back; z = zmin
-			val = getSeedRegionMin(2);
+			val = getSceneRakeMin(2);
 			coord = 2;
 			break;
 		case(1): //front; z = zmax
-			val = getSeedRegionMax(2);
+			val = getSceneRakeMax(2);
 			coord = 2;
 			break;
 		case(2): //bot; y = min
-			val = getSeedRegionMin(1);
+			val = getSceneRakeMin(1);
 			coord = 1;
 			break;
 		case(3): //top; y = max
-			val = getSeedRegionMax(1);
+			val = getSceneRakeMax(1);
 			coord = 1;
 			break;
 		case(4): //left; x = min
-			val = getSeedRegionMin(0);
+			val = getSceneRakeMin(0);
 			coord = 0;
 			break;
 		case(5): //right; x = max
-			val = getSeedRegionMax(0);
+			val = getSceneRakeMax(0);
 			coord = 0;
 			break;
 		default:
