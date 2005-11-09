@@ -68,17 +68,19 @@ WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader(
 int	WaveletBlock3DRegionReader::OpenVariableRead(
 	size_t	timestep,
 	const char	*varname,
-	int reflevels
+	int reflevel
 ) {
 	int	rc;
 
 	SetDiagMsg(
 		"WaveletBlock3DRegionReader::OpenVariableRead(%d, %s, %d)",
-		timestep, varname, reflevels
+		timestep, varname, reflevel
 	);
 
+	if (reflevel < 0) reflevel = _num_reflevels - 1;
+
 	WaveletBlock3DRegionReader::CloseVariable();	// close any previously opened files.
-	rc = WaveletBlock3DIO::OpenVariableRead(timestep, varname, reflevels);
+	rc = WaveletBlock3DIO::OpenVariableRead(timestep, varname, reflevel);
 	if (rc<0) return(rc);
 	rc = my_alloc();
 	if (rc<0) return(rc);

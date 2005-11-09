@@ -90,6 +90,8 @@ int	WaveletBlock3DWriter::OpenVariableWrite(
 		timestep, varname, reflevel
 	);
 
+	if (reflevel < 0) reflevel = _num_reflevels - 1;
+
 	rc = WaveletBlock3DIO::OpenVariableWrite(timestep, varname, reflevel);
 	if (rc<0) return(rc);
 	return(my_alloc());
@@ -182,7 +184,7 @@ int	WaveletBlock3DWriter::write_slabs(
 
 	// handle case where there is no transform
 	//
-	if (_reflevel == 0) {
+	if ((_num_reflevels-1) == 0) {
 		int	size;
 
 		if (slab_cntr_c <= (int)_bdim[2]) size = (int)(2 * _bdim[0] * _bdim[1]);

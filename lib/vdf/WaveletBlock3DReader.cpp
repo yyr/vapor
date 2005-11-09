@@ -64,6 +64,8 @@ int	WaveletBlock3DReader::OpenVariableRead(
 
 	slab_cntr_c = 0;
 
+    if (reflevel < 0) reflevel = _num_reflevels - 1;
+
 	rc = WaveletBlock3DIO::OpenVariableRead(timestep, varname, reflevel);
 	if (rc<0) return(rc);
 	rc = my_alloc();

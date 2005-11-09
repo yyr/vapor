@@ -74,6 +74,8 @@ int	WaveletBlock3DBufWriter::OpenVariableWrite(
 		timestep, varname, reflevel
 	);
 
+	if (reflevel < 0) reflevel = _num_reflevels - 1;
+
 	slice_cntr_c = 0;
 	is_open_c = 1;
 

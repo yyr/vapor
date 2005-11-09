@@ -185,11 +185,12 @@ void	VDFIOBase::MapUserToVox(
 
 		vector <double> lextents = extents;
 
-		GetDim(dim, _num_reflevels-1);	// finest dimension
+		GetDim(dim, reflevel);	
 		for(int i = 0; i<3; i++) {
+			double a, b;
 
 			// distance between voxels along dimension 'i' in user coords
-			double deltax = (lextents[i+3] - lextents[i]) / (dim[i] - 1);
+			double deltax = (lextents[i+3] - lextents[i]) / (_dim[i] - 1);
 
 			// coordinate of first voxel in user space
 			double x0 = lextents[i];
@@ -202,9 +203,12 @@ void	VDFIOBase::MapUserToVox(
 			lextents[i] += x0;
 			lextents[i+3] -= x0;
 
-			vcoord1[i] = (size_t) rint (
-				(vcoord0[i]-lextents[i])/(lextents[i+3]-lextents[i])*(dim[i]-1)
-			);
+			a = (double) (dim[i]-1) / (lextents[i+3] - lextents[i]);
+			b = a * extents[i];
+
+			vcoord1[i] = (size_t) rint (a*vcoord0[i] + b);
+			if (vcoord1[i] < 0) vcoord1[i] = 0;
+			if (vcoord1[i] > (dim[i]-1)) vcoord1[i] = dim[i]-1;
 		}
 	}
 }
