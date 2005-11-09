@@ -640,8 +640,9 @@ reinit(bool doOverride){
 	
 	if (doOverride){
 		for (i = 0; i<3; i++){
-			seedBoxMin[i] = rParams->getFullDataExtent(i);
-			seedBoxMax[i] = rParams->getFullDataExtent(i+3);
+			sceneRakeMin[i] = seedBoxMin[i] = rParams->getFullDataExtent(i);
+			sceneRakeMax[i] = seedBoxMax[i] = rParams->getFullDataExtent(i+3);
+			
 		}
 	} else {
 		for (i = 0; i<3; i++){
@@ -651,6 +652,8 @@ reinit(bool doOverride){
 				seedBoxMax[i] = rParams->getFullDataExtent(i+3);
 			if(seedBoxMax[i] < seedBoxMin[i]) 
 				seedBoxMax[i] = seedBoxMin[i];
+			sceneRakeMin[i] = seedBoxMin[i];
+			sceneRakeMax[i] = seedBoxMax[i];
 		}
 	}
 
