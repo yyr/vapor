@@ -141,6 +141,8 @@ IDL_VPTR vdcRegionReaderCreate(int argc, IDL_VPTR *argv)
 
 	IDL_ENSURE_SCALAR(arg);
 
+WaveletBlock3DRegionReader::SetDiagMsgFilePtr(stderr);
+
 	if (arg->type == IDL_TYP_MEMINT) {
 		Metadata *metadata = varGetMetadata(arg);
 		reader = new WaveletBlock3DRegionReader(metadata);
@@ -455,14 +457,9 @@ IDL_VPTR vdcMapUserToVox(int argc, IDL_VPTR *argv)
 	double	*vcoord0ptr = (double *) vcoord_var->value.arr->data;
 
 
-	double vcoord0[3];
 	size_t vcoord1[3];
 
-	for(int i=0; i<3; i++) {
-		vcoord0[i] = (size_t) vcoord0ptr[i];
-	}
-
-	io->MapUserToVox(ts, vcoord0, vcoord1, reflevel);
+	io->MapUserToVox(ts, vcoord0ptr, vcoord1, reflevel);
 
 	myBaseErrChk();
 
