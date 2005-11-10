@@ -2422,7 +2422,9 @@ captureMouseUp(){
 	}
 	faceDisplacement = 0.f;
 	selectedFaceNum = -1;
-	//setFlowDataDirty();
+	//Force a redraw but not a rebuild of flow:
+	VizWinMgr::getInstance()->refreshFlow(this);
+	
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, this);
 	savedCommand = 0;
