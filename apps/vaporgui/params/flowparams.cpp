@@ -135,7 +135,19 @@ FlowParams::~FlowParams(){
 void FlowParams::
 restart() {
 	
-	
+	if (flowData) {
+		for (int i = 0; i<= maxFrame; i++){
+			if (flowRGBAs && flowRGBAs[i]) delete flowRGBAs[i];
+			if (flowData[i]) delete flowData[i];
+		}
+		delete flowData;
+		if(flowRGBAs)delete flowRGBAs;
+		if(flowDataOK) delete flowDataOK;
+	}
+	flowData = 0;
+	flowRGBAs = 0;
+	flowDataOK = 0;
+
 	enabled = false;
 	selectedFaceNum = -1;
 	faceDisplacement = 0.f;
