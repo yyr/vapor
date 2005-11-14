@@ -261,6 +261,9 @@ public slots:
 	//Slot that responds when user requests to activate a window:
 	void winActivated(int);
 	void killViz(int viznum);
+	//Slots that set viewpoint:
+	void viewAll();
+	void viewRegion();
 	
 signals:
 	//Turn on/off multiple viz options:

@@ -1005,6 +1005,16 @@ sethome()
 {
 	getViewpointParams(activeViz)->setHomeViewpoint();
 }
+void VizWinMgr::
+viewAll()
+{
+	getViewpointParams(activeViz)->guiCenterFullRegion(getRegionParams(activeViz));
+}
+void VizWinMgr::
+viewRegion()
+{
+	getViewpointParams(activeViz)->guiCenterSubRegion(getRegionParams(activeViz));
+}
 /*********************************************************************************
  * Slots associated with RegionTab:
  *********************************************************************************/

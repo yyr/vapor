@@ -87,6 +87,8 @@
 #include "images/lightbulb.xpm"
 #include "images/home.xpm"
 #include "images/sethome.xpm" 
+#include "images/eye.xpm"
+#include "images/magnify.xpm"
 
 /*
  *  Constructs a MainForm as a child of 'parent', with the
@@ -268,11 +270,18 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
 	//Insert toolbar and actions:
 	QPixmap* homeIcon = new QPixmap(home);
-	homeAction = new QAction("Home", *homeIcon,
+	homeAction = new QAction("Home Viewpoint", *homeIcon,
 		"&Home", CTRL+Key_H, this);
 	QPixmap* sethomeIcon = new QPixmap(sethome);
-	sethomeAction = new QAction("Set Home", *sethomeIcon,
+	sethomeAction = new QAction("Set Home Viewpoint", *sethomeIcon,
 		"&SetHome", CTRL+Key_S, this);
+	QPixmap* eyeIcon = new QPixmap(eye);
+	viewAllAction = new QAction("View All", *eyeIcon,
+		"&ViewAll", CTRL+Key_V, this);
+	QPixmap* magnifyIcon = new QPixmap(magnify);
+	viewRegionAction = new QAction("View Region", *magnifyIcon,
+		"&ViewRegion", CTRL+Key_R, this);
+
 	QPixmap* tileIcon = new QPixmap(tiles);
 	tileAction = new QAction("Tile Windows", *tileIcon,
 		"&Tile", CTRL+Key_T, this);
@@ -301,6 +310,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	cascadeAction->addTo(vizToolBar);
 	homeAction->addTo(vizToolBar);
 	sethomeAction->addTo(vizToolBar);
+	viewRegionAction->addTo(vizToolBar);
+	viewAllAction->addTo(vizToolBar);
 	
 	
    
@@ -422,6 +433,9 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	connect (tileAction, SIGNAL(activated()), myVizMgr, SLOT(fitSpace()));
 	connect (homeAction, SIGNAL(activated()), myVizMgr, SLOT(home()));
 	connect (sethomeAction, SIGNAL(activated()), myVizMgr, SLOT(sethome()));
+	connect (viewAllAction, SIGNAL(activated()), myVizMgr, SLOT(viewAll()));
+	connect (viewRegionAction, SIGNAL(activated()), myVizMgr, SLOT(viewRegion()));
+ 
  
 	//Now that the tabmgr and the viz mgr exist, hook up the tabs:
 	

@@ -144,6 +144,8 @@ public:
 	QAction* cascadeAction;
 	QAction* homeAction;
 	QAction* sethomeAction;
+	QAction* viewAllAction;
+	QAction* viewRegionAction;
 
     QDockWindow* tabDockWindow;
 	TabManager* getTabManager() {return tabWidget;}

@@ -27,6 +27,8 @@
 #include "mainform.h"
 #include "command.h"
 #include "messagereporter.h"
+#include <qapplication.h>
+#include <qcursor.h>
 #include <qaction.h>
 #include <cassert>
 #include <cstring>
@@ -678,6 +680,9 @@ setupDataStatus(){
 	unsigned int mints = 1000000000;
 	unsigned int maxts = 0;
 	dataExists = false;
+	//Note:  It takes a long time for all the calls to VariableExists
+	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+
 	for (unsigned int ts = 0; ts< numTimeSteps; ts++){
 		for (int var = 0; var< numVariables; var++){
 			//Find the minimum and maximum number of transforms available on disk
@@ -753,6 +758,7 @@ setupDataStatus(){
 			}
 		}
 	}
+	QApplication::restoreOverrideCursor();
 	ds->setMinTimestep((size_t)mints);
 	ds->setMaxTimestep((size_t)maxts);
 	return ds;
