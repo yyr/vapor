@@ -33,7 +33,7 @@
         </size>
     </property>
     <property name="caption">
-        <string>VizTab</string>
+        <string>Viewpoint and Lights</string>
     </property>
     <property name="toolTip" stdset="0">
         <string></string>
@@ -429,47 +429,8 @@
                     <property name="name">
                         <cstring>unnamed</cstring>
                     </property>
-                    <widget class="QPushButton">
-                        <property name="name">
-                            <cstring>centerRegionViewButton</cstring>
-                        </property>
-                        <property name="text">
-                            <string>Center region view</string>
-                        </property>
-                        <property name="toolTip" stdset="0">
-                            <string>Move viewpoint to center on currently specified region</string>
-                        </property>
-                    </widget>
-                    <widget class="QPushButton">
-                        <property name="name">
-                            <cstring>centerFullViewButton</cstring>
-                        </property>
-                        <property name="text">
-                            <string>Center full view</string>
-                        </property>
-                        <property name="toolTip" stdset="0">
-                            <string>Move viewpoint to where full data volume is visible</string>
-                        </property>
-                    </widget>
                 </hbox>
             </widget>
-            <spacer>
-                <property name="name">
-                    <cstring>spacer36</cstring>
-                </property>
-                <property name="orientation">
-                    <enum>Vertical</enum>
-                </property>
-                <property name="sizeType">
-                    <enum>Expanding</enum>
-                </property>
-                <property name="sizeHint">
-                    <size>
-                        <width>20</width>
-                        <height>16</height>
-                    </size>
-                </property>
-            </spacer>
             <widget class="QLayoutWidget">
                 <property name="name">
                     <cstring>layout54</cstring>
