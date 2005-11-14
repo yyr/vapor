@@ -323,6 +323,7 @@ guiSetEnabled(bool value){
 	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle dvr enabled");
 	setEnabled(value);
 	PanelCommand::captureEnd(cmd, this);
+	myDvrTab->DvrTFFrame->update();
 	//updateRenderer(prevEnabled, local, false); (unnecessary; called by vizwinmgr)
 }
 void DvrParams::
@@ -855,7 +856,7 @@ fileSaveTF(){
 //
 void DvrParams::
 refreshTFFrame(){
-	getTFEditor()->setDirty();
+	if (getTFEditor()) getTFEditor()->setDirty();
 	myDvrTab->DvrTFFrame->update();	
 }
 

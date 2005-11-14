@@ -89,7 +89,7 @@ public:
 	void captureMouseDown();
 	void captureMouseUp();
 	void guiSetPerspective(bool on);
-	
+	//Following are only accessible from main menu
 	void guiCenterFullRegion(RegionParams* rParams);
 	void guiCenterSubRegion(RegionParams* rParams);
 	

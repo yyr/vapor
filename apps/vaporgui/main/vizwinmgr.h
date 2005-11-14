@@ -400,9 +400,6 @@ protected slots:
 	void setRegionXSize();
 	void setRegionYSize();
 	void setRegionZSize();
-	//Buttons:
-	void regionCenterFull();
-	void regionCenterRegion();
 
 	//Slots for dvr panel:
 	void setDvrEnabled(int on);

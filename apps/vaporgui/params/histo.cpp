@@ -117,11 +117,14 @@ void Histo::releaseHistograms(){
 	histoArraySize = 0;
 }
 	
+//The bool argument determines whether a new histogram will be
+//generated if none exists
 Histo* Histo::
-getHistogram(int varNum, int vizNum){
+getHistogram(int varNum, int vizNum, bool mustGet){
 	assert (vizNum >=0 && varNum >= 0);
 	//Check if there exists a histogram array:
 	if (!histoArray || histoArraySize <= 0){
+		if (!mustGet) return 0;
 		int numVars = Session::getInstance()->getNumVariables();
 		if (numVars <= 0) return 0;
 		histoArray = new Histo*[numVars*MAXVIZWINS];
@@ -131,7 +134,7 @@ getHistogram(int varNum, int vizNum){
 	
 	if (!histoArray[varNum*MAXVIZWINS + vizNum]) {
 		//Need to construct one:
-		refreshHistogram(vizNum);
+		if (mustGet) refreshHistogram(vizNum);
 	}
 	return histoArray[varNum*MAXVIZWINS + vizNum];
 }
@@ -144,10 +147,16 @@ refreshHistogram(int vizNum)
 	int min_dim[3],max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
 	assert (vizNum >= 0);
-	assert (histoArraySize > 0);
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	DvrParams* dParams = vizWinMgr->getDvrParams(vizNum);
 	int varNum = dParams->getVarNum();
+	if (!histoArray || histoArraySize <= 0){
+		int numVars = Session::getInstance()->getNumVariables();
+		if (numVars <= 0) return;
+		histoArray = new Histo*[numVars*MAXVIZWINS];
+		histoArraySize = numVars*MAXVIZWINS;
+		for (int j = 0; j<histoArraySize; j++) histoArray[j] = 0;
+	}
 	if (histoArray[varNum*MAXVIZWINS + vizNum]){
 		delete histoArray[varNum*MAXVIZWINS + vizNum];
 		histoArray[varNum*MAXVIZWINS + vizNum] = 0;

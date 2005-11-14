@@ -134,9 +134,7 @@ public:
 	void guiSetZCenter(int n);
 	void guiSetZSize(int n);
 
-	//Set the rotation/viewpoint 
-	void guiCenterFull(ViewpointParams* vpp);
-	void guiCenterRegion(ViewpointParams* vpp);
+	
 	//
 	//Start to slide a region face.  Need to save direction vector
 	//

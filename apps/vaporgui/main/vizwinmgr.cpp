@@ -648,8 +648,6 @@ VizWinMgr::hookUpVizTab(VizTab* vTab)
 	connect (vTab->rotCenter1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (vTab->rotCenter2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (vTab->numLights, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->centerFullViewButton, SIGNAL(clicked()), this, SLOT(regionCenterFull()));
-	connect (vTab->centerRegionViewButton, SIGNAL(clicked()), this, SLOT(regionCenterRegion()));
 	connect (this, SIGNAL(enableMultiViz(bool)), vTab->LocalGlobal, SLOT(setEnabled(bool)));
 	//connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyToButton, SLOT(setEnabled(bool)));
 	//connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyTargetCombo, SLOT(setEnabled(bool)));
@@ -682,8 +680,6 @@ VizWinMgr::hookUpRegionTab(RegionTab* rTab)
 	connect (rTab->ySizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->zSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->maxSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
-	connect (rTab->centerFullViewButton, SIGNAL(clicked()), this, SLOT(regionCenterFull()));
-	connect (rTab->centerRegionViewButton, SIGNAL(clicked()), this, SLOT(regionCenterRegion()));
 	connect (rTab->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionXCenter()));
 	connect (rTab->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionYCenter()));
 	connect (rTab->zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionZCenter()));
@@ -1018,17 +1014,7 @@ viewRegion()
 /*********************************************************************************
  * Slots associated with RegionTab:
  *********************************************************************************/
-//Center region sets viewpoint values!
-void VizWinMgr::
-regionCenterRegion(){
-	getRegionParams(activeViz)->guiCenterRegion(getViewpointParams(activeViz));
-}
-//Region centering buttons are a collaboration between viewpoint and region params
-//
-void VizWinMgr::
-regionCenterFull(){
-	getRegionParams(activeViz)->guiCenterFull(getViewpointParams(activeViz));
-}
+
 void VizWinMgr::
 setRegionTabTextChanged(const QString& ){
 	getRegionParams(activeViz)->guiSetTextChanged(true);

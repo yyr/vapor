@@ -42,7 +42,7 @@ public:
 	float getMinData(){return minData;}
 	float getMaxData(){return maxData;}
 	static void releaseHistograms();
-	static Histo* getHistogram(int varNum, int vizNum);
+	static Histo* getHistogram(int varNum, int vizNum, bool mustGet);
 	static void refreshHistogram(int vizNum);
 private:
 	static Histo** histoArray;
