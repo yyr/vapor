@@ -43,6 +43,8 @@
 #include <errno.h>
 
 #include <qgl.h>
+#include <qapplication.h>
+#include <qcursor.h>
 #include <qmessagebox.h>
 #include "volumizerrenderer.h"
 #include "dvrparams.h"
@@ -220,7 +222,7 @@ DrawVoxelScene(unsigned /*fast*/)
 
 		//Turn off error callback, look for memory allocation problem.
 		Session::pauseErrorCallback();
-		
+		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		void* data = (void*) myDataMgr->GetRegionUInt8(
 				myAnimationParams->getCurrentFrameNumber(),
 				myDVRParams->getVariableName(),
@@ -230,6 +232,7 @@ DrawVoxelScene(unsigned /*fast*/)
 				myDVRParams->getCurrentDatarange(),
 				0 //Don't lock!
 			);
+		QApplication::restoreOverrideCursor();
 		//Turn it back on:
 		Session::resumeErrorCallback();
 		if (!data){

@@ -33,6 +33,8 @@
 #include "vizwin.h"
 #include "vapor/VaporFlow.h"
 #include "glutil.h"
+#include <qapplication.h>
+#include <qcursor.h>
 #include <qlineedit.h>
 #include <qcombobox.h>
 #include <qpushbutton.h>
@@ -1559,6 +1561,7 @@ regenerateFlowData(int timeStep){
 	}
 
 	///call the flowlib
+	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	if (flowType == 0){ //steady
 		bool rc = true;
 		if (numPrePoints>0){
@@ -1657,8 +1660,9 @@ regenerateFlowData(int timeStep){
 			}
 		}
 
-
 	}
+	//Restore original cursor:
+	QApplication::restoreOverrideCursor();
 	//Invalidate colors and opacities:
 	if (flowRGBAs && flowRGBAs[timeStep]) {
 		delete flowRGBAs[timeStep];
@@ -2237,10 +2241,11 @@ mapColors(float* speeds, int currentTimeStep){
 			opacVarMin[i] = Session::getInstance()->getExtents(i);
 			opacVarMax[i] = Session::getInstance()->getExtents(i+3);
 		}
-		
+		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		opacRegion = Session::getInstance()->getDataMgr()->GetRegion((size_t)timeStep,
 			opacMapEntity[getOpacMapEntityIndex()].c_str(),
 			numTransforms, (size_t*) minSize, (size_t*) maxSize, 0);
+		QApplication::restoreOverrideCursor();
 	}
 	if (getColorMapEntityIndex() > 2){
 		//set up args for GetRegion
@@ -2256,10 +2261,11 @@ mapColors(float* speeds, int currentTimeStep){
 			colorVarMin[i] = Session::getInstance()->getExtents(i);
 			colorVarMax[i] = Session::getInstance()->getExtents(i+3);
 		}
-		
+		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		colorRegion = Session::getInstance()->getDataMgr()->GetRegion((size_t)timeStep,
 			colorMapEntity[getColorMapEntityIndex()].c_str(),
 			numTransforms, (size_t*) minSize, (size_t*) maxSize, 0);
+		QApplication::restoreOverrideCursor();
 
 	}
 	

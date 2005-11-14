@@ -25,6 +25,8 @@
 #include "vizwin.h"
 #include "vapor/Metadata.h"
 #include "messagereporter.h"
+#include <qapplication.h>
+#include <qcursor.h>
 using namespace VAPoR;
 int Histo::histoArraySize = 0;
 Histo** Histo::histoArray = 0;
@@ -162,7 +164,7 @@ refreshHistogram(int vizNum)
 	const Metadata* metaData = Session::getInstance()->getCurrentMetadata();
 	
 	vizWinMgr->getVizWin(vizNum)->setDataRangeDirty(false);
-	
+	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	unsigned char* data = (unsigned char*) dataMgr->GetRegionUInt8(
 					timeStep, (const char*) metaData->GetVariableNames()[varNum].c_str(),
 					numTrans,
@@ -170,6 +172,7 @@ refreshHistogram(int vizNum)
 					dParams->getCurrentDatarange(),
 					0 //Don't lock!
 				);
+	QApplication::restoreOverrideCursor();
 	//Make sure we can build a histogram
 	if (!data) {
 		MessageReporter::errorMsg("Invalid/nonexistent data cannot be histogrammed");
