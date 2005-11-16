@@ -208,14 +208,10 @@ public:
 	//Similarly for AnimationParams:
 	//
 	void setAnimationDirty(AnimationParams*);
-	//Force rerender of all windows that share a flowParams:
+	//Force rerender of all windows that share a flowParams, or region params..
 	//
 	void refreshFlow(FlowParams*);
-	//Make all flow params reset their rakes to match the 
-	//current slider settings.  Performed whenever enter
-	//rake mode
-	//
-	void resetRakes();
+	void refreshRegion(RegionParams* rParams);
 	
 	//Force renderers to get latest CLUT
 	//
@@ -431,9 +427,10 @@ protected slots:
 	void setIsoColor1();
 
 	//slots for flow tab:
+	void rebuildFlow();
 	void setFlowEnabled(int);
 	void setFlowInstance(int);
-	void refreshFlowRake();
+	void setRakeOnRegion();
 	void setFlowType(int);
 	void setFlowNumTrans(int);
 	void setFlowXVar(int);
@@ -441,6 +438,7 @@ protected slots:
 	void setFlowZVar(int);
 	void clickFlowRecalc();
 	void checkFlowRandom(bool isRandom);
+	void flowAutoToggled(bool isOn);
 	void setFlowXCenter();
 	void setFlowYCenter();
 	void setFlowZCenter();

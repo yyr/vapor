@@ -866,6 +866,7 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setFlowEnabled(int)));
 	connect (flowTab->instanceSpin, SIGNAL(valueChanged(int)), this, SLOT(setFlowInstance(int)));
 	connect (flowTab->flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( setFlowType(int) ) );
+	connect (flowTab->autoRefreshCheckbox, SIGNAL(toggled(bool)), this, SLOT (flowAutoToggled(bool)));
 	connect (flowTab->numTransSpin, SIGNAL(valueChanged(int)),this, SLOT(setFlowNumTrans(int)));
 	connect (flowTab->xCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowXVar(int)));
 	connect (flowTab->yCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowYVar(int)));
@@ -881,10 +882,10 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->generatorDimensionCombo,SIGNAL(activated(int)), SLOT(setFlowGeneratorDimension(int)));
 	connect (flowTab->geometryCombo, SIGNAL(activated(int)),SLOT(setFlowGeometry(int)));
 	connect (flowTab->constantColorButton, SIGNAL(clicked()), this, SLOT(setFlowConstantColor()));
-	connect (flowTab->seedRefreshButton, SIGNAL(clicked()), this, SLOT(refreshFlowRake()));
+	connect (flowTab->rakeOnRegionButton, SIGNAL(clicked()), this, SLOT(setRakeOnRegion()));
 	connect (flowTab->colormapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowColorMapEntity(int)));
 	connect (flowTab->opacmapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowOpacMapEntity(int)));
-
+	connect (flowTab->refreshButton,SIGNAL(clicked()), this, SLOT(rebuildFlow()));
 	connect (flowTab->constantOpacityEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->constantOpacityEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (flowTab->integrationAccuracyEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -1080,6 +1081,22 @@ setRegionZSize(){
 	getRegionParams(activeViz)->guiSetZSize(
 		myMainWindow->getRegionTab()->zSizeSlider->value());
 }
+//Trigger a re-render of the windows that share a region params
+void VizWinMgr::refreshRegion(RegionParams* rParams){
+	int vizNum = rParams->getVizNum();
+	if (vizNum >= 0){
+		vizWin[activeViz]->updateGL();
+	}
+	//Is another viz using these region params?
+	if (rParams->isLocal()) return;
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  ( vizWin[i] && (i != vizNum)  &&
+				((!rgParams[i])||!rgParams[i]->isLocal())
+			){
+			vizWin[i]->updateGL();
+		}
+	}
+}
 
 
 void VizWinMgr::
@@ -1140,18 +1157,7 @@ refreshFlow(FlowParams* fParams){
 		}
 	}
 }
-//Make all the active flowParams reset their rakes to default
-//Prior to moving rake in scene
-//
-void VizWinMgr::resetRakes(){
-	//reset the global flow rake:
-	globalFlowParams->resetSceneRake();
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if  ( flowParams[i] && flowParams[i]->isLocal()){
-			flowParams[i]->resetSceneRake();
-		}		
-	}
-}
+
 
 //To force the animation to rerender, we set the region dirty.  We will need
 //to load the data for another frame
@@ -1749,6 +1755,11 @@ void VizWinMgr::setFlowTabFlowTextChanged(const QString&){
 	myFlowParams->setFlowDataChanged(true);
 	myFlowParams->guiSetTextChanged(true);
 }
+void VizWinMgr::flowAutoToggled(bool on){
+	FlowParams* myFlowParams = getFlowParams(activeViz);
+	myFlowParams->guiSetAutoRefresh(on);
+}
+
 void VizWinMgr::setFlowTabGraphicsTextChanged(const QString&){
 	FlowParams* myFlowParams = getFlowParams(activeViz);
 	myFlowParams->setFlowGraphicsChanged(true);
@@ -1759,10 +1770,7 @@ void VizWinMgr::setFlowTabRangeTextChanged(const QString&){
 	myFlowParams->setMapBoundsChanged(true);
 	myFlowParams->guiSetTextChanged(true);
 }
-void VizWinMgr::
-refreshFlowRake() {
-	getFlowParams(activeViz)->guiRefreshRake();
-}
+
 void VizWinMgr::
 flowTabReturnPressed(void){
 	getFlowParams(activeViz)->confirmText(true);
@@ -1785,6 +1793,15 @@ void VizWinMgr::
 setFlowInstance(int numInstance){
 	//Not implemented yet
 }
+void VizWinMgr::
+rebuildFlow(){
+	getFlowParams(activeViz)->guiRefreshFlow();
+}
+void VizWinMgr::
+setRakeOnRegion(){
+	getFlowParams(activeViz)->guiSetRakeToRegion();
+}
+
 void VizWinMgr::
 setFlowType(int typenum){
 	getFlowParams(activeViz)->guiSetFlowType(typenum);

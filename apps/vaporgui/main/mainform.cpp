@@ -270,7 +270,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
 	//Insert toolbar and actions:
 	QPixmap* homeIcon = new QPixmap(home);
-	homeAction = new QAction("Home Viewpoint", *homeIcon,
+	homeAction = new QAction("Go to Home Viewpoint", *homeIcon,
 		"&Home", CTRL+Key_H, this);
 	QPixmap* sethomeIcon = new QPixmap(sethome);
 	sethomeAction = new QAction("Set Home Viewpoint", *sethomeIcon,
@@ -1091,8 +1091,6 @@ void MainForm::setRake(bool on)
 		currentSession->blockRecording();
 		launchFlowTab();
 		currentSession->unblockRecording();
-		//Each flow params must reset its in-scene rake
-		VizWinMgr::getInstance()->resetRakes();
 		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::rakeMode));
 		currentMouseMode = Command::rakeMode;
 	}

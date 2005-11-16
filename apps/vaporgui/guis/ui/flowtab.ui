@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout33</cstring>
+                <cstring>layout55</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -764,7 +764,7 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout31</cstring>
+                        <cstring>layout54</cstring>
                     </property>
                     <hbox>
                         <property name="name">
@@ -782,23 +782,51 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>61</width>
+                                    <width>30</width>
                                     <height>21</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>autoRefreshCheckbox</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Automatic Flow Refresh</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Check to recalculate flow whenever parameters change</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer72</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>41</width>
+                                    <height>20</height>
                                 </size>
                             </property>
                         </spacer>
                         <widget class="QPushButton">
                             <property name="name">
-                                <cstring>refreshUnsteadyButton</cstring>
+                                <cstring>refreshButton</cstring>
                             </property>
                             <property name="enabled">
                                 <bool>false</bool>
                             </property>
                             <property name="text">
-                                <string>Refresh Unsteady Flow</string>
+                                <string>Refresh  Flow</string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Recalculate unsteady flow based on current settings</string>
+                                <string>Click to recalculate flow using current settings</string>
                             </property>
                         </widget>
                         <spacer>
@@ -813,7 +841,7 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>61</width>
+                                    <width>90</width>
                                     <height>21</height>
                                 </size>
                             </property>
@@ -833,7 +861,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -869,7 +897,7 @@
                                         </font>
                                     </property>
                                     <property name="text">
-                                        <string>Seed Point Generation</string>
+                                        <string>Rake (Flow Seeding) parameters</string>
                                     </property>
                                     <property name="alignment">
                                         <set>AlignCenter</set>
@@ -1041,7 +1069,7 @@
                                                 </sizepolicy>
                                             </property>
                                             <property name="text">
-                                                <string>Seed region sizes</string>
+                                                <string>Rake sizes</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>WordBreak|AlignCenter</set>
@@ -1485,7 +1513,7 @@
                                                 </sizepolicy>
                                             </property>
                                             <property name="text">
-                                                <string>Seed region center</string>
+                                                <string>Rake center</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>WordBreak|AlignCenter</set>
@@ -1747,10 +1775,10 @@
                                         </spacer>
                                         <widget class="QPushButton">
                                             <property name="name">
-                                                <cstring>seedRefreshButton</cstring>
+                                                <cstring>rakeOnRegionButton</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Update Seed Region Bounds</string>
+                                                <string>Set Rake to Current Region</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Apply in-scene rake positions to current seed box</string>
@@ -1792,7 +1820,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>25</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -2703,7 +2731,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
