@@ -75,6 +75,8 @@ using namespace VAPoR;
 	const string FlowParams::_integrationAccuracyAttr = "IntegrationAccuracy";
 	const string FlowParams::_velocityScaleAttr = "velocityScale";
 	const string FlowParams::_timeSamplingAttr = "SamplingTimes";
+	const string FlowParams::_autoRefreshAttr = "AutoRefresh";
+	
 	
 	//Geometry variables:
 	const string FlowParams::_geometryTag = "FlowGeometry";
@@ -106,7 +108,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	//Set up flow data cache:
 	flowData = 0;
 	flowRGBAs = 0;
-	flowDataOK = 0;
+	flowDataDirty = 0;
 
 	//Set all parameters to default values
 	restart();
@@ -124,7 +126,7 @@ FlowParams::~FlowParams(){
 		}
 		delete flowData;
 		if(flowRGBAs)delete flowRGBAs;
-		if(flowDataOK) delete flowDataOK;
+		if(flowDataDirty) delete flowDataDirty;
 	}
 	if (minColorBounds) {
 		delete minColorBounds;
@@ -144,12 +146,12 @@ restart() {
 		}
 		delete flowData;
 		if(flowRGBAs)delete flowRGBAs;
-		if(flowDataOK) delete flowDataOK;
+		if(flowDataDirty) delete flowDataDirty;
 	}
 	flowData = 0;
 	flowRGBAs = 0;
-	flowDataOK = 0;
-
+	flowDataDirty = 0;
+	autoRefresh = true;
 	enabled = false;
 	selectedFaceNum = -1;
 	faceDisplacement = 0.f;
@@ -288,7 +290,7 @@ deepCopy(){
 	//Don't copy flow data pointers (not that deep!)
 	newFlowParams->flowRGBAs = 0;
 	newFlowParams->flowData = 0;
-	newFlowParams->flowDataOK = 0;
+	newFlowParams->flowDataDirty = 0;
 
 	//never keep the SavedCommand:
 	newFlowParams->savedCommand = 0;
@@ -325,8 +327,8 @@ void FlowParams::updateDialog(){
 	myFlowTab->numTransSpin->setMaxValue(maxNumTrans);
 	myFlowTab->numTransSpin->setValue(numTransforms);
 
-	myFlowTab->seedRefreshButton->setEnabled( rakeMoved &&
-		MainForm::getInstance()->getCurrentMouseMode() == MouseModeCommand::rakeMode);
+	myFlowTab->refreshButton->setEnabled(!autoRefresh && activeFlowDataIsDirty());
+	myFlowTab->autoRefreshCheckbox->setChecked(autoRefresh);
 	//Always allow at least 3 variables in combo:
 	int numVars = numVariables;
 	if (numVars < 3) numVars = 3;
@@ -370,7 +372,6 @@ void FlowParams::updateDialog(){
 	myFlowTab->generatorDimensionCombo->setCurrentItem(currentDimension);
 
 	for (int i = 0; i< 3; i++){
-		enforceConsistency(i);
 		textToSlider(i, (seedBoxMin[i]+seedBoxMax[i])*0.5f,
 			seedBoxMax[i]-seedBoxMin[i]);
 	}
@@ -623,10 +624,10 @@ reinit(bool doOverride){
 		}
 		delete flowData;
 		if (flowRGBAs) delete flowRGBAs;
-		if (flowDataOK) delete flowDataOK;
+		if (flowDataDirty) delete flowDataDirty;
 		flowData = 0;
 		flowRGBAs = 0;
-		flowDataOK = 0;
+		flowDataDirty = 0;
 	}
 	//Make min and max conform to new data:
 	minFrame = (int)(session->getMinTimestep());
@@ -639,6 +640,7 @@ reinit(bool doOverride){
 		seedTimeStart = minFrame;
 		seedTimeEnd = minFrame;
 		seedTimeIncrement = 1;
+		autoRefresh = true;
 	} else {
 		if (numTransforms> maxNumTrans) numTransforms = maxNumTrans;
 		if (numTransforms < minNumTrans) numTransforms = minNumTrans;
@@ -654,8 +656,8 @@ reinit(bool doOverride){
 	
 	if (doOverride){
 		for (i = 0; i<3; i++){
-			sceneRakeMin[i] = seedBoxMin[i] = rParams->getFullDataExtent(i);
-			sceneRakeMax[i] = seedBoxMax[i] = rParams->getFullDataExtent(i+3);
+			seedBoxMin[i] = rParams->getFullDataExtent(i);
+			seedBoxMax[i] = rParams->getFullDataExtent(i+3);
 			
 		}
 	} else {
@@ -666,8 +668,6 @@ reinit(bool doOverride){
 				seedBoxMax[i] = rParams->getFullDataExtent(i+3);
 			if(seedBoxMax[i] < seedBoxMin[i]) 
 				seedBoxMax[i] = seedBoxMin[i];
-			sceneRakeMin[i] = seedBoxMin[i];
-			sceneRakeMax[i] = seedBoxMax[i];
 		}
 	}
 
@@ -856,10 +856,10 @@ reinit(bool doOverride){
 	setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
 	//setup the caches
 	flowData = new float*[maxFrame+1];
-	flowDataOK = new bool[maxFrame+1];
+	flowDataDirty = new bool[maxFrame+1];
 	for (int j = 0; j<= maxFrame; j++) {
 		flowData[j] = 0;
-		flowDataOK[j] = false;
+		flowDataDirty[j] = true;
 	}
 
 	//don't change local/global 
@@ -1046,26 +1046,28 @@ sliderToText(int coord, int slideCenter, int slideSize){
 //
 void FlowParams::
 guiSetEnabled(bool on){
+	if (on == enabled) return;
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "enable/disable flow render");
 	setEnabled(on);
 	PanelCommand::captureEnd(cmd, this);
 }
+//Make rake match region
 void FlowParams::
-guiRefreshRake(){
+guiSetRakeToRegion(){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this,  "refresh rake position");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "move rake to region");
+	RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(vizNum);
 	for (int i = 0; i< 3; i++){
-		seedBoxMin[i] = sceneRakeMin[i];
-		seedBoxMax[i] = sceneRakeMax[i];
-		enforceConsistency(i);
+		seedBoxMin[i] = rParams->getRegionMin(i);
+		seedBoxMax[i] = rParams->getRegionMax(i);
 	}
-	rakeMoved = false;
-	
-	
 	PanelCommand::captureEnd(cmd, this);
 	updateDialog();
 	setFlowDataDirty();
+	//Need to rerender, even if we don't want to refresh the flow.
+	VizWinMgr::getInstance()->refreshFlow(this);
+	
 }
 void FlowParams::
 guiSetFlowType(int typenum){
@@ -1152,55 +1154,87 @@ guiSetRandom(bool rand){
 	guiSetTextChanged(false);
 	myFlowTab->update();
 	PanelCommand::captureEnd(cmd, this);
+
 }
 void FlowParams::
 guiSetXCenter(int sliderval){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator X center");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake X center");
 	setXCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
 	setFlowDataDirty();
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
 guiSetYCenter(int sliderval){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Y center");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake Y center");
 	setYCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
 	setFlowDataDirty();
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
 guiSetZCenter(int sliderval){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Z center");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake Z center");
 	setZCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
 	setFlowDataDirty();
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
 guiSetXSize(int sliderval){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator X size");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake X size");
 	setXSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
 	setFlowDataDirty();
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
 guiSetYSize(int sliderval){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Y size");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake Y size");
 	setYSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
 	setFlowDataDirty();
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
 guiSetZSize(int sliderval){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow generator Z size");
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake Z size");
 	setZSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
 	setFlowDataDirty();
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
+void FlowParams::
+guiSetAutoRefresh(bool isOn){
+	confirmText(false);
+	//Check if it's a change
+	if (isOn == autoRefresh) return;
+	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle auto flow refresh");
+	autoRefresh = isOn;
+	//If we are turning off autoRefresh, there's nothing to do
+	//If we are turning it on, all the dirty data must be invalidated, and
+	//we may need to schedule a render.  
+	bool madeDirty = false;
+	if (autoRefresh && flowData){
+		for (int i = 0; i<= maxFrame; i++){
+			if (flowDataIsDirty(i)) {
+				madeDirty = true;
+				invalidateFlowData(i);
+			}
+		}
+	}
+
+	PanelCommand::captureEnd(cmd, this);
+	myFlowTab->refreshButton->setEnabled(!autoRefresh && activeFlowDataIsDirty());
+	if (madeDirty) VizWinMgr::getInstance()->refreshFlow(this);
+}
+
 void FlowParams::
 guiSetFlowGeometry(int geomNum){
 	confirmText(false);
@@ -1235,6 +1269,36 @@ guiSetColorMapEntity( int entityNum){
 	if(entityNum == 2) setFlowDataDirty();
 	else setFlowMappingDirty();
 }
+//When the user clicks "refresh", 
+//This triggers a rebuilding (if anything is dirty)
+//And then a rerendering.
+void FlowParams::
+guiRefreshFlow(){
+	confirmText(false);
+	if (!flowDataDirty) return;
+	//Check dirty flags, either currentTime or time 0
+	int frameNum = 0;
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	if (flowIsSteady()){ 
+		frameNum = vizWinMgr->getAnimationParams(vizWinMgr->getActiveViz())->getCurrentFrameNumber();
+	}
+	if (flowDataIsDirty(frameNum)){
+		invalidateFlowData(frameNum);
+		vizWinMgr->refreshFlow(this);
+	}
+		
+}
+bool FlowParams::
+activeFlowDataIsDirty(){
+	if (!flowDataDirty) return false;
+	int frameNum = 0;
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	if (flowIsSteady()){ 
+		frameNum = vizWinMgr->getAnimationParams(vizWinMgr->getActiveViz())->getCurrentFrameNumber();
+	}
+	return (flowDataIsDirty(frameNum));
+}
+
 void FlowParams::
 guiSetOpacMapEntity( int entityNum){
 	confirmText(false);
@@ -1373,8 +1437,9 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 		//First, make sure we have valid fielddata:
 		validateSampling();
 
-		FlowRenderer* myRenderer = new FlowRenderer (viz);
+		FlowRenderer* myRenderer = new FlowRenderer (viz, flowType);
 		viz->prependRenderer(myRenderer, Params::FlowParamsType);
+		setFlowDataDirty();
 		//Quit if not case 3:
 		if (wasLocal || isLocal) return;
 	}
@@ -1384,7 +1449,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 			if (i == activeViz) continue;
 			viz = VizWinMgr::getInstance()->getVizWin(i);
 			if (viz && !vizWinMgr->getFlowParams(i)->isLocal()){
-				FlowRenderer* myRenderer = new FlowRenderer (viz);
+				FlowRenderer* myRenderer = new FlowRenderer (viz, flowType);
 				viz->prependRenderer(myRenderer, Params::FlowParamsType);
 			}
 		}
@@ -1490,10 +1555,10 @@ regenerateFlowData(int timeStep){
 	if (!flowData) {
 		//setup the caches
 		flowData = new float*[maxFrame+1];
-		flowDataOK = new bool[maxFrame+1];
+		flowDataDirty = new bool[maxFrame+1];
 		for (int j = 0; j<= maxFrame; j++) {
 			flowData[j] = 0;
-			flowDataOK[j] = false;
+			flowDataDirty[j] = true;
 		}
 	}
 
@@ -1504,7 +1569,7 @@ regenerateFlowData(int timeStep){
 		if (flowData[timeStep]) {
 			delete flowData[timeStep];
 			flowData[timeStep] = 0;
-			flowDataOK[timeStep] = false;
+			flowDataDirty[timeStep] = true;
 		}
 		numInjections = 1;
 		maxPoints = objectsPerFlowline+1;
@@ -1572,7 +1637,7 @@ regenerateFlowData(int timeStep){
 			myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
 			rc = myFlowLib->GenStreamLines(postPointData, numPostPoints, randomSeed, postSpeeds);
 		}
-		flowDataOK[timeStep] = true;
+		flowDataDirty[timeStep] = false;
 		//If failed to build streamlines, force  rendering to stop by inserting
 		//END_FLOW_FLAG at the start of each streamline
 		if (!rc){
@@ -1636,7 +1701,7 @@ regenerateFlowData(int timeStep){
 	} else {
 		//Can ignore false return code, streaks will just stop at bad frame(?)
 		myFlowLib->GenStreakLines(flowData[0], maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
-		flowDataOK[0] = true;
+		flowDataDirty[0] = false;
 		// With streaklines, need to fill flags to end, and fill speeds as well
 		for (int q = 0; q< numSeedPoints*numInjections; q++){
 			//Scan streakline for flags
@@ -1681,7 +1746,11 @@ regenerateFlowData(int timeStep){
 	}
 
 	
-	// the dirty flag is reset during flow rendering
+	// the dirty flag is reset during flow rendering.  
+	//Disable the "refresh" button if these flow params are in front
+	if (vizNum == VizWinMgr::getInstance()->getActiveViz()){
+		myFlowTab->refreshButton->setEnabled(false);
+	}
 	return flowData[timeStep];
 }
 float* FlowParams::getRGBAs(int timeStep){
@@ -1696,8 +1765,6 @@ float* FlowParams::getRGBAs(int timeStep){
 	mapColors(0, timeStep);
 	return flowRGBAs[timeStep];
 }
-
-
 
 void FlowParams::setFlowMappingDirty(){
 	// delete colors and opacities
@@ -1716,14 +1783,25 @@ void FlowParams::setFlowMappingDirty(){
 	}
 	VizWinMgr::getInstance()->refreshFlow(this);
 }
+//Set all flow data dirty flags, and also invalidate data if auto is set:
 void FlowParams::setFlowDataDirty(){
 	
-	if(flowDataOK){
+	if(flowDataDirty){
 		for (int i = 0; i<=maxFrame; i++){
-			flowDataOK[i] = false;
+			flowDataDirty[i] = true;
 		}
 	}
-	VizWinMgr::getInstance()->refreshFlow(this);
+	if (autoRefresh && flowData){
+		for (int i = 0; i<= maxFrame; i++){
+			if (flowData[i]) {
+				delete flowData[i];
+				flowData[i] = 0;
+			}
+		}
+		//Force rerender only if we are doing autoRefresh
+		VizWinMgr::getInstance()->refreshFlow(this);
+	}
+	if (!autoRefresh) myFlowTab->refreshButton->setEnabled(true);
 }
 //Method to construct Xml for state saving
 XmlNode* FlowParams::
@@ -1769,6 +1847,13 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)timeSamplingStart<<" "<<timeSamplingEnd<<" "<<timeSamplingInterval;
 	attrs[_timeSamplingAttr] = oss.str();
+
+	oss.str(empty);
+	if (autoRefresh)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_autoRefreshAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (long)instance;
@@ -1913,7 +1998,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		flowMapEditor = new FlowMapEditor(mapperFunction, myFlowTab->flowMapFrame);
 		connectMapperFunction(mapperFunction, flowMapEditor);
 		int newNumVariables = 0;
-		//If it's a Flow tag, save 10 attributes (2 are from Params class)
+		//If it's a Flow tag, save 11 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
 			string attribName = *attrs;
@@ -1932,6 +2017,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
 				if (value == "true") setLocal(true); else setLocal(false);
+			}
+			else if (StrCmpNoCase(attribName, _autoRefreshAttr) == 0) {
+				if (value == "true") autoRefresh = true; else autoRefresh = false;
 			}
 			else if (StrCmpNoCase(attribName, _steadyFlowAttr) == 0) {
 				if (value == "true") setFlowType(0); else setFlowType(1);
@@ -2400,7 +2488,8 @@ captureMouseDown(int faceNum, float camPos[3], float dirVec[3]){
 	//The selection ray is the vector from the camera to the intersection point,
 	//So subtract the camera position
 	vsub(initialSelectionRay, camPos, initialSelectionRay);
-	setFlowDataDirty();
+	//Force a rerender:
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
 
 void FlowParams::
@@ -2416,15 +2505,15 @@ captureMouseUp(){
 	} else { //terminate dragging
 		int coord = (5-selectedFaceNum)/2;
 		if (selectedFaceNum %2) {
-			setSceneRakeMax(coord, getSceneRakeMax(coord)+faceDisplacement);
+			setSeedRegionMax(coord, getSeedRegionMax(coord)+faceDisplacement);
 		} else {
-			setSceneRakeMin(coord, getSceneRakeMin(coord)+faceDisplacement);
+			setSeedRegionMin(coord, getSeedRegionMin(coord)+faceDisplacement);
 		}
-		rakeMoved = true;
+		//Update the gui:
+		updateDialog();
+		setFlowDataDirty();
 		//Enable button 
-		myFlowTab->seedRefreshButton->setEnabled(true);
-		//enforceConsistency(coord);
-		//updateDialog();
+		
 	}
 	faceDisplacement = 0.f;
 	selectedFaceNum = -1;
@@ -2453,27 +2542,27 @@ rayCubeIntersect(float ray[3], float cameraPos[3], int faceNum, float intersect[
 	// if (faceNum%2) val = getRegionMin(coord); else val = getRegionMax(coord);
 	switch (faceNum){
 		case(0): //back; z = zmin
-			val = getSceneRakeMin(2);
+			val = getSeedRegionMin(2);
 			coord = 2;
 			break;
 		case(1): //front; z = zmax
-			val = getSceneRakeMax(2);
+			val = getSeedRegionMax(2);
 			coord = 2;
 			break;
 		case(2): //bot; y = min
-			val = getSceneRakeMin(1);
+			val = getSeedRegionMin(1);
 			coord = 1;
 			break;
 		case(3): //top; y = max
-			val = getSceneRakeMax(1);
+			val = getSeedRegionMax(1);
 			coord = 1;
 			break;
 		case(4): //left; x = min
-			val = getSceneRakeMin(0);
+			val = getSeedRegionMin(0);
 			coord = 0;
 			break;
 		case(5): //right; x = max
-			val = getSceneRakeMax(0);
+			val = getSeedRegionMax(0);
 			coord = 0;
 			break;
 		default:
@@ -2523,28 +2612,26 @@ slideCubeFace(float movedRay[3]){
 		faceDisplacement = -vdot(q,r)/denom;
 	
 	//Make sure the faceDisplacement is OK.  Not allowed to
-	//extent face beyond end of current region, nor beyond opposite face.
+	//extend face beyond region bound
 	//First, convert to a displacement in cube coordinates.  
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
-	double regMin = rParams->getRegionMin(coord);
-	double regMax = rParams->getRegionMax(coord);
+	double regMin = rParams->getFullDataExtent(coord);
+	double regMax = rParams->getFullDataExtent(coord+3);
 	
 	if (selectedFaceNum%2) { //Are we moving min or max?
-		//Moving max, since selectedFace is odd:
-		if (sceneRakeMax[coord] + faceDisplacement > regMax)
-			faceDisplacement = regMax - sceneRakeMax[coord];
-		if (sceneRakeMax[coord] + faceDisplacement < regMin)
-			faceDisplacement = regMin - sceneRakeMax[coord];
+		//Moving max, since selectedFace is odd
+		if (seedBoxMax[coord] + faceDisplacement > regMax)
+			faceDisplacement = regMax - seedBoxMax[coord];
+		if (seedBoxMax[coord] + faceDisplacement < seedBoxMin[coord])
+			faceDisplacement = seedBoxMin[coord] - seedBoxMax[coord];
 	} else { //Moving region min:
-		if (sceneRakeMin[coord] + faceDisplacement > regMax)
-			faceDisplacement = regMax - sceneRakeMin[coord];
-		if (sceneRakeMin[coord] + faceDisplacement < regMin)
-			faceDisplacement = regMin - sceneRakeMin[coord];
+		if (seedBoxMin[coord] + faceDisplacement > seedBoxMax[coord])
+			faceDisplacement = seedBoxMax[coord] - seedBoxMin[coord];
+		if (seedBoxMin[coord] + faceDisplacement < regMin)
+			faceDisplacement = regMin - seedBoxMin[coord];
 	}
-	rakeMoved = true;
-	
 }
-//Calculate the extents of the sceneRake region when transformed into the unit cube
+//Calculate the extents of the seedBox region when transformed into the unit cube
 void FlowParams::
 calcSeedExtents(float* extents){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
@@ -2561,31 +2648,11 @@ calcSeedExtents(float* extents){
 	}
 
 	for (i = 0; i<3; i++){
-		extents[i] = (sceneRakeMin[i] - rParams->getFullDataExtent(i))/maxCrd;
-		extents[i+3] = (sceneRakeMax[i] - rParams->getFullDataExtent(i))/maxCrd;
+		extents[i] = (seedBoxMin[i] - rParams->getFullDataExtent(i))/maxCrd;
+		extents[i+3] = (seedBoxMax[i] - rParams->getFullDataExtent(i))/maxCrd;
 	}
 }
-//Force the seed region to fit inside the current Region
-bool FlowParams::
-enforceConsistency(int i){
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
-	float regMin = rParams->getRegionMin(i);
-	float regMax = rParams->getRegionMax(i);
-	bool unchanged = true;
-	if (seedBoxMin[i]< regMin) {
-		seedBoxMin[i] = regMin;
-		unchanged = false;
-	}
-	if (seedBoxMax[i]> regMax) {
-		seedBoxMax[i] = regMax;
-		unchanged = false;
-	}
-	if (seedBoxMin[i]> seedBoxMax[i]) {
-		seedBoxMin[i] = seedBoxMax[i];
-		unchanged = false;
-	}
-	return unchanged;
-}
+
 //When we set the min/map bounds, must save them locally and in the mapper function
 void FlowParams::setMinColorMapBound(float val){
 	minColorBounds[getColorMapEntityIndex()] = val;	

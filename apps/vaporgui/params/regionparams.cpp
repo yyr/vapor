@@ -649,7 +649,8 @@ captureMouseDown(int faceNum, float camPos[3], float dirVec[3]){
 	//The selection ray is the vector from the camera to the intersection point,
 	//So subtract the camera position
 	vsub(initialSelectionRay, camPos, initialSelectionRay);
-	setDirty();
+	//Force a rerender, so we will see the selected face:
+	VizWinMgr::getInstance()->refreshRegion(this);
 }
 
 void RegionParams::

@@ -39,12 +39,13 @@
   Create a FlowRenderer widget
 */
 using namespace VAPoR;
-FlowRenderer::FlowRenderer(VizWin* vw )
+FlowRenderer::FlowRenderer(VizWin* vw, int flowType )
 :Renderer(vw)
 {
     maxPoints = 0;
 	numSeedPoints = 0;
 	numInjections = 0;
+	steadyFlow = (flowType == 0);
 	for (int i = 0; i<4; i++) constFlowColor[i] = 1.f;
 
 
@@ -80,22 +81,43 @@ void FlowRenderer::paintGL()
 	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
 	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
-	int timeStep = currentFrameNum;
-	if (!myFlowParams->flowIsSteady()) timeStep = 0;
+	int timeStep = steadyFlow ? currentFrameNum : 0 ;
+	//Note:  always check the validity of the data associated with the
+	//flowtype that was most recently used to construct the data.
+	//If the user changes the flowType to unsteady and a nonzero timestep
+	//is being rendered, the flow won't be recalculated until that
+	//timestep is invalidated.  Fortunately "refresh" invalidates all
+	//timesteps.
+	
+	//Colors can be changed without regenerating flow data.
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex()) == 0);
 	//Do we need to regenerate the flow data?
-	if (myFlowParams->flowDataIsDirty(timeStep))
+	flowDataArray = myFlowParams->getFlowData(timeStep);
+	if (!flowDataArray){
+		//Recheck the steadyFlow flag
+		steadyFlow = myFlowParams->flowIsSteady();
+		timeStep = steadyFlow ? currentFrameNum : 0 ;
 		flowDataArray = myFlowParams->regenerateFlowData(timeStep);
-	else
-		flowDataArray = myFlowParams->getFlowData(timeStep);
-	
-
-	maxPoints = myFlowParams->getMaxPoints();
-	firstDisplayFrame = myFlowParams->getFirstDisplayAge();
-	lastDisplayFrame = myFlowParams->getLastDisplayAge();
-	numSeedPoints = myFlowParams->getNumSeedPoints();
-	numInjections = myFlowParams->getNumInjections();
+		maxPoints = myFlowParams->getMaxPoints();
+		firstDisplayFrame = myFlowParams->getFirstDisplayAge();
+		lastDisplayFrame = myFlowParams->getLastDisplayAge();
+		numSeedPoints = myFlowParams->getNumSeedPoints();
+		numInjections = myFlowParams->getNumInjections();
+		maxFrame = myFlowParams->getMaxFrame();
+		minFrame = myFlowParams->getMinFrame();
 		
+		if (!steadyFlow){
+			//Special parameters used only for unsteady flow:
+			seedIncrement = myFlowParams->getSeedingIncrement();
+			if (seedIncrement < 1) seedIncrement = 1;
+			startSeed = myFlowParams->getSeedStartFrame();
+			endSeed = myFlowParams->getLastSeeding();
+			firstDisplayAge = myFlowParams->getFirstDisplayAge();
+			lastDisplayAge = myFlowParams->getLastDisplayAge();
+			float objectsPerFlowline = (float)myFlowParams->getObjectsPerFlowline();
+			objectsPerTimestep = (objectsPerFlowline+1.f)/(float)(maxFrame - minFrame);
+		}
+	}
 
 	if (!constColors){
 		flowRGBAs = myFlowParams->getRGBAs(timeStep);
@@ -173,8 +195,7 @@ void FlowRenderer::paintGL()
 	float minHeadRad = MIN_ARROW_HEAD_RADIUS*voxelSize;
 	if (arrowHeadRadius < minHeadRad) arrowHeadRadius = minHeadRad;
 	
-	int maxFrame = myFlowParams->getMaxFrame();
-	int minFrame = myFlowParams->getMinFrame();
+	
 
 	//Set up lighting, if we are rendering tubes or lines:
 	int nLights = 0;
@@ -217,7 +238,7 @@ void FlowRenderer::paintGL()
 		
 	}
 	//If we are doing unsteady flow, handle setup differently:
-	if (myFlowParams->flowIsSteady()){
+	if (steadyFlow){
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
 			if (diam < 0.5f){//Render as lines, not cylinders
@@ -259,14 +280,6 @@ void FlowRenderer::paintGL()
 		//It shouldn't need to be reduced on the back end since all streaklines are calculated
 		//potentially to the endFrame
 
-		int seedIncrement = myFlowParams->getSeedingIncrement();
-		if (seedIncrement < 1) seedIncrement = 1;
-		int startSeed = myFlowParams->getSeedStartFrame();
-		int endSeed = myFlowParams->getLastSeeding();
-		int firstDisplayAge = myFlowParams->getFirstDisplayAge();
-		int lastDisplayAge = myFlowParams->getLastDisplayAge();
-		float objectsPerFlowline = (float)myFlowParams->getObjectsPerFlowline();
-		float objectsPerTimestep = (objectsPerFlowline+1.f)/(float)(maxFrame - minFrame);
 		
 		for (int seedFrame = startSeed; seedFrame <= endSeed; seedFrame+= seedIncrement){
 			//Count the seedings:

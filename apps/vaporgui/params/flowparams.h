@@ -126,9 +126,7 @@ public:
 	void calcSeedExtents(float *extents);
 	float getSeedRegionMin(int coord){ return seedBoxMin[coord];}
 	float getSeedRegionMax(int coord){ return seedBoxMax[coord];}
-	//The "rake" version just gets the in-scene rake coords
-	float getSceneRakeMax(int coord){ return sceneRakeMax[coord];}
-	float getSceneRakeMin(int coord){ return sceneRakeMin[coord];}
+	
 	int getMinFrame() {return minFrame;}
 	int getMaxFrame() {return maxFrame;}
 	int getMaxPoints() {return maxPoints;}
@@ -144,12 +142,25 @@ public:
 	int getOpacMapEntityIndex() ;
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
 	bool flowDataIsDirty(int timeStep){
-		if(flowData && flowDataOK[timeStep]) return false;
-		return true;
+		if(flowData && flowDataDirty[timeStep]) return true;
+		return false;
 	}
+	bool activeFlowDataIsDirty();
 	bool flowMappingIsDirty(int timeStep) {
 		if (flowRGBAs && flowRGBAs[timeStep]) return false;
 		return true;
+	}
+	//dataValid indicates the data has been constructed, even though
+	//it might be out of date;
+	bool flowDataIsValid(int timeStep){
+		if (flowData && flowData[timeStep]) return true;
+		return false;
+	}
+	void invalidateFlowData(int timeStep){
+		if(flowData && flowData[timeStep]){ 
+			delete flowData[timeStep];
+			flowData[timeStep] = 0;
+		}
 	}
 	float* getFlowData(int timeStep){
 		return flowData[timeStep];
@@ -185,18 +196,14 @@ public:
 	void guiSetOpacMapEntity( int entityNum);
 	void guiSetConstantColor(QColor& newColor);
 	void guiSetGeomSamples(int sliderVal);
-	void guiRefreshRake(); 
+	void guiSetAutoRefresh(bool isOn);
+	void guiSetRakeToRegion();
+	void guiRefreshFlow();
+
+
 	void setMapBoundsChanged(bool on){mapBoundsChanged = on; flowGraphicsChanged = on;}
 	void setFlowDataChanged(bool on){flowDataChanged = on;}
 	void setFlowGraphicsChanged(bool on){flowGraphicsChanged = on;}
-	//Prepare for rake mode
-	void resetSceneRake(){
-		for (int i = 0; i< 3; i++){
-			sceneRakeMin[i] = seedBoxMin[i];
-			sceneRakeMax[i] = seedBoxMax[i];
-		}
-		rakeMoved = false;
-	}
 
 
 protected:
@@ -209,8 +216,9 @@ protected:
 	static const string _integrationAccuracyAttr;
 	static const string _velocityScaleAttr;
 	static const string _timeSamplingAttr;
+	static const string _autoRefreshAttr;
 
-	//flow seeding tags and attributss
+	//flow seeding tags and attributes
 	static const string _seedingTag;
 	static const string _seedRegionMinAttr;
 	static const string _seedRegionMaxAttr;
@@ -277,16 +285,8 @@ protected:
 	void setSeedRegionMin(int coord, float val){
 		seedBoxMin[coord] = val;
 	}
-	void setSceneRakeMax(int coord, float val){
-		sceneRakeMax[coord] = val;
-	}
-	void setSceneRakeMin(int coord, float val){
-		sceneRakeMin[coord] = val;
-	}
-	//Force seed box to be inside region
-	//Return true if anything changed.
-	bool enforceConsistency(int coord);
-
+	
+	
 	//Check the variables in the flow data for missing timesteps 
 	//Independent of animation params
 	//Provide an info message if data does not match input request
@@ -320,9 +320,7 @@ protected:
 	
 	unsigned int randomSeed;
 	float seedBoxMin[3], seedBoxMax[3];
-	//Copies of seed positions only used during in-scene rake motion.
-	float sceneRakeMin[3], sceneRakeMax[3];
-	bool rakeMoved;
+	
 	size_t generatorCount[3];
 	size_t allGeneratorCount;
 	int seedTimeStart, seedTimeEnd, seedTimeIncrement;
@@ -364,8 +362,9 @@ protected:
 	//There is potentially one array for each timestep (with streamlines)
 	//With streaklines, there is one array, flowData[0].
 	float** flowData;
-	bool* flowDataOK;
+	bool* flowDataDirty;
 	float** flowRGBAs;
+	bool autoRefresh;
 
 	
 	//Parameters controlling flowDataAccess.  These are established each time

@@ -132,6 +132,7 @@ updatePanelState(){
 //
 void IsosurfaceParams::
 guiSetEnabled(bool on){
+	if (on == enabled) return;
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "enable/disable iso render");
 	setEnabled(on);

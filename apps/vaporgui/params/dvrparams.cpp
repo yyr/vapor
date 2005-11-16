@@ -318,7 +318,8 @@ guiSetAligned(){
 }
 void DvrParams::
 guiSetEnabled(bool value){
-	
+	//Ignore spurious clicks.
+	if (value == enabled) return;
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle dvr enabled");
 	setEnabled(value);

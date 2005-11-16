@@ -30,17 +30,24 @@ class FlowRenderer : public Renderer
 
 public:
 
-    FlowRenderer( VizWin*  );
+    FlowRenderer( VizWin* , int flowType );
     ~FlowRenderer();
 	
 	virtual void		initializeGL();
     virtual void		paintGL();
 
 protected:
+	//The flow renderer retains a copy of the most recent flow parameters,
+	//These parameters are refreshed whenever the flow is recalculated.
+	//They are used for rendering when the flow has not been refreshed.
 	float* flowDataArray;
 	float* flowRGBAs;
 	int maxPoints, firstDisplayFrame, lastDisplayFrame, numSeedPoints, numInjections;
-	
+	int maxFrame, minFrame;
+	bool steadyFlow;
+	int seedIncrement, startSeed, endSeed, firstDisplayAge, lastDisplayAge;
+	float objectsPerTimestep;
+			
 	void renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
 	void renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
 	void renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool constMap);

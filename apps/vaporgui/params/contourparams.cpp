@@ -119,6 +119,7 @@ updatePanelState(){
 
 void ContourParams::
 guiSetEnabled(bool value){
+	if (value == enabled) return;
 	if (textChangedFlag) confirmText(false);
 	//Capture previous state:
 	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle contour enabled");

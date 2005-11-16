@@ -625,9 +625,8 @@ void VizWin::removeRenderer(Params::ParamType rendererType){
 		renderer[i] = 0;
 		break;
 	}
-	//Note that we won't always find one to remove??
+	//Note that we won't always find one to remove.
 	if (i == numRenderers){ 
-		assert(0);
 		return;
 	}
 	numRenderers--;
@@ -721,8 +720,8 @@ pointOverCube(FlowParams* fParams, float screenCoords[2]){
 	float mincrd[3];
 	float maxcrd[3];
 	for (int i = 0; i<3; i++){
-		mincrd[i] = fParams->getSceneRakeMin(i);
-		maxcrd[i] = fParams->getSceneRakeMax(i);
+		mincrd[i] = fParams->getSeedRegionMin(i);
+		maxcrd[i] = fParams->getSeedRegionMax(i);
 	}
 	//Specify corners in counterclockwise order 
 	//(appearing from front, i.e. pos z axis) 
