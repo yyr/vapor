@@ -83,7 +83,7 @@ public:
  virtual int	OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = -1
  );
 
  virtual int	CloseVariable();
@@ -108,7 +108,8 @@ public:
  //! \sa two_slabs A pair of slabs of raw data
  //! \retval status Returns a non-negative value on success
  //
- int	WriteSlabs(const float *two_slabs);
+// int	WriteSlabs(const float *two_slabs);
+ int	WriteSlabs(float *two_slabs);
 
 private:
  int	_objInitialized;	// has the obj successfully been initialized?

@@ -82,7 +82,7 @@ public:
  virtual int	OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = -1
  );
 
  virtual int	CloseVariable();

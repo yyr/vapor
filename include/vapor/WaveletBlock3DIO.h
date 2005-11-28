@@ -7,7 +7,7 @@
 #define	_WavletBlock3DIO_h_
 
 #include <cstdio>
-#include <netcdfcpp.h>
+#include <netcdf.h>
 #include <vapor/MyBase.h>
 #include <vapor/WaveletBlock3D.h>
 #include <vapor/VDFIOBase.h>
@@ -105,7 +105,7 @@ public:
  int	OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = -1
  );
 
  //! Open the named variable for reading
@@ -144,7 +144,26 @@ public:
  //
  int	CloseVariable();
 
+ //! Return the minimum data values for each block in the volume
+ //!
+ //! This method returns an a pointer to an internal array containing
+ //! the minimum data value for each block at the specified refinement
+ //! level. The serial array is dimensioned nbx by nby by nbz, where
+ //! nbx, nby, and nbz are the dimensions of the volume in blocks
+ //! at the requested refinement level.
+ //! \param[in] reflevel Refinement level requested. The coarsest
+ //! refinement level is 0 (zero). A value of -1 indicates the finest
+ //! refinement level contained in the VDC.
+ //! \param[out] mins The address of a pointer to float to which will
+ //! be assigned the address of the internal min data array
+ //!
+ //! \nb The values returned are undefined if the variable is either
+ //! not open for reading, closed after writing
+ //!
  int	GetBlockMins(const float **mins, int reflevel);
+
+ //! Return the maximum data values for each block in the volume
+ //!
  int	GetBlockMaxs(const float **maxs, int reflevel);
 
  //! Unpack a block into a contiguous volume
@@ -190,6 +209,9 @@ protected:
  string _varName;		// Currently opened variable
 
  int _msbFirst;			// If true, use MSB (big endian) storage order
+
+ float	*_mins[MAX_LEVELS];	// min value contained in a block
+ float	*_maxs[MAX_LEVELS];	// max value contained in a block
 
  VAPoR::WaveletBlock3D	*wb3d_c;
 
@@ -284,12 +306,13 @@ private:
  typedef int int32_t;
 
  FILE	*file_ptrs_c[MAX_LEVELS];
- float	*mins_c[MAX_LEVELS];	// min value contained in a block
- float	*maxs_c[MAX_LEVELS];	// max value contained in a block
  long	_fileOffsets[MAX_LEVELS];	// seek offsets to the start of data
 
- NcFile *_ncfiles[MAX_LEVELS];
- NcVar *_ncvars[MAX_LEVELS];
+ string _ncpaths[MAX_LEVELS];
+ int _ncids[MAX_LEVELS];
+ int _ncvars[MAX_LEVELS];
+ int _ncminvars[MAX_LEVELS];
+ int _ncmaxvars[MAX_LEVELS];
  int _ncoffsets[MAX_LEVELS];	// file ptr offset for netcdf
 
  int	n_c;		// # filter coefficients
@@ -306,10 +329,13 @@ private:
  void	my_free();
  int	get_file_offset(size_t level);
 
+ static const string _blockSizeXName;
+ static const string _blockSizeYName;
+ static const string _blockSizeZName;
+ static const string _nBlocksDimName;
  static const string _blockDimXName;
  static const string _blockDimYName;
  static const string _blockDimZName;
- static const string _nBlocksDimName;
  static const string _fileVersionName;
  static const string _refLevelName;
  static const string _nativeResName;
@@ -317,6 +343,8 @@ private:
  static const string _filterCoeffName;
  static const string _liftingCoeffName;
  static const string _scalarRangeName;
+ static const string _minsName;
+ static const string _maxsName;
  static const string _lambdaName;
  static const string _gammaName;
 

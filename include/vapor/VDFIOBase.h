@@ -23,14 +23,17 @@ namespace VAPoR {
 
 
 double  inline gettime() {
-        struct timespec ts;
-        double  t;
+	struct timespec ts;
+	double  t;
 
-        assert(clock_gettime(CLOCK_REALTIME, &ts) >= 0);
+	ts.tv_sec = ts.tv_nsec = 0;
+
+	clock_gettime(CLOCK_REALTIME, &ts);
 
 
-        t = (double) ts.tv_sec + (double) ts.tv_nsec*1.0e-9;
-        return(t);
+	t = (double) ts.tv_sec + (double) ts.tv_nsec*1.0e-9;
+
+	return(t);
 }
 
 #define	TIMER_START(T0)		double (T0) = VAPoR::gettime();
@@ -133,7 +136,7 @@ public:
  virtual int	OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = -1
  ) = 0;
 
  //! Open the named variable for reading
