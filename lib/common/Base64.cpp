@@ -162,7 +162,7 @@ int Base64::Decode(
 	const string &input, unsigned char *output, size_t *n
 ) {
 	int	ictr;
-	int	c;
+	int	c = 0;
 	unsigned char b[4];
 	int octr = 0;
 	int	bctr = 0;

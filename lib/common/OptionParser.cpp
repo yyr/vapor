@@ -350,7 +350,7 @@ int	OptionParser::AppendOptions(
 
 		_optTbl.push_back(opt_rec);
 
-		char	*value;
+		char	*value = NULL;
 
 		if (odr[i].arg_count == 0) {
 			value = strdup("false");
@@ -577,7 +577,7 @@ int	OptionParser::ParseOptions(
 	 */
 	
 	for (envptr = envv, i=1; envptr->option; envptr++,i+=2) {
-		if (arg_string = getenv(envptr->env_var)) {
+		if ((arg_string = getenv(envptr->env_var))) {
 
 			argv[i] = new char [strlen(arg_string +2)];
 			argv[i] = strcpy(argv[i], "-");

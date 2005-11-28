@@ -80,7 +80,7 @@ void	MyBase::_SetErrMsg(
 
 	// Now handle any %M format specificers
 	//
-	while (s = strstr("%M", ErrMsg)) {
+	while ((s = strstr("%M", ErrMsg))) {
 		s++;	
 		*s = 's';	// Ugh. Change %M to %s.
 		done = 0;
@@ -98,10 +98,10 @@ void	MyBase::_SetErrMsg(
 				assert(sptr != NULL);
 				ErrMsgSize += alloc_size;
 				if (ErrMsg) {
-					strncpy(s, ErrMsg, rc);
+					strncpy(sptr, ErrMsg, rc);
 					delete [] ErrMsg;
 				}
-				ErrMsg = s;
+				ErrMsg = sptr;
 			}
 		}
 	}
@@ -181,7 +181,7 @@ void	MyBase::SetDiagMsg(
 
 	// Now handle any %M format specificers
 	//
-	while (s = strstr("%M", DiagMsg)) {
+	while ((s = strstr("%M", DiagMsg))) {
 		s++;	
 		*s = 's';	// Ugh. Change %M to %s.
 		done = 0;
@@ -199,10 +199,10 @@ void	MyBase::SetDiagMsg(
 				assert(sptr != NULL);
 				DiagMsgSize += alloc_size;
 				if (DiagMsg) {
-					strncpy(s, DiagMsg, rc);
+					strncpy(sptr, DiagMsg, rc);
 					delete [] DiagMsg;
 				}
-				DiagMsg = s;
+				DiagMsg = sptr;
 			}
 		}
 	}
