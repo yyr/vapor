@@ -5,13 +5,16 @@ include ${TOP}/make/config/arch.mk
 PROGRAM = vdfcreate
 FILES = vdfcreate
 
-MAKEFILE_LDFLAGS += $(EXPATLIB)
 
-LIBRARIES = common vdf
+ifdef   NETCDF_INC_PATH
+MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
+endif
 
 ifdef   EXPAT_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
 endif
+
+LIBRARIES = vdf common
 
 include ${TOP}/make/config/base.mk
 

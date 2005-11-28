@@ -10,24 +10,18 @@ FILES = \
 	VTTimeVaryingFieldLine VaporFlow VectorMatrix
 
 #LIB_DEFS = vdf.def
-ifdef   NETCDF_INC_PATH
-MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
-endif
-
   
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"FLOW_EXPORTS"
-MAKEFILE_LDFLAGS += ../../targets/win32/bin/common.lib 
-MAKEFILE_LDFLAGS += "mpr.lib"
-MAKEFILE_LDFLAGS += ../../targets/win32/bin/vdf.lib
 endif
 
-MAKEFILE_LDFLAGS += $(EXPATLIB)
 
-
-ifdef	EXPAT_INC_PATH
+ifdef   EXPAT_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
 endif
+
+LIBRARIES = vdf
+
 
 include ${TOP}/make/config/base.mk
 

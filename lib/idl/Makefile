@@ -9,34 +9,33 @@ FILES = \
 
   
 ifeq ($(ARCH),WIN32)
-LIBRARY = libidl_vdfmodule
 MAKEFILE_CXXFLAGS += /D"IDL_EXPORTS" 
 MAKEFILE_LDFLAGS += /DEF:"../../make/win32/idl/idl.def"
-MAKEFILE_LDFLAGS += ../../targets/win32/bin/common.lib 
-MAKEFILE_LDFLAGS += ../../targets/win32/bin/vdf.lib
-MAKEFILE_LDFLAGS += $(EXPATLIB)
 
 ifdef	IDL_INC_PATH
 MAKEFILE_LDFLAGS += $(IDL_INC_PATH)/../../bin/bin.x86/idl32.lib 
 endif
-
-else
-
-LIBRARY = idl_vdfmodule
-MAKEFILE_LDFLAGS += $(EXPATLIB) -lvdf -lcommon
 endif
+
 
 ifdef IDL_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(IDL_INC_PATH)
 endif
 
-ifdef NETCDF_INC_PATH
+ifdef   NETCDF_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
 endif
 
-ifdef	EXPAT_INC_PATH
+ifdef   EXPAT_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
 endif
+
+LIBRARIES = vdf 
+
+ifeq ($(ARCH),WIN32)
+LIBRARIES += mpr
+endif
+
 
 include ${TOP}/make/config/base.mk
 

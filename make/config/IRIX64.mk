@@ -28,12 +28,12 @@ ifeq ($(BUILD_64_BIT),1)
 CXXFLAGS          += -DIRIX_64BIT -64 -DIRIX 
 CFLAGS            += -DIRIX_64BIT -64 -DIRIX
 LDFLAGS           += -64 -lm 
-SHARED_LDFLAGS = -shared -64
+SHARED_LDFLAGS = -shared -all -64
 else
 CXXFLAGS          += -n32 -DIRIX 
 CFLAGS            += -n32 -DIRIX
 LDFLAGS           += -n32 -lm 
-SHARED_LDFLAGS = -shared -n32
+SHARED_LDFLAGS = -shared -all -n32
 endif
 C_RELEASE_FLAGS   += -O2 -DNDEBUG
 C_DEBUG_FLAGS     += -g

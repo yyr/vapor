@@ -32,29 +32,36 @@ endif
 
 ifdef NETCDF_LIB_PATH
 ifeq ($(ARCH),WIN32)
-MAKEFILE_LDFLAGS += $(NETCDF_LIB_PATH)/netcdf.lib
+MAKEFILE_LDFLAGS += /LIBPATH $(NETCDF_LIB_PATH)
 else
-MAKEFILE_LDFLAGS += -L$(NETCDF_LIB_PATH) -lnetcdf_c++ -lnetcdf 
+MAKEFILE_LDFLAGS += -L$(NETCDF_LIB_PATH)
 endif
 endif
-
-
-#LIB_DEFS = vdf.def
-  
-ifeq ($(ARCH),WIN32)
-FILES += netcdf ncvalues
-MAKEFILE_CXXFLAGS += /D"VDF_EXPORTS" 
-MAKEFILE_CXXFLAGS += /D"DLL_NETCDF"
-MAKEFILE_LDFLAGS += ../../targets/win32/bin/common.lib 
-MAKEFILE_LDFLAGS += "mpr.lib"
-endif
-
-MAKEFILE_LDFLAGS += $(EXPATLIB)
-
 
 ifdef	EXPAT_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
 endif
 
-include ${TOP}/make/config/base.mk
+ifdef EXPAT_LIB_PATH
+ifeq ($(ARCH),WIN32)
+MAKEFILE_LDFLAGS += /LIBPATH $(EXPAT_LIB_PATH)
+else
+MAKEFILE_LDFLAGS += -L$(EXPAT_LIB_PATH)
+endif
+endif
 
+#LIB_DEFS = vdf.def
+  
+ifeq ($(ARCH),WIN32)
+MAKEFILE_CXXFLAGS += /D"VDF_EXPORTS" 
+MAKEFILE_CXXFLAGS += /D"DLL_NETCDF"
+endif
+
+LIBRARIES = common expat netcdf
+
+ifeq ($(ARCH),WIN32)
+LIBRARIES += mpr
+endif
+
+
+include ${TOP}/make/config/base.mk

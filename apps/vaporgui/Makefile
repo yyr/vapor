@@ -10,16 +10,17 @@ ifdef	VOLUMIZER_ROOT
 MAKEFILE_CXXFLAGS += -I$(VOLUMIZER_ROOT)/include
 endif
 
-ifdef	EXPAT_INC_PATH
-MAKEFILE_CXXFLAGS +=  -I$(EXPAT_INC_PATH)
-endif
 MAKEFILE_CXXFLAGS += -Iguis -Iparams -Irender -Imain
 
 ifdef   NETCDF_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
 endif
 
-LIBRARIES += common vdf vjpeg flow
+ifdef   EXPAT_INC_PATH
+MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
+endif
+
+LIBRARIES = vdf common vjpeg flow vz qt-mt GL GLU
 
 ifeq ($(ARCH),WIN32) 
 MAKEFILE_CXXFLAGS += /DVOLUMIZER  
@@ -31,9 +32,7 @@ MAKEFILE_LDFLAGS += "glu32.lib"
 MAKEFILE_LDFLAGS += "mpr.lib"
 else   
 MAKEFILE_CXXFLAGS += -DVOLUMIZER
-MAKEFILE_LDFLAGS += -lvz   
 MAKEFILE_LDFLAGS += -L$(QTDIR)/lib 
-MAKEFILE_LDFLAGS += -lqt-mt -lGL -lGLU
 endif
 
 VPATH = guis params render main
@@ -85,3 +84,4 @@ include ${TOP}/make/config/base.mk
 
 cat:
 	echo "QTDIR=$(QTDIR)"
+
