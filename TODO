@@ -1,1 +1,3 @@
 Develop OGL based volume renderer to remove volumizer dependency
+release notes	
+	-netcdf must be compiled with -fPIC on x86_64 (ia64??)

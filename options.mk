@@ -26,7 +26,7 @@ THREADSAFE=0
 # Set DEBUG to 1 if you want diagnostic messages turned on
 DEBUG=0
 
-# SET BUILD64 to 1 if you want to force the building of 64 bit binaries.
+# SET BUILD_64_BIT to 1 if you want to force the building of 64 bit binaries.
 # Currently only has effect under the IRIX OS
 BUILD_64_BIT=0
 
@@ -76,13 +76,13 @@ BUILD_GUI = 1
 #
 BUILD_AMR_SUPPORT = 0
 
-# Set NETCDF_INC_PATH to the directory where 'netcdfcpp.h' may be found if not
+# Set NETCDF_INC_PATH to the directory where 'netcdf.h' may be found if not
 # in a standard location
 #
 NETCDF_INC_PATH=
 
 
-# Set NETCDF_LIB_PATH to the directory where 'ibnetcdf_c++.*' may be found 
+# Set NETCDF_LIB_PATH to the directory where 'libnetcdf.*' may be found 
 # if not in a standard location
 #
 NETCDF_LIB_PATH=

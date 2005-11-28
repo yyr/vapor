@@ -2,7 +2,6 @@
 # NCAR local site config file for VAPOR. 
 #
 
-
 ifneq ($(ARCH), WIN_NT)
 ifneq ($(ARCH), WIN_98)
 HOST=$(shell hostname)
@@ -85,9 +84,16 @@ BUILD64 = 1
 BUILD_IDL_WRAPPERS = 0
 endif
 
+ifeq ($(MACHTYPE),x86_64)
+BUILD64 = 1
+BUILD_GUI = 0
+endif
+
 ifdef	BUILD64
-IDL_INC_PATH=/fs/local/64/apps/rsi/idl_6.1/external/include
+IDL_INC_PATH=/fs/local/apps/rsi/idl_6.1/external/include
 QTDIR = /fs/local/64/apps/qt-3.3.4
+NETCDF_INC_PATH=/fs/local/64/include
+NETCDF_LIB_PATH=/fs/local/64/lib
 endif
 
 endif
