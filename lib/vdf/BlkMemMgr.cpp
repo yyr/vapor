@@ -32,7 +32,7 @@ int	BlkMemMgr::_ref_count = 0;
 
 int	BlkMemMgr::_Reinit()
 {
-	long page_size;
+	long page_size = 0;
 	size_t size = 0;
 	int	i;
 

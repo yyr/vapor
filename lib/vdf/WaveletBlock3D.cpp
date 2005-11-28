@@ -451,7 +451,7 @@ void	WaveletBlock3D::forward_transform1d_haar(
 	int	nG;	// # gamma coefficients
 	int	nL;	// # lambda coefficients
 	double	lsum = 0.0;	// sum of lambda values
-	double	lave;	// average of lambda values
+	double	lave = 0.0;	// average of lambda values
 
     nG = (size >> 1);
     nL = size - nG;
@@ -589,7 +589,7 @@ void	WaveletBlock3D::inverse_transform1d_haar(
 	int	nG;	// # gamma coefficients
 	int	nL;	// # lambda coefficients
 	double	lsum = 0.0;	// sum of lambda values
-	double	lave;	// average of lambda values
+	double	lave = 0.0;	// average of lambda values
 
 	nG = (size >> 1);
 	nL = size - nG;

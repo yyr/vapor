@@ -782,7 +782,7 @@ static flt_t *create_fwd_lifting(
 	int len;         /* number of coefficients in this level */
 	int step2;      /* step size between same coefficients */
 	int noGammas;    /* number of Gamma coeffs */
-	flt_t *lifting;
+	flt_t *lifting = NULL;
 
 	int col;
 
@@ -1028,7 +1028,7 @@ static void	forward_transform1d_haar(
 	int	nG;	// # gamma coefficients
 	int	nL;	// # lambda coefficients
 	double	lsum = 0.0;	// sum of lambda values
-	double	lave;	// average of lambda values
+	double	lave = 0.0;	// average of lambda values
 
     nG = (width >> 1);
     nL = width - nG;
@@ -1072,7 +1072,7 @@ static void	inverse_transform1d_haar(
 	int	nG;	// # gamma coefficients
 	int	nL;	// # lambda coefficients
 	double	lsum = 0.0;	// sum of lambda values
-	double	lave;	// average of lambda values
+	double	lave = 0.0;	// average of lambda values
 
 	nG = (width >> 1);
 	nL = width - nG;

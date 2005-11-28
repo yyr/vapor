@@ -21,10 +21,13 @@ int    VDF_API mkdirhier(const string &dir);
 void	VDF_API mkpath(const string &basename, int level, string &path, int v);
 void	VDF_API dirname(const string &path, string &dir);
 
-const string WaveletBlock3DIO::_blockDimXName = "BlockNx";
-const string WaveletBlock3DIO::_blockDimYName = "BlockNy";
-const string WaveletBlock3DIO::_blockDimZName = "BlockNz";
-const string WaveletBlock3DIO::_nBlocksDimName = "NumBlocks";
+const string WaveletBlock3DIO::_blockSizeXName = "BlockSizeNx";
+const string WaveletBlock3DIO::_blockSizeYName = "BlockSizeNy";
+const string WaveletBlock3DIO::_blockSizeZName = "BlockSizeNz";
+const string WaveletBlock3DIO::_nBlocksDimName = "NumCoefBlocks";
+const string WaveletBlock3DIO::_blockDimXName = "BlockDimNx";
+const string WaveletBlock3DIO::_blockDimYName = "BlockDimNy";
+const string WaveletBlock3DIO::_blockDimZName = "BlockDimNz";
 const string WaveletBlock3DIO::_fileVersionName = "FileVersion";
 const string WaveletBlock3DIO::_refLevelName = "RefinementLevel";
 const string WaveletBlock3DIO::_nativeResName = "NativeResolution";
@@ -32,8 +35,33 @@ const string WaveletBlock3DIO::_refLevelResName = "refinementLevelResolution";
 const string WaveletBlock3DIO::_filterCoeffName = "NumFilterCoeff";
 const string WaveletBlock3DIO::_liftingCoeffName = "NumLiftingCoeff";
 const string WaveletBlock3DIO::_scalarRangeName = "ScalarDataRange";
-const string WaveletBlock3DIO::_lambdaName = "Lambda";
-const string WaveletBlock3DIO::_gammaName = "Gamma";
+const string WaveletBlock3DIO::_minsName = "BlockMinValues";
+const string WaveletBlock3DIO::_maxsName = "BlockMaxValues";
+const string WaveletBlock3DIO::_lambdaName = "LambdaCoefficients";
+const string WaveletBlock3DIO::_gammaName = "GammaCoefficients";
+
+#define NC_ERR_WRITE(rc, path) \
+	if (rc != NC_NOERR) { \
+		SetErrMsg( \
+			"Error writing netCDF file \"%s\" : %s",  \
+			path.c_str(), nc_strerror(rc) \
+		); \
+		return(-1); \
+	}
+
+#define NC_ERR_READ(rc, path) \
+	if (rc != NC_NOERR) { \
+		SetErrMsg( \
+			"Error reading netCDF file \"%s\" : %s",  \
+			path.c_str(), nc_strerror(rc) \
+		); \
+		return(-1); \
+	}
+
+//
+// IO size for netCDF 
+//
+#define	NC_CHUNKSIZEHINT	1024*1024
 
 
 int	WaveletBlock3DIO::_WaveletBlock3DIO(
@@ -51,11 +79,14 @@ int	WaveletBlock3DIO::_WaveletBlock3DIO(
 
 	for(j=0; j<MAX_LEVELS; j++) {
 		file_ptrs_c[j] = NULL;
-		mins_c[j] = NULL;
-		maxs_c[j] = NULL;
+		_mins[j] = NULL;
+		_maxs[j] = NULL;
 		_fileOffsets[j] = 0;
-		_ncfiles[j] = NULL;
-		_ncvars[j] = NULL;
+		_ncids[j] = -1;
+		_ncvars[j] = -1;
+		_ncminvars[j] = -1;
+		_ncmaxvars[j] = -1;
+		_ncpaths[j].clear();
 		_ncoffsets[j] = 0;
 	}
 
@@ -168,8 +199,8 @@ int    WaveletBlock3DIO::VariableExists(
 		struct stat64 statbuf;
 #endif
 		string path;
+        mkpath(basename, j, path, _version);
 
-		mkpath(basename, j, path, _version);
 #ifndef WIN32
 		if (stat64(path.c_str(), &statbuf) < 0) return(0);
 #else
@@ -260,6 +291,7 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 	return(0);
 }
 
+
 int WaveletBlock3DIO::open_var_write(
 	const string &basename
 ) {
@@ -269,6 +301,7 @@ int WaveletBlock3DIO::open_var_write(
 			string path;
 
 			mkpath(basename, j, path, _version);
+			_ncpaths[j] = path;
 
 #ifdef	WIN32
 			file_ptrs_c[j] = fopen(path.c_str(), "wb");
@@ -284,83 +317,153 @@ int WaveletBlock3DIO::open_var_write(
 	}
 
 
+	//
+	// Create a netCDF file for each refinement level
+	//
 	for(int j=0; j<=_reflevel; j++) {
 		string path;
-		int e;
+		int rc;
 
 		_ncoffsets[j] = 0;
 
 		mkpath(basename, j, path, _version);
+		_ncpaths[j] = path;
 
-		NcError ncerror(NcError::silent_nonfatal);
+		size_t chsz = NC_CHUNKSIZEHINT;
+		rc = nc__create(path.c_str(), NC_64BIT_OFFSET, 0, &chsz, &_ncids[j]);
+		NC_ERR_WRITE(rc,path)
+	
+		// Disable data filling - may not be necessary
+		//
+		int mode;
+		nc_set_fill(_ncids[j], NC_NOFILL, &mode);
 
-		_ncfiles[j] = new NcFile(path.c_str(), NcFile::Replace);
-		if (! _ncfiles[j]->is_valid()) {
-			SetErrMsg("Failed to create NCDF file \"%s\"", path.c_str());
-			return(-1);
-		}
 
-		_ncfiles[j]->set_fill(NcFile::NoFill);
-		if ((e = ncerror.get_err()) != NC_NOERR) {
-			SetErrMsg("NcFile::set_fill() : %s", nc_strerror(e));
-			return(-1);
-		}
+		//
+		// Define netCDF dimensions
+		//
+		int bx_dim, by_dim, bz_dim;
 
-		NcDim *bx_dim = _ncfiles[j]->add_dim(_blockDimXName.c_str(), _bs[0]);
-		NcDim *by_dim = _ncfiles[j]->add_dim(_blockDimYName.c_str(), _bs[1]);
-		NcDim *bz_dim = _ncfiles[j]->add_dim(_blockDimZName.c_str(), _bs[2]);
-		if ((e = ncerror.get_err()) != NC_NOERR) {
-			SetErrMsg("NcFile::add_dim() : %s", nc_strerror(e));
-			return(-1);
-		}
+		rc = nc_def_dim(_ncids[j], _blockSizeXName.c_str(), _bs[0], &bx_dim);
+		NC_ERR_WRITE(rc,path)
 
+		rc = nc_def_dim(_ncids[j], _blockSizeYName.c_str(), _bs[1], &by_dim);
+		NC_ERR_WRITE(rc,path)
+
+		rc = nc_def_dim(_ncids[j], _blockSizeZName.c_str(), _bs[2], &bz_dim);
+		NC_ERR_WRITE(rc,path)
+			
 		size_t bdim[3];
-		GetDimBlk(bdim,j);
-		int nb = bdim[0]*bdim[1]*bdim[2];
 
-		if (j>0) nb *= 7;
-		NcDim *nblk_dim = _ncfiles[j]->add_dim(_nBlocksDimName.c_str(), nb);
-		if ((e = ncerror.get_err()) != NC_NOERR) {
-			SetErrMsg("NcFile::add_dim() : %s", nc_strerror(e));
-			return(-1);
+		int nb;
+		if (j==0) {
+			GetDimBlk(bdim,j);
+			nb = bdim[0]*bdim[1]*bdim[2];
+		}
+		else {
+			GetDimBlk(bdim,j-1);
+			nb = bdim[0]*bdim[1]*bdim[2] * 7;
 		}
 
-		_ncfiles[j]->add_att(_fileVersionName.c_str(), _version);
+		int nblk_dim;
+		rc = nc_def_dim(_ncids[j], _nBlocksDimName.c_str(), nb, &nblk_dim);
+		NC_ERR_WRITE(rc,path)
 
-		_ncfiles[j]->add_att(_refLevelName.c_str(), j);
+		int nbx_dim, nby_dim, nbz_dim;
+
+		GetDimBlk(bdim,j);
+		rc = nc_def_dim(_ncids[j], _blockDimXName.c_str(), bdim[0], &nbx_dim);
+		NC_ERR_WRITE(rc,path)
+
+		rc = nc_def_dim(_ncids[j], _blockDimYName.c_str(), bdim[1], &nby_dim);
+		NC_ERR_WRITE(rc,path)
+
+		rc = nc_def_dim(_ncids[j], _blockDimZName.c_str(), bdim[2], &nbz_dim);
+		NC_ERR_WRITE(rc,path)
+
+
+		//
+		// Define netCDF variables
+		//
+		{
+			int dim_ids[] = {nbz_dim, nby_dim, nbx_dim};
+			rc = nc_def_var(
+				_ncids[j], _minsName.c_str(), NC_FLOAT, 
+				sizeof(dim_ids)/sizeof(dim_ids[0]), dim_ids, &_ncminvars[j]
+			);
+			NC_ERR_WRITE(rc,path)
+
+			rc = nc_def_var(
+				_ncids[j], _maxsName.c_str(), NC_FLOAT, 
+				sizeof(dim_ids)/sizeof(dim_ids[0]), dim_ids, &_ncmaxvars[j]
+			);
+			NC_ERR_WRITE(rc,path)
+		}
+
+		{
+			int dim_ids[] = {nblk_dim, bz_dim, by_dim, bx_dim};
+			if (j==0) {
+				rc = nc_def_var(
+					_ncids[j], _lambdaName.c_str(), NC_FLOAT, 
+					sizeof(dim_ids)/sizeof(dim_ids[0]), dim_ids, &_ncvars[j]
+				);
+			}
+			else {
+				rc = nc_def_var(
+					_ncids[j], _gammaName.c_str(), NC_FLOAT, 
+					sizeof(dim_ids)/sizeof(dim_ids[0]), dim_ids, &_ncvars[j]
+				);
+			}
+			NC_ERR_WRITE(rc,path)
+		}
+
+		//
+		// Define netCDF global attributes
+		//
+		rc = nc_put_att_int(
+			_ncids[j],NC_GLOBAL,_fileVersionName.c_str(),NC_INT, 1, &_version
+		);
+		NC_ERR_WRITE(rc,path)
+
+		rc = nc_put_att_int(
+			_ncids[j],NC_GLOBAL,_refLevelName.c_str(),NC_INT, 1, &j
+		);
+		NC_ERR_WRITE(rc,path)
 
 		int dim[] = {_dim[0], _dim[1], _dim[2]};
-		_ncfiles[j]->add_att(_nativeResName.c_str(), 3, dim);
+		rc = nc_put_att_int(
+			_ncids[j],NC_GLOBAL,_nativeResName.c_str(),NC_INT, 3, dim
+		);
+		NC_ERR_WRITE(rc,path)
 
 		size_t dimj[3];
 		GetDim(dimj,j);
 		int dimj_int[] = {dimj[0], dimj[1], dimj[2]};
-		_ncfiles[j]->add_att(_refLevelResName.c_str(), 3, dimj_int);
+		rc = nc_put_att_int(
+			_ncids[j],NC_GLOBAL,_refLevelResName.c_str(),NC_INT, 3, dimj_int
+		);
+		NC_ERR_WRITE(rc,path)
 
-		_ncfiles[j]->add_att(_filterCoeffName.c_str(), n_c);
-		_ncfiles[j]->add_att(_liftingCoeffName.c_str(), ntilde_c);
+		rc = nc_put_att_int(
+			_ncids[j],NC_GLOBAL,_filterCoeffName.c_str(),NC_INT, 1, &n_c
+		);
+		NC_ERR_WRITE(rc,path)
 
-		_ncfiles[j]->add_att(_scalarRangeName.c_str(), 2, _dataRange);
+		rc = nc_put_att_int(
+			_ncids[j],NC_GLOBAL,_liftingCoeffName.c_str(),NC_INT, 1, &ntilde_c
+		);
+		NC_ERR_WRITE(rc,path)
 
-		if ((e = ncerror.get_err()) != NC_NOERR) {
-			SetErrMsg("NcFile::add_att() : %s", nc_strerror(e));
-			return(-1);
-		}
+		rc = nc_put_att_float(
+			_ncids[j],NC_GLOBAL,_scalarRangeName.c_str(),NC_FLOAT, 2, _dataRange
+		);
 
-		if (j==0) {
-			_ncvars[j] = _ncfiles[j]->add_var(
-				_lambdaName.c_str(), ncFloat, nblk_dim, bz_dim, by_dim, bx_dim
-			);
-		}
-		else {
-			_ncvars[j] = _ncfiles[j]->add_var(
-				_gammaName.c_str(), ncFloat, nblk_dim, bz_dim, by_dim, bx_dim
-			);
-		}
-		if ((e = ncerror.get_err()) != NC_NOERR) {
-			SetErrMsg("NcFile::add_var() : %s", nc_strerror(e));
-			return(-1);
-		}
+		NC_ERR_WRITE(rc,path)
+
+
+		rc = nc_enddef(_ncids[j]);
+		NC_ERR_WRITE(rc,path)
+
 	}
 	return(0);
 		
@@ -439,13 +542,7 @@ int	WaveletBlock3DIO::OpenVariableRead(
 	return(0);
 }
 
-#define	NC_ERR_CHK(f) \
-	{ \
-	int e; \
-	if ((e = ncerror.get_err()) != NC_NOERR) { \
-		SetErrMsg("Error reading netcdf file %s : %s",f.c_str(),nc_strerror(e)); \
-		return(-1); \
-	}} 
+
 
 int WaveletBlock3DIO::open_var_read(
 	const string &basename
@@ -456,6 +553,7 @@ int WaveletBlock3DIO::open_var_read(
 			string path;
 
 			mkpath(basename, j, path, _version);
+			_ncpaths[j] = path;
 
 #ifdef	WIN32
 			file_ptrs_c[j] = fopen(path.c_str(), "rb");
@@ -485,123 +583,102 @@ int WaveletBlock3DIO::open_var_read(
 
 	for(int j=0; j<=_reflevel; j++) {
 
-		NcAtt	*ncatt;
-		NcDim	*ncdim;
+		int	ncdimid;
+		size_t	ncdim;
 		string path;
+		int	rc;
 
 		_ncoffsets[j] = 0;
 
 		mkpath(basename, j, path, _version);
+		_ncpaths[j] = path;
 
-		NcError ncerror(NcError::silent_nonfatal);
-
-		_ncfiles[j] = new NcFile(path.c_str(), NcFile::ReadOnly);
-		if (! _ncfiles[j]->is_valid()) {
-			SetErrMsg("Failed to open NCDF file \"%s\"", path.c_str());
-			return(-1);
-		}
+		size_t chsz = NC_CHUNKSIZEHINT;
+		rc = nc__open(path.c_str(), NC_NOWRITE, &chsz, &_ncids[j]);
+		NC_ERR_READ(rc,path)
 
 		//
 		// Verify coefficient file metadata matches VDF metadata
 		//
-		
-		ncdim = _ncfiles[j]->get_dim(_blockDimXName.c_str());
-		NC_ERR_CHK(path)
-		if (ncdim->size() != _bs[0]) {
+		rc = nc_inq_dimid(_ncids[j], _blockSizeXName.c_str(), &ncdimid);
+		NC_ERR_READ(rc,path)
+		rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+		NC_ERR_READ(rc,path)
+		if (ncdim != _bs[0]) {
 			SetErrMsg("Metadata file and data file mismatch");
 			return(-1);
 		}
 
-		ncdim = _ncfiles[j]->get_dim(_blockDimYName.c_str());
-		NC_ERR_CHK(path)
-		if (ncdim->size() != _bs[1]) {
+		rc = nc_inq_dimid(_ncids[j], _blockSizeYName.c_str(), &ncdimid);
+		NC_ERR_READ(rc,path)
+		rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+		NC_ERR_READ(rc,path)
+		if (ncdim != _bs[1]) {
 			SetErrMsg("Metadata file and data file mismatch");
 			return(-1);
 		}
 
-		ncdim = _ncfiles[j]->get_dim(_blockDimZName.c_str());
-		NC_ERR_CHK(path)
-		if (ncdim->size() != _bs[2]) {
+		rc = nc_inq_dimid(_ncids[j], _blockSizeZName.c_str(), &ncdimid);
+		NC_ERR_READ(rc,path)
+		rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+		NC_ERR_READ(rc,path)
+		if (ncdim != _bs[2]) {
 			SetErrMsg("Metadata file and data file mismatch");
 			return(-1);
 		}
 
 		size_t bdim[3];
-		GetDimBlk(bdim,j);
-		int nb = bdim[0]*bdim[1]*bdim[2];
-
-		if (j>0) nb *= 7;
-
-		NcDim *nblk_dim = _ncfiles[j]->get_dim(_nBlocksDimName.c_str());
-		NC_ERR_CHK(path)
-		if (nb != nblk_dim->size()) {
-			SetErrMsg("Metadata file and data file mismatch");
-			return(-1);
-		}
-
-
-		ncatt = _ncfiles[j]->get_att(_fileVersionName.c_str());
-		NC_ERR_CHK(path)
-
-		ncatt = _ncfiles[j]->get_att(_refLevelName.c_str());
-		NC_ERR_CHK(path)
-		if (ncatt->as_int(0) != j) {
-			SetErrMsg("Metadata file and data file mismatch");
-			return(-1);
-		}
-
-		ncatt = _ncfiles[j]->get_att(_nativeResName.c_str());
-		NC_ERR_CHK(path)
-		for(int i = 0; i<3; i++) {
-			if (ncatt->as_int(i) != _dim[i]) {
-				SetErrMsg("Metadata file and data file mismatch");
-				return(-1);
-			}
-		}
-
-		size_t dimj[3];
-		GetDim(dimj,j);
-
-		ncatt = _ncfiles[j]->get_att(_refLevelResName.c_str());
-		NC_ERR_CHK(path)
-		for(int i = 0; i<3; i++) {
-			if (ncatt->as_int(i) != dimj[i]) {
-				SetErrMsg("Metadata file and data file mismatch");
-				return(-1);
-			}
-		}
-
-		ncatt = _ncfiles[j]->get_att(_filterCoeffName.c_str());
-		NC_ERR_CHK(path)
-		if (ncatt->as_int(0) != n_c) {
-			SetErrMsg("Metadata file and data file mismatch");
-			return(-1);
-		}
-
-		ncatt = _ncfiles[j]->get_att(_liftingCoeffName.c_str());
-		NC_ERR_CHK(path)
-		if (ncatt->as_int(0) != ntilde_c) {
-			SetErrMsg("Metadata file and data file mismatch");
-			return(-1);
-		}
-
-		ncatt = _ncfiles[j]->get_att(_scalarRangeName.c_str());
-		NC_ERR_CHK(path)
-		for (int i=0; i<2; i++) {
-			_dataRange[i] = ncatt->as_float(i);
-		}
+		int nb;
 
 		if (j==0) {
-			_ncvars[j] = _ncfiles[j]->get_var(_lambdaName.c_str());
+			GetDimBlk(bdim,j);
+			nb = bdim[0]*bdim[1]*bdim[2];
 		}
 		else {
-			_ncvars[j] = _ncfiles[j]->get_var(_gammaName.c_str());
+			GetDimBlk(bdim,j-1);
+			nb = bdim[0]*bdim[1]*bdim[2] * 7;
 		}
-		NC_ERR_CHK(path)
+
+		rc = nc_inq_dimid(_ncids[j], _nBlocksDimName.c_str(), &ncdimid);
+		NC_ERR_READ(rc,path)
+		rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
+		NC_ERR_READ(rc,path)
+		if (ncdim != nb) {
+			SetErrMsg("Metadata file and data file mismatch");
+			return(-1);
+		}
+
+
+		rc = nc_get_att_float(
+			_ncids[j],NC_GLOBAL,_scalarRangeName.c_str(),_dataRange
+		);
+		NC_ERR_READ(rc,path)
+
+		rc = nc_inq_varid(_ncids[j], _minsName.c_str(), &_ncminvars[j]);
+		NC_ERR_READ(rc,path)
+
+		rc = nc_inq_varid(_ncids[j], _maxsName.c_str(), &_ncmaxvars[j]);
+		NC_ERR_READ(rc,path)
+
+		if (j==0) {
+			rc = nc_inq_varid(_ncids[j], _lambdaName.c_str(), &_ncvars[j]);
+		}
+		else {
+			rc = nc_inq_varid(_ncids[j], _gammaName.c_str(), &_ncvars[j]);
+		}
+		NC_ERR_READ(rc,path)
+
+
+		// Go ahead and read the block min & max
+		//
+		rc = nc_get_var_float(_ncids[j], _ncminvars[j], _mins[j]);
+		NC_ERR_READ(rc,path)
+
+		rc = nc_get_var_float(_ncids[j], _ncmaxvars[j], _maxs[j]);
+		NC_ERR_READ(rc,path)
 
 	}
 	return(0);
-
 }
 
 int	WaveletBlock3DIO::CloseVariable()
@@ -621,19 +698,43 @@ int	WaveletBlock3DIO::CloseVariable()
 		TIMER_START(t0)
 		for(j=0; j<MAX_LEVELS; j++) {
 
-			if (_ncfiles[j]) {
+			if (_ncids[j] > -1) {
+				int rc; 
+
 				if (write_mode_c) {
-					_ncfiles[j]->add_att(_scalarRangeName.c_str(),2,_dataRange);
-					_ncfiles[j]->sync();
+					rc = nc_put_att_float(
+						_ncids[j], NC_GLOBAL, _scalarRangeName.c_str(), 
+						NC_FLOAT, 2,_dataRange
+					);
+					NC_ERR_WRITE(rc,_ncpaths[j])
+
+					rc = nc_put_var_float(_ncids[j], _ncminvars[j], _mins[j]);
+					NC_ERR_WRITE(rc,_ncpaths[j])
+
+					rc = nc_put_var_float(_ncids[j], _ncmaxvars[j], _maxs[j]);
+					NC_ERR_WRITE(rc,_ncpaths[j])
 				}
-				delete _ncfiles[j];
+				rc = nc_close(_ncids[j]);
+				if (rc != NC_NOERR) { 
+					SetErrMsg( 
+						"Error writing netCDF file : %s",  
+						nc_strerror(rc) 
+					); 
+					return(-1); 
+				}
 			}
-			_ncfiles[j] = NULL;
-			_ncvars[j] = NULL;
+			_ncids[j] = -1;
+			_ncvars[j] = -1;
+			_ncminvars[j] = -1;
+			_ncmaxvars[j] = -1;
 			_ncoffsets[j] = 0;
 		}
-		if (write_mode_c) {TIMER_STOP(t0, _write_timer)}
-		else {TIMER_STOP(t0, _read_timer)}
+		if (write_mode_c) {
+			TIMER_STOP(t0, _write_timer)
+		}
+		else {
+			TIMER_STOP(t0, _read_timer)
+		}
 	}
 				
 	is_open_c = 0;
@@ -646,12 +747,14 @@ int	WaveletBlock3DIO::GetBlockMins(
 	const float	**mins,
 	int reflevel
 ) {
+    if (reflevel < 0) reflevel = _num_reflevels - 1;
+
 	if (reflevel >= _num_reflevels) {
 		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
 
-	*mins = mins_c[reflevel];
+	*mins = _mins[reflevel];
 	return(0);
 }
 
@@ -659,12 +762,14 @@ int	WaveletBlock3DIO::GetBlockMaxs(
 	const float	**maxs,
 	int reflevel
 ) {
+    if (reflevel < 0) reflevel = _num_reflevels - 1;
+
 	if (reflevel >= _num_reflevels) {
 		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
 	}
 
-	*maxs = maxs_c[reflevel];
+	*maxs = _maxs[reflevel];
 	return(0);
 }
 
@@ -674,7 +779,6 @@ int	WaveletBlock3DIO::seekBlocks(
 	unsigned int offset, 
 	int reflevel
 ) {
-	//cerr << reflevel << " seeking " << offset << " blocks" << endl;
 
 	if (! is_open_c) {
 		SetErrMsg("File not open");
@@ -781,7 +885,6 @@ int	WaveletBlock3DIO::readBlocks(
 	int	rc;
 	unsigned long    lsbFirstTest = 1;
 
-	//cerr << reflevel << " reading " << n << " blocks" << endl;
 
 	if (! is_open_c) {
 		SetErrMsg("File not open");
@@ -821,22 +924,18 @@ int	WaveletBlock3DIO::readBlocks(
 		}
 	}
 	else {
-		int e;
+		int rc;
 		TIMER_START(t0)
-		NcError ncerror(NcError::silent_nonfatal);
 
-		TIMER_START(t1)
-		_ncvars[reflevel]->set_cur(_ncoffsets[reflevel], 0,0,0);
-		if ((e = ncerror.get_err()) != NC_NOERR) {
-			SetErrMsg("NcVar::set_cur() : %s", nc_strerror(e));
-			return(-1);
-		}
-		TIMER_STOP(t0, _seek_timer)
-
-		_ncvars[reflevel]->get(blks, (int) n,_bs[2],_bs[1],_bs[0]);
-		if ((e = ncerror.get_err()) != NC_NOERR) {
-			SetErrMsg("NcVar::get() : %s", nc_strerror(e));
-			return(-1);
+		size_t start[] = {_ncoffsets[reflevel],0,0,0};
+		size_t count[] = {n,_bs[2],_bs[1],_bs[0]};
+		rc = nc_get_vars_float(
+				_ncids[reflevel], _ncvars[reflevel],
+				start, count, NULL, blks
+		);
+		if (rc != NC_NOERR) { 
+			SetErrMsg( "Error reading netCDF file : %s",  nc_strerror(rc) ); 
+			return(-1); 
 		}
 		TIMER_STOP(t0, _read_timer)
 
@@ -850,7 +949,6 @@ int	WaveletBlock3DIO::readLambdaBlocks(
 	size_t n,
 	float *blks
 ) {
-	//cerr << "Read lambda ";
 	return(readBlocks(n, blks, 0));
 }
 
@@ -877,8 +975,6 @@ int	WaveletBlock3DIO::writeBlocks(
 	int	rc;
 	FILE	*fp;
 	unsigned long lsbFirstTest = 1;
-
-	//cerr << reflevel << " writing " << n << " blocks" << endl;
 
 	if (! is_open_c) {
 		SetErrMsg("File not open");
@@ -931,22 +1027,19 @@ int	WaveletBlock3DIO::writeBlocks(
 		}
 	}
 	else {
-		int e;
+		int rc;
+
 		TIMER_START(t0)
-		NcError ncerror(NcError::silent_nonfatal);
 
-		TIMER_START(t1)
-		_ncvars[reflevel]->set_cur(_ncoffsets[reflevel], 0,0,0);
-		if ((e = ncerror.get_err()) != NC_NOERR) {
-			SetErrMsg("NcVar::set_cur() : %s", nc_strerror(e));
-			return(-1);
-		}
-		TIMER_STOP(t0, _seek_timer)
+		size_t start[] = {_ncoffsets[reflevel],0,0,0};
+		size_t count[] = {n,_bs[2],_bs[1],_bs[0]};
 
-		_ncvars[reflevel]->put(blks, (int) n,_bs[2],_bs[1],_bs[0]);
-		if ((e = ncerror.get_err()) != NC_NOERR) {
-			SetErrMsg("NcVar::put() : %s", nc_strerror(e));
-			return(-1);
+		rc = nc_put_vars_float(
+				_ncids[reflevel], _ncvars[reflevel], start, count, NULL, blks
+		);
+		if (rc != NC_NOERR) { 
+			SetErrMsg( "Error writing netCDF file : %s",  nc_strerror(rc) ); 
+			return(-1); 
 		}
 
 		TIMER_STOP(t0, _write_timer)
@@ -961,7 +1054,6 @@ int	WaveletBlock3DIO::writeLambdaBlocks(
 	const float *blks, 
 	size_t n
 ) {
-	//cerr << "Write lambda ";
 	return(writeBlocks(blks, n, 0));
 }
 
@@ -970,7 +1062,6 @@ int	WaveletBlock3DIO::writeGammaBlocks(
 	size_t n, 
 	int reflevel
 ) {
-	//cerr << "Write gamma ";
 	if (reflevel < 0 || reflevel > _reflevel) {
 		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
@@ -1071,9 +1162,9 @@ int	WaveletBlock3DIO::my_alloc(
 
 		size = (int)(nb_j[0] * nb_j[1] * nb_j[2]);
 
-		mins_c[j] = new float[size];
-		maxs_c[j] = new float[size];
-		if (! mins_c[j] || ! maxs_c[j]) {
+		_mins[j] = new float[size];
+		_maxs[j] = new float[size];
+		if (! _mins[j] || ! _maxs[j]) {
 			SetErrMsg("new float[%d] : %s", size, strerror(errno));
 			return(-1);
 		}
@@ -1114,10 +1205,10 @@ void	WaveletBlock3DIO::my_free(
 	int	j;
 
 	for(j=0; j<MAX_LEVELS; j++) {
-		if (mins_c[j]) delete [] mins_c[j];
-		if (maxs_c[j]) delete [] maxs_c[j];
-		mins_c[j] = NULL;
-		maxs_c[j] = NULL;
+		if (_mins[j]) delete [] _mins[j];
+		if (_maxs[j]) delete [] _maxs[j];
+		_mins[j] = NULL;
+		_maxs[j] = NULL;
 	}
 	if (super_block_c) delete [] super_block_c;
 	if (block_c) delete [] block_c;

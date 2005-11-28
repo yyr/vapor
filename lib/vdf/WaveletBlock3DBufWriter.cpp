@@ -56,7 +56,7 @@ WaveletBlock3DBufWriter::~WaveletBlock3DBufWriter(
 
 	if (! _objInitialized) return;
 
-	WaveletBlock3DBufWriter::CloseVariable();
+	WaveletBlock3DWriter::CloseVariable();
 
 	_objInitialized = 0;
 }

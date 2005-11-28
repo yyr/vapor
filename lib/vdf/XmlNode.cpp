@@ -285,7 +285,7 @@ XmlNode	*XmlNode::GetChild(const string &tag) {
 
 int XmlNode::HasChild(const string &tag) {
 
-	XmlNode *child;
+	XmlNode *child = NULL;
 
 	for (size_t i = 0; i<_children.size(); i++) {
 		if (! HasChild(i)) return(0);

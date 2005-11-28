@@ -94,7 +94,13 @@ void	VDFIOBase::GetDim(
 
 	for (int i=0; i<3; i++) {
 		dim[i] = _dim[i] >> ldelta;
+
+		// Deal with odd dimensions
+		if (_version > 1) {
+			if ((dim[i] << ldelta) < _dim[i]) dim[i]++;
+		}
 	}
+
 }
 
 void	VDFIOBase::GetDimBlk(
@@ -201,13 +207,12 @@ void	VDFIOBase::MapUserToVox(
 				deltax *= 2.0;
 			}
 			lextents[i] += x0;
-			lextents[i+3] -= x0;
+			lextents[i+3] = lextents[i] + (deltax * (dim[i]-1));
 
 			a = (double) (dim[i]-1) / (lextents[i+3] - lextents[i]);
 			b = a * extents[i];
 
 			vcoord1[i] = (size_t) rint (a*vcoord0[i] + b);
-			if (vcoord1[i] < 0) vcoord1[i] = 0;
 			if (vcoord1[i] > (dim[i]-1)) vcoord1[i] = dim[i]-1;
 		}
 	}

@@ -140,8 +140,6 @@ int	WaveletBlock3DReader::ReadSlabs(
 		return(0);
 	}
 
-	TIMER_START(t0)
-
 	// Transform blocks at each level as long as there are enough 
 	// blocks to process. 
 	// Read a slab from the coarsest file every 2^levels times
