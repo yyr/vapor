@@ -146,25 +146,6 @@ void    swapbytes(
 	}
 }
 
-	
-void    calcMaxMin(
-	float* data,
-	int	n,
-	float* maxVal,
-	float* minVal
-) {
-
-	int j;
-	float mx = *maxVal;
-	float mn = *minVal;
-	for (j=0; j<n; j++) {
-		if(data[j] > mx) mx = data[j];
-		if(data[j] < mn) mn = data[j];
-	}
-	*maxVal = mx;
-	*minVal = mn;
-}
-
 int	main(int argc, char **argv) {
 
 	OptionParser op;
@@ -177,8 +158,6 @@ int	main(int argc, char **argv) {
 	string	s;
 	int	rc;
 	const Metadata	*metadata;
-	float maxData = -1.e35f;
-	float minData = 1.e35f;
 
 	//
 	// Parse command line arguments
@@ -305,9 +284,6 @@ int	main(int argc, char **argv) {
 			double *dptr = (double *) slice;
 			for(int i=0; i<dim[0]*dim[1]; i++) *fptr++ = (float) *dptr++;
 		}
-		if(!opt.quiet){
-			calcMaxMin((float *) slice, dim[0]*dim[1], &maxData, &minData);
-		}
 		//
 		// Write a single slice of data
 		//
@@ -323,16 +299,21 @@ int	main(int argc, char **argv) {
 	// Close the variable. We're done writing.
 	//
 	wbwriter.CloseVariable();
+	if (wbwriter.GetErrCode() != 0) {
+		cerr << ProgName << ": " << wbwriter.GetErrMsg() << endl;
+		exit(1);
+	}
 
 	if (! opt.quiet) {
 		float	write_timer = wbwriter.GetWriteTimer();
 		float	xform_timer = wbwriter.GetXFormTimer();
+		const float *range = wbwriter.GetDataRange();
 
 		fprintf(stdout, "read time : %f\n", read_timer);
 		fprintf(stdout, "write time : %f\n", write_timer);
-		fprintf(stdout, "transform time : %f\n", xform_timer - write_timer);
+		fprintf(stdout, "transform time : %f\n", xform_timer);
 		fprintf(stdout, "total transform time : %f\n", timer);
-		fprintf(stdout, "min and max values of data output: %g, %g\n",minData, maxData);
+		fprintf(stdout, "min and max values of data output: %g, %g\n",range[0], range[1]);
 	}
 
 	// For pre-version 2 vdf files we need to write out the updated metafile. 

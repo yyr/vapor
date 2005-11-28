@@ -358,7 +358,7 @@ int	main(int argc, char **argv) {
 
 		fprintf(stdout, "read time : %f\n", read_timer);
 		fprintf(stdout, "write time : %f\n", write_timer);
-		fprintf(stdout, "transform time : %f\n", xform_timer - read_timer);
+		fprintf(stdout, "transform time : %f\n", xform_timer);
 		fprintf(stdout, "total transform time : %f\n", timer);
 	}
 
