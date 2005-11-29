@@ -30,7 +30,7 @@ ifdef   EXPAT_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
 endif
 
-LIBRARIES = vdf 
+LIBRARIES = common vdf 
 
 ifeq ($(ARCH),WIN32)
 LIBRARIES += mpr
