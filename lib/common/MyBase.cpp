@@ -80,15 +80,18 @@ void	MyBase::_SetErrMsg(
 
 	// Now handle any %M format specificers
 	//
-	while ((s = strstr("%M", ErrMsg))) {
+	while ((s = strstr(ErrMsg, "%M"))) {
 		s++;	
 		*s = 's';	// Ugh. Change %M to %s.
+
+		char *fmt = strdup(ErrMsg);
+		assert(fmt != NULL);
 		done = 0;
 		while (! done) {
 #ifdef WIN32
-			rc = _snprintf(ErrMsg, ErrMsgSize, ErrMsg, strerror(errno));
+			rc = _snprintf(ErrMsg, ErrMsgSize, fmt, strerror(errno));
 #else
-			rc = snprintf(ErrMsg, ErrMsgSize, ErrMsg, strerror(errno));
+			rc = snprintf(ErrMsg, ErrMsgSize, fmt, strerror(errno));
 #endif
 			if (rc < (ErrMsgSize-1)) {
 				done = 1;
@@ -104,6 +107,7 @@ void	MyBase::_SetErrMsg(
 				ErrMsg = sptr;
 			}
 		}
+		if (fmt) free(fmt);
 	}
 
 
@@ -184,12 +188,15 @@ void	MyBase::SetDiagMsg(
 	while ((s = strstr("%M", DiagMsg))) {
 		s++;	
 		*s = 's';	// Ugh. Change %M to %s.
+
+		char *fmt = strdup(DiagMsg);
+		assert(fmt != NULL);
 		done = 0;
 		while (! done) {
 #ifdef WIN32
-			rc = _snprintf(DiagMsg, DiagMsgSize, DiagMsg, strerror(errno));
+			rc = _snprintf(DiagMsg, DiagMsgSize, fmt, strerror(errno));
 #else
-			rc = snprintf(DiagMsg, DiagMsgSize, DiagMsg, strerror(errno));
+			rc = snprintf(DiagMsg, DiagMsgSize, fmt, strerror(errno));
 #endif
 			if (rc < (DiagMsgSize-1)) {
 				done = 1;
