@@ -298,11 +298,13 @@ ifneq ($(BUILDDIR), dummy_builddir)
 endif
 
 ifdef WINDOWS
-LIBRARIES := $(foreach lib,$(LIBRARIES),$(TOP)/targets/$(ARCH)/bin/$(LIBPREFIX)$(lib)$(LIBSUFFIX))
+#LIBRARIES := $(foreach lib,$(LIBRARIES),$(TOP)/targets/$(ARCH)/bin/$(LIBPREFIX)$(lib)$(LIBSUFFIX))
+LIBRARIES := $(foreach lib,$(LIBRARIES),$(lib)$(LIBSUFFIX))
 LIBRARIES += $(foreach lib,$(PERSONAL_LIBRARIES),$(TOP)/targets/$(ARCH)/lib/$(LIBPREFIX)$(SHORT_TARGET_NAME)_$(lib)_copy$(LIBSUFFIX))
 #LIBRARIES := $(LIBRARIES:$(DLLSUFFIX)=$(LIBSUFFIX))
 STATICLIBRARIES :=
 
+LDFLAGS += "/LIBPATH:$(DSO_DIR)" 
 else
 
 ifeq ($(ARCH), IRIX64)
