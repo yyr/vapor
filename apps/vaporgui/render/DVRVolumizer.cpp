@@ -135,9 +135,9 @@ int	DVRVolumizer::GraphicsInit(
 	extensions = (const char *) glGetString( GL_EXTENSIONS );
 	if (strstr(extensions, "ARB_fragment_program")) {
 		do_frag_prog_c = 1;
-		//messageReporter::infoMessage("Using ARB_fragment_program");
+		MessageReporter::infoMsg("Using ARB_fragment_program");
 	} else {
-		//messageReporter::infoMessage("Not using ARB_fragment_program");
+		MessageReporter::infoMsg("Not using ARB_fragment_program");
 	}
 	MessageReporter::infoMsg("OpenGL extensions are %s", extensions);
 	
@@ -574,7 +574,7 @@ vzAppearance	*DVRVolumizer::create_appearance()
 			"TEX volume, fragment.texcoord[0], texture[0], 3D;\n"
 			"TEX result.color, volume, texture[1], 1D;\n"
 			"END";
-		//fprintf(stderr, "creating vzTMFragmentProgram\n");
+		MessageReporter::infoMsg( "creating vzTMFragmentProgram");
 		vzTMFragmentProgram *fp = new vzTMFragmentProgram(FragmentProgram);
 		const int texCallbacks = 2;
 		vzTMShaderCB *multiTexCB = new vzTMShaderCB[texCallbacks];
@@ -588,7 +588,7 @@ vzAppearance	*DVRVolumizer::create_appearance()
 
 	}
 	else {
-		//fprintf(stderr, "creating vzTMLUTShader\n");
+		MessageReporter::infoMsg( "creating vzTMLUTShader");
 		shader_c = new vzTMLUTShader();
 		shader_c->addDeletionCallback(deletion_cb, (void *) "vzTMLUTShader");
 	}
