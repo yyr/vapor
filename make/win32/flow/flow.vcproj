@@ -34,7 +34,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib libexpat.lib mpr.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib"
 				OutputFile="../../../targets/win32/bin/flow.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;"
