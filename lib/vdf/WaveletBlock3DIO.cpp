@@ -247,8 +247,8 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 	const string &bp = _metadata->GetVBasePath(timestep, varname);
 	if (_metadata->GetErrCode() != 0 || bp.length() == 0) {
 		SetErrMsg(
-			"Failed to find variable \"%s\" in metadata object", 
-			varname
+			"Failed to find variable \"%s\" in metadata object at time step %d",
+			varname, (int) timestep
 		);
 		return(-1);
 	}
@@ -502,8 +502,8 @@ int	WaveletBlock3DIO::OpenVariableRead(
 	const string &bp = _metadata->GetVBasePath(timestep, varname);
 	if (_metadata->GetErrCode() != 0 || bp.length() == 0) {
 		SetErrMsg(
-			"Failed to find variable \"%s\" in metadata object", 
-			varname
+			"Failed to find variable \"%s\" in metadata object at time step %d",
+			varname, (int) timestep
 		);
 		return(-1);
 	}
