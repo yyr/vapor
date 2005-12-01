@@ -161,5 +161,58 @@ int MapEditor::
 mapOpacVar2Discrete(float v){
 	return getMapperFunction()->mapFloatToOpacIndex(v);
 }
+/* 
+ * Determine if the specified point is close to a control point.  Return the
+ * index of the color control point, and also specify whether its a color or opacity control point
+ * returns 1 for color, -1 for opacity, +2 for Right domain-edge, 
+ * -2 for left domain-edge, 0 for none
+ */
 
+int MapEditor::
+closestControlPoint(int x, int y, int* index) {
+	int xc, yc;
+	int i, saveIndex;
+	int mindist= 1000;
+	bool foundPoint = false;
+	
+	//Color selected?
+	//
+	if (y >= (height - COORDMARGIN - COLORBARWIDTH -SEPARATOR/2) ){
+		for (i = 0; i< getNumColorControlPoints(); i++){
+			getColorControlPointPosition(i, &xc);
+			if ((xc -x) > CLOSE_DISTANCE) break;
+			if (abs(xc-x) > CLOSE_DISTANCE) continue;
+			//Found one.
+			
+			if(mindist > abs(xc-x)){
+				foundPoint = true;
+				mindist = abs(xc-x);
+				saveIndex = i;
+			}
+		}
+		if (foundPoint){
+			*index = saveIndex;
+			return 1;
+		} else return 0;
+		
+	} else {//looking for closest opac control point
+		for (i = 0; i< getNumOpacControlPoints(); i++){
+			getOpacControlPointPosition(i, &xc, &yc);
+			if ((xc-x)>CLOSE_DISTANCE) break;
+			if (abs(xc-x) > CLOSE_DISTANCE) continue;
+			if (abs(yc-y) <= CLOSE_DISTANCE) {
+				if (mindist > abs(xc-x)+abs(yc-y)){
+					foundPoint = true;
+					mindist = abs(xc-x)+abs(yc-y);
+					saveIndex = i;
+				}
+			}
+		}
+		if(foundPoint){
+			*index = saveIndex;
+			return -1;
+		} else return 0;
+	}
+	return 0;
+}
 

@@ -126,12 +126,28 @@ void TFFrame::paintEvent(QPaintEvent* ){
 	
 	int x, y;
 	QBrush drawBrush(SolidPattern);
+	//First paint the unselected points, then the selected ones,
+	//So we don't hide the selection.
+	bool colorIsSelected = false;
+	painter.setPen(CONTROLPOINTCOLOR);
 	for (i = 0; i<editor->getNumColorControlPoints(); i++){
-		if (editor->colorSelected(i))painter.setPen(HIGHLIGHTCOLOR); else
-			painter.setPen(CONTROLPOINTCOLOR);
+		if (editor->colorSelected(i)){
+			colorIsSelected = true;
+			continue;
+		}
 		editor->getColorControlPointPosition(i, &x);
 		if (x >= -2 && x <= width()+2){
 			drawTris(painter, x);
+		}
+	}
+	if(colorIsSelected){
+		painter.setPen(HIGHLIGHTCOLOR); 
+		for (i = 0; i<editor->getNumColorControlPoints(); i++){
+			if (!editor->colorSelected(i)) continue;
+			editor->getColorControlPointPosition(i, &x);
+			if (x >= -2 && x <= width()+2){
+				drawTris(painter, x);
+			}
 		}
 	}
 	//Hide labels:

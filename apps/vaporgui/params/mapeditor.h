@@ -110,7 +110,9 @@ public:
 	QRgb getControlPointColor(int index){
 		return myMapperFunction->getControlPointRGB(index);
 	}
-	
+	int closestControlPoint(int x, int y, int* index);
+	virtual void getOpacControlPointPosition(int index, int* xpos, int* ypos)=0;
+	virtual void getColorControlPointPosition(int index, int* xpos)=0;
 	
 	
 	float getMinColorEditValue(){

@@ -69,13 +69,13 @@ public:
 	int insertColorControlPoint(int xcoord);
 	int insertOpacControlPoint(int xcoord, int ycoord = -1);
 	//Find where on the image are two versions of a specific control point
-	void getOpacControlPointPosition(int index, int* xpos, int* ypos);
-	void getColorControlPointPosition(int index, int* xpos);
+	virtual void getOpacControlPointPosition(int index, int* xpos, int* ypos);
+	virtual void getColorControlPointPosition(int index, int* xpos);
 	int getNumColorControlPoints() {return myMapperFunction->getNumColorControlPoints();}
 	int getNumOpacControlPoints() {return myMapperFunction->getNumOpacControlPoints();}
 	
 	int getBarHeight(){ return COLORBARWIDTH;}
-	int closestControlPoint(int x, int y, int* index);
+	
 	void unSelectAll();
 	void selectInterval(bool colorPoint);
 	bool colorSelected(int i) {return selectedColor[i];}

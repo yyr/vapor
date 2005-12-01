@@ -507,39 +507,7 @@ getOpacControlPointPosition(int index, int* xpos, int* ypos){
 	//*xpos = getMapperFunction()->mapOpacControlPoint(index, minEditValue, maxEditValue, width);
 	//*ypos = (int)((1.f-getMapperFunction()->opacityValue(index))*(height - BELOWOPACITY));
 }
-/* 
- * Determine if the specified point is close to a control point.  Return the
- * index of the color control point, and also specify whether its a color or opacity control point
- * returns 1 for color, -1 for opacity, +2 for Right domain-edge, 
- * -2 for left domain-edge, 0 for none
- */
 
-int FlowMapEditor::
-closestControlPoint(int x, int y, int* index) {
-	int xc, yc;
-	int i;
-	
-	//Color selected?
-	//
-	if (y >= (height - COORDMARGIN - COLORBARWIDTH -SEPARATOR/2) ){
-		for (i = 0; i< getNumColorControlPoints(); i++){
-			getColorControlPointPosition(i, &xc);
-			if (abs(xc-x) > CLOSE_DISTANCE) continue;
-			*index = i;
-			return 1;
-		}
-	} else {
-		for (i = 0; i< getNumOpacControlPoints(); i++){
-			getOpacControlPointPosition(i, &xc, &yc);
-			if (abs(xc-x) > CLOSE_DISTANCE) continue;
-			if(abs(yc-y) <= CLOSE_DISTANCE) {
-				*index = i;
-				return -1;
-			}
-		}
-	}
-	return 0;
-}
 /*
  * insert a new control point, also select it.
  * return the index of the new point, or -1 if unsuccessful.
