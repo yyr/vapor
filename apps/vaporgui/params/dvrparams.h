@@ -125,15 +125,13 @@ public:
 	float getMaxEditBound() {
 		return maxColorEditBounds[varNum];
 	}
-	float getDataMinBound(){
+	float getDataMinBound(int currentTimeStep){
 		if(numVariables == 0) return 0.f;
-		if (!Session::getInstance()->getDataRange(varNum)) return 0.f;
-		return Session::getInstance()->getDataRange(varNum)[0];
+		return (Session::getInstance()->getDataMin(varNum, currentTimeStep));
 	}
-	float getDataMaxBound(){
+	float getDataMaxBound(int currentTimeStep){
 		if(numVariables == 0) return 1.f;
-		if (!Session::getInstance()->getDataRange(varNum)) return 1.f;
-		return Session::getInstance()->getDataRange(varNum)[1];
+		return (Session::getInstance()->getDataMax(varNum, currentTimeStep));
 	}
 	void setEditMode(bool mode) {editMode = mode;}
 	bool getEditMode() {return editMode;}

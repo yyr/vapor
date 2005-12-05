@@ -541,7 +541,7 @@ resetMetadata(const char* fileBase, bool restoredSession)
 	currentDataStatus = 0;
 	
 	if (!defaultSession) {
-		currentDataStatus = setupDataStatus();
+		setupDataStatus();
 		
 		//Is there any data here?
 		if(!dataExists) {
@@ -664,13 +664,50 @@ void Session::resetCommandQueue(){
 	endQueuePos = 0;
 	MainForm::getInstance()->disableUndoRedo();
 }
+// calculate the datarange for a specific variable and timestep:
+// 
+void Session::calcDataRange(int varnum, int ts){
+	if (!currentDataStatus) return;
+	vector<double>minMax;
+	if (currentDataStatus->minXFormPresent(varnum,ts) >= 0){
+		//Turn off error callback, we can handle missing datarange:
+		MyBase::SetErrMsgCB(0);
+		const float* mnmx = dataMgr->GetDataRange(ts, 
+			currentMetadata->GetVariableNames()[varnum].c_str());
+		//Turn it back on:
+		MyBase::SetErrMsgCB(errorCallbackFcn);
+					
+		if(!mnmx){
+			MessageReporter::warningMsg("Missing DataRange in variable %s, at timestep %d \n Interval [0,1] assumed",
+				currentMetadata->GetVariableNames()[varnum].c_str(), ts);
+			minMax.push_back(0.);
+			minMax.push_back(1.);
+			MyBase::SetErrCode(0);
+		}
+		else{
+			minMax.push_back(mnmx[0]);
+			minMax.push_back(mnmx[1]);
+		}
+					
+		if (minMax.size()>1){
+			//Don't set the min or max if it's not valid.
+			//It will remain at the initial value +-1.e30
+			//
+			currentDataStatus->setDataMax(varnum,ts,minMax[1]);
+			currentDataStatus->setDataMin(varnum,ts,minMax[0]);
+		
+		}
+	}
+
+}
 // Read the Metadata to determine exactly what data is present
 // This data is inserted into currentDatastatus;
-DataStatus* Session::
+void Session::
 setupDataStatus(){
+	if (currentDataStatus) delete currentDataStatus;
 	unsigned int numTimeSteps = (unsigned int)currentMetadata->GetNumTimeSteps();
 	int numVariables = currentMetadata->GetVariableNames().size();
-	DataStatus* ds = new DataStatus(numVariables, numTimeSteps);
+	DataStatus* ds = currentDataStatus = new DataStatus(numVariables, numTimeSteps);
 	int numXForms = currentMetadata->GetNumTransforms();
 	ds->setNumTransforms(numXForms);
 	for (int k = 0; k< 3; k++){
@@ -709,59 +746,24 @@ setupDataStatus(){
 			if (maxXLevel == -1)//is there nothing at all?
 				ds->setDataAbsent(var, ts);
 			else {
-				if (ts > maxts) maxts = ts;
-				if (ts < mints) mints = ts;
 				ds->setMinXFormPresent(var, ts, xf);
 				ds->setMaxXFormPresent(var, ts, maxXLevel);
 				dataExists = true;
-			}
-			//Now fill in the max and min.
-			//This can be independent of whether or not the data is
-			//present
-			//
-			// For right now, only deal with data present.
-			// Absent data will get default min/max values, and will
-			// not affect overall maxima/minima
-			vector<double>minMax;
-			if (ds->minXFormPresent(var,ts) >= 0){
-				//Turn off error callback, we can handle missing datarange:
-				MyBase::SetErrMsgCB(0);
-				const float* mnmx = dataMgr->GetDataRange(ts, 
-						currentMetadata->GetVariableNames()[var].c_str());
-				//Turn it back on:
-				MyBase::SetErrMsgCB(errorCallbackFcn);
-				
-				if(!mnmx){
-					MessageReporter::warningMsg("Missing DataRange in variable %s, at timestep %d \n Interval [0,1] assumed",
-						currentMetadata->GetVariableNames()[var].c_str(), ts);
-					minMax.push_back(0.);
-					minMax.push_back(1.);
-					MyBase::SetErrCode(0);
-				}
-				else{
-					minMax.push_back(mnmx[0]);
-					minMax.push_back(mnmx[1]);
+				if (ts > maxts) maxts = ts;
+				if (ts <= mints){
+					//When we find the first existing timestep, we also set the
+					//DataRange for that timestep (as the default data range)
+					mints = ts;
+					calcDataRange(var, ts);
 				}
 				
-				if (minMax.size()>1){
-					//Don't set the min or max if it's not valid.
-					//It will remain at the initial value +-1.e30
-					//
-					ds->setDataMax(var,ts,minMax[1]);
-					ds->setDataMin(var,ts,minMax[0]);
-				
-					if (ds->getDataMin(var,ts) < ds->getDataMinOverTime(var))
-						ds->setMinimum(var,ds->getDataMin(var,ts));
-					if (ds->getDataMax(var,ts) > ds->getDataMaxOverTime(var))
-						ds->setMaximum(var,ds->getDataMax(var,ts));
-				}
 			}
 		}
 	}
 	QApplication::restoreOverrideCursor();
 	ds->setMinTimestep((size_t)mints);
 	ds->setMaxTimestep((size_t)maxts);
-	return ds;
+	return;
 }
 //Determine min transform for *any* timestep or variable
 //Needed for setting region params
@@ -953,14 +955,6 @@ DataStatus(int numvariables, int numtimesteps)
 		dataPresent[i] = -1;
 		maxXPresent[i] = -1;
 	}
-	
-	
-	dataRange = new float*[numVariables];
-	for (int i = 0; i<numVariables; i++){
-		dataRange[i] = new float[2];
-		dataRange[i][0] = 1.e30f;
-		dataRange[i][1] = -1.e30f;
-	}
 }
 DataStatus::
 ~DataStatus(){
@@ -968,7 +962,6 @@ DataStatus::
 	if (maxData) delete maxData;
 	if (dataPresent) delete dataPresent;
 	if (maxXPresent) delete maxXPresent;
-	if (dataRange) delete [] dataRange;
 }
 int DataStatus::
 getFirstTimestep(int varnum){

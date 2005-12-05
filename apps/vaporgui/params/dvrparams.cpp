@@ -276,8 +276,10 @@ setVarNum(int val)
 void DvrParams::
 updateMapBounds(){
 	QString strn;
-	myDvrTab->minDataBound->setText(strn.setNum(getDataMinBound()));
-	myDvrTab->maxDataBound->setText(strn.setNum(getDataMaxBound()));
+	//Find out what timestep is current:
+	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
+	myDvrTab->minDataBound->setText(strn.setNum(getDataMinBound(currentTimeStep)));
+	myDvrTab->maxDataBound->setText(strn.setNum(getDataMaxBound(currentTimeStep)));
 	if (getMapperFunc()){
 		myDvrTab->leftMappingBound->setText(strn.setNum(getMapperFunc()->getMinColorMapValue(),'g',4));
 		myDvrTab->rightMappingBound->setText(strn.setNum(getMapperFunc()->getMaxColorMapValue(),'g',4));
@@ -570,10 +572,10 @@ reinit(bool doOverride){
 			//create new tfe, hook it to the trans func
 			TFEditor* newTFEditor = new TFEditor(newTransFunc[i], myDvrTab->DvrTFFrame);
 			connectMapperFunction(newTransFunc[i], newTFEditor);
-			newTransFunc[i]->setMinMapValue(Session::getInstance()->getDataRange(i)[0]);
-			newTransFunc[i]->setMaxMapValue(Session::getInstance()->getDataRange(i)[1]);
-			newMinEdit[i] = Session::getInstance()->getDataRange(i)[0];
-			newMaxEdit[i] = Session::getInstance()->getDataRange(i)[1];
+			newTransFunc[i]->setMinMapValue(Session::getInstance()->getDefaultDataMin(i));
+			newTransFunc[i]->setMaxMapValue(Session::getInstance()->getDefaultDataMax(i));
+			newMinEdit[i] = Session::getInstance()->getDefaultDataMin(i);
+			newMaxEdit[i] = Session::getInstance()->getDefaultDataMax(i);
 		}
 	} else { 
 		//attempt to make use of existing transfer functions, edit ranges.
@@ -587,10 +589,10 @@ reinit(bool doOverride){
 				newTransFunc[i] = new TransferFunction(this, numBits);
 				TFEditor* newTFEditor = new TFEditor(newTransFunc[i], myDvrTab->DvrTFFrame);
 				connectMapperFunction(newTransFunc[i], newTFEditor);
-				newTransFunc[i]->setMinMapValue(Session::getInstance()->getDataRange(i)[0]);
-				newTransFunc[i]->setMaxMapValue(Session::getInstance()->getDataRange(i)[1]);
-				newMinEdit[i] = Session::getInstance()->getDataRange(i)[0];
-				newMaxEdit[i] = Session::getInstance()->getDataRange(i)[1];
+				newTransFunc[i]->setMinMapValue(Session::getInstance()->getDefaultDataMin(i));
+				newTransFunc[i]->setMaxMapValue(Session::getInstance()->getDefaultDataMax(i));
+				newMinEdit[i] = Session::getInstance()->getDefaultDataMin(i);
+				newMaxEdit[i] = Session::getInstance()->getDefaultDataMax(i);
 			}
 		}
 			//Delete trans funcs (and associated tfe's that are no longer referenced.
@@ -601,8 +603,8 @@ reinit(bool doOverride){
 	//Make sure edit bounds are valid
 	for(i = 0; i<newNumVariables; i++){
 		if (newMinEdit[i] >= newMaxEdit[i]){
-			newMinEdit[i] = Session::getInstance()->getDataRange(i)[0];
-			newMaxEdit[i] = Session::getInstance()->getDataRange(i)[1];
+			newMinEdit[i] = Session::getInstance()->getDefaultDataMin(i);
+			newMaxEdit[i] = Session::getInstance()->getDefaultDataMax(i);
 		}
 		//And check again...
 		if (newMinEdit[i] >= newMaxEdit[i]){

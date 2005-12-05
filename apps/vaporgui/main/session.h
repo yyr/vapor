@@ -147,10 +147,7 @@ public:
 	void setDataMin(int varnum, int timestep, double val){
 		minData[timestep + varnum*numTimesteps] = val;
 	}
-	void setMaximum(int varnum, float maxval)
-		{dataRange[varnum][1] = maxval;}
-	void setMinimum(int varnum, float minval)
-		{dataRange[varnum][0] = minval;}
+	
 	void setNumTransforms(int numtrans) {numTransforms = numtrans;}
 	void setFullDataSize(int dim, size_t size){fullDataSize[dim]=size;}
 	void setMinTimestep(size_t mints){minTimeStep = mints;}
@@ -171,8 +168,8 @@ public:
 	double getDataMin(int varnum, int timestep){
 		return minData[timestep + varnum*numTimesteps];
 	}
-	double getDataMaxOverTime(int varnum){return dataRange[varnum][1];}
-	double getDataMinOverTime(int varnum){return dataRange[varnum][0];}
+	double getDefaultDataMax(int varnum){return getDataMax(varnum, minTimeStep);}
+	double getDefaultDataMin(int varnum){return getDataMin(varnum, minTimeStep);}
 	//Return the minimum transform present, or -1 if none is present.
 	int minXFormPresent(int varnum, int timestep){
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
@@ -196,9 +193,7 @@ public:
 	//Find the first timestep that has any data
 	int getFirstTimestep(int varnum);
 	size_t getFullDataSize(int dim){return fullDataSize[dim];}
-	float* getDataRange(int varNum){
-		return dataRange[varNum];
-	}
+	
 	
 	
 private:
@@ -212,7 +207,7 @@ private:
 	int* dataPresent;
 	int* maxXPresent;
 	size_t fullDataSize[3];
-	float** dataRange;
+	
 	
 	
 	
@@ -231,11 +226,21 @@ public:
 	DataStatus* getDataStatus() {return currentDataStatus;}
 	
 	const Metadata* getCurrentMetadata() {return currentMetadata;}
-	//Datarange is a 2-element float vector, one for each variable
-	//
-	float* getDataRange(int variableNum){
-		if (currentDataStatus)
-			return currentDataStatus->getDataRange(variableNum);
+	
+	float getDataMin(int varNum, int timestep){
+		if (currentDataStatus){
+			if (currentDataStatus->getDataMin(varNum, timestep) == 1.e30)
+				calcDataRange(varNum, timestep);
+			return (float)currentDataStatus->getDataMin(varNum, timestep);
+		}
+		else return 0;
+	}
+	float getDataMax(int varNum, int timestep){
+		if (currentDataStatus){
+			if (currentDataStatus->getDataMax(varNum, timestep) == -1.e30)
+				calcDataRange(varNum, timestep);
+			return (float)currentDataStatus->getDataMax(varNum, timestep);
+		}
 		else return 0;
 	}
 	bool dataIsPresent(int varnum, int timeStep){
@@ -327,8 +332,8 @@ public:
 	float* getExtents() {return extents;}
 	float getExtents(int i) {return extents[i];}
 
-	double getDataMaxOverTime(int varnum){return (currentDataStatus ? currentDataStatus->getDataMaxOverTime(varnum) : 1.0);}
-	double getDataMinOverTime(int varnum){return (currentDataStatus ? currentDataStatus->getDataMinOverTime(varnum) : 0.0);}
+	double getDefaultDataMax(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMax(varnum) : 1.0);}
+	double getDefaultDataMin(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMin(varnum) : 0.0);}
 	
 protected:
 	static const string _cacheSizeAttr;
@@ -355,7 +360,9 @@ protected:
 	WaveletBlock3DRegionReader* myReader;
 	
 	//setup the DataStatus:
-	DataStatus* setupDataStatus();
+	void setupDataStatus();
+	//Calculate the datarange (min and max) as needed.
+	void calcDataRange(int varNum, int timestep);
 	DataMgr* dataMgr;
 	DataStatus* currentDataStatus;
 	Command* commandQueue[MAX_HISTORY];

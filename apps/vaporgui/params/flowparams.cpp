@@ -789,10 +789,10 @@ reinit(bool doOverride){
 		//Other variables:
 		for (i = 0; i< newNumVariables; i++){
 			if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
-				newMinOpacEditBounds[i+3] = Session::getInstance()->getDataRange(i)[0];
-				newMaxOpacEditBounds[i+3] = Session::getInstance()->getDataRange(i)[1];
-				newMinColorEditBounds[i+3] = Session::getInstance()->getDataRange(i)[0];
-				newMaxColorEditBounds[i+3] = Session::getInstance()->getDataRange(i)[1];
+				newMinOpacEditBounds[i+3] = Session::getInstance()->getDefaultDataMin(i);
+				newMaxOpacEditBounds[i+3] = Session::getInstance()->getDefaultDataMax(i);
+				newMinColorEditBounds[i+3] = Session::getInstance()->getDefaultDataMin(i);
+				newMaxColorEditBounds[i+3] = Session::getInstance()->getDefaultDataMin(i);
 			} else {
 				newMinOpacEditBounds[i+3] = 0.f;
 				newMaxOpacEditBounds[i+3] = 1.f;
@@ -814,10 +814,10 @@ reinit(bool doOverride){
 		
 		for (i = 0; i< newNumVariables; i++){
 			if (i >= numVariables){
-				newMinOpacEditBounds[i+3] = Session::getInstance()->getDataRange(i)[0];
-				newMaxOpacEditBounds[i+3] = Session::getInstance()->getDataRange(i)[1];
-				newMinColorEditBounds[i+3] = Session::getInstance()->getDataRange(i)[0];
-				newMaxColorEditBounds[i+3] = Session::getInstance()->getDataRange(i)[1];
+				newMinOpacEditBounds[i+3] = Session::getInstance()->getDefaultDataMin(i);
+				newMaxOpacEditBounds[i+3] = Session::getInstance()->getDefaultDataMax(i);
+				newMinColorEditBounds[i+3] = Session::getInstance()->getDefaultDataMin(i);
+				newMaxColorEditBounds[i+3] = Session::getInstance()->getDefaultDataMax(i);
 			} else {
 				newMinOpacEditBounds[i+3] = minOpacEditBounds[i+3];
 				newMaxOpacEditBounds[i+3] = maxOpacEditBounds[i+3];
@@ -2682,8 +2682,10 @@ float FlowParams::minRange(int index){
 		case (2): return (0.f);//speed
 		default:
 			int varnum = index -3;
-			if (Session::getInstance()->getDataStatus() && Session::getInstance()->getDataStatus()->variableIsPresent(varnum))
-				return( Session::getInstance()->getDataMinOverTime(varnum));
+			if (Session::getInstance()->getDataStatus() && Session::getInstance()->getDataStatus()->variableIsPresent(varnum)){
+				int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
+				return( Session::getInstance()->getDataMin(varnum, timeStep));
+			}
 			else return 0.f;
 	}
 }
@@ -2696,16 +2698,18 @@ float FlowParams::maxRange(int index){
 		case (2): //speed
 			for (int k = 0; k<3; k++){
 				int var = varNum[k];
-				if (maxSpeed < fabs(Session::getInstance()->getDataMaxOverTime(var)))
-					maxSpeed = fabs(Session::getInstance()->getDataMaxOverTime(var));
-				if (maxSpeed < fabs(Session::getInstance()->getDataMinOverTime(var)))
-					maxSpeed = fabs(Session::getInstance()->getDataMinOverTime(var));
+				if (maxSpeed < fabs(Session::getInstance()->getDefaultDataMax(var)))
+					maxSpeed = fabs(Session::getInstance()->getDefaultDataMax(var));
+				if (maxSpeed < fabs(Session::getInstance()->getDefaultDataMin(var)))
+					maxSpeed = fabs(Session::getInstance()->getDefaultDataMin(var));
 			}
 			return maxSpeed;
 		default:
 			int varnum = index -3;
-			if (Session::getInstance()->getDataStatus() && Session::getInstance()->getDataStatus()->variableIsPresent(varnum))
-				return( Session::getInstance()->getDataMaxOverTime(varnum));
+			if (Session::getInstance()->getDataStatus() && Session::getInstance()->getDataStatus()->variableIsPresent(varnum)){
+				int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
+				return( Session::getInstance()->getDataMax(varnum, timeStep));
+			}
 			else return 1.f;
 	}
 }
