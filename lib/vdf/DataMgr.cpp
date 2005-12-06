@@ -170,6 +170,7 @@ float	*DataMgr::GetRegion(
 	range[0] = r[0];
 	range[1] = r[1];
 
+
 	// Use of []'s creates an entry in map
 	_dataRangeMap[ts][varname] = range;
 
@@ -308,27 +309,14 @@ const float	*DataMgr::GetDataRange(
 	float *range = new float[2];
 	assert(range != NULL);
 
-	if (_metadata->GetVDFVersion() < 2) {
-		const vector <double> &rvec = _metadata->GetVDataRange(ts, varname);
+	rc = _wbreader->OpenVariableRead(ts, varname, 0);
+	if (rc < 0) return (NULL);
 
-		if (_metadata->GetErrCode() != 0) {
-			range[0] = range[1] = 0.0;
-		}
-		else {
-			range[0] = rvec[0];
-			range[1] = rvec[1];
-		}
-	}
-	else {
-		rc = _wbreader->OpenVariableRead(ts, varname, 0);
-		if (rc < 0) return (NULL);
-
-		const float *r = _wbreader->GetDataRange();
+	const float *r = _wbreader->GetDataRange();
 
 
-		range[0] = r[0];
-		range[1] = r[1];
-	}
+	range[0] = r[0];
+	range[1] = r[1];
 
 	// Use of []'s creates an entry in map
 	_dataRangeMap[ts][varname] = range;

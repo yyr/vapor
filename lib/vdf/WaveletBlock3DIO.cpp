@@ -533,7 +533,7 @@ int	WaveletBlock3DIO::OpenVariableRead(
 
 	basename.append(bp);
 
-	int rc = open_var_read(basename);
+	int rc = open_var_read(timestep, varname, basename);
 	if (rc<0) return(-1);
 
 
@@ -545,6 +545,8 @@ int	WaveletBlock3DIO::OpenVariableRead(
 
 
 int WaveletBlock3DIO::open_var_read(
+	size_t ts,
+	const char *varname,
 	const string &basename
 ) {
 
@@ -577,6 +579,16 @@ int WaveletBlock3DIO::open_var_read(
 				}
 			}
 		}
+
+        const vector <double> &rvec = _metadata->GetVDataRange(ts, varname);
+        if (_metadata->GetErrCode() != 0) {
+            _dataRange[0] = _dataRange[1] = 0.0;
+        }
+        else {
+            _dataRange[0] = rvec[0];
+            _dataRange[1] = rvec[1];
+        }
+
 		return(0);
 	}
 
@@ -587,6 +599,7 @@ int WaveletBlock3DIO::open_var_read(
 		size_t	ncdim;
 		string path;
 		int	rc;
+
 
 		_ncoffsets[j] = 0;
 
