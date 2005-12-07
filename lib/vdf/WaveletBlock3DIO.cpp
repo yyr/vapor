@@ -615,7 +615,11 @@ int WaveletBlock3DIO::open_var_read(
 		int ii = 0;
 		do {
 			rc = nc__open(path.c_str(), NC_NOWRITE, &chsz, &_ncids[j]);
-			if (rc == EAGAIN) sleep(1);
+#ifdef WIN32
+			if (rc == EAGAIN) Sleep(100);//milliseconds
+#else
+			if (rc == EAGAIN) sleep(1);//seconds
+#endif
 			ii++;
 
 		} while (rc != NC_NOERR && ii < 10);
