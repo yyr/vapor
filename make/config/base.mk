@@ -160,6 +160,9 @@ endif
 
 TEMPFILES := *~ \\\#*\\\# so_locations *.pyc tmpAnyDX.a tmpAnyDX.exp load.map shr.o *.pdb *.idb
 
+ifdef COMPILE_ONLY
+TARGET := $(OBJS)
+else
 ifdef PROGRAM
 PROG_TARGET := $(BINDIR)/$(PROGRAM)
 TARGET := $(PROGRAM)
@@ -167,9 +170,6 @@ SHORT_TARGET_NAME = $(PROGRAM)
 else
 PROG_TARGET := dummy_prog_target
 endif
-
-ifdef COMPILE_ONLY
-TARGET := $(OBJS)
 endif
 
 ifdef LIBRARY
@@ -241,6 +241,7 @@ endif
 LDFLAGS := /link $(LDFLAGS)
 endif
 
+INCLUDE_DIRS += $(MAKEFILE_INCLUDE_DIRS)
 CFLAGS += -D$(ARCH) $(INCLUDE_DIRS)
 CXXFLAGS += -D$(ARCH) -DQT_THREAD_SUPPORT $(INCLUDE_DIRS)
 
@@ -254,8 +255,15 @@ ifndef SUBDIRS
 all: arch $(PRECOMP) headers dep
 recurse: $(PROG_TARGET) $(LIB_TARGET) done
 else
+ifdef PROGRAM
+#if both subdirs and program, need to just link at the top level directory
+all: subdirs arch $(PRECOMP) dep
+recurse: $(PROG_TARGET) $(LIB_TARGET) done
+else
 
 all: subdirs
+
+endif
 
 SUBDIRS_ALL = $(foreach dir, $(SUBDIRS), $(dir).subdir)
 
@@ -514,7 +522,7 @@ ifdef PROGRAM
 endif
 endif
 endif
-	@$(RM) $(OBJS) $(TEMPFILES) $(QTTEMPS)
+	@$(RM) $(OBJS) $(TEMPFILES) 
 #	@$(RM) $(INCS)
 ifneq ($(SLOP)HACK, HACK)
 	@$(ECHO) "Also blowing away:    $(SLOP)"
@@ -529,12 +537,12 @@ else
 clobber:: clean
 ifdef LIBRARY
 	@$(ECHO) "Removing $(LIB_TARGET) for $(ARCH)."
-	@$(RM) $(LIB_TARGET)
+	@$(RM) $(LIB_TARGET) $(QTTEMPS)
 else
 ifdef PROGRAM
 	@$(ECHO) "Removing $(PROGRAM) for $(ARCH)."
 	@$(RM) $(PROGRAM)
-	@$(RM) $(BINDIR)/$(PROGRAM)
+	@$(RM) $(BINDIR)/$(PROGRAM) $(QTTEMPS)
 endif
 endif
 	@$(ECHO) "Removing dependency files (if any)"
