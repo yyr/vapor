@@ -351,7 +351,7 @@ private:
  int	_WaveletBlock3DIO();
 
  int open_var_write(const string &basename);
- int open_var_read(const string &basename);
+ int open_var_read(size_t ts, const char *varname, const string &basename);
 
 
 };
