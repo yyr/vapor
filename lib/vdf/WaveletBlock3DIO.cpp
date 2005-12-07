@@ -48,6 +48,9 @@ const string WaveletBlock3DIO::_gammaName = "GammaCoefficients";
 		); \
 		return(-1); \
 	}
+void fubar() {
+	cerr << "bummer\n";
+}
 
 #define NC_ERR_READ(rc, path) \
 	if (rc != NC_NOERR) { \
@@ -55,6 +58,7 @@ const string WaveletBlock3DIO::_gammaName = "GammaCoefficients";
 			"Error reading netCDF file \"%s\" : %s",  \
 			path.c_str(), nc_strerror(rc) \
 		); \
+		fubar(); \
 		return(-1); \
 	}
 
@@ -607,7 +611,15 @@ int WaveletBlock3DIO::open_var_read(
 		_ncpaths[j] = path;
 
 		size_t chsz = NC_CHUNKSIZEHINT;
-		rc = nc__open(path.c_str(), NC_NOWRITE, &chsz, &_ncids[j]);
+
+		int ii = 0;
+		do {
+			rc = nc__open(path.c_str(), NC_NOWRITE, &chsz, &_ncids[j]);
+			if (rc == EAGAIN) sleep(1);
+			ii++;
+
+		} while (rc != NC_NOERR && ii < 10);
+
 		NC_ERR_READ(rc,path)
 
 		//
