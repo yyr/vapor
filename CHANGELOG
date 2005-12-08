@@ -1,10 +1,56 @@
 Vapor Revision History
 ----------------------
+Alpha5 (Release 0.5) 12/9/05
+============================
 
+Wavelet coefficient file format has been changed from custom "wb" format to NetCDF.  Either format
+can be read by Vapor applications, however raw2vdf and library routines now always write the NetCDF format. 
 
+Previous support for "NumTransforms" (number of coarsening transformations) was
+replaced by "NumRefinements" (number of refining transformations).
 
+Support for flow visualization added.  Flow parameters are specified in the "Flow"
+tabbed panel.
 
+Primary flow visualization capabilities include:
+	Flow can be steady (streamlines) or unsteady (pathlines)
+	For unsteady flow calculations, users can prescribe seeding rates as well
+		as data sampling rates.
+	Flowlines are integrated from the seed point until they exit the current region,
+		or until specified integration time has elapsed.
+	Flow updating can be automatic (immediate) or manual (refreshed when user requests it)
+	Flow seeding uses a rake of either randomly or uniformly spaced seed points,
+		from a user-specifed axis aligned region.
+	Rake can be positioned interactively in the 3D scene
+	Flows can be visualized via tubes, points, or arrows.
+	Diameter and sampling rate of geometric shapes can be adjusted by user.
+	Color and opacity of flow can be mapped from variables in the data, age, or
+		field magnitude
+	Streamlines can be integrated forward and backward in time.
 
+Buttons added to the main panel:
+	A "rake" button enables rake positioning mode  
+	A "magnifying glass" button resets the viewpoint to examine the current region.
+	An "eye" button resets the viewpoint to examine the entire data domain. 
+	(The eye and magnifying glass buttons replace buttons that have been removed from 
+	the viewpoint and region tabs.)
+
+By default the full data domain bounds are shown as white lines.
+
+Histograms (in the DVR panel) are only created when the data is requested, either by enabling a 
+renderer or clicking the "Histo" button.
+
+Data ranges for different timesteps and variables are displayed in the transfer function editor, but
+the default data range for the editor is the data range of the first time step in the data.
+
+Users can set the environment variable "VAPOR_DEBUG" in order to view diagnostic information in the launch window.
+
+Users can more easily select closely spaced control points in the transfer function editor.  The control point
+closest the mouse is always selected, and the selected control point is always shown in front of others.  
+
+Changes have been made to the session saving capability.  Flow state is saved.   However, previous session
+save files (from Alpha3) cannot be restored.
+	
 Alpha3 (Release 0.3) 7/8/05
 ===========================
 
