@@ -581,6 +581,10 @@ endef
 ifdef SUBDIRS
 install:: 
 	@for i in $(SUBDIRS); do $(MAKE) -C $$i install; done
+endif
+
+ifdef COMPILE_ONLY
+install:: all
 else
 install:: all
 ifdef LIBRARY
