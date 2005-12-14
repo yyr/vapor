@@ -328,6 +328,31 @@ guiCenterFullRegion(RegionParams* rParams){
 	PanelCommand::captureEnd(cmd,this);
 	
 }
+//Reset the center of view.  Leave the camera where it is
+void ViewpointParams::
+guiSetCenter(float* coords){
+	float vdir[3];
+	if (savedCommand) {
+		delete savedCommand;
+		savedCommand = 0;
+	}
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set view center");
+	
+	//Determine the new viewDir:
+	vcopy(coords, vdir);
+	vsub(vdir,currentViewpoint->getCameraPos(), vdir);
+	//Make sure the viewDir is normalized:
+	vnormal(vdir);
+	currentViewpoint->setViewDir(vdir);
+	
+	for (int i = 0; i<3; i++){
+		setRotationCenter(i,coords[i]);
+	}
+	updateDialog();
+	updateRenderer(false, false, false);
+	PanelCommand::captureEnd(cmd,this);
+	
+}
 void ViewpointParams::
 centerFullRegion(RegionParams* rParams){
 	//Find the largest of the dimensions of the current region:
@@ -427,6 +452,9 @@ reinit(bool doOverride){
 		setUpVec(2,1.f);
 		setViewDir(2,-1.f);
 		centerFullRegion(vwm->getRegionParams(-1));
+		//Set the home viewpoint, but don't call setHomeViewpoint().
+		delete homeViewpoint;
+		homeViewpoint = new Viewpoint(*currentViewpoint);
 	}
 	updateRenderer(false, false, false);
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myVizTab)) {

@@ -87,11 +87,14 @@ public:
 	//Methods to capture state at start and end of mouse moves:
 	//
 	void captureMouseDown();
-	void captureMouseUp();
+	virtual void captureMouseUp();
 	void guiSetPerspective(bool on);
 	//Following are only accessible from main menu
 	void guiCenterFullRegion(RegionParams* rParams);
 	void guiCenterSubRegion(RegionParams* rParams);
+
+	//Set from probe:
+	void guiSetCenter(float* centerCoords);
 	
 	//Methods to handle home viewpoint
 	void setHomeViewpoint();

@@ -88,7 +88,7 @@ void TFEditor::refreshImage(){
 		assert(viznum >= 0);
 	}
 	Histo* histo = Histo::getHistogram(getParams()->getVarNum(),viznum, 
-		getParams()->isEnabled());
+		getParams()->isEnabled(),getParams());
 	
 	if (histo) {
 		histoMaxBin = histo->getMaxBinSize();
@@ -439,19 +439,23 @@ moveDomainBound(int x){
 	float newX = mapWin2Var(x);
 	//fullDomainGrab?
 	if (grabbedState & fullDomainGrab){
-		getParams()->setMinMapBound(leftDomainSaved + newX - mappedDragStartX);
-		getParams()->setMaxMapBound(rightDomainSaved + newX - mappedDragStartX);
+		getParams()->setMinColorMapBound(leftDomainSaved + newX - mappedDragStartX);
+		getParams()->setMaxColorMapBound(rightDomainSaved + newX - mappedDragStartX);
+		getParams()->setMinOpacMapBound(leftDomainSaved + newX - mappedDragStartX);
+		getParams()->setMaxOpacMapBound(rightDomainSaved + newX - mappedDragStartX);
 	} else {
 		float mappedX = mapWin2Var(x);
 		//Check that the user has not moved one bound past the other:
 		if (grabbedState&leftDomainGrab){
-			if(mappedX < getParams()->getMaxMapBound()){
-				getParams()->setMinMapBound(mappedX);
+			if(mappedX < getParams()->getMaxColorMapBound()){
+				getParams()->setMinColorMapBound(mappedX);
+				getParams()->setMinOpacMapBound(mappedX);
 			}
 		}
 		else if (grabbedState&rightDomainGrab){
-			if(mappedX > getParams()->getMinMapBound()){
-				getParams()->setMaxMapBound(mappedX);
+			if(mappedX > getParams()->getMinColorMapBound()){
+				getParams()->setMaxColorMapBound(mappedX);
+				getParams()->setMaxOpacMapBound(mappedX);
 			}
 		} else assert(0);
 	}
@@ -644,7 +648,7 @@ getHistoValue(float point){
 		viznum = VizWinMgr::getInstance()->getActiveViz();
 		assert(viznum >= 0);
 	}
-	Histo* hist = Histo::getHistogram(getParams()->getVarNum(),viznum, true);
+	Histo* hist = Histo::getHistogram(getParams()->getVarNum(),viznum, true,getParams());
 	if (!hist) return -1;
 	float ind = (point - hist->getMinData())/(hist->getMaxData()-hist->getMinData());
 	if (ind < 0.f || ind >= 1.f) return 0;

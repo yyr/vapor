@@ -194,7 +194,7 @@ public:
 		leftDomainSaved = getTransferFunction()->getMinMapValue();
 		rightDomainSaved = getTransferFunction()->getMaxMapValue();
 	}
-	DvrParams* getParams() {return (DvrParams*)myMapperFunction->getParams();}
+	Params* getParams() {return myMapperFunction->getParams();}
 	void setVarNum(int varnum){ setColorVarNum(varnum); setOpacVarNum(varnum);}
 	int getVarNum() {return colorVarNum;}
 

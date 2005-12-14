@@ -328,7 +328,7 @@ void FlowMapFrame::mousePressEvent( QMouseEvent * e){
 			int rightLim = editor->mapOpacVar2Win(editor->getMapperFunction()->getMaxOpacMapValue(),false);
 			if (e->x() < leftLim -SLIDERWIDTH ||
 				e->x() > rightLim +SLIDERWIDTH ) return;
-			//Notify the DVR that an editing change is starting:
+			//Notify the params that an editing change is starting:
 			startTFChange("Mapper function opacity domain boundary move");
 			editor->setOpacDragStart(e->x(), e->y());
 			editor->saveDomainBounds();
@@ -351,7 +351,7 @@ void FlowMapFrame::mousePressEvent( QMouseEvent * e){
 			int rightLim = editor->mapColorVar2Win(editor->getMapperFunction()->getMaxColorMapValue(),false);
 			if (e->x() < leftLim -SLIDERWIDTH ||
 				e->x() > rightLim +SLIDERWIDTH ) return;
-			//Notify the DVR that an editing change is starting:
+			//Notify the params that an editing change is starting:
 			startTFChange("Mapper function color domain boundary move");
 			editor->setColorDragStart(e->x(), e->y());
 			editor->saveDomainBounds();
@@ -389,7 +389,7 @@ mouseEditStart(QMouseEvent* e){
 	int index;
 	int type = editor->closestControlPoint(e->x(), e->y(), &index);
 
-	//Notify the DVR that an editing change is starting:
+	//Notify the params that an editing change is starting:
 	if (e->y() >= (height() - COLORBARWIDTH - COORDMARGIN - SLIDERWIDTH - SEPARATOR/2)){			
 		startTFChange("Mapper function color bar edit");
 		editor->setColorDragStart(e->x(), e->y());
@@ -498,7 +498,7 @@ mouseNavigateStart(QMouseEvent* e){
 void FlowMapFrame::mouseReleaseEvent( QMouseEvent *e ){
 	if (!editor) return;
 	if (e->button() == Qt::LeftButton){
-		//If dragging bounds, ungrab, and notify dvrparams to update:
+		//If dragging bounds, ungrab, and notify params to update:
 		if( editor->anyDomainGrabbed()){
 			editor->unGrabBounds();
 			editor->getParams()->updateMapBounds();
@@ -531,7 +531,7 @@ void FlowMapFrame::mouseReleaseEvent( QMouseEvent *e ){
 		amDragging = false;
 		mouseIsDown = false;
 		
-		//Notify the DVR that an editing change is finishing:
+		//Notify the params that an editing change is finishing:
 		endTFChange();
 		update();
 	}

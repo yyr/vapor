@@ -109,7 +109,7 @@ public:
 	//
 	void captureMouseDown(int faceNum, float camPos[3], float dirVec[]);
 	//When the mouse goes up, save the face displacement into the region.
-	void captureMouseUp();
+	virtual void captureMouseUp();
 	//Intersect the ray with the specified face, determining the intersection
 	//in world coordinates.  Note that meaning of faceNum is specified in 
 	//renderer.h
@@ -182,7 +182,6 @@ public:
 	void guiSetXVarNum(int varnum);
 	void guiSetYVarNum(int varnum);
 	void guiSetZVarNum(int varnum);
-	void guiRecalc();
 	void guiSetRandom(bool rand);
 	void guiSetGeneratorDimension(int dimNum);
 	void guiSetXCenter(int sliderval);
@@ -199,6 +198,8 @@ public:
 	void guiSetAutoRefresh(bool isOn);
 	void guiSetRakeToRegion();
 	void guiRefreshFlow();
+	void guiCenterRake(float* coords);
+	void guiAddSeed(float* coords);
 
 
 	void setMapBoundsChanged(bool on){mapBoundsChanged = on; flowGraphicsChanged = on;}
@@ -206,6 +207,18 @@ public:
 	void setFlowGraphicsChanged(bool on){flowGraphicsChanged = on;}
 
 
+	virtual void getBox(float boxmin[], float boxmax[]){
+		for (int i = 0; i< 3; i++){
+			boxmin[i] = seedBoxMin[i];
+			boxmax[i] = seedBoxMax[i];
+		}
+	}
+	virtual void setBox(const float boxMin[], const float boxMax[]){
+		for (int i = 0; i< 3; i++){
+			seedBoxMin[i] = boxMin[i];
+			seedBoxMax[i] = boxMax[i];
+		}
+	}
 protected:
 	//Tags for attributes in session save
 	//Top level labels
@@ -240,9 +253,7 @@ protected:
 	static const string _constantOpacityAttr;
 
 	//Mapping bounds, variable names (for all variables, mapped or not) are in variableMapping node
-	static const string _variableTag;
-	static const string _variableNumAttr;
-	static const string _variableNameAttr;
+	
 	static const string _leftColorBoundAttr;
 	static const string _rightColorBoundAttr;
 	static const string _leftOpacityBoundAttr;

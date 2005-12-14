@@ -67,14 +67,10 @@
 
 
 using namespace VAPoR;
-const string DvrParams::_variableTag = "Variable";
-const string DvrParams::_leftEditBoundAttr = "LeftEditBound";
-const string DvrParams::_rightEditBoundAttr = "RightEditBound";
-const string DvrParams::_variableNumAttr = "VariableNum";
+
 const string DvrParams::_activeVariableNumAttr = "ActiveVariableNum";
 const string DvrParams::_editModeAttr = "TFEditMode";
 const string DvrParams::_histoStretchAttr = "HistoStretchFactor";
-const string DvrParams::_variableNameAttr = "VariableName";
 
 
 DvrParams::DvrParams(int winnum) : Params(winnum){
@@ -237,12 +233,14 @@ updatePanelState(){
 	ambientAtten = myDvrTab->ambientAttenuation->text().toFloat();
 	specularAtten = myDvrTab->specularAttenuation->text().toFloat();
 
-	((TransferFunction*)getMapperFunc())->setMinMapValue(myDvrTab->leftMappingBound->text().toFloat());
-	((TransferFunction*)getMapperFunc())->setMaxMapValue(myDvrTab->rightMappingBound->text().toFloat());
+	if (numVariables > 0) {
+		((TransferFunction*)getMapperFunc())->setMinMapValue(myDvrTab->leftMappingBound->text().toFloat());
+		((TransferFunction*)getMapperFunc())->setMaxMapValue(myDvrTab->rightMappingBound->text().toFloat());
 	
-	setDatarangeDirty();
-	getTFEditor()->setDirty();
-	myDvrTab->DvrTFFrame->update();
+		setDatarangeDirty();
+		getTFEditor()->setDirty();
+		myDvrTab->DvrTFFrame->update();
+	}
 	guiSetTextChanged(false);
 	
 }
@@ -323,6 +321,7 @@ guiSetEnabled(bool value){
 	//Ignore spurious clicks.
 	if (value == enabled) return;
 	confirmText(false);
+	assert(value != enabled);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle dvr enabled");
 	setEnabled(value);
 	PanelCommand::captureEnd(cmd, this);

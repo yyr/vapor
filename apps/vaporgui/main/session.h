@@ -301,7 +301,7 @@ public:
 	void setRenderReady(bool nowOK) {renderOK = nowOK;}
 	int getNumTFs() { return numTFs;}
 	std::string* getTFName(int i) { return tfNames[i];}
-	void addTF(const char* tfName, DvrParams* );
+	void addTF(const char* tfName, Params* );
 	void addTF(const std::string tfName, TransferFunction* tf);
 	bool removeTF(const std::string* name);
 	//Obtain the Transfer function associated with a name,

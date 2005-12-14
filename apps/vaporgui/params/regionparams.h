@@ -133,6 +133,7 @@ public:
 	void guiSetYSize(int n);
 	void guiSetZCenter(int n);
 	void guiSetZSize(int n);
+	void guiSetCenter(float* xyz);
 
 	
 	//
@@ -140,7 +141,7 @@ public:
 	//
 	void captureMouseDown(int faceNum, float camPos[3], float dirVec[]);
 	//When the mouse goes up, save the face displacement into the region.
-	void captureMouseUp();
+	virtual void captureMouseUp();
 	//Intersect the ray with the specified face, determining the intersection
 	//in world coordinates.  Note that meaning of faceNum is specified in 
 	//renderer.h
@@ -162,6 +163,19 @@ public:
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	//See if the proposed number of transformations is OK.  Return a valid value
 	int validateNumTrans(int n);
+
+	virtual void setBox(const float boxmin[], const float boxmax[]){
+		for(int i = 0; i<3; i++){
+			setRegionMin(i, boxmin[i]);
+			setRegionMax(i, boxmax[i]);
+		}
+	}
+	virtual void getBox(float boxMin[], float boxMax[]){
+		for (int i = 0; i< 3; i++){
+			boxMin[i] = getRegionMin(i);
+			boxMax[i] = getRegionMax(i);
+		}
+	}
 
 protected:
 	static const string _regionCenterTag;

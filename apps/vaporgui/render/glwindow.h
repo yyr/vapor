@@ -52,6 +52,14 @@ public:
 	//as viewed from the outside (pickable side) of the quad.  
 	//
 	bool pointIsOnQuad(float cor1[3],float cor2[3],float cor3[3],float cor4[3], float pickPt[2]);
+
+	//Determine if a point is over (and not inside) a box, specified by 8 3-D coords.
+	//the first four corners are the counter-clockwise (from outside) vertices of one face,
+	//the last four are the corresponding back vertices, clockwise from outside
+	//Returns index of face (0..5), or -1 if not on Box
+	//
+	int pointIsOnBox(float corners[8][3], float pickPt[2]);
+
 	//Project a 3D point (in cube coord system) to window coords.
 	//Return true if in front of camera
 	//
@@ -65,6 +73,7 @@ public:
 	bool getPixelData(unsigned char* data);
 
 	void setRenderNew() {renderNew = true;}
+	void draw3DCursor(float position[3]);
 
 protected:
 
@@ -94,6 +103,7 @@ protected:
 	void renderDomainFrame(float* extents, float* minFull, float* maxFull);
 	void renderRegionBounds(float* extents, int selectedFace, 
 		float* cameraPos, float faceDisplacement);
+	
 	void drawSubregionBounds(float* extents);
 	void drawAxes(float* extents);
 	//Helper functions for drawing region bounds:
@@ -102,6 +112,7 @@ protected:
 	// back, front, bottom, top, left, right
 	static bool faceIsVisible(float* extents, float* viewerCoords, int faceNum);
 	void drawRegionFace(float* extents, int faceNum, bool isSelected);
+	void drawProbeFace(float* corners, int faceNum, bool isSelected);
 
 	float regionFrameColor[3];
 	float subregionFrameColor[3];
@@ -117,6 +128,8 @@ protected:
 	GLint viewport[4];
 	GLdouble projectionMatrix[16];
 	bool nowPainting;
+
+	
 };
 };
 

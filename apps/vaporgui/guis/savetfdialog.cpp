@@ -29,7 +29,7 @@
 #include <qcombobox.h>
 #include <qmessagebox.h>
 #include "session.h"
-#include "dvrparams.h"
+#include "params.h"
 using namespace VAPoR;
 /*
  *  Constructs a SaveTFDialog as a child of 'parent', with the
@@ -38,7 +38,7 @@ using namespace VAPoR;
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  TRUE to construct a modal dialog.
  */
-SaveTFDialog::SaveTFDialog(DvrParams* params, QWidget* parent, const char* name, bool modal, WFlags fl )
+SaveTFDialog::SaveTFDialog(Params* params, QWidget* parent, const char* name, bool modal, WFlags fl )
     : QDialog( parent, name, modal, fl )
 {
     if ( !name )

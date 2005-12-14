@@ -89,9 +89,6 @@ using namespace VAPoR;
 	const string FlowParams::_constantColorAttr = "ConstantColorRGBValue";
 	const string FlowParams::_constantOpacityAttr = "ConstantOpacityValue";
 	//Mapping bounds (for all variables, mapped or not) are inside geometry node
-	const string FlowParams::_variableTag = "Variable";
-	const string FlowParams::_variableNumAttr = "VariableNum";
-	const string FlowParams::_variableNameAttr = "VariableName";
 	const string FlowParams::_leftColorBoundAttr = "LeftColorBound";
 	const string FlowParams::_rightColorBoundAttr = "RightColorBound";
 	const string FlowParams::_leftOpacityBoundAttr = "LeftOpacityBound";
@@ -608,6 +605,7 @@ reinit(bool doOverride){
 	int i;
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	Session* session = Session::getInstance();
+	//Note:  we are relying on RegionParams to have already been reinit'ed.
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->
 			getRegionParams(vizNum);
 	int nlevels = md->GetNumTransforms();
@@ -1044,10 +1042,37 @@ sliderToText(int coord, int slideCenter, int slideSize){
 
 //Methods that record changes in the history:
 //
+//Move the rake center to specified coords, shrink it if necessary
+void FlowParams::
+guiCenterRake(float* coords){
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "move rake center");
+	RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(vizNum);
+	
+	for (int i = 0; i< 3; i++){
+		float coord = coords[i];
+		float regMin = rParams->getFullDataExtent(i);
+		float regMax = rParams->getFullDataExtent(i+3);
+		if (coord < regMin) coord = regMin;
+		if (coord > regMax) coord = regMax;
+		float boxSize = seedBoxMax[i] - seedBoxMin[i];
+		if (coord + 0.5f*boxSize > seedBoxMax[i]) boxSize = 2.f*(seedBoxMax[i] - coord);
+		if (coord - 0.5f*boxSize < seedBoxMin[i]) boxSize = 2.f*(coord - seedBoxMin[i]);
+		seedBoxMax[i] = coord + 0.5f*boxSize;
+		seedBoxMin[i] = coord - 0.5f*boxSize;
+	}
+	PanelCommand::captureEnd(cmd, this);
+	setFlowDataDirty();
+}
+//Add an individual seed to the set of seeds
+void FlowParams::
+guiAddSeed(float* coords){
+}
+
 void FlowParams::
 guiSetEnabled(bool on){
 	if (on == enabled) return;
 	confirmText(false);
+	if (on == enabled) return;
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "enable/disable flow render");
 	setEnabled(on);
 	PanelCommand::captureEnd(cmd, this);
@@ -1113,11 +1138,7 @@ guiSetZVarNum(int varnum){
 	PanelCommand::captureEnd(cmd, this);
 
 }
-void FlowParams::
-guiRecalc(){ //Not covered by redo/undo
-	confirmText(false);
-	//Need to implement!
-}
+
 void FlowParams::
 guiSetConstantColor(QColor& newColor){
 	confirmText(false);
@@ -1505,11 +1526,13 @@ regenerateFlowData(int timeStep){
 	const char* yVar = variableNames[varNum[1]].c_str();
 	const char* zVar = variableNames[varNum[2]].c_str();
 	myFlowLib->SetFieldComponents(xVar, yVar, zVar);
-	//If these flowparams are shared, we have a problem here; 
-	//Different windows could have different regions
+	//If these flowparams are shared, we could have a problem here; 
+	//Different windows could have different regions.  We will always
+	//Use the current active window for constructing flowlines, but they
+	//may get clipped differently.
 	RegionParams* rParams;
 	if (vizNum < 0) {
-		MessageReporter::warningMsg("FlowParams: Multiple region params may apply to flow");
+		//MessageReporter::warningMsg("FlowParams: Multiple region params may apply to flow");
 		rParams = vizMgr->getRegionParams(vizMgr->getActiveViz());
 	}
 	else rParams = VizWinMgr::getInstance()->getRegionParams(vizNum);

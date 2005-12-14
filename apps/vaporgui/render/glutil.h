@@ -69,7 +69,7 @@
 
 #define	YMAXSTEREO	491
 #define	YOFFSET		532
-
+#define M_PI 3.14159265358979323846
 /*extern GLfloat *idmatrix;*/
 namespace VAPoR {
 void	BailOut (const char *errstr, char *fname, int lineno);

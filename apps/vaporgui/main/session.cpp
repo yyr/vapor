@@ -22,6 +22,7 @@
 #pragma warning(disable : 4251 4100)
 #endif
 #include "session.h"
+#include "dvrparams.h"
 #include "vapor/DataMgr.h"
 #include "vizwinmgr.h"
 #include "mainform.h"
@@ -230,6 +231,8 @@ buildNode() {
 	//Have the global parameters populate this:
 	XmlNode* dvrNode = vizMgr->getGlobalParams(Params::DvrParamsType)->buildNode();
 	if(dvrNode) globalPanels->AddChild(dvrNode);
+	XmlNode* probeNode = vizMgr->getGlobalParams(Params::ProbeParamsType)->buildNode();
+	if(probeNode) globalPanels->AddChild(probeNode);
 	XmlNode* rgNode = vizMgr->getGlobalParams(Params::RegionParamsType)->buildNode();
 	if(rgNode) globalPanels->AddChild(rgNode);
 	XmlNode* animNode = vizMgr->getGlobalParams(Params::AnimationParamsType)->buildNode();
@@ -351,8 +354,15 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				pm->pushClassStack(tempParsedPanel);
 				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
 				return true;
+			} else if (StrCmpNoCase(tag, Params::_probeParamsTag) == 0){
+				//Need to "push" to probe parser.
+				//That parser will "pop" back to session when done.
+				tempParsedPanel = new ProbeParams(-1);
+				pm->pushClassStack(tempParsedPanel);
+				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
+				return true;
 			} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
-				//Need to "push" to dvr parser.
+				//Need to "push" to region parser.
 				//That parser will "pop" back to session when done.
 				tempParsedPanel = new RegionParams(-1);
 				pm->pushClassStack(tempParsedPanel);
@@ -408,6 +418,11 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 			} else if (StrCmpNoCase(tag, Params::_dvrParamsTag) == 0){
 				assert(tempParsedPanel);
 				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::DvrParamsType);
+				tempParsedPanel = 0;
+				return true;
+			} else if (StrCmpNoCase(tag, Params::_probeParamsTag) == 0){
+				assert(tempParsedPanel);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::ProbeParamsType);
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
@@ -792,7 +807,7 @@ bool DataStatus::variableIsPresent(int varnum){
 //Methods to keep or remove a transfer function 
 //with the session.  The transFunc is always the current one from the dvrParams
 //
-void Session::addTF(const char* tfName, DvrParams* dvrParams){
+void Session::addTF(const char* tfName, Params* params){
 
 	//Check first if this name is already in the list.  If so, remove it.
 	const std::string tfname(tfName);
@@ -816,7 +831,7 @@ void Session::addTF(const char* tfName, DvrParams* dvrParams){
 		
 	}
 	//copy the tf, its name
-	keptTFs[numTFs] = new TransferFunction(*((TransferFunction*)dvrParams->getMapperFunc()));
+	keptTFs[numTFs] = new TransferFunction(*((TransferFunction*)params->getMapperFunc()));
 	tfNames[numTFs] = new std::string(tfName);
 	
 	//Don't retain the pointers to dvrParams and TFE:
@@ -825,7 +840,7 @@ void Session::addTF(const char* tfName, DvrParams* dvrParams){
 	numTFs++;
 	return;
 }
-//Add a transfer function not associated with a dvrParams
+//Add a transfer function not associated with a Params
 //Don't clone it, add it directly
 void Session::addTF(const std::string tfName, TransferFunction* tf){
 

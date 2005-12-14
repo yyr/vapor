@@ -30,6 +30,7 @@ class Session;
 class RegionParams;
 class ViewpointParams;
 class DvrParams;
+class ProbeParams;
 class IsosurfaceParams;
 class ContourParams;
 class AnimationParams;
@@ -64,6 +65,7 @@ protected:
 	IsosurfaceParams* isoParams;
 	ContourParams* contourParams;
 	DvrParams* dvrParams;
+	ProbeParams* probeParams;
 	AnimationParams* animationParams;
 	QColor backgroundColor;
 

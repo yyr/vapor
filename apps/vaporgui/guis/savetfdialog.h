@@ -33,14 +33,14 @@ class QComboBox;
 class QLabel;
 
 namespace VAPoR {
-class DvrParams;
+class Params;
 
 class SaveTFDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-	SaveTFDialog( DvrParams*, QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
+	SaveTFDialog( Params*, QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
     ~SaveTFDialog();
 
     QPushButton* fileSaveButton;
@@ -63,7 +63,7 @@ protected:
     QSpacerItem* spacer28;
     QSpacerItem* spacer29;
 
-	VAPoR::DvrParams* myParams;
+	VAPoR::Params* myParams;
 
 protected slots:
     virtual void languageChange();

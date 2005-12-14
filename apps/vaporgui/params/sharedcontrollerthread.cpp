@@ -32,6 +32,7 @@
 #include "vizwin.h"
 #include "messagereporter.h"
 #include "glutil.h"
+#include "dvrparams.h"
 using namespace VAPoR;
 
 SharedControllerThread::SharedControllerThread() : QThread(){

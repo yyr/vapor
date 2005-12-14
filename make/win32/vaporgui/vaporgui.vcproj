@@ -186,6 +186,9 @@
 				RelativePath="..\..\..\apps\vaporgui\render\glbox.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\glprobewindow.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\render\glutil.cpp">
 			</File>
 			<File
@@ -207,6 +210,9 @@
 				RelativePath="..\..\..\apps\vaporgui\main\mainform.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\manip.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\params\mapeditor.cpp">
 			</File>
 			<File
@@ -223,6 +229,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\params.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\probeframe.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\params\probeparams.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\regionparams.cpp">
@@ -443,6 +455,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\glprobewindow.h">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\render\glutil.h">
 			</File>
 			<File
@@ -501,6 +516,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\manip.h">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\params\mapeditor.h">
 			</File>
 			<File
@@ -537,6 +555,32 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\params.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\probeframe.h">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing probeframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\probeframe.h -o tmp\moc\moc_probeframe.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="tmp\moc\moc_probeframe.cpp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing probeframe.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\probeframe.h -o tmp\moc\moc_probeframe.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="tmp\moc\moc_probeframe.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\params\probeparams.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\regionparams.h">
@@ -673,6 +717,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\transferfunction.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\params\viewpoint.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\viewpointparams.h">
@@ -829,6 +876,12 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp">
 			</File>
 			<File
+				RelativePath=".\tmp\moc\moc_probeframe.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_probetab.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_regiontab.cpp">
 			</File>
 			<File
@@ -903,6 +956,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\isotab.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\probetab.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\probetab.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\regiontab.cpp">
@@ -1062,6 +1121,29 @@ $(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\isotab.h -o ..\..\..\apps\va
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\isotab.h;..\..\..\apps\vaporgui\guis\ui\isotab.cpp;..\..\..\apps\vaporgui\moc\moc_isotab.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\probetab.ui">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing probetab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.ui&quot; -i probetab.h -o &quot;..\..\..\apps\vaporgui\guis\ui\probetab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_probetab.cpp&quot;
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\probetab.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_probetab.cpp&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing probetab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.ui&quot; -i probetab.h -o &quot;..\..\..\apps\vaporgui\guis\ui\probetab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_probetab.cpp&quot;
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\probetab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\probetab.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_probetab.cpp&quot;"/>
 				</FileConfiguration>
 			</File>
 			<File

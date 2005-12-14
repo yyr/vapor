@@ -33,7 +33,11 @@ DEFINES += VOLUMIZER
 
 
 INCLUDEPATH += . \
-	../../include
+	../../include \
+	../../../apps/vaporgui/params \
+	../../../apps/vaporgui/guis \
+	../../../apps/vaporgui/main \
+	../../../apps/vaporgui/render
 
 MOC_DIR = ../../../apps/vaporgui/moc
 
@@ -48,6 +52,7 @@ SOURCES +=\
 	   render/DVRDebug.cpp \
 	   render/DVRVolumizer.cpp \
 	   params/dvrparams.cpp \
+	   guis/flowmapframe.cpp \
 	   params/flowparams.cpp \
 	   render/flowrenderer.cpp \
 	   render/glbox.cpp \
@@ -93,6 +98,7 @@ HEADERS += \
 	   main/command.h \
 	   params/contourparams.h \
 	   params/controllerthread.h \
+	   guis/flowmapframe.h \
 	   params/flowparams.h \
 	   render/DVRBase.h \
 	   render/DVRDebug.h \
@@ -130,14 +136,14 @@ HEADERS += \
            main/vizwinmgr.h \
 	   render/volumizerrenderer.h 
 
-FORMS +=  guis/ui/animationtab.ui \
-	 guis/ui/viztab.ui \
-	 guis/ui/dvr.ui \
-	 guis/ui/flowtab.ui \
-         guis/ui/regiontab.ui \ 
-	 guis/ui/contourplanetab.ui \
-       	 guis/ui/isotab.ui \
-	 guis/ui/sessionparameters.ui \ 
-	 guis/ui/vizfeatures.ui
+FORMS +=  ../../../guis/ui/animationtab.ui \
+	 ../../../guis/ui/viztab.ui \
+	 ../../../guis/ui/dvr.ui \
+	 ../../../guis/ui/flowtab.ui \
+         ../../../guis/ui/regiontab.ui \ 
+	 ../../../guis/ui/contourplanetab.ui \
+       	 ../../../guis/ui/isotab.ui \
+	 ../../../guis/ui/sessionparameters.ui \ 
+	 ../../../guis/ui/vizfeatures.ui
 
 

@@ -62,8 +62,6 @@ VPATH = guis params render main
 QT_HEADERS := $(PARAMS_QT_HEADERS) $(MAIN_QT_HEADERS) $(RENDER_QT_HEADERS) $(GUI_QT_HEADERS)
 FILES := $(PARAMS_FILES) $(GUI_FILES) $(MAIN_FILES) $(RENDER_FILES)
 
-
-  
 include ${TOP}/make/config/base.mk
 #MAKEFILE_LDFLAGS += $(QTLIB)
 

@@ -529,12 +529,12 @@ void ColorPickerFrame::newHsv( int h, int s, int v )
     lp->setCol( h, s, v );
 	emit(hsvOut(h,s,v));
 }
-//send mouse up/down events to dvr panel
+//send mouse up/down events to params panel
 void ColorPickerFrame::mouseDownRelay()
 {
     emit(startColorChange());
 }
-//send mouse up/down events to dvr panel
+//send mouse up/down events to params panel
 void ColorPickerFrame::mouseUpRelay()
 {
     emit(endColorChange());

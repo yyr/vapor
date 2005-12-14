@@ -26,6 +26,7 @@
 #include "viewpointparams.h"
 #include "vizwinmgr.h"
 #include "animationcontroller.h"
+#include "manip.h"
 
 #include <math.h>
 #include <qgl.h>
@@ -270,6 +271,17 @@ void GLWindow::paintGL()
 		assert(selectedFace >= -1 && selectedFace < 6);
 		renderRegionBounds(seedExtents, selectedFace,
 			camVec, disp);
+	} //or render the probe geometry, if in probe mode
+	else if(MainForm::getInstance()->getCurrentMouseMode() == Command::probeMode){
+		
+		ProbeParams* myProbeParams = VizWinMgr::getInstance()->getProbeParams(winNum);
+		
+		TranslateManip* probeManip = myVizWin->getProbeManip();
+		
+		probeManip->setParams(myProbeParams);
+		probeManip->render();
+		//Also render the cursor
+		draw3DCursor(myProbeParams->getSelectedPoint());
 	} 
 	swapBuffers();
 	glPopMatrix();
@@ -279,6 +291,21 @@ void GLWindow::paintGL()
 	//Capture the image, if not navigating:
 	if (renderNew && !myVizWin->mouseIsDown()) myVizWin->doFrameCapture();
 	nowPainting = false;
+}
+//Draw a 3D cursor at specified world coords
+void GLWindow::draw3DCursor(float position[3]){
+	float cubePosition[3];
+	ViewpointParams::worldToCube(position, cubePosition);
+	glLineWidth(3.f);
+	glColor3f(1.f,1.f,1.f);
+	glBegin(GL_LINES);
+	glVertex3f(cubePosition[0]-0.05f,cubePosition[1],cubePosition[2]);
+	glVertex3f(cubePosition[0]+0.05f,cubePosition[1],cubePosition[2]);
+	glVertex3f(cubePosition[0],cubePosition[1]-0.05f,cubePosition[2]);
+	glVertex3f(cubePosition[0],cubePosition[1]+0.05f,cubePosition[2]);
+	glVertex3f(cubePosition[0],cubePosition[1],cubePosition[2]-0.05f);
+	glVertex3f(cubePosition[0],cubePosition[1],cubePosition[2]+0.05f);
+	glEnd();
 }
 
 //
@@ -307,6 +334,11 @@ bool GLWindow::projectPointToWin(float cubeCoords[3], float winCoords[2]){
 		cbCoords[i] = (double) cubeCoords[i];
 	//double* mmtrx = getModelMatrix(); 
 	//double* pmtrx = getProjectionMatrix();
+	//double mMtrx[16], pMtrx[16];
+	//for (int q = 0; q<16; q++){
+	//	mMtrx[q]=mmtrx[q];
+	//	pMtrx[q]=pmtrx[q];
+	//}
 	//int* vprt = getViewport();
 
 	bool success = gluProject(cbCoords[0],cbCoords[1],cbCoords[2], getModelMatrix(),
@@ -359,6 +391,23 @@ pointIsOnQuad(float cor1[3], float cor2[3], float cor3[3], float cor4[3], float 
 	if (pointOnRight(winCoord3, winCoord4, pickPt)) return false;
 	if (pointOnRight(winCoord4, winCoord1, pickPt)) return false;
 	return true;
+}
+//Test whether the pickPt is over (and outside) the box (as specified by 8 points)
+int GLWindow::
+pointIsOnBox(float corners[8][3], float pickPt[2]){
+	//front (-Z)
+	if (pointIsOnQuad(corners[0],corners[1],corners[3],corners[2],pickPt)) return 2;
+	//back (+Z)
+	if (pointIsOnQuad(corners[4],corners[6],corners[7],corners[5],pickPt)) return 3;
+	//right (+X)
+	if (pointIsOnQuad(corners[1],corners[5],corners[7],corners[3],pickPt)) return 5;
+	//left (-X)
+	if (pointIsOnQuad(corners[0],corners[2],corners[6],corners[4],pickPt)) return 0;
+	//top (+Y)
+	if (pointIsOnQuad(corners[2],corners[3],corners[7],corners[6],pickPt)) return 4;
+	//bottom (-Y)
+	if (pointIsOnQuad(corners[0],corners[4],corners[5],corners[1],pickPt)) return 1;
+	return -1;
 }
 
 //Produce an array based on current contents of the (front) buffer
@@ -682,6 +731,119 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 	glColor4f(1,1,1,1);
 	glDisable(GL_BLEND);
 }
+void GLWindow::drawProbeFace(float* corners, int faceNum, bool isSelected){
+	glLineWidth( 2.0 );
+	glEnable (GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glPolygonMode(GL_FRONT, GL_FILL);
+	if (isSelected)
+			glColor4f(.8f,.8f,0.f,.6f);
+		else 
+			glColor4f(.8f,.8f,.8f,.2f);
+	switch (faceNum){
+		case 4://Do left (x=0)
+			glBegin(GL_QUADS);
+			glVertex3fv(corners);
+			glVertex3fv(corners+3*3);
+			glVertex3fv(corners+7*3);
+			glVertex3fv(corners+4*3);
+			glEnd();
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+			glVertex3fv(corners);
+			glVertex3fv(corners+3*3);
+			glVertex3fv(corners+7*3);
+			glVertex3fv(corners+4*3);
+			glEnd();
+			break;
+		
+		case 5:
+		//do right 
+			glBegin(GL_QUADS);
+			glVertex3fv(corners+1*3);
+			glVertex3fv(corners+5*3);
+			glVertex3fv(corners+6*3);
+			glVertex3fv(corners+2*3);
+			glEnd();
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+			glVertex3fv(corners+1*3);
+			glVertex3fv(corners+5*3);
+			glVertex3fv(corners+6*3);
+			glVertex3fv(corners+2*3);
+			glEnd();
+			break;
+		case(3)://top
+			glBegin(GL_QUADS);
+			glVertex3fv(corners+2*3);
+			glVertex3fv(corners+6*3);
+			glVertex3fv(corners+7*3);
+			glVertex3fv(corners+3*3);
+			
+			glEnd();
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+			glVertex3fv(corners+2*3);
+			glVertex3fv(corners+6*3);
+			glVertex3fv(corners+7*3);
+			glVertex3fv(corners+3*3);
+			glEnd();
+			break;
+		case(2)://bottom
+			glBegin(GL_QUADS);
+			glVertex3fv(corners+0*3);
+			glVertex3fv(corners+4*3);
+			glVertex3fv(corners+5*3);
+			glVertex3fv(corners+1*3);
+			glEnd();
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+			glVertex3fv(corners+0*3);
+			glVertex3fv(corners+4*3);
+			glVertex3fv(corners+5*3);
+			glVertex3fv(corners+1*3);
+			glEnd();
+			break;
+	
+		case(0):
+			//back
+			glBegin(GL_QUADS);
+			glVertex3fv(corners+4*3);
+			glVertex3fv(corners+7*3);
+			glVertex3fv(corners+6*3);
+			glVertex3fv(corners+5*3);
+			glEnd();
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+			glVertex3fv(corners+4*3);
+			glVertex3fv(corners+7*3);
+			glVertex3fv(corners+6*3);
+			glVertex3fv(corners+5*3);
+			glEnd();
+			break;
+		case(1):
+			//do the front:
+			//
+			glBegin(GL_QUADS);
+			glVertex3fv(corners+0*3);
+			glVertex3fv(corners+1*3);
+			glVertex3fv(corners+2*3);
+			glVertex3fv(corners+3*3);
+			glEnd();
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+			glVertex3fv(corners+0*3);
+			glVertex3fv(corners+1*3);
+			glVertex3fv(corners+2*3);
+			glVertex3fv(corners+3*3);
+			glEnd();
+			break;
+		default: 
+			break;
+	}
+	glColor4f(1,1,1,1);
+	glDisable(GL_BLEND);
+}
 // This method draws the faces of the subregion-cube.
 // The surface of the cube is drawn partially transparent. 
 // This is drawn after the cube is drawn.
@@ -719,6 +881,7 @@ void GLWindow::renderRegionBounds(float* extents, int selectedFace, float* camPo
 		}
 	}
 }
+
 //Set colors to use in bound rendering:
 void GLWindow::setSubregionFrameColor(QColor& c){
 	subregionFrameColor[0]= (float)c.red()/255.;

@@ -19,7 +19,7 @@
 
 
 #include "loadtfdialog.h" 
-
+#include "session.h"
 #include <qvariant.h>
 #include <qpushbutton.h>
 #include <qlayout.h>
@@ -28,7 +28,7 @@
 #include <qlabel.h>
 #include <qcombobox.h>
 
-#include "dvrparams.h"
+#include "params.h"
 using namespace VAPoR;
 
 /*
@@ -38,7 +38,7 @@ using namespace VAPoR;
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  TRUE to construct a modal dialog.
  */
-LoadTFDialog::LoadTFDialog(DvrParams* params,  QWidget* parent, const char* name, bool modal, WFlags fl )
+LoadTFDialog::LoadTFDialog(Params* params,  QWidget* parent, const char* name, bool modal, WFlags fl )
     : QDialog( parent, name, modal, fl )
 {
     if ( !name )

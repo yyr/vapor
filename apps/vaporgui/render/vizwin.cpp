@@ -54,6 +54,7 @@
 #include "glutil.h"
 #include "glbox.h"
 #include "viewpoint.h"
+#include "manip.h"
 #ifdef VOLUMIZER
 #include "volumizerrenderer.h"
 #endif
@@ -84,7 +85,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
     //qWarning("Launching window %d", winNum);
     myWinMgr = myMgr;
 	mouseDownHere = false;
-	newViewerCoords = true;
+	setViewerCoordsChanged(true);
 	regionDirty = true;
 	dataRangeDirty = true;
 	clutDirty = true;
@@ -176,6 +177,8 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	myGLWindow->myTBall = myTrackball;
 	setValuesFromGui(vpparms);
 	
+	//Create Manips:
+	myProbeManip = new TranslateManip(this, (Params*)myWinMgr->getProbeParams(myWindowNum));
 	//Note:  Caller must call show()
 	
 }
@@ -327,12 +330,41 @@ mousePressEvent(QMouseEvent* e){
 			//Otherwise, fall through to navigate mode:
 			doNavigate = true;
 			break;
+
+		case Command::probeMode :
+			//Only capture if it's the left mouse button:
+			if (e->button() == Qt::LeftButton)
+			{
+				int faceNum;
+				float boxExtents[6];
+				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
+				ProbeParams* pParams = myWinMgr->getProbeParams(myWindowNum);
+				TranslateManip* probeManip = getProbeManip();
+				probeManip->setParams(pParams);
+				pParams->calcBoxExtentsInCube(boxExtents);
+				int handleNum = probeManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
+				if (handleNum >= 0) {
+					float dirVec[3];
+					//Find the direction vector of the camera (World coords)
+					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+						vParams->getCameraPos(), dirVec);
+					//Remember which handle we hit, highlight it, save the intersection point.
+					probeManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec);
+					pParams->captureMouseDown();
+					mouseDownHere = true;
+					break;
+				}
+			}
+			//Otherwise, fall through to navigate mode:
+			doNavigate = true;
+			break;
+		default:
+			
 		case Command::navigateMode : 
 			doNavigate = true;
 			break;
 			
-		default:
-			break;
+		
 	}
 	if (doNavigate){
 		myWinMgr->getViewpointParams(myWindowNum)->captureMouseDown();
@@ -352,6 +384,7 @@ void VizWin::
 mouseReleaseEvent(QMouseEvent*e){
 	if (numRenderers <= 0) return;
 	bool doNavigate = false;
+	TranslateManip* myProbeManip = getProbeManip();
 	switch (myWinMgr->selectionMode){
 		
 		case Command::regionMode :
@@ -372,12 +405,26 @@ mouseReleaseEvent(QMouseEvent*e){
 			} //otherwise fall through to navigate mode
 			doNavigate = true;
 			break;
+		case Command::probeMode :
+			if (myProbeManip->draggingHandle() >= 0){
+				float screenCoords[2];
+				screenCoords[0] = (float)e->x();
+				screenCoords[1] = (float)(height() - e->y());
+				mouseDownHere = false;
+				//The manip must move the probe, and then tell the params to
+				//record end of move.
+				myProbeManip->mouseRelease(screenCoords);
+				//myWinMgr->getProbeParams(myWindowNum)->captureMouseUp();
+				break;
+			} //otherwise fall through to navigate mode
+			doNavigate = true;
+			break;
+		default:
 		case Command::navigateMode : 
 			doNavigate = true;
 			break;
 
-		default:
-			break;
+		
 	}
 	if(doNavigate){
 		myWinMgr->getViewpointParams(myWindowNum)->captureMouseUp();
@@ -449,17 +496,38 @@ mouseMoveEvent(QMouseEvent* e){
 			//Fall through to navigate if not dragging face
 			doNavigate = true;
 			break;
-		case Command::navigateMode : 
+		case Command::probeMode :
+			{
+				TranslateManip* myProbeManip = getProbeManip();
+				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
+				int handleNum = myProbeManip->draggingHandle();
+				//In probe mode, check first to see if we are dragging face
+				if (handleNum >= 0){
+					float dirVec[3];
+					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+						vParams->getCameraPos(), dirVec);
+					//Don't Convert dirvec from world to cube coords
+					//ViewpointParams::worldToCube(dirVec,dirVec);
+					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
+					myProbeManip->slideHandle(handleNum, dirVec);
+					myGLWindow->updateGL();
+					break;
+				}
+			}
+			//Fall through to navigate if not dragging face
 			doNavigate = true;
 			break;
 		default:
+		case Command::navigateMode : 
+			doNavigate = true;
 			break;
+		
 	}
 	if(doNavigate){
 		QPoint deltaPoint = e->globalPos() - mouseDownPosition;
 		myTrackball->MouseOnTrackball(1, e->button(), e->x(), e->y(), width(), height());
 		//Note that the coords have changed:
-		newViewerCoords = true;
+		setViewerCoordsChanged(true);
 	}
 	myGLWindow->updateGL();
 	return;
@@ -528,7 +596,7 @@ changeCoords(float *vpos, float* vdir, float* upvec) {
 	float worldPos[3];
 	ViewpointParams::worldFromCube(vpos,worldPos);
 	myWinMgr->getViewpointParams(myWindowNum)->navigate(worldPos, vdir, upvec);
-	newViewerCoords = false;
+	setViewerCoordsChanged(false);
 	//If this window is using global VP, must tell all other global windows to update:
 	if (globalVP){
 		for (int i = 0; i< MAXVIZWINS; i++){
@@ -558,7 +626,8 @@ setValuesFromGui(ViewpointParams* vpparams){
 	//If the perspective was changed, a resize event will be triggered at next redraw:
 	
 	myGLWindow->setPerspective(vp->hasPerspective());
-	
+	//Set dirty bit.
+	setViewerCoordsChanged(true);
 	//Force a redraw
 	myGLWindow->update();
 }

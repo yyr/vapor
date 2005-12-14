@@ -23,6 +23,7 @@
 #include "vizwinmgr.h"
 #include "vizwin.h"
 #include <qcolor.h>
+#include "dvrparams.h"
 using namespace VAPoR;
 VizActivateCommand::VizActivateCommand(VizWin* win, int prevViz, int nextViz, Command::activateType t){
 	lastActiveViznum = prevViz;
@@ -33,6 +34,7 @@ VizActivateCommand::VizActivateCommand(VizWin* win, int prevViz, int nextViz, Co
 	contourParams = 0;
 	dvrParams = 0;
 	isoParams = 0;
+	probeParams = 0;
 	animationParams = 0;
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	backgroundColor = QColor(0,0,0);
@@ -61,6 +63,7 @@ VizActivateCommand::VizActivateCommand(VizWin* win, int prevViz, int nextViz, Co
 }
 VizActivateCommand::~VizActivateCommand(){
 	if (dvrParams) delete dvrParams;
+	if (probeParams) delete probeParams;
 	if (contourParams) delete contourParams;
 	if (isoParams) delete isoParams;
 	if (regionParams) delete regionParams;
@@ -80,6 +83,7 @@ void VizActivateCommand::unDo(){
 			//first disconnect the visualizer from the current panels 
 			vizWinMgr->setContourParams(currentActiveViznum, 0);
 			vizWinMgr->setDvrParams(currentActiveViznum, 0);
+			vizWinMgr->setProbeParams(currentActiveViznum, 0);
 			vizWinMgr->setIsoParams(currentActiveViznum, 0);
 			vizWinMgr->setRegionParams(currentActiveViznum, 0);
 			vizWinMgr->setViewpointParams(currentActiveViznum, 0);
@@ -101,6 +105,7 @@ void VizActivateCommand::unDo(){
 			
 			contourParams->makeCurrent(vizWinMgr->getContourParams(currentActiveViznum),true);
 			dvrParams->makeCurrent(vizWinMgr->getDvrParams(currentActiveViznum),true);
+			probeParams->makeCurrent(vizWinMgr->getProbeParams(currentActiveViznum),true);
 			isoParams->makeCurrent(vizWinMgr->getIsoParams(currentActiveViznum),true);
 			break;
 		case activate:
@@ -127,6 +132,7 @@ void VizActivateCommand::reDo(){
 			//Therefore we need to disconnect the params in the state:
 			vizWinMgr->setContourParams(lastActiveViznum, 0);
 			vizWinMgr->setDvrParams(lastActiveViznum, 0);
+			vizWinMgr->setProbeParams(lastActiveViznum, 0);
 			vizWinMgr->setIsoParams(lastActiveViznum, 0);
 			vizWinMgr->setRegionParams(lastActiveViznum, 0);
 			vizWinMgr->setViewpointParams(lastActiveViznum, 0);
@@ -156,5 +162,6 @@ void VizActivateCommand::cloneStateParams(VizWin* win, int viznum){
 	isoParams = (IsosurfaceParams*)vizWinMgr->getRealIsoParams(viznum)->deepCopy();
 	contourParams = (ContourParams*)vizWinMgr->getRealContourParams(viznum)->deepCopy();
 	dvrParams = (DvrParams*)vizWinMgr->getRealDvrParams(viznum)->deepCopy();
+	probeParams = (ProbeParams*)vizWinMgr->getRealProbeParams(viznum)->deepCopy();
 	if(win) backgroundColor = win->getBackgroundColor();
 }

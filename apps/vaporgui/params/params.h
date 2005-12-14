@@ -20,7 +20,7 @@
 //
 #ifndef PARAMS_H
 #define PARAMS_H
- 
+
 #include <qwidget.h>
 #include "assert.h"
 #include "vapor/ExpatParseMgr.h"
@@ -63,12 +63,14 @@ public:
 		RegionParamsType,
 		IsoParamsType,
 		DvrParamsType,
+		ProbeParamsType,
 		ContourParamsType,
 		AnimationParamsType,
 		FlowParamsType
 	};
 	static QString& paramName(ParamType);
 	static const string _dvrParamsTag;
+	static const string _probeParamsTag;
 	static const string _regionParamsTag;
 	static const string _viewpointParamsTag;
 	static const string _animationParamsTag;
@@ -76,6 +78,11 @@ public:
 	static const string _vizNumAttr;
 	static const string _localAttr;
 	static const string _numVariablesAttr;
+	static const string _variableTag;
+	static const string _leftEditBoundAttr;
+	static const string _rightEditBoundAttr;
+	static const string _variableNumAttr;
+	static const string _variableNameAttr;
 	
 	//Each params must be able to make a "deep" copy,
 	//I.e. copy everything that is unique to this object
@@ -139,6 +146,12 @@ public:
 	virtual void connectMapperFunction(MapperFunction* , MapEditor* ){}
 	virtual void setClutDirty() {}
 
+	virtual int getVarNum(){ assert(0); return -1;}
+	virtual float getHistoStretch() { assert(0); return 1.f;}
+	virtual void setBindButtons() {assert(0);}
+	virtual bool getEditMode() {assert(0); return true;}
+	virtual float* getCurrentDatarange(){assert(0); return(0);}
+
 	//The following must be redefined by renderer params.  Parent version should never happen
 	virtual void setMinColorMapBound(float ) {assert(0);}
 	virtual void setMaxColorMapBound(float ){assert(0);}
@@ -177,6 +190,7 @@ public:
 	float getMaxOpacEditBound(int var) {
 		return maxOpacEditBounds[var];
 	}
+	virtual void sessionLoadTF(QString* ) {return;}
 	virtual MapperFunction* getMapperFunc(){return 0;}
 	//Send params to the active renderer(s) that depend on these
 	//panel settings, tell renderers that the values must be updated
@@ -186,7 +200,30 @@ public:
 	//was local, and whether this is the first rendering in a window
 	//
 	virtual void updateRenderer(bool, bool, bool) {return;}
-	virtual void updateMapBounds() {}
+	virtual void updateMapBounds() {assert(0);}
+
+	//Implemented by every params that uses mouse events:
+	virtual void captureMouseUp() {assert(0);}
+	//Following methods are redefined by params that control a box (region), such
+	//as regionParams, probeParams, flowParams:
+	//Set the box by copying the arrays provided as arguments.
+	virtual void setBox(const float[3] /*boxMin[3]*/, const float /*boxMax*/[3]) {assert(0);}
+	//Make a box by copying values to the arguments
+	virtual void getBox(float /*boxMin*/[3], float /*boxMax*/[3]) {assert( 0);}
+	//Box orientation:
+	virtual float getPhi() {return 0.f;}
+	virtual float getTheta() {return 0.f;}
+	virtual void endDrag() {assert(0);}
+	virtual void startDrag() {assert(0);}
+	//Determine the box extents in the unit cube.
+	
+	void calcBoxExtentsInCube(float* extents);
+	void calcBoxExtents(float* extents);
+	//Calculate the box in world coords, using any theta or phi
+	void calcBoxCorners(float corners[8][3]);
+	// Construct transformation as a mapping of [-1,1]^3 into volume array
+	// coordinates at current resolution
+	void buildCoordTransform(float transformMatrix[12]);
 
 
 	//The restart method goes back to initial state

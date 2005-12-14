@@ -1,0 +1,78 @@
+//************************************************************************
+//																		*
+//		     Copyright (C)  2005										*
+//     University Corporation for Atmospheric Research					*
+//		     All Rights Reserved										*
+//																		*
+//************************************************************************/
+//
+//	File:		probeframe.h
+//
+//	Author:		Alan Norton
+//			National Center for Atmospheric Research
+//			PO 3000, Boulder, Colorado
+//
+//	Date:		November 2005
+//
+//	Description:	Defines the ProbeFrame class.  This provides
+//		a frame in which the glprobewindow sits
+//		Principally involved in drawing and responding to mouse events.
+//		This class is used as a custom dialog for Qt Designer, so that
+//		it can be embedded in the probe tab
+//		It's *not* in the Vapor namespace, so that designer can use it.
+//
+#ifndef PROBEFRAME_H
+#define PROBEFRAME_H
+#include <qframe.h>
+#include <qwidget.h>
+#include "glprobewindow.h"
+class QLabel;
+class QWidget;
+
+
+namespace VAPoR {
+	class GLProbeWindow;
+	class ProbeParams;
+}
+using namespace VAPoR;
+class ProbeFrame : public QFrame {
+	Q_OBJECT
+public:
+	ProbeFrame( QWidget * parent = 0, const char * name = 0, WFlags f = 0 );
+	~ProbeFrame();
+	void setGLWindow(VAPoR::GLProbeWindow* w){glProbeWindow = w;}
+	void setTextureSize(float h, float v){
+		glProbeWindow->setTextureSize(h,v);
+	}
+	void setParams(ProbeParams* p) {probeParams = p;}
+	ProbeParams* getParams() {return probeParams;}
+	void updateGLWindow(){if (glProbeWindow) glProbeWindow->updateGL();}
+	
+public slots:
+	
+	
+signals:
+	
+protected:
+	
+	//Virtual, Reimplemented here:
+	void paintEvent(QPaintEvent* event);
+	void mousePressEvent( QMouseEvent * );
+    void mouseReleaseEvent( QMouseEvent * );
+    void mouseMoveEvent( QMouseEvent * );
+	
+	void resizeEvent( QResizeEvent * );
+	
+	
+
+	VAPoR::GLProbeWindow* glProbeWindow;
+	bool needUpdate;
+	bool amDragging;
+	
+	bool mouseIsDown;
+	VAPoR::ProbeParams* probeParams;
+};
+
+
+#endif
+

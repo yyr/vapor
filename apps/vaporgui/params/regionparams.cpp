@@ -298,6 +298,26 @@ validateNumTrans(int n){
 	return n;
 }
 	//If we passed that test, then go ahead and change the numTrans.
+
+//Move the region center to specified coords, shrink it if necessary
+void RegionParams::
+guiSetCenter(float* coords){
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "move region center");
+	for (int i = 0; i< 3; i++){
+		float coord = coords[i];
+		float fullMin = getFullDataExtent(i);
+		float fullMax = getFullDataExtent(i+3);
+		if (coord < fullMin) coord = fullMin;
+		if (coord > fullMax) coord = fullMax;
+		float regSize = getRegionMax(i) - getRegionMin(i);
+		if (coord + 0.5f*regSize > fullMax) regSize = 2.f*(fullMax - coord);
+		if (coord - 0.5f*regSize < fullMin) regSize = 2.f*(coord - fullMin);
+		setRegionMax(i, coord + 0.5f*regSize);
+		setRegionMin(i, coord - 0.5f*regSize);
+	}
+	PanelCommand::captureEnd(cmd, this);
+	VizWinMgr::getInstance()->setRegionDirty(this);
+}
 //Following are set when slider is released:
 //
 void RegionParams::

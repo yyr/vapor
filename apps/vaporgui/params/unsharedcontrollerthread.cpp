@@ -28,6 +28,7 @@
 #include "vizwinmgr.h"
 #include "vizwin.h"
 #include "messagereporter.h"
+#include "dvrparams.h"
 #include "glutil.h"
 #include <qthread.h>
 using namespace VAPoR;

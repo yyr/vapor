@@ -146,6 +146,9 @@ void TabChangeCommand::unDo(){
 		case Params::DvrParamsType:
 			MainForm::getInstance()->renderDVR();
 			break;
+		case Params::ProbeParamsType:
+			MainForm::getInstance()->launchProbeTab();
+			break;
 		case Params::ContourParamsType:
 			MainForm::getInstance()->contourPlanes();
 			break;
@@ -179,6 +182,9 @@ void TabChangeCommand::reDo(){
 		case Params::DvrParamsType:
 			MainForm::getInstance()->renderDVR();
 			break;
+		case Params::ProbeParamsType:
+			MainForm::getInstance()->launchProbeTab();
+			break;
 		case Params::ContourParamsType:
 			MainForm::getInstance()->contourPlanes();
 			break;
@@ -210,6 +216,8 @@ tabName(Params::ParamType t){
 			return " animation ";
 		case Params::FlowParamsType:
 			return " flow ";
+		case Params::ProbeParamsType:
+			return " probe ";
 		default:  
 			assert(0);
 			return 0;

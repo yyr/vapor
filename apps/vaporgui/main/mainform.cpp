@@ -53,6 +53,7 @@
 #include "vizwin.h"
 #include "isotab.h"
 #include "flowtab.h"
+#include "probetab.h"
 #include "vizselectcombo.h"
 #include "tabmanager.h"
 #include "viztab.h"
@@ -69,6 +70,7 @@
 #include "contourparams.h"
 #include "isosurfaceparams.h"
 #include "animationparams.h"
+#include "probeparams.h"
 
 #include "assert.h"
 #include "command.h"
@@ -112,6 +114,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	theContourTab = 0;
 	theAnimationTab = 0;
 	theFlowTab = 0;
+	theProbeTab = 0;
 	
 	sessionSaveFile.setAscii("/tmp/VaporSaved.vss");
 
@@ -299,13 +302,14 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
 	//Add a QComboBox to toolbar to select window
 	windowSelector = new VizSelectCombo(vizToolBar, myVizMgr);
-	//add navigation button
+	//add mode buttons, left to right:
 	navigationAction->addTo(modeToolBar);
 	regionSelectAction->addTo(modeToolBar);
 	rakeAction->addTo(modeToolBar);
-	contourAction->addTo(modeToolBar);
 	probeAction->addTo(modeToolBar);
+	contourAction->addTo(modeToolBar);
 	moveLightsAction->addTo(modeToolBar);
+
 	tileAction->addTo(vizToolBar);
 	cascadeAction->addTo(vizToolBar);
 	homeAction->addTo(vizToolBar);
@@ -448,7 +452,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	animationParams();
 	viewpoint();
 	region();
-	
+	launchProbeTab();
 	renderDVR();
 	launchFlowTab();
 	
@@ -469,7 +473,6 @@ MainForm::~MainForm()
     //qWarning("mainform destructor start");
 	delete Session::getInstance();
     // no need to delete child widgets, Qt does it all for us?? (see closeEvent)
-	
 }
 
 /*
@@ -1028,7 +1031,28 @@ void MainForm::launchFlowTab()
 	}
 	
 }
-
+void MainForm::launchProbeTab()
+{
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+	//Determine which is the current active window:
+	int activeViz = myVizMgr->getActiveViz();
+	//Get the Probe parameter set (local or global) that applies:
+	ProbeParams* myProbeParams = myVizMgr->getProbeParams(activeViz);
+	if (!theProbeTab){
+		theProbeTab = new ProbeTab(tabWidget, "Probetab");
+		myVizMgr->getProbeParams(-1)->setTab(theProbeTab);
+		myVizMgr->hookUpProbeTab(theProbeTab);
+	}
+	myProbeParams->updateDialog();
+	
+	int posn = tabWidget->findWidget(Params::ProbeParamsType);
+	if (posn < 0){
+		tabWidget->insertWidget( theProbeTab, Params::ProbeParamsType, true );
+	} else {
+		tabWidget->moveToFront(Params::ProbeParamsType);
+	}
+	
+}
 /*
  * Respond to toolbar clicks:
  * navigate mode.  Don't change tab menu
@@ -1067,13 +1091,13 @@ void MainForm::setProbe(bool on)
 	//Probe mode right now does nothing
 	if (!on && probeAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
-	//Session* currentSession = Session::getInstance();
+	Session* currentSession = Session::getInstance();
 	if (currentMouseMode != Command::probeMode){
 		VizWinMgr::getInstance()->setSelectionMode(Command::probeMode);
 		
-		//currentSession->blockRecording();
-		//launchFlowTab();
-		//currentSession->unblockRecording();
+		currentSession->blockRecording();
+		launchProbeTab();
+		currentSession->unblockRecording();
 		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::probeMode));
 		currentMouseMode = Command::probeMode;
 	}

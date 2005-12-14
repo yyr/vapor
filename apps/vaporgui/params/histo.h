@@ -26,6 +26,7 @@ namespace VAPoR {
 class RegionParams;
 class AnimationParams;
 class DvrParams;
+class Params;
 	
 class Histo{
 public:
@@ -42,8 +43,8 @@ public:
 	float getMinData(){return minData;}
 	float getMaxData(){return maxData;}
 	static void releaseHistograms();
-	static Histo* getHistogram(int varNum, int vizNum, bool mustGet);
-	static void refreshHistogram(int vizNum);
+	static Histo* getHistogram(int varNum, int vizNum, bool mustGet, Params* renderParams);
+	static void refreshHistogram(int vizNum, Params* renderParams);
 private:
 	static Histo** histoArray;
 	static int histoArraySize;

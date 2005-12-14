@@ -152,11 +152,11 @@ void vtransform4(const float *v, GLfloat *mat, float *vt)
     qcopy(t, vt);
 }
 //Test whether a planar point is right (or left) of the oriented line from
-// pt1 to pt2
+// pt1 to pt2.  If pt1 = pt1, result is true
 bool pointOnRight(float* pt1, float* pt2, float* testPt){
 	float rhs = pt1[0]*(pt1[1]-pt2[1]) + pt1[1]*(pt2[0]-pt1[0]);
 	float test = (pt2[0]-pt1[0])*testPt[1] + (pt1[1]-pt2[1])*testPt[0] - rhs;
-	return (test < 0.f);
+	return (test <= 0.f);
 }
 
 void mcopy(GLfloat *m1, GLfloat *m2)
@@ -630,7 +630,7 @@ int ViewAxis(int *direction)
     return axis;
 }
 
-#define M_PI 3.14159265358979323846
+
 void StereoPerspective(int fovy, float aspect, float neardist, float fardist,
 		       float converge, float eye)
 {

@@ -97,14 +97,21 @@ public:
 	//i.e., quantize to current Mapper function domain
 	//
 	int mapFloatToColorIndex(float point) {
-		return mapPosition(point, getMinColorMapValue(), getMaxColorMapValue(), numEntries-1);
+		
+		int indx = mapPosition(point, getMinColorMapValue(), getMaxColorMapValue(), numEntries-1);
+		if (indx < 0) indx = 0;
+		if (indx > numEntries-1) indx = numEntries-1;
+		return indx;
 		//return (int)(0.5f+(numEntries*(point - minMapValue)/(maxMapValue-minMapValue)));
 	}
 	float mapColorIndexToFloat(int indx){
 		return (float)(getMinColorMapValue() + ((float)indx)*(float)(getMaxColorMapValue()-getMinColorMapValue())/(float)(numEntries-1));
 	}
 	int mapFloatToOpacIndex(float point) {
-		return mapPosition(point, getMinOpacMapValue(), getMaxOpacMapValue(), numEntries-1);
+		int indx =  mapPosition(point, getMinOpacMapValue(), getMaxOpacMapValue(), numEntries-1);
+		if (indx < 0) indx = 0;
+		if (indx > numEntries-1) indx = numEntries-1;
+		return indx;
 		//return (int)(0.5f+(numEntries*(point - minMapValue)/(maxMapValue-minMapValue)));
 	}
 	float mapOpacIndexToFloat(int indx){

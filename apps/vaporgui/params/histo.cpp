@@ -120,7 +120,7 @@ void Histo::releaseHistograms(){
 //The bool argument determines whether a new histogram will be
 //generated if none exists
 Histo* Histo::
-getHistogram(int varNum, int vizNum, bool mustGet){
+getHistogram(int varNum, int vizNum, bool mustGet, Params* renderParams){
 	assert (vizNum >=0 && varNum >= 0);
 	//Check if there exists a histogram array:
 	if (!histoArray || histoArraySize <= 0){
@@ -134,21 +134,21 @@ getHistogram(int varNum, int vizNum, bool mustGet){
 	
 	if (!histoArray[varNum*MAXVIZWINS + vizNum]) {
 		//Need to construct one:
-		if (mustGet) refreshHistogram(vizNum);
+		if (mustGet) refreshHistogram(vizNum,renderParams);
 	}
 	return histoArray[varNum*MAXVIZWINS + vizNum];
 }
 // Force the construction of a new histogram, valid for a particular visualizer
+// and renderer params
 // It will be saved in the cache
 void Histo::
-refreshHistogram(int vizNum)
+refreshHistogram(int vizNum, Params* dParams)
 {
 	float extents[6], minFull[3], maxFull[3];
 	int min_dim[3],max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
 	assert (vizNum >= 0);
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	DvrParams* dParams = vizWinMgr->getDvrParams(vizNum);
 	int varNum = dParams->getVarNum();
 	if (!histoArray || histoArraySize <= 0){
 		int numVars = Session::getInstance()->getNumVariables();
@@ -164,8 +164,8 @@ refreshHistogram(int vizNum)
 	RegionParams* rParams = vizWinMgr->getRegionParams(vizNum);
 	int numTrans = rParams->getNumTrans();
 	int timeStep = vizWinMgr->getAnimationParams(vizNum)->getCurrentFrameNumber();
-	float dataMin = dParams->getMinMapBound();
-	float dataMax = dParams->getMaxMapBound();
+	float dataMin = dParams->getMinOpacMapBound();
+	float dataMax = dParams->getMaxOpacMapBound();
 	
 	rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numTrans, minFull, maxFull, extents);
 	DataMgr* dataMgr = Session::getInstance()->getDataMgr();

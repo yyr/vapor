@@ -7,7 +7,7 @@ PARAMS_FILES := \
 	tfeditor  tfinterpolator \
 	transferfunction unsharedcontrollerthread \
 	viewpointparams viewpoint vizfeatureparams \
- 	mapperfunction mapeditor
+ 	mapperfunction mapeditor probeparams
 
 PARAMS_QT_HEADERS := \
 	sessionparams vizfeatureparams 

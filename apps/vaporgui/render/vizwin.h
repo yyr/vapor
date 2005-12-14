@@ -55,6 +55,7 @@ class VizWinMgr;
 class GLWindow;
 class Renderer;
 class Viewpoint;
+class TranslateManip;
 
 class VizWin : public QMainWindow
 {
@@ -92,6 +93,7 @@ public:
 	void appendRenderer(Renderer* ren, Params::ParamType rendererType);
 	void removeRenderer(Params::ParamType rendererType);
 	GLWindow* getGLWindow() {return myGLWindow;}
+	TranslateManip* getProbeManip(){return myProbeManip;}
 	
 	void setRegionDirty(bool isDirty){ regionDirty = isDirty;}
 	void setClutDirty(bool isDirty){ clutDirty = isDirty;}
@@ -216,7 +218,9 @@ public slots:
 	
 
 protected:
-	
+	//Manip stuff:
+	TranslateManip* myProbeManip;
+
 	QPoint mouseDownPosition;
 	bool mouseDownHere;
 

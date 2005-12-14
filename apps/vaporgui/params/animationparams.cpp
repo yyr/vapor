@@ -512,7 +512,7 @@ bool AnimationParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	//Check only for the animation params tag
 	if (StrCmpNoCase(tag, _animationParamsTag) == 0) {
-		//If this is a dvrparams, need to
+		//If this is animation params, need to
 		//pop the parse stack.  
 		ParsedXml* px = pm->popClassStack();
 		bool ok = px->elementEndHandler(pm, depth, tag);

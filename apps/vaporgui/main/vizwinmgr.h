@@ -39,7 +39,7 @@ class QMainWidget;
 #include <qobject.h>
 #include "viewpointparams.h"
 #include "regionparams.h"
-#include "dvrparams.h"
+#include "probeparams.h"
 #include "contourparams.h"
 #include "isosurfaceparams.h"
 #include "flowparams.h"
@@ -50,6 +50,7 @@ class QMainWidget;
 
 class RegionTab;
 class Dvr;
+class ProbeTab;
 class ContourPlaneTab;
 class VizTab;
 class IsoTab;
@@ -69,6 +70,7 @@ class MainForm;
 class ViewpointParams;
 class RegionParams;
 class DvrParams;
+class ProbeParams;
 class ContourParams;
 class Trackball;
 class VizWin;
@@ -140,6 +142,7 @@ public:
 
 	//For a renderer, there should always exist a local version.
 	DvrParams* getDvrParams(int winNum);
+	ProbeParams* getProbeParams(int winNum);
 	ContourParams* getContourParams(int winNum);
 	IsosurfaceParams* getIsoParams(int winNum);
 	FlowParams* getFlowParams(int winNum);
@@ -154,6 +157,7 @@ public:
 	void hookUpVizTab(VizTab*);
 	void hookUpRegionTab(RegionTab*);
 	void hookUpDvrTab(Dvr*);
+	void hookUpProbeTab(ProbeTab*);
 	void hookUpIsoTab(IsoTab*);
 	void hookUpContourTab(ContourPlaneTab*);
 	void hookUpAnimationTab(AnimationTab*);
@@ -166,6 +170,7 @@ public:
 	IsosurfaceParams* getRealIsoParams(int i) {return isoParams[i];}
 	FlowParams* getRealFlowParams(int i) {return flowParams[i];}
 	DvrParams* getRealDvrParams(int i) {return dvrParams[i];}
+	ProbeParams* getRealProbeParams(int i) {return probeParams[i];}
 	RegionParams* getRealRegionParams(int i) {return rgParams[i];}
 	AnimationParams* getRealAnimationParams(int i) {return animationParams[i];}
 
@@ -177,6 +182,7 @@ public:
 	//specified one, performs needed ref/unref
 	void setContourParams(int winNum, ContourParams* p);
 	void setDvrParams(int winNum, DvrParams* p);
+	void setProbeParams(int winNum, ProbeParams* p);
 	void setIsoParams(int winNum, IsosurfaceParams* p);
 	void setFlowParams(int winNum, FlowParams* p);
 	void setViewpointParams(int winNum, ViewpointParams* p);
@@ -212,11 +218,12 @@ public:
 	//
 	void refreshFlow(FlowParams*);
 	void refreshRegion(RegionParams* rParams);
+	void refreshProbe(ProbeParams* pParams);
 	
-	//Force renderers to get latest CLUT
+	//Force dvr renderer to get latest CLUT
 	//
 	void setClutDirty(DvrParams* );
-	//Force renderers to get latest DataRange
+	//Force dvr renderers to get latest DataRange
 	//
 	void setDataRangeDirty(DvrParams* );
 	
@@ -298,6 +305,7 @@ protected:
 	ViewpointParams* vpParams[MAXVIZWINS];
 	RegionParams* rgParams[MAXVIZWINS];
 	DvrParams* dvrParams[MAXVIZWINS];
+	ProbeParams* probeParams[MAXVIZWINS];
 	ContourParams* contourParams[MAXVIZWINS];
 	IsosurfaceParams* isoParams[MAXVIZWINS];
 	FlowParams* flowParams[MAXVIZWINS];
@@ -321,6 +329,7 @@ protected:
 	RegionParams* globalRegionParams;
 	IsosurfaceParams* globalIsoParams;
 	FlowParams* globalFlowParams;
+	ProbeParams* globalProbeParams;
 	DvrParams* globalDvrParams;
 	ContourParams* globalContourParams;
 	AnimationParams* globalAnimationParams;
@@ -334,6 +343,7 @@ protected:
     QWorkspace* myWorkspace;
 	ContourPlaneTab* myContourPlaneTab;
 	Dvr* myDvrTab;
+	ProbeTab* myProbeTab;
 	FlowTab* myFlowTab;
 
 
@@ -346,6 +356,7 @@ protected slots:
 	void setVpLocalGlobal(int val);
 	void setRgLocalGlobal(int val);
 	void setDvrLocalGlobal(int val);
+	void setProbeLocalGlobal(int val);
 	void setIsoLocalGlobal(int val);
 	void setContourLocalGlobal(int val);
 	void setAnimationLocalGlobal(int val);
@@ -362,12 +373,14 @@ protected slots:
 	void setFlowTabRangeTextChanged(const QString&);
 	
 	void setDvrTabTextChanged(const QString& qs);
+	void setProbeTabTextChanged(const QString& qs);
 	void setContourTabTextChanged(const QString& qs);
 	void setAtabTextChanged(const QString& qs);
 	
 	void viewpointReturnPressed();
 	void regionReturnPressed();
 	void dvrReturnPressed();
+	void probeReturnPressed();
 	void isoReturnPressed();
 	void contourReturnPressed();
 	void animationReturnPressed();
@@ -412,6 +425,18 @@ protected slots:
 	void dvrSaveTF();
 	void refreshHisto();
 	
+	//Slots for Probe panel:
+	void setProbeEnabled(int on);
+
+	void setProbeEditMode(bool);
+	void setProbeNavigateMode(bool);
+	void setProbeAligned();
+	void probeHistoStretch();
+	void probeColorBind();
+	void probeOpacBind();
+	void probeLoadTF();
+	void probeSaveTF();
+	void refreshProbeHisto();
 	
 	//Slots for contour panel:
 	
@@ -436,7 +461,6 @@ protected slots:
 	void setFlowXVar(int);
 	void setFlowYVar(int);
 	void setFlowZVar(int);
-	void clickFlowRecalc();
 	void checkFlowRandom(bool isRandom);
 	void flowAutoToggled(bool isOn);
 	void setFlowXCenter();
@@ -454,6 +478,23 @@ protected slots:
 	void setFlowEditMode(bool);
 	void setFlowNavigateMode(bool);
 	void setFlowAligned();
+
+	//Probe slots:
+	
+	void probeCenterRegion();
+	void probeCenterView();
+	void probeCenterRake();
+	void probeCenterProbe();
+	void probeAddSeed();
+	void probeAttachSeed(bool attach);
+	void setProbeNumTrans(int numtrans);
+	void probeSelectionChanged();
+	void setProbeXCenter();
+	void setProbeYCenter();
+	void setProbeZCenter();
+	void setProbeXSize();
+	void setProbeYSize();
+	void setProbeZSize();
 
 	
 
