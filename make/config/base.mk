@@ -513,13 +513,12 @@ $(OBJDIR)/%.o: %.s Makefile
 clean::
 ifdef SUBDIRS
 	@for i in $(SUBDIRS); do $(MAKE) -C $$i clean; done
-else
+endif
 ifdef LIBRARY
 	@$(ECHO) "Removing all $(ARCH) object files for $(TARGET)."
 else
 ifdef PROGRAM
 	@$(ECHO) "Removing all $(ARCH) object files for $(PROGRAM)."
-endif
 endif
 endif
 	@$(RM) $(OBJS) $(TEMPFILES) 
@@ -530,11 +529,10 @@ ifneq ($(SLOP)HACK, HACK)
 endif
 
 
-ifdef SUBDIRS
-clobber::
-	@for i in $(SUBDIRS); do $(MAKE) -C $$i clobber; done
-else
 clobber:: clean
+ifdef SUBDIRS
+	@for i in $(SUBDIRS); do $(MAKE) -C $$i clobber; done
+endif
 ifdef LIBRARY
 	@$(ECHO) "Removing $(LIB_TARGET) for $(ARCH)."
 	@$(RM) $(LIB_TARGET) $(QTTEMPS)
@@ -543,7 +541,6 @@ ifdef PROGRAM
 	@$(ECHO) "Removing $(PROGRAM) for $(ARCH)."
 	@$(RM) $(PROGRAM)
 	@$(RM) $(BINDIR)/$(PROGRAM) $(QTTEMPS)
-endif
 endif
 	@$(ECHO) "Removing dependency files (if any)"
 	@$(RM) $(DEPDIR)/*.depend
