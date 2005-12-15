@@ -1326,7 +1326,7 @@ int    mkdirhier(const string &dir) {
         s = dirs.top();
 		dirs.pop();
 #ifndef WIN32
-        if ((mkdir(s.c_str(), 0777) < 0) && errno != EEXIST) {
+        if ((mkdir(s.c_str(), 0777) < 0) && dirs.empty() && errno != EEXIST) {
 			MyBase::SetErrMsg("mkdir(%s) : %M", s.c_str());
             return(-1);
         }
