@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cerrno>
 #include <cctype>
+#include <string>
 
 #include "vapor/MyBase.h"
 #ifdef WIN32
@@ -36,13 +37,14 @@ MyBase::MyBase() {
 
 
 void	MyBase::_SetErrMsg(
+	char **msgbuf,
+	int *msgbufsz,
 	const char *format, 
 	va_list args
 ) {
 	int	done = 0;
 	const int alloc_size = 256;
 	int rc;
-	char *s;
 //#ifdef WIN32
 	//CHAR szBuf[80]; 
 	
@@ -52,70 +54,42 @@ void	MyBase::_SetErrMsg(
 	//sprintf(szBuf, "Reporting error message: GetLastError returned %u\n", dw); 
     //MessageBox(NULL, szBuf, "Error", MB_OK); 
 //#endif
-	if (!ErrMsg) {
-		ErrMsg = new char[alloc_size];
-		assert(ErrMsg != NULL);
-		ErrMsgSize = alloc_size;
+	if (!*msgbuf) {
+		*msgbuf = new char[alloc_size];
+		assert(*msgbuf != NULL);
+		*msgbufsz = alloc_size;
 	}
+
+	string formatstr(format);
+	int loc;
+	while ((loc = formatstr.find("%M", 0)) != string::npos) {
+		formatstr.replace(loc, 2, strerror(errno), strlen(strerror(errno)));
+	}
+
+	format = formatstr.c_str();
+
+
 	// Loop until we've successfully buffered the error message, growing
 	// the message buffer as needed
 	//
 	while (! done) {
 #ifdef WIN32
-		rc = _vsnprintf(ErrMsg, ErrMsgSize, format, args);
+		rc = _vsnprintf(*msgbuf, *msgbufsz, format, args);
 
 #else
-		rc = vsnprintf(ErrMsg, ErrMsgSize, format, args);
+		rc = vsnprintf(*msgbuf, *msgbufsz, format, args);
 #endif
 
-		if (rc < (ErrMsgSize-1)) {
+		if (rc < (*msgbufsz-1)) {
 			done = 1;
 		} else {
-			if (ErrMsg) delete [] ErrMsg;
-			ErrMsg = new char[ErrMsgSize + alloc_size];
-			assert(ErrMsg != NULL);
-			ErrMsgSize += alloc_size;
+			if (*msgbuf) delete [] *msgbuf;
+			*msgbuf = new char[*msgbufsz + alloc_size];
+			assert(*msgbuf != NULL);
+			*msgbufsz += alloc_size;
 		}
 	}
 
-	// Now handle any %M format specificers
-	//
-	while ((s = strstr(ErrMsg, "%M"))) {
-		s++;	
-		*s = 's';	// Ugh. Change %M to %s.
-
-		char *fmt = strdup(ErrMsg);
-		assert(fmt != NULL);
-		done = 0;
-		while (! done) {
-#ifdef WIN32
-			rc = _snprintf(ErrMsg, ErrMsgSize, fmt, strerror(errno));
-#else
-			rc = snprintf(ErrMsg, ErrMsgSize, fmt, strerror(errno));
-#endif
-			if (rc < (ErrMsgSize-1)) {
-				done = 1;
-			} else {
-				char *sptr;
-				sptr = new char[ErrMsgSize + alloc_size];
-				assert(sptr != NULL);
-				ErrMsgSize += alloc_size;
-				if (ErrMsg) {
-					strncpy(sptr, ErrMsg, rc);
-					delete [] ErrMsg;
-				}
-				ErrMsg = sptr;
-			}
-		}
-		if (fmt) free(fmt);
-	}
-
-
-	if (ErrMsgCB) (*ErrMsgCB) (ErrMsg, ErrCode);
-
-	if (ErrMsgFilePtr) {
-		(void) fprintf(ErrMsgFilePtr, "%s\n", ErrMsg);
-	}
 }
 
 void	MyBase::SetErrMsg(
@@ -127,8 +101,14 @@ void	MyBase::SetErrMsg(
 	ErrCode = 1;
 
 	va_start(args, format);
-	_SetErrMsg(format, args);
+	_SetErrMsg(&ErrMsg, &ErrMsgSize, format, args);
 	va_end(args);
+
+	if (ErrMsgCB) (*ErrMsgCB) (ErrMsg, ErrCode);
+
+	if (ErrMsgFilePtr) {
+		(void) fprintf(ErrMsgFilePtr, "%s\n", ErrMsg);
+	}
 }
 
 void	MyBase::SetErrMsg(
@@ -141,8 +121,14 @@ void	MyBase::SetErrMsg(
 	ErrCode = errcode;
 
 	va_start(args, format);
-	_SetErrMsg(format, args);
+	_SetErrMsg(&ErrMsg, &ErrMsgSize, format, args);
 	va_end(args);
+
+	if (ErrMsgCB) (*ErrMsgCB) (ErrMsg, ErrCode);
+
+	if (ErrMsgFilePtr) {
+		(void) fprintf(ErrMsgFilePtr, "%s\n", ErrMsg);
+	}
 }
 
 void	MyBase::SetDiagMsg(
@@ -150,69 +136,10 @@ void	MyBase::SetDiagMsg(
 	...
 ) {
 	va_list args;
-	int	done = 0;
-	const int alloc_size = 256;
-	int rc;
-	char *s;
 
-	if (!DiagMsg) {
-		DiagMsg = new char[alloc_size];
-		assert(DiagMsg != NULL);
-		DiagMsgSize = alloc_size;
-	}
-	// Loop until we've successfully buffered the error message, growing
-	// the message buffer as needed
-	//
-	while (! done) {
-		va_start(args, format);
-#ifdef WIN32
-		rc = _vsnprintf(DiagMsg, DiagMsgSize, format, args);
-
-#else
-		rc = vsnprintf(DiagMsg, DiagMsgSize, format, args);
-#endif
-		va_end(args);
-
-		if (rc < (DiagMsgSize-1)) {
-			done = 1;
-		} else {
-			if (DiagMsg) delete [] DiagMsg;
-			DiagMsg = new char[DiagMsgSize + alloc_size];
-			assert(DiagMsg != NULL);
-			DiagMsgSize += alloc_size;
-		}
-	}
-
-	// Now handle any %M format specificers
-	//
-	while ((s = strstr("%M", DiagMsg))) {
-		s++;	
-		*s = 's';	// Ugh. Change %M to %s.
-
-		char *fmt = strdup(DiagMsg);
-		assert(fmt != NULL);
-		done = 0;
-		while (! done) {
-#ifdef WIN32
-			rc = _snprintf(DiagMsg, DiagMsgSize, fmt, strerror(errno));
-#else
-			rc = snprintf(DiagMsg, DiagMsgSize, fmt, strerror(errno));
-#endif
-			if (rc < (DiagMsgSize-1)) {
-				done = 1;
-			} else {
-				char *sptr;
-				sptr = new char[DiagMsgSize + alloc_size];
-				assert(sptr != NULL);
-				DiagMsgSize += alloc_size;
-				if (DiagMsg) {
-					strncpy(sptr, DiagMsg, rc);
-					delete [] DiagMsg;
-				}
-				DiagMsg = sptr;
-			}
-		}
-	}
+	va_start(args, format);
+	_SetErrMsg(&DiagMsg, &DiagMsgSize, format, args);
+	va_end(args);
 
 	if (DiagMsgCB) (*DiagMsgCB) (DiagMsg);
 

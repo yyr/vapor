@@ -233,7 +233,7 @@ protected:
 	void	SetClassName(const string &name) { _className = name; };
 
 private:
-	static void	_SetErrMsg(const char *format, va_list args);
+	static void	_SetErrMsg(char **msg,int *sz,const char *format, va_list args);
 	string _className;	// name of class
 
 };
