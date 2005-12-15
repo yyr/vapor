@@ -217,6 +217,13 @@ protected:
 	
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
+	static const string _variableSelectedAttr;
+	static const string _geometryTag;
+	static const string _probeMinAttr;
+	static const string _probeMaxAttr;
+	static const string _cursorCoordsAttr;
+	static const string _phiAttr;
+	static const string _thetaAttr;
 
 	//Determine the value of the variable(s) at specified point.
 	//Return OUT_OF_BOUNDS if not in probe and in full domain
@@ -256,8 +263,7 @@ protected:
 	int firstVarNum;
 	int numVariables;
 	int numVariablesSelected;
-	//3x4 matrix to map probe into volume
-	//float transformMatrix[12];
+	
 	bool probeDirty;
 	unsigned char* probeTexture;
 	
@@ -270,11 +276,6 @@ protected:
 	float cursorCoords[2];
 	bool seedAttached;
 	FlowParams* attachedFlow;
-	float* currentProbeData;
-	
-	
-
-	
 	
 };
 };

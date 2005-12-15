@@ -72,6 +72,13 @@
 using namespace VAPoR;
 const string ProbeParams::_editModeAttr = "TFEditMode";
 const string ProbeParams::_histoStretchAttr = "HistoStretchFactor";
+const string ProbeParams::_variableSelectedAttr = "VariableSelected";
+const string ProbeParams::_geometryTag = "ProbeGeometry";
+const string ProbeParams::_probeMinAttr = "ProbeMin";
+const string ProbeParams::_probeMaxAttr = "ProbeMax";
+const string ProbeParams::_cursorCoordsAttr = "CursorCoords";
+const string ProbeParams::_phiAttr = "PhiAngle";
+const string ProbeParams::_thetaAttr = "ThetaAngle";
 
 
 
@@ -948,6 +955,9 @@ void ProbeParams::
 restart(){
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
+	if (probeTexture) delete probeTexture;
+	probeTexture = 0;
+	savedCommand = 0;
 	
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){
@@ -1215,9 +1225,15 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		minColorEditBounds = new float[numVars];
 		if (maxColorEditBounds) delete maxColorEditBounds;
 		maxColorEditBounds = new float[numVars];
+		if (minOpacEditBounds) delete minOpacEditBounds;
+		minOpacEditBounds = new float[numVars];
+		if (maxOpacEditBounds) delete maxOpacEditBounds;
+		maxOpacEditBounds = new float[numVars];
 		variableNames.clear();
+		variableSelected.clear();
 		for (i = 0; i<newNumVariables; i++){
 			variableNames.push_back("");
+			variableSelected.push_back(false);
 		}
 		//Setup with default values, in case not specified:
 		for (i = 0; i< newNumVariables; i++){
@@ -1248,6 +1264,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		parsedVarnum = 0;
 		float leftEdit = 0.f;
 		float rightEdit = 1.f;
+		bool varSelected = false;
 		string varName;
 		while (*attrs) {
 			string attribName = *attrs;
@@ -1271,13 +1288,18 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _variableNameAttr) == 0){
 				ist >> varName;
 			}
+			else if (StrCmpNoCase(attribName, _variableSelectedAttr) == 0){
+				if (value == "true") varSelected = true; 
+			}
 			else return false;
 		}
 		// Now set the values obtained from attribute parsing.
 	
 		variableNames[parsedVarnum] =  varName;
-		minColorEditBounds[parsedVarnum] = leftEdit;
-		maxColorEditBounds[parsedVarnum] = rightEdit;
+		variableSelected[parsedVarnum] = varSelected;
+		setMinColorEditBound(leftEdit,parsedVarnum);
+		setMaxColorEditBound(rightEdit,parsedVarnum);
+		
 		return true;
 	}
 	//Parse a transferFunction
@@ -1289,9 +1311,37 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		transFunc[parsedVarnum]->elementStartHandler(pm, depth, tagString, attrs);
 		return true;
 	}
+	//Parse the geometry node
+	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			
+			if (StrCmpNoCase(attribName, _thetaAttr) == 0) {
+				ist >> theta;
+			}
+			else if (StrCmpNoCase(attribName, _phiAttr) == 0) {
+				ist >> phi;
+			}
+			else if (StrCmpNoCase(attribName, _probeMinAttr) == 0) {
+				ist >> probeMin[0];ist >> probeMin[1];ist >> probeMin[2];
+			}
+			else if (StrCmpNoCase(attribName, _probeMaxAttr) == 0) {
+				ist >> probeMax[0];ist >> probeMax[1];ist >> probeMax[2];
+			}
+			else if (StrCmpNoCase(attribName, _cursorCoordsAttr) == 0) {
+				ist >> cursorCoords[0];ist >> cursorCoords[1];
+			}
+			else return false;
+		}
+		return true;
+	}
 	else return false;
 }
-//The end handler needs to pop the parse stack, nothing else
+//The end handler needs to pop the parse stack, not much else
 bool ProbeParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	
@@ -1311,9 +1361,11 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		return true;
 	} else if (StrCmpNoCase(tag, _variableTag) == 0){
 		return true;
+	} else if (StrCmpNoCase(tag, _geometryTag) == 0){
+		return true;
 	} else {
 		pm->parseError("Unrecognized end tag in ProbeParams %s",tag.c_str());
-		return false;  //Could there be other end tags that we ignore??
+		return false; 
 	}
 }
 
@@ -1368,6 +1420,13 @@ buildNode() {
 		attrs[_variableNameAttr] = oss.str();
 
 		oss.str(empty);
+		if (variableSelected[i])
+			oss << "true";
+		else 
+			oss << "false";
+		attrs[_variableSelectedAttr] = oss.str();
+
+		oss.str(empty);
 		oss << (double)minColorEditBounds[i];
 		attrs[_leftEditBoundAttr] = oss.str();
 
@@ -1382,6 +1441,24 @@ buildNode() {
 		varNode->AddChild(tfNode);
 		probeNode->AddChild(varNode);
 	}
+	//Now do geometry node:
+	attrs.clear();
+	oss.str(empty);
+	oss << (double)phi;
+	attrs[_phiAttr] = oss.str();
+	oss.str(empty);
+	oss << (double) theta;
+	attrs[_thetaAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)probeMin[0]<<" "<<(double)probeMin[1]<<" "<<(double)probeMin[2];
+	attrs[_probeMinAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)probeMax[0]<<" "<<(double)probeMax[1]<<" "<<(double)probeMax[2];
+	attrs[_probeMaxAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)cursorCoords[0]<<" "<<(double)cursorCoords[1];
+	attrs[_cursorCoordsAttr] = oss.str();
+	probeNode->NewChild(_geometryTag, attrs, 0);
 	return probeNode;
 }
 

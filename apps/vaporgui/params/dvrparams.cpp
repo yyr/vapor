@@ -907,6 +907,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		minColorEditBounds = new float[numVars];
 		if (maxColorEditBounds) delete maxColorEditBounds;
 		maxColorEditBounds = new float[numVars];
+		if (minOpacEditBounds) delete minOpacEditBounds;
+		minOpacEditBounds = new float[numVars];
+		if (maxOpacEditBounds) delete maxOpacEditBounds;
+		maxOpacEditBounds = new float[numVars];
 		variableNames.clear();
 		for (i = 0; i<newNumVariables; i++){
 			variableNames.push_back("");
