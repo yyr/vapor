@@ -20,9 +20,8 @@
 //		in the scene.
 #ifndef MANIP_H
 #define MANIP_H
-
-#define HANDLE_DIAMETER 0.05f
-
+//Handle diameter in pixels:
+#define HANDLE_DIAMETER 15
 namespace VAPoR {
 class VizWin;
 class Params;
@@ -56,8 +55,8 @@ public:
 	
 
 protected:
-	static const float highlightColor[4];
-	static const float faceColor[4];
+	static const float faceSelectionColor[4];
+	static const float unselectedFaceColor[4];
 	int mouseDownPosition[2];
 	float mouseDownIntersect[3];
 	
@@ -90,9 +89,9 @@ public:
 	void slideHandle(int handleNum, float movedRay[3]);
 
 protected:
+	float handleSizeInCube;
 	float subregionFrameColor[3];
-	float unselectedFaceColor[4];
-	float faceSelectionColor[4];
+	
 	float initialSelectionRay[3];
 	
 	

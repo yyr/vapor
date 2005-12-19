@@ -240,10 +240,7 @@ void GLWindow::paintGL()
 	} 
 	if (myVizWin->axesAreEnabled()) drawAxes(extents);
 
-	for (int i = 0; i< myVizWin->getNumRenderers(); i++){
-		myVizWin->renderer[i]->paintGL();
-	}
-	//Finally render the region geometry, if in region mode
+	//render the region geometry, if in region mode
 	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
 		float camVec[3];
 		ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
@@ -256,7 +253,7 @@ void GLWindow::paintGL()
 		renderRegionBounds(extents, selectedFace,
 			camVec, disp);
 	} 
-	//or render the seed geometry, if in rake mode
+	//render the seed geometry, if in rake mode
 	else if(MainForm::getInstance()->getCurrentMouseMode() == Command::rakeMode){
 		float camVec[3];
 		float seedExtents[6];
@@ -283,6 +280,11 @@ void GLWindow::paintGL()
 		//Also render the cursor
 		draw3DCursor(myProbeParams->getSelectedPoint());
 	} 
+
+	for (int i = 0; i< myVizWin->getNumRenderers(); i++){
+		myVizWin->renderer[i]->paintGL();
+	}
+	
 	swapBuffers();
 	glPopMatrix();
 	//Always clear the regionDirty flag:
@@ -619,17 +621,232 @@ void GLWindow::drawSubregionBounds(float* extents) {
 	glVertex3f(extents[0], extents[1], extents[5]);
 	glEnd();
 }
+//Draw the lines bounding the region, and the selected one in
+//highlighted color.
+void GLWindow::drawRegionFaceLines(float* extents, int selectedFace){
+	
+	//draw the highlighted face, then do the other lines:
+	glLineWidth( 3.0 );
+	glColor4f(1.f,1.f,0.f,1.f);
+	switch (selectedFace){
+		case 4://Do left (x=0)
+			
+			glBegin(GL_LINE_LOOP);
+			glVertex3f(extents[0], extents[1], extents[2]);
+			glVertex3f(extents[0], extents[1], extents[5]);
+			glVertex3f(extents[0], extents[4], extents[5]);
+			glVertex3f(extents[0], extents[4], extents[2]);
+			glEnd();
+			glLineWidth( 2.0 );
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+			glVertex3f(extents[3], extents[1], extents[2]);
+			glVertex3f(extents[3], extents[1], extents[5]);
+			glVertex3f(extents[3], extents[4], extents[5]);
+			glVertex3f(extents[3], extents[4], extents[2]);
+			glEnd();
+			//draw 4 other lines, x small to x-large
+			glBegin(GL_LINES);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+			glEnd();
+			break;
+		
+		case 5:
+		//do right 
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+			glEnd();
+			glLineWidth( 2.0 );
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[2]);
+			glEnd();
+			//draw 4 other lines, x small to x-large
+			glBegin(GL_LINES);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+			glEnd();
+		case(3)://top
+			
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[0], extents[4], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+			glEnd();
+			glLineWidth( 2.0 );
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[0], extents[1], extents[5]);
+			glEnd();
+			//draw 4 other lines, y small to y-large
+			glBegin(GL_LINES);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[0], extents[4], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+				
+			glEnd();
+			break;
+		case(2)://bottom
+			
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+			glEnd();
+			glLineWidth( 2.0 );
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[0], extents[4], extents[2]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+			glEnd();
+			//draw 4 other lines, y small to y-large
+			glBegin(GL_LINES);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[0], extents[4], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+			glEnd();
+			break;
+	
+		case(0):
+			//back
+			
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+				glVertex3f(extents[0], extents[4], extents[2]);
+			glEnd();
+			glLineWidth( 2.0 );
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+			glEnd();
+			glBegin(GL_LINES);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[2]);
+			glEnd();
+			break;
+		case(1):
+			//do the front:
+			//
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+			glEnd();
+			glLineWidth( 2.0 );
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+				glVertex3f(extents[0], extents[4], extents[2]);
+			glEnd();
+			glBegin(GL_LINES);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[2]);
+			glEnd();
+			break;
+		default: //Nothing selected.  Just do all in subregion frame color.
+			glLineWidth( 2.0 );
+			glColor3fv(subregionFrameColor);
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+				glVertex3f(extents[0], extents[4], extents[2]);
+			glEnd();
+			glBegin(GL_LINE_LOOP);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+			glEnd();
+			glBegin(GL_LINES);
+				glVertex3f(extents[0], extents[1], extents[5]);
+				glVertex3f(extents[0], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[1], extents[5]);
+				glVertex3f(extents[3], extents[1], extents[2]);
+				glVertex3f(extents[3], extents[4], extents[5]);
+				glVertex3f(extents[3], extents[4], extents[2]);
+				glVertex3f(extents[0], extents[4], extents[5]);
+				glVertex3f(extents[0], extents[4], extents[2]);
+			glEnd();
+			break;
+	}
+}
+
+
+//This only draws the outline of the face, as of 12/05.
 void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
-	glLineWidth( 2.0 );
+	
 	glEnable (GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPolygonMode(GL_FRONT, GL_FILL);
-	if (isSelected)
-			glColor4f(.8f,.8f,0.f,.6f);
-		else 
-			glColor4f(.8f,.8f,.8f,.2f);
+	if (isSelected){
+		glLineWidth( 3.0 );
+		glColor4f(1.f,1.f,0.f,1.f);
+	}
+	else {
+		//glColor4f(.8f,.8f,.8f,.2f);
+		glLineWidth( 2.0 );
+		glColor3fv(subregionFrameColor);
+	}
 	switch (faceNum){
 		case 4://Do left (x=0)
+			/*
 			glBegin(GL_QUADS);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[0], extents[1], extents[5]);
@@ -637,6 +854,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[0], extents[4], extents[2]);
 			glEnd();
 			glColor3fv(subregionFrameColor);
+			*/
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[0], extents[1], extents[5]);
@@ -647,6 +865,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 		
 		case 5:
 		//do right 
+			/*
 			glBegin(GL_QUADS);
 			glVertex3f(extents[3], extents[1], extents[2]);
 			glVertex3f(extents[3], extents[1], extents[5]);
@@ -654,6 +873,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[4], extents[2]);
 			glEnd();
 			glColor3fv(subregionFrameColor);
+			*/
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[3], extents[1], extents[2]);
 			glVertex3f(extents[3], extents[1], extents[5]);
@@ -662,6 +882,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glEnd();
 			break;
 		case(3)://top
+			/*
 			glBegin(GL_QUADS);
 			glVertex3f(extents[0], extents[4], extents[2]);
 			glVertex3f(extents[3], extents[4], extents[2]);
@@ -669,6 +890,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[0], extents[4], extents[5]);
 			glEnd();
 			glColor3fv(subregionFrameColor);
+			*/
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[4], extents[2]);
 			glVertex3f(extents[3], extents[4], extents[2]);
@@ -677,6 +899,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glEnd();
 			break;
 		case(2)://bottom
+			/*
 			glBegin(GL_QUADS);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[0], extents[1], extents[5]);
@@ -684,6 +907,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[3], extents[1], extents[2]);
 			glEnd();
 			glColor3fv(subregionFrameColor);
+			*/
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[0], extents[1], extents[5]);
@@ -694,6 +918,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 	
 		case(0):
 			//back
+			/*
 			glBegin(GL_QUADS);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[3], extents[1], extents[2]);
@@ -701,6 +926,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[0], extents[4], extents[2]);
 			glEnd();
 			glColor3fv(subregionFrameColor);
+			*/
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[3], extents[1], extents[2]);
@@ -711,6 +937,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 		case(1):
 			//do the front:
 			//
+			/*
 			glBegin(GL_QUADS);
 			glVertex3f(extents[0], extents[1], extents[5]);
 			glVertex3f(extents[3], extents[1], extents[5]);
@@ -718,6 +945,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glVertex3f(extents[0], extents[4], extents[5]);
 			glEnd();
 			glColor3fv(subregionFrameColor);
+			*/
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[5]);
 			glVertex3f(extents[3], extents[1], extents[5]);
@@ -875,11 +1103,12 @@ void GLWindow::renderRegionBounds(float* extents, int selectedFace, float* camPo
 		//Stretch the "extents" associated with selected face
 		if(i==stretchCrd) cpExtents[i] += faceDisplacement;
 	}
-	for (i = 0; i< 6; i++){
-		if (faceIsVisible(extents, camPos, i)){
-			drawRegionFace(cpExtents, i, (i==selectedFace));
-		}
-	}
+	//for (i = 0; i< 6; i++){
+	//	if (faceIsVisible(extents, camPos, i)){
+	//		drawRegionFace(cpExtents, i, (i==selectedFace));
+	//	}
+	//}
+	drawRegionFaceLines(cpExtents, selectedFace);
 }
 
 //Set colors to use in bound rendering:

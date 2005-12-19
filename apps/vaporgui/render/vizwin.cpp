@@ -897,6 +897,18 @@ doFrameCapture(){
 	delete buf;
 }
 
+float VizWin::getPixelSize(){
+	float temp[3];
+	//Window height is subtended by viewing angle (45 degrees),
+	//at viewer distance (dist from camera to view center)
+	ViewpointParams* vpParams = VizWinMgr::getInstance()->getViewpointParams(myWindowNum);
+	vsub(vpParams->getRotationCenter(),vpParams->getCameraPos(),temp);
+	float distToScene = vlength(temp);
+	//tan(45 deg *0.5) is ratio between half-height and dist to scene
+	float halfHeight = tan(M_PI*0.125)* distToScene;
+	return (2.f*halfHeight/(float)height());
+
+}
 
     
     

@@ -112,6 +112,7 @@ protected:
 	// back, front, bottom, top, left, right
 	static bool faceIsVisible(float* extents, float* viewerCoords, int faceNum);
 	void drawRegionFace(float* extents, int faceNum, bool isSelected);
+	void drawRegionFaceLines(float* extents, int selectedFace);
 	void drawProbeFace(float* corners, int faceNum, bool isSelected);
 
 	float regionFrameColor[3];
