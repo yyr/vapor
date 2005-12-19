@@ -1106,3 +1106,13 @@ void DvrParams::setMinOpacMapBound(float val){
 void DvrParams::setMaxOpacMapBound(float val){
 	getMapperFunc()->setMaxOpacMapValue(val);
 }
+
+//Methods to support maintaining a list of histograms
+//in each params (at least those with a TFE)
+//Initially just revert to static methods on Histo:
+Histo* DvrParams::getHistogram(bool mustGet){
+	return Histo::getHistogram(varNum, vizNum, mustGet, this);
+}
+void DvrParams::refreshHistogram(){
+	Histo::refreshHistogram(vizNum, this);
+}

@@ -175,6 +175,10 @@ public:
 	virtual MapperFunction* getMapperFunc();
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float getHistoStretch(){return histoStretchFactor;}
+	//Methods to support maintaining a list of histograms
+	//in each params (at least those with a TFE)
+	virtual Histo* getHistogram(bool mustGet);
+	virtual void refreshHistogram();
 protected:
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;

@@ -24,6 +24,8 @@
 #include <qwidget.h>
 #include "assert.h"
 #include "vapor/ExpatParseMgr.h"
+#include "histo.h"
+
 class QWidget;
 
 //Error tolerance for gui parameters:
@@ -36,6 +38,7 @@ class PanelCommand;
 class XmlNode;
 class MapperFunction;
 class MapEditor;
+class Histo;
 class Params : public ParsedXml  {
 	
 public: 
@@ -49,12 +52,19 @@ public:
 		maxColorEditBounds = 0;
 		minOpacEditBounds = 0;
 		maxOpacEditBounds = 0;
+		histogramList = 0;
+		numHistograms = 0;
 	}
 	virtual ~Params(){
 		if (minColorEditBounds) delete minColorEditBounds;
 		if (maxColorEditBounds) delete maxColorEditBounds;
 		if (minOpacEditBounds) delete minOpacEditBounds;
 		if (maxOpacEditBounds) delete maxOpacEditBounds;
+		
+		for (int i = 0; i<numHistograms; i++) 
+			if (histogramList[i]) delete histogramList[i];
+		if (histogramList) delete histogramList;
+
 	}
 	
 	enum ParamType {
@@ -220,10 +230,15 @@ public:
 	void calcBoxExtentsInCube(float* extents);
 	void calcBoxExtents(float* extents);
 	//Calculate the box in world coords, using any theta or phi
-	void calcBoxCorners(float corners[8][3]);
+	void calcBoxCorners(float corners[8][3], float extraThickness = 0.f);
 	// Construct transformation as a mapping of [-1,1]^3 into volume array
 	// coordinates at current resolution
-	void buildCoordTransform(float transformMatrix[12]);
+	void buildCoordTransform(float transformMatrix[12], float extraThickness = 0.f);
+
+	//Methods to support maintaining a list of histograms
+	//in each params (at least those with a TFE)
+	virtual Histo* getHistogram(bool /*mustGet*/) { assert(0); return 0;}
+	virtual void refreshHistogram() {assert(0);}
 
 
 	//The restart method goes back to initial state
@@ -259,6 +274,18 @@ protected:
 	float* maxColorEditBounds;
 	float* minOpacEditBounds;
 	float* maxOpacEditBounds;
+
+	//Params with histograms keep an array, probably one for each variable,
+	// or variable combination
+	Histo** histogramList;
+	int numHistograms;
+
+	//Helper function for testing distances,
+	//testing whether a point is inside or outside of cube 
+	//Return is positive if point is outside.  Arguments are outward pointing
+	//unit normal vectors and associated points (corners) of probe faces.
+	static float distanceToCube(const float point[3],const float faceNormals[6][3], const float faceCorners[6][3]);
+
 
 
 };

@@ -139,7 +139,7 @@ getHistogram(int varNum, int vizNum, bool mustGet, Params* renderParams){
 	return histoArray[varNum*MAXVIZWINS + vizNum];
 }
 // Force the construction of a new histogram, valid for a particular visualizer
-// and renderer params
+// and dvr params
 // It will be saved in the cache
 void Histo::
 refreshHistogram(int vizNum, Params* dParams)

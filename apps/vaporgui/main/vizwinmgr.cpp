@@ -1705,7 +1705,7 @@ refreshHisto(){
 	//dParams->setDatarangeDirty();
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
-		Histo::refreshHistogram(activeViz,dParams);
+		dParams->refreshHistogram();
 	}
 	dParams->refreshTFFrame();
 }
@@ -1798,14 +1798,14 @@ void VizWinMgr::
 refreshProbeHisto(){
 	VizWin* vizWin = getActiveVisualizer();
 	if (!vizWin) return;
-	ProbeParams* dParams = getProbeParams(activeViz);
+	ProbeParams* pParams = getProbeParams(activeViz);
 	//Refresh data range:
 	//dParams->setDatarangeDirty();
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
-		Histo::refreshHistogram(activeViz, dParams);
+		pParams->refreshHistogram();
 	}
-	dParams->refreshTFFrame();
+	pParams->refreshTFFrame();
 }
 /*
  * Respond to a slider release

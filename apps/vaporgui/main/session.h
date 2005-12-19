@@ -282,10 +282,7 @@ public:
 	bool isRecording() {return (recordingCount == 0);}
 	Histo* getCurrentHistogram(int var) {
 		return (currentHistograms ? currentHistograms[var]: 0);}
-	//Rebuild a histogram, based on current settings in
-	//Region, DVR, animation panels
-	//void refreshHistogram(int varNum, RegionParams* rParams, 
-		//int timestep, float dataMin, float dataMax);
+	
 	const WaveletBlock3DRegionReader* getRegionReader() {return myReader;}
 	//Setup session for a new Metadata, by specifying vdf file
 	//If the argument is null, it resets to default state

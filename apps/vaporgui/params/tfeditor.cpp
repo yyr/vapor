@@ -87,8 +87,7 @@ void TFEditor::refreshImage(){
 		viznum = VizWinMgr::getInstance()->getActiveViz();
 		assert(viznum >= 0);
 	}
-	Histo* histo = Histo::getHistogram(getParams()->getVarNum(),viznum, 
-		getParams()->isEnabled(),getParams());
+	Histo* histo = getParams()->getHistogram(getParams()->isEnabled());
 	
 	if (histo) {
 		histoMaxBin = histo->getMaxBinSize();
@@ -648,7 +647,7 @@ getHistoValue(float point){
 		viznum = VizWinMgr::getInstance()->getActiveViz();
 		assert(viznum >= 0);
 	}
-	Histo* hist = Histo::getHistogram(getParams()->getVarNum(),viznum, true,getParams());
+	Histo* hist = getParams()->getHistogram(true);
 	if (!hist) return -1;
 	float ind = (point - hist->getMinData())/(hist->getMaxData()-hist->getMinData());
 	if (ind < 0.f || ind >= 1.f) return 0;

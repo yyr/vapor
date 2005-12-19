@@ -40,6 +40,7 @@ class TransferFunction;
 class PanelCommand;
 class XmlNode;
 class FlowParams;
+class Histo;
 class ProbeParams : public Params{
 	
 public: 
@@ -213,6 +214,11 @@ public:
 	void captureMouseDown();
 	virtual void captureMouseUp();
 
+	//Methods to support maintaining a list of histograms
+	//in each params (at least those with a TFE)
+	virtual Histo* getHistogram(bool mustGet);
+	virtual void refreshHistogram();
+
 protected:
 	
 	static const string _editModeAttr;
@@ -229,6 +235,7 @@ protected:
 	//Return OUT_OF_BOUNDS if not in probe and in full domain
 	float calcCurrentValue(float point[3]);
 
+	
 	void mapCursor();
 	void refreshCtab();
 	void hookupTF(TransferFunction* t, int index);

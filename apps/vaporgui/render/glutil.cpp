@@ -126,7 +126,7 @@ void vreflect(const float *in, const float *mirror, float *out)
 }
 
 
-void vtransform(const float *v, GLfloat mat[16], float *vt)
+void vtransform(const float *v, GLfloat mat[12], float *vt)
 {
     /* Vector transform in software...
      */

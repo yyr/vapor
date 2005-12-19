@@ -141,6 +141,8 @@ deepCopy(){
 	newParams->probeDirty = true;
 	//never keep the SavedCommand:
 	newParams->savedCommand = 0;
+	newParams->histogramList = 0;
+	newParams->numHistograms = 0;
 	return newParams;
 }
 //Method called when undo/redo changes params:
@@ -1844,4 +1846,160 @@ calcCurrentValue(float point[3]){
 	delete volData;
 	return varVal;
 }
+//Obtain the current valid histogram.  if mustGet is false, don't build a new one.
+Histo* ProbeParams::getHistogram(bool mustGet){
+	if (!histogramList){
+		if (!mustGet) return 0;
+		histogramList = new Histo*[numVariables];
+		for (int i = 0; i<numVariables; i++)
+			histogramList[i] = 0;
+	}
+	if (histogramList[firstVarNum]) return histogramList[firstVarNum];
+	
+	if (!mustGet) return 0;
+	histogramList[firstVarNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
+	refreshHistogram();
+	return histogramList[firstVarNum];
+	
+}
+//Obtain a new histogram for the current selected variables.
+//Save it at the position associated with firstVarNum
+void ProbeParams::
+refreshHistogram(){
+	Session* ses = Session::getInstance();
+	if (!ses->getDataMgr()) return;
+	if (!histogramList){
+		histogramList = new Histo*[numVariables];
+		for (int i = 0; i<numVariables; i++)
+			histogramList[i] = 0;
+	}
+	if (!histogramList[firstVarNum]){
+		histogramList[firstVarNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
+	}
+	Histo* histo = histogramList[firstVarNum];
+	histo->reset(256);
+	//create the smallest containing box
+	size_t blkMin[3],blkMax[3];
+	int boxMin[3],boxMax[3];
+	getBoundingBox(blkMin, blkMax, boxMin, boxMax);
+
+	int bSize =  *(ses->getCurrentMetadata()->GetBlockSize());
+	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
+	//volume for each variable specified, then histogram rms on the variables (if > 1 specified)
+	float** volData = new float*[numVariables];
+	int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
+	//Now obtain all of the volumes needed for this probe:
+	int totVars = 0;
+	for (int varnum = 0; varnum < (int)variableNames.size(); varnum++){
+		if (!variableSelected[varnum]) continue;
+		assert(varnum >= firstVarNum);
+		volData[totVars] = getContainingVolume(blkMin, blkMax, varnum, timeStep);
+		totVars++;
+	}
+
+	//Get the data dimensions (at current resolution):
+	int dataSize[3];
+	float gridSpacing[3];
+	const size_t totTransforms = ses->getCurrentMetadata()->GetNumTransforms();
+	float* extents = ses->getExtents();
+	for (int i = 0; i< 3; i++){
+		dataSize[i] = (ses->getDataStatus()->getFullDataSize(i))>>(totTransforms - numTransforms);
+		gridSpacing[i] = (extents[i+3]-extents[i])/(float)(dataSize[i]-1);
+		if (boxMin[i]< 0) boxMin[i] = 0;
+		if (boxMax[i] >= dataSize[i]) boxMax[i] = dataSize[i] - 1;
+	}
+	float voxSize = vlength(gridSpacing);
+
+	//Prepare for test by finding corners and normals to box:
+	float corner[8][3];
+	float normals[6][3];
+	float vec1[3], vec2[3];
+
+	//Get box that is slightly fattened, to ensure nondegenerate normals
+	calcBoxCorners(corner, 0.5*voxSize);
+	//The first 6 corners are reference points for testing
+	//the 6 normal vectors are outward pointing from these points
+	//Normals are calculated as if cube were axis aligned but this is of 
+	//course not really true, just gives the right orientation
+	//
+	// +Z normal: (c2-c0)X(c1-c0)
+	vsub(corner[2],corner[0],vec1);
+	vsub(corner[1],corner[0],vec2);
+	vcross(vec1,vec2,normals[0]);
+	vnormal(normals[0]);
+	// -Y normal: (c5-c1)X(c0-c1)
+	vsub(corner[5],corner[1],vec1);
+	vsub(corner[0],corner[1],vec2);
+	vcross(vec1,vec2,normals[1]);
+	vnormal(normals[1]);
+	// +Y normal: (c6-c2)X(c3-c2)
+	vsub(corner[6],corner[2],vec1);
+	vsub(corner[3],corner[2],vec2);
+	vcross(vec1,vec2,normals[2]);
+	vnormal(normals[2]);
+	// -X normal: (c7-c3)X(c1-c3)
+	vsub(corner[7],corner[3],vec1);
+	vsub(corner[1],corner[3],vec2);
+	vcross(vec1,vec2,normals[3]);
+	vnormal(normals[3]);
+	// +X normal: (c6-c4)X(c0-c4)
+	vsub(corner[6],corner[4],vec1);
+	vsub(corner[0],corner[4],vec2);
+	vcross(vec1,vec2,normals[4]);
+	vnormal(normals[4]);
+	// -Z normal: (c7-c5)X(c4-c5)
+	vsub(corner[7],corner[5],vec1);
+	vsub(corner[4],corner[5],vec2);
+	vcross(vec1,vec2,normals[5]);
+	vnormal(normals[5]);
+
+	float distval;
+	float xyz[3];
+	//int lastxyz = -1;
+	//int incount = 0;
+	//int outcount = 0;
+	//Now loop over the grid points in the bounding box
+	for (int k = boxMin[2]; k <= boxMax[2]; k++){
+		xyz[2] = extents[2] + (((float)k)/(float)(dataSize[2]-1))*(extents[5]-extents[2]);
+		for (int j = boxMin[1]; j <= boxMax[1]; j++){
+			xyz[1] = extents[1] + (((float)j)/(float)(dataSize[1]-1))*(extents[4]-extents[1]);
+			for (int i = boxMin[0]; i <= boxMax[0]; i++){
+				xyz[0] = extents[0] + (((float)i)/(float)(dataSize[0]-1))*(extents[3]-extents[0]);
+				
+				//test if x,y,z is in probe:
+				if ((distval = distanceToCube(xyz, normals, corner))<0.0005f*voxSize){
+					//incount++;
+					//Point is (almost) inside.
+					//Evaluate the variable(s):
+					int xyzCoord = (i - blkMin[0]*bSize) +
+						(j - blkMin[1]*bSize)*(bSize*(blkMax[0]-blkMin[0]+1)) +
+						(k - blkMin[2]*bSize)*(bSize*(blkMax[1]-blkMin[1]+1))*(bSize*(blkMax[0]-blkMin[0]+1));
+					//qWarning(" sampled coord %d",xyzCoord);
+					
+				
+					
+					assert(xyzCoord >= 0);
+					assert(xyzCoord < (blkMax[0]-blkMin[0]+1)*(blkMax[1]-blkMin[1]+1)*(blkMax[2]-blkMin[2]+1)*bSize*bSize*bSize);
+					float varVal;
+					//use the int xyzCoord to index into the loaded data
+					if (totVars == 1) varVal = volData[0][xyzCoord];
+					else { //Add up the squares of the variables
+						varVal = 0.f;
+						for (int d = 0; d<totVars; d++){
+							varVal += volData[d][xyzCoord]*volData[d][xyzCoord];
+						}
+						varVal = sqrt(varVal);
+					}
+					histo->addToBin(varVal);
+				
+				} 
+				//else {
+				//	outcount++;
+				//}
+			}
+		}
+	}
+
+}
+
 		

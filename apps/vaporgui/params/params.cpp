@@ -165,13 +165,16 @@ void Params::calcBoxExtents(float* extents){
 	}
 }
 void Params::
-calcBoxCorners(float corners[8][3]){
+calcBoxCorners(float corners[8][3], float extraThickness){
 	float transformMatrix[12];
-	buildCoordTransform(transformMatrix);
+	buildCoordTransform(transformMatrix, extraThickness);
 	float boxCoord[3];
 	//Return the corners of the box (in world space)
 	//Go counter-clockwise around the back, then around the front
 	//X increases fastest, then y then z; 
+
+	//Fatten box slightly, in case it is degenerate.  This will
+	//prevent us from getting invalid face normals.
 
 	boxCoord[0] = -1.f;
 	boxCoord[1] = -1.f;
@@ -194,8 +197,10 @@ calcBoxCorners(float corners[8][3]){
 	vtransform(boxCoord, transformMatrix, corners[6]);
 	
 }
+//Optional extraThickness parameter results in mapping to fatter box,
+//Useful to prevent degenerate transform when box is flattened
 void Params::
-buildCoordTransform(float transformMatrix[12]){
+buildCoordTransform(float transformMatrix[12], float extraThickness){
 	//Note:  transformMatrix is a 3x4 matrix that converts Box coords
 	// in the range [-1,1] to float coords in the volume.
 	//The last column of the matrix is the translation
@@ -225,7 +230,10 @@ buildCoordTransform(float transformMatrix[12]){
 	float boxSize[3];
 	float boxMin[3], boxMax[3];
 	getBox(boxMin, boxMax);
+
 	for (int i = 0; i< 3; i++) {
+		boxMin[i] -= extraThickness;
+		boxMax[i] += extraThickness;
 		boxSize[i] = (boxMax[i] - boxMin[i]);
 	}
 	//1st row
@@ -245,4 +253,19 @@ buildCoordTransform(float transformMatrix[12]){
 	transformMatrix[7] = .5f*(boxMax[1]+boxMin[1]);
 	transformMatrix[11] = .5f*(boxMax[2]+boxMin[2]);
 	
+}
+
+//static method to measure how far point is from cube.
+//Needed for histogram testing
+//negative value means it's inside.
+float Params::
+distanceToCube(const float point[3],const float normals[6][3], const float corners[6][3]){
+	float testVec[3];
+	float maxDist = -1.30f;
+	for (int i = 0; i< 6; i++){
+		vsub(point, corners[i], testVec);
+		float dist = vdot(testVec,normals[i]);
+		if (dist > maxDist) maxDist = dist;
+	}
+	return maxDist;
 }
