@@ -163,6 +163,7 @@ public:
 		}
 	}
 	float* getFlowData(int timeStep){
+		if (!flowData) return 0;
 		return flowData[timeStep];
 	}
 	float getConstantOpacity() {return constantOpacity;}
