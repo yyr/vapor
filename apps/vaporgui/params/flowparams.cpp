@@ -1722,27 +1722,27 @@ regenerateFlowData(int timeStep){
 			if (postSpeeds) delete postSpeeds;
 		}
 	} else {
-		//Can ignore false return code, streaks will just stop at bad frame(?)
-		myFlowLib->GenStreakLines(flowData[0], maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
+		//Can ignore false return code, Paths will just stop at bad frame(?)
+		myFlowLib->GenPathLines(flowData[0], maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
 		flowDataDirty[0] = false;
-		// With streaklines, need to fill flags to end, and fill speeds as well
+		// With Pathlines, need to fill flags to end, and fill speeds as well
 		for (int q = 0; q< numSeedPoints*numInjections; q++){
-			//Scan streakline for flags
+			//Scan Pathline for flags
 			for (int posn = 0; posn<maxPoints; posn++){
 				if(*(flowData[0]+3*(posn +q*maxPoints)) == END_FLOW_FLAG){
-					//fill rest of streakline with END_FLOW:
+					//fill rest of Pathline with END_FLOW:
 					for (int fillIndex = posn+1; fillIndex<maxPoints; fillIndex++){
 						*(flowData[0]+3*(fillIndex +q*maxPoints)) = END_FLOW_FLAG;
 					}
-					//Done with this streakline:
+					//Done with this Pathline:
 					break;
 				}
 				if(*(flowData[0]+3*(posn +q*maxPoints)) == STATIONARY_STREAM_FLAG){
-					//fill rest of streakline with STATIONARY_STREAM_FLAG
+					//fill rest of Pathline with STATIONARY_STREAM_FLAG
 					for (int fillIndex = posn+1; fillIndex<maxPoints; fillIndex++){
 						*(flowData[0]+3*(fillIndex +q*maxPoints)) = STATIONARY_STREAM_FLAG;
 					}
-					//Done with this streakline:
+					//Done with this Pathline:
 					break;
 				}
 			}
@@ -2736,7 +2736,7 @@ float FlowParams::maxRange(int index){
 			else return 1.f;
 	}
 }
-//Method to validate and fix time sampling values used in streaklines
+//Method to validate and fix time sampling values used in Pathlines
 //This tries to keep previously set values of timeSamplingInterval, timeSamplingStart,
 //and timeSamplingEnd.  If they don't work, info message is provided and
 //they are set to new values as follows:

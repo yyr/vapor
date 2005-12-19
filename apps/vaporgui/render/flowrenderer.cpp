@@ -277,7 +277,7 @@ void FlowRenderer::paintGL()
 		
 		//This is reduced on the front end if currentFrame-firstDisplayAge
 		//precedes seedStartFrame.
-		//It shouldn't need to be reduced on the back end since all streaklines are calculated
+		//It shouldn't need to be reduced on the back end since all Pathlines are calculated
 		//potentially to the endFrame
 
 		
@@ -561,7 +561,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 	}//end no lights
 }
 //  Issue OpenGL calls for a cylindrical (hexagonal cross-section) tube 
-//  following the stream or streak line
+//  following the stream or Path line
 //  tubeNum specifies which tube in the flowdata array to render
 //
 void FlowRenderer::
@@ -590,7 +590,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 	if (firstAge >= lastAge) return;
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
 		//Skip the tube entirely if first point is end-flow 
-		//This can occur in the middle of a streakline
+		//This can occur in the middle of a Pathline
 		float* point = flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge); 
 		if(*point == END_FLOW_FLAG) continue;
 		//Cycle through the points looking for a valid tubeStartIndex.
@@ -871,7 +871,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 		
 }
 //  Issue OpenGL calls for a cylindrical (hexagonal cross-section) arrow 
-//  following the stream or streak line
+//  following the stream or Path line
 //  tubeNum specifies which tube in the flowdata array to render
 //
 void FlowRenderer::
@@ -896,7 +896,7 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
 		//Skip the tube entirely if first point is end-flow 
-		//This can occur in the middle of a streakline
+		//This can occur in the middle of a Pathline
 		float* point = flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge); 
 		if(*point == END_FLOW_FLAG) continue;
 		//Cycle through the points looking for a valid tubeStartIndex.

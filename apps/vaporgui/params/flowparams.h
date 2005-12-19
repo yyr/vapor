@@ -372,7 +372,7 @@ protected:
 	//These are mapped to flowRGBs and speeds are released
 	//after the data is obtained.
 	//There is potentially one array for each timestep (with streamlines)
-	//With streaklines, there is one array, flowData[0].
+	//With Pathlines, there is one array, flowData[0].
 	float** flowData;
 	bool* flowDataDirty;
 	float** flowRGBAs;
@@ -392,14 +392,14 @@ protected:
 	float faceDisplacement;
 	float initialSelectionRay[3];
 
-	//The following is to support asynchronous streakline calculation.
+	//The following is to support asynchronous Pathline calculation.
 	//There is a semaphore controlling access to the state variables, which include:
 	///////////////////////////
 	//  int lastCompletedTimestep //indicates how many valid timesteps are in the data
 	//								//note that this is -1 is equivalent to dataDirty = true
 	//  enum flowCalcState  // can be idle, busy, or ending
 	//////////////////////////////
-	// When flowDataDirty is set, if streaklines are being done, then instead of deleting
+	// When flowDataDirty is set, if Pathlines are being done, then instead of deleting
 	// the flowdata, 
 	//		if flowCalcState is busy it is set to "ending"
 	//		if flowCalcState is idle, lastCompletedTimestep is set to -1
@@ -419,18 +419,18 @@ protected:
 	//  question: do we always need to lock the semaphore???
 	////////////////////////////////////////////////////////////////////////
 	//  FOllowing is probably wrong::::::>>>>>>>
-	//		When a new streakline calculation is started, set
+	//		When a new Pathline calculation is started, set
 	// isEnding = false, isWorking = true, needData = false, lastCompletedTimestep = -1
 	//		When flowlib completes a timestep:
 	// set lastCompletedTimestep to the correct value
 	// request GLUpdate of visualizer
 	// check the isEnding flag.  If isEnding==true, set isWorking = false and 
-	// return false (cancelling further streak calculations)
-	//		When users set data dirty (necessitating a new streakline calc):
+	// return false (cancelling further Path calculations)
+	//		When users set data dirty (necessitating a new Pathline calc):
 	// set isEnding = true
 	// set needData = true
 	//		When there is a new rendering:
-	// If the dataDirty flag is true, then perform the above steps for starting a streakline calc
+	// If the dataDirty flag is true, then perform the above steps for starting a Pathline calc
 	//	  perform the above steps f
 	// check needData (don't need to get a lock for this)
 	//////////////////////////////////// 

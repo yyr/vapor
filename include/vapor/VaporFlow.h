@@ -38,8 +38,16 @@ namespace VAPoR
 		void SetRegularSeedPoints(const float min[3], const float max[3], const size_t numSeeds[3]);
 		void SetIntegrationParams(float initStepSize, float maxStepSize);
 		bool GenStreamLines(float* positions, int maxPoints, unsigned int randomSeed, float* speeds=0);
-		bool GenStreakLines(float* positions, int maxPoints, unsigned int randomSeed, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
-		//bool GenIncrementalStreakLines(float* positions, int maxTimeSteps, unsigned int* randomSeed, int injectionTime, (void progressCB)(int completedTimeStep));
+		bool GenStreamLines(float* positions, float* seeds, int numSeeds, int maxPoints, float* speeds=0);
+		bool GenPathLines(float* positions, int maxPoints, unsigned int randomSeed, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
+		bool GenPathLines(float* positions, float* seeds, int numSeeds, int maxPoints, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
+		
+		bool GenStreamLinesNoRake(float* positions, int maxPoints, int totalSeeds, float* speeds=0);
+	
+		bool GenPathLinesNoRake(float* positions, int maxPoints, int totalSeeds, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
+		
+		//bool GenIncrementalPathLines(float* positions, int maxTimeSteps, unsigned int* randomSeed, int injectionTime, (void progressCB)(int completedTimeStep));
+		
 		float* GetData(size_t ts, const char* varName);
 
 	private:

@@ -199,7 +199,7 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// generate streamlines
+// generate streamlines with rake
 //////////////////////////////////////////////////////////////////////////
 bool VaporFlow::GenStreamLines(float* positions, 
 							   int maxPoints, 
@@ -214,6 +214,18 @@ bool VaporFlow::GenStreamLines(float* positions,
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
 	pSeedGenerator->GetSeeds(seedPtr, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
+
+	//Then do streamlines with prepared seeds:
+	bool rc = GenStreamLines(positions, seedPtr, seedNum, maxPoints, speeds);
+	delete [] seedPtr;
+	return rc;
+}
+bool VaporFlow::GenStreamLines(float* positions, 
+							   float* seedPtr,
+							   int seedNum,
+							   int maxPoints, 
+							   float* speeds)
+{
 	
 	// scale animationTimeStep and userTimeStep
 	if((dataMgr->GetMetadata()->HasTSUserTime(startTimeStep))&&(dataMgr->GetMetadata()->HasTSUserTime(startTimeStep+1)))
@@ -249,7 +261,6 @@ bool VaporFlow::GenStreamLines(float* positions,
 	//Note that read errors were already reported by GetData
 	//
 	if (pUData[0] == 0 || pVData[0] == 0 || pWData[0] == 0){
-		delete[] seedPtr;
 		return false;
 	}
 
@@ -305,16 +316,39 @@ bool VaporFlow::GenStreamLines(float* positions,
 	//AN: Removed a call to Reset() here. This requires all vapor flow state to be
 	// reestablished each time flow lines are generated.
 	// release resource
-	delete[] seedPtr;
 	delete pStreamLine;
 	delete pField;
 	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
-// generate streaklines
+// generate streamlines without rake
 //////////////////////////////////////////////////////////////////////////
-bool VaporFlow::GenStreakLines(float* positions,
+bool VaporFlow::GenStreamLinesNoRake(float* positions, 
+							   int maxPoints, 
+							   int totalSeeds, 
+							   float* speeds)
+{
+	// first copy seeds where they will be accessed:
+	float* seedPtr;
+	
+	seedPtr = new float[totalSeeds*3];
+	for (int k = 0; k<3*totalSeeds; k++){
+		
+		seedPtr[k] = positions[k];
+		
+	}
+	//Then do streamlines with prepared seeds:
+	bool rc = GenStreamLines(positions, seedPtr, totalSeeds, maxPoints, speeds);
+	delete [] seedPtr;
+	return rc;
+}
+	
+	
+//////////////////////////////////////////////////////////////////////////
+// generate pathlines (with and without rake:
+//////////////////////////////////////////////////////////////////////////
+bool VaporFlow::GenPathLines(float* positions,
 							   int maxPoints, 
 							   unsigned int randomSeed, 
 							   int startInjection, 
@@ -330,7 +364,49 @@ bool VaporFlow::GenStreakLines(float* positions,
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
 	pSeedGenerator->GetSeeds(seedPtr, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
+	
+	bool rc = GenPathLines(positions, seedPtr, seedNum, maxPoints, startInjection, endInjection, injectionTimeIncrement, speeds);
+	delete [] seedPtr;
+	return rc;
+}
 
+	//////////////////////////////////////////////////////////////////////////
+// generate pathlines (with and without rake:
+//////////////////////////////////////////////////////////////////////////
+bool VaporFlow::GenPathLinesNoRake(float* positions,
+							   int maxPoints, 
+							   int totalSeeds, 
+							   int startInjection, 
+							   int endInjection,
+							   int injectionTimeIncrement, 
+							   float* speeds)
+{
+	// first copy seeds to where they will be accessed:
+	float* seedPtr;
+	
+	seedPtr = new float[totalSeeds*3];
+	for (int k = 0; k< 3*totalSeeds; k++){
+		
+		seedPtr[k] = positions[k];
+		
+	}
+	//Then do streamlines with prepared seeds:
+	bool rc = GenPathLines(positions, seedPtr, totalSeeds, maxPoints, startInjection, endInjection, injectionTimeIncrement, speeds);
+	delete [] seedPtr;
+	return rc;
+
+}
+//Generate path lines using previously prepared seeds:
+//
+bool VaporFlow::GenPathLines(float* positions,
+							 float* seedPtr,
+							 int seedNum,
+							   int maxPoints, 
+							   int startInjection, 
+							   int endInjection,
+							   int injectionTimeIncrement, 
+							   float* speeds)
+{
 	animationTimeStepSize = animationTimeStepMultiplier;
 
 	// create field object
@@ -464,7 +540,6 @@ bool VaporFlow::GenStreakLines(float* positions,
 					// release resources
 					delete[] pUserTimeSteps;
 					delete[] pointers;
-					delete[] seedPtr;
 					delete pStreakLine;
 					delete pField;
 					return false;
@@ -479,7 +554,6 @@ bool VaporFlow::GenStreakLines(float* positions,
 				// release resources
 				delete[] pUserTimeSteps;
 				delete[] pointers;
-				delete[] seedPtr;
 				delete pStreakLine;
 				delete pField;
 				return false;
@@ -504,7 +578,6 @@ bool VaporFlow::GenStreakLines(float* positions,
 	// release resource
 	delete[] pUserTimeSteps;
 	delete[] pointers;
-	delete[] seedPtr;
 	delete pStreakLine;
 	delete pField;
 	return true;
