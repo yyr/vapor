@@ -1031,10 +1031,15 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->minOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
 	connect (flowTab->maxOpacmapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->maxOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
+	connect (flowTab->seedListCheckbox, SIGNAL(toggled(bool)), this, SLOT(doFlowSeedList(bool)));
+	connect (flowTab->rakeCheckbox, SIGNAL(toggled(bool)), this, SLOT(doFlowRake(bool)));
 	
 	connect (flowTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setFlowNavigateMode(bool)));
 	connect (flowTab->editButton, SIGNAL(toggled(bool)), this, SLOT(setFlowEditMode(bool)));
-	connect(flowTab->alignButton, SIGNAL(clicked()), this, SLOT(setFlowAligned()));
+	connect (flowTab->alignButton, SIGNAL(clicked()), this, SLOT(setFlowAligned()));
+	connect (flowTab->seedListLoadButton, SIGNAL(clicked()), this, SLOT(loadFlowSeedList()));
+	connect (flowTab->saveFlowButton, SIGNAL(clicked()), this, SLOT(saveFlow()));
+	connect (flowTab->seedListEditButton, SIGNAL(clicked()), this, SLOT(editFlowSeedList()));
 
 	
 	connect (this, SIGNAL(enableMultiViz(bool)), flowTab->LocalGlobal, SLOT(setEnabled(bool)));
@@ -2241,6 +2246,25 @@ void VizWinMgr::
 setFlowAligned(){
 	getFlowParams(activeViz)->guiSetAligned();
 }
+void VizWinMgr::
+doFlowRake(bool isOn){
+	getFlowParams(activeViz)->guiDoRake(isOn);
+}
+void VizWinMgr::
+doFlowSeedList(bool isOn){
+	getFlowParams(activeViz)->guiDoSeedList(isOn);
+}
+void VizWinMgr::
+loadFlowSeedList(){}
+
+void VizWinMgr::
+saveFlow(){}
+
+void VizWinMgr::
+editFlowSeedList(){
+	getFlowParams(activeViz)->guiEditSeedList();
+}
+
 ViewpointParams* VizWinMgr::
 getViewpointParams(int winNum){
 	if (winNum < 0) return globalVPParams;

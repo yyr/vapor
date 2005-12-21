@@ -76,7 +76,10 @@ public:
 	
 	//set geometry/flow data dirty-flags, and force rebuilding all geometry
 	void setFlowMappingDirty();
-	void setFlowDataDirty();
+	void setFlowDataDirty(bool rakeOnly = false, bool listOnly = false);
+	//Precise setting of flag value and/or invalidate data
+	void setFlowDataDirty(int timeStep, bool isRake, bool newValue);
+		
 	//The mapper function calls this when the mapping changes
 	virtual void setClutDirty() { setFlowMappingDirty();}
 
@@ -92,10 +95,10 @@ public:
 	int getNumGenerators(int dimNum) { return generatorCount[dimNum];}
 	int getTotalNumGenerators() { return allGeneratorCount;}
 	VaporFlow* getFlowLib(){return myFlowLib;}
-	float* regenerateFlowData(int frameNum);
+	float* regenerateFlowData(int frameNum, bool fromRake);
 	//Get an array of rgba's (valid immediately after calling regenerateFlowData)
 	//Must test for a valid flowData array first
-	float* getRGBAs(int frameNum); 
+	float* getRGBAs(int frameNum, bool isRake); 
 
 	//support for seed region manipulation:
 	//If a face is selected, this value is >= 0:
@@ -130,7 +133,7 @@ public:
 	int getMinFrame() {return minFrame;}
 	int getMaxFrame() {return maxFrame;}
 	int getMaxPoints() {return maxPoints;}
-	int getNumSeedPoints() { return numSeedPoints;}
+	
 	int getNumInjections() { return numInjections;}
 	int getFirstDisplayAge() {return firstDisplayFrame;}
 	int getLastDisplayAge() {return lastDisplayFrame;}
@@ -138,38 +141,58 @@ public:
 	int getLastSeeding() {return seedTimeEnd;}
 	int getSeedingIncrement() {return seedTimeIncrement;}
 	float getShapeDiameter() {return shapeDiameter;}
+	int getNumRakeSeedPoints() {return numRakeSeedPoints;}
+	int getNumListSeedPoints() {return numListSeedPoints;}
 	int getColorMapEntityIndex() ;
 	int getOpacMapEntityIndex() ;
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
+	bool flowDataIsDirty(int timeStep, bool rakeOnly, bool listOnly){
+		bool rakeDirty = 
+			(rakeFlowData && (flowDataDirty[timeStep]&seedRake));
+		bool listDirty = 
+			(listFlowData && (flowDataDirty[timeStep]&seedList));
+		if (rakeOnly) return rakeDirty;
+		if (listOnly) return listDirty;
+		return (rakeDirty || listDirty);
+	}
 	bool flowDataIsDirty(int timeStep){
-		if(flowData && flowDataDirty[timeStep]) return true;
+		if (doRake && flowDataIsDirty(timeStep, true, false)) return true; 
+		if (doSeedList && flowDataIsDirty(timeStep, false, true)) return true; 
 		return false;
 	}
 	bool activeFlowDataIsDirty();
-	bool flowMappingIsDirty(int timeStep) {
-		if (flowRGBAs && flowRGBAs[timeStep]) return false;
-		return true;
-	}
-	//dataValid indicates the data has been constructed, even though
-	//it might be out of date;
-	bool flowDataIsValid(int timeStep){
-		if (flowData && flowData[timeStep]) return true;
-		return false;
-	}
+	//Stronger than setting the dirty flag, used user clicks "refresh",
+	//resulting in deletion of flow data array.
+	//
 	void invalidateFlowData(int timeStep){
-		if(flowData && flowData[timeStep]){ 
-			delete flowData[timeStep];
-			flowData[timeStep] = 0;
+		if (doRake){
+			if(rakeFlowData && rakeFlowData[timeStep]){ 
+				delete rakeFlowData[timeStep];
+				rakeFlowData[timeStep] = 0;
+			}
+		}
+		if (doSeedList){
+			if(listFlowData && listFlowData[timeStep]){ 
+				delete listFlowData[timeStep];
+				listFlowData[timeStep] = 0;
+			}
 		}
 	}
-	float* getFlowData(int timeStep){
-		if (!flowData) return 0;
-		return flowData[timeStep];
+	float* getFlowData(int timeStep, bool isRake){
+		if (isRake){
+			if (!rakeFlowData) return 0;
+			return rakeFlowData[timeStep];
+		} else {
+			if (!listFlowData) return 0;
+			return listFlowData[timeStep];
+		}
 	}
 	float getConstantOpacity() {return constantOpacity;}
 	QRgb getConstantColor() {return constantColor;}
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 	int getObjectsPerFlowline() {return objectsPerFlowline;}
+	bool rakeEnabled() {return doRake;}
+	bool listEnabled() {return (doSeedList && numListSeedPoints > 0);}
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	void guiSetAligned();
 
@@ -201,6 +224,9 @@ public:
 	void guiRefreshFlow();
 	void guiCenterRake(float* coords);
 	void guiAddSeed(float* coords);
+	void guiDoSeedList(bool isOn);
+	void guiDoRake(bool isOn);
+	void guiEditSeedList(){}
 
 
 	void setMapBoundsChanged(bool on){mapBoundsChanged = on; flowGraphicsChanged = on;}
@@ -267,7 +293,7 @@ protected:
 	void setXVarNum(int varnum){varNum[0] = varnum; setFlowDataDirty();}
 	void setYVarNum(int varnum){varNum[1] = varnum; setFlowDataDirty();}
 	void setZVarNum(int varnum){varNum[2] = varnum; setFlowDataDirty();}
-	void setRandom(bool rand){randomGen = rand; setFlowDataDirty();}
+	void setRandom(bool rand){randomGen = rand; setFlowDataDirty(true);}
 	void setXCenter(int sliderval);
 	void setYCenter(int sliderval);
 	void setZCenter(int sliderval);
@@ -289,7 +315,7 @@ protected:
 	void textToSlider(int coord, float center, float size);
 	void sliderToText(int coord, int center, int size);
 	
-	void mapColors(float* speeds, int timeStep);
+	void mapColors(float* speeds, int timeStep, int numSeeds, float** flowData,float **rgbas);
 
 	void setSeedRegionMax(int coord, float val){
 		seedBoxMax[coord] = val;
@@ -306,6 +332,14 @@ protected:
 	bool validateSampling();
 	//check if vector field is present for a timestep
 	bool validateVectorField(int timestep);
+
+	void cleanFlowDataCaches();
+
+	enum seedType { //dirty flags identify which kind of seeds are used:
+		nullSeedType = 0,
+		seedList = 1,
+		seedRake = 2
+	}; 
 
 	FlowTab* myFlowTab;
 	int flowType; //steady = 0, unsteady = 1;
@@ -372,17 +406,23 @@ protected:
 	//These are mapped to flowRGBs and speeds are released
 	//after the data is obtained.
 	//There is potentially one array for each timestep (with streamlines)
-	//With Pathlines, there is one array, flowData[0].
-	float** flowData;
-	bool* flowDataDirty;
-	float** flowRGBAs;
+	//With Pathlines, there is one array, rakeFlowData[0].
+	float** rakeFlowData;
+	float** listFlowData;
+	seedType* flowDataDirty;
+	float** rakeFlowRGBAs;
+	float** listFlowRGBAs;
 	bool autoRefresh;
+
+	bool doRake;
+	bool doSeedList;
 
 	
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
 	
-	int numSeedPoints;
+	int numRakeSeedPoints;
+	int numListSeedPoints;
 	int numInjections;
 	
 	//Keep track of min, max frames in available data:

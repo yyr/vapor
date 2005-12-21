@@ -43,7 +43,7 @@ FlowRenderer::FlowRenderer(VizWin* vw, int flowType )
 :Renderer(vw)
 {
     maxPoints = 0;
-	numSeedPoints = 0;
+	
 	numInjections = 0;
 	steadyFlow = (flowType == 0);
 	for (int i = 0; i<4; i++) constFlowColor[i] = 1.f;
@@ -67,20 +67,13 @@ FlowRenderer::~FlowRenderer()
 
 void FlowRenderer::paintGL()
 {
-	GLfloat white_light[] = {1.f,1.f,1.f,1.f};
-	GLfloat lmodel_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
 	
-	GLdouble topPlane[] = {0., -1., 0., 1.};
-	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
-	GLdouble leftPlane[] = {1., 0., 0., 0.};
-	GLdouble botPlane[] = {0., 1., 0., 0.};
-	GLdouble frontPlane[] = {0., 0., -1., 1.};//z largest
-	GLdouble backPlane[] = {0., 0., 1., 0.};
 	int winNum = myVizWin->getWindowNum();
 	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
 	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
-	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+	
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
+	steadyFlow = myFlowParams->flowIsSteady();
 	int timeStep = steadyFlow ? currentFrameNum : 0 ;
 	//Note:  always check the validity of the data associated with the
 	//flowtype that was most recently used to construct the data.
@@ -91,18 +84,18 @@ void FlowRenderer::paintGL()
 	
 	//Colors can be changed without regenerating flow data.
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex()) == 0);
-	//Do we need to regenerate the flow data?
-	flowDataArray = myFlowParams->getFlowData(timeStep);
-	if (!flowDataArray){
-		//Recheck the steadyFlow flag
-		steadyFlow = myFlowParams->flowIsSteady();
-		timeStep = steadyFlow ? currentFrameNum : 0 ;
-		flowDataArray = myFlowParams->regenerateFlowData(timeStep);
-		maxPoints = myFlowParams->getMaxPoints();
+	//Need to do rendering on either the listFlowData or the rakeFlowData or both.
+	//
+	
+	//Do we need to regenerate any flow data?
+	if (myFlowParams->flowDataIsDirty(timeStep)){
+		//get the necessary state from the flowParams:
+		
+		
 		firstDisplayFrame = myFlowParams->getFirstDisplayAge();
 		lastDisplayFrame = myFlowParams->getLastDisplayAge();
-		numSeedPoints = myFlowParams->getNumSeedPoints();
-		numInjections = myFlowParams->getNumInjections();
+		
+		
 		maxFrame = myFlowParams->getMaxFrame();
 		minFrame = myFlowParams->getMinFrame();
 		
@@ -118,18 +111,65 @@ void FlowRenderer::paintGL()
 			objectsPerTimestep = (objectsPerFlowline+1.f)/(float)(maxFrame - minFrame);
 		}
 	}
+	
+	//Get the rake flow data:
+	if (myFlowParams->rakeEnabled()){
+		flowDataArray = myFlowParams->getFlowData(timeStep, true);
+		if (!flowDataArray)
+			flowDataArray = myFlowParams->regenerateFlowData(timeStep, true);
+		
+		if (!constColors){
+			flowRGBAs = myFlowParams->getRGBAs(timeStep, true);
+		} else {
+			constFlowColor[3] = myFlowParams->getConstantOpacity();
+			QRgb constRgb = myFlowParams->getConstantColor();
 
-	if (!constColors){
-		flowRGBAs = myFlowParams->getRGBAs(timeStep);
-	} else {
-		constFlowColor[3] = myFlowParams->getConstantOpacity();
-		QRgb constRgb = myFlowParams->getConstantColor();
-
-		constFlowColor[0] = qRed(constRgb)/255.f;
-		constFlowColor[1] = qGreen(constRgb)/255.f;
-		constFlowColor[2] = qBlue(constRgb)/255.f;
+			constFlowColor[0] = qRed(constRgb)/255.f;
+			constFlowColor[1] = qGreen(constRgb)/255.f;
+			constFlowColor[2] = qBlue(constRgb)/255.f;
+		}
+		numSeedPoints = myFlowParams->getNumRakeSeedPoints();
+		maxPoints = myFlowParams->getMaxPoints();
+		numInjections = myFlowParams->getNumInjections();
+		renderFlowData(constColors,currentFrameNum);
 	}
+	//Do the same for seed list
+	if (myFlowParams->listEnabled()){
+		flowDataArray = myFlowParams->getFlowData(timeStep, false);
+		if (!flowDataArray)
+			flowDataArray = myFlowParams->regenerateFlowData(timeStep, false);
+		
+		if (!constColors){
+			flowRGBAs = myFlowParams->getRGBAs(timeStep, false);
+		} else {
+			constFlowColor[3] = myFlowParams->getConstantOpacity();
+			QRgb constRgb = myFlowParams->getConstantColor();
 
+			constFlowColor[0] = qRed(constRgb)/255.f;
+			constFlowColor[1] = qGreen(constRgb)/255.f;
+			constFlowColor[2] = qBlue(constRgb)/255.f;
+		}
+		numSeedPoints = myFlowParams->getNumListSeedPoints();
+		maxPoints = myFlowParams->getMaxPoints();
+		numInjections = myFlowParams->getNumInjections();
+		renderFlowData(constColors,currentFrameNum);
+	}
+}
+
+void FlowRenderer::
+renderFlowData(bool constColors, int currentFrameNum){
+	int winNum = myVizWin->getWindowNum();
+	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
+	GLfloat white_light[] = {1.f,1.f,1.f,1.f};
+	GLfloat lmodel_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	
+	GLdouble topPlane[] = {0., -1., 0., 1.};
+	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
+	GLdouble leftPlane[] = {1., 0., 0., 0.};
+	GLdouble botPlane[] = {0., 1., 0., 0.};
+	GLdouble frontPlane[] = {0., 0., -1., 1.};//z largest
+	GLdouble backPlane[] = {0., 0., 1., 0.};
 
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);

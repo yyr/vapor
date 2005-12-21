@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout55</cstring>
+                <cstring>layout37</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -764,7 +764,7 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout54</cstring>
+                        <cstring>layout35</cstring>
                     </property>
                     <hbox>
                         <property name="name">
@@ -782,7 +782,7 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>30</width>
+                                    <width>20</width>
                                     <height>21</height>
                                 </size>
                             </property>
@@ -792,7 +792,7 @@
                                 <cstring>autoRefreshCheckbox</cstring>
                             </property>
                             <property name="text">
-                                <string>Automatic Flow Refresh</string>
+                                <string>Auto Flow Refresh</string>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Check to recalculate flow whenever parameters change</string>
@@ -810,7 +810,7 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>41</width>
+                                    <width>47</width>
                                     <height>20</height>
                                 </size>
                             </property>
@@ -841,7 +841,32 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>90</width>
+                                    <width>16</width>
+                                    <height>21</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>saveFlowButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Save Flow</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer42</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>41</width>
                                     <height>21</height>
                                 </size>
                             </property>
@@ -881,7 +906,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout32</cstring>
+                                <cstring>layout34</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -897,11 +922,104 @@
                                         </font>
                                     </property>
                                     <property name="text">
-                                        <string>Rake (Flow Seeding) parameters</string>
+                                        <string>Flow Seeding parameters</string>
                                     </property>
                                     <property name="alignment">
                                         <set>AlignCenter</set>
                                     </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout33</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>rakeCheckbox</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Use Rake</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer40_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>17</width>
+                                                    <height>21</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>seedListCheckbox</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Use Seed List</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer37</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>16</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>seedListLoadButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Load Seed List</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer39_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>16</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>seedListEditButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Edit Seed List</string>
+                                            </property>
+                                        </widget>
+                                    </hbox>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
@@ -916,7 +1034,7 @@
                                                 <cstring>randomCheckbox</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Random</string>
+                                                <string>Random Rake</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify whether or not the seed points will be randomly generated</string>

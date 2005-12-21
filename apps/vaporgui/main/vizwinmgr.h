@@ -478,6 +478,11 @@ protected slots:
 	void setFlowEditMode(bool);
 	void setFlowNavigateMode(bool);
 	void setFlowAligned();
+	void doFlowRake(bool);
+	void doFlowSeedList(bool);
+	void loadFlowSeedList();
+	void saveFlow();
+	void editFlowSeedList();
 
 	//Probe slots:
 	

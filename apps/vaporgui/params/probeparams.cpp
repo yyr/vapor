@@ -1979,7 +1979,7 @@ refreshHistogram(){
 				
 					
 					assert(xyzCoord >= 0);
-					assert(xyzCoord < (blkMax[0]-blkMin[0]+1)*(blkMax[1]-blkMin[1]+1)*(blkMax[2]-blkMin[2]+1)*bSize*bSize*bSize);
+					assert(xyzCoord < (int)((blkMax[0]-blkMin[0]+1)*(blkMax[1]-blkMin[1]+1)*(blkMax[2]-blkMin[2]+1)*bSize*bSize*bSize));
 					float varVal;
 					//use the int xyzCoord to index into the loaded data
 					if (totVars == 1) varVal = volData[0][xyzCoord];

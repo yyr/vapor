@@ -103,8 +103,10 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	mapperFunction = 0;
 	flowMapEditor = 0;
 	//Set up flow data cache:
-	flowData = 0;
-	flowRGBAs = 0;
+	rakeFlowData = 0;
+	listFlowData = 0;
+	rakeFlowRGBAs = 0;
+	listFlowRGBAs = 0;
 	flowDataDirty = 0;
 
 	//Set all parameters to default values
@@ -116,15 +118,8 @@ FlowParams::~FlowParams(){
 	if (mapperFunction){
 		delete mapperFunction;//this will delete the editor
 	}
-	if (flowData) {
-		for (int i = 0; i<= maxFrame; i++){
-			if (flowRGBAs && flowRGBAs[i]) delete flowRGBAs[i];
-			if (flowData[i]) delete flowData[i];
-		}
-		delete flowData;
-		if(flowRGBAs)delete flowRGBAs;
-		if(flowDataDirty) delete flowDataDirty;
-	}
+	
+		
 	if (minColorBounds) {
 		delete minColorBounds;
 		delete minOpacBounds;
@@ -136,18 +131,8 @@ FlowParams::~FlowParams(){
 void FlowParams::
 restart() {
 	
-	if (flowData) {
-		for (int i = 0; i<= maxFrame; i++){
-			if (flowRGBAs && flowRGBAs[i]) delete flowRGBAs[i];
-			if (flowData[i]) delete flowData[i];
-		}
-		delete flowData;
-		if(flowRGBAs)delete flowRGBAs;
-		if(flowDataDirty) delete flowDataDirty;
-	}
-	flowData = 0;
-	flowRGBAs = 0;
-	flowDataDirty = 0;
+	cleanFlowDataCaches();
+	
 	autoRefresh = true;
 	enabled = false;
 	selectedFaceNum = -1;
@@ -220,7 +205,8 @@ restart() {
 		maxOpacEditBounds[i]=1.f;
 	}
 	
-	numSeedPoints = 1;
+	numRakeSeedPoints = 1;
+	numListSeedPoints = 0;
 	numInjections = 1;
 	maxPoints = 0;
 	
@@ -245,6 +231,8 @@ restart() {
 			updateDialog();
 	}
 	
+	doRake = true;
+	doSeedList = false;
 }
 
 //Make a copy of  parameters:
@@ -285,8 +273,10 @@ deepCopy(){
 		newFlowParams->mapperFunction = 0;
 	}
 	//Don't copy flow data pointers (not that deep!)
-	newFlowParams->flowRGBAs = 0;
-	newFlowParams->flowData = 0;
+	newFlowParams->rakeFlowRGBAs = 0;
+	newFlowParams->rakeFlowData = 0;
+	newFlowParams->listFlowRGBAs = 0;
+	newFlowParams->listFlowData = 0;
 	newFlowParams->flowDataDirty = 0;
 
 	//never keep the SavedCommand:
@@ -362,6 +352,9 @@ void FlowParams::updateDialog(){
 	myFlowTab->seedtimeIncrementEdit->setEnabled(flowType == 1);
 	myFlowTab->seedtimeEndEdit->setEnabled(flowType == 1);
 	myFlowTab->seedtimeStartEdit->setEnabled(flowType == 1);
+
+	myFlowTab->rakeCheckbox->setChecked(doRake);
+	myFlowTab->seedListCheckbox->setChecked(doSeedList);
 
 	myFlowTab->randomCheckbox->setChecked(randomGen);
 	
@@ -614,19 +607,8 @@ reinit(bool doOverride){
 	setMinNumTrans(minTrans);
 	setMaxNumTrans(nlevels);
 	//Clean out any existing caches:
-	if (flowData){
-		for (i = 0; i<= maxFrame; i++){
-			if (flowData[i]) { delete flowData[i]; flowData[i] = 0;}
-			if (flowRGBAs && flowRGBAs[i]) {delete flowRGBAs[i]; flowRGBAs[i] = 0;}
-		
-		}
-		delete flowData;
-		if (flowRGBAs) delete flowRGBAs;
-		if (flowDataDirty) delete flowDataDirty;
-		flowData = 0;
-		flowRGBAs = 0;
-		flowDataDirty = 0;
-	}
+	cleanFlowDataCaches();
+	
 	//Make min and max conform to new data:
 	minFrame = (int)(session->getMinTimestep());
 	maxFrame = (int)(session->getMaxTimestep());
@@ -853,11 +835,17 @@ reinit(bool doOverride){
 	setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
 	setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
 	//setup the caches
-	flowData = new float*[maxFrame+1];
-	flowDataDirty = new bool[maxFrame+1];
+	rakeFlowData = new float*[maxFrame+1];
+	listFlowData = new float*[maxFrame+1];
+	rakeFlowRGBAs = new float*[maxFrame+1];
+	listFlowRGBAs = new float*[maxFrame+1];
+	flowDataDirty = new seedType[maxFrame+1];
 	for (int j = 0; j<= maxFrame; j++) {
-		flowData[j] = 0;
-		flowDataDirty[j] = true;
+		rakeFlowData[j] = 0;
+		listFlowData[j] = 0;
+		rakeFlowRGBAs[j] = 0;
+		listFlowRGBAs[j] = 0;
+		flowDataDirty[j] = (seedType)(seedRake | seedList);
 	}
 
 	//don't change local/global 
@@ -1061,11 +1049,35 @@ guiCenterRake(float* coords){
 		seedBoxMin[i] = coord - 0.5f*boxSize;
 	}
 	PanelCommand::captureEnd(cmd, this);
-	setFlowDataDirty();
+	//Dirty just the rake data:
+	setFlowDataDirty(true);
 }
 //Add an individual seed to the set of seeds
 void FlowParams::
 guiAddSeed(float* coords){
+}
+//Turn on/off the rake and the seedlist:
+void FlowParams::guiDoRake(bool isOn){
+	if (isOn == doRake) return;
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "toggle rake on/off");
+	doRake = isOn;
+	PanelCommand::captureEnd(cmd, this);
+	//If there's a change, need to set flags dirty
+	setFlowDataDirty(true);
+	VizWinMgr::getInstance()->refreshFlow(this);
+}
+
+//Turn on/off the rake and the seedlist:
+void FlowParams::guiDoSeedList(bool isOn){
+	if (isOn == doSeedList) return;
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "toggle seed list on/off");
+	doSeedList = isOn;
+	PanelCommand::captureEnd(cmd, this);
+	//Invalidate just the list data
+	setFlowDataDirty(false, true);
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
 
 void FlowParams::
@@ -1089,7 +1101,7 @@ guiSetRakeToRegion(){
 	}
 	PanelCommand::captureEnd(cmd, this);
 	updateDialog();
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 	//Need to rerender, even if we don't want to refresh the flow.
 	VizWinMgr::getInstance()->refreshFlow(this);
 	
@@ -1183,7 +1195,7 @@ guiSetXCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake X center");
 	setXCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
@@ -1192,7 +1204,7 @@ guiSetYCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake Y center");
 	setYCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
@@ -1201,7 +1213,7 @@ guiSetZCenter(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake Z center");
 	setZCenter(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
@@ -1210,7 +1222,7 @@ guiSetXSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake X size");
 	setXSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
@@ -1219,7 +1231,7 @@ guiSetYSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake Y size");
 	setYSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
@@ -1228,7 +1240,7 @@ guiSetZSize(int sliderval){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide flow rake Z size");
 	setZSize(sliderval);
 	PanelCommand::captureEnd(cmd, this);
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 	VizWinMgr::getInstance()->refreshFlow(this);
 }
 void FlowParams::
@@ -1242,7 +1254,7 @@ guiSetAutoRefresh(bool isOn){
 	//If we are turning it on, all the dirty data must be invalidated, and
 	//we may need to schedule a render.  
 	bool madeDirty = false;
-	if (autoRefresh && flowData){
+	if (autoRefresh && (rakeFlowData || listFlowData)){
 		for (int i = 0; i<= maxFrame; i++){
 			if (flowDataIsDirty(i)) {
 				madeDirty = true;
@@ -1291,7 +1303,7 @@ guiSetColorMapEntity( int entityNum){
 	else setFlowMappingDirty();
 }
 //When the user clicks "refresh", 
-//This triggers a rebuilding (if anything is dirty)
+//This triggers a rebuilding of current frame (if anything is dirty)
 //And then a rerendering.
 void FlowParams::
 guiRefreshFlow(){
@@ -1311,6 +1323,7 @@ guiRefreshFlow(){
 }
 bool FlowParams::
 activeFlowDataIsDirty(){
+	//Make sure we at least have the flags:
 	if (!flowDataDirty) return false;
 	int frameNum = 0;
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
@@ -1347,7 +1360,7 @@ guiSetGeneratorDimension( int dimNum){
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, this);
 	myFlowTab->update();
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 }
 //Change mouse mode to specified value
 //0,1,2 correspond to edit, zoom, pan
@@ -1376,34 +1389,34 @@ setXCenter(int sliderval){
 	//new min and max are center -+ size/2.  
 	//center is min + (slider/256)*(max-min)
 	sliderToText(0, sliderval, myFlowTab->xSizeSlider->value());
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 }
 void FlowParams::
 setYCenter(int sliderval){
 	sliderToText(1, sliderval, myFlowTab->ySizeSlider->value());
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 }
 void FlowParams::
 setZCenter(int sliderval){
 	sliderToText(2, sliderval, myFlowTab->zSizeSlider->value());
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 }
 //Min and Max are center -+ size/2
 //size is regionsize*sliderval/256
 void FlowParams::
 setXSize(int sliderval){
 	sliderToText(0, myFlowTab->xCenterSlider->value(),sliderval);
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 }
 void FlowParams::
 setYSize(int sliderval){
 	sliderToText(1, myFlowTab->yCenterSlider->value(),sliderval);
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 }
 void FlowParams::
 setZSize(int sliderval){
 	sliderToText(2, myFlowTab->zCenterSlider->value(),sliderval);
-	setFlowDataDirty();
+	setFlowDataDirty(true);
 }
 	
 /* Handle the change of status associated with change of enablement and change
@@ -1509,9 +1522,9 @@ setEnabled(bool on){
 	return;
 	
 }
-
+//Generate the flow data, either from a rake or from a point list.
 float* FlowParams::
-regenerateFlowData(int timeStep){
+regenerateFlowData(int timeStep, bool isRake){
 	int i;
 	int min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
@@ -1539,24 +1552,28 @@ regenerateFlowData(int timeStep){
 	rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, 
 		numTransforms, minFull, maxFull, extents);
 	myFlowLib->SetRegion(numTransforms, min_bdim, max_bdim);
-	
-	
-	if (randomGen) {
-		myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, allGeneratorCount);
-		numSeedPoints = allGeneratorCount;
-	} else {
-		float boxmin[3], boxmax[3];
-		for (i = 0; i<3; i++){
-			if (generatorCount[i] <= 1) {
-				boxmin[i] = (seedBoxMin[i]+seedBoxMax[i])*0.5f;
-				boxmax[i] = boxmin[i];
-			} else {
-				boxmin[i] = seedBoxMin[i];
-				boxmax[i] = seedBoxMax[i];
+	int numSeedPoints;
+	if (isRake){
+		if (randomGen) {
+			myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, allGeneratorCount);
+			numSeedPoints = numRakeSeedPoints = allGeneratorCount;
+		} else {
+			float boxmin[3], boxmax[3];
+			for (i = 0; i<3; i++){
+				if (generatorCount[i] <= 1) {
+					boxmin[i] = (seedBoxMin[i]+seedBoxMax[i])*0.5f;
+					boxmax[i] = boxmin[i];
+				} else {
+					boxmin[i] = seedBoxMin[i];
+					boxmax[i] = seedBoxMax[i];
+				}
 			}
+			myFlowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);
+			numSeedPoints = numRakeSeedPoints = generatorCount[0]*generatorCount[1]*generatorCount[2];
 		}
-		myFlowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);
-		numSeedPoints = generatorCount[0]*generatorCount[1]*generatorCount[2];
+	} else { //set up seed list:
+		numSeedPoints = numListSeedPoints;
+		assert(0);
 	}
 	// setup integration parameters:
 	
@@ -1575,15 +1592,33 @@ regenerateFlowData(int timeStep){
 	}
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
-	if (!flowData) {
+	/* This shouldn't be necessary--it's done in reinit:
+	if (!flowData
+	if (!rakeFlowData) {
 		//setup the caches
-		flowData = new float*[maxFrame+1];
+		rakeFlowData = new float*[maxFrame+1];
 		flowDataDirty = new bool[maxFrame+1];
 		for (int j = 0; j<= maxFrame; j++) {
-			flowData[j] = 0;
+			rakeFlowData[j] = 0;
 			flowDataDirty[j] = true;
 		}
 	}
+	if (!listFlowData) {
+		//setup the caches
+		rakeFlowData = new float*[maxFrame+1];
+		flowDataDirty = new bool[maxFrame+1];
+		for (int j = 0; j<= maxFrame; j++) {
+			rakeFlowData[j] = 0;
+			flowDataDirty[j] = true;
+		}
+	}*/
+	float** flowData = listFlowData;
+	float** flowRGBAs = listFlowRGBAs;
+	if(isRake) {
+		flowData = rakeFlowData;
+		flowRGBAs = rakeFlowRGBAs;
+	}
+
 
 	int numPrePoints=0, numPostPoints=0;
 	float *prePointData = 0, *postPointData=0, *preSpeeds=0, *postSpeeds=0;
@@ -1592,7 +1627,6 @@ regenerateFlowData(int timeStep){
 		if (flowData[timeStep]) {
 			delete flowData[timeStep];
 			flowData[timeStep] = 0;
-			flowDataDirty[timeStep] = true;
 		}
 		numInjections = 1;
 		maxPoints = objectsPerFlowline+1;
@@ -1660,13 +1694,14 @@ regenerateFlowData(int timeStep){
 			myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
 			rc = myFlowLib->GenStreamLines(postPointData, numPostPoints, randomSeed, postSpeeds);
 		}
-		flowDataDirty[timeStep] = false;
+		
 		//If failed to build streamlines, force  rendering to stop by inserting
 		//END_FLOW_FLAG at the start of each streamline
 		if (!rc){
 			for (int q = 0; q < numSeedPoints; q++){
 				*(flowData[timeStep]+3*q*maxPoints) = END_FLOW_FLAG;
 			}
+
 		}
 		//Rearrange points to reverse prePoints and attach them to postPoints
 		else if (numPrePoints > 0) {
@@ -1724,7 +1759,7 @@ regenerateFlowData(int timeStep){
 	} else {
 		//Can ignore false return code, Paths will just stop at bad frame(?)
 		myFlowLib->GenPathLines(flowData[0], maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
-		flowDataDirty[0] = false;
+		setFlowDataDirty(0, isRake, false);
 		// With Pathlines, need to fill flags to end, and fill speeds as well
 		for (int q = 0; q< numSeedPoints*numInjections; q++){
 			//Scan Pathline for flags
@@ -1751,6 +1786,7 @@ regenerateFlowData(int timeStep){
 	}
 	//Restore original cursor:
 	QApplication::restoreOverrideCursor();
+	setFlowDataDirty(timeStep,isRake, false);
 	//Invalidate colors and opacities:
 	if (flowRGBAs && flowRGBAs[timeStep]) {
 		delete flowRGBAs[timeStep];
@@ -1763,7 +1799,7 @@ regenerateFlowData(int timeStep){
 			for (int j = 0; j<= maxFrame; j++) flowRGBAs[j] = 0;
 		}
 		flowRGBAs[timeStep] = new float[maxPoints*numSeedPoints*numInjections*4];
-		mapColors(speeds, timeStep);
+		mapColors(speeds, timeStep, numSeedPoints, flowData, flowRGBAs );
 		//Now we can release the speeds:
 		if (speeds) delete speeds;
 	}
@@ -1776,7 +1812,18 @@ regenerateFlowData(int timeStep){
 	}
 	return flowData[timeStep];
 }
-float* FlowParams::getRGBAs(int timeStep){
+//Obtain rgba array for current flow data
+//
+float* FlowParams::getRGBAs(int timeStep, bool isRake){
+	float** flowRGBAs = listFlowRGBAs; 
+	float** flowData = listFlowData;
+	int numSeedPoints = numListSeedPoints;
+	if (isRake){
+		flowRGBAs = rakeFlowRGBAs;
+		flowData = rakeFlowData;
+		numSeedPoints = numRakeSeedPoints;
+	}
+
 	if (flowRGBAs && flowRGBAs[timeStep]) return flowRGBAs[timeStep];
 	assert((getOpacMapEntityIndex() != 2)&&(getColorMapEntityIndex() != 2)); //Can't map speeds here!
 	assert(flowData && flowData[timeStep]);
@@ -1785,10 +1832,11 @@ float* FlowParams::getRGBAs(int timeStep){
 		for (int j = 0; j<= maxFrame; j++) flowRGBAs[j] = 0;
 	}
 	flowRGBAs[timeStep] = new float[maxPoints*numSeedPoints*numInjections*4];
-	mapColors(0, timeStep);
+	mapColors(0, timeStep, numSeedPoints, flowData, flowRGBAs);
 	return flowRGBAs[timeStep];
 }
-
+//Just force a reconstruction of the color map
+//
 void FlowParams::setFlowMappingDirty(){
 	// delete colors and opacities
 	// If we are mapping speed, must regenerate flowData
@@ -1796,35 +1844,85 @@ void FlowParams::setFlowMappingDirty(){
 		setFlowDataDirty();
 		return;
 	}
-	if(flowRGBAs){
+	if(rakeFlowRGBAs){
 		for (int i = 0; i<=maxFrame; i++){
-			if (flowRGBAs[i]){
-				delete flowRGBAs[i];
-				flowRGBAs[i] = 0;
+			if (rakeFlowRGBAs[i]){
+				delete rakeFlowRGBAs[i];
+				rakeFlowRGBAs[i] = 0;
+			}
+		}
+	}
+	if(listFlowRGBAs){
+		for (int i = 0; i<=maxFrame; i++){
+			if (listFlowRGBAs[i]){
+				delete listFlowRGBAs[i];
+				listFlowRGBAs[i] = 0;
 			}
 		}
 	}
 	VizWinMgr::getInstance()->refreshFlow(this);
 }
 //Set all flow data dirty flags, and also invalidate data if auto is set:
-void FlowParams::setFlowDataDirty(){
+//boolean arguments (default false, false) limit to setting only one or other dirty bit
+//
+void FlowParams::setFlowDataDirty(bool rakeOnly, bool listOnly){
 	
 	if(flowDataDirty){
 		for (int i = 0; i<=maxFrame; i++){
-			flowDataDirty[i] = true;
+			flowDataDirty[i] = nullSeedType;
+			//Only set the dirty flags if we really are using that type of seed:
+			if (doRake && !listOnly) flowDataDirty[i] = seedRake;
+			if (doSeedList && !rakeOnly) flowDataDirty[i] = (seedType)(seedList|flowDataDirty[i]);
 		}
 	}
-	if (autoRefresh && flowData){
-		for (int i = 0; i<= maxFrame; i++){
-			if (flowData[i]) {
-				delete flowData[i];
-				flowData[i] = 0;
+	if (autoRefresh){
+		if (!listOnly && rakeFlowData){
+			for (int i = 0; i<= maxFrame; i++){
+				if (rakeFlowData[i]) {
+					delete rakeFlowData[i];
+					rakeFlowData[i] = 0;
+				}
+			}
+		}
+		if (!rakeOnly && listFlowData){
+			for (int i = 0; i<= maxFrame; i++){
+				if (listFlowData[i]) {
+					delete listFlowData[i];
+					listFlowData[i] = 0;
+				}
 			}
 		}
 		//Force rerender only if we are doing autoRefresh
 		VizWinMgr::getInstance()->refreshFlow(this);
 	}
 	if (!autoRefresh) myFlowTab->refreshButton->setEnabled(true);
+}
+//Set dirty flag for just the specific timestep
+//Setting it dirty also deletes the data.
+void FlowParams::
+setFlowDataDirty(int timeStep, bool isRake, bool newValue){
+	if (!newValue){//setting it "clean"
+		if (isRake)
+			flowDataDirty[timeStep] = (seedType)(~seedRake & flowDataDirty[timeStep]);
+		else flowDataDirty[timeStep] = (seedType)(~seedList & flowDataDirty[timeStep]);
+		return;
+	}
+	//Otherwise, invalidate data and set flag:
+	if (isRake) {
+		if (rakeFlowData && rakeFlowData[timeStep]){
+			delete rakeFlowData[timeStep];
+			rakeFlowData[timeStep] = 0;
+		}
+		//set the dirty flag for rake
+		flowDataDirty[timeStep] = (seedType)(seedRake | flowDataDirty[timeStep]);
+	} else {
+		if (listFlowData && listFlowData[timeStep]){
+			delete listFlowData[timeStep];
+			listFlowData[timeStep] = 0;
+		}
+		//set the dirty flag for list
+		flowDataDirty[timeStep] = (seedType)(seedList | flowDataDirty[timeStep]);
+	}
 }
 //Method to construct Xml for state saving
 XmlNode* FlowParams::
@@ -2313,11 +2411,12 @@ guiEndChangeMapFcn(){
 }
 //Generate a list of colors and opacities, one per (valid) vertex.
 //The number of points is maxPoints*numSeedings*numInjections
+//The flowData parameter is either the rakeFlowData or the listFlowData
 //Note that, if a variable is mapped, only the first time step is used for
 //the mapping
 //
 void FlowParams::
-mapColors(float* speeds, int currentTimeStep){
+mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, float** flowRGBAs){
 	//Create lut based on current mapping data
 	float* lut = new float[256*4];
 	mapperFunction->makeLut(lut);
@@ -2383,10 +2482,10 @@ mapColors(float* speeds, int currentTimeStep){
 	//Cycle through all the points.  Map to rgba as we go.
 	//
 	for (int i = 0; i<numInjections; i++){
-		for (int j = 0; j<numSeedPoints; j++){
+		for (int j = 0; j<numSeeds; j++){
 			for (int k = 0; k<maxPoints; k++) {
 				//check for end of flow:
-				if (flowData[currentTimeStep][3*(k+ maxPoints*(j+ (numSeedPoints*i)))] == END_FLOW_FLAG)
+				if (flowData[currentTimeStep][3*(k+ maxPoints*(j+ (numSeeds*i)))] == END_FLOW_FLAG)
 					break;
 				switch (getOpacMapEntityIndex()){
 					case (0): //constant
@@ -2401,11 +2500,11 @@ mapColors(float* speeds, int currentTimeStep){
 							opacVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
 						break;
 					case (2): //speed
-						opacVar = speeds[(k+ maxPoints*(j+ (numSeedPoints*i)))];
+						opacVar = speeds[(k+ maxPoints*(j+ (numSeeds*i)))];
 						break;
 					default : //variable
 						int x,y,z;
-						float* dataPoint = flowData[currentTimeStep]+3*(k+ maxPoints*(j+ (numSeedPoints*i)));
+						float* dataPoint = flowData[currentTimeStep]+3*(k+ maxPoints*(j+ (numSeeds*i)));
 						x = (int)(0.5f+((dataPoint[0] - opacVarMin[0])*opacSize[0])/(opacVarMax[0]-opacVarMin[0]));
 						y = (int)(0.5f+((dataPoint[1] - opacVarMin[1])*opacSize[1])/(opacVarMax[1]-opacVarMin[1]));
 						z = (int)(0.5f+((dataPoint[2] - opacVarMin[2])*opacSize[2])/(opacVarMax[2]-opacVarMin[2]));
@@ -2432,11 +2531,11 @@ mapColors(float* speeds, int currentTimeStep){
 							colorVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
 						break;
 					case (2): //speed
-						colorVar = speeds[(k+ maxPoints*(j+ (numSeedPoints*i)))];
+						colorVar = speeds[(k+ maxPoints*(j+ (numSeeds*i)))];
 						break;
 					default : //variable
 						int x,y,z;
-						float* dataPoint = flowData[currentTimeStep]+3*(k+ maxPoints*(j+ (numSeedPoints*i)));
+						float* dataPoint = flowData[currentTimeStep]+3*(k+ maxPoints*(j+ (numSeeds*i)));
 						x = (int)(0.5f+((dataPoint[0] - colorVarMin[0])*colorSize[0])/(colorVarMax[0]-colorVarMin[0]));
 						y = (int)(0.5f+((dataPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
 						z = (int)(0.5f+((dataPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
@@ -2451,18 +2550,18 @@ mapColors(float* speeds, int currentTimeStep){
 				if (colorIndex> 255) colorIndex =255;
 				//Special case for constant colors and/or opacities
 				if (getOpacMapEntityIndex() == 0){
-					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+3]= constantOpacity;
+					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeeds*i)))+3]= constantOpacity;
 				} else {
-					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+3]= lut[4*opacIndex+3];
+					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeeds*i)))+3]= lut[4*opacIndex+3];
 				}
 				if (getColorMapEntityIndex() == 0){
-					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))]= ((float)qRed(constantColor))/255.f;
-					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+1]= ((float)qGreen(constantColor))/255.f;
-					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+2]= ((float)qBlue(constantColor))/255.f;
+					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeeds*i)))]= ((float)qRed(constantColor))/255.f;
+					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeeds*i)))+1]= ((float)qGreen(constantColor))/255.f;
+					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeeds*i)))+2]= ((float)qBlue(constantColor))/255.f;
 				} else {
-					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))]= lut[4*colorIndex];
-					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+1]= lut[4*colorIndex+1];
-					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeedPoints*i)))+2]= lut[4*colorIndex+2];
+					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeeds*i)))]= lut[4*colorIndex];
+					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeeds*i)))+1]= lut[4*colorIndex+1];
+					flowRGBAs[currentTimeStep][4*(k+ maxPoints*(j+ (numSeeds*i)))+2]= lut[4*colorIndex+2];
 				}
 			}
 		}
@@ -2534,7 +2633,7 @@ captureMouseUp(){
 		}
 		//Update the gui:
 		updateDialog();
-		setFlowDataDirty();
+		setFlowDataDirty(true);
 		//Enable button 
 		
 	}
@@ -2826,5 +2925,31 @@ validateVectorField(int ts) {
 }
 
 			
+void FlowParams::cleanFlowDataCaches(){
+	if (rakeFlowData) {
+		for (int i = 0; i<= maxFrame; i++){
+			if (rakeFlowRGBAs && rakeFlowRGBAs[i]) delete rakeFlowRGBAs[i];
+			if (rakeFlowData[i]) delete rakeFlowData[i];
+		}
+		delete rakeFlowData;
+		if(rakeFlowRGBAs)delete[] rakeFlowRGBAs;
+		
+	}
+	if (listFlowData) {
+		for (int i = 0; i<= maxFrame; i++){
+			if (listFlowRGBAs && listFlowRGBAs[i]) delete listFlowRGBAs[i];
+			if (listFlowData[i]) delete listFlowData[i];
+		}
+		delete listFlowData;
+		if(listFlowRGBAs)delete[] listFlowRGBAs;
+		
+	}
+	if (flowDataDirty) delete[] flowDataDirty;
+	rakeFlowData = 0;
+	listFlowData = 0;
+	flowDataDirty = 0;
+	listFlowRGBAs = 0;
+	rakeFlowRGBAs = 0;
+}
 
 
