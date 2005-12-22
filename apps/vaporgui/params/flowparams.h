@@ -24,6 +24,7 @@
 #include <qwidget.h>
 #include <qcolor.h>
 #include "params.h"
+#include "glutil.h"
 
 class FlowTab;
 #define IGNORE_FLAG 2.e30f
@@ -34,6 +35,7 @@ class VaporFlow;
 class ExpatParseMgr;
 class MainForm;
 class FlowMapEditor;
+class VECTOR4;
 class FlowParams: public Params {
 	
 public: 
@@ -142,7 +144,7 @@ public:
 	int getSeedingIncrement() {return seedTimeIncrement;}
 	float getShapeDiameter() {return shapeDiameter;}
 	int getNumRakeSeedPoints() {return numRakeSeedPoints;}
-	int getNumListSeedPoints() {return numListSeedPoints;}
+	int getNumListSeedPoints() {return seedPointList.size();}
 	int getColorMapEntityIndex() ;
 	int getOpacMapEntityIndex() ;
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
@@ -150,7 +152,7 @@ public:
 		bool rakeDirty = 
 			(rakeFlowData && (flowDataDirty[timeStep]&seedRake));
 		bool listDirty = 
-			(listFlowData && (flowDataDirty[timeStep]&seedList));
+			(listFlowData && (flowDataDirty[timeStep]&seedList)&&getNumListSeedPoints()>0);
 		if (rakeOnly) return rakeDirty;
 		if (listOnly) return listDirty;
 		return (rakeDirty || listDirty);
@@ -192,7 +194,7 @@ public:
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 	int getObjectsPerFlowline() {return objectsPerFlowline;}
 	bool rakeEnabled() {return doRake;}
-	bool listEnabled() {return (doSeedList && numListSeedPoints > 0);}
+	bool listEnabled() {return (doSeedList && getNumListSeedPoints() > 0);}
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	void guiSetAligned();
 
@@ -223,7 +225,8 @@ public:
 	void guiSetRakeToRegion();
 	void guiRefreshFlow();
 	void guiCenterRake(float* coords);
-	void guiAddSeed(float* coords);
+	void guiAddSeed(Point4 pt);
+	void guiMoveLastSeed(float coords[3]);
 	void guiDoSeedList(bool isOn);
 	void guiDoRake(bool isOn);
 	void guiEditSeedList(){}
@@ -397,6 +400,8 @@ protected:
 	
 	std::vector<string> colorMapEntity;
 	std::vector<string> opacMapEntity;
+
+	std::vector<Point4> seedPointList;
 	
 	
 	VaporFlow* myFlowLib;
@@ -422,7 +427,7 @@ protected:
 	//The flow data is regenerated:
 	
 	int numRakeSeedPoints;
-	int numListSeedPoints;
+	
 	int numInjections;
 	
 	//Keep track of min, max frames in available data:

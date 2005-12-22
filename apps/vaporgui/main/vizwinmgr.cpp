@@ -1863,10 +1863,15 @@ probeCenterProbe(){
 }
 void VizWinMgr::
 probeAddSeed(){
-	getFlowParams(activeViz)->guiAddSeed(getProbeParams(activeViz)->getSelectedPoint());
+	Point4 pt;
+	pt.set3Val(getProbeParams(activeViz)->getSelectedPoint());
+	AnimationParams* ap = getAnimationParams(activeViz);
+	pt.set1Val(3,(float)ap->getCurrentFrameNumber());
+	getFlowParams(activeViz)->guiAddSeed(pt);
 }	
 void VizWinMgr::
 probeAttachSeed(bool attach){
+	if (attach) probeAddSeed();
 	getProbeParams(activeViz)->guiAttachSeed(attach, getFlowParams(activeViz));
 }
 void VizWinMgr::

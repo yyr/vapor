@@ -213,6 +213,7 @@ public:
 	//Save state when user clicks on a probe handle in the scene
 	void captureMouseDown();
 	virtual void captureMouseUp();
+	bool seedIsAttached(){return seedAttached;}
 
 	//Methods to support maintaining a list of histograms
 	//in each params (at least those with a TFE)

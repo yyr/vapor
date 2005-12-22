@@ -206,7 +206,7 @@ restart() {
 	}
 	
 	numRakeSeedPoints = 1;
-	numListSeedPoints = 0;
+	seedPointList.clear();
 	numInjections = 1;
 	maxPoints = 0;
 	
@@ -1053,8 +1053,24 @@ guiCenterRake(float* coords){
 	setFlowDataDirty(true);
 }
 //Add an individual seed to the set of seeds
+//Is also performed when we first do a seed attachment.
 void FlowParams::
-guiAddSeed(float* coords){
+guiAddSeed(Point4 coords){
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "Add new seed point");
+	seedPointList.push_back(*(new Point4(coords)));
+	setFlowDataDirty(false, true);
+	PanelCommand::captureEnd(cmd, this);
+	VizWinMgr::getInstance()->refreshFlow(this);
+}
+//Add an individual seed to the set of seeds
+void FlowParams::
+guiMoveLastSeed(float coords[3]){
+	
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "Move seed point");
+	seedPointList[seedPointList.size()-1].set3Val(coords);
+	PanelCommand::captureEnd(cmd, this);
+	setFlowDataDirty(false, true);
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
 //Turn on/off the rake and the seedlist:
 void FlowParams::guiDoRake(bool isOn){
@@ -1571,9 +1587,21 @@ regenerateFlowData(int timeStep, bool isRake){
 			myFlowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);
 			numSeedPoints = numRakeSeedPoints = generatorCount[0]*generatorCount[1]*generatorCount[2];
 		}
-	} else { //set up seed list:
-		numSeedPoints = numListSeedPoints;
-		assert(0);
+	} else { //determine how many seed points to send to flowlib
+		
+		//For unsteady flow, use all the seeds 
+		if (flowType != 0) numSeedPoints = getNumListSeedPoints();
+		else {
+			//For steady flow, count how many seeds will be in the array
+			int seedCounter = 0;
+			for (int i = 0; i<getNumListSeedPoints(); i++){
+				float time = seedPointList[i].getVal(3);
+				if ((time < 0.f) || ((int)(time+0.5f) == timeStep)){
+					seedCounter++;
+				}
+			}
+			numSeedPoints = seedCounter;
+		}
 	}
 	// setup integration parameters:
 	
@@ -1633,7 +1661,7 @@ regenerateFlowData(int timeStep, bool isRake){
 		if (maxPoints < 2) maxPoints = 2;
 		//If bidirectional allocate between prePoints and postPoints
 		numPrePoints = (int)(0.5f+(float)maxPoints* (float)(firstDisplayFrame)/(float)(firstDisplayFrame+lastDisplayFrame));
-		//Mace sure these are valid (i.e. not == 1) and
+		//Make sure these are valid (i.e. not == 1) and
 		//adjust maxPoints accordingly
 		if (numPrePoints == 1) numPrePoints = 2;
 		numPostPoints = maxPoints - numPrePoints;
@@ -1652,8 +1680,39 @@ regenerateFlowData(int timeStep, bool isRake){
 				postPointData = new float[3*numPostPoints*numSeedPoints];
 				
 			}
+			//Copy the seed list into both the pre- and post- point lists
+			if (!isRake){ //Copy the seed points into the flowData
+				//Just copy the ones that have an OK time coord..
+				//Count the seedPoints as we go:
+				int seedCounter = 0;
+				for (int i = 0; i<(int)seedPointList.size(); i++){
+					float time = seedPointList[i].getVal(3);
+					if ((time < 0.f) || ((int)(time+0.5f) == timeStep)){
+						seedPointList[i].copy3Vals(prePointData+3*seedCounter);
+						if (numPostPoints>0){
+							seedPointList[i].copy3Vals(postPointData+3*seedCounter);
+						}
+						seedCounter++;
+					}
+				}
+				assert(seedCounter == numSeedPoints);
+			}
+
 		} else {  //use same pointer if just have postPoints
 			postPointData = flowData[timeStep];
+			if (!isRake){ //Copy the seed points into the flowData
+				//Just copy the ones that have an OK time coord..
+				//Count the seedPoints as we go:
+				int seedCounter = 0;
+				for (int i = 0; i<(int)seedPointList.size(); i++){
+					float time = seedPointList[i].getVal(3);
+					if ((time < 0.f) || ((int)(time+0.5f) == timeStep)){
+						seedPointList[i].copy3Vals(postPointData+3*seedCounter);
+						seedCounter++;
+					}
+				}
+				assert(seedCounter == numSeedPoints);
+			}
 		}
 		
 	} else {// unsteady: determine largest possible number of injections
@@ -1666,6 +1725,13 @@ regenerateFlowData(int timeStep, bool isRake){
 		if (maxPoints < 2) maxPoints = 2;
 		if (flowData[0]) delete flowData[0];
 		flowData[0] = new float[3*maxPoints*numSeedPoints*numInjections];
+		if (!isRake){ //Copy all the seed points into the flowData[0]
+			//Ignore the time coordinate
+			for (int ptNum = 0; ptNum<numSeedPoints; ptNum++){
+				seedPointList[ptNum].copy3Vals(flowData[0]+3*ptNum);
+			}
+		}
+
 	}
 	
 	if (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2){
@@ -1688,11 +1754,19 @@ regenerateFlowData(int timeStep, bool isRake){
 		bool rc = true;
 		if (numPrePoints>0){
 			myFlowLib->ScaleTimeStepSizes(-velocityScale, ((float)(firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
-			rc = myFlowLib->GenStreamLines(prePointData, numPrePoints, randomSeed, preSpeeds);
+			if (isRake){
+				rc = myFlowLib->GenStreamLines(prePointData, numPrePoints, randomSeed, preSpeeds);
+			} else {
+				rc = myFlowLib->GenStreamLinesNoRake(prePointData,numPrePoints,numSeedPoints,preSpeeds);
+			}
 		}
 		if (rc && numPostPoints > 0) {
 			myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
-			rc = myFlowLib->GenStreamLines(postPointData, numPostPoints, randomSeed, postSpeeds);
+			if (isRake){
+				rc = myFlowLib->GenStreamLines(postPointData,numPostPoints,randomSeed,postSpeeds);
+			} else {
+				rc = myFlowLib->GenStreamLinesNoRake(postPointData,numPostPoints,numSeedPoints,postSpeeds);
+			}
 		}
 		
 		//If failed to build streamlines, force  rendering to stop by inserting
@@ -1703,6 +1777,7 @@ regenerateFlowData(int timeStep, bool isRake){
 			}
 
 		}
+		// returned data is OK.
 		//Rearrange points to reverse prePoints and attach them to postPoints
 		else if (numPrePoints > 0) {
 			for (int j = 0; j<numSeedPoints; j++){
@@ -1756,9 +1831,13 @@ regenerateFlowData(int timeStep, bool isRake){
 			if (preSpeeds) delete preSpeeds;
 			if (postSpeeds) delete postSpeeds;
 		}
-	} else {
+	} else { //Do unsteady flow
 		//Can ignore false return code, Paths will just stop at bad frame(?)
-		myFlowLib->GenPathLines(flowData[0], maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
+		if (isRake){
+			myFlowLib->GenPathLines(flowData[0], maxPoints, randomSeed, seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
+		} else {
+			myFlowLib->GenPathLinesNoRake(flowData[0], maxPoints, numSeedPoints , seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
+		}
 		setFlowDataDirty(0, isRake, false);
 		// With Pathlines, need to fill flags to end, and fill speeds as well
 		for (int q = 0; q< numSeedPoints*numInjections; q++){
@@ -1817,7 +1896,7 @@ regenerateFlowData(int timeStep, bool isRake){
 float* FlowParams::getRGBAs(int timeStep, bool isRake){
 	float** flowRGBAs = listFlowRGBAs; 
 	float** flowData = listFlowData;
-	int numSeedPoints = numListSeedPoints;
+	int numSeedPoints = getNumListSeedPoints();
 	if (isRake){
 		flowRGBAs = rakeFlowRGBAs;
 		flowData = rakeFlowData;
@@ -1909,20 +1988,21 @@ setFlowDataDirty(int timeStep, bool isRake, bool newValue){
 	}
 	//Otherwise, invalidate data and set flag:
 	if (isRake) {
-		if (rakeFlowData && rakeFlowData[timeStep]){
+		if (autoRefresh && rakeFlowData && rakeFlowData[timeStep]){
 			delete rakeFlowData[timeStep];
 			rakeFlowData[timeStep] = 0;
 		}
 		//set the dirty flag for rake
 		flowDataDirty[timeStep] = (seedType)(seedRake | flowDataDirty[timeStep]);
 	} else {
-		if (listFlowData && listFlowData[timeStep]){
+		if (autoRefresh && listFlowData && listFlowData[timeStep]){
 			delete listFlowData[timeStep];
 			listFlowData[timeStep] = 0;
 		}
 		//set the dirty flag for list
 		flowDataDirty[timeStep] = (seedType)(seedList | flowDataDirty[timeStep]);
 	}
+	if (!autoRefresh) myFlowTab->refreshButton->setEnabled(true);
 }
 //Method to construct Xml for state saving
 XmlNode* FlowParams::

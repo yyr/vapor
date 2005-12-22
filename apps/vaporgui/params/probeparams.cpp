@@ -141,8 +141,10 @@ deepCopy(){
 	newParams->probeDirty = true;
 	//never keep the SavedCommand:
 	newParams->savedCommand = 0;
+	newParams->attachedFlow = 0;
 	newParams->histogramList = 0;
 	newParams->numHistograms = 0;
+	newParams->seedAttached = false;
 	return newParams;
 }
 //Method called when undo/redo changes params:
@@ -525,11 +527,19 @@ void ProbeParams::guiCenterProbe(){
 void ProbeParams::
 guiAttachSeed(bool attach, FlowParams* fParams){
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, "attach/detach probe to seed");
-	if (attach) {attachedFlow = fParams;
+	//Don't capture the attach/detach event.
+	//This cannot be easily undone/redone because it requires maintaining the
+	//state of both the flowparams and the probeparams.
+	//But we will capture the successive seed moves that occur while
+	//the seed is attached.
+	if (attach){ 
+		attachedFlow = fParams;
 		seedAttached = true;
-	} else { attachedFlow = 0; seedAttached = false;}
-	PanelCommand::captureEnd(cmd, this);
+		
+	} else {
+		seedAttached = false;
+		attachedFlow = 0;
+	} 
 }
 //Respond to an update of the variable listbox.  set the appropriate bits
 void ProbeParams::
@@ -1772,8 +1782,12 @@ guiStartCursorMove(){
 }
 void ProbeParams::
 guiEndCursorMove(){
+	//Update the selected point:
+	//If we are connected to a seed, move it:
+	if (seedIsAttached() && attachedFlow){
+		attachedFlow->guiMoveLastSeed(getSelectedPoint());
+	}
 	//Update the tab, it's in front:
-	
 	updateDialog();
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, this);
