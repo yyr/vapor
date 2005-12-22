@@ -416,6 +416,7 @@ void TranslateManip::drawHandleConnector(int handleNum, float* handleExtents, fl
 	glVertex3f(0.5f*(handleExtents[3]+handleExtents[0])+handleDisp[0],0.5f*(handleExtents[4]+handleExtents[1])+handleDisp[1],0.5f*(handleExtents[5]+handleExtents[2])+handleDisp[2]);
 	glVertex3f(0.5f*(boxExtents[3]+boxExtents[0])+boxDisp[0],0.5f*(boxExtents[4]+boxExtents[1])+boxDisp[1],0.5f*(boxExtents[5]+boxExtents[2])+boxDisp[2]);
 	glEnd();
+	glDisable(GL_BLEND);
 }
 //Draw the main box, just rendering the lines.
 //Take into account the rotation angles, current drag state.
@@ -499,6 +500,9 @@ void Manip::drawBoxFaces(int highlightedFace){
 		}
 	}
 	//Now render the edges:
+	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
 	glLineWidth( 2.0 );
 	glColor3f(1.f,0.f,0.f);
 	glBegin(GL_LINES);
@@ -546,7 +550,9 @@ void Manip::drawBoxFaces(int highlightedFace){
 	glVertex3fv(midCorners[3]);
 	glVertex3fv(midCorners[1]);
 	glEnd();
-	//Draw a translucent rectangle at the middle:
+	//Draw a translucent rectangle at the middle.
+	//Don't write to the z-buffer, so won't obscure stuff behind that shows up later
+	glDepthMask(GL_FALSE);
 	glColor4f(.8f,.8f,0.f,0.2f);
 	glBegin(GL_QUADS);
 	glVertex3fv(midCorners[0]);
@@ -554,6 +560,8 @@ void Manip::drawBoxFaces(int highlightedFace){
 	glVertex3fv(midCorners[3]);
 	glVertex3fv(midCorners[2]);
 	glEnd();
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 	
 	
 }

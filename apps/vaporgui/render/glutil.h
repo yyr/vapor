@@ -149,5 +149,23 @@ void	ViewMatrix (GLfloat *m);
 int	ViewAxis (int *direction);
 void	StereoPerspective (int fovy, float aspect, float nearDist, float farDist, float converge, float eye);
 
+class Point4{
+public:
+	Point4() {point[0]=point[1]=point[2]=point[3]=0.f;}
+	Point4(const float data[4]){setVal(data);}
+	void setVal(const float sourceData[4]){
+		for (int i = 0; i< 4; i++) point[i] = sourceData[i];
+	}
+	void set3Val(const float sourceData[3]){
+		for (int i = 0; i< 3; i++) point[i] = sourceData[i];
+	}
+	void set1Val(int index, float sourceData){
+		point[index] = sourceData;
+	}
+	float getVal(int i){return point[i];}
+	void copy3Vals(float* dest) {dest[0]=point[0];dest[1]=point[1];dest[2]=point[2];}
+protected:
+	float point[4];
+};
 };
 #endif	// _glutil_h_

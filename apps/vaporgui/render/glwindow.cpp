@@ -232,6 +232,14 @@ void GLWindow::paintGL()
 	int numxforms = myRegionParams->getNumTrans();
 	myRegionParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numxforms, minFull, maxFull, extents);
 	
+	//Make the depth buffer writable
+	glDepthMask(GL_TRUE);
+	//and readable
+	glEnable(GL_DEPTH_TEST);
+	//Prepare for alpha values:
+	glEnable (GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	if(myVizWin->regionFrameIsEnabled()|| MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
 		renderDomainFrame(extents, minFull, maxFull);
 	} 
