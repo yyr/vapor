@@ -246,7 +246,7 @@ void ProbeParams::updateDialog(){
 		
 }
 //Update all the panel state associated with textboxes.
-//Performed whenever a textbox changes
+//Performed whenever a textbox changes and user pressed "enter"
 //
 void ProbeParams::
 updatePanelState(){
@@ -271,18 +271,25 @@ updatePanelState(){
 	probeMin[2] = boxCtr - 0.5*boxSize;
 	probeMax[2] = boxCtr + 0.5*boxSize;
 	textToSlider(2, boxCtr, boxSize);
+	myProbeTab->probeTextureFrame->setTextureSize(probeMax[0]-probeMin[0],probeMax[1]-probeMin[1]);
+	probeDirty = true;
 	if (numVariables > 0) {
 		((TransferFunction*)getMapperFunc())->setMinMapValue(myProbeTab->leftMappingBound->text().toFloat());
 		((TransferFunction*)getMapperFunc())->setMaxMapValue(myProbeTab->rightMappingBound->text().toFloat());
 	
 		setDatarangeDirty();
 		getTFEditor()->setDirty();
-		myProbeTab->ProbeTFFrame->update();
+		myProbeTab->update();
+		myProbeTab->probeTextureFrame->update();
 	}
 
 	guiSetTextChanged(false);
-	myProbeTab->probeTextureFrame->setTextureSize(probeMax[0]-probeMin[0],probeMax[1]-probeMin[1]);
-	probeDirty = true;
+	
+	//If we are in probe mode, force a rerender of all windows using the probe:
+	if (MainForm::getInstance()->getCurrentMouseMode() == Command::probeMode){
+		VizWinMgr::getInstance()->refreshProbe(this);
+	}
+
 	
 }
 
