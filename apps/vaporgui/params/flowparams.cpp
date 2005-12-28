@@ -42,6 +42,7 @@
 #include <qslider.h>
 #include <qlabel.h>
 #include <qcheckbox.h>
+#include <qtable.h>
 #include "mainform.h"
 #include "session.h"
 #include "params.h"
@@ -53,6 +54,7 @@
 #include "mapeditor.h"
 #include "flowmapeditor.h"
 #include "flowmapframe.h"
+#include "seedlisteditor.h"
 //Step sizes for integration accuracy:
 #define SMALLEST_MIN_STEP 0.05f
 #define LARGEST_MIN_STEP 4.f
@@ -204,8 +206,8 @@ restart() {
 		minOpacEditBounds[i]=0.f;
 		maxOpacEditBounds[i]=1.f;
 	}
-	
-	numRakeSeedPoints = 1;
+	numListSeedPointsUsed = 0;
+	numRakeSeedPointsUsed = 0;
 	seedPointList.clear();
 	numInjections = 1;
 	maxPoints = 0;
@@ -278,6 +280,8 @@ deepCopy(){
 	newFlowParams->listFlowRGBAs = 0;
 	newFlowParams->listFlowData = 0;
 	newFlowParams->flowDataDirty = 0;
+	newFlowParams->numListSeedPointsUsed = 0;
+	newFlowParams->numRakeSeedPointsUsed = 0;
 
 	//never keep the SavedCommand:
 	newFlowParams->savedCommand = 0;
@@ -1335,8 +1339,22 @@ guiRefreshFlow(){
 		invalidateFlowData(frameNum);
 		vizWinMgr->refreshFlow(this);
 	}
-		
 }
+
+void FlowParams::
+guiEditSeedList(){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "edit seed list");
+	SeedListEditor sle(getNumListSeedPoints(), this);
+	if (!sle.exec()){
+		delete cmd;
+		return;
+	}
+	PanelCommand::captureEnd(cmd, this);
+	setFlowDataDirty(false, true);
+	VizWinMgr::getInstance()->refreshFlow(this);
+}
+
 bool FlowParams::
 activeFlowDataIsDirty(){
 	//Make sure we at least have the flags:
@@ -1570,9 +1588,10 @@ regenerateFlowData(int timeStep, bool isRake){
 	myFlowLib->SetRegion(numTransforms, min_bdim, max_bdim);
 	int numSeedPoints;
 	if (isRake){
+		numSeedPoints = getNumRakeSeedPoints();
 		if (randomGen) {
 			myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, allGeneratorCount);
-			numSeedPoints = numRakeSeedPoints = allGeneratorCount;
+			
 		} else {
 			float boxmin[3], boxmax[3];
 			for (i = 0; i<3; i++){
@@ -1585,7 +1604,7 @@ regenerateFlowData(int timeStep, bool isRake){
 				}
 			}
 			myFlowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);
-			numSeedPoints = numRakeSeedPoints = generatorCount[0]*generatorCount[1]*generatorCount[2];
+			
 		}
 	} else { //determine how many seed points to send to flowlib
 		
@@ -1620,26 +1639,26 @@ regenerateFlowData(int timeStep, bool isRake){
 	}
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
-	/* This shouldn't be necessary--it's done in reinit:
-	if (!flowData
+	// For Undo/Redo, it may be necessary to reallocate the caches...
+	
 	if (!rakeFlowData) {
 		//setup the caches
 		rakeFlowData = new float*[maxFrame+1];
-		flowDataDirty = new bool[maxFrame+1];
+		flowDataDirty = new seedType[maxFrame+1];
 		for (int j = 0; j<= maxFrame; j++) {
 			rakeFlowData[j] = 0;
-			flowDataDirty[j] = true;
+			flowDataDirty[j] = nullSeedType;
 		}
 	}
 	if (!listFlowData) {
 		//setup the caches
-		rakeFlowData = new float*[maxFrame+1];
-		flowDataDirty = new bool[maxFrame+1];
+		listFlowData = new float*[maxFrame+1];
+		if(!flowDataDirty) flowDataDirty = new seedType[maxFrame+1];
 		for (int j = 0; j<= maxFrame; j++) {
-			rakeFlowData[j] = 0;
-			flowDataDirty[j] = true;
+			listFlowData[j] = 0;
+			flowDataDirty[j] = nullSeedType;
 		}
-	}*/
+	}
 	float** flowData = listFlowData;
 	float** flowRGBAs = listFlowRGBAs;
 	if(isRake) {
@@ -1696,6 +1715,7 @@ regenerateFlowData(int timeStep, bool isRake){
 					}
 				}
 				assert(seedCounter == numSeedPoints);
+				
 			}
 
 		} else {  //use same pointer if just have postPoints
@@ -1712,6 +1732,7 @@ regenerateFlowData(int timeStep, bool isRake){
 					}
 				}
 				assert(seedCounter == numSeedPoints);
+				
 			}
 		}
 		
@@ -1768,7 +1789,8 @@ regenerateFlowData(int timeStep, bool isRake){
 				rc = myFlowLib->GenStreamLinesNoRake(postPointData,numPostPoints,numSeedPoints,postSpeeds);
 			}
 		}
-		
+		if (isRake) numRakeSeedPointsUsed = numSeedPoints;
+		else numListSeedPointsUsed = numSeedPoints;
 		//If failed to build streamlines, force  rendering to stop by inserting
 		//END_FLOW_FLAG at the start of each streamline
 		if (!rc){
@@ -1777,7 +1799,7 @@ regenerateFlowData(int timeStep, bool isRake){
 			}
 
 		}
-		// returned data is OK.
+		// if returned data is OK.
 		//Rearrange points to reverse prePoints and attach them to postPoints
 		else if (numPrePoints > 0) {
 			for (int j = 0; j<numSeedPoints; j++){
@@ -1861,8 +1883,10 @@ regenerateFlowData(int timeStep, bool isRake){
 				}
 			}
 		}
-
+		if (isRake) numRakeSeedPointsUsed = numSeedPoints;
+		else numListSeedPointsUsed = numSeedPoints;
 	}
+
 	//Restore original cursor:
 	QApplication::restoreOverrideCursor();
 	setFlowDataDirty(timeStep,isRake, false);
@@ -1896,11 +1920,11 @@ regenerateFlowData(int timeStep, bool isRake){
 float* FlowParams::getRGBAs(int timeStep, bool isRake){
 	float** flowRGBAs = listFlowRGBAs; 
 	float** flowData = listFlowData;
-	int numSeedPoints = getNumListSeedPoints();
+	int numSeedPoints = getNumListSeedPointsUsed();
 	if (isRake){
 		flowRGBAs = rakeFlowRGBAs;
 		flowData = rakeFlowData;
-		numSeedPoints = numRakeSeedPoints;
+		numSeedPoints = getNumRakeSeedPointsUsed();
 	}
 
 	if (flowRGBAs && flowRGBAs[timeStep]) return flowRGBAs[timeStep];
@@ -1962,6 +1986,7 @@ void FlowParams::setFlowDataDirty(bool rakeOnly, bool listOnly){
 					rakeFlowData[i] = 0;
 				}
 			}
+			numRakeSeedPointsUsed = 0;
 		}
 		if (!rakeOnly && listFlowData){
 			for (int i = 0; i<= maxFrame; i++){
@@ -1970,6 +1995,7 @@ void FlowParams::setFlowDataDirty(bool rakeOnly, bool listOnly){
 					listFlowData[i] = 0;
 				}
 			}
+			numListSeedPointsUsed = 0;
 		}
 		//Force rerender only if we are doing autoRefresh
 		VizWinMgr::getInstance()->refreshFlow(this);

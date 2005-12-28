@@ -143,8 +143,17 @@ public:
 	int getLastSeeding() {return seedTimeEnd;}
 	int getSeedingIncrement() {return seedTimeIncrement;}
 	float getShapeDiameter() {return shapeDiameter;}
-	int getNumRakeSeedPoints() {return numRakeSeedPoints;}
+	//Distinguish between the number of seed points specified in the
+	//current settings and the number actually used the last time
+	//the flow was calculated:
+	//
+	int getNumRakeSeedPointsUsed() {return numRakeSeedPointsUsed;}
+	int getNumRakeSeedPoints(){
+		return (randomGen ? allGeneratorCount : generatorCount[0]*generatorCount[1]*generatorCount[2]);
+	}
 	int getNumListSeedPoints() {return seedPointList.size();}
+	int getNumListSeedPointsUsed() {return numListSeedPointsUsed;}
+	std::vector<Point4>& getSeedPointList(){return seedPointList;}
 	int getColorMapEntityIndex() ;
 	int getOpacMapEntityIndex() ;
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
@@ -229,7 +238,7 @@ public:
 	void guiMoveLastSeed(float coords[3]);
 	void guiDoSeedList(bool isOn);
 	void guiDoRake(bool isOn);
-	void guiEditSeedList(){}
+	void guiEditSeedList();
 
 
 	void setMapBoundsChanged(bool on){mapBoundsChanged = on; flowGraphicsChanged = on;}
@@ -248,6 +257,9 @@ public:
 			seedBoxMin[i] = boxMin[i];
 			seedBoxMax[i] = boxMax[i];
 		}
+	}
+	float getListSeedPoint(int i, int coord){
+		return seedPointList[i].getVal(coord);
 	}
 protected:
 	//Tags for attributes in session save
@@ -426,8 +438,8 @@ protected:
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
 	
-	int numRakeSeedPoints;
-	
+	int numRakeSeedPointsUsed;
+	int numListSeedPointsUsed;
 	int numInjections;
 	
 	//Keep track of min, max frames in available data:
@@ -437,6 +449,7 @@ protected:
 	float faceDisplacement;
 	float initialSelectionRay[3];
 
+	
 	//The following is to support asynchronous Pathline calculation.
 	//There is a semaphore controlling access to the state variables, which include:
 	///////////////////////////

@@ -246,6 +246,9 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\savetfdialog.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\seedlisteditor.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\main\session.cpp">
 			</File>
 			<File
@@ -632,6 +635,29 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\seedlisteditor.h">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing seedlisteditor.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\seedlisteditor.h -o tmp\moc\moc_seedlisteditor.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="tmp\moc\moc_seedlisteditor.cpp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing seedlisteditor.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\seedlisteditor.h -o tmp\moc\moc_seedlisteditor.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="tmp\moc\moc_seedlisteditor.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\main\session.h">
 			</File>
 			<File
@@ -889,6 +915,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_savetfdialog.cpp">
+			</File>
+			<File
+				RelativePath=".\tmp\moc\moc_seedlisteditor.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp">
