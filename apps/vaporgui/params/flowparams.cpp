@@ -69,6 +69,12 @@ using namespace VAPoR;
 	const string FlowParams::_generatorCountsAttr = "GeneratorCountsByDimension";
 	const string FlowParams::_totalGeneratorCountAttr = "TotalGeneratorCount";
 	const string FlowParams::_seedTimesAttr = "SeedInjectionTimes";
+	const string FlowParams::_useRakeAttr = "UseRake";
+	const string FlowParams::_useSeedListAttr = "UseSeedList";
+	//One tag for each seed point in the list:
+	const string FlowParams::_seedPointTag = "SeedPoint";
+	const string FlowParams::_positionAttr = "Position";
+	const string FlowParams::_timestepAttr = "TimeStep";
 
 	const string FlowParams::_mappedVariablesAttr = "MappedVariables";
 	const string FlowParams::_steadyFlowAttr = "SteadyFlow";
@@ -191,11 +197,14 @@ restart() {
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Age");
 	colorMapEntity.push_back("Field Magnitude");
+	colorMapEntity.push_back("Seed Index");
+
 	opacMapEntity.clear();
 	
 	opacMapEntity.push_back("Constant");
 	opacMapEntity.push_back("Age");
 	opacMapEntity.push_back("Field Magnitude");
+	opacMapEntity.push_back("Seed Index");
 	minColorEditBounds = new float[3];
 	maxColorEditBounds = new float[3];
 	minOpacEditBounds = new float[3];
@@ -243,7 +252,7 @@ deepCopy(){
 	
 	FlowParams* newFlowParams = new FlowParams(*this);
 	//Clone the map bounds arrays:
-	int numVars = numVariables+3;
+	int numVars = numVariables+4;
 	newFlowParams->minColorEditBounds = new float[numVars];
 	newFlowParams->maxColorEditBounds = new float[numVars];
 	newFlowParams->minOpacEditBounds = new float[numVars];
@@ -320,9 +329,9 @@ void FlowParams::updateDialog(){
 
 	myFlowTab->refreshButton->setEnabled(!autoRefresh && activeFlowDataIsDirty());
 	myFlowTab->autoRefreshCheckbox->setChecked(autoRefresh);
-	//Always allow at least 3 variables in combo:
+	//Always allow at least 4 variables in combo:
 	int numVars = numVariables;
-	if (numVars < 3) numVars = 3;
+	if (numVars < 4) numVars = 4;
 	myFlowTab->xCoordVarCombo->clear();
 	myFlowTab->xCoordVarCombo->setMaxCount(numVars);
 	myFlowTab->yCoordVarCombo->clear();
@@ -663,23 +672,25 @@ reinit(bool doOverride){
 
 	//Rebuild map bounds arrays:
 	if(minOpacBounds) delete minOpacBounds;
-	minOpacBounds = new float[newNumVariables+3];
+	minOpacBounds = new float[newNumVariables+4];
 	if(maxOpacBounds) delete maxOpacBounds;
-	maxOpacBounds = new float[newNumVariables+3];
+	maxOpacBounds = new float[newNumVariables+4];
 	if(minColorBounds) delete minColorBounds;
-	minColorBounds = new float[newNumVariables+3];
+	minColorBounds = new float[newNumVariables+4];
 	if(maxColorBounds) delete maxColorBounds;
-	maxColorBounds = new float[newNumVariables+3];
+	maxColorBounds = new float[newNumVariables+4];
 	
 	
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
 	colorMapEntity.push_back("Age");
 	colorMapEntity.push_back("Field Magnitude");
+	colorMapEntity.push_back("Seed Index");
 	opacMapEntity.clear();
 	opacMapEntity.push_back("Constant");
 	opacMapEntity.push_back("Age");
 	opacMapEntity.push_back("Field Magnitude");
+	opacMapEntity.push_back("Seed Index");
 	for (i = 0; i< newNumVariables; i++){
 		colorMapEntity.push_back(variableNames[i]);
 		opacMapEntity.push_back(variableNames[i]);
@@ -695,10 +706,10 @@ reinit(bool doOverride){
 	for (i = 0; i< (int)colorMapEntity.size(); i++){
 		myFlowTab->opacmapEntityCombo->insertItem(QString(opacMapEntity[i].c_str()));
 	}
-	if(doOverride || getOpacMapEntityIndex() >= newNumVariables+3){
+	if(doOverride || getOpacMapEntityIndex() >= newNumVariables+4){
 		setOpacMapEntity(0);
 	}
-	if(doOverride || getColorMapEntityIndex() >= newNumVariables+3){
+	if(doOverride || getColorMapEntityIndex() >= newNumVariables+4){
 		setColorMapEntity(0);
 	}
 	if (doOverride){
@@ -731,17 +742,17 @@ reinit(bool doOverride){
 	validateSampling();
 
 	//Now set up bounds arrays based on current mapped variable settings:
-	for (i = 0; i< newNumVariables+3; i++){
+	for (i = 0; i< newNumVariables+4; i++){
 		minOpacBounds[i] = minColorBounds[i] = minRange(i);
 		maxOpacBounds[i] = maxColorBounds[i] = maxRange(i);
 	}
 	
 	
 	//Create new edit bounds whether we override or not
-	float* newMinOpacEditBounds = new float[newNumVariables+3];
-	float* newMaxOpacEditBounds = new float[newNumVariables+3];
-	float* newMinColorEditBounds = new float[newNumVariables+3];
-	float* newMaxColorEditBounds = new float[newNumVariables+3];
+	float* newMinOpacEditBounds = new float[newNumVariables+4];
+	float* newMaxOpacEditBounds = new float[newNumVariables+4];
+	float* newMinColorEditBounds = new float[newNumVariables+4];
+	float* newMaxColorEditBounds = new float[newNumVariables+4];
 	//Either try to reuse existing MapperFunction, MapEditor, or create new ones.
 	if (doOverride){ //create new ones:
 		//For now, assume 8-bits mapping
@@ -773,15 +784,15 @@ reinit(bool doOverride){
 		//Other variables:
 		for (i = 0; i< newNumVariables; i++){
 			if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
-				newMinOpacEditBounds[i+3] = Session::getInstance()->getDefaultDataMin(i);
-				newMaxOpacEditBounds[i+3] = Session::getInstance()->getDefaultDataMax(i);
-				newMinColorEditBounds[i+3] = Session::getInstance()->getDefaultDataMin(i);
-				newMaxColorEditBounds[i+3] = Session::getInstance()->getDefaultDataMin(i);
+				newMinOpacEditBounds[i+4] = Session::getInstance()->getDefaultDataMin(i);
+				newMaxOpacEditBounds[i+4] = Session::getInstance()->getDefaultDataMax(i);
+				newMinColorEditBounds[i+4] = Session::getInstance()->getDefaultDataMin(i);
+				newMaxColorEditBounds[i+4] = Session::getInstance()->getDefaultDataMin(i);
 			} else {
-				newMinOpacEditBounds[i+3] = 0.f;
-				newMaxOpacEditBounds[i+3] = 1.f;
-				newMinColorEditBounds[i+3] = 0.f;
-				newMaxColorEditBounds[i+3] = 1.f;
+				newMinOpacEditBounds[i+4] = 0.f;
+				newMaxOpacEditBounds[i+4] = 1.f;
+				newMinColorEditBounds[i+4] = 0.f;
+				newMaxColorEditBounds[i+4] = 1.f;
 			}
 		} 
 		delete mapperFunction;
@@ -798,15 +809,15 @@ reinit(bool doOverride){
 		
 		for (i = 0; i< newNumVariables; i++){
 			if (i >= numVariables){
-				newMinOpacEditBounds[i+3] = Session::getInstance()->getDefaultDataMin(i);
-				newMaxOpacEditBounds[i+3] = Session::getInstance()->getDefaultDataMax(i);
-				newMinColorEditBounds[i+3] = Session::getInstance()->getDefaultDataMin(i);
-				newMaxColorEditBounds[i+3] = Session::getInstance()->getDefaultDataMax(i);
+				newMinOpacEditBounds[i+4] = Session::getInstance()->getDefaultDataMin(i);
+				newMaxOpacEditBounds[i+4] = Session::getInstance()->getDefaultDataMax(i);
+				newMinColorEditBounds[i+4] = Session::getInstance()->getDefaultDataMin(i);
+				newMaxColorEditBounds[i+4] = Session::getInstance()->getDefaultDataMax(i);
 			} else {
-				newMinOpacEditBounds[i+3] = minOpacEditBounds[i+3];
-				newMaxOpacEditBounds[i+3] = maxOpacEditBounds[i+3];
-				newMinColorEditBounds[i+3] = minColorEditBounds[i+3];
-				newMaxColorEditBounds[i+3] = maxColorEditBounds[i+3];
+				newMinOpacEditBounds[i+4] = minOpacEditBounds[i+4];
+				newMaxOpacEditBounds[i+4] = maxOpacEditBounds[i+4];
+				newMinColorEditBounds[i+4] = minColorEditBounds[i+4];
+				newMaxColorEditBounds[i+4] = maxColorEditBounds[i+4];
 			}
 		} 
 		//Create a new mapeditor if one doesn't exist:
@@ -1902,7 +1913,7 @@ regenerateFlowData(int timeStep, bool isRake){
 			for (int j = 0; j<= maxFrame; j++) flowRGBAs[j] = 0;
 		}
 		flowRGBAs[timeStep] = new float[maxPoints*numSeedPoints*numInjections*4];
-		mapColors(speeds, timeStep, numSeedPoints, flowData, flowRGBAs );
+		mapColors(speeds, timeStep, numSeedPoints, flowData, flowRGBAs, isRake);
 		//Now we can release the speeds:
 		if (speeds) delete speeds;
 	}
@@ -1935,7 +1946,7 @@ float* FlowParams::getRGBAs(int timeStep, bool isRake){
 		for (int j = 0; j<= maxFrame; j++) flowRGBAs[j] = 0;
 	}
 	flowRGBAs[timeStep] = new float[maxPoints*numSeedPoints*numInjections*4];
-	mapColors(0, timeStep, numSeedPoints, flowData, flowRGBAs);
+	mapColors(0, timeStep, numSeedPoints, flowData, flowRGBAs, isRake);
 	return flowRGBAs[timeStep];
 }
 //Just force a reconstruction of the color map
@@ -2136,8 +2147,39 @@ buildNode() {
 	oss << (unsigned long)randomSeed;
 	attrs[_randomSeedAttr] = oss.str();
 
-	XmlNode* seedNode = new XmlNode(_seedingTag,attrs,0);
-	flowNode->AddChild(seedNode);
+	oss.str(empty);
+	if (doRake)
+		oss << "true";
+	else
+		oss << "false";
+	attrs[_useRakeAttr] = oss.str();
+	oss.str(empty);
+
+	oss.str(empty);
+	if (doSeedList)
+		oss << "true";
+	else
+		oss << "false";
+	attrs[_useSeedListAttr] = oss.str();
+
+	XmlNode* seedingNode = new XmlNode(_seedingTag,attrs,getNumListSeedPoints());
+
+	//Add a node for each seed point:
+	for (int i = 0; i<getNumListSeedPoints(); i++){
+		attrs.clear();
+		oss.str(empty);
+		oss << (double)seedPointList[i].getVal(0) << " " <<
+			(double)seedPointList[i].getVal(1) << " " <<
+			(double)seedPointList[i].getVal(2);
+		attrs[_positionAttr] = oss.str();
+		oss.str(empty);
+		oss << (double)seedPointList[i].getVal(3);
+		attrs[_timestepAttr] = oss.str();
+		XmlNode* seedNode = new XmlNode(_seedPointTag, attrs, 0);
+		seedingNode->AddChild(seedNode);
+	}
+
+	flowNode->AddChild(seedingNode);
 
 	//Now do graphic parameters.  
 	
@@ -2180,15 +2222,16 @@ buildNode() {
 
 	flowNode->AddChild(graphicNode);
 	//Create a node for each of the variables
-	for (int i = 0; i< numVariables+3; i++){
+	for (int i = 0; i< numVariables+4; i++){
 		map <string, string> varAttrs;
 		oss.str(empty);
-		if (i >= 3){
-			oss << variableNames[i-3];
+		if (i > 3){
+			oss << variableNames[i-4];
 		} else {
 			if (i == 0) oss << "Constant";
 			else if (i == 1) oss << "Age";
 			else if (i == 2) oss << "FieldMagnitude";
+			else if (i == 3) oss << "SeedIndex";
 		}
 		varAttrs[_variableNameAttr] = oss.str();
 		oss.str(empty);
@@ -2276,15 +2319,16 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		delete maxOpacBounds;
 		delete minColorBounds;
 		delete maxColorBounds;
-		minOpacBounds = new float[numVariables+3];
-		maxOpacBounds = new float[numVariables+3];
-		minColorBounds = new float[numVariables+3];
-		maxColorBounds = new float[numVariables+3];
+		minOpacBounds = new float[numVariables+4];
+		maxOpacBounds = new float[numVariables+4];
+		minColorBounds = new float[numVariables+4];
+		maxColorBounds = new float[numVariables+4];
 		return true;
 	}
 	//Parse the seeding node:
 	else if (StrCmpNoCase(tagString, _seedingTag) == 0) {
-		
+		//Clear out the seeds, will be added in later if they are found.
+		seedPointList.clear();
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -2316,9 +2360,39 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				ist >> seedTimeEnd;
 				ist >> seedTimeIncrement;
 			}
+			else if (StrCmpNoCase(attribName, _useRakeAttr) == 0) {
+				if (value == "true") doRake = true; else doRake = false;
+			}
+			else if (StrCmpNoCase(attribName, _useSeedListAttr) == 0) {
+				if (value == "true") doSeedList = true; else doSeedList = false;
+			}
 			else return false;
 		}
 		return true;
+	}
+	//Parse the seed point nodes:
+	else if (StrCmpNoCase(tagString, _seedPointTag) == 0){
+		//Create a new point
+		float psn[4] = {0.f,0.f,0.f,0.f};
+		Point4 pt;
+
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+
+			if (StrCmpNoCase(attribName, _positionAttr) == 0) {
+				ist >> psn[0]; ist >>psn[1]; ist >> psn[2];
+			}
+			else if (StrCmpNoCase(attribName, _timestepAttr) == 0) {
+				ist >> psn[3];
+			}
+			else return false;
+		}
+		pt.setVal(psn);
+		seedPointList.push_back(pt);
 	}
 	// Parse the geometry node:
 	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
@@ -2405,15 +2479,15 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else return false;
 		}
 		//Plug in these values:
-		if (varNum < 0 || varNum > numVariables+3) {
+		if (varNum < 0 || varNum > numVariables+4) {
 			pm->parseError("Invalid variable num, name in FlowParams: %d, %s",varNum, varName);
 			return false;
 		}
 		//Only get the variable names after the constant, age, speed:
 		//This isn't too important because they may change when new 
 		//data is loaded.
-		if (varNum > 2)
-			variableNames[varNum-3] = varName;
+		if (varNum > 3)
+			variableNames[varNum-4] = varName;
 		minColorBounds[varNum]= leftColorBound;
 		maxColorBounds[varNum] = rightColorBound;
 		minOpacBounds[varNum]= leftOpacBound;
@@ -2440,6 +2514,8 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		return ok;
 	} 
 	else if (StrCmpNoCase(tag, _seedingTag) == 0)
+		return true;
+	else if (StrCmpNoCase(tag, _seedPointTag) == 0)
 		return true;
 	else if (StrCmpNoCase(tag, _geometryTag) == 0)
 		return true;
@@ -2522,7 +2598,7 @@ guiEndChangeMapFcn(){
 //the mapping
 //
 void FlowParams::
-mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, float** flowRGBAs){
+mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, float** flowRGBAs, bool isRake){
 	//Create lut based on current mapping data
 	float* lut = new float[256*4];
 	mapperFunction->makeLut(lut);
@@ -2539,12 +2615,12 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 	int opacSize[3],colorSize[3];
 	DataStatus* ds = Session::getInstance()->getDataStatus();
 	//Get the variable (entire region) if needed
-	if (getOpacMapEntityIndex() > 2){
+	if (getOpacMapEntityIndex() > 3){
 		//set up args for GetRegion
 		//If flow is unsteady, just get the first available timestep
 		int timeStep = currentTimeStep;
 		if(flowType != 0){//unsteady flow
-			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-3);
+			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
 			if (timeStep < 0) MessageReporter::errorMsg("No data for mapped variable");
 		}
 		size_t minSize[3];
@@ -2563,9 +2639,9 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 			numTransforms, (size_t*) minSize, (size_t*) maxSize, 0);
 		QApplication::restoreOverrideCursor();
 	}
-	if (getColorMapEntityIndex() > 2){
+	if (getColorMapEntityIndex() > 3){
 		//set up args for GetRegion
-		int timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-3);
+		int timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-4);
 		if (timeStep < 0) MessageReporter::errorMsg("No data for mapped variable");
 		size_t minSize[3];
 		size_t maxSize[3];
@@ -2608,6 +2684,12 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 					case (2): //speed
 						opacVar = speeds[(k+ maxPoints*(j+ (numSeeds*i)))];
 						break;
+					case (3): //opacity mapped from seed index
+						
+						if (isRake) opacVar = -1.f - (float)j;
+						else opacVar = (float)j;
+
+						break;
 					default : //variable
 						int x,y,z;
 						float* dataPoint = flowData[currentTimeStep]+3*(k+ maxPoints*(j+ (numSeeds*i)));
@@ -2638,6 +2720,10 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 						break;
 					case (2): //speed
 						colorVar = speeds[(k+ maxPoints*(j+ (numSeeds*i)))];
+						break;
+					case (3) : //seed index.  Will use constant color
+						if (isRake) colorVar = -1.f - (float)j;
+						else colorVar = (float)j;
 						break;
 					default : //variable
 						int x,y,z;
@@ -2673,6 +2759,9 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 		}
 	}
 }
+
+
+
 int FlowParams::
 getColorMapEntityIndex() {
 	if (!flowMapEditor) return 0;
@@ -2908,8 +2997,10 @@ float FlowParams::minRange(int index){
 			if (flowIsSteady())return (float)(-firstDisplayFrame);
 			else return (0.f);
 		case (2): return (0.f);//speed
+		case (3): //seed index.  Goes from -1 to -(rakesize)
+			return (doRake ? -(float)getNumRakeSeedPoints() : 0.f );
 		default:
-			int varnum = index -3;
+			int varnum = index -4;
 			if (Session::getInstance()->getDataStatus() && Session::getInstance()->getDataStatus()->variableIsPresent(varnum)){
 				int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
 				return( Session::getInstance()->getDataMin(varnum, timeStep));
@@ -2932,8 +3023,10 @@ float FlowParams::maxRange(int index){
 					maxSpeed = fabs(Session::getInstance()->getDefaultDataMin(var));
 			}
 			return maxSpeed;
+		case (3): // seed Index, from 0 to listsize -1
+			return (doSeedList ? (float)(getNumListSeedPoints()-1) : 0.f );
 		default:
-			int varnum = index -3;
+			int varnum = index -4;
 			if (Session::getInstance()->getDataStatus() && Session::getInstance()->getDataStatus()->variableIsPresent(varnum)){
 				int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
 				return( Session::getInstance()->getDataMax(varnum, timeStep));

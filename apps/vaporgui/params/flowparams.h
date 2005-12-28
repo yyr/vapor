@@ -282,6 +282,11 @@ protected:
 	static const string _generatorCountsAttr;
 	static const string _totalGeneratorCountAttr;
 	static const string _seedTimesAttr;
+	static const string _useRakeAttr;
+	static const string _useSeedListAttr;
+	static const string _seedPointTag;
+	static const string _positionAttr;
+	static const string _timestepAttr;
 
 	//Geometry attributes
 	static const string _geometryTag;
@@ -330,7 +335,7 @@ protected:
 	void textToSlider(int coord, float center, float size);
 	void sliderToText(int coord, int center, int size);
 	
-	void mapColors(float* speeds, int timeStep, int numSeeds, float** flowData,float **rgbas);
+	void mapColors(float* speeds, int timeStep, int numSeeds, float** flowData, float **rgbas, bool isRake);
 
 	void setSeedRegionMax(int coord, float val){
 		seedBoxMax[coord] = val;
