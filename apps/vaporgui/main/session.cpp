@@ -50,6 +50,8 @@ const string Session::_jpegQualityAttr = "JpegQuality";
 const string Session::_metadataPathAttr = "MetadataPath";
 const string Session::_transferFunctionPathAttr = "TransferFunctionPath";
 const string Session::_imageCapturePathAttr = "JpegPath";
+const string Session::_flowDirectoryPathAttr = "FlowPath";
+
 const string Session::_logFileNameAttr = "LogFileName";
 const string Session::_exportFileNameAttr = "ExportFileName";
 const string Session::_maxPopupAttr = "MaxPopups";
@@ -126,10 +128,12 @@ void Session::init() {
 	cacheMB = 500;
 	currentMetadataFile = "F:\\run4\\RUN4.vdf";
 	currentJpegDirectory = "C:\\temp";
+	currentFlowDirectory = "C:\\temp";
 #else
 	cacheMB = 1024;
 	currentMetadataFile = "*.vdf";
 	currentJpegDirectory = "/tmp";	
+	currentFlowDirectory = "/tmp";
 #endif
 	currentExportFile = ImpExp::GetPath();
 	//Delete all the saved transfer functions:
@@ -191,6 +195,7 @@ buildNode() {
 	attrs[_metadataPathAttr] = currentMetadataFile;
 	attrs[_transferFunctionPathAttr] = currentTFPath;
 	attrs[_imageCapturePathAttr] = currentJpegDirectory;
+	attrs[_flowDirectoryPathAttr] = currentFlowDirectory;
 	attrs[_exportFileNameAttr] = currentExportFile;
 	MessageReporter* msgRpt = MessageReporter::getInstance();
 	attrs[_logFileNameAttr] = getLogfileName();
@@ -292,6 +297,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				}
 				else if (StrCmpNoCase(attr, _imageCapturePathAttr) == 0) {
 					ist >> currentJpegDirectory;
+				}
+				else if (StrCmpNoCase(attr, _flowDirectoryPathAttr) == 0) {
+					ist >> currentFlowDirectory;
 				}
 				else if (StrCmpNoCase(attr, _metadataPathAttr) == 0) {
 					ist >> currentMetadataFile;

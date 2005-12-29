@@ -130,7 +130,7 @@ void FlowRenderer::paintGL()
 		}
 		numSeedPoints = myFlowParams->getNumRakeSeedPointsUsed();
 		maxPoints = myFlowParams->getMaxPoints();
-		numInjections = myFlowParams->getNumInjections();
+		numInjections = 1;
 		renderFlowData(constColors,currentFrameNum);
 	}
 	//Do the same for seed list
@@ -149,9 +149,9 @@ void FlowRenderer::paintGL()
 			constFlowColor[1] = qGreen(constRgb)/255.f;
 			constFlowColor[2] = qBlue(constRgb)/255.f;
 		}
-		numSeedPoints = myFlowParams->getNumListSeedPointsUsed();
+		numSeedPoints = myFlowParams->getNumListSeedPointsUsed(timeStep);
 		maxPoints = myFlowParams->getMaxPoints();
-		numInjections = myFlowParams->getNumInjections();
+		numInjections = 1;
 		renderFlowData(constColors,currentFrameNum);
 	}
 }

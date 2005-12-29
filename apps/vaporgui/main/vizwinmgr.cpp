@@ -2260,10 +2260,14 @@ doFlowSeedList(bool isOn){
 	getFlowParams(activeViz)->guiDoSeedList(isOn);
 }
 void VizWinMgr::
-loadFlowSeedList(){}
+loadFlowSeedList(){
+	getFlowParams(activeViz)->guiLoadSeeds();
+}
 
 void VizWinMgr::
-saveFlow(){}
+saveFlow(){
+	getFlowParams(activeViz)->guiSaveFlowLines();
+}
 
 void VizWinMgr::
 editFlowSeedList(){

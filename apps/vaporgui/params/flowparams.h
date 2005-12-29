@@ -152,7 +152,7 @@ public:
 		return (randomGen ? allGeneratorCount : generatorCount[0]*generatorCount[1]*generatorCount[2]);
 	}
 	int getNumListSeedPoints() {return seedPointList.size();}
-	int getNumListSeedPointsUsed() {return numListSeedPointsUsed;}
+	int getNumListSeedPointsUsed(int timeStep) {return numListSeedPointsUsed[timeStep];}
 	std::vector<Point4>& getSeedPointList(){return seedPointList;}
 	int getColorMapEntityIndex() ;
 	int getOpacMapEntityIndex() ;
@@ -161,7 +161,7 @@ public:
 		bool rakeDirty = 
 			(rakeFlowData && (flowDataDirty[timeStep]&seedRake));
 		bool listDirty = 
-			(listFlowData && (flowDataDirty[timeStep]&seedList)&&getNumListSeedPoints()>0);
+			(listFlowData && (flowDataDirty[timeStep]&seedList)&&(getNumListSeedPoints()>0));
 		if (rakeOnly) return rakeDirty;
 		if (listOnly) return listDirty;
 		return (rakeDirty || listDirty);
@@ -186,6 +186,7 @@ public:
 			if(listFlowData && listFlowData[timeStep]){ 
 				delete listFlowData[timeStep];
 				listFlowData[timeStep] = 0;
+				numListSeedPointsUsed[timeStep]=0;
 			}
 		}
 	}
@@ -239,6 +240,8 @@ public:
 	void guiDoSeedList(bool isOn);
 	void guiDoRake(bool isOn);
 	void guiEditSeedList();
+	void guiLoadSeeds();
+	void guiSaveFlowLines();
 
 
 	void setMapBoundsChanged(bool on){mapBoundsChanged = on; flowGraphicsChanged = on;}
@@ -323,6 +326,9 @@ protected:
 	void setFlowGeometry(int geomNum){geometryType = geomNum;}
 	void setColorMapEntity( int entityNum);
 	void setOpacMapEntity( int entityNum);
+	// helper functions for writing stream and path lines
+	bool writeStreamline(FILE* saveFile, int streamNum, int frameNum, float* flowDataArray);
+	bool writePathline(FILE* saveFile, int pathNum, int injectionNum, float* flowDataArray);
 
 	//Calculate max and min range for variables based on current data/flow settings
 	//Only used for guidance in setting info in flowtab
@@ -431,6 +437,7 @@ protected:
 	//With Pathlines, there is one array, rakeFlowData[0].
 	float** rakeFlowData;
 	float** listFlowData;
+	int* numListSeedPointsUsed;
 	seedType* flowDataDirty;
 	float** rakeFlowRGBAs;
 	float** listFlowRGBAs;
@@ -444,7 +451,6 @@ protected:
 	//The flow data is regenerated:
 	
 	int numRakeSeedPointsUsed;
-	int numListSeedPointsUsed;
 	int numInjections;
 	
 	//Keep track of min, max frames in available data:

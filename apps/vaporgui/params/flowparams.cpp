@@ -43,6 +43,7 @@
 #include <qlabel.h>
 #include <qcheckbox.h>
 #include <qtable.h>
+#include <qfiledialog.h>
 #include "mainform.h"
 #include "session.h"
 #include "params.h"
@@ -113,6 +114,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	//Set up flow data cache:
 	rakeFlowData = 0;
 	listFlowData = 0;
+	numListSeedPointsUsed = 0;
 	rakeFlowRGBAs = 0;
 	listFlowRGBAs = 0;
 	flowDataDirty = 0;
@@ -852,10 +854,12 @@ reinit(bool doOverride){
 	//setup the caches
 	rakeFlowData = new float*[maxFrame+1];
 	listFlowData = new float*[maxFrame+1];
+	numListSeedPointsUsed = new int[maxFrame+1];
 	rakeFlowRGBAs = new float*[maxFrame+1];
 	listFlowRGBAs = new float*[maxFrame+1];
 	flowDataDirty = new seedType[maxFrame+1];
 	for (int j = 0; j<= maxFrame; j++) {
+		numListSeedPointsUsed[j] = 0;
 		rakeFlowData[j] = 0;
 		listFlowData[j] = 0;
 		rakeFlowRGBAs[j] = 0;
@@ -1428,6 +1432,259 @@ guiSetAligned(){
 	myFlowTab->flowMapFrame->update();
 	PanelCommand::captureEnd(cmd, this);
 }
+//Respond to a change in mapper function (from color selection or mouse down/release events)
+//These are just for undo/redo.  Also may need to update visualizer and/or editor
+//
+void FlowParams::
+guiStartChangeMapFcn(char* str){
+	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
+	guiSetTextChanged(false);
+	//If another command is in process, don't disturb it:
+	if (savedCommand) return;
+	savedCommand = PanelCommand::captureStart(this, str);
+}
+void FlowParams::
+guiEndChangeMapFcn(){
+	if (!savedCommand) return;
+	PanelCommand::captureEnd(savedCommand,this);
+	setFlowMappingDirty();
+	savedCommand = 0;
+}
+// Load a (text) file of 4D (or 3D?) points, adding to the current seedList.  
+//
+void FlowParams::guiLoadSeeds(){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "load seeds from file");
+	// open the file
+	//add the points
+	//close the file
+	PanelCommand::captureEnd(cmd, this);
+	setFlowDataDirty(false, true);
+}
+// Save all the points of the current flow.
+// Don't support undo/redo
+// If flow is unsteady, save all the points of all the pathlines, with their times.
+// If flow is steady, just save the points of the streamlines for the current animation time,
+// Include their timesteps (relative to the current animation timestep) 
+//
+void FlowParams::guiSaveFlowLines(){
+	confirmText(false);
+	//Launch an open-file dialog
+	//If flow is dirty, force recalc.
+	//Save all specified points
+	//Close the file
+	 QString filename = QFileDialog::getSaveFileName(
+		Session::getInstance()->getJpegDirectory().c_str(),
+        "Text files (*.txt)",
+        myFlowTab,
+        "Save Flowlines Dialog",
+        "Specify file name for saving current flow lines" );
+	//Extract the path, and the root name, from the returned string.
+	QFileInfo* fileInfo = new QFileInfo(filename);
+	//Save the path for future captures
+	Session::getInstance()->setFlowDirectory(fileInfo->dirPath(true).ascii());
+	
+	//Open the save file:
+	FILE* saveFile = fopen(filename.ascii(),"w");
+	if (!saveFile){
+		MessageReporter::errorMsg("Flow Save Error;\nUnable to open file %s",filename.ascii());
+		return;
+	}
+	//Refresh the flow, if necessary
+	guiRefreshFlow();
+	if (flowIsSteady()){
+		//What's the current timestep?
+		AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(vizNum);
+		int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
+		//
+		//Save the steady flowlines resulting from the rake (in reverse order)
+		//Get the rake flow data:
+		if (rakeEnabled()){
+			float* flowDataArray = getFlowData(currentFrameNum, true);
+			if (!flowDataArray)
+				flowDataArray = regenerateFlowData(currentFrameNum, true);
+			assert(flowDataArray);
+			int numSeedPoints = getNumRakeSeedPointsUsed();
+			for (int i = numSeedPoints -1; i>=0; i--){
+				if (!writeStreamline(saveFile,i,currentFrameNum,flowDataArray)){
+					MessageReporter::errorMsg("Flow Save Error;\nUnable to write data to %s",filename.ascii());
+					return;
+				}
+			}
+		}
+		if (listEnabled()&&(getNumListSeedPointsUsed(currentFrameNum) > 0)){
+			
+			float* flowDataArray = getFlowData(currentFrameNum, false);
+			if (!flowDataArray)
+				flowDataArray = regenerateFlowData(currentFrameNum, false);
+			assert(flowDataArray);
+			int numSeedPoints = getNumListSeedPointsUsed(currentFrameNum);
+			for (int i = 0; i<numSeedPoints; i++){
+				if (!writeStreamline(saveFile,i,currentFrameNum,flowDataArray)){
+					MessageReporter::errorMsg("Flow Save Error;\nUnable to write data to %s",filename.ascii());
+					return;
+				}
+			}
+		}
+	} else {
+		//Write the (entire) set of pathlines to file.
+		//Loop over all injections:
+		
+		if (rakeEnabled()){
+			float* flowDataArray = getFlowData(0, true);
+			if (!flowDataArray)
+				flowDataArray = regenerateFlowData(0, true);
+			assert(flowDataArray);
+			for (int injNum = 0; injNum < numInjections; injNum++){
+				
+				int numSeedPoints = getNumRakeSeedPointsUsed();
+				//Offset to start of the injection:
+				float* flowDataPtr = flowDataArray + 3*injNum*numSeedPoints*maxPoints;
+				for (int i = numSeedPoints -1; i>=0; i--){
+					if (!writePathline(saveFile,i,injNum,flowDataPtr)){
+						MessageReporter::errorMsg("Flow Save Error;\nUnable to write data to %s",filename.ascii());
+						return;
+					}
+				}
+			}
+		}
+		if (listEnabled()&&(getNumListSeedPointsUsed(0) > 0)){
+			float* flowDataArray = getFlowData(0, false);
+			if (!flowDataArray)
+				flowDataArray = regenerateFlowData(0, false);
+			assert(flowDataArray);
+			for (int injNum = 0; injNum < numInjections; injNum++){
+				int numSeedPoints = getNumListSeedPointsUsed(0);
+				float* flowDataPtr = flowDataArray+ 3*injNum*numSeedPoints*maxPoints;
+				for (int i = 0; i<numSeedPoints; i++){
+					if (!writePathline(saveFile,i,injNum,flowDataPtr)){
+						MessageReporter::errorMsg("Flow Save Error;\nUnable to write data to %s",filename.ascii());
+						return;
+					}
+				}
+			}
+		}
+	}
+	fclose(saveFile);
+}
+bool FlowParams::
+writeStreamline(FILE* saveFile, int streamNum, int currentFrameNum, float* flowDataArray){
+
+	//For each seed go from the start to the end.
+	//IGNORE_FLAG's get replaced with END_FLOW_FLAG
+	//If there's a stationary_stream_flag at the start, then find the 
+	//first nonstationary point and copy that.
+	//If there's a stationary_stream_flag at end, just copy the last
+	//nonstationary point to the end.
+	//First check for stationary
+	float firstx = flowDataArray[3*maxPoints*streamNum];
+	float stationaryPoint[3];
+	bool doingStationary = false;
+	bool outOfBounds = false;
+	bool foundValidPoint = false;
+	int j;
+	if (firstx == STATIONARY_STREAM_FLAG){
+		doingStationary = true;
+		//Find the first nonstationary point:
+		
+		for (j =1; j<maxPoints; j++){
+			if (flowDataArray[3*(maxPoints*streamNum + j)] != STATIONARY_STREAM_FLAG){
+				stationaryPoint[0] = flowDataArray[3*(maxPoints*streamNum + j)];
+				stationaryPoint[1] = flowDataArray[1+3*(maxPoints*streamNum + j)];
+				stationaryPoint[2] = flowDataArray[2+3*(maxPoints*streamNum + j)];
+				break;
+			}
+		}
+		//We should have found a nonstationary point!
+		assert(j < maxPoints);
+	}
+	int rc;
+	//Now write the points with the current time step
+	for (j = 0; j<maxPoints; j++){
+		float* point = flowDataArray + 3*(maxPoints*streamNum +j);
+		//Check if the stationary flag is valid
+		if (doingStationary && (*point != STATIONARY_STREAM_FLAG)){
+			doingStationary = false;
+		}
+		//If we have had valid points, an endflow flag puts us out of bounds:
+		if (foundValidPoint && point[0] == END_FLOW_FLAG)
+			outOfBounds = true;
+		//Now write the appropriate point:
+		if(doingStationary){ //Output current stationary point, or
+			rc=fprintf(saveFile,"%8g %8g %8g %8g\n",
+				stationaryPoint[0],stationaryPoint[1],stationaryPoint[2],
+				(float)currentFrameNum);
+			if (rc <= 0) return false;
+		} 
+		else if (point[0] == STATIONARY_STREAM_FLAG){
+			//finding stationary point now..
+			//If we find it after the first position, it will be 
+			//stationary to the end.
+			//Go back to previous point:
+			doingStationary = true;
+			assert (j>0);
+			stationaryPoint[0]= *(point-3);
+			stationaryPoint[1]= *(point-2);
+			stationaryPoint[2]= *(point-1);
+			rc=fprintf(saveFile,"%8g %8g %8g %8g\n",
+				stationaryPoint[0],stationaryPoint[1],stationaryPoint[2],
+				(float)currentFrameNum);
+			if (rc <= 0) return false;
+		} 
+		else if (point[0] == END_FLOW_FLAG || point[0] == IGNORE_FLAG || outOfBounds){
+			//If past or before end, just fill with END_FLOW_FLAG...
+			rc=fprintf(saveFile,"%8g %8g %8g %8g\n",
+				END_FLOW_FLAG,END_FLOW_FLAG,END_FLOW_FLAG,
+				(float)currentFrameNum);
+			if (rc <= 0) return false;
+		} else { //otherwise just output the actual point
+			
+			rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
+				*point, *(point+1),*(point+2),
+				(float)currentFrameNum);
+			if (rc <= 0) return false;
+			foundValidPoint = true;
+		}
+	}
+	return true;
+}
+bool FlowParams::
+writePathline(FILE* saveFile, int pathNum, int injNum, float* flowDataArray){
+
+	//For each seed go from the start to the end.
+	//output END_FLOW_FLAG if found
+	//Calculate and output timesteps for each value
+	//Don't worry about stationary flow flag
+	
+	int j;
+	bool outOfBounds = false;
+	int rc;
+	//Go through all the points.
+	//Find the timestep for the seed point to be emitted:
+	float seedTime = (float)(seedTimeStart+injNum*seedTimeIncrement);
+	float timeIncrement = (float)(maxFrame-minFrame)/(float)objectsPerFlowline;
+	for (j = 0; j<maxPoints; j++){
+		float* point = flowDataArray +3*(maxPoints*pathNum +j);
+		//Determine the appropriate timestep for this point.
+		float frameTime = seedTime + timeIncrement*j;
+		
+		if (point[0] == END_FLOW_FLAG || point[0] == IGNORE_FLAG || outOfBounds){
+			//If past or before end, just fill with END_FLOW_FLAG...
+			rc=fprintf(saveFile,"%8g %8g %8g %8g\n",
+				END_FLOW_FLAG,END_FLOW_FLAG,END_FLOW_FLAG,
+				frameTime);
+			if (rc <= 0) return false;
+			outOfBounds = true;
+		} else { //otherwise just output the actual point
+			rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
+				*point, *(point+1),*(point+2),
+				frameTime);
+			if (rc <= 0) return false;
+		}
+	}
+	return true;
+}
+
 //When the center slider moves, set the seedBoxMin and seedBoxMax
 void FlowParams::
 setXCenter(int sliderval){
@@ -1664,8 +1921,10 @@ regenerateFlowData(int timeStep, bool isRake){
 	if (!listFlowData) {
 		//setup the caches
 		listFlowData = new float*[maxFrame+1];
+		numListSeedPointsUsed = new int[maxFrame+1];
 		if(!flowDataDirty) flowDataDirty = new seedType[maxFrame+1];
 		for (int j = 0; j<= maxFrame; j++) {
+			numListSeedPointsUsed[j]=0;
 			listFlowData[j] = 0;
 			flowDataDirty[j] = nullSeedType;
 		}
@@ -1801,7 +2060,7 @@ regenerateFlowData(int timeStep, bool isRake){
 			}
 		}
 		if (isRake) numRakeSeedPointsUsed = numSeedPoints;
-		else numListSeedPointsUsed = numSeedPoints;
+		else numListSeedPointsUsed[timeStep] = numSeedPoints;
 		//If failed to build streamlines, force  rendering to stop by inserting
 		//END_FLOW_FLAG at the start of each streamline
 		if (!rc){
@@ -1895,7 +2154,7 @@ regenerateFlowData(int timeStep, bool isRake){
 			}
 		}
 		if (isRake) numRakeSeedPointsUsed = numSeedPoints;
-		else numListSeedPointsUsed = numSeedPoints;
+		else numListSeedPointsUsed[timeStep] = numSeedPoints;
 	}
 
 	//Restore original cursor:
@@ -1931,7 +2190,7 @@ regenerateFlowData(int timeStep, bool isRake){
 float* FlowParams::getRGBAs(int timeStep, bool isRake){
 	float** flowRGBAs = listFlowRGBAs; 
 	float** flowData = listFlowData;
-	int numSeedPoints = getNumListSeedPointsUsed();
+	int numSeedPoints = getNumListSeedPointsUsed(timeStep);
 	if (isRake){
 		flowRGBAs = rakeFlowRGBAs;
 		flowData = rakeFlowData;
@@ -2004,9 +2263,9 @@ void FlowParams::setFlowDataDirty(bool rakeOnly, bool listOnly){
 				if (listFlowData[i]) {
 					delete listFlowData[i];
 					listFlowData[i] = 0;
+					numListSeedPointsUsed[i]=0;
 				}
 			}
-			numListSeedPointsUsed = 0;
 		}
 		//Force rerender only if we are doing autoRefresh
 		VizWinMgr::getInstance()->refreshFlow(this);
@@ -2035,6 +2294,7 @@ setFlowDataDirty(int timeStep, bool isRake, bool newValue){
 		if (autoRefresh && listFlowData && listFlowData[timeStep]){
 			delete listFlowData[timeStep];
 			listFlowData[timeStep] = 0;
+			numListSeedPointsUsed[timeStep]=0;
 		}
 		//set the dirty flag for list
 		flowDataDirty[timeStep] = (seedType)(seedList | flowDataDirty[timeStep]);
@@ -2573,24 +2833,7 @@ updateMapBounds(){
 	}
 
 }
-//Respond to a change in mapper function (from color selection or mouse down/release events)
-//These are just for undo/redo.  Also may need to update visualizer and/or editor
-//
-void FlowParams::
-guiStartChangeMapFcn(char* str){
-	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
-	guiSetTextChanged(false);
-	//If another command is in process, don't disturb it:
-	if (savedCommand) return;
-	savedCommand = PanelCommand::captureStart(this, str);
-}
-void FlowParams::
-guiEndChangeMapFcn(){
-	if (!savedCommand) return;
-	PanelCommand::captureEnd(savedCommand,this);
-	setFlowMappingDirty();
-	savedCommand = 0;
-}
+
 //Generate a list of colors and opacities, one per (valid) vertex.
 //The number of points is maxPoints*numSeedings*numInjections
 //The flowData parameter is either the rakeFlowData or the listFlowData
@@ -3140,6 +3383,7 @@ void FlowParams::cleanFlowDataCaches(){
 			if (listFlowData[i]) delete listFlowData[i];
 		}
 		delete listFlowData;
+		delete numListSeedPointsUsed;
 		if(listFlowRGBAs)delete[] listFlowRGBAs;
 		
 	}
@@ -3149,6 +3393,7 @@ void FlowParams::cleanFlowDataCaches(){
 	flowDataDirty = 0;
 	listFlowRGBAs = 0;
 	rakeFlowRGBAs = 0;
+	numListSeedPointsUsed = 0;
 }
 
 

@@ -322,7 +322,9 @@ public:
 	void updateTFFilePath(QString* newPath);
 	string& getMetadataFile(){return currentMetadataFile;}
 	string& getJpegDirectory() {return currentJpegDirectory;}
+	string& getFlowDirectory() {return currentFlowDirectory;}
 	void setJpegDirectory(const char* dir) {currentJpegDirectory = dir;}
+	void setFlowDirectory(const char* dir) {currentFlowDirectory = dir;}
 	string& getExportFile() {return currentExportFile;}
 	string& getLogfileName() {return currentLogfileName;}
 	void setLogfileName(const char* newname){currentLogfileName = newname;}
@@ -338,6 +340,7 @@ protected:
 	static const string _metadataPathAttr;
 	static const string _transferFunctionPathAttr;
 	static const string _imageCapturePathAttr;
+	static const string _flowDirectoryPathAttr;
 	static const string _logFileNameAttr;
 	static const string _maxPopupAttr;
 	static const string _maxLogAttr;
@@ -391,6 +394,7 @@ protected:
 	string currentMetadataFile;
 	string currentExportFile;
 	string currentJpegDirectory;
+	string currentFlowDirectory;
 	string currentLogfileName;
 };
 
