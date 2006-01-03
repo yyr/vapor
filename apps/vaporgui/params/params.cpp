@@ -220,7 +220,7 @@ buildCoordTransform(float transformMatrix[12], float extraThickness){
 	// 2nd:  Sth Cph, Cth, SthSph
 	// 3rd:  -Sph, 0, Cph
 
-	//Oh-Oh.  Let's first do the theta rotation, then the phi.
+	//Hmmm.  Consider reversing order: first do the theta rotation, then the phi.
 	//Also negate phi so phi rotation is in the +x direction
 	// 1st:  CthCph  -CphSth  -Sph
 	// 2nd:  Sth      Cth     0
@@ -242,25 +242,27 @@ buildCoordTransform(float transformMatrix[12], float extraThickness){
 		boxMax[i] += extraThickness;
 		boxSize[i] = (boxMax[i] - boxMin[i]);
 	}
-	/*
+	
 	//1st row (phi first then theta)
+	//Also, negate phi 
 	transformMatrix[0] = 0.5*boxSize[0]*cosTheta*cosPhi;
 	transformMatrix[1] = -0.5*boxSize[1]*sinTheta;
-	transformMatrix[2] = 0.5*boxSize[2]*cosTheta*sinPhi;
+	transformMatrix[2] = -0.5*boxSize[2]*cosTheta*sinPhi;
 	//2nd row:
 	transformMatrix[4] = sinTheta*cosPhi*0.5*boxSize[0];
 	transformMatrix[5] = cosTheta*0.5*boxSize[1];
-	transformMatrix[6] = sinTheta*sinPhi*0.5*boxSize[2];
+	transformMatrix[6] = -sinTheta*sinPhi*0.5*boxSize[2];
 	//3rd row:
-	transformMatrix[8] = -sinPhi*0.5*boxSize[0];
+	transformMatrix[8] = sinPhi*0.5*boxSize[0];
 	transformMatrix[9] = 0.f;
 	transformMatrix[10] = cosPhi*0.5*boxSize[2];
 	//last column
 	transformMatrix[3] = .5f*(boxMax[0]+boxMin[0]);
 	transformMatrix[7] = .5f*(boxMax[1]+boxMin[1]);
 	transformMatrix[11] = .5f*(boxMax[2]+boxMin[2]);
-	*/
-	//1st row (with theta first, then phi:
+
+	/*
+	//1st row (with theta first, then phi.  Problem:  this doesn't work.
 	transformMatrix[0] = 0.5*boxSize[0]*cosTheta*cosPhi;
 	transformMatrix[1] = -0.5*boxSize[1]*sinTheta*cosPhi;
 	transformMatrix[2] = -0.5*boxSize[2]*sinPhi;
@@ -276,6 +278,7 @@ buildCoordTransform(float transformMatrix[12], float extraThickness){
 	transformMatrix[3] = .5f*(boxMax[0]+boxMin[0]);
 	transformMatrix[7] = .5f*(boxMax[1]+boxMin[1]);
 	transformMatrix[11] = .5f*(boxMax[2]+boxMin[2]);
+	*/
 	
 }
 

@@ -466,8 +466,15 @@ guiSetEnabled(bool value){
 	assert(value != enabled);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle probe enabled");
 	setEnabled(value);
-	PanelCommand::captureEnd(cmd, this);
+	//if we are disabling, must destroy the latest texture
+	if (!enabled && probeTexture){
+		delete probeTexture;
+		probeTexture = 0;
+	}
 	
+	PanelCommand::captureEnd(cmd, this);
+	//Need to rerender the texture:
+	setProbeDirty(true);
 	//updateRenderer(prevEnabled, local, false); (unnecessary; called by vizwinmgr)
 }
 
@@ -1541,6 +1548,7 @@ setZSize(int sliderval){
 
 unsigned char* ProbeParams::
 getProbeTexture(){
+	if (!enabled) return 0;
 	if (!probeDirty)
 		return probeTexture;
 	Session* ses = Session::getInstance();

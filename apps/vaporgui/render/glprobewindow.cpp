@@ -114,15 +114,19 @@ void GLProbeWindow::paintGL()
 	
 	//glDrawBuffer(buffer);
 	//glColor3f(1.0f,0.f,0.f);
-	glEnable(GL_TEXTURE_2D);
+	
 	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 	//get the probe texture:
 	unsigned char* probeTexture = 0;
 	if (myParams)
 		probeTexture = myParams->getProbeTexture();
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
-	
+	if(probeTexture) {
+		glEnable(GL_TEXTURE_2D);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
+	} else {
+		glColor4f(0.,0.,0.,0.);
+	}
 	glBegin(GL_QUADS);
 	//Just specify the rectangle corners
 	glTexCoord2f(0.f,0.f); glVertex2f(rectLeft,-rectTop);
@@ -131,7 +135,7 @@ void GLProbeWindow::paintGL()
 	glTexCoord2f(1.f, 0.f); glVertex2f(-rectLeft, -rectTop);
 	glEnd();
 	glFlush();
-	glDisable(GL_TEXTURE_2D);
+	if (probeTexture) glDisable(GL_TEXTURE_2D);
 	//Now draw the crosshairs
 	if (myParams){
 		const float* crossHairCoords = myParams->getCursorCoords();

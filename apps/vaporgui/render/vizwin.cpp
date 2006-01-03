@@ -275,11 +275,11 @@ void VizWin::
 mousePressEvent(QMouseEvent* e){
 	float screenCoords[2];
 	if (numRenderers <= 0) return;
-	screenCoords[0] = (float)e->x();
+	screenCoords[0] = (float)e->x()-3.f;
 	//To keep orientation correct in plane, and use
 	//OpenGL convention (Y 0 at bottom of window), reverse
 	//value of y:
-	screenCoords[1] = (float)(height() - e->y());
+	screenCoords[1] = (float)(height() - e->y()) - 5.f;
 	//possibly navigate after other activities
 	bool doNavigate = false;
 	switch (myWinMgr->selectionMode){
