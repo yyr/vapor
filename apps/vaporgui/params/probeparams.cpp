@@ -1735,9 +1735,17 @@ void ProbeParams::getBoundingBox(size_t boxMinBlk[3], size_t boxMaxBlk[3], int b
 // refreshing the selected point.  CursorCoords go from -1 to 1
 //
 void ProbeParams::mapCursor(){
-	selectPoint[0] = probeMin[0] + 0.5f*(probeMax[0] - probeMin[0])*(1.f+cursorCoords[0]);
-	selectPoint[1] = probeMin[1] + 0.5f*(probeMax[1] - probeMin[1])*(1.f+cursorCoords[1]);
-	selectPoint[2] = 0.5f*(probeMin[2]+probeMax[2]);
+	//Get the transform matrix:
+	float transformMatrix[12];
+	float probeCoord[3];
+	buildCoordTransform(transformMatrix);
+	//The cursor sits in the z=0 plane of the probe box coord system.
+	//x is reversed because we are looking from the opposite direction (?)
+	probeCoord[0] = -cursorCoords[0];
+	probeCoord[1] = cursorCoords[1];
+	probeCoord[2] = 0.f;
+	
+	vtransform(probeCoord, transformMatrix, selectPoint);
 }
 
 void ProbeParams::setProbeDirty(bool dirty){ 

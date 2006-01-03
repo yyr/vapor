@@ -1455,9 +1455,41 @@ guiEndChangeMapFcn(){
 void FlowParams::guiLoadSeeds(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "load seeds from file");
-	// open the file
-	//add the points
-	//close the file
+	QString filename = QFileDialog::getOpenFileName(
+		Session::getInstance()->getFlowDirectory().c_str(),
+        "Text files (*.txt)",
+        myFlowTab,
+        "Load Flow Seeds Dialog",
+        "Specify file name for loading list of seed points" );
+	//Check that user did specify a file:
+	if (filename.isNull()) {
+		delete cmd;
+		return;
+	}
+	//Extract the path, and the root name, from the returned string.
+	QFileInfo* fileInfo = new QFileInfo(filename);
+	//Save the path for future flow I/O
+	Session::getInstance()->setFlowDirectory(fileInfo->dirPath(true).ascii());
+	
+	//Open the file:
+	FILE* seedFile = fopen(filename.ascii(),"r");
+	if (!seedFile){
+		MessageReporter::errorMsg("Seed Load Error;\nUnable to open file %s",filename.ascii());
+		delete cmd;
+		return;
+	}
+	//Empty the seed list:
+	seedPointList.empty();
+	//Add each seed to the list:
+	while (1){
+		float inputVals[4];
+		int numVals = fscanf(seedFile, "%g %g %g %g", inputVals,inputVals+1,
+			inputVals+2,inputVals+3);
+		if (numVals < 4) break;
+		Point4 newPoint(inputVals);
+		seedPointList.push_back(newPoint);
+	}
+	fclose(seedFile);
 	PanelCommand::captureEnd(cmd, this);
 	setFlowDataDirty(false, true);
 }
@@ -1470,20 +1502,25 @@ void FlowParams::guiLoadSeeds(){
 void FlowParams::guiSaveFlowLines(){
 	confirmText(false);
 	//Launch an open-file dialog
-	//If flow is dirty, force recalc.
-	//Save all specified points
-	//Close the file
+	
 	 QString filename = QFileDialog::getSaveFileName(
-		Session::getInstance()->getJpegDirectory().c_str(),
+		Session::getInstance()->getFlowDirectory().c_str(),
         "Text files (*.txt)",
         myFlowTab,
         "Save Flowlines Dialog",
         "Specify file name for saving current flow lines" );
+	if (filename.isNull()){
+		 return;
+	}
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	//Save the path for future captures
 	Session::getInstance()->setFlowDirectory(fileInfo->dirPath(true).ascii());
 	
+	//If the file has no suffix, add .txt
+	if (filename.find(".") == -1){
+		filename.append(".txt");
+	}
 	//Open the save file:
 	FILE* saveFile = fopen(filename.ascii(),"w");
 	if (!saveFile){

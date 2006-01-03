@@ -219,6 +219,12 @@ buildCoordTransform(float transformMatrix[12], float extraThickness){
 	// 1st:  Cth Cph,  -Sth, Cth Sph
 	// 2nd:  Sth Cph, Cth, SthSph
 	// 3rd:  -Sph, 0, Cph
+
+	//Oh-Oh.  Let's first do the theta rotation, then the phi.
+	//Also negate phi so phi rotation is in the +x direction
+	// 1st:  CthCph  -CphSth  -Sph
+	// 2nd:  Sth      Cth     0
+	// 3rd:  CthSph  -SthSph  Cph
 	//Note we are reversing phi, since it is more intuitive to have the user
 	//looking down the negative z-axis.
 	float theta = getTheta();
@@ -236,7 +242,8 @@ buildCoordTransform(float transformMatrix[12], float extraThickness){
 		boxMax[i] += extraThickness;
 		boxSize[i] = (boxMax[i] - boxMin[i]);
 	}
-	//1st row
+	/*
+	//1st row (phi first then theta)
 	transformMatrix[0] = 0.5*boxSize[0]*cosTheta*cosPhi;
 	transformMatrix[1] = -0.5*boxSize[1]*sinTheta;
 	transformMatrix[2] = 0.5*boxSize[2]*cosTheta*sinPhi;
@@ -247,6 +254,23 @@ buildCoordTransform(float transformMatrix[12], float extraThickness){
 	//3rd row:
 	transformMatrix[8] = -sinPhi*0.5*boxSize[0];
 	transformMatrix[9] = 0.f;
+	transformMatrix[10] = cosPhi*0.5*boxSize[2];
+	//last column
+	transformMatrix[3] = .5f*(boxMax[0]+boxMin[0]);
+	transformMatrix[7] = .5f*(boxMax[1]+boxMin[1]);
+	transformMatrix[11] = .5f*(boxMax[2]+boxMin[2]);
+	*/
+	//1st row (with theta first, then phi:
+	transformMatrix[0] = 0.5*boxSize[0]*cosTheta*cosPhi;
+	transformMatrix[1] = -0.5*boxSize[1]*sinTheta*cosPhi;
+	transformMatrix[2] = -0.5*boxSize[2]*sinPhi;
+	//2nd row:
+	transformMatrix[4] = sinTheta*0.5*boxSize[0];
+	transformMatrix[5] = cosTheta*0.5*boxSize[1];
+	transformMatrix[6] = 0.f;
+	//3rd row:
+	transformMatrix[8] = sinPhi*cosTheta*0.5*boxSize[0];
+	transformMatrix[9] = -sinPhi*sinTheta*0.5*boxSize[0];
 	transformMatrix[10] = cosPhi*0.5*boxSize[2];
 	//last column
 	transformMatrix[3] = .5f*(boxMax[0]+boxMin[0]);
