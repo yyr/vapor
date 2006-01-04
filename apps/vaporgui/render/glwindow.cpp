@@ -226,7 +226,7 @@ void GLWindow::paintGL()
 		changeViewerFrame();
 	}
 	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-	ViewpointParams* myViewpointParams = VizWinMgr::getInstance()->getViewpointParams(winNum);
+	
 	//Note:  We are redundantly calling calcRegionExtents in both the dvr renderer
 	//and here.  It also is unnecessarily called every rendering.
 	int numxforms = myRegionParams->getNumTrans();
@@ -250,39 +250,23 @@ void GLWindow::paintGL()
 
 	//render the region geometry, if in region mode
 	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
-		float camVec[3];
-		ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
-		//Obtain the face displacement in world coordinates,
-		//Then normalize to unit cube coords:
-		float disp = myRegionParams->getFaceDisplacement();
-		disp /= ViewpointParams::getMaxCubeSide();
-		int selectedFace = myRegionParams->getSelectedFaceNum();
-		assert(selectedFace >= -1 && selectedFace < 6);
-		renderRegionBounds(extents, selectedFace,
-			camVec, disp);
+		RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+		TranslateStretchManip* regionManip = myVizWin->getRegionManip();
+		regionManip->setParams(myRegionParams);
+		regionManip->render();
+		
 	} 
-	//render the seed geometry, if in rake mode
+	//render the rake geometry, if in rake mode
 	else if(MainForm::getInstance()->getCurrentMouseMode() == Command::rakeMode){
-		float camVec[3];
-		float seedExtents[6];
 		FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
-		myFlowParams->calcSeedExtents(seedExtents);
-		ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
-		//Obtain the face displacement in world coordinates,
-		//Then normalize to unit cube coords:
-		float disp = myFlowParams->getSeedFaceDisplacement();
-		disp /= ViewpointParams::getMaxCubeSide();
-		int selectedFace = myFlowParams->getSelectedFaceNum();
-		assert(selectedFace >= -1 && selectedFace < 6);
-		renderRegionBounds(seedExtents, selectedFace,
-			camVec, disp);
+		TranslateStretchManip* flowManip = myVizWin->getFlowManip();
+		flowManip->setParams(myFlowParams);
+		flowManip->render();
 	} //or render the probe geometry, if in probe mode
 	else if(MainForm::getInstance()->getCurrentMouseMode() == Command::probeMode){
 		
 		ProbeParams* myProbeParams = VizWinMgr::getInstance()->getProbeParams(winNum);
-		
 		TranslateManip* probeManip = myVizWin->getProbeManip();
-		
 		probeManip->setParams(myProbeParams);
 		probeManip->render();
 		//Also render the cursor
@@ -854,15 +838,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 	}
 	switch (faceNum){
 		case 4://Do left (x=0)
-			/*
-			glBegin(GL_QUADS);
-			glVertex3f(extents[0], extents[1], extents[2]);
-			glVertex3f(extents[0], extents[1], extents[5]);
-			glVertex3f(extents[0], extents[4], extents[5]);
-			glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			glColor3fv(subregionFrameColor);
-			*/
+			
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[0], extents[1], extents[5]);
@@ -873,15 +849,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 		
 		case 5:
 		//do right 
-			/*
-			glBegin(GL_QUADS);
-			glVertex3f(extents[3], extents[1], extents[2]);
-			glVertex3f(extents[3], extents[1], extents[5]);
-			glVertex3f(extents[3], extents[4], extents[5]);
-			glVertex3f(extents[3], extents[4], extents[2]);
-			glEnd();
-			glColor3fv(subregionFrameColor);
-			*/
+			
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[3], extents[1], extents[2]);
 			glVertex3f(extents[3], extents[1], extents[5]);
@@ -890,15 +858,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glEnd();
 			break;
 		case(3)://top
-			/*
-			glBegin(GL_QUADS);
-			glVertex3f(extents[0], extents[4], extents[2]);
-			glVertex3f(extents[3], extents[4], extents[2]);
-			glVertex3f(extents[3], extents[4], extents[5]);
-			glVertex3f(extents[0], extents[4], extents[5]);
-			glEnd();
-			glColor3fv(subregionFrameColor);
-			*/
+			
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[4], extents[2]);
 			glVertex3f(extents[3], extents[4], extents[2]);
@@ -907,15 +867,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 			glEnd();
 			break;
 		case(2)://bottom
-			/*
-			glBegin(GL_QUADS);
-			glVertex3f(extents[0], extents[1], extents[2]);
-			glVertex3f(extents[0], extents[1], extents[5]);
-			glVertex3f(extents[3], extents[1], extents[5]);
-			glVertex3f(extents[3], extents[1], extents[2]);
-			glEnd();
-			glColor3fv(subregionFrameColor);
-			*/
+			
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[0], extents[1], extents[5]);
@@ -926,15 +878,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 	
 		case(0):
 			//back
-			/*
-			glBegin(GL_QUADS);
-			glVertex3f(extents[0], extents[1], extents[2]);
-			glVertex3f(extents[3], extents[1], extents[2]);
-			glVertex3f(extents[3], extents[4], extents[2]);
-			glVertex3f(extents[0], extents[4], extents[2]);
-			glEnd();
-			glColor3fv(subregionFrameColor);
-			*/
+			
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[2]);
 			glVertex3f(extents[3], extents[1], extents[2]);
@@ -945,15 +889,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 		case(1):
 			//do the front:
 			//
-			/*
-			glBegin(GL_QUADS);
-			glVertex3f(extents[0], extents[1], extents[5]);
-			glVertex3f(extents[3], extents[1], extents[5]);
-			glVertex3f(extents[3], extents[4], extents[5]);
-			glVertex3f(extents[0], extents[4], extents[5]);
-			glEnd();
-			glColor3fv(subregionFrameColor);
-			*/
+			
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[0], extents[1], extents[5]);
 			glVertex3f(extents[3], extents[1], extents[5]);
@@ -1094,7 +1030,7 @@ void GLWindow::drawProbeFace(float* corners, int faceNum, bool isSelected){
 // of the viewDirection is positive (resp., negative), 
 // then the back side (resp front side) of the corresponding cube side is rendered
 
-void GLWindow::renderRegionBounds(float* extents, int selectedFace, float* camPos, float faceDisplacement){
+void GLWindow::renderRegionBounds(float* extents, int selectedFace,  float faceDisplacement){
 	setSubregionFrameColor(myVizWin->getSubregionFrameColor());
 	//Copy the extents so they can be stretched
 	int i;

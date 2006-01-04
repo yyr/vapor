@@ -67,15 +67,13 @@ protected:
 	//general utility function for drawing axis-aligned cubes.
 	//Should be in cube coords
 	void drawCubeFaces(float* extents, bool isSelected);
-	//Draw all the faces of the Box, apply translations and rotations 
-	//according to current drag state
-	virtual void drawBoxFaces(int highlightedFace);
+	
 	float dragDistance;
 	int selectedHandle;
 };
 
-//Subclass that handles translation manip.  Should work
-//with RegionParams, FlowParams, ProbeParams
+//Subclass that handles translation manip.  Works 
+//with ProbeParams
 class TranslateManip : public Manip {
 public:
 	TranslateManip(VizWin* win, Params*p); 
@@ -85,8 +83,8 @@ public:
 	
 	virtual void mouseRelease(float screenCoords[2]);
 	virtual int draggingHandle() {return selectedHandle;}
-	void captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec);
-	void slideHandle(int handleNum, float movedRay[3]);
+	virtual void captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int buttonNum = 1);
+	virtual void slideHandle(int handleNum, float movedRay[3]);
 
 protected:
 	float handleSizeInCube;
@@ -95,7 +93,9 @@ protected:
 	float initialSelectionRay[3];
 	
 	
-	
+	//Draw all the faces of the Box, apply translations and rotations 
+	//according to current drag state.  takes into account rotation and mid-plane
+	virtual void drawBoxFaces(int highlightedFace);
 	//Utility to determine the point in 3D where the mouse was clicked.
 	//FaceNum assumes coord-plane-aligned cubic handles.
 	//faceNum = handleNum for region and flow params
@@ -107,6 +107,27 @@ protected:
 	void drawCubeFaces(float* handleExtents, bool isSelected);
 	void drawHandleConnector(int handleNum, float* handleExtents, float* extents);
 	int makeHandleFaces(int handleNum, float handle[8][3], int octant, float* boxExtents);
+	
+};
+//Subclass that handles both translation and stretch .  Works 
+//with RegionParams and FlowParams (rake).
+//When you slide a handle with the right mouse it stretches the region
+class TranslateStretchManip : public TranslateManip {
+public:
+	TranslateStretchManip(VizWin* win, Params*p); 
+	virtual void render();
+	//Do different than parent class:
+	virtual void mouseRelease(float screenCoords[2]);
+	virtual int draggingHandle() {return selectedHandle;}
+	void captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int buttonNum = 1);
+	void slideHandle(int handleNum, float movedRay[3]);
+
+protected:
+	bool isStretching;
+	//Draw all the faces of the Box, apply translations and rotations 
+	//according to current drag state.  doesnt take into account rotation and mid-plane
+	virtual void drawBoxFaces(int highlightedFace);
+	void drawHandleConnector(int handleNum, float* handleExtents, float* extents);
 	
 };
 };

@@ -24,7 +24,7 @@
 #include "glutil.h"
 using namespace VAPoR;
 const float Manip::faceSelectionColor[4] = {0.8f,0.8f,0.0f,0.8f};
-const float Manip::unselectedFaceColor[4] = {0.8f,0.0f,0.0f,0.8f};
+const float Manip::unselectedFaceColor[4] = {0.8f,0.2f,0.0f,0.8f};
 TranslateManip::TranslateManip(VizWin* win, Params* p) : Manip(win) {
 	QColor& c = myVizWin->getSubregionFrameColor();
 	subregionFrameColor[0]= (float)c.red()/255.;
@@ -271,15 +271,7 @@ void TranslateManip::drawCubeFaces(float* extents, bool isSelected){
 	glVertex3f(extents[0], extents[4], extents[5]);
 	glVertex3f(extents[0], extents[4], extents[2]);
 	glEnd();
-	/* don't do edges
-	glColor3fv(subregionFrameColor);
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(extents[0], extents[1], extents[2]);
-	glVertex3f(extents[0], extents[1], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[2]);
-	glEnd();
-	*/
+	
 //do right 
 	if (isSelected) glColor4fv(faceSelectionColor);
 	else glColor4fv(unselectedFaceColor);
@@ -289,15 +281,7 @@ void TranslateManip::drawCubeFaces(float* extents, bool isSelected){
 	glVertex3f(extents[3], extents[4], extents[5]);
 	glVertex3f(extents[3], extents[4], extents[2]);
 	glEnd();
-	/* don't do edges
-	glColor3fv(subregionFrameColor);
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(extents[3], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[4], extents[5]);
-	glVertex3f(extents[3], extents[4], extents[2]);
-	glEnd();
-	*/
+	
 	
 //top
 	if (isSelected) glColor4fv(faceSelectionColor);
@@ -308,15 +292,7 @@ void TranslateManip::drawCubeFaces(float* extents, bool isSelected){
 	glVertex3f(extents[3], extents[4], extents[5]);
 	glVertex3f(extents[0], extents[4], extents[5]);
 	glEnd();
-	/* don't do edges
-	glColor3fv(subregionFrameColor);
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(extents[0], extents[4], extents[2]);
-	glVertex3f(extents[3], extents[4], extents[2]);
-	glVertex3f(extents[3], extents[4], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[5]);
-	glEnd();
-	*/
+	
 //bottom
 	if (isSelected) glColor4fv(faceSelectionColor);
 	else glColor4fv(unselectedFaceColor);
@@ -326,15 +302,7 @@ void TranslateManip::drawCubeFaces(float* extents, bool isSelected){
 	glVertex3f(extents[3], extents[1], extents[5]);
 	glVertex3f(extents[3], extents[1], extents[2]);
 	glEnd();
-	/* don't do edges
-	glColor3fv(subregionFrameColor);
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(extents[0], extents[1], extents[2]);
-	glVertex3f(extents[0], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[1], extents[2]);
-	glEnd();
-	*/
+	
 	//back
 	if (isSelected) glColor4fv(faceSelectionColor);
 	else glColor4fv(unselectedFaceColor);
@@ -344,15 +312,7 @@ void TranslateManip::drawCubeFaces(float* extents, bool isSelected){
 	glVertex3f(extents[3], extents[4], extents[2]);
 	glVertex3f(extents[0], extents[4], extents[2]);
 	glEnd();
-	/* don't do edges
-	glColor3fv(subregionFrameColor);
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(extents[0], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[1], extents[2]);
-	glVertex3f(extents[3], extents[4], extents[2]);
-	glVertex3f(extents[0], extents[4], extents[2]);
-	glEnd();
-	*/
+	
 	//do the front:
 	//
 	if (isSelected) glColor4fv(faceSelectionColor);
@@ -363,15 +323,7 @@ void TranslateManip::drawCubeFaces(float* extents, bool isSelected){
 	glVertex3f(extents[3], extents[4], extents[5]);
 	glVertex3f(extents[0], extents[4], extents[5]);
 	glEnd();
-	/* don't do edges
-	glColor3fv(subregionFrameColor);
-	glBegin(GL_LINE_LOOP);
-	glVertex3f(extents[0], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[1], extents[5]);
-	glVertex3f(extents[3], extents[4], extents[5]);
-	glVertex3f(extents[0], extents[4], extents[5]);
-	glEnd();
-	*/
+	
 			
 	glColor4f(1,1,1,1);
 	glDisable(GL_BLEND);
@@ -422,7 +374,7 @@ void TranslateManip::drawHandleConnector(int handleNum, float* handleExtents, fl
 //Take into account the rotation angles, current drag state.
 //the highlightedFace is not the same as the selectedFace!!
 //
-void Manip::drawBoxFaces(int highlightedFace){
+void TranslateManip::drawBoxFaces(int highlightedFace){
 	float corners[8][3];
 	
 	myParams->calcBoxCorners(corners);
@@ -437,58 +389,7 @@ void Manip::drawBoxFaces(int highlightedFace){
 	}
 	//Then the faces need to be rendered
 	//Use the same face ordering as was used for picking (mouseOver())
-	/*
-	for (int face = 0; face < 6; face++){
-		int axis = face;
-		if (axis > 2) axis = 5-axis;
-		if (face == highlightedFace)
-			glColor4fv(highlightColor);
-		else
-			glColor4fv(faceColor);
-		glBegin(GL_QUADS);
-		switch (face) {
-			case (0)://x = 0
-				glVertex3fv(corners[0]);
-				glVertex3fv(corners[2]);
-				glVertex3fv(corners[6]);
-				glVertex3fv(corners[4]);
-				break;
-			case (1)://x = 1
-				glVertex3fv(corners[1]);
-				glVertex3fv(corners[5]);
-				glVertex3fv(corners[7]);
-				glVertex3fv(corners[3]);
-				break;
-			case (2)://y = 0
-				glVertex3fv(corners[0]);
-				glVertex3fv(corners[4]);
-				glVertex3fv(corners[5]);
-				glVertex3fv(corners[1]);
-				break;
-			case (3)://y = 1
-				glVertex3fv(corners[2]);
-				glVertex3fv(corners[3]);
-				glVertex3fv(corners[7]);
-				glVertex3fv(corners[6]);
-				break;
-			case (4)://z = 0
-				glVertex3fv(corners[4]);
-				glVertex3fv(corners[6]);
-				glVertex3fv(corners[7]);
-				glVertex3fv(corners[5]);
-				break;
-			case (5)://z = 1
-				glVertex3fv(corners[0]);
-				glVertex3fv(corners[1]);
-				glVertex3fv(corners[3]);
-				glVertex3fv(corners[2]);
-				break;
-			default:  assert(0);
-				break;
-		}
-		glEnd();
-	}
-	*/
+	
 	//determine the corners of the textured plane.
 	//the front corners are numbered 4 more than the back.
 	//Average the front and back to get the middle:
@@ -600,7 +501,7 @@ mouseRelease(float /*screenCoords*/[2]){
 }
 //Note: This is performed in world coordinates!
 void TranslateManip::
-captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec){
+captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int buttonNum){
 	//Grab a probe handle
 	//qWarning(" click direction vector: %f %f %f", dirVec[0],dirVec[1],dirVec[2]);
 	selectedHandle = handleNum;
@@ -706,12 +607,9 @@ slideHandle(int handleNum, float movedRay[3]){
 	myParams->calcBoxExtents(boxExtents);
 	float boxCenter = 0.5f*(boxExtents[coord]+boxExtents[coord+3]);
 	if (dragDistance + boxCenter < extents[coord]) {
-		
 		dragDistance = extents[coord] - boxCenter;
-		
 	}
 	if (dragDistance + boxCenter > extents[coord+3]){
-		
 		dragDistance = extents[coord+3] - boxCenter;
 	} 
 
@@ -719,4 +617,312 @@ slideHandle(int handleNum, float movedRay[3]){
 	dragDistance /= ViewpointParams::getMaxCubeSide();
 
 	
+}
+
+
+TranslateStretchManip::TranslateStretchManip(VizWin* win, Params* p) : TranslateManip(win,p) {
+	isStretching = false;
+}
+//The following is like the render() method of the TranslateManip; however,
+//If it is stretching, it only moves the one handle that is doing the stretching
+void TranslateStretchManip::render(){
+	if (!myVizWin || !myParams) return;
+	float camVec[3];
+	float extents[6];
+	//Calculate the box extents, and the viewer position, in the unit cube,
+	//Without any rotation applied:
+	myParams->calcBoxExtentsInCube(extents);
+	ViewpointParams* myViewpointParams = VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum());
+	ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
+
+	//Set the handleSize, in cube coords:
+	handleSizeInCube = myVizWin->getPixelSize()*(float)HANDLE_DIAMETER/ViewpointParams::getMaxCubeSide();
+	
+	//Color depends on which item selected. (reg color vs highlight color)
+	//Selected item is rendered at current offset
+	//This will issue gl calls to render 6 cubes and 3 lines through them (to the center of the 
+	//specified region).  If one is selected that line (and both cubes) are given
+	//the highlight color
+	
+	
+	//Now generate each handle and render it.  Order is not important
+	float handleExtents[6];
+	for (int handleNum = 0; handleNum < 6; handleNum++){
+		makeHandleExtentsInCube(handleNum, handleExtents, 0/*octant*/, extents);
+		if (selectedHandle >= 0){
+			int axis = (selectedHandle < 3) ? (2-selectedHandle) : (selectedHandle -3);
+			//displace handleExtents appropriately
+			if (isStretching){
+				//modify the extents for the one grabbed handle
+				if ( selectedHandle == handleNum){ 
+					handleExtents[axis] += dragDistance;
+					handleExtents[axis+3] += dragDistance;
+				} //and make the handles on the non-grabbed axes move half as far:
+				else if (handleNum != (5-selectedHandle)){
+					handleExtents[axis] += 0.5f*dragDistance;
+					handleExtents[axis+3] += 0.5f*dragDistance;
+				}
+			} else {
+				handleExtents[axis] += dragDistance;
+				handleExtents[axis+3] += dragDistance;
+			}
+		}
+		drawCubeFaces(handleExtents, (handleNum == selectedHandle));
+		drawHandleConnector(handleNum, handleExtents, extents);
+	}
+	//Then render the full box, unhighlighted and displaced
+	drawBoxFaces(-1);
+	
+}
+//Draw the main box, just rendering the lines.
+//the highlightedFace is not the same as the selectedFace!!
+//
+void TranslateStretchManip::drawBoxFaces(int highlightedFace){
+	float corners[8][3];
+	
+	myParams->calcBoxCorners(corners);
+	//Now the corners need to be put into the unit cube, and displaced appropriately
+	//Either displace just half the corners or do the opposite ones as well.
+	for (int cor = 0; cor < 8; cor++){
+		ViewpointParams::worldToCube(corners[cor],corners[cor]);
+		if (selectedHandle >= 0) {
+			int axis = (selectedHandle < 3) ? (2-selectedHandle):(selectedHandle-3);
+			//The corners associated with a handle are as follows:
+			//If the handle is on the low end, i.e. selectedHandle < 3, then
+			// for axis == 0, handles on corners  1,3,5,7 (cor&1 is 1)
+			// for axis == 1, handles on corners  0,1,4,5 (cor&2 is 0)
+			// for axis == 2, handles on corners  4,5,6,7 (cor&4 is 4) 
+			if (isStretching) {
+				if (axis != 1){
+					if (((cor>>axis)&1) && selectedHandle >= 3) continue;
+					if (!((cor>>axis)&1) && selectedHandle < 3) continue;
+				} else { //axis == 1
+					if (((cor>>axis)&1) && selectedHandle < 3) continue;
+					if (!((cor>>axis)&1) && selectedHandle >= 3) continue;
+				}
+			}
+			corners[cor][axis] += dragDistance;
+		}
+	}
+	
+	
+	//Now render the edges:
+	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glLineWidth( 2.0 );
+	glColor3f(1.f,0.f,0.f);
+	glBegin(GL_LINES);
+	glVertex3fv(corners[0]);
+	glVertex3fv(corners[1]);
+	glVertex3fv(corners[0]);
+	glVertex3fv(corners[2]);
+	glVertex3fv(corners[0]);
+	glVertex3fv(corners[4]);
+
+	glVertex3fv(corners[1]);
+	glVertex3fv(corners[3]);
+	glVertex3fv(corners[1]);
+	glVertex3fv(corners[5]);
+
+	glVertex3fv(corners[2]);
+	glVertex3fv(corners[3]);
+	glVertex3fv(corners[2]);
+	glVertex3fv(corners[6]);
+
+	glVertex3fv(corners[3]);
+	glVertex3fv(corners[7]);
+
+	glVertex3fv(corners[4]);
+	glVertex3fv(corners[5]);
+	glVertex3fv(corners[4]);
+	glVertex3fv(corners[6]);
+
+	glVertex3fv(corners[5]);
+	glVertex3fv(corners[7]);
+
+	glVertex3fv(corners[6]);
+	glVertex3fv(corners[7]);
+	glEnd();
+	
+	
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+
+	
+}
+
+
+
+void TranslateStretchManip::
+mouseRelease(float /*screenCoords*/[2]){
+	//Need to commit to latest drag position
+	//Are we dragging?
+	if (selectedHandle >= 0){
+		float boxMin[3], boxMax[3];
+		int axis = (selectedHandle <3) ? (2-selectedHandle): (selectedHandle-3);
+		//Convert dragDistance to world coords:
+		float dist = dragDistance*ViewpointParams::getMaxCubeSide();
+		myParams->getBox(boxMin,boxMax);
+		//Check if we are stretching.  If so, only move coords associated with
+		//handle:
+		if (isStretching){
+			//boxMin gets changed for nearHandle, boxMax for farHandle
+			if (selectedHandle < 3)
+				boxMin[axis]+=dist;
+			else 
+				boxMax[axis]+=dist;
+		} else {
+			boxMin[axis]+=dist;
+			boxMax[axis]+=dist;
+		}
+
+		myParams->setBox(boxMin, boxMax);
+		myParams->captureMouseUp();
+	}
+	dragDistance = 0.f;
+	selectedHandle = -1;
+}
+//Note: This is performed in world coordinates!
+void TranslateStretchManip::
+captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int buttonNum){
+	//Grab a probe handle
+	//qWarning(" click direction vector: %f %f %f", dirVec[0],dirVec[1],dirVec[2]);
+	selectedHandle = handleNum;
+	dragDistance = 0.f;
+	//Calculate intersection of ray with specified plane
+	if (!rayHandleIntersect(dirVec, camPos, handleNum, faceNum, initialSelectionRay))
+		selectedHandle = -1;
+	//The selection ray is the vector from the camera to the intersection point,
+	//So subtract the camera position
+	vsub(initialSelectionRay, camPos, initialSelectionRay);
+	//qWarning(" initial selection ray: %f %f %f", initialSelectionRay[0],initialSelectionRay[1],initialSelectionRay[2]);
+	if (buttonNum > 1) isStretching = true; 
+	else isStretching = false;
+}
+
+//Slide the handle based on mouse move from previous capture.  
+//Requires new direction vector associated with current mouse position
+//The new face position requires finding the planar displacement such that 
+//the ray (in the scene) associated with the new mouse position is as near
+//as possible to the line projected from the original mouse position in the
+//direction of planar motion.
+//Everything is done in WORLD coords.
+//
+
+void TranslateStretchManip::
+slideHandle(int handleNum, float movedRay[3]){
+	float normalVector[3] = {0.f,0.f,0.f};
+	float q[3], r[3], w[3];
+	assert(handleNum >= 0);
+	int coord = (handleNum < 3) ? (2-handleNum):(handleNum-3);
+	
+	normalVector[coord] = 1.f;
+	//qWarning(" Moved Ray %f %f %f", movedRay[0],movedRay[1],movedRay[2]);
+	//Calculate W:
+	vcopy(movedRay, w);
+	vnormal(w);
+	float scaleFactor = 1.f/vdot(w,normalVector);
+	//Calculate q:
+	vmult(w, scaleFactor, q);
+	vsub(q, normalVector, q);
+	
+	//Calculate R:
+	scaleFactor *= vdot(initialSelectionRay, normalVector);
+	vmult(w, scaleFactor, r);
+	vsub(r, initialSelectionRay, r);
+
+	float denom = vdot(q,q);
+	dragDistance = 0.f;
+	if (denom != 0.f)
+		dragDistance = -vdot(q,r)/denom;
+	
+	
+	//Make sure the displacement is OK.  Not allowed to
+	//Slide box out of full domain box.
+	//If stretching, not allowed to push face through opposite face.
+	
+	//Do this calculation in world coords
+	float boxExtents[6];
+	float* extents = Session::getInstance()->getExtents();
+	myParams->calcBoxExtents(boxExtents);
+	
+	if (isStretching){ //don't push through opposite face ..
+		//Depends on whether we are pushing the "low" or "high" handle
+		//E.g., The low handle is limited by the low end of the extents, and the
+		//big end of the box
+		if (handleNum < 3 ){ 
+			if(dragDistance + boxExtents[coord] > boxExtents[coord+3]) {
+				dragDistance = boxExtents[coord+3] - boxExtents[coord];
+			}
+			if(dragDistance + boxExtents[coord] < extents[coord]) {
+				dragDistance = extents[coord] - boxExtents[coord];
+			}
+		} else {//Moving "high" handle:
+			if (dragDistance + boxExtents[coord+3] < boxExtents[coord]) {
+				dragDistance = boxExtents[coord] - boxExtents[coord+3];
+			}
+			if (dragDistance + boxExtents[coord+3] > extents[coord+3]) {
+				dragDistance = extents[coord+3]-boxExtents[coord+3];
+			}
+		}
+	} else { //sliding, not stretching
+		//Don't push the box out of the full region extents:
+		if (dragDistance + boxExtents[coord] < extents[coord]) {
+			dragDistance = extents[coord] - boxExtents[coord];
+		}
+		if (dragDistance + boxExtents[coord+3] > extents[coord+3]) {
+			dragDistance = extents[coord+3] - boxExtents[coord+3];
+		}
+	}
+	//now convert to cube coords:
+	dragDistance /= ViewpointParams::getMaxCubeSide();
+
+}
+
+//Draw a line connecting the specified handle to the box center.
+//Highlight both ends of the line to the selected handle
+//Note that handleExtents have already been displaced.
+//This is like the TranslateManip version, except that if isStretching is true,
+//the box center only moves half as far.
+void TranslateStretchManip::drawHandleConnector(int handleNum, float* handleExtents, float* boxExtents){
+	//Determine the side of the handle and the side of the box that is connected:
+	int axis = (handleNum <3) ? (2-handleNum) : (handleNum-3) ;
+	bool posSide = (handleNum > 2);
+	float handleDisp[3], boxDisp[3];
+	//Every handle gets a line from its inside face to the center of the box.
+	for (int i = 0; i< 3; i++){
+		//determine the box displacement, based on dimension:
+		if ((i == (2-selectedHandle)) || (i ==(selectedHandle -3))){
+			if (isStretching) boxDisp[i] = 0.5f*dragDistance;
+			else boxDisp[i] = dragDistance;
+		}
+		else boxDisp[i] = 0.f;
+		//The line to the handle is displaced according to what axis the
+		//handle is on (independent of the dragDistance)
+		//
+		if (i==axis){
+			if (posSide) {//displace to lower (in-) side of handle
+				handleDisp[i] = -0.5f*(handleExtents[i+3] - handleExtents[i]);
+			}
+			else {//displace to upper (out-) side of handle
+				handleDisp[i] = 0.5f*(handleExtents[i+3] - handleExtents[i]);
+			}
+		}
+		else {//don't displace other coordinates
+			handleDisp[i] = 0.f;
+		}
+		
+	}
+	glLineWidth( 2.0 );
+	glEnable (GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glPolygonMode(GL_FRONT, GL_FILL);
+	if ((handleNum == selectedHandle) || (handleNum ==(5-selectedHandle))) glColor4fv(faceSelectionColor);
+	else glColor4fv(unselectedFaceColor);
+	glBegin(GL_LINES);
+	glVertex3f(0.5f*(handleExtents[3]+handleExtents[0])+handleDisp[0],0.5f*(handleExtents[4]+handleExtents[1])+handleDisp[1],0.5f*(handleExtents[5]+handleExtents[2])+handleDisp[2]);
+	glVertex3f(0.5f*(boxExtents[3]+boxExtents[0])+boxDisp[0],0.5f*(boxExtents[4]+boxExtents[1])+boxDisp[1],0.5f*(boxExtents[5]+boxExtents[2])+boxDisp[2]);
+	glEnd();
+	glDisable(GL_BLEND);
 }

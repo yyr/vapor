@@ -102,32 +102,13 @@ public:
 	//Must test for a valid flowData array first
 	float* getRGBAs(int frameNum, bool isRake); 
 
-	//support for seed region manipulation:
-	//If a face is selected, this value is >= 0:
+	
+	//Start to slide a rake handle. 
 	//
-	int getSelectedFaceNum() {return selectedFaceNum;}
-	//While sliding face, the faceDisplacement indicates how far selected face is 
-	//moved.
-	float getSeedFaceDisplacement() {return faceDisplacement;}
-	//
-	//Start to slide a region face.  Need to save direction vector
-	//
-	void captureMouseDown(int faceNum, float camPos[3], float dirVec[]);
+	void captureMouseDown();
 	//When the mouse goes up, save the face displacement into the region.
 	virtual void captureMouseUp();
-	//Intersect the ray with the specified face, determining the intersection
-	//in world coordinates.  Note that meaning of faceNum is specified in 
-	//renderer.h
-	// Faces of the cube are numbered 0..5 based on view from pos z axis:
-	// back, front, bottom, top, left, right
-	//
-	bool rayCubeIntersect(float ray[3], float cameraPos[3], int faceNum, float intersect[3]);
-	//Slide the face based on mouse move from previous capture.  
-	//Requires new direction vector associated with current mouse position
-	void slideCubeFace(float movedRay[3]);
-	//Indicate we are currently dragging a cube face:
-	bool draggingFace() {return (selectedFaceNum >= 0);}
-
+	
 	void calcSeedExtents(float *extents);
 	float getSeedRegionMin(int coord){ return seedBoxMin[coord];}
 	float getSeedRegionMax(int coord){ return seedBoxMax[coord];}
@@ -455,13 +436,9 @@ protected:
 	
 	//Keep track of min, max frames in available data:
 	int maxFrame, minFrame;
-	//for seed region manipulation:
-	int selectedFaceNum;
-	float faceDisplacement;
-	float initialSelectionRay[3];
-
 	
-	//The following is to support asynchronous Pathline calculation.
+	
+	//The following is proposed to support asynchronous Pathline calculation.
 	//There is a semaphore controlling access to the state variables, which include:
 	///////////////////////////
 	//  int lastCompletedTimestep //indicates how many valid timesteps are in the data

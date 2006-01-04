@@ -145,8 +145,6 @@ restart() {
 	
 	autoRefresh = true;
 	enabled = false;
-	selectedFaceNum = -1;
-	faceDisplacement = 0.f;
 	
 	flowType = 0; //steady
 	instance = 1;
@@ -3067,167 +3065,41 @@ setOpacMapEntity( int entityNum){
 	mapperFunction->setMaxOpacMapValue(maxOpacBounds[entityNum]);
 	flowMapEditor->setOpacVarNum(entityNum);
 }
-//Methods for seed box manipulation... Copied from regionparams.cpp
-//Grab a region face:
+
+//Save undo/redo state when user grabs a rake handle
 //
 void FlowParams::
-captureMouseDown(int faceNum, float camPos[3], float dirVec[3]){
+captureMouseDown(){
 	//If text has changed, will ignore it-- don't call confirmText()!
 	//
 	guiSetTextChanged(false);
 	if (savedCommand) delete savedCommand;
-	savedCommand = PanelCommand::captureStart(this,  "slide seed region boundary");
-	selectedFaceNum = faceNum;
-	faceDisplacement = 0.f;
-	//Calculate intersection of ray with specified plane
-	if (!rayCubeIntersect(dirVec, camPos, faceNum, initialSelectionRay))
-		selectedFaceNum = -1;
-	//The selection ray is the vector from the camera to the intersection point,
-	//So subtract the camera position
-	vsub(initialSelectionRay, camPos, initialSelectionRay);
-	//Force a rerender:
+	savedCommand = PanelCommand::captureStart(this,  "slide rake handle");
+	
+	//Force a rerender, so we will see the selected face:
 	VizWinMgr::getInstance()->refreshFlow(this);
 }
-
 void FlowParams::
 captureMouseUp(){
-	//If no change, nothing to do, except
-	//nullify unDo state
-	if (faceDisplacement ==0.f || (selectedFaceNum < 0)) {
-		if (savedCommand) {
-			delete savedCommand;
-			savedCommand = 0;
-		}
-		
-	} else { //terminate dragging
-		int coord = (5-selectedFaceNum)/2;
-		if (selectedFaceNum %2) {
-			setSeedRegionMax(coord, getSeedRegionMax(coord)+faceDisplacement);
-		} else {
-			setSeedRegionMin(coord, getSeedRegionMin(coord)+faceDisplacement);
-		}
-		//Update the gui:
-		updateDialog();
-		setFlowDataDirty(true);
-		//Enable button 
-		
+	//Update the tab if it's in front:
+	if(MainForm::getInstance()->getTabManager()->isFrontTab(myFlowTab)) {
+		VizWinMgr* vwm = VizWinMgr::getInstance();
+		int viznum = vwm->getActiveViz();
+		if (viznum >= 0 && (this == vwm->getFlowParams(viznum)))
+			updateDialog();
 	}
-	faceDisplacement = 0.f;
-	selectedFaceNum = -1;
-	//Force a redraw but not a rebuild of flow:
-	VizWinMgr::getInstance()->refreshFlow(this);
-	
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, this);
+	//Set rake data dirty
+	setFlowDataDirty(true,false);
 	savedCommand = 0;
+	//Force a rerender:
+	VizWinMgr::getInstance()->refreshFlow(this);
 	
 }
 
-//Intersect the ray with the specified face, determining the intersection
-//in world coordinates.  Note that meaning of faceNum is specified in 
-//renderer.cpp
-// Faces of the cube are numbered 0..5 based on view from pos z axis:
-// back, front, bottom, top, left, right
-// return false if no intersection
-// Note that this is always with reference to the seed region in the scene,
-// not the gui version.
-//
-bool FlowParams::
-rayCubeIntersect(float ray[3], float cameraPos[3], int faceNum, float intersect[3]){
-	double val;
-	int coord;// = (5-faceNum)/2;
-	// if (faceNum%2) val = getRegionMin(coord); else val = getRegionMax(coord);
-	switch (faceNum){
-		case(0): //back; z = zmin
-			val = getSeedRegionMin(2);
-			coord = 2;
-			break;
-		case(1): //front; z = zmax
-			val = getSeedRegionMax(2);
-			coord = 2;
-			break;
-		case(2): //bot; y = min
-			val = getSeedRegionMin(1);
-			coord = 1;
-			break;
-		case(3): //top; y = max
-			val = getSeedRegionMax(1);
-			coord = 1;
-			break;
-		case(4): //left; x = min
-			val = getSeedRegionMin(0);
-			coord = 0;
-			break;
-		case(5): //right; x = max
-			val = getSeedRegionMax(0);
-			coord = 0;
-			break;
-		default:
-			return false;
-	}
-	if (ray[coord] == 0.0) return false;
-	float param = (val - cameraPos[coord])/ray[coord];
-	for (int i = 0; i<3; i++){
-		intersect[i] = cameraPos[i]+param*ray[i];
-	}
-	return true;
-}
 
 
-//Slide the face based on mouse move from previous capture.  
-//Requires new direction vector associated with current mouse position
-//The new face position requires finding the planar displacement such that 
-//the ray (in the scene) associated with the new mouse position is as near
-//as possible to the line projected from the original mouse position in the
-//direction of planar motion
-//displacement from the original intersection is as close as possible to the 
-void FlowParams::
-slideCubeFace(float movedRay[3]){
-	float normalVector[3] = {0.f,0.f,0.f};
-	float q[3], r[3], w[3];
-	int coord = (5 - selectedFaceNum)/2;
-	assert(selectedFaceNum >= 0);
-	if (selectedFaceNum < 0) return;
-	normalVector[coord] = 1.f;
-	
-	//Calculate W:
-	vcopy(movedRay, w);
-	vnormal(w);
-	float scaleFactor = 1.f/vdot(w,normalVector);
-	//Calculate q:
-	vmult(w, scaleFactor, q);
-	vsub(q, normalVector, q);
-	
-	//Calculate R:
-	scaleFactor *= vdot(initialSelectionRay, normalVector);
-	vmult(w, scaleFactor, r);
-	vsub(r, initialSelectionRay, r);
-
-	float denom = vdot(q,q);
-	faceDisplacement = 0.f;
-	if (denom != 0.f)
-		faceDisplacement = -vdot(q,r)/denom;
-	
-	//Make sure the faceDisplacement is OK.  Not allowed to
-	//extend face beyond region bound
-	//First, convert to a displacement in cube coordinates.  
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
-	double regMin = rParams->getFullDataExtent(coord);
-	double regMax = rParams->getFullDataExtent(coord+3);
-	
-	if (selectedFaceNum%2) { //Are we moving min or max?
-		//Moving max, since selectedFace is odd
-		if (seedBoxMax[coord] + faceDisplacement > regMax)
-			faceDisplacement = regMax - seedBoxMax[coord];
-		if (seedBoxMax[coord] + faceDisplacement < seedBoxMin[coord])
-			faceDisplacement = seedBoxMin[coord] - seedBoxMax[coord];
-	} else { //Moving region min:
-		if (seedBoxMin[coord] + faceDisplacement > seedBoxMax[coord])
-			faceDisplacement = seedBoxMax[coord] - seedBoxMin[coord];
-		if (seedBoxMin[coord] + faceDisplacement < regMin)
-			faceDisplacement = regMin - seedBoxMin[coord];
-	}
-}
 //Calculate the extents of the seedBox region when transformed into the unit cube
 void FlowParams::
 calcSeedExtents(float* extents){

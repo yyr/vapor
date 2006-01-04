@@ -48,14 +48,13 @@ public:
 	//
     virtual void		initializeGL() = 0;
     virtual void		paintGL() = 0;
-	void setSelectedFace(int faceNum) {selectedFace = faceNum;}
+	
 	
 protected:
 	
 	void buildColorscaleImage();
 	void renderColorscale(bool rebuild);
-	//One face of the region bounds can be highlighted if selected:
-	int selectedFace;
+	
 
 	//Dimensions of colormap image:
 	int imgWidth, imgHeight;

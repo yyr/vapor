@@ -179,6 +179,8 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	
 	//Create Manips:
 	myProbeManip = new TranslateManip(this, (Params*)myWinMgr->getProbeParams(myWindowNum));
+	myFlowManip = new TranslateStretchManip(this, (Params*)myWinMgr->getFlowParams(myWindowNum));
+	myRegionManip = new TranslateStretchManip(this, (Params*)myWinMgr->getRegionParams(myWindowNum));
 	//Note:  Caller must call show()
 	
 }
@@ -280,52 +282,64 @@ mousePressEvent(QMouseEvent* e){
 	//OpenGL convention (Y 0 at bottom of window), reverse
 	//value of y:
 	screenCoords[1] = (float)(height() - e->y()) - 5.f;
+	int buttonNum = 0;
+	if (e->button()== Qt::LeftButton) buttonNum = 1;
+	else if (e->button() == Qt::RightButton) buttonNum = 2;
 	//possibly navigate after other activities
 	bool doNavigate = false;
 	switch (myWinMgr->selectionMode){
 		//In region mode,first check for clicks on selected region
 		case Command::regionMode :
-			//Only capture if it's the left mouse button:
-			if (e->button() == Qt::LeftButton)
-			{
-				//Find the cube coords of the corners of the region, from
-				//regionParams, transformed 
-				//
+			if (buttonNum > 0){
+				
+				int faceNum;
+				float boxExtents[6];
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				RegionParams* rParams = myWinMgr->getRegionParams(myWindowNum);
-				int faceNum = pointOverCube(rParams, screenCoords);
-				if (faceNum >= 0){
+				TranslateStretchManip* regionManip = getRegionManip();
+				regionManip->setParams(rParams);
+				rParams->calcBoxExtentsInCube(boxExtents);
+				int handleNum = regionManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
+				if (handleNum >= 0) {
 					float dirVec[3];
+					//Find the direction vector of the camera (World coords)
 					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
 						vParams->getCameraPos(), dirVec);
-					rParams->captureMouseDown(faceNum, vParams->getCameraPos(), dirVec);
+					//Remember which handle we hit, highlight it, save the intersection point.
+					regionManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
+					rParams->captureMouseDown();
 					mouseDownHere = true;
 					break;
 				}
-				
+			
 			}
 			//Otherwise, fall through to navigate mode:
 			doNavigate = true;
 			break;
 		//Rakemode is like regionmode
 		case Command::rakeMode :
-			//Only capture if it's the left mouse button:
-			if (e->button() == Qt::LeftButton)
-			{
-				//Find the cube coords of the corners of the region, from
-				//flowParams, transformed 
-				//
+			if (buttonNum > 0){
+				
+				int faceNum;
+				float boxExtents[6];
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				FlowParams* fParams = myWinMgr->getFlowParams(myWindowNum);
-				int faceNum = pointOverCube(fParams, screenCoords);
-				if (faceNum >= 0){
+				TranslateStretchManip* flowManip = getFlowManip();
+				flowManip->setParams(fParams);
+				fParams->calcBoxExtentsInCube(boxExtents);
+				int handleNum = flowManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
+				if (handleNum >= 0) {
 					float dirVec[3];
+					//Find the direction vector of the camera (World coords)
 					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
 						vParams->getCameraPos(), dirVec);
-					fParams->captureMouseDown(faceNum, vParams->getCameraPos(), dirVec);
+					//Remember which handle we hit, highlight it, save the intersection point.
+					flowManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
+					fParams->captureMouseDown();
 					mouseDownHere = true;
 					break;
 				}
+			
 			}
 			//Otherwise, fall through to navigate mode:
 			doNavigate = true;
@@ -349,7 +363,7 @@ mousePressEvent(QMouseEvent* e){
 					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
 						vParams->getCameraPos(), dirVec);
 					//Remember which handle we hit, highlight it, save the intersection point.
-					probeManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec);
+					probeManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, 1);
 					pParams->captureMouseDown();
 					mouseDownHere = true;
 					break;
@@ -384,36 +398,51 @@ void VizWin::
 mouseReleaseEvent(QMouseEvent*e){
 	if (numRenderers <= 0) return;
 	bool doNavigate = false;
-	TranslateManip* myProbeManip = getProbeManip();
+	TranslateManip* myManip;
 	switch (myWinMgr->selectionMode){
 		
 		case Command::regionMode :
-			//Check if the region bounds were moved
-			if (myWinMgr->getRegionParams(myWindowNum)->draggingFace()){
+			myManip = getRegionManip();
+			//Check if the seed bounds were moved
+			if (myManip->draggingHandle() >= 0){
+				float screenCoords[2];
+				screenCoords[0] = (float)e->x();
+				screenCoords[1] = (float)(height() - e->y());
 				mouseDownHere = false;
-				myWinMgr->getRegionParams(myWindowNum)->captureMouseUp();
+				//The manip must move the region, and then tells the params to
+				//record end of move
+				myManip->mouseRelease(screenCoords);
+				
 				break;
 			} //otherwise fall through to navigate mode
 			doNavigate = true;
 			break;
 		case Command::rakeMode :
+			myManip = getFlowManip();
 			//Check if the seed bounds were moved
-			if (myWinMgr->getFlowParams(myWindowNum)->draggingFace()){
+			if (myManip->draggingHandle() >= 0){
+				float screenCoords[2];
+				screenCoords[0] = (float)e->x();
+				screenCoords[1] = (float)(height() - e->y());
 				mouseDownHere = false;
-				myWinMgr->getFlowParams(myWindowNum)->captureMouseUp();
+				//The manip must move the rake, and then tell the params to
+				//record end of move??
+				myManip->mouseRelease(screenCoords);
+				//myWinMgr->getProbeParams(myWindowNum)->captureMouseUp();
 				break;
 			} //otherwise fall through to navigate mode
 			doNavigate = true;
 			break;
 		case Command::probeMode :
-			if (myProbeManip->draggingHandle() >= 0){
+			myManip = getProbeManip();
+			if (myManip->draggingHandle() >= 0){
 				float screenCoords[2];
 				screenCoords[0] = (float)e->x();
 				screenCoords[1] = (float)(height() - e->y());
 				mouseDownHere = false;
 				//The manip must move the probe, and then tell the params to
 				//record end of move.
-				myProbeManip->mouseRelease(screenCoords);
+				myManip->mouseRelease(screenCoords);
 				//myWinMgr->getProbeParams(myWindowNum)->captureMouseUp();
 				break;
 			} //otherwise fall through to navigate mode
@@ -464,14 +493,16 @@ mouseMoveEvent(QMouseEvent* e){
 	switch (myWinMgr->selectionMode){
 		case Command::regionMode :
 			{
-				RegionParams* rParams = myWinMgr->getRegionParams(myWindowNum);
+				TranslateStretchManip* myRegionManip = getRegionManip();
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				//In region mode, check first to see if we are dragging face
-				if (rParams->draggingFace()){
+				int handleNum = myRegionManip->draggingHandle();
+				//In probe mode, check first to see if we are dragging face
+				if (handleNum >= 0){
 					float dirVec[3];
 					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
 						vParams->getCameraPos(), dirVec);
-					rParams->slideCubeFace(dirVec);
+					
+					myRegionManip->slideHandle(handleNum, dirVec);
 					myGLWindow->updateGL();
 					break;
 				}
@@ -481,14 +512,18 @@ mouseMoveEvent(QMouseEvent* e){
 			break;
 		case Command::rakeMode :
 			{
-				FlowParams* fParams = myWinMgr->getFlowParams(myWindowNum);
+				TranslateStretchManip* myFlowManip = getFlowManip();
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
-				//In seed mode, check first to see if we are dragging face
-				if (fParams->draggingFace()){
+				int handleNum = myFlowManip->draggingHandle();
+				//In probe mode, check first to see if we are dragging face
+				if (handleNum >= 0){
 					float dirVec[3];
 					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
 						vParams->getCameraPos(), dirVec);
-					fParams->slideCubeFace(dirVec);
+					//Don't Convert dirvec from world to cube coords
+					//ViewpointParams::worldToCube(dirVec,dirVec);
+					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
+					myFlowManip->slideHandle(handleNum, dirVec);
 					myGLWindow->updateGL();
 					break;
 				}

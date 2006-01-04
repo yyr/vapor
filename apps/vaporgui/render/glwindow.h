@@ -101,8 +101,7 @@ protected:
 	//Draw the region bounds and frame it in full domain.
 	//Arguments are in unit cube coordinates
 	void renderDomainFrame(float* extents, float* minFull, float* maxFull);
-	void renderRegionBounds(float* extents, int selectedFace, 
-		float* cameraPos, float faceDisplacement);
+	void renderRegionBounds(float* extents, int selectedFace, float faceDisplacement);
 	
 	void drawSubregionBounds(float* extents);
 	void drawAxes(float* extents);

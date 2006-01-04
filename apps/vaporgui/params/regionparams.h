@@ -110,12 +110,7 @@ public:
 	float getFullCenter(int indx) {
 		return ((float)(0.5*(fullDataExtents[indx]+fullDataExtents[indx+3])));
 	}
-	//If a face is selected, this value is >= 0:
-	//
-	int getSelectedFaceNum() {return selectedFaceNum;}
-	//While sliding face, the faceDisplacement indicates how far selected face is 
-	//moved.
-	float getFaceDisplacement() {return faceDisplacement;}
+	
 	//Update the dialog with values from this:
 	//
 	virtual void updateDialog();
@@ -139,25 +134,14 @@ public:
 	//
 	//Start to slide a region face.  Need to save direction vector
 	//
-	void captureMouseDown(int faceNum, float camPos[3], float dirVec[]);
+	void captureMouseDown();
 	//When the mouse goes up, save the face displacement into the region.
 	virtual void captureMouseUp();
-	//Intersect the ray with the specified face, determining the intersection
-	//in world coordinates.  Note that meaning of faceNum is specified in 
-	//renderer.h
-	// Faces of the cube are numbered 0..5 based on view from pos z axis:
-	// back, front, bottom, top, left, right
-	//
-	bool rayCubeIntersect(float ray[3], float cameraPos[3], int faceNum, float intersect[3]);
-	//Slide the face based on mouse move from previous capture.  
-	//Requires new direction vector associated with current mouse position
-	void slideCubeFace(float movedRay[3]);
-	//Indicate we are currently dragging a cube face:
-	bool draggingFace() {return (selectedFaceNum >= 0);}
+	
 	// Reinitialize due to new Session:
 	void reinit(bool doOverride);
 	void restart();
-	void unSelectFace() { selectedFaceNum = -1;}
+	
 	XmlNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
@@ -208,9 +192,7 @@ protected:
 	
 	RegionTab* myRegionTab;
 	float fullDataExtents[6];
-	int selectedFaceNum;
-	float faceDisplacement;
-	float initialSelectionRay[3];
+	
 };
 
 };
