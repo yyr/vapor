@@ -32,6 +32,7 @@ MapEditor::MapEditor(MapperFunction* tf,  QFrame* frm){
 	tf->setEditor(this);
 	colorVarNum = -1;
 	opacVarNum = -1;
+	opacityScaleFactor = 1.f;
 }
 MapEditor::~MapEditor(){
 	//Don't delete the MapperFunction, that will cause a loop.

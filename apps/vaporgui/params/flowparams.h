@@ -188,6 +188,8 @@ public:
 	bool listEnabled() {return (doSeedList && getNumListSeedPoints() > 0);}
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	void guiSetAligned();
+	void guiSetOpacityScale( int scale);
+
 
 	
 	void setEditMode(bool mode) {editMode = mode;}
@@ -310,6 +312,8 @@ protected:
 	// helper functions for writing stream and path lines
 	bool writeStreamline(FILE* saveFile, int streamNum, int frameNum, float* flowDataArray);
 	bool writePathline(FILE* saveFile, int pathNum, int injectionNum, float* flowDataArray);
+	float getOpacityScale(); 
+	void setOpacityScale(float val); 
 
 	//Calculate max and min range for variables based on current data/flow settings
 	//Only used for guidance in setting info in flowtab

@@ -619,6 +619,9 @@ makeLut(float* clut){
 	//Find the first control points
 	//int colorCtrlPtNum = getLeftIndex(getMinMapValue(), colorCtrlPoint, numColorControlPoints);
 	//int opacCtrlPtNum = getLeftIndex(getMinMapValue(), opacCtrlPoint, numOpacControlPoints);
+	float opacScale = getEditor()->getOpacityScaleFactor();
+	//Squared gives better control over low opacity values
+	opacScale = opacScale*opacScale;
 	int colorCtrlPtNum = 0;
 	int opacCtrlPtNum = 0;
 	for (int i = 0; i< numEntries; i++){
@@ -637,7 +640,7 @@ makeLut(float* clut){
 		float hsv[3], rgb[3];
 		float cratio = (normXValue - colorCtrlPoint[colorCtrlPtNum])/(colorCtrlPoint[colorCtrlPtNum+1]-colorCtrlPoint[colorCtrlPtNum]);
 		float oratio = (normXValue - opacCtrlPoint[opacCtrlPtNum])/(opacCtrlPoint[opacCtrlPtNum+1]-opacCtrlPoint[opacCtrlPtNum]);
-		float opacVal = TFInterpolator::interpolate(opacInterp[opacCtrlPtNum],opac[opacCtrlPtNum],opac[opacCtrlPtNum+1],oratio);
+		float opacVal = opacScale*TFInterpolator::interpolate(opacInterp[opacCtrlPtNum],opac[opacCtrlPtNum],opac[opacCtrlPtNum+1],oratio);
 		assert( opacVal >= 0.f && opacVal <= 1.f);
 		hsv[0] = TFInterpolator::interpCirc(colorInterp[colorCtrlPtNum],hue[colorCtrlPtNum],hue[colorCtrlPtNum+1],cratio);
 		hsv[1] = TFInterpolator::interpolate(colorInterp[colorCtrlPtNum],sat[colorCtrlPtNum],sat[colorCtrlPtNum+1],cratio);
@@ -697,6 +700,7 @@ buildNode(const string& tfname) {
 	oss.str(empty);
 	oss << (double)getMaxOpacMapValue();
 	attrs[_rightOpacityBoundAttr] = oss.str();
+	
 
 	XmlNode* mainNode = new XmlNode(_mapperFunctionTag, attrs, numOpacControlPoints+numColorControlPoints);
 

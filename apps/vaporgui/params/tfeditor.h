@@ -149,6 +149,7 @@ public:
 		setMaxColorEditValue(val);
 		setMaxOpacEditValue(val);
 	}
+	
 	TransferFunction* getTransferFunction() {return (TransferFunction*)myMapperFunction;}
 	void setTransferFunction(TransferFunction* tf) {myMapperFunction = tf;}
 	//Currently histogram is assumed to be limited to interval [0,1]:
@@ -246,6 +247,7 @@ protected:
 	//
 	int leftMoveMax, rightMoveMax, upMoveMax, downMoveMax;
 	int histoMaxBin;
+	
 	
 };
 };

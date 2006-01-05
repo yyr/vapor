@@ -114,6 +114,8 @@ public:
 	virtual void getOpacControlPointPosition(int index, int* xpos, int* ypos)=0;
 	virtual void getColorControlPointPosition(int index, int* xpos)=0;
 	
+	void setOpacityScaleFactor(float val) {opacityScaleFactor = val;}
+	float getOpacityScaleFactor() {return opacityScaleFactor;}
 	
 	float getMinColorEditValue(){
 		return getParams()->getMinColorEditBound(colorVarNum);
@@ -156,6 +158,7 @@ protected:
 	
 	QFrame* myFrame;
 	int colorVarNum, opacVarNum;
+	float opacityScaleFactor;
 	
 };
 };

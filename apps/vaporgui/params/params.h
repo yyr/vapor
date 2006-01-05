@@ -93,6 +93,8 @@ public:
 	static const string _rightEditBoundAttr;
 	static const string _variableNumAttr;
 	static const string _variableNameAttr;
+	static const string _opacityScaleAttr;
+
 	
 	//Each params must be able to make a "deep" copy,
 	//I.e. copy everything that is unique to this object

@@ -104,6 +104,9 @@ public:
 		{setMaxColorMapBound(val);setMaxOpacMapBound(val);}
 	float getMinMapBound(){return getMinColorMapBound();} 	
 	float getMaxMapBound(){return getMaxColorMapBound();} 
+	float getOpacityScale(); 
+	void setOpacityScale(float val); 
+
 	//Virtual methods to set map bounds.  Get() is in parent class
 	//this causes it to be set in the mapperfunction (transfer function)
 	virtual void setMinColorMapBound(float val);
@@ -156,7 +159,7 @@ public:
 	
 	
 	
-	void guiSetHistoStretch(int val);
+	void guiSetOpacityScale(int val);
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	void guiSetAligned();
 	//respond to changes in TF (for undo/redo):
@@ -183,7 +186,7 @@ protected:
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
 	static const string _activeVariableNumAttr;
-
+	
 	void refreshCtab();
 	void hookupTF(TransferFunction* t, int index);
 	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);

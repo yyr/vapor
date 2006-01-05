@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout37</cstring>
+                <cstring>layout57</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -1958,7 +1958,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout74</cstring>
+                                <cstring>layout56</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -2148,10 +2148,10 @@
                                         </property>
                                         <widget class="QLabel">
                                             <property name="name">
-                                                <cstring>textLabel6_2</cstring>
+                                                <cstring>displayIntervalLabel</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Display interval before/after current timestep</string>
+                                                <string>display interval bounds relative to seed time</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
@@ -2191,7 +2191,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify the max number of timesteps before the current timestep for the flow to display</string>
+                                                <string>Specify first display timestep relative to current timestep</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2229,7 +2229,7 @@
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>31</height>
+                                            <height>27</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -2272,7 +2272,7 @@
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>Age</string>
+                                                    <string>Relative Timestep</string>
                                                 </property>
                                             </item>
                                             <item>
@@ -2309,7 +2309,7 @@
                                                 <cstring>opacmapEntityCombo</cstring>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify the entity that will be mapped to color</string>
+                                                <string>Specify the entity that will be mapped to opacity</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2345,7 +2345,7 @@
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>Age</string>
+                                                    <string>Relative Timestep</string>
                                                 </property>
                                             </item>
                                             <item>
@@ -2655,16 +2655,43 @@
                                         </widget>
                                     </hbox>
                                 </widget>
-                                <widget class="FlowMapFrame">
+                                <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>flowMapFrame</cstring>
+                                        <cstring>layout55</cstring>
                                     </property>
-                                    <property name="minimumSize">
-                                        <size>
-                                            <width>11</width>
-                                            <height>100</height>
-                                        </size>
-                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="FlowMapFrame">
+                                            <property name="name">
+                                                <cstring>flowMapFrame</cstring>
+                                            </property>
+                                            <property name="minimumSize">
+                                                <size>
+                                                    <width>11</width>
+                                                    <height>100</height>
+                                                </size>
+                                            </property>
+                                        </widget>
+                                        <widget class="QSlider">
+                                            <property name="name">
+                                                <cstring>opacityScaleSlider</cstring>
+                                            </property>
+                                            <property name="maxValue">
+                                                <number>256</number>
+                                            </property>
+                                            <property name="value">
+                                                <number>0</number>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Vertical</enum>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Scale Opacity Values</string>
+                                            </property>
+                                        </widget>
+                                    </hbox>
                                 </widget>
                                 <spacer>
                                     <property name="name">
@@ -2679,7 +2706,7 @@
                                     <property name="sizeHint">
                                         <size>
                                             <width>21</width>
-                                            <height>20</height>
+                                            <height>16</height>
                                         </size>
                                     </property>
                                 </spacer>

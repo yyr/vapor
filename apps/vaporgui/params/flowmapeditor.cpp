@@ -95,6 +95,7 @@ void FlowMapEditor::refreshImage(){
 	int leftColorLim = mapColorVar2Win(getMapperFunction()->getMinColorMapValue(),false);
 	int rightColorLim = mapColorVar2Win(getMapperFunction()->getMaxColorMapValue(),false);
 	
+	
 	for (int x = 0; x<width; x++){
 		int y;
 		//Find what index corresponds to x

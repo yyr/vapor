@@ -418,7 +418,7 @@ protected slots:
 	void setDvrEditMode(bool);
 	void setDvrNavigateMode(bool);
 	void setDvrAligned();
-	void dvrHistoStretch();
+	void dvrOpacityScale();
 	void dvrColorBind();
 	void dvrOpacBind();
 	void dvrLoadTF();
@@ -431,7 +431,8 @@ protected slots:
 	void setProbeEditMode(bool);
 	void setProbeNavigateMode(bool);
 	void setProbeAligned();
-	void probeHistoStretch();
+	void probeOpacityScale();
+	
 	void probeColorBind();
 	void probeOpacBind();
 	void probeLoadTF();
@@ -483,6 +484,7 @@ protected slots:
 	void loadFlowSeedList();
 	void saveFlow();
 	void editFlowSeedList();
+	void flowOpacityScale();
 
 	//Probe slots:
 	

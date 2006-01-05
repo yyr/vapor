@@ -195,14 +195,14 @@ restart() {
 
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
-	colorMapEntity.push_back("Age");
+	colorMapEntity.push_back("Relative Timestep");
 	colorMapEntity.push_back("Field Magnitude");
 	colorMapEntity.push_back("Seed Index");
 
 	opacMapEntity.clear();
 	
 	opacMapEntity.push_back("Constant");
-	opacMapEntity.push_back("Age");
+	opacMapEntity.push_back("Relative Timestep");
 	opacMapEntity.push_back("Field Magnitude");
 	opacMapEntity.push_back("Seed Index");
 	minColorEditBounds = new float[3];
@@ -327,6 +327,13 @@ void FlowParams::updateDialog(){
 	myFlowTab->numTransSpin->setMaxValue(maxNumTrans);
 	myFlowTab->numTransSpin->setValue(numTransforms);
 
+	
+	float sliderVal = getOpacityScale();
+	QToolTip::add(myFlowTab->opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	sliderVal = 256.f*(1.f -sliderVal);
+	myFlowTab->opacityScaleSlider->setValue((int) sliderVal);
+	
+
 	myFlowTab->refreshButton->setEnabled(!autoRefresh && activeFlowDataIsDirty());
 	myFlowTab->autoRefreshCheckbox->setChecked(autoRefresh);
 	//Always allow at least 4 variables in combo:
@@ -365,6 +372,11 @@ void FlowParams::updateDialog(){
 	myFlowTab->seedtimeIncrementEdit->setEnabled(flowType == 1);
 	myFlowTab->seedtimeEndEdit->setEnabled(flowType == 1);
 	myFlowTab->seedtimeStartEdit->setEnabled(flowType == 1);
+	if (flowType == 0){
+		myFlowTab->displayIntervalLabel->setText("Begin/end display interval relative to seed time step");
+	} else {
+		myFlowTab->displayIntervalLabel->setText("Begin/end display interval relative to current time step");
+	}
 
 	myFlowTab->rakeCheckbox->setChecked(doRake);
 	myFlowTab->seedListCheckbox->setChecked(doSeedList);
@@ -556,17 +568,15 @@ updatePanelState(){
 		if (seedTimeIncrement < 1) seedTimeIncrement = 1;
 		lastDisplayFrame = myFlowTab->lastDisplayFrameEdit->text().toInt();
 		firstDisplayFrame = myFlowTab->firstDisplayFrameEdit->text().toInt();
-		//Make sure both are nonnegative, and at least one frame is displayed
-		if (lastDisplayFrame < 0 || firstDisplayFrame < 0 || (firstDisplayFrame+lastDisplayFrame)<1) {
-			firstDisplayFrame = Max(0,firstDisplayFrame);
-			lastDisplayFrame = Max(0,lastDisplayFrame);
-			if (firstDisplayFrame+lastDisplayFrame == 0) lastDisplayFrame = 1;
+		//Make sure at least one frame is displayed.
+		//
+		if (firstDisplayFrame >= lastDisplayFrame) {
+			lastDisplayFrame = firstDisplayFrame+1;
 			myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
-			myFlowTab->firstDisplayFrameEdit->setText(QString::number(firstDisplayFrame));
 		}
 		objectsPerFlowline = myFlowTab->geometrySamplesEdit->text().toInt();
 		if (objectsPerFlowline < 1 || objectsPerFlowline > 1000) {
-			objectsPerFlowline = (lastDisplayFrame+firstDisplayFrame);
+			objectsPerFlowline = (lastDisplayFrame-firstDisplayFrame);
 			myFlowTab->geometrySamplesEdit->setText(QString::number(objectsPerFlowline));
 		}
 		myFlowTab->geometrySamplesSlider->setValue((int)(256.0*log10((float)objectsPerFlowline)*0.33333));
@@ -683,12 +693,12 @@ reinit(bool doOverride){
 	
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
-	colorMapEntity.push_back("Age");
+	colorMapEntity.push_back("Relative Timestep");
 	colorMapEntity.push_back("Field Magnitude");
 	colorMapEntity.push_back("Seed Index");
 	opacMapEntity.clear();
 	opacMapEntity.push_back("Constant");
-	opacMapEntity.push_back("Age");
+	opacMapEntity.push_back("Relative Timestep");
 	opacMapEntity.push_back("Field Magnitude");
 	opacMapEntity.push_back("Seed Index");
 	for (i = 0; i< newNumVariables; i++){
@@ -1122,6 +1132,25 @@ guiSetEnabled(bool on){
 	setEnabled(on);
 	PanelCommand::captureEnd(cmd, this);
 }
+//Respond to a change in opacity scale factor
+void FlowParams::
+guiSetOpacityScale(int val){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "modify opacity scale slider");
+	setOpacityScale(((float)(256-val))/256.f);
+	float sliderVal = getOpacityScale();
+	QToolTip::add(myFlowTab->opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	setClutDirty();
+	getFlowMapEditor()->setDirty();
+	myFlowTab->flowMapFrame->update();
+	PanelCommand::captureEnd(cmd,this);
+}
+float FlowParams::getOpacityScale() {
+	return (getFlowMapEditor() ? getFlowMapEditor()->getOpacityScaleFactor() : 1.f );
+}
+void FlowParams::setOpacityScale(float val) {
+	if (getFlowMapEditor()) getFlowMapEditor()->setOpacityScaleFactor(val);
+}
 //Make rake match region
 void FlowParams::
 guiSetRakeToRegion(){
@@ -1144,6 +1173,11 @@ guiSetFlowType(int typenum){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow type");
 	setFlowType(typenum);
+	if (flowType == 0){
+		myFlowTab->displayIntervalLabel->setText("Begin/end display interval relative to seed time step");
+	} else {
+		myFlowTab->displayIntervalLabel->setText("Begin/end display interval relative to current time step");
+	}
 	PanelCommand::captureEnd(cmd, this);
 	
 }
@@ -1935,7 +1969,7 @@ regenerateFlowData(int timeStep, bool isRake){
 
 	if (flowType == 0) { //steady
 		myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
-		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
+		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(-firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
 	} else {
 		myFlowLib->SetTimeStepInterval(timeSamplingStart,timeSamplingEnd, timeSamplingInterval);
 		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(maxFrame - minFrame))/(float)objectsPerFlowline);
@@ -1984,7 +2018,7 @@ regenerateFlowData(int timeStep, bool isRake){
 		maxPoints = objectsPerFlowline+1;
 		if (maxPoints < 2) maxPoints = 2;
 		//If bidirectional allocate between prePoints and postPoints
-		numPrePoints = (int)(0.5f+(float)maxPoints* (float)(firstDisplayFrame)/(float)(firstDisplayFrame+lastDisplayFrame));
+		numPrePoints = (int)(0.5f+(float)maxPoints* (float)(-firstDisplayFrame)/(float)(firstDisplayFrame+lastDisplayFrame));
 		//Make sure these are valid (i.e. not == 1) and
 		//adjust maxPoints accordingly
 		if (numPrePoints == 1) numPrePoints = 2;
@@ -2079,7 +2113,7 @@ regenerateFlowData(int timeStep, bool isRake){
 	if (flowType == 0){ //steady
 		bool rc = true;
 		if (numPrePoints>0){
-			myFlowLib->ScaleTimeStepSizes(-velocityScale, ((float)(firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
+			myFlowLib->ScaleTimeStepSizes(-velocityScale, ((float)(-firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
 			if (isRake){
 				rc = myFlowLib->GenStreamLines(prePointData, numPrePoints, randomSeed, preSpeeds);
 			} else {
@@ -2087,7 +2121,7 @@ regenerateFlowData(int timeStep, bool isRake){
 			}
 		}
 		if (rc && numPostPoints > 0) {
-			myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
+			myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(-firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
 			if (isRake){
 				rc = myFlowLib->GenStreamLines(postPointData,numPostPoints,randomSeed,postSpeeds);
 			} else {
@@ -2507,6 +2541,14 @@ buildNode() {
 	oss.str(empty);
 	oss << (double)constantOpacity;
 	attrs[_constantOpacityAttr] = oss.str();
+
+	//Specify the opacity scale from the flow map editor
+	if(flowMapEditor){
+		oss.str(empty);
+		oss << flowMapEditor->getOpacityScaleFactor();
+		attrs[_opacityScaleAttr] = oss.str();
+	}
+
 	XmlNode* graphicNode = new XmlNode(_geometryTag,attrs,2*numVariables+1);
 
 	//Create a mapper function node, add it as child
@@ -2514,6 +2556,8 @@ buildNode() {
 		XmlNode* mfNode = mapperFunction->buildNode(empty);
 		graphicNode->AddChild(mfNode);
 	}
+	
+
 
 	flowNode->AddChild(graphicNode);
 	//Create a node for each of the variables
@@ -2524,7 +2568,7 @@ buildNode() {
 			oss << variableNames[i-4];
 		} else {
 			if (i == 0) oss << "Constant";
-			else if (i == 1) oss << "Age";
+			else if (i == 1) oss << "RelativeTimestep";
 			else if (i == 2) oss << "FieldMagnitude";
 			else if (i == 3) oss << "SeedIndex";
 		}
@@ -2723,6 +2767,11 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				int r,g,b;
 				ist >> r; ist >>g; ist >> b;
 				constantColor = qRgb(r,g,b);
+			} 
+			else if (StrCmpNoCase(attribName, _opacityScaleAttr) == 0){
+				float opacScale;
+				ist >> opacScale;
+				getFlowMapEditor()->setOpacityScaleFactor(opacScale);
 			} 
 			else if (StrCmpNoCase(attribName, _constantOpacityAttr) == 0){
 				ist >> constantOpacity;
@@ -2953,9 +3002,9 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 						break;
 					case (1): //age
 						if (flowIsSteady())
-							//Map k in [0..objectsPerFlowline] to the interval (-firstDisplayFrame, lastDisplayFrame)
-							opacVar = - (float)firstDisplayFrame +
-								(float)k*((float)(lastDisplayFrame+firstDisplayFrame))/((float)objectsPerFlowline);
+							//Map k in [0..objectsPerFlowline] to the interval (firstDisplayFrame, lastDisplayFrame)
+							opacVar =  (float)firstDisplayFrame +
+								(float)k*((float)(lastDisplayFrame-firstDisplayFrame))/((float)objectsPerFlowline);
 						else
 							opacVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
 						break;
@@ -2991,8 +3040,8 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 						break;
 					case (1): //age
 						if (flowIsSteady())
-							colorVar = -(float)firstDisplayFrame +
-								(float)k*((float)(lastDisplayFrame+firstDisplayFrame))/((float)objectsPerFlowline);
+							colorVar = (float)firstDisplayFrame +
+								(float)k*((float)(lastDisplayFrame-firstDisplayFrame))/((float)objectsPerFlowline);
 						else
 							colorVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
 						break;
@@ -3146,7 +3195,7 @@ float FlowParams::minRange(int index){
 		case (0): return 0.f;
 		case (1): 
 			//Need to fix this for unsteady
-			if (flowIsSteady())return (float)(-firstDisplayFrame);
+			if (flowIsSteady())return (float)(firstDisplayFrame);
 			else return (0.f);
 		case (2): return (0.f);//speed
 		case (3): //seed index.  Goes from -1 to -(rakesize)

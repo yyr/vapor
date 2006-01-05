@@ -38,7 +38,7 @@ public:
 
 protected:
 	
-	int maxPoints, firstDisplayFrame, lastDisplayFrame, numSeedPoints, numInjections;
+	int maxPoints,  numSeedPoints, numInjections;
 	int maxFrame, minFrame;
 	bool steadyFlow;
 	int seedIncrement, startSeed, endSeed, firstDisplayAge, lastDisplayAge;

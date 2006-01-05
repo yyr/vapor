@@ -40,7 +40,7 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout91</cstring>
+            <cstring>layout82</cstring>
         </property>
         <property name="geometry">
             <rect>
@@ -395,10 +395,10 @@
                     </widget>
                     <widget class="QSlider">
                         <property name="name">
-                            <cstring>histoStretchSlider</cstring>
+                            <cstring>opacityScaleSlider</cstring>
                         </property>
                         <property name="maxValue">
-                            <number>1000</number>
+                            <number>256</number>
                         </property>
                         <property name="value">
                             <number>0</number>
@@ -407,7 +407,7 @@
                             <enum>Vertical</enum>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Scale Histogram</string>
+                            <string>Scale Opacity Values</string>
                         </property>
                     </widget>
                 </hbox>
@@ -735,7 +735,7 @@
             </widget>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>layout35</cstring>
+                    <cstring>layout21</cstring>
                 </property>
                 <hbox>
                     <property name="name">
@@ -753,7 +753,7 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>50</width>
+                                <width>20</width>
                                 <height>20</height>
                             </size>
                         </property>
@@ -793,7 +793,52 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>151</width>
+                                <width>40</width>
+                                <height>20</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QLabel">
+                        <property name="name">
+                            <cstring>textLabel1_8</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Histo scale</string>
+                        </property>
+                    </widget>
+                    <widget class="QLineEdit">
+                        <property name="name">
+                            <cstring>histoScaleEdit</cstring>
+                        </property>
+                        <property name="maximumSize">
+                            <size>
+                                <width>50</width>
+                                <height>32767</height>
+                            </size>
+                        </property>
+                        <property name="text">
+                            <string>1</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignHCenter</set>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Scale factor for histogram display</string>
+                        </property>
+                    </widget>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer29_2</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>31</width>
                                 <height>20</height>
                             </size>
                         </property>

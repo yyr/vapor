@@ -741,7 +741,7 @@ VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 	connect (dvrTab->specularAttenuation, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
 	connect (dvrTab->diffuseAttenuation, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
 	connect (dvrTab->ambientAttenuation, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-
+	connect (dvrTab->histoScaleEdit,SIGNAL(textChanged(const QString&)),this, SLOT(setDvrTabTextChanged(const QString&)));
 	connect (dvrTab->leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
 	connect (dvrTab->rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
 
@@ -752,6 +752,7 @@ VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 	connect (dvrTab->specularAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
 	connect (dvrTab->diffuseAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
 	connect (dvrTab->ambientAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
+	connect (dvrTab->histoScaleEdit, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
 
 	connect (dvrTab->numBitsSpin, SIGNAL (valueChanged(int)), this, SLOT(setDvrNumBits(int)));
 	connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->LocalGlobal, SLOT(setEnabled(bool)));
@@ -761,7 +762,7 @@ VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 	connect (dvrTab->leftMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
 	connect (dvrTab->rightMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
 	
-	connect (dvrTab->histoStretchSlider, SIGNAL(sliderReleased()), this, SLOT (dvrHistoStretch()));
+	connect (dvrTab->opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (dvrOpacityScale()));
 	connect (dvrTab->ColorBindButton, SIGNAL(pressed()), this, SLOT(dvrColorBind()));
 	connect (dvrTab->OpacityBindButton, SIGNAL(pressed()), this, SLOT(dvrOpacBind()));
 	connect (dvrTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setDvrNavigateMode(bool)));
@@ -786,6 +787,7 @@ VizWinMgr::hookUpProbeTab(ProbeTab* probeTab)
 	connect (probeTab->xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (probeTab->ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (probeTab->zSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
+	connect (probeTab->histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	
 	connect (probeTab->leftMappingBound, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (probeTab->rightMappingBound, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
@@ -798,7 +800,7 @@ VizWinMgr::hookUpProbeTab(ProbeTab* probeTab)
 	connect (probeTab->zSizeEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (probeTab->thetaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (probeTab->phiEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	
+	connect (probeTab->histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (probeTab->regionCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRegion()));
 	connect (probeTab->viewCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterView()));
 	connect (probeTab->rakeCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRake()));
@@ -827,7 +829,7 @@ VizWinMgr::hookUpProbeTab(ProbeTab* probeTab)
 	//connect (this, SIGNAL(enableMultiViz(bool)), probeTab->copyTargetCombo, SLOT(setEnabled(bool)));
 	//TFE Editor controls:
 	
-	connect (probeTab->histoStretchSlider, SIGNAL(sliderReleased()), this, SLOT (probeHistoStretch()));
+	connect (probeTab->opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (probeOpacityScale()));
 	connect (probeTab->ColorBindButton, SIGNAL(pressed()), this, SLOT(probeColorBind()));
 	connect (probeTab->OpacityBindButton, SIGNAL(pressed()), this, SLOT(probeOpacBind()));
 	connect (probeTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setProbeNavigateMode(bool)));
@@ -1033,6 +1035,7 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->maxOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
 	connect (flowTab->seedListCheckbox, SIGNAL(toggled(bool)), this, SLOT(doFlowSeedList(bool)));
 	connect (flowTab->rakeCheckbox, SIGNAL(toggled(bool)), this, SLOT(doFlowRake(bool)));
+	connect (flowTab->opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (flowOpacityScale()));
 	
 	connect (flowTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setFlowNavigateMode(bool)));
 	connect (flowTab->editButton, SIGNAL(toggled(bool)), this, SLOT(setFlowEditMode(bool)));
@@ -1718,9 +1721,9 @@ refreshHisto(){
  * Respond to a slider release
  */
 void VizWinMgr::
-dvrHistoStretch() {
-	getDvrParams(activeViz)->guiSetHistoStretch(
-		myMainWindow->getDvrTab()->histoStretchSlider->value());
+dvrOpacityScale() {
+	getDvrParams(activeViz)->guiSetOpacityScale(
+		myMainWindow->getDvrTab()->opacityScaleSlider->value());
 }
 //Respond to user click on save/load TF.  This launches the intermediate
 //dialog, then sends the result to the DVR params
@@ -1816,9 +1819,9 @@ refreshProbeHisto(){
  * Respond to a slider release
  */
 void VizWinMgr::
-probeHistoStretch() {
-	getProbeParams(activeViz)->guiSetHistoStretch(
-		myMainWindow->getProbeTab()->histoStretchSlider->value());
+probeOpacityScale() {
+	getProbeParams(activeViz)->guiSetOpacityScale(
+		myMainWindow->getProbeTab()->opacityScaleSlider->value());
 }
 //Respond to user click on save/load TF.  This launches the intermediate
 //dialog, then sends the result to the DVR params
@@ -2072,6 +2075,14 @@ void VizWinMgr::setFlowTabFlowTextChanged(const QString&){
 void VizWinMgr::flowAutoToggled(bool on){
 	FlowParams* myFlowParams = getFlowParams(activeViz);
 	myFlowParams->guiSetAutoRefresh(on);
+}
+/*
+ * Respond to a slider release
+ */
+void VizWinMgr::
+flowOpacityScale() {
+	getFlowParams(activeViz)->guiSetOpacityScale(
+		myMainWindow->getFlowTab()->opacityScaleSlider->value());
 }
 
 void VizWinMgr::setFlowTabGraphicsTextChanged(const QString&){

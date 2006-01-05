@@ -73,6 +73,7 @@ const string DvrParams::_editModeAttr = "TFEditMode";
 const string DvrParams::_histoStretchAttr = "HistoStretchFactor";
 
 
+
 DvrParams::DvrParams(int winnum) : Params(winnum){
 	thisParamType = DvrParamsType;
 	myDvrTab = MainForm::getInstance()->getDvrTab();
@@ -178,6 +179,7 @@ void DvrParams::updateDialog(){
 	
 	myDvrTab->lightingCheckbox->setChecked(lightingOn);
 	myDvrTab->numBitsSpin->setValue(numBits);
+	myDvrTab->histoScaleEdit->setText(QString::number(histoStretchFactor));
 	myDvrTab->diffuseShading->setText(strn.setNum(diffuseCoeff, 'g', 3));
 	myDvrTab->ambientShading->setText(strn.setNum(ambientCoeff, 'g', 3));
 	myDvrTab->specularShading->setText(strn.setNum(specularCoeff, 'g', 3));
@@ -192,11 +194,14 @@ void DvrParams::updateDialog(){
 		myDvrTab->LocalGlobal->setCurrentItem(0);
 
 	updateMapBounds();
-	float sliderVal = 1.f;
-	if (getTFEditor())
-		sliderVal = getHistoStretch();
-	sliderVal = 1000.f - logf(sliderVal)/(HISTOSTRETCHCONSTANT*logf(2.f));
-	myDvrTab->histoStretchSlider->setValue((int) sliderVal);
+	
+	float sliderVal = getOpacityScale();
+	QToolTip::add(myDvrTab->opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	
+	sliderVal = 256.f*(1.f -sliderVal);
+	myDvrTab->opacityScaleSlider->setValue((int) sliderVal);
+	
+	
 	setBindButtons();
 	
 	//Set the mode buttons:
@@ -232,6 +237,7 @@ updatePanelState(){
 	diffuseAtten = myDvrTab->diffuseAttenuation->text().toFloat();
 	ambientAtten = myDvrTab->ambientAttenuation->text().toFloat();
 	specularAtten = myDvrTab->specularAttenuation->text().toFloat();
+	histoStretchFactor = myDvrTab->histoScaleEdit->text().toFloat();
 
 	if (numVariables > 0) {
 		((TransferFunction*)getMapperFunc())->setMinMapValue(myDvrTab->leftMappingBound->text().toFloat());
@@ -364,10 +370,15 @@ guiSetLighting(bool val){
 
 //Respond to a change in histogram stretch factor
 void DvrParams::
-guiSetHistoStretch(int val){
+guiSetOpacityScale(int val){
+	if (!getTFEditor()) return;
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, "modify histogram stretch slider");
-	setHistoStretch( powf(2.f, HISTOSTRETCHCONSTANT*(1000.f - (float)val)));
+	PanelCommand* cmd = PanelCommand::captureStart(this, "modify opacity scale slider");
+	setOpacityScale(((float)(256-val))/256.f);
+	float sliderVal = getOpacityScale();
+	QToolTip::add(myDvrTab->opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	
+	setClutDirty();
 	getTFEditor()->setDirty();
 	myDvrTab->DvrTFFrame->update();
 	PanelCommand::captureEnd(cmd,this);
@@ -403,6 +414,12 @@ guiBindOpacToColor(){
 	PanelCommand* cmd = PanelCommand::captureStart(this, "bind Opacity to Color");
 	getTFEditor()->bindOpacToColor();
 	PanelCommand::captureEnd(cmd, this);
+}
+float DvrParams::getOpacityScale() {
+	return (getTFEditor() ? getTFEditor()->getOpacityScaleFactor() : 1.f );
+}
+void DvrParams::setOpacityScale(float val) {
+	if (getTFEditor()) getTFEditor()->setOpacityScaleFactor(val);
 }
 void DvrParams::
 setBindButtons(){
@@ -945,6 +962,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		float leftEdit = 0.f;
 		float rightEdit = 1.f;
 		string varName;
+		float opacFac = 1.f;
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -967,6 +985,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _variableNameAttr) == 0){
 				ist >> varName;
 			}
+			else if (StrCmpNoCase(attribName, _opacityScaleAttr) == 0){
+				ist >> opacFac;
+			}
 			else return false;
 		}
 		// Now set the values obtained from attribute parsing.
@@ -974,6 +995,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		variableNames[parsedVarnum] =  varName;
 		minColorEditBounds[parsedVarnum] = leftEdit;
 		maxColorEditBounds[parsedVarnum] = rightEdit;
+		transFunc[parsedVarnum]->getEditor()->setOpacityScaleFactor(opacFac);
 		return true;
 	}
 	//Parse a transferFunction
@@ -1074,6 +1096,10 @@ buildNode() {
 		oss.str(empty);
 		oss << (double)maxColorEditBounds[i];
 		attrs[_rightEditBoundAttr] = oss.str();
+
+		oss.str(empty);
+		oss << (double)transFunc[i]->getEditor()->getOpacityScaleFactor();
+		attrs[_opacityScaleAttr] = oss.str();
 
 		XmlNode* varNode = new XmlNode(_variableTag,attrs,1);
 

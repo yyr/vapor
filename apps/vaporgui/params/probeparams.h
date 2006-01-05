@@ -167,7 +167,7 @@ public:
 	void guiSetXCenter(int sliderVal);
 	void guiSetYCenter(int sliderVal);
 	void guiSetZCenter(int sliderVal);
-	void guiSetHistoStretch(int val);
+	void guiSetOpacityScale(int val);
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	void guiSetAligned();
 	void guiSetNumTrans(int numtrans);
@@ -231,7 +231,7 @@ protected:
 	static const string _cursorCoordsAttr;
 	static const string _phiAttr;
 	static const string _thetaAttr;
-
+	
 	//Determine the value of the variable(s) at specified point.
 	//Return OUT_OF_BOUNDS if not in probe and in full domain
 	float calcCurrentValue(float point[3]);
@@ -243,6 +243,8 @@ protected:
 	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);
 	//Get the data associated with the probe region for a variable and timestep
 	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep);
+	float getOpacityScale(); 
+	void setOpacityScale(float val); 
 		
 	//Utility functions for building texture and histogram
 	

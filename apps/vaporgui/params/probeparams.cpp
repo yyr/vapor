@@ -182,6 +182,7 @@ void ProbeParams::updateDialog(){
 	myProbeTab->numTransSpin->setMinValue(minNumTrans);
 	myProbeTab->numTransSpin->setMaxValue(maxNumTrans);
 	myProbeTab->numTransSpin->setValue(numTransforms);
+	
 
 	//Set the selection in the variable listbox
 	for (int i = 0; i< numVariables; i++){
@@ -191,6 +192,7 @@ void ProbeParams::updateDialog(){
 		} else assert(0);
 	}
 	//Set sliders and text:
+	myProbeTab->histoScaleEdit->setText(QString::number(histoStretchFactor));
 	for (int i = 0; i< 3; i++){
 		textToSlider(i, (probeMin[i]+probeMax[i])*0.5f,probeMax[i]-probeMin[i]);
 	}
@@ -220,9 +222,10 @@ void ProbeParams::updateDialog(){
 	updateMapBounds();
 	float sliderVal = 1.f;
 	if (getTFEditor())
-		sliderVal = getHistoStretch();
-	sliderVal = 1000.f - logf(sliderVal)/(HISTOSTRETCHCONSTANT*logf(2.f));
-	myProbeTab->histoStretchSlider->setValue((int) sliderVal);
+		sliderVal = getTFEditor()->getOpacityScaleFactor();
+	QToolTip::add(myProbeTab->opacityScaleSlider,"Opacity Scale Value "+QString::number(sliderVal*sliderVal));
+	sliderVal = 256.f*(1.f-sliderVal);
+	myProbeTab->opacityScaleSlider->setValue((int) sliderVal);
 	setBindButtons();
 	
 	//Set the mode buttons:
@@ -254,6 +257,8 @@ updatePanelState(){
 	enabled = myProbeTab->EnableDisable->currentItem();
 	theta = myProbeTab->thetaEdit->text().toFloat();
 	phi = myProbeTab->phiEdit->text().toFloat();
+	histoStretchFactor = myProbeTab->histoScaleEdit->text().toFloat();
+
 	//Get slider positions from text boxes:
 		
 	float boxCtr = myProbeTab->xCenterEdit->text().toFloat();
@@ -481,15 +486,26 @@ guiSetEnabled(bool value){
 
 
 
-//Respond to a change in histogram stretch factor
+//Respond to a change in opacity scale factor
 void ProbeParams::
-guiSetHistoStretch(int val){
+guiSetOpacityScale(int val){
+	if (!getTFEditor()) return;
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this, "modify histogram stretch slider");
-	setHistoStretch( powf(2.f, HISTOSTRETCHCONSTANT*(1000.f - (float)val)));
+	PanelCommand* cmd = PanelCommand::captureStart(this, "modify opacity scale slider");
+	setOpacityScale( ((float)(256-val))/256.f);
+	float sliderVal = getOpacityScale();
+	QToolTip::add(myProbeTab->opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	setClutDirty();
 	getTFEditor()->setDirty();
 	myProbeTab->ProbeTFFrame->update();
 	PanelCommand::captureEnd(cmd,this);
+	
+}
+float ProbeParams::getOpacityScale() {
+	return (getTFEditor() ? getTFEditor()->getOpacityScaleFactor() : 1.f );
+}
+void ProbeParams::setOpacityScale(float val) {
+	if (getTFEditor()) getTFEditor()->setOpacityScaleFactor(val);
 }
 //Respond to a change in transfer function (from color selection or mouse down/release events)
 //These are just for undo/redo.  Also may need to update visualizer and/or editor
@@ -1291,6 +1307,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		float leftEdit = 0.f;
 		float rightEdit = 1.f;
 		bool varSelected = false;
+		float opacFac = 1.f;
 		string varName;
 		while (*attrs) {
 			string attribName = *attrs;
@@ -1317,6 +1334,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _variableSelectedAttr) == 0){
 				if (value == "true") varSelected = true; 
 			}
+			else if (StrCmpNoCase(attribName, _opacityScaleAttr) == 0){
+				ist >> opacFac;
+			}
 			else return false;
 		}
 		// Now set the values obtained from attribute parsing.
@@ -1325,6 +1345,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		variableSelected[parsedVarnum] = varSelected;
 		setMinColorEditBound(leftEdit,parsedVarnum);
 		setMaxColorEditBound(rightEdit,parsedVarnum);
+		transFunc[parsedVarnum]->getEditor()->setOpacityScaleFactor(opacFac);
 		
 		return true;
 	}
@@ -1459,6 +1480,10 @@ buildNode() {
 		oss.str(empty);
 		oss << (double)maxColorEditBounds[i];
 		attrs[_rightEditBoundAttr] = oss.str();
+
+		oss.str(empty);
+		oss << (double)transFunc[i]->getEditor()->getOpacityScaleFactor();
+		attrs[_opacityScaleAttr] = oss.str();
 
 		XmlNode* varNode = new XmlNode(_variableTag,attrs,1);
 

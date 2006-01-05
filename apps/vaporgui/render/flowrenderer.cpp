@@ -92,8 +92,7 @@ void FlowRenderer::paintGL()
 		//get the necessary state from the flowParams:
 		
 		
-		firstDisplayFrame = myFlowParams->getFirstDisplayAge();
-		lastDisplayFrame = myFlowParams->getLastDisplayAge();
+		
 		
 		
 		maxFrame = myFlowParams->getMaxFrame();
@@ -325,7 +324,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 			//Count the seedings:
 			int injectionNum = (seedFrame-startSeed)/seedIncrement;
 			//Find the display window for this seeding associated with the current frame:
-			int minDisplayFrame = Max( seedFrame, currentFrameNum - firstDisplayAge);
+			int minDisplayFrame = Max( seedFrame, currentFrameNum + firstDisplayAge);
 			int maxDisplayFrame = currentFrameNum + lastDisplayAge;
 			//Make sure that the current frame is in the display window for this seeding.
 			//It gets excluded if current seeding hasn't started by the maxDisplayFrame,
