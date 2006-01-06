@@ -568,6 +568,11 @@ updatePanelState(){
 		if (seedTimeIncrement < 1) seedTimeIncrement = 1;
 		lastDisplayFrame = myFlowTab->lastDisplayFrameEdit->text().toInt();
 		firstDisplayFrame = myFlowTab->firstDisplayFrameEdit->text().toInt();
+		//Make sure that steady flow has non-positive firstDisplayAge
+		if (firstDisplayFrame > 0 && flowIsSteady()){
+			firstDisplayFrame = 0;
+			myFlowTab->firstDisplayFrameEdit->setText(QString::number(firstDisplayFrame));
+		}
 		//Make sure at least one frame is displayed.
 		//
 		if (firstDisplayFrame >= lastDisplayFrame) {
@@ -1174,6 +1179,11 @@ guiSetFlowType(int typenum){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set flow type");
 	setFlowType(typenum);
 	if (flowType == 0){
+		//Need non-positive first display frame for steady flow
+		if (firstDisplayFrame > 0) {
+			firstDisplayFrame = 0;
+			myFlowTab->firstDisplayFrameEdit->setText(QString::number(firstDisplayFrame));
+		}
 		myFlowTab->displayIntervalLabel->setText("Begin/end display interval relative to seed time step");
 	} else {
 		myFlowTab->displayIntervalLabel->setText("Begin/end display interval relative to current time step");
@@ -2018,7 +2028,7 @@ regenerateFlowData(int timeStep, bool isRake){
 		maxPoints = objectsPerFlowline+1;
 		if (maxPoints < 2) maxPoints = 2;
 		//If bidirectional allocate between prePoints and postPoints
-		numPrePoints = (int)(0.5f+(float)maxPoints* (float)(-firstDisplayFrame)/(float)(firstDisplayFrame+lastDisplayFrame));
+		numPrePoints = (int)(0.5f+(float)maxPoints* (float)(-firstDisplayFrame)/(float)(-firstDisplayFrame+lastDisplayFrame));
 		//Make sure these are valid (i.e. not == 1) and
 		//adjust maxPoints accordingly
 		if (numPrePoints == 1) numPrePoints = 2;
