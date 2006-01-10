@@ -355,7 +355,8 @@ mousePressEvent(QMouseEvent* e){
 				ProbeParams* pParams = myWinMgr->getProbeParams(myWindowNum);
 				TranslateManip* probeManip = getProbeManip();
 				probeManip->setParams(pParams);
-				pParams->calcBoxExtentsInCube(boxExtents);
+				//pParams->calcBoxExtentsInCube(boxExtents);
+				pParams->calcContainingBoxExtentsInCube(boxExtents);
 				int handleNum = probeManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
 					float dirVec[3];

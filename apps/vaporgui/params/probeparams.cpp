@@ -1770,6 +1770,46 @@ void ProbeParams::getBoundingBox(size_t boxMinBlk[3], size_t boxMaxBlk[3], int b
 	
 	return;
 }
+
+//Find the smallest extents containing the probe, 
+//Similar to above, but using extents
+void ProbeParams::calcContainingBoxExtentsInCube(float* bigBoxExtents){
+	//Determine the smallest axis-aligned cube that contains the probe.  This is
+	//obtained by mapping all 8 corners into the space.
+	//It will not necessarily fit inside the unit cube.
+	float corners[8][3];
+	calcBoxCorners(corners);
+	
+	float boxMin[3],boxMax[3];
+	int crd, cor;
+	
+	//initialize extents, and variables that will be min,max
+	for (crd = 0; crd< 3; crd++){
+		boxMin[crd] = 1.e30f;
+		boxMax[crd] = -1.e30f;
+	}
+	
+	
+	for (cor = 0; cor< 8; cor++){
+		
+		
+		//make sure the container includes it:
+		for(crd = 0; crd< 3; crd++){
+			if (corners[cor][crd]<boxMin[crd]) boxMin[crd] = corners[cor][crd];
+			if (corners[cor][crd]>boxMax[crd]) boxMax[crd] = corners[cor][crd];
+		}
+	}
+	//Now convert the min,max back into extents in unit cube:
+	
+	float* fullExtents = Session::getInstance()->getExtents();
+	
+	float maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
+	for (crd = 0; crd<3; crd++){
+		bigBoxExtents[crd] = (boxMin[crd] - fullExtents[crd])/maxSize;
+		bigBoxExtents[crd+3] = (boxMax[crd] - fullExtents[crd])/maxSize;
+	}
+	return;
+}
 // Map the cursor coords into world space,
 // refreshing the selected point.  CursorCoords go from -1 to 1
 //

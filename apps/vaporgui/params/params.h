@@ -230,6 +230,9 @@ public:
 	//Determine the box extents in the unit cube.
 	
 	void calcBoxExtentsInCube(float* extents);
+	//Extension that allows container of rotated box to be larger:
+	virtual void calcContainingBoxExtentsInCube(float* extents) 
+		{return calcBoxExtentsInCube(extents);}
 	void calcBoxExtents(float* extents);
 	//Calculate the box in world coords, using any theta or phi
 	void calcBoxCorners(float corners[8][3], float extraThickness = 0.f);

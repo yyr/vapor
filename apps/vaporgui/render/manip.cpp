@@ -46,8 +46,9 @@ void TranslateManip::render(){
 	float camVec[3];
 	float extents[6];
 	//Calculate the box extents, and the viewer position, in the unit cube,
-	//Without any rotation applied:
-	myParams->calcBoxExtentsInCube(extents);
+	//With any rotation applied:
+	//myParams->calcBoxExtentsInCube(extents);
+	myParams->calcContainingBoxExtentsInCube(extents);
 	ViewpointParams* myViewpointParams = VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum());
 	ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
 
@@ -60,12 +61,7 @@ void TranslateManip::render(){
 	//specified region).  If one is selected that line (and both cubes) are given
 	//the highlight color
 	
-	//Determine the octant based on camera relative to box center:
-	/*int octant = 0;
-
-	for (int axis = 0; axis < 3; axis++){
-		if (camVec[axis] > 0.5f*(extents[axis]+extents[axis+3])) octant |= 1<<axis;
-	}*/
+	
 	//Now generate each handle and render it.  Order is not important
 	float handleExtents[6];
 	for (int handleNum = 0; handleNum < 6; handleNum++){
@@ -121,12 +117,7 @@ mouseIsOverHandle(float screenCoords[2], float* boxExtents, int* faceNum){
 		}
 	}
 	
-	//Check main box.  If it is on the box, we are done
-	/*  Instead, allow users to pick "through" the box:
-	getBoxVertices(handle);
-	if ((myVizWin->getGLWindow()->pointIsOnBox(handle,screenCoords)) >= 0) return -1;
-	*/
-
+	
 	//Then check backHandles
 	for (int sortNum = 3; sortNum < 6; sortNum++){
 		handleNum = makeHandleFaces(sortNum, handle, octant, boxExtents);

@@ -210,6 +210,9 @@ public:
 			probeMax[i] = boxMax[i];
 		}
 	}
+	//Get the bounding extents of probe, in cube coords
+	virtual void calcContainingBoxExtentsInCube(float* extents);
+
 	//Save state when user clicks on a probe handle in the scene
 	void captureMouseDown();
 	virtual void captureMouseUp();
@@ -243,6 +246,7 @@ protected:
 	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);
 	//Get the data associated with the probe region for a variable and timestep
 	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep);
+	
 	float getOpacityScale(); 
 	void setOpacityScale(float val); 
 		
@@ -252,7 +256,7 @@ protected:
 	//Find smallest containing cube in integer coords, using
 	//current numTransforms, that will contain image of probe
 	void getBoundingBox(size_t boxMinBlk[3], size_t boxMaxBlk[3], int boxMin[3], int boxMax[3]);
-
+	
 	float currentDatarange[2];
 	
 	bool editMode;
