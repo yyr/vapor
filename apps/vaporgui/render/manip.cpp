@@ -451,18 +451,39 @@ void TranslateManip::drawBoxFaces(int highlightedFace){
 	glVertex3fv(midCorners[3]);
 	glVertex3fv(midCorners[1]);
 	glEnd();
+	
 	//Draw a translucent rectangle at the middle.
-	//Don't write to the z-buffer, so won't obscure stuff behind that shows up later
-	glDepthMask(GL_FALSE);
-	glColor4f(.8f,.8f,0.f,0.2f);
+	//If the probe is enabled, will apply the probe texture to the rectangle
+	//Note that we are assuming that the TranslateManip is associated with a probe!
+	//For generality, the getProbeTexture method needs to be pushed up to 
+	//Params class (so other params can use this manip).
+	unsigned char* probeTex = ((ProbeParams*)myParams)->getProbeTexture();
+	if (probeTex){
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		
+		glEnable(GL_TEXTURE_2D);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTex);
+		//Do write to the z buffer
+		glDepthMask(GL_TRUE);
+	} else {
+		//Don't write to the z-buffer, so won't obscure stuff behind that shows up later
+		glDepthMask(GL_FALSE);
+		glColor4f(.8f,.8f,0.f,0.2f);
+	}
 	glBegin(GL_QUADS);
-	glVertex3fv(midCorners[0]);
-	glVertex3fv(midCorners[1]);
-	glVertex3fv(midCorners[3]);
-	glVertex3fv(midCorners[2]);
+	glTexCoord2f(0.f,0.f); glVertex3fv(midCorners[0]);
+	glTexCoord2f(0.f, 1.f); glVertex3fv(midCorners[2]);
+	glTexCoord2f(1.f,1.f); glVertex3fv(midCorners[3]);
+	glTexCoord2f(1.f, 0.f); glVertex3fv(midCorners[1]);
+	
 	glEnd();
+	glFlush();
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
+	if (probeTex) glDisable(GL_TEXTURE_2D);
 	
 	
 }

@@ -195,14 +195,14 @@ restart() {
 
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
-	colorMapEntity.push_back("Relative Timestep");
+	colorMapEntity.push_back("Timestep");
 	colorMapEntity.push_back("Field Magnitude");
 	colorMapEntity.push_back("Seed Index");
 
 	opacMapEntity.clear();
 	
 	opacMapEntity.push_back("Constant");
-	opacMapEntity.push_back("Relative Timestep");
+	opacMapEntity.push_back("Timestep");
 	opacMapEntity.push_back("Field Magnitude");
 	opacMapEntity.push_back("Seed Index");
 	minColorEditBounds = new float[3];
@@ -698,12 +698,12 @@ reinit(bool doOverride){
 	
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
-	colorMapEntity.push_back("Relative Timestep");
+	colorMapEntity.push_back("Timestep");
 	colorMapEntity.push_back("Field Magnitude");
 	colorMapEntity.push_back("Seed Index");
 	opacMapEntity.clear();
 	opacMapEntity.push_back("Constant");
-	opacMapEntity.push_back("Relative Timestep");
+	opacMapEntity.push_back("Timestep");
 	opacMapEntity.push_back("Field Magnitude");
 	opacMapEntity.push_back("Seed Index");
 	for (i = 0; i< newNumVariables; i++){

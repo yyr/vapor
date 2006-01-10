@@ -497,9 +497,11 @@ guiSetOpacityScale(int val){
 	QToolTip::add(myProbeTab->opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	setClutDirty();
 	getTFEditor()->setDirty();
+	setProbeDirty();
 	myProbeTab->ProbeTFFrame->update();
-	PanelCommand::captureEnd(cmd,this);
 	
+	PanelCommand::captureEnd(cmd,this);
+	VizWinMgr::getInstance()->refreshProbe(this);
 }
 float ProbeParams::getOpacityScale() {
 	return (getTFEditor() ? getTFEditor()->getOpacityScaleFactor() : 1.f );
@@ -913,6 +915,8 @@ reinit(bool doOverride){
 		
 		for (i = 0; i<newNumVariables; i++){
 			newTransFunc[i] = new TransferFunction(this, 8);
+			//Initialize to be fully opaque:
+			newTransFunc[i]->setOpaque();
 			//create new tfe, hook it to the trans func
 			TFEditor* newTFEditor = new TFEditor(newTransFunc[i], myProbeTab->ProbeTFFrame);
 			connectMapperFunction(newTransFunc[i], newTFEditor);
@@ -931,6 +935,8 @@ reinit(bool doOverride){
 				newMaxEdit[i] = maxColorEditBounds[i];
 			} else { //create new tfe, hook it to the trans func
 				newTransFunc[i] = new TransferFunction(this, 8);
+				//Initialize to be fully opaque:
+				newTransFunc[i]->setOpaque();
 				TFEditor* newTFEditor = new TFEditor(newTransFunc[i], myProbeTab->ProbeTFFrame);
 				connectMapperFunction(newTransFunc[i], newTFEditor);
 				newTransFunc[i]->setMinMapValue(Session::getInstance()->getDefaultDataMin(i));
