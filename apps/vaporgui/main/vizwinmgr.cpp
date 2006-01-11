@@ -76,9 +76,7 @@
 #include "vapor/XmlNode.h"
 #include "vapor/ExpatParseMgr.h"
 
-#ifdef VOLUMIZER
-#include "volumizerrenderer.h"
-#endif
+
 using namespace VAPoR;
 VizWinMgr* VizWinMgr::theVizWinMgr = 0;
 const string VizWinMgr::_visualizersTag = "Visualizers";

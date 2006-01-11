@@ -1,9 +1,9 @@
 //************************************************************************
-//																		*
-//		     Copyright (C)  2004										*
+//										*
+//		     Copyright (C)  2004						*
 //     University Corporation for Atmospheric Research					*
-//		     All Rights Reserved										*
-//																		*
+//		     All Rights Reserved						*
+//											*
 //************************************************************************/
 //
 //	File:		dvrparams.h
@@ -57,12 +57,18 @@ public:
 	virtual void makeCurrent(Params* previousParams, bool newWin);
 	virtual void updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow);
 	void setNumBits(int val) {numBits = val;}
-	void setLighting(bool val) {lightingOn = val;}
+	void setLighting(bool val) {lightingOn = val; setClutDirty(); }
+	bool getLighting() const { return lightingOn; }
 
-	void setDiffuseCoeff(float val) {diffuseCoeff = val;}
-	void setAmbientCoeff(float val) {ambientCoeff = val;}
-	void setSpecularCoeff(float val) {specularCoeff = val;}
-	void setExponent(int val) {specularExponent = val;}
+	void setDiffuseCoeff(float val) {diffuseCoeff = val; setClutDirty();}
+	void setAmbientCoeff(float val) {ambientCoeff = val; setClutDirty();}
+	void setSpecularCoeff(float val) {specularCoeff = val; setClutDirty();}
+	void setExponent(int val) {specularExponent = val; setClutDirty();}
+
+	float getDiffuseCoeff()  { return diffuseCoeff; }
+	float getAmbientCoeff()  { return ambientCoeff; }
+	float getSpecularCoeff() { return specularCoeff; }
+	int   getExponent()      { return specularExponent; }
 
 	void setDiffuseAttenuation(float val) {diffuseAtten = val;
 		attenuationDirty = true;}

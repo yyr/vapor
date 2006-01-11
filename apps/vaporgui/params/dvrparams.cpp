@@ -57,11 +57,14 @@
 #include "tabmanager.h"
 #include "histo.h"
 
+
 #include <math.h>
 #include <vapor/Metadata.h>
 
 #ifdef VOLUMIZER
 #include "volumizerrenderer.h"
+#else 
+#include "VolumeRenderer.h"
 #endif
 
 
@@ -499,8 +502,11 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 
 	
 	if (nowEnabled && !prevEnabled && newLocal){//For case 2.:  create a renderer in the active window:
-
+#ifdef VOLUMIZER
 		VolumizerRenderer* myDvr = new VolumizerRenderer(viz);
+#else
+		VolumeRenderer* myDvr = new VolumeRenderer(viz);
+#endif
 		viz->appendRenderer(myDvr, DvrParamsType);
 
 		//force the renderer to refresh region data  (why?)
@@ -518,7 +524,11 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 			
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
+#ifdef VOLUMIZER
 				VolumizerRenderer* myDvr = new VolumizerRenderer(viz);
+#else
+				VolumeRenderer* myDvr = new VolumeRenderer(viz);
+#endif
 				viz->appendRenderer(myDvr, DvrParamsType);
 				//force the renderer to refresh region data (??)
 				viz->setRegionDirty(true);
