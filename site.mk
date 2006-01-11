@@ -9,6 +9,7 @@ endif
 endif
 
 BUILD_AMR_SUPPORT = 0
+BUILD_VOLUMIZER = 1
 
 #
 #	get VAPOR_INSTALL_DIR from the enviornment
