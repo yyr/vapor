@@ -12,7 +12,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="."
-			IntermediateDirectory="Release\"
+			IntermediateDirectory="..\..\..\targets\win32\built\vaporgui\"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE">
@@ -20,15 +20,15 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189 /EHsc"
 				Optimization="1"
-				AdditionalIncludeDirectories="$(VOLUMIZER_ROOT)\include,C:\Expat-1.95.8\Source\lib,..\..\..\apps\vaporgui,..\..\..\include,$(QTDIR)\include,..\..\..\apps\vaporgui\guis\ui,../../../apps/vaporgui/guis/ui\,.,..\..\..\apps\vaporgui\moc\,C:\Qt\3.3.4\mkspecs\win32-msvc.net"
-				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT,NDEBUG,QT_NO_DEBUG"
+				AdditionalIncludeDirectories="&quot;C:\Expat-1.95.8\Source\lib&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui\params;..\..\..\apps\vaporgui;..\..\..\include;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;C:\Qt\3.3.4\mkspecs\win32-msvc.net&quot;"
+				PreprocessorDefinitions="_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;VOLUMIZER"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
 				ExceptionHandling="TRUE"
 				RuntimeLibrary="3"
 				BufferSecurityCheck="FALSE"
-				AssemblerListingLocation="Release\"
-				ObjectFile="Release\"
+				AssemblerListingLocation="..\..\..\targets\win32\built\vaporgui\"
+				ObjectFile="..\..\..\targets\win32\built\vaporgui\"
 				ProgramDataBaseFileName=".\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
@@ -38,11 +38,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="TRUE"
-				AdditionalDependencies="qt-mt334.lib qtmain.lib opengl32.lib glu32.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
-				OutputFile="Release\\..\..\..\targets\win32\bin\vaporgui.exe"
+				AdditionalDependencies="qt-mt334.lib glew32.lib qtmain.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
+				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="$(QTDIR)\lib"
-				DelayLoadDLLs="opengl32.dll,comdlg32.dll,oleaut32.dll,winmm.dll,wsock32.dll,winspool.dll"
+				DelayLoadDLLs="opengl32.dll"
 				GenerateDebugInformation="FALSE"
 				ProgramDatabaseFile=""
 				SubSystem="2"/>
@@ -83,7 +83,7 @@
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
 				Optimization="4"
 				AdditionalIncludeDirectories="&quot;C:\Expat-1.95.8\Source\lib&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui\params;..\..\..\apps\vaporgui;..\..\..\include;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;C:\Qt\3.3.4\mkspecs\win32-msvc.net&quot;"
-				PreprocessorDefinitions="_WINDOWS,UNICODE,WIN32,VOLUMIZER,QT_DLL,QT_THREAD_SUPPORT"
+				PreprocessorDefinitions="_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
 				ExceptionHandling="TRUE"
@@ -100,7 +100,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="TRUE"
-				AdditionalDependencies="qt-mt334.lib qtmain.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
+				AdditionalDependencies="qt-mt334.lib glew32.lib qtmain.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="$(QTDIR)\lib"
@@ -147,6 +147,9 @@
 				RelativePath="..\..\..\apps\vaporgui\params\animationparams.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\BBox.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\coloradjustdialog.cpp">
 			</File>
 			<File
@@ -166,6 +169,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\dvrparams.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\render\DVRTexture3d.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\render\DVRVolumizer.cpp">
@@ -219,6 +225,9 @@
 				RelativePath="..\..\..\apps\vaporgui\params\mapperfunction.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\Matrix3d.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\main\messagereporter.cpp">
 			</File>
 			<File
@@ -255,7 +264,13 @@
 				RelativePath="..\..\..\apps\vaporgui\params\sessionparams.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\ShaderProgram.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\params\sharedcontrollerthread.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\render\Stopwatch.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\main\tabmanager.cpp">
@@ -282,6 +297,9 @@
 				RelativePath="..\..\..\apps\vaporgui\params\unsharedcontrollerthread.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\Vect3d.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\params\viewpoint.cpp">
 			</File>
 			<File
@@ -303,6 +321,9 @@
 				RelativePath="..\..\..\apps\vaporgui\main\vizwinmgr.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\VolumeRenderer.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\render\volumizerrenderer.cpp">
 			</File>
 		</Filter>
@@ -314,6 +335,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\animationparams.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\render\BBox.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\coloradjustdialog.h">
@@ -378,6 +402,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\dvrparams.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\render\DVRTexture3d.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\render\DVRVolumizer.h">
@@ -528,6 +555,9 @@
 				RelativePath="..\..\..\apps\vaporgui\params\mapperfunction.h">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\Matrix3d.h">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\main\messagereporter.h">
 			</File>
 			<File
@@ -558,6 +588,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\params.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\render\Point3d.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\probeframe.h">
@@ -684,6 +717,12 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\ShaderProgram.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\render\Stopwatch.h">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\main\tabmanager.h">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -743,6 +782,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\transferfunction.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\render\Vect3d.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\viewpoint.h">
@@ -836,27 +878,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\VolumeRenderer.h">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\render\volumizerrenderer.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\render\volumizerrenderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\volumizerrenderer.h -o ..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\render\volumizerrenderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\volumizerrenderer.h -o ..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp"/>
-				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -948,9 +973,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_volumizerrenderer.cpp">
 			</File>
 		</Filter>
 		<Filter
