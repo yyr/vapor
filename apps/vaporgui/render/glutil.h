@@ -149,6 +149,10 @@ void	ViewMatrix (GLfloat *m);
 int	ViewAxis (int *direction);
 void	StereoPerspective (int fovy, float aspect, float nearDist, float farDist, float converge, float eye);
 
+int printOglError(char *file, int line);
+
+#define printOpenGLError() printOglError(__FILE__, __LINE__);
+
 class Point4{
 public:
 	Point4() {point[0]=point[1]=point[2]=point[3]=0.f;}

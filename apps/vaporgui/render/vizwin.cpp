@@ -55,9 +55,9 @@
 #include "glbox.h"
 #include "viewpoint.h"
 #include "manip.h"
-#ifdef VOLUMIZER
+
 #include "volumizerrenderer.h"
-#endif
+
 #include "assert.h"
 #include "vaporinternal/jpegapi.h"
 

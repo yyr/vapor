@@ -18,7 +18,7 @@
 //		Modified from code by John Clyne
 //		Modified to support a volumizer renderer inside a QT window
 //
-#ifdef VOLUMIZER
+
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
@@ -633,4 +633,4 @@ vzAppearance	*DVRVolumizer::create_appearance()
 
 
 
-#endif //VOLUMIZER
+

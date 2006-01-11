@@ -26,7 +26,7 @@
  *	University of Minnesota
  *
  */
-#ifdef VOLUMIZER
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -113,12 +113,12 @@ create_driver(
 	DVRBase	*driver = NULL;
 
 
-#ifdef	VOLUMIZER
+
 	if (strcmp(name, "vz") == 0) {
+		
 		driver = new DVRVolumizer(argc, argv, type, 1);
 		//driver = new DVRDebug(argc, argv, type, 1);
 	}
-#endif
 
 
 
@@ -342,5 +342,4 @@ DrawVoxelWindow(unsigned fast)
 	DrawVoxelScene(fast);
 }
 
-#endif //VOLUMIZER
 

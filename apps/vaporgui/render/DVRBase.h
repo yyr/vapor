@@ -49,6 +49,8 @@ public:
  //);
 
  DVRBase();
+ //Providing a virtual destructor causes a crash when volumizer exits:
+ //virtual ~DVRBase() {}  
 
  // Called once after OpenGL has been initialied so that the driver can
  // initialize the graphics state. The results of calling GraphicsInit
@@ -148,6 +150,10 @@ public:
  // Turn gradient-based lighting on/off
  //
  virtual void	SetLightingOnOff(int ) { return; } ;
+
+ // Set the lighting coefficents
+ //
+ virtual void   SetLightingCoeff(float /*kdiff*/, float /*kamb*/, float /*kspec*/, float /*exponentS*/) {};
 
  // Returns true if the driver supports ambient lighting
  //

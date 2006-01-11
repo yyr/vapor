@@ -20,7 +20,7 @@
 //
 #ifndef	_volumizer_driver_h_
 #define	_volumizer_driver_h_
-#ifdef VOLUMIZER
+
 #include <stdio.h>
 #include <stdlib.h>
 //#include <GL/gl.h> //removed so QT can include it
@@ -143,5 +143,5 @@ private:
 
 };
 };
-#endif //VOLUMIZER
+
 #endif	// _volumizer_driver_h_

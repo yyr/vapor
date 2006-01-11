@@ -45,6 +45,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <math.h>
+#include <iostream>
 
 
 //#include <GL/gl.h>
@@ -152,11 +153,11 @@ void vtransform4(const float *v, GLfloat *mat, float *vt)
     qcopy(t, vt);
 }
 //Test whether a planar point is right (or left) of the oriented line from
-// pt1 to pt2.  If pt1 = pt1, result is true
+// pt1 to pt2
 bool pointOnRight(float* pt1, float* pt2, float* testPt){
 	float rhs = pt1[0]*(pt1[1]-pt2[1]) + pt1[1]*(pt2[0]-pt1[0]);
 	float test = (pt2[0]-pt1[0])*testPt[1] + (pt1[1]-pt2[1])*testPt[0] - rhs;
-	return (test <= 0.f);
+	return (test < 0.f);
 }
 
 void mcopy(GLfloat *m1, GLfloat *m2)
@@ -938,6 +939,28 @@ double det2x2(double a, double b, double c, double d)
     return ans;
 }
 
+int printOglError(char *file, int line)     
+{
+  //
+  // Returns 1 if an OpenGL error occurred, 0 otherwise.
+  //
+  GLenum glErr;
+  int    retCode = 0;
+
+  glErr = glGetError();
+
+  while (glErr != GL_NO_ERROR)
+  {
+    std::cerr << "glError: " << gluErrorString(glErr) << std::endl;
+    std::cerr << "         " << file << ":" << line << std::endl << std::endl;
+
+    retCode = 1;
+
+    glErr = glGetError();
+  }
+
+  return retCode;
+}
 
 #define DEAD
 #ifdef	DEAD

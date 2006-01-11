@@ -26,7 +26,7 @@
  *	University of Minnesota
  *
  */
-#ifdef VOLUMIZER
+
 #ifndef	VOLUMIZERRENDERER_H
 #define	VOLUMIZERRENDERER_H
 
@@ -38,7 +38,6 @@
 namespace VAPoR {
 class DvrParams;
 class VolumizerRenderer : public Renderer {
-	Q_OBJECT
 
 public:
 
@@ -63,4 +62,4 @@ private:
 };
 };
 #endif	//	VOLUMIZERRENDERER_H
-#endif //VOLUMIZER
+
