@@ -3,7 +3,7 @@ TOP = ../
 include $(TOP)/make/config/arch.mk
 
 
-SUBDIRS = common vdf jpeg flow
+SUBDIRS = common vdf jpeg flow glew
 
 ifeq ($(BUILD_IDL_WRAPPERS), 1)
 SUBDIRS += idl 
