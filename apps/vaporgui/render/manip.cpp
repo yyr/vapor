@@ -615,7 +615,7 @@ slideHandle(int handleNum, float movedRay[3]){
 	//slide box center out of full domain box.
 	//Do this calculation in world coords
 	float boxExtents[6];
-	float* extents = Session::getInstance()->getExtents();
+	const float* extents = Session::getInstance()->getExtents();
 	myParams->calcBoxExtents(boxExtents);
 	float boxCenter = 0.5f*(boxExtents[coord]+boxExtents[coord+3]);
 	if (dragDistance + boxCenter < extents[coord]) {
@@ -856,7 +856,7 @@ slideHandle(int handleNum, float movedRay[3]){
 	
 	//Do this calculation in world coords
 	float boxExtents[6];
-	float* extents = Session::getInstance()->getExtents();
+	const float* extents = Session::getInstance()->getExtents();
 	myParams->calcBoxExtents(boxExtents);
 	
 	if (isStretching){ //don't push through opposite face ..

@@ -309,6 +309,8 @@ guiCenterSubRegion(RegionParams* rParams){
 		currentViewpoint->setCameraPos(i, camPosCrd);
 		setRotationCenter(i,rParams->getRegionCenter(i));
 	}
+	//modify near/far distance as needed:
+	VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->resetView(rParams,this);
 	updateDialog();
 	updateRenderer(false, false, false);
 	PanelCommand::captureEnd(cmd,this);
@@ -322,7 +324,8 @@ guiCenterFullRegion(RegionParams* rParams){
 	}
 	PanelCommand* cmd = PanelCommand::captureStart(this, "center full region view");
 	centerFullRegion(rParams);
-	
+	//modify near/far distance as needed:
+	VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->resetView(rParams,this);
 	updateDialog();
 	updateRenderer(false, false, false);
 	PanelCommand::captureEnd(cmd,this);
@@ -483,7 +486,7 @@ worldFromCube(float fromCoords[3], float toCoords[3]){
 }
 void ViewpointParams::
 setCoordTrans(){
-	float* extents = Session::getInstance()->getExtents();
+	const float* extents = Session::getInstance()->getExtents();
 	maxCubeSide = -1.f;
 	int i;
 	//find largest cube side, it will map to 1.0
@@ -493,6 +496,55 @@ setCoordTrans(){
 		maxCubeCoord[i] = (float)extents[i+3];
 	}
 }
+//Find far and near dist along view direction. 
+//Far is distance from camera to furthest corner of full volume
+//Near is distance to full volume if it's positive, otherwise
+//is distance to closest corner of region.
+//
+void ViewpointParams::
+getFarNearDist(RegionParams* rParams, float* fr, float* nr){
+	//First check full box
+	const float* extents = Session::getInstance()->getExtents();
+	float wrk[3], cor[3];
+	float maxProj = -.1e30f;
+	float minProj = 1.e30f;
+	//Make sure the viewDir is normalized:
+	vnormal(currentViewpoint->getViewDir());
+	//project corners of full box in view direction:
+	for (int i = 0; i<8; i++){
+		for (int j = 0; j< 3; j++){
+			cor[j] = ( (i>>j)&1) ? extents[j+3] : extents[j];
+		}
+		vsub(cor, getCameraPos(), wrk);
+		//float len1 = wrk[0]*getViewDir()[0]+wrk[1]*getViewDir()[1]+wrk[2]*getViewDir()[2];
+		float len = vdot(wrk, getViewDir());
+		//check for max and min of len's
+		if (len > maxProj) maxProj = len;
+		if (len < minProj) minProj = len;
+	}
+	if ((minProj < 1.e-20f) || (maxProj <= minProj)) {//big box is not far enough away
+		//Calculate distances to region corners:
+		float corners[8][3];
+		rParams->calcBoxCorners(corners);
+		minProj = 1.e30f;
+		//Project each corner along the line in the view direction
+		for (int i = 0; i< 8; i++){
+			//first subtract a corner from the camera, and 
+			//project the resulting vector in the camera direction 
+			vsub(corners[i],getCameraPos(),wrk);
+			float len = vdot(wrk,getViewDir());
+			//check for min of len's
+			if (len < minProj) minProj = len;
+		}
+		//ensure far > near
+		if (maxProj < 2.f*minProj) maxProj = 2.f*minProj;
+
+	}
+	*fr = maxProj;
+	*nr = minProj;
+}
+
+
 bool ViewpointParams::
 elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, const char ** attrs){
 	//Get the attributes, make the viewpoints parse the children

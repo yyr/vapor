@@ -79,7 +79,7 @@ const string ProbeParams::_probeMaxAttr = "ProbeMax";
 const string ProbeParams::_cursorCoordsAttr = "CursorCoords";
 const string ProbeParams::_phiAttr = "PhiAngle";
 const string ProbeParams::_thetaAttr = "ThetaAngle";
-
+const string ProbeParams::_numTransformsAttr = "NumTransforms";
 
 
 ProbeParams::ProbeParams(int winnum) : Params(winnum){
@@ -175,11 +175,13 @@ void ProbeParams::updateDialog(){
 	
 	QString strn;
 	Session::getInstance()->blockRecording();
+	//Don't respond to textChange that this method generates:
+	guiSetTextChanged(false);
 	myProbeTab->ProbeTFFrame->setEditor(getTFEditor());
 	myProbeTab->probeTextureFrame->setParams(this);
 	myProbeTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
 	
-	myProbeTab->numTransSpin->setMinValue(minNumTrans);
+	myProbeTab->numTransSpin->setMinValue(0);
 	myProbeTab->numTransSpin->setMaxValue(maxNumTrans);
 	myProbeTab->numTransSpin->setValue(numTransforms);
 	
@@ -254,7 +256,7 @@ void ProbeParams::updateDialog(){
 void ProbeParams::
 updatePanelState(){
 	QString strn;
-	enabled = myProbeTab->EnableDisable->currentItem();
+	
 	theta = myProbeTab->thetaEdit->text().toFloat();
 	phi = myProbeTab->phiEdit->text().toFloat();
 	histoStretchFactor = myProbeTab->histoScaleEdit->text().toFloat();
@@ -307,7 +309,7 @@ textToSlider(int coord, float newCenter, float newSize){
 	
 	
 	bool centerChanged = false;
-	float* extents = Session::getInstance()->getExtents();
+	const float* extents = Session::getInstance()->getExtents();
 	float regMin = extents[coord];
 	float regMax = extents[coord+3];
 	if (newCenter < regMin) {
@@ -373,7 +375,7 @@ void ProbeParams::
 sliderToText(int coord, int slideCenter, int slideSize){
 	
 	//force the center to fit in the region.  
-	float* extents = Session::getInstance()->getExtents();
+	const float* extents = Session::getInstance()->getExtents();
 	float regMin = extents[coord];
 	float regMax = extents[coord+3];
 	float newSize = slideSize*(regMax-regMin)/256.f;
@@ -480,7 +482,8 @@ guiSetEnabled(bool value){
 	PanelCommand::captureEnd(cmd, this);
 	//Need to rerender the texture:
 	setProbeDirty(true);
-	//updateRenderer(prevEnabled, local, false); (unnecessary; called by vizwinmgr)
+	//and refresh the gui
+	updateDialog();
 }
 
 
@@ -601,9 +604,11 @@ guiChangeVariables(){
 	//this also sets dirty flag
 	updateMapBounds();
 	//Force a redraw of tfframe 
-	getTFEditor()->setDirty();
-	myProbeTab->ProbeTFFrame->setEditor(getTFEditor());
-	connectMapperFunction(getMapperFunc(),getTFEditor());
+	if (getTFEditor()) {
+		getTFEditor()->setDirty();
+		myProbeTab->ProbeTFFrame->setEditor(getTFEditor());
+		connectMapperFunction(getMapperFunc(),getTFEditor());
+	}
 		
 	
 	PanelCommand::captureEnd(cmd, this);
@@ -669,15 +674,17 @@ guiSetZSize(int sliderval){
 }
 void ProbeParams::
 guiSetNumTrans(int n){
-	if (!Session::getInstance()->getDataStatus()) return;
+	
 	confirmText(false);
-	int maxTrans = Session::getInstance()->getDataStatus()->getNumTransforms();
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set number Refinements for probe");
+	if (Session::getInstance()->getDataStatus()) {
+		int maxTrans = Session::getInstance()->getDataStatus()->getNumTransforms();
 		if (n > maxTrans) {
-		MessageReporter::warningMsg("%s","Invalid number of Transforms for current data");
-		n = maxTrans;
-		myProbeTab->numTransSpin->setValue(n);
-	}
-	PanelCommand* cmd = PanelCommand::captureStart(this, "set number of Transformations used by probe");
+			MessageReporter::warningMsg("%s","Invalid number of Transforms for current data");
+			n = maxTrans;
+			myProbeTab->numTransSpin->setValue(n);
+		}
+	} else if (n > maxNumTrans) maxNumTrans = n;
 	setNumTrans(n);
 	PanelCommand::captureEnd(cmd, this);
 	setProbeDirty();
@@ -816,6 +823,8 @@ reinit(bool doOverride){
 	int i;
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	const float* extents = Session::getInstance()->getExtents();
+	setMaxNumTrans(md->GetNumTransforms());
+	
 	//Either set the probe bounds to a default size in the center of the domain, or 
 	//try to use the previous bounds:
 	if (doOverride){
@@ -1045,8 +1054,8 @@ restart(){
 
 	probeDirty = false;
 	numTransforms = 0;
-	maxNumTrans = 2;
-	minNumTrans = 0;
+	maxNumTrans = 10;
+
 	theta = 0.f;
 	phi = 0.f;
 	for (int i = 0; i<3; i++){
@@ -1236,10 +1245,12 @@ refreshTFFrame(){
 bool ProbeParams::
 elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const char **attrs){
 	static int parsedVarnum;
+	
 	int i;
 	if (StrCmpNoCase(tagString, _probeParamsTag) == 0) {
+		
 		int newNumVariables = 0;
-		//If it's a Probe tag, save 5 attributes (2 are from Params class)
+		//If it's a Probe tag, obtain 6 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
 			string attribName = *attrs;
@@ -1260,6 +1271,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				float histStretch;
 				ist >> histStretch;
 				setHistoStretch(histStretch);
+			}
+			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
+				ist >> numTransforms;
+				if (numTransforms > maxNumTrans) maxNumTrans = numTransforms;
 			}
 			else if (StrCmpNoCase(attribName, _editModeAttr) == 0){
 				if (value == "true") setEditMode(true); 
@@ -1305,6 +1320,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			TFEditor* newTFEditor = new TFEditor(transFunc[j],myProbeTab->ProbeTFFrame);
 			connectMapperFunction(transFunc[j], newTFEditor);
 		}
+		
+		
 		return true;
 	}
 	//Parse a Variable:
@@ -1337,8 +1354,13 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _variableNameAttr) == 0){
 				ist >> varName;
 			}
+			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
+				ist >> numTransforms;
+			}
 			else if (StrCmpNoCase(attribName, _variableSelectedAttr) == 0){
-				if (value == "true") varSelected = true; 
+				if (value == "true") {
+					varSelected = true;
+				}
 			}
 			else if (StrCmpNoCase(attribName, _opacityScaleAttr) == 0){
 				ist >> opacFac;
@@ -1399,11 +1421,36 @@ bool ProbeParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	
 	if (StrCmpNoCase(tag, _probeParamsTag) == 0) {
+		//Determine the first selected variable:
+		firstVarNum = 0;
+		int i;
+		for (i = 0; i<numVariables; i++){
+			if (variableSelected[i]){
+				firstVarNum = i;
+				break;
+			}
+		}
+		if (i == numVariables) variableSelected[0] = true;
+
 		//Align the editor
 		setMinEditBound(getMinColorMapBound());
 		setMaxEditBound(getMaxColorMapBound());
-		//If we are current, update the tab panel
-		if (isCurrent()) updateDialog();
+		//If we are current, update the tab panel after setting up the variable listbox
+		
+		if (isCurrent()) {
+			QListBox* listBox = myProbeTab->variableListBox;
+			listBox->clear();	
+			//Set the names in the variable listbox
+			for (i = 0; i< numVariables; i++){
+				const std::string& s = variableNames.at(i);
+				//Direct conversion of std::string& to QString doesn't seem to work
+				//Maybe std was not enabled when QT was built?
+				const QString& text = QString(s.c_str());
+				listBox->insertItem(text, i);
+				listBox->setSelected(i, variableSelected[i]);
+			}
+			updateDialog();
+		}
 		//If this is a probeparams, need to
 		//pop the parse stack.  The caller will need to save the resulting
 		//transfer function (i.e. this)
@@ -1446,6 +1493,10 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)numVariables;
 	attrs[_numVariablesAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)numTransforms;
+	attrs[_numTransformsAttr] = oss.str();
 
 	oss.str(empty);
 	if (editMode)
@@ -1801,7 +1852,7 @@ void ProbeParams::calcContainingBoxExtentsInCube(float* bigBoxExtents){
 	}
 	//Now convert the min,max back into extents in unit cube:
 	
-	float* fullExtents = Session::getInstance()->getExtents();
+	const float* fullExtents = Session::getInstance()->getExtents();
 	
 	float maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
 	for (crd = 0; crd<3; crd++){
@@ -1899,7 +1950,8 @@ float ProbeParams::
 calcCurrentValue(float point[3]){
 	if (numVariables <= 0) return OUT_OF_BOUNDS;
 	Session* ses = Session::getInstance();
-	if (!ses->getDataMgr()) return 0;
+	if (!ses->getDataMgr()) return 0.f;
+	if (!enabled) return 0.f;
 	int arrayCoord[3];
 	const float* extents = ses->getExtents();
 
@@ -1985,7 +2037,7 @@ refreshHistogram(){
 		histogramList[firstVarNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
 	}
 	Histo* histo = histogramList[firstVarNum];
-	histo->reset(256);
+	histo->reset(256,currentDatarange[0],currentDatarange[1]);
 	//create the smallest containing box
 	size_t blkMin[3],blkMax[3];
 	int boxMin[3],boxMax[3];
@@ -2009,7 +2061,7 @@ refreshHistogram(){
 	int dataSize[3];
 	float gridSpacing[3];
 	const size_t totTransforms = ses->getCurrentMetadata()->GetNumTransforms();
-	float* extents = ses->getExtents();
+	const float* extents = ses->getExtents();
 	for (int i = 0; i< 3; i++){
 		dataSize[i] = (ses->getDataStatus()->getFullDataSize(i))>>(totTransforms - numTransforms);
 		gridSpacing[i] = (extents[i+3]-extents[i])/(float)(dataSize[i]-1);

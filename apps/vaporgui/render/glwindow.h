@@ -29,6 +29,8 @@
 namespace VAPoR {
 
 class VizWin;
+class ViewpointParams;
+class RegionParams;
 
 class GLWindow : public QGLWidget
 {
@@ -45,6 +47,12 @@ public:
 	Trackball* getTBall() {return myTBall;}
 	void setPerspective(bool isPersp) {perspective = isPersp;}
 	bool getPerspective() {return perspective;}
+
+	//Reset the GL perspective, so that the near and far clipping planes are wide enough
+	//to view twice the entire region from the current camera position.  If the camera is
+	//inside the doubled region, region, make the near clipping plane 1% of the region size.
+
+	void resetView(RegionParams* rparams, ViewpointParams* vpParams);
 	void setMaxSize(float wsize) {maxDim = wsize;}
 	void setCenter(float cntr[3]) { wCenter[0] = cntr[0]; wCenter[1] = cntr[1]; wCenter[2] = cntr[2];}
 	//Test if the screen projection of a 3D quad encloses a point on the screen.
@@ -123,7 +131,12 @@ protected:
 	bool oldPerspective;
 	//Indicate if the current render is different from previous,
 	//Used for frame capture:
-	bool renderNew;  
+	bool renderNew; 
+
+	//Set the following to force a call to resizeGL at the next call to
+	//updateGL.
+	bool needsResize;
+	float farDist, nearDist;
 
 	GLint viewport[4];
 	GLdouble projectionMatrix[16];

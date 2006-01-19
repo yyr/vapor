@@ -530,14 +530,14 @@ restart(){
 	numTrans = 0;
 	maxNumTrans = 9;
 	minNumTrans = 0;
-	maxSize = 256;
+	maxSize = 1024;
 	
 	
 	savedCommand = 0;
 	for (int i = 0; i< 3; i++){
-		centerPosition[i] = 128;
-		regionSize[i] = 256;
-		fullSize[i] = 256;
+		centerPosition[i] = 512;
+		regionSize[i] = 1024;
+		fullSize[i] = 1024;
 		fullDataExtents[i] = Session::getInstance()->getExtents(i);
 		fullDataExtents[i+3] = Session::getInstance()->getExtents(i+3);
 	}

@@ -146,7 +146,7 @@ bool Params::isCurrent() {
 }
 //For params subclasses that have a box:
 void Params::calcBoxExtentsInCube(float* extents){
-	float* fullExtents = Session::getInstance()->getExtents();
+	const float* fullExtents = Session::getInstance()->getExtents();
 	float boxMin[3], boxMax[3];
 	getBox(boxMin, boxMax);
 	float maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);

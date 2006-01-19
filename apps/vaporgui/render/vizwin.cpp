@@ -460,7 +460,11 @@ mouseReleaseEvent(QMouseEvent*e){
 		myWinMgr->getViewpointParams(myWindowNum)->captureMouseUp();
 		myTrackball->MouseOnTrackball(2, e->button(), e->x(), e->y(), width(), height());
 		mouseDownHere = false;
-		
+		//If it's a right mouse being released, must update near/far distances:
+		if (e->button() == Qt::RightButton){
+			myGLWindow->resetView(myWinMgr->getRegionParams(myWindowNum),
+				myWinMgr->getViewpointParams(myWindowNum));
+		}
 		//Force an update of region params, so low res is shown
 		setRegionDirty(true);
 		myGLWindow->updateGL();

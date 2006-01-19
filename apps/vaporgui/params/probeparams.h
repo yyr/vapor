@@ -146,6 +146,7 @@ public:
 	void setProbeDirty(bool dirty = true);
 	//get/set methods
 	void setNumTrans(int numtrans){numTransforms = numtrans; setProbeDirty(true);}
+	void setMaxNumTrans(int numtrans) {maxNumTrans = numtrans;}
 	void setXCenter(int sliderval);
 	void setYCenter(int sliderval);
 	void setZCenter(int sliderval);
@@ -234,6 +235,7 @@ protected:
 	static const string _cursorCoordsAttr;
 	static const string _phiAttr;
 	static const string _thetaAttr;
+	static const string _numTransformsAttr;
 	
 	//Determine the value of the variable(s) at specified point.
 	//Return OUT_OF_BOUNDS if not in probe and in full domain
@@ -284,7 +286,7 @@ protected:
 	
 	//State variables controlled by GUI:
 	float probeMin[3], probeMax[3];
-	int numTransforms, maxNumTrans, minNumTrans;
+	int numTransforms, maxNumTrans;
 	float theta, phi;
 	float selectPoint[3];
 	float cursorCoords[2];

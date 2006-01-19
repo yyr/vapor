@@ -328,7 +328,7 @@ public:
 	string& getExportFile() {return currentExportFile;}
 	string& getLogfileName() {return currentLogfileName;}
 	void setLogfileName(const char* newname){currentLogfileName = newname;}
-	float* getExtents() {return extents;}
+	const float* getExtents() {return extents;}
 	float getExtents(int i) {return extents[i];}
 
 	double getDefaultDataMax(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMax(varnum) : 1.0);}

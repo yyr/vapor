@@ -94,7 +94,7 @@ public:
 	int getMinNumTrans() {return minNumTrans;}
 	//void setCurrentTimestep(int val) {currentTimestep = val; setDirty();}
 	//int getCurrentTimestep() {return currentTimestep;}
-	void setDataExtents(float* ext){
+	void setDataExtents(const float* ext){
 		for (int i = 0; i< 6; i++) fullDataExtents[i] = ext[i];
 	}
 	float getFullDataExtent(int i) { return fullDataExtents[i];}

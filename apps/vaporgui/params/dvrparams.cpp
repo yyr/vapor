@@ -232,7 +232,6 @@ void DvrParams::updateDialog(){
 void DvrParams::
 updatePanelState(){
 	QString strn;
-	enabled = myDvrTab->EnableDisable->currentItem();
 	diffuseCoeff = myDvrTab-> diffuseShading->text().toFloat();
 	ambientCoeff = myDvrTab->ambientShading->text().toFloat();
 	specularCoeff = myDvrTab->specularShading->text().toFloat();
@@ -1019,7 +1018,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	}
 	else return false;
 }
-//The end handler needs to pop the parse stack, nothing else
+//The end handler needs to pop the parse stack, not much else
 bool DvrParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	

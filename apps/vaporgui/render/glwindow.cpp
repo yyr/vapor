@@ -15,7 +15,7 @@
 //	Date:		July 2004
 //
 //	Description:  Implementation of GLWindow class: 
-//		it's a pure abstract class for doing openGL in VAPoR
+//		It performs the opengl rendering for visualizers
 //
 
 #include "glwindow.h"
@@ -49,6 +49,9 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, Viz
 	oldPerspective = false;
 	renderNew = false;
 	nowPainting = false;
+	needsResize = true;
+	farDist = 100.f;
+	nearDist = 0.1f;
 }
 
 
@@ -74,17 +77,7 @@ void GLWindow::resizeGL( int width, int height )
 {
 	//int winViewport[4];
 	//double projMtx[16];
-	/*
-    glViewport( 0, 0, (GLint)width, (GLint)height );
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-	GLfloat w = (float) width / (float) height;
-    GLfloat h = 1.0;
-	//Set for orthogonal view:
-    glOrtho(-2*w, 2*w, -2*h, 2*h, 5.0, 15.0);
-	//glFrustum( -w, w, -h, h, 5.0, 15.0 );
-    glMatrixMode( GL_MODELVIEW );
-	*/
+	
 
 	glViewport( 0, 0, (GLint)width, (GLint)height );
 	//Save the current value...
@@ -95,9 +88,10 @@ void GLWindow::resizeGL( int width, int height )
 	if (perspective) {
 		GLfloat w = (float) width / (float) height;
 		
-		float mindist = Max(0.2f, wCenter[2]-maxDim-1.0f);
+		//float mindist = Max(0.2f, wCenter[2]-maxDim-1.0f);
 		//glFrustum( -w, w, -h, h, mindist,(wCenter[2]+ maxDim + 1.0) );
-		gluPerspective(45., w, mindist, (wCenter[2]+ maxDim + 10.0) );
+		//gluPerspective(45., w, mindist, (wCenter[2]+ maxDim + 10.0) );
+		gluPerspective(45., w, nearDist, farDist );
 		//save the current value...
 		glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
 		
@@ -124,9 +118,24 @@ void GLWindow::resizeGL( int width, int height )
 		}
 	}
 	glMatrixMode(GL_MODELVIEW);
+	needsResize = false;
 
 }
 	
+void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
+	//Get the nearest and furthest distance to region from current viewpoint
+	float fr, nr;
+	vParams->getFarNearDist(rParams, &fr, &nr);
+	if (fr <= 0.f) { //region is behind camera
+		fr = Max(1.f,-fr);
+	}
+	if (nr <= 0.f){ //camera is inside region
+		nr = 0.01f*fr;
+	}
+	farDist = fr*4.f;  
+	nearDist = nr*0.25f;
+	needsResize = true;
+}
 
 /*
  * Obtain current view frame from gl model matrix
@@ -175,11 +184,12 @@ void GLWindow::paintGL()
 	nowPainting = true;
 	int winNum = myVizWin->getWindowNum();
 	//Force a resize if perspective has changed:
-	if (perspective != oldPerspective){
+	if (perspective != oldPerspective || needsResize){
 		resizeGL(width(), height());
 		oldPerspective = perspective;
 	}
-	makeCurrent();
+	
+	
 	qglClearColor(myVizWin->getBackgroundColor()); 
 	
 	glGetIntegerv(GL_DRAW_BUFFER, (GLint *) &buffer);

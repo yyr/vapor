@@ -37,6 +37,9 @@ public:
 			 size_t min_bdim[3],size_t max_bdim[3], float mnData, float mxData);
 	~Histo();
 	void reset(int newNumBins = -1);
+	void reset(int newNumBins, float mnData, float mxData){
+		reset(newNumBins); minData = mnData; maxData = mxData;
+	}
 	void addToBin(float val);	
 	int getBinSize(int posn) {return binArray[posn];}
 	int getMaxBinSize() {return maxBinSize;}

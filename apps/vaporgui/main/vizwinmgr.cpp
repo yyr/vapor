@@ -2461,6 +2461,8 @@ reinitializeParams(bool doOverride){
 		if(flowParams[i]) flowParams[i]->reinit(doOverride);
 		if(contourParams[i]) contourParams[i]->reinit(doOverride);
 		if(animationParams[i]) animationParams[i]->reinit(doOverride);
+		//setup near/far
+		if (vpParams[i] && rgParams[i]) vizWin[i]->getGLWindow()->resetView(getRegionParams(i), getViewpointParams(i));
 	}
 }
 void VizWinMgr::

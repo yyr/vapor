@@ -99,6 +99,9 @@ public:
 	//Methods to handle home viewpoint
 	void setHomeViewpoint();
 	void useHomeViewpoint();
+
+	//determine far and near distance to region based on current viewpoint
+	void getFarNearDist(RegionParams* rParams, float* far, float* near);
 	
 	//Reset viewpoint when new session is started:
 	virtual void reinit(bool doOverride);
