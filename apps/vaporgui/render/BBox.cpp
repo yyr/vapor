@@ -36,19 +36,10 @@ BBox::BBox() :
 //----------------------------------------------------------------------------
 BBox::BBox(RegionParams &regionParams) 
 {
-  int numxforms;
-  float extents[6];
-  float minFull[3];
-  float maxFull[3];
-  int maxDim[3];
-  int minDim[3];
-  size_t max_bdim[3];
-  size_t min_bdim[3];
-
-  numxforms = regionParams.getNumTrans();
   
-  regionParams.calcRegionExtents(minDim, maxDim, min_bdim, max_bdim, 
-                                 numxforms, minFull, maxFull, extents);
+  float extents[6];
+  
+  regionParams.calcBoxExtentsInCube(extents);
   
   _minIndex = 0;
   _maxIndex = 7;

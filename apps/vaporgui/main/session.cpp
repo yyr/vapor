@@ -475,19 +475,21 @@ exportData(){
 	AnimationParams*  p = winMgr->getAnimationParams(winNum);
 	RegionParams* r = winMgr->getRegionParams(winNum);
 	DvrParams* d = winMgr->getDvrParams(winNum);
+	int numxforms = Session::getInstance()->getDataStatus()->getNumTransforms()- 
+		d->getNumRefinements();
 	size_t currentFrame = (size_t)p->getCurrentFrameNumber();
 	size_t frameInterval[2];
-	size_t minCoords[3];
-	size_t maxCoords[3];
+	size_t minCoords[3],maxCoords[3];
+	int mncrds[3],mxcrds[3];
+	size_t minbdim[3],maxbdim[3];
 	frameInterval[0] = (size_t)p->getStartFrameNumber();
 	frameInterval[1] = (size_t)p->getEndFrameNumber();
-	for (int i = 0; i<3; i++){
-		int halfsize = r->getRegionSize(i)/2;
-		minCoords[i] = (size_t)(r->getCenterPosition(i) - halfsize); 
-		maxCoords[i] = (size_t)(r->getCenterPosition(i) + halfsize - 1);
-		assert(minCoords[i] < 100000000);
-		assert(maxCoords[i] <= (size_t)(r->getFullSize(i) -1));
+	r->getRegionVoxelCoords(numxforms, mncrds, mxcrds, minbdim, maxbdim);
+	for (int i = 0; i< 3; i++) {
+		minCoords[i] = mncrds[i];
+		maxCoords[i] = mxcrds[i];
 	}
+
 	
 	int rc = exporter.Export(currentMetadataFile,
 		currentFrame,
@@ -953,7 +955,13 @@ void Session::
 infoCallbackFcn(const char* msg){
 	MessageReporter::infoMsg("%s",msg);
 }
-
+//Convert the max extents into cube coords
+void Session::getMaxExtentsInCube(float maxExtents[3]){
+	float maxSize = Max(extents[3]-extents[0],Max(extents[4]-extents[1],extents[5]-extents[2]));
+	maxExtents[0] = (extents[3]-extents[0])/maxSize;
+	maxExtents[1] = (extents[4]-extents[1])/maxSize;
+	maxExtents[2] = (extents[5]-extents[2])/maxSize;
+}
 
 //Here is the implementation of the DataStatus.
 //This class is a repository for information about the current data...

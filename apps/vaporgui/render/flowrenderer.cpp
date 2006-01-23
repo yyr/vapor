@@ -219,12 +219,11 @@ renderFlowData(bool constColors, int currentFrameNum){
 
 	//Set up size constants:
 	//voxelSize is actually the max of the sides of the voxel in user coords
-	voxelSize = Max((myRegionParams->getFullDataExtent(3)- myRegionParams->getFullDataExtent(0))/
-					myRegionParams->getFullSize()[0],
-			Max((myRegionParams->getFullDataExtent(4)- myRegionParams->getFullDataExtent(1))/
-						myRegionParams->getFullSize()[1],
-				(myRegionParams->getFullDataExtent(5)- myRegionParams->getFullDataExtent(2))/
-					myRegionParams->getFullSize()[2]));
+	const float* fullExtent = Session::getInstance()->getExtents();
+	const size_t* fullDims = Session::getInstance()->getFullDataDimensions();
+	voxelSize = Max((fullExtent[5]-fullExtent[2])/fullDims[0],
+		Max((fullExtent[4]-fullExtent[1])/fullDims[1], (fullExtent[3]-fullExtent[0])/fullDims[2]));
+		
 	//stationary radius is radius of stationary point symbol in user coords
 	if (diam > 2*MIN_STATIONARY_RADIUS)
 		stationaryRadius = voxelSize*0.5*diam;
@@ -280,7 +279,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 	if (steadyFlow){
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
-			if (diam < 0.5f){//Render as lines, not cylinders
+			if (diam < 0.01f){//Render as lines, not cylinders
 				renderCurves(diam, (nLights>0), 0, maxPoints-1, 0, constColors);
 			
 			} else { //render as cylinders
@@ -346,7 +345,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 			//Now do the rendering of this interval:
 			if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 					
-				if (diam < 0.5f){//Render as lines, not cylinders
+				if (diam < 0.01f){//Render as lines, not cylinders
 					renderCurves(diam, (nLights>0), firstGeom, lastGeom,
 						maxPoints*numSeedPoints*injectionNum,constColors);
 				

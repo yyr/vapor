@@ -194,8 +194,8 @@ int DVRVolumizer::SetRegion(
 		}
 		geom_roi_c[i] = extents[i];
 		if (i >2){
-			assert(data_roi_c[i] > data_roi_c[i-3]);
-			assert(extents[i] > extents[i-3]);
+			assert(data_roi_c[i] >= data_roi_c[i-3]);
+			assert(extents[i] >= extents[i-3]);
 		}
 	}
 

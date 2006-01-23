@@ -175,11 +175,9 @@ void GLWindow::paintGL()
 	
 	GLenum	buffer;
 	float extents[6];
-	float minFull[3], maxFull[3];
-	int max_dim[3];
-	int min_dim[3];
-	size_t max_bdim[3];
-	size_t min_bdim[3];
+	float minFull[3] = {0.f,0.f,0.f};
+	float maxFull[3];
+	
 	if (nowPainting) return;
 	nowPainting = true;
 	int winNum = myVizWin->getWindowNum();
@@ -237,10 +235,9 @@ void GLWindow::paintGL()
 	}
 	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
 	
-	//Note:  We are redundantly calling calcRegionExtents in both the dvr renderer
-	//and here.  It also is unnecessarily called every rendering.
-	int numxforms = myRegionParams->getNumTrans();
-	myRegionParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numxforms, minFull, maxFull, extents);
+	myRegionParams->calcBoxExtentsInCube(extents);
+	Session::getInstance()->getMaxExtentsInCube(maxFull);
+
 	
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);

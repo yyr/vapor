@@ -44,71 +44,17 @@ public:
 	~RegionParams();
 	virtual Params* deepCopy();
 	virtual void makeCurrent(Params* p, bool newWin);
-	void calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max_bdim[3], 
-				  int numxforms, float minFull[3], float maxFull[3], float extents[6]);
-		
-	void setNumTrans(int n) {
-		numTrans = Min(n, maxNumTrans); 
-		numTrans = Max(numTrans, minNumTrans);
-		setDirty();}
-	int getNumTrans() {return numTrans;}
-	int getMaxSize() {return maxSize;}
-	//Note: setMaxSize is a hack to make it easy for user to
-	//Manipulate all 3 sizes
-	//
-	void setMaxSize(int newMax) {
-		maxSize = newMax;
-		for (int i = 0; i<3; i++){
-			if (regionSize[i]> maxSize)setRegionSize(i,maxSize);
-			if (regionSize[i]< maxSize)
-				setRegionSize(i, Min(maxSize, fullSize[i]));
-		}
-	}
-	//Note:  Fullsize is not modified in the UI, it comes from data
-	//
-	int* getFullSize() {return fullSize;}
-	void setFullSize(int i, int val){fullSize[i] = val; setDirty();}
-	int getFullSize(int indx) {return fullSize[indx];}
-	int* getCenterPos() {return centerPosition;}
-	int getCenterPosition(int indx) {return centerPosition[indx];}
-	
-	int setCenterPosition(int i, int val) { 
-		val = Min(val, fullSize[i]-regionSize[i]/2);
-		centerPosition[i] = Max(val, regionSize[i]/2);
-		enforceConsistency(i);
-		setDirty();
-		return centerPosition[i];
-	}
-	int* getRegionSize() {return regionSize;}
-	int getRegionSize(int indx) {return regionSize[indx];}
-	int setRegionSize(int i, int val) { 
-		regionSize[i] = Min(val, fullSize[i]);
-		enforceConsistency(i);
-		setDirty();
-		return regionSize[i];
-	}
+	//Method to calculate the read-only region info that is displayed in the regionTab
+	void refreshRegionInfo();	
+	//Just get the values needed for a call to DataMgr::getRegion:
+	void getRegionVoxelCoords(int numxforms, int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max_bdim[3]);
+
 	void setTab(RegionTab* tab) {myRegionTab = tab;}
-	void setMaxNumTrans(int maxNT) {maxNumTrans = maxNT;}
-	void setMinNumTrans(int minNT) {minNumTrans = minNT;}
-	int getMaxNumTrans() {return maxNumTrans;}
-	int getMinNumTrans() {return minNumTrans;}
-	//void setCurrentTimestep(int val) {currentTimestep = val; setDirty();}
-	//int getCurrentTimestep() {return currentTimestep;}
-	void setDataExtents(const float* ext){
-		for (int i = 0; i< 6; i++) fullDataExtents[i] = ext[i];
-	}
-	float getFullDataExtent(int i) { return fullDataExtents[i];}
-	float getRegionMin(int coord){ return (float)(fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
-		(centerPosition[coord] - regionSize[coord]*.5)/(double)(fullSize[coord]));
-	}
-	float getRegionMax(int coord){ return (float)(fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
-		(centerPosition[coord] + regionSize[coord]*.5)/(double)(fullSize[coord]));
-	}
+	
+	float getRegionMin(int coord){ return regionMin[coord];}
+	float getRegionMax(int coord){ return regionMax[coord];}
 	float getRegionCenter(int indx) {
-		return (0.5f*(getRegionMin(indx)+getRegionMax(indx)));
-	}
-	float getFullCenter(int indx) {
-		return ((float)(0.5*(fullDataExtents[indx]+fullDataExtents[indx+3])));
+		return (0.5f*(regionMin[indx]+regionMax[indx]));
 	}
 	
 	//Update the dialog with values from this:
@@ -120,15 +66,20 @@ public:
 
 	//Following methods are set from gui, have undo/redo support:
 	//
-	void guiSetMaxSize(int newMax);
-	void guiSetNumTrans(int n);
+	void guiSetCenter(float * coords);
+	void guiSetMaxSize();
+	void guiSetNumRefinements(int n);
+	void guiSetVarNum(int n);
+	void guiSetTimeStep(int n);
 	void guiSetXCenter(int n);
 	void guiSetXSize(int n);
 	void guiSetYCenter(int n);
 	void guiSetYSize(int n);
 	void guiSetZCenter(int n);
 	void guiSetZSize(int n);
-	void guiSetCenter(float* xyz);
+	void guiCopyRakeToRegion();
+	void guiCopyProbeToRegion();
+	
 
 	
 	//
@@ -162,6 +113,8 @@ public:
 	}
 
 protected:
+	static const string _regionMinTag;
+	static const string _regionMaxTag;
 	static const string _regionCenterTag;
 	static const string _regionSizeTag;
 	static const string _maxSizeAttr;
@@ -170,13 +123,18 @@ protected:
 	//Holder for saving state during mouse move:
 	//
 	PanelCommand* savedCommand;
-	//Method to force center, size, maxsize to be valid
-	//Return true if anything changed.
-	//
-	bool enforceConsistency(int i);
 	
-	//Recalc extents:
-	void setCurrentExtents(int coord);
+	//Methods to make sliders and text valid and consistent for region:
+	void textToSlider(int coord, float center, float size);
+	void sliderToText(int coord, int center, int size);
+	
+	
+	void setXCenter(int sliderVal);
+	void setXSize(int sliderVal);
+	void setYCenter(int sliderVal);
+	void setYSize(int sliderVal);
+	void setZCenter(int sliderVal);
+	void setZSize(int sliderVal);
 	//Methods to set the region max and min from a float value.
 	//Called at end of region bounds drag
 	//
@@ -185,13 +143,14 @@ protected:
 	//Region dirty bit is kept in vizWin
 	//
 	void setDirty();  
-	int centerPosition[3];
-	int regionSize[3];
-	int fullSize[3];
-	int maxSize, numTrans, maxNumTrans, minNumTrans;
+	
+	
+	int infoNumRefinements, infoVarNum, infoTimeStep;
+
+	//New values (analog)
+	float regionMax[3],regionMin[3];
 	
 	RegionTab* myRegionTab;
-	float fullDataExtents[6];
 	
 };
 

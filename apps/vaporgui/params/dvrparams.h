@@ -112,6 +112,7 @@ public:
 	float getMaxMapBound(){return getMaxColorMapBound();} 
 	float getOpacityScale(); 
 	void setOpacityScale(float val); 
+	virtual int getNumRefinements() {return numRefinements;}
 
 	//Virtual methods to set map bounds.  Get() is in parent class
 	//this causes it to be set in the mapperfunction (transfer function)
@@ -168,12 +169,19 @@ public:
 	void guiSetOpacityScale(int val);
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	void guiSetAligned();
+	void guiSetNumRefinements(int num);
+
 	//respond to changes in TF (for undo/redo):
 	//
 	virtual void guiStartChangeMapFcn(char* s);
 	virtual void guiEndChangeMapFcn();
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();
+	//Verify that this numRefinements is valid
+	//with the current applicable region and animation steps:
+	//Return the largest valid number <= num
+	//
+	int checkNumRefinements(int num) {return num;}
 	//Implement virtual function to deal with new session:
 	void reinit(bool doOverride);
 	void restart();
@@ -203,6 +211,7 @@ protected:
 	float diffuseCoeff, ambientCoeff, specularCoeff;
 	float diffuseAtten, ambientAtten, specularAtten;
 	int specularExponent;
+	int numRefinements;
 	
 	bool editMode;
 	//Transfer fcn LUT: (R,G,B,A)

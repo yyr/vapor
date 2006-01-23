@@ -150,7 +150,7 @@ DrawVoxelScene(unsigned /*fast*/)
 	float matrix[16];
     
 	static float extents[6];
-	static float minFull[3], maxFull[3];
+	
 	int max_dim[3];
 	int min_dim[3];
 	size_t max_bdim[3];
@@ -177,9 +177,9 @@ DrawVoxelScene(unsigned /*fast*/)
 	//of the full mapped data.
 	int numxforms;
 	if (myVizWin->mouseIsDown()) {
-		numxforms = myRegionParams->getMinNumTrans();
+		numxforms = 0;
 	}
-	else numxforms = myRegionParams->getNumTrans();
+	else numxforms = myDVRParams->getNumRefinements();
 	//Whenever numxforms changes, we need to dirty the clut, since
 	//that affects the opacity correction.
 	if (numxforms != savedNumXForms){
@@ -191,8 +191,9 @@ DrawVoxelScene(unsigned /*fast*/)
 	const size_t *bs = myMetadata->GetBlockSize();
 		
 	//Note that this function will be called again by the renderer
-	myRegionParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numxforms, minFull, maxFull, extents);
-	
+	//myRegionParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numxforms, minFull, maxFull, extents);
+	myRegionParams->getRegionVoxelCoords(numxforms, min_dim, max_dim, min_bdim, max_bdim);
+	myRegionParams->calcBoxExtentsInCube(extents);
 
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
@@ -287,7 +288,7 @@ DrawVoxelScene(unsigned /*fast*/)
 		//
 		driver->SetCLUT(myDVRParams->getClut());
 		driver->SetOLUT(myDVRParams->getClut(), 
-			myRegionParams->getMaxNumTrans()-numxforms);
+			Session::getInstance()->getCurrentMetadata()->GetNumTransforms() - numxforms);
 		
 	}
 	/* Attenuation is not supported yet...

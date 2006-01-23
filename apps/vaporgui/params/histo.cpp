@@ -144,7 +144,7 @@ getHistogram(int varNum, int vizNum, bool mustGet, Params* renderParams){
 void Histo::
 refreshHistogram(int vizNum, Params* dParams)
 {
-	float extents[6], minFull[3], maxFull[3];
+	
 	int min_dim[3],max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
 	assert (vizNum >= 0);
@@ -162,12 +162,12 @@ refreshHistogram(int vizNum, Params* dParams)
 		histoArray[varNum*MAXVIZWINS + vizNum] = 0;
 	}
 	RegionParams* rParams = vizWinMgr->getRegionParams(vizNum);
-	int numTrans = rParams->getNumTrans();
+	int numTrans = dParams->getNumRefinements();
 	int timeStep = vizWinMgr->getAnimationParams(vizNum)->getCurrentFrameNumber();
 	float dataMin = dParams->getMinOpacMapBound();
 	float dataMax = dParams->getMaxOpacMapBound();
 	
-	rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numTrans, minFull, maxFull, extents);
+	rParams->getRegionVoxelCoords(numTrans, min_dim, max_dim, min_bdim,max_bdim);
 	DataMgr* dataMgr = Session::getInstance()->getDataMgr();
 	assert (dataMgr);
 	const Metadata* metaData = Session::getInstance()->getCurrentMetadata();

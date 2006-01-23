@@ -359,19 +359,20 @@ guiSetCenter(float* coords){
 void ViewpointParams::
 centerFullRegion(RegionParams* rParams){
 	//Find the largest of the dimensions of the current region:
-	float maxSide = Max(rParams->getFullDataExtent(5)-rParams->getFullDataExtent(2), 
-		Max(rParams->getFullDataExtent(3)-rParams->getFullDataExtent(0),
-		rParams->getFullDataExtent(4)-rParams->getFullDataExtent(1)));
+	const float * fullExtent = Session::getInstance()->getExtents();
+	float maxSide = Max(fullExtent[5]-fullExtent[2], 
+		Max(fullExtent[4]-fullExtent[1],
+		fullExtent[3]-fullExtent[0]));
 	//calculate the camera position: center - 2.5*viewDir*maxSide;
 	//Position the camera 2.5*maxSide units away from the center, aimed
 	//at the center
 	//Make sure the viewDir is normalized:
 	vnormal(currentViewpoint->getViewDir());
 	for (int i = 0; i<3; i++){
-		float dataCenter = 0.5f*(rParams->getFullDataExtent(i+3)+rParams->getFullDataExtent(i));
+		float dataCenter = 0.5f*(fullExtent[i+3]+fullExtent[i]);
 		float camPosCrd = dataCenter -2.5*maxSide*currentViewpoint->getViewDir(i);
 		currentViewpoint->setCameraPos(i, camPosCrd);
-		setRotationCenter(i,rParams->getFullCenter(i));
+		setRotationCenter(i,dataCenter);
 	}
 }
 void ViewpointParams::

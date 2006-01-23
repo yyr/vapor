@@ -197,7 +197,7 @@ public:
 	virtual MapperFunction* getMapperFunc() {return mapperFunction;}
 	//Methods called from vizwinmgr due to settings in gui:
 	void guiSetFlowType(int typenum);
-	void guiSetNumTrans(int numtrans);
+	void guiSetNumRefinements(int numtrans);
 	void guiSetXVarNum(int varnum);
 	void guiSetYVarNum(int varnum);
 	void guiSetZVarNum(int varnum);
@@ -247,13 +247,14 @@ public:
 	float getListSeedPoint(int i, int coord){
 		return seedPointList[i].getVal(coord);
 	}
+	virtual int getNumRefinements() {return numRefinements;}
 protected:
 	//Tags for attributes in session save
 	//Top level labels
 	static const string _mappedVariablesAttr;
 	static const string _steadyFlowAttr;
 	static const string _instanceAttr;
-	static const string _numTransformsAttr;
+	
 	static const string _integrationAccuracyAttr;
 	static const string _velocityScaleAttr;
 	static const string _timeSamplingAttr;
@@ -293,9 +294,9 @@ protected:
 	static const string _rightOpacityBoundAttr;
 	
 	void setFlowType(int typenum){flowType = typenum; setFlowDataDirty();}
-	void setNumTrans(int numtrans){numTransforms = numtrans; setFlowDataDirty();}
-	void setMaxNumTrans(int maxNT) {maxNumTrans = maxNT;}
-	void setMinNumTrans(int minNT) {minNumTrans = minNT;}
+	void setNumRefinements(int numtrans){numRefinements = numtrans; setFlowDataDirty();}
+	void setMaxNumTrans(int maxNT) {maxNumRefinements = maxNT;}
+	
 	void setXVarNum(int varnum){varNum[0] = varnum; setFlowDataDirty();}
 	void setYVarNum(int varnum){varNum[1] = varnum; setFlowDataDirty();}
 	void setZVarNum(int varnum){varNum[2] = varnum; setFlowDataDirty();}
@@ -354,8 +355,8 @@ protected:
 
 	FlowTab* myFlowTab;
 	int flowType; //steady = 0, unsteady = 1;
-	int instance;
-	int numTransforms, maxNumTrans, minNumTrans;
+	
+	int numRefinements, maxNumRefinements;
 	int numVariables;
 	std::vector<std::string> variableNames;
 	int varNum[3]; //field variable num's in x, y, and z.

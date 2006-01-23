@@ -41,6 +41,7 @@ const string Params::_flowParamsTag = "FlowPanelParameters";
 const string Params::_localAttr = "Local";
 const string Params::_vizNumAttr = "VisualizerNum";
 const string Params::_numVariablesAttr = "NumVariables";
+const string Params::_numTransformsAttr = "NumTransforms";
 const string Params::_variableTag = "Variable";
 const string Params::_leftEditBoundAttr = "LeftEditBound";
 const string Params::_rightEditBoundAttr = "RightEditBound";

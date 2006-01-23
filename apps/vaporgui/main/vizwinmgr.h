@@ -206,7 +206,9 @@ public:
 	//Set the dirty bits in all the visualizers that use a
 	//region parameter setting
 	//
+	
 	void setRegionDirty(RegionParams*);
+	
 	//Force all the renderers that share these DvrParams
 	//to set their regions dirty
 	//
@@ -400,7 +402,7 @@ protected slots:
 
 
 	//Then the regionTab slots:
-	void setRegionNumTrans(int);
+	
 	void setRegionMaxSize();
 	//Sliders set these:
 	void setRegionXCenter();
@@ -409,8 +411,17 @@ protected slots:
 	void setRegionXSize();
 	void setRegionYSize();
 	void setRegionZSize();
+	void setRegionRefinement(int);
+	void setRegionVarNum(int);
+	void setRegionTimestep(int);
+	void copyRegionToRake();
+	void copyRakeToRegion();
+	void copyRegionToProbe();
+	void copyProbeToRegion();
+
 
 	//Slots for dvr panel:
+	void setDvrNumRefinements(int num);
 	void setDvrEnabled(int on);
 	void setDvrVariableNum(int);
 	void setDvrLighting(bool);
@@ -455,10 +466,10 @@ protected slots:
 	//slots for flow tab:
 	void rebuildFlow();
 	void setFlowEnabled(int);
-	void setFlowInstance(int);
+	
 	void setRakeOnRegion();
 	void setFlowType(int);
-	void setFlowNumTrans(int);
+	void setFlowNumRefinements(int);
 	void setFlowXVar(int);
 	void setFlowYVar(int);
 	void setFlowZVar(int);
@@ -494,7 +505,7 @@ protected slots:
 	void probeCenterProbe();
 	void probeAddSeed();
 	void probeAttachSeed(bool attach);
-	void setProbeNumTrans(int numtrans);
+	void setProbeNumRefinements(int numtrans);
 	void probeSelectionChanged();
 	void setProbeXCenter();
 	void setProbeYCenter();

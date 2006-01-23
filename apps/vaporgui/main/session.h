@@ -193,6 +193,7 @@ public:
 	//Find the first timestep that has any data
 	int getFirstTimestep(int varnum);
 	size_t getFullDataSize(int dim){return fullDataSize[dim];}
+	const size_t* getFullDataSize() {return fullDataSize;}
 	
 	
 	
@@ -330,6 +331,9 @@ public:
 	void setLogfileName(const char* newname){currentLogfileName = newname;}
 	const float* getExtents() {return extents;}
 	float getExtents(int i) {return extents[i];}
+	const size_t* getFullDataDimensions() {return (currentDataStatus ? currentDataStatus->getFullDataSize() : 0);}
+	//Get full data extents in cube coords
+	void getMaxExtentsInCube(float maxExtents[3]);
 
 	double getDefaultDataMax(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMax(varnum) : 1.0);}
 	double getDefaultDataMin(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMin(varnum) : 0.0);}

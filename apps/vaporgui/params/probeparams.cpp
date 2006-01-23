@@ -181,9 +181,9 @@ void ProbeParams::updateDialog(){
 	myProbeTab->probeTextureFrame->setParams(this);
 	myProbeTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
 	
-	myProbeTab->numTransSpin->setMinValue(0);
-	myProbeTab->numTransSpin->setMaxValue(maxNumTrans);
-	myProbeTab->numTransSpin->setValue(numTransforms);
+	
+	myProbeTab->refinementCombo->setMaxCount(maxNumRefinements+1);
+	myProbeTab->refinementCombo->setCurrentItem(numRefinements);
 	
 
 	//Set the selection in the variable listbox
@@ -447,6 +447,22 @@ setClut(const float newTable[256][4]){
 	}
 	setClutDirty();
 }
+//Make probe match region.  Responds to button in region panel
+void ProbeParams::
+guiCopyRegionToProbe(){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "copy region to probe");
+	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	for (int i = 0; i< 3; i++){
+		probeMin[i] = rParams->getRegionMin(i);
+		probeMax[i] = rParams->getRegionMax(i);
+	}
+	
+	setProbeDirty();
+	PanelCommand::captureEnd(cmd,this);
+	VizWinMgr::getInstance()->refreshProbe(this);
+	
+}
 //Change mouse mode to specified value
 //0,1,2 correspond to edit, zoom, pan
 void ProbeParams::
@@ -485,8 +501,6 @@ guiSetEnabled(bool value){
 	//and refresh the gui
 	updateDialog();
 }
-
-
 
 
 //Respond to a change in opacity scale factor
@@ -673,19 +687,19 @@ guiSetZSize(int sliderval){
 
 }
 void ProbeParams::
-guiSetNumTrans(int n){
+guiSetNumRefinements(int n){
 	
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "set number Refinements for probe");
 	if (Session::getInstance()->getDataStatus()) {
-		int maxTrans = Session::getInstance()->getDataStatus()->getNumTransforms();
-		if (n > maxTrans) {
-			MessageReporter::warningMsg("%s","Invalid number of Transforms for current data");
-			n = maxTrans;
-			myProbeTab->numTransSpin->setValue(n);
+		maxNumRefinements = Session::getInstance()->getDataStatus()->getNumTransforms();
+		if (n > maxNumRefinements) {
+			MessageReporter::warningMsg("%s","Invalid number of Refinements for current data");
+			n = maxNumRefinements;
+			myProbeTab->refinementCombo->setCurrentItem(n);
 		}
-	} else if (n > maxNumTrans) maxNumTrans = n;
-	setNumTrans(n);
+	} else if (n > maxNumRefinements) maxNumRefinements = n;
+	setNumRefinements(n);
 	PanelCommand::captureEnd(cmd, this);
 	setProbeDirty();
 }
@@ -823,7 +837,14 @@ reinit(bool doOverride){
 	int i;
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
 	const float* extents = Session::getInstance()->getExtents();
-	setMaxNumTrans(md->GetNumTransforms());
+	setMaxNumRefinements(md->GetNumTransforms());
+	//Set up the numRefinements combo
+	
+	myProbeTab->refinementCombo->setMaxCount(maxNumRefinements+1);
+	myProbeTab->refinementCombo->clear();
+	for (i = 0; i<= maxNumRefinements; i++){
+		myProbeTab->refinementCombo->insertItem(QString::number(i));
+	}
 	
 	//Either set the probe bounds to a default size in the center of the domain, or 
 	//try to use the previous bounds:
@@ -843,7 +864,7 @@ reinit(bool doOverride){
 		theta = 0.f;
 		seedAttached = false;
 		cursorCoords[0] = cursorCoords[1] = 0.0f;
-
+		numRefinements = 0;
 	} else {
 		//Force the probe size to be no larger than the domain, and 
 		//force the probe center to be inside the domain
@@ -862,6 +883,7 @@ reinit(bool doOverride){
 			if(probeMax[i] < probeMin[i]) 
 				probeMax[i] = probeMin[i];
 		}
+		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
 	//Get the variable names:
 	variableNames = md->GetVariableNames();
@@ -1053,9 +1075,8 @@ restart(){
 	numVariablesSelected = 0;
 
 	probeDirty = false;
-	numTransforms = 0;
-	maxNumTrans = 10;
-
+	numRefinements = 0;
+	maxNumRefinements = 10;
 	theta = 0.f;
 	phi = 0.f;
 	for (int i = 0; i<3; i++){
@@ -1264,6 +1285,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _numVariablesAttr) == 0) {
 				ist >> newNumVariables;
 			}
+			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
+				ist >> numRefinements;
+			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
 				if (value == "true") setLocal(true); else setLocal(false);
 			}
@@ -1273,8 +1297,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				setHistoStretch(histStretch);
 			}
 			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
-				ist >> numTransforms;
-				if (numTransforms > maxNumTrans) maxNumTrans = numTransforms;
+				ist >> numRefinements;
+				if (numRefinements > maxNumRefinements) maxNumRefinements = numRefinements;
 			}
 			else if (StrCmpNoCase(attribName, _editModeAttr) == 0){
 				if (value == "true") setEditMode(true); 
@@ -1355,7 +1379,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				ist >> varName;
 			}
 			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
-				ist >> numTransforms;
+				ist >> numRefinements;
 			}
 			else if (StrCmpNoCase(attribName, _variableSelectedAttr) == 0){
 				if (value == "true") {
@@ -1495,7 +1519,7 @@ buildNode() {
 	attrs[_numVariablesAttr] = oss.str();
 
 	oss.str(empty);
-	oss << (long)numTransforms;
+	oss << (long)numRefinements;
 	attrs[_numTransformsAttr] = oss.str();
 
 	oss.str(empty);
@@ -1648,7 +1672,7 @@ getProbeTexture(){
 	const size_t totTransforms = ses->getCurrentMetadata()->GetNumTransforms();
 	//Start by initializing extents
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = (ses->getDataStatus()->getFullDataSize(i))>>(totTransforms - numTransforms);
+		dataSize[i] = (ses->getDataStatus()->getFullDataSize(i))>>(totTransforms - numRefinements);
 	}
 	//Determine the integer extents of the containing cube, truncate to
 	//valid integer coords:
@@ -1762,7 +1786,7 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep
 	//	blkMax[0],blkMax[1],blkMax[2]);
 	float* reg = Session::getInstance()->getDataMgr()->GetRegion((size_t)timeStep,
 		variableNames[varNum].c_str(),
-		numTransforms, blkMin, blkMax, 0);
+		numRefinements, blkMin, blkMax, 0);
 	QApplication::restoreOverrideCursor();
 	return reg;
 }
@@ -1784,7 +1808,7 @@ void ProbeParams::getBoundingBox(size_t boxMinBlk[3], size_t boxMaxBlk[3], int b
 	const float* extents = ses->getExtents();
 	//Start by initializing extents, and variables that will be min,max
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = (ses->getDataStatus()->getFullDataSize(i))>>(totTransforms - numTransforms);
+		dataSize[i] = (ses->getDataStatus()->getFullDataSize(i))>>(totTransforms - numRefinements);
 		boxMin[i] = dataSize[i]-1;
 		boxMax[i] = 0;
 	}
@@ -1959,7 +1983,7 @@ calcCurrentValue(float point[3]){
 	int dataSize[3];
 	const size_t totTransforms = ses->getCurrentMetadata()->GetNumTransforms();
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = (ses->getDataStatus()->getFullDataSize(i))>>(totTransforms - numTransforms);
+		dataSize[i] = (ses->getDataStatus()->getFullDataSize(i))>>(totTransforms - numRefinements);
 	}
 	
 	//Find the region that contains the probe.
@@ -2063,7 +2087,7 @@ refreshHistogram(){
 	const size_t totTransforms = ses->getCurrentMetadata()->GetNumTransforms();
 	const float* extents = ses->getExtents();
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = (ses->getDataStatus()->getFullDataSize(i))>>(totTransforms - numTransforms);
+		dataSize[i] = (ses->getDataStatus()->getFullDataSize(i))>>(totTransforms - numRefinements);
 		gridSpacing[i] = (extents[i+3]-extents[i])/(float)(dataSize[i]-1);
 		if (boxMin[i]< 0) boxMin[i] = 0;
 		if (boxMax[i] >= dataSize[i]) boxMax[i] = dataSize[i] - 1;

@@ -325,6 +325,18 @@ guiSetAligned(){
 	PanelCommand::captureEnd(cmd, this);
 }
 void DvrParams::
+guiSetNumRefinements(int num){
+	//make sure we are setting it to a valid number
+	int newNum = checkNumRefinements(num);
+	if (newNum == numRefinements) return;
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set number of refinements");
+	numRefinements = newNum;
+	if (newNum != num) myDvrTab->refinementCombo->setCurrentItem(newNum);
+	PanelCommand::captureEnd(cmd, this);
+	VizWinMgr::getInstance()->setRegionDirty(this);
+}
+void DvrParams::
 guiSetEnabled(bool value){
 	//Ignore spurious clicks.
 	if (value == enabled) return;
@@ -580,6 +592,18 @@ reinit(bool doOverride){
 		numVariables = 0;
 		return;
 	}
+	//Set up the numRefinements
+	int maxNumRefinements = Session::getInstance()->getDataStatus()->getNumTransforms();
+	myDvrTab->refinementCombo->setMaxCount(maxNumRefinements+1);
+	myDvrTab->refinementCombo->clear();
+	for (i = 0; i<= maxNumRefinements; i++){
+		myDvrTab->refinementCombo->insertItem(QString::number(i));
+	}
+	if (doOverride){
+		numRefinements = 0;
+	} else {//Try to use existing value
+		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
+	}
 	//Create new arrays to hold bounds and transfer functions:
 	TransferFunction** newTransFunc = new TransferFunction*[newNumVariables];
 	float* newMinEdit = new float[newNumVariables];
@@ -693,6 +717,7 @@ restart(){
 		delete transFunc;
 	}
 	numVariables = 0;
+	numRefinements = 0;
 	attenuationDirty = true;
 	transFunc = 0;
 	//Initialize the mapping bounds to [0,1] until data is read
@@ -910,6 +935,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _numVariablesAttr) == 0) {
 				ist >> newNumVariables;
 			}
+			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
+				ist >> numRefinements;
+			}
 			else if (StrCmpNoCase(attribName, _activeVariableNumAttr) == 0) {
 				ist >> varNum;
 			}
@@ -1068,6 +1096,10 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)numVariables;
 	attrs[_numVariablesAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)numRefinements;
+	attrs[_numTransformsAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (long)varNum;

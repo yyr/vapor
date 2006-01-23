@@ -28,7 +28,7 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 DVRTexture3d::DVRTexture3d(int * , char **, DataType_T type, int nthreads) :
   _data(NULL),
-  _shader(NULL),
+  //_shader(NULL),
   _colormap(NULL),
   _delta(0.0),
   _texid(0),
@@ -66,27 +66,27 @@ int DVRTexture3d::GraphicsInit()
   //
   // Create, Load & Compile the shader program
   //
-  _shader = new ShaderProgram();
-  _shader->create();
+  //_shader = new ShaderProgram();
+  //_shader->create();
 
-  if (!_shader->loadFragmentShader("volume.frag"))
-  {
-    BailOut("OpenGL: Could not open file volume.frag",__FILE__,__LINE__);
-  }
+  //if (!_shader->loadFragmentShader("volume.frag"))
+  //{
+  //  BailOut("OpenGL: Could not open file volume.frag",__FILE__,__LINE__);
+  //}
 
-  if (!_shader->compile())
-  {
-    return -1;
-  }
+  //if (!_shader->compile())
+  //{
+  //  return -1;
+ // }
 
   //
   // Set up initial uniform values
   //
-  _shader->enable();
-  glUniform1i(_shader->uniformLocation("colormap"), 1);
-  glUniform1i(_shader->uniformLocation("volumeTexture"), 0);
-  glUniform1i(_shader->uniformLocation("shading"), 0);
-  _shader->disable();
+  //_shader->enable();
+  //glUniform1i(_shader->uniformLocation("colormap"), 1);
+  //glUniform1i(_shader->uniformLocation("volumeTexture"), 0);
+  //glUniform1i(_shader->uniformLocation("shading"), 0);
+  //_shader->disable();
 
   return 0;
 }
@@ -105,9 +105,9 @@ int DVRTexture3d::SetRegion(void *data,
   {
     _nx = nx; _ny = ny; _nz = nz;
 
-    _shader->enable();
-    glUniform3f(_shader->uniformLocation("dimensions"), nx, ny, nz);
-    _shader->disable();
+   // _shader->enable();
+   // glUniform3f(_shader->uniformLocation("dimensions"), nx, ny, nz);
+   // _shader->disable();
 
     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, _nx, _ny, _nz, 0, GL_LUMINANCE,
                  GL_UNSIGNED_BYTE, data);
@@ -146,7 +146,7 @@ int DVRTexture3d::SetRegion(void *data,
 int DVRTexture3d::Render(const float matrix[16])
 
 {
-  _shader->enable();
+  //_shader->enable();
 
   glEnable(GL_CULL_FACE);
   glPolygonMode(GL_FRONT, GL_FILL);
@@ -173,7 +173,7 @@ int DVRTexture3d::Render(const float matrix[16])
 
   glDepthMask(GL_TRUE);
 
-  _shader->disable();
+  //_shader->disable();
 
   return 0;
 }
@@ -253,11 +253,11 @@ void DVRTexture3d::SetOLUT(const float atab[256][4], const int numRefinements)
 //----------------------------------------------------------------------------
 void DVRTexture3d::SetLightingOnOff(int on) 
 {
-  _shader->enable();
+ // _shader->enable();
 
-  glUniform1i(_shader->uniformLocation("shading"), on);
+ // glUniform1i(_shader->uniformLocation("shading"), on);
 
-  _shader->enable();
+  //_shader->enable();
 }
 
 //----------------------------------------------------------------------------
@@ -265,14 +265,14 @@ void DVRTexture3d::SetLightingOnOff(int on)
 //----------------------------------------------------------------------------
 void DVRTexture3d::SetLightingCoeff(float kd, float ka, float ks, float expS)
 {
-  _shader->enable();
+  //_shader->enable();
 
-  glUniform1f(_shader->uniformLocation("kd"), kd);
-  glUniform1f(_shader->uniformLocation("ka"), ka);
-  glUniform1f(_shader->uniformLocation("ks"), ks);
-  glUniform1f(_shader->uniformLocation("expS"), expS);
+ // glUniform1f(_shader->uniformLocation("kd"), kd);
+ // glUniform1f(_shader->uniformLocation("ka"), ka);
+ // glUniform1f(_shader->uniformLocation("ks"), ks);
+ // glUniform1f(_shader->uniformLocation("expS"), expS);
 
-  _shader->enable();
+ // _shader->enable();
 }
 
 

@@ -689,8 +689,8 @@ VizWinMgr::hookUpRegionTab(RegionTab* rTab)
 	
 	//Signals and slots:
 	
-	connect (rTab->numTransSpin, SIGNAL( valueChanged(int) ), this, SLOT( setRegionNumTrans(int) ) );
- 	connect (rTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setRgLocalGlobal(int)));
+	
+	connect (rTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setRgLocalGlobal(int)));
 
 	connect (rTab->xCntrEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 	connect (rTab->yCntrEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
@@ -698,22 +698,30 @@ VizWinMgr::hookUpRegionTab(RegionTab* rTab)
 	connect (rTab->xSizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 	connect (rTab->ySizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 	connect (rTab->zSizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
-	connect (rTab->maxSizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
-
+	
 	connect (rTab->xCntrEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->yCntrEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->zCntrEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->xSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->ySizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
 	connect (rTab->zSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
-	connect (rTab->maxSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
+	
 	connect (rTab->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionXCenter()));
 	connect (rTab->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionYCenter()));
 	connect (rTab->zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionZCenter()));
 	connect (rTab->xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionXSize()));
 	connect (rTab->ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionYSize()));
 	connect (rTab->zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionZSize()));
-	connect (rTab->maxSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionMaxSize()));
+	connect (rTab->setFullRegionButton, SIGNAL(clicked()), this, SLOT (setRegionMaxSize()));
+	connect (rTab->regionToRakeButton, SIGNAL(clicked()), this, SLOT(copyRegionToRake()));
+	connect (rTab->regionToProbeButton, SIGNAL(clicked()), this, SLOT(copyRegionToProbe()));
+	connect (rTab->rakeToRegionButton, SIGNAL(clicked()), this, SLOT(copyRakeToRegion()));
+	connect (rTab->probeToRegionButton, SIGNAL(clicked()), this, SLOT(copyProbeToRegion()));
+
+	connect (rTab->refinementCombo, SIGNAL(activated(int)), this, SLOT(setRegionRefinement(int)));
+	connect (rTab->variableCombo, SIGNAL(activated(int)), this, SLOT(setRegionVarNum(int)));
+	connect (rTab->timestepSpin, SIGNAL(valueChanged(int)), this, SLOT(setRegionTimestep(int)));
+
 	
 	connect (this, SIGNAL(enableMultiViz(bool)), rTab->LocalGlobal, SLOT(setEnabled(bool)));
 	//connect (this, SIGNAL(enableMultiViz(bool)), rTab->copyToButton, SLOT(setEnabled(bool)));
@@ -725,6 +733,7 @@ void
 VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 {
 	myDvrTab = dvrTab;
+	connect (dvrTab->refinementCombo,SIGNAL(activated(int)), this, SLOT(setDvrNumRefinements(int)));
 	connect (dvrTab->loadButton, SIGNAL(clicked()), this, SLOT(dvrLoadTF()));
 	connect (dvrTab->saveButton, SIGNAL(clicked()), this, SLOT(dvrSaveTF()));
 	connect (dvrTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setDvrEnabled(int)));
@@ -805,7 +814,8 @@ VizWinMgr::hookUpProbeTab(ProbeTab* probeTab)
 	connect (probeTab->probeCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterProbe()));
 	connect (probeTab->addSeedButton, SIGNAL(clicked()), this, SLOT(probeAddSeed()));
 	connect (probeTab->attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(probeAttachSeed(bool)));
-	connect (probeTab->numTransSpin, SIGNAL(valueChanged(int)),this, SLOT(setProbeNumTrans(int)));
+	connect (probeTab->refinementCombo,SIGNAL(activated(int)), this, SLOT(setProbeNumRefinements(int)));
+	
 	connect (probeTab->variableListBox,SIGNAL(selectionChanged(void)), this, SLOT(probeSelectionChanged(void)));
 	connect (probeTab->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeXCenter()));
 	connect (probeTab->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeYCenter()));
@@ -959,10 +969,10 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	myFlowTab = flowTab;
 	connect (flowTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setFlowLocalGlobal(int)));
 	connect (flowTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setFlowEnabled(int)));
-	connect (flowTab->instanceSpin, SIGNAL(valueChanged(int)), this, SLOT(setFlowInstance(int)));
 	connect (flowTab->flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( setFlowType(int) ) );
 	connect (flowTab->autoRefreshCheckbox, SIGNAL(toggled(bool)), this, SLOT (flowAutoToggled(bool)));
-	connect (flowTab->numTransSpin, SIGNAL(valueChanged(int)),this, SLOT(setFlowNumTrans(int)));
+	connect (flowTab->refinementCombo,SIGNAL(activated(int)), this, SLOT(setFlowNumRefinements(int)));
+	
 	connect (flowTab->xCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowXVar(int)));
 	connect (flowTab->yCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowYVar(int)));
 	connect (flowTab->zCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowZVar(int)));
@@ -1126,21 +1136,14 @@ regionReturnPressed(void){
 	//Find the appropriate parameter panel, make it update the visualization window
 	getRegionParams(activeViz)->confirmText(true);
 }
-void VizWinMgr::
-setRegionNumTrans(int nt){
-	//Dispatch the signal to the current active region parameter panel, or to the
-	//global panel:
-	getRegionParams(activeViz)->guiSetNumTrans(nt);
-	
-}
+
 /* 
  * Respond to a release of the max size slider
  *
  */
 void VizWinMgr::
 setRegionMaxSize(){
-	getRegionParams(activeViz)->guiSetMaxSize(
-		myMainWindow->getRegionTab()->maxSizeSlider->value());
+	getRegionParams(activeViz)->guiSetMaxSize();
 }
 
 
@@ -1182,6 +1185,28 @@ setRegionZSize(){
 	getRegionParams(activeViz)->guiSetZSize(
 		myMainWindow->getRegionTab()->zSizeSlider->value());
 }
+void VizWinMgr::setRegionRefinement(int refLevel){
+	getRegionParams(activeViz)->guiSetNumRefinements(refLevel);
+}
+void VizWinMgr::setRegionVarNum(int varnum){
+	getRegionParams(activeViz)->guiSetVarNum(varnum);
+}
+void VizWinMgr::setRegionTimestep(int ts){
+	getRegionParams(activeViz)->guiSetTimeStep(ts);
+}
+void VizWinMgr::copyRakeToRegion(){
+	getRegionParams(activeViz)->guiCopyRakeToRegion();
+}
+void VizWinMgr::copyProbeToRegion(){
+	getRegionParams(activeViz)->guiCopyProbeToRegion();
+}
+void VizWinMgr::copyRegionToRake(){
+	getFlowParams(activeViz)->guiSetRakeToRegion();
+}
+void VizWinMgr::copyRegionToProbe(){
+	getProbeParams(activeViz)->guiCopyRegionToProbe();
+}
+
 //Trigger a re-render of the windows that share a region params
 void VizWinMgr::refreshRegion(RegionParams* rParams){
 	int vizNum = rParams->getVizNum();
@@ -1240,6 +1265,7 @@ setRegionDirty(DvrParams* dParams){
 		}
 	}
 }
+
 //Force all windows that share a flow params to rerender
 //(possibly with new data)
 void VizWinMgr::
@@ -1569,7 +1595,9 @@ setProbeLocalGlobal(int val){
 	//Always invoke the update on the local params
 	probeParams[activeViz]->updateRenderer(wasEnabled,!val, false);
 }
-
+void VizWinMgr::setDvrNumRefinements(int num){
+	getDvrParams(activeViz)->guiSetNumRefinements(num);
+}
 /*************************************************************************************
  *  slots associated with AnimationTab
  *************************************************************************************/
@@ -1876,8 +1904,8 @@ probeAttachSeed(bool attach){
 	getProbeParams(activeViz)->guiAttachSeed(attach, getFlowParams(activeViz));
 }
 void VizWinMgr::
-setProbeNumTrans(int numtrans){
-	getProbeParams(activeViz)->guiSetNumTrans(numtrans);
+setProbeNumRefinements(int numtrans){
+	getProbeParams(activeViz)->guiSetNumRefinements(numtrans);
 }
 void VizWinMgr::
 probeSelectionChanged(){
@@ -2115,10 +2143,6 @@ setFlowEnabled(int val){
 }
 
 void VizWinMgr::
-setFlowInstance(int numInstance){
-	//Not implemented yet
-}
-void VizWinMgr::
 rebuildFlow(){
 	getFlowParams(activeViz)->guiRefreshFlow();
 }
@@ -2148,8 +2172,8 @@ setFlowType(int typenum){
 	}
 }
 void VizWinMgr::
-setFlowNumTrans(int numTrans){
-	getFlowParams(activeViz)->guiSetNumTrans(numTrans);
+setFlowNumRefinements(int numTrans){
+	getFlowParams(activeViz)->guiSetNumRefinements(numTrans);
 }
 void VizWinMgr::
 setFlowXVar(int varnum){

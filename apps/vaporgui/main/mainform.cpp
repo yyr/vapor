@@ -1138,7 +1138,7 @@ void MainForm::setRegionSelect(bool on)
 }
 void MainForm::setContourSelect(bool on)
 {
-	bool myState = contourAction->isOn();
+	//bool myState = contourAction->isOn();
 	// If someone clicks to undo this, then switch to navigate
 	if (!on && contourAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;

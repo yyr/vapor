@@ -129,6 +129,8 @@ public:
 		if(numVariables == 0) return 1.f;
 		return (Session::getInstance()->getDataMax(firstVarNum, currentTimeStep));
 	}
+	float getProbeMin(int i) {return probeMin[i];}
+	float getProbeMax(int i) {return probeMax[i];}
 	void setEditMode(bool mode) {editMode = mode;}
 	virtual bool getEditMode() {return editMode;}
 	
@@ -145,8 +147,8 @@ public:
 
 	void setProbeDirty(bool dirty = true);
 	//get/set methods
-	void setNumTrans(int numtrans){numTransforms = numtrans; setProbeDirty(true);}
-	void setMaxNumTrans(int numtrans) {maxNumTrans = numtrans;}
+	void setNumRefinements(int numtrans){numRefinements = numtrans; setProbeDirty(true);}
+	void setMaxNumRefinements(int numtrans) {maxNumRefinements = numtrans;}
 	void setXCenter(int sliderval);
 	void setYCenter(int sliderval);
 	void setZCenter(int sliderval);
@@ -171,12 +173,13 @@ public:
 	void guiSetOpacityScale(int val);
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	void guiSetAligned();
-	void guiSetNumTrans(int numtrans);
+	void guiSetNumRefinements(int numtrans);
 	void guiSetXSize(int sliderval);
 	void guiSetYSize(int sliderval);
 	void guiSetZSize(int sliderval);
 	void guiStartCursorMove();
 	void guiEndCursorMove();
+	void guiCopyRegionToProbe();
 	
 	//respond to changes in TF (for undo/redo):
 	//
@@ -223,6 +226,7 @@ public:
 	//in each params (at least those with a TFE)
 	virtual Histo* getHistogram(bool mustGet);
 	virtual void refreshHistogram();
+	virtual int getNumRefinements() {return numRefinements;}
 
 protected:
 	
@@ -256,7 +260,7 @@ protected:
 	
 
 	//Find smallest containing cube in integer coords, using
-	//current numTransforms, that will contain image of probe
+	//current numRefinementsforms, that will contain image of probe
 	void getBoundingBox(size_t boxMinBlk[3], size_t boxMaxBlk[3], int boxMin[3], int boxMax[3]);
 	
 	float currentDatarange[2];
@@ -286,7 +290,7 @@ protected:
 	
 	//State variables controlled by GUI:
 	float probeMin[3], probeMax[3];
-	int numTransforms, maxNumTrans;
+	int numRefinements, maxNumRefinements;
 	float theta, phi;
 	float selectPoint[3];
 	float cursorCoords[2];

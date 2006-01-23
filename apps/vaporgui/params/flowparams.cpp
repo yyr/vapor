@@ -80,7 +80,6 @@ using namespace VAPoR;
 	const string FlowParams::_mappedVariablesAttr = "MappedVariables";
 	const string FlowParams::_steadyFlowAttr = "SteadyFlow";
 	const string FlowParams::_instanceAttr = "FlowRendererInstance";
-	const string FlowParams::_numTransformsAttr = "NumTransforms";
 	const string FlowParams::_integrationAccuracyAttr = "IntegrationAccuracy";
 	const string FlowParams::_velocityScaleAttr = "velocityScale";
 	const string FlowParams::_timeSamplingAttr = "SamplingTimes";
@@ -147,10 +146,9 @@ restart() {
 	enabled = false;
 	
 	flowType = 0; //steady
-	instance = 1;
-	numTransforms = 0; 
-	maxNumTrans = 4; 
-	minNumTrans = 0;
+	
+	numRefinements = 0; 
+	maxNumRefinements = 4; 
 	numVariables = 0;
 	firstDisplayFrame = 0;
 	lastDisplayFrame = 20;
@@ -323,11 +321,9 @@ void FlowParams::updateDialog(){
 	myFlowTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
 	
 	myFlowTab->flowTypeCombo->setCurrentItem(flowType);
-	myFlowTab->numTransSpin->setMinValue(minNumTrans);
-	myFlowTab->numTransSpin->setMaxValue(maxNumTrans);
-	myFlowTab->numTransSpin->setValue(numTransforms);
-
 	
+	myFlowTab->refinementCombo->setCurrentItem(numRefinements);
+
 	float sliderVal = getOpacityScale();
 	QToolTip::add(myFlowTab->opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	sliderVal = 256.f*(1.f -sliderVal);
@@ -630,9 +626,7 @@ reinit(bool doOverride){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->
 			getRegionParams(vizNum);
 	int nlevels = md->GetNumTransforms();
-	int minTrans = session->getDataStatus()->minXFormPresent();
-	if(minTrans < 0) minTrans = 0; 
-	setMinNumTrans(minTrans);
+	
 	setMaxNumTrans(nlevels);
 	//Clean out any existing caches:
 	cleanFlowDataCaches();
@@ -643,37 +637,43 @@ reinit(bool doOverride){
 	editMode = true;
 	// set the params state based on whether we are overriding or not:
 	if (doOverride) {
-		numTransforms = minNumTrans;
-		numTransforms = rParams->validateNumTrans(numTransforms);
+		numRefinements = 0;
 		seedTimeStart = minFrame;
 		seedTimeEnd = minFrame;
 		seedTimeIncrement = 1;
 		autoRefresh = true;
 	} else {
-		if (numTransforms> maxNumTrans) numTransforms = maxNumTrans;
-		if (numTransforms < minNumTrans) numTransforms = minNumTrans;
-		//Make sure we really can use the specified numTrans.
+		if (numRefinements> maxNumRefinements) numRefinements = maxNumRefinements;
 		
-		numTransforms = rParams->validateNumTrans(numTransforms);
+		//Make sure we really can use the specified numTrans,
+		//with the current region settings
+		
+		numRefinements = rParams->validateNumTrans(numRefinements);
 		if (seedTimeStart >= maxFrame) seedTimeStart = maxFrame-1;
 		if (seedTimeStart < minFrame) seedTimeStart = minFrame;
 		if (seedTimeEnd >= maxFrame) seedTimeEnd = maxFrame-1;
 		if (seedTimeEnd < seedTimeStart) seedTimeEnd = seedTimeStart;
 	}
+	//Set up the refinementCombo
+	myFlowTab->refinementCombo->setMaxCount(maxNumRefinements+1);
+	myFlowTab->refinementCombo->clear();
+	for (i = 0; i<= maxNumRefinements; i++){
+		myFlowTab->refinementCombo->insertItem(QString::number(i));
+	}
+
 	//Set up the seed region:
-	
+	const float* fullExtents = Session::getInstance()->getExtents();
 	if (doOverride){
 		for (i = 0; i<3; i++){
-			seedBoxMin[i] = rParams->getFullDataExtent(i);
-			seedBoxMax[i] = rParams->getFullDataExtent(i+3);
-			
+			seedBoxMin[i] = fullExtents[i];
+			seedBoxMax[i] = fullExtents[i+3];
 		}
 	} else {
 		for (i = 0; i<3; i++){
-			if(seedBoxMin[i] < rParams->getFullDataExtent(i))
-				seedBoxMin[i] = rParams->getFullDataExtent(i);
-			if(seedBoxMax[i] > rParams->getFullDataExtent(i+3))
-				seedBoxMax[i] = rParams->getFullDataExtent(i+3);
+			if(seedBoxMin[i] < fullExtents[i])
+				seedBoxMin[i] = fullExtents[i];
+			if(seedBoxMax[i] > fullExtents[i+3])
+				seedBoxMax[i] = fullExtents[i+3];
 			if(seedBoxMax[i] < seedBoxMin[i]) 
 				seedBoxMax[i] = seedBoxMin[i];
 		}
@@ -904,9 +904,9 @@ textToSlider(int coord, float newCenter, float newSize){
 	//Then push the center to the middle if the region doesn't fit
 	bool centerChanged = false;
 	bool sizeChanged = false;
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
-	float regMin = rParams->getFullDataExtent(coord);
-	float regMax = rParams->getFullDataExtent(coord+3);
+	const float* fullExtent = Session::getInstance()->getExtents();
+	float regMin = fullExtent[coord];
+	float regMax = fullExtent[coord+3];
 	if (newSize > (regMax-regMin)){
 		newSize = regMax-regMin;
 		sizeChanged = true;
@@ -995,9 +995,9 @@ sliderToText(int coord, int slideCenter, int slideSize){
 	//force the size to be no greater than the max possible.
 	//And force the center to fit in the region.  
 	//Then push the center to the middle if the region doesn't fit
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
-	float regMin = rParams->getFullDataExtent(coord);
-	float regMax = rParams->getFullDataExtent(coord+3);
+	const float* fullExtent = Session::getInstance()->getExtents();
+	float regMin = fullExtent[coord];
+	float regMax = fullExtent[coord+3];
 	bool sliderChanged = false;
 	
 	float newSize = slideSize*(regMax-regMin)/256.f;
@@ -1066,12 +1066,12 @@ sliderToText(int coord, int slideCenter, int slideSize){
 void FlowParams::
 guiCenterRake(float* coords){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "move rake center");
-	RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(vizNum);
+	const float* fullExtent = Session::getInstance()->getExtents();
 	
 	for (int i = 0; i< 3; i++){
 		float coord = coords[i];
-		float regMin = rParams->getFullDataExtent(i);
-		float regMax = rParams->getFullDataExtent(i+3);
+		float regMin = fullExtent[i];
+		float regMax = fullExtent[i+3];
 		if (coord < regMin) coord = regMin;
 		if (coord > regMax) coord = regMax;
 		float boxSize = seedBoxMax[i] - seedBoxMin[i];
@@ -1161,7 +1161,7 @@ void FlowParams::
 guiSetRakeToRegion(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "move rake to region");
-	RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(vizNum);
+		RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
 	for (int i = 0; i< 3; i++){
 		seedBoxMin[i] = rParams->getRegionMin(i);
 		seedBoxMax[i] = rParams->getRegionMax(i);
@@ -1192,16 +1192,16 @@ guiSetFlowType(int typenum){
 	
 }
 void FlowParams::
-guiSetNumTrans(int n){
+guiSetNumRefinements(int n){
 	confirmText(false);
 	
 	int newNumTrans = ((RegionParams*)(VizWinMgr::getInstance()->getRegionParams(vizNum)))->validateNumTrans(n);
 	if (newNumTrans != n) {
-		MessageReporter::warningMsg("%s","Invalid number of Transforms for current region, data cache size");
-		myFlowTab->numTransSpin->setValue(newNumTrans);
+		MessageReporter::warningMsg("%s","Invalid number of Refinements for current region, data cache size");
+		myFlowTab->refinementCombo->setCurrentItem(newNumTrans);
 	}
-	PanelCommand* cmd = PanelCommand::captureStart(this, "set number of Transformations in Flow data");
-	setNumTrans(newNumTrans);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set number Refinements in Flow data");
+	setNumRefinements(newNumTrans);
 	PanelCommand::captureEnd(cmd, this);
 }
 void FlowParams::
@@ -1910,7 +1910,6 @@ regenerateFlowData(int timeStep, bool isRake){
 	int min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
 	
-	float minFull[3], maxFull[3], extents[6];
 	if (!myFlowLib) return 0;
 	
 	float* speeds = 0;
@@ -1930,9 +1929,10 @@ regenerateFlowData(int timeStep, bool isRake){
 		rParams = vizMgr->getRegionParams(vizMgr->getActiveViz());
 	}
 	else rParams = VizWinMgr::getInstance()->getRegionParams(vizNum);
-	rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, 
-		numTransforms, minFull, maxFull, extents);
-	myFlowLib->SetRegion(numTransforms, min_bdim, max_bdim);
+	//rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, 
+		//numTransforms, minFull, maxFull, extents);
+	rParams->getRegionVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim);
+	myFlowLib->SetRegion(numRefinements, min_bdim, max_bdim);
 	int numSeedPoints;
 	if (isRake){
 		numSeedPoints = getNumRakeSeedPoints();
@@ -2406,7 +2406,7 @@ buildNode() {
 	attrs[_numVariablesAttr] = oss.str();
 
 	oss.str(empty);
-	oss << (long)numTransforms;
+	oss << (long)numRefinements;
 	attrs[_numTransformsAttr] = oss.str();
 
 	oss.str(empty);
@@ -2431,10 +2431,6 @@ buildNode() {
 	else 
 		oss << "false";
 	attrs[_autoRefreshAttr] = oss.str();
-
-	oss.str(empty);
-	oss << (long)instance;
-	attrs[_instanceAttr] = oss.str();
 
 	oss.str(empty);
 	if (flowType == 0) oss << "true";
@@ -2644,10 +2640,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				if (value == "true") setFlowType(0); else setFlowType(1);
 			}
 			else if (StrCmpNoCase(attribName, _instanceAttr) == 0){
-				ist >> instance;
+				//obsolete
 			}
 			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
-				ist >> numTransforms;
+				ist >> numRefinements;
 			}
 			else if (StrCmpNoCase(attribName, _integrationAccuracyAttr) == 0){
 				ist >> integrationAccuracy;
@@ -2965,7 +2961,7 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 		const size_t *bs = Session::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
-			opacSize[i] = (ds->getFullDataSize(i) >> numTransforms);
+			opacSize[i] = (ds->getFullDataSize(i) >> numRefinements);
 			maxSize[i] = opacSize[i]/bs[i] -1;
 			opacVarMin[i] = Session::getInstance()->getExtents(i);
 			opacVarMax[i] = Session::getInstance()->getExtents(i+3);
@@ -2973,7 +2969,7 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		opacRegion = Session::getInstance()->getDataMgr()->GetRegion((size_t)timeStep,
 			opacMapEntity[getOpacMapEntityIndex()].c_str(),
-			numTransforms, (size_t*) minSize, (size_t*) maxSize, 0);
+			numRefinements, (size_t*) minSize, (size_t*) maxSize, 0);
 		QApplication::restoreOverrideCursor();
 	}
 	if (getColorMapEntityIndex() > 3){
@@ -2985,7 +2981,7 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 		const size_t *bs = Session::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
-			colorSize[i] = (ds->getFullDataSize(i) >> numTransforms);
+			colorSize[i] = (ds->getFullDataSize(i) >> numRefinements);
 			maxSize[i] = (colorSize[i]/bs[i] - 1);
 			colorVarMin[i] = Session::getInstance()->getExtents(i);
 			colorVarMax[i] = Session::getInstance()->getExtents(i+3);
@@ -2993,7 +2989,7 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		colorRegion = Session::getInstance()->getDataMgr()->GetRegion((size_t)timeStep,
 			colorMapEntity[getColorMapEntityIndex()].c_str(),
-			numTransforms, (size_t*) minSize, (size_t*) maxSize, 0);
+			numRefinements, (size_t*) minSize, (size_t*) maxSize, 0);
 		QApplication::restoreOverrideCursor();
 
 	}
@@ -3162,22 +3158,22 @@ captureMouseUp(){
 //Calculate the extents of the seedBox region when transformed into the unit cube
 void FlowParams::
 calcSeedExtents(float* extents){
-	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
+	const float* fullExtent = Session::getInstance()->getExtents();
 	
 	int i;
 	float maxCrd = -1.f;
 	
 	float regSize[3];
 	for (i=0; i<3; i++){
-		regSize[i] =  rParams->getFullDataExtent(i+3) - rParams->getFullDataExtent(i);
+		regSize[i] =  fullExtent[i+3]-fullExtent[i];
 		if(regSize[i] > maxCrd ) {
 			maxCrd = regSize[i];
 		}
 	}
 
 	for (i = 0; i<3; i++){
-		extents[i] = (seedBoxMin[i] - rParams->getFullDataExtent(i))/maxCrd;
-		extents[i+3] = (seedBoxMax[i] - rParams->getFullDataExtent(i))/maxCrd;
+		extents[i] = (seedBoxMin[i] - fullExtent[i])/maxCrd;
+		extents[i+3] = (seedBoxMax[i] - fullExtent[i])/maxCrd;
 	}
 }
 

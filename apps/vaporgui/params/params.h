@@ -94,6 +94,7 @@ public:
 	static const string _variableNumAttr;
 	static const string _variableNameAttr;
 	static const string _opacityScaleAttr;
+	static const string _numTransformsAttr;
 
 	
 	//Each params must be able to make a "deep" copy,
@@ -244,6 +245,8 @@ public:
 	//in each params (at least those with a TFE)
 	virtual Histo* getHistogram(bool /*mustGet*/) { assert(0); return 0;}
 	virtual void refreshHistogram() {assert(0);}
+
+	virtual int getNumRefinements(){ assert(0); return -1;}
 
 
 	//The restart method goes back to initial state

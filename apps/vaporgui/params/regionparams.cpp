@@ -54,6 +54,8 @@ const string RegionParams::_regionCenterTag = "RegionCenter";
 const string RegionParams::_regionSizeTag = "RegionSize";
 const string RegionParams::_maxSizeAttr = "MaxSizeSlider";
 const string RegionParams::_numTransAttr = "NumTrans";
+const string RegionParams::_regionMinTag = "RegionMin";
+const string RegionParams::_regionMaxTag = "RegionMax";
 
 RegionParams::RegionParams(int winnum): Params(winnum){
 	thisParamType = RegionParamsType;
@@ -88,136 +90,306 @@ makeCurrent(Params* ,bool) {
 //
 void RegionParams::updateDialog(){
 	
-	
-	QString strng;
 	Session::getInstance()->blockRecording();
-	myRegionTab->numTransSpin->setMaxValue(maxNumTrans);
-	myRegionTab->numTransSpin->setMinValue(minNumTrans);
-	myRegionTab->numTransSpin->setValue(numTrans);
-	int dataMaxSize = Max(fullSize[0],Max(fullSize[1],fullSize[2]));
-	myRegionTab->maxSizeSlider->setMaxValue(dataMaxSize);
-	myRegionTab->maxSizeSlider->setValue(maxSize);
-	myRegionTab->maxSizeEdit->setText(strng.setNum(maxSize));
-	
-	myRegionTab->xCenterSlider->setMaxValue(fullSize[0]);
-	myRegionTab->yCenterSlider->setMaxValue(fullSize[1]);
-	myRegionTab->zCenterSlider->setMaxValue(fullSize[2]);
-	myRegionTab->xSizeSlider->setMaxValue(fullSize[0]);
-	myRegionTab->ySizeSlider->setMaxValue(fullSize[1]);
-	myRegionTab->zSizeSlider->setMaxValue(fullSize[2]);
-
-	//Enforce the requirement that center +- size/2 fits in range
-	//
-	for (int i = 0; i<3; i++){
-		if(centerPosition[i] + (1+regionSize[i])/2 >= fullSize[i])
-			centerPosition[i] = fullSize[i] - (1+regionSize[i])/2 -1;
-		if(centerPosition[i] < (1+regionSize[i])/2)
-			centerPosition[i] = (1+regionSize[i])/2;
-		setCurrentExtents(i);
+	for (int i = 0; i< 3; i++){
+		textToSlider(i, (regionMin[i]+regionMax[i])*0.5f,
+			regionMax[i]-regionMin[i]);
 	}
-
-	myRegionTab->xCntrEdit->setText(strng.setNum(centerPosition[0]));
-	myRegionTab->xCenterSlider->setValue(centerPosition[0]);
-	myRegionTab->yCntrEdit->setText(strng.setNum(centerPosition[1]));
-	myRegionTab->yCenterSlider->setValue(centerPosition[1]);
-	myRegionTab->zCntrEdit->setText(strng.setNum(centerPosition[2]));
-	myRegionTab->zCenterSlider->setValue(centerPosition[2]);
-
-	myRegionTab->xSizeEdit->setText(strng.setNum(regionSize[0]));
-	myRegionTab->xSizeSlider->setValue(regionSize[0]);
-	myRegionTab->ySizeEdit->setText(strng.setNum(regionSize[1]));
-	myRegionTab->ySizeSlider->setValue(regionSize[1]);
-	myRegionTab->zSizeEdit->setText(strng.setNum(regionSize[2]));
-	myRegionTab->zSizeSlider->setValue(regionSize[2]);
-
-	myRegionTab->minXFull->setText(strng.setNum(fullDataExtents[0]));
-	myRegionTab->minYFull->setText(strng.setNum(fullDataExtents[1]));
-	myRegionTab->minZFull->setText(strng.setNum(fullDataExtents[2]));
-	myRegionTab->maxXFull->setText(strng.setNum(fullDataExtents[3]));
-	myRegionTab->maxYFull->setText(strng.setNum(fullDataExtents[4]));
-	myRegionTab->maxZFull->setText(strng.setNum(fullDataExtents[5]));
+	myRegionTab->xSizeEdit->setText(QString::number(regionMax[0]-regionMin[0],'g', 4));
+	myRegionTab->xCntrEdit->setText(QString::number(0.5f*(regionMax[0]+regionMin[0]),'g',5));
+	myRegionTab->ySizeEdit->setText(QString::number(regionMax[1]-regionMin[1],'g', 4));
+	myRegionTab->yCntrEdit->setText(QString::number(0.5f*(regionMax[1]+regionMin[1]),'g',5));
+	myRegionTab->zSizeEdit->setText(QString::number(regionMax[2]-regionMin[2],'g', 4));
+	myRegionTab->zCntrEdit->setText(QString::number(0.5f*(regionMax[2]+regionMin[2]),'g',5));
 	
 	
-	
-
 	if (isLocal())
 		myRegionTab->LocalGlobal->setCurrentItem(1);
 	else 
 		myRegionTab->LocalGlobal->setCurrentItem(0);
 	guiSetTextChanged(false);
+	refreshRegionInfo();
 	Session::getInstance()->unblockRecording();
 	VizWinMgr::getInstance()->getTabManager()->update();
 }
+//Set slider position, based on text change. 
+//
+void RegionParams::
+textToSlider(int coord, float newCenter, float newSize){
+	//force the size to be no greater than the max possible.
+	//And force the center to fit in the region.  
+	//Then push the center to the middle if the region doesn't fit
+	bool centerChanged = false;
+	bool sizeChanged = false;
+	const float* extents = Session::getInstance()->getExtents();
+	float regMax = extents[coord+3];
+	float regMin = extents[coord];
+	if (newSize > regMax-regMin){
+		newSize = regMax-regMin;
+		sizeChanged = true;
+	}
+	if (newSize < 0.f) {
+		newSize = 0.f;
+		sizeChanged = true;
+	}
+	if (newCenter < regMin) {
+		newCenter = regMin;
+		centerChanged = true;
+	}
+	if (newCenter > regMax) {
+		newCenter = regMax;
+		centerChanged = true;
+	}
+	if ((newCenter - newSize*0.5f) < regMin){
+		newCenter = regMin+ newSize*0.5f;
+		centerChanged = true;
+	}
+	if ((newCenter + newSize*0.5f) > regMax){
+		newCenter = regMax- newSize*0.5f;
+		centerChanged = true;
+	}
+	
+	regionMin[coord] = newCenter - newSize*0.5f; 
+	regionMax[coord] = newCenter + newSize*0.5f; 
+	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
+	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
+	int oldSliderSize, oldSliderCenter;
+	switch(coord) {
+		case 0:
+			oldSliderSize = myRegionTab->xSizeSlider->value();
+			oldSliderCenter = myRegionTab->xCenterSlider->value();
+			if (oldSliderSize != sliderSize)
+				myRegionTab->xSizeSlider->setValue(sliderSize);
+			if(sizeChanged) myRegionTab->xSizeEdit->setText(QString::number(newSize));
+			
+			if (oldSliderCenter != sliderCenter)
+				myRegionTab->xCenterSlider->setValue(sliderCenter);
+			if(centerChanged) myRegionTab->xCntrEdit->setText(QString::number(newCenter));
+			
+			break;
+		case 1:
+			oldSliderSize = myRegionTab->ySizeSlider->value();
+			oldSliderCenter = myRegionTab->yCenterSlider->value();
+			if (oldSliderSize != sliderSize)
+				myRegionTab->ySizeSlider->setValue(sliderSize);
+			if(sizeChanged) myRegionTab->ySizeEdit->setText(QString::number(newSize));
+			
+			if (oldSliderCenter != sliderCenter)
+				myRegionTab->yCenterSlider->setValue(sliderCenter);
+			if(centerChanged) myRegionTab->yCntrEdit->setText(QString::number(newCenter));
+			
+			break;
+		case 2:
+			oldSliderSize = myRegionTab->zSizeSlider->value();
+			oldSliderCenter = myRegionTab->zCenterSlider->value();
+			if (oldSliderSize != sliderSize)
+				myRegionTab->zSizeSlider->setValue(sliderSize);
+			if(sizeChanged) myRegionTab->zSizeEdit->setText(QString::number(newSize));
+			
+			if (oldSliderCenter != sliderCenter)
+				myRegionTab->zCenterSlider->setValue(sliderCenter);
+			if(centerChanged) myRegionTab->zCntrEdit->setText(QString::number(newCenter));
+			
+			break;
+		default:
+			assert(0);
+	}
+	
+	guiSetTextChanged(false);
+	myRegionTab->update();
+	return;
+}
+//Set text when a slider changes.
+//Move the center if the size is too big
+void RegionParams::
+sliderToText(int coord, int slideCenter, int slideSize){
+	//force the size to be no greater than the max possible.
+	//And force the center to fit in the region.  
+	//Then push the center to the middle if the region doesn't fit
+	const float* extents = Session::getInstance()->getExtents();
+	float regMin = extents[coord];
+	float regMax = extents[coord+3];
+	bool sliderChanged = false;
+	
+	float newSize = slideSize*(regMax-regMin)/256.f;
+	float newCenter = regMin+ slideCenter*(regMax-regMin)/256.f;
+	
+	if (newCenter < regMin) {
+		newCenter = regMin;
+	}
+	if (newCenter > regMax) {
+		newCenter = regMax;
+	}
+	if ((newCenter - newSize*0.5f) < regMin){
+		newCenter = regMin+ newSize*0.5f;
+		sliderChanged = true;
+	}
+	if ((newCenter + newSize*0.5f) > regMax){
+		newCenter = regMax- newSize*0.5f;
+		sliderChanged = true;
+	}
+	regionMin[coord] = newCenter - newSize*0.5f; 
+	regionMax[coord] = newCenter + newSize*0.5f; 
+	
+	int newSliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
+	//Always need to change text.  Possibly also change slider if it was moved
+	switch(coord) {
+		case 0:
+			if (sliderChanged) 
+				myRegionTab->xCenterSlider->setValue(newSliderCenter);
+			myRegionTab->xSizeEdit->setText(QString::number(newSize));
+			myRegionTab->xCntrEdit->setText(QString::number(newCenter));
+			break;
+		case 1:
+			if (sliderChanged) 
+				myRegionTab->yCenterSlider->setValue(newSliderCenter);
+			myRegionTab->ySizeEdit->setText(QString::number(newSize));
+			myRegionTab->yCntrEdit->setText(QString::number(newCenter));
+			break;
+		case 2:
+			if (sliderChanged) 
+				myRegionTab->zCenterSlider->setValue(newSliderCenter);
+			myRegionTab->zSizeEdit->setText(QString::number(newSize));
+			myRegionTab->zCntrEdit->setText(QString::number(newCenter));
+			break;
+		default:
+			assert(0);
+	}
+	guiSetTextChanged(false);
+	myRegionTab->update();
+	//force a new render with new flow data
+	setDirty();
+	return;
+}	
+void RegionParams::
+refreshRegionInfo(){
+	//First setup the timestep & refinement components
+	//Make sure that the refinement levels are valid for the specified timestep.
+	//If not, correct them.  If there is no data at specified timestep,
+	//Then don't show anything in refinementCombo
+	size_t bs = 32;
+	int varNum = myRegionTab->variableCombo->currentItem();
+	Session* ses = Session::getInstance();
+	int timeStep = myRegionTab->timestepSpin->value();
+	//Distinguish between the actual data available and the numtransforms
+	//in the metadata.  If the data isn't there, we will display blanks
+	//in the "selected" area.
+	int maxRefLevel = 10;
+	int numTrans = 10;
+	if (ses->getDataStatus()) {
+		maxRefLevel = ses->getDataStatus()->maxXFormPresent(varNum, timeStep);
+		numTrans = ses->getDataStatus()->getNumTransforms();
+	}
+
+	int refLevel = myRegionTab->refinementCombo->currentItem();
+
+	const float* fullDataExtents = ses->getExtents();
+
+	myRegionTab->fullMinXLabel->setText(QString::number(fullDataExtents[0], 'g', 5));
+	myRegionTab->fullMinYLabel->setText(QString::number(fullDataExtents[1], 'g', 5));
+	myRegionTab->fullMinZLabel->setText(QString::number(fullDataExtents[2], 'g', 5));
+	myRegionTab->fullMaxXLabel->setText(QString::number(fullDataExtents[3], 'g', 5));
+	myRegionTab->fullMaxYLabel->setText(QString::number(fullDataExtents[4], 'g', 5));
+	myRegionTab->fullMaxZLabel->setText(QString::number(fullDataExtents[5], 'g', 5));
+	myRegionTab->fullSizeXLabel->setText(QString::number(fullDataExtents[3]-fullDataExtents[0], 'g', 5));
+	myRegionTab->fullSizeYLabel->setText(QString::number(fullDataExtents[4]-fullDataExtents[1], 'g', 5));
+	myRegionTab->fullSizeZLabel->setText(QString::number(fullDataExtents[5]-fullDataExtents[2], 'g', 5));
+
+	myRegionTab->minXFullLabel->setText(QString::number(fullDataExtents[0],'g',5));
+	myRegionTab->minYFullLabel->setText(QString::number(fullDataExtents[1],'g',5));
+	myRegionTab->minZFullLabel->setText(QString::number(fullDataExtents[2],'g',5));
+	myRegionTab->maxXFullLabel->setText(QString::number(fullDataExtents[3],'g',5));
+	myRegionTab->maxYFullLabel->setText(QString::number(fullDataExtents[4],'g',5));
+	myRegionTab->maxZFullLabel->setText(QString::number(fullDataExtents[5],'g',5));
+
+	//For now, the min and max var extents are the whole thing:
+
+	myRegionTab->minVarXLabel->setText(QString::number(fullDataExtents[0],'g',5));
+	myRegionTab->minVarYLabel->setText(QString::number(fullDataExtents[1],'g',5));
+	myRegionTab->minVarZLabel->setText(QString::number(fullDataExtents[2],'g',5));
+	myRegionTab->maxVarXLabel->setText(QString::number(fullDataExtents[3],'g',5));
+	myRegionTab->maxVarYLabel->setText(QString::number(fullDataExtents[4],'g',5));
+	myRegionTab->maxVarZLabel->setText(QString::number(fullDataExtents[5],'g',5));
+
+	myRegionTab->minXSelectedLabel->setText(QString::number(regionMin[0],'g',5));
+	myRegionTab->minYSelectedLabel->setText(QString::number(regionMin[1],'g',5));
+	myRegionTab->minZSelectedLabel->setText(QString::number(regionMin[2],'g',5));
+	myRegionTab->maxXSelectedLabel->setText(QString::number(regionMax[0],'g',5));
+	myRegionTab->maxYSelectedLabel->setText(QString::number(regionMax[1],'g',5));
+	myRegionTab->maxZSelectedLabel->setText(QString::number(regionMax[2],'g',5));
+
+	//Now produce the corresponding voxel coords:
+	int min_dim[3], max_dim[3];
+	size_t min_bdim[3], max_bdim[3];
+	getRegionVoxelCoords(refLevel,min_dim,max_dim,min_bdim,max_bdim);
+	//If data isn't there, make the region bounds negative
+	if (refLevel > maxRefLevel){
+		for (int i = 0; i< 3; i++){
+			min_dim[i] = 0;
+			max_dim[i] = -1;
+		}
+	}
+		
+	
+	myRegionTab->minXVoxSelectedLabel->setText(QString::number(min_dim[0]));
+	myRegionTab->minYVoxSelectedLabel->setText(QString::number(min_dim[1]));
+	myRegionTab->minZVoxSelectedLabel->setText(QString::number(min_dim[2]));
+	myRegionTab->maxXVoxSelectedLabel->setText(QString::number(max_dim[0]));
+	myRegionTab->maxYVoxSelectedLabel->setText(QString::number(max_dim[1]));
+	myRegionTab->maxZVoxSelectedLabel->setText(QString::number(max_dim[2]));
+
+	if (ses->getDataStatus()){
+		//Entire region size in voxels
+		for (int i = 0; i<3; i++)
+			max_dim[i] = ((ses->getDataStatus()->getFullDataSize(i))>>(numTrans - refLevel))-1;
+	}
+	myRegionTab->minXVoxFullLabel->setText("0");
+	myRegionTab->minYVoxFullLabel->setText("0");
+	myRegionTab->minZVoxFullLabel->setText("0");
+	myRegionTab->maxXVoxFullLabel->setText(QString::number(max_dim[0]));
+	myRegionTab->maxYVoxFullLabel->setText(QString::number(max_dim[1]));
+	myRegionTab->maxZVoxFullLabel->setText(QString::number(max_dim[2]));
+
+	//For now make the variable voxel limits the same:
+	myRegionTab->minXVoxVarLabel->setText("0");
+	myRegionTab->minYVoxVarLabel->setText("0");
+	myRegionTab->minZVoxVarLabel->setText("0");
+	myRegionTab->maxXVoxVarLabel->setText(QString::number(max_dim[0]));
+	myRegionTab->maxYVoxVarLabel->setText(QString::number(max_dim[1]));
+	myRegionTab->maxZVoxVarLabel->setText(QString::number(max_dim[2]));
+
+	if (ses->getCurrentMetadata())
+		bs = *(ses->getCurrentMetadata()->GetBlockSize());
+	//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
+	float newFullMB = (float)(bs*bs*bs*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
+	
+	
+	//divide by 1 million for megabytes, mult by 4 for 4 bytes per voxel:
+	newFullMB /= 262144.f;
+
+	
+	myRegionTab->selectedDataSizeLabel->setText(QString::number(newFullMB,'g',8));
+}
 
 //Update all the panel state associated with textboxes.
-//Then enforce consistency requirements
+//Currently that's just the textboxes associated with sliders.
+//enforce consistency requirements
 //Whenever this affects a slider, move it.
 //
 void RegionParams::
 updatePanelState(){
-	
-	
-	centerPosition[0] = myRegionTab->xCntrEdit->text().toFloat();
-	centerPosition[1] = myRegionTab->yCntrEdit->text().toFloat();
-	centerPosition[2] = myRegionTab->zCntrEdit->text().toFloat();
-	regionSize[0] = myRegionTab->xSizeEdit->text().toFloat();
-	regionSize[1] = myRegionTab->ySizeEdit->text().toFloat();
-	regionSize[2] = myRegionTab->zSizeEdit->text().toFloat();
-	int oldSize = maxSize;
-	maxSize = myRegionTab->maxSizeEdit->text().toInt();
-	//If maxSize changed, need to attempt to adjust everything:
-	//If this is an increase, try to increase other sliders:
-	//
-	bool rgChanged[3];
-	rgChanged[0]=rgChanged[1]=rgChanged[2]=false;
-	if (oldSize < maxSize){
-		for (int i = 0; i< 3; i++) {
-			if (regionSize[i] < maxSize) {
-				regionSize[i] = maxSize;
-				rgChanged[i]=true;
-			}
-		}
-	} else if (maxSize < oldSize) { //likewise for decrease:
-		for (int i = 0; i< 3; i++) {
-			if (regionSize[i] > maxSize){ 
-				regionSize[i] = maxSize;
-				rgChanged[i]=true;
-			}
-		}
-	}
-	for(int i = 0; i< 3; i++)
-		if(enforceConsistency(i))rgChanged[i]=true;
-	
-	if(myRegionTab->xCenterSlider->value() != centerPosition[0])
-		myRegionTab->xCenterSlider->setValue(centerPosition[0]);
-	if(myRegionTab->yCenterSlider->value() != centerPosition[1])
-		myRegionTab->yCenterSlider->setValue(centerPosition[1]);
-	if(myRegionTab->zCenterSlider->value() != centerPosition[2])
-		myRegionTab->zCenterSlider->setValue(centerPosition[2]);
-	if (myRegionTab->xSizeSlider->value() != regionSize[0])
-		myRegionTab->xSizeSlider->setValue(regionSize[0]);
-	if (myRegionTab->ySizeSlider->value() != regionSize[1])
-		myRegionTab->ySizeSlider->setValue(regionSize[1]);
-	if (myRegionTab->zSizeSlider->value() != regionSize[2])
-		myRegionTab->zSizeSlider->setValue(regionSize[2]);
-	if (myRegionTab->maxSizeSlider->value() != maxSize)
-		myRegionTab->maxSizeSlider->setValue(maxSize);
-	if (rgChanged[0]){
-			myRegionTab->xCntrEdit->setText(QString::number(centerPosition[0]));
-			myRegionTab->xSizeEdit->setText(QString::number(regionSize[0]));
-			setCurrentExtents(0);
-	}
-	if (rgChanged[1]){
-			myRegionTab->yCntrEdit->setText(QString::number(centerPosition[1]));
-			myRegionTab->ySizeEdit->setText(QString::number(regionSize[1]));
-			setCurrentExtents(1);
-	}
-	if (rgChanged[2]){
-			myRegionTab->zCntrEdit->setText(QString::number(centerPosition[2]));
-			myRegionTab->zSizeEdit->setText(QString::number(regionSize[2]));
-			setCurrentExtents(2);
-	}
+	float centerPos[3], regSize[3];
+	centerPos[0] = myRegionTab->xCntrEdit->text().toFloat();
+	centerPos[1] = myRegionTab->yCntrEdit->text().toFloat();
+	centerPos[2] = myRegionTab->zCntrEdit->text().toFloat();
+	regSize[0] = myRegionTab->xSizeEdit->text().toFloat();
+	regSize[1] = myRegionTab->ySizeEdit->text().toFloat();
+	regSize[2] = myRegionTab->zSizeEdit->text().toFloat();
+	for (int i = 0; i<3; i++)
+		textToSlider(i,centerPos[i],regSize[i]);
+	refreshRegionInfo();
 	setDirty();
+	
 	//Cancel any response to events generated in this method:
 	//
 	guiSetTextChanged(false);
@@ -229,48 +401,62 @@ void RegionParams::
 setDirty(){
 	VizWinMgr::getInstance()->setRegionDirty(this);
 }
-//Method to make center and size values legitimate for specified dimension
-//Returns true if anything changed.
-//ignores maxSize, since it's just a guideline.
-//
-bool RegionParams::
-enforceConsistency(int dim){
-	bool rc = false;
-	//The region size must be positive, i.e. at least
-	//2 in transformed coords
-	if (regionSize[dim]< (1<<(numTrans+1)))
-		regionSize[dim] = (1<<(numTrans+1));
-	if (regionSize[dim]>fullSize[dim]) {
-		regionSize[dim] =fullSize[dim]; 
-		rc = true;
-	}
-	if (regionSize[dim] > maxSize) {
-		maxSize = regionSize[dim]; 
-	}
-	if (centerPosition[dim]<(1+regionSize[dim])/2) {
-		centerPosition[dim]= (1+regionSize[dim])/2;
-		rc = true;
-	}
-	if (centerPosition[dim]+(1+regionSize[dim])/2 > fullSize[dim]){
-		centerPosition[dim]= fullSize[dim]-(1+regionSize[dim])/2;
-		rc = true;
-	}
-	return rc;
-}
+
 //Methods in support of undo/redo:
 //
-
+//Make region match probe.  Responds to button in region panel
 void RegionParams::
-guiSetNumTrans(int n){
+guiCopyProbeToRegion(){
 	confirmText(false);
-	
-	int newNumTrans = validateNumTrans(n);
-	if (newNumTrans != n) {
-		MessageReporter::warningMsg("%s","Invalid number of Transforms for current region, data cache size");
-		myRegionTab->numTransSpin->setValue(numTrans);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "copy probe to region");
+	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	for (int i = 0; i< 3; i++){
+		regionMin[i] = pParams->getProbeMin(i);
+		regionMax[i] = pParams->getProbeMax(i);
 	}
-	PanelCommand* cmd = PanelCommand::captureStart(this, "set number of Transformations");
-	setNumTrans(newNumTrans);
+	//Note:  the probe may not fit in the region.  UpdateDialog will fix this:
+	updateDialog();
+	setDirty();
+	PanelCommand::captureEnd(cmd,this);
+	
+}
+//Make region match rake.  Responds to button in region panel
+void RegionParams::
+guiCopyRakeToRegion(){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "copy rake to region");
+	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::FlowParamsType);
+	for (int i = 0; i< 3; i++){
+		regionMin[i] = fParams->getSeedRegionMin(i);
+		regionMax[i] = fParams->getSeedRegionMax(i);
+	}
+	updateDialog();
+	setDirty();
+	PanelCommand::captureEnd(cmd,this);
+	
+}
+void RegionParams::
+guiSetVarNum(int n){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set variable");
+	infoVarNum = n;
+	refreshRegionInfo();
+	PanelCommand::captureEnd(cmd, this);
+
+}
+void RegionParams::guiSetTimeStep(int n){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set time step");
+	infoTimeStep = n;
+	refreshRegionInfo();
+	PanelCommand::captureEnd(cmd, this);
+}
+void RegionParams::
+guiSetNumRefinements(int n){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "set number of Refinements");
+	infoNumRefinements = n;
+	refreshRegionInfo();
 	PanelCommand::captureEnd(cmd, this);
 }
 //See if the number of trans is ok.  If not, return an OK value
@@ -281,8 +467,8 @@ validateNumTrans(int n){
 	
 	int min_dim[3], max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
-	float minFull[3], maxFull[3], extents[6];
-	calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, n, minFull, maxFull,  extents);
+	getRegionVoxelCoords(n,min_dim,max_dim,min_bdim,max_bdim);
+	
 	//Size needed for data assumes blocksize = 2**5, 6 bytes per voxel, times 2.
 	size_t newFullMB = (max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1);
 	//right shift by 20 for megavoxels
@@ -303,10 +489,11 @@ validateNumTrans(int n){
 void RegionParams::
 guiSetCenter(float* coords){
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "move region center");
+	const float* extents = Session::getInstance()->getExtents();
 	for (int i = 0; i< 3; i++){
 		float coord = coords[i];
-		float fullMin = getFullDataExtent(i);
-		float fullMax = getFullDataExtent(i+3);
+		float fullMin = extents[i];
+		float fullMax = extents[i+3];
 		if (coord < fullMin) coord = fullMin;
 		if (coord > fullMax) coord = fullMax;
 		float regSize = getRegionMax(i) - getRegionMin(i);
@@ -319,227 +506,129 @@ guiSetCenter(float* coords){
 	VizWinMgr::getInstance()->setRegionDirty(this);
 }
 //Following are set when slider is released:
-//
 void RegionParams::
-guiSetXCenter(int n){
+guiSetXCenter(int sliderval){
 	confirmText(false);
-	
-	//Was there a change?
-	//
-	if (n!= centerPosition[0]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, "change region x-center");
-		centerPosition[0] = n;
-		//If new position is invalid, move the slider back where it belongs:
-		//
-		if (enforceConsistency(0)){
-			myRegionTab->xCenterSlider->setValue(centerPosition[0]);
-		}
-		myRegionTab->xCntrEdit->setText(QString::number(centerPosition[0]));
-		setCurrentExtents(0);
-		//Ignore the resulting textChanged event:
-		//
-		textChangedFlag = false;
-		PanelCommand::captureEnd(cmd,this);
-	}
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide region X center");
+	setXCenter(sliderval);
+	PanelCommand::captureEnd(cmd, this);
 	setDirty();
+	VizWinMgr::getInstance()->setRegionDirty(this);
+}
+//Following are set when slider is released:
+void RegionParams::
+guiSetYCenter(int sliderval){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide region Y center");
+	setYCenter(sliderval);
+	PanelCommand::captureEnd(cmd, this);
+	setDirty();
+	
+}
+//Following are set when slider is released:
+void RegionParams::
+guiSetZCenter(int sliderval){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide region Z center");
+	setZCenter(sliderval);
+	PanelCommand::captureEnd(cmd, this);
+	setDirty();
+	
 }
 
 void RegionParams::
-guiSetXSize(int n){
+guiSetXSize(int sliderval){
 	confirmText(false);
-	
-	//Was there a change?
-	if (n!= regionSize[0]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, "change region x-size");
-		regionSize[0] = n;
-		//If new position is invalid, move the slider back where it belongs, and
-		//potentially move other slider as well
-		//
-		if (enforceConsistency(0)){
-			myRegionTab->xSizeSlider->setValue(regionSize[0]);
-			myRegionTab->xCenterSlider->setValue(centerPosition[0]);
-			myRegionTab->xCntrEdit->setText(QString::number(centerPosition[0]));
-		}
-		myRegionTab->xSizeEdit->setText(QString::number(regionSize[0]));
-		setCurrentExtents(0);
-		//Ignore the resulting textChanged event:
-		//
-		textChangedFlag = false;
-		PanelCommand::captureEnd(cmd,this);
-	}
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide region X size");
+	setXSize(sliderval);
+	PanelCommand::captureEnd(cmd, this);
 	setDirty();
 }
 void RegionParams::
-guiSetYCenter(int n){
+guiSetYSize(int sliderval){
 	confirmText(false);
-	
-	//Was there a change?
-	//
-	if (n!= centerPosition[1]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, "change region y-center");
-		centerPosition[1] = n;
-		//If new position is invalid, move the slider back where it belongs:
-		//
-		if (enforceConsistency(1)){
-			myRegionTab->yCenterSlider->setValue(centerPosition[1]);
-		}
-		myRegionTab->yCntrEdit->setText(QString::number(centerPosition[1]));
-		setCurrentExtents(1);
-		//Ignore the resulting textChanged event:
-		//
-		textChangedFlag = false;
-		PanelCommand::captureEnd(cmd,this);
-	}
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide region Y size");
+	setYSize(sliderval);
+	PanelCommand::captureEnd(cmd, this);
 	setDirty();
 }
+void RegionParams::
+guiSetZSize(int sliderval){
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this,  "slide region Z size");
+	setZSize(sliderval);
+	PanelCommand::captureEnd(cmd, this);
+	setDirty();
+}
+//When the center slider moves, set the seedBoxMin and seedBoxMax
+void RegionParams::
+setXCenter(int sliderval){
+	//new min and max are center -+ size/2.  
+	//center is min + (slider/256)*(max-min)
+	sliderToText(0, sliderval, myRegionTab->xSizeSlider->value());
+	refreshRegionInfo();
+	setDirty();
+}
+void RegionParams::
+setYCenter(int sliderval){
+	sliderToText(1, sliderval, myRegionTab->ySizeSlider->value());
+	refreshRegionInfo();
+	setDirty();
+}
+void RegionParams::
+setZCenter(int sliderval){
+	sliderToText(2, sliderval, myRegionTab->zSizeSlider->value());
+	refreshRegionInfo();
+	setDirty();
+}
+//Min and Max are center -+ size/2
+//size is regionsize*sliderval/256
+void RegionParams::
+setXSize(int sliderval){
+	sliderToText(0, myRegionTab->xCenterSlider->value(),sliderval);
+	refreshRegionInfo();
+	setDirty();
+}
+void RegionParams::
+setYSize(int sliderval){
+	sliderToText(1, myRegionTab->yCenterSlider->value(),sliderval);
+	refreshRegionInfo();
+	setDirty();
+}
+void RegionParams::
+setZSize(int sliderval){
+	sliderToText(2, myRegionTab->zCenterSlider->value(),sliderval);
+	refreshRegionInfo();
+	setDirty();
+}
+void RegionParams::
+guiSetMaxSize(){
+	confirmText(false);
+	
+	PanelCommand* cmd = PanelCommand::captureStart(this, "change region size to max");
+	const float* fullDataExtents = Session::getInstance()->getExtents();
+	for (int i = 0; i<3; i++){
+		regionMin[i] = fullDataExtents[i];
+		regionMax[i] = fullDataExtents[i+3];
+	}
+	updateDialog();
+	PanelCommand::captureEnd(cmd, this);
 
-void RegionParams::
-guiSetYSize(int n){
-	confirmText(false);
-	
-	//Was there a change?
-	if (n!= regionSize[1]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, "change region y-size");
-		regionSize[1] = n;
-		//If new position is invalid, move the slider back where it belongs:
-		//
-		if (enforceConsistency(1)){
-			myRegionTab->ySizeSlider->setValue(regionSize[1]);
-			myRegionTab->yCenterSlider->setValue(centerPosition[1]);
-			myRegionTab->yCntrEdit->setText(QString::number(centerPosition[1]));
-		}
-		myRegionTab->ySizeEdit->setText(QString::number(regionSize[1]));
-		setCurrentExtents(1);
-		//Ignore the resulting textChanged event:
-		//
-		textChangedFlag = false;
-		PanelCommand::captureEnd(cmd, this);
-	}
-	setDirty();
-}
-void RegionParams::
-guiSetZCenter(int n){
-	confirmText(false);
-	
-	//Was there a change?
-	//
-	if (n!= centerPosition[2]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, "change region z-center");
-		centerPosition[2] = n;
-		//If new position is invalid, move the slider back where it belongs:
-		//
-		if (enforceConsistency(2)){
-			myRegionTab->zCenterSlider->setValue(centerPosition[2]);
-		}
-		myRegionTab->zCntrEdit->setText(QString::number(centerPosition[2]));
-		setCurrentExtents(2);
-		//Ignore the resulting textChanged event:
-		//
-		textChangedFlag = false;
-		PanelCommand::captureEnd(cmd, this);
-	}
-	setDirty();
-}
-
-void RegionParams::
-guiSetZSize(int n){
-	confirmText(false);
-	
-	//Was there a change?
-	if (n!= regionSize[2]) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, "change region z-size");
-		regionSize[2] = n;
-		//If new position is invalid, move the slider back where it belongs:
-		//
-		if (enforceConsistency(2)){
-			myRegionTab->zSizeSlider->setValue(regionSize[2]);
-			myRegionTab->zCenterSlider->setValue(centerPosition[2]);
-			myRegionTab->zCntrEdit->setText(QString::number(centerPosition[2]));
-		}
-		myRegionTab->zSizeEdit->setText(QString::number(regionSize[2]));
-		setCurrentExtents(2);
-		//Ignore the resulting textChanged event:
-		//
-		textChangedFlag = false;
-		PanelCommand::captureEnd(cmd, this);
-	}
-	setDirty();
-}
-void RegionParams::
-guiSetMaxSize(int n){
-	confirmText(false);
-	int oldSize = maxSize;
-	bool didChange[3];
-	//Was there a change?
-	//
-	if (n!= maxSize) {
-		PanelCommand* cmd = PanelCommand::captureStart(this, "change region Max Size");
-		maxSize = n;
-		didChange[0] = didChange[1] = didChange[2] = false;
-		//If this is an increase, try to increase other sliders:
-		//
-		if (oldSize < maxSize){
-			for (int i = 0; i< 3; i++) {
-				if (regionSize[i] < maxSize) {
-					regionSize[i] = maxSize;
-					didChange[i] = true;
-				}
-			}
-		} else { //likewise for decrease:
-			for (int i = 0; i< 3; i++) {
-				if (regionSize[i] > maxSize){ 
-					regionSize[i] = maxSize;
-					didChange[i] = true;
-				}
-			}
-		}
-		//Then enforce consistency:
-		//
-		if (enforceConsistency(0)||didChange[0]){
-			myRegionTab->xSizeSlider->setValue(regionSize[0]);
-			myRegionTab->xCenterSlider->setValue(centerPosition[0]);
-			myRegionTab->xSizeEdit->setText(QString::number(regionSize[0]));
-			myRegionTab->xCntrEdit->setText(QString::number(centerPosition[0]));
-			setCurrentExtents(0);
-		}
-		if (enforceConsistency(1)||didChange[1]){
-			myRegionTab->ySizeSlider->setValue(regionSize[1]);
-			myRegionTab->yCenterSlider->setValue(centerPosition[1]);
-			myRegionTab->ySizeEdit->setText(QString::number(regionSize[1]));
-			myRegionTab->yCntrEdit->setText(QString::number(centerPosition[1]));
-			setCurrentExtents(1);
-		}
-		if (enforceConsistency(2)||didChange[2]){
-			myRegionTab->zSizeSlider->setValue(regionSize[2]);
-			myRegionTab->zSizeEdit->setText(QString::number(regionSize[2]));
-			myRegionTab->zCenterSlider->setValue(centerPosition[2]);
-			myRegionTab->zCntrEdit->setText(QString::number(centerPosition[2]));
-			setCurrentExtents(2);
-		}
-		
-		myRegionTab->maxSizeEdit->setText(QString::number(maxSize));
-		//Ignore the resulting textChanged events:
-		textChangedFlag = false;
-		PanelCommand::captureEnd(cmd, this);
-	}
 	setDirty();
 }
 //Reset region settings to initial state
 void RegionParams::
 restart(){
-	numTrans = 0;
-	maxNumTrans = 9;
-	minNumTrans = 0;
-	maxSize = 1024;
-	
+	infoNumRefinements = 0; 
+	infoVarNum = 0;
+	infoTimeStep = 0;
+
+	const float* fullDataExtents = Session::getInstance()->getExtents();
 	
 	savedCommand = 0;
 	for (int i = 0; i< 3; i++){
-		centerPosition[i] = 512;
-		regionSize[i] = 1024;
-		fullSize[i] = 1024;
-		fullDataExtents[i] = Session::getInstance()->getExtents(i);
-		fullDataExtents[i+3] = Session::getInstance()->getExtents(i+3);
+		regionMin[i] = fullDataExtents[i];
+		regionMax[i] = fullDataExtents[i+3];
 	}
 	//If this params is currently being displayed, 
 	//force the current displayed tab to be reset to values
@@ -552,47 +641,54 @@ restart(){
 			updateDialog();
 	}
 }
-//Reinitialize region settings, session has changed:
+//Reinitialize region settings, session has changed
+//Need to force the regionMin, regionMax to be OK.
 void RegionParams::
 reinit(bool doOverride){
 	int i;
 	const Metadata* md = Session::getInstance()->getCurrentMetadata();
-	//Setup the global region parameters based on bounds in Metadata
-	const size_t* dataDim = md->GetDimension();
+	const float* extents = Session::getInstance()->getExtents();
 	
-	//Note:  It's OK to cast to int here:
-	int nx = (int)dataDim[0];
-	int ny = (int)dataDim[1];
-	int nz = (int)dataDim[2];
-	
-	setFullSize(0, nx);
-	setFullSize(1, ny);
-	setFullSize(2, nz);
-	int nlevels = md->GetNumTransforms();
-	int minTrans = Session::getInstance()->getDataStatus()->minXFormPresent();
-	if(minTrans < 0) minTrans = 0; 
-	int maxTrans = nlevels;
-	setMinNumTrans(minTrans);
-	setMaxNumTrans(maxTrans);
 	if (doOverride) {
-		//Start with minTrans, make sure it works with current data
-		numTrans = minTrans;
-		numTrans = validateNumTrans(numTrans);
 		for (i = 0; i< 3; i++) {
-			setRegionSize(i,fullSize[i]);
+			regionMin[i] = extents[i];
+			regionMax[i] = extents[i+3];
 		}
 	} else {
-		//Make sure the numTrans value is available in this dataset
-		if (numTrans > maxNumTrans) numTrans = maxNumTrans;
-		if (numTrans < minNumTrans) numTrans = minNumTrans;
-		//Make sure we really can use the specified numTrans.
-		numTrans = validateNumTrans(numTrans);
-		for (i = 0; i< 3; i++) enforceConsistency(i);
+		//Just force them to fit in current volume 
+		for (i = 0; i< 3; i++) {
+			if (regionMin[i] > regionMax[i]) 
+				regionMax[i] = regionMin[i];
+			if (regionMin[i] > extents[i+3])
+				regionMin[i] = extents[i+3];
+			if (regionMin[i] < extents[i])
+				regionMin[i] = extents[i];
+			if (regionMax[i] > extents[i+3])
+				regionMax[i] = extents[i+3];
+			if (regionMax[i] < extents[i])
+				regionMax[i] = extents[i];
+		}
 	}
 	
-	//Data extents (user coords) are presented read-only in gui
-	//
-	setDataExtents(Session::getInstance()->getExtents());
+	//Set up the combo boxes in the gui based on info in the session:
+	const vector<string>& varNames = md->GetVariableNames();
+	myRegionTab->variableCombo->clear();
+	for (i = 0; i<(int)varNames.size(); i++)
+		myRegionTab->variableCombo->insertItem(varNames[i].c_str());
+	
+	int mints = Session::getInstance()->getMinTimestep();
+	int maxts = Session::getInstance()->getMaxTimestep();
+
+	myRegionTab->timestepSpin->setMinValue(mints);
+	myRegionTab->timestepSpin->setMaxValue(maxts);
+
+	int numRefinements = md->GetNumTransforms();
+	myRegionTab->refinementCombo->setMaxCount(numRefinements+1);
+	myRegionTab->refinementCombo->clear();
+	for (i = 0; i<= numRefinements; i++){
+		myRegionTab->refinementCombo->insertItem(QString::number(i));
+	}
+
 	//If this params is currently being displayed, 
 	//force the current displayed tab to be reset to values
 	//consistent with the params
@@ -605,50 +701,20 @@ reinit(bool doOverride){
 	}
 	setDirty();
 }
-void RegionParams::
-setCurrentExtents(int coord){
-	double regionMin, regionMax;
-	
-	regionMin = fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
-		(centerPosition[coord] - regionSize[coord]*.5)/(double)(fullSize[coord]);
-	regionMax = fullDataExtents[coord] + (fullDataExtents[coord+3]-fullDataExtents[coord])*
-		(centerPosition[coord] + regionSize[coord]*.5)/(double)(fullSize[coord]);
-	switch (coord){
-		case(0):
-			myRegionTab->minXRegion->setText(QString::number(regionMin));
-			myRegionTab->maxXRegion->setText(QString::number(regionMax));
-			break;
-		case (1):
-			myRegionTab->minYRegion->setText(QString::number(regionMin));
-			myRegionTab->maxYRegion->setText(QString::number(regionMax));
-			break;
-		case (2):
-			myRegionTab->minZRegion->setText(QString::number(regionMin));
-			myRegionTab->maxZRegion->setText(QString::number(regionMax));
-			break;
-		default:
-			assert(0);
-	}
-}
+
 void RegionParams::setRegionMin(int coord, float minval){
-	int regionCrd = (int)(fullSize[coord]*((minval - fullDataExtents[coord])/(fullDataExtents[coord+3]- fullDataExtents[coord])));
-	if (regionCrd < 0) regionCrd = 0;
-	if (regionCrd >= centerPosition[coord]+regionSize[coord]/2)
-		regionCrd = centerPosition[coord]+regionSize[coord]/2 -1;
-	int newSize = centerPosition[coord]+regionSize[coord]/2 - regionCrd;
-	int newCenter = centerPosition[coord]+regionSize[coord]/2 - newSize/2;
-	centerPosition[coord] = newCenter;
-	regionSize[coord] = newSize;
+	const float* fullDataExtents = Session::getInstance()->getExtents();
+	if (minval < fullDataExtents[coord]) minval = fullDataExtents[coord];
+	if (minval > fullDataExtents[coord+3]) minval = fullDataExtents[coord+3];
+	if (minval > regionMax[coord]) minval = regionMax[coord];
+	regionMin[coord] = minval;
 }
 void RegionParams::setRegionMax(int coord, float maxval){
-	int regionCrd = (int)(fullSize[coord]*((maxval - fullDataExtents[coord])/(fullDataExtents[coord+3]- fullDataExtents[coord])));
-	if (regionCrd > fullSize[coord]) regionCrd = fullSize[coord];
-	if (regionCrd <= centerPosition[coord]-regionSize[coord]/2)
-		regionCrd = centerPosition[coord]-regionSize[coord]/2 +1;
-	int newSize = regionCrd - (centerPosition[coord]-regionSize[coord]/2);
-	int newCenter = centerPosition[coord]-regionSize[coord]/2 + newSize/2;
-	centerPosition[coord] = newCenter;
-	regionSize[coord] = newSize;
+	const float* fullDataExtents = Session::getInstance()->getExtents();
+	if (maxval < fullDataExtents[coord]) maxval = fullDataExtents[coord];
+	if (maxval > fullDataExtents[coord+3]) maxval = fullDataExtents[coord+3];
+	if (maxval < regionMin[coord]) maxval = regionMin[coord];
+	regionMax[coord] = maxval;
 }
 
 //Save undo/redo state when user grabs a rake handle
@@ -682,7 +748,54 @@ captureMouseUp(){
 	VizWinMgr::getInstance()->refreshRegion(this);
 	
 }
+void RegionParams::
+getRegionVoxelCoords(int numxforms, int min_dim[3], int max_dim[3], 
+		size_t min_bdim[3], size_t max_bdim[3]){
+	int i;
+	const float* fullExtents;
+	const size_t *bs ;
+	const size_t* dataSize;
+	int maxTrans;
+	if (!Session::getInstance()->getCurrentMetadata()){
+		for (i = 0; i<3; i++) {
+			min_dim[i] = 0;
+			max_dim[i] = (1024>>numxforms) -1;
+			min_bdim[i] = 0;
+			max_bdim[i] = (32 >>numxforms) -1;
+		}
+		return;
+	}
+	
+	maxTrans = Session::getInstance()->getCurrentMetadata()->GetNumTransforms();
+	dataSize = Session::getInstance()->getCurrentMetadata()->GetDimension();
+	bs = Session::getInstance()->getCurrentMetadata()->GetBlockSize();
+	fullExtents = Session::getInstance()->getExtents();
+	for(i=0; i<3; i++) {
+		int	s = maxTrans-numxforms;
+		int arraySide = (dataSize[i] >> s) - 1;
+		min_dim[i] = (int) (0.5f+(regionMin[i] - fullExtents[i])*(float)arraySide/
+			(fullExtents[i+3]-fullExtents[i]));
+		max_dim[i] = (int) (0.5f+(regionMax[i] - fullExtents[i])*(float)arraySide/
+			(fullExtents[i+3]-fullExtents[i]));
+		
+		
+		//Make sure slab has nonzero thickness (this can only
+		//be a problem while the mouse is pressed):
+		//
+		if (min_dim[i] >= max_dim[i]){
+			if (max_dim[i] < 1){
+				max_dim[i] = 1;
+				min_dim[i] = 0;
+			}
+			else min_dim[i] = max_dim[i] - 1;
+		}
+		min_bdim[i] = min_dim[i] / bs[i];
+		max_bdim[i] = max_dim[i] / bs[i];
+	}
+	return;
+}
 
+/*
 //Utility to calculate extents based on proposed numtransforms.
 //Uses current region size and center.  Does not change regionParams state.
 //Requires an existing dataMgr
@@ -735,6 +848,7 @@ calcRegionExtents(int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max
 	}
 	return;
 }
+*/
 bool RegionParams::
 elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, const char **attrs){
 	if (StrCmpNoCase(tagString, _regionParamsTag) == 0) {
@@ -752,19 +866,49 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
 				if (value == "true") setLocal(true); else setLocal(false);
 			}
+			/*  No longer support these attributes:
 			else if (StrCmpNoCase(attribName, _maxSizeAttr) == 0) {
 				ist >> maxSize;
 			}
 			else if (StrCmpNoCase(attribName, _numTransAttr) == 0) {
 				ist >> numTrans;
 			}
+			*/
 			else return false;
 		}
 		return true;
 	}
-	//prepare for center position, regionSize nodes
+	//Prepare for region min/max
+	else if ((StrCmpNoCase(tagString, _regionMinTag) == 0) ||
+		(StrCmpNoCase(tagString, _regionMaxTag) == 0) ) {
+		//Should have a double type attribute
+		string attribName = *attrs;
+		attrs++;
+		string value = *attrs;
+
+		ExpatStackElement *state = pm->getStateStackTop();
+		
+		state->has_data = 1;
+		if (StrCmpNoCase(attribName, _typeAttr) != 0) {
+			pm->parseError("Invalid attribute : %s", attribName.c_str());
+			return false;
+		}
+		if (StrCmpNoCase(value, _doubleType) != 0) {
+			pm->parseError("Invalid type : %s", value.c_str());
+			return false;
+		}
+		state->data_type = value;
+		return true;  
+	}
+	//prepare for center position, regionSize nodes (now obsolete!)
 	else if ((StrCmpNoCase(tagString, _regionCenterTag) == 0) ||
 		(StrCmpNoCase(tagString, _regionSizeTag) == 0) ) {
+			ExpatStackElement *state = pm->getStateStackTop();
+		
+			state->has_data = 1;
+			return true;
+		}
+	/*
 		//Should have a long type attribute
 		string attribName = *attrs;
 		attrs++;
@@ -783,7 +927,7 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 		}
 		state->data_type = value;
 		return true;  
-	}
+	}*/
 	else return false;
 }
 bool RegionParams::
@@ -794,19 +938,35 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		ParsedXml* px = pm->popClassStack();
 		bool ok = px->elementEndHandler(pm, depth, tag);
 		return ok;
-	} else if (StrCmpNoCase(tag, _regionCenterTag) == 0){
-		vector<long> posn = pm->getLongData();
-		centerPosition[0] = posn[0];
-		centerPosition[1] = posn[1];
-		centerPosition[2] = posn[2];
+	} 
+	else if (StrCmpNoCase(tag, _regionMinTag) == 0){
+		vector<double> bound = pm->getDoubleData();
+		regionMin[0] = bound[0];
+		regionMin[1] = bound[1];
+		regionMin[2] = bound[2];
+		return true;
+	} else if (StrCmpNoCase(tag, _regionMaxTag) == 0){
+		vector<double> bound = pm->getDoubleData();
+		regionMax[0] = bound[0];
+		regionMax[1] = bound[1];
+		regionMax[2] = bound[2];
+		return true;
+	} 
+	// no longer support these...
+	else if (StrCmpNoCase(tag, _regionCenterTag) == 0){
+		//vector<long> posn = pm->getLongData();
+		//centerPosition[0] = posn[0];
+		//centerPosition[1] = posn[1];
+		//centerPosition[2] = posn[2];
 		return true;
 	} else if (StrCmpNoCase(tag, _regionSizeTag) == 0){
-		vector<long> sz = pm->getLongData();
-		regionSize[0] = sz[0];
-		regionSize[1] = sz[1];
-		regionSize[2] = sz[2];
+		//vector<long> sz = pm->getLongData();
+		//regionSize[0] = sz[0];
+		//regionSize[1] = sz[1];
+		//regionSize[2] = sz[2];
 		return true;
 	}
+	
 	else {
 		pm->parseError("Unrecognized end tag in RegionParams %s",tag.c_str());
 		return false;  
@@ -832,30 +992,22 @@ buildNode(){
 		oss << "false";
 	attrs[_localAttr] = oss.str();
 
-	oss.str(empty);
-	oss << (long)numTrans;
-	attrs[_numTransAttr] = oss.str();
-
-	oss.str(empty);
-	oss << (long)maxSize;
-	attrs[_maxSizeAttr] = oss.str();
-
 	XmlNode* regionNode = new XmlNode(_regionParamsTag, attrs, 2);
 
 	//Now add children:  
 	
-	vector<long> longvec;
+	vector<double> bounds;
 	int i;
-	longvec.clear();
+	bounds.clear();
 	for (i = 0; i< 3; i++){
-		longvec.push_back((long) centerPosition[i]);
+		bounds.push_back((double) regionMin[i]);
 	}
-	regionNode->SetElementLong(_regionCenterTag,longvec);
-	longvec.clear();
+	regionNode->SetElementDouble(_regionMinTag,bounds);
+	bounds.clear();
 	for (i = 0; i< 3; i++){
-		longvec.push_back((long) regionSize[i]);
+		bounds.push_back((double) regionMax[i]);
 	}
-	regionNode->SetElementLong(_regionSizeTag, longvec);	
+	regionNode->SetElementDouble(_regionMaxTag,bounds);
 		
 	return regionNode;
 }
