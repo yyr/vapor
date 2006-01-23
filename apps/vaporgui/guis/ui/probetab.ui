@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>450</width>
+            <width>435</width>
             <height>1113</height>
         </rect>
     </property>
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout81</cstring>
+                <cstring>layout83</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -52,7 +52,7 @@
                 </property>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout133</cstring>
+                        <cstring>layout82</cstring>
                     </property>
                     <hbox>
                         <property name="name">
@@ -108,7 +108,7 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>21</width>
+                                    <width>34</width>
                                     <height>21</height>
                                 </size>
                             </property>
@@ -121,15 +121,45 @@
                                 <string>Refinement</string>
                             </property>
                         </widget>
-                        <widget class="QSpinBox">
+                        <widget class="QComboBox">
+                            <item>
+                                <property name="text">
+                                    <string>0</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>1</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>2</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>3</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>4</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>5</string>
+                                </property>
+                            </item>
                             <property name="name">
-                                <cstring>numTransSpin</cstring>
+                                <cstring>refinementCombo</cstring>
                             </property>
-                            <property name="maxValue">
+                            <property name="sizeLimit">
                                 <number>10</number>
                             </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Specify the number of power-of-two refinements of the data</string>
+                            <property name="maxCount">
+                                <number>5</number>
                             </property>
                         </widget>
                         <spacer>
@@ -144,7 +174,7 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>20</width>
+                                    <width>34</width>
                                     <height>21</height>
                                 </size>
                             </property>
@@ -1211,7 +1241,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>22</height>
+                            <height>21</height>
                         </size>
                     </property>
                 </spacer>

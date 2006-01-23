@@ -6,7 +6,7 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>0</x>
+            <x>5</x>
             <y>0</y>
             <width>450</width>
             <height>673</height>
@@ -40,14 +40,14 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout100</cstring>
+            <cstring>layout308</cstring>
         </property>
         <property name="geometry">
             <rect>
                 <x>12</x>
                 <y>12</y>
-                <width>430</width>
-                <height>633</height>
+                <width>420</width>
+                <height>651</height>
             </rect>
         </property>
         <vbox>
@@ -194,7 +194,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>16</height>
+                        <height>26</height>
                     </size>
                 </property>
             </spacer>
@@ -417,20 +417,10 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>16</height>
+                        <height>26</height>
                     </size>
                 </property>
             </spacer>
-            <widget class="QLayoutWidget">
-                <property name="name">
-                    <cstring>layout15</cstring>
-                </property>
-                <hbox>
-                    <property name="name">
-                        <cstring>unnamed</cstring>
-                    </property>
-                </hbox>
-            </widget>
             <widget class="QLayoutWidget">
                 <property name="name">
                     <cstring>layout54</cstring>
@@ -530,7 +520,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>16</height>
+                        <height>26</height>
                     </size>
                 </property>
             </spacer>
@@ -893,7 +883,7 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>16</height>
+                        <height>26</height>
                     </size>
                 </property>
             </spacer>
@@ -965,64 +955,54 @@
                 <property name="sizeHint">
                     <size>
                         <width>20</width>
-                        <height>16</height>
+                        <height>26</height>
                     </size>
                 </property>
             </spacer>
-            <widget class="QLayoutWidget">
+            <widget class="QPushButton">
                 <property name="name">
-                    <cstring>layout13_2</cstring>
+                    <cstring>copyToButton</cstring>
                 </property>
-                <hbox>
-                    <property name="name">
-                        <cstring>unnamed</cstring>
+                <property name="enabled">
+                    <bool>false</bool>
+                </property>
+                <property name="text">
+                    <string>Copy Settings to </string>
+                </property>
+                <property name="toolTip" stdset="0">
+                    <string>Copy these viewpoint/light settings to the global or another local or global viewpoint/lights panel</string>
+                </property>
+            </widget>
+            <widget class="QComboBox">
+                <item>
+                    <property name="text">
+                        <string>Global</string>
                     </property>
-                    <widget class="QPushButton">
-                        <property name="name">
-                            <cstring>copyToButton</cstring>
-                        </property>
-                        <property name="enabled">
-                            <bool>false</bool>
-                        </property>
-                        <property name="text">
-                            <string>Copy Settings to </string>
-                        </property>
-                        <property name="toolTip" stdset="0">
-                            <string>Copy these viewpoint/light settings to the global or another local or global viewpoint/lights panel</string>
-                        </property>
-                    </widget>
-                    <widget class="QComboBox">
-                        <item>
-                            <property name="text">
-                                <string>Global</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>Visualizer 0</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>Visualizer 2</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>Visualizer 3</string>
-                            </property>
-                        </item>
-                        <property name="name">
-                            <cstring>copyTargetCombo</cstring>
-                        </property>
-                        <property name="enabled">
-                            <bool>false</bool>
-                        </property>
-                        <property name="toolTip" stdset="0">
-                            <string>Copy these viewpoint/light settings to the global or another local or global viewpoint/lights panel</string>
-                        </property>
-                    </widget>
-                </hbox>
+                </item>
+                <item>
+                    <property name="text">
+                        <string>Visualizer 0</string>
+                    </property>
+                </item>
+                <item>
+                    <property name="text">
+                        <string>Visualizer 2</string>
+                    </property>
+                </item>
+                <item>
+                    <property name="text">
+                        <string>Visualizer 3</string>
+                    </property>
+                </item>
+                <property name="name">
+                    <cstring>copyTargetCombo</cstring>
+                </property>
+                <property name="enabled">
+                    <bool>false</bool>
+                </property>
+                <property name="toolTip" stdset="0">
+                    <string>Copy these viewpoint/light settings to the global or another local or global viewpoint/lights panel</string>
+                </property>
             </widget>
         </vbox>
     </widget>
