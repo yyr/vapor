@@ -29,6 +29,7 @@
 #include "mainform.h"
 #include <vector>
 #include <string>
+#include <map>
 class Dvr;
 
 namespace VAPoR{
@@ -41,6 +42,16 @@ class XmlNode;
 class DvrParams : public Params{
 	
 public: 
+
+    enum DvrType
+    {
+      DVR_TEXTURE3D_LOOKUP,
+      DVR_TEXTURE3D_SHADER,
+      DVR_VOLUMIZER,   
+      DVR_DEBUG,
+      DVR_STRETCHED_GRID,
+    };
+
 	DvrParams(int winnum);
 	~DvrParams();
 	virtual Params* deepCopy();
@@ -98,6 +109,8 @@ public:
 	virtual float* getCurrentDatarange(){
 		return currentDatarange;
 	}
+    
+    void initTypes();
 	void setDatarangeDirty();
 
 	float (&getClut())[256][4] {
@@ -160,6 +173,7 @@ public:
 	//Methods with undo/redo support:
 	//
 	virtual void guiSetEnabled(bool value);
+    void guiSetType(int val);
 	void guiSetVarNum(int val);
 	void guiSetNumBits(int val);
 	void guiSetLighting(bool val);
@@ -204,6 +218,10 @@ protected:
 	void refreshCtab();
 	void hookupTF(TransferFunction* t, int index);
 	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);
+
+    DvrType type;
+    std::map<int, DvrType> typemap;
+
 	bool attenuationDirty;
 	bool lightingOn;
 	float currentDatarange[2];

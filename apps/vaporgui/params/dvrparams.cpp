@@ -61,11 +61,7 @@
 #include <math.h>
 #include <vapor/Metadata.h>
 
-#ifdef VOLUMIZER
-#include "volumizerrenderer.h"
-#else 
 #include "VolumeRenderer.h"
-#endif
 
 
 
@@ -77,7 +73,8 @@ const string DvrParams::_histoStretchAttr = "HistoStretchFactor";
 
 
 
-DvrParams::DvrParams(int winnum) : Params(winnum){
+DvrParams::DvrParams(int winnum) : Params(winnum)
+{
 	thisParamType = DvrParamsType;
 	myDvrTab = MainForm::getInstance()->getDvrTab();
 
@@ -224,7 +221,6 @@ void DvrParams::updateDialog(){
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
 	VizWinMgr::getInstance()->getTabManager()->update();
-		
 }
 //Update all the panel state associated with textboxes.
 //Performed whenever a textbox changes
@@ -348,6 +344,16 @@ guiSetEnabled(bool value){
 	myDvrTab->DvrTFFrame->update();
 	//updateRenderer(prevEnabled, local, false); (unnecessary; called by vizwinmgr)
 }
+
+void DvrParams::
+guiSetType(int val)
+{ 
+  type = typemap[val]; 
+  
+  //myDvrTab->lightingCheckbox->setEnabled(type == DVR_TEXTURE3D_SHADER);
+}
+
+
 void DvrParams::
 guiSetVarNum(int val){
 	if (val == varNum) return;
@@ -513,11 +519,9 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 
 	
 	if (nowEnabled && !prevEnabled && newLocal){//For case 2.:  create a renderer in the active window:
-#ifdef VOLUMIZER
-		VolumizerRenderer* myDvr = new VolumizerRenderer(viz);
-#else
-		VolumeRenderer* myDvr = new VolumeRenderer(viz);
-#endif
+
+		VolumeRenderer* myDvr = new VolumeRenderer(viz, type);
+
 		viz->appendRenderer(myDvr, DvrParamsType);
 
 		//force the renderer to refresh region data  (why?)
@@ -535,12 +539,11 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 			
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
-#ifdef VOLUMIZER
-				VolumizerRenderer* myDvr = new VolumizerRenderer(viz);
-#else
-				VolumeRenderer* myDvr = new VolumeRenderer(viz);
-#endif
+
+				VolumeRenderer* myDvr = new VolumeRenderer(viz, type);
+
 				viz->appendRenderer(myDvr, DvrParamsType);
+
 				//force the renderer to refresh region data (??)
 				viz->setRegionDirty(true);
 				setClutDirty();
@@ -743,6 +746,9 @@ restart(){
 	setEnabled(false);
 	setClutDirty();
 	setDatarangeDirty();
+
+    type = DVR_TEXTURE3D_LOOKUP;
+    
 	//If dvr is the current front tab, and if it applies to the active visualizer,
 	//update its values
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myDvrTab)) {
@@ -752,6 +758,51 @@ restart(){
 			updateDialog();
 	}
 }
+
+// Method to initialize the DVR types available to the user.
+void DvrParams::initTypes()
+{
+  int index = 0;
+
+  typemap.clear();
+
+  if (myDvrTab == NULL) return;
+
+  myDvrTab->typeCombo->clear();
+
+  if (VolumeRenderer::supported(DVR_TEXTURE3D_LOOKUP))
+  {
+    myDvrTab->typeCombo->insertItem("3DTexture", index);
+    typemap[index++] = DVR_TEXTURE3D_LOOKUP;
+  }
+
+  if (VolumeRenderer::supported(DVR_TEXTURE3D_SHADER))
+  {
+    myDvrTab->typeCombo->insertItem("3DTexture-Shader", index);
+    typemap[index++] = DVR_TEXTURE3D_SHADER;
+  }
+
+  if (VolumeRenderer::supported(DVR_VOLUMIZER))
+  {
+    myDvrTab->typeCombo->insertItem("Volumizer", index);
+    typemap[index++] = DVR_VOLUMIZER;
+  }
+
+  if (VolumeRenderer::supported(DVR_DEBUG))
+  {
+    myDvrTab->typeCombo->insertItem("Debug", index);
+    typemap[index++] = DVR_DEBUG;
+  }
+
+  if (VolumeRenderer::supported(DVR_STRETCHED_GRID))
+  {
+    myDvrTab->typeCombo->insertItem("Stretched Grid", index);
+    typemap[index++] = DVR_STRETCHED_GRID;
+  }
+  
+  myDvrTab->typeCombo->setCurrentItem(0);
+}
+
 //Method to invalidate a datarange, and to force a rendering
 //with new data quantization
 void DvrParams::
