@@ -1,11 +1,12 @@
 RENDER_FILES := \
-	DVRBase DVRDebug DVRVolumizer \
+	DVRBase DVRDebug \
 	glbox glutil glwindow renderer \
 	glprobewindow manip\
 	trackball vizwin flowrenderer \
 	VolumeRenderer BBox ShaderProgram \
-	volumizerrenderer \
-	Vect3d Matrix3d Stopwatch DVRTexture3d 
+	Vect3d Matrix3d Stopwatch DVRTexture3d \
+	DVRShader DVRLookup DVRVolumizer 
+# volumizerrenderer 
 
 RENDER_QT_HEADERS := \
 	glbox renderer flowrenderer \

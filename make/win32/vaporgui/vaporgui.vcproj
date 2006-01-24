@@ -168,7 +168,13 @@
 				RelativePath="..\..\..\apps\vaporgui\render\DVRDebug.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\DVRLookup.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\params\dvrparams.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\render\DVRShader.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\render\DVRTexture3d.cpp">
@@ -401,7 +407,13 @@
 				RelativePath="..\..\..\apps\vaporgui\render\DVRDebug.h">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\DVRLookup.h">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\params\dvrparams.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\render\DVRShader.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\render\DVRTexture3d.h">

@@ -26,10 +26,9 @@
 #include "DVRBase.h"
 #include "renderer.h"
 #include "vizwin.h"
+#include "dvrparams.h"
 
 namespace VAPoR {
-
-  class DvrParams;
 
   class VolumeRenderer : public Renderer 
   {
@@ -37,19 +36,22 @@ namespace VAPoR {
       
   public:
 
-    VolumeRenderer(VizWin *w);
-    ~VolumeRenderer();
+    VolumeRenderer(VizWin *w, DvrParams::DvrType type);
+    virtual ~VolumeRenderer();
     
 	virtual void initializeGL();
     virtual void paintGL();
 
+    static bool supported(DvrParams::DvrType type);
+
   protected:
     
-    DVRBase* create_driver(const char *name, int nthreads);
+    DVRBase* create_driver(DvrParams::DvrType type, int nthreads);
 
   private:
   
     DVRBase* driver;
+    DvrParams::DvrType _type;
 
     void DrawVoxelScene(unsigned fast);
     void DrawVoxelWindow(unsigned fast);

@@ -17,6 +17,7 @@
 //	Description:  Implementation of GLWindow class: 
 //		It performs the opengl rendering for visualizers
 //
+#include <GL/glew.h>
 
 #include "glwindow.h"
 #include "trackball.h"
@@ -24,6 +25,7 @@
 #include "vizwin.h"
 #include "renderer.h"
 #include "viewpointparams.h"
+#include "dvrparams.h"
 #include "vizwinmgr.h"
 #include "animationcontroller.h"
 #include "manip.h"
@@ -315,6 +317,8 @@ void GLWindow::draw3DCursor(float position[3]){
 
 void GLWindow::initializeGL()
 {
+    glewInit();
+
     qglClearColor(myVizWin->getBackgroundColor()); 		// Let OpenGL clear to black
 	//Initialize existing renderers:
 	//
@@ -322,7 +326,12 @@ void GLWindow::initializeGL()
 		myVizWin->renderer[i]->initializeGL();
 	}
     
+    //
+    // Initialize the graphics-dependent dvrparam state
+    //
+    VizWinMgr::getInstance()->getDvrParams(myVizWin->getWindowNum())->initTypes();
 }
+
 //projectPoint returns true if point is in front of camera
 //resulting screen coords returned in 2nd argument.  Note that
 //OpenGL coords are 0 at bottom of window!

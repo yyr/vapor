@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -44,14 +43,14 @@
 #include <qmessagebox.h>
 
 #include "VolumeRenderer.h"
-#include "dvrparams.h"
 #include "regionparams.h"
 #include "animationparams.h"
 #include "viewpointparams.h"
 #include "vizwin.h"
 #include "vizwinmgr.h"
 #include "glwindow.h"
-#include "DVRTexture3d.h"
+#include "DVRLookup.h"
+#include "DVRShader.h"
 #include "DVRVolumizer.h"
 #include "DVRDebug.h"
 #include "renderer.h"
@@ -70,10 +69,13 @@ using namespace VetsUtil;
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-VolumeRenderer::VolumeRenderer(VizWin* vw) : Renderer(vw) 
+VolumeRenderer::VolumeRenderer(VizWin* vw, DvrParams::DvrType type) 
+  : Renderer(vw),
+    driver(NULL),
+    _type(type)
 {
   //Construct dvrvolumizer
-  driver = create_driver("t3d",1);
+  driver = create_driver(type, 1);
 }
 
 //----------------------------------------------------------------------------
@@ -82,6 +84,7 @@ VolumeRenderer::VolumeRenderer(VizWin* vw) : Renderer(vw)
 VolumeRenderer::~VolumeRenderer()
 {
   delete driver;
+  driver = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -106,36 +109,89 @@ void VolumeRenderer::paintGL()
 }
 
 //----------------------------------------------------------------------------
+// static
+//----------------------------------------------------------------------------
+bool VolumeRenderer::supported(DvrParams::DvrType type)
+{
+  switch (type)
+  {
+     case DvrParams::DVR_TEXTURE3D_LOOKUP:
+     {
+       return DVRLookup::supported();
+     }
+
+     case DvrParams::DVR_TEXTURE3D_SHADER:
+     {
+       return DVRShader::supported();
+     }
+
+     case DvrParams::DVR_VOLUMIZER:
+     {
+#    ifdef VOLUMIZER
+       return true;
+#    else
+       return false;
+#    endif
+     }
+
+     case DvrParams::DVR_DEBUG:
+     {
+#    ifdef DEBUG
+       return true;
+#    else
+       return false;
+#    endif
+     }
+
+     case DvrParams::DVR_STRETCHED_GRID:
+     {
+#    ifdef STRETCHEDGRID
+          return true;
+#    else
+          return false;
+#    endif
+     }
+  }
+
+  return false;
+}
+
+//----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-DVRBase* VolumeRenderer::create_driver(const char *name, int)
+DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
 {
-  int* argc = 0;
+  int argc = 0;
   char** argv = 0;
   DVRBase::DataType_T type = DVRBase::UINT8;
   DVRBase *driver = NULL;
 
-  if (strcmp(name, "t3d") == 0) 
+  if (dvrType == DvrParams::DVR_TEXTURE3D_LOOKUP) 
   {
-    driver = new DVRTexture3d(argc, argv, type, 1);
+    driver = new DVRLookup(type, 1);
+  }
+
+  else if (dvrType == DvrParams::DVR_TEXTURE3D_SHADER)
+  {
+    driver = new DVRShader(type, 1);
   }
 
 #ifdef VOLUMIZER
-  else if (strcmp(name, "vz") == 0) 
+  else if (dvrType == DvrParams::DVR_VOLUMIZER)
   {
-    driver = new DVRVolumizer(argc, argv, type, 1);
+    driver = new DVRVolumizer(&argc, argv, type, 1);
   }
 #endif
 
-  else if (strcmp(name, "debug") == 0)
+  else if (dvrType == DvrParams::DVR_DEBUG)
   {
-    driver = new DVRDebug(argc, argv, type, 1);
+    driver = new DVRDebug(&argc, argv, type, 1);
   }
   
-#ifdef	STRETCHEDGRID
-  else if (strcmp(name, "sg") == 0) 
+#ifdef	DVR_STRETCHEDGRID
+  else if (dvrType == DvrParams::DVR_STRETCHED_GRID)
   {
-    driver = new DVRStretchedGrid(argc, argv, type, nthreads);
+    driver = new DVRStretchedGrid(&argc, argv, type, nthreads);
   }
 #endif
   else 
@@ -151,10 +207,10 @@ DVRBase* VolumeRenderer::create_driver(const char *name, int)
     driver->SetErrCode(0);
     return NULL;
   }
-
+  
   return(driver);
 }
-
+ 
 
 //----------------------------------------------------------------------------
 //
@@ -304,7 +360,12 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     myGLWindow->setRenderNew();
     //Same table sets CLUT and OLUT
     //
-    //driver->SetCLUT(myDVRParams->getClut());
+
+    if (_type == DvrParams::DVR_VOLUMIZER)
+    {
+      driver->SetCLUT(myDVRParams->getClut());
+    }
+
     driver->SetOLUT(myDVRParams->getClut(), 
                     Session::getInstance()->getCurrentMetadata()->GetNumTransforms() - numxforms);
 
@@ -336,12 +397,10 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //
   glMatrixMode(GL_MODELVIEW);
 
-#ifdef VOLUMIZER
-  if (dynamic_cast<DVRVolumizer*>(driver))
+  if (_type == DvrParams::DVR_VOLUMIZER)
   {
     glLoadIdentity();
   }
-#endif
 
   //Make the z-buffer read-only for the volume data
   glDepthMask(GL_FALSE);
@@ -370,7 +429,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   myVizWin->setRegionNavigating(false);
 }
 
-
 void VolumeRenderer::DrawVoxelWindow(unsigned fast)
 {
 #ifdef DEBUG_FPS
@@ -384,6 +442,7 @@ void VolumeRenderer::DrawVoxelWindow(unsigned fast)
   frames++;
 
   DrawVoxelScene(fast);
+  glFinish();
 
   seconds += frameTimer.read();
 
@@ -393,6 +452,7 @@ void VolumeRenderer::DrawVoxelWindow(unsigned fast)
     frames=0;
     seconds=0;
   }
+
 
 #else
 

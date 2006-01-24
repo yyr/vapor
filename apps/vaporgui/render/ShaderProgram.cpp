@@ -37,6 +37,15 @@ ShaderProgram::ShaderProgram()
 //----------------------------------------------------------------------------
 ShaderProgram::~ShaderProgram()
 {
+  std::list<GLuint>::iterator iter;
+
+  for (iter=_shaders.begin(); iter != _shaders.end(); iter++)
+  {
+    GLuint shader = *iter;
+
+    glDeleteShader(shader);
+  }
+
   glDeleteProgram(_program);
 }
 
@@ -66,6 +75,9 @@ bool ShaderProgram::loadFragmentShader(const char *filename)
 //----------------------------------------------------------------------------
 bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
 {
+  int length = 2896;
+  static int count = 0;
+
   GLuint shader;
 
   //
@@ -86,9 +98,12 @@ bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
   // Create a shader object, and load it's source
   //
   QByteArray buffer = file.readAll();
+  file.flush();
+
   const GLchar *sourceBuffer = (const GLchar*)buffer.data();
+  int size = buffer.size();
   shader = glCreateShader(shaderType);
-  glShaderSource(shader, 1, &sourceBuffer, NULL);
+  glShaderSource(shader, 1, &sourceBuffer, &size);
   printOpenGLError();
 
   //
@@ -98,6 +113,8 @@ bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
   printOpenGLError();
 
   _shaders.push_back(shader);
+ 
+  file.close();
 
   return true;
 }
@@ -107,7 +124,7 @@ bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
 //----------------------------------------------------------------------------
 bool ShaderProgram::loadVertexSource(const char *source)
 {
-  return loadShader(source, GL_VERTEX_SHADER);
+  return loadSource(source, GL_VERTEX_SHADER);
 }
 
 
@@ -116,7 +133,7 @@ bool ShaderProgram::loadVertexSource(const char *source)
 //----------------------------------------------------------------------------
 bool ShaderProgram::loadFragmentSource(const char *source)
 {
-  return loadShader(source, GL_FRAGMENT_SHADER);
+  return loadSource(source, GL_FRAGMENT_SHADER);
 }
 
 //----------------------------------------------------------------------------
@@ -129,9 +146,10 @@ bool ShaderProgram::loadSource(const char *source, GLenum shaderType)
   //
   // Create a shader object, and load it's source
   //
+  int length = strlen(source);
   const GLchar *sourceBuffer = (const GLchar*)source;
   shader = glCreateShader(shaderType);
-  glShaderSource(shader, 1, &sourceBuffer, NULL);
+  glShaderSource(shader, 1, &sourceBuffer, &length);
   printOpenGLError();
 
   //
@@ -283,11 +301,7 @@ GLint ShaderProgram::uniformLocation(const char *uniformName)
 //----------------------------------------------------------------------------
 bool ShaderProgram::supported()
 {
-#if defined(GL_ARB_fragment_shader)
-  return true;
-#else
-  return false;
-#endif
+  return (GLEW_ARB_fragment_shader);
 }
 
 

@@ -3,6 +3,9 @@
 // Copyright (C) 2005 Kenny Gruchalla.  All rights reserved.
 //
 // Volume rendering engine based on 3d-textured view aligned slices. 
+// Provides proxy geometry, color lookup should be provided by derived 
+// classes. Derived classes must to initialize the data and texture
+// extents. 
 //
 //----------------------------------------------------------------------------
 
@@ -14,7 +17,6 @@
 #include "DVRTexture3d.h"
 #include "messagereporter.h"
 
-#include "ShaderProgram.h"
 #include "BBox.h"
 #include "glutil.h"
 
@@ -26,16 +28,8 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-DVRTexture3d::DVRTexture3d(int * , char **, DataType_T type, int nthreads) :
-  _data(NULL),
-  //_shader(NULL),
-  _colormap(NULL),
-  _delta(0.0),
-  _texid(0),
-  _cmapid(0),
-  _nx(0),
-  _ny(0),
-  _nz(0)
+DVRTexture3d::DVRTexture3d(DataType_T type, int nthreads) :
+  _delta(0.0)
 {
   if (type != UINT8) 
   {
@@ -50,76 +44,16 @@ DVRTexture3d::DVRTexture3d(int * , char **, DataType_T type, int nthreads) :
 //----------------------------------------------------------------------------
 DVRTexture3d::~DVRTexture3d() 
 {
-
-}
-
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-int DVRTexture3d::GraphicsInit() 
-{
-  glewInit();
-
-  initTextures();
-
-  //
-  // Create, Load & Compile the shader program
-  //
-  //_shader = new ShaderProgram();
-  //_shader->create();
-
-  //if (!_shader->loadFragmentShader("volume.frag"))
-  //{
-  //  BailOut("OpenGL: Could not open file volume.frag",__FILE__,__LINE__);
-  //}
-
-  //if (!_shader->compile())
-  //{
-  //  return -1;
- // }
-
-  //
-  // Set up initial uniform values
-  //
-  //_shader->enable();
-  //glUniform1i(_shader->uniformLocation("colormap"), 1);
-  //glUniform1i(_shader->uniformLocation("volumeTexture"), 0);
-  //glUniform1i(_shader->uniformLocation("shading"), 0);
-  //_shader->disable();
-
-  return 0;
 }
 
 //----------------------------------------------------------------------------
-//
+// Derived classes should call this function to ensure that the data and
+// texture extents are being set. 
 //----------------------------------------------------------------------------
-int DVRTexture3d::SetRegion(void *data,
-                            int nx, int ny, int nz,
-                            const int data_roi[6],
-                            const float extents[6]) 
+int DVRTexture3d::SetRegion(void *, int nx, int ny, int nz,
+                                  const int data_roi[6],
+                                  const float extents[6]) 
 { 
-  glActiveTexture(GL_TEXTURE0);
-
-  if (_nx != nx || _ny != ny || _nz != nz)
-  {
-    _nx = nx; _ny = ny; _nz = nz;
-
-   // _shader->enable();
-   // glUniform3f(_shader->uniformLocation("dimensions"), nx, ny, nz);
-   // _shader->disable();
-
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, _nx, _ny, _nz, 0, GL_LUMINANCE,
-                 GL_UNSIGNED_BYTE, data);
-  }
-  else if (_data != data)
-  {
-    _data = data;
-
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, GL_LUMINANCE,
-                    GL_UNSIGNED_BYTE, data);  
-  }
-
   _vmin.x = extents[0]; _vmin.y = extents[1]; _vmin.z = extents[2];
   _vmax.x = extents[3]; _vmax.y = extents[4]; _vmax.z = extents[5];
 
@@ -131,193 +65,10 @@ int DVRTexture3d::SetRegion(void *data,
   _tmax.y = (float)data_roi[4]/ny; 
   _tmax.z = (float)data_roi[5]/nz;
   
-  _delta = fabs(extents[2]-extents[5]) / _nz; 
-
-  glFlush();
+  _delta = fabs(extents[2]-extents[5]) / nz; 
 
   return 0;
 }
-
-
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-int DVRTexture3d::Render(const float matrix[16])
-
-{
-  //_shader->enable();
-
-  glEnable(GL_CULL_FACE);
-  glPolygonMode(GL_FRONT, GL_FILL);
-  glPolygonMode(GL_BACK, GL_LINE);
-
-  glActiveTexture(GL_TEXTURE0);
-  glEnable(GL_TEXTURE_3D);
-  glBindTexture(GL_TEXTURE_3D, _texid);
-
-  glEnable(GL_TEXTURE_1D);
-
-  glEnable(GL_BLEND);
-  glBlendEquation(GL_FUNC_ADD);  
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  glEnable(GL_DEPTH_TEST);
-  glDepthMask(GL_FALSE);
-
-  drawViewAlignedSlices();
-
-  glDisable(GL_BLEND);
-  glDisable(GL_TEXTURE_3D);
-  glDisable(GL_TEXTURE_1D);
-
-  glDepthMask(GL_TRUE);
-
-  //_shader->disable();
-
-  return 0;
-}
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-int DVRTexture3d::HasType(DataType_T type) 
-{
-  if (type == UINT8) 
-    return(1);
-  else 
-    return(0);
-}
-
-//----------------------------------------------------------------------------
-// Set the color table used to render the volume without any opacity 
-// correction.
-//----------------------------------------------------------------------------
-void DVRTexture3d::SetCLUT(const float ctab[256][4]) 
-{
-  for (int i=0; i<256; i++)
-  {
-    _colormap[i*4+0] = ctab[i][0];
-    _colormap[i*4+1] = ctab[i][1];
-    _colormap[i*4+2] = ctab[i][2];
-    _colormap[i*4+3] = ctab[i][3];
-  }
-
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_1D, _cmapid);
-  
-  glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA,
-                  GL_FLOAT, _colormap);
-}
-
-//----------------------------------------------------------------------------
-// Set the color table used to render the volume applying an opacity 
-// correction.
-//----------------------------------------------------------------------------
-void DVRTexture3d::SetOLUT(const float atab[256][4], const int numRefinements)
-{
-  //
-  // Calculate opacity correction. Delta is 1 for the fineest refinement, 
-  // multiplied by 2^n (the sampling distance)
-  //
-  double delta = (double)(1<<numRefinements);
-
-  for(int i=0; i<256; i++) 
-  {
-    double opac = atab[i][3];
-
-    opac = 1.0 - pow((1.0 - opac), delta);
-  
-    if (opac > 1.0)
-    {
-      opac = 1.0;
-    }
-
-    _colormap[i*4+0] = atab[i][0];
-    _colormap[i*4+1] = atab[i][1];
-    _colormap[i*4+2] = atab[i][2];
-    _colormap[i*4+3] = opac;
-  }
-
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_1D, _cmapid);
-  
-  glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA,
-                  GL_FLOAT, _colormap);
-
-  glFlush();
-}
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-void DVRTexture3d::SetLightingOnOff(int on) 
-{
- // _shader->enable();
-
- // glUniform1i(_shader->uniformLocation("shading"), on);
-
-  //_shader->enable();
-}
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-void DVRTexture3d::SetLightingCoeff(float kd, float ka, float ks, float expS)
-{
-  //_shader->enable();
-
- // glUniform1f(_shader->uniformLocation("kd"), kd);
- // glUniform1f(_shader->uniformLocation("ka"), ka);
- // glUniform1f(_shader->uniformLocation("ks"), ks);
- // glUniform1f(_shader->uniformLocation("expS"), expS);
-
- // _shader->enable();
-}
-
-
-//----------------------------------------------------------------------------
-// Initalize the textures (i.e., 3d volume texture and the 1D colormap texture)
-//----------------------------------------------------------------------------
-void DVRTexture3d::initTextures()
-{
-  //
-  // Setup the 3d texture
-  //
-  glGenTextures(1, &_texid);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_3D, _texid);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  
-
-  // Set texture border behavior
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  
-  // Set texture interpolation method
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-  //
-  // Setup the colormap texture
-  //
-  glGenTextures(1, &_cmapid);
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_1D, _cmapid);
-
-  _colormap = new float[256*4];
-  
-  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 256, 0, GL_RGBA,
-               GL_FLOAT, _colormap);
-
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-
-  glFlush();
-}
-
 
 //----------------------------------------------------------------------------
 // Draw the proxy geometry
