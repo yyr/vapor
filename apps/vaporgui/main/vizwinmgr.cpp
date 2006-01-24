@@ -733,6 +733,7 @@ void
 VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
 {
 	myDvrTab = dvrTab;
+	connect (dvrTab->typeCombo, SIGNAL(activated(int)), this, SLOT(setDvrType(int)));
 	connect (dvrTab->refinementCombo,SIGNAL(activated(int)), this, SLOT(setDvrNumRefinements(int)));
 	connect (dvrTab->loadButton, SIGNAL(clicked()), this, SLOT(dvrLoadTF()));
 	connect (dvrTab->saveButton, SIGNAL(clicked()), this, SLOT(dvrSaveTF()));
@@ -1695,7 +1696,10 @@ setDvrEnabled(int val){
 	// Local/Global is not changing.
 	getDvrParams(activeViz)->updateRenderer(!val, dvrParams[activeViz]->isLocal(), false);
 }
-
+void VizWinMgr::
+setDvrType(int val) {
+	getDvrParams(activeViz)->guiSetType(val);
+}
 void VizWinMgr::
 setDvrVariableNum(int newVal){
 	getDvrParams(activeViz)->guiSetVarNum(newVal);

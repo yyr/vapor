@@ -421,6 +421,7 @@ protected slots:
 
 
 	//Slots for dvr panel:
+	void setDvrType(int type);
 	void setDvrNumRefinements(int num);
 	void setDvrEnabled(int on);
 	void setDvrVariableNum(int);
