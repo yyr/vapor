@@ -329,9 +329,6 @@
 			<File
 				RelativePath="..\..\..\apps\vaporgui\render\VolumeRenderer.cpp">
 			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\volumizerrenderer.cpp">
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -891,9 +888,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\render\VolumeRenderer.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\volumizerrenderer.h">
 			</File>
 		</Filter>
 		<Filter
