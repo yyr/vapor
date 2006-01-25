@@ -40,13 +40,13 @@
     </property>
     <widget class="QLayoutWidget">
         <property name="name">
-            <cstring>layout349</cstring>
+            <cstring>layout36</cstring>
         </property>
         <property name="geometry">
             <rect>
                 <x>10</x>
                 <y>10</y>
-                <width>420</width>
+                <width>430</width>
                 <height>913</height>
             </rect>
         </property>
@@ -56,7 +56,7 @@
             </property>
             <widget class="QLayoutWidget">
                 <property name="name">
-                    <cstring>layout69</cstring>
+                    <cstring>layout34</cstring>
                 </property>
                 <hbox>
                     <property name="name">
@@ -74,7 +74,7 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>71</width>
+                                <width>20</width>
                                 <height>21</height>
                             </size>
                         </property>
@@ -132,158 +132,7 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>41</width>
-                                <height>21</height>
-                            </size>
-                        </property>
-                    </spacer>
-                    <widget class="QLabel">
-                        <property name="name">
-                            <cstring>textLabel2</cstring>
-                        </property>
-                        <property name="text">
-                            <string>Rendering</string>
-                        </property>
-                        <property name="alignment">
-                            <set>AlignVCenter|AlignRight</set>
-                        </property>
-                    </widget>
-                    <widget class="QComboBox">
-                        <item>
-                            <property name="text">
-                                <string>Disabled</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>Enabled</string>
-                            </property>
-                        </item>
-                        <property name="name">
-                            <cstring>EnableDisable</cstring>
-                        </property>
-                        <property name="editable">
-                            <bool>false</bool>
-                        </property>
-                        <property name="currentItem">
-                            <number>0</number>
-                        </property>
-                        <property name="sizeLimit">
-                            <number>2</number>
-                        </property>
-                        <property name="maxCount">
-                            <number>1</number>
-                        </property>
-                        <property name="toolTip" stdset="0">
-                            <string>Turn this renderer on or off</string>
-                        </property>
-                    </widget>
-                    <spacer>
-                        <property name="name">
-                            <cstring>spacer51</cstring>
-                        </property>
-                        <property name="orientation">
-                            <enum>Horizontal</enum>
-                        </property>
-                        <property name="sizeType">
-                            <enum>Expanding</enum>
-                        </property>
-                        <property name="sizeHint">
-                            <size>
-                                <width>41</width>
-                                <height>21</height>
-                            </size>
-                        </property>
-                    </spacer>
-                </hbox>
-            </widget>
-            <widget class="QLayoutWidget">
-                <property name="name">
-                    <cstring>layout348</cstring>
-                </property>
-                <hbox>
-                    <property name="name">
-                        <cstring>unnamed</cstring>
-                    </property>
-                    <spacer>
-                        <property name="name">
-                            <cstring>spacer49</cstring>
-                        </property>
-                        <property name="orientation">
-                            <enum>Horizontal</enum>
-                        </property>
-                        <property name="sizeType">
-                            <enum>Expanding</enum>
-                        </property>
-                        <property name="sizeHint">
-                            <size>
-                                <width>20</width>
-                                <height>20</height>
-                            </size>
-                        </property>
-                    </spacer>
-                    <widget class="QLabel">
-                        <property name="name">
-                            <cstring>textLabel1_6</cstring>
-                        </property>
-                        <property name="font">
-                            <font>
-                            </font>
-                        </property>
-                        <property name="text">
-                            <string>Variable</string>
-                        </property>
-                        <property name="alignment">
-                            <set>AlignCenter</set>
-                        </property>
-                        <property name="toolTip" stdset="0">
-                            <string>Specify the variable that is visualized</string>
-                        </property>
-                    </widget>
-                    <widget class="QComboBox">
-                        <item>
-                            <property name="text">
-                                <string>Density</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>Vorticity</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>Velocity-norm</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>Temperature</string>
-                            </property>
-                        </item>
-                        <property name="name">
-                            <cstring>variableCombo</cstring>
-                        </property>
-                        <property name="editable">
-                            <bool>false</bool>
-                        </property>
-                        <property name="toolTip" stdset="0">
-                            <string>Specify the variable that is visualized</string>
-                        </property>
-                    </widget>
-                    <spacer>
-                        <property name="name">
-                            <cstring>spacer82</cstring>
-                        </property>
-                        <property name="orientation">
-                            <enum>Horizontal</enum>
-                        </property>
-                        <property name="sizeType">
-                            <enum>Expanding</enum>
-                        </property>
-                        <property name="sizeHint">
-                            <size>
-                                <width>20</width>
+                                <width>16</width>
                                 <height>21</height>
                             </size>
                         </property>
@@ -342,7 +191,7 @@
                     </widget>
                     <spacer>
                         <property name="name">
-                            <cstring>spacer412</cstring>
+                            <cstring>spacer49</cstring>
                         </property>
                         <property name="orientation">
                             <enum>Horizontal</enum>
@@ -352,8 +201,101 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>20</width>
+                                <width>16</width>
                                 <height>20</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QLabel">
+                        <property name="name">
+                            <cstring>textLabel1_6</cstring>
+                        </property>
+                        <property name="font">
+                            <font>
+                            </font>
+                        </property>
+                        <property name="text">
+                            <string>Variable</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignCenter</set>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the variable that is visualized</string>
+                        </property>
+                    </widget>
+                    <widget class="QComboBox">
+                        <item>
+                            <property name="text">
+                                <string>Density</string>
+                            </property>
+                        </item>
+                        <item>
+                            <property name="text">
+                                <string>Vorticity</string>
+                            </property>
+                        </item>
+                        <item>
+                            <property name="text">
+                                <string>Velocity-norm</string>
+                            </property>
+                        </item>
+                        <item>
+                            <property name="text">
+                                <string>Temperature</string>
+                            </property>
+                        </item>
+                        <property name="name">
+                            <cstring>variableCombo</cstring>
+                        </property>
+                        <property name="editable">
+                            <bool>false</bool>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the variable that is visualized</string>
+                        </property>
+                    </widget>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer51</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>48</width>
+                                <height>21</height>
+                            </size>
+                        </property>
+                    </spacer>
+                </hbox>
+            </widget>
+            <widget class="QLayoutWidget">
+                <property name="name">
+                    <cstring>layout35</cstring>
+                </property>
+                <hbox>
+                    <property name="name">
+                        <cstring>unnamed</cstring>
+                    </property>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer82</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>16</width>
+                                <height>21</height>
                             </size>
                         </property>
                     </spacer>
@@ -362,7 +304,7 @@
                             <cstring>textLabel1_10</cstring>
                         </property>
                         <property name="text">
-                            <string>Type</string>
+                            <string>Renderer Type</string>
                         </property>
                         <property name="alignment">
                             <set>AlignCenter</set>
@@ -373,7 +315,65 @@
                             <cstring>typeCombo</cstring>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify the renderer type</string>
+                            <string>With renderer disabled, choose the volume renderer to be used</string>
+                        </property>
+                    </widget>
+                    <spacer>
+                        <property name="name">
+                            <cstring>spacer412</cstring>
+                        </property>
+                        <property name="orientation">
+                            <enum>Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                            <enum>Expanding</enum>
+                        </property>
+                        <property name="sizeHint">
+                            <size>
+                                <width>16</width>
+                                <height>20</height>
+                            </size>
+                        </property>
+                    </spacer>
+                    <widget class="QLabel">
+                        <property name="name">
+                            <cstring>textLabel2</cstring>
+                        </property>
+                        <property name="text">
+                            <string>Rendering</string>
+                        </property>
+                        <property name="alignment">
+                            <set>AlignVCenter|AlignRight</set>
+                        </property>
+                    </widget>
+                    <widget class="QComboBox">
+                        <item>
+                            <property name="text">
+                                <string>Disabled</string>
+                            </property>
+                        </item>
+                        <item>
+                            <property name="text">
+                                <string>Enabled</string>
+                            </property>
+                        </item>
+                        <property name="name">
+                            <cstring>EnableDisable</cstring>
+                        </property>
+                        <property name="editable">
+                            <bool>false</bool>
+                        </property>
+                        <property name="currentItem">
+                            <number>0</number>
+                        </property>
+                        <property name="sizeLimit">
+                            <number>2</number>
+                        </property>
+                        <property name="maxCount">
+                            <number>1</number>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Turn this renderer on or off</string>
                         </property>
                     </widget>
                     <spacer>
@@ -388,7 +388,7 @@
                         </property>
                         <property name="sizeHint">
                             <size>
-                                <width>20</width>
+                                <width>16</width>
                                 <height>20</height>
                             </size>
                         </property>
