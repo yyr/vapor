@@ -350,9 +350,11 @@ guiSetEnabled(bool value){
 void DvrParams::
 guiSetType(int val)
 { 
-  type = typemap[val]; 
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(this, "change renderer type");
+	type = typemap[val]; 
+	PanelCommand::captureEnd(cmd, this);
   
-  //myDvrTab->lightingCheckbox->setEnabled(type == DVR_TEXTURE3D_SHADER);
 }
 
 
