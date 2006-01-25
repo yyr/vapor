@@ -59,8 +59,20 @@ int main( int argc, char ** argv ) {
     a.setFont(myFont);
 #else
 	//Helvetica looks better on X11 platforms
-	QFont myFont(QString("Helvetica"), 10, 55);
-	a.setFont(myFont);
+	QFont myFont(QString("Helvetica"), 10);
+	if (myFont.exactMatch()){
+		qWarning("Using Helvetica font");
+		a.setFont(myFont);
+	}
+	else {
+		
+		myFont = a.font();
+		myFont.setPointSize(10);
+		myFont.setWeight(55);
+		qWarning("Using default font family: %s", myFont.family().ascii());
+		a.setFont(myFont);
+	}
+
 #endif
     
     MainForm* mw = new MainForm();
