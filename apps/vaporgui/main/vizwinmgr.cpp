@@ -1692,6 +1692,7 @@ setDvrEnabled(int val){
 	//Make sure this is a change:
 	if (getDvrParams(activeViz)->isEnabled() == (val==1) ) return;
 	getDvrParams(activeViz)->guiSetEnabled(val==1);
+	myDvrTab->typeCombo->setEnabled(!val);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	getDvrParams(activeViz)->updateRenderer(!val, dvrParams[activeViz]->isLocal(), false);

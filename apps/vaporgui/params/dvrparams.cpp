@@ -162,6 +162,8 @@ void DvrParams::updateDialog(){
 	Session::getInstance()->blockRecording();
 	myDvrTab->DvrTFFrame->setEditor(getTFEditor());
 	myDvrTab->EnableDisable->setCurrentItem((enabled) ? 1 : 0);
+	//Disable the typeCombo whenever the renderer is enabled:
+	myDvrTab->typeCombo->setEnabled(!enabled);
 	
 	//Set the names in the variable combo
 	myDvrTab->variableCombo->clear();
