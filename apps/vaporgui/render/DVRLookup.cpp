@@ -79,9 +79,10 @@ int DVRLookup::SetRegion(void *data,
     glPixelMapfv(GL_PIXEL_MAP_I_TO_B, 256, _colormap+2*256);
     glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
     glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
-
+	
     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, _nx, _ny, _nz, 0, 
                  GL_COLOR_INDEX, GL_UNSIGNED_BYTE, data);
+	
   }
   else if (_data != data)
   {
@@ -115,6 +116,7 @@ int DVRLookup::SetRegion(void *data,
 int DVRLookup::Render(const float matrix[16])
 
 {
+	
   glPolygonMode(GL_FRONT, GL_FILL);
   glPolygonMode(GL_BACK, GL_LINE);
 
@@ -123,14 +125,18 @@ int DVRLookup::Render(const float matrix[16])
   glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
  
   glEnable(GL_BLEND);
-  glBlendEquation(GL_FUNC_ADD);  
+  
+  //Note:  Following crashes Irix with GL1.2
+  //glBlendEquation(GL_FUNC_ADD);  
+  
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
 
+	
   drawViewAlignedSlices();
-
+	
   glDisable(GL_BLEND);
   glDisable(GL_TEXTURE_3D);
   glPixelTransferi(GL_MAP_COLOR, GL_FALSE);

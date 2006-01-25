@@ -50,7 +50,7 @@ public:
 
  DVRBase();
  //Providing a virtual destructor causes a crash when volumizer exits:
- //virtual ~DVRBase() {}  
+ virtual ~DVRBase() {}  
 
  // Called once after OpenGL has been initialied so that the driver can
  // initialize the graphics state. The results of calling GraphicsInit

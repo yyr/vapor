@@ -18,7 +18,7 @@
 //		Modified from code by John Clyne
 //		Modified to support a volumizer renderer inside a QT window
 //
-
+#ifdef VOLUMIZER
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
@@ -119,11 +119,16 @@ DVRVolumizer::DVRVolumizer(
 
 DVRVolumizer::~DVRVolumizer() {
 
-	if (render_action_c) {
+	if (render_action_c && shape_c) {
 		render_action_c->unmanage(shape_c);
+		//Following crashes on Windows!
+#ifndef WIN32
 		delete render_action_c;
+#endif
+		shape_c->unref();
+		
 	}
-	if (shape_c) shape_c->unref();
+	
 }
 
 int	DVRVolumizer::GraphicsInit(
@@ -631,6 +636,6 @@ vzAppearance	*DVRVolumizer::create_appearance()
 }
 
 
-
+#endif //VOLUMIZER
 
 

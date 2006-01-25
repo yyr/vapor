@@ -313,7 +313,7 @@ int ShaderProgram::maxTexture(GLenum format)
   if (_textureSizes.find(format) == _textureSizes.end())
   {
     int i;
-
+	
     for (i = 128; i < 130000; i*=2)
     {
       glTexImage3D(GL_PROXY_TEXTURE_3D, 0, format, i, i, i, 0,
@@ -333,7 +333,7 @@ int ShaderProgram::maxTexture(GLenum format)
       }
     }
   }
-
+	
   return _textureSizes[format];
 }
 

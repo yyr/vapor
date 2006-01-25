@@ -56,7 +56,7 @@
 #include "viewpoint.h"
 #include "manip.h"
 
-#include "volumizerrenderer.h"
+#include "VolumeRenderer.h"
 
 #include "assert.h"
 #include "vaporinternal/jpegapi.h"

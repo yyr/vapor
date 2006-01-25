@@ -6,7 +6,6 @@ RENDER_FILES := \
 	VolumeRenderer BBox ShaderProgram \
 	Vect3d Matrix3d Stopwatch DVRTexture3d \
 	DVRShader DVRLookup DVRVolumizer 
-# volumizerrenderer 
 
 RENDER_QT_HEADERS := \
 	glbox renderer flowrenderer \

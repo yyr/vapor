@@ -51,7 +51,9 @@
 #include "glwindow.h"
 #include "DVRLookup.h"
 #include "DVRShader.h"
+#ifdef VOLUMIZER
 #include "DVRVolumizer.h"
+#endif
 #include "DVRDebug.h"
 #include "renderer.h"
 #include "animationcontroller.h"
@@ -365,10 +367,10 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     {
       driver->SetCLUT(myDVRParams->getClut());
     }
-
+	
     driver->SetOLUT(myDVRParams->getClut(), 
                     Session::getInstance()->getCurrentMetadata()->GetNumTransforms() - numxforms);
-
+	
     bool shading = myDVRParams->getLighting();
 
     driver->SetLightingOnOff(shading);
