@@ -33,12 +33,12 @@ ifdef   EXPAT_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
 endif
 
-LIBRARIES = vdf common vjpeg flow vz
+LIBRARIES = vdf common vjpeg flow 
+ 
 
-#For now, always link against volumizer, even if not calling it:
-#ifeq ($(BUILD_VOLUMIZER), 1)
-#LIBRARIES += vz 
-#endif
+ifeq ($(BUILD_VOLUMIZER), 1)
+LIBRARIES += vz 
+endif
 
 ifeq ($(ARCH),WIN32) 
 MAKEFILE_LDFLAGS += "/LIBPATH:$(VOLUMIZER_ROOT)/lib"
