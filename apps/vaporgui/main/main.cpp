@@ -48,8 +48,21 @@ int main( int argc, char ** argv ) {
 	a.setStyle("windows");
 	a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));
 	//Depending on the platform, we may want nondefault fonts!
-    //QFont myFont(QString("Helvetica"), 11, 55);
-    //a.setFont(myFont);
+	
+	//The pointsize of 10 works ok on linux and irix, not windows
+	//The weight of 55 is slightly heavier than normal.
+#ifdef WIN32
+	//default font is OK on windows
+	QFont myFont = a.font();
+	myFont.setPointSize(9);
+	myFont.setWeight(60);
+    a.setFont(myFont);
+#else
+	//Helvetica looks better on X11 platforms
+	QFont myFont(QString("Helvetica"), 10, 55);
+	a.setFont(myFont);
+#endif
+    
     MainForm* mw = new MainForm();
 	
 	
