@@ -380,7 +380,6 @@ void FlowParams::updateDialog(){
 	myFlowTab->randomCheckbox->setChecked(randomGen);
 	
 	myFlowTab->randomSeedEdit->setEnabled(randomGen);
-	myFlowTab->generatorDimensionCombo->setCurrentItem(currentDimension);
 
 	for (int i = 0; i< 3; i++){
 		textToSlider(i, (seedBoxMin[i]+seedBoxMax[i])*0.5f,
@@ -400,19 +399,23 @@ void FlowParams::updateDialog(){
 
 	if (randomGen){
 		myFlowTab->dimensionLabel->setEnabled(false);
-		myFlowTab->generatorDimensionCombo->setEnabled(false);
+		myFlowTab->generatorCountEdit->setEnabled(true);
+		myFlowTab->xSeedEdit->setEnabled(false);
+		myFlowTab->ySeedEdit->setEnabled(false);
+		myFlowTab->zSeedEdit->setEnabled(false);
 	} else {
 		myFlowTab->dimensionLabel->setEnabled(true);
-		myFlowTab->generatorDimensionCombo->setEnabled(true);
-		myFlowTab->generatorDimensionCombo->setCurrentItem(currentDimension);
+		myFlowTab->generatorCountEdit->setEnabled(false);
+		myFlowTab->xSeedEdit->setEnabled(true);
+		myFlowTab->ySeedEdit->setEnabled(true);
+		myFlowTab->zSeedEdit->setEnabled(true);
 	}
 	
 	//Put all the setText messages here, so they won't trigger a textChanged message
-	if (randomGen){
-		myFlowTab->generatorCountEdit->setText(QString::number(allGeneratorCount));
-	} else {
-		myFlowTab->generatorCountEdit->setText(QString::number(generatorCount[currentDimension]));
-	}
+	myFlowTab->generatorCountEdit->setText(QString::number(getNumRakeSeedPoints()));
+	myFlowTab->xSeedEdit->setText(QString::number(generatorCount[0]));
+	myFlowTab->ySeedEdit->setText(QString::number(generatorCount[1]));
+	myFlowTab->zSeedEdit->setText(QString::number(generatorCount[2]));
 	myFlowTab->integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
 	myFlowTab->scaleFieldEdit->setText(QString::number(velocityScale));
 	myFlowTab->timesampleIncrementEdit->setText(QString::number(timeSamplingInterval));
@@ -538,16 +541,21 @@ updatePanelState(){
 		seedBoxMax[2] = boxCtr + 0.5*boxSize;
 		textToSlider(2, boxCtr, boxSize);
 
-		int genCount = myFlowTab->generatorCountEdit->text().toInt();
-		if (genCount < 1) {
-			genCount = 1;
-			myFlowTab->generatorCountEdit->setText(QString::number(genCount));
-		}
-		if (randomGen) {
-			allGeneratorCount = genCount;
+		if (randomGen){
+			int genCount = myFlowTab->generatorCountEdit->text().toInt();
+			if (genCount < 1) {
+				genCount = 1;
+				myFlowTab->generatorCountEdit->setText(QString::number(genCount));
+			}
 		} else {
-			generatorCount[currentDimension] = genCount;
-		}
+			generatorCount[0] = myFlowTab->xSeedEdit->text().toInt();
+			if (generatorCount[0]< 1) generatorCount[0] = 1;
+			generatorCount[1] = myFlowTab->ySeedEdit->text().toInt();
+			if (generatorCount[1]< 1) generatorCount[1] = 1;
+			generatorCount[2] = myFlowTab->zSeedEdit->text().toInt();
+			if (generatorCount[2]< 1) generatorCount[2] = 1;
+			myFlowTab->generatorCountEdit->setText(QString::number(getNumRakeSeedPoints()));
+		}	
 		
 		seedTimeStart = myFlowTab->seedtimeStartEdit->text().toUInt();
 		seedTimeEnd = myFlowTab->seedtimeEndEdit->text().toUInt(); 
@@ -931,11 +939,15 @@ textToSlider(int coord, float newCenter, float newSize){
 		newCenter = regMax- newSize*0.5f;
 		centerChanged = true;
 	}
+	//For small size make generator count 1 in that dimension
 	if (newSize <= 0.f && !randomGen){
 		if (generatorCount[coord] != 1) {
 			generatorCount[coord] = 1;
-			if (currentDimension == coord)
-				myFlowTab->generatorCountEdit->setText("1");
+			switch(coord){
+				case 0: myFlowTab->xSeedEdit->setText("1"); break;
+				case 1: myFlowTab->ySeedEdit->setText("1"); break;
+				case 2: myFlowTab->zSeedEdit->setText("1"); break;
+			}
 		}
 	}
 	seedBoxMin[coord] = newCenter - newSize*0.5f; 
@@ -1019,11 +1031,15 @@ sliderToText(int coord, int slideCenter, int slideSize){
 	}
 	seedBoxMin[coord] = newCenter - newSize*0.5f; 
 	seedBoxMax[coord] = newCenter + newSize*0.5f; 
+	//For small size make generator count 1 in that dimension
 	if (newSize <= 0.f && !randomGen){
 		if (generatorCount[coord] != 1) {
 			generatorCount[coord] = 1;
-			if (currentDimension == coord)
-				myFlowTab->generatorCountEdit->setText("1");
+			switch(coord){
+				case 0: myFlowTab->xSeedEdit->setText("1"); break;
+				case 1: myFlowTab->ySeedEdit->setText("1"); break;
+				case 2: myFlowTab->zSeedEdit->setText("1"); break;
+			}
 		}
 	}
 	int newSliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
@@ -1257,10 +1273,20 @@ guiSetRandom(bool rand){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "toggle random setting");
 	setRandom(rand);
-	//Also display the appropriate numGenerators
-	int genCount = allGeneratorCount;
-	if (!rand) genCount = generatorCount[currentDimension];
-	myFlowTab->generatorCountEdit->setText(QString::number(genCount));
+	myFlowTab->generatorCountEdit->setText(QString::number(getNumRakeSeedPoints()));
+	if (rand){
+		myFlowTab->dimensionLabel->setEnabled(false);
+		myFlowTab->generatorCountEdit->setEnabled(true);
+		myFlowTab->xSeedEdit->setEnabled(false);
+		myFlowTab->ySeedEdit->setEnabled(false);
+		myFlowTab->zSeedEdit->setEnabled(false);
+	} else {
+		myFlowTab->dimensionLabel->setEnabled(true);
+		myFlowTab->generatorCountEdit->setEnabled(false);
+		myFlowTab->xSeedEdit->setEnabled(true);
+		myFlowTab->ySeedEdit->setEnabled(true);
+		myFlowTab->zSeedEdit->setEnabled(true);
+	}
 	guiSetTextChanged(false);
 	myFlowTab->update();
 	PanelCommand::captureEnd(cmd, this);
@@ -1442,17 +1468,7 @@ guiSetOpacMapEntity( int entityNum){
 	if(entityNum == 2) setFlowDataDirty();
 	else setFlowMappingDirty();
 }
-void FlowParams::
-guiSetGeneratorDimension( int dimNum){
-	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(this,  "specify generator dimension");
-	setCurrentDimension(dimNum);
-	myFlowTab->generatorCountEdit->setText(QString::number(generatorCount[dimNum]));
-	guiSetTextChanged(false);
-	PanelCommand::captureEnd(cmd, this);
-	myFlowTab->update();
-	setFlowDataDirty(true);
-}
+
 //Change mouse mode to specified value
 //0,1,2 correspond to edit, zoom, pan
 void FlowParams::

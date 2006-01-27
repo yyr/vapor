@@ -202,7 +202,7 @@ public:
 	void guiSetYVarNum(int varnum);
 	void guiSetZVarNum(int varnum);
 	void guiSetRandom(bool rand);
-	void guiSetGeneratorDimension(int dimNum);
+	
 	void guiSetXCenter(int sliderval);
 	void guiSetYCenter(int sliderval);
 	void guiSetZCenter(int sliderval);

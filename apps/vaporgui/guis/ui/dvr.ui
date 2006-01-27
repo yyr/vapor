@@ -497,7 +497,7 @@
                             <cstring>alignButton</cstring>
                         </property>
                         <property name="text">
-                            <string>Align</string>
+                            <string>Fit to View</string>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Align edit window with transfer function domain</string>

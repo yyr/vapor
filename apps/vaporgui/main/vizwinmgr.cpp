@@ -985,13 +985,19 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYSize()));
 	connect (flowTab->zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowZSize()));
 	connect (flowTab->geometrySamplesSlider, SIGNAL(sliderReleased()), this, SLOT(setFlowGeomSamples()));
-	connect (flowTab->generatorDimensionCombo,SIGNAL(activated(int)), SLOT(setFlowGeneratorDimension(int)));
 	connect (flowTab->geometryCombo, SIGNAL(activated(int)),SLOT(setFlowGeometry(int)));
 	connect (flowTab->constantColorButton, SIGNAL(clicked()), this, SLOT(setFlowConstantColor()));
 	connect (flowTab->rakeOnRegionButton, SIGNAL(clicked()), this, SLOT(setRakeOnRegion()));
 	connect (flowTab->colormapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowColorMapEntity(int)));
 	connect (flowTab->opacmapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowOpacMapEntity(int)));
 	connect (flowTab->refreshButton,SIGNAL(clicked()), this, SLOT(rebuildFlow()));
+	//Line edits.  Note that the textChanged may either affect the flow or the geometry
+	connect (flowTab->xSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->xSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (flowTab->ySeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->ySeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (flowTab->zSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->zSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->constantOpacityEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->constantOpacityEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (flowTab->integrationAccuracyEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -2196,17 +2202,9 @@ setFlowZVar(int varnum){
 void VizWinMgr::
 checkFlowRandom(bool isRandom){
 	
-	if (myFlowTab->randomCheckbox->isChecked()) isRandom = true;
+	//if (myFlowTab->randomCheckbox->isChecked()) isRandom = true;
 	getFlowParams(activeViz)->guiSetRandom(isRandom);
-	if (isRandom){
-		myFlowTab->randomSeedEdit->setEnabled(true);
-		myFlowTab->dimensionLabel->setEnabled(false);
-		myFlowTab->generatorDimensionCombo->setEnabled(false);
-	} else {
-		myFlowTab->randomSeedEdit->setEnabled(false);
-		myFlowTab->dimensionLabel->setEnabled(true);
-		myFlowTab->generatorDimensionCombo->setEnabled(true);
-	}
+	
 }
 void VizWinMgr::
 setFlowXCenter(){
@@ -2256,12 +2254,7 @@ setFlowConstantColor(){
 	//Set parameter value of the appropriate parameter set:
 	getFlowParams(activeViz)->guiSetConstantColor(newColor);
 }
-void VizWinMgr::
-setFlowGeneratorDimension(int flowGenDim){
-	//This establishes which dimension is displayed in GUI
-	getFlowParams(activeViz)->guiSetGeneratorDimension(flowGenDim);
-	myFlowTab->generatorCountEdit->setText(QString::number(getFlowParams(activeViz)->getNumGenerators(flowGenDim)));
-}
+
 void VizWinMgr::
 setFlowGeometry(int geomNum){
 	getFlowParams(activeViz)->guiSetFlowGeometry(geomNum);

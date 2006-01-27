@@ -484,7 +484,6 @@ protected slots:
 	void setFlowZSize();
 	void setFlowGeomSamples();
 	void setFlowConstantColor();
-	void setFlowGeneratorDimension(int);
 	void setFlowGeometry(int);
 	void setFlowColorMapEntity(int);
 	void setFlowOpacMapEntity(int);

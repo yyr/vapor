@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout83</cstring>
+                <cstring>layout108</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -802,12 +802,29 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout54</cstring>
+                        <cstring>layout107</cstring>
                     </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer111</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>30</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
                         <widget class="QLayoutWidget">
                             <property name="name">
                                 <cstring>layout131</cstring>
@@ -874,232 +891,138 @@
                                 </widget>
                             </vbox>
                         </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer109</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>19</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout149</cstring>
+                                <cstring>layout106</cstring>
                             </property>
-                            <grid>
+                            <vbox>
                                 <property name="name">
                                     <cstring>unnamed</cstring>
                                 </property>
-                                <widget class="QLabel" row="1" column="0">
+                                <widget class="QLabel">
                                     <property name="name">
-                                        <cstring>textLabel5</cstring>
+                                        <cstring>textLabel3_2</cstring>
                                     </property>
                                     <property name="text">
-                                        <string>Selection</string>
-                                    </property>
-                                </widget>
-                                <widget class="QLabel" row="2" column="0">
-                                    <property name="name">
-                                        <cstring>textLabel9</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>Value</string>
-                                    </property>
-                                    <property name="alignment">
-                                        <set>AlignVCenter</set>
-                                    </property>
-                                </widget>
-                                <widget class="QLabel" row="2" column="3">
-                                    <property name="name">
-                                        <cstring>valueMagLabel</cstring>
-                                    </property>
-                                    <property name="minimumSize">
-                                        <size>
-                                            <width>45</width>
-                                            <height>0</height>
-                                        </size>
-                                    </property>
-                                    <property name="paletteBackgroundColor">
-                                        <color>
-                                            <red>255</red>
-                                            <green>255</green>
-                                            <blue>255</blue>
-                                        </color>
-                                    </property>
-                                    <property name="text">
-                                        <string>7.25</string>
+                                        <string>Orientation</string>
                                     </property>
                                     <property name="alignment">
                                         <set>AlignCenter</set>
                                     </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>value or magnitude at selected point</string>
-                                    </property>
                                 </widget>
-                                <spacer row="2" column="2">
+                                <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>spacer136</cstring>
+                                        <cstring>layout105</cstring>
                                     </property>
-                                    <property name="orientation">
-                                        <enum>Horizontal</enum>
-                                    </property>
-                                    <property name="sizeType">
-                                        <enum>Expanding</enum>
-                                    </property>
-                                    <property name="sizeHint">
-                                        <size>
-                                            <width>89</width>
-                                            <height>21</height>
-                                        </size>
-                                    </property>
-                                </spacer>
-                                <widget class="QLineEdit" row="0" column="4">
-                                    <property name="name">
-                                        <cstring>phiEdit</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>90</string>
-                                    </property>
-                                    <property name="alignment">
-                                        <set>AlignHCenter</set>
-                                    </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>Phi angle (angle from +Z) of probe normal vector</string>
-                                    </property>
+                                    <grid>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel" row="0" column="0">
+                                            <property name="name">
+                                                <cstring>textLabel12</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Rotation: Theta</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>WordBreak|AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit" row="1" column="1">
+                                            <property name="name">
+                                                <cstring>phiEdit</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>80</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>90</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Phi angle (angle from +Z) of probe normal vector</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel" row="1" column="0">
+                                            <property name="name">
+                                                <cstring>textLabel12_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Rotation: Phi</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>WordBreak|AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit" row="0" column="1">
+                                            <property name="name">
+                                                <cstring>thetaEdit</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>80</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>0</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>theta (rotation angle from +X axis)of probe normal vector</string>
+                                            </property>
+                                        </widget>
+                                    </grid>
                                 </widget>
-                                <widget class="QLabel" row="1" column="4">
-                                    <property name="name">
-                                        <cstring>selectedZLabel</cstring>
-                                    </property>
-                                    <property name="minimumSize">
-                                        <size>
-                                            <width>45</width>
-                                            <height>0</height>
-                                        </size>
-                                    </property>
-                                    <property name="paletteBackgroundColor">
-                                        <color>
-                                            <red>255</red>
-                                            <green>255</green>
-                                            <blue>255</blue>
-                                        </color>
-                                    </property>
-                                    <property name="text">
-                                        <string>0.0</string>
-                                    </property>
-                                    <property name="alignment">
-                                        <set>AlignCenter</set>
-                                    </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>Z-coordinate of selected point</string>
-                                    </property>
-                                </widget>
-                                <widget class="QLineEdit" row="0" column="3">
-                                    <property name="name">
-                                        <cstring>thetaEdit</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>0</string>
-                                    </property>
-                                    <property name="alignment">
-                                        <set>AlignHCenter</set>
-                                    </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>theta (rotation angle from +X axis)of probe normal vector</string>
-                                    </property>
-                                </widget>
-                                <widget class="QLabel" row="1" column="3">
-                                    <property name="name">
-                                        <cstring>selectedYLabel</cstring>
-                                    </property>
-                                    <property name="minimumSize">
-                                        <size>
-                                            <width>45</width>
-                                            <height>0</height>
-                                        </size>
-                                    </property>
-                                    <property name="paletteBackgroundColor">
-                                        <color>
-                                            <red>255</red>
-                                            <green>255</green>
-                                            <blue>255</blue>
-                                        </color>
-                                    </property>
-                                    <property name="text">
-                                        <string>0.0</string>
-                                    </property>
-                                    <property name="alignment">
-                                        <set>AlignCenter</set>
-                                    </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>Y-coordinate of selected point</string>
-                                    </property>
-                                </widget>
-                                <widget class="QLabel" row="0" column="2">
-                                    <property name="name">
-                                        <cstring>textLabel12</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>theta, phi</string>
-                                    </property>
-                                    <property name="alignment">
-                                        <set>WordBreak|AlignCenter</set>
-                                    </property>
-                                </widget>
-                                <spacer row="2" column="4">
-                                    <property name="name">
-                                        <cstring>spacer152</cstring>
-                                    </property>
-                                    <property name="orientation">
-                                        <enum>Horizontal</enum>
-                                    </property>
-                                    <property name="sizeType">
-                                        <enum>Expanding</enum>
-                                    </property>
-                                    <property name="sizeHint">
-                                        <size>
-                                            <width>89</width>
-                                            <height>20</height>
-                                        </size>
-                                    </property>
-                                </spacer>
-                                <widget class="QLabel" row="1" column="2">
-                                    <property name="name">
-                                        <cstring>selectedXLabel</cstring>
-                                    </property>
-                                    <property name="minimumSize">
-                                        <size>
-                                            <width>46</width>
-                                            <height>0</height>
-                                        </size>
-                                    </property>
-                                    <property name="paletteBackgroundColor">
-                                        <color>
-                                            <red>255</red>
-                                            <green>255</green>
-                                            <blue>255</blue>
-                                        </color>
-                                    </property>
-                                    <property name="text">
-                                        <string>0.0</string>
-                                    </property>
-                                    <property name="alignment">
-                                        <set>AlignCenter</set>
-                                    </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>X-coordinate of selected point</string>
-                                    </property>
-                                </widget>
-                                <widget class="QLabel" row="0" column="0">
-                                    <property name="name">
-                                        <cstring>textLabel10</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>Rotation</string>
-                                    </property>
-                                    <property name="alignment">
-                                        <set>AlignVCenter</set>
-                                    </property>
-                                </widget>
-                            </grid>
+                            </vbox>
                         </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer110</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>40</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
                     </hbox>
                 </widget>
                 <spacer>
                     <property name="name">
-                        <cstring>spacer154</cstring>
+                        <cstring>spacer112</cstring>
                     </property>
                     <property name="orientation">
                         <enum>Vertical</enum>
@@ -1110,7 +1033,345 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>22</height>
+                            <height>21</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout104</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout96</cstring>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel3</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Cross-Section View</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="ProbeFrame">
+                                    <property name="name">
+                                        <cstring>probeTextureFrame</cstring>
+                                    </property>
+                                    <property name="minimumSize">
+                                        <size>
+                                            <width>0</width>
+                                            <height>200</height>
+                                        </size>
+                                    </property>
+                                </widget>
+                            </vbox>
+                        </widget>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout103</cstring>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel2_6</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Cursor Selection</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer113</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>31</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout94</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout93</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel5</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Selected Point</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>selectedXLabel</cstring>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>46</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="paletteBackgroundColor">
+                                                        <color>
+                                                            <red>255</red>
+                                                            <green>255</green>
+                                                            <blue>255</blue>
+                                                        </color>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0.0</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>X-coordinate of selected point</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>selectedYLabel</cstring>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>45</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="paletteBackgroundColor">
+                                                        <color>
+                                                            <red>255</red>
+                                                            <green>255</green>
+                                                            <blue>255</blue>
+                                                        </color>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0.0</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Y-coordinate of selected point</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>selectedZLabel</cstring>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>45</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="paletteBackgroundColor">
+                                                        <color>
+                                                            <red>255</red>
+                                                            <green>255</green>
+                                                            <blue>255</blue>
+                                                        </color>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0.0</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Z-coordinate of selected point</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout92</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel9</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Variable at
+Selected Point</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>valueMagLabel</cstring>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>45</width>
+                                                            <height>0</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="paletteBackgroundColor">
+                                                        <color>
+                                                            <red>255</red>
+                                                            <green>255</green>
+                                                            <blue>255</blue>
+                                                        </color>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>7.25</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>value or magnitude of variable(s)at selected point</string>
+                                                    </property>
+                                                </widget>
+                                                <spacer>
+                                                    <property name="name">
+                                                        <cstring>spacer104</cstring>
+                                                    </property>
+                                                    <property name="orientation">
+                                                        <enum>Vertical</enum>
+                                                    </property>
+                                                    <property name="sizeType">
+                                                        <enum>Expanding</enum>
+                                                    </property>
+                                                    <property name="sizeHint">
+                                                        <size>
+                                                            <width>20</width>
+                                                            <height>21</height>
+                                                        </size>
+                                                    </property>
+                                                </spacer>
+                                            </vbox>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer106</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>30</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                            </vbox>
+                        </widget>
+                    </hbox>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer148</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout21</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>attachSeedCheckbox</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Attach Selected Point to Flow Seed</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Enable continuous update of the flow using selected point as seed</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>addSeedButton</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Add Selected Point to Flow Seeds</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Click to add the selected point to the seeds for the applicable flow panel</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer147</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>28</height>
                         </size>
                     </property>
                 </spacer>
@@ -1192,95 +1453,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>23</height>
-                        </size>
-                    </property>
-                </spacer>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout21</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="QCheckBox">
-                            <property name="name">
-                                <cstring>attachSeedCheckbox</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Attach Point to Flow Seed</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Enable continuous update of the flow using selected point as seed</string>
-                            </property>
-                        </widget>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>addSeedButton</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Add Point to Flow Seeds</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Click to add the selected point to the seeds for the applicable flow panel</string>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer148</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
-                            <height>21</height>
-                        </size>
-                    </property>
-                </spacer>
-                <widget class="QLabel">
-                    <property name="name">
-                        <cstring>textLabel3</cstring>
-                    </property>
-                    <property name="text">
-                        <string>Data mapping of probe cross-section</string>
-                    </property>
-                    <property name="alignment">
-                        <set>AlignCenter</set>
-                    </property>
-                </widget>
-                <widget class="ProbeFrame">
-                    <property name="name">
-                        <cstring>probeTextureFrame</cstring>
-                    </property>
-                    <property name="minimumSize">
-                        <size>
-                            <width>0</width>
-                            <height>200</height>
-                        </size>
-                    </property>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer147</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
-                            <height>23</height>
+                            <height>27</height>
                         </size>
                     </property>
                 </spacer>
@@ -1343,7 +1516,7 @@
                                 <cstring>alignButton</cstring>
                             </property>
                             <property name="text">
-                                <string>Align</string>
+                                <string>Fit to View</string>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Align edit window with transfer function domain</string>
@@ -1846,7 +2019,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>28</height>
                         </size>
                     </property>
                 </spacer>

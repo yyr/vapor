@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>438</width>
+            <width>415</width>
             <height>1163</height>
         </rect>
     </property>
@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout107</cstring>
+                <cstring>layout89</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -962,7 +962,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout34</cstring>
+                                <cstring>layout65</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -986,37 +986,12 @@
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout33</cstring>
+                                        <cstring>layout64</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
-                                        <widget class="QCheckBox">
-                                            <property name="name">
-                                                <cstring>rakeCheckbox</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Use Rake</string>
-                                            </property>
-                                        </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer40_2</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>17</width>
-                                                    <height>21</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
                                         <widget class="QCheckBox">
                                             <property name="name">
                                                 <cstring>seedListCheckbox</cstring>
@@ -1037,7 +1012,7 @@
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>16</width>
+                                                    <width>20</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -1062,7 +1037,7 @@
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>16</width>
+                                                    <width>30</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -1079,12 +1054,37 @@
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout47</cstring>
+                                        <cstring>layout57</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>rakeCheckbox</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Use Rake</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer65</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>31</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
                                         <widget class="QCheckBox">
                                             <property name="name">
                                                 <cstring>randomCheckbox</cstring>
@@ -1108,7 +1108,7 @@
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>50</width>
+                                                    <width>40</width>
                                                     <height>21</height>
                                                 </size>
                                             </property>
@@ -1129,7 +1129,10 @@
                                                 <bool>false</bool>
                                             </property>
                                             <property name="text">
-                                                <string>13543234432</string>
+                                                <string>135432344</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify a seed to be used in random generation of points to seed the flow</string>
@@ -1697,7 +1700,7 @@
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout45</cstring>
+                                        <cstring>layout60</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -1715,7 +1718,7 @@
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>41</width>
+                                                    <width>20</width>
                                                     <height>21</height>
                                                 </size>
                                             </property>
@@ -1725,7 +1728,7 @@
                                                 <cstring>textLabel5</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Generator count</string>
+                                                <string>Rake seeds</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
@@ -1735,6 +1738,12 @@
                                             <property name="name">
                                                 <cstring>generatorCountEdit</cstring>
                                             </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>100</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
                                             <property name="text">
                                                 <string>1</string>
                                             </property>
@@ -1742,7 +1751,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify the number of generators (in the specified dimension(s))</string>
+                                                <string>Total number of seeds in the rake</string>
                                             </property>
                                         </widget>
                                         <widget class="QLabel">
@@ -1753,44 +1762,108 @@
                                                 <bool>true</bool>
                                             </property>
                                             <property name="text">
-                                                <string>in dimension:</string>
+                                                <string>By dimension</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
                                             </property>
                                         </widget>
-                                        <widget class="QComboBox">
-                                            <item>
-                                                <property name="text">
-                                                    <string>X</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>Y</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>Z</string>
-                                                </property>
-                                            </item>
+                                        <widget class="QLabel">
                                             <property name="name">
-                                                <cstring>generatorDimensionCombo</cstring>
+                                                <cstring>textLabel1_3</cstring>
                                             </property>
-                                            <property name="enabled">
-                                                <bool>true</bool>
+                                            <property name="text">
+                                                <string>X:</string>
                                             </property>
-                                            <property name="currentItem">
-                                                <number>2</number>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>xSeedEdit</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>50</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>4</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify the dimension for the specified generator count</string>
+                                                <string>X-dimension of nonrandom rake</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_3_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Y:</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>ySeedEdit</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>50</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>450</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Y-dimension of nonrandom rake</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_3_2_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Z:</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>zSeedEdit</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>50</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>4</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Z-dimension of nonrandom rake</string>
                                             </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
-                                                <cstring>spacer30</cstring>
+                                                <cstring>spacer66</cstring>
                                             </property>
                                             <property name="orientation">
                                                 <enum>Horizontal</enum>
@@ -1800,7 +1873,7 @@
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>21</width>
+                                                    <width>16</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -2487,7 +2560,7 @@
                                                 <cstring>alignButton</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Align</string>
+                                                <string>Fit to View</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Align edit window with transfer function domain</string>

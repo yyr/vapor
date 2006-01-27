@@ -1660,7 +1660,7 @@ getProbeTexture(){
 	Session* ses = Session::getInstance();
 	if (!ses->getDataMgr()) return 0;
 	if (!probeTexture) {
-		probeTexture = new unsigned char[256*128*4];
+		probeTexture = new unsigned char[128*128*4];
 	}
 	float transformMatrix[12];
 	
@@ -1717,11 +1717,11 @@ getProbeTexture(){
 	for (int iy = 0; iy < 128; iy++){
 		//Map iy to a value between -1 and 1
 		probeCoord[1] = -1.f + 2.f*(float)iy/127.f;
-		for (int ix = 0; ix < 256; ix++){
+		for (int ix = 0; ix < 128; ix++){
 			
 			//find the coords that the texture maps to
 			//probeCoord is the coord in the probe, dataCoord is in data volume 
-			probeCoord[0] = -1.f + 2.f*(float)ix/255.f;
+			probeCoord[0] = -1.f + 2.f*(float)ix/127.f;
 			vtransform(probeCoord, transformMatrix, dataCoord);
 			for (int i = 0; i<3; i++){
 				arrayCoord[i] = (int) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
@@ -1757,17 +1757,17 @@ getProbeTexture(){
 				//Use the transfer function to map the data:
 				int lutIndex = transFunc[firstVarNum]->mapFloatToIndex(varVal);
 				
-				probeTexture[4*(ix+256*iy)] = (unsigned char)(0.5+ clut[4*lutIndex]*255.f);
-				probeTexture[4*(ix+256*iy)+1] = (unsigned char)(0.5+ clut[4*lutIndex+1]*255.f);
-				probeTexture[4*(ix+256*iy)+2] = (unsigned char)(0.5+ clut[4*lutIndex+2]*255.f);
-				probeTexture[4*(ix+256*iy)+3] = (unsigned char)(0.5+ clut[4*lutIndex+3]*255.f);
+				probeTexture[4*(ix+128*iy)] = (unsigned char)(0.5+ clut[4*lutIndex]*255.f);
+				probeTexture[4*(ix+128*iy)+1] = (unsigned char)(0.5+ clut[4*lutIndex+1]*255.f);
+				probeTexture[4*(ix+128*iy)+2] = (unsigned char)(0.5+ clut[4*lutIndex+2]*255.f);
+				probeTexture[4*(ix+128*iy)+3] = (unsigned char)(0.5+ clut[4*lutIndex+3]*255.f);
 				
 			}
 			else {//point out of region
-				probeTexture[4*(ix+256*iy)] = 0;
-				probeTexture[4*(ix+256*iy)+1] = 0;
-				probeTexture[4*(ix+256*iy)+2] = 0;
-				probeTexture[4*(ix+256*iy)+3] = 0;
+				probeTexture[4*(ix+128*iy)] = 0;
+				probeTexture[4*(ix+128*iy)+1] = 0;
+				probeTexture[4*(ix+128*iy)+2] = 0;
+				probeTexture[4*(ix+128*iy)+3] = 0;
 			}
 
 		}//End loop over ix
@@ -1925,6 +1925,8 @@ captureMouseDown(){
 //The Manip class will have already changed the box...
 void ProbeParams::
 captureMouseUp(){
+	myProbeTab->probeTextureFrame->setTextureSize(probeMax[0]-probeMin[0],probeMax[1]-probeMin[1]);
+	probeDirty = true;
 	//Update the tab if it's in front:
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myProbeTab)) {
 		VizWinMgr* vwm = VizWinMgr::getInstance();
@@ -1933,6 +1935,9 @@ captureMouseUp(){
 			updateDialog();
 	}
 	
+	//if(getTFEditor())getTFEditor()->setDirty();
+	//myProbeTab->ProbeTFFrame->update();
+	//myProbeTab->update();
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, this);
 	savedCommand = 0;
