@@ -41,6 +41,8 @@
 
 #include <qgl.h>
 #include <qmessagebox.h>
+#include <qapplication.h>
+#include <qcursor.h>
 
 #include "VolumeRenderer.h"
 #include "regionparams.h"
@@ -299,7 +301,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     
     //Turn off error callback, look for memory allocation problem.
     Session::pauseErrorCallback();
-	
+	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     void* data = 
       (void*) myDataMgr->GetRegionUInt8(
                                         myAnimationParams->getCurrentFrameNumber(),
@@ -312,6 +314,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
                                         );
     //Turn it back on:
     Session::resumeErrorCallback();
+	QApplication::restoreOverrideCursor();
     if (!data){
       int errCode = myDataMgr->GetErrCode();
       const char* msg = myDataMgr->GetErrMsg();

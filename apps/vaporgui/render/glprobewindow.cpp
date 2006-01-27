@@ -123,7 +123,7 @@ void GLProbeWindow::paintGL()
 	
 	if(probeTexture) {
 		glEnable(GL_TEXTURE_2D);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 128, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
 	} else {
 		glColor4f(0.,0.,0.,0.);
 	}
@@ -146,8 +146,8 @@ void GLProbeWindow::paintGL()
 		glBegin(GL_LINES);
 		glVertex2f(crossX-CURSOR_SIZE, crossY);
 		glVertex2f(crossX+CURSOR_SIZE, crossY);
-		glVertex2f(crossX, crossY-2.f*CURSOR_SIZE);
-		glVertex2f(crossX, crossY+2.f*CURSOR_SIZE);
+		glVertex2f(crossX, crossY-CURSOR_SIZE);
+		glVertex2f(crossX, crossY+CURSOR_SIZE);
 		glEnd();
 	}
 	

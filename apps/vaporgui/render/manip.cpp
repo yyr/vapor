@@ -790,7 +790,7 @@ void TranslateRotateManip::drawBoxFaces(int highlightedFace){
 		
 		glEnable(GL_TEXTURE_2D);
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 128, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTex);
 		//Do write to the z buffer
 		glDepthMask(GL_TRUE);
 	} else {
