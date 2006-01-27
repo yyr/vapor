@@ -52,8 +52,6 @@ public:
 	virtual void mouseRelease(float screenCoords[2]) = 0;
 	virtual int draggingHandle() = 0;
 	
-	
-
 protected:
 	static const float faceSelectionColor[4];
 	static const float unselectedFaceColor[4];
@@ -74,28 +72,32 @@ protected:
 
 //Subclass that handles translation manip.  Works 
 //with ProbeParams
-class TranslateManip : public Manip {
+//Subclass that handles both translation and stretch .  Works 
+//with RegionParams and FlowParams (rake).
+//When you slide a handle with the right mouse it stretches the region
+class TranslateStretchManip : public Manip {
 public:
-	TranslateManip(VizWin* win, Params*p); 
+	TranslateStretchManip(VizWin* win, Params*p); 
 	virtual void render();
+	
+	
 	//Identify the handle and face if the mouse is over handle:
-	virtual int mouseIsOverHandle(float screenCoords[2], float* boxExtents, int* faceNum);
+	int mouseIsOverHandle(float screenCoords[2], float* boxExtents, int* faceNum);
 	
 	virtual void mouseRelease(float screenCoords[2]);
 	virtual int draggingHandle() {return selectedHandle;}
-	virtual void captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int buttonNum = 1);
+	virtual void captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int buttonNum);
 	virtual void slideHandle(int handleNum, float movedRay[3]);
+	
 
 protected:
-	float handleSizeInCube;
-	float subregionFrameColor[3];
-	
-	float initialSelectionRay[3];
-	
 	
 	//Draw all the faces of the Box, apply translations and rotations 
-	//according to current drag state.  takes into account rotation and mid-plane
+	//according to current drag state.  doesn't take into account rotation and mid-plane
 	virtual void drawBoxFaces(int highlightedFace);
+	void drawHandleConnector(int handleNum, float* handleExtents, float* extents);
+
+	
 	//Utility to determine the point in 3D where the mouse was clicked.
 	//FaceNum assumes coord-plane-aligned cubic handles.
 	//faceNum = handleNum for region and flow params
@@ -105,31 +107,40 @@ protected:
 	void makeHandleExtentsInCube(int handleNum, float* handleExtents, int octant, float* extents);
 	
 	void drawCubeFaces(float* handleExtents, bool isSelected);
-	void drawHandleConnector(int handleNum, float* handleExtents, float* extents);
+	
 	int makeHandleFaces(int handleNum, float handle[8][3], int octant, float* boxExtents);
-	
-};
-//Subclass that handles both translation and stretch .  Works 
-//with RegionParams and FlowParams (rake).
-//When you slide a handle with the right mouse it stretches the region
-class TranslateStretchManip : public TranslateManip {
-public:
-	TranslateStretchManip(VizWin* win, Params*p); 
-	virtual void render();
-	//Do different than parent class:
-	virtual void mouseRelease(float screenCoords[2]);
-	virtual int draggingHandle() {return selectedHandle;}
-	void captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int buttonNum = 1);
-	void slideHandle(int handleNum, float movedRay[3]);
 
-protected:
 	bool isStretching;
-	//Draw all the faces of the Box, apply translations and rotations 
-	//according to current drag state.  doesnt take into account rotation and mid-plane
-	virtual void drawBoxFaces(int highlightedFace);
-	void drawHandleConnector(int handleNum, float* handleExtents, float* extents);
+	float handleSizeInCube;
+	float subregionFrameColor[3];
+	float initialSelectionRay[3];
 	
 };
+//Subclass that allows the box to be rotated, and for it to be slid outside
+//the full domain bounds.
+class TranslateRotateManip : public TranslateStretchManip {
+public:
+	TranslateRotateManip(VizWin* w, Params* p);
+	virtual void render();
+	virtual void slideHandle(int handleNum, float movedRay[3]);
+	virtual void mouseRelease(float screenCoords[2]);
+protected:
+	virtual void drawBoxFaces(int highlightedFace);
+
+	
+	//utility class for handling permutations resulting from rotations of mult of 90 degrees:
+	class Permuter {
+	public:
+		Permuter(float theta, float phi);
+		int permute(int i);
+	private:
+		int thetaRot; 
+		int phiRot;
+	};
+
+};
+
+
 };
 
 

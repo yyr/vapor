@@ -275,8 +275,9 @@ void GLWindow::paintGL()
 	else if(MainForm::getInstance()->getCurrentMouseMode() == Command::probeMode){
 		
 		ProbeParams* myProbeParams = VizWinMgr::getInstance()->getProbeParams(winNum);
-		TranslateManip* probeManip = myVizWin->getProbeManip();
+		TranslateRotateManip* probeManip = myVizWin->getProbeManip();
 		probeManip->setParams(myProbeParams);
+		
 		probeManip->render();
 		//Also render the cursor
 		draw3DCursor(myProbeParams->getSelectedPoint());

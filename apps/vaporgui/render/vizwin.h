@@ -55,8 +55,9 @@ class VizWinMgr;
 class GLWindow;
 class Renderer;
 class Viewpoint;
-class TranslateManip;
+
 class TranslateStretchManip;
+class TranslateRotateManip;
 
 class VizWin : public QMainWindow
 {
@@ -94,7 +95,7 @@ public:
 	void appendRenderer(Renderer* ren, Params::ParamType rendererType);
 	void removeRenderer(Params::ParamType rendererType);
 	GLWindow* getGLWindow() {return myGLWindow;}
-	TranslateManip* getProbeManip(){return myProbeManip;}
+	TranslateRotateManip* getProbeManip() {return myProbeManip;}
 	TranslateStretchManip* getFlowManip() {return myFlowManip;}
 	TranslateStretchManip* getRegionManip() {return myRegionManip;}
 	
@@ -225,7 +226,7 @@ public slots:
 
 protected:
 	//Manip stuff:
-	TranslateManip* myProbeManip;
+	TranslateRotateManip* myProbeManip;
 	TranslateStretchManip* myFlowManip;
 	TranslateStretchManip* myRegionManip;
 

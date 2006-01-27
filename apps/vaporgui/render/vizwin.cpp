@@ -178,7 +178,9 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	setValuesFromGui(vpparms);
 	
 	//Create Manips:
-	myProbeManip = new TranslateManip(this, (Params*)myWinMgr->getProbeParams(myWindowNum));
+	
+	myProbeManip = new TranslateRotateManip(this, (Params*)myWinMgr->getProbeParams(myWindowNum));
+	
 	myFlowManip = new TranslateStretchManip(this, (Params*)myWinMgr->getFlowParams(myWindowNum));
 	myRegionManip = new TranslateStretchManip(this, (Params*)myWinMgr->getRegionParams(myWindowNum));
 	//Note:  Caller must call show()
@@ -346,25 +348,39 @@ mousePressEvent(QMouseEvent* e){
 			break;
 
 		case Command::probeMode :
-			//Only capture if it's the left mouse button:
-			if (e->button() == Qt::LeftButton)
+			if (buttonNum > 0)
 			{
 				int faceNum;
 				float boxExtents[6];
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				ProbeParams* pParams = myWinMgr->getProbeParams(myWindowNum);
-				TranslateManip* probeManip = getProbeManip();
+				
+				TranslateRotateManip* probeManip = getProbeManip();
 				probeManip->setParams(pParams);
 				//pParams->calcBoxExtentsInCube(boxExtents);
 				pParams->calcContainingBoxExtentsInCube(boxExtents);
 				int handleNum = probeManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
+					//Stretching doesn't work well if rotation is not a multiple of 90 deg.
+					if (buttonNum > 1) {
+						//check if the rotation angle is approx a multiple of 90 degrees:
+						int tolerance = 20;
+						int thet = (int)(fabs(pParams->getTheta())+0.5f);
+						int ph = (int)(fabs(pParams->getPhi())+ 0.5f);
+						//Make sure that these are within tolerance of a multiple of 90
+						if (abs(((thet+45)/90)*90 -thet) > tolerance) break;
+						
+						if (abs(((ph+45)/90)*90 -ph) > tolerance) break;
+						
+					}
+
+					//if (buttonNum > 1 &&(pParams->getTheta()!= 0.f || pParams->getPhi() != 0.f)) break;
 					float dirVec[3];
 					//Find the direction vector of the camera (World coords)
 					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
 						vParams->getCameraPos(), dirVec);
 					//Remember which handle we hit, highlight it, save the intersection point.
-					probeManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, 1);
+					probeManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
 					pParams->captureMouseDown();
 					mouseDownHere = true;
 					break;
@@ -399,7 +415,7 @@ void VizWin::
 mouseReleaseEvent(QMouseEvent*e){
 	if (numRenderers <= 0) return;
 	bool doNavigate = false;
-	TranslateManip* myManip;
+	TranslateStretchManip* myManip;
 	switch (myWinMgr->selectionMode){
 		
 		case Command::regionMode :
@@ -538,7 +554,7 @@ mouseMoveEvent(QMouseEvent* e){
 			break;
 		case Command::probeMode :
 			{
-				TranslateManip* myProbeManip = getProbeManip();
+				TranslateRotateManip* myProbeManip = getProbeManip();
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				int handleNum = myProbeManip->draggingHandle();
 				//In probe mode, check first to see if we are dragging face

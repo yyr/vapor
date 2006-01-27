@@ -259,6 +259,7 @@ public:
 	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/) = 0;
 	//Identify if this params is at the front of the tabbed params
 	bool isCurrent(); 
+	ParamType getParamType() {return thisParamType;}
 		
 	
 protected:
