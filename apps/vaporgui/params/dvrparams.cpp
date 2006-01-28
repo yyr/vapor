@@ -168,6 +168,7 @@ void DvrParams::updateDialog(){
 	//Set the names in the variable combo
 	myDvrTab->variableCombo->clear();
 	myDvrTab->variableCombo->setMaxCount(numVariables);
+	myDvrTab->refinementCombo->setCurrentItem(numRefinements);
 	for (int i = 0; i< numVariables; i++){
 		if (variableNames.size() > (unsigned int)i){
 			const std::string& s = variableNames.at(i);

@@ -1935,9 +1935,6 @@ captureMouseUp(){
 			updateDialog();
 	}
 	
-	//if(getTFEditor())getTFEditor()->setDirty();
-	//myProbeTab->ProbeTFFrame->update();
-	//myProbeTab->update();
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, this);
 	savedCommand = 0;
