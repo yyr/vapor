@@ -66,8 +66,13 @@ DataMgr::DataMgr(
 
 	_metadata = metadata;
 
-	_wbreader = new WaveletBlock3DRegionReader(_metadata, nthreads);
-	if (_wbreader->GetErrCode() != 0) return;
+	if (_metadata->GetGridType().compare("block_amr") == 0) {
+		_regionReader = new AMRIO(_metadata, nthreads);
+	}
+	else {
+		_regionReader = new WaveletBlock3DRegionReader(_metadata, nthreads);
+	}
+	if (_regionReader->GetErrCode() != 0) return;
 
 	if (_DataMgr(mem_size, nthreads) < 0) return;
 
@@ -82,14 +87,19 @@ DataMgr::DataMgr(
 	_objInitialized = 0;
 	SetDiagMsg("DataMgr::DataMgr(%s,%d,%d)", metafile, mem_size, nthreads);
 
-	if (_metadata->GetErrCode() != 0) return;
+	_metadata = new Metadata(metafile);
+	if (Metadata::GetErrCode() != 0) return;
 
-	_wbreader = new WaveletBlock3DRegionReader(metafile, nthreads);
-	if (_wbreader->GetErrCode() != 0) return;
-
-	_metadata = _wbreader->GetMetadata();
+	if (_metadata->GetGridType().compare("block_amr") == 0) {
+		_regionReader = new AMRIO(_metadata, nthreads);
+	}
+	else {
+		_regionReader = new WaveletBlock3DRegionReader(_metadata, nthreads);
+	}
+	if (_regionReader->GetErrCode() != 0) return;
 
 	if (_DataMgr(mem_size, nthreads) < 0) return;
+
 	_objInitialized = 1;
 }
 
@@ -99,7 +109,7 @@ DataMgr::~DataMgr(
 	SetDiagMsg("DataMgr::~DataMgr()");
 	if (! _objInitialized) return;
 
-	if (_wbreader) delete _wbreader;
+	if (_regionReader) delete _regionReader;
 
 	_regionsMap.clear();
 	_lockedRegionsMap.clear();
@@ -127,7 +137,7 @@ DataMgr::~DataMgr(
 	}
 	_quantizationRangeMap.clear();
 
-	_wbreader = NULL;
+	_regionReader = NULL;
 	_blk_mem_mgr = NULL;
 
 	_objInitialized = 0;
@@ -159,10 +169,76 @@ float	*DataMgr::GetRegion(
 
 	// Else, read it from disk
 	//
-	rc = _wbreader->OpenVariableRead(ts, varname, reflevel);
+	rc = _regionReader->OpenVariableRead(ts, varname, reflevel);
 	if (rc < 0) return (NULL);
 
-	const float *r = _wbreader->GetDataRange();
+
+	if (_metadata->GetGridType().compare("block_amr") == 0) {
+		AMRIO *amrio = (AMRIO *) _regionReader;
+		AMRTree amrtree;
+
+		//
+		// Read in the AMR tree
+		// N.B. Really only need to do this when the time step
+		// changes - same tree used for all variables of a given 
+		// time step
+		//
+		rc = amrio->OpenTreeRead(ts);
+		if (rc < 0) return (NULL);
+
+		rc = amrio->TreeRead(&amrtree);
+		if (rc < 0) return (NULL);
+
+		(void) amrio->CloseTree();
+
+		//
+		// Read in the AMR field data
+		//
+		const size_t *bs = _metadata->GetBlockSize();
+		AMRData amrdata(&amrtree, bs, min, max, reflevel);
+
+		rc = amrio->VariableRead(&amrdata);
+		if (rc < 0) return (NULL);
+
+		(void) amrio->CloseVariable();
+
+		blks = (float *) alloc_region(
+			ts,varname,reflevel,DataMgr::FLOAT32,min,max,lock
+		);
+
+		rc = amrdata.ReGrid(min,max, reflevel, blks);
+		if (rc < 0) {
+			string s = AMRData::GetErrMsg();
+			SetErrMsg(
+				"Failed to regrid region : %s", s.c_str()
+			);
+			(void) free_region(ts,varname,reflevel,FLOAT32,min,max);
+			return (NULL);
+		}
+
+	}
+	else {
+		WaveletBlock3DRegionReader *wbreader = 
+			(WaveletBlock3DRegionReader *) _regionReader;
+
+		blks = (float *) alloc_region(
+			ts,varname,reflevel,DataMgr::FLOAT32,min,max,lock
+		);
+		if (! blks) return(NULL);
+
+		rc = wbreader->BlockReadRegion(min, max, blks, 1);
+		if (rc < 0) {
+			string s = wbreader->GetErrMsg();
+			SetErrMsg(
+				"Failed to read region from disk : %s", s.c_str()
+			);
+			(void) free_region(ts,varname,reflevel,FLOAT32,min,max);
+			wbreader->CloseVariable();
+			return (NULL);
+		}
+	}
+
+	const float *r = _regionReader->GetDataRange();
 
 	float *range = new float[2];
 	assert(range != NULL);
@@ -170,27 +246,10 @@ float	*DataMgr::GetRegion(
 	range[0] = r[0];
 	range[1] = r[1];
 
-
 	// Use of []'s creates an entry in map
 	_dataRangeMap[ts][varname] = range;
 
-	blks = (float *) alloc_region(
-		ts,varname,reflevel,DataMgr::FLOAT32,min,max,lock
-	);
-    if (! blks) return(NULL);
-
-	rc = _wbreader->BlockReadRegion(min, max, blks, 1);
-	if (rc < 0) {
-		string s = _wbreader->GetErrMsg();
-		SetErrMsg(
-			"Failed to read region from disk : %s", s.c_str()
-		);
-		(void) free_region(ts,varname,reflevel,FLOAT32,min,max);
-		_wbreader->CloseVariable();
-		return (NULL);
-	}
-
-	_wbreader->CloseVariable();
+	_regionReader->CloseVariable();
 
 	return(blks);
 }
@@ -309,10 +368,10 @@ const float	*DataMgr::GetDataRange(
 	float *range = new float[2];
 	assert(range != NULL);
 
-	rc = _wbreader->OpenVariableRead(ts, varname, 0);
+	rc = _regionReader->OpenVariableRead(ts, varname, 0);
 	if (rc < 0) return (NULL);
 
-	const float *r = _wbreader->GetDataRange();
+	const float *r = _regionReader->GetDataRange();
 
 
 	range[0] = r[0];
@@ -321,7 +380,7 @@ const float	*DataMgr::GetDataRange(
 	// Use of []'s creates an entry in map
 	_dataRangeMap[ts][varname] = range;
 
-	_wbreader->CloseVariable();
+	_regionReader->CloseVariable();
 
 	return(range);
 }

@@ -8,22 +8,22 @@ FILES = \
 	BlkMemMgr DataMgr Lifting1D Metadata WaveletBlock3D \
 	WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	VDFIOBase WaveletBlock3DIO WaveletBlock3DReader \
-	WaveletBlock3DRegionReader \
+	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter XmlNode ImpExp vdf ExpatParseMgr 
 
 HEADER_FILES = \
 	BlkMemMgr DataMgr Lifting1D Metadata WaveletBlock3D \
 	WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	VDFIOBase WaveletBlock3DIO WaveletBlock3DReader \
-	WaveletBlock3DRegionReader \
+	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter XmlNode ImpExp ExpatParseMgr 
 
 
 
 
 ifeq ($(BUILD_AMR_SUPPORT), 1)
-FILES +=     AMRTree AMRTreeBranch AMRData AMRDataIO
-HEADER_FILES +=     AMRTree AMRTreeBranch AMRData AMRDataIO
+FILES +=     AMRTree AMRTreeBranch AMRData AMRIO
+HEADER_FILES +=     AMRTree AMRTreeBranch AMRData AMRIO
 endif
 
 ifdef	NETCDF_INC_PATH

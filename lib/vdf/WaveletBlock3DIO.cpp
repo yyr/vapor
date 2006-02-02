@@ -17,9 +17,7 @@
 using namespace VetsUtil;
 using namespace VAPoR;
 
-int    VDF_API mkdirhier(const string &dir);
 void	VDF_API mkpath(const string &basename, int level, string &path, int v);
-void	VDF_API dirname(const string &path, string &dir);
 
 const string WaveletBlock3DIO::_blockSizeXName = "BlockSizeNx";
 const string WaveletBlock3DIO::_blockSizeYName = "BlockSizeNy";
@@ -32,6 +30,10 @@ const string WaveletBlock3DIO::_fileVersionName = "FileVersion";
 const string WaveletBlock3DIO::_refLevelName = "RefinementLevel";
 const string WaveletBlock3DIO::_nativeResName = "NativeResolution";
 const string WaveletBlock3DIO::_refLevelResName = "refinementLevelResolution";
+const string WaveletBlock3DIO::_nativeMinValidRegionName = "NativeMinValidRegion";
+const string WaveletBlock3DIO::_nativeMaxValidRegionName = "NativeMaxValidRegion";
+const string WaveletBlock3DIO::_refLevMinValidRegionName = "RefLevMinValidRegion";
+const string WaveletBlock3DIO::_refLevMaxValidRegionName = "RefLevMaxValidRegion";
 const string WaveletBlock3DIO::_filterCoeffName = "NumFilterCoeff";
 const string WaveletBlock3DIO::_liftingCoeffName = "NumLiftingCoeff";
 const string WaveletBlock3DIO::_scalarRangeName = "ScalarDataRange";
@@ -48,9 +50,6 @@ const string WaveletBlock3DIO::_gammaName = "GammaCoefficients";
 		); \
 		return(-1); \
 	}
-void fubar() {
-	cerr << "bummer\n";
-}
 
 #define NC_ERR_READ(rc, path) \
 	if (rc != NC_NOERR) { \
@@ -58,7 +57,6 @@ void fubar() {
 			"Error reading netCDF file \"%s\" : %s",  \
 			path.c_str(), nc_strerror(rc) \
 		); \
-		fubar(); \
 		return(-1); \
 	}
 
@@ -122,7 +120,7 @@ int	WaveletBlock3DIO::_WaveletBlock3DIO(
 }
 
 WaveletBlock3DIO::WaveletBlock3DIO(
-	Metadata	*metadata,
+	const Metadata	*metadata,
 	unsigned int	nthreads
 ) : VDFIOBase(metadata, nthreads) {
 
@@ -282,8 +280,8 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 
 	basename.append(bp);
 
-	dirname(basename, dir);
-	if (mkdirhier(dir) < 0) return(-1);
+	DirName(basename, dir);
+	if (MkDirHier(dir) < 0) return(-1);
 	
 
 	int rc = open_var_write(basename);
@@ -445,6 +443,38 @@ int WaveletBlock3DIO::open_var_write(
 		int dimj_int[] = {dimj[0], dimj[1], dimj[2]};
 		rc = nc_put_att_int(
 			_ncids[j],NC_GLOBAL,_refLevelResName.c_str(),NC_INT, 3, dimj_int
+		);
+		NC_ERR_WRITE(rc,path)
+
+		size_t minreg[3];
+		size_t maxreg[3];
+		GetValidRegion(minreg, maxreg,_num_reflevels-1);
+		int minreg_int[] = {minreg[0], minreg[1], minreg[2]};
+		rc = nc_put_att_int(
+			_ncids[j],NC_GLOBAL,_nativeMinValidRegionName.c_str(),NC_INT, 3, 
+			minreg_int
+		);
+		NC_ERR_WRITE(rc,path)
+
+		int maxreg_int[] = {maxreg[0], maxreg[1], maxreg[2]};
+		rc = nc_put_att_int(
+			_ncids[j],NC_GLOBAL,_nativeMaxValidRegionName.c_str(),NC_INT, 3, 
+			maxreg_int
+		);
+		NC_ERR_WRITE(rc,path)
+
+		GetValidRegion(minreg, maxreg,j);
+		int rminreg_int[] = {minreg[0], minreg[1], minreg[2]};
+		rc = nc_put_att_int(
+			_ncids[j],NC_GLOBAL,_refLevMinValidRegionName.c_str(),NC_INT, 3, 
+			rminreg_int
+		);
+		NC_ERR_WRITE(rc,path)
+
+		int rmaxreg_int[] = {maxreg[0], maxreg[1], maxreg[2]};
+		rc = nc_put_att_int(
+			_ncids[j],NC_GLOBAL,_refLevMaxValidRegionName.c_str(),NC_INT, 3, 
+			rmaxreg_int
 		);
 		NC_ERR_WRITE(rc,path)
 
@@ -683,6 +713,23 @@ int WaveletBlock3DIO::open_var_read(
 		);
 		NC_ERR_READ(rc,path)
 
+		int minreg_int[3];
+		rc = nc_get_att_int(
+			_ncids[j],NC_GLOBAL,_nativeMinValidRegionName.c_str(),minreg_int
+		);
+		if (rc != NC_NOERR) {
+			for(int i=0; i<3; i++) _validRegMin[i] = minreg_int[i];
+		}
+
+		int maxreg_int[3];
+		rc = nc_get_att_int(
+			_ncids[j],NC_GLOBAL,_nativeMaxValidRegionName.c_str(),maxreg_int
+		);
+		if (rc != NC_NOERR) {
+			for(int i=0; i<3; i++) _validRegMax[i] = maxreg_int[i];
+		}
+				
+
 		rc = nc_inq_varid(_ncids[j], _minsName.c_str(), &_ncminvars[j]);
 		NC_ERR_READ(rc,path)
 
@@ -734,6 +781,38 @@ int	WaveletBlock3DIO::CloseVariable()
 					rc = nc_put_att_float(
 						_ncids[j], NC_GLOBAL, _scalarRangeName.c_str(), 
 						NC_FLOAT, 2,_dataRange
+					);
+					NC_ERR_WRITE(rc,_ncpaths[j])
+
+					size_t minreg[3];
+					size_t maxreg[3];
+					GetValidRegion(minreg, maxreg,_num_reflevels-1);
+					int minreg_int[] = {minreg[0], minreg[1], minreg[2]};
+					rc = nc_put_att_int(
+						_ncids[j],NC_GLOBAL,_nativeMinValidRegionName.c_str(),
+						NC_INT, 3, minreg_int
+					);
+					NC_ERR_WRITE(rc,_ncpaths[j])
+
+					int maxreg_int[] = {maxreg[0], maxreg[1], maxreg[2]};
+					rc = nc_put_att_int(
+						_ncids[j],NC_GLOBAL,_nativeMaxValidRegionName.c_str(),
+						NC_INT, 3, maxreg_int
+					);
+					NC_ERR_WRITE(rc,_ncpaths[j])
+
+					GetValidRegion(minreg, maxreg,j);
+					int rminreg_int[] = {minreg[0], minreg[1], minreg[2]};
+					rc = nc_put_att_int(
+						_ncids[j],NC_GLOBAL,_refLevMinValidRegionName.c_str(),
+						NC_INT, 3, rminreg_int
+					);
+					NC_ERR_WRITE(rc,_ncpaths[j])
+
+					int rmaxreg_int[] = {maxreg[0], maxreg[1], maxreg[2]};
+					rc = nc_put_att_int(
+						_ncids[j],NC_GLOBAL,_refLevMaxValidRegionName.c_str(),
+						NC_INT, 3, rmaxreg_int
 					);
 					NC_ERR_WRITE(rc,_ncpaths[j])
 
@@ -1197,6 +1276,7 @@ int	WaveletBlock3DIO::my_alloc(
 			SetErrMsg("new float[%d] : %s", size, strerror(errno));
 			return(-1);
 		}
+		for (int i=0; i<size; i++) _mins[j][i]  = _maxs[j][i] = 0.0;
 	}
 
 	size = _block_size * 8;
@@ -1309,42 +1389,6 @@ int	WaveletBlock3DIO::get_file_offset(
 	return(fixed_part + var_part);
 }
 
-int    mkdirhier(const string &dir) {
-
-    stack <string> dirs;
-
-    string::size_type idx;
-    string s = dir;
-
-	dirs.push(s);
-    while ((idx = s.find_last_of("/")) != string::npos) {
-        s = s.substr(0, idx);
-		if (! s.empty()) dirs.push(s);
-    }
-
-    while (! dirs.empty()) {
-        s = dirs.top();
-		dirs.pop();
-#ifndef WIN32
-        if ((mkdir(s.c_str(), 0777) < 0) && dirs.empty() && errno != EEXIST) {
-			MyBase::SetErrMsg("mkdir(%s) : %M", s.c_str());
-            return(-1);
-        }
-#else 
-		//Windows version of mkdir:
-		//If it succeeds, return value is nonzero
-		if (!CreateDirectory(( LPCSTR)s.c_str(), 0)){
-			DWORD dw = GetLastError();
-			if (dw != 183){ //183 means file already exists
-				MyBase::SetErrMsg("mkdir(%s) : %M", s.c_str());
-				return(-1);
-			}
-		}
-#endif
-    }
-    return(0);
-}
-
 void    mkpath(const string &basename, int level, string &path, int version) {
 	ostringstream oss;
 
@@ -1356,16 +1400,3 @@ void    mkpath(const string &basename, int level, string &path, int version) {
 	}
 	path = oss.str();
 }
-
-void    dirname(const string &path, string &dir) {
-	
-	string::size_type idx = path.find_last_of('/');
-	if (idx == string::npos) {
-		dir.assign("./");
-	}
-	else {
-		dir = path.substr(0, idx+1);
-	}
-}
-
-

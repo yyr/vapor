@@ -19,7 +19,6 @@ using namespace VAPoR;
 
 
 int	VDFIOBase::_VDFIOBase(
-	const Metadata	*metadata,
 	unsigned int	nthreads
 ) {
 
@@ -45,18 +44,23 @@ int	VDFIOBase::_VDFIOBase(
 
 	GetDimBlk(_bdim, _num_reflevels-1);
 
+	for(int i=0; i<3; i++) {
+		_validRegMin[i] = 0;
+		_validRegMax[i] = dim[i]-1;
+	}
+	
 	return(0);
 }
 
 VDFIOBase::VDFIOBase(
-	Metadata	*metadata,
+	const Metadata	*metadata,
 	unsigned int	nthreads
 ) {
 	_objInitialized = 0;
 	_doFreeMeta = 0;
 
 	_metadata = metadata;
-	if (_VDFIOBase(metadata, nthreads) < 0) return;
+	if (_VDFIOBase(nthreads) < 0) return;
 
 	_objInitialized = 1;
 }
@@ -71,7 +75,7 @@ VDFIOBase::VDFIOBase(
 	_metadata = new Metadata(metafile);
 	if (_metadata->GetErrCode() != 0) return;
 
-	if (_VDFIOBase(_metadata, nthreads) < 0) return;
+	if (_VDFIOBase(nthreads) < 0) return;
 	_objInitialized = 1;
 }
 
@@ -112,6 +116,19 @@ void	VDFIOBase::GetDimBlk(
 
 	for (int i=0; i<3; i++) {
 		bdim[i] = (size_t) ceil ((double) dim[i] / (double) _bs[i]);
+	}
+}
+
+void	VDFIOBase::GetValidRegion(
+	size_t min[3], size_t max[3], int reflevel
+) const {
+
+	if (reflevel < 0) reflevel = _num_reflevels - 1;
+	int	 ldelta = _num_reflevels - 1 - reflevel;
+
+	for (int i=0; i<3; i++) {
+		min[i] = _validRegMin[i] >> ldelta;
+		max[i] = _validRegMax[i] >> ldelta;
 	}
 }
 
@@ -250,4 +267,51 @@ int	VDFIOBase::IsValidRegionBlk(
 		if (max[i] >= dim[i]) return (0);
 	}
 	return(1);
+}
+
+int    VAPoR::MkDirHier(const string &dir) {
+
+    stack <string> dirs;
+
+    string::size_type idx;
+    string s = dir;
+
+	dirs.push(s);
+    while ((idx = s.find_last_of("/")) != string::npos) {
+        s = s.substr(0, idx);
+		if (! s.empty()) dirs.push(s);
+    }
+
+    while (! dirs.empty()) {
+        s = dirs.top();
+		dirs.pop();
+#ifndef WIN32
+        if ((mkdir(s.c_str(), 0777) < 0) && dirs.empty() && errno != EEXIST) {
+			MyBase::SetErrMsg("mkdir(%s) : %M", s.c_str());
+            return(-1);
+        }
+#else 
+		//Windows version of mkdir:
+		//If it succeeds, return value is nonzero
+		if (!CreateDirectory(( LPCSTR)s.c_str(), 0)){
+			DWORD dw = GetLastError();
+			if (dw != 183){ //183 means file already exists
+				MyBase::SetErrMsg("mkdir(%s) : %M", s.c_str());
+				return(-1);
+			}
+		}
+#endif
+    }
+    return(0);
+}
+
+void    VAPoR::DirName(const string &path, string &dir) {
+	
+	string::size_type idx = path.find_last_of('/');
+	if (idx == string::npos) {
+		dir.assign("./");
+	}
+	else {
+		dir = path.substr(0, idx+1);
+	}
 }

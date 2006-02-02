@@ -24,7 +24,7 @@ void	WaveletBlock3DRegionReader::_WaveletBlock3DRegionReader()
 WaveletBlock3DRegionReader::WaveletBlock3DRegionReader(
 	const Metadata *metadata,
 	unsigned int	nthreads
-) : WaveletBlock3DIO((Metadata *) metadata, nthreads) {
+) : WaveletBlock3DIO(metadata, nthreads) {
 
 	_objInitialized = 0;
 	if (WaveletBlock3DRegionReader::GetErrCode()) return;

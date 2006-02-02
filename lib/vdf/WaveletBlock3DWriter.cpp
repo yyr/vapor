@@ -129,10 +129,10 @@ int     WaveletBlock3DWriter::CloseVariable(
 			_mins[l][blkidx] = _mins[l+1][blkidxlp1];
 			_maxs[l][blkidx] = _maxs[l+1][blkidxlp1];
 
+			for(int zz=z<<1; zz < (z<<1)+2 && zz<bdimlp1[2]; zz++) {
+			for(int yy=y<<1; yy < (y<<1)+2 && yy<bdimlp1[1]; yy++) {
+			for(int xx=x<<1; xx < (x<<1)+2 && xx<bdimlp1[0]; xx++) {
 
-			for(int zz=z<<1; zz < (z<<1)+2; zz++) {
-			for(int yy=y<<1; yy < (y<<1)+2; yy++) {
-			for(int xx=x<<1; xx < (x<<1)+2; xx++) {
 				blkidxlp1 = zz * bdimlp1[1] * bdimlp1[0] + yy * bdimlp1[0] + xx;
 
 				if (_mins[l+1][blkidxlp1] < _mins[l][blkidx]) {
@@ -314,7 +314,11 @@ int	WaveletBlock3DWriter::WriteSlabs(
 		vector <double> r;
 		r.push_back(_dataRange[0]);
 		r.push_back(_dataRange[1]);
-		_metadata->SetVDataRange(_timeStep, _varName.c_str(), r);
+
+		// Bad, bad, bad cast!!!
+		//
+		Metadata *m = (Metadata *) _metadata;
+		m->SetVDataRange(_timeStep, _varName.c_str(), r);
 	}
 
 	int rc = this->write_slabs(two_slabs, _num_reflevels-1);

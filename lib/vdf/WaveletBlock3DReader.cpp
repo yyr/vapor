@@ -23,7 +23,7 @@ void	WaveletBlock3DReader::_WaveletBlock3DReader(
 WaveletBlock3DReader::WaveletBlock3DReader(
 	const Metadata *metadata,
 	unsigned int	nthreads
-) : WaveletBlock3DIO((Metadata *) metadata, nthreads) {
+) : WaveletBlock3DIO(metadata, nthreads) {
 
 	_objInitialized = 0;
 	if (WaveletBlock3DIO::GetErrCode()) return;
