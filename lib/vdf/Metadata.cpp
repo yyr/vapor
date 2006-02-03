@@ -234,6 +234,120 @@ Metadata::~Metadata() {
 }
 
 
+int Metadata::Merge(const Metadata *metadata, size_t ts_start) {
+
+	const size_t *bs = this->GetBlockSize();
+	const size_t *mbs = metadata->GetBlockSize();
+
+	for(int i=0; i<3; i++) {
+		if (bs[i] != mbs[i]) {
+			SetErrMsg("Merge failed: block size mismatch");
+			return(-1);
+		}
+	}
+
+	const size_t *dim = this->GetDimension();
+	const size_t *mdim = metadata->GetDimension();
+
+	for(int i=0; i<3; i++) {
+		if (bs[i] != mbs[i]) {
+			SetErrMsg("Merge failed: dimension mismatch");
+			return(-1);
+		}
+	}
+
+	if (this->GetFilterCoef() != metadata->GetFilterCoef()) {
+		SetErrMsg("Merge failed: filter coefficient mismatch");
+		return(-1);
+	}
+
+	if (this->GetLiftingCoef() != metadata->GetLiftingCoef()) {
+		SetErrMsg("Merge failed: lifting coefficient mismatch");
+		return(-1);
+	}
+
+	if (this->GetNumTransforms() != metadata->GetNumTransforms()) {
+		SetErrMsg("Merge failed: num transforms mismatch");
+		return(-1);
+	}
+
+	if (this->GetVDFVersion() != metadata->GetVDFVersion()) {
+		SetErrMsg("Merge failed: VDF file version mismatch");
+		return(-1);
+	}
+
+	//
+	// Now merge the variable names
+	//
+	const vector <string> varnames = this->GetVariableNames();
+	const vector <string> mvarnames = metadata->GetVariableNames();
+
+	vector <string> newnames = varnames;
+	for (int i=0; i<mvarnames.size(); i++) {
+		int match = 0;
+		for (int j=0; j<varnames.size() && ! match; j++) {
+			if (mvarnames[i].compare(varnames[j]) == 0) match = 1;
+		}
+		if (! match) {	// name not found => add it
+			newnames.push_back(mvarnames[i]);
+		}
+	}
+	if (newnames.size() > varnames.size()) { 
+		int rc = SetVariableNames(newnames);
+		if (rc < 0) return(-1);
+	}
+
+
+	//
+	// Bump up the number of time steps if needed
+	//
+	long ts = this->GetNumTimeSteps();
+	long mts = metadata->GetNumTimeSteps();
+
+	if (mts + ts_start > ts) {
+		int rc = this->SetNumTimeSteps(mts+ts_start);
+		if (rc < 0) return(-1);
+	}
+
+	// Push the variables next, replacing the current path names with 
+	// absolute paths from the new Metadata object.
+	//
+	const char *mparentstr = metadata->GetParentDir();
+	string parent;
+	for (long i = 0; i < mts; i++) {
+
+		for (int j=0; j<mvarnames.size(); j++) {
+
+			const string base = metadata->GetVBasePath(i, mvarnames[j]);
+
+			if (base[0] == '/') {
+				parent.assign(base);
+			}
+			else {
+				parent.assign(mparentstr);
+				parent.append("/");
+				parent.append(base);
+			}
+
+			int rc = this->SetVBasePath(i+ts_start, mvarnames[j], parent);
+			if (rc < 0) return(-1);
+		}
+	}
+
+	return(0);
+}
+
+int Metadata::Merge(const string &path, size_t ts_start) {
+	Metadata *metadata;
+
+	metadata = new Metadata(path);
+
+	if (Metadata::GetErrCode()) return(-1);
+
+	return(Merge(metadata, ts_start));
+} 
+
+
 int Metadata::Write(const string &path) const {
 
 	SetDiagMsg("Metadata::Write(%s)", path.c_str());
@@ -569,6 +683,25 @@ const string &Metadata::GetVBasePath(
 	varnode = timenode->GetChild(var);
 
 	return(varnode->GetElementString(_basePathTag));
+}
+
+int Metadata::SetVBasePath(
+	size_t ts, const string &var, const string &value
+) {
+
+	XmlNode	*timenode;
+	XmlNode	*varnode;
+
+	SetDiagMsg(
+		"Metadata::SetVBasePath(%d, %s, %s)", ts, var.c_str(), value.c_str()
+	);
+
+	CHK_VAR(ts, var, -1);
+	timenode = _rootnode->GetChild(ts);
+	varnode = timenode->GetChild(var);
+
+	varnode->SetElementString(_basePathTag, value);
+	return(0);
 }
 
 int Metadata::SetVDataRange(

@@ -95,6 +95,58 @@ public:
 
  virtual ~Metadata();
 
+ //! Merge the contents of two metadata objects
+ //!
+ //! This method merges the contents of the metadata object pointed to 
+ //! by \p metadata with the current class object. In instances where there
+ //! are collisions (nodes with the same name), the values \p metadata
+ //! take precedence over the current object. The timestep parameter, 
+ //! \p ts, may be used to specify a time step offset. I.e. The first
+ //! timestep in \p metadata will be merged with the timestep of 
+ //! this class objected indicated by \p ts. 
+ //!
+ //! The following Metadata attributes are required to match
+ //! in both Metadata objects for the merge to take place: 
+ //!
+ //! \li BlockSize
+ //! \li DimensionLength
+ //! \li FilterCoefficents
+ //! \li LiftingCoefficients
+ //! \li NumTransforms
+ //! \li VDFVersion
+ //!
+ //! The following metadata parameters are simply ignored (i.e. the
+ //! parameter values for this class instance take precedence over those
+ //! in the object pointed to by \p metadata):
+ //!
+ //! \li Extents
+ //! \li CoordinateSystem
+ //! \li GridType
+ //!
+ //! Similary, global and time step comments found in \p metadata are 
+ //! not merged, nor is any user-defined data.
+ //!
+ //! \param[in] metadata A pointer to a valid metadata object. 
+ //! \param[in] ts Timestep offset
+ //! \retval status A negative integer is returned on failure, otherwise
+ //! the method has succeeded.
+ //
+ int Merge(const Metadata *metadata, size_t ts = 0);
+
+ //! Merge the contents of two metadata objects
+ //!
+ //! This method is identical to the overloaded version of the same
+ //! name. However, a path name to a .vdf file is provided instead
+ //! of an Metadata object
+ //!
+ //! \param[in] path Path to metadata file
+ //! \param[in] ts Timestep offset
+ //! \retval status A negative integer is returned on failure, otherwise
+ //! the method has succeeded.
+ //
+ int Merge(const string &path, size_t ts = 0);
+
+
  //! Return the file path name to the metafile's parent directory.
  //! If the class was constructed with a path name, this method
  //! returns the parent directory of the path name. If the class
@@ -466,6 +518,11 @@ public:
  //! \retval path Variable base path name
  //
  const string &GetVBasePath(size_t ts, const string &var) const;
+
+
+ int SetVBasePath(
+    size_t ts, const string &var, const string &value
+ );
 
  //! Set the data range for the variable, \p v at the time step 
  //! indicated by \p ts
