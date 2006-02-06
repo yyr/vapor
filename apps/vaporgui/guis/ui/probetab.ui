@@ -1090,7 +1090,7 @@
                                         <cstring>textLabel2_6</cstring>
                                     </property>
                                     <property name="text">
-                                        <string>Cursor Selection</string>
+                                        <string>Cursor (cross-hair) Selection</string>
                                     </property>
                                     <property name="alignment">
                                         <set>AlignCenter</set>
@@ -1161,7 +1161,7 @@
                                                         <set>AlignCenter</set>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
-                                                        <string>X-coordinate of selected point</string>
+                                                        <string>X-coordinate of  point at cross-hairs</string>
                                                     </property>
                                                 </widget>
                                                 <widget class="QLabel">
@@ -1188,7 +1188,7 @@
                                                         <set>AlignCenter</set>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
-                                                        <string>Y-coordinate of selected point</string>
+                                                        <string>Y-coordinate of selected point at cross-hairs</string>
                                                     </property>
                                                 </widget>
                                                 <widget class="QLabel">
@@ -1215,7 +1215,7 @@
                                                         <set>AlignCenter</set>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
-                                                        <string>Z-coordinate of selected point</string>
+                                                        <string>Z-coordinate of selected point at cross-hairs</string>
                                                     </property>
                                                 </widget>
                                             </vbox>
