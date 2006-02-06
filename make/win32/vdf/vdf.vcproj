@@ -125,6 +125,18 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
+				RelativePath="..\..\..\lib\vdf\AMRData.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\AMRIO.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\AMRTree.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\AMRTreeBranch.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\BlkMemMgr.cpp">
 			</File>
 			<File
@@ -177,6 +189,18 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			<File
+				RelativePath="..\..\..\lib\vdf\AMRData.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\AMRIO.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\AMRTree.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\AMRTreeBranch.h">
+			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\BlkMemMgr.h">
 			</File>
