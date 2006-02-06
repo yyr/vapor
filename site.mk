@@ -8,7 +8,7 @@ HOST=$(shell hostname)
 endif
 endif
 
-BUILD_AMR_SUPPORT = 0
+BUILD_AMR_SUPPORT = 1
 BUILD_VOLUMIZER = 1
 
 #
