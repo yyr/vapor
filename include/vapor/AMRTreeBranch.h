@@ -90,7 +90,7 @@ public:
  static const string _locationAttr;		// toplogical coords of branch
 
 
- static const unsigned int	ERROR = ~0U;
+ static const unsigned int	AMR_ERROR = ~0U;
 
  typedef unsigned int UInt32;
 
@@ -142,7 +142,7 @@ public:
  //! \param[in] refinementlevel The refinement level of the cell to be
  //! returned. If -1, a leaf node is returned.
  //! \retval cellid A valid cell id is returned if the branch contains 
- //! the indicated point. Otherwise AMRTreeBranch::ERROR is returned.
+ //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
  //
  UInt32	FindCell(const double ucoord[3], int refinementlevel = -1) const;
 
@@ -199,7 +199,7 @@ public:
  //! \param[in] cellid The cell id of the cell whose first child is
  //! to be returned.
  //! \retval cellid A valid cell id is returned if the branch contains 
- //! the indicated point. Otherwise AMRTreeBranch::ERROR is returned.
+ //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
  //
  UInt32	GetCellChildren(UInt32 cellid) const;
 
@@ -229,7 +229,7 @@ public:
  //! \param[in] face Indicates the cell's face adjacent to the desired
  //! neighbor.
  //! \retval cellid A valid cell id is returned if the branch contains 
- //! the indicated point. Otherwise AMRTreeBranch::ERROR is returned.
+ //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
  UInt32	GetCellNeighbor(UInt32 cellid, int face) const;
 
  //! Return number of nodes in the branch
@@ -253,7 +253,7 @@ public:
  //! \param[in] cellid The cell id of the cell whose parent is
  //! to be returned.
  //! \retval cellid A valid cell id is returned if the branch contains 
- //! the indicated point. Otherwise AMRTreeBranch::ERROR is returned.
+ //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
  //
  UInt32	GetCellParent(UInt32 cellid) const;
 
@@ -282,7 +282,7 @@ public:
  //!
  //! \param[in] cellid The cell id of the cell to be refined
  //! \retval cellid A valid cell id is returned if the branch contains 
- //! the indicated point. Otherwise AMRTreeBranch::ERROR is returned.
+ //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
  //!
  //
  AMRTreeBranch::UInt32	RefineCell(UInt32 cellid);

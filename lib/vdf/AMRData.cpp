@@ -26,7 +26,13 @@
 #include <cstring>
 #include <cassert>
 #include <netcdf.h>
+#ifndef WIN32
 #include <unistd.h>
+#else
+#include "windows.h"
+#include "vaporinternal/common.h"
+#endif
+
 #include <vapor/AMRData.h>
 
 using namespace VAPoR;
@@ -767,7 +773,7 @@ void AMRData::regrid_branch(
 				AMRTreeBranch::UInt32	child;
 
 				child = tbranch->GetCellChildren(cellid);
-				assert(child != AMRTreeBranch::ERROR);
+				assert(child != AMRTreeBranch::AMR_ERROR);
 
 				// See which, if any, of the children overlap
 				// the desired reigon.
