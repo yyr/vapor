@@ -45,6 +45,8 @@
 #include <qvbox.h>
 #include <qworkspace.h>
 #include <qcolordialog.h>
+#include <qstatusbar.h>
+#include <qlabel.h>
 
 
 #include <iostream>
@@ -115,6 +117,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	theAnimationTab = 0;
 	theFlowTab = 0;
 	theProbeTab = 0;
+
+	modeStatusWidget = 0;
 	
 	sessionSaveFile.setAscii("/tmp/VaporSaved.vss");
 
@@ -470,6 +474,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
  */
 MainForm::~MainForm()
 {
+	if (modeStatusWidget) delete modeStatusWidget;
     //qWarning("mainform destructor start");
 	delete Session::getInstance();
     // no need to delete child widgets, Qt does it all for us?? (see closeEvent)
@@ -1070,6 +1075,14 @@ void MainForm::setNavigate(bool on)
 		currentSession->unblockRecording();
 		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::navigateMode));
 		currentMouseMode = Command::navigateMode;
+		
+		if(modeStatusWidget) {
+			statusBar()->removeWidget(modeStatusWidget);
+			delete modeStatusWidget;
+		}
+		modeStatusWidget = new QLabel("Navigation Mode:  Use left mouse to rotate, right to zoom, middle to translate",this);
+		statusBar()->addWidget(modeStatusWidget,2);
+		//statusBar()->message("Use right mouse to rotate, left to zoom, middle to translate",10000);
 	}
 	//resetModeButtons();
 }
@@ -1083,6 +1096,11 @@ void MainForm::setLights(bool  on)
 		VizWinMgr::getInstance()->setSelectionMode(Command::lightMode);
 		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::lightMode));
 		currentMouseMode = Command::lightMode;
+		if(modeStatusWidget) {
+			statusBar()->removeWidget(modeStatusWidget);
+			delete modeStatusWidget;
+			modeStatusWidget = 0;
+		}
 	}
 	
 }
@@ -1100,6 +1118,13 @@ void MainForm::setProbe(bool on)
 		currentSession->unblockRecording();
 		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::probeMode));
 		currentMouseMode = Command::probeMode;
+		if(modeStatusWidget) {
+			statusBar()->removeWidget(modeStatusWidget);
+			delete modeStatusWidget;
+		}
+		modeStatusWidget = new QLabel("Probe Mode:  To modify probe in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
+		statusBar()->addWidget(modeStatusWidget,2);
+		
 	}
 	
 }
@@ -1117,6 +1142,12 @@ void MainForm::setRake(bool on)
 		currentSession->unblockRecording();
 		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::rakeMode));
 		currentMouseMode = Command::rakeMode;
+		if(modeStatusWidget) {
+			statusBar()->removeWidget(modeStatusWidget);
+			delete modeStatusWidget;
+		}
+		modeStatusWidget = new QLabel("Rake Mode: To modify rake in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
+		statusBar()->addWidget(modeStatusWidget,2);
 	}
 	
 }
@@ -1134,6 +1165,12 @@ void MainForm::setRegionSelect(bool on)
 		currentSession->unblockRecording();
 		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::regionMode));
 		currentMouseMode = Command::regionMode;
+		if(modeStatusWidget) {
+			statusBar()->removeWidget(modeStatusWidget);
+			delete modeStatusWidget;
+		}
+		modeStatusWidget = new QLabel("Region Mode: To modify region in scene, grab handle with left mouse to translate, right mouse to stretch",this); 
+		statusBar()->addWidget(modeStatusWidget,2);
 	}
 }
 void MainForm::setContourSelect(bool on)
@@ -1153,6 +1190,11 @@ void MainForm::setContourSelect(bool on)
 		currentSession->unblockRecording();
 		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::contourMode));
 		currentMouseMode = Command::contourMode;
+		if(modeStatusWidget) {
+			statusBar()->removeWidget(modeStatusWidget);
+			delete modeStatusWidget;
+			modeStatusWidget = 0;
+		}
 	}
 }
 //Enable or disable the View menu options:

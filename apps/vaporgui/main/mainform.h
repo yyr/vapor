@@ -43,6 +43,7 @@ class QWidget;
 class QDesktopWidget;
 class QWorkspace;
 class QDockWindow;
+class QLabel;
 class VizTab;
 class RegionTab;
 class ContourPlaneTab;
@@ -237,6 +238,8 @@ protected:
 	VizSelectCombo* windowSelector;
 	
 	QString sessionSaveFile;
+
+	QLabel* modeStatusWidget;
 	
 	
 	Vcr* vcrPanel;
