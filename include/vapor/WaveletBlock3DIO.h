@@ -40,7 +40,7 @@ public:
  //! \sa Metadata, WaveletBlock3DRegionReader, GetErrCode(),
  //
  WaveletBlock3DIO(
-	Metadata *metadata,
+	const Metadata *metadata,
 	unsigned int	nthreads = 1
  );
 
@@ -73,7 +73,7 @@ public:
  //! refinement level is 0 (zero). A value of -1 indicates the finest
  //! refinement level contained in the VDC.
  //
- int    VariableExists(
+ virtual int    VariableExists(
 	size_t ts,
 	const char *varname,
 	int reflevel = 0
@@ -102,7 +102,7 @@ public:
  //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
- int	OpenVariableWrite(
+ virtual int	OpenVariableWrite(
 	size_t timestep,
 	const char *varname,
 	int reflevel = -1
@@ -132,7 +132,7 @@ public:
  //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
- int	OpenVariableRead(
+ virtual int	OpenVariableRead(
 	size_t timestep,
 	const char *varname,
 	int reflevel = 0
@@ -142,7 +142,7 @@ public:
  //!
  //! \sa OpenVariableWrite(), OpenVariableRead()
  //
- int	CloseVariable();
+ virtual int	CloseVariable();
 
  //! Return the minimum data values for each block in the volume
  //!
@@ -338,6 +338,10 @@ private:
  static const string _blockDimZName;
  static const string _fileVersionName;
  static const string _refLevelName;
+ static const string _nativeMinValidRegionName;
+ static const string _nativeMaxValidRegionName;
+ static const string _refLevMinValidRegionName;
+ static const string _refLevMaxValidRegionName;
  static const string _nativeResName;
  static const string _refLevelResName;
  static const string _filterCoeffName;

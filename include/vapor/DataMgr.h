@@ -9,6 +9,7 @@
 #include <vapor/MyBase.h>
 #include "vapor/BlkMemMgr.h"
 #include "vapor/WaveletBlock3DRegionReader.h"
+#include "vapor/AMRIO.h"
 #include "vaporinternal/common.h"
 
 namespace VAPoR {
@@ -221,8 +222,8 @@ public:
  //! methods to read a region from disk - when the region is not present
  //! in the memory cache - is returned. 
  // 
- const WaveletBlock3DRegionReader	*GetRegionReader() const {
-	return (_wbreader);
+ const VDFIOBase	*GetRegionReader() const {
+	return (_regionReader);
  };
 
  //! Return the metadata class object associated with this class
@@ -258,7 +259,7 @@ private:
 
  int	_timestamp;	// access time of most recently accessed region
 
- WaveletBlock3DRegionReader	*_wbreader;
+ VDFIOBase	*_regionReader;
 
  BlkMemMgr	*_blk_mem_mgr;
 

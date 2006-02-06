@@ -72,7 +72,7 @@ public:
  //! \sa Metadata, GetErrCode(),
  //
  VDFIOBase(
-	Metadata *metadata,
+	const Metadata *metadata,
 	unsigned int	nthreads = 1
  );
 
@@ -200,6 +200,26 @@ public:
  //! \sa Metadata::GetDimension()
  //
  virtual void	GetDimBlk(size_t bdim[3], int reflevel = 0) const;
+
+ //! Return the valid bounds of the currently opened region
+ //!
+ //! The VDC permits the storage of volume subregions. This method may
+ //! be used to query the valid domain of the currently opened volume. Results
+ //! are returned in voxel coordinates, relative to the refinement level
+ //! indicated by \p reflevel.
+ //!
+ //! \param[out] min A pointer to the minimum bounds of the subvolume
+ //! \param[out] max A pointer to the maximum bounds of the subvolume
+ //! \param[in] reflevel Refinement level of the variable. A value of -1
+ //! indicates the maximum refinment level defined for the VDC
+ //! \retval status Returns a negative value if the volume is not opened
+ //! for reading or writing.
+ //!
+ //! \sa OpenVariableWrite(), OpenVariableRead()
+ //
+ virtual void GetValidRegion(
+    size_t min[3], size_t max[3], int reflevel
+ ) const;
 
 
  //! Map integer voxel coordinates into integer block coordinates. 
@@ -388,7 +408,7 @@ public:
 
 
 protected:
- VAPoR::Metadata *_metadata;
+ const VAPoR::Metadata *_metadata;
  int	_nthreads;	// # execution threads
 
  size_t	_dim[3];		// volume dimensions in voxels (finest resolution)
@@ -403,6 +423,9 @@ protected:
  int	_version;	// VDF file version number
 
  float _dataRange[2];	// min and max range of data;
+ size_t _validRegMin[3];
+ size_t _validRegMax[3];	// Bounds (in voxels) of valid region relative
+							// to volume at finest level.
 
  double	_read_timer;
  double	_write_timer;
@@ -416,11 +439,14 @@ private:
 
 
  int	_VDFIOBase(
-	const VAPoR::Metadata *metadata,
 	unsigned int	nthreads
  );
 
 };
+
+
+ int	MkDirHier(const string &dir);
+ void	DirName(const string &path, string &dir);
 
 }
 
