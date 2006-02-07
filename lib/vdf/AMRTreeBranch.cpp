@@ -96,10 +96,10 @@ int	AMRTreeBranch::DeleteCell(UInt32 cellid) {
 
 	if (cellid >= _numNodes) {
 		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+		return(ERROR);
 	}
 
-	return(AMR_ERROR);
+	return(ERROR);
 }
 
 AMRTreeBranch::UInt32	AMRTreeBranch::FindCell(
@@ -120,7 +120,7 @@ AMRTreeBranch::UInt32	AMRTreeBranch::FindCell(
 	for(int i =0; i<3; i++) {
 		if (ucoord[i] < _minBounds[i] || ucoord[i] > _maxBounds[i]) {
 			SetErrMsg("Point not contained in this tree branch\n");
-			return(AMR_ERROR);
+			return(ERROR);
 		}
 	}
 
@@ -131,7 +131,7 @@ AMRTreeBranch::UInt32	AMRTreeBranch::FindCell(
 
 	if (refinementlevel > ref_level[0]) {
 		SetErrMsg("Invalid refinement level : %d \n", refinementlevel);
-		return(AMR_ERROR);
+		return(ERROR);
 	}
 
 	UInt32	cellidx = 0;	// internally root cell is -1, first child is 0
@@ -158,7 +158,7 @@ AMRTreeBranch::UInt32	AMRTreeBranch::FindCell(
 		if (! HasChildren(cellidx+1)) break;
 
 		cellid = GetCellChildren(cellidx+1);
-		if (cellid == AMR_ERROR) return (AMR_ERROR);
+		if (cellid == ERROR) return (ERROR);
 
 		cellidx = cellid-1;
 
@@ -168,7 +168,7 @@ AMRTreeBranch::UInt32	AMRTreeBranch::FindCell(
 	if (refinementlevel == -1) return(cellidx+1);
 
 	SetErrMsg("Requested refinement level doesn't exist");
-	return(AMR_ERROR);
+	return(ERROR);
 
 }
 
@@ -185,7 +185,7 @@ int	AMRTreeBranch::GetCellBounds(
 
 	if (cellid >= _numNodes) {
 		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+		return(ERROR);
 	}
 
 	if (cellid == 0) {	// root cell
@@ -248,7 +248,7 @@ int	AMRTreeBranch::GetCellLocation(
 
 	if (cellid >= _numNodes) {
 		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+		return(ERROR);
 	}
 
 	if (cellid == 0) {	// root cell
@@ -301,7 +301,7 @@ AMRTreeBranch::UInt32	AMRTreeBranch::GetCellChildren(
 
 	if (cellid >= _numNodes) {
 		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+		return(ERROR);
 	}
 
 	if (cellid == 0) return(0+1);	// root cell
@@ -322,7 +322,7 @@ AMRTreeBranch::UInt32	AMRTreeBranch::GetCellChildren(
 
 	if (! ((unsigned long) itr[CHILDMASK] & (0x1 << octant))) {
 		SetErrMsg("Invalid cell id %d : has no children\n", cellidx+1);
-		return(AMR_ERROR);
+		return(ERROR);
 	}
 
 	// find the first element in parent_table at the same refinement 
@@ -357,7 +357,7 @@ int	AMRTreeBranch::GetCellLevel(UInt32 cellid) const {
 
 	if (cellid >= _numNodes) {
 		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+		return(ERROR);
 	}
 
 	if (cellid == 0) return(0);	// root level
@@ -384,10 +384,10 @@ AMRTreeBranch::UInt32	AMRTreeBranch::GetCellNeighbor(
 
 	if (cellid >= _numNodes) {
 		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+		return(ERROR);
 	}
 
-	return(AMR_ERROR);
+	return(ERROR);
 }
 
 AMRTreeBranch::UInt32	AMRTreeBranch::GetCellParent(
@@ -398,12 +398,12 @@ AMRTreeBranch::UInt32	AMRTreeBranch::GetCellParent(
 
 	if (cellid >= _numNodes) {
 		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+		return(ERROR);
 	}
 
 	if (cellid < 1) {
 		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+		return(ERROR);
 	}
 
 	if (cellid < (NREGIONS+1)) return (0); // root cell
@@ -501,7 +501,7 @@ AMRTreeBranch::UInt32	AMRTreeBranch::RefineCell(
 
 	if (cellid >= _numNodes) {
 		SetErrMsg("Invalid cell id %d\n", cellid);
-		return(AMR_ERROR);
+		return(ERROR);
 	}
 
 	vector <long> cell(SZ, 0);
@@ -518,7 +518,7 @@ AMRTreeBranch::UInt32	AMRTreeBranch::RefineCell(
 
 		if (parent_table.size()) {
 			SetErrMsg("Can't refine cell %d\n : already refined", cellid);
-			return(AMR_ERROR);
+			return(ERROR);
 		}
 
 		// this is redundant
@@ -555,7 +555,7 @@ AMRTreeBranch::UInt32	AMRTreeBranch::RefineCell(
 
 	if ((unsigned int) itr[CHILDMASK] & (0x1 << octant)) {
 		SetErrMsg("Can't refine cell %d : already refined", cellidx+1);
-		return(AMR_ERROR);
+		return(ERROR);
 	} 
 
 	itr[CHILDMASK] = (unsigned int) itr[CHILDMASK] | (0x1 << octant);

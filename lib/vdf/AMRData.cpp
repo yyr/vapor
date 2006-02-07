@@ -773,7 +773,7 @@ void AMRData::regrid_branch(
 				AMRTreeBranch::UInt32	child;
 
 				child = tbranch->GetCellChildren(cellid);
-				assert(child != AMRTreeBranch::AMR_ERROR);
+				assert(child != AMRTreeBranch::ERROR);
 
 				// See which, if any, of the children overlap
 				// the desired reigon.

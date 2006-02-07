@@ -286,7 +286,7 @@ AMRTree::CellID	AMRTree::FindCell(
 	int	index = (_baseDim[1] * _baseDim[0] * z) + (_baseDim[0] * y) + x;
 
 	tbid = _treeBranches[index]->FindCell(ucoord, reflevel);
-	if (tbid == AMRTreeBranch::AMR_ERROR) return(-1);
+	if (tbid == AMRTreeBranch::ERROR) return(-1);
 
 	cellid = SetBits64(cellid, 31, 32, tbid);
 	cellid = SetBits64(cellid, 47, 16, index);
@@ -335,7 +335,7 @@ AMRTree::CellID	AMRTree::GetCellChildren(
 	}
 
 	AMRTreeBranch::UInt32 child_tbid = _treeBranches[index]->GetCellChildren(tbid);
-	if (child_tbid == AMRTreeBranch::AMR_ERROR) return(-1);
+	if (child_tbid == AMRTreeBranch::ERROR) return(-1);
 
 	CellID child_cellid = 0LL;
 	child_cellid = SetBits64(child_cellid, 31, 32, child_tbid);
@@ -363,7 +363,7 @@ int	AMRTree::GetCellLevel(CellID cellid) const {
 	}
 
 	int level = _treeBranches[index]->GetCellLevel(tbid);
-	if (level == AMRTreeBranch::AMR_ERROR) return(-1);
+	if (level == AMRTreeBranch::ERROR) return(-1);
 
 	return(level);
 
@@ -495,7 +495,7 @@ AMRTree::CellID	AMRTree::GetCellParent(CellID cellid) const
 	}
 
 	AMRTreeBranch::UInt32 parent_tbid = _treeBranches[index]->GetCellParent(tbid);
-	if (parent_tbid == AMRTreeBranch::AMR_ERROR) return(-1);
+	if (parent_tbid == AMRTreeBranch::ERROR) return(-1);
 
 	CellID parent_cellid = 0LL;
 	parent_cellid = SetBits64(parent_cellid, 31, 32, parent_tbid);
@@ -523,7 +523,7 @@ AMRTree::CellID	AMRTree::RefineCell(CellID cellid) {
 	}
 
 	int child_tbid = _treeBranches[index]->RefineCell(tbid);
-	if (child_tbid == AMRTreeBranch::AMR_ERROR) return(-1);
+	if (child_tbid == AMRTreeBranch::ERROR) return(-1);
 
 	CellID child_cellid = 0LL;
 	child_cellid = SetBits64(child_cellid, 31, 32, child_tbid);
@@ -770,7 +770,7 @@ int	AMRTree::paramesh_refine_baseblocks(
 				child = _treeBranches[index]->RefineCell((*cptr0)[i]);
 
 
-				if (child == AMRTreeBranch::AMR_ERROR) return(-1);
+				if (child == AMRTreeBranch::ERROR) return(-1);
 
 				// Push all the children of this cell onto the list
 				// for subsequent processing. Note: ids referenced in
