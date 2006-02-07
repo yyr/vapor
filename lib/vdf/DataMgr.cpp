@@ -23,6 +23,7 @@ int	DataMgr::_DataMgr(
 	_regionsMap.clear();
 	_lockedRegionsMap.clear();
 	_dataRangeMap.clear();
+	_validRegMinMaxMap.clear();
 
 	_timestamp = 0;
 
@@ -129,6 +130,24 @@ DataMgr::~DataMgr(
 		}
 	}
 	_dataRangeMap.clear();
+
+	map <size_t, map<string, map<int, size_t *> > >::iterator p1;
+	for(p1 = _validRegMinMaxMap.begin(); p1!=_validRegMinMaxMap.end(); p1++) {
+
+		map <string, map <int, size_t * > > &vmap = p1->second;
+		map <string, map <int, size_t * > >::iterator t;
+
+		for(t = vmap.begin(); t!=vmap.end(); t++) {
+			map <int, size_t * > &imap = t->second;
+			map <int, size_t * >::iterator u;
+
+			for(u=imap.begin(); u!=imap.end(); u++) {
+
+				if (u->second) delete [] u->second;
+			}
+		}
+	}
+	_validRegMinMaxMap.clear();
 
 	
 	map <string, float * >::iterator p;
@@ -238,16 +257,36 @@ float	*DataMgr::GetRegion(
 		}
 	}
 
-	const float *r = _regionReader->GetDataRange();
 
-	float *range = new float[2];
-	assert(range != NULL);
+	const float *r = get_cached_data_range(ts, varname);
+	if (! r) {
 
-	range[0] = r[0];
-	range[1] = r[1];
+		r = _regionReader->GetDataRange();
 
-	// Use of []'s creates an entry in map
-	_dataRangeMap[ts][varname] = range;
+		float *range = new float[2];
+		assert(range != NULL);
+
+		range[0] = r[0];
+		range[1] = r[1];
+
+		// Use of []'s creates an entry in map
+		_dataRangeMap[ts][varname] = range;
+
+	}
+
+
+	size_t *minmax = get_cached_reg_min_max(ts, varname, reflevel);
+	if (! minmax) {
+
+		minmax = new size_t[6];
+		assert(minmax != NULL);
+
+		_regionReader->GetValidRegion(minmax, &minmax[3], reflevel);
+
+		// Use of []'s creates an entry in map
+		_validRegMinMaxMap[ts][varname][reflevel] = minmax;
+	}
+	
 
 	_regionReader->CloseVariable();
 
@@ -341,31 +380,16 @@ const float	*DataMgr::GetDataRange(
 
 	SetDiagMsg("DataMgr::GetDataRange(%d,%s)", ts, varname);
 
-		
 
 	// See if we've already cache'd it.
 	//
-	if (! _dataRangeMap.empty()) {
-
-		map <size_t, map<string, float *> >::iterator p;
-
-		p = _dataRangeMap.find(ts);
-
-		if (! (p == _dataRangeMap.end())) {
-
-			map <string, float *> &vmap = p->second;
-			map <string, float *>::iterator t;
-
-			t = vmap.find(varname);
-			if (! (t == vmap.end())) {
-				return (t->second);
-			}
-		}
-	}
+	float *range = get_cached_data_range(ts, varname);
+	if (range) return(range);
+		
 
 	// Range isn't cache'd. Need to read it from the file
 	//
-	float *range = new float[2];
+	range = new float[2];
 	assert(range != NULL);
 
 	rc = _regionReader->OpenVariableRead(ts, varname, 0);
@@ -383,6 +407,49 @@ const float	*DataMgr::GetDataRange(
 	_regionReader->CloseVariable();
 
 	return(range);
+}
+
+int DataMgr::GetValidRegion(
+	size_t ts,
+	const char *varname,
+	int reflevel,
+	size_t min[3],
+	size_t max[3]
+) {
+	int	rc;
+
+	SetDiagMsg("DataMgr::GetValidRegion(%d,%s,%d)", ts, varname, reflevel);
+
+
+	// See if we've already cache'd it.
+	//
+	size_t *minmax = get_cached_reg_min_max(ts, varname, reflevel);
+
+	if (! minmax) {
+		
+
+		// Range isn't cache'd. Need to read it from the file
+		//
+		minmax = new size_t[6];
+		assert(minmax != NULL);
+
+		rc = _regionReader->OpenVariableRead(ts, varname, reflevel);
+		if (rc < 0) return(-1);
+
+		_regionReader->GetValidRegion(minmax, &minmax[3], reflevel);
+
+		// Use of []'s creates an entry in map
+		_validRegMinMaxMap[ts][varname][reflevel] = minmax;
+
+		_regionReader->CloseVariable();
+	}
+
+	for (int i=0; i<3; i++) {
+		min[i] = minmax[i];
+		max[i] = minmax[i+3];
+	}
+
+	return(0);
 }
 
 
@@ -779,4 +846,70 @@ int	DataMgr::set_quantization_range(const char *varname, const float range[2]) {
 	//
 	free_var(varstr, 0);
 	return(0);
+}
+
+float *DataMgr::get_cached_data_range(
+	size_t ts,
+	const char *varname
+) {
+
+	// See if we've already cache'd it.
+	//
+	if (! _dataRangeMap.empty()) {
+
+		map <size_t, map<string, float *> >::iterator p;
+
+		p = _dataRangeMap.find(ts);
+
+		if (! (p == _dataRangeMap.end())) {
+
+			map <string, float *> &vmap = p->second;
+			map <string, float *>::iterator t;
+
+			t = vmap.find(varname);
+			if (! (t == vmap.end())) {
+				return (t->second);
+			}
+		}
+	}
+
+	// Not cached
+	return(NULL);
+}
+
+size_t *DataMgr::get_cached_reg_min_max(
+	size_t ts,
+	const char *varname,
+	int reflevel
+) {
+
+	// See if we've already cache'd it.
+	//
+	if (! _validRegMinMaxMap.empty()) {
+
+		map <size_t, map<string, map<int, size_t *> > >::iterator p;
+
+		p = _validRegMinMaxMap.find(ts);
+
+		if (! (p == _validRegMinMaxMap.end())) {
+
+			map <string, map <int, size_t *> > &vmap = p->second;
+			map <string, map <int, size_t *> >::iterator t;
+
+			t = vmap.find(varname);
+			if (! (t == vmap.end())) {
+
+				map <int, size_t *> &imap = t->second;
+				map <int, size_t *>::iterator s;
+
+				s = imap.find(reflevel);
+				if (! (s == imap.end())) {
+					return (s->second);
+				}
+			}
+		}
+	}
+
+	// Not cached
+	return(NULL);
 }

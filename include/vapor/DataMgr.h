@@ -99,7 +99,7 @@ public:
  //! \param[in] ts A valid time step from the Metadata object used 
  //! to initialize the class
  //! \param[in] varname A valid variable name 
- //! \param[in] level Refinement level requested
+ //! \param[in] reflevel Refinement level requested
  //! \param[in] min Minimum region bounds in blocks
  //! \param[in] max Maximum region bounds in blocks
  //! \param[in] lock If true, the memory region will be locked into the 
@@ -214,6 +214,30 @@ public:
  //
  const float	*GetDataRange(size_t ts, const char *varname);
 
+ //! Return the valid region bounds for the specified region
+ //!
+ //! This method returns the minimum and maximum valid coordinate
+ //! bounds (in voxels) of the subregion indicated by the timestep
+ //! \p ts, variable name \p varname, and refinement level \p reflevel
+ //! for the indicated time step and variable
+ //!
+ //! \param[in] ts A valid time step from the Metadata object used 
+ //! to initialize the class
+ //! \param[in] varname Name of variable 
+ //! \param[in] reflevel Refinement level of the variable
+ //! \param[out] min Minimum coordinate bounds (in voxels) of volume
+ //! \param[out] max Maximum coordinate bounds (in voxels) of volume
+ //! \retval status A non-negative int is returned on success
+ //!
+ //
+ int GetValidRegion(
+    size_t ts,
+    const char *varname,
+    int reflevel,
+    size_t min[3],
+    size_t max[3]
+ );
+
  
  //! Return the WaveletBlock3DRegionReader class object associated
  //! with this class instance.
@@ -250,6 +274,7 @@ private:
  map <string, float *> _quantizationRangeMap;	
 
  map <size_t, map<string, float *> > _dataRangeMap;
+ map <size_t, map<string, map<int, size_t *> > > _validRegMinMaxMap;
 
  map <size_t, map<string, vector<region_t *> > > _regionsMap;
 
@@ -300,6 +325,10 @@ private:
  int	free_lru();
 
  int	_DataMgr(size_t mem_size, unsigned int nthreads);
+
+ float	*get_cached_data_range(size_t ts, const char *varname);
+
+ size_t *get_cached_reg_min_max(size_t ts, const char *varname, int reflevel);
 
 };
 
