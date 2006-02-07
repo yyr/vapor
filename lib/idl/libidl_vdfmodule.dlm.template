@@ -12,6 +12,7 @@ FUNCTION	vdf_getnumtransforms	1	1
 FUNCTION	vdf_getmsbfirst	1	1
 FUNCTION	vdc_bufreadcreate	1	1
 FUNCTION	vdc_regreadcreate	1	1
+FUNCTION	vdc_regwritecreate	1	1
 FUNCTION	vdc_bufwritecreate	1	1
 FUNCTION	vdc_varexists		4	4
 FUNCTION	vdc_getdim			2	2
@@ -28,6 +29,8 @@ PROCEDURE	vdc_bufreaddestroy	1	1
 PROCEDURE	vdc_bufreadslice	2	2
 PROCEDURE	vdc_regreaddestroy	1	1
 PROCEDURE	vdc_regread			4	4
+PROCEDURE	vdc_regwritedestroy	1	1
+PROCEDURE	vdc_regwrite		3	3
 PROCEDURE	vdc_bufwritedestroy	1	1
 PROCEDURE	vdc_bufwriteslice	2	2
 PROCEDURE	vdc_openvarwrite	3	4

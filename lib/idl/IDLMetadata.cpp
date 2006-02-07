@@ -32,15 +32,23 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 {
 	typedef struct {
 		IDL_KW_RESULT_FIRST_FIELD;  //
-		IDL_LONG bs;
+		IDL_LONG bs_array[3];
+		IDL_MEMINT bs_n;
+		int bs_there;
 		IDL_LONG nFilterCoef;
 		IDL_LONG nLiftingCoef;
 		IDL_LONG msbFirst;
 	} KW_RESULT;
 
+	static IDL_KW_ARR_DESC_R bs_d = {
+		(char *) IDL_KW_OFFSETOF(bs_array), 3,3, 
+		(IDL_MEMINT  *) IDL_KW_OFFSETOF(bs_n) 
+	};
+
 	static IDL_KW_PAR kw_pars[] = {
 		{
-			"BS", IDL_TYP_LONG, 1, 0, 0, (char *) IDL_KW_OFFSETOF(bs)
+			"BS", IDL_TYP_LONG, 1, IDL_KW_ARRAY,
+			(int *) IDL_KW_OFFSETOF(bs_there), IDL_CHARA(bs_d)
 		},
 		{
 			"NFILTERCOEF", IDL_TYP_LONG, 1, 0, 0, 
@@ -60,7 +68,9 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 	KW_RESULT kw;
 
 
-	kw.bs = 32;
+	kw.bs_array[0] = 32;
+	kw.bs_array[1] = 32;
+	kw.bs_array[2] = 32;
 	kw.nFilterCoef = 1;
 	kw.nLiftingCoef = 1;
 	kw.msbFirst = 1;
@@ -101,7 +111,7 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 		dim[1] = dimptr[1];
 		dim[2] = dimptr[2];
 
-		size_t bs[3] = {kw.bs,kw.bs,kw.bs};
+		size_t bs[3] = {kw.bs_array[0],kw.bs_array[1],kw.bs_array[2]};
 
 		metadata = new Metadata(
 			dim, nxforms,bs, kw.nFilterCoef,kw.nLiftingCoef, kw.msbFirst
