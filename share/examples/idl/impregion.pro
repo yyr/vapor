@@ -1,4 +1,5 @@
-;+
+; $Id$
+;
 ; NAME:
 ;       IMPREGION
 ;
@@ -11,8 +12,12 @@
 ;       IMPREGION
 ;
 ; KEYWORD PARAMETERS:
-;       REFLEVEL:    The desired refinement levele. If this keyword is 
+;       REFLEVEL[in]:    The desired refinement levele. If this keyword is 
 ;			not set, the subregion will be imported at full resolution
+;
+;       STATEINFO[out]:    If this keyworkd is present the output of
+;			the 'vaporimport()' function is returned by the keyword
+;			argument.
 ;
 ; OUTPUTS:
 ;       The region is returned
@@ -21,7 +26,7 @@
 ;       None.
 ;
 ;-
-function impregion, REFLEVEL=reflevel
+function impregion, REFLEVEL=reflevel, STATEINFO=stateinfo
 
 
 on_error,2                      ;Return to caller if an error occurs
