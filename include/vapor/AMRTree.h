@@ -260,7 +260,7 @@ public:
  //! \param[in] cellid The cell id of the cell whose parent is
  //! to be returned.
  //! \retval cellid A valid cell id is returned if the branch contains
- //! the indicated point. Otherwise AMRTreeBranch::ERROR is returned.
+ //! the indicated point. Otherwise AMRTreeBranch::AMR_ERROR is returned.
  //
  CellID	GetCellParent(CellID cellid) const;
 
