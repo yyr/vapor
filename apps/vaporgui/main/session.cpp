@@ -551,7 +551,7 @@ resetMetadata(const char* fileBase, bool restoredSession)
 			return;
 		}
 
-		myReader = (WaveletBlock3DRegionReader*)dataMgr->GetRegionReader();
+		myReader = (VDFIOBase*)dataMgr->GetRegionReader();
 	} 
 
 	//Get the extents from the metadata, if it exists:

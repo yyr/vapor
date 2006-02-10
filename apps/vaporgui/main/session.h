@@ -118,7 +118,7 @@ class Params;
 class Command;
 class Metadata;
 class DataStatus;
-class WaveletBlock3DRegionReader;
+class VDFIOBase;
 class TransferFunction;
 class DvrParams;
 class RegionParams;
@@ -283,8 +283,7 @@ public:
 	bool isRecording() {return (recordingCount == 0);}
 	Histo* getCurrentHistogram(int var) {
 		return (currentHistograms ? currentHistograms[var]: 0);}
-	
-	const WaveletBlock3DRegionReader* getRegionReader() {return myReader;}
+	const VDFIOBase* getRegionReader() {return myReader;}
 	//Setup session for a new Metadata, by specifying vdf file
 	//If the argument is null, it resets to default state
 	//
@@ -361,7 +360,7 @@ protected:
 	Session();
 	void init();
 	static Session* theSession;
-	WaveletBlock3DRegionReader* myReader;
+	VDFIOBase* myReader;
 	
 	//setup the DataStatus:
 	void setupDataStatus();
