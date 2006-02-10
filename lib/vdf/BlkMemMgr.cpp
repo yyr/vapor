@@ -178,7 +178,7 @@ void	*BlkMemMgr::Alloc(
 	i = 0;
 	while(i<_mem_size && index == -1) { 
 		if (_free_table[i] == 0) {
-			for(j=0; j<(int)n && i<_mem_size && _free_table[i+j]==0; j++);
+			for(j=0; j<(int)n && i+j<_mem_size && _free_table[i+j]==0; j++);
 			if (j>=(int) n) index = i;
 			i += j;
 		}
