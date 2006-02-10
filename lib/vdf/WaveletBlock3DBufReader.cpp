@@ -144,7 +144,7 @@ int	WaveletBlock3DBufReader::ReadSlice(
 	// can perform a single copy
 	//
 	if ((bdim[0] % _bs[0]) == 0) {
-		size = bdim[0] * dim[1] * sizeof(*bufptr_c);
+		size = dim[0] * dim[1] * sizeof(*bufptr_c);
 		memcpy(slice, bufptr_c, size);
 	}
 	else {
