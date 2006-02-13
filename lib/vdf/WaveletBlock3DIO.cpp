@@ -660,6 +660,12 @@ int WaveletBlock3DIO::open_var_read(
 		// Verify coefficient file metadata matches VDF metadata
 		//
 		rc = nc_inq_dimid(_ncids[j], _blockSizeXName.c_str(), &ncdimid);
+		if (rc==NC_EBADDIM) {
+			// Ugh. Deal with old data format from trial version
+			// of vapor
+			//
+			rc = nc_inq_dimid(_ncids[j], "BlockNx", &ncdimid);
+		}
 		NC_ERR_READ(rc,path)
 		rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
 		NC_ERR_READ(rc,path)
@@ -669,6 +675,9 @@ int WaveletBlock3DIO::open_var_read(
 		}
 
 		rc = nc_inq_dimid(_ncids[j], _blockSizeYName.c_str(), &ncdimid);
+		if (rc==NC_EBADDIM) {
+			rc = nc_inq_dimid(_ncids[j], "BlockNy", &ncdimid);
+		}
 		NC_ERR_READ(rc,path)
 		rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
 		NC_ERR_READ(rc,path)
@@ -678,6 +687,9 @@ int WaveletBlock3DIO::open_var_read(
 		}
 
 		rc = nc_inq_dimid(_ncids[j], _blockSizeZName.c_str(), &ncdimid);
+		if (rc==NC_EBADDIM) {
+			rc = nc_inq_dimid(_ncids[j], "BlockNz", &ncdimid);
+		}
 		NC_ERR_READ(rc,path)
 		rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
 		NC_ERR_READ(rc,path)
@@ -685,6 +697,7 @@ int WaveletBlock3DIO::open_var_read(
 			SetErrMsg("Metadata file and data file mismatch");
 			return(-1);
 		}
+
 
 		size_t bdim[3];
 		int nb;
@@ -699,6 +712,9 @@ int WaveletBlock3DIO::open_var_read(
 		}
 
 		rc = nc_inq_dimid(_ncids[j], _nBlocksDimName.c_str(), &ncdimid);
+		if (rc==NC_EBADDIM) {
+			rc = nc_inq_dimid(_ncids[j], "NumBlocks", &ncdimid);
+		}
 		NC_ERR_READ(rc,path)
 		rc = nc_inq_dimlen(_ncids[j], ncdimid, &ncdim);
 		NC_ERR_READ(rc,path)
@@ -731,27 +747,45 @@ int WaveletBlock3DIO::open_var_read(
 				
 
 		rc = nc_inq_varid(_ncids[j], _minsName.c_str(), &_ncminvars[j]);
+		if (rc==NC_ENOTVAR) { 
+			rc = NC_NOERR;
+			_ncminvars[j] = -1;
+		}
 		NC_ERR_READ(rc,path)
 
 		rc = nc_inq_varid(_ncids[j], _maxsName.c_str(), &_ncmaxvars[j]);
+		if (rc==NC_ENOTVAR) { 
+			rc = NC_NOERR;
+			_ncmaxvars[j] = -1;
+		}
 		NC_ERR_READ(rc,path)
 
 		if (j==0) {
 			rc = nc_inq_varid(_ncids[j], _lambdaName.c_str(), &_ncvars[j]);
+			if (rc==NC_ENOTVAR) {
+				rc = nc_inq_varid(_ncids[j], "Lambda", &_ncvars[j]);
+			}
 		}
 		else {
 			rc = nc_inq_varid(_ncids[j], _gammaName.c_str(), &_ncvars[j]);
+			if (rc==NC_ENOTVAR) {
+				rc = nc_inq_varid(_ncids[j], "Gamma", &_ncvars[j]);
+			}
 		}
 		NC_ERR_READ(rc,path)
 
 
 		// Go ahead and read the block min & max
 		//
-		rc = nc_get_var_float(_ncids[j], _ncminvars[j], _mins[j]);
-		NC_ERR_READ(rc,path)
+		if (_ncminvars[j] != -1) {
+			rc = nc_get_var_float(_ncids[j], _ncminvars[j], _mins[j]);
+			NC_ERR_READ(rc,path)
+		}
 
-		rc = nc_get_var_float(_ncids[j], _ncmaxvars[j], _maxs[j]);
-		NC_ERR_READ(rc,path)
+		if (_ncmaxvars[j] != -1) {
+			rc = nc_get_var_float(_ncids[j], _ncmaxvars[j], _maxs[j]);
+			NC_ERR_READ(rc,path)
+		}
 
 	}
 	return(0);
