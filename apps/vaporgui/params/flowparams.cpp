@@ -77,7 +77,7 @@ using namespace VAPoR;
 	const string FlowParams::_positionAttr = "Position";
 	const string FlowParams::_timestepAttr = "TimeStep";
 
-	const string FlowParams::_mappedVariablesAttr = "MappedVariables";
+	const string FlowParams::_mappedVariableNamesAttr = "MappedVariableNames";
 	const string FlowParams::_steadyFlowAttr = "SteadyFlow";
 	const string FlowParams::_instanceAttr = "FlowRendererInstance";
 	const string FlowParams::_integrationAccuracyAttr = "IntegrationAccuracy";
@@ -149,15 +149,16 @@ restart() {
 	
 	numRefinements = 0; 
 	maxNumRefinements = 4; 
-	numVariables = 0;
+	numComboVariables = 0;
 	firstDisplayFrame = 0;
 	lastDisplayFrame = 20;
-	variableNames.empty();
-	//Initially just make one blank:
-	variableNames.push_back(" ");
+	
 	varNum[0]= 0;
 	varNum[1] = 1;
 	varNum[2] = 2;
+	comboVarNum[0]= 0;
+	comboVarNum[1] = 1;
+	comboVarNum[2] = 2;
 	integrationAccuracy = 0.5f;
 	velocityScale = 1.0f;
 	constantColor = qRgb(255,0,0);
@@ -250,7 +251,7 @@ deepCopy(){
 	
 	FlowParams* newFlowParams = new FlowParams(*this);
 	//Clone the map bounds arrays:
-	int numVars = numVariables+4;
+	int numVars = numComboVariables+4;
 	newFlowParams->minColorEditBounds = new float[numVars];
 	newFlowParams->maxColorEditBounds = new float[numVars];
 	newFlowParams->minOpacEditBounds = new float[numVars];
@@ -333,32 +334,12 @@ void FlowParams::updateDialog(){
 	myFlowTab->refreshButton->setEnabled(!autoRefresh && activeFlowDataIsDirty());
 	myFlowTab->autoRefreshCheckbox->setChecked(autoRefresh);
 	//Always allow at least 4 variables in combo:
-	int numVars = numVariables;
+	int numVars = numComboVariables;
 	if (numVars < 4) numVars = 4;
-	myFlowTab->xCoordVarCombo->clear();
-	myFlowTab->xCoordVarCombo->setMaxCount(numVars);
-	myFlowTab->yCoordVarCombo->clear();
-	myFlowTab->yCoordVarCombo->setMaxCount(numVars);
-	myFlowTab->zCoordVarCombo->clear();
-	myFlowTab->zCoordVarCombo->setMaxCount(numVars);
-	for (int i = 0; i< numVars; i++){
-		if (variableNames.size() > (unsigned int)i){
-			const std::string& s = variableNames.at(i);
-			//Direct conversion of std::string& to QString doesn't seem to work
-			//Maybe std was not enabled when QT was built?
-			const QString& text = QString(s.c_str());
-			myFlowTab->xCoordVarCombo->insertItem(text);
-			myFlowTab->yCoordVarCombo->insertItem(text);
-			myFlowTab->zCoordVarCombo->insertItem(text);
-		} else {
-			myFlowTab->xCoordVarCombo->insertItem("");
-			myFlowTab->yCoordVarCombo->insertItem("");
-			myFlowTab->zCoordVarCombo->insertItem("");
-		}
-	}
-	myFlowTab->xCoordVarCombo->setCurrentItem(varNum[0]);
-	myFlowTab->yCoordVarCombo->setCurrentItem(varNum[1]);
-	myFlowTab->zCoordVarCombo->setCurrentItem(varNum[2]);
+	
+	myFlowTab->xCoordVarCombo->setCurrentItem(comboVarNum[0]);
+	myFlowTab->yCoordVarCombo->setCurrentItem(comboVarNum[1]);
+	myFlowTab->zCoordVarCombo->setCurrentItem(comboVarNum[2]);
 	
 	
 	myFlowTab->timesampleStartEdit->setEnabled(flowType == 1);
@@ -628,20 +609,21 @@ updatePanelState(){
 void FlowParams::
 reinit(bool doOverride){
 	int i;
-	const Metadata* md = Session::getInstance()->getCurrentMetadata();
-	Session* session = Session::getInstance();
+	
+	Session* ses = Session::getInstance();
 	//Note:  we are relying on RegionParams to have already been reinit'ed.
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->
 			getRegionParams(vizNum);
-	int nlevels = md->GetNumTransforms();
+
+	int nlevels = ses->getDataStatus()->getNumTransforms();
 	
 	setMaxNumTrans(nlevels);
 	//Clean out any existing caches:
 	cleanFlowDataCaches();
 	
 	//Make min and max conform to new data:
-	minFrame = (int)(session->getMinTimestep());
-	maxFrame = (int)(session->getMaxTimestep());
+	minFrame = (int)(ses->getMinTimestep());
+	maxFrame = (int)(ses->getMaxTimestep());
 	editMode = true;
 	// set the params state based on whether we are overriding or not:
 	if (doOverride) {
@@ -670,7 +652,7 @@ reinit(bool doOverride){
 	}
 
 	//Set up the seed region:
-	const float* fullExtents = Session::getInstance()->getExtents();
+	const float* fullExtents = ses->getExtents();
 	if (doOverride){
 		for (i = 0; i<3; i++){
 			seedBoxMin[i] = fullExtents[i];
@@ -689,19 +671,36 @@ reinit(bool doOverride){
 
 	//Set up variables:
 	//Get the variable names:
-	variableNames = md->GetVariableNames();
-	int newNumVariables = (int)variableNames.size();
-	//int newNumVariables = md->GetVariableNames().size();
-
+	
+	int newNumVariables = ses->getNumVariables();
+	int newNumComboVariables = ses->getNumMetadataVariables();
+	//Set up the combo (if this is the shared params...
+	if (!local){
+		myFlowTab->xCoordVarCombo->clear();
+		myFlowTab->xCoordVarCombo->setMaxCount(newNumComboVariables);
+		myFlowTab->yCoordVarCombo->clear();
+		myFlowTab->yCoordVarCombo->setMaxCount(newNumComboVariables);
+		myFlowTab->zCoordVarCombo->clear();
+		myFlowTab->zCoordVarCombo->setMaxCount(newNumComboVariables);
+		for (int i = 0; i< newNumComboVariables; i++){
+			const std::string& s = ses->getMetadataVarName(i);
+			//Direct conversion of std::string& to QString doesn't seem to work
+			//Maybe std was not enabled when QT was built?
+			const QString& text = QString(s.c_str());
+			myFlowTab->xCoordVarCombo->insertItem(text);
+			myFlowTab->yCoordVarCombo->insertItem(text);
+			myFlowTab->zCoordVarCombo->insertItem(text);
+		}
+	}
 	//Rebuild map bounds arrays:
 	if(minOpacBounds) delete minOpacBounds;
-	minOpacBounds = new float[newNumVariables+4];
+	minOpacBounds = new float[newNumComboVariables+4];
 	if(maxOpacBounds) delete maxOpacBounds;
-	maxOpacBounds = new float[newNumVariables+4];
+	maxOpacBounds = new float[newNumComboVariables+4];
 	if(minColorBounds) delete minColorBounds;
-	minColorBounds = new float[newNumVariables+4];
+	minColorBounds = new float[newNumComboVariables+4];
 	if(maxColorBounds) delete maxColorBounds;
-	maxColorBounds = new float[newNumVariables+4];
+	maxColorBounds = new float[newNumComboVariables+4];
 	
 	
 	colorMapEntity.clear();
@@ -714,9 +713,9 @@ reinit(bool doOverride){
 	opacMapEntity.push_back("Timestep");
 	opacMapEntity.push_back("Field Magnitude");
 	opacMapEntity.push_back("Seed Index");
-	for (i = 0; i< newNumVariables; i++){
-		colorMapEntity.push_back(variableNames[i]);
-		opacMapEntity.push_back(variableNames[i]);
+	for (i = 0; i< newNumComboVariables; i++){
+		colorMapEntity.push_back(ses->getMetadataVarName(i));
+		opacMapEntity.push_back(ses->getMetadataVarName(i));
 	}
 	//Set up the color, opac map entity combos:
 	
@@ -729,19 +728,22 @@ reinit(bool doOverride){
 	for (i = 0; i< (int)colorMapEntity.size(); i++){
 		myFlowTab->opacmapEntityCombo->insertItem(QString(opacMapEntity[i].c_str()));
 	}
-	if(doOverride || getOpacMapEntityIndex() >= newNumVariables+4){
+	if(doOverride || getOpacMapEntityIndex() >= newNumComboVariables+4){
 		setOpacMapEntity(0);
 	}
-	if(doOverride || getColorMapEntityIndex() >= newNumVariables+4){
+	if(doOverride || getColorMapEntityIndex() >= newNumComboVariables+4){
 		setColorMapEntity(0);
 	}
 	if (doOverride){
-		varNum[0] = 0; varNum[1] = 1; varNum[2] = 2;
+		for (int j = 0; j<3; j++){
+			comboVarNum[j] = Min(j,newNumComboVariables-1);
+			varNum[j] = ses->mapMetadataToRealVarNum(comboVarNum[j]);
+		}
 	} 
 	for (int dim = 0; dim < 3; dim++){
 		//See if current varNum is valid.  If not, 
 		//reset to first variable that is present:
-		if (!Session::getInstance()->getDataStatus()->variableIsPresent(varNum[dim])){
+		if (!ses->getDataStatus()->variableIsPresent(varNum[dim])){
 			varNum[dim] = -1;
 			for (i = 0; i<newNumVariables; i++) {
 				if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
@@ -753,8 +755,12 @@ reinit(bool doOverride){
 	}
 	if (varNum[0] == -1){
 		MessageReporter::errorMsg("Flow Params: No data in specified dataset");
-		numVariables = 0;
+		numComboVariables = 0;
 		return;
+	}
+	//Determine the combo var nums from the varNum's
+	for (int dim = 0; dim < 3; dim++){
+		comboVarNum[dim] = Session::getInstance()->mapRealToMetadataVarNum(varNum[dim]);
 	}
 	//Set up sampling.  
 	if (doOverride){
@@ -765,17 +771,17 @@ reinit(bool doOverride){
 	validateSampling();
 
 	//Now set up bounds arrays based on current mapped variable settings:
-	for (i = 0; i< newNumVariables+4; i++){
+	for (i = 0; i< newNumComboVariables+4; i++){
 		minOpacBounds[i] = minColorBounds[i] = minRange(i);
 		maxOpacBounds[i] = maxColorBounds[i] = maxRange(i);
 	}
 	
 	
 	//Create new edit bounds whether we override or not
-	float* newMinOpacEditBounds = new float[newNumVariables+4];
-	float* newMaxOpacEditBounds = new float[newNumVariables+4];
-	float* newMinColorEditBounds = new float[newNumVariables+4];
-	float* newMaxColorEditBounds = new float[newNumVariables+4];
+	float* newMinOpacEditBounds = new float[newNumComboVariables+4];
+	float* newMaxOpacEditBounds = new float[newNumComboVariables+4];
+	float* newMinColorEditBounds = new float[newNumComboVariables+4];
+	float* newMaxColorEditBounds = new float[newNumComboVariables+4];
 	//Either try to reuse existing MapperFunction, MapEditor, or create new ones.
 	if (doOverride){ //create new ones:
 		//For now, assume 8-bits mapping
@@ -805,7 +811,7 @@ reinit(bool doOverride){
 		newMinColorEditBounds[2] = minColorBounds[2];
 		newMaxColorEditBounds[2] = maxColorBounds[2];
 		//Other variables:
-		for (i = 0; i< newNumVariables; i++){
+		for (i = 0; i< newNumComboVariables; i++){
 			if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
 				newMinOpacEditBounds[i+4] = Session::getInstance()->getDefaultDataMin(i);
 				newMaxOpacEditBounds[i+4] = Session::getInstance()->getDefaultDataMax(i);
@@ -830,8 +836,8 @@ reinit(bool doOverride){
 		
 		//Try to reuse existing bounds:
 		
-		for (i = 0; i< newNumVariables; i++){
-			if (i >= numVariables){
+		for (i = 0; i< newNumComboVariables; i++){
+			if (i >= numComboVariables){
 				newMinOpacEditBounds[i+4] = Session::getInstance()->getDefaultDataMin(i);
 				newMaxOpacEditBounds[i+4] = Session::getInstance()->getDefaultDataMax(i);
 				newMinColorEditBounds[i+4] = Session::getInstance()->getDefaultDataMin(i);
@@ -862,7 +868,8 @@ reinit(bool doOverride){
 	maxColorEditBounds = newMaxColorEditBounds;
 
 	
-	numVariables = newNumVariables;
+	
+	numComboVariables = newNumComboVariables;
 	
 	//Always disable
 	bool wasEnabled = enabled;
@@ -891,7 +898,7 @@ reinit(bool doOverride){
 	//don't change local/global 
 	updateRenderer(wasEnabled, isLocal(), false);
 	
-	if(numVariables>0) getFlowMapEditor()->setDirty();
+	if(numComboVariables>0) getFlowMapEditor()->setDirty();
 	//If flow is the current front tab, and if it applies to the active visualizer,
 	//update its values
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myFlowTab)) {
@@ -1221,25 +1228,28 @@ guiSetNumRefinements(int n){
 	PanelCommand::captureEnd(cmd, this);
 }
 void FlowParams::
-guiSetXVarNum(int varnum){
+guiSetXComboVarNum(int varnum){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set X field variable");
-	setXVarNum(varnum);
+	comboVarNum[0] = varnum;
+	setXVarNum(Session::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, this);
 }
 void FlowParams::
-guiSetYVarNum(int varnum){
+guiSetYComboVarNum(int varnum){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set Y field variable");
-	setYVarNum(varnum);
+	comboVarNum[1] = varnum;
+	setYVarNum(Session::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, this);
 
 }
 void FlowParams::
-guiSetZVarNum(int varnum){
+guiSetZComboVarNum(int varnum){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this,  "set Z field variable");
-	setZVarNum(varnum);
+	comboVarNum[2] = varnum;
+	setZVarNum(Session::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, this);
 
 }
@@ -1930,10 +1940,11 @@ regenerateFlowData(int timeStep, bool isRake){
 	
 	float* speeds = 0;
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	Session* ses = Session::getInstance();
 	//specify field components:
-	const char* xVar = variableNames[varNum[0]].c_str();
-	const char* yVar = variableNames[varNum[1]].c_str();
-	const char* zVar = variableNames[varNum[2]].c_str();
+	const char* xVar = ses->getVariableName(varNum[0]).c_str();
+	const char* yVar = ses->getVariableName(varNum[1]).c_str();
+	const char* zVar = ses->getVariableName(varNum[2]).c_str();
 	myFlowLib->SetFieldComponents(xVar, yVar, zVar);
 	//If these flowparams are shared, we could have a problem here; 
 	//Different windows could have different regions.  We will always
@@ -2399,6 +2410,7 @@ setFlowDataDirty(int timeStep, bool isRake, bool newValue){
 //Method to construct Xml for state saving
 XmlNode* FlowParams::
 buildNode() {
+	Session* ses = Session::getInstance();
 	//Construct the flow node
 	string empty;
 	std::map <string, string> attrs;
@@ -2418,7 +2430,7 @@ buildNode() {
 	attrs[_localAttr] = oss.str();
 
 	oss.str(empty);
-	oss << (long)numVariables;
+	oss << (long)numComboVariables;
 	attrs[_numVariablesAttr] = oss.str();
 
 	oss.str(empty);
@@ -2454,10 +2466,10 @@ buildNode() {
 	attrs[_steadyFlowAttr] = oss.str();
 
 	oss.str(empty);
-	oss << varNum[0]<<" "<<varNum[1]<<" "<<varNum[2];
-	attrs[_mappedVariablesAttr] = oss.str();
+	oss << ses->getVariableName(varNum[0])<<" "<<ses->getVariableName(varNum[1])<<" "<<ses->getVariableName(varNum[2]);
+	attrs[_mappedVariableNamesAttr] = oss.str();
 
-	XmlNode* flowNode = new XmlNode(_flowParamsTag, attrs, 2+numVariables);
+	XmlNode* flowNode = new XmlNode(_flowParamsTag, attrs, 2+numComboVariables);
 
 	//Now add children:  
 	//There's a child for geometry, a child for
@@ -2571,7 +2583,7 @@ buildNode() {
 		attrs[_opacityScaleAttr] = oss.str();
 	}
 
-	XmlNode* graphicNode = new XmlNode(_geometryTag,attrs,2*numVariables+1);
+	XmlNode* graphicNode = new XmlNode(_geometryTag,attrs,2*numComboVariables+1);
 
 	//Create a mapper function node, add it as child
 	if(mapperFunction) {
@@ -2583,21 +2595,20 @@ buildNode() {
 
 	flowNode->AddChild(graphicNode);
 	//Create a node for each of the variables
-	for (int i = 0; i< numVariables+4; i++){
+	for (int i = 0; i< numComboVariables+4; i++){
 		map <string, string> varAttrs;
 		oss.str(empty);
 		if (i > 3){
-			oss << variableNames[i-4];
+			oss << ses->getVariableName(i-4);
 		} else {
 			if (i == 0) oss << "Constant";
-			else if (i == 1) oss << "RelativeTimestep";
+			else if (i == 1) oss << "Timestep";
 			else if (i == 2) oss << "FieldMagnitude";
 			else if (i == 3) oss << "SeedIndex";
 		}
 		varAttrs[_variableNameAttr] = oss.str();
-		oss.str(empty);
-		oss << (int)i;
-		varAttrs[_variableNumAttr] = oss.str();
+
+		
 		oss.str(empty);
 		oss << (double)minColorBounds[i];
 		varAttrs[_leftColorBoundAttr] = oss.str();
@@ -2643,8 +2654,17 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _numVariablesAttr) == 0) {
 				ist >> newNumVariables;
 			}
-			else if (StrCmpNoCase(attribName, _mappedVariablesAttr) == 0) {
-				ist >> varNum[0]; ist>>varNum[1]; ist>>varNum[2];
+			
+			else if (StrCmpNoCase(attribName, _mappedVariableNamesAttr) == 0) {
+				string vName;
+				for (int i = 0; i< 3; i++){
+					ist >> vName;//peel off the name
+					int varnum = Session::getInstance()->mergeVariableName(vName);
+					varNum[i] = varnum;
+					//The combo setting will need to change when/if the variable is
+					//read in the metadata
+					comboVarNum[i] = -1;
+				}
 			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
 				if (value == "true") setLocal(true); else setLocal(false);
@@ -2654,9 +2674,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _steadyFlowAttr) == 0) {
 				if (value == "true") setFlowType(0); else setFlowType(1);
-			}
-			else if (StrCmpNoCase(attribName, _instanceAttr) == 0){
-				//obsolete
 			}
 			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
 				ist >> numRefinements;
@@ -2674,16 +2691,16 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		}
 		//Reset the variable Names, Nums, bounds.  These will be initialized
 		//by the geometry nodes
-		numVariables = newNumVariables;
-		variableNames.resize(numVariables);
+		numComboVariables = newNumVariables;
+		
 		delete minOpacBounds;
 		delete maxOpacBounds;
 		delete minColorBounds;
 		delete maxColorBounds;
-		minOpacBounds = new float[numVariables+4];
-		maxOpacBounds = new float[numVariables+4];
-		minColorBounds = new float[numVariables+4];
-		maxColorBounds = new float[numVariables+4];
+		minOpacBounds = new float[numComboVariables+4];
+		maxOpacBounds = new float[numComboVariables+4];
+		minColorBounds = new float[numComboVariables+4];
+		maxColorBounds = new float[numComboVariables+4];
 		return true;
 	}
 	//Parse the seeding node:
@@ -2813,7 +2830,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 	} else if (StrCmpNoCase(tagString,_variableTag) == 0){
 		//Save the attributes:
 		string varName = "";
-		int varNum = -1;
+		
 		float leftColorBound = 0.f;
 		float rightColorBound = 1.f;
 		float leftOpacBound = 0.f;
@@ -2826,9 +2843,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			istringstream ist(value);
 			if (StrCmpNoCase(attribName, _variableNameAttr) == 0) {
 				ist >> varName;
-			}
-			else if (StrCmpNoCase(attribName, _variableNumAttr) == 0) {
-				ist >> varNum;
 			}
 			else if (StrCmpNoCase(attribName, _leftColorBoundAttr) == 0) {
 				ist >> leftColorBound;
@@ -2845,15 +2859,20 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else return false;
 		}
 		//Plug in these values:
-		if (varNum < 0 || varNum > numVariables+4) {
-			pm->parseError("Invalid variable num, name in FlowParams: %d, %s",varNum, varName);
-			return false;
+		//Check first for predefined names.  Same ones are used for opacity and
+		//for color
+		int varNum = -1;
+		if(StrCmpNoCase(varName, "Constant") == 0) varNum = 0;
+		else 	if (StrCmpNoCase(varName, "Timestep") == 0) varNum = 1;
+		else 	if (StrCmpNoCase(varName, "FieldMagnitude") == 0) varNum = 2;
+		else 	if (StrCmpNoCase(varName, "SeedIndex") == 0) varNum = 3;
+		else {
+			varNum = 4+ Session::getInstance()->mergeVariableName(varName);
+			if (varNum > numComboVariables+4) {
+				pm->parseError("Invalid variable name in FlowParams: %s", varName.c_str());
+				return false;
+			}
 		}
-		//Only get the variable names after the constant, age, speed:
-		//This isn't too important because they may change when new 
-		//data is loaded.
-		if (varNum > 3)
-			variableNames[varNum-4] = varName;
 		minColorBounds[varNum]= leftColorBound;
 		maxColorBounds[varNum] = rightColorBound;
 		minOpacBounds[varNum]= leftOpacBound;
@@ -2977,7 +2996,7 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 		const size_t *bs = Session::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
-			opacSize[i] = (ds->getFullDataSize(i) >> numRefinements);
+			opacSize[i] = (ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements));
 			maxSize[i] = opacSize[i]/bs[i] -1;
 			opacVarMin[i] = Session::getInstance()->getExtents(i);
 			opacVarMax[i] = Session::getInstance()->getExtents(i+3);
@@ -2997,7 +3016,7 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 		const size_t *bs = Session::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
-			colorSize[i] = (ds->getFullDataSize(i) >> numRefinements);
+			colorSize[i] = (ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements));
 			maxSize[i] = (colorSize[i]/bs[i] - 1);
 			colorVarMin[i] = Session::getInstance()->getExtents(i);
 			colorVarMax[i] = Session::getInstance()->getExtents(i+3);
@@ -3328,22 +3347,17 @@ validateSampling()
 }
 
 //Check to see if there is valid field data for specified timestep
-//Finds the largest min transforms that works for all three variables,
-//and the smallest max trans that works for all, returns true if
-//smallestMax is >= largestMin
+//
+ 
 bool FlowParams::
 validateVectorField(int ts) {
 	DataStatus* dStatus = Session::getInstance()->getDataStatus();
 	if (!dStatus) return false;
-	int largestminx = -100;
-	int smallestmaxx = 100;
 	for (int var = 0; var<3; var++){
-		if(dStatus->minXFormPresent(var, ts) > largestminx)
-			largestminx = dStatus->minXFormPresent(varNum[var], ts);
-		if(dStatus->maxXFormPresent(var, ts)< smallestmaxx)
-			smallestmaxx = dStatus->maxXFormPresent(varNum[var], ts);
+		if(dStatus->maxXFormPresent(var, ts)< 0)
+			return false;
 	}
-	return (smallestmaxx >= largestminx);
+	return true;
 }
 
 			

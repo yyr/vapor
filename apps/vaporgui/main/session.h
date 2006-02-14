@@ -105,9 +105,11 @@
 
 #include <vector>
 #include <string>
+#include <assert.h>
 #include "vapor/DataMgr.h"
 #include "vapor/MyBase.h"
 #include "vapor/ExpatParseMgr.h"
+#include "datastatus.h"
 class QString;
 namespace VAPoR {
 class VizWinMgr;
@@ -117,102 +119,14 @@ class MainForm;
 class Params;
 class Command;
 class Metadata;
+class WaveletBlock3DRegionReader;
 class DataStatus;
 class VDFIOBase;
 class TransferFunction;
 class DvrParams;
 class RegionParams;
 
-// Class used by session to keep track of variables, timesteps	
-class DataStatus{
-public:
-	DataStatus(int numvariables, int numtimesteps);
-	~DataStatus();
-	//Set methods:
-	//Either there is a minimum xform present, or none
-	//
-	void setMinXFormPresent(int varnum, int timestep, int xf){
-		dataPresent[timestep + varnum*numTimesteps] = xf;
-	}
-	void setMaxXFormPresent(int varnum, int timestep, int xf){
-		maxXPresent[timestep + varnum*numTimesteps] = xf;
-	}
-	void setDataAbsent(int varnum, int timestep){
-		dataPresent[timestep + varnum*numTimesteps] = -1;
-		maxXPresent[timestep + varnum*numTimesteps] = -1;
-	}
-	void setDataMax(int varnum, int timestep, double val){
-		maxData[timestep + varnum*numTimesteps] = val;
-	}
-	void setDataMin(int varnum, int timestep, double val){
-		minData[timestep + varnum*numTimesteps] = val;
-	}
-	
-	void setNumTransforms(int numtrans) {numTransforms = numtrans;}
-	void setFullDataSize(int dim, size_t size){fullDataSize[dim]=size;}
-	void setMinTimestep(size_t mints){minTimeStep = mints;}
-	void setMaxTimestep(size_t maxts) {maxTimeStep = maxts;}
-	// Get methods:
-	//
-	size_t getMinTimestep() {return minTimeStep;}
-	size_t getMaxTimestep() {return maxTimeStep;}
-	bool dataIsPresent(int varnum, int timestep){
-		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
-		if (varnum < 0 || varnum >= numVariables) return false;
-		return (dataPresent[timestep + varnum*numTimesteps] >= 0);
-	}
-	
-	double getDataMax(int varnum, int timestep){
-		return maxData[timestep + varnum*numTimesteps];
-	}
-	double getDataMin(int varnum, int timestep){
-		return minData[timestep + varnum*numTimesteps];
-	}
-	double getDefaultDataMax(int varnum){return getDataMax(varnum, minTimeStep);}
-	double getDefaultDataMin(int varnum){return getDataMin(varnum, minTimeStep);}
-	//Return the minimum transform present, or -1 if none is present.
-	int minXFormPresent(int varnum, int timestep){
-		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
-		if (varnum < 0 || varnum >= numVariables) return -1;
-		return dataPresent[timestep + varnum*numTimesteps];
-	}
-	int maxXFormPresent(int varnum, int timestep){
-		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
-		if (varnum < 0 || varnum >= numVariables) return -1;
-		return maxXPresent[timestep + varnum*numTimesteps];
-	}
-	//Determine min transform for *any* timestep or variable
-	//Needed for setting region params
-	int minXFormPresent(); 
-	//Determine if variable is present for *any* timestep 
-	//Needed for setting DVR panel
-	bool variableIsPresent(int varnum); 
-	int getNumVariables() {return numVariables;}
-	int getNumTimesteps() {return numTimesteps;}
-	int getNumTransforms() {return numTransforms;}
-	//Find the first timestep that has any data
-	int getFirstTimestep(int varnum);
-	size_t getFullDataSize(int dim){return fullDataSize[dim];}
-	const size_t* getFullDataSize() {return fullDataSize;}
-	
-	
-	
-private:
-	size_t minTimeStep;
-	size_t maxTimeStep;
-	int numTransforms;
-	int numVariables;
-	int numTimesteps;
-	double* minData;
-	double* maxData;
-	int* dataPresent;
-	int* maxXPresent;
-	size_t fullDataSize[3];
-	
-	
-	
-	
-};
+
 class Session : public ParsedXml {
 public:
 	static Session* getInstance(){
@@ -230,16 +144,12 @@ public:
 	
 	float getDataMin(int varNum, int timestep){
 		if (currentDataStatus){
-			if (currentDataStatus->getDataMin(varNum, timestep) == 1.e30)
-				calcDataRange(varNum, timestep);
 			return (float)currentDataStatus->getDataMin(varNum, timestep);
 		}
 		else return 0;
 	}
 	float getDataMax(int varNum, int timestep){
 		if (currentDataStatus){
-			if (currentDataStatus->getDataMax(varNum, timestep) == -1.e30)
-				calcDataRange(varNum, timestep);
 			return (float)currentDataStatus->getDataMax(varNum, timestep);
 		}
 		else return 0;
@@ -249,10 +159,8 @@ public:
 			return currentDataStatus->dataIsPresent(varnum, timeStep);
 		else return false;
 	}
-	int getNumVariables(){
-		if (currentDataStatus) return currentDataStatus->getNumVariables();
-		else return 0;
-	}
+	int getNumVariables(){return variableNames.size();}
+		
 	size_t getMinTimestep(){
 		if (currentDataStatus) return currentDataStatus->getMinTimestep();
 		return 0;
@@ -287,7 +195,10 @@ public:
 	//Setup session for a new Metadata, by specifying vdf file
 	//If the argument is null, it resets to default state
 	//
-	void resetMetadata(const char* vmfile, bool restoringSession);
+	bool resetMetadata(const char* vmfile, bool restoringSession, bool isMerged = false);
+	
+	void setMetadataSaved(bool isSaved) { metadataSaved = isSaved;}
+	bool metadataIsSaved() {return metadataSaved;}
 	//Export current data in active visualizer:
 	void exportData();
 	void setCacheMB(size_t size){cacheMB = size;}
@@ -337,6 +248,23 @@ public:
 	double getDefaultDataMax(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMax(varnum) : 1.0);}
 	double getDefaultDataMin(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMin(varnum) : 0.0);}
 	
+	std::string& getVariableName(int varNum) {return variableNames[varNum];}
+	//Find the session num of a name, or -1 if it's not metadata:
+	int getSessionVariableNum(const string& str);
+	//Insert variableName if necessary; return index
+	int mergeVariableName(const string& str);
+
+
+	void addVarName(const string newName) {variableNames.push_back(newName);}
+	//"Metadata" variables are those that are in current metadata, as opposed to
+	//"real" variables are those in session
+	int getNumMetadataVariables() {return numMetadataVariables;}
+	int mapMetadataToRealVarNum(int varnum) { assert(mapMetadataVars); return mapMetadataVars[varnum];}
+	int mapRealToMetadataVarNum(int var);
+	string& getMetadataVarName(int varnum) {assert(mapMetadataVars);return (variableNames[mapMetadataVars[varnum]]);}
+	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){
+		myReader->MapVoxToUser(0, voxCoords, userCoords, refLevel);
+	}
 protected:
 	static const string _cacheSizeAttr;
 	static const string _jpegQualityAttr;
@@ -364,8 +292,11 @@ protected:
 	
 	//setup the DataStatus:
 	void setupDataStatus();
-	//Calculate the datarange (min and max) as needed.
-	void calcDataRange(int varNum, int timestep);
+	//Reset the dataStatus after a merge()
+	void resetDataStatus();
+	//Insert a name (metadata or not) into the session.
+	void insertVariableName(std::string newName, bool isMetadata);
+	
 	DataMgr* dataMgr;
 	DataStatus* currentDataStatus;
 	Command* commandQueue[MAX_HISTORY];
@@ -399,6 +330,16 @@ protected:
 	string currentJpegDirectory;
 	string currentFlowDirectory;
 	string currentLogfileName;
+
+	// the variableNames array specifies the name associated with each variable num.
+	//Note that this
+	//contains (possibly properly) the corresponding variableNames in the
+	//dataStatus.  The number of metadataVariables should coincide with the 
+	//number of variables in the datastatus that have actual data associated with them.
+	std::vector<string> variableNames;
+	int numMetadataVariables;
+	int* mapMetadataVars;
+	bool metadataSaved;
 };
 
 }; //end VAPoR namespace

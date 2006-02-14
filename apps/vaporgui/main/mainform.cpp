@@ -210,6 +210,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     dataConfigure_MetafileAction = new QAction( this, "dataConfigure_MetafileAction" );
 	dataConfigure_MetafileAction->setEnabled(false);
     dataLoad_MetafileAction = new QAction( this, "dataLoad_MetafileAction" );
+	dataMerge_MetafileAction = new QAction( this, "dataMerge_MetafileAction" );
+	dataSave_MetafileAction = new QAction( this, "dataSave_MetafileAction" );
 	dataLoad_DefaultMetafileAction = new QAction(this, "dataLoad_DefaultMetafileAction");
 	fileNew_SessionAction = new QAction( this, "fileNew_SessionAction" );
 	dataExportToIDLAction = new QAction(this, "dataExportToIDLAction");
@@ -350,8 +352,10 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     Data = new QPopupMenu( this );
     dataBrowse_DataAction->addTo( Data );
     dataConfigure_MetafileAction->addTo( Data );
+	dataMerge_MetafileAction->addTo( Data );
     dataLoad_MetafileAction->addTo( Data );
 	dataLoad_DefaultMetafileAction->addTo( Data );
+	dataSave_MetafileAction->addTo( Data );
 	
 	dataExportToIDLAction->addTo(Data);
 
@@ -416,6 +420,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     connect( helpAboutAction, SIGNAL( activated() ), this, SLOT( helpAbout() ) );
     
     connect( dataBrowse_DataAction, SIGNAL( activated() ), this, SLOT( browseData() ) );
+	connect( dataMerge_MetafileAction, SIGNAL( activated() ), this, SLOT( mergeData() ) );
+	connect( dataSave_MetafileAction, SIGNAL( activated() ), this, SLOT( saveMetadata() ) );
 	connect( dataLoad_MetafileAction, SIGNAL( activated() ), this, SLOT( loadData() ) );
 	connect( dataLoad_DefaultMetafileAction, SIGNAL( activated() ), this, SLOT( defaultLoadData() ) );
 	
@@ -553,7 +559,15 @@ void MainForm::languageChange()
 	dataLoad_DefaultMetafileAction->setText( tr( "Load a Dataset into &Default Session" ) );
     dataLoad_DefaultMetafileAction->setMenuText( tr( "Load a Dataset into &Default Session" ) );
 	dataLoad_DefaultMetafileAction->setToolTip("Specify a data set to be loaded into a new session with default settings");
+	dataMerge_MetafileAction->setText( tr( "Merge (Import) a Dataset into Current Session" ) );
+    dataMerge_MetafileAction->setMenuText( tr( "&Merge (Import) a Dataset into Current Session" ) );
+	dataMerge_MetafileAction->setToolTip("Specify a data set to be merged into current session");
 	
+	dataSave_MetafileAction->setText( tr( "Save the current Metadata to file" ) );
+    dataSave_MetafileAction->setMenuText( tr( "&Save the current Metadata to file" ) );
+	dataSave_MetafileAction->setToolTip("Specify a file where the current Metadata will be saved");
+	
+
     viewLaunch_visualizerAction->setText( tr( "New Visualizer" ) );
     viewLaunch_visualizerAction->setMenuText( tr( "&New Visualizer" ) );
 	viewLaunch_visualizerAction->setToolTip("Launch a new visualization window");
@@ -651,6 +665,9 @@ void MainForm::fileSave()
 {
 	//This directly saves the session to the current session save file.
     //It does not prompt the user unless there is an error
+	if (!Session::getInstance()->metadataIsSaved())
+		MessageReporter::warningMsg( "Note: The current (merged) Metadata has not been saved. \nIt will be easier to restore this session if the Metadata is also saved.");
+	
 	ofstream fileout;
 	fileout.open(sessionSaveFile.ascii());
 	if (! fileout) {
@@ -665,11 +682,57 @@ void MainForm::fileSave()
 	}
 	fileout.close();
 }
+//Save the metadata in a file in the current vdf directory.
+//The metadata currently won't work if it is saved to a different directory
+//
+void MainForm::saveMetadata()
+{
+	//Do nothing if there is no metadata:
+	if (!Session::getInstance()->getCurrentMetadata()) {
+			MessageReporter::errorMsg("There is no Metadata to save in current session");
+		return;
+	}
+	//This directly saves the session to the current vdf directory
+   QString filename = QFileDialog::getSaveFileName(Session::getInstance()->getMetadataFile().c_str(),
+		"Vapor Metadata Files (*.vdf)",
+		this,
+		"Save Metadata Dialog",
+		"Choose the Metadata filename (in this directory) to save the current metadata");
+	if(filename != QString::null){
+		//Make sure this filename is still in same directory
+		//If not, pop up an explanatory error message and quit.
+		int posn = filename.findRev("/");
+		QString path = filename.left(posn);
+		QString metadataFile = QString(Session::getInstance()->getMetadataFile().c_str());
+		if (!metadataFile.contains(path)){
+			int mposn = metadataFile.findRev("/");
+			QString mpath = metadataFile.left(mposn);
+			MessageReporter::errorMsg("Specified directory %s is invalid. \n Metadata must be saved to %s .",path.ascii(), mpath.ascii());
+			return;
+		}
+		//If ok, go ahead and try to save using current DataMgr
+		QFileInfo finfo(filename);
+		if (finfo.exists()){
+			int rc = QMessageBox::warning(0, "Metadata File Exists", QString("OK to replace existing metadata file?\n %1 ").arg(filename), QMessageBox::Ok, 
+				QMessageBox::No);
+			if (rc != QMessageBox::Ok) return;
+		}
+		const Metadata* md = Session::getInstance()->getCurrentMetadata();
+		std::string stdName = std::string(filename.ascii());
+		int rc = md->Write(stdName);
+		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n %s", filename.ascii());
+		else {
+			Session::getInstance()->setMetadataSaved(true);
+		}
+		return;
+	}
+}
 
 
 void MainForm::fileSaveAs()
 {
-	
+	if (!Session::getInstance()->metadataIsSaved())
+		MessageReporter::warningMsg( "Note: The current (merged) Metadata has not been saved. \n It will be easier to restore this session if the Metadata is also saved.");
 	//This launches a panel that enables the
     //user to choose output session save files, saves to it
 	QString filename = QFileDialog::getSaveFileName(sessionSaveFile,
@@ -807,6 +870,26 @@ void MainForm::loadData()
 	if(filename != QString::null){
 		Session::getInstance()->resetMetadata(filename.ascii(), false);
 	}
+	
+}
+//Merge/Import data into current session
+//
+void MainForm::mergeData()
+{
+
+	//This launches a panel that enables the
+    //user to choose input data files, then to
+	//merge into current metadata 
+	QString filename = QFileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
+		"Vapor Metadata Files (*.vdf)",
+		this,
+		"Merge Metadata Data Dialog",
+		"Choose the Metadata File to merge into current session");
+	if(filename != QString::null){
+		if (!Session::getInstance()->resetMetadata(filename.ascii(), false, true)){
+			MessageReporter::errorMsg("Unsuccessful metadata merge of %s",filename.ascii());
+		}
+	} else MessageReporter::errorMsg("Unable to open %s",filename.ascii());
 	
 }
 //Load data into default session

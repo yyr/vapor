@@ -14,7 +14,7 @@
 //
 //	Date:		October 2004
 //
-//	Description:	Implements the Session class and the DataStatus class
+//	Description:	Implements the Session class 
 //
 #include <cstdlib>
 #include <cstdio>
@@ -80,6 +80,7 @@ Session::Session() {
 		commandQueue[i] = 0;
 	}
 	currentDataStatus = 0;
+	mapMetadataVars = 0;
 	numTFs = 0;
 	tfNames = 0;
 	keptTFs = 0;
@@ -96,6 +97,7 @@ Session::~Session(){
 	delete VizWinMgr::getInstance();
 	//Note: metadata is deleted by Datamgr
 	if (dataMgr) delete dataMgr;
+	if (mapMetadataVars) delete mapMetadataVars;
 	for (i = startQueuePos; i<= endQueuePos; i++){
 		if (commandQueue[i%MAX_HISTORY]) {
 			delete commandQueue[i%MAX_HISTORY];
@@ -123,7 +125,7 @@ Session::~Session(){
 void Session::init() {
 	int i;
 	recordingCount = 0;
-	
+	metadataSaved = false;
 #ifdef WIN32
 	cacheMB = 500;
 	currentMetadataFile = "F:\\run4\\RUN4.vdf";
@@ -513,8 +515,8 @@ exportData(){
  * When a session is restored from file, all the session state is loaded up.  But the metadata is
  * not reloaded.  
  */
-void Session::
-resetMetadata(const char* fileBase, bool restoredSession)
+bool Session::
+resetMetadata(const char* fileBase, bool restoredSession, bool doMerge)
 {
 	int i;
 	//This is a flag used by renderers to avoid rendering while state
@@ -526,20 +528,36 @@ resetMetadata(const char* fileBase, bool restoredSession)
 	//The metadata is created by (and obtained from) the datamgr
 	if (!defaultSession) currentMetadataFile = fileBase;
 	
-	if (dataMgr) delete dataMgr;
+	//If we don't already have a dataMgr, we can't really be merging:
+	if (!dataMgr) {
+		if (doMerge) {doMerge = false; }
+	}
+	else { delete dataMgr; dataMgr = 0;}
+	if (doMerge) assert (!defaultSession);
+	
+	//Handle the various cases of loading the metadata
 	if (defaultSession){
-		dataMgr = 0;
 		currentMetadata = 0;
 		myReader = 0;
+		variableNames.clear();
 	} else {
-		dataMgr = new DataMgr(currentMetadataFile.c_str(), cacheMB, 1);
-		if (dataMgr->GetErrCode() != 0) {
-			MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
-				dataMgr->GetErrCode(),dataMgr->GetErrMsg());
-			dataMgr->SetErrCode(0);
-			delete dataMgr;
-			dataMgr = 0;
-			return;
+		if (!doMerge) {
+			dataMgr = new DataMgr(currentMetadataFile.c_str(), cacheMB, 1);
+			if (dataMgr->GetErrCode() != 0) {
+				MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
+					dataMgr->GetErrCode(),dataMgr->GetErrMsg());
+				dataMgr->SetErrCode(0);
+				delete dataMgr;
+				dataMgr = 0;
+				return false;
+			}
+		} else {//merge
+			//keep dataMgr, do a merge:
+			//Need a non-const pointer to the metadata, since we will modify it:
+			Metadata* md= (Metadata*)currentMetadata;
+			int rc = md->Merge(currentMetadataFile,0);
+			if (rc < 0) return false;
+			dataMgr = new DataMgr(currentMetadata, cacheMB, 1);
 		}
 		currentMetadata = dataMgr->GetMetadata();
 		if (currentMetadata->GetErrCode() != 0) {
@@ -548,7 +566,7 @@ resetMetadata(const char* fileBase, bool restoredSession)
 			currentMetadata->SetErrCode(0);
 			delete dataMgr;
 			dataMgr = 0;
-			return;
+			return false;
 		}
 
 		myReader = (VDFIOBase*)dataMgr->GetRegionReader();
@@ -574,7 +592,7 @@ resetMetadata(const char* fileBase, bool restoredSession)
 				"Session: No data in specified dataset");
 			delete dataMgr;
 			dataMgr = 0;
-			return;
+			return false;
 		}
 
 		
@@ -612,7 +630,11 @@ resetMetadata(const char* fileBase, bool restoredSession)
 	//Reset the undo/redo queue
 	resetCommandQueue();
 	renderOK = true;
-	return;
+	//Set the metadataSaved flag depending on whether or not we merged:
+	//That way we know the next session save will also need to save metadata
+	//If we failed to merge or load, the metadataSaved flag does not change.
+	metadataSaved = !doMerge;
+	return true;
 }
 
 //Add a command to the circular command queue
@@ -689,131 +711,40 @@ void Session::resetCommandQueue(){
 	endQueuePos = 0;
 	MainForm::getInstance()->disableUndoRedo();
 }
-// calculate the datarange for a specific variable and timestep:
-// 
-void Session::calcDataRange(int varnum, int ts){
-	if (!currentDataStatus) return;
-	vector<double>minMax;
-	if (currentDataStatus->minXFormPresent(varnum,ts) >= 0){
-		//Turn off error callback, we can handle missing datarange:
-		MyBase::SetErrMsgCB(0);
-		const float* mnmx = dataMgr->GetDataRange(ts, 
-			currentMetadata->GetVariableNames()[varnum].c_str());
-		//Turn it back on:
-		MyBase::SetErrMsgCB(errorCallbackFcn);
-					
-		if(!mnmx){
-			MessageReporter::warningMsg("Missing DataRange in variable %s, at timestep %d \n Interval [0,1] assumed",
-				currentMetadata->GetVariableNames()[varnum].c_str(), ts);
-			minMax.push_back(0.);
-			minMax.push_back(1.);
-			MyBase::SetErrCode(0);
-		}
-		else{
-			minMax.push_back(mnmx[0]);
-			minMax.push_back(mnmx[1]);
-		}
-					
-		if (minMax.size()>1){
-			//Don't set the min or max if it's not valid.
-			//It will remain at the initial value +-1.e30
-			//
-			currentDataStatus->setDataMax(varnum,ts,minMax[1]);
-			currentDataStatus->setDataMin(varnum,ts,minMax[0]);
-		
-		}
-	}
 
-}
 // Read the Metadata to determine exactly what data is present
 // This data is inserted into currentDatastatus;
+
+
 void Session::
 setupDataStatus(){
-	if (currentDataStatus) delete currentDataStatus;
-	unsigned int numTimeSteps = (unsigned int)currentMetadata->GetNumTimeSteps();
-	int numVariables = currentMetadata->GetVariableNames().size();
-	DataStatus* ds = currentDataStatus = new DataStatus(numVariables, numTimeSteps);
-	int numXForms = currentMetadata->GetNumTransforms();
-	ds->setNumTransforms(numXForms);
-	for (int k = 0; k< 3; k++){
-		ds->setFullDataSize(k, currentMetadata->GetDimension()[k]);
+	if (!currentDataStatus){
+		
+		currentDataStatus = new DataStatus();
 	}
-	//As we go through the variables and timesteps, keepTrack of min and max times
-	unsigned int mints = 1000000000;
-	unsigned int maxts = 0;
-	dataExists = false;
-	//Note:  It takes a long time for all the calls to VariableExists
-	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+	if(currentDataStatus->reset(dataMgr)) {
+		dataExists = true;
+		//Construct metadata var lookup table:
+		if (mapMetadataVars) delete mapMetadataVars;
+		//Find the metadata variables:
+		numMetadataVariables = 0;
+		for (int i = 0; i< getNumVariables(); i++){
+			if (currentDataStatus->variableIsPresent(i)){
+				numMetadataVariables++;
+			}
+		}
+		mapMetadataVars = new int[numMetadataVariables];
+		int posnCounter = 0;
+		//fill in the values...
+		for (int i = 0; i< getNumVariables(); i++){
+			if (currentDataStatus->variableIsPresent(i)){
+				mapMetadataVars[posnCounter++] = i;
+			}
+		}
+	}
+	else dataExists = false;
+}
 
-	for (unsigned int ts = 0; ts< numTimeSteps; ts++){
-		for (int var = 0; var< numVariables; var++){
-			//Find the minimum and maximum number of transforms available on disk
-			//Start at the max (lowest res) and move down to min
-			int xf;
-			//Find the highest transform level  (highest resolution) that exists,
-			//then the first one lower than that that doesn't exist:
-			int maxXLevel = -1;
-			for (xf = numXForms; xf>= 0; xf--){
-				if (myReader->VariableExists(ts, 
-					currentMetadata->GetVariableNames()[var].c_str(),
-					xf)) {
-						if (maxXLevel < 0) maxXLevel = xf;
-					}
-				else { //data is missing
-					if (maxXLevel >= 0) break; //we have found an interval of data
-				}
-			}
-			
-			
-			
-			//xf is the first one that is *not* present
-			xf++;
-			if (maxXLevel == -1)//is there nothing at all?
-				ds->setDataAbsent(var, ts);
-			else {
-				ds->setMinXFormPresent(var, ts, xf);
-				ds->setMaxXFormPresent(var, ts, maxXLevel);
-				dataExists = true;
-				if (ts > maxts) maxts = ts;
-				if (ts <= mints){
-					//When we find the first existing timestep, we also set the
-					//DataRange for that timestep (as the default data range)
-					mints = ts;
-					calcDataRange(var, ts);
-				}
-				
-			}
-		}
-	}
-	QApplication::restoreOverrideCursor();
-	ds->setMinTimestep((size_t)mints);
-	ds->setMaxTimestep((size_t)maxts);
-	return;
-}
-//Determine min transform for *any* timestep or variable
-//Needed for setting region params
-//Returns -1 if no data present.
-//
-int DataStatus::minXFormPresent(){
-	int minXForm = 10;
-	for (size_t ts = minTimeStep; ts<=maxTimeStep; ts++){
-		for (int varnum = 0; varnum<numVariables; varnum++){
-			int minXF = minXFormPresent(varnum, (int)ts);
-			if (minXF >=0 && minXF < minXForm) minXForm = minXF;
-		}
-	}
-	if (minXForm < 10) return minXForm;
-	else return -1;
-}
-//Determine if variable is present for *any* timestep 
-//Needed for setting DVR panel
-//
-bool DataStatus::variableIsPresent(int varnum){
-	for (size_t ts = minTimeStep; ts<=maxTimeStep; ts++){
-		if (dataIsPresent(varnum, ts)) return true;
-	}
-	return false;
-}
 //Methods to keep or remove a transfer function 
 //with the session.  The transFunc is always the current one from the dvrParams
 //
@@ -962,44 +893,26 @@ void Session::getMaxExtentsInCube(float maxExtents[3]){
 	maxExtents[1] = (extents[4]-extents[1])/maxSize;
 	maxExtents[2] = (extents[5]-extents[2])/maxSize;
 }
-
-//Here is the implementation of the DataStatus.
-//This class is a repository for information about the current data...
-//Whether or not it exists on disk, what's its max and min
-//What resolutions are available.
-//
-DataStatus::
-DataStatus(int numvariables, int numtimesteps)
-{
-	//Initially, assume all timesteps are valid:
-	minTimeStep = 0;
-	maxTimeStep = numtimesteps-1;
-	numVariables = numvariables;
-	numTimesteps = numtimesteps;
-	minData = new double[numvariables*numTimesteps];
-	maxData = new double[numvariables*numTimesteps];
-	dataPresent = new int[numvariables*numTimesteps];
-	maxXPresent = new int[numvariables*numTimesteps];
-	for (int i = 0; i< numVariables*numTimesteps; i++){
-		minData[i] = 1.e30;
-		maxData[i] = -1.e30;
-		dataPresent[i] = -1;
-		maxXPresent[i] = -1;
-	}
-}
-DataStatus::
-~DataStatus(){
-	if (minData) delete minData;
-	if (maxData) delete maxData;
-	if (dataPresent) delete dataPresent;
-	if (maxXPresent) delete maxXPresent;
-}
-int DataStatus::
-getFirstTimestep(int varnum){
-	for (int i = 0; i< numTimesteps; i++){
-		if(dataIsPresent(varnum,i)) return i;
+//Find which index is associated with a name, or -1 if not metadata:
+int Session::getSessionVariableNum(const string& str){
+	for (int i = 0; i<variableNames.size(); i++){
+		if(variableNames[i] == str) return i;
 	}
 	return -1;
 }
-		
-
+//Make sure this name is in list; if not, insert it, return index.
+//Useful in parsing
+int Session::mergeVariableName(const string& str){
+	for (int i = 0; i<variableNames.size(); i++){
+		if(variableNames[i] == str) return i;
+	}
+	//Not found, put it in:
+	variableNames.push_back(str);
+	return (variableNames.size()-1);
+}
+int Session::mapRealToMetadataVarNum(int realVarNum){
+	for (int i = 0; i< numMetadataVariables; i++){
+		if (mapMetadataVars[i] == realVarNum) return i;
+	}
+	return -1;
+}

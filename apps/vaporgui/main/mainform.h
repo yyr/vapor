@@ -113,8 +113,10 @@ public:
     QAction* dataBrowse_DataAction;
 	QAction* dataExportToIDLAction;
     QAction* dataConfigure_MetafileAction;
+	QAction* dataMerge_MetafileAction;
     QAction* dataLoad_MetafileAction;
 	QAction* dataLoad_DefaultMetafileAction;
+	QAction* dataSave_MetafileAction;
 	QAction* fileNew_SessionAction;
     
    //View menu
@@ -185,6 +187,8 @@ public slots:
     virtual void browseData();
 	virtual void loadData();
 	virtual void defaultLoadData();
+	virtual void mergeData();
+	virtual void saveMetadata();
 	virtual void newSession();
 	virtual void exportToIDL();
     virtual void launchVisualizer();

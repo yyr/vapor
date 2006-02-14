@@ -45,7 +45,6 @@ const string Params::_numTransformsAttr = "NumTransforms";
 const string Params::_variableTag = "Variable";
 const string Params::_leftEditBoundAttr = "LeftEditBound";
 const string Params::_rightEditBoundAttr = "RightEditBound";
-const string Params::_variableNumAttr = "VariableNum";
 const string Params::_variableNameAttr = "VariableName";
 const string Params::_opacityScaleAttr = "OpacityScale";
 //Methods to find the "other" params in a local/global switch:

@@ -1,5 +1,6 @@
 MAIN_FILES := \
-	command main mainform messagereporter \
+	command datastatus \
+	main mainform messagereporter \
 	panelcommand session tabmanager \
 	vizactivatecommand vizwinmgr 
 

@@ -198,9 +198,9 @@ public:
 	//Methods called from vizwinmgr due to settings in gui:
 	void guiSetFlowType(int typenum);
 	void guiSetNumRefinements(int numtrans);
-	void guiSetXVarNum(int varnum);
-	void guiSetYVarNum(int varnum);
-	void guiSetZVarNum(int varnum);
+	void guiSetXComboVarNum(int varnum);
+	void guiSetYComboVarNum(int varnum);
+	void guiSetZComboVarNum(int varnum);
 	void guiSetRandom(bool rand);
 	
 	void guiSetXCenter(int sliderval);
@@ -251,7 +251,7 @@ public:
 protected:
 	//Tags for attributes in session save
 	//Top level labels
-	static const string _mappedVariablesAttr;
+	static const string _mappedVariableNamesAttr;
 	static const string _steadyFlowAttr;
 	static const string _instanceAttr;
 	
@@ -357,9 +357,10 @@ protected:
 	int flowType; //steady = 0, unsteady = 1;
 	
 	int numRefinements, maxNumRefinements;
-	int numVariables;
-	std::vector<std::string> variableNames;
+	int numComboVariables;// = number of variables in metadata with data associated
+	
 	int varNum[3]; //field variable num's in x, y, and z.
+	int comboVarNum[3];  //indices in combos
 	float integrationAccuracy;
 	float velocityScale;
 	int timeSamplingInterval;

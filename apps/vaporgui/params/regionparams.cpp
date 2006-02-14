@@ -268,15 +268,20 @@ refreshRegionInfo(){
 	//If not, correct them.  If there is no data at specified timestep,
 	//Then don't show anything in refinementCombo
 	size_t bs = 32;
-	int varNum = myRegionTab->variableCombo->currentItem();
+	int mdVarNum = myRegionTab->variableCombo->currentItem();
+	//This index is only relevant to metadata numbering
 	Session* ses = Session::getInstance();
+	
 	int timeStep = myRegionTab->timestepSpin->value();
 	//Distinguish between the actual data available and the numtransforms
 	//in the metadata.  If the data isn't there, we will display blanks
 	//in the "selected" area.
 	int maxRefLevel = 10;
 	int numTrans = 10;
+	int varNum = -1;
 	if (ses->getDataStatus()) {
+		std::string varName = ses->getCurrentMetadata()->GetVariableNames()[mdVarNum];
+		varNum = ses->getSessionVariableNum(varName);
 		maxRefLevel = ses->getDataStatus()->maxXFormPresent(varNum, timeStep);
 		numTrans = ses->getDataStatus()->getNumTransforms();
 	}
@@ -669,13 +674,13 @@ reinit(bool doOverride){
 				regionMax[i] = extents[i];
 		}
 	}
-	
-	//Set up the combo boxes in the gui based on info in the session:
-	const vector<string>& varNames = md->GetVariableNames();
-	myRegionTab->variableCombo->clear();
-	for (i = 0; i<(int)varNames.size(); i++)
-		myRegionTab->variableCombo->insertItem(varNames[i].c_str());
-	
+	if (!local){
+		//Set up the combo boxes in the gui based on info in the session:
+		const vector<string>& varNames = md->GetVariableNames();
+		myRegionTab->variableCombo->clear();
+		for (i = 0; i<(int)varNames.size(); i++)
+			myRegionTab->variableCombo->insertItem(varNames[i].c_str());
+	}
 	int mints = Session::getInstance()->getMinTimestep();
 	int maxts = Session::getInstance()->getMaxTimestep();
 
@@ -900,34 +905,6 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 		state->data_type = value;
 		return true;  
 	}
-	//prepare for center position, regionSize nodes (now obsolete!)
-	else if ((StrCmpNoCase(tagString, _regionCenterTag) == 0) ||
-		(StrCmpNoCase(tagString, _regionSizeTag) == 0) ) {
-			ExpatStackElement *state = pm->getStateStackTop();
-		
-			state->has_data = 1;
-			return true;
-		}
-	/*
-		//Should have a long type attribute
-		string attribName = *attrs;
-		attrs++;
-		string value = *attrs;
-
-		ExpatStackElement *state = pm->getStateStackTop();
-		
-		state->has_data = 1;
-		if (StrCmpNoCase(attribName, _typeAttr) != 0) {
-			pm->parseError("Invalid attribute : %s", attribName.c_str());
-			return false;
-		}
-		if (StrCmpNoCase(value, _longType) != 0) {
-			pm->parseError("Invalid type : %s", value.c_str());
-			return false;
-		}
-		state->data_type = value;
-		return true;  
-	}*/
 	else return false;
 }
 bool RegionParams::

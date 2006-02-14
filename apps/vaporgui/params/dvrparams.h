@@ -97,10 +97,10 @@ public:
 	void setVarNum(int val); 
 	virtual int getVarNum() {return varNum;}
 	const char* getVariableName() {
-		return (const char*) (variableNames[varNum].c_str());
+		return (const char*) (Session::getInstance()->getVariableName(varNum).c_str());
 	}
 	const std::string& getStdVariableName() {
-		return variableNames[varNum];
+		return Session::getInstance()->getVariableName(varNum);
 	}
 	bool attenuationIsDirty() {return attenuationDirty;}
 	void setAttenuationDirty(bool dirty) {attenuationDirty = dirty;}
@@ -139,21 +139,26 @@ public:
 		setMinOpacEditBound(val, varNum);
 	}
 	void setMaxEditBound(float val) {
+		
 		setMaxColorEditBound(val, varNum);
 		setMaxOpacEditBound(val, varNum);
 	}
 	float getMinEditBound() {
+		
 		return minColorEditBounds[varNum];
 	}
 	float getMaxEditBound() {
+		
 		return maxColorEditBounds[varNum];
 	}
 	float getDataMinBound(int currentTimeStep){
 		if(numVariables == 0) return 0.f;
+		
 		return (Session::getInstance()->getDataMin(varNum, currentTimeStep));
 	}
 	float getDataMaxBound(int currentTimeStep){
 		if(numVariables == 0) return 1.f;
+		
 		return (Session::getInstance()->getDataMax(varNum, currentTimeStep));
 	}
 	void setEditMode(bool mode) {editMode = mode;}
@@ -174,7 +179,7 @@ public:
 	//
 	virtual void guiSetEnabled(bool value);
     void guiSetType(int val);
-	void guiSetVarNum(int val);
+	void guiSetComboVarNum(int val);
 	void guiSetNumBits(int val);
 	void guiSetLighting(bool val);
 	
@@ -213,7 +218,7 @@ public:
 protected:
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
-	static const string _activeVariableNumAttr;
+	static const string _activeVariableNameAttr;
 	
 	void refreshCtab();
 	void hookupTF(TransferFunction* t, int index);
@@ -241,8 +246,9 @@ protected:
 	float histoStretchFactor;
 	PanelCommand* savedCommand;
 	int varNum;
+	int comboVarNum;
 	int numVariables;
-	std::vector<std::string> variableNames;
+	
 	
 	
 };

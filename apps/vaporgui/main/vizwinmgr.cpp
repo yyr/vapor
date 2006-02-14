@@ -1709,7 +1709,7 @@ setDvrType(int val) {
 }
 void VizWinMgr::
 setDvrVariableNum(int newVal){
-	getDvrParams(activeViz)->guiSetVarNum(newVal);
+	getDvrParams(activeViz)->guiSetComboVarNum(newVal);
 }
 void VizWinMgr::
 setDvrNumBits(int newVal){
@@ -2188,15 +2188,15 @@ setFlowNumRefinements(int numTrans){
 }
 void VizWinMgr::
 setFlowXVar(int varnum){
-	getFlowParams(activeViz)->guiSetXVarNum(varnum);
+	getFlowParams(activeViz)->guiSetXComboVarNum(varnum);
 }
 void VizWinMgr::
 setFlowYVar(int varnum){
-	getFlowParams(activeViz)->guiSetYVarNum(varnum);
+	getFlowParams(activeViz)->guiSetYComboVarNum(varnum);
 }
 void VizWinMgr::
 setFlowZVar(int varnum){
-	getFlowParams(activeViz)->guiSetZVarNum(varnum);
+	getFlowParams(activeViz)->guiSetZComboVarNum(varnum);
 }
 
 void VizWinMgr::

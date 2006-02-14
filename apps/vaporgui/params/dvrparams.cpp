@@ -67,7 +67,8 @@
 
 using namespace VAPoR;
 
-const string DvrParams::_activeVariableNumAttr = "ActiveVariableNum";
+
+const string DvrParams::_activeVariableNameAttr = "ActiveVariableName";
 const string DvrParams::_editModeAttr = "TFEditMode";
 const string DvrParams::_histoStretchAttr = "HistoStretchFactor";
 
@@ -165,20 +166,8 @@ void DvrParams::updateDialog(){
 	//Disable the typeCombo whenever the renderer is enabled:
 	myDvrTab->typeCombo->setEnabled(!enabled);
 	
-	//Set the names in the variable combo
-	myDvrTab->variableCombo->clear();
-	myDvrTab->variableCombo->setMaxCount(numVariables);
 	myDvrTab->refinementCombo->setCurrentItem(numRefinements);
-	for (int i = 0; i< numVariables; i++){
-		if (variableNames.size() > (unsigned int)i){
-			const std::string& s = variableNames.at(i);
-			//Direct conversion of std::string& to QString doesn't seem to work
-			//Maybe std was not enabled when QT was built?
-			const QString& text = QString(s.c_str());
-			myDvrTab->variableCombo->insertItem(text);
-		} else myDvrTab->variableCombo->insertItem("");
-	}
-	myDvrTab->variableCombo->setCurrentItem(varNum);
+	myDvrTab->variableCombo->setCurrentItem(comboVarNum);
 	
 	myDvrTab->lightingCheckbox->setChecked(lightingOn);
 	myDvrTab->numBitsSpin->setValue(numBits);
@@ -253,7 +242,8 @@ updatePanelState(){
 }
 
 //Change variable, plus other side-effects, updating tfe as well as tf.
-//Should only be called by gui
+//Should only be called by gui.  The value of varnum is NOT the same as
+//the index in the variableName combo.
 //
 void DvrParams::
 setVarNum(int val) 
@@ -360,20 +350,12 @@ guiSetType(int val)
 
 
 void DvrParams::
-guiSetVarNum(int val){
-	if (val == varNum) return;
-	//Only change the variable to a valid one:
-	if (!Session::getInstance()->getDataStatus()->variableIsPresent(val)){
-		MessageReporter::errorMsg( "Data for specified variable is not available");
-		//Set it back to the old value.  This will generate an event that
-		//we will ignore.
-		myDvrTab->variableCombo->setCurrentItem(varNum);
-		myDvrTab->update();
-		return;
-	}
+guiSetComboVarNum(int val){
+	if (val == comboVarNum) return;
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "set dvr variable");
-	setVarNum(val);
+	comboVarNum = val;
+	setVarNum(Session::getInstance()->mapMetadataToRealVarNum(comboVarNum));
 	PanelCommand::captureEnd(cmd, this);
 }
 
@@ -576,16 +558,16 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 void DvrParams::
 reinit(bool doOverride){
 	int i;
-	const Metadata* md = Session::getInstance()->getCurrentMetadata();
-	//Get the variable names:
-	variableNames = md->GetVariableNames();
-	int newNumVariables = md->GetVariableNames().size();
-	//See if current varNum is valid
-	//reset to first variable that is present:
-	if (!Session::getInstance()->getDataStatus()->variableIsPresent(varNum)){
+	Session* ses = Session::getInstance();
+	
+	int totNumVariables = ses->getNumVariables();
+	//See if current varNum is valid.  It needs to correspond to data
+	//if not, reset to first variable that is present:
+	if (varNum >= totNumVariables || 
+			!ses->getDataStatus()->variableIsPresent(varNum)){
 		varNum = -1;
-		for (i = 0; i<newNumVariables; i++) {
-			if (Session::getInstance()->getDataStatus()->variableIsPresent(i)){
+		for (i = 0; i<totNumVariables; i++) {
+			if (ses->getDataStatus()->variableIsPresent(i)){
 				varNum = i;
 				break;
 			}
@@ -600,6 +582,23 @@ reinit(bool doOverride){
 		numVariables = 0;
 		return;
 	}
+	//Set the combo var num to point to the varNum:
+	comboVarNum = Session::getInstance()->mapRealToMetadataVarNum(varNum);
+	assert(comboVarNum >= 0);
+
+	//Set the names in the variable combo.  Just do this once for the global dvr panel
+	if (!local){
+		myDvrTab->variableCombo->clear();
+		myDvrTab->variableCombo->setMaxCount(ses->getNumMetadataVariables());
+		
+		for (i = 0; i< ses->getNumMetadataVariables(); i++){
+			const std::string& s = ses->getMetadataVarName(i);
+			//Direct conversion of std::string& to QString doesn't seem to work
+			//Maybe std was not enabled when QT was built?
+			const QString& text = QString(s.c_str());
+			myDvrTab->variableCombo->insertItem(text);
+		}
+	}
 	//Set up the numRefinements
 	int maxNumRefinements = Session::getInstance()->getDataStatus()->getNumTransforms();
 	myDvrTab->refinementCombo->setMaxCount(maxNumRefinements+1);
@@ -613,9 +612,10 @@ reinit(bool doOverride){
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
 	//Create new arrays to hold bounds and transfer functions:
-	TransferFunction** newTransFunc = new TransferFunction*[newNumVariables];
-	float* newMinEdit = new float[newNumVariables];
-	float* newMaxEdit = new float[newNumVariables];
+	
+	TransferFunction** newTransFunc = new TransferFunction*[totNumVariables];
+	float* newMinEdit = new float[totNumVariables];
+	float* newMaxEdit = new float[totNumVariables];
 	//If we are overriding previous values, delete the transfer functions, create new ones.
 	//Set the map bounds to the actual bounds in the data
 	if (doOverride){
@@ -624,7 +624,7 @@ reinit(bool doOverride){
 		}
 		//Create new transfer functions, their editors, hook them up:
 		
-		for (i = 0; i<newNumVariables; i++){
+		for (i = 0; i<totNumVariables; i++){
 			newTransFunc[i] = new TransferFunction(this, numBits);
 			//create new tfe, hook it to the trans func
 			TFEditor* newTFEditor = new TFEditor(newTransFunc[i], myDvrTab->DvrTFFrame);
@@ -637,7 +637,7 @@ reinit(bool doOverride){
 	} else { 
 		//attempt to make use of existing transfer functions, edit ranges.
 		//delete any that are no longer referenced
-		for (i = 0; i<newNumVariables; i++){
+		for (i = 0; i<totNumVariables; i++){
 			if(i<numVariables){
 				newTransFunc[i] = transFunc[i];
 				newMinEdit[i] = minColorEditBounds[i];
@@ -653,12 +653,12 @@ reinit(bool doOverride){
 			}
 		}
 			//Delete trans funcs (and associated tfe's that are no longer referenced.
-		for (i = newNumVariables; i<numVariables; i++){
+		for (i = totNumVariables; i<numVariables; i++){
 			delete transFunc[i];
 		}
 	} //end if(doOverride)
 	//Make sure edit bounds are valid
-	for(i = 0; i<newNumVariables; i++){
+	for(i = 0; i<totNumVariables; i++){
 		if (newMinEdit[i] >= newMaxEdit[i]){
 			newMinEdit[i] = Session::getInstance()->getDefaultDataMin(i);
 			newMaxEdit[i] = Session::getInstance()->getDefaultDataMax(i);
@@ -676,16 +676,16 @@ reinit(bool doOverride){
 	minColorEditBounds = newMinEdit;
 	maxColorEditBounds = newMaxEdit;
 	//And clone the color edit bounds to use as opac edit bounds:
-	minOpacEditBounds = new float[newNumVariables];
-	maxOpacEditBounds = new float[newNumVariables];
-	for (i = 0; i<newNumVariables; i++){
+	minOpacEditBounds = new float[totNumVariables];
+	maxOpacEditBounds = new float[totNumVariables];
+	for (i = 0; i<totNumVariables; i++){
 		minOpacEditBounds[i] = minColorEditBounds[i];
 		maxOpacEditBounds[i] = maxColorEditBounds[i];
 	}
 
 	transFunc = newTransFunc;
 	
-	numVariables = newNumVariables;
+	numVariables = totNumVariables;
 	bool wasEnabled = enabled;
 	setEnabled(false);
 	//Always disable  don't change local/global 
@@ -709,6 +709,7 @@ void DvrParams::
 restart(){
 	histoStretchFactor = 1.f;
 	varNum = 0;
+	comboVarNum = 0;
 	lightingOn = false;
 	numBits = 8;
 	diffuseCoeff = 0.8f;
@@ -973,8 +974,10 @@ refreshTFFrame(){
 //
 bool DvrParams::
 elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const char **attrs){
-	static int parsedVarnum;
+	
 	int i;
+	static string varName;  //name in variable node
+	string activeVarName;   //name of current variable
 	if (StrCmpNoCase(tagString, _dvrParamsTag) == 0) {
 		int newNumVariables = 0;
 		//If it's a Dvr tag, save 5 attributes (2 are from Params class)
@@ -994,8 +997,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
 				ist >> numRefinements;
 			}
-			else if (StrCmpNoCase(attribName, _activeVariableNumAttr) == 0) {
-				ist >> varNum;
+			else if (StrCmpNoCase(attribName, _activeVariableNameAttr) == 0) {
+				ist >> activeVarName;
 			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
 				if (value == "true") setLocal(true); else setLocal(false);
@@ -1011,6 +1014,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			}
 			else return false;
 		}
+		// Now set the values obtained from attribute parsing.
+		//Need to match up the varName with the varNum!!
+		varNum = Session::getInstance()->mergeVariableName(activeVarName);
 		//Create space for the variables:
 		int numVars = Max (newNumVariables, 1);
 		if (minColorEditBounds) delete minColorEditBounds;
@@ -1021,10 +1027,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		minOpacEditBounds = new float[numVars];
 		if (maxOpacEditBounds) delete maxOpacEditBounds;
 		maxOpacEditBounds = new float[numVars];
-		variableNames.clear();
-		for (i = 0; i<newNumVariables; i++){
-			variableNames.push_back("");
-		}
+		
 		//Setup with default values, in case not specified:
 		for (i = 0; i< newNumVariables; i++){
 			minColorEditBounds[i] = 0.f;
@@ -1047,14 +1050,14 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			TFEditor* newTFEditor = new TFEditor(transFunc[j],myDvrTab->DvrTFFrame);
 			connectMapperFunction(transFunc[j], newTFEditor);
 		}
+		
 		return true;
 	}
 	//Parse a Variable:
 	else if (StrCmpNoCase(tagString, _variableTag) == 0) {
-		parsedVarnum = 0;
+		
 		float leftEdit = 0.f;
 		float rightEdit = 1.f;
-		string varName;
 		float opacFac = 1.f;
 		while (*attrs) {
 			string attribName = *attrs;
@@ -1063,13 +1066,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			attrs++;
 			istringstream ist(value);
 			
-			if (StrCmpNoCase(attribName, _variableNumAttr) == 0) {
-				ist >> parsedVarnum;
-				if (parsedVarnum < 0 || parsedVarnum >= numVariables) {
-					pm->parseError("Invalid variable number %d", parsedVarnum);
-				}
-			}
-			else if (StrCmpNoCase(attribName, _leftEditBoundAttr) == 0) {
+			
+			if (StrCmpNoCase(attribName, _leftEditBoundAttr) == 0) {
 				ist >> leftEdit;
 			}
 			else if (StrCmpNoCase(attribName, _rightEditBoundAttr) == 0) {
@@ -1084,20 +1082,22 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else return false;
 		}
 		// Now set the values obtained from attribute parsing.
-	
-		variableNames[parsedVarnum] =  varName;
-		minColorEditBounds[parsedVarnum] = leftEdit;
-		maxColorEditBounds[parsedVarnum] = rightEdit;
-		transFunc[parsedVarnum]->getEditor()->setOpacityScaleFactor(opacFac);
+		//Need to match up the varName with the varNum!!
+		int vnum = Session::getInstance()->mergeVariableName(varName);
+		
+		minColorEditBounds[vnum] = leftEdit;
+		maxColorEditBounds[vnum] = rightEdit;
+		transFunc[vnum]->getEditor()->setOpacityScaleFactor(opacFac);
 		return true;
 	}
 	//Parse a transferFunction
-	//Note we are relying on parsedvarnum obtained by previous start handler:
+	//Note we are (no longer) relying on parsedvarnum obtained by previous start handler:
 	else if (StrCmpNoCase(tagString, TransferFunction::_transferFunctionTag) == 0) {
 		//Need to "push" to transfer function parser.
 		//That parser will "pop" back to dvrparams when done.
-		pm->pushClassStack(transFunc[parsedVarnum]);
-		transFunc[parsedVarnum]->elementStartHandler(pm, depth, tagString, attrs);
+		int vnum = Session::getInstance()->mergeVariableName(varName);
+		pm->pushClassStack(transFunc[vnum]);
+		transFunc[vnum]->elementStartHandler(pm, depth, tagString, attrs);
 		return true;
 	}
 	else return false;
@@ -1157,9 +1157,11 @@ buildNode() {
 	oss << (long)numRefinements;
 	attrs[_numTransformsAttr] = oss.str();
 
+	//convert the active variable num to a name:
+	string varName = Session::getInstance()->getVariableName(varNum);
 	oss.str(empty);
-	oss << (long)varNum;
-	attrs[_activeVariableNumAttr] = oss.str();
+	oss << varName;
+	attrs[_activeVariableNameAttr] = oss.str();
 
 	oss.str(empty);
 	if (editMode)
@@ -1177,13 +1179,9 @@ buildNode() {
 	//Create the Variables nodes
 	for (int i = 0; i<numVariables; i++){
 		attrs.clear();
-	
-		oss.str(empty);
-		oss << (long)i;
-		attrs[_variableNumAttr] = oss.str();
 
 		oss.str(empty);
-		oss << variableNames[i];
+		oss << Session::getInstance()->getVariableName(i);
 		attrs[_variableNameAttr] = oss.str();
 
 		oss.str(empty);

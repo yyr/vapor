@@ -174,7 +174,8 @@ refreshCtab() {
 void ProbeParams::updateDialog(){
 	
 	QString strn;
-	Session::getInstance()->blockRecording();
+	Session* ses = Session::getInstance();
+	ses->blockRecording();
 	//Don't respond to textChange that this method generates:
 	guiSetTextChanged(false);
 	myProbeTab->ProbeTFFrame->setEditor(getTFEditor());
@@ -187,11 +188,10 @@ void ProbeParams::updateDialog(){
 	
 
 	//Set the selection in the variable listbox
-	for (int i = 0; i< numVariables; i++){
-		if (variableNames.size() > (unsigned int)i){
-			if (myProbeTab->variableListBox->isSelected(i) != variableSelected[i])
-				myProbeTab->variableListBox->setSelected(i, variableSelected[i]);
-		} else assert(0);
+	for (int i = 0; i< ses->getNumMetadataVariables(); i++){
+		if (myProbeTab->variableListBox->isSelected(i) != variableSelected[ses->mapMetadataToRealVarNum(i)])
+			myProbeTab->variableListBox->setSelected(i, variableSelected[ses->mapMetadataToRealVarNum(i)]);
+		
 	}
 	//Set sliders and text:
 	myProbeTab->histoScaleEdit->setText(QString::number(histoStretchFactor));
@@ -835,9 +835,9 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 void ProbeParams::
 reinit(bool doOverride){
 	int i;
-	const Metadata* md = Session::getInstance()->getCurrentMetadata();
+	Session* ses = Session::getInstance();
 	const float* extents = Session::getInstance()->getExtents();
-	setMaxNumRefinements(md->GetNumTransforms());
+	setMaxNumRefinements(ses->getDataStatus()->getNumTransforms());
 	//Set up the numRefinements combo
 	
 	myProbeTab->refinementCombo->setMaxCount(maxNumRefinements+1);
@@ -886,8 +886,8 @@ reinit(bool doOverride){
 		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
 	}
 	//Get the variable names:
-	variableNames = md->GetVariableNames();
-	int newNumVariables = md->GetVariableNames().size();
+
+	int newNumVariables = ses->getNumVariables();
 	
 	//See if current firstVarNum is valid
 	//if not, reset to first variable that is present:
@@ -921,15 +921,13 @@ reinit(bool doOverride){
 	variableSelected[firstVarNum] = true;
 
 	//Set the names in the variable listbox
-	myProbeTab->variableListBox->clear();
-	for (i = 0; i< newNumVariables; i++){
-		if (variableNames.size() > (unsigned int)i){
-			const std::string& s = variableNames.at(i);
-			//Direct conversion of std::string& to QString doesn't seem to work
-			//Maybe std was not enabled when QT was built?
+	if (!local){
+		myProbeTab->variableListBox->clear();
+		for (i = 0; i< ses->getNumMetadataVariables(); i++){
+			const std::string& s = ses->getMetadataVarName(i);
 			const QString& text = QString(s.c_str());
 			myProbeTab->variableListBox->insertItem(text, i);
-		} else assert(0);
+		}
 	}
 
 	//Create new arrays to hold bounds and transfer functions:
@@ -1265,11 +1263,11 @@ refreshTFFrame(){
 //
 bool ProbeParams::
 elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const char **attrs){
-	static int parsedVarnum;
 	
+	static int parsedVarNum = -1;
 	int i;
 	if (StrCmpNoCase(tagString, _probeParamsTag) == 0) {
-		
+		static int parsedVarNum;
 		int newNumVariables = 0;
 		//If it's a Probe tag, obtain 6 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
@@ -1316,10 +1314,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		minOpacEditBounds = new float[numVars];
 		if (maxOpacEditBounds) delete maxOpacEditBounds;
 		maxOpacEditBounds = new float[numVars];
-		variableNames.clear();
+		
 		variableSelected.clear();
 		for (i = 0; i<newNumVariables; i++){
-			variableNames.push_back("");
 			variableSelected.push_back(false);
 		}
 		//Setup with default values, in case not specified:
@@ -1350,12 +1347,13 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	}
 	//Parse a Variable:
 	else if (StrCmpNoCase(tagString, _variableTag) == 0) {
-		parsedVarnum = 0;
+		string parsedVarName;
+		parsedVarName.clear();
 		float leftEdit = 0.f;
 		float rightEdit = 1.f;
 		bool varSelected = false;
 		float opacFac = 1.f;
-		string varName;
+		
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -1363,20 +1361,14 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			attrs++;
 			istringstream ist(value);
 			
-			if (StrCmpNoCase(attribName, _variableNumAttr) == 0) {
-				ist >> parsedVarnum;
-				if (parsedVarnum < 0 || parsedVarnum >= numVariables) {
-					pm->parseError("Invalid variable number %d", parsedVarnum);
-				}
-			}
-			else if (StrCmpNoCase(attribName, _leftEditBoundAttr) == 0) {
+			if (StrCmpNoCase(attribName, _leftEditBoundAttr) == 0) {
 				ist >> leftEdit;
 			}
 			else if (StrCmpNoCase(attribName, _rightEditBoundAttr) == 0) {
 				ist >> rightEdit;
 			}
 			else if (StrCmpNoCase(attribName, _variableNameAttr) == 0){
-				ist >> varName;
+				ist >> parsedVarName;
 			}
 			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
 				ist >> numRefinements;
@@ -1393,11 +1385,11 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		}
 		// Now set the values obtained from attribute parsing.
 	
-		variableNames[parsedVarnum] =  varName;
-		variableSelected[parsedVarnum] = varSelected;
-		setMinColorEditBound(leftEdit,parsedVarnum);
-		setMaxColorEditBound(rightEdit,parsedVarnum);
-		transFunc[parsedVarnum]->getEditor()->setOpacityScaleFactor(opacFac);
+		parsedVarNum = Session::getInstance()->mergeVariableName(parsedVarName);
+		variableSelected[parsedVarNum] = varSelected;
+		setMinColorEditBound(leftEdit,parsedVarNum);
+		setMaxColorEditBound(rightEdit,parsedVarNum);
+		transFunc[parsedVarNum]->getEditor()->setOpacityScaleFactor(opacFac);
 		
 		return true;
 	}
@@ -1406,8 +1398,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	else if (StrCmpNoCase(tagString, TransferFunction::_transferFunctionTag) == 0) {
 		//Need to "push" to transfer function parser.
 		//That parser will "pop" back to probeparams when done.
-		pm->pushClassStack(transFunc[parsedVarnum]);
-		transFunc[parsedVarnum]->elementStartHandler(pm, depth, tagString, attrs);
+		pm->pushClassStack(transFunc[parsedVarNum]);
+		transFunc[parsedVarNum]->elementStartHandler(pm, depth, tagString, attrs);
 		return true;
 	}
 	//Parse the geometry node
@@ -1462,16 +1454,18 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		//If we are current, update the tab panel after setting up the variable listbox
 		
 		if (isCurrent()) {
+			Session* ses = Session::getInstance();
 			QListBox* listBox = myProbeTab->variableListBox;
 			listBox->clear();	
 			//Set the names in the variable listbox
-			for (i = 0; i< numVariables; i++){
-				const std::string& s = variableNames.at(i);
+			for (i = 0; i< ses->getNumMetadataVariables(); i++){
+				const std::string& s = ses->getMetadataVarName(i);
 				//Direct conversion of std::string& to QString doesn't seem to work
 				//Maybe std was not enabled when QT was built?
 				const QString& text = QString(s.c_str());
 				listBox->insertItem(text, i);
-				listBox->setSelected(i, variableSelected[i]);
+				int realIndex = ses->mapMetadataToRealVarNum(i);
+				listBox->setSelected(i, variableSelected[realIndex]);
 			}
 			updateDialog();
 		}
@@ -1539,12 +1533,9 @@ buildNode() {
 	for (int i = 0; i<numVariables; i++){
 		attrs.clear();
 	
-		oss.str(empty);
-		oss << (long)i;
-		attrs[_variableNumAttr] = oss.str();
 
 		oss.str(empty);
-		oss << variableNames[i];
+		oss << Session::getInstance()->getVariableName(i);
 		attrs[_variableNameAttr] = oss.str();
 
 		oss.str(empty);
@@ -1689,7 +1680,7 @@ getProbeTexture(){
 	int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
 	//Now obtain all of the volumes needed for this probe:
 	int totVars = 0;
-	for (unsigned int varnum = 0; varnum < variableNames.size(); varnum++){
+	for (int varnum = 0; varnum < ses->getNumVariables(); varnum++){
 		if (!variableSelected[varnum]) continue;
 		volData[totVars] = getContainingVolume(blkMin, blkMax, varnum, timeStep);
 		totVars++;
@@ -1781,11 +1772,12 @@ float* ProbeParams::
 getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep){
 	//Get the region (int coords) associated with the specified variable at the
 	//current probe extents
+	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 //	qWarning("Fetching region: %d %d %d , %d %d %d ",blkMin[0],blkMin[1],blkMin[2],
 	//	blkMax[0],blkMax[1],blkMax[2]);
 	float* reg = Session::getInstance()->getDataMgr()->GetRegion((size_t)timeStep,
-		variableNames[varNum].c_str(),
+		Session::getInstance()->getVariableName(varNum).c_str(),
 		numRefinements, blkMin, blkMax, 0);
 	QApplication::restoreOverrideCursor();
 	return reg;
@@ -2009,7 +2001,7 @@ calcCurrentValue(float point[3]){
 	int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
 	//Now obtain all of the volumes needed for this probe:
 	int totVars = 0;
-	for (unsigned int varnum = 0; varnum < variableNames.size(); varnum++){
+	for (int varnum = 0; varnum < ses->getNumVariables(); varnum++){
 		if (!variableSelected[varnum]) continue;
 		volData[totVars] = getContainingVolume(blkMin, blkMax, varnum, timeStep);
 		totVars++;
@@ -2076,7 +2068,7 @@ refreshHistogram(){
 	int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
 	//Now obtain all of the volumes needed for this probe:
 	int totVars = 0;
-	for (int varnum = 0; varnum < (int)variableNames.size(); varnum++){
+	for (int varnum = 0; varnum < (int)ses->getNumVariables(); varnum++){
 		if (!variableSelected[varnum]) continue;
 		assert(varnum >= firstVarNum);
 		volData[totVars] = getContainingVolume(blkMin, blkMax, varnum, timeStep);

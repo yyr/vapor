@@ -68,12 +68,12 @@ public:
 	//
 	void setVarNum(int val); 
 	
-	const char* getVariableName() {
-		return (const char*) (variableNames[firstVarNum].c_str());
-	}
-	const std::string& getStdVariableName() {
-		return variableNames[firstVarNum];
-	}
+	//const char* getVariableName() {
+	//	return (const char*) (variableNames[firstVarNum].c_str());
+	//}
+	//const std::string& getStdVariableName() {
+	//	return variableNames[firstVarNum];
+	//}
 	
 	virtual void setClutDirty();
 	virtual float* getCurrentDatarange(){
@@ -274,7 +274,7 @@ protected:
 	
 	float histoStretchFactor;
 	PanelCommand* savedCommand;
-	std::vector<std::string> variableNames;
+	
 	std::vector<bool> variableSelected;
 
 	bool clutDirty;
