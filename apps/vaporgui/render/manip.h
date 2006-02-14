@@ -94,7 +94,7 @@ protected:
 	
 	//Draw all the faces of the Box, apply translations and rotations 
 	//according to current drag state.  doesn't take into account rotation and mid-plane
-	virtual void drawBoxFaces(int highlightedFace);
+	virtual void drawBoxFaces();
 	void drawHandleConnector(int handleNum, float* handleExtents, float* extents);
 
 	
@@ -125,9 +125,8 @@ public:
 	virtual void slideHandle(int handleNum, float movedRay[3]);
 	virtual void mouseRelease(float screenCoords[2]);
 protected:
-	virtual void drawBoxFaces(int highlightedFace);
+	virtual void drawBoxFaces();
 
-	
 	//utility class for handling permutations resulting from rotations of mult of 90 degrees:
 	class Permuter {
 	public:

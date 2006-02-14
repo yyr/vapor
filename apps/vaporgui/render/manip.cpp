@@ -398,14 +398,14 @@ void TranslateStretchManip::render(){
 		drawHandleConnector(handleNum, handleExtents, extents);
 	}
 	//Then render the full box, unhighlighted and displaced
-	drawBoxFaces(-1);
+	drawBoxFaces();
 	
 }
 //Draw the main box, just rendering the lines.
 //the highlightedFace is not the same as the selectedFace!!
 //
 
-void TranslateStretchManip::drawBoxFaces(int highlightedFace){
+void TranslateStretchManip::drawBoxFaces(){
 	float corners[8][3];
 	
 	myParams->calcBoxCorners(corners);
@@ -663,7 +663,7 @@ void TranslateStretchManip::drawHandleConnector(int handleNum, float* handleExte
 //
 TranslateRotateManip::TranslateRotateManip(VizWin* w, Params* p) : TranslateStretchManip(w,p){
 }
-void TranslateRotateManip::drawBoxFaces(int highlightedFace){
+void TranslateRotateManip::drawBoxFaces(){
 	float corners[8][3];
 	Permuter* myPermuter = 0;
 	if (isStretching) myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi());
@@ -949,7 +949,7 @@ void TranslateRotateManip::render(){
 		drawHandleConnector(handleNum, handleExtents, extents);
 	}
 	//Then render the full box, unhighlighted and displaced
-	drawBoxFaces(-1);
+	drawBoxFaces();
 	
 }
 void TranslateRotateManip::
