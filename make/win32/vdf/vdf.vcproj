@@ -179,6 +179,9 @@
 				RelativePath="..\..\..\lib\vdf\WaveletBlock3DRegionReader.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\WaveletBlock3DRegionWriter.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\WaveletBlock3DWriter.cpp">
 			</File>
 			<File
@@ -239,6 +242,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlock3DRegionReader.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\vdf\WaveletBlock3DRegionWriter.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlock3DWriter.h">
