@@ -162,6 +162,9 @@
 				RelativePath="..\..\..\apps\vaporgui\params\contourparams.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\main\datastatus.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\render\DVRBase.cpp">
 			</File>
 			<File
@@ -396,6 +399,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\params\controllerthread.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\main\datastatus.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\render\DVRBase.h">
