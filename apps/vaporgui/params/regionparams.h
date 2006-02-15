@@ -111,9 +111,7 @@ public:
 			boxMax[i] = getRegionMax(i);
 		}
 	}
-	//Perform mapping of voxels to user coords:
-	static void mapVoxelExtents(const int refinementLevel,
-		const int boxmin[3],const int boxmax[3], float extents[6]);
+	
 
 protected:
 	static const string _regionMinTag;

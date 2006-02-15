@@ -528,6 +528,7 @@ updatePanelState(){
 				genCount = 1;
 				myFlowTab->generatorCountEdit->setText(QString::number(genCount));
 			}
+			allGeneratorCount = genCount;
 		} else {
 			generatorCount[0] = myFlowTab->xSeedEdit->text().toInt();
 			if (generatorCount[0]< 1) generatorCount[0] = 1;
