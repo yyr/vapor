@@ -125,10 +125,6 @@ int DVRLookup::Render(const float matrix[16])
   glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
  
   glEnable(GL_BLEND);
-  
-  //Note:  Following crashes Irix with GL1.2
-  //glBlendEquation(GL_FUNC_ADD);  
-  
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glEnable(GL_DEPTH_TEST);

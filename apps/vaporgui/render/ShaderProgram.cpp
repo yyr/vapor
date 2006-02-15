@@ -18,7 +18,6 @@
 
 using namespace VAPoR;
 
-
 //
 // Static member data initalization
 //
@@ -43,10 +42,24 @@ ShaderProgram::~ShaderProgram()
   {
     GLuint shader = *iter;
 
-    glDeleteShader(shader);
+    if (GLEW_VERSION_2_0)
+    {
+      glDeleteShader(shader);
+    }
+    else
+    {
+      glDeleteObjectARB(shader);
+    }
   }
 
-  glDeleteProgram(_program);
+  if (GLEW_VERSION_2_0)
+  {
+    glDeleteProgram(_program);
+  }
+  else
+  {
+    glDeleteObjectARB(_program);
+  }
 }
 
   
@@ -102,15 +115,29 @@ bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
 
   const GLchar *sourceBuffer = (const GLchar*)buffer.data();
   int size = buffer.size();
-  shader = glCreateShader(shaderType);
-  glShaderSource(shader, 1, &sourceBuffer, &size);
-  printOpenGLError();
 
-  //
-  // Attach the shader
-  //
-  glAttachShader(_program, shader);
-  printOpenGLError();
+  if (GLEW_VERSION_2_0)
+  {
+    shader = glCreateShader(shaderType);
+    glShaderSource(shader, 1, &sourceBuffer, &size);
+
+    printOpenGLError();
+
+    glAttachShader(_program, shader);
+
+    printOpenGLError();
+  }
+  else
+  {
+    shader = glCreateShaderObjectARB(shaderType);
+    glShaderSourceARB(shader, 1, &sourceBuffer, &size);
+
+    printOpenGLError();
+
+    glAttachObjectARB(_program, shader);
+
+    printOpenGLError();
+  }
 
   _shaders.push_back(shader);
  
@@ -148,15 +175,32 @@ bool ShaderProgram::loadSource(const char *source, GLenum shaderType)
   //
   int length = strlen(source);
   const GLchar *sourceBuffer = (const GLchar*)source;
-  shader = glCreateShader(shaderType);
-  glShaderSource(shader, 1, &sourceBuffer, &length);
-  printOpenGLError();
 
-  //
-  // Attach the shader
-  //
-  glAttachShader(_program, shader);
-  printOpenGLError();
+  if (GLEW_VERSION_2_0)
+  {
+    shader = glCreateShader(shaderType);
+    glShaderSource(shader, 1, &sourceBuffer, &length);
+    printOpenGLError();
+
+    //
+    // Attach the shader
+    //
+    glAttachShader(_program, shader);
+    printOpenGLError();
+  }
+  else
+  {
+    shader = glCreateShaderObjectARB(shaderType);
+    glShaderSourceARB(shader, 1, &sourceBuffer, &length);
+    printOpenGLError();
+
+    //
+    // Attach the shader
+    //
+    glAttachObjectARB(_program, shader);
+    printOpenGLError();
+  }
+
 
   _shaders.push_back(shader);
 
@@ -168,7 +212,15 @@ bool ShaderProgram::loadSource(const char *source, GLenum shaderType)
 //----------------------------------------------------------------------------
 void ShaderProgram::create()
 {
-  _program = glCreateProgram();
+  if (GLEW_VERSION_2_0)
+  {
+    _program = glCreateProgram();
+  }
+  else
+  {
+    _program = glCreateProgramObjectARB();    
+  }
+
   printOpenGLError();
 }
 
@@ -190,38 +242,75 @@ bool ShaderProgram::compile()
     GLint infologLength = 0;
     GLint shaderCompiled;
 
-    //
-    // Compile a single shader
-    //
-    glCompileShader(shader);
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &shaderCompiled);
-    printOpenGLError();
-
-    compiled &= shaderCompiled;
-
-    //
-    // Print log information
-    //
-    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infologLength);
-    printOpenGLError();
-
-    if (infologLength > 1)
+    if (GLEW_VERSION_2_0)
     {
-      GLchar *infoLog = new GLchar[infologLength];
-      int nWritten  = 0;
+      //
+      // Compile a single shader
+      //
+      glCompileShader(shader);
+      glGetShaderiv(shader, GL_COMPILE_STATUS, &shaderCompiled);
+      printOpenGLError();
 
-      glGetShaderInfoLog(shader, infologLength, &nWritten, infoLog);
+      compiled &= shaderCompiled;
+      
+      //
+      // Print log information
+      //
+      glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infologLength);
+      printOpenGLError();
+      
+      if (infologLength > 1)
+      {
+        GLchar *infoLog = new GLchar[infologLength];
+        int nWritten  = 0;
+        
+        glGetShaderInfoLog(shader, infologLength, &nWritten, infoLog);
 
-      std::cerr << "Shader InfoLog:" << std::endl << infoLog << std::endl;
-
-      delete infoLog;
-      infoLog = NULL;
+        std::cerr << "Shader InfoLog:" << std::endl << infoLog << std::endl;
+        
+        delete infoLog;
+        infoLog = NULL;
+      }
     }
-  }
+    else
+    {
+      //
+      // Compile a single shader
+      //
+      glCompileShaderARB(shader);
+      glGetObjectParameterivARB(shader, 
+                                GL_OBJECT_COMPILE_STATUS_ARB, 
+                                &shaderCompiled);
+      printOpenGLError();
 
-  if (!compiled)
-  {
-    return false;
+      compiled &= shaderCompiled;
+      
+      //
+      // Print log information
+      //
+      glGetObjectParameterivARB(shader, 
+                                GL_OBJECT_INFO_LOG_LENGTH_ARB, 
+                                &infologLength);
+      printOpenGLError();
+      
+      if (infologLength > 1)
+      {
+        GLchar *infoLog = new GLchar[infologLength];
+        int nWritten  = 0;
+        
+        glGetInfoLogARB(shader, infologLength, &nWritten, infoLog);
+        
+        std::cerr << "Shader InfoLog:" << std::endl << infoLog << std::endl;
+        
+        delete infoLog;
+        infoLog = NULL;
+      }
+    }
+
+    if (!compiled)
+    {
+      return false;
+    }
   }
 
   //
@@ -229,30 +318,60 @@ bool ShaderProgram::compile()
   //
   GLint linked;
 
-  glLinkProgram(_program);
-  glGetProgramiv(_program, GL_LINK_STATUS, &linked);
-  printOpenGLError();
- 
-  //
-  // Print log information
-  //
-  GLint infologLength = 0;
-  glGetProgramiv(_program, GL_INFO_LOG_LENGTH, &infologLength);
-  printOpenGLError();
-
-  if (infologLength > 1)
+  if (GLEW_VERSION_2_0)
   {
-    GLchar *infoLog = new GLchar[infologLength];
-    int nWritten  = 0;
+    glLinkProgram(_program);
+    glGetProgramiv(_program, GL_LINK_STATUS, &linked);
+    printOpenGLError();
 
-    glGetProgramInfoLog(_program, infologLength, &nWritten, infoLog);
+    //
+    // Print log information
+    //
+    GLint infologLength = 0;
+    glGetProgramiv(_program, GL_INFO_LOG_LENGTH, &infologLength);
+    printOpenGLError();
     
-    std::cerr << "Program InfoLog:" << std::endl << infoLog << std::endl;
+    if (infologLength > 1)
+    {
+      GLchar *infoLog = new GLchar[infologLength];
+      int nWritten  = 0;
+      
+      glGetProgramInfoLog(_program, infologLength, &nWritten, infoLog);
+      
+      std::cerr << "Program InfoLog:" << std::endl << infoLog << std::endl;
 
-    delete infoLog;
-    infoLog = NULL;
+      delete infoLog;
+      infoLog = NULL;
+    }
   }
+  else
+  {
+    glLinkProgramARB(_program);
+    glGetObjectParameterivARB(_program, GL_OBJECT_LINK_STATUS_ARB, &linked);
+    printOpenGLError();
 
+    //
+    // Print log information
+    //
+    GLint infologLength = 0;
+    glGetObjectParameterivARB(_program, 
+                              GL_OBJECT_INFO_LOG_LENGTH_ARB, &infologLength);
+    printOpenGLError();
+    
+    if (infologLength > 1)
+    {
+      GLchar *infoLog = new GLchar[infologLength];
+      int nWritten  = 0;
+      
+      glGetInfoLogARB(_program, infologLength, &nWritten, infoLog);
+      
+      std::cerr << "Program InfoLog:" << std::endl << infoLog << std::endl;
+      
+      delete infoLog;
+      infoLog = NULL;
+    }
+  }
+  
   return (linked != 0);
 }
 
@@ -261,7 +380,15 @@ bool ShaderProgram::compile()
 //----------------------------------------------------------------------------
 void ShaderProgram::enable()
 {
-  glUseProgram(_program);
+  if (GLEW_VERSION_2_0)
+  {
+    glUseProgram(_program);
+  }
+  else
+  {
+    glUseProgramObjectARB(_program);
+  }
+
   printOpenGLError();
 }
 
@@ -271,7 +398,15 @@ void ShaderProgram::enable()
 //----------------------------------------------------------------------------
 void ShaderProgram::disable()
 {
-  glUseProgram(0);
+  if (GLEW_VERSION_2_0)
+  {
+    glUseProgram(0);
+  }
+  else
+  {
+    glUseProgramObjectARB(0);
+  }
+
   printOpenGLError();
 }
 
@@ -283,7 +418,14 @@ GLint ShaderProgram::uniformLocation(const char *uniformName)
 {
   GLint location;
 
-  location = glGetUniformLocation(_program, uniformName);
+  if (GLEW_VERSION_2_0)
+  {
+    location = glGetUniformLocation(_program, uniformName);
+  }
+  else
+  {
+    location = glGetUniformLocationARB(_program, uniformName);
+  }
 
   if (location == -1)
   {
@@ -301,7 +443,7 @@ GLint ShaderProgram::uniformLocation(const char *uniformName)
 //----------------------------------------------------------------------------
 bool ShaderProgram::supported()
 {
-  return (GLEW_ARB_fragment_shader);
+  return (GLEW_VERSION_2_0 || GLEW_ARB_shader_objects);
 }
 
 
