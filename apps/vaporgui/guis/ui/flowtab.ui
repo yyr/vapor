@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>415</width>
+            <width>441</width>
             <height>1163</height>
         </rect>
     </property>
@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout89</cstring>
+                <cstring>layout34</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -633,6 +633,11 @@
                                     <height>25</height>
                                 </size>
                             </property>
+                            <property name="font">
+                                <font>
+                                    <bold>1</bold>
+                                </font>
+                            </property>
                             <property name="text">
                                 <string>2.500</string>
                             </property>
@@ -643,7 +648,8 @@
                                 <set>AlignHCenter</set>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Scale the vector field norm by this factor</string>
+                                <string>This factor scales the vector field magnitude.  If too small, display will just show diamonds (fixed points).  If too large, flow will consist of straight lines due to flow rapidly exiting region.</string>
+                                <comment>Comment is here</comment>
                             </property>
                         </widget>
                         <spacer>
