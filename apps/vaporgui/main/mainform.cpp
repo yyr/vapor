@@ -865,7 +865,7 @@ void MainForm::loadData()
 	QString filename = QFileDialog::getOpenFileName(Session::getInstance()->getMetadataFile().c_str(),
 		"Vapor Metadata Files (*.vdf)",
 		this,
-		"Load Volume Data Dialog",
+		"Load Metadata Dialog",
 		"Choose the Metadata File to load into current session");
 	if(filename != QString::null){
 		Session::getInstance()->resetMetadata(filename.ascii(), false);
