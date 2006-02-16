@@ -135,7 +135,7 @@ reset(DataMgr* dm){
 	bool someDataOverall = false;
 	for (int var = 0; var< numVariables; var++){
 		bool dataExists = false;
-		int maxXLevel = -1;
+		
 		//Check first if this variable is in the metadata:
 		bool inMetadata = false;
 		for (int i = 0; i< currentMetadata->GetVariableNames().size(); i++){
@@ -152,7 +152,7 @@ reset(DataMgr* dm){
 		for (unsigned int ts = 0; ts< numTimesteps; ts++){
 			//Find the maximum number of transforms available on disk
 			//i.e., the highest transform level  (highest resolution) that exists
-			
+			int maxXLevel = -1;
 			for (int xf = numTransforms; xf>= 0; xf--){
 				if (myReader->VariableExists(ts, 
 					ses->getVariableName(var).c_str(),
