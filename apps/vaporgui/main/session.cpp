@@ -160,6 +160,9 @@ void Session::init() {
 	newSession = true;
 	extents[0] = extents[1] = extents[2] = 0.f;
 	extents[3] = extents[4] = extents[5] = 1.f;
+	numMetadataVariables = 0;
+	if (mapMetadataVars) delete mapMetadataVars; 
+	mapMetadataVars = 0;
 	
 }
 bool Session::

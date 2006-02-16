@@ -259,9 +259,13 @@ public:
 	//"Metadata" variables are those that are in current metadata, as opposed to
 	//"real" variables are those in session
 	int getNumMetadataVariables() {return numMetadataVariables;}
-	int mapMetadataToRealVarNum(int varnum) { assert(mapMetadataVars); return mapMetadataVars[varnum];}
+	int mapMetadataToRealVarNum(int varnum) 
+		{ if(!mapMetadataVars) return 0; 
+		return mapMetadataVars[varnum];}
 	int mapRealToMetadataVarNum(int var);
-	string& getMetadataVarName(int varnum) {assert(mapMetadataVars);return (variableNames[mapMetadataVars[varnum]]);}
+	string& getMetadataVarName(int varnum) {
+		if (!mapMetadataVars) return variableNames[0];
+		return (variableNames[mapMetadataVars[varnum]]);}
 	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){
 		myReader->MapVoxToUser(0, voxCoords, userCoords, refLevel);
 	}

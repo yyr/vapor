@@ -352,9 +352,10 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     Data = new QPopupMenu( this );
     dataBrowse_DataAction->addTo( Data );
     dataConfigure_MetafileAction->addTo( Data );
-	dataMerge_MetafileAction->addTo( Data );
+	
     dataLoad_MetafileAction->addTo( Data );
 	dataLoad_DefaultMetafileAction->addTo( Data );
+	dataMerge_MetafileAction->addTo( Data );
 	dataSave_MetafileAction->addTo( Data );
 	
 	dataExportToIDLAction->addTo(Data);
@@ -463,8 +464,10 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	viewpoint();
 	region();
 	launchProbeTab();
-	renderDVR();
+	
 	launchFlowTab();
+	//The last one is in front:
+	renderDVR();
 	
 	//Create one initial visualizer:
 	myVizMgr->launchVisualizer();
