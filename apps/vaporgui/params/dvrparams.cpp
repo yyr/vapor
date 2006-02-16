@@ -773,25 +773,23 @@ void DvrParams::initTypes()
   typemap.clear();
 
   if (myDvrTab == NULL) return;
-
   myDvrTab->typeCombo->clear();
-
-  if (VolumeRenderer::supported(DVR_TEXTURE3D_LOOKUP))
-  {
-    myDvrTab->typeCombo->insertItem("3DTexture", index);
-    typemap[index++] = DVR_TEXTURE3D_LOOKUP;
-  }
-
-  if (VolumeRenderer::supported(DVR_TEXTURE3D_SHADER))
-  {
-    myDvrTab->typeCombo->insertItem("3DTexture-Shader", index);
-    typemap[index++] = DVR_TEXTURE3D_SHADER;
-  }
 
   if (VolumeRenderer::supported(DVR_VOLUMIZER))
   {
     myDvrTab->typeCombo->insertItem("Volumizer", index);
     typemap[index++] = DVR_VOLUMIZER;
+  }
+	if (VolumeRenderer::supported(DVR_TEXTURE3D_SHADER))
+  {
+    myDvrTab->typeCombo->insertItem("3DTexture-Shader", index);
+    typemap[index++] = DVR_TEXTURE3D_SHADER;
+  }
+
+  if (VolumeRenderer::supported(DVR_TEXTURE3D_LOOKUP))
+  {
+    myDvrTab->typeCombo->insertItem("3DTexture", index);
+    typemap[index++] = DVR_TEXTURE3D_LOOKUP;
   }
 
   if (VolumeRenderer::supported(DVR_DEBUG))
@@ -807,6 +805,7 @@ void DvrParams::initTypes()
   }
   
   myDvrTab->typeCombo->setCurrentItem(0);
+  type = typemap[0];
 }
 
 //Method to invalidate a datarange, and to force a rendering
