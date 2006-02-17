@@ -311,8 +311,19 @@
                         </property>
                     </widget>
                     <widget class="QComboBox">
+                        <item>
+                            <property name="text">
+                                <string>3DTexture-Shader</string>
+                            </property>
+                        </item>
                         <property name="name">
                             <cstring>typeCombo</cstring>
+                        </property>
+                        <property name="minimumSize">
+                            <size>
+                                <width>115</width>
+                                <height>0</height>
+                            </size>
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>With renderer disabled, choose the volume renderer to be used</string>
