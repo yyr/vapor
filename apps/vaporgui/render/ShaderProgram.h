@@ -12,7 +12,6 @@
 
 #include <string>
 #include <list>
-#include <map>
 
 #ifndef ShaderProgram_h
 #define ShaderProgram_h
@@ -42,14 +41,11 @@ class ShaderProgram
   GLint uniformLocation(const char *uniformName);
 
   static bool supported();
-  static int maxTexture(GLenum format);
 
 protected:
 
   GLuint      _program;
   std::list<GLuint> _shaders;
-
-  static std::map<GLenum, int> _textureSizes;
 };
 
 };

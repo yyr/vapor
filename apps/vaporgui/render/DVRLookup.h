@@ -10,7 +10,6 @@
 #define DVRLookup_h
 
 #include "DVRTexture3d.h"
-
 #include "Vect3d.h"
 
 #include <vector>
@@ -29,10 +28,14 @@ class DVRLookup : public DVRTexture3d
 
   virtual int GraphicsInit();
   
-  virtual int SetRegion(void *data, 
-                        int nx, int ny, int nz, 
+  virtual int SetRegion(void *data,
+                        int nx, int ny, int nz,
                         const int data_roi[6],
-                        const float extents[6]);
+                        const float extents[6],
+                        const int data_box[6],
+                        int level);
+
+  virtual void loadTexture(TextureBrick *brick);
 
   virtual int Render(const float matrix[16]);
 
@@ -45,19 +48,12 @@ class DVRLookup : public DVRTexture3d
 
 protected:
 
-  virtual void initTextures();
+  virtual void initColormap();
 
  
 protected:
 
-  void             *_data;
   float            *_colormap;
-
-  GLuint _texid;
-
-  int    _nx;
-  int    _ny;
-  int    _nz;
 };
 
 };

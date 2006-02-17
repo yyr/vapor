@@ -13,6 +13,7 @@
 #include <qgl.h>
 
 #include "DVRShader.h"
+#include "TextureBrick.h"
 #include "messagereporter.h"
 
 #include "ShaderProgram.h"
@@ -102,25 +103,19 @@ int DVRShader::GraphicsInit()
 //
 //----------------------------------------------------------------------------
 int DVRShader::SetRegion(void *data,
-                                  int nx, int ny, int nz,
-                                  const int data_roi[6],
-                                  const float extents[6]) 
+                         int nx, int ny, int nz,
+                         const int roi[6],
+                         const float extents[6],
+                         const int box[6],
+                         int level) 
 { 
-  //
-  // Set the geometry extents
-  //
-  DVRTexture3d::SetRegion(data, nx, ny, nz, data_roi, extents);
-
-  
-  glActiveTexture(GL_TEXTURE0);
-
   //
   // Set the texture data
   //
   if (_nx != nx || _ny != ny || _nz != nz)
   {
     _nx = nx; _ny = ny; _nz = nz;
-
+    _data = data;
     //
     // TBD -- debugging shader conditionals. 
     //
@@ -130,23 +125,31 @@ int DVRShader::SetRegion(void *data,
     //  glUniform3f(_shader->uniformLocation("dimensions"), nx, ny, nz);
     //  _shader->disable();
     //}
-
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, _nx, _ny, _nz, 0, GL_LUMINANCE,
-                 GL_UNSIGNED_BYTE, data);
-  }
-  else if (_data != data)
-  {
-    _data = data;
-
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, GL_LUMINANCE,
-                    GL_UNSIGNED_BYTE, data);
   }
 
-  glFlush();
-
-  return 0;
+  //
+  // Set the geometry extents
+  //
+  return DVRTexture3d::SetRegion(data, nx, ny, nz, roi, extents, box, level);
 }
 
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DVRShader::loadTexture(TextureBrick *brick)
+{
+  printOpenGLError();
+
+  glActiveTexture(GL_TEXTURE0);
+
+  glBindTexture(GL_TEXTURE_3D, brick->handle());
+
+  glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, 
+               brick->nx(), brick->ny(), brick->nz(), 
+               0, GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->data());
+
+  printOpenGLError();
+}
 
 
 //----------------------------------------------------------------------------
@@ -173,7 +176,7 @@ int DVRShader::Render(const float matrix[16])
 
   glDisable(GL_DITHER);
 
-  drawViewAlignedSlices();
+  renderBricks();
 
   glDisable(GL_BLEND);
   glDisable(GL_TEXTURE_3D);
@@ -292,24 +295,6 @@ void DVRShader::SetLightingCoeff(float kd, float ka, float ks, float expS)
 //----------------------------------------------------------------------------
 void DVRShader::initTextures()
 {
-  //
-  // Setup the 3d texture
-  //
-  glGenTextures(1, &_texid);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_3D, _texid);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  
-
-  // Set texture border behavior
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  
-  // Set texture interpolation method
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
   //
   // Setup the colormap texture
   //

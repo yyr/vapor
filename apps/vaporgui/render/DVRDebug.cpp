@@ -54,7 +54,9 @@ int DVRDebug::SetRegion(
     void *data,
     int nx, int ny, int nz,
     const int data_roi[6],
-    const float extents[6]
+    const float extents[6],
+    const int data_box[6],
+    int level
 ) {
 	fprintf(stdout, "\nDVRDebug::SetRegion() called\n");
 
@@ -74,6 +76,16 @@ int DVRDebug::SetRegion(
 	fprintf(stdout, "\tex1 = %f\n", extents[3]);
 	fprintf(stdout, "\tey1 = %f\n", extents[4]);
 	fprintf(stdout, "\tez1 = %f\n", extents[5]);
+
+	fprintf(stdout, "\tbox0 = %d\n", data_box[0]);
+	fprintf(stdout, "\tbox0 = %d\n", data_box[1]);
+	fprintf(stdout, "\tbox0 = %d\n", data_box[2]);
+	fprintf(stdout, "\tbox1 = %d\n", data_box[3]);
+	fprintf(stdout, "\tbox1 = %d\n", data_box[4]);
+	fprintf(stdout, "\tbox1 = %d\n", data_box[5]);
+
+	fprintf(stdout, "\tlevel = %d\n", level);
+
 	return(0);
 }
 

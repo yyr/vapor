@@ -35,7 +35,11 @@ class DVRShader : public DVRTexture3d
   virtual int SetRegion(void *data, 
                         int nx, int ny, int nz, 
                         const int data_roi[6],
-                        const float extents[6]);
+                        const float extents[6],
+                        const int data_box[6],
+                        int level);
+
+  virtual void loadTexture(TextureBrick *brick);
 
   virtual int Render(const float matrix[16]);
 

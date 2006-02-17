@@ -12,6 +12,7 @@
 #include <qgl.h>
 
 #include "DVRLookup.h"
+#include "TextureBrick.h"
 #include "messagereporter.h"
 #include "glutil.h"
 
@@ -22,12 +23,7 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 DVRLookup::DVRLookup(DataType_T type, int nthreads) :
   DVRTexture3d(type, nthreads),
-  _data(NULL),
-  _colormap(NULL),
-  _texid(0),
-  _nx(0),
-  _ny(0),
-  _nz(0)
+  _colormap(NULL)
 {
 }
 
@@ -36,7 +32,6 @@ DVRLookup::DVRLookup(DataType_T type, int nthreads) :
 //----------------------------------------------------------------------------
 DVRLookup::~DVRLookup() 
 {
-  glDeleteTextures(1, &_texid);
 }
 
 
@@ -45,7 +40,7 @@ DVRLookup::~DVRLookup()
 //----------------------------------------------------------------------------
 int DVRLookup::GraphicsInit() 
 {
-  initTextures();
+  initColormap();
 
   return 0;
 }
@@ -54,60 +49,40 @@ int DVRLookup::GraphicsInit()
 //
 //----------------------------------------------------------------------------
 int DVRLookup::SetRegion(void *data,
-                            int nx, int ny, int nz,
-                            const int data_roi[6],
-                            const float extents[6]) 
+                         int nx, int ny, int nz,
+                         const int roi[6],
+                         const float extents[6],
+                         const int box[6],
+                         int level) 
 { 
   //
-  // Initialize the geometry extents
+  // Construct the color mapping
   //
-  DVRTexture3d::SetRegion(data, nx, ny, nz, data_roi, extents);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_R, 256, _colormap+0*256);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_G, 256, _colormap+1*256);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_B, 256, _colormap+2*256);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
+  glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
 
   //
-  // Initialize the texture data
+  // Initialize the geometry extents & texture
   //
-  if (_nx != nx || _ny != ny || _nz != nz)
-  {
-    _data = data;
-    _nx = nx; _ny = ny; _nz = nz;
-
-    //
-    // Construct the color mapping
-    //
-    glPixelMapfv(GL_PIXEL_MAP_I_TO_R, 256, _colormap+0*256);
-    glPixelMapfv(GL_PIXEL_MAP_I_TO_G, 256, _colormap+1*256);
-    glPixelMapfv(GL_PIXEL_MAP_I_TO_B, 256, _colormap+2*256);
-    glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
-    glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
-	
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, _nx, _ny, _nz, 0, 
-                 GL_COLOR_INDEX, GL_UNSIGNED_BYTE, data);
-	
-  }
-  else if (_data != data)
-  {
-    _data = data;
-
-    //
-    // Construct the color mapping
-    //
-    glPixelMapfv(GL_PIXEL_MAP_I_TO_R, 256, _colormap+0*256);
-    glPixelMapfv(GL_PIXEL_MAP_I_TO_G, 256, _colormap+1*256);
-    glPixelMapfv(GL_PIXEL_MAP_I_TO_B, 256, _colormap+2*256);
-    glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
-    glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
-
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, GL_COLOR_INDEX,
-                   GL_UNSIGNED_BYTE, data);  
-  }
-
-  printOpenGLError();
-
-  glFlush();
-
-  return 0;
+  return DVRTexture3d::SetRegion(data, nx, ny, nz, roi, extents, box, level);
 }
 
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DVRLookup::loadTexture(TextureBrick *brick)
+{ 
+  glBindTexture(GL_TEXTURE_3D, brick->handle());
+
+  glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, 
+               brick->nx(), brick->ny(), brick->nz(), 
+               0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, brick->data());
+
+  printOpenGLError();
+}
 
 
 //----------------------------------------------------------------------------
@@ -115,13 +90,11 @@ int DVRLookup::SetRegion(void *data,
 //----------------------------------------------------------------------------
 int DVRLookup::Render(const float matrix[16])
 
-{
-	
+{	
   glPolygonMode(GL_FRONT, GL_FILL);
   glPolygonMode(GL_BACK, GL_LINE);
 
   glEnable(GL_TEXTURE_3D);
-  glBindTexture(GL_TEXTURE_3D, _texid);
   glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
  
   glEnable(GL_BLEND);
@@ -129,9 +102,8 @@ int DVRLookup::Render(const float matrix[16])
 
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
-
 	
-  drawViewAlignedSlices();
+  renderBricks();
 	
   glDisable(GL_BLEND);
   glDisable(GL_TEXTURE_3D);
@@ -174,14 +146,13 @@ void DVRLookup::SetCLUT(const float ctab[256][4])
   glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
   glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
 
-  if (_data)
+  //
+  // Reload the 3D texture to pickup the colormap.
+  // Is there a better (i.e., faster) way to do this?
+  //
+  for (int i=0; i<_bricks.size(); i++)
   {
-    //
-    // Reload the 3D texture to pickup the colormap.
-    // Is there a better (i.e., faster) way to do this?
-    //
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, GL_COLOR_INDEX,
-                    GL_UNSIGNED_BYTE, _data);  
+    loadTexture(_bricks[i]);
   }
 
   glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
@@ -229,14 +200,13 @@ void DVRLookup::SetOLUT(const float atab[256][4], const int numRefinements)
   glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
   glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
 
-  if (_data)
+  //
+  // Reload the 3D texture to pickup the colormap.
+  // Is there a better (i.e., faster) way to do this?
+  //
+  for (int i=0; i<_bricks.size(); i++)
   {
-    //
-    // Reload the 3D texture to pickup the colormap.
-    // Is there a better (i.e., faster) way to do this?
-    //
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, GL_COLOR_INDEX,
-                    GL_UNSIGNED_BYTE, _data);  
+    loadTexture(_bricks[i]);
   }
 
   glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
@@ -248,30 +218,20 @@ void DVRLookup::SetOLUT(const float atab[256][4], const int numRefinements)
 
 
 //----------------------------------------------------------------------------
-// Initalize the textures (i.e., 3d volume texture and the 1D colormap texture)
+// Initalize the the 1D colormap
 //----------------------------------------------------------------------------
-void DVRLookup::initTextures()
+void DVRLookup::initColormap()
 {
-  //
-  // Setup the 3d texture
-  //
-  glGenTextures(1, &_texid);
-  glBindTexture(GL_TEXTURE_3D, _texid);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  
-
-  // Set texture border behavior
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  
-  // Set texture interpolation method
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
   //
   // Create the colormap table
   //
   _colormap = new float[256*4];
+
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_R, 256, _colormap+0*256);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_G, 256, _colormap+1*256);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_B, 256, _colormap+2*256);
+  glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
+  glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
 
   glFlush();
 }

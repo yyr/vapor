@@ -18,10 +18,6 @@
 
 using namespace VAPoR;
 
-//
-// Static member data initalization
-//
-std::map<GLenum, int> ShaderProgram::_textureSizes;
 
 //----------------------------------------------------------------------------
 // Default constructor
@@ -447,35 +443,4 @@ bool ShaderProgram::supported()
 }
 
 
-//----------------------------------------------------------------------------
-// Determine and return the maximum texture size (in bytes). 
-//----------------------------------------------------------------------------
-int ShaderProgram::maxTexture(GLenum format)
-{
-  if (_textureSizes.find(format) == _textureSizes.end())
-  {
-    int i;
-	
-    for (i = 128; i < 130000; i*=2)
-    {
-      glTexImage3D(GL_PROXY_TEXTURE_3D, 0, format, i, i, i, 0,
-                   format, GL_UNSIGNED_BYTE, NULL);
-
-      GLint width;
-
-      glGetTexLevelParameteriv(GL_PROXY_TEXTURE_3D, 0,
-                               GL_TEXTURE_WIDTH, &width);
-      if (width == 0)
-      {
-        i /= 2;
-        
-        _textureSizes[format] = i;
-
-        return i*i*i;
-      }
-    }
-  }
-	
-  return _textureSizes[format];
-}
 

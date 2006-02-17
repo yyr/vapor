@@ -41,7 +41,9 @@ public:
 	void *data,
 	int nx, int ny, int nz,
 	const int data_roi[6],
-	const float extents[6]
+	const float extents[6],
+    const int data_box[6],
+    int level
  );
 
 int SetRegionStretched(

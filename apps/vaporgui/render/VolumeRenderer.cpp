@@ -51,6 +51,7 @@
 #include "vizwin.h"
 #include "vizwinmgr.h"
 #include "glwindow.h"
+
 #include "DVRLookup.h"
 #include "DVRShader.h"
 #ifdef VOLUMIZER
@@ -225,11 +226,12 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   
   static float extents[6];
   
-  int max_dim[3];
-  int min_dim[3];
+  size_t max_dim[3];
+  size_t min_dim[3];
   size_t max_bdim[3];
   size_t min_bdim[3];
   int data_roi[6];
+  int datablock[6];
   int i;
   
   DataMgr* myDataMgr = Session::getInstance()->getDataMgr();
@@ -240,9 +242,11 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	
   int winNum = myVizWin->getWindowNum();
   RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-  AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
+  int timeStep = VizWinMgr::getInstance()->getAnimationParams(winNum)->getCurrentFrameNumber();
+  
 	
   DvrParams* myDVRParams = VizWinMgr::getInstance()->getDvrParams(winNum);
+  int varNum = myDVRParams->getVarNum();
 	
   
   //AN:  (2/10/05):  Calculate 'extents' to be the real coords in (0,1) that
@@ -267,11 +271,16 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   }
 
   const size_t *bs = myMetadata->GetBlockSize();
-		
-  //Note that this function will be called again by the renderer
- // myRegionParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, numxforms, minFull, maxFull, extents);
-  myRegionParams->getRegionVoxelCoords(numxforms, min_dim, max_dim, min_bdim, max_bdim);
-  myRegionParams->calcBoxExtentsInCube(extents);
+  //qWarning(" calculating region bounds for next render");
+  bool regionValid = myRegionParams->getAvailableVoxelCoords(numxforms, min_dim, max_dim, min_bdim, max_bdim, 
+	  timeStep,&varNum, 1);
+	
+  if(!regionValid) {
+	  MessageReporter::warningMsg("Volume data unavailable for refinement level %d at timestep %d", numxforms, timeStep);
+	  return;
+  }
+  RegionParams::convertToBoxExtentsInCube(numxforms, min_dim, max_dim, extents);
+  
   //Make the depth buffer writable
   glDepthMask(GL_TRUE);
   //and readable
@@ -292,19 +301,20 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   // set up region. Only need to do this if the data
   // roi changes, or if the datarange has changed.
   //
-  if (myVizWin->regionIsDirty()|| myVizWin->dataRangeIsDirty()||myVizWin->regionIsNavigating()) 
+  if (regionValid&&(myVizWin->regionIsDirty()|| myVizWin->dataRangeIsDirty()||myVizWin->regionIsNavigating())) 
   {
     
     myGLWindow->setRenderNew();
     int	rc;
     int nx,ny,nz;
-    
+   
+	//qWarning("Requesting region from dataMgr");
     //Turn off error callback, look for memory allocation problem.
     Session::pauseErrorCallback();
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     void* data = 
       (void*) myDataMgr->GetRegionUInt8(
-                                        myAnimationParams->getCurrentFrameNumber(),
+                                        timeStep,
                                         myDVRParams->getVariableName(),
                                         numxforms,
                                         min_bdim,
@@ -315,6 +325,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     //Turn it back on:
     Session::resumeErrorCallback();
 	QApplication::restoreOverrideCursor();
+	//qWarning("Returned from DataMgr");
     if (!data){
       int errCode = myDataMgr->GetErrCode();
       const char* msg = myDataMgr->GetErrMsg();
@@ -345,10 +356,17 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     data_roi[4] = max_dim[1];
     data_roi[5] = max_dim[2];
     
-	
+    datablock[0] = min_bdim[0]*bs[0];
+    datablock[1] = min_bdim[1]*bs[1];
+    datablock[2] = min_bdim[2]*bs[2];
+    datablock[3] = (max_bdim[0]+1)*bs[0]-1;
+    datablock[4] = (max_bdim[1]+1)*bs[1]-1;
+    datablock[5] = (max_bdim[2]+1)*bs[2]-1;
+	//qWarning("setting region in renderer");
     rc = driver->SetRegion(data,
                            nx, ny, nz,
-                           data_roi, extents
+                           data_roi, extents,
+                           datablock, numxforms
                            );
     
     if (rc < 0) {
@@ -409,10 +427,12 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
   //Make the z-buffer read-only for the volume data
   glDepthMask(GL_FALSE);
+  //qWarning("Starting render");
   if (driver->Render((GLfloat *) matrix ) < 0){
     MessageReporter::errorMsg("%s","Unable to Render");
     return;
   }
+  //qWarning("Render done");
   
   //Colorbar is rendered with DVR renderer:
   if(myVizWin->colorbarIsEnabled()){

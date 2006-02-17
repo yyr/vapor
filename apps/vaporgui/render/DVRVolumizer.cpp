@@ -174,7 +174,9 @@ int DVRVolumizer::SetRegion(
 	void *data,
 	int nx, int ny, int nz,
 	const int data_roi[6],
-	const float extents[6]
+	const float extents[6],
+	const int*, int
+    
 ) {
 	int	i;
 
