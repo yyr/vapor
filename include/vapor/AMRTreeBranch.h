@@ -236,7 +236,7 @@ public:
  //!
  //! Returns the total number of nodes in a branch, including parent nodes
  //!
- UInt32 GetNumNodes() const {return (_numNodes); };
+ UInt32 GetNumNodes() const {return ((UInt32) _numNodes); };
 
  //! Return number of nodes in the branch
  //!
