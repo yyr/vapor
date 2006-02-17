@@ -45,10 +45,20 @@ public:
 	virtual Params* deepCopy();
 	virtual void makeCurrent(Params* p, bool newWin);
 	//Method to calculate the read-only region info that is displayed in the regionTab
-	void refreshRegionInfo();	
-	//Just get the values needed for a call to DataMgr::getRegion:
-	void getRegionVoxelCoords(int numxforms, int min_dim[3], int max_dim[3], size_t min_bdim[3], size_t max_bdim[3]);
+	void refreshRegionInfo();
 
+	//following method gets voxel coords of region, but doesn't verify the existens
+	//of data in the region
+	//
+	void getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], size_t min_bdim[3], size_t max_bdim[3]);
+	
+	//New version of above, to supply available region bounds when not full
+	//Must specify the variable(s) that is/are being rendered.
+	//Returns false if there is no data
+	bool getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], size_t min_bdim[3], size_t max_bdim[3], size_t timestep, const int* varNums, int numVars);
+	//Static method that converts box to extents in cube, independent of actual
+	//extents in region.
+	static void convertToBoxExtentsInCube(int refLevel, size_t min_dim[3], size_t max_dim[3], float extents[6]);
 	void setTab(RegionTab* tab) {myRegionTab = tab;}
 	
 	float getRegionMin(int coord){ return regionMin[coord];}
@@ -80,9 +90,6 @@ public:
 	void guiCopyRakeToRegion();
 	void guiCopyProbeToRegion();
 	
-
-	
-	//
 	//Start to slide a region face.  Need to save direction vector
 	//
 	void captureMouseDown();
@@ -144,11 +151,10 @@ protected:
 	//Region dirty bit is kept in vizWin
 	//
 	void setDirty();  
-	
-	
+
 	int infoNumRefinements, infoVarNum, infoTimeStep;
 
-	//New values (analog)
+	//Actual region bounds
 	float regionMax[3],regionMin[3];
 	
 	RegionTab* myRegionTab;

@@ -279,8 +279,9 @@ refreshRegionInfo(){
 	int maxRefLevel = 10;
 	int numTrans = 10;
 	int varNum = -1;
+	std::string varName;
 	if (ses->getDataStatus()) {
-		std::string varName = ses->getCurrentMetadata()->GetVariableNames()[mdVarNum];
+		varName = ses->getCurrentMetadata()->GetVariableNames()[mdVarNum];
 		varNum = ses->getSessionVariableNum(varName);
 		maxRefLevel = ses->getDataStatus()->maxXFormPresent(varNum, timeStep);
 		numTrans = ses->getDataStatus()->getNumTransforms();
@@ -324,29 +325,34 @@ refreshRegionInfo(){
 	myRegionTab->maxZSelectedLabel->setText(QString::number(regionMax[2],'g',5));
 
 	//Now produce the corresponding voxel coords:
-	int min_dim[3], max_dim[3];
+	size_t min_dim[3], max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
-	getRegionVoxelCoords(refLevel,min_dim,max_dim,min_bdim,max_bdim);
-	//If data isn't there, make the region bounds negative
-	if (refLevel > maxRefLevel){
-		for (int i = 0; i< 3; i++){
-			min_dim[i] = 0;
-			max_dim[i] = -1;
-		}
-	}
-		
 	
-	myRegionTab->minXVoxSelectedLabel->setText(QString::number(min_dim[0]));
-	myRegionTab->minYVoxSelectedLabel->setText(QString::number(min_dim[1]));
-	myRegionTab->minZVoxSelectedLabel->setText(QString::number(min_dim[2]));
-	myRegionTab->maxXVoxSelectedLabel->setText(QString::number(max_dim[0]));
-	myRegionTab->maxYVoxSelectedLabel->setText(QString::number(max_dim[1]));
-	myRegionTab->maxZVoxSelectedLabel->setText(QString::number(max_dim[2]));
+	// if region isn't valid just don't show the bounds:
+	if (refLevel <= maxRefLevel){
+		getRegionVoxelCoords(refLevel,min_dim,max_dim,min_bdim,max_bdim);
+		myRegionTab->minXVoxSelectedLabel->setText(QString::number(min_dim[0]));
+		myRegionTab->minYVoxSelectedLabel->setText(QString::number(min_dim[1]));
+		myRegionTab->minZVoxSelectedLabel->setText(QString::number(min_dim[2]));
+		myRegionTab->maxXVoxSelectedLabel->setText(QString::number(max_dim[0]));
+		myRegionTab->maxYVoxSelectedLabel->setText(QString::number(max_dim[1]));
+		myRegionTab->maxZVoxSelectedLabel->setText(QString::number(max_dim[2]));
+	} else { 
+		myRegionTab->minXVoxSelectedLabel->setText("");
+		myRegionTab->minYVoxSelectedLabel->setText("");
+		myRegionTab->minZVoxSelectedLabel->setText("");
+		myRegionTab->maxXVoxSelectedLabel->setText("");
+		myRegionTab->maxYVoxSelectedLabel->setText("");
+		myRegionTab->maxZVoxSelectedLabel->setText("");
+	}
 
 	if (ses->getDataStatus()){
 		//Entire region size in voxels
-		for (int i = 0; i<3; i++)
+		for (int i = 0; i<3; i++){
 			max_dim[i] = ((ses->getDataStatus()->getFullDataSize(i))>>(numTrans - refLevel))-1;
+			max_bdim[i] = (max_dim[i]/bs);
+			min_bdim[i] = 0;
+		}
 	}
 	myRegionTab->minXVoxFullLabel->setText("0");
 	myRegionTab->minYVoxFullLabel->setText("0");
@@ -355,13 +361,26 @@ refreshRegionInfo(){
 	myRegionTab->maxYVoxFullLabel->setText(QString::number(max_dim[1]));
 	myRegionTab->maxZVoxFullLabel->setText(QString::number(max_dim[2]));
 
-	//For now make the variable voxel limits the same:
-	myRegionTab->minXVoxVarLabel->setText("0");
-	myRegionTab->minYVoxVarLabel->setText("0");
-	myRegionTab->minZVoxVarLabel->setText("0");
-	myRegionTab->maxXVoxVarLabel->setText(QString::number(max_dim[0]));
-	myRegionTab->maxYVoxVarLabel->setText(QString::number(max_dim[1]));
-	myRegionTab->maxZVoxVarLabel->setText(QString::number(max_dim[2]));
+	//Find the variable voxel limits:
+	int rc = -1;
+	if (refLevel <= maxRefLevel && ses->getDataMgr())
+		rc = ses->getDataMgr()->GetValidRegion(timeStep, varName.c_str(),refLevel, min_dim, max_dim);
+	if (rc>= 0)	{
+		myRegionTab->minXVoxVarLabel->setText(QString::number(min_dim[0]));
+		myRegionTab->minYVoxVarLabel->setText(QString::number(min_dim[1]));
+		myRegionTab->minZVoxVarLabel->setText(QString::number(min_dim[2]));
+		myRegionTab->maxXVoxVarLabel->setText(QString::number(max_dim[0]));
+		myRegionTab->maxYVoxVarLabel->setText(QString::number(max_dim[1]));
+		myRegionTab->maxZVoxVarLabel->setText(QString::number(max_dim[2]));
+	} else {
+		myRegionTab->minXVoxVarLabel->setText("");
+		myRegionTab->minYVoxVarLabel->setText("");
+		myRegionTab->minZVoxVarLabel->setText("");
+		myRegionTab->maxXVoxVarLabel->setText("");
+		myRegionTab->maxYVoxVarLabel->setText("");
+		myRegionTab->maxZVoxVarLabel->setText("");
+	}
+	
 
 	if (ses->getCurrentMetadata())
 		bs = *(ses->getCurrentMetadata()->GetBlockSize());
@@ -470,7 +489,7 @@ validateNumTrans(int n){
 	//if we have a dataMgr, see if we can really handle this new numtrans:
 	if (!Session::getInstance()->getDataMgr()) return n;
 	
-	int min_dim[3], max_dim[3];
+	size_t min_dim[3], max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
 	getRegionVoxelCoords(n,min_dim,max_dim,min_bdim,max_bdim);
 	
@@ -753,8 +772,105 @@ captureMouseUp(){
 	VizWinMgr::getInstance()->refreshRegion(this);
 	
 }
+//static method to do conversion to box coords (probably based on available
+//coords, that may be smaller than region coords)
+//
 void RegionParams::
-getRegionVoxelCoords(int numxforms, int min_dim[3], int max_dim[3], 
+convertToBoxExtentsInCube(int refLevel, size_t min_dim[3], size_t max_dim[3], float extents[6]){
+	double fullExtents[6];
+	double subExtents[6];
+	Session* ses = Session::getInstance();
+	const size_t fullMin[3] = {0,0,0};
+	size_t fullMax[3];
+	int maxRef = Session::getInstance()->getDataStatus()->getNumTransforms();
+	const size_t* fullDims = ses->getFullDataDimensions();
+	for (int i = 0; i<3; i++) fullMax[i] = (fullDims[i]>>(maxRef-refLevel)) - 1;
+
+	ses->mapVoxelToUserCoords(refLevel, fullMin, fullExtents);
+	ses->mapVoxelToUserCoords(refLevel, fullMax, fullExtents+3);
+	ses->mapVoxelToUserCoords(refLevel, min_dim, subExtents);
+	ses->mapVoxelToUserCoords(refLevel, max_dim, subExtents+3);
+	
+	double maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
+	for (int i = 0; i<3; i++){
+		extents[i] = (float)((subExtents[i] - fullExtents[i])/maxSize);
+		extents[i+3] = (float)((subExtents[i+3] - fullExtents[i])/maxSize);
+	}
+	
+}
+	
+bool RegionParams::
+getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
+		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, const int* varNums, int numVars){
+	//First determine the bounds specified in this RegionParams
+	int i;
+	bool retVal = true;
+	float fullExtents[6];
+	const size_t *bs ;
+	const size_t* dataSize;
+	int maxTrans;
+	Session* ses = Session::getInstance();
+	//Special case before there is any data...
+	if (!ses->getCurrentMetadata()){
+		for (i = 0; i<3; i++) {
+			min_dim[i] = 0;
+			max_dim[i] = (1024>>numxforms) -1;
+			min_bdim[i] = 0;
+			max_bdim[i] = (32 >>numxforms) -1;
+		}
+		return false;
+	}
+	//Check that the data exists for this timestep and refinement:
+	for (i = 0; i<numVars; i++){
+		if(ses->getDataStatus()->maxXFormPresent(varNums[i],timestep) < numxforms)
+			return false;
+	}
+	
+	maxTrans = ses->getCurrentMetadata()->GetNumTransforms();
+	dataSize = ses->getFullDataDimensions();
+	bs = ses->getCurrentMetadata()->GetBlockSize();
+	ses->getExtents(numxforms, fullExtents);
+	size_t temp_min[3], temp_max[3];
+	for(i=0; i<3; i++) {
+		int	s = maxTrans-numxforms;
+		int arraySide = (dataSize[i] >> s) - 1;
+		min_dim[i] = (int) (0.5f+(regionMin[i] - fullExtents[i])*(float)arraySide/
+			(fullExtents[i+3]-fullExtents[i]));
+		max_dim[i] = (int) (0.5f+(regionMax[i] - fullExtents[i])*(float)arraySide/
+			(fullExtents[i+3]-fullExtents[i]));
+
+		//Make sure slab has nonzero thickness (this can only
+		//be a problem while the mouse is pressed):
+		//
+		if (min_dim[i] >= max_dim[i]){
+			if (max_dim[i] < 1){
+				max_dim[i] = 1;
+				min_dim[i] = 0;
+			}
+			else min_dim[i] = max_dim[i] - 1;
+		}
+	}
+	//Now intersect with available bounds based on variables:
+	for (int varIndex = 0; varIndex < numVars; varIndex++){
+		const string varName = ses->getVariableName(varNums[varIndex]);
+		int rc = ses->getDataMgr()->GetValidRegion(timestep, varName.c_str(),numxforms, temp_min, temp_max);
+		if (rc < 0) retVal = false;
+		else for (i = 0; i< 3; i++){
+			if (min_dim[i] < temp_min[i]) min_dim[i] = temp_min[i];
+			if (max_dim[i] > temp_max[i]) max_dim[i] = temp_max[i];
+			//Again check for validity:
+			if (min_dim[i] >= max_dim[i]) retVal = false;
+		}
+	}
+	for (i = 0; i<3; i++){	
+		min_bdim[i] = min_dim[i] / bs[i];
+		max_bdim[i] = max_dim[i] / bs[i];
+	}
+	return retVal;
+}
+
+void RegionParams::
+getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
 		size_t min_bdim[3], size_t max_bdim[3]){
 	int i;
 	const float* fullExtents;

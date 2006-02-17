@@ -261,7 +261,9 @@ protected:
 
 	//Find smallest containing cube in integer coords, using
 	//current numRefinementsforms, that will contain image of probe
-	void getBoundingBox(size_t boxMinBlk[3], size_t boxMaxBlk[3], int boxMin[3], int boxMax[3]);
+	void getBoundingBox(size_t boxMin[3], size_t boxMax[3]);
+	//Get the bounding box of data that is actually on disk.  return false if empty
+	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3]);
 	
 	float currentDatarange[2];
 	

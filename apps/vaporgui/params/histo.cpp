@@ -38,7 +38,7 @@ Histo::Histo(int numberBins, float mnData, float mxData){
 	binArray = new int[numBins];
 	reset();
 }
-Histo::Histo(unsigned char* data, int min_dim[3], int max_dim[3], 
+Histo::Histo(unsigned char* data, size_t min_dim[3], size_t max_dim[3], 
 			 size_t min_bdim[3],size_t max_bdim[3],
 			 float mnData, float mxData){
 	binArray = new int[256];
@@ -145,7 +145,7 @@ void Histo::
 refreshHistogram(int vizNum, Params* dParams)
 {
 	
-	int min_dim[3],max_dim[3];
+	size_t min_dim[3],max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
 	assert (vizNum >= 0);
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
@@ -166,8 +166,13 @@ refreshHistogram(int vizNum, Params* dParams)
 	int timeStep = vizWinMgr->getAnimationParams(vizNum)->getCurrentFrameNumber();
 	float dataMin = dParams->getMinOpacMapBound();
 	float dataMax = dParams->getMaxOpacMapBound();
-	
-	rParams->getRegionVoxelCoords(numTrans, min_dim, max_dim, min_bdim,max_bdim);
+
+	bool dataValid = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, min_bdim, max_bdim, timeStep, &varNum, 1);
+	if(!dataValid){
+		MessageReporter::warningMsg("Histogram data unavailable for refinement %d at timestep %d", numTrans, timeStep);
+		return;
+	}
+	if (!dataValid) return;
 	DataMgr* dataMgr = Session::getInstance()->getDataMgr();
 	assert (dataMgr);
 	const Metadata* metaData = Session::getInstance()->getCurrentMetadata();

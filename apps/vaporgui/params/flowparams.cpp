@@ -1934,7 +1934,7 @@ setEnabled(bool on){
 float* FlowParams::
 regenerateFlowData(int timeStep, bool isRake){
 	int i;
-	int min_dim[3], max_dim[3]; 
+	size_t min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
 	
 	if (!myFlowLib) return 0;
@@ -1957,9 +1957,13 @@ regenerateFlowData(int timeStep, bool isRake){
 		rParams = vizMgr->getRegionParams(vizMgr->getActiveViz());
 	}
 	else rParams = VizWinMgr::getInstance()->getRegionParams(vizNum);
-	//rParams->calcRegionExtents(min_dim, max_dim, min_bdim, max_bdim, 
-		//numTransforms, minFull, maxFull, extents);
-	rParams->getRegionVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim);
+	
+	bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, varNum, 3);
+	
+	if(!dataValid){
+		MessageReporter::warningMsg("Vector field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
+		return 0;
+	}
 	myFlowLib->SetRegion(numRefinements, min_bdim, max_bdim);
 	int numSeedPoints;
 	if (isRake){

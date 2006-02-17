@@ -171,6 +171,7 @@ public:
 	virtual void setMinOpacMapBound(float ){assert(0);}
 	virtual void setMaxOpacMapBound(float ){assert(0);}
 
+
 	float getMinColorMapBound();	
 	float getMaxColorMapBound(); 
 	
@@ -228,8 +229,8 @@ public:
 	virtual float getTheta() {return 0.f;}
 	virtual void endDrag() {assert(0);}
 	virtual void startDrag() {assert(0);}
+
 	//Determine the box extents in the unit cube.
-	
 	void calcBoxExtentsInCube(float* extents);
 	//Extension that allows container of rotated box to be larger:
 	virtual void calcContainingBoxExtentsInCube(float* extents) 

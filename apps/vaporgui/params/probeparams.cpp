@@ -1670,19 +1670,27 @@ getProbeTexture(){
 
 	
 	size_t blkMin[3], blkMax[3];
-	int coordMin[3], coordMax[3];
-	getBoundingBox(blkMin, blkMax, coordMin, coordMax);
+	size_t coordMin[3], coordMax[3];
+	int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
+	
+	getAvailableBoundingBox(timeStep,blkMin, blkMax, coordMin, coordMax);
 	int bSize =  *(ses->getCurrentMetadata()->GetBlockSize());
 	
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then do rms on the variables (if > 1 specified)
 	float** volData = new float*[numVariables];
-	int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
 	//Now obtain all of the volumes needed for this probe:
 	int totVars = 0;
 	for (int varnum = 0; varnum < ses->getNumVariables(); varnum++){
 		if (!variableSelected[varnum]) continue;
 		volData[totVars] = getContainingVolume(blkMin, blkMax, varnum, timeStep);
+		if (!volData[totVars]) {
+			if (probeTexture){
+				delete probeTexture;
+				probeTexture = 0;
+			}
+			return 0;
+		}
 		totVars++;
 	}
 	//Now calculate the texture.
@@ -1699,7 +1707,7 @@ getProbeTexture(){
 	transFunc[firstVarNum]->makeLut(clut);
 	float probeCoord[3];
 	float dataCoord[3];
-	int arrayCoord[3];
+	size_t arrayCoord[3];
 	const float* extents = ses->getExtents();
 	//Can ignore depth, just mapping center plane
 	probeCoord[2] = 0.f;
@@ -1715,7 +1723,7 @@ getProbeTexture(){
 			probeCoord[0] = -1.f + 2.f*(float)ix/127.f;
 			vtransform(probeCoord, transformMatrix, dataCoord);
 			for (int i = 0; i<3; i++){
-				arrayCoord[i] = (int) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
+				arrayCoord[i] = (size_t) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
 			}
 			
 			//Make sure the transformed coords are in the probe region
@@ -1772,7 +1780,12 @@ float* ProbeParams::
 getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep){
 	//Get the region (int coords) associated with the specified variable at the
 	//current probe extents
-	
+	int maxRes = Session::getInstance()->getDataStatus()->maxXFormPresent(varNum,timeStep);
+	if (maxRes < numRefinements){
+		MessageReporter::warningMsg("Probe data unavailable for refinement level %d at timestep %d",
+			numRefinements, timeStep);
+		return 0;
+	}
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 //	qWarning("Fetching region: %d %d %d , %d %d %d ",blkMin[0],blkMin[1],blkMin[2],
 	//	blkMax[0],blkMax[1],blkMax[2]);
@@ -1787,15 +1800,15 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep
 //We also need the actual box coords (min and max) to check for valid coords in the block.
 //Note that the box region may be strictly smaller than the block region
 //
-void ProbeParams::getBoundingBox(size_t boxMinBlk[3], size_t boxMaxBlk[3], int boxMin[3], int boxMax[3]){
+void ProbeParams::getBoundingBox(size_t boxMin[3], size_t boxMax[3]){
 	//Determine the smallest axis-aligned cube that contains the probe.  This is
 	//obtained by mapping all 8 corners into the space
 	Session* ses = Session::getInstance();
-	const size_t *bs = ses->getCurrentMetadata()->GetBlockSize();
+	
 	float transformMatrix[12];
 	//Set up to transform from probe into volume:
 	buildCoordTransform(transformMatrix);
-	float dataSize[3];
+	size_t dataSize[3];
 	const size_t totTransforms = ses->getCurrentMetadata()->GetNumTransforms();
 	const float* extents = ses->getExtents();
 	//Start by initializing extents, and variables that will be min,max
@@ -1820,22 +1833,55 @@ void ProbeParams::getBoundingBox(size_t boxMinBlk[3], size_t boxMaxBlk[3], int b
 		// then make sure the container includes it:
 		for(int i = 0; i< 3; i++){
 			intResult[i] = (int) (0.5f+(float)dataSize[i]*(resultVec[i]- extents[i])/(extents[i+3]-extents[i]));
-		
-			if(intResult[i]<boxMin[i]) boxMin[i] = intResult[i];
-			if(intResult[i]>boxMax[i]) boxMax[i] = intResult[i];
+			if (intResult[i]< 0) intResult[i] = 0;
+			if((size_t)intResult[i]<boxMin[i]) boxMin[i] = intResult[i];
+			if((size_t)intResult[i]>boxMax[i]) boxMax[i] = intResult[i];
 		}
-		
+	}
+	return;
+}
+//Find the smallest box containing the probe, in block coords, at current refinement level
+//and current time step.  Restrict it to the available data.
+//
+bool ProbeParams::
+getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3]){
+	//Start with the bounding box for this refinement level:
+	getBoundingBox(boxMin, boxMax);
+	Session* ses = Session::getInstance();
+	const size_t* bs = ses->getCurrentMetadata()->GetBlockSize();
+	int totTransforms = ses->getCurrentMetadata()->GetNumTransforms();
+	size_t temp_min[3],temp_max[3];
+	bool retVal = true;
+	int i;
+	//Now intersect with available bounds based on variables:
+	for (int varIndex = 0; varIndex < ses->getNumVariables(); varIndex++){
+		if (!variableSelected[varIndex]) continue;
+		if (ses->getDataStatus()->maxXFormPresent(varIndex,timeStep) < numRefinements){
+			retVal = false;
+			continue;
+		} else {
+			const string varName = ses->getVariableName(varIndex);
+			int rc = ses->getDataMgr()->GetValidRegion(timeStep, varName.c_str(),numRefinements, temp_min, temp_max);
+			if (rc < 0) {
+				retVal = false;
+			}
 		}
+		if(retVal) for (i = 0; i< 3; i++){
+			if (boxMin[i] < temp_min[i]) boxMin[i] = temp_min[i];
+			if (boxMax[i] > temp_max[i]) boxMax[i] = temp_max[i];
+		}
+	}
+	//Now do the block dimensions:
 	for (int i = 0; i< 3; i++){
-		if(boxMin[i] < 0) boxMin[i] = 0;
-		if(boxMax[i] > dataSize[i]-1) boxMax[i] = dataSize[i] - 1;
+		size_t dataSize = (ses->getDataStatus()->getFullDataSize(i))>>(totTransforms - numRefinements);
+		if(boxMax[i] > dataSize-1) boxMax[i] = dataSize - 1;
 		if (boxMin[i] > boxMax[i]) boxMax[i] = boxMin[i];
 		//And make the block coords:
 		boxMinBlk[i] = boxMin[i]/ (*bs);
 		boxMaxBlk[i] = boxMax[i]/ (*bs);
 	}
 	
-	return;
+	return retVal;
 }
 
 //Find the smallest extents containing the probe, 
@@ -1981,14 +2027,15 @@ calcCurrentValue(float point[3]){
 	}
 	
 	//Find the region that contains the probe.
+	int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
 	size_t blkMin[3], blkMax[3];
-	int coordMin[3], coordMax[3];
-	getBoundingBox(blkMin, blkMax, coordMin, coordMax);
+	size_t coordMin[3], coordMax[3];
+	if (!getAvailableBoundingBox(timeStep, blkMin, blkMax, coordMin, coordMax)) return OUT_OF_BOUNDS;
 	for (int i = 0; i< 3; i++){
 		if ((point[i] < extents[i]) || (point[i] > extents[i+3])) return OUT_OF_BOUNDS;
 		arrayCoord[i] = (int) (0.5f+((float)dataSize[i])*(point[i] - extents[i])/(extents[i+3]-extents[i]));
 		//Make sure the transformed coords are in the probe region
-		if (arrayCoord[i] < coordMin[i] || arrayCoord[i] > coordMax[i] ) {
+		if (arrayCoord[i] < (int)coordMin[i] || arrayCoord[i] > (int)coordMax[i] ) {
 			return OUT_OF_BOUNDS;
 		} 
 	}
@@ -1998,7 +2045,6 @@ calcCurrentValue(float point[3]){
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then do rms on the variables (if > 1 specified)
 	float** volData = new float*[numVariables];
-	int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
 	//Now obtain all of the volumes needed for this probe:
 	int totVars = 0;
 	for (int varnum = 0; varnum < ses->getNumVariables(); varnum++){
@@ -2058,25 +2104,27 @@ refreshHistogram(){
 	histo->reset(256,currentDatarange[0],currentDatarange[1]);
 	//create the smallest containing box
 	size_t blkMin[3],blkMax[3];
-	int boxMin[3],boxMax[3];
-	getBoundingBox(blkMin, blkMax, boxMin, boxMax);
+	size_t boxMin[3],boxMax[3];
+	int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
+	
+	getAvailableBoundingBox(timeStep, blkMin, blkMax, boxMin, boxMax);
 
 	int bSize =  *(ses->getCurrentMetadata()->GetBlockSize());
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then histogram rms on the variables (if > 1 specified)
 	float** volData = new float*[numVariables];
-	int timeStep = VizWinMgr::getInstance()->getAnimationParams(vizNum)->getCurrentFrameNumber();
 	//Now obtain all of the volumes needed for this probe:
 	int totVars = 0;
 	for (int varnum = 0; varnum < (int)ses->getNumVariables(); varnum++){
 		if (!variableSelected[varnum]) continue;
 		assert(varnum >= firstVarNum);
 		volData[totVars] = getContainingVolume(blkMin, blkMax, varnum, timeStep);
+		if (!volData[totVars]) return;
 		totVars++;
 	}
 
 	//Get the data dimensions (at current resolution):
-	int dataSize[3];
+	size_t dataSize[3];
 	float gridSpacing[3];
 	const size_t totTransforms = ses->getCurrentMetadata()->GetNumTransforms();
 	const float* extents = ses->getExtents();
@@ -2137,11 +2185,11 @@ refreshHistogram(){
 	//int incount = 0;
 	//int outcount = 0;
 	//Now loop over the grid points in the bounding box
-	for (int k = boxMin[2]; k <= boxMax[2]; k++){
+	for (size_t k = boxMin[2]; k <= boxMax[2]; k++){
 		xyz[2] = extents[2] + (((float)k)/(float)(dataSize[2]-1))*(extents[5]-extents[2]);
-		for (int j = boxMin[1]; j <= boxMax[1]; j++){
+		for (size_t j = boxMin[1]; j <= boxMax[1]; j++){
 			xyz[1] = extents[1] + (((float)j)/(float)(dataSize[1]-1))*(extents[4]-extents[1]);
-			for (int i = boxMin[0]; i <= boxMax[0]; i++){
+			for (size_t i = boxMin[0]; i <= boxMax[0]; i++){
 				xyz[0] = extents[0] + (((float)i)/(float)(dataSize[0]-1))*(extents[3]-extents[0]);
 				
 				//test if x,y,z is in probe:
