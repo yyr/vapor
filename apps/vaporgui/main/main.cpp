@@ -61,7 +61,7 @@ int main( int argc, char ** argv ) {
 	//Helvetica looks better on X11 platforms
 	QFont myFont(QString("Helvetica"), 10);
 	if (myFont.exactMatch()){
-		qWarning("Using Helvetica font");
+		////qWarning("Using Helvetica font");
 		a.setFont(myFont);
 	}
 	else {
@@ -69,7 +69,7 @@ int main( int argc, char ** argv ) {
 		myFont = a.font();
 		myFont.setPointSize(10);
 		myFont.setWeight(55);
-		qWarning("Using default font family: %s", myFont.family().ascii());
+		//qWarning("Using default font family: %s", myFont.family().ascii());
 		a.setFont(myFont);
 	}
 

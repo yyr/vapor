@@ -485,10 +485,12 @@ exportData(){
 	size_t currentFrame = (size_t)p->getCurrentFrameNumber();
 	size_t frameInterval[2];
 	size_t minCoords[3],maxCoords[3];
-	int mncrds[3],mxcrds[3];
+	size_t mncrds[3],mxcrds[3];
 	size_t minbdim[3],maxbdim[3];
 	frameInterval[0] = (size_t)p->getStartFrameNumber();
 	frameInterval[1] = (size_t)p->getEndFrameNumber();
+	//Note that we will export the current region, even if there's no
+	//valid data in it...
 	r->getRegionVoxelCoords(numxforms, mncrds, mxcrds, minbdim, maxbdim);
 	for (int i = 0; i< 3; i++) {
 		minCoords[i] = mncrds[i];
@@ -918,4 +920,15 @@ int Session::mapRealToMetadataVarNum(int realVarNum){
 		if (mapMetadataVars[i] == realVarNum) return i;
 	}
 	return -1;
+}
+void Session::getExtents(int refLevel, float extents[6]){
+	size_t fullMin[3] = {0,0,0};
+	size_t fullMax[3];
+	double dbextents[6];
+	int maxTrans = currentDataStatus->getNumTransforms();
+	for (int i = 0; i<3; i++)
+		fullMax[i] = ((getFullDataDimensions()[i])>>(maxTrans - refLevel)) -1;
+	mapVoxelToUserCoords(refLevel, fullMin, dbextents);
+	mapVoxelToUserCoords(refLevel, fullMax, dbextents+3);
+	for (int i = 0; i< 6; i++) extents[i] = (float)dbextents[i];
 }

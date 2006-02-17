@@ -71,7 +71,7 @@ MessageReporter::MessageReporter() {
 	maxLogMsg[Error] = 10;
 	maxPopup[Error] = 10;
 	maxLogMsg[Warning] = 10;
-	maxPopup[Warning] = 5;
+	maxPopup[Warning] = 1;
 	maxLogMsg[Info] = 0;
 	maxPopup[Info] = 0;
 	

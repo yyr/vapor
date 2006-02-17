@@ -241,6 +241,8 @@ public:
 	void setLogfileName(const char* newname){currentLogfileName = newname;}
 	const float* getExtents() {return extents;}
 	float getExtents(int i) {return extents[i];}
+	//Better version of getExtents, uses refinement level
+	void getExtents(int refLevel, float extents[6]);
 	const size_t* getFullDataDimensions() {return (currentDataStatus ? currentDataStatus->getFullDataSize() : 0);}
 	//Get full data extents in cube coords
 	void getMaxExtentsInCube(float maxExtents[3]);
