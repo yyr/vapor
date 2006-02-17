@@ -285,6 +285,12 @@
 				RelativePath="..\..\..\apps\vaporgui\main\tabmanager.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\TextureBrick.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\render\TextureBrick.h">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\params\tfeditor.cpp">
 			</File>
 			<File
