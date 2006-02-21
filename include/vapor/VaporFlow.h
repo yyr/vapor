@@ -31,7 +31,7 @@ namespace VAPoR
 		void Reset(void);
 
 		void SetFieldComponents(const char* xvar, const char* yvar, const char* zvar);
-		void SetRegion(size_t num_xforms, const size_t min[3], const size_t max[3]);
+		void SetRegion(size_t num_xforms, const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3]);
 		void SetTimeStepInterval(size_t startT, size_t endT, size_t tInc);
 		void ScaleTimeStepSizes(double userTimeStepMultiplier, double animationTimeStepMultiplier);
 		void SetRandomSeedPoints(const float min[3], const float max[3], int numSeeds);
@@ -75,7 +75,8 @@ namespace VAPoR
 
 		DataMgr* dataMgr;							// data manager
 		char *xVarName, *yVarName, *zVarName;		// name of three variables for vector field
-		size_t numXForms, minRegion[3], maxRegion[3];// in block coordinate
+		size_t numXForms, minRegion[3], maxRegion[3];// in voxel coordinate
+		size_t minBRegion[3], maxBRegion[3];         //in block coords
 	};
 };
 

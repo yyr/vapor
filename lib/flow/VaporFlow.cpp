@@ -22,8 +22,13 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	zVarName = NULL;
 
 	numXForms = 0;
-	minRegion[0] = minRegion[1] = minRegion[2] = 0;
-	maxRegion[0] = maxRegion[1] = maxRegion[2] = 0;
+	//AN:  2/21/06:  Initialize region and region block bounds
+	for (int i = 0; i<3; i++) {
+		minRegion[i] = 0;
+		maxRegion[i] = 0;
+		minBRegion[i] = 0;
+		maxBRegion[i] = 0;
+	}
 
 	userTimeStepSize = 1.0;
 	animationTimeStepSize = 1.0;
@@ -63,8 +68,12 @@ VaporFlow::~VaporFlow()
 void VaporFlow::Reset(void)
 {
 	numXForms = 0;
-	minRegion[0] = minRegion[1] = minRegion[2] = 0;
-	maxRegion[0] = maxRegion[1] = maxRegion[2] = 0;
+	for (int i = 0; i< 3; i++){
+		minRegion[i] = 0;
+		maxRegion[i] = 0;
+		minBRegion[i] = 0;
+		maxBRegion[i] = 0;
+	}
 
 	userTimeStepSize = 1.0;
 	animationTimeStepSize = 1.0;
@@ -100,15 +109,18 @@ void VaporFlow::SetFieldComponents(const char* xvar,
 //////////////////////////////////////////////////////////////////////////
 void VaporFlow::SetRegion(size_t num_xforms, 
 						  const size_t min[3], 
-						  const size_t max[3])
+						  const size_t max[3],
+						  const size_t min_bdim[3], 
+						  const size_t max_bdim[3])
 {
 	numXForms = num_xforms;
-	minRegion[0] = min[0];
-	minRegion[1] = min[1];
-	minRegion[2] = min[2];
-	maxRegion[0] = max[0];
-	maxRegion[1] = max[1];
-	maxRegion[2] = max[2];
+	for (int i = 0; i<3; i++){
+		minRegion[i] = min[i];
+		minBRegion[i] = min_bdim[i];
+		maxRegion[i] = max[i];
+		maxBRegion[i] = max_bdim[i];
+	}
+	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -190,7 +202,8 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 	//
 	ErrMsgCB_T errorCallback = GetErrMsgCB();
 	SetErrMsgCB(0);
-	float *regionData = dataMgr->GetRegion(ts, varName, numXForms, minRegion, maxRegion);
+	//AN:  use maxBRegion, not maxRegion
+	float *regionData = dataMgr->GetRegion(ts, varName, numXForms, minBRegion, maxBRegion);
 	SetErrMsgCB(errorCallback);
 	if (!regionData) {
 		SetErrMsg("Error loading field data for timestep %d, variable %s",ts, varName);
@@ -246,9 +259,10 @@ bool VaporFlow::GenStreamLines(float* positions,
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
 	float **pUData, **pVData, **pWData;
-	int totalXNum = (maxRegion[0]-minRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize()[0];
-	int totalYNum = (maxRegion[1]-minRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize()[1];
-	int totalZNum = (maxRegion[2]-minRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize()[2];
+	//AN 2/21/06:  use minRegion for actual array bounds
+	int totalXNum = (maxRegion[0]-minRegion[0]+1);
+	int totalYNum = (maxRegion[1]-minRegion[1]+1);
+	int totalZNum = (maxRegion[2]-minRegion[2]+1);
 	int totalNum = totalXNum*totalYNum*totalZNum;
 	pUData = new float*[1];
 	pVData = new float*[1];
@@ -270,19 +284,19 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
 	
 	// set the boundary of physical grid
+	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
 	VECTOR3 minB, maxB;
-	vector<double> vExtent;
-	vExtent = dataMgr->GetMetadata()->GetExtents();
+	double minUser[3], maxUser[3];
+	myReader->MapVoxToUser(startTimeStep, minRegion, minUser, numXForms);
+	myReader->MapVoxToUser(startTimeStep, maxRegion, maxUser, numXForms);
 	
 	//Use current region to determine coords of grid boundary:
-	const size_t* fullDim = dataMgr->GetMetadata()->GetDimension();
-	int nlevels = dataMgr->GetMetadata()->GetNumTransforms();
+	
 	//Now adjust minB, maxB to actual region extents:
+	//AN 2/21/06:  use actual, not block bounds
 	for (int i = 0; i< 3; i++){
-		minB[i] = vExtent[i]+ (vExtent[i+3] - vExtent[i])*
-			(float)(minRegion[i]*(dataMgr->GetMetadata()->GetBlockSize()[i])/(float)((fullDim[i] >> (nlevels -numXForms))-1));
-		maxB[i] = vExtent[i]+ (vExtent[i+3] - vExtent[i])*
-			(float)(((maxRegion[i]+1)*(dataMgr->GetMetadata()->GetBlockSize()[i])-1)/(float)((fullDim[i] >> (nlevels -numXForms))-1));
+		minB[i] = minUser[i];
+		maxB[i] = maxUser[i];
 	}
 	
 
@@ -418,9 +432,10 @@ bool VaporFlow::GenPathLines(float* positions,
 	int timeSteps;							// total "time steps"
 	int totalXNum, totalYNum, totalZNum, totalNum;
 	int realStartTime, realEndTime;
-    totalXNum = (maxRegion[0]-minRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize()[0];
-	totalYNum = (maxRegion[1]-minRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize()[1];
-	totalZNum = (maxRegion[2]-minRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize()[2];
+	//AN 2/21/06:  use region coords, not block coords here
+    totalXNum = (maxRegion[0]-minRegion[0] + 1);
+	totalYNum = (maxRegion[1]-minRegion[1] + 1);
+	totalZNum = (maxRegion[2]-minRegion[2] + 1);
 	totalNum = totalXNum*totalYNum*totalZNum;
 	numInjections = 1 + ((endInjection - startInjection)/injectionTimeIncrement);
 	//realStartTime and realEndTime are actual limits of time steps for which positions
@@ -442,11 +457,16 @@ bool VaporFlow::GenPathLines(float* positions,
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
 
 	// set the boundary of physical grid
+	
+	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
 	VECTOR3 minB, maxB;
-	vector<double> vExtent;
-	vExtent = dataMgr->GetMetadata()->GetExtents();
-	minB.Set(vExtent[0], vExtent[1], vExtent[2]);
-	maxB.Set(vExtent[3], vExtent[4], vExtent[5]);
+	double minUser[3], maxUser[3];
+	myReader->MapVoxToUser(realStartTime, minRegion, minUser, numXForms);
+	myReader->MapVoxToUser(realStartTime, maxRegion, maxUser, numXForms);
+	
+	
+	minB.Set(minUser[0], minUser[1], minUser[2]);
+	maxB.Set(maxUser[0], maxUser[1], maxUser[2]);
 	pCartesianGrid->SetBoundary(minB, maxB);
 	pField = new CVectorField(pCartesianGrid, pSolution, timeSteps);
 	
