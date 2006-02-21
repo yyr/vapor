@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>443</width>
+            <width>446</width>
             <height>1113</height>
         </rect>
     </property>
@@ -1964,7 +1964,7 @@ Selected Point</string>
                                 <cstring>textLabel1_8</cstring>
                             </property>
                             <property name="text">
-                                <string>Histo scale</string>
+                                <string>Histo scalling factor</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit">

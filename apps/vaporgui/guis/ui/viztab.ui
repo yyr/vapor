@@ -6,7 +6,7 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>5</x>
+            <x>0</x>
             <y>0</y>
             <width>450</width>
             <height>673</height>
@@ -117,49 +117,6 @@
                         </property>
                         <property name="toolTip" stdset="0">
                             <string>Apply these settings locally or globally</string>
-                        </property>
-                    </widget>
-                    <spacer>
-                        <property name="name">
-                            <cstring>spacer25</cstring>
-                        </property>
-                        <property name="orientation">
-                            <enum>Horizontal</enum>
-                        </property>
-                        <property name="sizeType">
-                            <enum>Expanding</enum>
-                        </property>
-                        <property name="sizeHint">
-                            <size>
-                                <width>45</width>
-                                <height>21</height>
-                            </size>
-                        </property>
-                    </spacer>
-                    <widget class="QLabel">
-                        <property name="name">
-                            <cstring>textLabel2</cstring>
-                        </property>
-                        <property name="text">
-                            <string>View</string>
-                        </property>
-                    </widget>
-                    <widget class="QComboBox">
-                        <item>
-                            <property name="text">
-                                <string>Orthogonal</string>
-                            </property>
-                        </item>
-                        <item>
-                            <property name="text">
-                                <string>Perspective</string>
-                            </property>
-                        </item>
-                        <property name="name">
-                            <cstring>perspectiveCombo</cstring>
-                        </property>
-                        <property name="sizeLimit">
-                            <number>2</number>
                         </property>
                     </widget>
                     <spacer>
