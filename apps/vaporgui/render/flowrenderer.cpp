@@ -114,8 +114,10 @@ void FlowRenderer::paintGL()
 	//Get the rake flow data:
 	if (myFlowParams->rakeEnabled()){
 		flowDataArray = myFlowParams->getFlowData(timeStep, true);
-		if (!flowDataArray)
+		if (!flowDataArray){
 			flowDataArray = myFlowParams->regenerateFlowData(timeStep, true);
+			if (!flowDataArray) return;
+		}
 		
 		if (!constColors){
 			flowRGBAs = myFlowParams->getRGBAs(timeStep, true);
@@ -135,8 +137,10 @@ void FlowRenderer::paintGL()
 	//Do the same for seed list
 	if (myFlowParams->listEnabled()){
 		flowDataArray = myFlowParams->getFlowData(timeStep, false);
-		if (!flowDataArray)
+		if (!flowDataArray){
 			flowDataArray = myFlowParams->regenerateFlowData(timeStep, false);
+			if (!flowDataArray) return;
+		}
 		
 		if (!constColors){
 			flowRGBAs = myFlowParams->getRGBAs(timeStep, false);
