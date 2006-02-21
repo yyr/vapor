@@ -628,7 +628,7 @@ VizWinMgr::hookUpVizTab(VizTab* vTab)
 	//Signals and slots:
 	
  	connect (vTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setVpLocalGlobal(int)));
-	connect (vTab->perspectiveCombo, SIGNAL (activated(int)), this, SLOT (setVPPerspective(int)));
+	//connect (vTab->perspectiveCombo, SIGNAL (activated(int)), this, SLOT (setVPPerspective(int)));
 	connect (vTab->numLights, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (vTab->lightPos00, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (vTab->lightPos01, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
@@ -1089,14 +1089,14 @@ nameChanged(QString& name, int num){
 /*******************************************************************
  *	Slots associated with VizTab:
  ********************************************************************/
-
+/* obsolete:
 void VizWinMgr::
 setVPPerspective(int isOn){
 	getViewpointParams(activeViz)->guiSetPerspective(isOn);
 	//Immediately force update:
 	getViewpointParams(activeViz)->updateRenderer(false, false, false);
 }
-
+*/
 void VizWinMgr::
 setVtabTextChanged(const QString& ){
 	getViewpointParams(activeViz)->guiSetTextChanged(true);
@@ -1129,6 +1129,14 @@ void VizWinMgr::
 viewRegion()
 {
 	getViewpointParams(activeViz)->guiCenterSubRegion(getRegionParams(activeViz));
+}
+void VizWinMgr::
+alignView(int axis)
+{
+	if (axis < 1) return;
+	//Always reset current item to first.
+	myMainWindow->alignViewCombo->setCurrentItem(0);
+	getViewpointParams(activeViz)->guiAlignView(axis);
 }
 /*********************************************************************************
  * Slots associated with RegionTab:

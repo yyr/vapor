@@ -103,7 +103,7 @@ void ViewpointParams::updateDialog(){
 	myVizTab->upVec0->setText(strng.setNum(currentViewpoint->getUpVec(0), 'g', 3));
 	myVizTab->upVec1->setText(strng.setNum(currentViewpoint->getUpVec(1), 'g', 3));
 	myVizTab->upVec2->setText(strng.setNum(currentViewpoint->getUpVec(2), 'g', 3));
-	myVizTab->perspectiveCombo->setCurrentItem(currentViewpoint->hasPerspective());
+	//myVizTab->perspectiveCombo->setCurrentItem(currentViewpoint->hasPerspective());
 	myVizTab->rotCenter0->setText(strng.setNum(getRotationCenter(0),'g',3));
 	myVizTab->rotCenter1->setText(strng.setNum(getRotationCenter(1),'g',3));
 	myVizTab->rotCenter2->setText(strng.setNum(getRotationCenter(2),'g',3));
@@ -274,20 +274,7 @@ captureMouseUp(){
 	PanelCommand::captureEnd(savedCommand, this);
 	savedCommand = 0;
 }
-void ViewpointParams::
-guiSetPerspective(bool on){
-	//capture text changes
-	
-	confirmText(false);
-	
-	if (savedCommand) {
-		delete savedCommand;
-		savedCommand = 0;
-	}
-	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle perspective");
-	setPerspective(on);
-	PanelCommand::captureEnd(cmd,this);
-}
+
 void ViewpointParams::
 guiCenterSubRegion(RegionParams* rParams){
 	if (savedCommand) {
@@ -331,6 +318,46 @@ guiCenterFullRegion(RegionParams* rParams){
 	PanelCommand::captureEnd(cmd,this);
 	
 }
+//Align the view direction to one of the axes.
+//axis is 1,2,3 for +X,Y,Z,  and -1,-2,-3 for -X,-Y,-Z
+//
+void ViewpointParams::
+guiAlignView(int axis){
+	float vdir[3] = {0.f, 0.f, 0.f};
+	float up[3] = {0.f, 1.f, 0.f};
+	float vpos[3];
+	if (savedCommand) {
+		delete savedCommand;
+		savedCommand = 0;
+	}
+	//establish view direction, up vector:
+	switch (axis){
+		case(1): vdir[0] = 1.f; break;
+		case(2): vdir[1] = 1.f; up[1]=0.f; up[0] = 1.f; break;
+		case(3): vdir[2] = 1.f; break;
+		case(4): vdir[0] = -1.f; break;
+		case(5): vdir[1] = -1.f; up[1]=0.f; up[0] = 1.f; break;
+		case(6): vdir[2] = -1.f; break;
+		default: assert(0);
+	}
+
+	PanelCommand* cmd = PanelCommand::captureStart(this, "align viewpoint to axis");
+	//Determine distance from center to camera:
+	vsub(currentViewpoint->getCameraPos(),currentViewpoint->getRotationCenter(),vpos);
+	float viewDist = vlength(vpos);
+	//Keep the view center as is, make view direction vdir 
+	currentViewpoint->setViewDir(vdir);
+	//Make the up vector +Y, or +X
+	currentViewpoint->setUpVec(up);
+	//Position the camera the same distance from the center but down the -X direction
+	vmult(vdir, viewDist, vdir);
+	vsub(currentViewpoint->getRotationCenter(), vdir, vpos);
+	currentViewpoint->setCameraPos(vpos);
+	updateDialog();
+	updateRenderer(false,false,false);
+	PanelCommand::captureEnd(cmd,this);
+}
+
 //Reset the center of view.  Leave the camera where it is
 void ViewpointParams::
 guiSetCenter(float* coords){

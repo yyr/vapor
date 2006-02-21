@@ -269,6 +269,7 @@ public slots:
 	//Slots that set viewpoint:
 	void viewAll();
 	void viewRegion();
+	void alignView(int axis);
 	
 signals:
 	//Turn on/off multiple viz options:
@@ -364,7 +365,7 @@ protected slots:
 	void setAnimationLocalGlobal(int val);
 	void setFlowLocalGlobal(int val);
 
-	void setVPPerspective(int isOn);
+	//void setVPPerspective(int isOn);
 
 	void setVtabTextChanged(const QString& qs);
 	void setRegionTabTextChanged(const QString& qs);

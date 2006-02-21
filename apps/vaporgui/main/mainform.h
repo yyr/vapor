@@ -44,6 +44,7 @@ class QDesktopWidget;
 class QWorkspace;
 class QDockWindow;
 class QLabel;
+class QComboBox;
 class VizTab;
 class RegionTab;
 class ContourPlaneTab;
@@ -150,6 +151,8 @@ public:
 	QAction* sethomeAction;
 	QAction* viewAllAction;
 	QAction* viewRegionAction;
+
+	QComboBox* alignViewCombo;
 
     QDockWindow* tabDockWindow;
 	TabManager* getTabManager() {return tabWidget;}

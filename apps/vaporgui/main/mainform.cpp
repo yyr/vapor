@@ -298,6 +298,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	QPixmap* cascadeIcon = new QPixmap(cascade);
 	cascadeAction = new QAction("Cascade Windows", *cascadeIcon,
 		"C&ascade", CTRL+Key_A, this);
+
+	
 	
 
     // toolbars for mouse modes and visualizers
@@ -315,6 +317,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	probeAction->addTo(modeToolBar);
 	contourAction->addTo(modeToolBar);
 	moveLightsAction->addTo(modeToolBar);
+	
 
 	tileAction->addTo(vizToolBar);
 	cascadeAction->addTo(vizToolBar);
@@ -322,6 +325,16 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	sethomeAction->addTo(vizToolBar);
 	viewRegionAction->addTo(vizToolBar);
 	viewAllAction->addTo(vizToolBar);
+
+	alignViewCombo = new QComboBox(vizToolBar);
+	alignViewCombo->insertItem("Align View");
+	alignViewCombo->insertItem("     + X ");
+	alignViewCombo->insertItem("     + Y ");
+	alignViewCombo->insertItem("     + Z ");
+	alignViewCombo->insertItem("     - X ");
+	alignViewCombo->insertItem("     - Y ");
+	alignViewCombo->insertItem("     - Z ");
+	QToolTip::add(alignViewCombo, "Rotate view to an axis-aligned viewpoint,\ncentered on current rotation center.");
 	
 	
    
@@ -450,6 +463,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	connect (sethomeAction, SIGNAL(activated()), myVizMgr, SLOT(sethome()));
 	connect (viewAllAction, SIGNAL(activated()), myVizMgr, SLOT(viewAll()));
 	connect (viewRegionAction, SIGNAL(activated()), myVizMgr, SLOT(viewRegion()));
+
+	connect (alignViewCombo, SIGNAL(activated(int)), myVizMgr, SLOT(alignView(int)));
  
  
 	//Now that the tabmgr and the viz mgr exist, hook up the tabs:

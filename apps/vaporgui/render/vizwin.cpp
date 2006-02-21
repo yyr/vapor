@@ -683,7 +683,7 @@ setValuesFromGui(ViewpointParams* vpparams){
 	
 	myGLWindow->setPerspective(vp->hasPerspective());
 	//Set dirty bit.
-	setViewerCoordsChanged(true);
+	//?setViewerCoordsChanged(true);  Probably not right to comment this out!!! AN, 2/21/06
 	//Force a redraw
 	myGLWindow->update();
 }

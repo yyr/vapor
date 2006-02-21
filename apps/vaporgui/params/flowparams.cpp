@@ -106,7 +106,6 @@ using namespace VAPoR;
 FlowParams::FlowParams(int winnum) : Params(winnum) {
 	thisParamType = FlowParamsType;
 	myFlowTab = MainForm::getInstance()->getFlowTab();
-	
 	myFlowLib = 0;
 	mapperFunction = 0;
 	flowMapEditor = 0;
@@ -2938,6 +2937,9 @@ connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
 void FlowParams::
 setTab(FlowTab* tab) {
 	myFlowTab = tab;
+	QToolTip::add(myFlowTab->scaleFieldEdit,
+		"This factor scales the vector field magnitude.\nIf too small, display will just show diamonds (fixed points).\nIf too large, flow will consist of straight lines due to flow rapidly exiting region.");
+	
 	if (mapperFunction)
 		mapperFunction->getEditor()->setFrame(myFlowTab->flowMapFrame);
 }

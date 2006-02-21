@@ -47,7 +47,7 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, Viz
 	wCenter[1] = 0.f;
 	wCenter[2] = 0.f;
 	maxDim = 1.f;
-	perspective = false;
+	perspective = true;
 	oldPerspective = false;
 	renderNew = false;
 	nowPainting = false;
