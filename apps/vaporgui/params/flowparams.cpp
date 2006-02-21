@@ -1964,7 +1964,7 @@ regenerateFlowData(int timeStep, bool isRake){
 		MessageReporter::warningMsg("Vector field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
 		return 0;
 	}
-	myFlowLib->SetRegion(numRefinements, min_bdim, max_bdim);
+	myFlowLib->SetRegion(numRefinements, min_dim, max_dim, min_bdim, max_bdim);
 	int numSeedPoints;
 	if (isRake){
 		numSeedPoints = getNumRakeSeedPoints();
