@@ -617,6 +617,7 @@ guiChangeVariables(){
 	//reset the editing display range shown on the tab, 
 	//this also sets dirty flag
 	updateMapBounds();
+	
 	//Force a redraw of tfframe 
 	if (getTFEditor()) {
 		getTFEditor()->setDirty();
@@ -626,6 +627,8 @@ guiChangeVariables(){
 		
 	
 	PanelCommand::captureEnd(cmd, this);
+	//Need to update the selected point for the new variables
+	updateDialog();
 	setClutDirty();
 	myProbeTab->update();
 	setProbeDirty();

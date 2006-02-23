@@ -62,19 +62,6 @@ public:
 	
 
 	
-	//In addition to setting variableNum, must also 
-	//update mapping bounds and edit bounds
-	//as well as force a rebuilding of the transfer function
-	//
-	void setVarNum(int val); 
-	
-	//const char* getVariableName() {
-	//	return (const char*) (variableNames[firstVarNum].c_str());
-	//}
-	//const std::string& getStdVariableName() {
-	//	return variableNames[firstVarNum];
-	//}
-	
 	virtual void setClutDirty();
 	virtual float* getCurrentDatarange(){
 		return currentDatarange;
