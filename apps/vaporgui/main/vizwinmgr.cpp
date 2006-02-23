@@ -903,6 +903,7 @@ VizWinMgr::hookUpAnimationTab(AnimationTab* aTab)
 	connect (aTab->endFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (aTab->frameStepEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	connect (aTab->maxFrameRateEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
+	connect (aTab->maxWaitEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
 	
 	
 	//Connect all the returnPressed signals, these will update the visualizer.
@@ -911,6 +912,7 @@ VizWinMgr::hookUpAnimationTab(AnimationTab* aTab)
 	connect (aTab->endFrameEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	connect (aTab->frameStepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 	connect (aTab->maxFrameRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
+	connect (aTab->maxWaitEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
 
 	//Sliders only do anything when released
 	connect (aTab->frameStepSlider, SIGNAL(sliderReleased()), this, SLOT (animationSetFrameStep()));
@@ -1364,18 +1366,24 @@ animationParamsChanged(AnimationParams* aParams){
 //whether or not animation params are shared.
 void VizWinMgr::startPlay(AnimationParams* aParams){
 	AnimationController* ac = AnimationController::getInstance();
+	
 	if (activeViz>=0) {
 		ac->startPlay(activeViz);
 	}
 	//If another viz is sharing global animation params, start them playing, too
 	if (aParams->isLocal()) return;
+	
 	for (int i = 0; i< MAXVIZWINS; i++){
+		
 		if  ( vizWin[i] && (i != activeViz)  &&
 				((!animationParams[i])||!animationParams[i]->isLocal())
 			){
 			ac->startPlay(i);
+			
 		}
 	}
+	
+	ac->setMaxSharedWait(aParams->getMaxWait());
 }
 
 void VizWinMgr::

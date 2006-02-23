@@ -47,7 +47,7 @@ SharedControllerThread::~SharedControllerThread(){
 	if (!wait(20000)){
 		//qWarning("terminating thread");
 		terminate();
-		if (!wait(MAX_SLOW_WAIT)) 
+		if (!wait(20000)) 
 			BailOut("Excessive wait for animation thread termination",__FILE__,__LINE__);
 	}
 	//qWarning("deleting wait condition");
@@ -65,7 +65,7 @@ restart(){
 	//Wait until controller thread completes:
 	for (i = 0; i<100; i++){
 		if (!controllerActive) break;
-		wait(MAX_SLOW_WAIT);
+		wait(20000);
 	}
 	if( i>= 100) BailOut("Excessive wait for animation thread completion",__FILE__,__LINE__);
 	//restart the controller thread (calls run()) after it returns.
@@ -94,6 +94,7 @@ run(){
 	AnimationController* myAnimationController = AnimationController::getInstance();
 	int viznum;
 	controllerActive = true;
+
 	
 	//Keep track of the most recent number of visualizers that are not
 	//getting updated.  Wait at most a second before identifying a renderer as "sleeping"
@@ -104,7 +105,7 @@ run(){
 	while (1){
 		if (animationCancelled) break;
 		int currentTime = myAnimationController->myClock->elapsed();
-
+		int frameWaitTime = (int)(1000.f*myAnimationController->getMaxSharedWait() + 0.5f);
 		//Loop over active, global visualizers:
 		int minSharedTimeToFinish = 1000000;
 		int numActive= 0;
@@ -193,14 +194,15 @@ run(){
 			currentTime = myAnimationController->myClock->elapsed();
 			//Is the missing visualizer more than a second late?
 			//Don't wait longer!
-			if(myAnimationController->getTimeToFinish(missingViz, currentTime)< -MAX_SLOW_WAIT){
-				//qWarning(" visualizer %d is more than a second late", missingViz);
+			if(myAnimationController->getTimeToFinish(missingViz, currentTime)< 
+					-frameWaitTime){
+				//qWarning(" visualizer %d is more than max shared wait late", missingViz);
 				numSleeping = numNotHidden - numFinished - numStarted;
 				break;
 			}
 			myAnimationController->animationMutex.unlock();
 			//qWarning("Waiting because started %d < %d ", numStarted, numNotHidden);
-			myWaitCondition->wait(MAX_SLOW_WAIT);
+			myWaitCondition->wait(frameWaitTime);
 			myAnimationController->animationMutex.lock();
 		}
 		
@@ -224,7 +226,7 @@ run(){
 			
 			for (tries = 0; tries< 61; tries++){
 				myAnimationController->animationMutex.unlock();
-				myWaitCondition->wait(MAX_SLOW_WAIT);
+				myWaitCondition->wait(MAX_THREAD_WAIT);
 				//qWarning("Waiting for completion of overdue renderings");
 				myAnimationController->animationMutex.lock();
 				numOverdue = 0;
@@ -359,3 +361,12 @@ run(){
 	return;
 
 }
+//Basic steps in run loop:
+// 1.  Read clock 
+// 2.  Identify available renderers.  For each one, set start time to clock time, and
+// start rendering.
+// 3.  Wait WAIT_A for each expected renderer to show up and get started. 
+// 3.  Mark unstarted renderers as finished.
+// 4.  Wait min render time (if necessary)
+// 5.  Wait WAIT_A for last started renderer to finish
+// 6.  Mark unfinished renderers as 

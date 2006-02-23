@@ -1438,4 +1438,3 @@ void MainForm::launchVizFeaturesPanel(){
 	VizFeatureParams vFP;
 	vFP.launch();
 }
-

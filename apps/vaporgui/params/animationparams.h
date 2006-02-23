@@ -61,6 +61,7 @@ public:
 	int getEndFrameNumber() {return endFrame;}
 	void setStartFrameNumber(int val) {startFrame=val;}
 	void setEndFrameNumber(int val) {endFrame=val;}
+	float getMaxWait(){return maxWait;}
 
 	//When values change that affect the frame to be used in the next rendering, 
 	//call the following:
@@ -94,15 +95,18 @@ protected:
 	static const string _startFrameAttr;
 	static const string _endFrameAttr;
 	static const string _currentFrameAttr;
+	static const string _maxWaitAttr;
 
 	int playDirection; //-1, 0, or 1
 	bool repeatPlay;
 	float maxFrameRate;
+	float maxWait;
 	int frameStepSize;// always 1 or greater
 	int startFrame;
 	int endFrame;
 	int maxFrame, minFrame;
 	int currentFrame;
+	
 	AnimationTab* myAnimationTab;
 	
 

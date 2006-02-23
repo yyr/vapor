@@ -152,6 +152,9 @@ public:
 		statusFlag[viznum] = finished;
 		animationMutex.unlock();
 	}
+	
+	void setMaxSharedWait(float val) {maxSharedWait = val;}
+	float getMaxSharedWait() {return maxSharedWait;}
 
 		
 	
@@ -206,6 +209,8 @@ protected:
 	QTime* myClock;
 	SharedControllerThread* mySharedController;
 	UnsharedControllerThread* myUnsharedController;
+	
+	float maxSharedWait; //Max time to wait for shared viz 
 
 };
 

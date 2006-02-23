@@ -56,6 +56,7 @@ const string AnimationParams::_stepSizeAttr = "FrameStepSize";
 const string AnimationParams::_startFrameAttr = "StartFrame";
 const string AnimationParams::_endFrameAttr = "EndFrame";
 const string AnimationParams::_currentFrameAttr = "CurrentFrame";
+const string AnimationParams::_maxWaitAttr = "MaxWait";
 
 AnimationParams::AnimationParams(int winnum): Params( winnum){
 	thisParamType = AnimationParamsType;
@@ -83,6 +84,7 @@ void AnimationParams::updateDialog(){
 	myAnimationTab->maxFrameLabel->setText(strn.setNum(maxFrame));
 	myAnimationTab->maxFrameRateEdit->setText(strn.setNum(maxFrameRate,'g',3));
 	myAnimationTab->frameStepEdit->setText(strn.setNum(frameStepSize));
+	myAnimationTab->maxWaitEdit->setText(strn.setNum(maxWait,'g',3));
 	
 	if (playDirection==0) {//pause
 		//myAnimationTab->pauseButton->setDown(true);
@@ -111,6 +113,7 @@ void AnimationParams::updateDialog(){
 
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
+	myAnimationTab->update();
 	VizWinMgr::getInstance()->getTabManager()->update();
 		
 }
@@ -142,9 +145,11 @@ void AnimationParams::updatePanelState(){
 	setSliders();
 
 	maxFrameRate = myAnimationTab->maxFrameRateEdit->text().toFloat();
+	maxWait = myAnimationTab->maxWaitEdit->text().toFloat();
 	//Constrain to a "reasonable" range:
-	if (maxFrameRate>30.f) maxFrameRate = 30.f;
+	if (maxFrameRate> 30.f) maxFrameRate = 30.f;
 	if (maxFrameRate< 0.001f) maxFrameRate = 0.001f;
+	if (maxWait < 0.05f) maxWait = 0.05f;
 	VizWinMgr::getInstance()->animationParamsChanged(this);
 	if (currentFrame != savedFrameNum){
 		setDirty();
@@ -324,6 +329,7 @@ restart(){
 	maxFrame = 100; 
 	minFrame = 1;
 	currentFrame = 0;
+	maxWait = 60.f;
 	setDirty();
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(myAnimationTab)) {
 		VizWinMgr* vwm = VizWinMgr::getInstance();
@@ -493,6 +499,9 @@ elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& tag, const cha
 			else if (StrCmpNoCase(attribName, _maxRateAttr) == 0) {
 				ist >> maxFrameRate;
 			}
+			else if (StrCmpNoCase(attribName, _maxWaitAttr) == 0) {
+				ist >> maxWait;
+			}
 			else if (StrCmpNoCase(attribName, _startFrameAttr) == 0) {
 				ist >> startFrame;
 			}
@@ -547,6 +556,10 @@ buildNode(){
 	oss.str(empty);
 	oss << (long)maxFrameRate;
 	attrs[_maxRateAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)maxWait;
+	attrs[_maxWaitAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (long)frameStepSize;
