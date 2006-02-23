@@ -567,6 +567,7 @@ int	WaveletBlock3DIO::OpenVariableRead(
 
 	basename.append(bp);
 
+
 	int rc = open_var_read(timestep, varname, basename);
 	if (rc<0) return(-1);
 
@@ -583,6 +584,11 @@ int WaveletBlock3DIO::open_var_read(
 	const char *varname,
 	const string &basename
 ) {
+
+	for(int i=0; i<3; i++) {
+		_validRegMin[i] = 0;
+		_validRegMax[i] = _dim[i]-1;
+	}
 
 	if (_version < 2) {
 		for(int j=0; j<=_reflevel; j++) {
@@ -733,7 +739,7 @@ int WaveletBlock3DIO::open_var_read(
 		rc = nc_get_att_int(
 			_ncids[j],NC_GLOBAL,_nativeMinValidRegionName.c_str(),minreg_int
 		);
-		if (rc != NC_NOERR) {
+		if (rc == NC_NOERR) {
 			for(int i=0; i<3; i++) _validRegMin[i] = minreg_int[i];
 		}
 
@@ -741,7 +747,7 @@ int WaveletBlock3DIO::open_var_read(
 		rc = nc_get_att_int(
 			_ncids[j],NC_GLOBAL,_nativeMaxValidRegionName.c_str(),maxreg_int
 		);
-		if (rc != NC_NOERR) {
+		if (rc == NC_NOERR) {
 			for(int i=0; i<3; i++) _validRegMax[i] = maxreg_int[i];
 		}
 				

@@ -69,7 +69,10 @@ WaveletBlock3DWriter::~WaveletBlock3DWriter(
 	);
 
 	if (_version < 2 && _metafile.length()) {
-		_metadata->Write(_metafile.c_str());
+		// Bad, bad, bad cast!!!
+		//
+		Metadata *m = (Metadata *) _metadata;
+		m->Write(_metafile.c_str());
 	}
 	WaveletBlock3DWriter::CloseVariable();
 

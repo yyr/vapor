@@ -102,6 +102,7 @@ int Metadata::_init(
 	_nLiftingCoef = nLiftingCoef;
 	_msbFirst = msbFirst;
 	_vdfVersion = vdfVersion;
+	_relativePath = 1;
 
 	_varNames.clear();
 
@@ -348,9 +349,22 @@ int Metadata::Merge(const string &path, size_t ts_start) {
 } 
 
 
-int Metadata::Write(const string &path) const {
+int Metadata::Write(const string &path, int relative_path) {
 
 	SetDiagMsg("Metadata::Write(%s)", path.c_str());
+
+	_relativePath = relative_path;
+
+	// 
+	// This is an ugly hack to handle absolute path names
+	//
+	if (! _relativePath) {
+		size_t numTS = _rootnode->GetNumChildren();
+
+		for(size_t i = 0; i<numTS; i++) {
+			if (_SetVariableNames(_rootnode->GetChild(i), (long)i) < 0) return(-1);
+		}
+	}
 
 	ofstream fileout;
 	fileout.open(path.c_str());
@@ -489,6 +503,19 @@ int Metadata::_SetVariableNames(XmlNode *node, long ts) {
 		XmlNode *var = node->GetChild(i);
 		var->Tag() = _varNames[i]; // superfluous if a new variable
 		oss.str(empty);
+		if (! _relativePath && GetMetafileName() && GetParentDir()) {
+			string s = GetMetafileName();
+			string t;
+			size_t p = s.find_first_of(".");
+			if (p != string::npos) {
+				t = s.substr(0, p);
+			}
+			else {
+				t = s;
+			}
+			oss << GetParentDir() << "/" << t << "_data/";
+		}
+
 		oss << _varNames[i].c_str() << "/" << _varNames[i].c_str();
 		oss << ".";
 		oss.width(4);
