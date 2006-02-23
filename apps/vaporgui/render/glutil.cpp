@@ -962,6 +962,37 @@ int printOglError(char *file, int line)
   return retCode;
 }
 
+/*
+ * Return true, if n is a power of 2.
+ */
+bool powerOf2(uint n)
+{
+  return (n & (n-1)) == 0;
+}
+
+/*
+ * Return the next power of 2 that is equal or larger than n
+ */
+uint nextPowerOf2(uint n)
+{
+  if (powerOf2(n)) return n;
+
+  uint p;
+
+  for(int i=31; i>=0; i--) 
+  {
+    p = n & (1 << i);
+
+    if (p) 
+    {
+      p = (1 << (i+1));
+      break;
+    }
+  }
+
+  return p;
+}
+
 #define DEAD
 #ifdef	DEAD
 

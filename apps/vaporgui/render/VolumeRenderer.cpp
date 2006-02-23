@@ -279,8 +279,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	  MessageReporter::warningMsg("Volume data unavailable for refinement level %d at timestep %d", numxforms, timeStep);
 	  return;
   }
-  RegionParams::convertToBoxExtentsInCube(numxforms, min_dim, max_dim, extents);
-  
+  RegionParams::convertToBoxExtentsInCube(numxforms, min_dim, max_dim, extents);    
   //Make the depth buffer writable
   glDepthMask(GL_TRUE);
   //and readable
@@ -334,10 +333,17 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
       myDataMgr->SetErrCode(0);
       return;
     }
+
+    datablock[0] = min_bdim[0]*bs[0];
+    datablock[1] = min_bdim[1]*bs[1];
+    datablock[2] = min_bdim[2]*bs[2];
+    datablock[3] = (max_bdim[0]+1)*bs[0]-1;
+    datablock[4] = (max_bdim[1]+1)*bs[1]-1;
+    datablock[5] = (max_bdim[2]+1)*bs[2]-1;
+
     // make subregion origin (0,0,0)
     // Note that this doesn't affect the calc of nx,ny,nz.
     // Also, save original dims, will need them to find extents.
-	
     for(i=0; i<3; i++) {
       while(min_bdim[i] > 0) {
         min_dim[i] -= bs[i]; max_dim[i] -= bs[i];
@@ -355,13 +361,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     data_roi[3] = max_dim[0];
     data_roi[4] = max_dim[1];
     data_roi[5] = max_dim[2];
-    
-    datablock[0] = min_bdim[0]*bs[0];
-    datablock[1] = min_bdim[1]*bs[1];
-    datablock[2] = min_bdim[2]*bs[2];
-    datablock[3] = (max_bdim[0]+1)*bs[0]-1;
-    datablock[4] = (max_bdim[1]+1)*bs[1]-1;
-    datablock[5] = (max_bdim[2]+1)*bs[2]-1;
+
 	//qWarning("setting region in renderer");
     rc = driver->SetRegion(data,
                            nx, ny, nz,

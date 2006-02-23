@@ -7,8 +7,16 @@
 //----------------------------------------------------------------------------
 
 #include "TextureBrick.h"
-#include "session.h"
+#include "regionparams.h"
 #include "glutil.h"
+
+#ifndef MAX
+#define MAX(a,b)        ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#define MIN(a,b)        ((a) < (b) ? (a) : (b))
+#endif
 
 using namespace VAPoR;
 
@@ -53,6 +61,9 @@ TextureBrick::TextureBrick() :
 TextureBrick::~TextureBrick()
 {
   glDeleteTextures(1, &_texid);
+
+  delete [] _data;
+  _data = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -78,21 +89,20 @@ void TextureBrick::dataMax(float x, float y, float z)
 //----------------------------------------------------------------------------
 // Set the extents of the brick's data block from the voxel coordinates.
 //----------------------------------------------------------------------------
-void TextureBrick::setDataBlock(int level, const int block[6])
+void TextureBrick::setDataBlock(int level, const int box[6], const int block[6])
 {
-  double extents[3];
-  size_t min[3] = {block[0], block[1], block[2]};
-  size_t max[3] = {block[3], block[4], block[5]};
+  float extents[6];
+  size_t min[3] = {block[0]+box[0], block[1]+box[1], block[2]+box[2]};
+  size_t max[3] = {block[3]+box[0], block[4]+box[1], block[5]+box[2]};
 
-  Session::getInstance()->mapVoxelToUserCoords(level, min, extents);
+  RegionParams::convertToBoxExtentsInCube(level, min, max, extents);
+
   _dmin.x = extents[0]; 
   _dmin.y = extents[1]; 
   _dmin.z = extents[2]; 
-
-  Session::getInstance()->mapVoxelToUserCoords(level, max, extents);
-  _dmax.x = extents[0]; 
-  _dmax.y = extents[1]; 
-  _dmax.z = extents[2]; 
+  _dmax.x = extents[3]; 
+  _dmax.y = extents[4]; 
+  _dmax.z = extents[5]; 
 
   _center.x = _dmin.x + (_dmax.x - _dmin.x) / 2.0;
   _center.y = _dmin.y + (_dmax.y - _dmin.y) / 2.0;
@@ -102,21 +112,20 @@ void TextureBrick::setDataBlock(int level, const int block[6])
 //----------------------------------------------------------------------------
 // Set the extents of the brick's roi from the voxel coordinates.
 //----------------------------------------------------------------------------
-void TextureBrick::setROI(int level, const int roi[6])
+void TextureBrick::setROI(int level, const int box[6], const int roi[6])
 {
-  double extents[3];
-  size_t min[3] = {roi[0], roi[1], roi[2]};
-  size_t max[3] = {roi[3], roi[4], roi[5]};
+  float extents[6];
+  size_t min[3] = {roi[0]+box[0], roi[1]+box[1], roi[2]+box[2]};
+  size_t max[3] = {roi[3]+box[0], roi[4]+box[1], roi[5]+box[2]};
 
-  Session::getInstance()->mapVoxelToUserCoords(level, min, extents);
+  RegionParams::convertToBoxExtentsInCube(level, min, max, extents);
+
   _vmin.x = extents[0]; 
   _vmin.y = extents[1]; 
   _vmin.z = extents[2]; 
-
-  Session::getInstance()->mapVoxelToUserCoords(level, max, extents);
-  _vmax.x = extents[0]; 
-  _vmax.y = extents[1]; 
-  _vmax.z = extents[2]; 
+  _vmax.x = extents[3]; 
+  _vmax.y = extents[4]; 
+  _vmax.z = extents[5]; 
 }
 
 
@@ -183,5 +192,42 @@ void TextureBrick::invalidate()
 bool TextureBrick::valid() const
 {
   return (_tmax.x > _tmin.x && _tmax.y > _tmin.y && _tmax.z > _tmin.z);
+}
+int kludge;
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void TextureBrick::fill(GLubyte *data, 
+                        int bx, int by, int bz,
+                        int nx, int ny, int nz, 
+                        int xoffset, int yoffset, int zoffset)
+{ 
+  _nx = nextPowerOf2(bx);
+  _ny = nextPowerOf2(by);
+  _nz = nextPowerOf2(bz);
+
+  delete [] _data;
+  _data = new GLubyte[_nx*_ny*_nz];
+ 
+  //
+  // Copy over the data
+  //
+  for (int z=0; z<bz && z+zoffset<=nz; z++)
+  {
+    for (int y=0; y<by && y+yoffset<=ny; y++)
+    {
+      for (int x=0; x<bx && x+xoffset<=nx; x++)
+      {
+        int di = (MIN(x+xoffset, nx-1) + 
+                  MIN(y+yoffset, ny-1)*nx + 
+                  MIN(z+zoffset, nz-1)*nx*ny);
+
+        int ti = x + y*_nx + z*_nx*_ny;
+
+        _data[ti] = data[di];
+      }
+    }
+  }
 }
 

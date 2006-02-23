@@ -9,6 +9,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <iostream>
 
 #include "BBox.h"
 #include "Point3d.h"
@@ -31,8 +32,12 @@ class TextureBrick
   int ny() const { return _ny; }
   int nz() const { return _nz; }
 
-  void data(void *d) { _data = d; }
-  void* data()       { return _data; }
+  void* data() { return _data; }
+
+  void fill(GLubyte *data, 
+            int bx, int by, int bz,
+            int nx, int ny, int nz,
+            int xoffset=0, int yoffset=0, int zoffset=0);
 
   //
   // Accessors for the brick's data block extents
@@ -45,7 +50,7 @@ class TextureBrick
   void dataMin(float x, float y, float z);
   void dataMax(float x, float y, float z);
 
-  void setDataBlock(int level, const int block[6]);
+  void setDataBlock(int level, const int box[6], const int block[6]);
 
   //
   // Accessors for the brick's region of interest extents
@@ -58,7 +63,7 @@ class TextureBrick
   void volumeMin(float x, float y, float z);
   void volumeMax(float x, float y, float z);
 
-  void setROI(int level, const int roi[6]);
+  void setROI(int level, const int box[6], const int roi[6]);
 
   //
   // Accessor for the brick's texture coordinates
@@ -79,6 +84,24 @@ class TextureBrick
 
   void invalidate();
   bool valid() const;
+
+  //
+  // Friend functions
+  //
+  friend std::ostream &operator<<(std::ostream &o, const TextureBrick &b)
+  {
+    o << "Brick " << b.handle() << std::endl
+      << " " << b.nx() << "x" << b.ny() << "x" << b.nz() << std::endl
+      << " data extents " << b.dataMin() 
+      << "              " << b.dataMax()
+      << " roi extents  " << b.volumeMin()
+      << "              " << b.volumeMax()
+      << " tex extents  " << b.textureMin()
+      << "              " << b.textureMax()
+      << " center       " << b.center() << std::endl;
+    
+    return o;
+  }
 
  protected:
 
@@ -106,7 +129,7 @@ class TextureBrick
   GLuint _texid;
 
   // Data
-  void *_data;
+  GLubyte *_data;
 };
 
 };

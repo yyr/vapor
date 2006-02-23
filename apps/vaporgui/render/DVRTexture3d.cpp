@@ -17,7 +17,6 @@
 #include "DVRTexture3d.h"
 #include "TextureBrick.h"
 #include "messagereporter.h"
-#include "session.h"
 
 #include "BBox.h"
 #include "glutil.h"
@@ -49,11 +48,9 @@ DVRTexture3d::DVRTexture3d(DataType_T type, int nthreads) :
   _nz(0),
   _data(0),
   _delta(0.0),
-  _maxTexture(maxTextureSize(GL_RGBA8))
+  _maxTexture(maxTextureSize(GL_RGBA8)),
+  _maxCacheSize(20)
 {
-  _texturePool.push_back(new TextureBrick());
-  _bricks.resize(1);
-
   if (type != UINT8) 
   {
     QString strng("Volume Renderer error; Unsupported voxel type: ");
@@ -67,13 +64,26 @@ DVRTexture3d::DVRTexture3d(DataType_T type, int nthreads) :
 //----------------------------------------------------------------------------
 DVRTexture3d::~DVRTexture3d() 
 {
-  for (int i=0; i<_texturePool.size(); i++)
+  for (int i=0; i<_bricks.size(); i++)
   {
-    delete _texturePool[i];
+    delete _bricks[i];
+    _bricks[i] = NULL;
   }
 
-  _texturePool.empty();
   _bricks.empty();
+
+  /* TBD Cache testing
+
+  map<CacheKey, TextureBrick*>::iterator iter;
+
+  for (iter=_textureCache.begin(); iter != _textureCache.end(); iter++)
+  {
+    delete iter->second;
+  }
+
+  _textureCache.empty();
+
+  */
 }
 
 //----------------------------------------------------------------------------
@@ -88,54 +98,60 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
 { 
   if (_nx != nx || _ny != ny || _nz != nz)
   {
-    _nx = nx; _ny = ny; _nz = nz;
+    _nx = nextPowerOf2(nx); 
+    _ny = nextPowerOf2(ny); 
+    _nz = nextPowerOf2(nz);
   }
 
   _vmin.x = extents[0];
   _vmin.y = extents[1];
   _vmin.z = extents[2];
-  
   _vmax.x = extents[3];
   _vmax.y = extents[4];
   _vmax.z = extents[5];
 
-  _tmin.x = (float)data_roi[0]/(nx-1);
-  _tmin.y = (float)data_roi[1]/(ny-1);
-  _tmin.z = (float)data_roi[2]/(nz-1);
-
-  _tmax.x = (float)data_roi[3]/(nx-1);
-  _tmax.y = (float)data_roi[4]/(ny-1);
-  _tmax.z = (float)data_roi[5]/(nz-1);
-
   _delta = fabs(_vmin.z-_vmax.z) / nz; 
   _data = data;
+
+  for (int i=0; i<_bricks.size(); i++)
+  {
+    delete _bricks[i];
+    _bricks[i] = NULL;
+  }
+
   _bricks.clear();
 
-  if (_nx*_ny*_nz <= _maxTexture)
+  if (_nx <= _maxTexture && _ny <= _maxTexture && _nz <= _maxTexture)
   {
     //
     // The data will fit completely within texture memory, so no bricking is 
-    // needed. We can save a few cycles by setting up the single brick here. 
+    // needed. We can save a few cycles by setting up the single brick here,
+    // rather than calling buildBricks(...). 
     //
-    _bricks.resize(1);
-    _bricks[0] = _texturePool[0];
+    _bricks.push_back(new TextureBrick());
 
-    _bricks[0]->volumeMin(_vmin.x, _vmin.y, _vmin.z);
-    _bricks[0]->volumeMax(_vmax.x, _vmax.y, _vmax.z);
-    _bricks[0]->textureMin(_tmin.x, _tmin.y, _tmin.z);
-    _bricks[0]->textureMax(_tmax.x, _tmax.y, _tmax.z);
-    _bricks[0]->data((GLubyte*)data);
-    _bricks[0]->size(nx, ny, nz);
+    _bricks[0]->fill((GLubyte*)data, nx, ny, nz, nx, ny, nz);
 
     loadTexture(_bricks[0]);
-  }
+
+    _bricks[0]->volumeMin(extents[0], extents[1], extents[2]);
+    _bricks[0]->volumeMax(extents[3], extents[4], extents[5]);
+
+    _bricks[0]->textureMin((float)data_roi[0]/(_nx-1), 
+                           (float)data_roi[1]/(_ny-1), 
+                           (float)data_roi[2]/(_nz-1));
+
+    _bricks[0]->textureMax((float)data_roi[3]/(_nx-1), 
+                           (float)data_roi[4]/(_ny-1), 
+                           (float)data_roi[5]/(_nz-1));
+  } 
   else
   {
     //
     // The data will not fit completely within texture memory, need to 
     // subdivide into multiple bricks.
     //
-    buildBricks(level, data_box, data_roi);
+    buildBricks(level, data_box, data_roi, nx, ny, nz);
   }
 
   return 0;
@@ -168,7 +184,7 @@ void DVRTexture3d::renderBricks()
   for (iter=_bricks.begin(); iter!=_bricks.end(); iter++)
   {
     TextureBrick *brick = *iter;
-    
+
     if (brick->valid())
     {
       glBindTexture(GL_TEXTURE_3D, brick->handle());
@@ -430,31 +446,32 @@ void DVRTexture3d::findVertexOrder(const Vect3d verts[6], int order[6],
 //----------------------------------------------------------------------------
 // Brick the texture data so that each brick will fit into texture memory.
 //----------------------------------------------------------------------------
-void DVRTexture3d::buildBricks(int level, const int bbox[6], const int roi[6])
+void DVRTexture3d::buildBricks(int level, const int box[6], const int roi[6],
+                               int nx, int ny, int nz)
 {
-  // NOTE: This uses the simplest subdivision algorithm, dividing only along 
-  // the z-axis. This allows us to handle contiguous blocks of memory. This
-  // is probably not adquate for the general case, and needs to be improved.  
+  int bsize[3] = {_nx, _ny, _nz}; 
+  while (bsize[0] > _maxTexture)
+  {
+    bsize[0] /= 2;
+  }
 
-  int nbricks = 2;
+  while (bsize[1] > _maxTexture)
+  {
+    bsize[1] /= 2;
+  }
+
+  while (bsize[2] > _maxTexture)
+  {
+    bsize[2] /= 2;
+  }
 
   //
-  // Allocate bricks
+  // Sanity check
   //
   GLint width = 0;
 
-  while (_nx * _ny * _nz / nbricks > _maxTexture)
-  {
-    nbricks *= 2;
-
-    if (nbricks >= _nz/2.0)
-    {
-      QString msg("Texture too large. Need better bricking algorithm.");
-      BailOut(msg.ascii(),__FILE__,__LINE__);
-    }
-  }
-
-  glTexImage3D(GL_PROXY_TEXTURE_3D, 0, GL_RGBA8, _nx, _ny, _nz/nbricks, 0,
+  glTexImage3D(GL_PROXY_TEXTURE_3D, 0, GL_RGBA8, 
+               bsize[0], bsize[1], bsize[2], 0,
                GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
     
   glGetTexLevelParameteriv(GL_PROXY_TEXTURE_3D, 0,
@@ -462,124 +479,152 @@ void DVRTexture3d::buildBricks(int level, const int bbox[6], const int roi[6])
 
   if (width == 0)
   {
-    QString msg("Texture too large. Need better bricking algorithm.");
+    QString msg("Bricking Failed. Texture too large.");
     BailOut(msg.ascii(),__FILE__,__LINE__);
   }
 
+  
   //
-  // Add an extra brick to account for brick overlap
+  // Compute the number of bricks in the cardinal directions
   //
-  nbricks += 1;
-
-  if (nbricks != _bricks.size())
-  {
-    //
-    // Keep a resident pool of texture bricks to minimize dynamic memory 
-    // allocations and deallocations
-    //
-    while(_texturePool.size() < nbricks) 
-    {
-      _texturePool.push_back(new TextureBrick());
-    }
-
-    //
-    // Initialize the brick list
-    //
-    _bricks.resize(nbricks);
-
-    for (int i=0; i<nbricks; i++)
-    {
-      _bricks[i] = _texturePool[i];
-    }
-  }
+  int nbricks[3] = {(int)ceil((double)(_nx-1)/(bsize[0]-1)),
+                    (int)ceil((double)(_ny-1)/(bsize[1]-1)),
+                    (int)ceil((double)(_nz-1)/(bsize[2]-1))};
 
   //
   // Populate bricks 
   //
-  TextureBrick *brick = NULL;
-  int bnz = _nz/(nbricks-1);  // size of brick in voxels
+  Point3d vmin;
+  Point3d vmax;
+  Point3d tmin;
+  Point3d tmax;
 
-  // brick block box
-  int bbbox[6] = {bbox[0], bbox[1], bbox[2], bbox[3], bbox[4], bbox[2]+bnz};
+  TextureBrick *brick = NULL;
+
+  // brick data/block box
+  int bbox[6] = {0,0,0, bsize[0]-1, bsize[1]-1, bsize[2]-1};
 
   // brick region of interest
   int broi[6] = {roi[0], roi[1], roi[2], roi[3], roi[4], roi[5]};
 
-  for(int z=0; z<_bricks.size(); ++z)
+  // data offset
+  int offset[3] = {0, 0, 0};
+
+  for(int z=0; z<nbricks[2]; ++z)
   {
-    brick = _bricks[z]; 
-
     //
-    // Set the extents of the brick's data box
+    // Determine the y boundaries of the brick's data box. 
     //
-    brick->setDataBlock(level, bbbox);
+    bbox[1] = 0;
+    bbox[4] = bsize[1]-1;
+    offset[1] = 0;
+    
+    //
+    // Determine the z region of interest for the brick, leaving an extra
+    // voxel on either end for fragment interpolation (except fo bricks
+    // on the extreme ends).
+    // 
+    broi[2] = (bbox[2] > roi[2]) ? bbox[2] + 1 : roi[2];
+    broi[5] = (bbox[5] < roi[5]) ? bbox[5] - 1 : roi[5];
 
-    if (_vmin.z >= brick->dataMax().z || _vmax.z <= brick->dataMin().z)
+    for (int y=0; y<nbricks[1]; y++)
     {
       //
-      // This brick's data box does not overlap the region of interest.
-      // We'll turn it off (invalidate it). 
+      // Determine the x boundaries of the brick's data box
       //
-      brick->invalidate();
-    }     
-    else
-    {
+      bbox[0] = 0;
+      bbox[3] = bsize[0]-1;
+      offset[0] = 0;
+
       //
-      // Determine the region of interest for the brick, leaving an extra
-      // voxel on either end for fragment interpolation (except fo bricks on 
-      // the extreme ends).
+      // Determine the y region of interest for the brick, leaving an extra
+      // voxel on either end for fragment interpolation (except fo bricks
+      // on the extreme ends).
       // 
-      if (bbbox[2] > roi[2])
-      {
-        broi[2] = bbbox[2] + 1;
-      }
-      else
-      {
-        broi[2] = roi[2];
-      }
+      broi[1] = (bbox[1] > roi[1]) ? bbox[1] + 1 : roi[1];
+      broi[4] = (bbox[4] < roi[4]) ? bbox[4] - 1 : roi[4];
 
-      if (bbbox[5] < roi[5])
+      for (int x=0; x<nbricks[0]; x++)
       {
-        broi[5] = bbbox[5] - 1;
-      }
-      else
-      {
-        broi[5] = roi[5];
-      }
+        brick = new TextureBrick();
 
-      brick->setROI(level, broi);
+        //
+        // Set the extents of the brick's data box
+        //
+        brick->setDataBlock(level, box, bbox);
+
+        if (_vmin.z >= brick->dataMax().z || _vmax.z <= brick->dataMin().z ||
+            _vmin.y >= brick->dataMax().y || _vmax.y <= brick->dataMin().y ||
+            _vmin.x >= brick->dataMax().x || _vmax.x <= brick->dataMin().x)
+        {
+          //
+          // This brick's data box does not overlap the region of interest.
+          // Toss it.
+          //
+          delete brick;
+          brick = NULL;
+        }     
+        else
+        {
+          //
+          // Determine the x region of interest for the brick, leaving an extra
+          // voxel on either end for fragment interpolation (except fo bricks
+          // on the extreme ends).
+          // 
+          broi[0] = (bbox[0] > roi[0]) ? bbox[0] + 1 : roi[0];
+          broi[3] = (bbox[3] < roi[3]) ? bbox[3] - 1 : roi[3];
+
+          brick->setROI(level, box, broi);
+
+          //
+          // Set the texture coordinates of the brick.
+          //
+          brick->textureMin((broi[0]-bbox[0])/(float)(bsize[0]-1),
+                            (broi[1]-bbox[1])/(float)(bsize[1]-1),
+                            (broi[2]-bbox[2])/(float)(bsize[2]-1));
+          brick->textureMax((broi[3]-bbox[0])/(float)(bsize[0]-1),
+                            (broi[4]-bbox[1])/(float)(bsize[1]-1),
+                            (broi[5]-bbox[2])/(float)(bsize[2]-1));
+
+          //
+          // Fill the brick
+          //
+          brick->fill((GLubyte*)_data, 
+                      bsize[0], bsize[1], bsize[2], 
+                      nx, ny, nz,
+                      offset[0], offset[1], offset[2]);
+
+          loadTexture(brick);
+
+          _bricks.push_back(brick); 
+        }
+
+        //
+        // increment the brick block box (for the next brick in the x-axis) by 
+        // the size of a brick (minus 2 for texture overlap).
+        // 
+        bbox[0]    = bbox[3]-2;
+        offset[0] += bsize[0]-2;
+        bbox[3]   += bsize[0]-2;
+      }
 
       //
-      // Set the texture coordinates of the brick.
-      //
-      brick->textureMin(_tmin.x,_tmin.y, (broi[2]-bbbox[2])/(float)bnz);
-      brick->textureMax(_tmax.x,_tmax.y, (broi[5]-bbbox[2])/(float)bnz);
-
-      //
-      // Since we are only subdividing on the z-axis, we can just offset
-      // the data pointer. 
-      //
-      brick->data((GLubyte*)_data + _nx * _ny * ((bnz-2) * z));
-      brick->size(_nx, _ny, bnz);
-
-      loadTexture(brick);
+      // increment the brick block box (for the next brick in the y-axis)
+      // by the size of a brick (minus 2 for texture overlap).
+      // 
+      bbox[1]    = bbox[4]-2;
+      offset[1] += bsize[1]-2;
+      bbox[4]   += bsize[1]-2;
     }
 
     //
-    // increment the brick block box (for the next brick) by the size of a
-    // brick (minus 2 for texture overlap).
+    // increment the brick block box (for the next brick in the z-axis) 
+    // by the size of a brick (minus 2 for texture overlap).
     // 
-    bbbox[2] += bnz-2;
-    bbbox[5] += bnz-2;
+    bbox[2]    = bbox[5]-2;
+    offset[2] += bsize[2]-2;
+    bbox[5]   += bsize[2]-2;
   }
-  
-  // 
-  // This needs to be revisited. This is may not be safe for the last brick.
-  // There will be an array overflow when GL copies the data into texture
-  // memory; although, that memory should never be used. Should probably 
-  // shift the last brick up, so that, all of its addressable memory is 
-  // valid. 
-  // 
 }
 
 //----------------------------------------------------------------------------
@@ -619,6 +664,42 @@ void DVRTexture3d::sortBricks(const Matrix3d &modelview)
 }
 
 //----------------------------------------------------------------------------
+// Fetch a brick from the texture cache. 
+//----------------------------------------------------------------------------
+TextureBrick* DVRTexture3d::fetch(void *data, int nx, int ny, int nz)
+{
+  //
+  // NOTE: Simple-minded texture caching, scheme for testing purposes only
+  //
+
+  CacheKey key(data, nx, ny, nz);
+  TextureBrick *brick = NULL;
+
+  map<CacheKey, TextureBrick*>::iterator iter = _textureCache.find(key);
+
+  if (iter == _textureCache.end())
+  {
+    brick = new TextureBrick();
+
+    brick->fill((GLubyte*)data, nx, ny, nz, nx, ny, nz);
+
+    loadTexture(brick);
+
+    _textureCache[key] = brick;
+
+    return brick;
+  }
+
+  brick = iter->second;
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_3D, brick->handle());
+ 
+  return brick;
+}
+
+
+//----------------------------------------------------------------------------
 // Determine and return the maximum texture size (in bytes). 
 //----------------------------------------------------------------------------
 long DVRTexture3d::maxTextureSize(GLenum format)
@@ -638,12 +719,60 @@ long DVRTexture3d::maxTextureSize(GLenum format)
       {
         i /= 2;
         
-        _textureSizes[format] = i*i*i;
+        _textureSizes[format] = i;
 
-        return i*i*i;
+        return i;
       }
     }
   }
 
   return _textureSizes[format];
 }
+
+
+//============================================================================
+// DVRTexture3d::CacheKey
+//============================================================================
+
+//----------------------------------------------------------------------------
+// Constructor
+//----------------------------------------------------------------------------
+DVRTexture3d::CacheKey::CacheKey(void *data, int nx, int ny, int nz) :
+  _data(data),
+  _nx(nx),
+  _ny(ny),
+  _nz(nz)
+{
+}
+
+//----------------------------------------------------------------------------
+// Destructor
+//----------------------------------------------------------------------------
+DVRTexture3d::CacheKey::~CacheKey()
+{
+}
+
+//----------------------------------------------------------------------------
+// Copy Constructor
+//----------------------------------------------------------------------------
+DVRTexture3d::CacheKey::CacheKey(const CacheKey &key) :
+  _data(key._data),
+  _nx(key._nx),
+  _ny(key._ny),
+  _nz(key._nz)
+{
+}
+
+//----------------------------------------------------------------------------
+// Assignment Operator
+//----------------------------------------------------------------------------
+DVRTexture3d::CacheKey DVRTexture3d::CacheKey::operator=(const CacheKey &key)
+{
+  _data = key._data;
+  _nx   = key._nx;
+  _ny   = key._ny;
+  _nz   = key._nz;
+
+  return *this;
+}
+

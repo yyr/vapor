@@ -74,6 +74,10 @@
 namespace VAPoR {
 void	BailOut (const char *errstr, char *fname, int lineno);
 /* glutil.c */
+
+bool powerOf2(uint n);
+uint nextPowerOf2(uint n);
+
 void	computeGradientData(
 	int dim[3], int numChan, unsigned char *volume, unsigned char *gradient
 );
