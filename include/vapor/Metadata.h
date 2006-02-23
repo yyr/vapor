@@ -166,9 +166,10 @@ public:
  //! Write the metadata object to a file
  //!
  //! \param[in] path Name of the file to write to
+ //! \param[in] relative_path Use relative path names for all data paths
  //! \retval status Returns a non-negative integer on success
  //
- int Write(const string &path) const;
+ int Write(const string &path, int relative_path = 1) ;
 
 
  //! Return the internal blocking factor use for WaveletBlock files
@@ -870,6 +871,7 @@ private:
  int	_vdfVersion;		// VDF file version number
  char	*_metafileDirName;	// path to metafile parent directory
  char	*_metafileName;		// basename of path to metafile 
+ int	_relativePath;		// boolean : 1 => use relative path names to data
 
  vector <double>	_emptyDoubleVec;
  vector <long>		_emptyLongVec;
