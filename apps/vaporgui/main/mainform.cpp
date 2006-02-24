@@ -735,9 +735,9 @@ void MainForm::saveMetadata()
 				QMessageBox::No);
 			if (rc != QMessageBox::Ok) return;
 		}
-		const Metadata* md = Session::getInstance()->getCurrentMetadata();
+		Metadata* md = (Metadata *) Session::getInstance()->getCurrentMetadata();
 		std::string stdName = std::string(filename.ascii());
-		int rc = md->Write(stdName);
+		int rc = md->Write(stdName,0);
 		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n %s", filename.ascii());
 		else {
 			Session::getInstance()->setMetadataSaved(true);
