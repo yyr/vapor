@@ -448,7 +448,10 @@ int	main(int argc, char **argv) {
 	// the .vdf file will not be updated with stats gathered from
 	// the volume we just translated.
 	//
-	if (metadata->GetVDFVersion() < 2) metadata->Write(metafile);
+	if (metadata->GetVDFVersion() < 2) {
+		Metadata *m = (Metadata *) metadata;
+		m->Write(metafile);
+	}
 
 	exit(0);
 }
