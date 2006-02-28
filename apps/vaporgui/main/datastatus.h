@@ -53,11 +53,15 @@ public:
 	
 	double getDataMax(int varNum, int timestep){
 		if (!dataIsPresent(varNum, timestep))return 1.0f;
+		if (dataMax[varNum][timestep] == -1.e30f)
+			calcDataRange(varNum,timestep);
 		return dataMax[varNum][timestep];
 	}
-	double getDataMin(int varnum, int timestep){
-		if (!dataIsPresent(varnum, timestep))return -1.0f;
-		return dataMin[varnum][timestep];
+	double getDataMin(int varNum, int timestep){
+		if (!dataIsPresent(varNum, timestep))return -1.0f;
+		if (dataMin[varNum][timestep] == 1.e30f)
+			calcDataRange(varNum,timestep);
+		return dataMin[varNum][timestep];
 	}
 	double getDefaultDataMax(int varnum){return getDataMax(varnum, minTimeStep);}
 	double getDefaultDataMin(int varnum){return getDataMin(varnum, minTimeStep);}

@@ -101,10 +101,13 @@ reset(DataMgr* dm){
 		maxNumTransforms[i] = new int[numTimesteps];
 		dataMin[i] = new float[numTimesteps];
 		dataMax[i] = new float[numTimesteps];
+		//Initialize these to flagged values.  They will be recalculated
+		//as needed.  Do this lazily because it's expensive and unnecessary to go through
+		//all the timesteps to obtain the data bounds
 		for (int k = 0; k<numTimesteps; k++){
 			maxNumTransforms[i][k] = -1;
-			dataMin[i][k] = -1.f;
-			dataMax[i][k] = 1.f;
+			dataMin[i][k] = 1.e30f;
+			dataMax[i][k] = -1.e30f;
 		}
 	}
 
@@ -168,9 +171,7 @@ reset(DataMgr* dm){
 				someDataOverall = true;
 				if (ts > maxts) maxts = ts;
 				if (ts < mints) mints = ts;
-				//Get the min, max datarange at the max refinement level
-				//This sets the values
-				calcDataRange(var,ts);
+				
 			}
 		}
 		variableExists[var] = dataExists; 
@@ -182,6 +183,7 @@ reset(DataMgr* dm){
 }
 
 // calculate the datarange for a specific variable and timestep:
+// Performed on demand.
 // 
 void DataStatus::calcDataRange(int varnum, int ts){
 	vector<double>minMax;
