@@ -1461,6 +1461,7 @@ void VizWinMgr::
 setFlowLocalGlobal(int val){
 	//If changes to global, revert to global panel.
 	//If changes to local, may need to create a new local panel
+	bool wasEnabled = getFlowParams(activeViz)->isEnabled();
 	if (val == 0){//toGlobal.  
 		//First set the global status, 
 		//then put  values in tab based on global settings.
@@ -1485,6 +1486,8 @@ setFlowLocalGlobal(int val){
 			tabManager->show();
 		}
 	}
+	//Always invoke the update on the local params
+	flowParams[activeViz]->updateRenderer(wasEnabled,!val, false);
 }
 /*****************************************************************************
  * Called when the local/global selector is changed.

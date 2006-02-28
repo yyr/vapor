@@ -228,7 +228,7 @@ void TranslateStretchManip::drawCubeFaces(float* extents, bool isSelected){
 	glLineWidth( 2.0 );
 	glEnable (GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glPolygonMode(GL_FRONT, GL_FILL);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	if (isSelected) glColor4fv(faceSelectionColor);
 	else glColor4fv(unselectedFaceColor);
 	

@@ -207,12 +207,17 @@ void GLWindow::paintGL()
 		nowPainting = false;
 		return;
 	}
-	//Check if there are any active renderers:
+	//Check if there are any active renderers, or if we have a manip:
+	//Modified 2/28/06:  Go ahead and "render" even if no active renderers:
+	/*
 	if (myVizWin->getNumRenderers()==0){
-		swapBuffers();
-		nowPainting = false;
-		return;
+		if(MainForm::getInstance()->getCurrentMouseMode() == Command::navigateMode){
+			swapBuffers();
+			nowPainting = false;
+			return;
+		}
 	}
+	*/
 	//If we are doing the first capture of a sequence then set the
 	//newRender flag to true, whether or not it's a real new render.
 	//Then turn off the flag, subsequent renderings will only be captured

@@ -94,6 +94,7 @@ public:
 	void prependRenderer(Renderer* ren, Params::ParamType rendererType);
 	void appendRenderer(Renderer* ren, Params::ParamType rendererType);
 	void removeRenderer(Params::ParamType rendererType);
+	bool hasRenderer(Params::ParamType rendererType);
 	GLWindow* getGLWindow() {return myGLWindow;}
 	TranslateRotateManip* getProbeManip() {return myProbeManip;}
 	TranslateStretchManip* getFlowManip() {return myFlowManip;}

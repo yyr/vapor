@@ -278,7 +278,7 @@ void VizWin::hideEvent(QHideEvent* ){
 void VizWin::
 mousePressEvent(QMouseEvent* e){
 	float screenCoords[2];
-	if (numRenderers <= 0) return;
+	//if (numRenderers <= 0) return;// Even with no renderers, do mouse mode stuff
 	screenCoords[0] = (float)e->x()-3.f;
 	//To keep orientation correct in plane, and use
 	//OpenGL convention (Y 0 at bottom of window), reverse
@@ -413,7 +413,7 @@ mousePressEvent(QMouseEvent* e){
  */
 void VizWin:: 
 mouseReleaseEvent(QMouseEvent*e){
-	if (numRenderers <= 0) return;
+	//if (numRenderers <= 0) return;//used for mouse mode stuff
 	bool doNavigate = false;
 	TranslateStretchManip* myManip;
 	switch (myWinMgr->selectionMode){
@@ -761,6 +761,14 @@ void VizWin::removeRenderer(Params::ParamType rendererType){
 	}
 	myGLWindow->updateGL();
 	
+}
+//Determine if this window has a renderer of the specified type
+bool VizWin::hasRenderer(Params::ParamType rendererType){
+	int i;
+	for (i = 0; i<numRenderers; i++) {		
+		if (rendererType == renderType[i]) return true;
+	}
+	return false;
 }
 //This determines if the specified point is over one of the faces of the regioncube.
 //ScreenCoords are as in OpenGL:  bottom of window is 0

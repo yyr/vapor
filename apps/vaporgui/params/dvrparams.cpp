@@ -493,7 +493,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	// Also applies to double change: disable->enable and local->global 
 	// Also applies to disable->enable with global->local
 	//3.  change of disable->enable with unchanged global renderer.  Create new renderers in all global windows, 
-	//    including active window.
+	//    including active window, but not if one is already enabled
 	
 	
 	//5.  Change of enable->disable with unchanged global , disable all global renderers, provided the
@@ -526,7 +526,8 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 			
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
-
+				// Make sure there is not already a volume renderer here:
+				if (viz->hasRenderer(Params::DvrParamsType)) continue;
 				VolumeRenderer* myDvr = new VolumeRenderer(viz, type);
 
 				viz->appendRenderer(myDvr, DvrParamsType);

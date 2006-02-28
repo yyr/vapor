@@ -1839,6 +1839,7 @@ setZSize(int sliderval){
  * prevEnabled = false, wasLocal = isLocal = true,
  * even if the renderer is really global, since we don't want to affect other global renderers.
  */
+/*
 void FlowParams::
 updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	bool isLocal = local;
@@ -1890,6 +1891,7 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 			if (i == activeViz) continue;
 			viz = VizWinMgr::getInstance()->getVizWin(i);
 			if (viz && !vizWinMgr->getFlowParams(i)->isLocal()){
+				if (viz->hasRenderer(Params::FlowParamsType)) continue;
 				FlowRenderer* myRenderer = new FlowRenderer (viz, flowType);
 				viz->prependRenderer(myRenderer, Params::FlowParamsType);
 			}
@@ -1910,6 +1912,109 @@ updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	
 	return;
 
+}
+*/
+/* Handle the change of status associated with change of enablement and change
+ * of local/global.  This is identical to code for dvrparams
+ * If we are enabling global, a renderer must be created in every
+ * global window, including active one.  If we are enabling local, only active one is created.
+ * If we change from local to global, (no change in enablement) then new renderers are
+ * created for every additional global window.  Similar for disable.
+ * It can occur that both enablement and local/global change, if the local and global enablement
+ * are different, during a local/global change
+ * This assumes that the VizWinMgr already is set with the current (new) local/global
+ * dvr settings.  
+ * If the window is new, (i.e. we are just creating a new window, use: 
+ * prevEnabled = false, wasLocal = isLocal = true,
+ * even if the renderer is really global, since we don't want to affect other global renderers.
+ */
+void FlowParams::
+updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
+	bool newLocal = local;
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	if (newWindow) {
+		prevEnabled = false;
+		wasLocal = true;
+		newLocal = true;
+	}
+	//The actual enabled state of "this" depends on whether we are local or global.
+	bool nowEnabled = enabled;
+	if (!local) nowEnabled = vizWinMgr->getGlobalParams(Params::FlowParamsType)->isEnabled();
+	
+	if (prevEnabled == nowEnabled && wasLocal == local) return;
+	
+	VizWin* viz = 0;
+	if(getVizNum() >= 0){//Find the viz that this applies to:
+		//Note that this is only for the cases below where one particular
+		//visualizer is needed
+		viz = vizWinMgr->getVizWin(getVizNum());
+	} 
+	
+	//Four cases to consider:
+	//1.  change of local/global with unchanged disabled renderer; do nothing.
+	// If change of local/global with enabled renderer, just force refresh:
+	
+	if (prevEnabled == nowEnabled) {
+		if (!prevEnabled) return;
+		setFlowDataDirty();
+		return;
+	}
+	
+	//2.  Change of disable->enable with unchanged local renderer.  Create a new renderer in active window.
+	// Also applies to double change: disable->enable and local->global 
+	// Also applies to disable->enable with global->local
+	//3.  change of disable->enable with unchanged global renderer.  Create new renderers in all global windows, 
+	//    including active window, but not if one is already enabled
+	
+	
+	//5.  Change of enable->disable with unchanged global , disable all global renderers, provided the
+	//   VizWinMgr already has the current local/global renderer settings
+	//6.  Change of enable->disable with local renderer.  Delete renderer in local window same as:
+	//  change of enable->disable with global->local.  (Must disable the local renderer)
+	//  change of enable->disable with local->global (Must disable the local renderer)
+	
+	//For a new renderer
+
+	
+	if (nowEnabled && !prevEnabled && newLocal){//For case 2:  create a renderer in the active window:
+
+		//First, make sure we have valid fielddata:
+		validateSampling();
+
+		FlowRenderer* myRenderer = new FlowRenderer (viz, flowType);
+		viz->prependRenderer(myRenderer, Params::FlowParamsType);
+		setFlowDataDirty();
+		return;
+	}
+	
+	if (!newLocal && nowEnabled){ //case 3: create renderers in all  global windows, then return
+		for (int i = 0; i<MAXVIZWINS; i++){
+			
+			viz = vizWinMgr->getVizWin(i);
+			if (viz && !vizWinMgr->getFlowParams(i)->isLocal()){
+				// Make sure there is not already a flow renderer here:
+				if (viz->hasRenderer(Params::FlowParamsType)) continue;
+				FlowRenderer* myRenderer = new FlowRenderer (viz, flowType);
+				viz->prependRenderer(myRenderer, Params::FlowParamsType);
+			}
+		}
+		setFlowDataDirty();
+		return;
+	}
+	if (!nowEnabled && prevEnabled && !newLocal && !wasLocal) { //case 5., disable all global renderers
+		for (int i = 0; i<MAXVIZWINS; i++){
+			viz = vizWinMgr->getVizWin(i);
+			if (viz && !vizWinMgr->getFlowParams(i)->isLocal()){
+				viz->removeRenderer(FlowParamsType);
+			}
+		}
+		return;
+	}
+	//case 6, disable local only
+	assert(prevEnabled && !nowEnabled && (newLocal ||(newLocal != wasLocal))); 
+	viz->removeRenderer(FlowParamsType);
+
+	return;
 }
 
 void FlowParams::

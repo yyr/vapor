@@ -121,7 +121,23 @@ void Histo::releaseHistograms(){
 //generated if none exists
 Histo* Histo::
 getHistogram(int varNum, int vizNum, bool mustGet, Params* renderParams){
-	assert (vizNum >=0 && varNum >= 0);
+	assert (varNum >= 0);
+	if (vizNum<0) {
+		//Hack; this code will be removed when the dvr is no
+		//longer uniquely involved in histogram creation...
+		//associate this histo with the first viz that shares the dvr:
+		int winnum = 0;
+		VizWinMgr* vizMgr = VizWinMgr::getInstance();
+		for (winnum = 0; winnum< MAXVIZWINS; winnum++){
+			if (vizMgr->getVizWin(winnum)) {
+				DvrParams* dp = vizMgr->getDvrParams(winnum);
+				if (!(dp->isLocal())) break;
+			}
+		}
+		assert(winnum<MAXVIZWINS);
+		vizNum = winnum;
+	}
+		
 	//Check if there exists a histogram array:
 	if (!histoArray || histoArraySize <= 0){
 		if (!mustGet) return 0;
@@ -147,7 +163,21 @@ refreshHistogram(int vizNum, Params* dParams)
 	
 	size_t min_dim[3],max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
-	assert (vizNum >= 0);
+	if (vizNum<0) {
+		//Hack; this code will be removed when the dvr is no
+		//longer uniquely involved in histogram creation...
+		//associate this histo with the first viz that shares the dvr:
+		int winnum = 0;
+		VizWinMgr* vizMgr = VizWinMgr::getInstance();
+		for (winnum = 0; winnum< MAXVIZWINS; winnum++){
+			if (vizMgr->getVizWin(winnum)) {
+				DvrParams* dp = vizMgr->getDvrParams(winnum);
+				if (!(dp->isLocal())) break;
+			}
+		}
+		assert(winnum<MAXVIZWINS);
+		vizNum = winnum;
+	}
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	int varNum = dParams->getVarNum();
 	if (!histoArray || histoArraySize <= 0){
