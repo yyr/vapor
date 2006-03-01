@@ -163,36 +163,10 @@ int    WaveletBlock3DIO::VariableExists(
 
     if (reflevel < 0) reflevel = _num_reflevels - 1;
 
-	const string &bp = _metadata->GetVBasePath(timestep, varname);
-	if (_metadata->GetErrCode() != 0 || bp.length() == 0) {
+	if (_metadata->ConstructFullVBase(timestep, varname, &basename) < 0) {
 		_metadata->SetErrCode(0);
 		return (0);
 	}
-
-	// Path to variable file is relative to xml file, if it exists
-	if (_metadata->GetParentDir() && bp[0] != '/') {
-		basename.append(_metadata->GetParentDir());
-		basename.append("/");
-	}
-
-	// Path to variable file is relative to xml file, if it exists
-	if (_metadata->GetMetafileName() && bp[0] != '/') {
-		string s = _metadata->GetMetafileName();
-		string t;
-		size_t p = s.find_first_of(".");
-		if (p != string::npos) {
-			t = s.substr(0, p);
-		}
-		else {
-			t = s;
-		}
-		basename.append(t);
-		basename.append("_data");
-		basename.append("/");
-
-    }
-	
-	basename.append(bp);
 
 	for (int j = 0; j<=reflevel; j++){
 #ifdef WIN32
@@ -246,39 +220,9 @@ int	WaveletBlock3DIO::OpenVariableWrite(
 		return(-1);
 	}
 
-	const string &bp = _metadata->GetVBasePath(timestep, varname);
-	if (_metadata->GetErrCode() != 0 || bp.length() == 0) {
-		SetErrMsg(
-			"Failed to find variable \"%s\" in metadata object at time step %d",
-			varname, (int) timestep
-		);
-		return(-1);
+	if (_metadata->ConstructFullVBase(timestep, varname, &basename) < 0) {
+		return (-1);
 	}
-
-	// Path to variable file is relative to xml file, if it exists
-	if (_metadata->GetParentDir() && bp[0] != '/') {
-		basename.append(_metadata->GetParentDir());
-		basename.append("/");
-	}
-
-	// Path to variable file is relative to xml file, if it exists
-	if (_metadata->GetMetafileName() && bp[0] != '/') {
-		string s = _metadata->GetMetafileName();
-		string t;
-		size_t p = s.find_first_of(".");
-		if (p != string::npos) {
-			t = s.substr(0, p);
-		}
-		else {
-			t = s;
-		}
-		basename.append(t);
-		basename.append("_data");
-		basename.append("/");
-
-    }
-
-	basename.append(bp);
 
 	DirName(basename, dir);
 	if (MkDirHier(dir) < 0) return(-1);
@@ -532,41 +476,10 @@ int	WaveletBlock3DIO::OpenVariableRead(
 		return(-1);
 	}
 
-
-	const string &bp = _metadata->GetVBasePath(timestep, varname);
-	if (_metadata->GetErrCode() != 0 || bp.length() == 0) {
-		SetErrMsg(
-			"Failed to find variable \"%s\" in metadata object at time step %d",
-			varname, (int) timestep
-		);
-		return(-1);
+	if (_metadata->ConstructFullVBase(timestep, varname, &basename) < 0) {
+		_metadata->SetErrCode(0);
+		return (0);
 	}
-
-	// Path to variable file is relative to xml file, if it exists
-	if (_metadata->GetParentDir() && bp[0] != '/') {
-		basename.append(_metadata->GetParentDir());
-		basename.append("/");
-	}
-
-	// Path to variable file is relative to xml file, if it exists
-	if (_metadata->GetMetafileName() && bp[0] != '/') {
-		string s = _metadata->GetMetafileName();
-		string t;
-		size_t p = s.find_first_of(".");
-		if (p != string::npos) {
-			t = s.substr(0, p);
-		}
-		else {
-			t = s;
-		}
-		basename.append(t);
-		basename.append("_data");
-		basename.append("/");
-
-    }
-
-	basename.append(bp);
-
 
 	int rc = open_var_read(timestep, varname, basename);
 	if (rc<0) return(-1);
