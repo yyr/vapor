@@ -208,13 +208,26 @@ float	*DataMgr::GetRegion(
 		rc = amrio->TreeRead(&amrtree);
 		if (rc < 0) return (NULL);
 
+cerr << "The max ref level " << amrtree.GetRefinementLevel() << endl;
+
 		(void) amrio->CloseTree();
 
+cerr << "The max ref level " << amrtree.GetRefinementLevel() << endl;
 		//
 		// Read in the AMR field data
 		//
 		const size_t *bs = _metadata->GetBlockSize();
-		AMRData amrdata(&amrtree, bs, min, max, reflevel);
+		size_t minbase[3];
+		size_t maxbase[3];
+		for (int i=0; i<3; i++) {
+			minbase[i] = min[i] >> reflevel;
+			maxbase[i] = max[i] >> reflevel;
+		}
+cerr << "The max ref level " << amrtree.GetRefinementLevel() << endl;
+			
+		AMRData amrdata(&amrtree, bs, minbase, maxbase, reflevel);
+		if (AMRData::GetErrCode() != 0)  return(NULL);
+cerr << "The max ref level " << amrtree.GetRefinementLevel() << endl;
 
 		rc = amrio->VariableRead(&amrdata);
 		if (rc < 0) return (NULL);

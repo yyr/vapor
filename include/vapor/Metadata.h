@@ -150,18 +150,30 @@ public:
  //! Return the file path name to the metafile's parent directory.
  //! If the class was constructed with a path name, this method
  //! returns the parent directory of the path name. If the class
- //! was not constructed with a path name, NULL is returned.
- //! \retval dirname : parent directory or NULL
+ //! was not constructed with a path name, an empty string is returned
+ //! \retval dirname : parent directory or an empty string
  //
- const char *GetParentDir() const { return (_metafileDirName); }
+ const string &GetParentDir() const { return (_metafileDirName); }
 
  //! Return the base of file path name to the metafile.
  //! If the class was constructed with a path name, this method
  //! returns the basename of the path name. If the class
- //! was not constructed with a path name, NULL is returned.
- //! \retval dirname : parent directory or NULL
+ //! was not constructed with a path name, an empty string is returned
+ //! \retval dirname : parent directory or an empty string
  //
- const char *GetMetafileName() const { return (_metafileName); }
+ const string &GetMetafileName() const { return (_metafileName); }
+
+ //! Return the base of file path name to the data subdirectory.
+ //! If the class was constructed with a path name, this method
+ //! returns the basename of the path name, with any file extensions
+ //! removed, and "_data" appended. If the class
+ //! was not constructed with a path name, an empty string is returned
+ //! \retval dirname : parent directory or an empty string
+ //
+ const string &GetDataDirName() const { return (_dataDirName); }
+
+ int ConstructFullVBase(size_t ts, const string &var, string *path) const;
+ int ConstructFullAuxBase(size_t ts, string *path) const;
 
  //! Write the metadata object to a file
  //!
@@ -869,9 +881,9 @@ private:
  int	_numTransforms;		// Number of wavelet transforms
  int	_msbFirst;			// Most Significant Byte First storage order
  int	_vdfVersion;		// VDF file version number
- char	*_metafileDirName;	// path to metafile parent directory
- char	*_metafileName;		// basename of path to metafile 
- int	_relativePath;		// boolean : 1 => use relative path names to data
+ string	_metafileDirName;	// path to metafile parent directory
+ string	_metafileName;		// basename of path to metafile 
+ string _dataDirName;		// basename of path to data directory
 
  vector <double>	_emptyDoubleVec;
  vector <long>		_emptyLongVec;

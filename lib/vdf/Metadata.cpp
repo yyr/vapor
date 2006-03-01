@@ -102,7 +102,6 @@ int Metadata::_init(
 	_nLiftingCoef = nLiftingCoef;
 	_msbFirst = msbFirst;
 	_vdfVersion = vdfVersion;
-	_relativePath = 1;
 
 	_varNames.clear();
 
@@ -182,8 +181,9 @@ Metadata::Metadata(
 	);
 
 	_rootnode = NULL;
-	_metafileDirName = NULL;
-	_metafileName = NULL;
+	_metafileDirName.clear();
+	_metafileName.clear();
+	_dataDirName.clear();
 
 	if (_init(dim, numTransforms, bs, nFilterCoef, nLiftingCoef, msbFirst, vdfVersion) < 0){
 		return;
@@ -208,12 +208,23 @@ Metadata::Metadata(const string &path) {
 		return;
 	}
 
-	_metafileDirName = new char[path.length()+1];
-	_metafileName = new char[path.length()+1];
-
 	// Get directory path of metafile
-	_metafileDirName = Dirname(path.c_str(), _metafileDirName);
-	strcpy(_metafileName, Basename(path.c_str()));
+	char *s = new char[path.length() +1];
+	(void) Dirname(path.c_str(), s);
+	_metafileDirName.assign(s);
+	delete [] s;
+	_metafileName.assign(Basename(path.c_str()));
+
+	// Create data directory base name
+	//
+	size_t p = _metafileName.find_first_of(".");
+	if (p != string::npos) {
+		_dataDirName = _metafileName.substr(0, p);
+	}
+	else {
+		_dataDirName = _metafileName;
+	}
+	_dataDirName.append("_data");
 
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
 	parseMgr->parse(is);
@@ -228,8 +239,6 @@ Metadata::~Metadata() {
 
 
 	if (_rootnode) delete _rootnode;
-    if (_metafileDirName) delete [] _metafileDirName;
-    if (_metafileName) delete [] _metafileName;
 
 	_objInitialized = 0;
 }
@@ -251,7 +260,7 @@ int Metadata::Merge(const Metadata *metadata, size_t ts_start) {
 	const size_t *mdim = metadata->GetDimension();
 
 	for(int i=0; i<3; i++) {
-		if (bs[i] != mbs[i]) {
+		if (dim[i] != mdim[i]) {
 			SetErrMsg("Merge failed: dimension mismatch");
 			return(-1);
 		}
@@ -311,26 +320,19 @@ int Metadata::Merge(const Metadata *metadata, size_t ts_start) {
 	}
 
 	// Push the variables next, replacing the current path names with 
-	// absolute paths from the new Metadata object.
+	// **absolute** paths from the new Metadata object.
 	//
-	const char *mparentstr = metadata->GetParentDir();
-	string parent;
-	for (long i = 0; i < mts; i++) {
+	for (size_t ts = 0; ts < mts; ts++) {
 
-		for (int j=0; j<mvarnames.size(); j++) {
+		for (int i=0; i<mvarnames.size(); i++) {
 
-			const string base = metadata->GetVBasePath(i, mvarnames[j]);
+			string base;
 
-			if (base[0] == '/') {
-				parent.assign(base);
-			}
-			else {
-				parent.assign(mparentstr);
-				parent.append("/");
-				parent.append(base);
+			if (metadata->ConstructFullVBase(ts, mvarnames[i], &base) < 0) {
+				return (-1);
 			}
 
-			int rc = this->SetVBasePath(i+ts_start, mvarnames[j], parent);
+			int rc = this->SetVBasePath(i+ts_start, mvarnames[i], base);
 			if (rc < 0) return(-1);
 		}
 	}
@@ -348,21 +350,86 @@ int Metadata::Merge(const string &path, size_t ts_start) {
 	return(Merge(metadata, ts_start));
 } 
 
+int Metadata::ConstructFullVBase(
+	size_t ts, const string &var, string *path
+) const {
+
+	path->clear();
+
+    const string &bp = GetVBasePath(ts, var);
+    if (GetErrCode() != 0 || bp.length() == 0) {
+        return (-1);
+    }
+
+	if (bp[0] == '/') {
+		path->assign(bp);
+		return(0);
+	}
+
+	path->assign(GetParentDir());
+	path->append("/");
+
+	path->append(GetDataDirName());
+	path->append("/");
+
+	path->append(bp);
+
+	return(0);
+}
+
+int Metadata::ConstructFullAuxBase(
+	size_t ts, string *path
+) const {
+
+	path->clear();
+
+    const string &bp = GetTSAuxBasePath(ts);
+    if (GetErrCode() != 0 || bp.length() == 0) {
+        return (-1);
+    }
+
+	if (bp[0] == '/') {
+		path->assign(bp);
+		return(0);
+	}
+
+	path->assign(GetParentDir());
+	path->append("/");
+
+	path->append(GetDataDirName());
+	path->append("/");
+
+	path->append(bp);
+
+	return(0);
+}
 
 int Metadata::Write(const string &path, int relative_path) {
 
 	SetDiagMsg("Metadata::Write(%s)", path.c_str());
 
-	_relativePath = relative_path;
 
 	// 
 	// This is an ugly hack to handle absolute path names
 	//
-	if (! _relativePath) {
+	if (! relative_path) {
 		size_t numTS = _rootnode->GetNumChildren();
 
-		for(size_t i = 0; i<numTS; i++) {
-			if (_SetVariableNames(_rootnode->GetChild(i), (long)i) < 0) return(-1);
+		for(size_t ts = 0; ts<numTS; ts++) {
+			XmlNode *node = _rootnode->GetChild(ts);
+			int n = node->GetNumChildren();
+
+			for (size_t i = 0; i < n; i++) {
+				XmlNode *var = node->GetChild(i);
+
+				string base = var->GetElementString(_basePathTag);
+				if (base[0] != '/') {
+					if (ConstructFullVBase(ts, var->Tag(), &base) < 0) {
+						return(-1);
+					}
+				}
+			}
+
 		}
 	}
 
@@ -503,18 +570,6 @@ int Metadata::_SetVariableNames(XmlNode *node, long ts) {
 		XmlNode *var = node->GetChild(i);
 		var->Tag() = _varNames[i]; // superfluous if a new variable
 		oss.str(empty);
-		if (! _relativePath && GetMetafileName() && GetParentDir()) {
-			string s = GetMetafileName();
-			string t;
-			size_t p = s.find_first_of(".");
-			if (p != string::npos) {
-				t = s.substr(0, p);
-			}
-			else {
-				t = s;
-			}
-			oss << GetParentDir() << "/" << t << "_data/";
-		}
 
 		oss << _varNames[i].c_str() << "/" << _varNames[i].c_str();
 		oss << ".";
