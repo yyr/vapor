@@ -208,6 +208,7 @@ int	AMRIO::TreeRead(AMRTree *tree) {
 
 	TIMER_START(t0)
 	int rc = tree->Read(_treeFileName);
+cerr << "This max ref level " << tree->GetRefinementLevel() << endl;
 	TIMER_STOP(t0,_read_timer)
 	return(rc);
 }
@@ -415,36 +416,11 @@ int AMRIO::mkpath(size_t timestep, const char *varname, string *path) {
 
 	path->clear();
 
-	const string &bp = _metadata->GetVBasePath(timestep, varname);
-	if (_metadata->GetErrCode() != 0 || bp.length() == 0) {
+	if (_metadata->ConstructFullVBase(timestep, varname, path) < 0) {
 		_metadata->SetErrCode(0);
 		return (-1);
 	}
 
-	// Path to variable file is relative to xml file, if it exists
-	if (_metadata->GetParentDir() && bp[0] != '/') {
-		path->append(_metadata->GetParentDir());
-		path->append("/");
-	}
-
-	// Path to variable file is relative to xml file, if it exists
-	if (_metadata->GetMetafileName() && bp[0] != '/') {
-		string s = _metadata->GetMetafileName();
-		string t;
-		size_t p = s.find_first_of(".");
-		if (p != string::npos) {
-			t = s.substr(0, p);
-		}
-		else {
-			t = s;
-		}
-		path->append(t);
-		path->append("_data");
-		path->append("/");
-
-    }
-	
-	path->append(bp);
 	path->append(".nc");
 
 	return(0);
@@ -459,31 +435,11 @@ int AMRIO::mkpath(size_t timestep, string *path) {
 		_metadata->SetErrCode(0);
 		return(-1);
 	}
-
-	// Path to octree file is relative to xml file, if it exists
-	if (_metadata->GetParentDir() && bp[0] != '/') {
-		path->append(_metadata->GetParentDir());
-		path->append("/");
+	if (_metadata->ConstructFullAuxBase(timestep, path) < 0) {
+		_metadata->SetErrCode(0);
+		return (-1);
 	}
 
-	// Path to octree file is relative to xml file, if it exists
-	if (_metadata->GetMetafileName() && bp[0] != '/') {
-		string s = _metadata->GetMetafileName();
-		string t;
-		size_t p = s.find_first_of(".");
-		if (p != string::npos) {
-			t = s.substr(0, p);
-		}
-		else {
-			t = s;
-		}
-		path->append(t);
-		path->append("_data");
-		path->append("/");
-
-    }
-
-	path->append(bp);
 	path->append(".amr");
 	return(0);
 }
