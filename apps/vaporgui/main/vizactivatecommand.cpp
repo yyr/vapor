@@ -159,8 +159,8 @@ void VizActivateCommand::cloneStateParams(VizWin* win, int viznum){
 		animationParams = (AnimationParams*)vizWinMgr->getRealAnimationParams(viznum)->deepCopy();
 	else {animationParams = 0;}
 	
-	isoParams = (IsosurfaceParams*)vizWinMgr->getRealIsoParams(viznum)->deepCopy();
-	contourParams = (ContourParams*)vizWinMgr->getRealContourParams(viznum)->deepCopy();
+	//isoParams = (IsosurfaceParams*)vizWinMgr->getRealIsoParams(viznum)->deepCopy();
+	//contourParams = (ContourParams*)vizWinMgr->getRealContourParams(viznum)->deepCopy();
 	dvrParams = (DvrParams*)vizWinMgr->getRealDvrParams(viznum)->deepCopy();
 	probeParams = (ProbeParams*)vizWinMgr->getRealProbeParams(viznum)->deepCopy();
 	if(win) backgroundColor = win->getBackgroundColor();

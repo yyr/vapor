@@ -134,9 +134,9 @@ createGlobalParams() {
 	globalRegionParams = new RegionParams( -1);
 	globalDvrParams = new DvrParams( -1);
 	globalProbeParams = new ProbeParams(-1);
-	globalIsoParams = new IsosurfaceParams( -1);
+	//globalIsoParams = new IsosurfaceParams( -1);
 	globalFlowParams = new FlowParams(-1);
-	globalContourParams = new ContourParams( -1);
+	//globalContourParams = new ContourParams( -1);
 	globalAnimationParams = new AnimationParams( -1);
 	globalTrackball = new Trackball();
 }
@@ -329,20 +329,20 @@ createDefaultParams(int winnum){
 	probeParams[winnum]->setLocal(true);
 	probeParams[winnum]->setEnabled(false);
 	
-	isoParams[winnum] = (IsosurfaceParams*)globalIsoParams->deepCopy();
-	isoParams[winnum]->setVizNum(winnum);
-	isoParams[winnum]->setLocal(true);
-	isoParams[winnum]->setEnabled(false);
+	//isoParams[winnum] = (IsosurfaceParams*)globalIsoParams->deepCopy();
+	//isoParams[winnum]->setVizNum(winnum);
+	//isoParams[winnum]->setLocal(true);
+	//isoParams[winnum]->setEnabled(false);
 
 	flowParams[winnum] = (FlowParams*)globalFlowParams->deepCopy();
 	flowParams[winnum]->setVizNum(winnum);
 	flowParams[winnum]->setLocal(true);
 	flowParams[winnum]->setEnabled(false);
 
-	contourParams[winnum] = (ContourParams*)globalContourParams->deepCopy();
-	contourParams[winnum]->setVizNum(winnum);
-	contourParams[winnum]->setLocal(true);
-	contourParams[winnum]->setEnabled(false);
+	//contourParams[winnum] = (ContourParams*)globalContourParams->deepCopy();
+	//contourParams[winnum]->setVizNum(winnum);
+	//contourParams[winnum]->setLocal(true);
+	//contourParams[winnum]->setEnabled(false);
 
 	assert(0==vpParams[winnum]);
 	vpParams[winnum] = (ViewpointParams*)globalVPParams->deepCopy();
@@ -507,8 +507,8 @@ updateActiveParams(){
 	getRegionParams(activeViz)->updateDialog();
 	getDvrParams(activeViz)->updateDialog();
 	getProbeParams(activeViz)->updateDialog();
-	getContourParams(activeViz)->updateDialog();
-	getIsoParams(activeViz)->updateDialog();
+	//getContourParams(activeViz)->updateDialog();
+	//getIsoParams(activeViz)->updateDialog();
 	getFlowParams(activeViz)->updateDialog();
 	getAnimationParams(activeViz)->updateDialog();
 }
@@ -2461,18 +2461,18 @@ restartParams(){
 		if(rgParams[i]) rgParams[i]->restart();
 		if(dvrParams[i]) dvrParams[i]->restart();
 		if(probeParams[i]) probeParams[i]->restart();
-		if(isoParams[i]) isoParams[i]->restart();
+		//if(isoParams[i]) isoParams[i]->restart();
 		if(flowParams[i]) flowParams[i]->restart();
-		if(contourParams[i]) contourParams[i]->restart();
+		//if(contourParams[i]) contourParams[i]->restart();
 		if(animationParams[i]) animationParams[i]->restart();
 	}
 	globalVPParams->restart();
 	globalRegionParams->restart();
-	globalIsoParams->restart();
+	//globalIsoParams->restart();
 	globalFlowParams->restart();
 	globalDvrParams->restart();
 	globalProbeParams->restart();
-	globalContourParams->restart();
+	//globalContourParams->restart();
 	globalAnimationParams->restart();
 }
 // force all the existing params to reinitialize, i.e. make minimal
@@ -2487,20 +2487,20 @@ reinitializeParams(bool doOverride){
 	//the global region params, since they use its settings..
 	//
 	globalVPParams->reinit(doOverride);
-	globalIsoParams->reinit(doOverride);
+	//globalIsoParams->reinit(doOverride);
 	globalFlowParams->reinit(doOverride);
 	globalDvrParams->reinit(doOverride);
 	globalProbeParams->reinit(doOverride);
-	globalContourParams->reinit(doOverride);
+	//globalContourParams->reinit(doOverride);
 	globalAnimationParams->reinit(doOverride);
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if(vpParams[i]) vpParams[i]->reinit(doOverride);
 		if(rgParams[i]) rgParams[i]->reinit(doOverride);
 		if(dvrParams[i]) dvrParams[i]->reinit(doOverride);
 		if(probeParams[i]) probeParams[i]->reinit(doOverride);
-		if(isoParams[i]) isoParams[i]->reinit(doOverride);
+		//if(isoParams[i]) isoParams[i]->reinit(doOverride);
 		if(flowParams[i]) flowParams[i]->reinit(doOverride);
-		if(contourParams[i]) contourParams[i]->reinit(doOverride);
+		//if(contourParams[i]) contourParams[i]->reinit(doOverride);
 		if(animationParams[i]) animationParams[i]->reinit(doOverride);
 		//setup near/far
 		if (vpParams[i] && rgParams[i]) vizWin[i]->getGLWindow()->resetView(getRegionParams(i), getViewpointParams(i));
