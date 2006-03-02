@@ -360,8 +360,11 @@ int Metadata::ConstructFullVBase(
     if (GetErrCode() != 0 || bp.length() == 0) {
         return (-1);
     }
-
+#ifdef WIN32
+	if (bp[1] == ':' && bp[2] == '/') {
+#else
 	if (bp[0] == '/') {
+#endif
 		path->assign(bp);
 		return(0);
 	}
