@@ -315,8 +315,10 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	regionSelectAction->addTo(modeToolBar);
 	rakeAction->addTo(modeToolBar);
 	probeAction->addTo(modeToolBar);
-	contourAction->addTo(modeToolBar);
-	moveLightsAction->addTo(modeToolBar);
+
+	//Leave off the following two:
+	//contourAction->addTo(modeToolBar);
+	//moveLightsAction->addTo(modeToolBar);
 	
 
 	tileAction->addTo(vizToolBar);
@@ -473,8 +475,10 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	//global params.
 	Session::getInstance()->blockRecording();
 	
-	calcIsosurface();
-	contourPlanes();
+	//Save these until implemented:
+	//calcIsosurface();
+	//contourPlanes();
+
 	animationParams();
 	viewpoint();
 	region();
