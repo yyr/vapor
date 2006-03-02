@@ -235,43 +235,29 @@ void TFFrame::paintEvent(QPaintEvent* ){
 	if (prevX < tf->getMinMapValue()){
 		//Find out what xcoord maps to minMapValue:
 		nextIntX = editor->mapVar2Win(tf->getMinMapValue(),false);
-		painter.drawLine(prevIntX, height()-BELOWOPACITY, nextIntX, height()-BELOWOPACITY);
+		//find first y-coord in transfer function:
+		int dummyx;
+		editor->getOpacControlPointPosition(prevIndex+1, &dummyx, &prevIntY);
+		painter.drawLine(prevIntX,prevIntY,nextIntX,prevIntY);
 		prevIntX=nextIntX;
+	} else { //In this case domain starts before left edge.
+		//map the left window edge x coord
+		prevIntY = editor->mapOpac2Win(prevY,true);
 	}
 	for (i = prevIndex + 1; i< editor->getNumOpacControlPoints(); i++) {
 		if (atEnd) break;
 		//Test if next point is still in interval
 		editor->getOpacControlPointPosition(i, &nextIntX, &nextIntY);
 		if (nextIntX > lastX){
-			//draw horizontally to the right limit, then draw 0 to 
+			//draw horizontally to the right limit, then draw same y to 
 			//end of window.
 			if(prevIntX < width()-1){
 				painter.drawLine(prevIntX, prevIntY, lastX, prevIntY);
 			}
 			prevIntX = lastX;
 			nextIntX = width()-1;
-			nextIntY = height() -BELOWOPACITY;
-			prevIntY = nextIntY;
-			//Check if this is the "last" control point;
-			//If so, draw horizontally to edge of edit region, then
-			//draw zero to the right margin.
-			/*
-			if (i == editor->getNumOpacControlPoints()-1){
-				if(prevIntX < width()-1){
-					painter.drawLine(prevIntX, prevIntY, lastX, prevIntY);
-				}
-				nextIntX = width();
-				nextIntY = height() -BELOWOPACITY;
-				prevIntY = nextIntY;
-			}
-			//Otherwise interpolate to right edge.
-			else {
-				float nextX = editor->mapWin2Var(width()-1);
-				float nextY = tf->opacityValue(nextX);
-				nextIntX = width()-1;
-				nextIntY = (int)((1.f - nextY)*(height() -BELOWOPACITY + 0.5f));
-			}
-			*/
+			nextIntY = prevIntY;
+			
 			atEnd = 1;
 		}
 		painter.drawLine(prevIntX, prevIntY, nextIntX, nextIntY);

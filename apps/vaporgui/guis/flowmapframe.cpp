@@ -211,12 +211,18 @@ void FlowMapFrame::paintEvent(QPaintEvent* ){
 	int prevIntY = (int)((1.f - prevY)*(height() -BELOWOPACITY + 0.5f));
 	int nextIntX, nextIntY;
 	int lastX = editor->mapOpacVar2Win(tf->getMaxOpacMapValue());
-	//Draw a curve on the x-axis before domain start:
+	//Draw a horizontal curve before domain start:
 	if (prevX < tf->getMinOpacMapValue()){
 		//Find out what xcoord maps to minMapValue:
 		nextIntX = editor->mapOpacVar2Win(tf->getMinOpacMapValue(),false);
-		painter.drawLine(prevIntX, height()-BELOWOPACITY, nextIntX, height()-BELOWOPACITY);
+		//find first y-coord in transfer function:
+		int dummyx;
+		editor->getOpacControlPointPosition(prevIndex+1, &dummyx, &prevIntY);
+		painter.drawLine(prevIntX,prevIntY,nextIntX,prevIntY);
 		prevIntX=nextIntX;
+	} else { //In this case domain starts before left edge.
+		//map the left window edge x coord
+		prevIntY = editor->mapOpac2Win(prevY,true);
 	}
 	for (i = prevIndex + 1; i< editor->getNumOpacControlPoints(); i++) {
 		if (atEnd) break;
@@ -230,28 +236,8 @@ void FlowMapFrame::paintEvent(QPaintEvent* ){
 			}
 			prevIntX = lastX;
 			nextIntX = width()-1;
-			nextIntY = height() -BELOWOPACITY;
-			prevIntY = nextIntY;
-			//Check if this is the "last" control point;
-			//If so, draw horizontally to edge of edit region, then
-			//draw zero to the right margin.
-			/*
-			if (i == editor->getNumOpacControlPoints()-1){
-				if(prevIntX < width()-1){
-					painter.drawLine(prevIntX, prevIntY, lastX, prevIntY);
-				}
-				nextIntX = width();
-				nextIntY = height() -BELOWOPACITY;
-				prevIntY = nextIntY;
-			}
-			//Otherwise interpolate to right edge.
-			else {
-				float nextX = editor->mapWin2Var(width()-1);
-				float nextY = tf->opacityValue(nextX);
-				nextIntX = width()-1;
-				nextIntY = (int)((1.f - nextY)*(height() -BELOWOPACITY + 0.5f));
-			}
-			*/
+			nextIntY = prevIntY;
+			
 			atEnd = 1;
 		}
 		painter.drawLine(prevIntX, prevIntY, nextIntX, nextIntY);
