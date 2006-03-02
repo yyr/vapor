@@ -631,6 +631,10 @@ int AMRTreeBranch::SetParentTable(const vector <long> &table) {
 	}
 	ref_level[0] += 1;
 
+cerr << "SetParentTable this, ref " << this << " " << &ref_level << endl;
+cerr << "ref_level[0] = " <<  ref_level[0] << endl;
+cerr << "GetRef = " <<  GetRefinementLevel() << endl;
+
 	int nparents = parent_table.size() / SZ;
 
 	_numNodes = (nparents + 1) * NREGIONS;

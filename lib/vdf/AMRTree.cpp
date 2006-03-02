@@ -132,6 +132,7 @@ AMRTree::AMRTree(
     SetDiagMsg("AMRTree::AMRTree()");
 
 	_objIsInitialized = 0;
+#ifdef	DEAD
 	size_t basedim[] = {1,1,1};
 	double min[] = {0.0, 0.0, 0.0};
 	double max[] = {1.0, 1.0, 1.0};
@@ -139,6 +140,7 @@ AMRTree::AMRTree(
 	if (_AMRTree(basedim, min, max) < 0) return;
 
 	_objIsInitialized = 1;
+#endif
 }
 
 AMRTree::AMRTree(
@@ -228,7 +230,7 @@ AMRTree::~AMRTree() {
 	}
 
 	if (_rootNode) delete _rootNode;
-	delete _rootNode;
+	_rootNode = NULL;
 
 	_objIsInitialized = 0;
 }
@@ -402,6 +404,9 @@ int AMRTree::GetRefinementLevel(
 	for (int y = min[1]; y <= max[1]; y++) {
 	for (int x = min[0]; x <= max[0]; x++) {
 		int	index = (_baseDim[1] * _baseDim[0] * z) + (_baseDim[0] * y) + x;
+
+
+cerr << "Refionement level for index " << index << " " << _treeBranches[index]->GetRefinementLevel() << endl;
 		if (_treeBranches[index]->GetRefinementLevel() > maxlevel) {
 			maxlevel = _treeBranches[index]->GetRefinementLevel();
 		}
@@ -577,6 +582,7 @@ int	AMRTree::Read(
 
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
 	parseMgr->parse(is);
+cerr << "More of this max ref level " << GetRefinementLevel() << endl;
 	delete parseMgr;
 
 	if (ExpatParseMgr::GetErrCode() != 0) return(-1);

@@ -580,7 +580,7 @@ int AMRData::ReadNCDF(
 		float *data = _treeData[index];
 
         size_t start[] = {n,0,0,0};
-        size_t count[] = {n,_cellDim[2],_cellDim[1],_cellDim[0]};
+        size_t count[] = {branch_nodes,_cellDim[2],_cellDim[1],_cellDim[0]};
 
         rc = nc_get_vars_float(ncid, varid, start, count, NULL, data);
 
