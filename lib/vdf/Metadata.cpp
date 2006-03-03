@@ -266,6 +266,12 @@ int Metadata::Merge(const Metadata *metadata, size_t ts_start) {
 		}
 	}
 
+	if (this->GetVDFVersion() < 2 || metadata->GetVDFVersion() < 2) {
+		SetErrMsg("Pre version 2 vdf files not supported");
+		return(-1);
+	}
+		
+
 	if (this->GetFilterCoef() != metadata->GetFilterCoef()) {
 		SetErrMsg("Merge failed: filter coefficient mismatch");
 		return(-1);
@@ -332,7 +338,7 @@ int Metadata::Merge(const Metadata *metadata, size_t ts_start) {
 				return (-1);
 			}
 
-			int rc = this->SetVBasePath(i+ts_start, mvarnames[i], base);
+			int rc = this->SetVBasePath(ts+ts_start, mvarnames[i], base);
 			if (rc < 0) return(-1);
 		}
 	}
@@ -430,7 +436,16 @@ int Metadata::Write(const string &path, int relative_path) {
 					if (ConstructFullVBase(ts, var->Tag(), &base) < 0) {
 						return(-1);
 					}
+					var->SetElementString(_basePathTag, base);
 				}
+			}
+
+			string base = node->GetElementString(_auxBasePathTag);
+			if (base[0] != '/') {
+				if (ConstructFullAuxBase(ts, &base) < 0) {
+					return(-1);
+				}
+				node->SetElementString(_auxBasePathTag, base);
 			}
 
 		}
