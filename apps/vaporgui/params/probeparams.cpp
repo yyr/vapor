@@ -593,6 +593,7 @@ guiAttachSeed(bool attach, FlowParams* fParams){
 //Respond to an update of the variable listbox.  set the appropriate bits
 void ProbeParams::
 guiChangeVariables(){
+	
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "change probe-selected variable(s)");
 	int firstVar = -1;
@@ -608,7 +609,6 @@ guiChangeVariables(){
 	}
 	//If nothing is selected, select the first one:
 	if (firstVar == -1) {
-		myProbeTab->variableListBox->setSelected(0, true);
 		firstVar = 0;
 		numSelected = 1;
 	}
