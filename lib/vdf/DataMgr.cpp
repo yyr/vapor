@@ -408,6 +408,37 @@ const float	*DataMgr::GetDataRange(
 	rc = _regionReader->OpenVariableRead(ts, varname, 0);
 	if (rc < 0) return (NULL);
 
+	// Ugh! For AMR data we have to read some data to get the
+	// range. i.e. simply opening the file doesn't provide
+	// the range info.
+	//
+	if (_metadata->GetGridType().compare("block_amr") == 0) {
+		AMRIO *amrio = (AMRIO *) _regionReader;
+		AMRTree amrtree;
+
+		rc = amrio->OpenTreeRead(ts);
+		if (rc < 0) return (NULL);
+
+		rc = amrio->TreeRead(&amrtree);
+		if (rc < 0) return (NULL);
+		(void) amrio->CloseTree();
+
+		//
+		// Read in small amount of AMR field data
+		//
+		const size_t *bs = _metadata->GetBlockSize();
+		size_t minbase[3] = {0,0,0};
+		size_t maxbase[3] = {1,1,1};
+		AMRData amrdata(&amrtree, bs, minbase, maxbase, 0);
+
+		if (AMRData::GetErrCode() != 0)  return(NULL);
+
+		rc = amrio->VariableRead(&amrdata);
+		if (rc < 0) return (NULL);
+
+		(void) amrio->CloseVariable();
+	}
+
 	const float *r = _regionReader->GetDataRange();
 
 

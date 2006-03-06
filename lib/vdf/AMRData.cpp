@@ -430,6 +430,8 @@ int AMRData::WriteNCDF(
 	}
 	}
 
+	nc_close(ncid);
+
 	return(0);
 }
 
@@ -594,6 +596,8 @@ int AMRData::ReadNCDF(
 	}
 	}
 	}
+
+	nc_close(ncid);
 
 	return(0);
 
