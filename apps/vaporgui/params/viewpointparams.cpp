@@ -568,8 +568,11 @@ getFarNearDist(RegionParams* rParams, float* fr, float* nr){
 		if (maxProj < 2.f*minProj) maxProj = 2.f*minProj;
 
 	}
-	*fr = maxProj;
-	*nr = minProj;
+	//Now these coords must be stretched based on cube coord system extents
+	float maxCoord = Max((maxCubeCoord[0],maxCubeCoord[1]),maxCubeCoord[2]);
+
+	*fr = maxProj/maxCoord;
+	*nr = minProj/maxCoord;
 }
 
 
