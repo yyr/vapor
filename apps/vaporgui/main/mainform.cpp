@@ -745,6 +745,8 @@ void MainForm::saveMetadata()
 		if (rc < 0)MessageReporter::errorMsg( "Unable to save metadata file:\n %s", filename.ascii());
 		else {
 			Session::getInstance()->setMetadataSaved(true);
+			//Save the metadata file name
+			Session::getInstance()->getMetadataFile() = filename.ascii();
 		}
 		return;
 	}
