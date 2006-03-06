@@ -892,7 +892,10 @@ void MainForm::loadData()
 		"Load Metadata Dialog",
 		"Choose the Metadata File to load into current session");
 	if(filename != QString::null){
-		Session::getInstance()->resetMetadata(filename.ascii(), false);
+		QFileInfo fInfo(filename);
+		if (fInfo.isReadable() && fInfo.isFile())
+			Session::getInstance()->resetMetadata(filename.ascii(), false);
+		else MessageReporter::errorMsg(" %s is not a valid metadata file", filename.ascii());
 	}
 	
 }
