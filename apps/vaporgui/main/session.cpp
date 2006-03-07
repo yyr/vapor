@@ -467,12 +467,19 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 //
 void Session::
 exportData(){
+	//Make sure the current vdf is version 2.0 or greater:
+	
 	ImpExp exporter;
 	//Note:  will export data associated with current active visualizer
 	VizWinMgr* winMgr = VizWinMgr::getInstance();
 	int winNum = winMgr->getActiveViz();
 	if (winNum < 0 || (currentMetadata == 0)){
 		MessageReporter::errorMsg("%s","Export data error;\nExporting data requires loaded data and active visualizer");
+		return;
+	}
+	int ver = currentMetadata->GetVDFVersion();
+	if (ver < 2) {
+		MessageReporter::errorMsg("Export of pre-version-2 metadata not supported");
 		return;
 	}
 	//Set up arguments to Export():
@@ -521,7 +528,7 @@ exportData(){
  * not reloaded.  
  */
 bool Session::
-resetMetadata(const char* fileBase, bool restoredSession, bool doMerge)
+resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int mergeOffset)
 {
 	int i;
 	//This is a flag used by renderers to avoid rendering while state
@@ -531,7 +538,8 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge)
 	bool defaultSession = (fileBase == 0);
 	if (restoredSession) assert(defaultSession);
 	//The metadata is created by (and obtained from) the datamgr
-	if (!defaultSession) currentMetadataFile = fileBase;
+	//Don't update the currentMetadataFile if we are doing a merge
+	if (!defaultSession && !doMerge) currentMetadataFile = fileBase;
 	
 	//If we don't already have a dataMgr, we can't really be merging:
 	if (!dataMgr) {
@@ -560,7 +568,9 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge)
 			//keep dataMgr, do a merge:
 			//Need a non-const pointer to the metadata, since we will modify it:
 			Metadata* md= (Metadata*)currentMetadata;
-			int rc = md->Merge(currentMetadataFile,0);
+			size_t offset = (size_t) mergeOffset;
+			//Use the fileBase, not the currentMetadataFile for the merge.
+			int rc = md->Merge(fileBase,offset);
 			if (rc < 0) return false;
 			dataMgr = new DataMgr(currentMetadata, cacheMB, 1);
 		}

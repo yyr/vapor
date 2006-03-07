@@ -1362,6 +1362,27 @@ animationParamsChanged(AnimationParams* aParams){
 		}
 	}
 }
+
+//Reset the near/far distances for all the windows that
+//share a viewpoint, based on region in specified regionparams
+//
+void VizWinMgr::
+resetViews(RegionParams* rp, ViewpointParams* vp){
+	int vizNum = vp->getVizNum();
+	if (vizNum>=0) {
+		GLWindow* glw = vizWin[vizNum]->getGLWindow();
+		if(glw) glw->resetView(rp, vp);
+	}
+	if(vp->isLocal()) return;
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  ( vizWin[i] && (i != vizNum)  &&
+				((!vpParams[i])||!vpParams[i]->isLocal())
+			){
+			GLWindow* glw = vizWin[i]->getGLWindow();
+			if(glw) glw->resetView(rp, vp);
+		}
+	}
+}
 //Cause one or more visualizers to start play-animating, depending on
 //whether or not animation params are shared.
 void VizWinMgr::startPlay(AnimationParams* aParams){

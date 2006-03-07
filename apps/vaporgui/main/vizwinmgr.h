@@ -233,6 +233,10 @@ public:
 	//for all the associated windows.
 	//
 	void animationParamsChanged(AnimationParams* );
+	//Reset the near/far distances for all the windows that
+	//share a viewpoint, based on region in specified regionparams
+	//
+	void resetViews(RegionParams* rp, ViewpointParams* vp);
 	//Change to play state for the specified renderers:
 	//
 	void startPlay(AnimationParams* aParams);

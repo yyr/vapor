@@ -47,11 +47,13 @@
 #include <qcolordialog.h>
 #include <qstatusbar.h>
 #include <qlabel.h>
+#include <qspinbox.h>
 
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "setoffset.h"
 #include "vizwin.h"
 #include "isotab.h"
 #include "flowtab.h"
@@ -913,7 +915,17 @@ void MainForm::mergeData()
 		"Merge Metadata Data Dialog",
 		"Choose the Metadata File to merge into current session");
 	if(filename != QString::null){
-		if (!Session::getInstance()->resetMetadata(filename.ascii(), false, true)){
+		//Check on the timestep offset:
+		int defaultOffset = 0;
+		SetOffsetDialog* sDialog = new SetOffsetDialog(this, 0, true);
+		int activeWinNum = VizWinMgr::getInstance()->getActiveViz();
+		if (activeWinNum >= 0){
+			defaultOffset = VizWinMgr::getInstance()->getAnimationParams(activeWinNum)->getCurrentFrameNumber();
+		}
+		sDialog->timestepOffsetSpin->setValue(defaultOffset);
+		if (sDialog->exec() != QDialog::Accepted) return;
+		int offset = sDialog->timestepOffsetSpin->value();
+		if (!Session::getInstance()->resetMetadata(filename.ascii(), false, true, offset)){
 			MessageReporter::errorMsg("Unsuccessful metadata merge of %s",filename.ascii());
 		}
 	} else MessageReporter::errorMsg("Unable to open %s",filename.ascii());

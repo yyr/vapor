@@ -195,7 +195,7 @@ public:
 	//Setup session for a new Metadata, by specifying vdf file
 	//If the argument is null, it resets to default state
 	//
-	bool resetMetadata(const char* vmfile, bool restoringSession, bool isMerged = false);
+	bool resetMetadata(const char* vmfile, bool restoringSession, bool isMerged = false, int mergeOffset = 0);
 	
 	void setMetadataSaved(bool isSaved) { metadataSaved = isSaved;}
 	bool metadataIsSaved() {return metadataSaved;}
