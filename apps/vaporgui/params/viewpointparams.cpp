@@ -297,7 +297,7 @@ guiCenterSubRegion(RegionParams* rParams){
 		setRotationCenter(i,rParams->getRegionCenter(i));
 	}
 	//modify near/far distance as needed:
-	VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->resetView(rParams,this);
+	VizWinMgr::getInstance()->resetViews(rParams,this);
 	updateDialog();
 	updateRenderer(false, false, false);
 	PanelCommand::captureEnd(cmd,this);
@@ -312,7 +312,7 @@ guiCenterFullRegion(RegionParams* rParams){
 	PanelCommand* cmd = PanelCommand::captureStart(this, "center full region view");
 	centerFullRegion(rParams);
 	//modify near/far distance as needed:
-	VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->resetView(rParams,this);
+	VizWinMgr::getInstance()->resetViews(rParams,this);
 	updateDialog();
 	updateRenderer(false, false, false);
 	PanelCommand::captureEnd(cmd,this);

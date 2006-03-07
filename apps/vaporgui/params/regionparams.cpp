@@ -310,12 +310,7 @@ refreshRegionInfo(){
 
 	//For now, the min and max var extents are the whole thing:
 
-	myRegionTab->minVarXLabel->setText(QString::number(fullDataExtents[0],'g',5));
-	myRegionTab->minVarYLabel->setText(QString::number(fullDataExtents[1],'g',5));
-	myRegionTab->minVarZLabel->setText(QString::number(fullDataExtents[2],'g',5));
-	myRegionTab->maxVarXLabel->setText(QString::number(fullDataExtents[3],'g',5));
-	myRegionTab->maxVarYLabel->setText(QString::number(fullDataExtents[4],'g',5));
-	myRegionTab->maxVarZLabel->setText(QString::number(fullDataExtents[5],'g',5));
+	
 
 	myRegionTab->minXSelectedLabel->setText(QString::number(regionMin[0],'g',5));
 	myRegionTab->minYSelectedLabel->setText(QString::number(regionMin[1],'g',5));
@@ -362,16 +357,34 @@ refreshRegionInfo(){
 	myRegionTab->maxZVoxFullLabel->setText(QString::number(max_dim[2]));
 
 	//Find the variable voxel limits:
+	size_t min_vdim[3], max_vdim[3];
+	
+	double var_ext[6];
 	int rc = -1;
 	if (refLevel <= maxRefLevel && ses->getDataMgr())
-		rc = ses->getDataMgr()->GetValidRegion(timeStep, varName.c_str(),refLevel, min_dim, max_dim);
+		rc = ses->getDataMgr()->GetValidRegion(timeStep, varName.c_str(),refLevel, min_vdim, max_vdim);
 	if (rc>= 0)	{
-		myRegionTab->minXVoxVarLabel->setText(QString::number(min_dim[0]));
-		myRegionTab->minYVoxVarLabel->setText(QString::number(min_dim[1]));
-		myRegionTab->minZVoxVarLabel->setText(QString::number(min_dim[2]));
-		myRegionTab->maxXVoxVarLabel->setText(QString::number(max_dim[0]));
-		myRegionTab->maxYVoxVarLabel->setText(QString::number(max_dim[1]));
-		myRegionTab->maxZVoxVarLabel->setText(QString::number(max_dim[2]));
+		myRegionTab->minXVoxVarLabel->setText(QString::number(min_vdim[0]));
+		myRegionTab->minYVoxVarLabel->setText(QString::number(min_vdim[1]));
+		myRegionTab->minZVoxVarLabel->setText(QString::number(min_vdim[2]));
+		myRegionTab->maxXVoxVarLabel->setText(QString::number(max_vdim[0]));
+		myRegionTab->maxYVoxVarLabel->setText(QString::number(max_vdim[1]));
+		myRegionTab->maxZVoxVarLabel->setText(QString::number(max_vdim[2]));
+		  
+		ses->mapVoxelToUserCoords(refLevel, min_vdim, var_ext);
+		ses->mapVoxelToUserCoords(refLevel, max_vdim, var_ext+3);
+		//Use full extents if variable is at extremes, to avoid confusion...
+		for (int k = 0; k<3; k++){
+			if (min_vdim[k] == 0) var_ext[k] = fullDataExtents[k];
+			if (max_vdim[k] == max_dim[k]) var_ext[k+3] = fullDataExtents[k+3];
+		}
+		//Calculate fraction of extents:
+		myRegionTab->minVarXLabel->setText(QString::number(var_ext[0],'g',5));
+		myRegionTab->minVarYLabel->setText(QString::number(var_ext[1],'g',5));
+		myRegionTab->minVarZLabel->setText(QString::number(var_ext[2],'g',5));
+		myRegionTab->maxVarXLabel->setText(QString::number(var_ext[3],'g',5));
+		myRegionTab->maxVarYLabel->setText(QString::number(var_ext[4],'g',5));
+		myRegionTab->maxVarZLabel->setText(QString::number(var_ext[5],'g',5));
 	} else {
 		myRegionTab->minXVoxVarLabel->setText("");
 		myRegionTab->minYVoxVarLabel->setText("");
@@ -379,6 +392,12 @@ refreshRegionInfo(){
 		myRegionTab->maxXVoxVarLabel->setText("");
 		myRegionTab->maxYVoxVarLabel->setText("");
 		myRegionTab->maxZVoxVarLabel->setText("");
+		myRegionTab->minVarXLabel->setText("");
+		myRegionTab->minVarYLabel->setText("");
+		myRegionTab->minVarZLabel->setText("");
+		myRegionTab->maxVarXLabel->setText("");
+		myRegionTab->maxVarYLabel->setText("");
+		myRegionTab->maxVarZLabel->setText("");
 	}
 	
 
@@ -859,7 +878,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 			if (min_dim[i] < temp_min[i]) min_dim[i] = temp_min[i];
 			if (max_dim[i] > temp_max[i]) max_dim[i] = temp_max[i];
 			//Again check for validity:
-			if (min_dim[i] >= max_dim[i]) retVal = false;
+			if (min_dim[i] > max_dim[i]) retVal = false;
 		}
 	}
 	for (i = 0; i<3; i++){	

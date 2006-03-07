@@ -276,8 +276,8 @@ updateMapBounds(){
 	myDvrTab->minDataBound->setText(strn.setNum(getDataMinBound(currentTimeStep)));
 	myDvrTab->maxDataBound->setText(strn.setNum(getDataMaxBound(currentTimeStep)));
 	if (getMapperFunc()){
-		myDvrTab->leftMappingBound->setText(strn.setNum(getMapperFunc()->getMinColorMapValue(),'g',4));
-		myDvrTab->rightMappingBound->setText(strn.setNum(getMapperFunc()->getMaxColorMapValue(),'g',4));
+		myDvrTab->leftMappingBound->setText(strn.setNum(getMapperFunc()->getMinColorMapValue(),'g',7));
+		myDvrTab->rightMappingBound->setText(strn.setNum(getMapperFunc()->getMaxColorMapValue(),'g',7));
 	} else {
 		myDvrTab->leftMappingBound->setText("0.0");
 		myDvrTab->rightMappingBound->setText("1.0");
