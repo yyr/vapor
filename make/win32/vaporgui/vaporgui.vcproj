@@ -620,20 +620,20 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing probeframe.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\probeframe.h -o tmp\moc\moc_probeframe.cpp
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\probeframe.h -o ..\..\..\apps\vaporgui\moc\moc_probeframe.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="tmp\moc\moc_probeframe.cpp"/>
+						Outputs="..\..\..\apps\vaporgui\moc\moc_probeframe.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing probeframe.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\probeframe.h -o tmp\moc\moc_probeframe.cpp
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\probeframe.h -o ..\..\..\apps\vaporgui\moc\moc_probeframe.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="tmp\moc\moc_probeframe.cpp"/>
+						Outputs="..\..\..\apps\vaporgui\moc\moc_probeframe.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -695,20 +695,20 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing seedlisteditor.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\seedlisteditor.h -o tmp\moc\moc_seedlisteditor.cpp
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\seedlisteditor.h -o ..\..\..\apps\vaporgui\moc\moc_seedlisteditor.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="tmp\moc\moc_seedlisteditor.cpp"/>
+						Outputs="..\..\..\apps\vaporgui\moc\moc_seedlisteditor.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing seedlisteditor.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\seedlisteditor.h -o tmp\moc\moc_seedlisteditor.cpp
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\seedlisteditor.h -o ..\..\..\apps\vaporgui\moc\moc_seedlisteditor.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="tmp\moc\moc_seedlisteditor.cpp"/>
+						Outputs="..\..\..\apps\vaporgui\moc\moc_seedlisteditor.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -945,7 +945,7 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp">
 			</File>
 			<File
-				RelativePath=".\tmp\moc\moc_probeframe.cpp">
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_probeframe.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_probetab.cpp">
@@ -960,13 +960,16 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_savetfdialog.cpp">
 			</File>
 			<File
-				RelativePath=".\tmp\moc\moc_seedlisteditor.cpp">
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_seedlisteditor.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_sessionparams.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_setoffset.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp">
@@ -1043,6 +1046,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\sessionparameters.h">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\setoffset.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\setoffset.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\vizfeatures.cpp">
@@ -1267,6 +1276,29 @@ $(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\sessionparameters.h -o ..\..
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\sessionparameters.h;..\..\..\apps\vaporgui\guis\ui\sessionparameters.cpp;..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\setoffset.ui">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing setoffset.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_setoffset.cpp&quot;
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\setoffset.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_setoffset.cpp&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing setoffset.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot; -o &quot;..\..\..\apps\vaporgui\moc\moc_setoffset.cpp&quot;
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\setoffset.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\setoffset.cpp&quot;;&quot;..\..\..\apps\vaporgui\moc\moc_setoffset.cpp&quot;"/>
 				</FileConfiguration>
 			</File>
 			<File
