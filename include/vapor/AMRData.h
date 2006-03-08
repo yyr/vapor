@@ -131,6 +131,7 @@ public:
  //! dimensions, in voxels, of all blocks in the grid
  //! \param[in] paramesh_gids A paramesh global identifier array
  //! \param[in] paramesh_unk A paramesh dependent data array
+ //! \param[in] paramesh_total_blocks Total number of nodes (both leaf and
  //! \param[in] reflevel The maximum refinement level of the grid.
  //! If a negative value is specified, the refinement level of the tree
  //! pointed to by the \p tree parameter is used.
@@ -143,6 +144,7 @@ public:
 	const size_t cell_dim[3],
 	const int paramesh_gids[][15],
 	const float paramesh_unk[],
+	int total_blocks,
 	int reflevel = -1
  );
 

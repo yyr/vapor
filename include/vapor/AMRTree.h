@@ -97,10 +97,10 @@ public:
  //! a Paramesh block structured AMR grid stored in an HDF5 file.
  //! The arguments to this constructor are read directly from HDF5
  //!
- //! param[in] paramesh_gids An array of Paramesh global identifiers
- //! param[in] paramesh_bboxs An array of Paramesh bounding boxes
- //! param[in] paramesh_refine_levels An array of Paramesh refinement levels
- //! param[in] paramesh_total_blocks Total number of nodes (both leaf and
+ //! \param[in] paramesh_gids An array of Paramesh global identifiers
+ //! \param[in] paramesh_bboxs An array of Paramesh bounding boxes
+ //! \param[in] paramesh_refine_levels An array of Paramesh refinement levels
+ //! \param[in] paramesh_total_blocks Total number of nodes (both leaf and
  //! non-leaf) stored in the Paramesh AMR tree.
  //!
  //! \sa http://ct.gsfc.nasa.gov/paramesh/Users_manual/amr.html
@@ -354,6 +354,7 @@ private:
  static const string _baseDimAttr;
  static const string _fileVersionAttr;
 
+ int _xml_help_loc;	// hack to maintains XML state info at different levels
  int _objIsInitialized;
 
  size_t _baseDim[3];	// Dimension of tree expressed in base blocks
@@ -372,6 +373,8 @@ private:
 	const double min[3], 
 	const double max[3]
  );
+
+ void _freeAMRTree();
 
  int paramesh_refine_baseblocks(
 	int index,
