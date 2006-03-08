@@ -487,8 +487,9 @@ exportData(){
 	AnimationParams*  p = winMgr->getAnimationParams(winNum);
 	RegionParams* r = winMgr->getRegionParams(winNum);
 	DvrParams* d = winMgr->getDvrParams(winNum);
-	int numxforms = Session::getInstance()->getDataStatus()->getNumTransforms()- 
-		d->getNumRefinements();
+	//always go for max number of transforms:
+	int numxforms = Session::getInstance()->getDataStatus()->getNumTransforms();
+	
 	size_t currentFrame = (size_t)p->getCurrentFrameNumber();
 	size_t frameInterval[2];
 	size_t minCoords[3],maxCoords[3];
@@ -514,6 +515,9 @@ exportData(){
 	if (rc < 0){
 		MessageReporter::errorMsg("Export data error: \n%s", exporter.GetErrMsg());
 		exporter.SetErrCode(0);
+	} else {
+		MessageReporter::warningMsg("Exported time step %d of region in %s .\nNote: recently imported variables may not be exported",
+			currentFrame, VizWinMgr::getInstance()->getVizWinName(winNum).ascii());
 	}
 	return;
 }
