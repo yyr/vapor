@@ -8,7 +8,6 @@ HOST=$(shell hostname)
 endif
 endif
 
-BUILD_AMR_SUPPORT = 1
 BUILD_VOLUMIZER = 1
 
 #
@@ -49,6 +48,8 @@ EXPAT_INC_PATH=/usr/freeware/include
 EXPAT_LIB_PATH=/usr/freeware/lib32
 NETCDF_INC_PATH=/fs/local/include
 NETCDF_LIB_PATH=/fs/local/lib
+HDF5_INC_PATH=/fs/local/include
+HDF5_LIB_PATH=/fs/local/lib
 BUILD_IDL_WRAPPERS = 1
 
 IDL_INC_PATH = /fs/local/apps/rsi/idl_6.1/external/include/
@@ -58,6 +59,7 @@ ifdef BUILD64
 
 EXPAT_LIB_PATH=/usr/freeware/lib64
 NETCDF_LIB_PATH=/fs/local/64/lib
+HDF5_LIB_PATH=/fs/local/64/lib
 
 IDL_INC_PATH = /fs/local/64/apps/rsi/idl_6.1/external/include/
 QTDIR=/fs/local/64/apps/qt-3.3.4
@@ -76,6 +78,8 @@ EXPAT_INC_PATH=/usr/include
 EXPAT_LIB_PATH=/usr/lib
 NETCDF_INC_PATH=/fs/local/include
 NETCDF_LIB_PATH=/fs/local/lib
+HDF5_INC_PATH=/fs/local/include
+HDF5_LIB_PATH=/fs/local/lib
 BUILD_IDL_WRAPPERS = 1
 IDL_INC_PATH=/fs/local/apps/rsi/idl_6.1/external/include
 QTDIR = /fs/local/apps/qt-3.3.4
@@ -95,6 +99,8 @@ IDL_INC_PATH=/fs/local/apps/rsi/idl_6.1/external/include
 QTDIR = /fs/local/64/apps/qt-3.3.4
 NETCDF_INC_PATH=/fs/local/64/include
 NETCDF_LIB_PATH=/fs/local/64/lib
+HDF5_INC_PATH=/fs/local/64/include
+HDF5_LIB_PATH=/fs/local/64/lib
 endif
 
 endif
@@ -108,6 +114,8 @@ EXPAT_INC_PATH=/home/bluesky/clyne/include
 EXPAT_LIB_PATH=/home/bluesky/clyne/lib
 NETCDF_INC_PATH=/usr/local/include
 NETCDF_LIB_PATH=/usr/local/lib
+HDF5_INC_PATH=/usr/local/include
+HDF5_LIB_PATH=/usr/local/lib
 BUILD_IDL_WRAPPERS = 0
 BUILD_GUI	= 0
 IDL_INC_PATH=/dev/null
