@@ -132,7 +132,6 @@ AMRTree::AMRTree(
     SetDiagMsg("AMRTree::AMRTree()");
 
 	_objIsInitialized = 0;
-#ifdef	DEAD
 	size_t basedim[] = {1,1,1};
 	double min[] = {0.0, 0.0, 0.0};
 	double max[] = {1.0, 1.0, 1.0};
@@ -140,6 +139,7 @@ AMRTree::AMRTree(
 	if (_AMRTree(basedim, min, max) < 0) return;
 
 	_objIsInitialized = 1;
+#ifdef	DEAD
 #endif
 }
 
@@ -217,9 +217,7 @@ AMRTree::AMRTree(
 	_objIsInitialized = 1;
 }
 
-AMRTree::~AMRTree() {
-
-    SetDiagMsg( "AMRTree::~AMRTree()");
+void AMRTree::_freeAMRTree() {
 
 	if (_treeBranches) {
 		for (int i=0; i<_baseDim[0] * _baseDim[1] * _baseDim[2]; i++) {
@@ -231,6 +229,14 @@ AMRTree::~AMRTree() {
 
 	if (_rootNode) delete _rootNode;
 	_rootNode = NULL;
+
+}
+
+AMRTree::~AMRTree() {
+
+    SetDiagMsg( "AMRTree::~AMRTree()");
+
+	_freeAMRTree();
 
 	_objIsInitialized = 0;
 }
@@ -405,8 +411,6 @@ int AMRTree::GetRefinementLevel(
 	for (int x = min[0]; x <= max[0]; x++) {
 		int	index = (_baseDim[1] * _baseDim[0] * z) + (_baseDim[0] * y) + x;
 
-
-cerr << "Refionement level for index " << index << " " << _treeBranches[index]->GetRefinementLevel() << endl;
 		if (_treeBranches[index]->GetRefinementLevel() > maxlevel) {
 			maxlevel = _treeBranches[index]->GetRefinementLevel();
 		}
@@ -582,7 +586,6 @@ int	AMRTree::Read(
 
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
 	parseMgr->parse(is);
-cerr << "More of this max ref level " << GetRefinementLevel() << endl;
 	delete parseMgr;
 
 	if (ExpatParseMgr::GetErrCode() != 0) return(-1);
@@ -907,32 +910,14 @@ void	AMRTree::_startElementHandler0(ExpatParseMgr* pm,
 		}
 	}
 
-	if (!_objIsInitialized) {
-		_AMRTree(base_dim, min_bounds, max_bounds);
-		if (GetErrCode()) {
-			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
-			return;
-		}
+	if (_objIsInitialized) {
+		_freeAMRTree();
 	}
-	else {
-		//
-		// Object has already been initialized. Base dim, etc. of new
-		// tree must match that of existing object
-		//
-		for(int i=0; i<3; i++) {
-			if (base_dim[i] != _baseDim[i]) {
-				pm->parseError("File and object mismatch");
-				return;
-			}
-			if (min_bounds[i] != _minBounds[i]) {
-				pm->parseError("File and object mismatch");
-				return;
-			}
-			if (max_bounds[i] != _maxBounds[i]) {
-				pm->parseError("File and object mismatch");
-				return;
-			}
-		}
+
+	_AMRTree(base_dim, min_bounds, max_bounds);
+	if (GetErrCode()) {
+		string s(GetErrMsg()); pm->parseError("%s", s.c_str());
+		return;
 	}
 }
 
@@ -967,7 +952,7 @@ void	AMRTree::_startElementHandler1(ExpatParseMgr* pm,
 		if (StrCmpNoCase(attr, AMRTreeBranch::_locationAttr) == 0) {
 			ist >> location[0]; ist >> location[1]; ist >> location[2];
 
-			state->user_defined = _baseDim[0] * _baseDim[1] * location[2] +
+			_xml_help_loc = _baseDim[0] * _baseDim[1] * location[2] +
 				_baseDim[0] * location[1] +
 				location[0];
 
@@ -1069,7 +1054,7 @@ void	AMRTree::_endElementHandler2(ExpatParseMgr* pm,
 	if (StrCmpNoCase(tag, AMRTreeBranch::_refinementLevelTag) == 0) {
 	}
 	else if (StrCmpNoCase(tag, AMRTreeBranch::_parentTableTag) == 0) {
-		int index = state->user_defined;
+		int index = _xml_help_loc;
 		if (index < 0 || index >= _baseDim[0]*_baseDim[1]*_baseDim[2]) {
 			SetErrMsg("Error parsing file");
 			return;

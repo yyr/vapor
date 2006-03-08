@@ -208,11 +208,8 @@ float	*DataMgr::GetRegion(
 		rc = amrio->TreeRead(&amrtree);
 		if (rc < 0) return (NULL);
 
-cerr << "The max ref level " << amrtree.GetRefinementLevel() << endl;
-
 		(void) amrio->CloseTree();
 
-cerr << "The max ref level " << amrtree.GetRefinementLevel() << endl;
 		//
 		// Read in the AMR field data
 		//
@@ -223,11 +220,12 @@ cerr << "The max ref level " << amrtree.GetRefinementLevel() << endl;
 			minbase[i] = min[i] >> reflevel;
 			maxbase[i] = max[i] >> reflevel;
 		}
-cerr << "The max ref level " << amrtree.GetRefinementLevel() << endl;
 			
 		AMRData amrdata(&amrtree, bs, minbase, maxbase, reflevel);
 		if (AMRData::GetErrCode() != 0)  return(NULL);
-cerr << "The max ref level " << amrtree.GetRefinementLevel() << endl;
+
+		rc = amrio->OpenVariableRead(ts,varname,reflevel);
+		if (rc < 0) return (NULL);
 
 		rc = amrio->VariableRead(&amrdata);
 		if (rc < 0) return (NULL);
@@ -237,6 +235,7 @@ cerr << "The max ref level " << amrtree.GetRefinementLevel() << endl;
 		blks = (float *) alloc_region(
 			ts,varname,reflevel,DataMgr::FLOAT32,min,max,lock
 		);
+		if (! blks) return(NULL);
 
 		rc = amrdata.ReGrid(min,max, reflevel, blks);
 		if (rc < 0) {

@@ -76,6 +76,10 @@ void AMRData::_AMRData(
 	const size_t max[3],
 	int reflevel 
 ) {
+	_treeData = NULL;
+	_treeDataMemSize = NULL;
+	_tree = NULL;
+
 	if ((cell_dim[0] != cell_dim[1]) || (cell_dim[0] != cell_dim[2])) {
         SetErrMsg("Cell dimensions must all be equal");
 		return;
@@ -183,6 +187,7 @@ AMRData::AMRData(
 	const size_t cell_dim[3],
 	const int paramesh_gids[][15],
 	const float paramesh_unk[],
+	int	total_blocks,
 	int reflevel
 ) {
 
@@ -194,15 +199,13 @@ AMRData::AMRData(
 	_AMRData(tree, cell_dim, min, max, reflevel);
 	if (GetErrCode()) return;
 
-	int nnodes = tree->GetNumNodes(_maxRefinementLevel);
-
 	vector <int> baseblocks;
 
 	baseblocks.reserve(bdim[0]*bdim[1]*bdim[2]);
 
 	size_t dummy[3];
 
-	if (tree->_parameshGetBaseBlocks(baseblocks,dummy,paramesh_gids,nnodes)<0)return;
+	if (tree->_parameshGetBaseBlocks(baseblocks,dummy,paramesh_gids,total_blocks)<0)return;
 
 	_dataRange[0] = _dataRange[1] = paramesh_unk[0];
 	for(int i =0; i<baseblocks.size(); i++) {
@@ -213,6 +216,8 @@ AMRData::AMRData(
 }
 
 AMRData::~AMRData() {
+
+	if (! _tree) return;
 
 	const size_t *bdim = _tree->GetBaseDim();
 	int	size = bdim[0] * bdim[1] * bdim[2];
@@ -565,7 +570,8 @@ int AMRData::ReadNCDF(
 		return(-1);
 	}
 
-	int branch_nodes = 0;
+	int branch_nodes = 0;	// Num nodes requested
+	int file_branch_nodes = 0;	// Num nodes stored in file
 	int n = 0;
 	for (int z=_bmin[2]; z<=_bmax[2]; z++) {
 	for (int y=_bmin[1]; y<=_bmax[1]; y++) {
@@ -577,7 +583,8 @@ int AMRData::ReadNCDF(
 
 		const AMRTreeBranch *tbranch = _tree->GetBranch(xyz);
 
-		branch_nodes = tbranch->GetNumNodes(_maxRefinementLevel);
+		file_branch_nodes = tbranch->GetNumNodes(file_reflevel);
+		branch_nodes = tbranch->GetNumNodes(reflevel);
 
 		float *data = _treeData[index];
 
@@ -591,7 +598,7 @@ int AMRData::ReadNCDF(
             return(-1);
         }
 
-		n += branch_nodes;
+		n += file_branch_nodes;
 		
 	}
 	}
@@ -650,7 +657,6 @@ int	AMRData::ReGrid(
 	for (int y = minb[1]; y<= maxb[1]; y++) {
 	for (int x = minb[0]; x<= maxb[0]; x++) {
 
-cerr << "Regriding x,y,z " << x << " " << y << " " << z << endl;
 		regrid_branch(x,y,z, min, max, reflevel, grid);
 
 	}
@@ -807,7 +813,6 @@ void AMRData::regrid_branch(
 
 				int index = (z * bdim[1] * bdim[0]) + (y*bdim[0]) + x;
 
-cerr << "Regrid cell, index " << cellid <<" " << index << endl;
 				// Resample the cell
 				//
 				regrid_cell(
@@ -899,8 +904,6 @@ void AMRData::regrid_cell(
 	//
 
 
-float cmin = cell_data[0];
-float cmax = cell_data[0];
 	if (ldelta == 0) {
 		// Coordinates of first voxel in cell to be resampled, specified
 		// relative to the refinment level of the cell
@@ -918,18 +921,12 @@ float cmax = cell_data[0];
 
 			grid[dstidx] = cell_data[srcidx];
 
-if (grid[dstidx] < cmin) cmin = grid[dstidx];
-if (grid[dstidx] > cmax) cmax = grid[dstidx];
-			
-			
 		}
 		}
 		}
 
-cerr << "Cell match " << cellid << " min max " << cmin << " " << cmax << endl;
 		return;
 	}
-cerr << "Cell no match " << cellid << endl;
 
 	// compute step size between samples
 	//

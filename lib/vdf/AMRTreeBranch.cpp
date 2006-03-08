@@ -449,7 +449,8 @@ AMRTreeBranch::UInt32 AMRTreeBranch::GetNumNodes(
 		vector<long>::const_iterator itr;
 		itr = parent_table.begin() + i;
 
-		if (itr[LEVEL] <= refinementlevel) nnodes += NREGIONS;
+//		if (itr[LEVEL] <= refinementlevel) nnodes += NREGIONS;
+		if (itr[LEVEL] < refinementlevel) nnodes += NREGIONS;
 	}
 	return(nnodes);
 }
@@ -630,10 +631,6 @@ int AMRTreeBranch::SetParentTable(const vector <long> &table) {
 		if (level > ref_level[0]) ref_level[0] = level;
 	}
 	ref_level[0] += 1;
-
-cerr << "SetParentTable this, ref " << this << " " << &ref_level << endl;
-cerr << "ref_level[0] = " <<  ref_level[0] << endl;
-cerr << "GetRef = " <<  GetRefinementLevel() << endl;
 
 	int nparents = parent_table.size() / SZ;
 

@@ -258,8 +258,9 @@ int	AMRIO::OpenVariableWrite(
 	}
 
 	if (mkpath(timestep, varname, &basename) < 0) {
-			SetErrMsg("Failed to find octree in metadata object at time step %d",
-			(int) timestep
+		SetErrMsg(
+			"Failed to find variable \"%s\" at time step %d", 
+			varname, (int) timestep
 		);
 		return(-1);
 	}
@@ -303,8 +304,9 @@ int	AMRIO::OpenVariableRead(
 	}
 
 	if (mkpath(timestep, varname, &basename) < 0) {
-			SetErrMsg("Failed to find octree in metadata object at time step %d",
-			(int) timestep
+		SetErrMsg(
+			"Failed to find variable \"%s\" at time step %d", 
+			varname, (int) timestep
 		);
 		return(-1);
 	}
