@@ -34,6 +34,8 @@ namespace {	// un-named namespace
 IDL_VPTR vaporImport(int argc, IDL_VPTR *argv)
 {
 	UCHAR	*ucptr;
+	IDL_LONG64	*long64ptr;	// x86_64 systems corrupted memory when plain	
+							// old long pointers were used for arrays.
 	IDL_LONG	*longptr;
 	IDL_STRING	*stringptr;
 
@@ -48,12 +50,12 @@ IDL_VPTR vaporImport(int argc, IDL_VPTR *argv)
 	IDL_MEMINT timeseg_dims[] = {1,2};
 
 	IDL_STRUCT_TAG_DEF s_tags[] = {
-		{"VDFPATH", 0, (void *) IDL_TYP_STRING},
-		{"TIMESTEP", 0, (void *) IDL_TYP_LONG},
-		{"VARNAME", 0, (void *) IDL_TYP_STRING},
-		{"MINRANGE", range_dims, (void *) IDL_TYP_LONG},
-		{"MAXRANGE", range_dims, (void *) IDL_TYP_LONG},
-		{"TIMESEG", timeseg_dims, (void *) IDL_TYP_LONG},
+		{"VDFPATH", 0, (void *) IDL_TYP_STRING, 0},
+		{"TIMESTEP", 0, (void *) IDL_TYP_LONG, 0},
+		{"VARNAME", 0, (void *) IDL_TYP_STRING, 0},
+		{"MINRANGE", range_dims, (void *) IDL_TYP_LONG64, 0},
+		{"MAXRANGE", range_dims, (void *) IDL_TYP_LONG64, 0},
+		{"TIMESEG", timeseg_dims, (void *) IDL_TYP_LONG64, 0},
 		{NULL}
 	};
 	void	*s;
@@ -90,28 +92,30 @@ IDL_VPTR vaporImport(int argc, IDL_VPTR *argv)
 	stringptr = (IDL_STRING *) ucptr;
 	IDL_StrStore(stringptr, (char *) varname.c_str());
 
+
 	ucptr = result->value.s.arr->data + IDL_StructTagInfoByName(
 		s, "MINRANGE",IDL_MSG_LONGJMP, NULL
 	);
-	longptr = (IDL_LONG *) ucptr;
-	longptr[0] = (IDL_LONG) minrange[0];
-	longptr[1] = (IDL_LONG) minrange[1];
-	longptr[2] = (IDL_LONG) minrange[2];
+	long64ptr = (IDL_LONG64 *) ucptr;
+	long64ptr[0] = (IDL_LONG64) minrange[0];
+	long64ptr[1] = (IDL_LONG64) minrange[1];
+	long64ptr[2] = (IDL_LONG64) minrange[2];
 
 	ucptr = result->value.s.arr->data + IDL_StructTagInfoByName(
 		s, "MAXRANGE",IDL_MSG_LONGJMP, NULL
 	);
-	longptr = (IDL_LONG *) ucptr;
-	longptr[0] = (IDL_LONG) maxrange[0];
-	longptr[1] = (IDL_LONG) maxrange[1];
-	longptr[2] = (IDL_LONG) maxrange[2];
+	long64ptr = (IDL_LONG64 *) ucptr;
+	long64ptr[0] = (IDL_LONG64) maxrange[0];
+	long64ptr[1] = (IDL_LONG64) maxrange[1];
+	long64ptr[2] = (IDL_LONG64) maxrange[2];
 
 	ucptr = result->value.s.arr->data + IDL_StructTagInfoByName(
 		s, "TIMESEG",IDL_MSG_LONGJMP, NULL
 	);
-	longptr = (IDL_LONG *) ucptr;
-	longptr[0] = (IDL_LONG) timeseg[0];
-	longptr[1] = (IDL_LONG) timeseg[1];
+	long64ptr = (IDL_LONG64 *) ucptr;
+	long64ptr[0] = (IDL_LONG64) timeseg[0];
+	long64ptr[1] = (IDL_LONG64) timeseg[1];
+
 
 	return(result);
 }
