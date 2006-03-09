@@ -208,7 +208,6 @@ int	AMRIO::TreeRead(AMRTree *tree) {
 
 	TIMER_START(t0)
 	int rc = tree->Read(_treeFileName);
-cerr << "This max ref level " << tree->GetRefinementLevel() << endl;
 	TIMER_STOP(t0,_read_timer)
 	return(rc);
 }

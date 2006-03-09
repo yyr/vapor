@@ -573,30 +573,40 @@ int AMRData::ReadNCDF(
 	int branch_nodes = 0;	// Num nodes requested
 	int file_branch_nodes = 0;	// Num nodes stored in file
 	int n = 0;
-	for (int z=_bmin[2]; z<=_bmax[2]; z++) {
-	for (int y=_bmin[1]; y<=_bmax[1]; y++) {
-	for (int x=_bmin[0]; x<=_bmax[0]; x++) {
+	for (int z=file_bmin[2]; z<=file_bmax[2]; z++) {
+	for (int y=file_bmin[1]; y<=file_bmax[1]; y++) {
+	for (int x=file_bmin[0]; x<=file_bmax[0]; x++) {
 		size_t xyz[3] = {x,y,z};
-		int index = z*base_dim[0]*base_dim[1] + y*base_dim[0] + x;
 
 		assert(n<file_num_nodes);
 
 		const AMRTreeBranch *tbranch = _tree->GetBranch(xyz);
 
 		file_branch_nodes = tbranch->GetNumNodes(file_reflevel);
-		branch_nodes = tbranch->GetNumNodes(reflevel);
 
-		float *data = _treeData[index];
 
-        size_t start[] = {n,0,0,0};
-        size_t count[] = {branch_nodes,_cellDim[2],_cellDim[1],_cellDim[0]};
+		//
+		// Read data only if in ROI
+		//
+		if (x >= _bmin[0] && x <= _bmax[0] && 
+			y >= _bmin[1] && y <= _bmax[1] && 
+			z >= _bmin[2] && z <= _bmax[2]) {
 
-        rc = nc_get_vars_float(ncid, varid, start, count, NULL, data);
+			int index = z*base_dim[0]*base_dim[1] + y*base_dim[0] + x;
+			branch_nodes = tbranch->GetNumNodes(reflevel);
 
-        if (rc != NC_NOERR) {
-            SetErrMsg( "Error reading netCDF file : %s",  nc_strerror(rc) );
-            return(-1);
-        }
+			float *data = _treeData[index];
+
+			size_t start[] = {n,0,0,0};
+			size_t count[] = {branch_nodes,_cellDim[2],_cellDim[1],_cellDim[0]};
+
+			rc = nc_get_vars_float(ncid, varid, start, count, NULL, data);
+
+			if (rc != NC_NOERR) {
+				SetErrMsg( "Error reading netCDF file : %s",  nc_strerror(rc) );
+				return(-1);
+			}
+		}
 
 		n += file_branch_nodes;
 		
@@ -878,18 +888,19 @@ void AMRData::regrid_cell(
 	//
 	for(int i=0; i<3; i++) {
 
-		// first and last voxel covered by cell (in grid coordinates)
-		int cfirst = xyz[i] * _cellDim[i];
-		int clast = (xyz[i] + (1 << ldelta)) * _cellDim[i] - 1;
+		if (xyz[i] > min[i]) {
+			gridminv[i] = (xyz[i] - min[i]) * _cellDim[i];
+		}
+		else {
+			gridminv[i] = 0;
+		}
 
-		gridminv[i] = min[i] * _cellDim[i];
-		gridmaxv[i] = (max[i]+1) * _cellDim[i] - 1;
-
-		// Constrain resampling grid to cell bounds
-		//
-		if (gridminv[i] < cfirst) gridminv[i] = cfirst;
-
-		if (gridmaxv[i] > clast) gridmaxv[i] = clast;
+		if ((xyz[i] + (1<<ldelta)) < max[i] + 1) {
+			gridmaxv[i] = gridminv[i] + (1<<ldelta) * _cellDim[i] - 1;
+		}
+		else {
+			gridmaxv[i] = (max[i]-min[i]+1) * _cellDim[i] - 1;
+		}
 	}
 
 
@@ -908,9 +919,9 @@ void AMRData::regrid_cell(
 		// Coordinates of first voxel in cell to be resampled, specified
 		// relative to the refinment level of the cell
 		//
-		int cxstart = (gridminv[0] - (xyz[0] * _cellDim[0])) >> ldelta;
-		int cystart = (gridminv[1] - (xyz[1] * _cellDim[1])) >> ldelta;
-		int czstart = (gridminv[2] - (xyz[2] * _cellDim[2])) >> ldelta;
+		int cxstart = 0;
+		int cystart = 0;
+		int czstart = 0;
 
 		for (gz=gridminv[2], cz=czstart; gz<=gridmaxv[2]; gz++, cz++) {
 		for (gy=gridminv[1], cy=cystart; gy<=gridmaxv[1]; gy++, cy++) {
@@ -938,9 +949,18 @@ void AMRData::regrid_cell(
 	// Position of the first sample, in real coordinates, relative to
 	// the cell's origin.
 	//
-	double xstart = xdelta * (gridminv[0] - (xyz[0] * _cellDim[0]));
-	double ystart = ydelta * (gridminv[1] - (xyz[1] * _cellDim[1]));
-	double zstart = zdelta * (gridminv[2] - (xyz[2] * _cellDim[2]));
+	double xstart = 0;
+	double ystart = 0;
+	double zstart = 0;
+
+	if (xyz[0] > min[0]) xstart = 0.0;
+	else xstart = xdelta * (min[0]-xyz[0]*_cellDim[0]);
+
+	if (xyz[1] > min[1]) ystart = 0.0;
+	else ystart = ydelta * (min[1]-xyz[1]*_cellDim[1]);
+
+	if (xyz[2] > min[2]) zstart = 0.0;
+	else zstart = zdelta * (min[2]-xyz[2]*_cellDim[2]);
 
 	double xw0, xw1, yw0, yw1, zw0, zw1;
 	double xx, yy, zz;
