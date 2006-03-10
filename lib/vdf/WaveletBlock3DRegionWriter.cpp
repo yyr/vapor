@@ -266,9 +266,10 @@ int	WaveletBlock3DRegionWriter::_WriteRegion(
 	int block
 ) {
 
-	size_t octmin[3], octmax[3];	// bounds of octants (in blocks) of
-									// octant enclosing subregion at
-									// coarsest level
+	size_t octmin[3], octmax[3];	// bounds (in blocks) of
+									// superblock enclosing subregion at
+									// coarsest level, relative to
+									// global volume at finest level
 	int regstart[3];
 
 	// initialize data range calculation
@@ -298,15 +299,28 @@ int	WaveletBlock3DRegionWriter::_WriteRegion(
 		_regMax[i] = max[i] - (min[i] - _regMin[i]);
 
 		// Compute bounds (in blocks), relative to global volume, of 
-		// level 0 octant-aligned volum that encloses the region.
+		// level 0 super-block-aligned volume that encloses the region.
 		//
-		size_t tmp = _volBMin[i] >> _num_reflevels-1;
-		octmin[i] = tmp * (1 << _num_reflevels-1);
+		if (IsOdd(_volBMin[i])) {	// not superblock aligned yet
+			size_t tmp = (_volBMin[i]-1) >> _num_reflevels-1;
+			octmin[i] = tmp * (1 << _num_reflevels-1);
+			regstart[i] = octmin[i] - (_volBMin[i]-1);
+		}
+		else {
+			size_t tmp = _volBMin[i] >> _num_reflevels-1;
+			octmin[i] = tmp * (1 << _num_reflevels-1);
+			regstart[i] = octmin[i] - _volBMin[i];
+		}
 
-		tmp = _volBMax[i] >> _num_reflevels-1;
-		octmax[i] = (tmp+1) * (1 << _num_reflevels-1) - 1;
+		if (IsOdd(_volBMax[i])) {
+			size_t tmp = (_volBMax[i]+1) >> _num_reflevels-1;
+			octmax[i] = (tmp+1) * (1 << _num_reflevels-1) - 1;
+		}
+		else {
+			size_t tmp = _volBMax[i] >> _num_reflevels-1;
+			octmax[i] = (tmp+1) * (1 << _num_reflevels-1) - 1;
+		}
 
-		regstart[i] = octmin[i] - _volBMin[i];
 	}
 
 
@@ -456,11 +470,16 @@ void WaveletBlock3DRegionWriter::copy_top_superblock(
 	int srcz,
 	float *dst_super_blk
 ) {
+	assert(srcx>=0);
+	assert(srcy>=0);
+	assert(srcz>=0);
+#ifdef	DEAD
 	// Ugh. hack to deal with two different coordinate spaces
 	//
 	if (srcx<0) srcx *= -1;
 	if (srcy<0) srcy *= -1;
 	if (srcz<0) srcz *= -1;
+#endif
 
 	// intersection of region with superblock in voxel coordinates
 	// relative to superblock-aligned enclosing region
@@ -631,7 +650,10 @@ int WaveletBlock3DRegionWriter::process_octant(
 ) {
 	int	rc;
 
-	// Make sure octant is inside region
+	// Make sure octant is inside region. Hmm, this may not be right.
+	// The octant may not be in the region, but it's ancestor (at 
+	// a coarser level, covering more of the domain) probably is. This
+	// octant should probably be padded as done elsewhere.
 	//
 	if (dstx > _volBMax[0] || dstx+sz <= _volBMin[0] ||
 		dsty > _volBMax[1] || dsty+sz <= _volBMin[1] ||
