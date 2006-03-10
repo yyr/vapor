@@ -92,8 +92,17 @@ int DVRShader::GraphicsInit()
   // Set up initial uniform values
   //
   _shader->enable();
-  glUniform1i(_shader->uniformLocation("colormap"), 1);
-  glUniform1i(_shader->uniformLocation("volumeTexture"), 0);
+
+  if (GLEW_VERSION_2_0)
+  {
+    glUniform1i(_shader->uniformLocation("colormap"), 1);
+    glUniform1i(_shader->uniformLocation("volumeTexture"), 0);
+  }
+  else
+  {
+    glUniform1iARB(_shader->uniformLocation("colormap"), 1);
+    glUniform1iARB(_shader->uniformLocation("volumeTexture"), 0);
+  }
   _shader->disable();
 
   return 0;
