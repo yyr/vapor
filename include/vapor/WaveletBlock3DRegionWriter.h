@@ -64,14 +64,13 @@ public:
  //!
  //! This method prepares the multiresolution data volume, indicated by a
  //! variable name and time step pair, for subsequent write operations by
- //! methods of this class.  Furthermore, the number of the refinement level
- //! parameter, \p reflevel indicates the resolution of the volume in
- //! the multiresolution hierarchy. The valid range of values for
- //! \p reflevel is [0..max_refinement], where \p max_refinement is the
- //! maximum finement level of the data set: Metadata::GetNumTransforms() - 1.
- //! volume when the volume was created. A value of zero indicates the
- //! coarsest resolution data, a value of \p max_refinement indicates the
- //! finest resolution data.
+ //! methods of this class.  
+ //! The number of refinement levels actually
+ //! saved to the data collection are determined by \p reflevels. If
+ //! \p reflevels is zero, the default, only the coarsest approximation is
+ //! saved. If \p reflevels is one, the coarsest and first refinement
+ //! level is saved, and so on. A value of -1 indicates the maximum
+ //! refinment level permitted by the VDF
  //!
  //! An error occurs, indicated by a negative return value, if the
  //! volume identified by the {varname, timestep, reflevel} can
@@ -105,9 +104,8 @@ public:
  //! maximum extents, in voxel coordinates, of the subregion of interest. The
  //! minimum valid value of 'min' is (0,0,0), the maximum valid value of
  //! \p max is (nx-1,ny-1,nz-1), where nx, ny, and nz are the voxel dimensions
- //! of the volume at the resolution indicated by \p num_xforms. I.e. 
- //! the coordinates are specified relative to the desired volume 
- //! resolution. The volume subregion to be written is pointed to
+ //! of the volume at the native resolution (finest resolution).
+ //! The volume subregion to be written is pointed to
  //! by \p region. 
  //!
  //! \param[in] min Minimum region extents in voxel coordinates
