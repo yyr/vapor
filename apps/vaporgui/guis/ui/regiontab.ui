@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>437</width>
+            <width>443</width>
             <height>812</height>
         </rect>
     </property>
@@ -110,7 +110,7 @@
                                 <number>1</number>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Apply these settings locally or globally</string>
+                                <string>Apply these settings to visualizers, either globally or locally</string>
                             </property>
                         </widget>
                         <spacer>

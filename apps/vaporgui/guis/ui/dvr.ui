@@ -117,7 +117,7 @@
                             <number>1</number>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Apply these settings globally or locally</string>
+                            <string>Apply these settings to visualizers, either globally or locally</string>
                         </property>
                     </widget>
                     <spacer>

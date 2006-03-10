@@ -93,7 +93,7 @@
                                 <number>1</number>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Apply these settings globally or locally</string>
+                                <string>Apply these settings to visualizers, either globally or locally</string>
                             </property>
                         </widget>
                         <spacer>
@@ -1353,7 +1353,7 @@ Selected Point</string>
                                 <string>Add Selected Point to Flow Seeds</string>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Click to add the selected point to the seeds for the applicable flow panel</string>
+                                <string>Click to add the selected point to the seeds for the applicable flow panel.</string>
                             </property>
                         </widget>
                     </hbox>
