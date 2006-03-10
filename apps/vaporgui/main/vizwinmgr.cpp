@@ -1116,6 +1116,7 @@ void VizWinMgr::
 home()
 {
 	getViewpointParams(activeViz)->useHomeViewpoint();
+	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
 void VizWinMgr::
 sethome()
@@ -1126,11 +1127,13 @@ void VizWinMgr::
 viewAll()
 {
 	getViewpointParams(activeViz)->guiCenterFullRegion(getRegionParams(activeViz));
+	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
 void VizWinMgr::
 viewRegion()
 {
 	getViewpointParams(activeViz)->guiCenterSubRegion(getRegionParams(activeViz));
+	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
 void VizWinMgr::
 alignView(int axis)
@@ -1362,7 +1365,22 @@ animationParamsChanged(AnimationParams* aParams){
 		}
 	}
 }
-
+//Set the viewer coords changed flag for all vizwin's using these params:
+void VizWinMgr::
+setViewerCoordsChanged(ViewpointParams* vp){
+	int vizNum = vp->getVizNum();
+	if (vizNum>=0) {
+		vizWin[vizNum]->setViewerCoordsChanged(true);
+	}
+	if(vp->isLocal()) return;
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if  ( vizWin[i] && (i != vizNum)  &&
+				((!vpParams[i])||!vpParams[i]->isLocal())
+			){
+			vizWin[i]->setViewerCoordsChanged(true);
+		}
+	}
+}
 //Reset the near/far distances for all the windows that
 //share a viewpoint, based on region in specified regionparams
 //

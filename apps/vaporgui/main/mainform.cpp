@@ -29,6 +29,7 @@
 #include <qwidget.h>
 #include <qlayout.h>
 #include <qtooltip.h>
+#include <qcheckbox.h>
 #include <qwhatsthis.h>
 #include <qaction.h>
 #include <qmenubar.h>
@@ -337,7 +338,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	alignViewCombo->insertItem("     + Z ");
 	alignViewCombo->insertItem("     - X ");
 	alignViewCombo->insertItem("     - Y ");
-	alignViewCombo->insertItem("     - Z ");
+	alignViewCombo->insertItem("Default: - Z ");
 	QToolTip::add(alignViewCombo, "Rotate view to an axis-aligned viewpoint,\ncentered on current rotation center.");
 	
 	
@@ -1169,6 +1170,8 @@ void MainForm::launchProbeTab()
 		theProbeTab = new ProbeTab(tabWidget, "Probetab");
 		myVizMgr->getProbeParams(-1)->setTab(theProbeTab);
 		myVizMgr->hookUpProbeTab(theProbeTab);
+		QToolTip::add(theProbeTab->attachSeedCheckbox, "Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
+		QToolTip::add(theProbeTab->addSeedButton,"Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
 	}
 	myProbeParams->updateDialog();
 	

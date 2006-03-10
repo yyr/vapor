@@ -237,6 +237,9 @@ public:
 	//share a viewpoint, based on region in specified regionparams
 	//
 	void resetViews(RegionParams* rp, ViewpointParams* vp);
+	//Set the viewer coords changed flag in all the visualizers
+	//that use these vp params:
+	void setViewerCoordsChanged(ViewpointParams* vp);
 	//Change to play state for the specified renderers:
 	//
 	void startPlay(AnimationParams* aParams);
@@ -383,6 +386,7 @@ protected slots:
 	void setProbeTabTextChanged(const QString& qs);
 	void setContourTabTextChanged(const QString& qs);
 	void setAtabTextChanged(const QString& qs);
+
 	
 	void viewpointReturnPressed();
 	void regionReturnPressed();
