@@ -8,7 +8,7 @@ HOST=$(shell hostname)
 endif
 endif
 
-BUILD_VOLUMIZER = 0
+BUILD_VOLUMIZER = 1
 
 ifeq ($(RELEASE_ENV), 1)
 RELEASE = 1
