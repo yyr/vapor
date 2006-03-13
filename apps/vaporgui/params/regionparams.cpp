@@ -44,6 +44,7 @@
 #include "params.h"
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
+#include "vapor/VDFIOBase.h"
 #include "tabmanager.h"
 #include "glutil.h"
 #include "messagereporter.h"
@@ -824,10 +825,8 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	//First determine the bounds specified in this RegionParams
 	int i;
 	bool retVal = true;
-	float fullExtents[6];
 	const size_t *bs ;
-	const size_t* dataSize;
-	int maxTrans;
+	
 	Session* ses = Session::getInstance();
 	//Special case before there is any data...
 	if (!ses->getCurrentMetadata()){
@@ -844,20 +843,19 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		if(ses->getDataStatus()->maxXFormPresent(varNums[i],timestep) < numxforms)
 			return false;
 	}
+	double userMinCoords[3];
+	double userMaxCoords[3];
+	for (i = 0; i<3; i++){
+		userMinCoords[i] = (double)regionMin[i];
+		userMaxCoords[i] = (double)regionMax[i];
+	}
+	const VDFIOBase* myReader = ses->getRegionReader();
 	
-	maxTrans = ses->getCurrentMetadata()->GetNumTransforms();
-	dataSize = ses->getFullDataDimensions();
-	bs = ses->getCurrentMetadata()->GetBlockSize();
-	ses->getExtents(numxforms, fullExtents);
-	size_t temp_min[3], temp_max[3];
-	for(i=0; i<3; i++) {
-		int	s = maxTrans-numxforms;
-		int arraySide = (dataSize[i] >> s) - 1;
-		min_dim[i] = (int) (0.5f+(regionMin[i] - fullExtents[i])*(float)arraySide/
-			(fullExtents[i+3]-fullExtents[i]));
-		max_dim[i] = (int) (0.5f+(regionMax[i] - fullExtents[i])*(float)arraySide/
-			(fullExtents[i+3]-fullExtents[i]));
+	//Do mapping to voxel coords
+	myReader->MapUserToVox(timestep, userMinCoords, min_dim, numxforms);
+	myReader->MapUserToVox(timestep, userMaxCoords, max_dim, numxforms);
 
+	for(i = 0; i< 3; i++){
 		//Make sure slab has nonzero thickness (this can only
 		//be a problem while the mouse is pressed):
 		//
@@ -870,6 +868,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		}
 	}
 	//Now intersect with available bounds based on variables:
+	size_t temp_min[3], temp_max[3];
 	for (int varIndex = 0; varIndex < numVars; varIndex++){
 		const string varName = ses->getVariableName(varNums[varIndex]);
 		int rc = ses->getDataMgr()->GetValidRegion(timestep, varName.c_str(),numxforms, temp_min, temp_max);
@@ -881,10 +880,14 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 			if (min_dim[i] > max_dim[i]) retVal = false;
 		}
 	}
+	//calc block dims
+	bs = ses->getCurrentMetadata()->GetBlockSize();
 	for (i = 0; i<3; i++){	
 		min_bdim[i] = min_dim[i] / bs[i];
 		max_bdim[i] = max_dim[i] / bs[i];
 	}
+
+	
 	return retVal;
 }
 
@@ -892,11 +895,9 @@ void RegionParams::
 getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
 		size_t min_bdim[3], size_t max_bdim[3]){
 	int i;
-	const float* fullExtents;
-	const size_t *bs ;
-	const size_t* dataSize;
-	int maxTrans;
-	if (!Session::getInstance()->getCurrentMetadata()){
+	
+	Session* ses = Session::getInstance();
+	if (!ses->getCurrentMetadata()){
 		for (i = 0; i<3; i++) {
 			min_dim[i] = 0;
 			max_dim[i] = (1024>>numxforms) -1;
@@ -905,33 +906,19 @@ getRegionVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		}
 		return;
 	}
-	
-	maxTrans = Session::getInstance()->getCurrentMetadata()->GetNumTransforms();
-	dataSize = Session::getInstance()->getCurrentMetadata()->GetDimension();
-	bs = Session::getInstance()->getCurrentMetadata()->GetBlockSize();
-	fullExtents = Session::getInstance()->getExtents();
-	for(i=0; i<3; i++) {
-		int	s = maxTrans-numxforms;
-		int arraySide = (dataSize[i] >> s) - 1;
-		min_dim[i] = (int) (0.5f+(regionMin[i] - fullExtents[i])*(float)arraySide/
-			(fullExtents[i+3]-fullExtents[i]));
-		max_dim[i] = (int) (0.5f+(regionMax[i] - fullExtents[i])*(float)arraySide/
-			(fullExtents[i+3]-fullExtents[i]));
-		
-		
-		//Make sure slab has nonzero thickness (this can only
-		//be a problem while the mouse is pressed):
-		//
-		if (min_dim[i] >= max_dim[i]){
-			if (max_dim[i] < 1){
-				max_dim[i] = 1;
-				min_dim[i] = 0;
-			}
-			else min_dim[i] = max_dim[i] - 1;
-		}
-		min_bdim[i] = min_dim[i] / bs[i];
-		max_bdim[i] = max_dim[i] / bs[i];
+	double userMinCoords[3];
+	double userMaxCoords[3];
+	for (i = 0; i<3; i++){
+		userMinCoords[i] = (double)regionMin[i];
+		userMaxCoords[i] = (double)regionMax[i];
 	}
+	const VDFIOBase* myReader = ses->getRegionReader();
+	size_t timestep = ses->getMinTimestep();
+	myReader->MapUserToBlk(timestep, userMinCoords, min_bdim, numxforms);
+	myReader->MapUserToVox(timestep, userMinCoords, min_dim, numxforms);
+	myReader->MapUserToBlk(timestep, userMaxCoords, max_bdim, numxforms);
+	myReader->MapUserToVox(timestep, userMaxCoords, max_dim, numxforms);
+	
 	return;
 }
 
