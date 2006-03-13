@@ -10,9 +10,9 @@ PROJECT = vapor
 # LEAVE THESE THINGS ALONE!
 ###########################
 
-ifndef	ARCH
 include $(TOP)/make/config/arch.mk
-endif
+
+PLATFORM = $(ARCH)_$(MACHTYPE)
 
 #
 #	Prevent local makefiles which source this file from overwriting 
@@ -26,10 +26,10 @@ include $(TOP)/make/config/$(ARCH).mk
 
 
 ifdef PROGRAM
-BUILDDIR := $(TOP)/targets/$(ARCH)/built/$(PROGRAM)
+BUILDDIR := $(TOP)/targets/$(PLATFORM)/built/$(PROGRAM)
 else
 ifdef LIBRARY
-BUILDDIR := $(TOP)/targets/$(ARCH)/built/$(LIBRARY)
+BUILDDIR := $(TOP)/targets/$(PLATFORM)/built/$(LIBRARY)
 else
 BUILDDIR := dummy_builddir
 endif
@@ -43,10 +43,10 @@ CR_CXX = $(CXX)
 
 OBJDIR := $(BUILDDIR)
 DEPDIR := $(BUILDDIR)/dependencies
-BINDIR := $(TOP)/targets/$(ARCH)/bin
+BINDIR := $(TOP)/targets/$(PLATFORM)/bin
 INCDIR := $(TOP)/include
 DSO_DIR := $(BINDIR)
-#DSO_DIR := $(TOP)/targets/$(ARCH)/lib/
+#DSO_DIR := $(TOP)/targets/$(PLATFORM)/lib/
 DOCDIR := $(TOP)/targets/common/doc
 
 INCLUDE_DIRS := -I$(INCDIR) -I. -I$(INCDIR)/vaporinternal
@@ -221,12 +221,6 @@ RELEASE_STRING = (DEBUG)
 endif
 endif
 
-ifeq ($(THREADSAFE), 1)
-CFLAGS += -DCHROMIUM_THREADSAFE=1
-CXXFLAGS += -DCHROMIUM_THREADSAFE=1
-RELEASE_STRING += (THREADSAFE)
-endif
-
 ifeq ($(DEBUG), 1)
 CFLAGS += -DDEBUG
 CXXFLAGS += -DDEBUG
@@ -289,10 +283,10 @@ ifdef BANNER
 	@$(ECHO) "              $(BANNER)"
 else
 ifdef PROGRAM
-	@$(ECHO) "              Building $(TARGET) for $(ARCH) $(RELEASE_STRING) $(STATE_STRING) $(PACK_STRING) $(UNPACK_STRING) $(VTK_STRING) $(WARN_STRING)"
+	@$(ECHO) "              Building $(TARGET) for $(PLATFORM) $(RELEASE_STRING) $(STATE_STRING) $(PACK_STRING) $(UNPACK_STRING) $(VTK_STRING) $(WARN_STRING)"
 endif
 ifdef LIBRARY
-	@$(ECHO) "              Building $(TARGET) for $(ARCH) $(RELEASE_STRING) $(STATE_STRING) $(PACK_STRING) $(UNPACK_STRING) $(VTK_STRING) $(WARN_STRING)"
+	@$(ECHO) "              Building $(TARGET) for $(PLATFORM) $(RELEASE_STRING) $(STATE_STRING) $(PACK_STRING) $(UNPACK_STRING) $(VTK_STRING) $(WARN_STRING)"
 endif
 endif
 	@$(ECHO) "-------------------------------------------------------------------------------"
@@ -306,9 +300,9 @@ ifneq ($(BUILDDIR), dummy_builddir)
 endif
 
 ifdef WINDOWS
-#LIBRARIES := $(foreach lib,$(LIBRARIES),$(TOP)/targets/$(ARCH)/bin/$(LIBPREFIX)$(lib)$(LIBSUFFIX))
+#LIBRARIES := $(foreach lib,$(LIBRARIES),$(TOP)/targets/$(PLATFORM)/bin/$(LIBPREFIX)$(lib)$(LIBSUFFIX))
 LIBRARIES := $(foreach lib,$(LIBRARIES),$(lib)$(LIBSUFFIX))
-LIBRARIES += $(foreach lib,$(PERSONAL_LIBRARIES),$(TOP)/targets/$(ARCH)/lib/$(LIBPREFIX)$(SHORT_TARGET_NAME)_$(lib)_copy$(LIBSUFFIX))
+LIBRARIES += $(foreach lib,$(PERSONAL_LIBRARIES),$(TOP)/targets/$(PLATFORM)/lib/$(LIBPREFIX)$(SHORT_TARGET_NAME)_$(lib)_copy$(LIBSUFFIX))
 #LIBRARIES := $(LIBRARIES:$(DLLSUFFIX)=$(LIBSUFFIX))
 STATICLIBRARIES :=
 
@@ -326,10 +320,10 @@ endif
 endif
 
 
-STATICLIBRARIES := $(foreach lib,$(LIBRARIES),$(wildcard $(TOP)/lib/$(ARCH)/lib$(lib)$(LIBSUFFIX)))
+STATICLIBRARIES := $(foreach lib,$(LIBRARIES),$(wildcard $(TOP)/lib/$(PLATFORM)/lib$(lib)$(LIBSUFFIX)))
 LIBRARIES := $(foreach lib,$(LIBRARIES),-l$(lib))
 LIBRARIES += $(foreach lib,$(PERSONAL_LIBRARIES),-l$(SHORT_TARGET_NAME)_$(lib)_copy)
-P_LIB_FILES := $(foreach lib,$(PERSONAL_LIBRARIES),$(TOP)/lib/$(ARCH)/$(LIBPREFIX)$(SHORT_TARGET_NAME)_$(lib)_copy$(DLLSUFFIX) )
+P_LIB_FILES := $(foreach lib,$(PERSONAL_LIBRARIES),$(TOP)/lib/$(PLATFORM)/$(LIBPREFIX)$(SHORT_TARGET_NAME)_$(lib)_copy$(DLLSUFFIX) )
 endif
 
 LDFLAGS += $(MAKEFILE_LDFLAGS)
@@ -357,13 +351,13 @@ endif
 # For example: crserver depends on libcrstate.a and libcrserverlib.a
 $(PROG_TARGET): $(OBJS) $(STATICLIBRARIES)
 ifdef PROGRAM
-	@$(ECHO) "Linking $(PROGRAM) for $(ARCH)"
+	@$(ECHO) "Linking $(PROGRAM) for $(PLATFORM)"
 ifdef WINDOWS
 	@$(CR_CXX) $(OBJS) /Fe$(PROG_TARGET)$(EXESUFFIX) $(LIBRARIES) $(LDFLAGS)
 else
 ifdef BINUTIL_LINK_HACK
 ifdef PERSONAL_LIBRARIES
-	@$(PERL) $(TOP)/buildutils/trans_undef_symbols.pl $(PROGRAM) $(TOP)/built/$(PROGRAM)/$(ARCH) $(P_LIB_FILES)
+	@$(PERL) $(TOP)/buildutils/trans_undef_symbols.pl $(PROGRAM) $(TOP)/built/$(PROGRAM)/$(PLATFORM) $(P_LIB_FILES)
 endif
 endif
 	$(CR_CXX) $(OBJS) -o $(PROG_TARGET)$(EXESUFFIX) $(LDFLAGS) $(LIBRARIES)
@@ -392,7 +386,7 @@ ifdef AIXSHAREDLIB
 else #aixsharedlib
 ifdef BINUTIL_LINK_HACK
 ifdef PERSONAL_LIBRARIES
-	@$(PERL) $(TOP)/buildutils/trans_undef_symbols.pl $(SHORT_TARGET_NAME) $(TOP)/built/$(SHORT_TARGET_NAME)/$(ARCH) $(P_LIB_FILES)
+	@$(PERL) $(TOP)/buildutils/trans_undef_symbols.pl $(SHORT_TARGET_NAME) $(TOP)/built/$(SHORT_TARGET_NAME)/$(PLATFORM) $(P_LIB_FILES)
 endif
 endif
 	$(LD) $(SHARED_LDFLAGS) -o $(LIB_TARGET) $(OBJS) $(LDFLAGS) $(LIBRARIES)
@@ -515,10 +509,10 @@ ifdef SUBDIRS
 	@for i in $(SUBDIRS); do $(MAKE) -C $$i clean; done
 endif
 ifdef LIBRARY
-	@$(ECHO) "Removing all $(ARCH) object files for $(TARGET)."
+	@$(ECHO) "Removing all $(PLATFORM) object files for $(TARGET)."
 else
 ifdef PROGRAM
-	@$(ECHO) "Removing all $(ARCH) object files for $(PROGRAM)."
+	@$(ECHO) "Removing all $(PLATFORM) object files for $(PROGRAM)."
 endif
 endif
 	@$(RM) $(OBJS) $(TEMPFILES) 
@@ -534,11 +528,11 @@ ifdef SUBDIRS
 	@for i in $(SUBDIRS); do $(MAKE) -C $$i clobber; done
 endif
 ifdef LIBRARY
-	@$(ECHO) "Removing $(LIB_TARGET) for $(ARCH)."
+	@$(ECHO) "Removing $(LIB_TARGET) for $(PLATFORM)."
 	@$(RM) $(LIB_TARGET) $(QTTEMPS)
 else
 ifdef PROGRAM
-	@$(ECHO) "Removing $(PROGRAM) for $(ARCH)."
+	@$(ECHO) "Removing $(PROGRAM) for $(PLATFORM)."
 	@$(RM) $(PROGRAM)
 	@$(RM) $(BINDIR)/$(PROGRAM) $(QTTEMPS)
 endif
