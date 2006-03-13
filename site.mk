@@ -10,6 +10,10 @@ endif
 
 BUILD_VOLUMIZER = 1
 
+ifeq ($(RELEASE_ENV), 1)
+RELEASE = 1
+endif
+
 #
 #	get VAPOR_INSTALL_DIR from the enviornment
 #
@@ -40,7 +44,7 @@ endif
 #
 ifeq ($(ARCH),IRIX64)
 
-ifdef	BUILD64
+ifdef	BUILD_64_BIT_ENV
 BUILD_64_BIT = 1
 endif
 
@@ -52,16 +56,16 @@ HDF5_INC_PATH=/fs/local/include
 HDF5_LIB_PATH=/fs/local/lib
 BUILD_IDL_WRAPPERS = 1
 
-IDL_INC_PATH = /fs/local/apps/rsi/idl_6.1/external/include/
+IDL_INC_PATH = /fs/local/apps/rsi/idl/external/include/
 QTDIR=/fs/local/apps/qt-3.3.4
 
-ifdef BUILD64
+ifeq ($(BUILD_64_BIT), 1)
 
 EXPAT_LIB_PATH=/usr/freeware/lib64
 NETCDF_LIB_PATH=/fs/local/64/lib
 HDF5_LIB_PATH=/fs/local/64/lib
 
-IDL_INC_PATH = /fs/local/64/apps/rsi/idl_6.1/external/include/
+IDL_INC_PATH = /fs/local/64/apps/rsi/idl/external/include/
 QTDIR=/fs/local/64/apps/qt-3.3.4
 
 endif
@@ -73,6 +77,9 @@ endif
 #
 ifeq ($(ARCH),Linux)
 
+ifdef	HAVE_INTEL_COMPILERS_ENV
+HAVE_INTEL_COMPILERS = 1
+endif
 
 EXPAT_INC_PATH=/usr/include
 EXPAT_LIB_PATH=/usr/lib
@@ -81,21 +88,20 @@ NETCDF_LIB_PATH=/fs/local/lib
 HDF5_INC_PATH=/fs/local/include
 HDF5_LIB_PATH=/fs/local/lib
 BUILD_IDL_WRAPPERS = 1
-IDL_INC_PATH=/fs/local/apps/rsi/idl_6.1/external/include
+IDL_INC_PATH=/fs/local/apps/rsi/idl/external/include
 QTDIR = /fs/local/apps/qt-3.3.4
 
 ifeq ($(MACHTYPE),ia64)
-BUILD64 = 1
+BUILD_64_BIT = 1
 BUILD_IDL_WRAPPERS = 0
 endif
 
 ifeq ($(MACHTYPE),x86_64)
-BUILD64 = 1
-BUILD_GUI = 0
+BUILD_64_BIT = 1
 endif
 
-ifdef	BUILD64
-IDL_INC_PATH=/fs/local/apps/rsi/idl_6.1/external/include
+ifeq ($(BUILD_64_BIT), 1)
+IDL_INC_PATH=/fs/local/64/apps/rsi/idl/external/include
 QTDIR = /fs/local/64/apps/qt-3.3.4
 NETCDF_INC_PATH=/fs/local/64/include
 NETCDF_LIB_PATH=/fs/local/64/lib
