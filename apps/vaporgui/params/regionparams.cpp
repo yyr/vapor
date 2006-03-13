@@ -745,18 +745,18 @@ reinit(bool doOverride){
 	setDirty();
 }
 
-void RegionParams::setRegionMin(int coord, float minval){
+void RegionParams::setRegionMin(int coord, float minval, bool checkMax){
 	const float* fullDataExtents = Session::getInstance()->getExtents();
 	if (minval < fullDataExtents[coord]) minval = fullDataExtents[coord];
 	if (minval > fullDataExtents[coord+3]) minval = fullDataExtents[coord+3];
-	if (minval > regionMax[coord]) minval = regionMax[coord];
+	if (checkMax) {if (minval > regionMax[coord]) minval = regionMax[coord];}
 	regionMin[coord] = minval;
 }
-void RegionParams::setRegionMax(int coord, float maxval){
+void RegionParams::setRegionMax(int coord, float maxval, bool checkMin){
 	const float* fullDataExtents = Session::getInstance()->getExtents();
 	if (maxval < fullDataExtents[coord]) maxval = fullDataExtents[coord];
 	if (maxval > fullDataExtents[coord+3]) maxval = fullDataExtents[coord+3];
-	if (maxval < regionMin[coord]) maxval = regionMin[coord];
+	if (checkMin){if (maxval < regionMin[coord]) maxval = regionMin[coord];}
 	regionMax[coord] = maxval;
 }
 

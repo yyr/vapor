@@ -108,8 +108,9 @@ public:
 
 	virtual void setBox(const float boxmin[], const float boxmax[]){
 		for(int i = 0; i<3; i++){
-			setRegionMin(i, boxmin[i]);
-			setRegionMax(i, boxmax[i]);
+			//Don't check max>min until min is set:
+			setRegionMin(i, boxmin[i],false);
+			setRegionMax(i, boxmax[i],true);
 		}
 	}
 	virtual void getBox(float boxMin[], float boxMax[]){
@@ -146,8 +147,8 @@ protected:
 	//Methods to set the region max and min from a float value.
 	//Called at end of region bounds drag
 	//
-	void setRegionMin(int coord, float minval);
-	void setRegionMax(int coord, float maxval);
+	void setRegionMin(int coord, float minval, bool checkMax=true);
+	void setRegionMax(int coord, float maxval, bool checkMin=true);
 	//Region dirty bit is kept in vizWin
 	//
 	void setDirty();  

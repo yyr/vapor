@@ -739,12 +739,11 @@ void ProbeParams::setClutDirty(){
 void ProbeParams::
 updateRenderer(bool prevEnabled,  bool wasLocal, bool newWindow){
 	
-	bool newLocal = local;
+	
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	if (newWindow) {
 		prevEnabled = false;
 		wasLocal = true;
-		newLocal = true;
 	}
 	//The actual enabled state of "this" depends on whether we are local or global.
 	bool nowEnabled = enabled;
@@ -1270,7 +1269,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	static int parsedVarNum = -1;
 	int i;
 	if (StrCmpNoCase(tagString, _probeParamsTag) == 0) {
-		static int parsedVarNum;
+		
 		int newNumVariables = 0;
 		//If it's a Probe tag, obtain 6 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
@@ -2182,7 +2181,7 @@ refreshHistogram(){
 	vcross(vec1,vec2,normals[5]);
 	vnormal(normals[5]);
 
-	float distval;
+	
 	float xyz[3];
 	//int lastxyz = -1;
 	//int incount = 0;
@@ -2196,7 +2195,7 @@ refreshHistogram(){
 				xyz[0] = extents[0] + (((float)i)/(float)(dataSize[0]-1))*(extents[3]-extents[0]);
 				
 				//test if x,y,z is in probe:
-				if ((distval = distanceToCube(xyz, normals, corner))<0.0005f*voxSize){
+				if (distanceToCube(xyz, normals, corner)<0.0005f*voxSize){
 					//incount++;
 					//Point is (almost) inside.
 					//Evaluate the variable(s):
