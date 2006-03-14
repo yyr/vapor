@@ -100,10 +100,14 @@ public:
 	virtual void ComputeBBox(void) = 0;
 	// set bounding box
 	virtual void SetBoundary(VECTOR3& minB, VECTOR3& maxB) = 0;
+	// set region bound
+	virtual void SetRegionExtents(VECTOR3& minR, VECTOR3& maxR) = 0;
 	// get min and maximal boundary
 	virtual void Boundary(VECTOR3& minB, VECTOR3& maxB) = 0;
 	// whether the point is in the bounding box
 	virtual bool isInBBox(VECTOR3& pos) = 0;
+	// whether the point is in the region
+	virtual bool isInRegion(VECTOR3& pos) = 0;
 	// get the minimal cell spacing in x,y,z dimensions for cell cellId
 	virtual float GetGridSpacing(int cellId) = 0;
 };
@@ -123,6 +127,7 @@ class FLOW_API CartesianGrid : public Grid
 private:
 	int m_nDimension[3];				// dimension
 	VECTOR3 m_vMinBound, m_vMaxBound;	// min and maximal boundary
+	VECTOR3 m_vMinRegBound, m_vMaxRegBound;	// min and max region extents
 	float mappingFactorX;				// mapping from physical space to computational space
 	float mappingFactorY;
 	float mappingFactorZ;
@@ -178,10 +183,14 @@ public:
 	void ComputeBBox(void);
 	// set bounding box
 	void SetBoundary(VECTOR3& minB, VECTOR3& maxB);
+	// set region extents
+	void SetRegionExtents(VECTOR3&minR, VECTOR3& maxR);
 	// get min and maximal boundary
 	void Boundary(VECTOR3& minB, VECTOR3& maxB);
 	// whether the point is in the bounding box
 	bool isInBBox(VECTOR3& pos);
+	// Or in region (replaces above!)
+	bool isInRegion(VECTOR3& pos);
 	float GetGridSpacing(int cellId){ return gridSpacing; }
 };
 

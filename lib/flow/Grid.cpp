@@ -63,6 +63,15 @@ void CartesianGrid::SetBoundary(VECTOR3& minB, VECTOR3& maxB)
 	// grid spacing
 	gridSpacing = min(min(oneOvermappingFactorX, oneOvermappingFactorY), oneOvermappingFactorZ);
 }
+//////////////////////////////////////////////////////////////////////////
+// set region bounds
+//////////////////////////////////////////////////////////////////////////
+void CartesianGrid::SetRegionExtents(VECTOR3& minR, VECTOR3& maxR)
+{
+	m_vMinRegBound = minR;
+	m_vMaxRegBound = maxR;
+	
+}
 
 void CartesianGrid::Boundary(VECTOR3& minB, VECTOR3& maxB)
 {
@@ -78,6 +87,18 @@ bool CartesianGrid::isInBBox(VECTOR3& pos)
 	if( (pos[0] >= m_vMinBound[0]) && (pos[0] <= m_vMaxBound[0]) &&
 		(pos[1] >= m_vMinBound[1]) && (pos[1] <= m_vMaxBound[1]) &&
 		(pos[2] >= m_vMinBound[2]) && (pos[2] <= m_vMaxBound[2]))
+		return true;
+	else
+		return false;
+}
+//////////////////////////////////////////////////////////////////////////
+// test whether the physical point pos is in region
+//////////////////////////////////////////////////////////////////////////
+bool CartesianGrid::isInRegion(VECTOR3& pos)
+{
+	if( (pos[0] >= m_vMinRegBound[0]) && (pos[0] <= m_vMaxRegBound[0]) &&
+		(pos[1] >= m_vMinRegBound[1]) && (pos[1] <= m_vMaxRegBound[1]) &&
+		(pos[2] >= m_vMinRegBound[2]) && (pos[2] <= m_vMaxRegBound[2]))
 		return true;
 	else
 		return false;
@@ -110,7 +131,8 @@ bool CartesianGrid::at_phys(VECTOR3& pos)
 	PointInfo pInfo;
 
 	// whether in the bounding box
-	if(!isInBBox(pos))
+	
+	if(!isInRegion(pos))
 		return false;
 
 	return true;
@@ -187,7 +209,8 @@ bool CartesianGrid::at_vertex(int verIdx, VECTOR3& pos)
 //////////////////////////////////////////////////////////////////////////
 bool CartesianGrid::isInCell(PointInfo& pInfo, const int cellId)
 {
-	if(!isInBBox(pInfo.phyCoord))
+	
+	if(!isInRegion(pInfo.phyCoord))
 		return false;
 
 	int xidx, yidx, zidx;
@@ -227,8 +250,10 @@ int CartesianGrid::phys_to_cell(PointInfo& pInfo)
 {
 	int xidx, yidx, zidx;
 
-	if(!isInBBox(pInfo.phyCoord))
+	
+	if(!isInRegion(pInfo.phyCoord))
 		return -1;
+
 
 	VECTOR3 compVec;		// position in computational space
 	compVec.Set(UCGridPhy2Comp(pInfo.phyCoord[0], m_vMinBound[0], mappingFactorX), 

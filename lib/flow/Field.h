@@ -45,7 +45,7 @@ public:
 	int getCellVertices(int cellId, CellTopoType cellType, vector<int>& vVertices) { return m_pGrid->getCellVertices(cellId, cellType, vVertices); }
 	int at_phys(const int fromCell, VECTOR3& pos, PointInfo& pInfo,const float t, VECTOR3& nodeData);
 	int phys_at_ver(int verId, VECTOR3& pos);
-	bool is_in_grid(VECTOR3& pos) {return m_pGrid->isInBBox(pos);}
+	bool is_in_grid(VECTOR3& pos) {return (m_pGrid->isInRegion(pos));}
 	int at_comp(const int i, const int j, const int k, const float t, VECTOR3& dataValue);
 	float volume_of_cell(int cellId);
 	void NormalizeField(bool bLocal);

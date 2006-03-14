@@ -22,12 +22,11 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	zVarName = NULL;
 
 	numXForms = 0;
-	//AN:  2/21/06:  Initialize region and region block bounds
-	for (int i = 0; i<3; i++) {
+	for (int i = 0; i< 3; i++){
+		minBlkRegion[i] = 0;
+		maxBlkRegion[i] = 0;
 		minRegion[i] = 0;
 		maxRegion[i] = 0;
-		minBRegion[i] = 0;
-		maxBRegion[i] = 0;
 	}
 
 	userTimeStepSize = 1.0;
@@ -69,11 +68,12 @@ void VaporFlow::Reset(void)
 {
 	numXForms = 0;
 	for (int i = 0; i< 3; i++){
+		minBlkRegion[i] = 0;
+		maxBlkRegion[i] = 0;
 		minRegion[i] = 0;
 		maxRegion[i] = 0;
-		minBRegion[i] = 0;
-		maxBRegion[i] = 0;
 	}
+	
 
 	userTimeStepSize = 1.0;
 	animationTimeStepSize = 1.0;
@@ -110,15 +110,15 @@ void VaporFlow::SetFieldComponents(const char* xvar,
 void VaporFlow::SetRegion(size_t num_xforms, 
 						  const size_t min[3], 
 						  const size_t max[3],
-						  const size_t min_bdim[3], 
+						  const size_t min_bdim[3],
 						  const size_t max_bdim[3])
 {
 	numXForms = num_xforms;
-	for (int i = 0; i<3; i++){
+	for (int i = 0; i< 3; i++){
+		minBlkRegion[i] = min_bdim[i];
+		maxBlkRegion[i] = max_bdim[i];
 		minRegion[i] = min[i];
-		minBRegion[i] = min_bdim[i];
 		maxRegion[i] = max[i];
-		maxBRegion[i] = max_bdim[i];
 	}
 	
 }
@@ -202,8 +202,7 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 	//
 	ErrMsgCB_T errorCallback = GetErrMsgCB();
 	SetErrMsgCB(0);
-	//AN:  use maxBRegion, not maxRegion
-	float *regionData = dataMgr->GetRegion(ts, varName, numXForms, minBRegion, maxBRegion);
+	float *regionData = dataMgr->GetRegion(ts, varName, numXForms, minBlkRegion, maxBlkRegion);
 	SetErrMsgCB(errorCallback);
 	if (!regionData) {
 		SetErrMsg("Error loading field data for timestep %d, variable %s",ts, varName);
@@ -259,10 +258,9 @@ bool VaporFlow::GenStreamLines(float* positions,
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
 	float **pUData, **pVData, **pWData;
-	//AN 2/21/06:  use minRegion for actual array bounds
-	int totalXNum = (maxRegion[0]-minRegion[0]+1);
-	int totalYNum = (maxRegion[1]-minRegion[1]+1);
-	int totalZNum = (maxRegion[2]-minRegion[2]+1);
+	int totalXNum = (maxBlkRegion[0]-minBlkRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize()[0];
+	int totalYNum = (maxBlkRegion[1]-minBlkRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize()[1];
+	int totalZNum = (maxBlkRegion[2]-minBlkRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize()[2];
 	int totalNum = totalXNum*totalYNum*totalZNum;
 	pUData = new float*[1];
 	pVData = new float*[1];
@@ -285,21 +283,31 @@ bool VaporFlow::GenStreamLines(float* positions,
 	
 	// set the boundary of physical grid
 	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
-	VECTOR3 minB, maxB;
-	double minUser[3], maxUser[3];
-	myReader->MapVoxToUser(startTimeStep, minRegion, minUser, numXForms);
-	myReader->MapVoxToUser(startTimeStep, maxRegion, maxUser, numXForms);
+	VECTOR3 minB, maxB, minR, maxR;
+	double minUser[3], maxUser[3], regMin[3],regMax[3];
+	size_t blockRegionMin[3],blockRegionMax[3];
+	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	for (int i = 0; i< 3; i++){
+		blockRegionMin[i] = bs[i]*minBlkRegion[i];
+		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
+	}
+	myReader->MapVoxToUser(startTimeStep, blockRegionMin, minUser, numXForms);
+	myReader->MapVoxToUser(startTimeStep, blockRegionMax, maxUser, numXForms);
+	myReader->MapVoxToUser(startTimeStep, minRegion, regMin, numXForms);
+	myReader->MapVoxToUser(startTimeStep, maxRegion, regMax, numXForms);
 	
 	//Use current region to determine coords of grid boundary:
 	
-	//Now adjust minB, maxB to actual region extents:
-	//AN 2/21/06:  use actual, not block bounds
+	//Now adjust minB, maxB to block region extents:
+	
 	for (int i = 0; i< 3; i++){
 		minB[i] = minUser[i];
 		maxB[i] = maxUser[i];
+		minR[i] = regMin[i];
+		maxR[i] = regMax[i];
 	}
 	
-
+	pCartesianGrid->SetRegionExtents(minR,maxR);
 	pCartesianGrid->SetBoundary(minB, maxB);
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
 	pField->SetUserTimeStepInc(0, 1);
@@ -432,10 +440,9 @@ bool VaporFlow::GenPathLines(float* positions,
 	int timeSteps;							// total "time steps"
 	int totalXNum, totalYNum, totalZNum, totalNum;
 	int realStartTime, realEndTime;
-	//AN 2/21/06:  use region coords, not block coords here
-    totalXNum = (maxRegion[0]-minRegion[0] + 1);
-	totalYNum = (maxRegion[1]-minRegion[1] + 1);
-	totalZNum = (maxRegion[2]-minRegion[2] + 1);
+    totalXNum = (maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize()[0];
+	totalYNum = (maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize()[1];
+	totalZNum = (maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize()[2];
 	totalNum = totalXNum*totalYNum*totalZNum;
 	numInjections = 1 + ((endInjection - startInjection)/injectionTimeIncrement);
 	//realStartTime and realEndTime are actual limits of time steps for which positions
@@ -459,15 +466,27 @@ bool VaporFlow::GenPathLines(float* positions,
 	// set the boundary of physical grid
 	
 	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
-	VECTOR3 minB, maxB;
-	double minUser[3], maxUser[3];
-	myReader->MapVoxToUser(realStartTime, minRegion, minUser, numXForms);
-	myReader->MapVoxToUser(realStartTime, maxRegion, maxUser, numXForms);
-	
+	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	VECTOR3 minB, maxB, minR, maxR;
+	double minUser[3], maxUser[3], regMin[3],regMax[3];
+	size_t blockRegionMin[3],blockRegionMax[3];
+	for (int i = 0; i< 3; i++){
+		blockRegionMin[i] = bs[i]*minBlkRegion[i];
+		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
+	}
+	myReader->MapVoxToUser(realStartTime, blockRegionMin, minUser, numXForms);
+	myReader->MapVoxToUser(realStartTime, blockRegionMax, maxUser, numXForms);
+	myReader->MapVoxToUser(realStartTime, minRegion, regMin, numXForms);
+	myReader->MapVoxToUser(realStartTime, maxRegion, regMax, numXForms);
 	
 	minB.Set(minUser[0], minUser[1], minUser[2]);
 	maxB.Set(maxUser[0], maxUser[1], maxUser[2]);
+	minR.Set(regMin[0], regMin[1], regMin[2]);
+	maxR.Set(regMax[0], regMax[1], regMax[2]);
 	pCartesianGrid->SetBoundary(minB, maxB);
+	pCartesianGrid->SetRegionExtents(minR,maxR);
+	//Now set the region bound:
+
 	pField = new CVectorField(pCartesianGrid, pSolution, timeSteps);
 	
 	// get the userTimeStep between two sampled timesteps

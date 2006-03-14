@@ -75,8 +75,8 @@ namespace VAPoR
 
 		DataMgr* dataMgr;							// data manager
 		char *xVarName, *yVarName, *zVarName;		// name of three variables for vector field
-		size_t numXForms, minRegion[3], maxRegion[3];// in voxel coordinate
-		size_t minBRegion[3], maxBRegion[3];         //in block coords
+		size_t numXForms, minBlkRegion[3], maxBlkRegion[3];// in block coordinate
+		size_t minRegion[3], maxRegion[3];			//Actual region bounds
 	};
 };
 
