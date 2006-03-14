@@ -98,6 +98,7 @@ endif
 
 ifeq ($(MACHTYPE),x86_64)
 BUILD_64_BIT = 1
+BUILD_VOLUMIZER = 0
 endif
 
 ifeq ($(BUILD_64_BIT), 1)

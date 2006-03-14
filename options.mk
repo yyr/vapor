@@ -11,7 +11,7 @@
 
 
 # Installation prefix directory. Vapor executables will be installed
-# in INSTALL_PREFIX_DIR/bin, libraries in INSTALL_PREFIX_DIR/lib
+# in $(INSTALL_PREFIX_DIR)/bin, libraries in $(INSTALL_PREFIX_DIR)/lib
 # etc,.
 #
 INSTALL_PREFIX_DIR=/usr/local
