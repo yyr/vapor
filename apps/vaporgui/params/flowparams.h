@@ -444,48 +444,7 @@ protected:
 	int maxFrame, minFrame;
 	
 	
-	//The following is proposed to support asynchronous Pathline calculation.
-	//There is a semaphore controlling access to the state variables, which include:
-	///////////////////////////
-	//  int lastCompletedTimestep //indicates how many valid timesteps are in the data
-	//								//note that this is -1 is equivalent to dataDirty = true
-	//  enum flowCalcState  // can be idle, busy, or ending
-	//////////////////////////////
-	// When flowDataDirty is set, if Pathlines are being done, then instead of deleting
-	// the flowdata, 
-	//		if flowCalcState is busy it is set to "ending"
-	//		if flowCalcState is idle, lastCompletedTimestep is set to -1
-	///////////////////////////
-	// When the flowlib completes a timestep, 
-	//	if flowCalcState is ending, flowcalcstate is set to idle and lastCompletedTimestep to -1, and
-	//	a rerender is requested, and the calculation is stopped.
-	//  if flowCalcState is not ending, the lastCompletedStep is incremented. and rerender is requested
-	//  flowCalcState should not be idle
-	/////////////////////////////////////////
-	// When a new render begins:
-	//	 if lastCompletedTimestep is -1, regen is called, plus:
-	//      the flowdata is reallocated
-	//		flowCalcState is set to busy (it should already be idle)
-	//   otherwise the valid frames are rendered
-	///////////////////////////////////////////////////
-	//  question: do we always need to lock the semaphore???
-	////////////////////////////////////////////////////////////////////////
-	//  FOllowing is probably wrong::::::>>>>>>>
-	//		When a new Pathline calculation is started, set
-	// isEnding = false, isWorking = true, needData = false, lastCompletedTimestep = -1
-	//		When flowlib completes a timestep:
-	// set lastCompletedTimestep to the correct value
-	// request GLUpdate of visualizer
-	// check the isEnding flag.  If isEnding==true, set isWorking = false and 
-	// return false (cancelling further Path calculations)
-	//		When users set data dirty (necessitating a new Pathline calc):
-	// set isEnding = true
-	// set needData = true
-	//		When there is a new rendering:
-	// If the dataDirty flag is true, then perform the above steps for starting a Pathline calc
-	//	  perform the above steps f
-	// check needData (don't need to get a lock for this)
-	//////////////////////////////////// 
+	
 
 };
 };

@@ -3345,6 +3345,10 @@ validateSampling()
 		return !changed;
 	}
 	//Now we have a valid start, see if the increment is invalid.
+	if (timeSamplingInterval < 1) {
+		timeSamplingInterval = 1;
+		changed = true;
+	}
 	//It is OK if the second one is valid or if there is no second one:
 	if (!validateVectorField(timeSamplingStart+timeSamplingInterval)){
 		//Need to find the first valid increment:
