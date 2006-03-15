@@ -304,7 +304,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 		} else { //render arrows
 			
 			
-			glPolygonMode(GL_FRONT, GL_FILL);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			//Render arrows
 			//Note that lastDisplayFrame is maxPoints -1
 			//and firstDisplayFrame is 0
@@ -367,7 +367,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 						maxPoints*numSeedPoints*injectionNum, constColors);
 			} else { //rendering arrows:
 				
-				glPolygonMode(GL_FRONT, GL_FILL);
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				
 				renderArrows(userRadius, (nLights > 0), firstGeom, lastGeom,
 					maxPoints*numSeedPoints*injectionNum, constColors);
