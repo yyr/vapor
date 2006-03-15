@@ -10,3 +10,6 @@ endif
 
 include ${TOP}/make/config/base.mk
 
+
+install-dep:	
+	. $(INSTALL_BINDIR)/vapor-setup.sh; for i in libqt-mt.so libexpat.so; do $(TOP)/buildutils/mklinks.pl $$i $(INSTALL_BINDIR)/vaporgui $(INSTALL_LIBDIR); done
