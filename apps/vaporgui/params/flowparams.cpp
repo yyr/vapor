@@ -574,7 +574,7 @@ updatePanelState(){
 		
 	}
 	if (flowGraphicsChanged){
-		
+		//change the parameters.  
 		shapeDiameter = myFlowTab->diameterEdit->text().toFloat();
 		if (shapeDiameter < 0.f) {
 			shapeDiameter = 0.f;

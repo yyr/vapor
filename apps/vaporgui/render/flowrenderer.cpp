@@ -164,6 +164,11 @@ renderFlowData(bool constColors, int currentFrameNum){
 	int winNum = myVizWin->getWindowNum();
 	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
 	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
+	//Don't render if the flow is not up to date..
+	int frameToCheck = steadyFlow ? currentFrameNum : 0;
+	if (myFlowParams->flowDataIsDirty(frameToCheck)) return;
+
+
 	GLfloat white_light[] = {1.f,1.f,1.f,1.f};
 	GLfloat lmodel_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
 	
@@ -1009,7 +1014,7 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 			vsub(flowDataArray+3*(tubeStartIndex+1), flowDataArray+3*tubeStartIndex, evenN);
 			//Normalize even
 			len = vdot(evenN,evenN);
-			if (len == 0.f){//If 2nd is same as first set default normal
+			if (len == 0.f || len > 1.e36f ){//If 2nd is same as first set default normal
 				vset(evenN, 0.f,0.f,1.f);
 			} else {
 				vscale(evenN, 1.f/sqrt(len));
@@ -1018,12 +1023,12 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 			//Calculate evenU, orthogonal to evenN:
 			vset(testVec, 1.,0.,0.);
 			vcross(evenN, testVec, evenU);
-			len = vdot(evenU,evenU);
-			if (len == 0.f){
+			float len2 = vdot(evenU,evenU);
+			if (len2 == 0.f){
 				vset(testVec, 0.,1.,0.);
 				vcross(evenN, testVec, evenU);
-				len = vdot(evenU, evenU);
-				assert(len != 0.f);
+				len2 = vdot(evenU, evenU);
+				assert(len2 != 0.f);
 			} 
 			vscale( evenU, 1.f/sqrt(len));
 			vcross(evenU, evenN, currentB);
