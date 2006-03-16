@@ -91,7 +91,6 @@ my($name,$dir,$suffix) = fileparse($path);
 @cpfiles = ();
 
 foreach $lib (@libs) {
-	print "lib = $lib, target = $TargetDir\n";
 
 	if (defined(readlink($lib))) {
 		$link = chaselink($lib);
@@ -103,8 +102,6 @@ foreach $lib (@libs) {
 
 			$newname = "$TargetDir" . "/" . $newname;
 
-			print "old = $oldname\n";
-			print "new = $newname\n";
 			if (! eval { symlink("$oldname","$newname"); 1 }) {
 				printf STDERR "$ProgName: symlink($oldname, $newname) : failed\n";
 				exit(1);
