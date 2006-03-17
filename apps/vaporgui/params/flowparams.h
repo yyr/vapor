@@ -79,9 +79,12 @@ public:
 	//set geometry/flow data dirty-flags, and force rebuilding all geometry
 	void setFlowMappingDirty();
 	void setFlowDataDirty(bool rakeOnly = false, bool listOnly = false);
-	//Precise setting of flag value and/or invalidate data
-	void setFlowDataDirty(int timeStep, bool isRake, bool newValue);
+	//clean flag (after rebuild data), also turn off needRefresh
+	void setFlowDataClean(int timeStep, bool isRake);
 		
+	void setNeedOfRefresh(int timeStep, bool value){ needRefreshFlag[timeStep]=value;}
+	bool needsRefresh(int timeStep) {return (autoRefresh || needRefreshFlag[timeStep]);}
+
 	//The mapper function calls this when the mapping changes
 	virtual void setClutDirty() { setFlowMappingDirty();}
 
@@ -137,6 +140,7 @@ public:
 	std::vector<Point4>& getSeedPointList(){return seedPointList;}
 	int getColorMapEntityIndex() ;
 	int getOpacMapEntityIndex() ;
+	bool refreshIsAuto() {return autoRefresh;}
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
 	bool flowDataIsDirty(int timeStep, bool rakeOnly, bool listOnly){
 		bool rakeDirty = 
@@ -426,6 +430,7 @@ protected:
 	float** listFlowData;
 	int* numListSeedPointsUsed;
 	seedType* flowDataDirty;
+	bool* needRefreshFlag;
 	float** rakeFlowRGBAs;
 	float** listFlowRGBAs;
 	bool autoRefresh;

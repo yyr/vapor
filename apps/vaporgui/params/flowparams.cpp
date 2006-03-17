@@ -116,6 +116,7 @@ FlowParams::FlowParams(int winnum) : Params(winnum) {
 	rakeFlowRGBAs = 0;
 	listFlowRGBAs = 0;
 	flowDataDirty = 0;
+	needRefreshFlag = 0;
 
 	//Set all parameters to default values
 	restart();
@@ -134,6 +135,7 @@ FlowParams::~FlowParams(){
 		delete maxColorBounds;
 		delete maxOpacBounds;
 	}
+	cleanFlowDataCaches();
 }
 //Set everything in sight to default state:
 void FlowParams::
@@ -287,6 +289,7 @@ deepCopy(){
 	newFlowParams->listFlowRGBAs = 0;
 	newFlowParams->listFlowData = 0;
 	newFlowParams->flowDataDirty = 0;
+	newFlowParams->needRefreshFlag = 0;
 	newFlowParams->numListSeedPointsUsed = 0;
 	newFlowParams->numRakeSeedPointsUsed = 0;
 
@@ -886,6 +889,7 @@ reinit(bool doOverride){
 	rakeFlowRGBAs = new float*[maxFrame+1];
 	listFlowRGBAs = new float*[maxFrame+1];
 	flowDataDirty = new seedType[maxFrame+1];
+	needRefreshFlag = new bool[maxFrame+1];
 	for (int j = 0; j<= maxFrame; j++) {
 		numListSeedPointsUsed[j] = 0;
 		rakeFlowData[j] = 0;
@@ -893,6 +897,7 @@ reinit(bool doOverride){
 		rakeFlowRGBAs[j] = 0;
 		listFlowRGBAs[j] = 0;
 		flowDataDirty[j] = (seedType)(seedRake | seedList);
+		needRefreshFlag[j] = true;
 	}
 
 	//don't change local/global 
@@ -1363,7 +1368,10 @@ guiSetAutoRefresh(bool isOn){
 	if (isOn == autoRefresh) return;
 	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle auto flow refresh");
 	autoRefresh = isOn;
-	//If we are turning off autoRefresh, there's nothing to do
+	//If we are turning off autoRefresh, clear all the needsRefresh flags
+	if (!autoRefresh){
+		for (int i = 0; i<=maxFrame; i++) setNeedOfRefresh(i,false);
+	}
 	//If we are turning it on, all the dirty data must be invalidated, and
 	//we may need to schedule a render.  
 	bool madeDirty = false;
@@ -1416,22 +1424,19 @@ guiSetColorMapEntity( int entityNum){
 	else setFlowMappingDirty();
 }
 //When the user clicks "refresh", 
-//This triggers a rebuilding of current frame (if anything is dirty)
+//This triggers a rebuilding of current frame 
 //And then a rerendering.
 void FlowParams::
 guiRefreshFlow(){
 	confirmText(false);
 	if (!flowDataDirty) return;
-	//Check dirty flags, either currentTime or time 0
-	int frameNum = 0;
+	
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	if (flowIsSteady()){ 
-		frameNum = vizWinMgr->getAnimationParams(vizWinMgr->getActiveViz())->getCurrentFrameNumber();
+	for (int i = 0; i<=maxFrame; i++) {
+		setNeedOfRefresh(i,true);
 	}
-	if (flowDataIsDirty(frameNum)){
-		invalidateFlowData(frameNum);
-		vizWinMgr->refreshFlow(this);
-	}
+	vizWinMgr->refreshFlow(this);
+	
 }
 
 void FlowParams::
@@ -2040,20 +2045,26 @@ regenerateFlowData(int timeStep, bool isRake){
 		//setup the caches
 		rakeFlowData = new float*[maxFrame+1];
 		flowDataDirty = new seedType[maxFrame+1];
+		needRefreshFlag = new bool[maxFrame+1];
 		for (int j = 0; j<= maxFrame; j++) {
 			rakeFlowData[j] = 0;
 			flowDataDirty[j] = nullSeedType;
+			needRefreshFlag[j] = true;
 		}
 	}
 	if (!listFlowData) {
 		//setup the caches
 		listFlowData = new float*[maxFrame+1];
 		numListSeedPointsUsed = new int[maxFrame+1];
-		if(!flowDataDirty) flowDataDirty = new seedType[maxFrame+1];
+		if(!flowDataDirty) {
+			flowDataDirty = new seedType[maxFrame+1];
+			needRefreshFlag = new bool[maxFrame+1];
+		}
 		for (int j = 0; j<= maxFrame; j++) {
 			numListSeedPointsUsed[j]=0;
 			listFlowData[j] = 0;
 			flowDataDirty[j] = nullSeedType;
+			needRefreshFlag[j] = true;
 		}
 	}
 	float** flowData = listFlowData;
@@ -2257,7 +2268,7 @@ regenerateFlowData(int timeStep, bool isRake){
 		} else {
 			myFlowLib->GenPathLinesNoRake(flowData[0], maxPoints, numSeedPoints , seedTimeStart, seedTimeEnd, seedTimeIncrement, speeds);
 		}
-		setFlowDataDirty(0, isRake, false);
+		setFlowDataClean(0, isRake);
 		// With Pathlines, need to fill flags to end, and fill speeds as well
 		for (int q = 0; q< numSeedPoints*numInjections; q++){
 			//Scan Pathline for flags
@@ -2286,7 +2297,7 @@ regenerateFlowData(int timeStep, bool isRake){
 
 	//Restore original cursor:
 	QApplication::restoreOverrideCursor();
-	setFlowDataDirty(timeStep,isRake, false);
+	setFlowDataClean(timeStep,isRake);
 	//Invalidate colors and opacities:
 	if (flowRGBAs && flowRGBAs[timeStep]) {
 		delete flowRGBAs[timeStep];
@@ -2394,39 +2405,26 @@ void FlowParams::setFlowDataDirty(bool rakeOnly, bool listOnly){
 				}
 			}
 		}
-		//Force rerender only if we are doing autoRefresh
-		VizWinMgr::getInstance()->refreshFlow(this);
+		
+	} else {  
+		
+		myFlowTab->refreshButton->setEnabled(true);
 	}
-	if (!autoRefresh) myFlowTab->refreshButton->setEnabled(true);
+	//Force rerender 
+	VizWinMgr::getInstance()->refreshFlow(this);
 }
-//Set dirty flag for just the specific timestep
-//Setting it dirty also deletes the data.
+//Unset dirty flag for just the specific timestep. turn off 'needs refresh' flag
+//Performed after data was rebuilt.
 void FlowParams::
-setFlowDataDirty(int timeStep, bool isRake, bool newValue){
-	if (!newValue){//setting it "clean"
-		if (isRake)
-			flowDataDirty[timeStep] = (seedType)(~seedRake & flowDataDirty[timeStep]);
-		else flowDataDirty[timeStep] = (seedType)(~seedList & flowDataDirty[timeStep]);
-		return;
-	}
-	//Otherwise, invalidate data and set flag:
-	if (isRake) {
-		if (autoRefresh && rakeFlowData && rakeFlowData[timeStep]){
-			delete rakeFlowData[timeStep];
-			rakeFlowData[timeStep] = 0;
-		}
-		//set the dirty flag for rake
-		flowDataDirty[timeStep] = (seedType)(seedRake | flowDataDirty[timeStep]);
-	} else {
-		if (autoRefresh && listFlowData && listFlowData[timeStep]){
-			delete listFlowData[timeStep];
-			listFlowData[timeStep] = 0;
-			numListSeedPointsUsed[timeStep]=0;
-		}
-		//set the dirty flag for list
-		flowDataDirty[timeStep] = (seedType)(seedList | flowDataDirty[timeStep]);
-	}
-	if (!autoRefresh) myFlowTab->refreshButton->setEnabled(true);
+setFlowDataClean(int timeStep, bool isRake){
+	
+	if (isRake)
+		flowDataDirty[timeStep] = (seedType)(~seedRake & flowDataDirty[timeStep]);
+	else flowDataDirty[timeStep] = (seedType)(~seedList & flowDataDirty[timeStep]);
+	//!!Only clear the needOfRefresh flag after the last one is done.
+	//BAD: This assumes that the rake will always be updated before the seedList!!!
+	if (!isRake || !doSeedList)
+		setNeedOfRefresh(timeStep, false);
 }
 //Method to construct Xml for state saving
 XmlNode* FlowParams::
@@ -3410,12 +3408,14 @@ void FlowParams::cleanFlowDataCaches(){
 		
 	}
 	if (flowDataDirty) delete[] flowDataDirty;
+	if (needRefreshFlag) delete[] needRefreshFlag;
 	rakeFlowData = 0;
 	listFlowData = 0;
 	flowDataDirty = 0;
 	listFlowRGBAs = 0;
 	rakeFlowRGBAs = 0;
 	numListSeedPointsUsed = 0;
+	needRefreshFlag = 0;
 }
 
 

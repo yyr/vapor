@@ -91,8 +91,8 @@ void FlowRenderer::paintGL()
 	if (myFlowParams->flowDataIsDirty(timeStep)){
 		//get the necessary state from the flowParams:
 		
-		
-		
+		//We will rebuild any null data pointers, using current settings,
+		//if it needs refresh
 		
 		
 		maxFrame = myFlowParams->getMaxFrame();
@@ -113,49 +113,58 @@ void FlowRenderer::paintGL()
 	
 	//Get the rake flow data:
 	if (myFlowParams->rakeEnabled()){
+		
 		flowDataArray = myFlowParams->getFlowData(timeStep, true);
-		if (!flowDataArray){
+		
+		if (myFlowParams->flowDataIsDirty(timeStep,true,false) && myFlowParams->needsRefresh(timeStep)){
+			flowDataArray = myFlowParams->regenerateFlowData(timeStep, true);
+			if (!flowDataArray) return;
+		}
+	
+		
+		
+		numSeedPoints = myFlowParams->getNumRakeSeedPointsUsed();
+		maxPoints = myFlowParams->getMaxPoints();
+		numInjections = 1;
+		if (!myFlowParams->flowDataIsDirty(timeStep,true,false)){
+			if (!constColors){
+				flowRGBAs = myFlowParams->getRGBAs(timeStep, true);
+			} else {
+				constFlowColor[3] = myFlowParams->getConstantOpacity();
+				QRgb constRgb = myFlowParams->getConstantColor();
+
+				constFlowColor[0] = qRed(constRgb)/255.f;
+				constFlowColor[1] = qGreen(constRgb)/255.f;
+				constFlowColor[2] = qBlue(constRgb)/255.f;
+			}
+			renderFlowData(constColors,currentFrameNum);
+		}
+		
+	}
+	//Do the same for seed list
+	if (myFlowParams->listEnabled()){
+		if (myFlowParams->flowDataIsDirty(timeStep,false,true) && myFlowParams->needsRefresh(timeStep)){
 			flowDataArray = myFlowParams->regenerateFlowData(timeStep, true);
 			if (!flowDataArray) return;
 		}
 		
-		if (!constColors){
-			flowRGBAs = myFlowParams->getRGBAs(timeStep, true);
-		} else {
-			constFlowColor[3] = myFlowParams->getConstantOpacity();
-			QRgb constRgb = myFlowParams->getConstantColor();
-
-			constFlowColor[0] = qRed(constRgb)/255.f;
-			constFlowColor[1] = qGreen(constRgb)/255.f;
-			constFlowColor[2] = qBlue(constRgb)/255.f;
-		}
-		numSeedPoints = myFlowParams->getNumRakeSeedPointsUsed();
-		maxPoints = myFlowParams->getMaxPoints();
-		numInjections = 1;
-		renderFlowData(constColors,currentFrameNum);
-	}
-	//Do the same for seed list
-	if (myFlowParams->listEnabled()){
-		flowDataArray = myFlowParams->getFlowData(timeStep, false);
-		if (!flowDataArray){
-			flowDataArray = myFlowParams->regenerateFlowData(timeStep, false);
-			if (!flowDataArray) return;
-		}
-		
-		if (!constColors){
-			flowRGBAs = myFlowParams->getRGBAs(timeStep, false);
-		} else {
-			constFlowColor[3] = myFlowParams->getConstantOpacity();
-			QRgb constRgb = myFlowParams->getConstantColor();
-
-			constFlowColor[0] = qRed(constRgb)/255.f;
-			constFlowColor[1] = qGreen(constRgb)/255.f;
-			constFlowColor[2] = qBlue(constRgb)/255.f;
-		}
 		numSeedPoints = myFlowParams->getNumListSeedPointsUsed(timeStep);
 		maxPoints = myFlowParams->getMaxPoints();
 		numInjections = 1;
-		renderFlowData(constColors,currentFrameNum);
+		// Don't render invalid data:
+		if (!myFlowParams->flowDataIsDirty(timeStep,false,true)){
+			if (!constColors){
+				flowRGBAs = myFlowParams->getRGBAs(timeStep, false);
+			} else {
+				constFlowColor[3] = myFlowParams->getConstantOpacity();
+				QRgb constRgb = myFlowParams->getConstantColor();
+
+				constFlowColor[0] = qRed(constRgb)/255.f;
+				constFlowColor[1] = qGreen(constRgb)/255.f;
+				constFlowColor[2] = qBlue(constRgb)/255.f;
+			}
+			renderFlowData(constColors,currentFrameNum);
+		}
 	}
 }
 
@@ -164,11 +173,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 	int winNum = myVizWin->getWindowNum();
 	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
 	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
-	//Don't render if the flow is not up to date..
-	int frameToCheck = steadyFlow ? currentFrameNum : 0;
-	if (myFlowParams->flowDataIsDirty(frameToCheck)) return;
-
-
+	
 	GLfloat white_light[] = {1.f,1.f,1.f,1.f};
 	GLfloat lmodel_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
 	
@@ -1023,12 +1028,12 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 			//Calculate evenU, orthogonal to evenN:
 			vset(testVec, 1.,0.,0.);
 			vcross(evenN, testVec, evenU);
-			float len2 = vdot(evenU,evenU);
-			if (len2 == 0.f){
+			len = vdot(evenU,evenU);
+			if (len == 0.f){
 				vset(testVec, 0.,1.,0.);
 				vcross(evenN, testVec, evenU);
-				len2 = vdot(evenU, evenU);
-				assert(len2 != 0.f);
+				len = vdot(evenU, evenU);
+				assert(len != 0.f);
 			} 
 			vscale( evenU, 1.f/sqrt(len));
 			vcross(evenU, evenN, currentB);
