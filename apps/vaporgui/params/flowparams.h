@@ -82,8 +82,8 @@ public:
 	//clean flag (after rebuild data), also turn off needRefresh
 	void setFlowDataClean(int timeStep, bool isRake);
 		
-	void setNeedOfRefresh(int timeStep, bool value){ needRefreshFlag[timeStep]=value;}
-	bool needsRefresh(int timeStep) {return (autoRefresh || needRefreshFlag[timeStep]);}
+	void setNeedOfRefresh(int timeStep, bool value){ if(needRefreshFlag)needRefreshFlag[timeStep]=value;}
+	bool needsRefresh(int timeStep) {return (autoRefresh || !needRefreshFlag || needRefreshFlag[timeStep]);}
 
 	//The mapper function calls this when the mapping changes
 	virtual void setClutDirty() { setFlowMappingDirty();}
@@ -143,10 +143,10 @@ public:
 	bool refreshIsAuto() {return autoRefresh;}
 	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
 	bool flowDataIsDirty(int timeStep, bool rakeOnly, bool listOnly){
-		bool rakeDirty = 
-			(rakeFlowData && (flowDataDirty[timeStep]&seedRake));
-		bool listDirty = 
-			(listFlowData && (flowDataDirty[timeStep]&seedList)&&(getNumListSeedPoints()>0));
+		bool rakeDirty = (!rakeFlowData || (!rakeFlowData[timeStep]) ||
+			(rakeFlowData && (flowDataDirty[timeStep]&seedRake)));
+		bool listDirty = (!listFlowData || (!listFlowData[timeStep])||
+			(listFlowData && (flowDataDirty[timeStep]&seedList)&&(getNumListSeedPoints()>0)));
 		if (rakeOnly) return rakeDirty;
 		if (listOnly) return listDirty;
 		return (rakeDirty || listDirty);

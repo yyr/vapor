@@ -88,6 +88,8 @@ void FlowRenderer::paintGL()
 	//
 	
 	//Do we need to regenerate any flow data?
+	
+	bool regeneratedFlow = false;
 	if (myFlowParams->flowDataIsDirty(timeStep)){
 		//get the necessary state from the flowParams:
 		
@@ -119,6 +121,7 @@ void FlowRenderer::paintGL()
 		if (myFlowParams->flowDataIsDirty(timeStep,true,false) && myFlowParams->needsRefresh(timeStep)){
 			flowDataArray = myFlowParams->regenerateFlowData(timeStep, true);
 			if (!flowDataArray) return;
+			regeneratedFlow = true;
 		}
 	
 		
@@ -143,9 +146,11 @@ void FlowRenderer::paintGL()
 	}
 	//Do the same for seed list
 	if (myFlowParams->listEnabled()){
+		flowDataArray = myFlowParams->getFlowData(timeStep, false);
 		if (myFlowParams->flowDataIsDirty(timeStep,false,true) && myFlowParams->needsRefresh(timeStep)){
-			flowDataArray = myFlowParams->regenerateFlowData(timeStep, true);
+			flowDataArray = myFlowParams->regenerateFlowData(timeStep, false);
 			if (!flowDataArray) return;
+			regeneratedFlow = true;
 		}
 		
 		numSeedPoints = myFlowParams->getNumListSeedPointsUsed(timeStep);
@@ -166,6 +171,7 @@ void FlowRenderer::paintGL()
 			renderFlowData(constColors,currentFrameNum);
 		}
 	}
+	if (regeneratedFlow) myFlowParams->setNeedOfRefresh(timeStep, false);
 }
 
 void FlowRenderer::

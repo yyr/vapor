@@ -1368,9 +1368,16 @@ guiSetAutoRefresh(bool isOn){
 	if (isOn == autoRefresh) return;
 	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle auto flow refresh");
 	autoRefresh = isOn;
-	//If we are turning off autoRefresh, clear all the needsRefresh flags
+	//If we are turning off autoRefresh, clear all the needsRefresh flags 
+	//It's possible that some frames are dirty and will not be refreshed, in which case
+	//we will need to leave the refresh button enabled.
+	bool needEnable = false;
 	if (!autoRefresh){
-		for (int i = 0; i<=maxFrame; i++) setNeedOfRefresh(i,false);
+		for (int i = 0; i<=maxFrame; i++) {
+			if (flowDataIsDirty(i)) needEnable = true;
+			setNeedOfRefresh(i,false);
+			
+		}
 	}
 	//If we are turning it on, all the dirty data must be invalidated, and
 	//we may need to schedule a render.  
@@ -1385,7 +1392,7 @@ guiSetAutoRefresh(bool isOn){
 	}
 
 	PanelCommand::captureEnd(cmd, this);
-	myFlowTab->refreshButton->setEnabled(!autoRefresh && activeFlowDataIsDirty());
+	myFlowTab->refreshButton->setEnabled(!autoRefresh && needEnable);
 	if (madeDirty) VizWinMgr::getInstance()->refreshFlow(this);
 }
 
@@ -1433,8 +1440,9 @@ guiRefreshFlow(){
 	
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	for (int i = 0; i<=maxFrame; i++) {
-		setNeedOfRefresh(i,true);
+		if(flowDataIsDirty(i)) setNeedOfRefresh(i,true);
 	}
+	myFlowTab->refreshButton->setEnabled(!autoRefresh && activeFlowDataIsDirty());
 	vizWinMgr->refreshFlow(this);
 	
 }
@@ -1456,13 +1464,12 @@ guiEditSeedList(){
 bool FlowParams::
 activeFlowDataIsDirty(){
 	//Make sure we at least have the flags:
-	if (!flowDataDirty) return false;
-	int frameNum = 0;
-	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	if (flowIsSteady()){ 
-		frameNum = vizWinMgr->getAnimationParams(vizWinMgr->getActiveViz())->getCurrentFrameNumber();
+	if (!flowDataDirty) return true;
+	if (!flowIsSteady()) return (flowDataIsDirty(0) && !needsRefresh(0));
+	for (int i = 0; i<= maxFrame; i++){
+		if (flowDataIsDirty(i) && !needsRefresh(i)) return true;
 	}
-	return (flowDataIsDirty(frameNum));
+	return false;
 }
 
 void FlowParams::
@@ -2407,7 +2414,8 @@ void FlowParams::setFlowDataDirty(bool rakeOnly, bool listOnly){
 		}
 		
 	} else {  
-		
+		//Set needs refresh false, so we won't rebuild until refresh button is clicked
+		for (int i = 0;i<=maxFrame; i++) setNeedOfRefresh(i,false);
 		myFlowTab->refreshButton->setEnabled(true);
 	}
 	//Force rerender 
@@ -2421,10 +2429,7 @@ setFlowDataClean(int timeStep, bool isRake){
 	if (isRake)
 		flowDataDirty[timeStep] = (seedType)(~seedRake & flowDataDirty[timeStep]);
 	else flowDataDirty[timeStep] = (seedType)(~seedList & flowDataDirty[timeStep]);
-	//!!Only clear the needOfRefresh flag after the last one is done.
-	//BAD: This assumes that the rake will always be updated before the seedList!!!
-	if (!isRake || !doSeedList)
-		setNeedOfRefresh(timeStep, false);
+	
 }
 //Method to construct Xml for state saving
 XmlNode* FlowParams::
