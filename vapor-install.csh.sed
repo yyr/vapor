@@ -34,7 +34,7 @@ echo "Installing VAPOR to $directory"
 #
 # Copy the distribution to the target directory
 #
-tar cf - bin include lib | (cd $directory; tar xf -)
+tar cf - bin include lib examples | (cd $directory; tar xf -)
 
 
 #
@@ -46,10 +46,13 @@ set old1 = 'set[ 	][ 	]*expat[ 	][ 	]*=.*$'
 set new1 = "set expat = "
 set old2 = 'set[ 	][ 	]*netcdf[ 	][ 	]*=.*$'
 set new2 = "set netcdf = "
+set old3 = 'set[ 	][ 	]*qt[ 	][ 	]*=.*$'
+set new3 = "set qt = "
 /bin/ex - $directory/bin/vapor-setup.csh <<EOF
 1,\$s#$old0#$new0#
 1,\$s#$old1#$new1#
 1,\$s#$old2#$new2#
+1,\$s#$old3#$new3#
 w
 q
 EOF
@@ -60,10 +63,13 @@ set old1 = 'expat=.*$'
 set new1 = "expat="
 set old2 = 'netcdf=.*$'
 set new2 = "netcdf="
+set old3 = 'qt=.*$'
+set new3 = "qt="
 /bin/ex - $directory/bin/vapor-setup.sh <<EOF
 1,\$s#$old0#$new0#
 1,\$s#$old1#$new1#
 1,\$s#$old2#$new2#
+1,\$s#$old3#$new3#
 w
 q
 EOF

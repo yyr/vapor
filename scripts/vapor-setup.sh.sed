@@ -5,6 +5,7 @@ build64=BUILD_64_BIT
 root=INSTALL_PREFIX_DIR
 expat=EXPAT_LIB_PATH
 netcdf=NETCDF_LIB_PATH
+qt=QTDIR/lib
 idl=BUILD_IDL_WRAPPERS
 
 auxlib=""
@@ -16,6 +17,11 @@ fi
 if [ -n "$netcdf" ]
 then
     auxlib="${auxlib}:$netcdf"
+fi
+
+if [ -n "$qt" ]
+then
+    auxlib="${auxlib}:$qt"
 fi
 
 

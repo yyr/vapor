@@ -80,9 +80,14 @@ if (@matchs > 1) {
 	exit(1);
 } 
 
+# remove leading white space. Don't know why this is neccessary - split
+# should take care of it.
+#
+$matchs[0] =~ s/^\s+//;
 
-@_ = split / /, $matchs[0];
+@_ = split /\s+/, $matchs[0];
 $path = $_[2];
+
 
 my($name,$dir,$suffix) = fileparse($path);
 
@@ -108,7 +113,7 @@ foreach $lib (@libs) {
 			}
 		}
 		else {
-			push @cpfiles, $lib 
+			push @cpfiles, $link 
 		}
 	}
 	else {

@@ -13,6 +13,7 @@ $(BINDIR)/vapor-setup.sh: vapor-setup.sh.sed Makefile
 		-e s#INSTALL_PREFIX_DIR#$(INSTALL_PREFIX_DIR)# \
 		-e s#EXPAT_LIB_PATH#$(EXPAT_LIB_PATH)# \
 		-e s#NETCDF_LIB_PATH#$(NETCDF_LIB_PATH)# \
+		-e s#QTDIR#$(QTDIR)# \
 		-e s#BUILD_IDL_WRAPPERS#$(BUILD_IDL_WRAPPERS)# \
 		< vapor-setup.sh.sed > $@
 
@@ -25,6 +26,7 @@ $(BINDIR)/vapor-setup.csh: vapor-setup.csh.sed Makefile
 		-e s#INSTALL_PREFIX_DIR#$(INSTALL_PREFIX_DIR)# \
 		-e s#EXPAT_LIB_PATH#$(EXPAT_LIB_PATH)# \
 		-e s#NETCDF_LIB_PATH#$(NETCDF_LIB_PATH)# \
+		-e s#QTDIR#$(QTDIR)# \
 		-e s#BUILD_IDL_WRAPPERS#$(BUILD_IDL_WRAPPERS)# \
 		< vapor-setup.csh.sed > $@
 

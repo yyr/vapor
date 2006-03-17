@@ -1,10 +1,11 @@
-#! /bin/csh 
+#! /bin/csh -f
 
 set arch = ARCH
 set build64 = BUILD_64_BIT
 set root = INSTALL_PREFIX_DIR
 set expat = EXPAT_LIB_PATH
 set netcdf = NETCDF_LIB_PATH
+set qt = QTDIR/lib
 set idl = BUILD_IDL_WRAPPERS
 
 set auxlib = ""
@@ -13,6 +14,9 @@ if ("$expat" != "") then
 endif
 if ("$netcdf" != "") then
 	set auxlib = "${auxlib}:$netcdf"
+endif
+if ("$qt" != "") then
+	set auxlib = "${auxlib}:$qt"
 endif
 
 if !($?PATH) then
@@ -45,7 +49,7 @@ endif
 
 if !($?MANPATH) then
 	if ( "$arch" == "Linux" ) then
-		setenv MANPATH "$root/man":$(man -w)
+		setenv MANPATH "$root/man":`man -w`
 	else
 		setenv MANPATH "$root/man"
 	endif
