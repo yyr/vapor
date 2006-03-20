@@ -1456,7 +1456,8 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 			}
 		}
 		if (i == numVariables) variableSelected[0] = true;
-
+		
+		getTFEditor()->setVarNum(firstVarNum);
 		//Align the editor
 		setMinEditBound(getMinColorMapBound());
 		setMaxEditBound(getMaxColorMapBound());
