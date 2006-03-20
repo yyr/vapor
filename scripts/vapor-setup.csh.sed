@@ -19,6 +19,8 @@ if ("$qt" != "") then
 	set auxlib = "${auxlib}:$qt"
 endif
 
+setenv VAPOR_HOME $root
+
 if !($?PATH) then
     setenv PATH "$root/bin"
 else

@@ -24,6 +24,7 @@ then
     auxlib="${auxlib}:$qt"
 fi
 
+VAPOR_HOME="$root"; export VAPOR_HOME
 
 if [ -z "${PATH}" ]
 then
