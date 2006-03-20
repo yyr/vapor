@@ -187,12 +187,16 @@ void ProbeParams::updateDialog(){
 	myProbeTab->refinementCombo->setCurrentItem(numRefinements);
 	
 
-	//Set the selection in the variable listbox
+	//Set the selection in the variable listbox.
+	//Turn off listBox message-listening
+	ignoreListboxChanges = true;
 	for (int i = 0; i< ses->getNumMetadataVariables(); i++){
+		
 		if (myProbeTab->variableListBox->isSelected(i) != variableSelected[ses->mapMetadataToRealVarNum(i)])
 			myProbeTab->variableListBox->setSelected(i, variableSelected[ses->mapMetadataToRealVarNum(i)]);
 		
 	}
+	ignoreListboxChanges = false;
 	//Set sliders and text:
 	myProbeTab->histoScaleEdit->setText(QString::number(histoStretchFactor));
 	for (int i = 0; i< 3; i++){
@@ -593,7 +597,8 @@ guiAttachSeed(bool attach, FlowParams* fParams){
 //Respond to an update of the variable listbox.  set the appropriate bits
 void ProbeParams::
 guiChangeVariables(){
-	
+	//Don't react if the listbox is being reset programmatically:
+	if (ignoreListboxChanges) return;
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "change probe-selected variable(s)");
 	int firstVar = -1;
@@ -912,6 +917,7 @@ reinit(bool doOverride){
 		return;
 	}
 	//Set up the selected variables.
+	ignoreListboxChanges = false;
 	if (doOverride){//default is to only select the first variable.
 		variableSelected.clear();
 		variableSelected.resize(newNumVariables, false);
@@ -1032,6 +1038,7 @@ reinit(bool doOverride){
 //
 void ProbeParams::
 restart(){
+	ignoreListboxChanges = false;
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
 	if (probeTexture) delete probeTexture;
@@ -1466,8 +1473,10 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 				//Maybe std was not enabled when QT was built?
 				const QString& text = QString(s.c_str());
 				listBox->insertItem(text, i);
-				int realIndex = ses->mapMetadataToRealVarNum(i);
-				listBox->setSelected(i, variableSelected[realIndex]);
+				//int realIndex = ses->mapMetadataToRealVarNum(i);
+				//Don't set the selection in the list box.  That will
+				// be done in updateDialog.
+				//listBox->setSelected(i, variableSelected[realIndex]);
 			}
 			updateDialog();
 		}

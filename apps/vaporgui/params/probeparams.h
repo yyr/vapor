@@ -285,6 +285,10 @@ protected:
 	float cursorCoords[2];
 	bool seedAttached;
 	FlowParams* attachedFlow;
+
+	//Flag to enable resetting of the listbox without
+	//triggering a gui changed event
+	bool ignoreListboxChanges;
 	
 };
 };
