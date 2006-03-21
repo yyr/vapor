@@ -4,7 +4,7 @@ include ${TOP}/make/config/arch.mk
 
 EX_FILES = PrintMetaVDF.pro ReadRegionVDF.pro ReadVDF.pro \
 	WriteTimeVaryVDF.pro WriteVDF.pro expregion.pro impexp.pro \
-	impregion.pro marschner_lobb.pro
+	impregion.pro marschner_lobb.pro QuickStartEx1.pro
 
 include ${TOP}/make/config/base.mk
 

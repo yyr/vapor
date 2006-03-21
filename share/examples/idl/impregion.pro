@@ -12,10 +12,13 @@
 ;       IMPREGION
 ;
 ; KEYWORD PARAMETERS:
-;       REFLEVEL[in]:    The desired refinement levele. If this keyword is 
+;       REFLEVEL[in]:    The desired refinement level. If this keyword is 
 ;			not set, the subregion will be imported at full resolution
 ;
-;       STATEINFO[out]:    If this keyworkd is present the output of
+;       VARNAME[in]:    The desired variable level. If this keyword is 
+;			not set, default exported variable will be obtained
+;
+;       STATEINFO[out]:    If this keyword is present the output of
 ;			the 'vaporimport()' function is returned by the keyword
 ;			argument.
 ;
@@ -26,7 +29,7 @@
 ;       None.
 ;
 ;-
-function impregion, REFLEVEL=reflevel, STATEINFO=stateinfo
+function impregion, REFLEVEL=reflevel, STATEINFO=stateinfo, VARNAME=varname
 
 
 on_error,2                      ;Return to caller if an error occurs
@@ -43,6 +46,8 @@ if keyword_set(reflevel) eq 0 then reflevel = -1
 	;	MAXRANGE	: Maximum extents of region of interest in volume
 	;				coordinates specified relative to the finest resolution
 	stateinfo = vaporimport()
+
+	if keyword_set(varname) eq 0 then varname = stateinfo.varname
 
 	;
 	;   Create a "Buffered Read" object to read the data, passing the
@@ -71,7 +76,7 @@ if keyword_set(reflevel) eq 0 then reflevel = -1
 
 	; Select the variable and time step we want to read
 	;
-	vdc_openvarread, dfd, stateinfo.timestep, stateinfo.varname, reflevel
+	vdc_openvarread, dfd, stateinfo.timestep, varname, reflevel
 
 	; Read the subregion
 	;
