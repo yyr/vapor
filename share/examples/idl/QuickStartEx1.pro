@@ -24,23 +24,26 @@ rw = rw/ro
 
 dim = size(ru, /DIMENSIONS)
 
+;
+; Compute vorticity
+;
 x=findgen(dim[0])
 y=findgen(dim[1])
 dvu=fltarr(dim[0], dim[1], dim[2])
 omz=fltarr(dim[0], dim[1], dim[2])
 for k=0,dim[2]-1 do begin
     tmp=reform(ru(*,*,k))
-    dvu(*,*,k)=myderiv(x,tmp,1,1)
+;    dvu(*,*,k)=myderiv(x,tmp,1,1)
     omz(*,*,k)=myderiv(y,tmp,2,1)
     tmp=reform(rv(*,*,k))
-    dvu(*,*,k)=dvu(*,*,k)+myderiv(y,tmp,2,1)
+;    dvu(*,*,k)=dvu(*,*,k)+myderiv(y,tmp,2,1)
     omz(*,*,k)=myderiv(x,tmp,1,1)-omz(*,*,k)
 endfor
 
 ;
-; Finally, export the region to a new VDC, named 'impexp.vdf'. The new
-; variable we have created will be named 'varsqr'. The new VDC maybe
-; either import into a running vaporgui session from whence the original
+; Finally, export the region to a new VDC, named '/tmp/QuickStartEx1.vdf'. 
+; The new variable we have created will be named 'omz'. The new VDC maybe
+; either merged into a running vaporgui session from whence the original
 ; data came, or may simply be loaded as a new data set
 ;
 tmpvdf = '/tmp/QuickStartEx1.vdf'
