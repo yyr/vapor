@@ -50,6 +50,7 @@ public:
       DVR_VOLUMIZER,   
       DVR_DEBUG,
       DVR_STRETCHED_GRID,
+	  DVR_INVALID_TYPE
     };
 
 	DvrParams(int winnum);

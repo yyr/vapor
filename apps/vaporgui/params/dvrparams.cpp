@@ -81,6 +81,7 @@ DvrParams::DvrParams(int winnum) : Params(winnum)
 
 	numBits = 8;
 	numVariables = 0;
+	type = DVR_INVALID_TYPE;
 	restart();
 	
 }
@@ -754,7 +755,7 @@ restart(){
 	setClutDirty();
 	setDatarangeDirty();
 
-    type = DVR_TEXTURE3D_LOOKUP;
+    
     
 	//If dvr is the current front tab, and if it applies to the active visualizer,
 	//update its values
