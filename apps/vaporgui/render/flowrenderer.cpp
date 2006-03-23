@@ -306,7 +306,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 				//Determine cylinder radius in actual coords.
 				//One voxel is (full region size)/(region array size)
 				
-				glPolygonMode(GL_FRONT, GL_FILL);
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				//Render all tubes
 				//Note that lastDisplayFrame is maxPoints -1
 				//and firstDisplayFrame is 0
@@ -371,7 +371,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 				
 				} else { //render as cylinders
 					
-					glPolygonMode(GL_FRONT, GL_FILL);
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 					//Render all tubes
 					renderTubes(userRadius, (nLights > 0), firstGeom, lastGeom,
 						maxPoints*numSeedPoints*injectionNum, constColors);

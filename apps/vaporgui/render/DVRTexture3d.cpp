@@ -717,7 +717,8 @@ long DVRTexture3d::maxTextureSize(GLenum format)
                                GL_TEXTURE_WIDTH, &width);
       if (width == 0)
       {
-        i /= 2;
+	    //quick fix since i /=2 doesn't always work.
+        i /= 4;
         
         _textureSizes[format] = i;
 
