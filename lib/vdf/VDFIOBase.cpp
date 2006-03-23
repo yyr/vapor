@@ -204,7 +204,7 @@ void	VDFIOBase::MapUserToVox(
 	else {
 		size_t	dim[3];
 		const vector <double> &extents = _metadata->GetExtents();
-		assert(_metadata->GetErrCode() == 0);
+		// assert(_metadata->GetErrCode() == 0);
 
 		vector <double> lextents = extents;
 
