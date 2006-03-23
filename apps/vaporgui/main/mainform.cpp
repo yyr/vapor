@@ -690,6 +690,10 @@ void MainForm::fileSave()
 {
 	//This directly saves the session to the current session save file.
     //It does not prompt the user unless there is an error
+	if (!Session::getInstance()->getCurrentMetadata()){
+		MessageReporter::warningMsg( "There is no current metadata.  Session state cannot be saved");
+		return;
+	}
 	if (!Session::getInstance()->metadataIsSaved())
 		MessageReporter::warningMsg( "Note: The current (merged) Metadata has not been saved. \nIt will be easier to restore this session if the Metadata is also saved.");
 	
@@ -758,7 +762,12 @@ void MainForm::saveMetadata()
 
 void MainForm::fileSaveAs()
 {
-	if (!Session::getInstance()->metadataIsSaved())
+	if (!Session::getInstance()->getCurrentMetadata()){
+		MessageReporter::warningMsg( "There is no current metadata.  Session state cannot be saved");
+		return;
+	}
+	
+	if ( !Session::getInstance()->metadataIsSaved())
 		MessageReporter::warningMsg( "Note: The current (merged) Metadata has not been saved. \n It will be easier to restore this session if the Metadata is also saved.");
 	//This launches a panel that enables the
     //user to choose output session save files, saves to it

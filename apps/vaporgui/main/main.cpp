@@ -40,7 +40,7 @@ QApplication* app;
 int main( int argc, char ** argv ) {
 	//Install our own message handler.
 	//Comment out the next line to see qWarnings in console:
-	//qInstallMsgHandler( myMessageOutput );
+	qInstallMsgHandler( myMessageOutput );
 	//Needed for SGI to avoid dithering:
 	QApplication::setColorSpec( QApplication::ManyColor );
     QApplication a( argc, argv );
