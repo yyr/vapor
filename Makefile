@@ -12,8 +12,7 @@ include ${TOP}/make/config/base.mk
 
 DEPLIBS = libqt-mt.so libexpat.so
 
-#install-dep: install
-install-dep: 
+install-dep: install
 	@$(ECHO) "Removing $(DEPLIBS) from $(INSTALL_LIBDIR)"
 	@for i in $(DEPLIBS); do $(RM) $(INSTALL_LIBDIR)/$$i.*; done
 	@$(ECHO) "Installing $(DEPLIBS) to $(INSTALL_LIBDIR)"
