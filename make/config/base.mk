@@ -12,7 +12,11 @@ PROJECT = vapor
 
 include $(TOP)/make/config/arch.mk
 
+ifneq ($(ARCH), WIN32)
 PLATFORM = $(ARCH)_$(MACHTYPE)
+else
+PLATFORM = $(ARCH)
+endif
 
 #
 #	Prevent local makefiles which source this file from overwriting 
