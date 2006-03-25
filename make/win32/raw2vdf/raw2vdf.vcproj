@@ -69,7 +69,7 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../../include;&quot;B:\Expat-1.95.8\Source\lib&quot;"
+				AdditionalIncludeDirectories="&quot;$(NETCDF_INC_PATH)&quot;;../../../include;&quot;$(EXPAT_INC_PATH)&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -84,7 +84,7 @@
 				Name="VCLinkerTool"
 				OutputFile=".\..\..\..\targets\win32\bin\raw2vdf.exe"
 				LinkIncremental="1"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="FALSE"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"

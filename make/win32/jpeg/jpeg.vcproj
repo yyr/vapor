@@ -70,9 +70,13 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
+				AdditionalIncludeDirectories="../../../include/vaporinternal;../../../lib/vjpeg"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;JPEG_EXPORTS"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
+				ObjectFile="../../../targets/win32/built/jpeg/"
+				ProgramDataBaseFileName="../../../targets/win32/built/jpeg//vc70.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -80,13 +84,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/jpeg.dll"
+				OutputFile="../../../targets/win32/bin/vjpeg.dll"
 				LinkIncremental="1"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="FALSE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/jpeg.lib"
+				ImportLibrary="../../../targets/win32/bin/vjpeg.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>

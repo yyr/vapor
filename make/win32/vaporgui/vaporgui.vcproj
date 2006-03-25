@@ -19,17 +19,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189 /EHsc"
-				Optimization="1"
-				AdditionalIncludeDirectories="&quot;C:\Expat-1.95.8\Source\lib&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui\params;..\..\..\apps\vaporgui;..\..\..\include;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;C:\Qt\3.3.4\mkspecs\win32-msvc.net&quot;"
-				PreprocessorDefinitions="_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;VOLUMIZER"
+				Optimization="3"
+				AdditionalIncludeDirectories="&quot;C:\Expat-1.95.8\Source\lib&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui\params;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\include\vaporinternal;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;C:\Qt\3.3.4\mkspecs\win32-msvc.net&quot;"
+				PreprocessorDefinitions="_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;VOLUMIZER"
 				GeneratePreprocessedFile="0"
-				MinimalRebuild="TRUE"
+				MinimalRebuild="FALSE"
 				ExceptionHandling="TRUE"
-				RuntimeLibrary="3"
+				RuntimeLibrary="2"
 				BufferSecurityCheck="FALSE"
 				AssemblerListingLocation="..\..\..\targets\win32\built\vaporgui\"
 				ObjectFile="..\..\..\targets\win32\built\vaporgui\"
-				ProgramDataBaseFileName=".\"
+				ProgramDataBaseFileName="..\..\..\targets\win32\built\vaporgui\vc70.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"/>
@@ -38,10 +38,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="TRUE"
-				AdditionalDependencies="qt-mt334.lib glew32.lib qtmain.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib $(VOLUMIZER_ROOT)\lib\vz.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
+				AdditionalDependencies="qt-mt334.lib ..\..\..\targets\win32\bin\glew32.lib qtmain.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib &quot;$(VOLUMIZER_ROOT)\lib\vz.lib&quot; kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="$(QTDIR)\lib"
+				IgnoreAllDefaultLibraries="FALSE"
+				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				DelayLoadDLLs="opengl32.dll"
 				GenerateDebugInformation="FALSE"
 				ProgramDatabaseFile=""
@@ -91,7 +93,7 @@
 				BufferSecurityCheck="FALSE"
 				AssemblerListingLocation="..\..\..\targets\win32\built\vaporgui\"
 				ObjectFile="..\..\..\targets\win32\built\vaporgui\"
-				ProgramDataBaseFileName=".\"
+				ProgramDataBaseFileName="..\..\..\targets\win32\built\vaporgui\vc70.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"/>
@@ -151,6 +153,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\coloradjustdialog.cpp">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\colorpicker.cpp">

@@ -37,13 +37,13 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib C:\RSI\IDL61\bin\bin.x86\idl32.lib"
-				OutputFile="../../../targets/win32/bin/libidl_vdfmodule.dll"
+				OutputFile="../../../targets/win32/bin/idl_vdfmodule.dll"
 				LinkIncremental="2"
 				ModuleDefinitionFile="idl.def"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="../../../targets/win32/bin/libidl_vdfmodule.pdb"
+				ProgramDatabaseFile="../../../targets/win32/bin/idl_vdfmodule.pdb"
 				SubSystem="2"
-				ImportLibrary="../../../targets/win32/bin/libidl_vdfmodule.lib"
+				ImportLibrary="../../../targets/win32/bin/idl_vdfmodule.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -74,9 +74,13 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
+				AdditionalIncludeDirectories="../../../include/;&quot;$(EXPAT_INC_PATH)&quot;;C:/RSI/IDL61/external/include;&quot;$(NETCDF_INC_PATH)&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;IDL_EXPORTS"
 				RuntimeLibrary="0"
-				UsePrecompiledHeader="3"
+				UsePrecompiledHeader="0"
+				ObjectFile="../../../targets/win32/built/idl/"
+				ProgramDataBaseFileName="../../../targets/win32/built/idl/vc70.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -84,13 +88,15 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/idl.dll"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib C:\RSI\IDL61\bin\bin.x86\idl32.lib"
+				OutputFile="../../../targets/win32/bin/idl_vdfmodule.dll"
 				LinkIncremental="1"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="FALSE"
+				ProgramDatabaseFile="../../../targets/win32/bin/idl_vdfmodule.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/idl.lib"
+				ImportLibrary="../../../targets/win32/bin/idl_vdfmodule.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>

@@ -12,18 +12,18 @@ CC = cl
 # NOTE:  If you're compiling on Windows and find that some code warnings
 # stop compilation, remove the /WX flags in the next few lines.
 
-CXXFLAGS          += /nologo /DWIN32 /D_WINDOWS /TP /W3 /Gm /D"QT_THREAD_SUPPORT"
+CXXFLAGS          += /nologo /DWIN32 /D_WINDOWS /TP /W3 /EHsc /D"QT_THREAD_SUPPORT"
 CXX_RELEASE_FLAGS += /Ox /DNDEBUG /MD
 # This is just not working for me on VC++ 7 --> CXX_DEBUG_FLAGS   += /GZ
-CXX_DEBUG_FLAGS   +=  /Yd /Zi /MDd /EHsc
+CXX_DEBUG_FLAGS   +=  /Yd /Zi /MDd /Gm 
 
-CFLAGS          += /nologo /DWIN32 /D_WINDOWS /W3 /TC /GX /Zm1024 
+CFLAGS          += /nologo /DWIN32 /D_WINDOWS /W3 /TC /GX /Zm1024 /EHsc
 C_RELEASE_FLAGS += /MD /Ox /DNDEBUG
 # This is just not working for me on VC++ 7 --> C_DEBUG_FLAGS   += /GZ
-C_DEBUG_FLAGS   += /MDd /Yd /Z7 /EHsc
+C_DEBUG_FLAGS   += /MDd /Yd /Z7 
 
 LDFLAGS          += /nologo user32.lib kernel32.lib
-LD_RELEASE_FLAGS += 
+LD_RELEASE_FLAGS += /NODEFAULTLIB:"msvcrtd" /NODEFAULTLIB:"msvcr71d" 
 LD_DEBUG_FLAGS   += 
  
 ifndef $(EXPAT_LIB_PATH)

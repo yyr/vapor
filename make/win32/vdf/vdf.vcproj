@@ -77,9 +77,13 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
+				AdditionalIncludeDirectories="&quot;C:\Expat-1.95.8\Source\lib&quot;;&quot;$(NETCDF_INC_PATH)&quot;;../../../lib/vdf;../../../include/"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;VDF_EXPORTS"
 				RuntimeLibrary="2"
-				UsePrecompiledHeader="3"
+				UsePrecompiledHeader="0"
+				ObjectFile="../../../targets/win32/built/vdf/"
+				ProgramDataBaseFileName="../../../targets/win32/built/vdf/vc70.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -87,13 +91,15 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/vdf.dll"
+				AdditionalDependencies="libexpat.lib mpr.lib netcdf.lib"
+				OutputFile="../../../targets/win32/bin/vdf.dll"
 				LinkIncremental="1"
-				GenerateDebugInformation="TRUE"
+				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
+				GenerateDebugInformation="FALSE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/vdf.lib"
+				ImportLibrary="../../../targets/win32/bin/vdf.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>

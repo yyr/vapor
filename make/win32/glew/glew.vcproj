@@ -25,8 +25,8 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
-				ObjectFile="../../../targets/win32/built/jpeg/"
-				ProgramDataBaseFileName="../../../targets/win32/built/jpeg/vc70.pdb"
+				ObjectFile="../../../targets/win32/built/glew/"
+				ProgramDataBaseFileName="../../../targets/win32/built/glew/vc70.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"/>
@@ -71,9 +71,13 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GLEW_EXPORTS"
-				RuntimeLibrary="0"
+				Optimization="3"
+				AdditionalIncludeDirectories="../../../include/vaporinternal"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;GLEW_BUILD"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
+				ObjectFile="../../../targets/win32/built/glew32/"
+				ProgramDataBaseFileName="../../../targets/win32/built/glew32/vc70.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -81,13 +85,14 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="opengl32.lib"
 				OutputFile="../../../targets/win32/bin/glew32.dll"
 				LinkIncremental="1"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="FALSE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/glew.lib"
+				ImportLibrary="../../../targets/win32/bin/glew32.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>

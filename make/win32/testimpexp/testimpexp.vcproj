@@ -25,6 +25,8 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
+				ObjectFile="../../../targets/win32/built/testimpexp/"
+				ProgramDataBaseFileName="../../../targets/win32/built/testimpexp/vc70.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"/>
@@ -71,6 +73,8 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="4"
 				UsePrecompiledHeader="0"
+				ObjectFile="../../../targets/win32/built/testimpexp/"
+				ProgramDataBaseFileName="../../../targets/win32/built/testimpexp/vc70.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -80,7 +84,7 @@
 				Name="VCLinkerTool"
 				OutputFile=".\..\..\..\targets\win32\bin\testimpexp.exe"
 				LinkIncremental="1"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="FALSE"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
