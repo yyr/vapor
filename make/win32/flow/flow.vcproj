@@ -92,6 +92,7 @@
 				OutputFile="../../../targets/win32/bin/flow.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;"
+				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="FALSE"
 				SubSystem="2"
 				OptimizeReferences="2"

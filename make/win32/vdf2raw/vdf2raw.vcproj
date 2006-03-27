@@ -84,6 +84,7 @@
 				Name="VCLinkerTool"
 				OutputFile=".\..\..\..\targets\win32\bin\vdf2raw.exe"
 				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="FALSE"
 				SubSystem="1"
 				OptimizeReferences="2"

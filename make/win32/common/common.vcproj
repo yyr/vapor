@@ -89,6 +89,7 @@
 				Name="VCLinkerTool"
 				OutputFile="../../../targets/win32/bin/common.dll"
 				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="FALSE"
 				SubSystem="2"
 				OptimizeReferences="2"

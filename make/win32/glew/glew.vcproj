@@ -88,6 +88,7 @@
 				AdditionalDependencies="opengl32.lib"
 				OutputFile="../../../targets/win32/bin/glew32.dll"
 				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="FALSE"
 				SubSystem="2"
 				OptimizeReferences="2"

@@ -91,6 +91,7 @@
 				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib C:\RSI\IDL61\bin\bin.x86\idl32.lib"
 				OutputFile="../../../targets/win32/bin/libidl_vdfmodule.dll"
 				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="FALSE"
 				ProgramDatabaseFile="../../../targets/win32/bin/libidl_vdfmodule.pdb"
 				SubSystem="2"

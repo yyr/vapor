@@ -95,6 +95,7 @@
 				OutputFile="../../../targets/win32/bin/vdf.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)&quot;;&quot;$(NETCDF_LIB_PATH)&quot;"
+				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="FALSE"
 				SubSystem="2"
 				OptimizeReferences="2"
