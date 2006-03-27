@@ -3,10 +3,10 @@
 ;
 
 ;
-;	This example is referenced by the VAPOR Quick Start guide. It 
-;	demonstrates VAPOR's interaction with IDL by importing a data
-;	subregion from VAPOR, calculating the Z component of vorticity,
-;	and exporting the new quantity back to VAPOR.
+;   This example is referenced by the VAPOR Quick Start guide. It
+;   demonstrates VAPOR's interaction with IDL by importing a data
+;   subregion from VAPOR, calculating the Z component of vorticity,
+;   and exporting the new quantity back to VAPOR.
 ;
 
 ;
@@ -41,12 +41,14 @@ for k=0,dim[2]-1 do begin
 endfor
 
 ;
-; Finally, export the region to a new VDC, named '/tmp/QuickStartEx1.vdf'. 
+; Finally, export the region to a new VDC, named 'QuickStartEx1.vdf'.
 ; The new variable we have created will be named 'omz'. The new VDC maybe
 ; either merged into a running vaporgui session from whence the original
 ; data came, or may simply be loaded as a new data set
 ;
-tmpvdf = '/tmp/QuickStartEx1.vdf'
+;  Note there's an arithmetic error we can ignore...
+
+tmpvdf = 'QuickStartEx1.vdf'
 varname = 'omz'
 expregion, tmpvdf, omz, stateinfo, VARNAME=varname
 
