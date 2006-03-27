@@ -21,7 +21,7 @@
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189 /EHsc"
 				Optimization="3"
 				AdditionalIncludeDirectories="&quot;C:\Expat-1.95.8\Source\lib&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui\params;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\include\vaporinternal;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;C:\Qt\3.3.4\mkspecs\win32-msvc.net&quot;"
-				PreprocessorDefinitions="_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG;VOLUMIZER"
+				PreprocessorDefinitions="_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT;NDEBUG"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="FALSE"
 				ExceptionHandling="TRUE"
