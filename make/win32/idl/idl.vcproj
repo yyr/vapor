@@ -37,13 +37,13 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib C:\RSI\IDL61\bin\bin.x86\idl32.lib"
-				OutputFile="../../../targets/win32/bin/idl_vdfmodule.dll"
+				OutputFile="../../../targets/win32/bin/libidl_vdfmodule.dll"
 				LinkIncremental="2"
 				ModuleDefinitionFile="idl.def"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="../../../targets/win32/bin/idl_vdfmodule.pdb"
+				ProgramDatabaseFile="../../../targets/win32/bin/libidl_vdfmodule.pdb"
 				SubSystem="2"
-				ImportLibrary="../../../targets/win32/bin/idl_vdfmodule.lib"
+				ImportLibrary="../../../targets/win32/bin/libidl_vdfmodule.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>

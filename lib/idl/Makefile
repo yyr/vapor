@@ -3,7 +3,13 @@ TOP = ../..
 include ${TOP}/make/config/arch.mk
 
 SHARED = 0
+
+ifeq ($(ARCH),WIN32)
+LIBRARY = libidl_vdfmodule
+else
 LIBRARY = idl_vdfmodule
+endif
+
 FILES = \
 	IDLMetadata IDLMetadataAuto IDLCommon IDLWbIo IDLVaporImport IDLLifting1D
 
