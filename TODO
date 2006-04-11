@@ -1,3 +1,6 @@
 Develop OGL based volume renderer to remove volumizer dependency
 release notes	
 	-netcdf must be compiled with -fPIC on x86_64 (ia64??)
+
+Not all VarOpen routines call VarClose.
+Core dumps under linux if no X11 display available - DISPLAY not set
