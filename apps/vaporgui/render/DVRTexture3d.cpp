@@ -48,7 +48,7 @@ DVRTexture3d::DVRTexture3d(DataType_T type, int nthreads) :
   _nz(0),
   _data(0),
   _delta(0.0),
-  _maxTexture(Min(256,maxTextureSize(GL_RGBA8))),
+  _maxTexture(Min(128,maxTextureSize(GL_RGBA8))),
   _maxCacheSize(20)
 {
   if (type != UINT8) 
