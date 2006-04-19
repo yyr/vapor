@@ -784,7 +784,7 @@ void	DataMgr::free_var(const string &varname, int do_native) {
 		map <string, vector<region_t *> >::iterator t;
 
 		t = vmap.find(varname);
-		if (t == vmap.end()) return;
+		if (t == vmap.end()) continue;
 
 		vector <region_t *> &regvec = t->second;
 
