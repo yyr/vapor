@@ -116,8 +116,6 @@ public:
 	float getSeedRegionMin(int coord){ return seedBoxMin[coord];}
 	float getSeedRegionMax(int coord){ return seedBoxMax[coord];}
 	
-	int getMinFrame() {return minFrame;}
-	int getMaxFrame() {return maxFrame;}
 	int getMaxPoints() {return maxPoints;}
 	
 	int getNumInjections() { return numInjections;}
@@ -127,6 +125,7 @@ public:
 	int getLastSeeding() {return seedTimeEnd;}
 	int getSeedingIncrement() {return seedTimeIncrement;}
 	float getShapeDiameter() {return shapeDiameter;}
+	float getArrowDiameter() {return arrowDiameter;}
 	//Distinguish between the number of seed points specified in the
 	//current settings and the number actually used the last time
 	//the flow was calculated:
@@ -285,6 +284,7 @@ protected:
 	static const string _objectsPerFlowlineAttr;
 	static const string _displayIntervalAttr;
 	static const string _shapeDiameterAttr;
+	static const string _arrowDiameterAttr;
 	static const string _colorMappedEntityAttr;
 	static const string _opacityMappedEntityAttr;
 	static const string _constantColorAttr;
@@ -394,6 +394,7 @@ protected:
 	int firstDisplayFrame, lastDisplayFrame;
 	
 	float shapeDiameter;
+	float arrowDiameter;
 	QRgb constantColor;
 	float constantOpacity;
 	
@@ -444,12 +445,6 @@ protected:
 	
 	int numRakeSeedPointsUsed;
 	int numInjections;
-	
-	//Keep track of min, max frames in available data:
-	int maxFrame, minFrame;
-	
-	
-	
 
 };
 };

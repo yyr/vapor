@@ -92,6 +92,7 @@ using namespace VAPoR;
 	const string FlowParams::_objectsPerFlowlineAttr = "ObjectsPerFlowline";
 	const string FlowParams::_displayIntervalAttr = "DisplayInterval";
 	const string FlowParams::_shapeDiameterAttr = "ShapeDiameter";
+	const string FlowParams::_arrowDiameterAttr = "ArrowheadDiameter";
 	const string FlowParams::_colorMappedEntityAttr = "ColorMappedEntityIndex";
 	const string FlowParams::_opacityMappedEntityAttr = "OpacityMappedEntityIndex";
 	const string FlowParams::_constantColorAttr = "ConstantColorRGBValue";
@@ -167,8 +168,7 @@ restart() {
 	timeSamplingInterval = 1;
 	timeSamplingStart = 1;
 	timeSamplingEnd = 100;
-	minFrame = 0;
-	maxFrame = 1;
+	
 	editMode = true;
 	savedCommand = 0;
 
@@ -191,7 +191,7 @@ restart() {
 	objectsPerFlowline = 20;
 
 	shapeDiameter = 1.f;
-	
+	arrowDiameter = 2.f;
 
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
@@ -411,6 +411,7 @@ void FlowParams::updateDialog(){
 	myFlowTab->firstDisplayFrameEdit->setText(QString::number(firstDisplayFrame));
 	myFlowTab->lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
 	myFlowTab->diameterEdit->setText(QString::number(shapeDiameter));
+	myFlowTab->arrowheadEdit->setText(QString::number(arrowDiameter));
 	myFlowTab->constantOpacityEdit->setText(QString::number(constantOpacity));
 	myFlowTab->constantColorButton->setPaletteBackgroundColor(QColor(constantColor));
 	if (mapperFunction){
@@ -544,6 +545,10 @@ updatePanelState(){
 		seedTimeStart = myFlowTab->seedtimeStartEdit->text().toUInt();
 		seedTimeEnd = myFlowTab->seedtimeEndEdit->text().toUInt(); 
 		bool changed = false;
+		VizWinMgr* vizMgr = VizWinMgr::getInstance();
+		int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
+		int maxFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getEndFrameNumber();
+
 		if (seedTimeStart < minFrame) {seedTimeStart = minFrame; changed = true;}
 		if (seedTimeEnd >= maxFrame) {seedTimeEnd = maxFrame-1; changed = true;}
 		if (seedTimeEnd < seedTimeStart) {seedTimeEnd = seedTimeStart; changed = true;}
@@ -582,6 +587,11 @@ updatePanelState(){
 		if (shapeDiameter < 0.f) {
 			shapeDiameter = 0.f;
 			myFlowTab->diameterEdit->setText(QString::number(shapeDiameter));
+		}
+		arrowDiameter = myFlowTab->arrowheadEdit->text().toFloat();
+		if (arrowDiameter < 1.f) {
+			arrowDiameter = 1.f;
+			myFlowTab->arrowheadEdit->setText(QString::number(arrowDiameter));
 		}
 		constantOpacity = myFlowTab->constantOpacityEdit->text().toFloat();
 		if (constantOpacity < 0.f) constantOpacity = 0.f;
@@ -624,15 +634,16 @@ reinit(bool doOverride){
 	//Clean out any existing caches:
 	cleanFlowDataCaches();
 	
-	//Make min and max conform to new data:
-	minFrame = (int)(ses->getMinTimestep());
-	maxFrame = (int)(ses->getMaxTimestep());
+	//Make min and max conform to new data.
+	//Start with values in session:
+	int minFrame = (int)(ses->getMinTimestep());
+	int maxFrame = (int)(ses->getMaxTimestep());
 	editMode = true;
 	// set the params state based on whether we are overriding or not:
 	if (doOverride) {
 		numRefinements = 0;
 		seedTimeStart = minFrame;
-		seedTimeEnd = minFrame;
+		seedTimeEnd = maxFrame;
 		seedTimeIncrement = 1;
 		autoRefresh = true;
 	} else {
@@ -1364,10 +1375,15 @@ guiSetZSize(int sliderval){
 void FlowParams::
 guiSetAutoRefresh(bool isOn){
 	confirmText(false);
+	//For our purposes here we consider all frame numbers in session:
 	//Check if it's a change
 	if (isOn == autoRefresh) return;
 	PanelCommand* cmd = PanelCommand::captureStart(this, "toggle auto flow refresh");
 	autoRefresh = isOn;
+
+	
+	//use full frame interval in session:
+	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
 	//If we are turning off autoRefresh, clear all the needsRefresh flags 
 	//It's possible that some frames are dirty and will not be refreshed, in which case
 	//we will need to leave the refresh button enabled.
@@ -1437,7 +1453,8 @@ void FlowParams::
 guiRefreshFlow(){
 	confirmText(false);
 	if (!flowDataDirty) return;
-	
+	//use full frame interval in session:
+	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	for (int i = 0; i<=maxFrame; i++) {
 		if(flowDataIsDirty(i)) setNeedOfRefresh(i,true);
@@ -1466,6 +1483,8 @@ activeFlowDataIsDirty(){
 	//Make sure we at least have the flags:
 	if (!flowDataDirty) return true;
 	if (!flowIsSteady()) return (flowDataIsDirty(0) && !needsRefresh(0));
+	//use full frame interval in session:
+	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
 	for (int i = 0; i<= maxFrame; i++){
 		if (flowDataIsDirty(i) && !needsRefresh(i)) return true;
 	}
@@ -1776,6 +1795,11 @@ writePathline(FILE* saveFile, int pathNum, int injNum, float* flowDataArray){
 	int j;
 	bool outOfBounds = false;
 	int rc;
+	//Get min/max timesteps from applicable animation params
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
+	int maxFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getEndFrameNumber();
+		
 	//Go through all the points.
 	//Find the timestep for the seed point to be emitted:
 	float seedTime = (float)(seedTimeStart+injNum*seedTimeIncrement);
@@ -1969,6 +1993,10 @@ regenerateFlowData(int timeStep, bool isRake){
 	
 	float* speeds = 0;
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	//get applicable frame interval from animationparams:
+	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
+	int maxFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getEndFrameNumber();
+		
 	Session* ses = Session::getInstance();
 	//specify field components:
 	const char* xVar = ses->getVariableName(varNum[0]).c_str();
@@ -2346,6 +2374,8 @@ float* FlowParams::getRGBAs(int timeStep, bool isRake){
 	assert((getOpacMapEntityIndex() != 2)&&(getColorMapEntityIndex() != 2)); //Can't map speeds here!
 	assert(flowData && flowData[timeStep]);
 	if (!flowRGBAs){
+		//use full frame interval in session:
+		int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
 		flowRGBAs = new float*[maxFrame+1];
 		for (int j = 0; j<= maxFrame; j++) flowRGBAs[j] = 0;
 	}
@@ -2362,6 +2392,8 @@ void FlowParams::setFlowMappingDirty(){
 		setFlowDataDirty();
 		return;
 	}
+	//use full frame interval in session:
+		int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
 	if(rakeFlowRGBAs){
 		for (int i = 0; i<=maxFrame; i++){
 			if (rakeFlowRGBAs[i]){
@@ -2384,7 +2416,8 @@ void FlowParams::setFlowMappingDirty(){
 //boolean arguments (default false, false) limit to setting only one or other dirty bit
 //
 void FlowParams::setFlowDataDirty(bool rakeOnly, bool listOnly){
-	
+	//use full frame interval in session:
+	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
 	if(flowDataDirty){
 		for (int i = 0; i<=maxFrame; i++){
 			flowDataDirty[i] = nullSeedType;
@@ -2584,6 +2617,9 @@ buildNode() {
 	oss.str(empty);
 	oss << (float)shapeDiameter;
 	attrs[_shapeDiameterAttr] = oss.str();
+	oss.str(empty);
+	oss << (float)arrowDiameter;
+	attrs[_arrowDiameterAttr] = oss.str();
 	oss.str(empty);
 	oss << getColorMapEntityIndex();
 	attrs[_colorMappedEntityAttr] = oss.str();
@@ -2798,6 +2834,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 	}
 	// Parse the geometry node:
 	else if (StrCmpNoCase(tagString, _geometryTag) == 0) {
+		arrowDiameter = 2.f; //Default value
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -2815,6 +2852,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _shapeDiameterAttr) == 0) {
 				ist >> shapeDiameter;
+			}
+			else if (StrCmpNoCase(attribName, _arrowDiameterAttr) == 0) {
+				ist >> arrowDiameter;
 			}
 			else if (StrCmpNoCase(attribName, _colorMappedEntityAttr) == 0) {
 				int indx;
@@ -3009,6 +3049,11 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 	float opacVarMin[3], opacVarMax[3], colorVarMin[3], colorVarMax[3];
 	int opacSize[3],colorSize[3];
 	DataStatus* ds = Session::getInstance()->getDataStatus();
+	//Get the timestep interval in the animation params
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
+	int maxFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getEndFrameNumber();
+		
 	//Get the variable (entire region) if needed
 	if (getOpacMapEntityIndex() > 3){
 		//set up args for GetRegion
@@ -3279,10 +3324,13 @@ float FlowParams::minRange(int index){
 }
 float FlowParams::maxRange(int index){
 	float maxSpeed = 0.f;
+	//Get the timestep interval in the session
+	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
 	switch(index){
 		case (0): return 1.f;
 		case (1): if (flowIsSteady()) return (float)(getLastDisplayAge());
-				  else return (float)maxFrame;
+			
+			return (float)maxFrame;
 		case (2): //speed
 			for (int k = 0; k<3; k++){
 				int var = varNum[k];
@@ -3317,6 +3365,11 @@ validateSampling()
 {
 	//Don't do anything if no data has been read:
 	if (!Session::getInstance()->getDataMgr()) return false;
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	//Get the timestep interval in the animation params
+	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
+	int maxFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getEndFrameNumber();
+		
 	bool changed = false;
 	if (timeSamplingStart < minFrame || timeSamplingStart > maxFrame){
 		timeSamplingStart = minFrame;
@@ -3393,6 +3446,8 @@ validateVectorField(int ts) {
 
 			
 void FlowParams::cleanFlowDataCaches(){
+	
+	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
 	if (rakeFlowData) {
 		for (int i = 0; i<= maxFrame; i++){
 			if (rakeFlowRGBAs && rakeFlowRGBAs[i]) delete rakeFlowRGBAs[i];

@@ -306,6 +306,7 @@ guiSetEditMode(bool mode){
 }
 void DvrParams::
 guiSetAligned(){
+	if (numVariables <= 0) return;
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "align tf in edit frame");
 	setMinEditBound(getMinColorMapBound());
@@ -829,6 +830,7 @@ setDatarangeDirty()
 //
 void DvrParams::
 sessionLoadTF(QString* name){
+	if (numVariables <= 0) return;
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(this, "Load Transfer Function from Session");
 	
@@ -842,7 +844,7 @@ sessionLoadTF(QString* name){
 }
 void DvrParams::
 fileLoadTF(){
-	
+	if (numVariables <= 0) return;
 	//Open a file load dialog
 	
     QString s = QFileDialog::getOpenFileName(
