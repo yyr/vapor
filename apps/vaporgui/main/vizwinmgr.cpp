@@ -1042,6 +1042,8 @@ VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
 	connect (flowTab->lastDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (flowTab->diameterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->diameterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
+	connect (flowTab->arrowheadEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flowTab->arrowheadEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (flowTab->minColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (flowTab->minColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
 	connect (flowTab->maxColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));

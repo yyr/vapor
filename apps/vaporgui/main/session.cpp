@@ -603,6 +603,9 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	currentDataStatus = 0;
 	
 	if (!defaultSession) {
+		//If we are not merging, clean out the variableNames.
+		//We add the new ones back in setupDataStatus();
+		if (!doMerge) variableNames.clear();
 		setupDataStatus();
 		
 		//Is there any data here?
