@@ -24,8 +24,8 @@
         </property>
         <property name="geometry">
             <rect>
-                <x>21</x>
-                <y>24</y>
+                <x>20</x>
+                <y>20</y>
                 <width>370</width>
                 <height>656</height>
             </rect>
@@ -979,6 +979,9 @@
                         <property name="autoDefault">
                             <bool>false</bool>
                         </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Immediately apply these settings to the visualizer</string>
+                        </property>
                     </widget>
                     <widget class="QPushButton">
                         <property name="name">
@@ -996,6 +999,9 @@
                         <property name="default">
                             <bool>false</bool>
                         </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Apply these settings and exit</string>
+                        </property>
                     </widget>
                     <widget class="QPushButton">
                         <property name="name">
@@ -1009,6 +1015,9 @@
                         </property>
                         <property name="autoDefault">
                             <bool>false</bool>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Exit without applying latest settings</string>
                         </property>
                     </widget>
                 </hbox>

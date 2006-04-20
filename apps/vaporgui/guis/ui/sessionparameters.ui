@@ -74,6 +74,9 @@
                         <property name="alignment">
                             <set>AlignHCenter</set>
                         </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify number of megabytes that will be used for loading volume data</string>
+                        </property>
                     </widget>
                 </hbox>
             </widget>
@@ -140,6 +143,9 @@
                         <property name="alignment">
                             <set>AlignHCenter</set>
                         </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify a quality level of the JPEG files to be created</string>
+                        </property>
                     </widget>
                 </hbox>
             </widget>
@@ -181,6 +187,9 @@
                         <property name="readOnly">
                             <bool>false</bool>
                         </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the log file name (or stderr for logging to console)</string>
+                        </property>
                     </widget>
                     <spacer row="1" column="0">
                         <property name="name">
@@ -208,6 +217,9 @@
                         </property>
                         <property name="text">
                             <string>/tmp</string>
+                        </property>
+                        <property name="toolTip" stdset="0">
+                            <string>Specify the directory where IDL exporting will be kept</string>
                         </property>
                     </widget>
                     <widget class="QLabel" row="0" column="0" rowspan="1" colspan="2">
@@ -365,7 +377,7 @@
                             <cstring>maxWarnLog</cstring>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                            <string>Specify the largest number of times each warning message will be displayed in the log file</string>
                         </property>
                     </widget>
                     <spacer row="2" column="1">
@@ -424,7 +436,7 @@
                             <cstring>maxInfoPopup</cstring>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                            <string>Specify the maximum number of times each diagnostic message can be displayed as a pop-up</string>
                         </property>
                     </widget>
                     <widget class="QLineEdit" row="3" column="2">
@@ -432,7 +444,7 @@
                             <cstring>maxErrorLog</cstring>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                            <string>Specify the largest number of times each error message will be displayed in the log file</string>
                         </property>
                     </widget>
                     <spacer row="1" column="1">
@@ -460,7 +472,7 @@
                             <cstring>maxInfoLog</cstring>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                            <string>Specify the largest number of times each diagnostic message will be displayed in the log file</string>
                         </property>
                     </widget>
                     <widget class="QLabel" row="0" column="0">
@@ -504,7 +516,7 @@
                             <cstring>maxWarnPopup</cstring>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                            <string>Specify the maximum number of times each warning message can be displayed as a pop-up</string>
                         </property>
                     </widget>
                     <widget class="QLabel" row="3" column="0">
@@ -523,7 +535,7 @@
                             <cstring>maxErrorPopup</cstring>
                         </property>
                         <property name="toolTip" stdset="0">
-                            <string>Specify the largest number of times each message can be displayed in either the log file or as a pop-up</string>
+                            <string>Specify the maximum number of times each error message can be displayed as a pop-up</string>
                         </property>
                     </widget>
                     <spacer row="3" column="1">

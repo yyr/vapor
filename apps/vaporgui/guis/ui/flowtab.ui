@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>441</width>
-            <height>1163</height>
+            <width>445</width>
+            <height>1074</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout34</cstring>
+                <cstring>layout103</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -334,15 +334,15 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout43</cstring>
+                        <cstring>layout34</cstring>
                     </property>
-                    <grid>
+                    <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <spacer row="0" column="0">
+                        <spacer>
                             <property name="name">
-                                <cstring>spacer22_2</cstring>
+                                <cstring>spacer44</cstring>
                             </property>
                             <property name="orientation">
                                 <enum>Horizontal</enum>
@@ -352,46 +352,20 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>16</width>
-                                    <height>21</height>
+                                    <width>20</width>
+                                    <height>20</height>
                                 </size>
                             </property>
                         </spacer>
-                        <spacer row="1" column="3">
+                        <widget class="QLabel">
                             <property name="name">
-                                <cstring>spacer23_2_3</cstring>
+                                <cstring>textLabel8</cstring>
                             </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
+                            <property name="text">
+                                <string>x,y,z- mapped variables:</string>
                             </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>34</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <spacer row="2" column="3">
-                            <property name="name">
-                                <cstring>spacer23_2_2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>34</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QComboBox" row="0" column="2">
+                        </widget>
+                        <widget class="QComboBox">
                             <item>
                                 <property name="text">
                                     <string>wx</string>
@@ -430,24 +404,7 @@
                                 <string>Specify the variable that is mapped to the X coord of the field</string>
                             </property>
                         </widget>
-                        <spacer row="0" column="3">
-                            <property name="name">
-                                <cstring>spacer23_2</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>40</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QComboBox" row="1" column="2">
+                        <widget class="QComboBox">
                             <item>
                                 <property name="text">
                                     <string>wx</string>
@@ -489,7 +446,7 @@
                                 <string>Specify the variable that is mapped to the Y coord of the field</string>
                             </property>
                         </widget>
-                        <widget class="QComboBox" row="2" column="2">
+                        <widget class="QComboBox">
                             <item>
                                 <property name="text">
                                     <string>wx</string>
@@ -531,9 +488,9 @@
                                 <string>Specify the variable that is mapped to the Z coord of the field</string>
                             </property>
                         </widget>
-                        <spacer row="2" column="0">
+                        <spacer>
                             <property name="name">
-                                <cstring>spacer22_2_2</cstring>
+                                <cstring>spacer45</cstring>
                             </property>
                             <property name="orientation">
                                 <enum>Horizontal</enum>
@@ -543,53 +500,12 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>16</width>
-                                    <height>21</height>
+                                    <width>31</width>
+                                    <height>20</height>
                                 </size>
                             </property>
                         </spacer>
-                        <spacer row="1" column="0">
-                            <property name="name">
-                                <cstring>spacer22_2_3</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>16</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QLabel" row="1" column="1">
-                            <property name="name">
-                                <cstring>textLabel8_3</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Y-Coordinate mapped variable</string>
-                            </property>
-                        </widget>
-                        <widget class="QLabel" row="0" column="1">
-                            <property name="name">
-                                <cstring>textLabel8</cstring>
-                            </property>
-                            <property name="text">
-                                <string>X-Coordinate mapped variable</string>
-                            </property>
-                        </widget>
-                        <widget class="QLabel" row="2" column="1">
-                            <property name="name">
-                                <cstring>textLabel8_2</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Z-Coordinate mapped variable</string>
-                            </property>
-                        </widget>
-                    </grid>
+                    </hbox>
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
@@ -972,7 +888,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout65</cstring>
+                                <cstring>layout45</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -1158,13 +1074,72 @@
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout55</cstring>
+                                        <cstring>layout41</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel2_2</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>5</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="text">
+                                                <string>Rake center</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>WordBreak|AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>rakeOnRegionButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Set Rake to Current Region</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Set the flow rake to coincide with the region in the current active visualizer</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel2_2_2</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>5</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="text">
+                                                <string>Rake sizes</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>WordBreak|AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout44</cstring>
                                     </property>
                                     <grid>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
-                                        <widget class="QLayoutWidget" row="3" column="0">
+                                        <widget class="QLayoutWidget" row="2" column="0">
                                             <property name="name">
                                                 <cstring>layout88_4</cstring>
                                             </property>
@@ -1249,196 +1224,7 @@
                                                 </widget>
                                             </hbox>
                                         </widget>
-                                        <widget class="QLabel" row="0" column="1">
-                                            <property name="name">
-                                                <cstring>textLabel2_2_2</cstring>
-                                            </property>
-                                            <property name="sizePolicy">
-                                                <sizepolicy>
-                                                    <hsizetype>5</hsizetype>
-                                                    <vsizetype>7</vsizetype>
-                                                    <horstretch>0</horstretch>
-                                                    <verstretch>0</verstretch>
-                                                </sizepolicy>
-                                            </property>
-                                            <property name="text">
-                                                <string>Rake sizes</string>
-                                            </property>
-                                            <property name="alignment">
-                                                <set>WordBreak|AlignCenter</set>
-                                            </property>
-                                        </widget>
-                                        <widget class="QLayoutWidget" row="2" column="1">
-                                            <property name="name">
-                                                <cstring>layout88_3_2</cstring>
-                                            </property>
-                                            <hbox>
-                                                <property name="name">
-                                                    <cstring>unnamed</cstring>
-                                                </property>
-                                                <widget class="QLabel">
-                                                    <property name="name">
-                                                        <cstring>textLabel3_12_3_2</cstring>
-                                                    </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>1</hsizetype>
-                                                            <vsizetype>7</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
-                                                    </property>
-                                                    <property name="text">
-                                                        <string>Y</string>
-                                                    </property>
-                                                </widget>
-                                                <widget class="QSlider">
-                                                    <property name="name">
-                                                        <cstring>ySizeSlider</cstring>
-                                                    </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>7</hsizetype>
-                                                            <vsizetype>7</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
-                                                    </property>
-                                                    <property name="minValue">
-                                                        <number>0</number>
-                                                    </property>
-                                                    <property name="maxValue">
-                                                        <number>256</number>
-                                                    </property>
-                                                    <property name="value">
-                                                        <number>0</number>
-                                                    </property>
-                                                    <property name="orientation">
-                                                        <enum>Horizontal</enum>
-                                                    </property>
-                                                    <property name="toolTip" stdset="0">
-                                                        <string>Specify the Y-size of the seed region</string>
-                                                    </property>
-                                                </widget>
-                                                <widget class="QLineEdit">
-                                                    <property name="name">
-                                                        <cstring>ySizeEdit</cstring>
-                                                    </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>0</hsizetype>
-                                                            <vsizetype>7</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
-                                                    </property>
-                                                    <property name="maximumSize">
-                                                        <size>
-                                                            <width>32767</width>
-                                                            <height>25</height>
-                                                        </size>
-                                                    </property>
-                                                    <property name="text">
-                                                        <string>0.0</string>
-                                                    </property>
-                                                    <property name="maxLength">
-                                                        <number>200</number>
-                                                    </property>
-                                                    <property name="alignment">
-                                                        <set>AlignHCenter</set>
-                                                    </property>
-                                                    <property name="toolTip" stdset="0">
-                                                        <string>Specify the Y-size of the seed region</string>
-                                                    </property>
-                                                </widget>
-                                            </hbox>
-                                        </widget>
                                         <widget class="QLayoutWidget" row="1" column="0">
-                                            <property name="name">
-                                                <cstring>layout88</cstring>
-                                            </property>
-                                            <hbox>
-                                                <property name="name">
-                                                    <cstring>unnamed</cstring>
-                                                </property>
-                                                <widget class="QLabel">
-                                                    <property name="name">
-                                                        <cstring>textLabel3_12</cstring>
-                                                    </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>1</hsizetype>
-                                                            <vsizetype>7</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
-                                                    </property>
-                                                    <property name="text">
-                                                        <string>X</string>
-                                                    </property>
-                                                </widget>
-                                                <widget class="QSlider">
-                                                    <property name="name">
-                                                        <cstring>xCenterSlider</cstring>
-                                                    </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>7</hsizetype>
-                                                            <vsizetype>7</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
-                                                    </property>
-                                                    <property name="minValue">
-                                                        <number>0</number>
-                                                    </property>
-                                                    <property name="maxValue">
-                                                        <number>256</number>
-                                                    </property>
-                                                    <property name="value">
-                                                        <number>128</number>
-                                                    </property>
-                                                    <property name="orientation">
-                                                        <enum>Horizontal</enum>
-                                                    </property>
-                                                    <property name="toolTip" stdset="0">
-                                                        <string>Specify the X coordinate of the seed region center</string>
-                                                    </property>
-                                                </widget>
-                                                <widget class="QLineEdit">
-                                                    <property name="name">
-                                                        <cstring>xCenterEdit</cstring>
-                                                    </property>
-                                                    <property name="sizePolicy">
-                                                        <sizepolicy>
-                                                            <hsizetype>0</hsizetype>
-                                                            <vsizetype>7</vsizetype>
-                                                            <horstretch>0</horstretch>
-                                                            <verstretch>0</verstretch>
-                                                        </sizepolicy>
-                                                    </property>
-                                                    <property name="maximumSize">
-                                                        <size>
-                                                            <width>32767</width>
-                                                            <height>25</height>
-                                                        </size>
-                                                    </property>
-                                                    <property name="text">
-                                                        <string>-.045</string>
-                                                    </property>
-                                                    <property name="maxLength">
-                                                        <number>200</number>
-                                                    </property>
-                                                    <property name="alignment">
-                                                        <set>AlignHCenter</set>
-                                                    </property>
-                                                    <property name="toolTip" stdset="0">
-                                                        <string>Specify the X coordinate of the seed region center</string>
-                                                    </property>
-                                                </widget>
-                                            </hbox>
-                                        </widget>
-                                        <widget class="QLayoutWidget" row="2" column="0">
                                             <property name="name">
                                                 <cstring>layout88_3</cstring>
                                             </property>
@@ -1523,9 +1309,9 @@
                                                 </widget>
                                             </hbox>
                                         </widget>
-                                        <widget class="QLayoutWidget" row="1" column="1">
+                                        <widget class="QLayoutWidget" row="0" column="0">
                                             <property name="name">
-                                                <cstring>layout88_2</cstring>
+                                                <cstring>layout88</cstring>
                                             </property>
                                             <hbox>
                                                 <property name="name">
@@ -1533,7 +1319,7 @@
                                                 </property>
                                                 <widget class="QLabel">
                                                     <property name="name">
-                                                        <cstring>textLabel3_12_2</cstring>
+                                                        <cstring>textLabel3_12</cstring>
                                                     </property>
                                                     <property name="sizePolicy">
                                                         <sizepolicy>
@@ -1549,7 +1335,7 @@
                                                 </widget>
                                                 <widget class="QSlider">
                                                     <property name="name">
-                                                        <cstring>xSizeSlider</cstring>
+                                                        <cstring>xCenterSlider</cstring>
                                                     </property>
                                                     <property name="sizePolicy">
                                                         <sizepolicy>
@@ -1566,18 +1352,18 @@
                                                         <number>256</number>
                                                     </property>
                                                     <property name="value">
-                                                        <number>256</number>
+                                                        <number>128</number>
                                                     </property>
                                                     <property name="orientation">
                                                         <enum>Horizontal</enum>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
-                                                        <string>Specify the X-size of the seed region</string>
+                                                        <string>Specify the X coordinate of the seed region center</string>
                                                     </property>
                                                 </widget>
                                                 <widget class="QLineEdit">
                                                     <property name="name">
-                                                        <cstring>xSizeEdit</cstring>
+                                                        <cstring>xCenterEdit</cstring>
                                                     </property>
                                                     <property name="sizePolicy">
                                                         <sizepolicy>
@@ -1594,7 +1380,7 @@
                                                         </size>
                                                     </property>
                                                     <property name="text">
-                                                        <string>3.17</string>
+                                                        <string>-.045</string>
                                                     </property>
                                                     <property name="maxLength">
                                                         <number>200</number>
@@ -1603,12 +1389,12 @@
                                                         <set>AlignHCenter</set>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
-                                                        <string>Specify the X-size of the seed region</string>
+                                                        <string>Specify the X coordinate of the seed region center</string>
                                                     </property>
                                                 </widget>
                                             </hbox>
                                         </widget>
-                                        <widget class="QLayoutWidget" row="3" column="1">
+                                        <widget class="QLayoutWidget" row="2" column="1">
                                             <property name="name">
                                                 <cstring>layout88_4_2</cstring>
                                             </property>
@@ -1693,24 +1479,175 @@
                                                 </widget>
                                             </hbox>
                                         </widget>
-                                        <widget class="QLabel" row="0" column="0">
+                                        <widget class="QLayoutWidget" row="0" column="1">
                                             <property name="name">
-                                                <cstring>textLabel2_2</cstring>
+                                                <cstring>layout88_2</cstring>
                                             </property>
-                                            <property name="sizePolicy">
-                                                <sizepolicy>
-                                                    <hsizetype>5</hsizetype>
-                                                    <vsizetype>7</vsizetype>
-                                                    <horstretch>0</horstretch>
-                                                    <verstretch>0</verstretch>
-                                                </sizepolicy>
+                                            <hbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel3_12_2</cstring>
+                                                    </property>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>1</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>X</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QSlider">
+                                                    <property name="name">
+                                                        <cstring>xSizeSlider</cstring>
+                                                    </property>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>7</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
+                                                    </property>
+                                                    <property name="minValue">
+                                                        <number>0</number>
+                                                    </property>
+                                                    <property name="maxValue">
+                                                        <number>256</number>
+                                                    </property>
+                                                    <property name="value">
+                                                        <number>256</number>
+                                                    </property>
+                                                    <property name="orientation">
+                                                        <enum>Horizontal</enum>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the X-size of the seed region</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>xSizeEdit</cstring>
+                                                    </property>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>0</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>32767</width>
+                                                            <height>25</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>3.17</string>
+                                                    </property>
+                                                    <property name="maxLength">
+                                                        <number>200</number>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the X-size of the seed region</string>
+                                                    </property>
+                                                </widget>
+                                            </hbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget" row="1" column="1">
+                                            <property name="name">
+                                                <cstring>layout88_3_2</cstring>
                                             </property>
-                                            <property name="text">
-                                                <string>Rake center</string>
-                                            </property>
-                                            <property name="alignment">
-                                                <set>WordBreak|AlignCenter</set>
-                                            </property>
+                                            <hbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel3_12_3_2</cstring>
+                                                    </property>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>1</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Y</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QSlider">
+                                                    <property name="name">
+                                                        <cstring>ySizeSlider</cstring>
+                                                    </property>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>7</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
+                                                    </property>
+                                                    <property name="minValue">
+                                                        <number>0</number>
+                                                    </property>
+                                                    <property name="maxValue">
+                                                        <number>256</number>
+                                                    </property>
+                                                    <property name="value">
+                                                        <number>0</number>
+                                                    </property>
+                                                    <property name="orientation">
+                                                        <enum>Horizontal</enum>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the Y-size of the seed region</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>ySizeEdit</cstring>
+                                                    </property>
+                                                    <property name="sizePolicy">
+                                                        <sizepolicy>
+                                                            <hsizetype>0</hsizetype>
+                                                            <vsizetype>7</vsizetype>
+                                                            <horstretch>0</horstretch>
+                                                            <verstretch>0</verstretch>
+                                                        </sizepolicy>
+                                                    </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>32767</width>
+                                                            <height>25</height>
+                                                        </size>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>0.0</string>
+                                                    </property>
+                                                    <property name="maxLength">
+                                                        <number>200</number>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Specify the Y-size of the seed region</string>
+                                                    </property>
+                                                </widget>
+                                            </hbox>
                                         </widget>
                                     </grid>
                                 </widget>
@@ -2011,61 +1948,6 @@
                                         </spacer>
                                     </hbox>
                                 </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout30</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer32_3</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>61</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QPushButton">
-                                            <property name="name">
-                                                <cstring>rakeOnRegionButton</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Set Rake to Current Region</string>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Apply in-scene rake positions to current seed box</string>
-                                            </property>
-                                        </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer33</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>71</width>
-                                                    <height>21</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                    </hbox>
-                                </widget>
                             </vbox>
                         </widget>
                     </hbox>
@@ -2103,7 +1985,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout56</cstring>
+                                <cstring>layout102</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -2169,7 +2051,7 @@
                                                 <enum>Horizontal</enum>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify how many geometric shapes will be displayed per time unit</string>
+                                                <string>Specify how many geometric shapes will be displayed in flow length</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2189,14 +2071,14 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify how many geometric shapes will be displayed per time unit</string>
+                                                <string>Specify how many geometric shapes will be displayed in flow length</string>
                                             </property>
                                         </widget>
                                     </hbox>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout71</cstring>
+                                        <cstring>layout67</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -2207,7 +2089,7 @@
                                                 <cstring>textLabel4</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Geometric shape</string>
+                                                <string>Shape</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
@@ -2225,7 +2107,7 @@
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>91</width>
+                                                    <width>21</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -2253,6 +2135,23 @@
                                                 <string>Specify the shapes that will be used for the flow </string>
                                             </property>
                                         </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer46</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>22</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
                                         <widget class="QLabel">
                                             <property name="name">
                                                 <cstring>textLabel14</cstring>
@@ -2281,6 +2180,68 @@
                                                 <string>Specify the shape diameter in user space units</string>
                                             </property>
                                         </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer47</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_7</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Arrowhead size</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>arrowheadEdit</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>40</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>1.0</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the diameter of arrowheads relative to tube diameter</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer81</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
                                     </hbox>
                                 </widget>
                                 <widget class="QLayoutWidget">
@@ -2296,7 +2257,7 @@
                                                 <cstring>displayIntervalLabel</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>display interval bounds relative to seed time</string>
+                                                <string>Display interval bounds relative to seed time</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
@@ -2361,23 +2322,20 @@
                                         </widget>
                                     </hbox>
                                 </widget>
-                                <spacer>
+                                <widget class="Line">
                                     <property name="name">
-                                        <cstring>spacer74</cstring>
+                                        <cstring>line1</cstring>
+                                    </property>
+                                    <property name="frameShape">
+                                        <enum>HLine</enum>
+                                    </property>
+                                    <property name="frameShadow">
+                                        <enum>Sunken</enum>
                                     </property>
                                     <property name="orientation">
-                                        <enum>Vertical</enum>
+                                        <enum>Horizontal</enum>
                                     </property>
-                                    <property name="sizeType">
-                                        <enum>Expanding</enum>
-                                    </property>
-                                    <property name="sizeHint">
-                                        <size>
-                                            <width>20</width>
-                                            <height>27</height>
-                                        </size>
-                                    </property>
-                                </spacer>
+                                </widget>
                                 <widget class="QLabel">
                                     <property name="name">
                                         <cstring>textLabel16</cstring>
@@ -3021,7 +2979,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
