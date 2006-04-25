@@ -1,5 +1,5 @@
 #include "Rake.h"
-
+#include "assert.h"
 using namespace VetsUtil;
 using namespace VAPoR;
 
@@ -226,21 +226,36 @@ void PlaneRake::GenSeedRegular(const size_t numSeeds[3],
 		ll[iFor] = min[iFor];
 		hh[iFor] = max[iFor];
 	}
-	hl[0] = hh[0];	hl[1] = ll[1];	hl[2] = ll[2];
-	lh[0] = ll[0];	lh[1] = hh[1];	lh[2] = hh[2];
+	//hl and lh depend on which coordinate is not changing
+
+	if (numSeeds[2] == 1){
+		hl[2] = lh[2] = ll[2];
+		hl[0] = hh[0];	hl[1] = ll[1];	
+		lh[0] = ll[0];	lh[1] = hh[1];	
+	} else if (numSeeds[1] == 1){
+		hl[1]=lh[1]=hh[1];
+		hl[0] = hh[0];	hl[2] = ll[2];
+		lh[0] = ll[0];	lh[2] = hh[2];
+	} else if(numSeeds[0] == 1){ 
+		hl[0]=lh[0]=hh[0];
+		hl[1] = hh[1];	hl[2] = ll[2];
+		lh[1] = ll[1];	lh[2] = hh[2];
+	} else { assert(0);}
+
 
 	// generate seeds
 	float widthUnit, heightUnit;
 	int numPerRow, numPerCol;
 	if(numSeeds[0] != 1)
 		numPerRow = numSeeds[0];
-	else if(numSeeds[1] != 1)
+	else 
 		numPerRow = numSeeds[1];
 
-	if(numSeeds[1] != 1)
-		numPerCol = numSeeds[1];
-	else if(numSeeds[2] != 1)
+	if (numSeeds[2] != 1) 
 		numPerCol = numSeeds[2];
+	else 
+		numPerCol = numSeeds[1]; 
+	
 
 	widthUnit = (float)1.0/float(numPerRow+1);
 	heightUnit = (float)1.0/float(numPerCol+1);
