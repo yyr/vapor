@@ -2014,13 +2014,46 @@ regenerateFlowData(int timeStep, bool isRake){
 	}
 	else rParams = VizWinMgr::getInstance()->getRegionParams(vizNum);
 	
-	bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, varNum, 3);
+	//For steady flow, determine what is the available region for the current time step.
+	//For unsteady flow, determine the available region for all the sampled timesteps.
+	if (flowIsSteady()){
+		bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, varNum, 3);
 	
-	if(!dataValid){
-		MessageReporter::warningMsg("Vector field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
-		return 0;
+		if(!dataValid){
+			MessageReporter::warningMsg("Vector field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
+			return 0;
+		}
+	} else { //Find the intersection of all the regions for the timesteps to be sampled.
+		size_t gmin_dim[3],gmax_dim[3],gmin_bdim[3], gmax_bdim[3];
+		rParams->getRegionVoxelCoords(numRefinements, gmin_dim, gmax_dim, gmin_bdim,gmax_bdim);
+		int firstSample = timeSamplingStart;
+		int lastSample = Min(timeSamplingEnd, maxFrame);
+		if (timeSamplingStart < minFrame) firstSample = ((1+minFrame/timeSamplingInterval)*timeSamplingInterval);
+		for (int i = firstSample; i<= lastSample; i+= timeSamplingInterval){
+			bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, i, varNum, 3);
+			if(!dataValid){
+				MessageReporter::warningMsg("Vector field data unavailable for refinement %d at timestep %d", numRefinements, i);
+				return 0;
+			}
+			//Intersect the available region bounds.
+			for (int i = 0; i< 3; i++){
+				gmin_dim[i] = Max(gmin_dim[i],min_dim[i]);
+				gmax_dim[i] = Min(gmax_dim[i],max_dim[i]);
+				gmin_bdim[i] = Max(gmin_bdim[i],min_bdim[i]);
+				gmax_bdim[i] = Min(gmax_bdim[i],max_bdim[i]);
+			}
+		}
+		//Copy back the intersected region:
+		for (int i = 0; i< 3; i++){
+			min_dim[i] = gmin_dim[i];
+			max_dim[i] = gmax_dim[i];
+			min_bdim[i] = gmin_bdim[i];
+			max_bdim[i] = gmax_bdim[i];
+		}
 	}
+
 	myFlowLib->SetRegion(numRefinements, min_dim, max_dim, min_bdim, max_bdim);
+
 	int numSeedPoints;
 	if (isRake){
 		numSeedPoints = getNumRakeSeedPoints();
