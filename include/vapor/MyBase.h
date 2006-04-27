@@ -250,6 +250,9 @@ private:
  COMMON_API inline int	Min(int a, int b) { return(a<b ? a : b); };
  COMMON_API inline int	Max(int a, int b) { return(a>b ? a : b); };
 
+ COMMON_API inline size_t	Min(size_t a, size_t b) { return(a<b ? a : b); };
+ COMMON_API inline size_t	Max(size_t a, size_t b) { return(a>b ? a : b); };
+
  COMMON_API inline float	Min(float a, float b) { return(a<b ? a : b); };
  COMMON_API inline float	Max(float a, float b) { return(a>b ? a : b); };
 
