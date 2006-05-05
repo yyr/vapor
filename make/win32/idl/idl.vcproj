@@ -92,6 +92,7 @@
 				OutputFile="../../../targets/win32/bin/libidl_vdfmodule.dll"
 				LinkIncremental="1"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
+				ModuleDefinitionFile="idl.def"
 				GenerateDebugInformation="FALSE"
 				ProgramDatabaseFile="../../../targets/win32/bin/libidl_vdfmodule.pdb"
 				SubSystem="2"
