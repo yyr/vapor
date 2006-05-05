@@ -220,7 +220,7 @@ restart() {
 	seedPointList.clear();
 	numInjections = 1;
 	maxPoints = 0;
-	
+	maxFrame = 0;
 
 	minOpacBounds = new float[3];
 	maxOpacBounds= new float[3];
@@ -547,8 +547,7 @@ updatePanelState(){
 		bool changed = false;
 		VizWinMgr* vizMgr = VizWinMgr::getInstance();
 		int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
-		int maxFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getEndFrameNumber();
-
+		
 		if (seedTimeStart < minFrame) {seedTimeStart = minFrame; changed = true;}
 		if (seedTimeEnd >= maxFrame) {seedTimeEnd = maxFrame-1; changed = true;}
 		if (seedTimeEnd < seedTimeStart) {seedTimeEnd = seedTimeStart; changed = true;}
@@ -637,7 +636,7 @@ reinit(bool doOverride){
 	//Make min and max conform to new data.
 	//Start with values in session:
 	int minFrame = (int)(ses->getMinTimestep());
-	int maxFrame = (int)(ses->getMaxTimestep());
+	maxFrame = (int)(ses->getMaxTimestep());
 	editMode = true;
 	// set the params state based on whether we are overriding or not:
 	if (doOverride) {
@@ -1382,8 +1381,6 @@ guiSetAutoRefresh(bool isOn){
 	autoRefresh = isOn;
 
 	
-	//use full frame interval in session:
-	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
 	//If we are turning off autoRefresh, clear all the needsRefresh flags 
 	//It's possible that some frames are dirty and will not be refreshed, in which case
 	//we will need to leave the refresh button enabled.
@@ -1453,8 +1450,7 @@ void FlowParams::
 guiRefreshFlow(){
 	confirmText(false);
 	if (!flowDataDirty) return;
-	//use full frame interval in session:
-	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
+	
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	for (int i = 0; i<=maxFrame; i++) {
 		if(flowDataIsDirty(i)) setNeedOfRefresh(i,true);
@@ -1483,8 +1479,7 @@ activeFlowDataIsDirty(){
 	//Make sure we at least have the flags:
 	if (!flowDataDirty) return true;
 	if (!flowIsSteady()) return (flowDataIsDirty(0) && !needsRefresh(0));
-	//use full frame interval in session:
-	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
+	
 	for (int i = 0; i<= maxFrame; i++){
 		if (flowDataIsDirty(i) && !needsRefresh(i)) return true;
 	}
@@ -1798,7 +1793,6 @@ writePathline(FILE* saveFile, int pathNum, int injNum, float* flowDataArray){
 	//Get min/max timesteps from applicable animation params
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
-	int maxFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getEndFrameNumber();
 		
 	//Go through all the points.
 	//Find the timestep for the seed point to be emitted:
@@ -1995,7 +1989,6 @@ regenerateFlowData(int timeStep, bool isRake){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//get applicable frame interval from animationparams:
 	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
-	int maxFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getEndFrameNumber();
 		
 	Session* ses = Session::getInstance();
 	//specify field components:
@@ -2407,8 +2400,6 @@ float* FlowParams::getRGBAs(int timeStep, bool isRake){
 	assert((getOpacMapEntityIndex() != 2)&&(getColorMapEntityIndex() != 2)); //Can't map speeds here!
 	assert(flowData && flowData[timeStep]);
 	if (!flowRGBAs){
-		//use full frame interval in session:
-		int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
 		flowRGBAs = new float*[maxFrame+1];
 		for (int j = 0; j<= maxFrame; j++) flowRGBAs[j] = 0;
 	}
@@ -2425,8 +2416,7 @@ void FlowParams::setFlowMappingDirty(){
 		setFlowDataDirty();
 		return;
 	}
-	//use full frame interval in session:
-		int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
+	
 	if(rakeFlowRGBAs){
 		for (int i = 0; i<=maxFrame; i++){
 			if (rakeFlowRGBAs[i]){
@@ -2449,8 +2439,7 @@ void FlowParams::setFlowMappingDirty(){
 //boolean arguments (default false, false) limit to setting only one or other dirty bit
 //
 void FlowParams::setFlowDataDirty(bool rakeOnly, bool listOnly){
-	//use full frame interval in session:
-	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
+	
 	if(flowDataDirty){
 		for (int i = 0; i<=maxFrame; i++){
 			flowDataDirty[i] = nullSeedType;
@@ -3085,7 +3074,6 @@ mapColors(float* speeds, int currentTimeStep, int numSeeds, float** flowData, fl
 	//Get the timestep interval in the animation params
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
-	int maxFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getEndFrameNumber();
 		
 	//Get the variable (entire region) if needed
 	if (getOpacMapEntityIndex() > 3){
@@ -3357,8 +3345,7 @@ float FlowParams::minRange(int index){
 }
 float FlowParams::maxRange(int index){
 	float maxSpeed = 0.f;
-	//Get the timestep interval in the session
-	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
+	
 	switch(index){
 		case (0): return 1.f;
 		case (1): if (flowIsSteady()) return (float)(getLastDisplayAge());
@@ -3401,7 +3388,6 @@ validateSampling()
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//Get the timestep interval in the animation params
 	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
-	int maxFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getEndFrameNumber();
 		
 	bool changed = false;
 	if (timeSamplingStart < minFrame || timeSamplingStart > maxFrame){
@@ -3480,11 +3466,17 @@ validateVectorField(int ts) {
 			
 void FlowParams::cleanFlowDataCaches(){
 	
-	int maxFrame = (int)(Session::getInstance()->getMaxTimestep());
+	
 	if (rakeFlowData) {
 		for (int i = 0; i<= maxFrame; i++){
-			if (rakeFlowRGBAs && rakeFlowRGBAs[i]) delete rakeFlowRGBAs[i];
-			if (rakeFlowData[i]) delete rakeFlowData[i];
+			if (rakeFlowRGBAs && rakeFlowRGBAs[i]) {
+				delete rakeFlowRGBAs[i];
+				rakeFlowRGBAs[i] = 0;
+			}
+			if (rakeFlowData[i]) {
+				delete rakeFlowData[i];
+				rakeFlowData[i] = 0;
+			}
 		}
 		delete rakeFlowData;
 		if(rakeFlowRGBAs)delete[] rakeFlowRGBAs;
@@ -3493,7 +3485,10 @@ void FlowParams::cleanFlowDataCaches(){
 	if (listFlowData) {
 		for (int i = 0; i<= maxFrame; i++){
 			if (listFlowRGBAs && listFlowRGBAs[i]) delete listFlowRGBAs[i];
-			if (listFlowData[i]) delete listFlowData[i];
+			if (listFlowData[i]) {
+				delete listFlowData[i];
+				listFlowData[i] = 0;
+			}
 		}
 		delete listFlowData;
 		delete numListSeedPointsUsed;

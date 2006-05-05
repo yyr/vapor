@@ -412,6 +412,8 @@ protected:
 	
 	int maxPoints;  //largest length of any flow
 	
+	int maxFrame;  //Maximum frame timeStep.  Used to determine array sizes for
+	//flow data caches.
 	
 	std::vector<string> colorMapEntity;
 	std::vector<string> opacMapEntity;
