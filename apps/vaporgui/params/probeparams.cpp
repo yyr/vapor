@@ -603,14 +603,16 @@ guiChangeVariables(){
 	PanelCommand* cmd = PanelCommand::captureStart(this, "change probe-selected variable(s)");
 	int firstVar = -1;
 	int numSelected = 0;
-	for (int i = 0; i< numVariables; i++){
+	Session* ses = Session::getInstance();
+	for (int i = 0; i< ses->getNumMetadataVariables(); i++){
+		int varnum = ses->mapMetadataToRealVarNum(i);
 		if (myProbeTab->variableListBox->isSelected(i)){
-			variableSelected[i] = true;
-			if(firstVar == -1) firstVar = i;
+			variableSelected[varnum] = true;
+			if(firstVar == -1) firstVar = varnum;
 			numSelected++;
 		}
 		else 
-			variableSelected[i] = false;
+			variableSelected[varnum] = false;
 	}
 	//If nothing is selected, select the first one:
 	if (firstVar == -1) {
