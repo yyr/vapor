@@ -1471,6 +1471,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 			listBox->clear();	
 			//Set the names in the variable listbox
 			for (i = 0; i< ses->getNumMetadataVariables(); i++){
+				int foo = ses->mapMetadataToRealVarNum(i);
 				const std::string& s = ses->getMetadataVarName(i);
 				//Direct conversion of std::string& to QString doesn't seem to work
 				//Maybe std was not enabled when QT was built?

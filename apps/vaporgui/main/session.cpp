@@ -559,6 +559,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 		variableNames.clear();
 	} else {
 		if (!doMerge) {
+			if (!restoredSession) variableNames.clear();
 			dataMgr = new DataMgr(currentMetadataFile.c_str(), cacheMB, 1);
 			if (dataMgr->GetErrCode() != 0) {
 				MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
