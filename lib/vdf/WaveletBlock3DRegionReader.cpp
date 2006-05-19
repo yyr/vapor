@@ -61,6 +61,7 @@ WaveletBlock3DRegionReader::~WaveletBlock3DRegionReader(
 	if (! _objInitialized) return;
 
 	WaveletBlock3DRegionReader::CloseVariable();
+	my_free();
 
 	_objInitialized = 0;
 }
@@ -82,7 +83,7 @@ int	WaveletBlock3DRegionReader::OpenVariableRead(
 	WaveletBlock3DRegionReader::CloseVariable();	// close any previously opened files.
 	rc = WaveletBlock3DIO::OpenVariableRead(timestep, varname, reflevel);
 	if (rc<0) return(rc);
-	rc = my_alloc();
+	rc = my_realloc();
 	if (rc<0) return(rc);
 
 	return(0);
@@ -92,7 +93,6 @@ int	WaveletBlock3DRegionReader::CloseVariable(
 ) {
 	SetDiagMsg("WaveletBlock3DRegionReader::CloseVariable()");
 
-	my_free();
 	return(WaveletBlock3DIO::CloseVariable());
 }
 
@@ -597,33 +597,37 @@ int	WaveletBlock3DRegionReader::row_inv_xform(
 
 
 
-int	WaveletBlock3DRegionReader::my_alloc(
+//
+// allocate memory, only if needed.
+//
+int	WaveletBlock3DRegionReader::my_realloc(
 ) {
 
-	size_t nb_j[3];
-	int     size;
-	int	j;
-
 	// alloc space from coarsest (j==0) to finest level
-	for(j=0; j<_num_reflevels; j++) {
+	for(int j=0; j<=_reflevel; j++) {
 
-		GetDimBlk(nb_j, j);
-		nb_j[0] += 1;	// fudge (deal with odd size dimensions)
-
-		size = (int)(nb_j[0] * _block_size * 2 * 2);
-
-		lambda_blks_c[j] = new float[size];
 		if (! lambda_blks_c[j]) {
-			SetErrMsg("new float[%d] : %s", size, strerror(errno));
-			return(-1);
-		}
+			size_t nb_j[3];
+			size_t     size;
 
-		size = (int)(nb_j[0] * _block_size * 2 * 2 * 7);
+			GetDimBlk(nb_j, j);
+			nb_j[0] += 1;	// fudge (deal with odd size dimensions)
 
-		gamma_blks_c[j] = new float[size];
-		if (! gamma_blks_c[j]) {
-			SetErrMsg("new float[%d] : %s", size, strerror(errno));
-			return(-1);
+			size = nb_j[0] * _block_size * 2 * 2;
+
+			lambda_blks_c[j] = new float[size];
+			if (! lambda_blks_c[j]) {
+				SetErrMsg("new float[%d] : %s", size, strerror(errno));
+				return(-1);
+			}
+
+			size = nb_j[0] * _block_size * 2 * 2 * 7;
+
+			gamma_blks_c[j] = new float[size];
+			if (! gamma_blks_c[j]) {
+				SetErrMsg("new float[%d] : %s", size, strerror(errno));
+				return(-1);
+			}
 		}
 	}
 

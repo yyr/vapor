@@ -95,6 +95,7 @@ int	WaveletBlock3DIO::_WaveletBlock3DIO(
 	super_block_c = NULL;
 	block_c = NULL;
 	wb3d_c = NULL;
+	_reflevel = 0;
 
 
 	ntilde_c = _metadata->GetLiftingCoef();

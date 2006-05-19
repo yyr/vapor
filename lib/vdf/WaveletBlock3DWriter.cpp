@@ -19,6 +19,8 @@ void	WaveletBlock3DWriter::_WaveletBlock3DWriter()
 	for(j=0; j<MAX_LEVELS; j++) {
 		lambda_blks_c[j] = NULL;
 	}
+	zero_block_c = new float[_block_size];
+	memset(zero_block_c, 0, _block_size*sizeof(zero_block_c[0]));
 }
 
 WaveletBlock3DWriter::WaveletBlock3DWriter(
@@ -76,6 +78,11 @@ WaveletBlock3DWriter::~WaveletBlock3DWriter(
 	}
 	WaveletBlock3DWriter::CloseVariable();
 
+	my_free();
+
+	if (zero_block_c) delete [] zero_block_c;
+	zero_block_c = NULL;
+
 	_objInitialized = 0;
 }
 
@@ -97,7 +104,7 @@ int	WaveletBlock3DWriter::OpenVariableWrite(
 
 	rc = WaveletBlock3DIO::OpenVariableWrite(timestep, varname, reflevel);
 	if (rc<0) return(rc);
-	return(my_alloc());
+	return(my_realloc());
 }
 
 int     WaveletBlock3DWriter::CloseVariable(
@@ -153,7 +160,6 @@ int     WaveletBlock3DWriter::CloseVariable(
 		}
 	}
 
-	my_free();
 
 	is_open_c = 0;
 
@@ -475,26 +481,27 @@ int	WaveletBlock3DWriter::write_gamma_slabs(
 	return(0);
 }
 
-int	WaveletBlock3DWriter::my_alloc(
+int	WaveletBlock3DWriter::my_realloc(
 ) {
-	int	j;
-	int	size;
-	size_t nb_j[3];
 
-	for(j=0; j<_num_reflevels; j++) {
-
-		GetDimBlk(nb_j, j);
-
-		size = (int)(_block_size * nb_j[0] * nb_j[1] * 2);
-
-		lambda_blks_c[j] = new float[size];
+	for(int j=0; j<=_reflevel; j++) {
 		if (! lambda_blks_c[j]) {
-			SetErrMsg("new float[%d] : %s", size, strerror(errno));
-			return(-1);
+
+			size_t	size;
+			size_t nb_j[3];
+
+			GetDimBlk(nb_j, j);
+
+			size = _block_size * nb_j[0] * nb_j[1] * 2;
+
+			lambda_blks_c[j] = new float[size];
+			if (! lambda_blks_c[j]) {
+				SetErrMsg("new float[%d] : %s", size, strerror(errno));
+				return(-1);
+			}
 		}
 	}
-	zero_block_c = new float[_block_size];
-	memset(zero_block_c, 0, _block_size*sizeof(zero_block_c[0]));
+
 	return(0);
 }
 
@@ -507,6 +514,4 @@ void	WaveletBlock3DWriter::my_free(
 
 		lambda_blks_c[j] = NULL;
 	}
-	if (zero_block_c) delete [] zero_block_c;
-	zero_block_c = NULL;
 }

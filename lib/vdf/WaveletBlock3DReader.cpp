@@ -26,6 +26,7 @@ WaveletBlock3DReader::WaveletBlock3DReader(
 ) : WaveletBlock3DIO(metadata, nthreads) {
 
 	_objInitialized = 0;
+	scratch_block_c = new float[_block_size];
 	if (WaveletBlock3DIO::GetErrCode()) return;
 
 	_WaveletBlock3DReader();
@@ -39,6 +40,7 @@ WaveletBlock3DReader::WaveletBlock3DReader(
 ) : WaveletBlock3DIO(metafile, nthreads) {
 
 	_objInitialized = 0;
+	scratch_block_c = new float[_block_size];
 	if (WaveletBlock3DIO::GetErrCode()) return;
 	
 	_WaveletBlock3DReader();
@@ -51,6 +53,10 @@ WaveletBlock3DReader::~WaveletBlock3DReader(
 	if (! _objInitialized) return;
 
 	WaveletBlock3DReader::CloseVariable();
+
+	if (scratch_block_c) delete [] scratch_block_c;
+	scratch_block_c = NULL;
+	my_free();
 
 	_objInitialized = 0;
 }
@@ -68,7 +74,7 @@ int	WaveletBlock3DReader::OpenVariableRead(
 
 	rc = WaveletBlock3DIO::OpenVariableRead(timestep, varname, reflevel);
 	if (rc<0) return(rc);
-	rc = my_alloc();
+	rc = my_realloc();
 	if (rc<0) return(rc);
 
 	return(0);
@@ -76,7 +82,6 @@ int	WaveletBlock3DReader::OpenVariableRead(
 
 int     WaveletBlock3DReader::CloseVariable(
 ) {
-	my_free();
 	return(WaveletBlock3DIO::CloseVariable());
 }
 
@@ -301,28 +306,32 @@ int	WaveletBlock3DReader::read_slabs(
 	return(0);
 }
 
-int	WaveletBlock3DReader::my_alloc(
+//
+// allocate memory, only if needed.
+//
+int	WaveletBlock3DReader::my_realloc(
 ) {
 
-	int     size;
-	int	j;
 
 	// alloc space from coarsest (j==0) to finest level
-	for(j=0; j<_num_reflevels; j++) {
-		size_t nb_j[3];
+	for(int j=0; j<=_reflevel; j++) {
 
-		GetDimBlk(nb_j, j);
-
-		size = (int)(nb_j[0] * nb_j[1] * _block_size * 2);
-
-		lambda_blks_c[j] = new float[size];
 		if (! lambda_blks_c[j]) {
-			SetErrMsg("new float[%d] : %s", size, strerror(errno));
-			return(-1);
+			size_t     size;
+			size_t nb_j[3];
+
+			GetDimBlk(nb_j, j);
+
+			size = nb_j[0] * nb_j[1] * _block_size * 2;
+
+			lambda_blks_c[j] = new float[size];
+			if (! lambda_blks_c[j]) {
+				SetErrMsg("new float[%d] : %s", size, strerror(errno));
+				return(-1);
+			}
 		}
 
 	}
-	scratch_block_c = new float[_block_size];
 
 	return(0);
 }
@@ -336,6 +345,4 @@ void	WaveletBlock3DReader::my_free(
 
 		lambda_blks_c[j] = NULL;
 	}
-	if (scratch_block_c) delete [] scratch_block_c;
-	scratch_block_c = NULL;
 }
