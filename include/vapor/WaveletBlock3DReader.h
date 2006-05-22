@@ -141,7 +141,7 @@ private:
 	int dst_nby
 	);
 
- int	my_alloc();
+ int	my_realloc();
  void	my_free();
 
  void	_WaveletBlock3DReader();

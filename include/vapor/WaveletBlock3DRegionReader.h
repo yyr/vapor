@@ -189,7 +189,7 @@ private:
 	unsigned int ljnx, unsigned int j, float *region, 
 	const size_t min[3], const size_t max[3], unsigned int level, int unblock
 	);
- int	my_alloc(); 
+ int	my_realloc(); 
  void	my_free(); 
 
  int	_ReadRegion(
