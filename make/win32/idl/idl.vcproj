@@ -36,12 +36,14 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib C:\RSI\IDL61\bin\bin.x86\idl32.lib"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib C:\RSI\IDL61\bin\bin.x86\idl32.lib mpr.lib"
 				OutputFile="../../../targets/win32/bin/libidl_vdfmodule.dll"
 				LinkIncremental="2"
 				ModuleDefinitionFile="idl.def"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="../../../targets/win32/bin/libidl_vdfmodule.pdb"
+				GenerateMapFile="TRUE"
+				MapExports="TRUE"
 				SubSystem="2"
 				ImportLibrary="../../../targets/win32/bin/libidl_vdfmodule.lib"
 				TargetMachine="1"/>
