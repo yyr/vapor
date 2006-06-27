@@ -29,6 +29,9 @@
 #include "vizwinmgr.h"
 #include "animationcontroller.h"
 #include "manip.h"
+#include "dvreventrouter.h"
+#include "mainform.h"
+#include "session.h"
 
 #include <math.h>
 #include <qgl.h>
@@ -302,7 +305,7 @@ void GLWindow::paintGL()
 	nowPainting = false;
 }
 //Draw a 3D cursor at specified world coords
-void GLWindow::draw3DCursor(float position[3]){
+void GLWindow::draw3DCursor(const float position[3]){
 	float cubePosition[3];
 	ViewpointParams::worldToCube(position, cubePosition);
 	glLineWidth(3.f);
@@ -324,7 +327,7 @@ void GLWindow::draw3DCursor(float position[3]){
 void GLWindow::initializeGL()
 {
     glewInit();
-
+	VizWinMgr::getInstance()->getDvrRouter()->initTypes();
     qglClearColor(myVizWin->getBackgroundColor()); 		// Let OpenGL clear to black
 	//Initialize existing renderers:
 	//
@@ -335,7 +338,7 @@ void GLWindow::initializeGL()
     //
     // Initialize the graphics-dependent dvrparam state
     //
-    VizWinMgr::getInstance()->getDvrParams(myVizWin->getWindowNum())->initTypes();
+    
 }
 
 //projectPoint returns true if point is in front of camera

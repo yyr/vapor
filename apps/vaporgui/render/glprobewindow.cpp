@@ -23,7 +23,7 @@
 #include "glutil.h"
 #include "probeframe.h"
 #include "probeparams.h"
-
+#include "probeeventrouter.h"
 #include <math.h>
 #include <qgl.h>
 #include "assert.h"
@@ -104,8 +104,9 @@ void GLProbeWindow::setTextureSize(float horiz, float vert){
 
 void GLProbeWindow::paintGL()
 {
-	ProbeParams* myParams = probeFrame->getParams();
-	
+	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
+	ProbeEventRouter* myRouter = VizWinMgr::getInstance()->getProbeRouter();
+
 	qglClearColor( QColor(233,236,216) ); 		// same as frame
 	
 	glClearDepth(1);
@@ -117,9 +118,10 @@ void GLProbeWindow::paintGL()
 	
 	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 	//get the probe texture:
+	//This should be obtained from the Router!!!!
 	unsigned char* probeTexture = 0;
-	if (myParams)
-		probeTexture = myParams->getProbeTexture();
+	
+	if(myParams) probeTexture = myRouter->getProbeTexture(myParams);
 	
 	if(probeTexture) {
 		glEnable(GL_TEXTURE_2D);

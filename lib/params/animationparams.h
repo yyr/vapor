@@ -1,0 +1,99 @@
+//************************************************************************
+//																		*
+//		     Copyright (C)  2004										*
+//     University Corporation for Atmospheric Research					*
+//		     All Rights Reserved										*
+//																		*
+//************************************************************************/
+//
+//	File:		animationparams.h
+//
+//	Author:		Alan Norton
+//			National Center for Atmospheric Research
+//			PO 3000, Boulder, Colorado
+//
+//	Date:		January 2005
+//
+//	Description:	Defines the AnimationParams class
+//		This is derived from the Params class
+//		It contains all the parameters required for animation
+
+//
+#ifndef ANIMATIONPARAMS_H
+#define ANIMATIONPARAMS_H
+
+
+#include "params.h"
+#include "vaporinternal/common.h"
+
+
+namespace VAPoR {
+class ExpatParseMgr;
+
+class XmlNode;
+class PARAMS_API AnimationParams : public Params {
+	
+public: 
+	AnimationParams(int winnum);
+	~AnimationParams();
+	
+	virtual Params* deepCopy();
+
+	virtual void restart();
+	virtual bool reinit(bool doOverride);
+
+	
+
+	bool isPlaying() {return (playDirection != 0);}
+
+
+	int getMinTimeToRender() {return ((int)(1000.f/maxFrameRate) );}
+	int getCurrentFrameNumber() {return currentFrame;}
+	int getStartFrameNumber() {return startFrame;}
+	int getEndFrameNumber() {return endFrame;}
+	int getMinFrame() {return minFrame;}
+	int getMaxFrame() {return maxFrame;}
+	int getPlayDirection() {return playDirection;}
+	int getFrameStepSize() {return frameStepSize;}
+	float getMaxFrameRate() {return maxFrameRate;}
+	void setCurrentFrameNumber(int val) {currentFrame = val;}
+	void setStartFrameNumber(int val) {startFrame=val;}
+	void setEndFrameNumber(int val) {endFrame=val;}
+	float getMaxWait(){return maxWait;}
+	bool isRepeating() {return repeatPlay;}
+	void setRepeating(bool onOff){repeatPlay = onOff;}
+	void setFrameStepSize(int sz){ frameStepSize = sz;}
+	void setMaxFrameRate(float val) {maxFrameRate = val;}
+	void setMaxWait(float wait) {maxWait = wait;}
+	void setPlayDirection(int val){playDirection = val;}
+
+	//When rendering is finished, renderer calls this.  Returns true if the change bit
+	//needs to be set.
+	bool advanceFrame();
+	
+	XmlNode* buildNode();
+	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
+	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
+	
+protected:
+	static const string _repeatAttr;
+	static const string _maxRateAttr;
+	static const string _stepSizeAttr;
+	static const string _startFrameAttr;
+	static const string _endFrameAttr;
+	static const string _currentFrameAttr;
+	static const string _maxWaitAttr;
+
+	int playDirection; //-1, 0, or 1
+	bool repeatPlay;
+	float maxFrameRate;
+	float maxWait;
+	int frameStepSize;// always 1 or greater
+	int startFrame;
+	int endFrame;
+	int maxFrame, minFrame;
+	int currentFrame;
+	
+};
+};
+#endif //ANIMATIONPARAMS_H 

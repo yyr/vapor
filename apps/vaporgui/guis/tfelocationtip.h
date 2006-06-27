@@ -32,6 +32,7 @@ public:
     TFELocationTip( QWidget *parent );
 	void setEditor(MapEditor* ed) {editor = ed;}
 protected:
+	int getHistoValue(float point);
     void maybeTip( const QPoint& );
 	MapEditor* editor;
 	QWidget* frame;

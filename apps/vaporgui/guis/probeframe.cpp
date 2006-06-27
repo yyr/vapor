@@ -26,6 +26,8 @@
 #include <qlayout.h>
 #include "glprobewindow.h"
 #include "glutil.h"
+#include "vizwinmgr.h"
+#include "probeeventrouter.h"
 
 
 ProbeFrame::ProbeFrame( QWidget * parent, const char * name, WFlags f ) :
@@ -63,11 +65,11 @@ void ProbeFrame::paintEvent(QPaintEvent* ){
 }
 
 void ProbeFrame::mousePressEvent( QMouseEvent * e){
-	if (!glProbeWindow) return;
+	ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
 	if (!probeParams) return;
 	float x,y;
 	glProbeWindow->mapPixelToProbeCoords(e->x(),e->y(), &x, &y);
-	probeParams->guiStartCursorMove();
+	per->guiStartCursorMove();
 	probeParams->setCursorCoords(x,y);
 	update();
 	
@@ -79,10 +81,11 @@ void ProbeFrame::mousePressEvent( QMouseEvent * e){
 void ProbeFrame::mouseReleaseEvent( QMouseEvent *e ){
 	if (!glProbeWindow) return;
 	if (!probeParams) return;
+	ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
 	float x,y;
 	glProbeWindow->mapPixelToProbeCoords(e->x(),e->y(), &x, &y);
 	probeParams->setCursorCoords(x,y);
-	probeParams->guiEndCursorMove();
+	per->guiEndCursorMove();
 	update();
 }
 	

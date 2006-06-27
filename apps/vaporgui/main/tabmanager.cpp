@@ -27,6 +27,12 @@
 #include "command.h"
 #include "session.h"
 #include "vizwinmgr.h"
+#include "regioneventrouter.h"
+#include "floweventrouter.h"
+#include "dvreventrouter.h"
+#include "probeeventrouter.h"
+#include "viewpointeventrouter.h"
+#include "animationeventrouter.h"
 using namespace VAPoR;
 TabManager::TabManager(QWidget* parent, const char* name,  WFlags f)
 	: QTabWidget(parent, name, f)
@@ -145,7 +151,29 @@ newFrontTab(QWidget*) {
 	currentFrontPage = newFrontPosn;
 	//Refresh this tab from the corresponding params:
 	Params* p = VizWinMgr::getInstance()->getApplicableParams(widgetTypes[newFrontPosn]);
-	p->updateDialog();
+	Params::ParamType newType = p->getParamType();
+	if (newType == Params::RegionParamsType){
+		RegionEventRouter* rer = VizWinMgr::getInstance()->getRegionRouter();
+		rer->updateTab(p);
+	} else if (newType == Params::DvrParamsType){
+		DvrEventRouter* der = VizWinMgr::getInstance()->getDvrRouter();
+		der->updateTab(p);
+	} else if (newType == Params::ViewpointParamsType){
+		ViewpointEventRouter* ver = VizWinMgr::getInstance()->getViewpointRouter();
+		ver->updateTab(p);
+	} else if (newType == Params::ProbeParamsType){
+		ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
+		per->updateTab(p);
+	} else if (newType == Params::AnimationParamsType){
+		AnimationEventRouter* aer = VizWinMgr::getInstance()->getAnimationRouter();
+		aer->updateTab(p);
+	} else if (newType == Params::FlowParamsType){
+		FlowEventRouter* fer = VizWinMgr::getInstance()->getFlowRouter();
+		fer->updateTab(p);
+	}
+	else {
+		assert(0);
+	}
 	//Put into history
 	TabChangeCommand* cmd = new TabChangeCommand(prevType, widgetTypes[newFrontPosn]);
 	Session::getInstance()->addToHistory(cmd);

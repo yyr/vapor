@@ -38,6 +38,8 @@
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="../../../targets/win32/bin/vjpeg.pdb"
+				GenerateMapFile="TRUE"
+				MapExports="TRUE"
 				SubSystem="2"
 				ImportLibrary="../../../targets/win32/bin/vjpeg.lib"
 				TargetMachine="1"/>

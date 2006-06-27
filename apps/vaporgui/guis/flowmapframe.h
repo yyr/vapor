@@ -28,6 +28,8 @@
 #include <qimage.h>
 #include "tfelocationtip.h"
 #include "flowmapeditor.h"
+#include "vizwinmgr.h"
+#include "floweventrouter.h"
 class QLabel;
 class QWidget;
 
@@ -37,15 +39,18 @@ class FlowMapFrame : public QFrame {
 public:
 	FlowMapFrame( QWidget * parent = 0, const char * name = 0, WFlags f = 0 );
 	~FlowMapFrame();
-	void setEditor(VAPoR::FlowMapEditor* e) {editor = e; locationTip->setEditor(e);}
-	void startTFChange(char* s){editor->getMapperFunction()->startChange(s);}
-	void endTFChange(){editor->getMapperFunction()->endChange();}
+	void setEditor(VAPoR::MapEditor* e) 
+	{editor = (FlowMapEditor*)e; locationTip->setEditor(e);needUpdate = true;}
+	void startTFChange(char* s){
+		VizWinMgr::getInstance()->getFlowRouter()->guiStartChangeMapFcn(s);
+	}
+	void endTFChange(){
+		VizWinMgr::getInstance()->getFlowRouter()->guiEndChangeMapFcn();
+	}
 	VAPoR::FlowMapEditor* getEditor(){return editor;}
 	void notifyColorSelector(QRgb clr){
 		emit(sendRgb(clr));
 	}
-	void setDirtyEditor(VAPoR::FlowMapEditor* ed) {dirtyEditor = ed;}
-	
 		
 public slots:
 	//Receive new color from color picker frame:
@@ -53,8 +58,8 @@ public slots:
     void newHsv( int h, int s, int v );
 	//Catch color changes
 	//
-	void startColorChange(){if(editor)editor->getMapperFunction()->startChange("select TF color");}
-	void endColorChange() {if(editor)editor->getMapperFunction()->endChange();}
+	void startColorChange(){startTFChange("select TF color");}
+	void endColorChange() {endTFChange();}
 	void delColorPoint(int indx);
 	void delOpacPoint(int intx);
 	void newColor(int x);
@@ -65,7 +70,7 @@ signals:
 	//send a new color out
 	void sendRgb(QRgb rgb);
 protected:
-	VAPoR::FlowMapEditor* dirtyEditor;
+	
 	//Virtual, Reimplemented here:
 	void paintEvent(QPaintEvent* event);
 	void mousePressEvent( QMouseEvent * );
@@ -81,7 +86,7 @@ protected:
 	void mouseNavigateStart(QMouseEvent*);
 
 	QPixmap pxMap;
-	
+	QImage* editImage;
 	VAPoR::FlowMapEditor* editor;
 	VAPoR::TFELocationTip *locationTip;
 	bool needUpdate;

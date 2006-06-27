@@ -67,7 +67,7 @@ Session::Session() {
 	previousClass = 0;
 	dataMgr = 0;
 	currentMetadata = 0;
-	myReader = 0;
+	
 	//Note that the session will create the vizwinmgr!
 	VizWinMgr::getInstance();
 	
@@ -79,8 +79,8 @@ Session::Session() {
 	for (int i = 0; i<MAX_HISTORY; i++){
 		commandQueue[i] = 0;
 	}
-	currentDataStatus = 0;
-	mapMetadataVars = 0;
+	
+	DataStatus::clearMetadataVars();
 	numTFs = 0;
 	tfNames = 0;
 	keptTFs = 0;
@@ -97,7 +97,8 @@ Session::~Session(){
 	delete VizWinMgr::getInstance();
 	//Note: metadata is deleted by Datamgr
 	if (dataMgr) delete dataMgr;
-	if (mapMetadataVars) delete mapMetadataVars;
+	DataStatus::removeMetadataVars();
+	
 	for (i = startQueuePos; i<= endQueuePos; i++){
 		if (commandQueue[i%MAX_HISTORY]) {
 			delete commandQueue[i%MAX_HISTORY];
@@ -105,8 +106,8 @@ Session::~Session(){
 		}
 	}
 	//Must delete the histograms before the currentDataStatus:
-	Histo::releaseHistograms();
-	if(currentDataStatus) delete currentDataStatus;
+	//Histo::releaseHistograms();
+	if(DataStatus::getInstance()) delete DataStatus::getInstance();
 
 	//Delete all the saved transfer functions:
 	for (i = 0; i<numTFs; i++){
@@ -160,9 +161,7 @@ void Session::init() {
 	newSession = true;
 	extents[0] = extents[1] = extents[2] = 0.f;
 	extents[3] = extents[4] = extents[5] = 1.f;
-	numMetadataVariables = 0;
-	if (mapMetadataVars) delete mapMetadataVars; 
-	mapMetadataVars = 0;
+	DataStatus::removeMetadataVars();
 	
 }
 bool Session::
@@ -488,7 +487,7 @@ exportData(){
 	RegionParams* r = winMgr->getRegionParams(winNum);
 	DvrParams* d = winMgr->getDvrParams(winNum);
 	//always go for max number of transforms:
-	int numxforms = Session::getInstance()->getDataStatus()->getNumTransforms();
+	int numxforms = DataStatus::getInstance()->getNumTransforms();
 	
 	size_t currentFrame = (size_t)p->getCurrentFrameNumber();
 	size_t frameInterval[2];
@@ -508,7 +507,7 @@ exportData(){
 	
 	int rc = exporter.Export(currentMetadataFile,
 		currentFrame,
-		d->getStdVariableName(),
+		getVariableName(d->getVarNum()),
 		minCoords,
 		maxCoords,
 		frameInterval);
@@ -555,11 +554,10 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	//Handle the various cases of loading the metadata
 	if (defaultSession){
 		currentMetadata = 0;
-		myReader = 0;
-		variableNames.clear();
+		DataStatus::clearVariableNames();
 	} else {
 		if (!doMerge) {
-			if (!restoredSession) variableNames.clear();
+			if (!restoredSession) DataStatus::clearVariableNames();
 			dataMgr = new DataMgr(currentMetadataFile.c_str(), cacheMB, 1);
 			if (dataMgr->GetErrCode() != 0) {
 				MessageReporter::errorMsg("Data Loading error %d, creating Data Manager:\n %s",
@@ -589,7 +587,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 			return false;
 		}
 
-		myReader = (VDFIOBase*)dataMgr->GetRegionReader();
+		
 	} 
 
 	//Get the extents from the metadata, if it exists:
@@ -598,15 +596,15 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 		for (i = 0; i< 6; i++)
 			extents[i] = (float)mdExtents[i];
 	}
-	Histo::releaseHistograms();
+	//Histo::releaseHistograms();
 	
-	if (currentDataStatus) delete currentDataStatus;
-	currentDataStatus = 0;
+	if (DataStatus::getInstance()) delete DataStatus::getInstance();
+	
 	
 	if (!defaultSession) {
 		//If we are not merging, clean out the variableNames.
 		//We add the new ones back in setupDataStatus();
-		if (!doMerge) variableNames.clear();
+		if (!doMerge) DataStatus::clearVariableNames();
 		setupDataStatus();
 		
 		//Is there any data here?
@@ -741,29 +739,14 @@ void Session::resetCommandQueue(){
 
 void Session::
 setupDataStatus(){
+	DataStatus* currentDataStatus = DataStatus::getInstance();
 	if (!currentDataStatus){
-		
 		currentDataStatus = new DataStatus();
 	}
-	if(currentDataStatus->reset(dataMgr)) {
+	if(currentDataStatus->reset(dataMgr, cacheMB)) {
 		dataExists = true;
-		//Construct metadata var lookup table:
-		if (mapMetadataVars) delete mapMetadataVars;
-		//Find the metadata variables:
-		numMetadataVariables = 0;
-		for (int i = 0; i< getNumVariables(); i++){
-			if (currentDataStatus->variableIsPresent(i)){
-				numMetadataVariables++;
-			}
-		}
-		mapMetadataVars = new int[numMetadataVariables];
-		int posnCounter = 0;
-		//fill in the values...
-		for (int i = 0; i< getNumVariables(); i++){
-			if (currentDataStatus->variableIsPresent(i)){
-				mapMetadataVars[posnCounter++] = i;
-			}
-		}
+		
+		currentDataStatus->fillMetadataVars();
 	}
 	else dataExists = false;
 }
@@ -916,6 +899,7 @@ void Session::getMaxExtentsInCube(float maxExtents[3]){
 	maxExtents[1] = (extents[4]-extents[1])/maxSize;
 	maxExtents[2] = (extents[5]-extents[2])/maxSize;
 }
+/*
 //Find which index is associated with a name, or -1 if not metadata:
 int Session::getSessionVariableNum(const string& str){
 	for (int i = 0; i<variableNames.size(); i++){
@@ -939,14 +923,17 @@ int Session::mapRealToMetadataVarNum(int realVarNum){
 	}
 	return -1;
 }
+*/
 void Session::getExtents(int refLevel, float extents[6]){
 	size_t fullMin[3] = {0,0,0};
 	size_t fullMax[3];
 	double dbextents[6];
-	int maxTrans = currentDataStatus->getNumTransforms();
-	for (int i = 0; i<3; i++)
-		fullMax[i] = ((getFullDataDimensions()[i])>>(maxTrans - refLevel)) -1;
-	mapVoxelToUserCoords(refLevel, fullMin, dbextents);
-	mapVoxelToUserCoords(refLevel, fullMax, dbextents+3);
+	int maxTrans = DataStatus::getInstance()->getNumTransforms();
+	for (int i = 0; i<3; i++){
+		int fullsize = DataStatus::getInstance()->getFullDataSize()[i];
+		fullMax[i] = (fullsize>>(maxTrans - refLevel)) -1;
+	}
+	DataStatus::getInstance()->mapVoxelToUserCoords(refLevel, fullMin, dbextents);
+	DataStatus::getInstance()->mapVoxelToUserCoords(refLevel, fullMax, dbextents+3);
 	for (int i = 0; i< 6; i++) extents[i] = (float)dbextents[i];
 }

@@ -25,8 +25,11 @@
 #include <qpainter.h>
 #include "tfeditor.h"
 #include "tfelocationtip.h"
-#include "messagereporter.h"
+
 #include "dvrparams.h"
+#include "vizwinmgr.h"
+#include "dvreventrouter.h"
+#include "probeeventrouter.h"
 #include <qlabel.h>
 #include <qpopupmenu.h>
 #include <qcursor.h>
@@ -34,6 +37,7 @@
 #include "coloradjustdialog.h"
 #include "opacadjustdialog.h"
 #include "panelcommand.h"
+#include "floweventrouter.h"
 
 //space below opacity window.  
 #define BELOWOPACITY (COLORBARWIDTH+SEPARATOR+COORDMARGIN)
@@ -41,7 +45,7 @@
 TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 	QFrame(parent, name, f) {
 	editor = 0;
-	dirtyEditor = 0;
+	editImage = 0;
 	needUpdate = true;
 	locationTip = new TFELocationTip(this);
 	setFocusPolicy(QWidget::StrongFocus);
@@ -68,6 +72,7 @@ TFFrame::TFFrame( QWidget * parent, const char * name, WFlags f ) :
 }
 TFFrame::~TFFrame() {
 	delete locationTip;
+	if (editImage) delete editImage;
 	//Will these be deleted by their parent????
 	for (int i = 0; i<MAXNUMLABELS; i++){
 		delete tfColorLabels[i];
@@ -84,39 +89,25 @@ void TFFrame::paintEvent(QPaintEvent* ){
 		bitBlt(this, QPoint(0,0),&pxMap);
 		return;
 	}
-	if (editor == dirtyEditor || needUpdate){
+	if (needUpdate){
 		erase();
-		editor->refreshImage();
-		pxMap.convertFromImage(*editor->getImage(),0);
+		if (!editImage || editImage->width() != width()
+			|| editImage->height() != height()){
+				if (editImage) delete editImage;
+				editImage = new QImage(size(),32);
+			}
+		Params* params = editor->getParams();
+		Histo* histo = VizWinMgr::getEventRouter(params->getParamType())->getHistogram(params, params->isEnabled());
+		editor->refreshImage(editImage, histo);
+		pxMap.convertFromImage(*editImage,0);
 		
 		needUpdate = false;
 	} else {
-		if (editor != dirtyEditor)
-			MessageReporter::infoMsg("Editor change on TF frame update");
-		return;
+		if (!editImage) return;
+		pxMap.convertFromImage(*editImage,0);
 	}
 	TransferFunction* tf = editor->getTransferFunction();
-	//Debugging code to look at image column 100
-	/*
-	QImage* img0 = editor->getImage();
-	QImage* img1  = editor->getOpacImage();
-	int ra[200], ga[200], ba[200], alphaa[200];
-	int ro[200], go[200], bo[200], alphao[200];
-	QRgb rgbaa, rgbab;
-	for (int j = 0; j< height()-BELOWOPACITY; j++){
-		rgbaa = img0->pixel(100,j);
-		rgbab = img1->pixel(100,j);
-		ra[j] = qRed(rgbaa);
-		ga[j] = qGreen(rgbaa);
-		ba[j] = qBlue(rgbaa);
-
-		alphaa[j]  = qAlpha(rgbab);
-		ro[j] = qRed(rgbab);
-		go[j] = qGreen(rgbab);
-		bo[j] = qBlue(rgbab);
-		alphao[j]  = qAlpha(rgbab);
-	}
-*/
+	
 	QPainter painter(&pxMap);
 	//Workaround for QT bug:  the clip rect is wrong, so
 	//specify the whole window as the clip rect:
@@ -355,9 +346,11 @@ void TFFrame::mousePressEvent( QMouseEvent * e){
 			mouseEditStart(e);	
 		else 
 			mouseNavigateStart(e);
+		needUpdate = true;
 		update();
 		return;
 	}//end response to left-button down
+	
 }//End mousePressEvent
 
 // Mark the start of a mouse edit
@@ -447,6 +440,7 @@ mouseEditStart(QMouseEvent* e){
 		editor->selectInterval(type>0);
 		editor->addConstrainedGrab();
 	} 
+	needUpdate = true;
 	update();
 	return;
 }
@@ -471,11 +465,13 @@ mouseNavigateStart(QMouseEvent* e){
 //update visualizer and/or tf display
 void TFFrame::mouseReleaseEvent( QMouseEvent *e ){
 	if (!editor) return;
+	Params* p = editor->getParams();
 	if (e->button() == Qt::LeftButton){
 		//If dragging bounds, ungrab, and notify dvrparams to update:
 		if( editor->domainGrabbed()){
 			editor->unGrabBounds();
-			editor->getParams()->updateMapBounds();
+			
+			VizWinMgr::getEventRouter(p->getParamType())->updateMapBounds(p);
 		} else { //otherwise, depends on mode 
 			//
 			if (dragType == 0) { //Edit mode:
@@ -507,8 +503,11 @@ void TFFrame::mouseReleaseEvent( QMouseEvent *e ){
 		amDragging = false;
 		mouseIsDown = false;
 		
-		//Notify the DVR that an editing change is finishing:
+		//Notify the renderer that an editing change is finishing:
+		VizWinMgr::getEventRouter(p->getParamType())->updateClut(p);
+		VizWinMgr::getEventRouter(p->getParamType())->updateMapBounds(p);
 		endTFChange();
+		needUpdate = true;
 		update();
 	}
 }
@@ -529,6 +528,8 @@ void TFFrame::mouseMoveEvent( QMouseEvent * e){
 			editor->navigate(e->x(), e->y());
 		} 
 	} 
+	needUpdate = true;
+	update();
 }
 void TFFrame::resizeEvent( QResizeEvent *  ){
 	needUpdate = true;
@@ -541,6 +542,7 @@ void TFFrame::keyPressEvent(QKeyEvent* e){
 	if (e->key() == Qt::Key_Delete){
 		editor->deleteSelectedControlPoints();
 		e->accept();
+		needUpdate = true;
 		update();
 	}
 }
@@ -565,7 +567,8 @@ void TFFrame::contextMenuEvent( QContextMenuEvent *e )
 {
 	if (!editor) return;
 	//Capture for undo/redo:
-	editor->getParams()->confirmText(false);
+	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
+	fRouter->confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(editor->getParams(), "TF editor right mouse action");
 	
 	

@@ -1,6 +1,6 @@
 RENDER_FILES := \
 	DVRBase DVRDebug \
-	glbox glutil glwindow renderer \
+	glwindow renderer \
 	glprobewindow manip\
 	trackball vizwin flowrenderer \
 	VolumeRenderer BBox ShaderProgram TextureBrick \
@@ -8,6 +8,6 @@ RENDER_FILES := \
 	DVRShader DVRLookup DVRVolumizer
 
 RENDER_QT_HEADERS := \
-	glbox renderer flowrenderer \
+	renderer flowrenderer \
 	vizwin  
 

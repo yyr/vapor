@@ -26,7 +26,7 @@
 #include "DVRBase.h"
 #include "renderer.h"
 #include "vizwin.h"
-#include "dvrparams.h"
+#include "dvreventrouter.h"
 
 namespace VAPoR {
 
@@ -43,6 +43,7 @@ namespace VAPoR {
     virtual void paintGL();
 
     static bool supported(DvrParams::DvrType type);
+	
 
   protected:
     

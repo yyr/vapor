@@ -27,6 +27,8 @@
 #include "tfelocationtip.h"
 #include "messagereporter.h"
 #include "params.h"
+#include "vizwinmgr.h"
+#include "floweventrouter.h"
 #include <qlabel.h>
 #include <qpopupmenu.h>
 #include <qcursor.h>
@@ -41,7 +43,7 @@
 FlowMapFrame::FlowMapFrame( QWidget * parent, const char * name, WFlags f ) :
 	QFrame(parent, name, f) {
 	editor = 0;
-	dirtyEditor = 0;
+	editImage = 0;
 	needUpdate = true;
 	locationTip = new TFELocationTip(this);
 	setFocusPolicy(QWidget::StrongFocus);
@@ -68,6 +70,7 @@ FlowMapFrame::FlowMapFrame( QWidget * parent, const char * name, WFlags f ) :
 }
 FlowMapFrame::~FlowMapFrame() {
 	delete locationTip;
+	if (editImage) delete editImage;
 	//Will these be deleted by their parent????
 	for (int i = 0; i<MAXNUMLABELS; i++){
 		delete tfColorLabels[i];
@@ -84,17 +87,22 @@ void FlowMapFrame::paintEvent(QPaintEvent* ){
 		bitBlt(this, QPoint(0,0),&pxMap);
 		return;
 	}
-	if (editor == dirtyEditor || needUpdate){
+	if (needUpdate){
 		erase();
-		editor->refreshImage();
-		pxMap.convertFromImage(*editor->getImage(),0);
+		if (!editImage || editImage->width() != width()
+			|| editImage->height() != height()){
+			if (editImage) delete editImage;
+			editImage = new QImage(size(),32);
+		}
+		editor->refreshImage(editImage);
+		pxMap.convertFromImage(*editImage,0);
 		
 		needUpdate = false;
 	} else {
-		if (editor != dirtyEditor)
-			MessageReporter::infoMsg("Editor change on TF frame update");
-		return;
+		if (!editImage) return;
+		pxMap.convertFromImage(*editImage,0);
 	}
+	
 	MapperFunction* tf = editor->getMapperFunction();
 	
 	QPainter painter(&pxMap);
@@ -359,6 +367,7 @@ void FlowMapFrame::mousePressEvent( QMouseEvent * e){
 			mouseEditStart(e);	
 		else 
 			mouseNavigateStart(e);
+		needUpdate = true;
 		update();
 		return;
 	}//end response to left-button down
@@ -451,7 +460,8 @@ mouseEditStart(QMouseEvent* e){
 	if (shiftPressed) {
 		editor->selectInterval(type>0);
 		editor->addConstrainedGrab();
-	} 
+	}
+	needUpdate = true;
 	update();
 	return;
 }
@@ -487,7 +497,8 @@ void FlowMapFrame::mouseReleaseEvent( QMouseEvent *e ){
 		//If dragging bounds, ungrab, and notify params to update:
 		if( editor->anyDomainGrabbed()){
 			editor->unGrabBounds();
-			editor->getParams()->updateMapBounds();
+			Params* p = editor->getParams();
+			VizWinMgr::getEventRouter(p->getParamType())->updateMapBounds(p);
 		} else { //otherwise, depends on mode 
 			//
 			if (dragType == 0) { //Edit mode:
@@ -519,6 +530,7 @@ void FlowMapFrame::mouseReleaseEvent( QMouseEvent *e ){
 		
 		//Notify the params that an editing change is finishing:
 		endTFChange();
+		needUpdate = true;
 		update();
 	}
 }
@@ -542,6 +554,8 @@ void FlowMapFrame::mouseMoveEvent( QMouseEvent * e){
 			editor->navigate(e->x(), e->y());
 		} 
 	} 
+	needUpdate = true;
+	update();
 }
 void FlowMapFrame::resizeEvent( QResizeEvent *  ){
 	needUpdate = true;
@@ -554,6 +568,7 @@ void FlowMapFrame::keyPressEvent(QKeyEvent* e){
 	if (e->key() == Qt::Key_Delete){
 		editor->deleteSelectedControlPoints();
 		e->accept();
+		needUpdate = true;
 		update();
 	}
 }
@@ -578,7 +593,9 @@ void FlowMapFrame::contextMenuEvent( QContextMenuEvent *e )
 {
 	if (!editor) return;
 	//Capture for undo/redo:
-	editor->getParams()->confirmText(false);
+	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
+	fRouter->confirmText(false);
+	
 	PanelCommand* cmd = PanelCommand::captureStart(editor->getParams(), "TF editor right mouse action");
 	
 	
@@ -643,13 +660,19 @@ newOpac(int code){
 void FlowMapFrame::
 adjColor(int indx){
 	ColorAdjustDialog* dlg = new ColorAdjustDialog(this, editor, indx);
-	if(dlg->exec()) update();
+	if(dlg->exec()) {
+		needUpdate = true;
+		update();
+	}
 	delete dlg;
 }
 
 void FlowMapFrame::
 adjOpac(int indx){
 	OpacAdjustDialog* dlg = new OpacAdjustDialog(this, editor, indx);
-	if(dlg->exec()) update();
+	if(dlg->exec()) {
+		needUpdate = true;
+		update();
+	}
 	delete dlg;
 }

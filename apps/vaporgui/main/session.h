@@ -138,10 +138,10 @@ public:
 	~Session();
 	
 	DataMgr* getDataMgr() {return dataMgr;}
-	DataStatus* getDataStatus() {return currentDataStatus;}
+	
 	
 	const Metadata* getCurrentMetadata() {return currentMetadata;}
-	
+	/* moved to DataStatus...
 	float getDataMin(int varNum, int timestep){
 		if (currentDataStatus){
 			return (float)currentDataStatus->getDataMin(varNum, timestep);
@@ -159,8 +159,9 @@ public:
 			return currentDataStatus->dataIsPresent(varnum, timeStep);
 		else return false;
 	}
-	int getNumVariables(){return variableNames.size();}
-		
+	*/
+	int getNumVariables(){return DataStatus::getNumVariables();}
+	/*	
 	size_t getMinTimestep(){
 		if (currentDataStatus) return currentDataStatus->getMinTimestep();
 		return 0;
@@ -169,6 +170,7 @@ public:
 		if (currentDataStatus)return currentDataStatus->getMaxTimestep();
 		return 1;
 	}
+	*/
 	
 	//Methods to control the command queue:
 	//When a new command is issued, call "addToHistory"
@@ -191,7 +193,7 @@ public:
 	bool isRecording() {return (recordingCount == 0);}
 	Histo* getCurrentHistogram(int var) {
 		return (currentHistograms ? currentHistograms[var]: 0);}
-	const VDFIOBase* getRegionReader() {return myReader;}
+	
 	//Setup session for a new Metadata, by specifying vdf file
 	//If the argument is null, it resets to default state
 	//
@@ -243,34 +245,38 @@ public:
 	float getExtents(int i) {return extents[i];}
 	//Better version of getExtents, uses refinement level
 	void getExtents(int refLevel, float extents[6]);
-	const size_t* getFullDataDimensions() {return (currentDataStatus ? currentDataStatus->getFullDataSize() : 0);}
+	//const size_t* getFullDataDimensions() {return (currentDataStatus ? currentDataStatus->getFullDataSize() : 0);}
 	//Get full data extents in cube coords
 	void getMaxExtentsInCube(float maxExtents[3]);
 
-	double getDefaultDataMax(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMax(varnum) : 1.0);}
-	double getDefaultDataMin(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMin(varnum) : 0.0);}
+	//double getDefaultDataMax(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMax(varnum) : 1.0);}
+	//double getDefaultDataMin(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMin(varnum) : 0.0);}
 	
-	std::string& getVariableName(int varNum) {return variableNames[varNum];}
+	std::string& getVariableName(int varNum) {
+		return DataStatus::getVariableName(varNum);}
+
 	//Find the session num of a name, or -1 if it's not metadata:
-	int getSessionVariableNum(const string& str);
+	int getSessionVariableNum(const string& str){
+		return DataStatus::getSessionVariableNum(str);
+	}
 	//Insert variableName if necessary; return index
-	int mergeVariableName(const string& str);
+	int mergeVariableName(const string& str){
+		return DataStatus::mergeVariableName(str);}
 
 
-	void addVarName(const string newName) {variableNames.push_back(newName);}
+	void addVarName(const string newName) {DataStatus::addVarName(newName);}
 	//"Metadata" variables are those that are in current metadata, as opposed to
 	//"real" variables are those in session
-	int getNumMetadataVariables() {return numMetadataVariables;}
-	int mapMetadataToRealVarNum(int varnum) 
-		{ if(!mapMetadataVars) return 0; 
-		return mapMetadataVars[varnum];}
-	int mapRealToMetadataVarNum(int var);
-	string& getMetadataVarName(int varnum) {
-		if (!mapMetadataVars) return variableNames[0];
-		return (variableNames[mapMetadataVars[varnum]]);}
-	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){
-		myReader->MapVoxToUser(0, voxCoords, userCoords, refLevel);
+	int getNumMetadataVariables() {return DataStatus::getNumMetadataVariables();}
+	int mapMetadataToRealVarNum(int varnum){
+		return DataStatus::mapMetadataToRealVarNum(varnum);
 	}
+	int mapRealToMetadataVarNum(int var) {return DataStatus::mapRealToMetadataVarNum(var);}
+	string& getMetadataVarName(int varnum) {
+		return DataStatus::getMetadataVarName(varnum);
+	}
+		
+	
 protected:
 	static const string _cacheSizeAttr;
 	static const string _jpegQualityAttr;
@@ -294,17 +300,16 @@ protected:
 	Session();
 	void init();
 	static Session* theSession;
-	VDFIOBase* myReader;
+	
 	
 	//setup the DataStatus:
 	void setupDataStatus();
 	//Reset the dataStatus after a merge()
 	void resetDataStatus();
-	//Insert a name (metadata or not) into the session.
-	void insertVariableName(std::string newName, bool isMetadata);
+	
 	
 	DataMgr* dataMgr;
-	DataStatus* currentDataStatus;
+	
 	Command* commandQueue[MAX_HISTORY];
 	int currentQueuePos;
 	int endQueuePos;
@@ -342,9 +347,9 @@ protected:
 	//contains (possibly properly) the corresponding variableNames in the
 	//dataStatus.  The number of metadataVariables should coincide with the 
 	//number of variables in the datastatus that have actual data associated with them.
-	std::vector<string> variableNames;
-	int numMetadataVariables;
-	int* mapMetadataVars;
+	//std::vector<string> variableNames;
+	//int numMetadataVariables;
+	//int* mapMetadataVars;
 	bool metadataSaved;
 };
 

@@ -22,6 +22,8 @@
 #include "vizwin.h"
 #include "glwindow.h"
 #include "glutil.h"
+#include "probeeventrouter.h"
+#include "session.h"
 using namespace VAPoR;
 const float Manip::faceSelectionColor[4] = {0.8f,0.8f,0.0f,0.8f};
 const float Manip::unselectedFaceColor[4] = {0.8f,0.2f,0.0f,0.8f};
@@ -507,7 +509,7 @@ mouseRelease(float /*screenCoords*/[2]){
 		}
 
 		myParams->setBox(boxMin, boxMax);
-		myParams->captureMouseUp();
+		VizWinMgr::getEventRouter(myParams->getParamType())->captureMouseUp();
 	}
 	dragDistance = 0.f;
 	selectedHandle = -1;
@@ -780,9 +782,9 @@ void TranslateRotateManip::drawBoxFaces(){
 	//Draw a translucent rectangle at the middle.
 	//If the probe is enabled, will apply the probe texture to the rectangle
 	//Note that we are assuming that the TranslateStretchManip is associated with a probe!
-	//For generality, the getProbeTexture method needs to be pushed up to 
-	//Params class (so other params can use this manip).
-	unsigned char* probeTex = ((ProbeParams*)myParams)->getProbeTexture();
+	//This needs to be be associated with the EventRouter!!!!!
+	ProbeEventRouter* myRouter = VizWinMgr::getInstance()->getProbeRouter();
+	unsigned char* probeTex = myRouter->getProbeTexture((ProbeParams*)myParams);
 	if (probeTex){
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -1001,7 +1003,7 @@ mouseRelease(float /*screenCoords*/[2]){
 		}
 
 		myParams->setBox(boxMin, boxMax);
-		myParams->captureMouseUp();
+		VizWinMgr::getEventRouter(myParams->getParamType())->captureMouseUp();
 	}
 	dragDistance = 0.f;
 	selectedHandle = -1;

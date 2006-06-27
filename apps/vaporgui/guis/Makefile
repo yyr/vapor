@@ -10,7 +10,7 @@ ifdef	VOLUMIZER_ROOT
 MAKEFILE_CXXFLAGS += -I$(VOLUMIZER_ROOT)/include
 endif
 
-MAKEFILE_INCLUDE_DIRS :=  -I../render -I../main -I../params
+MAKEFILE_INCLUDE_DIRS :=  -I../render -I../main -I../misc -I../../../lib/params
 
 ifdef   NETCDF_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
@@ -24,25 +24,15 @@ ifeq ($(BUILD_VOLUMIZER), 1)
 MAKEFILE_CXXFLAGS += -DVOLUMIZER
 endif
 
-
-
 ifeq ($(ARCH),WIN32) 
-#MAKEFILE_CXXFLAGS += /DVOLUMIZER  
-#MAKEFILE_LDFLAGS += "$(VOLUMIZER_ROOT)/lib/vz.lib"
-#MAKEFILE_LDFLAGS += "$(QTDIR)/lib/qt-mt334.lib"
-#MAKEFILE_LDFLAGS += "$(QTDIR)/lib/qtmain.lib"
-#MAKEFILE_LDFLAGS += "opengl32.lib"
-#MAKEFILE_LDFLAGS += "glu32.lib"
-#MAKEFILE_LDFLAGS += "mpr.lib"
 MAKEFILE_LDFLAGS += "/LIBPATH:$(VOLUMIZER_ROOT)/lib"
 MAKEFILE_LDFLAGS += "/LIBPATH:$(QTDIR)/lib"
 
 else   
-#MAKEFILE_CXXFLAGS += -DVOLUMIZER
 MAKEFILE_LDFLAGS += -L$(QTDIR)/lib 
 endif
 
-VPATH = ../params ../render ../main ui
+VPATH = ../misc ../render ../main ui
 
 include guis.mk
 include ui/ui.mk

@@ -20,6 +20,8 @@
 //
 #include "tfelocationtip.h"
 #include "mapeditor.h"
+#include "eventrouter.h"
+#include "params.h"
 using namespace VAPoR;
 //space below opacity window.  
 #define BELOWOPACITY (COLORBARWIDTH+SEPARATOR+COORDMARGIN)
@@ -48,7 +50,7 @@ void TFELocationTip::maybeTip( const QPoint &pos )
 	val = (int)(vf*255.99f);
 	int histcount=0;
 	//If there's a histo, it's based on opacity coord
-	histcount = editor->getHistoValue(xOpacCoord);
+	histcount = getHistoValue(xOpacCoord);
 	float opacity = tf->opacityValue(xOpacCoord);
 	QString s;
 	if (r.center().y() > frame->height()-COORDMARGIN) return;
@@ -86,4 +88,25 @@ void TFELocationTip::maybeTip( const QPoint &pos )
 	}
 
     tip( r, s );
+}
+
+//Find value of histogram.  
+//
+int TFELocationTip::
+getHistoValue(float point){
+	//Determine relevant vizNum
+	Params* p = editor->getParams();
+	int viznum = p->getVizNum();
+	if (viznum < 0) {
+		viznum = VizWinMgr::getInstance()->getActiveViz();
+		assert(viznum >= 0);
+	}
+	
+	EventRouter* router = VizWinMgr::getEventRouter(p->getParamType());
+	Histo* hist = router->getHistogram(p,true);
+	if (!hist) return -1;
+	float ind = (point - hist->getMinData())/(hist->getMaxData()-hist->getMinData());
+	if (ind < 0.f || ind >= 1.f) return 0;
+	int index = (int)(ind*255.999f);
+	return hist->getBinSize(index);
 }

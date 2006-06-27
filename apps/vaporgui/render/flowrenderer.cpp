@@ -16,8 +16,9 @@
 //
 //	Description:	Implementation of the flowrenderer class
 //
-
+#include "vizwinmgr.h"
 #include "flowrenderer.h"
+#include "floweventrouter.h"
 #include "vapor/VaporFlow.h"
 #include "glwindow.h"
 #include "trackball.h"
@@ -26,26 +27,48 @@
 #include <math.h>
 #include <qgl.h>
 #include <qcolor.h>
+#include <qpushbutton.h>
 #include "renderer.h"
 #include "mapperfunction.h"
 
 //Constants used for arrow design:
-	//VERTEX_ANGLE = 45 degrees (angle between direction vector and head edge
+//VERTEX_ANGLE = 45 degrees (angle between direction vector and head edge
 #define ARROW_LENGTH_FACTOR  0.90f //fraction of full length used by cylinder
 #define MIN_STATIONARY_RADIUS 2.f //minimum in voxels of stationary octahedron
 /*!
   Create a FlowRenderer widget
 */
 using namespace VAPoR;
-FlowRenderer::FlowRenderer(VizWin* vw, int flowType )
+FlowRenderer::FlowRenderer(VizWin* vw, FlowParams* fParams )
 :Renderer(vw)
 {
-    maxPoints = 0;
-	
+    myFlowParams = fParams;
 	numInjections = 0;
-	steadyFlow = (flowType == 0);
+	steadyFlow = fParams->flowIsSteady();
 	for (int i = 0; i<4; i++) constFlowColor[i] = 1.f;
 
+	//Set up flow data cache arrays, potentially for all
+	//timesteps in data
+	numFrames = DataStatus::getInstance()->getNumTimesteps();
+	rakeFlowData = new float*[numFrames];
+	listFlowData = new float*[numFrames];
+	numListSeedPointsUsed = new int[numFrames];
+	rakeFlowRGBAs = new float*[numFrames];
+	listFlowRGBAs = new float*[numFrames];
+	flowDataDirty = new bool[numFrames];
+	needRefreshFlag = new bool[numFrames];
+	flowMapDirty = new bool[numFrames];
+	numRakeSeedPointsUsed = 0;
+	for (int i = 0; i<numFrames; i++){
+		rakeFlowData[i] = 0;
+		listFlowData[i] = 0;
+		numListSeedPointsUsed[i] = 0;
+		rakeFlowRGBAs[i] = 0;
+		listFlowRGBAs[i] = 0;
+		flowDataDirty[i] = 0;
+		needRefreshFlag[i] = false;
+		flowMapDirty[i] = 0;
+	}
 
 }
 
@@ -56,6 +79,21 @@ FlowRenderer::FlowRenderer(VizWin* vw, int flowType )
 
 FlowRenderer::~FlowRenderer()
 {
+	for (int i = 0; i<numFrames; i++){
+		if(rakeFlowData[i]) delete rakeFlowData[i];
+		if(listFlowData[i]) delete listFlowData[i];
+		if(rakeFlowRGBAs[i]) delete rakeFlowRGBAs[i];
+		if(listFlowRGBAs[i]) delete listFlowRGBAs[i];
+	}
+	delete rakeFlowData;
+	delete listFlowData;
+	delete rakeFlowRGBAs;
+	delete listFlowRGBAs;
+
+	delete numListSeedPointsUsed;
+	delete needRefreshFlag;
+	delete flowDataDirty;
+	delete flowMapDirty;
 }
 
 
@@ -67,108 +105,56 @@ void FlowRenderer::paintGL()
 {
 	
 	int winNum = myVizWin->getWindowNum();
-	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
 	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
 	
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
 	steadyFlow = myFlowParams->flowIsSteady();
-	int timeStep = steadyFlow ? currentFrameNum : 0 ;
-	//Note:  always check the validity of the data associated with the
-	//flowtype that was most recently used to construct the data.
-	//If the user changes the flowType to unsteady and a nonzero timestep
-	//is being rendered, the flow won't be recalculated until that
-	//timestep is invalidated.  Fortunately "refresh" invalidates all
-	//timesteps.
+	int timeStep = steadyFlow ? currentFrameNum : 0;
 	
-	//Colors can be changed without regenerating flow data.
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex()) == 0);
-	//Need to do rendering on either the listFlowData or the rakeFlowData or both.
-	//
 	
-	//Do we need to regenerate any flow data?
 	
-	bool regeneratedFlow = false;
-	if (myFlowParams->flowDataIsDirty(timeStep)){
-		//get the necessary state from the flowParams:
-		
-		//We will rebuild any null data pointers, using current settings,
-		//if it needs refresh
-		
-		minFrame = VizWinMgr::getInstance()->getAnimationParams(winNum)->getStartFrameNumber();
-		maxFrame = VizWinMgr::getInstance()->getAnimationParams(winNum)->getEndFrameNumber();
-		
-		if (!steadyFlow){
-			//Special parameters used only for unsteady flow:
-			seedIncrement = myFlowParams->getSeedingIncrement();
-			if (seedIncrement < 1) seedIncrement = 1;
-			startSeed = myFlowParams->getSeedStartFrame();
-			endSeed = myFlowParams->getLastSeeding();
-			firstDisplayAge = myFlowParams->getFirstDisplayAge();
-			lastDisplayAge = myFlowParams->getLastDisplayAge();
-			float objectsPerFlowline = (float)myFlowParams->getObjectsPerFlowline();
-			objectsPerTimestep = (objectsPerFlowline+1.f)/(float)(maxFrame - minFrame);
-		}
-	}
-	
-	//Get the rake flow data:
-	if (myFlowParams->rakeEnabled()){
-		
-		flowDataArray = myFlowParams->getFlowData(timeStep, true);
-		
-		if (myFlowParams->flowDataIsDirty(timeStep,true,false) && myFlowParams->needsRefresh(timeStep)){
-			flowDataArray = myFlowParams->regenerateFlowData(timeStep, true);
-			if (!flowDataArray) return;
-			regeneratedFlow = true;
-		}
-	
-		
-		
-		numSeedPoints = myFlowParams->getNumRakeSeedPointsUsed();
-		maxPoints = myFlowParams->getMaxPoints();
-		numInjections = 1;
-		if (!myFlowParams->flowDataIsDirty(timeStep,true,false)){
-			if (!constColors){
-				flowRGBAs = myFlowParams->getRGBAs(timeStep, true);
-			} else {
-				constFlowColor[3] = myFlowParams->getConstantOpacity();
-				QRgb constRgb = myFlowParams->getConstantColor();
 
-				constFlowColor[0] = qRed(constRgb)/255.f;
-				constFlowColor[1] = qGreen(constRgb)/255.f;
-				constFlowColor[2] = qBlue(constRgb)/255.f;
-			}
-			renderFlowData(constColors,currentFrameNum);
-		}
-		
-	}
-	//Do the same for seed list
-	if (myFlowParams->listEnabled()){
-		flowDataArray = myFlowParams->getFlowData(timeStep, false);
-		if (myFlowParams->flowDataIsDirty(timeStep,false,true) && myFlowParams->needsRefresh(timeStep)){
-			flowDataArray = myFlowParams->regenerateFlowData(timeStep, false);
-			if (!flowDataArray) return;
-			regeneratedFlow = true;
-		}
-		
-		numSeedPoints = myFlowParams->getNumListSeedPointsUsed(timeStep);
-		maxPoints = myFlowParams->getMaxPoints();
-		numInjections = 1;
-		// Don't render invalid data:
-		if (!myFlowParams->flowDataIsDirty(timeStep,false,true)){
-			if (!constColors){
-				flowRGBAs = myFlowParams->getRGBAs(timeStep, false);
-			} else {
-				constFlowColor[3] = myFlowParams->getConstantOpacity();
-				QRgb constRgb = myFlowParams->getConstantColor();
+	constFlowColor[3] = myFlowParams->getConstantOpacity();
+	QRgb constRgb = myFlowParams->getConstantColor();
+	constFlowColor[0] = qRed(constRgb)/255.f;
+	constFlowColor[1] = qGreen(constRgb)/255.f;
+	constFlowColor[2] = qBlue(constRgb)/255.f;
 
-				constFlowColor[0] = qRed(constRgb)/255.f;
-				constFlowColor[1] = qGreen(constRgb)/255.f;
-				constFlowColor[2] = qBlue(constRgb)/255.f;
-			}
-			renderFlowData(constColors,currentFrameNum);
+	//First render the rake flow:
+	//May first need to rebuild it:
+	bool didRebuild = false;
+	if (myFlowParams->rakeEnabled()){ 
+		//Either we just need to refresh graphics, or we need both data and graphics
+		if (flowMapDirty[timeStep] ||(needRefreshFlag[timeStep] && flowDataDirty[timeStep])){
+			if(!rebuildFlowData(timeStep, true)) return;
+			didRebuild = true;
 		}
+		//Now render the rake data
+		flowDataArray = getFlowData(timeStep, true);
+		flowRGBAs = getRGBAs(timeStep, true); 
+		renderFlowData(constColors,currentFrameNum);
 	}
-	if (regeneratedFlow) myFlowParams->setNeedOfRefresh(timeStep, false);
+	//Next render the list data
+	//May first need to rebuild it:
+	if (myFlowParams->listEnabled()){ 
+		if (flowMapDirty[timeStep] ||(needRefreshFlag[timeStep] && flowDataDirty[timeStep])){
+			if(!rebuildFlowData(timeStep, false)) return;
+			didRebuild = true;
+		}
+		//Now render the rake data
+		flowDataArray = getFlowData(timeStep, false);
+		flowRGBAs = getRGBAs(timeStep, false); 
+		renderFlowData(constColors,currentFrameNum);
+	}
+	//Reset the dirty flags:
+	//The color map was already made current
+	flowMapDirty[timeStep] = false;
+	//If we rebuilt the data, then reset its dirty flag too:
+	//Don't change the needRefreshFlag 
+	if (didRebuild){
+		flowDataDirty[timeStep] = false;
+	}
 }
 
 void FlowRenderer::
@@ -236,8 +222,8 @@ renderFlowData(bool constColors, int currentFrameNum){
 
 	//Set up size constants:
 	//voxelSize is actually the max of the sides of the voxel in user coords
-	const float* fullExtent = Session::getInstance()->getExtents();
-	const size_t* fullDims = Session::getInstance()->getFullDataDimensions();
+	const float* fullExtent = DataStatus::getInstance()->getExtents();
+	const size_t* fullDims = DataStatus::getInstance()->getFullDataSize();
 	voxelSize = Max((fullExtent[5]-fullExtent[2])/fullDims[0],
 		Max((fullExtent[4]-fullExtent[1])/fullDims[1], (fullExtent[3]-fullExtent[0])/fullDims[2]));
 		
@@ -1306,5 +1292,158 @@ void FlowRenderer::renderStationary(float* point){
 	
 }
 
+//Virtual method to set dirty bits.  set by viz win
+void FlowRenderer::setDirty(DirtyBitType type){
+	
+	if (type == FlowDataBit){
+		//set all the dirty flags for all the frames
+		//set the needRefresh flags too if autoRefresh is on.
+		bool doRefresh = myFlowParams->refreshIsAuto();
+		for (int i = 0; i<numFrames; i++){
+			flowDataDirty[i] = true;
+			if (doRefresh) needRefreshFlag[i] = true; 
+			else needRefreshFlag[i] = false;
+		}
+		if (!doRefresh)
+			VizWinMgr::getInstance()->getFlowRouter()->refreshButton->setEnabled(true);
+	}
+	else if (type == FlowGraphicsBit){
+		//the graphics bit shouldn't be set if we need to 
+		//calculate speeds:
+		assert((myFlowParams->getOpacMapEntityIndex() != 2)&&(myFlowParams->getColorMapEntityIndex() != 2));
+			
+		for (int i = 0; i< numFrames; i++){
+			flowMapDirty[i] = true;
+		}
+	}
+}
 
 
+
+//Rebuild the data cache, or the 
+//RGBA mapping data 
+//Return false on failure.
+bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
+	//Establish parameters that will be saved with the cache:
+	doList = myFlowParams->listEnabled();
+	doRake = myFlowParams->rakeEnabled();
+	bool doSpeeds = myFlowParams->getColorMapEntityIndex() == 2 || 
+		myFlowParams->getOpacMapEntityIndex() == 2;
+	steadyFlow = myFlowParams->flowIsSteady();
+	int winNum = myVizWin->getWindowNum();	
+	minFrame = VizWinMgr::getInstance()->getAnimationParams(winNum)->getStartFrameNumber();
+	maxFrame = VizWinMgr::getInstance()->getAnimationParams(winNum)->getEndFrameNumber();
+	maxPoints = myFlowParams->calcMaxPoints();
+	RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+	//Check if we are just doing graphics (not reintegrating flow)
+	//that occurs if the map bit id dirty, but there's no need to do data.
+	bool graphicsOnly = (flowMapDirty[timeStep] && 
+		!(flowDataDirty[timeStep] && needRefreshFlag[timeStep]) );
+	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex())== 0);
+	//Clean the cache, unless this is just a rebuild of the graphics:
+	if (!graphicsOnly){
+		if (rakeFlowData[timeStep]) {
+			delete rakeFlowData[timeStep]; 
+			rakeFlowData[timeStep] = 0;
+		}
+		if (listFlowData[timeStep]) {
+			delete listFlowData[timeStep]; 
+			listFlowData[timeStep] = 0;
+		}
+	}
+	//rebuild the graphics arrays
+	if (!constColors){
+		if (rakeFlowRGBAs[timeStep]) {
+			delete rakeFlowRGBAs[timeStep]; 
+			rakeFlowRGBAs[timeStep] = 0;
+		}
+		if (listFlowRGBAs[timeStep]) {
+			delete listFlowRGBAs[timeStep]; 
+			listFlowRGBAs[timeStep] = 0;
+		}
+	}
+	if (!steadyFlow){
+		//Set values for special parameters used only for unsteady flow:
+		seedIncrement = myFlowParams->getSeedTimeIncrement();
+		if (seedIncrement < 1) seedIncrement = 1;
+		startSeed = myFlowParams->getSeedTimeStart();
+		endSeed = myFlowParams->getSeedTimeEnd();
+		firstDisplayAge = myFlowParams->getFirstDisplayFrame();
+		lastDisplayAge = myFlowParams->getLastDisplayFrame();
+		float objectsPerFlowline = (float)myFlowParams->getObjectsPerFlowline();
+		objectsPerTimestep = (objectsPerFlowline+1.f)/(float)(maxFrame - minFrame);
+		numInjections = 1+ (endSeed - startSeed)/seedIncrement;
+	} else {
+		numInjections = 1;
+	}
+	
+	//Get the rake flow data if needed:
+	if (doRake){
+		
+		numSeedPoints = myFlowParams->calcNumSeedPoints(true, timeStep);
+		int flowDataSize = maxPoints*numSeedPoints*numInjections;
+		if (!graphicsOnly){
+			//reallocate flowDataArray and pass it in:
+			if (!rakeFlowData[timeStep]){
+				rakeFlowData[timeStep] = new float[3*flowDataSize];
+			}
+			if ((!rakeFlowRGBAs[timeStep])&&!constColors){
+				rakeFlowRGBAs[timeStep] = new float[4*flowDataSize];
+			}
+			bool OK = myFlowParams->regenerateFlowData(timeStep, minFrame, true, rParams, rakeFlowData[timeStep],rakeFlowRGBAs[timeStep]);
+			if (!OK) {
+				delete rakeFlowData[timeStep];
+				rakeFlowData[timeStep] = 0;
+				if (rakeFlowRGBAs[timeStep]) delete rakeFlowRGBAs[timeStep];
+				rakeFlowRGBAs[timeStep] = 0;
+				return false;
+			}
+		} else { //just map colors
+		
+			//Note that colors can't be mapped here if the speeds are needed
+			assert (!doSpeeds);
+			if (!constColors){
+				rakeFlowRGBAs[timeStep] = new float[flowDataSize*4];
+				myFlowParams->mapColors(0, timeStep, minFrame, numSeedPoints, rakeFlowData[timeStep], rakeFlowRGBAs[timeStep], true);
+			}
+		}
+	} else { //do seed list.  Same as above, but with seed list parameter
+		
+		numSeedPoints = myFlowParams->calcNumSeedPoints(false, timeStep);
+		int flowDataSize = maxPoints*numSeedPoints*numInjections;
+		if (!graphicsOnly){
+			//reallocate flowDataArray and pass it in:
+			if (!listFlowData[timeStep]){
+				listFlowData[timeStep] = new float[3*flowDataSize];
+			}
+			if ((!listFlowRGBAs[timeStep])&&!constColors){
+				listFlowRGBAs[timeStep] = new float[4*flowDataSize];
+			}
+			bool OK = myFlowParams->regenerateFlowData(timeStep, minFrame, false, rParams, listFlowData[timeStep],listFlowRGBAs[timeStep]);
+			if (!OK) {
+				delete listFlowData[timeStep];
+				listFlowData[timeStep] = 0;
+				if (listFlowRGBAs[timeStep]) delete listFlowRGBAs[timeStep];
+				listFlowRGBAs[timeStep] = 0;
+				return false;
+			}
+		} else { //just map colors
+		
+			//Note that colors can't be mapped here if the speeds are needed
+			assert (!doSpeeds);
+			if (!constColors){
+				listFlowRGBAs[timeStep] = new float[flowDataSize*4];
+				myFlowParams->mapColors(0, timeStep, minFrame, numSeedPoints, listFlowData[timeStep], listFlowRGBAs[timeStep], false);
+			}
+		}
+	}
+	return true;
+}
+
+void FlowRenderer::
+setAllNeedRefresh(bool value){
+	int mxframe = DataStatus::getInstance()->getNumTimesteps();
+	for (int i = 0; i< mxframe; i++){
+		needRefreshFlag[i] = value;
+	}
+}

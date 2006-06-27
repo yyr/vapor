@@ -53,7 +53,6 @@ public:
 		unknownMode,
 		navigateMode,
 		regionMode,
-		contourMode,
 		probeMode,
 		rakeMode,
 		lightMode

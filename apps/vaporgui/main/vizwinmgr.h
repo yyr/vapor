@@ -28,7 +28,6 @@
 #define VIZWINMGR_H
 
 
-#define MAXVIZWINS 16
 
 class QWorkspace;
 class QWidget;
@@ -40,40 +39,54 @@ class QMainWidget;
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "probeparams.h"
-#include "contourparams.h"
-#include "isosurfaceparams.h"
 #include "flowparams.h"
 #include "animationparams.h"
 #include "vaporinternal/common.h"
 #include "params.h"
 #include "command.h"
 
+
 class RegionTab;
 class Dvr;
 class ProbeTab;
-class ContourPlaneTab;
 class VizTab;
-class IsoTab;
 class FlowTab;
 class AnimationTab;
 class QPopupMenu;
 
 
 
+
 namespace VAPoR{
 class AnimationController;
 class AnimationParams;
-class IsosurfaceParams;
 
+class EventRouter;
 class TabManager;
 class MainForm;
 class ViewpointParams;
 class RegionParams;
 class DvrParams;
 class ProbeParams;
-class ContourParams;
 class Trackball;
 class VizWin;
+class AnimationEventRouter;
+class RegionEventRouter;
+class DvrEventRouter;
+class ProbeEventRouter;
+class ViewpointEventRouter;
+class FlowEventRouter;
+//The dirty bits are kept in each viz win, one for each type:
+enum DirtyBitType {
+	DvrClutBit,
+	ProbeTextureBit,
+	DvrDatarangeBit,
+	RegionBit,
+	ColorscaleBit,
+	NavigatingBit,
+	FlowDataBit,
+	FlowGraphicsBit
+};
 
 class VizWinMgr : public QObject, public ParsedXml
 {
@@ -84,8 +97,22 @@ public:
 			theVizWinMgr = new VizWinMgr();
 		return theVizWinMgr;
 	}
+	static DvrParams* getActiveDvrParams(){
+		return (getInstance()->getDvrParams(getInstance()->activeViz));}
+	static ProbeParams* getActiveProbeParams(){
+		return (getInstance()->getProbeParams(getInstance()->activeViz));}
+	static RegionParams* getActiveRegionParams(){
+		return (getInstance()->getRegionParams(getInstance()->activeViz));}
+	static FlowParams* getActiveFlowParams(){
+		return (getInstance()->getFlowParams(getInstance()->activeViz));}
+	static ViewpointParams* getActiveVPParams(){
+		return (getInstance()->getViewpointParams(getInstance()->activeViz));}
+	static AnimationParams* getActiveAnimationParams(){
+		return (getInstance()->getAnimationParams(getInstance()->activeViz));}
+	
 	void createGlobalParams();
     ~VizWinMgr();
+	
     //Respond to end:
     void closeEvent();
    
@@ -108,6 +135,7 @@ public:
         isMin[i] = false;
         isMax[i] = false;
     }
+	static EventRouter* getEventRouter(Params::ParamType routerType);
 
 	Params* getGlobalParams(Params::ParamType);
 	//Method that returns the current params that apply in the current
@@ -143,10 +171,17 @@ public:
 	//For a renderer, there should always exist a local version.
 	DvrParams* getDvrParams(int winNum);
 	ProbeParams* getProbeParams(int winNum);
-	ContourParams* getContourParams(int winNum);
-	IsosurfaceParams* getIsoParams(int winNum);
+	
 	FlowParams* getFlowParams(int winNum);
 	AnimationParams* getAnimationParams(int winNum);
+
+	RegionEventRouter* getRegionRouter() {return regionEventRouter;}
+	AnimationEventRouter* getAnimationRouter() {return animationEventRouter;}
+	DvrEventRouter* getDvrRouter() {return dvrEventRouter;}
+	ProbeEventRouter* getProbeRouter() {return probeEventRouter;}
+	ViewpointEventRouter* getViewpointRouter() {return viewpointEventRouter;}
+	FlowEventRouter* getFlowRouter() {return flowEventRouter;}
+
 	//Get whatever params apply to a particular tab
 	Params* getApplicableParams(Params::ParamType t);
 	//Make all the params for the current window update their tabs:
@@ -154,20 +189,18 @@ public:
 	//Establish connections to this from the viztab.
 	//This class has the responsibility of rerouting messages from
 	//the viz tab to the various viz parameter panels
-	void hookUpVizTab(VizTab*);
-	void hookUpRegionTab(RegionTab*);
-	void hookUpDvrTab(Dvr*);
-	void hookUpProbeTab(ProbeTab*);
-	void hookUpIsoTab(IsoTab*);
-	void hookUpContourTab(ContourPlaneTab*);
-	void hookUpAnimationTab(AnimationTab*);
-	void hookUpFlowTab(FlowTab*);
+	void hookUpViewpointTab(ViewpointEventRouter*);
+	void hookUpRegionTab(RegionEventRouter*);
+	void hookUpDvrTab(DvrEventRouter*);
+	void hookUpProbeTab(ProbeEventRouter*);
+
+	void hookUpAnimationTab(AnimationEventRouter*);
+	void hookUpFlowTab(FlowEventRouter*);
 	//set/get Data describing window states
 	VizWin* getVizWin(int i) {return vizWin[i];}
 	//Direct access to actual params object:
 	ViewpointParams* getRealVPParams(int i) {return vpParams[i];}
-	ContourParams* getRealContourParams(int i) {return contourParams[i];}
-	IsosurfaceParams* getRealIsoParams(int i) {return isoParams[i];}
+	
 	FlowParams* getRealFlowParams(int i) {return flowParams[i];}
 	DvrParams* getRealDvrParams(int i) {return dvrParams[i];}
 	ProbeParams* getRealProbeParams(int i) {return probeParams[i];}
@@ -180,10 +213,10 @@ public:
 	bool isMaximized(int winNum) {return isMax[winNum];}
 	//Setting a params changes the previous params to the
 	//specified one, performs needed ref/unref
-	void setContourParams(int winNum, ContourParams* p);
+	
 	void setDvrParams(int winNum, DvrParams* p);
 	void setProbeParams(int winNum, ProbeParams* p);
-	void setIsoParams(int winNum, IsosurfaceParams* p);
+	
 	void setFlowParams(int winNum, FlowParams* p);
 	void setViewpointParams(int winNum, ViewpointParams* p);
 	void setRegionParams(int winNum, RegionParams* p);
@@ -207,15 +240,18 @@ public:
 	//region parameter setting
 	//
 	
-	void setRegionDirty(RegionParams*);
+	void setRegionDirty(RegionParams* p){setVizDirty(p, RegionBit, true);}
 	
 	//Force all the renderers that share these DvrParams
 	//to set their regions dirty
 	//
-	void setRegionDirty(DvrParams*);
+	void setRegionDirty(DvrParams* dp){
+		setVizDirty((Params*)dp, RegionBit, true);
+		setVizDirty((Params*)dp, FlowDataBit, true);
+	}
 	//Similarly for AnimationParams:
 	//
-	void setAnimationDirty(AnimationParams*);
+	void setAnimationDirty(AnimationParams* ap){setVizDirty(ap, RegionBit, true);}
 	//Force rerender of all windows that share a flowParams, or region params..
 	//
 	void refreshFlow(FlowParams*);
@@ -224,11 +260,14 @@ public:
 	
 	//Force dvr renderer to get latest CLUT
 	//
-	void setClutDirty(DvrParams* );
+	void setClutDirty(DvrParams* p){setVizDirty((Params*)p, DvrClutBit, true);}
+	//Force probe renderer to get latest CLUT
+	//
+	void setClutDirty(ProbeParams* p){setVizDirty(p, ProbeTextureBit, true);}
 	//Force dvr renderers to get latest DataRange
 	//
-	void setDataRangeDirty(DvrParams* );
-	
+	void setDataRangeDirty(DvrParams* p) {setVizDirty((Params*)p, DvrDatarangeBit, true);}
+
 	//Tell the animationController that the frame counter has changed 
 	//for all the associated windows.
 	//
@@ -261,6 +300,14 @@ public:
 	//this tag needs to be visible in session class
 	static const string _visualizersTag;
 
+	//General function for all dirty bit setting:
+	void setVizDirty(Params* p, DirtyBitType bittype, bool bit, bool refresh = true);
+	Params* getCorrespondingGlobalParams(Params* p) {
+		return getGlobalParams(p->getParamType());
+	}
+	Params* getCorrespondingLocalParams(Params* p) {
+		return getLocalParams(p->getParamType());
+	}
 
 public slots:
 	//arrange the viz windows:
@@ -316,11 +363,10 @@ protected:
 	RegionParams* rgParams[MAXVIZWINS];
 	DvrParams* dvrParams[MAXVIZWINS];
 	ProbeParams* probeParams[MAXVIZWINS];
-	ContourParams* contourParams[MAXVIZWINS];
-	IsosurfaceParams* isoParams[MAXVIZWINS];
+	
 	FlowParams* flowParams[MAXVIZWINS];
 	AnimationParams* animationParams[MAXVIZWINS];
-
+	Params** getParamsArray(Params::ParamType t);
 	//Remember the activation order:
 	int activationOrder[MAXVIZWINS];
 	int activationCount;
@@ -337,12 +383,19 @@ protected:
 	Trackball* globalTrackball;
 	ViewpointParams* globalVPParams;
 	RegionParams* globalRegionParams;
-	IsosurfaceParams* globalIsoParams;
+	
 	FlowParams* globalFlowParams;
 	ProbeParams* globalProbeParams;
 	DvrParams* globalDvrParams;
-	ContourParams* globalContourParams;
+	
 	AnimationParams* globalAnimationParams;
+
+	RegionEventRouter* regionEventRouter;
+	DvrEventRouter* dvrEventRouter;
+	ProbeEventRouter* probeEventRouter;
+	ViewpointEventRouter* viewpointEventRouter;
+	AnimationEventRouter* animationEventRouter;
+	FlowEventRouter* flowEventRouter;
 	
     MainForm* myMainWindow;
     TabManager* tabManager;
@@ -351,9 +404,9 @@ protected:
 	int parsingVizNum;
 	
     QWorkspace* myWorkspace;
-	ContourPlaneTab* myContourPlaneTab;
-	Dvr* myDvrTab;
-	ProbeTab* myProbeTab;
+	
+	
+	
 	FlowTab* myFlowTab;
 
 
@@ -362,166 +415,16 @@ protected slots:
 
 	//The vizWinMgr has to dispatch signals from gui's to the appropriate parameter panels
 	//First, the viztab slots:
-	//void setLights(const QString& qs);
+	
 	void setVpLocalGlobal(int val);
 	void setRgLocalGlobal(int val);
 	void setDvrLocalGlobal(int val);
 	void setProbeLocalGlobal(int val);
-	void setIsoLocalGlobal(int val);
-	void setContourLocalGlobal(int val);
+	
 	void setAnimationLocalGlobal(int val);
 	void setFlowLocalGlobal(int val);
 
-	//void setVPPerspective(int isOn);
 
-	void setVtabTextChanged(const QString& qs);
-	void setRegionTabTextChanged(const QString& qs);
-	void setIsoTabTextChanged(const QString& qs);
-	//three kinds of text changed for flow tab
-	void setFlowTabFlowTextChanged(const QString&);
-	void setFlowTabGraphicsTextChanged(const QString&);
-	void setFlowTabRangeTextChanged(const QString&);
-	
-	void setDvrTabTextChanged(const QString& qs);
-	void setProbeTabTextChanged(const QString& qs);
-	void setContourTabTextChanged(const QString& qs);
-	void setAtabTextChanged(const QString& qs);
-
-	
-	void viewpointReturnPressed();
-	void regionReturnPressed();
-	void dvrReturnPressed();
-	void probeReturnPressed();
-	void isoReturnPressed();
-	void contourReturnPressed();
-	void animationReturnPressed();
-	void flowTabReturnPressed();
-
-	//Animation slots:
-	void animationSetFrameStep();
-	void animationSetPosition();
-	void animationPauseClick();
-	void animationPlayReverseClick();
-	void animationPlayForwardClick();
-	void animationReplayClick();
-	void animationToBeginClick();
-	void animationToEndClick();
-	void animationStepForwardClick();
-	void animationStepReverseClick();
-
-
-	//Then the regionTab slots:
-	
-	void setRegionMaxSize();
-	//Sliders set these:
-	void setRegionXCenter();
-	void setRegionYCenter();
-	void setRegionZCenter();
-	void setRegionXSize();
-	void setRegionYSize();
-	void setRegionZSize();
-	void setRegionRefinement(int);
-	void setRegionVarNum(int);
-	void setRegionTimestep(int);
-	void copyRegionToRake();
-	void copyRakeToRegion();
-	void copyRegionToProbe();
-	void copyProbeToRegion();
-
-
-	//Slots for dvr panel:
-	void setDvrType(int type);
-	void setDvrNumRefinements(int num);
-	void setDvrEnabled(int on);
-	void setDvrVariableNum(int);
-	void setDvrLighting(bool);
-	void setDvrNumBits(int);
-	void setDvrEditMode(bool);
-	void setDvrNavigateMode(bool);
-	void setDvrAligned();
-	void dvrOpacityScale();
-	void dvrColorBind();
-	void dvrOpacBind();
-	void dvrLoadTF();
-	void dvrSaveTF();
-	void refreshHisto();
-	
-	//Slots for Probe panel:
-	void setProbeEnabled(int on);
-
-	void setProbeEditMode(bool);
-	void setProbeNavigateMode(bool);
-	void setProbeAligned();
-	void probeOpacityScale();
-	
-	void probeColorBind();
-	void probeOpacBind();
-	void probeLoadTF();
-	void probeSaveTF();
-	void refreshProbeHisto();
-	
-	//Slots for contour panel:
-	
-	void setContourEnabled(int on);
-	void setContourVariableNum(int);
-	void setContourLighting(bool);
-	
-	//slots for iso panel:
-	void setIsoEnabled(int on);
-	void setIsoVariable1Num(int);
-	void setIsoValue1();
-	void setIsoOpac1();
-	void setIsoColor1();
-
-	//slots for flow tab:
-	void rebuildFlow();
-	void setFlowEnabled(int);
-	
-	void setRakeOnRegion();
-	void setFlowType(int);
-	void setFlowNumRefinements(int);
-	void setFlowXVar(int);
-	void setFlowYVar(int);
-	void setFlowZVar(int);
-	void checkFlowRandom(bool isRandom);
-	void flowAutoToggled(bool isOn);
-	void setFlowXCenter();
-	void setFlowYCenter();
-	void setFlowZCenter();
-	void setFlowXSize();
-	void setFlowYSize();
-	void setFlowZSize();
-	void setFlowGeomSamples();
-	void setFlowConstantColor();
-	void setFlowGeometry(int);
-	void setFlowColorMapEntity(int);
-	void setFlowOpacMapEntity(int);
-	void setFlowEditMode(bool);
-	void setFlowNavigateMode(bool);
-	void setFlowAligned();
-	void doFlowRake(bool);
-	void doFlowSeedList(bool);
-	void loadFlowSeedList();
-	void saveFlow();
-	void editFlowSeedList();
-	void flowOpacityScale();
-
-	//Probe slots:
-	
-	void probeCenterRegion();
-	void probeCenterView();
-	void probeCenterRake();
-	void probeCenterProbe();
-	void probeAddSeed();
-	void probeAttachSeed(bool attach);
-	void setProbeNumRefinements(int numtrans);
-	void probeSelectionChanged();
-	void setProbeXCenter();
-	void setProbeYCenter();
-	void setProbeZCenter();
-	void setProbeXSize();
-	void setProbeYSize();
-	void setProbeZSize();
 
 	
 

@@ -46,13 +46,10 @@ class QDockWindow;
 class QLabel;
 class QComboBox;
 class VizTab;
-class RegionTab;
-class ContourPlaneTab;
-class Dvr;
-class IsoTab;
 class FlowTab;
 class ProbeTab;
 class AnimationTab;
+
 
 namespace VAPoR{
 
@@ -62,6 +59,12 @@ class VizWinMgr;
 class VizSelectCombo;
 class Vcr;
 class Session;
+class RegionEventRouter;
+class AnimationEventRouter;
+class DvrEventRouter;
+class ViewpointEventRouter;
+class ProbeEventRouter;
+class FlowEventRouter;
 
 class MainForm : public QMainWindow
 {
@@ -143,7 +146,7 @@ public:
 	QAction* regionSelectAction;
 	QAction* probeAction;
 	QAction* rakeAction;
-	QAction* contourAction;
+	
 	QAction* moveLightsAction;
 	QAction* tileAction;
 	QAction* cascadeAction;
@@ -157,14 +160,15 @@ public:
     QDockWindow* tabDockWindow;
 	TabManager* getTabManager() {return tabWidget;}
 
-	VizTab* getVizTab() { return theVizTab;}
-	RegionTab * getRegionTab() {return theRegionTab;}
-	Dvr* getDvrTab() {return theDvrTab;}
-	AnimationTab* getAnimationTab() {return theAnimationTab;}
-	ContourPlaneTab* getContourTab() {return theContourTab;}
-	IsoTab* getIsoTab() {return theIsoTab;}
-	FlowTab* getFlowTab() {return theFlowTab;}
-	ProbeTab* getProbeTab() {return theProbeTab;}
+	ViewpointEventRouter* getVizTab() { return theVizTab;}
+	RegionEventRouter* getRegionTab() {return theRegionTab;}
+	DvrEventRouter* getDvrTab() {return theDvrTab;}
+	ProbeEventRouter* getProbeTab() {return theProbeTab;}
+	AnimationEventRouter* getAnimationTab() {return theAnimationTab;}
+	
+	
+	FlowEventRouter* getFlowTab() {return theFlowTab;}
+	
 	QWorkspace* getWorkspace() {return myWorkspace;}
 	//Disable the editUndo/Redo action:
 	void disableUndoRedo();
@@ -200,17 +204,15 @@ public slots:
 	virtual void endCapture();
 	virtual void captureSingle();
   
-	virtual void calcIsosurface();
     virtual void viewpoint();
     virtual void region();
     virtual void renderDVR();
 	virtual void animationParams();
 	virtual void launchFlowTab();
 	virtual void launchProbeTab();
-	virtual void contourPlanes();
     virtual void batchSetup();
 
-	virtual void setContourSelect(bool);
+	
 	virtual void setRegionSelect(bool);
 	virtual void setProbe(bool);
 	virtual void setRake(bool);
@@ -234,14 +236,13 @@ protected:
     QHBoxLayout* tabLayout;
     QHBoxLayout* tabLayout_2;
     QDesktopWidget* myDesktopWidget;
-	VizTab* theVizTab;
-	RegionTab* theRegionTab;
-	IsoTab* theIsoTab;
-	Dvr* theDvrTab;
-	FlowTab* theFlowTab;
-	ProbeTab* theProbeTab;
-	AnimationTab* theAnimationTab;
-	ContourPlaneTab* theContourTab;
+	ViewpointEventRouter* theVizTab;
+	RegionEventRouter* theRegionTab;
+	DvrEventRouter* theDvrTab;
+	FlowEventRouter* theFlowTab;
+	ProbeEventRouter* theProbeTab;
+	AnimationEventRouter* theAnimationTab;
+	
 	VizSelectCombo* windowSelector;
 	
 	QString sessionSaveFile;

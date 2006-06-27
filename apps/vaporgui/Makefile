@@ -1,7 +1,7 @@
 TOP = ../..
 
 include ${TOP}/make/config/arch.mk
-include params/params.mk
+include misc/misc.mk
 include guis/guis.mk
 include render/render.mk
 include main/main.mk
@@ -13,7 +13,7 @@ include $(UI_DIR)/ui.mk
 SHARED = 0
 QT = 1
 
-SUBDIRS = guis params render main
+SUBDIRS = guis misc render main
 
 PROGRAM	= vaporgui
 export PROGRAM
@@ -22,8 +22,7 @@ ifdef	VOLUMIZER_ROOT
 MAKEFILE_CXXFLAGS += -I$(VOLUMIZER_ROOT)/include
 endif
 
-
-MAKEFILE_INCLUDE_DIRS := -Irender -Iguis -Imain -Iparams
+MAKEFILE_INCLUDE_DIRS := -Irender -Iguis -Imain -Imisc -I../../lib/params
 
 ifdef   NETCDF_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
@@ -33,7 +32,7 @@ ifdef   EXPAT_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
 endif
 
-LIBRARIES = vdf common vjpeg flow 
+LIBRARIES = vdf common vjpeg flow params 
  
 
 ifeq ($(BUILD_VOLUMIZER), 1)
@@ -58,10 +57,10 @@ LIBRARIES += GLU
 MAKEFILE_LDFLAGS += -L$(QTDIR)/lib 
 endif
 
-VPATH = guis params render main 
+VPATH = guis misc render main 
 
-QT_HEADERS := $(PARAMS_QT_HEADERS) $(MAIN_QT_HEADERS) $(RENDER_QT_HEADERS) $(GUI_QT_HEADERS)
-FILES := $(PARAMS_FILES) $(GUI_FILES) $(MAIN_FILES) $(RENDER_FILES)
+QT_HEADERS := $(MISC_QT_HEADERS) $(MAIN_QT_HEADERS) $(RENDER_QT_HEADERS) $(GUI_QT_HEADERS)
+FILES := $(MISC_FILES) $(GUI_FILES) $(MAIN_FILES) $(RENDER_FILES)
 
 include ${TOP}/make/config/base.mk
 

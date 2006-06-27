@@ -30,6 +30,9 @@
 #include "tfframe.h"
 #include "tfeditor.h"
 #include "mapperfunction.h"
+#include "vizwinmgr.h"
+#include "dvreventrouter.h"
+
 #include <qcolordialog.h>
 using namespace VAPoR;
 /*
@@ -177,7 +180,7 @@ finalize(){
 	if (pointModified) pointChanged();
 	tfe->getMapperFunction()->moveColorControlPoint(pointIndex, newPoint);
 	tfe->getMapperFunction()->setControlPointRGB(pointIndex,newRGB);
-	tfe->setDirty();
+	VizWinMgr::getInstance()->getDvrRouter()->setEditorDirty();
 	accept();
 }
 //When user stops editing, need to validate

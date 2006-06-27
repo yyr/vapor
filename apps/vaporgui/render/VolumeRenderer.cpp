@@ -43,13 +43,12 @@
 #include <qmessagebox.h>
 #include <qapplication.h>
 #include <qcursor.h>
-
+#include "vizwinmgr.h"
 #include "VolumeRenderer.h"
 #include "regionparams.h"
 #include "animationparams.h"
 #include "viewpointparams.h"
 #include "vizwin.h"
-#include "vizwinmgr.h"
 #include "glwindow.h"
 
 #include "DVRLookup.h"
@@ -266,7 +265,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //that affects the opacity correction.
   if (numxforms != savedNumXForms)
   {
-    myVizWin->setClutDirty(true);
+    myVizWin->setDvrClutDirty(true);
     savedNumXForms = numxforms;
   }
 
@@ -300,7 +299,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   // set up region. Only need to do this if the data
   // roi changes, or if the datarange has changed.
   //
-  if (regionValid&&(myVizWin->regionIsDirty()|| myVizWin->dataRangeIsDirty()||myVizWin->regionIsNavigating())) 
+  if (regionValid&&(myVizWin->regionIsDirty()|| myVizWin->dvrDatarangeIsDirty()||myVizWin->regionIsNavigating())) 
   {
     
     myGLWindow->setRenderNew();
@@ -311,10 +310,11 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     //Turn off error callback, look for memory allocation problem.
     Session::pauseErrorCallback();
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+	const char* varname = (Session::getInstance()->getVariableName(myDVRParams->getVarNum()).c_str());
     void* data = 
       (void*) myDataMgr->GetRegionUInt8(
                                         timeStep,
-                                        myDVRParams->getVariableName(),
+                                        varname,
                                         numxforms,
                                         min_bdim,
                                         max_bdim,
@@ -379,7 +379,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	
   }
   
-  if (myVizWin->clutIsDirty()) {
+  if (myVizWin->dvrClutIsDirty()) {
     myGLWindow->setRenderNew();
     //Same table sets CLUT and OLUT
     //
@@ -442,15 +442,15 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     glPushMatrix();
     glLoadIdentity();
 	
-    renderColorscale(myVizWin->colorbarIsDirty()||myVizWin->clutIsDirty()||myVizWin->dataRangeIsDirty());
+    renderColorscale(myVizWin->colorbarIsDirty()||myVizWin->dvrClutIsDirty()||myVizWin->dvrDatarangeIsDirty());
 	
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
   }
   
-  myVizWin->setClutDirty(false);
-  myVizWin->setDataRangeDirty(false);
+  myVizWin->setDvrClutDirty(false);
+  myVizWin->setDvrDatarangeDirty(false);
   myVizWin->setRegionNavigating(false);
 }
 

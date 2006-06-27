@@ -54,26 +54,23 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "dvreventrouter.h"
 #include "setoffset.h"
 #include "vizwin.h"
-#include "isotab.h"
-#include "flowtab.h"
-#include "probetab.h"
+#include "floweventrouter.h"
+#include "probeeventrouter.h"
 #include "vizselectcombo.h"
 #include "tabmanager.h"
-#include "viztab.h"
-#include "regiontab.h"
+#include "viewpointeventrouter.h"
+#include "regioneventrouter.h"
 #include "vizwinmgr.h"
-#include "dvr.h"
-#include "contourplanetab.h"
-#include "animationtab.h"
+#include "animationeventrouter.h"
 #include "session.h"
 #include "messagereporter.h"
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "dvrparams.h"
-#include "contourparams.h"
-#include "isosurfaceparams.h"
+
 #include "animationparams.h"
 #include "probeparams.h"
 
@@ -115,8 +112,6 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	theRegionTab = 0;
 	theDvrTab = 0;
 	theVizTab = 0;
-	theIsoTab = 0;
-	theContourTab = 0;
 	theAnimationTab = 0;
 	theFlowTab = 0;
 	theProbeTab = 0;
@@ -255,13 +250,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 		"&Region", CTRL+Key_R, mouseModeActions);
 	regionSelectAction->setToggleAction(true);
 	regionSelectAction->setOn(false);
-
-	QPixmap* planesIcon = new QPixmap(planes);
-	contourAction = new QAction("Contour Select Mode", *planesIcon,
-		"&Contours", CTRL+Key_C, mouseModeActions);
-	contourAction->setToggleAction(true);
-	contourAction->setOn(false);
-
+	
 	QPixmap* probeIcon = new QPixmap(probe);
 	probeAction = new QAction("Data Probe Mode", *probeIcon,
 		"&Probe", CTRL+Key_P, mouseModeActions);
@@ -319,10 +308,6 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	rakeAction->addTo(modeToolBar);
 	probeAction->addTo(modeToolBar);
 
-	//Leave off the following two:
-	//contourAction->addTo(modeToolBar);
-	//moveLightsAction->addTo(modeToolBar);
-	
 
 	tileAction->addTo(vizToolBar);
 	cascadeAction->addTo(vizToolBar);
@@ -458,7 +443,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	//Toolbar actions:
 	connect (navigationAction, SIGNAL(toggled(bool)), this, SLOT(setNavigate(bool)));
 	connect (regionSelectAction, SIGNAL(toggled(bool)), this, SLOT(setRegionSelect(bool)));
-	connect (contourAction, SIGNAL(toggled(bool)), this, SLOT(setContourSelect(bool)));
+	
 	connect (probeAction, SIGNAL(toggled(bool)), this, SLOT(setProbe(bool)));
 	connect (rakeAction, SIGNAL(toggled(bool)), this, SLOT(setRake(bool)));
 	connect (moveLightsAction, SIGNAL(toggled(bool)), this, SLOT(setLights(bool)));
@@ -478,9 +463,6 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	//global params.
 	Session::getInstance()->blockRecording();
 	
-	//Save these until implemented:
-	//calcIsosurface();
-	//contourPlanes();
 
 	animationParams();
 	viewpoint();
@@ -986,26 +968,30 @@ void MainForm::editSessionParams()
  */
 void MainForm::viewpoint()
 {
-	//Determine which is the current active window:
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	int activeViz = myVizMgr->getActiveViz();
-	//Get the viz parameter set (local or global) that applies:
-	ViewpointParams* myVizParams = myVizMgr->getViewpointParams(activeViz);
 	if (!theVizTab){
-		theVizTab = new VizTab(tabWidget, "viztab");
-		myVizMgr->getViewpointParams(-1)->setTab(theVizTab);
-		myVizMgr->hookUpVizTab(theVizTab);
+		theVizTab = new ViewpointEventRouter(tabWidget, "viztab");
+		//Set the global vp tab to this:
+		
+		myVizMgr->hookUpViewpointTab(theVizTab);
 	}
-    
+    //Determine which is the current active window:
+	int activeViz = VizWinMgr::getInstance()->getActiveViz();
+	//Get the Viewpoint parameter set (local or global) that applies:
+	ViewpointParams* myViewpointParams = myVizMgr->getViewpointParams(activeViz);
+	ViewpointEventRouter* myViewpointRouter = myVizMgr->getViewpointRouter();
+	
 	int posn = tabWidget->findWidget(Params::ViewpointParamsType);
-		//Create a new parameter class to work with the widget
-        myVizParams->updateDialog();
+         
+	//Create a new parameter class to work with the widget
+		
+    
 	if (posn < 0){
-		tabWidget->insertWidget(theVizTab, Params::ViewpointParamsType,  true );
+		tabWidget->insertWidget(theVizTab, Params::ViewpointParamsType, true );
 	} else {
 		tabWidget->moveToFront(Params::ViewpointParamsType);
 	}
-	
+	myViewpointRouter->updateTab(myViewpointParams);
 }
 /*
  * Method that launches the region tab into the tabbed dialog
@@ -1014,26 +1000,30 @@ void MainForm::
 region()
 {
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+	if (!theRegionTab){
+		theRegionTab = new RegionEventRouter(tabWidget, "regiontab");
+		//Set the global region tab to this:
+		//myVizMgr->getRegionParams(-1)->setTab(theRegionTab);
+		myVizMgr->hookUpRegionTab(theRegionTab);
+	}
+	
     //Determine which is the current active window:
 	int activeViz = VizWinMgr::getInstance()->getActiveViz();
 	//Get the region parameter set (local or global) that applies:
 	RegionParams* myRegionParams = myVizMgr->getRegionParams(activeViz);
-	if (!theRegionTab){
-		theRegionTab = new RegionTab(tabWidget, "regiontab");
-		//Set the global region tab to this:
-		myVizMgr->getRegionParams(-1)->setTab(theRegionTab);
-		myVizMgr->hookUpRegionTab(theRegionTab);
-	}
+	RegionEventRouter* myRegionRouter = myVizMgr->getRegionRouter();
+	
 	int posn = tabWidget->findWidget(Params::RegionParamsType);
          
 	//Create a new parameter class to work with the widget
 		
-    myRegionParams->updateDialog();
+    
 	if (posn < 0){
 		tabWidget->insertWidget(theRegionTab, Params::RegionParamsType, true );
 	} else {
 		tabWidget->moveToFront(Params::RegionParamsType);
 	}
+	myRegionRouter->updateTab(myRegionParams);
 	
 }
 /*
@@ -1044,24 +1034,27 @@ renderDVR(){
     //Do the DVR panel here
 	//Determine which is the current active window:
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	int activeViz = myVizMgr->getActiveViz();
-	//Get the region parameter set (local or global) that applies:
-	DvrParams* myDvrParams = myVizMgr->getDvrParams(activeViz);
 	if (!theDvrTab){
-		theDvrTab = new Dvr(tabWidget, "DVR");
-		myVizMgr->getDvrParams(-1)->setTab(theDvrTab);
+		theDvrTab = new DvrEventRouter(tabWidget, "DVR");
+		//myVizMgr->getDvrParams(-1)->setTab(theDvrTab);
 		myVizMgr->hookUpDvrTab(theDvrTab);
 	}
+	int activeViz = myVizMgr->getActiveViz();
+	//Get the dvr parameter set (local or global) that applies:
+	DvrParams* myDvrParams = myVizMgr->getDvrParams(activeViz);
+	
+	
 	int posn = tabWidget->findWidget(Params::DvrParamsType);
          
 	//Create a new parameter class to work with the widget
 		
-    myDvrParams->updateDialog();
+    
 	if (posn < 0){
 		tabWidget->insertWidget(theDvrTab, Params::DvrParamsType, true );
 	} else {
 		tabWidget->moveToFront(Params::DvrParamsType);
 	}
+	theDvrTab->updateTab(myDvrParams);
 	
 }
 /*
@@ -1070,127 +1063,85 @@ renderDVR(){
 void MainForm::
 animationParams(){
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	//Determine which is the current active window:
-	int activeViz = myVizMgr->getActiveViz();
-	//Get the region parameter set (local or global) that applies:
-	AnimationParams* myAnimationParams = myVizMgr->getAnimationParams(activeViz);
 	if (!theAnimationTab){
-		theAnimationTab = new AnimationTab(tabWidget, "Animation");
-		myVizMgr->getAnimationParams(-1)->setTab(theAnimationTab);
+		theAnimationTab = new AnimationEventRouter(tabWidget, "animationtab");
+		//Set the global region tab to this:
+		//myVizMgr->getAnimationParams(-1)->setTab(theAnimationTab);
 		myVizMgr->hookUpAnimationTab(theAnimationTab);
 	}
+    //Determine which is the current active window:
+	int activeViz = VizWinMgr::getInstance()->getActiveViz();
+	//Get the Animation parameter set (local or global) that applies:
+	AnimationParams* myAnimationParams = myVizMgr->getAnimationParams(activeViz);
+	AnimationEventRouter* myAnimationRouter = myVizMgr->getAnimationRouter();
+	
 	int posn = tabWidget->findWidget(Params::AnimationParamsType);
          
 	//Create a new parameter class to work with the widget
 		
-    myAnimationParams->updateDialog();
+    
 	if (posn < 0){
 		tabWidget->insertWidget(theAnimationTab, Params::AnimationParamsType, true );
 	} else {
 		tabWidget->moveToFront(Params::AnimationParamsType);
 	}
+	myAnimationRouter->updateTab(myAnimationParams);
+	
 	
 }
-/*
- * Launch the Contour Planes panel
- */
-void MainForm::
-contourPlanes(){
-    //Do the contour planes panel here
-	//Determine which is the current active window:
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	int activeViz = myVizMgr->getActiveViz();
-	//Get the region parameter set (local or global) that applies:
-	ContourParams* myContourParams = myVizMgr->getContourParams(activeViz);
-	if (!theContourTab){
-		theContourTab = new ContourPlaneTab(tabWidget, "Contours");
-		myVizMgr->getContourParams(-1)->setTab(theContourTab);
-		myVizMgr->hookUpContourTab(theContourTab);
-	}
-	int posn = tabWidget->findWidget(Params::ContourParamsType);
-         
-	//Create a new parameter class to work with the widget
-		
-    myContourParams->updateDialog();
-	if (posn < 0){
-		tabWidget->insertWidget(theContourTab, Params::ContourParamsType, true );
-	} else {
-		tabWidget->moveToFront(Params::ContourParamsType);
-	}
-}
-/*
- * Launch the Isosurface rendering tab
- */
-void MainForm::calcIsosurface()
-{
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	//Determine which is the current active window:
-	int activeViz = myVizMgr->getActiveViz();
-	//Get the region parameter set (local or global) that applies:
-	IsosurfaceParams* myIsoParams = myVizMgr->getIsoParams(activeViz);
-	if (!theIsoTab){
-		theIsoTab = new IsoTab(tabWidget, "isotab");
-		myVizMgr->getIsoParams(-1)->setTab(theIsoTab);
-		myVizMgr->hookUpIsoTab(theIsoTab);
-	}
-	myIsoParams->updateDialog();
-	
-	int posn = tabWidget->findWidget(Params::IsoParamsType);
-	if (posn < 0){
-		tabWidget->insertWidget( theIsoTab, Params::IsoParamsType, true );
-	} else {
-		tabWidget->moveToFront(Params::IsoParamsType);
-	}
-	
-}
+
 /*
  * Launch the Flow rendering tab
  */
 void MainForm::launchFlowTab()
 {
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
-	//Determine which is the current active window:
-	int activeViz = myVizMgr->getActiveViz();
-	//Get the flow parameter set (local or global) that applies:
-	FlowParams* myFlowParams = myVizMgr->getFlowParams(activeViz);
 	if (!theFlowTab){
-		theFlowTab = new FlowTab(tabWidget, "flowtab");
-		myVizMgr->getFlowParams(-1)->setTab(theFlowTab);
+		theFlowTab = new FlowEventRouter(tabWidget, "Flowtab");
+		//Set the global Flow tab to this:
+		//myVizMgr->getFlowParams(-1)->setTab(theFlowTab);
 		myVizMgr->hookUpFlowTab(theFlowTab);
 	}
-	myFlowParams->updateDialog();
+    //Determine which is the current active window:
+	int activeViz = VizWinMgr::getInstance()->getActiveViz();
+	//Get the Flow parameter set (local or global) that applies:
+	FlowParams* myFlowParams = myVizMgr->getFlowParams(activeViz);
+	FlowEventRouter* myFlowRouter = myVizMgr->getFlowRouter();
 	
 	int posn = tabWidget->findWidget(Params::FlowParamsType);
+         
+	//Create a new parameter class to work with the widget
+		
+    
 	if (posn < 0){
-		tabWidget->insertWidget( theFlowTab, Params::FlowParamsType, true );
+		tabWidget->insertWidget(theFlowTab, Params::FlowParamsType, true );
 	} else {
 		tabWidget->moveToFront(Params::FlowParamsType);
 	}
+	myFlowRouter->updateTab(myFlowParams);
 	
 }
 void MainForm::launchProbeTab()
 {
-	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+	//Do the probe panel here
 	//Determine which is the current active window:
-	int activeViz = myVizMgr->getActiveViz();
-	//Get the Probe parameter set (local or global) that applies:
-	ProbeParams* myProbeParams = myVizMgr->getProbeParams(activeViz);
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	if (!theProbeTab){
-		theProbeTab = new ProbeTab(tabWidget, "Probetab");
-		myVizMgr->getProbeParams(-1)->setTab(theProbeTab);
+		theProbeTab = new ProbeEventRouter(tabWidget, "ProbeTab");
 		myVizMgr->hookUpProbeTab(theProbeTab);
 		QToolTip::add(theProbeTab->attachSeedCheckbox, "Enable continuous updating of the flow using selected point as seed.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
 		QToolTip::add(theProbeTab->addSeedButton,"Click to add the selected point to the seeds for the applicable flow panel.\nNote: Flow must be enabled to use seed list, and Region must contain the seed");
 	}
-	myProbeParams->updateDialog();
 	
 	int posn = tabWidget->findWidget(Params::ProbeParamsType);
+         
+	//Create a new parameter class to work with the widget
+		 
 	if (posn < 0){
-		tabWidget->insertWidget( theProbeTab, Params::ProbeParamsType, true );
+		tabWidget->insertWidget(theProbeTab, Params::ProbeParamsType, true );
 	} else {
 		tabWidget->moveToFront(Params::ProbeParamsType);
 	}
-	
 }
 /*
  * Respond to toolbar clicks:
@@ -1307,30 +1258,7 @@ void MainForm::setRegionSelect(bool on)
 		statusBar()->addWidget(modeStatusWidget,2);
 	}
 }
-void MainForm::setContourSelect(bool on)
-{
-	//bool myState = contourAction->isOn();
-	// If someone clicks to undo this, then switch to navigate
-	if (!on && contourAction->isOn()){navigationAction->toggle(); return;}
-	if (!on) return;
-	//if (!on) {navigationAction->toggle(); return;}
-	Session* currentSession = Session::getInstance();
-	if (currentMouseMode != Command::contourMode){
-		VizWinMgr::getInstance()->setSelectionMode(Command::contourMode);
-	
-		//bring up the tab, but don't put into history:
-		currentSession->blockRecording();
-		contourPlanes();
-		currentSession->unblockRecording();
-		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::contourMode));
-		currentMouseMode = Command::contourMode;
-		if(modeStatusWidget) {
-			statusBar()->removeWidget(modeStatusWidget);
-			delete modeStatusWidget;
-			modeStatusWidget = 0;
-		}
-	}
-}
+
 //Enable or disable the View menu options:
 void MainForm::initViewMenu(){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
@@ -1377,7 +1305,6 @@ void MainForm::resetModeButtons(){
 	navigationAction->setOn(true);
 	probeAction->setOn(false);
 	regionSelectAction->setOn(false);
-	contourAction->setOn(false);
 	moveLightsAction->setOn(false);
 	rakeAction->setOn(false);
 }

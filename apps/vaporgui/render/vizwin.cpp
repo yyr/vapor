@@ -52,13 +52,18 @@
 #include "regionparams.h"
 #include "messagereporter.h"
 #include "glutil.h"
-#include "glbox.h"
 #include "viewpoint.h"
 #include "manip.h"
-
+#include "regioneventrouter.h"
+#include "viewpointeventrouter.h"
+#include "probeeventrouter.h"
+#include "animationeventrouter.h"
+#include "floweventrouter.h"
+#include "flowrenderer.h"
 #include "VolumeRenderer.h"
-
+#include "mainform.h"
 #include "assert.h"
+#include "session.h"
 #include "vaporinternal/jpegapi.h"
 
 using namespace VAPoR;
@@ -76,6 +81,13 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 		setName( "VizWin" );
     myParent = parent;
     myWindowNum = winNum;
+	vizDirtyBit.clear();
+	setDirtyBit(Params::DvrParamsType,DvrClutBit, true);
+	setDirtyBit(Params::DvrParamsType,ProbeTextureBit, true);
+	setDirtyBit(Params::DvrParamsType,DvrDatarangeBit, true);
+	setDirtyBit(Params::RegionParamsType,RegionBit, true);
+	setDirtyBit(Params::ViewpointParamsType,NavigatingBit, true);
+	setDirtyBit(Params::DvrParamsType,ColorscaleBit, true);
 	numRenderers = 0;
     for (i = 0; i< MAXNUMRENDERERS; i++)
 		renderer[i] = 0;
@@ -86,11 +98,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
     myWinMgr = myMgr;
 	mouseDownHere = false;
 	setViewerCoordsChanged(true);
-	regionDirty = true;
-	dataRangeDirty = true;
-	clutDirty = true;
 	
-	regionNavigating = true;
 	capturing = false;
 	newCapture = false;
 
@@ -149,7 +157,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	fmt.setDepth(true);
 	fmt.setDoubleBuffer(true);
 	fmt.setDirectRendering(true);
-    myGLWindow = new GLWindow(fmt, f, "glbox", this);
+    myGLWindow = new GLWindow(fmt, f, "glwindow", this);
 	if (!(fmt.directRendering() && fmt.depth() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
 		BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}
@@ -309,7 +317,8 @@ mousePressEvent(QMouseEvent* e){
 						vParams->getCameraPos(), dirVec);
 					//Remember which handle we hit, highlight it, save the intersection point.
 					regionManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
-					rParams->captureMouseDown();
+					RegionEventRouter* rep = VizWinMgr::getInstance()->getRegionRouter();
+					rep->captureMouseDown();
 					mouseDownHere = true;
 					break;
 				}
@@ -337,7 +346,7 @@ mousePressEvent(QMouseEvent* e){
 						vParams->getCameraPos(), dirVec);
 					//Remember which handle we hit, highlight it, save the intersection point.
 					flowManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
-					fParams->captureMouseDown();
+					VizWinMgr::getInstance()->getFlowRouter()->captureMouseDown();
 					mouseDownHere = true;
 					break;
 				}
@@ -381,7 +390,8 @@ mousePressEvent(QMouseEvent* e){
 						vParams->getCameraPos(), dirVec);
 					//Remember which handle we hit, highlight it, save the intersection point.
 					probeManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
-					pParams->captureMouseDown();
+					ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
+					per->captureMouseDown();
 					mouseDownHere = true;
 					break;
 				}
@@ -398,12 +408,14 @@ mousePressEvent(QMouseEvent* e){
 		
 	}
 	if (doNavigate){
-		myWinMgr->getViewpointParams(myWindowNum)->captureMouseDown();
+		ViewpointEventRouter* vep = VizWinMgr::getInstance()->getViewpointRouter();
+					vep->captureMouseDown();
+		
 		myTrackball->MouseOnTrackball(0, e->button(), e->x(), e->y(), width(), height());
 		mouseDownHere = true;
 		mouseDownPosition = e->pos();
 		//Force an update of region params, so low res is shown
-		regionNavigating = true;
+		setDirtyBit(Params::ViewpointParamsType,NavigatingBit,true);
 	}
 	
 }
@@ -473,7 +485,7 @@ mouseReleaseEvent(QMouseEvent*e){
 		
 	}
 	if(doNavigate){
-		myWinMgr->getViewpointParams(myWindowNum)->captureMouseUp();
+		VizWinMgr::getEventRouter(Params::ViewpointParamsType)->captureMouseUp();
 		myTrackball->MouseOnTrackball(2, e->button(), e->x(), e->y(), width(), height());
 		mouseDownHere = false;
 		//If it's a right mouse being released, must update near/far distances:
@@ -488,7 +500,7 @@ mouseReleaseEvent(QMouseEvent*e){
 	
 }	
 /* 
- * When the mouse is moved, it can affect navigation, contour planes,
+ * When the mouse is moved, it can affect navigation, 
  * region position, light position, or probe position, depending 
  * on current mode.  The values associated with the window are 
  * changed whether or not the tabbed panel is visible.  
@@ -651,7 +663,8 @@ void VizWin::
 changeCoords(float *vpos, float* vdir, float* upvec) {
 	float worldPos[3];
 	ViewpointParams::worldFromCube(vpos,worldPos);
-	myWinMgr->getViewpointParams(myWindowNum)->navigate(worldPos, vdir, upvec);
+	myWinMgr->getViewpointRouter()->navigate(myWinMgr->getViewpointParams(myWindowNum),worldPos, vdir, upvec);
+	
 	setViewerCoordsChanged(false);
 	//If this window is using global VP, must tell all other global windows to update:
 	if (globalVP){
@@ -973,6 +986,32 @@ float VizWin::getPixelSize(){
 	return (2.f*halfHeight/(float)height());
 
 }
-
+//In addition to setting the dirty bit, call the renderer's setDirty if
+//the bit is being turned on.
+void VizWin::
+setDirtyBit(Params::ParamType renType, DirtyBitType t, bool nowDirty){
+	vizDirtyBit[t] = nowDirty;
+	if (nowDirty){
+		for (int i = 0; i< getNumRenderers(); i++){
+			if (getRendererType(i) == renType){
+				getRenderer(i)->setDirty(t);
+			}
+		}
+	}
+}
+bool VizWin::
+vizIsDirty(DirtyBitType t) {
+	return vizDirtyBit[t];
+}
+//Return the flow renderer (if one exists)
+FlowRenderer* VizWin::
+getFlowRenderer(){
+	
+	for (int i = 0; i< MAXNUMRENDERERS; i++){
+		if (getRenderer(i) && getRendererType(i) == Params::FlowParamsType)
+			return (FlowRenderer*)getRenderer(i);
+	}
+	return 0;
+}
     
     

@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 #include "vapor/MyBase.h"
-#include "renderer.h"
+
 using namespace VetsUtil;
 namespace VAPoR {
 class	DVRBase : public MyBase {

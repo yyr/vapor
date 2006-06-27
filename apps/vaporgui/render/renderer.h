@@ -22,6 +22,7 @@
 #define RENDERER_H
 #include <qobject.h>
 #include <qimage.h>
+#include "vizwinmgr.h"
 class QColor;
 
 namespace VAPoR {
@@ -31,7 +32,8 @@ class DataMgr;
 class RegionParams;
 class ViewpointParams;
 class Metadata;
-
+class VizWinMgr;
+enum DirtyBitType;
 
 class Renderer: public QObject
 {
@@ -48,7 +50,7 @@ public:
 	//
     virtual void		initializeGL() = 0;
     virtual void		paintGL() = 0;
-	
+	virtual void		setDirty(DirtyBitType t) {return;}
 	
 protected:
 	

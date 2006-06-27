@@ -54,6 +54,7 @@ class MainForm;
 class VizWinMgr;
 class GLWindow;
 class Renderer;
+class FlowRenderer;
 class Viewpoint;
 
 class TranslateStretchManip;
@@ -68,6 +69,10 @@ public:
     VizWin( QWorkspace* parent , const char* name , WFlags fl , VizWinMgr*  myMgr, QRect* location , int winNum);
     ~VizWin();
 
+	
+	void setDirtyBit(Params::ParamType renderType, DirtyBitType t, bool val);
+		
+	bool vizIsDirty(DirtyBitType t);
 	void setWindowNum(int num) {
 		myWindowNum = num;
 	}
@@ -89,6 +94,9 @@ public:
 	Renderer* renderer[MAXNUMRENDERERS];
 	Params::ParamType renderType[MAXNUMRENDERERS];
 	void setNumRenderers(int num) {numRenderers = num;}
+	Params::ParamType getRendererType(int i) {return renderType[i];}
+	Renderer* getRenderer(int i) {return renderer[i];}
+	FlowRenderer* getFlowRenderer();
 	//Renderers can be added early or late, depending on whether
 	//they should render last.  DVR's need to be last, since they don't write the z buffer
 	void prependRenderer(Renderer* ren, Params::ParamType rendererType);
@@ -100,17 +108,20 @@ public:
 	TranslateStretchManip* getFlowManip() {return myFlowManip;}
 	TranslateStretchManip* getRegionManip() {return myRegionManip;}
 	
-	void setRegionDirty(bool isDirty){ regionDirty = isDirty;}
-	void setClutDirty(bool isDirty){ clutDirty = isDirty;}
-	void setDataRangeDirty(bool isDirty){ dataRangeDirty = isDirty;}
+	void setRegionDirty(bool isDirty){ setDirtyBit(Params::RegionParamsType, RegionBit,isDirty);}
+	void setDvrClutDirty(bool isDirty){ setDirtyBit(Params::DvrParamsType,DvrClutBit, isDirty);}
 	
-	//Tweak is just a dirty flag for forcing region dirty during navigation
-	void setRegionNavigating(bool dirty) {regionNavigating = dirty;}
-	bool regionIsDirty() {return regionDirty;}
-	bool clutIsDirty() {return clutDirty;}
-	bool dataRangeIsDirty() {return dataRangeDirty;}
+	void setDvrDatarangeDirty(bool isDirty){ setDirtyBit(Params::DvrParamsType,DvrDatarangeBit,isDirty);}
+	void setRegionNavigating(bool isDirty){ setDirtyBit(Params::ViewpointParamsType,NavigatingBit,isDirty);}
+	void setFlowDataDirty(bool isDirty) {setDirtyBit(Params::FlowParamsType,FlowDataBit,isDirty);}
+	void setFlowGraphicsDirty(bool isDirty) {setDirtyBit(Params::FlowParamsType,FlowGraphicsBit,isDirty);}
 	
-	bool regionIsNavigating() {return regionNavigating;}
+	bool regionIsDirty() {return vizIsDirty(RegionBit);}
+	bool dvrClutIsDirty() {return vizIsDirty(DvrClutBit);}
+	bool dvrDatarangeIsDirty() {return vizIsDirty(DvrDatarangeBit);}
+	bool regionIsNavigating() {return vizIsDirty(NavigatingBit);}
+	bool flowDataIsDirty() {return vizIsDirty(FlowDataBit);}
+	bool flowGraphicsIsDirty() {return vizIsDirty(FlowGraphicsBit);}
 
 	bool mouseIsDown() {return mouseDownHere;}
 	int pointOverCube(RegionParams* rParams, float screenCoords[2]);
@@ -174,6 +185,7 @@ public:
 	void setColorbarDirty(bool val){colorbarDirty = val;}
 	
 protected:
+	std::map<DirtyBitType,bool> vizDirtyBit; 
 	//Following flag is set whenever there is mouse navigation, so that we can use 
 	//the new viewer position
 	//at the next rendering
@@ -190,12 +202,7 @@ protected:
 	
 	//Indicate whether using global or local viewpoint:
 	bool globalVP;
-	//Indicate whether the region has been changed:
-	bool regionDirty;
-	bool dataRangeDirty;
-	bool clutDirty;
 	
-	bool regionNavigating;
 	int capturing;
 	int captureNum;
 	//Flag to set indicating start of capture sequence.

@@ -20,13 +20,13 @@
 //
 #include <qpixmap.h>
 #include <qpainter.h>
-
+#include "vizwinmgr.h"
 #include "renderer.h"
 #include "vapor/DataMgr.h"
 #include "regionparams.h"
 #include "viewpointparams.h"
 #include "dvrparams.h"
-#include "vizwinmgr.h"
+
 #include "mainform.h"
 #include "session.h"
 #include "vizwin.h"

@@ -21,6 +21,8 @@
 #include "panelcommand.h"
 #include "params.h"
 #include "session.h"
+#include "vizwinmgr.h"
+#include "eventrouter.h"
 using namespace VAPoR;
 //Constructor:  called when a new command is issued.
 //
@@ -37,13 +39,13 @@ setNext(Params* next){
 }
 void PanelCommand::unDo(){
 	Session::getInstance()->blockRecording();
-	previousPanel->makeCurrent(nextPanel, false);
+	VizWinMgr::getEventRouter(previousPanel->getParamType())->makeCurrent(nextPanel,previousPanel, false);
 	Session::getInstance()->unblockRecording();
 	
 }
 void PanelCommand::reDo(){
 	Session::getInstance()->blockRecording();
-	nextPanel->makeCurrent(previousPanel, false);
+	VizWinMgr::getEventRouter(previousPanel->getParamType())->makeCurrent(previousPanel,nextPanel, false);
 	Session::getInstance()->unblockRecording();
 	
 }

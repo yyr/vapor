@@ -55,23 +55,28 @@
 #include "tabmanager.h"
 #include "dvrparams.h"
 #include "probeparams.h"
-#include "contourparams.h"
+
 #include "dvr.h"
 #include "probetab.h"
-#include "contourplanetab.h"
-#include "isosurfaceparams.h"
+
 #include "animationtab.h"
 #include "animationparams.h"
 #include "animationcontroller.h"
-#include "isotab.h"
 #include "flowtab.h"
 #include "assert.h"
 #include "trackball.h"
-#include "glbox.h"
 #include "vizactivatecommand.h"
 #include "session.h"
 #include "loadtfdialog.h"
 #include "savetfdialog.h"
+#include "animationeventrouter.h"
+#include "regioneventrouter.h"
+#include "dvreventrouter.h"
+#include "viewpointeventrouter.h"
+#include "probeeventrouter.h"
+#include "floweventrouter.h"
+#include "panelcommand.h"
+#include "eventrouter.h"
 
 #include "vapor/XmlNode.h"
 #include "vapor/ExpatParseMgr.h"
@@ -118,25 +123,33 @@ VizWinMgr::VizWinMgr()
 		vpParams[i] = 0;
 		rgParams[i] = 0;
 		dvrParams[i] = 0;
-		isoParams[i] = 0;
 		probeParams[i] = 0;
 		flowParams[i] = 0;
-		contourParams[i] = 0;
 		animationParams[i] = 0;
 		activationOrder[i] = -1;
     }
 	setSelectionMode(Command::navigateMode);
+	dvrEventRouter = 0;
+	regionEventRouter = 0;
+	viewpointEventRouter = 0;
+	probeEventRouter = 0;
+	animationEventRouter = 0;
+	flowEventRouter = 0;
 }
+//Create the global params and the routing classes
 void VizWinMgr::
 createGlobalParams() {
+	//regionEventRouter = new RegionEventRouter();
+	//dvrEventRouter = new DvrEventRouter();
+	
 	//Create a default (global) parameter set
 	globalVPParams = new ViewpointParams( -1);
 	globalRegionParams = new RegionParams( -1);
 	globalDvrParams = new DvrParams( -1);
 	globalProbeParams = new ProbeParams(-1);
-	//globalIsoParams = new IsosurfaceParams( -1);
+	
 	globalFlowParams = new FlowParams(-1);
-	//globalContourParams = new ContourParams( -1);
+	
 	globalAnimationParams = new AnimationParams( -1);
 	globalTrackball = new Trackball();
 }
@@ -198,16 +211,13 @@ vizAboutToDisappear(int i)  {
 	
 	if (dvrParams[i]) delete dvrParams[i];
 	if (probeParams[i]) delete probeParams[i];
-	if (isoParams[i]) delete isoParams[i];
+	
 	if (flowParams[i]) delete flowParams[i];
-	if (contourParams[i]) delete contourParams[i];
 	if (animationParams[i]) delete animationParams[i];
 	vpParams[i] = 0;
 	rgParams[i] = 0;
 	probeParams[i] = 0;
 	dvrParams[i] = 0;
-	isoParams[i] = 0;
-	contourParams[i] = 0;
 	animationParams[i] = 0;
 	flowParams[i] = 0;
     
@@ -329,20 +339,11 @@ createDefaultParams(int winnum){
 	probeParams[winnum]->setLocal(true);
 	probeParams[winnum]->setEnabled(false);
 	
-	//isoParams[winnum] = (IsosurfaceParams*)globalIsoParams->deepCopy();
-	//isoParams[winnum]->setVizNum(winnum);
-	//isoParams[winnum]->setLocal(true);
-	//isoParams[winnum]->setEnabled(false);
-
+	
 	flowParams[winnum] = (FlowParams*)globalFlowParams->deepCopy();
 	flowParams[winnum]->setVizNum(winnum);
 	flowParams[winnum]->setLocal(true);
 	flowParams[winnum]->setEnabled(false);
-
-	//contourParams[winnum] = (ContourParams*)globalContourParams->deepCopy();
-	//contourParams[winnum]->setVizNum(winnum);
-	//contourParams[winnum]->setLocal(true);
-	//contourParams[winnum]->setEnabled(false);
 
 	assert(0==vpParams[winnum]);
 	vpParams[winnum] = (ViewpointParams*)globalVPParams->deepCopy();
@@ -384,14 +385,7 @@ void VizWinMgr::replaceGlobalParams(Params* p, Params::ParamType typ){
 			if(globalAnimationParams) delete globalAnimationParams;
 			globalAnimationParams = (AnimationParams*)p;
 			return;
-		case (Params::ContourParamsType):
-			if(globalContourParams) delete globalContourParams;
-			globalContourParams = (ContourParams*)p;
-			return;
-		case (Params::IsoParamsType):
-			if(globalIsoParams) delete globalIsoParams;
-			globalIsoParams = (IsosurfaceParams*)p;
-			return;
+			
 		case (Params::FlowParamsType):
 			if(globalFlowParams) delete globalFlowParams;
 			globalFlowParams = (FlowParams*)p;
@@ -503,14 +497,13 @@ setActiveViz(int vizNum){
 void VizWinMgr::
 updateActiveParams(){
 	if (activeViz < 0) return;
-	getViewpointParams(activeViz)->updateDialog();
-	getRegionParams(activeViz)->updateDialog();
-	getDvrParams(activeViz)->updateDialog();
-	getProbeParams(activeViz)->updateDialog();
-	//getContourParams(activeViz)->updateDialog();
-	//getIsoParams(activeViz)->updateDialog();
-	getFlowParams(activeViz)->updateDialog();
-	getAnimationParams(activeViz)->updateDialog();
+	viewpointEventRouter->updateTab(getViewpointParams(activeViz));
+	regionEventRouter->updateTab(getRegionParams(activeViz));
+	dvrEventRouter->updateTab(getDvrParams(activeViz));
+	probeEventRouter->updateTab(getProbeParams(activeViz));
+	flowEventRouter->updateTab(getFlowParams(activeViz));
+	animationEventRouter->updateTab(getAnimationParams(activeViz));
+
 }
 
 //Method to enable closing of a vizWin for Undo/Redo
@@ -522,30 +515,7 @@ killViz(int viznum){
 /*
  *  Methods for changing the parameter panels.  Only done during undo/redo.
  */
-void VizWinMgr::
-setContourParams(int winnum, ContourParams* p){
-	if (winnum < 0) { //global params!
-		if (globalContourParams) delete globalContourParams;
-		if (p) globalContourParams = (ContourParams*)p->deepCopy();
-		else globalContourParams = 0;
-	} else {
-		if(contourParams[winnum]) delete contourParams[winnum];
-		if (p) contourParams[winnum] = (ContourParams*)p->deepCopy();
-		else contourParams[winnum] = 0;
-	}
-}
-void VizWinMgr::
-setIsoParams(int winnum, IsosurfaceParams* p){
-	if (winnum < 0) { //global params!
-		if (globalIsoParams) delete globalIsoParams;
-		if (p) globalIsoParams = (IsosurfaceParams*)p->deepCopy();
-		else globalIsoParams = 0;
-	} else {
-		if (isoParams[winnum]) delete isoParams[winnum];
-		if (p) isoParams[winnum] = (IsosurfaceParams*)p->deepCopy();
-		else isoParams[winnum] = 0;
-	}
-}
+
 void VizWinMgr::
 setFlowParams(int winnum, FlowParams* p){
 	if (winnum < 0) { //global params!
@@ -623,449 +593,77 @@ setViewpointParams(int winnum, ViewpointParams* p){
  * Whenever a new tab is created it must be hooked up here
  ************************************************************/
 void
-VizWinMgr::hookUpVizTab(VizTab* vTab)
+VizWinMgr::hookUpViewpointTab(ViewpointEventRouter* vTab)
 {
-	//Signals and slots:
+	viewpointEventRouter = vTab;
 	
  	connect (vTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setVpLocalGlobal(int)));
-	//connect (vTab->perspectiveCombo, SIGNAL (activated(int)), this, SLOT (setVPPerspective(int)));
-	connect (vTab->numLights, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->lightPos00, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->lightPos01, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->lightPos02, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->lightPos10, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->lightPos11, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->lightPos12, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->lightPos20, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->lightPos21, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->lightPos22, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->camPos0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->camPos1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->camPos2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->viewDir0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->viewDir1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->viewDir2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->upVec0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->upVec1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->upVec2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->rotCenter0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->rotCenter1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	connect (vTab->rotCenter2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
-	
-	//Connect all the returnPressed signals, these will update the visualizer.
-	connect (vTab->lightPos00, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
-	connect (vTab->lightPos01, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
-	connect (vTab->lightPos02, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
-	connect (vTab->lightPos10, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
-	connect (vTab->lightPos11, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
-	connect (vTab->lightPos12, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
-	connect (vTab->lightPos20, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
-	connect (vTab->lightPos21, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
-	connect (vTab->lightPos22, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
-	connect (vTab->camPos0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->camPos1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->camPos2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->viewDir0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->viewDir1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->viewDir2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->upVec0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->upVec1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->upVec2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->rotCenter0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->rotCenter1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->rotCenter2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
-	connect (vTab->numLights, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (this, SIGNAL(enableMultiViz(bool)), vTab->LocalGlobal, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyToButton, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), vTab->copyTargetCombo, SLOT(setEnabled(bool)));
 	emit enableMultiViz(getNumVisualizers() > 1);
+	vTab->hookUpTab();
 }
 /**********************************************************
  * Whenever a new regiontab is created it must be hooked up here
  ************************************************************/
 void
-VizWinMgr::hookUpRegionTab(RegionTab* rTab)
+VizWinMgr::hookUpRegionTab(RegionEventRouter* rTab)
 {
 	
 	//Signals and slots:
 	
-	
+	regionEventRouter = rTab;
 	connect (rTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setRgLocalGlobal(int)));
-
-	connect (rTab->xCntrEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
-	connect (rTab->yCntrEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
-	connect (rTab->zCntrEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
-	connect (rTab->xSizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
-	connect (rTab->ySizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
-	connect (rTab->zSizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
-	
-	connect (rTab->xCntrEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
-	connect (rTab->yCntrEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
-	connect (rTab->zCntrEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
-	connect (rTab->xSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
-	connect (rTab->ySizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
-	connect (rTab->zSizeEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
-	
-	connect (rTab->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionXCenter()));
-	connect (rTab->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionYCenter()));
-	connect (rTab->zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionZCenter()));
-	connect (rTab->xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionXSize()));
-	connect (rTab->ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionYSize()));
-	connect (rTab->zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setRegionZSize()));
-	connect (rTab->setFullRegionButton, SIGNAL(clicked()), this, SLOT (setRegionMaxSize()));
-	connect (rTab->regionToRakeButton, SIGNAL(clicked()), this, SLOT(copyRegionToRake()));
-	connect (rTab->regionToProbeButton, SIGNAL(clicked()), this, SLOT(copyRegionToProbe()));
-	connect (rTab->rakeToRegionButton, SIGNAL(clicked()), this, SLOT(copyRakeToRegion()));
-	connect (rTab->probeToRegionButton, SIGNAL(clicked()), this, SLOT(copyProbeToRegion()));
-
-	connect (rTab->refinementCombo, SIGNAL(activated(int)), this, SLOT(setRegionRefinement(int)));
-	connect (rTab->variableCombo, SIGNAL(activated(int)), this, SLOT(setRegionVarNum(int)));
-	connect (rTab->timestepSpin, SIGNAL(valueChanged(int)), this, SLOT(setRegionTimestep(int)));
-
-	
 	connect (this, SIGNAL(enableMultiViz(bool)), rTab->LocalGlobal, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), rTab->copyToButton, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), rTab->copyTargetCombo, SLOT(setEnabled(bool)));
-
-	emit enableMultiViz(getNumVisualizers() > 1);
+	
+	regionEventRouter->hookUpTab();
+	
 }
 void
-VizWinMgr::hookUpDvrTab(Dvr* dvrTab)
+VizWinMgr::hookUpDvrTab(DvrEventRouter* dvrTab)
 {
-	myDvrTab = dvrTab;
-	connect (dvrTab->typeCombo, SIGNAL(activated(int)), this, SLOT(setDvrType(int)));
-	connect (dvrTab->refinementCombo,SIGNAL(activated(int)), this, SLOT(setDvrNumRefinements(int)));
-	connect (dvrTab->loadButton, SIGNAL(clicked()), this, SLOT(dvrLoadTF()));
-	connect (dvrTab->saveButton, SIGNAL(clicked()), this, SLOT(dvrSaveTF()));
-	connect (dvrTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setDvrEnabled(int)));
-	connect (dvrTab->variableCombo, SIGNAL( activated(int) ), this, SLOT( setDvrVariableNum(int) ) );
-	connect (dvrTab->lightingCheckbox, SIGNAL( toggled(bool) ), this, SLOT( setDvrLighting(bool) ) );
- 
+	dvrEventRouter = dvrTab;
 	connect (dvrTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setDvrLocalGlobal(int)));
-	connect (dvrTab->specularShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->diffuseShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->ambientShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->exponentShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->specularAttenuation, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->diffuseAttenuation, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->ambientAttenuation, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->histoScaleEdit,SIGNAL(textChanged(const QString&)),this, SLOT(setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
-	connect (dvrTab->rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
-
-	connect (dvrTab->specularShading, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
-	connect (dvrTab->diffuseShading, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
-	connect (dvrTab->ambientShading, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
-	connect (dvrTab->exponentShading, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
-	connect (dvrTab->specularAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
-	connect (dvrTab->diffuseAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
-	connect (dvrTab->ambientAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
-	connect (dvrTab->histoScaleEdit, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
-
-	connect (dvrTab->numBitsSpin, SIGNAL (valueChanged(int)), this, SLOT(setDvrNumBits(int)));
 	connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->LocalGlobal, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->copyToButton, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->copyTargetCombo, SLOT(setEnabled(bool)));
-	//TFE Editor controls:
-	connect (dvrTab->leftMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
-	connect (dvrTab->rightMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
 	
-	connect (dvrTab->opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (dvrOpacityScale()));
-	connect (dvrTab->ColorBindButton, SIGNAL(pressed()), this, SLOT(dvrColorBind()));
-	connect (dvrTab->OpacityBindButton, SIGNAL(pressed()), this, SLOT(dvrOpacBind()));
-	connect (dvrTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setDvrNavigateMode(bool)));
+	dvrEventRouter->hookUpTab();
 	
-	connect (dvrTab->editButton, SIGNAL(toggled(bool)), this, SLOT(setDvrEditMode(bool)));
-	
-	connect(dvrTab->alignButton, SIGNAL(clicked()), this, SLOT(setDvrAligned()));
-	
-	connect(dvrTab->newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
-	
-	emit enableMultiViz(getNumVisualizers() > 1);
 }
+
 void
-VizWinMgr::hookUpProbeTab(ProbeTab* probeTab)
+VizWinMgr::hookUpProbeTab(ProbeEventRouter* probeTab)
 {
-	myProbeTab = probeTab;
-	connect (probeTab->xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (probeTab->yCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (probeTab->zCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (probeTab->thetaEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (probeTab->phiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (probeTab->xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (probeTab->ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (probeTab->zSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (probeTab->histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	
-	connect (probeTab->leftMappingBound, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (probeTab->rightMappingBound, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	
-	connect (probeTab->xCenterEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (probeTab->yCenterEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (probeTab->zCenterEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (probeTab->xSizeEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (probeTab->ySizeEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (probeTab->zSizeEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (probeTab->thetaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (probeTab->phiEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (probeTab->histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (probeTab->regionCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRegion()));
-	connect (probeTab->viewCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterView()));
-	connect (probeTab->rakeCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRake()));
-	connect (probeTab->probeCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterProbe()));
-	connect (probeTab->addSeedButton, SIGNAL(clicked()), this, SLOT(probeAddSeed()));
-	connect (probeTab->attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(probeAttachSeed(bool)));
-	connect (probeTab->refinementCombo,SIGNAL(activated(int)), this, SLOT(setProbeNumRefinements(int)));
-	
-	connect (probeTab->variableListBox,SIGNAL(selectionChanged(void)), this, SLOT(probeSelectionChanged(void)));
-	connect (probeTab->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeXCenter()));
-	connect (probeTab->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeYCenter()));
-	connect (probeTab->zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeZCenter()));
-	connect (probeTab->xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeXSize()));
-	connect (probeTab->ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeYSize()));
-	connect (probeTab->zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeZSize()));
-	connect (probeTab->loadButton, SIGNAL(clicked()), this, SLOT(probeLoadTF()));
-	connect (probeTab->saveButton, SIGNAL(clicked()), this, SLOT(probeSaveTF()));
-	connect (probeTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setProbeEnabled(int)));
-	
+	probeEventRouter = probeTab;
 	connect (probeTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setProbeLocalGlobal(int)));
-	
-	connect (probeTab->leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect (probeTab->rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-
 	connect (this, SIGNAL(enableMultiViz(bool)), probeTab->LocalGlobal, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), probeTab->copyToButton, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), probeTab->copyTargetCombo, SLOT(setEnabled(bool)));
-	//TFE Editor controls:
-	
-	connect (probeTab->opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (probeOpacityScale()));
-	connect (probeTab->ColorBindButton, SIGNAL(pressed()), this, SLOT(probeColorBind()));
-	connect (probeTab->OpacityBindButton, SIGNAL(pressed()), this, SLOT(probeOpacBind()));
-	connect (probeTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setProbeNavigateMode(bool)));
-	
-	connect (probeTab->editButton, SIGNAL(toggled(bool)), this, SLOT(setProbeEditMode(bool)));
-	
-	connect(probeTab->alignButton, SIGNAL(clicked()), this, SLOT(setProbeAligned()));
-	
-	connect(probeTab->newHistoButton, SIGNAL(clicked()), this, SLOT(refreshProbeHisto()));
-	
 	emit enableMultiViz(getNumVisualizers() > 1);
+	probeEventRouter->hookUpTab();
 }
-void
-VizWinMgr::hookUpContourTab(ContourPlaneTab* cptTab)
-{
-	myContourPlaneTab = cptTab;
-	connect (cptTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setContourEnabled(int)));
-	connect (cptTab->variableCombo1, SIGNAL( activated(int) ), this, SLOT( setContourVariableNum(int) ) );
-	connect (cptTab->lightingCheckbox, SIGNAL( toggled(bool) ), this, SLOT( setContourLighting(bool) ) );
- 
-	connect (cptTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setContourLocalGlobal(int)));
-	connect (cptTab->specularShading, SIGNAL( returnPressed()), this, SLOT( contourReturnPressed() ) );
-	connect (cptTab->diffuseShading, SIGNAL( returnPressed()), this, SLOT( contourReturnPressed() ) );
-	connect (cptTab->ambientShading, SIGNAL( returnPressed()), this, SLOT( contourReturnPressed() ) );
-	connect (cptTab->exponentShading, SIGNAL( returnPressed()), this, SLOT( contourReturnPressed() ) );
-	connect (cptTab->normalx, SIGNAL(returnPressed()), this, SLOT( contourReturnPressed() ) );
-	connect (cptTab->normaly, SIGNAL(returnPressed()), this, SLOT( contourReturnPressed() ) );
-	connect (cptTab->normalz, SIGNAL(returnPressed()), this, SLOT( contourReturnPressed() ) );
-	connect (cptTab->pointx, SIGNAL(returnPressed()), this, SLOT( contourReturnPressed() ) );
-	connect (cptTab->pointy, SIGNAL(returnPressed()), this, SLOT( contourReturnPressed() ) );
-	connect (cptTab->pointz, SIGNAL(returnPressed()), this, SLOT( contourReturnPressed() ) );
 
-	connect (cptTab->specularShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setContourTabTextChanged(const QString&)));
-	connect (cptTab->diffuseShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setContourTabTextChanged(const QString&)));
-	connect (cptTab->ambientShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setContourTabTextChanged(const QString&)));
-	connect (cptTab->exponentShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setContourTabTextChanged(const QString&)));
-	connect (cptTab->normalx, SIGNAL(textChanged(const QString&) ), this, SLOT( setContourTabTextChanged(const QString&)));
-	connect (cptTab->normaly, SIGNAL(textChanged(const QString&) ), this, SLOT( setContourTabTextChanged(const QString&)));
-	connect (cptTab->normalz, SIGNAL(textChanged(const QString&) ), this, SLOT( setContourTabTextChanged(const QString&)));
-	connect (cptTab->pointx, SIGNAL(textChanged(const QString&) ), this, SLOT( setContourTabTextChanged(const QString&)));
-	connect (cptTab->pointy, SIGNAL(textChanged(const QString&) ), this, SLOT( setContourTabTextChanged(const QString&)));
-	connect (cptTab->pointz, SIGNAL(textChanged(const QString&) ), this, SLOT( setContourTabTextChanged(const QString&)));
-
-	connect (this, SIGNAL(enableMultiViz(bool)), cptTab->LocalGlobal, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), cptTab->copyToButton, SLOT(setEnabled(bool)));
-	//connect (this, SIGNAL(enableMultiViz(bool)), cptTab->copyTargetCombo, SLOT(setEnabled(bool)));
-	emit enableMultiViz(getNumVisualizers() > 1);
-
-}
 /**********************************************************
  * Whenever a new tab is created it must be hooked up here
  ************************************************************/
 void
-VizWinMgr::hookUpAnimationTab(AnimationTab* aTab)
+VizWinMgr::hookUpAnimationTab(AnimationEventRouter* aTab)
 {
 	//Signals and slots:
-	
+	animationEventRouter = aTab;
  	connect (aTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setAnimationLocalGlobal(int)));
-	
-	connect (aTab->startFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
-	connect (aTab->currentFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
-	connect (aTab->endFrameEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
-	connect (aTab->frameStepEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
-	connect (aTab->maxFrameRateEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
-	connect (aTab->maxWaitEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setAtabTextChanged(const QString&)));
-	
-	
-	//Connect all the returnPressed signals, these will update the visualizer.
-	connect (aTab->startFrameEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (aTab->currentFrameEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (aTab->endFrameEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (aTab->frameStepEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (aTab->maxFrameRateEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-	connect (aTab->maxWaitEdit, SIGNAL( returnPressed()) , this, SLOT(animationReturnPressed()));
-
-	//Sliders only do anything when released
-	connect (aTab->frameStepSlider, SIGNAL(sliderReleased()), this, SLOT (animationSetFrameStep()));
-	connect (aTab->animationSlider, SIGNAL(sliderReleased()), this, SLOT (animationSetPosition()));
-
-	//Button clicking for toggle buttons:
-	connect(aTab->pauseButton, SIGNAL(clicked()), this, SLOT(animationPauseClick()));
-	connect(aTab->playReverseButton, SIGNAL(clicked()), this, SLOT(animationPlayReverseClick()));
-	connect(aTab->playForwardButton, SIGNAL(clicked()), this, SLOT(animationPlayForwardClick()));
-	connect(aTab->replayButton, SIGNAL(clicked()), this, SLOT(animationReplayClick()));
-	//and non-toggle buttons:
-	connect(aTab->toBeginButton, SIGNAL(clicked()), this, SLOT(animationToBeginClick()));
-	connect(aTab->toEndButton, SIGNAL(clicked()), this, SLOT(animationToEndClick()));
-	connect(aTab->stepReverseButton, SIGNAL(clicked()), this, SLOT(animationStepReverseClick()));
-	connect(aTab->stepForwardButton, SIGNAL(clicked()), this, SLOT(animationStepForwardClick()));
-
 	connect (this, SIGNAL(enableMultiViz(bool)), aTab->LocalGlobal, SLOT(setEnabled(bool)));
 	//connect (this, SIGNAL(enableMultiViz(bool)), aTab->copyToButton, SLOT(setEnabled(bool)));
 	//connect (this, SIGNAL(enableMultiViz(bool)), aTab->copyTargetCombo, SLOT(setEnabled(bool)));
 	emit enableMultiViz(getNumVisualizers() > 1);
+	animationEventRouter->hookUpTab();
 	
 }
-void
-VizWinMgr::hookUpIsoTab(IsoTab* isoTab)
-{
-	connect (isoTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setIsoEnabled(int)));
-	connect (isoTab->variableCombo1, SIGNAL( activated(int) ), this, SLOT( setIsoVariable1Num(int) ) );
-	connect (isoTab->colorButton1, SIGNAL(clicked()), this, SLOT(setIsoColor1()));
-	
-	connect (isoTab->opacSlider1, SIGNAL(sliderReleased()), this, SLOT (setIsoOpac1()));
-	connect (isoTab->valueSlider1, SIGNAL(sliderReleased()), this, SLOT (setIsoValue1()));
-	
-	connect (isoTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setIsoLocalGlobal(int)));
 
-	connect (isoTab->opacEdit1, SIGNAL( textChanged(const QString&) ), this, SLOT(setIsoTabTextChanged(const QString&)));
-	connect (isoTab->valueEdit1, SIGNAL( textChanged(const QString&) ), this, SLOT(setIsoTabTextChanged(const QString&)));
-	connect (isoTab->specularShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setIsoTabTextChanged(const QString&) ) );
-	connect (isoTab->diffuseShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setIsoTabTextChanged(const QString&) ) );
-	connect (isoTab->ambientShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setIsoTabTextChanged(const QString&) ) );
-	connect (isoTab->exponentShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setIsoTabTextChanged(const QString&) ) );
-	
-	connect (isoTab->valueEdit1, SIGNAL( returnPressed()), this, SLOT(isoReturnPressed()));
-	connect (isoTab->opacEdit1, SIGNAL( returnPressed()), this, SLOT(isoReturnPressed()));
-	connect (isoTab->specularShading, SIGNAL( returnPressed() ), this, SLOT(isoReturnPressed()));
-	connect (isoTab->diffuseShading, SIGNAL( returnPressed() ), this, SLOT(isoReturnPressed()));
-	connect (isoTab->ambientShading, SIGNAL( returnPressed() ), this, SLOT(isoReturnPressed()));
-	connect (isoTab->exponentShading, SIGNAL( returnPressed() ), this, SLOT(isoReturnPressed()));
-
-	connect (this, SIGNAL(enableMultiViz(bool)), isoTab->LocalGlobal, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), isoTab->copyButton, SLOT(setEnabled(bool)));
-	connect (this, SIGNAL(enableMultiViz(bool)), isoTab->copyTarget, SLOT(setEnabled(bool)));
-	emit enableMultiViz(getNumVisualizers() > 1);
-}
 void
-VizWinMgr::hookUpFlowTab(FlowTab* flowTab)
+VizWinMgr::hookUpFlowTab(FlowEventRouter* flowTab)
 {
-	myFlowTab = flowTab;
+	flowEventRouter = flowTab;
 	connect (flowTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setFlowLocalGlobal(int)));
-	connect (flowTab->EnableDisable, SIGNAL(activated(int)), this, SLOT(setFlowEnabled(int)));
-	connect (flowTab->flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( setFlowType(int) ) );
-	connect (flowTab->autoRefreshCheckbox, SIGNAL(toggled(bool)), this, SLOT (flowAutoToggled(bool)));
-	connect (flowTab->refinementCombo,SIGNAL(activated(int)), this, SLOT(setFlowNumRefinements(int)));
-	
-	connect (flowTab->xCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowXVar(int)));
-	connect (flowTab->yCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowYVar(int)));
-	connect (flowTab->zCoordVarCombo,SIGNAL(activated(int)), this, SLOT(setFlowZVar(int)));
-	connect (flowTab->randomCheckbox,SIGNAL(toggled(bool)),this, SLOT(checkFlowRandom(bool)));
-	connect (flowTab->xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXCenter()));
-	connect (flowTab->yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYCenter()));
-	connect (flowTab->zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowZCenter()));
-	connect (flowTab->xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXSize()));
-	connect (flowTab->ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYSize()));
-	connect (flowTab->zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowZSize()));
-	connect (flowTab->geometrySamplesSlider, SIGNAL(sliderReleased()), this, SLOT(setFlowGeomSamples()));
-	connect (flowTab->geometryCombo, SIGNAL(activated(int)),SLOT(setFlowGeometry(int)));
-	connect (flowTab->constantColorButton, SIGNAL(clicked()), this, SLOT(setFlowConstantColor()));
-	connect (flowTab->rakeOnRegionButton, SIGNAL(clicked()), this, SLOT(setRakeOnRegion()));
-	connect (flowTab->colormapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowColorMapEntity(int)));
-	connect (flowTab->opacmapEntityCombo,SIGNAL(activated(int)),SLOT(setFlowOpacMapEntity(int)));
-	connect (flowTab->refreshButton,SIGNAL(clicked()), this, SLOT(rebuildFlow()));
-	//Line edits.  Note that the textChanged may either affect the flow or the geometry
-	connect (flowTab->xSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->xSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->ySeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->ySeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->zSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->zSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->constantOpacityEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->constantOpacityEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
-	connect (flowTab->integrationAccuracyEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->integrationAccuracyEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->scaleFieldEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->scaleFieldEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->timesampleStartEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->timesampleStartEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->timesampleEndEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->timesampleEndEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->timesampleIncrementEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->timesampleIncrementEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->randomSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->randomSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->xCenterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->xCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->yCenterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->yCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->zCenterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->zCenterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->xSizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->xSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->ySizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->ySizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->zSizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->zSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->generatorCountEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->generatorCountEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->seedtimeStartEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->seedtimeStartEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->seedtimeEndEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->seedtimeEndEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->seedtimeIncrementEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->seedtimeIncrementEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->geometrySamplesEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->geometrySamplesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->firstDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->firstDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->lastDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->lastDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (flowTab->diameterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->diameterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
-	connect (flowTab->arrowheadEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->arrowheadEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
-	connect (flowTab->minColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->minColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
-	connect (flowTab->maxColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->maxColormapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
-	connect (flowTab->minOpacmapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->minOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
-	connect (flowTab->maxOpacmapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (flowTab->maxOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
-	connect (flowTab->seedListCheckbox, SIGNAL(toggled(bool)), this, SLOT(doFlowSeedList(bool)));
-	connect (flowTab->rakeCheckbox, SIGNAL(toggled(bool)), this, SLOT(doFlowRake(bool)));
-	connect (flowTab->opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (flowOpacityScale()));
-	
-	connect (flowTab->navigateButton, SIGNAL(toggled(bool)), this, SLOT(setFlowNavigateMode(bool)));
-	connect (flowTab->editButton, SIGNAL(toggled(bool)), this, SLOT(setFlowEditMode(bool)));
-	connect (flowTab->alignButton, SIGNAL(clicked()), this, SLOT(setFlowAligned()));
-	connect (flowTab->seedListLoadButton, SIGNAL(clicked()), this, SLOT(loadFlowSeedList()));
-	connect (flowTab->saveFlowButton, SIGNAL(clicked()), this, SLOT(saveFlow()));
-	connect (flowTab->seedListEditButton, SIGNAL(clicked()), this, SLOT(editFlowSeedList()));
-
-	
 	connect (this, SIGNAL(enableMultiViz(bool)), flowTab->LocalGlobal, SLOT(setEnabled(bool)));
 	emit enableMultiViz(getNumVisualizers() > 1);
+	flowEventRouter->hookUpTab();
 }
 /*
  * Tell the parameter panels when there are or are not multiple viz's
@@ -1093,48 +691,28 @@ nameChanged(QString& name, int num){
 /*******************************************************************
  *	Slots associated with VizTab:
  ********************************************************************/
-/* obsolete:
-void VizWinMgr::
-setVPPerspective(int isOn){
-	getViewpointParams(activeViz)->guiSetPerspective(isOn);
-	//Immediately force update:
-	getViewpointParams(activeViz)->updateRenderer(false, false, false);
-}
-*/
-void VizWinMgr::
-setVtabTextChanged(const QString& ){
-	getViewpointParams(activeViz)->guiSetTextChanged(true);
-}
-/* 
- * Following message is sent whenever user presses "return" on a textbox.
- * The changes are then sent to the visualizer:
- */
-void VizWinMgr::
-viewpointReturnPressed(void){
-	//Find the appropriate parameter panel, make it update the visualization window
-	getViewpointParams(activeViz)->confirmText(true);
-}
+
 void VizWinMgr::
 home()
 {
-	getViewpointParams(activeViz)->useHomeViewpoint();
+	getViewpointRouter()->useHomeViewpoint();
 	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
 void VizWinMgr::
 sethome()
 {
-	getViewpointParams(activeViz)->setHomeViewpoint();
+	getViewpointRouter()->setHomeViewpoint();
 }
 void VizWinMgr::
 viewAll()
 {
-	getViewpointParams(activeViz)->guiCenterFullRegion(getRegionParams(activeViz));
+	getViewpointRouter()->guiCenterFullRegion(getRegionParams(activeViz));
 	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
 void VizWinMgr::
 viewRegion()
 {
-	getViewpointParams(activeViz)->guiCenterSubRegion(getRegionParams(activeViz));
+	getViewpointRouter()->guiCenterSubRegion(getRegionParams(activeViz));
 	setViewerCoordsChanged(getViewpointParams(activeViz));
 }
 void VizWinMgr::
@@ -1143,91 +721,9 @@ alignView(int axis)
 	if (axis < 1) return;
 	//Always reset current item to first.
 	myMainWindow->alignViewCombo->setCurrentItem(0);
-	getViewpointParams(activeViz)->guiAlignView(axis);
-}
-/*********************************************************************************
- * Slots associated with RegionTab:
- *********************************************************************************/
-
-void VizWinMgr::
-setRegionTabTextChanged(const QString& ){
-	getRegionParams(activeViz)->guiSetTextChanged(true);
-}
-void VizWinMgr::
-regionReturnPressed(void){
-	//Find the appropriate parameter panel, make it update the visualization window
-	getRegionParams(activeViz)->confirmText(true);
+	getViewpointRouter()->guiAlignView(axis);
 }
 
-/* 
- * Respond to a release of the max size slider
- *
- */
-void VizWinMgr::
-setRegionMaxSize(){
-	getRegionParams(activeViz)->guiSetMaxSize();
-}
-
-
-
-/*
- * Respond to a release of slider 
- */
-void VizWinMgr::
-setRegionXCenter(){
-	getRegionParams(activeViz)->guiSetXCenter(
-		myMainWindow->getRegionTab()->xCenterSlider->value());
-}
-void VizWinMgr::
-setRegionYCenter(){
-	getRegionParams(activeViz)->guiSetYCenter(
-		myMainWindow->getRegionTab()->yCenterSlider->value());
-}
-void VizWinMgr::
-setRegionZCenter(){
-	getRegionParams(activeViz)->guiSetZCenter(
-		myMainWindow->getRegionTab()->zCenterSlider->value());
-}
-
-/*
- * Respond to a slider release
- */
-void VizWinMgr::
-setRegionXSize(){
-	getRegionParams(activeViz)->guiSetXSize(
-		myMainWindow->getRegionTab()->xSizeSlider->value());
-}
-void VizWinMgr::
-setRegionYSize(){
-	getRegionParams(activeViz)->guiSetYSize(
-		myMainWindow->getRegionTab()->ySizeSlider->value());
-}
-void VizWinMgr::
-setRegionZSize(){
-	getRegionParams(activeViz)->guiSetZSize(
-		myMainWindow->getRegionTab()->zSizeSlider->value());
-}
-void VizWinMgr::setRegionRefinement(int refLevel){
-	getRegionParams(activeViz)->guiSetNumRefinements(refLevel);
-}
-void VizWinMgr::setRegionVarNum(int varnum){
-	getRegionParams(activeViz)->guiSetVarNum(varnum);
-}
-void VizWinMgr::setRegionTimestep(int ts){
-	getRegionParams(activeViz)->guiSetTimeStep(ts);
-}
-void VizWinMgr::copyRakeToRegion(){
-	getRegionParams(activeViz)->guiCopyRakeToRegion();
-}
-void VizWinMgr::copyProbeToRegion(){
-	getRegionParams(activeViz)->guiCopyProbeToRegion();
-}
-void VizWinMgr::copyRegionToRake(){
-	getFlowParams(activeViz)->guiSetRakeToRegion();
-}
-void VizWinMgr::copyRegionToProbe(){
-	getProbeParams(activeViz)->guiCopyRegionToProbe();
-}
 
 //Trigger a re-render of the windows that share a region params
 void VizWinMgr::refreshRegion(RegionParams* rParams){
@@ -1247,46 +743,6 @@ void VizWinMgr::refreshRegion(RegionParams* rParams){
 }
 
 
-void VizWinMgr::
-setRegionDirty(RegionParams* rParams){
-	int vizNum = rParams->getVizNum();
-	if (vizNum >= 0){
-		vizWin[activeViz]->setRegionDirty(true);
-		getFlowParams(vizNum)->setFlowDataDirty();
-		vizWin[activeViz]->updateGL();
-	}
-	//If another viz is using these region params, set their region dirty, too
-	if (rParams->isLocal()) return;
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if  ( vizWin[i] && (i != vizNum)  &&
-				((!rgParams[i])||!rgParams[i]->isLocal())
-			){
-			vizWin[i]->setRegionDirty(true);
-			getFlowParams(i)->setFlowDataDirty();
-			vizWin[i]->updateGL();
-		}
-	}
-}
-//Force all windows that share a dvrParams to update
-//their region (i.e. get new data)
-void VizWinMgr::
-setRegionDirty(DvrParams* dParams){
-	int vizNum = dParams->getVizNum();
-	if (vizNum >= 0){
-		vizWin[activeViz]->setRegionDirty(true);
-		vizWin[activeViz]->updateGL();
-	}
-	//If another viz is sharing these dvr params, set their region dirty, too
-	if (dParams->isLocal()) return;
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if  ( vizWin[i] && (i != vizNum)  &&
-				((!dvrParams[i])||!dvrParams[i]->isLocal())
-			){
-			vizWin[i]->setRegionDirty(true);
-			vizWin[i]->updateGL();
-		}
-	}
-}
 
 //Force all windows that share a flow params to rerender
 //(possibly with new data)
@@ -1326,27 +782,7 @@ refreshProbe(ProbeParams* pParams){
 	}
 }
 
-//To force the animation to rerender, we set the region dirty.  We will need
-//to load the data for another frame
-//
-void VizWinMgr::
-setAnimationDirty(AnimationParams* aParams){
-	int vizNum = aParams->getVizNum();
-	if (vizNum >= 0){
-		vizWin[activeViz]->setRegionDirty(true);
-		vizWin[activeViz]->updateGL();
-	}
-	//If another viz is using these animation params, set their region dirty, too
-	if (aParams->isLocal()) return;
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if  ( vizWin[i] && (i != vizNum)  &&
-				((!animationParams[i])||!animationParams[i]->isLocal())
-			){
-			vizWin[i]->setRegionDirty(true);
-			vizWin[i]->updateGL();
-		}
-	}
-}
+
 //set the changed bits for each of the visualizers associated with the
 //specified animationParams, preventing them from updating the frame counter.
 //
@@ -1427,45 +863,7 @@ void VizWinMgr::startPlay(AnimationParams* aParams){
 	ac->setMaxSharedWait(aParams->getMaxWait());
 }
 
-void VizWinMgr::
-setClutDirty(DvrParams* dParams){
-	if (!dParams) return;
-	
-	if (dParams->isLocal()){
-		int vn = dParams->getVizNum();
-		if (vizWin[vn]){
-			vizWin[vn]->setClutDirty(true);
-			vizWin[vn]->updateGL();
-		}
-		return;
-	}
-		
-	//If another viz is using these dvr params, force them to update, too
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if  ( vizWin[i] && !dvrParams[i]->isLocal())
-		{
-			vizWin[i]->setClutDirty(true);
-			vizWin[i]->updateGL();
-		}
-	}
-}
-void VizWinMgr::
-setDataRangeDirty(DvrParams* dParams){
-	if (activeViz>=0) {
-		vizWin[activeViz]->setDataRangeDirty(true);
-		vizWin[activeViz]->updateGL();
-	}
-	if (dParams->isLocal()) return;
-	//If another viz is using these dvr params, force them to update, too
-	for (int i = 0; i< MAXVIZWINS; i++){
-		if  ( vizWin[i] && (i != activeViz) &&
-				( (!dvrParams[i])||!dvrParams[i]->isLocal())
-			){
-			vizWin[i]->setDataRangeDirty(true);
-			vizWin[i]->updateGL();
-		}
-	}
-}
+
 //Local global selector for all panels are similar.  First, Animation panel:
 //
 void VizWinMgr::
@@ -1477,20 +875,20 @@ setAnimationLocalGlobal(int val){
 		//then put  values in tab based on global settings.
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
-		if(animationParams[activeViz])animationParams[activeViz]->guiSetLocal(false);
-		globalAnimationParams->updateDialog();
+		if(animationParams[activeViz])animationEventRouter->guiSetLocal(animationParams[activeViz],false);
+		animationEventRouter->updateTab(globalAnimationParams);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		if (!animationParams[activeViz]){
 			//create a new parameter panel, copied from global
 			animationParams[activeViz] = (AnimationParams*)globalAnimationParams->deepCopy();
 			animationParams[activeViz]->setVizNum(activeViz);
-			animationParams[activeViz]->guiSetLocal(true);
+			animationEventRouter->confirmText(true);
 			
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
-			animationParams[activeViz]->guiSetLocal(true);
-			animationParams[activeViz]->updateDialog();
+			animationEventRouter->guiSetLocal(animationParams[activeViz],true);
+			animationEventRouter->updateTab(animationParams[activeViz]);
 			
 			//and then refresh the panel:
 			tabManager->show();
@@ -1508,58 +906,57 @@ setFlowLocalGlobal(int val){
 		//then put  values in tab based on global settings.
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
-		if(flowParams[activeViz])flowParams[activeViz]->guiSetLocal(false);
-		globalFlowParams->updateDialog();
+		flowEventRouter->guiSetLocal(flowParams[activeViz],false);
+		flowEventRouter->updateTab(globalFlowParams);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		if (!flowParams[activeViz]){
 			//create a new parameter panel, copied from global
 			flowParams[activeViz] = (FlowParams*)globalFlowParams->deepCopy();
 			flowParams[activeViz]->setVizNum(activeViz);
-			flowParams[activeViz]->guiSetLocal(true);
+			flowEventRouter->guiSetLocal(flowParams[activeViz],true);
 			
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
-			flowParams[activeViz]->guiSetLocal(true);
-			flowParams[activeViz]->updateDialog();
+			flowEventRouter->guiSetLocal(flowParams[activeViz],true);
+			flowEventRouter->updateTab(flowParams[activeViz]);
 			
 			//and then refresh the panel:
 			tabManager->show();
 		}
 	}
 	//Always invoke the update on the local params
-	flowParams[activeViz]->updateRenderer(wasEnabled,!val, false);
+	flowEventRouter->updateRenderer(flowParams[activeViz],wasEnabled,!val, false);
 }
 /*****************************************************************************
  * Called when the local/global selector is changed.
- * Separate versions for viztab, regiontab, isotab, contourtab, dvrtab, flowtab, probetab
+ * Separate versions for viztab, regiontab, dvrtab, flowtab, probetab
  ******************************************************************************/
 void VizWinMgr::
 setVpLocalGlobal(int val){
 	//If changes  to global, revert to global panel.
 	//If changes to local, may need to create a new local panel
 	//Switch local and global Trackball as appropriate
+	//If changes  to global, just revert to global panel.
+	//If changes to local, may need to create a new local panel
 	if (val == 0){//toGlobal.  
 		//First set the global status, 
 		//then put  values in tab based on global settings.
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
-		if(vpParams[activeViz])vpParams[activeViz]->guiSetLocal(false);
-		globalVPParams->updateDialog();
-		//Tell the active visualizer that it has global viewpoint
-		vizWin[activeViz]->setGlobalViewpoint(true);
+		viewpointEventRouter->guiSetLocal(vpParams[activeViz],false);
+		viewpointEventRouter->updateTab(globalVPParams);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		if (!vpParams[activeViz]){
 			//create a new parameter panel, copied from global
 			vpParams[activeViz] = (ViewpointParams*)globalVPParams->deepCopy();
 			vpParams[activeViz]->setVizNum(activeViz);
-			vpParams[activeViz]->guiSetLocal(true);
-			
+			viewpointEventRouter->guiSetLocal(vpParams[activeViz],true);
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
-			vpParams[activeViz]->guiSetLocal(true);
-			vpParams[activeViz]->updateDialog();
+			viewpointEventRouter->guiSetLocal(vpParams[activeViz],true);
+			viewpointEventRouter->updateTab(vpParams[activeViz]);
 			
 			//and then refresh the panel:
 			tabManager->show();
@@ -1581,19 +978,20 @@ setRgLocalGlobal(int val){
 		//then put  values in tab based on global settings.
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
-		if(rgParams[activeViz])rgParams[activeViz]->guiSetLocal(false);
-		globalRegionParams->updateDialog();
+		regionEventRouter->guiSetLocal(rgParams[activeViz],false);
+		regionEventRouter->updateTab(globalRegionParams);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		if (!rgParams[activeViz]){
 			//create a new parameter panel, copied from global
 			rgParams[activeViz] = (RegionParams*)globalRegionParams->deepCopy();
 			rgParams[activeViz]->setVizNum(activeViz);
-			rgParams[activeViz]->guiSetLocal(true);
+			regionEventRouter->guiSetLocal(rgParams[activeViz],true);
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
-			rgParams[activeViz]->guiSetLocal(true);
-			rgParams[activeViz]->updateDialog();
+			regionEventRouter->guiSetLocal(rgParams[activeViz],true);
+			regionEventRouter->updateTab(rgParams[activeViz]);
+			
 			//and then refresh the panel:
 			tabManager->show();
 		}
@@ -1614,21 +1012,22 @@ setDvrLocalGlobal(int val){
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
 	
-		dvrParams[activeViz]->guiSetLocal(false);
-		globalDvrParams->updateDialog();
+		((EventRouter*)dvrEventRouter)->guiSetLocal(dvrParams[activeViz],false);
+		dvrEventRouter->updateTab(globalDvrParams);
 		tabManager->show();
 		//Was there a change in enablement?
 		
 	} else { //Local: 
 		//need to revert to existing local settings:
-		dvrParams[activeViz]->guiSetLocal(true);
-		dvrParams[activeViz]->updateDialog();
+		((EventRouter*)dvrEventRouter)->guiSetLocal(dvrParams[activeViz],true);
+		dvrEventRouter->updateTab(dvrParams[activeViz]);
 		//and then refresh the panel:
 		tabManager->show();
 	
 	}
-	//Always invoke the update on the local params
-	dvrParams[activeViz]->updateRenderer(wasEnabled,!val, false);
+	//Always invoke the update the renderer on the local params
+	dvrEventRouter->updateRenderer(dvrParams[activeViz],wasEnabled,!val, false);
+	
 }
 
 /*****************************************************************************
@@ -1646,724 +1045,25 @@ setProbeLocalGlobal(int val){
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
 	
-		probeParams[activeViz]->guiSetLocal(false);
-		globalProbeParams->updateDialog();
+		probeEventRouter->guiSetLocal(probeParams[activeViz],false);
+		probeEventRouter->updateTab(globalProbeParams);
 		tabManager->show();
 		//Was there a change in enablement?
 		
 	} else { //Local: 
 		//need to revert to existing local settings:
-		probeParams[activeViz]->guiSetLocal(true);
-		probeParams[activeViz]->updateDialog();
+		probeEventRouter->guiSetLocal(probeParams[activeViz],true);
+		probeEventRouter->updateTab(probeParams[activeViz]);
 		//and then refresh the panel:
 		tabManager->show();
 	
 	}
-	//Always invoke the update on the local params
-	probeParams[activeViz]->updateRenderer(wasEnabled,!val, false);
-}
-void VizWinMgr::setDvrNumRefinements(int num){
-	getDvrParams(activeViz)->guiSetNumRefinements(num);
-}
-/*************************************************************************************
- *  slots associated with AnimationTab
- *************************************************************************************/
-void VizWinMgr::
-animationReturnPressed(void){
-	//Find the appropriate parameter panel, make it update the visualization window
-	getAnimationParams(activeViz)->confirmText(true);
-}
-void VizWinMgr::
-setAtabTextChanged(const QString& ){
-	getAnimationParams(activeViz)->guiSetTextChanged(true);
-}
-//Respond to release of frame-step slider
-void VizWinMgr::
-animationSetFrameStep(){
-	getAnimationParams(activeViz)->guiSetFrameStep(
-		myMainWindow->getAnimationTab()->frameStepSlider->value());
-}
-//Respond to release of animation position slider
-void VizWinMgr::
-animationSetPosition(){
-	getAnimationParams(activeViz)->guiSetPosition(
-		myMainWindow->getAnimationTab()->animationSlider->value());
-}
-//Respond to pause button press.
+	//Always invoke the update the renderer on the local params
+	probeEventRouter->updateRenderer(probeParams[activeViz],wasEnabled,!val, false);
 
-void VizWinMgr::
-animationPauseClick(){
-	myMainWindow->getAnimationTab()->playForwardButton->setDown(false);
-	myMainWindow->getAnimationTab()->playReverseButton->setDown(false);
-	getAnimationParams(activeViz)->guiSetPlay(0);
-}
-void VizWinMgr::
-animationPlayReverseClick(){
-	if (!myMainWindow->getAnimationTab()->playReverseButton->isDown()){
-		myMainWindow->getAnimationTab()->playForwardButton->setDown(false);
-		myMainWindow->getAnimationTab()->playReverseButton->setDown(true);
-		getAnimationParams(activeViz)->guiSetPlay(-1);
-	}
-}
-void VizWinMgr::
-animationPlayForwardClick(){
-	if (!myMainWindow->getAnimationTab()->playForwardButton->isDown()){
-		myMainWindow->getAnimationTab()->playForwardButton->setDown(true);
-		myMainWindow->getAnimationTab()->playReverseButton->setDown(false);
-		getAnimationParams(activeViz)->guiSetPlay(1);
-	}
-}
-void VizWinMgr::
-animationReplayClick(){
-	getAnimationParams(activeViz)->guiToggleReplay(
-		myMainWindow->getAnimationTab()->replayButton->isOn());
-}
-void VizWinMgr::
-animationToBeginClick(){
-	getAnimationParams(activeViz)->guiJumpToBegin();
-}
-void VizWinMgr::
-animationToEndClick(){
-	getAnimationParams(activeViz)->guiJumpToEnd();
-}
-void VizWinMgr::
-animationStepForwardClick(){
-	getAnimationParams(activeViz)->guiSingleStep(true);
-}
-void VizWinMgr::
-animationStepReverseClick(){
-	getAnimationParams(activeViz)->guiSingleStep(false);
-}
-/*************************************************************************************
- *  slots associated with DvrTab
- *************************************************************************************/
-void VizWinMgr::
-setDvrTabTextChanged(const QString& ){
-	getDvrParams(activeViz)->guiSetTextChanged(true);
-}
-void VizWinMgr::
-dvrReturnPressed(void){
-	//Find the appropriate parameter panel, make it update the visualization window
-	getDvrParams(activeViz)->confirmText(true);
-}
-void VizWinMgr::
-setDvrEnabled(int val){
-
-	//If there's no window, or no datamgr, ignore this.
-	
-	if ((activeViz < 0) || Session::getInstance()->getDataMgr() == 0) {
-		myDvrTab->EnableDisable->setCurrentItem(0);
-		return;
-	}
-	//Make sure this is a change:
-	if (getDvrParams(activeViz)->isEnabled() == (val==1) ) return;
-	getDvrParams(activeViz)->guiSetEnabled(val==1);
-	myDvrTab->typeCombo->setEnabled(!val);
-	//Make the change in enablement occur in the rendering window, 
-	// Local/Global is not changing.
-	getDvrParams(activeViz)->updateRenderer(!val, dvrParams[activeViz]->isLocal(), false);
-}
-void VizWinMgr::
-setDvrType(int val) {
-	getDvrParams(activeViz)->guiSetType(val);
-}
-void VizWinMgr::
-setDvrVariableNum(int newVal){
-	getDvrParams(activeViz)->guiSetComboVarNum(newVal);
-}
-void VizWinMgr::
-setDvrNumBits(int newVal){
-	getDvrParams(activeViz)->guiSetNumBits(newVal);
-}
-void VizWinMgr::
-setDvrLighting(bool isOn){
-	getDvrParams(activeViz)->guiSetLighting(isOn);
-}
-void VizWinMgr::
-dvrColorBind(){
-	getDvrParams(activeViz)->guiBindColorToOpac();
-}
-void VizWinMgr::
-dvrOpacBind(){
-	getDvrParams(activeViz)->guiBindOpacToColor();
-}
-void VizWinMgr::
-setDvrEditMode(bool mode){
-	myMainWindow->getDvrTab()->navigateButton->setOn(!mode);
-	getDvrParams(activeViz)->guiSetEditMode(mode);
-}
-void VizWinMgr::
-setDvrNavigateMode(bool mode){
-	myMainWindow->getDvrTab()->editButton->setOn(!mode);
-	getDvrParams(activeViz)->guiSetEditMode(!mode);
-}
-void VizWinMgr::
-setDvrAligned(){
-	getDvrParams(activeViz)->guiSetAligned();
-}
-void VizWinMgr::
-refreshHisto(){
-	VizWin* vizWin = getActiveVisualizer();
-	if (!vizWin) return;
-	DvrParams* dParams = getDvrParams(activeViz);
-	//Refresh data range:
-	//dParams->setDatarangeDirty();
-	DataMgr* dataManager = Session::getInstance()->getDataMgr();
-	if (dataManager) {
-		dParams->refreshHistogram();
-	}
-	dParams->refreshTFFrame();
-}
-/*
- * Respond to a slider release
- */
-void VizWinMgr::
-dvrOpacityScale() {
-	getDvrParams(activeViz)->guiSetOpacityScale(
-		myMainWindow->getDvrTab()->opacityScaleSlider->value());
-}
-//Respond to user click on save/load TF.  This launches the intermediate
-//dialog, then sends the result to the DVR params
-void VizWinMgr::
-dvrSaveTF(void){
-	SaveTFDialog* saveTFDialog = new SaveTFDialog(getDvrParams(activeViz),myMainWindow->getDvrTab(),
-		"Save TF Dialog", true);
-	int rc = saveTFDialog->exec();
-	if (rc == 1) getDvrParams(activeViz)->fileSaveTF();
-	//If rc=2, we already saved it to the session.
-	//else if (rc == 2) getDvrParams(activeViz)->sessionSaveTF();
-}
-void VizWinMgr::
-dvrLoadTF(void){
-	//If there are no TF's currently in Session, just launch file load dialog.
-	if (Session::getInstance()->getNumTFs() > 0){
-		LoadTFDialog* loadTFDialog = new LoadTFDialog(getDvrParams(activeViz),myMainWindow->getDvrTab(),
-			"Load TF Dialog", true);
-		int rc = loadTFDialog->exec();
-		if (rc == 0) return;
-		if (rc == 1) getDvrParams(activeViz)->fileLoadTF();
-		//if rc == 2, we already (probably) loaded a tf from the session
-	} else {
-		getDvrParams(activeViz)->fileLoadTF();
-	}
-}
-
-/*************************************************************************************
- *  slots associated with probeTab
- *************************************************************************************/
-void VizWinMgr::
-setProbeTabTextChanged(const QString& ){
-	getProbeParams(activeViz)->guiSetTextChanged(true);
-}
-void VizWinMgr::
-probeReturnPressed(void){
-	//Find the appropriate parameter panel, make it update the visualization window
-	getProbeParams(activeViz)->confirmText(true);
-}
-void VizWinMgr::
-setProbeEnabled(int val){
-
-	//If there's no window, or no datamgr, ignore this.
-	
-	if ((activeViz < 0) || Session::getInstance()->getDataMgr() == 0) {
-		myProbeTab->EnableDisable->setCurrentItem(0);
-		return;
-	}
-	//Make sure this is a change:
-	if (getProbeParams(activeViz)->isEnabled() == (val==1) ) return;
-	getProbeParams(activeViz)->guiSetEnabled(val==1);
-	//Make the change in enablement occur in the rendering window, 
-	// Local/Global is not changing.
-	getProbeParams(activeViz)->updateRenderer(!val, probeParams[activeViz]->isLocal(), false);
-}
-
-void VizWinMgr::
-probeColorBind(){
-	getProbeParams(activeViz)->guiBindColorToOpac();
-}
-void VizWinMgr::
-probeOpacBind(){
-	getProbeParams(activeViz)->guiBindOpacToColor();
-}
-void VizWinMgr::
-setProbeEditMode(bool mode){
-	myMainWindow->getProbeTab()->navigateButton->setOn(!mode);
-	getProbeParams(activeViz)->guiSetEditMode(mode);
-}
-void VizWinMgr::
-setProbeNavigateMode(bool mode){
-	myMainWindow->getProbeTab()->editButton->setOn(!mode);
-	getProbeParams(activeViz)->guiSetEditMode(!mode);
-}
-void VizWinMgr::
-setProbeAligned(){
-	getProbeParams(activeViz)->guiSetAligned();
-}
-void VizWinMgr::
-refreshProbeHisto(){
-	VizWin* vizWin = getActiveVisualizer();
-	if (!vizWin) return;
-	ProbeParams* pParams = getProbeParams(activeViz);
-	//Refresh data range:
-	//dParams->setDatarangeDirty();
-	DataMgr* dataManager = Session::getInstance()->getDataMgr();
-	if (dataManager) {
-		pParams->refreshHistogram();
-	}
-	pParams->refreshTFFrame();
-}
-/*
- * Respond to a slider release
- */
-void VizWinMgr::
-probeOpacityScale() {
-	getProbeParams(activeViz)->guiSetOpacityScale(
-		myMainWindow->getProbeTab()->opacityScaleSlider->value());
-}
-//Respond to user click on save/load TF.  This launches the intermediate
-//dialog, then sends the result to the DVR params
-void VizWinMgr::
-probeSaveTF(void){
-	SaveTFDialog* saveTFDialog = new SaveTFDialog(getProbeParams(activeViz),myMainWindow->getProbeTab(),
-		"Save TF Dialog", true);
-	int rc = saveTFDialog->exec();
-	if (rc == 1) getProbeParams(activeViz)->fileSaveTF();
-	//If rc=2, we already saved it to the session.
-	//else if (rc == 2) getProbeParams(activeViz)->sessionSaveTF();
-}
-void VizWinMgr::
-probeLoadTF(void){
-	//If there are no TF's currently in Session, just launch file load dialog.
-	if (Session::getInstance()->getNumTFs() > 0){
-		LoadTFDialog* loadTFDialog = new LoadTFDialog(getProbeParams(activeViz),myMainWindow->getProbeTab(),
-			"Load TF Dialog", true);
-		int rc = loadTFDialog->exec();
-		if (rc == 0) return;
-		if (rc == 1) getProbeParams(activeViz)->fileLoadTF();
-		//if rc == 2, we already (probably) loaded a tf from the session
-	} else {
-		getProbeParams(activeViz)->fileLoadTF();
-	}
-}
-void VizWinMgr::
-probeCenterRegion(){
-	getRegionParams(activeViz)->guiSetCenter(getProbeParams(activeViz)->getSelectedPoint());
-}
-void VizWinMgr::
-probeCenterView(){
-	getViewpointParams(activeViz)->guiSetCenter(getProbeParams(activeViz)->getSelectedPoint());
-}
-void VizWinMgr::
-probeCenterRake(){
-	getFlowParams(activeViz)->guiCenterRake(getProbeParams(activeViz)->getSelectedPoint());
-}
-void VizWinMgr::
-probeCenterProbe(){
-	getProbeParams(activeViz)->guiCenterProbe();
-}
-void VizWinMgr::
-probeAddSeed(){
-	Point4 pt;
-	pt.set3Val(getProbeParams(activeViz)->getSelectedPoint());
-	AnimationParams* ap = getAnimationParams(activeViz);
-	pt.set1Val(3,(float)ap->getCurrentFrameNumber());
-	getFlowParams(activeViz)->guiAddSeed(pt);
-}	
-void VizWinMgr::
-probeAttachSeed(bool attach){
-	if (attach) probeAddSeed();
-	getProbeParams(activeViz)->guiAttachSeed(attach, getFlowParams(activeViz));
-}
-void VizWinMgr::
-setProbeNumRefinements(int numtrans){
-	getProbeParams(activeViz)->guiSetNumRefinements(numtrans);
-}
-void VizWinMgr::
-probeSelectionChanged(){
-	getProbeParams(activeViz)->guiChangeVariables();
-}
-void VizWinMgr::
-setProbeXCenter(){
-	getProbeParams(activeViz)->guiSetXCenter(
-		myProbeTab->xCenterSlider->value());
-}
-void VizWinMgr::
-setProbeYCenter(){
-	getProbeParams(activeViz)->guiSetYCenter(
-		myProbeTab->yCenterSlider->value());
-}
-void VizWinMgr::
-setProbeZCenter(){
-	getProbeParams(activeViz)->guiSetZCenter(
-		myProbeTab->zCenterSlider->value());
-}
-void VizWinMgr::
-setProbeXSize(){
-	getProbeParams(activeViz)->guiSetXSize(
-		myProbeTab->xSizeSlider->value());
-}
-void VizWinMgr::
-setProbeYSize(){
-	getProbeParams(activeViz)->guiSetYSize(
-		myProbeTab->ySizeSlider->value());
-}
-void VizWinMgr::
-setProbeZSize(){
-	getProbeParams(activeViz)->guiSetZSize(
-		myProbeTab->zSizeSlider->value());
-}
-/*****************************************************************************
- * Called when the contour tab local/global selector is changed.
- * Affects only the contour tab
- ******************************************************************************/
-void VizWinMgr::
-setContourTabTextChanged(const QString& ){
-	getContourParams(activeViz)->guiSetTextChanged(true);
-}
-void VizWinMgr::
-contourReturnPressed(void){
-	//Find the appropriate parameter panel, make it update the visualization window
-	getContourParams(activeViz)->confirmText(true);
-}
-void VizWinMgr::
-setContourLocalGlobal(int val){
-	//If changes  to global, just revert to global panel.
-	//If changes to local, may need to create a new local panel
-	if (val == 0){//toGlobal.  
-		//First set the global status, 
-		//then put  values in tab based on global settings.
-		//Note that updateDialog will trigger events changing values
-		//on the current dialog
-		contourParams[activeViz]->guiSetLocal(false);
-		globalContourParams->updateDialog();
-		tabManager->show();
-	} else { //Local: 
-		//need to revert to existing local settings:
-		contourParams[activeViz]->guiSetLocal(true);
-		contourParams[activeViz]->updateDialog();
-		//and then refresh the panel:
-		tabManager->show();
-		
-	}
-}
-/*************************************************************************************
- * Other slots associated with ContourTab
- *************************************************************************************/
-void VizWinMgr::
-setContourEnabled(int val){
-	getContourParams(activeViz)->guiSetEnabled(val == 1);
-}
-void VizWinMgr::
-setContourVariableNum(int newVal){
-	getContourParams(activeViz)->guiSetVarNum(newVal);
-}
-
-void VizWinMgr::
-setContourLighting(bool isOn){
-	getContourParams(activeViz)->guiSetLighting(isOn);
-}
-
-
-/*****************************************************************************
- * Called when the iso tab local/global selector is changed.
- * Affects only the iso tab
- ******************************************************************************/
-void VizWinMgr::
-setIsoLocalGlobal(int val){
-	//If changes  to global, just revert to global panel.
-	//If changes to local, may need to create a new local panel
-	bool wasEnabled = getIsoParams(activeViz)->isEnabled();
-	if (val == 0){//toGlobal.  
-		//First set the global status, 
-		//then put  values in tab based on global settings.
-		//Note that updateDialog will trigger events changing values
-		//on the current dialog
-	
-		isoParams[activeViz]->guiSetLocal(false);
-		globalIsoParams->updateDialog();
-		tabManager->show();
-		//Was there a change in enablement?
-		
-	} else { //Local: 
-		//need to revert to existing local settings:
-		isoParams[activeViz]->guiSetLocal(true);
-		isoParams[activeViz]->updateDialog();
-		//and then refresh the panel:
-		tabManager->show();
-	
-	}
-	getIsoParams(activeViz)->updateRenderer(wasEnabled,!val, false);
-	
-}
-/*************************************************************************************
- * Other slots associated with IsoTab
- *************************************************************************************/
-void VizWinMgr::
-setIsoTabTextChanged(const QString&){
-	getIsoParams(activeViz)->guiSetTextChanged(true);
-}
-//Respond to click return on any text box
-void VizWinMgr::
-isoReturnPressed(void){
-	//Find the appropriate parameter panel, make it update the visualization window
-	getIsoParams(activeViz)->confirmText(true);
-}
-void VizWinMgr::
-setIsoEnabled(int val){
-	//If there's no window, ignore this.
-	if (activeViz < 0) return;
-	getIsoParams(activeViz)->guiSetEnabled(val==1);
-	//Make the change in enablement occur in the rendering window, 
-	// Local/Global is not changing.
-	getIsoParams(activeViz)->updateRenderer(!val, isoParams[activeViz]->isLocal(),false);
-	
-}
-//Respond to change in variable combo
-void VizWinMgr::
-setIsoVariable1Num(int newVal){
-	getIsoParams(activeViz)->guiSetVariable1(newVal);
-}
-
-/* 
- * This is called when opacity slider is released:
- */
-
-/*
- * Respond to release of slider
- */
-void VizWinMgr::
-setIsoOpac1(){
-	getIsoParams(activeViz)->guiSetOpac1(
-		myMainWindow->getIsoTab()->opacSlider1->value());
-		
-}
-
-void VizWinMgr::
-setIsoValue1(){
-	getIsoParams(activeViz)->guiSetValue1(
-		myMainWindow->getIsoTab()->valueSlider1->value());
 	
 }
 
-/*
- * Respond to user clicking the color button
- */
-void VizWinMgr::
-setIsoColor1(){
-	IsoTab* theIsoTab = myMainWindow->getIsoTab();
-	//Bring up a color selector dialog:
-	QColor newColor = QColorDialog::getColor(theIsoTab->colorButton1->paletteBackgroundColor(), theIsoTab, "Isosurface Color Selection");
-	//Set button color
-	theIsoTab->colorButton1->setPaletteBackgroundColor(newColor);
-	//Set parameter value of the appropriate parameter set:
-	getIsoParams(activeViz)->guiSetColor1(new QColor(newColor));
-}
-/*************************************************************************************
- * slots associated with FlowTab
- *************************************************************************************/
-//There are text changed events for flow (requiring rebuilding flow data),
-//for graphics (requiring regenerating flow graphics), and
-//for dataRange (requiring change of data mapping range, hence regenerating flow graphics)
-void VizWinMgr::setFlowTabFlowTextChanged(const QString&){
-	FlowParams* myFlowParams = getFlowParams(activeViz);
-	myFlowParams->setFlowDataChanged(true);
-	myFlowParams->guiSetTextChanged(true);
-}
-void VizWinMgr::flowAutoToggled(bool on){
-	FlowParams* myFlowParams = getFlowParams(activeViz);
-	myFlowParams->guiSetAutoRefresh(on);
-}
-/*
- * Respond to a slider release
- */
-void VizWinMgr::
-flowOpacityScale() {
-	getFlowParams(activeViz)->guiSetOpacityScale(
-		myMainWindow->getFlowTab()->opacityScaleSlider->value());
-}
-
-void VizWinMgr::setFlowTabGraphicsTextChanged(const QString&){
-	FlowParams* myFlowParams = getFlowParams(activeViz);
-	myFlowParams->setFlowGraphicsChanged(true);
-	myFlowParams->guiSetTextChanged(true);
-}
-void VizWinMgr::setFlowTabRangeTextChanged(const QString&){
-	FlowParams* myFlowParams = getFlowParams(activeViz);
-	myFlowParams->setMapBoundsChanged(true);
-	myFlowParams->guiSetTextChanged(true);
-}
-
-void VizWinMgr::
-flowTabReturnPressed(void){
-	getFlowParams(activeViz)->confirmText(true);
-}
-void VizWinMgr::
-setFlowEnabled(int val){
-	//If there's no window, or no datamgr, ignore this.
-	
-	if ((activeViz < 0) || Session::getInstance()->getDataMgr() == 0) {
-		myFlowTab->EnableDisable->setCurrentItem(0);
-		return;
-	}
-	//Make sure this is a change:
-	if (getFlowParams(activeViz)->isEnabled() == (val==1) ) return;
-	getFlowParams(activeViz)->guiSetEnabled(val==1);
-	//Make the change in enablement occur in the rendering window, 
-	// Local/Global is not changing.
-	getFlowParams(activeViz)->updateRenderer(!val, flowParams[activeViz]->isLocal(), false);
-}
-
-void VizWinMgr::
-rebuildFlow(){
-	getFlowParams(activeViz)->guiRefreshFlow();
-}
-void VizWinMgr::
-setRakeOnRegion(){
-	getFlowParams(activeViz)->guiSetRakeToRegion();
-}
-
-void VizWinMgr::
-setFlowType(int typenum){
-	getFlowParams(activeViz)->guiSetFlowType(typenum);
-	//Activate/deactivate components associated with flow type:
-	if(typenum == 0){//steady:
-		myFlowTab->seedtimeStartEdit->setEnabled(false);
-		myFlowTab->seedtimeEndEdit->setEnabled(false);
-		myFlowTab->seedtimeIncrementEdit->setEnabled(false);
-		myFlowTab->timesampleStartEdit->setEnabled(false);
-		myFlowTab->timesampleEndEdit->setEnabled(false);
-		myFlowTab->timesampleIncrementEdit->setEnabled(false);
-	} else {//unsteady:
-		myFlowTab->seedtimeStartEdit->setEnabled(true);
-		myFlowTab->seedtimeEndEdit->setEnabled(true);
-		myFlowTab->seedtimeIncrementEdit->setEnabled(true);
-		myFlowTab->timesampleStartEdit->setEnabled(true);
-		myFlowTab->timesampleEndEdit->setEnabled(true);
-		myFlowTab->timesampleIncrementEdit->setEnabled(true);
-	}
-}
-void VizWinMgr::
-setFlowNumRefinements(int numTrans){
-	getFlowParams(activeViz)->guiSetNumRefinements(numTrans);
-}
-void VizWinMgr::
-setFlowXVar(int varnum){
-	getFlowParams(activeViz)->guiSetXComboVarNum(varnum);
-}
-void VizWinMgr::
-setFlowYVar(int varnum){
-	getFlowParams(activeViz)->guiSetYComboVarNum(varnum);
-}
-void VizWinMgr::
-setFlowZVar(int varnum){
-	getFlowParams(activeViz)->guiSetZComboVarNum(varnum);
-}
-
-void VizWinMgr::
-checkFlowRandom(bool isRandom){
-	
-	//if (myFlowTab->randomCheckbox->isChecked()) isRandom = true;
-	getFlowParams(activeViz)->guiSetRandom(isRandom);
-	
-}
-void VizWinMgr::
-setFlowXCenter(){
-	getFlowParams(activeViz)->guiSetXCenter(
-		myFlowTab->xCenterSlider->value());
-}
-void VizWinMgr::
-setFlowYCenter(){
-	getFlowParams(activeViz)->guiSetYCenter(
-		myFlowTab->yCenterSlider->value());
-}
-void VizWinMgr::
-setFlowZCenter(){
-	getFlowParams(activeViz)->guiSetZCenter(
-		myFlowTab->zCenterSlider->value());
-}
-void VizWinMgr::
-setFlowXSize(){
-	getFlowParams(activeViz)->guiSetXSize(
-		myFlowTab->xSizeSlider->value());
-}
-void VizWinMgr::
-setFlowYSize(){
-	getFlowParams(activeViz)->guiSetYSize(
-		myFlowTab->ySizeSlider->value());
-}
-void VizWinMgr::
-setFlowZSize(){
-	getFlowParams(activeViz)->guiSetZSize(
-		myFlowTab->zSizeSlider->value());
-}
-void VizWinMgr::
-setFlowGeomSamples(){
-	int sliderPos = myFlowTab->geometrySamplesSlider->value();
-	getFlowParams(activeViz)->guiSetGeomSamples(sliderPos);
-}
-/*
- * Respond to user clicking the color button
- */
-void VizWinMgr::
-setFlowConstantColor(){
-	
-	//Bring up a color selector dialog:
-	QColor newColor = QColorDialog::getColor(myFlowTab->constantColorButton->paletteBackgroundColor(), myFlowTab, "Constant Color Selection");
-	//Set button color
-	myFlowTab->constantColorButton->setPaletteBackgroundColor(newColor);
-	//Set parameter value of the appropriate parameter set:
-	getFlowParams(activeViz)->guiSetConstantColor(newColor);
-}
-
-void VizWinMgr::
-setFlowGeometry(int geomNum){
-	getFlowParams(activeViz)->guiSetFlowGeometry(geomNum);
-}
-void VizWinMgr::
-setFlowColorMapEntity(int entityNum){
-	getFlowParams(activeViz)->guiSetColorMapEntity(entityNum);
-}
-void VizWinMgr::
-setFlowOpacMapEntity(int entityNum){
-	getFlowParams(activeViz)->guiSetOpacMapEntity(entityNum);
-}
-
-void VizWinMgr::
-setFlowEditMode(bool mode){
-	myMainWindow->getFlowTab()->navigateButton->setOn(!mode);
-	getFlowParams(activeViz)->guiSetEditMode(mode);
-}
-void VizWinMgr::
-setFlowNavigateMode(bool mode){
-	myMainWindow->getFlowTab()->editButton->setOn(!mode);
-	getFlowParams(activeViz)->guiSetEditMode(!mode);
-}
-void VizWinMgr::
-setFlowAligned(){
-	getFlowParams(activeViz)->guiSetAligned();
-}
-void VizWinMgr::
-doFlowRake(bool isOn){
-	getFlowParams(activeViz)->guiDoRake(isOn);
-}
-void VizWinMgr::
-doFlowSeedList(bool isOn){
-	getFlowParams(activeViz)->guiDoSeedList(isOn);
-}
-void VizWinMgr::
-loadFlowSeedList(){
-	getFlowParams(activeViz)->guiLoadSeeds();
-}
-
-void VizWinMgr::
-saveFlow(){
-	getFlowParams(activeViz)->guiSaveFlowLines();
-}
-
-void VizWinMgr::
-editFlowSeedList(){
-	getFlowParams(activeViz)->guiEditSeedList();
-}
 
 ViewpointParams* VizWinMgr::
 getViewpointParams(int winNum){
@@ -2401,18 +1101,7 @@ getAnimationParams(int winNum){
 	if (animationParams[winNum] && animationParams[winNum]->isLocal()) return animationParams[winNum];
 	return globalAnimationParams;
 }
-ContourParams* VizWinMgr::
-getContourParams(int winNum){
-	if (winNum < 0) return globalContourParams;
-	if (contourParams[winNum] && contourParams[winNum]->isLocal()) return contourParams[winNum];
-	return globalContourParams;
-}
-IsosurfaceParams* VizWinMgr::
-getIsoParams(int winNum){
-	if (winNum < 0) return globalIsoParams;
-	if (isoParams[winNum] && isoParams[winNum]->isLocal()) return isoParams[winNum];
-	return globalIsoParams;
-}
+
 FlowParams* VizWinMgr::
 getFlowParams(int winNum){
 	if (winNum < 0) return globalFlowParams;
@@ -2426,10 +1115,7 @@ getGlobalParams(Params::ParamType t){
 			return globalVPParams;
 		case (Params::RegionParamsType):
 			return globalRegionParams;
-		case (Params::ContourParamsType):
-			return globalContourParams;
-		case (Params::IsoParamsType):
-			return globalIsoParams;
+			
 		case (Params::DvrParamsType):
 			return globalDvrParams;
 		case (Params::ProbeParamsType):
@@ -2451,10 +1137,7 @@ getLocalParams(Params::ParamType t){
 			return getRealVPParams(activeViz);
 		case (Params::RegionParamsType):
 			return getRealRegionParams(activeViz);
-		case (Params::ContourParamsType):
-			return getRealContourParams(activeViz);
-		case (Params::IsoParamsType):
-			return getRealIsoParams(activeViz);
+		
 		case (Params::DvrParamsType):
 			return getRealDvrParams(activeViz);
 		case (Params::ProbeParamsType):
@@ -2477,10 +1160,6 @@ getApplicableParams(Params::ParamType t){
 			return getViewpointParams(activeViz);
 		case (Params::RegionParamsType):
 			return getRegionParams(activeViz);
-		case (Params::ContourParamsType):
-			return getContourParams(activeViz);
-		case (Params::IsoParamsType):
-			return getIsoParams(activeViz);
 		case (Params::DvrParamsType):
 			return getDvrParams(activeViz);
 		case (Params::ProbeParamsType):
@@ -2489,6 +1168,29 @@ getApplicableParams(Params::ParamType t){
 			return getAnimationParams(activeViz);
 		case (Params::FlowParamsType):
 			return getFlowParams(activeViz);
+		default:  assert(0);
+			return 0;
+	}
+}
+//Get the Params that apply.  If there is no current active viz, then
+//return the global params.
+EventRouter* VizWinMgr::
+getEventRouter(Params::ParamType t){
+	
+	switch (t){
+		case (Params::ViewpointParamsType):
+			return getInstance()->getViewpointRouter();
+		case (Params::RegionParamsType):
+			return getInstance()->getRegionRouter();
+		
+		case (Params::DvrParamsType):
+			return getInstance()->getDvrRouter();
+		case (Params::ProbeParamsType):
+			return getInstance()->getProbeRouter();
+		case (Params::AnimationParamsType):
+			return getInstance()->getAnimationRouter();
+		case (Params::FlowParamsType):
+			return getInstance()->getFlowRouter();
 		default:  assert(0);
 			return 0;
 	}
@@ -2502,50 +1204,78 @@ restartParams(){
 		if(rgParams[i]) rgParams[i]->restart();
 		if(dvrParams[i]) dvrParams[i]->restart();
 		if(probeParams[i]) probeParams[i]->restart();
-		//if(isoParams[i]) isoParams[i]->restart();
+		
 		if(flowParams[i]) flowParams[i]->restart();
-		//if(contourParams[i]) contourParams[i]->restart();
+		
 		if(animationParams[i]) animationParams[i]->restart();
 	}
 	globalVPParams->restart();
 	globalRegionParams->restart();
-	//globalIsoParams->restart();
+	
 	globalFlowParams->restart();
 	globalDvrParams->restart();
 	globalProbeParams->restart();
-	//globalContourParams->restart();
+	
 	globalAnimationParams->restart();
 }
 // force all the existing params to reinitialize, i.e. make minimal
-// changes to use new metadata.  If doOverride is false, we can
+// changes to use new metadata.  If doOverride is true, we can
 // ignore previous settings
 //
 void VizWinMgr::
 reinitializeParams(bool doOverride){
 	
 	globalRegionParams->reinit(doOverride);
+	regionEventRouter->reinitTab(doOverride);
+	regionEventRouter->refreshRegionInfo(globalRegionParams);
 	//NOTE that the vpparams need to be initialized after
 	//the global region params, since they use its settings..
 	//
 	globalVPParams->reinit(doOverride);
-	//globalIsoParams->reinit(doOverride);
-	globalFlowParams->reinit(doOverride);
-	globalDvrParams->reinit(doOverride);
-	globalProbeParams->reinit(doOverride);
-	//globalContourParams->reinit(doOverride);
+	if (!globalFlowParams->reinit(doOverride)){
+		MessageReporter::errorMsg("Flow Params: No data in specified dataset");
+		return;
+	}
+	flowEventRouter->reinitTab(doOverride);
+	//Router can reinit before the params...?
+	dvrEventRouter->reinitTab(doOverride);
+	if (!globalDvrParams->reinit(doOverride)){
+		MessageReporter::errorMsg("DVR Params: No data in specified dataset");
+		return;
+	}
+	probeEventRouter->reinitTab(doOverride);
+	if (!globalProbeParams->reinit(doOverride)){
+		MessageReporter::errorMsg("Probe Params: No data in specified dataset");
+		return;
+	}
+	
+	animationEventRouter->reinitTab(doOverride);
 	globalAnimationParams->reinit(doOverride);
+
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if(vpParams[i]) vpParams[i]->reinit(doOverride);
 		if(rgParams[i]) rgParams[i]->reinit(doOverride);
-		if(dvrParams[i]) dvrParams[i]->reinit(doOverride);
-		if(probeParams[i]) probeParams[i]->reinit(doOverride);
-		//if(isoParams[i]) isoParams[i]->reinit(doOverride);
-		if(flowParams[i]) flowParams[i]->reinit(doOverride);
-		//if(contourParams[i]) contourParams[i]->reinit(doOverride);
+		if(dvrParams[i]) {
+			dvrParams[i]->reinit(doOverride);
+			dvrEventRouter->updateRenderer(dvrParams[i],dvrParams[i]->isEnabled(),dvrParams[i]->isLocal(),false);
+		}
+
+		if(probeParams[i]) {
+			probeParams[i]->reinit(doOverride);
+			probeEventRouter->updateRenderer(probeParams[i],probeParams[i]->isEnabled(),probeParams[i]->isLocal(),false);
+		}
+		
+		if(flowParams[i]) {
+			flowParams[i]->reinit(doOverride);
+			flowEventRouter->updateRenderer(flowParams[i],flowParams[i]->isEnabled(),flowParams[i]->isLocal(),false);
+		}
+		
+		
 		if(animationParams[i]) animationParams[i]->reinit(doOverride);
 		//setup near/far
 		if (vpParams[i] && rgParams[i]) vizWin[i]->getGLWindow()->resetView(getRegionParams(i), getViewpointParams(i));
 	}
+
 }
 void VizWinMgr::
 setSelectionMode( Command::mouseModeType m){ 
@@ -2843,3 +1573,45 @@ bool VizWinMgr::elementEndHandler(ExpatParseMgr* pm, int depth , std::string& ta
 			return false;
 	}
 }
+//General function for all dirty bit setting:
+void VizWinMgr::setVizDirty(Params* p, DirtyBitType bittype, bool bit, bool refresh){
+	VizWin* vw;
+	if (p->getVizNum()>= 0){
+		vw = getVizWin(p->getVizNum());
+		vw->setDirtyBit(p->getParamType(),bittype, bit);
+		if(bit&&refresh) vw->updateGL();
+	} else {
+		//Need to check all the windows whose params are global,
+		Params** paramArray = getParamsArray(p->getParamType());
+		for (int i = 0; i<MAXVIZWINS; i++){
+			if (!paramArray[i] || paramArray[i]->isLocal()) continue;
+			vw = getVizWin(i);
+			vw->setDirtyBit(p->getParamType(),bittype, bit);
+			if(bit&&refresh) vw->updateGL();
+		}
+	}
+}
+Params** VizWinMgr::getParamsArray(Params::ParamType t){
+	switch(t){
+		case Params::DvrParamsType :
+			return (Params**)dvrParams;
+		case Params::AnimationParamsType :
+			return (Params**)animationParams;
+		case Params::RegionParamsType :
+			return (Params**)rgParams;
+			
+		case Params::FlowParamsType :
+			return (Params**)flowParams;
+			
+		case Params::ProbeParamsType :
+			return (Params**)probeParams;
+		case Params::ViewpointParamsType :
+			return (Params**)vpParams;
+		default:
+			assert(0);
+			return 0;
+	}
+}
+
+			
+

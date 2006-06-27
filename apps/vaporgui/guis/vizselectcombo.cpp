@@ -23,6 +23,7 @@
 #include <qtoolbar.h>
 #include <qtooltip.h>
 #include "vizwinmgr.h"
+#include "mainform.h"
 #include "assert.h"
 using namespace VAPoR;
 VizSelectCombo::VizSelectCombo(QToolBar* parent, VizWinMgr* mgr)

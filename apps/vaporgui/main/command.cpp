@@ -57,9 +57,7 @@ void MouseModeCommand::unDo(){
 		case lightMode:
 			MainForm::getInstance()->moveLightsAction->setOn(true);
 			break;
-		case contourMode:
-			MainForm::getInstance()->contourAction->setOn(true);
-			break;
+		
 		default:
 			assert(0);
 	}
@@ -83,9 +81,7 @@ void MouseModeCommand::reDo(){
 		case lightMode:
 			MainForm::getInstance()->moveLightsAction->setOn(true);
 			break;
-		case contourMode:
-			MainForm::getInstance()->contourAction->setOn(true);
-			break;
+		
 		default:
 			assert(0);
 	}
@@ -103,8 +99,7 @@ modeName(mouseModeType t){
 			return " probe-set ";
 		case rakeMode:
 			return " rake-set ";
-		case contourMode:
-			return " contour-set ";
+		
 		case lightMode:
 			return " light-move ";
 		default:  
@@ -137,9 +132,7 @@ void TabChangeCommand::unDo(){
 		case Params::RegionParamsType:
 			MainForm::getInstance()->region();
 			break;
-		case Params::IsoParamsType:
-			MainForm::getInstance()->calcIsosurface();
-			break;
+		
 		case Params::FlowParamsType:
 			MainForm::getInstance()->launchFlowTab();
 			break;
@@ -149,9 +142,7 @@ void TabChangeCommand::unDo(){
 		case Params::ProbeParamsType:
 			MainForm::getInstance()->launchProbeTab();
 			break;
-		case Params::ContourParamsType:
-			MainForm::getInstance()->contourPlanes();
-			break;
+		
 		case Params::AnimationParamsType:
 			MainForm::getInstance()->animationParams();
 			break;
@@ -173,9 +164,7 @@ void TabChangeCommand::reDo(){
 		case Params::RegionParamsType:
 			MainForm::getInstance()->region();
 			break;
-		case Params::IsoParamsType:
-			MainForm::getInstance()->calcIsosurface();
-			break;
+		
 		case Params::FlowParamsType:
 			MainForm::getInstance()->launchFlowTab();
 			break;
@@ -185,9 +174,7 @@ void TabChangeCommand::reDo(){
 		case Params::ProbeParamsType:
 			MainForm::getInstance()->launchProbeTab();
 			break;
-		case Params::ContourParamsType:
-			MainForm::getInstance()->contourPlanes();
-			break;
+		
 		case Params::AnimationParamsType:
 			MainForm::getInstance()->animationParams();
 			break;
@@ -206,12 +193,8 @@ tabName(Params::ParamType t){
 			return " viewpoint ";
 		case Params::RegionParamsType:
 			return " region ";
-		case Params::IsoParamsType:
-			return " isosurface ";
 		case Params::DvrParamsType:
 			return " dvr ";
-		case Params::ContourParamsType:
-			return " contours ";
 		case Params::AnimationParamsType:
 			return " animation ";
 		case Params::FlowParamsType:

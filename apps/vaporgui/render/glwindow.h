@@ -81,7 +81,7 @@ public:
 	bool getPixelData(unsigned char* data);
 
 	void setRenderNew() {renderNew = true;}
-	void draw3DCursor(float position[3]);
+	void draw3DCursor(const float position[3]);
 
 protected:
 

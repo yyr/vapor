@@ -31,9 +31,9 @@ class RegionParams;
 class ViewpointParams;
 class DvrParams;
 class ProbeParams;
-class IsosurfaceParams;
-class ContourParams;
+
 class AnimationParams;
+class FlowParams;
 //Simple Command to handle events associated with creating, deleting, activating visualizers
 //There are only 3:  create, remove, and activate
 //
@@ -62,11 +62,11 @@ protected:
 	//
 	ViewpointParams* vpParams;
 	RegionParams* regionParams;
-	IsosurfaceParams* isoParams;
-	ContourParams* contourParams;
+	
 	DvrParams* dvrParams;
 	ProbeParams* probeParams;
 	AnimationParams* animationParams;
+	FlowParams* flowParams;
 	QColor backgroundColor;
 
 };

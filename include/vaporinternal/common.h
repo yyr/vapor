@@ -1,3 +1,4 @@
+
 #ifdef WIN32
 #ifdef COMMON_EXPORTS
 #define COMMON_API __declspec(dllexport)
@@ -9,11 +10,19 @@
 #else
 #define VDF_API __declspec(dllimport)
 #endif
+
 #ifdef FLOW_EXPORTS
 #define FLOW_API __declspec(dllexport)
 #else
 #define FLOW_API __declspec(dllimport)
 #endif
+
+#ifdef PARAMS_EXPORTS
+#define PARAMS_API __declspec(dllexport)
+#else
+#define PARAMS_API __declspec(dllimport)
+#endif
+
 #ifdef JPEG_EXPORTS
 //Slightly different definitions for jpeg project:
 #     define JPEG_GLOBAL(type) __declspec(dllexport) type
@@ -31,6 +40,7 @@
 #define COMMON_API
 #define VDF_API
 #define FLOW_API
+#define PARAMS_API
 #define JPEG_GLOBAL(type) type
 //Assume all outside projects depending on JPEG are C++
 #ifdef JPEG_EXPORTS

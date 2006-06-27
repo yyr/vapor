@@ -27,6 +27,8 @@
 #include <qwidget.h>
 #include <qimage.h>
 #include "tfelocationtip.h"
+#include "vizwinmgr.h"
+#include "eventrouter.h"
 class QLabel;
 class QWidget;
 
@@ -40,14 +42,19 @@ class TFFrame : public QFrame {
 public:
 	TFFrame( QWidget * parent = 0, const char * name = 0, WFlags f = 0 );
 	~TFFrame();
-	void setEditor(VAPoR::TFEditor* e) {editor = e; locationTip->setEditor(e);}
-	void startTFChange(char* s){editor->getTransferFunction()->startChange(s);}
-	void endTFChange(){editor->getTransferFunction()->endChange();}
+	void setEditor(VAPoR::MapEditor* e) 
+		{editor = (TFEditor*)e; locationTip->setEditor(e); needUpdate = true;}
+	
+	void startTFChange(char* s){
+		VizWinMgr::getInstance()->getEventRouter(editor->getParams()->getParamType())->guiStartChangeMapFcn(s);
+	}
+	void endTFChange(){
+		VizWinMgr::getInstance()->getEventRouter(editor->getParams()->getParamType())->guiEndChangeMapFcn();
+	}
 	VAPoR::TFEditor* getEditor(){return editor;}
 	void notifyColorSelector(QRgb clr){
 		emit(sendRgb(clr));
 	}
-	void setDirtyEditor(TFEditor* ed) {dirtyEditor = ed;}
 	
 		
 public slots:
@@ -56,8 +63,8 @@ public slots:
     void newHsv( int h, int s, int v );
 	//Catch color changes
 	//
-	void startColorChange(){if(editor)editor->getTransferFunction()->startChange("select TF color");}
-	void endColorChange() {if(editor)editor->getTransferFunction()->endChange();}
+	void startColorChange(){startTFChange("select TF color");}
+	void endColorChange() {endTFChange();}
 	void delColorPoint(int indx);
 	void delOpacPoint(int intx);
 	void newColor(int x);
@@ -68,7 +75,7 @@ signals:
 	//send a new color out
 	void sendRgb(QRgb rgb);
 protected:
-	TFEditor* dirtyEditor;
+	
 	//Virtual, Reimplemented here:
 	void paintEvent(QPaintEvent* event);
 	void mousePressEvent( QMouseEvent * );
@@ -84,7 +91,7 @@ protected:
 	void mouseNavigateStart(QMouseEvent*);
 
 	QPixmap pxMap;
-	
+	QImage* editImage;
 	VAPoR::TFEditor* editor;
 	VAPoR::TFELocationTip *locationTip;
 	bool needUpdate;
