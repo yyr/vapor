@@ -27,6 +27,9 @@ TextureBrick::TextureBrick() :
   _nx(0),
   _ny(0),
   _nz(0),
+  _xoffset(0),
+  _yoffset(0),
+  _zoffset(0),
   _center(0,0,0),
   _dmin(0,0,0),
   _dmax(0,0,0),
@@ -35,7 +38,12 @@ TextureBrick::TextureBrick() :
   _tmin(0,0,0),
   _tmax(0,0,0),
   _texid(0),
-  _data(NULL)
+  _format(GL_LUMINANCE),
+  _data(NULL),
+  _haveOwnership(false),
+  _dnx(0),
+  _dny(0),
+  _dnz(0)
 {
   //
   // Setup the 3d texture
@@ -62,7 +70,11 @@ TextureBrick::~TextureBrick()
 {
   glDeleteTextures(1, &_texid);
 
-  delete [] _data;
+  if (_haveOwnership)
+  {
+    delete [] _data;
+  }
+
   _data = NULL;
 }
 
@@ -187,47 +199,166 @@ void TextureBrick::invalidate()
 }
 
 //----------------------------------------------------------------------------
-//
+// Determine if this brick is valid.
 //----------------------------------------------------------------------------
 bool TextureBrick::valid() const
 {
   return (_tmax.x > _tmin.x && _tmax.y > _tmin.y && _tmax.z > _tmin.z);
 }
-int kludge;
+
 
 //----------------------------------------------------------------------------
-//
+// Load data into the texture object
+//----------------------------------------------------------------------------
+void TextureBrick::load(GLint internalFormat, GLint format)
+{
+  _format = format;
+
+  glBindTexture(GL_TEXTURE_3D, _texid);
+
+  if (_dnx >= _nx && _dny >= _ny && _dnz >= _nz)
+  {
+    glTexImage3D(GL_TEXTURE_3D, 0, internalFormat,
+                 _nx, _ny, _nz, 0, _format, GL_UNSIGNED_BYTE, _data);
+  }
+  else
+  {
+    //
+    // The data dimensions and the brick dimensions are different. This
+    // will occur in several circumstances (e.g., with non-power-of-2 data).
+    // We'll create the texture object, but only load what we need to...
+    //
+    glTexImage3D(GL_TEXTURE_3D, 0, internalFormat,
+                 _nx, _ny, _nz, 0, _format, GL_UNSIGNED_BYTE, NULL);
+
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0,
+                    _dnx, _dny, _dnz, _format, GL_UNSIGNED_BYTE, _data);
+  }
+}
+
+//----------------------------------------------------------------------------
+// Reload data into the texture object.
+//----------------------------------------------------------------------------
+void TextureBrick::reload()
+{
+  glBindTexture(GL_TEXTURE_3D, _texid);
+
+  if (_dnx <= _nx && _dny <= _ny && _dnz <= _nz)
+  {
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _dnx, _dny, _dnz, 
+                    _format, GL_UNSIGNED_BYTE, _data);
+  }
+  else
+  {
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, 
+                    _format, GL_UNSIGNED_BYTE, _data);
+  }
+}
+
+
+//----------------------------------------------------------------------------
+// Fill the texture brick. This method is used to deep copy a subset of the 
+// data into the brick. (Used when bricking a volume).
 //----------------------------------------------------------------------------
 void TextureBrick::fill(GLubyte *data, 
                         int bx, int by, int bz,
                         int nx, int ny, int nz, 
                         int xoffset, int yoffset, int zoffset)
 { 
-  _nx = nextPowerOf2(bx);
-  _ny = nextPowerOf2(by);
-  _nz = nextPowerOf2(bz);
+  _nx = bx;
+  _ny = by;
+  _nz = bz;
 
-  delete [] _data;
+  _dnx = nx;
+  _dny = ny;
+  _dnz = nz;
+
+  _xoffset = xoffset;
+  _yoffset = yoffset;
+  _zoffset = zoffset;
+
+  if (_haveOwnership)
+  {
+    delete [] _data;
+  }
+
+  _haveOwnership = true;
   _data = new GLubyte[_nx*_ny*_nz];
- 
+
   //
   // Copy over the data
   //
-  for (int z=0; z<bz && z+zoffset<=nz; z++)
+  for (int z=0; z<bz && z+zoffset<=_dnz; z++)
   {
-    for (int y=0; y<by && y+yoffset<=ny; y++)
+    for (int y=0; y<by && y+yoffset<=_dny; y++)
     {
-      for (int x=0; x<bx && x+xoffset<=nx; x++)
-      {
-        int di = (MIN(x+xoffset, nx-1) + 
-                  MIN(y+yoffset, ny-1)*nx + 
-                  MIN(z+zoffset, nz-1)*nx*ny);
+      int di = (xoffset +
+                MIN(y+yoffset, _dny-1)*_dnx + 
+                MIN(z+zoffset, _dnz-1)*_dnx*_dny);
 
-        int ti = x + y*_nx + z*_nx*_ny;
+      int ti = y*_nx + z*_nx*_ny;
 
-        _data[ti] = data[di];
-      }
+      memcpy(&_data[ti], &data[di], MIN(bx, _dnx-_xoffset)*sizeof(GLubyte));
     }
   }
 }
 
+//----------------------------------------------------------------------------
+// Points the brick to a contigous block of memory. Used when a volume will
+// fit wholly into graphics memory, and bricking is not needed (i.e., there
+// is only one brick, this one). 
+//----------------------------------------------------------------------------
+void TextureBrick::fill(GLubyte *data, int nx, int ny, int nz)
+{ 
+  _dnx = nx;
+  _dny = ny;
+  _dnz = nz;
+
+  _nx = nextPowerOf2(nx);
+  _ny = nextPowerOf2(ny);
+  _nz = nextPowerOf2(nz);
+
+  _xoffset = 0;
+  _yoffset = 0;
+  _zoffset = 0;
+
+  if (_haveOwnership)
+  {
+    delete [] _data;
+  }
+
+  _haveOwnership = false;
+  _data = data;
+}
+
+//----------------------------------------------------------------------------
+// Update the brick's data.
+//----------------------------------------------------------------------------
+void TextureBrick::refill(GLubyte *data)
+{ 
+  if (_haveOwnership)
+  {
+    //
+    // Copy over the data
+    //
+    for (int z=0; z<_nz && z+_zoffset<=_dnz; z++)
+    {
+      for (int y=0; y<_ny && y+_yoffset<=_dny; y++)
+      {
+        int di = (_xoffset +
+                  MIN(y+_yoffset, _dny-1)*_dnx + 
+                  MIN(z+_zoffset, _dnz-1)*_dnx*_dny);
+        
+        int ti = y*_nx + z*_nx*_ny;
+        
+        memcpy(&_data[ti], &data[di], MIN(_nx, _dnx-_xoffset)*sizeof(GLubyte));
+      }
+    }
+  }
+  else
+  {
+    _data = data;
+  }
+
+  reload();
+}

@@ -151,11 +151,7 @@ void DVRShader::loadTexture(TextureBrick *brick)
 
   glActiveTexture(GL_TEXTURE0);
 
-  glBindTexture(GL_TEXTURE_3D, brick->handle());
-
-  glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, 
-               brick->nx(), brick->ny(), brick->nz(), 
-               0, GL_LUMINANCE, GL_UNSIGNED_BYTE, brick->data());
+  brick->load(GL_LUMINANCE8, GL_LUMINANCE);
 
   printOpenGLError();
 }

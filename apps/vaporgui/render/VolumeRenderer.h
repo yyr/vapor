@@ -44,6 +44,11 @@ namespace VAPoR {
 
     static bool supported(DvrParams::DvrType type);
 	
+    //#ifdef BENCHMARKING
+    void  resetTimer()     { _frames = 0; _seconds = 0; }
+    float elapsedTime()    { return _seconds; }
+    int   renderedFrames() { return _frames;  } 
+    //#endif
 
   protected:
     
@@ -56,6 +61,9 @@ namespace VAPoR {
 
     void DrawVoxelScene(unsigned fast);
     void DrawVoxelWindow(unsigned fast);
+
+    int    _frames;
+    double _seconds;
 
   };
 };

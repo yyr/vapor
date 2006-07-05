@@ -34,10 +34,18 @@ class TextureBrick
 
   void* data() { return _data; }
 
+  void load(GLint internalFormat, GLint format);
+  void reload();
+
   void fill(GLubyte *data, 
             int bx, int by, int bz,
             int nx, int ny, int nz,
             int xoffset=0, int yoffset=0, int zoffset=0);
+
+  void fill(GLubyte *data, int nx, int ny, int nz);
+
+  void refill(GLubyte *data);
+
 
   //
   // Accessors for the brick's data block extents
@@ -105,10 +113,15 @@ class TextureBrick
 
  protected:
 
-  // Data size
+  // Brick size (power-of-2)
   int _nx;
   int _ny;
   int _nz;
+
+  // Brick's voxel offset into data
+  int _xoffset;
+  int _yoffset;
+  int _zoffset;
 
   // Brick center
   Point3d _center;
@@ -128,8 +141,18 @@ class TextureBrick
   // GL texture handle
   GLuint _texid;
 
+  // Texture data format
+  GLint _format;
+
   // Data
   GLubyte *_data;
+  bool     _haveOwnership;
+
+  // Data size (maybe non-power-2 < brick size)
+  int _dnx;
+  int _dny;
+  int _dnz;
+
 };
 
 };

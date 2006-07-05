@@ -33,7 +33,7 @@ class QWorkspace;
 class QWidget;
 class QDesktopWidget;
 class QMainWidget;
-
+class QTimer;
 
 #include <qobject.h>
 #include "viewpointparams.h"
@@ -91,6 +91,16 @@ enum DirtyBitType {
 class VizWinMgr : public QObject, public ParsedXml
 {
 	Q_OBJECT
+
+    enum 
+    {
+      PREAMBLE,
+      RENDER,
+      TEMPORAL,
+      TFEDIT,
+      DONE
+    };
+
 public:
 	static VizWinMgr* getInstance() {
 		if (!theVizWinMgr)
@@ -409,6 +419,8 @@ protected:
 	
 	FlowTab* myFlowTab;
 
+    int     benchmark;
+    QTimer *benchmarkTimer;
 
 protected slots:
 	
@@ -423,11 +435,6 @@ protected slots:
 	
 	void setAnimationLocalGlobal(int val);
 	void setFlowLocalGlobal(int val);
-
-
-
-	
-
 };
 };
 #endif // VIZWINMGR_H

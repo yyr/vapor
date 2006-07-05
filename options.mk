@@ -22,6 +22,7 @@ RELEASE=0
 # Set DEBUG to 1 if you want diagnostic messages turned on
 DEBUG=0
 
+BENCHMARK=0
 
 # Set EXPAT_INC_PATH to the directory where 'expat.h' may be found if not
 # in a standard location. expat.h is part of the Expat XML Parser, available
@@ -44,7 +45,6 @@ EXPAT_LIB_PATH=
 #
 NETCDF_INC_PATH=
 
-
 # Set NETCDF_LIB_PATH to the directory where 'libnetcdf.*' may be found 
 # if not in a standard location. libnetcdf is part of Unidata's NetCDF (network
 # Common Data Form), available from 
@@ -58,14 +58,14 @@ NETCDF_LIB_PATH=
 # refers to Trolltech's Qt, available (with some amount of hunting) from
 # http://www.trolltech.com
 #
-QTDIR = 
+QTDIR =
 
 # Set to 1 if you have SGI Volumizer installed on your system and you would
 # like to compile vapor's Volumizer rendering engine. Volumizer is a 
 # licensed product available, for fee, from www.sgi.com. Volumizer is NOT
 # required by vapor.
 #
-BUILD_VOLUMIZER = 0
+BUILD_VOLUMIZER = 1
 
 # Set VOLUMIZER_ROOT to the root of the volumizer directory
 # (Only needed if BUILD_VOLUMIZER is 1)

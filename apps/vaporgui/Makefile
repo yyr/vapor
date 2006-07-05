@@ -33,7 +33,6 @@ MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
 endif
 
 LIBRARIES = vdf common vjpeg flow params 
- 
 
 ifeq ($(BUILD_VOLUMIZER), 1)
 LIBRARIES += vz 

@@ -478,7 +478,6 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
 	Session::getInstance()->unblockRecording();
 	
-
     show();
 }
 

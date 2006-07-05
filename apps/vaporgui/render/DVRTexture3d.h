@@ -25,7 +25,27 @@ namespace VAPoR {
 
 class DVRTexture3d : public DVRBase 
 {
-  class CacheKey;
+
+  //----------------------------------
+  // sub class DVRTexture3d::RegionState
+  //----------------------------------
+  class RegionState
+  {
+
+  public:
+
+    RegionState();
+    virtual ~RegionState() {};
+
+    bool update(int nx, int ny, int nz, 
+                const int roi[6], const int box[6], const float extents[6]);
+  protected:
+
+    int   _dim[3];
+    int   _roi[6];
+    int   _box[6];
+    float _ext[6];
+  };
 
  public:
 
@@ -60,20 +80,26 @@ protected:
                    int nx, int ny, int nz);
   void sortBricks(const Matrix3d &modelview);
 
-  TextureBrick* fetch(void *data, int nx, int ny, int nz);
-
-  static long maxTextureSize(GLenum format);
+  static int maxTextureSize(GLenum format);
 
 protected:
 
+  // data dimensions
   int    _nx;
   int    _ny;
   int    _nz;
+
   void   *_data;
 
-  float  _delta; 
-  long   _maxTexture;
+  // brick dimensions
+  int    _bx;  
+  int    _by;
+  int    _bz;
 
+  float  _delta; 
+  int    _maxTexture;
+  int    _maxBrickDim;
+ 
   // Texture bricks
   vector<TextureBrick*> _bricks;
 
@@ -85,57 +111,9 @@ protected:
   Point3d _tmin;
   Point3d _tmax;
 
- private:
+  // Region state
+  RegionState _lastRegion;
 
-  // Texture cache
-  map<CacheKey, TextureBrick*> _textureCache;
-  int _maxCacheSize;
-
-  // map of maximum texture sizes
-  static std::map<GLenum, int> _textureSizes;
-
-  //--------------------------------
-  // class DVRTexture3d::CacheKey
-  //--------------------------------
-  class CacheKey
-  {
-   public:
- 
-    CacheKey(void *data, int nx, int ny, int nz);
-    virtual ~CacheKey();
-
-    CacheKey(const CacheKey &key);
-    CacheKey operator=(const CacheKey &key);
-
-    // Equivalence
-    friend int operator==(const DVRTexture3d::CacheKey &k1, 
-                          const DVRTexture3d::CacheKey &k2)
-    {
-      return (k1._data == k2._data && 
-              k1._nx == k2._nx &&
-              k1._ny == k2._ny &&
-              k1._nz == k2._nz);
-    }
-
-    friend int operator!=(const DVRTexture3d::CacheKey &k1, 
-                          const DVRTexture3d::CacheKey &k2)
-    {
-      return !(operator==(k1, k2));
-    }
-
-    friend int operator<(const DVRTexture3d::CacheKey &k1, 
-                         const DVRTexture3d::CacheKey &k2)
-    {
-      return k1._data < k2._data;
-    }
-
-  private:
-
-    void *_data;
-    int   _nx;
-    int   _ny;
-    int   _nz;
-  };
 };
 
 };

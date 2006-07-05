@@ -25,6 +25,10 @@ DVRLookup::DVRLookup(DataType_T type, int nthreads) :
   DVRTexture3d(type, nthreads),
   _colormap(NULL)
 {
+  if (GLEW_NV_fragment_program)
+  {
+    _maxTexture /= 4;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -77,9 +81,7 @@ void DVRLookup::loadTexture(TextureBrick *brick)
 { 
   glBindTexture(GL_TEXTURE_3D, brick->handle());
 
-  glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, 
-               brick->nx(), brick->ny(), brick->nz(), 
-               0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, brick->data());
+  brick->load(GL_RGBA8, GL_COLOR_INDEX);
 
   printOpenGLError();
 }

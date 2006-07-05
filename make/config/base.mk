@@ -230,6 +230,12 @@ CFLAGS += -DDEBUG
 CXXFLAGS += -DDEBUG
 endif
 
+ifeq ($(BENCHMARK),1)
+CFLAGS += -DBENCHMARKING
+CXXFLAGS += -DBENCHMARKING
+endif
+
+
 ifdef WINDOWS
 LDFLAGS += /incremental:no 
 #LDFLAGS += /pdb:none

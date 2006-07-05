@@ -23,6 +23,8 @@
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
+#include <qapplication.h>
+#include <qcursor.h>
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qmessagebox.h>
@@ -38,6 +40,7 @@
 #include <qfiledialog.h>
 #include <qlabel.h>
 #include <qlistbox.h>
+#include <qtimer.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -114,6 +117,8 @@ VizWinMgr::VizWinMgr()
     previousClass = 0;
 	activeViz = -1;
 	activationCount = 0;
+    benchmark = DONE;
+    benchmarkTimer = NULL;
     for (int i = 0; i< MAXVIZWINS; i++){
         vizWin[i] = 0;
         vizName[i] = "";
@@ -626,7 +631,6 @@ VizWinMgr::hookUpDvrTab(DvrEventRouter* dvrTab)
 	connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->LocalGlobal, SLOT(setEnabled(bool)));
 	
 	dvrEventRouter->hookUpTab();
-	
 }
 
 void
@@ -1047,6 +1051,7 @@ setProbeLocalGlobal(int val){
 	
 		probeEventRouter->guiSetLocal(probeParams[activeViz],false);
 		probeEventRouter->updateTab(globalProbeParams);
+
 		tabManager->show();
 		//Was there a change in enablement?
 		

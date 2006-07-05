@@ -43,7 +43,11 @@
 #include <qmessagebox.h>
 #include <qapplication.h>
 #include <qcursor.h>
+#include <qstring.h>
+#include <qstatusbar.h>
+
 #include "vizwinmgr.h"
+
 #include "VolumeRenderer.h"
 #include "regionparams.h"
 #include "animationparams.h"
@@ -76,7 +80,9 @@ using namespace VetsUtil;
 VolumeRenderer::VolumeRenderer(VizWin* vw, DvrParams::DvrType type) 
   : Renderer(vw),
     driver(NULL),
-    _type(type)
+    _type(type),
+    _frames(0),
+    _seconds(0)
 {
   //Construct dvrvolumizer
   driver = create_driver(type, 1);
@@ -424,7 +430,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   {
     glLoadIdentity();
   }
-
+  
   //Make the z-buffer read-only for the volume data
   glDepthMask(GL_FALSE);
   //qWarning("Starting render");
@@ -454,30 +460,53 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   myVizWin->setRegionNavigating(false);
 }
 
+
 void VolumeRenderer::DrawVoxelWindow(unsigned fast)
 {
-#ifdef DEBUG_FPS
+#ifdef BENCHMARKING
 
-  static int frames = 0;
-  static float seconds = 0;
   static Stopwatch frameTimer;
 
   frameTimer.reset();
 
-  frames++;
+  do
+  {
+    _frames++;
+    
+    DrawVoxelScene(fast);
+    glFinish();
+
+  } while (frameTimer.read() == 0.0);
+
+  _seconds += frameTimer.read();
+
+  QString msg = QString("%1 fps").arg(_frames/_seconds);
+  MainForm::getInstance()->statusBar()->message(msg);
+    
+#elif defined PROFILING
+
+  static Stopwatch frameTimer;
+
+  frameTimer.reset();
+
+  _frames++;
 
   DrawVoxelScene(fast);
   glFinish();
 
-  seconds += frameTimer.read();
+  _seconds += frameTimer.read();
 
-  if (frames % 100 == 0)
+  if (_frames % 100 == 0)
   {
-    cout << (float)frames/seconds << " fps" << endl;
-    frames=0;
-    seconds=0;
-  }
+    if (_seconds != 0)
+    {
+      QString msg = QString("%1 fps").arg(_frames/_seconds);
+      MainForm::getInstance()->statusBar()->message(msg);
+    }
 
+    _frames  = 0;
+    _seconds = 0;
+  }
 
 #else
 

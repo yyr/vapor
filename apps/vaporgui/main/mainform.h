@@ -102,12 +102,14 @@ public:
     QAction* fileSaveAction;
     QAction* fileSaveAsAction;
     QAction* fileExitAction;
+
 	//Edit menu:
 	//
 	QAction* editUndoAction;
 	QAction* editRedoAction;
 	QAction* editSessionParamsAction;
 	QAction* editVizFeaturesAction;
+    
     //Help menu
 	//
     QAction* helpContentsAction;
@@ -128,7 +130,7 @@ public:
 	QAction* viewStartCaptureAction;
 	QAction* viewEndCaptureAction;
 	QAction* viewSingleCaptureAction;
-	
+
     //Script menu
    
     QAction* scriptIDL_scriptAction;
@@ -223,7 +225,7 @@ public slots:
 	//Whenever the UndoRedo menu is displayed, need to supply the right text:
 	//
 	virtual void setupUndoRedoText();
-	
+
 protected:
 	static MainForm* theMainForm;
 	void resetModeButtons();
@@ -244,7 +246,7 @@ protected:
 	AnimationEventRouter* theAnimationTab;
 	
 	VizSelectCombo* windowSelector;
-	
+
 	QString sessionSaveFile;
 
 	QLabel* modeStatusWidget;

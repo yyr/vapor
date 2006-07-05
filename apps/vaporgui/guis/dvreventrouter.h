@@ -28,6 +28,8 @@
 #include "tfeditor.h"
 #include "dvr.h"
 
+class QTimer;
+
 
 using namespace VetsUtil;
 
@@ -39,6 +41,16 @@ class PanelCommand;
 class Params;
 class DvrEventRouter : public Dvr, public EventRouter {
 	Q_OBJECT
+
+    enum 
+    {
+      PREAMBLE,
+      RENDER,
+      TEMPORAL,
+      TFEDIT,
+      DONE
+    };
+
 public: 
 	
 	void initTypes();
@@ -128,7 +140,21 @@ protected slots:
 	void dvrSaveTF();
 	void refreshHisto();
 
+    // Benchmark slots
+    void runBenchmarks();
+    void benchmarkTimeout();
+    void nextBenchmark();
+    void benchmarkPreamble();
+    void renderBenchmark();
+    void temporalBenchmark();
+    void tfeditBenchmark();
+
+
 protected:
+
+    int     benchmark;
+    QTimer *benchmarkTimer;
+
 	virtual void setDatarangeDirty(Params* dParams);
 	std::map<int, DvrParams::DvrType> typemap;
 	

@@ -39,6 +39,8 @@
 #include <qfiledialog.h>
 #include <qlabel.h>
 #include <qlistbox.h>
+#include <qtimer.h>
+
 #include "regionparams.h"
 #include "regiontab.h"
 #include "mainform.h"
@@ -67,6 +69,7 @@
 #include "glutil.h"
 #include "dvrparams.h"
 #include "dvreventrouter.h"
+#include "animationeventrouter.h"
 #include "eventrouter.h"
 #include "savetfdialog.h"
 #include "loadtfdialog.h"
@@ -80,6 +83,8 @@ using namespace VAPoR;
 DvrEventRouter::DvrEventRouter(QWidget* parent,const char* name): Dvr(parent, name), EventRouter(){
 	myParamsType = Params::DvrParamsType;
 	savedCommand = 0;
+    benchmark = DONE;
+    benchmarkTimer = 0;
 }
 
 
@@ -136,6 +141,13 @@ DvrEventRouter::hookUpTab()
 	connect(alignButton, SIGNAL(clicked()), this, SLOT(guiSetAligned()));
 	
 	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
+
+#ifdef BENCHMARKING
+    connect(benchmarkButton, SIGNAL(clicked()),
+            this, SLOT(runBenchmarks()));
+#else
+    benchmarkGroup->hide();
+#endif
 	
 }
 
@@ -986,4 +998,244 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin) {
 	}
 	setDatarangeDirty(dParams);
 	updateClut(dParams);
+}
+
+
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DvrEventRouter::runBenchmarks()
+{
+  VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
+  if (!vizWin) return;
+
+  VolumeRenderer *renderer =
+    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+
+  if (benchmarkTimer == NULL)
+  {
+    benchmarkTimer = new QTimer(this);
+    connect(benchmarkTimer, SIGNAL(timeout()), this, SLOT(benchmarkTimeout()));
+  }
+
+  //
+  // Start benchmarks
+  //
+  renderer->resetTimer();
+  QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+
+  benchmark = PREAMBLE;
+  benchmarkTimer->start(0, FALSE);
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DvrEventRouter::benchmarkTimeout()
+{
+  switch (benchmark)
+  {
+    case PREAMBLE:
+      benchmarkPreamble();
+      break;
+    case RENDER:
+      renderBenchmark();
+      break;
+    case TEMPORAL:
+      temporalBenchmark();
+      break;
+    case TFEDIT:
+      tfeditBenchmark();
+      break;
+    default:
+      benchmarkTimer->stop();
+      QApplication::restoreOverrideCursor();
+  }
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DvrEventRouter::nextBenchmark()
+{
+  VizWinMgr *mgr = VizWinMgr::getInstance();
+  VizWin *vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
+  if (!vizWin) return;
+
+  VolumeRenderer *renderer =
+    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+
+  benchmark++;
+
+  switch (benchmark)
+  {
+    case RENDER:
+
+      if (renderCheck->isOn())
+      {
+        renderer->resetTimer();
+        break;
+      }
+      else
+      {
+        benchmark++;
+      }
+      
+    case TEMPORAL:
+
+      if(animationCheck->isOn())
+      {
+        AnimationEventRouter *animation = mgr->getAnimationRouter();
+        
+        //
+        // Start the benchmark
+        //
+        renderer->resetTimer();
+        animation->guiToggleReplay(true);
+        animation->guiSetPlay(1);
+        
+        break;
+      }
+      else
+      {
+        benchmark++;
+      }
+
+    case TFEDIT:
+      
+      if (tfCheck->isOn())
+      {
+        renderer->resetTimer();
+        guiSetOpacityScale(0);
+        break;
+      }
+      else
+      {
+        benchmark++;
+      }
+  }
+}
+
+
+//----------------------------------------------------------------------------
+// Print out a premable with type and size information
+//----------------------------------------------------------------------------
+void DvrEventRouter::benchmarkPreamble()
+{
+  VizWinMgr *vizmgr = VizWinMgr::getInstance();
+
+  size_t max_dim[3];
+  size_t min_dim[3];
+  size_t max_bdim[3];
+  size_t min_bdim[3];
+
+  const Metadata *metadata      = Session::getInstance()->getCurrentMetadata();
+  RegionParams    *regionParams = vizmgr->getActiveRegionParams();
+  DvrParams       *dvrParams    = vizmgr->getActiveDvrParams();
+
+  const size_t *bs = metadata->GetBlockSize();
+  int timeStep     = vizmgr->getActiveAnimationParams()->getCurrentFrameNumber();
+  int varNum       = dvrParams->getVarNum();
+  int numxforms    = dvrParams->getNumRefinements();
+
+  regionParams->getAvailableVoxelCoords(numxforms, 
+                                        min_dim, max_dim, 
+                                        min_bdim, max_bdim, 
+                                        timeStep, &varNum, 1);
+  
+  int nx = (max_bdim[0] - min_bdim[0] + 1) * bs[0];
+  int ny = (max_bdim[1] - min_bdim[1] + 1) * bs[1];
+  int nz = (max_bdim[2] - min_bdim[2] + 1) * bs[2];
+
+  VizWin *vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
+  if (!vizWin) return;
+
+  VolumeRenderer *renderer =
+    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+
+  cout << " " << typeCombo->currentText() << " @ ";
+  cout << nx << "x" << ny << "x" << nz << endl;
+
+  nextBenchmark();
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DvrEventRouter::renderBenchmark()
+{
+  VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
+  if (!vizWin) return;
+
+  VolumeRenderer *renderer =
+    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+
+  if (renderer->renderedFrames() < 100 && renderer->elapsedTime() < 10.0)
+  {
+    vizWin->updateGL();
+  } 
+  else
+  {
+    cout << "  Render Benchmark: " 
+         << (float)renderer->renderedFrames()/renderer->elapsedTime() 
+         << " fps" << endl;
+
+    nextBenchmark();
+  }
+}
+
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DvrEventRouter::temporalBenchmark()
+{
+  VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
+  if (!vizWin) return;
+
+  VolumeRenderer *renderer =
+    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+
+  if (renderer->renderedFrames() > 3 && 
+      (renderer->renderedFrames() > 100 || renderer->elapsedTime() > 10.0))
+  {
+    VizWinMgr::getInstance()->getAnimationRouter()->guiSetPlay(0);
+
+    cout << "  Animation (temporal) Benchmark: " 
+         << (float)renderer->renderedFrames()/renderer->elapsedTime() 
+         << " fps" << endl;
+
+    nextBenchmark();
+  }
+}
+
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DvrEventRouter::tfeditBenchmark()
+{
+  VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
+  if (!vizWin) return;
+
+  VolumeRenderer *renderer =
+    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+
+  if (renderer->renderedFrames() < 255 && renderer->elapsedTime() < 10.0)
+  {
+    guiSetOpacityScale(renderer->renderedFrames());
+    vizWin->updateGL();
+  }
+  else
+  {
+    cout << "  Transfer Function Benchmark: " 
+         << (float)renderer->renderedFrames()/renderer->elapsedTime() 
+         << " fps" << endl;
+
+    guiSetOpacityScale(0);
+    vizWin->updateGL();
+
+    nextBenchmark();
+  }
 }

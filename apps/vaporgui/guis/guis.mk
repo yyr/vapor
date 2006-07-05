@@ -6,6 +6,7 @@ GUI_FILES := \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter
 
+
 GUI_QT_HEADERS := \
 	coloradjustdialog colorpicker \
 	loadtfdialog opacadjustdialog \

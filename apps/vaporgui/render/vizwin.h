@@ -88,8 +88,6 @@ public:
 	void setValuesFromGui(ViewpointParams* vparams);
 	//Tell this visualizer to use global or local viewpoint:
 	void setGlobalViewpoint(bool);
-    //Force an update in the gl window:
-	void updateGL() { if (myGLWindow) myGLWindow->update();}
 	int getNumRenderers() { return numRenderers;}
 	Renderer* renderer[MAXNUMRENDERERS];
 	Params::ParamType renderType[MAXNUMRENDERERS];
@@ -103,6 +101,7 @@ public:
 	void appendRenderer(Renderer* ren, Params::ParamType rendererType);
 	void removeRenderer(Params::ParamType rendererType);
 	bool hasRenderer(Params::ParamType rendererType);
+    Renderer* getRenderer(Params::ParamType rendererType);
 	GLWindow* getGLWindow() {return myGLWindow;}
 	TranslateRotateManip* getProbeManip() {return myProbeManip;}
 	TranslateStretchManip* getFlowManip() {return myFlowManip;}
@@ -183,6 +182,11 @@ public:
 	void setColorbarNumTics(int i) {numColorbarTics = i;}
 	bool colorbarIsDirty() {return colorbarDirty;}
 	void setColorbarDirty(bool val){colorbarDirty = val;}
+
+public slots:
+    //Force an update in the gl window:
+	void updateGL() { if (myGLWindow) myGLWindow->update();}
+
 	
 protected:
 	std::map<DirtyBitType,bool> vizDirtyBit; 

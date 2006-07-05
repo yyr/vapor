@@ -783,6 +783,16 @@ bool VizWin::hasRenderer(Params::ParamType rendererType){
 	}
 	return false;
 }
+// Return the renderer of the specified type
+Renderer* VizWin::getRenderer(Params::ParamType rendererType)
+{
+	int i;
+	for (i = 0; i<numRenderers; i++) 
+    {		
+      if (rendererType == renderType[i]) return renderer[i];
+	}
+	return NULL;
+}
 //This determines if the specified point is over one of the faces of the regioncube.
 //ScreenCoords are as in OpenGL:  bottom of window is 0
 //
