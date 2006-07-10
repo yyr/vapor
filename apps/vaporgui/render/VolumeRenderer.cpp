@@ -46,13 +46,12 @@
 #include <qstring.h>
 #include <qstatusbar.h>
 
-#include "vizwinmgr.h"
 
 #include "VolumeRenderer.h"
 #include "regionparams.h"
 #include "animationparams.h"
 #include "viewpointparams.h"
-#include "vizwin.h"
+
 #include "glwindow.h"
 
 #include "DVRLookup.h"
@@ -70,6 +69,7 @@
 #include "command.h"
 #include "session.h"
 #include "glutil.h"
+#include "dvrparams.h"
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -77,8 +77,8 @@ using namespace VetsUtil;
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-VolumeRenderer::VolumeRenderer(VizWin* vw, DvrParams::DvrType type) 
-  : Renderer(vw),
+VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type) 
+  : Renderer(glw),
     driver(NULL),
     _type(type),
     _frames(0),
@@ -245,12 +245,11 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   // Nothing to do if there's no data source!
   if (!myDataMgr) return;
 	
-  int winNum = myVizWin->getWindowNum();
-  RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-  int timeStep = VizWinMgr::getInstance()->getAnimationParams(winNum)->getCurrentFrameNumber();
+  RegionParams* myRegionParams = myGLWindow->getRegionParams();
+  int timeStep = myGLWindow->getAnimationParams()->getCurrentFrameNumber();
   
 	
-  DvrParams* myDVRParams = VizWinMgr::getInstance()->getDvrParams(winNum);
+  DvrParams* myDVRParams = myGLWindow->getDvrParams();
   int varNum = myDVRParams->getVarNum();
 	
   
@@ -261,7 +260,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //of the full mapped data.
   int numxforms;
 
-  if (myVizWin->mouseIsDown()) 
+  if (myGLWindow->mouseIsDown()) 
   {
     numxforms = 0;
   }
@@ -271,7 +270,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //that affects the opacity correction.
   if (numxforms != savedNumXForms)
   {
-    myVizWin->setDvrClutDirty(true);
+    myGLWindow->setDvrClutDirty(true);
     savedNumXForms = numxforms;
   }
 
@@ -305,7 +304,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   // set up region. Only need to do this if the data
   // roi changes, or if the datarange has changed.
   //
-  if (regionValid&&(myVizWin->regionIsDirty()|| myVizWin->dvrDatarangeIsDirty()||myVizWin->regionIsNavigating())) 
+  if (regionValid&&(myGLWindow->regionIsDirty()|| myGLWindow->dvrDatarangeIsDirty()||myGLWindow->regionIsNavigating())) 
   {
     
     myGLWindow->setRenderNew();
@@ -385,7 +384,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	
   }
   
-  if (myVizWin->dvrClutIsDirty()) {
+  if (myGLWindow->dvrClutIsDirty()) {
     myGLWindow->setRenderNew();
     //Same table sets CLUT and OLUT
     //
@@ -441,23 +440,23 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //qWarning("Render done");
   
   //Colorbar is rendered with DVR renderer:
-  if(myVizWin->colorbarIsEnabled()){
+  if(myGLWindow->colorbarIsEnabled()){
     //Now go to default 2D window
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
 	
-    renderColorscale(myVizWin->colorbarIsDirty()||myVizWin->dvrClutIsDirty()||myVizWin->dvrDatarangeIsDirty());
+    renderColorscale(myGLWindow->colorbarIsDirty()||myGLWindow->dvrClutIsDirty()||myGLWindow->dvrDatarangeIsDirty());
 	
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
   }
   
-  myVizWin->setDvrClutDirty(false);
-  myVizWin->setDvrDatarangeDirty(false);
-  myVizWin->setRegionNavigating(false);
+  myGLWindow->setDvrClutDirty(false);
+  myGLWindow->setDvrDatarangeDirty(false);
+  myGLWindow->setRegionNavigating(false);
 }
 
 

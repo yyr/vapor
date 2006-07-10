@@ -174,7 +174,7 @@ public:
 	QWorkspace* getWorkspace() {return myWorkspace;}
 	//Disable the editUndo/Redo action:
 	void disableUndoRedo();
-	MouseModeCommand::mouseModeType getCurrentMouseMode() {return currentMouseMode;}
+	
 	
 	
 
@@ -231,7 +231,7 @@ protected:
 	void resetModeButtons();
 	
 	Params::ParamType currentFrontTab;
-	MouseModeCommand::mouseModeType currentMouseMode;
+	
 	QWorkspace* myWorkspace;
     TabManager* tabWidget;
     QHBoxLayout* MainFormLayout;

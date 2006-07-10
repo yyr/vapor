@@ -24,7 +24,7 @@
 #include "renderer.h"
 #include "flowparams.h"
 namespace VAPoR {
-class VizWin;
+//class VizWin;
 enum DirtyBitType;
 class FlowRenderer : public Renderer
 {
@@ -32,7 +32,7 @@ class FlowRenderer : public Renderer
 
 public:
 
-    FlowRenderer( VizWin* , FlowParams* );
+    FlowRenderer( GLWindow* , FlowParams* );
     ~FlowRenderer();
 	
 	virtual void		initializeGL();

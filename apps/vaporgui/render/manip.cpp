@@ -46,8 +46,8 @@ getBoxVertices(float vertices[8][3]){
 //
 
 
-TranslateStretchManip::TranslateStretchManip(VizWin* win, Params* p) : Manip(win) {
-	QColor& c = myVizWin->getSubregionFrameColor();
+TranslateStretchManip::TranslateStretchManip(GLWindow* win, Params* p) : Manip(win) {
+	QColor& c = myGLWin->getSubregionFrameColor();
 	subregionFrameColor[0]= (float)c.red()/255.;
 	subregionFrameColor[1]= (float)c.green()/255.;
 	subregionFrameColor[2]= (float)c.blue()/255.;
@@ -78,7 +78,7 @@ mouseIsOverHandle(float screenCoords[2], float* boxExtents, int* faceNum){
 	
 	//Get the camera position in cube coords.  This is needed to determine
 	//which handles are in front of the box.
-	ViewpointParams* myViewpointParams = VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum());
+	ViewpointParams* myViewpointParams = myGLWin->getViewpointParams();
 	ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camPos);
 	//qWarning(" mouseHandleTest: campos is %f %f %f",camPos[0],camPos[1],camPos[2]);
 	//Determine the octant based on camera relative to box center:
@@ -90,7 +90,7 @@ mouseIsOverHandle(float screenCoords[2], float* boxExtents, int* faceNum){
 	}
 	for (int sortNum = 0; sortNum < 3; sortNum++){
 		handleNum = makeHandleFaces(sortNum, handle, octant, boxExtents);
-		if((face = myVizWin->getGLWindow()->pointIsOnBox(handle, screenCoords)) >= 0){
+		if((face = myGLWin->pointIsOnBox(handle, screenCoords)) >= 0){
 			*faceNum = face; return handleNum;
 		}
 	}
@@ -99,7 +99,7 @@ mouseIsOverHandle(float screenCoords[2], float* boxExtents, int* faceNum){
 	//Then check backHandles
 	for (int sortNum = 3; sortNum < 6; sortNum++){
 		handleNum = makeHandleFaces(sortNum, handle, octant, boxExtents);
-		if((face = myVizWin->getGLWindow()->pointIsOnBox(handle, screenCoords)) >= 0){
+		if((face = myGLWin->pointIsOnBox(handle, screenCoords)) >= 0){
 			*faceNum = face; return handleNum;
 		}
 	}
@@ -355,17 +355,17 @@ rayHandleIntersect(float ray[3], float cameraPos[3], int handleNum, int faceNum,
 //Renders handles and box
 //If it is stretching, it only moves the one handle that is doing the stretching
 void TranslateStretchManip::render(){
-	if (!myVizWin || !myParams) return;
+	if (!myGLWin || !myParams) return;
 	float camVec[3];
 	float extents[6];
 	//Calculate the box extents, and the viewer position, in the unit cube,
 	//Without any rotation applied:
 	myParams->calcBoxExtentsInCube(extents);
-	ViewpointParams* myViewpointParams = VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum());
+	ViewpointParams* myViewpointParams = myGLWin->getViewpointParams();
 	ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
 
 	//Set the handleSize, in cube coords:
-	handleSizeInCube = myVizWin->getPixelSize()*(float)HANDLE_DIAMETER/ViewpointParams::getMaxCubeSide();
+	handleSizeInCube = myGLWin->getPixelSize()*(float)HANDLE_DIAMETER/ViewpointParams::getMaxCubeSide();
 	
 	//Color depends on which item selected. (reg color vs highlight color)
 	//Selected item is rendered at current offset
@@ -663,7 +663,7 @@ void TranslateStretchManip::drawHandleConnector(int handleNum, float* handleExte
 
 //Subclass constructor.  Allows rotated cube to be translated and stretched
 //
-TranslateRotateManip::TranslateRotateManip(VizWin* w, Params* p) : TranslateStretchManip(w,p){
+TranslateRotateManip::TranslateRotateManip(GLWindow* w, Params* p) : TranslateStretchManip(w,p){
 }
 void TranslateRotateManip::drawBoxFaces(){
 	float corners[8][3];
@@ -904,18 +904,18 @@ slideHandle(int handleNum, float movedRay[3]){
 //This rendering takes place in cube coords
 //The extents argument give the full domain coordinate extents in the unit cube
 void TranslateRotateManip::render(){
-	if (!myVizWin || !myParams) return;
+	if (!myGLWin || !myParams) return;
 	float camVec[3];
 	float extents[6];
 	//Calculate the box extents, and the viewer position, in the unit cube,
 	//With any rotation applied:
 	//myParams->calcBoxExtentsInCube(extents);
 	myParams->calcContainingBoxExtentsInCube(extents);
-	ViewpointParams* myViewpointParams = VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum());
+	ViewpointParams* myViewpointParams = myGLWin->getViewpointParams();
 	ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
 
 	//Set the handleSize, in cube coords:
-	handleSizeInCube = myVizWin->getPixelSize()*(float)HANDLE_DIAMETER/ViewpointParams::getMaxCubeSide();
+	handleSizeInCube = myGLWin->getPixelSize()*(float)HANDLE_DIAMETER/ViewpointParams::getMaxCubeSide();
 	
 	//Color depends on which item selected. (reg color vs highlight color)
 	//Selected item is rendered at current offset

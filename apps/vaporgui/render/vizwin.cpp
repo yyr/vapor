@@ -76,72 +76,22 @@ using namespace VAPoR;
 VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMgr, QRect* location, int winNum)
     : QMainWindow( (QWidget*)parent, name, fl )
 {
-	int i;
+	
     if ( !name )
 		setName( "VizWin" );
     myParent = parent;
     myWindowNum = winNum;
-	vizDirtyBit.clear();
-	setDirtyBit(Params::DvrParamsType,DvrClutBit, true);
-	setDirtyBit(Params::DvrParamsType,ProbeTextureBit, true);
-	setDirtyBit(Params::DvrParamsType,DvrDatarangeBit, true);
-	setDirtyBit(Params::RegionParamsType,RegionBit, true);
-	setDirtyBit(Params::ViewpointParamsType,NavigatingBit, true);
-	setDirtyBit(Params::DvrParamsType,ColorscaleBit, true);
-	numRenderers = 0;
-    for (i = 0; i< MAXNUMRENDERERS; i++)
-		renderer[i] = 0;
+	
+	
         
     move(location->topLeft());
     resize(location->size());
     //qWarning("Launching window %d", winNum);
     myWinMgr = myMgr;
 	mouseDownHere = false;
-	setViewerCoordsChanged(true);
 	
-	capturing = false;
-	newCapture = false;
-
-	//values of features:
-	backgroundColor =  QColor(black);
-	regionFrameColor = QColor(white);
-	subregionFrameColor = QColor(red);
-	colorbarBackgroundColor = QColor(black);
-	axesEnabled = false;
-	regionFrameEnabled = true;
-	subregionFrameEnabled = false;
-	colorbarEnabled = false;
-	for (i = 0; i<3; i++)
-	    axisCoord[i] = -0.f;
-	colorbarLLCoord[0] = 0.1f;
-	colorbarLLCoord[1] = 0.1f;
-	colorbarURCoord[0] = 0.3f;
-	colorbarURCoord[1] = 0.5f;
-	numColorbarTics = 11;
-	colorbarDirty = true;
-	
-    // actions
-   
-    //helpContentsAction = new QAction( this, "helpContentsAction" );
-    //helpIndexAction = new QAction( this, "helpIndexAction" );
-    //helpAboutAction = new QAction( this, "helpAboutAction" );
-
-    
-
     languageChange();
-    
     clearWState( WState_Polished );
-	
-
-    // signals and slots connections
-   
-    //connect( helpIndexAction, SIGNAL( activated() ), this, SLOT( helpIndex() ) );
-    //connect( helpContentsAction, SIGNAL( activated() ), this, SLOT( helpContents() ) );
-    //connect( helpAboutAction, SIGNAL( activated() ), this, SLOT( helpAbout() ) );
-	//connect (homeAction, SIGNAL(activated()), this, SLOT(goHome()));
-	//connect (sethomeAction, SIGNAL(activated()), this, SLOT(setHome()));
-   
-	
 	
 	/*  Following copied from QT OpenGL Box example:*/
 	// Create a nice frame to put around the OpenGL widget
@@ -157,11 +107,18 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	fmt.setDepth(true);
 	fmt.setDoubleBuffer(true);
 	fmt.setDirectRendering(true);
-    myGLWindow = new GLWindow(fmt, f, "glwindow", this);
+    myGLWindow = new GLWindow(fmt, f, "glwindow",myWindowNum);
 	if (!(fmt.directRendering() && fmt.depth() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
 		BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}
-
+	myGLWindow->setViewpointParams(myWinMgr->getViewpointParams(myWindowNum));
+	myGLWindow->setRegionParams(myWinMgr->getRegionParams(myWindowNum));
+	myGLWindow->setAnimationParams(myWinMgr->getAnimationParams(myWindowNum));
+	myGLWindow->setDvrParams(myWinMgr->getDvrParams(myWindowNum));
+	myGLWindow->setFlowParams(myWinMgr->getFlowParams(myWindowNum));
+	myGLWindow->setProbeParams(myWinMgr->getProbeParams(myWindowNum));
+	myGLWindow->setPreRenderCB(preRenderSetup);
+	myGLWindow->setPostRenderCB(endRender);
 
     QHBoxLayout* flayout = new QHBoxLayout( f, 2, 2, "flayout");
     flayout->addWidget( myGLWindow, 1 );
@@ -185,13 +142,8 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	myGLWindow->myTBall = myTrackball;
 	setValuesFromGui(vpparms);
 	
-	//Create Manips:
 	
-	myProbeManip = new TranslateRotateManip(this, (Params*)myWinMgr->getProbeParams(myWindowNum));
 	
-	myFlowManip = new TranslateStretchManip(this, (Params*)myWinMgr->getFlowParams(myWindowNum));
-	myRegionManip = new TranslateStretchManip(this, (Params*)myWinMgr->getRegionParams(myWindowNum));
-	//Note:  Caller must call show()
 	
 }
 
@@ -297,16 +249,17 @@ mousePressEvent(QMouseEvent* e){
 	else if (e->button() == Qt::RightButton) buttonNum = 2;
 	//possibly navigate after other activities
 	bool doNavigate = false;
-	switch (myWinMgr->selectionMode){
+	
+	switch (GLWindow::getCurrentMouseMode()){
 		//In region mode,first check for clicks on selected region
-		case Command::regionMode :
+		case GLWindow::regionMode :
 			if (buttonNum > 0){
 				
 				int faceNum;
 				float boxExtents[6];
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				RegionParams* rParams = myWinMgr->getRegionParams(myWindowNum);
-				TranslateStretchManip* regionManip = getRegionManip();
+				TranslateStretchManip* regionManip = myGLWindow->getRegionManip();
 				regionManip->setParams(rParams);
 				rParams->calcBoxExtentsInCube(boxExtents);
 				int handleNum = regionManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
@@ -319,7 +272,7 @@ mousePressEvent(QMouseEvent* e){
 					regionManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
 					RegionEventRouter* rep = VizWinMgr::getInstance()->getRegionRouter();
 					rep->captureMouseDown();
-					mouseDownHere = true;
+					setMouseDown(true);
 					break;
 				}
 			
@@ -328,14 +281,14 @@ mousePressEvent(QMouseEvent* e){
 			doNavigate = true;
 			break;
 		//Rakemode is like regionmode
-		case Command::rakeMode :
+		case GLWindow::rakeMode :
 			if (buttonNum > 0){
 				
 				int faceNum;
 				float boxExtents[6];
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				FlowParams* fParams = myWinMgr->getFlowParams(myWindowNum);
-				TranslateStretchManip* flowManip = getFlowManip();
+				TranslateStretchManip* flowManip = myGLWindow->getFlowManip();
 				flowManip->setParams(fParams);
 				fParams->calcBoxExtentsInCube(boxExtents);
 				int handleNum = flowManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
@@ -347,7 +300,7 @@ mousePressEvent(QMouseEvent* e){
 					//Remember which handle we hit, highlight it, save the intersection point.
 					flowManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
 					VizWinMgr::getInstance()->getFlowRouter()->captureMouseDown();
-					mouseDownHere = true;
+					setMouseDown(true);
 					break;
 				}
 			
@@ -356,7 +309,7 @@ mousePressEvent(QMouseEvent* e){
 			doNavigate = true;
 			break;
 
-		case Command::probeMode :
+		case GLWindow::probeMode :
 			if (buttonNum > 0)
 			{
 				int faceNum;
@@ -364,7 +317,7 @@ mousePressEvent(QMouseEvent* e){
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				ProbeParams* pParams = myWinMgr->getProbeParams(myWindowNum);
 				
-				TranslateRotateManip* probeManip = getProbeManip();
+				TranslateRotateManip* probeManip = myGLWindow->getProbeManip();
 				probeManip->setParams(pParams);
 				//pParams->calcBoxExtentsInCube(boxExtents);
 				pParams->calcContainingBoxExtentsInCube(boxExtents);
@@ -392,7 +345,7 @@ mousePressEvent(QMouseEvent* e){
 					probeManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
 					ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
 					per->captureMouseDown();
-					mouseDownHere = true;
+					setMouseDown(true);
 					break;
 				}
 			}
@@ -401,7 +354,7 @@ mousePressEvent(QMouseEvent* e){
 			break;
 		default:
 			
-		case Command::navigateMode : 
+		case GLWindow::navigateMode : 
 			doNavigate = true;
 			break;
 			
@@ -412,7 +365,7 @@ mousePressEvent(QMouseEvent* e){
 					vep->captureMouseDown();
 		
 		myTrackball->MouseOnTrackball(0, e->button(), e->x(), e->y(), width(), height());
-		mouseDownHere = true;
+		setMouseDown(true);
 		mouseDownPosition = e->pos();
 		//Force an update of region params, so low res is shown
 		setDirtyBit(Params::ViewpointParamsType,NavigatingBit,true);
@@ -428,16 +381,16 @@ mouseReleaseEvent(QMouseEvent*e){
 	//if (numRenderers <= 0) return;//used for mouse mode stuff
 	bool doNavigate = false;
 	TranslateStretchManip* myManip;
-	switch (myWinMgr->selectionMode){
+	switch (GLWindow::getCurrentMouseMode()){
 		
-		case Command::regionMode :
-			myManip = getRegionManip();
+		case GLWindow::regionMode :
+			myManip = myGLWindow->getRegionManip();
 			//Check if the seed bounds were moved
 			if (myManip->draggingHandle() >= 0){
 				float screenCoords[2];
 				screenCoords[0] = (float)e->x();
 				screenCoords[1] = (float)(height() - e->y());
-				mouseDownHere = false;
+				setMouseDown(false);
 				//The manip must move the region, and then tells the params to
 				//record end of move
 				myManip->mouseRelease(screenCoords);
@@ -446,39 +399,39 @@ mouseReleaseEvent(QMouseEvent*e){
 			} //otherwise fall through to navigate mode
 			doNavigate = true;
 			break;
-		case Command::rakeMode :
-			myManip = getFlowManip();
+		case GLWindow::rakeMode :
+			myManip = myGLWindow->getFlowManip();
 			//Check if the seed bounds were moved
 			if (myManip->draggingHandle() >= 0){
 				float screenCoords[2];
 				screenCoords[0] = (float)e->x();
 				screenCoords[1] = (float)(height() - e->y());
-				mouseDownHere = false;
+				setMouseDown(false);
 				//The manip must move the rake, and then tell the params to
 				//record end of move??
 				myManip->mouseRelease(screenCoords);
-				//myWinMgr->getProbeParams(myWindowNum)->captureMouseUp();
+				
 				break;
 			} //otherwise fall through to navigate mode
 			doNavigate = true;
 			break;
-		case Command::probeMode :
-			myManip = getProbeManip();
+		case GLWindow::probeMode :
+			myManip = myGLWindow->getProbeManip();
 			if (myManip->draggingHandle() >= 0){
 				float screenCoords[2];
 				screenCoords[0] = (float)e->x();
 				screenCoords[1] = (float)(height() - e->y());
-				mouseDownHere = false;
+				setMouseDown(false);
 				//The manip must move the probe, and then tell the params to
 				//record end of move.
 				myManip->mouseRelease(screenCoords);
-				//myWinMgr->getProbeParams(myWindowNum)->captureMouseUp();
+				
 				break;
 			} //otherwise fall through to navigate mode
 			doNavigate = true;
 			break;
 		default:
-		case Command::navigateMode : 
+		case GLWindow::navigateMode : 
 			doNavigate = true;
 			break;
 
@@ -487,7 +440,7 @@ mouseReleaseEvent(QMouseEvent*e){
 	if(doNavigate){
 		VizWinMgr::getEventRouter(Params::ViewpointParamsType)->captureMouseUp();
 		myTrackball->MouseOnTrackball(2, e->button(), e->x(), e->y(), width(), height());
-		mouseDownHere = false;
+		setMouseDown(false);
 		//If it's a right mouse being released, must update near/far distances:
 		if (e->button() == Qt::RightButton){
 			myWinMgr->resetViews(myWinMgr->getRegionParams(myWindowNum),
@@ -516,17 +469,17 @@ mouseReleaseEvent(QMouseEvent*e){
  */
 void VizWin:: 
 mouseMoveEvent(QMouseEvent* e){
-	if (!mouseDownHere) return;
+	if (!mouseIsDown()) return;
 
 	bool doNavigate = false;
 	//Respond based on what activity we are tracking
 	//Need to tell the appropriate params about the change,
 	//And it should refresh the panel
 	
-	switch (myWinMgr->selectionMode){
-		case Command::regionMode :
+	switch (GLWindow::getCurrentMouseMode()){
+		case GLWindow::regionMode :
 			{
-				TranslateStretchManip* myRegionManip = getRegionManip();
+				TranslateStretchManip* myRegionManip = myGLWindow->getRegionManip();
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				int handleNum = myRegionManip->draggingHandle();
 				//In probe mode, check first to see if we are dragging face
@@ -543,9 +496,9 @@ mouseMoveEvent(QMouseEvent* e){
 			//Fall through to navigate if not dragging face
 			doNavigate = true;
 			break;
-		case Command::rakeMode :
+		case GLWindow::rakeMode :
 			{
-				TranslateStretchManip* myFlowManip = getFlowManip();
+				TranslateStretchManip* myFlowManip = myGLWindow->getFlowManip();
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				int handleNum = myFlowManip->draggingHandle();
 				//In probe mode, check first to see if we are dragging face
@@ -564,9 +517,9 @@ mouseMoveEvent(QMouseEvent* e){
 			//Fall through to navigate if not dragging face
 			doNavigate = true;
 			break;
-		case Command::probeMode :
+		case GLWindow::probeMode :
 			{
-				TranslateRotateManip* myProbeManip = getProbeManip();
+				TranslateRotateManip* myProbeManip = myGLWindow->getProbeManip();
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				int handleNum = myProbeManip->draggingHandle();
 				//In probe mode, check first to see if we are dragging face
@@ -586,7 +539,7 @@ mouseMoveEvent(QMouseEvent* e){
 			doNavigate = true;
 			break;
 		default:
-		case Command::navigateMode : 
+		case GLWindow::navigateMode : 
 			doNavigate = true;
 			break;
 		
@@ -595,7 +548,7 @@ mouseMoveEvent(QMouseEvent* e){
 		QPoint deltaPoint = e->globalPos() - mouseDownPosition;
 		myTrackball->MouseOnTrackball(1, e->button(), e->x(), e->y(), width(), height());
 		//Note that the coords have changed:
-		setViewerCoordsChanged(true);
+		myGLWindow->setViewerCoordsChanged(true);
 	}
 	myGLWindow->updateGL();
 	return;
@@ -665,7 +618,7 @@ changeCoords(float *vpos, float* vdir, float* upvec) {
 	ViewpointParams::worldFromCube(vpos,worldPos);
 	myWinMgr->getViewpointRouter()->navigate(myWinMgr->getViewpointParams(myWindowNum),worldPos, vdir, upvec);
 	
-	setViewerCoordsChanged(false);
+	myGLWindow->setViewerCoordsChanged(false);
 	//If this window is using global VP, must tell all other global windows to update:
 	if (globalVP){
 		for (int i = 0; i< MAXVIZWINS; i++){
@@ -716,83 +669,7 @@ setGlobalViewpoint(bool setGlobal){
 	ViewpointParams* vpparms = myWinMgr->getViewpointParams(myWindowNum);
 	setValuesFromGui(vpparms);
 }
-/*
- * Add a renderer to this visualization window
- * Add it at the end of the list.
- * This happens when the dvr renderer is enabled, or if
- * the local/global switch causes a new one to be enabled
- */
-void VizWin::
-appendRenderer(Renderer* ren, Params::ParamType rendererType)
-{
-	if (numRenderers < MAXNUMRENDERERS){
-		renderer[numRenderers] = ren;
-		renderType[numRenderers++] = rendererType;
-		ren->initializeGL();
-		myGLWindow->update();
-	}
-}
-/*
- * Insert a renderer to this visualization window
- * Add it at the start of the list.
- * This happens when a flow renderer or iso renderer is added
- */
-void VizWin::
-prependRenderer(Renderer* ren, Params::ParamType rendererType)
-{
-	if (numRenderers < MAXNUMRENDERERS){
-		for (int i = numRenderers; i> 0; i--){
-			renderer[i] = renderer[i-1];
-			renderType[i] = renderType[i-1];
-		}
-		renderer[0] = ren;
-		renderType[0] = rendererType;
-		numRenderers++;
-		ren->initializeGL();
-		myGLWindow->update();
-	}
-}
-/* 
- * Remove renderer of specified renderer type (only one can exist currently).
- */
-void VizWin::removeRenderer(Params::ParamType rendererType){
-	int i;
-	for (i = 0; i<numRenderers; i++) {		
-		if (rendererType != renderType[i]) continue;
-		delete renderer[i];
-		renderer[i] = 0;
-		break;
-	}
-	//Note that we won't always find one to remove.
-	if (i == numRenderers){ 
-		return;
-	}
-	numRenderers--;
-	for (int j = i; j<numRenderers; j++){
-		renderer[j] = renderer[j+1];
-		renderType[j] = renderType[j+1];
-	}
-	myGLWindow->updateGL();
-	
-}
-//Determine if this window has a renderer of the specified type
-bool VizWin::hasRenderer(Params::ParamType rendererType){
-	int i;
-	for (i = 0; i<numRenderers; i++) {		
-		if (rendererType == renderType[i]) return true;
-	}
-	return false;
-}
-// Return the renderer of the specified type
-Renderer* VizWin::getRenderer(Params::ParamType rendererType)
-{
-	int i;
-	for (i = 0; i<numRenderers; i++) 
-    {		
-      if (rendererType == renderType[i]) return renderer[i];
-	}
-	return NULL;
-}
+
 //This determines if the specified point is over one of the faces of the regioncube.
 //ScreenCoords are as in OpenGL:  bottom of window is 0
 //
@@ -936,6 +813,40 @@ pointOverCube(FlowParams* fParams, float screenCoords[2]){
 	
 	return -1;
 }
+/*
+ * Obtain current view frame from gl model matrix
+ */
+void VizWin::
+changeViewerFrame(){
+	GLfloat m[16], minv[16];
+	GLdouble modelViewMtx[16];
+	//Get the frame from GL:
+	glGetFloatv(GL_MODELVIEW_MATRIX, m);
+	//Also, save the modelview matrix for picking purposes:
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelViewMtx);
+	//save the modelViewMatrix in the viewpoint params (it may be shared!)
+	VizWinMgr::getInstance()->getViewpointParams(myWindowNum)->
+		setModelViewMatrix(modelViewMtx);
+
+	//Invert it:
+	minvert(m, minv);
+	vscale(minv+8, -1.f);
+	if (!myGLWindow->getPerspective()){
+		//Note:  This is a bad hack.  Putting off the time when I correctly implement
+		//Ortho coords to actually send perspective viewer to infinity.
+		//get the scale out of the (1st 3 elements of ) matrix:
+		//
+		float scale = vlength(m);
+		float trans;
+		if (scale < 5.f) trans = 1.-5./scale;
+		else trans = scale - 5.f;
+		minv[14] = -trans;
+	}
+	changeCoords(minv+12, minv+8, minv+4);
+	
+}
+
+/*
 void VizWin::
 doFrameCapture(){
 	if (capturing == 0) return;
@@ -996,32 +907,6 @@ float VizWin::getPixelSize(){
 	return (2.f*halfHeight/(float)height());
 
 }
-//In addition to setting the dirty bit, call the renderer's setDirty if
-//the bit is being turned on.
-void VizWin::
-setDirtyBit(Params::ParamType renType, DirtyBitType t, bool nowDirty){
-	vizDirtyBit[t] = nowDirty;
-	if (nowDirty){
-		for (int i = 0; i< getNumRenderers(); i++){
-			if (getRendererType(i) == renType){
-				getRenderer(i)->setDirty(t);
-			}
-		}
-	}
-}
-bool VizWin::
-vizIsDirty(DirtyBitType t) {
-	return vizDirtyBit[t];
-}
-//Return the flow renderer (if one exists)
-FlowRenderer* VizWin::
-getFlowRenderer(){
-	
-	for (int i = 0; i< MAXNUMRENDERERS; i++){
-		if (getRenderer(i) && getRendererType(i) == Params::FlowParamsType)
-			return (FlowRenderer*)getRenderer(i);
-	}
-	return 0;
-}
+*/
     
     

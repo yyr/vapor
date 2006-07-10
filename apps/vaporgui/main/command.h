@@ -31,7 +31,7 @@
 #define COMMAND_H
 
 #include <qstring.h>
-
+#include "glwindow.h"
 #include "params.h"
 
 namespace VAPoR{
@@ -48,15 +48,7 @@ public:
 	}
 	QString& getDescription(){return description;}
 	
-	//Enum describes various mouse modes:
-	enum mouseModeType {
-		unknownMode,
-		navigateMode,
-		regionMode,
-		probeMode,
-		rakeMode,
-		lightMode
-	};
+	
 
 	//Enum to describe various vizwin activations
 	enum activateType {
@@ -71,14 +63,14 @@ protected:
 //
 class MouseModeCommand : public Command{
 public:
-	MouseModeCommand(mouseModeType previousMode, mouseModeType newMode);
+	MouseModeCommand(GLWindow::mouseModeType previousMode, GLWindow::mouseModeType newMode);
 	virtual ~MouseModeCommand() {}
 	virtual void unDo();
 	virtual void reDo();
 protected:
-	const char* modeName(mouseModeType t);
-	mouseModeType previousMode;
-	mouseModeType currentMode;
+	const char* modeName(GLWindow::mouseModeType t);
+	GLWindow::mouseModeType previousMode;
+	GLWindow::mouseModeType currentMode;
 };
 //Subclass to deal with changes in the front tab panel
 //

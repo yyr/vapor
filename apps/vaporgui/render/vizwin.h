@@ -23,9 +23,7 @@
 #ifndef VIZWIN_H
 #define VIZWIN_H
 
-//No more than 1 renderers in a window:
-//Eventually this may be dynamic.
-#define MAXNUMRENDERERS 3
+
 #include <qvariant.h>
 #include <qmainwindow.h>
 #include <qcolor.h>
@@ -48,6 +46,7 @@ class QWorkspace;
 class QHBoxLayout;
 
 #include "glwindow.h"
+#include "animationcontroller.h"
 namespace VAPoR {
 
 class MainForm;
@@ -70,9 +69,11 @@ public:
     ~VizWin();
 
 	
-	void setDirtyBit(Params::ParamType renderType, DirtyBitType t, bool val);
+	void setDirtyBit(Params::ParamType renderType, DirtyBitType t, bool val){
+		myGLWindow->setDirtyBit(renderType,t,val);
+	}
 		
-	bool vizIsDirty(DirtyBitType t);
+	bool vizIsDirty(DirtyBitType t){return myGLWindow->vizIsDirty(t);}
 	void setWindowNum(int num) {
 		myWindowNum = num;
 	}
@@ -88,24 +89,10 @@ public:
 	void setValuesFromGui(ViewpointParams* vparams);
 	//Tell this visualizer to use global or local viewpoint:
 	void setGlobalViewpoint(bool);
-	int getNumRenderers() { return numRenderers;}
-	Renderer* renderer[MAXNUMRENDERERS];
-	Params::ParamType renderType[MAXNUMRENDERERS];
-	void setNumRenderers(int num) {numRenderers = num;}
-	Params::ParamType getRendererType(int i) {return renderType[i];}
-	Renderer* getRenderer(int i) {return renderer[i];}
-	FlowRenderer* getFlowRenderer();
-	//Renderers can be added early or late, depending on whether
-	//they should render last.  DVR's need to be last, since they don't write the z buffer
-	void prependRenderer(Renderer* ren, Params::ParamType rendererType);
-	void appendRenderer(Renderer* ren, Params::ParamType rendererType);
-	void removeRenderer(Params::ParamType rendererType);
-	bool hasRenderer(Params::ParamType rendererType);
-    Renderer* getRenderer(Params::ParamType rendererType);
+	
+	
 	GLWindow* getGLWindow() {return myGLWindow;}
-	TranslateRotateManip* getProbeManip() {return myProbeManip;}
-	TranslateStretchManip* getFlowManip() {return myFlowManip;}
-	TranslateStretchManip* getRegionManip() {return myRegionManip;}
+	
 	
 	void setRegionDirty(bool isDirty){ setDirtyBit(Params::RegionParamsType, RegionBit,isDirty);}
 	void setDvrClutDirty(bool isDirty){ setDirtyBit(Params::DvrParamsType,DvrClutBit, isDirty);}
@@ -121,11 +108,14 @@ public:
 	bool regionIsNavigating() {return vizIsDirty(NavigatingBit);}
 	bool flowDataIsDirty() {return vizIsDirty(FlowDataBit);}
 	bool flowGraphicsIsDirty() {return vizIsDirty(FlowGraphicsBit);}
-
+	void setMouseDown(bool downUp) {
+		mouseDownHere = downUp;
+		myGLWindow->setMouseDown(downUp);
+	}
 	bool mouseIsDown() {return mouseDownHere;}
 	int pointOverCube(RegionParams* rParams, float screenCoords[2]);
 	int pointOverCube(FlowParams* rParams, float screenCoords[2]);
-
+/* Following all moved to GLWindow:
 	//Determine the approximate size of a pixel in terms of viewer coordinates.
 	float getPixelSize();
 	bool viewerCoordsChanged() {return newViewerCoords;}
@@ -152,36 +142,51 @@ public:
 	//to jpeg and saves file.  If it ever encounters an error, it turns off capture.
 	//If capture is 1 (single frame capture) it turns off capture.
 	void doFrameCapture();
-
+*/
 	//Access visualizer features
 	
-	QColor& getBackgroundColor() {return backgroundColor;}
-	QColor& getRegionFrameColor() {return regionFrameColor;}
-	QColor& getSubregionFrameColor() {return subregionFrameColor;}
-	QColor& getColorbarBackgroundColor() {return colorbarBackgroundColor;}
-	bool axesAreEnabled() {return axesEnabled;}
-	bool colorbarIsEnabled() {return colorbarEnabled;}
-	bool regionFrameIsEnabled() {return regionFrameEnabled;}
-	bool subregionFrameIsEnabled() {return subregionFrameEnabled;}
-	float getAxisCoord(int i){return axisCoord[i];}
-	float getColorbarLLCoord(int i) {return colorbarLLCoord[i];}
-	float getColorbarURCoord(int i) {return colorbarURCoord[i];}
-	float getColorbarNumTics() {return numColorbarTics;}
+	QColor& getBackgroundColor() {return myGLWindow->getBackgroundColor();}
+	QColor& getRegionFrameColor() {return myGLWindow->getRegionFrameColor();}
+	QColor& getSubregionFrameColor() {return myGLWindow->getSubregionFrameColor();}
+	QColor& getColorbarBackgroundColor() {return myGLWindow->getColorbarBackgroundColor();}
+	
+	//Pass get/set onto glwindow:
+	bool axesAreEnabled() {return myGLWindow->axesAreEnabled();}
+	bool colorbarIsEnabled() {return myGLWindow->colorbarIsEnabled();}
+	bool regionFrameIsEnabled() {return myGLWindow->regionFrameIsEnabled();}
+	bool subregionFrameIsEnabled() {return myGLWindow->subregionFrameIsEnabled();}
+	float getAxisCoord(int i){return myGLWindow->getAxisCoord(i);}
+	float getColorbarLLCoord(int i) {return myGLWindow->getColorbarLLCoord(i);}
+	float getColorbarURCoord(int i) {return myGLWindow->getColorbarURCoord(i);}
+	float getColorbarNumTics() {return myGLWindow->getColorbarNumTics();}
 
-	void setBackgroundColor(QColor& c) {backgroundColor = c;}
-	void setColorbarBackgroundColor(QColor& c) {colorbarBackgroundColor = c;}
-	void setRegionFrameColor(QColor& c) {regionFrameColor = c;}
-	void setSubregionFrameColor(QColor& c) {subregionFrameColor = c;}
-	void enableAxes(bool enable) {axesEnabled = enable;}
-	void enableColorbar(bool enable) {colorbarEnabled = enable;}
-	void enableRegionFrame(bool enable) {regionFrameEnabled = enable;}
-	void enableSubregionFrame(bool enable) {subregionFrameEnabled = enable;}
-	void setAxisCoord(int i, float val){axisCoord[i] = val;}
-	void setColorbarLLCoord(int i, float crd) {colorbarLLCoord[i] = crd;}
-	void setColorbarURCoord(int i, float crd) {colorbarURCoord[i] = crd;}
-	void setColorbarNumTics(int i) {numColorbarTics = i;}
-	bool colorbarIsDirty() {return colorbarDirty;}
-	void setColorbarDirty(bool val){colorbarDirty = val;}
+	void setBackgroundColor(QColor& c) {myGLWindow->setBackgroundColor(c);}
+	void setColorbarBackgroundColor(QColor& c) {myGLWindow->setColorbarBackgroundColor( c);}
+	void setRegionFrameColor(QColor& c) {myGLWindow->setRegionFrameColor(c);}
+	void setSubregionFrameColor(QColor& c) {myGLWindow->setSubregionFrameColor(c);}
+	void enableAxes(bool enable) {myGLWindow->enableAxes(enable);}
+	void enableColorbar(bool enable) {myGLWindow->enableColorbar( enable) ;}
+	void enableRegionFrame(bool enable) {myGLWindow->enableRegionFrame( enable);}
+	void enableSubregionFrame(bool enable) {myGLWindow->enableSubregionFrame( enable);}
+	void setAxisCoord(int i, float val){myGLWindow->setAxisCoord( i,  val);}
+	void setColorbarLLCoord(int i, float crd) {myGLWindow->setColorbarLLCoord( i,  crd);;}
+	void setColorbarURCoord(int i, float crd) {myGLWindow->setColorbarURCoord( i,  crd);}
+	void setColorbarNumTics(int i) {myGLWindow->setColorbarNumTics( i);}
+	
+	bool colorbarIsDirty() {return myGLWindow->colorbarIsDirty();}
+	void setColorbarDirty(bool val){myGLWindow->setColorbarDirty(val);}
+	
+	static bool preRenderSetup(int viznum, bool newCoords){
+		if (newCoords) {
+			VizWinMgr::getInstance()->getVizWin(viznum)->changeViewerFrame();
+		}
+		return AnimationController::getInstance()->beginRendering(viznum);
+		
+	}
+	static bool endRender(int viznum, bool isControlled){
+		if(isControlled) AnimationController::getInstance()->endRendering(viznum);
+		return VizWinMgr::getInstance()->getVizWin(viznum)->mouseIsDown();
+	}
 
 public slots:
     //Force an update in the gl window:
@@ -189,13 +194,7 @@ public slots:
 
 	
 protected:
-	std::map<DirtyBitType,bool> vizDirtyBit; 
-	//Following flag is set whenever there is mouse navigation, so that we can use 
-	//the new viewer position
-	//at the next rendering
-	bool newViewerCoords;
-	bool colorbarDirty;
-	int numRenderers;
+	
     QWorkspace* myParent;
     int myWindowNum;
     VizWinMgr* myWinMgr;
@@ -203,29 +202,22 @@ protected:
 	Trackball* localTrackball;
 	//OpenGL widget for graphics:
 	GLWindow* myGLWindow;
+
+	//Method that gets the coord frame from GL, 
+	//causes an update of the viewpoint params
+	//
+	void	changeViewerFrame();
 	
 	//Indicate whether using global or local viewpoint:
 	bool globalVP;
-	
+	/*
 	int capturing;
 	int captureNum;
 	//Flag to set indicating start of capture sequence.
 	bool newCapture;
 	QString captureName;
 
-	//values in vizFeature
-	QColor backgroundColor;
-	QColor regionFrameColor;
-	QColor subregionFrameColor;
-	QColor colorbarBackgroundColor;
-	bool axesEnabled;
-	bool regionFrameEnabled;
-	bool subregionFrameEnabled;
-	bool colorbarEnabled;
-	float axisCoord[3];
-	float colorbarLLCoord[2];
-	float colorbarURCoord[2];
-	int numColorbarTics;
+	*/
 	
 public slots:
     
@@ -237,10 +229,7 @@ public slots:
 	
 
 protected:
-	//Manip stuff:
-	TranslateRotateManip* myProbeManip;
-	TranslateStretchManip* myFlowManip;
-	TranslateStretchManip* myRegionManip;
+	
 
 	QPoint mouseDownPosition;
 	bool mouseDownHere;

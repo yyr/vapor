@@ -16,14 +16,15 @@
 //
 //	Description:	Implementation of the flowrenderer class
 //
-#include "vizwinmgr.h"
+
+#include "params.h"
 #include "flowrenderer.h"
 #include "floweventrouter.h"
 #include "vapor/VaporFlow.h"
 #include "glwindow.h"
 #include "trackball.h"
 #include "glutil.h"
-#include "vizwin.h"
+
 #include <math.h>
 #include <qgl.h>
 #include <qcolor.h>
@@ -36,11 +37,11 @@
 #define ARROW_LENGTH_FACTOR  0.90f //fraction of full length used by cylinder
 #define MIN_STATIONARY_RADIUS 2.f //minimum in voxels of stationary octahedron
 /*!
-  Create a FlowRenderer widget
+  Create a FlowRenderer 
 */
 using namespace VAPoR;
-FlowRenderer::FlowRenderer(VizWin* vw, FlowParams* fParams )
-:Renderer(vw)
+FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
+:Renderer(glw)
 {
     myFlowParams = fParams;
 	numInjections = 0;
@@ -104,8 +105,8 @@ FlowRenderer::~FlowRenderer()
 void FlowRenderer::paintGL()
 {
 	
-	int winNum = myVizWin->getWindowNum();
-	AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(winNum);
+	
+	AnimationParams* myAnimationParams = myGLWindow->getAnimationParams();
 	
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
 	steadyFlow = myFlowParams->flowIsSteady();
@@ -159,9 +160,9 @@ void FlowRenderer::paintGL()
 
 void FlowRenderer::
 renderFlowData(bool constColors, int currentFrameNum){
-	int winNum = myVizWin->getWindowNum();
-	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-	FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
+	
+	RegionParams* myRegionParams = myGLWindow->getRegionParams();
+	FlowParams* myFlowParams = myGLWindow->getFlowParams();
 	
 	GLfloat white_light[] = {1.f,1.f,1.f,1.f};
 	GLfloat lmodel_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -238,7 +239,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 	int nLights = 0;
 	if (myFlowParams->getShapeType() != 1) {//rendering tubes/lines/arrows
 		
-		ViewpointParams* vpParams = VizWinMgr::getInstance()->getViewpointParams(winNum);
+		ViewpointParams* vpParams = myGLWindow->getViewpointParams();
 		nLights = vpParams->getNumLights();
 		if (nLights > 0){
 			glShadeModel(GL_SMOOTH);
@@ -485,7 +486,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 	glLineWidth(radius);
 	if (isLit){
 		//Get light direction vector of first light:
-		ViewpointParams* vpParams = VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum());
+		ViewpointParams* vpParams = myGLWindow->getViewpointParams();
 		const float* lightDir = vpParams->getLightDirection(0);
 		for (int i = 0; i< numSeedPoints; i++){
 			if (constMap)glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE, constFlowColor);
@@ -1330,11 +1331,11 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 	bool doSpeeds = myFlowParams->getColorMapEntityIndex() == 2 || 
 		myFlowParams->getOpacMapEntityIndex() == 2;
 	steadyFlow = myFlowParams->flowIsSteady();
-	int winNum = myVizWin->getWindowNum();	
-	minFrame = VizWinMgr::getInstance()->getAnimationParams(winNum)->getStartFrameNumber();
-	maxFrame = VizWinMgr::getInstance()->getAnimationParams(winNum)->getEndFrameNumber();
+	
+	minFrame = myGLWindow->getAnimationParams()->getStartFrameNumber();
+	maxFrame = myGLWindow->getAnimationParams()->getEndFrameNumber();
 	maxPoints = myFlowParams->calcMaxPoints();
-	RegionParams* rParams = VizWinMgr::getInstance()->getRegionParams(winNum);
+	RegionParams* rParams = myGLWindow->getRegionParams();
 	//Check if we are just doing graphics (not reintegrating flow)
 	//that occurs if the map bit id dirty, but there's no need to do data.
 	bool graphicsOnly = (flowMapDirty[timeStep] && 

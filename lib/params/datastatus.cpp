@@ -54,6 +54,7 @@ int* DataStatus::mapMetadataVars = 0;
 DataStatus::
 DataStatus()
 {
+	renderOK = false;
 	myReader = 0;
 	cacheMB = 0;
 	minTimeStep = 0;
@@ -287,4 +288,12 @@ void DataStatus::fillMetadataVars(){
 			mapMetadataVars[posnCounter++] = i;
 		}
 	}
+}
+
+//Convert the max extents into cube coords
+void DataStatus::getMaxExtentsInCube(float maxExtents[3]){
+	float maxSize = Max(extents[3]-extents[0],Max(extents[4]-extents[1],extents[5]-extents[2]));
+	maxExtents[0] = (extents[3]-extents[0])/maxSize;
+	maxExtents[1] = (extents[4]-extents[1])/maxSize;
+	maxExtents[2] = (extents[5]-extents[2])/maxSize;
 }

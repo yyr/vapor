@@ -22,29 +22,30 @@
 #include "glwindow.h"
 #include "trackball.h"
 #include "glutil.h"
-#include "vizwin.h"
 #include "renderer.h"
 #include "viewpointparams.h"
 #include "dvrparams.h"
-#include "vizwinmgr.h"
-#include "animationcontroller.h"
+#include "regionparams.h"
+#include "probeparams.h"
+#include "animationparams.h"
 #include "manip.h"
-#include "dvreventrouter.h"
-#include "mainform.h"
-#include "session.h"
+#include "datastatus.h"
 
 #include <math.h>
 #include <qgl.h>
 #include "assert.h"
+#include "vaporinternal/jpegapi.h"
 
 using namespace VAPoR;
 
-
-GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, VizWin* vw )
+VAPoR::GLWindow::mouseModeType VAPoR::GLWindow::currentMouseMode = GLWindow::navigateMode;
+int GLWindow::jpegQuality = 75;
+GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int windowNum )
 : QGLWidget(fmt, parent, name)
 
 {
-	myVizWin = vw;
+	winNum = windowNum;
+	setViewerCoordsChanged(true);
 	setAutoBufferSwap(false);
 	wCenter[0] = 0.f;
 	wCenter[1] = 0.f;
@@ -57,6 +58,47 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, Viz
 	needsResize = true;
 	farDist = 100.f;
 	nearDist = 0.1f;
+	colorbarDirty = true;
+	mouseDownHere = false;
+
+	//values of features:
+	backgroundColor =  QColor(black);
+	regionFrameColor = QColor(white);
+	subregionFrameColor = QColor(red);
+	colorbarBackgroundColor = QColor(black);
+	axesEnabled = false;
+	regionFrameEnabled = true;
+	subregionFrameEnabled = false;
+	colorbarEnabled = false;
+	for (int i = 0; i<3; i++)
+	    axisCoord[i] = -0.f;
+	colorbarLLCoord[0] = 0.1f;
+	colorbarLLCoord[1] = 0.1f;
+	colorbarURCoord[0] = 0.3f;
+	colorbarURCoord[1] = 0.5f;
+	numColorbarTics = 11;
+	numRenderers = 0;
+    for (int i = 0; i< MAXNUMRENDERERS; i++)
+		renderer[i] = 0;
+
+	vizDirtyBit.clear();
+	setDirtyBit(Params::DvrParamsType,DvrClutBit, true);
+	setDirtyBit(Params::DvrParamsType,ProbeTextureBit, true);
+	setDirtyBit(Params::DvrParamsType,DvrDatarangeBit, true);
+	setDirtyBit(Params::RegionParamsType,RegionBit, true);
+	setDirtyBit(Params::ViewpointParamsType,NavigatingBit, true);
+	setDirtyBit(Params::DvrParamsType,ColorscaleBit, true);
+
+	capturing = false;
+	newCapture = false;
+
+	//Create Manips:
+	
+	myProbeManip = new TranslateRotateManip(this, 0);
+	
+	myFlowManip = new TranslateStretchManip(this, 0);
+	myRegionManip = new TranslateStretchManip(this, 0);
+	
 }
 
 
@@ -67,10 +109,10 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, Viz
 GLWindow::~GLWindow()
 {
     makeCurrent();
-	for (int i = 0; i< myVizWin->getNumRenderers(); i++){
-		delete myVizWin->renderer[i];
+	for (int i = 0; i< getNumRenderers(); i++){
+		delete renderer[i];
 	}
-	myVizWin->setNumRenderers(0);
+	setNumRenderers(0);
 }
 
 
@@ -142,38 +184,6 @@ void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 	needsResize = true;
 }
 
-/*
- * Obtain current view frame from gl model matrix
- */
-void GLWindow::
-changeViewerFrame(){
-	GLfloat m[16], minv[16];
-	GLdouble modelViewMtx[16];
-	//Get the frame from GL:
-	glGetFloatv(GL_MODELVIEW_MATRIX, m);
-	//Also, save the modelview matrix for picking purposes:
-	glGetDoublev(GL_MODELVIEW_MATRIX, modelViewMtx);
-	//save the modelViewMatrix in the viewpoint params (it may be shared!)
-	VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum())->
-		setModelViewMatrix(modelViewMtx);
-
-	//Invert it:
-	minvert(m, minv);
-	vscale(minv+8, -1.f);
-	if (!perspective){
-		//Note:  This is a bad hack.  Putting off the time when I correctly implement
-		//Ortho coords to actually send perspective viewer to infinity.
-		//get the scale out of the (1st 3 elements of ) matrix:
-		//
-		float scale = vlength(m);
-		float trans;
-		if (scale < 5.f) trans = 1.-5./scale;
-		else trans = scale - 5.f;
-		minv[14] = -trans;
-	}
-	myVizWin->changeCoords(minv+12, minv+8, minv+4);
-	myVizWin->setViewerCoordsChanged(false);
-}
 
 void GLWindow::paintGL()
 {
@@ -185,7 +195,6 @@ void GLWindow::paintGL()
 	
 	if (nowPainting) return;
 	nowPainting = true;
-	int winNum = myVizWin->getWindowNum();
 	//Force a resize if perspective has changed:
 	if (perspective != oldPerspective || needsResize){
 		resizeGL(width(), height());
@@ -193,7 +202,7 @@ void GLWindow::paintGL()
 	}
 	
 	
-	qglClearColor(myVizWin->getBackgroundColor()); 
+	qglClearColor(getBackgroundColor()); 
 	
 	glGetIntegerv(GL_DRAW_BUFFER, (GLint *) &buffer);
 	//Clear out in preparation for rendering
@@ -205,48 +214,46 @@ void GLWindow::paintGL()
 	
 	glDrawBuffer(buffer);
 	
-	if (!Session::getInstance()->renderReady()) {
+	if (!DataStatus::getInstance() ||!(DataStatus::getInstance()->renderReady())) {
 		swapBuffers();
 		nowPainting = false;
 		return;
 	}
-	//Check if there are any active renderers, or if we have a manip:
+	
 	//Modified 2/28/06:  Go ahead and "render" even if no active renderers:
-	/*
-	if (myVizWin->getNumRenderers()==0){
-		if(MainForm::getInstance()->getCurrentMouseMode() == Command::navigateMode){
-			swapBuffers();
-			nowPainting = false;
-			return;
-		}
-	}
-	*/
+	
 	//If we are doing the first capture of a sequence then set the
 	//newRender flag to true, whether or not it's a real new render.
 	//Then turn off the flag, subsequent renderings will only be captured
 	//if they really are new.
 	//
-	renderNew = myVizWin->captureIsNew();
-	myVizWin->setCaptureNew(false);
+	renderNew = captureIsNew();
+	setCaptureNew(false);
 
 	//Tell the animation we are starting.  If it returns false, we are not
 	//being monitored by the animation controller
-	bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
+	//bool isControlled = AnimationController::getInstance()->beginRendering(winNum);
 	
 	// Move to trackball view of scene  
 	glPushMatrix();
 	glLoadIdentity();
 	getTBall()->TrackballSetMatrix();
 
-	//If there are new coords, get them from GL, send them to the gui
-	if (myVizWin->viewerCoordsChanged()){ 
-		setRenderNew();
-		changeViewerFrame();
-	}
-	RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
 	
-	myRegionParams->calcBoxExtentsInCube(extents);
-	Session::getInstance()->getMaxExtentsInCube(maxFull);
+
+	//The prerender callback is set in the vizwin. 
+	//It registers with the animation controller, 
+	//and tells the window the current viewer frame.
+	bool isControlled = preRenderCB(winNum, viewerCoordsChanged());
+	//If there are new coords, get them from GL, send them to the gui
+	if (viewerCoordsChanged()){ 
+		setRenderNew();
+		setViewerCoordsChanged(false);
+	}
+
+	
+	getRegionParams()->calcBoxExtentsInCube(extents);
+	DataStatus::getInstance()->getMaxExtentsInCube(maxFull);
 
 	
 	//Make the depth buffer writable
@@ -257,51 +264,52 @@ void GLWindow::paintGL()
 	glEnable (GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if(myVizWin->regionFrameIsEnabled()|| MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
+	if(regionFrameIsEnabled()|| GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
 		renderDomainFrame(extents, minFull, maxFull);
 	} 
-	if(myVizWin->subregionFrameIsEnabled()&& !(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode)){
+	if(subregionFrameIsEnabled()&& !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode)){
 		drawSubregionBounds(extents);
 	} 
-	if (myVizWin->axesAreEnabled()) drawAxes(extents);
+	if (axesAreEnabled()) drawAxes(extents);
 
 	//render the region geometry, if in region mode
-	if(MainForm::getInstance()->getCurrentMouseMode() == Command::regionMode){
-		RegionParams* myRegionParams = VizWinMgr::getInstance()->getRegionParams(winNum);
-		TranslateStretchManip* regionManip = myVizWin->getRegionManip();
-		regionManip->setParams(myRegionParams);
+	if(GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
+		
+		TranslateStretchManip* regionManip = getRegionManip();
+		regionManip->setParams(getRegionParams());
 		regionManip->render();
 		
 	} 
 	//render the rake geometry, if in rake mode
-	else if(MainForm::getInstance()->getCurrentMouseMode() == Command::rakeMode){
-		FlowParams* myFlowParams = VizWinMgr::getInstance()->getFlowParams(winNum);
-		TranslateStretchManip* flowManip = myVizWin->getFlowManip();
-		flowManip->setParams(myFlowParams);
+	else if(GLWindow::getCurrentMouseMode() == GLWindow::rakeMode){
+		
+		TranslateStretchManip* flowManip = getFlowManip();
+		flowManip->setParams(getFlowParams());
 		flowManip->render();
 	} //or render the probe geometry, if in probe mode
-	else if(MainForm::getInstance()->getCurrentMouseMode() == Command::probeMode){
+	else if(GLWindow::getCurrentMouseMode() == GLWindow::probeMode){
 		
-		ProbeParams* myProbeParams = VizWinMgr::getInstance()->getProbeParams(winNum);
-		TranslateRotateManip* probeManip = myVizWin->getProbeManip();
-		probeManip->setParams(myProbeParams);
+		
+		TranslateRotateManip* probeManip = getProbeManip();
+		probeManip->setParams(getProbeParams());
 		
 		probeManip->render();
 		//Also render the cursor
-		draw3DCursor(myProbeParams->getSelectedPoint());
+		draw3DCursor(getProbeParams()->getSelectedPoint());
 	} 
 
-	for (int i = 0; i< myVizWin->getNumRenderers(); i++){
-		myVizWin->renderer[i]->paintGL();
+	for (int i = 0; i< getNumRenderers(); i++){
+		renderer[i]->paintGL();
 	}
 	
 	swapBuffers();
 	glPopMatrix();
 	//Always clear the regionDirty flag:
-	myVizWin->setRegionDirty(false);
-	if (isControlled) AnimationController::getInstance()->endRendering(winNum);
+	
+	setDirtyBit(Params::RegionParamsType,RegionBit,false);
+	bool mouseIsDown = postRenderCB(winNum, isControlled);
 	//Capture the image, if not navigating:
-	if (renderNew && !myVizWin->mouseIsDown()) myVizWin->doFrameCapture();
+	if (renderNew && !mouseIsDown) doFrameCapture();
 	nowPainting = false;
 }
 //Draw a 3D cursor at specified world coords
@@ -327,12 +335,12 @@ void GLWindow::draw3DCursor(const float position[3]){
 void GLWindow::initializeGL()
 {
     glewInit();
-	VizWinMgr::getInstance()->getDvrRouter()->initTypes();
-    qglClearColor(myVizWin->getBackgroundColor()); 		// Let OpenGL clear to black
+	//VizWinMgr::getInstance()->getDvrRouter()->initTypes();
+    qglClearColor(getBackgroundColor()); 		// Let OpenGL clear to black
 	//Initialize existing renderers:
 	//
-	for (int i = 0; i< myVizWin->getNumRenderers(); i++){
-		myVizWin->renderer[i]->initializeGL();
+	for (int i = 0; i< getNumRenderers(); i++){
+		renderer[i]->initializeGL();
 	}
     
     //
@@ -477,7 +485,7 @@ getPixelData(unsigned char* data){
 //Routine to obtain gl state from viewpointparams
 GLdouble* GLWindow:: 
 getModelMatrix() {
-	return (GLdouble*)VizWinMgr::getInstance()->getViewpointParams(myVizWin->getWindowNum())->getModelViewMatrix();
+	return (GLdouble*)getViewpointParams()->getModelViewMatrix();
 }
 //Issue OpenGL commands to draw a grid of lines of the full domain.
 //Grid resolution is up to 2x2x2
@@ -487,7 +495,7 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	int i; 
 	int numLines[3];
 	float regionSize, fullSize[3], modMin[3],modMax[3];
-	setRegionFrameColor( myVizWin->getRegionFrameColor());
+	setRegionFrameColorFlt(getRegionFrameColor());
 	
 	
 	//Instead:  either have 2 or 1 lines in each dimension.  2 if the size is < 1/3
@@ -503,7 +511,7 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	}
 	
 
-	glColor3fv(regionFrameColor);	   
+	glColor3fv(regionFrameColorFlt);	   
     glLineWidth( 2.0 );
 	//Now draw the lines.  Divide each dimension into numLines[dim] sections.
 	
@@ -610,9 +618,9 @@ bool GLWindow::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
 	}
 }
 void GLWindow::drawSubregionBounds(float* extents) {
-	setSubregionFrameColor(myVizWin->getSubregionFrameColor());
+	setSubregionFrameColorFlt(getSubregionFrameColor());
 	glLineWidth( 2.0 );
-	glColor3fv(subregionFrameColor);
+	glColor3fv(subregionFrameColorFlt);
 	glBegin(GL_LINE_LOOP);
 	glVertex3f(extents[0], extents[1], extents[2]);
 	glVertex3f(extents[0], extents[1], extents[5]);
@@ -655,7 +663,7 @@ void GLWindow::drawRegionFaceLines(float* extents, int selectedFace){
 			glVertex3f(extents[0], extents[4], extents[2]);
 			glEnd();
 			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 			glVertex3f(extents[3], extents[1], extents[2]);
 			glVertex3f(extents[3], extents[1], extents[5]);
@@ -684,7 +692,7 @@ void GLWindow::drawRegionFaceLines(float* extents, int selectedFace){
 				glVertex3f(extents[3], extents[4], extents[2]);
 			glEnd();
 			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 				glVertex3f(extents[0], extents[1], extents[2]);
 				glVertex3f(extents[0], extents[1], extents[5]);
@@ -711,7 +719,7 @@ void GLWindow::drawRegionFaceLines(float* extents, int selectedFace){
 				glVertex3f(extents[0], extents[4], extents[5]);
 			glEnd();
 			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 				glVertex3f(extents[0], extents[1], extents[2]);
 				glVertex3f(extents[3], extents[1], extents[2]);
@@ -740,7 +748,7 @@ void GLWindow::drawRegionFaceLines(float* extents, int selectedFace){
 				glVertex3f(extents[3], extents[1], extents[2]);
 			glEnd();
 			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 				glVertex3f(extents[0], extents[4], extents[2]);
 				glVertex3f(extents[0], extents[4], extents[5]);
@@ -770,7 +778,7 @@ void GLWindow::drawRegionFaceLines(float* extents, int selectedFace){
 				glVertex3f(extents[0], extents[4], extents[2]);
 			glEnd();
 			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 				glVertex3f(extents[0], extents[1], extents[5]);
 				glVertex3f(extents[3], extents[1], extents[5]);
@@ -798,7 +806,7 @@ void GLWindow::drawRegionFaceLines(float* extents, int selectedFace){
 				glVertex3f(extents[0], extents[4], extents[5]);
 			glEnd();
 			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 				glVertex3f(extents[0], extents[1], extents[2]);
 				glVertex3f(extents[3], extents[1], extents[2]);
@@ -818,7 +826,7 @@ void GLWindow::drawRegionFaceLines(float* extents, int selectedFace){
 			break;
 		default: //Nothing selected.  Just do all in subregion frame color.
 			glLineWidth( 2.0 );
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 				glVertex3f(extents[0], extents[1], extents[2]);
 				glVertex3f(extents[3], extents[1], extents[2]);
@@ -859,7 +867,7 @@ void GLWindow::drawRegionFace(float* extents, int faceNum, bool isSelected){
 	else {
 		//glColor4f(.8f,.8f,.8f,.2f);
 		glLineWidth( 2.0 );
-		glColor3fv(subregionFrameColor);
+		glColor3fv(subregionFrameColorFlt);
 	}
 	switch (faceNum){
 		case 4://Do left (x=0)
@@ -945,7 +953,7 @@ void GLWindow::drawProbeFace(float* corners, int faceNum, bool isSelected){
 			glVertex3fv(corners+7*3);
 			glVertex3fv(corners+4*3);
 			glEnd();
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 			glVertex3fv(corners);
 			glVertex3fv(corners+3*3);
@@ -962,7 +970,7 @@ void GLWindow::drawProbeFace(float* corners, int faceNum, bool isSelected){
 			glVertex3fv(corners+6*3);
 			glVertex3fv(corners+2*3);
 			glEnd();
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 			glVertex3fv(corners+1*3);
 			glVertex3fv(corners+5*3);
@@ -978,7 +986,7 @@ void GLWindow::drawProbeFace(float* corners, int faceNum, bool isSelected){
 			glVertex3fv(corners+3*3);
 			
 			glEnd();
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 			glVertex3fv(corners+2*3);
 			glVertex3fv(corners+6*3);
@@ -993,7 +1001,7 @@ void GLWindow::drawProbeFace(float* corners, int faceNum, bool isSelected){
 			glVertex3fv(corners+5*3);
 			glVertex3fv(corners+1*3);
 			glEnd();
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 			glVertex3fv(corners+0*3);
 			glVertex3fv(corners+4*3);
@@ -1010,7 +1018,7 @@ void GLWindow::drawProbeFace(float* corners, int faceNum, bool isSelected){
 			glVertex3fv(corners+6*3);
 			glVertex3fv(corners+5*3);
 			glEnd();
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 			glVertex3fv(corners+4*3);
 			glVertex3fv(corners+7*3);
@@ -1027,7 +1035,7 @@ void GLWindow::drawProbeFace(float* corners, int faceNum, bool isSelected){
 			glVertex3fv(corners+2*3);
 			glVertex3fv(corners+3*3);
 			glEnd();
-			glColor3fv(subregionFrameColor);
+			glColor3fv(subregionFrameColorFlt);
 			glBegin(GL_LINE_LOOP);
 			glVertex3fv(corners+0*3);
 			glVertex3fv(corners+1*3);
@@ -1056,7 +1064,7 @@ void GLWindow::drawProbeFace(float* corners, int faceNum, bool isSelected){
 // then the back side (resp front side) of the corresponding cube side is rendered
 
 void GLWindow::renderRegionBounds(float* extents, int selectedFace,  float faceDisplacement){
-	setSubregionFrameColor(myVizWin->getSubregionFrameColor());
+	setSubregionFrameColorFlt(getSubregionFrameColor());
 	//Copy the extents so they can be stretched
 	int i;
 	float cpExtents[6];
@@ -1081,21 +1089,21 @@ void GLWindow::renderRegionBounds(float* extents, int selectedFace,  float faceD
 }
 
 //Set colors to use in bound rendering:
-void GLWindow::setSubregionFrameColor(QColor& c){
-	subregionFrameColor[0]= (float)c.red()/255.;
-	subregionFrameColor[1]= (float)c.green()/255.;
-	subregionFrameColor[2]= (float)c.blue()/255.;
+void GLWindow::setSubregionFrameColorFlt(QColor& c){
+	subregionFrameColorFlt[0]= (float)c.red()/255.;
+	subregionFrameColorFlt[1]= (float)c.green()/255.;
+	subregionFrameColorFlt[2]= (float)c.blue()/255.;
 }
-void GLWindow::setRegionFrameColor(QColor& c){
-	regionFrameColor[0]= (float)c.red()/255.;
-	regionFrameColor[1]= (float)c.green()/255.;
-	regionFrameColor[2]= (float)c.blue()/255.;
+void GLWindow::setRegionFrameColorFlt(QColor& c){
+	regionFrameColorFlt[0]= (float)c.red()/255.;
+	regionFrameColorFlt[1]= (float)c.green()/255.;
+	regionFrameColorFlt[2]= (float)c.blue()/255.;
 }
 void GLWindow::drawAxes(float* extents){
 	float origin[3];
 	float maxLen = -1.f;
 	for (int i = 0; i<3; i++){
-		origin[i] = extents[i] + (myVizWin->getAxisCoord(i))*(extents[i+3]-extents[i]);
+		origin[i] = extents[i] + (getAxisCoord(i))*(extents[i+3]-extents[i]);
 		if (extents[i+3] - extents[i] > maxLen) {
 			maxLen = extents[i+3] - extents[i];
 		}
@@ -1174,4 +1182,159 @@ void GLWindow::drawAxes(float* extents){
 
 
 
+/*
+ * Add a renderer to this visualization window
+ * Add it at the end of the list.
+ * This happens when the dvr renderer is enabled, or if
+ * the local/global switch causes a new one to be enabled
+ */
+void GLWindow::
+appendRenderer(Renderer* ren, Params::ParamType rendererType)
+{
+	if (numRenderers < MAXNUMRENDERERS){
+		renderer[numRenderers] = ren;
+		renderType[numRenderers++] = rendererType;
+		ren->initializeGL();
+		update();
+	}
+}
+/*
+ * Insert a renderer to this visualization window
+ * Add it at the start of the list.
+ * This happens when a flow renderer or iso renderer is added
+ */
+void GLWindow::
+prependRenderer(Renderer* ren, Params::ParamType rendererType)
+{
+	if (numRenderers < MAXNUMRENDERERS){
+		for (int i = numRenderers; i> 0; i--){
+			renderer[i] = renderer[i-1];
+			renderType[i] = renderType[i-1];
+		}
+		renderer[0] = ren;
+		renderType[0] = rendererType;
+		numRenderers++;
+		ren->initializeGL();
+		update();
+	}
+}
+/* 
+ * Remove renderer of specified renderer type (only one can exist currently).
+ */
+void GLWindow::removeRenderer(Params::ParamType rendererType){
+	int i;
+	for (i = 0; i<numRenderers; i++) {		
+		if (rendererType != renderType[i]) continue;
+		delete renderer[i];
+		renderer[i] = 0;
+		break;
+	}
+	//Note that we won't always find one to remove.
+	if (i == numRenderers){ 
+		return;
+	}
+	numRenderers--;
+	for (int j = i; j<numRenderers; j++){
+		renderer[j] = renderer[j+1];
+		renderType[j] = renderType[j+1];
+	}
+	updateGL();
+	
+}
+//Determine if this window has a renderer of the specified type
+bool GLWindow::hasRenderer(Params::ParamType rendererType){
+	int i;
+	for (i = 0; i<numRenderers; i++) {		
+		if (rendererType == renderType[i]) return true;
+	}
+	return false;
+}
+// Return the renderer of the specified type
+Renderer* GLWindow::getRenderer(Params::ParamType rendererType)
+{
+	int i;
+	for (i = 0; i<numRenderers; i++) 
+    {		
+      if (rendererType == renderType[i]) return renderer[i];
+	}
+	return NULL;
+}
+//In addition to setting the dirty bit, call the renderer's setDirty if
+//the bit is being turned on.
+void GLWindow::
+setDirtyBit(Params::ParamType renType, DirtyBitType t, bool nowDirty){
+	vizDirtyBit[t] = nowDirty;
+	if (nowDirty){
+		for (int i = 0; i< getNumRenderers(); i++){
+			if (getRendererType(i) == renType){
+				getRenderer(i)->setDirty(t);
+			}
+		}
+	}
+}
+bool GLWindow::
+vizIsDirty(DirtyBitType t) {
+	return vizDirtyBit[t];
+}
+void GLWindow::
+doFrameCapture(){
+	if (capturing == 0) return;
+	//Create a string consisting of captureName, followed by nnnn (framenum), 
+	//followed by .jpg
+	QString filename;
+	if (capturing == 2){
+		filename = captureName;
+		filename += (QString("%1").arg(captureNum)).rightJustify(4,'0');
+		filename +=  ".jpg";
+	} //Otherwise we are just capturing one frame:
+	else filename = captureName;
+	if (!filename.endsWith(".jpg")) filename += ".jpg";
+	//Now open the jpeg file:
+	FILE* jpegFile = fopen(filename.ascii(), "wb");
+	if (!jpegFile) {
+		SetErrMsg("Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
+		capturing = 0;
+		return;
+	}
+	//Get the image buffer 
+	unsigned char* buf = new unsigned char[3*width()*height()];
+	//Use openGL to fill the buffer:
+	if(!getPixelData(buf)){
+		//Error!
+		SetErrMsg("Image Capture Error; error obtaining GL data");
+		capturing = 0;
+		delete buf;
+		return;
+	}
+	//Now call the Jpeg library to compress and write the file
+	//
+	int quality = getJpegQuality();
+	int rc = write_JPEG_file(jpegFile, width(), height(), buf, quality);
+	if (rc){
+		//Error!
+		SetErrMsg("Image Capture Error; Error writing jpeg file %s",
+			filename.ascii());
+		capturing = 0;
+		delete buf;
+		return;
+	}
+	//If just capturing single frame, turn it off, otherwise advance frame number
+	if(capturing > 1) captureNum++;
+	else capturing = 0;
+	delete buf;
+}
 
+float GLWindow::getPixelSize(){
+	float temp[3];
+	//Window height is subtended by viewing angle (45 degrees),
+	//at viewer distance (dist from camera to view center)
+	ViewpointParams* vpParams = getViewpointParams();
+	vsub(vpParams->getRotationCenter(),vpParams->getCameraPos(),temp);
+	float distToScene = vlength(temp);
+	//tan(45 deg *0.5) is ratio between half-height and dist to scene
+	float halfHeight = tan(M_PI*0.125)* distToScene;
+	return (2.f*halfHeight/(float)height());
+
+}
+
+    

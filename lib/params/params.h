@@ -33,7 +33,17 @@ using namespace VetsUtil;
 #define MAXVIZWINS 16
 
 namespace VAPoR{
-
+//The dirty bits are kept in each GLWindow, one for each type:
+enum DirtyBitType {
+	DvrClutBit,
+	ProbeTextureBit,
+	DvrDatarangeBit,
+	RegionBit,
+	ColorscaleBit,
+	NavigatingBit,
+	FlowDataBit,
+	FlowGraphicsBit
+};
 class XmlNode;
 class MapperFunction;
 class MapEditor;

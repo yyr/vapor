@@ -173,8 +173,6 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	myVizMgr->createGlobalParams();
 	
 	
-	//Initial state is set in vizmgr
-	currentMouseMode = myVizMgr->getSelectionMode();
 
     // actions
     
@@ -479,6 +477,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	Session::getInstance()->unblockRecording();
 	
     show();
+	VizWinMgr::getInstance()->getDvrRouter()->initTypes();
+
 }
 
 /*
@@ -1152,13 +1152,13 @@ void MainForm::setNavigate(bool on)
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	Session* currentSession = Session::getInstance();
 	//Only do something if this is an actual change of mode
-	if (currentMouseMode != Command::navigateMode){
-		myVizMgr->setSelectionMode(Command::navigateMode);
+	if (GLWindow::getCurrentMouseMode() != GLWindow::navigateMode){
+		myVizMgr->setSelectionMode(GLWindow::navigateMode);
 		currentSession->blockRecording();
 		//viewpoint();
 		currentSession->unblockRecording();
-		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::navigateMode));
-		currentMouseMode = Command::navigateMode;
+		currentSession->addToHistory(new MouseModeCommand(GLWindow::getCurrentMouseMode(),  GLWindow::navigateMode));
+		GLWindow::setCurrentMouseMode(GLWindow::navigateMode);
 		
 		if(modeStatusWidget) {
 			statusBar()->removeWidget(modeStatusWidget);
@@ -1176,10 +1176,10 @@ void MainForm::setLights(bool  on)
 	Session* currentSession = Session::getInstance();
 	if (!on && moveLightsAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
-	if (currentMouseMode != Command::lightMode){
-		VizWinMgr::getInstance()->setSelectionMode(Command::lightMode);
-		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::lightMode));
-		currentMouseMode = Command::lightMode;
+	if (GLWindow::getCurrentMouseMode() != GLWindow::lightMode){
+		VizWinMgr::getInstance()->setSelectionMode(GLWindow::lightMode);
+		currentSession->addToHistory(new MouseModeCommand(GLWindow::getCurrentMouseMode(),  GLWindow::lightMode));
+		GLWindow::setCurrentMouseMode(GLWindow::lightMode);
 		if(modeStatusWidget) {
 			statusBar()->removeWidget(modeStatusWidget);
 			delete modeStatusWidget;
@@ -1194,14 +1194,14 @@ void MainForm::setProbe(bool on)
 	if (!on && probeAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
 	Session* currentSession = Session::getInstance();
-	if (currentMouseMode != Command::probeMode){
-		VizWinMgr::getInstance()->setSelectionMode(Command::probeMode);
+	if (GLWindow::getCurrentMouseMode() != GLWindow::probeMode){
+		VizWinMgr::getInstance()->setSelectionMode(GLWindow::probeMode);
 		
 		currentSession->blockRecording();
 		launchProbeTab();
 		currentSession->unblockRecording();
-		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::probeMode));
-		currentMouseMode = Command::probeMode;
+		Session::getInstance()->addToHistory(new MouseModeCommand(GLWindow::getCurrentMouseMode(),  GLWindow::probeMode));
+		GLWindow::setCurrentMouseMode(GLWindow::probeMode);
 		if(modeStatusWidget) {
 			statusBar()->removeWidget(modeStatusWidget);
 			delete modeStatusWidget;
@@ -1218,14 +1218,14 @@ void MainForm::setRake(bool on)
 	if (!on && rakeAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
 	Session* currentSession = Session::getInstance();
-	if (currentMouseMode != Command::rakeMode){
-		VizWinMgr::getInstance()->setSelectionMode(Command::rakeMode);
+	if (GLWindow::getCurrentMouseMode() != GLWindow::rakeMode){
+		VizWinMgr::getInstance()->setSelectionMode(GLWindow::rakeMode);
 		//bring up the flowtab, but don't put into history:
 		currentSession->blockRecording();
 		launchFlowTab();
 		currentSession->unblockRecording();
-		Session::getInstance()->addToHistory(new MouseModeCommand(currentMouseMode,  Command::rakeMode));
-		currentMouseMode = Command::rakeMode;
+		Session::getInstance()->addToHistory(new MouseModeCommand(GLWindow::getCurrentMouseMode(),  GLWindow::rakeMode));
+		GLWindow::setCurrentMouseMode(GLWindow::rakeMode);
 		if(modeStatusWidget) {
 			statusBar()->removeWidget(modeStatusWidget);
 			delete modeStatusWidget;
@@ -1241,14 +1241,14 @@ void MainForm::setRegionSelect(bool on)
 	//Only respond to toggling on:
 	if (!on && regionSelectAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
-	if (currentMouseMode != Command::regionMode){
-		VizWinMgr::getInstance()->setSelectionMode(Command::regionMode);
+	if (GLWindow::getCurrentMouseMode() != GLWindow::regionMode){
+		VizWinMgr::getInstance()->setSelectionMode(GLWindow::regionMode);
 		//bring up the tab, but don't put into history:
 		currentSession->blockRecording();
 		region();
 		currentSession->unblockRecording();
-		currentSession->addToHistory(new MouseModeCommand(currentMouseMode,  Command::regionMode));
-		currentMouseMode = Command::regionMode;
+		currentSession->addToHistory(new MouseModeCommand(GLWindow::getCurrentMouseMode(),  GLWindow::regionMode));
+		GLWindow::setCurrentMouseMode(GLWindow::regionMode);
 		if(modeStatusWidget) {
 			statusBar()->removeWidget(modeStatusWidget);
 			delete modeStatusWidget;
@@ -1272,7 +1272,7 @@ void MainForm::initViewMenu(){
 	int pos1 = viewMenu->idAt(1);
 	int pos2 = viewMenu->idAt(2);
 	int pos3 = viewMenu->idAt(3);
-	if (!viz || viz->isCapturing()) {
+	if (!viz || viz->getGLWindow()->isCapturing()) {
 		viewStartCaptureAction->setMenuText( "&Begin image capture sequence"  );
 		viewMenu->setItemEnabled(pos2, false);
 		viewSingleCaptureAction->setMenuText("Capture single image");
@@ -1286,7 +1286,8 @@ void MainForm::initViewMenu(){
 	}
 	
 	//disable the end capture if no viz, or if active viz is not capturing
-	if (!viz || !viz->isCapturing()){
+	GLWindow* glWin = viz->getGLWindow();
+	if (!viz || !glWin->isCapturing()){
 		viewEndCaptureAction->setMenuText( "End capture sequence" );
 		viewMenu->setItemEnabled(pos3, false);
 	}
@@ -1344,7 +1345,7 @@ void MainForm::startCapture() {
 	//Turn on "image capture mode" in the current active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (viz) {
-		viz->startCapture(filePath,startFileNum);
+		viz->getGLWindow()->startCapture(filePath,startFileNum);
 		//Provide a popup stating the capture parameters in effect.
 		MessageReporter::infoMsg("Image Capture Activated \n Image is being captured to %s",
 			filePath.ascii());
@@ -1375,7 +1376,7 @@ void MainForm::captureSingle() {
 	//Turn on "image capture mode" in the current active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	if (viz) {
-		viz->singleCapture(filename);
+		viz->getGLWindow()->singleCapture(filename);
 		//Provide a message stating the capture in effect.
 		MessageReporter::infoMsg("Single Image is captured to %s",
 			filename.ascii());
@@ -1387,8 +1388,9 @@ void MainForm::captureSingle() {
 void MainForm::endCapture(){
 	//Turn off capture mode for the current active visualizer (if it is on!)
 	//Otherwise indicate that the visualizer is not capturing.
-	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
-	if (viz && viz->isCapturing()) viz->stopCapture();
+	GLWindow* glWin = VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow();
+
+	if (glWin && glWin->isCapturing()) glWin->stopCapture();
 	else {
 		MessageReporter::warningMsg("Image Capture Warning;\nCurrent active visualizer is not capturing images");
 	}

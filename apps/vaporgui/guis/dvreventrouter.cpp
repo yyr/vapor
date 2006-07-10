@@ -392,6 +392,7 @@ fileLoadTF(DvrParams* dParams){
 //Insert values from params into tab panel
 //
 void DvrEventRouter::updateTab(Params* params){
+	initTypes();
 	DvrParams* dvrParams = (DvrParams*) params;
 	
 	
@@ -816,9 +817,9 @@ updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWin
 	
 	if (nowEnabled && !prevEnabled && newLocal){//For case 2.:  create a renderer in the active window:
 
-		VolumeRenderer* myDvr = new VolumeRenderer(viz, dParams->getType());
+		VolumeRenderer* myDvr = new VolumeRenderer(viz->getGLWindow(), dParams->getType());
 
-		viz->appendRenderer(myDvr, Params::DvrParamsType);
+		viz->getGLWindow()->appendRenderer(myDvr, Params::DvrParamsType);
 
 		//force the renderer to refresh region data  (why?)
 		
@@ -836,10 +837,10 @@ updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWin
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
 				DvrParams* gdParams = (DvrParams*)vizWinMgr->getGlobalParams(Params::DvrParamsType);
 				// Make sure there is not already a volume renderer here:
-				if (viz->hasRenderer(Params::DvrParamsType)) continue;
-				VolumeRenderer* myDvr = new VolumeRenderer(viz, gdParams->getType());
+				if (viz->getGLWindow()->hasRenderer(Params::DvrParamsType)) continue;
+				VolumeRenderer* myDvr = new VolumeRenderer(viz->getGLWindow(), gdParams->getType());
 
-				viz->appendRenderer(myDvr, Params::DvrParamsType);
+				viz->getGLWindow()->appendRenderer(myDvr, Params::DvrParamsType);
 
 				//force the renderer to refresh region data (??)
 				VizWinMgr::getInstance()->setVizDirty(gdParams,RegionBit,true);
@@ -853,13 +854,13 @@ updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWin
 		for (int i = 0; i<MAXVIZWINS; i++){
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
-				viz->removeRenderer(Params::DvrParamsType);
+				viz->getGLWindow()->removeRenderer(Params::DvrParamsType);
 			}
 		}
 		return;
 	}
 	assert(prevEnabled && !nowEnabled && (newLocal ||(newLocal != wasLocal))); //case 6, disable local only
-	viz->removeRenderer(Params::DvrParamsType);
+	viz->getGLWindow()->removeRenderer(Params::DvrParamsType);
 
 	return;
 }
@@ -1011,7 +1012,7 @@ void DvrEventRouter::runBenchmarks()
   if (!vizWin) return;
 
   VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
 
   if (benchmarkTimer == NULL)
   {
@@ -1064,7 +1065,7 @@ void DvrEventRouter::nextBenchmark()
   if (!vizWin) return;
 
   VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
 
   benchmark++;
 
@@ -1152,7 +1153,7 @@ void DvrEventRouter::benchmarkPreamble()
   if (!vizWin) return;
 
   VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
 
   cout << " " << typeCombo->currentText() << " @ ";
   cout << nx << "x" << ny << "x" << nz << endl;
@@ -1169,7 +1170,7 @@ void DvrEventRouter::renderBenchmark()
   if (!vizWin) return;
 
   VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
 
   if (renderer->renderedFrames() < 100 && renderer->elapsedTime() < 10.0)
   {
@@ -1195,7 +1196,7 @@ void DvrEventRouter::temporalBenchmark()
   if (!vizWin) return;
 
   VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
 
   if (renderer->renderedFrames() > 3 && 
       (renderer->renderedFrames() > 100 || renderer->elapsedTime() > 10.0))
@@ -1220,7 +1221,7 @@ void DvrEventRouter::tfeditBenchmark()
   if (!vizWin) return;
 
   VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getRenderer(Params::DvrParamsType));
+    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
 
   if (renderer->renderedFrames() < 255 && renderer->elapsedTime() < 10.0)
   {

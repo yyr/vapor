@@ -25,18 +25,18 @@
 #include "vapor/DataMgr.h"
 #include "DVRBase.h"
 #include "renderer.h"
-#include "vizwin.h"
-#include "dvreventrouter.h"
+#include "glwindow.h"
+#include "dvrparams.h"
 
 namespace VAPoR {
 
   class VolumeRenderer : public Renderer 
   {
-	//Q_OBJECT  ?WHY?
+	
       
   public:
 
-    VolumeRenderer(VizWin *w, DvrParams::DvrType type);
+    VolumeRenderer(GLWindow *w, DvrParams::DvrType type);
     virtual ~VolumeRenderer();
     
 	virtual void initializeGL();

@@ -32,7 +32,7 @@ using namespace VAPoR;
 SessionParams::SessionParams(){
 	Session* currentSession = Session::getInstance();
 	MessageReporter* mReporter = MessageReporter::getInstance();
-	jpegQuality = currentSession->getJpegQuality();
+	jpegQuality = GLWindow::getJpegQuality();
 	cacheSize = currentSession->getCacheMB();
 	for (int i = 0; i<3; i++){
 		MessageReporter::messagePriority mP = (MessageReporter::messagePriority) i;
@@ -69,7 +69,7 @@ void SessionParams::launch(){
 		}
 		//Set the image quality:
 		int newQual = sessionParamsDlg->jpegQuality->text().toInt();
-		if (newQual > 0 && newQual <= 100) currentSession->setJpegQuality(newQual);
+		if (newQual > 0 && newQual <= 100) GLWindow::setJpegQuality(newQual);
 
 		//set the log/popup numbers:
 		maxPopup[0] = sessionParamsDlg->maxInfoPopup->text().toInt();

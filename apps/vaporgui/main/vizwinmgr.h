@@ -76,17 +76,7 @@ class DvrEventRouter;
 class ProbeEventRouter;
 class ViewpointEventRouter;
 class FlowEventRouter;
-//The dirty bits are kept in each viz win, one for each type:
-enum DirtyBitType {
-	DvrClutBit,
-	ProbeTextureBit,
-	DvrDatarangeBit,
-	RegionBit,
-	ColorscaleBit,
-	NavigatingBit,
-	FlowDataBit,
-	FlowGraphicsBit
-};
+
 
 class VizWinMgr : public QObject, public ParsedXml
 {
@@ -235,8 +225,8 @@ public:
 	void replaceGlobalParams(Params* p, Params::ParamType typ);
 	void createDefaultParams(int winnum);
 	
-	void setSelectionMode( Command::mouseModeType m);
-	Command::mouseModeType getSelectionMode () {return selectionMode;}
+	void setSelectionMode( GLWindow::mouseModeType m);
+	
 	Trackball* getGlobalTrackball() {return globalTrackball;}
 	//For a specific coordinate, and a specific window num, determine
 	//whether or not the camera is situated further from the origin than
@@ -301,8 +291,7 @@ public:
 	//reset to starting state
 	//
 	void restartParams();
-	Command::mouseModeType selectionMode;
-
+	
 	//Methods to handle save/restore
 	XmlNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);

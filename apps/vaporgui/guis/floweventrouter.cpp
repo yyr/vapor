@@ -1049,7 +1049,7 @@ guiSetAutoRefresh(bool autoOn){
 	//we will need to leave the refresh button enabled.
 	bool needEnable = false;
 	int maxFrame = DataStatus::getInstance()->getMaxTimestep();
-	FlowRenderer* fRenderer = VizWinMgr::getInstance()->getActiveVisualizer()->getFlowRenderer();
+	FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(Params::FlowParamsType);
 	if (!fRenderer) return;
 	fRenderer->setAllNeedRefresh(autoOn);
 	//See if button needs to be enabled (at least one frame is dirty)
@@ -1292,7 +1292,7 @@ void FlowEventRouter::guiSaveFlowLines(){
 	}
 	//Refresh the flow, if necessary
 	guiRefreshFlow();
-	FlowRenderer* fRenderer = VizWinMgr::getInstance()->getActiveVisualizer()->getFlowRenderer();
+	FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(Params::FlowParamsType);
 	//Get min/max timesteps from applicable animation params
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
@@ -1666,8 +1666,8 @@ updateRenderer(FlowParams* fParams, bool prevEnabled,  bool wasLocal, bool newWi
 		//First, make sure we have valid fielddata:
 		fParams->validateSampling(minFrame);
 
-		FlowRenderer* myRenderer = new FlowRenderer (viz, fParams);
-		viz->prependRenderer(myRenderer, Params::FlowParamsType);
+		FlowRenderer* myRenderer = new FlowRenderer (viz->getGLWindow(), fParams);
+		viz->getGLWindow()->prependRenderer(myRenderer, Params::FlowParamsType);
 		myRenderer->setAllNeedRefresh(fParams->refreshIsAuto());
 		vizWinMgr->setVizDirty(fParams,FlowDataBit, true);
 		return;
@@ -1679,9 +1679,9 @@ updateRenderer(FlowParams* fParams, bool prevEnabled,  bool wasLocal, bool newWi
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getFlowParams(i)->isLocal()){
 				// Make sure there is not already a flow renderer here:
-				if (viz->hasRenderer(Params::FlowParamsType)) continue;
-				FlowRenderer* myRenderer = new FlowRenderer (viz, fParams);
-				viz->prependRenderer(myRenderer, Params::FlowParamsType);
+				if (viz->getGLWindow()->hasRenderer(Params::FlowParamsType)) continue;
+				FlowRenderer* myRenderer = new FlowRenderer (viz->getGLWindow(), fParams);
+				viz->getGLWindow()->prependRenderer(myRenderer, Params::FlowParamsType);
 				myRenderer->setAllNeedRefresh(fParams->refreshIsAuto());
 			}
 		}
@@ -1692,14 +1692,14 @@ updateRenderer(FlowParams* fParams, bool prevEnabled,  bool wasLocal, bool newWi
 		for (int i = 0; i<MAXVIZWINS; i++){
 			viz = vizWinMgr->getVizWin(i);
 			if (viz && !vizWinMgr->getFlowParams(i)->isLocal()){
-				viz->removeRenderer(Params::FlowParamsType);
+				viz->getGLWindow()->removeRenderer(Params::FlowParamsType);
 			}
 		}
 		return;
 	}
 	//case 6, disable local only
 	assert(prevEnabled && !nowEnabled && (newLocal ||(newLocal != wasLocal))); 
-	viz->removeRenderer(Params::FlowParamsType);
+	viz->getGLWindow()->removeRenderer(Params::FlowParamsType);
 
 	return;
 }

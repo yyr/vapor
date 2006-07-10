@@ -349,7 +349,7 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(probeParams,ProbeTextureBit,true);
 	//If we are in probe mode, force a rerender of all windows using the probe:
-	if (MainForm::getInstance()->getCurrentMouseMode() == Command::probeMode){
+	if (GLWindow::getCurrentMouseMode() == GLWindow::probeMode){
 		VizWinMgr::getInstance()->refreshProbe(probeParams);
 	}
 	//Cancel any response to events generated in this method:

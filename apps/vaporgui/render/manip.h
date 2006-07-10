@@ -23,12 +23,13 @@
 //Handle diameter in pixels:
 #define HANDLE_DIAMETER 15
 namespace VAPoR {
-class VizWin;
+
+class GLWindow;
 class Params;
 class Manip {
 
 public:
-	Manip(VizWin* win) {myVizWin = win;}
+	Manip(GLWindow* win) {myGLWin = win;}
 	~Manip(){}
 	virtual void render()= 0;
 	//The manip gets its dimensions from the Params.
@@ -60,7 +61,7 @@ protected:
 	
 	void getBoxVertices(float vertices[8][3]);
 	Params* myParams;
-	VizWin* myVizWin;
+	GLWindow* myGLWin;
 	
 	//general utility function for drawing axis-aligned cubes.
 	//Should be in cube coords
@@ -77,7 +78,7 @@ protected:
 //When you slide a handle with the right mouse it stretches the region
 class TranslateStretchManip : public Manip {
 public:
-	TranslateStretchManip(VizWin* win, Params*p); 
+	TranslateStretchManip(GLWindow* win, Params*p); 
 	virtual void render();
 	
 	
@@ -120,7 +121,7 @@ protected:
 //the full domain bounds.
 class TranslateRotateManip : public TranslateStretchManip {
 public:
-	TranslateRotateManip(VizWin* w, Params* p);
+	TranslateRotateManip(GLWindow* w, Params* p);
 	virtual void render();
 	virtual void slideHandle(int handleNum, float movedRay[3]);
 	virtual void mouseRelease(float screenCoords[2]);

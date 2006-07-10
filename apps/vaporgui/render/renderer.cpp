@@ -35,12 +35,12 @@
 
 using namespace VAPoR;
 
-Renderer::Renderer( VizWin* vw )
+Renderer::Renderer( GLWindow* glw )
 {
 	//Establish the data sources for the rendering:
 	//
-	myVizWin = vw;
-    myGLWindow = vw->getGLWindow();
+	
+    myGLWindow = glw;
 	savedNumXForms = -1;
 }
 
@@ -49,10 +49,10 @@ Renderer::Renderer( VizWin* vw )
 void Renderer::
 buildColorscaleImage(){
 	//Get the image size from the VizWin:
-	float fwidth = myVizWin->getColorbarURCoord(0) - myVizWin->getColorbarLLCoord(0);
-	float fheight = myVizWin->getColorbarURCoord(1) - myVizWin->getColorbarLLCoord(1);
-	imgWidth = (int)(fwidth*myVizWin->width());
-	imgHeight = (int)(fheight*myVizWin->height());
+	float fwidth = myGLWindow->getColorbarURCoord(0) - myGLWindow->getColorbarLLCoord(0);
+	float fheight = myGLWindow->getColorbarURCoord(1) - myGLWindow->getColorbarLLCoord(1);
+	imgWidth = (int)(fwidth*myGLWindow->width());
+	imgHeight = (int)(fheight*myGLWindow->height());
 	if (imgWidth < 2 || imgHeight < 2) return;
 
 	//Now push up to the next power of two
@@ -68,7 +68,7 @@ buildColorscaleImage(){
 	//First, create a QPixmap (specified background color) and draw the coordinates on it.
 	QPixmap colorbarPixmap(imgWidth, imgHeight);
 
-	QColor bgColor = myVizWin->getColorbarBackgroundColor();
+	QColor bgColor = myGLWindow->getColorbarBackgroundColor();
 	colorbarPixmap.fill(bgColor);
 	//assert(colorbarPixmap.depth()==32);
 	
@@ -78,7 +78,7 @@ buildColorscaleImage(){
 	painter.setPen(myPen);
 
 	//Setup font:
-	int numtics = myVizWin->getColorbarNumTics();
+	int numtics = myGLWindow->getColorbarNumTics();
 	int textHeight = imgHeight/(2*numtics);
 	if (textHeight > imgHeight/15) textHeight = imgHeight/15;
 	QFont textFont;
@@ -93,7 +93,7 @@ buildColorscaleImage(){
 
 	//Obtain the relevant transfer function:
 	TransferFunction* myTransFunc = 
-		(TransferFunction*)VizWinMgr::getInstance()->getDvrParams(myVizWin->getWindowNum())->getMapperFunc();
+		(TransferFunction*)VizWinMgr::getInstance()->getDvrParams(myGLWindow->getWindowNum())->getMapperFunc();
 	
 	
 	
@@ -141,7 +141,7 @@ buildColorscaleImage(){
 void Renderer::
 renderColorscale(bool dorebuild){
 	if (dorebuild) buildColorscaleImage();
-	myVizWin->setColorbarDirty(false);
+	myGLWindow->setColorbarDirty(false);
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	//Disable z-buffer compare, always overwrite:
@@ -152,10 +152,10 @@ renderColorscale(bool dorebuild){
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 		glColorbarImage.bits());
 	
-	float llx = 2.f*myVizWin->getColorbarLLCoord(0) - 1.f; 
-	float lly = 2.f*myVizWin->getColorbarLLCoord(1) - 1.f; 
-	float urx = 2.f*myVizWin->getColorbarURCoord(0) - 1.f; 
-	float ury = 2.f*myVizWin->getColorbarURCoord(1) - 1.f; 
+	float llx = 2.f*myGLWindow->getColorbarLLCoord(0) - 1.f; 
+	float lly = 2.f*myGLWindow->getColorbarLLCoord(1) - 1.f; 
+	float urx = 2.f*myGLWindow->getColorbarURCoord(0) - 1.f; 
+	float ury = 2.f*myGLWindow->getColorbarURCoord(1) - 1.f; 
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, 0.0f);
 	glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, 0.0f);

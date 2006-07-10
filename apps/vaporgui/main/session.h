@@ -205,10 +205,8 @@ public:
 	void exportData();
 	void setCacheMB(size_t size){cacheMB = size;}
 	size_t getCacheMB() {return cacheMB;}
-	void setJpegQuality(int level) {jpegQuality = level;}
-	int getJpegQuality(){return jpegQuality;}
-	bool renderReady() {return renderOK;}
-	void setRenderReady(bool nowOK) {renderOK = nowOK;}
+	
+	
 	int getNumTFs() { return numTFs;}
 	std::string* getTFName(int i) { return tfNames[i];}
 	void addTF(const char* tfName, Params* );
@@ -245,13 +243,7 @@ public:
 	float getExtents(int i) {return extents[i];}
 	//Better version of getExtents, uses refinement level
 	void getExtents(int refLevel, float extents[6]);
-	//const size_t* getFullDataDimensions() {return (currentDataStatus ? currentDataStatus->getFullDataSize() : 0);}
-	//Get full data extents in cube coords
-	void getMaxExtentsInCube(float maxExtents[3]);
-
-	//double getDefaultDataMax(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMax(varnum) : 1.0);}
-	//double getDefaultDataMin(int varnum){return (currentDataStatus ? currentDataStatus->getDefaultDataMin(varnum) : 0.0);}
-	
+		
 	std::string& getVariableName(int varNum) {
 		return DataStatus::getVariableName(varNum);}
 
@@ -319,8 +311,8 @@ protected:
 	const Metadata* currentMetadata;
 	//Cache size in megabytes
 	size_t cacheMB;
-	// JPeg image quality (1-100)
-	int jpegQuality;
+	
+	
 	bool dataExists;
 	bool newSession;
 	bool renderOK;

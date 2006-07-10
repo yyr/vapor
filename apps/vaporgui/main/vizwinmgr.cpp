@@ -133,7 +133,7 @@ VizWinMgr::VizWinMgr()
 		animationParams[i] = 0;
 		activationOrder[i] = -1;
     }
-	setSelectionMode(Command::navigateMode);
+	setSelectionMode(GLWindow::navigateMode);
 	dvrEventRouter = 0;
 	regionEventRouter = 0;
 	viewpointEventRouter = 0;
@@ -812,14 +812,14 @@ void VizWinMgr::
 setViewerCoordsChanged(ViewpointParams* vp){
 	int vizNum = vp->getVizNum();
 	if (vizNum>=0) {
-		vizWin[vizNum]->setViewerCoordsChanged(true);
+		vizWin[vizNum]->getGLWindow()->setViewerCoordsChanged(true);
 	}
 	if(vp->isLocal()) return;
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if  ( vizWin[i] && (i != vizNum)  &&
 				((!vpParams[i])||!vpParams[i]->isLocal())
 			){
-			vizWin[i]->setViewerCoordsChanged(true);
+			vizWin[i]->getGLWindow()->setViewerCoordsChanged(true);
 		}
 	}
 }
@@ -1283,8 +1283,8 @@ reinitializeParams(bool doOverride){
 
 }
 void VizWinMgr::
-setSelectionMode( Command::mouseModeType m){ 
-	selectionMode = m;
+setSelectionMode( GLWindow::mouseModeType m){ 
+	GLWindow::setCurrentMouseMode(m);
 	//Update all visualizers:
 	for (int i = 0; i<MAXVIZWINS; i++){
 		if(vizWin[i]) vizWin[i]->updateGL();

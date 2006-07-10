@@ -155,9 +155,9 @@ void Session::init() {
 	keptTFs = 0;
 	tfListSize = 0;
 	
-	jpegQuality = 75;
+	GLWindow::setJpegQuality(75);
 	dataExists = false;
-	renderOK = false;
+	
 	newSession = true;
 	extents[0] = extents[1] = extents[2] = 0.f;
 	extents[3] = extents[4] = extents[5] = 1.f;
@@ -194,7 +194,7 @@ buildNode() {
 	oss << (long)cacheMB;
 	attrs[_cacheSizeAttr] = oss.str();
 	oss.str(empty);
-	oss << (long)jpegQuality;
+	oss << (long)GLWindow::getJpegQuality();
 	attrs[_jpegQualityAttr] = oss.str();
 	attrs[_metadataPathAttr] = currentMetadataFile;
 	attrs[_transferFunctionPathAttr] = currentTFPath;
@@ -294,7 +294,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					ist >> cacheMB;
 				}
 				else if (StrCmpNoCase(attr, _jpegQualityAttr) == 0) {
-					ist >> jpegQuality;
+					int qual;
+					ist >> qual;
+					GLWindow::setJpegQuality(qual);
 				}
 				else if (StrCmpNoCase(attr, _transferFunctionPathAttr) == 0) {
 					ist >> currentTFPath;
@@ -536,7 +538,8 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	int i;
 	//This is a flag used by renderers to avoid rendering while state
 	//is changing.
-	renderOK = false;
+	if (DataStatus::getInstance())
+		DataStatus::getInstance()->setRenderReady(false);
 	
 	bool defaultSession = (fileBase == 0);
 	if (restoredSession) assert(defaultSession);
@@ -650,7 +653,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 
 	//Reset the undo/redo queue
 	resetCommandQueue();
-	renderOK = true;
+	DataStatus::getInstance()->setRenderReady(true);
 	//Set the metadataSaved flag depending on whether or not we merged:
 	//That way we know the next session save will also need to save metadata
 	//If we failed to merge or load, the metadataSaved flag does not change.
@@ -892,13 +895,7 @@ void Session::
 infoCallbackFcn(const char* msg){
 	MessageReporter::infoMsg("%s",msg);
 }
-//Convert the max extents into cube coords
-void Session::getMaxExtentsInCube(float maxExtents[3]){
-	float maxSize = Max(extents[3]-extents[0],Max(extents[4]-extents[1],extents[5]-extents[2]));
-	maxExtents[0] = (extents[3]-extents[0])/maxSize;
-	maxExtents[1] = (extents[4]-extents[1])/maxSize;
-	maxExtents[2] = (extents[5]-extents[2])/maxSize;
-}
+
 /*
 //Find which index is associated with a name, or -1 if not metadata:
 int Session::getSessionVariableNum(const string& str){

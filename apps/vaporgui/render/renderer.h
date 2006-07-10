@@ -43,14 +43,14 @@ public:
 	//Constructor is called when the renderer is enabled.  Does any
 	//setup of renderer state
 	//
-	Renderer(VizWin* vw);
+	Renderer(GLWindow* vw);
 	virtual ~Renderer() {}
 	//Following are called by the glwindow class attached to the vizwin
 	//as needed for rendering
 	//
     virtual void		initializeGL() = 0;
     virtual void		paintGL() = 0;
-	virtual void		setDirty(DirtyBitType t) {return;}
+	virtual void		setDirty(DirtyBitType /*t*/) {return;}
 	
 protected:
 	
@@ -62,7 +62,6 @@ protected:
 	int imgWidth, imgHeight;
 	QImage glColorbarImage;
 	GLWindow* myGLWindow;
-	VizWin* myVizWin;
 	
 	float regionFrameColor[3];
 	float subregionFrameColor[3];

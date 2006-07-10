@@ -28,7 +28,7 @@
 #include <qaction.h>
 using namespace VAPoR;
 //Constructor:  called when a new command is issued.
-MouseModeCommand::MouseModeCommand(mouseModeType oldMode, mouseModeType newMode){
+MouseModeCommand::MouseModeCommand(GLWindow::mouseModeType oldMode, GLWindow::mouseModeType newMode){
 	//Make a copy of previous panel:
 	previousMode = oldMode;
 	currentMode = newMode;
@@ -42,19 +42,19 @@ MouseModeCommand::MouseModeCommand(mouseModeType oldMode, mouseModeType newMode)
 void MouseModeCommand::unDo(){
 	Session::getInstance()->blockRecording();
 	switch (previousMode){
-		case navigateMode:
+		case GLWindow::navigateMode:
 			MainForm::getInstance()->navigationAction->setOn(true);
 			break;
-		case regionMode:
+		case GLWindow::regionMode:
 			MainForm::getInstance()->regionSelectAction->setOn(true);
 			break;
-		case probeMode:
+		case GLWindow::probeMode:
 			MainForm::getInstance()->probeAction->setOn(true);
 			break;
-		case rakeMode:
+		case GLWindow::rakeMode:
 			MainForm::getInstance()->rakeAction->setOn(true);
 			break;
-		case lightMode:
+		case GLWindow::lightMode:
 			MainForm::getInstance()->moveLightsAction->setOn(true);
 			break;
 		
@@ -66,19 +66,19 @@ void MouseModeCommand::unDo(){
 void MouseModeCommand::reDo(){
 	Session::getInstance()->blockRecording();
 	switch (currentMode){
-		case navigateMode:
+		case GLWindow::navigateMode:
 			MainForm::getInstance()->navigationAction->setOn(true);
 			break;
-		case regionMode:
+		case GLWindow::regionMode:
 			MainForm::getInstance()->regionSelectAction->setOn(true);
 			break;
-		case probeMode:
+		case GLWindow::probeMode:
 			MainForm::getInstance()->probeAction->setOn(true);
 			break;
-		case rakeMode:
+		case GLWindow::rakeMode:
 			MainForm::getInstance()->rakeAction->setOn(true);
 			break;
-		case lightMode:
+		case GLWindow::lightMode:
 			MainForm::getInstance()->moveLightsAction->setOn(true);
 			break;
 		
@@ -89,18 +89,18 @@ void MouseModeCommand::reDo(){
 }
 
 const char* MouseModeCommand::
-modeName(mouseModeType t){
+modeName(GLWindow::mouseModeType t){
 	switch (t){
-		case navigateMode:
+		case GLWindow::navigateMode:
 			return " navigate ";
-		case regionMode:
+		case GLWindow::regionMode:
 			return " region-set ";
-		case probeMode:
+		case GLWindow::probeMode:
 			return " probe-set ";
-		case rakeMode:
+		case GLWindow::rakeMode:
 			return " rake-set ";
 		
-		case lightMode:
+		case GLWindow::lightMode:
 			return " light-move ";
 		default:  
 			assert(0);

@@ -128,6 +128,10 @@ public:
 	}
 	void fillMetadataVars();
 	static void clearMetadataVars() {mapMetadataVars = 0; numMetadataVariables = 0;}
+	//Get full data extents in cube coords
+	void getMaxExtentsInCube(float maxExtents[3]);
+	bool renderReady() {return renderOK;}
+	void setRenderReady(bool nowOK) {renderOK = nowOK;}
 		
 	
 private:
@@ -142,7 +146,7 @@ private:
 	std::vector<int*> maxNumTransforms;
 	Metadata* currentMetadata;
 	const DataMgr* dataMgr;
-	
+	bool renderOK;
 	
 	//track min and max data values for each variable and timestep (at max transform level)
 	std::vector<float*> dataMin;

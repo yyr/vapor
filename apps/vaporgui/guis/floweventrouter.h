@@ -41,7 +41,6 @@ class FlowEventRouter : public FlowTab, public EventRouter {
 	Q_OBJECT
 public: 
 	
-	void initTypes();
 	FlowEventRouter(QWidget* parent, const char* name);
 	~FlowEventRouter();
 

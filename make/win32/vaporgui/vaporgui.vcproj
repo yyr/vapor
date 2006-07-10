@@ -556,6 +556,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\render\manip.h">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\render\Matrix3d.h">
 			</File>
 			<File
@@ -586,9 +589,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\main\panelcommand.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\params\params.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\render\Point3d.h">
