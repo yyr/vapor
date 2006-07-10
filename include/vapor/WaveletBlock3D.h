@@ -120,7 +120,7 @@ private:
  float	**temp_blks1_c,
 	**temp_blks2_c;
 
- Lifting1D	*lift_c;	// lifting method wavelet transform
+ Lifting1D <float>	*lift_c;	// lifting method wavelet transform
  float		*liftbuf_c;	// scratch space for lifting method
 
  int	deallocate_c;		// execute destructor for this object?

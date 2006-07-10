@@ -50,7 +50,7 @@ WaveletBlock3D::WaveletBlock3D(
 	nthreads_c = nthreads;
 
 	if (n_c>1) {
-		lift_c = new Lifting1D(n_c, ntilde_c, bs_c);
+		lift_c = new Lifting1D<float> (n_c, ntilde_c, bs_c);
 		if (lift_c->GetErrCode()) {
 			SetErrMsg("Lifting1D() : %s", lift_c->GetErrMsg());
 			return;

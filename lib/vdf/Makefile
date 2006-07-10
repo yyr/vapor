@@ -5,7 +5,7 @@ include ${TOP}/make/config/arch.mk
 SHARED = 0
 LIBRARY = vdf
 FILES = \
-	BlkMemMgr DataMgr Lifting1D Metadata WaveletBlock3D \
+	BlkMemMgr DataMgr Metadata WaveletBlock3D \
 	WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	VDFIOBase WaveletBlock3DIO WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
@@ -13,7 +13,7 @@ FILES = \
 	AMRTree AMRTreeBranch AMRData 
 
 HEADER_FILES = \
-	BlkMemMgr DataMgr Lifting1D Metadata WaveletBlock3D \
+	BlkMemMgr DataMgr Metadata WaveletBlock3D \
 	WaveletBlock3DBufReader WaveletBlock3DBufWriter \
 	VDFIOBase WaveletBlock3DIO WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
