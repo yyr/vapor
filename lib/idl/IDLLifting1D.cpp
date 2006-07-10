@@ -12,10 +12,12 @@ using namespace VetsUtil;
 namespace {	// un-named namespace
 
 typedef struct  {
-	Lifting1D	**liftings;
-	float	*buf;
+	Lifting1D<float>	**flt_liftings;
+	Lifting1D<double>	**dbl_liftings;
+	unsigned char	*buf;
 	unsigned int nxforms;
 	unsigned int width;
+	int dbl;
 } Lifting1DHandle_t;
 
 Lifting1DHandle_t *varGetLiftingHandle(
@@ -34,11 +36,16 @@ IDL_VPTR Lifting1DCreate(int argc, IDL_VPTR *argv, char *argk)
 {
 	typedef struct {
 		IDL_KW_RESULT_FIRST_FIELD;  //
+        IDL_LONG dbl;
 		IDL_LONG nFilterCoef;
 		IDL_LONG nLiftingCoef;
 	} KW_RESULT;
 
 	static IDL_KW_PAR kw_pars[] = {
+		{
+			"DOUBLE", IDL_TYP_LONG, 1, IDL_KW_ZERO, 0,
+			(char *) IDL_KW_OFFSETOF(dbl)
+		},
 		{
 			"NFILTERCOEF", IDL_TYP_LONG, 1, 0, 0, 
 			(char *) IDL_KW_OFFSETOF(nFilterCoef)
@@ -53,8 +60,12 @@ IDL_VPTR Lifting1DCreate(int argc, IDL_VPTR *argv, char *argk)
 	KW_RESULT kw;
 
 
+
 	kw.nFilterCoef = 1;
 	kw.nLiftingCoef = 1;
+	kw.dbl = 0;
+
+	int normalize = 1;
 
 	// Process keywords which are mixed in with positional arguments
 	// in argv. N.B. the number of positional arguments (non keywords)
@@ -78,26 +89,62 @@ IDL_VPTR Lifting1DCreate(int argc, IDL_VPTR *argv, char *argk)
 	IDL_LONG nxforms = IDL_LongScalar(argv[1]);
 
 
-	// Allocate one Lifting1D for each transform
-    //
-    Lifting1D	**liftings = new Lifting1D*[nxforms];
-    for(int l=0; l<nxforms; l++) liftings[l] = NULL;
-    for(int l=0; l<nxforms; l++) {
-        liftings[l] = new Lifting1D(kw.nFilterCoef,kw.nLiftingCoef,width);
+	Lifting1D<double>	**dbl_liftings = NULL;
+	Lifting1D<float>	**flt_liftings = NULL;
+	unsigned char *buf = NULL;
+	unsigned int w = (unsigned int) width;
+	if (kw.dbl) {
+		// Allocate one Lifting1D for each transform
+		//
+		dbl_liftings = new Lifting1D<double>* [nxforms];
+		for(int l=0; l<nxforms; l++) dbl_liftings[l] = NULL;
+		for(int l=0; l<nxforms; l++) {
+			dbl_liftings[l] = new Lifting1D<double> (
+				(unsigned int) kw.nFilterCoef,
+				(unsigned int) kw.nLiftingCoef,
+				(unsigned int) w, normalize
+			);
 
-        if (MyBase::GetErrCode() != 0) {
-            for(int ll = 0; ll<l; ll++) delete liftings[ll];
-			string msg(Lifting1D::GetErrMsg());
-			Lifting1D::SetErrCode(0);
-			errFatal(msg.c_str());
-        }
-    }
+			if (MyBase::GetErrCode() != 0) {
+				for(int ll = 0; ll<l; ll++) delete dbl_liftings[ll];
+				string msg(Lifting1D<double>::GetErrMsg());
+				Lifting1D<double>::SetErrCode(0);
+				errFatal(msg.c_str());
+			}
+			w -= (w>>1);
+		}
+		buf = new unsigned char[sizeof(double) * width];
+	}
+	else {
+		// Allocate one Lifting1D for each transform
+		//
+		flt_liftings = new Lifting1D<float>* [nxforms];
+		for(int l=0; l<nxforms; l++) flt_liftings[l] = NULL;
+		for(int l=0; l<nxforms; l++) {
+			flt_liftings[l] = new Lifting1D<float> (
+				kw.nFilterCoef,
+				kw.nLiftingCoef,
+				w, normalize
+			);
+
+			if (MyBase::GetErrCode() != 0) {
+				for(int ll = 0; ll<l; ll++) delete flt_liftings[ll];
+				string msg(Lifting1D<float>::GetErrMsg());
+				Lifting1D<float>::SetErrCode(0);
+				errFatal(msg.c_str());
+			}
+			w -= (w>>1);
+		}
+		buf = new unsigned char[sizeof(float) * width];
+	}
 
     Lifting1DHandle_t *lh = new Lifting1DHandle_t();
-    lh->buf = new float[width];
+    lh->buf = buf;
     lh->nxforms = nxforms;
     lh->width = width;
-    lh->liftings = liftings;
+    lh->flt_liftings = flt_liftings;
+    lh->dbl_liftings = dbl_liftings;
+	lh->dbl = kw.dbl;
 
 
 	IDL_VPTR result = IDL_Gettmp();
@@ -116,24 +163,29 @@ void Lifting1DDestroy(int argc, IDL_VPTR *argv)
 {
 	
 	Lifting1DHandle_t	*lh = varGetLiftingHandle(argv[0]);
-	Lifting1D   **liftings = (Lifting1D **) lh->liftings;
 
-	for(int l=0; l<lh->nxforms; l++) {
-		if (liftings[l]) delete liftings[l];
+	if (lh->flt_liftings) {
+		for(int l=0; l<lh->nxforms; l++) {
+			if (lh->flt_liftings[l]) delete lh->flt_liftings[l];
+		}
+		delete [] lh->flt_liftings;
 	}
-	delete [] liftings;
-	delete [] lh->buf;
+	if (lh->dbl_liftings) {
+		for(int l=0; l<lh->nxforms; l++) {
+			if (lh->dbl_liftings[l]) delete lh->dbl_liftings[l];
+		}
+		delete [] lh->dbl_liftings;
+	}
+	if (lh->buf) delete [] lh->buf;
 	delete lh;
 }
 
 void	Lifting1DForwardTransform(int argc, IDL_VPTR *argv)
 {
     Lifting1DHandle_t   *lh = varGetLiftingHandle(argv[0]);
-	Lifting1D	**liftings = (Lifting1D **) lh->liftings;
+	unsigned int width = lh->width;
 	int	l;
 	int	i,j;
-	unsigned int width = lh->width;
-	float	*lambda_ptr, *gamma_ptr;
 
 	IDL_VPTR    data_var = argv[1];
 
@@ -148,41 +200,77 @@ void	Lifting1DForwardTransform(int argc, IDL_VPTR *argv)
 		errFatal("Input array must be a 1D array");
 	}
 
-	if (data_var->type != IDL_TYP_FLOAT) {
-		errFatal("Input array must be of type float");
-	}
-
-	float *data = (float *) data_var->value.arr->data;
 
 
-	for(l=0; l<lh->nxforms; l++) {
-
-		memcpy(lh->buf, data, width * sizeof(data[0]));
-
-		liftings[l]->ForwardTransform(lh->buf);
-
-		// Lifting1D object class operates on data in place,
-		// interleaving coefficients
-		//
-		lambda_ptr = data;
-		gamma_ptr = data + (width>>1);
-		for(i=0,j=0; i<width; i+=2,j++) {
-			lambda_ptr[j] = lh->buf[i];
-			gamma_ptr[j] = lh->buf[i+1];
+	if (lh->dbl) {
+		if (data_var->type != IDL_TYP_DOUBLE) {
+			errFatal("Input array must be of type double");
 		}
 
-		width = width >> 1;
+		double *data = (double *) data_var->value.arr->data;
+
+		double	*lambda_ptr, *gamma_ptr;
+		double *dblbuf = (double *) lh->buf;
+
+		for(l=0; l<lh->nxforms; l++) {
+
+			memcpy(dblbuf, data, width * sizeof(data[0]));
+
+			lh->dbl_liftings[l]->ForwardTransform(dblbuf);
+
+
+			// Lifting1D object class operates on data in place,
+			// interleaving coefficients
+			//
+			lambda_ptr = data;
+			gamma_ptr = data + (width - (width>>1));
+			for(i=0,j=0; j<width>>1; i+=2,j++) {
+				lambda_ptr[j] = dblbuf[i];
+				gamma_ptr[j] = dblbuf[i+1];
+			}
+			if (IsOdd(width)) lambda_ptr[j] = dblbuf[i];
+
+			width -= (width >> 1);
+		}
+	}
+	else {
+		if (data_var->type != IDL_TYP_FLOAT) {
+			errFatal("Input array must be of type float");
+		}
+
+		float *data = (float *) data_var->value.arr->data;
+
+		float	*lambda_ptr, *gamma_ptr;
+		float *fltbuf = (float *) lh->buf;
+
+		for(l=0; l<lh->nxforms; l++) {
+
+			memcpy(fltbuf, data, width * sizeof(data[0]));
+
+			lh->flt_liftings[l]->ForwardTransform(fltbuf);
+
+			// Lifting1D object class operates on data in place,
+			// interleaving coefficients
+			//
+			lambda_ptr = data;
+			gamma_ptr = data + (width - (width>>1));
+			for(i=0,j=0; j<width>>1; i+=2,j++) {
+				lambda_ptr[j] = fltbuf[i];
+				gamma_ptr[j] = fltbuf[i+1];
+			}
+			if (IsOdd(width)) lambda_ptr[j] = fltbuf[i];
+
+			width -= (width >> 1);
+		}
 	}
 }
 
 void	Lifting1DInverseTransform(int argc, IDL_VPTR *argv)
 {
     Lifting1DHandle_t   *lh = varGetLiftingHandle(argv[0]);
-	Lifting1D	**liftings = (Lifting1D **) lh->liftings;
+	unsigned int width = lh->width;
 	int	l;
 	int	i,j;
-	unsigned int width = lh->width >> lh->nxforms;
-	float	*lambda_ptr, *gamma_ptr;
 
 	IDL_VPTR    data_var = argv[1];
 
@@ -197,26 +285,64 @@ void	Lifting1DInverseTransform(int argc, IDL_VPTR *argv)
 		errFatal("Input array must be a 1D array");
 	}
 
-	if (data_var->type != IDL_TYP_FLOAT) {
-		errFatal("Input array must be of type float");
-	}
-
-	float *data = (float *) data_var->value.arr->data;
-
-	for(l=lh->nxforms-1; l>=0; l--) {
-
-		lambda_ptr = data;
-		gamma_ptr = data + width;
-		for(i=0,j=0; j<width; i+=2,j++) {
-			lh->buf[i] = lambda_ptr[j];
-			lh->buf[i+1] = gamma_ptr[j];
+	if (lh->dbl) {
+		if (data_var->type != IDL_TYP_DOUBLE) {
+			errFatal("Input array must be of type double");
 		}
 
-		liftings[l]->InverseTransform(lh->buf);
+		double	*lambda_ptr, *gamma_ptr;
+		double *dblbuf = (double *) lh->buf;
 
-		memcpy(data, lh->buf, (width<<1) * sizeof(data[0]));
+		double *data = (double *) data_var->value.arr->data;
 
-		width = width << 1;
+		for(l=lh->nxforms-1; l>=0; l--) {
+
+			width = lh->width;
+			for(int k=0; k<l; k++) width -= (width >> 1);
+
+
+			lambda_ptr = data;
+			gamma_ptr = data + (width - (width>>1));
+			for(i=0,j=0; j<width>>1; i+=2,j++) {
+				dblbuf[i] = lambda_ptr[j];
+				dblbuf[i+1] = gamma_ptr[j];
+			}
+			if (IsOdd(width)) dblbuf[i] = lambda_ptr[j];
+
+			lh->dbl_liftings[l]->InverseTransform(dblbuf);
+
+			memcpy(data, dblbuf, width * sizeof(data[0]));
+
+		}
+	}
+	else {
+		if (data_var->type != IDL_TYP_FLOAT) {
+			errFatal("Input array must be of type float");
+		}
+
+		float	*lambda_ptr, *gamma_ptr;
+		float *fltbuf = (float *) lh->buf;
+
+		float *data = (float *) data_var->value.arr->data;
+
+		for(l=lh->nxforms-1; l>=0; l--) {
+
+			width = lh->width;
+			for(int k=0; k<l; k++) width -= (width >> 1);
+
+			lambda_ptr = data;
+			gamma_ptr = data + (width - (width>>1));
+			for(i=0,j=0; j<width>>1; i+=2,j++) {
+				fltbuf[i] = lambda_ptr[j];
+				fltbuf[i+1] = gamma_ptr[j];
+			}
+			if (IsOdd(width)) fltbuf[i] = lambda_ptr[j];
+
+			lh->flt_liftings[l]->InverseTransform(fltbuf);
+
+			memcpy(data, fltbuf, width * sizeof(data[0]));
+
+		}
 	}
 }
 
@@ -235,7 +361,7 @@ int IDL_LoadLifting(void)
 	static IDL_SYSFUN_DEF2 func_addr[] = {
 		{ (IDL_SYSRTN_GENERIC) Lifting1DCreate,
 			"LIFTING1D_CREATE", 1, 2, IDL_SYSFUN_DEF_F_KEYWORDS, 0
-		},
+		}
 	};
 
 	static IDL_SYSFUN_DEF2 proc_addr[] = {
@@ -247,7 +373,7 @@ int IDL_LoadLifting(void)
 		},
 		{ (IDL_SYSRTN_GENERIC) Lifting1DInverseTransform, 
 			"LIFTING1D_INVERSETRANSFORM", 2, 2, 0, 0
-		},
+		}
 	};
 
 	return IDL_SysRtnAdd(func_addr, TRUE, IDL_CARRAY_ELTS(func_addr)) && 
