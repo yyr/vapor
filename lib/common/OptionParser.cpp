@@ -5,6 +5,7 @@
 #include "vapor/OptionParser.h"
 #include <cassert>
 #include <cctype>
+#include "vapor/Version.h"
 
 using namespace VetsUtil;
 
@@ -610,6 +611,7 @@ void	OptionParser::PrintOptionHelp(
 	char		buf[30];
 	char		sbf[20];
 
+
 	for(i=0; i<(int)_optTbl.size(); i++) {
 		_OptRec_T	*o = _optTbl[i];
 
@@ -640,6 +642,16 @@ void	OptionParser::PrintOptionHelp(
 			(void) fprintf(fp, "\n");
 		}
 	}
+
+	fprintf(
+		stderr, 
+		"\nCopyright 2006 The National Center for Atmospheric Research\n"
+	);
+
+	fprintf(
+		stderr, "\nVersion: %s (%s) www.vapor.ucar.edu\n",
+		Version::GetVersionString().c_str(), Version::GetDateString().c_str()
+	);
 }
 
 //
