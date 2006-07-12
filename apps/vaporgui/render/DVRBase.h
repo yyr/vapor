@@ -157,6 +157,10 @@ public:
  //
  virtual void   SetLightingCoeff(float /*kdiff*/, float /*kamb*/, float /*kspec*/, float /*exponentS*/) {};
 
+ // Set the light position
+ //
+ virtual void   SetLightingLocation(const float * /*position vector*/) {};
+
  // Returns true if the driver supports ambient lighting
  //
  virtual int	HasAmbient() const { return (0); };

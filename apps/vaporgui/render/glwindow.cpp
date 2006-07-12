@@ -87,7 +87,8 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	setDirtyBit(Params::DvrParamsType,DvrDatarangeBit, true);
 	setDirtyBit(Params::RegionParamsType,RegionBit, true);
 	setDirtyBit(Params::ViewpointParamsType,NavigatingBit, true);
-	setDirtyBit(Params::DvrParamsType,ColorscaleBit, true);
+	setDirtyBit(Params::DvrParamsType,ColorscaleBit, true);	
+    setDirtyBit(Params::DvrParamsType,LightingBit, true);
 
 	capturing = false;
 	newCapture = false;

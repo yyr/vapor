@@ -181,6 +181,7 @@ void DvrEventRouter::confirmText(bool /*render*/){
 	}
 	guiSetTextChanged(false);
 	setDatarangeDirty(dParams);
+    VizWinMgr::getInstance()->setVizDirty(dParams, LightingBit, true);		
 	PanelCommand::captureEnd(cmd, dParams);
 }
 void DvrEventRouter::
@@ -402,7 +403,17 @@ void DvrEventRouter::updateTab(Params* params){
 	EnableDisable->setCurrentItem((dvrParams->isEnabled()) ? 1 : 0);
 	//Disable the typeCombo whenever the renderer is enabled:
 	typeCombo->setEnabled(!(dvrParams->isEnabled()));
-	
+	typeCombo->setCurrentItem(typemapi[dvrParams->getType()]);
+
+    if (dvrParams->getType() == DvrParams::DVR_TEXTURE3D_SHADER)
+    {
+      lightingCheckbox->setEnabled(true);
+    }
+    else
+    {
+      lightingCheckbox->setEnabled(false);
+    }
+
 	refinementCombo->setCurrentItem(dvrParams->getNumRefinements());
 	variableCombo->setCurrentItem(dvrParams->getComboVarNum());
 	
@@ -545,8 +556,15 @@ guiSetType(int val)
 		
 	dParams->setType(typemap[val]); 
 	PanelCommand::captureEnd(cmd, dParams);
-		
-  
+
+    if (typemap[val] == DvrParams::DVR_TEXTURE3D_SHADER)
+    {
+      lightingCheckbox->setEnabled(true);
+    }
+    else
+    {
+      lightingCheckbox->setEnabled(false);
+    }
 }
 
 
@@ -613,37 +631,47 @@ void DvrEventRouter::initTypes()
   int index = 0;
 
   typemap.clear();
-
+  typemapi.clear();
   
   typeCombo->clear();
 
   if (VolumeRenderer::supported(DvrParams::DVR_VOLUMIZER))
   {
     typeCombo->insertItem("Volumizer", index);
-    typemap[index++] = DvrParams::DVR_VOLUMIZER;
+    typemap[index] = DvrParams::DVR_VOLUMIZER;
+    typemapi[DvrParams::DVR_VOLUMIZER] = index;
+    index++;
   }
 	if (VolumeRenderer::supported(DvrParams::DVR_TEXTURE3D_SHADER))
   {
     typeCombo->insertItem("3DTexture-Shader", index);
-    typemap[index++] = DvrParams::DVR_TEXTURE3D_SHADER;
+    typemap[index] = DvrParams::DVR_TEXTURE3D_SHADER;
+    typemapi[DvrParams::DVR_TEXTURE3D_SHADER] = index;
+    index++;
   }
 
   if (VolumeRenderer::supported(DvrParams::DVR_TEXTURE3D_LOOKUP))
   {
     typeCombo->insertItem("3DTexture", index);
-    typemap[index++] = DvrParams::DVR_TEXTURE3D_LOOKUP;
+    typemap[index] = DvrParams::DVR_TEXTURE3D_LOOKUP;
+    typemapi[DvrParams::DVR_TEXTURE3D_LOOKUP] = index;
+    index++;
   }
 
   if (VolumeRenderer::supported(DvrParams::DVR_DEBUG))
   {
     typeCombo->insertItem("Debug", index);
-    typemap[index++] = DvrParams::DVR_DEBUG;
+    typemap[index] = DvrParams::DVR_DEBUG;
+    typemapi[DvrParams::DVR_DEBUG] = index;
+    index++;
   }
 
   if (VolumeRenderer::supported(DvrParams::DVR_STRETCHED_GRID))
   {
     typeCombo->insertItem("Stretched Grid", index);
     typemap[index++] = DvrParams::DVR_STRETCHED_GRID;
+    typemapi[DvrParams::DVR_STRETCHED_GRID] = index;
+    index++;
   }
   
   typeCombo->setCurrentItem(0);
@@ -678,7 +706,13 @@ guiSetLighting(bool val){
 		
 	dParams->setLighting(val);
 	PanelCommand::captureEnd(cmd, dParams);
-		
+
+    diffuseShading->setEnabled(val);
+    ambientShading->setEnabled(val);
+    specularShading->setEnabled(val);
+    exponentShading->setEnabled(val);
+
+    VizWinMgr::getInstance()->setVizDirty(dParams,LightingBit,true);		
 }
 
 //Respond to a change in histogram stretch factor
@@ -819,6 +853,11 @@ updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWin
 
 		VolumeRenderer* myDvr = new VolumeRenderer(viz->getGLWindow(), dParams->getType());
 
+        connect((QObject*)myDvr, 
+                SIGNAL(statusMessage(const QString&)),
+                (QObject*)MainForm::getInstance()->statusBar(), 
+                SLOT(message(const QString &)));
+
 		viz->getGLWindow()->appendRenderer(myDvr, Params::DvrParamsType);
 
 		//force the renderer to refresh region data  (why?)
@@ -839,6 +878,11 @@ updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWin
 				// Make sure there is not already a volume renderer here:
 				if (viz->getGLWindow()->hasRenderer(Params::DvrParamsType)) continue;
 				VolumeRenderer* myDvr = new VolumeRenderer(viz->getGLWindow(), gdParams->getType());
+
+                connect((QObject*)myDvr, 
+                        SIGNAL(statusMessage(const QString&)),
+                        (QObject*)MainForm::getInstance()->statusBar(), 
+                        SLOT(message(const QString &)));
 
 				viz->getGLWindow()->appendRenderer(myDvr, Params::DvrParamsType);
 

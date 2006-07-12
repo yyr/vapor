@@ -52,6 +52,10 @@ public:
     virtual void		paintGL() = 0;
 	virtual void		setDirty(DirtyBitType /*t*/) {return;}
 	
+signals:
+
+    void statusMessage(const QString&);
+
 protected:
 	
 	void buildColorscaleImage();

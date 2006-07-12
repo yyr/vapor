@@ -157,6 +157,7 @@ protected:
 
 	virtual void setDatarangeDirty(Params* dParams);
 	std::map<int, DvrParams::DvrType> typemap;
+    std::map<DvrParams::DvrType, int> typemapi; // inverse typemap
 	
 };
 

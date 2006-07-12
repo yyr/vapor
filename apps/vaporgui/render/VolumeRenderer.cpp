@@ -65,7 +65,6 @@
 #include "messagereporter.h"
 #include "Stopwatch.h"
 
-#include "mainform.h"
 #include "command.h"
 #include "session.h"
 #include "glutil.h"
@@ -395,8 +394,13 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     }
 	
     driver->SetOLUT(myDVRParams->getClut(), 
-                    Session::getInstance()->getCurrentMetadata()->GetNumTransforms() - numxforms);
-	
+                    myMetadata->GetNumTransforms() - numxforms);
+  }
+
+  if (myGLWindow->lightingIsDirty())
+  {
+    ViewpointParams *vpParams = myGLWindow->getViewpointParams();
+    
     bool shading = myDVRParams->getLighting();
 
     driver->SetLightingOnOff(shading);
@@ -407,20 +411,28 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
                                myDVRParams->getAmbientCoeff(),
                                myDVRParams->getSpecularCoeff(),
                                myDVRParams->getExponent());
+
+      if (vpParams->getNumLights() >= 1)
+      {
+        driver->SetLightingLocation(vpParams->getLightDirection(0));
+      }
     }
     
+    // Attenuation is not supported yet...
+    // if (myDVRParams->attenuationIsDirty()) 
+    // {
+    //   driver->SetAmbient(myDVRParams->getAmbientAttenuation(),
+    //                      myDVRParams->getAmbientAttenuation(),
+    //                      myDVRParams->getAmbientAttenuation());
+    //   driver->SetDiffuse(myDVRParams->getDiffuseAttenuation(),
+    //                      myDVRParams->getDiffuseAttenuation(),
+    //                      myDVRParams->getDiffuseAttenuation());
+    //   driver->SetSpecular(myDVRParams->getSpecularAttenuation(),
+    //                       myDVRParams->getSpecularAttenuation(),
+    //                       myDVRParams->getSpecularAttenuation());
+    //   myDVRParams->setAttenuationDirty(false);
+    //
   }
-  /* Attenuation is not supported yet...
-     if (myDVRParams->attenuationIsDirty()) {
-     driver->SetAmbient(myDVRParams->getAmbientAttenuation(),
-     myDVRParams->getAmbientAttenuation(),myDVRParams->getAmbientAttenuation());
-     driver->SetDiffuse(myDVRParams->getDiffuseAttenuation(),
-     myDVRParams->getDiffuseAttenuation(),myDVRParams->getDiffuseAttenuation());
-     driver->SetSpecular(myDVRParams->getSpecularAttenuation(),
-     myDVRParams->getSpecularAttenuation(),myDVRParams->getSpecularAttenuation());
-     myDVRParams->setAttenuationDirty(false);
-     }
-  */
   // Modelview matrix
   //
   glMatrixMode(GL_MODELVIEW);
@@ -457,6 +469,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   myGLWindow->setDvrClutDirty(false);
   myGLWindow->setDvrDatarangeDirty(false);
   myGLWindow->setRegionNavigating(false);
+  myGLWindow->setLightingDirty(false);
 }
 
 
@@ -480,7 +493,8 @@ void VolumeRenderer::DrawVoxelWindow(unsigned fast)
   _seconds += frameTimer.read();
 
   QString msg = QString("%1 fps").arg(_frames/_seconds);
-  MainForm::getInstance()->statusBar()->message(msg);
+
+  emit statusMessage(msg);
     
 #elif defined PROFILING
 
@@ -500,7 +514,8 @@ void VolumeRenderer::DrawVoxelWindow(unsigned fast)
     if (_seconds != 0)
     {
       QString msg = QString("%1 fps").arg(_frames/_seconds);
-      MainForm::getInstance()->statusBar()->message(msg);
+
+      emit statusMessage(msg);
     }
 
     _frames  = 0;

@@ -20,6 +20,8 @@
 //
 #include <cstring>
 #include <qwidget.h>
+#include <qapplication.h>
+#include <string.h>
 //#include "mainform.h"
 //#include "vizwinmgr.h"
 //#include "panelcommand.h"
@@ -249,4 +251,57 @@ distanceToCube(const float point[3],const float normals[6][3], const float corne
 		if (dist > maxDist) maxDist = dist;
 	}
 	return maxDist;
+}
+
+//----------------------------------------------------------------------------
+// Returns true if the flag is in the command-line arguments
+//----------------------------------------------------------------------------
+bool Params::searchCmdLine(const char *flag)
+{
+  int argc    = qApp->argc();
+  char **argv = qApp->argv();
+
+  int arg = 0;
+
+  while (arg < argc)
+  {
+    if (strcmp(argv[arg], flag) == 0)
+    {
+      return true;
+    }
+ 
+    arg++;
+  }
+
+  return false;
+}
+
+//----------------------------------------------------------------------------
+// Returns the argument immediately following the flag; NULL otherwise
+//----------------------------------------------------------------------------
+const char* Params::parseCmdLine(const char *flag)
+{
+  int argc    = qApp->argc();
+  char **argv = qApp->argv();
+
+  int arg = 0;
+
+  while (arg < argc)
+  {
+    if (strcmp(argv[arg], flag) == 0)
+    {
+      if (arg+1 < argc)
+      {
+        return argv[arg+1];
+      }
+      else
+      {
+        return NULL;
+      }
+    }
+ 
+    arg++;
+  }
+
+  return NULL;
 }

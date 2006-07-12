@@ -19,9 +19,11 @@
 #include "ShaderProgram.h"
 #include "BBox.h"
 #include "glutil.h"
+#include "params.h"
 
 #include "Matrix3d.h"
 #include "Point3d.h"
+#include "shaders.h"
 
 using namespace VAPoR;
 
@@ -36,6 +38,8 @@ DVRShader::DVRShader(DataType_T type, int nthreads) :
   _texid(0),
   _cmapid(0)
 {
+  _shaders[DEFAULT] = NULL;
+  _shaders[LIGHT]   = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -43,8 +47,11 @@ DVRShader::DVRShader(DataType_T type, int nthreads) :
 //----------------------------------------------------------------------------
 DVRShader::~DVRShader() 
 {
-  delete _shader;
-  _shader = NULL;
+  delete _shaders[DEFAULT];
+  _shaders[DEFAULT] = NULL;
+
+  delete _shaders[LIGHT];
+  _shaders[LIGHT] = NULL;
 
   delete [] _colormap;
   _colormap = NULL;
@@ -64,26 +71,21 @@ int DVRShader::GraphicsInit()
   initTextures();
 
   //
-  // Create, Load & Compile the shader program
+  // Create, Load & Compile the default shader program
   //
-  static char fragment_shader[] =
-    "uniform sampler1D colormap;\n"
-    "uniform sampler3D volumeTexture;\n"
-    "//--------------------------------------------------------------------\n"
-    "// Fragment shader main\n"
-    "//--------------------------------------------------------------------\n"
-    "void main(void)\n"
-    "{\n"
-    "vec4 intensity = vec4 (texture3D(volumeTexture, gl_TexCoord[0].xyz));\n"
-    "vec4 color     = vec4 (texture1D(colormap, intensity.x));\n"
-    "gl_FragColor = color;\n"
-    "}\n";
+  _shaders[DEFAULT] = new ShaderProgram();
+  _shaders[DEFAULT]->create();
 
-  _shader = new ShaderProgram();
-  _shader->create();
-  _shader->loadFragmentSource(fragment_shader);
+  if (Params::searchCmdLine("--defaultFS"))
+  {
+    _shaders[DEFAULT]->loadFragmentShader(Params::parseCmdLine("--defaultFS"));
+  }
+  else
+  {
+    _shaders[DEFAULT]->loadFragmentSource(fragment_shader_default);
+  }
 
-  if (!_shader->compile())
+  if (!_shaders[DEFAULT]->compile())
   {
     return -1;
   }
@@ -91,19 +93,72 @@ int DVRShader::GraphicsInit()
   //
   // Set up initial uniform values
   //
-  _shader->enable();
+  _shaders[DEFAULT]->enable();
 
   if (GLEW_VERSION_2_0)
   {
-    glUniform1i(_shader->uniformLocation("colormap"), 1);
-    glUniform1i(_shader->uniformLocation("volumeTexture"), 0);
+    glUniform1i(_shaders[DEFAULT]->uniformLocation("colormap"), 1);
+    glUniform1i(_shaders[DEFAULT]->uniformLocation("volumeTexture"), 0);
   }
   else
   {
-    glUniform1iARB(_shader->uniformLocation("colormap"), 1);
-    glUniform1iARB(_shader->uniformLocation("volumeTexture"), 0);
+    glUniform1iARB(_shaders[DEFAULT]->uniformLocation("colormap"), 1);
+    glUniform1iARB(_shaders[DEFAULT]->uniformLocation("volumeTexture"), 0);
   }
-  _shader->disable();
+
+  _shaders[DEFAULT]->disable();
+
+
+
+  //
+  // Create, Load & Compile the lighting shader program
+  //
+  _shaders[LIGHT] = new ShaderProgram();
+  _shaders[LIGHT]->create();
+  
+  if (Params::searchCmdLine("--lightingFS"))
+  {
+    _shaders[LIGHT]->loadFragmentShader(Params::parseCmdLine("--lightingFS"));
+  }
+  else
+  {
+    _shaders[LIGHT]->loadFragmentSource(fragment_shader_lighting);
+  }
+
+  if (!_shaders[LIGHT]->compile())
+  {
+    return -1;
+  }
+
+  _shaders[LIGHT]->enable();
+
+  if (GLEW_VERSION_2_0)
+  {
+    glUniform1i(_shaders[LIGHT]->uniformLocation("colormap"), 1);
+    glUniform1i(_shaders[LIGHT]->uniformLocation("volumeTexture"), 0);
+    glUniform1f(_shaders[LIGHT]->uniformLocation("kd"), 0.8);
+    glUniform1f(_shaders[LIGHT]->uniformLocation("ka"), 0.2);
+    glUniform1f(_shaders[LIGHT]->uniformLocation("ks"), 0.5);
+    glUniform1f(_shaders[LIGHT]->uniformLocation("expS"), 20);
+    glUniform3f(_shaders[LIGHT]->uniformLocation("lightPosition"), 0,0,1);
+  }
+  else
+  {
+    glUniform1iARB(_shaders[LIGHT]->uniformLocation("colormap"), 1);
+    glUniform1iARB(_shaders[LIGHT]->uniformLocation("volumeTexture"), 0);
+    glUniform1fARB(_shaders[LIGHT]->uniformLocation("kd"), 0.8);
+    glUniform1fARB(_shaders[LIGHT]->uniformLocation("ka"), 0.2);
+    glUniform1fARB(_shaders[LIGHT]->uniformLocation("ks"), 0.5);
+    glUniform1fARB(_shaders[LIGHT]->uniformLocation("expS"), 20);
+    glUniform3f(_shaders[LIGHT]->uniformLocation("lightPosition"), 0,0,1);
+  }
+
+  _shaders[LIGHT]->disable();
+
+  //
+  // Set the current shader
+  //
+  _shader = _shaders[DEFAULT];
 
   return 0;
 }
@@ -125,15 +180,24 @@ int DVRShader::SetRegion(void *data,
   {
     _nx = nx; _ny = ny; _nz = nz;
     _data = data;
-    //
-    // TBD -- debugging shader conditionals. 
-    //
-    //if (_shader)
-    //{
-    //  _shader->enable();
-    //  glUniform3f(_shader->uniformLocation("dimensions"), nx, ny, nz);
-    //  _shader->disable();
-    //}
+
+    if (_shaders[LIGHT])
+    {
+      _shaders[LIGHT]->enable();
+
+      if (GLEW_VERSION_2_0)
+      {
+        glUniform3f(_shaders[LIGHT]->uniformLocation("dimensions"), 
+                    nx, ny, nz);
+      }
+      else
+      {
+        glUniform3fARB(_shaders[LIGHT]->uniformLocation("dimensions"), 
+                       nx, ny, nz);
+      }
+
+      _shaders[LIGHT]->disable();
+    }
   }
 
   //
@@ -269,13 +333,7 @@ void DVRShader::SetOLUT(const float atab[256][4], const int numRefinements)
 //----------------------------------------------------------------------------
 void DVRShader::SetLightingOnOff(int on) 
 {
-  //if (_shader)
-  //{
-  //  _shader->enable();
-  //  glUniform1b(_shader->uniformLocation("shading"), on);
-  //  _shader->enable();
-  //}
-    
+  _shader = on ? _shaders[LIGHT] : _shaders[DEFAULT];
 }
 
 //----------------------------------------------------------------------------
@@ -283,15 +341,51 @@ void DVRShader::SetLightingOnOff(int on)
 //----------------------------------------------------------------------------
 void DVRShader::SetLightingCoeff(float kd, float ka, float ks, float expS)
 {
-  //if (_shader)
-  //{
-  //  _shader->enable();
-  //  glUniform1f(_shader->uniformLocation("kd"), kd);
-  //  glUniform1f(_shader->uniformLocation("ka"), ka);
-  //  glUniform1f(_shader->uniformLocation("ks"), ks);
-  //  glUniform1f(_shader->uniformLocation("expS"), expS);
-  //  _shader->enable();
-  //}
+  if (_shaders[LIGHT])
+  {
+    _shaders[LIGHT]->enable();
+
+    if (GLEW_VERSION_2_0)
+    {
+      glUniform1f(_shaders[LIGHT]->uniformLocation("kd"), kd);
+      glUniform1f(_shaders[LIGHT]->uniformLocation("ka"), ka);
+      glUniform1f(_shaders[LIGHT]->uniformLocation("ks"), ks);
+      glUniform1f(_shaders[LIGHT]->uniformLocation("expS"), expS);
+    }
+    else
+    {
+      glUniform1fARB(_shaders[LIGHT]->uniformLocation("kd"), kd);
+      glUniform1fARB(_shaders[LIGHT]->uniformLocation("ka"), ka);
+      glUniform1fARB(_shaders[LIGHT]->uniformLocation("ks"), ks);
+      glUniform1fARB(_shaders[LIGHT]->uniformLocation("expS"), expS);
+    }
+
+    _shaders[LIGHT]->disable();
+  }
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DVRShader::SetLightingLocation(const float *pos)
+{
+  if (_shaders[LIGHT])
+  {
+    _shaders[LIGHT]->enable();
+
+    if (GLEW_VERSION_2_0)
+    {
+      glUniform3f(_shaders[LIGHT]->uniformLocation("lightPosition"), 
+                  pos[0], pos[1], pos[2]);
+    }
+    else
+    {
+      glUniform3fARB(_shaders[LIGHT]->uniformLocation("lightPosition"), 
+                     pos[0], pos[1], pos[2]);
+    }
+
+    _shaders[LIGHT]->disable();
+  }
 }
 
 

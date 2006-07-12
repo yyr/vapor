@@ -113,6 +113,7 @@ public:
 	bool regionIsNavigating() {return vizIsDirty(NavigatingBit);}
 	bool flowDataIsDirty() {return vizIsDirty(FlowDataBit);}
 	bool flowGraphicsIsDirty() {return vizIsDirty(FlowGraphicsBit);}
+	bool lightingIsDirty() {return vizIsDirty(LightingBit);}
 	
 	void setRegionDirty(bool isDirty){ setDirtyBit(Params::RegionParamsType, RegionBit,isDirty);}
 	void setDvrClutDirty(bool isDirty){ setDirtyBit(Params::DvrParamsType,DvrClutBit, isDirty);}
@@ -121,6 +122,7 @@ public:
 	void setRegionNavigating(bool isDirty){ setDirtyBit(Params::ViewpointParamsType,NavigatingBit,isDirty);}
 	void setFlowDataDirty(bool isDirty) {setDirtyBit(Params::FlowParamsType,FlowDataBit,isDirty);}
 	void setFlowGraphicsDirty(bool isDirty) {setDirtyBit(Params::FlowParamsType,FlowGraphicsBit,isDirty);}
+	void setLightingDirty(bool isDirty) {setDirtyBit(Params::DvrParamsType,LightingBit,isDirty);}
 
 
 

@@ -42,7 +42,8 @@ enum DirtyBitType {
 	ColorscaleBit,
 	NavigatingBit,
 	FlowDataBit,
-	FlowGraphicsBit
+	FlowGraphicsBit,
+    LightingBit
 };
 class XmlNode;
 class MapperFunction;
@@ -243,6 +244,12 @@ public:
 	static float distanceToCube(const float point[3],const float faceNormals[6][3], const float faceCorners[6][3]);
 
 	
+    //
+    // Parse command line arguements
+    //
+    static bool searchCmdLine(const char *flag);
+    static const char* parseCmdLine(const char *flag);
+
 protected:
 	
 	//The Params is global if either the params object does not exist, OR if

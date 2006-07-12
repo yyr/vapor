@@ -24,6 +24,12 @@ namespace VAPoR {
 
 class DVRShader : public DVRTexture3d
 {
+  enum // Shaders
+  {
+    DEFAULT = 0,
+    LIGHT
+  };
+
  public:
 
 
@@ -49,6 +55,7 @@ class DVRShader : public DVRTexture3d
   virtual void SetOLUT(const float ftab[256][4], const int numRefinenements);
   virtual void SetLightingOnOff(int on);
   virtual void SetLightingCoeff(float kd, float ka, float ks, float expS);
+  virtual void SetLightingLocation(const float *pos);
 
   static bool supported();
 
@@ -61,7 +68,8 @@ private:
   void           *_data;
   float          *_colormap;
   ShaderProgram  *_shader;
-  
+  ShaderProgram  *_shaders[2];
+
   GLuint _texid;
   GLuint _cmapid;
   

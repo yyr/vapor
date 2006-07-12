@@ -174,6 +174,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	vParams->setLightDirection(1,3,0.f);
 	vParams->setLightDirection(2,3,0.f);
 	
+	VizWinMgr::getInstance()->setVizDirty(vParams, LightingBit, true);
 
 	vParams->setCameraPos(0, camPos0->text().toFloat());
 	vParams->setCameraPos(1, camPos1->text().toFloat());
