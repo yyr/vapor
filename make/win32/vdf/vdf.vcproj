@@ -156,9 +156,6 @@
 				RelativePath="..\..\..\lib\vdf\ImpExp.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\Lifting1D.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\lib\vdf\Metadata.cpp">
 			</File>
 			<File

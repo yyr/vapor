@@ -21,7 +21,7 @@ namespace VAPoR {
 //! This class provides an interface to the Liftpack wavelet transformation
 //! library.
 //
-VDF_API template<class Data_T> class Lifting1D : public VetsUtil::MyBase {
+template <class Data_T> class Lifting1D : public VetsUtil::MyBase {
 
 public:
 
@@ -160,6 +160,7 @@ using namespace VetsUtil;
 #ifndef	MAX
 #define	MAX(A,B) ((A)>(B)?(A):(B))
 #endif
+
 
 template <class Data_T> const double Lifting1D<Data_T>::TINY = (double) 1.0e-20;
 

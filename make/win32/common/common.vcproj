@@ -143,6 +143,9 @@
 			<File
 				RelativePath="..\..\..\lib\common\OptionParser.cpp">
 			</File>
+			<File
+				RelativePath="..\..\..\lib\common\Version.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -162,29 +165,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\MyBase.h">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing MyBase.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\include\vapor\MyBase.h -o tmp\moc\moc_MyBase.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="tmp\moc\moc_MyBase.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing MyBase.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\include\vapor\MyBase.h -o tmp\moc\moc_MyBase.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="tmp\moc\moc_MyBase.cpp"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\OptionParser.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\Version.h">
 			</File>
 		</Filter>
 		<Filter
