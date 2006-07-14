@@ -61,14 +61,15 @@
 #endif
 #include "DVRDebug.h"
 #include "renderer.h"
-#include "animationcontroller.h"
-#include "messagereporter.h"
+//#include "animationcontroller.h"
+//#include "messagereporter.h"
 #include "Stopwatch.h"
 
-#include "command.h"
-#include "session.h"
+//#include "command.h"
+//#include "session.h"
 #include "glutil.h"
 #include "dvrparams.h"
+#include "vapor/MyBase.h"
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -205,18 +206,10 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
 #endif
   else 
   {
-    qWarning("Invalid driver ");
+    SetErrMsg("Invalid driver ");
     return NULL;
   }
 
-  if (driver->GetErrCode() != 0) 
-  { 
-    MessageReporter::errorMsg("volume renderer error: %s\n", 
-                              driver->GetErrMsg());
-    driver->SetErrCode(0);
-    return NULL;
-  }
-  
   return(driver);
 }
  
@@ -238,8 +231,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   int datablock[6];
   int i;
   
-  DataMgr* myDataMgr = Session::getInstance()->getDataMgr();
-  const Metadata* myMetadata = Session::getInstance()->getCurrentMetadata();
+  DataMgr* myDataMgr = DataStatus::getInstance()->getDataMgr();
+  const Metadata* myMetadata = DataStatus::getInstance()->getCurrentMetadata();
 	
   // Nothing to do if there's no data source!
   if (!myDataMgr) return;
@@ -279,7 +272,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	  timeStep,&varNum, 1);
 	
   if(!regionValid) {
-	  MessageReporter::warningMsg("Volume data unavailable for refinement level %d at timestep %d", numxforms, timeStep);
+	  SetErrMsg("Volume data unavailable for refinement level %d at timestep %d", numxforms, timeStep);
 	  return;
   }
   RegionParams::convertToBoxExtentsInCube(numxforms, min_dim, max_dim, extents);    
@@ -312,9 +305,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
    
 	//qWarning("Requesting region from dataMgr");
     //Turn off error callback, look for memory allocation problem.
-    Session::pauseErrorCallback();
+    
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	const char* varname = (Session::getInstance()->getVariableName(myDVRParams->getVarNum()).c_str());
+	const char* varname = (DataStatus::getInstance()->getVariableName(myDVRParams->getVarNum()).c_str());
     void* data = 
       (void*) myDataMgr->GetRegionUInt8(
                                         timeStep,
@@ -326,15 +319,11 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
                                         0 //Don't lock!
                                         );
     //Turn it back on:
-    Session::resumeErrorCallback();
+    
 	QApplication::restoreOverrideCursor();
-	//qWarning("Returned from DataMgr");
+	
     if (!data){
-      int errCode = myDataMgr->GetErrCode();
-      const char* msg = myDataMgr->GetErrMsg();
-      MessageReporter::errorMsg("Unable to obtain volume data\n Datamanager Error code %d\n %s",
-                                errCode, msg);
-      myDataMgr->SetErrCode(0);
+      SetErrMsg("Unable to obtain volume data\n");
       return;
     }
 
@@ -446,7 +435,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   glDepthMask(GL_FALSE);
   //qWarning("Starting render");
   if (driver->Render((GLfloat *) matrix ) < 0){
-    MessageReporter::errorMsg("%s","Unable to Render");
+    SetErrMsg("Unable to Render");
     return;
   }
   //qWarning("Render done");

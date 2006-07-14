@@ -13,7 +13,6 @@
 
 #include "DVRLookup.h"
 #include "TextureBrick.h"
-#include "messagereporter.h"
 #include "glutil.h"
 
 using namespace VAPoR;

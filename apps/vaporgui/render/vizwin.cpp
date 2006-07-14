@@ -394,7 +394,7 @@ mouseReleaseEvent(QMouseEvent*e){
 				//The manip must move the region, and then tells the params to
 				//record end of move
 				myManip->mouseRelease(screenCoords);
-				
+				VizWinMgr::getInstance()->getRegionRouter()->captureMouseUp();
 				break;
 			} //otherwise fall through to navigate mode
 			doNavigate = true;
@@ -410,7 +410,7 @@ mouseReleaseEvent(QMouseEvent*e){
 				//The manip must move the rake, and then tell the params to
 				//record end of move??
 				myManip->mouseRelease(screenCoords);
-				
+				VizWinMgr::getInstance()->getFlowRouter()->captureMouseUp();
 				break;
 			} //otherwise fall through to navigate mode
 			doNavigate = true;
@@ -425,7 +425,7 @@ mouseReleaseEvent(QMouseEvent*e){
 				//The manip must move the probe, and then tell the params to
 				//record end of move.
 				myManip->mouseRelease(screenCoords);
-				
+				VizWinMgr::getInstance()->getProbeRouter()->captureMouseUp();
 				break;
 			} //otherwise fall through to navigate mode
 			doNavigate = true;

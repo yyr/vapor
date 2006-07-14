@@ -171,7 +171,7 @@ public:
     Renderer* getRenderer(Params::ParamType rendererType);
 	static mouseModeType getCurrentMouseMode() {return currentMouseMode;}
 	static void setCurrentMouseMode(mouseModeType t){currentMouseMode = t;}
-
+	void setParams(Params* p, Params::ParamType t);
 	void setViewpointParams(ViewpointParams* p) {currentViewpointParams = p; setManipParams();}
 	void setRegionParams(RegionParams* p) {currentRegionParams = p; setManipParams();}
 	void setAnimationParams(AnimationParams* p) {currentAnimationParams = p; setManipParams();}

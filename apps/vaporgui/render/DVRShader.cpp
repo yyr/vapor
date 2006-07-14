@@ -14,8 +14,6 @@
 
 #include "DVRShader.h"
 #include "TextureBrick.h"
-#include "messagereporter.h"
-
 #include "ShaderProgram.h"
 #include "BBox.h"
 #include "glutil.h"

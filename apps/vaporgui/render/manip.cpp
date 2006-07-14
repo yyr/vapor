@@ -15,15 +15,17 @@
 //	Date:		November 2005
 //
 //	Description:	Implements the Manip class and some of its subclasses
+//TOGO:
+//#include "vizwinmgr.h"
+//#include "probeeventrouter.h"
 
 #include "manip.h"
 #include "params.h"
+#include "probeparams.h"
 #include "viewpointparams.h"
-#include "vizwin.h"
 #include "glwindow.h"
 #include "glutil.h"
-#include "probeeventrouter.h"
-#include "session.h"
+#include "datastatus.h"
 using namespace VAPoR;
 const float Manip::faceSelectionColor[4] = {0.8f,0.8f,0.0f,0.8f};
 const float Manip::unselectedFaceColor[4] = {0.8f,0.2f,0.0f,0.8f};
@@ -509,7 +511,6 @@ mouseRelease(float /*screenCoords*/[2]){
 		}
 
 		myParams->setBox(boxMin, boxMax);
-		VizWinMgr::getEventRouter(myParams->getParamType())->captureMouseUp();
 	}
 	dragDistance = 0.f;
 	selectedHandle = -1;
@@ -576,7 +577,7 @@ slideHandle(int handleNum, float movedRay[3]){
 	
 	//Do this calculation in world coords
 	float boxExtents[6];
-	const float* extents = Session::getInstance()->getExtents();
+	const float* extents = DataStatus::getInstance()->getExtents();
 	myParams->calcBoxExtents(boxExtents);
 	
 	if (isStretching){ //don't push through opposite face ..
@@ -783,8 +784,9 @@ void TranslateRotateManip::drawBoxFaces(){
 	//If the probe is enabled, will apply the probe texture to the rectangle
 	//Note that we are assuming that the TranslateStretchManip is associated with a probe!
 	//This needs to be be associated with the EventRouter!!!!!
-	ProbeEventRouter* myRouter = VizWinMgr::getInstance()->getProbeRouter();
-	unsigned char* probeTex = myRouter->getProbeTexture((ProbeParams*)myParams);
+	//ProbeEventRouter* myRouter = VizWinMgr::getInstance()->getProbeRouter();
+	//unsigned char* probeTex = myRouter->getProbeTexture((ProbeParams*)myParams);
+	unsigned char* probeTex = ((ProbeParams*)myParams)->getCurrentProbeTexture();
 	if (probeTex){
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -856,7 +858,7 @@ slideHandle(int handleNum, float movedRay[3]){
 	//slide or stretch box center out of full domain box.
 	//Do this calculation in world coords
 	float boxExtents[6];
-	const float* extents = Session::getInstance()->getExtents();
+	const float* extents = DataStatus::getInstance()->getExtents();
 	myParams->calcBoxExtents(boxExtents);
 	float boxCenter = 0.5f*(boxExtents[coord]+boxExtents[coord+3]);
 	if (isStretching){ //don't push through opposite face ..
@@ -1003,7 +1005,6 @@ mouseRelease(float /*screenCoords*/[2]){
 		}
 
 		myParams->setBox(boxMin, boxMax);
-		VizWinMgr::getEventRouter(myParams->getParamType())->captureMouseUp();
 	}
 	dragDistance = 0.f;
 	selectedHandle = -1;

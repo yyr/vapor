@@ -98,7 +98,7 @@ public:
 	}
 	const VDFIOBase* getRegionReader() {return myReader;}
 	const Metadata* getCurrentMetadata() {return currentMetadata;}
-	const DataMgr* getDataMgr() {return dataMgr;}
+	DataMgr* getDataMgr() {return dataMgr;}
 	Metadata* getMetadata() {return currentMetadata;}
 
 		
@@ -145,7 +145,7 @@ private:
 	//value is -1 if no data at that timestep
 	std::vector<int*> maxNumTransforms;
 	Metadata* currentMetadata;
-	const DataMgr* dataMgr;
+	DataMgr* dataMgr;
 	bool renderOK;
 	
 	//track min and max data values for each variable and timestep (at max transform level)

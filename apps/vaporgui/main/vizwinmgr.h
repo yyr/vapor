@@ -138,6 +138,7 @@ public:
 	static EventRouter* getEventRouter(Params::ParamType routerType);
 
 	Params* getGlobalParams(Params::ParamType);
+	void setGlobalParams(Params* p, Params::ParamType t);
 	//Method that returns the current params that apply in the current
 	//active visualizer if it is local.
 	Params* getLocalParams(Params::ParamType);
@@ -213,14 +214,14 @@ public:
 	bool isMaximized(int winNum) {return isMax[winNum];}
 	//Setting a params changes the previous params to the
 	//specified one, performs needed ref/unref
+	void setParams(int winNum, Params* p, Params::ParamType t);
+	void setDvrParams(int winNum, DvrParams* p) {setParams(winNum, (Params*)p, Params::DvrParamsType);}
+	void setProbeParams(int winNum, ProbeParams* p){setParams(winNum, (Params*)p, Params::ProbeParamsType);}
 	
-	void setDvrParams(int winNum, DvrParams* p);
-	void setProbeParams(int winNum, ProbeParams* p);
-	
-	void setFlowParams(int winNum, FlowParams* p);
-	void setViewpointParams(int winNum, ViewpointParams* p);
-	void setRegionParams(int winNum, RegionParams* p);
-	void setAnimationParams(int winNum, AnimationParams* p);
+	void setFlowParams(int winNum, FlowParams* p){setParams(winNum, (Params*)p, Params::FlowParamsType);}
+	void setViewpointParams(int winNum, ViewpointParams* p){setParams(winNum, (Params*)p, Params::ViewpointParamsType);}
+	void setRegionParams(int winNum, RegionParams* p){setParams(winNum, (Params*)p, Params::RegionParamsType);}
+	void setAnimationParams(int winNum, AnimationParams* p){setParams(winNum, (Params*)p, Params::AnimationParamsType);}
 		
 	void replaceGlobalParams(Params* p, Params::ParamType typ);
 	void createDefaultParams(int winnum);

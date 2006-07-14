@@ -390,7 +390,6 @@ void VizWinMgr::replaceGlobalParams(Params* p, Params::ParamType typ){
 			if(globalAnimationParams) delete globalAnimationParams;
 			globalAnimationParams = (AnimationParams*)p;
 			return;
-			
 		case (Params::FlowParamsType):
 			if(globalFlowParams) delete globalFlowParams;
 			globalFlowParams = (FlowParams*)p;
@@ -521,76 +520,25 @@ killViz(int viznum){
  *  Methods for changing the parameter panels.  Only done during undo/redo.
  */
 
-void VizWinMgr::
-setFlowParams(int winnum, FlowParams* p){
+
+void VizWinMgr::setParams(int winnum, Params* p, Params::ParamType t){
+	Params** paramsArray = getParamsArray(t);
 	if (winnum < 0) { //global params!
-		if (globalFlowParams) delete globalFlowParams;
-		if (p) globalFlowParams = (FlowParams*)p->deepCopy();
-		else globalFlowParams = 0;
+		Params* globalParams = getGlobalParams(t);
+		if (globalParams) delete globalParams;
+		if (p) setGlobalParams(p->deepCopy(),t);
+		else setGlobalParams(0,t);
+		//Set all windows that use global params:
+		for (int i = 0; i<MAXVIZWINS; i++){
+			if (paramsArray[i] && !paramsArray[i]->isLocal()){
+				vizWin[i]->getGLWindow()->setParams(globalProbeParams,t);
+			}
+		}
 	} else {
-		if (flowParams[winnum]) delete flowParams[winnum];
-		if (p) flowParams[winnum] = (FlowParams*)p->deepCopy();
-		else flowParams[winnum] = 0;
-	}
-}
-void VizWinMgr::
-setDvrParams(int winnum, DvrParams* p){
-	if (winnum < 0) { //global params!
-		if (globalDvrParams) delete globalDvrParams;
-		if (p) globalDvrParams = (DvrParams*)p->deepCopy();
-		else globalDvrParams = p;
-	} else {
-		if(dvrParams[winnum]) delete dvrParams[winnum];
-		if (p) dvrParams[winnum] = (DvrParams*)p->deepCopy();
-		else dvrParams[winnum] = 0;
-	}
-}
-void VizWinMgr::
-setProbeParams(int winnum, ProbeParams* p){
-	if (winnum < 0) { //global params!
-		if (globalProbeParams) delete globalProbeParams;
-		if (p) globalProbeParams = (ProbeParams*)p->deepCopy();
-		else globalProbeParams = p;
-	} else {
-		if(probeParams[winnum]) delete probeParams[winnum];
-		if (p) probeParams[winnum] = (ProbeParams*)p->deepCopy();
-		else probeParams[winnum] = 0;
-	}
-}
-void VizWinMgr::
-setAnimationParams(int winnum, AnimationParams* p){
-	if (winnum < 0) { //global params!
-		if (globalAnimationParams) delete globalAnimationParams;
-		if (p) globalAnimationParams = (AnimationParams*)p->deepCopy();
-		else globalAnimationParams = 0;
-	} else {
-		if (animationParams[winnum]) delete animationParams[winnum];
-		if (p) animationParams[winnum] = (AnimationParams*)p->deepCopy();
-		else animationParams[winnum] = 0;
-	}
-}
-void VizWinMgr::
-setRegionParams(int winnum, RegionParams* p){
-	if (winnum < 0) { //global params!
-		if (globalRegionParams) delete globalRegionParams;
-		if (p) globalRegionParams = (RegionParams*)p->deepCopy();
-		else globalRegionParams = 0;
-	} else {
-		if (rgParams[winnum]) delete rgParams[winnum];
-		if (p) rgParams[winnum] = (RegionParams*)p->deepCopy();
-		else rgParams[winnum] = 0;
-	}
-}
-void VizWinMgr::
-setViewpointParams(int winnum, ViewpointParams* p){
-	if (winnum < 0) { //global params!
-		if (globalVPParams) delete globalVPParams;
-		if (p) globalVPParams = (ViewpointParams*)p->deepCopy();
-		else globalVPParams = 0;
-	} else {
-		if(vpParams[winnum]) delete vpParams[winnum];
-		if (p) vpParams[winnum] = (ViewpointParams*)p->deepCopy();
-		else vpParams[winnum] = 0;
+		if(paramsArray[winnum]) delete paramsArray[winnum];
+		if (p) paramsArray[winnum] = p->deepCopy();
+		else paramsArray[winnum] = 0;
+		vizWin[winnum]->getGLWindow()->setParams(paramsArray[winnum],t);
 	}
 }
 
@@ -881,6 +829,7 @@ setAnimationLocalGlobal(int val){
 		//on the current dialog
 		if(animationParams[activeViz])animationEventRouter->guiSetLocal(animationParams[activeViz],false);
 		animationEventRouter->updateTab(globalAnimationParams);
+		vizWin[activeViz]->getGLWindow()->setAnimationParams(globalAnimationParams);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		if (!animationParams[activeViz]){
@@ -894,9 +843,11 @@ setAnimationLocalGlobal(int val){
 			animationEventRouter->guiSetLocal(animationParams[activeViz],true);
 			animationEventRouter->updateTab(animationParams[activeViz]);
 			
-			//and then refresh the panel:
-			tabManager->show();
 		}
+		//set the local params in the glwindow:
+		vizWin[activeViz]->getGLWindow()->setAnimationParams(animationParams[activeViz]);
+		//and then refresh the panel:
+		tabManager->show();
 	}
 }
 //Version for Flow:
@@ -912,6 +863,7 @@ setFlowLocalGlobal(int val){
 		//on the current dialog
 		flowEventRouter->guiSetLocal(flowParams[activeViz],false);
 		flowEventRouter->updateTab(globalFlowParams);
+		vizWin[activeViz]->getGLWindow()->setFlowParams(globalFlowParams);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		if (!flowParams[activeViz]){
@@ -928,6 +880,7 @@ setFlowLocalGlobal(int val){
 			//and then refresh the panel:
 			tabManager->show();
 		}
+		vizWin[activeViz]->getGLWindow()->setFlowParams(flowParams[activeViz]);
 	}
 	//Always invoke the update on the local params
 	flowEventRouter->updateRenderer(flowParams[activeViz],wasEnabled,!val, false);
@@ -950,6 +903,7 @@ setVpLocalGlobal(int val){
 		//on the current dialog
 		viewpointEventRouter->guiSetLocal(vpParams[activeViz],false);
 		viewpointEventRouter->updateTab(globalVPParams);
+		vizWin[activeViz]->getGLWindow()->setViewpointParams(globalVPParams);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		if (!vpParams[activeViz]){
@@ -965,6 +919,7 @@ setVpLocalGlobal(int val){
 			//and then refresh the panel:
 			tabManager->show();
 		}
+		vizWin[activeViz]->getGLWindow()->setViewpointParams(vpParams[activeViz]);
 		vizWin[activeViz]->setGlobalViewpoint(false);
 	}
 }
@@ -984,6 +939,7 @@ setRgLocalGlobal(int val){
 		//on the current dialog
 		regionEventRouter->guiSetLocal(rgParams[activeViz],false);
 		regionEventRouter->updateTab(globalRegionParams);
+		vizWin[activeViz]->getGLWindow()->setRegionParams(globalRegionParams);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		if (!rgParams[activeViz]){
@@ -999,6 +955,7 @@ setRgLocalGlobal(int val){
 			//and then refresh the panel:
 			tabManager->show();
 		}
+		vizWin[activeViz]->getGLWindow()->setRegionParams(rgParams[activeViz]);
 	}
 }
 /*****************************************************************************
@@ -1018,6 +975,7 @@ setDvrLocalGlobal(int val){
 	
 		((EventRouter*)dvrEventRouter)->guiSetLocal(dvrParams[activeViz],false);
 		dvrEventRouter->updateTab(globalDvrParams);
+		vizWin[activeViz]->getGLWindow()->setDvrParams(globalDvrParams);
 		tabManager->show();
 		//Was there a change in enablement?
 		
@@ -1029,6 +987,7 @@ setDvrLocalGlobal(int val){
 		tabManager->show();
 	
 	}
+	vizWin[activeViz]->getGLWindow()->setDvrParams(dvrParams[activeViz]);
 	//Always invoke the update the renderer on the local params
 	dvrEventRouter->updateRenderer(dvrParams[activeViz],wasEnabled,!val, false);
 	
@@ -1051,7 +1010,7 @@ setProbeLocalGlobal(int val){
 	
 		probeEventRouter->guiSetLocal(probeParams[activeViz],false);
 		probeEventRouter->updateTab(globalProbeParams);
-
+		vizWin[activeViz]->getGLWindow()->setProbeParams(globalProbeParams);
 		tabManager->show();
 		//Was there a change in enablement?
 		
@@ -1063,6 +1022,7 @@ setProbeLocalGlobal(int val){
 		tabManager->show();
 	
 	}
+	vizWin[activeViz]->getGLWindow()->setProbeParams(probeParams[activeViz]);
 	//Always invoke the update the renderer on the local params
 	probeEventRouter->updateRenderer(probeParams[activeViz],wasEnabled,!val, false);
 
@@ -1131,6 +1091,31 @@ getGlobalParams(Params::ParamType t){
 			return globalFlowParams;
 		default:  assert(0);
 			return 0;
+	}
+}
+void VizWinMgr::
+setGlobalParams(Params* p, Params::ParamType t){
+	switch (t){
+		case (Params::ViewpointParamsType):
+			globalVPParams = (ViewpointParams*)p;
+			return;
+		case (Params::RegionParamsType):
+			globalRegionParams= (RegionParams*)p;
+			return;
+		case (Params::DvrParamsType):
+			globalDvrParams = (DvrParams*)p;
+			return;
+		case (Params::ProbeParamsType):
+			globalProbeParams=(ProbeParams*)p;
+			return;
+		case (Params::AnimationParamsType):
+			globalAnimationParams=(AnimationParams*)p;
+			return;
+		case (Params::FlowParamsType):
+			globalFlowParams=(FlowParams*)p;
+			return;
+		default:  assert(0);
+			return;
 	}
 }
 
@@ -1516,24 +1501,40 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 			//That parser will "pop" back to vizwinmgr when done.
 			pm->pushClassStack(dvrParams[parsingVizNum]);
 			dvrParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
+			if (dvrParams[parsingVizNum]->isLocal())
+				vizWin[parsingVizNum]->getGLWindow()->setDvrParams(dvrParams[parsingVizNum]);
+			else 
+				vizWin[parsingVizNum]->getGLWindow()->setDvrParams(globalDvrParams);
 			return true;
 		} else if (StrCmpNoCase(tag, Params::_probeParamsTag) == 0){
 			//Need to "push" to dvr parser.
 			//That parser will "pop" back to vizwinmgr when done.
 			pm->pushClassStack(probeParams[parsingVizNum]);
 			probeParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
+			if (probeParams[parsingVizNum]->isLocal())
+				vizWin[parsingVizNum]->getGLWindow()->setProbeParams(probeParams[parsingVizNum]);
+			else 
+				vizWin[parsingVizNum]->getGLWindow()->setProbeParams(globalProbeParams);
 			return true;
 		} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
 			//Need to "push" to region parser.
 			//That parser will "pop" back to session when done.
 			pm->pushClassStack(rgParams[parsingVizNum]);
 			rgParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
+			if (rgParams[parsingVizNum]->isLocal())
+				vizWin[parsingVizNum]->getGLWindow()->setRegionParams(rgParams[parsingVizNum]);
+			else 
+				vizWin[parsingVizNum]->getGLWindow()->setRegionParams(globalRegionParams);
 			return true;
 		} else if (StrCmpNoCase(tag, Params::_viewpointParamsTag) == 0){
 			//Need to "push" to viewpoint parser.
 			//That parser will "pop" back to session when done.
 			pm->pushClassStack(vpParams[parsingVizNum]);
 			vpParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
+			if (vpParams[parsingVizNum]->isLocal())
+				vizWin[parsingVizNum]->getGLWindow()->setViewpointParams(vpParams[parsingVizNum]);
+			else 
+				vizWin[parsingVizNum]->getGLWindow()->setViewpointParams(globalVPParams);
 			return true;
 		} else if (StrCmpNoCase(tag, Params::_animationParamsTag) == 0){
 			//Need to "push" to animation parser.
@@ -1541,12 +1542,20 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 			
 			pm->pushClassStack(animationParams[parsingVizNum]);
 			animationParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
+			if (animationParams[parsingVizNum]->isLocal())
+				vizWin[parsingVizNum]->getGLWindow()->setAnimationParams(animationParams[parsingVizNum]);
+			else 
+				vizWin[parsingVizNum]->getGLWindow()->setAnimationParams(globalAnimationParams);
 			return true;
 		} else if (StrCmpNoCase(tag, Params::_flowParamsTag) == 0){
 			//Need to "push" to flow parser.
 			//That parser will "pop" back to session when done.
 			pm->pushClassStack(flowParams[parsingVizNum]);
 			flowParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
+			if (flowParams[parsingVizNum]->isLocal())
+				vizWin[parsingVizNum]->getGLWindow()->setFlowParams(flowParams[parsingVizNum]);
+			else 
+				vizWin[parsingVizNum]->getGLWindow()->setFlowParams(globalFlowParams);
 			return true;
 		} else return false;
 	default:
@@ -1573,6 +1582,8 @@ bool VizWinMgr::elementEndHandler(ExpatParseMgr* pm, int depth , std::string& ta
 		case(3):
 			//End of parsing a params for a visualizer (popped back from params parsing)
 			if (parsingVizNum < 0) return false;
+			//Must set the params in the GLWindow:
+
 			return true;
 		default:
 			return false;

@@ -23,15 +23,15 @@
 #include <assert.h>
 #include <string.h>
 #include <errno.h>
-//#include <GL/gl.h>
+
 #include "glutil.h"
 #include "qgl.h"
 #include <Volumizer2/Error.h>
 #include <Volumizer2/TMFragmentProgram.h>
 #include "vapor/MyBase.h"
-//#include "Gradient3D.h"
+
 #include "DVRVolumizer.h"
-#include "messagereporter.h"
+
 
 using namespace VAPoR;
 static void	deletion_cb(

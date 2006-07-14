@@ -285,7 +285,7 @@ void GLWindow::paintGL()
 	else if(GLWindow::getCurrentMouseMode() == GLWindow::rakeMode){
 		
 		TranslateStretchManip* flowManip = getFlowManip();
-		flowManip->setParams(getFlowParams());
+		flowManip->setParams((Params*)getFlowParams());
 		flowManip->render();
 	} //or render the probe geometry, if in probe mode
 	else if(GLWindow::getCurrentMouseMode() == GLWindow::probeMode){
@@ -1336,6 +1336,30 @@ float GLWindow::getPixelSize(){
 	float halfHeight = tan(M_PI*0.125)* distToScene;
 	return (2.f*halfHeight/(float)height());
 
+}
+void GLWindow::setParams(Params* p, Params::ParamType t){
+	switch (t) {
+		case Params::ProbeParamsType :
+			setProbeParams((ProbeParams*)p);
+			return;
+		case Params::DvrParamsType :
+			setDvrParams((DvrParams*)p);
+			return;
+		case Params::RegionParamsType :
+			setRegionParams((RegionParams*)p);
+			return;
+		case Params::FlowParamsType :
+			setFlowParams((FlowParams*)p);
+			return;
+		case Params::ViewpointParamsType :
+			setViewpointParams((ViewpointParams*)p);
+			return;
+		case Params::AnimationParamsType :
+			setAnimationParams((AnimationParams*)p);
+			return;
+		default: assert(0);
+	}
+	return;
 }
 
     

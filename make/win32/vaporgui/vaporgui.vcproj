@@ -671,21 +671,21 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\render\renderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\renderer.h -o ..\..\..\apps\vaporgui\moc\moc_renderer.cpp
+						Description="Moc&apos;ing renderer.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\renderer.h -o tmp\moc\moc_renderer.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_renderer.cpp"/>
+						Outputs="tmp\moc\moc_renderer.cpp"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\render\renderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\renderer.h -o ..\..\..\apps\vaporgui\moc\moc_renderer.cpp
+						Description="Moc&apos;ing renderer.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\renderer.h -o tmp\moc\moc_renderer.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_renderer.cpp"/>
+						Outputs="tmp\moc\moc_renderer.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1004,7 +1004,7 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_regiontab.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_renderer.cpp">
+				RelativePath=".\tmp\moc\moc_renderer.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_savetfdialog.cpp">

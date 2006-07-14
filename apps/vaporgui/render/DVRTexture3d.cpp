@@ -16,8 +16,6 @@
 
 #include "DVRTexture3d.h"
 #include "TextureBrick.h"
-#include "messagereporter.h"
-
 #include "BBox.h"
 #include "glutil.h"
 

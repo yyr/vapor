@@ -19,16 +19,19 @@
 
 #include "params.h"
 #include "flowrenderer.h"
-#include "floweventrouter.h"
 #include "vapor/VaporFlow.h"
 #include "glwindow.h"
 #include "trackball.h"
 #include "glutil.h"
+#include "animationparams.h"
+#include "regionparams.h"
+#include "viewpointparams.h"
+#include "datastatus.h"
+
 
 #include <math.h>
 #include <qgl.h>
 #include <qcolor.h>
-#include <qpushbutton.h>
 #include "renderer.h"
 #include "mapperfunction.h"
 
@@ -1293,7 +1296,7 @@ void FlowRenderer::renderStationary(float* point){
 	
 }
 
-//Virtual method to set dirty bits.  set by viz win
+//Virtual method to set dirty bits.  called by GLWindow
 void FlowRenderer::setDirty(DirtyBitType type){
 	
 	if (type == FlowDataBit){
@@ -1305,8 +1308,6 @@ void FlowRenderer::setDirty(DirtyBitType type){
 			if (doRefresh) needRefreshFlag[i] = true; 
 			else needRefreshFlag[i] = false;
 		}
-		if (!doRefresh)
-			VizWinMgr::getInstance()->getFlowRouter()->refreshButton->setEnabled(true);
 	}
 	else if (type == FlowGraphicsBit){
 		//the graphics bit shouldn't be set if we need to 

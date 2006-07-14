@@ -26,10 +26,6 @@
 #include "regionparams.h"
 #include "viewpointparams.h"
 #include "dvrparams.h"
-
-#include "mainform.h"
-#include "session.h"
-#include "vizwin.h"
 #include "glutil.h"
 #include "transferfunction.h"
 

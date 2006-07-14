@@ -22,22 +22,20 @@
 #define RENDERER_H
 #include <qobject.h>
 #include <qimage.h>
-#include "vizwinmgr.h"
-class QColor;
+#include "vapor/MyBase.h"
+
+using namespace VetsUtil;
 
 namespace VAPoR {
-class VizWin;
 class GLWindow;
 class DataMgr;
-class RegionParams;
-class ViewpointParams;
 class Metadata;
-class VizWinMgr;
 enum DirtyBitType;
 
-class Renderer: public QObject
+class Renderer: public QObject, public MyBase
 {
      Q_OBJECT
+	
 	
 public:
 	//Constructor is called when the renderer is enabled.  Does any
