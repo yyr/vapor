@@ -420,7 +420,6 @@ int	main(int argc, char **argv) {
 			(WaveletBlock3DRegionWriter *) wbwriter, fp, dim, &read_timer
 		);
 	}
-	TIMER_STOP(t0,timer);
 
 
 	// Close the variable. We're done writing.
@@ -430,6 +429,7 @@ int	main(int argc, char **argv) {
 		cerr << ProgName << ": " << wbwriter->GetErrMsg() << endl;
 		exit(1);
 	}
+	TIMER_STOP(t0,timer);
 
 	if (! opt.quiet) {
 		float	write_timer = wbwriter->GetWriteTimer();
