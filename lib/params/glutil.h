@@ -73,7 +73,8 @@
 #define M_PI 3.14159265358979323846
 /*extern GLfloat *idmatrix;*/
 namespace VAPoR {
-void	BailOut (const char *errstr, char *fname, int lineno);
+	
+
 /* glutil.c */
 
 PARAMS_API bool powerOf2(uint n);

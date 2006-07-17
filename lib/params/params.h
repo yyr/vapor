@@ -84,7 +84,8 @@ public:
 		FlowParamsType
 	};
 	
-	
+	static void	BailOut (const char *errstr, char *fname, int lineno);
+
 	static QString& paramName(ParamType);
 	static const string _dvrParamsTag;
 	static const string _probeParamsTag;

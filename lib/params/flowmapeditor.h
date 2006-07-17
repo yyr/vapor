@@ -25,12 +25,10 @@ class QImage;
 #include "flowparams.h"
 #include "mapperfunction.h"
 #include "mapeditor.h"
-class FlowMapFrame;
+
 namespace VAPoR {
 class MapperFunction;
 class TFInterpolator;
-class Session;
-class TFELocationTip;
 class FlowParams;
 
 

@@ -22,10 +22,7 @@
 #include <qwidget.h>
 #include <qapplication.h>
 #include <string.h>
-//#include "mainform.h"
-//#include "vizwinmgr.h"
-//#include "panelcommand.h"
-//#include "session.h"
+#include "vapor/MyBase.h"
 #include "datastatus.h"
 #include "assert.h"
 #include "params.h"
@@ -304,4 +301,21 @@ const char* Params::parseCmdLine(const char *flag)
   }
 
   return NULL;
+}
+void Params::BailOut(const char *errstr, char *fname, int lineno)
+{
+    /* Terminate program after printing an error message.
+     * Use via the macros Verify and MemCheck.
+     */
+    //Error("Error: %s, at %s:%d\n", errstr, fname, lineno);
+    //if (coreDumpOnError)
+	//abort();
+	QString errorMessage(errstr);
+	errorMessage += "\n in file: ";
+	errorMessage += fname;
+	errorMessage += " at line ";
+	errorMessage += QString::number(lineno);
+	SetErrMsg("Fatal error: %s",errorMessage);
+	//MessageReporter::fatalMsg(errorMessage);
+    //app->quit();
 }

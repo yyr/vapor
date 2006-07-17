@@ -1,0 +1,56 @@
+TOP = ../..
+
+include ${TOP}/make/config/arch.mk
+
+SHARED = 0
+QT = 1
+LIBRARY = render
+MOC_DIR = moc
+UI_DIR = ui
+
+FILES = \
+	DVRBase DVRDebug \
+	glwindow renderer \
+	manip\
+	trackball flowrenderer \
+	VolumeRenderer BBox ShaderProgram TextureBrick \
+	Vect3d Matrix3d Stopwatch DVRTexture3d \
+	DVRShader DVRLookup DVRVolumizer
+
+QT_HEADERS = \
+	renderer flowrenderer 
+  
+ifeq ($(ARCH),WIN32)
+MAKEFILE_CXXFLAGS += -D"RENDER_EXPORTS"
+endif
+
+MAKEFILE_CXXFLAGS += -I../params
+
+ifdef   EXPAT_INC_PATH
+MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH) -I$(NETCDF_INC_PATH)
+endif
+
+LIBRARIES = common vdf flow params vjpeg
+
+ifeq ($(ARCH),WIN32)
+LIBRARIES += qt-mt334 
+LIBRARIES += glu32
+LIBRARIES += opengl32
+LIBRARIES += glew32
+MAKEFILE_LDFLAGS += "/LIBPATH:$(VOLUMIZER_ROOT)/lib"
+MAKEFILE_LDFLAGS += "/LIBPATH:$(QTDIR)\lib"
+else
+
+LIBRARIES += qt-mt
+LIBRARIES += GL
+LIBRARIES += GLU
+LIBRARIES += GLEW
+MAKEFILE_LDFLAGS += -L$(QTDIR)/lib
+MAKEFILE_CXXFLAGS += -I$(VOLUMIZER_ROOT)/include
+endif
+
+ifeq ($(BUILD_VOLUMIZER), 1)
+LIBRARIES += vz 
+endif
+
+include ${TOP}/make/config/base.mk

@@ -64,8 +64,6 @@ class QFrame;
 namespace VAPoR {
 class MapperFunction;
 class TFInterpolator;
-class Session;
-
 class Histo;
 class TFELocationTip;
 class Params;

@@ -35,10 +35,7 @@ class QImage;
 namespace VAPoR {
 class TransferFunction;
 class TFInterpolator;
-class Session;
-
 class Histo;
-class TFELocationTip;
 class DVRParams;
 
 class PARAMS_API TFEditor : public MapEditor {

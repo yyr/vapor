@@ -857,6 +857,7 @@ uint nextPowerOf2(uint n)
   return p;
 }
 
+
 #define DEAD
 #ifdef	DEAD
 

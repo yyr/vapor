@@ -9,6 +9,8 @@ ifeq ($(BUILD_GUI), 1)
 SUBDIRS += glew 
 endif
 
+SUBDIRS += render
+
 ifeq ($(BUILD_IDL_WRAPPERS), 1)
 SUBDIRS += idl 
 endif
