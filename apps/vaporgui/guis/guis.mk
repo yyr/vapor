@@ -4,7 +4,8 @@ GUI_FILES := \
 	tfelocationtip tfframe vizselectcombo \
 	flowmapframe probeframe seedlisteditor \
 	animationeventrouter dvreventrouter floweventrouter \
-	regioneventrouter viewpointeventrouter probeeventrouter
+	regioneventrouter viewpointeventrouter probeeventrouter \
+	glprobewindow
 
 
 GUI_QT_HEADERS := \

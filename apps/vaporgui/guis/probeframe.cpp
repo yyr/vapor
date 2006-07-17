@@ -42,7 +42,7 @@ ProbeFrame::ProbeFrame( QWidget * parent, const char * name, WFlags f ) :
 	fmt.setDirectRendering(true);
     glProbeWindow = new GLProbeWindow(fmt, this, "glprobewindow", this);
 	if (!(fmt.directRendering() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
-		BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
+		Params::BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}
 	QHBoxLayout* flayout = new QHBoxLayout( this, 2, 2, "flayout");
     flayout->addWidget( glProbeWindow, 1 );

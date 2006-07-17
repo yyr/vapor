@@ -46,7 +46,7 @@ UnsharedControllerThread::~UnsharedControllerThread(){
 		//qWarning("terminating thread");
 		terminate();
 		if (!wait(MAX_SLOW_WAIT)) 
-			BailOut("Excessive wait for animation thread termination",__FILE__,__LINE__);
+			Params::BailOut("Excessive wait for animation thread termination",__FILE__,__LINE__);
 	}
 	delete myWaitCondition;
 }
@@ -65,7 +65,7 @@ restart(){
 		if (!controllerActive) break;
 		wait(MAX_SLOW_WAIT);
 	}
-	if( i>= 100) BailOut("Excessive wait for animation thread completion",__FILE__,__LINE__);
+	if( i>= 100) Params::BailOut("Excessive wait for animation thread completion",__FILE__,__LINE__);
 	//restart the controller thread (calls run()) after it returns.
 	animationCancelled = false;
 	start();
@@ -174,7 +174,7 @@ run(){
 	}
 	
 	//Assert that all renderers completed in 100*MAX_SLOW_WAIT seconds
-	if(tries>=100) BailOut("Excessive animation wait", __FILE__,__LINE__);
+	if(tries>=100) Params::BailOut("Excessive animation wait", __FILE__,__LINE__);
 	return;
 
 }

@@ -21,7 +21,7 @@ MAKEFILE_CXXFLAGS += -DVOLUMIZER
 endif
 
 
-MAKEFILE_INCLUDE_DIRS := -I../guis -I../render -I../main -I../../../lib/params 
+MAKEFILE_INCLUDE_DIRS := -I../guis -I../main -I../../../lib/params -I../../../lib/render 
 
 
 ifeq ($(ARCH),WIN32) 
@@ -32,7 +32,7 @@ else
 MAKEFILE_LDFLAGS += -L$(QTDIR)/lib 
 endif
 
-VPATH = ../guis ../render ../main
+VPATH = ../guis ../main
 
 MOC_DIR = ../moc
 UI_DIR = ../guis/ui

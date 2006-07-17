@@ -83,11 +83,12 @@ int main( int argc, char ** argv ) {
     a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
     return a.exec();
 }
+/*
 void VAPoR::BailOut(const char *errstr, char *fname, int lineno)
 {
-    /* Terminate program after printing an error message.
-     * Use via the macros Verify and MemCheck.
-     */
+    // Terminate program after printing an error message.
+    // Use via the macros Verify and MemCheck.
+   
     //Error("Error: %s, at %s:%d\n", errstr, fname, lineno);
     //if (coreDumpOnError)
 	//abort();
@@ -99,3 +100,4 @@ void VAPoR::BailOut(const char *errstr, char *fname, int lineno)
 	MessageReporter::fatalMsg(errorMessage);
     app->quit();
 }
+*/

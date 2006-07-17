@@ -48,7 +48,7 @@ SharedControllerThread::~SharedControllerThread(){
 		//qWarning("terminating thread");
 		terminate();
 		if (!wait(20000)) 
-			BailOut("Excessive wait for animation thread termination",__FILE__,__LINE__);
+			Params::BailOut("Excessive wait for animation thread termination",__FILE__,__LINE__);
 	}
 	//qWarning("deleting wait condition");
 	delete myWaitCondition;
@@ -67,7 +67,7 @@ restart(){
 		if (!controllerActive) break;
 		wait(20000);
 	}
-	if( i>= 100) BailOut("Excessive wait for animation thread completion",__FILE__,__LINE__);
+	if( i>= 100) Params::BailOut("Excessive wait for animation thread completion",__FILE__,__LINE__);
 	//restart the controller thread (calls run()) after it returns.
 	animationCancelled = false;
 	start(QThread::IdlePriority);
@@ -357,7 +357,7 @@ run(){
 	}
 	
 	//Assert that all renderers completed in 60 seconds
-	if(tries>= 60) BailOut("Excessive wait for shared animation to finish",__FILE__,__LINE__);
+	if(tries>= 60) Params::BailOut("Excessive wait for shared animation to finish",__FILE__,__LINE__);
 	return;
 
 }

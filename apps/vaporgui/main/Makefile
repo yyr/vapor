@@ -10,7 +10,7 @@ ifdef	VOLUMIZER_ROOT
 MAKEFILE_CXXFLAGS += -I$(VOLUMIZER_ROOT)/include
 endif
 
-MAKEFILE_INCLUDE_DIRS := -I../guis -I../render -I../misc -I.. -I../../../lib/params
+MAKEFILE_INCLUDE_DIRS := -I../guis -I../misc -I.. -I../../../lib/params -I../../../lib/render
 
 ifdef   NETCDF_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
@@ -34,7 +34,7 @@ else
 MAKEFILE_LDFLAGS += -L$(QTDIR)/lib 
 endif
 
-VPATH = ../misc ../guis ../render 
+VPATH = ../misc ../guis 
 
 MOC_DIR = ../moc
 UI_DIR = ../guis/ui
