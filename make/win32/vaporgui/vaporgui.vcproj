@@ -84,7 +84,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="-Zm200 /EHsc -w34100 -w34189"
 				Optimization="4"
-				AdditionalIncludeDirectories="&quot;C:\Expat-1.95.8\Source\lib&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\include\vaporinternal;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;C:\Qt\3.3.4\mkspecs\win32-msvc.net&quot;"
+				AdditionalIncludeDirectories="&quot;C:\Expat-1.95.8\Source\lib&quot;;&quot;$(NETCDF_INC_PATH)&quot;;&quot;$(VOLUMIZER_ROOT)\include&quot;;..\..\..\apps\vaporgui\render;..\..\..\apps\vaporgui\misc;..\..\..\apps\vaporgui\guis;..\..\..\apps\vaporgui\main;..\..\..\apps\vaporgui;..\..\..\include;..\..\..\lib\params;..\..\..\include\vaporinternal;&quot;$(QTDIR)\include&quot;;..\..\..\apps\vaporgui\guis\ui;../../../apps/vaporgui/guis/ui\;.;..\..\..\apps\vaporgui\moc\;&quot;C:\Qt\3.3.4\mkspecs\win32-msvc.net&quot;;..\..\..\lib\render"
 				PreprocessorDefinitions="_WINDOWS;UNICODE;WIN32;QT_DLL;QT_THREAD_SUPPORT"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
@@ -102,7 +102,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="TRUE"
-				AdditionalDependencies="qt-mt334.lib ..\..\..\targets\win32\bin\glew32.lib qtmain.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
+				AdditionalDependencies="qt-mt334.lib ..\..\..\targets\win32\bin\glew32.lib qtmain.lib opengl32.lib glu32.lib mpr.lib ..\..\..\targets\win32\bin\params.lib ..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib ..\..\..\targets\win32\bin\render.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\vaporgui.exe"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="$(QTDIR)\lib"
@@ -150,9 +150,6 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\animationeventrouter.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\BBox.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\coloradjustdialog.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -168,25 +165,7 @@
 				RelativePath="..\..\..\apps\vaporgui\main\command.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRBase.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRDebug.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\dvreventrouter.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRLookup.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRShader.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRTexture3d.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRVolumizer.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\floweventrouter.cpp">
@@ -195,13 +174,7 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\flowmapframe.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\flowrenderer.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\glprobewindow.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\glwindow.cpp">
+				RelativePath="..\..\..\apps\vaporgui\guis\glprobewindow.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\loadtfdialog.cpp">
@@ -211,12 +184,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\main\mainform.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\manip.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\Matrix3d.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\main\messagereporter.cpp">
@@ -237,9 +204,6 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\regioneventrouter.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\renderer.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\savetfdialog.cpp">
 			</File>
 			<File
@@ -252,19 +216,10 @@
 				RelativePath="..\..\..\apps\vaporgui\misc\sessionparams.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\ShaderProgram.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\misc\sharedcontrollerthread.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\Stopwatch.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\main\tabmanager.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\TextureBrick.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\tfelocationtip.cpp">
@@ -273,13 +228,7 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\tfframe.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\trackball.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\misc\unsharedcontrollerthread.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\Vect3d.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\viewpointeventrouter.cpp">
@@ -294,13 +243,10 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\vizselectcombo.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\vizwin.cpp">
+				RelativePath="..\..\..\apps\vaporgui\main\vizwin.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\main\vizwinmgr.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\VolumeRenderer.cpp">
 			</File>
 		</Filter>
 		<Filter
@@ -331,9 +277,6 @@
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_animationeventrouter.cpp"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\BBox.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\coloradjustdialog.h">
@@ -388,12 +331,6 @@
 				RelativePath="..\..\..\apps\vaporgui\misc\controllerthread.h">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRBase.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRDebug.h">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\dvreventrouter.h">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -415,18 +352,6 @@
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_dvreventrouter.cpp"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRLookup.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRShader.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRTexture3d.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\DVRVolumizer.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\eventrouter.h">
@@ -478,36 +403,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\flowrenderer.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing flowrenderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\flowrenderer.h -o ..\..\..\apps\vaporgui\\moc\moc_flowrenderer.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_flowrenderer.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing flowrenderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\flowrenderer.h -o ..\..\..\apps\vaporgui\moc\moc_flowrenderer.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_flowrenderer.cpp"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\glprobewindow.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\glwindow.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\params\histo.h">
+				RelativePath="..\..\..\apps\vaporgui\guis\glprobewindow.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\loadtfdialog.h">
@@ -556,12 +452,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\manip.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\Matrix3d.h">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\main\messagereporter.h">
 			</File>
 			<File
@@ -589,9 +479,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\main\panelcommand.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\Point3d.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\probeeventrouter.h">
@@ -640,9 +527,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\params\probeparams.h">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\regioneventrouter.h">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -663,29 +547,6 @@
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_regioneventrouter.cpp"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\renderer.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing renderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\renderer.h -o tmp\moc\moc_renderer.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="tmp\moc\moc_renderer.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing renderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\renderer.h -o tmp\moc\moc_renderer.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="tmp\moc\moc_renderer.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -761,12 +622,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\ShaderProgram.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\Stopwatch.h">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\main\tabmanager.h">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -788,9 +643,6 @@
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_tabmanager.cpp"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\TextureBrick.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\tfelocationtip.h">
@@ -817,12 +669,6 @@
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_tfframe.cpp"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\trackball.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\Vect3d.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\viewpointeventrouter.h">
@@ -897,13 +743,13 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\render\vizwin.h">
+				RelativePath="..\..\..\apps\vaporgui\main\vizwin.h">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\render\vizwin.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\vizwin.h -o ..\..\..\apps\vaporgui\moc\moc_vizwin.cpp
+						Description="Moc&apos;ing vizwin.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\main\vizwin.h -o ..\..\..\apps\vaporgui\moc\moc_vizwin.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_vizwin.cpp"/>
@@ -912,8 +758,8 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\render\vizwin.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\render\vizwin.h -o ..\..\..\apps\vaporgui\moc\moc_vizwin.cpp
+						Description="Moc&apos;ing vizwin.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\main\vizwin.h -o ..\..\..\apps\vaporgui\moc\moc_vizwin.cpp
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_vizwin.cpp"/>
@@ -941,9 +787,6 @@
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_vizwinmgr.cpp"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\render\VolumeRenderer.h">
 			</File>
 		</Filter>
 		<Filter
@@ -974,9 +817,6 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_flowmapframe.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_flowrenderer.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_flowtab.cpp">
 			</File>
 			<File
@@ -1002,9 +842,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_regiontab.cpp">
-			</File>
-			<File
-				RelativePath=".\tmp\moc\moc_renderer.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_savetfdialog.cpp">

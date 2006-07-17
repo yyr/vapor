@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../include/;&quot;$(QTDIR)/include&quot;;&quot;C:\Expat-1.95.8\Source\lib&quot;;../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;"
+				AdditionalIncludeDirectories="../../../include/;&quot;$(QTDIR)/include&quot;;&quot;C:\Expat-1.95.8\Source\lib&quot;;../../../lib/vdf;../../../include/vaporinternal;&quot;$(NETCDF_INC_PATH)&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;PARAMS_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="0"
@@ -76,6 +76,8 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PARAMS_EXPORTS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
+				ObjectFile="../../../targets/win32/built/params/"
+				ProgramDataBaseFileName="../../../targets/win32/built/params/vc70.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -83,13 +85,14 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/params.dll"
+				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib qt-mt334.lib opengl32.lib glu32.lib"
+				OutputFile="../../../targets/win32/bin/params.dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/params.lib"
+				ImportLibrary="../../../targets/win32/bin/params.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
