@@ -25,7 +25,7 @@
 #include "flowparams.h"
 namespace VAPoR {
 //class VizWin;
-enum DirtyBitType;
+//enum DirtyBitType;
 class FlowRenderer : public Renderer
 {
     Q_OBJECT

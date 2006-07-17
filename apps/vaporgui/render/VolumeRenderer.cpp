@@ -60,13 +60,12 @@
 #include "DVRVolumizer.h"
 #endif
 #include "DVRDebug.h"
+#include "params.h"
 #include "renderer.h"
-//#include "animationcontroller.h"
-//#include "messagereporter.h"
+
 #include "Stopwatch.h"
 
-//#include "command.h"
-//#include "session.h"
+
 #include "glutil.h"
 #include "dvrparams.h"
 #include "vapor/MyBase.h"

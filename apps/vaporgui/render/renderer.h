@@ -24,13 +24,13 @@
 #include <qimage.h>
 #include "vapor/MyBase.h"
 
+#include "params.h"
 using namespace VetsUtil;
 
 namespace VAPoR {
 class GLWindow;
 class DataMgr;
 class Metadata;
-enum DirtyBitType;
 
 class Renderer: public QObject, public MyBase
 {
@@ -48,7 +48,7 @@ public:
 	//
     virtual void		initializeGL() = 0;
     virtual void		paintGL() = 0;
-	virtual void		setDirty(DirtyBitType /*t*/) {return;}
+	virtual void		setDirty(VAPoR::DirtyBitType /*t*/) {return;}
 	
 signals:
 
