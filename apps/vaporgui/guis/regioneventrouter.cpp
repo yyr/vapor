@@ -493,8 +493,6 @@ refreshRegionInfo(RegionParams* rParams){
 		//Entire region size in voxels
 		for (int i = 0; i<3; i++){
 			max_dim[i] = ((ds->getFullDataSize(i))>>(numTrans - refLevel))-1;
-			max_bdim[i] = (max_dim[i]/bs);
-			min_bdim[i] = 0;
 		}
 	}
 	minXVoxFullLabel->setText("0");
