@@ -152,6 +152,7 @@ renderColorscale(bool dorebuild){
 	float lly = 2.f*myGLWindow->getColorbarLLCoord(1) - 1.f; 
 	float urx = 2.f*myGLWindow->getColorbarURCoord(0) - 1.f; 
 	float ury = 2.f*myGLWindow->getColorbarURCoord(1) - 1.f; 
+	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(llx, lly, 0.0f);
 	glTexCoord2f(0.0f, 1.0f); glVertex3f(llx, ury, 0.0f);
