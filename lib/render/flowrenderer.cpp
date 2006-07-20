@@ -73,7 +73,7 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 		needRefreshFlag[i] = false;
 		flowMapDirty[i] = 0;
 	}
-
+	setRegionValid(true);
 }
 
 
@@ -107,7 +107,8 @@ FlowRenderer::~FlowRenderer()
 
 void FlowRenderer::paintGL()
 {
-	
+	//If the regionValid flag is off, need a change before we try to render again..
+	if (!regionValid()) return;
 	
 	AnimationParams* myAnimationParams = myGLWindow->getAnimationParams();
 	
@@ -393,7 +394,7 @@ void FlowRenderer::initializeGL()
 {
 	myGLWindow->makeCurrent();
 	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
-   
+	setRegionValid(true);
 }
 /****************************************************************************
  * 
@@ -1300,6 +1301,7 @@ void FlowRenderer::renderStationary(float* point){
 void FlowRenderer::setDirty(DirtyBitType type){
 	
 	if (type == FlowDataBit){
+		setRegionValid(true);  // reset this bit so we will try to render again...
 		//set all the dirty flags for all the frames
 		//set the needRefresh flags too if autoRefresh is on.
 		bool doRefresh = myFlowParams->refreshIsAuto();
@@ -1394,6 +1396,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 			}
 			bool OK = myFlowParams->regenerateFlowData(timeStep, minFrame, true, rParams, rakeFlowData[timeStep],rakeFlowRGBAs[timeStep]);
 			if (!OK) {
+				setRegionValid(false);
 				delete rakeFlowData[timeStep];
 				rakeFlowData[timeStep] = 0;
 				if (rakeFlowRGBAs[timeStep]) delete rakeFlowRGBAs[timeStep];
@@ -1423,6 +1426,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 			}
 			bool OK = myFlowParams->regenerateFlowData(timeStep, minFrame, false, rParams, listFlowData[timeStep],listFlowRGBAs[timeStep]);
 			if (!OK) {
+				setRegionValid(false);
 				delete listFlowData[timeStep];
 				listFlowData[timeStep] = 0;
 				if (listFlowRGBAs[timeStep]) delete listFlowRGBAs[timeStep];

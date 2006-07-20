@@ -202,10 +202,11 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 	//
 	ErrMsgCB_T errorCallback = GetErrMsgCB();
 	SetErrMsgCB(0);
-	float *regionData = dataMgr->GetRegion(ts, varName, numXForms, minBlkRegion, maxBlkRegion);
+	float *regionData = dataMgr->GetRegion(ts, varName, numXForms, minBlkRegion, maxBlkRegion,1);
 	SetErrMsgCB(errorCallback);
 	if (!regionData) {
-		SetErrMsg("Error loading field data for timestep %d, variable %s",ts, varName);
+		SetErrMsg(103,"Error obtaining field data for timestep %d, variable %s",ts, varName);
+		return 0;
 	}
 	return regionData;
 }
@@ -266,13 +267,18 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pVData = new float*[1];
 	pWData = new float*[1];
 	pUData[0] = GetData(startTimeStep, xVarName);
+	if (pUData[0]== 0)
+		return false;
+
 	pVData[0] = GetData(startTimeStep, yVarName);
+	if (pVData[0] == 0) {
+		dataMgr->UnlockRegion(pUData[0]);
+		return false;
+	}
 	pWData[0] = GetData(startTimeStep, zVarName);
-	//AN 10/19/05
-	//Check for invalid data
-	//Note that read errors were already reported by GetData
-	//
-	if (pUData[0] == 0 || pVData[0] == 0 || pWData[0] == 0){
+	if (pWData[0] == 0) {
+		dataMgr->UnlockRegion(pUData[0]);
+		dataMgr->UnlockRegion(pVData[0]);
 		return false;
 	}
 
@@ -340,6 +346,12 @@ bool VaporFlow::GenStreamLines(float* positions,
 	// release resource
 	delete pStreamLine;
 	delete pField;
+	//Unlock region:
+
+	dataMgr->UnlockRegion(pUData[0]);
+	dataMgr->UnlockRegion(pVData[0]);
+	dataMgr->UnlockRegion(pWData[0]);
+		
 	return true;
 }
 
@@ -522,7 +534,11 @@ bool VaporFlow::GenPathLines(float* positions,
 	int numInj = 1+(endInjection-startInjection)/injectionTimeIncrement;
 	pStreakLine->fullArraySize = numInj*maxPoints*seedNum*3;
 
-	// start to computer streakline
+	//Keep first and next region pointers.  They must be released as we go:
+	float *xDataPtr =0, *yDataPtr = 0, *zDataPtr =0;
+	float *xDataPtr2 =0, *yDataPtr2 = 0, *zDataPtr2 =0;
+
+	// start to compute streakline
 	unsigned int* pointers = new unsigned int[seedNum*numInjections];
 	unsigned int* startPositions = new unsigned int[seedNum*numInjections];
 	memset(pointers, 0, sizeof(unsigned int)*seedNum*numInjections);
@@ -572,32 +588,44 @@ bool VaporFlow::GenPathLines(float* positions,
 				//AN 10/19/05
 				//Check for valid data, return false if invalid
 				//
-				float* xDataPtr = GetData(iFor,xVarName); 
-				float* yDataPtr = GetData(iFor,yVarName); 
-				float* zDataPtr = GetData(iFor,zVarName); 
+				
+				xDataPtr = GetData(iFor,xVarName);
+				
+				if(xDataPtr) yDataPtr = GetData(iFor,yVarName);
+				
+				if(yDataPtr) zDataPtr = GetData(iFor,zVarName);
+				
 				if (xDataPtr == 0 || yDataPtr == 0 || zDataPtr == 0){
 					// release resources
 					delete[] pUserTimeSteps;
 					delete[] pointers;
 					delete pStreakLine;
 					delete pField;
+					if (xDataPtr) dataMgr->UnlockRegion(xDataPtr);
+					if (yDataPtr) dataMgr->UnlockRegion(yDataPtr);
 					return false;
 				}
 				pField->SetSolutionData(iTemp,xDataPtr,yDataPtr,zDataPtr);
 			}
-			//otherwise just get next sampled timestep.
-			float* xDataPtr = GetData(iFor+timeStepIncrement,xVarName); 
-			float* yDataPtr = GetData(iFor+timeStepIncrement,yVarName); 
-			float* zDataPtr = GetData(iFor+timeStepIncrement,zVarName); 
-			if (!xDataPtr || !yDataPtr || !zDataPtr){
+			//otherwise just get next sampled timestep.  
+			yDataPtr2 = zDataPtr2 = 0;
+			xDataPtr2 = GetData(iFor+timeStepIncrement,xVarName); 
+			if(xDataPtr2) yDataPtr2 = GetData(iFor+timeStepIncrement,yVarName); 
+			if(yDataPtr2) zDataPtr2 = GetData(iFor+timeStepIncrement,zVarName); 
+			if (!xDataPtr2 || !yDataPtr2 || !zDataPtr2){
 				// release resources
 				delete[] pUserTimeSteps;
 				delete[] pointers;
 				delete pStreakLine;
 				delete pField;
+				if (xDataPtr) dataMgr->UnlockRegion(xDataPtr);
+				if (yDataPtr) dataMgr->UnlockRegion(yDataPtr);
+				if (zDataPtr) dataMgr->UnlockRegion(zDataPtr);
+				if (xDataPtr2) dataMgr->UnlockRegion(xDataPtr2);
+				if (yDataPtr2) dataMgr->UnlockRegion(yDataPtr2);
 				return false;
 			}
-			pField->SetSolutionData(iTemp+1,xDataPtr,yDataPtr,zDataPtr); 
+			pField->SetSolutionData(iTemp+1,xDataPtr2,yDataPtr2,zDataPtr2); 
 		}
 
 		// whether inject new seeds this time?
@@ -611,10 +639,22 @@ bool VaporFlow::GenPathLines(float* positions,
 			pStreakLine->execute((float)iFor, positions, startPositions, pointers, true, iInjection++, speeds);
 		else					// do not inject new seeds
 			pStreakLine->execute((float)iFor, positions, startPositions, pointers, false, iInjection, speeds);
+		//Now can release first pointers:
+		dataMgr->UnlockRegion(xDataPtr);
+		dataMgr->UnlockRegion(yDataPtr);
+		dataMgr->UnlockRegion(zDataPtr);
+		//And use them to save the second pointers:
+		xDataPtr = xDataPtr2;
+		yDataPtr = yDataPtr2;
+		zDataPtr = zDataPtr2;
+
 	}
 
 	//Reset();
 	// release resource
+	dataMgr->UnlockRegion(xDataPtr);
+	dataMgr->UnlockRegion(yDataPtr);
+	dataMgr->UnlockRegion(zDataPtr);
 	delete[] pUserTimeSteps;
 	delete[] pointers;
 	delete pStreakLine;

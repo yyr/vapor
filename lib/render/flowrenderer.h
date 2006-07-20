@@ -90,6 +90,8 @@ public:
 	//all timesteps.
 	virtual void setDirty(DirtyBitType type);
 	bool rebuildFlowData(int timeStep, bool doRake);
+	void setRegionValid(bool trueFalse) {regionIsValid = trueFalse;}
+	bool regionValid() {return regionIsValid;}
 
 
 protected:
@@ -160,7 +162,7 @@ protected:
 	float* flowRGBAs;
 	int maxPoints;
 	int numSeedPoints;
-
+	bool regionIsValid;
 
 	FlowParams* myFlowParams;
 

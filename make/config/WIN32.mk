@@ -22,7 +22,7 @@ C_RELEASE_FLAGS += /MD /Ox /DNDEBUG
 # This is just not working for me on VC++ 7 --> C_DEBUG_FLAGS   += /GZ
 C_DEBUG_FLAGS   += /MDd /Yd /Z7 
 
-LDFLAGS          += /nologo user32.lib kernel32.lib
+LDFLAGS          += /nologo user32.lib kernel32.lib /LARGEADDRESSAWARE
 LD_RELEASE_FLAGS += /NODEFAULTLIB:"msvcrtd" /NODEFAULTLIB:"msvcr71d" 
 LD_DEBUG_FLAGS   += 
  

@@ -47,7 +47,8 @@
 				DelayLoadDLLs="opengl32.dll"
 				GenerateDebugInformation="FALSE"
 				ProgramDatabaseFile=""
-				SubSystem="2"/>
+				SubSystem="2"
+				LargeAddressAware="2"/>
 			<Tool
 				Name="VCMIDLTool"
 				WarningLevel="0"
@@ -110,7 +111,8 @@
 				DelayLoadDLLs="opengl32.dll"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=""
-				SubSystem="2"/>
+				SubSystem="2"
+				LargeAddressAware="2"/>
 			<Tool
 				Name="VCMIDLTool"
 				WarningLevel="0"

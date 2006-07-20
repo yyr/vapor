@@ -694,7 +694,7 @@ regenerateFlowData(int timeStep, int minFrame, bool isRake, RegionParams* rParam
 		for (int i = firstSample; i<= lastSample; i+= timeSamplingInterval){
 			bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, i, varNum, 3);
 			if(!dataValid){
-				MyBase::SetErrMsg("Vector field data unavailable for refinement %d at timestep %d", numRefinements, i);
+				SetErrMsg(102,"Vector field data unavailable for refinement %d at timestep %d", numRefinements, i);
 				return 0;
 			}
 			//Intersect the available region bounds.
@@ -713,7 +713,16 @@ regenerateFlowData(int timeStep, int minFrame, bool isRake, RegionParams* rParam
 			max_bdim[i] = gmax_bdim[i];
 		}
 	}
-
+	//Check that the cache is big enough for all three (or 4) variables
+	float numVoxels = (max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1);
+	float nvars = (flowIsSteady() ? 3.f : 6.f);
+	
+	//Multiply by 32^3 *4 to get total bytes, divide by 2^20 for mbytes, * num variables
+	if (nvars*numVoxels/8.f >= (float)DataStatus::getInstance()->getCacheMB()){
+		SetErrMsg(101," Data cache size %d is too small for this flow integration",
+			DataStatus::getInstance()->getCacheMB());
+		return false;
+	}
 	myFlowLib->SetRegion(numRefinements, min_dim, max_dim, min_bdim, max_bdim);
 
 	int numSeedPoints;
