@@ -1317,14 +1317,20 @@ void MainForm::exportToIDL(){
 //Launch a file save dialog to specify the names
 //Then start file saving mode.
 void MainForm::startCapture() {
+	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
+		"Jpeg Images (*.jpg)",
+		this,
+		"Start image capture dialog",
+		true);  //modal
+	fileDialog.move(pos());
+	fileDialog.setMode(QFileDialog::AnyFile);
+	fileDialog.setCaption("Specify first file name for image capture sequence");
 	
-    QString s = QFileDialog::getSaveFileName(
-		Session::getInstance()->getJpegDirectory().c_str(),
-        "Jpeg Images (*.jpg)",
-        this,
-        "Start image capture dialog",
-        "Specify JPEG file names for the image capturing" );
+	fileDialog.resize(450,450);
+	if (fileDialog.exec() != QDialog::Accepted) return;
+	
 	//Extract the path, and the root name, from the returned string.
+	QString s = fileDialog.selectedFile();
 	QFileInfo* fileInfo = new QFileInfo(s);
 	//Save the path for future captures
 	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
@@ -1353,6 +1359,7 @@ void MainForm::startCapture() {
 	} else {
 		MessageReporter::errorMsg("Image Capture Error;\nNo active visualizer for capturing images");
 	}
+	delete fileInfo;
 }
 
 //Capture just one image
@@ -1360,13 +1367,20 @@ void MainForm::startCapture() {
 //Then put jpeg in it.
 //
 void MainForm::captureSingle() {
+	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
+		"Jpeg Images (*.jpg)",
+		this,
+		"Start image capture dialog",
+		true);  //modal
+	fileDialog.move(pos());
+	fileDialog.setMode(QFileDialog::AnyFile);
+	fileDialog.setCaption("Specify single image capture file name");
+	fileDialog.resize(450,450);
+	if (fileDialog.exec() != QDialog::Accepted) return;
 	
-    QString filename = QFileDialog::getSaveFileName(
-		Session::getInstance()->getJpegDirectory().c_str(),
-        "Jpeg Images (*.jpg)",
-        this,
-        "Single image capture dialog",
-        "Specify JPEG file name for the image file" );
+	//Extract the path, and the root name, from the returned string.
+	QString filename = fileDialog.selectedFile();
+    
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	//Save the path for future captures
