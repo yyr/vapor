@@ -7,7 +7,13 @@
 ifneq ($(ARCH), WIN_NT)
 ifneq ($(ARCH), WIN_98)
 ARCH=$(shell uname | sed -e 's/-//g')
+
+ifeq ($(ARCH), IRIX64)
 MACHTYPE=$(shell uname -p)
+else
+MACHTYPE=$(shell uname -m)
+endif
+
 endif
 endif
 
