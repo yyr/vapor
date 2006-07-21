@@ -1642,6 +1642,11 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 					default : //variable
 						int x,y,z;
 						float* dataPoint = flowData+3*(k+ maxPoints*(j+ (numSeeds*i)));
+						//Check for ignore flag... make transparent
+						if (dataPoint[0] == IGNORE_FLAG){
+							opacVar = opacMin;
+							break;
+						}
 						x = (int)(0.5f+((dataPoint[0] - opacVarMin[0])*opacSize[0])/(opacVarMax[0]-opacVarMin[0]));
 						y = (int)(0.5f+((dataPoint[1] - opacVarMin[1])*opacSize[1])/(opacVarMax[1]-opacVarMin[1]));
 						z = (int)(0.5f+((dataPoint[2] - opacVarMin[2])*opacSize[2])/(opacVarMax[2]-opacVarMin[2]));
@@ -1677,6 +1682,11 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 					default : //variable
 						int x,y,z;
 						float* dataPoint = flowData+3*(k+ maxPoints*(j+ (numSeeds*i)));
+						//Check for ignore flag... map to min color
+						if (dataPoint[0] == IGNORE_FLAG){
+							colorVar = colorMin;
+							break;
+						}
 						x = (int)(0.5f+((dataPoint[0] - colorVarMin[0])*colorSize[0])/(colorVarMax[0]-colorVarMin[0]));
 						y = (int)(0.5f+((dataPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
 						z = (int)(0.5f+((dataPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
