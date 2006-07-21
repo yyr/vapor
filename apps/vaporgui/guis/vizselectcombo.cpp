@@ -157,18 +157,15 @@ setWindowName(QString& newName, int windowNum){
  */
 void VizSelectCombo::
 activeWin(int index){
-	int i;
+	
 	//If they clicked the end, just create a new visualizer:
 	if (index == count()-1) {
 		emit (newWin());
 		return;
 	}
-	//Find the activated window in the list:
-	for (i = 0; i< count()-1; i++){
-		if (winNum[i] == index) break;
-	}
-	assert(i < count() -1);
-	emit (winActivated(i));
+	//Activate the window that is in position index in the list:
+	emit (winActivated(winNum[index]));
+	
 }
 
 
