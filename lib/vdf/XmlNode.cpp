@@ -53,21 +53,8 @@ XmlNode::~XmlNode() {
 
 	if (! _objInitialized) return;
 
-	map <string, vector<long>*>::iterator plong;
-	map <string, vector<double>*>::iterator pdouble;
-	int	i;
-
-	for (plong = _longmap.begin(); plong != _longmap.end(); plong++) {
-		vector<long> *vptr = plong->second;
-		delete vptr;
-	}
-
-	for (pdouble = _doublemap.begin(); pdouble != _doublemap.end(); pdouble++) {
-		vector<double> *vptr = pdouble->second;
-		delete vptr;
-	}
-
-	for (i=0; i<(int)_children.size(); i++) {
+	for (int i=0; i<(int)_children.size(); i++) {
+cerr << "deleting child " << i << endl;
 		delete _children[i];
 	}
 
@@ -79,34 +66,22 @@ vector<long> &XmlNode::SetElementLong(
 	const string &tag, const vector<long> &values
 ) {
 
-	vector<long> *vptr;
-
-	map <string, vector<long>*>::iterator p = _longmap.find(tag);
-	int	i;
+	map <string, vector<long> >::iterator p = _longmap.find(tag);
 
 	// see if entry for this key (tag) already exists
 	//
 	if (p != _longmap.end()) { 
-		vptr = p->second;
-		vptr->resize(values.size());
+		p->second = values;
 	}
 	else {
-		vptr = new vector<long>(values.size());
-		_longmap[tag] = vptr;
+		_longmap[tag] = values;
 	}
-
-	vector<long> &v = *vptr;
-
-	for(i=0; i<(int)values.size(); i++) {
-		v[i] = values[i];
-	}
-
-	return(v);
+	return(_longmap[tag]);
 }
 	
 vector<long> &XmlNode::GetElementLong(const string &tag) {
 
-	map <string, vector<long>*>::const_iterator p = _longmap.find(tag);
+	map <string, vector<long> >::const_iterator p = _longmap.find(tag);
 
 	// see if entry for this key (tag) already exists
 	//
@@ -115,47 +90,35 @@ vector<long> &XmlNode::GetElementLong(const string &tag) {
 		return(_emptyLongVec);
 	}
 
-	vector<long> *vptr = p->second;
-	return(*vptr);
+	return(_longmap[tag]);
 }
 
 int XmlNode::HasElementLong(const string &tag) const {
-	map <string, vector<long>*>::const_iterator p = _longmap.find(tag);
+	map <string, vector<long> >::const_iterator p = _longmap.find(tag);
 	return(p != _longmap.end());
 }
+
 
 vector<double> &XmlNode::SetElementDouble(
 	const string &tag, const vector<double> &values
 ) {
-
-	vector<double> *vptr;
-
-	map <string, vector<double>*>::iterator p = _doublemap.find(tag);
-	int	i;
+	map <string, vector<double> >::iterator p = _doublemap.find(tag);
 
 	// see if entry for this key (tag) already exists
 	//
 	if (p != _doublemap.end()) { 
-		vptr = p->second;
-		vptr->resize(values.size());
+		p->second = values;
 	}
 	else {
-		vptr = new vector<double>(values.size());
-		_doublemap[tag] = vptr;
+		_doublemap[tag] = values;
 	}
+	return(_doublemap[tag]);
 
-	vector<double> &v = *vptr;
-
-	for(i=0; i<(int)values.size(); i++) {
-		v[i] = values[i];
-	}
-
-	return(v);
 }
 	
 vector<double> &XmlNode::GetElementDouble(const string &tag) {
 
-	map <string, vector<double>*>::const_iterator p = _doublemap.find(tag);
+	map <string, vector<double> >::const_iterator p = _doublemap.find(tag);
 
 	// see if entry for this key (tag) already exists
 	//
@@ -164,16 +127,14 @@ vector<double> &XmlNode::GetElementDouble(const string &tag) {
 		return(_emptyDoubleVec);
 	}
 
-	vector<double> *vptr = p->second;
-
-	return(*vptr);
+	return(_doublemap[tag]);
 }
 
 int XmlNode::HasElementDouble(const string &tag) const {
-	map <string, vector<double>*>::const_iterator p = _doublemap.find(tag);
+	map <string, vector<double> >::const_iterator p = _doublemap.find(tag);
 	return(p != _doublemap.end());
 }
-
+	
 string &XmlNode::SetElementString(
 	const string &tag, const string &str
 ) {
@@ -225,28 +186,14 @@ XmlNode	*XmlNode::NewChild(
 	return(node);
 }
 
-void	XmlNode::AddChild( XmlNode* child)
-{
-	_children.push_back(child);
-	return;
-}
-
-void XmlNode::_deleteChildren(XmlNode *node) {
-
-	for(int i = 0; i<_children.size(); i++) {
-		_deleteChildren(_children[i]);
-		delete _children[i];
-	}
-}
 
 int	XmlNode::DeleteChild(size_t index) {
 	if (index >= _children.size()) return(-1);
 
 	XmlNode	*node = _children[index];
 
-	_deleteChildren(node);	// recursively delete this node's children, if any
-
-	delete node;
+	// recursively delete this node's children, if any
+	if (node) delete node;
 
 	_children.erase(_children.begin()+index);
 	return(0);
@@ -307,8 +254,8 @@ XmlNode::streamOut(ostream&os, const XmlNode& node) {
 namespace VAPoR {
 std::ostream& operator<<(ostream& os, const VAPoR::XmlNode& node) {
 
-	map <string, vector<long>*>::const_iterator plong;
-	map <string, vector<double>*>::const_iterator pdouble;
+	map <string, vector<long> >::const_iterator plong;
+	map <string, vector<double> >::const_iterator pdouble;
 	map <string, string>::const_iterator pstring;
 	map <string, string>::const_iterator pattr;
 
@@ -334,8 +281,7 @@ std::ostream& operator<<(ostream& os, const VAPoR::XmlNode& node) {
 		const string &tag = plong->first;
 
 
-		vector<long> *vptr = plong->second;
-		vector<long> &v = *vptr;
+		const vector<long> &v = plong->second;
 
 //		if (v.size() <= node._asciiLimit) {
 		if (1) {
@@ -378,8 +324,7 @@ std::ostream& operator<<(ostream& os, const VAPoR::XmlNode& node) {
 
 		os << "<" << tag << " Type=\"Double\">" << endl << "  ";
 
-		vector<double> *vptr = pdouble->second;
-		vector<double> &v = *vptr;
+		const vector<double> &v = pdouble->second;
 
 		for(i=0; i<(int)v.size(); i++) {
 			os << v[i] << " ";
