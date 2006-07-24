@@ -194,6 +194,22 @@ public:
  //!
  //! \sa NewChild()
  //
+
+ //! Add an existing node as a child of the current node.
+ //!
+ //! The new child node will be
+ //! appended to the array of child nodes.
+ //!
+ //! \note The node is shallow copied into the tree (only the pointer
+ //! is copied. Furthermore, the destructor for this class will delete
+ //! the added child. Whoops!!
+ //!
+ //! \param[in] child is the XmlNode object to be added as a child
+ //
+ void AddChild(
+    XmlNode* child
+ );
+
  int GetNumChildren() const { return (int)(_children.size());};
 
  //! Create a new child of this node

@@ -186,6 +186,12 @@ XmlNode	*XmlNode::NewChild(
 	return(node);
 }
 
+void    XmlNode::AddChild( XmlNode* child)
+{
+	_children.push_back(child);
+	return;
+}
+
 
 int	XmlNode::DeleteChild(size_t index) {
 	if (index >= _children.size()) return(-1);
