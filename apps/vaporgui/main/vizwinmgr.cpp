@@ -312,6 +312,7 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 	//Following seems to be unnecessary on windows and irix:
 	activeViz = useWindowNum;
 	setActiveViz(useWindowNum);
+	emit activateViz(useWindowNum);
 	vizWin[useWindowNum]->show();
 
 	
