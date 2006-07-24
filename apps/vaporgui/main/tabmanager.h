@@ -70,7 +70,7 @@ class TabManager : public QTabWidget{
 		//Determine if a widget is the current front tab
 		bool isFrontTab(QWidget* wid){
 			return (wid == widgets[currentFrontPage]);}
-	protected slots:
+	public slots:
 		void newFrontTab(QWidget*);
 
 		

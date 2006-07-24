@@ -311,6 +311,7 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 		*/
 	//Following seems to be unnecessary on windows and irix:
 	activeViz = useWindowNum;
+	setActiveViz(useWindowNum);
 	vizWin[useWindowNum]->show();
 
 	
@@ -1577,13 +1578,13 @@ bool VizWinMgr::elementEndHandler(ExpatParseMgr* pm, int depth , std::string& ta
 		case (2):
 			if (StrCmpNoCase(tag, _vizWinTag) != 0) return false;
 			//End of parsing all the params for a visualizer.
+			//Must force the front tab to refresh:
+			tabManager->newFrontTab(0);
 			parsingVizNum = -1;
 			return true;
 		case(3):
 			//End of parsing a params for a visualizer (popped back from params parsing)
 			if (parsingVizNum < 0) return false;
-			//Must set the params in the GLWindow:
-
 			return true;
 		default:
 			return false;

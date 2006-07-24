@@ -145,7 +145,9 @@ TabManager::findWidget(Params::ParamType widgetType){
 void TabManager::
 newFrontTab(QWidget*) {
 	int newFrontPosn = currentPageIndex();
-	if (newFrontPosn == currentFrontPage) return;
+	//Don't check, sometimes this method can be used to refresh
+	//the existing front tab
+	//if (newFrontPosn == currentFrontPage) return;
 	Params::ParamType prevType = Params::UnknownParamsType;
 	if(currentFrontPage >= 0) prevType = widgetTypes[currentFrontPage];
 	currentFrontPage = newFrontPosn;

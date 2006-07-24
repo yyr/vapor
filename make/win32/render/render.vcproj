@@ -39,7 +39,7 @@
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(EXPAT_LIB_PATH)/libs&quot;;$(QTDIR)\lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="../../../targets/win32/bin/params.pdb"
+				ProgramDatabaseFile="../../../targets/win32/bin/render.pdb"
 				SubSystem="2"
 				ImportLibrary="../../../targets/win32/bin/render.lib"
 				TargetMachine="1"/>

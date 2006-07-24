@@ -653,7 +653,8 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 
 	//Reset the undo/redo queue
 	resetCommandQueue();
-	DataStatus::getInstance()->setRenderReady(true);
+	if (DataStatus::getInstance())
+		DataStatus::getInstance()->setRenderReady(true);
 	//Set the metadataSaved flag depending on whether or not we merged:
 	//That way we know the next session save will also need to save metadata
 	//If we failed to merge or load, the metadataSaved flag does not change.
