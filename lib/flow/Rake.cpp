@@ -87,9 +87,7 @@ PointRake::PointRake()
 {
 }
 
-PointRake::~PointRake()
-{
-}
+
 
 //////////////////////////////////////////////////////////////////////////
 // numSeeds should be 1
@@ -119,9 +117,7 @@ LineRake::LineRake()
 {
 }
 
-LineRake::~LineRake()
-{
-}
+
 
 void LineRake::GenSeedRandom(const size_t numSeeds[3], 
 							 const float min[3], 
@@ -173,9 +169,7 @@ void LineRake::GenSeedRegular(const size_t numSeeds[3],
 PlaneRake::PlaneRake()
 {
 }
-PlaneRake::~PlaneRake()
-{
-}
+
 
 void PlaneRake::GenSeedRandom(const size_t numSeeds[3], 
 							  const float min[3], 
@@ -280,9 +274,7 @@ SolidRake::SolidRake()
 {
 }
 
-SolidRake::~SolidRake()
-{
-}
+
 
 void SolidRake::GenSeedRandom(const size_t numSeeds[3], 
 							  const float min[3], 

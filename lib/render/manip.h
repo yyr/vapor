@@ -31,7 +31,7 @@ class RENDER_API Manip {
 
 public:
 	Manip(GLWindow* win) {myGLWin = win;}
-	~Manip(){}
+	virtual ~Manip(){}
 	virtual void render()= 0;
 	//The manip gets its dimensions from the Params.
 	//This is useful for DvrParams, FlowParams, ProbeParams.
@@ -80,6 +80,7 @@ protected:
 class RENDER_API TranslateStretchManip : public Manip {
 public:
 	TranslateStretchManip(GLWindow* win, Params*p); 
+	virtual ~TranslateStretchManip(){}
 	virtual void render();
 	
 	
@@ -123,6 +124,7 @@ protected:
 class RENDER_API TranslateRotateManip : public TranslateStretchManip {
 public:
 	TranslateRotateManip(GLWindow* w, Params* p);
+	virtual ~TranslateRotateManip(){}
 	virtual void render();
 	virtual void slideHandle(int handleNum, float movedRay[3]);
 	virtual void mouseRelease(float screenCoords[2]);

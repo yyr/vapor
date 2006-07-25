@@ -35,9 +35,7 @@ CartesianGrid::CartesianGrid(int xdim, int ydim, int zdim)
 	m_nDimension[2] = zdim;
 }
 
-CartesianGrid::~CartesianGrid()
-{
-}
+
 
 //////////////////////////////////////////////////////////////////////////
 // Reset

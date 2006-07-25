@@ -37,7 +37,7 @@ class PARAMS_API MapperFunction : public ParsedXml {
 public:
 	MapperFunction(Params* p, int nBits);
 	MapperFunction();
-	~MapperFunction();
+	virtual ~MapperFunction();
 	//Set to starting values
 	//
 	virtual void init();  

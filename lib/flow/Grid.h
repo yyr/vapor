@@ -70,6 +70,7 @@ public:
 	// reset parameters
 	virtual void Reset(void) = 0;
 	virtual void GetDimension(int& xdim, int& ydim, int& zdim) = 0;
+	virtual ~Grid() {}
 
 	//////////////////////////////////////////////////////////////////////////
 	// cell related
@@ -124,6 +125,7 @@ public:
 
 class FLOW_API CartesianGrid : public Grid
 {
+
 private:
 	int m_nDimension[3];				// dimension
 	VECTOR3 m_vMinBound, m_vMaxBound;	// min and maximal boundary
@@ -140,7 +142,8 @@ public:
 	// constructor and deconstructor
 	CartesianGrid(int xdim, int ydim, int zdim);
 	CartesianGrid();
-	~CartesianGrid();
+	virtual ~CartesianGrid(){}
+	
 
 	// reset parameters
 	void Reset(void);
@@ -207,8 +210,9 @@ private:
 public:
 	// constructor and deconstructor
 	CurvilinearGrid();
+	virtual ~CurvilinearGrid(){}
 	CurvilinearGrid(int xdim, int ydim, int zdim);
-	~CurvilinearGrid();
+	
 
 	// cell
 	// cell type

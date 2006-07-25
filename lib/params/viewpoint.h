@@ -12,7 +12,7 @@ class PARAMS_API Viewpoint : public ParsedXml {
 public: 
 	Viewpoint() {previousClass = 0;}
 	
-	~Viewpoint(){}
+	virtual ~Viewpoint(){}
 	
 	float* getCameraPos() {return cameraPosition;}
 	float getCameraPos(int i) {return cameraPosition[i];}

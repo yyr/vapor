@@ -46,6 +46,7 @@ namespace VAPoR
 	class FLOW_API Rake : public VetsUtil::MyBase
 	{
 	public:
+		virtual ~Rake(){}
 		virtual void GenSeedRandom( const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed) = 0;
 		virtual void GenSeedRegular(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed) = 0;
 	};
@@ -54,36 +55,40 @@ namespace VAPoR
 	{
 	public:
 		PointRake();
+		virtual ~PointRake(){}
 		void GenSeedRandom(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 		void GenSeedRegular(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed);
-		~PointRake();
+		
 	};
 
 	class FLOW_API LineRake : public Rake
 	{
 	public:
 		LineRake();
+		virtual ~LineRake(){}
 		void GenSeedRandom(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 		void GenSeedRegular(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed);
-		~LineRake();
+		
 	};
 
 	class FLOW_API PlaneRake : public Rake
 	{
 	public:
 		PlaneRake();
+		virtual ~PlaneRake(){}
 		void GenSeedRandom(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 		void GenSeedRegular(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed);
-		~PlaneRake();
+		
 	};
 
 	class FLOW_API SolidRake : public Rake
 	{
 	public:
 		SolidRake();
+		virtual ~SolidRake(){}
 		void GenSeedRandom(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 		void GenSeedRegular(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed);
-		~SolidRake();
+		
 	};
 };
 

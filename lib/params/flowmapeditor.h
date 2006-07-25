@@ -35,7 +35,7 @@ class FlowParams;
 class PARAMS_API FlowMapEditor : public MapEditor {
 public:
 	FlowMapEditor(MapperFunction* TF);
-	~FlowMapEditor();
+	virtual ~FlowMapEditor();
 	//Reset to default state, e.g. when loading new TF:
 	//
 	virtual void reset();

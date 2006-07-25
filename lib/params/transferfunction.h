@@ -40,7 +40,7 @@ class PARAMS_API TransferFunction : public MapperFunction {
 public:
 	TransferFunction(Params* p, int nBits);
 	TransferFunction();
-	~TransferFunction();
+	virtual ~TransferFunction();
 	//Set to starting values
 	//
 	virtual void init();  

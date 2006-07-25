@@ -71,7 +71,7 @@ class Params;
 class PARAMS_API MapEditor{
 public:
 	MapEditor(MapperFunction* TF);
-	~MapEditor();
+	virtual ~MapEditor();
 	virtual MapEditor* deepCopy() = 0;
 	//set to default state:
 	virtual void reset()=0;

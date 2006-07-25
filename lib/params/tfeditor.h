@@ -41,7 +41,7 @@ class DVRParams;
 class PARAMS_API TFEditor : public MapEditor {
 public:
 	TFEditor(MapperFunction* TF);
-	~TFEditor();
+	virtual ~TFEditor();
 	//Reset to default state, e.g. when loading new TF:
 	//
 	virtual void reset();
