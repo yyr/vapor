@@ -19,6 +19,7 @@ class ExpatParseMgr;
 //abstract base class for classes that do xml parsing
 class VDF_API ParsedXml {
 public:
+	virtual ~ParsedXml(){}
 	//Callbacks from xml parse
 	//Start and end handlers return false on failure.
 	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/) = 0;
