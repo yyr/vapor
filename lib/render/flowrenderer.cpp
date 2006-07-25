@@ -168,8 +168,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 	RegionParams* myRegionParams = myGLWindow->getRegionParams();
 	FlowParams* myFlowParams = myGLWindow->getFlowParams();
 	
-	GLfloat white_light[] = {1.f,1.f,1.f,1.f};
-	GLfloat lmodel_ambient[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	
 	
 	GLdouble topPlane[] = {0., -1., 0., 1.};
 	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
@@ -185,7 +184,62 @@ renderFlowData(bool constColors, int currentFrameNum){
 	//Prepare for alpha values:
 	glEnable (GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//Set up lighting, if we are rendering tubes or lines:
+	int nLights = 0;
+	if (myFlowParams->getShapeType() != 1) {//rendering tubes/lines/arrows
+		float diffColor[4], specColor[4], ambColor[4];
+		GLfloat lmodel_ambient[4];
+		specColor[0]=specColor[1]=specColor[2]=0.2f;
+		ambColor[0]=ambColor[1]=ambColor[2]=0.f;
+		diffColor[3]=specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
+		
+		ViewpointParams* vpParams =  myGLWindow->getViewpointParams();
+		nLights = vpParams->getNumLights();
+		if (nLights > 0){
+			glPushMatrix();
+			glLoadIdentity();
+			glShadeModel(GL_SMOOTH);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, constFlowColor);
+			glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, vpParams->getExponent());
+			lmodel_ambient[0]=lmodel_ambient[1]=lmodel_ambient[2] = vpParams->getAmbientCoeff();
 
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
+			glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
+			
+			specColor[0] = specColor[1] = specColor[2] = vpParams->getSpecularCoeff(0);
+			diffColor[0] = diffColor[1] = diffColor[2] = vpParams->getDiffuseCoeff(0);
+			glLightfv(GL_LIGHT0, GL_DIFFUSE, diffColor);
+			glLightfv(GL_LIGHT0, GL_SPECULAR, specColor);
+			glLightfv(GL_LIGHT0, GL_AMBIENT, ambColor);
+			glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
+			glEnable(GL_LIGHTING);
+			glEnable(GL_LIGHT0);
+			if (nLights > 1){
+				glLightfv(GL_LIGHT1, GL_POSITION, vpParams->getLightDirection(1));
+				specColor[0] = specColor[1] = specColor[2] = vpParams->getSpecularCoeff(1);
+				diffColor[0] = diffColor[1] = diffColor[2] = vpParams->getDiffuseCoeff(1);
+				glLightfv(GL_LIGHT1, GL_DIFFUSE, diffColor);
+				glLightfv(GL_LIGHT1, GL_SPECULAR, specColor);
+				glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
+				glEnable(GL_LIGHT1);
+			}
+			if (nLights > 2){
+				glLightfv(GL_LIGHT2, GL_POSITION, vpParams->getLightDirection(2));
+				specColor[0] = specColor[1] = specColor[2] = vpParams->getSpecularCoeff(2);
+				diffColor[0] = diffColor[1] = diffColor[2] = vpParams->getDiffuseCoeff(2);
+				glLightfv(GL_LIGHT2, GL_DIFFUSE, diffColor);
+				glLightfv(GL_LIGHT2, GL_SPECULAR, specColor);
+				glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
+				glEnable(GL_LIGHT2);
+			}
+		} else {
+			glDisable(GL_LIGHTING); //No lights
+		}
+		glPopMatrix();
+	} else {//points are not lit..
+		glDisable(GL_LIGHTING);
+		
+	}
 	//Apply a coord transform that moves the full region to the unit cube.
 	
 	glPushMatrix();
@@ -239,46 +293,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 	float userRadius = 0.5f*diam*voxelSize;
 	arrowHeadRadius = (myFlowParams->getArrowDiameter())*userRadius;
 
-	//Set up lighting, if we are rendering tubes or lines:
-	int nLights = 0;
-	if (myFlowParams->getShapeType() != 1) {//rendering tubes/lines/arrows
-		
-		ViewpointParams* vpParams = myGLWindow->getViewpointParams();
-		nLights = vpParams->getNumLights();
-		if (nLights > 0){
-			glShadeModel(GL_SMOOTH);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, constFlowColor);
-			const float specColor[4] = {.2f,.2f,.2f,1.f};
-			//Specify low specular color
-
-			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
-			glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
-			glLightfv(GL_LIGHT0, GL_DIFFUSE, white_light);
-			//glLightfv(GL_LIGHT0, GL_SPECULAR, white_light);
-			//glLightfv(GL_LIGHT0, GL_AMBIENT, white_light);
-			glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
-			glEnable(GL_LIGHTING);
-			glEnable(GL_LIGHT0);
-			if (nLights > 1){
-				glLightfv(GL_LIGHT1, GL_POSITION, vpParams->getLightDirection(1));
-				glLightfv(GL_LIGHT1, GL_DIFFUSE, white_light);
-				//glLightfv(GL_LIGHT1, GL_SPECULAR, white_light);
-				glEnable(GL_LIGHT1);
-			}
-			if (nLights > 2){
-				glLightfv(GL_LIGHT2, GL_POSITION, vpParams->getLightDirection(2));
-				glLightfv(GL_LIGHT2, GL_DIFFUSE, white_light);
-				//glLightfv(GL_LIGHT2, GL_SPECULAR, white_light);
-				glEnable(GL_LIGHT2);
-			}
-		} else {
-			glDisable(GL_LIGHTING); //No lights
-			
-		}
-	} else {//points are not lit..
-		glDisable(GL_LIGHTING);
-		
-	}
+	
 	//If we are doing unsteady flow, handle setup differently:
 	if (steadyFlow){
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:

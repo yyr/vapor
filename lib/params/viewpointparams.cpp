@@ -44,6 +44,10 @@ const string ViewpointParams::_homeViewTag = "HomeViewpoint";
 const string ViewpointParams::_lightTag = "Light";
 const string ViewpointParams::_lightDirectionAttr = "LightDirection";
 const string ViewpointParams::_lightNumAttr = "LightNum";
+const string ViewpointParams::_diffuseLightAttr = "DiffuseCoefficient";
+const string ViewpointParams::_ambientLightAttr = "AmbientCoefficient";
+const string ViewpointParams::_specularLightAttr = "SpecularCoefficient";
+const string ViewpointParams::_specularExponentAttr = "SpecularExponent";
 
 ViewpointParams::ViewpointParams(int winnum): Params(winnum){
 	thisParamType = ViewpointParamsType;
@@ -96,9 +100,9 @@ void ViewpointParams::
 restart(){
 	
 	numLights = 1;
-	lightDirection[0][0] = .6f;
-	lightDirection[0][1] = 0.53f;
-	lightDirection[0][2] = 0.6f;
+	lightDirection[0][0] = 0.f;
+	lightDirection[0][1] = 0.f;
+	lightDirection[0][2] = 1.f;
 	lightDirection[1][0] = 0.f;
 	lightDirection[1][1] = 1.f;
 	lightDirection[1][2] = 0.f;
@@ -109,6 +113,14 @@ restart(){
 	lightDirection[0][3] = 0.f;
 	lightDirection[1][3] = 0.f;
 	lightDirection[2][3] = 0.f;
+	diffuseCoeff[0] = 0.8f;
+	specularCoeff[0] = 0.5f;
+	specularExp = 20.f;
+	diffuseCoeff[1] = 0.8f;
+	specularCoeff[1] = 0.5f;
+	diffuseCoeff[2] = 0.8f;
+	specularCoeff[2] = 0.5f;
+	ambientCoeff = 0.1f;
 	if (currentViewpoint) delete currentViewpoint;
 	currentViewpoint = new Viewpoint();
 	//Set default values in viewpoint:
@@ -253,6 +265,12 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
 				if (value == "true") setLocal(true); else setLocal(false);
 			}
+			if (StrCmpNoCase(attribName, _ambientLightAttr) == 0) {
+				ist >> ambientCoeff;
+			}
+			else if (StrCmpNoCase(attribName, _specularExponentAttr) == 0){
+				ist >>specularExp;
+			}
 			else return false;
 		}
 		//Start by assuming no lights...
@@ -277,6 +295,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 	}
 	else if (StrCmpNoCase(tagString, _lightTag) == 0) {
 		double dir[3];
+		float diffCoeff = 0.8f;
+		float specCoeff = 0.5f;
 		//Get the lightNum and direction
 		while (*attrs) {
 			string attribName = *attrs;
@@ -292,6 +312,12 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 			else if (StrCmpNoCase(attribName, _lightDirectionAttr) == 0) {
 				ist >> dir[0]; ist >> dir[1]; ist >>dir[2];
 			}
+			else if (StrCmpNoCase(attribName, _diffuseLightAttr) == 0){
+				ist >>diffCoeff;
+			}
+			else if (StrCmpNoCase(attribName, _specularLightAttr) == 0){
+				ist >>specCoeff;
+			}
 			else return false;
 		}// We should now have a lightnum and a direction
 		if (parsingLightNum < 0 || parsingLightNum >2) return false;
@@ -299,6 +325,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 		lightDirection[parsingLightNum][1] = (float)dir[1];
 		lightDirection[parsingLightNum][2] = (float)dir[2];
 		lightDirection[parsingLightNum][3] = 0.f;
+		diffuseCoeff[parsingLightNum] = diffCoeff;
+		specularCoeff[parsingLightNum] = specCoeff;
 		return true;
 	}
 	else return false;
@@ -341,6 +369,13 @@ buildNode(){
 	else 
 		oss << "false";
 	attrs[_localAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)ambientCoeff;
+	attrs[_ambientLightAttr] = oss.str();
+	oss.str(empty);
+	oss << (long) specularExp;
+	attrs[_specularExponentAttr] = oss.str();
 	
 	XmlNode* vpParamsNode = new XmlNode(_viewpointParamsTag, attrs, 2);
 	
@@ -359,6 +394,12 @@ buildNode(){
 			oss <<" ";
 		}
 		attrs[_lightDirectionAttr] = oss.str();
+		oss.str(empty);
+		oss << (double) diffuseCoeff[i];
+		attrs[_diffuseLightAttr] = oss.str();
+		oss.str(empty);
+		oss << (double) specularCoeff[i];
+		attrs[_specularLightAttr] = oss.str();
 		vpParamsNode->NewChild(_lightTag, attrs, 0);
 	}
 	attrs.clear();

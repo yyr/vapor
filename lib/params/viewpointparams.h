@@ -62,6 +62,14 @@ public:
 	void setLightDirection(int lightNum,int dir, float val){
 		lightDirection[lightNum][dir] = val;
 	}
+	float getDiffuseCoeff(int lightNum) {return diffuseCoeff[lightNum];}
+	float getSpecularCoeff(int lightNum) {return specularCoeff[lightNum];}
+	float getExponent() {return specularExp;}
+	float getAmbientCoeff() {return ambientCoeff;}
+	void setDiffuseCoeff(int lightNum, float val) {diffuseCoeff[lightNum]=val;}
+	void setSpecularCoeff(int lightNum, float val) {specularCoeff[lightNum]=val;}
+	void setExponent(float val) {specularExp=val;}
+	void setAmbientCoeff(float val) {ambientCoeff=val;}
 	Viewpoint* getCurrentViewpoint() { return currentViewpoint;}
 	void setCurrentViewpoint(Viewpoint* newVP){
 		if (currentViewpoint) delete currentViewpoint;
@@ -118,6 +126,10 @@ protected:
 	static const string _lightTag;
 	static const string _lightDirectionAttr;
 	static const string _lightNumAttr;
+	static const string _diffuseLightAttr;
+	static const string _ambientLightAttr;
+	static const string _specularLightAttr;
+	static const string _specularExponentAttr;
 	
 	
 	Viewpoint* currentViewpoint;
@@ -126,6 +138,10 @@ protected:
 	int numLights;
 	int parsingLightNum;
 	float lightDirection[3][4];
+	float diffuseCoeff[3];
+	float specularCoeff[3];
+	float specularExp;
+	float ambientCoeff;
 
 	//Static coeffs for affine coord conversion:
 	//

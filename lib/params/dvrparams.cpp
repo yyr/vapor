@@ -271,13 +271,7 @@ restart(){
 	comboVarNum = 0;
 	lightingOn = false;
 	numBits = 8;
-	diffuseCoeff = 0.8f;
-	ambientCoeff = 0.5f;
-	specularCoeff = 0.3f;
-	specularExponent = 20;
-	ambientAtten = .18f;
-	specularAtten = .39f;
-	diffuseAtten = 1.f;
+	
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){
 			delete transFunc[i];
@@ -286,7 +280,7 @@ restart(){
 	}
 	numVariables = 0;
 	numRefinements = 0;
-	attenuationDirty = true;
+	
 	transFunc = 0;
 	//Initialize the mapping bounds to [0,1] until data is read
 	

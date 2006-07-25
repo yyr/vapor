@@ -395,10 +395,10 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
     if (shading)
     {
-      driver->SetLightingCoeff(myDVRParams->getDiffuseCoeff(),
-                               myDVRParams->getAmbientCoeff(),
-                               myDVRParams->getSpecularCoeff(),
-                               myDVRParams->getExponent());
+      driver->SetLightingCoeff(vpParams->getDiffuseCoeff(0),
+                               vpParams->getAmbientCoeff(),
+                               vpParams->getSpecularCoeff(0),
+                               vpParams->getExponent());
 
       if (vpParams->getNumLights() >= 1)
       {

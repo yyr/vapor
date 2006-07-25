@@ -105,26 +105,10 @@ DvrEventRouter::hookUpTab()
 	connect (variableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetComboVarNum(int) ) );
 	connect (lightingCheckbox, SIGNAL( toggled(bool) ), this, SLOT( guiSetLighting(bool) ) );
  
-	connect (specularShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (diffuseShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (ambientShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (exponentShading, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (specularAttenuation, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (diffuseAttenuation, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
-	connect (ambientAttenuation, SIGNAL( textChanged(const QString&) ), this, SLOT( setDvrTabTextChanged(const QString&)));
 	connect (histoScaleEdit,SIGNAL(textChanged(const QString&)),this, SLOT(setDvrTabTextChanged(const QString&)));
 	connect (leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
 	connect (rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
-
-	connect (specularShading, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
-	connect (diffuseShading, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
-	connect (ambientShading, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
-	connect (exponentShading, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
-	connect (specularAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
-	connect (diffuseAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed() ) );
-	connect (ambientAttenuation, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
 	connect (histoScaleEdit, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
-
 	connect (numBitsSpin, SIGNAL (valueChanged(int)), this, SLOT(guiSetNumBits(int)));
 	
 	//TFE Editor controls:
@@ -164,13 +148,7 @@ void DvrEventRouter::confirmText(bool /*render*/){
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "edit Dvr text");
 	QString strn;
-	dParams->setDiffuseCoeff (diffuseShading->text().toFloat());
-	dParams->setAmbientCoeff (ambientShading->text().toFloat());
-	dParams->setSpecularCoeff (specularShading->text().toFloat());
-	dParams->setExponent((int)exponentShading->text().toFloat());
-	dParams->setDiffuseAttenuation (diffuseAttenuation->text().toFloat());
-	dParams->setAmbientAttenuation (ambientAttenuation->text().toFloat());
-	dParams->setSpecularAttenuation (specularAttenuation->text().toFloat());
+	
 	dParams->setHistoStretch(histoScaleEdit->text().toFloat());
 
 	if (dParams->getNumVariables() > 0) {
@@ -404,7 +382,7 @@ void DvrEventRouter::updateTab(Params* params){
 	//Disable the typeCombo whenever the renderer is enabled:
 	typeCombo->setEnabled(!(dvrParams->isEnabled()));
 	typeCombo->setCurrentItem(typemapi[dvrParams->getType()]);
-
+	DvrParams::DvrType t = dvrParams->getType();
     if (dvrParams->getType() == DvrParams::DVR_TEXTURE3D_SHADER)
     {
       lightingCheckbox->setEnabled(true);
@@ -706,11 +684,6 @@ guiSetLighting(bool val){
 		
 	dParams->setLighting(val);
 	PanelCommand::captureEnd(cmd, dParams);
-
-    diffuseShading->setEnabled(val);
-    ambientShading->setEnabled(val);
-    specularShading->setEnabled(val);
-    exponentShading->setEnabled(val);
 
     VizWinMgr::getInstance()->setVizDirty(dParams,LightingBit,true);		
 }

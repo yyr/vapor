@@ -88,6 +88,14 @@ ViewpointEventRouter::hookUpTab()
 	connect (rotCenter0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (rotCenter1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (rotCenter2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (lightDiff0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (lightDiff1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (lightDiff2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (lightSpec0, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (lightSpec1, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (lightSpec2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (shininessEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (ambientEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	
 	//Connect all the returnPressed signals, these will update the visualizer.
 	connect (lightPos00, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
@@ -99,6 +107,15 @@ ViewpointEventRouter::hookUpTab()
 	connect (lightPos20, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
 	connect (lightPos21, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
 	connect (lightPos22, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (lightDiff0, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (lightDiff1, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (lightDiff2, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (lightSpec0, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (lightSpec1, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (lightSpec2, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (shininessEdit, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	connect (ambientEdit, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
+	
 	connect (camPos0, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (camPos1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (camPos2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
@@ -112,6 +129,7 @@ ViewpointEventRouter::hookUpTab()
 	connect (rotCenter1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (rotCenter2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (numLights, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+
 }
 
 /*********************************************************************************
@@ -150,14 +168,22 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 		lightPos00->setEnabled(lightOn);
 		lightPos01->setEnabled(lightOn);
 		lightPos02->setEnabled(lightOn);
+		lightSpec0->setEnabled(lightOn);
+		lightDiff0->setEnabled(lightOn);
+		shininessEdit->setEnabled(lightOn);
+		ambientEdit->setEnabled(lightOn);
 		lightOn = (nLights > 1);
 		lightPos10->setEnabled(lightOn);
 		lightPos11->setEnabled(lightOn);
 		lightPos12->setEnabled(lightOn);
+		lightSpec1->setEnabled(lightOn);
+		lightDiff1->setEnabled(lightOn);
 		lightOn = (nLights > 2);
 		lightPos20->setEnabled(lightOn);
 		lightPos21->setEnabled(lightOn);
 		lightPos22->setEnabled(lightOn);
+		lightSpec2->setEnabled(lightOn);
+		lightDiff2->setEnabled(lightOn);
 	}
 	//Get the light directions from the gui:
 	vParams->setLightDirection(0,0,lightPos00->text().toFloat());
@@ -173,6 +199,16 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	vParams->setLightDirection(0,3,0.f);
 	vParams->setLightDirection(1,3,0.f);
 	vParams->setLightDirection(2,3,0.f);
+
+	//get the lighting coefficients from the gui:
+	vParams->setAmbientCoeff(ambientEdit->text().toFloat());
+	vParams->setDiffuseCoeff(0, lightDiff0->text().toFloat());
+	vParams->setDiffuseCoeff(1,lightDiff1->text().toFloat());
+	vParams->setDiffuseCoeff(0,lightDiff2->text().toFloat());
+	vParams->setSpecularCoeff(0,lightSpec0->text().toFloat());
+	vParams->setSpecularCoeff(1,lightSpec1->text().toFloat());
+	vParams->setSpecularCoeff(2,lightSpec2->text().toFloat());
+	vParams->setExponent(shininessEdit->text().toInt());
 	
 	VizWinMgr::getInstance()->setVizDirty(vParams, LightingBit, true);
 
@@ -246,6 +282,15 @@ void ViewpointEventRouter::updateTab(Params* params){
 	lightPos20->setText(QString::number(lightDir[0]));
 	lightPos21->setText(QString::number(lightDir[1]));
 	lightPos22->setText(QString::number(lightDir[2]));
+
+	ambientEdit->setText(QString::number(vpParams->getAmbientCoeff()));
+	lightDiff0->setText(QString::number(vpParams->getDiffuseCoeff(0)));
+	lightDiff1->setText(QString::number(vpParams->getDiffuseCoeff(1)));
+	lightDiff2->setText(QString::number(vpParams->getDiffuseCoeff(2)));
+	lightSpec0->setText(QString::number(vpParams->getSpecularCoeff(0)));
+	lightSpec1->setText(QString::number(vpParams->getSpecularCoeff(1)));
+	lightSpec2->setText(QString::number(vpParams->getSpecularCoeff(2)));
+	shininessEdit->setText(QString::number(vpParams->getExponent()));
 	
 
 	//Enable light direction text boxes as needed:
@@ -254,14 +299,22 @@ void ViewpointEventRouter::updateTab(Params* params){
 	lightPos00->setEnabled(lightOn);
 	lightPos01->setEnabled(lightOn);
 	lightPos02->setEnabled(lightOn);
+	lightSpec0->setEnabled(lightOn);
+	lightDiff0->setEnabled(lightOn);
+	shininessEdit->setEnabled(lightOn);
+	ambientEdit->setEnabled(lightOn);
 	lightOn = (nLights > 1);
 	lightPos10->setEnabled(lightOn);
 	lightPos11->setEnabled(lightOn);
 	lightPos12->setEnabled(lightOn);
+	lightSpec1->setEnabled(lightOn);
+	lightDiff1->setEnabled(lightOn);
 	lightOn = (nLights > 2);
 	lightPos20->setEnabled(lightOn);
 	lightPos21->setEnabled(lightOn);
 	lightPos22->setEnabled(lightOn);
+	lightSpec2->setEnabled(lightOn);
+	lightDiff2->setEnabled(lightOn);
 
 	
 	guiSetTextChanged(false);

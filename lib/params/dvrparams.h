@@ -63,25 +63,7 @@ public:
 	void setLighting(bool val) {lightingOn = val; }
 	bool getLighting() const { return lightingOn; }
 
-	void setDiffuseCoeff(float val) {diffuseCoeff = val;}
-	void setAmbientCoeff(float val) {ambientCoeff = val; }
-	void setSpecularCoeff(float val) {specularCoeff = val; }
-	void setExponent(int val) {specularExponent = val;}
-
-	float getDiffuseCoeff()  { return diffuseCoeff; }
-	float getAmbientCoeff()  { return ambientCoeff; }
-	float getSpecularCoeff() { return specularCoeff; }
-	int   getExponent()      { return specularExponent; }
-
-	void setDiffuseAttenuation(float val) {diffuseAtten = val;
-		attenuationDirty = true;}
-	void setAmbientAttenuation(float val) {ambientAtten = val;
-		attenuationDirty = true;}
-	void setSpecularAttenuation(float val) {specularAtten = val;
-		attenuationDirty = true;}
-	float getDiffuseAttenuation() {return diffuseAtten;}
-	float getAmbientAttenuation() {return ambientAtten;}
-	float getSpecularAttenuation() {return specularAtten;}
+	
 	//In addition to setting variableNum, must also 
 	//update mapping bounds and edit bounds
 	//as well as force a rebuilding of the transfer function
@@ -94,8 +76,6 @@ public:
 	const std::string& getStdVariableName() {
 		return DataStatus::getInstance()->getVariableName(varNum);
 	}
-	bool attenuationIsDirty() {return attenuationDirty;}
-	void setAttenuationDirty(bool dirty) {attenuationDirty = dirty;}
 	
 	virtual const float* getCurrentDatarange(){
 		return currentDatarange;
@@ -190,13 +170,10 @@ protected:
     
 	void refreshCtab();
 
-	bool attenuationDirty;
 	bool lightingOn;
 	float currentDatarange[2];
 	int numBits;
-	float diffuseCoeff, ambientCoeff, specularCoeff;
-	float diffuseAtten, ambientAtten, specularAtten;
-	int specularExponent;
+	
 	int numRefinements;
 	
 	bool editMode;
