@@ -44,7 +44,7 @@ public:
 		histogramList = 0;
 		numHistograms = 0;
 	}
-	~EventRouter() {
+	virtual ~EventRouter() {
 		for (int i = 0; i<numHistograms; i++) 
 			if (histogramList[i]) delete histogramList[i];
 		if (histogramList) delete histogramList;

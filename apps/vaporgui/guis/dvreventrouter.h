@@ -55,7 +55,7 @@ public:
 	
 	void initTypes();
 	DvrEventRouter(QWidget* parent, const char* name);
-	~DvrEventRouter();
+	virtual ~DvrEventRouter();
 
 	virtual void updateMapBounds(Params* p);
 	virtual void updateClut(Params* p){

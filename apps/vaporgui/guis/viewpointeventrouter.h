@@ -42,7 +42,7 @@ class ViewpointEventRouter : public VizTab, public EventRouter {
 
 public: 
 	ViewpointEventRouter(QWidget* parent = 0, const char* name = 0);
-	~ViewpointEventRouter();
+	virtual ~ViewpointEventRouter();
 	
 	//Connect signals and slots from tab
 	virtual void hookUpTab();

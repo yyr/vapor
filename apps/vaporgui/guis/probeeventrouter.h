@@ -41,7 +41,7 @@ class ProbeEventRouter : public ProbeTab, public EventRouter {
 public: 
 	
 	ProbeEventRouter(QWidget* parent, const char* name);
-	~ProbeEventRouter();
+	virtual ~ProbeEventRouter();
 
 	virtual void updateMapBounds(Params* p);
 	virtual void updateClut(Params* p){

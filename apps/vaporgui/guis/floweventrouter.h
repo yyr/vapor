@@ -42,7 +42,7 @@ class FlowEventRouter : public FlowTab, public EventRouter {
 public: 
 	
 	FlowEventRouter(QWidget* parent, const char* name);
-	~FlowEventRouter();
+	virtual ~FlowEventRouter();
 
 	virtual void updateMapBounds(Params* p);
 	virtual void updateClut(Params* p){

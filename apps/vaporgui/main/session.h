@@ -135,7 +135,7 @@ public:
 		}
 		return theSession;
 	}
-	~Session();
+	virtual ~Session();
 	
 	DataMgr* getDataMgr() {return dataMgr;}
 	

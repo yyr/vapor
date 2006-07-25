@@ -42,7 +42,7 @@ class RegionEventRouter : public RegionTab, public EventRouter {
 
 public: 
 	RegionEventRouter(QWidget* parent = 0, const char* name = 0);
-	~RegionEventRouter();
+	virtual ~RegionEventRouter();
 	
 	//Connect signals and slots from tab
 	virtual void hookUpTab();
