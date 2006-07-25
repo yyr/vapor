@@ -165,6 +165,8 @@ protected:
 	bool regionIsValid;
 
 	FlowParams* myFlowParams;
+	//Remember the last time step that was rendered, for capturing.
+	int lastTimeStep;
 
 
 };

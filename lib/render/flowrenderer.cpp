@@ -74,6 +74,7 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 		flowMapDirty[i] = 0;
 	}
 	setRegionValid(true);
+	lastTimeStep = -1;
 }
 
 
@@ -159,6 +160,7 @@ void FlowRenderer::paintGL()
 	//Don't change the needRefreshFlag 
 	if (didRebuild){
 		flowDataDirty[timeStep] = false;
+		myGLWindow->setRenderNew();
 	}
 }
 
@@ -398,6 +400,11 @@ renderFlowData(bool constColors, int currentFrameNum){
 	glDisable(GL_CLIP_PLANE4);
 	glDisable(GL_CLIP_PLANE5);
 	glPopMatrix();
+
+	if (currentFrameNum != lastTimeStep){
+		myGLWindow->setRenderNew();
+		lastTimeStep = currentFrameNum;
+	}
 }
 
 
