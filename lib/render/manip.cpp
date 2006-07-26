@@ -862,26 +862,7 @@ slideHandle(int handleNum, float movedRay[3]){
 	myParams->calcBoxExtents(boxExtents);
 	float boxCenter = 0.5f*(boxExtents[coord]+boxExtents[coord+3]);
 	if (isStretching){ //don't push through opposite face ..
-		//Depends on whether we are pushing the "low" or "high" handle
-		//E.g., The low handle is limited by the low end of the extents, and the
-		//big end of the box
-		//The center moves half as fast as the handle, so the new position of the
-		//boxCenter is boxCenter+ 0.5*dragDistance;
-		if (handleNum < 3 ){ 
-			if(dragDistance + boxExtents[coord] > boxExtents[coord+3]) {
-				dragDistance = boxExtents[coord+3] - boxExtents[coord];
-			}
-			if (dragDistance*0.5f + boxCenter < extents[coord]) {
-				dragDistance = (extents[coord] - boxCenter)*2.f;
-			}
-		} else {//Moving "high" handle:
-			if (dragDistance + boxExtents[coord+3] < boxExtents[coord]) {
-				dragDistance = boxExtents[coord] - boxExtents[coord+3];
-			}
-			if (dragDistance*0.5f + boxCenter > extents[coord+3]){
-				dragDistance = 2.f*(extents[coord+3] - boxCenter);
-			} 
-		}
+		dragDistance = constrainStretch(dragDistance);
 	} else { //sliding, not stretching
 		//Don't slide the center out of the full domain:
 		if (dragDistance + boxCenter < extents[coord]) {
@@ -1008,6 +989,36 @@ mouseRelease(float /*screenCoords*/[2]){
 	}
 	dragDistance = 0.f;
 	selectedHandle = -1;
+}
+//Determine the right-mouse drag constraint based on
+//requiring that the resulting box will have all its min coords less than
+//its max coords.
+float TranslateRotateManip::constrainStretch(float currentDist){
+	float dist = currentDist/ViewpointParams::getMaxCubeSide();
+	float boxMin[3],boxMax[3];
+	myParams->getBox(boxMin,boxMax);
+	
+	Permuter* myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi());
+	//Based on the angles (phi and theta) the user is grabbing 
+	//a rotated side of the cube. These vertices slide with the mouse.
+	//rotate the selected handle by theta, phi to find the side that corresponds to
+	//the corners that need to be moved
+	int newHandle; //This corresponds to the side that was grabbed
+	if (selectedHandle<3) newHandle = myPermuter->permute(selectedHandle-3);
+	else newHandle = myPermuter->permute(selectedHandle - 2);
+	if (newHandle < 0) newHandle +=3;
+	else newHandle +=2;
+	//And axis2 is the axis of the grabbed side
+	int axis2 = (newHandle < 3) ? (2-newHandle):(newHandle-3);
+		
+	if (selectedHandle < 3){	
+			if (dist > (boxMax[axis2]-boxMin[axis2])) dist = (boxMax[axis2]-boxMin[axis2]);
+	}
+	else {
+			if (dist < (boxMin[axis2]-boxMax[axis2])) dist = (boxMin[axis2]-boxMax[axis2]);
+	}
+	delete myPermuter;
+	return (dist*ViewpointParams::getMaxCubeSide());
 }
 TranslateRotateManip::Permuter::Permuter(float theta, float phi){
 	//Find the nearest multiple of 90 degrees > 0

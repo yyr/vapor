@@ -130,7 +130,7 @@ public:
 	virtual void mouseRelease(float screenCoords[2]);
 protected:
 	virtual void drawBoxFaces();
-
+	float constrainStretch(float currentDist);
 	//utility class for handling permutations resulting from rotations of mult of 90 degrees:
 	class Permuter {
 	public:
