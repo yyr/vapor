@@ -54,7 +54,6 @@ XmlNode::~XmlNode() {
 	if (! _objInitialized) return;
 
 	for (int i=0; i<(int)_children.size(); i++) {
-cerr << "deleting child " << i << endl;
 		delete _children[i];
 	}
 

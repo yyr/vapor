@@ -917,6 +917,7 @@ int	WaveletBlock3DIO::seekGammaBlocks(
 
 	unsigned int	offset;
 
+
 	if (reflevel < 0 || reflevel > _reflevel) {
 		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
@@ -1038,6 +1039,7 @@ int	WaveletBlock3DIO::writeBlocks(
 	FILE	*fp;
 	unsigned long lsbFirstTest = 1;
 
+
 	if (! is_open_c) {
 		SetErrMsg("File not open");
 		return(-1);
@@ -1124,6 +1126,7 @@ int	WaveletBlock3DIO::writeGammaBlocks(
 	size_t n, 
 	int reflevel
 ) {
+
 	if (reflevel < 0 || reflevel > _reflevel) {
 		SetErrMsg("Invalid refinement level : %d", reflevel);
 		return(-1);
