@@ -166,6 +166,8 @@ protected:
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;
 	static const string _activeVariableNameAttr;
+	static const string _dvrLightingAttr;
+
 	DvrType type;
     
 	void refreshCtab();

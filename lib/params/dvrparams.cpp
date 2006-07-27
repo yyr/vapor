@@ -46,6 +46,7 @@ using namespace VAPoR;
 const string DvrParams::_activeVariableNameAttr = "ActiveVariableName";
 const string DvrParams::_editModeAttr = "TFEditMode";
 const string DvrParams::_histoStretchAttr = "HistoStretchFactor";
+const string DvrParams::_dvrLightingAttr = "DVRLighting";
 
 
 
@@ -383,6 +384,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				if (value == "true") setEditMode(true); 
 				else setEditMode(false);
 			}
+			else if (StrCmpNoCase(attribName, _dvrLightingAttr) == 0) {
+				if (value == "true") setLighting(true); else setLighting(false);
+			}
 			else return false;
 		}
 		// Now set the values obtained from attribute parsing.
@@ -545,7 +549,14 @@ buildNode() {
 	oss.str(empty);
 	oss << (double)getHistoStretch();
 	attrs[_histoStretchAttr] = oss.str();
-	
+
+	oss.str(empty);
+	if (lightingOn)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_dvrLightingAttr] = oss.str();
+
 	XmlNode* dvrNode = new XmlNode(_dvrParamsTag, attrs, 3);
 
 	//Now add children:  
