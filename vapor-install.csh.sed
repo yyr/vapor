@@ -48,14 +48,9 @@ set old2 = 'set[ 	][ 	]*netcdf[ 	][ 	]*=.*$'
 set new2 = "set netcdf = "
 set old3 = 'set[ 	][ 	]*qt[ 	][ 	]*=.*$'
 set new3 = "set qt = "
-/bin/ex - $directory/bin/vapor-setup.csh <<EOF
-1,\$s#$old0#$new0#
-1,\$s#$old1#$new1#
-1,\$s#$old2#$new2#
-1,\$s#$old3#$new3#
-w
-q
-EOF
+/bin/sed -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $directory/bin/vapor-setup.csh >! $directory/bin/vapor-setup.tmp
+/bin/mv $directory/bin/vapor-setup.tmp $directory/bin/vapor-setup.csh
+
 
 set old0 = 'root=.*$'
 set new0 = "root=$directory"
@@ -65,14 +60,8 @@ set old2 = 'netcdf=.*$'
 set new2 = "netcdf="
 set old3 = 'qt=.*$'
 set new3 = "qt="
-/bin/ex - $directory/bin/vapor-setup.sh <<EOF
-1,\$s#$old0#$new0#
-1,\$s#$old1#$new1#
-1,\$s#$old2#$new2#
-1,\$s#$old3#$new3#
-w
-q
-EOF
+/bin/sed -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $directory/bin/vapor-setup.sh >! $directory/bin/vapor-setup.tmp
+/bin/mv $directory/bin/vapor-setup.tmp $directory/bin/vapor-setup.sh
 
 
 
