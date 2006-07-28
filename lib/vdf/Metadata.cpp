@@ -298,6 +298,23 @@ int Metadata::Merge(const Metadata *metadata, size_t ts_start) {
 	const vector <string> varnames = this->GetVariableNames();
 	const vector <string> mvarnames = metadata->GetVariableNames();
 
+	long ts = this->GetNumTimeSteps();
+
+	// Need to make a copy of the base names. Later, when we call
+	// SetVariableNames() all of the base names will be regenerated.
+	// This is fine if the base names are all default values, but if they're
+	// not - if the Metadata object resulted from a previous merge, for
+	// example - they will get clobbered by SetVariableNames. 
+	//
+	map <string, vector<string> > basecopy;
+	for (int i = 0; i<varnames.size(); i++) {
+	for (long t = 0; t<ts; t++) {
+
+		vector <string> &strvec = basecopy[varnames[i]];
+		strvec.push_back(GetVBasePath(t, varnames[i]));
+	}
+	}
+
 	vector <string> newnames = varnames;
 	for (int i=0; i<mvarnames.size(); i++) {
 		int match = 0;
@@ -313,11 +330,22 @@ int Metadata::Merge(const Metadata *metadata, size_t ts_start) {
 		if (rc < 0) return(-1);
 	}
 
+	// Restore basenames of the old variables to whatever they were before
+	// SetVariableNames clobbered them.
+	//
+	for (int i = 0; i<varnames.size(); i++) {
+	for (long t = 0; t<ts; t++) {
+		vector <string> &strvec = basecopy[varnames[i]];
+
+		int rc = SetVBasePath(t, varnames[i], strvec[t]);
+		if (rc < 0) return(-1);
+	}
+	}
+
 
 	//
 	// Bump up the number of time steps if needed
 	//
-	long ts = this->GetNumTimeSteps();
 	long mts = metadata->GetNumTimeSteps();
 
 	if (mts + ts_start > ts) {
