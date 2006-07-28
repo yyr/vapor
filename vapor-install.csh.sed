@@ -1,6 +1,6 @@
 #!/bin/csh -f
 
-set arch = ARCH
+set arch = Linux
 
 
 if ($#argv != 1) then
@@ -9,6 +9,7 @@ if ($#argv != 1) then
 endif
 
 set directory = $argv[1]
+
 
 
 echo directory = $directory
@@ -36,6 +37,45 @@ echo "Installing VAPOR to $directory"
 #
 tar cf - bin include lib examples | (cd $directory; tar xf -)
 
+if (-e /bin/sed) set sedcmd = /bin/sed
+if (-e /usr/bin/sed) set sedcmd = /usr/bin/sed
+if ($?SEDCMD) then
+	set sedcmd = $SEDCMD
+endif
+if (! $?sedcmd) then 
+	echo "********WARNING***********"
+	echo "The sed command was not found on this system and the installation"
+	echo "was not completed. To complete the installation, perform either "
+	echo "one of the following:"
+	echo ""
+	echo "1. Set the SEDCMD environment variable to point to the sed "
+	echo "stream editor path and rerun this script."
+	echo ""
+	echo "or"
+	echo "" 
+	echo "2. Edit the scripts "
+	echo "" 
+	echo "$directory/bin/vapor-setup.csh"
+	echo "$directory/bin/vapor-setup.sh"
+	echo ""
+	echo "changing the values of the root, expat, netcdf and possibly the qt "
+	echo "variables to the values below:"
+	echo ""
+	echo "root : $directory"
+	if ($?expat) then
+		echo "expat : $expat"
+	endif
+	if ($?netcdf) then
+		echo "netcdf : $netcdf"
+	endif
+	if ($?qt) then
+		echo "qt : $qt"
+	endif
+	echo ""
+	echo "********WARNING***********"
+	exit 1
+endif
+
 
 #
 # Edit the user environment setup scripts
@@ -48,7 +88,7 @@ set old2 = 'set[ 	][ 	]*netcdf[ 	][ 	]*=.*$'
 set new2 = "set netcdf = "
 set old3 = 'set[ 	][ 	]*qt[ 	][ 	]*=.*$'
 set new3 = "set qt = "
-/bin/sed -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $directory/bin/vapor-setup.csh >! $directory/bin/vapor-setup.tmp
+$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $directory/bin/vapor-setup.csh >! $directory/bin/vapor-setup.tmp
 /bin/mv $directory/bin/vapor-setup.tmp $directory/bin/vapor-setup.csh
 
 
@@ -60,7 +100,7 @@ set old2 = 'netcdf=.*$'
 set new2 = "netcdf="
 set old3 = 'qt=.*$'
 set new3 = "qt="
-/bin/sed -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $directory/bin/vapor-setup.sh >! $directory/bin/vapor-setup.tmp
+$sedcmd -e "s#$old0#$new0#" -e "s#$old1#$new1#" -e "s#$old2#$new2#" -e "s#$old3#$new3#" < $directory/bin/vapor-setup.sh >! $directory/bin/vapor-setup.tmp
 /bin/mv $directory/bin/vapor-setup.tmp $directory/bin/vapor-setup.sh
 
 
