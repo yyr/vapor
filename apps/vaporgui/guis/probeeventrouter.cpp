@@ -82,6 +82,7 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): ProbeTab(p
 	savedCommand = 0;
 	ignoreListboxChanges = false;
 	numVariables = 0;
+	seedAttached = false;
 
 }
 
@@ -610,6 +611,8 @@ reinitTab(bool doOverride){
 	}
 	ignoreListboxChanges = false;
 
+	seedAttached = false;
+
 	//Set up the refinement combo:
 	const Metadata* md = ses->getCurrentMetadata();
 	
@@ -619,11 +622,12 @@ reinitTab(bool doOverride){
 	for (int i = 0; i<= numRefinements; i++){
 		refinementCombo->insertItem(QString::number(i));
 	}
-	for (int i = 0; i<numHistograms; i++){
-		if (histogramList[i]) delete histogramList[i];
-	}
-	if (histogramList){
+	if (histogramList) {
+		for (int i = 0; i<numHistograms; i++){
+			if (histogramList[i]) delete histogramList[i];
+		}
 		delete histogramList;
+		histogramList = 0;
 		numHistograms = 0;
 	}
 	

@@ -461,11 +461,12 @@ reinitTab(bool doOverride){
 	for (i = 0; i<= numRefinements; i++){
 		refinementCombo->insertItem(QString::number(i));
 	}
-	for (int i = 0; i<numHistograms; i++){
-		if (histogramList[i]) delete histogramList[i];
-	}
 	if (histogramList){
+		for (int i = 0; i<numHistograms; i++){
+			if (histogramList[i]) delete histogramList[i];
+		}
 		delete histogramList;
+		histogramList = 0;
 		numHistograms = 0;
 	}
 	
@@ -891,15 +892,7 @@ setEditorDirty(){
 //Methods to support maintaining a list of histograms
 //in each params (at least those with a TFE)
 //Initially just revert to static methods on Histo:
-/*
-Histo* DvrEventRouter::getHistogram(Params* p, bool mustGet){
-	return Histo::getHistogram(p->getVarNum(), p->getVizNum(), mustGet, p);
-}
-void DvrEventRouter::refreshHistogram(Params* p){
-	Histo::refreshHistogram(p->getVizNum(), p);
-	setEditorDirty();
-}
-*/
+
 //Replace with versions from probe:
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
 Histo* DvrEventRouter::getHistogram(Params* p, bool mustGet){
