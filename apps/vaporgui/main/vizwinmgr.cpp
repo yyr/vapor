@@ -214,10 +214,19 @@ vizAboutToDisappear(int i)  {
 	if(vpParams[i]) delete vpParams[i];
 	if(rgParams[i]) delete rgParams[i];
 	
-	if (dvrParams[i]) delete dvrParams[i];
-	if (probeParams[i]) delete probeParams[i];
+	if (dvrParams[i]) {
+		dvrEventRouter->cleanParams(dvrParams[i]);
+		delete dvrParams[i];
+	}
+	if (probeParams[i]){
+		probeEventRouter->cleanParams(probeParams[i]);
+		delete probeParams[i];
+	}
 	
-	if (flowParams[i]) delete flowParams[i];
+	if (flowParams[i]){
+		flowEventRouter->cleanParams(flowParams[i]);
+		delete flowParams[i];
+	} 
 	if (animationParams[i]) delete animationParams[i];
 	vpParams[i] = 0;
 	rgParams[i] = 0;
@@ -1194,10 +1203,19 @@ restartParams(){
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if(vpParams[i]) vpParams[i]->restart();
 		if(rgParams[i]) rgParams[i]->restart();
-		if(dvrParams[i]) dvrParams[i]->restart();
-		if(probeParams[i]) probeParams[i]->restart();
-		
-		if(flowParams[i]) flowParams[i]->restart();
+		if(dvrParams[i]) {
+			dvrEventRouter->cleanParams(dvrParams[i]);
+			dvrParams[i]->restart();
+		}
+		if (probeParams[i]){
+			probeEventRouter->cleanParams(probeParams[i]);
+			probeParams[i]->restart();
+		}
+	
+		if (flowParams[i]){
+			flowEventRouter->cleanParams(flowParams[i]);
+			flowParams[i]->restart();
+		} 
 		
 		if(animationParams[i]) animationParams[i]->restart();
 	}

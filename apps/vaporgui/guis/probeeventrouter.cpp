@@ -1651,3 +1651,9 @@ setDatarangeDirty(Params* params)
 	}
 	
 }
+
+void ProbeEventRouter::cleanParams(Params* p) {
+		if(ProbeTFFrame->getEditor() && ProbeTFFrame->getEditor()->getParams() == p)
+			ProbeTFFrame->setEditor(0);
+}
+	

@@ -69,7 +69,8 @@ public:
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab(Params* p);
 	
-	
+	virtual void cleanParams(Params* p); 
+
 	
 	
 	void fileLoadTF(DvrParams* dParams);

@@ -1820,3 +1820,8 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin) {
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);
 }
+void FlowEventRouter::cleanParams(Params* p) {
+		if(flowMapFrame->getEditor() && flowMapFrame->getEditor()->getParams() == p)
+			flowMapFrame->setEditor(0);
+}
+	

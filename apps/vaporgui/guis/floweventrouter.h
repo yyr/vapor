@@ -54,7 +54,7 @@ public:
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab(Params* p);
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin);
-	
+	virtual void cleanParams(Params* p); 
 	
 	void fileLoadTF(FlowParams* dParams);
 	void sessionLoadTF(FlowParams* dParams, QString* name);

@@ -55,6 +55,9 @@ public:
 	virtual void updateTab(Params* p) = 0;
 	//Method to install a new params for undo and redo
 	virtual void makeCurrent(Params* prevParams, Params* newParams, bool newWin) = 0;
+	//make sure the params cleanly detaches from gui, to
+	//handle possible connections from editors, frames, etc.
+	virtual void cleanParams(Params*) {}
 	
 	//Clone the params and any other related classes.
 	//Default just clones the params:

@@ -1257,5 +1257,9 @@ void DvrEventRouter::tfeditBenchmark()
     nextBenchmark();
   }
 }
-
+void DvrEventRouter::cleanParams(Params* p) {
+		if(DvrTFFrame->getEditor() && DvrTFFrame->getEditor()->getParams() == p)
+			DvrTFFrame->setEditor(0);
+}
+	
 
