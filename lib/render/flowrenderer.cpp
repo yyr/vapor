@@ -845,7 +845,8 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 			newcycle = false;
 
 			bool currentIsEven = true;
-			for (int tubeIndex = tubeStartIndex+1; tubeIndex <= startIndex+tubeNum*maxPoints+lastAge;
+			int tubeIndex;
+			for (tubeIndex = tubeStartIndex+1; tubeIndex <= startIndex+tubeNum*maxPoints+lastAge;
 				tubeIndex++){
 				point = flowDataArray+3*tubeIndex;
 				if (*point == END_FLOW_FLAG || *point == STATIONARY_STREAM_FLAG) break;
