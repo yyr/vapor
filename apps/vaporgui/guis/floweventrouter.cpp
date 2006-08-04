@@ -122,6 +122,9 @@ FlowEventRouter::hookUpTab()
 	connect (colormapEntityCombo,SIGNAL(activated(int)),SLOT(guiSetColorMapEntity(int)));
 	connect (opacmapEntityCombo,SIGNAL(activated(int)),SLOT(guiSetOpacMapEntity(int)));
 	connect (refreshButton,SIGNAL(clicked()), this, SLOT(guiRefreshFlow()));
+	connect (periodicXCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicX(bool)));
+	connect (periodicYCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicY(bool)));
+	connect (periodicZCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicZ(bool)));
 	//Line edits.  Note that the textChanged may either affect the flow or the geometry
 	connect (xSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (xSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
@@ -564,6 +567,9 @@ void FlowEventRouter::updateTab(Params* params){
 	yCoordVarCombo->setCurrentItem(fParams->getComboVarnum(1));
 	zCoordVarCombo->setCurrentItem(fParams->getComboVarnum(2));
 	
+	periodicXCheck->setChecked(fParams->getPeriodicDim(0));
+	periodicYCheck->setChecked(fParams->getPeriodicDim(1));
+	periodicZCheck->setChecked(fParams->getPeriodicDim(2));
 	
 	timesampleStartEdit->setEnabled(flowType == 1);
 	timesampleEndEdit->setEnabled(flowType == 1);
@@ -980,6 +986,37 @@ guiSetRandom(bool rand){
 	guiSetTextChanged(false);
 	update();
 	PanelCommand::captureEnd(cmd, fParams);
+}
+
+void FlowEventRouter::
+guiCheckPeriodicX(bool periodic){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic X coords");
+	fParams->setPeriodicDim(0,periodic);
+	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	PanelCommand::captureEnd(cmd, fParams);
+	VizWinMgr::getInstance()->refreshFlow(fParams);
+}
+void FlowEventRouter::
+guiCheckPeriodicY(bool periodic){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic Y coords");
+	fParams->setPeriodicDim(1,periodic);
+	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	PanelCommand::captureEnd(cmd, fParams);
+	VizWinMgr::getInstance()->refreshFlow(fParams);
+}
+void FlowEventRouter::
+guiCheckPeriodicZ(bool periodic){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic Z coords");
+	fParams->setPeriodicDim(2,periodic);
+	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	PanelCommand::captureEnd(cmd, fParams);
+	VizWinMgr::getInstance()->refreshFlow(fParams);
 }
 
 void FlowEventRouter::

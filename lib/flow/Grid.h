@@ -137,10 +137,11 @@ private:
 	float oneOvermappingFactorY;
 	float oneOvermappingFactorZ;
 	float gridSpacing;					// the minimal grid spacing of all dimensions
+	bool periodicDim[3];				//Identify the periodic dimensions
 
 public:
 	// constructor and deconstructor
-	CartesianGrid(int xdim, int ydim, int zdim);
+	CartesianGrid(int xdim, int ydim, int zdim, bool xper, bool yper, bool zper);
 	CartesianGrid();
 	virtual ~CartesianGrid(){}
 	
@@ -182,6 +183,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// boundary
 	//////////////////////////////////////////////////////////////////////////
+	
 	// compute bounding box
 	void ComputeBBox(void);
 	// set bounding box

@@ -219,7 +219,9 @@ public:
 	void setSeedRegionMin(int coord, float val){
 		seedBoxMin[coord] = val;
 	}
-	
+	void setPeriodicDim(int coord, bool val){periodicDim[coord] = val;}
+	bool getPeriodicDim(int coord){return periodicDim[coord];}
+	void periodicMap(float origCoords[3],float newCoords[3]);
 	
 
 protected:
@@ -233,6 +235,7 @@ protected:
 	static const string _velocityScaleAttr;
 	static const string _timeSamplingAttr;
 	static const string _autoRefreshAttr;
+	static const string _periodicDimsAttr;
 
 	//flow seeding tags and attributes
 	static const string _seedingTag;
@@ -350,7 +353,7 @@ protected:
 	bool doRake;
 	bool doSeedList;
 
-	
+	bool periodicDim[3];
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
 	

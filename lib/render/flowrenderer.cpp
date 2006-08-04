@@ -300,7 +300,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 	if (steadyFlow){
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
-			if (diam < 0.01f){//Render as lines, not cylinders
+			if (diam < 2.f){//Render as lines, not cylinders
 				renderCurves(diam, (nLights>0), 0, maxPoints-1, 0, constColors);
 			
 			} else { //render as cylinders
@@ -366,7 +366,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 			//Now do the rendering of this interval:
 			if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 					
-				if (diam < 0.01f){//Render as lines, not cylinders
+				if (diam < 2.f){//Render as lines, not cylinders
 					renderCurves(diam, (nLights>0), firstGeom, lastGeom,
 						maxPoints*numSeedPoints*injectionNum,constColors);
 				
@@ -445,7 +445,7 @@ void FlowRenderer::initializeGL()
 //  Issue OpenGL calls for point list
 void FlowRenderer::
 renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool constMap){
-	
+	float mappedPoint[3];
 	//just convert the flow data to a set of points..
 	glPointSize(radius);
 	glDisable(GL_LIGHTING);
@@ -495,7 +495,8 @@ renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool const
 				endGL = true;
 				break;
 			}
-			glVertex3fv(point);
+			myFlowParams->periodicMap(point, mappedPoint);
+			glVertex3fv(mappedPoint);
 		}	
 		if(!endGL) glEnd();
 	}
@@ -508,18 +509,27 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 	float dirVec[3];
 	float testVec[3];
 	float normVec[3];
+	float mappedPoint[3];
+	int currentCycle[3]; 
+	int newCycle[3];
+	bool newcycle;
 	if (firstAge >= lastAge) return;
 	glLineWidth(radius);
+	
 	if (isLit){
 		//Get light direction vector of first light:
 		ViewpointParams* vpParams = myGLWindow->getViewpointParams();
 		const float* lightDir = vpParams->getLightDirection(0);
 		for (int i = 0; i< numSeedPoints; i++){
+			//Assume seed point starts inside region:
+			currentCycle[0]=currentCycle[1]=currentCycle[2]=0;
+			newcycle = false;
 			if (constMap)glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE, constFlowColor);
 			//glBegin (GL_LINE_STRIP);
 			bool endGL = true;
 			bool firstPoint = true;
 			bool stationaryStart = false;
+			
 			for (int j = firstAge; j<=lastAge; j++){
 				//For each point after first, calc vector from prev vector to this one
 				//then calculate corresponding normal
@@ -541,8 +551,11 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 					if(constMap) glColor4fv(constFlowColor);
 					glBegin(GL_LINE_STRIP);
 					endGL = false;
+					mappedPoint[0]=point[0];
+					mappedPoint[1]=point[1];
+					mappedPoint[2]=point[2];
 				}
-				else{
+				else {
 					vsub(point, point-3, dirVec);
 					float len = vdot(dirVec,dirVec);
 					if (len == 0.f){//If 2nd is same as first, set default normal
@@ -560,19 +573,32 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 						vset(normVec, 0.,0.,1.);
 					} 
 					glNormal3fv(normVec);
+					//only call mapPeriodicCycle to translate, or detect leaving the region, after the first point
+					newcycle = mapPeriodicCycle(point, mappedPoint, currentCycle, newCycle);
 				}
 				if (!constMap){
 					float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
 					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
 				}
+				
 				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
-					glVertex3fv(point);//Terminate current curve
+					glVertex3fv(mappedPoint);//Terminate current curve
 					glEnd();
-					renderStationary(point);
+					renderStationary(mappedPoint);
 					endGL = true;
 					break;
 				}
-				glVertex3fv(point);
+				
+				glVertex3fv(mappedPoint);
+				//Test if the last point ran off the end of the cycle. If so render it again in the new place.
+				if (newcycle) {
+					//end previous curve, start next one:
+					glEnd();
+					newcycle = mapPeriodicCycle(point, mappedPoint, newCycle, currentCycle);
+					assert(!newcycle);
+					glBegin(GL_LINE_STRIP);
+					glVertex3fv(mappedPoint);
+				}
 			}
 			if(!endGL) glEnd();
 		}
@@ -580,6 +606,9 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 		//just convert the flow data to a set of lines...
 		glDisable(GL_LIGHTING);
 		for (int i = 0; i< numSeedPoints; i++){
+			//first point starts in base region:
+			currentCycle[0]=currentCycle[1]=currentCycle[2]=0;
+			newcycle = false;
 			glColor4fv(constFlowColor);
 			
 			//glBegin (GL_LINE_STRIP);
@@ -590,6 +619,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 				float* point = flowDataArray +  3*(startIndex+ j+ maxPoints*i);
 				if (*point == END_FLOW_FLAG) break;
 				if (*point == IGNORE_FLAG) continue;
+				
 				//Check for an initial STATIONARY_FLAG
 				if (firstPoint && (*point == STATIONARY_STREAM_FLAG)){
 					stationaryStart = true;
@@ -597,6 +627,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 				}
 				if (stationaryStart){
 					if (*point == STATIONARY_STREAM_FLAG) break;
+					//Render the stationary symbol, then continue on to start the streamline
 					renderStationary(point);
 					stationaryStart = false;
 				}
@@ -605,20 +636,35 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 					if(constMap) glColor4fv(constFlowColor);
 					glBegin(GL_LINE_STRIP);
 					endGL = false;
+					mappedPoint[0]=point[0];
+					mappedPoint[1]=point[1];
+					mappedPoint[2]=point[2];
+				} else {  //Call mapPeriodiccycle for every point after the first:
+					newcycle = mapPeriodicCycle(point, mappedPoint, currentCycle, newCycle);
 				}
 				if (!constMap){
 					float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
 					glColor4fv(rgba);
 				}
 				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
-					glVertex3fv(point);
+					glVertex3fv(mappedPoint);
 					glEnd();//Terminate current curve
 					
-					renderStationary(point);
+					renderStationary(mappedPoint);
 					endGL = true;
 					break;
 				}
-				glVertex3fv(point);
+				glVertex3fv(mappedPoint);
+				//Test if the last point ran off the end of the cycle. If so render it again in the new place.
+				if (newcycle) {
+					//end previous curve, start next one:
+					glEnd();
+					newcycle = mapPeriodicCycle(point, mappedPoint, newCycle, currentCycle);
+					assert(!newcycle);
+					glBegin(GL_LINE_STRIP);
+					glVertex3fv(mappedPoint);
+				}
+
 			}
 			if(!endGL) glEnd();
 		}
@@ -651,7 +697,16 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 	float len;
 	float testVec[3];
 	float testVec2[3];
+	//Vectors to hold the start and end arrow coordinates.
+	//They may be translated due to periodic boundary conditions.
+	float startPoint[3], endPoint[3];
+	int newCycle[3],currentCycle[3];
+	bool newcycle;
+
 	if (firstAge >= lastAge) return;
+	
+	
+	
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
 		//Skip the tube entirely if first point is end-flow 
 		//This can occur in the middle of a Pathline
@@ -662,6 +717,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 		//
 		int tubeStartIndex;
 		bool stationaryStart = false;
+		
 		for (tubeStartIndex = (startIndex + tubeNum*maxPoints+firstAge);
 		 tubeStartIndex < (startIndex + tubeNum*maxPoints+lastAge);
 		 tubeStartIndex++){
@@ -696,6 +752,11 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 			renderStationary(point);
 		}
 		assert(tubeStartIndex < startIndex + tubeNum*maxPoints + lastAge);
+
+		//startTube( intput: tubeStartIndex, flowRGBAs constFlowColor, flowDataArray, 
+
+		//output: point [continue, or break??], evenA, len, evenN, evenU
+
 		//OK, we are at the start of a real tube.
 		//Start the colors for the start of the tube 
 		if (!constMap){
@@ -754,7 +815,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 				vmult(evenNormal+3*i, radius, evenVertex+3*i);
 				vadd(evenVertex+3*i, flowDataArray+3*tubeStartIndex, evenVertex+3*i);
 			}
-			//Draw an end-cap on the cylinder:
+			//Draw a  starting cap on the cylinder:
 			
 			glBegin(GL_POLYGON);
 			glNormal3fv(evenA);
@@ -762,7 +823,10 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 				glVertex3fv(evenVertex+3*k);
 			}
 			glEnd();
-			//Now loop over points, starting with no. 1.
+
+
+			//Now render the cylinders:
+			//loop over points, starting with no. 1.
 			//toggle even and odd.
 			float* currentN;
 			float* currentU;
@@ -774,18 +838,20 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 			float* currentNormal;
 			float* prevVertex;
 			float* prevNormal;
-			float* prevRGBA, *nextRGBA;
+			
 
+			//prepare to render the first cyclinder in the tube.
+			currentCycle[0]=currentCycle[1]=currentCycle[2]=0;
+			newcycle = false;
 
-			//float* point;
-			//for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
+			bool currentIsEven = true;
 			for (int tubeIndex = tubeStartIndex+1; tubeIndex <= startIndex+tubeNum*maxPoints+lastAge;
 				tubeIndex++){
 				point = flowDataArray+3*tubeIndex;
 				if (*point == END_FLOW_FLAG || *point == STATIONARY_STREAM_FLAG) break;
 				//Toggle the meaning of "current" and "prev"
 				//First time thru current is odd
-				if (0 == (tubeIndex - tubeStartIndex)%2) {
+				if (currentIsEven) {
 					currentN = evenN;
 					prevN = oddN;
 					currentA = evenA;
@@ -796,6 +862,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 					prevVertex = oddVertex;
 					currentNormal = evenNormal;
 					prevNormal = oddNormal;
+					currentIsEven = false;
 				} else {
 					currentN = oddN;
 					prevN = evenN;
@@ -807,6 +874,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 					prevVertex = evenVertex;
 					currentNormal = oddNormal;
 					prevNormal = evenNormal;
+					currentIsEven = true;
 				}
 				
 				//Calc currentN
@@ -831,7 +899,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 				vmult(currentA, vdot(prevU,currentA), testVec);
 				vsub(prevU, testVec, currentU);
 				//Now normalize it:
-				len = vdot(currentU,currentU);
+				len = vdot(currentU, currentU);
 				if (len == 0.f){
 					//If U is in direction of A, the previous A should work
 					vcopy(prevA, currentU);
@@ -840,78 +908,44 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 				} 
 				vscale(currentU, 1.f/sqrt(len));
 				vcross(currentU, currentA, currentB);
-
-				//Now calculate 6 points in plane orthog to currentA, in plane of point:
-				for (int i = 0; i<6; i++){
-					//testVec and testVec2 are components of point in plane
-					vmult(currentU, coses[i], testVec);
-					vmult(currentB, sines[i], testVec2);
-					//Calc outward normal as a sideEffect..
-					//It is the vector sum of x,y components (norm 1)
-					vadd(testVec, testVec2, currentNormal+3*i);
-					//stretch by radius to get current displacement
-					vmult(currentNormal+3*i, radius, currentVertex+3*i);
-					//add to current point
-					vadd(currentVertex+3*i, point, currentVertex+3*i);
-					//qWarning(" current Vertex, normal: %f %f %f, %f %f %f",
-						//currentVertex[3*i],currentVertex[3*i+1],currentVertex[3*i+2],
-						//currentNormal[3*i],currentNormal[3*i+1],currentNormal[3*i+2]);
-				}
 				
-				if (!constMap){
-					prevRGBA = flowRGBAs + 4*(tubeIndex-1);
-					nextRGBA = flowRGBAs + 4*(tubeIndex);
+				if(tubeIndex > tubeStartIndex+1) {
+					//For each tube after the first, 
+					// the new tube goes from previous endpoint to mapping of point
+					//and map the endPoint in the same cycle as the startPoint:
+					vcopy(endPoint, startPoint);
+					newcycle = mapPeriodicCycle(point, endPoint, currentCycle, newCycle);
+				} else { //first time through, startPoint is point-3, endPoint is point
+					vcopy(point-3, startPoint);
+					vcopy(point, endPoint);
 				}
-				
-				//Now make a triangle strip:
-				glBegin(GL_TRIANGLE_STRIP);
-				if (constMap){
-					for (int i = 0; i< 6; i++){
+				drawTube(isLit, tubeIndex, startPoint, endPoint, currentB, currentU, radius, constMap,
+					prevNormal, prevVertex, currentNormal, currentVertex);
 
-						glNormal3fv(currentNormal+3*i);
-						glVertex3fv(currentVertex+3*i);
-						glNormal3fv(prevNormal+3*i);
-						glVertex3fv(prevVertex+3*i);
+				//If the arrow exited the region (in cyclic case) need to reset the points.  Note that
+				//the direction vectors don't need to be changed:
+				if (newcycle){
+					//Establish a new cycle for a translate of the last arrow endpoint:
+					newcycle = mapPeriodicCycle(point, endPoint, newCycle, currentCycle);
+					assert(!newcycle);
+					//Also map the startPoint to the same cycle, but we don't use the resulting cycle
+					mapPeriodicCycle(point-3, startPoint, currentCycle, newCycle);
+					//Render the translation of the previous tube.  Note that we will need to first specify
+					//translated values for prevVertex.  prevNormal is OK.  The resulting values
+					//in currentVertex are translated appropriately, since they are offset from endPoint
+					for (int j = 0; j< 6; j++){
+						for (int k = 0; k<3; k++){
+							prevVertex[3*j+k] += startPoint[k]-point[k];
+						}
 					}
-					//repeat first two vertices to close cylinder:
-					glNormal3fv(currentNormal);
-					glVertex3fv(currentVertex);
-					glNormal3fv(prevNormal);
-					glVertex3fv(prevVertex);
-				} else if (isLit){
-					for (int i = 0; i< 6; i++){
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
-						glNormal3fv(currentNormal+3*i);
-						glVertex3fv(currentVertex+3*i);
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
-						glNormal3fv(prevNormal+3*i);
-						glVertex3fv(prevVertex+3*i);
-					}
-					//repeat first two vertices to close cylinder:
-					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
-					glNormal3fv(currentNormal);
-					glVertex3fv(currentVertex);
-					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
-					glNormal3fv(prevNormal);
-					glVertex3fv(prevVertex);
-				} else {//unlit, mapped
-					for (int i = 0; i< 6; i++){
-						glColor4fv(nextRGBA);
-						glVertex3fv(currentVertex+3*i);
-						glColor4fv(prevRGBA);
-						glVertex3fv(prevVertex+3*i);
-					}
-					//repeat first two vertices to close cylinder:
-					glColor4fv(nextRGBA);
-					glVertex3fv(currentVertex);
-					glColor4fv(prevRGBA);
-					glVertex3fv(prevVertex);
+					drawTube(isLit, tubeIndex, startPoint, endPoint, currentB, currentU, radius, constMap,
+						prevNormal, prevVertex, currentNormal, currentVertex);
 				}
-				glEnd();
 			}
 			//Draw an end-cap on the cylinder, and potentially a stationary symbol:
 			
 			if (!constMap){
+				float* nextRGBA = flowRGBAs + 4*(tubeIndex);
 				if(isLit)
 					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
 				else
@@ -957,6 +991,11 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 	
 	if (firstAge >= lastAge) return;
 
+	//Vectors to hold the start and end arrow coordinates.
+	//They may be translated due to periodic boundary conditions.
+	float startPoint[3], endPoint[3];
+	int newCycle[3],currentCycle[3];
+	bool newcycle;
 
 	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
 		//Skip the tube entirely if first point is end-flow 
@@ -1024,6 +1063,9 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 				//We could potentially have the second point be an end flow flag
 				continue;
 		} else {  //OK, legitimate flow line
+
+			currentCycle[0]=currentCycle[1]=currentCycle[2]=0;
+			newcycle = false;
 		
 			
 			//data point is three floats starting at data[3*tubeStartIndex]
@@ -1102,9 +1144,32 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 				vscale(currentU, 1.f/sqrt(len));
 				vcross(currentU, currentN, currentB);
 				
+				
+				if(tubeIndex > tubeStartIndex+1) {
+					//For each arrow after the first, 
+					// the new arrow goes from previous endpoint to mapping of point
+					//and map the endPoint in the same cycle as the startPoint:
+					vcopy(endPoint, startPoint);
+					newcycle = mapPeriodicCycle(point, endPoint, currentCycle, newCycle);
+				} else { //first time through, startPoint is point-3, endPoint is point
+					vcopy(point-3, startPoint);
+					vcopy(point, endPoint);
+				}
+				//float* startPoint = flowDataArray+3*(firstIndex);
+				//float* endPoint = flowDataArray+3*(firstIndex+1);
+				drawArrow(isLit, tubeIndex-1, startPoint, endPoint, currentN, currentB, currentU, radius, constMap);
 
-				drawArrow(isLit, tubeIndex-1, currentN, currentB, currentU, radius, constMap);
-
+				//If the arrow exited the region (in cyclic case) need to restart the points.  Note that
+				//the direction vectors don't need to be changed:
+				if (newcycle){
+					//Establish a new cycle for a translate of the last arrow endpoint:
+					newcycle = mapPeriodicCycle(point, endPoint, newCycle, currentCycle);
+					assert(!newcycle);
+					//Also map the startPoint to the same cycle, but we don't use the resulting cycle
+					mapPeriodicCycle(point-3, startPoint, currentCycle, newCycle);
+					//Then render the new (cyclically offset) arrow:
+					drawArrow(isLit, tubeIndex-1, startPoint, endPoint, currentN, currentB, currentU, radius, constMap);
+				}
 				
 				
 				if ((*point) == STATIONARY_STREAM_FLAG)
@@ -1120,18 +1185,18 @@ renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 		
 }
 //Issue OpenGL calls to draw a cylinder with orthogonal ends from one point to another.
-//center points indexed by startIndex and startIndex+1
+//color indexed by startIndex and startIndex+1
 //Orthogonal frame at first point is (dirVec, UVec, bVec)
 //U and B are orthog to direction of cylinder, determine plane for 6 points
 //
-void FlowRenderer::drawArrow(bool isLit, int firstIndex, float* dirVec, float* bVec, float* uVec, float radius, bool constMap) {
+void FlowRenderer::drawArrow(bool isLit, int firstIndex, float* startPoint, float *endPoint, float* dirVec, float* bVec, float* uVec, float radius, bool constMap) {
 	//Constants are needed for cosines and sines, at 60 degree intervals
 	const float sines[6] = {0.f, sqrt(3.)/2., sqrt(3.)/2., 0.f, -sqrt(3.)/2., -sqrt(3.)/2.};
 	const float coses[6] = {1.f, 0.5, -0.5, -1., -.5, 0.5};
 	//Parameters that control arrow head:
 
-	float* startPoint = flowDataArray+3*(firstIndex);
-	float* endPoint = flowDataArray+3*(firstIndex+1);
+	//float* startPoint = flowDataArray+3*(firstIndex);
+	//float* endPoint = flowDataArray+3*(firstIndex+1);
 	
 	float* nextRGBA = flowRGBAs + 4*(firstIndex+1);
 	float nextPoint[3];
@@ -1273,6 +1338,89 @@ void FlowRenderer::drawArrow(bool isLit, int firstIndex, float* dirVec, float* b
 	glVertex3fv(startVertex);
 	glEnd();
 }
+//Issue OpenGL calls to draw a cylinder from one point to another.
+//center points indexed by startIndex and startIndex+1
+//Orthogonal frame at first point is (dirVec, UVec, bVec)
+//U and B are orthog to direction of cylinder, determine plane for 6 points
+//
+
+void FlowRenderer::drawTube(bool isLit, int tubeIndex, float* startPoint, float* endPoint, float* currentB, float* currentU, float radius, bool constMap,
+							float* prevNormal, float* prevVertex, float* currentNormal, float* currentVertex) {
+
+	//Constants are needed for cosines and sines, at 60 degree intervals
+	const float sines[6] = {0.f, sqrt(3.)/2., sqrt(3.)/2., 0.f, -sqrt(3.)/2., -sqrt(3.)/2.};
+	const float coses[6] = {1.f, 0.5, -0.5, -1., -.5, 0.5};
+	float testVec[3],testVec2[3];
+	float* prevRGBA, *nextRGBA;
+	//calculate 6 points in plane orthog to currentA, in plane of endPoint:
+	for (int i = 0; i<6; i++){
+		//testVec and testVec2 are components of point in plane
+		vmult(currentU, coses[i], testVec);
+		vmult(currentB, sines[i], testVec2);
+		//Calc outward normal as a sideEffect..
+		//It is the vector sum of x,y components (norm 1)
+		vadd(testVec, testVec2, currentNormal+3*i);
+		//stretch by radius to get current displacement
+		vmult(currentNormal+3*i, radius, currentVertex+3*i);
+		//add to current point
+		vadd(currentVertex+3*i, endPoint, currentVertex+3*i);
+		//qWarning(" current Vertex, normal: %f %f %f, %f %f %f",
+			//currentVertex[3*i],currentVertex[3*i+1],currentVertex[3*i+2],
+			//currentNormal[3*i],currentNormal[3*i+1],currentNormal[3*i+2]);
+	}
+	
+	if (!constMap){
+		prevRGBA = flowRGBAs + 4*(tubeIndex-1);
+		nextRGBA = flowRGBAs + 4*(tubeIndex);
+	}
+	
+	//Now make a triangle strip:
+	glBegin(GL_TRIANGLE_STRIP);
+	if (constMap){
+		for (int i = 0; i< 6; i++){
+
+			glNormal3fv(currentNormal+3*i);
+			glVertex3fv(currentVertex+3*i);
+			glNormal3fv(prevNormal+3*i);
+			glVertex3fv(prevVertex+3*i);
+		}
+		//repeat first two vertices to close cylinder:
+		glNormal3fv(currentNormal);
+		glVertex3fv(currentVertex);
+		glNormal3fv(prevNormal);
+		glVertex3fv(prevVertex);
+	} else if (isLit){
+		for (int i = 0; i< 6; i++){
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
+			glNormal3fv(currentNormal+3*i);
+			glVertex3fv(currentVertex+3*i);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
+			glNormal3fv(prevNormal+3*i);
+			glVertex3fv(prevVertex+3*i);
+		}
+		//repeat first two vertices to close cylinder:
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
+		glNormal3fv(currentNormal);
+		glVertex3fv(currentVertex);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
+		glNormal3fv(prevNormal);
+		glVertex3fv(prevVertex);
+	} else {//unlit, mapped
+		for (int i = 0; i< 6; i++){
+			glColor4fv(nextRGBA);
+			glVertex3fv(currentVertex+3*i);
+			glColor4fv(prevRGBA);
+			glVertex3fv(prevVertex+3*i);
+		}
+		//repeat first two vertices to close cylinder:
+		glColor4fv(nextRGBA);
+		glVertex3fv(currentVertex);
+		glColor4fv(prevRGBA);
+		glVertex3fv(prevVertex);
+	}
+	glEnd();
+}
+
 //Render a symbol for stationary flowline (octahedron?)
 void FlowRenderer::renderStationary(float* point){
 	
@@ -1475,3 +1623,40 @@ setAllNeedRefresh(bool value){
 		needRefreshFlag[i] = value;
 	}
 }
+//Map periodic coords into data extents.
+//This is called each time a new point is rendered along a stream line.  oldcycle is initially (0,0,0)
+//establishing that the first point is rendered inside the base cycle (even if it is outside, as with a pre-point).
+//If the first point is out, then the second point must be in, so oldcycle = 0,0,0 is also passed in with the
+//second point.
+//If the first point is inside, the second point will pass in oldcycle from the first call (which must be (0,0,0)).
+//In any case, this function should not be called for the first point of the streamline, but it must be called for the
+//second and subsequent points.  
+//Whenever a streamline exits the region, this returns true, indicating that the current streamline must be stopped
+//and then the next streamline is started by calling this function again.
+//
+bool FlowRenderer::mapPeriodicCycle(float origCoord[3], float mappedCoord[3], int oldcycle[3], int newcycle[3]){
+	const float* extents = DataStatus::getInstance()->getExtents();
+	bool changed = false;
+	for (int i = 0; i<3; i++){
+		mappedCoord[i] = origCoord[i];
+		newcycle[i] = oldcycle[i];
+		if (myFlowParams->getPeriodicDim(i)){
+			//correct according to oldcycle:
+			mappedCoord[i] -= (((float)oldcycle[i])*(extents[i+3]-extents[i]));
+			//Then make newcycle for additional correction:
+			float mapCoord = mappedCoord[i];
+			while (mapCoord < extents[i]) {
+				mapCoord += (extents[i+3]-extents[i]); 
+				newcycle[i]--; 
+				changed=true;
+			}
+			while (mapCoord > extents[i+3]) {
+				mapCoord -= (extents[i+3]-extents[i]); 
+				newcycle[i]++; 
+				changed=true;
+			}
+		}
+	}
+	return changed;
+}
+

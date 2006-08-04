@@ -28,11 +28,14 @@ CartesianGrid::CartesianGrid()
 	Reset();
 }
 
-CartesianGrid::CartesianGrid(int xdim, int ydim, int zdim)
+CartesianGrid::CartesianGrid(int xdim, int ydim, int zdim, bool xperiodic, bool yperiodic, bool zperiodic)
 {
 	m_nDimension[0] = xdim;
 	m_nDimension[1] = ydim;
 	m_nDimension[2] = zdim;
+	periodicDim[0] = xperiodic;
+	periodicDim[1] = yperiodic;
+	periodicDim[2] = zperiodic;
 }
 
 
@@ -43,6 +46,7 @@ CartesianGrid::CartesianGrid(int xdim, int ydim, int zdim)
 void CartesianGrid::Reset(void)
 {
 	m_nDimension[0] = m_nDimension[1] = m_nDimension[2] = 0;
+	periodicDim[0]=periodicDim[1]=periodicDim[2]=false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -90,13 +94,15 @@ bool CartesianGrid::isInBBox(VECTOR3& pos)
 		return false;
 }
 //////////////////////////////////////////////////////////////////////////
-// test whether the physical point pos is in region
+// test whether the physical point pos is in region.
+// It's ok to be out, if that dimension is periodic
 //////////////////////////////////////////////////////////////////////////
 bool CartesianGrid::isInRegion(VECTOR3& pos)
 {
-	if( (pos[0] >= m_vMinRegBound[0]) && (pos[0] <= m_vMaxRegBound[0]) &&
-		(pos[1] >= m_vMinRegBound[1]) && (pos[1] <= m_vMaxRegBound[1]) &&
-		(pos[2] >= m_vMinRegBound[2]) && (pos[2] <= m_vMaxRegBound[2]))
+	
+	if( (periodicDim[0]||(pos[0] >= m_vMinRegBound[0]) && (pos[0] <= m_vMaxRegBound[0]) )&&
+		(periodicDim[1]||(pos[1] >= m_vMinRegBound[1]) && (pos[1] <= m_vMaxRegBound[1]) )&&
+		(periodicDim[2]||(pos[2] >= m_vMinRegBound[2]) && (pos[2] <= m_vMaxRegBound[2]))  )
 		return true;
 	else
 		return false;
@@ -237,7 +243,7 @@ bool CartesianGrid::isInCell(PointInfo& pInfo, const int cellId)
 //
 // input:
 // phyCoord:	physical position
-// interpolant:	interpolation coefficients
+// interpolant:	interpolation coefficients ?? not an input ??
 // fromCell:	if -1, initial point; otherwise this point is advected from others
 // output:
 // pInfo.inCell: in which cell
@@ -252,11 +258,20 @@ int CartesianGrid::phys_to_cell(PointInfo& pInfo)
 	if(!isInRegion(pInfo.phyCoord))
 		return -1;
 
+	//Convert physical coords if boundaries are periodic:
+	float realPhyCoord[3];
+	for (int i = 0; i<3; i++){
+		realPhyCoord[i] = pInfo.phyCoord[i];
+		if (periodicDim[i]){
+			while (realPhyCoord[i] < m_vMinBound[i]) realPhyCoord[i] += (m_vMaxBound[i]-m_vMinBound[i]);
+			while (realPhyCoord[i] > m_vMaxBound[i]) realPhyCoord[i] -= (m_vMaxBound[i]-m_vMinBound[i]);
+		}
+	}
 
 	VECTOR3 compVec;		// position in computational space
-	compVec.Set(UCGridPhy2Comp(pInfo.phyCoord[0], m_vMinBound[0], mappingFactorX), 
-				UCGridPhy2Comp(pInfo.phyCoord[1], m_vMinBound[1], mappingFactorY),
-				UCGridPhy2Comp(pInfo.phyCoord[2], m_vMinBound[2], mappingFactorZ));
+	compVec.Set(UCGridPhy2Comp(realPhyCoord[0], m_vMinBound[0], mappingFactorX), 
+				UCGridPhy2Comp(realPhyCoord[1], m_vMinBound[1], mappingFactorY),
+				UCGridPhy2Comp(realPhyCoord[2], m_vMinBound[2], mappingFactorZ));
 
 	xidx = (int)floor(compVec[0]);
 	yidx = (int)floor(compVec[1]);

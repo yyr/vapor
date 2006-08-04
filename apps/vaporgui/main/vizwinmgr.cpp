@@ -1519,6 +1519,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 		if (StrCmpNoCase(tag, Params::_dvrParamsTag) == 0){
 			//Need to "push" to dvr parser.
 			//That parser will "pop" back to vizwinmgr when done.
+			dvrEventRouter->cleanParams(dvrParams[parsingVizNum]);
 			pm->pushClassStack(dvrParams[parsingVizNum]);
 			dvrParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
 			if (dvrParams[parsingVizNum]->isLocal())
@@ -1529,6 +1530,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 		} else if (StrCmpNoCase(tag, Params::_probeParamsTag) == 0){
 			//Need to "push" to dvr parser.
 			//That parser will "pop" back to vizwinmgr when done.
+			probeEventRouter->cleanParams(probeParams[parsingVizNum]);
 			pm->pushClassStack(probeParams[parsingVizNum]);
 			probeParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
 			if (probeParams[parsingVizNum]->isLocal())
@@ -1570,6 +1572,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 		} else if (StrCmpNoCase(tag, Params::_flowParamsTag) == 0){
 			//Need to "push" to flow parser.
 			//That parser will "pop" back to session when done.
+			flowEventRouter->cleanParams(flowParams[parsingVizNum]);
 			pm->pushClassStack(flowParams[parsingVizNum]);
 			flowParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
 			if (flowParams[parsingVizNum]->isLocal())

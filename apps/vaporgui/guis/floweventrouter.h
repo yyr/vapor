@@ -84,6 +84,7 @@ public:
 	void guiAddSeed(Point4 pt);
 	void guiMoveLastSeed(const float* coords );
 	
+	
 	//Methods to make sliders and text consistent for seed region:
 	void textToSlider(FlowParams* fParams,int coord, float center, float size);
 	void sliderToText(FlowParams* fParams,int coord, int center, int size);
@@ -108,6 +109,9 @@ protected slots:
 	void guiSetYComboVarNum(int varnum);
 	void guiSetZComboVarNum(int varnum);
 	void guiSetRandom(bool rand);
+	void guiCheckPeriodicX(bool periodic);
+	void guiCheckPeriodicY(bool periodic);
+	void guiCheckPeriodicZ(bool periodic);
 	void guiSetAutoRefresh(bool isOn);
 	void setFlowXCenter();
 	void setFlowYCenter();

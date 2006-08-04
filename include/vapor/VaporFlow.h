@@ -41,7 +41,7 @@ namespace VAPoR
 		bool GenStreamLines(float* positions, float* seeds, int numSeeds, int maxPoints, float* speeds=0);
 		bool GenPathLines(float* positions, int maxPoints, unsigned int randomSeed, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
 		bool GenPathLines(float* positions, float* seeds, int numSeeds, int maxPoints, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
-		
+		void SetPeriodicDimensions(bool xPeriodic, bool yPeriodic, bool zPeriodic);
 		bool GenStreamLinesNoRake(float* positions, int maxPoints, int totalSeeds, float* speeds=0);
 	
 		bool GenPathLinesNoRake(float* positions, int maxPoints, int totalSeeds, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
@@ -49,6 +49,7 @@ namespace VAPoR
 		//bool GenIncrementalPathLines(float* positions, int maxTimeSteps, unsigned int* randomSeed, int injectionTime, (void progressCB)(int completedTimeStep));
 		
 		float* GetData(size_t ts, const char* varName);
+		bool regionPeriodicDim(int i) {return (periodicDim[i] && fullInDim[i]);}
 
 	private:
 		size_t userTimeUnit;						// time unit in the original data
@@ -68,6 +69,8 @@ namespace VAPoR
 		float minRakeExt[3];						// minimal rake range 
 		float maxRakeExt[3];						// maximal rake range
 		size_t numSeeds[3];							// number of seeds
+		bool periodicDim[3];						// specify the periodic dimensions
+		bool fullInDim[3];						// determine if the current region is full in each dimension
 		bool bUseRandomSeeds;						// whether use randomly or regularly generated seeds
 
 		float initialStepSize;						// for integration

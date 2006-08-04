@@ -62,6 +62,7 @@ using namespace VAPoR;
 	const string FlowParams::_timestepAttr = "TimeStep";
 
 	const string FlowParams::_mappedVariableNamesAttr = "MappedVariableNames";
+	const string FlowParams::_periodicDimsAttr = "PeriodicDimensions";
 	const string FlowParams::_steadyFlowAttr = "SteadyFlow";
 	const string FlowParams::_instanceAttr = "FlowRendererInstance";
 	const string FlowParams::_integrationAccuracyAttr = "IntegrationAccuracy";
@@ -119,7 +120,7 @@ void FlowParams::
 restart() {
 	
 	
-	
+	periodicDim[0]=periodicDim[1]=periodicDim[2]=false;
 	autoRefresh = true;
 	enabled = false;
 	
@@ -278,6 +279,7 @@ reinit(bool doOverride){
 		seedTimeEnd = maxFrame;
 		seedTimeIncrement = 1;
 		autoRefresh = true;
+		periodicDim[0]=periodicDim[1]=periodicDim[2];
 	} else {
 		if (numRefinements> maxNumRefinements) numRefinements = maxNumRefinements;
 		
@@ -675,6 +677,7 @@ regenerateFlowData(int timeStep, int minFrame, bool isRake, RegionParams* rParam
 	const char* yVar = ds->getVariableName(varNum[1]).c_str();
 	const char* zVar = ds->getVariableName(varNum[2]).c_str();
 	myFlowLib->SetFieldComponents(xVar, yVar, zVar);
+	myFlowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
 	
 	//For steady flow, determine what is the available region for the current time step.
 	//For unsteady flow, determine the available region for all the sampled timesteps.
@@ -1055,6 +1058,13 @@ buildNode() {
 	attrs[_timeSamplingAttr] = oss.str();
 
 	oss.str(empty);
+	for (int i = 0; i< 3; i++){
+		if (periodicDim[i]) oss << "true ";
+		else oss << "false ";
+	}
+	attrs[_periodicDimsAttr] = oss.str();
+
+	oss.str(empty);
 	if (autoRefresh)
 		oss << "true";
 	else 
@@ -1268,6 +1278,14 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 					//The combo setting will need to change when/if the variable is
 					//read in the metadata
 					comboVarNum[i] = -1;
+				}
+			}
+			else if (StrCmpNoCase(attribName, _periodicDimsAttr) == 0){
+				string boolVal;
+				for (int i = 0; i<3; i++){
+					ist >> boolVal;
+					if (boolVal == "true") setPeriodicDim(i,true);
+					else setPeriodicDim(i,false);
 				}
 			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
@@ -1647,9 +1665,11 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 							opacVar = opacMin;
 							break;
 						}
-						x = (int)(0.5f+((dataPoint[0] - opacVarMin[0])*opacSize[0])/(opacVarMax[0]-opacVarMin[0]));
-						y = (int)(0.5f+((dataPoint[1] - opacVarMin[1])*opacSize[1])/(opacVarMax[1]-opacVarMin[1]));
-						z = (int)(0.5f+((dataPoint[2] - opacVarMin[2])*opacSize[2])/(opacVarMax[2]-opacVarMin[2]));
+						float remappedPoint[3];
+						periodicMap(dataPoint,remappedPoint);
+						x = (int)(0.5f+((remappedPoint[0] - opacVarMin[0])*opacSize[0])/(opacVarMax[0]-opacVarMin[0]));
+						y = (int)(0.5f+((remappedPoint[1] - opacVarMin[1])*opacSize[1])/(opacVarMax[1]-opacVarMin[1]));
+						z = (int)(0.5f+((remappedPoint[2] - opacVarMin[2])*opacSize[2])/(opacVarMax[2]-opacVarMin[2]));
 						if (x>=opacSize[0]) x = opacSize[0]-1;
 						if (y>=opacSize[1]) y = opacSize[1]-1;
 						if (z>=opacSize[2]) z = opacSize[2]-1;
@@ -1687,9 +1707,11 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 							colorVar = colorMin;
 							break;
 						}
-						x = (int)(0.5f+((dataPoint[0] - colorVarMin[0])*colorSize[0])/(colorVarMax[0]-colorVarMin[0]));
-						y = (int)(0.5f+((dataPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
-						z = (int)(0.5f+((dataPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
+						float remappedPoint[3];
+						periodicMap(dataPoint,remappedPoint);
+						x = (int)(0.5f+((remappedPoint[0] - colorVarMin[0])*colorSize[0])/(colorVarMax[0]-colorVarMin[0]));
+						y = (int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
+						z = (int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
 						if (x>=colorSize[0]) x = colorSize[0]-1;
 						if (y>=colorSize[1]) y = colorSize[1]-1;
 						if (z>=colorSize[2]) z = colorSize[2]-1;
@@ -1719,7 +1741,19 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 	}
 }
 
-
+//Map periodic coords into data extents.
+//Note this is different than the mapping used by flowlib (at least when numrefinements < max numrefinements)
+void FlowParams::periodicMap(float origCoords[3], float mappedCoords[3]){
+	const float* extents = DataStatus::getInstance()->getExtents();
+	for (int i = 0; i<3; i++){
+		mappedCoords[i] = origCoords[i];
+		if (periodicDim[i]){
+			//If it's off, most likely it's only off by one cycle:
+			while (mappedCoords[i] < extents[i]) {mappedCoords[i] += (extents[i+3]-extents[i]);}
+			while (mappedCoords[i] > extents[i+3]) {mappedCoords[i] -= (extents[i+3]-extents[i]);}
+		}
+	}
+}
 
 int FlowParams::
 getColorMapEntityIndex() {

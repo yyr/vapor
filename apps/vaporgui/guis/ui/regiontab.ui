@@ -6,9 +6,9 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>0</x>
+            <x>5</x>
             <y>0</y>
-            <width>443</width>
+            <width>440</width>
             <height>812</height>
         </rect>
     </property>
@@ -28,7 +28,7 @@
     </property>
     <property name="maximumSize">
         <size>
-            <width>450</width>
+            <width>440</width>
             <height>32767</height>
         </size>
     </property>
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout51</cstring>
+                <cstring>layout224</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -1160,7 +1160,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>21</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -1353,7 +1353,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout98</cstring>
+                                <cstring>layout223</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -1449,7 +1449,7 @@
                                                 <cstring>textLabel4_2</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Select:   Refinement:</string>
+                                                <string>Refinement:</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -1565,6 +1565,12 @@
                                             <property name="name">
                                                 <cstring>timestepSpin</cstring>
                                             </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>30</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
                                             <property name="maxValue">
                                                 <number>229</number>
                                             </property>
@@ -1604,13 +1610,13 @@
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>31</height>
+                                            <height>17</height>
                                         </size>
                                     </property>
                                 </spacer>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout95</cstring>
+                                        <cstring>layout222</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -1629,7 +1635,7 @@
                                                         <cstring>textLabel8</cstring>
                                                     </property>
                                                     <property name="text">
-                                                        <string>Coordinate</string>
+                                                        <string>Coord</string>
                                                     </property>
                                                     <property name="alignment">
                                                         <set>AlignCenter</set>
@@ -1664,7 +1670,7 @@
                                                                 </sizepolicy>
                                                             </property>
                                                             <property name="text">
-                                                                <string>User X Coord</string>
+                                                                <string>User X </string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
@@ -1683,7 +1689,7 @@
                                                                 </sizepolicy>
                                                             </property>
                                                             <property name="text">
-                                                                <string>User Y Coord</string>
+                                                                <string>User Y</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
@@ -1702,7 +1708,7 @@
                                                                 </sizepolicy>
                                                             </property>
                                                             <property name="text">
-                                                                <string>User Z Coord</string>
+                                                                <string>User Z</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
@@ -1731,7 +1737,7 @@
                                                                 </sizepolicy>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Voxel X Coord</string>
+                                                                <string>Voxel X</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
@@ -1750,7 +1756,7 @@
                                                                 </sizepolicy>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Voxel Y Coord</string>
+                                                                <string>Voxel Y</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
@@ -1769,7 +1775,7 @@
                                                                 </sizepolicy>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Voxel Z Coord</string>
+                                                                <string>Voxel Z</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>

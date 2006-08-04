@@ -6,9 +6,9 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>0</x>
+            <x>4</x>
             <y>0</y>
-            <width>445</width>
+            <width>450</width>
             <height>565</height>
         </rect>
     </property>

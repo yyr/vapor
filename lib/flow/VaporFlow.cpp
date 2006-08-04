@@ -27,6 +27,7 @@ VaporFlow::VaporFlow(DataMgr* dm)
 		maxBlkRegion[i] = 0;
 		minRegion[i] = 0;
 		maxRegion[i] = 0;
+		fullInDim[i] = false;
 	}
 
 	userTimeStepSize = 1.0;
@@ -35,6 +36,7 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	animationTimeStepMultiplier = 1.0;
 	
 	bUseRandomSeeds = false;
+	periodicDim[0]= periodicDim[1]= periodicDim[2]= false;
 
 #ifdef DEBUG
 	fDebug = fopen("C:\\Liya\\debug.txt", "w");
@@ -114,12 +116,17 @@ void VaporFlow::SetRegion(size_t num_xforms,
 						  const size_t max_bdim[3])
 {
 	numXForms = num_xforms;
+	const size_t* fullDims = dataMgr->GetMetadata()->GetDimension();
+	int max_xforms = dataMgr->GetMetadata()->GetNumTransforms();
 	for (int i = 0; i< 3; i++){
 		minBlkRegion[i] = min_bdim[i];
 		maxBlkRegion[i] = max_bdim[i];
 		minRegion[i] = min[i];
 		maxRegion[i] = max[i];
+		if (min[i] == 0 && max[i] == ((fullDims[i]>>(max_xforms-num_xforms))-1)) fullInDim[i] = true; 
+		else fullInDim[i] = false;
 	}
+	
 	
 }
 
@@ -285,7 +292,7 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
 	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
 	pSolution->SetTime(startTimeStep, startTimeStep);
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
 	
 	// set the boundary of physical grid
 	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
@@ -403,6 +410,11 @@ bool VaporFlow::GenPathLines(float* positions,
 	delete [] seedPtr;
 	return rc;
 }
+void VaporFlow::SetPeriodicDimensions(bool xdim, bool ydim, bool zdim){
+	periodicDim[0] = xdim;
+	periodicDim[1] = ydim;
+	periodicDim[2] = zdim;
+}
 
 	//////////////////////////////////////////////////////////////////////////
 // generate pathlines (with and without rake:
@@ -473,7 +485,7 @@ bool VaporFlow::GenPathLines(float* positions,
 	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
 	pSolution->SetTimeIncrement(timeStepIncrement);
 	pSolution->SetTime(realStartTime, realEndTime);
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum);
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
 
 	// set the boundary of physical grid
 	

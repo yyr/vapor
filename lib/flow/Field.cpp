@@ -137,7 +137,7 @@ int CVectorField::at_phys(const int fromCell,
 	if(m_pGrid->phys_to_cell(pInfo) == -1)
 		return -1;
 
-	// get vertex value at cell vertices
+	// get vector field value at cell vertices
 	if(at_cell(pInfo.inCell, T3_CELL, t, vNodeData) == -1)
 		return -1;
 

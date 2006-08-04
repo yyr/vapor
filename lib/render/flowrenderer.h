@@ -111,10 +111,16 @@ protected:
 		return (flowDataArray+ 3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)));
 	}
 	*/
+	//convert original coordinates to lie inside central cycle.  Identify the cycle it's in
+	bool mapPeriodicCycle(float origCoord[3], float mappedCoord[3], int oldcycle[3], int newcycle[3]);
 	// Render a "stationary symbol" at the specified point
 	void renderStationary(float* point);
 	//draw one arrow
-	void drawArrow(bool isLit, int firstIndex, float* dirVec, float* bVec, float* UVec, float radius, bool constMap);
+	void drawArrow(bool isLit, int firstIndex, float* firstPoint, float* endPoint, float* dirVec, float* bVec, 
+		float* UVec, float radius, bool constMap);
+	// draw one cylinder of tube
+	void drawTube(bool isLit, int tubeIndex, float* startPoint, float* endPoint, float* currentB, float* currentU, 
+		float radius, bool constMap, float* prevNormal, float* prevVertex, float* currentNormal, float* currentVertex);
 
 	//Constants that are used, recalculated in each rendering:
 	float constFlowColor[4];

@@ -6,9 +6,9 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>0</x>
+            <x>5</x>
             <y>0</y>
-            <width>441</width>
+            <width>440</width>
             <height>840</height>
         </rect>
     </property>
@@ -28,7 +28,7 @@
     </property>
     <property name="maximumSize">
         <size>
-            <width>450</width>
+            <width>440</width>
             <height>32767</height>
         </size>
     </property>
