@@ -115,7 +115,7 @@ restart(){
 	lightDirection[2][3] = 0.f;
 	diffuseCoeff[0] = 0.8f;
 	specularCoeff[0] = 0.5f;
-	specularExp = 20.f;
+	specularExp = 10.f;
 	diffuseCoeff[1] = 0.8f;
 	specularCoeff[1] = 0.5f;
 	diffuseCoeff[2] = 0.8f;
@@ -408,4 +408,12 @@ buildNode(){
 	XmlNode* homeVP = vpParamsNode->NewChild(_homeViewTag, attrs, 1);
 	homeVP->AddChild(homeViewpoint->buildNode());
 	return vpParamsNode;
+}
+//Rotate a vector based on current modelview matrix transpose.  Use to rotate vector in world coords to
+//Camera coord system.
+void  ViewpointParams::transform3Vector(const float vec[3], float resvec[3])
+{
+	resvec[0] = modelViewMatrix[0]*vec[0] + modelViewMatrix[1]*vec[1] + modelViewMatrix[2]*vec[2];
+	resvec[1] = modelViewMatrix[4]*vec[0] + modelViewMatrix[5]*vec[1] + modelViewMatrix[6]*vec[2];
+	resvec[2] = modelViewMatrix[8]*vec[0] + modelViewMatrix[9]*vec[1] + modelViewMatrix[10]*vec[2];
 }

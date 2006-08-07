@@ -191,7 +191,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 	if (myFlowParams->getShapeType() != 1) {//rendering tubes/lines/arrows
 		float diffColor[4], specColor[4], ambColor[4];
 		GLfloat lmodel_ambient[4];
-		specColor[0]=specColor[1]=specColor[2]=0.2f;
+		specColor[0]=specColor[1]=specColor[2]=0.8f;
 		ambColor[0]=ambColor[1]=ambColor[2]=0.f;
 		diffColor[3]=specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
 		
@@ -204,7 +204,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, constFlowColor);
 			glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, vpParams->getExponent());
 			lmodel_ambient[0]=lmodel_ambient[1]=lmodel_ambient[2] = vpParams->getAmbientCoeff();
-
+			//All the geometry will get a white specular color:
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
 			glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
 			
@@ -510,6 +510,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 	float testVec[3];
 	float normVec[3];
 	float mappedPoint[3];
+	
 	int currentCycle[3]; 
 	int newCycle[3];
 	bool newcycle;
@@ -518,8 +519,11 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 	
 	if (isLit){
 		//Get light direction vector of first light:
+		float lightDir[3];
 		ViewpointParams* vpParams = myGLWindow->getViewpointParams();
-		const float* lightDir = vpParams->getLightDirection(0);
+		const float* worldLightDir = vpParams->getLightDirection(0);
+		//Transform it by modelview matrix:
+		vpParams->transform3Vector(worldLightDir,lightDir);
 		for (int i = 0; i< numSeedPoints; i++){
 			//Assume seed point starts inside region:
 			currentCycle[0]=currentCycle[1]=currentCycle[2]=0;

@@ -111,7 +111,10 @@ public:
 
 	//Maintain the OpenGL Model Matrices, since they can be shared between visualizers
 	
-	double* getModelViewMatrix() {return modelViewMatrix;}
+	const double* getModelViewMatrix() {return modelViewMatrix;}
+
+	//Rotate a 3-vector based on current modelview matrix
+	void transform3Vector(const float vec[3], float resvec[3]);
 	
 	void setModelViewMatrix(double* mtx){
 		for (int i = 0; i<16; i++) modelViewMatrix[i] = mtx[i];
