@@ -115,7 +115,7 @@ RegionEventRouter::hookUpTab()
 
 	connect (refinementCombo, SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (variableCombo, SIGNAL(activated(int)), this, SLOT(guiSetVarNum(int)));
-	connect (timestepSpin, SIGNAL(valueChanged(int)), this, SLOT(guiSetTimestep(int)));
+	connect (timestepSpin, SIGNAL(valueChanged(int)), this, SLOT(guiSetTimeStep(int)));
 
 }
 /*********************************************************************************

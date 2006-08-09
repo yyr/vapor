@@ -142,7 +142,7 @@ ProbeEventRouter::hookUpTab()
 	connect (rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 
 	connect (opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (probeOpacityScale()));
-	connect (ColorBindButton, SIGNAL(pressed()), this, SLOT(guiBindColorToOpacity()));
+	connect (ColorBindButton, SIGNAL(pressed()), this, SLOT(guiBindColorToOpac()));
 	connect (OpacityBindButton, SIGNAL(pressed()), this, SLOT(guiBindOpacToColor()));
 	connect (navigateButton, SIGNAL(toggled(bool)), this, SLOT(setProbeNavigateMode(bool)));
 	

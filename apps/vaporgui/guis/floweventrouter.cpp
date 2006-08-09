@@ -104,10 +104,9 @@ FlowEventRouter::hookUpTab()
 	connect (flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( setFlowType(int) ) );
 	connect (autoRefreshCheckbox, SIGNAL(toggled(bool)), this, SLOT (guiSetAutoRefresh(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
-	
-	connect (xCoordVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboVarnum(int)));
-	connect (yCoordVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboVarnum(int)));
-	connect (zCoordVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboVarnum(int)));
+	connect (xCoordVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboVarNum(int)));
+	connect (yCoordVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboVarNum(int)));
+	connect (zCoordVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboVarNum(int)));
 	connect (randomCheckbox,SIGNAL(toggled(bool)),this, SLOT(guiSetRandom(bool)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYCenter()));

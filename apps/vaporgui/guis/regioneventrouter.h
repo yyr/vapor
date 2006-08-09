@@ -54,7 +54,7 @@ public:
 	//Following methods are set from gui, have undo/redo support:
 	//
 	void guiSetCenter(const float * coords);
-	void guiSetMaxSize();
+	
 	
 	void guiSetXCenter(int n);
 	void guiSetXSize(int n);
@@ -89,6 +89,7 @@ protected slots:
 	
 	void setRegionTabTextChanged(const QString& qs);
 	void regionReturnPressed();
+	void guiSetMaxSize();
 	void guiSetNumRefinements(int n);
 	void guiSetVarNum(int n);
 	void guiSetTimeStep(int n);
