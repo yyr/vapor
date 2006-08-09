@@ -47,7 +47,8 @@
 #include <math.h>
 #include <iostream>
 #include "assert.h"
-
+#include "vapor/MyBase.h"
+#include "errorcodes.h"
 
 //#include <GL/gl.h>
 #include <qgl.h>
@@ -815,8 +816,12 @@ int printOglError(char *file, int line)
 
   while (glErr != GL_NO_ERROR)
   {
-    std::cerr << "glError: " << gluErrorString(glErr) << std::endl;
-    std::cerr << "         " << file << ":" << line << std::endl << std::endl;
+    std::cout << "glError: " << gluErrorString(glErr) << std::endl
+              << "         " << file << " : " << line << std::endl;
+
+    VetsUtil::MyBase::SetErrMsg(ERROR_GL_RENDERING, 
+                                "glError: %s\n         %s : %d\n", 
+                                gluErrorString(glErr), file, line);
 
     retCode = 1;
 

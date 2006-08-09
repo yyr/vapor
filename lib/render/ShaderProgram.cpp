@@ -8,6 +8,8 @@
 
 #include "ShaderProgram.h"
 #include "glutil.h"
+#include "errorcodes.h"
+#include "vapor/MyBase.h"
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -262,7 +264,10 @@ bool ShaderProgram::compile()
         
         glGetShaderInfoLog(shader, infologLength, &nWritten, infoLog);
 
-        std::cerr << "Shader InfoLog:" << std::endl << infoLog << std::endl;
+        std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
+
+        VetsUtil::MyBase::SetErrMsg(WARNING_GL_SHADER_LOG, 
+                                    "Shader InfoLog: %s\n", infoLog);
         
         delete infoLog;
         infoLog = NULL;
@@ -296,7 +301,10 @@ bool ShaderProgram::compile()
         
         glGetInfoLogARB(shader, infologLength, &nWritten, infoLog);
         
-        std::cerr << "Shader InfoLog:" << std::endl << infoLog << std::endl;
+        std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
+
+        VetsUtil::MyBase::SetErrMsg(WARNING_GL_SHADER_LOG, 
+                                   "Shader InfoLog: %s\n", infoLog);
         
         delete infoLog;
         infoLog = NULL;
@@ -333,8 +341,11 @@ bool ShaderProgram::compile()
       int nWritten  = 0;
       
       glGetProgramInfoLog(_program, infologLength, &nWritten, infoLog);
-      
-      std::cerr << "Program InfoLog:" << std::endl << infoLog << std::endl;
+
+      std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
+ 
+      VetsUtil::MyBase::SetErrMsg(WARNING_GL_SHADER_LOG, 
+                                  "Shader InfoLog: %s\n", infoLog);
 
       delete infoLog;
       infoLog = NULL;
@@ -361,8 +372,11 @@ bool ShaderProgram::compile()
       
       glGetInfoLogARB(_program, infologLength, &nWritten, infoLog);
       
-      std::cerr << "Program InfoLog:" << std::endl << infoLog << std::endl;
-      
+      std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
+
+      VetsUtil::MyBase::SetErrMsg(WARNING_GL_SHADER_LOG, 
+                                  "Shader InfoLog: %s\n", infoLog);
+
       delete infoLog;
       infoLog = NULL;
     }
@@ -425,7 +439,10 @@ GLint ShaderProgram::uniformLocation(const char *uniformName)
 
   if (location == -1)
   {
-    std::cerr << "uniform \"" << uniformName << "\" not found." << std::endl;
+    std::cerr << "Unknown uniform " << uniformName << std::endl;
+
+    VetsUtil::MyBase::SetErrMsg(ERROR_GL_UNKNOWN_UNIFORM, 
+                                "uniform \"%s\" not found.\n", uniformName);
   }
 
   printOpenGLError();
