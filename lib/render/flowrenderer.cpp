@@ -848,7 +848,7 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 			currentCycle[0]=currentCycle[1]=currentCycle[2]=0;
 			newcycle = false;
 
-			bool currentIsEven = true;
+			bool currentIsEven = false;
 			int tubeIndex;
 			for (tubeIndex = tubeStartIndex+1; tubeIndex <= startIndex+tubeNum*maxPoints+lastAge;
 				tubeIndex++){
@@ -930,20 +930,22 @@ renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex,
 				//If the arrow exited the region (in cyclic case) need to reset the points.  Note that
 				//the direction vectors don't need to be changed:
 				if (newcycle){
+					float nextStartPoint[3];
 					//Establish a new cycle for a translate of the last arrow endpoint:
 					newcycle = mapPeriodicCycle(point, endPoint, newCycle, currentCycle);
 					assert(!newcycle);
 					//Also map the startPoint to the same cycle, but we don't use the resulting cycle
-					mapPeriodicCycle(point-3, startPoint, currentCycle, newCycle);
+					mapPeriodicCycle(point-3, nextStartPoint, currentCycle, newCycle);
 					//Render the translation of the previous tube.  Note that we will need to first specify
 					//translated values for prevVertex.  prevNormal is OK.  The resulting values
 					//in currentVertex are translated appropriately, since they are offset from endPoint
+					//The repeated segment needs to translate prevVertex accordingly
 					for (int j = 0; j< 6; j++){
 						for (int k = 0; k<3; k++){
-							prevVertex[3*j+k] += startPoint[k]-point[k];
+							prevVertex[3*j+k] += nextStartPoint[k]-startPoint[k];
 						}
 					}
-					drawTube(isLit, tubeIndex, startPoint, endPoint, currentB, currentU, radius, constMap,
+					drawTube(isLit, tubeIndex, nextStartPoint, endPoint, currentB, currentU, radius, constMap,
 						prevNormal, prevVertex, currentNormal, currentVertex);
 				}
 			}
@@ -1349,7 +1351,7 @@ void FlowRenderer::drawArrow(bool isLit, int firstIndex, float* startPoint, floa
 //U and B are orthog to direction of cylinder, determine plane for 6 points
 //
 
-void FlowRenderer::drawTube(bool isLit, int tubeIndex, float* startPoint, float* endPoint, float* currentB, float* currentU, float radius, bool constMap,
+void FlowRenderer::drawTube(bool isLit, int tubeIndex, float startPoint[3], float endPoint[3], float* currentB, float* currentU, float radius, bool constMap,
 							float* prevNormal, float* prevVertex, float* currentNormal, float* currentVertex) {
 
 	//Constants are needed for cosines and sines, at 60 degree intervals
