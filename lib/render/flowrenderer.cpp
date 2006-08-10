@@ -1571,6 +1571,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 			if ((!rakeFlowRGBAs[timeStep])&&!constColors){
 				rakeFlowRGBAs[timeStep] = new float[4*flowDataSize];
 			}
+			calcPeriodicExtents();
 			bool OK = myFlowParams->regenerateFlowData(timeStep, minFrame, true, rParams, rakeFlowData[timeStep],rakeFlowRGBAs[timeStep]);
 			if (!OK) {
 				setRegionValid(false);
@@ -1601,6 +1602,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 			if ((!listFlowRGBAs[timeStep])&&!constColors){
 				listFlowRGBAs[timeStep] = new float[4*flowDataSize];
 			}
+			calcPeriodicExtents();
 			bool OK = myFlowParams->regenerateFlowData(timeStep, minFrame, false, rParams, listFlowData[timeStep],listFlowRGBAs[timeStep]);
 			if (!OK) {
 				setRegionValid(false);
@@ -1642,23 +1644,23 @@ setAllNeedRefresh(bool value){
 //and then the next streamline is started by calling this function again.
 //
 bool FlowRenderer::mapPeriodicCycle(float origCoord[3], float mappedCoord[3], int oldcycle[3], int newcycle[3]){
-	const float* extents = DataStatus::getInstance()->getExtents();
+	
 	bool changed = false;
 	for (int i = 0; i<3; i++){
 		mappedCoord[i] = origCoord[i];
 		newcycle[i] = oldcycle[i];
 		if (myFlowParams->getPeriodicDim(i)){
 			//correct according to oldcycle:
-			mappedCoord[i] -= (((float)oldcycle[i])*(extents[i+3]-extents[i]));
+			mappedCoord[i] -= (((float)oldcycle[i])*(periodicExtents[i+3]-periodicExtents[i]));
 			//Then make newcycle for additional correction:
 			float mapCoord = mappedCoord[i];
-			while (mapCoord < extents[i]) {
-				mapCoord += (extents[i+3]-extents[i]); 
+			while (mapCoord < periodicExtents[i]) {
+				mapCoord += (periodicExtents[i+3]-periodicExtents[i]); 
 				newcycle[i]--; 
 				changed=true;
 			}
-			while (mapCoord > extents[i+3]) {
-				mapCoord -= (extents[i+3]-extents[i]); 
+			while (mapCoord > periodicExtents[i+3]) {
+				mapCoord -= (periodicExtents[i+3]-periodicExtents[i]); 
 				newcycle[i]++; 
 				changed=true;
 			}
@@ -1666,4 +1668,18 @@ bool FlowRenderer::mapPeriodicCycle(float origCoord[3], float mappedCoord[3], in
 	}
 	return changed;
 }
+void FlowRenderer::calcPeriodicExtents() {
+	//The periodic extents go slightly further than the extents, going to the end of the last voxel 
+	const float* extents = DataStatus::getInstance()->getExtents();
+	for (int i = 0; i<3; i++){
+		periodicExtents[i] = extents[i];
+		if (myFlowParams->getPeriodicDim(i)){
+			float dim = (float)DataStatus::getInstance()->getCurrentMetadata()->GetDimension()[i];
+			periodicExtents[i+3] = extents[i] + (extents[i+3]-extents[i])*((dim+1.f)/dim);
+		}
+		else periodicExtents[i+3] = extents[i+3];
+	}
+
+}
+
 

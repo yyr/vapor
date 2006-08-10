@@ -189,6 +189,9 @@
 				RelativePath="..\..\..\lib\params\dvrparams.h">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\errorcodes.h">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\flowmapeditor.h">
 			</File>
 			<File

@@ -2,9 +2,9 @@ TOP = ../..
 
 include ${TOP}/make/config/arch.mk
 
-UI_DIR = .
 SHARED = 0
 QT = 1
+UI_DIR = ui
 LIBRARY = params
 FILES = \
 	datastatus dvrparams flowmapeditor flowparams glutil \

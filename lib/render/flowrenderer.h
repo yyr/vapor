@@ -95,7 +95,7 @@ public:
 
 
 protected:
-	
+	void calcPeriodicExtents();
 	int numFrames;
 			
 	//Render geometry using the current values of flowDataArray, flowRGBAs
@@ -173,6 +173,9 @@ protected:
 	FlowParams* myFlowParams;
 	//Remember the last time step that was rendered, for capturing.
 	int lastTimeStep;
+	//save the periodic extents (slightly different than extents)
+	float periodicExtents[6];
+
 
 
 };
