@@ -266,7 +266,7 @@ bool ShaderProgram::compile()
 
         std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
 
-        VetsUtil::MyBase::SetErrMsg(WARNING_GL_SHADER_LOG, 
+        VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_SHADER_LOG, 
                                     "Shader InfoLog: %s\n", infoLog);
         
         delete infoLog;
@@ -303,7 +303,7 @@ bool ShaderProgram::compile()
         
         std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
 
-        VetsUtil::MyBase::SetErrMsg(WARNING_GL_SHADER_LOG, 
+        VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_SHADER_LOG, 
                                    "Shader InfoLog: %s\n", infoLog);
         
         delete infoLog;
@@ -344,7 +344,7 @@ bool ShaderProgram::compile()
 
       std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
  
-      VetsUtil::MyBase::SetErrMsg(WARNING_GL_SHADER_LOG, 
+      VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_SHADER_LOG, 
                                   "Shader InfoLog: %s\n", infoLog);
 
       delete infoLog;
@@ -374,7 +374,7 @@ bool ShaderProgram::compile()
       
       std::cerr <<  "Shader InfoLog: " << infoLog << std::endl;
 
-      VetsUtil::MyBase::SetErrMsg(WARNING_GL_SHADER_LOG, 
+      VetsUtil::MyBase::SetErrMsg(VAPOR_WARNING_GL_SHADER_LOG, 
                                   "Shader InfoLog: %s\n", infoLog);
 
       delete infoLog;
@@ -441,7 +441,7 @@ GLint ShaderProgram::uniformLocation(const char *uniformName)
   {
     std::cerr << "Unknown uniform " << uniformName << std::endl;
 
-    VetsUtil::MyBase::SetErrMsg(ERROR_GL_UNKNOWN_UNIFORM, 
+    VetsUtil::MyBase::SetErrMsg(VAPOR_ERROR_GL_UNKNOWN_UNIFORM, 
                                 "uniform \"%s\" not found.\n", uniformName);
   }
 
