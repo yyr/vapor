@@ -30,18 +30,18 @@ namespace VAPoR
   enum errorcodes
   {
     // Diagnostic Codes  0x1001 - 0x1FFF
-    DIAGNOSTIC = 0x1000,
+    VAPOR_DIAGNOSTIC = 0x1000,
     
     // Warning Codes     0x2001 - 0x2FFF
-    WARNING               = 0x2000,
-    WARNING_GL_SHADER_LOG = 0x2001,
+    VAPOR_WARNING               = 0x2000,
+    VAPOR_WARNING_GL_SHADER_LOG = 0x2001,
     
     // Error Codes       0x4001 - 0x4FFF
-    ERROR                    = 0x4000,
-    ERROR_GL_RENDERING       = 0x4001,
-    ERROR_GL_UNKNOWN_UNIFORM = 0x4002,
+    VAPOR_ERROR                    = 0x4000,
+    VAPOR_ERROR_GL_RENDERING       = 0x4001,
+    VAPOR_ERROR_GL_UNKNOWN_UNIFORM = 0x4002,
     
     // Fatal Codes       0x8001 - 0x8FFF
-    FATAL = 0x8000
+    VAPOR_FATAL = 0x8000
   };   
 };
