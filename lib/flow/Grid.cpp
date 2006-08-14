@@ -165,7 +165,38 @@ int CartesianGrid::getCellVertices(int cellId,
 	yidx = cellId % (xcelldim() * ycelldim());
 	yidx = yidx / xcelldim();
 	xidx = cellId - zidx * xcelldim() * ycelldim() - yidx * xcelldim();
+	//Special case for periodic data:  It can go up to very end of array, and must 
+	//then cycle around to start of array in that dimension
+	if (xidx >= xcelldim() || yidx >= ycelldim() || zidx >= zcelldim()){
+		int xindx, yindx, zindx;
+		for(int kFor = 0; kFor < 2; kFor++){
+			zindx = zidx + kFor;
+			if (zindx > zcelldim()){
+				assert (periodicDim[2] && (zindx == zcelldim()+1));
+				zindx = 0;
+			}
+			for(int jFor = 0; jFor < 2; jFor++){
+				yindx = yidx + jFor;
+				if (yindx > ycelldim()){
+					assert (periodicDim[1] && (yindx == ycelldim()+1));
+					yindx = 0;
+				}
+				for(int iFor = 0; iFor < 2; iFor++){
+					xindx = xidx + iFor;
+					if (xindx > xcelldim()){
+						assert (periodicDim[0] && (xindx == xcelldim()+1));
+						xindx = 0;
+					}
+				
+					index = zindx * ydim() * xdim() + yindx * xdim() + xindx;
+					vVertices.push_back(index);
+				}
+			}
+		}
 
+		return 1;
+	}
+	//Otherwise handle normal case:
 	for(int kFor = 0; kFor < 2; kFor++)
 		for(int jFor = 0; jFor < 2; jFor++)
             for(int iFor = 0; iFor < 2; iFor++)
@@ -263,8 +294,9 @@ int CartesianGrid::phys_to_cell(PointInfo& pInfo)
 	for (int i = 0; i<3; i++){
 		realPhyCoord[i] = pInfo.phyCoord[i];
 		if (periodicDim[i]){
-			while (realPhyCoord[i] < m_vMinBound[i]) realPhyCoord[i] += (m_vMaxBound[i]-m_vMinBound[i]);
-			while (realPhyCoord[i] > m_vMaxBound[i]) realPhyCoord[i] -= (m_vMaxBound[i]-m_vMinBound[i]);
+			//Ensure physical coords are within period:
+			while (realPhyCoord[i] < m_vMinBound[i]) realPhyCoord[i] += (period[i]);
+			while (realPhyCoord[i] >= (m_vMinBound[i]+period[i])) realPhyCoord[i] -= (period[i]);
 		}
 	}
 
@@ -277,6 +309,10 @@ int CartesianGrid::phys_to_cell(PointInfo& pInfo)
 	yidx = (int)floor(compVec[1]);
 	zidx = (int)floor(compVec[2]);
 
+	//These coords must always be legitimate grid coords:
+	assert (xidx < m_nDimension[0]);
+	assert (yidx < m_nDimension[1]);
+	assert (zidx < m_nDimension[2]);
 	int inCell = zidx * ycelldim() * xcelldim() + yidx * xcelldim() + xidx;
 
 	pInfo.inCell = inCell;

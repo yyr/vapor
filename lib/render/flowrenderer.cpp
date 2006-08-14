@@ -1669,14 +1669,18 @@ bool FlowRenderer::mapPeriodicCycle(float origCoord[3], float mappedCoord[3], in
 	return changed;
 }
 void FlowRenderer::calcPeriodicExtents() {
-	//The periodic extents go slightly further than the extents, going to the end of the last voxel 
+	//The periodic extents go slightly further than the extents, going to the end of the last voxel.  
+	// This is because the user specification of extents is the difference between the first and last voxel
+	// position in the data.  The period is actually one voxel beyond the end of the data, since that point
+	// is not repeated.
 	const float* extents = DataStatus::getInstance()->getExtents();
 	for (int i = 0; i<3; i++){
 		periodicExtents[i] = extents[i];
 		if (myFlowParams->getPeriodicDim(i)){
 			float dim = (float)DataStatus::getInstance()->getCurrentMetadata()->GetDimension()[i];
-			periodicExtents[i+3] = extents[i] + (extents[i+3]-extents[i])*((dim+1.f)/dim);
+			periodicExtents[i+3] = extents[i] + (extents[i+3]-extents[i])*(dim/(dim-1.f));
 		}
+		//With nonperiodic data, just use the extents (close enough, prevents surprises!)
 		else periodicExtents[i+3] = extents[i+3];
 	}
 

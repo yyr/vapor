@@ -117,6 +117,7 @@ void VaporFlow::SetRegion(size_t num_xforms,
 {
 	numXForms = num_xforms;
 	const size_t* fullDims = dataMgr->GetMetadata()->GetDimension();
+	const std::vector<double> extents = dataMgr->GetMetadata()->GetExtents();
 	int max_xforms = dataMgr->GetMetadata()->GetNumTransforms();
 	for (int i = 0; i< 3; i++){
 		minBlkRegion[i] = min_bdim[i];
@@ -125,7 +126,10 @@ void VaporFlow::SetRegion(size_t num_xforms,
 		maxRegion[i] = max[i];
 		if (min[i] == 0 && max[i] == ((fullDims[i]>>(max_xforms-num_xforms))-1)) fullInDim[i] = true; 
 		else fullInDim[i] = false;
+		//Establish the period, in case the data is periodic.
+		flowPeriod[i] = (extents[i+3] - extents[i])*((float)fullDims[i])/((float)(fullDims[i]-1)); 
 	}
+
 	
 	
 }
@@ -293,7 +297,7 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
 	pSolution->SetTime(startTimeStep, startTimeStep);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
-	
+	pCartesianGrid->setPeriod(flowPeriod);
 	// set the boundary of physical grid
 	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
 	VECTOR3 minB, maxB, minR, maxR;
@@ -453,6 +457,7 @@ bool VaporFlow::GenPathLines(float* positions,
 							   int injectionTimeIncrement, 
 							   float* speeds)
 {
+	
 	animationTimeStepSize = animationTimeStepMultiplier;
 
 	// create field object
@@ -486,7 +491,7 @@ bool VaporFlow::GenPathLines(float* positions,
 	pSolution->SetTimeIncrement(timeStepIncrement);
 	pSolution->SetTime(realStartTime, realEndTime);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
-
+	pCartesianGrid->setPeriod(flowPeriod);
 	// set the boundary of physical grid
 	
 	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
@@ -509,6 +514,7 @@ bool VaporFlow::GenPathLines(float* positions,
 	maxR.Set(regMax[0], regMax[1], regMax[2]);
 	pCartesianGrid->SetBoundary(minB, maxB);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
+	
 	//Now set the region bound:
 
 	pField = new CVectorField(pCartesianGrid, pSolution, timeSteps);

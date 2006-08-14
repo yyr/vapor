@@ -118,7 +118,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	PointInfo seedInfo;
 	PointInfo thisParticle;
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
-	float dt, dt_estimate, cell_volume, mag, curTime;
+	float dt, cell_volume, mag, curTime;
 	VECTOR3 vel;
 	int nSetAdaptiveCount = 0;
 
@@ -198,7 +198,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 					nSetAdaptiveCount = 0;
 
 				// roll back and retrace
-				if(retrace == true)			
+				if(retrace)			
 				{
 					thisInterpolant = prevInterpolant = second_prevInterpolant;
 					seedTrace.pop_back();

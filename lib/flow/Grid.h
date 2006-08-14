@@ -127,17 +127,22 @@ class FLOW_API CartesianGrid : public Grid
 {
 
 private:
-	int m_nDimension[3];				// dimension
-	VECTOR3 m_vMinBound, m_vMaxBound;	// min and maximal boundary
-	VECTOR3 m_vMinRegBound, m_vMaxRegBound;	// min and max region extents
+	int m_nDimension[3];				// dimensions of the grid that is mapped to the 
+										// current block-region
+	VECTOR3 m_vMinBound, m_vMaxBound;	// min and max  user coord bounds of the block-region of data
+										//obtained from the datamgr.
+	VECTOR3 m_vMinRegBound, m_vMaxRegBound;	// min and max region user coord extents specified by UI
 	float mappingFactorX;				// mapping from physical space to computational space
-	float mappingFactorY;
-	float mappingFactorZ;
+	float mappingFactorY;				// Used to map a discrete grid to the bounds of the
+	float mappingFactorZ;				// block region
 	float oneOvermappingFactorX;
 	float oneOvermappingFactorY;
 	float oneOvermappingFactorZ;
 	float gridSpacing;					// the minimal grid spacing of all dimensions
-	bool periodicDim[3];				//Identify the periodic dimensions
+	bool periodicDim[3];				//Identify which of the dimensions are periodic
+										//False if the region coord extents are not full
+	float period[3];					//Period of the data when periodic.  Not the same
+										//as the region extents.
 
 public:
 	// constructor and deconstructor
@@ -158,14 +163,18 @@ public:
 	int zcelldim(void) {return (m_nDimension[2] - 1);}
 	void GetDimension(int& xdim, int& ydim, int& zdim){xdim = m_nDimension[0]; ydim = m_nDimension[1]; zdim = m_nDimension[2];}
 
+	void setPeriod(const float* prd){period[0] = prd[0]; period[1]=prd[1]; period[2]=prd[2];}
 	//////////////////////////////////////////////////////////////////////////
 	// cell related
 	//////////////////////////////////////////////////////////////////////////
 	// physical coordinate of vertex verIdx
 	bool at_vertex(int verIdx, VECTOR3& pos);
-	// whether the physical point is in the boundary
+	// just determine whether the physical point is inside the region extents.  If
+	// the data is periodic in a dimension, it's always inside the extents in that dimension
 	bool at_phys(VECTOR3& pos);			
-	// get vertex list of a cell
+	// get vertex list of a cell, i.e. the integers used to index the vertices of the cell
+	// in the data returned from the dataMgr.  If the data is periodic, then it's necessary
+	// to "roll over" the end vertices back to the start of the array.
 	int getCellVertices(int cellId, CellTopoType cellType, vector<int>& vVertices);
 	// get the cell id and also interpolating coefficients for the given physical position
 	int phys_to_cell(PointInfo& pInfo);

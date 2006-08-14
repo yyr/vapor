@@ -50,6 +50,7 @@ namespace VAPoR
 		
 		float* GetData(size_t ts, const char* varName);
 		bool regionPeriodicDim(int i) {return (periodicDim[i] && fullInDim[i]);}
+		
 
 	private:
 		size_t userTimeUnit;						// time unit in the original data
@@ -80,6 +81,7 @@ namespace VAPoR
 		char *xVarName, *yVarName, *zVarName;		// name of three variables for vector field
 		size_t numXForms, minBlkRegion[3], maxBlkRegion[3];// in block coordinate
 		size_t minRegion[3], maxRegion[3];			//Actual region bounds
+		float flowPeriod[3];							//Used if data is periodic
 	};
 };
 

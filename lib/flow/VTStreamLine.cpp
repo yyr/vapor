@@ -278,7 +278,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 					
 				// roll back and retrace
 				//A hack to stop double retracing (which results in infinite loop!)
-				if(retrace == true && !doingRetrace)			
+				if(retrace && !doingRetrace)			
 				{
 					thisInterpolant = prevInterpolant = second_prevInterpolant;
 					seedTrace.pop_back();
