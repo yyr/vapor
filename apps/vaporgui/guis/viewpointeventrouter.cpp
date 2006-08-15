@@ -203,8 +203,8 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	//get the lighting coefficients from the gui:
 	vParams->setAmbientCoeff(ambientEdit->text().toFloat());
 	vParams->setDiffuseCoeff(0, lightDiff0->text().toFloat());
-	vParams->setDiffuseCoeff(1,lightDiff1->text().toFloat());
-	vParams->setDiffuseCoeff(0,lightDiff2->text().toFloat());
+	vParams->setDiffuseCoeff(1, lightDiff1->text().toFloat());
+	vParams->setDiffuseCoeff(2, lightDiff2->text().toFloat());
 	vParams->setSpecularCoeff(0,lightSpec0->text().toFloat());
 	vParams->setSpecularCoeff(1,lightSpec1->text().toFloat());
 	vParams->setSpecularCoeff(2,lightSpec2->text().toFloat());

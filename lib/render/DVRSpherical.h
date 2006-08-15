@@ -50,6 +50,8 @@ class RENDER_API DVRSpherical : public DVRShader
                         const int data_box[6],
                         int level);
 
+  virtual int HasLighting() const { return false; };
+
   static bool supported();
 
  protected:

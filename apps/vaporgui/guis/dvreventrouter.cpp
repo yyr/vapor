@@ -382,15 +382,6 @@ void DvrEventRouter::updateTab(Params* params){
 	//Disable the typeCombo whenever the renderer is enabled:
 	typeCombo->setEnabled(!(dvrParams->isEnabled()));
 	typeCombo->setCurrentItem(typemapi[dvrParams->getType()]);
-	DvrParams::DvrType t = dvrParams->getType();
-    if (dvrParams->getType() == DvrParams::DVR_TEXTURE3D_SHADER)
-    {
-      lightingCheckbox->setEnabled(true);
-    }
-    else
-    {
-      lightingCheckbox->setEnabled(false);
-    }
 
 	refinementCombo->setCurrentItem(dvrParams->getNumRefinements());
 	variableCombo->setCurrentItem(dvrParams->getComboVarNum());
@@ -535,15 +526,6 @@ guiSetType(int val)
 		
 	dParams->setType(typemap[val]); 
 	PanelCommand::captureEnd(cmd, dParams);
-
-    if (typemap[val] == DvrParams::DVR_TEXTURE3D_SHADER)
-    {
-      lightingCheckbox->setEnabled(true);
-    }
-    else
-    {
-      lightingCheckbox->setEnabled(false);
-    }
 }
 
 
@@ -847,6 +829,8 @@ updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWin
 		VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit,true);
 		setDatarangeDirty(dParams);
 		
+        lightingCheckbox->setEnabled(myDvr->hasLighting());
+
 		//Quit 
 		return;
 	}
@@ -868,6 +852,8 @@ updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWin
 
 				viz->getGLWindow()->appendRenderer(myDvr, Params::DvrParamsType);
 
+                lightingCheckbox->setEnabled(myDvr->hasLighting());
+
 				//force the renderer to refresh region data (??)
 				VizWinMgr::getInstance()->setVizDirty(gdParams,RegionBit,true);
 				VizWinMgr::getInstance()->setVizDirty(gdParams,DvrClutBit,true);
@@ -882,6 +868,8 @@ updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWin
 			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
 				viz->getGLWindow()->removeRenderer(Params::DvrParamsType);
 			}
+
+            lightingCheckbox->setEnabled(false);
 		}
 		return;
 	}

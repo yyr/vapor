@@ -44,6 +44,7 @@ class RENDER_API DVRShader : public DVRTexture3d
   virtual int Render(const float matrix[16]);
 
   virtual int HasType(DataType_T type);
+  virtual int HasLighting() const { return true; };
 
   virtual void SetCLUT(const float ctab[256][4]);
   virtual void SetOLUT(const float ftab[256][4], const int numRefinenements);

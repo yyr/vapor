@@ -42,6 +42,8 @@ namespace VAPoR {
 	virtual void initializeGL();
     virtual void paintGL();
 
+    bool hasLighting();
+
     static bool supported(DvrParams::DvrType type);
 	
     //#ifdef BENCHMARKING
