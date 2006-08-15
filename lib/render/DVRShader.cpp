@@ -30,7 +30,6 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 DVRShader::DVRShader(DataType_T type, int nthreads) :
   DVRTexture3d(type, nthreads),
-  _data(NULL),
   _colormap(NULL),
   _shader(NULL),
   _texid(0),

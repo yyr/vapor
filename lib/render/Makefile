@@ -15,7 +15,7 @@ FILES = \
 	trackball flowrenderer \
 	VolumeRenderer BBox ShaderProgram TextureBrick \
 	Vect3d Matrix3d Stopwatch DVRTexture3d \
-	DVRShader DVRLookup DVRVolumizer
+	DVRShader DVRLookup DVRVolumizer DVRSpherical
 
 QT_HEADERS = \
 	renderer flowrenderer 

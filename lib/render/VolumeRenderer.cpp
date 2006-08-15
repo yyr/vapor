@@ -56,6 +56,7 @@
 
 #include "DVRLookup.h"
 #include "DVRShader.h"
+#include "DVRSpherical.h"
 #ifdef VOLUMIZER
 #include "DVRVolumizer.h"
 #endif
@@ -134,6 +135,15 @@ bool VolumeRenderer::supported(DvrParams::DvrType type)
        return DVRShader::supported();
      }
 
+     case DvrParams::DVR_SPHERICAL_SHADER:
+     {
+#    ifdef SPHERICAL_GRID
+       return DVRSpherical::supported();
+#    else
+       return false;
+#    endif
+     }
+
      case DvrParams::DVR_VOLUMIZER:
      {
 #    ifdef VOLUMIZER
@@ -183,6 +193,11 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   else if (dvrType == DvrParams::DVR_TEXTURE3D_SHADER)
   {
     driver = new DVRShader(type, 1);
+  }
+
+  else if (dvrType == DvrParams::DVR_SPHERICAL_SHADER)
+  {
+    driver = new DVRSpherical(type, 1);
   }
 
 #ifdef VOLUMIZER

@@ -24,12 +24,6 @@ namespace VAPoR {
 
 class RENDER_API DVRShader : public DVRTexture3d
 {
-  enum // Shaders
-  {
-    DEFAULT = 0,
-    LIGHT
-  };
-
  public:
 
 
@@ -63,9 +57,14 @@ protected:
 
   void initTextures();
 
-private:
+protected:
 
-  void           *_data;
+  enum // Shaders
+  {
+    DEFAULT = 0,
+    LIGHT
+  };
+
   float          *_colormap;
   ShaderProgram  *_shader;
   ShaderProgram  *_shaders[2];

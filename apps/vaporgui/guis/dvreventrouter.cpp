@@ -637,6 +637,14 @@ void DvrEventRouter::initTypes()
     index++;
   }
 
+  if (VolumeRenderer::supported(DvrParams::DVR_SPHERICAL_SHADER))
+  {
+    typeCombo->insertItem("Spherical-Shader", index);
+    typemap[index] = DvrParams::DVR_SPHERICAL_SHADER;
+    typemapi[DvrParams::DVR_SPHERICAL_SHADER] = index;
+    index++;
+  }
+
   if (VolumeRenderer::supported(DvrParams::DVR_DEBUG))
   {
     typeCombo->insertItem("Debug", index);

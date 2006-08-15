@@ -132,7 +132,7 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
       _bricks[0]->textureMax((float)data_roi[3]/(_nx-1), 
                              (float)data_roi[4]/(_ny-1), 
                              (float)data_roi[5]/(_nz-1));
-      
+
       _bricks[0]->fill((GLubyte*)data, nx, ny, nz);
       
       loadTexture(_bricks[0]);
@@ -297,7 +297,7 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
         glTexCoord3f(tverts[order[j]].x(), 
                      tverts[order[j]].y(), 
                      tverts[order[j]].z());
-        
+
         glVertex3f(verts[order[j]].x(), 
                    verts[order[j]].y(), 
                    verts[order[j]].z());

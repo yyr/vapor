@@ -49,6 +49,7 @@ public:
       DVR_VOLUMIZER,   
       DVR_DEBUG,
       DVR_STRETCHED_GRID,
+      DVR_SPHERICAL_SHADER,
 	  DVR_INVALID_TYPE
     };
 	 void setType(DvrType val) {type = val; }
