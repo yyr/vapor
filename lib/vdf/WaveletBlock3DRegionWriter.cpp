@@ -565,7 +565,7 @@ void WaveletBlock3DRegionWriter::copy_top_superblock(
 		pad = _padblock[z*_bs[0]*_bs[1]*4 + y*_bs[0]*2 + maxsb[0]];
 		dstptr = _padblock + z*_bs[0]*_bs[1]*4 + y*_bs[0]*2 + maxsb[0]+1;
 
-		for (int x=maxsb[0]+1; x<_bs[0]*2-1 ; x++) {
+		for (int x=maxsb[0]+1; x<_bs[0]*2 ; x++) {
 			*dstptr = pad;
 			dstptr += stride;
 		}
@@ -590,7 +590,7 @@ void WaveletBlock3DRegionWriter::copy_top_superblock(
 		pad = _padblock[z*_bs[0]*_bs[1]*4 + maxsb[1]*_bs[0]*2 + x];
 		dstptr = _padblock + z*_bs[0]*_bs[1]*4 + (maxsb[1]+1)*_bs[0]*2 + x;
 
-		for (int y=maxsb[1]+1; y<_bs[1]*2-1 ; y++) {
+		for (int y=maxsb[1]+1; y<_bs[1]*2 ; y++) {
 			*dstptr = pad;
 			dstptr += stride;
 		}
@@ -614,7 +614,7 @@ void WaveletBlock3DRegionWriter::copy_top_superblock(
 
 		pad = _padblock[maxsb[2]*_bs[0]*_bs[1]*4 + y*_bs[0]*2 + x];
 		dstptr = _padblock + (maxsb[2]+1)*_bs[0]*_bs[1]*4 + y*_bs[0]*2 + x;
-		for (int z=maxsb[2]+1; z<_bs[2]*2-1 ; z++) {
+		for (int z=maxsb[2]+1; z<_bs[2]*2 ; z++) {
 			*dstptr = pad;
 			dstptr += stride;
 		}
