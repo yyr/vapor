@@ -22,7 +22,7 @@ RELEASE=0
 # Set DEBUG to 1 if you want diagnostic messages turned on
 DEBUG=0
 
-# Set BENCHMARK or PROFILE to 1 for framerate diagnostics
+# Set BENCHMARK or PROFILE to 1 for volume rendering framerate diagnostics
 BENCHMARK=0
 PROFILING=0
 
