@@ -50,7 +50,7 @@ const string DvrParams::_dvrLightingAttr = "DVRLighting";
 
 
 
-DvrParams::DvrParams(int winnum) : Params(winnum)
+DvrParams::DvrParams(int winnum) : RenderParams(winnum)
 {
 	thisParamType = DvrParamsType;
 	numBits = 8;
@@ -373,7 +373,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				ist >> activeVarName;
 			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
-				if (value == "true") setLocal(true); else setLocal(false);
+				//Ignore
 			}
 			else if (StrCmpNoCase(attribName, _histoStretchAttr) == 0){
 				float histStretch;
@@ -519,12 +519,6 @@ buildNode() {
 	oss << (long)vizNum;
 	attrs[_vizNumAttr] = oss.str();
 
-	oss.str(empty);
-	if (local)
-		oss << "true";
-	else 
-		oss << "false";
-	attrs[_localAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (long)numVariables;

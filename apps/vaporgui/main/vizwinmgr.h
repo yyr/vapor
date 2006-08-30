@@ -169,7 +169,7 @@ public:
 	RegionParams* getRegionParams(int winNum);
 	
 
-	//For a renderer, there should always exist a local version.
+	//For a renderer, there will only exist a local version.
 	DvrParams* getDvrParams(int winNum);
 	ProbeParams* getProbeParams(int winNum);
 	
@@ -383,10 +383,10 @@ protected:
 	Trackball* globalTrackball;
 	ViewpointParams* globalVPParams;
 	RegionParams* globalRegionParams;
-	
-	FlowParams* globalFlowParams;
-	ProbeParams* globalProbeParams;
-	DvrParams* globalDvrParams;
+	//Default, not same as global...
+	FlowParams* defaultFlowParams;
+	ProbeParams* defaultProbeParams;
+	DvrParams* defaultDvrParams;
 	
 	AnimationParams* globalAnimationParams;
 
@@ -420,11 +420,7 @@ protected slots:
 	
 	void setVpLocalGlobal(int val);
 	void setRgLocalGlobal(int val);
-	void setDvrLocalGlobal(int val);
-	void setProbeLocalGlobal(int val);
-	
 	void setAnimationLocalGlobal(int val);
-	void setFlowLocalGlobal(int val);
 };
 };
 #endif // VIZWINMGR_H

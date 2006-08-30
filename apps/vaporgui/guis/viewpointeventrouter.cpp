@@ -226,7 +226,7 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	vParams->setRotationCenter(2,rotCenter2->text().toFloat());
 	
 	PanelCommand::captureEnd(cmd, vParams);
-	updateRenderer(vParams,false, false, false);
+	updateRenderer(vParams,false, false);
 	guiSetTextChanged(false);
 
 	if (changed) updateTab(vParams);
@@ -348,7 +348,7 @@ guiCenterSubRegion(RegionParams* rParams){
 	//modify near/far distance as needed:
 	VizWinMgr::getInstance()->resetViews(rParams,vpParams);
 	updateTab(vpParams);
-	updateRenderer(vpParams,false, false, false);
+	updateRenderer(vpParams,false,  false);
 	PanelCommand::captureEnd(cmd,vpParams);
 	
 }
@@ -364,7 +364,7 @@ guiCenterFullRegion(RegionParams* rParams){
 	//modify near/far distance as needed:
 	VizWinMgr::getInstance()->resetViews(rParams,vpParams);
 	updateTab(vpParams);
-	updateRenderer(vpParams,false, false, false);
+	updateRenderer(vpParams,false,  false);
 	PanelCommand::captureEnd(cmd,vpParams);
 	
 }
@@ -406,7 +406,7 @@ guiAlignView(int axis){
 	vsub(currentViewpoint->getRotationCenter(), vdir, vpos);
 	currentViewpoint->setCameraPos(vpos);
 	updateTab(vpParams);
-	updateRenderer(vpParams,false,false,false);
+	updateRenderer(vpParams,false,false);
 	PanelCommand::captureEnd(cmd,vpParams);
 }
 
@@ -433,7 +433,7 @@ guiSetCenter(const float* coords){
 		vpParams->setRotationCenter(i,coords[i]);
 	}
 	updateTab(vpParams);
-	updateRenderer(vpParams,false, false, false);
+	updateRenderer(vpParams,false,  false);
 	PanelCommand::captureEnd(cmd,vpParams);
 	
 }
@@ -445,7 +445,7 @@ setHomeViewpoint(){
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
 	vpParams->setHomeViewpoint(new Viewpoint(*currentViewpoint));
 	updateTab(vpParams);
-	updateRenderer(vpParams,false, false, false);
+	updateRenderer(vpParams,false,false);
 	PanelCommand::captureEnd(cmd, vpParams);
 }
 void ViewpointEventRouter::
@@ -456,7 +456,7 @@ useHomeViewpoint(){
 	Viewpoint* homeViewpoint = vpParams->getHomeViewpoint();
 	vpParams->setCurrentViewpoint(new Viewpoint(*homeViewpoint));
 	updateTab(vpParams);
-	updateRenderer(vpParams,false, false, false);
+	updateRenderer(vpParams,false,  false);
 	PanelCommand::captureEnd(cmd, vpParams);
 }
 void ViewpointEventRouter::
@@ -505,7 +505,7 @@ captureMouseDown(){
 }
 
 void ViewpointEventRouter::
-updateRenderer(ViewpointParams* vpParams, bool prevEnabled,  bool wasLocal, bool newWindow){
+updateRenderer(ViewpointParams* vpParams, bool prevEnabled,   bool newWindow){
 	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
 	bool local = vpParams->isLocal();
 	//Always set the values in the active viz.  This amounts to stuffing
@@ -550,5 +550,5 @@ makeCurrent(Params* prev, Params* next, bool) {
 		VizWinMgr::getInstance()->getVizWin(vizNum)->setGlobalViewpoint(!next->isLocal());
 	//Also update current Tab.  It's probably visible.
 	updateTab(vParams);
-	updateRenderer(vParams, false, prev->isLocal(), false);
+	updateRenderer(vParams, false, false);
 }

@@ -6,7 +6,7 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>8</x>
+            <x>0</x>
             <y>0</y>
             <width>440</width>
             <height>1125</height>
@@ -52,61 +52,6 @@
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer93</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>51</width>
-                                    <height>20</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel1</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Scope</string>
-                            </property>
-                        </widget>
-                        <widget class="QComboBox">
-                            <item>
-                                <property name="text">
-                                    <string>Global</string>
-                                </property>
-                            </item>
-                            <item>
-                                <property name="text">
-                                    <string>Local </string>
-                                </property>
-                            </item>
-                            <property name="name">
-                                <cstring>LocalGlobal</cstring>
-                            </property>
-                            <property name="editable">
-                                <bool>false</bool>
-                            </property>
-                            <property name="currentItem">
-                                <number>1</number>
-                            </property>
-                            <property name="sizeLimit">
-                                <number>2</number>
-                            </property>
-                            <property name="maxCount">
-                                <number>1</number>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Apply these settings to visualizers, either globally or locally </string>
-                            </property>
-                        </widget>
                         <spacer>
                             <property name="name">
                                 <cstring>spacer22</cstring>

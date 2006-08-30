@@ -44,8 +44,8 @@ public:
 	FlowEventRouter(QWidget* parent, const char* name);
 	virtual ~FlowEventRouter();
 
-	virtual void updateMapBounds(Params* p);
-	virtual void updateClut(Params* p){
+	virtual void updateMapBounds(RenderParams* p);
+	virtual void updateClut(RenderParams* p){
 		VizWinMgr::getInstance()->setVizDirty(p,FlowGraphicsBit,true);
 	}
 	
@@ -62,7 +62,7 @@ public:
 	
 	
 	
-	MapEditor* getMapEditor(Params* fParams){
+	MapEditor* getMapEditor(RenderParams* fParams){
 		if (fParams->getMapperFunc())
 			return (fParams->getMapperFunc()->getEditor());
 		else return 0;
@@ -88,7 +88,7 @@ public:
 	//Methods to make sliders and text consistent for seed region:
 	void textToSlider(FlowParams* fParams,int coord, float center, float size);
 	void sliderToText(FlowParams* fParams,int coord, int center, int size);
-	void updateRenderer(FlowParams* fParams, bool prevEnabled,  bool wasLocal, bool newWindow);
+	void updateRenderer(FlowParams* fParams, bool prevEnabled,  bool newWindow);
 	virtual void guiStartChangeMapFcn(char* );
 	virtual void guiEndChangeMapFcn();
 public slots:

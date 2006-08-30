@@ -33,14 +33,14 @@ class QComboBox;
 class QLabel;
 
 namespace VAPoR {
-class Params;
+class RenderParams;
 
 class SaveTFDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-	SaveTFDialog( Params*, QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
+	SaveTFDialog( RenderParams*, QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
     ~SaveTFDialog();
 
     QPushButton* fileSaveButton;
@@ -63,7 +63,7 @@ protected:
     QSpacerItem* spacer28;
     QSpacerItem* spacer29;
 
-	VAPoR::Params* myParams;
+	VAPoR::RenderParams* myParams;
 
 protected slots:
     virtual void languageChange();

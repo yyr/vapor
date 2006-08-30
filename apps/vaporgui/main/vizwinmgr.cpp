@@ -141,7 +141,7 @@ VizWinMgr::VizWinMgr()
 	animationEventRouter = 0;
 	flowEventRouter = 0;
 }
-//Create the global params and the routing classes
+//Create the global params and the default renderer params:
 void VizWinMgr::
 createGlobalParams() {
 	//regionEventRouter = new RegionEventRouter();
@@ -150,12 +150,10 @@ createGlobalParams() {
 	//Create a default (global) parameter set
 	globalVPParams = new ViewpointParams( -1);
 	globalRegionParams = new RegionParams( -1);
-	globalDvrParams = new DvrParams( -1);
-	globalProbeParams = new ProbeParams(-1);
-	
-	globalFlowParams = new FlowParams(-1);
-	
 	globalAnimationParams = new AnimationParams( -1);
+	defaultDvrParams = new DvrParams(-1);
+	defaultFlowParams = new FlowParams(-1);
+	defaultProbeParams = new ProbeParams(-1);
 	globalTrackball = new Trackball();
 }
 
@@ -345,20 +343,13 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
  */
 void VizWinMgr::
 createDefaultParams(int winnum){
-	dvrParams[winnum] = (DvrParams*)globalDvrParams->deepCopy();
-	dvrParams[winnum]->setVizNum(winnum);
-	dvrParams[winnum]->setLocal(true);
+	dvrParams[winnum] = new DvrParams(winnum);
 	dvrParams[winnum]->setEnabled(false);
 
-	probeParams[winnum] = (ProbeParams*)globalProbeParams->deepCopy();
-	probeParams[winnum]->setVizNum(winnum);
-	probeParams[winnum]->setLocal(true);
+	probeParams[winnum] = new ProbeParams(winnum);
 	probeParams[winnum]->setEnabled(false);
 	
-	
-	flowParams[winnum] = (FlowParams*)globalFlowParams->deepCopy();
-	flowParams[winnum]->setVizNum(winnum);
-	flowParams[winnum]->setLocal(true);
+	flowParams[winnum] = new FlowParams(winnum);
 	flowParams[winnum]->setEnabled(false);
 
 	assert(0==vpParams[winnum]);
@@ -381,14 +372,7 @@ createDefaultParams(int winnum){
 //
 void VizWinMgr::replaceGlobalParams(Params* p, Params::ParamType typ){
 	switch (typ){
-		case (Params::DvrParamsType):
-			if(globalDvrParams) delete globalDvrParams;
-			globalDvrParams = (DvrParams*)p;
-			return;
-		case (Params::ProbeParamsType):
-			if(globalProbeParams) delete globalProbeParams;
-			globalProbeParams = (ProbeParams*)p;
-			return;
+		
 		case (Params::RegionParamsType):
 			if(globalRegionParams) delete globalRegionParams;
 			globalRegionParams = (RegionParams*)p;
@@ -400,10 +384,6 @@ void VizWinMgr::replaceGlobalParams(Params* p, Params::ParamType typ){
 		case (Params::AnimationParamsType):
 			if(globalAnimationParams) delete globalAnimationParams;
 			globalAnimationParams = (AnimationParams*)p;
-			return;
-		case (Params::FlowParamsType):
-			if(globalFlowParams) delete globalFlowParams;
-			globalFlowParams = (FlowParams*)p;
 			return;
 		default:  assert(0); return;
 	}
@@ -531,7 +511,6 @@ killViz(int viznum){
  *  Methods for changing the parameter panels.  Only done during undo/redo.
  */
 
-
 void VizWinMgr::setParams(int winnum, Params* p, Params::ParamType t){
 	Params** paramsArray = getParamsArray(t);
 	if (winnum < 0) { //global params!
@@ -542,7 +521,7 @@ void VizWinMgr::setParams(int winnum, Params* p, Params::ParamType t){
 		//Set all windows that use global params:
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if (paramsArray[i] && !paramsArray[i]->isLocal()){
-				vizWin[i]->getGLWindow()->setParams(globalProbeParams,t);
+				vizWin[i]->getGLWindow()->setParams(globalParams,t);
 			}
 		}
 	} else {
@@ -586,8 +565,6 @@ void
 VizWinMgr::hookUpDvrTab(DvrEventRouter* dvrTab)
 {
 	dvrEventRouter = dvrTab;
-	connect (dvrTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setDvrLocalGlobal(int)));
-	connect (this, SIGNAL(enableMultiViz(bool)), dvrTab->LocalGlobal, SLOT(setEnabled(bool)));
 	
 	dvrEventRouter->hookUpTab();
 }
@@ -596,8 +573,6 @@ void
 VizWinMgr::hookUpProbeTab(ProbeEventRouter* probeTab)
 {
 	probeEventRouter = probeTab;
-	connect (probeTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setProbeLocalGlobal(int)));
-	connect (this, SIGNAL(enableMultiViz(bool)), probeTab->LocalGlobal, SLOT(setEnabled(bool)));
 	emit enableMultiViz(getNumVisualizers() > 1);
 	probeEventRouter->hookUpTab();
 }
@@ -623,8 +598,6 @@ void
 VizWinMgr::hookUpFlowTab(FlowEventRouter* flowTab)
 {
 	flowEventRouter = flowTab;
-	connect (flowTab->LocalGlobal, SIGNAL (activated (int)), this, SLOT (setFlowLocalGlobal(int)));
-	connect (this, SIGNAL(enableMultiViz(bool)), flowTab->LocalGlobal, SLOT(setEnabled(bool)));
 	emit enableMultiViz(getNumVisualizers() > 1);
 	flowEventRouter->hookUpTab();
 }
@@ -861,41 +834,7 @@ setAnimationLocalGlobal(int val){
 		tabManager->show();
 	}
 }
-//Version for Flow:
-void VizWinMgr::
-setFlowLocalGlobal(int val){
-	//If changes to global, revert to global panel.
-	//If changes to local, may need to create a new local panel
-	bool wasEnabled = getFlowParams(activeViz)->isEnabled();
-	if (val == 0){//toGlobal.  
-		//First set the global status, 
-		//then put  values in tab based on global settings.
-		//Note that updateDialog will trigger events changing values
-		//on the current dialog
-		flowEventRouter->guiSetLocal(flowParams[activeViz],false);
-		flowEventRouter->updateTab(globalFlowParams);
-		vizWin[activeViz]->getGLWindow()->setFlowParams(globalFlowParams);
-		tabManager->show();
-	} else { //Local: Do we need to create new parameters?
-		if (!flowParams[activeViz]){
-			//create a new parameter panel, copied from global
-			flowParams[activeViz] = (FlowParams*)globalFlowParams->deepCopy();
-			flowParams[activeViz]->setVizNum(activeViz);
-			flowEventRouter->guiSetLocal(flowParams[activeViz],true);
-			
-			//No need to refresh anything, since the new parameters are same as old! 
-		} else { //need to revert to existing local settings:
-			flowEventRouter->guiSetLocal(flowParams[activeViz],true);
-			flowEventRouter->updateTab(flowParams[activeViz]);
-			
-			//and then refresh the panel:
-			tabManager->show();
-		}
-		vizWin[activeViz]->getGLWindow()->setFlowParams(flowParams[activeViz]);
-	}
-	//Always invoke the update on the local params
-	flowEventRouter->updateRenderer(flowParams[activeViz],wasEnabled,!val, false);
-}
+
 /*****************************************************************************
  * Called when the local/global selector is changed.
  * Separate versions for viztab, regiontab, dvrtab, flowtab, probetab
@@ -969,77 +908,6 @@ setRgLocalGlobal(int val){
 		vizWin[activeViz]->getGLWindow()->setRegionParams(rgParams[activeViz]);
 	}
 }
-/*****************************************************************************
- * Called when the dvr tab local/global selector is changed.
- * Affects only the dvr tab
- ******************************************************************************/
-void VizWinMgr::
-setDvrLocalGlobal(int val){
-	//If changes  to global, just revert to global panel.
-	//If changes to local, may need to create a new local panel
-	bool wasEnabled = getDvrParams(activeViz)->isEnabled();
-	if (val == 0){//toGlobal.  
-		//First set the global status, 
-		//then put  values in tab based on global settings.
-		//Note that updateDialog will trigger events changing values
-		//on the current dialog
-	
-		((EventRouter*)dvrEventRouter)->guiSetLocal(dvrParams[activeViz],false);
-		dvrEventRouter->updateTab(globalDvrParams);
-		vizWin[activeViz]->getGLWindow()->setDvrParams(globalDvrParams);
-		tabManager->show();
-		//Was there a change in enablement?
-		
-	} else { //Local: 
-		//need to revert to existing local settings:
-		((EventRouter*)dvrEventRouter)->guiSetLocal(dvrParams[activeViz],true);
-		dvrEventRouter->updateTab(dvrParams[activeViz]);
-		//and then refresh the panel:
-		tabManager->show();
-	
-	}
-	vizWin[activeViz]->getGLWindow()->setDvrParams(dvrParams[activeViz]);
-	//Always invoke the update the renderer on the local params
-	dvrEventRouter->updateRenderer(dvrParams[activeViz],wasEnabled,!val, false);
-	
-}
-
-/*****************************************************************************
- * Called when the Probe tab local/global selector is changed.
- * Affects only the Probe tab
- ******************************************************************************/
-void VizWinMgr::
-setProbeLocalGlobal(int val){
-	//If changes  to global, just revert to global panel.
-	//If changes to local, may need to create a new local panel
-	bool wasEnabled = getProbeParams(activeViz)->isEnabled();
-	if (val == 0){//toGlobal.  
-		//First set the global status, 
-		//then put  values in tab based on global settings.
-		//Note that updateDialog will trigger events changing values
-		//on the current dialog
-	
-		probeEventRouter->guiSetLocal(probeParams[activeViz],false);
-		probeEventRouter->updateTab(globalProbeParams);
-		vizWin[activeViz]->getGLWindow()->setProbeParams(globalProbeParams);
-		tabManager->show();
-		//Was there a change in enablement?
-		
-	} else { //Local: 
-		//need to revert to existing local settings:
-		probeEventRouter->guiSetLocal(probeParams[activeViz],true);
-		probeEventRouter->updateTab(probeParams[activeViz]);
-		//and then refresh the panel:
-		tabManager->show();
-	
-	}
-	vizWin[activeViz]->getGLWindow()->setProbeParams(probeParams[activeViz]);
-	//Always invoke the update the renderer on the local params
-	probeEventRouter->updateRenderer(probeParams[activeViz],wasEnabled,!val, false);
-
-	
-}
-
 
 ViewpointParams* VizWinMgr::
 getViewpointParams(int winNum){
@@ -1054,22 +922,18 @@ getRegionParams(int winNum){
 	return globalRegionParams;
 }
 
-
 //For a renderer, there should always exist a local version.
 DvrParams* VizWinMgr::
 getDvrParams(int winNum){
-
-	if (winNum < 0) return globalDvrParams;
-	if (dvrParams[winNum] && dvrParams[winNum]->isLocal()) return dvrParams[winNum];
-	return globalDvrParams;
+	if(winNum < 0) return defaultDvrParams;
+	return dvrParams[winNum];
+	
 }
-//For a renderer, there should always exist a local version.
+//For a renderer, there should only exist a local version.
 ProbeParams* VizWinMgr::
 getProbeParams(int winNum){
-
-	if (winNum < 0) return globalProbeParams;
-	if (probeParams[winNum] && probeParams[winNum]->isLocal()) return probeParams[winNum];
-	return globalProbeParams;
+	if(winNum < 0) return defaultProbeParams;
+	return probeParams[winNum];
 }
 AnimationParams* VizWinMgr::
 getAnimationParams(int winNum){
@@ -1080,10 +944,10 @@ getAnimationParams(int winNum){
 
 FlowParams* VizWinMgr::
 getFlowParams(int winNum){
-	if (winNum < 0) return globalFlowParams;
-	if (flowParams[winNum] && flowParams[winNum]->isLocal()) return flowParams[winNum];
-	return globalFlowParams;
+	if(winNum < 0) return defaultFlowParams;
+	return flowParams[winNum];
 }
+//Return global or default params
 Params* VizWinMgr::
 getGlobalParams(Params::ParamType t){
 	switch (t){
@@ -1091,15 +955,14 @@ getGlobalParams(Params::ParamType t){
 			return globalVPParams;
 		case (Params::RegionParamsType):
 			return globalRegionParams;
-			
-		case (Params::DvrParamsType):
-			return globalDvrParams;
-		case (Params::ProbeParamsType):
-			return globalProbeParams;
 		case (Params::AnimationParamsType):
 			return globalAnimationParams;
+		case (Params::DvrParamsType):
+			return defaultDvrParams;
 		case (Params::FlowParamsType):
-			return globalFlowParams;
+			return defaultFlowParams;
+		case (Params::ProbeParamsType):
+			return defaultProbeParams;
 		default:  assert(0);
 			return 0;
 	}
@@ -1113,17 +976,8 @@ setGlobalParams(Params* p, Params::ParamType t){
 		case (Params::RegionParamsType):
 			globalRegionParams= (RegionParams*)p;
 			return;
-		case (Params::DvrParamsType):
-			globalDvrParams = (DvrParams*)p;
-			return;
-		case (Params::ProbeParamsType):
-			globalProbeParams=(ProbeParams*)p;
-			return;
 		case (Params::AnimationParamsType):
 			globalAnimationParams=(AnimationParams*)p;
-			return;
-		case (Params::FlowParamsType):
-			globalFlowParams=(FlowParams*)p;
 			return;
 		default:  assert(0);
 			return;
@@ -1221,11 +1075,6 @@ restartParams(){
 	}
 	globalVPParams->restart();
 	globalRegionParams->restart();
-	
-	globalFlowParams->restart();
-	globalDvrParams->restart();
-	globalProbeParams->restart();
-	
 	globalAnimationParams->restart();
 }
 // force all the existing params to reinitialize, i.e. make minimal
@@ -1242,22 +1091,13 @@ reinitializeParams(bool doOverride){
 	//the global region params, since they use its settings..
 	//
 	globalVPParams->reinit(doOverride);
-	if (!globalFlowParams->reinit(doOverride)){
-		MessageReporter::errorMsg("Flow Params: No data in specified dataset");
-		return;
-	}
+	
 	flowEventRouter->reinitTab(doOverride);
 	//Router can reinit before the params...?
 	dvrEventRouter->reinitTab(doOverride);
-	if (!globalDvrParams->reinit(doOverride)){
-		MessageReporter::errorMsg("DVR Params: No data in specified dataset");
-		return;
-	}
+	
 	probeEventRouter->reinitTab(doOverride);
-	if (!globalProbeParams->reinit(doOverride)){
-		MessageReporter::errorMsg("Probe Params: No data in specified dataset");
-		return;
-	}
+	
 	
 	animationEventRouter->reinitTab(doOverride);
 	globalAnimationParams->reinit(doOverride);
@@ -1267,17 +1107,17 @@ reinitializeParams(bool doOverride){
 		if(rgParams[i]) rgParams[i]->reinit(doOverride);
 		if(dvrParams[i]) {
 			dvrParams[i]->reinit(doOverride);
-			dvrEventRouter->updateRenderer(dvrParams[i],dvrParams[i]->isEnabled(),dvrParams[i]->isLocal(),false);
+			dvrEventRouter->updateRenderer(dvrParams[i],dvrParams[i]->isEnabled(),false);
 		}
 
 		if(probeParams[i]) {
 			probeParams[i]->reinit(doOverride);
-			probeEventRouter->updateRenderer(probeParams[i],probeParams[i]->isEnabled(),probeParams[i]->isLocal(),false);
+			probeEventRouter->updateRenderer(probeParams[i],probeParams[i]->isEnabled(),false);
 		}
 		
 		if(flowParams[i]) {
 			flowParams[i]->reinit(doOverride);
-			flowEventRouter->updateRenderer(flowParams[i],flowParams[i]->isEnabled(),flowParams[i]->isLocal(),false);
+			flowEventRouter->updateRenderer(flowParams[i],flowParams[i]->isEnabled(),false);
 		}
 		
 		
@@ -1522,10 +1362,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 			dvrEventRouter->cleanParams(dvrParams[parsingVizNum]);
 			pm->pushClassStack(dvrParams[parsingVizNum]);
 			dvrParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
-			if (dvrParams[parsingVizNum]->isLocal())
-				vizWin[parsingVizNum]->getGLWindow()->setDvrParams(dvrParams[parsingVizNum]);
-			else 
-				vizWin[parsingVizNum]->getGLWindow()->setDvrParams(globalDvrParams);
+			vizWin[parsingVizNum]->getGLWindow()->setDvrParams(dvrParams[parsingVizNum]);
 			return true;
 		} else if (StrCmpNoCase(tag, Params::_probeParamsTag) == 0){
 			//Need to "push" to dvr parser.
@@ -1533,10 +1370,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 			probeEventRouter->cleanParams(probeParams[parsingVizNum]);
 			pm->pushClassStack(probeParams[parsingVizNum]);
 			probeParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
-			if (probeParams[parsingVizNum]->isLocal())
-				vizWin[parsingVizNum]->getGLWindow()->setProbeParams(probeParams[parsingVizNum]);
-			else 
-				vizWin[parsingVizNum]->getGLWindow()->setProbeParams(globalProbeParams);
+	
+			vizWin[parsingVizNum]->getGLWindow()->setProbeParams(probeParams[parsingVizNum]);
 			return true;
 		} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
 			//Need to "push" to region parser.
@@ -1575,10 +1410,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tag, const char 
 			flowEventRouter->cleanParams(flowParams[parsingVizNum]);
 			pm->pushClassStack(flowParams[parsingVizNum]);
 			flowParams[parsingVizNum]->elementStartHandler(pm, depth, tag, attrs);
-			if (flowParams[parsingVizNum]->isLocal())
-				vizWin[parsingVizNum]->getGLWindow()->setFlowParams(flowParams[parsingVizNum]);
-			else 
-				vizWin[parsingVizNum]->getGLWindow()->setFlowParams(globalFlowParams);
+			
+			vizWin[parsingVizNum]->getGLWindow()->setFlowParams(flowParams[parsingVizNum]);
 			return true;
 		} else return false;
 	default:

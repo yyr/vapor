@@ -14,8 +14,8 @@
 //
 //	Date:		October 2004
 //
-//	Description:	Implements the Params class.
-//		This is an abstract class for all the tabbed panel params classes.
+//	Description:	Implements the Params and RenderParams classes.
+//		These are  abstract classes for all the tabbed panel params classes.
 //		Supports functionality common to all the tabbed panel params.
 //
 #include <cstring>
@@ -72,18 +72,16 @@ QString& Params::paramName(Params::ParamType type){
 	}
 	
 }
-
-
-float Params::getMinColorMapBound(){
+float RenderParams::getMinColorMapBound(){
 	return (getMapperFunc()? getMapperFunc()->getMinColorMapValue(): 0.f);
 }
-float Params::getMaxColorMapBound(){
+float RenderParams::getMaxColorMapBound(){
 	return (getMapperFunc()? getMapperFunc()->getMaxColorMapValue(): 1.f);
 }
-float Params::getMinOpacMapBound(){
+float RenderParams::getMinOpacMapBound(){
 	return (getMapperFunc()? getMapperFunc()->getMinOpacMapValue(): 0.f);
 }
-float Params::getMaxOpacMapBound(){
+float RenderParams::getMaxOpacMapBound(){
 	return (getMapperFunc()? getMapperFunc()->getMaxOpacMapValue(): 1.f);
 }
 

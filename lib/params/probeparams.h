@@ -40,7 +40,7 @@ class PanelCommand;
 class XmlNode;
 class FlowParams;
 class Histo;
-class PARAMS_API ProbeParams : public Params{
+class PARAMS_API ProbeParams : public RenderParams{
 	
 public: 
 	ProbeParams(int winnum);

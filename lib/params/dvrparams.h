@@ -39,7 +39,7 @@ class TFEditor;
 class TransferFunction;
 class PanelCommand;
 class XmlNode;
-class PARAMS_API DvrParams : public Params{
+class PARAMS_API DvrParams : public RenderParams{
 	
 public: 
 	 enum DvrType

@@ -89,9 +89,8 @@ using namespace VAPoR;
 	const string FlowParams::_rightOpacityBoundAttr = "RightOpacityBound";
 
 
-FlowParams::FlowParams(int winnum) : Params(winnum) {
+FlowParams::FlowParams(int winnum) : RenderParams(winnum) {
 	thisParamType = FlowParamsType;
-	
 	myFlowLib = 0;
 	mapperFunction = 0;
 	flowMapEditor = 0;
@@ -1027,13 +1026,6 @@ buildNode() {
 	attrs[_vizNumAttr] = oss.str();
 
 	oss.str(empty);
-	if (local)
-		oss << "true";
-	else 
-		oss << "false";
-	attrs[_localAttr] = oss.str();
-
-	oss.str(empty);
 	oss << (long)numComboVariables;
 	attrs[_numVariablesAttr] = oss.str();
 
@@ -1289,7 +1281,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				}
 			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
-				if (value == "true") setLocal(true); else setLocal(false);
+				//ignore
 			}
 			else if (StrCmpNoCase(attribName, _autoRefreshAttr) == 0) {
 				if (value == "true") autoRefresh = true; else autoRefresh = false;

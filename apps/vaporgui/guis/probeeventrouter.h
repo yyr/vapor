@@ -43,8 +43,8 @@ public:
 	ProbeEventRouter(QWidget* parent, const char* name);
 	virtual ~ProbeEventRouter();
 
-	virtual void updateMapBounds(Params* p);
-	virtual void updateClut(Params* p){
+	virtual void updateMapBounds(RenderParams* p);
+	virtual void updateClut(RenderParams* p){
 		VizWinMgr::getInstance()->setVizDirty(p,ProbeTextureBit,true);
 	}
 	
@@ -71,7 +71,7 @@ public:
 			return ((TFEditor*)dParams->getTransFunc()->getEditor());
 		else return 0;
 	}
-	void updateRenderer(ProbeParams* dParams, bool prevEnabled,  bool wasLocal, bool newWindow);
+	void updateRenderer(ProbeParams* dParams, bool prevEnabled,  bool newWindow);
 	virtual void captureMouseDown();
 	virtual void captureMouseUp();
 	void textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize);
@@ -90,8 +90,8 @@ public:
 
 	//Methods to support maintaining a list of histograms
 	//in each eventRouter (at least those with a TFE)
-	virtual Histo* getHistogram(Params* p, bool mustGet);
-	virtual void refreshHistogram(Params* p);
+	virtual Histo* getHistogram(RenderParams* p, bool mustGet);
+	virtual void refreshHistogram(RenderParams* p);
 
 	//There are multiple notions of "dirty" here!
 	virtual void setEditorDirty();
@@ -161,7 +161,7 @@ protected slots:
 	void probeReturnPressed();
 	
 protected:
-	virtual void setDatarangeDirty(Params*);
+	virtual void setDatarangeDirty(RenderParams*);
 	bool seedAttached;
 	FlowParams* attachedFlow;
 	//Flag to enable resetting of the listbox without

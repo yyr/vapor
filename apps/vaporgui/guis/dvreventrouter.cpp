@@ -185,7 +185,7 @@ setDvrEnabled(int val){
 	typeCombo->setEnabled(!val);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
-	updateRenderer(dParams,!val, dParams->isLocal(), false);
+	updateRenderer(dParams,!val, false);
 	setEditorDirty();
 }
 
@@ -390,11 +390,6 @@ void DvrEventRouter::updateTab(Params* params){
 	numBitsSpin->setValue(dvrParams->getNumBits());
 	histoScaleEdit->setText(QString::number(dvrParams->getHistoStretch()));
 	
-	
-	if (dvrParams->isLocal())
-		LocalGlobal->setCurrentItem(1);
-	else 
-		LocalGlobal->setCurrentItem(0);
 
 	updateMapBounds(dvrParams);
 	
@@ -566,7 +561,7 @@ guiSetComboVarNum(int val){
  * don't trigger a new undo/redo event
  */
 void DvrEventRouter::
-updateMapBounds(Params* params){
+updateMapBounds(RenderParams* params){
 	QString strn;
 	DvrParams* dParams = (DvrParams*)params;
 	//Find out what timestep is current:
@@ -744,33 +739,23 @@ guiBindOpacToColor(){
 	setEditorDirty();
 		
 }
-/* Handle the change of status associated with change of enablement and change
- * of local/global.  If we are enabling global, a renderer must be created in every
- * global window, including active one.  If we are enabling local, only active one is created.
- * If we change from local to global, (no change in enablement) then new renderers are
- * created for every additional global window.  Similar for disable.
- * It can occur that both enablement and local/global change, if the local and global enablement
- * are different, during a local/global change
- * This assumes that the VizWinMgr already is set with the current (new) local/global
- * dvr settings.  
+/* Handle the change of status associated with change of enablement 
+ 
  * If the window is new, (i.e. we are just creating a new window, use: 
  * prevEnabled = false, wasLocal = isLocal = true,
- * even if the renderer is really global, since we don't want to affect other global renderers.
+ 
  */
 void DvrEventRouter::
-updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWindow){
-	bool newLocal = dParams->isLocal();
+updateRenderer(DvrParams* dParams, bool prevEnabled, bool newWindow){
+	
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	if (newWindow) {
 		prevEnabled = false;
-		wasLocal = true;
-		newLocal = true;
 	}
-	//The actual enabled state of "this" depends on whether we are local or global.
-	bool nowEnabled = dParams->isEnabled();
-	if (!newLocal) nowEnabled = vizWinMgr->getGlobalParams(Params::DvrParamsType)->isEnabled();
 	
-	if (prevEnabled == nowEnabled && wasLocal == newLocal) return;
+	bool nowEnabled = dParams->isEnabled();
+	
+	if (prevEnabled == nowEnabled) return;
 
 	//If we are enabling, make sure the dvrparams are set to a valid type:
 	if (nowEnabled && dParams->getType() == DvrParams::DVR_INVALID_TYPE){
@@ -785,35 +770,26 @@ updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWin
 	} 
 	
 	//Four cases to consider:
-	//1.  change of local/global with unchanged disabled renderer; do nothing.
-	// If change of local/global with enabled renderer, just force refresh:
+	//1.  unchanged disabled renderer; do nothing.
+	//  enabled renderer, just force refresh:
 	
 	if (prevEnabled == nowEnabled) {
 		if (!prevEnabled) return;
 		setDatarangeDirty(dParams);
 		VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit,true);
-		//Need to dirty the region, too, since variable can change as a 
-		//consequence of changing local/global
 		return;
 	}
 	
-	//2.  Change of disable->enable with unchanged local renderer.  Create a new renderer in active window.
-	// Also applies to double change: disable->enable and local->global 
-	// Also applies to disable->enable with global->local
-	//3.  change of disable->enable with unchanged global renderer.  Create new renderers in all global windows, 
-	//    including active window, but not if one is already enabled
+	//2.  Change of disable->enable .  Create a new renderer in active window.
 	
 	
-	//5.  Change of enable->disable with unchanged global , disable all global renderers, provided the
-	//   VizWinMgr already has the current local/global dvr settings
 	//6.  Change of enable->disable with local renderer.  Delete renderer in local window same as:
-	//  change of enable->disable with global->local.  (Must disable the local renderer)
-	//  change of enable->disable with local->global (Must disable the local renderer)
+	
 	
 	//For a new renderer
 
 	
-	if (nowEnabled && !prevEnabled && newLocal){//For case 2.:  create a renderer in the active window:
+	if (nowEnabled && !prevEnabled ){//For case 2.:  create a renderer in the active window:
 
 		VolumeRenderer* myDvr = new VolumeRenderer(viz->getGLWindow(), dParams->getType());
 
@@ -835,45 +811,9 @@ updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWin
 		return;
 	}
 	
-	if (!newLocal && nowEnabled){ //case 3: create renderers in all  global windows, then return
-		for (int i = 0; i<MAXVIZWINS; i++){
-			
-			viz = vizWinMgr->getVizWin(i);
-			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
-				DvrParams* gdParams = (DvrParams*)vizWinMgr->getGlobalParams(Params::DvrParamsType);
-				// Make sure there is not already a volume renderer here:
-				if (viz->getGLWindow()->hasRenderer(Params::DvrParamsType)) continue;
-				VolumeRenderer* myDvr = new VolumeRenderer(viz->getGLWindow(), gdParams->getType());
-
-                connect((QObject*)myDvr, 
-                        SIGNAL(statusMessage(const QString&)),
-                        (QObject*)MainForm::getInstance()->statusBar(), 
-                        SLOT(message(const QString &)));
-
-				viz->getGLWindow()->appendRenderer(myDvr, Params::DvrParamsType);
-
-                lightingCheckbox->setEnabled(myDvr->hasLighting());
-
-				//force the renderer to refresh region data (??)
-				VizWinMgr::getInstance()->setVizDirty(gdParams,RegionBit,true);
-				VizWinMgr::getInstance()->setVizDirty(gdParams,DvrClutBit,true);
-				setDatarangeDirty(gdParams);
-			}
-		}
-		return;
-	}
-	if (!nowEnabled && prevEnabled && !newLocal && !wasLocal) { //case 5., disable all global renderers
-		for (int i = 0; i<MAXVIZWINS; i++){
-			viz = vizWinMgr->getVizWin(i);
-			if (viz && !vizWinMgr->getDvrParams(i)->isLocal()){
-				viz->getGLWindow()->removeRenderer(Params::DvrParamsType);
-			}
-
-            lightingCheckbox->setEnabled(false);
-		}
-		return;
-	}
-	assert(prevEnabled && !nowEnabled && (newLocal ||(newLocal != wasLocal))); //case 6, disable local only
+	
+	
+	assert(prevEnabled && !nowEnabled); //case 6, disable 
 	viz->getGLWindow()->removeRenderer(Params::DvrParamsType);
 
 	return;
@@ -891,7 +831,7 @@ setEditorDirty(){
 
 //Replace with versions from probe:
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
-Histo* DvrEventRouter::getHistogram(Params* p, bool mustGet){
+Histo* DvrEventRouter::getHistogram(RenderParams* p, bool mustGet){
 	DvrParams* dParams = (DvrParams*)p;
 	int numVariables = DataStatus::getInstance()->getNumVariables();
 	if (!histogramList){
@@ -911,7 +851,7 @@ Histo* DvrEventRouter::getHistogram(Params* p, bool mustGet){
 	return histogramList[varNum];
 	
 }
-void DvrEventRouter::refreshHistogram(Params* p){
+void DvrEventRouter::refreshHistogram(RenderParams* p){
 	size_t min_dim[3],max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
 	DvrParams* dParams = (DvrParams*)p;
@@ -978,7 +918,7 @@ void DvrEventRouter::refreshHistogram(Params* p){
 //Method to invalidate a datarange, and to force a rendering
 //with new data quantization
 void DvrEventRouter::
-setDatarangeDirty(Params* params)
+setDatarangeDirty(RenderParams* params)
 {
 	DvrParams* dParams = (DvrParams*)params;
 	if (!dParams->getMapperFunc()) return;
@@ -1000,8 +940,8 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin) {
 	updateTab(dParams);
 	DvrParams* formerParams = (DvrParams*)prevParams;
 	//Check if the enabled and/or Local settings changed:
-	if (formerParams->isEnabled() != dParams->isEnabled() || formerParams->isLocal() != dParams->isLocal() || newWin){
-		updateRenderer(dParams, formerParams->isEnabled(), formerParams->isLocal() , newWin);
+	if (formerParams->isEnabled() != dParams->isEnabled() || newWin){
+		updateRenderer(dParams, formerParams->isEnabled(),  newWin);
 	}
 	setDatarangeDirty(dParams);
 	updateClut(dParams);

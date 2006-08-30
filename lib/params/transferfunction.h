@@ -33,12 +33,12 @@
 
 namespace VAPoR {
 class TFEditor;
-class DvrParams;
+class RenderParams;
 class XmlNode;
 
 class PARAMS_API TransferFunction : public MapperFunction {
 public:
-	TransferFunction(Params* p, int nBits);
+	TransferFunction(RenderParams* p, int nBits);
 	TransferFunction();
 	virtual ~TransferFunction();
 	//Set to starting values

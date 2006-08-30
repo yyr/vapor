@@ -71,25 +71,7 @@ public:
 
 	void guiSetLocal(Params* p, bool lg){
 		if (textChangedFlag) confirmText(false);
-	/*
-	if (lg) { //To convert global to local, "this" may be local or global
-		PanelCommand* cmd;
-		if(vizNum == -1){
-			cmd = PanelCommand::captureStart(this,  "set Global to Local");
-		} else {
-			cmd = PanelCommand::captureStart(this->getCorrespondingGlobalParams(),  "set Global to Local");
-		}
-		//always set the local flag on "this"
-		//
-		setLocal(lg);
-		PanelCommand::captureEnd(cmd, this->getCorrespondingLocalParams());
-	} else { //To convert local to global, "this" is local:
-		assert (vizNum >= 0);
-		PanelCommand* cmd = PanelCommand::captureStart(this,  "set Local to Global");
-		setLocal(lg);
-		PanelCommand::captureEnd(cmd, this->getCorrespondingGlobalParams());
-	} 
-	*/
+	
 		PanelCommand* cmd;
 		Params* localParams = VizWinMgr::getInstance()->getCorrespondingLocalParams(p);
 		if (lg){
@@ -106,17 +88,17 @@ public:
 
 	//Methods to support maintaining a list of histograms
 	//in each router (at least those with a TFE)
-	virtual Histo* getHistogram(Params*, bool /*mustGet*/) { assert(0); return 0;}
-	virtual void refreshHistogram(Params* ) {assert(0);}
+	virtual Histo* getHistogram(RenderParams*, bool /*mustGet*/) { assert(0); return 0;}
+	virtual void refreshHistogram(RenderParams* ) {assert(0);}
 	//If there is a mapEditor, need to implement this:
 	virtual void setEditorDirty(){assert(0);}
-	MapEditor* getMapEditor(Params* params){
+	MapEditor* getMapEditor(RenderParams* params){
 		if (params->getMapperFunc())
 			return (params->getMapperFunc()->getEditor());
 		else return 0;
 	}
-	virtual void updateMapBounds(Params*) {assert (0);}
-	virtual void updateClut(Params*){assert(0);}
+	virtual void updateMapBounds(RenderParams*) {assert (0);}
+	virtual void updateClut(RenderParams*){assert(0);}
 
 	//Method for classes that capture mouse event events in viz win:
 	virtual void captureMouseUp() {assert(0);}
@@ -128,7 +110,7 @@ public:
 	
 protected:
 	//for subclasses with a datarange:
-	virtual void setDatarangeDirty(Params* ) {assert(0);}
+	virtual void setDatarangeDirty(RenderParams* ) {assert(0);}
 	//Routers with histograms keep an array, one for each variable,
 	// or variable combination
 	Histo** histogramList;

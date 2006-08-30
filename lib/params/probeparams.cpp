@@ -59,9 +59,8 @@ const string ProbeParams::_thetaAttr = "ThetaAngle";
 const string ProbeParams::_numTransformsAttr = "NumTransforms";
 
 
-ProbeParams::ProbeParams(int winnum) : Params(winnum){
+ProbeParams::ProbeParams(int winnum) : RenderParams(winnum){
 	thisParamType = ProbeParamsType;
-	
 	numVariables = 0;
 	probeTexture = 0;
 	probeDirty = true;
@@ -310,10 +309,6 @@ reinit(bool doOverride){
 	numVariables = newNumVariables;
 	bool wasEnabled = enabled;
 	setEnabled(false);
-	//Always disable  don't change local/global 
-	updateRenderer(wasEnabled, isLocal(), false);
-	
-	
 	
 	return true;
 }
@@ -441,7 +436,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				ist >> numRefinements;
 			}
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
-				if (value == "true") setLocal(true); else setLocal(false);
+				//Ignore this
 			}
 			else if (StrCmpNoCase(attribName, _histoStretchAttr) == 0){
 				float histStretch;
@@ -639,13 +634,6 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)vizNum;
 	attrs[_vizNumAttr] = oss.str();
-
-	oss.str(empty);
-	if (local)
-		oss << "true";
-	else 
-		oss << "false";
-	attrs[_localAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (long)numVariables;

@@ -117,6 +117,7 @@ class Histo;
 class DataMgr;
 class MainForm;
 class Params;
+class RenderParams;
 class Command;
 class Metadata;
 class WaveletBlock3DRegionReader;
@@ -209,7 +210,7 @@ public:
 	
 	int getNumTFs() { return numTFs;}
 	std::string* getTFName(int i) { return tfNames[i];}
-	void addTF(const char* tfName, Params* );
+	void addTF(const char* tfName, RenderParams* );
 	void addTF(const std::string tfName, TransferFunction* tf);
 	bool removeTF(const std::string* name);
 	//Obtain the Transfer function associated with a name,

@@ -96,7 +96,7 @@ void TFFrame::paintEvent(QPaintEvent* ){
 				if (editImage) delete editImage;
 				editImage = new QImage(size(),32);
 			}
-		Params* params = editor->getParams();
+		RenderParams* params = editor->getParams();
 		Histo* histo = VizWinMgr::getEventRouter(params->getParamType())->getHistogram(params, params->isEnabled());
 		editor->refreshImage(editImage, histo);
 		pxMap.convertFromImage(*editImage,0);
@@ -465,7 +465,7 @@ mouseNavigateStart(QMouseEvent* e){
 //update visualizer and/or tf display
 void TFFrame::mouseReleaseEvent( QMouseEvent *e ){
 	if (!editor) return;
-	Params* p = editor->getParams();
+	RenderParams* p = editor->getParams();
 	if (e->button() == Qt::LeftButton){
 		//If dragging bounds, ungrab, and notify dvrparams to update:
 		if( editor->domainGrabbed()){

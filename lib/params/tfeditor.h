@@ -187,7 +187,7 @@ public:
 		leftDomainSaved = getTransferFunction()->getMinMapValue();
 		rightDomainSaved = getTransferFunction()->getMaxMapValue();
 	}
-	Params* getParams() {return myMapperFunction->getParams();}
+	RenderParams* getParams() {return myMapperFunction->getParams();}
 	void setVarNum(int varnum){ setColorVarNum(varnum); setOpacVarNum(varnum);}
 	int getVarNum() {return colorVarNum;}
 

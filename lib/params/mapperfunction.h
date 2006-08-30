@@ -35,7 +35,7 @@ class XmlNode;
 
 class PARAMS_API MapperFunction : public ParsedXml {
 public:
-	MapperFunction(Params* p, int nBits);
+	MapperFunction(RenderParams* p, int nBits);
 	MapperFunction();
 	virtual ~MapperFunction();
 	//Set to starting values
@@ -70,8 +70,8 @@ public:
 		
 	void setEditor(MapEditor* e) {myMapEditor = e;}
 	MapEditor* getEditor() {return myMapEditor;}
-	void setParams(Params* p) {myParams = p;}
-	Params* getParams() {return myParams;}
+	void setParams(RenderParams* p) {myParams = p;}
+	RenderParams* getParams() {return myParams;}
 	int getNumOpacControlPoints() {return numOpacControlPoints;}
 	int getNumColorControlPoints() {return numColorControlPoints;}
 	float getMinColorMapValue(){
@@ -225,7 +225,7 @@ protected:
 	//When a TF is being edited, it keeps a pointer to the editor
 	//
 	MapEditor* myMapEditor;
-	Params* myParams;
+	RenderParams* myParams;
 	
 	//Size of lookup table.  Always 1<<8 currently!
 	//

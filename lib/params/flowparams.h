@@ -35,7 +35,7 @@ class ExpatParseMgr;
 class FlowMapEditor;
 class VECTOR4;
 class RegionParams;
-class PARAMS_API FlowParams: public Params {
+class PARAMS_API FlowParams: public RenderParams {
 	
 public: 
 	FlowParams(int winnum);

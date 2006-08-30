@@ -30,7 +30,7 @@ PanelCommand::PanelCommand(Params* prevParams, const char* descr){
 	//Make a copy of previous panel:
 	previousPanel = prevParams->deepCopy();
 	nextPanel = 0;
-	description = *(new QString(descr));
+	description = QString(descr);
 }
 void PanelCommand::
 setNext(Params* next){
@@ -52,7 +52,7 @@ void PanelCommand::reDo(){
 PanelCommand::~PanelCommand(){
 	if (previousPanel) delete previousPanel;
 	if (nextPanel) delete nextPanel;
-	delete description;
+	
 }
 PanelCommand* PanelCommand::
 captureStart(Params* p,   char* description){

@@ -185,7 +185,7 @@ setProbeEnabled(int val){
 	guiSetEnabled(val==1);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
-	updateRenderer(pParams,!val, pParams->isLocal(), false);
+	updateRenderer(pParams,!val, false);
 	setDatarangeDirty(pParams);
 }
 
@@ -534,11 +534,6 @@ void ProbeEventRouter::updateTab(Params* params){
 			variableListBox->setSelected(i, probeParams->variableIsSelected(ses->mapMetadataToRealVarNum(i)));
 	}
 	ignoreListboxChanges = false;
-	
-	if (probeParams->isLocal())
-		LocalGlobal->setCurrentItem(1);
-	else 
-		LocalGlobal->setCurrentItem(0);
 
 	updateMapBounds(probeParams);
 	
@@ -671,19 +666,15 @@ guiSetAligned(){
  * even if the renderer is really global, since we don't want to affect other global renderers.
  */
 void ProbeEventRouter::
-updateRenderer(ProbeParams* pParams, bool prevEnabled,  bool wasLocal, bool newWindow){
-	bool newLocal = pParams->isLocal();
-	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	if (newWindow) {
-		prevEnabled = false;
-		wasLocal = true;
-		newLocal = true;
-	}
-	//The actual enabled state of "this" depends on whether we are local or global.
-	bool nowEnabled = pParams->isEnabled();
-	if (!newLocal) nowEnabled = vizWinMgr->getGlobalParams(Params::ProbeParamsType)->isEnabled();
+updateRenderer(ProbeParams* pParams, bool prevEnabled,   bool newWindow){
 	
-	if (prevEnabled == nowEnabled && wasLocal == newLocal) return;
+	if (newWindow) {
+		prevEnabled = false;	
+	}
+	
+	bool nowEnabled = pParams->isEnabled();
+	
+	if (prevEnabled == nowEnabled ) return;
 	setDatarangeDirty(pParams);
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 
@@ -1107,7 +1098,7 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
  * don't trigger a new undo/redo event
  */
 void ProbeEventRouter::
-updateMapBounds(Params* params){
+updateMapBounds(RenderParams* params){
 	ProbeParams* probeParams = (ProbeParams*)params;
 	QString strn;
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
@@ -1322,7 +1313,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	return varVal;
 }
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
-Histo* ProbeEventRouter::getHistogram(Params* p, bool mustGet){
+Histo* ProbeEventRouter::getHistogram(RenderParams* p, bool mustGet){
 	ProbeParams* pParams = (ProbeParams*)p;
 	if (!histogramList){
 		if (!mustGet) return 0;
@@ -1343,7 +1334,7 @@ Histo* ProbeEventRouter::getHistogram(Params* p, bool mustGet){
 //Obtain a new histogram for the current selected variables.
 //Save it at the position associated with firstVarNum
 void ProbeEventRouter::
-refreshHistogram(Params* p){
+refreshHistogram(RenderParams* p){
 	ProbeParams* pParams = (ProbeParams*)p;
 	int firstVarNum = pParams->getFirstVarNum();
 	const float* currentDatarange = pParams->getCurrentDatarange();
@@ -1632,7 +1623,7 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin) {
 	ProbeParams* formerParams = (ProbeParams*)prevParams;
 	//Check if the enabled and/or Local settings changed:
 	if (formerParams->isEnabled() != pParams->isEnabled() || formerParams->isLocal() != pParams->isLocal() || newWin){
-		updateRenderer(pParams,formerParams->isEnabled(), formerParams->isLocal(), newWin);
+		updateRenderer(pParams,formerParams->isEnabled(), newWin);
 	}
 	setDatarangeDirty(pParams);
 	probeTextureFrame->update();
@@ -1641,7 +1632,7 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin) {
 //Method to invalidate a datarange, and to force a rendering
 //with new data quantization
 void ProbeEventRouter::
-setDatarangeDirty(Params* params)
+setDatarangeDirty(RenderParams* params)
 {
 	ProbeParams* pParams = (ProbeParams*)params;
 	if (!pParams->getMapperFunc()) return;

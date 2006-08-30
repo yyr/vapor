@@ -95,14 +95,10 @@ init(){  //reset to starting values:
 //Currently this is only for use in a dvrparams panel
 //and a probe
 //
-TransferFunction::TransferFunction(Params* p, int nBits): MapperFunction(p,nBits){
-	
-	
-	
+TransferFunction::TransferFunction(RenderParams* p, int nBits): MapperFunction(p,nBits){
 }
 	
 TransferFunction::~TransferFunction() {
-
 }
 
 
@@ -284,5 +280,3 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	bool ok = px->elementEndHandler(pm, depth, tag);
 	return ok;
 }
-
-

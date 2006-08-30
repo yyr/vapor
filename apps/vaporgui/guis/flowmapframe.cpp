@@ -497,7 +497,7 @@ void FlowMapFrame::mouseReleaseEvent( QMouseEvent *e ){
 		//If dragging bounds, ungrab, and notify params to update:
 		if( editor->anyDomainGrabbed()){
 			editor->unGrabBounds();
-			Params* p = editor->getParams();
+			RenderParams* p = editor->getParams();
 			VizWinMgr::getEventRouter(p->getParamType())->updateMapBounds(p);
 		} else { //otherwise, depends on mode 
 			//

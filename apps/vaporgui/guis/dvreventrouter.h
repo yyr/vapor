@@ -57,8 +57,8 @@ public:
 	DvrEventRouter(QWidget* parent, const char* name);
 	virtual ~DvrEventRouter();
 
-	virtual void updateMapBounds(Params* p);
-	virtual void updateClut(Params* p){
+	virtual void updateMapBounds(RenderParams* p);
+	virtual void updateClut(RenderParams* p){
 		VizWinMgr::getInstance()->setVizDirty(p,DvrClutBit,true);
 	}
 	
@@ -104,11 +104,11 @@ public:
 			return ((TFEditor*)dParams->getTransFunc()->getEditor());
 		else return 0;
 	}
-	void updateRenderer(DvrParams* dParams, bool prevEnabled,  bool wasLocal, bool newWindow);
+	void updateRenderer(DvrParams* dParams, bool prevEnabled,  bool newWindow);
 
 		
-	virtual Histo* getHistogram(Params*, bool);
-	virtual void refreshHistogram(Params*);
+	virtual Histo* getHistogram(RenderParams*, bool);
+	virtual void refreshHistogram(RenderParams*);
 
 	//There are multiple notions of "dirty" here!
 	virtual void setEditorDirty();
@@ -156,7 +156,7 @@ protected:
     int     benchmark;
     QTimer *benchmarkTimer;
 
-	virtual void setDatarangeDirty(Params* dParams);
+	virtual void setDatarangeDirty(RenderParams* dParams);
 	std::map<int, DvrParams::DvrType> typemap;
     std::map<DvrParams::DvrType, int> typemapi; // inverse typemap
 	

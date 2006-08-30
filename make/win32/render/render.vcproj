@@ -138,6 +138,9 @@
 				RelativePath="..\..\..\lib\render\DVRShader.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\render\DVRSpherical.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\render\DVRTexture3d.cpp">
 			</File>
 			<File
@@ -195,6 +198,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\DVRShader.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\render\DVRSpherical.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\DVRTexture3d.h">

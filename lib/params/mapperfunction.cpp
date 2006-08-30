@@ -64,10 +64,7 @@ MapperFunction::MapperFunction() {
 	
 }
 
-//Currently this is only for use in a dvrparams panel
-//probe and flow
-//
-MapperFunction::MapperFunction(Params* p, int nBits){
+MapperFunction::MapperFunction(RenderParams* p, int nBits){
 	myParams = p;
 	previousClass = 0;
 	
@@ -842,13 +839,4 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	bool ok = px->elementEndHandler(pm, depth, tag);
 	return ok;
 }
-/*
-void MapperFunction::startChange(char* s){ 
-	EventRouter* er = VizWinMgr::getInstance()->getEventRouter(myParams->getParamType());
-	er->guiStartChangeMapFcn(s);
-}
-void MapperFunction::endChange(){ 
-	EventRouter* er = VizWinMgr::getInstance()->getEventRouter(myParams->getParamType());
-	er->guiEndChangeMapFcn();
-}
-*/
+

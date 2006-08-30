@@ -143,7 +143,7 @@ public:
 	MapperFunction* getMapperFunction() {return myMapperFunction;}
 	void setMapperFunction(MapperFunction* tf) {myMapperFunction = tf;}
 	
-	Params* getParams() {return myMapperFunction->getParams();}
+	RenderParams* getParams() {return myMapperFunction->getParams();}
 
 	
 protected:

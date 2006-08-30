@@ -238,18 +238,12 @@ buildNode() {
 	XmlNode* globalPanels = mainNode->NewChild(_globalParameterPanelsTag, attrs, 5);
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//Have the global parameters populate this:
-	XmlNode* dvrNode = vizMgr->getGlobalParams(Params::DvrParamsType)->buildNode();
-	if(dvrNode) globalPanels->AddChild(dvrNode);
-	XmlNode* probeNode = vizMgr->getGlobalParams(Params::ProbeParamsType)->buildNode();
-	if(probeNode) globalPanels->AddChild(probeNode);
 	XmlNode* rgNode = vizMgr->getGlobalParams(Params::RegionParamsType)->buildNode();
 	if(rgNode) globalPanels->AddChild(rgNode);
 	XmlNode* animNode = vizMgr->getGlobalParams(Params::AnimationParamsType)->buildNode();
 	if(animNode) globalPanels->AddChild(animNode);
 	XmlNode* vpNode = vizMgr->getGlobalParams(Params::ViewpointParamsType)->buildNode();
 	if (vpNode) globalPanels->AddChild(vpNode);
-	XmlNode* flowNode = vizMgr->getGlobalParams(Params::FlowParamsType)->buildNode();
-	if (flowNode) globalPanels->AddChild(flowNode);
 	//have vizwinmgr populate the vizwin nodes
 	mainNode->AddChild(vizMgr->buildNode());
 	
@@ -430,13 +424,15 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 				tempParsedTF = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_dvrParamsTag) == 0){
+				// just ignore it
 				assert(tempParsedPanel);
-				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::DvrParamsType);
+				delete tempParsedPanel;
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_probeParamsTag) == 0){
+				// just ignore it
 				assert(tempParsedPanel);
-				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::ProbeParamsType);
+				delete tempParsedPanel;
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
@@ -455,10 +451,11 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 				tempParsedPanel = 0;
 				return true;	
 			} else if (StrCmpNoCase(tag, Params::_flowParamsTag) == 0){
+				// just ignore it
 				assert(tempParsedPanel);
-				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::FlowParamsType);
+				delete tempParsedPanel;
 				tempParsedPanel = 0;
-				return true;	
+				return true;
 			} else return false;
 		default: return false;
 	}
@@ -758,7 +755,7 @@ setupDataStatus(){
 //Methods to keep or remove a transfer function 
 //with the session.  The transFunc is always the current one from the dvrParams
 //
-void Session::addTF(const char* tfName, Params* params){
+void Session::addTF(const char* tfName, RenderParams* params){
 
 	//Check first if this name is already in the list.  If so, remove it.
 	const std::string tfname(tfName);

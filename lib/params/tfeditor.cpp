@@ -22,8 +22,6 @@
 
 #include <qimage.h>
 #include "histo.h"
-#include "dvrparams.h"
-
 
 using namespace VAPoR;
 //space below opacity window.  

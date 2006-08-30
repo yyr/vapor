@@ -438,7 +438,7 @@ setFlowEnabled(int val){
 	guiSetEnabled(val==1);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
-	updateRenderer(myFlowParams, !val, myFlowParams->isLocal(), false);
+	updateRenderer(myFlowParams, !val, false);
 }
 
 
@@ -602,10 +602,6 @@ void FlowEventRouter::updateTab(Params* params){
 	
 	colormapEntityCombo->setCurrentItem(fParams->getColorMapEntityIndex());
 	opacmapEntityCombo->setCurrentItem(fParams->getOpacMapEntityIndex());
-	if (fParams->isLocal())
-		LocalGlobal->setCurrentItem(1);
-	else 
-		LocalGlobal->setCurrentItem(0);
 
 	if (fParams->isRandom()){
 		dimensionLabel->setEnabled(false);
@@ -1671,22 +1667,19 @@ sliderToText(FlowParams* fParams,int coord, int slideCenter, int slideSize){
  * even if the renderer is really global, since we don't want to affect other global renderers.
  */
 void FlowEventRouter::
-updateRenderer(FlowParams* fParams, bool prevEnabled,  bool wasLocal, bool newWindow){
-	bool newLocal = fParams->isLocal();
+updateRenderer(FlowParams* fParams, bool prevEnabled,  bool newWindow){
+	
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	
 	
 	if (newWindow) {
 		prevEnabled = false;
-		wasLocal = true;
-		newLocal = true;
 	}
-	bool local = fParams->isLocal();
-	//The actual enabled state of "this" depends on whether we are local or global.
-	bool nowEnabled = fParams->isEnabled();
-	if (!local) nowEnabled = vizWinMgr->getGlobalParams(Params::FlowParamsType)->isEnabled();
 	
-	if (prevEnabled == nowEnabled && wasLocal == local) return;
+	//The actual enabled state of "this" :
+	bool nowEnabled = fParams->isEnabled();
+	
+	if (prevEnabled == nowEnabled) return;
 	
 	VizWin* viz = 0;
 	if(fParams->getVizNum() >= 0){//Find the viz that this applies to:
@@ -1723,7 +1716,7 @@ updateRenderer(FlowParams* fParams, bool prevEnabled,  bool wasLocal, bool newWi
 	//For a new renderer
 
 	
-	if (nowEnabled && !prevEnabled && newLocal){//For case 2:  create a renderer in the active window:
+	if (nowEnabled && !prevEnabled ){//For case 2:  create a renderer in the active window:
 
 		//First, make sure we have valid fielddata:
 		fParams->validateSampling(minFrame);
@@ -1736,33 +1729,10 @@ updateRenderer(FlowParams* fParams, bool prevEnabled,  bool wasLocal, bool newWi
 		return;
 	}
 	
-	if (!newLocal && nowEnabled){ //case 3: create renderers in all  global windows, then return
-		for (int i = 0; i<MAXVIZWINS; i++){
-			
-			viz = vizWinMgr->getVizWin(i);
-			if (viz && !vizWinMgr->getFlowParams(i)->isLocal()){
-				// Make sure there is not already a flow renderer here:
-				if (viz->getGLWindow()->hasRenderer(Params::FlowParamsType)) continue;
-				FlowRenderer* myRenderer = new FlowRenderer (viz->getGLWindow(), fParams);
-				viz->getGLWindow()->prependRenderer(myRenderer, Params::FlowParamsType);
-				myRenderer->setAllNeedRefresh(fParams->refreshIsAuto());
-			}
-		}
-		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-		VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
-		return;
-	}
-	if (!nowEnabled && prevEnabled && !newLocal && !wasLocal) { //case 5., disable all global renderers
-		for (int i = 0; i<MAXVIZWINS; i++){
-			viz = vizWinMgr->getVizWin(i);
-			if (viz && !vizWinMgr->getFlowParams(i)->isLocal()){
-				viz->getGLWindow()->removeRenderer(Params::FlowParamsType);
-			}
-		}
-		return;
-	}
-	//case 6, disable local only
-	assert(prevEnabled && !nowEnabled && (newLocal ||(newLocal != wasLocal))); 
+	
+	
+	//case 6, disable 
+	assert(prevEnabled && !nowEnabled); 
 	viz->getGLWindow()->removeRenderer(Params::FlowParamsType);
 
 	return;
@@ -1815,7 +1785,7 @@ setZSize(FlowParams* fParams,int sliderval){
  * don't trigger a new undo/redo event
  */
 void FlowEventRouter::
-updateMapBounds(Params* params){
+updateMapBounds(RenderParams* params){
 	FlowParams* fParams = (FlowParams*)params;
 	QString strn;
 	MapperFunction* mpFunc = fParams->getMapperFunc();
@@ -1851,7 +1821,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin) {
 	//
 	FlowParams* formerParams = (FlowParams*)prevParams;
 	if (formerParams->isEnabled() != fParams->isEnabled() || formerParams->isLocal() != fParams->isLocal() || newWin){
-		updateRenderer(fParams,formerParams->isEnabled(), formerParams->isLocal(), newWin);
+		updateRenderer(fParams,formerParams->isEnabled(),  newWin);
 	}
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);

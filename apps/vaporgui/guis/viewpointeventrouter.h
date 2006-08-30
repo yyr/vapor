@@ -73,7 +73,7 @@ public:
 	void guiSetCenter(const float* centerCoords);
 	
 	virtual void reinitTab(bool doOverride);
-	void updateRenderer(ViewpointParams* dParams, bool prevEnabled,  bool wasLocal, bool newWindow);
+	void updateRenderer(ViewpointParams* dParams, bool prevEnabled,  bool newWindow);
 
 	
 protected slots:

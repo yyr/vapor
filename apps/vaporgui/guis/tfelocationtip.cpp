@@ -95,7 +95,7 @@ void TFELocationTip::maybeTip( const QPoint &pos )
 int TFELocationTip::
 getHistoValue(float point){
 	//Determine relevant vizNum
-	Params* p = editor->getParams();
+	RenderParams* p = editor->getParams();
 	int viznum = p->getVizNum();
 	if (viznum < 0) {
 		viznum = VizWinMgr::getInstance()->getActiveViz();
