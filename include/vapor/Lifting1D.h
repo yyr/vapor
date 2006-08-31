@@ -50,7 +50,7 @@ public:
  //! \param[in,out] data Data to transform
  //! \sa InverseTransform(), Lifting1D()
  //
- void	ForwardTransform(Data_T *data);
+ void	ForwardTransform(Data_T *data, int stride = 1);
 
  //! Apply inverse lifting transform
  //!
@@ -59,7 +59,7 @@ public:
  //! \param[in,out] data Data to transform
  //! \sa ForwardTransform(), Lifting1D()
  //
- void	InverseTransform(Data_T *data);
+ void	InverseTransform(Data_T *data, int stride = 1);
 
 private:
 
@@ -113,12 +113,12 @@ private:
     const unsigned int ntilde, const unsigned int width
  );
 
- void FLWT1D_Predict(Data_T*, const long, const long, double *);
- void FLWT1D_Update(Data_T *, const long, const long, const double*);
+ void FLWT1D_Predict(Data_T*, const long, const long, double *, int stride);
+ void FLWT1D_Update(Data_T *, const long, const long, const double*, int stride);
 
- void forward_transform1d_haar(Data_T *data, int width);
+ void forward_transform1d_haar(Data_T *data, int width, int stride);
 
- void inverse_transform1d_haar(Data_T *data, int width);
+ void inverse_transform1d_haar(Data_T *data, int width, int stride);
 
 
 };
@@ -311,20 +311,20 @@ template <class Data_T> Lifting1D<Data_T>::~Lifting1D()
 //                  the Isotropic format originally established by Mallat.
 //
 template <class Data_T> void   Lifting1D<Data_T>::ForwardTransform(
-	Data_T *data
+	Data_T *data, int stride
 ) {
 	if (n_c == 1 && ntilde_c == 1) {
-		forward_transform1d_haar(data, width_c);
+		forward_transform1d_haar(data, width_c, stride);
 	}
 	else {
-		FLWT1D_Predict (data, width_c, n_c, fwd_filter_c);
-		FLWT1D_Update (data, width_c, ntilde_c, fwd_lifting_c);
+		FLWT1D_Predict (data, width_c, n_c, fwd_filter_c, stride);
+		FLWT1D_Update (data, width_c, ntilde_c, fwd_lifting_c, stride);
 	}
 
 	if (_nfactor != 1.0) {
 		// normalize the detail coefficents
 		for(unsigned int i=1; i<width_c; i+=2) {
-			data[i] /= _nfactor;
+			data[i*stride] /= _nfactor;
 		}
 	}
 }
@@ -338,21 +338,21 @@ template <class Data_T> void   Lifting1D<Data_T>::ForwardTransform(
 //                  the Isotropic format originally established by Mallat.
 //
 template <class Data_T> void Lifting1D<Data_T>::InverseTransform(
-	Data_T *data
+	Data_T *data, int stride
 ) {
 	if (_nfactor != 1.0) {
 		// un-normalize the detail coefficents
 		for(unsigned int i=1; i<width_c; i+=2) {
-			data[i] *= _nfactor;
+			data[i*stride] *= _nfactor;
 		}
 	}
 
 	if (n_c == 1 && ntilde_c == 1) {
-		inverse_transform1d_haar(data, width_c);
+		inverse_transform1d_haar(data, width_c, stride);
 	}
 	else {
-		FLWT1D_Update (data, width_c, ntilde_c, inv_lifting_c);
-		FLWT1D_Predict (data, width_c, n_c, inv_filter_c);
+		FLWT1D_Update (data, width_c, ntilde_c, inv_lifting_c, stride);
+		FLWT1D_Predict (data, width_c, n_c, inv_filter_c, stride);
 	}
 }
 
@@ -994,7 +994,8 @@ template <class Data_T> void Lifting1D<Data_T>::FLWT1D_Predict(
 	Data_T* vect,
 	const long width,
 	const long N,
-	double *filter
+	double *filter, 
+	int stride
 ) {
     register Data_T *lambdaPtr,	//pointer to Lambda coeffs
 			*gammaPtr;		// pointer to Gamma coeffs
@@ -1012,7 +1013,7 @@ template <class Data_T> void Lifting1D<Data_T>::FLWT1D_Predict(
     /* Calculate values of some important variables */
     /************************************************/
     len       = CEIL(width, 1);   /* number of coefficients at current level */
-    stepIncr  = 1 << 1;   /* step size betweeen coefficients */
+    stepIncr  = stride << 1;   /* step size betweeen coefficients */
 
     /************************************************/
     /* Calculate number of iterations for each case */
@@ -1085,7 +1086,8 @@ template <class Data_T> void Lifting1D<Data_T>::FLWT1D_Update(
 	Data_T* vect,
 	const long width,
 	const long nTilde,
-	const double * lc
+	const double *lc,
+	int stride
 ) {
     const register double * lcPtr;   /* pointer to lifting coefficient values */
     register Data_T	*vL,	/* pointer to Lambda values */
@@ -1105,7 +1107,7 @@ template <class Data_T> void Lifting1D<Data_T>::FLWT1D_Update(
     /* Calculate values of some important variables */
     /************************************************/
     len      = CEIL(width, 1);   /* number of coefficients at current level */
-    stepIncr = 1 << 1;   /* step size between coefficients */
+    stepIncr = stride << 1;   /* step size between coefficients */
     noGammas = len >> 1 ;          /* number of Gamma coefficients */
 
     /************************************************/
@@ -1167,7 +1169,8 @@ template <class Data_T> void Lifting1D<Data_T>::FLWT1D_Update(
 
 template <class Data_T> void Lifting1D<Data_T>::forward_transform1d_haar(
 	Data_T *data,
-	int width
+	int width,
+	int stride
 ) {
 	int	i;
 
@@ -1175,6 +1178,8 @@ template <class Data_T> void Lifting1D<Data_T>::forward_transform1d_haar(
 	int	nL;	// # lambda coefficients
 	double	lsum = 0.0;	// sum of lambda values
 	double	lave = 0.0;	// average of lambda values
+	int stepIncr = stride << 1;   // step size betweeen coefficients
+
 
     nG = (width >> 1);
     nL = width - nG;
@@ -1186,17 +1191,17 @@ template <class Data_T> void Lifting1D<Data_T>::forward_transform1d_haar(
 		double	t = 0.0;
 
 		for(i=0;i<width;i++) {
-			t += data[i];
+			t += data[i*stride];
 		}
 		lave = t / (double) width;
 	}
 
 	for (i=0; i<nG; i++) {
-		data[1] = data[1] - data[0];	// gamma
-		data[0] = (Data_T)(data[0] + (data[1] /2.0)); // lambda
+		data[stride] = data[stride] - data[0];	// gamma
+		data[0] = (Data_T)(data[0] + (data[stride] /2.0)); // lambda
 		lsum += data[0];
 
-		data += 2;
+		data += stepIncr;
 	}
 
     // If IsOdd(width), then we have one additional case for */
@@ -1212,13 +1217,16 @@ template <class Data_T> void Lifting1D<Data_T>::forward_transform1d_haar(
 
 template <class Data_T> void Lifting1D<Data_T>::inverse_transform1d_haar(
 	Data_T *data,
-	int width
+	int width,
+	int stride
 ) {
 	int	i,j;
 	int	nG;	// # gamma coefficients
 	int	nL;	// # lambda coefficients
 	double	lsum = 0.0;	// sum of lambda values
 	double	lave = 0.0;	// average of lambda values
+
+	int stepIncr = stride << 1;   // step size betweeen coefficients
 
 	nG = (width >> 1);
 	nL = width - nG;
@@ -1229,18 +1237,18 @@ template <class Data_T> void Lifting1D<Data_T>::inverse_transform1d_haar(
     if (IsOdd(width) ) {
         double  t = 0.0;
 
-		for(i=0,j=0;i<nL;i++,j+=2) {
+		for(i=0,j=0;i<nL;i++,j+=stepIncr) {
             t += data[j];
         }
         lave = t/(double)nL;   // average we've to maintain
     }
 
 	for (i=0; i<nG; i++) {
-		data[0] = (Data_T)(data[0] - (data[1] * 0.5));
-		data[1] = data[1] + data[0];
-		lsum += data[0] +  data[1];
+		data[0] = (Data_T)(data[0] - (data[stride] * 0.5));
+		data[stride] = data[stride] + data[0];
+		lsum += data[0] +  data[stride];
 
-		data += 2;
+		data += stepIncr;
 	}
 
     // If ODD(len), then we have one additional case for */
