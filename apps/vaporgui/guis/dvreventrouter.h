@@ -117,6 +117,10 @@ public:
 
 	
 protected slots:
+	void guiChangeInstance(int);
+	void guiNewInstance();
+	void guiDeleteInstance();
+	void guiCopyInstance();
 	void guiSetType(int val);
 	void guiSetComboVarNum(int val);
 	void guiSetNumBits(int val);

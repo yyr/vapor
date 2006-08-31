@@ -94,6 +94,10 @@ public:
 public slots:
 	void guiSetRakeToRegion();
 protected slots:
+	void guiChangeInstance(int);
+	void guiNewInstance();
+	void guiDeleteInstance();
+	void guiCopyInstance();
 	//Slots for flow panel:
 	//three kinds of text changed for flow tab
 	void setFlowTabFlowTextChanged(const QString&);

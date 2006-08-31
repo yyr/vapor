@@ -63,7 +63,7 @@ public:
 	}
 	virtual ~Params(){
 	}
-	
+	virtual bool isRenderParams() {return false;}
 	enum ParamType {
 		UnknownParamsType,
 		ViewpointParamsType,
@@ -201,7 +201,7 @@ public:
 		if (maxOpacEditBounds) delete maxOpacEditBounds;
 
 	}
-	
+	virtual bool isRenderParams() {return true;}
 
 	//this does nothing for renderParams
 	virtual void setLocal(bool ){ assert(0);}

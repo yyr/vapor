@@ -130,7 +130,10 @@ public:
 	
 protected slots:
 	
-	
+	void guiChangeInstance(int);
+	void guiNewInstance();
+	void guiDeleteInstance();
+	void guiCopyInstance();
 	//Slots for probe panel:
 	void probeCenterRegion();
 	void probeCenterView();

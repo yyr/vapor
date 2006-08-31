@@ -97,6 +97,10 @@ DvrEventRouter::~DvrEventRouter(){
 void
 DvrEventRouter::hookUpTab()
 {
+	connect (instanceCombo, SIGNAL(activated(int)), this, SLOT(guiChangeInstance(int)));
+	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
+	connect (copyInstanceButton, SIGNAL(clicked()), this, SLOT(guiCopyInstance()));
+	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (typeCombo, SIGNAL(activated(int)), this, SLOT(guiSetType(int)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(dvrLoadTF()));
@@ -138,7 +142,10 @@ DvrEventRouter::hookUpTab()
 /*********************************************************************************
  * Slots associated with DvrTab:
  *********************************************************************************/
-
+void DvrEventRouter::guiChangeInstance(int){}
+void DvrEventRouter::guiNewInstance(){}
+void DvrEventRouter::guiDeleteInstance(){}
+void DvrEventRouter::guiCopyInstance(){}
 void DvrEventRouter::
 setDvrTabTextChanged(const QString& ){
 	guiSetTextChanged(true);

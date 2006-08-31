@@ -117,6 +117,10 @@ ProbeEventRouter::hookUpTab()
 	connect (zSizeEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (thetaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (phiEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
+	connect (instanceCombo, SIGNAL(activated(int)), this, SLOT(guiChangeInstance(int)));
+	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
+	connect (copyInstanceButton, SIGNAL(clicked()), this, SLOT(guiCopyInstance()));
+	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRegion()));
 	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterView()));
@@ -158,7 +162,10 @@ ProbeEventRouter::hookUpTab()
 /*********************************************************************************
  * Slots associated with ProbeTab:
  *********************************************************************************/
-
+void ProbeEventRouter::guiChangeInstance(int){}
+void ProbeEventRouter::guiNewInstance(){}
+void ProbeEventRouter::guiDeleteInstance(){}
+void ProbeEventRouter::guiCopyInstance(){}
 void ProbeEventRouter::
 setProbeTabTextChanged(const QString& ){
 	guiSetTextChanged(true);

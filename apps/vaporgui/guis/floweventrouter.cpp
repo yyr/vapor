@@ -100,6 +100,10 @@ FlowEventRouter::~FlowEventRouter(){
 void
 FlowEventRouter::hookUpTab()
 {
+	connect (instanceCombo, SIGNAL(activated(int)), this, SLOT(guiChangeInstance(int)));
+	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
+	connect (copyInstanceButton, SIGNAL(clicked()), this, SLOT(guiCopyInstance()));
+	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (EnableDisable, SIGNAL(activated(int)), this, SLOT(setFlowEnabled(int)));
 	connect (flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( setFlowType(int) ) );
 	connect (autoRefreshCheckbox, SIGNAL(toggled(bool)), this, SLOT (guiSetAutoRefresh(bool)));
@@ -397,6 +401,10 @@ flowTabReturnPressed(void){
 /*************************************************************************************
  * slots associated with FlowTab
  *************************************************************************************/
+void FlowEventRouter::guiChangeInstance(int){}
+void FlowEventRouter::guiNewInstance(){}
+void FlowEventRouter::guiDeleteInstance(){}
+void FlowEventRouter::guiCopyInstance(){}
 //There are text changed events for flow (requiring rebuilding flow data),
 //for graphics (requiring regenerating flow graphics), and
 //for dataRange (requiring change of data mapping range, hence regenerating flow graphics)
