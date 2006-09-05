@@ -36,7 +36,7 @@ namespace VAPoR {
       
   public:
 
-    VolumeRenderer(GLWindow *w, DvrParams::DvrType type);
+    VolumeRenderer(GLWindow *w, DvrParams::DvrType type, RenderParams* rp);
     virtual ~VolumeRenderer();
     
 	virtual void initializeGL();

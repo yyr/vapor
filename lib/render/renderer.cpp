@@ -31,13 +31,14 @@
 
 using namespace VAPoR;
 
-Renderer::Renderer( GLWindow* glw )
+Renderer::Renderer( GLWindow* glw, RenderParams* rp )
 {
 	//Establish the data sources for the rendering:
 	//
 	
     myGLWindow = glw;
 	savedNumXForms = -1;
+	currentRenderParams = rp;
 }
 
 //Following methods are to support display of a colorscale in front of the data.
@@ -89,7 +90,7 @@ buildColorscaleImage(){
 
 	//Obtain the relevant transfer function:
 	TransferFunction* myTransFunc = 
-		(TransferFunction*)myGLWindow->getDvrParams()->getMapperFunc();
+		(TransferFunction*)currentRenderParams->getMapperFunc();
 	
 	
 	

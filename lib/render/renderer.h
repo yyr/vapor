@@ -41,7 +41,7 @@ public:
 	//Constructor is called when the renderer is enabled.  Does any
 	//setup of renderer state
 	//
-	Renderer(GLWindow* vw);
+	Renderer(GLWindow* vw, RenderParams* rp);
 	virtual ~Renderer() {}
 	//Following are called by the glwindow class attached to the vizwin
 	//as needed for rendering
@@ -49,6 +49,8 @@ public:
     virtual void		initializeGL() = 0;
     virtual void		paintGL() = 0;
 	virtual void		setDirty(VAPoR::DirtyBitType /*t*/) {return;}
+	//Whenever the params associated with the renderer is changed, must call this:
+	void setRenderParams(RenderParams* rp) {currentRenderParams = rp;}
 	
 signals:
 
@@ -56,6 +58,7 @@ signals:
 
 protected:
 	
+	RenderParams* currentRenderParams;
 	void buildColorscaleImage();
 	void renderColorscale(bool rebuild);
 	

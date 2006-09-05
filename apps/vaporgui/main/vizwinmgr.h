@@ -97,6 +97,7 @@ public:
 			theVizWinMgr = new VizWinMgr();
 		return theVizWinMgr;
 	}
+	//Get active params always uses current instance on renderparams.
 	static DvrParams* getActiveDvrParams(){
 		return (getInstance()->getDvrParams(getInstance()->activeViz));}
 	static ProbeParams* getActiveProbeParams(){
@@ -167,13 +168,22 @@ public:
 	//Obtain the parameters that currently apply in specified window:
 	ViewpointParams* getViewpointParams(int winNum);
 	RegionParams* getRegionParams(int winNum);
-	
-
 	//For a renderer, there will only exist a local version.
-	DvrParams* getDvrParams(int winNum);
-	ProbeParams* getProbeParams(int winNum);
+	// If instance is negative, return the current instance.
+	DvrParams* getDvrParams(int winNum, int instance = -1);
+	ProbeParams* getProbeParams(int winNum, int instance = -1);
+
+	int getNumFlowInstances(int winnum){return flowParamsInstances[winnum].size();}
+	int getNumProbeInstances(int winnum){return probeParamsInstances[winnum].size();}
+	int getNumDvrInstances(int winnum){return dvrParamsInstances[winnum].size();}
+	int getCurrentFlowInstance(int winnum) {return currentFlowInstance[winnum];}
+	int getCurrentDvrInstance(int winnum) {return currentDvrInstance[winnum];}
+	int getCurrentProbeInstance(int winnum) {return currentProbeInstance[winnum];}
+	void setCurrentFlowInstance(int winnum, int inst) {currentFlowInstance[winnum] = inst;}
+	void setCurrentDvrInstance(int winnum, int inst) {currentDvrInstance[winnum] = inst;}
+	void setCurrentProbeInstance(int winnum, int inst) {currentProbeInstance[winnum] = inst;}
 	
-	FlowParams* getFlowParams(int winNum);
+	FlowParams* getFlowParams(int winNum, int instance = -1);
 	AnimationParams* getAnimationParams(int winNum);
 
 	RegionEventRouter* getRegionRouter() {return regionEventRouter;}
@@ -202,9 +212,11 @@ public:
 	//Direct access to actual params object:
 	ViewpointParams* getRealVPParams(int i) {return vpParams[i];}
 	
-	FlowParams* getRealFlowParams(int i) {return flowParams[i];}
-	DvrParams* getRealDvrParams(int i) {return dvrParams[i];}
-	ProbeParams* getRealProbeParams(int i) {return probeParams[i];}
+	std::vector<FlowParams*>& getAllFlowParams(int i) {return flowParamsInstances[i];}
+	std::vector<DvrParams*>& getAllDvrParams(int i) {return dvrParamsInstances[i];}
+	std::vector<ProbeParams*>& getAllProbeParams(int i) {return probeParamsInstances[i];}
+	
+
 	RegionParams* getRealRegionParams(int i) {return rgParams[i];}
 	AnimationParams* getRealAnimationParams(int i) {return animationParams[i];}
 
@@ -214,11 +226,12 @@ public:
 	bool isMaximized(int winNum) {return isMax[winNum];}
 	//Setting a params changes the previous params to the
 	//specified one, performs needed ref/unref
-	void setParams(int winNum, Params* p, Params::ParamType t);
+	void setParams(int winNum, Params* p, Params::ParamType t, int instance = -1);
+	/* following superceded by above
 	void setDvrParams(int winNum, DvrParams* p) {setParams(winNum, (Params*)p, Params::DvrParamsType);}
 	void setProbeParams(int winNum, ProbeParams* p){setParams(winNum, (Params*)p, Params::ProbeParamsType);}
-	
 	void setFlowParams(int winNum, FlowParams* p){setParams(winNum, (Params*)p, Params::FlowParamsType);}
+	*/
 	void setViewpointParams(int winNum, ViewpointParams* p){setParams(winNum, (Params*)p, Params::ViewpointParamsType);}
 	void setRegionParams(int winNum, RegionParams* p){setParams(winNum, (Params*)p, Params::RegionParamsType);}
 	void setAnimationParams(int winNum, AnimationParams* p){setParams(winNum, (Params*)p, Params::AnimationParamsType);}
@@ -361,10 +374,17 @@ protected:
     bool isMin[MAXVIZWINS];
 	ViewpointParams* vpParams[MAXVIZWINS];
 	RegionParams* rgParams[MAXVIZWINS];
-	DvrParams* dvrParams[MAXVIZWINS];
-	ProbeParams* probeParams[MAXVIZWINS];
+	//For renderparams, there is an array of vectors of params, plus an integer
+	//pointing to the current instance:
 	
-	FlowParams* flowParams[MAXVIZWINS];
+	vector<DvrParams*> dvrParamsInstances[MAXVIZWINS];
+	int currentDvrInstance[MAXVIZWINS];
+	vector<ProbeParams*> probeParamsInstances[MAXVIZWINS];
+	int currentProbeInstance[MAXVIZWINS];
+	vector<FlowParams*> flowParamsInstances[MAXVIZWINS];
+	int currentFlowInstance[MAXVIZWINS];
+	
+
 	AnimationParams* animationParams[MAXVIZWINS];
 	Params** getParamsArray(Params::ParamType t);
 	//Remember the activation order:
@@ -401,7 +421,7 @@ protected:
     TabManager* tabManager;
    
     int activeViz;
-	int parsingVizNum;
+	int parsingVizNum, parsingDvrInstance, parsingFlowInstance, parsingProbeInstance;
 	
     QWorkspace* myWorkspace;
 	

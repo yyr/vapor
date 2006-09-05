@@ -63,10 +63,10 @@ protected:
 	ViewpointParams* vpParams;
 	RegionParams* regionParams;
 	
-	DvrParams* dvrParams;
-	ProbeParams* probeParams;
+	std::vector<DvrParams*> dvrParamsList;
+	std::vector<ProbeParams*> probeParamsList;
 	AnimationParams* animationParams;
-	FlowParams* flowParams;
+	std::vector<FlowParams*> flowParamsList;
 	QColor backgroundColor;
 
 };

@@ -748,8 +748,8 @@ guiBindOpacToColor(){
 }
 /* Handle the change of status associated with change of enablement 
  
- * If the window is new, (i.e. we are just creating a new window, use: 
- * prevEnabled = false, wasLocal = isLocal = true,
+ * If the window is new, (i.e. we are just creating a new window, use 
+ * prevEnabled = false
  
  */
 void DvrEventRouter::
@@ -776,7 +776,7 @@ updateRenderer(DvrParams* dParams, bool prevEnabled, bool newWindow){
 		viz = vizWinMgr->getVizWin(dParams->getVizNum());
 	} 
 	
-	//Four cases to consider:
+	//cases to consider:
 	//1.  unchanged disabled renderer; do nothing.
 	//  enabled renderer, just force refresh:
 	
@@ -798,7 +798,7 @@ updateRenderer(DvrParams* dParams, bool prevEnabled, bool newWindow){
 	
 	if (nowEnabled && !prevEnabled ){//For case 2.:  create a renderer in the active window:
 
-		VolumeRenderer* myDvr = new VolumeRenderer(viz->getGLWindow(), dParams->getType());
+		VolumeRenderer* myDvr = new VolumeRenderer(viz->getGLWindow(), dParams->getType(),dParams);
 
         connect((QObject*)myDvr, 
                 SIGNAL(statusMessage(const QString&)),
@@ -937,18 +937,24 @@ setDatarangeDirty(RenderParams* params)
 			VizWinMgr::getInstance()->setVizDirty(dParams,DvrDatarangeBit,true);
 	}
 }
-//Method called when undo/redo changes params:
+//Method called when undo/redo changes params.  If prevParams is null, the
+//vizwinmgr will create a new instance.
 void DvrEventRouter::
-makeCurrent(Params* prevParams, Params* newParams, bool newWin) {
+makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
+	assert(instance >= 0);
 	DvrParams* dParams = (DvrParams*)newParams;
 	int vizNum = dParams->getVizNum();
-	VizWinMgr::getInstance()->setDvrParams(vizNum, dParams);
+	//If we are creating one, it should be the first missing instance:
+	if (!prevParams) assert(VizWinMgr::getInstance()->getNumDvrInstances(vizNum) == instance);
+	VizWinMgr::getInstance()->setParams(vizNum, dParams, Params::DvrParamsType, instance);
 
-	updateTab(dParams);
+	if( VizWinMgr::getInstance()->getCurrentDvrInstance(vizNum) == instance) updateTab(dParams);
 	DvrParams* formerParams = (DvrParams*)prevParams;
+	bool wasEnabled = false;
+	if (formerParams) wasEnabled = formerParams->isEnabled();
 	//Check if the enabled and/or Local settings changed:
-	if (formerParams->isEnabled() != dParams->isEnabled() || newWin){
-		updateRenderer(dParams, formerParams->isEnabled(),  newWin);
+	if (newWin || (formerParams->isEnabled() != dParams->isEnabled())){
+		updateRenderer(dParams, wasEnabled,  newWin);
 	}
 	setDatarangeDirty(dParams);
 	updateClut(dParams);

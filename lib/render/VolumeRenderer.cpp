@@ -77,8 +77,8 @@ using namespace VetsUtil;
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type) 
-  : Renderer(glw),
+VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderParams* rp) 
+  : Renderer(glw, rp),
     driver(NULL),
     _type(type),
     _frames(0),
@@ -269,7 +269,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   int timeStep = myGLWindow->getAnimationParams()->getCurrentFrameNumber();
   
 	
-  DvrParams* myDVRParams = myGLWindow->getDvrParams();
+  DvrParams* myDVRParams = (DvrParams*)currentRenderParams;
+  assert(myDVRParams == myGLWindow->getDvrParams());
   int varNum = myDVRParams->getVarNum();
 	
   

@@ -1619,18 +1619,28 @@ getProbeTexture(ProbeParams* pParams){
 	return probeTexture;
 }
 	
-//Method called when undo/redo changes params:
+//Method called when undo/redo changes params.  It does the following:
+//  puts the new params into the vizwinmgr, deletes the old one
+//  Updates the tab if it's the current instance
+//  Calls updateRenderer to rebuild renderer 
+//	Makes the vizwin update.
 void ProbeEventRouter::
-makeCurrent(Params* prevParams, Params* nextParams, bool newWin) {
+makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance) {
+
+	assert(instance >= 0);
 	ProbeParams* pParams = (ProbeParams*)nextParams;
 	int vizNum = pParams->getVizNum();
-	VizWinMgr::getInstance()->setProbeParams(vizNum, pParams);
+	//If we are creating one, it should be the first missing instance:
+	if (!prevParams) assert(VizWinMgr::getInstance()->getNumProbeInstances(vizNum) == instance);
+	VizWinMgr::getInstance()->setParams(vizNum, pParams, Params::ProbeParamsType, instance);
 
-	updateTab(pParams);
+	if( VizWinMgr::getInstance()->getCurrentProbeInstance(vizNum) == instance) updateTab(pParams);
 	ProbeParams* formerParams = (ProbeParams*)prevParams;
-	//Check if the enabled and/or Local settings changed:
-	if (formerParams->isEnabled() != pParams->isEnabled() || formerParams->isLocal() != pParams->isLocal() || newWin){
-		updateRenderer(pParams,formerParams->isEnabled(), newWin);
+	bool wasEnabled = false;
+	if (formerParams) wasEnabled = formerParams->isEnabled();
+	//Check if the enabled  changed:
+	if (newWin || (formerParams->isEnabled() != pParams->isEnabled())){
+		updateRenderer(pParams, wasEnabled,  newWin);
 	}
 	setDatarangeDirty(pParams);
 	probeTextureFrame->update();

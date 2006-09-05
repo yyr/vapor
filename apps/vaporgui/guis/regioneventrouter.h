@@ -48,7 +48,7 @@ public:
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab(Params* p);
-	virtual void makeCurrent(Params* prev, Params* next, bool newWin);
+	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
 
 	
 	//Following methods are set from gui, have undo/redo support:

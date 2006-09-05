@@ -509,7 +509,7 @@ setSliders(AnimationParams* aParams){
 	}
 }
 //Method to call when a new window installed via undo/redo
-void AnimationEventRouter::makeCurrent(Params* /* prev params p*/, Params* newParams, bool){
+void AnimationEventRouter::makeCurrent(Params* /* prev params p*/, Params* newParams, bool, int){
 	AnimationParams* aParams = (AnimationParams*) newParams;
 	int vizNum = aParams->getVizNum();
 	VizWinMgr* vwm = VizWinMgr::getInstance();

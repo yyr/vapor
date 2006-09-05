@@ -1660,10 +1660,9 @@ sliderToText(FlowParams* fParams,int coord, int slideCenter, int slideSize){
 	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
 	return;
 }	
-/* Handle the change of status associated with change of enablement and change
- * of local/global.  This is identical to code for dvrparams
- * If we are enabling global, a renderer must be created in every
- * global window, including active one.  If we are enabling local, only active one is created.
+/* Handle the change of status associated with change of enablement 
+ * This is identical to code for dvrparams
+ *  If we are enabling , only active one is created.
  * If we change from local to global, (no change in enablement) then new renderers are
  * created for every additional global window.  Similar for disable.
  * It can occur that both enablement and local/global change, if the local and global enablement
@@ -1818,19 +1817,31 @@ setEditorDirty(){
 }
 //Make the new params current
 void FlowEventRouter::
-makeCurrent(Params* prevParams, Params* newParams, bool newWin) {
+makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 	
+	
+	
+	assert(instance >= 0);
 	FlowParams* fParams = (FlowParams*)newParams;
 	int vizNum = fParams->getVizNum();
-	VizWinMgr::getInstance()->setFlowParams(vizNum, fParams);
-	updateTab(fParams);
+	//If we are creating one, it should be the first missing instance:
+	if (!prevParams) assert(VizWinMgr::getInstance()->getNumFlowInstances(vizNum) == instance);
+	
+	VizWinMgr::getInstance()->setParams(vizNum, fParams, Params::FlowParamsType, instance);
+
+	if( VizWinMgr::getInstance()->getCurrentFlowInstance(vizNum) == instance) updateTab(fParams);
+	
 	//Need to create/destroy renderer if there's a change in local/global or enable/disable
 	//or if the window is new
 	//
 	FlowParams* formerParams = (FlowParams*)prevParams;
-	if (formerParams->isEnabled() != fParams->isEnabled() || formerParams->isLocal() != fParams->isLocal() || newWin){
-		updateRenderer(fParams,formerParams->isEnabled(),  newWin);
+	bool wasEnabled = false;
+	if (formerParams) wasEnabled = formerParams->isEnabled();
+	//Check if the enabled  changed:
+	if (newWin || (formerParams->isEnabled() != fParams->isEnabled())){
+		updateRenderer(fParams, wasEnabled,  newWin);
 	}
+	
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);
 }

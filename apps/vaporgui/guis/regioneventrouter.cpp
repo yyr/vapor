@@ -789,7 +789,7 @@ captureMouseUp(){
 	
 }
 void RegionEventRouter::
-makeCurrent(Params* prev, Params* nextParams ,bool) {
+makeCurrent(Params* prev, Params* nextParams ,bool, int) {
 	RegionParams* rParams = (RegionParams*) nextParams;
 	int vizNum = rParams->getVizNum();
 	VizWinMgr::getInstance()->setRegionParams(vizNum, rParams);

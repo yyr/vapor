@@ -53,8 +53,9 @@ public:
 	virtual void hookUpTab() = 0;
 	//Set all the fields in the tab based on current params
 	virtual void updateTab(Params* p) = 0;
-	//Method to install a new params for undo and redo
-	virtual void makeCurrent(Params* prevParams, Params* newParams, bool newWin) = 0;
+	//Method to install a new params for undo and redo.
+	//Instance is -1 for non-render params
+	virtual void makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance = -1) = 0;
 	//make sure the params cleanly detaches from gui, to
 	//handle possible connections from editors, frames, etc.
 	virtual void cleanParams(Params*) {}

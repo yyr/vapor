@@ -44,7 +44,7 @@
 */
 using namespace VAPoR;
 FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
-:Renderer(glw)
+:Renderer(glw, fParams)
 {
     myFlowParams = fParams;
 	numInjections = 0;
@@ -168,7 +168,7 @@ void FlowRenderer::
 renderFlowData(bool constColors, int currentFrameNum){
 	
 	RegionParams* myRegionParams = myGLWindow->getRegionParams();
-	FlowParams* myFlowParams = myGLWindow->getFlowParams();
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	
 	
 	

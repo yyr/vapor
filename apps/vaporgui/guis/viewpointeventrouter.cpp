@@ -541,7 +541,7 @@ updateRenderer(ViewpointParams* vpParams, bool prevEnabled,   bool newWindow){
 }
 
 void ViewpointEventRouter::
-makeCurrent(Params* prev, Params* next, bool) {
+makeCurrent(Params* prev, Params* next, bool,int) {
 	ViewpointParams* vParams = (ViewpointParams*) next;
 	int vizNum = vParams->getVizNum();
 	VizWinMgr::getInstance()->setViewpointParams(vizNum, vParams);
