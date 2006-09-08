@@ -59,7 +59,7 @@ public:
 
 	virtual void updateMapBounds(RenderParams* p);
 	virtual void updateClut(RenderParams* p){
-		VizWinMgr::getInstance()->setVizDirty(p,DvrClutBit,true);
+		VizWinMgr::getInstance()->setClutDirty((DvrParams*)p);
 	}
 	
 	//Connect signals and slots from tab

@@ -142,10 +142,50 @@ DvrEventRouter::hookUpTab()
 /*********************************************************************************
  * Slots associated with DvrTab:
  *********************************************************************************/
-void DvrEventRouter::guiChangeInstance(int){}
-void DvrEventRouter::guiNewInstance(){}
-void DvrEventRouter::guiDeleteInstance(){}
-void DvrEventRouter::guiCopyInstance(){}
+void DvrEventRouter::guiChangeInstance(int newCurrent){
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	assert(newCurrent >= 0 && newCurrent < vizMgr->getNumDvrInstances(winnum));
+	vizMgr->setCurrentDvrInstIndex(winnum, newCurrent);
+	updateTab(vizMgr->getDvrParams(winnum));
+	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveDvrParams(vizMgr->getDvrParams(winnum));
+}
+void DvrEventRouter::guiNewInstance(){
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	//Clone the default params
+	DvrParams* newDvr = (DvrParams*)(vizMgr->getGlobalParams(Params::DvrParamsType))->deepCopy();
+	newDvr->setVizNum(winnum);
+	vizMgr->appendDvrInstance(winnum, newDvr);
+	vizMgr->setCurrentDvrInstIndex(winnum, vizMgr->getNumDvrInstances(winnum)-1);
+	updateTab (newDvr);
+	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveDvrParams(newDvr);
+}
+void DvrEventRouter::guiDeleteInstance(){
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	assert(vizMgr->getNumDvrInstances(winnum) > 1);
+	int instance = vizMgr->getCurrentDvrInstIndex(winnum);
+	//make sure it's disabled
+	setDvrEnabled(false);
+	DvrParams* dp = vizMgr->getDvrParams(winnum);
+	vizMgr->removeDvrInstance(winnum, instance);
+	delete dp;
+	updateTab(vizMgr->getDvrParams(winnum));
+	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveDvrParams(vizMgr->getDvrParams(winnum));
+}
+void DvrEventRouter::guiCopyInstance(){
+	//If there is more than one visualizer, provide option of specifying another viz.
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	//Clone this params
+	DvrParams* newDvr = (DvrParams*)vizMgr->getDvrParams(winnum)->deepCopy();
+	newDvr->setEnabled(false);
+	vizMgr->appendDvrInstance(winnum, newDvr);
+	vizMgr->setCurrentDvrInstIndex(winnum, vizMgr->getNumDvrInstances(winnum)-1);
+	updateTab (newDvr);
+}
+
 void DvrEventRouter::
 setDvrTabTextChanged(const QString& ){
 	guiSetTextChanged(true);
@@ -321,7 +361,7 @@ sessionLoadTF(DvrParams* dParams, QString* name){
 	PanelCommand::captureEnd(cmd, dParams);
 	setEditorDirty();
 	setDatarangeDirty(dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrClutBit,true);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 }
 void DvrEventRouter::
 fileLoadTF(DvrParams* dParams){
@@ -372,7 +412,7 @@ fileLoadTF(DvrParams* dParams){
 	Session::getInstance()->updateTFFilePath(&s);
 	setEditorDirty();
 	setDatarangeDirty(dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrClutBit,true);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 }
 
 //Insert values from params into tab panel
@@ -380,7 +420,18 @@ fileLoadTF(DvrParams* dParams){
 void DvrEventRouter::updateTab(Params* params){
 	initTypes();
 	DvrParams* dvrParams = (DvrParams*) params;
-	
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	int instCount = vizMgr->getNumDvrInstances(winnum);
+	if(instCount != instanceCombo->count()){
+		instanceCombo->clear();
+		instanceCombo->setMaxCount(instCount);
+		for (int i = 0; i<instCount; i++){
+			instanceCombo->insertItem(QString::number(i), i);
+		}
+	}
+	instanceCombo->setCurrentItem(vizMgr->getCurrentDvrInstIndex(winnum));
+	deleteInstanceButton->setEnabled(vizMgr->getNumDvrInstances(winnum) > 1);
 	
 	QString strn;
 	Session::getInstance()->blockRecording();
@@ -424,7 +475,7 @@ void DvrEventRouter::updateTab(Params* params){
 	update();
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
-	VizWinMgr::getInstance()->getTabManager()->update();
+	vizMgr->getTabManager()->update();
 }
 
 //Reinitialize Dvr tab settings, session has changed.
@@ -513,10 +564,10 @@ guiSetEnabled(bool value){
 	PanelCommand::captureEnd(cmd, dParams);
 		
 	setEditorDirty();
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrClutBit,true);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 	VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit,true);
 	setDatarangeDirty(dParams);
-	//updateRenderer(prevEnabled, local, false); (unnecessary; called by vizwinmgr)
+	//updateRenderer(dParams, !value, false); //(not here; called by setDvrEnabled())
 }
 
 void DvrEventRouter::
@@ -555,7 +606,7 @@ guiSetComboVarNum(int val){
 	dParams->setVarNum(Session::getInstance()->mapMetadataToRealVarNum(val));
 	updateMapBounds(dParams);
 	VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit,true);
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrClutBit,true);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 	setDatarangeDirty(dParams);
 		
 	PanelCommand::captureEnd(cmd, dParams);
@@ -585,7 +636,7 @@ updateMapBounds(RenderParams* params){
 	}
 	
 	setDatarangeDirty(dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrClutBit,true);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 	setEditorDirty();
 }
 // Method to initialize the DVR types available to the user.
@@ -693,7 +744,7 @@ guiSetOpacityScale(int val){
 	float sliderVal = dParams->getOpacityScale();
 	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrClutBit,true);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 	setEditorDirty();
 	
 	PanelCommand::captureEnd(cmd,dParams);
@@ -718,7 +769,7 @@ guiEndChangeMapFcn(){
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
 	PanelCommand::captureEnd(savedCommand,dParams);
 	setDatarangeDirty(dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrClutBit,true);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 	savedCommand = 0;
 	setEditorDirty();
 }
@@ -731,7 +782,7 @@ guiBindColorToOpac(){
 		
 	getTFEditor(dParams)->bindColorToOpac();
 	PanelCommand::captureEnd(cmd, dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrClutBit,true);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 	setEditorDirty();
 }
 void DvrEventRouter::
@@ -742,7 +793,7 @@ guiBindOpacToColor(){
 		
 	getTFEditor(dParams)->bindOpacToColor();
 	PanelCommand::captureEnd(cmd, dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,DvrClutBit,true);
+	VizWinMgr::getInstance()->setClutDirty(dParams);
 	setEditorDirty();
 		
 }
@@ -805,7 +856,14 @@ updateRenderer(DvrParams* dParams, bool prevEnabled, bool newWindow){
                 (QObject*)MainForm::getInstance()->statusBar(), 
                 SLOT(message(const QString &)));
 
-		viz->getGLWindow()->appendRenderer(myDvr, Params::DvrParamsType);
+		//Disable any existing dvr renderer in this window:
+		DvrParams* prevParams = (DvrParams*)viz->getGLWindow()->findARenderer(Params::DvrParamsType);
+		assert(prevParams != dParams);
+		if (prevParams){
+			prevParams->setEnabled(false);
+			updateRenderer(prevParams,true,false);
+		}
+		viz->getGLWindow()->appendRenderer(dParams, myDvr);
 
 		//force the renderer to refresh region data  (why?)
 		
@@ -818,10 +876,8 @@ updateRenderer(DvrParams* dParams, bool prevEnabled, bool newWindow){
 		return;
 	}
 	
-	
-	
 	assert(prevEnabled && !nowEnabled); //case 6, disable 
-	viz->getGLWindow()->removeRenderer(Params::DvrParamsType);
+	viz->getGLWindow()->removeRenderer(dParams);
 
 	return;
 }
@@ -934,7 +990,7 @@ setDatarangeDirty(RenderParams* params)
 	float maxval = dParams->getMapperFunc()->getMaxColorMapValue();
 	if (currentDatarange[0] != minval || currentDatarange[1] != maxval){
 			dParams->setCurrentDatarange(minval, maxval);
-			VizWinMgr::getInstance()->setVizDirty(dParams,DvrDatarangeBit,true);
+			VizWinMgr::getInstance()->setDatarangeDirty(dParams);
 	}
 }
 //Method called when undo/redo changes params.  If prevParams is null, the
@@ -948,7 +1004,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 	if (!prevParams) assert(VizWinMgr::getInstance()->getNumDvrInstances(vizNum) == instance);
 	VizWinMgr::getInstance()->setParams(vizNum, dParams, Params::DvrParamsType, instance);
 
-	if( VizWinMgr::getInstance()->getCurrentDvrInstance(vizNum) == instance) updateTab(dParams);
+	if( VizWinMgr::getInstance()->getCurrentDvrInstIndex(vizNum) == instance) updateTab(dParams);
 	DvrParams* formerParams = (DvrParams*)prevParams;
 	bool wasEnabled = false;
 	if (formerParams) wasEnabled = formerParams->isEnabled();

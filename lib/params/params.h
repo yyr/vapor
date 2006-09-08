@@ -35,14 +35,10 @@ using namespace VetsUtil;
 namespace VAPoR{
 //The dirty bits are kept in each GLWindow, one for each type:
 enum DirtyBitType {
-	DvrClutBit,
 	ProbeTextureBit,
-	DvrDatarangeBit,
 	RegionBit,
 	ColorscaleBit,
 	NavigatingBit,
-	FlowDataBit,
-	FlowGraphicsBit,
     LightingBit
 };
 class XmlNode;
@@ -68,10 +64,8 @@ public:
 		UnknownParamsType,
 		ViewpointParamsType,
 		RegionParamsType,
-		
 		DvrParamsType,
 		ProbeParamsType,
-		
 		AnimationParamsType,
 		FlowParamsType
 	};
@@ -168,15 +162,11 @@ public:
     static const char* parseCmdLine(const char *flag);
 
 protected:
-	
-	
 	bool local;
 	
 	//Keep track of which window number corresp to this.  -1 for global or default parameters.
 	//
 	int vizNum;
-	
-	
 	ParamType thisParamType;
 	
 };
@@ -260,28 +250,19 @@ public:
 	}
 	virtual void sessionLoadTF(QString* ) {return;}
 	virtual MapperFunction* getMapperFunc()=0;
-	
-	
-
 	virtual int getNumRefinements()=0;
 
-	
-
 protected:
-	
 	
 	// The enabled flag is only used by renderer params
 	//
 	bool enabled;
-	
 	//Needed for renderer params:
 	float* minColorEditBounds;
 	float* maxColorEditBounds;
 	float* minOpacEditBounds;
 	float* maxOpacEditBounds;
 
-
-	
 };
 }; //End namespace VAPoR
 #endif //PARAMS_H 

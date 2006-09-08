@@ -46,7 +46,7 @@ public:
 
 	virtual void updateMapBounds(RenderParams* p);
 	virtual void updateClut(RenderParams* p){
-		VizWinMgr::getInstance()->setVizDirty(p,FlowGraphicsBit,true);
+		VizWinMgr::getInstance()->setFlowGraphicsDirty((FlowParams*)p);
 	}
 	
 	//Connect signals and slots from tab

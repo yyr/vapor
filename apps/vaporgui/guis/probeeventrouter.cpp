@@ -1634,7 +1634,7 @@ makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance) {
 	if (!prevParams) assert(VizWinMgr::getInstance()->getNumProbeInstances(vizNum) == instance);
 	VizWinMgr::getInstance()->setParams(vizNum, pParams, Params::ProbeParamsType, instance);
 
-	if( VizWinMgr::getInstance()->getCurrentProbeInstance(vizNum) == instance) updateTab(pParams);
+	if( VizWinMgr::getInstance()->getCurrentProbeInstIndex(vizNum) == instance) updateTab(pParams);
 	ProbeParams* formerParams = (ProbeParams*)prevParams;
 	bool wasEnabled = false;
 	if (formerParams) wasEnabled = formerParams->isEnabled();

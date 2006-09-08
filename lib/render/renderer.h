@@ -51,6 +51,7 @@ public:
 	virtual void		setDirty(VAPoR::DirtyBitType /*t*/) {return;}
 	//Whenever the params associated with the renderer is changed, must call this:
 	void setRenderParams(RenderParams* rp) {currentRenderParams = rp;}
+	RenderParams* getRenderParams(){return currentRenderParams;}
 	
 signals:
 

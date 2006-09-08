@@ -61,6 +61,7 @@ public:
 			return listFlowRGBAs[timeStep];
 		}
 	}
+
 	//The data dirty and needsRefresh flags are used to control updates 
 	//The data dirty indicates whether or not the current flow data is valid.
 	//The needsRefresh flag indicates whether or not invalid data should be
@@ -88,13 +89,16 @@ public:
 
 	//When a bit is set dirty, must set appropriate bits for 
 	//all timesteps.
-	virtual void setDirty(DirtyBitType type);
+	void setDataDirty();
+	void setGraphicsDirty();
+
 	bool rebuildFlowData(int timeStep, bool doRake);
 	void setRegionValid(bool trueFalse) {regionIsValid = trueFalse;}
 	bool regionValid() {return regionIsValid;}
 
 
 protected:
+
 	void calcPeriodicExtents();
 	int numFrames;
 			

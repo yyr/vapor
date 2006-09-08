@@ -111,7 +111,7 @@ void FlowRenderer::paintGL()
 	//If the regionValid flag is off, need a change before we try to render again..
 	if (!regionValid()) return;
 	
-	AnimationParams* myAnimationParams = myGLWindow->getAnimationParams();
+	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
 	steadyFlow = myFlowParams->flowIsSteady();
@@ -167,7 +167,7 @@ void FlowRenderer::paintGL()
 void FlowRenderer::
 renderFlowData(bool constColors, int currentFrameNum){
 	
-	RegionParams* myRegionParams = myGLWindow->getRegionParams();
+	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	
 	
@@ -195,7 +195,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 		ambColor[0]=ambColor[1]=ambColor[2]=0.f;
 		diffColor[3]=specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
 		
-		ViewpointParams* vpParams =  myGLWindow->getViewpointParams();
+		ViewpointParams* vpParams =  myGLWindow->getActiveViewpointParams();
 		nLights = vpParams->getNumLights();
 		if (nLights > 0){
 			glPushMatrix();
@@ -520,7 +520,7 @@ renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex
 	if (isLit){
 		//Get light direction vector of first light:
 		float lightDir[3];
-		ViewpointParams* vpParams = myGLWindow->getViewpointParams();
+		ViewpointParams* vpParams = myGLWindow->getActiveViewpointParams();
 		const float* worldLightDir = vpParams->getLightDirection(0);
 		//Transform it by modelview matrix:
 		vpParams->transform3Vector(worldLightDir,lightDir);
@@ -1473,31 +1473,29 @@ void FlowRenderer::renderStationary(float* point){
 	glEnd();
 	
 }
-
-//Virtual method to set dirty bits.  called by GLWindow
-void FlowRenderer::setDirty(DirtyBitType type){
-	
-	if (type == FlowDataBit){
-		setRegionValid(true);  // reset this bit so we will try to render again...
-		//set all the dirty flags for all the frames
-		//set the needRefresh flags too if autoRefresh is on.
-		bool doRefresh = myFlowParams->refreshIsAuto();
-		for (int i = 0; i<numFrames; i++){
-			flowDataDirty[i] = true;
-			if (doRefresh) needRefreshFlag[i] = true; 
-			else needRefreshFlag[i] = false;
-		}
-	}
-	else if (type == FlowGraphicsBit){
-		//the graphics bit shouldn't be set if we need to 
-		//calculate speeds:
-		assert((myFlowParams->getOpacMapEntityIndex() != 2)&&(myFlowParams->getColorMapEntityIndex() != 2));
-			
-		for (int i = 0; i< numFrames; i++){
-			flowMapDirty[i] = true;
-		}
+void FlowRenderer::setDataDirty()
+{
+	setRegionValid(true);  // reset this bit so we will try to render again...
+	//set all the dirty flags for all the frames
+	//set the needRefresh flags too if autoRefresh is on.
+	bool doRefresh = myFlowParams->refreshIsAuto();
+	for (int i = 0; i<numFrames; i++){
+		flowDataDirty[i] = true;
+		if (doRefresh) needRefreshFlag[i] = true; 
+		else needRefreshFlag[i] = false;
 	}
 }
+void FlowRenderer::setGraphicsDirty()
+{
+	//the graphics bit shouldn't be set if we need to 
+	//calculate speeds:
+	assert((myFlowParams->getOpacMapEntityIndex() != 2)&&(myFlowParams->getColorMapEntityIndex() != 2));
+		
+	for (int i = 0; i< numFrames; i++){
+		flowMapDirty[i] = true;
+	}
+}
+
 
 
 
@@ -1512,10 +1510,10 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 		myFlowParams->getOpacMapEntityIndex() == 2;
 	steadyFlow = myFlowParams->flowIsSteady();
 	
-	minFrame = myGLWindow->getAnimationParams()->getStartFrameNumber();
-	maxFrame = myGLWindow->getAnimationParams()->getEndFrameNumber();
+	minFrame = myGLWindow->getActiveAnimationParams()->getStartFrameNumber();
+	maxFrame = myGLWindow->getActiveAnimationParams()->getEndFrameNumber();
 	maxPoints = myFlowParams->calcMaxPoints();
-	RegionParams* rParams = myGLWindow->getRegionParams();
+	RegionParams* rParams = myGLWindow->getActiveRegionParams();
 	//Check if we are just doing graphics (not reintegrating flow)
 	//that occurs if the map bit id dirty, but there's no need to do data.
 	bool graphicsOnly = (flowMapDirty[timeStep] && 

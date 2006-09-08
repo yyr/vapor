@@ -70,9 +70,9 @@ public:
 
 	virtual void restart();
 	
-	int getNumGenerators(int dimNum) { return generatorCount[dimNum];}
+	int getNumGenerators(int dimNum) { return (int)generatorCount[dimNum];}
 	void setNumGenerators(int dimNum, int val){generatorCount[dimNum]=val;}
-	int getTotalNumGenerators() { return allGeneratorCount;}
+	int getTotalNumGenerators() { return (int)allGeneratorCount;}
 	void setTotalNumGenerators(int val){allGeneratorCount = val;}
 	VaporFlow* getFlowLib(){return myFlowLib;}
 	bool regenerateFlowData(int frameNum, int minTime, bool fromRake, RegionParams* rParams, float* data, float* rgbas);
@@ -112,9 +112,9 @@ public:
 	//
 	
 	int getNumRakeSeedPoints(){
-		return (randomGen ? allGeneratorCount : generatorCount[0]*generatorCount[1]*generatorCount[2]);
+		return (int)(randomGen ? allGeneratorCount : (int)(generatorCount[0]*generatorCount[1]*generatorCount[2]));
 	}
-	int getNumListSeedPoints() {return seedPointList.size();}
+	int getNumListSeedPoints() {return (int)seedPointList.size();}
 		std::vector<Point4>& getSeedPointList(){return seedPointList;}
 	void pushSeed(Point4& newSeed){seedPointList.push_back(newSeed);}
 	void moveLastSeed(const float* newCoords){
@@ -169,11 +169,6 @@ public:
 	}
 	virtual int getNumRefinements() {return numRefinements;}
 	
-	enum seedType { //dirty flags identify which kind of seeds are used:
-		nullSeedType = 0,
-		seedList = 1,
-		seedRake = 2
-	}; 
 	void mapColors(float* speeds, int timeStep, int minFrame, int numSeeds, float* flowData, float *rgbas, bool isRake);
 	//Check the variables in the flow data for missing timesteps 
 	//Independent of animation params
@@ -229,8 +224,6 @@ protected:
 	//Top level labels
 	static const string _mappedVariableNamesAttr;
 	static const string _steadyFlowAttr;
-	static const string _instanceAttr;
-	
 	static const string _integrationAccuracyAttr;
 	static const string _velocityScaleAttr;
 	static const string _timeSamplingAttr;
@@ -271,17 +264,8 @@ protected:
 	static const string _leftOpacityBoundAttr;
 	static const string _rightOpacityBoundAttr;
 	
-	
-
-	
-	
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);
-	
-	
-	
-	
-	
 	
 	//check if vector field is present for a timestep
 	bool validateVectorField(int timestep);
@@ -301,10 +285,7 @@ protected:
 
 	
 	bool editMode;
-	
 	bool randomGen;
-	
-	
 	unsigned int randomSeed;
 	float seedBoxMin[3], seedBoxMax[3];
 	

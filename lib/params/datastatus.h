@@ -73,8 +73,8 @@ public:
 			calcDataRange(varNum,timestep);
 		return dataMin[varNum][timestep];
 	}
-	double getDefaultDataMax(int varnum){return getDataMax(varnum, minTimeStep);}
-	double getDefaultDataMin(int varnum){return getDataMin(varnum, minTimeStep);}
+	double getDefaultDataMax(int varnum){return getDataMax(varnum, (int)minTimeStep);}
+	double getDefaultDataMin(int varnum){return getDataMin(varnum, (int)minTimeStep);}
 	
 	int maxXFormPresent(int varnum, int timestep){
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return -1;
@@ -120,7 +120,7 @@ public:
 	static std::string& getMetadataVarName(int varnum) {
 		if (!mapMetadataVars) return variableNames[0];
 		return (variableNames[mapMetadataVars[varnum]]);}
-	static int getNumVariables(){return variableNames.size();}
+	static int getNumVariables(){return (int)variableNames.size();}
 	static void clearVariableNames() {variableNames.clear();}
 	static void removeMetadataVars(){
 		if (mapMetadataVars) delete mapMetadataVars;

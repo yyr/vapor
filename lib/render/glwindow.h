@@ -31,9 +31,9 @@
 #include "vapor/MyBase.h"
 #include "common.h"
 
-//No more than 3 renderers in a window:
+//No more than 10 renderers in a window:
 //Eventually this may be dynamic.
-#define MAXNUMRENDERERS 3
+#define MAXNUMRENDERERS 10
 
 namespace VAPoR {
 
@@ -47,6 +47,8 @@ class ProbeParams;
 class Renderer;
 class TranslateStretchManip;
 class TranslateRotateManip;
+class FlowRenderer;
+class VolumeRenderer;
 
 class RENDER_API GLWindow : public MyBase, public QGLWidget
 {
@@ -109,20 +111,11 @@ public:
 	void setDirtyBit(Params::ParamType renderType, DirtyBitType t, bool val);
 	bool vizIsDirty(DirtyBitType t);
 	bool regionIsDirty() {return vizIsDirty(RegionBit);}
-	bool dvrClutIsDirty() {return vizIsDirty(DvrClutBit);}
-	bool dvrDatarangeIsDirty() {return vizIsDirty(DvrDatarangeBit);}
 	bool regionIsNavigating() {return vizIsDirty(NavigatingBit);}
-	bool flowDataIsDirty() {return vizIsDirty(FlowDataBit);}
-	bool flowGraphicsIsDirty() {return vizIsDirty(FlowGraphicsBit);}
 	bool lightingIsDirty() {return vizIsDirty(LightingBit);}
 	
 	void setRegionDirty(bool isDirty){ setDirtyBit(Params::RegionParamsType, RegionBit,isDirty);}
-	void setDvrClutDirty(bool isDirty){ setDirtyBit(Params::DvrParamsType,DvrClutBit, isDirty);}
-	
-	void setDvrDatarangeDirty(bool isDirty){ setDirtyBit(Params::DvrParamsType,DvrDatarangeBit,isDirty);}
 	void setRegionNavigating(bool isDirty){ setDirtyBit(Params::ViewpointParamsType,NavigatingBit,isDirty);}
-	void setFlowDataDirty(bool isDirty) {setDirtyBit(Params::FlowParamsType,FlowDataBit,isDirty);}
-	void setFlowGraphicsDirty(bool isDirty) {setDirtyBit(Params::FlowParamsType,FlowGraphicsBit,isDirty);}
 	void setLightingDirty(bool isDirty) {setDirtyBit(Params::DvrParamsType,LightingBit,isDirty);}
 
 
@@ -161,37 +154,54 @@ public:
 	void setNumRenderers(int num) {numRenderers = num;}
 	int getNumRenderers() { return numRenderers;}
 	Params::ParamType getRendererType(int i) {return renderType[i];}
+
 	Renderer* getRenderer(int i) {return renderer[i];}
+	Renderer* getRenderer(RenderParams* p);
 	
 	//Renderers can be added early or late, depending on whether
 	//they should render last.  DVR's need to be last, since they don't write the z buffer
-	void prependRenderer(Renderer* ren, Params::ParamType rendererType);
-	void appendRenderer(Renderer* ren, Params::ParamType rendererType);
-	void removeRenderer(Params::ParamType rendererType);
-	bool hasRenderer(Params::ParamType rendererType);
-    Renderer* getRenderer(Params::ParamType rendererType);
+	void prependRenderer(RenderParams* p, Renderer* ren);
+	void appendRenderer(RenderParams* p, Renderer* ren);
+	bool removeRenderer(RenderParams* p);  //Return true if successful
+	//Find a renderParams in renderer list, if it exists:
+	RenderParams* findARenderer(Params::ParamType renderertype);
+	
 	static mouseModeType getCurrentMouseMode() {return currentMouseMode;}
 	static void setCurrentMouseMode(mouseModeType t){currentMouseMode = t;}
-	void setParams(Params* p, Params::ParamType t);
-	void setViewpointParams(ViewpointParams* p) {currentViewpointParams = p; setManipParams();}
-	void setRegionParams(RegionParams* p) {currentRegionParams = p; setManipParams();}
-	void setAnimationParams(AnimationParams* p) {currentAnimationParams = p; setManipParams();}
-	void setDvrParams(DvrParams* p) {currentDvrParams = p; setManipParams();}
-	void setFlowParams(FlowParams* p) {currentFlowParams = p; setManipParams();}
-	void setProbeParams(ProbeParams* p) {currentProbeParams = p; setManipParams();}
-	void setManipParams(){
-		myProbeManip->setParams((Params*)currentProbeParams);
-		myFlowManip->setParams((Params*)currentFlowParams);
+	//The glwindow keeps a copy of the params that are currently associated with the current
+	//instance.  This needs to change during:
+	//  -loading session
+	//  -undo/redo
+	//  -changing instance
+	//	-reinit
+	//	-new visualizer
+	void setActiveParams(Params* p, Params::ParamType t);
+	void setActiveViewpointParams(ViewpointParams* p) {currentViewpointParams = p;}
+	void setActiveRegionParams(RegionParams* p) {
+		currentRegionParams = p; 
 		myRegionManip->setParams((Params*)currentRegionParams);
 	}
+	void setActiveAnimationParams(AnimationParams* p) {currentAnimationParams = p;}
+	void setActiveDvrParams(DvrParams* p) {currentDvrParams = p; }
+	void setActiveFlowParams(FlowParams* p) {
+		currentFlowParams = p; myFlowManip->setParams((Params*)currentFlowParams);
+	}
+	void setActiveProbeParams(ProbeParams* p) {
+		currentProbeParams = p; myProbeManip->setParams((Params*)currentProbeParams);
+	}
 	
-	ViewpointParams* getViewpointParams() {return currentViewpointParams;}
-	RegionParams* getRegionParams() {return currentRegionParams;}
-	AnimationParams* getAnimationParams() {return currentAnimationParams;}
-	DvrParams* getDvrParams() {return currentDvrParams;}
-	FlowParams* getFlowParams() {return currentFlowParams;}
-	ProbeParams* getProbeParams() {return currentProbeParams;}
+	ViewpointParams* getActiveViewpointParams() {return currentViewpointParams;}
+	RegionParams* getActiveRegionParams() {return currentRegionParams;}
+	AnimationParams* getActiveAnimationParams() {return currentAnimationParams;}
+	DvrParams* getActiveDvrParams() {return currentDvrParams;}
+	FlowParams* getActiveFlowParams() {return currentFlowParams;}
+	ProbeParams* getActiveProbeParams() {return currentProbeParams;}
 
+	//The GLWindow keeps track of the renderers with an ordered list of them
+	//as well as with a map from renderparams to renderer
+	
+	void mapRenderer(RenderParams* rp, Renderer* ren){rendererMapping[rp] = ren;}
+	
 	//Determine the approximate size of a pixel in terms of viewer coordinates.
 	float getPixelSize();
 	bool viewerCoordsChanged() {return newViewerCoords;}
@@ -228,6 +238,14 @@ public:
 	static int getJpegQuality();
 	static void setJpegQuality(int qual);
 	int getWindowNum() {return winNum;}
+	//Static methods so that the vizwinmgr can tell the glwindow about
+	//current active visualizer, and about region sharing
+	static int getActiveWinNum() { return activeWindowNum;}
+	static void setActiveWinNum(int winnum) {activeWindowNum = winnum;}
+	bool windowIsActive(){return (winNum == activeWindowNum);}
+	static bool activeWinSharesRegion() {return regionShareFlag;}
+	static void setRegionShareFlag(bool regionIsShared){regionShareFlag = regionIsShared;}
+	
 
 protected:
 	int winNum;
@@ -240,6 +258,11 @@ protected:
 	std::map<DirtyBitType,bool> vizDirtyBit; 
 	Renderer* renderer[MAXNUMRENDERERS];
 	Params::ParamType renderType[MAXNUMRENDERERS];
+
+	//Map params to renderer for set/get dirty bits, etc:
+	
+	std::map<RenderParams*,Renderer*> rendererMapping;
+
 	int numRenderers;
 	//Picking helper functions, saved from last change in GL state.  These
 	//Deal with the cube coordinates (known to the trackball)
@@ -333,6 +356,12 @@ protected:
 
 	renderCBFcn preRenderCB;
 	renderCBFcn postRenderCB;
+
+	static int activeWindowNum;
+	//This flag is true if the active window is sharing the region.
+	//If the current window is not active, it will still share the region, if
+	//the region is shared, and the active region is shared.
+	static bool regionShareFlag;
 
 	
 };

@@ -83,9 +83,13 @@ VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderPar
     _type(type),
     _frames(0),
     _seconds(0)
+	
+	
 {
   //Construct dvrvolumizer
   driver = create_driver(type, 1);
+  clutDirtyBit = false;
+  datarangeDirtyBit = false;
 }
 
 //----------------------------------------------------------------------------
@@ -265,12 +269,13 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   // Nothing to do if there's no data source!
   if (!myDataMgr) return;
 	
-  RegionParams* myRegionParams = myGLWindow->getRegionParams();
-  int timeStep = myGLWindow->getAnimationParams()->getCurrentFrameNumber();
+  RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
+  int timeStep = myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
   
 	
   DvrParams* myDVRParams = (DvrParams*)currentRenderParams;
-  assert(myDVRParams == myGLWindow->getDvrParams());
+  //This is no longer the case, because of multiple instancing:
+  //assert(myDVRParams == myGLWindow->getActiveDvrParams());
   int varNum = myDVRParams->getVarNum();
 	
   
@@ -291,7 +296,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //that affects the opacity correction.
   if (numxforms != savedNumXForms)
   {
-    myGLWindow->setDvrClutDirty(true);
+    setClutDirty();
     savedNumXForms = numxforms;
   }
 
@@ -325,7 +330,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   // set up region. Only need to do this if the data
   // roi changes, or if the datarange has changed.
   //
-  if (regionValid&&(myGLWindow->regionIsDirty()|| myGLWindow->dvrDatarangeIsDirty()||myGLWindow->regionIsNavigating())) 
+  if (regionValid&&(myGLWindow->regionIsDirty()|| datarangeIsDirty()||myGLWindow->regionIsNavigating())) 
   {
     
     myGLWindow->setRenderNew();
@@ -356,12 +361,12 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
       return;
     }
 
-    datablock[0] = min_bdim[0]*bs[0];
-    datablock[1] = min_bdim[1]*bs[1];
-    datablock[2] = min_bdim[2]*bs[2];
-    datablock[3] = (max_bdim[0]+1)*bs[0]-1;
-    datablock[4] = (max_bdim[1]+1)*bs[1]-1;
-    datablock[5] = (max_bdim[2]+1)*bs[2]-1;
+    datablock[0] = (int)(min_bdim[0]*bs[0]);
+    datablock[1] = (int)(min_bdim[1]*bs[1]);
+    datablock[2] = (int)(min_bdim[2]*bs[2]);
+    datablock[3] = (int)((max_bdim[0]+1)*bs[0]-1);
+    datablock[4] = (int)((max_bdim[1]+1)*bs[1]-1);
+    datablock[5] = (int)((max_bdim[2]+1)*bs[2]-1);
 
     // make subregion origin (0,0,0)
     // Note that this doesn't affect the calc of nx,ny,nz.
@@ -373,16 +378,16 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
       }
     }
 	
-    nx = (max_bdim[0] - min_bdim[0] + 1) * bs[0];
-    ny = (max_bdim[1] - min_bdim[1] + 1) * bs[1];
-    nz = (max_bdim[2] - min_bdim[2] + 1) * bs[2];
+    nx = (int)((max_bdim[0] - min_bdim[0] + 1) * bs[0]);
+    ny = (int)((max_bdim[1] - min_bdim[1] + 1) * bs[1]);
+    nz = (int)((max_bdim[2] - min_bdim[2] + 1) * bs[2]);
 	
-    data_roi[0] = min_dim[0];
-    data_roi[1] = min_dim[1];
-    data_roi[2] = min_dim[2];
-    data_roi[3] = max_dim[0];
-    data_roi[4] = max_dim[1];
-    data_roi[5] = max_dim[2];
+    data_roi[0] = (int)min_dim[0];
+    data_roi[1] = (int)min_dim[1];
+    data_roi[2] = (int)min_dim[2];
+    data_roi[3] = (int)max_dim[0];
+    data_roi[4] = (int)max_dim[1];
+    data_roi[5] = (int)max_dim[2];
 
 	//qWarning("setting region in renderer");
     rc = driver->SetRegion(data,
@@ -401,7 +406,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	
   }
   
-  if (myGLWindow->dvrClutIsDirty()) {
+  if (clutIsDirty()) {
     myGLWindow->setRenderNew();
     //Same table sets CLUT and OLUT
     //
@@ -417,7 +422,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
   if (myGLWindow->lightingIsDirty())
   {
-    ViewpointParams *vpParams = myGLWindow->getViewpointParams();
+    ViewpointParams *vpParams = myGLWindow->getActiveViewpointParams();
     
     bool shading = myDVRParams->getLighting();
 
@@ -477,15 +482,16 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     glPushMatrix();
     glLoadIdentity();
 	
-    renderColorscale(myGLWindow->colorbarIsDirty()||myGLWindow->dvrClutIsDirty()||myGLWindow->dvrDatarangeIsDirty());
+    renderColorscale(myGLWindow->colorbarIsDirty()||clutIsDirty()||datarangeIsDirty());
 	
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
   }
   
-  myGLWindow->setDvrClutDirty(false);
-  myGLWindow->setDvrDatarangeDirty(false);
+  clutDirtyBit = false;
+  datarangeDirtyBit = false;
+  
   myGLWindow->setRegionNavigating(false);
   myGLWindow->setLightingDirty(false);
 }

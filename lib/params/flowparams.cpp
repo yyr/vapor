@@ -64,7 +64,6 @@ using namespace VAPoR;
 	const string FlowParams::_mappedVariableNamesAttr = "MappedVariableNames";
 	const string FlowParams::_periodicDimsAttr = "PeriodicDimensions";
 	const string FlowParams::_steadyFlowAttr = "SteadyFlow";
-	const string FlowParams::_instanceAttr = "FlowRendererInstance";
 	const string FlowParams::_integrationAccuracyAttr = "IntegrationAccuracy";
 	const string FlowParams::_velocityScaleAttr = "velocityScale";
 	const string FlowParams::_timeSamplingAttr = "SamplingTimes";
@@ -216,6 +215,7 @@ Params* FlowParams::
 deepCopy(){
 	
 	FlowParams* newFlowParams = new FlowParams(*this);
+	newFlowParams->myFlowLib = 0;
 	//Clone the map bounds arrays:
 	int numVars = numComboVariables+4;
 	newFlowParams->minColorEditBounds = new float[numVars];
@@ -731,7 +731,7 @@ regenerateFlowData(int timeStep, int minFrame, bool isRake, RegionParams* rParam
 	if (isRake){
 		numSeedPoints = getNumRakeSeedPoints();
 		if (randomGen) {
-			myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, allGeneratorCount);
+			myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount);
 			
 		} else {
 			float boxmin[3], boxmax[3];
@@ -1587,7 +1587,7 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
-			opacSize[i] = (ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements));
+			opacSize[i] = (int)((ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements)));
 			maxSize[i] = opacSize[i]/bs[i] -1;
 			opacVarMin[i] = DataStatus::getInstance()->getExtents()[i];
 			opacVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];
@@ -1607,7 +1607,7 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
-			colorSize[i] = (ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements));
+			colorSize[i] = (int)((ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements)));
 			maxSize[i] = (colorSize[i]/bs[i] - 1);
 			colorVarMin[i] = DataStatus::getInstance()->getExtents()[i];
 			colorVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];

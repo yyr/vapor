@@ -160,7 +160,7 @@ reset(DataMgr* dm, size_t cachesize){
 		
 		//Check first if this variable is in the metadata:
 		bool inMetadata = false;
-		for (int i = 0; i< currentMetadata->GetVariableNames().size(); i++){
+		for (int i = 0; i< (int)currentMetadata->GetVariableNames().size(); i++){
 			if (currentMetadata->GetVariableNames()[i] == getVariableName(var)){
 				inMetadata = true;
 				break;
@@ -171,7 +171,7 @@ reset(DataMgr* dm, size_t cachesize){
 			continue;
 		}
 		//OK, it's in the metadata, check the timesteps...
-		for (unsigned int ts = 0; ts< numTimesteps; ts++){
+		for (int ts = 0; ts< numTimesteps; ts++){
 			//Find the maximum number of transforms available on disk
 			//i.e., the highest transform level  (highest resolution) that exists
 			int maxXLevel = -1;
@@ -188,8 +188,8 @@ reset(DataMgr* dm, size_t cachesize){
 			if (maxXLevel >= 0){
 				dataExists = true;
 				someDataOverall = true;
-				if (ts > maxts) maxts = ts;
-				if (ts < mints) mints = ts;
+				if (ts > (int)maxts) maxts = ts;
+				if (ts < (int)mints) mints = ts;
 				
 			}
 		}

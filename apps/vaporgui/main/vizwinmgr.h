@@ -176,13 +176,46 @@ public:
 	int getNumFlowInstances(int winnum){return flowParamsInstances[winnum].size();}
 	int getNumProbeInstances(int winnum){return probeParamsInstances[winnum].size();}
 	int getNumDvrInstances(int winnum){return dvrParamsInstances[winnum].size();}
-	int getCurrentFlowInstance(int winnum) {return currentFlowInstance[winnum];}
-	int getCurrentDvrInstance(int winnum) {return currentDvrInstance[winnum];}
-	int getCurrentProbeInstance(int winnum) {return currentProbeInstance[winnum];}
-	void setCurrentFlowInstance(int winnum, int inst) {currentFlowInstance[winnum] = inst;}
-	void setCurrentDvrInstance(int winnum, int inst) {currentDvrInstance[winnum] = inst;}
-	void setCurrentProbeInstance(int winnum, int inst) {currentProbeInstance[winnum] = inst;}
+	int getCurrentFlowInstIndex(int winnum) {return currentFlowInstance[winnum];}
+	int getCurrentDvrInstIndex(int winnum) {return currentDvrInstance[winnum];}
+	int getCurrentProbeInstIndex(int winnum) {return currentProbeInstance[winnum];}
+	void setCurrentFlowInstIndex(int winnum, int inst) {currentFlowInstance[winnum] = inst;}
+	void setCurrentDvrInstIndex(int winnum, int inst) {currentDvrInstance[winnum] = inst;}
+	void setCurrentProbeInstIndex(int winnum, int inst) {currentProbeInstance[winnum] = inst;}
 	
+	void appendFlowInstance(int winnum, FlowParams* fp){
+		flowParamsInstances[winnum].push_back(fp);
+	}
+	void appendDvrInstance(int winnum, DvrParams* dp){
+		dvrParamsInstances[winnum].push_back(dp);
+	}
+	void appendProbeInstance(int winnum, ProbeParams* pp){
+		probeParamsInstances[winnum].push_back(pp);
+	}
+	void removeFlowInstance(int winnum, int instance){
+		
+		if (currentFlowInstance[winnum] > instance)
+			currentFlowInstance[winnum]--;
+		flowParamsInstances[winnum].erase(flowParamsInstances[winnum].begin()+instance);
+		//Did we remove last one?
+		if (currentFlowInstance[winnum] >= (int)flowParamsInstances[winnum].size())
+			currentFlowInstance[winnum]--;
+	}
+	void removeDvrInstance(int winnum, int instance){
+		if (currentDvrInstance[winnum] > instance)
+			currentDvrInstance[winnum]--;
+		dvrParamsInstances[winnum].erase(dvrParamsInstances[winnum].begin()+instance);
+		//Did we remove last one?
+		if (currentDvrInstance[winnum] >= (int)dvrParamsInstances[winnum].size())
+			currentDvrInstance[winnum]--;
+	}
+	void removeProbeInstance(int winnum, int instance){
+		if (currentProbeInstance[winnum] > instance)
+			currentProbeInstance[winnum]--;
+		probeParamsInstances[winnum].erase(probeParamsInstances[winnum].begin()+instance);
+		if (currentProbeInstance[winnum] >= (int)probeParamsInstances[winnum].size())
+			currentProbeInstance[winnum]--;
+	}
 	FlowParams* getFlowParams(int winNum, int instance = -1);
 	AnimationParams* getAnimationParams(int winNum);
 
@@ -204,7 +237,6 @@ public:
 	void hookUpRegionTab(RegionEventRouter*);
 	void hookUpDvrTab(DvrEventRouter*);
 	void hookUpProbeTab(ProbeEventRouter*);
-
 	void hookUpAnimationTab(AnimationEventRouter*);
 	void hookUpFlowTab(FlowEventRouter*);
 	//set/get Data describing window states
@@ -227,11 +259,7 @@ public:
 	//Setting a params changes the previous params to the
 	//specified one, performs needed ref/unref
 	void setParams(int winNum, Params* p, Params::ParamType t, int instance = -1);
-	/* following superceded by above
-	void setDvrParams(int winNum, DvrParams* p) {setParams(winNum, (Params*)p, Params::DvrParamsType);}
-	void setProbeParams(int winNum, ProbeParams* p){setParams(winNum, (Params*)p, Params::ProbeParamsType);}
-	void setFlowParams(int winNum, FlowParams* p){setParams(winNum, (Params*)p, Params::FlowParamsType);}
-	*/
+	
 	void setViewpointParams(int winNum, ViewpointParams* p){setParams(winNum, (Params*)p, Params::ViewpointParamsType);}
 	void setRegionParams(int winNum, RegionParams* p){setParams(winNum, (Params*)p, Params::RegionParamsType);}
 	void setAnimationParams(int winNum, AnimationParams* p){setParams(winNum, (Params*)p, Params::AnimationParamsType);}
@@ -256,17 +284,10 @@ public:
 	
 	void setRegionDirty(RegionParams* p){setVizDirty(p, RegionBit, true);}
 	
-	//Force all the renderers that share these DvrParams
-	//to set their regions dirty
-	//
-	void setRegionDirty(DvrParams* dp){
-		setVizDirty((Params*)dp, RegionBit, true);
-		setVizDirty((Params*)dp, FlowDataBit, true);
-	}
 	//Similarly for AnimationParams:
 	//
 	void setAnimationDirty(AnimationParams* ap){setVizDirty(ap, RegionBit, true);}
-	//Force rerender of all windows that share a flowParams, or region params..
+	//Force rerender of window using a flowParams, or region params..
 	//
 	void refreshFlow(FlowParams*);
 	void refreshRegion(RegionParams* rParams);
@@ -274,17 +295,20 @@ public:
 	
 	//Force dvr renderer to get latest CLUT
 	//
-	void setClutDirty(DvrParams* p){setVizDirty((Params*)p, DvrClutBit, true);}
+	void setClutDirty(DvrParams* p);
 	//Force probe renderer to get latest CLUT
 	//
 	void setClutDirty(ProbeParams* p){setVizDirty(p, ProbeTextureBit, true);}
 	//Force dvr renderers to get latest DataRange
 	//
-	void setDataRangeDirty(DvrParams* p) {setVizDirty((Params*)p, DvrDatarangeBit, true);}
-
+	void setDatarangeDirty(DvrParams* p); 
+	void setFlowGraphicsDirty(FlowParams* p);
+	void setFlowDataDirty(FlowParams* p);
+	bool flowDataIsDirty(FlowParams* p);
 	//Tell the animationController that the frame counter has changed 
 	//for all the associated windows.
 	//
+	
 	void animationParamsChanged(AnimationParams* );
 	//Reset the near/far distances for all the windows that
 	//share a viewpoint, based on region in specified regionparams

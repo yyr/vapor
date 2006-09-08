@@ -36,8 +36,11 @@
 #include "assert.h"
 #include "vaporinternal/jpegapi.h"
 #include "common.h"
+#include "flowrenderer.h"
+#include "VolumeRenderer.h"
 using namespace VAPoR;
-
+int GLWindow::activeWindowNum = -1;
+bool GLWindow::regionShareFlag = true;
 VAPoR::GLWindow::mouseModeType VAPoR::GLWindow::currentMouseMode = GLWindow::navigateMode;
 int GLWindow::jpegQuality = 75;
 GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int windowNum )
@@ -82,9 +85,9 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 		renderer[i] = 0;
 
 	vizDirtyBit.clear();
-	setDirtyBit(Params::DvrParamsType,DvrClutBit, true);
+	//setDirtyBit(Params::DvrParamsType,DvrClutBit, true);
 	setDirtyBit(Params::DvrParamsType,ProbeTextureBit, true);
-	setDirtyBit(Params::DvrParamsType,DvrDatarangeBit, true);
+	//setDirtyBit(Params::DvrParamsType,DvrDatarangeBit, true);
 	setDirtyBit(Params::RegionParamsType,RegionBit, true);
 	setDirtyBit(Params::ViewpointParamsType,NavigatingBit, true);
 	setDirtyBit(Params::DvrParamsType,ColorscaleBit, true);
@@ -253,7 +256,7 @@ void GLWindow::paintGL()
 	}
 
 	
-	getRegionParams()->calcBoxExtentsInCube(extents);
+	getActiveRegionParams()->calcBoxExtentsInCube(extents);
 	DataStatus::getInstance()->getMaxExtentsInCube(maxFull);
 
 	
@@ -273,30 +276,32 @@ void GLWindow::paintGL()
 	} 
 	if (axesAreEnabled()) drawAxes(extents);
 
-	//render the region geometry, if in region mode
-	if(GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
-		
+	//render the region geometry, if in region mode, and active visualizer, or region shared
+	//with active visualizer
+	if(GLWindow::getCurrentMouseMode() == GLWindow::regionMode && ( windowIsActive() ||
+		(!getActiveRegionParams()->isLocal() && activeWinSharesRegion()))){
+
 		TranslateStretchManip* regionManip = getRegionManip();
-		regionManip->setParams(getRegionParams());
+		regionManip->setParams(getActiveRegionParams());
 		regionManip->render();
 		
 	} 
-	//render the rake geometry, if in rake mode
-	else if(GLWindow::getCurrentMouseMode() == GLWindow::rakeMode){
+	//render the rake geometry, if in rake mode, on active visualizer
+	else if((GLWindow::getCurrentMouseMode() == GLWindow::rakeMode)&& windowIsActive()){
 		
 		TranslateStretchManip* flowManip = getFlowManip();
-		flowManip->setParams((Params*)getFlowParams());
+		flowManip->setParams((Params*)getActiveFlowParams());
 		flowManip->render();
-	} //or render the probe geometry, if in probe mode
-	else if(GLWindow::getCurrentMouseMode() == GLWindow::probeMode){
+	} //or render the probe geometry, if in probe mode on active visualizer
+	else if((GLWindow::getCurrentMouseMode() == GLWindow::probeMode)&&windowIsActive()){
 		
 		
 		TranslateRotateManip* probeManip = getProbeManip();
-		probeManip->setParams(getProbeParams());
+		probeManip->setParams(getActiveProbeParams());
 		
 		probeManip->render();
 		//Also render the cursor
-		draw3DCursor(getProbeParams()->getSelectedPoint());
+		draw3DCursor(getActiveProbeParams()->getSelectedPoint());
 	} 
 
 	for (int i = 0; i< getNumRenderers(); i++){
@@ -486,7 +491,7 @@ getPixelData(unsigned char* data){
 //Routine to obtain gl state from viewpointparams
 GLdouble* GLWindow:: 
 getModelMatrix() {
-	return (GLdouble*)getViewpointParams()->getModelViewMatrix();
+	return (GLdouble*)getActiveViewpointParams()->getModelViewMatrix();
 }
 //Issue OpenGL commands to draw a grid of lines of the full domain.
 //Grid resolution is up to 2x2x2
@@ -1188,13 +1193,17 @@ void GLWindow::drawAxes(float* extents){
  * Add it at the end of the list.
  * This happens when the dvr renderer is enabled, or if
  * the local/global switch causes a new one to be enabled
+ * Currently only volume renderers are appended.
  */
 void GLWindow::
-appendRenderer(Renderer* ren, Params::ParamType rendererType)
+appendRenderer(RenderParams* rp, Renderer* ren)
 {
+	Params::ParamType renType = rp->getParamType();
 	if (numRenderers < MAXNUMRENDERERS){
+		assert(renType == Params::DvrParamsType);
+		mapRenderer(rp, ren);
 		renderer[numRenderers] = ren;
-		renderType[numRenderers++] = rendererType;
+		renderType[numRenderers++] = renType;
 		ren->initializeGL();
 		update();
 	}
@@ -1205,61 +1214,70 @@ appendRenderer(Renderer* ren, Params::ParamType rendererType)
  * This happens when a flow renderer or iso renderer is added
  */
 void GLWindow::
-prependRenderer(Renderer* ren, Params::ParamType rendererType)
+prependRenderer(RenderParams* rp, Renderer* ren)
 {
+	Params::ParamType rendType = rp->getParamType();
+	assert(rendType == Params::FlowParamsType || rendType == Params::ProbeParamsType);
 	if (numRenderers < MAXNUMRENDERERS){
+		mapRenderer(rp, ren);
 		for (int i = numRenderers; i> 0; i--){
 			renderer[i] = renderer[i-1];
 			renderType[i] = renderType[i-1];
 		}
 		renderer[0] = ren;
-		renderType[0] = rendererType;
+		renderType[0] = rendType;
 		numRenderers++;
 		ren->initializeGL();
 		update();
 	}
 }
+
 /* 
- * Remove renderer of specified renderer type (only one can exist currently).
+ * Remove renderer of specified renderParams
  */
-void GLWindow::removeRenderer(Params::ParamType rendererType){
+bool GLWindow::removeRenderer(RenderParams* rp){
 	int i;
+	map<RenderParams*,Renderer*>::iterator find_iter = rendererMapping.find(rp);
+	if (find_iter == rendererMapping.end()) return false;
+	Renderer* ren = find_iter->second;
+	
+	//get it from the renderer list, and delete it:
 	for (i = 0; i<numRenderers; i++) {		
-		if (rendererType != renderType[i]) continue;
+		if (renderer[i] != ren) continue;
 		delete renderer[i];
 		renderer[i] = 0;
 		break;
 	}
-	//Note that we won't always find one to remove.
-	if (i == numRenderers){ 
-		return;
-	}
+	int foundIndex = i;
+	assert(foundIndex < numRenderers);
+	//Remove it from the mapping:
+	rendererMapping.erase(find_iter);
+	//Move renderers up.
 	numRenderers--;
-	for (int j = i; j<numRenderers; j++){
+	for (int j = foundIndex; j<numRenderers; j++){
 		renderer[j] = renderer[j+1];
 		renderType[j] = renderType[j+1];
 	}
 	updateGL();
-	
+	return true;
 }
-//Determine if this window has a renderer of the specified type
-bool GLWindow::hasRenderer(Params::ParamType rendererType){
-	int i;
-	for (i = 0; i<numRenderers; i++) {		
-		if (rendererType == renderType[i]) return true;
+//find (first) renderer params of specified type:
+RenderParams* GLWindow::findARenderer(Params::ParamType renType){
+	bool found = false;
+	for (int i = 0; i<numRenderers; i++) {		
+		if (renderType[i] != renType) continue;
+		RenderParams* rParams = renderer[i]->getRenderParams();
+		return rParams;
 	}
-	return false;
+	return 0;
 }
-// Return the renderer of the specified type
-Renderer* GLWindow::getRenderer(Params::ParamType rendererType)
-{
-	int i;
-	for (i = 0; i<numRenderers; i++) 
-    {		
-      if (rendererType == renderType[i]) return renderer[i];
-	}
-	return NULL;
+
+Renderer* GLWindow::getRenderer(RenderParams* p){
+	map<RenderParams*, Renderer*>::iterator found_iter = rendererMapping.find(p);
+	if (found_iter == rendererMapping.end()) return 0;
+	return found_iter->second;
 }
+
 //In addition to setting the dirty bit, call the renderer's setDirty if
 //the bit is being turned on.
 void GLWindow::
@@ -1329,7 +1347,7 @@ float GLWindow::getPixelSize(){
 	float temp[3];
 	//Window height is subtended by viewing angle (45 degrees),
 	//at viewer distance (dist from camera to view center)
-	ViewpointParams* vpParams = getViewpointParams();
+	ViewpointParams* vpParams = getActiveViewpointParams();
 	vsub(vpParams->getRotationCenter(),vpParams->getCameraPos(),temp);
 	float distToScene = vlength(temp);
 	//tan(45 deg *0.5) is ratio between half-height and dist to scene
@@ -1337,25 +1355,25 @@ float GLWindow::getPixelSize(){
 	return (2.f*halfHeight/(float)height());
 
 }
-void GLWindow::setParams(Params* p, Params::ParamType t){
+void GLWindow::setActiveParams(Params* p, Params::ParamType t){
 	switch (t) {
 		case Params::ProbeParamsType :
-			setProbeParams((ProbeParams*)p);
+			setActiveProbeParams((ProbeParams*)p);
 			return;
 		case Params::DvrParamsType :
-			setDvrParams((DvrParams*)p);
+			setActiveDvrParams((DvrParams*)p);
 			return;
 		case Params::RegionParamsType :
-			setRegionParams((RegionParams*)p);
+			setActiveRegionParams((RegionParams*)p);
 			return;
 		case Params::FlowParamsType :
-			setFlowParams((FlowParams*)p);
+			setActiveFlowParams((FlowParams*)p);
 			return;
 		case Params::ViewpointParamsType :
-			setViewpointParams((ViewpointParams*)p);
+			setActiveViewpointParams((ViewpointParams*)p);
 			return;
 		case Params::AnimationParamsType :
-			setAnimationParams((AnimationParams*)p);
+			setActiveAnimationParams((AnimationParams*)p);
 			return;
 		default: assert(0);
 	}

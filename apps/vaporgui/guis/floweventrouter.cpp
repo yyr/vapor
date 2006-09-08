@@ -385,9 +385,9 @@ void FlowEventRouter::confirmText(bool /*render*/){
 	if(flowDataChanged){
 		flowDataChanged = false;
 		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-		VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);
+		VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	} else {
-		VizWinMgr::getInstance()->setVizDirty(fParams,FlowGraphicsBit,true);
+		VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
 	}
 
 	PanelCommand::captureEnd(cmd, fParams);
@@ -401,10 +401,61 @@ flowTabReturnPressed(void){
 /*************************************************************************************
  * slots associated with FlowTab
  *************************************************************************************/
-void FlowEventRouter::guiChangeInstance(int){}
-void FlowEventRouter::guiNewInstance(){}
-void FlowEventRouter::guiDeleteInstance(){}
-void FlowEventRouter::guiCopyInstance(){}
+void FlowEventRouter::guiChangeInstance(int newCurrent){
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	assert(newCurrent >= 0 && newCurrent < vizMgr->getNumFlowInstances(winnum));
+	vizMgr->setCurrentFlowInstIndex(winnum, newCurrent);
+	updateTab(vizMgr->getFlowParams(winnum));
+	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveFlowParams(vizMgr->getFlowParams(winnum));
+	//If we are in rake mode, we need to do a redraw:
+	if (GLWindow::getCurrentMouseMode() == GLWindow::rakeMode)
+		vizMgr->getVizWin(winnum)->updateGL();
+
+}
+void FlowEventRouter::guiNewInstance(){
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	//Clone the default params
+	FlowParams* newFlow = (FlowParams*)(vizMgr->getGlobalParams(Params::FlowParamsType)->deepCopy());
+	newFlow->setVizNum(winnum);
+	vizMgr->appendFlowInstance(winnum, newFlow);
+	vizMgr->setCurrentFlowInstIndex(winnum, vizMgr->getNumFlowInstances(winnum)-1);
+	updateTab (newFlow);
+	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveFlowParams(newFlow);
+	//If we are in rake mode, we need to do a redraw:
+	if (GLWindow::getCurrentMouseMode() == GLWindow::rakeMode)
+		vizMgr->getVizWin(winnum)->updateGL();
+}
+void FlowEventRouter::guiDeleteInstance(){
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	assert(vizMgr->getNumFlowInstances(winnum) > 1);
+	int instance = vizMgr->getCurrentFlowInstIndex(winnum);
+	//make sure it's disabled
+	setFlowEnabled(false);
+	FlowParams* dp = vizMgr->getFlowParams(winnum);
+	vizMgr->removeFlowInstance(winnum, instance);
+	delete dp;
+	updateTab(vizMgr->getFlowParams(winnum));
+	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveFlowParams(vizMgr->getFlowParams(winnum));
+	//If we are in rake mode, we need to do a redraw:
+	if (GLWindow::getCurrentMouseMode() == GLWindow::rakeMode)
+		vizMgr->getVizWin(winnum)->updateGL();
+}
+void FlowEventRouter::guiCopyInstance(){
+	//If there is more than one visualizer, provide option of specifying another viz.
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	//Clone this params
+	FlowParams* newFlow = (FlowParams*)vizMgr->getFlowParams(winnum)->deepCopy();
+	newFlow->setEnabled(false);
+	vizMgr->appendFlowInstance(winnum, newFlow);
+	vizMgr->setCurrentFlowInstIndex(winnum, vizMgr->getNumFlowInstances(winnum)-1);
+	updateTab (newFlow);
+	
+}
+
 //There are text changed events for flow (requiring rebuilding flow data),
 //for graphics (requiring regenerating flow graphics), and
 //for dataRange (requiring change of data mapping range, hence regenerating flow graphics)
@@ -545,6 +596,19 @@ setFlowNavigateMode(bool mode){
 void FlowEventRouter::updateTab(Params* params){
 	FlowParams* fParams = (FlowParams*) params;
 	Session::getInstance()->blockRecording();
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	int instCount = vizMgr->getNumFlowInstances(winnum);
+	if(instCount != instanceCombo->count()){
+		instanceCombo->clear();
+		instanceCombo->setMaxCount(instCount);
+		for (int i = 0; i<instCount; i++){
+			instanceCombo->insertItem(QString::number(i), i);
+		}
+	}
+	instanceCombo->setCurrentItem(vizMgr->getCurrentFlowInstIndex(winnum));
+	deleteInstanceButton->setEnabled(vizMgr->getNumFlowInstances(winnum) > 1);
+	
 	flowMapFrame->setEditor(fParams->getFlowMapEditor());
 	//Get the region corners from the current applicable region panel,
 	//or the global one:
@@ -562,9 +626,8 @@ void FlowEventRouter::updateTab(Params* params){
 	opacityScaleSlider->setValue((int) sliderVal);
 	
 	//Determine if the renderer dirty flag is set:
-	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 
-	refreshButton->setEnabled(!fParams->refreshIsAuto() && vizWin->flowDataIsDirty());
+	refreshButton->setEnabled(!fParams->refreshIsAuto() && VizWinMgr::getInstance()->flowDataIsDirty(fParams));
 	autoRefreshCheckbox->setChecked(fParams->refreshIsAuto());
 	//Always allow at least 4 variables in combo:
 	int numVars = fParams->getNumComboVariables();
@@ -772,7 +835,7 @@ guiCenterRake(const float* coords){
 	fParams->setBox(seedBoxMin, seedBoxMax);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 //Add an individual seed to the set of seeds
 //Is also performed when we first do a seed attachment.
@@ -782,7 +845,7 @@ guiAddSeed(Point4 coords){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "Add new seed point");
 	fParams->pushSeed(*(new Point4(coords)));
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
 	VizWinMgr::getInstance()->refreshFlow(fParams);
 }
@@ -794,7 +857,7 @@ guiMoveLastSeed(const float coords[3]){
 	fParams->moveLastSeed(coords);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	VizWinMgr::getInstance()->refreshFlow(fParams);
 }
 //Turn on/off the rake and the seedlist:
@@ -808,7 +871,7 @@ void FlowEventRouter::guiDoRake(bool isOn){
 	PanelCommand::captureEnd(cmd, fParams);
 	//If there's a change, need to set flags dirty
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	VizWinMgr::getInstance()->refreshFlow(fParams);
 }
 
@@ -823,7 +886,7 @@ void FlowEventRouter::guiDoSeedList(bool isOn){
 	PanelCommand::captureEnd(cmd, fParams);
 	//Invalidate just the list data
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	VizWinMgr::getInstance()->refreshFlow(fParams);
 }
 
@@ -832,7 +895,6 @@ guiSetEnabled(bool on){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	if (on == fParams->isEnabled()) return;
 	confirmText(false);
-	
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "enable/disable flow render");
 	fParams->setEnabled(on);
 	PanelCommand::captureEnd(cmd, fParams);
@@ -847,7 +909,7 @@ guiSetOpacityScale(int val){
 	float sliderVal = fParams->getOpacityScale();
 	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowGraphicsBit, true);
+	VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
 	fParams->getFlowMapEditor()->setDirty();
 	flowMapFrame->update();
 	PanelCommand::captureEnd(cmd,fParams);
@@ -868,9 +930,7 @@ guiSetRakeToRegion(){
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	updateTab(fParams);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
-	//Need to rerender, even if we don't want to refresh the flow.
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	
 }
 void FlowEventRouter::
@@ -907,7 +967,7 @@ guiSetNumRefinements(int n){
 	fParams->setNumRefinements(newNumTrans);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	
 }
 void FlowEventRouter::
@@ -918,6 +978,7 @@ guiSetXComboVarNum(int varnum){
 	fParams->setComboVarnum(0,varnum);
 	fParams->setXVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
 guiSetYComboVarNum(int varnum){
@@ -927,6 +988,7 @@ guiSetYComboVarNum(int varnum){
 	fParams->setComboVarnum(1,varnum);
 	fParams->setYVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 
 }
 void FlowEventRouter::
@@ -937,7 +999,7 @@ guiSetZComboVarNum(int varnum){
 	fParams->setComboVarnum(2,varnum);
 	fParams->setZVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 
 void FlowEventRouter::
@@ -947,7 +1009,7 @@ guiSetConstantColor(QColor& newColor){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set constant mapping color");
 	fParams->setConstantColor(newColor.rgb());
 	PanelCommand::captureEnd(cmd, fParams);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowGraphicsBit, true);
+	VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
 }
 //Slider sets the geometry sampling rate, between 0.01 and 100.0
 // value is 0.01*10**(4s)  where s is between 0 and 1
@@ -963,7 +1025,7 @@ guiSetGeomSamples(int sliderPos){
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 
 void FlowEventRouter::
@@ -989,6 +1051,7 @@ guiSetRandom(bool rand){
 	guiSetTextChanged(false);
 	update();
 	PanelCommand::captureEnd(cmd, fParams);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 
 void FlowEventRouter::
@@ -997,9 +1060,9 @@ guiCheckPeriodicX(bool periodic){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic X coords");
 	fParams->setPeriodicDim(0,periodic);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	
 }
 void FlowEventRouter::
 guiCheckPeriodicY(bool periodic){
@@ -1007,9 +1070,9 @@ guiCheckPeriodicY(bool periodic){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic Y coords");
 	fParams->setPeriodicDim(1,periodic);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	
 }
 void FlowEventRouter::
 guiCheckPeriodicZ(bool periodic){
@@ -1017,9 +1080,9 @@ guiCheckPeriodicZ(bool periodic){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic Z coords");
 	fParams->setPeriodicDim(2,periodic);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	
 }
 
 void FlowEventRouter::
@@ -1030,8 +1093,8 @@ guiSetXCenter(int sliderval){
 	setXCenter(fParams,sliderval);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	
+	
 }
 void FlowEventRouter::
 guiSetYCenter(int sliderval){
@@ -1041,8 +1104,8 @@ guiSetYCenter(int sliderval){
 	setYCenter(fParams,sliderval);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	
+	
 }
 void FlowEventRouter::
 guiSetZCenter(int sliderval){
@@ -1052,8 +1115,7 @@ guiSetZCenter(int sliderval){
 	setZCenter(fParams,sliderval);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	
 }
 void FlowEventRouter::
 guiSetXSize(int sliderval){
@@ -1063,8 +1125,8 @@ guiSetXSize(int sliderval){
 	setXSize(fParams,sliderval);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	
+	
 }
 void FlowEventRouter::
 guiSetYSize(int sliderval){
@@ -1074,8 +1136,8 @@ guiSetYSize(int sliderval){
 	setYSize(fParams,sliderval);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	
+	
 }
 void FlowEventRouter::
 guiSetZSize(int sliderval){
@@ -1085,8 +1147,7 @@ guiSetZSize(int sliderval){
 	setZSize(fParams,sliderval);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	
 }
 void FlowEventRouter::
 guiSetAutoRefresh(bool autoOn){
@@ -1163,10 +1224,10 @@ guiSetColorMapEntity( int entityNum){
 	update();
 	//We only need to redo the flowData if the entity is changing to "speed"
 	if(entityNum == 2) {
-		VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+		VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	}
-	else VizWinMgr::getInstance()->setVizDirty(fParams, FlowGraphicsBit, true);
+	else VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
 }
 //When the user clicks "refresh", 
 //This triggers a rebuilding of current frame 
@@ -1178,15 +1239,12 @@ guiRefreshFlow(){
 	
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	//Determine if the renderer dirty flag is set:
-	VizWin* vizWin = vizWinMgr->getActiveVisualizer();
-	if (!vizWin->flowDataIsDirty()) {
+	
+	if (!vizWinMgr->flowDataIsDirty(fParams)) {
 		refreshButton->setEnabled(false);
 		return;
 	}
-	//Reset all the dirty flags..
-	//for (int i = 0; i<=maxFrame; i++) {
-	//	if(flowDataIsDirty(i)) setNeedOfRefresh(i,true);
-	//}
+	
 	refreshButton->setEnabled(true);
 	vizWinMgr->refreshFlow(fParams);
 	
@@ -1204,8 +1262,7 @@ guiEditSeedList(){
 	}
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
 guiSetOpacMapEntity( int entityNum){
@@ -1225,9 +1282,9 @@ guiSetOpacMapEntity( int entityNum){
 	//We only need to redo the flowData if the entity is changing to "speed"
 	if(entityNum == 2) {
 		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-		VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+		VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	}
-	else VizWinMgr::getInstance()->setVizDirty(fParams, FlowGraphicsBit, true);
+	else VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
 }
 
 //Change mouse mode to specified value
@@ -1270,7 +1327,7 @@ guiEndChangeMapFcn(){
 	if (!savedCommand) return;
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand::captureEnd(savedCommand,fParams);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowGraphicsBit, true);
+	VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
 	savedCommand = 0;
 }
 // Load a (text) file of 4D (or 3D?) points, adding to the current seedList.  
@@ -1316,7 +1373,7 @@ void FlowEventRouter::guiLoadSeeds(){
 	fclose(seedFile);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 // Save all the points of the current flow.
 // Don't support undo/redo
@@ -1469,10 +1526,9 @@ captureMouseUp(){
 	PanelCommand::captureEnd(savedCommand, fParams);
 	//Set rake data dirty
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	vwm->setVizDirty(fParams, FlowDataBit, true);
+	vwm->setFlowDataDirty(fParams);
 	savedCommand = 0;
-	//Force a rerender:
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	
 	
 }
 //Set slider position, based on text change. 
@@ -1657,7 +1713,7 @@ sliderToText(FlowParams* fParams,int coord, int slideCenter, int slideSize){
 	update();
 	//force a new render with new flow data
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams, FlowDataBit, true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	return;
 }	
 /* Handle the change of status associated with change of enablement 
@@ -1703,7 +1759,7 @@ updateRenderer(FlowParams* fParams, bool prevEnabled,  bool newWindow){
 	if (prevEnabled == nowEnabled) {
 		if (!prevEnabled) return;
 		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-		vizWinMgr->setVizDirty(fParams,FlowDataBit, true);
+		vizWinMgr->setFlowDataDirty(fParams);
 		return;
 	}
 	
@@ -1729,10 +1785,10 @@ updateRenderer(FlowParams* fParams, bool prevEnabled,  bool newWindow){
 		fParams->validateSampling(minFrame);
 
 		FlowRenderer* myRenderer = new FlowRenderer (viz->getGLWindow(), fParams);
-		viz->getGLWindow()->prependRenderer(myRenderer, Params::FlowParamsType);
+		viz->getGLWindow()->prependRenderer(fParams,myRenderer);
 		myRenderer->setAllNeedRefresh(fParams->refreshIsAuto());
 		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-		vizWinMgr->setVizDirty(fParams,FlowDataBit, true);
+		vizWinMgr->setFlowDataDirty(fParams);
 		return;
 	}
 	
@@ -1740,7 +1796,7 @@ updateRenderer(FlowParams* fParams, bool prevEnabled,  bool newWindow){
 	
 	//case 6, disable 
 	assert(prevEnabled && !nowEnabled); 
-	viz->getGLWindow()->removeRenderer(Params::FlowParamsType);
+	viz->getGLWindow()->removeRenderer(fParams);
 
 	return;
 }
@@ -1751,19 +1807,19 @@ setXCenter(FlowParams* fParams, int sliderval){
 	//center is min + (slider/256)*(max-min)
 	sliderToText(fParams,0, sliderval, xSizeSlider->value());
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
 setYCenter(FlowParams* fParams,int sliderval){
 	sliderToText(fParams, 1, sliderval, ySizeSlider->value());
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
 setZCenter(FlowParams* fParams,int sliderval){
 	sliderToText(fParams,2, sliderval, zSizeSlider->value());
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 //Min and Max are center -+ size/2
 //size is regionsize*sliderval/256
@@ -1771,19 +1827,19 @@ void FlowEventRouter::
 setXSize(FlowParams* fParams,int sliderval){
 	sliderToText(fParams,0, xCenterSlider->value(),sliderval);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
 setYSize(FlowParams* fParams,int sliderval){
 	sliderToText(fParams,1, yCenterSlider->value(),sliderval);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
 setZSize(FlowParams* fParams,int sliderval){
 	sliderToText(fParams,2, zCenterSlider->value(),sliderval);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 /*
  * Method to be invoked after the user has moved the right or left bounds
@@ -1818,9 +1874,6 @@ setEditorDirty(){
 //Make the new params current
 void FlowEventRouter::
 makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
-	
-	
-	
 	assert(instance >= 0);
 	FlowParams* fParams = (FlowParams*)newParams;
 	int vizNum = fParams->getVizNum();
@@ -1829,7 +1882,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 	
 	VizWinMgr::getInstance()->setParams(vizNum, fParams, Params::FlowParamsType, instance);
 
-	if( VizWinMgr::getInstance()->getCurrentFlowInstance(vizNum) == instance) updateTab(fParams);
+	if( VizWinMgr::getInstance()->getCurrentFlowInstIndex(vizNum) == instance) updateTab(fParams);
 	
 	//Need to create/destroy renderer if there's a change in local/global or enable/disable
 	//or if the window is new
@@ -1843,7 +1896,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 	}
 	
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setVizDirty(fParams,FlowDataBit,true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::cleanParams(Params* p) {
 		if(flowMapFrame->getEditor() && flowMapFrame->getEditor()->getParams() == p)

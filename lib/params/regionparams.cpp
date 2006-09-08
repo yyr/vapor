@@ -236,7 +236,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	//Check that the data exists for this timestep and refinement:
 	for (i = 0; i<numVars; i++){
-		if(DataStatus::getInstance()->maxXFormPresent(varNums[i],timestep) < numxforms)
+		if(DataStatus::getInstance()->maxXFormPresent(varNums[i],(int)timestep) < numxforms)
 			return false;
 	}
 	double userMinCoords[3];

@@ -80,7 +80,7 @@ mouseIsOverHandle(float screenCoords[2], float* boxExtents, int* faceNum){
 	
 	//Get the camera position in cube coords.  This is needed to determine
 	//which handles are in front of the box.
-	ViewpointParams* myViewpointParams = myGLWin->getViewpointParams();
+	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
 	ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camPos);
 	//qWarning(" mouseHandleTest: campos is %f %f %f",camPos[0],camPos[1],camPos[2]);
 	//Determine the octant based on camera relative to box center:
@@ -363,7 +363,7 @@ void TranslateStretchManip::render(){
 	//Calculate the box extents, and the viewer position, in the unit cube,
 	//Without any rotation applied:
 	myParams->calcBoxExtentsInCube(extents);
-	ViewpointParams* myViewpointParams = myGLWin->getViewpointParams();
+	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
 	ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
 
 	//Set the handleSize, in cube coords:
@@ -894,7 +894,7 @@ void TranslateRotateManip::render(){
 	//With any rotation applied:
 	//myParams->calcBoxExtentsInCube(extents);
 	myParams->calcContainingBoxExtentsInCube(extents);
-	ViewpointParams* myViewpointParams = myGLWin->getViewpointParams();
+	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
 	ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
 
 	//Set the handleSize, in cube coords:

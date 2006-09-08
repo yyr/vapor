@@ -111,12 +111,12 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	if (!(fmt.directRendering() && fmt.depth() && fmt.rgba() && fmt.alpha() && fmt.doubleBuffer())){
 		Params::BailOut("Unable to obtain required OpenGL rendering format",__FILE__,__LINE__);	
 	}
-	myGLWindow->setViewpointParams(myWinMgr->getViewpointParams(myWindowNum));
-	myGLWindow->setRegionParams(myWinMgr->getRegionParams(myWindowNum));
-	myGLWindow->setAnimationParams(myWinMgr->getAnimationParams(myWindowNum));
-	myGLWindow->setDvrParams(myWinMgr->getDvrParams(myWindowNum));
-	myGLWindow->setFlowParams(myWinMgr->getFlowParams(myWindowNum));
-	myGLWindow->setProbeParams(myWinMgr->getProbeParams(myWindowNum));
+	myGLWindow->setActiveViewpointParams(myWinMgr->getViewpointParams(myWindowNum));
+	myGLWindow->setActiveRegionParams(myWinMgr->getRegionParams(myWindowNum));
+	myGLWindow->setActiveAnimationParams(myWinMgr->getAnimationParams(myWindowNum));
+	myGLWindow->setActiveDvrParams(myWinMgr->getDvrParams(myWindowNum));
+	myGLWindow->setActiveFlowParams(myWinMgr->getFlowParams(myWindowNum));
+	myGLWindow->setActiveProbeParams(myWinMgr->getProbeParams(myWindowNum));
 	myGLWindow->setPreRenderCB(preRenderSetup);
 	myGLWindow->setPostRenderCB(endRender);
 
@@ -310,7 +310,7 @@ mousePressEvent(QMouseEvent* e){
 			break;
 
 		case GLWindow::probeMode :
-			if (buttonNum > 0)
+			if ((buttonNum > 0))
 			{
 				int faceNum;
 				float boxExtents[6];
