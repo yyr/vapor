@@ -39,7 +39,7 @@
 #include "flowrenderer.h"
 #include "VolumeRenderer.h"
 using namespace VAPoR;
-int GLWindow::activeWindowNum = -1;
+int GLWindow::activeWindowNum = 0;
 bool GLWindow::regionShareFlag = true;
 VAPoR::GLWindow::mouseModeType VAPoR::GLWindow::currentMouseMode = GLWindow::navigateMode;
 int GLWindow::jpegQuality = 75;
@@ -1263,7 +1263,7 @@ bool GLWindow::removeRenderer(RenderParams* rp){
 }
 //find (first) renderer params of specified type:
 RenderParams* GLWindow::findARenderer(Params::ParamType renType){
-	bool found = false;
+	
 	for (int i = 0; i<numRenderers; i++) {		
 		if (renderType[i] != renType) continue;
 		RenderParams* rParams = renderer[i]->getRenderParams();

@@ -1441,7 +1441,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			} else {
 				dParams = getDvrParams(parsingVizNum,0);
 			}
-			assert(getNumDvrInstances(parsingVizNum) == parsingDvrInstance);
+			assert(getNumDvrInstances(parsingVizNum) == (parsingDvrInstance+1));
 			
 			//Need to "push" to dvr parser.
 			//That parser will "pop" back to vizwinmgr when done.
@@ -1462,7 +1462,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			} else {
 				pParams = getProbeParams(parsingVizNum,0);
 			}
-			assert(getNumProbeInstances(parsingVizNum) == parsingProbeInstance);
+			assert(getNumProbeInstances(parsingVizNum) == (parsingProbeInstance+1));
 			
 			//Need to "push" to probe parser.
 			//That parser will "pop" back to vizwinmgr when done.
@@ -1515,7 +1515,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			} else {
 				fParams = getFlowParams(parsingVizNum,0);
 			}
-			assert(getNumFlowInstances(parsingVizNum) == parsingFlowInstance);
+			assert(getNumFlowInstances(parsingVizNum) == (parsingFlowInstance+1));
 			
 			//Need to "push" to flow parser.
 			//That parser will "pop" back to vizwinmgr when done.
