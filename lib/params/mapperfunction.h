@@ -24,20 +24,75 @@
 #define MAXCONTROLPOINTS 50
 #include "tfinterpolator.h"
 #include "params.h"
-
+#include "OpacityMap.h"
 #include "vapor/ExpatParseMgr.h"
+#include "Colormap.h"
 #include <qcolor.h>
+#include <iostream.h>
 
 namespace VAPoR {
-class MapEditor;
 class Params;
 class XmlNode;
 
-class PARAMS_API MapperFunction : public ParsedXml {
+class PARAMS_API MapperFunction : public ParsedXml 
+{
 public:
 	MapperFunction(RenderParams* p, int nBits);
 	MapperFunction();
+	MapperFunction(const MapperFunction &mapper);
 	virtual ~MapperFunction();
+
+	float opacityValue(float point);
+
+    //
+	// Build a lookup table[numEntries][4]
+	// (Caller must pass in an empty array)
+	//
+	void makeLut(float* clut);
+
+    //
+    // Data Bounds
+    //
+	float getMinColorMapValue() { return minColorMapBound; }
+	float getMaxColorMapValue() { return maxColorMapBound; }
+	float getMinOpacMapValue()  { return minOpacMapBound; }
+	float getMaxOpacMapValue()  { return maxOpacMapBound; }
+
+	void setMinColorMapValue(float val) { minColorMapBound = val; }
+	void setMaxColorMapValue(float val) { maxColorMapBound = val; }
+	void setMinOpacMapValue(float val)  { minOpacMapBound = val; }
+	void setMaxOpacMapValue(float val)  { maxOpacMapBound = val; }
+
+    //
+    // Variables
+    //
+   
+    int getColorVarNum() { return colorVarNum; }
+    int getOpacVarNum() { return opacVarNum; }
+   
+    void setVarNum(int var)      { colorVarNum = var; opacVarNum = var; }
+    void setColorVarNum(int var) { colorVarNum = var; }
+    void setOpacVarNum(int var)  { opacVarNum = var; }
+
+    //
+    // Opacity Maps
+    //
+    OpacityMap* createOpacityMap(OpacityMap::Type type=OpacityMap::CONTROL_POINT);
+    OpacityMap* getOpacityMap(int index);
+    void        deleteOpacityMap(OpacityMap *omap);
+    int         getNumOpacityMaps() { return _opacityMaps.size(); }
+
+    //
+    // Colormap
+    //
+    Colormap*   getColormap() { return _colormap; }
+
+protected:
+
+    vector<OpacityMap*>  _opacityMaps;
+    Colormap            *_colormap;
+
+public:
 	//Set to starting values
 	//
 	virtual void init();  
@@ -63,33 +118,17 @@ public:
 	
 	//Evaluate the opacity:
 	//
-	float opacityValue(float point);
+	//float opacityValue(float point);
 	float opacityValue(int controlPointNum) {
 		return opac[controlPointNum];
 	}
 		
 	void setEditor(MapEditor* e) {myMapEditor = e;}
 	MapEditor* getEditor() {return myMapEditor;}
-	void setParams(RenderParams* p) {myParams = p;}
+	void setParams(RenderParams* p);
 	RenderParams* getParams() {return myParams;}
 	int getNumOpacControlPoints() {return numOpacControlPoints;}
 	int getNumColorControlPoints() {return numColorControlPoints;}
-	float getMinColorMapValue(){
-		return minColorMapBound;
-	}
-	float getMaxColorMapValue(){
-		return maxColorMapBound;
-	}
-	float getMinOpacMapValue(){
-		return minOpacMapBound;
-	}
-	float getMaxOpacMapValue(){
-		return maxOpacMapBound;
-	}
-	void setMinColorMapValue(float val) {minColorMapBound = val;}
-	void setMaxColorMapValue(float val) {maxColorMapBound = val;}
-	void setMinOpacMapValue(float val) {minOpacMapBound = val;}
-	void setMaxOpacMapValue(float val) {maxOpacMapBound = val;}
 	
 	//Map a point to the specified range, and quantize it.
 	//
@@ -139,7 +178,6 @@ public:
 		hue[index] = h;
 		sat[index] = s;
 		val[index] = v;
-		
 	}
 	int getLeftOpacityIndex(float val){
 		float normVal = (val-getMinOpacMapValue())/(getMaxOpacMapValue()-getMinOpacMapValue());
@@ -159,12 +197,10 @@ public:
 	//Build a lookup table[numEntries][4]? from the TF
 	//Caller must pass in an empty array to fill in
 	//
-	void makeLut(float* clut);
+	//void makeLut(float* clut);
 	
 	int getNumEntries() {return numEntries;}
 	void setNumEntries(int val){ numEntries = val;}
-	//void startChange(char* s); 
-	//void endChange(); 
 	//color conversion 
 	static void hsvToRgb(float* hsv, float* rgb);
 	static void rgbToHsv(float* rgb, float* hsv);
@@ -241,7 +277,9 @@ protected:
 	std::vector<float> opac;
 	std::vector<TFInterpolator::type> opacInterp;
 	std::vector<TFInterpolator::type> colorInterp;
-	
+
+	int colorVarNum;
+    int opacVarNum;	
 };
 };
 #endif //MAPPERFUNCTION_H

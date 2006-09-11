@@ -61,7 +61,6 @@ public:
 	void fileSaveTF(ProbeParams* dParams);
 	
 	
-	void setBindButtons(ProbeParams*);
 	void sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize);
 	
 	
@@ -122,12 +121,16 @@ public:
 	void guiEndCursorMove();
 	void guiCopyRegionToProbe();
 	
+
+public slots:
+    //
 	//respond to changes in TF (for undo/redo):
 	//
-	virtual void guiStartChangeMapFcn(char* s);
+	virtual void guiStartChangeMapFcn(QString qs);
 	virtual void guiEndChangeMapFcn();
-	
-	
+
+	void setBindButtons(bool canbind);
+
 protected slots:
 	
 	void guiChangeInstance(int);

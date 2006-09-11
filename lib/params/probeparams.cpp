@@ -252,6 +252,8 @@ reinit(bool doOverride){
 			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
 			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
 			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+
+            newTransFunc[i]->setVarNum(i);
 		}
 	} else { 
 		//attempt to make use of existing transfer functions, edit ranges.
@@ -271,6 +273,7 @@ reinit(bool doOverride){
 				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
 				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
 				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+                newTransFunc[i]->setVarNum(i);
 			}
 		}
 			//Delete trans funcs (and associated tfe's that are no longer referenced.
@@ -391,7 +394,7 @@ hookupTF(TransferFunction* tf, int index){
 	newTFEditor->reset();
 	minColorEditBounds[index] = tf->getMinMapValue();
 	maxColorEditBounds[index] = tf->getMaxMapValue();
-	
+	tf->setParams(this);
 	
 }
 // Setup pointers between transfer function, editor, and this:
@@ -404,7 +407,7 @@ connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
 	tf->setParams(this);
 	tfe->setColorVarNum(firstVarNum);
 	tfe->setOpacVarNum(firstVarNum);
-	
+    tf->setVarNum(firstVarNum);
 }
 
 

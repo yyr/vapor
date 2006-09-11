@@ -55,7 +55,7 @@ PanelCommand::~PanelCommand(){
 	
 }
 PanelCommand* PanelCommand::
-captureStart(Params* p,   char* description){
+captureStart(Params* p,   const char* description){
 	if (!Session::getInstance()->isRecording()) return 0;
 	PanelCommand* cmd = new PanelCommand(p,   description);
 	return cmd;

@@ -39,6 +39,7 @@
 #include <qlistbox.h>
 #include <qapplication.h>
 #include <qcursor.h>
+#include <qtooltip.h>
 
 #include "regionparams.h"
 #include "regiontab.h"
@@ -70,9 +71,8 @@
 #include "eventrouter.h"
 #include "savetfdialog.h"
 #include "loadtfdialog.h"
-#include "tfframe.h"
-#include "tfeditor.h"
 #include "VolumeRenderer.h"
+#include "MappingFrame.h"
 
 using namespace VAPoR;
 
@@ -156,7 +156,21 @@ ProbeEventRouter::hookUpTab()
 	
 	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshProbeHisto()));
 	
-	
+	// Transfer function controls:
+	connect(editButton, SIGNAL(toggled(bool)), 
+            transferFunctionFrame, SLOT(setEditMode(bool)));
+
+	connect(alignButton, SIGNAL(clicked()),
+            transferFunctionFrame, SLOT(fitToView()));
+
+    connect(transferFunctionFrame, SIGNAL(startChange(QString)), 
+            this, SLOT(guiStartChangeMapFcn(QString)));
+
+    connect(transferFunctionFrame, SIGNAL(endChange()),
+            this, SLOT(guiEndChangeMapFcn()));
+
+    connect(transferFunctionFrame, SIGNAL(canBindControlPoints(bool)),
+            this, SLOT(setBindButtons(bool)));
 }
 
 /*********************************************************************************
@@ -218,7 +232,6 @@ refreshProbeHisto(){
 		refreshHistogram(pParams);
 	}
 	setEditorDirty();
-	ProbeTFFrame->update();
 }
 /*
  * Respond to a slider release
@@ -475,7 +488,7 @@ fileLoadTF(ProbeParams* dParams){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Load Transfer Function from file");
 	
-	TransferFunction* t = TransferFunction::loadFromFile(is);
+      TransferFunction* t = TransferFunction::loadFromFile(is, dParams);
 	if (!t){//Report error if can't load
 		QString str("Error loading transfer function. /nFailed to convert input file: \n ");
 		str += s;
@@ -502,7 +515,22 @@ void ProbeEventRouter::updateTab(Params* params){
 	QString strn;
 	Session* ses = Session::getInstance();
 	ses->blockRecording();
-	ProbeTFFrame->setEditor(getTFEditor(probeParams));
+
+    transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
+    transferFunctionFrame->update();
+
+    if (ses->getNumMetadataVariables())
+    {
+      int varnum = probeParams->getVarNum();
+      const std::string& varname = ses->getMetadataVarName(varnum);
+      
+      transferFunctionFrame->setVariableName(varname);
+    }
+    else
+    {
+      transferFunctionFrame->setVariableName("");
+    }
+
 	EnableDisable->setCurrentItem((probeParams->isEnabled()) ? 1 : 0);
 	refinementCombo->setCurrentItem(probeParams->getNumRefinements());
 	histoScaleEdit->setText(QString::number(probeParams->getHistoStretch()));
@@ -564,8 +592,7 @@ void ProbeEventRouter::updateTab(Params* params){
 		
 	
 	probeTextureFrame->setParams(probeParams);
-	ProbeTFFrame->setEditor(probeParams->getTFEditor());
-	ProbeTFFrame->update();
+
 	update();
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
@@ -650,8 +677,6 @@ guiSetAligned(){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "align tf in edit frame");
 		
-	getTFEditor(dParams)->setMinEditValue(dParams->getMinColorMapBound());
-	getTFEditor(dParams)->setMaxEditValue(dParams->getMaxColorMapBound());
 	setEditorDirty();
 
 	update();
@@ -690,8 +715,23 @@ updateRenderer(ProbeParams* pParams, bool prevEnabled,   bool newWindow){
 void ProbeEventRouter::
 setEditorDirty(){
 	ProbeParams* dp = VizWinMgr::getInstance()->getActiveProbeParams();
-	ProbeTFFrame->setEditor(getTFEditor(dp));
-	ProbeTFFrame->update();
+
+    transferFunctionFrame->setMapperFunction(dp->getMapperFunc());
+    transferFunctionFrame->update();
+
+    Session *session = Session::getInstance();
+
+    if (session->getNumMetadataVariables())
+    {
+      int varnum = dp->getVarNum();
+      const std::string& varname = session->getMetadataVarName(varnum);
+      
+      transferFunctionFrame->setVariableName(varname);
+    }
+    else
+    {
+      transferFunctionFrame->setVariableName("");
+    }
 }
 
 
@@ -738,13 +778,13 @@ guiSetOpacityScale(int val){
 //These are just for undo/redo.  Also may need to update visualizer and/or editor
 //
 void ProbeEventRouter::
-guiStartChangeMapFcn(char* str){
+guiStartChangeMapFcn(QString qstr){
 	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
 	guiSetTextChanged(false);
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
 	ProbeParams* pp = VizWinMgr::getInstance()->getActiveProbeParams();
-	savedCommand = PanelCommand::captureStart(pp, str);
+    savedCommand = PanelCommand::captureStart(pp, qstr.latin1());
 }
 void ProbeEventRouter::
 guiEndChangeMapFcn(){
@@ -753,7 +793,6 @@ guiEndChangeMapFcn(){
 	PanelCommand::captureEnd(savedCommand,pParams);
 	savedCommand = 0;
 	pParams->setProbeDirty();
-	setEditorDirty();
 	setDatarangeDirty(pParams);
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
@@ -764,18 +803,16 @@ guiBindColorToOpac(){
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "bind Color to Opacity");
-	pParams->getTFEditor()->bindColorToOpac();
+    transferFunctionFrame->bindColorToOpacity();
 	PanelCommand::captureEnd(cmd, pParams);
-	setEditorDirty();
 }
 void ProbeEventRouter::
 guiBindOpacToColor(){
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "bind Opacity to Color");
-	pParams->getTFEditor()->bindOpacToColor();
+    transferFunctionFrame->bindOpacityToColor();
 	PanelCommand::captureEnd(cmd, pParams);
-	setEditorDirty();
 }
 //Make the probe center at selectedPoint.  Shrink size if necessary.
 //Reset sliders and text as appropriate.  Equivalent to typing in the values
@@ -846,13 +883,9 @@ guiChangeVariables(){
 	//this also sets dirty flag
 	updateMapBounds(pParams);
 	
-	//Force a redraw of tfframe 
-	if (pParams->getTFEditor()) {
-		
-		pParams->connectMapperFunction(pParams->getMapperFunc(),pParams->getTFEditor());
-		setEditorDirty();
-	}
-		
+	//Force a redraw of the transfer function frame
+    setEditorDirty();
+	   
 	
 	PanelCommand::captureEnd(cmd, pParams);
 	//Need to update the selected point for the new variables
@@ -1126,13 +1159,11 @@ updateMapBounds(RenderParams* params){
 	VizWinMgr::getInstance()->setVizDirty(probeParams,ProbeTextureBit,true);
 	
 }
-void ProbeEventRouter::
-setBindButtons(ProbeParams* pParams){
-	bool enable = false;
-	if (pParams->getTFEditor())
-		enable = pParams->getTFEditor()->canBind();
-	OpacityBindButton->setEnabled(enable);
-	ColorBindButton->setEnabled(enable);
+
+void ProbeEventRouter::setBindButtons(bool canbind)
+{
+  OpacityBindButton->setEnabled(canbind);
+  ColorBindButton->setEnabled(canbind);
 }
 
 //Save undo/redo state when user grabs a probe handle, or maybe a probe face (later)
@@ -1659,13 +1690,14 @@ setDatarangeDirty(RenderParams* params)
 	if (currentDatarange[0] != minval || currentDatarange[1] != maxval){
 			pParams->setCurrentDatarange(minval, maxval);
 			VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-			ProbeTFFrame->update();
 	}
 	
 }
 
-void ProbeEventRouter::cleanParams(Params* p) {
-		if(ProbeTFFrame->getEditor() && ProbeTFFrame->getEditor()->getParams() == p)
-			ProbeTFFrame->setEditor(0);
+void ProbeEventRouter::cleanParams(Params* p) 
+{
+  transferFunctionFrame->setMapperFunction(NULL);
+  transferFunctionFrame->setVariableName("");
+  transferFunctionFrame->update();
 }
 	

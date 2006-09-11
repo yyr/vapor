@@ -1545,6 +1545,11 @@ connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
 	tf->setParams(this);
 	tfe->setColorVarNum(getColorMapEntityIndex());
 	tfe->setOpacVarNum(getOpacMapEntityIndex());
+
+	tf->setColorVarNum(getColorMapEntityIndex());
+	tf->setOpacVarNum(getOpacMapEntityIndex());
+
+
 }
 
 
@@ -1763,13 +1768,15 @@ setColorMapEntity( int entityNum){
 	if (!flowMapEditor) return;
 	mapperFunction->setMinColorMapValue(minColorBounds[entityNum]);
 	mapperFunction->setMaxColorMapValue(maxColorBounds[entityNum]);
-	flowMapEditor->setColorVarNum(entityNum);
+	mapperFunction->setColorVarNum(entityNum);
+    flowMapEditor->setColorVarNum(entityNum);
 }
 void FlowParams::
 setOpacMapEntity( int entityNum){
 	if (!flowMapEditor) return;
 	mapperFunction->setMinOpacMapValue(minOpacBounds[entityNum]);
 	mapperFunction->setMaxOpacMapValue(maxOpacBounds[entityNum]);
+    mapperFunction->setOpacVarNum(entityNum);
 	flowMapEditor->setOpacVarNum(entityNum);
 }
 

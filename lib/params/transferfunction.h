@@ -38,7 +38,7 @@ class XmlNode;
 
 class PARAMS_API TransferFunction : public MapperFunction {
 public:
-	TransferFunction(RenderParams* p, int nBits);
+	TransferFunction(RenderParams* p, int nBits=8);
 	TransferFunction();
 	virtual ~TransferFunction();
 	//Set to starting values
@@ -69,7 +69,7 @@ public:
 	//Failure results in false/null pointer
 	//
 	bool saveToFile(ofstream& f);
-	static TransferFunction* loadFromFile(ifstream& is);
+    static TransferFunction* loadFromFile(ifstream& is, RenderParams *p);
 	XmlNode* buildNode(const string& tfname);
 	//All the parsing can be done with the start handlers
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, const char **attr);

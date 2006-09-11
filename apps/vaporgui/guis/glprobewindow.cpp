@@ -106,9 +106,11 @@ void GLProbeWindow::paintGL()
 {
 	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
 	ProbeEventRouter* myRouter = VizWinMgr::getInstance()->getProbeRouter();
+	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 
-	qglClearColor( QColor(233,236,216) ); 		// same as frame
-	
+    //qglClearColor( QColor(233,236,216) ); 		// same as frame
+    qglClearColor(vizWin->getBackgroundColor()); // same as vizualizer win
+
 	glClearDepth(1);
 	glPolygonMode(GL_FRONT,GL_FILL);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -116,6 +118,8 @@ void GLProbeWindow::paintGL()
 	//glDrawBuffer(buffer);
 	//glColor3f(1.0f,0.f,0.f);
 	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
 	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 	//get the probe texture:
 	//This should be obtained from the Router!!!!
@@ -153,6 +157,7 @@ void GLProbeWindow::paintGL()
 		glEnd();
 	}
 	
+      glDisable(GL_BLEND);
 }
 
 //

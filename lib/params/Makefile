@@ -10,10 +10,9 @@ FILES = \
 	datastatus dvrparams flowmapeditor flowparams glutil \
 	histo mapeditor mapperfunction params probeparams regionparams \
 	tfeditor tfinterpolator transferfunction viewpoint \
-	animationparams \
-	viewpointparams
+	animationparams	viewpointparams \
+	Colormap OpacityMap
 
-  
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"PARAMS_EXPORTS"
 endif

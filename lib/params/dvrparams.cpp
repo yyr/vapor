@@ -205,6 +205,8 @@ reinit(bool doOverride){
 			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
 			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
 			newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+
+            newTransFunc[i]->setVarNum(i);
 		}
 	} else { 
 		//attempt to make use of existing transfer functions, edit ranges.
@@ -222,6 +224,7 @@ reinit(bool doOverride){
 				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
 				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
 				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+                newTransFunc[i]->setVarNum(i);
 			}
 		}
 			//Delete trans funcs (and associated tfe's that are no longer referenced.
@@ -324,13 +327,14 @@ hookupTF(TransferFunction* tf, int index){
 	newTFEditor->reset();
 	minColorEditBounds[index] = tf->getMinMapValue();
 	maxColorEditBounds[index] = tf->getMaxMapValue();
-	
+	tf->setParams(this);
 	
 }
 // Setup pointers between transfer function, editor, and this:
 //
 void DvrParams::
 connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
+
 	tf->setEditor(tfe);
 	//tfe->setFrame(myDvrTab->DvrTFFrame);
 	tfe->setMapperFunction(tf);
@@ -338,6 +342,7 @@ connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
 	tfe->setColorVarNum(varNum);
 	tfe->setOpacVarNum(varNum);
 	
+    tf->setVarNum(varNum);
 
 }
 
@@ -426,6 +431,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			transFunc[j] = new TransferFunction(this, numBits);
 			TFEditor* newTFEditor = new TFEditor(transFunc[j]);
 			connectMapperFunction(transFunc[j], newTFEditor);
+            transFunc[j]->setVarNum(j);
 		}
 		
 		return true;
@@ -465,6 +471,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		minColorEditBounds[vnum] = leftEdit;
 		maxColorEditBounds[vnum] = rightEdit;
 		transFunc[vnum]->getEditor()->setOpacityScaleFactor(opacFac);
+        transFunc[vnum]->setVarNum(vnum);
 		return true;
 	}
 	//Parse a transferFunction
@@ -474,6 +481,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		//That parser will "pop" back to dvrparams when done.
 		int vnum = DataStatus::getInstance()->mergeVariableName(varName);
 		pm->pushClassStack(transFunc[vnum]);
+
 		transFunc[vnum]->elementStartHandler(pm, depth, tagString, attrs);
 		return true;
 	}

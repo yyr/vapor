@@ -89,9 +89,11 @@ public:
 	void textToSlider(FlowParams* fParams,int coord, float center, float size);
 	void sliderToText(FlowParams* fParams,int coord, int center, int size);
 	void updateRenderer(FlowParams* fParams, bool prevEnabled,  bool newWindow);
-	virtual void guiStartChangeMapFcn(char* );
-	virtual void guiEndChangeMapFcn();
 public slots:
+
+	virtual void guiStartChangeMapFcn(QString s);
+	virtual void guiEndChangeMapFcn();
+
 	void guiSetRakeToRegion();
 protected slots:
 	void guiChangeInstance(int);

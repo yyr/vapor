@@ -87,14 +87,6 @@ public:
 	void guiSetOpacityScale(int val);
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	
-
-	//respond to changes in TF (for undo/redo):
-	//
-	virtual void guiStartChangeMapFcn(char* s);
-	virtual void guiEndChangeMapFcn();
-	
-	
-	void setBindButtons(DvrParams*);
 	
 	
 	DvrParams::DvrType getType(int num) {return typemap[num];}
@@ -116,6 +108,15 @@ public:
 	virtual void reinitTab(bool doOverride);
 
 	
+public slots:
+
+	//respond to changes in TF (for undo/redo):
+	//
+	virtual void guiStartChangeMapFcn(QString s);
+	virtual void guiEndChangeMapFcn();
+
+	void setBindButtons(bool canBind);
+
 protected slots:
 	void guiChangeInstance(int);
 	void guiNewInstance();
@@ -125,7 +126,6 @@ protected slots:
 	void guiSetComboVarNum(int val);
 	void guiSetNumBits(int val);
 	void guiSetLighting(bool val);
-	void guiSetAligned();
 	void guiSetNumRefinements(int num);
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();
@@ -133,8 +133,9 @@ protected slots:
 	void setDvrTabTextChanged(const QString& qs);
 	void dvrReturnPressed();
 	//Slots for dvr panel:
-	
-	
+
+    void setClutDirty();
+
 	void setDvrEnabled(int on);
 	void setDvrEditMode(bool);
 	void setDvrNavigateMode(bool);

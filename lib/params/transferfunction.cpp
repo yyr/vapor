@@ -91,6 +91,15 @@ init(){  //reset to starting values:
 	numEntries = 256;
 	setMinMapValue(0.f);
 	setMaxMapValue(1.f);
+
+    for (int i=0; i<_opacityMaps.size(); i++)
+    {
+      delete _opacityMaps[i];
+      _opacityMaps[i] = NULL;
+    }    
+
+    _opacityMaps.clear();
+    _colormap->clear();
 }
 //Currently this is only for use in a dvrparams panel
 //and a probe
@@ -103,67 +112,59 @@ TransferFunction::~TransferFunction() {
 
 
 //Methods to save and restore transfer functions.
-	//The gui specifies FILEs that are then read/written
-	//Failure results in false/null pointer
-	//
+//The gui specifies FILEs that are then read/written
+//Failure results in false/null pointer
+//
 //Construct an XML node from the transfer function
-XmlNode* TransferFunction::
-buildNode(const string& tfname) {
-	//Construct the main node
-	string empty;
-	std::map <string, string> attrs;
-	attrs.empty();
-	ostringstream oss;
+XmlNode* TransferFunction::buildNode(const string& tfname) 
+{
+  // Construct the main node
+  string empty;
+  std::map <string, string> attrs;
+  attrs.empty();
+  ostringstream oss;
 
-	if (!tfname.empty()){
-		attrs[_tfNameAttr] = tfname;
-	}
-	oss.str(empty);
-	oss << (double)getMinMapValue();
-	attrs[_leftBoundAttr] = oss.str();
-	oss.str(empty);
-	oss << (double)getMaxMapValue();
-	attrs[_rightBoundAttr] = oss.str();
+  if (!tfname.empty())
+  {
+    attrs[_tfNameAttr] = tfname;
+  }
+	
+  oss.str(empty);
+  oss << (double)getMinMapValue();
+  attrs[_leftBoundAttr] = oss.str();
 
-	XmlNode* mainNode = new XmlNode(_transferFunctionTag, attrs, numOpacControlPoints+numColorControlPoints);
+  oss.str(empty);
+  oss << (double)getMaxMapValue();
+  attrs[_rightBoundAttr] = oss.str();
 
-	//Now add children:  One for each control point.
-	//ignore first and last.
-	
-	
-	map <string, string> emptyAttrs;  //empty attribs
-	int i;
-	
-	for (i = 1; i< numOpacControlPoints-1; i++){
-		map <string, string> cpAttrs;
-		
-		oss.str(empty);
-		oss << (double)opacCtrlPoint[i];
-		cpAttrs[_positionAttr] = oss.str();
-		oss.str(empty);
-		oss << (double)opac[i];
-		cpAttrs[_opacityAttr] = oss.str();
-		mainNode->NewChild(_opacityControlPointTag, cpAttrs, 0);
-	}
-	for (i = 1; i< numColorControlPoints-1; i++){
-		map <string, string> cpAttrs;
-		
-		oss.str(empty);
-		oss << (double)colorCtrlPoint[i]; //Put the value in the control point node
-		cpAttrs[_positionAttr] = oss.str();
-		oss.str(empty);
-		oss << (double)hue[i] << " " << (double)sat[i] << " " << (double)val[i];
-		cpAttrs[_hsvAttr] = oss.str();
-		mainNode->NewChild(_colorControlPointTag, cpAttrs, 0);
-	}
-	return mainNode;
+  // 
+  // Add children nodes 
+  //
+  int numChildren = _opacityMaps.size()+1; // opacity maps + 1 colormap
+
+  XmlNode* mainNode = new XmlNode(_transferFunctionTag, attrs, numChildren);
+
+  //
+  // Opacity maps
+  //
+  for (int i=0; i<_opacityMaps.size(); i++)
+  {
+    mainNode->AddChild(_opacityMaps[i]->buildNode());
+  }
+
+  //
+  // Color map
+  //
+  mainNode->AddChild(_colormap->buildNode());
+  
+  return mainNode;
 }
 
 
 //Create a transfer function by parsing a file.
 TransferFunction* TransferFunction::
-loadFromFile(ifstream& is){
-	TransferFunction* newTF = new TransferFunction();
+loadFromFile(ifstream& is, RenderParams *params){
+  TransferFunction* newTF = new TransferFunction(params);
 	// Create an Expat XML parser to parse the XML formatted metadata file
 	// specified by 'path'
 	//
@@ -187,96 +188,144 @@ saveToFile(ofstream& ofs){
 //The parse state is determined by
 //whether it's parsing a color or opacity.
 //
-bool TransferFunction::
-elementStartHandler(ExpatParseMgr* pm, int /*depth*/ , std::string& tagString, const char **attrs){
-	if (StrCmpNoCase(tagString, _transferFunctionTag) == 0) {
-		//If it's a TransferFunction tag, save the left/right bounds attributes.
-		//Ignore the name tag
-		//Do this by repeatedly pulling off the attribute name and value
-		//begin by  resetting everything to starting values.
-		init();
-		while (*attrs) {
-			string attribName = *attrs;
-			attrs++;
-			string value = *attrs;
-			attrs++;
-			istringstream ist(value);
-			if (StrCmpNoCase(attribName, _tfNameAttr) == 0) {
-				ist >> mapperName;
-			}
-			else if (StrCmpNoCase(attribName, _leftBoundAttr) == 0) {
-				float floatval;
-				ist >> floatval;
-				setMinMapValue(floatval);
-			}
-			else if (StrCmpNoCase(attribName, _rightBoundAttr) == 0) {
-				float floatval;
-				ist >> floatval;
-				setMaxMapValue(floatval);
-			}
-			
-			else return false;
-		}
-		return true;
-	}
-	else if (StrCmpNoCase(tagString, _colorControlPointTag) == 0) {
-		//Create a color control point with default values,
-		//and with specified position
-		//Currently only support HSV colors
-		//Repeatedly pull off attribute name and values
-		string attribName;
-		float hue = 0.f, sat = 1.f, val=1.f, posn=0.f;
-		while (*attrs){
-			attribName = *attrs;
-			attrs++;
-			string value = *attrs;
-			attrs++;
-			istringstream ist(value);
-			if (StrCmpNoCase(attribName, _positionAttr) == 0) {
-				ist >> posn;
-			} else if (StrCmpNoCase(attribName, _hsvAttr) == 0) { 
-				ist >> hue;
-				ist >> sat;
-				ist >> val;
-			} else return false;//Unknown attribute
-		}
-		//Then insert color control point
-		int indx = insertNormColorControlPoint(posn,hue,sat,val);
-		if (indx >= 0)return true;
-		return false;
-	}
-	else if (StrCmpNoCase(tagString, _opacityControlPointTag) == 0) {
-		//peel off position and opacity
-		string attribName;
-		float opacity = 1.f, posn = 0.f;
-		while (*attrs){
-			attribName = *attrs;
-			attrs++;
-			string value = *attrs;
-			attrs++;
-			istringstream ist(value);
-			if (StrCmpNoCase(attribName, _positionAttr) == 0) {
-				ist >> posn;
-			} else if (StrCmpNoCase(attribName, _opacityAttr) == 0) { 
-				ist >> opacity;
-			} else return false; //Unknown attribute
-		}
-		//Then insert color control point
-		if(insertNormOpacControlPoint(posn, opacity)>=0) return true;
-		else return false;
-	}
-	else return false;
+bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth , 
+                                           std::string& tagString, 
+                                           const char **attrs)
+{
+  if (StrCmpNoCase(tagString, _transferFunctionTag) == 0)
+  {
+    //If it's a TransferFunction tag, save the left/right bounds attributes.
+    //Ignore the name tag
+    //Do this by repeatedly pulling off the attribute name and value
+    //begin by  resetting everything to starting values.
+    init();
+
+    while (*attrs) 
+    {
+      string attribName = *attrs;
+      attrs++;
+      string value = *attrs;
+      attrs++;
+      istringstream ist(value);
+
+      if (StrCmpNoCase(attribName, _tfNameAttr) == 0) 
+      {
+        ist >> mapperName;
+      }
+      else if (StrCmpNoCase(attribName, _leftBoundAttr) == 0) 
+      {
+        float floatval;
+        ist >> floatval;
+        setMinMapValue(floatval);
+      }
+      else if (StrCmpNoCase(attribName, _rightBoundAttr) == 0) 
+      {
+        float floatval;
+        ist >> floatval;
+        setMaxMapValue(floatval);
+      }   
+      else return false;
+    }
+
+    return true;
+  }
+  else if (StrCmpNoCase(tagString, _colorControlPointTag) == 0) 
+  {
+    //Create a color control point with default values,
+    //and with specified position
+    //Currently only support HSV colors
+    //Repeatedly pull off attribute name and values
+    string attribName;
+    float hue = 0.f, sat = 1.f, val=1.f, posn=0.f;
+
+    while (*attrs)
+    {
+      attribName = *attrs;
+      attrs++;
+      string value = *attrs;
+      attrs++;
+      istringstream ist(value);
+      if (StrCmpNoCase(attribName, _positionAttr) == 0) 
+      {
+        ist >> posn;
+      } else if (StrCmpNoCase(attribName, _hsvAttr) == 0) 
+      { 
+        ist >> hue;
+        ist >> sat;
+        ist >> val;
+      } else return false;//Unknown attribute
+    }
+
+    _colormap->addControlPointAt(posn, Colormap::Color(hue, sat, val));
+
+    return true;
+
+  }
+  else if (StrCmpNoCase(tagString, _opacityControlPointTag) == 0) 
+  {
+    //peel off position and opacity
+    string attribName;
+    float opacity = 1.f, posn = 0.f;
+
+    while (*attrs)
+    {
+      attribName = *attrs;
+      attrs++;
+      string value = *attrs;
+      attrs++;
+      istringstream ist(value);
+      if (StrCmpNoCase(attribName, _positionAttr) == 0) 
+      {
+        ist >> posn;
+      } else if (StrCmpNoCase(attribName, _opacityAttr) == 0) 
+      { 
+        ist >> opacity;
+      } else return false; //Unknown attribute
+    }
+
+    if (_opacityMaps.size() == 0)
+    {
+      // Create a opacity to hold the new control points
+      OpacityMap *map = createOpacityMap();
+     
+      // Remove default control points
+      map->clear(); 
+    }
+
+    _opacityMaps[0]->addNormControlPoint(posn, opacity);
+
+    return true;
+  }
+  else if (StrCmpNoCase(tagString, OpacityMap::xmlTag()) == 0) 
+  {
+    OpacityMap *map = createOpacityMap();
+    pm->pushClassStack(map);
+
+    return map->elementStartHandler(pm, depth, tagString, attrs);
+  }
+  else if (StrCmpNoCase(tagString, Colormap::xmlTag()) == 0) 
+  {
+    pm->pushClassStack(_colormap);
+
+    return _colormap->elementStartHandler(pm, depth, tagString, attrs);
+  }
+
+  else return false;
 }
+
 //The end handler needs to pop the parse stack, if this is not the top level.
-bool TransferFunction::
-elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
-	//Check only for the transferfunction tag, ignore others.
-	if (StrCmpNoCase(tag, _transferFunctionTag) != 0) return true;
-	//If depth is 0, this is a transfer function file; otherwise need to
-	//pop the parse stack.  The caller will need to save the resulting
-	//transfer function (i.e. this)
-	if (depth == 0) return true;
-	ParsedXml* px = pm->popClassStack();
-	bool ok = px->elementEndHandler(pm, depth, tag);
-	return ok;
+bool TransferFunction::elementEndHandler(ExpatParseMgr* pm, int depth , 
+                                         std::string& tag)
+{
+  //Check only for the transferfunction tag, ignore others.
+  if (StrCmpNoCase(tag, _transferFunctionTag) != 0) return true;
+  
+  //If depth is 0, this is a transfer function file; otherwise need to
+  //pop the parse stack.  The caller will need to save the resulting
+  //transfer function (i.e. this)
+  if (depth == 0) return true;
+	
+  ParsedXml* px = pm->popClassStack();
+  bool ok = px->elementEndHandler(pm, depth, tag);
+  return ok;
 }

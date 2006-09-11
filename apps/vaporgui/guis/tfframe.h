@@ -46,10 +46,10 @@ public:
 		{editor = (TFEditor*)e; locationTip->setEditor(e); needUpdate = true;}
 	
 	void startTFChange(char* s){
-		VizWinMgr::getInstance()->getEventRouter(editor->getParams()->getParamType())->guiStartChangeMapFcn(s);
+      emit startChange(s);
 	}
 	void endTFChange(){
-		VizWinMgr::getInstance()->getEventRouter(editor->getParams()->getParamType())->guiEndChangeMapFcn();
+      emit endChange();
 	}
 	VAPoR::TFEditor* getEditor(){return editor;}
 	void notifyColorSelector(QRgb clr){
@@ -74,6 +74,10 @@ public slots:
 signals:
 	//send a new color out
 	void sendRgb(QRgb rgb);
+
+    void startChange(QString);
+    void endChange();
+
 protected:
 	
 	//Virtual, Reimplemented here:

@@ -28,6 +28,7 @@
 #include "assert.h"
 #include "vaporinternal/common.h"
 #include "params.h"
+#include "Colormap.h"
 #include "vapor/MyBase.h"
 #include <vapor/XmlNode.h>
 #include <iostream>
@@ -61,7 +62,8 @@ MapperFunction::MapperFunction() {
 	myParams = 0;
 	myMapEditor = 0;
 	previousClass = 0;
-	
+
+	_colormap = new Colormap(NULL);
 }
 
 MapperFunction::MapperFunction(RenderParams* p, int nBits){
@@ -122,10 +124,239 @@ MapperFunction::MapperFunction(RenderParams* p, int nBits){
 	opac[4] = 1.f;
 	opac[5] = 1.f;
 	
+    _colormap = new Colormap(myParams);
+
+    _opacityMaps.push_back(new OpacityMap(myParams));
 }
-	
-MapperFunction::~MapperFunction() {
+
+//----------------------------------------------------------------------------
+// Copy Constructor
+//----------------------------------------------------------------------------
+MapperFunction::MapperFunction(const MapperFunction &mapper) :
+  _colormap(new Colormap(*mapper._colormap)),
+  numOpacControlPoints(mapper.numOpacControlPoints),
+  numColorControlPoints(mapper.numColorControlPoints),
+  minColorMapBound(mapper.minColorMapBound),
+  maxColorMapBound(mapper.maxColorMapBound),
+  minOpacMapBound(mapper.minOpacMapBound),
+  maxOpacMapBound(mapper.maxOpacMapBound),
+  myMapEditor(mapper.myMapEditor),
+  myParams(mapper.myParams),	
+  numEntries(mapper.numEntries),
+  mapperName(mapper.mapperName),
+  opacCtrlPoint(mapper.opacCtrlPoint),
+  colorCtrlPoint(mapper.colorCtrlPoint),
+  hue(mapper.hue),
+  sat(mapper.sat),
+  val(mapper.val),
+  opac(mapper.opac),
+  opacInterp(mapper.opacInterp),
+  colorInterp(mapper.colorInterp)
+{
+  for (int i=0; i<mapper._opacityMaps.size(); i++)
+  {
+    _opacityMaps.push_back(new OpacityMap(*mapper._opacityMaps[i]));
+  }
+}
+
+MapperFunction::~MapperFunction() 
+{
 	if (myMapEditor) delete myMapEditor;
+
+    delete _colormap;
+    _colormap = NULL;
+
+    for (int i=0; i<_opacityMaps.size(); i++)
+    {
+      delete _opacityMaps[i];
+      _opacityMaps[i] = NULL;
+    }
+    
+    _opacityMaps.clear();
+}
+
+#define GL_TF 1
+#ifdef GL_TF
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+float MapperFunction::opacityValue(float value)
+{
+  //
+  // Get the opacity scale factor from the editor (using the square gives
+  // better control over low opacity values)
+  //
+  int count = 0;
+
+  float opacScale = getEditor()->getOpacityScaleFactor();
+  opacScale = opacScale*opacScale;
+  
+  float opacity = opacScale;
+
+  for (int i=0; i<_opacityMaps.size(); i++)
+  {
+    OpacityMap *omap = _opacityMaps[i];
+
+    if (omap->bounds(value))
+    {
+      opacity *= omap->opacity(value);
+      count++;
+    }
+  }
+
+  if (count) return opacity;
+
+  return 0.0;
+}
+
+//----------------------------------------------------------------------------
+// Populate at a RGBA lookup table 
+//----------------------------------------------------------------------------
+void MapperFunction::makeLut(float* clut)
+{
+  float ostep = (getMaxOpacMapValue() - getMinOpacMapValue())/(numEntries-1);
+  float cstep = (getMaxColorMapValue() - getMinColorMapValue())/(numEntries-1);
+
+  for (int i = 0; i< numEntries; i++)
+  {
+    float ov = getMinOpacMapValue() + i*ostep;
+    float cv = getMinColorMapValue() + i*cstep;
+
+    _colormap->color(cv).toRGB(&clut[4*i]);
+    clut[4*i+3] = opacityValue(ov);
+  }
+}
+
+#else // Original transfer function
+
+/* 
+ * evaluate the Opacity fcn at a float value
+ */
+float MapperFunction::opacityValue(float point){
+	//normalize point to value between 0 and 1:
+	//
+	float normPoint = (point-getMinOpacMapValue())/(getMaxOpacMapValue() - getMinOpacMapValue());
+	
+	int index = getLeftIndex(normPoint, opacCtrlPoint, numOpacControlPoints);
+	float ratio = (normPoint - opacCtrlPoint[index])/(opacCtrlPoint[index+1]-opacCtrlPoint[index]);
+	if (ratio < 0.f || ratio > 1.f) return 0.f;
+	return TFInterpolator::interpolate(opacInterp[index], opac[index], opac[index+1], ratio);
+}
+void MapperFunction::
+mapPointToRGBA(float point, float* rgba){
+	float hsv[3];
+	hsvValue(point, hsv, hsv+1,hsv+2);
+	hsvToRgb(hsv, rgba);
+	rgba[3] = opacityValue(point);
+}
+
+
+/*  
+ *   Build a lookup table[numEntries][4](?) from the TF
+ *   Caller must pass in an empty clut array to be filled in
+ */
+void MapperFunction::makeLut(float* clut){
+	//Find the first control points
+	//int colorCtrlPtNum = getLeftIndex(getMinMapValue(), colorCtrlPoint, numColorControlPoints);
+	//int opacCtrlPtNum = getLeftIndex(getMinMapValue(), opacCtrlPoint, numOpacControlPoints);
+	float opacScale = getEditor()->getOpacityScaleFactor();
+	//Squared gives better control over low opacity values
+	opacScale = opacScale*opacScale;
+	int colorCtrlPtNum = 0;
+	int opacCtrlPtNum = 0;
+	for (int i = 0; i< numEntries; i++){
+		//map the interval [minmapval,maxmapval] to [0..numEntries-1]
+		//float xvalue = getMinMapValue() + ((float)i)*(getMaxMapValue()-getMinMapValue())/((float)(numEntries-1));
+		float normXValue = ((float)i)/(float)(numEntries - 1);
+		//Check if need next control point.
+		//find first control point to the right of this point
+		while (colorCtrlPoint[colorCtrlPtNum+1] < normXValue){
+			colorCtrlPtNum++;
+		}
+		while (opacCtrlPoint[opacCtrlPtNum+1] < normXValue){
+			opacCtrlPtNum++;
+		}
+		//use the interpolators on that interval
+		float hsv[3], rgb[3];
+		float cratio = (normXValue - colorCtrlPoint[colorCtrlPtNum])/(colorCtrlPoint[colorCtrlPtNum+1]-colorCtrlPoint[colorCtrlPtNum]);
+		float oratio = (normXValue - opacCtrlPoint[opacCtrlPtNum])/(opacCtrlPoint[opacCtrlPtNum+1]-opacCtrlPoint[opacCtrlPtNum]);
+		float opacVal = opacScale*TFInterpolator::interpolate(opacInterp[opacCtrlPtNum],opac[opacCtrlPtNum],opac[opacCtrlPtNum+1],oratio);
+		assert( opacVal >= 0.f && opacVal <= 1.f);
+		hsv[0] = TFInterpolator::interpCirc(colorInterp[colorCtrlPtNum],hue[colorCtrlPtNum],hue[colorCtrlPtNum+1],cratio);
+		hsv[1] = TFInterpolator::interpolate(colorInterp[colorCtrlPtNum],sat[colorCtrlPtNum],sat[colorCtrlPtNum+1],cratio);
+		hsv[2] = TFInterpolator::interpolate(colorInterp[colorCtrlPtNum],val[colorCtrlPtNum],val[colorCtrlPtNum+1],cratio);
+		assert( hsv[0] >= 0.f && hsv[0] <= 1.f);
+		assert( hsv[1] >= 0.f && hsv[1] <= 1.f);
+		assert( hsv[2] >= 0.f && hsv[2] <= 1.f);
+		//convert to rgb
+		hsvToRgb(hsv, rgb);
+		
+		assert( rgb[0] >= 0.f && rgb[0] <= 1.f);
+		assert( rgb[1] >= 0.f && rgb[1] <= 1.f);
+		assert( rgb[2] >= 0.f && rgb[2] <= 1.f);
+		clut[4*i] = rgb[0];
+		clut[4*i+1] = rgb[1];
+		clut[4*i+2] = rgb[2];
+		clut[4*i+3] = opacVal;
+	}
+}
+
+#endif
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void MapperFunction::setParams(RenderParams* p) 
+{
+  myParams = p; 
+  
+  _colormap->setParams(p); 
+
+  for (int i=0; i<_opacityMaps.size(); i++)
+  {
+    _opacityMaps[i]->setParams(p);
+  }
+}
+
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+OpacityMap* MapperFunction::createOpacityMap(OpacityMap::Type type)
+{
+  OpacityMap *omap = new OpacityMap(myParams, type);
+
+  _opacityMaps.push_back(omap);
+
+  return omap;
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+OpacityMap* MapperFunction::getOpacityMap(int index)
+{
+  if (index < 0 || index > _opacityMaps.size())
+  {
+    return NULL;
+  }
+
+  return _opacityMaps[index];
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void MapperFunction::deleteOpacityMap(OpacityMap *omap)
+{
+  vector<OpacityMap*>::iterator iter = 
+    std::find(_opacityMaps.begin(), _opacityMaps.end(), omap);
+
+  if (iter != _opacityMaps.end())
+  {
+    _opacityMaps.erase(iter);
+  }
 }
 
 void MapperFunction::
@@ -163,7 +394,19 @@ init(){  //reset to starting values:
 	setMaxColorMapValue(1.f);
 	setMinOpacMapValue(0.f);
 	setMaxOpacMapValue(1.f);
+
+    //
+    // Delete the opacity maps
+    //
+    for (int i=0; i<_opacityMaps.size(); i++)
+    {
+      delete _opacityMaps[i];
+      _opacityMaps[i] = NULL;
+    }
+    
+    _opacityMaps.clear();
 }
+
 //static utility function to map and quantize a float
 //
 int MapperFunction::
@@ -327,7 +570,6 @@ insertNormColorControlPoint(float point, float h, float s, float v){
 	colorInterp.insert(colorInterp.begin()+indx+1, colorInterp[indx]);
 	
 	numColorControlPoints++;
-	
 	return(indx+1);
 }
 /*
@@ -363,7 +605,6 @@ insertOpacControlPoint(float point, float opacity){
 	
 	numOpacControlPoints++;
 	assert(opacCtrlPoint.size() == numOpacControlPoints);
-	
 	return(indx+1);
 }
 /*
@@ -386,7 +627,6 @@ insertNormOpacControlPoint(float point, float opacity){
 	opac.insert(opac.begin()+indx+1, opacity);
 	
 	numOpacControlPoints++;
-	
 	return(indx+1);
 }
 /*
@@ -417,7 +657,6 @@ insertColorControlPoint(float point){
 	colorInterp.insert(colorInterp.begin()+indx+1, colorInterp[indx]);
 	
 	numColorControlPoints++;
-	
 	return(indx+1);
 }
 
@@ -434,7 +673,6 @@ deleteColorControlPoint(int index){
 	
 	numColorControlPoints--;
 	assert(numColorControlPoints == colorCtrlPoint.size());
-	
 	return;
 }
 
@@ -449,7 +687,6 @@ deleteOpacControlPoint(int index){
 	
 	numOpacControlPoints--;
 	assert(numOpacControlPoints == opacCtrlPoint.size());
-	
 	return;
 }
 /*
@@ -489,7 +726,6 @@ moveOpacControlPoint(int index, float newPoint, float newOpacity){
 	if (leftIndex == index || leftIndex == index-1){
 		opacCtrlPoint[index] = normPoint;
 		opac[index] = saveOpacity;
-		
 		return index;
 	}
 	TFInterpolator::type saveOpacInterp = opacInterp[index];
@@ -508,7 +744,6 @@ moveOpacControlPoint(int index, float newPoint, float newOpacity){
 	opac.insert(opac.begin()+newIndex, saveOpacity);
 	opacInterp.insert(opacInterp.begin()+newIndex, saveOpacInterp);
 
-	
 	
 	return newIndex;
 	
@@ -535,7 +770,7 @@ moveColorControlPoint(int index, float newPoint){
 		hue[index] = saveHue;
 		sat[index] = saveSat;
 		val[index] = saveVal;
-		
+
 		return index;
 	}
 	//Otherwise, move it to a new interval;
@@ -560,31 +795,9 @@ moveColorControlPoint(int index, float newPoint){
 	val.insert(val.begin()+newIndex, saveVal);
 	colorInterp.insert(colorInterp.begin()+newIndex, saveColorInterp);
 
-	
 	return newIndex;
 	
 }	
-/* 
- * evaluate the Opacity fcn at a float value
- */
-float MapperFunction::
-opacityValue(float point){
-	//normalize point to value between 0 and 1:
-	//
-	float normPoint = (point-getMinOpacMapValue())/(getMaxOpacMapValue() - getMinOpacMapValue());
-	
-	int index = getLeftIndex(normPoint, opacCtrlPoint, numOpacControlPoints);
-	float ratio = (normPoint - opacCtrlPoint[index])/(opacCtrlPoint[index+1]-opacCtrlPoint[index]);
-	if (ratio < 0.f || ratio > 1.f) return 0.f;
-	return TFInterpolator::interpolate(opacInterp[index], opac[index], opac[index+1], ratio);
-}
-void MapperFunction::
-mapPointToRGBA(float point, float* rgba){
-	float hsv[3];
-	hsvValue(point, hsv, hsv+1,hsv+2);
-	hsvToRgb(hsv, rgba);
-	rgba[3] = opacityValue(point);
-}
 
 void MapperFunction::
 hsvValue(float point, float*h, float*s, float*v){
@@ -605,58 +818,6 @@ hsvValue(float point, float*h, float*s, float*v){
 	}
 }
 
-/*  
- *   Build a lookup table[numEntries][4](?) from the TF
- *   Caller must pass in an empty clut array to be filled in
- */
-void MapperFunction::
-makeLut(float* clut){
-	//Find the first control points
-	//int colorCtrlPtNum = getLeftIndex(getMinMapValue(), colorCtrlPoint, numColorControlPoints);
-	//int opacCtrlPtNum = getLeftIndex(getMinMapValue(), opacCtrlPoint, numOpacControlPoints);
-	float opacScale = getEditor()->getOpacityScaleFactor();
-	//Squared gives better control over low opacity values
-	opacScale = opacScale*opacScale;
-	int colorCtrlPtNum = 0;
-	int opacCtrlPtNum = 0;
-	for (int i = 0; i< numEntries; i++){
-		//map the interval [minmapval,maxmapval] to [0..numEntries-1]
-		//float xvalue = getMinMapValue() + ((float)i)*(getMaxMapValue()-getMinMapValue())/((float)(numEntries-1));
-		float normXValue = ((float)i)/(float)(numEntries - 1);
-		//Check if need next control point.
-		//find first control point to the right of this point
-		while (colorCtrlPoint[colorCtrlPtNum+1] < normXValue){
-			colorCtrlPtNum++;
-		}
-		while (opacCtrlPoint[opacCtrlPtNum+1] < normXValue){
-			opacCtrlPtNum++;
-		}
-		//use the interpolators on that interval
-		float hsv[3], rgb[3];
-		float cratio = (normXValue - colorCtrlPoint[colorCtrlPtNum])/(colorCtrlPoint[colorCtrlPtNum+1]-colorCtrlPoint[colorCtrlPtNum]);
-		float oratio = (normXValue - opacCtrlPoint[opacCtrlPtNum])/(opacCtrlPoint[opacCtrlPtNum+1]-opacCtrlPoint[opacCtrlPtNum]);
-		float opacVal = opacScale*TFInterpolator::interpolate(opacInterp[opacCtrlPtNum],opac[opacCtrlPtNum],opac[opacCtrlPtNum+1],oratio);
-		assert( opacVal >= 0.f && opacVal <= 1.f);
-		hsv[0] = TFInterpolator::interpCirc(colorInterp[colorCtrlPtNum],hue[colorCtrlPtNum],hue[colorCtrlPtNum+1],cratio);
-		hsv[1] = TFInterpolator::interpolate(colorInterp[colorCtrlPtNum],sat[colorCtrlPtNum],sat[colorCtrlPtNum+1],cratio);
-		hsv[2] = TFInterpolator::interpolate(colorInterp[colorCtrlPtNum],val[colorCtrlPtNum],val[colorCtrlPtNum+1],cratio);
-		assert( hsv[0] >= 0.f && hsv[0] <= 1.f);
-		assert( hsv[1] >= 0.f && hsv[1] <= 1.f);
-		assert( hsv[2] >= 0.f && hsv[2] <= 1.f);
-		//convert to rgb
-		hsvToRgb(hsv, rgb);
-		
-		assert( rgb[0] >= 0.f && rgb[0] <= 1.f);
-		assert( rgb[1] >= 0.f && rgb[1] <= 1.f);
-		assert( rgb[2] >= 0.f && rgb[2] <= 1.f);
-		clut[4*i] = rgb[0];
-		clut[4*i+1] = rgb[1];
-		clut[4*i+2] = rgb[2];
-		clut[4*i+3] = opacVal;
-	}
-}
-
-
 QRgb MapperFunction::
 getControlPointRGB(int index){
 	float hsv[3], rgb[3];
@@ -668,12 +829,21 @@ getControlPointRGB(int index){
 	return qRgb((int)(rgb[0]*255.999f),(int)(rgb[1]*255.999f),(int)(rgb[2]*255.999f));
 }
 	
-void MapperFunction::
-setOpaque(){
-	for (int i = 0; i<numOpacControlPoints; i++){
-		opac[i] = 1.f;
-	}
+void MapperFunction::setOpaque()
+{
+  // Old-school
+  for (int i = 0; i<numOpacControlPoints; i++)
+  {
+    opac[i] = 1.f;
+  }
+
+  // New-school
+  for (int i=0; i<_opacityMaps.size(); i++)
+  {
+    _opacityMaps[i]->setOpaque();
+  }
 }
+
 //Construct an XML node from the transfer function
 XmlNode* MapperFunction::
 buildNode(const string& tfname) {
@@ -739,93 +909,123 @@ buildNode(const string& tfname) {
 //whether it's parsing a color or opacity.
 //
 bool MapperFunction::
-elementStartHandler(ExpatParseMgr* pm, int /*depth*/ , std::string& tagString, const char **attrs){
-	if (StrCmpNoCase(tagString, _mapperFunctionTag) == 0) {
-		//If it's a MapperFunction tag, save the left/right bounds attributes.
-		//Ignore the name tag
-		//Do this by repeatedly pulling off the attribute name and value
-		//begin by  resetting everything to starting values.
-		init();
-		while (*attrs) {
-			string attribName = *attrs;
-			attrs++;
-			string value = *attrs;
-			attrs++;
-			istringstream ist(value);
-			
-			if (StrCmpNoCase(attribName, _leftColorBoundAttr) == 0) {
-				float floatval;
-				ist >> floatval;
-				setMinColorMapValue(floatval);
-			}
-			else if (StrCmpNoCase(attribName, _rightColorBoundAttr) == 0) {
-				float floatval;
-				ist >> floatval;
-				setMaxColorMapValue(floatval);
-			}
-			else if (StrCmpNoCase(attribName, _leftOpacityBoundAttr) == 0) {
-				float floatval;
-				ist >> floatval;
-				setMinOpacMapValue(floatval);
-			}
-			else if (StrCmpNoCase(attribName, _rightOpacityBoundAttr) == 0) {
-				float floatval;
-				ist >> floatval;
-				setMaxOpacMapValue(floatval);
-			}
-			
-			else return false;
-		}
-		return true;
-	}
-	else if (StrCmpNoCase(tagString, _colorControlPointTag) == 0) {
-		//Create a color control point with default values,
-		//and with specified position
-		//Currently only support HSV colors
-		//Repeatedly pull off attribute name and values
-		string attribName;
-		float hue = 0.f, sat = 1.f, val=1.f, posn=0.f;
-		while (*attrs){
-			attribName = *attrs;
-			attrs++;
-			string value = *attrs;
-			attrs++;
-			istringstream ist(value);
-			if (StrCmpNoCase(attribName, _positionAttr) == 0) {
-				ist >> posn;
-			} else if (StrCmpNoCase(attribName, _hsvAttr) == 0) { 
-				ist >> hue;
-				ist >> sat;
-				ist >> val;
-			} else return false;//Unknown attribute
-		}
-		//Then insert color control point
-		int indx = insertNormColorControlPoint(posn,hue,sat,val);
-		if (indx >= 0)return true;
-		return false;
-	}
-	else if (StrCmpNoCase(tagString, _opacityControlPointTag) == 0) {
-		//peel off position and opacity
-		string attribName;
-		float opacity = 1.f, posn = 0.f;
-		while (*attrs){
-			attribName = *attrs;
-			attrs++;
-			string value = *attrs;
-			attrs++;
-			istringstream ist(value);
-			if (StrCmpNoCase(attribName, _positionAttr) == 0) {
-				ist >> posn;
-			} else if (StrCmpNoCase(attribName, _opacityAttr) == 0) { 
-				ist >> opacity;
-			} else return false; //Unknown attribute
-		}
-		//Then insert color control point
-		if(insertNormOpacControlPoint(posn, opacity)>=0) return true;
-		else return false;
-	}
-	else return false;
+elementStartHandler(ExpatParseMgr* pm, 
+                    int /*depth*/ , 
+                    std::string& tagString, 
+                    const char **attrs)
+{
+  if (StrCmpNoCase(tagString, _mapperFunctionTag) == 0) 
+  {
+    //If it's a MapperFunction tag, save the left/right bounds attributes.
+    //Ignore the name tag
+    //Do this by repeatedly pulling off the attribute name and value
+    //begin by  resetting everything to starting values.
+    init();
+    
+    while (*attrs) 
+    {
+      string attribName = *attrs;
+      attrs++;
+      string value = *attrs;
+      attrs++;
+      istringstream ist(value);
+      
+      if (StrCmpNoCase(attribName, _leftColorBoundAttr) == 0) 
+      {
+        float floatval;
+        ist >> floatval;
+        setMinColorMapValue(floatval);
+      }
+      else if (StrCmpNoCase(attribName, _rightColorBoundAttr) == 0) 
+      {
+        float floatval;
+        ist >> floatval;
+        setMaxColorMapValue(floatval);
+      }
+      else if (StrCmpNoCase(attribName, _leftOpacityBoundAttr) == 0) 
+      {
+        float floatval;
+        ist >> floatval;
+        setMinOpacMapValue(floatval);
+      }
+      else if (StrCmpNoCase(attribName, _rightOpacityBoundAttr) == 0) 
+      {
+        float floatval;
+        ist >> floatval;
+        setMaxOpacMapValue(floatval);
+      }      
+      else
+      {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+  else if (StrCmpNoCase(tagString, _colorControlPointTag) == 0) 
+  {
+    //Create a color control point with default values,
+    //and with specified position
+    //Currently only support HSV colors
+    //Repeatedly pull off attribute name and values
+    string attribName;
+    float hue = 0.f, sat = 1.f, val=1.f, posn=0.f;
+
+    while (*attrs)
+    {
+      attribName = *attrs;
+      attrs++;
+      string value = *attrs;
+      attrs++;
+      istringstream ist(value);
+      if (StrCmpNoCase(attribName, _positionAttr) == 0) 
+      {
+        ist >> posn;
+      }
+      else if (StrCmpNoCase(attribName, _hsvAttr) == 0) 
+      {
+        ist >> hue;
+        ist >> sat;
+        ist >> val;
+      } 
+      else return false;//Unknown attribute
+    }
+    //Then insert color control point
+    int indx = insertNormColorControlPoint(posn,hue,sat,val);
+    if (indx >= 0)return true;
+    return false;
+  }
+  else if (StrCmpNoCase(tagString, _opacityControlPointTag) == 0) 
+  {
+    //peel off position and opacity
+    string attribName;
+    float opacity = 1.f, posn = 0.f;
+	
+	while (*attrs)
+    {
+      attribName = *attrs;
+      attrs++;
+      string value = *attrs;
+      attrs++;
+      istringstream ist(value);
+      if (StrCmpNoCase(attribName, _positionAttr) == 0) 
+      {
+        ist >> posn;
+      }
+      else if (StrCmpNoCase(attribName, _opacityAttr) == 0) 
+      { 
+        ist >> opacity;
+      } 
+      else return false; //Unknown attribute
+    }
+    //Then insert color control point
+    if(insertNormOpacControlPoint(posn, opacity)>=0) return true;
+    else return false;
+  }
+  else return false;
 }
+
+
 //The end handler needs to pop the parse stack, if this is not the top level.
 bool MapperFunction::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
@@ -839,4 +1039,3 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	bool ok = px->elementEndHandler(pm, depth, tag);
 	return ok;
 }
-

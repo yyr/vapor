@@ -5,7 +5,9 @@ GUI_FILES := \
 	flowmapframe probeframe seedlisteditor \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
-	glprobewindow
+	glprobewindow \
+	DomainWidget GLWidget OpacityWidget \
+	TFLocationTip ControlPointEditor MappingFrame ColorbarWidget
 
 
 GUI_QT_HEADERS := \
@@ -14,6 +16,8 @@ GUI_QT_HEADERS := \
 	savetfdialog tfframe vizselectcombo \
 	flowmapframe probeframe seedlisteditor \
 	animationeventrouter dvreventrouter floweventrouter \
-	regioneventrouter viewpointeventrouter probeeventrouter
+	regioneventrouter viewpointeventrouter probeeventrouter \
+	DomainWidget GLWidget OpacityWidget ControlPointEditor \
+	MappingFrame ColorbarWidget
 
 

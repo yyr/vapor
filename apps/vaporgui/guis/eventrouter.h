@@ -89,8 +89,10 @@ public:
 
 	//Methods to support maintaining a list of histograms
 	//in each router (at least those with a TFE)
-	virtual Histo* getHistogram(RenderParams*, bool /*mustGet*/) { assert(0); return 0;}
+
+	virtual Histo* getHistogram(RenderParams*, bool /*mustGet*/) { return 0;}
 	virtual void refreshHistogram(RenderParams* ) {assert(0);}
+
 	//If there is a mapEditor, need to implement this:
 	virtual void setEditorDirty(){assert(0);}
 	MapEditor* getMapEditor(RenderParams* params){
@@ -104,9 +106,11 @@ public:
 	//Method for classes that capture mouse event events in viz win:
 	virtual void captureMouseUp() {assert(0);}
 	virtual void captureMouseDown() {assert(0);}
-	virtual void guiStartChangeMapFcn(char* ) {assert(0);}
-	virtual void guiEndChangeMapFcn(){assert(0);}
 
+public slots:
+
+	virtual void guiStartChangeMapFcn(QString) { assert(0); }
+	virtual void guiEndChangeMapFcn() { assert(0); }
 	
 	
 protected:

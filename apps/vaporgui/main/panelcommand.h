@@ -39,7 +39,7 @@ public:
 	virtual ~PanelCommand();
 	virtual void reDo();
 	virtual void unDo();
-	static PanelCommand* captureStart(Params* p,  char* description);
+	static PanelCommand* captureStart(Params* p,  const char* description);
 	static void captureEnd(PanelCommand* pCom, Params *p);
 
 protected:

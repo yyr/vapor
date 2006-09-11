@@ -90,9 +90,11 @@ public:
 		return ctab;
 	}
 	void setMinMapBound(float val)
-		{setMinColorMapBound(val);setMinOpacMapBound(val);}
+		{ 
+          setMinColorMapBound(val);setMinOpacMapBound(val);}
 	void setMaxMapBound(float val)
-		{setMaxColorMapBound(val);setMaxOpacMapBound(val);}
+		{
+          setMaxColorMapBound(val);setMaxOpacMapBound(val);}
 	float getMinMapBound(){return getMinColorMapBound();} 	
 	float getMaxMapBound(){return getMaxColorMapBound();} 
 	float getOpacityScale(); 
@@ -112,7 +114,6 @@ public:
 		setMinOpacEditBound(val, varNum);
 	}
 	void setMaxEditBound(float val) {
-		
 		setMaxColorEditBound(val, varNum);
 		setMaxOpacEditBound(val, varNum);
 	}

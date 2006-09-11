@@ -40,6 +40,7 @@
 #include <qlabel.h>
 #include <qlistbox.h>
 #include <qtimer.h>
+#include <qtooltip.h>
 
 #include "regionparams.h"
 #include "regiontab.h"
@@ -73,9 +74,9 @@
 #include "eventrouter.h"
 #include "savetfdialog.h"
 #include "loadtfdialog.h"
-#include "tfframe.h"
-#include "tfeditor.h"
+#include "colorpicker.h"
 #include "VolumeRenderer.h"
+#include "MappingFrame.h"
 
 using namespace VAPoR;
 
@@ -115,7 +116,8 @@ DvrEventRouter::hookUpTab()
 	connect (histoScaleEdit, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
 	connect (numBitsSpin, SIGNAL (valueChanged(int)), this, SLOT(guiSetNumBits(int)));
 	
-	//TFE Editor controls:
+	// Transfer function controls:
+
 	connect (leftMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
 	connect (rightMappingBound, SIGNAL(returnPressed()), this, SLOT(dvrReturnPressed()));
 	
@@ -126,17 +128,37 @@ DvrEventRouter::hookUpTab()
 	
 	connect (editButton, SIGNAL(toggled(bool)), this, SLOT(setDvrEditMode(bool)));
 	
-	connect(alignButton, SIGNAL(clicked()), this, SLOT(guiSetAligned()));
-	
 	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
+
+    //
+    // New Transfer Function Frame
+    //
+	connect(editButton, SIGNAL(toggled(bool)), 
+            transferFunctionFrame, SLOT(setEditMode(bool)));
+	connect(alignButton, SIGNAL(clicked()),
+            transferFunctionFrame, SLOT(fitToView()));
+    connect(transferFunctionFrame, SIGNAL(startChange(QString)), 
+            this, SLOT(guiStartChangeMapFcn(QString)));
+    connect(transferFunctionFrame, SIGNAL(endChange()),
+            this, SLOT(guiEndChangeMapFcn()));
+    connect(transferFunctionFrame, SIGNAL(sendRgb(QRgb)),
+            colorPickerFrame, SLOT(newColorTypedIn(QRgb)));
+    connect(colorPickerFrame, SIGNAL(hsvOut(int,int,int)), 
+            transferFunctionFrame, SLOT(newHsv(int,int,int)));
+    connect(transferFunctionFrame, SIGNAL(canBindControlPoints(bool)),
+            this, SLOT(setBindButtons(bool)));
+    connect(transferFunctionFrame, SIGNAL(mappingChanged()),
+            this, SLOT(setClutDirty()));
+
+
+
 
 #ifdef BENCHMARKING
     connect(benchmarkButton, SIGNAL(clicked()),
             this, SLOT(runBenchmarks()));
 #else
     benchmarkGroup->hide();
-#endif
-	
+#endif	
 }
 
 /*********************************************************************************
@@ -263,7 +285,6 @@ refreshHisto(){
 		refreshHistogram(dParams);
 		setEditorDirty();
 	}
-	DvrTFFrame->update();
 }
 /*
  * Respond to a slider release
@@ -396,7 +417,7 @@ fileLoadTF(DvrParams* dParams){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Load Transfer Function from file");
 	
-	TransferFunction* t = TransferFunction::loadFromFile(is);
+	TransferFunction* t = TransferFunction::loadFromFile(is, dParams);
 	if (!t){//Report error if can't load
 		QString str("Error loading transfer function. /nFailed to convert input file: \n ");
 		str += s;
@@ -420,6 +441,7 @@ fileLoadTF(DvrParams* dParams){
 void DvrEventRouter::updateTab(Params* params){
 	initTypes();
 	DvrParams* dvrParams = (DvrParams*) params;
+
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	int instCount = vizMgr->getNumDvrInstances(winnum);
@@ -434,8 +456,29 @@ void DvrEventRouter::updateTab(Params* params){
 	deleteInstanceButton->setEnabled(vizMgr->getNumDvrInstances(winnum) > 1);
 	
 	QString strn;
-	Session::getInstance()->blockRecording();
-	DvrTFFrame->setEditor(getTFEditor(dvrParams));
+    Session *session = Session::getInstance();
+
+	session->blockRecording();
+
+    transferFunctionFrame->setMapperFunction(dvrParams->getMapperFunc());
+    transferFunctionFrame->update();
+
+    if (session->getNumMetadataVariables())
+    {
+      int varnum = dvrParams->getVarNum();
+      const std::string& varname = session->getMetadataVarName(varnum);
+      
+      transferFunctionFrame->setVariableName(varname);
+    }
+    else
+    {
+      transferFunctionFrame->setVariableName("");
+    }
+
+	VizWinMgr::getInstance()->setClutDirty(dvrParams);
+    VizWinMgr::getInstance()->setDatarangeDirty(dvrParams);
+	VizWinMgr::getInstance()->setVizDirty(dvrParams,RegionBit,true);
+
 	EnableDisable->setCurrentItem((dvrParams->isEnabled()) ? 1 : 0);
 	//Disable the typeCombo whenever the renderer is enabled:
 	typeCombo->setEnabled(!(dvrParams->isEnabled()));
@@ -457,8 +500,6 @@ void DvrEventRouter::updateTab(Params* params){
 	sliderVal = 256.f*(1.f -sliderVal);
 	opacityScaleSlider->setValue((int) sliderVal);
 	
-	
-	setBindButtons(dvrParams);
 	
 	//Set the mode buttons:
 	
@@ -525,19 +566,7 @@ guiSetEditMode(bool mode){
 	dParams->setEditMode(mode);
 	PanelCommand::captureEnd(cmd, dParams); 
 }
-void DvrEventRouter::
-guiSetAligned(){
-	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
-	if (dParams->getNumVariables() <= 0) return;
-	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "align tf in edit frame");
-		
-	getTFEditor(dParams)->setMinEditValue(dParams->getMinColorMapBound());
-	getTFEditor(dParams)->setMaxEditValue(dParams->getMaxColorMapBound());
-	setEditorDirty();
-	
-	PanelCommand::captureEnd(cmd, dParams);
-}
+
 void DvrEventRouter::
 guiSetNumRefinements(int num){
 	confirmText(false);
@@ -563,11 +592,26 @@ guiSetEnabled(bool value){
 	dParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, dParams);
 		
+	setDatarangeDirty(dParams);
 	setEditorDirty();
 	VizWinMgr::getInstance()->setClutDirty(dParams);
 	VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit,true);
-	setDatarangeDirty(dParams);
-	//updateRenderer(dParams, !value, false); //(not here; called by setDvrEnabled())
+
+	if (dParams->getMapperFunc())
+    {
+      QString strn;
+
+      strn.setNum(dParams->getMapperFunc()->getMinColorMapValue(),'g',7);
+      leftMappingBound->setText(strn);
+
+      strn.setNum(dParams->getMapperFunc()->getMaxColorMapValue(),'g',7);
+      rightMappingBound->setText(strn);
+	} 
+    else 
+    {
+      leftMappingBound->setText("0.0");
+      rightMappingBound->setText("1.0");
+	}
 }
 
 void DvrEventRouter::
@@ -594,11 +638,7 @@ guiSetComboVarNum(int val){
 	//reset the editing display range shown on the tab, 
 	//also set dirty flag
 	
-	
-	//Force a redraw of tfframe 
-
-
-	dParams->connectMapperFunction(dParams->getMapperFunc(),getTFEditor(dParams));
+	//Force a redraw of transfer function
 	setEditorDirty();
 	
 	
@@ -700,13 +740,11 @@ void DvrEventRouter::initTypes()
   //Set all dvr's to the first available type:
   //type = typemap[0];
 }
-void DvrEventRouter::
-setBindButtons(DvrParams* dParams){
-	bool enable = false;
-	if (dParams->getTFEditor())
-		enable = dParams->getTFEditor()->canBind();
-	OpacityBindButton->setEnabled(enable);
-	ColorBindButton->setEnabled(enable);
+
+void DvrEventRouter::setBindButtons(bool canbind)
+{
+  OpacityBindButton->setEnabled(canbind);
+  ColorBindButton->setEnabled(canbind);
 }
 
 void DvrEventRouter::
@@ -736,7 +774,7 @@ guiSetLighting(bool val){
 void DvrEventRouter::
 guiSetOpacityScale(int val){
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
-	if (!getTFEditor(dParams)) return;
+
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "modify opacity scale slider");
 		
@@ -754,13 +792,13 @@ guiSetOpacityScale(int val){
 //These are just for undo/redo.  Also may need to update visualizer and/or editor
 //
 void DvrEventRouter::
-guiStartChangeMapFcn(char* str){
+guiStartChangeMapFcn(QString qstr){
 	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
 	guiSetTextChanged(false);
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
 	//If another command is in process, don't disturb it:
 	if (savedCommand) return;
-	savedCommand = PanelCommand::captureStart(dParams, str);
+	savedCommand = PanelCommand::captureStart(dParams, qstr.latin1());
 		
 }
 void DvrEventRouter::
@@ -771,7 +809,6 @@ guiEndChangeMapFcn(){
 	setDatarangeDirty(dParams);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
 	savedCommand = 0;
-	setEditorDirty();
 }
 
 void DvrEventRouter::
@@ -780,10 +817,9 @@ guiBindColorToOpac(){
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "bind Color to Opacity");
 		
-	getTFEditor(dParams)->bindColorToOpac();
+    transferFunctionFrame->bindColorToOpacity();
 	PanelCommand::captureEnd(cmd, dParams);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
-	setEditorDirty();
 }
 void DvrEventRouter::
 guiBindOpacToColor(){
@@ -791,11 +827,9 @@ guiBindOpacToColor(){
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "bind Opacity to Color");
 		
-	getTFEditor(dParams)->bindOpacToColor();
+    transferFunctionFrame->bindOpacityToColor();
 	PanelCommand::captureEnd(cmd, dParams);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
-	setEditorDirty();
-		
 }
 /* Handle the change of status associated with change of enablement 
  
@@ -884,8 +918,23 @@ updateRenderer(DvrParams* dParams, bool prevEnabled, bool newWindow){
 void DvrEventRouter::
 setEditorDirty(){
 	DvrParams* dp = VizWinMgr::getInstance()->getActiveDvrParams();
-	DvrTFFrame->setEditor(getTFEditor(dp));
-	DvrTFFrame->update();
+
+    transferFunctionFrame->setMapperFunction(dp->getMapperFunc());
+    transferFunctionFrame->update();
+
+    Session *session = Session::getInstance();
+
+    if (session->getNumMetadataVariables())
+    {
+      int varnum = dp->getVarNum();
+      const std::string& varname = session->getMetadataVarName(varnum);
+      
+      transferFunctionFrame->setVariableName(varname);
+    }
+    else
+    {
+      transferFunctionFrame->setVariableName("");
+    }
 }
 
 //Methods to support maintaining a list of histograms
@@ -897,6 +946,7 @@ setEditorDirty(){
 Histo* DvrEventRouter::getHistogram(RenderParams* p, bool mustGet){
 	DvrParams* dParams = (DvrParams*)p;
 	int numVariables = DataStatus::getInstance()->getNumVariables();
+
 	if (!histogramList){
 		if (!mustGet) return 0;
 		histogramList = new Histo*[numVariables];
@@ -978,6 +1028,13 @@ void DvrEventRouter::refreshHistogram(RenderParams* p){
 	setEditorDirty();
 	update();
 }
+
+void DvrEventRouter::setClutDirty()
+{
+  DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+  VizWinMgr::getInstance()->setClutDirty(dParams);
+}
+
 //Method to invalidate a datarange, and to force a rendering
 //with new data quantization
 void DvrEventRouter::
@@ -1012,8 +1069,10 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 	if (newWin || (formerParams->isEnabled() != dParams->isEnabled())){
 		updateRenderer(dParams, wasEnabled,  newWin);
 	}
+
 	setDatarangeDirty(dParams);
 	updateClut(dParams);
+    setEditorDirty();
 }
 
 
@@ -1255,9 +1314,11 @@ void DvrEventRouter::tfeditBenchmark()
     nextBenchmark();
   }
 }
-void DvrEventRouter::cleanParams(Params* p) {
-		if(DvrTFFrame->getEditor() && DvrTFFrame->getEditor()->getParams() == p)
-			DvrTFFrame->setEditor(0);
+void DvrEventRouter::cleanParams(Params* p) 
+{
+  transferFunctionFrame->setMapperFunction(NULL);
+  transferFunctionFrame->setVariableName("");
+  transferFunctionFrame->update();
 }
 	
 
