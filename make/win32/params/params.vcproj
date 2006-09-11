@@ -127,6 +127,9 @@
 				RelativePath="..\..\..\lib\params\animationparams.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\Colormap.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\datastatus.cpp">
 			</File>
 			<File
@@ -149,6 +152,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\mapperfunction.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\OpacityMap.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\params.cpp">
@@ -183,6 +189,9 @@
 				RelativePath="..\..\..\lib\params\animationparams.h">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\Colormap.h">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\datastatus.h">
 			</File>
 			<File
@@ -208,6 +217,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\mapperfunction.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\OpacityMap.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\params.h">

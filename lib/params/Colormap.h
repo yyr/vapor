@@ -17,12 +17,12 @@ namespace VAPoR {
 class RenderParams;
 class XmlNode;
 
-class Colormap : public ParsedXml 
+class PARAMS_API Colormap : public ParsedXml 
 {
 
 public:
 
-  class Color
+  class PARAMS_API Color
   {
 
   public:

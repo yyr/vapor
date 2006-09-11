@@ -19,7 +19,7 @@ namespace VAPoR {
 class RenderParams;
 class XmlNode;
 
-class OpacityMap : public ParsedXml 
+class PARAMS_API OpacityMap : public ParsedXml 
 {
   class ControlPoint
   {
