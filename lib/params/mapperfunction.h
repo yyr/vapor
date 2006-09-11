@@ -28,7 +28,7 @@
 #include "vapor/ExpatParseMgr.h"
 #include "Colormap.h"
 #include <qcolor.h>
-#include <iostream.h>
+#include <iostream>
 
 namespace VAPoR {
 class Params;
