@@ -41,6 +41,7 @@
 #include <qcursor.h>
 #include <qtooltip.h>
 
+#include "MappingFrame.h"
 #include "regionparams.h"
 #include "regiontab.h"
 #include "mainform.h"
@@ -72,7 +73,6 @@
 #include "savetfdialog.h"
 #include "loadtfdialog.h"
 #include "VolumeRenderer.h"
-#include "MappingFrame.h"
 
 using namespace VAPoR;
 

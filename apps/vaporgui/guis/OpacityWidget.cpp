@@ -16,6 +16,10 @@
 #include "MappingFrame.h"
 #include "glutil.h"
 
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+
 #include <iostream>
 
 using namespace std;

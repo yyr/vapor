@@ -39,6 +39,7 @@
 #include <qlistbox.h>
 #include "regionparams.h"
 
+#include "MappingFrame.h"
 #include "mainform.h"
 #include "vizwinmgr.h"
 #include "flowrenderer.h"
@@ -73,7 +74,6 @@
 #include "tfframe.h"
 #include "tfeditor.h"
 #include "VolumeRenderer.h"
-#include "MappingFrame.h"
 
 using namespace VAPoR;
 
@@ -615,8 +615,8 @@ void FlowEventRouter::updateTab(Params* params){
     opacityMappingFrame->setMapperFunction(fParams->getMapperFunc());
     colorMappingFrame->setMapperFunction(fParams->getMapperFunc());
 
-    opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText());
-    colorMappingFrame->setVariableName(colormapEntityCombo->currentText());
+    opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().latin1());
+    colorMappingFrame->setVariableName(colormapEntityCombo->currentText().latin1());
 
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
@@ -1892,11 +1892,11 @@ setEditorDirty(){
 	FlowParams* fp = VizWinMgr::getInstance()->getActiveFlowParams();
 
     opacityMappingFrame->setMapperFunction(fp->getMapperFunc());
-    opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText());
+    opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().latin1());
     opacityMappingFrame->update();
     
     colorMappingFrame->setMapperFunction(fp->getMapperFunc());
-    colorMappingFrame->setVariableName(colormapEntityCombo->currentText());
+    colorMappingFrame->setVariableName(colormapEntityCombo->currentText().latin1());
     colorMappingFrame->update();
 }
 //Make the new params current

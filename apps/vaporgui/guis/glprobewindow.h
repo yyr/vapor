@@ -21,6 +21,9 @@
 #ifndef GLPROBEWINDOW_H
 #define GLPROBEWINDOW_H
 
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include <qgl.h>
 #define CURSOR_COLOR 1.f,1.f,1.f
 #define CURSOR_SIZE 0.05f
