@@ -519,7 +519,7 @@ void ProbeEventRouter::updateTab(Params* params){
     transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
     transferFunctionFrame->update();
 
-    if (ses->getNumMetadataVariables())
+    if (ses->getNumVariables())
     {
       int varnum = probeParams->getVarNum();
       const std::string& varname = ses->getMetadataVarName(varnum);
@@ -721,7 +721,7 @@ setEditorDirty(){
 
     Session *session = Session::getInstance();
 
-    if (session->getNumMetadataVariables())
+    if (session->getNumVariables())
     {
       int varnum = dp->getVarNum();
       const std::string& varname = session->getMetadataVarName(varnum);
