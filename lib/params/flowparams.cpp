@@ -466,6 +466,7 @@ reinit(bool doOverride){
 				newMaxColorEditBounds[i+4] = maxColorEditBounds[i+4];
 			}
 		} 
+		if (!mapperFunction) mapperFunction = new MapperFunction(this, 8);
 		//Create a new mapeditor if one doesn't exist:
 		if(!flowMapEditor){
 			flowMapEditor = new FlowMapEditor(mapperFunction);
