@@ -439,6 +439,16 @@ void Colormap::addControlPointAt(float value, Color color)
 }
 
 //----------------------------------------------------------------------------
+// Add a new control point to the colormap.
+//----------------------------------------------------------------------------
+void Colormap::addNormControlPoint(float normValue, Color color)
+{
+  _controlPoints.push_back(new ControlPoint(color, normValue));
+
+  std::sort(_controlPoints.begin(), _controlPoints.end(), sortCriterion);
+}
+
+//----------------------------------------------------------------------------
 // Delete the control point.
 //----------------------------------------------------------------------------
 void Colormap::deleteControlPoint(int index)

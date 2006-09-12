@@ -867,38 +867,27 @@ buildNode(const string& tfname) {
 	attrs[_rightOpacityBoundAttr] = oss.str();
 	
 
-	XmlNode* mainNode = new XmlNode(_mapperFunctionTag, attrs, numOpacControlPoints+numColorControlPoints);
+  // 
+  // Add children nodes 
+  //
+  int numChildren = _opacityMaps.size()+1; // opacity maps + 1 colormap
 
-	//Now add children:  One for each control point.
-	//ignore first and last.
-	
-	
-	map <string, string> emptyAttrs;  //empty attribs
-	int i;
-	
-	for (i = 1; i< numOpacControlPoints-1; i++){
-		map <string, string> cpAttrs;
-		
-		oss.str(empty);
-		oss << (double)opacCtrlPoint[i];
-		cpAttrs[_positionAttr] = oss.str();
-		oss.str(empty);
-		oss << (double)opac[i];
-		cpAttrs[_opacityAttr] = oss.str();
-		mainNode->NewChild(_opacityControlPointTag, cpAttrs, 0);
-	}
-	for (i = 1; i< numColorControlPoints-1; i++){
-		map <string, string> cpAttrs;
-		
-		oss.str(empty);
-		oss << (double)colorCtrlPoint[i]; //Put the value in the control point node
-		cpAttrs[_positionAttr] = oss.str();
-		oss.str(empty);
-		oss << (double)hue[i] << " " << (double)sat[i] << " " << (double)val[i];
-		cpAttrs[_hsvAttr] = oss.str();
-		mainNode->NewChild(_colorControlPointTag, cpAttrs, 0);
-	}
-	return mainNode;
+  XmlNode* mainNode = new XmlNode(_mapperFunctionTag, attrs, numChildren);
+
+  //
+  // Opacity maps
+  //
+  for (int i=0; i<_opacityMaps.size(); i++)
+  {
+    mainNode->AddChild(_opacityMaps[i]->buildNode());
+  }
+
+  //
+  // Color map
+  //
+  mainNode->AddChild(_colormap->buildNode());
+
+  return mainNode;
 }
 
 
@@ -910,7 +899,7 @@ buildNode(const string& tfname) {
 //
 bool MapperFunction::
 elementStartHandler(ExpatParseMgr* pm, 
-                    int /*depth*/ , 
+                    int depth , 
                     std::string& tagString, 
                     const char **attrs)
 {
@@ -981,27 +970,26 @@ elementStartHandler(ExpatParseMgr* pm,
       if (StrCmpNoCase(attribName, _positionAttr) == 0) 
       {
         ist >> posn;
-      }
-      else if (StrCmpNoCase(attribName, _hsvAttr) == 0) 
-      {
+      } else if (StrCmpNoCase(attribName, _hsvAttr) == 0) 
+      { 
         ist >> hue;
         ist >> sat;
         ist >> val;
-      } 
-      else return false;//Unknown attribute
+      } else return false;//Unknown attribute
     }
-    //Then insert color control point
-    int indx = insertNormColorControlPoint(posn,hue,sat,val);
-    if (indx >= 0)return true;
-    return false;
+
+    _colormap->addNormControlPoint(posn, Colormap::Color(hue, sat, val));
+
+    return true;
+
   }
   else if (StrCmpNoCase(tagString, _opacityControlPointTag) == 0) 
   {
     //peel off position and opacity
     string attribName;
     float opacity = 1.f, posn = 0.f;
-	
-	while (*attrs)
+
+    while (*attrs)
     {
       attribName = *attrs;
       attrs++;
@@ -1011,17 +999,39 @@ elementStartHandler(ExpatParseMgr* pm,
       if (StrCmpNoCase(attribName, _positionAttr) == 0) 
       {
         ist >> posn;
-      }
-      else if (StrCmpNoCase(attribName, _opacityAttr) == 0) 
+      } else if (StrCmpNoCase(attribName, _opacityAttr) == 0) 
       { 
         ist >> opacity;
-      } 
-      else return false; //Unknown attribute
+      } else return false; //Unknown attribute
     }
-    //Then insert color control point
-    if(insertNormOpacControlPoint(posn, opacity)>=0) return true;
-    else return false;
+
+    if (_opacityMaps.size() == 0)
+    {
+      // Create a opacity to hold the new control points
+      OpacityMap *map = createOpacityMap();
+     
+      // Remove default control points
+      map->clear(); 
+    }
+
+    _opacityMaps[0]->addNormControlPoint(posn, opacity);
+
+    return true;
   }
+  else if (StrCmpNoCase(tagString, OpacityMap::xmlTag()) == 0) 
+  {
+    OpacityMap *map = createOpacityMap();
+    pm->pushClassStack(map);
+
+    return map->elementStartHandler(pm, depth, tagString, attrs);
+  }
+  else if (StrCmpNoCase(tagString, Colormap::xmlTag()) == 0) 
+  {
+    pm->pushClassStack(_colormap);
+
+    return _colormap->elementStartHandler(pm, depth, tagString, attrs);
+  }
+
   else return false;
 }
 

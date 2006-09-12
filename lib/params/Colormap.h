@@ -77,6 +77,7 @@ public:
 
   void addControlPointAt(float value);
   void addControlPointAt(float value, Color color);
+  void addNormControlPoint(float normValue, Color color);
   void deleteControlPoint(int index);
 
   void move(int index, float delta);

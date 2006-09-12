@@ -256,7 +256,7 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
       } else return false;//Unknown attribute
     }
 
-    _colormap->addControlPointAt(posn, Colormap::Color(hue, sat, val));
+    _colormap->addNormControlPoint(posn, Colormap::Color(hue, sat, val));
 
     return true;
 
