@@ -67,7 +67,7 @@ public:
   float maxValue() const;      // Data Coordinates
   void  maxValue(float value); // Data Coordinates
 
-  int numControlPoints()                { return _controlPoints.size(); }
+  int numControlPoints()                { return (int)_controlPoints.size(); }
 
   Color controlPointColor(int index);
   void  controlPointColor(int index, Color color);

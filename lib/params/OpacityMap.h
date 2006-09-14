@@ -85,7 +85,7 @@ public:
   float maxValue() const;      // Data Coordinates
   void  maxValue(float value); // Data Coordinates
 
-  int numControlPoints()      { return _controlPoints.size(); }
+  int numControlPoints()      { return (int)_controlPoints.size(); }
 
   void  addNormControlPoint(float normv, float opacity); // Normalized Coords
   void  addControlPoint(float value, float opacity);     // Data Coordinates

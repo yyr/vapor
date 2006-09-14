@@ -80,7 +80,7 @@ public:
     OpacityMap* createOpacityMap(OpacityMap::Type type=OpacityMap::CONTROL_POINT);
     OpacityMap* getOpacityMap(int index);
     void        deleteOpacityMap(OpacityMap *omap);
-    int         getNumOpacityMaps() { return _opacityMaps.size(); }
+    int         getNumOpacityMaps() { return (int)_opacityMaps.size(); }
 
     //
     // Colormap

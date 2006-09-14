@@ -1487,11 +1487,13 @@ void FlowRenderer::setDataDirty()
 }
 void FlowRenderer::setGraphicsDirty()
 {
-	//the graphics bit shouldn't be set if we need to 
-	//calculate speeds:
-	assert((myFlowParams->getOpacMapEntityIndex() != 2)&&(myFlowParams->getColorMapEntityIndex() != 2));
-		
-	for (int i = 0; i< numFrames; i++){
+	//the graphics bit shouldn't be set is speeds are being mapped?
+	//
+	//assert((myFlowParams->getOpacMapEntityIndex() != 2)&&(myFlowParams->getColorMapEntityIndex() != 2));
+	if ((myFlowParams->getOpacMapEntityIndex() == 2)||(myFlowParams->getColorMapEntityIndex() == 2)){
+		setDataDirty();
+	}
+	else for (int i = 0; i< numFrames; i++){
 		flowMapDirty[i] = true;
 	}
 }
