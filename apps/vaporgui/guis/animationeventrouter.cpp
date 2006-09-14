@@ -479,6 +479,7 @@ void AnimationEventRouter::guiSingleStep(bool forward){
 		}
 	}
 	currentFrameEdit->setText(QString::number(currentFrame));
+	aParams->setCurrentFrameNumber(currentFrame);
 	setSliders(aParams);
 	guiSetTextChanged(false);
 	assert(currentFrame >= startFrame && currentFrame <= endFrame);
