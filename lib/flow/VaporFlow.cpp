@@ -598,10 +598,10 @@ bool VaporFlow::GenPathLines(float* positions,
 		}
 		pField->SetUserTimeStepInc((int)diff, (int)curDiff);
 
-		// need get new data
-		if((iFor%timeStepIncrement) == 0)
+		// need get new data ?
+		if(((iFor-realStartTime)%timeStepIncrement) == 0)
 		{
-			//For the first sample time, get data for current time (get the next sampled timestep in next line)
+			//For the very first sample time, get data for current time (get the next sampled timestep in next line)
 			if(iFor == realStartTime){
 				//AN 10/19/05
 				//Check for valid data, return false if invalid
@@ -624,14 +624,25 @@ bool VaporFlow::GenPathLines(float* positions,
 					return false;
 				}
 				pField->SetSolutionData(iTemp,xDataPtr,yDataPtr,zDataPtr);
+			} else {
+				//If it's not the very first time, need to release data for first 
+				//time step, and move end ptrs to start:
+				//Now can release first pointers:
+				dataMgr->UnlockRegion(xDataPtr);
+				dataMgr->UnlockRegion(yDataPtr);
+				dataMgr->UnlockRegion(zDataPtr);
+				//And use them to save the second pointers:
+				xDataPtr = xDataPtr2;
+				yDataPtr = yDataPtr2;
+				zDataPtr = zDataPtr2;
 			}
-			//otherwise just get next sampled timestep.  
+			//now get data for second ( next) sampled timestep.  
 			yDataPtr2 = zDataPtr2 = 0;
 			xDataPtr2 = GetData(iFor+timeStepIncrement,xVarName); 
 			if(xDataPtr2) yDataPtr2 = GetData(iFor+timeStepIncrement,yVarName); 
 			if(yDataPtr2) zDataPtr2 = GetData(iFor+timeStepIncrement,zVarName); 
 			if (!xDataPtr2 || !yDataPtr2 || !zDataPtr2){
-				// release resources
+				// if we failed:  release resources
 				delete[] pUserTimeSteps;
 				delete[] pointers;
 				delete pStreakLine;
@@ -657,22 +668,18 @@ bool VaporFlow::GenPathLines(float* positions,
 			pStreakLine->execute((float)iFor, positions, startPositions, pointers, true, iInjection++, speeds);
 		else					// do not inject new seeds
 			pStreakLine->execute((float)iFor, positions, startPositions, pointers, false, iInjection, speeds);
-		//Now can release first pointers:
-		dataMgr->UnlockRegion(xDataPtr);
-		dataMgr->UnlockRegion(yDataPtr);
-		dataMgr->UnlockRegion(zDataPtr);
-		//And use them to save the second pointers:
-		xDataPtr = xDataPtr2;
-		yDataPtr = yDataPtr2;
-		zDataPtr = zDataPtr2;
-
+		
 	}
 
 	//Reset();
-	// release resource
+	// release resources.  we always have valid start and end pointers
+	// at this point.
 	dataMgr->UnlockRegion(xDataPtr);
 	dataMgr->UnlockRegion(yDataPtr);
 	dataMgr->UnlockRegion(zDataPtr);
+	dataMgr->UnlockRegion(xDataPtr2);
+	dataMgr->UnlockRegion(yDataPtr2);
+	dataMgr->UnlockRegion(zDataPtr2);
 	delete[] pUserTimeSteps;
 	delete[] pointers;
 	delete pStreakLine;

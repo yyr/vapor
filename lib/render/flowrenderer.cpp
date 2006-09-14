@@ -1512,6 +1512,16 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 	
 	minFrame = myGLWindow->getActiveAnimationParams()->getStartFrameNumber();
 	maxFrame = myGLWindow->getActiveAnimationParams()->getEndFrameNumber();
+	
+	//For unsteady flow, the min/max frame interval can be narrowed by
+	//timesampling interval:
+	if (!steadyFlow){
+		if (minFrame < myFlowParams->getTimeSamplingStart())
+			minFrame = myFlowParams->getTimeSamplingStart();
+		if (maxFrame > myFlowParams->getTimeSamplingEnd())
+			maxFrame = myFlowParams->getTimeSamplingEnd();
+	}
+
 	maxPoints = myFlowParams->calcMaxPoints();
 	RegionParams* rParams = myGLWindow->getActiveRegionParams();
 	//Check if we are just doing graphics (not reintegrating flow)
