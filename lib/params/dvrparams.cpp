@@ -34,7 +34,6 @@
 #include "dvrparams.h"
 #include "params.h"
 #include "transferfunction.h"
-#include "tfeditor.h"
  
 #include <math.h>
 #include <vapor/Metadata.h>
@@ -69,7 +68,7 @@ DvrParams::~DvrParams(){
 	
 }
 
-//Deepcopy requires cloning tf and tfeditor
+//Deepcopy requires cloning tf 
 Params* DvrParams::
 deepCopy(){
 	DvrParams* newParams = new DvrParams(*this);
@@ -86,15 +85,13 @@ deepCopy(){
 		newParams->maxOpacEditBounds[i] = maxOpacEditBounds[i];
 	}
 	
-	//Clone the Transfer Function and the TFEditor
+	//Clone the Transfer Functions
 	if(numVariables>0)
 		newParams->transFunc = new TransferFunction*[numVariables];
 	else newParams->transFunc = 0;
+
 	for (int i = 0; i<numVariables; i++){
 		newParams->transFunc[i] = new TransferFunction(*transFunc[i]);
-		//clone the tfe, hook it to the trans func
-		TFEditor* newTFEditor = new TFEditor(*(TFEditor*)(transFunc[i]->getEditor()));
-		newParams->connectMapperFunction(newParams->transFunc[i],newTFEditor); 
 	}
 	
 	return newParams;
@@ -110,7 +107,7 @@ refreshCtab() {
 
 
 
-//Change variable, plus other side-effects, updating tfe as well as tf.
+//Change variable, plus other side-effects, updating tf.
 //Should only be called by gui.  The value of varnum is NOT the same as
 //the index in the variableName combo.
 //
@@ -135,11 +132,22 @@ setClut(const float newTable[256][4]){
 	}
 }
 
-float DvrParams::getOpacityScale() {
-	return (getTFEditor() ? getTFEditor()->getOpacityScaleFactor() : 1.f );
+float DvrParams::getOpacityScale() 
+{
+  if (numVariables)
+  {
+    return transFunc[varNum]->getOpacityScaleFactor();
+  }
+
+  return 1.0;
 }
-void DvrParams::setOpacityScale(float val) {
-	if (getTFEditor()) getTFEditor()->setOpacityScaleFactor(val);
+
+void DvrParams::setOpacityScale(float val) 
+{
+  if (numVariables)
+  {
+    return transFunc[varNum]->setOpacityScaleFactor(val);
+  }
 }
 
 
@@ -198,9 +206,7 @@ reinit(bool doOverride){
 		
 		for (i = 0; i<totNumVariables; i++){
 			newTransFunc[i] = new TransferFunction(this, numBits);
-			//create new tfe, hook it to the trans func
-			TFEditor* newTFEditor = new TFEditor(newTransFunc[i]);
-			connectMapperFunction(newTransFunc[i], newTFEditor);
+
 			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
 			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
 			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
@@ -216,10 +222,9 @@ reinit(bool doOverride){
 				newTransFunc[i] = transFunc[i];
 				newMinEdit[i] = minColorEditBounds[i];
 				newMaxEdit[i] = maxColorEditBounds[i];
-			} else { //create new tfe, hook it to the trans func
+			} else { //create new tf
 				newTransFunc[i] = new TransferFunction(this, numBits);
-				TFEditor* newTFEditor = new TFEditor(newTransFunc[i]);
-				connectMapperFunction(newTransFunc[i], newTFEditor);
+
 				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
 				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
 				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
@@ -227,7 +232,7 @@ reinit(bool doOverride){
                 newTransFunc[i]->setVarNum(i);
 			}
 		}
-			//Delete trans funcs (and associated tfe's that are no longer referenced.
+			//Delete trans funcs.
 		for (i = totNumVariables; i<numVariables; i++){
 			delete transFunc[i];
 		}
@@ -319,33 +324,15 @@ void DvrParams::
 hookupTF(TransferFunction* tf, int index){
 
 	//Create a new TFEditor
-	TFEditor* newTFEditor = new TFEditor(tf);
 	if (transFunc[index]) delete transFunc[index];
 	transFunc[index] = tf;
-	connectMapperFunction(tf, newTFEditor);
-	//myDvrTab->DvrTFFrame->setEditor(newTFEditor);
-	newTFEditor->reset();
+
 	minColorEditBounds[index] = tf->getMinMapValue();
 	maxColorEditBounds[index] = tf->getMaxMapValue();
 	tf->setParams(this);
-	
+	tf->setColorVarNum(varNum);
+	tf->setOpacVarNum(varNum);
 }
-// Setup pointers between transfer function, editor, and this:
-//
-void DvrParams::
-connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
-
-	tf->setEditor(tfe);
-	//tfe->setFrame(myDvrTab->DvrTFFrame);
-	tfe->setMapperFunction(tf);
-	tf->setParams(this);
-	tfe->setColorVarNum(varNum);
-	tfe->setOpacVarNum(varNum);
-	
-    tf->setVarNum(varNum);
-
-}
-
 
 //Handlers for Expat parsing.
 //
@@ -414,7 +401,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			maxColorEditBounds[i] = 1.f;
 		}
 
-		//create default Transfer Function and TFEditor
+		//create default Transfer Functions 
 		//Are they gone?
 		if (transFunc){
 			for (int j = 0; j<numVariables; j++){
@@ -429,8 +416,6 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		//Create default transfer functions and editors
 		for (int j = 0; j<numVariables; j++){
 			transFunc[j] = new TransferFunction(this, numBits);
-			TFEditor* newTFEditor = new TFEditor(transFunc[j]);
-			connectMapperFunction(transFunc[j], newTFEditor);
             transFunc[j]->setVarNum(j);
 		}
 		
@@ -470,7 +455,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		
 		minColorEditBounds[vnum] = leftEdit;
 		maxColorEditBounds[vnum] = rightEdit;
-		transFunc[vnum]->getEditor()->setOpacityScaleFactor(opacFac);
+		transFunc[vnum]->setOpacityScaleFactor(opacFac);
         transFunc[vnum]->setVarNum(vnum);
 		return true;
 	}
@@ -579,7 +564,7 @@ buildNode() {
 		attrs[_rightEditBoundAttr] = oss.str();
 
 		oss.str(empty);
-		oss << (double)transFunc[i]->getEditor()->getOpacityScaleFactor();
+		oss << (double)transFunc[i]->getOpacityScaleFactor();
 		attrs[_opacityScaleAttr] = oss.str();
 
 		XmlNode* varNode = new XmlNode(_variableTag,attrs,1);
@@ -592,9 +577,6 @@ buildNode() {
 	return dvrNode;
 }
 
-TFEditor* DvrParams::getTFEditor(){
-	return (numVariables > 0 ? (TFEditor*)transFunc[varNum]->getEditor() : 0);
-}
 MapperFunction* DvrParams::getMapperFunc() {
 	return (numVariables > 0 ? transFunc[varNum] : 0);
 }

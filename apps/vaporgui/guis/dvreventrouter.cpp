@@ -64,6 +64,7 @@
 
 #include "params.h"
 #include "dvr.h"
+#include "transferfunction.h"
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
 #include "vapor/VDFIOBase.h"
@@ -654,7 +655,6 @@ guiSetComboVarNum(int val){
 }
 /*
  * Method to be invoked after the user has moved the right or left bounds
- * (e.g. From the TFE editor. ) 
  * Make the textboxes consistent with the new left/right bounds, but
  * don't trigger a new undo/redo event
  */

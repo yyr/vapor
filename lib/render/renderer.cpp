@@ -28,6 +28,7 @@
 #include "dvrparams.h"
 #include "glutil.h"
 #include "transferfunction.h"
+#include "Colormap.h"
 
 using namespace VAPoR;
 
@@ -123,7 +124,9 @@ buildColorscaleImage(){
 
 	for (int line = imgHeight-16; line>=16; line--){
 		float ycoord = A*(float)line + B;
-		QRgb clr = myTransFunc->getRgbValue(ycoord);
+        
+        QRgb clr = myTransFunc->colorValue(ycoord);
+
 		for (int col = 16; col<(int)(imgWidth*.35); col++){
 			colorbarImage.setPixel(col, line, clr);
 		}

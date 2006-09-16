@@ -36,57 +36,70 @@ class TFEditor;
 class RenderParams;
 class XmlNode;
 
-class PARAMS_API TransferFunction : public MapperFunction {
+class PARAMS_API TransferFunction : public MapperFunction 
+{
+
 public:
-	TransferFunction(RenderParams* p, int nBits=8);
+
 	TransferFunction();
+	TransferFunction(RenderParams* p, int nBits=8);
 	virtual ~TransferFunction();
+
+    //
+	// Note:  All public methods use actual real coords.
+	// (Protected methods use normalized points in [0,1]
+	//
+	
+    //
+	// Transfer function has identical min,max map bounds, but
+	// Parent class has them potentially unequal.
+    //
+	void setMinMapValue(float minVal) 
+    { setMinOpacMapValue(minVal); setMinColorMapValue(minVal);}
+
+	void setMaxMapValue(float val)    
+    { setMaxOpacMapValue(val); setMaxColorMapValue(val); }
+
+	float getMinMapValue() {return getMinColorMapValue();}
+	float getMaxMapValue() {return getMaxColorMapValue();}
+
+	int mapFloatToIndex(float f) { return mapFloatToColorIndex(f); }
+	float mapIndexToFloat(int indx) { return mapColorIndexToFloat(indx); }
+
+    void setVarNum(int var)      { colorVarNum = var; opacVarNum = var; }
+
+    //
+	// Methods to save and restore transfer functions.
+	// The gui opens the FILEs that are then read/written
+	// Failure results in false/null pointer
+	//
+	bool saveToFile(ofstream& f);
+    static TransferFunction* loadFromFile(ifstream& is, RenderParams *p);
+
+	XmlNode* buildNode(const string& tfname);
+	//All the parsing can be done with the start handlers
+	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, 
+                             const char **attr);
+	bool elementEndHandler(ExpatParseMgr*, int , std::string&);
+
+	//Transfer function tag is visible to session 
+	static const string _transferFunctionTag;
+	
+protected:
+
+    //
 	//Set to starting values
 	//
 	virtual void init();  
 	
-	//Note:  All public methods use actual real coords.
-	//(Protected methods use normalized points in [0,1]
-	//
-	
-	//Transfer function has identical min,max map bounds, but
-	//Parent class has them potentially unequal.
-	void setMinMapValue(float minVal){
-		setMinOpacMapValue(minVal);
-		setMinColorMapValue(minVal);
-	}
-	void setMaxMapValue(float val){
-		setMaxOpacMapValue(val);
-		setMaxColorMapValue(val);
-	}
-	float getMinMapValue() {return getMinColorMapValue();}
-	float getMaxMapValue() {return getMaxColorMapValue();}
-
-	int mapFloatToIndex(float f) { return mapFloatToColorIndex(f);}
-	float mapIndexToFloat(int indx) {return mapColorIndexToFloat(indx);}
-	//Methods to save and restore transfer functions.
-	//The gui opens the FILEs that are then read/written
-	//Failure results in false/null pointer
-	//
-	bool saveToFile(ofstream& f);
-    static TransferFunction* loadFromFile(ifstream& is, RenderParams *p);
-	XmlNode* buildNode(const string& tfname);
-	//All the parsing can be done with the start handlers
-	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, const char **attr);
-	bool elementEndHandler(ExpatParseMgr*, int , std::string&);
-	//Transfer function tag is visible to session 
-	static const string _transferFunctionTag;
-
-	
 protected:
-
 	
+    //
+    // XML tags
+    //
 	static const string _tfNameAttr;
 	static const string _leftBoundAttr;
 	static const string _rightBoundAttr;
-
-
-
 };
 };
 #endif //TRANSFERFUNCTION_H

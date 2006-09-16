@@ -154,15 +154,6 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\animationeventrouter.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\coloradjustdialog.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="3"/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ColorbarWidget.cpp">
 			</File>
 			<File
@@ -203,9 +194,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\main\messagereporter.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\opacadjustdialog.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\OpacityWidget.cpp">
@@ -292,29 +280,6 @@
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_animationeventrouter.cpp"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\coloradjustdialog.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\guis\coloradjustdialog.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\coloradjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\guis\coloradjustdialog.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\coloradjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -561,29 +526,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\main\messagereporter.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\opacadjustdialog.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\guis\opacadjustdialog.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\opacadjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing ..\..\..\apps\vaporgui\guis\opacadjustdialog.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\opacadjustdialog.h -o ..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\OpacityWidget.h">
@@ -907,9 +849,6 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_animationtab.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_coloradjustdialog.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_ColorbarWidget.cpp">
 			</File>
 			<File
@@ -947,9 +886,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_MappingFrame.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_opacadjustdialog.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_OpacityWidget.cpp">

@@ -1,20 +1,17 @@
 GUI_FILES := \
-	coloradjustdialog colorpicker loadtfdialog \
-	opacadjustdialog savetfdialog \
-	tfelocationtip tfframe vizselectcombo \
-	flowmapframe probeframe seedlisteditor \
+	colorpicker loadtfdialog savetfdialog \
+	vizselectcombo seedlisteditor \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
-	glprobewindow \
+	probeframe glprobewindow \
 	DomainWidget GLWidget OpacityWidget \
 	TFLocationTip ControlPointEditor MappingFrame ColorbarWidget
 
 
 GUI_QT_HEADERS := \
-	coloradjustdialog colorpicker \
-	loadtfdialog opacadjustdialog \
-	savetfdialog tfframe vizselectcombo \
-	flowmapframe probeframe seedlisteditor \
+	colorpicker loadtfdialog  \
+	savetfdialog vizselectcombo \
+	probeframe seedlisteditor \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
 	DomainWidget GLWidget OpacityWidget ControlPointEditor \

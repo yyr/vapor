@@ -453,7 +453,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 			} else if (StrCmpNoCase(tag, Params::_flowParamsTag) == 0){
 				// just ignore it
 				assert(tempParsedPanel);
-				delete tempParsedPanel;
+                delete tempParsedPanel;
 				tempParsedPanel = 0;
 				return true;
 			} else return false;
@@ -784,7 +784,6 @@ void Session::addTF(const char* tfName, RenderParams* params){
 	
 	//Don't retain the pointers to dvrParams and TFE:
 	keptTFs[numTFs]->setParams(0);
-	keptTFs[numTFs]->setEditor(0);
 	numTFs++;
 	return;
 }
@@ -818,7 +817,6 @@ void Session::addTF(const std::string tfName, TransferFunction* tf){
 	
 	//Don't retain the pointers to dvrParams and TFE:
 	keptTFs[numTFs]->setParams(0);
-	keptTFs[numTFs]->setEditor(0);
 	numTFs++;
 	return;
 }

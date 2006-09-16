@@ -37,6 +37,7 @@
 #include <qfiledialog.h>
 #include <qlabel.h>
 #include <qlistbox.h>
+#include <qtooltip.h>
 #include "regionparams.h"
 
 #include "MappingFrame.h"
@@ -71,8 +72,6 @@
 #include "eventrouter.h"
 #include "savetfdialog.h"
 #include "loadtfdialog.h"
-#include "tfframe.h"
-#include "tfeditor.h"
 #include "VolumeRenderer.h"
 
 using namespace VAPoR;

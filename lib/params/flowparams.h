@@ -32,7 +32,6 @@ namespace VAPoR {
 class MapperFunction;
 class VaporFlow;
 class ExpatParseMgr;
-class FlowMapEditor;
 class VECTOR4;
 class RegionParams;
 class PARAMS_API FlowParams: public RenderParams {
@@ -175,7 +174,6 @@ public:
 	//Provide an info message if data does not match input request
 	//Return false if anything changed
 	bool validateSampling(int minFrame);
-	FlowMapEditor* getFlowMapEditor() {return flowMapEditor;}
 	void setFlowType(int typenum){flowType = typenum;}
 	void setNumRefinements(int numtrans){numRefinements = numtrans;}
 	void setMaxNumTrans(int maxNT) {maxNumRefinements = maxNT;}
@@ -265,7 +263,6 @@ protected:
 	static const string _rightOpacityBoundAttr;
 	
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
-	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);
 	
 	//check if vector field is present for a timestep
 	bool validateVectorField(int timestep);
@@ -306,7 +303,6 @@ protected:
 	
 	
 	MapperFunction* mapperFunction;
-	FlowMapEditor* flowMapEditor;
 	
 	//Save the min and max bounds for each of the flow mappings, plus 
 	//min and max for each variable

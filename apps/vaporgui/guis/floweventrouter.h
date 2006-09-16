@@ -25,7 +25,6 @@
 #include "params.h"
 #include "eventrouter.h"
 #include "vapor/MyBase.h"
-#include "mapeditor.h"
 #include "flowtab.h"
 
 
@@ -61,12 +60,6 @@ public:
 	void fileSaveTF(FlowParams* dParams);
 	
 	
-	
-	MapEditor* getMapEditor(RenderParams* fParams){
-		if (fParams->getMapperFunc())
-			return (fParams->getMapperFunc()->getEditor());
-		else return 0;
-	}
 	
 		
 	//There are multiple notions of "dirty" here!

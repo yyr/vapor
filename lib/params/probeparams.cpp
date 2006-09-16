@@ -36,7 +36,6 @@
 #include "probeparams.h"
 #include "params.h"
 #include "transferfunction.h"
-#include "tfeditor.h"
 
 #include "histo.h"//togo??
 #include "animationparams.h"
@@ -79,7 +78,7 @@ ProbeParams::~ProbeParams(){
 }
 
 
-//Deepcopy requires cloning tf and tfeditor
+//Deepcopy requires cloning tf 
 Params* ProbeParams::
 deepCopy(){
 	ProbeParams* newParams = new ProbeParams(*this);
@@ -96,13 +95,10 @@ deepCopy(){
 		newParams->maxOpacEditBounds[i] = maxOpacEditBounds[i];
 	}
 
-	//Clone the Transfer Function and the TFEditor
+	//Clone the Transfer Functions
 	newParams->transFunc = new TransferFunction*[numVariables];
 	for (int i = 0; i<numVariables; i++){
 		newParams->transFunc[i] = new TransferFunction(*transFunc[i]);
-		//clone the tfe, hook it to the trans func
-		TFEditor* newTFEditor = new TFEditor(*(TFEditor*)(transFunc[i]->getEditor()));
-		newParams->connectMapperFunction(newParams->transFunc[i],newTFEditor); 
 	}
 	//Probe texture must be recreated when needed
 	newParams->probeTexture = 0;
@@ -131,14 +127,23 @@ setClut(const float newTable[256][4]){
 }
 
 
-float ProbeParams::getOpacityScale() {
-	return (getTFEditor() ? getTFEditor()->getOpacityScaleFactor() : 1.f );
-}
-void ProbeParams::setOpacityScale(float val) {
-	if (getTFEditor()) getTFEditor()->setOpacityScaleFactor(val);
+float ProbeParams::getOpacityScale() 
+{
+  if (numVariables)
+  {
+    return transFunc[firstVarNum]->getOpacityScaleFactor();
+  }
+
+  return 1.0;
 }
 
-
+void ProbeParams::setOpacityScale(float val) 
+{
+  if (numVariables)
+  {
+    return transFunc[firstVarNum]->setOpacityScaleFactor(val);
+  }
+}
 
 
 //Initialize for new metadata.  Keep old transfer functions
@@ -245,9 +250,7 @@ reinit(bool doOverride){
 			newTransFunc[i] = new TransferFunction(this, 8);
 			//Initialize to be fully opaque:
 			newTransFunc[i]->setOpaque();
-			//create new tfe, hook it to the trans func
-			TFEditor* newTFEditor = new TFEditor(newTransFunc[i]);
-			connectMapperFunction(newTransFunc[i], newTFEditor);
+
 			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
 			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
 			newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
@@ -263,12 +266,11 @@ reinit(bool doOverride){
 				newTransFunc[i] = transFunc[i];
 				newMinEdit[i] = minColorEditBounds[i];
 				newMaxEdit[i] = maxColorEditBounds[i];
-			} else { //create new tfe, hook it to the trans func
+			} else { //create new tf
 				newTransFunc[i] = new TransferFunction(this, 8);
 				//Initialize to be fully opaque:
 				newTransFunc[i]->setOpaque();
-				TFEditor* newTFEditor = new TFEditor(newTransFunc[i]);
-				connectMapperFunction(newTransFunc[i], newTFEditor);
+
 				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
 				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
 				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
@@ -276,7 +278,7 @@ reinit(bool doOverride){
                 newTransFunc[i]->setVarNum(i);
 			}
 		}
-			//Delete trans funcs (and associated tfe's that are no longer referenced.
+			//Delete trans funcs 
 		for (i = newNumVariables; i<numVariables; i++){
 			delete transFunc[i];
 		}
@@ -385,28 +387,12 @@ restart(){
 void ProbeParams::
 hookupTF(TransferFunction* tf, int index){
 
-	//Create a new TFEditor
-	TFEditor* newTFEditor = new TFEditor(tf);
 	if (transFunc[index]) delete transFunc[index];
 	transFunc[index] = tf;
-	connectMapperFunction(tf, newTFEditor);
-	//myProbeTab->ProbeTFFrame->setEditor(newTFEditor);
-	newTFEditor->reset();
+
 	minColorEditBounds[index] = tf->getMinMapValue();
 	maxColorEditBounds[index] = tf->getMaxMapValue();
 	tf->setParams(this);
-	
-}
-// Setup pointers between transfer function, editor, and this:
-//
-void ProbeParams::
-connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
-	tf->setEditor(tfe);
-
-	tfe->setMapperFunction(tf);
-	tf->setParams(this);
-	tfe->setColorVarNum(firstVarNum);
-	tfe->setOpacVarNum(firstVarNum);
     tf->setVarNum(firstVarNum);
 }
 
@@ -477,7 +463,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			maxColorEditBounds[i] = 1.f;
 		}
 
-		//create default Transfer Function and TFEditor
+		//create default Transfer Functions
 		//Are they gone?
 		if (transFunc){
 			for (int j = 0; j<numVariables; j++){
@@ -490,8 +476,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		//Create default transfer functions and editors
 		for (int j = 0; j<numVariables; j++){
 			transFunc[j] = new TransferFunction(this, 8);
-			TFEditor* newTFEditor = new TFEditor(transFunc[j]);
-			connectMapperFunction(transFunc[j], newTFEditor);
+            transFunc[j]->setVarNum(j);
 		}
 		
 		
@@ -541,7 +526,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		variableSelected[parsedVarNum] = varSelected;
 		setMinColorEditBound(leftEdit,parsedVarNum);
 		setMaxColorEditBound(rightEdit,parsedVarNum);
-		transFunc[parsedVarNum]->getEditor()->setOpacityScaleFactor(opacFac);
+		transFunc[parsedVarNum]->setOpacityScaleFactor(opacFac);
 		
 		return true;
 	}
@@ -600,7 +585,10 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		}
 		if (i == numVariables) variableSelected[0] = true;
 		
-		getTFEditor()->setVarNum(firstVarNum);
+        if (numVariables)
+        {
+          transFunc[firstVarNum]->setVarNum(firstVarNum);
+        }
 		//Align the editor
 		setMinEditBound(getMinColorMapBound());
 		setMaxEditBound(getMaxColorMapBound());
@@ -684,7 +672,7 @@ buildNode() {
 		attrs[_rightEditBoundAttr] = oss.str();
 
 		oss.str(empty);
-		oss << (double)transFunc[i]->getEditor()->getOpacityScaleFactor();
+		oss << (double)transFunc[i]->getOpacityScaleFactor();
 		attrs[_opacityScaleAttr] = oss.str();
 
 		XmlNode* varNode = new XmlNode(_variableTag,attrs,1);
@@ -715,9 +703,6 @@ buildNode() {
 	return probeNode;
 }
 
-TFEditor* ProbeParams::getTFEditor(){
-	return (numVariables > 0 ? (TFEditor*)transFunc[firstVarNum]->getEditor() : 0);
-}
 MapperFunction* ProbeParams::getMapperFunc() {
 	return (numVariables > 0 ? transFunc[firstVarNum] : 0);
 }

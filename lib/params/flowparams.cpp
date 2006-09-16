@@ -36,8 +36,6 @@
 #include <qcursor.h>
 
 #include "mapperfunction.h"
-#include "mapeditor.h"
-#include "flowmapeditor.h"
 
 #include "vaporinternal/common.h"
 //Step sizes for integration accuracy:
@@ -92,7 +90,6 @@ FlowParams::FlowParams(int winnum) : RenderParams(winnum) {
 	thisParamType = FlowParamsType;
 	myFlowLib = 0;
 	mapperFunction = 0;
-	flowMapEditor = 0;
 	
 	//Set all parameters to default values
 	restart();
@@ -101,7 +98,7 @@ FlowParams::FlowParams(int winnum) : RenderParams(winnum) {
 FlowParams::~FlowParams(){
 	
 	if (mapperFunction){
-		delete mapperFunction;//this will delete the editor
+		delete mapperFunction;
 	}
 	
 		
@@ -238,13 +235,9 @@ deepCopy(){
 		newFlowParams->maxOpacBounds[i] = maxOpacBounds[i];
 	}
 	
-	//Clone the Transfer Function and the TFEditor
+	//Clone the Transfer Functions
 	if (mapperFunction) {
 		newFlowParams->mapperFunction = new MapperFunction(*mapperFunction);
-		if (flowMapEditor){
-			FlowMapEditor* newFlowMapEditor = new FlowMapEditor((const FlowMapEditor &)(*flowMapEditor));
-			newFlowParams->connectMapperFunction(newFlowParams->mapperFunction,newFlowMapEditor); 
-		} 
 	} else {
 		newFlowParams->mapperFunction = 0;
 	}
@@ -399,15 +392,14 @@ reinit(bool doOverride){
 	float* newMaxOpacEditBounds = new float[newNumComboVariables+4];
 	float* newMinColorEditBounds = new float[newNumComboVariables+4];
 	float* newMaxColorEditBounds = new float[newNumComboVariables+4];
-	//Either try to reuse existing MapperFunction, MapEditor, or create new ones.
+	//Either try to reuse existing MapperFunction, or create a new one.
 	if (doOverride){ //create new ones:
 		//For now, assume 8-bits mapping
 		MapperFunction* newMapperFunction = new MapperFunction(this, 8);
 		//Initialize to be fully opaque:
 		newMapperFunction->setOpaque();
-		//The edit and tf bounds need to be set up with const, speed, etc in mind.
-		FlowMapEditor* newFlowMapEditor = new FlowMapEditor(newMapperFunction);
-				//Set to default map bounds
+
+        //Set to default map bounds
 		newMapperFunction->setMinColorMapValue(0.f);
 		newMapperFunction->setMaxColorMapValue(1.f);
 		newMapperFunction->setMinOpacMapValue(0.f);
@@ -441,13 +433,12 @@ reinit(bool doOverride){
 				newMaxColorEditBounds[i+4] = 1.f;
 			}
 		} 
+
 		delete mapperFunction;
-		connectMapperFunction(newMapperFunction, newFlowMapEditor);
+        mapperFunction = newMapperFunction;
+
 		setColorMapEntity(0);
 		setOpacMapEntity(0);
-
-		
-		// don't delete flowMapEditor, the mapperFunction did it already
 	}
 	else { 
 		
@@ -467,11 +458,9 @@ reinit(bool doOverride){
 			}
 		} 
 		if (!mapperFunction) mapperFunction = new MapperFunction(this, 8);
-		//Create a new mapeditor if one doesn't exist:
-		if(!flowMapEditor){
-			flowMapEditor = new FlowMapEditor(mapperFunction);
-			connectMapperFunction(mapperFunction, flowMapEditor);
-		}
+
+        mapperFunction->setColorVarNum(getColorMapEntityIndex());
+        mapperFunction->setOpacVarNum(getOpacMapEntityIndex());
 	}
 	
 		
@@ -491,27 +480,32 @@ reinit(bool doOverride){
 	
 	//Always disable
 	setEnabled(false);
-	//Align the editor:
+
 	setMinColorEditBound(getMinColorMapBound(),getColorMapEntityIndex());
 	setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
 	setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
 	setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
 	
-	
-	if(numComboVariables>0) getFlowMapEditor()->setDirty();
-	
 	return true;
 }
 
 
-
-
-
 float FlowParams::getOpacityScale() {
-	return (getFlowMapEditor() ? getFlowMapEditor()->getOpacityScaleFactor() : 1.f );
+
+  if (mapperFunction)
+  {
+    return mapperFunction->getOpacityScaleFactor();
+  }
+
+  return 1.0;
 }
+
 void FlowParams::setOpacityScale(float val) {
-	if (getFlowMapEditor()) getFlowMapEditor()->setOpacityScaleFactor(val);
+ 
+  if (mapperFunction)
+  {
+    mapperFunction->setOpacityScaleFactor(val);
+  }
 }
 
 
@@ -1183,10 +1177,10 @@ buildNode() {
 	oss << (double)constantOpacity;
 	attrs[_constantOpacityAttr] = oss.str();
 
-	//Specify the opacity scale from the flow map editor
-	if(flowMapEditor){
+	//Specify the opacity scale from the transfer function
+	if(mapperFunction){
 		oss.str(empty);
-		oss << flowMapEditor->getOpacityScaleFactor();
+		oss << mapperFunction->getOpacityScaleFactor();
 		attrs[_opacityScaleAttr] = oss.str();
 	}
 
@@ -1241,11 +1235,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 	
 	//Take care of attributes of flowParamsNode
 	if (StrCmpNoCase(tagString, _flowParamsTag) == 0) {
-		//Start with a new, default mapperFunction and mapEditor:
+		//Start with a new, default mapperFunction
 		if (mapperFunction) delete mapperFunction;
 		mapperFunction = new MapperFunction(this, 8);
-		flowMapEditor = new FlowMapEditor(mapperFunction);
-		connectMapperFunction(mapperFunction, flowMapEditor);
+
 		int newNumVariables = 0;
 		//If it's a Flow tag, save 11 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
@@ -1429,7 +1422,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _opacityScaleAttr) == 0){
 				float opacScale;
 				ist >> opacScale;
-				getFlowMapEditor()->setOpacityScaleFactor(opacScale);
+				mapperFunction->setOpacityScaleFactor(opacScale);
 			} 
 			else if (StrCmpNoCase(attribName, _constantOpacityAttr) == 0){
 				ist >> constantOpacity;
@@ -1504,7 +1497,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 bool FlowParams::
 elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	if (StrCmpNoCase(tag, _flowParamsTag) == 0) {
-		//Align the editor:
 		
 		setMinColorEditBound(getMinColorMapBound(),getColorMapEntityIndex());
 		setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
@@ -1533,26 +1525,6 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 	}
 }
 	
-
-// Setup pointers between mapper function, editor, and this:
-//
-void FlowParams::
-connectMapperFunction(MapperFunction* tf, MapEditor* tfe){
-	flowMapEditor = (FlowMapEditor*)tfe;
-	mapperFunction = tf;
-	tf->setEditor(tfe);
-
-	tfe->setMapperFunction(tf);
-	tf->setParams(this);
-	tfe->setColorVarNum(getColorMapEntityIndex());
-	tfe->setOpacVarNum(getOpacMapEntityIndex());
-
-	tf->setColorVarNum(getColorMapEntityIndex());
-	tf->setOpacVarNum(getOpacMapEntityIndex());
-
-
-}
-
 
 //Generate a list of colors and opacities, one per (valid) vertex.
 //The number of points is maxPoints*numSeedings*numInjections
@@ -1755,30 +1727,28 @@ void FlowParams::periodicMap(float origCoords[3], float mappedCoords[3]){
 
 int FlowParams::
 getColorMapEntityIndex() {
-	if (!flowMapEditor) return 0;
-	return flowMapEditor->getColorVarNum();
+	if (!mapperFunction) return 0;
+	return mapperFunction->getColorVarNum();
 }
 
 int FlowParams::
 getOpacMapEntityIndex() {
-	if (!flowMapEditor) return 0;
-	return flowMapEditor->getOpacVarNum();
+	if (!mapperFunction) return 0;
+	return mapperFunction->getOpacVarNum();
 }
 void FlowParams::
 setColorMapEntity( int entityNum){
-	if (!flowMapEditor) return;
+	if (!mapperFunction) return;
 	mapperFunction->setMinColorMapValue(minColorBounds[entityNum]);
 	mapperFunction->setMaxColorMapValue(maxColorBounds[entityNum]);
 	mapperFunction->setColorVarNum(entityNum);
-    flowMapEditor->setColorVarNum(entityNum);
 }
 void FlowParams::
 setOpacMapEntity( int entityNum){
-	if (!flowMapEditor) return;
+	if (!mapperFunction) return;
 	mapperFunction->setMinOpacMapValue(minOpacBounds[entityNum]);
 	mapperFunction->setMaxOpacMapValue(maxOpacBounds[entityNum]);
     mapperFunction->setOpacVarNum(entityNum);
-	flowMapEditor->setOpacVarNum(entityNum);
 }
 
 

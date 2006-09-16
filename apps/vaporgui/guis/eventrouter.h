@@ -93,13 +93,7 @@ public:
 	virtual Histo* getHistogram(RenderParams*, bool /*mustGet*/) { return 0;}
 	virtual void refreshHistogram(RenderParams* ) {assert(0);}
 
-	//If there is a mapEditor, need to implement this:
 	virtual void setEditorDirty(){assert(0);}
-	MapEditor* getMapEditor(RenderParams* params){
-		if (params->getMapperFunc())
-			return (params->getMapperFunc()->getEditor());
-		else return 0;
-	}
 	virtual void updateMapBounds(RenderParams*) {assert (0);}
 	virtual void updateClut(RenderParams*){assert(0);}
 

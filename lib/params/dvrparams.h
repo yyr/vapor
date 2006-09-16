@@ -35,7 +35,6 @@
 namespace VAPoR{
 class ExpatParseMgr;
 
-class TFEditor;
 class TransferFunction;
 class PanelCommand;
 class XmlNode;
@@ -153,7 +152,6 @@ public:
 	XmlNode* buildNode(); 
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
-	TFEditor* getTFEditor();
 	virtual MapperFunction* getMapperFunc();
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float getHistoStretch(){return histoStretchFactor;}
@@ -162,7 +160,7 @@ public:
 	int getNumVariables() {return numVariables;}
 	TransferFunction* getTransFunc(int varnum) {return (transFunc ? transFunc[varnum] : 0);}
 	TransferFunction* getTransFunc() {return ((transFunc && numVariables>0) ? transFunc[varNum] : 0);}
-	virtual void connectMapperFunction(MapperFunction* tf, MapEditor* tfe);
+
 	void hookupTF(TransferFunction* t, int index);
 protected:
 	static const string _editModeAttr;

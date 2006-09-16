@@ -136,9 +136,6 @@
 				RelativePath="..\..\..\lib\params\dvrparams.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\flowmapeditor.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\lib\params\flowparams.cpp">
 			</File>
 			<File
@@ -146,9 +143,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\histo.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\lib\params\mapeditor.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\mapperfunction.cpp">
@@ -164,9 +158,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\regionparams.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\lib\params\tfeditor.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\tfinterpolator.cpp">
@@ -201,9 +192,6 @@
 				RelativePath="..\..\..\lib\params\errorcodes.h">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\flowmapeditor.h">
-			</File>
-			<File
 				RelativePath="..\..\..\lib\params\flowparams.h">
 			</File>
 			<File
@@ -211,9 +199,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\histo.h">
-			</File>
-			<File
-				RelativePath="..\..\..\lib\params\mapeditor.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\mapperfunction.h">
@@ -229,9 +214,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\regionparams.h">
-			</File>
-			<File
-				RelativePath="..\..\..\lib\params\tfeditor.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\tfinterpolator.h">

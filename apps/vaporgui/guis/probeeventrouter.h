@@ -25,7 +25,6 @@
 #include "params.h"
 #include "eventrouter.h"
 #include "vapor/MyBase.h"
-#include "tfeditor.h"
 #include "probetab.h"
 
 
@@ -65,11 +64,6 @@ public:
 	
 	
 
-	TFEditor* getTFEditor(ProbeParams* dParams){
-		if (dParams->getTransFunc())
-			return ((TFEditor*)dParams->getTransFunc()->getEditor());
-		else return 0;
-	}
 	void updateRenderer(ProbeParams* dParams, bool prevEnabled,  bool newWindow);
 	virtual void captureMouseDown();
 	virtual void captureMouseUp();

@@ -59,6 +59,7 @@
 #include <sstream>
 
 #include "params.h"
+#include "transferfunction.h"
 #include "probetab.h"
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
@@ -759,7 +760,7 @@ guiSetEnabled(bool value){
 void ProbeEventRouter::
 guiSetOpacityScale(int val){
 	ProbeParams* pp = VizWinMgr::getActiveProbeParams();
-	if (!pp->getTFEditor()) return;
+
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(pp, "modify opacity scale slider");
 	pp->setOpacityScale( ((float)(256-val))/256.f);
@@ -1133,7 +1134,6 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 }	
 /*
  * Method to be invoked after the user has moved the right or left bounds
- * (e.g. From the TFE editor. ) 
  * Make the textboxes consistent with the new left/right bounds, but
  * don't trigger a new undo/redo event
  */

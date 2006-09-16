@@ -7,9 +7,9 @@ QT = 1
 UI_DIR = ui
 LIBRARY = params
 FILES = \
-	datastatus dvrparams flowmapeditor flowparams glutil \
-	histo mapeditor mapperfunction params probeparams regionparams \
-	tfeditor tfinterpolator transferfunction viewpoint \
+	datastatus dvrparams flowparams glutil \
+	histo mapperfunction params probeparams regionparams \
+	tfinterpolator transferfunction viewpoint \
 	animationparams	viewpointparams \
 	Colormap OpacityMap
 

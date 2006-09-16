@@ -23,9 +23,9 @@
 
 #include <qobject.h>
 #include "params.h"
+#include "dvrparams.h"
 #include "eventrouter.h"
 #include "vapor/MyBase.h"
-#include "tfeditor.h"
 #include "dvr.h"
 
 class QTimer;
@@ -91,11 +91,6 @@ public:
 	
 	DvrParams::DvrType getType(int num) {return typemap[num];}
 
-	TFEditor* getTFEditor(DvrParams* dParams){
-		if (dParams->getTransFunc())
-			return ((TFEditor*)dParams->getTransFunc()->getEditor());
-		else return 0;
-	}
 	void updateRenderer(DvrParams* dParams, bool prevEnabled,  bool newWindow);
 
 		

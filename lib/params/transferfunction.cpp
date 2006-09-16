@@ -22,6 +22,8 @@
 //		The TransferFunction deals with an mapping on the interval [0,1]
 //		that is remapped to a specified interval by the user.
 //
+//----------------------------------------------------------------------------
+
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
@@ -44,50 +46,31 @@
 #include <vapor/Metadata.h>
 #include <vapor/CFuncs.h>
 #include "vapor/ExpatParseMgr.h"
+
 using namespace VAPoR;
 using namespace VetsUtil;
+
+//----------------------------------------------------------------------------
 // Static member initialization.  Acceptable tags in transfer function output
 // Sooner or later we may want to support 
-//
+//----------------------------------------------------------------------------
 const string TransferFunction::_transferFunctionTag = "TransferFunction";
 const string TransferFunction::_tfNameAttr = "Name";
 const string TransferFunction::_leftBoundAttr = "LeftBound";
 const string TransferFunction::_rightBoundAttr = "RightBound";
 
-//Constructor for empty, default transfer function
-TransferFunction::TransferFunction() : MapperFunction(){
-	
+//----------------------------------------------------------------------------
+// Constructor for empty, default transfer function
+//----------------------------------------------------------------------------
+TransferFunction::TransferFunction() : MapperFunction()
+{	
 }
-void TransferFunction::
-init(){  //reset to starting values:
-	
-	colorCtrlPoint.resize(2);
-	opacCtrlPoint.resize(2);
-	colorInterp.resize(2);
-	opacInterp.resize(2);
-	hue.resize(2);
-	sat.resize(2);
-	val.resize(2);
-	opac.resize(2);
-	numColorControlPoints = 2;
-	colorCtrlPoint[0] = -1.e6f;
-	colorCtrlPoint[1] = 1.e6f;
-	
-	numOpacControlPoints = 2;
-	opacCtrlPoint[0] = -1.e6f;
-	opacCtrlPoint[1] = 1.e6f;
-	colorInterp[0] = TFInterpolator::linear;
-	opacInterp[0] = TFInterpolator::linear;
-	hue[0] = 0.f;
-	sat[0] = 1.f;
-	val[0] = 1.f;
-	opac[0] = 0.f;
-	colorInterp[1] = TFInterpolator::linear;
-	opacInterp[1] = TFInterpolator::linear;
-	hue[1] = 0.f;
-	sat[1] = 1.f;
-	val[1] = 1.f;
-	opac[1] = 1.f;
+
+//----------------------------------------------------------------------------
+// Reset to starting values
+//----------------------------------------------------------------------------
+void TransferFunction::init()
+{
 	numEntries = 256;
 	setMinMapValue(0.f);
 	setMaxMapValue(1.f);
@@ -101,21 +84,27 @@ init(){  //reset to starting values:
     _opacityMaps.clear();
     _colormap->clear();
 }
-//Currently this is only for use in a dvrparams panel
-//and a probe
+
+//----------------------------------------------------------------------------
+// Construtor 
 //
-TransferFunction::TransferFunction(RenderParams* p, int nBits): MapperFunction(p,nBits){
+// Currently this is only for use in a dvrparams panel and a probe
+//----------------------------------------------------------------------------
+TransferFunction::TransferFunction(RenderParams* p, int nBits) : 
+  MapperFunction(p, nBits)
+{
 }
 	
-TransferFunction::~TransferFunction() {
+//----------------------------------------------------------------------------
+// Destructor
+//----------------------------------------------------------------------------
+TransferFunction::~TransferFunction() 
+{
 }
 
-
-//Methods to save and restore transfer functions.
-//The gui specifies FILEs that are then read/written
-//Failure results in false/null pointer
-//
-//Construct an XML node from the transfer function
+//----------------------------------------------------------------------------
+// Construct an XML node from the transfer function
+//----------------------------------------------------------------------------
 XmlNode* TransferFunction::buildNode(const string& tfname) 
 {
   // Construct the main node
@@ -161,33 +150,47 @@ XmlNode* TransferFunction::buildNode(const string& tfname)
 }
 
 
-//Create a transfer function by parsing a file.
-TransferFunction* TransferFunction::
-loadFromFile(ifstream& is, RenderParams *params){
+//----------------------------------------------------------------------------
+// Create a transfer function by parsing a file.
+//----------------------------------------------------------------------------
+TransferFunction* TransferFunction::loadFromFile(ifstream& is, 
+                                                 RenderParams *params)
+{
   TransferFunction* newTF = new TransferFunction(params);
-	// Create an Expat XML parser to parse the XML formatted metadata file
-	// specified by 'path'
-	//
-	ExpatParseMgr* parseMgr = new ExpatParseMgr(newTF);
-	parseMgr->parse(is);
-	delete parseMgr;
-	return newTF;
-}
-bool TransferFunction::
-saveToFile(ofstream& ofs){
-	const std::string emptyString;
-	XmlNode* rootNode = buildNode(emptyString);
 
-	ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" << endl;
-	XmlNode::streamOut(ofs,(*rootNode));
-	delete rootNode;
-	return true;
+  //
+  // Create an Expat XML parser to parse the XML formatted metadata file
+  // specified by 'path'
+  //
+  ExpatParseMgr* parseMgr = new ExpatParseMgr(newTF);
+  parseMgr->parse(is);
+  delete parseMgr;
+  return newTF;
 }
 
-//Handlers for Expat parsing.
-//The parse state is determined by
-//whether it's parsing a color or opacity.
-//
+//----------------------------------------------------------------------------
+// Save the transfer function to a file. 
+//----------------------------------------------------------------------------
+bool TransferFunction::saveToFile(ofstream& ofs)
+{
+  const std::string emptyString;
+  XmlNode* rootNode = buildNode(emptyString);
+
+  ofs << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"yes\"?>" 
+      << endl;
+
+  XmlNode::streamOut(ofs,(*rootNode));
+
+  delete rootNode;
+
+  return true;
+}
+
+
+//----------------------------------------------------------------------------
+// Handlers for Expat parsing. The parse state is determined by whether it's 
+// parsing a color or opacity.
+//----------------------------------------------------------------------------
 bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth , 
                                            std::string& tagString, 
                                            const char **attrs)
@@ -313,7 +316,10 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
   else return false;
 }
 
-//The end handler needs to pop the parse stack, if this is not the top level.
+
+//----------------------------------------------------------------------------
+// The end handler needs to pop the parse stack, if this is not the top level
+//----------------------------------------------------------------------------
 bool TransferFunction::elementEndHandler(ExpatParseMgr* pm, int depth , 
                                          std::string& tag)
 {
