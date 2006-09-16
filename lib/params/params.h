@@ -43,7 +43,6 @@ enum DirtyBitType {
 };
 class XmlNode;
 class MapperFunction;
-class MapEditor;
 
 class PARAMS_API Params : public ParsedXml, public MyBase  {
 	
@@ -198,8 +197,6 @@ public:
 		
 	bool isEnabled(){return enabled;}
 	virtual void setEnabled(bool value) {enabled = value;}
-	
-	virtual void connectMapperFunction(MapperFunction* , MapEditor* ){assert(0);}
 	
 
 	virtual int getVarNum(){ assert(0); return -1;}
