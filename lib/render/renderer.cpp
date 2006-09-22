@@ -42,6 +42,19 @@ Renderer::Renderer( GLWindow* glw, RenderParams* rp )
 	currentRenderParams = rp;
 }
 
+
+
+// Destructor
+Renderer::~Renderer()
+{
+   //
+   // Ensure that we have the correct graphics context before
+   // any graphics objects (e.g., textures, shaders, ...) in that
+   // context are deleted.
+   //
+   if (myGLWindow) myGLWindow->makeCurrent();
+}
+
 //Following methods are to support display of a colorscale in front of the data.
 //
 void Renderer::

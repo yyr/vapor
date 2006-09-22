@@ -42,7 +42,7 @@ public:
 	//setup of renderer state
 	//
 	Renderer(GLWindow* vw, RenderParams* rp);
-	virtual ~Renderer() {}
+	virtual ~Renderer();
 	//Following are called by the glwindow class attached to the vizwin
 	//as needed for rendering
 	//
