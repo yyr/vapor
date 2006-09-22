@@ -58,6 +58,8 @@ ShaderProgram::~ShaderProgram()
   {
     glDeleteObjectARB(_program);
   }
+
+  printOpenGLError();
 }
 
   

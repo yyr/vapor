@@ -1241,6 +1241,8 @@ bool GLWindow::removeRenderer(RenderParams* rp){
 	if (find_iter == rendererMapping.end()) return false;
 	Renderer* ren = find_iter->second;
 	
+	makeCurrent();
+
 	//get it from the renderer list, and delete it:
 	for (i = 0; i<numRenderers; i++) {		
 		if (renderer[i] != ren) continue;
