@@ -122,6 +122,15 @@ int DVRShader::GraphicsInit()
     _shaders[LIGHT]->loadFragmentSource(fragment_shader_lighting);
   }
 
+  if (Params::searchCmdLine("--lightingVS"))
+  {
+    _shaders[LIGHT]->loadVertexShader(Params::parseCmdLine("--lightingVS"));
+  }
+  else
+  {
+    _shaders[LIGHT]->loadVertexSource(vertex_shader_lighting);
+  }
+
   if (!_shaders[LIGHT]->compile())
   {
     return -1;

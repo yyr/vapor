@@ -27,18 +27,39 @@ static char fragment_shader_default[] =
   "}\n";
 
 //----------------------------------------------------------------------------
+// Standard vertex shader for the lighting model 
+//----------------------------------------------------------------------------
+static char vertex_shader_lighting[] =
+  "//-----------------------------------------------------------------------\n"
+  "// Vertex shader main\n"
+  "//-----------------------------------------------------------------------\n"
+  "uniform vec3 lightPosition;\n"
+  "varying vec3 position;\n"
+  "varying vec3 light;\n"
+  "varying vec3 view;\n"
+  "void main(void)\n"
+  "{\n"
+  "  gl_TexCoord[0] = gl_MultiTexCoord0;\n"
+  "  gl_Position    = ftransform();\n"
+  "  position       = gl_Position.xyz;\n"
+  "  light          = normalize(lightPosition - position);\n"
+  "  view           = normalize(-position);\n"
+  "}\n";
+
+//----------------------------------------------------------------------------
 // Standard fragment shader w/ lighting model (on-the-fly gradient calculation)
 //----------------------------------------------------------------------------
 static char fragment_shader_lighting[] =
   "uniform sampler1D colormap;\n"
   "uniform sampler3D volumeTexture;\n"
   "uniform vec3 dimensions;\n"
-  "uniform bool shading;\n"
   "uniform float kd;\n"
   "uniform float ka;\n"
   "uniform float ks;\n"
   "uniform float expS;\n"
-  "uniform vec3 lightPosition;\n"
+  "varying vec3 position;\n"
+  "varying vec3 light;\n"
+  "varying vec3 view;\n"
   ""
   "vec3 alphaGradient();\n"
   ""
@@ -50,8 +71,6 @@ static char fragment_shader_lighting[] =
   "  vec4 intensity = vec4 (texture3D(volumeTexture, gl_TexCoord[0].xyz));\n"
   "  vec4 color     = vec4 (texture1D(colormap, intensity.x));\n"
   "  \n"
-  "  vec3 position      = vec3 (gl_ModelViewMatrix * gl_TexCoord[0].xyzw);\n"
-  "  vec3 light         = normalize(lightPosition - position);\n"
   "  "
   "  vec3 gradient = alphaGradient();\n"
   "  "
@@ -65,7 +84,6 @@ static char fragment_shader_lighting[] =
   "  }\n"
   "  "
   "  vec3 reflection = reflect(-light, gradient);\n"
-  "  vec3 view       = normalize(-position);\n"
   "  "
   "  float diffuse  = kd * abs(dot(light,gradient));\n"
   "  float specular = ks * pow(abs(dot(reflection, view)), expS);\n"
@@ -80,9 +98,9 @@ static char fragment_shader_lighting[] =
   "{\n"
   "  vec3 gradient;\n"
   "  "
-  "  float dx = 1.0/dimensions.x;\n"
-  "  float dy = 1.0/dimensions.y;\n"
-  "  float dz = 1.0/dimensions.z;\n"
+  "  float dx = 0.5/(dimensions.x);\n"
+  "  float dy = 0.5/(dimensions.y);\n"
+  "  float dz = 0.5/(dimensions.z);\n"
   "  "
   "  float x0 = texture1D(colormap,\n" 
   "                       texture3D(volumeTexture,\n" 
