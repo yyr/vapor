@@ -146,7 +146,7 @@ int DVRShader::GraphicsInit()
     glUniform1f(_shaders[LIGHT]->uniformLocation("ka"), 0.2);
     glUniform1f(_shaders[LIGHT]->uniformLocation("ks"), 0.5);
     glUniform1f(_shaders[LIGHT]->uniformLocation("expS"), 20);
-    glUniform3f(_shaders[LIGHT]->uniformLocation("lightPosition"), 0,0,1);
+    glUniform3f(_shaders[LIGHT]->uniformLocation("lightDirection"), 0,0,1);
   }
   else
   {
@@ -156,7 +156,7 @@ int DVRShader::GraphicsInit()
     glUniform1fARB(_shaders[LIGHT]->uniformLocation("ka"), 0.2);
     glUniform1fARB(_shaders[LIGHT]->uniformLocation("ks"), 0.5);
     glUniform1fARB(_shaders[LIGHT]->uniformLocation("expS"), 20);
-    glUniform3f(_shaders[LIGHT]->uniformLocation("lightPosition"), 0,0,1);
+    glUniform3f(_shaders[LIGHT]->uniformLocation("lightDirection"), 0,0,1);
   }
 
   _shaders[LIGHT]->disable();
@@ -381,12 +381,12 @@ void DVRShader::SetLightingLocation(const float *pos)
 
     if (GLEW_VERSION_2_0)
     {
-      glUniform3f(_shaders[LIGHT]->uniformLocation("lightPosition"), 
+      glUniform3f(_shaders[LIGHT]->uniformLocation("lightDirection"), 
                   pos[0], pos[1], pos[2]);
     }
     else
     {
-      glUniform3fARB(_shaders[LIGHT]->uniformLocation("lightPosition"), 
+      glUniform3fARB(_shaders[LIGHT]->uniformLocation("lightDirection"), 
                      pos[0], pos[1], pos[2]);
     }
 
