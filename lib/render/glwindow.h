@@ -179,7 +179,7 @@ public:
 	void setActiveViewpointParams(ViewpointParams* p) {currentViewpointParams = p;}
 	void setActiveRegionParams(RegionParams* p) {
 		currentRegionParams = p; 
-		myRegionManip->setParams((Params*)currentRegionParams);
+		if(myRegionManip)myRegionManip->setParams((Params*)currentRegionParams);
 	}
 	void setActiveAnimationParams(AnimationParams* p) {currentAnimationParams = p;}
 	void setActiveDvrParams(DvrParams* p) {currentDvrParams = p; }

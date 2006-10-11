@@ -48,6 +48,8 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 
 {
 	winNum = windowNum;
+	rendererMapping.clear();
+	assert(rendererMapping.size() == 0);
 	setViewerCoordsChanged(true);
 	setAutoBufferSwap(false);
 	wCenter[0] = 0.f;
@@ -1287,6 +1289,7 @@ RenderParams* GLWindow::findARenderer(Params::ParamType renType){
 }
 
 Renderer* GLWindow::getRenderer(RenderParams* p){
+	if(rendererMapping.size() == 0) return 0;
 	map<RenderParams*, Renderer*>::iterator found_iter = rendererMapping.find(p);
 	if (found_iter == rendererMapping.end()) return 0;
 	return found_iter->second;
