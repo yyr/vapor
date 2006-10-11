@@ -172,6 +172,9 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\dvreventrouter.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\eventrouter.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\floweventrouter.cpp">
 			</File>
 			<File

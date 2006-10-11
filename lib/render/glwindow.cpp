@@ -1263,6 +1263,18 @@ bool GLWindow::removeRenderer(RenderParams* rp){
 	updateGL();
 	return true;
 }
+//Remove a <params,renderer> pair from the list.  But leave them
+//both alone.  This is needed when the params change and another params
+//needs to use the existing renderer.
+//
+bool GLWindow::
+unmapRenderer(RenderParams* rp){
+	map<RenderParams*,Renderer*>::iterator find_iter = rendererMapping.find(rp);
+	if (find_iter == rendererMapping.end()) return false;
+	rendererMapping.erase(find_iter);
+	return true;
+}
+
 //find (first) renderer params of specified type:
 RenderParams* GLWindow::findARenderer(Params::ParamType renType){
 	

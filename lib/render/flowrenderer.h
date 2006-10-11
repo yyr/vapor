@@ -174,11 +174,12 @@ protected:
 	int numSeedPoints;
 	bool regionIsValid;
 
-	FlowParams* myFlowParams;
+	//FlowParams* myFlowParams;
 	//Remember the last time step that was rendered, for capturing.
 	int lastTimeStep;
 	//save the periodic extents (slightly different than extents)
 	float periodicExtents[6];
+	VaporFlow* myFlowLib;
 
 
 

@@ -72,6 +72,7 @@
 #include "eventrouter.h"
 #include "savetfdialog.h"
 #include "loadtfdialog.h"
+
 #include "VolumeRenderer.h"
 
 using namespace VAPoR;
@@ -416,57 +417,20 @@ flowTabReturnPressed(void){
  * slots associated with FlowTab
  *************************************************************************************/
 void FlowEventRouter::guiChangeInstance(int newCurrent){
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	assert(newCurrent >= 0 && newCurrent < vizMgr->getNumFlowInstances(winnum));
-	vizMgr->setCurrentFlowInstIndex(winnum, newCurrent);
-	updateTab(vizMgr->getFlowParams(winnum));
-	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveFlowParams(vizMgr->getFlowParams(winnum));
-	//If we are in rake mode, we need to do a redraw:
-	if (GLWindow::getCurrentMouseMode() == GLWindow::rakeMode)
-		vizMgr->getVizWin(winnum)->updateGL();
-
+	//Do this in the parent class:
+	performGuiChangeInstance(newCurrent);
+	
 }
 void FlowEventRouter::guiNewInstance(){
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	//Clone the default params
-	FlowParams* newFlow = (FlowParams*)(vizMgr->getGlobalParams(Params::FlowParamsType)->deepCopy());
-	newFlow->setVizNum(winnum);
-	vizMgr->appendFlowInstance(winnum, newFlow);
-	vizMgr->setCurrentFlowInstIndex(winnum, vizMgr->getNumFlowInstances(winnum)-1);
-	updateTab (newFlow);
-	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveFlowParams(newFlow);
-	//If we are in rake mode, we need to do a redraw:
-	if (GLWindow::getCurrentMouseMode() == GLWindow::rakeMode)
-		vizMgr->getVizWin(winnum)->updateGL();
+	performGuiNewInstance();
+	
 }
 void FlowEventRouter::guiDeleteInstance(){
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	assert(vizMgr->getNumFlowInstances(winnum) > 1);
-	int instance = vizMgr->getCurrentFlowInstIndex(winnum);
-	//make sure it's disabled
-	setFlowEnabled(false);
-	FlowParams* dp = vizMgr->getFlowParams(winnum);
-	vizMgr->removeFlowInstance(winnum, instance);
-	delete dp;
-	updateTab(vizMgr->getFlowParams(winnum));
-	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveFlowParams(vizMgr->getFlowParams(winnum));
-	//If we are in rake mode, we need to do a redraw:
-	if (GLWindow::getCurrentMouseMode() == GLWindow::rakeMode)
-		vizMgr->getVizWin(winnum)->updateGL();
+	performGuiDeleteInstance();
+	
 }
 void FlowEventRouter::guiCopyInstance(){
-	//If there is more than one visualizer, provide option of specifying another viz.
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	//Clone this params
-	FlowParams* newFlow = (FlowParams*)vizMgr->getFlowParams(winnum)->deepCopy();
-	newFlow->setEnabled(false);
-	vizMgr->appendFlowInstance(winnum, newFlow);
-	vizMgr->setCurrentFlowInstIndex(winnum, vizMgr->getNumFlowInstances(winnum)-1);
-	updateTab (newFlow);
+	performGuiCopyInstance();
 	
 }
 
@@ -607,8 +571,8 @@ setFlowNavigateMode(bool mode){
 //Insert values from params into tab panel.
 //This is called whenever the tab is displayed.
 //
-void FlowEventRouter::updateTab(Params* params){
-	FlowParams* fParams = (FlowParams*) params;
+void FlowEventRouter::updateTab(){
+	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	Session::getInstance()->blockRecording();
 
     opacityMappingFrame->setMapperFunction(fParams->getMapperFunc());
@@ -920,7 +884,9 @@ guiSetEnabled(bool on){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	if (on == fParams->isEnabled()) return;
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "enable/disable flow render");
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int inst = vizMgr->getActiveInstanceIndex(myParamsType);
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "enable/disable flow render",inst);
 	fParams->setEnabled(on);
 	PanelCommand::captureEnd(cmd, fParams);
 }
@@ -954,7 +920,7 @@ guiSetRakeToRegion(){
 	fParams->setBox(seedBoxMin,seedBoxMax);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	updateTab(fParams);
+	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	
 }
@@ -1223,7 +1189,7 @@ guiSetFlowGeometry(int geomNum){
 	fParams->setFlowGeometry(geomNum);
 	PanelCommand::captureEnd(cmd, fParams);
 	updateMapBounds(fParams);
-	updateTab(fParams);
+	updateTab();
 	update();
 	//If you change the geometry, you do not need to recalculate the flow,
 	//But you need to rerender
@@ -1247,7 +1213,7 @@ guiSetColorMapEntity( int entityNum){
 	PanelCommand::captureEnd(cmd, fParams);
 	updateMapBounds(fParams);
 	
-	updateTab(fParams);
+	updateTab();
 	update();
 	//We only need to redo the flowData if the entity is changing to "speed"
 	if(entityNum == 2) {
@@ -1307,7 +1273,7 @@ guiSetOpacMapEntity( int entityNum){
 
 	PanelCommand::captureEnd(cmd, fParams);
 	updateMapBounds(fParams);
-	updateTab(fParams);
+	updateTab();
 	update();
 	//We only need to redo the flowData if the entity is changing to "speed"
 	if(entityNum == 2) {
@@ -1540,7 +1506,7 @@ captureMouseUp(){
 		
 		int viznum = vwm->getActiveViz();
 		if (viznum >= 0 && (fParams == vwm->getFlowParams(viznum)))
-			updateTab(fParams);
+			updateTab();
 	}
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, fParams);
@@ -1750,10 +1716,9 @@ sliderToText(FlowParams* fParams,int coord, int slideCenter, int slideSize){
  * even if the renderer is really global, since we don't want to affect other global renderers.
  */
 void FlowEventRouter::
-updateRenderer(FlowParams* fParams, bool prevEnabled,  bool newWindow){
-	
+updateRenderer(RenderParams* rParams, bool prevEnabled,  bool newWindow){
+	FlowParams* fParams = (FlowParams*)rParams;
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	
 	
 	if (newWindow) {
 		prevEnabled = false;
@@ -1796,7 +1761,7 @@ updateRenderer(FlowParams* fParams, bool prevEnabled,  bool newWindow){
 	//  change of enable->disable with global->local.  (Must disable the local renderer)
 	//  change of enable->disable with local->global (Must disable the local renderer)
 	
-	//For a new renderer
+	fParams->setEnabled(nowEnabled);
 
 	
 	if (nowEnabled && !prevEnabled ){//For case 2:  create a renderer in the active window:
@@ -1887,9 +1852,10 @@ updateMapBounds(RenderParams* params){
 
 }
 void FlowEventRouter::
-setEditorDirty(){
-	FlowParams* fp = VizWinMgr::getInstance()->getActiveFlowParams();
-
+setEditorDirty(RenderParams* p ){
+	FlowParams* fp = (FlowParams*)p;
+	if (!fp) fp = VizWinMgr::getInstance()->getActiveFlowParams();
+	if(fp->getMapperFunc())fp->getMapperFunc()->setParams(fp);
     opacityMappingFrame->setMapperFunction(fp->getMapperFunc());
     opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().latin1());
     opacityMappingFrame->update();
@@ -1902,14 +1868,15 @@ setEditorDirty(){
 void FlowEventRouter::
 makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 	assert(instance >= 0);
-	FlowParams* fParams = (FlowParams*)newParams;
+	FlowParams* fParams = (FlowParams*)(newParams->deepCopy());
 	int vizNum = fParams->getVizNum();
 	//If we are creating one, it should be the first missing instance:
 	if (!prevParams) assert(VizWinMgr::getInstance()->getNumFlowInstances(vizNum) == instance);
 	
 	VizWinMgr::getInstance()->setParams(vizNum, fParams, Params::FlowParamsType, instance);
-
-	if( VizWinMgr::getInstance()->getCurrentFlowInstIndex(vizNum) == instance) updateTab(fParams);
+	setEditorDirty();
+	//if (fParams->getMapperFunc())fParams->getMapperFunc()->setParams(fParams);
+	updateTab();
 	
 	//Need to create/destroy renderer if there's a change in local/global or enable/disable
 	//or if the window is new
@@ -1924,6 +1891,7 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 	
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+	VizWinMgr::getInstance()->getVizWin(vizNum)->updateGL();
 }
 
 

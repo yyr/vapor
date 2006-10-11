@@ -46,7 +46,7 @@ using namespace VAPoR;
 FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 :Renderer(glw, fParams)
 {
-    myFlowParams = fParams;
+    myFlowLib = 0;
 	numInjections = 0;
 	steadyFlow = fParams->flowIsSteady();
 	for (int i = 0; i<4; i++) constFlowColor[i] = 1.f;
@@ -99,6 +99,7 @@ FlowRenderer::~FlowRenderer()
 	delete needRefreshFlag;
 	delete flowDataDirty;
 	delete flowMapDirty;
+	if (myFlowLib) delete myFlowLib;
 }
 
 
@@ -112,7 +113,7 @@ void FlowRenderer::paintGL()
 	if (!regionValid()) return;
 	
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
-	
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
 	steadyFlow = myFlowParams->flowIsSteady();
 	int timeStep = steadyFlow ? currentFrameNum : 0;
@@ -445,6 +446,7 @@ void FlowRenderer::initializeGL()
 //  Issue OpenGL calls for point list
 void FlowRenderer::
 renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool constMap){
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	float mappedPoint[3];
 	//just convert the flow data to a set of points..
 	glPointSize(radius);
@@ -1475,6 +1477,7 @@ void FlowRenderer::renderStationary(float* point){
 }
 void FlowRenderer::setDataDirty()
 {
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	setRegionValid(true);  // reset this bit so we will try to render again...
 	//set all the dirty flags for all the frames
 	//set the needRefresh flags too if autoRefresh is on.
@@ -1487,6 +1490,7 @@ void FlowRenderer::setDataDirty()
 }
 void FlowRenderer::setGraphicsDirty()
 {
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	//the graphics bit shouldn't be set is speeds are being mapped?
 	//
 	//assert((myFlowParams->getOpacMapEntityIndex() != 2)&&(myFlowParams->getColorMapEntityIndex() != 2));
@@ -1505,6 +1509,7 @@ void FlowRenderer::setGraphicsDirty()
 //RGBA mapping data 
 //Return false on failure.
 bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	//Establish parameters that will be saved with the cache:
 	doList = myFlowParams->listEnabled();
 	doRake = myFlowParams->rakeEnabled();
@@ -1567,7 +1572,13 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 	} else {
 		numInjections = 1;
 	}
-	
+	if (!myFlowLib){
+		//create a new flow lib:
+
+		DataMgr* dataMgr = (DataMgr*)DataStatus::getInstance()->getDataMgr();
+		assert(dataMgr);
+		myFlowLib = new VaporFlow(dataMgr);
+	}
 	//Get the rake flow data if needed:
 	if (doRake){
 		
@@ -1582,7 +1593,8 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 				rakeFlowRGBAs[timeStep] = new float[4*flowDataSize];
 			}
 			calcPeriodicExtents();
-			bool OK = myFlowParams->regenerateFlowData(timeStep, minFrame, true, rParams, rakeFlowData[timeStep],rakeFlowRGBAs[timeStep]);
+			
+			bool OK = myFlowParams->regenerateFlowData(myFlowLib, timeStep, minFrame, true, rParams, rakeFlowData[timeStep],rakeFlowRGBAs[timeStep]);
 			if (!OK) {
 				setRegionValid(false);
 				delete rakeFlowData[timeStep];
@@ -1613,7 +1625,8 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 				listFlowRGBAs[timeStep] = new float[4*flowDataSize];
 			}
 			calcPeriodicExtents();
-			bool OK = myFlowParams->regenerateFlowData(timeStep, minFrame, false, rParams, listFlowData[timeStep],listFlowRGBAs[timeStep]);
+			
+			bool OK = myFlowParams->regenerateFlowData(myFlowLib, timeStep, minFrame, false, rParams, listFlowData[timeStep],listFlowRGBAs[timeStep]);
 			if (!OK) {
 				setRegionValid(false);
 				delete listFlowData[timeStep];
@@ -1654,7 +1667,7 @@ setAllNeedRefresh(bool value){
 //and then the next streamline is started by calling this function again.
 //
 bool FlowRenderer::mapPeriodicCycle(float origCoord[3], float mappedCoord[3], int oldcycle[3], int newcycle[3]){
-	
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	bool changed = false;
 	for (int i = 0; i<3; i++){
 		mappedCoord[i] = origCoord[i];
@@ -1683,6 +1696,7 @@ void FlowRenderer::calcPeriodicExtents() {
 	// This is because the user specification of extents is the difference between the first and last voxel
 	// position in the data.  The period is actually one voxel beyond the end of the data, since that point
 	// is not repeated.
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	const float* extents = DataStatus::getInstance()->getExtents();
 	for (int i = 0; i<3; i++){
 		periodicExtents[i] = extents[i];

@@ -40,6 +40,7 @@ class QTimer;
 #include "regionparams.h"
 #include "probeparams.h"
 #include "flowparams.h"
+#include "dvrparams.h"
 #include "animationparams.h"
 #include "vaporinternal/common.h"
 #include "params.h"
@@ -173,16 +174,25 @@ public:
 	DvrParams* getDvrParams(int winNum, int instance = -1);
 	ProbeParams* getProbeParams(int winNum, int instance = -1);
 
+	Params* getParams(int winNum, Params::ParamType pType, int instance = -1);
+	
 	int getNumFlowInstances(int winnum){return flowParamsInstances[winnum].size();}
 	int getNumProbeInstances(int winnum){return probeParamsInstances[winnum].size();}
 	int getNumDvrInstances(int winnum){return dvrParamsInstances[winnum].size();}
+	int getNumInstances(int winnum, Params::ParamType pType);
 	int getCurrentFlowInstIndex(int winnum) {return currentFlowInstance[winnum];}
 	int getCurrentDvrInstIndex(int winnum) {return currentDvrInstance[winnum];}
 	int getCurrentProbeInstIndex(int winnum) {return currentProbeInstance[winnum];}
 	void setCurrentFlowInstIndex(int winnum, int inst) {currentFlowInstance[winnum] = inst;}
 	void setCurrentDvrInstIndex(int winnum, int inst) {currentDvrInstance[winnum] = inst;}
 	void setCurrentProbeInstIndex(int winnum, int inst) {currentProbeInstance[winnum] = inst;}
-	
+	void setCurrentInstanceIndex(int winnum, int inst, Params::ParamType t);
+	int getCurrentInstanceIndex(int winnum, Params::ParamType t);
+	int findInstanceIndex(int winnum, Params* params, Params::ParamType t);
+	int getActiveInstanceIndex(Params::ParamType t){
+		return getCurrentInstanceIndex(activeViz,t);
+	}
+
 	void appendFlowInstance(int winnum, FlowParams* fp){
 		flowParamsInstances[winnum].push_back(fp);
 	}
@@ -192,30 +202,47 @@ public:
 	void appendProbeInstance(int winnum, ProbeParams* pp){
 		probeParamsInstances[winnum].push_back(pp);
 	}
+	void appendInstance(int winnum, Params* p);
+	void insertFlowInstance(int winnum, int posn, FlowParams* fp){
+		flowParamsInstances[winnum].insert(flowParamsInstances[winnum].begin()+posn, fp);
+	}
+	void insertDvrInstance(int winnum, int posn, DvrParams* dp){
+		dvrParamsInstances[winnum].insert(dvrParamsInstances[winnum].begin()+posn, dp);
+	}
+	void insertProbeInstance(int winnum, int posn, ProbeParams* pp){
+		probeParamsInstances[winnum].insert(probeParamsInstances[winnum].begin()+posn, pp);
+	}
+	void insertInstance(int winnum, int posn, Params* p);
 	void removeFlowInstance(int winnum, int instance){
-		
+		FlowParams* fParams = flowParamsInstances[winnum].at(instance);
 		if (currentFlowInstance[winnum] > instance)
 			currentFlowInstance[winnum]--;
 		flowParamsInstances[winnum].erase(flowParamsInstances[winnum].begin()+instance);
 		//Did we remove last one?
 		if (currentFlowInstance[winnum] >= (int)flowParamsInstances[winnum].size())
 			currentFlowInstance[winnum]--;
+		delete fParams;
 	}
 	void removeDvrInstance(int winnum, int instance){
+		DvrParams* dParams = dvrParamsInstances[winnum].at(instance);
 		if (currentDvrInstance[winnum] > instance)
 			currentDvrInstance[winnum]--;
 		dvrParamsInstances[winnum].erase(dvrParamsInstances[winnum].begin()+instance);
 		//Did we remove last one?
 		if (currentDvrInstance[winnum] >= (int)dvrParamsInstances[winnum].size())
 			currentDvrInstance[winnum]--;
+		delete dParams;
 	}
 	void removeProbeInstance(int winnum, int instance){
+		ProbeParams* pParams = probeParamsInstances[winnum].at(instance);
 		if (currentProbeInstance[winnum] > instance)
 			currentProbeInstance[winnum]--;
 		probeParamsInstances[winnum].erase(probeParamsInstances[winnum].begin()+instance);
 		if (currentProbeInstance[winnum] >= (int)probeParamsInstances[winnum].size())
 			currentProbeInstance[winnum]--;
+		delete pParams;
 	}
+	void removeInstance(int winnum, int instance, Params::ParamType t);
 	FlowParams* getFlowParams(int winNum, int instance = -1);
 	AnimationParams* getAnimationParams(int winNum);
 

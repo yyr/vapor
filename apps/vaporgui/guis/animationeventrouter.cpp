@@ -182,8 +182,9 @@ void AnimationEventRouter::confirmText(bool /*render*/){
 
 //Insert values from params into tab panel
 //
-void AnimationEventRouter::updateTab(Params* params){
-	AnimationParams* aParams = (AnimationParams*) params;
+void AnimationEventRouter::updateTab(){
+
+	AnimationParams* aParams = (AnimationParams*) VizWinMgr::getInstance()->getActiveAnimationParams();
 	float sliderVal;
 	QString strn;
 	Session::getInstance()->blockRecording();
@@ -515,5 +516,5 @@ void AnimationEventRouter::makeCurrent(Params* /* prev params p*/, Params* newPa
 	int vizNum = aParams->getVizNum();
 	VizWinMgr* vwm = VizWinMgr::getInstance();
 	vwm->setAnimationParams(vizNum, aParams);
-	updateTab(aParams);
+	updateTab();
 }

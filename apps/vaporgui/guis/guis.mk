@@ -1,5 +1,5 @@
 GUI_FILES := \
-	colorpicker loadtfdialog savetfdialog \
+	colorpicker eventrouter loadtfdialog savetfdialog \
 	vizselectcombo seedlisteditor \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \

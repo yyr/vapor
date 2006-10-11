@@ -201,6 +201,7 @@ public:
 	//as well as with a map from renderparams to renderer
 	
 	void mapRenderer(RenderParams* rp, Renderer* ren){rendererMapping[rp] = ren;}
+	bool unmapRenderer(RenderParams* rp);
 	
 	//Determine the approximate size of a pixel in terms of viewer coordinates.
 	float getPixelSize();

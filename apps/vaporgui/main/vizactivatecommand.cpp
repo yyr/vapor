@@ -47,18 +47,23 @@ VizActivateCommand::VizActivateCommand(VizWin* win, int prevViz, int nextViz, Co
 	//Construct description text, and other data needed:
 	switch (thisType){
 		case create:
-			windowName = vizWinMgr->getVizWinName(nextViz).ascii();
+			windowName = new char[vizWinMgr->getVizWinName(nextViz).length()+1];
+			strcpy((char*)windowName, vizWinMgr->getVizWinName(nextViz).ascii());
+			
 			description = (QString("create ")+windowName).ascii();
 			
 			break;
 		case remove:
-			windowName = vizWinMgr->getVizWinName(prevViz).ascii();
+			windowName = new char[vizWinMgr->getVizWinName(prevViz).length()+1];
+			strcpy((char*)windowName, vizWinMgr->getVizWinName(prevViz).ascii());
+			
 			description = (QString("remove ")+windowName).ascii();
 			//clone and save all the applicable (local!) params:
 			cloneStateParams(win, prevViz);
 			break;
 		case activate:
-			windowName = vizWinMgr->getVizWinName(nextViz).ascii();
+			windowName = new char[vizWinMgr->getVizWinName(nextViz).length()+1];
+			strcpy((char*)windowName, vizWinMgr->getVizWinName(nextViz).ascii());
 			description = (QString("activate ")+windowName).ascii();
 			break;
 		default:

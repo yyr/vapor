@@ -141,7 +141,7 @@ void RegionEventRouter::confirmText(bool /*render*/){
 		textToSlider(rParams,i,centerPos[i],regSize[i]);
 
 	refreshRegionInfo(rParams);
-	updateTab(rParams);
+	updateTab();
 	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
 	
 	//Cancel any response to events generated in this method:
@@ -216,8 +216,8 @@ void RegionEventRouter::copyRegionToProbe(){
 
 //Insert values from params into tab panel
 //
-void RegionEventRouter::updateTab(Params* params){
-	RegionParams* rParams = (RegionParams*) params;
+void RegionEventRouter::updateTab(){
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 
 	float* regionMin = rParams->getRegionMin();
 	float* regionMax = rParams->getRegionMax();
@@ -574,7 +574,7 @@ guiCopyProbeToRegion(){
 		rParams->setRegionMax(i, pParams->getProbeMax(i));
 	}
 	//Note:  the probe may not fit in the region.  
-	updateTab(rParams);
+	updateTab();
 	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
 	PanelCommand::captureEnd(cmd,rParams);
 	
@@ -590,7 +590,7 @@ guiCopyRakeToRegion(){
 		rParams->setRegionMin(i,fParams->getSeedRegionMin(i));
 		rParams->setRegionMax(i,fParams->getSeedRegionMax(i));
 	}
-	updateTab(rParams);
+	updateTab();
 	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
 	PanelCommand::captureEnd(cmd,rParams);
 	
@@ -725,7 +725,7 @@ guiSetMaxSize(){
 		rParams->setRegionMin(i, fullDataExtents[i]);
 		rParams->setRegionMax(i, fullDataExtents[i+3]);
 	}
-	updateTab(rParams);
+	updateTab();
 	PanelCommand::captureEnd(cmd, rParams);
 
 	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
@@ -779,7 +779,7 @@ captureMouseUp(){
 	//Update the tab:
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
 	if (!savedCommand) return;
-	updateTab(rParams);
+	updateTab();
 	PanelCommand::captureEnd(savedCommand, rParams);
 	//Set region  dirty
 	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
@@ -795,6 +795,6 @@ makeCurrent(Params* prev, Params* nextParams ,bool, int) {
 	VizWinMgr::getInstance()->setRegionParams(vizNum, rParams);
 	//Also update current Tab.  It's probably visible.
 	//
-	updateTab(rParams);
+	updateTab();
 	VizWinMgr::getInstance()->setVizDirty(rParams,RegionBit,true);
 }

@@ -25,6 +25,7 @@
 #include "params.h"
 #include "eventrouter.h"
 #include "vapor/MyBase.h"
+
 #include "probetab.h"
 
 
@@ -50,7 +51,7 @@ public:
 	//Connect signals and slots from tab
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);
-	virtual void updateTab(Params* p);
+	virtual void updateTab();
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
 	virtual void cleanParams(Params* p); 
 
@@ -61,10 +62,8 @@ public:
 	
 	
 	void sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize);
-	
-	
 
-	void updateRenderer(ProbeParams* dParams, bool prevEnabled,  bool newWindow);
+	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
 	virtual void captureMouseDown();
 	virtual void captureMouseUp();
 	void textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize);
@@ -87,7 +86,7 @@ public:
 	virtual void refreshHistogram(RenderParams* p);
 
 	//There are multiple notions of "dirty" here!
-	virtual void setEditorDirty();
+	virtual void setEditorDirty(RenderParams* p = 0);
 		
 	virtual void reinitTab(bool doOverride);
 	bool seedIsAttached(){return seedAttached;}

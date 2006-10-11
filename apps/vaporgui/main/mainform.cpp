@@ -974,10 +974,9 @@ void MainForm::viewpoint()
 		
 		myVizMgr->hookUpViewpointTab(theVizTab);
 	}
-    //Determine which is the current active window:
-	int activeViz = VizWinMgr::getInstance()->getActiveViz();
-	//Get the Viewpoint parameter set (local or global) that applies:
-	ViewpointParams* myViewpointParams = myVizMgr->getViewpointParams(activeViz);
+    
+	
+	
 	ViewpointEventRouter* myViewpointRouter = myVizMgr->getViewpointRouter();
 	
 	int posn = tabWidget->findWidget(Params::ViewpointParamsType);
@@ -990,7 +989,7 @@ void MainForm::viewpoint()
 	} else {
 		tabWidget->moveToFront(Params::ViewpointParamsType);
 	}
-	myViewpointRouter->updateTab(myViewpointParams);
+	myViewpointRouter->updateTab();
 }
 /*
  * Method that launches the region tab into the tabbed dialog
@@ -1006,10 +1005,7 @@ region()
 		myVizMgr->hookUpRegionTab(theRegionTab);
 	}
 	
-    //Determine which is the current active window:
-	int activeViz = VizWinMgr::getInstance()->getActiveViz();
-	//Get the region parameter set (local or global) that applies:
-	RegionParams* myRegionParams = myVizMgr->getRegionParams(activeViz);
+	
 	RegionEventRouter* myRegionRouter = myVizMgr->getRegionRouter();
 	
 	int posn = tabWidget->findWidget(Params::RegionParamsType);
@@ -1022,7 +1018,7 @@ region()
 	} else {
 		tabWidget->moveToFront(Params::RegionParamsType);
 	}
-	myRegionRouter->updateTab(myRegionParams);
+	myRegionRouter->updateTab();
 	
 }
 /*
@@ -1038,9 +1034,6 @@ renderDVR(){
 		//myVizMgr->getDvrParams(-1)->setTab(theDvrTab);
 		myVizMgr->hookUpDvrTab(theDvrTab);
 	}
-	int activeViz = myVizMgr->getActiveViz();
-	//Get the dvr parameter set (local or global) that applies:
-	DvrParams* myDvrParams = myVizMgr->getDvrParams(activeViz);
 	
 	
 	int posn = tabWidget->findWidget(Params::DvrParamsType);
@@ -1053,7 +1046,7 @@ renderDVR(){
 	} else {
 		tabWidget->moveToFront(Params::DvrParamsType);
 	}
-	theDvrTab->updateTab(myDvrParams);
+	theDvrTab->updateTab();
 	
 }
 /*
@@ -1068,10 +1061,8 @@ animationParams(){
 		//myVizMgr->getAnimationParams(-1)->setTab(theAnimationTab);
 		myVizMgr->hookUpAnimationTab(theAnimationTab);
 	}
-    //Determine which is the current active window:
-	int activeViz = VizWinMgr::getInstance()->getActiveViz();
-	//Get the Animation parameter set (local or global) that applies:
-	AnimationParams* myAnimationParams = myVizMgr->getAnimationParams(activeViz);
+   
+
 	AnimationEventRouter* myAnimationRouter = myVizMgr->getAnimationRouter();
 	
 	int posn = tabWidget->findWidget(Params::AnimationParamsType);
@@ -1084,7 +1075,7 @@ animationParams(){
 	} else {
 		tabWidget->moveToFront(Params::AnimationParamsType);
 	}
-	myAnimationRouter->updateTab(myAnimationParams);
+	myAnimationRouter->updateTab();
 	
 	
 }
@@ -1101,10 +1092,8 @@ void MainForm::launchFlowTab()
 		//myVizMgr->getFlowParams(-1)->setTab(theFlowTab);
 		myVizMgr->hookUpFlowTab(theFlowTab);
 	}
-    //Determine which is the current active window:
-	int activeViz = VizWinMgr::getInstance()->getActiveViz();
-	//Get the Flow parameter set (local or global) that applies:
-	FlowParams* myFlowParams = myVizMgr->getFlowParams(activeViz);
+   
+	
 	FlowEventRouter* myFlowRouter = myVizMgr->getFlowRouter();
 	
 	int posn = tabWidget->findWidget(Params::FlowParamsType);
@@ -1117,7 +1106,7 @@ void MainForm::launchFlowTab()
 	} else {
 		tabWidget->moveToFront(Params::FlowParamsType);
 	}
-	myFlowRouter->updateTab(myFlowParams);
+	myFlowRouter->updateTab();
 	
 }
 void MainForm::launchProbeTab()
@@ -1153,12 +1142,15 @@ void MainForm::setNavigate(bool on)
 	Session* currentSession = Session::getInstance();
 	//Only do something if this is an actual change of mode
 	if (GLWindow::getCurrentMouseMode() != GLWindow::navigateMode){
+		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
 		myVizMgr->setSelectionMode(GLWindow::navigateMode);
 		currentSession->blockRecording();
 		//viewpoint();
 		currentSession->unblockRecording();
-		currentSession->addToHistory(new MouseModeCommand(GLWindow::getCurrentMouseMode(),  GLWindow::navigateMode));
+		currentSession->addToHistory(new MouseModeCommand(oldMode,  GLWindow::navigateMode));
+		
 		GLWindow::setCurrentMouseMode(GLWindow::navigateMode);
+		VizWinMgr::getInstance()->updateActiveParams();
 		
 		if(modeStatusWidget) {
 			statusBar()->removeWidget(modeStatusWidget);
@@ -1177,8 +1169,9 @@ void MainForm::setLights(bool  on)
 	if (!on && moveLightsAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
 	if (GLWindow::getCurrentMouseMode() != GLWindow::lightMode){
+		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
 		VizWinMgr::getInstance()->setSelectionMode(GLWindow::lightMode);
-		currentSession->addToHistory(new MouseModeCommand(GLWindow::getCurrentMouseMode(),  GLWindow::lightMode));
+		currentSession->addToHistory(new MouseModeCommand(oldMode,  GLWindow::lightMode));
 		GLWindow::setCurrentMouseMode(GLWindow::lightMode);
 		if(modeStatusWidget) {
 			statusBar()->removeWidget(modeStatusWidget);
@@ -1195,13 +1188,15 @@ void MainForm::setProbe(bool on)
 	if (!on) return;
 	Session* currentSession = Session::getInstance();
 	if (GLWindow::getCurrentMouseMode() != GLWindow::probeMode){
+		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
 		VizWinMgr::getInstance()->setSelectionMode(GLWindow::probeMode);
 		
 		currentSession->blockRecording();
 		launchProbeTab();
 		currentSession->unblockRecording();
-		Session::getInstance()->addToHistory(new MouseModeCommand(GLWindow::getCurrentMouseMode(),  GLWindow::probeMode));
+		Session::getInstance()->addToHistory(new MouseModeCommand(oldMode,  GLWindow::probeMode));
 		GLWindow::setCurrentMouseMode(GLWindow::probeMode);
+		VizWinMgr::getInstance()->updateActiveParams();
 		if(modeStatusWidget) {
 			statusBar()->removeWidget(modeStatusWidget);
 			delete modeStatusWidget;
@@ -1219,13 +1214,15 @@ void MainForm::setRake(bool on)
 	if (!on) return;
 	Session* currentSession = Session::getInstance();
 	if (GLWindow::getCurrentMouseMode() != GLWindow::rakeMode){
+		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
 		VizWinMgr::getInstance()->setSelectionMode(GLWindow::rakeMode);
 		//bring up the flowtab, but don't put into history:
 		currentSession->blockRecording();
 		launchFlowTab();
 		currentSession->unblockRecording();
-		Session::getInstance()->addToHistory(new MouseModeCommand(GLWindow::getCurrentMouseMode(),  GLWindow::rakeMode));
+		Session::getInstance()->addToHistory(new MouseModeCommand(oldMode,  GLWindow::rakeMode));
 		GLWindow::setCurrentMouseMode(GLWindow::rakeMode);
+		VizWinMgr::getInstance()->updateActiveParams();
 		if(modeStatusWidget) {
 			statusBar()->removeWidget(modeStatusWidget);
 			delete modeStatusWidget;
@@ -1242,13 +1239,15 @@ void MainForm::setRegionSelect(bool on)
 	if (!on && regionSelectAction->isOn()){navigationAction->toggle(); return;}
 	if (!on) return;
 	if (GLWindow::getCurrentMouseMode() != GLWindow::regionMode){
+		GLWindow::mouseModeType oldMode = GLWindow::getCurrentMouseMode();
 		VizWinMgr::getInstance()->setSelectionMode(GLWindow::regionMode);
 		//bring up the tab, but don't put into history:
 		currentSession->blockRecording();
 		region();
 		currentSession->unblockRecording();
-		currentSession->addToHistory(new MouseModeCommand(GLWindow::getCurrentMouseMode(),  GLWindow::regionMode));
+		currentSession->addToHistory(new MouseModeCommand(oldMode,  GLWindow::regionMode));
 		GLWindow::setCurrentMouseMode(GLWindow::regionMode);
+		VizWinMgr::getInstance()->updateActiveParams();
 		if(modeStatusWidget) {
 			statusBar()->removeWidget(modeStatusWidget);
 			delete modeStatusWidget;

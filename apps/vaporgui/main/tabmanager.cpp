@@ -156,22 +156,22 @@ newFrontTab(QWidget*) {
 	Params::ParamType newType = p->getParamType();
 	if (newType == Params::RegionParamsType){
 		RegionEventRouter* rer = VizWinMgr::getInstance()->getRegionRouter();
-		rer->updateTab(p);
+		rer->updateTab();
 	} else if (newType == Params::DvrParamsType){
 		DvrEventRouter* der = VizWinMgr::getInstance()->getDvrRouter();
-		der->updateTab(p);
+		der->updateTab();
 	} else if (newType == Params::ViewpointParamsType){
 		ViewpointEventRouter* ver = VizWinMgr::getInstance()->getViewpointRouter();
-		ver->updateTab(p);
+		ver->updateTab();
 	} else if (newType == Params::ProbeParamsType){
 		ProbeEventRouter* per = VizWinMgr::getInstance()->getProbeRouter();
-		per->updateTab(p);
+		per->updateTab();
 	} else if (newType == Params::AnimationParamsType){
 		AnimationEventRouter* aer = VizWinMgr::getInstance()->getAnimationRouter();
-		aer->updateTab(p);
+		aer->updateTab();
 	} else if (newType == Params::FlowParamsType){
 		FlowEventRouter* fer = VizWinMgr::getInstance()->getFlowRouter();
-		fer->updateTab(p);
+		fer->updateTab();
 	}
 	else {
 		assert(0);

@@ -51,19 +51,16 @@ public:
 	//Connect signals and slots from tab
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);
-	virtual void updateTab(Params* p);
+	virtual void updateTab();
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
 	virtual void cleanParams(Params* p); 
 	
 	void fileLoadTF(FlowParams* dParams);
 	void sessionLoadTF(FlowParams* dParams, QString* name);
 	void fileSaveTF(FlowParams* dParams);
-	
-	
-	
 		
 	//There are multiple notions of "dirty" here!
-	virtual void setEditorDirty();
+	virtual void setEditorDirty(RenderParams* p = 0);
 		
 	virtual void reinitTab(bool doOverride);
 
@@ -81,7 +78,8 @@ public:
 	//Methods to make sliders and text consistent for seed region:
 	void textToSlider(FlowParams* fParams,int coord, float center, float size);
 	void sliderToText(FlowParams* fParams,int coord, int center, int size);
-	void updateRenderer(FlowParams* fParams, bool prevEnabled,  bool newWindow);
+	virtual void updateRenderer(RenderParams* fParams, bool prevEnabled,  bool newWindow);
+
 public slots:
 
 	virtual void guiStartChangeMapFcn(QString s);

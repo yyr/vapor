@@ -44,7 +44,8 @@ class PARAMS_API ProbeParams : public RenderParams{
 public: 
 	ProbeParams(int winnum);
 	~ProbeParams();
-	virtual Params* deepCopy();
+	virtual RenderParams* deepRCopy();
+	virtual Params* deepCopy() {return (Params*)deepRCopy();}
 	
 	bool probeIsDirty() {return probeDirty;}
 	virtual const float* getCurrentDatarange(){

@@ -88,7 +88,7 @@ using namespace VAPoR;
 
 FlowParams::FlowParams(int winnum) : RenderParams(winnum) {
 	thisParamType = FlowParamsType;
-	myFlowLib = 0;
+	//myFlowLib = 0;
 	mapperFunction = 0;
 	
 	//Set all parameters to default values
@@ -208,11 +208,12 @@ restart() {
 }
 
 //Make a copy of  parameters:
-Params* FlowParams::
-deepCopy(){
+RenderParams* FlowParams::
+deepRCopy(){
 	
 	FlowParams* newFlowParams = new FlowParams(*this);
-	newFlowParams->myFlowLib = 0;
+	//Keep the flowlib??
+	//newFlowParams->myFlowLib = 0;
 	//Clone the map bounds arrays:
 	int numVars = numComboVariables+4;
 	newFlowParams->minColorEditBounds = new float[numVars];
@@ -244,7 +245,7 @@ deepCopy(){
 	
 
 	
-	return (Params*)newFlowParams;
+	return newFlowParams;
 }
 
 //Reinitialize settings, session has changed
@@ -632,16 +633,17 @@ writePathline(FILE* saveFile, int pathNum, int minFrame, int injNum, float* flow
 
 
 
-
+/*
 void FlowParams::
 setEnabled(bool on){
-	if (enabled == on) return;
+	//if (enabled == on) return;
 	enabled = on;
 	if (!enabled){//delete existing flow lib
 		if (myFlowLib) delete myFlowLib;
 		myFlowLib = 0;
 		return;
 	}
+	if(myFlowLib) return;
 	//create a new flow lib:
 	assert(myFlowLib == 0);
 	DataMgr* dataMgr = (DataMgr*)DataStatus::getInstance()->getDataMgr();
@@ -650,11 +652,12 @@ setEnabled(bool on){
 	return;
 	
 }
+*/
 //Generate the flow data, either from a rake or from a point list.
 //If speeds are used for rgba mapping, they are (temporarily) calculated
 //and then mapped.
 bool FlowParams::
-regenerateFlowData(int timeStep, int minFrame, bool isRake, RegionParams* rParams, float* flowData, float *flowRGBAs){
+regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake, RegionParams* rParams, float* flowData, float *flowRGBAs){
 	int i;
 	size_t min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];

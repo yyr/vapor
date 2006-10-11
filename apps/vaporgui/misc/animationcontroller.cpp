@@ -190,8 +190,7 @@ endRendering(int vizNum){
 	//controller thread (X11 limitation!)
 	//See if this is the active visualizer
 	if (VizWinMgr::getInstance()->getActiveViz() == vizNum){
-		AnimationParams* aParams = VizWinMgr::getInstance()->getAnimationParams(vizNum);
-		VizWinMgr::getInstance()->getAnimationRouter()->updateTab(aParams);
+		VizWinMgr::getInstance()->getAnimationRouter()->updateTab();
 	}
 	
 	//Do this out of the mutex:

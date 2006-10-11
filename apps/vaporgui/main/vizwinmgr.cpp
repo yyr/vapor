@@ -58,7 +58,7 @@
 #include "tabmanager.h"
 #include "dvrparams.h"
 #include "probeparams.h"
-
+#include "params.h"
 #include "dvr.h"
 #include "probetab.h"
 
@@ -518,12 +518,21 @@ setActiveViz(int vizNum){
 void VizWinMgr::
 updateActiveParams(){
 	if (activeViz < 0) return;
-	viewpointEventRouter->updateTab(getViewpointParams(activeViz));
-	regionEventRouter->updateTab(getRegionParams(activeViz));
-	dvrEventRouter->updateTab(getDvrParams(activeViz));
-	probeEventRouter->updateTab(getProbeParams(activeViz));
-	flowEventRouter->updateTab(getFlowParams(activeViz));
-	animationEventRouter->updateTab(getAnimationParams(activeViz));
+	viewpointEventRouter->updateTab();
+	regionEventRouter->updateTab();
+	dvrEventRouter->updateTab();
+	probeEventRouter->updateTab();
+	flowEventRouter->updateTab();
+	animationEventRouter->updateTab();
+	//Also update the activeParams in the GLWindow:
+	GLWindow* glwin = getVizWin(activeViz)->getGLWindow();
+	
+	glwin->setActiveFlowParams(getFlowParams(activeViz));
+	glwin->setActiveDvrParams(getDvrParams(activeViz));
+	glwin->setActiveProbeParams(getProbeParams(activeViz));
+	glwin->setActiveAnimationParams(getAnimationParams(activeViz));
+	glwin->setActiveRegionParams(getRegionParams(activeViz));
+	glwin->setActiveViewpointParams(getViewpointParams(activeViz));
 }
 
 //Method to enable closing of a vizWin for Undo/Redo
@@ -535,11 +544,13 @@ killViz(int viznum){
 /*
  *  Methods for changing the parameter panels.  Only done during undo/redo.
  *  If instance is -1, then changes the current instance of renderParams
+ *  For enabled render params, change the rendererMapping so that it will
+ *  map the new params to the existing renderer.
  */
 
 void VizWinMgr::setParams(int winnum, Params* p, Params::ParamType t, int inst){
 	
-	if (!p->isRenderParams()){
+	if (!p || (!p->isRenderParams())){
 		assert (inst == -1);
 		Params** paramsArray = getParamsArray(t);
 
@@ -548,6 +559,7 @@ void VizWinMgr::setParams(int winnum, Params* p, Params::ParamType t, int inst){
 			if (globalParams) delete globalParams;
 			if (p) setGlobalParams(p->deepCopy(),t);
 			else setGlobalParams(0,t);
+			globalParams = getGlobalParams(t);
 			//Set all windows that use global params:
 			for (int i = 0; i<MAXVIZWINS; i++){
 				if (paramsArray[i] && !paramsArray[i]->isLocal()){
@@ -561,40 +573,70 @@ void VizWinMgr::setParams(int winnum, Params* p, Params::ParamType t, int inst){
 			vizWin[winnum]->getGLWindow()->setActiveParams(paramsArray[winnum],t);
 		}
 	} else {  //Handle render params:
+		assert(p);
+		
+		if (inst == -1) inst = getCurrentInstanceIndex(winnum, t);
+		//Save the previous render params pointer.  It might be needed
+		//to enable/disable renderer
+		RenderParams* prevRParams = (RenderParams*)getParams(winnum,t,inst);
+		bool isRendering = (prevRParams != 0) && prevRParams->isEnabled();
+		RenderParams* newRParams = 0;
+		GLWindow* glwin = vizWin[winnum]->getGLWindow();
 		switch (t) {
 			FlowParams* fp; DvrParams* dp; ProbeParams* pp;
 			
 			case Params::FlowParamsType :
-				if (inst == -1) inst = getCurrentFlowInstIndex(winnum);
-				if (getNumFlowInstances(winnum)> inst) delete getFlowParams(winnum,inst);
-				assert(p);
-				fp = (FlowParams*)(p->deepCopy());
-				getAllFlowParams(winnum)[inst] = fp;
-				if (inst == getCurrentFlowInstIndex(winnum))
-					vizWin[winnum]->getGLWindow()->setActiveParams(fp,t);
+				fp = (FlowParams*)p;
+				if (getNumFlowInstances(winnum)> inst) {
+					if (getFlowParams(winnum,inst)) delete getFlowParams(winnum,inst);
+					getAllFlowParams(winnum)[inst] = fp;
+				} else {
+					appendFlowInstance(winnum, fp);
+				}
+				
+				newRParams = fp;
 				break;
 			case Params::DvrParamsType :
-				if (inst == -1) inst = getCurrentDvrInstIndex(winnum);
-				if (getNumDvrInstances(winnum)> inst) delete getDvrParams(winnum,inst);
-				assert(p);
-				dp = (DvrParams*)(p->deepCopy());
-				getAllDvrParams(winnum)[inst] = dp;
-				if (inst == getCurrentDvrInstIndex(winnum))
-					vizWin[winnum]->getGLWindow()->setActiveParams(dp,t);
+				
+				dp = (DvrParams*)p;
+				if (getNumDvrInstances(winnum)> inst) {
+					if (getDvrParams(winnum,inst)) delete getDvrParams(winnum,inst);
+					getAllDvrParams(winnum)[inst] = dp;
+				} else {
+					appendDvrInstance(winnum, dp);
+				}
+				
+				newRParams = dp;
 				break;
 			case Params::ProbeParamsType :
-				if (inst == -1) inst = getCurrentProbeInstIndex(winnum);
-				if (getNumProbeInstances(winnum)> inst) delete getProbeParams(winnum,inst);
-				assert(p);
-				pp = (ProbeParams*)(p->deepCopy());
-				getAllProbeParams(winnum)[inst] = pp;
-				if (inst == getCurrentProbeInstIndex(winnum))
-					vizWin[winnum]->getGLWindow()->setActiveParams(pp,t);
+				
+				pp = (ProbeParams*)p;
+				if (getNumProbeInstances(winnum)> inst) {
+					if (getProbeParams(winnum,inst)) delete getProbeParams(winnum,inst);
+					getAllProbeParams(winnum)[inst] = pp;
+				} else {
+					appendProbeInstance(winnum, pp);
+				}
+				
+				newRParams = pp;
 				break;
 			default:
 				assert(0);
 				break;
 		}
+		if (inst == getCurrentInstanceIndex(winnum, t))
+			glwin->setActiveParams(newRParams, t);
+		//May need to remap renderer:
+		Renderer* rend = 0;
+		if (isRendering){
+			rend = glwin->getRenderer(prevRParams);
+			assert(rend);
+			rend->setRenderParams(newRParams);
+			glwin->mapRenderer(newRParams,rend);
+			bool ok = glwin->unmapRenderer(prevRParams);
+			assert(ok);
+		}
+
 	}
 }
 
@@ -857,7 +899,7 @@ setAnimationLocalGlobal(int val){
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
 		if(animationParams[activeViz])animationEventRouter->guiSetLocal(animationParams[activeViz],false);
-		animationEventRouter->updateTab(globalAnimationParams);
+		animationEventRouter->updateTab();
 		vizWin[activeViz]->getGLWindow()->setActiveAnimationParams(globalAnimationParams);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
@@ -870,7 +912,7 @@ setAnimationLocalGlobal(int val){
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
 			animationEventRouter->guiSetLocal(animationParams[activeViz],true);
-			animationEventRouter->updateTab(animationParams[activeViz]);
+			animationEventRouter->updateTab();
 			
 		}
 		//set the local params in the glwindow:
@@ -897,7 +939,7 @@ setVpLocalGlobal(int val){
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
 		viewpointEventRouter->guiSetLocal(vpParams[activeViz],false);
-		viewpointEventRouter->updateTab(globalVPParams);
+		viewpointEventRouter->updateTab();
 		vizWin[activeViz]->getGLWindow()->setActiveViewpointParams(globalVPParams);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
@@ -909,7 +951,7 @@ setVpLocalGlobal(int val){
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
 			viewpointEventRouter->guiSetLocal(vpParams[activeViz],true);
-			viewpointEventRouter->updateTab(vpParams[activeViz]);
+			viewpointEventRouter->updateTab();
 			
 			//and then refresh the panel:
 			tabManager->show();
@@ -936,7 +978,7 @@ setRgLocalGlobal(int val){
 		//Note that updateDialog will trigger events changing values
 		//on the current dialog
 		regionEventRouter->guiSetLocal(rgParams[activeViz],false);
-		regionEventRouter->updateTab(globalRegionParams);
+		regionEventRouter->updateTab();
 		vizWin[activeViz]->getGLWindow()->setActiveRegionParams(globalRegionParams);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
@@ -948,7 +990,7 @@ setRgLocalGlobal(int val){
 			//No need to refresh anything, since the new parameters are same as old! 
 		} else { //need to revert to existing local settings:
 			regionEventRouter->guiSetLocal(rgParams[activeViz],true);
-			regionEventRouter->updateTab(rgParams[activeViz]);
+			regionEventRouter->updateTab();
 			
 			//and then refresh the panel:
 			tabManager->show();
@@ -987,6 +1029,7 @@ DvrParams* VizWinMgr::
 getDvrParams(int winNum, int instance){
 	if(winNum < 0) return defaultDvrParams;
 	if (instance < 0) instance = currentDvrInstance[winNum];
+	if (instance >= getNumDvrInstances(winNum)) return 0;
 	return (dvrParamsInstances[winNum])[instance];
 }
 //For a renderer, there should exist a local version.
@@ -994,6 +1037,7 @@ ProbeParams* VizWinMgr::
 getProbeParams(int winNum, int instance){
 	if(winNum < 0) return defaultProbeParams;
 	if (instance < 0) instance = currentProbeInstance[winNum];
+	if (instance >= getNumProbeInstances(winNum)) return 0;
 	return (probeParamsInstances[winNum])[instance];
 }
 AnimationParams* VizWinMgr::
@@ -1007,6 +1051,7 @@ FlowParams* VizWinMgr::
 getFlowParams(int winNum, int instance){
 	if(winNum < 0) return defaultFlowParams;
 	if (instance < 0) instance = currentFlowInstance[winNum];
+	if (instance >= getNumFlowInstances(winNum)) return 0;
 	return (flowParamsInstances[winNum])[instance];
 }
 //Return global or default params
@@ -1645,6 +1690,143 @@ Params** VizWinMgr::getParamsArray(Params::ParamType t){
 			return 0;
 	}
 }
+
+void VizWinMgr::setCurrentInstanceIndex(int winnum, int inst, Params::ParamType t){
+	switch(t) {
+		case Params::DvrParamsType :
+			setCurrentDvrInstIndex(winnum,inst);
+			break;
+		case Params::ProbeParamsType :
+			setCurrentProbeInstIndex(winnum, inst);
+			break;
+		case Params::FlowParamsType :
+			setCurrentFlowInstIndex(winnum, inst);
+			break;
+		default :
+			assert(0);
+			break;
+	}
+}
+int VizWinMgr::findInstanceIndex(int winnum, Params* rParams, Params::ParamType ptype){
+	switch(ptype) {
+		case Params::DvrParamsType :
+			for (unsigned int i = 0; i< dvrParamsInstances[winnum].size(); i++){
+				if (dvrParamsInstances[winnum][i] == rParams)
+					return i;
+			}
+			return -1;
+		case Params::ProbeParamsType :
+			for (unsigned int i = 0; i< probeParamsInstances[winnum].size(); i++){
+				if (probeParamsInstances[winnum][i] == rParams)
+					return i;
+			}
+			return -1;
+		case Params::FlowParamsType :
+			for (unsigned int i = 0; i< flowParamsInstances[winnum].size(); i++){
+				if (flowParamsInstances[winnum][i] == rParams)
+					return i;
+			}
+			return -1;
+		default :
+			assert(0);
+			return -1;
+	}
+}
+int VizWinMgr::getCurrentInstanceIndex(int winnum, Params::ParamType t){
+	switch(t) {
+		case Params::DvrParamsType :
+			return getCurrentDvrInstIndex(winnum);
+		case Params::ProbeParamsType :
+			return getCurrentProbeInstIndex(winnum);
+		case Params::FlowParamsType :
+			return getCurrentFlowInstIndex(winnum);
+		default :
+			assert(0);
+			return -1;
+	}
+}
+void VizWinMgr::insertInstance(int winnum, int inst, Params* newParams){
+	
+	switch(newParams->getParamType()) {
+		case Params::DvrParamsType :
+			insertDvrInstance(winnum, inst, (DvrParams*)newParams);
+			break;
+		case Params::ProbeParamsType :
+			insertProbeInstance(winnum, inst, (ProbeParams*)newParams);
+			break;
+		case Params::FlowParamsType :
+			insertFlowInstance(winnum, inst, (FlowParams*)newParams);
+			break;
+		default :
+			assert(0);
+			break;
+	}
+}
+void VizWinMgr::appendInstance(int winnum, Params* newParams){
+	switch(newParams->getParamType()) {
+		case Params::DvrParamsType :
+			appendDvrInstance(winnum, (DvrParams*)newParams);
+			break;
+		case Params::ProbeParamsType :
+			appendProbeInstance(winnum, (ProbeParams*)newParams);
+			break;
+		case Params::FlowParamsType :
+			appendFlowInstance(winnum, (FlowParams*)newParams);
+			break;
+		default :
+			assert(0);
+			break;
+	}
+}
+void VizWinMgr::removeInstance(int winnum, int instance, Params::ParamType t){
+	switch(t) {
+		case Params::DvrParamsType :
+			removeDvrInstance(winnum, instance);
+			break;
+		case Params::ProbeParamsType :
+			removeProbeInstance(winnum, instance);
+			break;
+		case Params::FlowParamsType :
+			removeFlowInstance(winnum, instance);
+			break;
+		default :
+			assert(0);
+			break;
+	}
+}
+Params* VizWinMgr::getParams(int winnum, Params::ParamType pType, int instance ){
+	switch (pType) {
+		case Params::DvrParamsType :
+			return getDvrParams(winnum, instance);
+		case Params::ProbeParamsType :
+			return getProbeParams(winnum, instance);
+		case Params::FlowParamsType :
+			return getFlowParams(winnum, instance);
+		case Params::ViewpointParamsType :
+			return getViewpointParams(winnum);
+		case Params::RegionParamsType :
+			return getRegionParams(winnum);
+		case Params::AnimationParamsType :
+			return getAnimationParams(winnum);
+		default :
+			assert(0);
+			return 0;
+	}
+}
+int VizWinMgr::getNumInstances(int winnum, Params::ParamType pType){
+	switch (pType) {
+		case Params::DvrParamsType :
+			return getNumDvrInstances(winnum);
+		case Params::ProbeParamsType :
+			return getNumProbeInstances(winnum);
+		case Params::FlowParamsType :
+			return getNumFlowInstances(winnum);
+		default:
+			assert(0);
+			return -1;
+	}
+}
+
 
 			
 

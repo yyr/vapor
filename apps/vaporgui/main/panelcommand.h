@@ -29,17 +29,24 @@
 namespace VAPoR {
 class Params;
 class Session;
-
+enum instanceType {
+	changeInstance,
+	newInstance,
+	copyInstance,
+	deleteInstance
+}; 
 
 class PanelCommand : public Command {
 public:
 	//Constructor is called when a command is executed
-	PanelCommand(Params* prev, const char* descr);
+	PanelCommand(Params* prev, const char* descr, int prevInst = -1);
 	void setNext(Params* next);
 	virtual ~PanelCommand();
 	virtual void reDo();
 	virtual void unDo();
-	static PanelCommand* captureStart(Params* p,  const char* description);
+	//Default instance parameter is for render params to specify an
+	//instance other than the current one
+	static PanelCommand* captureStart(Params* p,  const char* description, int prevInst = -1);
 	static void captureEnd(PanelCommand* pCom, Params *p);
 
 protected:
@@ -47,9 +54,46 @@ protected:
 	//Need sufficient state to be able to undo or redo
 	Params* previousPanel;
 	Params* nextPanel;
+	int previousInstance;
 	
 	
 };
-};
+//Instanced panel commands support delete, new, copy, and change instance.
+//  Copy needs:  previousPanel = panel being copied
+//				previousInstance = instance that was current prior to copy.
+//  New needs:  previousInstance = instance that was current prior to copy.
+//				previousPanel is the params that were previously current
+//				(only used to identify the params type in this command)
+//  Delete needs:  previousInstance = instance being deleted,
+//					previousPanel is panel that is deleted.
+//  Change needs:  previousInstance, and newInstance (ints)
+//				previousPanel is the one that was previousInstance.
+//   These are atomic, don't need to construct in two methods.
+//  to undo "copy", need to know previousCurrentIndex, 
+//     must deactivate and delete the last (i.e. copy) instance.
+//	   Then make the previousCurrentIndex active.
+//  same to undo "new"
+//  to undo "delete", need to know previousCurrentIndex, and the deleted params.
+//	   Must reinsert the params in the previously current position,
+//	   Must enable the params if they were enabled, and set up rendering.
+//  to redo "copy", need to have params that are being copied, since they
+//		(eventually) can be from another visualizer.  The enablement is always
+//		off.
+//  to redo "new", don't need anything.
+//	to redo "delete", don't need anything.
+//Note that copy and new make the new instance (last) current, but don't enable
+//Delete makes the instance before the deleted one current.
 
+class InstancedPanelCommand : public PanelCommand {
+public:
+	InstancedPanelCommand(Params* prev, const char* descr, int prevInst, instanceType myType, int nextInst = -1);
+	virtual void reDo();
+	virtual void unDo();
+	static void capture(Params* prev, const char* descr, int prevInst, instanceType myType, int nextInst = -1);
+protected:
+	int nextInstance; //used only for change command
+	instanceType instancedCommandType;
+
+};
+};
 #endif //PANELCOMMAND_H

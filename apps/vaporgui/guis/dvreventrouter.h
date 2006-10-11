@@ -67,7 +67,7 @@ public:
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
 	
 	virtual void confirmText(bool /*render*/);
-	virtual void updateTab(Params* p);
+	virtual void updateTab();
 	
 	virtual void cleanParams(Params* p); 
 
@@ -91,14 +91,14 @@ public:
 	
 	DvrParams::DvrType getType(int num) {return typemap[num];}
 
-	void updateRenderer(DvrParams* dParams, bool prevEnabled,  bool newWindow);
+	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
 
 		
 	virtual Histo* getHistogram(RenderParams*, bool);
 	virtual void refreshHistogram(RenderParams*);
 
 	//There are multiple notions of "dirty" here!
-	virtual void setEditorDirty();
+	virtual void setEditorDirty(RenderParams* p = 0);
 		
 	virtual void reinitTab(bool doOverride);
 

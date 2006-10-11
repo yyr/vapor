@@ -43,13 +43,14 @@ public:
 
 	
 	void setTab(FlowTab* tab); 
-	virtual Params* deepCopy();
+	virtual RenderParams* deepRCopy();
+	virtual Params* deepCopy() {return (Params*)deepRCopy();}
 	
 
 	// Reinitialize due to new Session:
 	bool reinit(bool doOverride);
 	//Override default set-enabled to create/destroy FlowLib
-	virtual void setEnabled(bool value);
+	//virtual void setEnabled(bool value);
 	
 	
 
@@ -73,8 +74,8 @@ public:
 	void setNumGenerators(int dimNum, int val){generatorCount[dimNum]=val;}
 	int getTotalNumGenerators() { return (int)allGeneratorCount;}
 	void setTotalNumGenerators(int val){allGeneratorCount = val;}
-	VaporFlow* getFlowLib(){return myFlowLib;}
-	bool regenerateFlowData(int frameNum, int minTime, bool fromRake, RegionParams* rParams, float* data, float* rgbas);
+	//VaporFlow* getFlowLib(){return myFlowLib;}
+	bool regenerateFlowData(VaporFlow*, int frameNum, int minTime, bool fromRake, RegionParams* rParams, float* data, float* rgbas);
 
 
 	void calcSeedExtents(float *extents);
@@ -322,7 +323,7 @@ protected:
 	std::vector<Point4> seedPointList;
 	
 	
-	VaporFlow* myFlowLib;
+	//VaporFlow* myFlowLib;
 
 	
 	bool autoRefresh;

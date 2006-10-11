@@ -56,7 +56,8 @@ public:
 
 	DvrParams(int winnum);
 	~DvrParams();
-	virtual Params* deepCopy();
+	virtual RenderParams* deepRCopy();
+	virtual Params* deepCopy() {return (Params*)deepRCopy();}
 	
 	void setNumBits(int val) {numBits = val;}
 	int getNumBits() {return numBits;}

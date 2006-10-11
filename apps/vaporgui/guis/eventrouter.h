@@ -52,10 +52,31 @@ public:
 	//Connect signals and slots from tab
 	virtual void hookUpTab() = 0;
 	//Set all the fields in the tab based on current params
-	virtual void updateTab(Params* p) = 0;
+	virtual void updateTab() = 0;
 	//Method to install a new params for undo and redo.
 	//Instance is -1 for non-render params
 	virtual void makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance = -1) = 0;
+	
+	//Methods to change instances (for undo/redo).
+	//Only used by renderer params
+	//Insert an instance (where there was none).
+	//if instPosition is at end, appends to current instances
+	//void insertCurrentInstance(Params* newParams, int instPosition);
+	//Remove specified instance, disable it if necessary.
+	void removeRendererInstance(int winnum, int instance);
+	void newRendererInstance(int winnum);
+	void copyRendererInstance(int toWinnum, RenderParams* rParams);
+	void changeRendererInstance(int winnum, int newInstance);
+	
+	virtual void performGuiChangeInstance(int newCurrent);
+	virtual void performGuiNewInstance();
+	virtual void performGuiDeleteInstance();
+	virtual void performGuiCopyInstance();
+
+	//UpdateRenderer ignores renderParams argument and uses the
+	//params associated with the instance if it is nonnegative
+	virtual void updateRenderer(RenderParams* , bool /*wasEnabled*/, bool /*newWindow*/){assert(0);}
+	
 	//make sure the params cleanly detaches from gui, to
 	//handle possible connections from editors, frames, etc.
 	virtual void cleanParams(Params*) {}
@@ -93,7 +114,9 @@ public:
 	virtual Histo* getHistogram(RenderParams*, bool /*mustGet*/) { return 0;}
 	virtual void refreshHistogram(RenderParams* ) {assert(0);}
 
-	virtual void setEditorDirty(){assert(0);}
+	//For render params, setEditorDirty uses the current instance if Params
+	//arg is null
+	virtual void setEditorDirty(RenderParams*){assert(0);}
 	virtual void updateMapBounds(RenderParams*) {assert (0);}
 	virtual void updateClut(RenderParams*){assert(0);}
 

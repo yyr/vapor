@@ -190,6 +190,7 @@ public:
 		if (maxOpacEditBounds) delete maxOpacEditBounds;
 
 	}
+	virtual RenderParams* deepRCopy() = 0;
 	virtual bool isRenderParams() {return true;}
 
 	//this does nothing for renderParams

@@ -42,6 +42,7 @@
 #include <qtooltip.h>
 
 #include "MappingFrame.h"
+#include "transferfunction.h"
 #include "regionparams.h"
 #include "regiontab.h"
 #include "mainform.h"
@@ -59,7 +60,6 @@
 #include <sstream>
 
 #include "params.h"
-#include "transferfunction.h"
 #include "probetab.h"
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
@@ -177,10 +177,14 @@ ProbeEventRouter::hookUpTab()
 /*********************************************************************************
  * Slots associated with ProbeTab:
  *********************************************************************************/
-void ProbeEventRouter::guiChangeInstance(int){}
-void ProbeEventRouter::guiNewInstance(){}
-void ProbeEventRouter::guiDeleteInstance(){}
-void ProbeEventRouter::guiCopyInstance(){}
+void ProbeEventRouter::guiChangeInstance(int){
+}
+void ProbeEventRouter::guiNewInstance(){
+}
+void ProbeEventRouter::guiDeleteInstance(){
+}
+void ProbeEventRouter::guiCopyInstance(){
+}
 void ProbeEventRouter::
 setProbeTabTextChanged(const QString& ){
 	guiSetTextChanged(true);
@@ -509,8 +513,8 @@ fileLoadTF(ProbeParams* dParams){
 
 //Insert values from params into tab panel
 //
-void ProbeEventRouter::updateTab(Params* params){
-	ProbeParams* probeParams = (ProbeParams*) params;
+void ProbeEventRouter::updateTab(){
+	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
 	
 	
 	QString strn;
@@ -612,7 +616,7 @@ guiCopyRegionToProbe(){
 		pParams->setProbeMax(i, rParams->getRegionMax(i));
 	}
 	//Note:  the probe may not fit in the region.  
-	updateTab(pParams);
+	updateTab();
 	pParams->setProbeDirty();
 	
 	PanelCommand::captureEnd(cmd,pParams);
@@ -699,8 +703,8 @@ guiSetAligned(){
  * even if the renderer is really global, since we don't want to affect other global renderers.
  */
 void ProbeEventRouter::
-updateRenderer(ProbeParams* pParams, bool prevEnabled,   bool newWindow){
-	
+updateRenderer(RenderParams* rParams, bool prevEnabled,   bool newWindow){
+	ProbeParams* pParams = (ProbeParams*)rParams;
 	if (newWindow) {
 		prevEnabled = false;	
 	}
@@ -714,9 +718,10 @@ updateRenderer(ProbeParams* pParams, bool prevEnabled,   bool newWindow){
 	return;
 }
 void ProbeEventRouter::
-setEditorDirty(){
-	ProbeParams* dp = VizWinMgr::getInstance()->getActiveProbeParams();
-
+setEditorDirty(RenderParams* p){
+	ProbeParams* dp = (ProbeParams*)p;
+	if(!dp) dp = VizWinMgr::getInstance()->getActiveProbeParams();
+	if(dp->getMapperFunc())dp->getMapperFunc()->setParams(dp);
     transferFunctionFrame->setMapperFunction(dp->getMapperFunc());
     transferFunctionFrame->update();
 
@@ -741,13 +746,15 @@ guiSetEnabled(bool value){
 	ProbeParams* pParams = VizWinMgr::getInstance()->getActiveProbeParams();
 	confirmText(false);
 	assert(value != pParams->isEnabled());
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "toggle probe enabled");
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int inst = vizMgr->getActiveInstanceIndex(myParamsType);
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "toggle probe enabled",inst);
 	pParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, pParams);
 	//Need to rerender the texture:
 	pParams->setProbeDirty(true);
 	//and refresh the gui
-	updateTab(pParams);
+	updateTab();
 	setDatarangeDirty(pParams);
 	setEditorDirty();
 	probeTextureFrame->update();
@@ -760,7 +767,6 @@ guiSetEnabled(bool value){
 void ProbeEventRouter::
 guiSetOpacityScale(int val){
 	ProbeParams* pp = VizWinMgr::getActiveProbeParams();
-
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(pp, "modify opacity scale slider");
 	pp->setOpacityScale( ((float)(256-val))/256.f);
@@ -827,7 +833,7 @@ void ProbeEventRouter::guiCenterProbe(){
 	for (int i = 0; i<3; i++)
 		textToSlider(pParams,i,selectedPoint[i], probeMax[i]-probeMin[i]);
 	PanelCommand::captureEnd(cmd, pParams);
-	updateTab(pParams);
+	updateTab();
 	pParams->setProbeDirty();
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
@@ -890,7 +896,7 @@ guiChangeVariables(){
 	
 	PanelCommand::captureEnd(cmd, pParams);
 	//Need to update the selected point for the new variables
-	updateTab(pParams);
+	updateTab();
 	
 	pParams->setProbeDirty();
 	probeTextureFrame->update();
@@ -1134,6 +1140,7 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 }	
 /*
  * Method to be invoked after the user has moved the right or left bounds
+ * (e.g. From the TFE editor. ) 
  * Make the textboxes consistent with the new left/right bounds, but
  * don't trigger a new undo/redo event
  */
@@ -1193,7 +1200,7 @@ captureMouseUp(){
 		VizWinMgr* vwm = VizWinMgr::getInstance();
 		int viznum = vwm->getActiveViz();
 		if (viznum >= 0 && (pParams == vwm->getProbeParams(viznum)))
-			updateTab(pParams);
+			updateTab();
 	}
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
@@ -1275,7 +1282,7 @@ guiEndCursorMove(){
 		VizWinMgr::getInstance()->getFlowRouter()->guiMoveLastSeed(pParams->getSelectedPoint());
 	}
 	//Update the tab, it's in front:
-	updateTab(pParams);
+	updateTab();
 	if (!savedCommand) return;
 	PanelCommand::captureEnd(savedCommand, pParams);
 	savedCommand = 0;
@@ -1659,13 +1666,13 @@ void ProbeEventRouter::
 makeCurrent(Params* prevParams, Params* nextParams, bool newWin, int instance) {
 
 	assert(instance >= 0);
-	ProbeParams* pParams = (ProbeParams*)nextParams;
+	ProbeParams* pParams = (ProbeParams*)(nextParams->deepCopy());
 	int vizNum = pParams->getVizNum();
 	//If we are creating one, it should be the first missing instance:
 	if (!prevParams) assert(VizWinMgr::getInstance()->getNumProbeInstances(vizNum) == instance);
 	VizWinMgr::getInstance()->setParams(vizNum, pParams, Params::ProbeParamsType, instance);
-
-	if( VizWinMgr::getInstance()->getCurrentProbeInstIndex(vizNum) == instance) updateTab(pParams);
+	setEditorDirty();
+	updateTab();
 	ProbeParams* formerParams = (ProbeParams*)prevParams;
 	bool wasEnabled = false;
 	if (formerParams) wasEnabled = formerParams->isEnabled();
