@@ -1605,6 +1605,7 @@ bool VizWinMgr::elementEndHandler(ExpatParseMgr* pm, int depth , std::string& ta
 }
 //General function for non-render dirty bit setting:
 void VizWinMgr::setVizDirty(Params* p, DirtyBitType bittype, bool bit, bool refresh){
+	if (!(DataStatus::getInstance()->getDataMgr())) return;
 	VizWin* vw;
 	if (p->getVizNum()>= 0){
 		vw = getVizWin(p->getVizNum());
@@ -1623,6 +1624,7 @@ void VizWinMgr::setVizDirty(Params* p, DirtyBitType bittype, bool bit, bool refr
 }
 //Special cases for renderer dirty-bit setting
 void VizWinMgr::setClutDirty(DvrParams* p){
+	if (!(DataStatus::getInstance()->getDataMgr())) return;
 	VizWin* vw = getVizWin(p->getVizNum());
 	if (!vw) return;
 	GLWindow* glwin = vw->getGLWindow();
@@ -1633,6 +1635,7 @@ void VizWinMgr::setClutDirty(DvrParams* p){
 	vw->updateGL();
 }
 void VizWinMgr::setDatarangeDirty(DvrParams* p){
+	if (!(DataStatus::getInstance()->getDataMgr())) return;
 	VizWin* vw = getVizWin(p->getVizNum());
 	if (!vw) return;
 	GLWindow* glwin = vw->getGLWindow();
@@ -1643,6 +1646,7 @@ void VizWinMgr::setDatarangeDirty(DvrParams* p){
 	vw->updateGL();
 }
 void VizWinMgr::setFlowGraphicsDirty(FlowParams* p){
+	if (!(DataStatus::getInstance()->getDataMgr())) return;
 	VizWin* vw = getVizWin(p->getVizNum());
 	if (!vw) return;
 	GLWindow* glwin = vw->getGLWindow();
@@ -1653,6 +1657,7 @@ void VizWinMgr::setFlowGraphicsDirty(FlowParams* p){
 	vw->updateGL();
 }
 void VizWinMgr::setFlowDataDirty(FlowParams* p){
+	if (!(DataStatus::getInstance()->getDataMgr())) return;
 	VizWin* vw = getVizWin(p->getVizNum());
 	if (!vw) return;
 	GLWindow* glwin = vw->getGLWindow();

@@ -43,7 +43,10 @@ public:
 	
 	DataStatus();
 	~DataStatus();
-	static DataStatus* getInstance() {return theDataStatus;}
+	static DataStatus* getInstance() {
+		if (!theDataStatus) theDataStatus = new DataStatus;
+		return theDataStatus;
+	}
 	//Reset the datastatus when a new datamgr is opened.
 	//This avoids all "Set" methods:
 	bool reset(DataMgr* dm, size_t cachesize);

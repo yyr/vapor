@@ -54,6 +54,7 @@ int* DataStatus::mapMetadataVars = 0;
 DataStatus::
 DataStatus()
 {
+	dataMgr = 0;
 	renderOK = false;
 	myReader = 0;
 	cacheMB = 0;

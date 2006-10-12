@@ -741,9 +741,7 @@ void Session::resetCommandQueue(){
 void Session::
 setupDataStatus(){
 	DataStatus* currentDataStatus = DataStatus::getInstance();
-	if (!currentDataStatus){
-		currentDataStatus = new DataStatus();
-	}
+	
 	if(currentDataStatus->reset(dataMgr, cacheMB)) {
 		dataExists = true;
 		

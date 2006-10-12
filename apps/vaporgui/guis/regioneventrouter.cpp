@@ -418,7 +418,7 @@ refreshRegionInfo(RegionParams* rParams){
 	//This index is only relevant to metadata numbering
 	//Session* ses = Session::getInstance();
 	DataStatus* ds= DataStatus::getInstance();
-	if (!ds) return;
+	if (!ds || !ds->getDataMgr()) return;
 	int timeStep = timestepSpin->value();
 	//Distinguish between the actual data available and the numtransforms
 	//in the metadata.  If the data isn't there, we will display blanks
@@ -427,7 +427,7 @@ refreshRegionInfo(RegionParams* rParams){
 	int numTrans = 10;
 	int varNum = -1;
 	std::string varName;
-	if (ds) {
+	if (ds ) {
 		varName = ds->getCurrentMetadata()->GetVariableNames()[mdVarNum];
 		varNum = ds->getSessionVariableNum(varName);
 		maxRefLevel = ds->maxXFormPresent(varNum, timeStep);
