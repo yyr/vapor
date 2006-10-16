@@ -47,7 +47,10 @@ public:
 	virtual RenderParams* deepRCopy();
 	virtual Params* deepCopy() {return (Params*)deepRCopy();}
 	
-	bool probeIsDirty() {return probeDirty;}
+	bool probeIsDirty(int timestep) {
+		if (!probeTextures) return true;
+		return (probeTextures[timestep] == 0);
+	}
 	virtual const float* getCurrentDatarange(){
 		return currentDatarange;
 	}
@@ -118,10 +121,10 @@ public:
 	void fileLoadTF();
 	void fileSaveTF();
 	
-
-	void setProbeDirty(bool dirty = true) {probeDirty = dirty;}
+	//Set all the cached probe textures dirty
+	void setProbeDirty();
 	//get/set methods
-	void setNumRefinements(int numtrans){numRefinements = numtrans; setProbeDirty(true);}
+	void setNumRefinements(int numtrans){numRefinements = numtrans; setProbeDirty();}
 	void setMaxNumRefinements(int numtrans) {maxNumRefinements = numtrans;}
 	void setXCenter(int sliderval);
 	void setYCenter(int sliderval);
@@ -134,6 +137,11 @@ public:
 	//This needs to be fixed to handle multiple variables!
 	virtual int getVarNum() { return firstVarNum;}
 	
+	int getImageWidth() { return textureWidth;}
+	int getImageHeight() {return textureHeight;}
+	float getRealImageWidth() {return probeMax[0]-probeMin[0];}
+	float getRealImageHeight() {return probeMax[1]-probeMin[1];}
+	
 	
 	//Implement virtual function to deal with new session:
 	bool reinit(bool doOverride);
@@ -144,14 +152,22 @@ public:
 	virtual MapperFunction* getMapperFunc();
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float getHistoStretch(){return histoStretchFactor;}
-	//Get the current texture (slice through middle of probe) for rendering
-	//This should only be obtained by the router!!
-	unsigned char* getCurrentProbeTexture(){return probeTexture;}
-	void setProbeTexture(unsigned char* tex){ 
-		if (probeTexture) delete probeTexture;
-		probeTexture = tex;
-	}
 	
+	void setProbeTexture(unsigned char* tex, int timestep){ 
+		if (!probeTextures) {
+			probeTextures = new unsigned char*[maxTimestep + 1];
+			for (int i = 0; i<= maxTimestep; i++) probeTextures[i] = 0;
+		}
+		if (probeTextures[timestep]) delete probeTextures[timestep];
+		probeTextures[timestep] = tex;
+	}
+	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep);
+	unsigned char* calcProbeTexture(int timestep, int wid = 0, int ht = 0);
+	unsigned char* getProbeTexture(int timestep){
+		if (!probeIsDirty(timestep)) return probeTextures[timestep];
+		return calcProbeTexture(timestep);
+	}
+
 	virtual float getPhi() {return phi;}
 	virtual float getTheta() {return theta;}
 	void setTheta(float th) {theta = th;}
@@ -177,10 +193,8 @@ public:
 	void setOpacityScale(float val); 
 	virtual void setEnabled(bool value) {
 		enabled = value;
-		if (!value && probeTexture){
-			delete probeTexture;
-			probeTexture = 0;
-		}
+		//Always clear out the cache
+		if (!value) setProbeDirty();
 	}
 	void setVariableSelected(int index, bool value){
 		variableSelected[index] = value;
@@ -240,8 +254,10 @@ protected:
 	int numVariables;
 	int numVariablesSelected;
 	
-	bool probeDirty;
-	unsigned char* probeTexture;
+	
+	//Cache of probe textures, one per timestep.
+	unsigned char** probeTextures;
+	int maxTimestep;
 	
 	
 	//State variables controlled by GUI:
@@ -250,6 +266,8 @@ protected:
 	float theta, phi;
 	float selectPoint[3];
 	float cursorCoords[2];
+	
+	int textureWidth, textureHeight;
 	
 
 	

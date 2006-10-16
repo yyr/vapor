@@ -431,7 +431,6 @@ void FlowEventRouter::guiDeleteInstance(){
 }
 void FlowEventRouter::guiCopyInstance(){
 	performGuiCopyInstance();
-	
 }
 
 //There are text changed events for flow (requiring rebuilding flow data),

@@ -73,9 +73,8 @@ public:
 	void setZSize(ProbeParams* pParams,int sliderval);
 	void setYSize(ProbeParams* pParams,int sliderval);
 	void setXSize(ProbeParams* pParams,int sliderval);
-	float* getContainingVolume(ProbeParams* pParams, size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep);
 	
-	unsigned char* getProbeTexture(ProbeParams* p);
+	
 	//Determine the value of the variable(s) at specified point.
 	//Return OUT_OF_BOUNDS if not in probe and in full domain
 	float calcCurrentValue(ProbeParams* p, const float point[3]);
@@ -102,6 +101,7 @@ public:
 	
 	
 	void guiAttachSeed(bool attach, FlowParams*);
+	
 	void guiSetXCenter(int sliderVal);
 	void guiSetYCenter(int sliderVal);
 	void guiSetZCenter(int sliderVal);
@@ -137,7 +137,8 @@ protected slots:
 	void guiCenterProbe();
 	void probeAddSeed();
 	void probeAttachSeed(bool attach);
-	
+	void guiReleaseThetaSlider();
+	void guiReleasePhiSlider();
 	void guiChangeVariables();
 	void setProbeXCenter();
 	void setProbeYCenter();
@@ -158,6 +159,7 @@ protected slots:
 	void guiSetNumRefinements(int numtrans);
 	void setProbeTabTextChanged(const QString& qs);
 	void probeReturnPressed();
+	void captureImage();
 	
 protected:
 	virtual void setDatarangeDirty(RenderParams*);

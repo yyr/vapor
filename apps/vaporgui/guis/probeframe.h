@@ -47,7 +47,7 @@ public:
 	void setParams(ProbeParams* p) {probeParams = p;}
 	ProbeParams* getParams() {return probeParams;}
 	void updateGLWindow(){if (glProbeWindow) glProbeWindow->updateGL();}
-	
+
 public slots:
 	
 	

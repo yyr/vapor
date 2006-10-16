@@ -105,3 +105,4 @@ void ProbeFrame::resizeEvent( QResizeEvent *  ){
 	needUpdate = true;
 }
 
+

@@ -727,8 +727,8 @@ void TranslateRotateManip::drawBoxFaces(){
 	}
 	//Now render the edges:
 	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
 	glLineWidth( 2.0 );
 	glColor3f(1.f,0.f,0.f);
 	glBegin(GL_LINES);
@@ -780,39 +780,11 @@ void TranslateRotateManip::drawBoxFaces(){
 
 	
 	
-	//Draw a translucent rectangle at the middle.
-	//If the probe is enabled, will apply the probe texture to the rectangle
-	//Note that we are assuming that the TranslateStretchManip is associated with a probe!
-	//This needs to be be associated with the EventRouter!!!!!
-	//ProbeEventRouter* myRouter = VizWinMgr::getInstance()->getProbeRouter();
-	//unsigned char* probeTex = myRouter->getProbeTexture((ProbeParams*)myParams);
-	unsigned char* probeTex = ((ProbeParams*)myParams)->getCurrentProbeTexture();
-	if (probeTex){
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-		
-		glEnable(GL_TEXTURE_2D);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 128, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTex);
-		//Do write to the z buffer
-		glDepthMask(GL_TRUE);
-	} else {
-		//Don't write to the z-buffer, so won't obscure stuff behind that shows up later
-		glDepthMask(GL_FALSE);
-		glColor4f(.8f,.8f,0.f,0.2f);
-	}
-	glBegin(GL_QUADS);
-	glTexCoord2f(0.f,0.f); glVertex3fv(midCorners[0]);
-	glTexCoord2f(0.f, 1.f); glVertex3fv(midCorners[2]);
-	glTexCoord2f(1.f,1.f); glVertex3fv(midCorners[3]);
-	glTexCoord2f(1.f, 0.f); glVertex3fv(midCorners[1]);
 	
-	glEnd();
 	glFlush();
-	glDisable(GL_BLEND);
+	//glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
-	if (probeTex) glDisable(GL_TEXTURE_2D);
+	
 	
 	
 }

@@ -37,12 +37,13 @@
 #include "params.h"
 #include "transferfunction.h"
 
-#include "histo.h"//togo??
+#include "histo.h"
 #include "animationparams.h"
 
 #include <math.h>
 #include "vapor/Metadata.h"
 #include "vapor/DataMgr.h"
+#include "errorcodes.h"
 
 
 using namespace VAPoR;
@@ -61,8 +62,8 @@ const string ProbeParams::_numTransformsAttr = "NumTransforms";
 ProbeParams::ProbeParams(int winnum) : RenderParams(winnum){
 	thisParamType = ProbeParamsType;
 	numVariables = 0;
-	probeTexture = 0;
-	probeDirty = true;
+	probeTextures = 0;
+	maxTimestep = 1;
 	restart();
 	
 }
@@ -73,6 +74,12 @@ ProbeParams::~ProbeParams(){
 			delete transFunc[i];  //will delete editor
 		}
 		delete transFunc;
+	}
+	if (probeTextures) {
+		for (int i = 0; i<= maxTimestep; i++){
+			if (probeTextures[i]) delete probeTextures[i];
+		}
+		delete probeTextures;
 	}
 	
 }
@@ -101,8 +108,8 @@ deepRCopy(){
 		newParams->transFunc[i] = new TransferFunction(*transFunc[i]);
 	}
 	//Probe texture must be recreated when needed
-	newParams->probeTexture = 0;
-	newParams->probeDirty = true;
+	newParams->probeTextures = 0;
+	
 	//never keep the SavedCommand:
 	
 	return newParams;
@@ -314,18 +321,24 @@ reinit(bool doOverride){
 	numVariables = newNumVariables;
 	bool wasEnabled = enabled;
 	setEnabled(false);
-	
+	// set up the texture cache
+	setProbeDirty();
+	if (probeTextures) delete probeTextures;
+	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
+	probeTextures = 0;
+
 	return true;
 }
 //Initialize to default state
 //
 void ProbeParams::
 restart(){
-	
+	textureWidth = textureHeight = 0;
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
-	if (probeTexture) delete probeTexture;
-	probeTexture = 0;
+	setProbeDirty();
+	if (probeTextures) delete probeTextures;
+	probeTextures = 0;
 	
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){
@@ -363,7 +376,7 @@ restart(){
 	numVariables = 0;
 	numVariablesSelected = 0;
 
-	probeDirty = false;
+	
 	numRefinements = 0;
 	maxNumRefinements = 10;
 	theta = 0.f;
@@ -869,11 +882,205 @@ void ProbeParams::mapCursor(){
 	
 	vtransform(probeCoord, transformMatrix, selectPoint);
 }
+//Clear out the cache
+void ProbeParams::setProbeDirty(){
+	if (probeTextures){
+		for (int i = 0; i<=maxTimestep; i++){
+			if (probeTextures[i]) {
+				delete probeTextures[i];
+				probeTextures[i] = 0;
+			}
+		}
+	}
+	textureWidth = textureHeight = 0;
+}
+
+float* ProbeParams::
+getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep){
+	//Get the region (int coords) associated with the specified variable at the
+	//current probe extents
+	int numRefinements = getNumRefinements();
+	int maxRes = DataStatus::getInstance()->maxXFormPresent(varNum,timeStep);
+	if (maxRes < numRefinements){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
+			"Probe data unavailable for refinement level %d at timestep %d",
+			numRefinements, timeStep);
+		return 0;
+	}
+	
+	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
+		DataStatus::getInstance()->getVariableName(varNum).c_str(),
+		numRefinements, blkMin, blkMax, 0);
+	
+	return reg;
+}
+//Calculate the probe texture (if it needs refreshing).
+//It's kept (cached) in the probe params
+//If nonzero texture dimensions are provided, then the cached image
+//is not affected 
+unsigned char* ProbeParams::
+calcProbeTexture(int ts, int texWidth, int texHeight){
+	if (!isEnabled()) return 0;
+	
+	if (!DataStatus::getInstance()->getDataMgr()) return 0;
+
+	bool doCache = (texWidth == 0 && texHeight == 0);
+	
+	float transformMatrix[12];
+	
+	//Set up to transform from probe into volume:
+	buildCoordTransform(transformMatrix);
+	int numRefinements = getNumRefinements();
+	//Get the data dimensions (at this resolution):
+	int dataSize[3];
+	const size_t totTransforms = DataStatus::getInstance()->getCurrentMetadata()->GetNumTransforms();
+	//Start by initializing extents
+	for (int i = 0; i< 3; i++){
+		dataSize[i] = (DataStatus::getInstance()->getFullDataSize(i))>>(totTransforms - numRefinements);
+	}
+	//Determine the integer extents of the containing cube, truncate to
+	//valid integer coords:
+
+	
+	size_t blkMin[3], blkMax[3];
+	size_t coordMin[3], coordMax[3];
+	
+	getAvailableBoundingBox(ts,blkMin, blkMax, coordMin, coordMax);
+	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
+	
+	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
+	//volume for each variable specified, then do rms on the variables (if > 1 specified)
+	float** volData = new float*[numVariables];
+	//Now obtain all of the volumes needed for this probe:
+	int totVars = 0;
+	for (int varnum = 0; varnum < DataStatus::getInstance()->getNumVariables(); varnum++){
+		if (!variableIsSelected(varnum)) continue;
+		volData[totVars] = getContainingVolume(blkMin, blkMax, varnum, ts);
+		if (!volData[totVars]) {
+			return 0;
+		}
+		totVars++;
+	}
+	//Now calculate the texture.
+	//
+	//For each pixel, map it into the volume.
+	//The blkMin values tell you the offset to use.
+	//The blkMax values tell how to stride through the data
+	//The coordMin and coordMax values are used to check validity
+	//We first map the coords in the probe to the volume.  
+	//Then we map the volume into the region provided by dataMgr
+	//This is done for each of the variables,
+	//The RMS of the result is then mapped using the transfer function.
+	float clut[256*4];
+	TransferFunction* transFunc = getTransFunc();
+	assert(transFunc);
+	transFunc->makeLut(clut);
+	
+	float probeCoord[3];
+	float dataCoord[3];
+	size_t arrayCoord[3];
+	const float* extents = DataStatus::getInstance()->getExtents();
+	//Can ignore depth, just mapping center plane
+	probeCoord[2] = 0.f;
+
+	if (doCache) {  //Need to determine appropriate texture dimensions
+		//First, map the corners of texture, to determine appropriate
+		//texture sizes and image aspect ratio:
+		int icor[4][3];
+		
+		for (int cornum = 0; cornum < 4; cornum++){
+			// coords relative to (-1,1)
+			probeCoord[1] = -1.f + 2.f*(float)(cornum/2);
+			probeCoord[0] = -1.f + 2.f*(float)(cornum%2);
+			//Then transform to values in data 
+			vtransform(probeCoord, transformMatrix, dataCoord);
+			//Then get array coords:
+			for (int i = 0; i<3; i++){
+				icor[cornum][i] = (size_t) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
+			}
+		}
+		//To get texture width, take distance in array coords, get first power of 2
+		//that exceeds integer dist:
+		int distsq = (icor[0][0]-icor[1][0])*(icor[0][0]-icor[1][0]) + 
+			(icor[0][1]-icor[1][1])*(icor[0][1]-icor[1][1])+
+			(icor[0][2]-icor[1][2])*(icor[0][2]-icor[1][2]);
+		int xdist = (int)sqrt((float)distsq);
+		distsq = (icor[0][0]-icor[2][0])*(icor[0][0]-icor[2][0]) + 
+			(icor[0][1]-icor[2][1])*(icor[0][1]-icor[2][1]) +
+			(icor[0][2]-icor[2][2])*(icor[0][2]-icor[2][2]);
+		int ydist = (int)sqrt((float)distsq);
+		textureWidth = 1<<(VetsUtil::ILog2(xdist));
+		textureHeight = 1<<(VetsUtil::ILog2(ydist));
+		texWidth = textureWidth;
+		texHeight = textureHeight;
+	}
+	
+	unsigned char* probeTexture = new unsigned char[texWidth*texHeight*4];
 
 
+	//Loop over pixels in texture
+	for (int iy = 0; iy < texHeight; iy++){
+		//Map iy to a value between -1 and 1
+		probeCoord[1] = -1.f + 2.f*(float)iy/(float)(texHeight-1);
+		for (int ix = 0; ix < texWidth; ix++){
+			
+			//find the coords that the texture maps to
+			//probeCoord is the coord in the probe, dataCoord is in data volume 
+			probeCoord[0] = -1.f + 2.f*(float)ix/(float)(texWidth-1);
+			vtransform(probeCoord, transformMatrix, dataCoord);
+			for (int i = 0; i<3; i++){
+				arrayCoord[i] = (size_t) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
+			}
+			
+			//Make sure the transformed coords are in the probe region
+			//This should only fail if they aren't even in the full volume.
+			bool dataOK = true;
+			for (int i = 0; i< 3; i++){
+				if (arrayCoord[i] < coordMin[i] ||
+					arrayCoord[i] > coordMax[i] ) {
+						dataOK = false;
+					} //outside; color it black
+			}
+			
+			if(dataOK) { //find the coordinate in the data array
+				int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize) +
+					(arrayCoord[1] - blkMin[1]*bSize)*(bSize*(blkMax[0]-blkMin[0]+1)) +
+					(arrayCoord[2] - blkMin[2]*bSize)*(bSize*(blkMax[1]-blkMin[1]+1))*(bSize*(blkMax[0]-blkMin[0]+1));
+				float varVal;
+				
 
+				//use the intDataCoords to index into the loaded data
+				if (totVars == 1) varVal = volData[0][xyzCoord];
+				else { //Add up the squares of the variables
+					varVal = 0.f;
+					for (int k = 0; k<totVars; k++){
+						varVal += volData[k][xyzCoord]*volData[k][xyzCoord];
+					}
+					varVal = sqrt(varVal);
+				}
+				
+				//Use the transfer function to map the data:
+				int lutIndex = transFunc->mapFloatToIndex(varVal);
+				
+				probeTexture[4*(ix+texWidth*iy)] = (unsigned char)(0.5+ clut[4*lutIndex]*255.f);
+				probeTexture[4*(ix+texWidth*iy)+1] = (unsigned char)(0.5+ clut[4*lutIndex+1]*255.f);
+				probeTexture[4*(ix+texWidth*iy)+2] = (unsigned char)(0.5+ clut[4*lutIndex+2]*255.f);
+				probeTexture[4*(ix+texWidth*iy)+3] = (unsigned char)(0.5+ clut[4*lutIndex+3]*255.f);
+				
+			}
+			else {//point out of region
+				probeTexture[4*(ix+texWidth*iy)] = 0;
+				probeTexture[4*(ix+texWidth*iy)+1] = 0;
+				probeTexture[4*(ix+texWidth*iy)+2] = 0;
+				probeTexture[4*(ix+texWidth*iy)+3] = 0;
+			}
 
-
+		}//End loop over ix
+	}//End loop over iy
+	
+	if (doCache) setProbeTexture(probeTexture,ts);
+	return probeTexture;
+}
 
 
 

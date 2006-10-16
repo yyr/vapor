@@ -24,6 +24,7 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/render/"
 				ProgramDataBaseFileName="../../../targets/win32/built/render/vc70.pdb"
@@ -74,6 +75,7 @@
 				Name="VCCLCompilerTool"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;RENDER_EXPORTS"
 				RuntimeLibrary="2"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="0"
 				ObjectFile="../../../targets/win32/built/render/"
 				ProgramDataBaseFileName="../../../targets/win32/built/render/vc70.pdb"
@@ -159,6 +161,9 @@
 				RelativePath="..\..\..\lib\render\Matrix3d.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\render\proberenderer.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\render\renderer.cpp">
 			</File>
 			<File
@@ -242,6 +247,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\Point3d.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\render\proberenderer.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\renderer.h">

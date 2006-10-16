@@ -12,7 +12,7 @@ CC = cl
 # NOTE:  If you're compiling on Windows and find that some code warnings
 # stop compilation, remove the /WX flags in the next few lines.
 
-CXXFLAGS          += /nologo /DWIN32 /D_WINDOWS /TP /W3 /EHsc /D"QT_THREAD_SUPPORT"
+CXXFLAGS          += /nologo /DWIN32 /D_WINDOWS /TP /W3 /EHsc /GR /D"QT_THREAD_SUPPORT"
 CXX_RELEASE_FLAGS += /Ox /DNDEBUG /MD
 # This is just not working for me on VC++ 7 --> CXX_DEBUG_FLAGS   += /GZ
 CXX_DEBUG_FLAGS   +=  /Yd /Zi /MDd /Gm 

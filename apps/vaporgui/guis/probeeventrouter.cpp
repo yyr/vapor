@@ -22,6 +22,7 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
 #endif
+
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qmessagebox.h>
@@ -40,7 +41,7 @@
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qtooltip.h>
-
+#include "proberenderer.h"
 #include "MappingFrame.h"
 #include "transferfunction.h"
 #include "regionparams.h"
@@ -61,6 +62,7 @@
 
 #include "params.h"
 #include "probetab.h"
+#include "vaporinternal/jpegapi.h"
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
 #include "vapor/VDFIOBase.h"
@@ -138,11 +140,13 @@ ProbeEventRouter::hookUpTab()
 	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeXSize()));
 	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeYSize()));
 	connect (zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeZSize()));
+	connect (thetaSlider, SIGNAL(sliderReleased()), this, SLOT (guiReleaseThetaSlider()));
+	connect (phiSlider, SIGNAL(sliderReleased()), this, SLOT (guiReleasePhiSlider()));
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(probeLoadTF()));
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(probeSaveTF()));
 	connect (EnableDisable, SIGNAL(activated(int)), this, SLOT(setProbeEnabled(int)));
 	
-
+	connect (captureButton, SIGNAL(clicked()), this, SLOT(captureImage()));
 	connect (leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 
@@ -177,13 +181,17 @@ ProbeEventRouter::hookUpTab()
 /*********************************************************************************
  * Slots associated with ProbeTab:
  *********************************************************************************/
-void ProbeEventRouter::guiChangeInstance(int){
+void ProbeEventRouter::guiChangeInstance(int inst){
+	performGuiChangeInstance(inst);
 }
 void ProbeEventRouter::guiNewInstance(){
+	performGuiNewInstance();
 }
 void ProbeEventRouter::guiDeleteInstance(){
+	performGuiDeleteInstance();
 }
 void ProbeEventRouter::guiCopyInstance(){
+	performGuiCopyInstance();
 }
 void ProbeEventRouter::
 setProbeTabTextChanged(const QString& ){
@@ -338,8 +346,22 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 	PanelCommand* cmd = PanelCommand::captureStart(probeParams, "edit Probe text");
 	QString strn;
 	
-	probeParams->setTheta(thetaEdit->text().toFloat());
-	probeParams->setPhi(phiEdit->text().toFloat());
+	float thetaVal = thetaEdit->text().toFloat();
+	while (thetaVal > 180.f) thetaVal -= 360.f;
+	while (thetaVal < -180.f) thetaVal += 360.f;
+	thetaEdit->setText(QString::number(thetaVal));
+	float phiVal = phiEdit->text().toFloat();
+	while (phiVal > 180.f) phiVal -= 180.f;
+	while (phiVal < 0.f) phiVal += 180.f;
+	phiEdit->setText(QString::number(phiVal));
+
+	probeParams->setTheta(thetaVal);
+	probeParams->setPhi(phiVal);
+	int thetaInt = (int)(thetaVal + 180.5f);
+	int phiInt = (int)(phiVal + 0.5f);
+	if (thetaSlider->value() != thetaInt) thetaSlider->setValue(thetaInt);
+	if (phiSlider->value() != phiInt) phiSlider->setValue(phiInt);
+
 	probeParams->setHistoStretch(histoScaleEdit->text().toFloat());
 
 	//Get slider positions from text boxes:
@@ -515,8 +537,20 @@ fileLoadTF(ProbeParams* dParams){
 //
 void ProbeEventRouter::updateTab(){
 	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	int instCount = vizMgr->getNumProbeInstances(winnum);
+	if(instCount != instanceCombo->count()){
+		instanceCombo->clear();
+		instanceCombo->setMaxCount(instCount);
+		for (int i = 0; i<instCount; i++){
+			instanceCombo->insertItem(QString::number(i), i);
+		}
+	}
+	instanceCombo->setCurrentItem(vizMgr->getCurrentProbeInstIndex(winnum));
+	deleteInstanceButton->setEnabled(vizMgr->getNumProbeInstances(winnum) > 1);
 	
-	
+
 	QString strn;
 	Session* ses = Session::getInstance();
 	ses->blockRecording();
@@ -539,6 +573,14 @@ void ProbeEventRouter::updateTab(){
 	EnableDisable->setCurrentItem((probeParams->isEnabled()) ? 1 : 0);
 	refinementCombo->setCurrentItem(probeParams->getNumRefinements());
 	histoScaleEdit->setText(QString::number(probeParams->getHistoStretch()));
+
+	//set the theta/phi sliders
+	float thetaVal = probeParams->getTheta();
+	float phiVal = probeParams->getPhi();
+	int thetaInt = (int)(thetaVal + 180.5f);
+	int phiInt = (int)(phiVal + 0.5f);
+	if (thetaSlider->value() != thetaInt) thetaSlider->setValue(thetaInt);
+	if (phiSlider->value() != phiInt) phiSlider->setValue(phiInt);
 
 	//Set the values of box extents:
 	float probeMin[3],probeMax[3];
@@ -601,7 +643,7 @@ void ProbeEventRouter::updateTab(){
 	update();
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
-	VizWinMgr::getInstance()->getTabManager()->update();
+	vizMgr->getTabManager()->update();
 }
 //Make region match probe.  Responds to button in region panel
 void ProbeEventRouter::
@@ -704,17 +746,50 @@ guiSetAligned(){
  */
 void ProbeEventRouter::
 updateRenderer(RenderParams* rParams, bool prevEnabled,   bool newWindow){
+
 	ProbeParams* pParams = (ProbeParams*)rParams;
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	
 	if (newWindow) {
-		prevEnabled = false;	
+		prevEnabled = false;
 	}
 	
+	//The actual enabled state of "this" :
 	bool nowEnabled = pParams->isEnabled();
 	
-	if (prevEnabled == nowEnabled ) return;
-	setDatarangeDirty(pParams);
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	if (prevEnabled == nowEnabled) return;
+	
+	VizWin* viz = 0;
+	if(pParams->getVizNum() >= 0){//Find the viz that this applies to:
+		//Note that this is only for the cases below where one particular
+		//visualizer is needed
+		viz = vizWinMgr->getVizWin(pParams->getVizNum());
+	} 
+	
+	//5.  Change of enable->disable with unchanged global , disable all global renderers, provided the
+	//   VizWinMgr already has the current local/global renderer settings
+	//6.  Change of enable->disable with local renderer.  Delete renderer in local window same as:
+	//  change of enable->disable with global->local.  (Must disable the local renderer)
+	//  change of enable->disable with local->global (Must disable the local renderer)
+	
+	pParams->setEnabled(nowEnabled);
 
+	
+	if (nowEnabled && !prevEnabled ){//For case 2:  create a renderer in the active window:
+
+
+		ProbeRenderer* myRenderer = new ProbeRenderer (viz->getGLWindow(), pParams);
+		viz->getGLWindow()->prependRenderer(pParams,myRenderer);
+
+		pParams->setProbeDirty();
+		return;
+	}
+	
+	
+	
+	//case 6, disable 
+	assert(prevEnabled && !nowEnabled); 
+	viz->getGLWindow()->removeRenderer(pParams);
 	return;
 }
 void ProbeEventRouter::
@@ -752,7 +827,7 @@ guiSetEnabled(bool value){
 	pParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, pParams);
 	//Need to rerender the texture:
-	pParams->setProbeDirty(true);
+	pParams->setProbeDirty();
 	//and refresh the gui
 	updateTab();
 	setDatarangeDirty(pParams);
@@ -981,6 +1056,33 @@ guiSetZSize(int sliderval){
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 
+}
+void ProbeEventRouter::
+guiReleaseThetaSlider(){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "move theta slider");
+	int sliderVal = thetaSlider->value();
+	pParams->setTheta((float)(sliderVal-180));
+	PanelCommand::captureEnd(cmd, pParams);
+	pParams->setProbeDirty();
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	updateTab();
+}
+void ProbeEventRouter::
+guiReleasePhiSlider(){
+	confirmText(false);
+	
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "move theta slider");
+	int sliderVal = phiSlider->value();
+	pParams->setPhi((float)sliderVal);
+	PanelCommand::captureEnd(cmd, pParams);
+	pParams->setProbeDirty();
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	updateTab();
 }
 void ProbeEventRouter::
 guiSetNumRefinements(int n){
@@ -1244,26 +1346,7 @@ setZSize(ProbeParams* pParams,int sliderval){
 	sliderToText(pParams,2, zCenterSlider->value(),sliderval);
 	pParams->setProbeDirty();
 }
-float* ProbeEventRouter::
-getContainingVolume(ProbeParams* pParams, size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep){
-	//Get the region (int coords) associated with the specified variable at the
-	//current probe extents
-	int numRefinements = pParams->getNumRefinements();
-	int maxRes = DataStatus::getInstance()->maxXFormPresent(varNum,timeStep);
-	if (maxRes < numRefinements){
-		MessageReporter::warningMsg("Probe data unavailable for refinement level %d at timestep %d",
-			numRefinements, timeStep);
-		return 0;
-	}
-	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-//	qWarning("Fetching region: %d %d %d , %d %d %d ",blkMin[0],blkMin[1],blkMin[2],
-	//	blkMax[0],blkMax[1],blkMax[2]);
-	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-		DataStatus::getInstance()->getVariableName(varNum).c_str(),
-		numRefinements, blkMin, blkMax, 0);
-	QApplication::restoreOverrideCursor();
-	return reg;
-}
+
 //Save undo/redo state when user clicks cursor
 //
 void ProbeEventRouter::
@@ -1334,11 +1417,13 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	float** volData = new float*[numVariables];
 	//Now obtain all of the volumes needed for this probe:
 	int totVars = 0;
+	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	for (int varnum = 0; varnum < ds->getNumVariables(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
-		volData[totVars] = getContainingVolume(pParams, blkMin, blkMax, varnum, timeStep);
+		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, varnum, timeStep);
 		totVars++;
 	}
+	QApplication::restoreOverrideCursor();
 			
 	int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize) +
 		(arrayCoord[1] - blkMin[1]*bSize)*(bSize*(blkMax[0]-blkMin[0]+1)) +
@@ -1408,14 +1493,17 @@ refreshHistogram(RenderParams* p){
 	float** volData = new float*[numVariables];
 	//Now obtain all of the volumes needed for this probe:
 	int totVars = 0;
+	
 	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumVariables(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		assert(varnum >= firstVarNum);
-		volData[totVars] = getContainingVolume(pParams, blkMin, blkMax, varnum, timeStep);
+		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, varnum, timeStep);
+		QApplication::restoreOverrideCursor();
 		if (!volData[totVars]) return;
 		totVars++;
 	}
-
+	
 	//Get the data dimensions (at current resolution):
 	size_t dataSize[3];
 	float gridSpacing[3];
@@ -1522,140 +1610,7 @@ refreshHistogram(RenderParams* p){
 	setEditorDirty();
 	update();
 }
-//Calculate the probe texture (if it needs refreshing).
-//It's kept (saved) in the probe params --togo! 
-unsigned char* ProbeEventRouter::
-getProbeTexture(ProbeParams* pParams){
-	if (!pParams->isEnabled()) return 0;
-	if (!pParams->probeIsDirty())
-		return pParams->getCurrentProbeTexture();
-	
-	if (!DataStatus::getInstance()->getDataMgr()) return 0;
-	unsigned char* probeTexture = new unsigned char[128*128*4];
-	
-	float transformMatrix[12];
-	
-	//Set up to transform from probe into volume:
-	pParams->buildCoordTransform(transformMatrix);
-	int numRefinements = pParams->getNumRefinements();
-	//Get the data dimensions (at this resolution):
-	int dataSize[3];
-	const size_t totTransforms = DataStatus::getInstance()->getCurrentMetadata()->GetNumTransforms();
-	//Start by initializing extents
-	for (int i = 0; i< 3; i++){
-		dataSize[i] = (DataStatus::getInstance()->getFullDataSize(i))>>(totTransforms - numRefinements);
-	}
-	//Determine the integer extents of the containing cube, truncate to
-	//valid integer coords:
 
-	
-	size_t blkMin[3], blkMax[3];
-	size_t coordMin[3], coordMax[3];
-	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	
-	pParams->getAvailableBoundingBox(timeStep,blkMin, blkMax, coordMin, coordMax);
-	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
-	
-	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
-	//volume for each variable specified, then do rms on the variables (if > 1 specified)
-	float** volData = new float*[numVariables];
-	//Now obtain all of the volumes needed for this probe:
-	int totVars = 0;
-	for (int varnum = 0; varnum < DataStatus::getInstance()->getNumVariables(); varnum++){
-		if (!pParams->variableIsSelected(varnum)) continue;
-		volData[totVars] = getContainingVolume(pParams, blkMin, blkMax, varnum, timeStep);
-		if (!volData[totVars]) {
-			delete probeTexture;
-			return 0;
-		}
-		totVars++;
-	}
-	//Now calculate the texture.
-	//
-	//For each pixel, map it into the volume.
-	//The blkMin values tell you the offset to use.
-	//The blkMax values tell how to stride through the data
-	//The coordMin and coordMax values are used to check validity
-	//We first map the coords in the probe to the volume.  
-	//Then we map the volume into the region provided by dataMgr
-	//This is done for each of the variables,
-	//The RMS of the result is then mapped using the transfer function.
-	float clut[256*4];
-	TransferFunction* transFunc = pParams->getTransFunc();
-	assert(transFunc);
-	transFunc->makeLut(clut);
-	
-	float probeCoord[3];
-	float dataCoord[3];
-	size_t arrayCoord[3];
-	const float* extents = DataStatus::getInstance()->getExtents();
-	//Can ignore depth, just mapping center plane
-	probeCoord[2] = 0.f;
-	
-	//Loop over pixels in texture
-	for (int iy = 0; iy < 128; iy++){
-		//Map iy to a value between -1 and 1
-		probeCoord[1] = -1.f + 2.f*(float)iy/127.f;
-		for (int ix = 0; ix < 128; ix++){
-			
-			//find the coords that the texture maps to
-			//probeCoord is the coord in the probe, dataCoord is in data volume 
-			probeCoord[0] = -1.f + 2.f*(float)ix/127.f;
-			vtransform(probeCoord, transformMatrix, dataCoord);
-			for (int i = 0; i<3; i++){
-				arrayCoord[i] = (size_t) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
-			}
-			
-			//Make sure the transformed coords are in the probe region
-			//This should only fail if they aren't even in the full volume.
-			bool dataOK = true;
-			for (int i = 0; i< 3; i++){
-				if (arrayCoord[i] < coordMin[i] ||
-					arrayCoord[i] > coordMax[i] ) {
-						dataOK = false;
-					} //outside; color it black
-			}
-			
-			if(dataOK) { //find the coordinate in the data array
-				int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize) +
-					(arrayCoord[1] - blkMin[1]*bSize)*(bSize*(blkMax[0]-blkMin[0]+1)) +
-					(arrayCoord[2] - blkMin[2]*bSize)*(bSize*(blkMax[1]-blkMin[1]+1))*(bSize*(blkMax[0]-blkMin[0]+1));
-				float varVal;
-				
-
-				//use the intDataCoords to index into the loaded data
-				if (totVars == 1) varVal = volData[0][xyzCoord];
-				else { //Add up the squares of the variables
-					varVal = 0.f;
-					for (int k = 0; k<totVars; k++){
-						varVal += volData[k][xyzCoord]*volData[k][xyzCoord];
-					}
-					varVal = sqrt(varVal);
-				}
-				
-				//Use the transfer function to map the data:
-				int lutIndex = transFunc->mapFloatToIndex(varVal);
-				
-				probeTexture[4*(ix+128*iy)] = (unsigned char)(0.5+ clut[4*lutIndex]*255.f);
-				probeTexture[4*(ix+128*iy)+1] = (unsigned char)(0.5+ clut[4*lutIndex+1]*255.f);
-				probeTexture[4*(ix+128*iy)+2] = (unsigned char)(0.5+ clut[4*lutIndex+2]*255.f);
-				probeTexture[4*(ix+128*iy)+3] = (unsigned char)(0.5+ clut[4*lutIndex+3]*255.f);
-				
-			}
-			else {//point out of region
-				probeTexture[4*(ix+128*iy)] = 0;
-				probeTexture[4*(ix+128*iy)+1] = 0;
-				probeTexture[4*(ix+128*iy)+2] = 0;
-				probeTexture[4*(ix+128*iy)+3] = 0;
-			}
-
-		}//End loop over ix
-	}//End loop over iy
-	
-	pParams->setProbeDirty(false);
-	pParams->setProbeTexture(probeTexture);
-	return probeTexture;
-}
 	
 //Method called when undo/redo changes params.  It does the following:
 //  puts the new params into the vizwinmgr, deletes the old one
@@ -1708,3 +1663,83 @@ void ProbeEventRouter::cleanParams(Params* p)
   transferFunctionFrame->update();
 }
 	
+//Capture just one image
+//Launch a file save dialog to specify the names
+//Then put jpeg in it.
+//
+void ProbeEventRouter::captureImage() {
+	QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
+		"Jpeg Images (*.jpg)",
+		this,
+		"Image capture dialog",
+		true);  //modal
+	//fileDialog.move(pos());
+	fileDialog.setMode(QFileDialog::AnyFile);
+	fileDialog.setCaption("Specify image capture file name");
+	fileDialog.resize(450,450);
+	if (fileDialog.exec() != QDialog::Accepted) return;
+	
+	//Extract the path, and the root name, from the returned string.
+	QString filename = fileDialog.selectedFile();
+    
+	//Extract the path, and the root name, from the returned string.
+	QFileInfo* fileInfo = new QFileInfo(filename);
+	//Save the path for future captures
+	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	//Make sure we have created a probe texture already...
+	unsigned char* probeTex = pParams->getProbeTexture(timestep);
+	if (!probeTex){
+		MessageReporter::errorMsg("Image Capture Error;\nNo image to capture");
+		return;
+	}
+	//Determine the image size.  Start with the texture dimensions in 
+	// the scene, then increase x or y to make the aspect ratio match the
+	// aspect ratio in the scene
+	float aspRatio = pParams->getRealImageHeight()/pParams->getRealImageWidth();
+	int wid = pParams->getImageWidth();
+	int ht = pParams->getImageHeight();
+	//Make sure the image is at least 300x300
+	if (wid < 200) wid = 200;
+	if (ht < 200) ht = 200;
+	float imAspect = (float)ht/(float)wid;
+	if (imAspect > aspRatio){
+		//want ht/wid = asp, but ht/wid > asp; make wid larger:
+		wid = (int)(0.5f+ (imAspect/aspRatio)*(float)wid);
+	} else { //Make ht larger:
+		ht = (int) (0.5f + (aspRatio/imAspect)*(float)ht);
+	}
+	//Construct the probe texture of the desired dimensions:
+	probeTex = pParams->calcProbeTexture(timestep,wid,ht);
+	//Construct an RGB image from this.  Ignore alpha.
+	unsigned char* buf = new unsigned char[3*wid*ht];
+	for (int i = 0; i< wid*ht; i++){
+		for (int k = 0; k<3; k++){
+			buf[(wid*ht-i-1)*3+k] = probeTex[4*i+k];
+		}
+	}
+	delete probeTex;
+	//Now open the jpeg file:
+	FILE* jpegFile = fopen(filename.ascii(), "wb");
+	if (!jpegFile) {
+		MessageReporter::errorMsg("Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
+		return;
+	}
+	//Now call the Jpeg library to compress and write the file
+	//
+	int quality = GLWindow::getJpegQuality();
+	int rc = write_JPEG_file(jpegFile, wid, ht, buf, quality);
+	if (rc){
+		//Error!
+		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file %s",
+			filename.ascii());
+		delete buf;
+		return;
+	}
+	delete buf;
+	//Provide a message stating the capture in effect.
+	MessageReporter::infoMsg("Image is captured to %s",
+			filename.ascii());
+}
+

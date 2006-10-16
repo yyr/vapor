@@ -276,6 +276,7 @@ run(){
 				if ((!myVizWinMgr->getVizWin(viznum)) ||
 						(!myVizWinMgr->getAnimationParams(viznum)->isPlaying()) ||
 						((!myVizWinMgr->getDvrParams(viznum)->isEnabled())&&
+						(!myVizWinMgr->getProbeParams(viznum)->isEnabled())&&
 						(!myVizWinMgr->getFlowParams(viznum)->isEnabled()))){
 					
 					myAnimationController->deActivate(viznum);

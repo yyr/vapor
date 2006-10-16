@@ -26,6 +26,8 @@
 #include "probeeventrouter.h"
 #include <math.h>
 #include <qgl.h>
+#include <qapplication.h>
+#include <qcursor.h>
 #include "assert.h"
 
 using namespace VAPoR;
@@ -105,7 +107,8 @@ void GLProbeWindow::setTextureSize(float horiz, float vert){
 void GLProbeWindow::paintGL()
 {
 	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
-	ProbeEventRouter* myRouter = VizWinMgr::getInstance()->getProbeRouter();
+	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
+	//ProbeEventRouter* myRouter = VizWinMgr::getInstance()->getProbeRouter();
 	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
 
     //qglClearColor( QColor(233,236,216) ); 		// same as frame
@@ -125,11 +128,20 @@ void GLProbeWindow::paintGL()
 	//This should be obtained from the Router!!!!
 	unsigned char* probeTexture = 0;
 	
-	if(myParams) probeTexture = myRouter->getProbeTexture(myParams);
-	
+	if(myParams){
+		if (myParams->probeIsDirty(timestep)){
+			QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+			probeTexture = myParams->getProbeTexture(timestep);
+			QApplication::restoreOverrideCursor();
+		} else {
+			probeTexture = myParams->getProbeTexture(timestep);
+		}
+	}
+	int imgWidth = myParams->getImageWidth();
+	int imgHeight = myParams->getImageHeight();
 	if(probeTexture) {
 		glEnable(GL_TEXTURE_2D);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 128, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
 	} else {
 		glColor4f(0.,0.,0.,0.);
 	}

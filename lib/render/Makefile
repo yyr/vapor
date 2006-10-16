@@ -11,7 +11,7 @@ UI_DIR = ui
 FILES = \
 	DVRBase DVRDebug \
 	glwindow renderer \
-	manip\
+	manip proberenderer\
 	trackball flowrenderer \
 	VolumeRenderer BBox ShaderProgram TextureBrick \
 	Vect3d Matrix3d Stopwatch DVRTexture3d \
