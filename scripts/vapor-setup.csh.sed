@@ -49,15 +49,15 @@ if ( "$arch" == "IRIX64" ) then
 	endif
 endif
 
-if !($?MANPATH) then
-	if ( "$arch" == "Linux" ) then
-		setenv MANPATH "$root/man":`man -w`
-	else
-		setenv MANPATH "$root/man"
-	endif
-else
-    setenv MANPATH "$root/man:${MANPATH}"
-endif
+#if !($?MANPATH) then
+#	if ( "$arch" == "Linux" ) then
+#		setenv MANPATH "$root/man":`man -w`
+#	else
+#		setenv MANPATH "$root/man"
+#	endif
+#else
+#    setenv MANPATH "$root/man:${MANPATH}"
+#endif
 
 if ( "$idl" == 1 ) then
 	if !($?IDL_DLM_PATH) then

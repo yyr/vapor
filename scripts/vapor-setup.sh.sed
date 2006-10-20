@@ -60,17 +60,17 @@ then
 	fi
 fi
 
-if [ -z "${MANPATH}" ]
-then
-	if [ "$arch" = "Linux" ]
-	then
-		MANPATH="$root/man":$(man -w); export MANPATH
-	else
-		MANPATH="$root/man"; export MANPATH
-	fi
-else
-    MANPATH="$root/man:${MANPATH}"; export MANPATH
-fi
+#if [ -z "${MANPATH}" ]
+#then
+#	if [ "$arch" = "Linux" ]
+#	then
+#		MANPATH="$root/man":$(man -w); export MANPATH
+#	else
+#		MANPATH="$root/man"; export MANPATH
+#	fi
+#else
+#    MANPATH="$root/man:${MANPATH}"; export MANPATH
+#fi
 
 if [ "$idl" -eq 1 ]
 then
