@@ -95,7 +95,7 @@ public:
 	
 	
 
-	virtual void guiSetEnabled(bool value);
+	virtual void guiSetEnabled(bool value, int instance);
 	//respond to changes in TF (for undo/redo):
 	//
 	
@@ -130,6 +130,7 @@ protected slots:
 	void guiNewInstance();
 	void guiDeleteInstance();
 	void guiCopyInstance();
+	void guiCopyInstanceTo(int toViz);
 	//Slots for probe panel:
 	void probeCenterRegion();
 	void probeCenterView();
@@ -146,7 +147,7 @@ protected slots:
 	void setProbeXSize();
 	void setProbeYSize();
 	void setProbeZSize();
-	void setProbeEnabled(int on);
+	void setProbeEnabled(bool on, int instance);
 	void setProbeEditMode(bool);
 	void setProbeNavigateMode(bool);
 	void guiSetAligned();
@@ -169,6 +170,7 @@ protected:
 	//triggering a gui changed event
 	bool ignoreListboxChanges;
 	int numVariables;
+	int copyCount[MAXVIZWINS+1];
 };
 
 };

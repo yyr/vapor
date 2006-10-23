@@ -53,7 +53,7 @@
 #include "messagereporter.h"
 #include "probeframe.h"
 #include "floweventrouter.h"
-
+#include "instancetable.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -86,7 +86,7 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): ProbeTab(p
 	ignoreListboxChanges = false;
 	numVariables = 0;
 	seedAttached = false;
-
+	
 }
 
 
@@ -120,10 +120,6 @@ ProbeEventRouter::hookUpTab()
 	connect (zSizeEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (thetaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (phiEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (instanceCombo, SIGNAL(activated(int)), this, SLOT(guiChangeInstance(int)));
-	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
-	connect (copyInstanceButton, SIGNAL(clicked()), this, SLOT(guiCopyInstance()));
-	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRegion()));
 	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterView()));
@@ -144,7 +140,6 @@ ProbeEventRouter::hookUpTab()
 	connect (phiSlider, SIGNAL(sliderReleased()), this, SLOT (guiReleasePhiSlider()));
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(probeLoadTF()));
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(probeSaveTF()));
-	connect (EnableDisable, SIGNAL(activated(int)), this, SLOT(setProbeEnabled(int)));
 	
 	connect (captureButton, SIGNAL(clicked()), this, SLOT(captureImage()));
 	connect (leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
@@ -176,6 +171,14 @@ ProbeEventRouter::hookUpTab()
 
     connect(transferFunctionFrame, SIGNAL(canBindControlPoints(bool)),
             this, SLOT(setBindButtons(bool)));
+
+	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
+	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
+	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
+	connect (copyInstanceButton, SIGNAL(clicked()), this, SLOT(guiCopyInstance()));
+	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
+	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setProbeEnabled(bool,int)));
+	
 }
 
 /*********************************************************************************
@@ -193,6 +196,12 @@ void ProbeEventRouter::guiDeleteInstance(){
 void ProbeEventRouter::guiCopyInstance(){
 	performGuiCopyInstance();
 }
+void ProbeEventRouter::guiCopyInstanceTo(int toViz){
+	if (toViz == 0) return; 
+	int viznum = copyCount[toViz];
+	copyCombo->setCurrentItem(0);
+	performGuiCopyInstanceToViz(viznum);
+}
 void ProbeEventRouter::
 setProbeTabTextChanged(const QString& ){
 	guiSetTextChanged(true);
@@ -204,19 +213,16 @@ probeReturnPressed(void){
 }
 
 void ProbeEventRouter::
-setProbeEnabled(int val){
+setProbeEnabled(bool val, int instance){
 
-	//If there's no window, or no datamgr, ignore this.
+	
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int activeViz = vizMgr->getActiveViz();
-	if ((activeViz < 0) || Session::getInstance()->getDataMgr() == 0) {
-		EnableDisable->setCurrentItem(0);
-		return;
-	}
-	ProbeParams* pParams = vizMgr->getProbeParams(activeViz);
+	
+	ProbeParams* pParams = vizMgr->getProbeParams(activeViz,instance);
 	//Make sure this is a change:
-	if (pParams->isEnabled() == (val==1) ) return;
-	guiSetEnabled(val==1);
+	if (pParams->isEnabled() == val ) return;
+	guiSetEnabled(val, instance);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	updateRenderer(pParams,!val, false);
@@ -536,20 +542,35 @@ fileLoadTF(ProbeParams* dParams){
 //Insert values from params into tab panel
 //
 void ProbeEventRouter::updateTab(){
+	
+	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
+	else instanceTable->setEnabled(false);
+	instanceTable->rebuild(this);
+	
 	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
-	int instCount = vizMgr->getNumProbeInstances(winnum);
-	if(instCount != instanceCombo->count()){
-		instanceCombo->clear();
-		instanceCombo->setMaxCount(instCount);
-		for (int i = 0; i<instCount; i++){
-			instanceCombo->insertItem(QString::number(i), i);
-		}
-	}
-	instanceCombo->setCurrentItem(vizMgr->getCurrentProbeInstIndex(winnum));
+	
 	deleteInstanceButton->setEnabled(vizMgr->getNumProbeInstances(winnum) > 1);
 	
+	int numViz = vizMgr->getNumVisualizers();
+
+	copyCombo->setEnabled(numViz>1);
+	if (numViz > 1) {
+		copyCombo->clear();
+		copyCombo->insertItem("Copy To:");
+		int copyNum = 1;
+		for (int i = 0; i<MAXVIZWINS; i++){
+			if (vizMgr->getVizWin(i) && winnum != i){
+				copyCombo->insertItem(vizMgr->getVizWinName(i));
+				//Remember the viznum corresponding to a combo item:
+				copyCount[copyNum++] = i;
+			}
+		}
+	}
+
+	probeTextureFrame->setTextureSize(probeParams->getProbeMax(0) - probeParams->getProbeMin(0),
+		probeParams->getProbeMax(1) - probeParams->getProbeMin(1));
 
 	QString strn;
 	Session* ses = Session::getInstance();
@@ -570,7 +591,6 @@ void ProbeEventRouter::updateTab(){
       transferFunctionFrame->setVariableName("");
     }
 
-	EnableDisable->setCurrentItem((probeParams->isEnabled()) ? 1 : 0);
 	refinementCombo->setCurrentItem(probeParams->getNumRefinements());
 	histoScaleEdit->setText(QString::number(probeParams->getHistoStretch()));
 
@@ -706,7 +726,7 @@ reinitTab(bool doOverride){
 		histogramList = 0;
 		numHistograms = 0;
 	}
-	
+	updateTab();
 }
 //Change mouse mode to specified value
 //0,1,2 correspond to edit, zoom, pan
@@ -817,13 +837,14 @@ setEditorDirty(RenderParams* p){
 
 
 void ProbeEventRouter::
-guiSetEnabled(bool value){
-	ProbeParams* pParams = VizWinMgr::getInstance()->getActiveProbeParams();
+guiSetEnabled(bool value, int instance){
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	ProbeParams* pParams = VizWinMgr::getInstance()->getProbeParams(winnum, instance);    
 	confirmText(false);
 	assert(value != pParams->isEnabled());
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int inst = vizMgr->getActiveInstanceIndex(myParamsType);
-	PanelCommand* cmd = PanelCommand::captureStart(pParams, "toggle probe enabled",inst);
+	
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "toggle probe enabled",instance);
 	pParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, pParams);
 	//Need to rerender the texture:

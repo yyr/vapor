@@ -184,6 +184,9 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\GLWidget.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\instancetable.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\loadtfdialog.cpp">
 			</File>
 			<File
@@ -456,6 +459,29 @@
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_GLWidget.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\instancetable.h">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing instancetable.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\instancetable.h -o tmp\moc\moc_instancetable.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="tmp\moc\moc_instancetable.cpp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing instancetable.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\instancetable.h -o tmp\moc\moc_instancetable.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="tmp\moc\moc_instancetable.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -880,6 +906,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_GLWidget.cpp">
+			</File>
+			<File
+				RelativePath=".\tmp\moc\moc_instancetable.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_loadtfdialog.cpp">

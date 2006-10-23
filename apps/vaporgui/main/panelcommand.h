@@ -69,29 +69,28 @@ protected:
 //  Change needs:  previousInstance, and newInstance (ints)
 //				previousPanel is the one that was previousInstance.
 //   These are atomic, don't need to construct in two methods.
-//  to undo "copy", need to know previousCurrentIndex, 
-//     must deactivate and delete the last (i.e. copy) instance.
-//	   Then make the previousCurrentIndex active.
+//  to undo "copy",  
+//     must delete the last (i.e. the copy) instance (in the target visualizer).
 //  same to undo "new"
 //  to undo "delete", need to know previousCurrentIndex, and the deleted params.
 //	   Must reinsert the params in the previously current position,
 //	   Must enable the params if they were enabled, and set up rendering.
 //  to redo "copy", need to have params that are being copied, since they
-//		(eventually) can be from another visualizer.  The enablement is always
+//		can be from another visualizer.  The enablement is always
 //		off.
 //  to redo "new", don't need anything.
-//	to redo "delete", don't need anything.
-//Note that copy and new make the new instance (last) current, but don't enable
-//Delete makes the instance before the deleted one current.
+//	to redo "delete", don't need anything, except the instance no. that was deleted.
+//Note that copy and new don't enable, don't change current instance
+//Delete makes the instance before the deleted one current, or the first one (if the deletion was first)
 
 class InstancedPanelCommand : public PanelCommand {
 public:
-	InstancedPanelCommand(Params* prev, const char* descr, int prevInst, instanceType myType, int nextInst = -1);
+	InstancedPanelCommand(Params* prev, const char* descr, int prevInst, instanceType myType, int nextIndex = -1);
 	virtual void reDo();
 	virtual void unDo();
 	static void capture(Params* prev, const char* descr, int prevInst, instanceType myType, int nextInst = -1);
 protected:
-	int nextInstance; //used only for change command
+	int nextIndex; //Change uses this for next instance; copy-to uses for next viznum.
 	instanceType instancedCommandType;
 
 };

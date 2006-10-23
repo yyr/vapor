@@ -30,7 +30,7 @@
 using namespace VAPoR;
 
 
-//Copy the specified renderer to the last instance, make it current:
+//Copy the specified renderer to the last instance in specified window:
 void EventRouter::copyRendererInstance(int toWindow, RenderParams* rp){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//Clone this params
@@ -38,8 +38,7 @@ void EventRouter::copyRendererInstance(int toWindow, RenderParams* rp){
 	newP->setVizNum(toWindow);
 	newP->setEnabled(false);
 	vizMgr->appendInstance(toWindow, newP);
-	vizMgr->setCurrentInstanceIndex(toWindow, vizMgr->getNumInstances(toWindow, myParamsType)-1 , myParamsType);
-	vizMgr->getVizWin(toWindow)->getGLWindow()->setActiveParams(vizMgr->getParams(toWindow,myParamsType),myParamsType);
+	//update tab is only needed up update the instanceTable when we are copying in the same viz
 	updateTab ();
 }
 void EventRouter::changeRendererInstance(int winnum, int newCurrentInst){
@@ -49,7 +48,7 @@ void EventRouter::changeRendererInstance(int winnum, int newCurrentInst){
 	updateTab();
 	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveParams(vizMgr->getParams(winnum, myParamsType),myParamsType);
 }
-//Put a default instance of specified renderer as the last instance, make it current:
+//Put a default instance of specified renderer as the last instance:
 void EventRouter::newRendererInstance(int winnum){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	//Clone default params
@@ -57,8 +56,6 @@ void EventRouter::newRendererInstance(int winnum){
 	newP->setVizNum(winnum);
 	newP->setEnabled(false);
 	vizMgr->appendInstance(winnum, newP);
-	vizMgr->setCurrentInstanceIndex(winnum, vizMgr->getNumInstances(winnum, myParamsType)-1, myParamsType);
-	vizMgr->getVizWin(winnum)->getGLWindow()->setActiveParams(vizMgr->getParams(winnum,myParamsType),myParamsType);
 	updateTab ();
 }
 void EventRouter::removeRendererInstance(int winnum, int instance){
@@ -68,6 +65,7 @@ void EventRouter::removeRendererInstance(int winnum, int instance){
 	RenderParams* rp = (RenderParams*)(vizMgr->getParams(winnum, myParamsType, instance));
 	//disable it first if necessary:
 	if (rp->isEnabled()){
+		rp->setEnabled(false);
 		updateRenderer(rp, true, false);
 	}
 	vizMgr->removeInstance(winnum, instance, myParamsType);
@@ -94,16 +92,12 @@ void EventRouter::performGuiNewInstance(){
 	Params* fParams = vizMgr->getParams(winnum,myParamsType);
 	InstancedPanelCommand::capture(fParams, "create new renderer instance", instance, VAPoR::newInstance);
 	newRendererInstance(winnum);
-	Params* p = vizMgr->getParams(winnum, myParamsType);
-	VizWin* vw = vizMgr->getVizWin(winnum);
-	vw->getGLWindow()->setActiveParams(p,myParamsType);
-	vw->updateGL();
 }
 void EventRouter::performGuiDeleteInstance(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
-	int instance = vizMgr->getCurrentFlowInstIndex(winnum);
-	Params* rParams = vizMgr->getParams(winnum,myParamsType);
+	int instance = vizMgr->getCurrentInstanceIndex(winnum, myParamsType);
+	Params* rParams = vizMgr->getParams(winnum,myParamsType, instance);
 	InstancedPanelCommand::capture(rParams, "remove renderer instance", instance, VAPoR::deleteInstance);
 	removeRendererInstance(winnum, instance);
 	Params* p = vizMgr->getParams(winnum, myParamsType);
@@ -112,19 +106,27 @@ void EventRouter::performGuiDeleteInstance(){
 	vw->updateGL();
 }
 void EventRouter::performGuiCopyInstance(){
-	//TODO: If there is more than one visualizer, provide option of specifying another viz.
+	
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	Params* rParams = vizMgr->getParams(winnum,myParamsType);
-	int currentInstance = vizMgr->getCurrentFlowInstIndex(winnum);
+	int currentInstance = vizMgr->getCurrentInstanceIndex(winnum, myParamsType);
 	InstancedPanelCommand::capture(rParams, "copy renderer instance", currentInstance, VAPoR::copyInstance);
 	copyRendererInstance(winnum, (RenderParams*)rParams);
-	Params* p = vizMgr->getParams(winnum, myParamsType);
-	VizWin* vw = vizMgr->getVizWin(winnum);
-	vw->getGLWindow()->setActiveParams(p,myParamsType);
-	vw->updateGL();
 }
-
+//Copy current instance to another visualizer
+void EventRouter::performGuiCopyInstanceToViz(int towin){
+	
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	Params* rParams = vizMgr->getParams(winnum,myParamsType);
+	int currentInstance = vizMgr->getCurrentInstanceIndex(winnum, myParamsType);
+	
+	copyRendererInstance(towin, (RenderParams*)rParams);
+	//put the copy-source in the command
+	
+	InstancedPanelCommand::capture(rParams, "copy renderer instance to viz", currentInstance, VAPoR::copyInstance, towin);
+}
 
 
 

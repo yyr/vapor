@@ -41,7 +41,7 @@
 #include <qlistbox.h>
 #include <qtimer.h>
 #include <qtooltip.h>
-
+#include "instancetable.h"
 #include "MappingFrame.h"
 #include "regionparams.h"
 #include "regiontab.h"
@@ -99,15 +99,12 @@ DvrEventRouter::~DvrEventRouter(){
 void
 DvrEventRouter::hookUpTab()
 {
-	connect (instanceCombo, SIGNAL(activated(int)), this, SLOT(guiChangeInstance(int)));
-	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
-	connect (copyInstanceButton, SIGNAL(clicked()), this, SLOT(guiCopyInstance()));
-	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
+	
 	connect (typeCombo, SIGNAL(activated(int)), this, SLOT(guiSetType(int)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(dvrLoadTF()));
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(dvrSaveTF()));
-	connect (EnableDisable, SIGNAL(activated(int)), this, SLOT(setDvrEnabled(int)));
+	
 	connect (variableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetComboVarNum(int) ) );
 	connect (lightingCheckbox, SIGNAL( toggled(bool) ), this, SLOT( guiSetLighting(bool) ) );
  
@@ -151,7 +148,12 @@ DvrEventRouter::hookUpTab()
     connect(transferFunctionFrame, SIGNAL(mappingChanged()),
             this, SLOT(setClutDirty()));
 
-
+	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
+	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
+	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
+	connect (copyInstanceButton, SIGNAL(clicked()), this, SLOT(guiCopyInstance()));
+	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
+	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setDvrEnabled(bool,int)));
 
 
 #ifdef BENCHMARKING
@@ -177,6 +179,12 @@ void DvrEventRouter::guiDeleteInstance(){
 void DvrEventRouter::guiCopyInstance(){
 	//If there is more than one visualizer, provide option of specifying another viz.
 	performGuiCopyInstance();
+}
+void DvrEventRouter::guiCopyInstanceTo(int toViz){
+	if (toViz == 0) return; 
+	int viznum = copyCount[toViz];
+	copyCombo->setCurrentItem(0);
+	performGuiCopyInstanceToViz(viznum);
 }
 
 void DvrEventRouter::
@@ -210,19 +218,16 @@ dvrReturnPressed(void){
 
 
 void DvrEventRouter::
-setDvrEnabled(int val){
+setDvrEnabled(bool val, int instance){
 
-	//If there's no window, or no datamgr, ignore this.
+	
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int activeViz = vizMgr->getActiveViz();
-	if ((activeViz < 0) || Session::getInstance()->getDataMgr() == 0) {
-		EnableDisable->setCurrentItem(0);
-		return;
-	}
-	DvrParams* dParams = vizMgr->getDvrParams(activeViz);
+	
+	DvrParams* dParams = vizMgr->getDvrParams(activeViz, instance);
 	//Make sure this is a change:
-	if (dParams->isEnabled() == (val==1) ) return;
-	guiSetEnabled(val==1);
+	if (dParams->isEnabled() == val ) return;
+	guiSetEnabled(val,instance);
 	typeCombo->setEnabled(!val);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
@@ -413,26 +418,43 @@ fileLoadTF(DvrParams* dParams){
 //Insert values from params into tab panel
 //
 void DvrEventRouter::updateTab(){
+	Session *session = Session::getInstance();
+	session->blockRecording();
+
+	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
+	else instanceTable->setEnabled(false);
+	instanceTable->rebuild(this);
+
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	int numViz = vizMgr->getNumVisualizers();
+	copyCombo->setEnabled(numViz>1);
+	if (numViz > 1) {
+		copyCombo->clear();
+		copyCombo->insertItem("Copy To:");
+		int copyNum = 1;
+		for (int i = 0; i<MAXVIZWINS; i++){
+			if (vizMgr->getVizWin(i) && winnum != i){
+				copyCombo->insertItem(vizMgr->getVizWinName(i));
+				//Remember the viznum corresponding to a combo item:
+				copyCount[copyNum++] = i;
+			}
+		}
+	}
+
+
 	initTypes();
 	DvrParams* dvrParams = (DvrParams*) VizWinMgr::getActiveDvrParams();
 	
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	int instCount = vizMgr->getNumDvrInstances(winnum);
-	if(instCount != instanceCombo->count()){
-		instanceCombo->clear();
-		instanceCombo->setMaxCount(instCount);
-		for (int i = 0; i<instCount; i++){
-			instanceCombo->insertItem(QString::number(i), i);
-		}
-	}
-	instanceCombo->setCurrentItem(vizMgr->getCurrentDvrInstIndex(winnum));
+	
+	
+	
 	deleteInstanceButton->setEnabled(vizMgr->getNumDvrInstances(winnum) > 1);
 	
 	QString strn;
-    Session *session = Session::getInstance();
+    
 
-	session->blockRecording();
+	
 
     transferFunctionFrame->setMapperFunction(dvrParams->getMapperFunc());
     transferFunctionFrame->update();
@@ -453,7 +475,7 @@ void DvrEventRouter::updateTab(){
     VizWinMgr::getInstance()->setDatarangeDirty(dvrParams);
 	VizWinMgr::getInstance()->setVizDirty(dvrParams,RegionBit,true);
 
-	EnableDisable->setCurrentItem((dvrParams->isEnabled()) ? 1 : 0);
+	
 	//Disable the typeCombo whenever the renderer is enabled:
 	typeCombo->setEnabled(!(dvrParams->isEnabled()));
 	typeCombo->setCurrentItem(typemapi[dvrParams->getType()]);
@@ -528,7 +550,7 @@ reinitTab(bool doOverride){
 		histogramList = 0;
 		numHistograms = 0;
 	}
-	
+	updateTab();
 }
 //Change mouse mode to specified value
 //0,1,2 correspond to edit, zoom, pan
@@ -557,11 +579,12 @@ guiSetNumRefinements(int num){
 	VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit,true);
 }
 void DvrEventRouter::
-guiSetEnabled(bool value){
-	
-	//Ignore spurious clicks.
-	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+guiSetEnabled(bool value, int instance){
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	int winnum = vizWinMgr->getActiveViz();
+	//Ignore spurious clicks.
+	DvrParams* dParams = vizWinMgr->getDvrParams(winnum, instance);
+	
 	if (value == dParams->isEnabled()) return;
 	confirmText(false);
 	//On enable, disable any existing dvr renderer in this window:
@@ -571,18 +594,20 @@ guiSetEnabled(bool value){
 		DvrParams* prevParams = (DvrParams*)viz->getGLWindow()->findARenderer(Params::DvrParamsType);
 		assert(prevParams != dParams);
 		if (prevParams){
-			int winnum = vizWinMgr->getActiveViz();
+			
 			int prevInstance = vizWinMgr->findInstanceIndex(winnum, prevParams, Params::DvrParamsType);
 			assert (prevInstance >= 0);
 			//Put the disable in the history:
 			PanelCommand* cmd = PanelCommand::captureStart(prevParams, "disable existing dvr", prevInstance);
 			prevParams->setEnabled(false);
+			//turn it off in the instanceTable
+			instanceTable->checkEnabledBox(false, prevInstance);
 			PanelCommand::captureEnd(cmd, prevParams);
 			updateRenderer(prevParams,true,false);
 		}
 	}
 	//now continue with the current instance:
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle dvr enabled");
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle dvr enabled", instance);
 	dParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, dParams);
 		

@@ -67,11 +67,12 @@ public:
 	void newRendererInstance(int winnum);
 	void copyRendererInstance(int toWinnum, RenderParams* rParams);
 	void changeRendererInstance(int winnum, int newInstance);
-	
+	Params::ParamType getParamsType() {return myParamsType;}
 	virtual void performGuiChangeInstance(int newCurrent);
 	virtual void performGuiNewInstance();
 	virtual void performGuiDeleteInstance();
 	virtual void performGuiCopyInstance();
+	virtual void performGuiCopyInstanceToViz(int vizwin);
 
 	//UpdateRenderer ignores renderParams argument and uses the
 	//params associated with the instance if it is nonnegative
@@ -89,7 +90,7 @@ public:
 	//
 	void guiSetTextChanged(bool on) {textChangedFlag = on;}
 
-	virtual void guiSetEnabled(bool) {assert(0);}
+	virtual void guiSetEnabled(bool, int ) {assert(0);}
 
 	void guiSetLocal(Params* p, bool lg){
 		if (textChangedFlag) confirmText(false);

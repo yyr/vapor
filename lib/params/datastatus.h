@@ -58,7 +58,7 @@ public:
 	size_t getMinTimestep() {return minTimeStep;}
 	size_t getMaxTimestep() {return maxTimeStep;}
 	bool dataIsPresent(int varnum, int timestep){
-		if (!theDataStatus) return false;
+		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
 		if (!variableExists[varnum]) return false;
 		return (maxNumTransforms[varnum][timestep] >= 0);

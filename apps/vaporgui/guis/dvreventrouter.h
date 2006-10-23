@@ -79,7 +79,7 @@ public:
 	//Following methods are set from gui, have undo/redo support:
 	//
 	
-	virtual void guiSetEnabled(bool value);
+	virtual void guiSetEnabled(bool value, int instance);
     
 	
 	
@@ -117,6 +117,7 @@ protected slots:
 	void guiNewInstance();
 	void guiDeleteInstance();
 	void guiCopyInstance();
+	void guiCopyInstanceTo(int toViz);
 	void guiSetType(int val);
 	void guiSetComboVarNum(int val);
 	void guiSetNumBits(int val);
@@ -131,7 +132,7 @@ protected slots:
 
     void setClutDirty();
 
-	void setDvrEnabled(int on);
+	void setDvrEnabled(bool on, int instance);
 	void setDvrEditMode(bool);
 	void setDvrNavigateMode(bool);
 	
@@ -159,7 +160,7 @@ protected:
 	virtual void setDatarangeDirty(RenderParams* dParams);
 	std::map<int, DvrParams::DvrType> typemap;
     std::map<DvrParams::DvrType, int> typemapi; // inverse typemap
-	
+	int copyCount[MAXVIZWINS+1];
 };
 
 };

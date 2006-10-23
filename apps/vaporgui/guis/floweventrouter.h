@@ -91,6 +91,7 @@ protected slots:
 	void guiNewInstance();
 	void guiDeleteInstance();
 	void guiCopyInstance();
+	void guiCopyInstanceTo(int toViz);
 	//Slots for flow panel:
 	//three kinds of text changed for flow tab
 	void setFlowTabFlowTextChanged(const QString&);
@@ -99,7 +100,7 @@ protected slots:
 	void flowTabReturnPressed();
 	//slots for flow tab:
 	void guiRefreshFlow();
-	void setFlowEnabled(int);
+	void setFlowEnabled(bool val,int instance);
 	void setFlowType(int);
 	void guiSetNumRefinements(int numtrans);
 	void guiSetXComboVarNum(int varnum);
@@ -146,7 +147,7 @@ protected:
 
 	//Methods that record changes in the history:
 	//
-	virtual void guiSetEnabled(bool);
+	virtual void guiSetEnabled(bool, int);
 	
 	
 	void guiSetFlowType(int typenum);
@@ -167,7 +168,7 @@ protected:
 	bool flowGraphicsChanged;
 	bool mapBoundsChanged;
 
-
+	int copyCount[MAXVIZWINS+1];
 	
 };
 

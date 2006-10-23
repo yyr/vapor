@@ -72,12 +72,12 @@ captureEnd(PanelCommand* pCom, Params *p) {
 	pCom->setNext(p);
 	Session::getInstance()->addToHistory(pCom);
 }
-InstancedPanelCommand::InstancedPanelCommand(Params* prev, const char* descr, int prevInst, instanceType myType, int nextInst) :
+InstancedPanelCommand::InstancedPanelCommand(Params* prev, const char* descr, int prevInst, instanceType myType, int nextIndx) :
 	PanelCommand(prev,descr,prevInst)
 {
 	instancedCommandType = myType;
 	nextPanel = 0;
-	nextInstance = nextInst;
+	nextIndex = nextIndx;
 }
 void InstancedPanelCommand::
 capture(Params *p, const char* descr, int prevInst, instanceType myType, int nextInst) {
@@ -92,7 +92,7 @@ capture(Params *p, const char* descr, int prevInst, instanceType myType, int nex
 void InstancedPanelCommand::unDo(){
 	Session::getInstance()->blockRecording();
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	//All instance commands act on current active Viz:
+	//All instance commands act on current active Viz, except for copy-to
 	int winnum = vizMgr->getActiveViz();
 	Params::ParamType pType = previousPanel->getParamType();
 	EventRouter* evRouter = VizWinMgr::getEventRouter(pType);
@@ -113,13 +113,13 @@ void InstancedPanelCommand::unDo(){
 		case copyInstance : 
 			{
 				//delete the last instance.  It should already be disabled.
+				//Don't need to change the current instance
+				//If nextIndex is not -1, it's the visualizer num we copied to:
+				if (nextIndex >= 0) winnum = nextIndex;
 				lastInstance = vizMgr->getNumInstances(winnum, pType) -1;
 				evRouter->removeRendererInstance(winnum, lastInstance);
 				
-				//Then set current instance to previousInstance:
-				vizMgr->setCurrentInstanceIndex(winnum, previousInstance, pType);
-				RenderParams* activeParams = (RenderParams*)vizMgr->getParams(winnum, pType, previousInstance);
-				vizMgr->getVizWin(winnum)->getGLWindow()->setActiveParams(activeParams, pType);
+				//Then set current instance to previousInstance:  unnecessary
 			}
 			break;
 		case deleteInstance :
@@ -149,7 +149,8 @@ void InstancedPanelCommand::unDo(){
 void InstancedPanelCommand::reDo(){
 	Session::getInstance()->blockRecording();
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	//All instance commands act on current active Viz (at this time!)
+	//All instance commands act on current active Viz, except the
+	//copy-to, that uses nextIndex to identify the copy target
 	int winnum = vizMgr->getActiveViz();
 
 	VAPoR::Params::ParamType pType = previousPanel->getParamType();
@@ -158,7 +159,7 @@ void InstancedPanelCommand::reDo(){
 	switch (instancedCommandType){
 		case changeInstance :
 			//just change it again:
-			evRouter->changeRendererInstance(winnum, nextInstance);
+			evRouter->changeRendererInstance(winnum, nextIndex);
 			
 			break;
 	// if it's a delete, need again to remove the previousInstance.
@@ -166,6 +167,7 @@ void InstancedPanelCommand::reDo(){
 			evRouter->removeRendererInstance(winnum, previousInstance);
 			break;
 		case copyInstance :
+			if (nextIndex >= 0) winnum = nextIndex;
 			evRouter->copyRendererInstance(winnum,(RenderParams*)previousPanel);
 			break;
 		case newInstance :

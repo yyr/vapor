@@ -1,6 +1,6 @@
 GUI_FILES := \
 	colorpicker eventrouter loadtfdialog savetfdialog \
-	vizselectcombo seedlisteditor \
+	vizselectcombo seedlisteditor instancetable \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
 	probeframe glprobewindow \
@@ -11,7 +11,7 @@ GUI_FILES := \
 GUI_QT_HEADERS := \
 	colorpicker loadtfdialog  \
 	savetfdialog vizselectcombo \
-	probeframe seedlisteditor \
+	probeframe seedlisteditor instancetable \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
 	DomainWidget GLWidget OpacityWidget ControlPointEditor \

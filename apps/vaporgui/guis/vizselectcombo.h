@@ -6,7 +6,7 @@
 //																		*
 //************************************************************************/
 //					
-//	File:		vizselectcombo.cpp
+//	File:		vizselectcombo.h
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research

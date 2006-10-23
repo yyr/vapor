@@ -39,7 +39,7 @@
 #include <qlistbox.h>
 #include <qtooltip.h>
 #include "regionparams.h"
-
+#include "instancetable.h"
 #include "MappingFrame.h"
 #include "mainform.h"
 #include "vizwinmgr.h"
@@ -99,11 +99,7 @@ FlowEventRouter::~FlowEventRouter(){
 void
 FlowEventRouter::hookUpTab()
 {
-	connect (instanceCombo, SIGNAL(activated(int)), this, SLOT(guiChangeInstance(int)));
-	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
-	connect (copyInstanceButton, SIGNAL(clicked()), this, SLOT(guiCopyInstance()));
-	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
-	connect (EnableDisable, SIGNAL(activated(int)), this, SLOT(setFlowEnabled(int)));
+	
 	connect (flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( setFlowType(int) ) );
 	connect (autoRefreshCheckbox, SIGNAL(toggled(bool)), this, SLOT (guiSetAutoRefresh(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
@@ -215,6 +211,13 @@ FlowEventRouter::hookUpTab()
             this, SLOT(guiStartChangeMapFcn(QString)));
     connect(colorMappingFrame, SIGNAL(endChange()),
             this, SLOT(guiEndChangeMapFcn()));
+
+	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
+	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
+	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
+	connect (copyInstanceButton, SIGNAL(clicked()), this, SLOT(guiCopyInstance()));
+	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
+	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setFlowEnabled(bool,int)));
 
 }
 
@@ -432,6 +435,12 @@ void FlowEventRouter::guiDeleteInstance(){
 void FlowEventRouter::guiCopyInstance(){
 	performGuiCopyInstance();
 }
+void FlowEventRouter::guiCopyInstanceTo(int toViz){
+	if (toViz == 0) return; 
+	int viznum = copyCount[toViz];
+	copyCombo->setCurrentItem(0);
+	performGuiCopyInstanceToViz(viznum);
+}
 
 //There are text changed events for flow (requiring rebuilding flow data),
 //for graphics (requiring regenerating flow graphics), and
@@ -461,17 +470,14 @@ void FlowEventRouter::setFlowTabRangeTextChanged(const QString&){
 
 
 void FlowEventRouter::
-setFlowEnabled(int val){
-	//If there's no window, or no datamgr, ignore this.
+setFlowEnabled(bool val, int instance){
 	
-	if (Session::getInstance()->getDataMgr() == 0) {
-		EnableDisable->setCurrentItem(0);
-		return;
-	}
-	FlowParams* myFlowParams = VizWinMgr::getActiveFlowParams();
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	FlowParams* myFlowParams = vizMgr->getFlowParams(winnum, instance);
 	//Make sure this is a change:
-	if (myFlowParams->isEnabled() == (val==1) ) return;
-	guiSetEnabled(val==1);
+	if (myFlowParams->isEnabled() == val ) return;
+	guiSetEnabled(val, instance);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	updateRenderer(myFlowParams, !val, false);
@@ -568,36 +574,46 @@ setFlowNavigateMode(bool mode){
 
 
 //Insert values from params into tab panel.
-//This is called whenever the tab is displayed.
+//This is called whenever the tab is displayed
 //
 void FlowEventRouter::updateTab(){
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	Session::getInstance()->blockRecording();
 
+	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
+	else instanceTable->setEnabled(false);
+	instanceTable->rebuild(this);
+
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	int numViz = vizMgr->getNumVisualizers();
+	copyCombo->setEnabled(numViz>1);
+	if (numViz > 1) {
+		copyCombo->clear();
+		copyCombo->insertItem("Copy To:");
+		int copyNum = 1;
+		for (int i = 0; i<MAXVIZWINS; i++){
+			if (vizMgr->getVizWin(i) && winnum != i){
+				copyCombo->insertItem(vizMgr->getVizWinName(i));
+				//Remember the viznum corresponding to a combo item:
+				copyCount[copyNum++] = i;
+			}
+		}
+	}
     opacityMappingFrame->setMapperFunction(fParams->getMapperFunc());
     colorMappingFrame->setMapperFunction(fParams->getMapperFunc());
 
     opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().latin1());
     colorMappingFrame->setVariableName(colormapEntityCombo->currentText().latin1());
 
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	int instCount = vizMgr->getNumFlowInstances(winnum);
-	if(instCount != instanceCombo->count()){
-		instanceCombo->clear();
-		instanceCombo->setMaxCount(instCount);
-		for (int i = 0; i<instCount; i++){
-			instanceCombo->insertItem(QString::number(i), i);
-		}
-	}
-	instanceCombo->setCurrentItem(vizMgr->getCurrentFlowInstIndex(winnum));
+	
+	
 	deleteInstanceButton->setEnabled(vizMgr->getNumFlowInstances(winnum) > 1);
 	
 
 	//Get the region corners from the current applicable region panel,
 	//or the global one:
 	
-	EnableDisable->setCurrentItem((fParams->isEnabled()) ? 1 : 0);
 	
 	int flowType = fParams->flowIsSteady()? 0 : 1 ;
 	flowTypeCombo->setCurrentItem(flowType);
@@ -796,6 +812,7 @@ reinitTab(bool doOverride){
 	for (int i = 0; i< (int)colorMapEntity.size(); i++){
 		opacmapEntityCombo->insertItem(QString(opacMapEntity[i].c_str()));
 	}
+	updateTab();
 }
 
 //Methods that record changes in the history:
@@ -879,13 +896,13 @@ void FlowEventRouter::guiDoSeedList(bool isOn){
 }
 
 void FlowEventRouter::
-guiSetEnabled(bool on){
-	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+guiSetEnabled(bool on, int instance){
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	FlowParams* fParams = vizMgr->getFlowParams(winnum, instance);
 	if (on == fParams->isEnabled()) return;
 	confirmText(false);
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int inst = vizMgr->getActiveInstanceIndex(myParamsType);
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "enable/disable flow render",inst);
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "enable/disable flow render",instance);
 	fParams->setEnabled(on);
 	PanelCommand::captureEnd(cmd, fParams);
 }
