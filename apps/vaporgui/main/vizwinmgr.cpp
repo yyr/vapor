@@ -1200,16 +1200,6 @@ reinitializeParams(bool doOverride){
 	//
 	globalVPParams->reinit(doOverride);
 	
-	flowEventRouter->reinitTab(doOverride);
-	//Router can reinit before the params...?
-	dvrEventRouter->reinitTab(doOverride);
-	
-	probeEventRouter->reinitTab(doOverride);
-	
-	
-	animationEventRouter->reinitTab(doOverride);
-	globalAnimationParams->reinit(doOverride);
-
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if(vpParams[i]) vpParams[i]->reinit(doOverride);
 		if(rgParams[i]) rgParams[i]->reinit(doOverride);
@@ -1233,7 +1223,16 @@ reinitializeParams(bool doOverride){
 		if (vpParams[i] && rgParams[i]) vizWin[i]->getGLWindow()->resetView(getRegionParams(i), getViewpointParams(i));
 	}
 
+    //
+    // Reinitialize tabs
+    //
+	flowEventRouter->reinitTab(doOverride);
+	dvrEventRouter->reinitTab(doOverride);
+	probeEventRouter->reinitTab(doOverride);
+	animationEventRouter->reinitTab(doOverride);
+	globalAnimationParams->reinit(doOverride);
 }
+
 void VizWinMgr::
 setSelectionMode( GLWindow::mouseModeType m){ 
 	GLWindow::setCurrentMouseMode(m);
