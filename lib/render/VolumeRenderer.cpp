@@ -188,6 +188,8 @@ bool VolumeRenderer::supported(DvrParams::DvrType type)
           return false;
 #    endif
      }
+	default:
+	break;
   }
 
   return false;

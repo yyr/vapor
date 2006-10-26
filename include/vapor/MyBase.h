@@ -317,5 +317,78 @@ private:
 #endif
 };
 
+// 
+// Handle OS differences in 64-bit IO operators
+//
+
+
+// 64-bit fseek
+//
+
+#ifdef	FSEEK64
+#undef FSEEK64
+#endif
+
+#if	defined(WIN32)
+//Note: win32 won't seek beyond 32 bits
+#define	FSEEK64 fseek
+#endif
+
+#if	defined(Linux) || defined(AIX)
+#define	FSEEK64 fseeko64
+#endif
+
+#if	defined(Darwin)
+#define	FSEEK64 fseeko
+#endif
+
+#ifndef FSEEK64
+#define	FSEEK64 fseek64
+#endif
+
+// 64-bit fopen
+//
+
+#ifdef	FOPEN64
+#undef FOPEN64
+#endif
+
+#if	defined(WIN32) || defined(Darwin)
+#define	FOPEN64 fopen
+#endif
+
+#ifndef FOPEN64
+#define	FOPEN64 fopen64
+#endif
+
+// 64-bit stat
+//
+
+#ifdef	STAT64
+#undef STAT64
+#endif
+
+#ifdef	STAT64_T
+#undef STAT64_T
+#endif
+
+#if	defined(WIN32) 
+#define	STAT64_T	_stat
+#define	STAT64	_stat
+#endif
+
+#if	defined(Darwin)
+#define	STAT64_T stat
+#define	STAT64	stat
+#endif
+
+#ifndef STAT64
+#define	STAT64_T stat64
+#define	STAT64 stat64
+#endif
+
+
+
+
 #endif //MYBASE_H
 

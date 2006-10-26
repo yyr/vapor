@@ -135,7 +135,7 @@ $(MOC_DIR)/moc_%.cpp : $(UI_DIR)/%.h
 	@$(MAKE_MOCDIR)
 	@$(MOC) $< -o $@ 
 
-INCLUDE_DIRS += -I$(QTDIR)/include -I$(UI_DIR)
+INCLUDE_DIRS += -I$(QTDIR)/include -I$(QTDIR)/include/qt -I$(UI_DIR)
 #END OF ifdef QT
 endif
 

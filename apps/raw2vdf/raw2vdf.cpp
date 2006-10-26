@@ -43,7 +43,7 @@ using namespace VAPoR;
 //
 //	Command line argument stuff
 //
-struct {
+struct opt_t {
 	int	ts;
 	char *varname;
 	int level;
@@ -390,11 +390,7 @@ int	main(int argc, char **argv) {
 	//
 	if (metadata->GetVDFVersion() < 2) save_file(metafile);
 
-#ifndef WIN32
-	fp = fopen64(datafile, "r");
-#else
-	fp = fopen(datafile, "rb");
-#endif
+	fp = FOPEN64(datafile, "r");
 	if (! fp) {
 		cerr << ProgName << ": Could not open file \"" << 
 			datafile << "\" : " <<strerror(errno) << endl;

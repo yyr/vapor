@@ -17,7 +17,7 @@ using namespace VetsUtil;
 using namespace VAPoR;
 
 
-struct {
+struct opt_t {
 	int	ts;
 	char *varname;
 	int	level;
@@ -324,11 +324,7 @@ int	main(int argc, char **argv) {
 	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
 
-#ifdef WIN32
-	fp = fopen(datafile, "wb");
-#else
-	fp = fopen64(datafile, "w");
-#endif
+	fp = FOPEN64(datafile, "wb");
 	if (! fp) {
 		cerr << ProgName << ": Could not open file \"" << 
 			datafile << "\" : " <<strerror(errno) << endl;

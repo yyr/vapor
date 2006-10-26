@@ -86,9 +86,9 @@ typedef list<VECTOR3*> vtListSeedTrace;
 //////////////////////////////////////////////////////////////////////////
 // base class for all field lines, and the structure is like:
 //						vtCFieldLine
-//						/			\
+//						|			|
 //			vtCStreamLine			vtCTimeVaryingFieldLine
-//									/			|			\
+//									|			|			|
 //							vtCPathline		vtCTimeLine		vtCStreakLine
 //////////////////////////////////////////////////////////////////////////
 class FLOW_API vtCFieldLine : public VetsUtil::MyBase

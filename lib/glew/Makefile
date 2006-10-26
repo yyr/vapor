@@ -12,6 +12,11 @@ LIBRARIES += GL
 LIBRARY = GLEW
 endif
 
+ifeq ($(ARCH),Darwin)
+MAKEFILE_LDFLAGS += -framework OpenGL  -L/usr/X11R6/lib
+MAKEFILE_CFLAGS += -Wno-deprecated-declarations
+endif
+
 SHARED = 0
 FILES = glew
 

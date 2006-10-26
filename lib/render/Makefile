@@ -24,6 +24,12 @@ ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += -D"RENDER_EXPORTS"
 endif
 
+ifeq ($(ARCH),Darwin)
+MAKEFILE_INCLUDE_DIRS += -I/usr/X11R6/include
+MAKEFILE_LDFLAGS += -framework OpenGL  -L/usr/X11R6/lib
+MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor 
+endif
+
 MAKEFILE_CXXFLAGS += -I../params
 
 ifdef   EXPAT_INC_PATH

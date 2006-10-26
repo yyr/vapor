@@ -32,6 +32,12 @@ else
 MAKEFILE_LDFLAGS += -L$(QTDIR)/lib 
 endif
 
+ifeq ($(ARCH),Darwin)
+MAKEFILE_INCLUDE_DIRS += -I/usr/X11R6/include
+MAKEFILE_LDFLAGS += -framework OpenGL  -L/usr/X11R6/lib
+MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
+endif
+
 VPATH = ../guis ../main
 
 MOC_DIR = ../moc

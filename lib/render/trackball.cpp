@@ -177,7 +177,9 @@ void Trackball::TrackballSetMatrix()
     }
 }
 
+#ifndef	M_SQRT1_2
 #define M_SQRT1_2  0.707106781186547524401f
+#endif
 static float q90[3][4] = {
     { M_SQRT1_2, 0.0, 0.0, M_SQRT1_2 },
     { 0.0, M_SQRT1_2, 0.0, M_SQRT1_2 },
@@ -324,6 +326,8 @@ void Trackball::MouseOnTrackball(int eventNum, Qt::ButtonState thisButton, int x
 				break;
 			case Qt::RightButton :
 				TrackballZoom( x, y);
+				break;
+			default:
 				break;
 		}
 		//downTime = event->xmotion.time;

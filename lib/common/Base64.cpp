@@ -43,9 +43,9 @@ Base64::Base64() {
 
 	for(i= '0';i<='9';i++) _dTable[i]= 52+(i-'0');
 
-	_dTable['+']= 62;
-	_dTable['/']= 63;
-	_dTable['=']= 0;
+	_dTable[(int) '+']= 62;
+	_dTable[(int) '/']= 63;
+	_dTable[(int) '=']= 0;
 
 	_maxLineLength = 76 / 4;
 }
@@ -61,7 +61,7 @@ void Base64::Encode(
 
 	int ngrps = 0;	// num output groups for current line
 
-	int	ictr;
+	size_t	ictr;
 	for(ictr=0; ictr<(n-2); ictr+=3) {
 
 		output.push_back( _eTable[input[ictr+0]>>2] );
@@ -104,7 +104,7 @@ void Base64::EncodeStreamNext(
 	const unsigned char *input, size_t n, string &output
 ) {
 
-	for(int i=0; i<n; i++) { 
+	for(size_t i=0; i<n; i++) { 
 
 		_inbuf[_inbufctr++] = input[i];
 
@@ -161,7 +161,7 @@ size_t Base64::GetEncodeSize(size_t n) {
 int Base64::Decode(
 	const string &input, unsigned char *output, size_t *n
 ) {
-	int	ictr;
+	size_t	ictr;
 	int	c = 0;
 	unsigned char b[4];
 	int octr = 0;

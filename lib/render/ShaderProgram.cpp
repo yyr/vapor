@@ -88,8 +88,8 @@ bool ShaderProgram::loadFragmentShader(const char *filename)
 //----------------------------------------------------------------------------
 bool ShaderProgram::loadShader(const char *filename, GLenum shaderType)
 {
-  int length = 2896;
-  static int count = 0;
+//  int length = 2896;
+// static int count = 0;
 
   GLuint shader;
 

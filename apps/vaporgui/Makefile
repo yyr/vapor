@@ -55,6 +55,15 @@ LIBRARIES += GLU
 MAKEFILE_LDFLAGS += -L$(QTDIR)/lib 
 endif
 
+
+ifeq ($(ARCH),Darwin)
+MAKEFILE_INCLUDE_DIRS += -I/usr/X11R6/include
+MAKEFILE_LDFLAGS += -framework OpenGL  -L/usr/X11R6/lib
+MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
+endif   
+
+
+
 VPATH = guis misc main 
 
 QT_HEADERS := $(MISC_QT_HEADERS) $(MAIN_QT_HEADERS) $(GUI_QT_HEADERS)

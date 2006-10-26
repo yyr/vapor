@@ -61,7 +61,7 @@ void	MyBase::_SetErrMsg(
 	}
 
 	string formatstr(format);
-	int loc;
+	size_t loc;
 	while ((loc = formatstr.find("%M", 0)) != string::npos) {
 		formatstr.replace(loc, 2, strerror(errno), strlen(strerror(errno)));
 	}

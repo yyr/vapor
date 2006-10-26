@@ -1049,7 +1049,7 @@ void	AMRTree::_endElementHandler1(ExpatParseMgr* pm,
 void	AMRTree::_endElementHandler2(ExpatParseMgr* pm,
 	const string &tag
 ) {
-	ExpatStackElement *state = pm->getStateStackTop();
+	// ExpatStackElement *state = pm->getStateStackTop();
 
 	if (StrCmpNoCase(tag, AMRTreeBranch::_refinementLevelTag) == 0) {
 	}

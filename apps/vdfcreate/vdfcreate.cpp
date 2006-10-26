@@ -11,7 +11,7 @@ using namespace VAPoR;
 
 int	cvtToExtents(const char *from, void *to);
 
-struct {
+struct opt_t {
 	OptionParser::Dimension3D_T	dim;
 	OptionParser::Dimension3D_T	bs;
 	int	numts;

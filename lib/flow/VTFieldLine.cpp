@@ -29,12 +29,12 @@ vtCFieldLine::vtCFieldLine(CVectorField* pField):
 m_nNumSeeds(0),
 m_integrationOrder(FOURTH),
 m_timeDir(FORWARD),
+m_fInitStepSize(1.0),
 m_fLowerAngleAccuracy((float)cos(15.0*DEG_TO_RAD)),
 m_fUpperAngleAccuracy((float)cos(3.0*DEG_TO_RAD)),
 m_nMaxsize(MAX_LENGTH),
-m_fInitStepSize(1.0),
-m_fSamplingRate(1.0),
-m_pField(pField)
+m_pField(pField),
+m_fSamplingRate(1.0)
 {
 }
 

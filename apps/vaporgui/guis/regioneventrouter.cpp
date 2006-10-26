@@ -70,7 +70,7 @@
 using namespace VAPoR;
 
 
-RegionEventRouter::RegionEventRouter(QWidget* parent, const char* name): EventRouter(),RegionTab(parent,name){
+RegionEventRouter::RegionEventRouter(QWidget* parent, const char* name): RegionTab(parent,name), EventRouter() {
 	myParamsType = Params::RegionParamsType;
 }
 

@@ -68,7 +68,7 @@
 using namespace VAPoR;
 
 
-AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name): EventRouter(),AnimationTab(parent,name){
+AnimationEventRouter::AnimationEventRouter(QWidget* parent, const char* name) : AnimationTab(parent,name), EventRouter() {
 	myParamsType = Params::AnimationParamsType;
 }
 

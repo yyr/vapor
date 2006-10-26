@@ -779,7 +779,7 @@ void MainForm::fileSaveAs()
 	}
 	
 	if (!Session::getInstance()->saveToFile(fileout)){//Report error if can't save to file
-		MessageReporter::errorMsg("Failed to save session to: \n %s", filename);
+		MessageReporter::errorMsg("Failed to save session to: \n %s", filename.ascii());
 		fileout.close();
 		return;
 	}

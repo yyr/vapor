@@ -112,17 +112,9 @@ int    AMRIO::VariableExists(
 
 	if (mkpath(timestep, varname, &basename) < 0) return(0);
 
-#ifdef WIN32
-	struct _stat statbuf;
-#else
-	struct stat64 statbuf;
-#endif
+	struct STAT64 statbuf;
 
-#ifndef WIN32
-	if (stat64(basename.c_str(), &statbuf) < 0) return(0);
-#else
-	if (_stat(basename.c_str(), &statbuf) < 0) return (0);
-#endif
+	if (STAT64(basename.c_str(), &statbuf) < 0) return(0);
 	return(1);
 }
 
