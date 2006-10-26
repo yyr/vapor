@@ -234,7 +234,7 @@
                 </spacer>
                 <widget class="QFrame">
                     <property name="name">
-                        <cstring>frame15</cstring>
+                        <cstring>generalFrame</cstring>
                     </property>
                     <property name="frameShape">
                         <enum>StyledPanel</enum>
@@ -1069,7 +1069,7 @@
                 </spacer>
                 <widget class="QFrame">
                     <property name="name">
-                        <cstring>frame8</cstring>
+                        <cstring>seedingFrame</cstring>
                     </property>
                     <property name="frameShape">
                         <enum>StyledPanel</enum>
@@ -2165,7 +2165,7 @@
                 </spacer>
                 <widget class="QFrame">
                     <property name="name">
-                        <cstring>frame11</cstring>
+                        <cstring>graphicFrame</cstring>
                     </property>
                     <property name="frameShape">
                         <enum>StyledPanel</enum>

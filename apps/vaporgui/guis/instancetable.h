@@ -81,8 +81,6 @@ class RowCheckBox : public QCheckBox {
 		void toggleRow(bool value, int row);
 
 	protected:
-		
-		
 		int myRow;
 		bool doEmit;
 };

@@ -115,7 +115,7 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 			//Invert colors in selected checkbox:
 			checkbox->setPaletteForegroundColor(paletteBackgroundColor());
 			checkbox->setPaletteBackgroundColor(Qt::darkBlue);
-			//paletteForegroundColor());
+			
 		} else {
 			//default colors:
 			checkbox->setPaletteForegroundColor(paletteForegroundColor());
