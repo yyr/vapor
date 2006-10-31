@@ -1206,7 +1206,10 @@ reinitializeParams(bool doOverride){
 		for (int inst = 0; inst < getNumDvrInstances(i); inst++){
 			DvrParams* dParams = getDvrParams(i,inst);
 			dParams->reinit(doOverride);
-			dvrEventRouter->updateRenderer(dParams,dParams->isEnabled(),false);
+			//Turn off rendering:
+			bool wasEnabled = dParams->isEnabled();
+			dParams->setEnabled(false);
+			dvrEventRouter->updateRenderer(dParams,wasEnabled,false);
 		}
 		for (int inst = 0; inst < getNumProbeInstances(i); inst++){
 			ProbeParams* pParams = getProbeParams(i,inst);
@@ -1216,7 +1219,9 @@ reinitializeParams(bool doOverride){
 		for (int inst = 0; inst < getNumFlowInstances(i); inst++){
 			FlowParams* fParams = getFlowParams(i,inst);
 			fParams->reinit(doOverride);
-			flowEventRouter->updateRenderer(fParams,fParams->isEnabled(),false);
+			bool wasEnabled = fParams->isEnabled();
+			fParams->setEnabled(false);
+			flowEventRouter->updateRenderer(fParams,wasEnabled,false);
 		}
 		if(animationParams[i]) animationParams[i]->reinit(doOverride);
 		//setup near/far
@@ -1666,6 +1671,7 @@ void VizWinMgr::setFlowDataDirty(FlowParams* p){
 	flowRend->setDataDirty();
 	vw->updateGL();
 }
+
 bool VizWinMgr::flowDataIsDirty(FlowParams* p){
 	VizWin* vw = getVizWin(p->getVizNum());
 	if (!vw) return false;

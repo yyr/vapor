@@ -6,7 +6,7 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>0</x>
+            <x>1</x>
             <y>0</y>
             <width>470</width>
             <height>1306</height>
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout44</cstring>
+                <cstring>layout145</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -55,7 +55,7 @@
                         <cstring>textLabel1</cstring>
                     </property>
                     <property name="text">
-                        <string>Instance Control</string>
+                        <string>Renderer Control</string>
                     </property>
                     <property name="alignment">
                         <set>AlignCenter</set>
@@ -63,7 +63,7 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout43</cstring>
+                        <cstring>layout144</cstring>
                     </property>
                     <hbox>
                         <property name="name">
@@ -95,112 +95,132 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>53</width>
+                                    <width>35</width>
                                     <height>20</height>
                                 </size>
                             </property>
                         </spacer>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout42</cstring>
+                                <cstring>layout133</cstring>
                             </property>
-                            <grid>
+                            <vbox>
                                 <property name="name">
                                     <cstring>unnamed</cstring>
                                 </property>
-                                <widget class="QPushButton" row="1" column="0">
+                                <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>copyInstanceButton</cstring>
+                                        <cstring>layout132</cstring>
                                     </property>
-                                    <property name="minimumSize">
-                                        <size>
-                                            <width>120</width>
-                                            <height>0</height>
-                                        </size>
-                                    </property>
-                                    <property name="text">
-                                        <string>Copy Here</string>
-                                    </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>Make a copy of the current instance in the same visualizer</string>
-                                    </property>
-                                </widget>
-                                <spacer row="1" column="1">
-                                    <property name="name">
-                                        <cstring>spacer37</cstring>
-                                    </property>
-                                    <property name="orientation">
-                                        <enum>Horizontal</enum>
-                                    </property>
-                                    <property name="sizeType">
-                                        <enum>Expanding</enum>
-                                    </property>
-                                    <property name="sizeHint">
-                                        <size>
-                                            <width>41</width>
-                                            <height>20</height>
-                                        </size>
-                                    </property>
-                                </spacer>
-                                <widget class="QComboBox" row="1" column="2">
-                                    <item>
-                                        <property name="text">
-                                            <string>Copy To:</string>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
                                         </property>
-                                    </item>
-                                    <property name="name">
-                                        <cstring>copyCombo</cstring>
-                                    </property>
-                                    <property name="minimumSize">
-                                        <size>
-                                            <width>120</width>
-                                            <height>0</height>
-                                        </size>
-                                    </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>Select a visualizer where this renderer instance will be copied</string>
-                                    </property>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>newInstanceButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>New</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Create a new, default instance of this renderer</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer36</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>23</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>deleteInstanceButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Delete</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Delete current renderer Instance</string>
+                                            </property>
+                                        </widget>
+                                    </hbox>
                                 </widget>
-                                <widget class="QPushButton" row="0" column="0">
+                                <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>newInstanceButton</cstring>
+                                        <cstring>layout131</cstring>
                                     </property>
-                                    <property name="text">
-                                        <string>New</string>
-                                    </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>Create a new, default instance of this renderer</string>
-                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer37</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>23</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QComboBox">
+                                            <item>
+                                                <property name="text">
+                                                    <string>Duplicate In:</string>
+                                                </property>
+                                            </item>
+                                            <property name="name">
+                                                <cstring>copyCombo</cstring>
+                                            </property>
+                                            <property name="minimumSize">
+                                                <size>
+                                                    <width>120</width>
+                                                    <height>0</height>
+                                                </size>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Select a visualizer where this renderer instance will be copied</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer152</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
                                 </widget>
-                                <widget class="QPushButton" row="0" column="2">
-                                    <property name="name">
-                                        <cstring>deleteInstanceButton</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>Delete</string>
-                                    </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>Delete current renderer Instance</string>
-                                    </property>
-                                </widget>
-                                <spacer row="0" column="1">
-                                    <property name="name">
-                                        <cstring>spacer36</cstring>
-                                    </property>
-                                    <property name="orientation">
-                                        <enum>Horizontal</enum>
-                                    </property>
-                                    <property name="sizeType">
-                                        <enum>Expanding</enum>
-                                    </property>
-                                    <property name="sizeHint">
-                                        <size>
-                                            <width>41</width>
-                                            <height>20</height>
-                                        </size>
-                                    </property>
-                                </spacer>
-                            </grid>
+                            </vbox>
                         </widget>
                         <spacer>
                             <property name="name">
@@ -214,7 +234,7 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>52</width>
+                                    <width>34</width>
                                     <height>21</height>
                                 </size>
                             </property>
@@ -234,7 +254,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>39</height>
                         </size>
                     </property>
                 </spacer>

@@ -129,7 +129,7 @@ protected slots:
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();
-	void guiCopyInstance();
+	
 	void guiCopyInstanceTo(int toViz);
 	//Slots for probe panel:
 	void probeCenterRegion();

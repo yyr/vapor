@@ -106,6 +106,9 @@ public:
 	void setTimeSamplingStart(int val){timeSamplingStart = val;}
 	int getTimeSamplingEnd() {return timeSamplingEnd;}
 	void setTimeSamplingEnd(int val){timeSamplingEnd = val;}
+	bool isAutoScale(){return autoScale;}
+	void setAutoScale(bool val){autoScale = val;}
+	void setRegionChanged() {regionChanged = true;}
 	//Distinguish between the number of seed points specified in the
 	//current settings and the number actually used the last time
 	//the flow was calculated:
@@ -128,8 +131,14 @@ public:
 	std::string& getOpacMapEntity(int indx) {return opacMapEntity[indx];}
 	bool refreshIsAuto() {return autoRefresh;}
 	void setAutoRefresh(bool onOff) {autoRefresh = onOff;}
-	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady
+	bool flowIsSteady() {return (flowType == 0);} // 0= steady, 1 = unsteady, 2 = line advection
 	int getFlowType() {return flowType;}
+	int getSteadyDirection() { return steadyFlowDirection;}
+	int getUnsteadyDirection() { return unsteadyFlowDirection;}
+	void setSteadyDirection(int dir){steadyFlowDirection = dir;}
+	void setUnsteadyDirection(int dir){unsteadyFlowDirection = dir;}
+	float getSteadyFlowLength(){return steadyFlowLength;}
+	void setSteadyFlowLength(float val) {steadyFlowLength = val;}
 	
 	
 	
@@ -180,8 +189,10 @@ public:
 	void setMaxNumTrans(int maxNT) {maxNumRefinements = maxNT;}
 	float getIntegrationAccuracy() {return integrationAccuracy;}
 	void setIntegrationAccuracy(float val){integrationAccuracy = val;}
-	float getVelocityScale() {return velocityScale;}
-	void setVelocityScale(float val){velocityScale = val;}
+	float getSteadyScale() {return steadyScale;}
+	float getUnsteadyScale() {return unsteadyScale;}
+	void setSteadyScale(float val){steadyScale = val;}
+	void setUnsteadyScale(float val){unsteadyScale = val;}
 	
 	void setXVarNum(int varnum){varNum[0] = varnum;}
 	void setYVarNum(int varnum){varNum[1] = varnum;}
@@ -225,6 +236,8 @@ protected:
 	static const string _steadyFlowAttr;
 	static const string _integrationAccuracyAttr;
 	static const string _velocityScaleAttr;
+	static const string _steadyScaleAttr;
+	static const string _unsteadyScaleAttr;
 	static const string _timeSamplingAttr;
 	static const string _autoRefreshAttr;
 	static const string _periodicDimsAttr;
@@ -262,11 +275,19 @@ protected:
 	static const string _rightColorBoundAttr;
 	static const string _leftOpacityBoundAttr;
 	static const string _rightOpacityBoundAttr;
+	static const string _steadyDirectionAttr;
+	static const string _unsteadyDirectionAttr;
+	static const string _steadyFlowLengthAttr;
+	static const string _autoScaleAttr;
 	
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 	
 	//check if vector field is present for a timestep
 	bool validateVectorField(int timestep);
+
+	//Find the average vector flow value over current region, at specified resolution.
+	//Note:  this can be time-consuming!
+	float getMaxVectorMag(RegionParams* reg, int numRefnts, int timestep);
 	
 	int flowType; //steady = 0, unsteady = 1;
 	
@@ -276,7 +297,10 @@ protected:
 	int varNum[3]; //field variable num's in x, y, and z.
 	int comboVarNum[3];  //indices in combos
 	float integrationAccuracy;
-	float velocityScale;
+	float steadyScale;
+	float unsteadyScale;
+	
+	bool regionChanged;
 	int timeSamplingInterval;
 	int timeSamplingStart;
 	int timeSamplingEnd;
@@ -327,7 +351,7 @@ protected:
 
 	
 	bool autoRefresh;
-
+	bool autoScale;
 	bool doRake;
 	bool doSeedList;
 
@@ -336,6 +360,9 @@ protected:
 	//The flow data is regenerated:
 	
 	int numInjections;
+	int unsteadyFlowDirection; //either -1 or 1, backwards or forwards
+	int steadyFlowDirection; //either -1, 1, or 0 backwards, forwards, or both
+	float steadyFlowLength;
 
 };
 };

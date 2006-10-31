@@ -38,7 +38,8 @@ InstanceTable::InstanceTable(QWidget* parent, const char* name) : QTable(parent,
 
 	const int numRows = 6;
 	const int numCols = 1;
-
+	setColumnWidth(0,60);
+	//setColumnWidth(1,10);
 	setNumRows(numRows);
 	setNumCols(numCols);
 
@@ -46,14 +47,15 @@ InstanceTable::InstanceTable(QWidget* parent, const char* name) : QTable(parent,
 	setFocusPolicy(QWidget::ClickFocus);
     QHeader *header = horizontalHeader();
    
-    header->setLabel( 0, QObject::tr( "Enabled?" ));
+    header->setLabel( 0, QObject::tr( "View" ));
 	
     setRowMovingEnabled(FALSE);
 	setSelectionMode(QTable::SingleRow);
 
-	setMaximumWidth(150);
+	setMaximumWidth(140);
 	setMaximumHeight(100);
 	setHScrollBarMode(QScrollView::AlwaysOff);
+	setLeftMargin(50);
 	numcheckboxes = 0;
 	
 	
@@ -93,6 +95,7 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 	
 	if(numInsts < numcheckboxes) numcheckboxes = numInsts;
 
+	QHeader* vertHead = verticalHeader();
 	//put existing checkboxes in proper state, or create new ones:
 	
 	for (int r = 0; r<numInsts; r++){
@@ -100,7 +103,7 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 		RenderParams* rParams = (RenderParams*)vizMgr->getParams(winnum,renderType,r);
 		if( r < numcheckboxes) checkbox = checkBoxList[r];
 		else {
-			checkbox = new RowCheckBox(r,"Enabled", this);
+			checkbox = new RowCheckBox(r,0, this);
 			checkBoxList[r] = checkbox;
 			setCellWidget(r,0,checkbox);
 			connect(checkbox,SIGNAL(toggleRow(bool, int)),this, SLOT(enableChecked(bool,int)));
@@ -111,6 +114,10 @@ void InstanceTable::rebuild(EventRouter* myRouter){
 		checkbox->setEnabled(true);
 		
 		checkbox->makeEmit(true);
+
+		
+		vertHead->setLabel(r,QString("Instance: ")+QString::number(r+1)+ " ");
+
 		if (r == selectedInstance){
 			//Invert colors in selected checkbox:
 			checkbox->setPaletteForegroundColor(paletteBackgroundColor());
@@ -149,6 +156,7 @@ RowCheckBox::RowCheckBox(int row, const QString& text, QWidget* parent) :
 	myRow = row;
 	doEmit = false;
 	connect(this,SIGNAL(toggled(bool)),this,SLOT(toggleme(bool)));
+	
 }
 
 void RowCheckBox::toggleme(bool value) {

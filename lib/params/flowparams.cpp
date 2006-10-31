@@ -64,15 +64,22 @@ using namespace VAPoR;
 	const string FlowParams::_steadyFlowAttr = "SteadyFlow";
 	const string FlowParams::_integrationAccuracyAttr = "IntegrationAccuracy";
 	const string FlowParams::_velocityScaleAttr = "velocityScale";
+	const string FlowParams::_steadyScaleAttr = "steadyScale";
+	const string FlowParams::_unsteadyScaleAttr = "unsteadyScale";
 	const string FlowParams::_timeSamplingAttr = "SamplingTimes";
 	const string FlowParams::_autoRefreshAttr = "AutoRefresh";
+	const string FlowParams::_autoScaleAttr = "AutoScale";
+	
 	
 	
 	//Geometry variables:
+	const string FlowParams::_steadyDirectionAttr = "steadyDirection";
+	const string FlowParams::_unsteadyDirectionAttr = "unsteadyDirection";
 	const string FlowParams::_geometryTag = "FlowGeometry";
 	const string FlowParams::_geometryTypeAttr = "GeometryType";
 	const string FlowParams::_objectsPerFlowlineAttr = "ObjectsPerFlowline";
 	const string FlowParams::_displayIntervalAttr = "DisplayInterval";
+	const string FlowParams::_steadyFlowLengthAttr = "SteadyFlowLength";
 	const string FlowParams::_shapeDiameterAttr = "ShapeDiameter";
 	const string FlowParams::_arrowDiameterAttr = "ArrowheadDiameter";
 	const string FlowParams::_colorMappedEntityAttr = "ColorMappedEntityIndex";
@@ -113,8 +120,11 @@ FlowParams::~FlowParams(){
 //Set everything in sight to default state:
 void FlowParams::
 restart() {
-	
-	
+	autoScale = true;
+	regionChanged = true;
+	steadyFlowDirection = 0;
+	unsteadyFlowDirection = 0;
+	steadyFlowLength = 1.f;
 	periodicDim[0]=periodicDim[1]=periodicDim[2]=false;
 	autoRefresh = true;
 	enabled = false;
@@ -134,7 +144,8 @@ restart() {
 	comboVarNum[1] = 1;
 	comboVarNum[2] = 2;
 	integrationAccuracy = 0.5f;
-	velocityScale = 1.0f;
+	steadyScale = 1.0f;
+	unsteadyScale = 1.0f;
 	constantColor = qRgb(255,0,0);
 	constantOpacity = 1.f;
 	timeSamplingInterval = 1;
@@ -255,7 +266,7 @@ deepRCopy(){
 bool FlowParams::
 reinit(bool doOverride){
 	int i;
-	
+	if(doOverride) restart();
 	int nlevels = DataStatus::getInstance()->getNumTransforms();
 	
 	setMaxNumTrans(nlevels);
@@ -267,6 +278,7 @@ reinit(bool doOverride){
 	editMode = true;
 	// set the params state based on whether we are overriding or not:
 	if (doOverride) {
+		
 		numRefinements = 0;
 		seedTimeStart = minFrame;
 		seedTimeEnd = maxFrame;
@@ -479,8 +491,8 @@ reinit(bool doOverride){
 	
 	numComboVariables = newNumComboVariables;
 	
-	//Always disable
-	setEnabled(false);
+	//Don't disable, keep previous state
+	//setEnabled(false);
 
 	setMinColorEditBound(getMinColorMapBound(),getColorMapEntityIndex());
 	setMaxColorEditBound(getMaxColorMapBound(),getColorMapEntityIndex());
@@ -664,6 +676,22 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 	
 	if (!myFlowLib) return 0;
 	
+	//If we are doing autoscale, calculate the average field 
+	//magnitude at lowest resolution, over the full domain:
+	if (autoScale && regionChanged && flowType != 1){
+		float avgMag = getMaxVectorMag(rParams, 0, timeStep);
+		if (avgMag == 0.f) avgMag = 1.f;
+		regionChanged = false;
+		//Scale the steady field so that it will go 1.0 distance in unit time
+		//in one time unit
+		const float* fullExtents = DataStatus::getInstance()->getExtents();
+		float diff[3];
+		vsub(fullExtents, fullExtents+3, diff);
+		float dist = sqrt(vdot(diff, diff));
+		steadyScale = dist/avgMag;
+		//And set the steadyScale accordingly
+	}
+
 	float* speeds = 0;
 	
 		
@@ -770,11 +798,14 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
 
 	if (flowType == 0) { //steady
+		
 		myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
-		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(-firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
+		float flowLen = (float)steadyFlowLength;
+		if (steadyFlowDirection == 0)flowLen = flowLen/2.f; 
+		myFlowLib->ScaleTimeStepSizes(steadyScale, ((float)(flowLen))/(float)objectsPerFlowline);
 	} else {
 		myFlowLib->SetTimeStepInterval(timeSamplingStart,timeSamplingEnd, timeSamplingInterval);
-		myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(maxFrame - minFrame))/(float)objectsPerFlowline);
+		myFlowLib->ScaleTimeStepSizes(unsteadyScale, ((float)(maxFrame - minFrame))/(float)objectsPerFlowline);
 	}
 	
 	int numPrePoints=0, numPostPoints=0;
@@ -783,21 +814,25 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 		
 		numInjections = 1;
 
-		//Note:  Following code duplicates calcMaxPoints
+		
+		//Note:  Following duplicates code in calcMaxPoints()
 		maxPoints = objectsPerFlowline+1;
 		if (maxPoints < 2) maxPoints = 2;
-		//If bidirectional allocate between prePoints and postPoints
-		numPrePoints = (int)(0.5f+(float)maxPoints* (float)(-firstDisplayFrame)/(float)(-firstDisplayFrame+lastDisplayFrame));
-		//Make sure these are valid (i.e. not == 1) and
-		//adjust maxPoints accordingly
-		if (numPrePoints == 1) numPrePoints = 2;
-		numPostPoints = maxPoints - numPrePoints;
-		if (numPostPoints == 1) numPostPoints = 2;
-		if (numPrePoints > 0){
-			if( numPostPoints > 0) maxPoints = numPrePoints+numPostPoints -1;
-			else maxPoints = numPrePoints;
-		}
+		if (steadyFlowDirection == 0 && maxPoints < 4) maxPoints = 4;
 
+		//If bidirectional allocate between prePoints and postPoints
+		if (steadyFlowDirection == 0){
+			numPrePoints = maxPoints/2;
+			numPostPoints = maxPoints - numPrePoints;
+			maxPoints--;
+		} else if (steadyFlowDirection < 0){
+			numPrePoints = maxPoints;
+			numPostPoints = 0;
+		} else {
+			numPrePoints = 0;
+			numPostPoints = maxPoints;
+		}
+		
 		//If there are prePoints, temporarily allocate space for pre- and post-points
 		
 		if (numPrePoints > 0){
@@ -875,13 +910,14 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 		}
 		
 	}
-
-	///call the flowlib
+	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	if (flowType == 0){ //steady
 		bool rc = true;
+		float flowLen = steadyFlowLength;
+		if (steadyFlowDirection == 0) flowLen /= 2;
 		if (numPrePoints>0){
-			myFlowLib->ScaleTimeStepSizes(-velocityScale, ((float)(-firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
+			myFlowLib->ScaleTimeStepSizes(-steadyScale, (flowLen/(float)objectsPerFlowline));
 			if (isRake){
 				rc = myFlowLib->GenStreamLines(prePointData, numPrePoints, randomSeed, preSpeeds);
 			} else {
@@ -889,7 +925,7 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 			}
 		}
 		if (rc && numPostPoints > 0) {
-			myFlowLib->ScaleTimeStepSizes(velocityScale, ((float)(-firstDisplayFrame+lastDisplayFrame))/(float)objectsPerFlowline);
+			myFlowLib->ScaleTimeStepSizes(steadyScale, ((float)(flowLen))/(float)objectsPerFlowline);
 			if (isRake){
 				rc = myFlowLib->GenStreamLines(postPointData,numPostPoints,randomSeed,postSpeeds);
 			} else {
@@ -1036,8 +1072,12 @@ buildNode() {
 	attrs[_integrationAccuracyAttr] = oss.str();
 
 	oss.str(empty);
-	oss << (double)velocityScale;
-	attrs[_velocityScaleAttr] = oss.str();
+	oss << (double)steadyScale;
+	attrs[_steadyScaleAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)unsteadyScale;
+	attrs[_unsteadyScaleAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (double)integrationAccuracy;
@@ -1060,6 +1100,13 @@ buildNode() {
 	else 
 		oss << "false";
 	attrs[_autoRefreshAttr] = oss.str();
+	
+	oss.str(empty);
+	if (autoScale)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_autoScaleAttr] = oss.str();
 
 	oss.str(empty);
 	if (flowType == 0) oss << "true";
@@ -1243,6 +1290,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		mapperFunction = new MapperFunction(this, 8);
 
 		int newNumVariables = 0;
+		//Default autoscale to false, consistent with pre-1.2
+		autoScale = false;
 		//If it's a Flow tag, save 11 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -1283,6 +1332,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _autoRefreshAttr) == 0) {
 				if (value == "true") autoRefresh = true; else autoRefresh = false;
 			}
+			else if (StrCmpNoCase(attribName, _autoScaleAttr) == 0) {
+				if (value == "true") autoScale = true; else autoScale = false;
+			}
 			else if (StrCmpNoCase(attribName, _steadyFlowAttr) == 0) {
 				if (value == "true") setFlowType(0); else setFlowType(1);
 			}
@@ -1293,7 +1345,14 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				ist >> integrationAccuracy;
 			}
 			else if (StrCmpNoCase(attribName, _velocityScaleAttr) == 0){
-				ist >> velocityScale;
+				ist >> steadyScale;
+				ist >> unsteadyScale;
+			}
+			else if (StrCmpNoCase(attribName, _steadyScaleAttr) == 0){
+				ist >> steadyScale;
+			}
+			else if (StrCmpNoCase(attribName, _unsteadyScaleAttr) == 0){
+				ist >> unsteadyScale;
 			}
 			else if (StrCmpNoCase(attribName, _timeSamplingAttr) == 0){
 				ist >> timeSamplingStart;ist >>timeSamplingEnd; ist>>timeSamplingInterval;
@@ -1603,6 +1662,18 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 	
 	//Cycle through all the points.  Map to rgba as we go.
 	//
+	int firstSteadyStep=0, lastSteadyStep=0;
+	if (steadyFlowDirection < 0){
+		firstSteadyStep = -steadyFlowLength;
+	} else if (steadyFlowDirection > 0){
+		lastSteadyStep = steadyFlowLength;
+	} else {
+		firstSteadyStep = -steadyFlowLength/2;
+		lastSteadyStep = steadyFlowLength/2;
+	}
+
+	
+
 	for (int i = 0; i<numInjections; i++){
 		for (int j = 0; j<numSeeds; j++){
 			for (int k = 0; k<maxPoints; k++) {
@@ -1616,8 +1687,8 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 					case (1): //age
 						if (flowIsSteady())
 							//Map k in [0..objectsPerFlowline] to the interval (firstDisplayFrame, lastDisplayFrame)
-							opacVar =  (float)firstDisplayFrame +
-								(float)k*((float)(lastDisplayFrame-firstDisplayFrame))/((float)objectsPerFlowline);
+							opacVar =  (float)firstSteadyStep +
+								(float)k*((float)(lastSteadyStep-firstSteadyStep))/((float)objectsPerFlowline);
 						else
 							opacVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
 						break;
@@ -1660,8 +1731,8 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 						break;
 					case (1): //age
 						if (flowIsSteady())
-							colorVar = (float)firstDisplayFrame +
-								(float)k*((float)(lastDisplayFrame-firstDisplayFrame))/((float)objectsPerFlowline);
+							colorVar = (float)firstSteadyStep +
+								(float)k*((float)(lastSteadyStep-firstSteadyStep))/((float)objectsPerFlowline);
 						else
 							colorVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
 						break;
@@ -1802,7 +1873,11 @@ float FlowParams::minRange(int index, int timestep){
 		case (0): return 0.f;
 		case (1): 
 			//Need to fix this for unsteady
-			if (flowIsSteady())return (float)(firstDisplayFrame);
+			if (flowIsSteady()){
+				if (steadyFlowDirection == -1) return (-steadyFlowLength);
+				if (steadyFlowDirection == 1) return (0);
+				return (-steadyFlowLength/2);
+			}
 			else return (0.f);
 		case (2): return (0.f);//speed
 		case (3): //seed index.  Goes from -1 to -(rakesize)
@@ -1820,8 +1895,12 @@ float FlowParams::maxRange(int index, int timestep){
 	
 	switch(index){
 		case (0): return 1.f;
-		case (1): if (flowIsSteady()) return (float)(getLastDisplayFrame());
-			
+		case (1): if (flowIsSteady()){
+				if (steadyFlowDirection == -1) return (0);
+				if (steadyFlowDirection == 1) return (steadyFlowLength);
+				return (steadyFlowLength/2);
+			}
+			//unsteady:
 			return (float)maxFrame;
 		case (2): //speed
 			for (int k = 0; k<3; k++){
@@ -1940,17 +2019,22 @@ int FlowParams::calcMaxPoints(){
 		
 		maxPoints = objectsPerFlowline+1;
 		if (maxPoints < 2) maxPoints = 2;
+		if (steadyFlowDirection == 0 && maxPoints < 4) maxPoints = 4;
 		//If bidirectional allocate between prePoints and postPoints
-		numPrePoints = (int)(0.5f+(float)maxPoints* (float)(-firstDisplayFrame)/(float)(-firstDisplayFrame+lastDisplayFrame));
-		//Make sure these are valid (i.e. not == 1) and
-		//adjust maxPoints accordingly
-		if (numPrePoints == 1) numPrePoints = 2;
-		numPostPoints = maxPoints - numPrePoints;
-		if (numPostPoints == 1) numPostPoints = 2;
-		if (numPrePoints > 0){
-			if( numPostPoints > 0) maxPoints = numPrePoints+numPostPoints -1;
-			else maxPoints = numPrePoints;
+		if (steadyFlowDirection == 0){
+			numPrePoints = maxPoints/2;
+			numPostPoints = maxPoints - numPrePoints;
+			//Midpoint is used by both post- and pre-points so maxPoints
+			//is one less than the sum:
+			maxPoints--;
+		} else if (steadyFlowDirection < 0){
+			numPrePoints = maxPoints;
+			numPostPoints = 0;
+		} else {
+			numPrePoints = 0;
+			numPostPoints = maxPoints;
 		}
+		
 	} else {
 		
 		//For unsteady flow, the firstDisplayFrame and lastDisplayFrame give a window
@@ -1977,6 +2061,56 @@ int FlowParams::calcNumSeedPoints(bool rake, int timeStep){
 		}
 	}
 	return seedCounter;
+}
+//Function to calculate the average magnitude of the vector field over specified region
+//Plan on using this to help automatically set vector scale factor.
+float FlowParams::getMaxVectorMag(RegionParams* rParams, int numrefts, int timeStep){
 	
+	float* varData[3];
 	
+	size_t min_dim[3],max_dim[3],min_bdim[3],max_bdim[3];
+	bool ok =  rParams->getAvailableVoxelCoords(numrefts, min_dim, max_dim, min_bdim,  max_bdim, (size_t)timeStep, varNum, 3);
+	if (!ok) return -1.f;
+
+
+	DataMgr* dataMgr = (DataMgr*)(DataStatus::getInstance()->getDataMgr());
+	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+	//Obtain the variables from the dataMgr:
+	for (int var = 0; var<3; var++){
+		varData[var] = dataMgr->GetRegion((size_t)timeStep,
+			DataStatus::getInstance()->getVariableName(varNum[var]).c_str(),
+			numrefts, min_bdim, max_bdim, 1);
+		if (!varData[var]) {
+			//release currently locked regions:
+			for (int k = 0; k<var; k++){
+				dataMgr->UnlockRegion(varData[k]);
+			}
+			QApplication::restoreOverrideCursor();
+			return -2.f;
+		}	
+	}
+	int bSize =  (int)(*(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize()));
+	int numPts = 0;
+	float dataMax = 0.f;
+	//OK, we got the data. find the max:
+	for (size_t i = min_dim[0]; i<=max_dim[0]; i++){
+		for (size_t j = min_dim[1]; j<=max_dim[1]; j++){
+			for (size_t k = min_dim[2]; k<=max_dim[2]; k++){
+				int xyzCoord = (i - min_bdim[0]*bSize) +
+					(j - min_bdim[1]*bSize)*(bSize*(max_bdim[0]-min_bdim[0]+1)) +
+					(k - min_bdim[2]*bSize)*(bSize*(max_bdim[1]-min_bdim[1]+1))*(bSize*(max_bdim[0]-min_bdim[0]+1));
+				float sumsq = varData[0][xyzCoord]*varData[0][xyzCoord]+varData[1][xyzCoord]*varData[1][xyzCoord]+varData[2][xyzCoord]*varData[2][xyzCoord];
+				dataMax = Max(dataMax, sqrt(sumsq));
+				//dataSum += sqrt(sumsq);
+				numPts++;
+			}
+		}
+	}
+	for (int k = 0; k<3; k++){
+		dataMgr->UnlockRegion(varData[k]);
+	}
+	QApplication::restoreOverrideCursor();
+	if (numPts == 0) return -1.f;
+	//return (dataSum/(float)numPts);
+	return dataMax;
 }

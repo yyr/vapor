@@ -331,6 +331,7 @@ public:
 	void setDatarangeDirty(DvrParams* p); 
 	void setFlowGraphicsDirty(FlowParams* p);
 	void setFlowDataDirty(FlowParams* p);
+	
 	bool flowDataIsDirty(FlowParams* p);
 	//Tell the animationController that the frame counter has changed 
 	//for all the associated windows.

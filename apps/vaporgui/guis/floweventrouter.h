@@ -87,10 +87,14 @@ public slots:
 
 	void guiSetRakeToRegion();
 protected slots:
+	void toggleAdvanced();
+	void toggleShowMap();
+	void guiSetSteadyDirection(int comboIndex);
+	void guiSetUnsteadyDirection(int comboIndex);
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();
-	void guiCopyInstance();
+	
 	void guiCopyInstanceTo(int toViz);
 	//Slots for flow panel:
 	//three kinds of text changed for flow tab
@@ -130,10 +134,10 @@ protected slots:
 	void guiEditSeedList();
 	void guiLoadSeeds();
 	void guiSaveFlowLines();
+	
+	void setSteadyLength();
 	void flowOpacityScale();
-
-	
-	
+	void guiToggleAutoScale(bool isOn);
 
 protected:
 	void setXCenter(FlowParams*,int sliderval);
@@ -144,13 +148,13 @@ protected:
 	void setZSize(FlowParams*,int sliderval);
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	void guiSetOpacityScale( int scale);
+	void guiSetSteadyLength(int sliderpos);
 
-	//Methods that record changes in the history:
+	//Methods that record changes in the history are preceded by 'gui'
 	//
 	virtual void guiSetEnabled(bool, int);
-	
-	
 	void guiSetFlowType(int typenum);
+	
 	void guiSetXCenter(int sliderval);
 	void guiSetYCenter(int sliderval);
 	void guiSetZCenter(int sliderval);
@@ -169,6 +173,8 @@ protected:
 	bool mapBoundsChanged;
 
 	int copyCount[MAXVIZWINS+1];
+	bool showAdvanced;
+	bool showMapEditor;
 	
 };
 

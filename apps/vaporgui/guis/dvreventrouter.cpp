@@ -151,7 +151,6 @@ DvrEventRouter::hookUpTab()
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
 	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
-	connect (copyInstanceButton, SIGNAL(clicked()), this, SLOT(guiCopyInstance()));
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setDvrEnabled(bool,int)));
 
@@ -176,12 +175,10 @@ void DvrEventRouter::guiNewInstance(){
 void DvrEventRouter::guiDeleteInstance(){
 	performGuiDeleteInstance();
 }
-void DvrEventRouter::guiCopyInstance(){
-	//If there is more than one visualizer, provide option of specifying another viz.
-	performGuiCopyInstance();
-}
+
 void DvrEventRouter::guiCopyInstanceTo(int toViz){
 	if (toViz == 0) return; 
+	if (toViz == 1) {performGuiCopyInstance(); return;}
 	int viznum = copyCount[toViz];
 	copyCombo->setCurrentItem(0);
 	performGuiCopyInstanceToViz(viznum);
@@ -428,11 +425,13 @@ void DvrEventRouter::updateTab(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	int numViz = vizMgr->getNumVisualizers();
-	copyCombo->setEnabled(numViz>1);
+	
+	
+	copyCombo->clear();
+	copyCombo->insertItem("Duplicate In:");
+	copyCombo->insertItem("This visualizer");
 	if (numViz > 1) {
-		copyCombo->clear();
-		copyCombo->insertItem("Copy To:");
-		int copyNum = 1;
+		int copyNum = 2;
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if (vizMgr->getVizWin(i) && winnum != i){
 				copyCombo->insertItem(vizMgr->getVizWinName(i));

@@ -116,7 +116,7 @@ protected slots:
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();
-	void guiCopyInstance();
+	
 	void guiCopyInstanceTo(int toViz);
 	void guiSetType(int val);
 	void guiSetComboVarNum(int val);

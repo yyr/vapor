@@ -91,6 +91,8 @@ public:
 	//all timesteps.
 	void setDataDirty();
 	void setGraphicsDirty();
+	void setRegionDirty(bool dirty = true) {regionDirty = dirty;}
+	bool regionIsDirty() {return regionDirty;}
 
 	bool rebuildFlowData(int timeStep, bool doRake);
 	void setRegionValid(bool trueFalse) {regionIsValid = trueFalse;}
@@ -173,6 +175,7 @@ protected:
 	int maxPoints;
 	int numSeedPoints;
 	bool regionIsValid;
+	bool regionDirty;
 
 	//FlowParams* myFlowParams;
 	//Remember the last time step that was rendered, for capturing.

@@ -267,7 +267,7 @@ reinit(bool doOverride){
 	
 	numVariables = totNumVariables;
 	//bool wasEnabled = enabled;
-	setEnabled(false);
+	//setEnabled(false);
 	
 	return true;
 }

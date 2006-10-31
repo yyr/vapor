@@ -22,6 +22,7 @@
 //Annoying unreferenced formal parameter warning
 #pragma warning( disable : 4100 )
 #endif
+#include <qlayout.h>
 #include <qdesktopwidget.h>
 #include <qrect.h>
 #include <qmessagebox.h>
@@ -53,6 +54,7 @@
 #include <qspinbox.h>
 #include <qslider.h>
 #include <qlabel.h>
+#include <qtable.h>
 
 #include <vector>
 #include <string>
@@ -84,8 +86,8 @@ FlowEventRouter::FlowEventRouter(QWidget* parent,const char* name): FlowTab(pare
 	flowDataChanged = false;
 	mapBoundsChanged = false;
 	flowGraphicsChanged = false;
-	QToolTip::add(scaleFieldEdit,
-		"This factor scales the vector field magnitude.\nIf too small, display will just show diamonds (fixed points).\nIf too large, flow will consist of straight lines due to flow rapidly exiting region.");
+	showAdvanced = false;
+	showMapEditor = true;
 	
 }
 
@@ -99,13 +101,29 @@ FlowEventRouter::~FlowEventRouter(){
 void
 FlowEventRouter::hookUpTab()
 {
+	connect (showAdvancedButton, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
+	connect (hideAdvanced1, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
+	connect (hideAdvanced2, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
+	connect (hideAdvanced3, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
+	connect (autoScaleCheckbox1, SIGNAL(toggled(bool)), this, SLOT(guiToggleAutoScale(bool)));
+	connect (autoScaleCheckbox2, SIGNAL(toggled(bool)), this, SLOT(guiToggleAutoScale(bool)));
+	connect (showMappingButton, SIGNAL(clicked()), this, SLOT(toggleShowMap()));
+	connect (hideMappingButton, SIGNAL(clicked()), this, SLOT(toggleShowMap()));
 	
+	connect (steadyLengthSlider, SIGNAL(sliderReleased()), this, SLOT (setSteadyLength()));
 	connect (flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( setFlowType(int) ) );
+	connect (steadyDirectionCombo, SIGNAL( activated(int) ), this, SLOT( guiSetSteadyDirection(int) ) );
+	connect (unsteadyDirectionCombo, SIGNAL( activated(int) ), this, SLOT( guiSetUnsteadyDirection(int) ) );
+	
 	connect (autoRefreshCheckbox, SIGNAL(toggled(bool)), this, SLOT (guiSetAutoRefresh(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
-	connect (xCoordVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboVarNum(int)));
-	connect (yCoordVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboVarNum(int)));
-	connect (zCoordVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboVarNum(int)));
+	connect (xSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboVarNum(int)));
+	connect (ySteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboVarNum(int)));
+	connect (zSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboVarNum(int)));
+	connect (xUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboVarNum(int)));
+	connect (yUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboVarNum(int)));
+	connect (zUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboVarNum(int)));
+	
 	connect (randomCheckbox,SIGNAL(toggled(bool)),this, SLOT(guiSetRandom(bool)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYCenter()));
@@ -124,6 +142,9 @@ FlowEventRouter::hookUpTab()
 	connect (periodicYCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicY(bool)));
 	connect (periodicZCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicZ(bool)));
 	//Line edits.  Note that the textChanged may either affect the flow or the geometry
+	connect (steadyLengthEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (steadyLengthEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	
 	connect (xSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (xSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (ySeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -134,14 +155,28 @@ FlowEventRouter::hookUpTab()
 	connect (constantOpacityEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (integrationAccuracyEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (integrationAccuracyEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (scaleFieldEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (scaleFieldEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (timesampleStartEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (timesampleStartEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (timesampleEndEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (timesampleEndEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (timesampleIncrementEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (timesampleIncrementEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+		
+	connect (steadyScaleEdit1,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (steadyScaleEdit1,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (steadyScaleEdit2,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (steadyScaleEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	
+	connect (unsteadyScaleEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (unsteadyScaleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	
+	connect (timesampleStartEdit1,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (timesampleStartEdit1,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (timesampleEndEdit1,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (timesampleEndEdit1,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (timesampleIncrementEdit1,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (timesampleIncrementEdit1,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (timesampleStartEdit2,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (timesampleStartEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (timesampleEndEdit2,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (timesampleEndEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (timesampleIncrementEdit2,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (timesampleIncrementEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	
 	connect (randomSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (randomSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (xCenterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -215,7 +250,6 @@ FlowEventRouter::hookUpTab()
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
 	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
-	connect (copyInstanceButton, SIGNAL(clicked()), this, SLOT(guiCopyInstance()));
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setFlowEnabled(bool,int)));
 
@@ -225,7 +259,14 @@ FlowEventRouter::hookUpTab()
  * Slots associated with FlowTab:
  *********************************************************************************/
 
-
+void FlowEventRouter::toggleShowMap(){
+	showMapEditor = !showMapEditor;
+	updateTab();
+}
+void FlowEventRouter::toggleAdvanced(){
+	showAdvanced = !showAdvanced;
+	updateTab();
+}
 void FlowEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
@@ -264,6 +305,70 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		setEditorDirty();
 	}
 	if (flowDataChanged){
+		switch (fParams->getFlowType()){
+			case (0) :  //Steady:
+			{
+				
+				float velocityScale = steadyScaleEdit1->text().toFloat();
+				if (velocityScale < 1.e-20f){
+					velocityScale = 1.e-20f;
+					steadyScaleEdit1->setText(QString::number(velocityScale));
+				}
+				fParams->setSteadyScale(velocityScale);
+				break;
+			}
+				
+				
+			case (1) : //Unsteady:
+			{
+				float velocityScale = unsteadyScaleEdit->text().toFloat();
+				if (velocityScale < 1.e-20f){
+					velocityScale = 1.e-20f;
+					unsteadyScaleEdit->setText(QString::number(velocityScale));
+				}
+				fParams->setUnsteadyScale(velocityScale);
+				
+				
+				fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
+				fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
+				fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
+				int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
+				if (!fParams->validateSampling(minFrame)){//did anything change?
+					timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
+					timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
+					timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
+				}
+
+				break;
+			}
+			case (2): //Flow line advection
+			{
+				
+				float steadyScale = steadyScaleEdit2->text().toFloat();
+				if (steadyScale < 1.e-20f){
+					steadyScale = 1.e-20f;
+					steadyScaleEdit2->setText(QString::number(steadyScale));
+				}
+				fParams->setSteadyScale(steadyScale);
+				float unsteadyScale = unsteadyScaleEdit->text().toFloat();
+				if (unsteadyScale < 1.e-20f){
+					unsteadyScale = 1.e-20f;
+					unsteadyScaleEdit->setText(QString::number(unsteadyScale));
+				}
+				fParams->setUnsteadyScale(unsteadyScale);
+				fParams->setTimeSamplingInterval(timesampleIncrementEdit2->text().toInt());
+				fParams->setTimeSamplingStart(timesampleStartEdit2->text().toInt());
+				fParams->setTimeSamplingEnd(timesampleEndEdit2->text().toInt());
+				int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
+				if (!fParams->validateSampling(minFrame)){//did anything change?
+					timesampleIncrementEdit2->setText(QString::number(fParams->getTimeSamplingInterval()));
+					timesampleStartEdit2->setText(QString::number(fParams->getTimeSamplingStart()));
+					timesampleEndEdit2->setText(QString::number(fParams->getTimeSamplingEnd()));
+				}
+
+				break;
+			}
+		}
 		float integrationAccuracy = integrationAccuracyEdit->text().toFloat();
 		if (integrationAccuracy < 0.f || integrationAccuracy > 1.f) {
 			if (integrationAccuracy > 1.f) integrationAccuracy = 1.f;
@@ -271,24 +376,12 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
 		}
 		fParams->setIntegrationAccuracy(integrationAccuracy);
-		float velocityScale = scaleFieldEdit->text().toFloat();
-		if (velocityScale < 1.e-20f){
-			velocityScale = 1.e-20f;
-			scaleFieldEdit->setText(QString::number(velocityScale));
+		float steadyFlowLen = steadyLengthEdit->text().toFloat();
+		if (steadyFlowLen != fParams->getSteadyFlowLength()){
+			if (steadyFlowLen < 0.01f || steadyFlowLen > 100.f) steadyFlowLen = 1.f;
+			fParams->setSteadyFlowLength(steadyFlowLen);
 		}
-		fParams->setVelocityScale(velocityScale);
 		
-		if (fParams->getFlowType() == 1){ //unsteady flow
-			fParams->setTimeSamplingInterval(timesampleIncrementEdit->text().toInt());
-			fParams->setTimeSamplingStart(timesampleStartEdit->text().toInt());
-			fParams->setTimeSamplingEnd(timesampleEndEdit->text().toInt());
-			int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
-			if (!fParams->validateSampling(minFrame)){//did anything change?
-				timesampleIncrementEdit->setText(QString::number(fParams->getTimeSamplingInterval()));
-				timesampleStartEdit->setText(QString::number(fParams->getTimeSamplingStart()));
-				timesampleEndEdit->setText(QString::number(fParams->getTimeSamplingEnd()));
-			}
-		}
 		fParams->setRandomSeed(randomSeedEdit->text().toUInt());
 
 		//Get slider positions from text boxes:
@@ -373,7 +466,19 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		}
 		geometrySamplesSlider->setValue((int)(256.0*log10((float)objectsPerFlowline)*0.33333));
 		fParams->setObjectsPerFlowline(objectsPerFlowline);
-		
+		//scale slider based on actual domain size:
+		float dist = 1.f;
+		if (DataStatus::getInstance()->getDataMgr()){
+			const float* fullExtents = DataStatus::getInstance()->getExtents();
+			float diff[3];
+			vsub(fullExtents, fullExtents+3, diff);
+			dist = sqrt(vdot(diff, diff));
+		}
+		float s = log10(fParams->getSteadyFlowLength()/dist)*0.5;
+		int spos = (int)(128.f*(s+1.f));
+		if (spos < 1) spos = 1;
+		if (spos > 256) spos = 256;
+		steadyLengthSlider->setValue(spos);
 	}
 	if (flowGraphicsChanged){
 		//change the parameters.  
@@ -432,11 +537,10 @@ void FlowEventRouter::guiDeleteInstance(){
 	performGuiDeleteInstance();
 	
 }
-void FlowEventRouter::guiCopyInstance(){
-	performGuiCopyInstance();
-}
+
 void FlowEventRouter::guiCopyInstanceTo(int toViz){
 	if (toViz == 0) return; 
+	if (toViz == 1) {performGuiCopyInstance();return;}
 	int viznum = copyCount[toViz];
 	copyCombo->setCurrentItem(0);
 	performGuiCopyInstanceToViz(viznum);
@@ -488,22 +592,7 @@ setFlowEnabled(bool val, int instance){
 void FlowEventRouter::
 setFlowType(int typenum){
 	guiSetFlowType(typenum);
-	//Activate/deactivate components associated with flow type:
-	if(typenum == 0){//steady:
-		seedtimeStartEdit->setEnabled(false);
-		seedtimeEndEdit->setEnabled(false);
-		seedtimeIncrementEdit->setEnabled(false);
-		timesampleStartEdit->setEnabled(false);
-		timesampleEndEdit->setEnabled(false);
-		timesampleIncrementEdit->setEnabled(false);
-	} else {//unsteady:
-		seedtimeStartEdit->setEnabled(true);
-		seedtimeEndEdit->setEnabled(true);
-		seedtimeIncrementEdit->setEnabled(true);
-		timesampleStartEdit->setEnabled(true);
-		timesampleEndEdit->setEnabled(true);
-		timesampleIncrementEdit->setEnabled(true);
-	}
+	updateTab();
 }
 
 
@@ -544,6 +633,11 @@ setFlowGeomSamples(){
 	int sliderPos = geometrySamplesSlider->value();
 	guiSetGeomSamples(sliderPos);
 }
+void FlowEventRouter::
+setSteadyLength(){
+	int sliderPos = steadyLengthSlider->value();
+	guiSetSteadyLength(sliderPos);
+}
 /*
  * Respond to user clicking the color button
  */
@@ -578,7 +672,112 @@ setFlowNavigateMode(bool mode){
 //
 void FlowEventRouter::updateTab(){
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
+	int flowType = fParams->getFlowType();
+	switch (flowType){
+		case (0) : //steady
+			steadyFieldFrame->show();
+			unsteadyFieldFrame->hide();
+			periodicFrame->show();
+			unsteadyGraphicFrame->hide();
+			steadyGraphicFrame->show();
+			seedTimeFrame->hide();
+			break;
+		case (1) : //unsteady
+			steadyFieldFrame->hide();
+			unsteadyFieldFrame->show();
+			periodicFrame->hide();
+			wizardButton->setText("Unsteady Flow Setup");
+			unsteadyGraphicFrame->show();
+			steadyGraphicFrame->hide();
+			seedTimeFrame->show();
+			break;
+		case(2) : //field line advection
+			steadyFieldFrame->show();
+			unsteadyFieldFrame->show();
+			periodicFrame->show();
+			wizardButton->setText("Flow Line Advection Setup");
+			unsteadyGraphicFrame->show();
+			steadyGraphicFrame->show();
+			seedTimeFrame->show();
+			break;
+		default :
+			assert(0);
+	}
+	if (showMapEditor){
+		mappingFrame->show();
+		showMappingFrame->hide();
+		
+	} else {
+		mappingFrame->hide();
+		showMappingFrame->show();
+	}
+
+	if (showAdvanced){
+		bool autoScale = fParams->isAutoScale();
+		switch (flowType){
+			case (0) : //steady
+				advancedSteadyFrame->show();
+				advancedUnsteadyFrame->hide();
+				advancedLineAdvectionFrame->hide();
+				steadyFieldFrame->show();
+				unsteadyFieldFrame->hide();
+				periodicFrame->show();
+				autoScaleCheckbox1->setChecked(autoScale);
+				steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
+				steadyScaleEdit1->setEnabled(!autoScale);
+				break;
+			case (1) : //unsteady
+				advancedSteadyFrame->hide();
+				advancedUnsteadyFrame->show();
+				advancedLineAdvectionFrame->hide();
+				timestepSampleTable1->horizontalHeader()->hide();
+				timestepSampleTable1->setTopMargin(0);
+				timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
+				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
+				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
+
+				break;
+			case(2) : //field line advection
+				advancedSteadyFrame->hide();
+				advancedUnsteadyFrame->hide();
+				advancedLineAdvectionFrame->show();
+				timestepSampleTable2->horizontalHeader()->hide();
+				timestepSampleTable2->setTopMargin(0);
+				timesampleIncrementEdit2->setText(QString::number(fParams->getTimeSamplingInterval()));
+				timesampleStartEdit2->setText(QString::number(fParams->getTimeSamplingStart()));
+				timesampleEndEdit2->setText(QString::number(fParams->getTimeSamplingEnd()));
+				autoScaleCheckbox2->setChecked(autoScale);
+				steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
+				steadyScaleEdit2->setEnabled(!autoScale);
+				break;
+			default :
+				assert(0);
+		}
+		showAdvancedFrame->hide();
+	} else { //Don't show advanced panels:
+		advancedSteadyFrame->hide();
+		advancedUnsteadyFrame->hide();
+		advancedLineAdvectionFrame->hide();
+		showAdvancedFrame->show();
+	}
+	updateGeometry();
+	adjustSize();
 	Session::getInstance()->blockRecording();
+
+	
+	if (flowType != 1) {
+		steadyLengthEdit->setText(QString::number(fParams->getSteadyFlowLength()));
+		steadyDirectionCombo->setCurrentItem(fParams->getSteadyDirection()+1);
+		if (showAdvanced) {
+			steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
+			steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
+		}
+	} 
+	if (flowType != 0) {
+		unsteadyScaleEdit->setText(QString::number(fParams->getUnsteadyScale()));
+		unsteadyDirectionCombo->setCurrentItem((1-fParams->getUnsteadyDirection())/2);
+	}
+	integrationAccuracyEdit->setText(QString::number(fParams->getIntegrationAccuracy()));
 
 	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
@@ -587,11 +786,11 @@ void FlowEventRouter::updateTab(){
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	int numViz = vizMgr->getNumVisualizers();
-	copyCombo->setEnabled(numViz>1);
+	copyCombo->clear();
+	copyCombo->insertItem("Duplicate In:");
+	copyCombo->insertItem("This visualizer");
 	if (numViz > 1) {
-		copyCombo->clear();
-		copyCombo->insertItem("Copy To:");
-		int copyNum = 1;
+		int copyNum = 2;
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if (vizMgr->getVizWin(i) && winnum != i){
 				copyCombo->insertItem(vizMgr->getVizWinName(i));
@@ -615,7 +814,7 @@ void FlowEventRouter::updateTab(){
 	//or the global one:
 	
 	
-	int flowType = fParams->flowIsSteady()? 0 : 1 ;
+	
 	flowTypeCombo->setCurrentItem(flowType);
 	
 	refinementCombo->setCurrentItem(fParams->getNumRefinements());
@@ -633,27 +832,18 @@ void FlowEventRouter::updateTab(){
 	int numVars = fParams->getNumComboVariables();
 	if (numVars < 4) numVars = 4;
 	
-	xCoordVarCombo->setCurrentItem(fParams->getComboVarnum(0));
-	yCoordVarCombo->setCurrentItem(fParams->getComboVarnum(1));
-	zCoordVarCombo->setCurrentItem(fParams->getComboVarnum(2));
+	xSteadyVarCombo->setCurrentItem(fParams->getComboVarnum(0));
+	ySteadyVarCombo->setCurrentItem(fParams->getComboVarnum(1));
+	zSteadyVarCombo->setCurrentItem(fParams->getComboVarnum(2));
+	xUnsteadyVarCombo->setCurrentItem(fParams->getComboVarnum(0));
+	yUnsteadyVarCombo->setCurrentItem(fParams->getComboVarnum(1));
+	zUnsteadyVarCombo->setCurrentItem(fParams->getComboVarnum(2));
 	
 	periodicXCheck->setChecked(fParams->getPeriodicDim(0));
 	periodicYCheck->setChecked(fParams->getPeriodicDim(1));
 	periodicZCheck->setChecked(fParams->getPeriodicDim(2));
 	
-	timesampleStartEdit->setEnabled(flowType == 1);
-	timesampleEndEdit->setEnabled(flowType == 1);
-	timesampleIncrementEdit->setEnabled(flowType == 1);
-
-	seedtimeIncrementEdit->setEnabled(flowType == 1);
-	seedtimeEndEdit->setEnabled(flowType == 1);
-	seedtimeStartEdit->setEnabled(flowType == 1);
-	if (flowType == 0){
-		displayIntervalLabel->setText("Begin/end display interval relative to seed time step");
-	} else {
-		displayIntervalLabel->setText("Begin/end display interval relative to current time step");
-	}
-
+	
 	rakeCheckbox->setChecked(fParams->rakeEnabled());
 	seedListCheckbox->setChecked(fParams->listEnabled());
 
@@ -698,11 +888,11 @@ void FlowEventRouter::updateTab(){
 	xSeedEdit->setText(QString::number(fParams->getNumGenerators(0)));
 	ySeedEdit->setText(QString::number(fParams->getNumGenerators(1)));
 	zSeedEdit->setText(QString::number(fParams->getNumGenerators(2)));
-	integrationAccuracyEdit->setText(QString::number(fParams->getIntegrationAccuracy()));
-	scaleFieldEdit->setText(QString::number(fParams->getVelocityScale()));
-	timesampleIncrementEdit->setText(QString::number(fParams->getTimeSamplingInterval()));
-	timesampleStartEdit->setText(QString::number(fParams->getTimeSamplingStart()));
-	timesampleEndEdit->setText(QString::number(fParams->getTimeSamplingEnd()));
+
+	unsteadyScaleEdit->setText(QString::number(fParams->getUnsteadyScale()));
+	
+	
+		
 	randomSeedEdit->setText(QString::number(fParams->getRandomSeed()));
 	geometrySamplesEdit->setText(QString::number(fParams->getObjectsPerFlowline()));
 	
@@ -770,20 +960,30 @@ reinitTab(bool doOverride){
 	int newNumComboVariables = DataStatus::getInstance()->getNumMetadataVariables();
 	//Set up the combo 
 	
-	xCoordVarCombo->clear();
-	xCoordVarCombo->setMaxCount(newNumComboVariables);
-	yCoordVarCombo->clear();
-	yCoordVarCombo->setMaxCount(newNumComboVariables);
-	zCoordVarCombo->clear();
-	zCoordVarCombo->setMaxCount(newNumComboVariables);
+	xSteadyVarCombo->clear();
+	xSteadyVarCombo->setMaxCount(newNumComboVariables);
+	ySteadyVarCombo->clear();
+	ySteadyVarCombo->setMaxCount(newNumComboVariables);
+	zSteadyVarCombo->clear();
+	zSteadyVarCombo->setMaxCount(newNumComboVariables);
+	xUnsteadyVarCombo->clear();
+	xUnsteadyVarCombo->setMaxCount(newNumComboVariables);
+	yUnsteadyVarCombo->clear();
+	yUnsteadyVarCombo->setMaxCount(newNumComboVariables);
+	zUnsteadyVarCombo->clear();
+	zUnsteadyVarCombo->setMaxCount(newNumComboVariables);
+
 	for (int i = 0; i< newNumComboVariables; i++){
 		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
 		//Direct conversion of std::string& to QString doesn't seem to work
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
-		xCoordVarCombo->insertItem(text);
-		yCoordVarCombo->insertItem(text);
-		zCoordVarCombo->insertItem(text);
+		xSteadyVarCombo->insertItem(text);
+		ySteadyVarCombo->insertItem(text);
+		zSteadyVarCombo->insertItem(text);
+		xUnsteadyVarCombo->insertItem(text);
+		yUnsteadyVarCombo->insertItem(text);
+		zUnsteadyVarCombo->insertItem(text);
 	}
 	std::vector<string> colorMapEntity;
 	std::vector<string> opacMapEntity;
@@ -840,6 +1040,7 @@ guiCenterRake(const float* coords){
 	fParams->setBox(seedBoxMin, seedBoxMax);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+	fParams->setRegionChanged();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 //Add an individual seed to the set of seeds
@@ -954,12 +1155,31 @@ guiSetFlowType(int typenum){
 			firstDisplayFrameEdit->setText(QString::number(firstDisplayFrame));
 			fParams->setFirstDisplayFrame(firstDisplayFrame);
 		}
-		displayIntervalLabel->setText("Begin/end display interval relative to seed time step");
-	} else {
-		displayIntervalLabel->setText("Begin/end display interval relative to current time step");
-	}
+	} 
 	PanelCommand::captureEnd(cmd, fParams);
 	
+}
+void FlowEventRouter::
+guiSetSteadyDirection(int comboIndex){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set steady flow direction");
+	//combo has values 0,1,2
+	int flowDir = comboIndex-1;
+	fParams->setSteadyDirection(flowDir);
+	PanelCommand::captureEnd(cmd, fParams);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::
+guiSetUnsteadyDirection(int comboIndex){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set unsteady flow direction");
+	//combo has values 0,1, resp corresponding to +1, -1
+	int flowDir = 1-2*comboIndex;
+	fParams->setUnsteadyDirection(flowDir);
+	PanelCommand::captureEnd(cmd, fParams);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
 guiSetNumRefinements(int n){
@@ -975,7 +1195,6 @@ guiSetNumRefinements(int n){
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
-	
 }
 void FlowEventRouter::
 guiSetXComboVarNum(int varnum){
@@ -985,6 +1204,7 @@ guiSetXComboVarNum(int varnum){
 	fParams->setComboVarnum(0,varnum);
 	fParams->setXVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
+	fParams->setRegionChanged();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -995,6 +1215,7 @@ guiSetYComboVarNum(int varnum){
 	fParams->setComboVarnum(1,varnum);
 	fParams->setYVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
+	fParams->setRegionChanged();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 
 }
@@ -1006,6 +1227,7 @@ guiSetZComboVarNum(int varnum){
 	fParams->setComboVarnum(2,varnum);
 	fParams->setZVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
+	fParams->setRegionChanged();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 
@@ -1029,6 +1251,28 @@ guiSetGeomSamples(int sliderPos){
 	fParams->setObjectsPerFlowline((int)pow(10.f,3.f*s));
 	
 	geometrySamplesEdit->setText(QString::number(fParams->getObjectsPerFlowline()));
+	guiSetTextChanged(false);
+	PanelCommand::captureEnd(cmd, fParams);
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+//Slider sets the line length, between 0.01 and 100.0
+// value is 0.01*10**(4s)  where s is between 0 and 1
+void FlowEventRouter::
+guiSetSteadyLength(int sliderPos){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set steady flow length");
+	float s = ((float)(sliderPos-128))/128.f;  //between -1 and 1
+	float dist = 1.f;
+	if (DataStatus::getInstance()->getDataMgr()){
+		const float* fullExtents = DataStatus::getInstance()->getExtents();
+		float diff[3];
+		vsub(fullExtents, fullExtents+3, diff);
+		dist = sqrt(vdot(diff, diff));
+	}
+	fParams->setSteadyFlowLength(pow(10.f,2.f*s)*dist);//between .01 and 100, scaled by dist
+	steadyLengthEdit->setText(QString::number(fParams->getSteadyFlowLength()));
 	guiSetTextChanged(false);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
@@ -1258,7 +1502,20 @@ guiRefreshFlow(){
 	vizWinMgr->refreshFlow(fParams);
 	
 }
-
+void FlowEventRouter::
+guiToggleAutoScale(bool on){
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle auto scale steady field");
+	fParams->setAutoScale(on);
+	fParams->setRegionChanged();
+	steadyScaleEdit1->setEnabled(!on);
+	steadyScaleEdit2->setEnabled(!on);
+	PanelCommand::captureEnd(cmd, fParams);
+	//This has no real effect until the next rendering
+	updateTab();
+}
+	
 void FlowEventRouter::
 guiEditSeedList(){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
@@ -1760,6 +2017,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,  bool newWindow){
 	if (prevEnabled == nowEnabled) {
 		if (!prevEnabled) return;
 		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+		fParams->setRegionChanged();
 		vizWinMgr->setFlowDataDirty(fParams);
 		return;
 	}
@@ -1789,6 +2047,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,  bool newWindow){
 		viz->getGLWindow()->prependRenderer(fParams,myRenderer);
 		myRenderer->setAllNeedRefresh(fParams->refreshIsAuto());
 		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+		fParams->setRegionChanged();
 		vizWinMgr->setFlowDataDirty(fParams);
 		return;
 	}
