@@ -27,10 +27,19 @@ else
     setenv PATH "$root/bin:$PATH"
 endif
 
-if !($?LD_LIBRARY_PATH) then
-    setenv LD_LIBRARY_PATH "$root/lib$auxlib"
+if ( "$arch" == "Darwin" ) then
+	if !($?DYLD_LIBRARY_PATH) then
+	    setenv DYLD_LIBRARY_PATH "$root/lib$auxlib"
+	else
+	    setenv DYLD_LIBRARY_PATH "$root/lib${auxlib}:$DYLD_LIBRARY_PATH"
+	endif
 else
-    setenv LD_LIBRARY_PATH "$root/lib${auxlib}:$LD_LIBRARY_PATH"
+
+	if !($?LD_LIBRARY_PATH) then
+	    setenv LD_LIBRARY_PATH "$root/lib$auxlib"
+	else
+	    setenv LD_LIBRARY_PATH "$root/lib${auxlib}:$LD_LIBRARY_PATH"
+	endif
 endif
 
 if ( "$arch" == "IRIX64" ) then

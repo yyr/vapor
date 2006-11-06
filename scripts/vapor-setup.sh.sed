@@ -33,11 +33,21 @@ else
     PATH="$root/bin:$PATH"; export PATH
 fi
 
-if [ -z "${LD_LIBRARY_PATH}" ]
+if [ "$arch" = "IRIX64" ]
 then
-    LD_LIBRARY_PATH="$root/lib${auxlib}"; export LD_LIBRARY_PATH
+	if [ -z "${DYLD_LIBRARY_PATH}" ]
+	then
+	    DYLD_LIBRARY_PATH="$root/lib${auxlib}"; export DYLD_LIBRARY_PATH
+	else
+	    DYLD_LIBRARY_PATH="$root/lib${auxlib}:$DYLD_LIBRARY_PATH"; export DYLD_LIBRARY_PATH
+	fi
 else
-    LD_LIBRARY_PATH="$root/lib${auxlib}:$LD_LIBRARY_PATH"; export LD_LIBRARY_PATH
+	if [ -z "${LD_LIBRARY_PATH}" ]
+	then
+	    LD_LIBRARY_PATH="$root/lib${auxlib}"; export LD_LIBRARY_PATH
+	else
+	    LD_LIBRARY_PATH="$root/lib${auxlib}:$LD_LIBRARY_PATH"; export LD_LIBRARY_PATH
+	fi
 fi
 
 if [ "$arch" = "IRIX64" ]

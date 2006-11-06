@@ -10,7 +10,13 @@ ARCH=$(shell uname | sed -e 's/-//g')
 
 ifeq ($(ARCH), IRIX64)
 MACHTYPE=$(shell uname -p)
-else
+endif
+
+ifeq ($(ARCH), Darwin)
+MACHTYPE=$(shell uname -p)
+endif
+
+ifndef	MACHTYPE
 MACHTYPE=$(shell uname -m)
 endif
 

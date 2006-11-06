@@ -41,6 +41,9 @@ sub chaselink {
     }   
 }
 
+if (! (defined($Arch = shift @ARGV))) {
+	usage("Wrong # of arguments");
+}
 if (! (defined($Libname = shift @ARGV))) {
 	usage("Wrong # of arguments");
 }
@@ -55,7 +58,12 @@ if (defined(shift @ARGV)) {
 	usage("Wrong # of arguments");
 }
 
-$cmd = "/usr/bin/ldd $Application";
+if ($Arch eq "Darwin") {
+	$cmd = "/usr/bin/otool -L $Application";
+} else {
+	$cmd = "/usr/bin/ldd $Application";
+}
+
 $_ = `$cmd`;
 if ($?>>8) {
 	printf STDERR "$ProgName: Command \"$cmd\" failed\n";
@@ -71,8 +79,8 @@ foreach $line (@lines) {
 }
 
 if (@matchs < 1) {
-	printf STDERR "$ProgName: Library $Libname not found in application $Application\n";
-	exit(1);
+	printf STDERR "$ProgName: WARNING : Library $Libname not found in application $Application\n";
+	exit(0);
 } 
 
 if (@matchs > 1) {
@@ -86,7 +94,12 @@ if (@matchs > 1) {
 $matchs[0] =~ s/^\s+//;
 
 @_ = split /\s+/, $matchs[0];
-$path = $_[2];
+if ($Arch eq "Darwin") {
+	$path = $_[0];
+}
+else {
+	$path = $_[2];
+}
 
 
 my($name,$dir,$suffix) = fileparse($path);
