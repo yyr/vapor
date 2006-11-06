@@ -59,7 +59,10 @@ using namespace VAPoR;
 	const string FlowParams::_positionAttr = "Position";
 	const string FlowParams::_timestepAttr = "TimeStep";
 
-	const string FlowParams::_mappedVariableNamesAttr = "MappedVariableNames";
+	const string FlowParams::_mappedVariableNamesAttr = "MappedVariableNames";//obsolete
+	const string FlowParams::_steadyVariableNamesAttr = "SteadyVariableNames";
+	const string FlowParams::_unsteadyVariableNamesAttr = "UnsteadyVariableNames";
+	
 	const string FlowParams::_periodicDimsAttr = "PeriodicDimensions";
 	const string FlowParams::_steadyFlowAttr = "SteadyFlow";
 	const string FlowParams::_integrationAccuracyAttr = "IntegrationAccuracy";
@@ -137,12 +140,19 @@ restart() {
 	firstDisplayFrame = 0;
 	lastDisplayFrame = 20;
 	
-	varNum[0]= 0;
-	varNum[1] = 1;
-	varNum[2] = 2;
-	comboVarNum[0]= 0;
-	comboVarNum[1] = 1;
-	comboVarNum[2] = 2;
+	steadyVarNum[0]= 0;
+	steadyVarNum[1] = 1;
+	steadyVarNum[2] = 2;
+	unsteadyVarNum[0]= 0;
+	unsteadyVarNum[1] = 1;
+	unsteadyVarNum[2] = 2;
+
+	comboSteadyVarNum[0]= 0;
+	comboSteadyVarNum[1] = 1;
+	comboSteadyVarNum[2] = 2;
+	comboUnsteadyVarNum[0]= 0;
+	comboUnsteadyVarNum[1] = 1;
+	comboUnsteadyVarNum[2] = 2;
 	integrationAccuracy = 0.5f;
 	steadyScale = 1.0f;
 	unsteadyScale = 1.0f;
@@ -357,31 +367,47 @@ reinit(bool doOverride){
 	}
 	if (doOverride){
 		for (int j = 0; j<3; j++){
-			comboVarNum[j] = Min(j,newNumComboVariables-1);
-			varNum[j] = DataStatus::getInstance()->mapMetadataToRealVarNum(comboVarNum[j]);
+			comboSteadyVarNum[j] = Min(j,newNumComboVariables-1);
+			steadyVarNum[j] = DataStatus::getInstance()->mapMetadataToRealVarNum(comboSteadyVarNum[j]);
+		}
+		for (int j = 0; j<3; j++){
+			comboUnsteadyVarNum[j] = Min(j,newNumComboVariables-1);
+			unsteadyVarNum[j] = DataStatus::getInstance()->mapMetadataToRealVarNum(comboUnsteadyVarNum[j]);
 		}
 	} 
 	for (int dim = 0; dim < 3; dim++){
-		//See if current varNum is valid.  If not, 
+		//See if current steadyvarNum is valid.  If not, 
 		//reset to first variable that is present:
-		if (!DataStatus::getInstance()->variableIsPresent(varNum[dim])){
-			varNum[dim] = -1;
+		if (!DataStatus::getInstance()->variableIsPresent(steadyVarNum[dim])){
+			steadyVarNum[dim] = -1;
 			for (i = 0; i<newNumVariables; i++) {
 				if (DataStatus::getInstance()->variableIsPresent(i)){
-					varNum[dim] = i;
+					steadyVarNum[dim] = i;
+					break;
+				}
+			}
+		}
+		//See if current unsteadyvarNum is valid.  If not, 
+		//reset to first variable that is present:
+		if (!DataStatus::getInstance()->variableIsPresent(unsteadyVarNum[dim])){
+			unsteadyVarNum[dim] = -1;
+			for (i = 0; i<newNumVariables; i++) {
+				if (DataStatus::getInstance()->variableIsPresent(i)){
+					unsteadyVarNum[dim] = i;
 					break;
 				}
 			}
 		}
 	}
-	if (varNum[0] == -1){
+	if (steadyVarNum[0] == -1){
 		
 		numComboVariables = 0;
 		return false;
 	}
 	//Determine the combo var nums from the varNum's
 	for (int dim = 0; dim < 3; dim++){
-		comboVarNum[dim] = DataStatus::getInstance()->mapRealToMetadataVarNum(varNum[dim]);
+		comboSteadyVarNum[dim] = DataStatus::getInstance()->mapRealToMetadataVarNum(steadyVarNum[dim]);
+		comboUnsteadyVarNum[dim] = DataStatus::getInstance()->mapRealToMetadataVarNum(unsteadyVarNum[dim]);
 	}
 	//Set up sampling.  
 	if (doOverride){
@@ -698,16 +724,26 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 	DataStatus* ds;
 	//specify field components:
 	ds = DataStatus::getInstance();
-	const char* xVar = ds->getVariableName(varNum[0]).c_str();
-	const char* yVar = ds->getVariableName(varNum[1]).c_str();
-	const char* zVar = ds->getVariableName(varNum[2]).c_str();
-	myFlowLib->SetFieldComponents(xVar, yVar, zVar);
+	const char* xVar, *yVar, *zVar;
+	if (flowType == 0){
+		xVar = ds->getVariableName(steadyVarNum[0]).c_str();
+		yVar = ds->getVariableName(steadyVarNum[1]).c_str();
+		zVar = ds->getVariableName(steadyVarNum[2]).c_str();
+		myFlowLib->SetSteadyFieldComponents(xVar, yVar, zVar);
+	} else {
+		xVar = ds->getVariableName(unsteadyVarNum[0]).c_str();
+		yVar = ds->getVariableName(unsteadyVarNum[1]).c_str();
+		zVar = ds->getVariableName(unsteadyVarNum[2]).c_str();
+		myFlowLib->SetUnsteadyFieldComponents(xVar, yVar, zVar);
+	}
+	
+	
 	myFlowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
 	
 	//For steady flow, determine what is the available region for the current time step.
 	//For unsteady flow, determine the available region for all the sampled timesteps.
 	if (flowIsSteady()){
-		bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, varNum, 3);
+		bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, steadyVarNum, 3);
 	
 		if(!dataValid){
 			MyBase::SetErrMsg("Vector field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
@@ -720,7 +756,7 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 		int lastSample = Min(timeSamplingEnd, maxFrame);
 		if (timeSamplingStart < minFrame) firstSample = ((1+minFrame/timeSamplingInterval)*timeSamplingInterval);
 		for (int i = firstSample; i<= lastSample; i+= timeSamplingInterval){
-			bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, i, varNum, 3);
+			bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, i, unsteadyVarNum, 3);
 			if(!dataValid){
 				SetErrMsg(102,"Vector field data unavailable for refinement %d at timestep %d", numRefinements, i);
 				return 0;
@@ -1114,8 +1150,12 @@ buildNode() {
 	attrs[_steadyFlowAttr] = oss.str();
 
 	oss.str(empty);
-	oss << ds->getVariableName(varNum[0])<<" "<<ds->getVariableName(varNum[1])<<" "<<ds->getVariableName(varNum[2]);
-	attrs[_mappedVariableNamesAttr] = oss.str();
+	oss << ds->getVariableName(steadyVarNum[0])<<" "<<ds->getVariableName(steadyVarNum[1])<<" "<<ds->getVariableName(steadyVarNum[2]);
+	attrs[_steadyVariableNamesAttr] = oss.str();
+	
+	oss.str(empty);
+	oss << ds->getVariableName(unsteadyVarNum[0])<<" "<<ds->getVariableName(unsteadyVarNum[1])<<" "<<ds->getVariableName(unsteadyVarNum[2]);
+	attrs[_unsteadyVariableNamesAttr] = oss.str();
 
 	XmlNode* flowNode = new XmlNode(_flowParamsTag, attrs, 2+numComboVariables);
 
@@ -1310,12 +1350,36 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _mappedVariableNamesAttr) == 0) {
 				string vName;
 				for (int i = 0; i< 3; i++){
-					ist >> vName;//peel off the name
+					ist >> vName;//peel off the obsolete name
 					int varnum = DataStatus::getInstance()->mergeVariableName(vName);
-					varNum[i] = varnum;
+					steadyVarNum[i] = varnum;
+					unsteadyVarNum[i] = varnum;
 					//The combo setting will need to change when/if the variable is
 					//read in the metadata
-					comboVarNum[i] = -1;
+					comboUnsteadyVarNum[i] = -1;
+					comboSteadyVarNum[i] = -1;
+				}
+			}
+			else if (StrCmpNoCase(attribName, _steadyVariableNamesAttr) == 0) {
+				string vName;
+				for (int i = 0; i< 3; i++){
+					ist >> vName;//peel off the steady name
+					int varnum = DataStatus::getInstance()->mergeVariableName(vName);
+					steadyVarNum[i] = varnum;
+					//The combo setting will need to change when/if the variable is
+					//read in the metadata
+					comboSteadyVarNum[i] = -1;
+				}
+			}
+			else if (StrCmpNoCase(attribName, _unsteadyVariableNamesAttr) == 0) {
+				string vName;
+				for (int i = 0; i< 3; i++){
+					ist >> vName;//peel off the unsteady name
+					int varnum = DataStatus::getInstance()->mergeVariableName(vName);
+					unsteadyVarNum[i] = varnum;
+					//The combo setting will need to change when/if the variable is
+					//read in the metadata
+					comboUnsteadyVarNum[i] = -1;	
 				}
 			}
 			else if (StrCmpNoCase(attribName, _periodicDimsAttr) == 0){
@@ -1904,7 +1968,10 @@ float FlowParams::maxRange(int index, int timestep){
 			return (float)maxFrame;
 		case (2): //speed
 			for (int k = 0; k<3; k++){
-				int var = varNum[k];
+				int var;
+				if (flowIsSteady()) var = steadyVarNum[k];
+				else var = unsteadyVarNum[k];
+				
 				if (maxSpeed < fabs(DataStatus::getInstance()->getDefaultDataMax(var)))
 					maxSpeed = fabs(DataStatus::getInstance()->getDefaultDataMax(var));
 				if (maxSpeed < fabs(DataStatus::getInstance()->getDefaultDataMin(var)))
@@ -2062,14 +2129,14 @@ int FlowParams::calcNumSeedPoints(bool rake, int timeStep){
 	}
 	return seedCounter;
 }
-//Function to calculate the average magnitude of the vector field over specified region
+//Function to calculate the max magnitude of the steady vector field over specified region
 //Plan on using this to help automatically set vector scale factor.
 float FlowParams::getMaxVectorMag(RegionParams* rParams, int numrefts, int timeStep){
 	
 	float* varData[3];
 	
 	size_t min_dim[3],max_dim[3],min_bdim[3],max_bdim[3];
-	bool ok =  rParams->getAvailableVoxelCoords(numrefts, min_dim, max_dim, min_bdim,  max_bdim, (size_t)timeStep, varNum, 3);
+	bool ok =  rParams->getAvailableVoxelCoords(numrefts, min_dim, max_dim, min_bdim,  max_bdim, (size_t)timeStep, steadyVarNum, 3);
 	if (!ok) return -1.f;
 
 
@@ -2078,7 +2145,7 @@ float FlowParams::getMaxVectorMag(RegionParams* rParams, int numrefts, int timeS
 	//Obtain the variables from the dataMgr:
 	for (int var = 0; var<3; var++){
 		varData[var] = dataMgr->GetRegion((size_t)timeStep,
-			DataStatus::getInstance()->getVariableName(varNum[var]).c_str(),
+			DataStatus::getInstance()->getVariableName(steadyVarNum[var]).c_str(),
 			numrefts, min_bdim, max_bdim, 1);
 		if (!varData[var]) {
 			//release currently locked regions:

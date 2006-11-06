@@ -107,9 +107,13 @@ protected slots:
 	void setFlowEnabled(bool val,int instance);
 	void setFlowType(int);
 	void guiSetNumRefinements(int numtrans);
-	void guiSetXComboVarNum(int varnum);
-	void guiSetYComboVarNum(int varnum);
-	void guiSetZComboVarNum(int varnum);
+	void guiSetXComboSteadyVarNum(int varnum);
+	void guiSetYComboSteadyVarNum(int varnum);
+	void guiSetZComboSteadyVarNum(int varnum);
+	void guiSetXComboUnsteadyVarNum(int varnum);
+	void guiSetYComboUnsteadyVarNum(int varnum);
+	void guiSetZComboUnsteadyVarNum(int varnum);
+	
 	void guiSetRandom(bool rand);
 	void guiCheckPeriodicX(bool periodic);
 	void guiCheckPeriodicY(bool periodic);

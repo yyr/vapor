@@ -17,9 +17,19 @@ VaporFlow::VaporFlow(DataMgr* dm)
 {
 	dataMgr = dm;
 
-	xVarName = NULL;
-	yVarName = NULL;
-	zVarName = NULL;
+	
+	xSteadyVarName = NULL;
+	ySteadyVarName = NULL;
+	zSteadyVarName = NULL;
+	xUnsteadyVarName = NULL;
+	yUnsteadyVarName = NULL;
+	zUnsteadyVarName = NULL;
+	xPriorityVarName = NULL;
+	yPriorityVarName = NULL;
+	zPriorityVarName = NULL;
+	xSeedDistVarName = NULL;
+	ySeedDistVarName = NULL;
+	zSeedDistVarName = NULL;
 
 	numXForms = 0;
 	for (int i = 0; i< 3; i++){
@@ -45,22 +55,20 @@ VaporFlow::VaporFlow(DataMgr* dm)
 
 VaporFlow::~VaporFlow()
 {
-	if(xVarName)
-	{
-		delete[] xVarName;
-		xVarName = NULL;
-	}
-	if(yVarName)
-	{
-		delete[] yVarName;
-		yVarName = NULL;
-	}
-	if(zVarName)
-	{
-		delete[] zVarName;
-		zVarName = NULL;
-	}
-
+	
+	if(xSteadyVarName) delete xSteadyVarName;
+	if(ySteadyVarName) delete ySteadyVarName;
+	if(zSteadyVarName) delete zSteadyVarName;
+	if(xUnsteadyVarName) delete xUnsteadyVarName;
+	if(yUnsteadyVarName) delete yUnsteadyVarName;
+	if(zUnsteadyVarName) delete zUnsteadyVarName;
+	if(xPriorityVarName) delete xPriorityVarName;
+	if(yPriorityVarName) delete yPriorityVarName;
+	if(zPriorityVarName) delete zPriorityVarName;
+	if(xSeedDistVarName) delete xSeedDistVarName;
+	if(ySeedDistVarName) delete ySeedDistVarName;
+	if(zSeedDistVarName) delete zSeedDistVarName;
+	
 #ifdef DEBUG
 	fclose(fDebug);
 #endif
@@ -85,24 +93,44 @@ void VaporFlow::Reset(void)
 	bUseRandomSeeds = false;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 // specify the names of the three variables that define the components
-// of the vector field
+// of the steady field
 //////////////////////////////////////////////////////////////////////////
-void VaporFlow::SetFieldComponents(const char* xvar,
+void VaporFlow::SetSteadyFieldComponents(const char* xvar,
 								   const char* yvar,
 								   const char* zvar)
 {
-	if(!xVarName)
-		xVarName = new char[260];
-	if(!yVarName)
-		yVarName = new char[260];
-	if(!zVarName)
-		zVarName = new char[260];
+	if(!xSteadyVarName)
+		xSteadyVarName = new char[260];
+	if(!ySteadyVarName)
+		ySteadyVarName = new char[260];
+	if(!zSteadyVarName)
+		zSteadyVarName = new char[260];
 
-	strcpy(xVarName, xvar);
-	strcpy(yVarName, yvar);
-	strcpy(zVarName, zvar);
+	strcpy(xSteadyVarName, xvar);
+	strcpy(ySteadyVarName, yvar);
+	strcpy(zSteadyVarName, zvar);
+}
+//////////////////////////////////////////////////////////////////////////
+// specify the names of the three variables that define the components
+// of the unsteady vector field
+//////////////////////////////////////////////////////////////////////////
+void VaporFlow::SetUnsteadyFieldComponents(const char* xvar,
+								   const char* yvar,
+								   const char* zvar)
+{
+	if(!xUnsteadyVarName)
+		xUnsteadyVarName = new char[260];
+	if(!yUnsteadyVarName)
+		yUnsteadyVarName = new char[260];
+	if(!zUnsteadyVarName)
+		zUnsteadyVarName = new char[260];
+
+	strcpy(xUnsteadyVarName, xvar);
+	strcpy(yUnsteadyVarName, yvar);
+	strcpy(zUnsteadyVarName, zvar);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -277,16 +305,16 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pUData = new float*[1];
 	pVData = new float*[1];
 	pWData = new float*[1];
-	pUData[0] = GetData(startTimeStep, xVarName);
+	pUData[0] = GetData(startTimeStep, xSteadyVarName);
 	if (pUData[0]== 0)
 		return false;
 
-	pVData[0] = GetData(startTimeStep, yVarName);
+	pVData[0] = GetData(startTimeStep, ySteadyVarName);
 	if (pVData[0] == 0) {
 		dataMgr->UnlockRegion(pUData[0]);
 		return false;
 	}
-	pWData[0] = GetData(startTimeStep, zVarName);
+	pWData[0] = GetData(startTimeStep, zSteadyVarName);
 	if (pWData[0] == 0) {
 		dataMgr->UnlockRegion(pUData[0]);
 		dataMgr->UnlockRegion(pVData[0]);
@@ -607,11 +635,11 @@ bool VaporFlow::GenPathLines(float* positions,
 				//Check for valid data, return false if invalid
 				//
 				
-				xDataPtr = GetData(iFor,xVarName);
+				xDataPtr = GetData(iFor,xUnsteadyVarName);
 				
-				if(xDataPtr) yDataPtr = GetData(iFor,yVarName);
+				if(xDataPtr) yDataPtr = GetData(iFor,yUnsteadyVarName);
 				
-				if(yDataPtr) zDataPtr = GetData(iFor,zVarName);
+				if(yDataPtr) zDataPtr = GetData(iFor,zUnsteadyVarName);
 				
 				if (xDataPtr == 0 || yDataPtr == 0 || zDataPtr == 0){
 					// release resources
@@ -638,9 +666,9 @@ bool VaporFlow::GenPathLines(float* positions,
 			}
 			//now get data for second ( next) sampled timestep.  
 			yDataPtr2 = zDataPtr2 = 0;
-			xDataPtr2 = GetData(iFor+timeStepIncrement,xVarName); 
-			if(xDataPtr2) yDataPtr2 = GetData(iFor+timeStepIncrement,yVarName); 
-			if(yDataPtr2) zDataPtr2 = GetData(iFor+timeStepIncrement,zVarName); 
+			xDataPtr2 = GetData(iFor+timeStepIncrement,xUnsteadyVarName); 
+			if(xDataPtr2) yDataPtr2 = GetData(iFor+timeStepIncrement,yUnsteadyVarName); 
+			if(yDataPtr2) zDataPtr2 = GetData(iFor+timeStepIncrement,zUnsteadyVarName); 
 			if (!xDataPtr2 || !yDataPtr2 || !zDataPtr2){
 				// if we failed:  release resources
 				delete[] pUserTimeSteps;

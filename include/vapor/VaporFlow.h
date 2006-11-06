@@ -30,7 +30,9 @@ namespace VAPoR
 		~VaporFlow();
 		void Reset(void);
 
-		void SetFieldComponents(const char* xvar, const char* yvar, const char* zvar);
+		void SetSteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
+		void SetUnsteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
+
 		void SetRegion(size_t num_xforms, const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3]);
 		void SetTimeStepInterval(size_t startT, size_t endT, size_t tInc);
 		void ScaleTimeStepSizes(double userTimeStepMultiplier, double animationTimeStepMultiplier);
@@ -78,7 +80,14 @@ namespace VAPoR
 		float maxStepSize;
 
 		DataMgr* dataMgr;							// data manager
-		char *xVarName, *yVarName, *zVarName;		// name of three variables for vector field
+		char *xSteadyVarName, *ySteadyVarName, *zSteadyVarName;		
+													// name of three variables for steady field
+		char *xUnsteadyVarName, *yUnsteadyVarName, *zUnsteadyVarName;		
+													// name of three variables for unsteady field
+		char *xPriorityVarName, *yPriorityVarName, *zPriorityVarName;
+													// field variables used for prioritizing seeds on flowlines
+		char *xSeedDistVarName, *ySeedDistVarName, *zSeedDistVarName;
+													// field variables used to determine random seed distribution
 		size_t numXForms, minBlkRegion[3], maxBlkRegion[3];// in block coordinate
 		size_t minRegion[3], maxRegion[3];			//Actual region bounds
 		float flowPeriod[3];							//Used if data is periodic

@@ -117,12 +117,12 @@ FlowEventRouter::hookUpTab()
 	
 	connect (autoRefreshCheckbox, SIGNAL(toggled(bool)), this, SLOT (guiSetAutoRefresh(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
-	connect (xSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboVarNum(int)));
-	connect (ySteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboVarNum(int)));
-	connect (zSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboVarNum(int)));
-	connect (xUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboVarNum(int)));
-	connect (yUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboVarNum(int)));
-	connect (zUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboVarNum(int)));
+	connect (xSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboSteadyVarNum(int)));
+	connect (ySteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboSteadyVarNum(int)));
+	connect (zSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboSteadyVarNum(int)));
+	connect (xUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboUnsteadyVarNum(int)));
+	connect (yUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboUnsteadyVarNum(int)));
+	connect (zUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboUnsteadyVarNum(int)));
 	
 	connect (randomCheckbox,SIGNAL(toggled(bool)),this, SLOT(guiSetRandom(bool)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXCenter()));
@@ -832,12 +832,13 @@ void FlowEventRouter::updateTab(){
 	int numVars = fParams->getNumComboVariables();
 	if (numVars < 4) numVars = 4;
 	
-	xSteadyVarCombo->setCurrentItem(fParams->getComboVarnum(0));
-	ySteadyVarCombo->setCurrentItem(fParams->getComboVarnum(1));
-	zSteadyVarCombo->setCurrentItem(fParams->getComboVarnum(2));
-	xUnsteadyVarCombo->setCurrentItem(fParams->getComboVarnum(0));
-	yUnsteadyVarCombo->setCurrentItem(fParams->getComboVarnum(1));
-	zUnsteadyVarCombo->setCurrentItem(fParams->getComboVarnum(2));
+	xSteadyVarCombo->setCurrentItem(fParams->getComboSteadyVarnum(0));
+	ySteadyVarCombo->setCurrentItem(fParams->getComboSteadyVarnum(1));
+	zSteadyVarCombo->setCurrentItem(fParams->getComboSteadyVarnum(2));
+
+	xUnsteadyVarCombo->setCurrentItem(fParams->getComboUnsteadyVarnum(0));
+	yUnsteadyVarCombo->setCurrentItem(fParams->getComboUnsteadyVarnum(1));
+	zUnsteadyVarCombo->setCurrentItem(fParams->getComboUnsteadyVarnum(2));
 	
 	periodicXCheck->setChecked(fParams->getPeriodicDim(0));
 	periodicYCheck->setChecked(fParams->getPeriodicDim(1));
@@ -1197,39 +1198,72 @@ guiSetNumRefinements(int n){
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
-guiSetXComboVarNum(int varnum){
+guiSetXComboSteadyVarNum(int varnum){
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set X field variable");
-	fParams->setComboVarnum(0,varnum);
-	fParams->setXVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set X steady field variable");
+	fParams->setComboSteadyVarnum(0,varnum);
+	fParams->setXSteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	fParams->setRegionChanged();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
-guiSetYComboVarNum(int varnum){
+guiSetYComboSteadyVarNum(int varnum){
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Y field variable");
-	fParams->setComboVarnum(1,varnum);
-	fParams->setYVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Y steady field variable");
+	fParams->setComboSteadyVarnum(1,varnum);
+	fParams->setYSteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	fParams->setRegionChanged();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::
+guiSetZComboSteadyVarNum(int varnum){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z steady field variable");
+	fParams->setComboSteadyVarnum(2,varnum);
+	fParams->setZSteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand::captureEnd(cmd, fParams);
+	fParams->setRegionChanged();
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::
+guiSetXComboUnsteadyVarNum(int varnum){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set X unsteady field variable");
+	fParams->setComboUnsteadyVarnum(0,varnum);
+	fParams->setXUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand::captureEnd(cmd, fParams);
+	fParams->setRegionChanged();
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::
+guiSetYComboUnsteadyVarNum(int varnum){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Y unsteady field variable");
+	fParams->setComboUnsteadyVarnum(1,varnum);
+	fParams->setYUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand::captureEnd(cmd, fParams);
+	fParams->setRegionChanged();
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::
+guiSetZComboUnsteadyVarNum(int varnum){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z unsteady field variable");
+	fParams->setComboUnsteadyVarnum(2,varnum);
+	fParams->setZUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand::captureEnd(cmd, fParams);
+	fParams->setRegionChanged();
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
 
-}
-void FlowEventRouter::
-guiSetZComboVarNum(int varnum){
-	confirmText(false);
-	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z field variable");
-	fParams->setComboVarnum(2,varnum);
-	fParams->setZVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
-	PanelCommand::captureEnd(cmd, fParams);
-	fParams->setRegionChanged();
-	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
-}
 
 void FlowEventRouter::
 guiSetConstantColor(QColor& newColor){

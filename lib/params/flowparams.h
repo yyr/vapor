@@ -194,9 +194,13 @@ public:
 	void setSteadyScale(float val){steadyScale = val;}
 	void setUnsteadyScale(float val){unsteadyScale = val;}
 	
-	void setXVarNum(int varnum){varNum[0] = varnum;}
-	void setYVarNum(int varnum){varNum[1] = varnum;}
-	void setZVarNum(int varnum){varNum[2] = varnum;}
+	void setXSteadyVarNum(int varnum){steadyVarNum[0] = varnum;}
+	void setYSteadyVarNum(int varnum){steadyVarNum[1] = varnum;}
+	void setZSteadyVarNum(int varnum){steadyVarNum[2] = varnum;}
+	void setXUnsteadyVarNum(int varnum){unsteadyVarNum[0] = varnum;}
+	void setYUnsteadyVarNum(int varnum){unsteadyVarNum[1] = varnum;}
+	void setZUnsteadyVarNum(int varnum){unsteadyVarNum[2] = varnum;}
+
 	void setRandom(bool rand){randomGen = rand;}
 	void setRandomSeed(unsigned int seed){randomSeed = seed;}
 	unsigned int getRandomSeed(){return randomSeed;}
@@ -205,8 +209,11 @@ public:
 	void setFlowGeometry(int geomNum){geometryType = geomNum;}
 	void setColorMapEntity( int entityNum);
 	void setOpacMapEntity( int entityNum);
-	void setComboVarnum(int indx, int varnum){comboVarNum[indx] = varnum;}
-	int getComboVarnum(int indx) {return comboVarNum[indx];}
+	void setComboSteadyVarnum(int indx, int varnum){comboSteadyVarNum[indx] = varnum;}
+	int getComboSteadyVarnum(int indx) {return comboSteadyVarNum[indx];}
+	void setComboUnsteadyVarnum(int indx, int varnum){comboUnsteadyVarNum[indx] = varnum;}
+	int getComboUnsteadyVarnum(int indx) {return comboUnsteadyVarNum[indx];}
+	
 	int getNumComboVariables() {return numComboVariables;}
 	// helper functions for writing stream and path lines
 	bool writeStreamline(FILE* saveFile, int streamNum, int frameNum, float* flowDataArray);
@@ -232,7 +239,9 @@ public:
 protected:
 	//Tags for attributes in session save
 	//Top level labels
-	static const string _mappedVariableNamesAttr;
+	static const string _mappedVariableNamesAttr;//obsolete
+	static const string _steadyVariableNamesAttr;
+	static const string _unsteadyVariableNamesAttr;
 	static const string _steadyFlowAttr;
 	static const string _integrationAccuracyAttr;
 	static const string _velocityScaleAttr;
@@ -294,8 +303,10 @@ protected:
 	int numRefinements, maxNumRefinements;
 	int numComboVariables;// = number of variables in metadata with data associated
 	
-	int varNum[3]; //field variable num's in x, y, and z.
-	int comboVarNum[3];  //indices in combos
+	int steadyVarNum[3]; //field variable num's in x, y, and z.
+	int unsteadyVarNum[3]; //field variable num's in x, y, and z.
+	int comboSteadyVarNum[3];  //indices in combos
+	int comboUnsteadyVarNum[3];  //indices in combos
 	float integrationAccuracy;
 	float steadyScale;
 	float unsteadyScale;
