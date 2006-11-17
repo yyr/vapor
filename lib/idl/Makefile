@@ -1,5 +1,6 @@
 TOP = ../..
 
+
 include ${TOP}/make/config/arch.mk
 
 SHARED = 0
@@ -23,6 +24,10 @@ MAKEFILE_LDFLAGS += $(IDL_INC_PATH)/../../bin/bin.x86/idl32.lib
 endif
 endif
 
+ifeq ($(ARCH),Darwin)
+MAKEFILE_CXXFLAGS += -Wno-missing-braces
+endif
+
 
 ifdef IDL_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(IDL_INC_PATH)
@@ -43,7 +48,12 @@ LIBRARIES += mpr
 endif
 
 
+ifeq ($(ARCH), Darwin)
+DLLSUFFIX = .so
+endif
+
 include ${TOP}/make/config/base.mk
+
 
 IDLMetadata.cpp: $(DSO_DIR)/libidl_vdfmodule.dlm
 

@@ -98,6 +98,7 @@ void DomainWidget::drag(float dx, float, float)
 //----------------------------------------------------------------------------
 void DomainWidget::paintGL()
 {
+
   float length = 0.03;
   float y = (_maxY + _minY) / 2.0;
 
@@ -113,9 +114,17 @@ void DomainWidget::paintGL()
       glPushMatrix();
       {
         glPushName(LEFT);
-        glTranslatef(left()-length, y, 0.0);
-        glRotatef(90, 0, 1, 0);
-        gluCylinder(_quadHandle, 0.0, _handleRadius, length, 10, 2);
+#ifdef	Darwin
+	glBegin(GL_TRIANGLES);
+		glVertex3f(left()-length, y, 0.0);
+		glVertex3f(left(), y+_handleRadius, 0.0);
+		glVertex3f(left(), y-_handleRadius, 0.0);
+	glEnd();
+#else
+	glTranslatef(left()-length, y, 0.0);
+	glRotatef(90, 0, 1, 0);
+	gluCylinder(_quadHandle, 0.0, _handleRadius, length, 10, 2);
+#endif
         glPopName();
       }
       glPopMatrix();
@@ -123,9 +132,17 @@ void DomainWidget::paintGL()
       glPushMatrix();
       {
         glPushName(RIGHT);
-        glTranslatef(right(), y, 0.0);
-        glRotatef(90, 0, 1, 0);
-        gluCylinder(_quadHandle, _handleRadius, 0.0, length, 10, 2);
+#ifdef	Darwin
+	glBegin(GL_TRIANGLES);
+		glVertex3f(right()+length, y, 0.0);
+		glVertex3f(right(), y+_handleRadius, 0.0);
+		glVertex3f(right(), y-_handleRadius, 0.0);
+	glEnd();
+#else
+	glTranslatef(right(), y, 0.0);
+	glRotatef(90, 0, 1, 0);
+	gluCylinder(_quadHandle, _handleRadius, 0.0, length, 10, 2);
+#endif
         glPopName();
       }
       glPopMatrix();
@@ -135,11 +152,20 @@ void DomainWidget::paintGL()
       glPushMatrix();
       {
         glPushName(BAR);
-        glTranslatef(left(), y, 0.0);
-        glRotatef(90, 0, 1, 0);
-        gluCylinder(_quadHandle, 0.4*_handleRadius, 0.4*_handleRadius, 
-                    width(), 10, 2);
+#ifdef	Darwin
+	glBegin(GL_QUADS);
+		glVertex3f(left(), y + 0.4*_handleRadius, 0.0);
+		glVertex3f(right(), y + 0.4*_handleRadius, 0.0);
+		glVertex3f(right(), y - 0.4*_handleRadius, 0.0);
+		glVertex3f(left(), y - 0.4*_handleRadius, 0.0);
+	glEnd();
+#else
+	glTranslatef(left(), y, 0.0);
+	glRotatef(90, 0, 1, 0);
+	gluCylinder(_quadHandle, 0.4*_handleRadius, 0.4*_handleRadius, 
+		width(), 10, 2);
 
+#endif
         glPopName();
       }
       glPopMatrix();

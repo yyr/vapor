@@ -25,11 +25,11 @@ G++-INCLUDE-DIR = /usr/include/g++
 CXX = c++ -fno-common
 CC = cc -fno-common
 
-CXXFLAGS          += -DDARWIN -Wall -Werror -Wno-format -Wno-sign-compare 
+CXXFLAGS          += -DDARWIN -Wall -Werror -Wno-format -Wno-sign-compare  -fPIC
 CXX_RELEASE_FLAGS += -O3 -DNDEBUG
 CXX_DEBUG_FLAGS   += -g
 
-CFLAGS            += -DDARWIN -Wall -Werror -Wno-format
+CFLAGS            += -DDARWIN -Wall -Werror -Wno-format -fPIC
 C_RELEASE_FLAGS   += -O3 -DNDEBUG
 C_DEBUG_FLAGS     += -g
 
@@ -59,11 +59,13 @@ BIBTEX = bibtex
 DVIPS = dvips -t letter
 GHOSTSCRIPT = gs
 LIBPREFIX = lib
+ifndef	DLLSUFFIX
 DLLSUFFIX = .dylib
+endif
 LIBSUFFIX = .a
 OBJSUFFIX = .o
 MV = mv
-SHARED_LDFLAGS += -dynamiclib
+SHARED_LDFLAGS += -dynamiclib -undefined dynamic_lookup
 PERL = perl
 PYTHON = python
 

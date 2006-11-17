@@ -156,7 +156,7 @@ int DVRShader::GraphicsInit()
     glUniform1fARB(_shaders[LIGHT]->uniformLocation("ka"), 0.2);
     glUniform1fARB(_shaders[LIGHT]->uniformLocation("ks"), 0.5);
     glUniform1fARB(_shaders[LIGHT]->uniformLocation("expS"), 20);
-    glUniform3f(_shaders[LIGHT]->uniformLocation("lightDirection"), 0,0,1);
+    glUniform3fARB(_shaders[LIGHT]->uniformLocation("lightDirection"), 0,0,1);
   }
 
   _shaders[LIGHT]->disable();
@@ -219,7 +219,12 @@ void DVRShader::loadTexture(TextureBrick *brick)
 {
   printOpenGLError();
 
-  glActiveTexture(GL_TEXTURE0);
+  if (GLEW_VERSION_2_0) {
+    glActiveTexture(GL_TEXTURE0);
+  }
+  else {
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+  }
 
   brick->load(GL_LUMINANCE8, GL_LUMINANCE);
 
@@ -237,7 +242,12 @@ int DVRShader::Render(const float matrix[16])
   glPolygonMode(GL_FRONT, GL_FILL);
   glPolygonMode(GL_BACK, GL_LINE);
 
-  glActiveTexture(GL_TEXTURE0);
+  if (GLEW_VERSION_2_0) {
+    glActiveTexture(GL_TEXTURE0);
+  }
+  else {
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+  }
   glEnable(GL_TEXTURE_3D);
   glBindTexture(GL_TEXTURE_3D, _texid);
 
@@ -287,7 +297,12 @@ void DVRShader::SetCLUT(const float ctab[256][4])
     _colormap[i*4+3] = ctab[i][3];
   }
 
-  glActiveTexture(GL_TEXTURE1);
+  if (GLEW_VERSION_2_0) {
+    glActiveTexture(GL_TEXTURE1);
+  }
+  else {
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+  }
   glBindTexture(GL_TEXTURE_1D, _cmapid);
   
   glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA,
@@ -325,7 +340,12 @@ void DVRShader::SetOLUT(const float atab[256][4], const int numRefinements)
     _colormap[i*4+3] = opac;
   }
 
-  glActiveTexture(GL_TEXTURE1);
+  if (GLEW_VERSION_2_0) {
+    glActiveTexture(GL_TEXTURE1);
+  }
+  else {
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+  }
   glBindTexture(GL_TEXTURE_1D, _cmapid);
   
   glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA,
@@ -400,11 +420,17 @@ void DVRShader::SetLightingLocation(const float *pos)
 //----------------------------------------------------------------------------
 void DVRShader::initTextures()
 {
+
   //
   // Setup the colormap texture
   //
   glGenTextures(1, &_cmapid);
-  glActiveTexture(GL_TEXTURE1);
+  if (GLEW_VERSION_2_0) {
+    glActiveTexture(GL_TEXTURE1);
+  }
+  else {
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+  }
   glBindTexture(GL_TEXTURE_1D, _cmapid);
 
   _colormap = new float[256*4];

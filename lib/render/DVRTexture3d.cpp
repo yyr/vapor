@@ -663,7 +663,7 @@ void DVRTexture3d::sortBricks(const Matrix3d &modelview)
 int DVRTexture3d::maxTextureSize(GLenum format)
 {
 
-#ifdef __sgi
+#if defined(__sgi) || defined(Darwin)
 
   return 128;
 
@@ -698,7 +698,7 @@ int DVRTexture3d::maxTextureSize(GLenum format)
     }
   }
 
-  return 64;
+  return 128;
 
 #endif
 }
