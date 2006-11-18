@@ -35,6 +35,9 @@ namespace VAPoR
 
 		void SetRegion(size_t num_xforms, const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3]);
 		void SetTimeStepInterval(size_t startT, size_t endT, size_t tInc);
+		
+		void SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps, bool forward);
+		
 		void ScaleTimeStepSizes(double userTimeStepMultiplier, double animationTimeStepMultiplier);
 		void SetRandomSeedPoints(const float min[3], const float max[3], int numSeeds);
 		void SetRegularSeedPoints(const float min[3], const float max[3], const size_t numSeeds[3]);
@@ -65,9 +68,13 @@ namespace VAPoR
 		double animationTimeStep;					// which frame in animation
 		double integrationTimeStepSize;				// used for integration
 
-		size_t startTimeStep;						// refer to userTimeUnit
-		size_t endTimeStep;
+		size_t startTimeStep;						// refer to userTimeUnit.  Used only for
+		size_t endTimeStep;							// steady flow
 		size_t timeStepIncrement;
+
+		int* unsteadyTimestepList;
+		size_t numUnsteadyTimesteps;
+		bool unsteadyIsForward;
 
 		float minRakeExt[3];						// minimal rake range 
 		float maxRakeExt[3];						// maximal rake range
