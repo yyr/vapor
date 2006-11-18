@@ -87,6 +87,10 @@ public slots:
 
 	void guiSetRakeToRegion();
 protected slots:
+	void addSample();
+	void deleteSample();
+	void timestepChanged1(int row, int col);
+	void timestepChanged2(int row, int col);
 	void toggleAdvanced();
 	void toggleShowMap();
 	void guiSetSteadyDirection(int comboIndex);
@@ -142,8 +146,11 @@ protected slots:
 	void setSteadyLength();
 	void flowOpacityScale();
 	void guiToggleAutoScale(bool isOn);
+	void guiToggleTimestepSample(bool isOn);
 
 protected:
+	void guiUpdateUnsteadyTimes(QTable*, const char*);
+	void populateTimestepTables();
 	void setXCenter(FlowParams*,int sliderval);
 	void setYCenter(FlowParams*,int sliderval);
 	void setZCenter(FlowParams*,int sliderval);

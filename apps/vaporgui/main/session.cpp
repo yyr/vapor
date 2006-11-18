@@ -539,7 +539,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 		DataStatus::getInstance()->setRenderReady(false);
 	
 	bool defaultSession = (fileBase == 0);
-	if (restoredSession) assert(defaultSession);
+	//if (restoredSession) assert(defaultSession);
 	//The metadata is created by (and obtained from) the datamgr
 	//Don't update the currentMetadataFile if we are doing a merge
 	if (!defaultSession && !doMerge) currentMetadataFile = fileBase;
@@ -604,7 +604,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	if (!defaultSession) {
 		//If we are not merging, clean out the variableNames.
 		//We add the new ones back in setupDataStatus();
-		if (!doMerge) DataStatus::clearVariableNames();
+		if (!doMerge && !restoredSession) DataStatus::clearVariableNames();
 		setupDataStatus();
 		
 		//Is there any data here?
@@ -745,7 +745,7 @@ setupDataStatus(){
 	if(currentDataStatus->reset(dataMgr, cacheMB)) {
 		dataExists = true;
 		
-		currentDataStatus->fillMetadataVars();
+		//currentDataStatus->fillMetadataVars();
 	}
 	else dataExists = false;
 }

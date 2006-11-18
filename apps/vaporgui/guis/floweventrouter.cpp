@@ -101,6 +101,16 @@ FlowEventRouter::~FlowEventRouter(){
 void
 FlowEventRouter::hookUpTab()
 {
+	//Connect up the sampleTable events:
+	connect (addSampleButton1,SIGNAL(clicked()), this, SLOT(addSample()));
+	connect (addSampleButton2,SIGNAL(clicked()), this, SLOT(addSample()));
+	connect (deleteSampleButton1,SIGNAL(clicked()), this, SLOT(deleteSample()));
+	connect (deleteSampleButton2,SIGNAL(clicked()), this, SLOT(deleteSample()));
+	connect (timestepSampleTable1, SIGNAL(valueChanged(int,int)), this, SLOT(timestepChanged1(int,int)));
+	connect (timestepSampleTable2, SIGNAL(valueChanged(int,int)), this, SLOT(timestepChanged2(int,int)));
+	connect (timestepSampleCheckbox1, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
+	connect (timestepSampleCheckbox2, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
+	
 	connect (showAdvancedButton, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
 	connect (hideAdvanced1, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
 	connect (hideAdvanced2, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
@@ -258,6 +268,81 @@ FlowEventRouter::hookUpTab()
 /*********************************************************************************
  * Slots associated with FlowTab:
  *********************************************************************************/
+//Add a new (blank) row to the table
+void FlowEventRouter::addSample(){
+	timestepSampleTable1->insertRows(timestepSampleTable1->numRows());
+	timestepSampleTable2->insertRows(timestepSampleTable2->numRows());
+}
+//Delete the current selected row
+void FlowEventRouter::deleteSample(){
+	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	if (fParams->getFlowType() == 1){
+		timestepSampleTable1->removeRow(timestepSampleTable1->currentRow());
+		guiUpdateUnsteadyTimes(timestepSampleTable1, "remove unsteady timestep");
+	} else {
+		timestepSampleTable2->removeRow(timestepSampleTable2->currentRow());
+		guiUpdateUnsteadyTimes(timestepSampleTable2, "remove unsteady timestep");
+	}
+}
+//Respond to user has typed in a row. Convert it to an int, swap it up or down
+void FlowEventRouter::timestepChanged1(int row, int col){
+	int newVal = timestepSampleTable1->text(row,col).toInt();
+	
+	for (int i= row -1; i>=0; i--) {
+		int rowInt = timestepSampleTable1->text(i,col).toInt();
+		if (rowInt < newVal) break;
+	}
+	if (row > i+1){
+		timestepSampleTable1->swapRows(row,i+1);
+	}
+	for (int i= row + 1; i< timestepSampleTable1->numRows(); i++){
+		int rowInt = timestepSampleTable1->text(i,col).toInt();
+		if (rowInt > newVal) break;
+	}
+	if (row < i-1){
+		timestepSampleTable1->swapRows(row,i-1);
+	}
+	//It changed, update the flowparams:
+	guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
+}
+void FlowEventRouter::guiUpdateUnsteadyTimes(QTable* tbl, const char* descr){	
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams, descr);
+	std::vector<int>& timesteplist = fParams->getUnsteadyTimesteps();
+	timesteplist.clear();
+	int prevTime = -1;
+	for (int i = 0; i< tbl->numRows(); i++){
+		int newTime = tbl->text(i,0).toInt();
+		if (newTime > prevTime) {
+			timesteplist.push_back(newTime);
+			prevTime = newTime;
+		}
+	}
+	int foo = timesteplist.size();
+	PanelCommand::captureEnd(cmd, fParams);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::timestepChanged2(int row, int col){
+	
+	int newVal = timestepSampleTable2->text(row,col).toInt();
+	
+	for (int i= row -1; i>=0; i--) {
+		int rowInt = timestepSampleTable2->text(i,col).toInt();
+		if (rowInt < newVal) break;
+	}
+	if (row > i+1){
+		timestepSampleTable2->swapRows(row,i+1);
+	}
+	for (int i= row +1; i< timestepSampleTable2->numRows(); i++){
+		int rowInt = timestepSampleTable2->text(i,col).toInt();
+		if (rowInt > newVal) break;
+	}
+	if (row < i-1){
+		timestepSampleTable2->swapRows(row,i-1);
+	}
+	guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
+}
 
 void FlowEventRouter::toggleShowMap(){
 	showMapEditor = !showMapEditor;
@@ -267,6 +352,17 @@ void FlowEventRouter::toggleAdvanced(){
 	showAdvanced = !showAdvanced;
 	updateTab();
 }
+void FlowEventRouter::populateTimestepTables(){
+	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	std::vector<int>& tSteps = fParams->getUnsteadyTimesteps();
+	timestepSampleTable1->setNumRows(tSteps.size());
+	timestepSampleTable2->setNumRows(tSteps.size());
+	for (int i = 0; i< tSteps.size(); i++){
+		timestepSampleTable1->setText(i,0,QString::number(tSteps[i]));
+	}
+}
+
+
 void FlowEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
@@ -671,6 +767,8 @@ setFlowNavigateMode(bool mode){
 //This is called whenever the tab is displayed
 //
 void FlowEventRouter::updateTab(){
+	
+	DataStatus* dStatus = DataStatus::getInstance();
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	int flowType = fParams->getFlowType();
 	switch (flowType){
@@ -735,7 +833,7 @@ void FlowEventRouter::updateTab(){
 				timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
 				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
 				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
-
+				populateTimestepTables();
 				break;
 			case(2) : //field line advection
 				advancedSteadyFrame->hide();
@@ -749,6 +847,7 @@ void FlowEventRouter::updateTab(){
 				autoScaleCheckbox2->setChecked(autoScale);
 				steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
 				steadyScaleEdit2->setEnabled(!autoScale);
+				populateTimestepTables();
 				break;
 			default :
 				assert(0);
@@ -765,21 +864,9 @@ void FlowEventRouter::updateTab(){
 	Session::getInstance()->blockRecording();
 
 	
-	if (flowType != 1) {
-		steadyLengthEdit->setText(QString::number(fParams->getSteadyFlowLength()));
-		steadyDirectionCombo->setCurrentItem(fParams->getSteadyDirection()+1);
-		if (showAdvanced) {
-			steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
-			steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
-		}
-	} 
-	if (flowType != 0) {
-		unsteadyScaleEdit->setText(QString::number(fParams->getUnsteadyScale()));
-		unsteadyDirectionCombo->setCurrentItem((1-fParams->getUnsteadyDirection())/2);
-	}
-	integrationAccuracyEdit->setText(QString::number(fParams->getIntegrationAccuracy()));
+	
 
-	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
+	if (dStatus->getDataMgr()) instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);
 
@@ -789,6 +876,14 @@ void FlowEventRouter::updateTab(){
 	copyCombo->clear();
 	copyCombo->insertItem("Duplicate In:");
 	copyCombo->insertItem("This visualizer");
+
+	//Set up the timestep sample tables:
+	timestepSampleTable1->setSelectionMode(QTable::SingleRow);
+	timestepSampleTable1->setTopMargin(0);
+	timestepSampleTable1->setColumnWidth(0,35);
+	timestepSampleTable2->setSelectionMode(QTable::SingleRow);
+	timestepSampleTable2->setTopMargin(0);
+	timestepSampleTable2->setColumnWidth(0,35);
 	if (numViz > 1) {
 		int copyNum = 2;
 		for (int i = 0; i<MAXVIZWINS; i++){
@@ -832,6 +927,7 @@ void FlowEventRouter::updateTab(){
 	int numVars = fParams->getNumComboVariables();
 	if (numVars < 4) numVars = 4;
 	
+
 	xSteadyVarCombo->setCurrentItem(fParams->getComboSteadyVarnum(0));
 	ySteadyVarCombo->setCurrentItem(fParams->getComboSteadyVarnum(1));
 	zSteadyVarCombo->setCurrentItem(fParams->getComboSteadyVarnum(2));
@@ -884,6 +980,20 @@ void FlowEventRouter::updateTab(){
 	}
 	
 	//Put all the setText messages here, so they won't trigger a textChanged message
+	if (flowType != 1) {
+		steadyLengthEdit->setText(QString::number(fParams->getSteadyFlowLength()));
+		steadyDirectionCombo->setCurrentItem(fParams->getSteadyDirection()+1);
+		if (showAdvanced) {
+			steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
+			steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
+		}
+	} 
+	if (flowType != 0) {
+		unsteadyScaleEdit->setText(QString::number(fParams->getUnsteadyScale()));
+		unsteadyDirectionCombo->setCurrentItem((1-fParams->getUnsteadyDirection())/2);
+	}
+	integrationAccuracyEdit->setText(QString::number(fParams->getIntegrationAccuracy()));
+
 	generatorCountEdit->setText(QString::number(fParams->getNumRakeSeedPoints()));
 	
 	xSeedEdit->setText(QString::number(fParams->getNumGenerators(0)));
@@ -1549,6 +1659,28 @@ guiToggleAutoScale(bool on){
 	//This has no real effect until the next rendering
 	updateTab();
 }
+void FlowEventRouter::
+guiToggleTimestepSample(bool on){
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle use of timestep sample list");
+	fParams->setTimestepSampleList(on);
+	timestepSampleTable1->setEnabled(on);
+	timestepSampleTable2->setEnabled(on);
+	timesampleStartEdit1->setEnabled(!on);
+	timesampleEndEdit1->setEnabled(!on);
+	timesampleIncrementEdit1->setEnabled(!on);
+	timesampleStartEdit2->setEnabled(!on);
+	timesampleEndEdit2->setEnabled(!on);
+	timesampleIncrementEdit2->setEnabled(!on);
+	deleteSampleButton2->setEnabled(on);
+	deleteSampleButton1->setEnabled(on);
+	addSampleButton2->setEnabled(on);
+	addSampleButton1->setEnabled(on);
+	PanelCommand::captureEnd(cmd, fParams);
+	//This has no real effect until the next rendering
+	updateTab();
+}
 	
 void FlowEventRouter::
 guiEditSeedList(){
@@ -2135,6 +2267,7 @@ setZSize(FlowParams* fParams,int sliderval){
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
+
 /*
  * Method to be invoked after the user has moved the right or left bounds
  * (e.g. From the MapEditor. ) 
