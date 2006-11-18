@@ -91,14 +91,22 @@ reset(DataMgr* dm, size_t cachesize){
 	
 	//clean out the various status arrays:
 
-	//Add all new variable names to the variable name list.
+	//Add all new variable names to the variable name list, while building the 
+	//mapping of metadata var nums into session var nums:
+	removeMetadataVars();
+	
+	
 	int numVars = currentMetadata->GetVariableNames().size();
 	if (numVars == 0) return false;
+	numMetadataVariables = numVars;
+	mapMetadataVars = new int[numMetadataVariables];
 	
 	for (int i = 0; i<numVars; i++){
 		bool match = false;
 		for (int j = 0; j< getNumVariables(); j++){
 			if (getVariableName(j) == currentMetadata->GetVariableNames()[i]){
+				const char* foo = getVariableName(j).c_str();
+				mapMetadataVars[i] = j;
 				match = true;
 				break;
 			}
@@ -107,6 +115,7 @@ reset(DataMgr* dm, size_t cachesize){
 		//Note that we are modifying the very array that we are looping over.
 		//
 		addVarName(currentMetadata->GetVariableNames()[i]);
+		mapMetadataVars[i] = variableNames.size()-1;
 	}
 
 	int numVariables = getNumVariables();
@@ -274,6 +283,7 @@ int DataStatus::mapRealToMetadataVarNum(int realVarNum){
 	}
 	return -1;
 }
+/*
 void DataStatus::fillMetadataVars(){
 	removeMetadataVars();
 	for (int i = 0; i< getNumVariables(); i++){
@@ -290,6 +300,7 @@ void DataStatus::fillMetadataVars(){
 		}
 	}
 }
+*/
 
 //Convert the max extents into cube coords
 void DataStatus::getMaxExtentsInCube(float maxExtents[3]){

@@ -62,7 +62,7 @@ public:
 	int GetEndTime(void) { return m_pSolution->GetEndTime(); }
 	void SetUserTimeStepInc(int timeInc, int curTimeInc) { m_pSolution->SetUserTimeStepInc(timeInc, curTimeInc); }
 	void SetUserTimeSteps(int* pUserTimeSteps) { m_pSolution->SetUserTimeSteps(pUserTimeSteps); }
-	int GetTimeIncrement(void) { return m_pSolution->GetTimeIncrement(); }
+	//int GetTimeIncrement(void) { return m_pSolution->GetTimeIncrement(); }
 };
 };
 //////////////////////////////////////////////////////////////////////////

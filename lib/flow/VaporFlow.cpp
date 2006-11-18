@@ -173,6 +173,14 @@ void VaporFlow::SetTimeStepInterval(size_t startT,
 	endTimeStep = endT;
 	timeStepIncrement = tInc;
 }
+//////////////////////////////////////////////////////////////////////////////////
+//  Setup Time step list for unsteady integration.. Replaces above method
+//////////////////////////////////////////////////////////////////
+void VaporFlow::SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps, bool forward){
+	unsteadyTimestepList = timeStepList;
+	numUnsteadyTimesteps = numSteps;
+	unsteadyIsForward = forward;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // specify the userTimeStepSize and animationTimeStepSize as multiples
@@ -496,7 +504,7 @@ bool VaporFlow::GenPathLines(float* positions,
 	int numInjections;						// times to inject new seeds
 	int timeSteps;							// total "time steps"
 	int totalXNum, totalYNum, totalZNum, totalNum;
-	int realStartTime, realEndTime;
+	
     totalXNum = (maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize()[0];
 	totalYNum = (maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize()[1];
 	totalZNum = (maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize()[2];
@@ -504,10 +512,31 @@ bool VaporFlow::GenPathLines(float* positions,
 	numInjections = 1 + ((endInjection - startInjection)/injectionTimeIncrement);
 	//realStartTime and realEndTime are actual limits of time steps for which positions
 	//are calculated.
-	realStartTime = (startInjection < startTimeStep)? startTimeStep: startInjection;
+	
+	//Make sure the first time is during or after the first/(or last if backwards) injection:
+	int indx;
+	TIME_DIR timeDir;
+	if (unsteadyIsForward){
+		for (indx = 0; indx< numUnsteadyTimesteps; indx++){
+			if (unsteadyTimestepList[indx] >= startInjection) break;
+			if (indx >= numUnsteadyTimesteps-1) assert(0);
+		}
+		timeDir = FORWARD;
+	}
+	else { //timesteps are in decreasing order:
+		for (indx = 0; indx< numUnsteadyTimesteps; indx++){
+			if (unsteadyTimestepList[indx] <= endInjection) break;
+			if (indx >= numUnsteadyTimesteps-1) assert(0);
+		}
+		timeDir = BACKWARD;
+	}
+	int realStartTime = (int)unsteadyTimestepList[indx];
+	int realStartIndex = indx;
+	int realEndTime = unsteadyTimestepList[numUnsteadyTimesteps-1];
+
 	//timeSteps is the number of sampled time steps:
-	timeSteps = (endTimeStep - realStartTime)/timeStepIncrement + 1;
-	realEndTime = realStartTime + (timeSteps-1)*timeStepIncrement;
+	timeSteps = numUnsteadyTimesteps - realStartIndex;
+		
 	pUData = new float*[timeSteps];
 	pVData = new float*[timeSteps];
 	pWData = new float*[timeSteps];
@@ -516,7 +545,7 @@ bool VaporFlow::GenPathLines(float* positions,
 	memset(pWData, 0, sizeof(float*)*timeSteps);
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, timeSteps);
 	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
-	pSolution->SetTimeIncrement(timeStepIncrement);
+	
 	pSolution->SetTime(realStartTime, realEndTime);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
 	pCartesianGrid->setPeriod(flowPeriod);
@@ -553,14 +582,18 @@ bool VaporFlow::GenPathLines(float* positions,
 	pUserTimeSteps = new int[timeSteps-1];
 	//Calculate the time differences between successive sampled timesteps.
 	//save that value in pUserTimeSteps, available in pField.
-	for(int nSampledStep = realStartTime; nSampledStep < realEndTime; nSampledStep += timeStepIncrement)
+	//These are negative if we are advecting backwards in time!!
+	for(int sampleIndex = realStartIndex; sampleIndex < numUnsteadyTimesteps-1; sampleIndex++)
 	{
-		int nextSampledStep = nSampledStep + timeStepIncrement;
+		int nSampledStep = unsteadyTimestepList[sampleIndex];
+
+		int nextSampledStep = unsteadyTimestepList[sampleIndex+1];
 		if(dataMgr->GetMetadata()->HasTSUserTime(nSampledStep)&&dataMgr->GetMetadata()->HasTSUserTime(nextSampledStep))
-			pUserTimeSteps[tIndex++] = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
+			pUserTimeSteps[tIndex] = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
 									   dataMgr->GetMetadata()->GetTSUserTime(nSampledStep)[0];
 		else
-			pUserTimeSteps[tIndex++] = timeStepIncrement;
+			pUserTimeSteps[tIndex] = nextSampledStep - nSampledStep;
+		pUserTimeSteps[tIndex++] *= timeDir;
 	}
 	pField->SetUserTimeSteps(pUserTimeSteps);
 
@@ -568,7 +601,9 @@ bool VaporFlow::GenPathLines(float* positions,
 	vtCStreakLine* pStreakLine;
 	float currentT = 0.0;
 	pStreakLine = new vtCStreakLine(pField);
-	pStreakLine->SetTimeDir(FORWARD);
+	int integrationIncrement = (int)timeDir;
+	pStreakLine->SetTimeDir(timeDir);
+	
 	pStreakLine->setParticleLife(maxPoints);
 	pStreakLine->setSeedPoints(seedPtr, seedNum, currentT);
 	pStreakLine->SetSamplingRate(animationTimeStepSize);
@@ -593,41 +628,62 @@ bool VaporFlow::GenPathLines(float* positions,
 	
 	int index = -1, iInjection = 0;
 	bool bInject;
-	for(int iFor = realStartTime; iFor < realEndTime; iFor++)
+
+	int currIndex = realStartIndex;
+	int prevSample = realStartTime;
+	int nextSample = unsteadyTimestepList[realStartIndex+1];
+	int iTemp; //Index that counts the sampled timesteps
+	// Go through all the timesteps, one at a time:
+	for(int iFor = realStartTime; ; iFor += integrationIncrement)
 	{
+		//Termination condition depends on direction:
+		if (unsteadyIsForward){
+			if (iFor >= realEndTime) break;
+			if (iFor >= nextSample) {//bump it up:
+				currIndex++;
+				prevSample = nextSample;
+				nextSample = unsteadyTimestepList[currIndex+1];
+			}
+		}
+		else {
+			if(iFor <= realEndTime) break;
+			if (iFor <= nextSample) {//bump it down:
+				currIndex++;
+				prevSample = nextSample;
+				nextSample = unsteadyTimestepList[currIndex+1];
+			}
+		}
+		
 		bInject = false;
 		//index counts advections
 		index++;								// index to solution instance
 		//AN: Changed iTemp to start at 0
 		//  10/05/05
 		//
-        int iTemp = (iFor-realStartTime)/timeStepIncrement;		// index to lower sampled time step
-
+        //int iTemp = (iFor-realStartTime)/timeStepIncrement;		// index to lower sampled time step
+		iTemp = currIndex - realStartIndex;
 		// get usertimestep between current time step and previous sampled time step
 		double diff = 0.0, curDiff = 0.0;
-		if(dataMgr->GetMetadata()->HasTSUserTime(iFor))
-		{
-			int lowerT = realStartTime+iTemp*timeStepIncrement;
-			for(; lowerT < iFor; lowerT++)
-				//diff is the time from the previous sample to the current timestep
-				//or is 0 if this is a sample timestep
-				//This is needed for time interpolation
-				diff += dataMgr->GetMetadata()->GetTSUserTime(lowerT+1)[0] - 
-						dataMgr->GetMetadata()->GetTSUserTime(lowerT)[0];
-			//curDiff is the time from the current timestep to the next timestep
-			curDiff = dataMgr->GetMetadata()->GetTSUserTime(iFor+1)[0] - 
+		if(dataMgr->GetMetadata()->HasTSUserTime(iFor)){
+			diff = dataMgr->GetMetadata()->GetTSUserTime(iFor)[0] -
+				dataMgr->GetMetadata()->GetTSUserTime(prevSample)[0];
+			curDiff = dataMgr->GetMetadata()->GetTSUserTime(nextSample)[0] - 
 					  dataMgr->GetMetadata()->GetTSUserTime(iFor)[0];
+		} else {
+			diff = iFor - prevSample;
+			curDiff = nextSample - iFor;
 		}
-		else
-		{
-			diff = iFor-(realStartTime+iTemp*timeStepIncrement);
-			diff = (diff < 0.0) ? 0.0 : diff;
-			curDiff = 1.0;
+		if (!unsteadyIsForward) {
+			diff = -diff;
+			curDiff = -curDiff;
 		}
 		pField->SetUserTimeStepInc((int)diff, (int)curDiff);
-
+		//find time difference between adjacent frames (this shouldn't 
+		//always be an int!!!)
+		pSolution->SetTimeIncrement((int)(curDiff + diff + 0.5), timeDir);
 		// need get new data ?
-		if(((iFor-realStartTime)%timeStepIncrement) == 0)
+		//if(((iFor-realStartTime)%timeStepIncrement) == 0)
+		if (iFor == prevSample)
 		{
 			//For the very first sample time, get data for current time (get the next sampled timestep in next line)
 			if(iFor == realStartTime){
@@ -653,7 +709,7 @@ bool VaporFlow::GenPathLines(float* positions,
 				}
 				pField->SetSolutionData(iTemp,xDataPtr,yDataPtr,zDataPtr);
 			} else {
-				//If it's not the very first time, need to release data for first 
+				//If it's not the very first time, need to release data for previous 
 				//time step, and move end ptrs to start:
 				//Now can release first pointers:
 				dataMgr->UnlockRegion(xDataPtr);
@@ -663,12 +719,14 @@ bool VaporFlow::GenPathLines(float* positions,
 				xDataPtr = xDataPtr2;
 				yDataPtr = yDataPtr2;
 				zDataPtr = zDataPtr2;
+				//Also nullify pointers to released timestep data:
+				pField->SetSolutionData(iTemp-1,0,0,0);
 			}
 			//now get data for second ( next) sampled timestep.  
 			yDataPtr2 = zDataPtr2 = 0;
-			xDataPtr2 = GetData(iFor+timeStepIncrement,xUnsteadyVarName); 
-			if(xDataPtr2) yDataPtr2 = GetData(iFor+timeStepIncrement,yUnsteadyVarName); 
-			if(yDataPtr2) zDataPtr2 = GetData(iFor+timeStepIncrement,zUnsteadyVarName); 
+			xDataPtr2 = GetData(nextSample,xUnsteadyVarName); 
+			if(xDataPtr2) yDataPtr2 = GetData(nextSample,yUnsteadyVarName); 
+			if(yDataPtr2) zDataPtr2 = GetData(nextSample,zUnsteadyVarName); 
 			if (!xDataPtr2 || !yDataPtr2 || !zDataPtr2){
 				// if we failed:  release resources
 				delete[] pUserTimeSteps;
@@ -708,6 +766,8 @@ bool VaporFlow::GenPathLines(float* positions,
 	dataMgr->UnlockRegion(xDataPtr2);
 	dataMgr->UnlockRegion(yDataPtr2);
 	dataMgr->UnlockRegion(zDataPtr2);
+	pField->SetSolutionData(iTemp,0,0,0);
+	pField->SetSolutionData(iTemp+1,0,0,0);
 	delete[] pUserTimeSteps;
 	delete[] pointers;
 	delete pStreakLine;

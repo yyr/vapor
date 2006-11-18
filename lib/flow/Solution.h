@@ -18,6 +18,7 @@
 
 namespace VAPoR
 {
+enum TIME_DIR{ BACKWARD = -1, FORWARD = 1};		// advection direction
 class FLOW_API Solution : public VetsUtil::MyBase
 {
 private:
@@ -39,6 +40,7 @@ private:
 										// sampled time step
 	int m_nUserTimeStep;				// usertimestep between current time step and next time step
 	int* m_pUserTimeSteps;				// time step increment between two sampled time steps
+	TIME_DIR m_TimeDir;			// time direction forward or backwards
 
 public:
 	// constructor
@@ -59,8 +61,8 @@ public:
 	void SetTime(int startT, int endT) { m_nStartT = startT; m_nEndT = endT;}
 	int GetStartTime(void) {return m_nStartT;}
 	int GetEndTime(void) {return m_nEndT;}
-	void SetTimeIncrement(int timeInc) { m_nTimeIncrement = timeInc; }
-	int GetTimeIncrement(void) { return m_nTimeIncrement; }
+	void SetTimeIncrement(int timeInc, VAPoR::TIME_DIR isForward) { m_nTimeIncrement = timeInc; m_TimeDir = isForward; }
+	
 	void SetUserTimeStepInc(int timeInc, int curTimeInc) { m_nUserTimeStepInc = timeInc; m_nUserTimeStep = curTimeInc; }
 	void SetUserTimeSteps(int* pUserTimeSteps) { m_pUserTimeSteps = pUserTimeSteps; }
 	void SetTimeScaleFactor(float timeScaleFactor) { m_fTimeScaleFactor = timeScaleFactor; }

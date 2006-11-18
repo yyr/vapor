@@ -41,6 +41,9 @@ namespace VAPoR
     VAPOR_ERROR_GL_RENDERING       = 0x4001,
     VAPOR_ERROR_GL_UNKNOWN_UNIFORM = 0x4002,
 	VAPOR_ERROR_DATA_UNAVAILABLE   = 0x4003,
+
+	//Flow errors
+	VAPOR_ERROR_FLOW = 0x4100,
     
     // Fatal Codes       0x8001 - 0x8FFF
     VAPOR_FATAL = 0x8000

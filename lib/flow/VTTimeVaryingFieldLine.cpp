@@ -140,20 +140,31 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	dt = pow(cell_volume, (float)0.3333333f) / mag;
 	
 	// start to advect
-	while(curTime < finalTime)
+	while(curTime*m_timeDir < finalTime*m_timeDir)
 	{
 		// how much advection time left
-		if((finalTime-curTime)<dt)
-			dt = finalTime-curTime;
-
+		
+		if (m_timeDir == FORWARD) {
+			float timeLeft = (finalTime - curTime);
+			if (dt > timeLeft) 
+				dt = timeLeft;
+		} else {
+			float timeLeft = curTime - finalTime;
+			if (dt > timeLeft) 
+				dt = timeLeft;
+		}
+		
+		//if(m_timeDir*(finalTime-curTime)< dt)
+		//	dt = fabs(finalTime-curTime);
+		
 		second_prevInterpolant = prevInterpolant;
 		prevInterpolant = thisInterpolant;
 		int retrace = true;
-
+		
 		while(retrace)
 		{
 			retrace = false;
-
+			
 			if(int_order == SECOND)
 				istat = runge_kutta2(m_timeDir, UNSTEADY, thisParticle, &curTime, dt);
 			else
@@ -206,9 +217,9 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 					thisParticle.Set(*(seedTrace.back()), thisInterpolant, -1, -1);
 					list<float>::iterator pIter = stepList.end();
 					pIter--;
-					curTime -= *pIter;
+					curTime -= (*pIter)*m_timeDir;
 					pIter--;
-					curTime -= *pIter;
+					curTime -= (*pIter)*m_timeDir;
 					stepList.pop_back();
 					stepList.pop_back();
 				}

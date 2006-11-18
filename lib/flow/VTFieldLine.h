@@ -25,7 +25,7 @@ const double DEG_TO_RAD = 0.0174532925199432957692;	// PI / 180
 const double EPS = 1.0e-6;
 
 enum INTEG_ORD{ SECOND = 2, FOURTH = 4};		// integration order
-enum TIME_DIR{ BACKWARD = -1, FORWARD = 1};		// advection direction
+
 enum TIME_DEP{ STEADY=0,UNSTEADY=1 };	
 enum TRACE_DIR{OFF=0, BACKWARD_DIR=1, FORWARD_DIR=2, BACKWARD_AND_FORWARD=3};
 enum ADVECT_STATUS{OUT_OF_BOUND = -1, CRITICAL_POINT = 0, OKAY = 1};

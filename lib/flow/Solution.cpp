@@ -106,7 +106,9 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 {
 	if((id < 0) || (id >= m_nNodeNum))			// id is valid?
 		return -1;
-	if( (t < m_nStartT) || (t > m_nEndT))		// time is valid
+	if(m_TimeDir == FORWARD && ( (t < m_nStartT) || (t > m_nEndT)))		// time is valid
+		return -1;
+	if(m_TimeDir == BACKWARD && ( (t > m_nStartT) || (t < m_nEndT)))		// time is valid
 		return -1;
 
 	if(!isTimeVarying())
@@ -118,17 +120,19 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 		int lowT, highT;
 		float ratio = 0.0;
 		float offset;
-		offset = (t - (float)m_nStartT)/(float)m_nTimeIncrement;
+		offset = ((t - (float)m_nStartT)*m_TimeDir)/(float)m_nTimeIncrement;
+		assert(offset >= 0.0f);
 		lowT = (int)floor(offset);
 		if(offset != (float)lowT)
 		{
 			highT = lowT + 1;
 			ratio = (m_nUserTimeStepInc + (t - (int)t)*m_nUserTimeStep)/(float)m_pUserTimeSteps[lowT];
+			if (m_TimeDir == BACKWARD) ratio = 1.f - ratio;
 		}
 		else
 			ratio = 0.0;
 
-		if(lowT >= m_nEndT)
+		if(lowT*m_TimeDir >= m_nEndT*m_TimeDir)
 			ratio = 0.0;
 		
 		if(ratio == 0.0)

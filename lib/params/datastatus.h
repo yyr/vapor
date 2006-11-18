@@ -129,7 +129,7 @@ public:
 		if (mapMetadataVars) delete mapMetadataVars;
 		clearMetadataVars();
 	}
-	void fillMetadataVars();
+	//void fillMetadataVars();
 	static void clearMetadataVars() {mapMetadataVars = 0; numMetadataVariables = 0;}
 	//Get full data extents in cube coords
 	void getMaxExtentsInCube(float maxExtents[3]);

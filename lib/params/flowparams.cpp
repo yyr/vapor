@@ -31,6 +31,7 @@
 #include "datastatus.h"
 #include "vapor/VaporFlow.h"
 #include "glutil.h"
+#include "errorcodes.h"
 
 #include <qapplication.h>
 #include <qcursor.h>
@@ -126,12 +127,13 @@ restart() {
 	autoScale = true;
 	regionChanged = true;
 	steadyFlowDirection = 0;
-	unsteadyFlowDirection = 0;
+	unsteadyFlowDirection = 1; //default is forward
 	steadyFlowLength = 1.f;
 	periodicDim[0]=periodicDim[1]=periodicDim[2]=false;
 	autoRefresh = true;
 	enabled = false;
-	
+	useTimestepSampleList = false;
+
 	flowType = 0; //steady
 	
 	numRefinements = 0; 
@@ -210,6 +212,7 @@ restart() {
 	}
 	
 	seedPointList.clear();
+	unsteadyTimestepList.clear();
 	numInjections = 1;
 	maxPoints = 0;
 	maxFrame = 0;
@@ -699,7 +702,8 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 	int i;
 	size_t min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
-	
+	int numTimesteps;
+	int *timeStepList = 0;
 	if (!myFlowLib) return 0;
 	
 	//If we are doing autoscale, calculate the average field 
@@ -840,7 +844,37 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 		if (steadyFlowDirection == 0)flowLen = flowLen/2.f; 
 		myFlowLib->ScaleTimeStepSizes(steadyScale, ((float)(flowLen))/(float)objectsPerFlowline);
 	} else {
-		myFlowLib->SetTimeStepInterval(timeSamplingStart,timeSamplingEnd, timeSamplingInterval);
+		//build the timestep sample list:
+		
+
+		if (useTimestepSampleList) {
+			numTimesteps = unsteadyTimestepList.size();
+			for (int i = 0; i<numTimesteps; i++){
+				timeStepList[i] = unsteadyTimestepList[i];
+			}
+		}
+		else {
+			numTimesteps = 1+ (timeSamplingEnd - timeSamplingStart)/timeSamplingInterval;
+			timeStepList = new int[numTimesteps];
+			for (int i = 0; i< numTimesteps; i++){
+				timeStepList[i] = timeSamplingStart + i*timeSamplingInterval;
+			}
+		}
+		if (numTimesteps < 2){
+			MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "Insufficient time steps for unsteady advection");
+			delete timeStepList;
+			return false;
+		}
+		if (unsteadyFlowDirection < 0){// Invert the list:
+			for (int i = 0; i< numTimesteps/2; i++){
+				//swap each pair:
+				int saveIndex = timeStepList[i];
+				timeStepList[i] = timeStepList[numTimesteps-i-1];
+				timeStepList[numTimesteps-i-1] = saveIndex;
+			}
+		}
+		myFlowLib->SetUnsteadyTimeSteps(timeStepList,numTimesteps, (unsteadyFlowDirection > 0));
+		
 		myFlowLib->ScaleTimeStepSizes(unsteadyScale, ((float)(maxFrame - minFrame))/(float)objectsPerFlowline);
 	}
 	
@@ -1062,6 +1096,7 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 			}
 		}
 	
+	if(timeStepList) delete timeStepList;
 	}
 
 	//Restore original cursor:

@@ -113,6 +113,8 @@ public:
 	//current settings and the number actually used the last time
 	//the flow was calculated:
 	//
+	bool usingTimestepSampleList() {return useTimestepSampleList;}
+	void setTimestepSampleList(bool on) {useTimestepSampleList = on;}
 	
 	int getNumRakeSeedPoints(){
 		return (int)(randomGen ? allGeneratorCount : (int)(generatorCount[0]*generatorCount[1]*generatorCount[2]));
@@ -234,6 +236,7 @@ public:
 	void setPeriodicDim(int coord, bool val){periodicDim[coord] = val;}
 	bool getPeriodicDim(int coord){return periodicDim[coord];}
 	void periodicMap(float origCoords[3],float newCoords[3]);
+	std::vector<int>& getUnsteadyTimesteps() { return unsteadyTimestepList;}
 	
 
 protected:
@@ -336,8 +339,6 @@ protected:
 	QRgb constantColor;
 	float constantOpacity;
 	
-	
-	
 	MapperFunction* mapperFunction;
 	
 	//Save the min and max bounds for each of the flow mappings, plus 
@@ -356,6 +357,7 @@ protected:
 	std::vector<string> opacMapEntity;
 
 	std::vector<Point4> seedPointList;
+	std::vector<int> unsteadyTimestepList;
 	
 	
 	//VaporFlow* myFlowLib;
@@ -365,7 +367,7 @@ protected:
 	bool autoScale;
 	bool doRake;
 	bool doSeedList;
-
+	bool useTimestepSampleList;
 	bool periodicDim[3];
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
