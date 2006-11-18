@@ -105,7 +105,6 @@ reset(DataMgr* dm, size_t cachesize){
 		bool match = false;
 		for (int j = 0; j< getNumVariables(); j++){
 			if (getVariableName(j) == currentMetadata->GetVariableNames()[i]){
-				const char* foo = getVariableName(j).c_str();
 				mapMetadataVars[i] = j;
 				match = true;
 				break;

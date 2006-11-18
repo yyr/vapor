@@ -287,15 +287,15 @@ void FlowEventRouter::deleteSample(){
 //Respond to user has typed in a row. Convert it to an int, swap it up or down
 void FlowEventRouter::timestepChanged1(int row, int col){
 	int newVal = timestepSampleTable1->text(row,col).toInt();
-	
-	for (int i= row -1; i>=0; i--) {
+	int i;
+	for (i= row -1; i>=0; i--) {
 		int rowInt = timestepSampleTable1->text(i,col).toInt();
 		if (rowInt < newVal) break;
 	}
 	if (row > i+1){
 		timestepSampleTable1->swapRows(row,i+1);
 	}
-	for (int i= row + 1; i< timestepSampleTable1->numRows(); i++){
+	for (i= row + 1; i< timestepSampleTable1->numRows(); i++){
 		int rowInt = timestepSampleTable1->text(i,col).toInt();
 		if (rowInt > newVal) break;
 	}
@@ -319,22 +319,22 @@ void FlowEventRouter::guiUpdateUnsteadyTimes(QTable* tbl, const char* descr){
 			prevTime = newTime;
 		}
 	}
-	int foo = timesteplist.size();
+	
 	PanelCommand::captureEnd(cmd, fParams);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::timestepChanged2(int row, int col){
 	
 	int newVal = timestepSampleTable2->text(row,col).toInt();
-	
-	for (int i= row -1; i>=0; i--) {
+	int i;
+	for (i= row -1; i>=0; i--) {
 		int rowInt = timestepSampleTable2->text(i,col).toInt();
 		if (rowInt < newVal) break;
 	}
 	if (row > i+1){
 		timestepSampleTable2->swapRows(row,i+1);
 	}
-	for (int i= row +1; i< timestepSampleTable2->numRows(); i++){
+	for (i= row +1; i< timestepSampleTable2->numRows(); i++){
 		int rowInt = timestepSampleTable2->text(i,col).toInt();
 		if (rowInt > newVal) break;
 	}
