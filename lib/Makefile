@@ -3,13 +3,12 @@ TOP = ../
 include $(TOP)/make/config/arch.mk
 
 
-SUBDIRS = common vdf jpeg flow params
+SUBDIRS = common vdf
 
 ifeq ($(BUILD_GUI), 1)
-SUBDIRS += glew 
+SUBDIRS += jpeg flow params glew render
 endif
 
-SUBDIRS += render
 
 ifeq ($(BUILD_IDL_WRAPPERS), 1)
 SUBDIRS += idl 
