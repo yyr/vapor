@@ -54,6 +54,7 @@ const string Metadata::_varNamesTag = "VariableNames";
 const string Metadata::_xCoordsTag = "XCoords";
 const string Metadata::_yCoordsTag = "YCoords";
 const string Metadata::_zCoordsTag = "ZCoords";
+const string Metadata::_periodicBoundaryTag = "PeriodicBoundary";
 
 const string Metadata::_blockSizeAttr = "BlockSize";
 const string Metadata::_dimensionLengthAttr = "DimensionLength";
@@ -104,6 +105,7 @@ int Metadata::_init(
 	_vdfVersion = vdfVersion;
 
 	_varNames.clear();
+	_periodicBoundaryDefault.assign(3,0);
 
 	oss.str(empty);
 	oss << (unsigned int)_bs[0] << " " << (unsigned int)_bs[1] << " " << (unsigned int)_bs[2];

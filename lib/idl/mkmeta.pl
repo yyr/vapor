@@ -123,6 +123,26 @@
 		tag		=> 0
 	},
 	{
+		idlname	=> "VDF_SETPERIODIC",
+		name => "SetPeriodicBoundary",
+		set => 1,
+		type	=> "long",
+		vector	=> 1,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
+		idlname	=> "VDF_GETPERIODIC",
+		name => "GetPeriodicBoundary",
+		set => 0,
+		type	=> "long",
+		vector	=> 1,
+		ts		=> 0,
+		var		=> 0,
+		tag		=> 0
+	},
+	{
 		idlname	=> "VDF_SETTUSERTIME",
 		name => "SetTSUserTime",
 		set => 1,

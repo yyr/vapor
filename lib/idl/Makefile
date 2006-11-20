@@ -28,6 +28,10 @@ ifeq ($(ARCH),Darwin)
 MAKEFILE_CXXFLAGS += -Wno-missing-braces
 endif
 
+ifeq ($(ARCH),Linux)
+MAKEFILE_CXXFLAGS += -Wno-missing-braces
+endif
+
 
 ifdef IDL_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(IDL_INC_PATH)

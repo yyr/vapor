@@ -605,7 +605,6 @@ IDL_VPTR vdcGetMetadata(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 
-	const Metadata *metadata = io->GetMetadata();
 	myBaseErrChk();
 
 

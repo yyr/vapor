@@ -368,6 +368,40 @@ public:
 	return(_rootnode->GetElementString(_commentTag));
 	};
 
+ //! Set the grid boundary type
+ //!
+ //! \param value A three-element array, indicating whether the
+ //! boundary conditions for X, Y, and Z coordinate axis, respectively,
+ //! are periodic. Any non-zero value is interpreted as true.
+ //! \retval status Returns a non-negative integer on success
+ //
+ int SetPeriodicBoundary(const vector<long> &value) {
+	_rootnode->SetElementLong(_periodicBoundaryTag, value);
+	return(0);
+ }
+
+ //! Return a three-element boolean array indicating if the X,Y,Z
+ //! axes have periodic boundaries, respectively.
+ //!
+ //! \retval boolean-vector  
+ //
+ const vector<long> &GetPeriodicBoundary() const {
+	if (_rootnode->HasElementLong(_periodicBoundaryTag)) {
+		return(_rootnode->GetElementLong(_periodicBoundaryTag));
+	} else {
+		return(_periodicBoundaryDefault);
+	}
+	};
+
+ //! Return true if a the Metadata object has a periodic boundary element
+ //!
+ //! \retval boolean True if a periodic boundary element exists 
+ //
+ int HasPeriodicBoundary() const {
+	return(_rootnode->HasElementDouble(_periodicBoundaryTag));
+	};
+
+
  //! Set the time of a time step in user-defined coordinates.
  //!
  //! \param[in] ts A valid data set time step in the range from zero to
@@ -892,6 +926,7 @@ private:
  
  string _currentVar;	// name of variable currently being processed
  long 	_currentTS;	// Number of time step currently being processed
+ vector <long> _periodicBoundaryDefault;	// default periodic boundary mask
 
 
  // Known xml tags
@@ -912,6 +947,7 @@ private:
  static const string _xCoordsTag;
  static const string _yCoordsTag;
  static const string _zCoordsTag;
+ static const string _periodicBoundaryTag;
 
  // known xml attribute names
  //
