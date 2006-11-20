@@ -13,7 +13,7 @@ void	WaveletBlock3DReader::_WaveletBlock3DReader(
 
 	_xform_timer = 0.0;
 	slab_cntr_c = 0;
-	scratch_block_c = NULL;
+	scratch_block_c = new float[_block_size];
 
 	for(j=0; j<MAX_LEVELS; j++) {
 		lambda_blks_c[j] = NULL;
@@ -26,7 +26,6 @@ WaveletBlock3DReader::WaveletBlock3DReader(
 ) : WaveletBlock3DIO(metadata, nthreads) {
 
 	_objInitialized = 0;
-	scratch_block_c = new float[_block_size];
 	if (WaveletBlock3DIO::GetErrCode()) return;
 
 	_WaveletBlock3DReader();
@@ -40,7 +39,6 @@ WaveletBlock3DReader::WaveletBlock3DReader(
 ) : WaveletBlock3DIO(metafile, nthreads) {
 
 	_objInitialized = 0;
-	scratch_block_c = new float[_block_size];
 	if (WaveletBlock3DIO::GetErrCode()) return;
 	
 	_WaveletBlock3DReader();
