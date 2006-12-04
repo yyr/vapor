@@ -41,9 +41,12 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	}
 
 	userTimeStepSize = 1.0;
+	
 	animationTimeStepSize = 1.0;
-	userTimeStepMultiplier = 1.0;
-	animationTimeStepMultiplier = 1.0;
+	steadyUserTimeStepMultiplier = 1.0;
+	unsteadyUserTimeStepMultiplier = 1.0;
+	steadyAnimationTimeStepMultiplier = 1.0;
+	unsteadyAnimationTimeStepMultiplier = 1.0;
 	
 	bUseRandomSeeds = false;
 	periodicDim[0]= periodicDim[1]= periodicDim[2]= false;
@@ -87,8 +90,11 @@ void VaporFlow::Reset(void)
 
 	userTimeStepSize = 1.0;
 	animationTimeStepSize = 1.0;
-	userTimeStepMultiplier = 1.0;
-	animationTimeStepMultiplier = 1.0;
+	
+	steadyUserTimeStepMultiplier = 1.0;
+	unsteadyUserTimeStepMultiplier = 1.0;
+	steadyAnimationTimeStepMultiplier = 1.0;
+	unsteadyAnimationTimeStepMultiplier = 1.0;
 
 	bUseRandomSeeds = false;
 }
@@ -163,8 +169,9 @@ void VaporFlow::SetRegion(size_t num_xforms,
 }
 
 //////////////////////////////////////////////////////////////////////////
-// time interval for subsequent flow calculation
+// time interval for subsequent flow calculation.  Obsolete
 //////////////////////////////////////////////////////////////////////////
+/*
 void VaporFlow::SetTimeStepInterval(size_t startT, 
 									size_t endT, 
 									size_t tInc)
@@ -173,6 +180,7 @@ void VaporFlow::SetTimeStepInterval(size_t startT,
 	endTimeStep = endT;
 	timeStepIncrement = tInc;
 }
+*/
 //////////////////////////////////////////////////////////////////////////////////
 //  Setup Time step list for unsteady integration.. Replaces above method
 //////////////////////////////////////////////////////////////////
@@ -186,11 +194,17 @@ void VaporFlow::SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps, bool f
 // specify the userTimeStepSize and animationTimeStepSize as multiples
 // of the userTimeStepSize
 //////////////////////////////////////////////////////////////////////////
-void VaporFlow::ScaleTimeStepSizes(double userTimeStepMultiplier, 
+void VaporFlow::ScaleSteadyTimeStepSizes(double userTimeStepMultiplier, 
 								   double animationTimeStepMultiplier)
 {
-	this->userTimeStepMultiplier = userTimeStepMultiplier;
-	this->animationTimeStepMultiplier = animationTimeStepMultiplier;
+	steadyUserTimeStepMultiplier = userTimeStepMultiplier;
+	steadyAnimationTimeStepMultiplier = animationTimeStepMultiplier;
+}
+void VaporFlow::ScaleUnsteadyTimeStepSizes(double userTimeStepMultiplier, 
+								   double animationTimeStepMultiplier)
+{
+	unsteadyUserTimeStepMultiplier = userTimeStepMultiplier;
+	unsteadyAnimationTimeStepMultiplier = animationTimeStepMultiplier;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -288,17 +302,17 @@ bool VaporFlow::GenStreamLines(float* positions,
 {
 	
 	// scale animationTimeStep and userTimeStep
-	if((dataMgr->GetMetadata()->HasTSUserTime(startTimeStep))&&(dataMgr->GetMetadata()->HasTSUserTime(startTimeStep+1)))
+	if((dataMgr->GetMetadata()->HasTSUserTime(steadyStartTimeStep))&&(dataMgr->GetMetadata()->HasTSUserTime(steadyStartTimeStep+1)))
 	{
 		double diff;
-		diff =  dataMgr->GetMetadata()->GetTSUserTime(startTimeStep+1)[0] - dataMgr->GetMetadata()->GetTSUserTime(startTimeStep)[0];
-		userTimeStepSize = diff*userTimeStepMultiplier;
-		animationTimeStepSize = diff*animationTimeStepMultiplier;
+		diff =  dataMgr->GetMetadata()->GetTSUserTime(steadyStartTimeStep+1)[0] - dataMgr->GetMetadata()->GetTSUserTime(steadyStartTimeStep)[0];
+		userTimeStepSize = diff*steadyUserTimeStepMultiplier;
+		animationTimeStepSize = diff*steadyAnimationTimeStepMultiplier;
 	}
 	else
 	{
-		userTimeStepSize = userTimeStepMultiplier;
-		animationTimeStepSize = animationTimeStepMultiplier;
+		userTimeStepSize = steadyUserTimeStepMultiplier;
+		animationTimeStepSize = steadyAnimationTimeStepMultiplier;
 	}
 
 	// create field object
@@ -313,16 +327,16 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pUData = new float*[1];
 	pVData = new float*[1];
 	pWData = new float*[1];
-	pUData[0] = GetData(startTimeStep, xSteadyVarName);
+	pUData[0] = GetData(steadyStartTimeStep, xSteadyVarName);
 	if (pUData[0]== 0)
 		return false;
 
-	pVData[0] = GetData(startTimeStep, ySteadyVarName);
+	pVData[0] = GetData(steadyStartTimeStep, ySteadyVarName);
 	if (pVData[0] == 0) {
 		dataMgr->UnlockRegion(pUData[0]);
 		return false;
 	}
-	pWData[0] = GetData(startTimeStep, zSteadyVarName);
+	pWData[0] = GetData(steadyStartTimeStep, zSteadyVarName);
 	if (pWData[0] == 0) {
 		dataMgr->UnlockRegion(pUData[0]);
 		dataMgr->UnlockRegion(pVData[0]);
@@ -330,8 +344,8 @@ bool VaporFlow::GenStreamLines(float* positions,
 	}
 
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
-	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
-	pSolution->SetTime(startTimeStep, startTimeStep);
+	pSolution->SetTimeScaleFactor(steadyUserTimeStepMultiplier);
+	pSolution->SetTime(steadyStartTimeStep, steadyStartTimeStep);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
 	pCartesianGrid->setPeriod(flowPeriod);
 	// set the boundary of physical grid
@@ -344,10 +358,10 @@ bool VaporFlow::GenStreamLines(float* positions,
 		blockRegionMin[i] = bs[i]*minBlkRegion[i];
 		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
 	}
-	myReader->MapVoxToUser(startTimeStep, blockRegionMin, minUser, numXForms);
-	myReader->MapVoxToUser(startTimeStep, blockRegionMax, maxUser, numXForms);
-	myReader->MapVoxToUser(startTimeStep, minRegion, regMin, numXForms);
-	myReader->MapVoxToUser(startTimeStep, maxRegion, regMax, numXForms);
+	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMin, minUser, numXForms);
+	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMax, maxUser, numXForms);
+	myReader->MapVoxToUser(steadyStartTimeStep, minRegion, regMin, numXForms);
+	myReader->MapVoxToUser(steadyStartTimeStep, maxRegion, regMax, numXForms);
 	
 	//Use current region to determine coords of grid boundary:
 	
@@ -371,7 +385,7 @@ bool VaporFlow::GenStreamLines(float* positions,
 
 	
 
-	float currentT = (float)startTimeStep;
+	float currentT = (float)steadyStartTimeStep;
 	pStreamLine = new vtCStreamLine(pField);
 
 	//AN: for memory debugging:
@@ -385,7 +399,7 @@ bool VaporFlow::GenStreamLines(float* positions,
 	pStreamLine->SetInitStepSize(initialStepSize);
 	pStreamLine->SetMaxStepSize(maxStepSize);
 	pStreamLine->setIntegrationOrder(FOURTH);
-	pStreamLine->SetStationaryCutoff((0.1f*pCartesianGrid->GetGridSpacing(0))/(maxPoints*animationTimeStepMultiplier));
+	pStreamLine->SetStationaryCutoff((0.1f*pCartesianGrid->GetGridSpacing(0))/(maxPoints*steadyAnimationTimeStepMultiplier));
 	pStreamLine->execute((void *)&currentT, positions, speeds);
 	
 	//AN: Removed a call to Reset() here. This requires all vapor flow state to be
@@ -401,7 +415,143 @@ bool VaporFlow::GenStreamLines(float* positions,
 		
 	return true;
 }
+bool VaporFlow::GenStreamLines(FlowLineData* container, unsigned int randomSeed){
+	// first generate seeds
+	float* seedPtr;
+	int seedNum;
+	seedNum = numSeeds[0]*numSeeds[1]*numSeeds[2];
+	assert(seedNum == container->getNumLines());
+	seedPtr = new float[seedNum*3];
+	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
+	pSeedGenerator->GetSeeds(seedPtr, bUseRandomSeeds, randomSeed);
+	delete pSeedGenerator;
 
+	//Then do streamlines with prepared seeds:
+	bool rc = GenStreamLinesNoRake(container, seedPtr);
+	delete [] seedPtr;
+	return rc;
+
+}
+//General new version of GenStreamLines, uses FlowLineData
+bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
+							   float* seedPtr)
+{
+	int numSeeds = container->getNumLines();
+	
+	// scale animationTimeStep and userTimeStep
+	if((dataMgr->GetMetadata()->HasTSUserTime(steadyStartTimeStep))&&(dataMgr->GetMetadata()->HasTSUserTime(steadyStartTimeStep+1)))
+	{
+		double diff;
+		diff =  dataMgr->GetMetadata()->GetTSUserTime(steadyStartTimeStep+1)[0] - dataMgr->GetMetadata()->GetTSUserTime(steadyStartTimeStep)[0];
+		userTimeStepSize = diff*steadyUserTimeStepMultiplier;
+		animationTimeStepSize = diff*steadyAnimationTimeStepMultiplier;
+	}
+	else
+	{
+		userTimeStepSize = steadyUserTimeStepMultiplier;
+		animationTimeStepSize = steadyAnimationTimeStepMultiplier;
+	}
+
+	// create field object
+	CVectorField* pField;
+	Solution* pSolution;
+	CartesianGrid* pCartesianGrid;
+	float **pUData, **pVData, **pWData;
+	int totalXNum = (maxBlkRegion[0]-minBlkRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize()[0];
+	int totalYNum = (maxBlkRegion[1]-minBlkRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize()[1];
+	int totalZNum = (maxBlkRegion[2]-minBlkRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize()[2];
+	int totalNum = totalXNum*totalYNum*totalZNum;
+	pUData = new float*[1];
+	pVData = new float*[1];
+	pWData = new float*[1];
+	pUData[0] = GetData(steadyStartTimeStep, xSteadyVarName);
+	if (pUData[0]== 0)
+		return false;
+
+	pVData[0] = GetData(steadyStartTimeStep, ySteadyVarName);
+	if (pVData[0] == 0) {
+		dataMgr->UnlockRegion(pUData[0]);
+		return false;
+	}
+	pWData[0] = GetData(steadyStartTimeStep, zSteadyVarName);
+	if (pWData[0] == 0) {
+		dataMgr->UnlockRegion(pUData[0]);
+		dataMgr->UnlockRegion(pVData[0]);
+		return false;
+	}
+
+	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
+	pSolution->SetTimeScaleFactor(steadyUserTimeStepMultiplier);
+	pSolution->SetTime(steadyStartTimeStep, steadyStartTimeStep);
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
+	pCartesianGrid->setPeriod(flowPeriod);
+	// set the boundary of physical grid
+	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
+	VECTOR3 minB, maxB, minR, maxR;
+	double minUser[3], maxUser[3], regMin[3],regMax[3];
+	size_t blockRegionMin[3],blockRegionMax[3];
+	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	for (int i = 0; i< 3; i++){
+		blockRegionMin[i] = bs[i]*minBlkRegion[i];
+		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
+	}
+	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMin, minUser, numXForms);
+	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMax, maxUser, numXForms);
+	myReader->MapVoxToUser(steadyStartTimeStep, minRegion, regMin, numXForms);
+	myReader->MapVoxToUser(steadyStartTimeStep, maxRegion, regMax, numXForms);
+	
+	//Use current region to determine coords of grid boundary:
+	
+	//Now adjust minB, maxB to block region extents:
+	
+	for (int i = 0; i< 3; i++){
+		minB[i] = minUser[i];
+		maxB[i] = maxUser[i];
+		minR[i] = regMin[i];
+		maxR[i] = regMax[i];
+	}
+	
+	pCartesianGrid->SetRegionExtents(minR,maxR);
+	pCartesianGrid->SetBoundary(minB, maxB);
+	pField = new CVectorField(pCartesianGrid, pSolution, 1);
+	pField->SetUserTimeStepInc(0, 1);
+	
+	// create streamline
+	vtCStreamLine* pStreamLine = new vtCStreamLine(pField);;
+
+	float currentT = (float)steadyStartTimeStep;
+
+	//AN: for memory debugging:
+	//pStreamLine->fullArraySize = container->getMaxPoints()*seedNum*3;
+
+	// by default, tracing is bidirectional
+	if (steadyFlowDirection > 0)
+		pStreamLine->setBackwardTracing(false);
+	else if (steadyFlowDirection < 0)
+		pStreamLine->setForwardTracing(false);
+
+	pStreamLine->setMaxPoints(container->getMaxPoints());
+	pStreamLine->setSeedPoints(seedPtr, numSeeds, currentT);
+	pStreamLine->SetSamplingRate(animationTimeStepSize);
+	pStreamLine->SetInitStepSize(initialStepSize);
+	pStreamLine->SetMaxStepSize(maxStepSize);
+	pStreamLine->setIntegrationOrder(FOURTH);
+	pStreamLine->SetStationaryCutoff((0.1f*pCartesianGrid->GetGridSpacing(0))/(container->getMaxPoints()*steadyAnimationTimeStepMultiplier));
+	pStreamLine->computeStreamLine(currentT, container);
+	
+	//AN: Removed a call to Reset() here. This requires all vapor flow state to be
+	// reestablished each time flow lines are generated.
+	// release resource
+	delete pStreamLine;
+	delete pField;
+	//Unlock region:
+
+	dataMgr->UnlockRegion(pUData[0]);
+	dataMgr->UnlockRegion(pVData[0]);
+	dataMgr->UnlockRegion(pWData[0]);
+		
+	return true;
+}
 //////////////////////////////////////////////////////////////////////////
 // generate streamlines without rake
 //////////////////////////////////////////////////////////////////////////
@@ -494,7 +644,7 @@ bool VaporFlow::GenPathLines(float* positions,
 							   float* speeds)
 {
 	
-	animationTimeStepSize = animationTimeStepMultiplier;
+	animationTimeStepSize = steadyAnimationTimeStepMultiplier;
 
 	// create field object
 	CVectorField* pField;
@@ -544,7 +694,7 @@ bool VaporFlow::GenPathLines(float* positions,
 	memset(pVData, 0, sizeof(float*)*timeSteps);
 	memset(pWData, 0, sizeof(float*)*timeSteps);
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, timeSteps);
-	pSolution->SetTimeScaleFactor(userTimeStepMultiplier);
+	pSolution->SetTimeScaleFactor(unsteadyUserTimeStepMultiplier);
 	
 	pSolution->SetTime(realStartTime, realEndTime);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
@@ -773,4 +923,64 @@ bool VaporFlow::GenPathLines(float* positions,
 	delete pStreakLine;
 	delete pField;
 	return true;
+}
+//Methods on FlowLineData:
+
+FlowLineData::FlowLineData(int numLines, int maxPoints, bool useSpeeds, bool isSteady, int direction, bool doRGBAs, int samplesPerTimestep){
+	nmLines = numLines;
+	mxPoints = maxPoints;
+	flowDirection = direction;
+
+	startIndices = new int[numLines];
+	
+	lineLengths = new int[numLines];
+	flowLineLists = new float*[numLines];
+	if (doRGBAs) flowRGBAs = new float*[numLines];
+	else flowRGBAs = 0;
+	if (useSpeeds) speedLists = new float*[numLines]; 
+	else speedLists = 0;
+	if (isSteady) seedTimes = 0; 
+	else {
+		seedTimes = new int[numLines];
+		samplesPerTstep = samplesPerTimestep;
+	}
+	for (int i = 0; i<numLines; i++){
+		flowLineLists[i] = new float[3*mxPoints];
+		if (flowRGBAs) flowRGBAs[i] = new float[4*mxPoints];
+		if (useSpeeds) speedLists[i] = new float[mxPoints];
+		if (flowDirection > 0) startIndices[i] = 0;
+		else if (flowDirection < 0) startIndices[i] = mxPoints -1;
+		else startIndices[i] = -1; //Invalid value, must be reset to use.
+		lineLengths[i] = -1;
+	}
+}
+FlowLineData::~FlowLineData() {
+	delete startIndices;
+	delete lineLengths;
+	if (seedTimes) delete seedTimes;
+	for (int i = 0; i<nmLines; i++){
+		delete flowLineLists[i];
+		if (speedLists) delete speedLists[i];
+		if (flowRGBAs) delete flowRGBAs[i];
+	}
+	delete flowLineLists;
+	if (speedLists) delete speedLists;
+	if (flowRGBAs) delete flowRGBAs;
+}
+//Establish an end (rendering order) position for a flow line, after start already established.
+void FlowLineData::
+setFlowEnd(int lineNum, int integPos){
+	assert(integPos>= 0);
+	if (flowDirection > 0) {
+		assert(integPos >= 0 && integPos < mxPoints);
+		lineLengths[lineNum] = integPos+1;
+	}
+	//Note: must have set start before calling this.
+	assert( startIndices[lineNum] >= 0);
+	if (flowDirection == 0) lineLengths[lineNum] = 
+		mxPoints/2 - startIndices[lineNum] + integPos + 1;
+	if (flowDirection < 0) { 
+		assert (integPos == 0 && startIndices[lineNum] == 0); 
+		lineLengths[lineNum] = mxPoints;
+	}
 }

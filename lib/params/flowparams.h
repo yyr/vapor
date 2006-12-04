@@ -34,6 +34,7 @@ class VaporFlow;
 class ExpatParseMgr;
 class VECTOR4;
 class RegionParams;
+class FlowLineData;
 class PARAMS_API FlowParams: public RenderParams {
 	
 public: 
@@ -74,9 +75,10 @@ public:
 	void setNumGenerators(int dimNum, int val){generatorCount[dimNum]=val;}
 	int getTotalNumGenerators() { return (int)allGeneratorCount;}
 	void setTotalNumGenerators(int val){allGeneratorCount = val;}
-	//VaporFlow* getFlowLib(){return myFlowLib;}
+	
 	bool regenerateFlowData(VaporFlow*, int frameNum, int minTime, bool fromRake, RegionParams* rParams, float* data, float* rgbas);
 
+	FlowLineData* regenerateSteadyFlowData(VaporFlow* , int timeStep, int minFrame, bool isRake, RegionParams*);
 
 	void calcSeedExtents(float *extents);
 	float getSeedRegionMin(int coord){ return seedBoxMin[coord];}
@@ -107,8 +109,8 @@ public:
 	int getTimeSamplingEnd() {return timeSamplingEnd;}
 	void setTimeSamplingEnd(int val){timeSamplingEnd = val;}
 	bool isAutoScale(){return autoScale;}
-	void setAutoScale(bool val){autoScale = val;}
-	void setRegionChanged() {regionChanged = true;}
+	void setAutoScale(bool val){magChanged = true; autoScale = val;}
+	
 	//Distinguish between the number of seed points specified in the
 	//current settings and the number actually used the last time
 	//the flow was calculated:
@@ -140,7 +142,9 @@ public:
 	void setSteadyDirection(int dir){steadyFlowDirection = dir;}
 	void setUnsteadyDirection(int dir){unsteadyFlowDirection = dir;}
 	float getSteadyFlowLength(){return steadyFlowLength;}
-	void setSteadyFlowLength(float val) {steadyFlowLength = val;}
+	void setSteadyFlowLength(float val) {magChanged = true; steadyFlowLength = val;}
+	float getSteadySmoothness(){return steadySmoothness;}
+	void setSteadySmoothness(float val) {magChanged = true; steadySmoothness = val;}
 	
 	
 	
@@ -150,7 +154,9 @@ public:
 	void setConstantColor(QRgb clr){constantColor = clr;}
 	int getShapeType() {return geometryType;} //0 = tube, 1 = point, 2 = arrow
 	int getObjectsPerFlowline() {return objectsPerFlowline;}
+	int getObjectsPerTimestep() {return objectsPerTimestep;}
 	void setObjectsPerFlowline(int objs){objectsPerFlowline = objs;}
+	void setObjectsPerTimestep(int objs){objectsPerTimestep = objs;}
 	bool rakeEnabled() {return doRake;}
 	bool listEnabled() {return (doSeedList && getNumListSeedPoints() > 0);}
 	void enableRake(bool onOff){ doRake = onOff;}
@@ -179,7 +185,7 @@ public:
 		return seedPointList[i].getVal(coord);
 	}
 	virtual int getNumRefinements() {return numRefinements;}
-	
+	void mapColors(FlowLineData*, int timeStep, int minFrame, bool isRake);
 	void mapColors(float* speeds, int timeStep, int minFrame, int numSeeds, float* flowData, float *rgbas, bool isRake);
 	//Check the variables in the flow data for missing timesteps 
 	//Independent of animation params
@@ -196,9 +202,9 @@ public:
 	void setSteadyScale(float val){steadyScale = val;}
 	void setUnsteadyScale(float val){unsteadyScale = val;}
 	
-	void setXSteadyVarNum(int varnum){steadyVarNum[0] = varnum;}
-	void setYSteadyVarNum(int varnum){steadyVarNum[1] = varnum;}
-	void setZSteadyVarNum(int varnum){steadyVarNum[2] = varnum;}
+	void setXSteadyVarNum(int varnum){magChanged = true; steadyVarNum[0] = varnum;}
+	void setYSteadyVarNum(int varnum){magChanged = true; steadyVarNum[1] = varnum;}
+	void setZSteadyVarNum(int varnum){magChanged = true; steadyVarNum[2] = varnum;}
 	void setXUnsteadyVarNum(int varnum){unsteadyVarNum[0] = varnum;}
 	void setYUnsteadyVarNum(int varnum){unsteadyVarNum[1] = varnum;}
 	void setZUnsteadyVarNum(int varnum){unsteadyVarNum[2] = varnum;}
@@ -253,6 +259,12 @@ protected:
 	static const string _timeSamplingAttr;
 	static const string _autoRefreshAttr;
 	static const string _periodicDimsAttr;
+	static const string _flowLineLengthAttr;
+	static const string _smoothnessAttr;
+	static const string _autoScaleAttr;
+	static const string _steadyFlowDirectionAttr;
+	static const string _unsteadyFlowDirectionAttr;
+
 
 	//flow seeding tags and attributes
 	static const string _seedingTag;
@@ -273,6 +285,7 @@ protected:
 	static const string _geometryTag;
 	static const string _geometryTypeAttr;
 	static const string _objectsPerFlowlineAttr;
+	static const string _objectsPerTimestepAttr;
 	static const string _displayIntervalAttr;
 	static const string _shapeDiameterAttr;
 	static const string _arrowDiameterAttr;
@@ -290,7 +303,7 @@ protected:
 	static const string _steadyDirectionAttr;
 	static const string _unsteadyDirectionAttr;
 	static const string _steadyFlowLengthAttr;
-	static const string _autoScaleAttr;
+	
 	
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 	
@@ -299,7 +312,7 @@ protected:
 
 	//Find the average vector flow value over current region, at specified resolution.
 	//Note:  this can be time-consuming!
-	float getMaxVectorMag(RegionParams* reg, int numRefnts, int timestep);
+	float getAvgVectorMag(RegionParams* reg, int numRefnts, int timestep);
 	
 	int flowType; //steady = 0, unsteady = 1;
 	
@@ -313,8 +326,9 @@ protected:
 	float integrationAccuracy;
 	float steadyScale;
 	float unsteadyScale;
+	float steadySmoothness;
 	
-	bool regionChanged;
+	
 	int timeSamplingInterval;
 	int timeSamplingStart;
 	int timeSamplingEnd;
@@ -332,6 +346,7 @@ protected:
 
 	int geometryType;  //0= tube, 1=point, 2 = arrow
 	int objectsPerFlowline;
+	int objectsPerTimestep;
 	int firstDisplayFrame, lastDisplayFrame;
 	
 	float shapeDiameter;
@@ -376,6 +391,7 @@ protected:
 	int unsteadyFlowDirection; //either -1 or 1, backwards or forwards
 	int steadyFlowDirection; //either -1, 1, or 0 backwards, forwards, or both
 	float steadyFlowLength;
+	bool magChanged;  //flag to indicate need to recalculate averageFieldMag
 
 };
 };

@@ -59,6 +59,8 @@ using namespace VAPoR;
 	const string FlowParams::_seedPointTag = "SeedPoint";
 	const string FlowParams::_positionAttr = "Position";
 	const string FlowParams::_timestepAttr = "TimeStep";
+	const string FlowParams::_steadyFlowDirectionAttr = "SteadyFlowDirection";
+	const string FlowParams::_unsteadyFlowDirectionAttr = "UnsteadyFlowDirection";
 
 	const string FlowParams::_mappedVariableNamesAttr = "MappedVariableNames";//obsolete
 	const string FlowParams::_steadyVariableNamesAttr = "SteadyVariableNames";
@@ -73,6 +75,8 @@ using namespace VAPoR;
 	const string FlowParams::_timeSamplingAttr = "SamplingTimes";
 	const string FlowParams::_autoRefreshAttr = "AutoRefresh";
 	const string FlowParams::_autoScaleAttr = "AutoScale";
+	const string FlowParams::_flowLineLengthAttr = "FlowLineLength";
+	const string FlowParams::_smoothnessAttr = "Smoothness";
 	
 	
 	
@@ -82,6 +86,7 @@ using namespace VAPoR;
 	const string FlowParams::_geometryTag = "FlowGeometry";
 	const string FlowParams::_geometryTypeAttr = "GeometryType";
 	const string FlowParams::_objectsPerFlowlineAttr = "ObjectsPerFlowline";
+	const string FlowParams::_objectsPerTimestepAttr = "ObjectsPerTimestep";
 	const string FlowParams::_displayIntervalAttr = "DisplayInterval";
 	const string FlowParams::_steadyFlowLengthAttr = "SteadyFlowLength";
 	const string FlowParams::_shapeDiameterAttr = "ShapeDiameter";
@@ -124,11 +129,13 @@ FlowParams::~FlowParams(){
 //Set everything in sight to default state:
 void FlowParams::
 restart() {
+	magChanged = true;
 	autoScale = true;
-	regionChanged = true;
+	
 	steadyFlowDirection = 0;
 	unsteadyFlowDirection = 1; //default is forward
 	steadyFlowLength = 1.f;
+	steadySmoothness = 20.f;
 	periodicDim[0]=periodicDim[1]=periodicDim[2]=false;
 	autoRefresh = true;
 	enabled = false;
@@ -184,6 +191,7 @@ restart() {
 
 	geometryType = 0;  //0= tube, 1=point, 2 = arrow
 	objectsPerFlowline = 20;
+	objectsPerTimestep = 1;
 
 	shapeDiameter = 1.f;
 	arrowDiameter = 2.f;
@@ -674,27 +682,8 @@ writePathline(FILE* saveFile, int pathNum, int minFrame, int injNum, float* flow
 
 
 
-/*
-void FlowParams::
-setEnabled(bool on){
-	//if (enabled == on) return;
-	enabled = on;
-	if (!enabled){//delete existing flow lib
-		if (myFlowLib) delete myFlowLib;
-		myFlowLib = 0;
-		return;
-	}
-	if(myFlowLib) return;
-	//create a new flow lib:
-	assert(myFlowLib == 0);
-	DataMgr* dataMgr = (DataMgr*)DataStatus::getInstance()->getDataMgr();
-	assert(dataMgr);
-	myFlowLib = new VaporFlow(dataMgr);
-	return;
-	
-}
-*/
-//Generate the flow data, either from a rake or from a point list.
+
+//Generate the flow data, either from a rake or from a seed list.
 //If speeds are used for rgba mapping, they are (temporarily) calculated
 //and then mapped.
 bool FlowParams::
@@ -707,11 +696,12 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 	if (!myFlowLib) return 0;
 	
 	//If we are doing autoscale, calculate the average field 
-	//magnitude at lowest resolution, over the full domain:
-	if (autoScale && regionChanged && flowType != 1){
-		float avgMag = getMaxVectorMag(rParams, 0, timeStep);
+	//magnitude at lowest resolution, over the full domain, then
+	//save this value (it will show in the gui)
+	if (autoScale && magChanged && flowType != 1){
+		float avgMag = getAvgVectorMag(rParams, 0, timeStep);
 		if (avgMag == 0.f) avgMag = 1.f;
-		regionChanged = false;
+		magChanged = false;
 		//Scale the steady field so that it will go 1.0 distance in unit time
 		//in one time unit
 		const float* fullExtents = DataStatus::getInstance()->getExtents();
@@ -839,10 +829,11 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 
 	if (flowType == 0) { //steady
 		
-		myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
+		//myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
+		myFlowLib->SetSteadyTimeSteps(timeStep, 1); //Direction is positive currently...
 		float flowLen = (float)steadyFlowLength;
 		if (steadyFlowDirection == 0)flowLen = flowLen/2.f; 
-		myFlowLib->ScaleTimeStepSizes(steadyScale, ((float)(flowLen))/(float)objectsPerFlowline);
+		myFlowLib->ScaleSteadyTimeStepSizes(steadyScale, ((float)(flowLen))/(float)objectsPerFlowline);
 	} else {
 		//build the timestep sample list:
 		
@@ -875,7 +866,7 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 		}
 		myFlowLib->SetUnsteadyTimeSteps(timeStepList,numTimesteps, (unsteadyFlowDirection > 0));
 		
-		myFlowLib->ScaleTimeStepSizes(unsteadyScale, ((float)(maxFrame - minFrame))/(float)objectsPerFlowline);
+		myFlowLib->ScaleUnsteadyTimeStepSizes(unsteadyScale, ((float)(maxFrame - minFrame))/(float)objectsPerFlowline);
 	}
 	
 	int numPrePoints=0, numPostPoints=0;
@@ -987,7 +978,7 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 		float flowLen = steadyFlowLength;
 		if (steadyFlowDirection == 0) flowLen /= 2;
 		if (numPrePoints>0){
-			myFlowLib->ScaleTimeStepSizes(-steadyScale, (flowLen/(float)objectsPerFlowline));
+			myFlowLib->ScaleSteadyTimeStepSizes(-steadyScale, (flowLen/(float)objectsPerFlowline));
 			if (isRake){
 				rc = myFlowLib->GenStreamLines(prePointData, numPrePoints, randomSeed, preSpeeds);
 			} else {
@@ -995,7 +986,7 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 			}
 		}
 		if (rc && numPostPoints > 0) {
-			myFlowLib->ScaleTimeStepSizes(steadyScale, ((float)(flowLen))/(float)objectsPerFlowline);
+			myFlowLib->ScaleSteadyTimeStepSizes(steadyScale, ((float)(flowLen))/(float)objectsPerFlowline);
 			if (isRake){
 				rc = myFlowLib->GenStreamLines(postPointData,numPostPoints,randomSeed,postSpeeds);
 			} else {
@@ -1113,6 +1104,174 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 	return true;
 }
 
+//Generate steady flow data, either from a rake or from a seed list.
+//Results go into container.
+//If speeds are used for rgba mapping, they are (temporarily) calculated
+//and then mapped.
+FlowLineData* FlowParams::
+regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake, RegionParams* rParams){
+	
+	size_t min_dim[3], max_dim[3]; 
+	size_t min_bdim[3], max_bdim[3];
+	
+	float* seedList = 0;
+	if (!myFlowLib) return 0;
+	
+	//If we are doing autoscale, calculate the average field 
+	//magnitude at lowest resolution, over the full domain:
+	if (autoScale && magChanged){
+		float avgMag = getAvgVectorMag(rParams, 0, timeStep);
+		if (avgMag == 0.f) avgMag = 1.f;
+		magChanged = false;
+		//Scale the steady field so that it will go steadyFlowLength diameters 
+		//in unit time
+		
+		const float* fullExtents = DataStatus::getInstance()->getExtents();
+		float diff[3];
+		vsub(fullExtents, fullExtents+3, diff);
+		float diam = sqrt(vdot(diff, diff));
+		steadyScale = diam*steadyFlowLength/avgMag;
+		//And set the numsamples
+		objectsPerFlowline = steadyFlowLength*steadySmoothness;
+	}
+
+	DataStatus* ds;
+	//specify field components:
+	ds = DataStatus::getInstance();
+	const char* xVar, *yVar, *zVar;
+	
+	xVar = ds->getVariableName(steadyVarNum[0]).c_str();
+	yVar = ds->getVariableName(steadyVarNum[1]).c_str();
+	zVar = ds->getVariableName(steadyVarNum[2]).c_str();
+	myFlowLib->SetSteadyFieldComponents(xVar, yVar, zVar);
+	
+	myFlowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
+	
+	// determine what is the available region for the current time step.
+	
+	
+	bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, steadyVarNum, 3);
+
+	if(!dataValid){
+		MyBase::SetErrMsg("Vector field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
+		return 0;
+	}
+	
+	//Check that the cache is big enough for all three (or 4) variables
+	float numVoxels = (max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1);
+	float nvars =  3.f;
+	
+	//Multiply by 32^3 *4 to get total bytes, divide by 2^20 for mbytes, * num variables
+	if (nvars*numVoxels/8.f >= (float)DataStatus::getInstance()->getCacheMB()){
+		SetErrMsg(101," Data cache size %d is too small for this flow integration",
+			DataStatus::getInstance()->getCacheMB());
+		return false;
+	}
+	myFlowLib->SetRegion(numRefinements, min_dim, max_dim, min_bdim, max_bdim);
+
+	int numSeedPoints;
+	if (isRake){
+		numSeedPoints = getNumRakeSeedPoints();
+		if (randomGen) {
+			myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount);
+			
+		} else {
+			float boxmin[3], boxmax[3];
+			for (int i = 0; i<3; i++){
+				if (generatorCount[i] <= 1) {
+					boxmin[i] = (seedBoxMin[i]+seedBoxMax[i])*0.5f;
+					boxmax[i] = boxmin[i];
+				} else {
+					boxmin[i] = seedBoxMin[i];
+					boxmax[i] = seedBoxMax[i];
+				}
+			}
+			myFlowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);
+			
+		}
+	} else { //determine how many seed points to send to flowlib
+		
+		//For steady flow, count how many seeds will be in the array
+		int seedCounter = 0;
+		for (int i = 0; i<getNumListSeedPoints(); i++){
+			float time = seedPointList[i].getVal(3);
+			if ((time < 0.f) || ((int)(time+0.5f) == timeStep)){
+				seedCounter++;
+			}
+		}
+		numSeedPoints = seedCounter;
+		if (numSeedPoints == 0) {
+			MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "No seeds at current time step");
+			return false;
+		}
+		seedCounter = 0;
+		seedList = new float[numSeedPoints*3];
+		for (int i = 0; i<getNumListSeedPoints(); i++){
+			float time = seedPointList[i].getVal(3);
+			if ((time < 0.f) || ((int)(time+0.5f) == timeStep)){
+				for (int j = 0; j< 3; j++){
+					seedList[3*seedCounter+j] = seedPointList[i].getVal(j);
+				}
+				seedCounter++;
+			}
+		}
+		
+	}
+	// setup integration parameters:
+	
+	float minIntegStep = SMALLEST_MIN_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MIN_STEP; 
+	float maxIntegStep = SMALLEST_MAX_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MAX_STEP; 
+	
+	
+	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
+
+	//myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
+	myFlowLib->SetSteadyTimeSteps(timeStep, steadyFlowDirection); 
+	
+	
+	myFlowLib->ScaleSteadyTimeStepSizes(steadyScale, 1.f/(float)objectsPerFlowline);
+	
+	//Note:  Following duplicates code in calcMaxPoints()
+	maxPoints = objectsPerFlowline+1;
+	if (maxPoints < 2) maxPoints = 2;
+	if (steadyFlowDirection == 0 && maxPoints < 4) maxPoints = 4;
+
+	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
+	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
+
+	FlowLineData* flowData = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, true, steadyFlowDirection, doRGBAs); 
+		
+	numInjections = 1;
+
+	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+	
+	bool rc = true;
+	
+	if (isRake){
+		rc = myFlowLib->GenStreamLines(flowData, randomSeed);
+	} else {
+		rc = myFlowLib->GenStreamLinesNoRake(flowData,seedList);
+	}
+
+	if (!rc){
+		MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "Error integrating steady flow lines");	
+		delete flowData;
+		return 0;
+	}
+
+
+	//Restore original cursor:
+	QApplication::restoreOverrideCursor();
+	//Now map colors (if needed)
+		
+	if (doRGBAs){
+		mapColors(flowData, timeStep, minFrame, isRake);
+		//Now we can release the speeds:
+		if (useSpeeds) flowData->releaseSpeeds(); 
+	}
+
+	return flowData;
+}
 
 //Method to construct Xml for state saving
 XmlNode* FlowParams::
@@ -1153,6 +1312,22 @@ buildNode() {
 	oss.str(empty);
 	oss << (double)integrationAccuracy;
 	attrs[_integrationAccuracyAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)steadySmoothness;
+	attrs[_smoothnessAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)steadyFlowLength;
+	attrs[_steadyFlowLengthAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)steadyFlowDirection;
+	attrs[_steadyFlowDirectionAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)unsteadyFlowDirection;
+	attrs[_unsteadyFlowDirectionAttr] = oss.str();
 
 	oss.str(empty);
 	oss << (long)timeSamplingStart<<" "<<timeSamplingEnd<<" "<<timeSamplingInterval;
@@ -1278,6 +1453,9 @@ buildNode() {
 	oss << (int)objectsPerFlowline;
 	attrs[_objectsPerFlowlineAttr] = oss.str();
 	oss.str(empty);
+	oss << (int)objectsPerTimestep;
+	attrs[_objectsPerTimestepAttr] = oss.str();
+	oss.str(empty);
 	oss << (long)firstDisplayFrame <<" "<<(long)lastDisplayFrame;
 	attrs[_displayIntervalAttr] = oss.str();
 	oss.str(empty);
@@ -1367,6 +1545,11 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		int newNumVariables = 0;
 		//Default autoscale to false, consistent with pre-1.2
 		autoScale = false;
+		
+		steadyFlowLength = 1.f;
+		steadySmoothness = 20.f;
+		steadyFlowDirection = 1;  //Forward was default for previous versions
+		unsteadyFlowDirection = 1;
 		//If it's a Flow tag, save 11 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -1443,6 +1626,12 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _integrationAccuracyAttr) == 0){
 				ist >> integrationAccuracy;
 			}
+			else if (StrCmpNoCase(attribName, _steadyFlowDirectionAttr) == 0){
+				ist >> steadyFlowDirection;
+			}
+			else if (StrCmpNoCase(attribName, _unsteadyFlowDirectionAttr) == 0){
+				ist >> unsteadyFlowDirection;
+			}
 			else if (StrCmpNoCase(attribName, _velocityScaleAttr) == 0){
 				ist >> steadyScale;
 				ist >> unsteadyScale;
@@ -1455,6 +1644,12 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _timeSamplingAttr) == 0){
 				ist >> timeSamplingStart;ist >>timeSamplingEnd; ist>>timeSamplingInterval;
+			}
+			else if (StrCmpNoCase(attribName, _smoothnessAttr) == 0) {
+				ist >> steadySmoothness;
+			}
+			else if (StrCmpNoCase(attribName, _steadyFlowLengthAttr) == 0) {
+				ist >> steadyFlowLength;
 			}
 			else return false;
 		}
@@ -1555,6 +1750,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _objectsPerFlowlineAttr) == 0) {
 				ist >> objectsPerFlowline;
+			}
+			else if (StrCmpNoCase(attribName, _objectsPerTimestepAttr) == 0) {
+				ist >> objectsPerTimestep;
 			}
 			else if (StrCmpNoCase(attribName, _displayIntervalAttr) == 0) {
 				ist >> firstDisplayFrame;ist >> lastDisplayFrame;
@@ -1884,6 +2082,194 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 	}
 }
 
+//Generate a list of colors and opacities, one per (valid) vertex.
+//Puts them into the FlowLineData
+//Note that, if a variable is mapped, only the first time step is used for
+//the mapping
+//
+void FlowParams::
+mapColors(FlowLineData* container, int currentTimeStep, int minFrame, bool isRake){
+	//Create lut based on current mapping data
+	float* lut = new float[256*4];
+	mapperFunction->makeLut(lut);
+	//Setup mapping
+	
+	float opacMin = mapperFunction->getMinOpacMapValue();
+	float colorMin = mapperFunction->getMinColorMapValue();
+	float opacMax = mapperFunction->getMaxOpacMapValue();
+	float colorMax = mapperFunction->getMaxColorMapValue();
+
+	float opacVar, colorVar;
+	float* opacRegion, *colorRegion;
+	float opacVarMin[3], opacVarMax[3], colorVarMin[3], colorVarMax[3];
+	int opacSize[3],colorSize[3];
+	DataStatus* ds = DataStatus::getInstance();
+	//Make sure RGBAs are available if needed:
+	if (getOpacMapEntityIndex() + getColorMapEntityIndex() > 0)
+		container->enableRGBAs();
+		
+	//Get the variable (entire region) if needed
+	if (getOpacMapEntityIndex() > 3){
+		//set up args for GetRegion
+		//If flow is unsteady, just get the first available timestep
+		int timeStep = currentTimeStep;
+		if(flowType != 0){//unsteady flow
+			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
+			if (timeStep < 0) MyBase::SetErrMsg("No data for mapped variable");
+		}
+		size_t minSize[3];
+		size_t maxSize[3];
+		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
+		for (int i = 0; i< 3; i++){
+			minSize[i] = 0;
+			opacSize[i] = (int)((ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements)));
+			maxSize[i] = opacSize[i]/bs[i] -1;
+			opacVarMin[i] = DataStatus::getInstance()->getExtents()[i];
+			opacVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];
+		}
+		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+		opacRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
+			opacMapEntity[getOpacMapEntityIndex()].c_str(),
+			numRefinements, (size_t*) minSize, (size_t*) maxSize, 0);
+		QApplication::restoreOverrideCursor();
+	}
+	if (getColorMapEntityIndex() > 3){
+		//set up args for GetRegion
+		int timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-4);
+		if (timeStep < 0) MyBase::SetErrMsg("No data for mapped variable");
+		size_t minSize[3];
+		size_t maxSize[3];
+		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
+		for (int i = 0; i< 3; i++){
+			minSize[i] = 0;
+			colorSize[i] = (int)((ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements)));
+			maxSize[i] = (colorSize[i]/bs[i] - 1);
+			colorVarMin[i] = DataStatus::getInstance()->getExtents()[i];
+			colorVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];
+		}
+		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+		colorRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
+			colorMapEntity[getColorMapEntityIndex()].c_str(),
+			numRefinements, (size_t*) minSize, (size_t*) maxSize, 0);
+		QApplication::restoreOverrideCursor();
+
+	}
+	
+	//Cycle through all the points.  Map to rgba as we go.
+	//
+	for (int i = 0; i<numInjections; i++){
+		for (int lineNum = 0; lineNum<container->getNumLines(); lineNum++){
+			for (int pointNum = container->getStartIndex(lineNum); pointNum<= container->getEndIndex(lineNum); pointNum++){
+			//for (int k = 0; k<maxPoints; k++) {
+				
+				switch (getOpacMapEntityIndex()){
+					case (0): //constant
+						opacVar = 0.f;
+						break;
+					case (1): //age
+						if (flowIsSteady())
+							//Map k in [0..objectsPerFlowline] to the interval (0,1)
+							opacVar =  
+								(float)pointNum/((float)objectsPerFlowline);
+						else
+							opacVar = (float)pointNum*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
+						break;
+					case (2): //speed
+						opacVar = container->getSpeed(lineNum,pointNum);
+						break;
+					case (3): //opacity mapped from seed index
+						
+						if (isRake) opacVar = -1.f - (float)lineNum;
+						else opacVar = (float)lineNum;
+
+						break;
+					default : //variable
+						int x,y,z;
+						float* dataPoint = container->getFlowPoint(lineNum,pointNum);
+							
+						//Check for ignore flag... make transparent
+						//Should never happen!
+						assert (dataPoint[0] != IGNORE_FLAG);
+						//	opacVar = opacMin;
+						//	break;
+						//}
+						float remappedPoint[3];
+						periodicMap(dataPoint,remappedPoint);
+						x = (int)(0.5f+((remappedPoint[0] - opacVarMin[0])*opacSize[0])/(opacVarMax[0]-opacVarMin[0]));
+						y = (int)(0.5f+((remappedPoint[1] - opacVarMin[1])*opacSize[1])/(opacVarMax[1]-opacVarMin[1]));
+						z = (int)(0.5f+((remappedPoint[2] - opacVarMin[2])*opacSize[2])/(opacVarMax[2]-opacVarMin[2]));
+						if (x>=opacSize[0]) x = opacSize[0]-1;
+						if (y>=opacSize[1]) y = opacSize[1]-1;
+						if (z>=opacSize[2]) z = opacSize[2]-1;
+						
+						opacVar = opacRegion[x+opacSize[0]*(y+opacSize[1]*z)];
+						break;
+				}
+				int opacIndex = (int)((opacVar - opacMin)*255.99/(opacMax-opacMin));
+				if (opacIndex<0) opacIndex = 0;
+				if (opacIndex> 255) opacIndex =255;
+				//opacity = lut[3+4*opacIndex];
+				switch (getColorMapEntityIndex()){
+					case (0): //constant
+						colorVar = 0.f;
+						break;
+					case (1): //age
+						if (flowIsSteady())
+							colorVar = 
+								(float)pointNum/((float)objectsPerFlowline);
+						else
+							colorVar = (float)pointNum*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
+						break;
+					case (2): //speed
+						colorVar = container->getSpeed(lineNum,pointNum);
+						break;
+					case (3) : //seed index.  Will use constant color
+						if (isRake) colorVar = -1.f - (float)lineNum;
+						else colorVar = (float)lineNum;
+						break;
+					default : //variable
+						int x,y,z;
+						float* dataPoint = container->getFlowPoint(lineNum,pointNum);
+						assert(dataPoint[0] != IGNORE_FLAG);
+						//Check for ignore flag... map to min color
+						//if (dataPoint[0] == IGNORE_FLAG){
+						//	colorVar = colorMin;
+						//	break;
+						//}
+						float remappedPoint[3];
+						periodicMap(dataPoint,remappedPoint);
+						x = (int)(0.5f+((remappedPoint[0] - colorVarMin[0])*colorSize[0])/(colorVarMax[0]-colorVarMin[0]));
+						y = (int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
+						z = (int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
+						if (x>=colorSize[0]) x = colorSize[0]-1;
+						if (y>=colorSize[1]) y = colorSize[1]-1;
+						if (z>=colorSize[2]) z = colorSize[2]-1;
+						colorVar = colorRegion[x+colorSize[0]*(y+colorSize[1]*z)];
+						break;
+				}
+				int colorIndex = (int)((colorVar - colorMin)*255.99/(colorMax-colorMin));
+				if (colorIndex<0) colorIndex = 0;
+				if (colorIndex> 255) colorIndex =255;
+				//Now assign color etc.
+				//Special case for constant colors and/or opacities
+				if (getOpacMapEntityIndex() == 0){
+					container->setAlpha(lineNum,pointNum,constantOpacity);
+				} else {
+					container->setAlpha(lineNum,pointNum,lut[4*opacIndex+3]);
+				}
+				if (getColorMapEntityIndex() == 0){
+					container->setRGB(lineNum,pointNum,((float)qRed(constantColor))/255.f,
+						((float)qGreen(constantColor))/255.f,
+						((float)qBlue(constantColor))/255.f);
+				} else {
+					container->setRGB(lineNum,pointNum,lut[4*colorIndex],
+						lut[4*colorIndex+1],
+						lut[4*colorIndex+2]);
+				}
+			}
+		}
+	}
+}
 //Map periodic coords into data extents.
 //Note this is different than the mapping used by flowlib (at least when numrefinements < max numrefinements)
 void FlowParams::periodicMap(float origCoords[3], float mappedCoords[3]){
@@ -1973,11 +2359,9 @@ float FlowParams::minRange(int index, int timestep){
 		case (1): 
 			//Need to fix this for unsteady
 			if (flowIsSteady()){
-				if (steadyFlowDirection == -1) return (-steadyFlowLength);
-				if (steadyFlowDirection == 1) return (0);
-				return (-steadyFlowLength/2);
+				return 0.f;
 			}
-			else return (0.f);
+			else return (0.f);//??
 		case (2): return (0.f);//speed
 		case (3): //seed index.  Goes from -1 to -(rakesize)
 			return (doRake ? -(float)getNumRakeSeedPoints() : 0.f );
@@ -1995,12 +2379,10 @@ float FlowParams::maxRange(int index, int timestep){
 	switch(index){
 		case (0): return 1.f;
 		case (1): if (flowIsSteady()){
-				if (steadyFlowDirection == -1) return (0);
-				if (steadyFlowDirection == 1) return (steadyFlowLength);
-				return (steadyFlowLength/2);
+				return 1.f;
 			}
 			//unsteady:
-			return (float)maxFrame;
+			return (float)maxFrame;//??
 		case (2): //speed
 			for (int k = 0; k<3; k++){
 				int var;
@@ -2164,9 +2546,9 @@ int FlowParams::calcNumSeedPoints(bool rake, int timeStep){
 	}
 	return seedCounter;
 }
-//Function to calculate the max magnitude of the steady vector field over specified region
+//Function to calculate the average magnitude of the steady vector field over specified region
 //Plan on using this to help automatically set vector scale factor.
-float FlowParams::getMaxVectorMag(RegionParams* rParams, int numrefts, int timeStep){
+float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeStep){
 	
 	float* varData[3];
 	
@@ -2193,8 +2575,8 @@ float FlowParams::getMaxVectorMag(RegionParams* rParams, int numrefts, int timeS
 	}
 	int bSize =  (int)(*(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize()));
 	int numPts = 0;
-	float dataMax = 0.f;
-	//OK, we got the data. find the max:
+	float dataSum = 0.f;
+	//OK, we got the data. find the sum:
 	for (size_t i = min_dim[0]; i<=max_dim[0]; i++){
 		for (size_t j = min_dim[1]; j<=max_dim[1]; j++){
 			for (size_t k = min_dim[2]; k<=max_dim[2]; k++){
@@ -2202,8 +2584,8 @@ float FlowParams::getMaxVectorMag(RegionParams* rParams, int numrefts, int timeS
 					(j - min_bdim[1]*bSize)*(bSize*(max_bdim[0]-min_bdim[0]+1)) +
 					(k - min_bdim[2]*bSize)*(bSize*(max_bdim[1]-min_bdim[1]+1))*(bSize*(max_bdim[0]-min_bdim[0]+1));
 				float sumsq = varData[0][xyzCoord]*varData[0][xyzCoord]+varData[1][xyzCoord]*varData[1][xyzCoord]+varData[2][xyzCoord]*varData[2][xyzCoord];
-				dataMax = Max(dataMax, sqrt(sumsq));
-				//dataSum += sqrt(sumsq);
+				//dataMax = Max(dataMax, sqrt(sumsq));
+				dataSum += sqrt(sumsq);
 				numPts++;
 			}
 		}
@@ -2213,6 +2595,6 @@ float FlowParams::getMaxVectorMag(RegionParams* rParams, int numrefts, int timeS
 	}
 	QApplication::restoreOverrideCursor();
 	if (numPts == 0) return -1.f;
-	//return (dataSum/(float)numPts);
-	return dataMax;
+	return (dataSum/(float)numPts);
+	//return dataMax;
 }

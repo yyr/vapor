@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>446</width>
+            <width>433</width>
             <height>812</height>
         </rect>
     </property>
@@ -28,7 +28,7 @@
     </property>
     <property name="maximumSize">
         <size>
-            <width>470</width>
+            <width>450</width>
             <height>32767</height>
         </size>
     </property>
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout224</cstring>
+                <cstring>layout209</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -908,7 +908,7 @@
                                     </property>
                                     <property name="maximumSize">
                                         <size>
-                                            <width>32767</width>
+                                            <width>70</width>
                                             <height>25</height>
                                         </size>
                                     </property>
@@ -939,7 +939,7 @@
                                     </property>
                                     <property name="maximumSize">
                                         <size>
-                                            <width>32767</width>
+                                            <width>70</width>
                                             <height>25</height>
                                         </size>
                                     </property>
@@ -970,7 +970,7 @@
                                     </property>
                                     <property name="maximumSize">
                                         <size>
-                                            <width>32767</width>
+                                            <width>70</width>
                                             <height>25</height>
                                         </size>
                                     </property>
@@ -1634,6 +1634,12 @@
                                                     <property name="name">
                                                         <cstring>textLabel8</cstring>
                                                     </property>
+                                                    <property name="maximumSize">
+                                                        <size>
+                                                            <width>50</width>
+                                                            <height>32767</height>
+                                                        </size>
+                                                    </property>
                                                     <property name="text">
                                                         <string>Coord</string>
                                                     </property>
@@ -1653,6 +1659,12 @@
                                                             <property name="name">
                                                                 <cstring>textLabel6_2_2</cstring>
                                                             </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>50</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
                                                             <property name="text">
                                                                 <string></string>
                                                             </property>
@@ -1668,6 +1680,12 @@
                                                                     <horstretch>0</horstretch>
                                                                     <verstretch>0</verstretch>
                                                                 </sizepolicy>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>50</width>
+                                                                    <height>32767</height>
+                                                                </size>
                                                             </property>
                                                             <property name="text">
                                                                 <string>User X </string>

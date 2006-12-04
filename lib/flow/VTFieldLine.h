@@ -19,7 +19,7 @@ namespace VAPoR
 //////////////////////////////////////////////////////////////////////////
 // definition
 //////////////////////////////////////////////////////////////////////////
-#define MAX_LENGTH 1000
+#define MAX_LENGTH 20 //this is the default size of maxPoints.
 const double RAD_TO_DEG = 57.2957795130823208768;	// 180 / PI
 const double DEG_TO_RAD = 0.0174532925199432957692;	// PI / 180
 const double EPS = 1.0e-6;
@@ -29,6 +29,8 @@ enum INTEG_ORD{ SECOND = 2, FOURTH = 4};		// integration order
 enum TIME_DEP{ STEADY=0,UNSTEADY=1 };	
 enum TRACE_DIR{OFF=0, BACKWARD_DIR=1, FORWARD_DIR=2, BACKWARD_AND_FORWARD=3};
 enum ADVECT_STATUS{OUT_OF_BOUND = -1, CRITICAL_POINT = 0, OKAY = 1};
+
+class FlowLineData;
 
 //////////////////////////////////////////////////////////////////////////
 // information about particles
@@ -148,6 +150,15 @@ protected:
 						 int traceState,
 						 float* speeds=0,
 						 float timeLeft = 0.f);
+	//New version, will eventually replace above:
+	float SampleFieldline(FlowLineData* container,
+								   int lineNum, // = seedNum
+								   int direction, // -1 or +1
+								   vtListSeedTrace* seedTrace,
+								   list<float>* stepList,
+								   bool bRecordSeed,
+								   int traceState,
+								   float remainingTime = 0.f);
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -294,10 +305,14 @@ public:
 	void setBackwardTracing(int enabled);
 	int  getForwardTracing(void);
 	int  getBackwardTracing(void);
+	//New version, replace version below:
+	void computeStreamLine(float curTime, FlowLineData* container);
 	
 protected:
 	void computeStreamLine(const void* userData, float* positions, float* speeds=0);
 	int computeFieldLine(TIME_DIR, INTEG_ORD, TIME_DEP, vtListSeedTrace&, list<float>&, PointInfo&);
+
+	
 
 	TRACE_DIR m_itsTraceDir;
 	float m_fCurrentTime;

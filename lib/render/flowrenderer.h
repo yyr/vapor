@@ -45,7 +45,7 @@ public:
 	int getNumListSeedPointsUsed(int timeStep) {return numListSeedPointsUsed[timeStep];}
 	
 
-	//Obtain the current flow data.  Regenerate if current data is invalid.
+	//Obtain the current flow data.  
 	float* getFlowData(int timeStep, bool isRake){
 		if (isRake){
 			return rakeFlowData[timeStep];
@@ -53,7 +53,7 @@ public:
 			return listFlowData[timeStep];
 		}
 	}
-	//Obtain the current flow data.  Regenerate if current data is invalid.
+	//Obtain the current flow data.  
 	float* getRGBAs(int timeStep, bool isRake){
 		if (isRake){
 			return rakeFlowRGBAs[timeStep];
@@ -106,10 +106,18 @@ protected:
 			
 	//Render geometry using the current values of flowDataArray, flowRGBAs
 	void renderFlowData(bool constColors,int currentFrameNum);
+
+	//OR do it with FlowLineData:
+	void renderFlowData(FlowLineData*,bool constColors, int currentFrameNum);
 	void renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
 	void renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
 	void renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool constMap);
 	void renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
+	void renderTubes(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
+	void renderCurves(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
+	void renderPoints(FlowLineData*, float radius, int firstAge, int lastAge, int startIndex, bool constMap);
+	void renderArrows(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
+	
 	/*
 	float* getFlowPoint(int timeStep, int seedNum, int injectionNum){
 		assert ((3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)))<
@@ -122,10 +130,10 @@ protected:
 	// Render a "stationary symbol" at the specified point
 	void renderStationary(float* point);
 	//draw one arrow
-	void drawArrow(bool isLit, int firstIndex, float* firstPoint, float* endPoint, float* dirVec, float* bVec, 
+	void drawArrow(bool isLit, float* firstColor, float* firstPoint, float* endPoint, float* dirVec, float* bVec, 
 		float* UVec, float radius, bool constMap);
 	// draw one cylinder of tube
-	void drawTube(bool isLit, int tubeIndex, float* startPoint, float* endPoint, float* currentB, float* currentU, 
+	void drawTube(bool isLit, float* secondColor, float* startPoint, float* endPoint, float* currentB, float* currentU, 
 		float radius, bool constMap, float* prevNormal, float* prevVertex, float* currentNormal, float* currentVertex);
 
 	//Constants that are used, recalculated in each rendering:
@@ -143,6 +151,9 @@ protected:
 	//With Pathlines, there is one array, rakeFlowData[0].
 	float** rakeFlowData;
 	float** listFlowData;
+	//Array of pointers to FlowLineData containers
+	FlowLineData** flowLineRakeData;
+	FlowLineData** flowLineListData;
 	//remember the number of seeds in list that are used
 	int* numListSeedPointsUsed;
 	//One dirty flag for each time-step.  All are set true when

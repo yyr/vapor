@@ -114,7 +114,74 @@ void vtCStreamLine::execute(const void* userData,
 	m_fCurrentTime = *(float *)userData;
 	computeStreamLine(userData, points, speeds);
 }
+//New version, uses FlowLineData instead of points array to write results of advection.
+void vtCStreamLine::computeStreamLine(float curTime, FlowLineData* container){
+	m_fCurrentTime = curTime;
 
+	vtListParticleIter sIter;
+	int istat;
+	int seedNum = 0;
+	for(sIter = m_lSeeds.begin(); sIter != m_lSeeds.end(); ++sIter)
+	{
+		vtParticleInfo* thisSeed = *sIter;
+		if(thisSeed->itsValidFlag == 1)			// valid seed
+		{
+			if(m_itsTraceDir & BACKWARD_DIR)
+			{
+				vtListSeedTrace* backTrace;
+				list<float>* stepList;
+				backTrace = new vtListSeedTrace;
+				stepList = new list<float>;
+				istat = computeFieldLine(BACKWARD,m_integrationOrder, STEADY, *backTrace, *stepList, thisSeed->m_pointInfo);
+				SampleFieldline(container, seedNum, BACKWARD, backTrace, stepList, true, istat );
+				delete backTrace;
+				delete stepList;
+			} else {
+				//must be pure forward, set start point
+				container->setFlowStart(seedNum, 0);
+			}
+			if(m_itsTraceDir & FORWARD_DIR)
+			{
+				vtListSeedTrace* forwardTrace;
+				list<float>* stepList;
+				forwardTrace = new vtListSeedTrace;
+				stepList = new list<float>;
+				istat = computeFieldLine(FORWARD,m_integrationOrder, STEADY, *forwardTrace, *stepList, thisSeed->m_pointInfo);
+				SampleFieldline(container, seedNum, FORWARD, forwardTrace, stepList, true, istat);
+				delete forwardTrace;
+				delete stepList;
+			} else {
+				//Must be pure backward, establish end of flowline: 
+				container->setFlowEnd(seedNum, 0);
+			}
+		}
+		else                // out of data region.  Just mark seed as end, don't advect.
+        {
+			float x = thisSeed->m_pointInfo.phyCoord.x();
+			float y = thisSeed->m_pointInfo.phyCoord.y();
+			float z = thisSeed->m_pointInfo.phyCoord.z();
+			container->setFlowPoint(seedNum, 0, x,y,z);
+			if(container->getMaxLength(BACKWARD) > 0)
+				container->setFlowPoint(seedNum, -1, END_FLOW_FLAG,0.f,0.f);
+			if(container->getMaxLength(FORWARD) > 0) 
+				container->setFlowPoint(seedNum, 1, END_FLOW_FLAG,0.f,0.f);
+			
+			if (container->doSpeeds()){
+				PointInfo pointInfo;
+				VECTOR3 nodeData;
+				float t = m_pField->GetStartTime();
+
+				pointInfo.phyCoord.Set(x,y,z);	
+				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
+				container->setSpeed(seedNum, 0, nodeData.GetMag());
+			}
+			container->setFlowStart(seedNum, 0);
+			container->setFlowEnd(seedNum, 0);
+        }
+
+		seedNum++;
+	}
+}
 void vtCStreamLine::computeStreamLine(const void* userData,
 									  float* points,
 									  float* speeds)

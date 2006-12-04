@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>470</width>
-            <height>2629</height>
+            <width>437</width>
+            <height>2710</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -22,7 +22,7 @@
     </property>
     <property name="maximumSize">
         <size>
-            <width>470</width>
+            <width>450</width>
             <height>32767</height>
         </size>
     </property>
@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout329</cstring>
+                <cstring>layout92</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -251,7 +251,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout157</cstring>
+                                <cstring>layout89</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -800,6 +800,186 @@
                                 </widget>
                                 <widget class="QFrame">
                                     <property name="name">
+                                        <cstring>steadyAutoGraphicFrame</cstring>
+                                    </property>
+                                    <property name="frameShape">
+                                        <enum>NoFrame</enum>
+                                    </property>
+                                    <property name="frameShadow">
+                                        <enum>Raised</enum>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout85</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout151</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>geometrySamplesLabel</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Smoothness</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer77</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>42</width>
+                                                                    <height>21</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QSlider">
+                                                            <property name="name">
+                                                                <cstring>smoothnessSlider</cstring>
+                                                            </property>
+                                                            <property name="maxValue">
+                                                                <number>256</number>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify how many geometric shapes will be displayed per scene diameter distance</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>smoothnessSamplesEdit</cstring>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>32767</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>20.0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify how many geometric shapes will be displayed per scene diameter distance</string>
+                                                            </property>
+                                                        </widget>
+                                                    </hbox>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout53_3</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel3_12_3_2_3</cstring>
+                                                            </property>
+                                                            <property name="sizePolicy">
+                                                                <sizepolicy>
+                                                                    <hsizetype>1</hsizetype>
+                                                                    <vsizetype>7</vsizetype>
+                                                                    <horstretch>0</horstretch>
+                                                                    <verstretch>0</verstretch>
+                                                                </sizepolicy>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Average Steady Flow Length</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QSlider">
+                                                            <property name="name">
+                                                                <cstring>steadyLengthSlider</cstring>
+                                                            </property>
+                                                            <property name="sizePolicy">
+                                                                <sizepolicy>
+                                                                    <hsizetype>7</hsizetype>
+                                                                    <vsizetype>7</vsizetype>
+                                                                    <horstretch>0</horstretch>
+                                                                    <verstretch>0</verstretch>
+                                                                </sizepolicy>
+                                                            </property>
+                                                            <property name="minValue">
+                                                                <number>1</number>
+                                                            </property>
+                                                            <property name="maxValue">
+                                                                <number>256</number>
+                                                            </property>
+                                                            <property name="value">
+                                                                <number>40</number>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the typical length of flow lines relative to domain size</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>steadyLengthEdit</cstring>
+                                                            </property>
+                                                            <property name="sizePolicy">
+                                                                <sizepolicy>
+                                                                    <hsizetype>0</hsizetype>
+                                                                    <vsizetype>7</vsizetype>
+                                                                    <horstretch>0</horstretch>
+                                                                    <verstretch>0</verstretch>
+                                                                </sizepolicy>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>32767</width>
+                                                                    <height>25</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>0.0</string>
+                                                            </property>
+                                                            <property name="maxLength">
+                                                                <number>200</number>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the typical length of flow lines relative to domain size</string>
+                                                            </property>
+                                                        </widget>
+                                                    </hbox>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                                <widget class="QFrame">
+                                    <property name="name">
                                         <cstring>unsteadyFieldFrame</cstring>
                                     </property>
                                     <property name="frameShape">
@@ -1104,7 +1284,7 @@
                                                                 <bool>true</bool>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Unsteady Flow Setup Wizard</string>
+                                                                <string>Unsteady Flow Setup Help</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -1547,7 +1727,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout168</cstring>
+                                <cstring>layout87</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -1563,6 +1743,149 @@
                                     <property name="alignment">
                                         <set>AlignCenter</set>
                                     </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout65</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer63_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>61</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>autoScaleCheckbox1</cstring>
+                                            </property>
+                                            <property name="enabled">
+                                                <bool>true</bool>
+                                            </property>
+                                            <property name="text">
+                                                <string>Automatically scale steady field</string>
+                                            </property>
+                                            <property name="checked">
+                                                <bool>true</bool>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer64</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>71</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout53_2_2</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel3_12_3_2_3_2_2</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>1</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="text">
+                                                <string>Steady samples per flow line</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QSlider">
+                                            <property name="name">
+                                                <cstring>steadySamplesSlider1</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>7</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="minValue">
+                                                <number>1</number>
+                                            </property>
+                                            <property name="maxValue">
+                                                <number>256</number>
+                                            </property>
+                                            <property name="value">
+                                                <number>40</number>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the number of samples along the length of a flow line</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>steadySamplesEdit1</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>0</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>32767</width>
+                                                    <height>25</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>0.0</string>
+                                            </property>
+                                            <property name="maxLength">
+                                                <number>200</number>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the number of samples along the length of a flow line</string>
+                                            </property>
+                                        </widget>
+                                    </hbox>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
@@ -1655,64 +1978,6 @@
                                                 <size>
                                                     <width>61</width>
                                                     <height>21</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                    </hbox>
-                                </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout65</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer63_2</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>61</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QCheckBox">
-                                            <property name="name">
-                                                <cstring>autoScaleCheckbox1</cstring>
-                                            </property>
-                                            <property name="enabled">
-                                                <bool>true</bool>
-                                            </property>
-                                            <property name="text">
-                                                <string>Automatically scale steady field</string>
-                                            </property>
-                                            <property name="checked">
-                                                <bool>true</bool>
-                                            </property>
-                                        </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer64</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>71</width>
-                                                    <height>20</height>
                                                 </size>
                                             </property>
                                         </spacer>
@@ -2867,7 +3132,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout328</cstring>
+                                <cstring>layout88</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -2883,6 +3148,149 @@
                                     <property name="alignment">
                                         <set>AlignCenter</set>
                                     </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout65_2</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer63_2_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>61</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>autoScaleCheckbox2</cstring>
+                                            </property>
+                                            <property name="enabled">
+                                                <bool>true</bool>
+                                            </property>
+                                            <property name="text">
+                                                <string>Automatically scale steady field</string>
+                                            </property>
+                                            <property name="checked">
+                                                <bool>false</bool>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer64_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>71</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout53_2_2_2</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel3_12_3_2_3_2_2_2</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>1</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="text">
+                                                <string>Steady samples per flow line</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QSlider">
+                                            <property name="name">
+                                                <cstring>steadySamplesSlider2</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>7</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="minValue">
+                                                <number>1</number>
+                                            </property>
+                                            <property name="maxValue">
+                                                <number>256</number>
+                                            </property>
+                                            <property name="value">
+                                                <number>40</number>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the number of samples along the length of a flow line</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>steadySamplesEdit2</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>0</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>32767</width>
+                                                    <height>25</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>0.0</string>
+                                            </property>
+                                            <property name="maxLength">
+                                                <number>200</number>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the number of samples along the length of a flow line</string>
+                                            </property>
+                                        </widget>
+                                    </hbox>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
@@ -2975,64 +3383,6 @@
                                                 <size>
                                                     <width>61</width>
                                                     <height>21</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                    </hbox>
-                                </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout65_2</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer63_2_2</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>61</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QCheckBox">
-                                            <property name="name">
-                                                <cstring>autoScaleCheckbox2</cstring>
-                                            </property>
-                                            <property name="enabled">
-                                                <bool>true</bool>
-                                            </property>
-                                            <property name="text">
-                                                <string>Automatically scale steady field</string>
-                                            </property>
-                                            <property name="checked">
-                                                <bool>false</bool>
-                                            </property>
-                                        </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer64_2</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>71</width>
-                                                    <height>20</height>
                                                 </size>
                                             </property>
                                         </spacer>
@@ -5090,7 +5440,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout159</cstring>
+                                <cstring>layout90</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -5262,78 +5612,9 @@
                                         </widget>
                                     </hbox>
                                 </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout151</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <widget class="QLabel">
-                                            <property name="name">
-                                                <cstring>textLabel5_2</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Geometry samples per flow line</string>
-                                            </property>
-                                        </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer77</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>42</width>
-                                                    <height>21</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QSlider">
-                                            <property name="name">
-                                                <cstring>geometrySamplesSlider</cstring>
-                                            </property>
-                                            <property name="maxValue">
-                                                <number>256</number>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify how many geometric shapes will be displayed in flow length</string>
-                                            </property>
-                                        </widget>
-                                        <widget class="QLineEdit">
-                                            <property name="name">
-                                                <cstring>geometrySamplesEdit</cstring>
-                                            </property>
-                                            <property name="maximumSize">
-                                                <size>
-                                                    <width>32767</width>
-                                                    <height>32767</height>
-                                                </size>
-                                            </property>
-                                            <property name="text">
-                                                <string>20.0</string>
-                                            </property>
-                                            <property name="alignment">
-                                                <set>AlignHCenter</set>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Specify how many geometric shapes will be displayed in flow length</string>
-                                            </property>
-                                        </widget>
-                                    </hbox>
-                                </widget>
                                 <widget class="QFrame">
                                     <property name="name">
-                                        <cstring>steadyGraphicFrame</cstring>
+                                        <cstring>unsteadyGraphicFrame</cstring>
                                     </property>
                                     <property name="frameShape">
                                         <enum>NoFrame</enum>
@@ -5347,7 +5628,7 @@
                                         </property>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout157</cstring>
+                                                <cstring>layout86</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -5355,7 +5636,7 @@
                                                 </property>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout53</cstring>
+                                                        <cstring>layout53_2</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -5363,7 +5644,7 @@
                                                         </property>
                                                         <widget class="QLabel">
                                                             <property name="name">
-                                                                <cstring>textLabel3_12_3_2_3</cstring>
+                                                                <cstring>textLabel3_12_3_2_3_2</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -5374,12 +5655,12 @@
                                                                 </sizepolicy>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Average Steady Flow Length</string>
+                                                                <string>Unsteady samples per time step</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QSlider">
                                                             <property name="name">
-                                                                <cstring>steadyLengthSlider</cstring>
+                                                                <cstring>unsteadySamplesSlider</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -5402,12 +5683,12 @@
                                                                 <enum>Horizontal</enum>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the maximum length of flow lines relative to domain size</string>
+                                                                <string>Specify the number of geometric samples per time step</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
-                                                                <cstring>steadyLengthEdit</cstring>
+                                                                <cstring>unsteadySamplesEdit</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -5433,40 +5714,14 @@
                                                                 <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the maximum length of flow lines relative to domain size</string>
+                                                                <string>Specify the number of geometric samples per time step</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
                                                 </widget>
-                                            </vbox>
-                                        </widget>
-                                    </hbox>
-                                </widget>
-                                <widget class="QFrame">
-                                    <property name="name">
-                                        <cstring>unsteadyGraphicFrame</cstring>
-                                    </property>
-                                    <property name="frameShape">
-                                        <enum>NoFrame</enum>
-                                    </property>
-                                    <property name="frameShadow">
-                                        <enum>Raised</enum>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <widget class="QLayoutWidget">
-                                            <property name="name">
-                                                <cstring>layout155</cstring>
-                                            </property>
-                                            <vbox>
-                                                <property name="name">
-                                                    <cstring>unnamed</cstring>
-                                                </property>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout27_3</cstring>
+                                                        <cstring>layout83</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -5477,7 +5732,7 @@
                                                                 <cstring>displayIntervalLabel</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Min, max timestep display interval</string>
+                                                                <string>timestep display interval min, max</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
@@ -5495,7 +5750,7 @@
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>21</width>
+                                                                    <width>60</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -5547,6 +5802,80 @@
                                     </hbox>
                                 </widget>
                             </vbox>
+                        </widget>
+                    </hbox>
+                </widget>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>showMappingFrame</cstring>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>32767</width>
+                            <height>200</height>
+                        </size>
+                    </property>
+                    <property name="frameShape">
+                        <enum>NoFrame</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout74</cstring>
+                            </property>
+                            <hbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer44_2_2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>87</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QPushButton">
+                                    <property name="name">
+                                        <cstring>showMappingButton</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Show Color/Opacity Mapping</string>
+                                    </property>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer45_2_2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>86</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                            </hbox>
                         </widget>
                     </hbox>
                 </widget>
@@ -6292,74 +6621,6 @@
                                     </hbox>
                                 </widget>
                             </vbox>
-                        </widget>
-                    </hbox>
-                </widget>
-                <widget class="QFrame">
-                    <property name="name">
-                        <cstring>showMappingFrame</cstring>
-                    </property>
-                    <property name="frameShape">
-                        <enum>NoFrame</enum>
-                    </property>
-                    <property name="frameShadow">
-                        <enum>Raised</enum>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="QLayoutWidget">
-                            <property name="name">
-                                <cstring>layout74</cstring>
-                            </property>
-                            <hbox>
-                                <property name="name">
-                                    <cstring>unnamed</cstring>
-                                </property>
-                                <spacer>
-                                    <property name="name">
-                                        <cstring>spacer44_2_2</cstring>
-                                    </property>
-                                    <property name="orientation">
-                                        <enum>Horizontal</enum>
-                                    </property>
-                                    <property name="sizeType">
-                                        <enum>Expanding</enum>
-                                    </property>
-                                    <property name="sizeHint">
-                                        <size>
-                                            <width>87</width>
-                                            <height>20</height>
-                                        </size>
-                                    </property>
-                                </spacer>
-                                <widget class="QPushButton">
-                                    <property name="name">
-                                        <cstring>showMappingButton</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>Show Color/Opacity Mapping</string>
-                                    </property>
-                                </widget>
-                                <spacer>
-                                    <property name="name">
-                                        <cstring>spacer45_2_2</cstring>
-                                    </property>
-                                    <property name="orientation">
-                                        <enum>Horizontal</enum>
-                                    </property>
-                                    <property name="sizeType">
-                                        <enum>Expanding</enum>
-                                    </property>
-                                    <property name="sizeHint">
-                                        <size>
-                                            <width>86</width>
-                                            <height>20</height>
-                                        </size>
-                                    </property>
-                                </spacer>
-                            </hbox>
                         </widget>
                     </hbox>
                 </widget>

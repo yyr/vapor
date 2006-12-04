@@ -273,9 +273,9 @@ void vtCFieldLine::setSeedPoints(float* points, int numPoints, float t)
 }
 
 //////////////////////////////////////////////////////////////////////////
-// sample streamline to get points with correct interval
+// sample stream/streak line to get points with correct interval
 //AN:  Returns the amount of (unused) time remaining, to be used
-//in next step.  Only used in streaklines, not streamlines.
+//in next step.  return value only used in streaklines, not streamlines.
 //////////////////////////////////////////////////////////////////////////
 float vtCFieldLine::SampleFieldline(float* positions,
 								   const unsigned int* startPositions,
@@ -446,5 +446,198 @@ float vtCFieldLine::SampleFieldline(float* positions,
 	}
 
 	posInPoints = ptr; 
+	return leftoverTime;
+}
+//////////////////////////////////////////////////////////////////////////
+//resample stream/streak line to get points with correct interval
+//AN:  Returns the amount of (unused) time remaining, to be used
+//in next step.  return value only used in pathlines, not streamlines.
+//This new version uses FieldLineData.  Resampled points are inserted in
+//either the forward or reverse direction
+//////////////////////////////////////////////////////////////////////////
+float vtCFieldLine::SampleFieldline(FlowLineData* container,
+								   int lineNum, // = seedNum
+								   int direction, // -1 or +1
+								   vtListSeedTrace* seedTrace,
+								   list<float>* stepList,
+								   bool bRecordSeed,
+								   int traceState,
+								   float remainingTime)
+{
+	list<VECTOR3*>::iterator pIter1;
+	list<VECTOR3*>::iterator pIter2;
+	list<float>::iterator pStepIter;
+	list<float>::iterator pStepIterEnd;
+	float stepsizeLeft;
+	// "count" counts the points along the flowline.
+	// insertionPosn is direction*count
+	int count;
+	float x,y,z;
+	float currentSpeed = 0.f;
+	int insertionPosn = 0;
+	
+	float leftoverTime = 0.f;
+
+	pIter1 = seedTrace->begin();
+	if(bRecordSeed) // always record seed in steady flow..
+	{
+		
+		// the first one is seed
+		x = (**pIter1)[0];
+		y = (**pIter1)[1];
+		z = (**pIter1)[2];
+		//For steady flow, the first point is always position 0.
+		container->setFlowPoint(lineNum, 0, x,y,z); 
+		
+		if (container->doSpeeds())
+		{
+			PointInfo pointInfo;
+			VECTOR3 nodeData;
+			float t;
+
+			pointInfo.phyCoord.Set(x,y,z);
+			if(!m_pField->isTimeVarying())
+				t = m_pField->GetStartTime();
+			else assert(0);
+			//else //Need to fix this for unsteady flow
+				//t = m_pField->GetStartTime() + m_fSamplingRate*(ptrSpeed-((int)((float)ptrSpeed/(float)m_nMaxsize)*m_nMaxsize));
+			m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
+			currentSpeed = nodeData.GetMag();
+			container->setSpeed(lineNum, 0, currentSpeed);
+		}
+#ifdef DEBUG
+		//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
+#endif
+	}
+	insertionPosn = direction;
+	count = 1;
+	//AN:  Removed this assert, 10/05/05.
+	//The problem is that sometimes a point will be very slightly out, and the 
+	//bounds test in the runge-kutta is imprecise enough to not detect it.
+	//if((int)seedTrace->size() == 1) assert(traceState == CRITICAL_POINT);
+
+	//Deal with line that exits instantly (i.e. seed outside of region)
+	if((int)seedTrace->size() == 1 && traceState != CRITICAL_POINT)
+	{
+		if (direction > 0)
+			container->setFlowEnd(lineNum, 0);
+		else 
+			container->setFlowStart(lineNum, 0);
+		return 0.f;
+	}
+
+	// process points after the first:
+	pIter2 = seedTrace->begin();
+	pIter2++;
+	pStepIter = stepList->begin();
+	stepsizeLeft = *pStepIter + remainingTime;
+	//Establish the last point.  Stop one before end if OUT_OF_BOUND:
+	if(traceState != OUT_OF_BOUND) 
+		pStepIterEnd = stepList->end();
+	else
+	{
+		pStepIterEnd = stepList->end();
+		pStepIterEnd--;
+	}
+	while((count < container->getMaxLength(direction)) && (pStepIter != pStepIterEnd))
+	{
+		float ratio;
+		//AN:  Reduced the threshold to 100*EPS because we were clipping
+		//off the last sample point in path lines
+		if(stepsizeLeft < (m_fSamplingRate-(1.e-4)))
+		{
+			pIter1++;
+			pIter2++;
+			pStepIter++;
+			if (pStepIter == pStepIterEnd){
+				leftoverTime = stepsizeLeft;
+			} else 
+				stepsizeLeft += *pStepIter;
+		}
+		else
+		{
+			stepsizeLeft -= m_fSamplingRate;
+			ratio = (*pStepIter - stepsizeLeft)/(*pStepIter);
+			
+			x = Lerp((**pIter1)[0], (**pIter2)[0], ratio);
+			y = Lerp((**pIter1)[1], (**pIter2)[1], ratio);
+			z = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
+			container->setFlowPoint(lineNum, insertionPosn,x,y,z);
+
+#ifdef DEBUG
+			//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
+#endif
+
+			// get the velocity value of this point
+			if(container->doSpeeds())
+			{
+				PointInfo pointInfo;
+				VECTOR3 nodeData;
+				float t;
+
+				
+				pointInfo.phyCoord.Set(x, y, z);
+				if(!m_pField->isTimeVarying())
+					t = (float) m_pField->GetStartTime();
+				else assert (0);
+				//	t = m_pField->GetStartTime() + m_fSamplingRate*(ptrSpeed-((int)((float)ptrSpeed/(float)m_nMaxsize)*m_nMaxsize));
+				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
+				currentSpeed =  nodeData.GetMag(); 
+				container->setSpeed(lineNum, insertionPosn, currentSpeed);
+			}
+
+			count++;
+			insertionPosn += direction;
+		}
+	}
+
+	//After exiting the loop, count == getMaxLength(direction), or we got to the end
+	//of the data to be resampled.
+	// if # of sampled points < maximal points available:
+	
+	//if((numSampled < m_nMaxsize)&& (traceState == OUT_OF_BOUND))				// out of boundary
+	if (count < container->getMaxLength(direction) && (traceState == OUT_OF_BOUND))
+	{
+	 	pIter1 = seedTrace->end();
+		pIter1--;
+		
+		x = (**pIter1)[0];
+		y = (**pIter1)[1];
+		z = (**pIter1)[2];
+		container->setFlowPoint(lineNum, insertionPosn,x,y,z);
+
+		
+		//AN: 10/10/05
+		//Set the END_FLOW_FLAG if this is not the last point in the flow:
+		if (count < container->getMaxLength(direction)-1) {
+			container->setFlowPoint(lineNum, insertionPosn + direction, END_FLOW_FLAG,0.f,0.f);
+		}
+		
+		//Just replicate last speed:
+		if (container->doSpeeds()){
+			container->setSpeed(lineNum, insertionPosn, currentSpeed);
+		}
+
+	}
+	// if # of sampled points < maximal points asked and critical point:
+	else if((count < container->getMaxLength(direction))&& (traceState == CRITICAL_POINT))				// critical pt
+	{
+		
+		container->setFlowPoint(lineNum, insertionPosn, STATIONARY_STREAM_FLAG,0.f,0.f);
+		if (container->doSpeeds()){
+			container->setSpeed(lineNum, insertionPosn, 0.f);
+		}
+
+	}
+	//Got to the end of the data, still haven't filled the container to max length
+	else if(count < container->getMaxLength(direction)) {//can we ever get here?  Maybe just for unsteady?
+		assert(0);
+		container->setFlowPoint(lineNum, insertionPosn, END_FLOW_FLAG, 0.f,0.f);
+	} else { //otherwise we filled up the container.  Mark the previously inserted point as end
+		insertionPosn -= direction;
+	}
+	if(direction > 0) container->setFlowEnd(lineNum, insertionPosn);
+	else container->setFlowStart(lineNum, insertionPosn);
+	
 	return leftoverTime;
 }

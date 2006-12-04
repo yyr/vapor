@@ -129,7 +129,9 @@ protected slots:
 	void setFlowXSize();
 	void setFlowYSize();
 	void setFlowZSize();
-	void setFlowGeomSamples();
+	void setFlowSteadySamples1();
+	void setFlowSteadySamples2();
+	void setFlowUnsteadySamples();
 	void setFlowConstantColor();
 	void guiSetFlowGeometry(int geomNum);
 	void guiSetColorMapEntity( int entityNum);
@@ -142,7 +144,7 @@ protected slots:
 	void guiEditSeedList();
 	void guiLoadSeeds();
 	void guiSaveFlowLines();
-	
+	void setFlowSmoothness();
 	void setSteadyLength();
 	void flowOpacityScale();
 	void guiToggleAutoScale(bool isOn);
@@ -160,6 +162,7 @@ protected:
 	void guiSetEditMode(bool val); //edit versus navigate mode
 	void guiSetOpacityScale( int scale);
 	void guiSetSteadyLength(int sliderpos);
+	void guiSetSmoothness(int sliderpos);
 
 	//Methods that record changes in the history are preceded by 'gui'
 	//
@@ -173,7 +176,8 @@ protected:
 	void guiSetYSize(int sliderval);
 	void guiSetZSize(int sliderval);
 	void guiSetConstantColor(QColor& newColor);
-	void guiSetGeomSamples(int sliderVal);
+	void guiSetSteadySamples(int sliderVal);
+	void guiSetUnsteadySamples(int sliderVal);
 	void setMapBoundsChanged(bool on){mapBoundsChanged = on; flowGraphicsChanged = on;}
 	void setFlowDataChanged(bool on){flowDataChanged = on;}
 	void setFlowGraphicsChanged(bool on){flowGraphicsChanged = on;}
