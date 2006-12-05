@@ -980,7 +980,9 @@ setFlowEnd(int lineNum, int integPos){
 	if (flowDirection == 0) lineLengths[lineNum] = 
 		mxPoints/2 - startIndices[lineNum] + integPos + 1;
 	if (flowDirection < 0) { 
-		assert (integPos == 0 && startIndices[lineNum] == 0); 
-		lineLengths[lineNum] = mxPoints;
+		//The start position can be anything before the end.
+		//But the flow line must end at integration position 0 
+		assert (integPos == 0); 
+		lineLengths[lineNum] = mxPoints - startIndices[lineNum];
 	}
 }
