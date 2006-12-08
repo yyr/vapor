@@ -118,7 +118,6 @@ protected slots:
 	void guiSetYComboUnsteadyVarNum(int varnum);
 	void guiSetZComboUnsteadyVarNum(int varnum);
 	
-	void guiSetRandom(bool rand);
 	void guiCheckPeriodicX(bool periodic);
 	void guiCheckPeriodicY(bool periodic);
 	void guiCheckPeriodicZ(bool periodic);
@@ -139,8 +138,8 @@ protected slots:
 	void setFlowEditMode(bool);
 	void setFlowNavigateMode(bool);
 	void guiSetAligned();
-	void guiDoSeedList(bool isOn);
-	void guiDoRake(bool isOn);
+	void guiSetRakeList(int index);
+	
 	void guiEditSeedList();
 	void guiLoadSeeds();
 	void guiSaveFlowLines();

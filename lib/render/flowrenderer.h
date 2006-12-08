@@ -24,8 +24,7 @@
 #include "renderer.h"
 #include "flowparams.h"
 namespace VAPoR {
-//class VizWin;
-//enum DirtyBitType;
+
 class RENDER_API FlowRenderer : public Renderer
 {
     Q_OBJECT
@@ -54,12 +53,8 @@ public:
 		}
 	}
 	//Obtain the current flow data.  
-	float* getRGBAs(int timeStep, bool isRake){
-		if (isRake){
-			return rakeFlowRGBAs[timeStep];
-		} else {
-			return listFlowRGBAs[timeStep];
-		}
+	float* getRGBAs(int timeStep){
+		return steadyFlowRGBAs[timeStep];
 	}
 
 	//The data dirty and needsRefresh flags are used to control updates 
@@ -118,13 +113,7 @@ protected:
 	void renderPoints(FlowLineData*, float radius, int firstAge, int lastAge, int startIndex, bool constMap);
 	void renderArrows(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
 	
-	/*
-	float* getFlowPoint(int timeStep, int seedNum, int injectionNum){
-		assert ((3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)))<
-			3*maxPoints*numSeedPoints*numInjections );
-		return (flowDataArray+ 3*(timeStep+ maxPoints*(seedNum+ numSeedPoints*injectionNum)));
-	}
-	*/
+	
 	//convert original coordinates to lie inside central cycle.  Identify the cycle it's in
 	bool mapPeriodicCycle(float origCoord[3], float mappedCoord[3], int oldcycle[3], int newcycle[3]);
 	// Render a "stationary symbol" at the specified point
@@ -152,23 +141,28 @@ protected:
 	float** rakeFlowData;
 	float** listFlowData;
 	//Array of pointers to FlowLineData containers
-	FlowLineData** flowLineRakeData;
-	FlowLineData** flowLineListData;
+	FlowLineData** steadyFlowCache;
+	
+	PathLineData* unsteadyCache;
 	//remember the number of seeds in list that are used
 	int* numListSeedPointsUsed;
 	//One dirty flag for each time-step.  All are set true when
-	//setDirty is called.
+	//setDirty is called, as well as the unsteady flag
 	bool* flowDataDirty;
+	bool unsteadyDataDirty;
 	//need refresh flag, when false means that we won't refresh (for !autorefresh)
 	//One flag for each timestep, in order to handle situations where auto
 	//refresh is clicked and we need to remember that some but not all timesteps
 	//are in need of refresh.
 	bool* needRefreshFlag;
+	bool unsteadyNeedsRefreshFlag;
 	//graphicsDirty flag, forces reconstruction of RGBAs.  
 	//Only important if flowDataDirty is false.
 	bool* flowMapDirty;
-	float** rakeFlowRGBAs;
-	float** listFlowRGBAs;
+	bool unsteadyFlowMapDirty;
+	float** steadyFlowRGBAs;
+	float* unsteadyFlowRGBAs;
+	
 	//These are established each time
 	//The flow data cache is regenerated:
 	int numRakeSeedPointsUsed;

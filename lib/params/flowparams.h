@@ -35,6 +35,7 @@ class ExpatParseMgr;
 class VECTOR4;
 class RegionParams;
 class FlowLineData;
+class PathLineData;
 class PARAMS_API FlowParams: public RenderParams {
 	
 public: 
@@ -75,10 +76,30 @@ public:
 	void setNumGenerators(int dimNum, int val){generatorCount[dimNum]=val;}
 	int getTotalNumGenerators() { return (int)allGeneratorCount;}
 	void setTotalNumGenerators(int val){allGeneratorCount = val;}
-	
+	//Following will be deleted, no point in fixing it.
 	bool regenerateFlowData(VaporFlow*, int frameNum, int minTime, bool fromRake, RegionParams* rParams, float* data, float* rgbas);
 
-	FlowLineData* regenerateSteadyFlowData(VaporFlow* , int timeStep, int minFrame, bool isRake, RegionParams*);
+	FlowLineData* regenerateSteadyFlowData(VaporFlow* , int timeStep, int minFrame, RegionParams*);
+	
+	//To rebuild the PathLineData associated with field line advection, need to do the following:
+	//1.  Create a new PathLineData (if it doesn't exist) with the starting seeds in it.
+	//2.  Call GenStreamLines for the seed time, prioritizing the seeds, and putting the
+	//		resulting FlowLineData into the cache
+	//3.  For each sample time between the seed time and the current time, and one more, if
+	//		the current time is not a seed time: 
+	//	3a. Extend the PathLineData to the next sample time
+	//	3b. Call GenStreamLines, generating a new FlowLineData, and prioritizing seeds at
+	//		the next sample time.  (These FlowLineData's should be put in the cache)
+	//4.  If the currentTime is not a sample time, call GenStreamLines to create a 
+	//		flowLineData for the current time, but not prioritizing seeds.
+	//  The following methods support this process:
+	//  For step 1:
+	PathLineData* regenerateUnsteadyFlowData(VaporFlow*, int seedFrame, RegionParams* rParams);
+	//  For steps 2, 3b, and 4
+	FlowLineData* regenerateSteadyFieldLines(VaporFlow*, PathLineData*, int timeStep, RegionParams* rParams, bool prioritize);
+	//  For step 3a:
+	FlowLineData* extendUnsteadyPath(VaporFlow*, PathLineData*, int previousSampleTime, int nextSampleTime, RegionParams* rParams);
+
 
 	void calcSeedExtents(float *extents);
 	float getSeedRegionMin(int coord){ return seedBoxMin[coord];}
@@ -122,7 +143,7 @@ public:
 		return (int)(randomGen ? allGeneratorCount : (int)(generatorCount[0]*generatorCount[1]*generatorCount[2]));
 	}
 	int getNumListSeedPoints() {return (int)seedPointList.size();}
-		std::vector<Point4>& getSeedPointList(){return seedPointList;}
+	std::vector<Point4>& getSeedPointList(){return seedPointList;}
 	void pushSeed(Point4& newSeed){seedPointList.push_back(newSeed);}
 	void moveLastSeed(const float* newCoords){
 		if (seedPointList.size() > 0)
@@ -158,9 +179,9 @@ public:
 	void setObjectsPerFlowline(int objs){objectsPerFlowline = objs;}
 	void setObjectsPerTimestep(int objs){objectsPerTimestep = objs;}
 	bool rakeEnabled() {return doRake;}
-	bool listEnabled() {return (doSeedList && getNumListSeedPoints() > 0);}
+	bool listEnabled() {return (!doRake && getNumListSeedPoints() > 0);}
 	void enableRake(bool onOff){ doRake = onOff;}
-	void enableList(bool onOff) {doSeedList = onOff;}
+	void enableList(bool onOff) {doRake = !onOff;}
 	
 
 	
@@ -185,7 +206,7 @@ public:
 		return seedPointList[i].getVal(coord);
 	}
 	virtual int getNumRefinements() {return numRefinements;}
-	void mapColors(FlowLineData*, int timeStep, int minFrame, bool isRake);
+	void mapColors(FlowLineData*, int timeStep, int minFrame);
 	void mapColors(float* speeds, int timeStep, int minFrame, int numSeeds, float* flowData, float *rgbas, bool isRake);
 	//Check the variables in the flow data for missing timesteps 
 	//Independent of animation params
@@ -276,7 +297,7 @@ protected:
 	static const string _totalGeneratorCountAttr;
 	static const string _seedTimesAttr;
 	static const string _useRakeAttr;
-	static const string _useSeedListAttr;
+	static const string _useSeedListAttr;//obsolete
 	static const string _seedPointTag;
 	static const string _positionAttr;
 	static const string _timestepAttr;
@@ -381,7 +402,7 @@ protected:
 	bool autoRefresh;
 	bool autoScale;
 	bool doRake;
-	bool doSeedList;
+	
 	bool useTimestepSampleList;
 	bool periodicDim[3];
 	//Parameters controlling flowDataAccess.  These are established each time

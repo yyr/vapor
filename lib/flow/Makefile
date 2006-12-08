@@ -5,7 +5,7 @@ include ${TOP}/make/config/arch.mk
 SHARED = 0
 LIBRARY = flow
 FILES = \
-	Field Grid Interpolator Rake Solution \
+	Field Grid Interpolator Rake Solution flowlinedata\
 	VTFieldLine VTPathLine VTStreamLine VTStreakLine VTTimeLine \
 	VTTimeVaryingFieldLine VaporFlow VectorMatrix
 

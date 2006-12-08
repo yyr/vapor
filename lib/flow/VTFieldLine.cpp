@@ -14,6 +14,7 @@
 
 #include "VTFieldLine.h"
 #include "vapor/VaporFlow.h"
+#include "vapor/flowlinedata.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;

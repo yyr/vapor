@@ -20,6 +20,7 @@
 #include "params.h"
 #include "flowrenderer.h"
 #include "vapor/VaporFlow.h"
+
 #include "glwindow.h"
 #include "trackball.h"
 #include "glutil.h"
@@ -54,31 +55,38 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 	//Set up flow data cache arrays, potentially for all
 	//timesteps in data
 	numFrames = DataStatus::getInstance()->getNumTimesteps();
-	flowLineListData = new FlowLineData*[numFrames];
-	flowLineRakeData = new FlowLineData*[numFrames];
 
+	steadyFlowCache = new FlowLineData*[numFrames];
+	unsteadyCache = 0;
+	
 	rakeFlowData = new float*[numFrames];
 	listFlowData = new float*[numFrames];
 	numListSeedPointsUsed = new int[numFrames];
-	rakeFlowRGBAs = new float*[numFrames];
-	listFlowRGBAs = new float*[numFrames];
+	steadyFlowRGBAs = new float*[numFrames];
+	
 	flowDataDirty = new bool[numFrames];
 	needRefreshFlag = new bool[numFrames];
 	flowMapDirty = new bool[numFrames];
 	numRakeSeedPointsUsed = 0;
 	for (int i = 0; i<numFrames; i++){
-		flowLineRakeData[i] = 0;
-		flowLineListData[i] = 0;
+		steadyFlowCache[i] = 0;
+		
 		//??TEMP??
 		rakeFlowData[i] = 0;
 		listFlowData[i] = 0;
+
 		numListSeedPointsUsed[i] = 0;
-		rakeFlowRGBAs[i] = 0;
-		listFlowRGBAs[i] = 0;
+		steadyFlowRGBAs[i] = 0;
+		
 		flowDataDirty[i] = 0;
 		needRefreshFlag[i] = false;
 		flowMapDirty[i] = 0;
 	}
+	unsteadyFlowRGBAs = 0;
+	unsteadyFlowMapDirty = false;
+	unsteadyNeedsRefreshFlag = false;
+	unsteadyDataDirty = false;
+
 	setRegionValid(true);
 	lastTimeStep = -1;
 }
@@ -91,21 +99,18 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 FlowRenderer::~FlowRenderer()
 {
 	for (int i = 0; i<numFrames; i++){
-		if (flowLineRakeData[i]) delete flowLineRakeData[i];
-		if (flowLineListData[i]) delete flowLineListData[i];
+		if (steadyFlowCache[i]) delete steadyFlowCache[i];
 
-		if(rakeFlowData[i]) delete rakeFlowData[i];
-		if(listFlowData[i]) delete listFlowData[i];
-		if(rakeFlowRGBAs[i]) delete rakeFlowRGBAs[i];
-		if(listFlowRGBAs[i]) delete listFlowRGBAs[i];
+		if (steadyFlowRGBAs[i]) delete steadyFlowRGBAs[i];
+		
 	}
-	delete flowLineListData;
-	delete flowLineRakeData;
+	delete steadyFlowCache;
+	delete steadyFlowRGBAs;
+	if (unsteadyFlowRGBAs) delete unsteadyFlowRGBAs;
+	
 	delete rakeFlowData;
 	delete listFlowData;
-	delete rakeFlowRGBAs;
-	delete listFlowRGBAs;
-
+	
 	delete numListSeedPointsUsed;
 	delete needRefreshFlag;
 	delete flowDataDirty;
@@ -139,6 +144,7 @@ void FlowRenderer::paintGL()
 	constFlowColor[1] = qGreen(constRgb)/255.f;
 	constFlowColor[2] = qBlue(constRgb)/255.f;
 
+	
 	//First render the rake flow:
 	//May first need to rebuild it:
 	bool didRebuild = false;
@@ -150,10 +156,10 @@ void FlowRenderer::paintGL()
 		}
 		//Now render the rake data
 		if (myFlowParams->flowIsSteady()){
-			renderFlowData(flowLineRakeData[currentFrameNum],constColors, currentFrameNum);
+			renderFlowData(steadyFlowCache[currentFrameNum],constColors, currentFrameNum);
 		} else { //??TEMP??
 			flowDataArray = getFlowData(timeStep, true);
-			flowRGBAs = getRGBAs(timeStep, true); 
+			flowRGBAs = getRGBAs(timeStep); 
 			renderFlowData(constColors,currentFrameNum);
 		}
 	}
@@ -166,10 +172,10 @@ void FlowRenderer::paintGL()
 		}
 		//Now render the list data
 		if (myFlowParams->flowIsSteady()){
-			renderFlowData(flowLineListData[currentFrameNum],constColors, currentFrameNum);
+			renderFlowData(steadyFlowCache[currentFrameNum],constColors, currentFrameNum);
 		} else { //??TEMP??
 			flowDataArray = getFlowData(timeStep, false);
-			flowRGBAs = getRGBAs(timeStep, false); 
+			flowRGBAs = getRGBAs(timeStep); 
 			renderFlowData(constColors,currentFrameNum);
 		}
 	}
@@ -1766,17 +1772,20 @@ void FlowRenderer::setGraphicsDirty()
 
 
 
-//Rebuild the data cache, or the 
+//Rebuild the data cache from scratch, or the 
 //RGBA mapping data 
 //Return false on failure.
 bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	//Establish parameters that will be saved with the cache:
-	doList = myFlowParams->listEnabled();
+	
 	doRake = myFlowParams->rakeEnabled();
+	doList = !doRake;
+	int flowType = myFlowParams->getFlowType();  //steady, unsteady, and field line advect
+
 	bool doSpeeds = myFlowParams->getColorMapEntityIndex() == 2 || 
 		myFlowParams->getOpacMapEntityIndex() == 2;
-	steadyFlow = myFlowParams->flowIsSteady();
+	steadyFlow = (flowType == 0);
 	
 	minFrame = myGLWindow->getActiveAnimationParams()->getStartFrameNumber();
 	maxFrame = myGLWindow->getActiveAnimationParams()->getEndFrameNumber();
@@ -1793,20 +1802,22 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 	maxPoints = myFlowParams->calcMaxPoints();
 	RegionParams* rParams = myGLWindow->getActiveRegionParams();
 	//Check if we are just doing graphics (not reintegrating flow)
-	//that occurs if the map bit id dirty, but there's no need to do data.
+	//that occurs if the map bit is dirty, but there's no need to rebuild data.
 	bool graphicsOnly = (flowMapDirty[timeStep] && 
 		!(flowDataDirty[timeStep] && needRefreshFlag[timeStep]) );
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex())== 0);
+	
 	//Clean the cache, unless this is just a rebuild of the graphics:
 	if (!graphicsOnly){
-		if (flowLineListData[timeStep]){
-			delete flowLineListData[timeStep];
-			flowLineListData[timeStep] = 0;
+		if (steadyFlowCache[timeStep]){
+			delete steadyFlowCache[timeStep];
+			steadyFlowCache[timeStep] = 0;
 		}
-		if (flowLineRakeData[timeStep]){
-			delete flowLineRakeData[timeStep];
-			flowLineRakeData[timeStep] = 0;
+		if (unsteadyCache) {
+			delete unsteadyCache;
+			unsteadyCache = 0;
 		}
+		
 		//??TEMP??
 		if (rakeFlowData[timeStep]) {
 			delete rakeFlowData[timeStep]; 
@@ -1819,16 +1830,15 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 	}
 	//rebuild the graphics arrays
 	if (!constColors){
-		if (rakeFlowRGBAs[timeStep]) {
-			delete rakeFlowRGBAs[timeStep]; 
-			rakeFlowRGBAs[timeStep] = 0;
-		}
-		if (listFlowRGBAs[timeStep]) {
-			delete listFlowRGBAs[timeStep]; 
-			listFlowRGBAs[timeStep] = 0;
+		
+		if (steadyFlowRGBAs[timeStep]) {
+			delete steadyFlowRGBAs[timeStep]; 
+			steadyFlowRGBAs[timeStep] = 0;
 		}
 	}
-	if (!steadyFlow){
+	if (flowType == 0){
+		numInjections = 1;
+	} else if (flowType == 1){
 		//Set values for special parameters used only for unsteady flow:
 		seedIncrement = myFlowParams->getSeedTimeIncrement();
 		if (seedIncrement < 1) seedIncrement = 1;
@@ -1839,7 +1849,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 		float objectsPerFlowline = (float)myFlowParams->getObjectsPerFlowline();
 		objectsPerTimestep = (objectsPerFlowline+1.f)/(float)(maxFrame - minFrame);
 		numInjections = 1+ (endSeed - startSeed)/seedIncrement;
-	} else {
+	} else { //field Line advection setup:
 		numInjections = 1;
 	}
 	if (!myFlowLib){
@@ -1856,27 +1866,26 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 		int flowDataSize = maxPoints*numSeedPoints*numInjections;
 		if (!graphicsOnly){
 			//reallocate flowDataArray and pass it in:
-			if (!rakeFlowData[timeStep]){
-				rakeFlowData[timeStep] = new float[3*flowDataSize];
-			}
-			if ((!rakeFlowRGBAs[timeStep])&&!constColors){
-				rakeFlowRGBAs[timeStep] = new float[4*flowDataSize];
+			
+			if ((!steadyFlowRGBAs[timeStep])&&!constColors){
+				steadyFlowRGBAs[timeStep] = new float[4*flowDataSize];
 			}
 			calcPeriodicExtents();
 			bool OK;
-			if (steadyFlow){//??TEMP??
-				flowLineRakeData[timeStep] = myFlowParams->regenerateSteadyFlowData(myFlowLib, timeStep, minFrame, true, rParams);
-				OK = (flowLineRakeData[timeStep] != 0);
-			} else {
-				OK = myFlowParams->regenerateFlowData(myFlowLib, timeStep, minFrame, true, rParams, rakeFlowData[timeStep],rakeFlowRGBAs[timeStep]);
+			if (flowType == 0){
+				steadyFlowCache[timeStep] = myFlowParams->regenerateSteadyFlowData(myFlowLib, timeStep, minFrame, rParams);
+				OK = (steadyFlowCache[timeStep] != 0);
+			} else if (flowType == 1){
+				OK = myFlowParams->regenerateFlowData(myFlowLib, timeStep, minFrame, true, rParams, rakeFlowData[timeStep],steadyFlowRGBAs[timeStep]);
+			} else {//rebuild cache for field line advection, up to current time step
 			}
 			if (!OK) {
 				setRegionValid(false);
 				//??TEMP??
 				delete rakeFlowData[timeStep];
 				rakeFlowData[timeStep] = 0;
-				if (rakeFlowRGBAs[timeStep]) delete rakeFlowRGBAs[timeStep];
-				rakeFlowRGBAs[timeStep] = 0;
+				if (steadyFlowRGBAs[timeStep]) delete steadyFlowRGBAs[timeStep];
+				steadyFlowRGBAs[timeStep] = 0;
 				return false;
 			}
 		} else { //just remap colors
@@ -1885,10 +1894,10 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 			assert (!doSpeeds);
 			if (!constColors){
 				if (steadyFlow){ //??TEMP??
-					myFlowParams->mapColors(flowLineRakeData[timeStep],timeStep, minFrame, true);
+					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
 				} else {
-					rakeFlowRGBAs[timeStep] = new float[flowDataSize*4];
-					myFlowParams->mapColors(0, timeStep, minFrame, numSeedPoints, rakeFlowData[timeStep], rakeFlowRGBAs[timeStep], true);
+					steadyFlowRGBAs[timeStep] = new float[flowDataSize*4];
+					myFlowParams->mapColors(0, timeStep, minFrame, numSeedPoints, rakeFlowData[timeStep], steadyFlowRGBAs[timeStep], true);
 				}
 			}
 		}
@@ -1899,27 +1908,25 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 		if (!graphicsOnly){
 			//??TEMP??
 			//reallocate flowDataArray and pass it in:
-			if (!listFlowData[timeStep]){
-				listFlowData[timeStep] = new float[3*flowDataSize];
-			}
-			if ((!listFlowRGBAs[timeStep])&&!constColors){
-				listFlowRGBAs[timeStep] = new float[4*flowDataSize];
+			
+			if ((!steadyFlowRGBAs[timeStep])&&!constColors){
+				steadyFlowRGBAs[timeStep] = new float[4*flowDataSize];
 			}
 			calcPeriodicExtents();
 			bool OK;
 			if (steadyFlow){
-				flowLineListData[timeStep] = myFlowParams->regenerateSteadyFlowData(myFlowLib, timeStep, minFrame, false, rParams);
-				OK = (flowLineListData[timeStep] != 0);
+				steadyFlowCache[timeStep] = myFlowParams->regenerateSteadyFlowData(myFlowLib, timeStep, minFrame, rParams);
+				OK = (steadyFlowCache[timeStep] != 0);
 			} else {
-				OK = myFlowParams->regenerateFlowData(myFlowLib, timeStep, minFrame, false, rParams, listFlowData[timeStep],listFlowRGBAs[timeStep]);
+				OK = myFlowParams->regenerateFlowData(myFlowLib, timeStep, minFrame, false, rParams, listFlowData[timeStep],steadyFlowRGBAs[timeStep]);
 			}
 			if (!OK) {
 				setRegionValid(false);
 				//??TEMP??
 				delete listFlowData[timeStep];
 				listFlowData[timeStep] = 0;
-				if (listFlowRGBAs[timeStep]) delete listFlowRGBAs[timeStep];
-				listFlowRGBAs[timeStep] = 0;
+				if (steadyFlowRGBAs[timeStep]) delete steadyFlowRGBAs[timeStep];
+				steadyFlowRGBAs[timeStep] = 0;
 				return false;
 			}
 		} else { //just map colors
@@ -1928,10 +1935,10 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 			assert (!doSpeeds);
 			if (!constColors){
 				if (steadyFlow){ //??TEMP??
-					myFlowParams->mapColors(flowLineListData[timeStep],timeStep, minFrame, false);
+					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
 				} else {
-					listFlowRGBAs[timeStep] = new float[flowDataSize*4];
-					myFlowParams->mapColors(0, timeStep, minFrame, numSeedPoints, listFlowData[timeStep], listFlowRGBAs[timeStep], false);
+					steadyFlowRGBAs[timeStep] = new float[flowDataSize*4];
+					myFlowParams->mapColors(0, timeStep, minFrame, numSeedPoints, listFlowData[timeStep], steadyFlowRGBAs[timeStep], false);
 				}
 			}
 		}

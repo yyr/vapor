@@ -134,7 +134,7 @@ FlowEventRouter::hookUpTab()
 	connect (yUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboUnsteadyVarNum(int)));
 	connect (zUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboUnsteadyVarNum(int)));
 	
-	connect (randomCheckbox,SIGNAL(toggled(bool)),this, SLOT(guiSetRandom(bool)));
+	connect (rakeListCombo,SIGNAL(activated(int)),this, SLOT(guiSetRakeList(int)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYCenter()));
 	connect (zCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowZCenter()));
@@ -241,8 +241,7 @@ FlowEventRouter::hookUpTab()
 	connect (minOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
 	connect (maxOpacmapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (maxOpacmapEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabRangeTextChanged(const QString&)));
-	connect (seedListCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiDoSeedList(bool)));
-	connect (rakeCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiDoRake(bool)));
+	
 	connect (opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (flowOpacityScale()));
 	
 	connect (navigateButton, SIGNAL(toggled(bool)), this, SLOT(setFlowNavigateMode(bool)));
@@ -1027,13 +1026,12 @@ void FlowEventRouter::updateTab(){
 	periodicYCheck->setChecked(fParams->getPeriodicDim(1));
 	periodicZCheck->setChecked(fParams->getPeriodicDim(2));
 	
+	int comboSetting = 0;
+	if (fParams->rakeEnabled()) comboSetting = 1;
+	if (fParams->isRandom()) comboSetting = 2;
+	rakeListCombo->setCurrentItem(comboSetting);
 	
-	rakeCheckbox->setChecked(fParams->rakeEnabled());
-	seedListCheckbox->setChecked(fParams->listEnabled());
-
-	randomCheckbox->setChecked(fParams->isRandom());
-	
-	randomSeedEdit->setEnabled(fParams->isRandom());
+	randomSeedEdit->setEnabled(fParams->isRandom()&&fParams->rakeEnabled());
 
 	float seedBoxMin[3],seedBoxMax[3];
 	fParams->getBox(seedBoxMin,seedBoxMax);
@@ -1052,19 +1050,25 @@ void FlowEventRouter::updateTab(){
     opacityMappingFrame->setEnabled(fParams->getOpacMapEntityIndex() != 0);
     colorMappingFrame->setEnabled(fParams->getColorMapEntityIndex() != 0);
 
-	if (fParams->isRandom()){
+	if (fParams->isRandom() && fParams->rakeEnabled()){//random rake
 		dimensionLabel->setEnabled(false);
 		generatorCountEdit->setEnabled(true);
 		xSeedEdit->setEnabled(false);
 		ySeedEdit->setEnabled(false);
 		zSeedEdit->setEnabled(false);
-	} else {
+	} else if (fParams->rakeEnabled()) {//nonrandom rake
 		dimensionLabel->setEnabled(true);
 		generatorCountEdit->setEnabled(false);
 		xSeedEdit->setEnabled(true);
 		ySeedEdit->setEnabled(true);
 		zSeedEdit->setEnabled(true);
-	}
+	} else {//seed list
+		dimensionLabel->setEnabled(false);
+		generatorCountEdit->setEnabled(false);
+		xSeedEdit->setEnabled(false);
+		ySeedEdit->setEnabled(false);
+		zSeedEdit->setEnabled(false);
+	} 
 	if (autoScale){
 		float sampleRate = fParams->getSteadySmoothness();
 		smoothnessSlider->setValue((int)(256.0*(log10((float)sampleRate)+1.f)*0.25f));
@@ -1097,7 +1101,10 @@ void FlowEventRouter::updateTab(){
 	}
 	integrationAccuracyEdit->setText(QString::number(fParams->getIntegrationAccuracy()));
 
-	generatorCountEdit->setText(QString::number(fParams->getNumRakeSeedPoints()));
+	if (fParams->rakeEnabled())
+		generatorCountEdit->setText(QString::number(fParams->getNumRakeSeedPoints()));
+	else 
+		generatorCountEdit->setText(QString::number(fParams->getNumListSeedPoints()));
 	
 	xSeedEdit->setText(QString::number(fParams->getNumGenerators(0)));
 	ySeedEdit->setText(QString::number(fParams->getNumGenerators(1)));
@@ -1300,13 +1307,46 @@ guiMoveLastSeed(const float coords[3]){
 	VizWinMgr::getInstance()->refreshFlow(fParams);
 }
 //Turn on/off the rake and the seedlist:
-void FlowEventRouter::guiDoRake(bool isOn){
+void FlowEventRouter::guiSetRakeList(int index){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	bool doRake = fParams->rakeEnabled();
-	if (isOn == doRake) return;
+	bool isRandom = fParams->isRandom();
+	int currentIndex = 0;
+	if (doRake) currentIndex = 1;
+	if (isRandom&&doRake) currentIndex = 2;
+	if (currentIndex == index) return;
 	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle rake on/off");
-	fParams->enableRake(isOn);
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "change rake/list/random flow setting");
+	fParams->enableRake(index > 0);
+	fParams->setRandom(index > 1);
+	if (index > 0)
+		generatorCountEdit->setText(QString::number(fParams->getNumRakeSeedPoints()));
+	else
+		generatorCountEdit->setText(QString::number(fParams->getNumListSeedPoints()));
+	if (index > 1){//random rake
+		dimensionLabel->setEnabled(false);
+		generatorCountEdit->setEnabled(true);
+		xSeedEdit->setEnabled(false);
+		ySeedEdit->setEnabled(false);
+		zSeedEdit->setEnabled(false);
+		randomSeedEdit->setEnabled(true);
+	} 
+	if (index == 1){//nonrandom rake
+		dimensionLabel->setEnabled(true);
+		generatorCountEdit->setEnabled(false);
+		xSeedEdit->setEnabled(true);
+		ySeedEdit->setEnabled(true);
+		zSeedEdit->setEnabled(true);
+		randomSeedEdit->setEnabled(false);
+	}
+	if (index == 0){//seedlist 
+		dimensionLabel->setEnabled(false);
+		generatorCountEdit->setEnabled(false);
+		xSeedEdit->setEnabled(false);
+		ySeedEdit->setEnabled(false);
+		zSeedEdit->setEnabled(false);
+		randomSeedEdit->setEnabled(false);
+	}
 	PanelCommand::captureEnd(cmd, fParams);
 	//If there's a change, need to set flags dirty
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
@@ -1314,20 +1354,7 @@ void FlowEventRouter::guiDoRake(bool isOn){
 	VizWinMgr::getInstance()->refreshFlow(fParams);
 }
 
-//Turn on/off the rake and the seedlist:
-void FlowEventRouter::guiDoSeedList(bool isOn){
-	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-	bool doSeedList = fParams->listEnabled();
-	if (isOn == doSeedList) return;
-	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle seed list on/off");
-	fParams->enableList(isOn);
-	PanelCommand::captureEnd(cmd, fParams);
-	//Invalidate just the list data
-	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
-}
+
 
 void FlowEventRouter::
 guiSetEnabled(bool on, int instance){
@@ -1608,32 +1635,6 @@ guiSetSteadyLength(int sliderPos){
 }
 
 void FlowEventRouter::
-guiSetRandom(bool rand){
-	confirmText(false);
-	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle random setting");
-	fParams->setRandom(rand);
-	generatorCountEdit->setText(QString::number(fParams->getNumRakeSeedPoints()));
-	if (rand){
-		dimensionLabel->setEnabled(false);
-		generatorCountEdit->setEnabled(true);
-		xSeedEdit->setEnabled(false);
-		ySeedEdit->setEnabled(false);
-		zSeedEdit->setEnabled(false);
-	} else {
-		dimensionLabel->setEnabled(true);
-		generatorCountEdit->setEnabled(false);
-		xSeedEdit->setEnabled(true);
-		ySeedEdit->setEnabled(true);
-		zSeedEdit->setEnabled(true);
-	}
-	guiSetTextChanged(false);
-	update();
-	PanelCommand::captureEnd(cmd, fParams);
-	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
-}
-
-void FlowEventRouter::
 guiCheckPeriodicX(bool periodic){
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
@@ -1875,6 +1876,7 @@ guiEditSeedList(){
 		delete cmd;
 		return;
 	}
+	if (!fParams->rakeEnabled()) updateTab();
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);

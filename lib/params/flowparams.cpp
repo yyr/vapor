@@ -30,6 +30,7 @@
 #include "regionparams.h"
 #include "datastatus.h"
 #include "vapor/VaporFlow.h"
+#include "vapor/flowlinedata.h"
 #include "glutil.h"
 #include "errorcodes.h"
 
@@ -236,7 +237,7 @@ restart() {
 	
 	
 	doRake = true;
-	doSeedList = false;
+	
 }
 
 //Make a copy of  parameters:
@@ -1109,7 +1110,7 @@ regenerateFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake
 //If speeds are used for rgba mapping, they are (temporarily) calculated
 //and then mapped.
 FlowLineData* FlowParams::
-regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool isRake, RegionParams* rParams){
+regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame,  RegionParams* rParams){
 	
 	size_t min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
@@ -1170,7 +1171,7 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool 
 	myFlowLib->SetRegion(numRefinements, min_dim, max_dim, min_bdim, max_bdim);
 
 	int numSeedPoints;
-	if (isRake){
+	if (doRake){
 		numSeedPoints = getNumRakeSeedPoints();
 		if (randomGen) {
 			myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount);
@@ -1239,7 +1240,7 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool 
 	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
 	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
 
-	FlowLineData* flowData = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, true, steadyFlowDirection, doRGBAs); 
+	FlowLineData* flowData = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, steadyFlowDirection, doRGBAs); 
 		
 	numInjections = 1;
 
@@ -1247,7 +1248,7 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool 
 	
 	bool rc = true;
 	
-	if (isRake){
+	if (doRake){
 		rc = myFlowLib->GenStreamLines(flowData, randomSeed);
 	} else {
 		rc = myFlowLib->GenStreamLinesNoRake(flowData,seedList);
@@ -1265,7 +1266,7 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, bool 
 	//Now map colors (if needed)
 		
 	if (doRGBAs){
-		mapColors(flowData, timeStep, minFrame, isRake);
+		mapColors(flowData, timeStep, minFrame);
 		//Now we can release the speeds:
 		if (useSpeeds) flowData->releaseSpeeds(); 
 	}
@@ -1415,13 +1416,6 @@ buildNode() {
 		oss << "false";
 	attrs[_useRakeAttr] = oss.str();
 	oss.str(empty);
-
-	oss.str(empty);
-	if (doSeedList)
-		oss << "true";
-	else
-		oss << "false";
-	attrs[_useSeedListAttr] = oss.str();
 
 	XmlNode* seedingNode = new XmlNode(_seedingTag,attrs,getNumListSeedPoints());
 
@@ -1706,7 +1700,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 				if (value == "true") doRake = true; else doRake = false;
 			}
 			else if (StrCmpNoCase(attribName, _useSeedListAttr) == 0) {
-				if (value == "true") doSeedList = true; else doSeedList = false;
+				if (value == "true") doRake = false; else doRake = true;
 			}
 			else return false;
 		}
@@ -2088,7 +2082,7 @@ mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float*
 //the mapping
 //
 void FlowParams::
-mapColors(FlowLineData* container, int currentTimeStep, int minFrame, bool isRake){
+mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 	//Create lut based on current mapping data
 	float* lut = new float[256*4];
 	mapperFunction->makeLut(lut);
@@ -2179,8 +2173,8 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, bool isRak
 						break;
 					case (3): //opacity mapped from seed index
 						
-						if (isRake) opacVar = -1.f - (float)lineNum;
-						else opacVar = (float)lineNum;
+						
+						opacVar = (float)lineNum;
 
 						break;
 					default : //variable
@@ -2224,8 +2218,8 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, bool isRak
 						colorVar = container->getSpeed(lineNum,pointNum);
 						break;
 					case (3) : //seed index.  Will use constant color
-						if (isRake) colorVar = -1.f - (float)lineNum;
-						else colorVar = (float)lineNum;
+						
+						colorVar = (float)lineNum;
 						break;
 					default : //variable
 						int x,y,z;
@@ -2396,7 +2390,7 @@ float FlowParams::maxRange(int index, int timestep){
 			}
 			return maxSpeed;
 		case (3): // seed Index, from 0 to listsize -1
-			return (doSeedList ? (float)(getNumListSeedPoints()-1) : 0.f );
+			return (!doRake ? (float)(getNumListSeedPoints()-1) : 0.f );
 		default:
 			int varnum = index -4;
 			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent(varnum)){
