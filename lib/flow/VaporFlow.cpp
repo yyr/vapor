@@ -262,13 +262,13 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 	return regionData;
 }
 //Generate the seeds for the rake.  Will implement distributed seeds later.
-bool VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed){
+int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed){
 	int seedNum;
 	seedNum = numSeeds[0]*numSeeds[1]*numSeeds[2];
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
 	pSeedGenerator->GetSeeds(seeds, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
-	return true;
+	return seedNum;
 }
 
 

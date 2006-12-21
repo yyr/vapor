@@ -63,7 +63,7 @@ namespace VAPoR
 		//Uses settings established by SetRandomSeedPoints, SetDistributedSeedPoints,
 		//or SetRegularSeedPoints
 
-		bool GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed);
+		int GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed);
 
 		//Version that actually does the work
 		bool GenStreamLinesNoRake(FlowLineData* container, float* seeds);

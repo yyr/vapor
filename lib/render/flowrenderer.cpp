@@ -1298,7 +1298,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 		
 		int firstIndex = Max(firstAge, flowLineData->getStartIndex(tubeNum));
 		int lastIndex = Min(lastAge, flowLineData->getEndIndex(tubeNum));
-		if (firstIndex >= lastIndex) return;
+		if (firstIndex >= lastIndex) continue;
 		float* point = flowLineData->getFlowPoint(tubeNum, firstIndex);
 		
 		assert(*point != END_FLOW_FLAG);
@@ -1595,8 +1595,9 @@ renderArrows(FlowLineData* flowLineData, float radius, bool isLit, int firstAge,
 		//float* point = flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge);
 		int firstIndex = Max(firstAge, flowLineData->getStartIndex(tubeNum));
 		int lastIndex = Min(lastAge, flowLineData->getEndIndex(tubeNum));
+		if (firstIndex >= lastIndex) continue;
 		float* point = flowLineData->getFlowPoint(tubeNum, firstIndex);
-		//if(*point == END_FLOW_FLAG) continue;
+		
 		assert(*point != END_FLOW_FLAG);
 		//Cycle through the points looking for a valid tubeStartIndex.
 		//If the first one is at the end, we don't render anything
