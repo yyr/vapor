@@ -528,6 +528,9 @@ clean::
 ifdef SUBDIRS
 	@for i in $(SUBDIRS); do $(MAKE) -C $$i clean; done
 endif
+ifdef HEADER_FILES
+	@$(RM) $(HEADER_FILES)
+endif
 ifdef LIBRARY
 	@$(ECHO) "Removing all $(PLATFORM) object files for $(TARGET)."
 else
