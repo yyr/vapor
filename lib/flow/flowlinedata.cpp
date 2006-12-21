@@ -50,8 +50,8 @@ FlowLineData::~FlowLineData() {
 	
 	for (int i = 0; i<nmLines; i++){
 		delete flowLineLists[i];
-		if (speedLists) delete speedLists[i];
-		if (flowRGBAs) delete flowRGBAs[i];
+		if (speedLists && speedLists[i]) delete speedLists[i];
+		if (flowRGBAs && flowRGBAs[i]) delete flowRGBAs[i];
 	}
 	delete flowLineLists;
 	if (speedLists) delete speedLists;
@@ -76,10 +76,11 @@ setFlowEnd(int lineNum, int integPos){
 		lineLengths[lineNum] = integrationStartPosn + 1 +integPos - startIndices[lineNum];
 	}
 }
+//Method for resetting the value of a point in unsteady flow (after reprioritization).
+//Also can be used to append a point to the start or end of an existing unsteady flow line.
 void PathLineData::setPointAtTime(int lineNum, float timeStep, float x, float y, float z){
 	//Determine the (closest) index:
-	int insertPosn = (int)(startTimeStep + 
-		(timeStep - startTimeStep)*samplesPerTStep + 0.5f);
+	int insertPosn = (int)((timeStep - startTimeStep)*samplesPerTStep + 0.5f);
 	assert(insertPosn >= 0 && insertPosn < mxPoints);
 	*(flowLineLists[lineNum]+ 3*insertPosn) = x;
 	*(flowLineLists[lineNum]+ 3*insertPosn+1) = y;
@@ -95,4 +96,55 @@ void PathLineData::setPointAtTime(int lineNum, float timeStep, float x, float y,
 		lineLengths[lineNum]++;
 	}
 }
-
+//Method for resetting the value of a point in unsteady flow (after reprioritization).
+//Also can be used to append a point to the start or end of an existing unsteady flow line.
+void PathLineData::setSpeedAtTime(int lineNum, float timeStep, float speed){
+	//Determine the (closest) index:
+	int insertPosn = (int)((timeStep - startTimeStep)*samplesPerTStep + 0.5f);
+	assert(insertPosn >= 0 && insertPosn < mxPoints);
+	*(speedLists[lineNum]+ 3*insertPosn) = speed;
+}
+//Methods for (progressively) designating the start or end of an unsteady flow line.
+//This is based on left-to-right ordering, not integration order.
+//
+void PathLineData::setFlowStartAtTime(int lineNum, float time){
+	//Determine the (closest) index:
+	int insertPosn = (int)((time - startTimeStep)*samplesPerTStep + 0.5f);
+	assert(insertPosn >= 0 && insertPosn < mxPoints);
+	int prevIndex = startIndices[lineNum];
+	startIndices[lineNum] = insertPosn;
+	if (prevIndex >= 0) {  //Correct the line length
+		lineLengths[lineNum] = lineLengths[lineNum] + prevIndex - insertPosn;
+	}
+}
+void PathLineData::setFlowEndAtTime(int lineNum, float time){
+	//Determine the (closest) index:
+	int insertPosn = (int)((time - startTimeStep)*samplesPerTStep + 0.5f);
+	assert(insertPosn >= 0 && insertPosn < mxPoints);
+	lineLengths[lineNum] = insertPosn - startIndices[lineNum];
+}
+//Initialize a path line with a seed point, seedIndex.
+//The time step must be an integer
+void PathLineData::insertSeedAtTime(int seedIndex, int timeStep,  float x, float y, float z){
+	assert(actualNumLines < nmLines);
+	//Determine the (closest) index:
+	int insertPosn = (int)((timeStep - startTimeStep)*samplesPerTStep + 0.5f);
+	assert(insertPosn >= 0 && insertPosn < mxPoints);
+	*(flowLineLists[actualNumLines]+ 3*insertPosn) = x;
+	*(flowLineLists[actualNumLines]+ 3*insertPosn+1) = y;
+	*(flowLineLists[actualNumLines]+ 3*insertPosn+2) = z;
+	//Set start/end pointers.  
+	startIndices[actualNumLines] = insertPosn;
+	lineLengths[actualNumLines] = 1;
+	seedIndices[actualNumLines] = seedIndex;
+	seedTimes[actualNumLines] = insertPosn;
+	actualNumLines++;
+}
+//Determine how many lines exist at a given time step
+int PathLineData::getNumLines(int timeStep){
+	int count = 0;
+	for (int i = 0; i<actualNumLines; i++){
+		if (getFirstTimestep(i) <= timeStep && getLastTimestep(i) >= timeStep) count++;
+	}
+	return count;
+}

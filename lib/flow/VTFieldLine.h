@@ -31,6 +31,7 @@ enum TRACE_DIR{OFF=0, BACKWARD_DIR=1, FORWARD_DIR=2, BACKWARD_AND_FORWARD=3};
 enum ADVECT_STATUS{OUT_OF_BOUND = -1, CRITICAL_POINT = 0, OKAY = 1};
 
 class FlowLineData;
+class PathLineData;
 
 //////////////////////////////////////////////////////////////////////////
 // information about particles
@@ -42,9 +43,8 @@ public:
 	float m_fStartTime;			// start time
 	int itsValidFlag;			// whether this particle is valid or not
 	int itsNumStepsAlive;		// number of steps alive
-	int ptId;					// particle ID
-	float unusedTime;			//AN:  remember time remaining from previous
-								//sampling
+	int ptId;					// particle ID.  AN: This is lineNum for VTStreakLine 
+	float unusedTime;			//AN:  remember time remaining from previous sampling
 
 public:
 	vtParticleInfo(void)
@@ -59,6 +59,7 @@ public:
 		itsNumStepsAlive = source->itsNumStepsAlive;
 		ptId = source->ptId;
 		unusedTime = source->unusedTime;
+		
 	}
 
 	vtParticleInfo(vtParticleInfo& source)
@@ -69,6 +70,7 @@ public:
 		ptId = source.ptId;
 		itsNumStepsAlive = source.itsNumStepsAlive;
 		unusedTime = source.unusedTime;
+		
 	}
 
 	void Set(PointInfo& pInfo, float startT, int validFlag, int life, int id)
@@ -154,6 +156,16 @@ protected:
 	float SampleFieldline(FlowLineData* container,
 								   int lineNum, // = seedNum
 								   int direction, // -1 or +1
+								   vtListSeedTrace* seedTrace,
+								   list<float>* stepList,
+								   bool bRecordSeed,
+								   int traceState,
+								   float remainingTime = 0.f);
+	//version for unsteady flow, will eventually replace above:
+	float SampleFieldline(PathLineData* container,
+									float firstT, float lastT, //timestep interval
+								   int lineNum, // != seedNum
+								   int direction, // -1 or +1 .. can be determined from firstT, lastT
 								   vtListSeedTrace* seedTrace,
 								   list<float>* stepList,
 								   bool bRecordSeed,
@@ -248,7 +260,8 @@ public:
 	vtCStreakLine(CVectorField* pField);
 	~vtCStreakLine(void);
 	void execute(const float t, float* points, const unsigned int* startPositions, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
-
+	void execute(const float t, PathLineData* container, bool bInjectSeeds);
+	int addSeeds(int tstep, PathLineData* container);
 protected:
 	
 	// code specific to streakline
@@ -262,6 +275,16 @@ protected:
 							float finalTime,
 							vector<vtListParticleIter>& deadList,
 							float* speeds=0);
+
+	// code specific to streakline
+	void computeStreakLine(const float t, PathLineData* container, bool bInjectSeeds);
+	void advectOldParticles(vtListParticleIter start, 
+							vtListParticleIter end, 
+							PathLineData* container,
+							float initialTime, 
+							float finalTime,
+							vector<vtListParticleIter>& deadList);
+							
 };
 
 //////////////////////////////////////////////////////////////////////////

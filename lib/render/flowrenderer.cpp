@@ -20,7 +20,7 @@
 #include "params.h"
 #include "flowrenderer.h"
 #include "vapor/VaporFlow.h"
-
+#include "errorcodes.h"
 #include "glwindow.h"
 #include "trackball.h"
 #include "glutil.h"
@@ -48,7 +48,7 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 :Renderer(glw, fParams)
 {
     myFlowLib = 0;
-	numInjections = 0;
+	
 	steadyFlow = fParams->flowIsSteady();
 	for (int i = 0; i<4; i++) constFlowColor[i] = 1.f;
 
@@ -57,7 +57,7 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 	numFrames = DataStatus::getInstance()->getNumTimesteps();
 
 	steadyFlowCache = new FlowLineData*[numFrames];
-	unsteadyCache = 0;
+	unsteadyFlowCache = 0;
 	
 	rakeFlowData = new float*[numFrames];
 	listFlowData = new float*[numFrames];
@@ -83,9 +83,9 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 		flowMapDirty[i] = 0;
 	}
 	unsteadyFlowRGBAs = 0;
-	unsteadyFlowMapDirty = false;
+	allFlowMapDirtyFlag = false;
 	unsteadyNeedsRefreshFlag = false;
-	unsteadyDataDirty = false;
+	allDataDirtyFlag = false;
 
 	setRegionValid(true);
 	lastTimeStep = -1;
@@ -131,61 +131,41 @@ void FlowRenderer::paintGL()
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
-	steadyFlow = myFlowParams->flowIsSteady();
-	int timeStep = steadyFlow ? currentFrameNum : 0;
-	
+	int flowType = myFlowParams->getFlowType();
+	int timeStep = currentFrameNum;
+	bool didRebuild = false;
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex()) == 0);
 	
-	
-
 	constFlowColor[3] = myFlowParams->getConstantOpacity();
 	QRgb constRgb = myFlowParams->getConstantColor();
 	constFlowColor[0] = qRed(constRgb)/255.f;
 	constFlowColor[1] = qGreen(constRgb)/255.f;
 	constFlowColor[2] = qBlue(constRgb)/255.f;
 
+	//Check if the cache needs rebuilding, and/or rgba's need rebuilding:
+	if (flowMapIsDirty(timeStep) || (flowDataIsDirty(timeStep) && needsRefresh(myFlowParams,timeStep))){
+		if(!rebuildFlowData(timeStep)) return;
+		didRebuild = true;
+	} else { //just rebuild the rgba's if necessary:
+		if (flowMapIsDirty(timeStep)){
+			if (flowType != 1)
+				myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
+			else 
+				myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame);
+			didRebuild = true;
+		}
+	}
+	//OK, now render the cache.  The rgba's were rebuilt too.
+	if (myFlowParams->getFlowType()!= 1){
+		renderFlowData(steadyFlowCache[currentFrameNum],constColors, currentFrameNum);
+	} else { 
+		renderFlowData(unsteadyFlowCache,constColors, currentFrameNum);
+	}
+		
 	
-	//First render the rake flow:
-	//May first need to rebuild it:
-	bool didRebuild = false;
-	if (myFlowParams->rakeEnabled()){ 
-		//Either we just need to refresh graphics, or we need both data and graphics
-		if (flowMapDirty[timeStep] ||(needRefreshFlag[timeStep] && flowDataDirty[timeStep])){
-			if(!rebuildFlowData(timeStep, true)) return;
-			didRebuild = true;
-		}
-		//Now render the rake data
-		if (myFlowParams->flowIsSteady()){
-			renderFlowData(steadyFlowCache[currentFrameNum],constColors, currentFrameNum);
-		} else { //??TEMP??
-			flowDataArray = getFlowData(timeStep, true);
-			flowRGBAs = getRGBAs(timeStep); 
-			renderFlowData(constColors,currentFrameNum);
-		}
-	}
-	//Next render the list data
-	//May first need to rebuild it:
-	if (myFlowParams->listEnabled()){ 
-		if (flowMapDirty[timeStep] ||(needRefreshFlag[timeStep] && flowDataDirty[timeStep])){
-			if(!rebuildFlowData(timeStep, false)) return;
-			didRebuild = true;
-		}
-		//Now render the list data
-		if (myFlowParams->flowIsSteady()){
-			renderFlowData(steadyFlowCache[currentFrameNum],constColors, currentFrameNum);
-		} else { //??TEMP??
-			flowDataArray = getFlowData(timeStep, false);
-			flowRGBAs = getRGBAs(timeStep); 
-			renderFlowData(constColors,currentFrameNum);
-		}
-	}
-	//Reset the dirty flags:
-	//The color map was already made current
-	flowMapDirty[timeStep] = false;
-	//If we rebuilt the data, then reset its dirty flag too:
-	//Don't change the needRefreshFlag 
 	if (didRebuild){
-		flowDataDirty[timeStep] = false;
+		setFlowDataClean(timeStep);
+		setFlowMapClean(timeStep);
 		myGLWindow->setRenderNew();
 	}
 }
@@ -326,7 +306,7 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
 			if (diam < 2.f){//Render as lines, not cylinders
-				renderCurves(flowLineData, diam, (nLights>0), 0, mxPoints-1, 0, constColors);
+				renderCurves(flowLineData, diam, (nLights>0), 0, mxPoints-1, constColors);
 			
 			} else { //render as cylinders
 				//Determine cylinder radius in actual coords.
@@ -337,12 +317,12 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 				//Note that lastDisplayFrame is maxPoints -1
 				//and firstDisplayFrame is 0
 				//
-				renderTubes(flowLineData,userRadius, (nLights > 0), 0, mxPoints-1, 0,constColors);
+				renderTubes(flowLineData,userRadius, (nLights > 0), 0, mxPoints-1, constColors);
 				
 			}
 		} else if (myFlowParams->getShapeType() == 1 ){ //rendering points 
 			//just convert the flow data to a set of points..
-			renderPoints(flowLineData,diam, 0, mxPoints-1, 0, constColors);
+			renderPoints(flowLineData,diam, 0, mxPoints-1, constColors);
 		} else { //render arrows
 			
 			
@@ -351,312 +331,47 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 			//Note that lastDisplayFrame is maxPoints -1
 			//and firstDisplayFrame is 0
 			//
-			renderArrows(flowLineData,userRadius, (nLights > 0), 0, mxPoints-1, 0, constColors);
+			renderArrows(flowLineData,userRadius, (nLights > 0), 0, mxPoints-1, constColors);
 		}
 
 	} else { //unsteady flow:
 		//Determine first and last seeding that is visible.
 		//The portion of a flow that is visible is that portion whose age
-		//goes from currentFrame - firstDisplayAge to currentFrame + lastDisplayAge.  
+		//goes from currentFrame - firstDisplayAge to currentFrame + lastDisplayAge. 
+
 		
-		//This is reduced on the front end if currentFrame-firstDisplayAge
-		//precedes seedStartFrame.
-		//It shouldn't need to be reduced on the back end since all Pathlines are calculated
-		//potentially to the endFrame
+		//In this case we have a pathLineData
+		PathLineData* pData = (PathLineData*)flowLineData;
 
-		assert(0);  //Not ready for unsteady flow yet!
-		for (int seedFrame = startSeed; seedFrame <= endSeed; seedFrame+= seedIncrement){
-			//Count the seedings:
-			int injectionNum = (seedFrame-startSeed)/seedIncrement;
-			//Find the display window for this seeding associated with the current frame:
-			int minDisplayFrame = Max( seedFrame, currentFrameNum + firstDisplayAge);
-			int maxDisplayFrame = currentFrameNum + lastDisplayAge;
-			//Make sure that the current frame is in the display window for this seeding.
-			//It gets excluded if current seeding hasn't started by the maxDisplayFrame,
-			
-			if (seedFrame > maxDisplayFrame) continue;
-			//firstFrame and lastFrame translate the display interval to be relative to the 
-			//current seeding:
-			int firstFrame = minDisplayFrame - seedFrame;
-			int lastFrame = maxDisplayFrame - seedFrame;
-			//firstGeom and lastGeom provide the interval of instances of points along
-			//the flowline that is to be converted to geometry:
-			int firstGeom = (int)(firstFrame*objectsPerTimestep + 0.5f);
-			int lastGeom = (int)(lastFrame*objectsPerTimestep+0.5f);
-			if (firstGeom < 0) firstGeom = 0;
-			if (lastGeom < 0) lastGeom = 0;
-			if (lastGeom >= mxPoints) lastGeom = mxPoints-1;
-			if (firstGeom > lastGeom) continue;
-
-			//Now do the rendering of this interval:
-			if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
-					
-				if (diam < 2.f){//Render as lines, not cylinders
-					renderCurves(diam, (nLights>0), firstGeom, lastGeom,
-						mxPoints*numSeedPoints*injectionNum,constColors);
-				
-				} else { //render as cylinders
-					
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-					//Render all tubes
-					renderTubes(userRadius, (nLights > 0), firstGeom, lastGeom,
-						mxPoints*numSeedPoints*injectionNum, constColors);
-					
-				}
-			} else if(myFlowParams->getShapeType() == 1) { //rendering points 
-				//just convert the flow data to a set of points..
-				renderPoints(diam, firstGeom, lastGeom,
-						mxPoints*numSeedPoints*injectionNum, constColors);
-			} else { //rendering arrows:
-				
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-				
-				renderArrows(userRadius, (nLights > 0), firstGeom, lastGeom,
-					mxPoints*numSeedPoints*injectionNum, constColors);
-			}
-		}
-	} //End unsteady flow 
-	glDisable(GL_LIGHTING);
-	glDisable(GL_BLEND);
-	glDisable(GL_CLIP_PLANE0);
-	glDisable(GL_CLIP_PLANE1);
-	glDisable(GL_CLIP_PLANE2);
-	glDisable(GL_CLIP_PLANE3);
-	glDisable(GL_CLIP_PLANE4);
-	glDisable(GL_CLIP_PLANE5);
-	glPopMatrix();
-
-	if (currentFrameNum != lastTimeStep){
-		myGLWindow->setRenderNew();
-		lastTimeStep = currentFrameNum;
-	}
-
-}
-void FlowRenderer::
-renderFlowData(bool constColors, int currentFrameNum){
-	
-	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
-	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
-	
-	
-	
-	GLdouble topPlane[] = {0., -1., 0., 1.};
-	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
-	GLdouble leftPlane[] = {1., 0., 0., 0.};
-	GLdouble botPlane[] = {0., 1., 0., 0.};
-	GLdouble frontPlane[] = {0., 0., -1., 1.};//z largest
-	GLdouble backPlane[] = {0., 0., 1., 0.};
-
-	//Make the depth buffer writable
-	glDepthMask(GL_TRUE);
-	//and readable
-	glEnable(GL_DEPTH_TEST);
-	//Prepare for alpha values:
-	glEnable (GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//Set up lighting, if we are rendering tubes or lines:
-	int nLights = 0;
-	if (myFlowParams->getShapeType() != 1) {//rendering tubes/lines/arrows
-		float diffColor[4], specColor[4], ambColor[4];
-		GLfloat lmodel_ambient[4];
-		specColor[0]=specColor[1]=specColor[2]=0.8f;
-		ambColor[0]=ambColor[1]=ambColor[2]=0.f;
-		diffColor[3]=specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
+		int firstGeom = pData->getIndexFromTimestep(currentFrameNum+firstDisplayAge);
+		int lastGeom = pData->getIndexFromTimestep(currentFrameNum+lastDisplayAge);
 		
-		ViewpointParams* vpParams =  myGLWindow->getActiveViewpointParams();
-		nLights = vpParams->getNumLights();
-		if (nLights > 0){
-			glPushMatrix();
-			glLoadIdentity();
-			glShadeModel(GL_SMOOTH);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, constFlowColor);
-			glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, vpParams->getExponent());
-			lmodel_ambient[0]=lmodel_ambient[1]=lmodel_ambient[2] = vpParams->getAmbientCoeff();
-			//All the geometry will get a white specular color:
-			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
-			glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
-			
-			specColor[0] = specColor[1] = specColor[2] = vpParams->getSpecularCoeff(0);
-			diffColor[0] = diffColor[1] = diffColor[2] = vpParams->getDiffuseCoeff(0);
-			glLightfv(GL_LIGHT0, GL_DIFFUSE, diffColor);
-			glLightfv(GL_LIGHT0, GL_SPECULAR, specColor);
-			glLightfv(GL_LIGHT0, GL_AMBIENT, ambColor);
-			glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
-			glEnable(GL_LIGHTING);
-			glEnable(GL_LIGHT0);
-			if (nLights > 1){
-				glLightfv(GL_LIGHT1, GL_POSITION, vpParams->getLightDirection(1));
-				specColor[0] = specColor[1] = specColor[2] = vpParams->getSpecularCoeff(1);
-				diffColor[0] = diffColor[1] = diffColor[2] = vpParams->getDiffuseCoeff(1);
-				glLightfv(GL_LIGHT1, GL_DIFFUSE, diffColor);
-				glLightfv(GL_LIGHT1, GL_SPECULAR, specColor);
-				glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
-				glEnable(GL_LIGHT1);
-			}
-			if (nLights > 2){
-				glLightfv(GL_LIGHT2, GL_POSITION, vpParams->getLightDirection(2));
-				specColor[0] = specColor[1] = specColor[2] = vpParams->getSpecularCoeff(2);
-				diffColor[0] = diffColor[1] = diffColor[2] = vpParams->getDiffuseCoeff(2);
-				glLightfv(GL_LIGHT2, GL_DIFFUSE, diffColor);
-				glLightfv(GL_LIGHT2, GL_SPECULAR, specColor);
-				glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
-				glEnable(GL_LIGHT2);
-			}
-		} else {
-			glDisable(GL_LIGHTING); //No lights
-		}
-		glPopMatrix();
-	} else {//points are not lit..
-		glDisable(GL_LIGHTING);
 		
-	}
-	//Apply a coord transform that moves the full region to the unit cube.
-	
-	glPushMatrix();
-	
-
-	//scale:
-	float scaleFactor = 1.f/ViewpointParams::getMaxCubeSide();
-	glScalef(scaleFactor, scaleFactor, scaleFactor);
-
-	//translate to put origin at corner:
-	float* transVec = ViewpointParams::getMinCubeCoords();
-	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
-	
-	//Set up clipping planes
-	topPlane[3] = myRegionParams->getRegionMax(1);
-	botPlane[3] = -myRegionParams->getRegionMin(1);
-	leftPlane[3] = -myRegionParams->getRegionMin(0);
-	rightPlane[3] = myRegionParams->getRegionMax(0);
-	frontPlane[3] = myRegionParams->getRegionMax(2);
-	backPlane[3] = -myRegionParams->getRegionMin(2);
-	
-	glClipPlane(GL_CLIP_PLANE0, topPlane);
-	glEnable(GL_CLIP_PLANE0);
-	glClipPlane(GL_CLIP_PLANE1, rightPlane);
-	glEnable(GL_CLIP_PLANE1);
-	glClipPlane(GL_CLIP_PLANE2, botPlane);
-	glEnable(GL_CLIP_PLANE2);
-	glClipPlane(GL_CLIP_PLANE3, leftPlane);
-	glEnable(GL_CLIP_PLANE3);
-	glClipPlane(GL_CLIP_PLANE4, frontPlane);
-	glEnable(GL_CLIP_PLANE4);
-	glClipPlane(GL_CLIP_PLANE5, backPlane);
-	glEnable(GL_CLIP_PLANE5);
-
-	
-	float diam = myFlowParams->getShapeDiameter();
-	//Don't allow zero diameter, it causes OpenGL error code 1281
-	if (diam < 1.e-10) diam = 1.e-10f;
-
-	//Set up size constants:
-	//voxelSize is actually the max of the sides of the voxel in user coords
-	const float* fullExtent = DataStatus::getInstance()->getExtents();
-	const size_t* fullDims = DataStatus::getInstance()->getFullDataSize();
-	voxelSize = Max((fullExtent[5]-fullExtent[2])/fullDims[0],
-		Max((fullExtent[4]-fullExtent[1])/fullDims[1], (fullExtent[3]-fullExtent[0])/fullDims[2]));
-		
-	//stationary radius is radius of stationary point symbol in user coords
-	if (diam > 2*MIN_STATIONARY_RADIUS)
-		stationaryRadius = voxelSize*0.5*diam;
-	else stationaryRadius = voxelSize*MIN_STATIONARY_RADIUS;
-	float userRadius = 0.5f*diam*voxelSize;
-	arrowHeadRadius = (myFlowParams->getArrowDiameter())*userRadius;
-
-	
-	//If we are doing unsteady flow, handle setup differently:
-	if (steadyFlow){
+		//Now do the rendering of this interval:
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
 			if (diam < 2.f){//Render as lines, not cylinders
-				renderCurves(diam, (nLights>0), 0, maxPoints-1, 0, constColors);
+				renderCurves(flowLineData, diam, (nLights>0), firstGeom, lastGeom,
+					constColors);
 			
 			} else { //render as cylinders
-				//Determine cylinder radius in actual coords.
-				//One voxel is (full region size)/(region array size)
 				
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				//Render all tubes
-				//Note that lastDisplayFrame is maxPoints -1
-				//and firstDisplayFrame is 0
-				//
-				renderTubes(userRadius, (nLights > 0), 0, maxPoints-1, 0,constColors);
+				renderTubes(flowLineData, userRadius, (nLights > 0), firstGeom, lastGeom,
+						constColors);
 				
 			}
-		} else if (myFlowParams->getShapeType() == 1 ){ //rendering points 
+		} else if(myFlowParams->getShapeType() == 1) { //rendering points 
 			//just convert the flow data to a set of points..
-			renderPoints(diam, 0, maxPoints-1, 0, constColors);
-		} else { //render arrows
-			
+			renderPoints(flowLineData, diam, firstGeom, lastGeom,
+					constColors);
+		} else { //rendering arrows:
 			
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			//Render arrows
-			//Note that lastDisplayFrame is maxPoints -1
-			//and firstDisplayFrame is 0
-			//
-			renderArrows(userRadius, (nLights > 0), 0, maxPoints-1, 0, constColors);
-		}
-
-	} else { //unsteady flow:
-		//Determine first and last seeding that is visible.
-		//The portion of a flow that is visible is that portion whose age
-		//goes from currentFrame - firstDisplayAge to currentFrame + lastDisplayAge.  
-		
-		//This is reduced on the front end if currentFrame-firstDisplayAge
-		//precedes seedStartFrame.
-		//It shouldn't need to be reduced on the back end since all Pathlines are calculated
-		//potentially to the endFrame
-
-		
-		for (int seedFrame = startSeed; seedFrame <= endSeed; seedFrame+= seedIncrement){
-			//Count the seedings:
-			int injectionNum = (seedFrame-startSeed)/seedIncrement;
-			//Find the display window for this seeding associated with the current frame:
-			int minDisplayFrame = Max( seedFrame, currentFrameNum + firstDisplayAge);
-			int maxDisplayFrame = currentFrameNum + lastDisplayAge;
-			//Make sure that the current frame is in the display window for this seeding.
-			//It gets excluded if current seeding hasn't started by the maxDisplayFrame,
 			
-			if (seedFrame > maxDisplayFrame) continue;
-			//firstFrame and lastFrame translate the display interval to be relative to the 
-			//current seeding:
-			int firstFrame = minDisplayFrame - seedFrame;
-			int lastFrame = maxDisplayFrame - seedFrame;
-			//firstGeom and lastGeom provide the interval of instances of points along
-			//the flowline that is to be converted to geometry:
-			int firstGeom = (int)(firstFrame*objectsPerTimestep + 0.5f);
-			int lastGeom = (int)(lastFrame*objectsPerTimestep+0.5f);
-			if (firstGeom < 0) firstGeom = 0;
-			if (lastGeom < 0) lastGeom = 0;
-			if (lastGeom >= maxPoints) lastGeom = maxPoints-1;
-			if (firstGeom > lastGeom) continue;
-
-			//Now do the rendering of this interval:
-			if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
-					
-				if (diam < 2.f){//Render as lines, not cylinders
-					renderCurves(diam, (nLights>0), firstGeom, lastGeom,
-						maxPoints*numSeedPoints*injectionNum,constColors);
-				
-				} else { //render as cylinders
-					
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-					//Render all tubes
-					renderTubes(userRadius, (nLights > 0), firstGeom, lastGeom,
-						maxPoints*numSeedPoints*injectionNum, constColors);
-					
-				}
-			} else if(myFlowParams->getShapeType() == 1) { //rendering points 
-				//just convert the flow data to a set of points..
-				renderPoints(diam, firstGeom, lastGeom,
-						maxPoints*numSeedPoints*injectionNum, constColors);
-			} else { //rendering arrows:
-				
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-				
-				renderArrows(userRadius, (nLights > 0), firstGeom, lastGeom,
-					maxPoints*numSeedPoints*injectionNum, constColors);
-			}
+			renderArrows(flowLineData,userRadius, (nLights > 0), firstGeom, lastGeom,
+					constColors);
 		}
 	} //End unsteady flow 
 	glDisable(GL_LIGHTING);
@@ -673,6 +388,7 @@ renderFlowData(bool constColors, int currentFrameNum){
 		myGLWindow->setRenderNew();
 		lastTimeStep = currentFrameNum;
 	}
+
 }
 
 
@@ -711,755 +427,7 @@ void FlowRenderer::initializeGL()
  *
  ********************************************************************************/
 //  Issue OpenGL calls for point list
-void FlowRenderer::
-renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool constMap){
-	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
-	float mappedPoint[3];
-	//just convert the flow data to a set of points..
-	glPointSize(radius);
-	glDisable(GL_LIGHTING);
-	
-	for (int i = 0; i< numSeedPoints; i++){
-		//glBegin (GL_POINTS);
-		bool endGL = true;
-		bool firstPoint = true;
-		bool stationaryStart = false;
-		
-		for (int j = firstAge; j<=lastAge; j++){
-			float* point = flowDataArray+ 3*(startIndex+j+ maxPoints*i);
-			if (*point == END_FLOW_FLAG) break;
-			if ((*point) == IGNORE_FLAG) continue;
-			
-			//Check for an initial STATIONARY_FLAG
-			if (firstPoint && (*point == STATIONARY_STREAM_FLAG)){
-				stationaryStart = true;
-				continue;
-			}
-			
-			if (stationaryStart){
-				if (*point == STATIONARY_STREAM_FLAG) break;
-				renderStationary(point);
-				stationaryStart = false;
-			}
-			if(firstPoint){
-				firstPoint = false;
-				if(constMap) glColor4fv(constFlowColor);
-				glBegin(GL_POINTS);
-				endGL = false;
-			}
-			
-			//qWarning("point is %f %f %f", *point, *(point+1), *(point+2));
-			
-			if (!constMap){
-				float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
-				glColor4fv(rgba);
-			}
 
-			//Use the last point for a stationary marker
-			if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
-				glVertex3fv(point);
-				glEnd();
-				
-				renderStationary(point);
-				endGL = true;
-				break;
-			}
-			myFlowParams->periodicMap(point, mappedPoint);
-			glVertex3fv(mappedPoint);
-		}	
-		if(!endGL) glEnd();
-	}
-	
-	
-}
-//  Issue OpenGL calls for a set of lines associated with a number of seed points.
-void FlowRenderer::
-renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap){
-	float dirVec[3];
-	float testVec[3];
-	float normVec[3];
-	float mappedPoint[3];
-	
-	int currentCycle[3]; 
-	int newCycle[3];
-	bool newcycle;
-	if (firstAge >= lastAge) return;
-	glLineWidth(radius);
-	
-	if (isLit){
-		//Get light direction vector of first light:
-		float lightDir[3];
-		ViewpointParams* vpParams = myGLWindow->getActiveViewpointParams();
-		const float* worldLightDir = vpParams->getLightDirection(0);
-		//Transform it by modelview matrix:
-		vpParams->transform3Vector(worldLightDir,lightDir);
-		for (int i = 0; i< numSeedPoints; i++){
-			//Assume seed point starts inside region:
-			currentCycle[0]=currentCycle[1]=currentCycle[2]=0;
-			newcycle = false;
-			if (constMap)glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE, constFlowColor);
-			//glBegin (GL_LINE_STRIP);
-			bool endGL = true;
-			bool firstPoint = true;
-			bool stationaryStart = false;
-			
-			for (int j = firstAge; j<=lastAge; j++){
-				//For each point after first, calc vector from prev vector to this one
-				//then calculate corresponding normal
-				float* point = flowDataArray + 3*(startIndex+ j+ maxPoints*i);
-				if (*point == END_FLOW_FLAG) break;
-				if (*point == IGNORE_FLAG) continue;
-				//Check for an initial STATIONARY_FLAG
-				if (firstPoint && (*point == STATIONARY_STREAM_FLAG)){
-					stationaryStart = true;
-					continue;
-				}
-				if (stationaryStart){
-					if (*point == STATIONARY_STREAM_FLAG) break;
-					renderStationary(point);
-					stationaryStart = false;
-				}
-				if(firstPoint){
-					firstPoint = false;
-					if(constMap) glColor4fv(constFlowColor);
-					glBegin(GL_LINE_STRIP);
-					endGL = false;
-					mappedPoint[0]=point[0];
-					mappedPoint[1]=point[1];
-					mappedPoint[2]=point[2];
-				}
-				else {
-					vsub(point, point-3, dirVec);
-					float len = vdot(dirVec,dirVec);
-					if (len == 0.f){//If 2nd is same as first, set default normal
-						vset(dirVec, 0.f,0.f,1.f);
-					} else {
-						vscale(dirVec, 1.f/sqrt(len));
-					} 
-					//Project light direction vector orthogonal to dirvec:
-					
-					vmult(dirVec, vdot(dirVec,lightDir), testVec);
-					vsub(lightDir, testVec, normVec);
-					//Now normalize it:
-					len = vdot(normVec,normVec);
-					if (len == 0.f){//  0 projection, take normvec = 0,0,1
-						vset(normVec, 0.,0.,1.);
-					} 
-					glNormal3fv(normVec);
-					//only call mapPeriodicCycle to translate, or detect leaving the region, after the first point
-					newcycle = mapPeriodicCycle(point, mappedPoint, currentCycle, newCycle);
-				}
-				if (!constMap){
-					float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
-					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
-				}
-				
-				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
-					glVertex3fv(mappedPoint);//Terminate current curve
-					glEnd();
-					renderStationary(mappedPoint);
-					endGL = true;
-					break;
-				}
-				
-				glVertex3fv(mappedPoint);
-				//Test if the last point ran off the end of the cycle. If so render it again in the new place.
-				if (newcycle) {
-					//end previous curve, start next one:
-					glEnd();
-					newcycle = mapPeriodicCycle(point, mappedPoint, newCycle, currentCycle);
-					assert(!newcycle);
-					glBegin(GL_LINE_STRIP);
-					glVertex3fv(mappedPoint);
-				}
-			}
-			if(!endGL) glEnd();
-		}
-	} else { //No lights
-		//just convert the flow data to a set of lines...
-		glDisable(GL_LIGHTING);
-		for (int i = 0; i< numSeedPoints; i++){
-			//first point starts in base region:
-			currentCycle[0]=currentCycle[1]=currentCycle[2]=0;
-			newcycle = false;
-			glColor4fv(constFlowColor);
-			
-			//glBegin (GL_LINE_STRIP);
-			bool endGL = true;
-			bool firstPoint = true;
-			bool stationaryStart = false;
-			for (int j = firstAge; j<=lastAge; j++){
-				float* point = flowDataArray +  3*(startIndex+ j+ maxPoints*i);
-				if (*point == END_FLOW_FLAG) break;
-				if (*point == IGNORE_FLAG) continue;
-				
-				//Check for an initial STATIONARY_FLAG
-				if (firstPoint && (*point == STATIONARY_STREAM_FLAG)){
-					stationaryStart = true;
-					continue;
-				}
-				if (stationaryStart){
-					if (*point == STATIONARY_STREAM_FLAG) break;
-					//Render the stationary symbol, then continue on to start the streamline
-					renderStationary(point);
-					stationaryStart = false;
-				}
-				if(firstPoint){
-					firstPoint = false;
-					if(constMap) glColor4fv(constFlowColor);
-					glBegin(GL_LINE_STRIP);
-					endGL = false;
-					mappedPoint[0]=point[0];
-					mappedPoint[1]=point[1];
-					mappedPoint[2]=point[2];
-				} else {  //Call mapPeriodiccycle for every point after the first:
-					newcycle = mapPeriodicCycle(point, mappedPoint, currentCycle, newCycle);
-				}
-				if (!constMap){
-					float* rgba = flowRGBAs + 4*(startIndex + j + maxPoints*i);
-					glColor4fv(rgba);
-				}
-				if (j<lastAge && *(point+3) == STATIONARY_STREAM_FLAG){
-					glVertex3fv(mappedPoint);
-					glEnd();//Terminate current curve
-					
-					renderStationary(mappedPoint);
-					endGL = true;
-					break;
-				}
-				glVertex3fv(mappedPoint);
-				//Test if the last point ran off the end of the cycle. If so render it again in the new place.
-				if (newcycle) {
-					//end previous curve, start next one:
-					glEnd();
-					newcycle = mapPeriodicCycle(point, mappedPoint, newCycle, currentCycle);
-					assert(!newcycle);
-					glBegin(GL_LINE_STRIP);
-					glVertex3fv(mappedPoint);
-				}
-
-			}
-			if(!endGL) glEnd();
-		}
-	}//end no lights
-}
-//  Issue OpenGL calls for a cylindrical (hexagonal cross-section) tube 
-//  following the stream or Path line
-//  tubeNum specifies which tube in the flowdata array to render
-//
-void FlowRenderer::
-renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap ){
-	//Constants are needed for cosines and sines, at 60 degree intervals
-	const float sines[6] = {0.f, sqrt(3.)/2., sqrt(3.)/2., 0.f, -sqrt(3.)/2., -sqrt(3.)/2.};
-	const float coses[6] = {1.f, 0.5, -0.5, -1., -.5, 0.5};
-	//Declare values used repeatedly (toggle between even and odd)
-	//Tube will actually be hexagonal
-	float evenVertex[18];
-	float oddVertex[18];
-	float evenNormal[18];
-	float oddNormal[18];
-	float evenU[3];//vector in plane of points, orthog to A
-	float oddU[3];
-	
-	float evenN[3];//vector pointing in direction to next point
-	float oddN[3];
-	float evenA[3];//normalized average of previous and next N
-	float oddA[3];
-	float currentB[3];//Binormal, U cross A
-	
-	float len;
-	float testVec[3];
-	float testVec2[3];
-	//Vectors to hold the start and end arrow coordinates.
-	//They may be translated due to periodic boundary conditions.
-	float startPoint[3], endPoint[3];
-	int newCycle[3],currentCycle[3];
-	bool newcycle;
-
-	if (firstAge >= lastAge) return;
-	
-	
-	
-	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
-		//Skip the tube entirely if first point is end-flow 
-		//This can occur in the middle of a Pathline
-		float* point = flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge); 
-		if(*point == END_FLOW_FLAG) continue;
-		//Cycle through the points looking for a valid tubeStartIndex.
-		//If the first one is at the end, we don't render anything
-		//
-		int tubeStartIndex;
-		bool stationaryStart = false;
-		
-		for (tubeStartIndex = (startIndex + tubeNum*maxPoints+firstAge);
-		 tubeStartIndex < (startIndex + tubeNum*maxPoints+lastAge);
-		 tubeStartIndex++){
-			point = flowDataArray + 3*tubeStartIndex;
-			if (*point == IGNORE_FLAG) continue;
-			if (*point == STATIONARY_STREAM_FLAG) {
-				//Multiple STATIONARY_FLAGS, render nothing
-				if (stationaryStart) {
-					stationaryStart = false;
-					tubeStartIndex = (startIndex + tubeNum*maxPoints+lastAge);
-					break;
-				}
-				stationaryStart = true;
-				continue;
-			}
-			//At this point we know it's a valid point
-			assert (*point != END_FLOW_FLAG);
-			break;
-		}
-		//check if we didn't find anything.  Possibly render a solitary
-		//stationary point if we didn't find anything else.
-		if (tubeStartIndex == (startIndex + tubeNum*maxPoints+lastAge)){
-			if (stationaryStart) {
-				point = flowDataArray + 3*tubeStartIndex;
-				renderStationary(point);
-			}
-			break;
-		}
-		//Check if the first point was preceded by stationary flag:
-		if (stationaryStart){
-			point = flowDataArray + 3*tubeStartIndex;
-			renderStationary(point);
-		}
-		assert(tubeStartIndex < startIndex + tubeNum*maxPoints + lastAge);
-
-		//startTube( intput: tubeStartIndex, flowRGBAs constFlowColor, flowDataArray, 
-
-		//output: point [continue, or break??], evenA, len, evenN, evenU
-
-		//OK, we are at the start of a real tube.
-		//Start the colors for the start of the tube 
-		if (!constMap){
-			float* rgba = flowRGBAs + 4*(tubeStartIndex);
-			if(isLit)
-				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
-			else
-				glColor4fv(rgba);
-		} else {
-			if(isLit) glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE, constFlowColor);
-			else glColor4fv(constFlowColor);
-		}
-		//Check if the second point is a stationary flag:
-		if ((*(flowDataArray + 3*(tubeStartIndex+1))) == STATIONARY_STREAM_FLAG) {
-			//If so just render the stationary symbol, and we are done.
-			float *point = flowDataArray+3*tubeStartIndex;
-			renderStationary(point);
-			continue;
-		} else if ((*(flowDataArray + 3*(tubeStartIndex+1))) == END_FLOW_FLAG) {//render nothing:
-				//We could potentially have the second point be an end flow flag
-				continue;
-		} else {  //OK, now we can render a tube:
-			
-			
-			//data point is three floats starting at data[3*tubeStartIndex]
-			//evenA is the direction the line is pointing
-			vsub(flowDataArray+3*(tubeStartIndex+1), flowDataArray+3*tubeStartIndex, evenA);
-			//Normalize evenA
-			len = vdot(evenA,evenA);
-			if (len == 0.f){//If 2nd is same as first set default normal
-				vset(evenA, 0.f,0.f,1.f);
-			} else {
-				vscale(evenA, 1.f/sqrt(len));
-			}
-			//The first time, N is equal to A:
-			vcopy(evenA, evenN);
-			//Calculate evenU, orthogonal to evenA:
-			vset(testVec, 1.,0.,0.);
-			vcross(evenA, testVec, evenU);
-			len = vdot(evenU,evenU);
-			if (len == 0.f){
-				vset(testVec, 0.,1.,0.);
-				vcross(evenA, testVec, evenU);
-				len = vdot(evenU, evenU);
-				assert(len != 0.f);
-			} 
-			vscale( evenU, 1.f/sqrt(len));
-			vcross(evenU, evenA, currentB);
-			//set up initial even 6 vertices around point P = P(0)
-			//These are P + 
-			for (int i = 0; i<6; i++){
-				vmult(evenU, coses[i], testVec);
-				vmult(currentB, sines[i], testVec2);
-				//Calc outward normal as a sideEffect..
-				vadd(testVec, testVec2, evenNormal+3*i);
-				vmult(evenNormal+3*i, radius, evenVertex+3*i);
-				vadd(evenVertex+3*i, flowDataArray+3*tubeStartIndex, evenVertex+3*i);
-			}
-			//Draw a  starting cap on the cylinder:
-			
-			glBegin(GL_POLYGON);
-			glNormal3fv(evenA);
-			for (int k = 0; k<6; k++){
-				glVertex3fv(evenVertex+3*k);
-			}
-			glEnd();
-
-
-			//Now render the cylinders:
-			//loop over points, starting with no. 1.
-			//toggle even and odd.
-			float* currentN;
-			float* currentU;
-			float* currentA;
-			float* prevN;
-			float* prevA;
-			float* prevU;
-			float* currentVertex;
-			float* currentNormal;
-			float* prevVertex;
-			float* prevNormal;
-			
-
-			//prepare to render the first cyclinder in the tube.
-			currentCycle[0]=currentCycle[1]=currentCycle[2]=0;
-			newcycle = false;
-
-			bool currentIsEven = false;
-			int tubeIndex;
-			for (tubeIndex = tubeStartIndex+1; tubeIndex <= startIndex+tubeNum*maxPoints+lastAge;
-				tubeIndex++){
-				point = flowDataArray+3*tubeIndex;
-				if (*point == END_FLOW_FLAG || *point == STATIONARY_STREAM_FLAG) break;
-				//Toggle the meaning of "current" and "prev"
-				//First time thru current is odd
-				if (currentIsEven) {
-					currentN = evenN;
-					prevN = oddN;
-					currentA = evenA;
-					prevA = oddA;
-					currentU = evenU;
-					prevU = oddU;
-					currentVertex = evenVertex;
-					prevVertex = oddVertex;
-					currentNormal = evenNormal;
-					prevNormal = oddNormal;
-					currentIsEven = false;
-				} else {
-					currentN = oddN;
-					prevN = evenN;
-					currentA = oddA;
-					prevA = evenA;
-					currentU = oddU;
-					prevU = evenU;
-					currentVertex = oddVertex;
-					prevVertex = evenVertex;
-					currentNormal = oddNormal;
-					prevNormal = evenNormal;
-					currentIsEven = true;
-				}
-				
-				//Calc currentN
-				vsub(point, point-3, currentN);
-				//Normalize currentN:
-				len = vdot(currentN,currentN);
-				if (len == 0.f){// keep previous normal
-					vcopy(prevN,currentN);
-				} else {
-					vscale(currentN, 1.f/sqrt(len));
-				}
-				//Calc currentA, as sum (average) of prevN and currentN:
-				vadd(prevN, currentN, currentA);
-				//Normalize currentA
-				len = vdot(currentA,currentA);
-				if (len == 0.f){// keep previous normal
-					vcopy(prevA,currentA);
-				} else {
-					vscale(currentA, 1.f/sqrt(len));
-				}
-				//Now get next U, by projecting previous U orthog to currentA:
-				vmult(currentA, vdot(prevU,currentA), testVec);
-				vsub(prevU, testVec, currentU);
-				//Now normalize it:
-				len = vdot(currentU, currentU);
-				if (len == 0.f){
-					//If U is in direction of A, the previous A should work
-					vcopy(prevA, currentU);
-					len = vdot(currentU, currentU);
-					assert(len != 0.f);
-				} 
-				vscale(currentU, 1.f/sqrt(len));
-				vcross(currentU, currentA, currentB);
-				
-				if(tubeIndex > tubeStartIndex+1) {
-					//For each tube after the first, 
-					// the new tube goes from previous endpoint to mapping of point
-					//and map the endPoint in the same cycle as the startPoint:
-					vcopy(endPoint, startPoint);
-					newcycle = mapPeriodicCycle(point, endPoint, currentCycle, newCycle);
-				} else { //first time through, startPoint is point-3, endPoint is point
-					vcopy(point-3, startPoint);
-					vcopy(point, endPoint);
-				}
-				drawTube(isLit, flowRGBAs+4*tubeIndex, startPoint, endPoint, currentB, currentU, radius, constMap,
-					prevNormal, prevVertex, currentNormal, currentVertex);
-
-				//If the arrow exited the region (in cyclic case) need to reset the points.  Note that
-				//the direction vectors don't need to be changed:
-				if (newcycle){
-					float nextStartPoint[3];
-					//Establish a new cycle for a translate of the last arrow endpoint:
-					newcycle = mapPeriodicCycle(point, endPoint, newCycle, currentCycle);
-					assert(!newcycle);
-					//Also map the startPoint to the same cycle, but we don't use the resulting cycle
-					mapPeriodicCycle(point-3, nextStartPoint, currentCycle, newCycle);
-					//Render the translation of the previous tube.  Note that we will need to first specify
-					//translated values for prevVertex.  prevNormal is OK.  The resulting values
-					//in currentVertex are translated appropriately, since they are offset from endPoint
-					//The repeated segment needs to translate prevVertex accordingly
-					for (int j = 0; j< 6; j++){
-						for (int k = 0; k<3; k++){
-							prevVertex[3*j+k] += nextStartPoint[k]-startPoint[k];
-						}
-					}
-					drawTube(isLit, flowRGBAs+4*tubeIndex, nextStartPoint, endPoint, currentB, currentU, radius, constMap,
-						prevNormal, prevVertex, currentNormal, currentVertex);
-				}
-			}
-			//Draw an end-cap on the cylinder, and potentially a stationary symbol:
-			
-			if (!constMap){
-				float* nextRGBA = flowRGBAs + 4*(tubeIndex);
-				if(isLit)
-					glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
-				else
-					glColor4fv(nextRGBA);
-			}
-			glBegin(GL_POLYGON);
-			glNormal3fv(currentA);
-			for (int ka = 5; ka>=0; ka--){
-				glVertex3fv(currentVertex+3*ka);
-			}
-			glEnd();
-			if ((*point) == STATIONARY_STREAM_FLAG)
-				renderStationary(point-3);
-			
-		} //end of one tube rendering.  
-		
-
-	} //end of loop over seedPoints
-	
-	
-		
-}
-//  Issue OpenGL calls for a cylindrical (hexagonal cross-section) arrow 
-//  following the stream or Path line
-//  tubeNum specifies which tube in the flowdata array to render
-//
-void FlowRenderer::
-renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap ){
-	
-	//Declare values used repeatedly (toggle between even and odd)
-	//Tube will actually be hexagonal
-	
-	float evenU[3];//vector in plane of points, orthog to A
-	float oddU[3];
-	
-	float evenN[3];//vector pointing in direction to next point
-	float oddN[3];
-	
-	float currentB[3];//Binormal, U cross A
-	
-	float len;
-	float testVec[3];
-	
-	if (firstAge >= lastAge) return;
-
-	//Vectors to hold the start and end arrow coordinates.
-	//They may be translated due to periodic boundary conditions.
-	float startPoint[3], endPoint[3];
-	int newCycle[3],currentCycle[3];
-	bool newcycle;
-
-	for (int tubeNum = 0; tubeNum < numSeedPoints; tubeNum++){
-		//Skip the tube entirely if first point is end-flow 
-		//This can occur in the middle of a Pathline
-		float* point = flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge); 
-		if(*point == END_FLOW_FLAG) continue;
-		//Cycle through the points looking for a valid tubeStartIndex.
-		//If the first one is at the end, we don't render anything
-		//
-		int tubeStartIndex;
-		bool stationaryStart = false;
-		for (tubeStartIndex = (startIndex + tubeNum*maxPoints+firstAge);
-		 tubeStartIndex < (startIndex + tubeNum*maxPoints+lastAge);
-		 tubeStartIndex++){
-			point = flowDataArray + 3*tubeStartIndex;
-			if (*point == IGNORE_FLAG) continue;
-			if (*point == STATIONARY_STREAM_FLAG) {
-				//Multiple STATIONARY_FLAGS, render nothing
-				if (stationaryStart) {
-					stationaryStart = false;
-					tubeStartIndex = (startIndex + tubeNum*maxPoints+lastAge);
-					break;
-				}
-				stationaryStart = true;
-				continue;
-			}
-			//At this point we know it's a valid point
-			assert (*point != END_FLOW_FLAG);
-			break;
-		}
-		//check if we didn't find anything.  Possibly render a solitary
-		//stationary point if we didn't find anything else.
-		if (tubeStartIndex == (startIndex + tubeNum*maxPoints+lastAge)){
-			if (stationaryStart) {
-				point = flowDataArray + 3*tubeStartIndex;
-				renderStationary(point);
-			}
-			break;
-		}
-		//Check if the first point was preceded by stationary flag:
-		if (stationaryStart){
-			point = flowDataArray + 3*tubeStartIndex;
-			renderStationary(point);
-		}
-		assert(tubeStartIndex < startIndex + tubeNum*maxPoints + lastAge);
-		//OK, we are at the start of a real tube.
-		//Start the colors for the start of the tube 
-		if (!constMap){
-			float* rgba = flowRGBAs + 4*(tubeStartIndex);
-			if(isLit)
-				glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, rgba);
-			else
-				glColor4fv(rgba);
-		} else {
-			if(isLit) glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE, constFlowColor);
-			else glColor4fv(constFlowColor);
-		}
-		//Check if the second point is a stationary flag:
-		if ((*(flowDataArray + 3*(tubeStartIndex+1))) == STATIONARY_STREAM_FLAG) {
-			//If so just render the stationary symbol, and we are done.
-			float *point = flowDataArray+3*tubeStartIndex;
-			renderStationary(point);
-			continue;
-		} else if ((*(flowDataArray + 3*(tubeStartIndex+1))) == END_FLOW_FLAG) {//render nothing:
-				//We could potentially have the second point be an end flow flag
-				continue;
-		} else {  //OK, legitimate flow line
-
-			currentCycle[0]=currentCycle[1]=currentCycle[2]=0;
-			newcycle = false;
-		
-			
-			//data point is three floats starting at data[3*tubeStartIndex]
-			//evenN is the direction the line is pointing
-			vsub(flowDataArray+3*(tubeStartIndex+1), flowDataArray+3*tubeStartIndex, evenN);
-			//Normalize even
-			len = vdot(evenN,evenN);
-			if (len == 0.f || len > 1.e36f ){//If 2nd is same as first set default normal
-				vset(evenN, 0.f,0.f,1.f);
-			} else {
-				vscale(evenN, 1.f/sqrt(len));
-			}
-			
-			//Calculate evenU, orthogonal to evenN:
-			vset(testVec, 1.,0.,0.);
-			vcross(evenN, testVec, evenU);
-			len = vdot(evenU,evenU);
-			if (len == 0.f){
-				vset(testVec, 0.,1.,0.);
-				vcross(evenN, testVec, evenU);
-				len = vdot(evenU, evenU);
-				assert(len != 0.f);
-			} 
-			vscale( evenU, 1.f/sqrt(len));
-			vcross(evenU, evenN, currentB);
-			
-			//Now loop over points, starting with no. 1.
-			//toggle even and odd.
-			float* currentN;
-			float* currentU;
-			float* prevN;
-			float* prevU;
-			
-			//tubeIndex counts the arrow coords along the data,
-			//tubeIndex is pointNum +startIndex+tubeNum*maxPoints
-			for (int tubeIndex = tubeStartIndex+1; tubeIndex <= startIndex+tubeNum*maxPoints+lastAge;
-				tubeIndex++){
-				point = flowDataArray+3*tubeIndex;
-			//for (int pointNum = firstAge+ 1; pointNum <= lastAge; pointNum++){
-			//	point = flowDataArray+3*(startIndex+tubeNum*maxPoints+pointNum);
-				if (*point == END_FLOW_FLAG || *point == STATIONARY_STREAM_FLAG) break;
-				//Toggle the meaning of "current" and "prev"
-				if (0 == (tubeIndex-tubeStartIndex)%2) {
-					currentN = evenN;
-					prevN = oddN;
-					currentU = evenU;
-					prevU = oddU;
-				} else {
-					currentN = oddN;
-					prevN = evenN;
-					currentU = oddU;
-					prevU = evenU;
-				}
-				
-				//Calc currentN
-				vsub(point, point-3, currentN);
-				//Normalize currentN:
-				len = vdot(currentN,currentN);
-				if (len == 0.f){// keep previous direction vector
-					vcopy(prevN,currentN);
-				} else {
-					vscale(currentN, 1.f/sqrt(len));
-				}
-				
-				//Now get next U, by projecting previous U orthog to currentN:
-				vmult(currentN, vdot(prevU,currentN), testVec);
-				vsub(prevU, testVec, currentU);
-				//Now normalize it:
-				len = vdot(currentU,currentU);
-				if (len == 0.f){
-					//If U is in direction of N, the previous N should work
-					vcopy(prevN, currentU);
-					len = vdot(currentU, currentU);
-					assert(len != 0.f);
-				} 
-				vscale(currentU, 1.f/sqrt(len));
-				vcross(currentU, currentN, currentB);
-				
-				
-				if(tubeIndex > tubeStartIndex+1) {
-					//For each arrow after the first, 
-					// the new arrow goes from previous endpoint to mapping of point
-					//and map the endPoint in the same cycle as the startPoint:
-					vcopy(endPoint, startPoint);
-					newcycle = mapPeriodicCycle(point, endPoint, currentCycle, newCycle);
-				} else { //first time through, startPoint is point-3, endPoint is point
-					vcopy(point-3, startPoint);
-					vcopy(point, endPoint);
-				}
-				//float* startPoint = flowDataArray+3*(firstIndex);
-				//float* endPoint = flowDataArray+3*(firstIndex+1);
-				drawArrow(isLit, flowRGBAs+4*(tubeIndex-1), startPoint, endPoint, currentN, currentB, currentU, radius, constMap);
-
-				//If the arrow exited the region (in cyclic case) need to restart the points.  Note that
-				//the direction vectors don't need to be changed:
-				if (newcycle){
-					//Establish a new cycle for a translate of the last arrow endpoint:
-					newcycle = mapPeriodicCycle(point, endPoint, newCycle, currentCycle);
-					assert(!newcycle);
-					//Also map the startPoint to the same cycle, but we don't use the resulting cycle
-					mapPeriodicCycle(point-3, startPoint, currentCycle, newCycle);
-					//Then render the new (cyclically offset) arrow:
-					drawArrow(isLit, flowRGBAs+4*(tubeIndex-1), startPoint, endPoint, currentN, currentB, currentU, radius, constMap);
-				}
-				
-				
-				if ((*point) == STATIONARY_STREAM_FLAG)
-					renderStationary(point-3);
-			} //end of arrows along one flow line
-			
-		} //legitimate flow line
-		
-
-	} //end of loop over seedPoints
-	//Special symbol at stationary flow:
-	
-		
-}
 //Issue OpenGL calls to draw a cylinder with orthogonal ends from one point to another.
 //color indexed by startIndex and startIndex+1
 //Orthogonal frame at first point is (dirVec, UVec, bVec)
@@ -1614,6 +582,7 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 	glVertex3fv(startVertex);
 	glEnd();
 }
+
 //Issue OpenGL calls to draw a cylinder from one point to another.
 //center points indexed by startIndex and startIndex+1
 //Orthogonal frame at first point is (dirVec, UVec, bVec)
@@ -1742,18 +711,53 @@ void FlowRenderer::renderStationary(float* point){
 	glEnd();
 	
 }
+//find out if it's necessary to refresh:
+bool FlowRenderer::needsRefresh(FlowParams* fParams, int timeStep) {
+	if (fParams->getFlowType() == 1) {
+		return unsteadyNeedsRefreshFlag;
+	} else {
+		return (fParams->refreshIsAuto() || !needRefreshFlag || needRefreshFlag[timeStep]);
+	}
+}
+	
+//Set the flow mapping clean.  
+void FlowRenderer::setFlowDataClean(int timeStep){
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
+	if (myFlowParams->getFlowType() == 1){
+		allDataDirtyFlag = false;
+		unsteadyNeedsRefreshFlag = false;
+	}
+	else {
+		allDataDirtyFlag = false;
+		flowDataDirty[timeStep] = false;
+		needRefreshFlag[timeStep] = false;
+	}
+}
+//Set the flow mapping clean.  
+void FlowRenderer::setFlowMapClean(int timeStep){
+	allFlowMapDirtyFlag = false;
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
+	if (myFlowParams->getFlowType() != 1)
+		flowMapDirty[timeStep] = false;
+}
 void FlowRenderer::setDataDirty()
 {
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	setRegionValid(true);  // reset this bit so we will try to render again...
 	//set all the dirty flags for all the frames
 	//set the needRefresh flags too if autoRefresh is on.
+	allDataDirtyFlag = true;
+	allFlowMapDirtyFlag = true;
 	bool doRefresh = myFlowParams->refreshIsAuto();
+	if (doRefresh) unsteadyNeedsRefreshFlag = true;
+	
 	for (int i = 0; i<numFrames; i++){
 		flowDataDirty[i] = true;
+		flowMapDirty[i] = true;
 		if (doRefresh) needRefreshFlag[i] = true; 
 		else needRefreshFlag[i] = false;
 	}
+	
 }
 void FlowRenderer::setGraphicsDirty()
 {
@@ -1763,23 +767,40 @@ void FlowRenderer::setGraphicsDirty()
 	//assert((myFlowParams->getOpacMapEntityIndex() != 2)&&(myFlowParams->getColorMapEntityIndex() != 2));
 	if ((myFlowParams->getOpacMapEntityIndex() == 2)||(myFlowParams->getColorMapEntityIndex() == 2)){
 		setDataDirty();
-	}
-	else for (int i = 0; i< numFrames; i++){
-		flowMapDirty[i] = true;
+	} else { //check if unsteady or steady flags need to be set
+		
+		allFlowMapDirtyFlag = true;
+		for (int i = 0; i< numFrames; i++){
+			flowMapDirty[i] = true;
+		}
 	}
 }
+bool FlowRenderer::
+flowDataIsDirty(int timeStep){
+	if (allDataDirtyFlag) return true;
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
+	if (myFlowParams->getFlowType() != 1)
+		return (flowDataDirty && flowDataDirty[timeStep]);
+	else return false;
+}
+bool FlowRenderer::
+flowMapIsDirty(int timeStep){
+	if (allFlowMapDirtyFlag) return true;
+	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
+	if (myFlowParams->getFlowType() != 1)
+		return (flowMapDirty && flowMapDirty[timeStep]);
+	else return false;
+}
 
-
-
-
-//Rebuild the data cache from scratch, or the 
+//Rebuild the data cache from scratch, and/or the 
 //RGBA mapping data 
 //Return false on failure.
-bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
+//If the 
+bool FlowRenderer::rebuildFlowData(int timeStep){
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	//Establish parameters that will be saved with the cache:
 	
-	doRake = myFlowParams->rakeEnabled();
+	bool doRake = myFlowParams->rakeEnabled();
 	doList = !doRake;
 	int flowType = myFlowParams->getFlowType();  //steady, unsteady, and field line advect
 
@@ -1787,58 +808,56 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 		myFlowParams->getOpacMapEntityIndex() == 2;
 	steadyFlow = (flowType == 0);
 	
-	minFrame = myGLWindow->getActiveAnimationParams()->getStartFrameNumber();
-	maxFrame = myGLWindow->getActiveAnimationParams()->getEndFrameNumber();
 	
-	//For unsteady flow, the min/max frame interval can be narrowed by
-	//timesampling interval:
+	
+
+	//For unsteady flow, the min/max frame interval can be narrowed by the
+	//timesampling interval.  It doesn't make any sense to extrapolate outside
+	//that interval.  Likewise, the seeding cannot happen before the start of the
+	//timesampling interval. 
+
 	if (!steadyFlow){
+		//In unsteady flow or in field line advection, need to allow timesteps that are not in animation parameters.
+		minFrame = DataStatus::getInstance()->getMinTimestep();
+		maxFrame = DataStatus::getInstance()->getMaxTimestep();
 		if (minFrame < myFlowParams->getTimeSamplingStart())
 			minFrame = myFlowParams->getTimeSamplingStart();
 		if (maxFrame > myFlowParams->getTimeSamplingEnd())
 			maxFrame = myFlowParams->getTimeSamplingEnd();
+	} else { //steady flow, only use animation times
+		minFrame = myGLWindow->getActiveAnimationParams()->getStartFrameNumber();
+		maxFrame = myGLWindow->getActiveAnimationParams()->getEndFrameNumber();
 	}
 
 	maxPoints = myFlowParams->calcMaxPoints();
 	RegionParams* rParams = myGLWindow->getActiveRegionParams();
 	//Check if we are just doing graphics (not reintegrating flow)
 	//that occurs if the map bit is dirty, but there's no need to rebuild data.
-	bool graphicsOnly = (flowMapDirty[timeStep] && 
-		!(flowDataDirty[timeStep] && needRefreshFlag[timeStep]) );
+	bool graphicsOnly = (flowMapIsDirty(timeStep) && 
+		!(flowDataIsDirty(timeStep) && needsRefresh(myFlowParams,timeStep)) );
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex())== 0);
 	
 	//Clean the cache, unless this is just a rebuild of the graphics:
 	if (!graphicsOnly){
-		if (steadyFlowCache[timeStep]){
-			delete steadyFlowCache[timeStep];
-			steadyFlowCache[timeStep] = 0;
-		}
-		if (unsteadyCache) {
-			delete unsteadyCache;
-			unsteadyCache = 0;
-		}
-		
-		//??TEMP??
-		if (rakeFlowData[timeStep]) {
-			delete rakeFlowData[timeStep]; 
-			rakeFlowData[timeStep] = 0;
-		}
-		if (listFlowData[timeStep]) {
-			delete listFlowData[timeStep]; 
-			listFlowData[timeStep] = 0;
+		if (allFlowDataIsDirty()){
+			if (steadyFlowCache[timeStep]){
+				delete steadyFlowCache[timeStep];
+				steadyFlowCache[timeStep] = 0;
+			}
+			if (unsteadyFlowCache) {
+				delete unsteadyFlowCache;
+				unsteadyFlowCache = 0;
+			}
+		} else { //Just delete the stuff for this timestep:
+			if (steadyFlowCache[timeStep]){
+				delete steadyFlowCache[timeStep];
+				steadyFlowCache[timeStep] = 0;
+			}
 		}
 	}
-	//rebuild the graphics arrays
-	if (!constColors){
-		
-		if (steadyFlowRGBAs[timeStep]) {
-			delete steadyFlowRGBAs[timeStep]; 
-			steadyFlowRGBAs[timeStep] = 0;
-		}
-	}
-	if (flowType == 0){
-		numInjections = 1;
-	} else if (flowType == 1){
+	
+	//Set up parameters as needed based on flow type:
+	if (flowType == 1){
 		//Set values for special parameters used only for unsteady flow:
 		seedIncrement = myFlowParams->getSeedTimeIncrement();
 		if (seedIncrement < 1) seedIncrement = 1;
@@ -1846,102 +865,92 @@ bool FlowRenderer::rebuildFlowData(int timeStep, bool doRake){
 		endSeed = myFlowParams->getSeedTimeEnd();
 		firstDisplayAge = myFlowParams->getFirstDisplayFrame();
 		lastDisplayAge = myFlowParams->getLastDisplayFrame();
-		float objectsPerFlowline = (float)myFlowParams->getObjectsPerFlowline();
-		objectsPerTimestep = (objectsPerFlowline+1.f)/(float)(maxFrame - minFrame);
-		numInjections = 1+ (endSeed - startSeed)/seedIncrement;
-	} else { //field Line advection setup:
-		numInjections = 1;
-	}
+		objectsPerTimestep = myFlowParams->getObjectsPerTimestep();
+	} 
 	if (!myFlowLib){
 		//create a new flow lib:
-
 		DataMgr* dataMgr = (DataMgr*)DataStatus::getInstance()->getDataMgr();
 		assert(dataMgr);
 		myFlowLib = new VaporFlow(dataMgr);
 	}
-	//Get the rake flow data if needed:
-	if (doRake){
-		
-		numSeedPoints = myFlowParams->calcNumSeedPoints(true, timeStep);
-		int flowDataSize = maxPoints*numSeedPoints*numInjections;
-		if (!graphicsOnly){
-			//reallocate flowDataArray and pass it in:
-			
-			if ((!steadyFlowRGBAs[timeStep])&&!constColors){
-				steadyFlowRGBAs[timeStep] = new float[4*flowDataSize];
-			}
-			calcPeriodicExtents();
-			bool OK;
-			if (flowType == 0){
-				steadyFlowCache[timeStep] = myFlowParams->regenerateSteadyFlowData(myFlowLib, timeStep, minFrame, rParams);
+	//Construct the caches if needed:
+	if (!graphicsOnly) {
+		bool OK = false;
+		int prevStep, nextStep;
+		switch (flowType) {
+			case (0): 
+				steadyFlowCache[timeStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, timeStep, minFrame, rParams, false);
 				OK = (steadyFlowCache[timeStep] != 0);
-			} else if (flowType == 1){
-				OK = myFlowParams->regenerateFlowData(myFlowLib, timeStep, minFrame, true, rParams, rakeFlowData[timeStep],steadyFlowRGBAs[timeStep]);
-			} else {//rebuild cache for field line advection, up to current time step
-			}
-			if (!OK) {
-				setRegionValid(false);
-				//??TEMP??
-				delete rakeFlowData[timeStep];
-				rakeFlowData[timeStep] = 0;
-				if (steadyFlowRGBAs[timeStep]) delete steadyFlowRGBAs[timeStep];
-				steadyFlowRGBAs[timeStep] = 0;
-				return false;
-			}
-		} else { //just remap colors
-		
-			//Note that colors can't be mapped here if the speeds are needed
-			assert (!doSpeeds);
-			if (!constColors){
-				if (steadyFlow){ //??TEMP??
-					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
-				} else {
-					steadyFlowRGBAs[timeStep] = new float[flowDataSize*4];
-					myFlowParams->mapColors(0, timeStep, minFrame, numSeedPoints, rakeFlowData[timeStep], steadyFlowRGBAs[timeStep], true);
+				break;
+			case (1):
+				//Create a PathLineData with all the seeds in it
+				unsteadyFlowCache = myFlowParams->setupPathLineData(myFlowLib, minFrame, maxFrame, rParams);
+				if (!unsteadyFlowCache) {
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "No seeds for unsteady flow");
+					return false;
 				}
-			}
-		}
-	} else { //do seed list.  Same as above, but with seed list parameter
-		
-		numSeedPoints = myFlowParams->calcNumSeedPoints(false, timeStep);
-		int flowDataSize = maxPoints*numSeedPoints*numInjections;
-		if (!graphicsOnly){
-			//??TEMP??
-			//reallocate flowDataArray and pass it in:
-			
-			if ((!steadyFlowRGBAs[timeStep])&&!constColors){
-				steadyFlowRGBAs[timeStep] = new float[4*flowDataSize];
-			}
-			calcPeriodicExtents();
-			bool OK;
-			if (steadyFlow){
-				steadyFlowCache[timeStep] = myFlowParams->regenerateSteadyFlowData(myFlowLib, timeStep, minFrame, rParams);
-				OK = (steadyFlowCache[timeStep] != 0);
-			} else {
-				OK = myFlowParams->regenerateFlowData(myFlowLib, timeStep, minFrame, false, rParams, listFlowData[timeStep],steadyFlowRGBAs[timeStep]);
-			}
-			if (!OK) {
-				setRegionValid(false);
-				//??TEMP??
-				delete listFlowData[timeStep];
-				listFlowData[timeStep] = 0;
-				if (steadyFlowRGBAs[timeStep]) delete steadyFlowRGBAs[timeStep];
-				steadyFlowRGBAs[timeStep] = 0;
-				return false;
-			}
-		} else { //just map colors
-		
-			//Note that colors can't be mapped here if the speeds are needed
-			assert (!doSpeeds);
-			if (!constColors){
-				if (steadyFlow){ //??TEMP??
-					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
-				} else {
-					steadyFlowRGBAs[timeStep] = new float[flowDataSize*4];
-					myFlowParams->mapColors(0, timeStep, minFrame, numSeedPoints, listFlowData[timeStep], steadyFlowRGBAs[timeStep], false);
+					
+				//Then incrementally advect from start to end, via sampled timesteps
+				prevStep = myFlowParams->getUnsteadyTimestepSample(0,minFrame, maxFrame);
+				for (int i = 1;; i++) {
+					nextStep = myFlowParams->getUnsteadyTimestepSample(i,minFrame, maxFrame);
+					if (nextStep < 0 || prevStep < 0) break;
+					assert(nextStep != prevStep);
+					//At some point we might interrupt this here!
+					//The following is time consuming...
+					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep);
+					if (!OK) {
+						delete unsteadyFlowCache;
+						unsteadyFlowCache = 0;
+						return false;
+					}
+					prevStep = nextStep;
 				}
-			}
-		}
+				break;
+			case (2):
+				//Create a PathLineData with only the initial timestep of seeds in it:
+				unsteadyFlowCache = myFlowParams->setupPathLineData(myFlowLib, minFrame, maxFrame, rParams);
+				//Start at the seed point and go forwards or backwards to current time:
+				//Get the "first" time step.
+				prevStep = myFlowParams->getUnsteadyTimestepSample(0, minFrame, maxFrame);
+				
+				for (int i = 0;; i++){
+					//Perform steady integration on the previous step, reprioritizing
+					//the seeds in the unsteadycache
+					steadyFlowCache[prevStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, unsteadyFlowCache, prevStep, minFrame, rParams, true);
+					if(!steadyFlowCache[prevStep]){
+						return false;
+					}
+					//Stop here if the current timestep is already done:
+					if (timeStep == prevStep) { OK = true; break;}
+					//extend the pathline from the start to the next time sample:
+					int nextStep = myFlowParams->getUnsteadyTimestepSample(0, minFrame, maxFrame);
+					assert(nextStep >= 0);  
+					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep);
+					if (!OK) return false;
+					//Was the current time enclosed by prevStep and nextStep?
+					if ((nextStep > prevStep && timeStep > prevStep && timeStep < nextStep)||
+						(nextStep < prevStep && timeStep < prevStep && timeStep > nextStep))
+					{
+						//Construct the steady flow for the current time step, but
+						//don't reprioritize the seeds
+						steadyFlowCache[timeStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, unsteadyFlowCache, timeStep, minFrame, rParams,false);
+						OK = (steadyFlowCache[timeStep] != 0);
+						break;
+					}
+					//Continue on extending the pathlines...
+					prevStep = nextStep;
+				}
+				break;
+			default: assert(0); break;
+		} //End of switch()
+	}//End of cache reconstruction
+	//Now we only rebuild the rgba's if we didn't build the flow lines
+	else if (!constColors) {
+		if (flowType != 1)
+			myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
+		else 
+			myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame);
 	}
 	return true;
 }
@@ -2011,7 +1020,7 @@ void FlowRenderer::calcPeriodicExtents() {
 //  Issue OpenGL calls for point list
 // startIndex is injection num.
 void FlowRenderer::
-renderPoints(FlowLineData* flowLineData, float radius, int firstAge, int lastAge, int startIndex, bool constMap){
+renderPoints(FlowLineData* flowLineData, float radius, int firstAge, int lastAge, bool constMap){
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	float mappedPoint[3];
 	//just convert the flow data to a set of points..
@@ -2075,7 +1084,7 @@ renderPoints(FlowLineData* flowLineData, float radius, int firstAge, int lastAge
 }
 //  Issue OpenGL calls for a set of lines associated with a number of seed points.
 void FlowRenderer::
-renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap){
+renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, int lastAge, bool constMap){
 	float dirVec[3];
 	float testVec[3];
 	float normVec[3];
@@ -2251,10 +1260,9 @@ renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, 
 }
 //  Issue OpenGL calls for a cylindrical (hexagonal cross-section) tube 
 //  following the stream or Path line
-//  startIndex is used for unsteady flow, specifies  offset for injection times
 //
 void FlowRenderer::
-renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap ){
+renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, int lastAge,  bool constMap ){
 	//Constants are needed for cosines and sines, at 60 degree intervals
 	const float sines[6] = {0.f, sqrt(3.)/2., sqrt(3.)/2., 0.f, -sqrt(3.)/2., -sqrt(3.)/2.};
 	const float coses[6] = {1.f, 0.5, -0.5, -1., -.5, 0.5};
@@ -2287,11 +1295,12 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 	for (int tubeNum = 0; tubeNum < flowLineData->getNumLines(); tubeNum++){
 		//Skip the tube entirely if first point is end-flow 
 		//This can occur in the middle of a Pathline, but not with flowLineData!
-		//float* point = flowDataArray + 3*(startIndex+tubeNum*maxPoints +firstAge);
+		
 		int firstIndex = Max(firstAge, flowLineData->getStartIndex(tubeNum));
 		int lastIndex = Min(lastAge, flowLineData->getEndIndex(tubeNum));
+		if (firstIndex >= lastIndex) return;
 		float* point = flowLineData->getFlowPoint(tubeNum, firstIndex);
-		//if(*point == END_FLOW_FLAG) continue;
+		
 		assert(*point != END_FLOW_FLAG);
 		//Cycle through the points looking for a valid tubeStartIndex.
 		//If the first one is at the end, we don't render anything
@@ -2556,7 +1565,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 //  tubeNum specifies which tube in the flowdata array to render
 //
 void FlowRenderer::
-renderArrows(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap ){
+renderArrows(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, int lastAge,  bool constMap ){
 	
 	//Declare values used repeatedly (toggle between even and odd)
 	//Tube will actually be hexagonal

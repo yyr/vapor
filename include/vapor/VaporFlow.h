@@ -52,33 +52,26 @@ namespace VAPoR
 		void SetRandomSeedPoints(const float min[3], const float max[3], int numSeeds);
 		void SetRegularSeedPoints(const float min[3], const float max[3], const size_t numSeeds[3]);
 		void SetIntegrationParams(float initStepSize, float maxStepSize);
-		bool GenStreamLines(float* positions, int maxPoints, unsigned int randomSeed, float* speeds=0);
-		bool GenStreamLines(float* positions, float* seeds, int numSeeds, int maxPoints, float* speeds=0);
+		
 		//New version for API.  Uses rake, then puts integration results in container
 		bool GenStreamLines(FlowLineData* container, unsigned int randomSeed);
-		//Version for field line advection, takes seeds from unsteady container
+		//Version for field line advection, takes seeds from unsteady container, 
+		//(optionally) prioritizes the seeds
 		bool GenStreamLines (FlowLineData* steadyContainer, PathLineData* unsteadyContainer, int timeStep, bool prioritize);
+	    
+		//Obtains a list of seeds for the currently established rake.
+		//Uses settings established by SetRandomSeedPoints, SetDistributedSeedPoints,
+		//or SetRegularSeedPoints
+
+		bool GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed);
 
 		//Version that actually does the work
 		bool GenStreamLinesNoRake(FlowLineData* container, float* seeds);
-		//Start field line advection:
-		//bool StartFieldLineAdvection(FlowLineData* container, unsigned int randomSeed, int startTimeStep);
-		//bool StartFieldLineAdvectionNoRake(FlowLineData* container, float* seeds, int startTimeStep);
-		//bool AdvectFieldLines(FlowLineData* container, int nextTimeStep);
 		
 		//Incrementally do path lines:
 		bool ExtendPathLines(PathLineData* container, int startTimeStep, int endTimeStep);
 
-		bool GenPathLines(float* positions, int maxPoints, unsigned int randomSeed, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
-		bool GenPathLines(float* positions, float* seeds, int numSeeds, int maxPoints, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
-		bool GenPathLines(FlowLineData* container, unsigned int randomSeed, int startInjection, int endInjection, int injectionTimeIncrement);
-		bool GenPathLinesNoRake(FlowLineData* container, float* seedList, int startInjection, int endInjection, int injectionTimeIncrement);
-		
 		void SetPeriodicDimensions(bool xPeriodic, bool yPeriodic, bool zPeriodic);
-		bool GenStreamLinesNoRake(float* positions, int maxPoints, int totalSeeds, float* speeds=0);
-		bool GenPathLinesNoRake(float* positions, int maxPoints, int totalSeeds, int startInjection, int endInjection, int injectionTimeIncrement, float* speeds=0);
-		
-		//bool GenIncrementalPathLines(float* positions, int maxTimeSteps, unsigned int* randomSeed, int injectionTime, (void progressCB)(int completedTimeStep));
 		
 		float* GetData(size_t ts, const char* varName);
 		bool regionPeriodicDim(int i) {return (periodicDim[i] && fullInDim[i]);}
@@ -87,6 +80,8 @@ namespace VAPoR
 		
 
 	protected:
+		//Go through the steady field lines, identify the point on each line with the highest
+		//priority.  This is advected to the seed point at the next time step
 		bool prioritizeSeeds(FlowLineData* container, PathLineData* pathContainer, int timestep);
 		//Evaluate the priority at a point, using current priority field.
 		float priorityVal(float point[3], CVectorField*, Grid*);

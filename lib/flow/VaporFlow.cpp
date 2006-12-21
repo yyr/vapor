@@ -170,19 +170,7 @@ void VaporFlow::SetRegion(size_t num_xforms,
 	
 }
 
-//////////////////////////////////////////////////////////////////////////
-// time interval for subsequent flow calculation.  Obsolete
-//////////////////////////////////////////////////////////////////////////
-/*
-void VaporFlow::SetTimeStepInterval(size_t startT, 
-									size_t endT, 
-									size_t tInc)
-{
-	startTimeStep = startT;
-	endTimeStep = endT;
-	timeStepIncrement = tInc;
-}
-*/
+
 //////////////////////////////////////////////////////////////////////////////////
 //  Setup Time step list for unsteady integration.. Replaces above method
 //////////////////////////////////////////////////////////////////
@@ -273,184 +261,19 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 	}
 	return regionData;
 }
-
-//////////////////////////////////////////////////////////////////////////
-// generate streamlines with rake
-//////////////////////////////////////////////////////////////////////////
-bool VaporFlow::GenStreamLines(float* positions, 
-							   int maxPoints, 
-							   unsigned int randomSeed, 
-							   float* speeds)
-{
-	// first generate seeds
-	float* seedPtr;
+//Generate the seeds for the rake.  Will implement distributed seeds later.
+bool VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed){
 	int seedNum;
 	seedNum = numSeeds[0]*numSeeds[1]*numSeeds[2];
-	seedPtr = new float[seedNum*3];
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
-	pSeedGenerator->GetSeeds(seedPtr, bUseRandomSeeds, randomSeed);
+	pSeedGenerator->GetSeeds(seeds, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
-
-	//Then do streamlines with prepared seeds:
-	bool rc = GenStreamLines(positions, seedPtr, seedNum, maxPoints, speeds);
-	delete [] seedPtr;
-	return rc;
-}
-bool VaporFlow::GenStreamLines(float* positions, 
-							   float* seedPtr,
-							   int seedNum,
-							   int maxPoints, 
-							   float* speeds)
-{
-	
-	// scale animationTimeStep and userTimeStep
-	if((dataMgr->GetMetadata()->HasTSUserTime(steadyStartTimeStep))&&(dataMgr->GetMetadata()->HasTSUserTime(steadyStartTimeStep+1)))
-	{
-		double diff;
-		diff =  dataMgr->GetMetadata()->GetTSUserTime(steadyStartTimeStep+1)[0] - dataMgr->GetMetadata()->GetTSUserTime(steadyStartTimeStep)[0];
-		userTimeStepSize = diff*steadyUserTimeStepMultiplier;
-		animationTimeStepSize = diff*steadyAnimationTimeStepMultiplier;
-	}
-	else
-	{
-		userTimeStepSize = steadyUserTimeStepMultiplier;
-		animationTimeStepSize = steadyAnimationTimeStepMultiplier;
-	}
-
-	// create field object
-	CVectorField* pField;
-	Solution* pSolution;
-	CartesianGrid* pCartesianGrid;
-	float **pUData, **pVData, **pWData;
-	int totalXNum = (maxBlkRegion[0]-minBlkRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize()[0];
-	int totalYNum = (maxBlkRegion[1]-minBlkRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize()[1];
-	int totalZNum = (maxBlkRegion[2]-minBlkRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize()[2];
-	int totalNum = totalXNum*totalYNum*totalZNum;
-	pUData = new float*[1];
-	pVData = new float*[1];
-	pWData = new float*[1];
-	pUData[0] = GetData(steadyStartTimeStep, xSteadyVarName);
-	if (pUData[0]== 0)
-		return false;
-
-	pVData[0] = GetData(steadyStartTimeStep, ySteadyVarName);
-	if (pVData[0] == 0) {
-		dataMgr->UnlockRegion(pUData[0]);
-		return false;
-	}
-	pWData[0] = GetData(steadyStartTimeStep, zSteadyVarName);
-	if (pWData[0] == 0) {
-		dataMgr->UnlockRegion(pUData[0]);
-		dataMgr->UnlockRegion(pVData[0]);
-		return false;
-	}
-
-	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
-	pSolution->SetTimeScaleFactor(steadyUserTimeStepMultiplier);
-	pSolution->SetTime(steadyStartTimeStep, steadyStartTimeStep);
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
-	pCartesianGrid->setPeriod(flowPeriod);
-	// set the boundary of physical grid
-	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
-	VECTOR3 minB, maxB, minR, maxR;
-	double minUser[3], maxUser[3], regMin[3],regMax[3];
-	size_t blockRegionMin[3],blockRegionMax[3];
-	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
-	for (int i = 0; i< 3; i++){
-		blockRegionMin[i] = bs[i]*minBlkRegion[i];
-		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
-	}
-	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMin, minUser, numXForms);
-	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMax, maxUser, numXForms);
-	myReader->MapVoxToUser(steadyStartTimeStep, minRegion, regMin, numXForms);
-	myReader->MapVoxToUser(steadyStartTimeStep, maxRegion, regMax, numXForms);
-	
-	//Use current region to determine coords of grid boundary:
-	
-	//Now adjust minB, maxB to block region extents:
-	
-	for (int i = 0; i< 3; i++){
-		minB[i] = minUser[i];
-		maxB[i] = maxUser[i];
-		minR[i] = regMin[i];
-		maxR[i] = regMax[i];
-	}
-	
-	pCartesianGrid->SetRegionExtents(minR,maxR);
-	pCartesianGrid->SetBoundary(minB, maxB);
-	pField = new CVectorField(pCartesianGrid, pSolution, 1);
-	pField->SetUserTimeStepInc(0, 1);
-	
-	// execute streamline
-	vtCStreamLine* pStreamLine;
-
-
-	
-
-	float currentT = (float)steadyStartTimeStep;
-	pStreamLine = new vtCStreamLine(pField);
-
-	//AN: for memory debugging:
-	pStreamLine->fullArraySize = maxPoints*seedNum*3;
-
-
-	pStreamLine->setBackwardTracing(false);
-	pStreamLine->setMaxPoints(maxPoints);
-	pStreamLine->setSeedPoints(seedPtr, seedNum, currentT);
-	pStreamLine->SetSamplingRate(animationTimeStepSize);
-	pStreamLine->SetInitStepSize(initialStepSize);
-	pStreamLine->SetMaxStepSize(maxStepSize);
-	pStreamLine->setIntegrationOrder(FOURTH);
-	pStreamLine->SetStationaryCutoff((0.1f*pCartesianGrid->GetGridSpacing(0))/(maxPoints*steadyAnimationTimeStepMultiplier));
-	pStreamLine->execute((void *)&currentT, positions, speeds);
-	
-	//AN: Removed a call to Reset() here. This requires all vapor flow state to be
-	// reestablished each time flow lines are generated.
-	// release resource
-	delete pStreamLine;
-	delete pField;
-	//Unlock region:
-
-	dataMgr->UnlockRegion(pUData[0]);
-	dataMgr->UnlockRegion(pVData[0]);
-	dataMgr->UnlockRegion(pWData[0]);
-		
 	return true;
 }
-//Do the setup for a field line advection using a rake.
-/*
-bool VaporFlow::StartFieldLineAdvection(FlowLineData* container, unsigned int randomSeed, int advectionStartTime){
-	//Do GenStreamLines, then find and save the seeds for further iteration.
-	currentFlowAdvectionTime = advectionStartTime;
-	if(!GenStreamLines(container, randomSeed)) return false;
-	
-	prioritizeSeeds(container);
-	return true;
-}
-*/
-/*
-//And without a rake:
-bool VaporFlow::StartFieldLineAdvectionNoRake(FlowLineData* container, float* seeds, int advectionStartTime){
-	//Do GenStreamLines, then find and save the seeds for further iteration.
-	currentFlowAdvectionTime = advectionStartTime;
-	if(!GenStreamLinesNoRake(container, seeds)) return false;
-	
-	return (prioritizeSeeds(container));
-}
-bool VaporFlow::AdvectFieldLines(FlowLineData* container, int nextTimeStep){ 
-	//First, advect the list of seed points to the next time step.
-	if (!UnsteadyAdvectPoints(currentFlowAdvectionTime, nextTimeStep, flowLineAdvectionSeeds)) return false;
-	currentFlowAdvectionTime = nextTimeStep;
-	//Then use the resulting seeds in a steady advection
-	if(!GenStreamLinesNoRake(container, flowLineAdvectionSeeds)) return false;
-	return (prioritizeSeeds(container));
-}
-bool VaporFlow::UnsteadyAdvectPoints(int prevTime, int nextTime, float* pointList){
-	return false;
-}
-*/
 
 
+//////////////////////////////////////////////////////////////////////////////////////
+// Find the points in the steady flow
 bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathContainer, int timeStep){
 	//First get the prioritization field data, lock it in place:
 	// create field object
@@ -733,384 +556,11 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		
 	return true;
 }
-//////////////////////////////////////////////////////////////////////////
-// generate streamlines without rake
-//////////////////////////////////////////////////////////////////////////
-bool VaporFlow::GenStreamLinesNoRake(float* positions, 
-							   int maxPoints, 
-							   int totalSeeds, 
-							   float* speeds)
-{
-	// first copy seeds where they will be accessed:
-	float* seedPtr;
-	
-	seedPtr = new float[totalSeeds*3];
-	for (int k = 0; k<3*totalSeeds; k++){
-		
-		seedPtr[k] = positions[k];
-		
-	}
-	//Then do streamlines with prepared seeds:
-	bool rc = GenStreamLines(positions, seedPtr, totalSeeds, maxPoints, speeds);
-	delete [] seedPtr;
-	return rc;
-}
-	
-	
-//////////////////////////////////////////////////////////////////////////
-// generate pathlines (with and without rake).  
-//////////////////////////////////////////////////////////////////////////
-bool VaporFlow::GenPathLines(float* positions,
-							   int maxPoints, 
-							   unsigned int randomSeed, 
-							   int startInjection, 
-							   int endInjection,
-							   int injectionTimeIncrement, 
-							   float* speeds)
-{
-	//first generate seeds
-	float* seedPtr;
-	int seedNum;
-	seedNum = numSeeds[0]*numSeeds[1]*numSeeds[2];
-	seedPtr = new float[seedNum*3];
-	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
-	pSeedGenerator->GetSeeds(seedPtr, bUseRandomSeeds, randomSeed);
-	delete pSeedGenerator;
-	
-	bool rc = GenPathLines(positions, seedPtr, seedNum, maxPoints, startInjection, endInjection, injectionTimeIncrement, speeds);
-	delete [] seedPtr;
-	return rc;
-}
+
 void VaporFlow::SetPeriodicDimensions(bool xdim, bool ydim, bool zdim){
 	periodicDim[0] = xdim;
 	periodicDim[1] = ydim;
 	periodicDim[2] = zdim;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// generate pathlines (without rake:
-//////////////////////////////////////////////////////////////////////////
-bool VaporFlow::GenPathLinesNoRake(float* positions,
-							   int maxPoints, 
-							   int totalSeeds, 
-							   int startInjection, 
-							   int endInjection,
-							   int injectionTimeIncrement, 
-							   float* speeds)
-{
-	// first copy seeds to where they will be accessed:
-	float* seedPtr;
-	
-	seedPtr = new float[totalSeeds*3];
-	for (int k = 0; k< 3*totalSeeds; k++){
-		
-		seedPtr[k] = positions[k];
-		
-	}
-	//Then do streamlines with prepared seeds:
-	bool rc = GenPathLines(positions, seedPtr, totalSeeds, maxPoints, startInjection, endInjection, injectionTimeIncrement, speeds);
-	delete [] seedPtr;
-	return rc;
-
-}
-///////////////////////////////////////////////////
-// Generate path lines using previously prepared seeds:
-///////////////////////////////////////////////////
-bool VaporFlow::GenPathLines(float* positions,
-							 float* seedPtr,
-							 int seedNum,
-							   int maxPoints, 
-							   int startInjection, 
-							   int endInjection,
-							   int injectionTimeIncrement, 
-							   float* speeds)
-{
-	
-	animationTimeStepSize = steadyAnimationTimeStepMultiplier;
-
-	// create field object
-	CVectorField* pField;
-	Solution* pSolution;
-	CartesianGrid* pCartesianGrid;
-	float **pUData, **pVData, **pWData;
-	int numInjections;						// times to inject new seeds
-	int timeSteps;							// total "time steps"
-	int totalXNum, totalYNum, totalZNum, totalNum;
-	
-    totalXNum = (maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize()[0];
-	totalYNum = (maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize()[1];
-	totalZNum = (maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize()[2];
-	totalNum = totalXNum*totalYNum*totalZNum;
-	numInjections = 1 + ((endInjection - startInjection)/injectionTimeIncrement);
-	//realStartTime and realEndTime are actual limits of time steps for which positions
-	//are calculated.
-	
-	//Make sure the first time is during or after the first/(or last if backwards) injection:
-	int indx;
-	
-	TIME_DIR timeDir;
-	if (unsteadyIsForward){
-
-		for (indx = 0; indx< numUnsteadyTimesteps; indx++){
-			if (unsteadyTimestepList[indx] >= startInjection) break;
-			if (indx >= numUnsteadyTimesteps-1) assert(0);
-		}
-
-		timeDir = FORWARD;
-
-	}
-	else { //timesteps are in decreasing order:
-
-		for (indx = 0; indx< numUnsteadyTimesteps; indx++){
-			if (unsteadyTimestepList[indx] <= endInjection) break;
-			if (indx >= numUnsteadyTimesteps-1) assert(0);
-		}
-
-		timeDir = BACKWARD;
-	}
-	int realStartTime = (int)unsteadyTimestepList[indx];
-	int realStartIndex = indx;
-	int realEndTime = unsteadyTimestepList[numUnsteadyTimesteps-1];
-
-	//timeSteps is the number of sampled time steps:
-	timeSteps = numUnsteadyTimesteps - realStartIndex;
-		
-	pUData = new float*[timeSteps];
-	pVData = new float*[timeSteps];
-	pWData = new float*[timeSteps];
-	memset(pUData, 0, sizeof(float*)*timeSteps);
-	memset(pVData, 0, sizeof(float*)*timeSteps);
-	memset(pWData, 0, sizeof(float*)*timeSteps);
-	pSolution = new Solution(pUData, pVData, pWData, totalNum, timeSteps);
-	pSolution->SetTimeScaleFactor(unsteadyUserTimeStepMultiplier);
-	
-	pSolution->SetTime(realStartTime, realEndTime);
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
-	pCartesianGrid->setPeriod(flowPeriod);
-	// set the boundary of physical grid
-	
-	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
-	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
-	VECTOR3 minB, maxB, minR, maxR;
-	double minUser[3], maxUser[3], regMin[3],regMax[3];
-	size_t blockRegionMin[3],blockRegionMax[3];
-	for (int i = 0; i< 3; i++){
-		blockRegionMin[i] = bs[i]*minBlkRegion[i];
-		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
-	}
-	myReader->MapVoxToUser(realStartTime, blockRegionMin, minUser, numXForms);
-	myReader->MapVoxToUser(realStartTime, blockRegionMax, maxUser, numXForms);
-	myReader->MapVoxToUser(realStartTime, minRegion, regMin, numXForms);
-	myReader->MapVoxToUser(realStartTime, maxRegion, regMax, numXForms);
-	
-	minB.Set(minUser[0], minUser[1], minUser[2]);
-	maxB.Set(maxUser[0], maxUser[1], maxUser[2]);
-	minR.Set(regMin[0], regMin[1], regMin[2]);
-	maxR.Set(regMax[0], regMax[1], regMax[2]);
-	pCartesianGrid->SetBoundary(minB, maxB);
-	pCartesianGrid->SetRegionExtents(minR,maxR);
-	
-	//Now set the region bound:
-
-	pField = new CVectorField(pCartesianGrid, pSolution, timeSteps);
-	
-	// get the userTimeStep between two sampled timesteps
-	int* pUserTimeSteps;
-	int tIndex = 0;
-	pUserTimeSteps = new int[timeSteps-1];
-	//Calculate the time differences between successive sampled timesteps.
-	//save that value in pUserTimeSteps, available in pField.
-	//These are negative if we are advecting backwards in time!!
-	for(int sampleIndex = realStartIndex; sampleIndex < numUnsteadyTimesteps-1; sampleIndex++)
-	{
-		int nSampledStep = unsteadyTimestepList[sampleIndex];
-
-		int nextSampledStep = unsteadyTimestepList[sampleIndex+1];
-		if(dataMgr->GetMetadata()->HasTSUserTime(nSampledStep)&&dataMgr->GetMetadata()->HasTSUserTime(nextSampledStep))
-			pUserTimeSteps[tIndex] = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
-									   dataMgr->GetMetadata()->GetTSUserTime(nSampledStep)[0];
-		else
-			pUserTimeSteps[tIndex] = nextSampledStep - nSampledStep;
-		pUserTimeSteps[tIndex++] *= timeDir;
-	}
-	pField->SetUserTimeSteps(pUserTimeSteps);
-
-	// initialize streak line
-	vtCStreakLine* pStreakLine;
-	float currentT = 0.0;
-	pStreakLine = new vtCStreakLine(pField);
-	int integrationIncrement = (int)timeDir;
-	pStreakLine->SetTimeDir(timeDir);
-	
-	pStreakLine->setParticleLife(maxPoints);
-	pStreakLine->setSeedPoints(seedPtr, seedNum, currentT);
-	pStreakLine->SetSamplingRate(animationTimeStepSize);
-	pStreakLine->SetInitStepSize(initialStepSize);
-	pStreakLine->SetMaxStepSize(maxStepSize);
-	pStreakLine->setIntegrationOrder(FOURTH);
-
-	//AN: for memory debugging:
-	int numInj = 1+(endInjection-startInjection)/injectionTimeIncrement;
-	pStreakLine->fullArraySize = numInj*maxPoints*seedNum*3;
-
-	//Keep first and next region pointers.  They must be released as we go:
-	float *xDataPtr =0, *yDataPtr = 0, *zDataPtr =0;
-	float *xDataPtr2 =0, *yDataPtr2 = 0, *zDataPtr2 =0;
-
-	// start to compute streakline
-	unsigned int* pointers = new unsigned int[seedNum*numInjections];
-	unsigned int* startPositions = new unsigned int[seedNum*numInjections];
-	memset(pointers, 0, sizeof(unsigned int)*seedNum*numInjections);
-	for(int iFor = 0; iFor < (seedNum*numInjections); iFor++)
-		startPositions[iFor] = iFor * maxPoints * 3;
-	
-	int index = -1, iInjection = 0;
-	bool bInject;
-
-	int currIndex = realStartIndex;
-	int prevSample = realStartTime;
-	int nextSample = unsteadyTimestepList[realStartIndex+1];
-	int iTemp; //Index that counts the sampled timesteps
-	// Go through all the timesteps, one at a time:
-	for(int iFor = realStartTime; ; iFor += integrationIncrement)
-	{
-		//Termination condition depends on direction:
-		if (unsteadyIsForward){
-			if (iFor >= realEndTime) break;
-			if (iFor >= nextSample) {//bump it up:
-				currIndex++;
-				prevSample = nextSample;
-				nextSample = unsteadyTimestepList[currIndex+1];
-			}
-		}
-		else {
-			if(iFor <= realEndTime) break;
-			if (iFor <= nextSample) {//bump it down:
-				currIndex++;
-				prevSample = nextSample;
-				nextSample = unsteadyTimestepList[currIndex+1];
-			}
-		}
-		
-		bInject = false;
-		//index counts advections
-		index++;								// index to solution instance
-		//AN: Changed iTemp to start at 0
-		//  10/05/05
-		//
-        //int iTemp = (iFor-realStartTime)/timeStepIncrement;		// index to lower sampled time step
-		iTemp = currIndex - realStartIndex;
-		// get usertimestep between current time step and previous sampled time step
-		double diff = 0.0, curDiff = 0.0;
-		if(dataMgr->GetMetadata()->HasTSUserTime(iFor)){
-			diff = dataMgr->GetMetadata()->GetTSUserTime(iFor)[0] -
-				dataMgr->GetMetadata()->GetTSUserTime(prevSample)[0];
-			curDiff = dataMgr->GetMetadata()->GetTSUserTime(nextSample)[0] - 
-					  dataMgr->GetMetadata()->GetTSUserTime(iFor)[0];
-		} else {
-			diff = iFor - prevSample;
-			curDiff = nextSample - iFor;
-		}
-		if (!unsteadyIsForward) {
-			diff = -diff;
-			curDiff = -curDiff;
-		}
-		pField->SetUserTimeStepInc((int)diff, (int)curDiff);
-		//find time difference between adjacent frames (this shouldn't 
-		//always be an int!!!)
-		pSolution->SetTimeIncrement((int)(curDiff + diff + 0.5), timeDir);
-		// need get new data ?
-		//if(((iFor-realStartTime)%timeStepIncrement) == 0)
-		if (iFor == prevSample)
-		{
-			//For the very first sample time, get data for current time (get the next sampled timestep in next line)
-			if(iFor == realStartTime){
-				//AN 10/19/05
-				//Check for valid data, return false if invalid
-				//
-				
-				xDataPtr = GetData(iFor,xUnsteadyVarName);
-				
-				if(xDataPtr) yDataPtr = GetData(iFor,yUnsteadyVarName);
-				
-				if(yDataPtr) zDataPtr = GetData(iFor,zUnsteadyVarName);
-				
-				if (xDataPtr == 0 || yDataPtr == 0 || zDataPtr == 0){
-					// release resources
-					delete[] pUserTimeSteps;
-					delete[] pointers;
-					delete pStreakLine;
-					delete pField;
-					if (xDataPtr) dataMgr->UnlockRegion(xDataPtr);
-					if (yDataPtr) dataMgr->UnlockRegion(yDataPtr);
-					return false;
-				}
-				pField->SetSolutionData(iTemp,xDataPtr,yDataPtr,zDataPtr);
-			} else {
-				//If it's not the very first time, need to release data for previous 
-				//time step, and move end ptrs to start:
-				//Now can release first pointers:
-				dataMgr->UnlockRegion(xDataPtr);
-				dataMgr->UnlockRegion(yDataPtr);
-				dataMgr->UnlockRegion(zDataPtr);
-				//And use them to save the second pointers:
-				xDataPtr = xDataPtr2;
-				yDataPtr = yDataPtr2;
-				zDataPtr = zDataPtr2;
-				//Also nullify pointers to released timestep data:
-				pField->SetSolutionData(iTemp-1,0,0,0);
-			}
-			//now get data for second ( next) sampled timestep.  
-			yDataPtr2 = zDataPtr2 = 0;
-			xDataPtr2 = GetData(nextSample,xUnsteadyVarName); 
-			if(xDataPtr2) yDataPtr2 = GetData(nextSample,yUnsteadyVarName); 
-			if(yDataPtr2) zDataPtr2 = GetData(nextSample,zUnsteadyVarName); 
-			if (!xDataPtr2 || !yDataPtr2 || !zDataPtr2){
-				// if we failed:  release resources
-				delete[] pUserTimeSteps;
-				delete[] pointers;
-				delete pStreakLine;
-				delete pField;
-				if (xDataPtr) dataMgr->UnlockRegion(xDataPtr);
-				if (yDataPtr) dataMgr->UnlockRegion(yDataPtr);
-				if (zDataPtr) dataMgr->UnlockRegion(zDataPtr);
-				if (xDataPtr2) dataMgr->UnlockRegion(xDataPtr2);
-				if (yDataPtr2) dataMgr->UnlockRegion(yDataPtr2);
-				return false;
-			}
-			pField->SetSolutionData(iTemp+1,xDataPtr2,yDataPtr2,zDataPtr2); 
-		}
-
-		// whether inject new seeds this time?
-		if((iFor >= startInjection) && (iFor <= endInjection) && ((index%injectionTimeIncrement) == 0))
-			bInject = true;
-
-		// execute streakline
-		//AN:  Changed these so that (float)iFor (not (float)index ) is passed as the start time
-		//  10/05/05
-		if(bInject)				// inject new seeds
-			pStreakLine->execute((float)iFor, positions, startPositions, pointers, true, iInjection++, speeds);
-		else					// do not inject new seeds
-			pStreakLine->execute((float)iFor, positions, startPositions, pointers, false, iInjection, speeds);
-		
-	}
-
-	//Reset();
-	// release resources.  we always have valid start and end pointers
-	// at this point.
-	dataMgr->UnlockRegion(xDataPtr);
-	dataMgr->UnlockRegion(yDataPtr);
-	dataMgr->UnlockRegion(zDataPtr);
-	dataMgr->UnlockRegion(xDataPtr2);
-	dataMgr->UnlockRegion(yDataPtr2);
-	dataMgr->UnlockRegion(zDataPtr2);
-	pField->SetSolutionData(iTemp,0,0,0);
-	pField->SetSolutionData(iTemp+1,0,0,0);
-	delete[] pUserTimeSteps;
-	delete[] pointers;
-	delete pStreakLine;
-	delete pField;
-	return true;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1148,43 +598,61 @@ bool VaporFlow::GenStreamLines (FlowLineData* steadyContainer, PathLineData* uns
 bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int endTimeStep){
 	animationTimeStepSize = unsteadyAnimationTimeStepMultiplier;
 
+	//Make the container aware of the correct direction (note that this can change)
+	TIME_DIR timeDir;
+	assert (endTimeStep != startTimeStep);
+	if (startTimeStep < endTimeStep) {
+		timeDir = FORWARD;
+		container->setPathDirection(1);
+		assert(unsteadyIsForward);
+	}
+	else {
+		timeDir = BACKWARD;
+		container->setPathDirection(-1);
+		assert(!unsteadyIsForward);
+	}
 	// create field object
 	CVectorField* pField;
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
 	float **pUData, **pVData, **pWData;
-	int numInjections;						// times to inject new seeds
-	int timeSteps;							// total "time steps"
+	int timeSteps;							// total sampled time steps in integration interval.  Usually this is 2
 	int totalXNum, totalYNum, totalZNum, totalNum;
 	
     totalXNum = (maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize()[0];
 	totalYNum = (maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize()[1];
 	totalZNum = (maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize()[2];
 	totalNum = totalXNum*totalYNum*totalZNum;
-	//
-	//numInjections = 1 + ((endInjection - startInjection)/injectionTimeIncrement);
-	numInjections = 1; 
+	
 	//realStartTime and realEndTime are actual limits of time steps for which positions
 	//are calculated.
 	
-	//Make sure the first time is during or after the first/(or last if backwards) injection:
 	int indx;
-	
-	TIME_DIR timeDir;
-	if (endTimeStep > startTimeStep) timeDir = FORWARD; 
-	else timeDir = BACKWARD;
-
-	//Find the start and end index 
+	//Find the start index into the time step sample list.
+	//Note that the unsteadyTimestepList is in integration order, so that sampleStartIndex
+	//is the first one that matches startTimeStep
 	
 	for (indx = 0; indx< numUnsteadyTimesteps; indx++){
 		if (unsteadyTimestepList[indx] == startTimeStep) break;
 		if (indx >= numUnsteadyTimesteps-1) assert(0);
 	}
-	int realStartIndex = indx;
+	int sampleStartIndex = indx;
+	int sampleStartTime = startTimeStep;
+	int sampleEndTime = unsteadyTimestepList[numUnsteadyTimesteps-1];
+	//We may not go all the way to the end:
+	if (sampleEndTime != endTimeStep && timeDir == BACKWARD){
+		assert(sampleEndTime < endTimeStep);
+		for (int i = sampleStartIndex; i<numUnsteadyTimesteps; i++) {
+			//We should find the endTimeStep in the sample list...
+			if (unsteadyTimestepList[i] == endTimeStep) break;
+			if (i == numUnsteadyTimesteps - 1) assert(0);
+		}
+	}
 	
 
-	//timeSteps is the number of sampled time steps:
-	timeSteps = abs(endTimeStep - startTimeStep);
+	//timeSteps is the number of sampled time steps needed:
+	timeSteps = abs(endTimeStep - startTimeStep) + 1;
+	assert(timeSteps > 1);
 	
 		
 	pUData = new float*[timeSteps];
@@ -1196,7 +664,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, timeSteps);
 	pSolution->SetTimeScaleFactor(unsteadyUserTimeStepMultiplier);
 	
-	pSolution->SetTime(startTimeStep, endTimeStep);
+	pSolution->SetTime(sampleStartTime, endTimeStep);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
 	
 	// set the boundary of physical grid
@@ -1226,24 +694,31 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 
 	pField = new CVectorField(pCartesianGrid, pSolution, timeSteps);
 	
-	// get the userTimeStep between two sampled timesteps
+	// get the userTimeStep between pairs of sampled timesteps
 	int* pUserTimeSteps;
 	int tIndex = 0;
-	pUserTimeSteps = new int[timeSteps-1];
-	//Calculate the time differences between successive sampled timesteps.
+	pUserTimeSteps = new int[timeSteps];
+
+	//Calculate the time differences between successive sampled timesteps in
+	//the interval we are working on.
 	//save that value in pUserTimeSteps, available in pField.
 	//These are negative if we are advecting backwards in time!!
-	for(int sampleIndex = realStartIndex; sampleIndex < numUnsteadyTimesteps-1; sampleIndex++)
-	{
-		int nSampledStep = unsteadyTimestepList[sampleIndex];
 
+	for(int sampleIndex = sampleStartIndex; sampleIndex < numUnsteadyTimesteps-1; sampleIndex++)
+	{
+		int prevSampledStep = unsteadyTimestepList[sampleIndex];
+		if (prevSampledStep < startTimeStep ||(prevSampledStep > endTimeStep)) continue;
+		
 		int nextSampledStep = unsteadyTimestepList[sampleIndex+1];
-		if(dataMgr->GetMetadata()->HasTSUserTime(nSampledStep)&&dataMgr->GetMetadata()->HasTSUserTime(nextSampledStep))
+		if (nextSampledStep < startTimeStep || nextSampledStep > endTimeStep) continue;
+		if(dataMgr->GetMetadata()->HasTSUserTime(prevSampledStep)&&dataMgr->GetMetadata()->HasTSUserTime(nextSampledStep))
 			pUserTimeSteps[tIndex] = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
-									   dataMgr->GetMetadata()->GetTSUserTime(nSampledStep)[0];
+									   dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep)[0];
 		else
-			pUserTimeSteps[tIndex] = nextSampledStep - nSampledStep;
+			pUserTimeSteps[tIndex] = nextSampledStep - prevSampledStep;
+		//HMMM this should make the value always positive??
 		pUserTimeSteps[tIndex++] *= timeDir;
+		assert(pUserTimeSteps[tIndex-1] >= 0);
 	}
 	pField->SetUserTimeSteps(pUserTimeSteps);
 
@@ -1255,73 +730,60 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	pStreakLine->SetTimeDir(timeDir);
 	
 	pStreakLine->setParticleLife(container->getMaxPoints());
-	int numSeeds = container->getNumLines();
-	float* seedPtr = new float[3*numSeeds];
-	for (int i = 0; i< numSeeds; i++){
-		for (int k = 0; k<3; k++){
-			seedPtr[3*i+k] = (container->getPointAtTime(i, (float)startTimeStep))[k];
-		}
-	}
-	pStreakLine->setSeedPoints(seedPtr, numSeeds, currentT);
-	pStreakLine->SetSamplingRate(animationTimeStepSize);
+	//The sampling rate is the time-difference between samples.
+	//AnimationTimeStepSize is the samples per timeStep
+	pStreakLine->SetSamplingRate(1.f/animationTimeStepSize);
 	pStreakLine->SetInitStepSize(initialStepSize);
 	pStreakLine->SetMaxStepSize(maxStepSize);
 	pStreakLine->setIntegrationOrder(FOURTH);
-
-	//AN: for memory debugging:
-	//int numInj = 1+(endInjection-startInjection)/injectionTimeIncrement;
-	//pStreakLine->fullArraySize = numInj*maxPoints*numSeeds*3;
 
 
 	//Keep first and next region pointers.  They must be released as we go:
 	float *xDataPtr =0, *yDataPtr = 0, *zDataPtr =0;
 	float *xDataPtr2 =0, *yDataPtr2 = 0, *zDataPtr2 =0;
 
-	// start to compute streakline
-	unsigned int* pointers = new unsigned int[numSeeds*numInjections];
-	unsigned int* startPositions = new unsigned int[numSeeds*numInjections];
-	memset(pointers, 0, sizeof(unsigned int)*numSeeds*numInjections);
-	//for(int iFor = 0; iFor < (numSeeds*numInjections); iFor++)
-	//	startPositions[iFor] = iFor * maxPoints * 3;
 	
-	int index = -1, iInjection = 0;
+	
+	int index = -1;
 	bool bInject;
 
-	int currIndex = realStartIndex;
+	int currIndex = sampleStartIndex;
 	int prevSample = startTimeStep;
-	int nextSample = unsteadyTimestepList[realStartIndex+timeDir];
+	int nextSample = unsteadyTimestepList[sampleStartIndex+1];
 	int iTemp; //Index that counts the sampled timesteps
-	// Go through all the timesteps, one at a time:
+	// Go through all the timesteps, one at a time. Ifor is the time Step
+	// For each pair (prevSample, nextSample) integrate between them.
 	for(int iFor = startTimeStep; ; iFor += integrationIncrement)
 	{
 		//Termination condition depends on direction:
 		if (timeDir == FORWARD){
 			if (iFor >= endTimeStep) break;
-			if (iFor >= nextSample) {//bump it up:
+			if (iFor >= nextSample) {//bump up the samples
 				currIndex++;
 				prevSample = nextSample;
 				nextSample = unsteadyTimestepList[currIndex+1];
 			}
 		}
 		else {
-			if(iFor <= startTimeStep) break;
-			if (iFor <= nextSample) {//bump it down:
-				currIndex--;
+			if(iFor <= endTimeStep) break;
+			if (iFor <= nextSample) {//bump down the samples, by bumping up the index
+				currIndex++;
 				prevSample = nextSample;
-				nextSample = unsteadyTimestepList[currIndex-1];
+				nextSample = unsteadyTimestepList[currIndex+1];
 			}
 		}
 		
-		bInject = false;
+		
 		//index counts advections
 		index++;								// index to solution instance
 		//AN: Changed iTemp to start at 0
 		//  10/05/05
 		//
         //int iTemp = (iFor-realStartTime)/timeStepIncrement;		// index to lower sampled time step
-		iTemp = currIndex - realStartIndex;
-		// get usertimestep between current time step and previous sampled time step
+		iTemp = currIndex - sampleStartIndex;
+		// get usertimestep differences between the current time step and previous and next sampled time steps
 		double diff = 0.0, curDiff = 0.0;
+	
 		if(dataMgr->GetMetadata()->HasTSUserTime(iFor)){
 			diff = dataMgr->GetMetadata()->GetTSUserTime(iFor)[0] -
 				dataMgr->GetMetadata()->GetTSUserTime(prevSample)[0];
@@ -1331,13 +793,13 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 			diff = iFor - prevSample;
 			curDiff = nextSample - iFor;
 		}
-		if (timeDir == BACKWARD) {
+		if (timeDir == BACKWARD) {//Always positive??
 			diff = -diff;
 			curDiff = -curDiff;
 		}
 		pField->SetUserTimeStepInc((int)diff, (int)curDiff);
 		//find time difference between adjacent frames (this shouldn't 
-		//always be an int!!!)
+		//always be an int???)
 		pSolution->SetTimeIncrement((int)(curDiff + diff + 0.5), timeDir);
 		// need get new data ?
 		//if(((iFor-realStartTime)%timeStepIncrement) == 0)
@@ -1358,7 +820,6 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 				if (xDataPtr == 0 || yDataPtr == 0 || zDataPtr == 0){
 					// release resources
 					delete[] pUserTimeSteps;
-					delete[] pointers;
 					delete pStreakLine;
 					delete pField;
 					if (xDataPtr) dataMgr->UnlockRegion(xDataPtr);
@@ -1388,7 +849,6 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 			if (!xDataPtr2 || !yDataPtr2 || !zDataPtr2){
 				// if we failed:  release resources
 				delete[] pUserTimeSteps;
-				delete[] pointers;
 				delete pStreakLine;
 				delete pField;
 				if (xDataPtr) dataMgr->UnlockRegion(xDataPtr);
@@ -1401,19 +861,14 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 			pField->SetSolutionData(iTemp+1,xDataPtr2,yDataPtr2,zDataPtr2); 
 		}
 
-		// whether inject new seeds this time?
-		//if((iFor >= startInjection) && (iFor <= endInjection) && ((index%injectionTimeIncrement) == 0))
-			//bInject = true;
-		bInject = false;
-		// execute streakline
-		//AN:  Changed these so that (float)iFor (not (float)index ) is passed as the start time
-		//  10/05/05
-		/*
-		if(bInject)				// inject new seeds
-			pStreakLine->execute((float)iFor, positions, startPositions, pointers, true, iInjection++, speeds);
-		else					// do not inject new seeds
-			pStreakLine->execute((float)iFor, positions, startPositions, pointers, false, iInjection, speeds);
-		*/
+			
+		//Set up the seeds for this time step.  All points that are already specified at the time step
+		//are taken to be seeds for ExtendPathLines
+		int nseeds = pStreakLine->addSeeds(iFor, container);
+		bInject = (nseeds > 0);
+
+		pStreakLine->execute((float)iFor, container, bInject);
+		
 	
 	}
 
@@ -1429,9 +884,8 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	pField->SetSolutionData(iTemp,0,0,0);
 	pField->SetSolutionData(iTemp+1,0,0,0);
 	delete[] pUserTimeSteps;
-	delete[] pointers;
 	delete pStreakLine;
 	delete pField;
-	delete seedPtr;
+	
 	return true;
 }

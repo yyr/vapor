@@ -2037,7 +2037,7 @@ void FlowEventRouter::guiSaveFlowLines(){
 		//Get the rake flow data:
 		if (fParams->rakeEnabled()){
 			if (fRenderer->flowDataIsDirty(timeStep))
-				fRenderer->rebuildFlowData(timeStep,true);
+				fRenderer->rebuildFlowData(timeStep);
 			float* flowDataArray = fRenderer->getFlowData(timeStep,true);
 			assert(flowDataArray);
 			int numSeedPoints = fRenderer->getNumRakeSeedPointsUsed();
@@ -2050,7 +2050,7 @@ void FlowEventRouter::guiSaveFlowLines(){
 		}
 		if (fParams->listEnabled()&&(fRenderer->getNumListSeedPointsUsed(timeStep) > 0)){
 			if (fRenderer->flowDataIsDirty(timeStep))
-				fRenderer->rebuildFlowData(timeStep,false);
+				fRenderer->rebuildFlowData(timeStep);
 			float* flowDataArray = fRenderer->getFlowData(timeStep, false);
 			
 			assert(flowDataArray);
@@ -2068,7 +2068,7 @@ void FlowEventRouter::guiSaveFlowLines(){
 		int maxPoints = fParams->calcMaxPoints();
 		if (fParams->rakeEnabled()){
 			if (fRenderer->flowDataIsDirty(0))
-				fRenderer->rebuildFlowData(0,true);
+				fRenderer->rebuildFlowData(0);
 			float* flowDataArray = fRenderer->getFlowData(0, true);
 			
 			assert(flowDataArray);
@@ -2088,8 +2088,8 @@ void FlowEventRouter::guiSaveFlowLines(){
 		}
 		if (fParams->listEnabled()&&(fRenderer->getNumListSeedPointsUsed(0) > 0)){
 			if (fRenderer->flowDataIsDirty(0))
-				fRenderer->rebuildFlowData(0,false);
-			float* flowDataArray = fRenderer->getFlowData(0, false);
+				fRenderer->rebuildFlowData(0);
+			float* flowDataArray = fRenderer->getFlowData(0,false);
 			
 			assert(flowDataArray);
 			for (int injNum = 0; injNum < fParams->getNumInjections(); injNum++){

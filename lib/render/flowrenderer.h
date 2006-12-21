@@ -74,13 +74,19 @@ public:
 	//At render time, data is reconstructed if both needsRefresh and dirty are true.
 
 	void setNeedOfRefresh(int timeStep, bool value){ if(needRefreshFlag)needRefreshFlag[timeStep]=value;}
-	bool needsRefresh(FlowParams* fParams, int timeStep) {return (fParams->refreshIsAuto() || !needRefreshFlag || needRefreshFlag[timeStep]);}
+	bool needsRefresh(FlowParams* fParams, int timeStep); 
 	void setAllNeedRefresh(bool value);
-	bool flowDataIsDirty(int timeStep){return (flowDataDirty && flowDataDirty[timeStep]);}
-	
+	bool flowDataIsDirty(int timeStep);
+	bool flowMapIsDirty(int timeStep);
+	bool allFlowDataIsDirty() {return allDataDirtyFlag;}
+	bool allFlowMapIsDirty() { return allFlowMapDirtyFlag;}
+
+	void setFlowMapDirty(bool isDirty);
 	
 	//clean flag (after rebuild data), also turn off needRefresh
-	void setFlowDataClean(int timeStep, bool isRake);
+	void setFlowDataClean(int timeStep);
+
+	void setFlowMapClean(int timeStep);
 
 	//When a bit is set dirty, must set appropriate bits for 
 	//all timesteps.
@@ -89,7 +95,7 @@ public:
 	void setRegionDirty(bool dirty = true) {regionDirty = dirty;}
 	bool regionIsDirty() {return regionDirty;}
 
-	bool rebuildFlowData(int timeStep, bool doRake);
+	bool rebuildFlowData(int timeStep);
 	void setRegionValid(bool trueFalse) {regionIsValid = trueFalse;}
 	bool regionValid() {return regionIsValid;}
 
@@ -100,18 +106,15 @@ protected:
 	int numFrames;
 			
 	//Render geometry using the current values of flowDataArray, flowRGBAs
-	void renderFlowData(bool constColors,int currentFrameNum);
+	
 
-	//OR do it with FlowLineData:
+	//do it with FlowLineData:
 	void renderFlowData(FlowLineData*,bool constColors, int currentFrameNum);
-	void renderTubes(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
-	void renderCurves(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
-	void renderPoints(float radius, int firstAge, int lastAge, int startIndex, bool constMap);
-	void renderArrows(float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
-	void renderTubes(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
-	void renderCurves(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
-	void renderPoints(FlowLineData*, float radius, int firstAge, int lastAge, int startIndex, bool constMap);
-	void renderArrows(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge, int startIndex, bool constMap);
+	
+	void renderTubes(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge,  bool constMap);
+	void renderCurves(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge,  bool constMap);
+	void renderPoints(FlowLineData*, float radius, int firstAge, int lastAge,  bool constMap);
+	void renderArrows(FlowLineData*, float radius, bool isLit, int firstAge, int lastAge,  bool constMap);
 	
 	
 	//convert original coordinates to lie inside central cycle.  Identify the cycle it's in
@@ -143,23 +146,31 @@ protected:
 	//Array of pointers to FlowLineData containers
 	FlowLineData** steadyFlowCache;
 	
-	PathLineData* unsteadyCache;
+	PathLineData* unsteadyFlowCache;
 	//remember the number of seeds in list that are used
 	int* numListSeedPointsUsed;
-	//One dirty flag for each time-step.  All are set true when
-	//setDirty is called, as well as the unsteady flag
-	bool* flowDataDirty;
-	bool unsteadyDataDirty;
-	//need refresh flag, when false means that we won't refresh (for !autorefresh)
-	//One flag for each timestep, in order to handle situations where auto
+	//One dirty flag for each timestep, plus an overall flag.
+	//unsteady flow only uses the overall flag
+	//Set dirty sets the overall flag.  setclean resets it, and
+	//resets the time-step flag as well.
+	//Similar flags for flowMap.
+	//The needsRefreshFlags indicate when false that we won't 
+	//refresh (because autorefresh is on).
+	//One needsrefreshflag for each timestep, in order to handle situations where auto
 	//refresh is clicked and we need to remember that some but not all timesteps
 	//are in need of refresh.
+	
+	bool* flowDataDirty;
+	bool allDataDirtyFlag;
+	
 	bool* needRefreshFlag;
 	bool unsteadyNeedsRefreshFlag;
 	//graphicsDirty flag, forces reconstruction of RGBAs.  
 	//Only important if flowDataDirty is false.
 	bool* flowMapDirty;
-	bool unsteadyFlowMapDirty;
+	bool allFlowMapDirtyFlag;
+
+
 	float** steadyFlowRGBAs;
 	float* unsteadyFlowRGBAs;
 	
@@ -169,7 +180,7 @@ protected:
 	//Following parameters are obtained from the flowparams at the
 	//time the data cache is created.  They are needed to render
 	//the contents of the cache.
-	int numInjections;
+	
 	int maxFrame, minFrame;
 	bool steadyFlow;
 	int seedIncrement, startSeed, endSeed, firstDisplayAge, lastDisplayAge;

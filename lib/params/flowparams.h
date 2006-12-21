@@ -76,15 +76,17 @@ public:
 	void setNumGenerators(int dimNum, int val){generatorCount[dimNum]=val;}
 	int getTotalNumGenerators() { return (int)allGeneratorCount;}
 	void setTotalNumGenerators(int val){allGeneratorCount = val;}
-	//Following will be deleted, no point in fixing it.
-	bool regenerateFlowData(VaporFlow*, int frameNum, int minTime, bool fromRake, RegionParams* rParams, float* data, float* rgbas);
-
+	
+	//Following will be replaced by regenerateSteadyFieldLines
 	FlowLineData* regenerateSteadyFlowData(VaporFlow* , int timeStep, int minFrame, RegionParams*);
 	
 	//To rebuild the PathLineData associated with field line advection, need to do the following:
-	//1.  Create a new PathLineData (if it doesn't exist) with the starting seeds in it.
+	//1.  Create a new PathLineData with the starting seeds in it:
+	PathLineData* setupPathLineData(VaporFlow*, int minFrame, int maxFrame, RegionParams* rParams);
+	bool setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep, int minFrame);
+
 	//2.  Call GenStreamLines for the seed time, prioritizing the seeds, and putting the
-	//		resulting FlowLineData into the cache
+	//		resulting FlowLineData into the cache.  Done by calling regenerateSteadyFlowData.
 	//3.  For each sample time between the seed time and the current time, and one more, if
 	//		the current time is not a seed time: 
 	//	3a. Extend the PathLineData to the next sample time
@@ -93,20 +95,23 @@ public:
 	//4.  If the currentTime is not a sample time, call GenStreamLines to create a 
 	//		flowLineData for the current time, but not prioritizing seeds.
 	//  The following methods support this process:
-	//  For step 1:
-	PathLineData* regenerateUnsteadyFlowData(VaporFlow*, int seedFrame, RegionParams* rParams);
+	
 	//  For steps 2, 3b, and 4
-	FlowLineData* regenerateSteadyFieldLines(VaporFlow*, PathLineData*, int timeStep, RegionParams* rParams, bool prioritize);
-	//  For step 3a:
-	FlowLineData* extendUnsteadyPath(VaporFlow*, PathLineData*, int previousSampleTime, int nextSampleTime, RegionParams* rParams);
+	// If the pathlinedata is null, it gets the seeds from the rake or seedlist:
+	FlowLineData* regenerateSteadyFieldLines(VaporFlow*, PathLineData*, int timeStep, int minFrame, RegionParams* rParams, bool prioritize);
+	//  For step 3a use VaporFlow::ExtendPathLine()
 
+	//Methods to allow iteration over unsteady timestep samples in either direction,
+	//within a prescribed min/max interval.  Returns -1 at end of interval 
+	int getUnsteadyTimestepSample(int index, int minStep, int maxStep);
+	int getTimeSampleIndex(int ts, int minStep, int maxStep);
 
 	void calcSeedExtents(float *extents);
 	float getSeedRegionMin(int coord){ return seedBoxMin[coord];}
 	float getSeedRegionMax(int coord){ return seedBoxMax[coord];}
 	
 	int calcMaxPoints();
-	int calcNumSeedPoints(bool rake, int timeStep);
+	int calcNumSeedPoints(int timeStep);
 	
 	int getNumInjections() { return numInjections;}
 	int getFirstDisplayFrame() {return firstDisplayFrame;}
@@ -266,6 +271,7 @@ public:
 	std::vector<int>& getUnsteadyTimesteps() { return unsteadyTimestepList;}
 	
 
+	
 protected:
 	//Tags for attributes in session save
 	//Top level labels
@@ -325,7 +331,8 @@ protected:
 	static const string _unsteadyDirectionAttr;
 	static const string _steadyFlowLengthAttr;
 	
-	
+	//Insert seeds in a pathLineData for the specified time step.
+	int insertSeeds(VaporFlow* fLib, PathLineData* pathLines, int timeStep);
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 	
 	//check if vector field is present for a timestep
