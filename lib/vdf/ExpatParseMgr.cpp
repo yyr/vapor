@@ -125,14 +125,16 @@ void ExpatParseMgr::parse(ifstream &is) {
 	XML_ParserFree(_expatParser);
 
     if (is.bad()) {
-		SetErrMsg("Error reading XML file");
+		SetErrMsg("IO Error reading XML file");
         return;
     }
     is.close();
 
 	int level = (int) _expatStateStack.size() - 1;  // XML tree depth
 	if (level != -1) {
-		SetErrMsg("Error reading XML file");
+		string msg("Error parsing XML file : ");
+		msg.append(GetErrMsg());
+		SetErrMsg(msg.c_str());
         return;
     }
 
@@ -145,6 +147,7 @@ ExpatParseMgr::~ExpatParseMgr() {
 void	ExpatParseMgr::_startElementHandler(
 	const XML_Char *tag, const char **attrs
 ) {
+
 	string tagstr(tag);
 	int level = (int) _expatStateStack.size(); // xml tree depth
 
