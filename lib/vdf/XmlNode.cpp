@@ -27,7 +27,6 @@
 using namespace VAPoR;
 using namespace VetsUtil;
 
-
 XmlNode::XmlNode(
 	const string &tag, const map <string, string> &attrs, 
 	size_t numChildrenHint
@@ -43,10 +42,23 @@ XmlNode::XmlNode(
 	_emptyDoubleVec.clear();
 	_emptyString.clear();
 	_asciiLimit = 1024;
+	_parent = NULL;
 
 	if (numChildrenHint) _children.reserve(numChildrenHint);
 
 	_objInitialized = 1;
+}
+
+
+XmlNode::XmlNode(const XmlNode &node) 
+{
+	*this = node;
+	this->_children.clear();
+	for (int i=0; i<node._children.size(); i++) {
+		XmlNode *child = node._children[i];
+		XmlNode *newchild = child->Clone();
+		this->AddChild(newchild);
+	}
 }
 
 XmlNode::~XmlNode() {
@@ -176,7 +188,7 @@ XmlNode	*XmlNode::NewChild(
 	size_t numChildrenHint
 ) {
 
-	XmlNode	*node = new XmlNode(tag, attrs, numChildrenHint);
+	XmlNode	*node = Construct(tag, attrs, numChildrenHint);
 	// need to check for error
 	assert(node != NULL);
 
@@ -187,6 +199,7 @@ XmlNode	*XmlNode::NewChild(
 
 void    XmlNode::AddChild( XmlNode* child)
 {
+	child->_parent = this;
 	_children.push_back(child);
 	return;
 }
@@ -201,6 +214,20 @@ int	XmlNode::DeleteChild(size_t index) {
 	if (node) delete node;
 
 	_children.erase(_children.begin()+index);
+	return(0);
+}
+
+int	XmlNode::DeleteChild(const string &tag) {
+	XmlNode *child;
+
+	for (size_t i = 0; i<_children.size(); i++) {
+		if (! (child = GetChild(i))) return(-1);
+	
+		if (StrCmpNoCase(child->_tag, tag) == 0) {
+			DeleteChild(i);
+			return(0);
+		}
+	}
 	return(0);
 }
 
