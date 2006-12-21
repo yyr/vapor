@@ -66,13 +66,35 @@ public:
 	const string &tag, const map<string, string> &attrs, 
 	size_t numChildrenHint = 0
  );
- ~XmlNode();
+
+ virtual XmlNode *Construct(
+	const string &tag, const map<string, string> &attrs, 
+	size_t numChildrenHint = 0
+ ) {return(new XmlNode( tag, attrs, numChildrenHint)); }
+
+ //! Copy constructor for the XmlNode class.
+ //!
+ //! Create's a new XmlNode node from an existing one.
+ //!
+ //! \param[in] node XmlNode instance from which to construct a copy
+ //! 
+ XmlNode(const XmlNode &node);
+
+ virtual XmlNode *Clone() {return new XmlNode(*this); };
+
+ virtual ~XmlNode();
 
  //! Set or get that node's tag (name)
  //!
  //! \retval tag A reference to the node's tag
  //
  string &Tag() { return (_tag); }
+
+ //! Set or get that node's attributes
+ //!
+ //! \retval attrs A reference to the node's attributes
+ //
+ map <string, string> &Attrs() { return (_attrmap); }
 
  // These methods set or get XML character data, possibly formatting
  // the data in the process. The paramter 'tag' identifies the XML
@@ -98,7 +120,7 @@ public:
  //!
  //! \retval status Returns a reference to vector containing the data
  //
- vector<long> &SetElementLong(
+ virtual vector<long> &SetElementLong(
 	const string &tag, const vector<long> &values
  );
 
@@ -112,14 +134,14 @@ public:
  //! \param[in] tag Name of element
  //! \retval vector Vector of longs associated with the named elemented
  //!
- vector<long> &GetElementLong(const string &tag);
+ virtual vector<long> &GetElementLong(const string &tag);
 
  //! Return true if the named element of type long exists
  //!
  //! \param[in] tag Name of element
  //! \retval bool 
  //!
- int HasElementLong(const string &tag) const;
+ virtual int HasElementLong(const string &tag) const;
 
  //! Set an Xml element of type double
  //!
@@ -132,7 +154,7 @@ public:
  //!
  //! \retval status Returns a reference to vector containing the data
  //
- vector<double> &SetElementDouble(
+ virtual vector<double> &SetElementDouble(
 	const string &tag, const vector<double> &values
  );
 
@@ -146,14 +168,14 @@ public:
  //! \param[in] tag Name of element
  //! \retval vector Vector of doubles associated with the named elemented
  //!
- vector<double> &GetElementDouble(const string &tag);
+ virtual vector<double> &GetElementDouble(const string &tag);
 
  //! Return true if the named element of type double exists
  //!
  //! \param[in] tag Name of element
  //! \retval bool 
  //!
- int HasElementDouble(const string &tag) const;
+ virtual int HasElementDouble(const string &tag) const;
 
  //! Set an Xml element of type string
  //!
@@ -167,7 +189,7 @@ public:
  //! \retval status Returns a non-negative value on success
  //! \retval status Returns a reference to string containing the data
  //
- string &SetElementString(const string &tag, const string &str);
+ virtual string &SetElementString(const string &tag, const string &str);
 
  //! Get an Xml element's data of type string
  //!
@@ -179,14 +201,14 @@ public:
  //! \param[in] tag Name of element
  //! \retval vector Vector of doubles associated with the named elemented
  //!
- string &GetElementString(const string &tag);
+ virtual string &GetElementString(const string &tag);
 
  //! Return true if the named element of type string exists
  //!
  //! \param[in] tag Name of element
  //! \retval bool 
  //!
- int HasElementString(const string &tag) const;
+ virtual int HasElementString(const string &tag) const;
 
  //! Return the number of children nodes this node has
  //!
@@ -206,11 +228,11 @@ public:
  //!
  //! \param[in] child is the XmlNode object to be added as a child
  //
- void AddChild(
+ virtual void AddChild(
     XmlNode* child
  );
 
- int GetNumChildren() const { return (int)(_children.size());};
+ virtual int GetNumChildren() const { return (int)(_children.size());};
 
  //! Create a new child of this node
  //!
@@ -225,7 +247,7 @@ public:
  //! \retval child Returns the newly created child, or NULL if the child
  //! could not be created
  //
- XmlNode *NewChild(
+ virtual XmlNode *NewChild(
 	const string &tag, const map <string, string> &attrs, 
 	size_t numChildrenHint = 0
  );
@@ -239,7 +261,8 @@ public:
  //! \param[in] index Index of the child. The first child is zero
  //! \retval status Returns a non-negative value on success
  //! \sa GetNumChildren()
- int	DeleteChild(size_t index);
+ virtual int	DeleteChild(size_t index);
+ virtual int	DeleteChild(const string &tag);
 
  //! Return the indicated child node. 
  //!
@@ -252,14 +275,23 @@ public:
  //! could does not exist
  //! \sa GetNumChildren()
  //
- XmlNode *GetChild(size_t index);
+ virtual XmlNode *GetChild(size_t index);
+
+ //! Return the node's parent
+ //!
+ //! This method returns a pointer to the parent node, or NULL if this
+ //! node is the root of the tree.
+ //!
+ //! \retval node Pointer to parent node or NULL if no parent exists
+ //
+ virtual XmlNode *GetParent() {return(_parent);}
 
  //! Return true if the indicated child node exists
  //!
  //! \param[in] index Index of the child. The first child is zero
  //! \retval bool 
  //!
- int HasChild(size_t index);
+ virtual int HasChild(size_t index);
 
  //! Return the indicated child node. 
  //!
@@ -269,14 +301,14 @@ public:
  //! \retval child Returns the indicated child, or NULL if the child
  //! could does not exist
  //
- XmlNode *GetChild(const string &tag);
+ virtual XmlNode *GetChild(const string &tag);
 
  //! Return true if the indicated child node exists
  //!
  //! \param[in] tag Name of the child node 
  //! \retval bool 
  //!
- int HasChild(const string &tag);
+ virtual int HasChild(const string &tag);
 
  //! Write the XML tree, rooted at this node, to a file in XML format
  //
@@ -299,6 +331,7 @@ private:
  vector <double> _emptyDoubleVec;
  string _emptyString;
  size_t _asciiLimit;	// length limit beyond which element data are encoded
+ XmlNode *_parent;	// Node's parent
 
  // Recursively delete all chidren of the specified node. The node itself
  // is not deleted.
