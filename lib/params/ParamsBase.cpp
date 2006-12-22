@@ -22,6 +22,7 @@
 //
 
 #include "ParamsBase.h"
+#include "assert.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;

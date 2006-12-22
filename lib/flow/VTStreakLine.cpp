@@ -62,12 +62,11 @@ void vtCStreakLine::computeStreakLine(const float t,
 {
 	float currentT = t;
 	float finalT = currentT + m_timeDir;
-	int numPreParticles;
+	
 	vector<vtListParticleIter> deadList;
 	int istat;
 
-	// how many particles alive from last time
-	numPreParticles = (int)m_itsParticles.size();
+	
 #ifdef DEBUG
 	fprintf(fDebug, "**********************Advect Old Particles**************************\n");
 #endif
@@ -269,12 +268,11 @@ void vtCStreakLine::computeStreakLine(const float t,
 {
 	float currentT = t;
 	float finalT = currentT + m_timeDir;
-	int numPreParticles;
+	
 	vector<vtListParticleIter> deadList;
 	int istat;
 	int dir = container->getFlowDirection();
-	// how many particles alive from last time
-	numPreParticles = (int)m_itsParticles.size();
+	
 #ifdef DEBUG
 	fprintf(fDebug, "**********************Advect Old Particles**************************\n");
 #endif

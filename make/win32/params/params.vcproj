@@ -154,7 +154,16 @@
 				RelativePath="..\..\..\lib\params\OpacityMap.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\ParamNode.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\params.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\ParamsBase.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\ParamsIso.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\probeparams.cpp">
@@ -210,7 +219,16 @@
 				RelativePath="..\..\..\lib\params\OpacityMap.h">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\ParamNode.h">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\params.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\ParamsBase.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\ParamsIso.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\probeparams.h">

@@ -75,7 +75,7 @@ namespace VAPoR
 		
 		float* GetData(size_t ts, const char* varName);
 		bool regionPeriodicDim(int i) {return (periodicDim[i] && fullInDim[i]);}
-		void VaporFlow::SetPrioritizationField(const char* varx, const char* vary, const char* varz,
+		void SetPrioritizationField(const char* varx, const char* vary, const char* varz,
 			float minField = 0.f, float maxField = 1.e30f);
 		
 
