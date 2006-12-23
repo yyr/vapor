@@ -32,6 +32,12 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	ySeedDistVarName = NULL;
 	zSeedDistVarName = NULL;
 
+	minPriorityVal = 0.f;
+	maxPriorityVal = 1.e30;
+	minSeedDistVal = 0.f;
+	maxSeedDistVal = 1.e30;
+	seedDistBias = 0.f;
+
 	numXForms = 0;
 	for (int i = 0; i< 3; i++){
 		minBlkRegion[i] = 0;
@@ -403,7 +409,7 @@ float VaporFlow::priorityVal(float point[3], CVectorField* pField, Grid* myGrid)
 	if (rc < 0) return -1.f;
 	return vel.GetMag();
 }
-void VaporFlow::SetPrioritizationField(const char* varx, const char* vary, const char* varz,
+void VaporFlow::SetPriorityField(const char* varx, const char* vary, const char* varz,
 									   float minField , float maxField)
 {
 	if(!xPriorityVarName)
@@ -418,6 +424,32 @@ void VaporFlow::SetPrioritizationField(const char* varx, const char* vary, const
 	minPriorityVal = minField;
 	maxPriorityVal = maxField;
 }					
+void VaporFlow::SetDistributedSeedPoints(const float min[3], const float max[3], int numSeeds, 
+	const char* varx, const char* vary, const char* varz, float bias, float minField, float maxField)
+{
+	for(int iFor = 0; iFor < 3; iFor++)
+	{
+		minRakeExt[iFor] = min[iFor];
+		maxRakeExt[iFor] = max[iFor];
+	}
+	this->numSeeds[0] = numSeeds;
+	this->numSeeds[1] = 1;
+	this->numSeeds[2] = 1;
+
+	bUseRandomSeeds = true;
+	if(!xSeedDistVarName)
+		xSeedDistVarName = new char[260];
+	if(!ySeedDistVarName)
+		ySeedDistVarName = new char[260];
+	if(!zSeedDistVarName)
+		zSeedDistVarName = new char[260];
+	strcpy(xSeedDistVarName, varx);
+	strcpy(ySeedDistVarName, vary);
+	strcpy(zSeedDistVarName, varz); 
+	minSeedDistVal = minField;
+	maxSeedDistVal = maxField;
+	seedDistBias = bias;
+}			
 
 bool VaporFlow::GenStreamLines(FlowLineData* container, unsigned int randomSeed){
 	// first generate seeds

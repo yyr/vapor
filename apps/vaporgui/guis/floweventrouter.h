@@ -117,6 +117,12 @@ protected slots:
 	void guiSetXComboUnsteadyVarNum(int varnum);
 	void guiSetYComboUnsteadyVarNum(int varnum);
 	void guiSetZComboUnsteadyVarNum(int varnum);
+	void guiSetXComboSeedDistVarNum(int varnum);
+	void guiSetYComboSeedDistVarNum(int varnum);
+	void guiSetZComboSeedDistVarNum(int varnum);
+	void guiSetXComboPriorityVarNum(int varnum);
+	void guiSetYComboPriorityVarNum(int varnum);
+	void guiSetZComboPriorityVarNum(int varnum);
 	
 	void guiCheckPeriodicX(bool periodic);
 	void guiCheckPeriodicY(bool periodic);

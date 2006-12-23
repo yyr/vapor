@@ -133,6 +133,18 @@ FlowEventRouter::hookUpTab()
 	connect (xUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboUnsteadyVarNum(int)));
 	connect (yUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboUnsteadyVarNum(int)));
 	connect (zUnsteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboUnsteadyVarNum(int)));
+	connect (xSeedDistCombo1,SIGNAL(activated(int)), this, SLOT(guiSetXComboSeedDistVarNum(int)));
+	connect (ySeedDistCombo1,SIGNAL(activated(int)), this, SLOT(guiSetYComboSeedDistVarNum(int)));
+	connect (zSeedDistCombo1,SIGNAL(activated(int)), this, SLOT(guiSetZComboSeedDistVarNum(int)));
+	connect (xSeedDistCombo2,SIGNAL(activated(int)), this, SLOT(guiSetXComboSeedDistVarNum(int)));
+	connect (ySeedDistCombo2,SIGNAL(activated(int)), this, SLOT(guiSetYComboSeedDistVarNum(int)));
+	connect (zSeedDistCombo2,SIGNAL(activated(int)), this, SLOT(guiSetZComboSeedDistVarNum(int)));
+	connect (xSeedDistCombo3,SIGNAL(activated(int)), this, SLOT(guiSetXComboSeedDistVarNum(int)));
+	connect (ySeedDistCombo3,SIGNAL(activated(int)), this, SLOT(guiSetYComboSeedDistVarNum(int)));
+	connect (zSeedDistCombo3,SIGNAL(activated(int)), this, SLOT(guiSetZComboSeedDistVarNum(int)));
+	connect (xSeedPriorityCombo,SIGNAL(activated(int)), this, SLOT(guiSetXComboPriorityVarNum(int)));
+	connect (ySeedPriorityCombo,SIGNAL(activated(int)), this, SLOT(guiSetYComboPriorityVarNum(int)));
+	connect (zSeedPriorityCombo,SIGNAL(activated(int)), this, SLOT(guiSetZComboPriorityVarNum(int)));
 	
 	connect (rakeListCombo,SIGNAL(activated(int)),this, SLOT(guiSetRakeList(int)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowXCenter()));
@@ -201,6 +213,29 @@ FlowEventRouter::hookUpTab()
 	connect (timesampleEndEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (timesampleIncrementEdit2,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (timesampleIncrementEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	
+	connect (priorityFieldMinEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (priorityFieldMinEdit, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (priorityFieldMaxEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (priorityFieldMaxEdit, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (seedDistributionMin1, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (seedDistributionMin1, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (seedDistributionMax1, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (seedDistributionMax1, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (seedDistributionMin2, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (seedDistributionMin2, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (seedDistributionMax2, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (seedDistributionMax2, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (seedDistributionMin3, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (seedDistributionMin3, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (seedDistributionMax3, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (seedDistributionMax3, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (biasEdit1, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (biasEdit1, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (biasEdit2, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (biasEdit2, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (biasEdit3, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (biasEdit3, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	
 	connect (randomSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (randomSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -378,6 +413,7 @@ void FlowEventRouter::populateTimestepTables(){
 
 void FlowEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
+
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "edit Flow text");
 	if (mapBoundsChanged){
@@ -418,7 +454,9 @@ void FlowEventRouter::confirmText(bool /*render*/){
 	if (flowDataChanged){
 		//Do settings that depend on flowType:
 		if (flowType == 0){
-			
+			fParams->setSeedDistBias(biasEdit1->text().toFloat());
+			fParams->setSeedDistMin(seedDistributionMin1->text().toFloat());
+			fParams->setSeedDistMax(seedDistributionMax1->text().toFloat());
 			if (!autoscale){
 				int sampleRate = steadySamplesEdit1->text().toInt();
 				if (sampleRate < 2 || sampleRate > 2000){
@@ -454,6 +492,9 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		}
 
 		if (flowType == 1){
+			fParams->setSeedDistBias(biasEdit2->text().toFloat());
+			fParams->setSeedDistMin(seedDistributionMin2->text().toFloat());
+			fParams->setSeedDistMax(seedDistributionMax2->text().toFloat());
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
@@ -498,6 +539,11 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		}
 
 		if(flowType == 2) {//Flow line advection only
+			fParams->setPriorityMin(priorityFieldMinEdit->text().toFloat());
+			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
+			fParams->setSeedDistBias(biasEdit3->text().toFloat());
+			fParams->setSeedDistMin(seedDistributionMin3->text().toFloat());
+			fParams->setSeedDistMax(seedDistributionMax3->text().toFloat());
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit2->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit2->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit2->text().toInt());
@@ -860,7 +906,8 @@ void FlowEventRouter::updateTab(){
 			wizardButton->setText("Unsteady Flow Setup");
 			unsteadyGraphicFrame->show();
 			steadyAutoGraphicFrame->hide();
-			
+			seedtimeIncrementEdit->setEnabled(true);
+			seedtimeEndEdit->setEnabled(true);
 			seedTimeFrame->show();
 			
 			colormapEntityCombo->changeItem("Time Step",1);
@@ -883,6 +930,8 @@ void FlowEventRouter::updateTab(){
 				steadySamplesEdit2->setEnabled(true);
 				steadyScaleEdit2->setEnabled(true);
 			}
+			seedtimeIncrementEdit->setEnabled(false);
+			seedtimeEndEdit->setEnabled(false);
 			seedTimeFrame->show();
 			
 			colormapEntityCombo->changeItem("Time Step",1);
@@ -904,6 +953,7 @@ void FlowEventRouter::updateTab(){
 		
 		switch (flowType){
 			case (0) : //steady
+
 				advancedSteadyFrame->show();
 				advancedUnsteadyFrame->hide();
 				advancedLineAdvectionFrame->hide();
@@ -913,6 +963,15 @@ void FlowEventRouter::updateTab(){
 				autoScaleCheckbox1->setChecked(autoScale);
 				steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
 				steadyScaleEdit1->setEnabled(!autoScale);
+				xSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(0));
+				ySeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(1));
+				zSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(2));
+				biasEdit1->setText(QString::number(fParams->getSeedDistBias()));
+				seedDistributionMin1->setText(QString::number(fParams->getSeedDistMin()));
+				seedDistributionMax1->setText(QString::number(fParams->getSeedDistMax()));
+				fParams->setSeedDistBias(biasEdit2->text().toFloat());
+				fParams->setSeedDistMin(seedDistributionMin2->text().toFloat());
+				fParams->setSeedDistMax(seedDistributionMax2->text().toFloat());
 				break;
 			case (1) : //unsteady
 				advancedSteadyFrame->hide();
@@ -924,6 +983,12 @@ void FlowEventRouter::updateTab(){
 				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
 				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
 				populateTimestepTables();
+				xSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(0));
+				ySeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(1));
+				zSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(2));
+				biasEdit2->setText(QString::number(fParams->getSeedDistBias()));
+				seedDistributionMin2->setText(QString::number(fParams->getSeedDistMin()));
+				seedDistributionMax2->setText(QString::number(fParams->getSeedDistMax()));
 				break;
 			case(2) : //field line advection
 				advancedSteadyFrame->hide();
@@ -938,6 +1003,17 @@ void FlowEventRouter::updateTab(){
 				steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
 				steadyScaleEdit2->setEnabled(!autoScale);
 				populateTimestepTables();
+				xSeedDistCombo3->setCurrentItem(fParams->getComboSeedDistVarnum(0));
+				ySeedDistCombo3->setCurrentItem(fParams->getComboSeedDistVarnum(1));
+				zSeedDistCombo3->setCurrentItem(fParams->getComboSeedDistVarnum(2));
+				xSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(0));
+				ySeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(1));
+				zSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(2));
+				biasEdit3->setText(QString::number(fParams->getSeedDistBias()));
+				seedDistributionMin3->setText(QString::number(fParams->getSeedDistMin()));
+				seedDistributionMax3->setText(QString::number(fParams->getSeedDistMax()));
+				priorityFieldMinEdit->setText(QString::number(fParams->getPriorityMin()));
+				priorityFieldMaxEdit->setText(QString::number(fParams->getPriorityMax()));
 				break;
 			default :
 				assert(0);
@@ -1084,6 +1160,10 @@ void FlowEventRouter::updateTab(){
 	}
 	if (flowType == 2) {
 		steadySamplesSlider2->setValue((int)(256.0*log10((float)fParams->getObjectsPerFlowline()/2.f)*0.33333));
+		//Set the combo to display "bidirectional" and be disabled.
+		unsteadyDirectionCombo->setSizeLimit(3);
+		unsteadyDirectionCombo->setCurrentItem(2);
+		unsteadyDirectionCombo->setEnabled(false);
 	}
 	
 	//Put all the setText messages here, so they won't trigger a textChanged message
@@ -1094,10 +1174,14 @@ void FlowEventRouter::updateTab(){
 			steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
 			steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
 		}
-	} 
+	} else {//set the combo to just show forward & backward and be enabled
+		unsteadyDirectionCombo->setCurrentItem((1-fParams->getUnsteadyDirection())/2);
+		unsteadyDirectionCombo->setSizeLimit(2);
+		unsteadyDirectionCombo->setEnabled(true);
+	}
 	if (flowType != 0) {
 		unsteadyScaleEdit->setText(QString::number(fParams->getUnsteadyScale()));
-		unsteadyDirectionCombo->setCurrentItem((1-fParams->getUnsteadyDirection())/2);
+		
 	}
 	integrationAccuracyEdit->setText(QString::number(fParams->getIntegrationAccuracy()));
 
@@ -1212,6 +1296,30 @@ reinitTab(bool doOverride){
 	yUnsteadyVarCombo->setMaxCount(newNumComboVariables);
 	zUnsteadyVarCombo->clear();
 	zUnsteadyVarCombo->setMaxCount(newNumComboVariables);
+	xSeedPriorityCombo->clear();
+	xSeedPriorityCombo->setMaxCount(newNumComboVariables);
+	ySeedPriorityCombo->clear();
+	ySeedPriorityCombo->setMaxCount(newNumComboVariables);
+	zSeedPriorityCombo->clear();
+	zSeedPriorityCombo->setMaxCount(newNumComboVariables);
+	xSeedDistCombo1->clear();
+	xSeedDistCombo1->setMaxCount(newNumComboVariables);
+	ySeedDistCombo1->clear();
+	ySeedDistCombo1->setMaxCount(newNumComboVariables);
+	zSeedDistCombo1->clear();
+	zSeedDistCombo1->setMaxCount(newNumComboVariables);
+	xSeedDistCombo2->clear();
+	xSeedDistCombo2->setMaxCount(newNumComboVariables);
+	ySeedDistCombo2->clear();
+	ySeedDistCombo2->setMaxCount(newNumComboVariables);
+	zSeedDistCombo2->clear();
+	zSeedDistCombo2->setMaxCount(newNumComboVariables);
+	xSeedDistCombo3->clear();
+	xSeedDistCombo3->setMaxCount(newNumComboVariables);
+	ySeedDistCombo3->clear();
+	ySeedDistCombo3->setMaxCount(newNumComboVariables);
+	zSeedDistCombo3->clear();
+	zSeedDistCombo3->setMaxCount(newNumComboVariables);
 
 	for (int i = 0; i< newNumComboVariables; i++){
 		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
@@ -1224,6 +1332,18 @@ reinitTab(bool doOverride){
 		xUnsteadyVarCombo->insertItem(text);
 		yUnsteadyVarCombo->insertItem(text);
 		zUnsteadyVarCombo->insertItem(text);
+		xSeedDistCombo1->insertItem(text);
+		ySeedDistCombo1->insertItem(text);
+		zSeedDistCombo1->insertItem(text);
+		xSeedDistCombo2->insertItem(text);
+		ySeedDistCombo2->insertItem(text);
+		zSeedDistCombo2->insertItem(text);
+		xSeedDistCombo3->insertItem(text);
+		ySeedDistCombo3->insertItem(text);
+		zSeedDistCombo3->insertItem(text);
+		xSeedPriorityCombo->insertItem(text);
+		ySeedPriorityCombo->insertItem(text);
+		zSeedPriorityCombo->insertItem(text);
 	}
 	std::vector<string> colorMapEntity;
 	std::vector<string> opacMapEntity;
@@ -1485,6 +1605,72 @@ guiSetZComboSteadyVarNum(int varnum){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z steady field variable");
 	fParams->setComboSteadyVarnum(2,varnum);
 	fParams->setZSteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand::captureEnd(cmd, fParams);
+	
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::
+guiSetXComboSeedDistVarNum(int varnum){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set X seed distribution field variable");
+	fParams->setComboSeedDistVarnum(0,varnum);
+	fParams->setXSeedDistVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand::captureEnd(cmd, fParams);
+	
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::
+guiSetYComboSeedDistVarNum(int varnum){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Y seed distribution field variable");
+	fParams->setComboSeedDistVarnum(1,varnum);
+	fParams->setYSeedDistVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand::captureEnd(cmd, fParams);
+	
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::
+guiSetZComboSeedDistVarNum(int varnum){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z seed distribution field variable");
+	fParams->setComboSeedDistVarnum(2,varnum);
+	fParams->setZSeedDistVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand::captureEnd(cmd, fParams);
+	
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::
+guiSetXComboPriorityVarNum(int varnum){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set X seed prioritization field variable");
+	fParams->setComboPriorityVarnum(0,varnum);
+	fParams->setXPriorityVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand::captureEnd(cmd, fParams);
+	
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::
+guiSetYComboPriorityVarNum(int varnum){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Y seed prioritization field variable");
+	fParams->setComboPriorityVarnum(1,varnum);
+	fParams->setYPriorityVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
+	PanelCommand::captureEnd(cmd, fParams);
+	
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+void FlowEventRouter::
+guiSetZComboPriorityVarNum(int varnum){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z seed prioritization field variable");
+	fParams->setComboPriorityVarnum(2,varnum);
+	fParams->setZPriorityVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1835,6 +2021,8 @@ void FlowEventRouter::
 guiToggleAutoScale(bool on){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	confirmText(false);
+	bool wasOn = fParams->isAutoScale();
+	if (wasOn == on) return;
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle auto scale steady field");
 	fParams->setAutoScale(on);
 	//Refresh if we are turning it on...

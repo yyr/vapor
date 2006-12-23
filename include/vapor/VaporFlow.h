@@ -52,6 +52,8 @@ namespace VAPoR
 		void SetRandomSeedPoints(const float min[3], const float max[3], int numSeeds);
 		void SetRegularSeedPoints(const float min[3], const float max[3], const size_t numSeeds[3]);
 		void SetIntegrationParams(float initStepSize, float maxStepSize);
+		void SetDistributedSeedPoints(const float min[3], const float max[3], int numSeeds, 
+			const char* xvar, const char* yvar, const char* zvar, float bias, float minField, float maxField);
 		
 		//New version for API.  Uses rake, then puts integration results in container
 		bool GenStreamLines(FlowLineData* container, unsigned int randomSeed);
@@ -75,7 +77,7 @@ namespace VAPoR
 		
 		float* GetData(size_t ts, const char* varName);
 		bool regionPeriodicDim(int i) {return (periodicDim[i] && fullInDim[i]);}
-		void SetPrioritizationField(const char* varx, const char* vary, const char* varz,
+		void SetPriorityField(const char* varx, const char* vary, const char* varz,
 			float minField = 0.f, float maxField = 1.e30f);
 		
 
@@ -132,6 +134,7 @@ namespace VAPoR
 		float flowPeriod[3];						//Used if data is periodic
 		float* flowLineAdvectionSeeds;
 		float minPriorityVal, maxPriorityVal;
+		float minSeedDistVal, maxSeedDistVal, seedDistBias;
 		int currentFlowAdvectionTime;
 	};
 };

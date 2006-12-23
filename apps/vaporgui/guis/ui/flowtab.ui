@@ -1222,6 +1222,11 @@
                                                                     <string>Backward</string>
                                                                 </property>
                                                             </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>Bidirectional</string>
+                                                                </property>
+                                                            </item>
                                                             <property name="name">
                                                                 <cstring>unsteadyDirectionCombo</cstring>
                                                             </property>
@@ -1230,6 +1235,9 @@
                                                             </property>
                                                             <property name="sizeLimit">
                                                                 <number>2</number>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the time-direction of unsteady flow integration</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -1379,7 +1387,7 @@
                                                                 <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>This factor scales the vector field magnitude.  If too small, display will just show diamonds (fixed points).  If too large, flow will consist of straight lines due to flow rapidly exiting region.</string>
+                                                                <string>This factor scales the vector field magnitude. Must be consistent with simulation time step size and domain size.</string>
                                                                 <comment>Comment is here</comment>
                                                             </property>
                                                         </widget>
@@ -5389,7 +5397,7 @@
                                                         <set>AlignHCenter</set>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
-                                                        <string>Specify the (first) time step for seed points</string>
+                                                        <string>Specify the first time step for seed points</string>
                                                     </property>
                                                 </widget>
                                                 <widget class="QLineEdit">
@@ -5409,7 +5417,7 @@
                                                         <set>AlignHCenter</set>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
-                                                        <string>Specify the end time step for seed points</string>
+                                                        <string>Specify the end time step for unsteady seed points</string>
                                                     </property>
                                                 </widget>
                                                 <widget class="QLineEdit">
@@ -5432,7 +5440,7 @@
                                                         <string></string>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
-                                                        <string>Specify the time step between seeding times</string>
+                                                        <string>Specify the time step difference between unsteady flowseeding times</string>
                                                     </property>
                                                 </widget>
                                                 <spacer>

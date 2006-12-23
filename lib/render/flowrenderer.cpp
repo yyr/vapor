@@ -143,11 +143,11 @@ void FlowRenderer::paintGL()
 	constFlowColor[2] = qBlue(constRgb)/255.f;
 
 	//Check if the cache needs rebuilding, and/or rgba's need rebuilding:
-	if (flowMapIsDirty(timeStep) || (flowDataIsDirty(timeStep) && needsRefresh(myFlowParams,timeStep))){
+	if ((flowDataIsDirty(timeStep) && needsRefresh(myFlowParams,timeStep))){
 		if(!rebuildFlowData(timeStep)) return;
 		didRebuild = true;
 	} else { //just rebuild the rgba's if necessary:
-		if (flowMapIsDirty(timeStep)){
+		if (!constColors && flowMapIsDirty(timeStep)){
 			if (flowType != 1)
 				myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
 			else 
@@ -762,7 +762,7 @@ void FlowRenderer::setDataDirty()
 void FlowRenderer::setGraphicsDirty()
 {
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
-	//the graphics bit shouldn't be set is speeds are being mapped?
+	//the graphics bit shouldn't be set if speeds are being mapped?
 	//
 	//assert((myFlowParams->getOpacMapEntityIndex() != 2)&&(myFlowParams->getColorMapEntityIndex() != 2));
 	if ((myFlowParams->getOpacMapEntityIndex() == 2)||(myFlowParams->getColorMapEntityIndex() == 2)){

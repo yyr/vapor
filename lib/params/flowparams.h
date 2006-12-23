@@ -228,12 +228,52 @@ public:
 	void setSteadyScale(float val){steadyScale = val;}
 	void setUnsteadyScale(float val){unsteadyScale = val;}
 	
-	void setXSteadyVarNum(int varnum){magChanged = true; steadyVarNum[0] = varnum;}
-	void setYSteadyVarNum(int varnum){magChanged = true; steadyVarNum[1] = varnum;}
-	void setZSteadyVarNum(int varnum){magChanged = true; steadyVarNum[2] = varnum;}
+	void setXSteadyVarNum(int varnum){magChanged = true; steadyVarNum[0] = varnum;
+		if (priorityIsSteady) priorityVarNum[0] = varnum;
+		if (seedDistIsSteady) seedDistVarNum[0] = varnum;
+	}
+	void setYSteadyVarNum(int varnum){magChanged = true; steadyVarNum[1] = varnum;
+		if (priorityIsSteady) priorityVarNum[1] = varnum;
+		if (seedDistIsSteady) seedDistVarNum[1] = varnum;
+	}
+	void setZSteadyVarNum(int varnum){magChanged = true; steadyVarNum[2] = varnum;
+		if (priorityIsSteady) priorityVarNum[2] = varnum;
+		if (seedDistIsSteady) seedDistVarNum[2] = varnum;
+	}
 	void setXUnsteadyVarNum(int varnum){unsteadyVarNum[0] = varnum;}
 	void setYUnsteadyVarNum(int varnum){unsteadyVarNum[1] = varnum;}
 	void setZUnsteadyVarNum(int varnum){unsteadyVarNum[2] = varnum;}
+	//When seed dist or priority vars are changed (!= steady), set the flags too.
+	void setXSeedDistVarNum(int varnum){seedDistVarNum[0] = varnum;
+		if (varnum != steadyVarNum[0]) seedDistIsSteady = false;
+	}
+	void setYSeedDistVarNum(int varnum){seedDistVarNum[1] = varnum;
+		if (varnum != steadyVarNum[1]) seedDistIsSteady = false;
+	}
+	void setZSeedDistVarNum(int varnum){seedDistVarNum[2] = varnum;
+		if (varnum != steadyVarNum[2]) seedDistIsSteady = false;
+	}
+	void setXPriorityVarNum(int varnum){priorityVarNum[0] = varnum;
+		if (varnum != steadyVarNum[0]) priorityIsSteady = false;
+	}
+	void setYPriorityVarNum(int varnum){priorityVarNum[1] = varnum;
+		if (varnum != steadyVarNum[1]) priorityIsSteady = false;
+	}
+	void setZPriorityVarNum(int varnum){priorityVarNum[2] = varnum;
+		if (varnum != steadyVarNum[2]) priorityIsSteady = false;
+	}
+	
+	void setPriorityMin(float val){priorityMin = val;}
+	void setPriorityMax(float val){priorityMax = val;}
+	void setSeedDistMin(float val){seedDistMin = val;}
+	void setSeedDistMax(float val){seedDistMax = val;}
+	void setSeedDistBias(float val){seedDistBias = val;}
+	float getPriorityMin(){return priorityMin;}
+	float getPriorityMax(){return priorityMax;}
+	float getSeedDistMin(){return seedDistMin;}
+	float getSeedDistMax(){return seedDistMax;}
+	float getSeedDistBias(){return seedDistBias;}
+
 
 	void setRandom(bool rand){randomGen = rand;}
 	void setRandomSeed(unsigned int seed){randomSeed = seed;}
@@ -247,6 +287,10 @@ public:
 	int getComboSteadyVarnum(int indx) {return comboSteadyVarNum[indx];}
 	void setComboUnsteadyVarnum(int indx, int varnum){comboUnsteadyVarNum[indx] = varnum;}
 	int getComboUnsteadyVarnum(int indx) {return comboUnsteadyVarNum[indx];}
+	void setComboSeedDistVarnum(int indx, int varnum){comboSeedDistVarNum[indx] = varnum;}
+	int getComboSeedDistVarnum(int indx) {return comboSeedDistVarNum[indx];}
+	void setComboPriorityVarnum(int indx, int varnum){comboPriorityVarNum[indx] = varnum;}
+	int getComboPriorityVarnum(int indx) {return comboPriorityVarNum[indx];}
 	
 	int getNumComboVariables() {return numComboVariables;}
 	// helper functions for writing stream and path lines
@@ -278,6 +322,11 @@ protected:
 	static const string _mappedVariableNamesAttr;//obsolete
 	static const string _steadyVariableNamesAttr;
 	static const string _unsteadyVariableNamesAttr;
+	static const string _seedDistVariableNamesAttr;
+	static const string _priorityVariableNamesAttr;
+	static const string _seedDistBiasAttr;
+	static const string _seedDistBoundsAttr;
+	static const string _priorityBoundsAttr;
 	static const string _steadyFlowAttr;
 	static const string _integrationAccuracyAttr;
 	static const string _velocityScaleAttr;
@@ -331,7 +380,7 @@ protected:
 	static const string _unsteadyDirectionAttr;
 	static const string _steadyFlowLengthAttr;
 	
-	//Insert seeds in a pathLineData for the specified time step.
+	//Insert seeds into a pathLineData at the specified time step.
 	int insertSeeds(VaporFlow* fLib, PathLineData* pathLines, int timeStep);
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 	
@@ -349,23 +398,29 @@ protected:
 	
 	int steadyVarNum[3]; //field variable num's in x, y, and z.
 	int unsteadyVarNum[3]; //field variable num's in x, y, and z.
+	int priorityVarNum[3]; //varnum for priority field
+	int seedDistVarNum[3]; //varnum for seed distrib
 	int comboSteadyVarNum[3];  //indices in combos
 	int comboUnsteadyVarNum[3];  //indices in combos
+	int comboPriorityVarNum[3];
+	int comboSeedDistVarNum[3];
+	bool seedDistIsSteady; //Seed distrib field same as steady field
+	bool priorityIsSteady; //Priority field same as steady field
 	float integrationAccuracy;
 	float steadyScale;
 	float unsteadyScale;
 	float steadySmoothness;
 	
-	
 	int timeSamplingInterval;
 	int timeSamplingStart;
 	int timeSamplingEnd;
 
-	
 	bool editMode;
 	bool randomGen;
 	unsigned int randomSeed;
 	float seedBoxMin[3], seedBoxMax[3];
+	float seedDistBias, seedDistMin, seedDistMax;
+	float priorityMin, priorityMax;
 	
 	size_t generatorCount[3];
 	size_t allGeneratorCount;

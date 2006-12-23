@@ -66,7 +66,12 @@ using namespace VAPoR;
 	const string FlowParams::_mappedVariableNamesAttr = "MappedVariableNames";//obsolete
 	const string FlowParams::_steadyVariableNamesAttr = "SteadyVariableNames";
 	const string FlowParams::_unsteadyVariableNamesAttr = "UnsteadyVariableNames";
-	
+	const string FlowParams::_seedDistVariableNamesAttr = "SeedDistVariableNames";
+	const string FlowParams::_priorityVariableNamesAttr = "PriorityVariableNames";
+	const string FlowParams::_priorityBoundsAttr = "PriorityBounds";
+	const string FlowParams::_seedDistBiasAttr = "SeedDistribBias";
+	const string FlowParams::_seedDistBoundsAttr = "SeedDistribBounds";
+
 	const string FlowParams::_periodicDimsAttr = "PeriodicDimensions";
 	const string FlowParams::_steadyFlowAttr = "SteadyFlow";
 	const string FlowParams::_integrationAccuracyAttr = "IntegrationAccuracy";
@@ -156,7 +161,17 @@ restart() {
 	unsteadyVarNum[0]= 0;
 	unsteadyVarNum[1] = 1;
 	unsteadyVarNum[2] = 2;
-
+	seedDistVarNum[0]= 0;
+	seedDistVarNum[1] = 1;
+	seedDistVarNum[2] = 2;
+	priorityVarNum[0]= 0;
+	priorityVarNum[1] = 1;
+	priorityVarNum[2] = 2;
+	seedDistMin = 0.f;
+	seedDistMax = 1.e30;
+	seedDistBias = 0.f;
+	priorityMin = 0.f;
+	priorityMax = 1.e30f;
 	comboSteadyVarNum[0]= 0;
 	comboSteadyVarNum[1] = 1;
 	comboSteadyVarNum[2] = 2;
@@ -410,6 +425,24 @@ reinit(bool doOverride){
 				}
 			}
 		}
+		if (!DataStatus::getInstance()->variableIsPresent(seedDistVarNum[dim])){
+			seedDistVarNum[dim] = -1;
+			for (i = 0; i<newNumVariables; i++) {
+				if (DataStatus::getInstance()->variableIsPresent(i)){
+					seedDistVarNum[dim] = i;
+					break;
+				}
+			}
+		}
+		if (!DataStatus::getInstance()->variableIsPresent(priorityVarNum[dim])){
+			priorityVarNum[dim] = -1;
+			for (i = 0; i<newNumVariables; i++) {
+				if (DataStatus::getInstance()->variableIsPresent(i)){
+					priorityVarNum[dim] = i;
+					break;
+				}
+			}
+		}
 	}
 	if (steadyVarNum[0] == -1){
 		
@@ -420,6 +453,8 @@ reinit(bool doOverride){
 	for (int dim = 0; dim < 3; dim++){
 		comboSteadyVarNum[dim] = DataStatus::getInstance()->mapRealToMetadataVarNum(steadyVarNum[dim]);
 		comboUnsteadyVarNum[dim] = DataStatus::getInstance()->mapRealToMetadataVarNum(unsteadyVarNum[dim]);
+		comboSeedDistVarNum[dim] = DataStatus::getInstance()->mapRealToMetadataVarNum(seedDistVarNum[dim]);
+		comboPriorityVarNum[dim] = DataStatus::getInstance()->mapRealToMetadataVarNum(priorityVarNum[dim]);
 	}
 	//Set up sampling.  
 	if (doOverride){
@@ -808,6 +843,7 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, Regio
 	zVar = ds->getVariableName(steadyVarNum[2]).c_str();
 	myFlowLib->SetSteadyFieldComponents(xVar, yVar, zVar);
 	
+	
 	myFlowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
 
 	if (!setupFlowRegion(rParams, myFlowLib, timeStep, minFrame)) return 0;
@@ -816,9 +852,12 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, Regio
 	int numSeedPoints;
 	if (doRake){
 		numSeedPoints = getNumRakeSeedPoints();
-		if (randomGen) {
-			myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount);
-			
+		if (randomGen){
+			xVar = ds->getVariableName(seedDistVarNum[0]).c_str();
+			yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
+			zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
+			myFlowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
+				xVar, yVar, zVar, seedDistBias, seedDistMin, seedDistMax);
 		} else {
 			float boxmin[3], boxmax[3];
 			for (int i = 0; i<3; i++){
@@ -966,8 +1005,11 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 		if (doRake){
 			numSeedPoints = getNumRakeSeedPoints();
 			if (randomGen) {
-				myFlowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount);
-				
+				xVar = ds->getVariableName(seedDistVarNum[0]).c_str();
+				yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
+				zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
+				myFlowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
+					xVar, yVar, zVar, seedDistBias, seedDistMin, seedDistMax);
 			} else {
 				float boxmin[3], boxmax[3];
 				for (int i = 0; i<3; i++){
@@ -1141,7 +1183,11 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 	if (doRake){
 		
 		if (randomGen) {
-			flowLib->SetRandomSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount);
+			xVar = ds->getVariableName(seedDistVarNum[0]).c_str();
+			yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
+			zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
+			flowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
+				xVar, yVar, zVar, seedDistBias, seedDistMin, seedDistMax);
 		} else {
 			float boxmin[3], boxmax[3];
 			for (int i = 0; i<3; i++){
@@ -1285,6 +1331,18 @@ buildNode() {
 	attrs[_unsteadyFlowDirectionAttr] = oss.str();
 
 	oss.str(empty);
+	oss << (double)seedDistMin <<" "<<(double)seedDistMax;
+	attrs[_seedDistBoundsAttr] = oss.str();
+	oss.str(empty);
+
+	oss << (double)seedDistBias;
+	attrs[_seedDistBiasAttr] = oss.str();
+	oss.str(empty);
+
+	oss << (double)priorityMin <<" "<<(double)priorityMax;
+	attrs[_priorityBoundsAttr] = oss.str();
+
+	oss.str(empty);
 	oss << (long)timeSamplingStart<<" "<<timeSamplingEnd<<" "<<timeSamplingInterval;
 	attrs[_timeSamplingAttr] = oss.str();
 
@@ -1321,6 +1379,14 @@ buildNode() {
 	oss.str(empty);
 	oss << ds->getVariableName(unsteadyVarNum[0])<<" "<<ds->getVariableName(unsteadyVarNum[1])<<" "<<ds->getVariableName(unsteadyVarNum[2]);
 	attrs[_unsteadyVariableNamesAttr] = oss.str();
+
+	oss.str(empty);
+	oss << ds->getVariableName(seedDistVarNum[0])<<" "<<ds->getVariableName(seedDistVarNum[1])<<" "<<ds->getVariableName(seedDistVarNum[2]);
+	attrs[_seedDistVariableNamesAttr] = oss.str();
+
+	oss.str(empty);
+	oss << ds->getVariableName(priorityVarNum[0])<<" "<<ds->getVariableName(priorityVarNum[1])<<" "<<ds->getVariableName(priorityVarNum[2]);
+	attrs[_priorityVariableNamesAttr] = oss.str();
 
 	XmlNode* flowNode = new XmlNode(_flowParamsTag, attrs, 2+numComboVariables);
 
@@ -1498,6 +1564,15 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		steadySmoothness = 20.f;
 		steadyFlowDirection = 1;  //Forward was default for previous versions
 		unsteadyFlowDirection = 1;
+		//initially set field varnums to -1. 
+		//Once they are set, we compare to steady varnums for setting flags
+		for (int i = 0; i< 3; i++){
+			seedDistVarNum[i] = -1;
+			priorityVarNum[i] = -1;
+		}
+		priorityIsSteady = true;
+		seedDistIsSteady = true;
+
 		//If it's a Flow tag, save 11 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
@@ -1532,6 +1607,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 					ist >> vName;//peel off the steady name
 					int varnum = DataStatus::getInstance()->mergeVariableName(vName);
 					steadyVarNum[i] = varnum;
+	
 					//The combo setting will need to change when/if the variable is
 					//read in the metadata
 					comboSteadyVarNum[i] = -1;
@@ -1546,6 +1622,30 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 					//The combo setting will need to change when/if the variable is
 					//read in the metadata
 					comboUnsteadyVarNum[i] = -1;	
+				}
+			}
+			else if (StrCmpNoCase(attribName, _seedDistVariableNamesAttr) == 0) {
+				string vName;
+				for (int i = 0; i< 3; i++){
+					ist >> vName;//peel off the steady name
+					int varnum = DataStatus::getInstance()->mergeVariableName(vName);
+					seedDistVarNum[i] = varnum;
+					
+					//The combo setting will need to change when/if the variable is
+					//read in the metadata
+					comboSeedDistVarNum[i] = -1;
+				}
+			}
+			else if (StrCmpNoCase(attribName, _priorityVariableNamesAttr) == 0) {
+				string vName;
+				for (int i = 0; i< 3; i++){
+					ist >> vName;//peel off the steady name
+					int varnum = DataStatus::getInstance()->mergeVariableName(vName);
+					priorityVarNum[i] = varnum;
+					
+					//The combo setting will need to change when/if the variable is
+					//read in the metadata
+					comboPriorityVarNum[i] = -1;
 				}
 			}
 			else if (StrCmpNoCase(attribName, _periodicDimsAttr) == 0){
@@ -1598,6 +1698,15 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _steadyFlowLengthAttr) == 0) {
 				ist >> steadyFlowLength;
+			}
+			else if (StrCmpNoCase(attribName, _priorityBoundsAttr) == 0) {
+				ist >> priorityMin; ist>>priorityMax;
+			}
+			else if (StrCmpNoCase(attribName, _seedDistBoundsAttr) == 0) {
+				ist >> seedDistMin; ist >>seedDistMax;
+			}
+			else if (StrCmpNoCase(attribName, _seedDistBiasAttr) == 0) {
+				ist >> seedDistBias;
 			}
 			else return false;
 		}
@@ -1810,6 +1919,15 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 		setMinOpacEditBound(getMinOpacMapBound(),getOpacMapEntityIndex());
 		setMaxOpacEditBound(getMaxOpacMapBound(),getOpacMapEntityIndex());
 		
+		//Check if the seedDist and priority field names were set.
+		// if not, set them to the steady field:
+		for (int i = 0; i<3; i++){
+			if (seedDistVarNum[i] == -1) seedDistVarNum[i] = steadyVarNum[i];
+			if (priorityVarNum[i] == -1) priorityVarNum[i] = steadyVarNum[i];
+			if (seedDistVarNum[i] != steadyVarNum[i]) seedDistIsSteady = false;
+			if (priorityVarNum[i] != steadyVarNum[i]) priorityIsSteady = false;
+		}
+
 		//If this is a flowparams, need to
 		//pop the parse stack.  
 		ParsedXml* px = pm->popClassStack();
