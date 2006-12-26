@@ -49,7 +49,7 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 {
     myFlowLib = 0;
 	
-	steadyFlow = fParams->flowIsSteady();
+	
 	for (int i = 0; i<4; i++) constFlowColor[i] = 1.f;
 
 	//Set up flow data cache arrays, potentially for all
@@ -156,7 +156,7 @@ void FlowRenderer::paintGL()
 		}
 	}
 	//OK, now render the cache.  The rgba's were rebuilt too.
-	if (myFlowParams->getFlowType()!= 1){
+	if (flowType != 1){
 		renderFlowData(steadyFlowCache[currentFrameNum],constColors, currentFrameNum);
 	} else { 
 		renderFlowData(unsteadyFlowCache,constColors, currentFrameNum);
@@ -302,7 +302,7 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 
 	
 	//If we are doing unsteady flow, handle setup differently:
-	if (steadyFlow){
+	if (myFlowParams->getFlowType() != 1){
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
 			if (diam < 2.f){//Render as lines, not cylinders
@@ -806,7 +806,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 
 	bool doSpeeds = myFlowParams->getColorMapEntityIndex() == 2 || 
 		myFlowParams->getOpacMapEntityIndex() == 2;
-	steadyFlow = (flowType == 0);
+	
 	
 	
 	
@@ -816,7 +816,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	//that interval.  Likewise, the seeding cannot happen before the start of the
 	//timesampling interval. 
 
-	if (!steadyFlow){
+	if (flowType != 0){
 		//In unsteady flow or in field line advection, need to allow timesteps that are not in animation parameters.
 		minFrame = DataStatus::getInstance()->getMinTimestep();
 		maxFrame = DataStatus::getInstance()->getMaxTimestep();
@@ -911,33 +911,52 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				//Create a PathLineData with only the initial timestep of seeds in it:
 				unsteadyFlowCache = myFlowParams->setupPathLineData(myFlowLib, minFrame, maxFrame, rParams);
 				//Start at the seed point and go forwards or backwards to current time:
-				//Get the "first" time step.
-				prevStep = myFlowParams->getUnsteadyTimestepSample(0, minFrame, maxFrame);
-				
+				//Iterate to find the first sample step that coincides with the first (and only)
+				//seed time
+				int startSampleNum;
 				for (int i = 0;; i++){
-					//Perform steady integration on the previous step, reprioritizing
+					prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
+					if (prevStep < 0) {
+						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Invalid sampling/seed times for field line advection");
+						return false;
+					}
+					if (prevStep == myFlowParams->getSeedTimeStart()) {
+						startSampleNum = i;
+						break;
+					}
+				}
+				//At the completion of the following, the steady flow will be calculated for
+				//every sample time between the seedTimeStart up to and including the current time.
+				//This can be done in either forward or reverse direction from the seedTimeStart.
+				//Repeatedly, starting with the first seed time, which must also be a sample time,
+				//iterate over sample times:
+				//0.  Check if this sample time has a valid steady flow.
+				//If so, continue (to the next sample time)
+				//1.  Perform steady integration at this sample time, prioritizing seeds.
+				//  (stop if we are at or beyond the current time step)
+				//2.  Perform unsteady integration to the next sample time. 
+				//
+				//Note that we assume the current time step is a sample time.  If it's not
+				//Then we won't build the steady flow there.
+				for (int i = startSampleNum +1;; i++){
+					//Check if prevStep is valid
+					if (!flowDataDirty[prevStep]) continue;
+					//Perform steady integration prev step, reprioritizing
 					//the seeds in the unsteadycache
 					steadyFlowCache[prevStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, unsteadyFlowCache, prevStep, minFrame, rParams, true);
 					if(!steadyFlowCache[prevStep]){
+						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Unable to perform steady integration at timestep %d", prevStep);
 						return false;
 					}
-					//Stop here if the current timestep is already done:
+					flowDataDirty[prevStep] = false;
+					//Stop here if the current timestep is done:
 					if (timeStep == prevStep) { OK = true; break;}
 					//extend the pathline from the start to the next time sample:
-					int nextStep = myFlowParams->getUnsteadyTimestepSample(0, minFrame, maxFrame);
+					int nextStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
 					assert(nextStep >= 0);  
 					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep);
 					if (!OK) return false;
-					//Was the current time enclosed by prevStep and nextStep?
-					if ((nextStep > prevStep && timeStep > prevStep && timeStep < nextStep)||
-						(nextStep < prevStep && timeStep < prevStep && timeStep > nextStep))
-					{
-						//Construct the steady flow for the current time step, but
-						//don't reprioritize the seeds
-						steadyFlowCache[timeStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, unsteadyFlowCache, timeStep, minFrame, rParams,false);
-						OK = (steadyFlowCache[timeStep] != 0);
-						break;
-					}
+					
 					//Continue on extending the pathlines...
 					prevStep = nextStep;
 				}

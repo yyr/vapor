@@ -356,7 +356,7 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 			for (int ptindx = startPos; ptindx >= container->getStartIndex(line); ptindx--){
 				float* pt = container->getFlowPoint(line, ptindx);
 				if (pt[0] == END_FLOW_FLAG) break;
-				float val = priorityVal(pt, pField, pCartesianGrid);
+				float val = priorityVal(pt, pField, pCartesianGrid, timeStep);
 				if (val < minPriorityVal) break;
 				if (val > maxVal){ //establish a new max
 					maxVal = val;
@@ -369,7 +369,7 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 			for (int ptindx = startPos; ptindx <= container->getEndIndex(line); ptindx++){
 				float* pt = container->getFlowPoint(line, ptindx);
 				if (pt[0] == END_FLOW_FLAG) break;
-				float val = priorityVal(pt, pField, pCartesianGrid);
+				float val = priorityVal(pt, pField, pCartesianGrid, timeStep);
 				if (val < minPriorityVal) break;
 				if (val > maxVal){ //establish a new max
 					maxVal = val;
@@ -396,7 +396,7 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 	dataMgr->UnlockRegion(pWData[0]);
 	return true;
 }
-float VaporFlow::priorityVal(float point[3], CVectorField* pField, Grid* myGrid)
+float VaporFlow::priorityVal(float point[3], CVectorField* pField, Grid* myGrid, int tStep)
 {
 	VECTOR3 pos(point[0],point[1],point[2]);
 	VECTOR3 vel;
@@ -405,7 +405,7 @@ float VaporFlow::priorityVal(float point[3], CVectorField* pField, Grid* myGrid)
 	if(myGrid->phys_to_cell(pInfo) == -1)
 		return -1.f;
 
-	int rc = pField->at_phys(-1, pInfo.phyCoord, pInfo, currentFlowAdvectionTime, vel);
+	int rc = pField->at_phys(-1, pInfo.phyCoord, pInfo, (float)tStep, vel);
 	if (rc < 0) return -1.f;
 	return vel.GetMag();
 }

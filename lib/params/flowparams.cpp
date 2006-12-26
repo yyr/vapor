@@ -73,7 +73,8 @@ using namespace VAPoR;
 	const string FlowParams::_seedDistBoundsAttr = "SeedDistribBounds";
 
 	const string FlowParams::_periodicDimsAttr = "PeriodicDimensions";
-	const string FlowParams::_steadyFlowAttr = "SteadyFlow";
+	const string FlowParams::_steadyFlowAttr = "SteadyFlow";//obsolete
+	const string FlowParams::_flowTypeAttr = "FlowType";
 	const string FlowParams::_integrationAccuracyAttr = "IntegrationAccuracy";
 	const string FlowParams::_velocityScaleAttr = "velocityScale";
 	const string FlowParams::_steadyScaleAttr = "steadyScale";
@@ -719,11 +720,14 @@ writePathline(FILE* saveFile, int pathNum, int minFrame, int injNum, float* flow
 
 
 
-//Function to iterate over specified time steps, whether in list or 
-//specified by interval
+//Function to iterate over sample time steps, whether in list or 
+//specified by interval.  The first sample step is moved up to avoid
+//unnecessary samples before the first seed time.
+
 int FlowParams::
 getUnsteadyTimestepSample(int index, int minStep, int maxStep){
 	if (unsteadyFlowDirection > 0){
+		
 		if (useTimestepSampleList){
 			int position = -1;
 			for (int i = 0; i< unsteadyTimestepList.size(); i++){
@@ -994,6 +998,13 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 	yVar = ds->getVariableName(steadyVarNum[1]).c_str();
 	zVar = ds->getVariableName(steadyVarNum[2]).c_str();
 	myFlowLib->SetSteadyFieldComponents(xVar, yVar, zVar);
+
+	if (flowType == 2){ //establish prioritization field variables:
+		xVar = ds->getVariableName(priorityVarNum[0]).c_str();
+		yVar = ds->getVariableName(priorityVarNum[1]).c_str();
+		zVar = ds->getVariableName(priorityVarNum[2]).c_str();
+	}
+	myFlowLib->SetPriorityField(xVar, yVar, zVar);
 	
 	myFlowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
 	
@@ -1368,9 +1379,8 @@ buildNode() {
 	attrs[_autoScaleAttr] = oss.str();
 
 	oss.str(empty);
-	if (flowType == 0) oss << "true";
-	else oss << "false";
-	attrs[_steadyFlowAttr] = oss.str();
+	oss << flowType;
+	attrs[_flowTypeAttr] = oss.str();
 
 	oss.str(empty);
 	oss << ds->getVariableName(steadyVarNum[0])<<" "<<ds->getVariableName(steadyVarNum[1])<<" "<<ds->getVariableName(steadyVarNum[2]);
@@ -1665,8 +1675,11 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _autoScaleAttr) == 0) {
 				if (value == "true") autoScale = true; else autoScale = false;
 			}
-			else if (StrCmpNoCase(attribName, _steadyFlowAttr) == 0) {
+			else if (StrCmpNoCase(attribName, _steadyFlowAttr) == 0) {//backwards compatibility
 				if (value == "true") setFlowType(0); else setFlowType(1);
+			}
+			else if (StrCmpNoCase(attribName, _flowTypeAttr) == 0) {
+				ist >> flowType;
 			}
 			else if (StrCmpNoCase(attribName, _numTransformsAttr) == 0){
 				ist >> numRefinements;

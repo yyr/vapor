@@ -79,14 +79,15 @@ namespace VAPoR
 		bool regionPeriodicDim(int i) {return (periodicDim[i] && fullInDim[i]);}
 		void SetPriorityField(const char* varx, const char* vary, const char* varz,
 			float minField = 0.f, float maxField = 1.e30f);
+		//Go through the steady field lines, identify the point on each line with the highest
+		//priority.  Insert resulting points into the pathContainer.
+		bool prioritizeSeeds(FlowLineData* container, PathLineData* pathContainer, int timestep);
 		
 
 	protected:
-		//Go through the steady field lines, identify the point on each line with the highest
-		//priority.  This is advected to the seed point at the next time step
-		bool prioritizeSeeds(FlowLineData* container, PathLineData* pathContainer, int timestep);
+		
 		//Evaluate the priority at a point, using current priority field.
-		float priorityVal(float point[3], CVectorField*, Grid*);
+		float priorityVal(float point[3], CVectorField*, Grid*, int timestep);
 		//bool UnsteadyAdvectPoints(int prevTime, int nextTime, float* pointList);
 	private:
 		size_t userTimeUnit;						// time unit in the original data
@@ -135,7 +136,6 @@ namespace VAPoR
 		float* flowLineAdvectionSeeds;
 		float minPriorityVal, maxPriorityVal;
 		float minSeedDistVal, maxSeedDistVal, seedDistBias;
-		int currentFlowAdvectionTime;
 	};
 };
 

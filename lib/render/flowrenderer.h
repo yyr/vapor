@@ -182,7 +182,6 @@ protected:
 	//the contents of the cache.
 	
 	int maxFrame, minFrame;
-	bool steadyFlow;
 	int seedIncrement, startSeed, endSeed, firstDisplayAge, lastDisplayAge;
 	float objectsPerTimestep;
 	bool doList, doRake;

@@ -327,7 +327,8 @@ protected:
 	static const string _seedDistBiasAttr;
 	static const string _seedDistBoundsAttr;
 	static const string _priorityBoundsAttr;
-	static const string _steadyFlowAttr;
+	static const string _steadyFlowAttr;//obsolete
+	static const string _flowTypeAttr;
 	static const string _integrationAccuracyAttr;
 	static const string _velocityScaleAttr;
 	static const string _steadyScaleAttr;
