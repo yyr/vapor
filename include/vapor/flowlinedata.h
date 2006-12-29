@@ -163,6 +163,7 @@ class FLOW_API PathLineData : public FlowLineData {
 		float* getPointAtTime(int lineNum, float timeStep){
 			//Determine the (closest) index:
 			int posn = (int)((timeStep - startTimeStep)*samplesPerTStep + 0.5f);
+			if (posn < getStartIndex(lineNum) || posn > getEndIndex(lineNum)) return 0;
 			return flowLineLists[lineNum]+ 3*posn;
 		}
 		//Convert first and last indices to timesteps
@@ -173,7 +174,8 @@ class FLOW_API PathLineData : public FlowLineData {
 		}
 		int getLastTimestep(int lineNum){
 			int indx = getEndIndex(lineNum);
-			return ((int)((float)indx/samplesPerTStep) + startTimeStep);
+			//If it doesn't divide evenly, need to increase...
+			return ((int)(0.999f+(float)indx/samplesPerTStep) + startTimeStep);
 		}
 		// Convert timesteps to indices:
 		int getIndexFromTimestep(int ts){

@@ -33,9 +33,8 @@ private:
     int m_nTimeSteps;					// how many time steps in logic
 	int m_nStartT;						// start timestep in physical space
 	int m_nEndT;						// end timestep
-	int m_nTimeIncrement;				// timesteps sampling rate
-										// for example, if m_nTimeIncrement = 4, the T0 is data0, 
-										// T1 is data4, and data between T0 an T1 is interpolated
+	int m_nTimeIncrement;				// time steps between sampled time steps
+										
 	int m_nUserTimeStepInc;				// usertimestep between previous time step and previous
 										// sampled time step
 	int m_nUserTimeStep;				// usertimestep between current time step and next time step

@@ -1003,15 +1003,16 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 		xVar = ds->getVariableName(priorityVarNum[0]).c_str();
 		yVar = ds->getVariableName(priorityVarNum[1]).c_str();
 		zVar = ds->getVariableName(priorityVarNum[2]).c_str();
+		myFlowLib->SetPriorityField(xVar, yVar, zVar);
 	}
-	myFlowLib->SetPriorityField(xVar, yVar, zVar);
+	
 	
 	myFlowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
 	
 	if (!setupFlowRegion(rParams, myFlowLib, timeStep, minFrame)) return 0;
 	
 	int numSeedPoints;
-	if (pathData)numSeedPoints = pathData->getNumLines(timeStep);
+	if (pathData)numSeedPoints = pathData->getNumLines();
 	else {// get the seed points from the rake or seedlist...
 		if (doRake){
 			numSeedPoints = getNumRakeSeedPoints();
@@ -1168,14 +1169,7 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 	
 	
 	flowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
-	if (unsteadyFlowDirection < 0){// Invert the list, so it's ordered in integration order
-		for (int i = 0; i< numTimesteps/2; i++){
-			//swap each pair:
-			int saveIndex = timeStepList[i];
-			timeStepList[i] = timeStepList[numTimesteps-i-1];
-			timeStepList[numTimesteps-i-1] = saveIndex;
-		}
-	} 
+
 	
 	const char* xVar, *yVar, *zVar;
 	DataStatus* ds = DataStatus::getInstance();
@@ -1184,7 +1178,7 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 	zVar = ds->getVariableName(unsteadyVarNum[2]).c_str();
 	flowLib->SetUnsteadyFieldComponents(xVar, yVar, zVar);
 	
-	flowLib->SetUnsteadyTimeSteps(timeStepList,numTimesteps, (unsteadyFlowDirection > 0));
+	flowLib->SetUnsteadyTimeSteps(timeStepList,numTimesteps);
 	
 	flowLib->ScaleUnsteadyTimeStepSizes(unsteadyScale, (float)objectsPerTimestep);
 

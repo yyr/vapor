@@ -40,7 +40,7 @@ namespace VAPoR
 
 		void SetRegion(size_t num_xforms, const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3]);
 		
-		void SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps, bool forward);
+		void SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps);
 		void SetSteadyTimeSteps(size_t timeStep, int direction){
 			steadyStartTimeStep = timeStep;
 			steadyFlowDirection = direction;
@@ -109,7 +109,6 @@ namespace VAPoR
 
 		int* unsteadyTimestepList;
 		size_t numUnsteadyTimesteps;
-		bool unsteadyIsForward;
 
 		float minRakeExt[3];						// minimal rake range 
 		float maxRakeExt[3];						// maximal rake range

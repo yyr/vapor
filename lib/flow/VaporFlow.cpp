@@ -6,6 +6,7 @@
 #include "vapor/flowlinedata.h"
 #include "Rake.h"
 #include "VTFieldLine.h"
+#include "math.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -180,10 +181,9 @@ void VaporFlow::SetRegion(size_t num_xforms,
 //////////////////////////////////////////////////////////////////////////////////
 //  Setup Time step list for unsteady integration.. Replaces above method
 //////////////////////////////////////////////////////////////////
-void VaporFlow::SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps, bool forward){
+void VaporFlow::SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps){
 	unsteadyTimestepList = timeStepList;
 	numUnsteadyTimesteps = numSteps;
-	unsteadyIsForward = forward;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -378,12 +378,11 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 				if (val >= maxPriorityVal) break;
 			}
 		}
-		//Now put the winners back into the unsteady advection array:
-		if (maxPoint){
+		//Now put the winner back into the unsteady advection array.
+		//If no winner, it's probably END_FLOW_FLAG.  do nothing.
+		if (maxPoint)
 			pathContainer->setPointAtTime(line,(float)timeStep, maxPoint[0],maxPoint[1],maxPoint[2]);
-		} else {
-			pathContainer->setPointAtTime(line,(float)timeStep, END_FLOW_FLAG,END_FLOW_FLAG,END_FLOW_FLAG);
-		}
+		
 	}//end loop over line
 
 	//Release the locks on the prioritization field..
@@ -599,7 +598,7 @@ void VaporFlow::SetPeriodicDimensions(bool xdim, bool ydim, bool zdim){
 //Version of GenStreamLines to be used with field line advection.
 //Gets the seeds from the unsteady container.  Resets the seed value
 //if prioritize is true.  Eventually should handle timeSteps that are
-//not in the set of unsteady sample times.  Initially expects a sample timestep
+//not in the set of unsteady sample times.  Expects a sample timestep
 ///////////////////////////////////////////////////////////////
 bool VaporFlow::GenStreamLines (FlowLineData* steadyContainer, PathLineData* unsteadyContainer, int timeStep, bool prioritize){
 	//First make a list of the seeds from the unsteady Container:
@@ -608,11 +607,16 @@ bool VaporFlow::GenStreamLines (FlowLineData* steadyContainer, PathLineData* uns
 	float* seedList = new float[3*numSeeds];
 	for (int i = 0; i< numSeeds; i++){
 		float *seed = unsteadyContainer->getPointAtTime(i, (float)timeStep);
-		for (int j = 0; j< 3; j++){
-			seedList[3*i+j] = seed[j];
+		if (!seed) {//put in dummy values:
+			for (int j = 0; j< 3; j++){
+				seedList[3*i+j] = END_FLOW_FLAG;
+			}
+		} else {
+			for (int j = 0; j< 3; j++){
+				seedList[3*i+j] = seed[j];
+			}
 		}
 	}
-	assert(steadyContainer->getNumLines() == unsteadyContainer->getNumLines());
 	GenStreamLinesNoRake(steadyContainer, seedList);
 	delete seedList;
 	if (prioritize){
@@ -636,19 +640,17 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	if (startTimeStep < endTimeStep) {
 		timeDir = FORWARD;
 		container->setPathDirection(1);
-		assert(unsteadyIsForward);
 	}
 	else {
 		timeDir = BACKWARD;
 		container->setPathDirection(-1);
-		assert(!unsteadyIsForward);
 	}
 	// create field object
 	CVectorField* pField;
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
 	float **pUData, **pVData, **pWData;
-	int timeSteps;							// total sampled time steps in integration interval.  Usually this is 2
+	
 	int totalXNum, totalYNum, totalZNum, totalNum;
 	
     totalXNum = (maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize()[0];
@@ -659,44 +661,30 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	//realStartTime and realEndTime are actual limits of time steps for which positions
 	//are calculated.
 	
-	int indx;
-	//Find the start index into the time step sample list.
-	//Note that the unsteadyTimestepList is in integration order, so that sampleStartIndex
-	//is the first one that matches startTimeStep
 	
-	for (indx = 0; indx< numUnsteadyTimesteps; indx++){
-		if (unsteadyTimestepList[indx] == startTimeStep) break;
-		if (indx >= numUnsteadyTimesteps-1) assert(0);
+	//Find the start/end index into the time step sample list.
+	//Note that the unsteadyTimestepList is in forward time order
+	int sampleStartIndex = -1;
+	int sampleEndIndex = -1;
+	for (int indx = 0; indx< numUnsteadyTimesteps; indx++){
+		if (unsteadyTimestepList[indx] == startTimeStep) sampleStartIndex = indx;
+		if (unsteadyTimestepList[indx] == endTimeStep) sampleEndIndex = indx;
 	}
-	int sampleStartIndex = indx;
-	int sampleStartTime = startTimeStep;
-	int sampleEndTime = unsteadyTimestepList[numUnsteadyTimesteps-1];
-	//We may not go all the way to the end:
-	if (sampleEndTime != endTimeStep && timeDir == BACKWARD){
-		assert(sampleEndTime < endTimeStep);
-		for (int i = sampleStartIndex; i<numUnsteadyTimesteps; i++) {
-			//We should find the endTimeStep in the sample list...
-			if (unsteadyTimestepList[i] == endTimeStep) break;
-			if (i == numUnsteadyTimesteps - 1) assert(0);
-		}
-	}
+	assert(sampleStartIndex >= 0 && sampleEndIndex >= 0);
+	//numTimesteps is the number of time steps needed
+	int numTimesteps = abs(endTimeStep - startTimeStep) + 1;
+	int numTimeSamples = abs(sampleStartIndex - sampleEndIndex) + 1;
 	
-
-	//timeSteps is the number of sampled time steps needed:
-	timeSteps = abs(endTimeStep - startTimeStep) + 1;
-	assert(timeSteps > 1);
-	
-		
-	pUData = new float*[timeSteps];
-	pVData = new float*[timeSteps];
-	pWData = new float*[timeSteps];
-	memset(pUData, 0, sizeof(float*)*timeSteps);
-	memset(pVData, 0, sizeof(float*)*timeSteps);
-	memset(pWData, 0, sizeof(float*)*timeSteps);
-	pSolution = new Solution(pUData, pVData, pWData, totalNum, timeSteps);
+	pUData = new float*[numTimeSamples];
+	pVData = new float*[numTimeSamples];
+	pWData = new float*[numTimeSamples];
+	memset(pUData, 0, sizeof(float*)*numTimeSamples);
+	memset(pVData, 0, sizeof(float*)*numTimeSamples);
+	memset(pWData, 0, sizeof(float*)*numTimeSamples);
+	pSolution = new Solution(pUData, pVData, pWData, totalNum, numTimesteps);
 	pSolution->SetTimeScaleFactor(unsteadyUserTimeStepMultiplier);
 	
-	pSolution->SetTime(sampleStartTime, endTimeStep);
+	pSolution->SetTime(startTimeStep, endTimeStep);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
 	
 	// set the boundary of physical grid
@@ -724,31 +712,29 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	
 	//Now set the region bound:
 
-	pField = new CVectorField(pCartesianGrid, pSolution, timeSteps);
+	pField = new CVectorField(pCartesianGrid, pSolution, numTimesteps);
 	
-	// get the userTimeStep between pairs of sampled timesteps
+	// get the userTimeStep between pairs of timesteps
 	int* pUserTimeSteps;
 	int tIndex = 0;
-	pUserTimeSteps = new int[timeSteps];
+	pUserTimeSteps = new int[numTimesteps];
 
 	//Calculate the time differences between successive sampled timesteps in
 	//the interval we are working on.
 	//save that value in pUserTimeSteps, available in pField.
 	//These are negative if we are advecting backwards in time!!
 
-	for(int sampleIndex = sampleStartIndex; sampleIndex < numUnsteadyTimesteps-1; sampleIndex++)
+	for(int sampleIndex = sampleStartIndex; sampleIndex != sampleEndIndex; sampleIndex += timeDir)
 	{
 		int prevSampledStep = unsteadyTimestepList[sampleIndex];
-		if (prevSampledStep < startTimeStep ||(prevSampledStep > endTimeStep)) continue;
+		int nextSampledStep = unsteadyTimestepList[sampleIndex+timeDir];
 		
-		int nextSampledStep = unsteadyTimestepList[sampleIndex+1];
-		if (nextSampledStep < startTimeStep || nextSampledStep > endTimeStep) continue;
 		if(dataMgr->GetMetadata()->HasTSUserTime(prevSampledStep)&&dataMgr->GetMetadata()->HasTSUserTime(nextSampledStep))
 			pUserTimeSteps[tIndex] = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
 									   dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep)[0];
 		else
 			pUserTimeSteps[tIndex] = nextSampledStep - prevSampledStep;
-		//HMMM this should make the value always positive??
+		//following should make the value always positive
 		pUserTimeSteps[tIndex++] *= timeDir;
 		assert(pUserTimeSteps[tIndex-1] >= 0);
 	}
@@ -758,7 +744,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	vtCStreakLine* pStreakLine;
 	float currentT = 0.0;
 	pStreakLine = new vtCStreakLine(pField);
-	int integrationIncrement = (int)timeDir;
+	
 	pStreakLine->SetTimeDir(timeDir);
 	
 	pStreakLine->setParticleLife(container->getMaxPoints());
@@ -781,38 +767,22 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 
 	int currIndex = sampleStartIndex;
 	int prevSample = startTimeStep;
-	int nextSample = unsteadyTimestepList[sampleStartIndex+1];
-	int iTemp; //Index that counts the sampled timesteps
-	// Go through all the timesteps, one at a time. Ifor is the time Step
+	int nextSample = unsteadyTimestepList[sampleStartIndex+timeDir];
+	int tsIndex; //Index that counts the sampled timesteps from 0
+	// Go through all the timesteps, one at a time. Ifor is the time Step.
 	// For each pair (prevSample, nextSample) integrate between them.
-	for(int iFor = startTimeStep; ; iFor += integrationIncrement)
+	for(int iFor = startTimeStep; iFor != endTimeStep; iFor += timeDir)
 	{
-		//Termination condition depends on direction:
-		if (timeDir == FORWARD){
-			if (iFor >= endTimeStep) break;
-			if (iFor >= nextSample) {//bump up the samples
-				currIndex++;
-				prevSample = nextSample;
-				nextSample = unsteadyTimestepList[currIndex+1];
-			}
-		}
-		else {
-			if(iFor <= endTimeStep) break;
-			if (iFor <= nextSample) {//bump down the samples, by bumping up the index
-				currIndex++;
-				prevSample = nextSample;
-				nextSample = unsteadyTimestepList[currIndex+1];
-			}
+
+		//Following sets prevSample, nextSample, currIndex
+		if (iFor == nextSample) {//bump up the samples
+			currIndex++;
+			prevSample = nextSample;
+			nextSample = unsteadyTimestepList[currIndex+timeDir];
 		}
 		
+		tsIndex = abs(currIndex - sampleStartIndex);
 		
-		//index counts advections
-		index++;								// index to solution instance
-		//AN: Changed iTemp to start at 0
-		//  10/05/05
-		//
-        //int iTemp = (iFor-realStartTime)/timeStepIncrement;		// index to lower sampled time step
-		iTemp = currIndex - sampleStartIndex;
 		// get usertimestep differences between the current time step and previous and next sampled time steps
 		double diff = 0.0, curDiff = 0.0;
 	
@@ -822,33 +792,24 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 			curDiff = dataMgr->GetMetadata()->GetTSUserTime(nextSample)[0] - 
 					  dataMgr->GetMetadata()->GetTSUserTime(iFor)[0];
 		} else {
-			diff = iFor - prevSample;
-			curDiff = nextSample - iFor;
+			diff = (iFor - prevSample);
+			curDiff = (nextSample - iFor);
 		}
-		if (timeDir == BACKWARD) {//Always positive??
-			diff = -diff;
-			curDiff = -curDiff;
-		}
+		
 		pField->SetUserTimeStepInc((int)diff, (int)curDiff);
-		//find time difference between adjacent frames (this shouldn't 
-		//always be an int???)
-		pSolution->SetTimeIncrement((int)(curDiff + diff + 0.5), timeDir);
-		// need get new data ?
-		//if(((iFor-realStartTime)%timeStepIncrement) == 0)
+		//specify the number of time steps between time samples
+		pSolution->SetTimeIncrement((numTimesteps -1)/(numTimeSamples -1), timeDir);
+		// need get new field data?
+		
 		if (iFor == prevSample)
 		{
 			//For the very first sample time, get data for current time (get the next sampled timestep in next line)
 			if(iFor == startTimeStep){
-				//AN 10/19/05
-				//Check for valid data, return false if invalid
-				//
 				
 				xDataPtr = GetData(iFor,xUnsteadyVarName);
 				
 				if(xDataPtr) yDataPtr = GetData(iFor,yUnsteadyVarName);
-				
 				if(yDataPtr) zDataPtr = GetData(iFor,zUnsteadyVarName);
-				
 				if (xDataPtr == 0 || yDataPtr == 0 || zDataPtr == 0){
 					// release resources
 					delete[] pUserTimeSteps;
@@ -858,8 +819,8 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 					if (yDataPtr) dataMgr->UnlockRegion(yDataPtr);
 					return false;
 				}
-				pField->SetSolutionData(iTemp,xDataPtr,yDataPtr,zDataPtr);
-			} else {
+				pField->SetSolutionData(tsIndex,xDataPtr,yDataPtr,zDataPtr);
+			} else { //Changing time sample..
 				//If it's not the very first time, need to release data for previous 
 				//time step, and move end ptrs to start:
 				//Now can release first pointers:
@@ -871,7 +832,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 				yDataPtr = yDataPtr2;
 				zDataPtr = zDataPtr2;
 				//Also nullify pointers to released timestep data:
-				pField->SetSolutionData(iTemp-1,0,0,0);
+				pField->SetSolutionData(tsIndex-1,0,0,0);
 			}
 			//now get data for second ( next) sampled timestep.  
 			yDataPtr2 = zDataPtr2 = 0;
@@ -890,7 +851,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 				if (yDataPtr2) dataMgr->UnlockRegion(yDataPtr2);
 				return false;
 			}
-			pField->SetSolutionData(iTemp+1,xDataPtr2,yDataPtr2,zDataPtr2); 
+			pField->SetSolutionData(tsIndex+1,xDataPtr2,yDataPtr2,zDataPtr2); 
 		}
 
 			
@@ -904,7 +865,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	
 	}
 
-	//Reset();
+	
 	// release resources.  we always have valid start and end pointers
 	// at this point.
 	dataMgr->UnlockRegion(xDataPtr);
@@ -913,8 +874,8 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	dataMgr->UnlockRegion(xDataPtr2);
 	dataMgr->UnlockRegion(yDataPtr2);
 	dataMgr->UnlockRegion(zDataPtr2);
-	pField->SetSolutionData(iTemp,0,0,0);
-	pField->SetSolutionData(iTemp+1,0,0,0);
+	pField->SetSolutionData(tsIndex,0,0,0);
+	pField->SetSolutionData(tsIndex+1,0,0,0);
 	delete[] pUserTimeSteps;
 	delete pStreakLine;
 	delete pField;

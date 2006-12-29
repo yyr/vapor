@@ -134,6 +134,14 @@ public:
 	void setTimeSamplingStart(int val){timeSamplingStart = val;}
 	int getTimeSamplingEnd() {return timeSamplingEnd;}
 	void setTimeSamplingEnd(int val){timeSamplingEnd = val;}
+	int getFirstSampleTimestep() {
+		if (usingTimestepSampleList() && unsteadyTimestepList.size()>0) return unsteadyTimestepList[0];
+		else return timeSamplingStart;
+	}
+	int getLastSampleTimestep() {
+		if (usingTimestepSampleList() && unsteadyTimestepList.size()>0) return unsteadyTimestepList[unsteadyTimestepList.size()-1];
+		else return timeSamplingEnd;
+	}
 	bool isAutoScale(){return autoScale;}
 	void setAutoScale(bool val){magChanged = true; autoScale = val;}
 	
