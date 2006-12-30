@@ -26,6 +26,7 @@ namespace VAPoR
 	class Grid;
 	class FlowLineData;
 	class PathLineData;
+	class FieldData;
 	
 	class FLOW_API VaporFlow : public VetsUtil::MyBase
 	{
@@ -83,12 +84,10 @@ namespace VAPoR
 		//priority.  Insert resulting points into the pathContainer.
 		bool prioritizeSeeds(FlowLineData* container, PathLineData* pathContainer, int timestep);
 		
-
-	protected:
-		
-		//Evaluate the priority at a point, using current priority field.
-		float priorityVal(float point[3], CVectorField*, Grid*, int timestep);
-		//bool UnsteadyAdvectPoints(int prevTime, int nextTime, float* pointList);
+		//Methods to encapsulate getting data out of a field.  
+		//Returns false if unsuccessful at setting up variables
+		FieldData* setupFieldData(const char* varx, const char* vary, const char* varz, int timestep);
+	
 	private:
 		size_t userTimeUnit;						// time unit in the original data
 		size_t userTimeStep;						// enumerate time steps in source data

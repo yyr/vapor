@@ -166,7 +166,7 @@ FlowEventRouter::hookUpTab()
 	connect (rakeOnRegionButton, SIGNAL(clicked()), this, SLOT(guiSetRakeToRegion()));
 	connect (colormapEntityCombo,SIGNAL(activated(int)),SLOT(guiSetColorMapEntity(int)));
 	connect (opacmapEntityCombo,SIGNAL(activated(int)),SLOT(guiSetOpacMapEntity(int)));
-	connect (refreshButton,SIGNAL(clicked()), this, SLOT(guiRefreshFlow()));
+	connect (refreshButton,SIGNAL(clicked()), this, SLOT(refreshFlow()));
 	connect (periodicXCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicX(bool)));
 	connect (periodicYCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicY(bool)));
 	connect (periodicZCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicZ(bool)));
@@ -1931,29 +1931,31 @@ guiSetAutoRefresh(bool autoOn){
 	//we will need to leave the refresh button enabled.
 	bool needEnable = false;
 	int maxFrame = DataStatus::getInstance()->getMaxTimestep();
-	FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(Params::FlowParamsType);
+	FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(fParams);
 	if (!fRenderer) return;
-	fRenderer->setAllNeedRefresh(autoOn);
-	//See if button needs to be enabled (at least one frame is dirty)
+	//see if we need to schedule a render (when autoOn is enabled)
+	bool needRender = false;
+	if(autoOn) { //set the needsRefresh for all the dirty frames
+		for (int i = 0; i<=maxFrame; i++) {
+			if (fRenderer->flowDataIsDirty(i)) {
+				fRenderer->setNeedOfRefresh(i,true);
+				needRender = true;
+			}
+		}
+	}
+	//Also see if button needs to be enabled (at least one frame is dirty)
 	if (!autoOn){
 		for (int i = 0; i<=maxFrame; i++) {
-			if (fRenderer->flowDataIsDirty(i)) needEnable = true;
+			fRenderer->setNeedOfRefresh(i,false);
+			if (fRenderer->flowDataIsDirty(i)) {
+				needEnable = true;
+			}
 		}
 	}
 	//If we are turning it on, 
 	//we may need to schedule a render.  
-	bool madeDirty = false;
-	if (autoOn){
-		for (int i = 0; i<= maxFrame; i++){
-			if (fRenderer->flowDataIsDirty(i)) {
-				madeDirty = true;
-			}
-		}
-	}
-
-	
 	refreshButton->setEnabled((!fParams->refreshIsAuto()) && needEnable);
-	if (madeDirty) VizWinMgr::getInstance()->refreshFlow(fParams);
+	if (needRender) VizWinMgr::getInstance()->refreshFlow(fParams);
 }
 
 void FlowEventRouter::
@@ -1998,24 +2000,33 @@ guiSetColorMapEntity( int entityNum){
 	else VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
 }
 //When the user clicks "refresh", 
-//This triggers a rebuilding of current frame 
+//This triggers a rebuilding of all dirty frames 
 //And then a rerendering.
 void FlowEventRouter::
-guiRefreshFlow(){
+refreshFlow(){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	confirmText(false);
-	
-	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
-	//Determine if the renderer dirty flag is set:
-	
-	if (!vizWinMgr->flowDataIsDirty(fParams)) {
-		refreshButton->setEnabled(false);
-		return;
+	//set all dirty frames to need rendering.
+
+	FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(fParams);
+	if (!fRenderer) return;
+	bool needToRender =false;
+	if (fParams->getFlowType() == 1) {
+		fRenderer->setAllNeedRefresh(true);
+		needToRender = true;
 	}
-	
-	refreshButton->setEnabled(true);
-	vizWinMgr->refreshFlow(fParams);
-	
+	else { //do it selectively for the dirty frames..
+		int maxFrame = DataStatus::getInstance()->getMaxTimestep();
+		int minFrame = DataStatus::getInstance()->getMinTimestep();
+		for (int i = minFrame; i<= maxFrame; i++){
+			if (fRenderer->flowDataIsDirty(i)){
+				fRenderer->setNeedOfRefresh(i, true);
+				needToRender = true;
+			}
+		}
+	}
+	refreshButton->setEnabled(false);
+	if(needToRender) VizWinMgr::getInstance()->refreshFlow(fParams);
 }
 void FlowEventRouter::
 guiToggleAutoScale(bool on){
@@ -2209,8 +2220,8 @@ void FlowEventRouter::guiSaveFlowLines(){
 		return;
 	}
 	//Refresh the flow, if necessary
-	guiRefreshFlow();
-	FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(Params::FlowParamsType);
+	refreshFlow();
+	FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(fParams);
 	//Get min/max timesteps from applicable animation params
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();

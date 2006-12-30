@@ -107,7 +107,7 @@ protected slots:
 	void setFlowTabRangeTextChanged(const QString&);
 	void flowTabReturnPressed();
 	//slots for flow tab:
-	void guiRefreshFlow();
+	void refreshFlow();
 	void setFlowEnabled(bool val,int instance);
 	void setFlowType(int);
 	void guiSetNumRefinements(int numtrans);

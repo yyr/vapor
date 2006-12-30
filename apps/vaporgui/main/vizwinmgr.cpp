@@ -1679,8 +1679,8 @@ bool VizWinMgr::flowDataIsDirty(FlowParams* p){
 	if(!glwin) return false;
 	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
 	if (!flowRend) return false;
-	if (!p->flowIsSteady()){
-		return flowRend->flowDataIsDirty(0);
+	if (p->getFlowType()==1){
+		return (flowRend->allFlowDataIsDirty());
 	}
 	int timeStep = getAnimationParams(p->getVizNum())->getCurrentFrameNumber();
 	return flowRend->flowDataIsDirty(timeStep);
