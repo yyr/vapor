@@ -64,7 +64,27 @@ public:
 	void SetUserTimeSteps(int* pUserTimeSteps) { m_pSolution->SetUserTimeSteps(pUserTimeSteps); }
 	//int GetTimeIncrement(void) { return m_pSolution->GetTimeIncrement(); }
 };
+//Helper class to get data out of a vector field
+class FLOW_API FieldData {
+public:
+	//Create a FieldData, with specified field variables, at a specified time step
+	//This is created by VaporFlow, because it has region info
+	~FieldData();
+	//This is initialized by the VaporFlow class
+	void setup(CVectorField* fld, CartesianGrid* grd, 
+		float** xdata, float** ydata, float** zdata, int tstep);
+		
+	float getFieldMag(float point[3]);
+private:
+	//information kept in the FieldData: 
+	int timeStep;
+	CVectorField* pField;
+	CartesianGrid* pCartesianGrid;
+	float** pUData;
+	float** pVData;
+	float** pWData;
 };
+};//end VAPoR namespace
 //////////////////////////////////////////////////////////////////////////
 // scalar field class
 //////////////////////////////////////////////////////////////////////////

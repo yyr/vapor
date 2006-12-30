@@ -265,3 +265,31 @@ bool CVectorField::isCellOnBoundary(int cellId)
 {
 	return m_pGrid->isCellOnBoundary(cellId);
 }
+
+float FieldData::getFieldMag(float point[3])
+{
+	VECTOR3 pos(point[0],point[1],point[2]);
+	VECTOR3 vel;
+	PointInfo pInfo;
+	pInfo.Set(pos, pInfo.interpolant, -1, -1);
+	if(pCartesianGrid->phys_to_cell(pInfo) == -1)
+		return -1.f;
+
+	int rc = pField->at_phys(-1, pInfo.phyCoord, pInfo, (float)timeStep, vel);
+	if (rc < 0) 
+		return -1.f;
+	return vel.GetMag();
+}
+//This is initialized by the VaporFlow class
+void FieldData::setup(CVectorField* fld, CartesianGrid* grd, 
+					  float** xdata, float** ydata, float** zdata, int tstep){
+	pField = fld; pCartesianGrid = grd; 
+	pUData = xdata; pVData = ydata; pWData = zdata;
+	timeStep = tstep;
+}
+FieldData::~FieldData(){
+	delete pField;
+	delete pUData;
+	delete pVData;
+	delete pWData;
+}

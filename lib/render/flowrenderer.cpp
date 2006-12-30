@@ -160,9 +160,11 @@ void FlowRenderer::paintGL()
 	}
 	//OK, now render the cache.  The rgba's were rebuilt too.
 	if (flowType != 1){
-		renderFlowData(steadyFlowCache[currentFrameNum],constColors, currentFrameNum);
+		if (steadyFlowCache && steadyFlowCache[currentFrameNum])
+			renderFlowData(steadyFlowCache[currentFrameNum],constColors, currentFrameNum);
 	} else { 
-		renderFlowData(unsteadyFlowCache,constColors, currentFrameNum);
+		if (unsteadyFlowCache)
+			renderFlowData(unsteadyFlowCache,constColors, currentFrameNum);
 	}
 		
 	
@@ -726,12 +728,11 @@ bool FlowRenderer::needsRefresh(FlowParams* fParams, int timeStep) {
 //Set the flow mapping clean.  
 void FlowRenderer::setFlowDataClean(int timeStep){
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
+	allDataDirtyFlag = false;
 	if (myFlowParams->getFlowType() == 1){
-		allDataDirtyFlag = false;
 		unsteadyNeedsRefreshFlag = false;
 	}
 	else {
-		allDataDirtyFlag = false;
 		flowDataDirty[timeStep] = false;
 		needRefreshFlag[timeStep] = false;
 	}
@@ -758,9 +759,7 @@ void FlowRenderer::setDataDirty()
 		flowDataDirty[i] = true;
 		flowMapDirty[i] = true;
 		if (doRefresh) needRefreshFlag[i] = true; 
-		else needRefreshFlag[i] = false;
 	}
-	
 }
 void FlowRenderer::setGraphicsDirty()
 {
@@ -956,17 +955,19 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				//
 				//Note that we assume the current time step is a sample time.  If it's not
 				//Then we won't build the steady flow there.
+				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 				for (int i = startSampleNum;; i++){
 					prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
 					nextStep = myFlowParams->getUnsteadyTimestepSample(i+1, minFrame, maxFrame);
 					if (prevStep < 0 || nextStep < 0) { 
 						// past the end...
 						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Cannot advect beyond sampled timesteps");
+						QApplication::restoreOverrideCursor();
 						return false;
 					}
 					//Check if prevStep and nextStep are valid, if so, skip:
 					if (!flowDataDirty[prevStep] && !flowDataDirty[nextStep]) continue;
-					QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+					
 					//If prevstep is dirty, rebuild it:
 					if (flowDataDirty[prevStep]){
 						if (steadyFlowCache[prevStep]){
@@ -1012,7 +1013,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					if (timeStep == nextStep) { OK = true; break;}
 				}
 				QApplication::restoreOverrideCursor();
-				break;
+				break;  //End of case(2)
 			default: assert(0); break;
 		} //End of switch()
 	}//End of cache reconstruction
@@ -1032,6 +1033,7 @@ setAllNeedRefresh(bool value){
 	for (int i = 0; i< mxframe; i++){
 		needRefreshFlag[i] = value;
 	}
+	unsteadyNeedsRefreshFlag = true;
 }
 //Map periodic coords into data extents.
 //This is called each time a new point is rendered along a stream line.  oldcycle is initially (0,0,0)

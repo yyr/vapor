@@ -2678,8 +2678,8 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep, int min
 	size_t min_bdim[3], max_bdim[3];
 	
 	//For steady flow, determine what is the available region for the current time step.
-	//For unsteady flow, determine the available region for all the sampled timesteps.
-	if (flowIsSteady()){
+	//For other flow, determine the available region for all the sampled timesteps.
+	if (flowType == 0 ){
 		bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, steadyVarNum, 3);
 	
 		if(!dataValid){

@@ -36,11 +36,14 @@ namespace VAPoR
 		void SetRakeDim(void);
 		size_t GetRakeDim(void);
 		void GetSeeds(float* pSeeds, const bool bRandom, const unsigned int randomSeed);
+		void SetSeedDistrib(float minmag, float maxmag, float distbias){
+			minMag = minmag; maxMag = maxmag; distribBias = distbias;}
 		
 	private:
 		float rakeMin[3], rakeMax[3];		// minimal and maximal positions
 		size_t numSeeds[3];					// number of seeds
 		int rakeDimension;					// 0, 1, 2, 3
+		float minMag, maxMag, distribBias;			//For nonuniform distribution
 	};
 
 	class FLOW_API Rake : public VetsUtil::MyBase

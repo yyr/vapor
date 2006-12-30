@@ -60,18 +60,26 @@ public:
 	//The data dirty and needsRefresh flags are used to control updates 
 	//The data dirty indicates whether or not the current flow data is valid.
 	//The needsRefresh flag indicates whether or not invalid data should be
-	//recalculated (based on the autorefresh setting)
+	//recalculated (based on the autorefresh setting).  This is so that we can
+	//remember what data has been refreshed since the last time the user clicked
+	//the "refresh" button.  
 	//When users click "refresh", all dirty data turns on the needsRefresh flag.
-	//   clean data will keep the needsrefresh off, so that when the next
-	//   dirty is set, they won't be refreshed.
-	//When users click "auto off", all needsRefresh flags are turned off.
-	//When users click "auto on", all needsRefresh flags are turned on.
-	//When data is reconstructed, the appropriate dirty flag is turned off.  The
-	//	needsRefresh flag is left on.
-	//When something changes, all dirty flags are turned on.  
-	//	If auto is on, needsrefresh is also turned on.
+	//   (clean data will keep the needsrefresh off, so that the next rendering
+	//   will not refresh the already clean data).  As long as the users don't click
+	//   "refresh" only the data that is both dirty and needs refresh is recalculated.
+	//When users click "auto off", all needsrefresh flags are turned off, so that
+	//pending dirty frames will not be refreshed
+	//When users click "auto on"  all needsrefresh flags are turned on if the data is dirty.
+	//When data is set dirty, all dirty flags are turned on, but needsRefresh is
+	//only turned on if auto is on.
 	//  If auto is off, needsRefresh remains as is
-	//At render time, data is reconstructed if both needsRefresh and dirty are true.
+	//At rendering time, data is reconstructed if dirty and auto is on,
+	//but if auto is off, data is only constructed if dirty and needsRefresh are both on.
+	//This is equivalent to reconstructing if both dirty and needsRefresh are on, since
+	//the needs refresh and dirty flags are equal when auto is on.
+	//When data is reconstructed, the appropriate dirty flag is turned off.  The
+	//	needsRefresh flag also turned off
+	// There is also an "unsteadyNeedsRefresh" flag, indicating that all 
 
 	void setNeedOfRefresh(int timeStep, bool value){ if(needRefreshFlag)needRefreshFlag[timeStep]=value;}
 	bool needsRefresh(FlowParams* fParams, int timeStep); 

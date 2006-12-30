@@ -267,11 +267,13 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 	}
 	return regionData;
 }
-//Generate the seeds for the rake.  Will implement distributed seeds later.
+//Generate the seeds for the rake.  If rake is random calculates distributed seeds 
 int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed){
 	int seedNum;
 	seedNum = numSeeds[0]*numSeeds[1]*numSeeds[2];
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
+	if (bUseRandomSeeds && seedDistBias != 0.f)
+		pSeedGenerator->SetSeedDistrib(minSeedDistVal, maxSeedDistVal, seedDistBias);
 	pSeedGenerator->GetSeeds(seeds, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
 	return seedNum;
@@ -281,70 +283,9 @@ int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed)
 //////////////////////////////////////////////////////////////////////////////////////
 // Find the points in the steady flow
 bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathContainer, int timeStep){
-	//First get the prioritization field data, lock it in place:
-	// create field object
-	CVectorField* pField;
-	Solution* pSolution;
-	CartesianGrid* pCartesianGrid;
-	float **pUData, **pVData, **pWData;
-	int totalXNum = (maxBlkRegion[0]-minBlkRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize()[0];
-	int totalYNum = (maxBlkRegion[1]-minBlkRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize()[1];
-	int totalZNum = (maxBlkRegion[2]-minBlkRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize()[2];
-	int totalNum = totalXNum*totalYNum*totalZNum;
-	pUData = new float*[1];
-	pVData = new float*[1];
-	pWData = new float*[1];
-	pUData[0] = GetData(timeStep, xPriorityVarName);
-	if (pUData[0]== 0)
-		return false;
-
-	pVData[0] = GetData(timeStep, yPriorityVarName);
-	if (pVData[0] == 0) {
-		dataMgr->UnlockRegion(pUData[0]);
-		return false;
-	}
-	pWData[0] = GetData(timeStep, zPriorityVarName);
-	if (pWData[0] == 0) {
-		dataMgr->UnlockRegion(pUData[0]);
-		dataMgr->UnlockRegion(pVData[0]);
-		return false;
-	}
-
-	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
-	pSolution->SetTimeScaleFactor(steadyUserTimeStepMultiplier);
-	pSolution->SetTime(timeStep, timeStep);
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, false, false, false);
 	
-	// set the boundary of physical grid
-	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
-	VECTOR3 minB, maxB, minR, maxR;
-	double minUser[3], maxUser[3], regMin[3],regMax[3];
-	size_t blockRegionMin[3],blockRegionMax[3];
-	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
-	for (int i = 0; i< 3; i++){
-		blockRegionMin[i] = bs[i]*minBlkRegion[i];
-		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
-	}
-	myReader->MapVoxToUser(timeStep, blockRegionMin, minUser, numXForms);
-	myReader->MapVoxToUser(timeStep, blockRegionMax, maxUser, numXForms);
-	myReader->MapVoxToUser(timeStep, minRegion, regMin, numXForms);
-	myReader->MapVoxToUser(timeStep, maxRegion, regMax, numXForms);
-	
-	//Use current region to determine coords of grid boundary:
-	
-	//Now adjust minB, maxB to block region extents:
-	
-	for (int i = 0; i< 3; i++){
-		minB[i] = minUser[i];
-		maxB[i] = maxUser[i];
-		minR[i] = regMin[i];
-		maxR[i] = regMax[i];
-	}
-	
-	pCartesianGrid->SetRegionExtents(minR,maxR);
-	pCartesianGrid->SetBoundary(minB, maxB);
-	pField = new CVectorField(pCartesianGrid, pSolution, 1);
-	pField->SetUserTimeStepInc(0, 1);
+	FieldData* fData = setupFieldData(xPriorityVarName, yPriorityVarName, zPriorityVarName, timeStep);
+	if (!fData) return false;
 	
 	//Go through the seeds, calculate the prioritization magnitude at each point, starting
 	//At the seed, going first backwards and then forwards
@@ -356,7 +297,8 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 			for (int ptindx = startPos; ptindx >= container->getStartIndex(line); ptindx--){
 				float* pt = container->getFlowPoint(line, ptindx);
 				if (pt[0] == END_FLOW_FLAG) break;
-				float val = priorityVal(pt, pField, pCartesianGrid, timeStep);
+				float val = fData->getFieldMag(pt);
+				if(val < 0.f) break; // point is out of region
 				if (val < minPriorityVal) break;
 				if (val > maxVal){ //establish a new max
 					maxVal = val;
@@ -369,7 +311,8 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 			for (int ptindx = startPos; ptindx <= container->getEndIndex(line); ptindx++){
 				float* pt = container->getFlowPoint(line, ptindx);
 				if (pt[0] == END_FLOW_FLAG) break;
-				float val = priorityVal(pt, pField, pCartesianGrid, timeStep);
+				float val = fData->getFieldMag(pt);
+				if(val < 0.f) break; 
 				if (val < minPriorityVal) break;
 				if (val > maxVal){ //establish a new max
 					maxVal = val;
@@ -386,28 +329,17 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 	}//end loop over line
 
 	//Release the locks on the prioritization field..
-	
-	delete pField;
+	delete fData;
+	/*delete pField;
 	//Unlock region:
 
 	dataMgr->UnlockRegion(pUData[0]);
 	dataMgr->UnlockRegion(pVData[0]);
 	dataMgr->UnlockRegion(pWData[0]);
+	*/
 	return true;
 }
-float VaporFlow::priorityVal(float point[3], CVectorField* pField, Grid* myGrid, int tStep)
-{
-	VECTOR3 pos(point[0],point[1],point[2]);
-	VECTOR3 vel;
-	PointInfo pInfo;
-	pInfo.Set(pos, pInfo.interpolant, -1, -1);
-	if(myGrid->phys_to_cell(pInfo) == -1)
-		return -1.f;
 
-	int rc = pField->at_phys(-1, pInfo.phyCoord, pInfo, (float)tStep, vel);
-	if (rc < 0) return -1.f;
-	return vel.GetMag();
-}
 void VaporFlow::SetPriorityField(const char* varx, const char* vary, const char* varz,
 									   float minField , float maxField)
 {
@@ -458,6 +390,8 @@ bool VaporFlow::GenStreamLines(FlowLineData* container, unsigned int randomSeed)
 	assert(seedNum == container->getNumLines());
 	seedPtr = new float[seedNum*3];
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
+	if (bUseRandomSeeds && seedDistBias != 0.f)
+		pSeedGenerator->SetSeedDistrib(minSeedDistVal, maxSeedDistVal, seedDistBias);
 	pSeedGenerator->GetSeeds(seedPtr, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
 
@@ -881,4 +815,75 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	delete pField;
 	
 	return true;
+}
+FieldData* VaporFlow::
+setupFieldData(const char* varx, const char* vary, const char* varz, int timestep){
+	//First get the prioritization field data, lock it in place:
+	// create field object
+	CVectorField* pField;
+	Solution* pSolution;
+	CartesianGrid* pCartesianGrid;
+	float **pUData, **pVData, **pWData;
+	int totalXNum = (maxBlkRegion[0]-minBlkRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize()[0];
+	int totalYNum = (maxBlkRegion[1]-minBlkRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize()[1];
+	int totalZNum = (maxBlkRegion[2]-minBlkRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize()[2];
+	int totalNum = totalXNum*totalYNum*totalZNum;
+	pUData = new float*[1];
+	pVData = new float*[1];
+	pWData = new float*[1];
+	pUData[0] = GetData(timestep, varx);
+	if (pUData[0]== 0)
+		return 0;
+
+	pVData[0] = GetData(timestep, vary);
+	if (pVData[0] == 0) {
+		dataMgr->UnlockRegion(pUData[0]);
+		return 0;
+	}
+	pWData[0] = GetData(timestep, varz);
+	if (pWData[0] == 0) {
+		dataMgr->UnlockRegion(pUData[0]);
+		dataMgr->UnlockRegion(pVData[0]);
+		return 0;
+	}
+
+	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
+	pSolution->SetTimeScaleFactor(steadyUserTimeStepMultiplier);
+	pSolution->SetTime(timestep, timestep);
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, false, false, false);
+	
+	// set the boundary of physical grid
+	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
+	VECTOR3 minB, maxB, minR, maxR;
+	double minUser[3], maxUser[3], regMin[3],regMax[3];
+	size_t blockRegionMin[3],blockRegionMax[3];
+	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	for (int i = 0; i< 3; i++){
+		blockRegionMin[i] = bs[i]*minBlkRegion[i];
+		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
+	}
+	myReader->MapVoxToUser(timestep, blockRegionMin, minUser, numXForms);
+	myReader->MapVoxToUser(timestep, blockRegionMax, maxUser, numXForms);
+	myReader->MapVoxToUser(timestep, minRegion, regMin, numXForms);
+	myReader->MapVoxToUser(timestep, maxRegion, regMax, numXForms);
+	
+	//Use current region to determine coords of grid boundary:
+	
+	//Now adjust minB, maxB to block region extents:
+	
+	for (int i = 0; i< 3; i++){
+		minB[i] = minUser[i];
+		maxB[i] = maxUser[i];
+		minR[i] = regMin[i];
+		maxR[i] = regMax[i];
+	}
+	
+	pCartesianGrid->SetRegionExtents(minR,maxR);
+	pCartesianGrid->SetBoundary(minB, maxB);
+	pField = new CVectorField(pCartesianGrid, pSolution, 1);
+	pField->SetUserTimeStepInc(0, 1);
+
+	FieldData* fData = new FieldData();
+	fData->setup(pField, pCartesianGrid, pUData, pVData, pWData, timestep);
+	return fData;
 }

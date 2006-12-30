@@ -19,6 +19,9 @@ SeedGenerator::SeedGenerator(const float min[3],
 	}
 	
 	SetRakeDim();
+	minMag = 0.f;
+	maxMag = 1.e30f;
+	distribBias = 0.f;
 }
 
 SeedGenerator::~SeedGenerator()
