@@ -70,7 +70,6 @@ using namespace VAPoR;
 	const string FlowParams::_priorityVariableNamesAttr = "PriorityVariableNames";
 	const string FlowParams::_priorityBoundsAttr = "PriorityBounds";
 	const string FlowParams::_seedDistBiasAttr = "SeedDistribBias";
-	const string FlowParams::_seedDistBoundsAttr = "SeedDistribBounds";
 
 	const string FlowParams::_periodicDimsAttr = "PeriodicDimensions";
 	const string FlowParams::_steadyFlowAttr = "SteadyFlow";//obsolete
@@ -168,8 +167,7 @@ restart() {
 	priorityVarNum[0]= 0;
 	priorityVarNum[1] = 1;
 	priorityVarNum[2] = 2;
-	seedDistMin = 0.f;
-	seedDistMax = 1.e30;
+	
 	seedDistBias = 0.f;
 	priorityMin = 0.f;
 	priorityMax = 1.e30f;
@@ -861,7 +859,7 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, Regio
 			yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
 			zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
 			myFlowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
-				xVar, yVar, zVar, seedDistBias, seedDistMin, seedDistMax);
+				xVar, yVar, zVar, seedDistBias);
 		} else {
 			float boxmin[3], boxmax[3];
 			for (int i = 0; i<3; i++){
@@ -1021,7 +1019,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 				yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
 				zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
 				myFlowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
-					xVar, yVar, zVar, seedDistBias, seedDistMin, seedDistMax);
+					xVar, yVar, zVar, seedDistBias);
 			} else {
 				float boxmin[3], boxmax[3];
 				for (int i = 0; i<3; i++){
@@ -1192,7 +1190,7 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 			yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
 			zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
 			flowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
-				xVar, yVar, zVar, seedDistBias, seedDistMin, seedDistMax);
+				xVar, yVar, zVar, seedDistBias);
 		} else {
 			float boxmin[3], boxmax[3];
 			for (int i = 0; i<3; i++){
@@ -1336,10 +1334,6 @@ buildNode() {
 	attrs[_unsteadyFlowDirectionAttr] = oss.str();
 
 	oss.str(empty);
-	oss << (double)seedDistMin <<" "<<(double)seedDistMax;
-	attrs[_seedDistBoundsAttr] = oss.str();
-	oss.str(empty);
-
 	oss << (double)seedDistBias;
 	attrs[_seedDistBiasAttr] = oss.str();
 	oss.str(empty);
@@ -1708,9 +1702,6 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _priorityBoundsAttr) == 0) {
 				ist >> priorityMin; ist>>priorityMax;
-			}
-			else if (StrCmpNoCase(attribName, _seedDistBoundsAttr) == 0) {
-				ist >> seedDistMin; ist >>seedDistMax;
 			}
 			else if (StrCmpNoCase(attribName, _seedDistBiasAttr) == 0) {
 				ist >> seedDistBias;

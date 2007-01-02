@@ -54,7 +54,7 @@ namespace VAPoR
 		void SetRegularSeedPoints(const float min[3], const float max[3], const size_t numSeeds[3]);
 		void SetIntegrationParams(float initStepSize, float maxStepSize);
 		void SetDistributedSeedPoints(const float min[3], const float max[3], int numSeeds, 
-			const char* xvar, const char* yvar, const char* zvar, float bias, float minField, float maxField);
+			const char* xvar, const char* yvar, const char* zvar, float bias);
 		
 		//New version for API.  Uses rake, then puts integration results in container
 		bool GenStreamLines(FlowLineData* container, unsigned int randomSeed);
@@ -86,8 +86,14 @@ namespace VAPoR
 		
 		//Methods to encapsulate getting data out of a field.  
 		//Returns false if unsuccessful at setting up variables
-		FieldData* setupFieldData(const char* varx, const char* vary, const char* varz, int timestep);
+		//Note that the field is NOT scaled by the current scale factor
+		//unless the boolean argument is true
+		FieldData* setupFieldData(const char* varx, const char* vary, const char* varz, double minExt[3], double maxExt[3], int numRefinements, int timestep, bool scaleField);
 	
+		//Obtain min/max vector magnitude in specified region.  Return false on error 
+		bool getFieldMagBounds(float* minVal, float* maxVal, const char* varx, const char* vary, const char* varz, 
+			double minExt[3], double maxExt[3], int numRefinements, int timestep);
+	 
 	private:
 		size_t userTimeUnit;						// time unit in the original data
 		size_t userTimeStep;						// enumerate time steps in source data
@@ -133,7 +139,7 @@ namespace VAPoR
 		float flowPeriod[3];						//Used if data is periodic
 		float* flowLineAdvectionSeeds;
 		float minPriorityVal, maxPriorityVal;
-		float minSeedDistVal, maxSeedDistVal, seedDistBias;
+		float seedDistBias;
 	};
 };
 

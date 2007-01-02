@@ -278,9 +278,11 @@ float FieldData::getFieldMag(float point[3])
 	int rc = pField->at_phys(-1, pInfo.phyCoord, pInfo, (float)timeStep, vel);
 	if (rc < 0) 
 		return -1.f;
+
 	return vel.GetMag();
 }
-//This is initialized by the VaporFlow class
+//This is initialized by the VaporFlow class.  Just holds some
+//pointers until the field data access is complete
 void FieldData::setup(CVectorField* fld, CartesianGrid* grd, 
 					  float** xdata, float** ydata, float** zdata, int tstep){
 	pField = fld; pCartesianGrid = grd; 

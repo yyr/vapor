@@ -218,18 +218,6 @@ FlowEventRouter::hookUpTab()
 	connect (priorityFieldMinEdit, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (priorityFieldMaxEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (priorityFieldMaxEdit, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (seedDistributionMin1, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (seedDistributionMin1, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (seedDistributionMax1, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (seedDistributionMax1, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (seedDistributionMin2, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (seedDistributionMin2, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (seedDistributionMax2, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (seedDistributionMax2, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (seedDistributionMin3, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (seedDistributionMin3, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (seedDistributionMax3, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
-	connect (seedDistributionMax3, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (biasEdit1, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (biasEdit1, SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (biasEdit2, SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
@@ -455,8 +443,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		//Do settings that depend on flowType:
 		if (flowType == 0){
 			fParams->setSeedDistBias(biasEdit1->text().toFloat());
-			fParams->setSeedDistMin(seedDistributionMin1->text().toFloat());
-			fParams->setSeedDistMax(seedDistributionMax1->text().toFloat());
+			
 			if (!autoscale){
 				int sampleRate = steadySamplesEdit1->text().toInt();
 				if (sampleRate < 2 || sampleRate > 2000){
@@ -493,8 +480,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 
 		if (flowType == 1){
 			fParams->setSeedDistBias(biasEdit2->text().toFloat());
-			fParams->setSeedDistMin(seedDistributionMin2->text().toFloat());
-			fParams->setSeedDistMax(seedDistributionMax2->text().toFloat());
+			
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
@@ -542,8 +528,6 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setPriorityMin(priorityFieldMinEdit->text().toFloat());
 			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
 			fParams->setSeedDistBias(biasEdit3->text().toFloat());
-			fParams->setSeedDistMin(seedDistributionMin3->text().toFloat());
-			fParams->setSeedDistMax(seedDistributionMax3->text().toFloat());
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit2->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit2->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit2->text().toInt());
@@ -967,11 +951,7 @@ void FlowEventRouter::updateTab(){
 				ySeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(1));
 				zSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(2));
 				biasEdit1->setText(QString::number(fParams->getSeedDistBias()));
-				seedDistributionMin1->setText(QString::number(fParams->getSeedDistMin()));
-				seedDistributionMax1->setText(QString::number(fParams->getSeedDistMax()));
-				fParams->setSeedDistBias(biasEdit2->text().toFloat());
-				fParams->setSeedDistMin(seedDistributionMin2->text().toFloat());
-				fParams->setSeedDistMax(seedDistributionMax2->text().toFloat());
+				fParams->setSeedDistBias(biasEdit1->text().toFloat());
 				break;
 			case (1) : //unsteady
 				advancedSteadyFrame->hide();
@@ -987,8 +967,6 @@ void FlowEventRouter::updateTab(){
 				ySeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(1));
 				zSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(2));
 				biasEdit2->setText(QString::number(fParams->getSeedDistBias()));
-				seedDistributionMin2->setText(QString::number(fParams->getSeedDistMin()));
-				seedDistributionMax2->setText(QString::number(fParams->getSeedDistMax()));
 				break;
 			case(2) : //field line advection
 				advancedSteadyFrame->hide();
@@ -1010,8 +988,6 @@ void FlowEventRouter::updateTab(){
 				ySeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(1));
 				zSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(2));
 				biasEdit3->setText(QString::number(fParams->getSeedDistBias()));
-				seedDistributionMin3->setText(QString::number(fParams->getSeedDistMin()));
-				seedDistributionMax3->setText(QString::number(fParams->getSeedDistMax()));
 				priorityFieldMinEdit->setText(QString::number(fParams->getPriorityMin()));
 				priorityFieldMaxEdit->setText(QString::number(fParams->getPriorityMax()));
 				break;

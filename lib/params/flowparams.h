@@ -252,13 +252,16 @@ public:
 	void setYUnsteadyVarNum(int varnum){unsteadyVarNum[1] = varnum;}
 	void setZUnsteadyVarNum(int varnum){unsteadyVarNum[2] = varnum;}
 	//When seed dist or priority vars are changed (!= steady), set the flags too.
-	void setXSeedDistVarNum(int varnum){seedDistVarNum[0] = varnum;
+	void setXSeedDistVarNum(int varnum){
+		seedDistVarNum[0] = varnum;
 		if (varnum != steadyVarNum[0]) seedDistIsSteady = false;
 	}
-	void setYSeedDistVarNum(int varnum){seedDistVarNum[1] = varnum;
+	void setYSeedDistVarNum(int varnum){
+		seedDistVarNum[1] = varnum;
 		if (varnum != steadyVarNum[1]) seedDistIsSteady = false;
 	}
-	void setZSeedDistVarNum(int varnum){seedDistVarNum[2] = varnum;
+	void setZSeedDistVarNum(int varnum){
+		seedDistVarNum[2] = varnum;
 		if (varnum != steadyVarNum[2]) seedDistIsSteady = false;
 	}
 	void setXPriorityVarNum(int varnum){priorityVarNum[0] = varnum;
@@ -273,13 +276,9 @@ public:
 	
 	void setPriorityMin(float val){priorityMin = val;}
 	void setPriorityMax(float val){priorityMax = val;}
-	void setSeedDistMin(float val){seedDistMin = val;}
-	void setSeedDistMax(float val){seedDistMax = val;}
 	void setSeedDistBias(float val){seedDistBias = val;}
 	float getPriorityMin(){return priorityMin;}
 	float getPriorityMax(){return priorityMax;}
-	float getSeedDistMin(){return seedDistMin;}
-	float getSeedDistMax(){return seedDistMax;}
 	float getSeedDistBias(){return seedDistBias;}
 
 
@@ -291,7 +290,11 @@ public:
 	void setFlowGeometry(int geomNum){geometryType = geomNum;}
 	void setColorMapEntity( int entityNum);
 	void setOpacMapEntity( int entityNum);
-	void setComboSteadyVarnum(int indx, int varnum){comboSteadyVarNum[indx] = varnum;}
+	void setComboSteadyVarnum(int indx, int varnum){
+		comboSteadyVarNum[indx] = varnum;
+		if (priorityIsSteady) comboPriorityVarNum[indx] = varnum;
+		if (seedDistIsSteady) comboSeedDistVarNum[indx] = varnum;
+	}
 	int getComboSteadyVarnum(int indx) {return comboSteadyVarNum[indx];}
 	void setComboUnsteadyVarnum(int indx, int varnum){comboUnsteadyVarNum[indx] = varnum;}
 	int getComboUnsteadyVarnum(int indx) {return comboUnsteadyVarNum[indx];}
@@ -333,7 +336,6 @@ protected:
 	static const string _seedDistVariableNamesAttr;
 	static const string _priorityVariableNamesAttr;
 	static const string _seedDistBiasAttr;
-	static const string _seedDistBoundsAttr;
 	static const string _priorityBoundsAttr;
 	static const string _steadyFlowAttr;//obsolete
 	static const string _flowTypeAttr;
@@ -428,7 +430,7 @@ protected:
 	bool randomGen;
 	unsigned int randomSeed;
 	float seedBoxMin[3], seedBoxMax[3];
-	float seedDistBias, seedDistMin, seedDistMax;
+	float seedDistBias;
 	float priorityMin, priorityMax;
 	
 	size_t generatorCount[3];

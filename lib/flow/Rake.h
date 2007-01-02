@@ -19,6 +19,8 @@
 
 namespace VAPoR
 {
+	class FieldData;
+	class VaporFlow;
 	enum RakeDim
 	{
 		POINT,
@@ -35,15 +37,25 @@ namespace VAPoR
 
 		void SetRakeDim(void);
 		size_t GetRakeDim(void);
-		void GetSeeds(float* pSeeds, const bool bRandom, const unsigned int randomSeed);
-		void SetSeedDistrib(float minmag, float maxmag, float distbias){
-			minMag = minmag; maxMag = maxmag; distribBias = distbias;}
+		bool GetSeeds(VaporFlow* vFlow, float* pSeeds, const bool bRandom, const unsigned int randomSeed);
+		void SetSeedDistrib(float distbias, int ts, size_t numrefin,
+			const char* xvar, const char* yvar, const char* zvar){
+			distribBias = distbias;
+			timeStep = ts;
+			numRefinements = numrefin;
+			varx = xvar;
+			vary = yvar;
+			varz = zvar;
+		}
 		
 	private:
 		float rakeMin[3], rakeMax[3];		// minimal and maximal positions
 		size_t numSeeds[3];					// number of seeds
 		int rakeDimension;					// 0, 1, 2, 3
-		float minMag, maxMag, distribBias;			//For nonuniform distribution
+		float distribBias;					//For nonuniform distribution
+		const char* varx, *vary, *varz;		//Field used for distrib seeds
+		size_t numRefinements;				//refinement used for dist. seeds.
+		int timeStep;						//Timestep to be sampled for dist. seeds
 	};
 
 	class FLOW_API Rake : public VetsUtil::MyBase
@@ -52,6 +64,8 @@ namespace VAPoR
 		virtual ~Rake(){}
 		virtual void GenSeedRandom( const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed) = 0;
 		virtual void GenSeedRegular(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed) = 0;
+		virtual bool GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData*, 
+			const size_t numSeeds[3], const float minrake[3], const float maxrake[3], float* pSeed, unsigned int randSeed) = 0;
 	};
 
 	class FLOW_API PointRake : public Rake
@@ -61,7 +75,8 @@ namespace VAPoR
 		virtual ~PointRake(){}
 		void GenSeedRandom(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 		void GenSeedRegular(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed);
-		
+		bool GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3], 
+			const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 	};
 
 	class FLOW_API LineRake : public Rake
@@ -71,7 +86,8 @@ namespace VAPoR
 		virtual ~LineRake(){}
 		void GenSeedRandom(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 		void GenSeedRegular(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed);
-		
+		bool GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
+			const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 	};
 
 	class FLOW_API PlaneRake : public Rake
@@ -81,7 +97,8 @@ namespace VAPoR
 		virtual ~PlaneRake(){}
 		void GenSeedRandom(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 		void GenSeedRegular(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed);
-		
+		bool GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
+			const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 	};
 
 	class FLOW_API SolidRake : public Rake
@@ -91,7 +108,8 @@ namespace VAPoR
 		virtual ~SolidRake(){}
 		void GenSeedRandom(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 		void GenSeedRegular(const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed);
-		
+		bool GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData*, const size_t numSeeds[3],
+			const float min[3], const float max[3], float* pSeed, unsigned int randomSeed);
 	};
 };
 

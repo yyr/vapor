@@ -35,8 +35,6 @@ VaporFlow::VaporFlow(DataMgr* dm)
 
 	minPriorityVal = 0.f;
 	maxPriorityVal = 1.e30;
-	minSeedDistVal = 0.f;
-	maxSeedDistVal = 1.e30;
 	seedDistBias = 0.f;
 
 	numXForms = 0;
@@ -272,9 +270,10 @@ int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed)
 	int seedNum;
 	seedNum = numSeeds[0]*numSeeds[1]*numSeeds[2];
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
-	if (bUseRandomSeeds && seedDistBias != 0.f)
-		pSeedGenerator->SetSeedDistrib(minSeedDistVal, maxSeedDistVal, seedDistBias);
-	pSeedGenerator->GetSeeds(seeds, bUseRandomSeeds, randomSeed);
+	if (bUseRandomSeeds && seedDistBias != 0.f){
+		pSeedGenerator->SetSeedDistrib(seedDistBias, timeStep, numXForms,xSeedDistVarName, ySeedDistVarName, zSeedDistVarName);
+	}
+	pSeedGenerator->GetSeeds(this, seeds, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
 	return seedNum;
 }
@@ -283,8 +282,15 @@ int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed)
 //////////////////////////////////////////////////////////////////////////////////////
 // Find the points in the steady flow
 bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathContainer, int timeStep){
+	//Use the current Region, obtain the priority field.
+	//First map the region to doubles:
+	double minDouble[3], maxDouble[3];
+	const VDFIOBase* myReader = dataMgr->GetRegionReader();
+	myReader->MapVoxToUser(timeStep,minRegion, minDouble, numXForms);
+	myReader->MapVoxToUser(timeStep,maxRegion, maxDouble, numXForms);
 	
-	FieldData* fData = setupFieldData(xPriorityVarName, yPriorityVarName, zPriorityVarName, timeStep);
+	FieldData* fData = setupFieldData(xPriorityVarName, yPriorityVarName, zPriorityVarName, 
+		minDouble, maxDouble, numXForms, timeStep, false);
 	if (!fData) return false;
 	
 	//Go through the seeds, calculate the prioritization magnitude at each point, starting
@@ -330,13 +336,7 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 
 	//Release the locks on the prioritization field..
 	delete fData;
-	/*delete pField;
-	//Unlock region:
-
-	dataMgr->UnlockRegion(pUData[0]);
-	dataMgr->UnlockRegion(pVData[0]);
-	dataMgr->UnlockRegion(pWData[0]);
-	*/
+	
 	return true;
 }
 
@@ -356,7 +356,7 @@ void VaporFlow::SetPriorityField(const char* varx, const char* vary, const char*
 	maxPriorityVal = maxField;
 }					
 void VaporFlow::SetDistributedSeedPoints(const float min[3], const float max[3], int numSeeds, 
-	const char* varx, const char* vary, const char* varz, float bias, float minField, float maxField)
+	const char* varx, const char* vary, const char* varz, float bias)
 {
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
@@ -377,8 +377,7 @@ void VaporFlow::SetDistributedSeedPoints(const float min[3], const float max[3],
 	strcpy(xSeedDistVarName, varx);
 	strcpy(ySeedDistVarName, vary);
 	strcpy(zSeedDistVarName, varz); 
-	minSeedDistVal = minField;
-	maxSeedDistVal = maxField;
+	
 	seedDistBias = bias;
 }			
 
@@ -391,8 +390,9 @@ bool VaporFlow::GenStreamLines(FlowLineData* container, unsigned int randomSeed)
 	seedPtr = new float[seedNum*3];
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
 	if (bUseRandomSeeds && seedDistBias != 0.f)
-		pSeedGenerator->SetSeedDistrib(minSeedDistVal, maxSeedDistVal, seedDistBias);
-	pSeedGenerator->GetSeeds(seedPtr, bUseRandomSeeds, randomSeed);
+		pSeedGenerator->SetSeedDistrib(seedDistBias, steadyStartTimeStep, numXForms,
+			xSeedDistVarName,ySeedDistVarName,zSeedDistVarName);
+	pSeedGenerator->GetSeeds(this, seedPtr, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
 
 	//Then do streamlines with prepared seeds:
@@ -816,31 +816,45 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	
 	return true;
 }
+//Prepare for obtaining values from a vector field.
 FieldData* VaporFlow::
-setupFieldData(const char* varx, const char* vary, const char* varz, int timestep){
-	//First get the prioritization field data, lock it in place:
+setupFieldData(const char* varx, const char* vary, const char* varz, 
+			   double minExt[3], double maxExt[3], int numRefinements, int timestep, bool scaleField){
+	
+	size_t minInt[3], maxInt[3];
+	size_t minBlk[3], maxBlk[3];
+	double minUser[3], maxUser[3]; //coords we will use for mapping (full block bounds)
+	
+	const VDFIOBase* myReader = dataMgr->GetRegionReader();
+	myReader->MapUserToVox((size_t)timestep, minExt, minInt, numRefinements);
+	myReader->MapUserToVox((size_t)timestep, maxExt, maxInt, numRefinements);
+	myReader->MapUserToBlk((size_t)timestep, minExt, minBlk, numRefinements);
+	myReader->MapUserToBlk((size_t)timestep, maxExt, maxBlk, numRefinements);
+	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	// get the field data, lock it in place:
 	// create field object
 	CVectorField* pField;
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
 	float **pUData, **pVData, **pWData;
-	int totalXNum = (maxBlkRegion[0]-minBlkRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize()[0];
-	int totalYNum = (maxBlkRegion[1]-minBlkRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize()[1];
-	int totalZNum = (maxBlkRegion[2]-minBlkRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize()[2];
+	int totalXNum = (maxBlk[0]-minBlk[0]+1)* bs[0];
+	int totalYNum = (maxBlk[1]-minBlk[1]+1)* bs[1];
+	int totalZNum = (maxBlk[2]-minBlk[2]+1)* bs[2];
 	int totalNum = totalXNum*totalYNum*totalZNum;
+
+	//Now get the data from the dataMgr:
 	pUData = new float*[1];
 	pVData = new float*[1];
 	pWData = new float*[1];
-	pUData[0] = GetData(timestep, varx);
+	pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, 1);
 	if (pUData[0]== 0)
 		return 0;
-
-	pVData[0] = GetData(timestep, vary);
+	pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk, 1);
 	if (pVData[0] == 0) {
 		dataMgr->UnlockRegion(pUData[0]);
 		return 0;
 	}
-	pWData[0] = GetData(timestep, varz);
+	pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk, 1);
 	if (pWData[0] == 0) {
 		dataMgr->UnlockRegion(pUData[0]);
 		dataMgr->UnlockRegion(pVData[0]);
@@ -848,24 +862,29 @@ setupFieldData(const char* varx, const char* vary, const char* varz, int timeste
 	}
 
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
-	pSolution->SetTimeScaleFactor(steadyUserTimeStepMultiplier);
+	//Note:  We optionally use the scale factor here
+	if (scaleField)
+		pSolution->SetTimeScaleFactor(steadyUserTimeStepMultiplier);
+	else
+		pSolution->SetTimeScaleFactor(1.f);
 	pSolution->SetTime(timestep, timestep);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, false, false, false);
 	
 	// set the boundary of physical grid
-	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
+	
 	VECTOR3 minB, maxB, minR, maxR;
-	double minUser[3], maxUser[3], regMin[3],regMax[3];
+	double regMin[3],regMax[3];
 	size_t blockRegionMin[3],blockRegionMax[3];
-	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	//Determine the bounds of the full block region (it's what is used for mapping)
 	for (int i = 0; i< 3; i++){
 		blockRegionMin[i] = bs[i]*minBlkRegion[i];
 		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
 	}
-	myReader->MapVoxToUser(timestep, blockRegionMin, minUser, numXForms);
-	myReader->MapVoxToUser(timestep, blockRegionMax, maxUser, numXForms);
-	myReader->MapVoxToUser(timestep, minRegion, regMin, numXForms);
-	myReader->MapVoxToUser(timestep, maxRegion, regMax, numXForms);
+	myReader->MapVoxToUser(timestep, blockRegionMin, minUser, numRefinements);
+	myReader->MapVoxToUser(timestep, blockRegionMax, maxUser, numRefinements);
+	//Also, map the region extents (needed for in/out testing):
+	myReader->MapVoxToUser(timestep, minInt, regMin, numRefinements);
+	myReader->MapVoxToUser(timestep, maxInt, regMax, numRefinements);
 	
 	//Use current region to determine coords of grid boundary:
 	
@@ -886,4 +905,72 @@ setupFieldData(const char* varx, const char* vary, const char* varz, int timeste
 	FieldData* fData = new FieldData();
 	fData->setup(pField, pCartesianGrid, pUData, pVData, pWData, timestep);
 	return fData;
+}
+//Obtain bounds on field magnitude
+bool VaporFlow::
+getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* vary, const char* varz, 
+	double minExt[3], double maxExt[3], int numRefinements, int timestep){
+			 
+	//As in the above method, set up the mapping and get the data.
+	size_t minInt[3], maxInt[3];
+	size_t minBlk[3], maxBlk[3];
+	
+	const VDFIOBase* myReader = dataMgr->GetRegionReader();
+	myReader->MapUserToVox((size_t)timestep, minExt, minInt, numRefinements);
+	myReader->MapUserToVox((size_t)timestep, maxExt, maxInt, numRefinements);
+	myReader->MapUserToBlk((size_t)timestep, minExt, minBlk, numRefinements);
+	myReader->MapUserToBlk((size_t)timestep, maxExt, maxBlk, numRefinements);
+	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
+	
+	float **pUData, **pVData, **pWData;
+	int totalXNum = (maxBlk[0]-minBlk[0]+1)* bs[0];
+	int totalYNum = (maxBlk[1]-minBlk[1]+1)* bs[1];
+	int totalZNum = (maxBlk[2]-minBlk[2]+1)* bs[2];
+	int totalNum = totalXNum*totalYNum*totalZNum;
+	//Now get the data from the dataMgr:
+	pUData = new float*[1];
+	pVData = new float*[1];
+	pWData = new float*[1];
+	pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, 1);
+	if (pUData[0]== 0)
+		return false;
+	pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk, 1);
+	if (pVData[0] == 0) {
+		dataMgr->UnlockRegion(pUData[0]);
+		return false;
+	}
+	pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk, 1);
+	if (pWData[0] == 0) {
+		dataMgr->UnlockRegion(pUData[0]);
+		dataMgr->UnlockRegion(pVData[0]);
+		return false;
+	}
+
+	
+	int numPts = 0;
+	*minVal = 1.e30f;
+	*maxVal = -1.f;
+	//OK, we got the data. find the rms:
+	for (size_t i = minInt[0]; i<=maxInt[0]; i++){
+		for (size_t j = minInt[1]; j<=maxInt[1]; j++){
+			for (size_t k = minInt[2]; k<=maxInt[2]; k++){
+				int xyzCoord = (i - minBlk[0]*bs[0]) +
+					(j - minBlk[1]*bs[1])*(bs[0]*(maxBlk[0]-minBlk[0]+1)) +
+					(k - minBlk[2]*bs[2])*(bs[1]*(maxBlk[1]-minBlk[1]+1))*(bs[0]*(maxBlk[0]-minBlk[0]+1));
+				float sumsq = pUData[0][xyzCoord]*pUData[0][xyzCoord]+pVData[0][xyzCoord]*pVData[0][xyzCoord]+pWData[0][xyzCoord]*pWData[0][xyzCoord];
+				float dataVal = sqrt(sumsq);
+				if (*minVal > dataVal) 
+					*minVal = dataVal;
+				if (*maxVal < dataVal) 
+					*maxVal = dataVal;
+				numPts++;
+			}
+		}
+	}
+	dataMgr->UnlockRegion(pUData[0]);
+	dataMgr->UnlockRegion(pVData[0]);
+	dataMgr->UnlockRegion(pWData[0]);
+	
+	if (numPts == 0) return false;
+	return true;
 }
