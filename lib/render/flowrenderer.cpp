@@ -174,7 +174,7 @@ void FlowRenderer::paintGL()
 		myGLWindow->setRenderNew();
 	}
 }
-//New version of rendering, uses FlowLineData:
+//New version of rendering, uses FlowLineData, used on both steady and unsteady flow.
 void FlowRenderer::
 renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum){
 	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
@@ -256,7 +256,6 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	
 	glPushMatrix();
 	
-
 	//scale:
 	float scaleFactor = 1.f/ViewpointParams::getMaxCubeSide();
 	glScalef(scaleFactor, scaleFactor, scaleFactor);
@@ -763,18 +762,9 @@ void FlowRenderer::setDataDirty()
 }
 void FlowRenderer::setGraphicsDirty()
 {
-	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
-	//the graphics bit shouldn't be set if speeds are being mapped?
-	//
-	//assert((myFlowParams->getOpacMapEntityIndex() != 2)&&(myFlowParams->getColorMapEntityIndex() != 2));
-	if ((myFlowParams->getOpacMapEntityIndex() == 2)||(myFlowParams->getColorMapEntityIndex() == 2)){
-		setDataDirty();
-	} else { //check if unsteady or steady flags need to be set
-		
-		allFlowMapDirtyFlag = true;
-		for (int i = 0; i< numFrames; i++){
-			flowMapDirty[i] = true;
-		}
+	allFlowMapDirtyFlag = true;
+	for (int i = 0; i< numFrames; i++){
+		flowMapDirty[i] = true;
 	}
 }
 bool FlowRenderer::
@@ -794,7 +784,7 @@ flowMapIsDirty(int timeStep){
 	else return false;
 }
 
-//Rebuild the data cache from scratch, and/or the 
+//Rebuild the data cache from scratch, and the 
 //RGBA mapping data 
 //Return false on failure.
 //If the 
@@ -808,10 +798,6 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 
 	bool doSpeeds = myFlowParams->getColorMapEntityIndex() == 2 || 
 		myFlowParams->getOpacMapEntityIndex() == 2;
-	
-	
-	
-	
 
 	//For unsteady flow, the min/max frame interval can be narrowed by the
 	//timesampling interval.  It doesn't make any sense to extrapolate outside
@@ -893,13 +879,19 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					return false;
 				}
 				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-				//Then incrementally advect from start to end, via sampled timesteps
+				//Then incrementally advect from start to end, via sampled timesteps.  
 				prevStep = myFlowParams->getUnsteadyTimestepSample(0,minFrame, maxFrame);
 				for (int i = 1;; i++) {
 					nextStep = myFlowParams->getUnsteadyTimestepSample(i,minFrame, maxFrame);
 					if (nextStep < 0 || prevStep < 0) break;
 					assert(nextStep != prevStep);
-					//At some point we might interrupt this here!
+					//Check if there's nothing to advect at this timestep
+					//If so just bypass it:
+					if(unsteadyFlowCache->getNumLinesAtTime(prevStep) == 0) {
+						prevStep = nextStep;
+						continue;
+					}
+					//At some point we might allow users to interrupt at this point:
 					//The following is time consuming...
 					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep);
 					if (!OK) {
@@ -911,6 +903,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					prevStep = nextStep;
 				}
 				QApplication::restoreOverrideCursor();
+				if(!constColors) myFlowParams->mapColors(unsteadyFlowCache, timeStep, minFrame);
 				break;
 			case (2):
 				//Check if we need to do a partial or full rebuild.

@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>437</width>
-            <height>2710</height>
+            <height>2633</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -1224,7 +1224,7 @@
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>Bidirectional</string>
+                                                                    <string>As Needed</string>
                                                                 </property>
                                                             </item>
                                                             <property name="name">
@@ -2031,10 +2031,10 @@
                                                 </sizepolicy>
                                             </property>
                                             <property name="minValue">
-                                                <number>0</number>
+                                                <number>-128</number>
                                             </property>
                                             <property name="maxValue">
-                                                <number>256</number>
+                                                <number>128</number>
                                             </property>
                                             <property name="value">
                                                 <number>0</number>
@@ -2043,7 +2043,7 @@
                                                 <enum>Horizontal</enum>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Bias distribution toward higher magnitude of steady field</string>
+                                                <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2077,7 +2077,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Bias distribution toward higher magnitude of steady field</string>
+                                                <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -2649,10 +2649,10 @@
                                                 </sizepolicy>
                                             </property>
                                             <property name="minValue">
-                                                <number>0</number>
+                                                <number>-128</number>
                                             </property>
                                             <property name="maxValue">
-                                                <number>256</number>
+                                                <number>128</number>
                                             </property>
                                             <property name="value">
                                                 <number>0</number>
@@ -2661,7 +2661,7 @@
                                                 <enum>Horizontal</enum>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Bias distribution toward higher magnitude of steady field</string>
+                                                <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2695,7 +2695,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Bias distribution toward higher magnitude of steady field</string>
+                                                <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -3492,7 +3492,7 @@
                                         </widget>
                                         <widget class="QSlider">
                                             <property name="name">
-                                                <cstring>biasiasSlider3</cstring>
+                                                <cstring>biasSlider3</cstring>
                                             </property>
                                             <property name="enabled">
                                                 <bool>true</bool>
@@ -3506,10 +3506,10 @@
                                                 </sizepolicy>
                                             </property>
                                             <property name="minValue">
-                                                <number>0</number>
+                                                <number>-128</number>
                                             </property>
                                             <property name="maxValue">
-                                                <number>256</number>
+                                                <number>128</number>
                                             </property>
                                             <property name="value">
                                                 <number>0</number>
@@ -3518,7 +3518,7 @@
                                                 <enum>Horizontal</enum>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Bias random seed distribution toward higher magnitude of steady field.  Set to 0 for uniform distribution</string>
+                                                <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -3552,7 +3552,7 @@
                                                 <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Bias random seed distribution toward higher magnitude of steady field.  Set to 0 for uniform distribution</string>
+                                                <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -3813,7 +3813,7 @@
                                                 </size>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify field components to be used in locating seeds to advect to next time step</string>
+                                                <string>Specify field components to be used in prioritizing seeds to advect to next time step</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -3858,7 +3858,7 @@
                                                 <number>1</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify field components to be used in locating seeds to advect to next time step</string>
+                                                <string>Specify field components to be used in prioritizing seeds to advect to next time step</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -3903,7 +3903,7 @@
                                                 <number>2</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Specify field components to be used in locating seeds to advect to next time step</string>
+                                                <string>Specify field components to be used in prioritizing seeds to advect to next time step</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -3974,6 +3974,9 @@
                                             <property name="alignment">
                                                 <set>AlignHCenter</set>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify range of priority field magnitudes to be considered in identifying seeds to advect in time</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -3987,6 +3990,9 @@
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify range of priority field magnitudes to be considered in identifying seeds to advect in time</string>
                                             </property>
                                         </widget>
                                         <spacer>

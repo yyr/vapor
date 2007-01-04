@@ -236,7 +236,7 @@ restart() {
 	
 	seedPointList.clear();
 	unsteadyTimestepList.clear();
-	numInjections = 1;
+	
 	maxPoints = 0;
 	maxFrame = 0;
 
@@ -926,7 +926,6 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, Regio
 
 	FlowLineData* flowData = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, steadyFlowDirection, doRGBAs); 
 		
-	numInjections = 1;
 
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	
@@ -951,8 +950,6 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, Regio
 		
 	if (doRGBAs){
 		mapColors(flowData, timeStep, minFrame);
-		//Now we can release the speeds:
-		if (useSpeeds) flowData->releaseSpeeds(); 
 	}
 
 	return flowData;
@@ -1088,8 +1085,6 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 
 
 	FlowLineData* steadyFlowData = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, steadyFlowDirection, doRGBAs); 
-		
-	numInjections = 1;
 
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	
@@ -1117,8 +1112,6 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 		
 	if (doRGBAs){
 		mapColors(steadyFlowData, timeStep, minFrame);
-		//Now we can release the speeds:
-		if (useSpeeds) steadyFlowData->releaseSpeeds(); 
 	}
 
 	return steadyFlowData;
@@ -1949,202 +1942,6 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 }
 	
 
-//Generate a list of colors and opacities, one per (valid) vertex.
-//The number of points is maxPoints*numSeedings*numInjections
-//The flowData parameter is either the rakeFlowData or the listFlowData
-//For the specific time step.
-//Note that, if a variable is mapped, only the first time step is used for
-//the mapping
-//
-void FlowParams::
-mapColors(float* speeds, int currentTimeStep, int minFrame, int numSeeds, float* flowData, float* flowRGBAs, bool isRake){
-	//Create lut based on current mapping data
-	float* lut = new float[256*4];
-	mapperFunction->makeLut(lut);
-	//Setup mapping
-	
-	float opacMin = mapperFunction->getMinOpacMapValue();
-	float colorMin = mapperFunction->getMinColorMapValue();
-	float opacMax = mapperFunction->getMaxOpacMapValue();
-	float colorMax = mapperFunction->getMaxColorMapValue();
-
-	float opacVar, colorVar;
-	float* opacRegion, *colorRegion;
-	float opacVarMin[3], opacVarMax[3], colorVarMin[3], colorVarMax[3];
-	int opacSize[3],colorSize[3];
-	DataStatus* ds = DataStatus::getInstance();
-		
-	//Get the variable (entire region) if needed
-	if (getOpacMapEntityIndex() > 3){
-		//set up args for GetRegion
-		//If flow is unsteady, just get the first available timestep
-		int timeStep = currentTimeStep;
-		if(flowType != 0){//unsteady flow
-			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
-			if (timeStep < 0) MyBase::SetErrMsg("No data for mapped variable");
-		}
-		size_t minSize[3];
-		size_t maxSize[3];
-		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
-		for (int i = 0; i< 3; i++){
-			minSize[i] = 0;
-			opacSize[i] = (int)((ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements)));
-			maxSize[i] = opacSize[i]/bs[i] -1;
-			opacVarMin[i] = DataStatus::getInstance()->getExtents()[i];
-			opacVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];
-		}
-		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		opacRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-			opacMapEntity[getOpacMapEntityIndex()].c_str(),
-			numRefinements, (size_t*) minSize, (size_t*) maxSize, 0);
-		QApplication::restoreOverrideCursor();
-	}
-	if (getColorMapEntityIndex() > 3){
-		//set up args for GetRegion
-		int timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-4);
-		if (timeStep < 0) MyBase::SetErrMsg("No data for mapped variable");
-		size_t minSize[3];
-		size_t maxSize[3];
-		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
-		for (int i = 0; i< 3; i++){
-			minSize[i] = 0;
-			colorSize[i] = (int)((ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements)));
-			maxSize[i] = (colorSize[i]/bs[i] - 1);
-			colorVarMin[i] = DataStatus::getInstance()->getExtents()[i];
-			colorVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];
-		}
-		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		colorRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-			colorMapEntity[getColorMapEntityIndex()].c_str(),
-			numRefinements, (size_t*) minSize, (size_t*) maxSize, 0);
-		QApplication::restoreOverrideCursor();
-
-	}
-	
-	//Cycle through all the points.  Map to rgba as we go.
-	//
-	int firstSteadyStep=0, lastSteadyStep=0;
-	if (steadyFlowDirection < 0){
-		firstSteadyStep = -steadyFlowLength;
-	} else if (steadyFlowDirection > 0){
-		lastSteadyStep = steadyFlowLength;
-	} else {
-		firstSteadyStep = -steadyFlowLength/2;
-		lastSteadyStep = steadyFlowLength/2;
-	}
-
-	
-
-	for (int i = 0; i<numInjections; i++){
-		for (int j = 0; j<numSeeds; j++){
-			for (int k = 0; k<maxPoints; k++) {
-				//check for end of flow:
-				if (flowData[3*(k+ maxPoints*(j+ (numSeeds*i)))] == END_FLOW_FLAG)
-					break;
-				switch (getOpacMapEntityIndex()){
-					case (0): //constant
-						opacVar = 0.f;
-						break;
-					case (1): //age
-						if (flowIsSteady())
-							//Map k in [0..objectsPerFlowline] to the interval (firstDisplayFrame, lastDisplayFrame)
-							opacVar =  (float)firstSteadyStep +
-								(float)k*((float)(lastSteadyStep-firstSteadyStep))/((float)objectsPerFlowline);
-						else
-							opacVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
-						break;
-					case (2): //speed
-						opacVar = speeds[(k+ maxPoints*(j+ (numSeeds*i)))];
-						break;
-					case (3): //opacity mapped from seed index
-						
-						if (isRake) opacVar = -1.f - (float)j;
-						else opacVar = (float)j;
-
-						break;
-					default : //variable
-						int x,y,z;
-						float* dataPoint = flowData+3*(k+ maxPoints*(j+ (numSeeds*i)));
-						//Check for ignore flag... make transparent
-						if (dataPoint[0] == IGNORE_FLAG){
-							opacVar = opacMin;
-							break;
-						}
-						float remappedPoint[3];
-						periodicMap(dataPoint,remappedPoint);
-						x = (int)(0.5f+((remappedPoint[0] - opacVarMin[0])*opacSize[0])/(opacVarMax[0]-opacVarMin[0]));
-						y = (int)(0.5f+((remappedPoint[1] - opacVarMin[1])*opacSize[1])/(opacVarMax[1]-opacVarMin[1]));
-						z = (int)(0.5f+((remappedPoint[2] - opacVarMin[2])*opacSize[2])/(opacVarMax[2]-opacVarMin[2]));
-						if (x>=opacSize[0]) x = opacSize[0]-1;
-						if (y>=opacSize[1]) y = opacSize[1]-1;
-						if (z>=opacSize[2]) z = opacSize[2]-1;
-						
-						opacVar = opacRegion[x+opacSize[0]*(y+opacSize[1]*z)];
-						break;
-				}
-				int opacIndex = (int)((opacVar - opacMin)*255.99/(opacMax-opacMin));
-				if (opacIndex<0) opacIndex = 0;
-				if (opacIndex> 255) opacIndex =255;
-				//opacity = lut[3+4*opacIndex];
-				switch (getColorMapEntityIndex()){
-					case (0): //constant
-						colorVar = 0.f;
-						break;
-					case (1): //age
-						if (flowIsSteady())
-							colorVar = (float)firstSteadyStep +
-								(float)k*((float)(lastSteadyStep-firstSteadyStep))/((float)objectsPerFlowline);
-						else
-							colorVar = (float)k*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
-						break;
-					case (2): //speed
-						colorVar = speeds[(k+ maxPoints*(j+ (numSeeds*i)))];
-						break;
-					case (3) : //seed index.  Will use constant color
-						if (isRake) colorVar = -1.f - (float)j;
-						else colorVar = (float)j;
-						break;
-					default : //variable
-						int x,y,z;
-						float* dataPoint = flowData+3*(k+ maxPoints*(j+ (numSeeds*i)));
-						//Check for ignore flag... map to min color
-						if (dataPoint[0] == IGNORE_FLAG){
-							colorVar = colorMin;
-							break;
-						}
-						float remappedPoint[3];
-						periodicMap(dataPoint,remappedPoint);
-						x = (int)(0.5f+((remappedPoint[0] - colorVarMin[0])*colorSize[0])/(colorVarMax[0]-colorVarMin[0]));
-						y = (int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
-						z = (int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
-						if (x>=colorSize[0]) x = colorSize[0]-1;
-						if (y>=colorSize[1]) y = colorSize[1]-1;
-						if (z>=colorSize[2]) z = colorSize[2]-1;
-						colorVar = colorRegion[x+colorSize[0]*(y+colorSize[1]*z)];
-						break;
-				}
-				int colorIndex = (int)((colorVar - colorMin)*255.99/(colorMax-colorMin));
-				if (colorIndex<0) colorIndex = 0;
-				if (colorIndex> 255) colorIndex =255;
-				//Special case for constant colors and/or opacities
-				if (getOpacMapEntityIndex() == 0){
-					flowRGBAs[4*(k+ maxPoints*(j+ (numSeeds*i)))+3]= constantOpacity;
-				} else {
-					flowRGBAs[4*(k+ maxPoints*(j+ (numSeeds*i)))+3]= lut[4*opacIndex+3];
-				}
-				if (getColorMapEntityIndex() == 0){
-					flowRGBAs[4*(k+ maxPoints*(j+ (numSeeds*i)))]= ((float)qRed(constantColor))/255.f;
-					flowRGBAs[4*(k+ maxPoints*(j+ (numSeeds*i)))+1]= ((float)qGreen(constantColor))/255.f;
-					flowRGBAs[4*(k+ maxPoints*(j+ (numSeeds*i)))+2]= ((float)qBlue(constantColor))/255.f;
-				} else {
-					flowRGBAs[4*(k+ maxPoints*(j+ (numSeeds*i)))]= lut[4*colorIndex];
-					flowRGBAs[4*(k+ maxPoints*(j+ (numSeeds*i)))+1]= lut[4*colorIndex+1];
-					flowRGBAs[4*(k+ maxPoints*(j+ (numSeeds*i)))+2]= lut[4*colorIndex+2];
-				}
-			}
-		}
-	}
-}
 
 //Generate a list of colors and opacities, one per (valid) vertex.
 //Puts them into the FlowLineData
@@ -2221,117 +2018,114 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 	
 	//Cycle through all the points.  Map to rgba as we go.
 	//
-	for (int i = 0; i<numInjections; i++){
-		for (int lineNum = 0; lineNum<container->getNumLines(); lineNum++){
-			for (int pointNum = container->getStartIndex(lineNum); pointNum<= container->getEndIndex(lineNum); pointNum++){
-			//for (int k = 0; k<maxPoints; k++) {
-				
-				switch (getOpacMapEntityIndex()){
-					case (0): //constant
-						opacVar = 0.f;
-						break;
-					case (1): //age
-						if (flowIsSteady())
-							//Map k in [0..objectsPerFlowline] to the interval (0,1)
-							opacVar =  
-								(float)pointNum/((float)objectsPerFlowline);
-						else
-							opacVar = (float)pointNum*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
-						break;
-					case (2): //speed
-						opacVar = container->getSpeed(lineNum,pointNum);
-						break;
-					case (3): //opacity mapped from seed index
-						
-						
-						opacVar = (float)lineNum;
 
-						break;
-					default : //variable
-						int x,y,z;
-						float* dataPoint = container->getFlowPoint(lineNum,pointNum);
-							
-						//Check for ignore flag... make transparent
-						//Should never happen!
-						assert (dataPoint[0] != IGNORE_FLAG);
-						//	opacVar = opacMin;
-						//	break;
-						//}
-						float remappedPoint[3];
-						periodicMap(dataPoint,remappedPoint);
-						x = (int)(0.5f+((remappedPoint[0] - opacVarMin[0])*opacSize[0])/(opacVarMax[0]-opacVarMin[0]));
-						y = (int)(0.5f+((remappedPoint[1] - opacVarMin[1])*opacSize[1])/(opacVarMax[1]-opacVarMin[1]));
-						z = (int)(0.5f+((remappedPoint[2] - opacVarMin[2])*opacSize[2])/(opacVarMax[2]-opacVarMin[2]));
-						if (x>=opacSize[0]) x = opacSize[0]-1;
-						if (y>=opacSize[1]) y = opacSize[1]-1;
-						if (z>=opacSize[2]) z = opacSize[2]-1;
+	for (int lineNum = 0; lineNum<container->getNumLines(); lineNum++){
+		for (int pointNum = container->getStartIndex(lineNum); pointNum<= container->getEndIndex(lineNum); pointNum++){
+		//for (int k = 0; k<maxPoints; k++) {
+			
+			switch (getOpacMapEntityIndex()){
+				case (0): //constant
+					opacVar = 0.f;
+					break;
+				case (1): //age
+					if (flowIsSteady())
+						//Map k in [0..objectsPerFlowline] to the interval (0,1)
+						opacVar =  
+							(float)pointNum/((float)objectsPerFlowline);
+					else
+						opacVar = (float)(minFrame + (float)pointNum/(float)objectsPerTimestep);
+					break;
+				case (2): //speed
+					opacVar = container->getSpeed(lineNum,pointNum);
+					break;
+				case (3): //opacity mapped from seed index
+					opacVar = container->getSeedIndex(lineNum);
+					break;
+				default : //variable
+					int x,y,z;
+					float* dataPoint = container->getFlowPoint(lineNum,pointNum);
 						
-						opacVar = opacRegion[x+opacSize[0]*(y+opacSize[1]*z)];
-						break;
-				}
-				int opacIndex = (int)((opacVar - opacMin)*255.99/(opacMax-opacMin));
-				if (opacIndex<0) opacIndex = 0;
-				if (opacIndex> 255) opacIndex =255;
-				//opacity = lut[3+4*opacIndex];
-				switch (getColorMapEntityIndex()){
-					case (0): //constant
-						colorVar = 0.f;
-						break;
-					case (1): //age
-						if (flowIsSteady())
-							colorVar = 
-								(float)pointNum/((float)objectsPerFlowline);
-						else
-							colorVar = (float)pointNum*((float)(maxFrame-minFrame))/((float)objectsPerFlowline);
-						break;
-					case (2): //speed
-						colorVar = container->getSpeed(lineNum,pointNum);
-						break;
-					case (3) : //seed index.  Will use constant color
-						
-						colorVar = (float)lineNum;
-						break;
-					default : //variable
-						int x,y,z;
-						float* dataPoint = container->getFlowPoint(lineNum,pointNum);
-						assert(dataPoint[0] != IGNORE_FLAG);
-						//Check for ignore flag... map to min color
-						//if (dataPoint[0] == IGNORE_FLAG){
-						//	colorVar = colorMin;
-						//	break;
-						//}
-						float remappedPoint[3];
-						periodicMap(dataPoint,remappedPoint);
-						x = (int)(0.5f+((remappedPoint[0] - colorVarMin[0])*colorSize[0])/(colorVarMax[0]-colorVarMin[0]));
-						y = (int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
-						z = (int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
-						if (x>=colorSize[0]) x = colorSize[0]-1;
-						if (y>=colorSize[1]) y = colorSize[1]-1;
-						if (z>=colorSize[2]) z = colorSize[2]-1;
-						colorVar = colorRegion[x+colorSize[0]*(y+colorSize[1]*z)];
-						break;
-				}
-				int colorIndex = (int)((colorVar - colorMin)*255.99/(colorMax-colorMin));
-				if (colorIndex<0) colorIndex = 0;
-				if (colorIndex> 255) colorIndex =255;
-				//Now assign color etc.
-				//Special case for constant colors and/or opacities
-				if (getOpacMapEntityIndex() == 0){
-					container->setAlpha(lineNum,pointNum,constantOpacity);
-				} else {
-					container->setAlpha(lineNum,pointNum,lut[4*opacIndex+3]);
-				}
-				if (getColorMapEntityIndex() == 0){
-					container->setRGB(lineNum,pointNum,((float)qRed(constantColor))/255.f,
-						((float)qGreen(constantColor))/255.f,
-						((float)qBlue(constantColor))/255.f);
-				} else {
-					container->setRGB(lineNum,pointNum,lut[4*colorIndex],
-						lut[4*colorIndex+1],
-						lut[4*colorIndex+2]);
-				}
+					//Check for ignore flag... make transparent
+					//Should never happen!
+					assert (dataPoint[0] != IGNORE_FLAG);
+					//	opacVar = opacMin;
+					//	break;
+					//}
+					float remappedPoint[3];
+					periodicMap(dataPoint,remappedPoint);
+					x = (int)(0.5f+((remappedPoint[0] - opacVarMin[0])*opacSize[0])/(opacVarMax[0]-opacVarMin[0]));
+					y = (int)(0.5f+((remappedPoint[1] - opacVarMin[1])*opacSize[1])/(opacVarMax[1]-opacVarMin[1]));
+					z = (int)(0.5f+((remappedPoint[2] - opacVarMin[2])*opacSize[2])/(opacVarMax[2]-opacVarMin[2]));
+					if (x>=opacSize[0]) x = opacSize[0]-1;
+					if (y>=opacSize[1]) y = opacSize[1]-1;
+					if (z>=opacSize[2]) z = opacSize[2]-1;
+					
+					opacVar = opacRegion[x+opacSize[0]*(y+opacSize[1]*z)];
+					break;
+			}
+			int opacIndex = (int)((opacVar - opacMin)*255.99/(opacMax-opacMin));
+			if (opacIndex<0) opacIndex = 0;
+			if (opacIndex> 255) opacIndex =255;
+			//opacity = lut[3+4*opacIndex];
+			switch (getColorMapEntityIndex()){
+				case (0): //constant
+					colorVar = 0.f;
+					break;
+				case (1): //age
+					if (flowType != 1)//relative position on line
+						colorVar = (float)pointNum/((float)objectsPerFlowline);
+					else //type = 1:  time step
+						colorVar = (float)(minFrame + (float)pointNum/(float)objectsPerTimestep);
+					break;
+				case (2): //speed
+					colorVar = container->getSpeed(lineNum,pointNum);
+					break;
+
+				case (3) : //seed index.  Will use same color along each line
+
+					colorVar = container->getSeedIndex(lineNum);
+					break;
+				default : //variable
+					int x,y,z;
+					float* dataPoint = container->getFlowPoint(lineNum,pointNum);
+					assert(dataPoint[0] != IGNORE_FLAG);
+					//Check for ignore flag... map to min color
+					//if (dataPoint[0] == IGNORE_FLAG){
+					//	colorVar = colorMin;
+					//	break;
+					//}
+					float remappedPoint[3];
+					periodicMap(dataPoint,remappedPoint);
+					x = (int)(0.5f+((remappedPoint[0] - colorVarMin[0])*colorSize[0])/(colorVarMax[0]-colorVarMin[0]));
+					y = (int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
+					z = (int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
+					if (x>=colorSize[0]) x = colorSize[0]-1;
+					if (y>=colorSize[1]) y = colorSize[1]-1;
+					if (z>=colorSize[2]) z = colorSize[2]-1;
+					colorVar = colorRegion[x+colorSize[0]*(y+colorSize[1]*z)];
+					break;
+			}
+			int colorIndex = (int)((colorVar - colorMin)*255.99/(colorMax-colorMin));
+			if (colorIndex<0) colorIndex = 0;
+			if (colorIndex> 255) colorIndex =255;
+			//Now assign color etc.
+			//Special case for constant colors and/or opacities
+			if (getOpacMapEntityIndex() == 0){
+				container->setAlpha(lineNum,pointNum,constantOpacity);
+			} else {
+				container->setAlpha(lineNum,pointNum,lut[4*opacIndex+3]);
+			}
+			if (getColorMapEntityIndex() == 0){
+				container->setRGB(lineNum,pointNum,((float)qRed(constantColor))/255.f,
+					((float)qGreen(constantColor))/255.f,
+					((float)qBlue(constantColor))/255.f);
+			} else {
+				container->setRGB(lineNum,pointNum,lut[4*colorIndex],
+					lut[4*colorIndex+1],
+					lut[4*colorIndex+2]);
 			}
 		}
+		
 	}
 }
 //Map periodic coords into data extents.
@@ -2420,15 +2214,15 @@ void FlowParams::setMaxOpacMapBound(float val){
 float FlowParams::minRange(int index, int timestep){
 	switch(index){
 		case (0): return 0.f;
-		case (1): 
+		case (1): //
 			//Need to fix this for unsteady
-			if (flowIsSteady()){
+			if (flowType != 1){
 				return 0.f;
 			}
-			else return (0.f);//??
-		case (2): return (0.f);//speed
-		case (3): //seed index.  Goes from -1 to -(rakesize)
-			return (doRake ? -(float)getNumRakeSeedPoints() : 0.f );
+			else return ((float)DataStatus::getInstance()->getMinTimestep());
+		case (2): return (0.f);// minimum speed
+		case (3): //seed index.  Goes from 0 to num seedsp
+			return (0.f );
 		default:
 			int varnum = index -4;
 			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent(varnum)){
@@ -2442,11 +2236,12 @@ float FlowParams::maxRange(int index, int timestep){
 	
 	switch(index){
 		case (0): return 1.f;
-		case (1): if (flowIsSteady()){
+		case (1): // length along line
+			if (flowType != 1){
 				return 1.f;
 			}
 			//unsteady:
-			return (float)maxFrame;//??
+			return (float)maxFrame;
 		case (2): //speed
 			for (int k = 0; k<3; k++){
 				int var;
@@ -2459,8 +2254,9 @@ float FlowParams::maxRange(int index, int timestep){
 					maxSpeed = fabs(DataStatus::getInstance()->getDefaultDataMin(var));
 			}
 			return maxSpeed;
-		case (3): // seed Index, from 0 to listsize -1
-			return (!doRake ? (float)(getNumListSeedPoints()-1) : 0.f );
+		case (3): // seed Index, from 0 to numseeds-1
+			
+			return (doRake ? (float)getNumRakeSeedPoints()-1 :(float)(getNumListSeedPoints()-1));
 		default:
 			int varnum = index -4;
 			if (DataStatus::getInstance()&& DataStatus::getInstance()->variableIsPresent(varnum)){
@@ -2563,33 +2359,15 @@ validateVectorField(int ts) {
 
 int FlowParams::calcMaxPoints(){
 	int numPrePoints = 0, numPostPoints = 0;
-	if (flowType == 0) { //steady
+	if (flowType != 1) { //steady or flow line advection
 		
 		maxPoints = objectsPerFlowline+1;
 		if (maxPoints < 2) maxPoints = 2;
 		if (steadyFlowDirection == 0 && maxPoints < 4) maxPoints = 4;
-		//If bidirectional allocate between prePoints and postPoints
-		if (steadyFlowDirection == 0){
-			numPrePoints = maxPoints/2;
-			numPostPoints = maxPoints - numPrePoints;
-			//Midpoint is used by both post- and pre-points so maxPoints
-			//is one less than the sum:
-			maxPoints--;
-		} else if (steadyFlowDirection < 0){
-			numPrePoints = maxPoints;
-			numPostPoints = 0;
-		} else {
-			numPrePoints = 0;
-			numPostPoints = maxPoints;
-		}
-		
 	} else {
 		
-		//For unsteady flow, the firstDisplayFrame and lastDisplayFrame give a window
-		//on a longer timespan that potentially goes from 
-		//the first seed start time to the last frame in the animation.
-		//lastDisplayFrame does not limit the length of the flow
-		maxPoints = objectsPerFlowline+1;
+		//For unsteady flow, use the time steps in the DataStatus.
+		maxPoints = (objectsPerTimestep*(1+DataStatus::getInstance()->getMaxTimestep()-DataStatus::getInstance()->getMinTimestep()));
 	}
 	return maxPoints;
 }

@@ -102,7 +102,7 @@ void PathLineData::setSpeedAtTime(int lineNum, float timeStep, float speed){
 	//Determine the (closest) index:
 	int insertPosn = (int)((timeStep - startTimeStep)*samplesPerTStep + 0.5f);
 	assert(insertPosn >= 0 && insertPosn < mxPoints);
-	*(speedLists[lineNum]+ 3*insertPosn) = speed;
+	*(speedLists[lineNum]+ insertPosn) = speed;
 }
 //Methods for (progressively) designating the start or end of an unsteady flow line.
 //This is based on left-to-right ordering, not integration order.
@@ -137,14 +137,23 @@ void PathLineData::insertSeedAtTime(int seedIndex, int timeStep,  float x, float
 	startIndices[actualNumLines] = insertPosn;
 	lineLengths[actualNumLines] = 1;
 	seedIndices[actualNumLines] = seedIndex;
-	seedTimes[actualNumLines] = insertPosn;
+	//seedTimes[actualNumLines] = insertPosn;
 	actualNumLines++;
 }
 //Determine how many lines exist at a given time step
-int PathLineData::getNumLines(int timeStep){
+int PathLineData::getNumLinesAtTime(int timeStep){
 	int count = 0;
 	for (int i = 0; i<actualNumLines; i++){
 		if (getFirstTimestep(i) <= timeStep && getLastTimestep(i) >= timeStep) count++;
 	}
 	return count;
+}
+float* PathLineData::
+getPointAtTime(int lineNum, float timeStep){
+	//Determine the (closest) index:
+	int posn = (int)((timeStep - startTimeStep)*samplesPerTStep + 0.5f);
+	if (posn < getStartIndex(lineNum) || posn > getEndIndex(lineNum)) {
+		return 0;
+	}
+	return flowLineLists[lineNum]+ 3*posn;
 }

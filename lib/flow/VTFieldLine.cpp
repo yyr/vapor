@@ -743,6 +743,11 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 				leftoverTime = stepsizeLeft;
 			} else 
 				stepsizeLeft += *pStepIter;
+
+			x = (**pIter1)[0];
+			y = (**pIter1)[1];
+			z = (**pIter1)[2];
+			
 		}
 		else
 		{
@@ -759,14 +764,11 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 			//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
 #endif
 
-			// get the velocity value of this point
+			// get the velocity value of this point, use next time step.
 			if(container->doSpeeds())
 			{
 				PointInfo pointInfo;
 				VECTOR3 nodeData;
-				
-
-				
 				pointInfo.phyCoord.Set(x, y, z);
 				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, nextTime, nodeData);
 				currentSpeed =  nodeData.GetMag(); 
@@ -776,7 +778,20 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 	}
 
 	//After exiting the loop we got to the end
-	//of the data to be resampled.  We shouldn't have exceeded the space available!
+	//of the data to be resampled. 
+	//Output the out of bounds end point if the line went out of bounds.
+	if (traceState == OUT_OF_BOUND){
+		pIter1++;
+		nextTime += m_fSamplingRate*direction;
+		float x1 = (**pIter1)[0];
+		float y1 = (**pIter1)[1];
+		float z1 = (**pIter1)[2];
+		container->setPointAtTime(lineNum, nextTime,x1,y1,z1);
+		if(container->doSpeeds()){ //Repeat the last speed
+			container->setSpeedAtTime(lineNum, nextTime, currentSpeed);
+		}
+	}
+	
 	
 	return leftoverTime;
 }

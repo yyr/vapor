@@ -112,8 +112,6 @@ public:
 	
 	int calcMaxPoints();
 	int calcNumSeedPoints(int timeStep);
-	
-	int getNumInjections() { return numInjections;}
 	int getFirstDisplayFrame() {return firstDisplayFrame;}
 	int getLastDisplayFrame() {return lastDisplayFrame;}
 	void setFirstDisplayFrame(int val) {firstDisplayFrame = val;}
@@ -220,7 +218,7 @@ public:
 	}
 	virtual int getNumRefinements() {return numRefinements;}
 	void mapColors(FlowLineData*, int timeStep, int minFrame);
-	void mapColors(float* speeds, int timeStep, int minFrame, int numSeeds, float* flowData, float *rgbas, bool isRake);
+	
 	//Check the variables in the flow data for missing timesteps 
 	//Independent of animation params
 	//Provide an info message if data does not match input request
@@ -276,7 +274,11 @@ public:
 	
 	void setPriorityMin(float val){priorityMin = val;}
 	void setPriorityMax(float val){priorityMax = val;}
-	void setSeedDistBias(float val){seedDistBias = val;}
+	void setSeedDistBias(float val){
+		if (val>= -10.f && val <= 10.f)
+			seedDistBias = val;
+		else seedDistBias = 0.f;
+	}
 	float getPriorityMin(){return priorityMin;}
 	float getPriorityMax(){return priorityMax;}
 	float getSeedDistBias(){return seedDistBias;}
@@ -468,10 +470,6 @@ protected:
 	std::vector<Point4> seedPointList;
 	std::vector<int> unsteadyTimestepList;
 	
-	
-	//VaporFlow* myFlowLib;
-
-	
 	bool autoRefresh;
 	bool autoScale;
 	bool doRake;
@@ -480,8 +478,6 @@ protected:
 	bool periodicDim[3];
 	//Parameters controlling flowDataAccess.  These are established each time
 	//The flow data is regenerated:
-	
-	int numInjections;
 	int unsteadyFlowDirection; //either -1 or 1, backwards or forwards
 	int steadyFlowDirection; //either -1, 1, or 0 backwards, forwards, or both
 	float steadyFlowLength;

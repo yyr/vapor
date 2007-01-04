@@ -392,11 +392,11 @@ bool VaporFlow::GenStreamLines(FlowLineData* container, unsigned int randomSeed)
 	if (bUseRandomSeeds && seedDistBias != 0.f)
 		pSeedGenerator->SetSeedDistrib(seedDistBias, steadyStartTimeStep, numXForms,
 			xSeedDistVarName,ySeedDistVarName,zSeedDistVarName);
-	pSeedGenerator->GetSeeds(this, seedPtr, bUseRandomSeeds, randomSeed);
+	bool rc = pSeedGenerator->GetSeeds(this, seedPtr, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
-
+	if (!rc) return false;
 	//Then do streamlines with prepared seeds:
-	bool rc = GenStreamLinesNoRake(container, seedPtr);
+	rc = GenStreamLinesNoRake(container, seedPtr);
 	delete [] seedPtr;
 	return rc;
 

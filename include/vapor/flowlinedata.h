@@ -43,6 +43,7 @@ namespace VAPoR
 			}
 		}
 		float getSpeed(int lineNum, int index){
+			assert(speedLists && speedLists[lineNum]);
 			return *(speedLists[lineNum] + index);
 		}
 		float* getFlowStart(int lineNum){
@@ -88,13 +89,14 @@ namespace VAPoR
 		void releaseSpeeds() {
 			if (speedLists) {
 				for (int i = 0; i<nmLines; i++){
-					delete speedLists[i];
+					if (speedLists[i]) delete speedLists[i];
 				}
 				delete speedLists;
 				speedLists = 0;
 			}
 		}
-
+		//This is overridden in pathlinedata:
+		virtual int getSeedIndex(int lineNum) { return lineNum;}
 
 		// Establish the first point (for rendering) of the flow line.
 		// integPos is + or - depending on whether we are integrating forward or backward
@@ -147,25 +149,21 @@ class FLOW_API PathLineData : public FlowLineData {
 	public:
 		PathLineData(int numLines, int maxPoints, bool useSpeeds, bool doRGBAs, int minTime, int maxTime, float sampleRate) :
 			FlowLineData(numLines, maxPoints, useSpeeds, 0, doRGBAs) {
-				seedTimes = new int[numLines];
+				//seedTimes = new int[numLines];
 				seedIndices = new int[numLines];
 				startTimeStep = minTime;
 				endTimeStep = maxTime;
 				samplesPerTStep = sampleRate;
 				actualNumLines = 0;
 		}
-		~PathLineData() {delete seedTimes; delete seedIndices;}
+		~PathLineData() { delete seedIndices;}//delete seedTimes?
 		void setPointAtTime(int lineNum, float timeStep, float x, float y, float z);
 		void setSpeedAtTime(int lineNum, float timeStep, float speed);
 		void setFlowStartAtTime(int lineNum, float startTime);
 		void setFlowEndAtTime(int lineNum, float endTime);
 		void insertSeedAtTime(int seedIndex, int timeStep, float x, float y, float z);
-		float* getPointAtTime(int lineNum, float timeStep){
-			//Determine the (closest) index:
-			int posn = (int)((timeStep - startTimeStep)*samplesPerTStep + 0.5f);
-			if (posn < getStartIndex(lineNum) || posn > getEndIndex(lineNum)) return 0;
-			return flowLineLists[lineNum]+ 3*posn;
-		}
+		float* getPointAtTime(int lineNum, float timeStep);
+		
 		//Convert first and last indices to timesteps
 		int getFirstTimestep(int lineNum){
 			int indx = getStartIndex(lineNum);
@@ -174,8 +172,7 @@ class FLOW_API PathLineData : public FlowLineData {
 		}
 		int getLastTimestep(int lineNum){
 			int indx = getEndIndex(lineNum);
-			//If it doesn't divide evenly, need to increase...
-			return ((int)(0.999f+(float)indx/samplesPerTStep) + startTimeStep);
+			return ((int)((float)indx/samplesPerTStep + startTimeStep));
 		}
 		// Convert timesteps to indices:
 		int getIndexFromTimestep(int ts){
@@ -186,7 +183,8 @@ class FLOW_API PathLineData : public FlowLineData {
 		//may actually be less than nmLines
 		virtual int getNumLines() {return actualNumLines;}
 		//Determine how many lines exist at a given time step
-		int getNumLines(int timeStep);
+		int getNumLinesAtTime(int timeStep);
+		/*
 		void setSeedTime(int lineNum, int timeStep) { seedTimes[lineNum] = timeStep;}
 		float getTimestep(int lineNum, int pointIndex) {//need to revisit with unsteady flow.
 			//flowdirection is no longer unique!
@@ -198,15 +196,16 @@ class FLOW_API PathLineData : public FlowLineData {
 			if (flowDirection > 0) return( (float)seedTimes[lineNum] + (float)pointIndex/samplesPerTStep);
 			else return(seedTimes[lineNum] - (float)pointIndex/samplesPerTStep);
 		}
+		*/
 		float getSamplesPerTimestep(){return samplesPerTStep;}
 		void setSeedIndex(int linenum, int seedIndex){seedIndices[linenum] = seedIndex;}
 		int getSeedIndex(int linenum){return seedIndices[linenum];}
-		int getSeedTime(int linenum) {return seedTimes[linenum];}
+		//int getSeedTime(int linenum) {return seedTimes[linenum];}
 		//Paths can change their direction...
 		void setPathDirection(int dir) { flowDirection = dir;}
 	protected:
 		int startTimeStep, endTimeStep;
-		int *seedTimes;
+		//int *seedTimes;
 		int *seedIndices;//This is the index in the current seedList, for color mapping, etc
 		float samplesPerTStep;
 		int actualNumLines;

@@ -121,7 +121,7 @@ FlowEventRouter::hookUpTab()
 	connect (hideMappingButton, SIGNAL(clicked()), this, SLOT(toggleShowMap()));
 	
 	
-	connect (flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( setFlowType(int) ) );
+	connect (flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( guiSetFlowType(int) ) );
 	connect (steadyDirectionCombo, SIGNAL( activated(int) ), this, SLOT( guiSetSteadyDirection(int) ) );
 	connect (unsteadyDirectionCombo, SIGNAL( activated(int) ), this, SLOT( guiSetUnsteadyDirection(int) ) );
 	
@@ -154,6 +154,9 @@ FlowEventRouter::hookUpTab()
 	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowYSize()));
 	connect (zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setFlowZSize()));
 
+	connect (biasSlider1, SIGNAL(sliderReleased()), this, SLOT(setBiasFromSlider1()));
+	connect (biasSlider2, SIGNAL(sliderReleased()), this, SLOT(setBiasFromSlider2()));
+	connect (biasSlider3, SIGNAL(sliderReleased()), this, SLOT(setBiasFromSlider3()));
 	connect (steadyLengthSlider, SIGNAL(sliderReleased()), this, SLOT (setSteadyLength()));
 	connect (smoothnessSlider, SIGNAL(sliderReleased()), this, SLOT(setFlowSmoothness()));
 	connect (steadySamplesSlider1, SIGNAL(sliderReleased()), this, SLOT(setFlowSteadySamples1()));
@@ -401,7 +404,7 @@ void FlowEventRouter::populateTimestepTables(){
 
 void FlowEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
-
+	bool needRegen = flowDataChanged;
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "edit Flow text");
 	if (mapBoundsChanged){
@@ -525,6 +528,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		}
 
 		if(flowType == 2) {//Flow line advection only
+			
 			fParams->setPriorityMin(priorityFieldMinEdit->text().toFloat());
 			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
 			fParams->setSeedDistBias(biasEdit3->text().toFloat());
@@ -673,8 +677,8 @@ void FlowEventRouter::confirmText(bool /*render*/){
 	//just need to setFlowMappingDirty.
 	mapBoundsChanged = false;
 	flowGraphicsChanged = false;
-	if(flowDataChanged){
-		flowDataChanged = false;
+	flowDataChanged = false;
+	if(needRegen){
 		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 		VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	} else {
@@ -756,16 +760,6 @@ setFlowEnabled(bool val, int instance){
 }
 
 
-
-void FlowEventRouter::
-setFlowType(int typenum){
-	guiSetFlowType(typenum);
-	updateTab();
-}
-
-
-
-
 void FlowEventRouter::
 setFlowXCenter(){
 	guiSetXCenter(
@@ -805,6 +799,27 @@ void FlowEventRouter::
 setFlowSteadySamples2(){
 	int sliderPos = steadySamplesSlider2->value();
 	guiSetSteadySamples(sliderPos);
+}
+void FlowEventRouter::
+setBiasFromSlider1(){
+	int sliderPos = biasSlider1->value();
+	float biasVal = 10.f*sliderPos/128.f;
+	biasEdit1->setText(QString::number(biasVal));
+	guiSetSeedDistBias(biasVal);
+}
+void FlowEventRouter::
+setBiasFromSlider2(){
+	int sliderPos = biasSlider2->value();
+	float biasVal = 10.f*sliderPos/128.f;
+	biasEdit2->setText(QString::number(biasVal));
+	guiSetSeedDistBias(biasVal);
+}
+void FlowEventRouter::
+setBiasFromSlider3(){
+	int sliderPos = biasSlider3->value();
+	float biasVal = 10.f*sliderPos/128.f;
+	biasEdit3->setText(QString::number(biasVal));
+	guiSetSeedDistBias(biasVal);
 }
 void FlowEventRouter::
 setFlowSmoothness(){
@@ -918,8 +933,8 @@ void FlowEventRouter::updateTab(){
 			seedtimeEndEdit->setEnabled(false);
 			seedTimeFrame->show();
 			
-			colormapEntityCombo->changeItem("Time Step",1);
-			opacmapEntityCombo->changeItem("Time Step",1);
+			colormapEntityCombo->changeItem("Position along Flow",1);
+			opacmapEntityCombo->changeItem("Position along Flow",1);
 			break;
 		default :
 			assert(0);
@@ -934,7 +949,7 @@ void FlowEventRouter::updateTab(){
 	}
 
 	if (showAdvanced){
-		
+		float biasVal;
 		switch (flowType){
 			case (0) : //steady
 
@@ -950,8 +965,9 @@ void FlowEventRouter::updateTab(){
 				xSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(0));
 				ySeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(1));
 				zSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(2));
-				biasEdit1->setText(QString::number(fParams->getSeedDistBias()));
-				fParams->setSeedDistBias(biasEdit1->text().toFloat());
+				biasVal = fParams->getSeedDistBias();
+				biasEdit1->setText(QString::number(biasVal));
+				biasSlider1->setValue((int)(biasVal*10.f/128.f));
 				break;
 			case (1) : //unsteady
 				advancedSteadyFrame->hide();
@@ -966,7 +982,9 @@ void FlowEventRouter::updateTab(){
 				xSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(0));
 				ySeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(1));
 				zSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(2));
-				biasEdit2->setText(QString::number(fParams->getSeedDistBias()));
+				biasVal = fParams->getSeedDistBias();
+				biasEdit2->setText(QString::number(biasVal));
+				biasSlider2->setValue((int)(biasVal*10.f/128.f));
 				break;
 			case(2) : //field line advection
 				advancedSteadyFrame->hide();
@@ -987,7 +1005,9 @@ void FlowEventRouter::updateTab(){
 				xSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(0));
 				ySeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(1));
 				zSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(2));
-				biasEdit3->setText(QString::number(fParams->getSeedDistBias()));
+				biasVal = fParams->getSeedDistBias();
+				biasEdit3->setText(QString::number(biasVal));
+				biasSlider3->setValue((int)(biasVal*10.f/128.f));
 				priorityFieldMinEdit->setText(QString::number(fParams->getPriorityMin()));
 				priorityFieldMaxEdit->setText(QString::number(fParams->getPriorityMax()));
 				break;
@@ -1513,7 +1533,7 @@ guiSetFlowType(int typenum){
 		}
 	} 
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
 guiSetSteadyDirection(int comboIndex){
@@ -1715,7 +1735,20 @@ guiSetSteadySamples(int sliderPos){
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
+//Respond to the bias slider release:
+void FlowEventRouter::
+guiSetSeedDistBias(float biasVal){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set seed distribution bias");
+	fParams->setSeedDistBias(biasVal);
+	guiSetTextChanged(false);
+	PanelCommand::captureEnd(cmd, fParams);
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 
+}
+	
 //With unsteady flow, just go from 1 to 256
 void FlowEventRouter::
 guiSetUnsteadySamples(int sliderPos){
@@ -1969,6 +2002,7 @@ guiSetColorMapEntity( int entityNum){
 	updateTab();
 	update();
 	//We only need to redo the flowData if the entity is changing to "speed"
+	//or if it changes to another variable:
 	if(entityNum == 2) {
 		VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
@@ -2247,19 +2281,19 @@ void FlowEventRouter::guiSaveFlowLines(){
 			float* flowDataArray = fRenderer->getFlowData(0, true);
 			
 			assert(flowDataArray);
-			for (int injNum = 0; injNum < fParams->getNumInjections(); injNum++){
+			//for (int injNum = 0; injNum < fParams->getNumInjections(); injNum++){
 				
 				int numSeedPoints = fRenderer->getNumRakeSeedPointsUsed();
 				
 				//Offset to start of the injection:
-				float* flowDataPtr = flowDataArray + 3*injNum*numSeedPoints*maxPoints;
+				float* flowDataPtr = flowDataArray + 3*numSeedPoints*maxPoints;
 				for (int i = numSeedPoints -1; i>=0; i--){
-					if (!fParams->writePathline(saveFile,i, minFrame, injNum,flowDataPtr)){
+					if (!fParams->writePathline(saveFile,i, minFrame, 1,flowDataPtr)){
 						MessageReporter::errorMsg("Flow Save Error;\nUnable to write data to %s",filename.ascii());
 						return;
 					}
 				}
-			}
+			//}
 		}
 		if (fParams->listEnabled()&&(fRenderer->getNumListSeedPointsUsed(0) > 0)){
 			if (fRenderer->flowDataIsDirty(0))
@@ -2267,17 +2301,17 @@ void FlowEventRouter::guiSaveFlowLines(){
 			float* flowDataArray = fRenderer->getFlowData(0,false);
 			
 			assert(flowDataArray);
-			for (int injNum = 0; injNum < fParams->getNumInjections(); injNum++){
+			//for (int injNum = 0; injNum < fParams->getNumInjections(); injNum++){
 				//This appears to be wrong!!
 				int numSeedPoints = fRenderer->getNumListSeedPointsUsed(0);
-				float* flowDataPtr = flowDataArray+ 3*injNum*numSeedPoints*maxPoints;
+				float* flowDataPtr = flowDataArray+ 3*numSeedPoints*maxPoints;
 				for (int i = 0; i<numSeedPoints; i++){
-					if (!fParams->writePathline(saveFile,i,minFrame, injNum,flowDataPtr)){
+					if (!fParams->writePathline(saveFile,i,minFrame, 1,flowDataPtr)){
 						MessageReporter::errorMsg("Flow Save Error;\nUnable to write data to %s",filename.ascii());
 						return;
 					}
 				}
-			}
+			//}
 		}
 	}
 	fclose(saveFile);

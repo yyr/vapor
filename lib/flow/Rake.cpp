@@ -484,14 +484,20 @@ bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 	totalNum = numSeeds[0] * numSeeds[1] * numSeeds[2];
 	//Repeatedly try to find seeds. Try at most 100000 times
 	int seedCount = 0;
-	for (int i = 0; i< 100000; i++) 
+	int trials;
+	for (trials = 0; trials< 100000; trials++) 
 	{
 		float coeff[3], point[3];
+		float randomTest = 0.f;
+		//A value of 0.f or 1.f is unacceptable...
+		while(randomTest == 1.f || randomTest == 0.f) randomTest = (float)rand()/(float)RAND_MAX;
+	
+
 		coeff[0] = (float)rand()/(float)RAND_MAX;
 		coeff[1] = (float)rand()/(float)RAND_MAX;
 		coeff[2] = (float)rand()/(float)RAND_MAX;
 
-		float randomTest = (float)rand()/(float)RAND_MAX;
+		
 		
 		point[0] = TriLerp(lll[0], hll[0], lhl[0], hhl[0], llh[0], hlh[0], lhh[0], hhh[0], coeff);
 		point[1] = TriLerp(lll[1], hll[1], lhl[1], hhl[1], llh[1], hlh[1], lhh[1], hhh[1], coeff);

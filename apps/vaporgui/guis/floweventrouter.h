@@ -109,7 +109,8 @@ protected slots:
 	//slots for flow tab:
 	void refreshFlow();
 	void setFlowEnabled(bool val,int instance);
-	void setFlowType(int);
+	void guiSetFlowType(int typenum);
+	
 	void guiSetNumRefinements(int numtrans);
 	void guiSetXComboSteadyVarNum(int varnum);
 	void guiSetYComboSteadyVarNum(int varnum);
@@ -136,6 +137,10 @@ protected slots:
 	void setFlowZSize();
 	void setFlowSteadySamples1();
 	void setFlowSteadySamples2();
+	void setBiasFromSlider1();
+	void setBiasFromSlider2();
+	void setBiasFromSlider3();
+
 	void setFlowUnsteadySamples();
 	void setFlowConstantColor();
 	void guiSetFlowGeometry(int geomNum);
@@ -172,7 +177,6 @@ protected:
 	//Methods that record changes in the history are preceded by 'gui'
 	//
 	virtual void guiSetEnabled(bool, int);
-	void guiSetFlowType(int typenum);
 	
 	void guiSetXCenter(int sliderval);
 	void guiSetYCenter(int sliderval);
@@ -183,6 +187,7 @@ protected:
 	void guiSetConstantColor(QColor& newColor);
 	void guiSetSteadySamples(int sliderVal);
 	void guiSetUnsteadySamples(int sliderVal);
+	void guiSetSeedDistBias(float biasVal);
 	void setMapBoundsChanged(bool on){mapBoundsChanged = on; flowGraphicsChanged = on;}
 	void setFlowDataChanged(bool on){flowDataChanged = on;}
 	void setFlowGraphicsChanged(bool on){flowGraphicsChanged = on;}
