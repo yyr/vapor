@@ -97,21 +97,7 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 			//Then set up the FieldData
 			FieldData* fData = vFlow->setupFieldData(varx, vary, varz, minExt, maxExt, numRefinements, timeStep, false);
 			if (!fData) {delete pRake; return false;}
-			/* check the values...
-			float pnt[3];
-			for (int i = 0; i< 33; i++){
-				pnt[0] = (0.5f+(float)i)/32.f;
-				for (int j = 0; j<64; j++) {
-					pnt[1] = (0.5f+(float)j)/64.f;
-					for (int k = 0; k<64; k++){
-						pnt[2] = (0.5f+(float)k)/64.f;
-						float mag2 = fData->getFieldMag(pnt);
-						if (mag2 > 1.f)
-							float mag3 = fData->getFieldMag(pnt);
-					}
-				}
-			}
-			*/
+			
 			rc = pRake->GenSeedBiased(distribBias,fieldMin,fieldMax, fData,numSeeds,  rakeMin,rakeMax, pSeeds, randomSeed);
 			if (!rc) {delete fData; delete pRake; return false;}
 		}

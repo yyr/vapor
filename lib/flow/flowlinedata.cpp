@@ -76,6 +76,13 @@ setFlowEnd(int lineNum, int integPos){
 		lineLengths[lineNum] = integrationStartPosn + 1 +integPos - startIndices[lineNum];
 	}
 }
+int FlowLineData::
+getMaxLength(int dir){//How far we can integrate in a direction:
+	if ((flowDirection != 0) && (flowDirection == dir)) return mxPoints; //full data size
+	if (flowDirection != 0) return 0; //if it wasn't bidirectional
+	//otherwise max length is shortest distance to end (forward or backward)
+	return (Min(1+integrationStartPosn, mxPoints - integrationStartPosn));
+}
 //Method for resetting the value of a point in unsteady flow (after reprioritization).
 //Also can be used to append a point to the start or end of an existing unsteady flow line.
 void PathLineData::setPointAtTime(int lineNum, float timeStep, float x, float y, float z){

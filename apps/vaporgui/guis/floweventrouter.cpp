@@ -275,7 +275,8 @@ FlowEventRouter::hookUpTab()
 
 	connect (alignButton, SIGNAL(clicked()), this, SLOT(guiSetAligned()));
 	connect (seedListLoadButton, SIGNAL(clicked()), this, SLOT(guiLoadSeeds()));
-	connect (saveFlowButton, SIGNAL(clicked()), this, SLOT(guiSaveFlowLines()));
+	connect (saveSeedsButton, SIGNAL(clicked()), this, SLOT(saveSeeds()));
+	connect (saveFlowButton, SIGNAL(clicked()), this, SLOT(saveFlowLines()));
 	connect (seedListEditButton, SIGNAL(clicked()), this, SLOT(guiEditSeedList()));
 
 	connect(editButton, SIGNAL(toggled(bool)), 
@@ -2194,13 +2195,48 @@ void FlowEventRouter::guiLoadSeeds(){
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
+//
+//Save all the current seed points.  
+//
+void FlowEventRouter::saveSeeds(){
+	confirmText(false);  
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	//Launch an open-file dialog
+	
+	 QString filename = QFileDialog::getSaveFileName(
+		Session::getInstance()->getFlowDirectory().c_str(),
+        "Text files (*.txt)",
+        this,
+        "Save Seed Points Dialog",
+        "Specify file name for saving current seed points" );
+	if (filename.isNull()){
+		 return;
+	}
+	//Extract the path, and the root name, from the returned string.
+	QFileInfo* fileInfo = new QFileInfo(filename);
+	//Save the path for future captures
+	Session::getInstance()->setFlowDirectory(fileInfo->dirPath(true).ascii());
+	
+	//If the file has no suffix, add .txt
+	if (filename.find(".") == -1){
+		filename.append(".txt");
+	}
+	//Open the save file:
+	FILE* saveFile = fopen(filename.ascii(),"w");
+	if (!saveFile){
+		MessageReporter::errorMsg("Seed Save Error;\nUnable to open file %s",filename.ascii());
+		return;
+	}
+	//If there's a seed list, save its contents.
+	//If there's a nonrandom rake, save 
+}
 // Save all the points of the current flow.
 // Don't support undo/redo
 // If flow is unsteady, save all the points of all the pathlines, with their times.
 // If flow is steady, just save the points of the streamlines for the current animation time,
 // Include their timesteps (relative to the current animation timestep) 
 //
-void FlowEventRouter::guiSaveFlowLines(){
+void FlowEventRouter::saveFlowLines(){
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	//Launch an open-file dialog

@@ -56,6 +56,8 @@ namespace VAPoR
 		//IntegPos starts at 0, and is pos or negative depending on integration direction
 		
 		void setFlowPoint(int lineNum, int integPos, float x, float y, float z){
+			assert(integPos+integrationStartPosn < mxPoints);
+			assert(integPos+integrationStartPosn >= 0 );
 			*(flowLineLists[lineNum]+ 3*(integPos+ integrationStartPosn)) = x;
 			*(flowLineLists[lineNum]+ 3*(integPos+ integrationStartPosn)+1) = y;
 			*(flowLineLists[lineNum]+ 3*(integPos+ integrationStartPosn)+2) = z;
@@ -117,11 +119,8 @@ namespace VAPoR
 		virtual int getNumLines() {return nmLines;}
 		int getMaxPoints() {return mxPoints;}
 		//maximum length available in either forward or direction:  
-		int getMaxLength(int dir) {//Used 
-			if (flowDirection != 0) return mxPoints; // forward uses full data size
-			//otherwise max length is shortest distance to end (forward or backward)
-			else return (Min(1+integrationStartPosn, mxPoints - integrationStartPosn));
-		}
+		int getMaxLength(int dir); //How far we can integrate in a direction
+			
 		int getStartIndex(int lineNum) {return startIndices[lineNum];}
 		int getEndIndex(int lineNum) {return startIndices[lineNum]+lineLengths[lineNum] -1;}
 		

@@ -153,7 +153,8 @@ protected slots:
 	
 	void guiEditSeedList();
 	void guiLoadSeeds();
-	void guiSaveFlowLines();
+	void saveFlowLines();
+	void saveSeeds();
 	void setFlowSmoothness();
 	void setSteadyLength();
 	void flowOpacityScale();
