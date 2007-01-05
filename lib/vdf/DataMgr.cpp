@@ -526,9 +526,10 @@ int	DataMgr::UnlockRegion(
 	}
 
 	regptr = p->second;
-	regptr->lock = 0;
+	if (regptr->lock_counter) regptr->lock_counter--;
 
-	_lockedRegionsMap.erase(p);
+
+	if (regptr->lock_counter == 0) _lockedRegionsMap.erase(p);
 
 	return(0);
 }
@@ -548,9 +549,9 @@ int	DataMgr::UnlockRegionUInt8(
 	}
 
 	regptr = p->second;
-	regptr->lock = 0;
+	if (regptr->lock_counter) regptr->lock_counter--;
 
-	_lockedRegionsMap.erase(p);
+	if (regptr->lock_counter == 0) _lockedRegionsMap.erase(p);
 
 	return(0);
 }
@@ -595,12 +596,12 @@ void	*DataMgr::get_region_from_cache(
 			regptr->max[1] == max[1] &&
 			regptr->max[2] == max[2]) {
 
-			regptr->lock = lock;
+			regptr->lock_counter += lock ? 1 : 0;
 			regptr->timestamp = _timestamp;
 			_timestamp++;
 			assert(_timestamp > 0); // overflow -- should us a q
 
-			if (lock) {
+			if (regptr->lock_counter == 1) {
 				_lockedRegionsMap[(void *) regptr->blks] = regptr;
 			}
 			return(regptr->blks);
@@ -685,7 +686,7 @@ void	*DataMgr::alloc_region(
 	regptr->timestamp = _timestamp;
 	_timestamp++;
 	assert(_timestamp > 0); // overflow -- should us a q
-	regptr->lock = lock;
+	regptr->lock_counter = lock ? 1 : 0;
 
 	while (! (regptr->blks = _blk_mem_mgr->Alloc(nblocks))) {
 		if (free_lru() < 0) {
@@ -694,7 +695,7 @@ void	*DataMgr::alloc_region(
 		}
 	}
 
-	if (lock) {
+	if (regptr->lock_counter == 1) {
 		_lockedRegionsMap[(void *) regptr->blks] = regptr;
 	}
 
@@ -736,7 +737,7 @@ int	DataMgr::free_region(
 			regptr->max[1] == max[1] &&
 			regptr->max[2] == max[2]) {
 
-			if (! regptr->lock) {
+			if (regptr->lock_counter == 0) {
 				if (regptr->blks) _blk_mem_mgr->FreeMem(regptr->blks);
 				
 				delete regptr;
@@ -836,7 +837,7 @@ int	DataMgr::free_lru(
 			for(int i=0; i<(int)regvec.size(); i++) {
 				regptr = regvec[i];
 
-				if (regptr->timestamp < lrutime && !regptr->lock) {
+				if (regptr->timestamp < lrutime && regptr->lock_counter == 0) {
 
 					lrutime = regptr->timestamp;
 					lruvec = &regvec;
