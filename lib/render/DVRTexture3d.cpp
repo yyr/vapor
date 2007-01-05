@@ -59,6 +59,7 @@ DVRTexture3d::DVRTexture3d(DataType_T type, int nthreads) :
     strng += QString::number(type);
 	Params::BailOut(strng.ascii(),__FILE__,__LINE__);
   }
+
 }
 
 //----------------------------------------------------------------------------
@@ -669,12 +670,22 @@ int DVRTexture3d::maxTextureSize(GLenum format)
 
 #else
 
+  // Upper limit on texture size - maximum value returned by this 
+  // function. 
+  //
+  // N.B. The texture proxy method of determining maximum texture
+  // size supported by the card has not been reliable with nVidia
+  // drivers, in some instances returning values larger than what the
+  // card will actually support.
+  //
+  const int MAX_TEX_SZ = 512; 
+
   if (GLEW_ATI_fragment_shader)
   {
     return 256;
   }
-        
-  for (int i = 128; i < 130000; i*=2)
+
+  for (int i = 128; i < 2*MAX_TEX_SZ; i*=2)
   {
     glTexImage3D(GL_PROXY_TEXTURE_3D, 0, format, i, i, i, 0,
                  GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
@@ -698,7 +709,7 @@ int DVRTexture3d::maxTextureSize(GLenum format)
     }
   }
 
-  return 128;
+  return MAX_TEX_SZ;
 
 #endif
 }
