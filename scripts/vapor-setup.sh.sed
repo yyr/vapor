@@ -33,7 +33,7 @@ else
     PATH="$root/bin:$PATH"; export PATH
 fi
 
-if [ "$arch" = "IRIX64" ]
+if [ "$arch" = "Darwin" ]
 then
 	if [ -z "${DYLD_LIBRARY_PATH}" ]
 	then
