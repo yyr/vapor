@@ -96,6 +96,10 @@ public:
  //! identified by a (resolution,timestep,variable) tupple are
  //! available on disk.
  //!
+ //! \note The \p lock parameter increments a counter associated 
+ //! with the requested region of memory. The counter is decremented
+ //! when UnlockRegion() is invoked.
+ //!
  //! \param[in] ts A valid time step from the Metadata object used 
  //! to initialize the class
  //! \param[in] varname A valid variable name 
@@ -169,8 +173,11 @@ public:
 
  //! Unlock a floating-point region of memory 
  //!
- //! Unlock a floating-point region of memory previously locked GetRegion(). 
- //! The region is simply marked available for
+ //! Decrement the lock counter associatd with a floating-point 
+ //! region of memory, and if zero,
+ //! unlock region of memory previously locked GetRegion(). 
+ //! When the lock counter reaches zero the region is simply 
+ //! marked available for
  //! internal garbage collection during subsequent GetRegion() calls
  //!
  //! \param[in] region A pointer to a region of memory previosly 
@@ -185,9 +192,12 @@ public:
 
  //! Unlock an unsigned-int region of memory 
  //!
- //! Unlock a unsigned-int region of memory previously locked 
- //! GetRegionUInt8(). The region is simply marked available for
- //! internal garbage collection during subsequent GetRegionUInt8() calls
+ //! Decrement the lock counter associatd with a unsigned-int 
+ //! region of memory, and if zero,
+ //! unlock region of memory previously locked GetRegion(). 
+ //! When the lock counter reaches zero the region is simply 
+ //! marked available for
+ //! internal garbage collection during subsequent GetRegion() calls
  //!
  //! \param[in] region A pointer to a region of memory previosly 
  //! returned by GetRegion()
@@ -266,7 +276,7 @@ private:
 	size_t max[3];
 	_dataTypes_t	type;
 	int	timestamp;
-	int lock;
+	int lock_counter;
 	void *blks;
  } region_t;
 
