@@ -175,6 +175,23 @@ void VaporFlow::SetRegion(size_t num_xforms,
 	
 }
 
+//////////////////////////////////////////////////////////////////////////
+// specify the spatial extent and resolution of the rake.  Needed for
+// accessing fields that are bounded by the rake, such as the
+// biased random rake
+//////////////////////////////////////////////////////////////////////////
+void VaporFlow::SetRakeRegion(const size_t min[3], 
+						  const size_t max[3],
+						  const size_t min_bdim[3],
+						  const size_t max_bdim[3])
+{
+	for (int i = 0; i< 3; i++){
+		minBlkRake[i] = min_bdim[i];
+		maxBlkRake[i] = max_bdim[i];
+		minRake[i] = min[i];
+		maxRake[i] = max[i];
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////////////
 //  Setup Time step list for unsteady integration.. Replaces above method
@@ -266,21 +283,22 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 	return regionData;
 }
 //Generate the seeds for the rake.  If rake is random calculates distributed seeds 
-int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed){
+int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed, int stride){
 	int seedNum;
 	seedNum = numSeeds[0]*numSeeds[1]*numSeeds[2];
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
 	if (bUseRandomSeeds && seedDistBias != 0.f){
 		pSeedGenerator->SetSeedDistrib(seedDistBias, timeStep, numXForms,xSeedDistVarName, ySeedDistVarName, zSeedDistVarName);
 	}
-	pSeedGenerator->GetSeeds(this, seeds, bUseRandomSeeds, randomSeed);
+	pSeedGenerator->GetSeeds(this, seeds, bUseRandomSeeds, randomSeed, stride);
 	delete pSeedGenerator;
 	return seedNum;
 }
 
 
 //////////////////////////////////////////////////////////////////////////////////////
-// Find the points in the steady flow
+// Find the highest priority points in the steady flow.
+// Uses the same region mapping as the field region
 bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathContainer, int timeStep){
 	//Use the current Region, obtain the priority field.
 	//First map the region to doubles:
@@ -288,9 +306,9 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 	const VDFIOBase* myReader = dataMgr->GetRegionReader();
 	myReader->MapVoxToUser(timeStep,minRegion, minDouble, numXForms);
 	myReader->MapVoxToUser(timeStep,maxRegion, maxDouble, numXForms);
-	
+	//Use the current region bounds, not the rake bounds...
 	FieldData* fData = setupFieldData(xPriorityVarName, yPriorityVarName, zPriorityVarName, 
-		minDouble, maxDouble, numXForms, timeStep, false);
+		false, numXForms, timeStep, false);
 	if (!fData) return false;
 	
 	//Go through the seeds, calculate the prioritization magnitude at each point, starting
@@ -816,14 +834,22 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	
 	return true;
 }
-//Prepare for obtaining values from a vector field.
+//Prepare for obtaining values from a vector field.  Uses either region bounds or
+//rake bounds.  numRefinements does not need to be same as region numrefinements.
+//scaleField indicates whether or not the field is scaled by current steady field scale factor.
 FieldData* VaporFlow::
 setupFieldData(const char* varx, const char* vary, const char* varz, 
-			   double minExt[3], double maxExt[3], int numRefinements, int timestep, bool scaleField){
+			   bool useRakeBounds, int numRefinements, int timestep, bool scaleField){
 	
 	size_t minInt[3], maxInt[3];
 	size_t minBlk[3], maxBlk[3];
+	double minExt[3], maxExt[3];
 	double minUser[3], maxUser[3]; //coords we will use for mapping (full block bounds)
+	if (useRakeBounds){
+		for (int i = 0; i< 3; i++) { minExt[i] = minRake[i]; maxExt[i] = maxRake[i];}
+	} else {
+		for (int i = 0; i< 3; i++) { minExt[i] = minRegion[i]; maxExt[i] = maxRegion[i];}
+	}
 	
 	const VDFIOBase* myReader = dataMgr->GetRegionReader();
 	myReader->MapUserToVox((size_t)timestep, minExt, minInt, numRefinements);
@@ -876,9 +902,16 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	double regMin[3],regMax[3];
 	size_t blockRegionMin[3],blockRegionMax[3];
 	//Determine the bounds of the full block region (it's what is used for mapping)
-	for (int i = 0; i< 3; i++){
-		blockRegionMin[i] = bs[i]*minBlkRegion[i];
-		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
+	if (useRakeBounds){
+		for (int i = 0; i< 3; i++){
+		blockRegionMin[i] = bs[i]*minBlkRake[i];
+		blockRegionMax[i] = bs[i]*(maxBlkRake[i]+1)-1;
+		}
+	} else {
+		for (int i = 0; i< 3; i++){
+			blockRegionMin[i] = bs[i]*minBlkRegion[i];
+			blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
+		}
 	}
 	myReader->MapVoxToUser(timestep, blockRegionMin, minUser, numRefinements);
 	myReader->MapVoxToUser(timestep, blockRegionMax, maxUser, numRefinements);
@@ -909,11 +942,17 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 //Obtain bounds on field magnitude
 bool VaporFlow::
 getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* vary, const char* varz, 
-	double minExt[3], double maxExt[3], int numRefinements, int timestep){
+	bool useRakeBounds, int numRefinements, int timestep){
 			 
 	//As in the above method, set up the mapping and get the data.
 	size_t minInt[3], maxInt[3];
 	size_t minBlk[3], maxBlk[3];
+	double maxExt[3], minExt[3];
+	if (useRakeBounds){
+		for (int i = 0; i< 3; i++) {minExt[i] = minRake[i]; maxExt[i] = maxRake[i];}
+	} else {
+		for (int i = 0; i< 3; i++) {minExt[i] = minRegion[i]; maxExt[i] = maxRegion[i];}
+	}
 	
 	const VDFIOBase* myReader = dataMgr->GetRegionReader();
 	myReader->MapUserToVox((size_t)timestep, minExt, minInt, numRefinements);

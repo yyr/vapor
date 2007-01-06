@@ -489,7 +489,8 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
 			int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
-			if (!fParams->validateSampling(minFrame)){//did anything change?
+			if (!fParams->validateSampling(minFrame,
+				fParams->getNumRefinements(), fParams->getUnsteadyVarNums())){//did anything change?
 				timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
 				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
 				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
@@ -537,7 +538,8 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setTimeSamplingStart(timesampleStartEdit2->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit2->text().toInt());
 			int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
-			if (!fParams->validateSampling(minFrame)){//did anything change?
+			if (!fParams->validateSampling(minFrame,
+				fParams->getNumRefinements(), fParams->getUnsteadyVarNums())){//did anything change?
 				timesampleIncrementEdit2->setText(QString::number(fParams->getTimeSamplingInterval()));
 				timesampleStartEdit2->setText(QString::number(fParams->getTimeSamplingStart()));
 				timesampleEndEdit2->setText(QString::number(fParams->getTimeSamplingEnd()));
@@ -2209,9 +2211,9 @@ void FlowEventRouter::saveSeeds(){
         this,
         "Save Seed Points Dialog",
         "Specify file name for saving current seed points" );
-	if (filename.isNull()){
+	if (filename.isNull())
 		 return;
-	}
+
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
 	//Save the path for future captures
@@ -2227,14 +2229,50 @@ void FlowEventRouter::saveSeeds(){
 		MessageReporter::errorMsg("Seed Save Error;\nUnable to open file %s",filename.ascii());
 		return;
 	}
-	//If there's a seed list, save its contents.
-	//If there's a nonrandom rake, save 
+	float *seedPoints;
+	int numSeeds;
+	//If there's a rake have the flowParams generate the seeds
+	if (fParams->rakeEnabled()){
+		RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+		seedPoints = fParams->getRakeSeeds(rParams, &numSeeds);
+		if (!seedPoints || numSeeds <= 0){
+			MessageReporter::errorMsg("Unable to generate rake seeds");
+			return;
+		}
+		for (int j = 0; j< numSeeds; j++){
+			int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
+				seedPoints[4*j+0],seedPoints[4*j+1],seedPoints[4*j+2],seedPoints[4*j+3]);
+			if (rc <= 0) {
+				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file %s",j,filename.ascii());
+				break;
+			}
+		}
+		delete seedPoints;
+		fclose(saveFile);
+		return;
+	} else { //write the current seedList:
+		std::vector<Point4>& seedList = fParams->getSeedPointList();
+		for (int j = 0; j<seedList.size(); j++){
+			int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
+				seedList[j].getVal(0),seedList[j].getVal(1),
+				seedList[j].getVal(2),seedList[j].getVal(3));
+			if (rc <= 0) {
+				MessageReporter::errorMsg("Seed Save Error;\nError writing seed no. %d to file %s",j,filename.ascii());
+				break;
+			}
+		}
+		fclose(saveFile);
+		return;
+	}
+
+	
 }
 // Save all the points of the current flow.
 // Don't support undo/redo
 // If flow is unsteady, save all the points of all the pathlines, with their times.
-// If flow is steady, just save the points of the streamlines for the current animation time,
-// Include their timesteps (relative to the current animation timestep) 
+// If flow is steady, just save the points of the streamlines for the current animation time.
+// For FieldLineAdvection, just save the points in the current fieldline
+// Include the timestep 
 //
 void FlowEventRouter::saveFlowLines(){
 	confirmText(false);
@@ -2636,7 +2674,11 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,  bool newWindow){
 	if (nowEnabled && !prevEnabled ){//For case 2:  create a renderer in the active window:
 
 		//First, make sure we have valid fielddata:
-		fParams->validateSampling(minFrame);
+		if (fParams->getFlowType() != 1)
+			fParams->validateSampling(minFrame, fParams->getNumRefinements(), fParams->getSteadyVarNums());
+		if (fParams->getFlowType() != 0)
+			fParams->validateSampling(minFrame, fParams->getNumRefinements(), fParams->getUnsteadyVarNums());
+
 
 		FlowRenderer* myRenderer = new FlowRenderer (viz->getGLWindow(), fParams);
 		viz->getGLWindow()->prependRenderer(fParams,myRenderer);

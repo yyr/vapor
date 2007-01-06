@@ -461,8 +461,10 @@ reinit(bool doOverride){
 		timeSamplingEnd = maxFrame;
 		timeSamplingInterval = 1;
 	}
-	
-	validateSampling(minFrame);
+	if (flowType != 1)
+		validateSampling(minFrame, numRefinements, steadyVarNum);
+	if (flowType != 0)
+		validateSampling(minFrame, numRefinements, unsteadyVarNum);
 
 	
 	//Now set up bounds arrays based on current mapped variable settings:
@@ -714,8 +716,100 @@ writePathline(FILE* saveFile, int pathNum, int minFrame, int injNum, float* flow
 	}
 	return true;
 }
-
-
+// Method to generate a list of rake seeds, including a 4th float for timestep
+float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds){
+	assert(doRake);  //Should only be doing this with a rake
+	//Set up a flowLib to generate the rake seeds.
+	DataStatus* ds = DataStatus::getInstance();
+	VaporFlow* flowLib = new VaporFlow(ds->getDataMgr());
+	if (!flowLib) return 0;
+	setupFlowRegion(rParams, flowLib, seedTimeStart, seedTimeStart);
+	//Prepare the flowLib:
+	int numSeedPoints = getNumRakeSeedPoints();
+	if (randomGen){
+		const char* xVar = ds->getVariableName(seedDistVarNum[0]).c_str();
+		const char* yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
+		const char* zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
+		flowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
+			xVar, yVar, zVar, seedDistBias);
+	} else {//Set up the uniform rake bounds
+		flowLib->SetRegularSeedPoints(seedBoxMin, seedBoxMax, generatorCount);
+	}
+	
+	//If the seeds are not random, or not biased, then all seeds
+	//are valid for all time steps.
+	//If the seeds are random and biased, then we need to generate them
+	//for each time step:  This has the following cases:
+	//  For steady flow or unsteady flow, generate the seeds separately for each of the 
+	//	seed times
+	//If we are doing field line advection, there is just one seed frame.
+	//
+	
+	int nSeeds= 0;
+	int actualNumSeeds;
+	if (isRandom() && seedDistBias != 0.f){
+		//Make sure the timesteps are valid for biased sampling:
+		int minFrame = ds->getMinTimestep();
+		validateSampling(minFrame, numRefinements, seedDistVarNum);
+		if (flowType == 2){
+			nSeeds = calcNumSeedPoints(seedTimeStart);
+		} else {
+			for (int i = seedTimeStart; i<= seedTimeEnd; i+= seedTimeIncrement){
+				nSeeds += calcNumSeedPoints(i);
+			}
+		}
+		//Allocate an array to hold the seeds:
+		float* seeds = new float[4*nSeeds];
+		if (flowType == 2){
+			actualNumSeeds = flowLib->GenRakeSeeds(seeds,seedTimeStart, randomSeed, 4);
+			if (actualNumSeeds != nSeeds) {
+				delete seeds; 
+				delete flowLib;
+				return 0;
+			}
+			for (int i = 0; i<nSeeds; i++){
+				seeds[4*i+3] = (float)seedTimeStart;
+			}
+			*numseeds = actualNumSeeds;
+			delete flowLib;
+			return seeds;
+		}
+		//Do biased seeds for all time steps
+		//Keep a pointer to the 
+		actualNumSeeds = 0;
+		for (int i = seedTimeStart; i<= seedTimeEnd; i+= seedTimeIncrement){
+			int seedsFound = flowLib->GenRakeSeeds(seeds+4*actualNumSeeds,i, randomSeed, 4);
+			if (seedsFound != calcNumSeedPoints(i)){
+				delete seeds;
+				delete flowLib;
+				return 0;
+			}
+			//Plug in the time step:
+			for (int j = 0; j< seedsFound; j++)
+				*(seeds+4*(actualNumSeeds+j)+3) = (float)i;
+			actualNumSeeds += seedsFound;
+		}
+		*numseeds = actualNumSeeds;
+		delete flowLib;
+		return seeds;
+	} else { //seeds are same for all timesteps:
+		nSeeds = calcNumSeedPoints(seedTimeStart);
+		float* seeds = new float[nSeeds*4];
+		int seedsFound = flowLib->GenRakeSeeds(seeds,seedTimeStart, randomSeed, 4);
+		if (seedsFound != nSeeds){
+			delete seeds;
+			delete flowLib;
+			return 0;
+		}
+		//Plug in the code for "all" time steps
+		for (int j = 0; j< seedsFound; j++){
+			seeds[4*j+3] = -1.f;
+		}
+		*numseeds = seedsFound;
+		delete flowLib;
+		return seeds;
+	} 
+}
 
 
 //Function to iterate over sample time steps, whether in list or 
@@ -872,7 +966,6 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, Regio
 				}
 			}
 			myFlowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);
-			
 		}
 	} else { //determine how many seed points to send to flowlib
 		
@@ -1028,8 +1121,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 						boxmax[i] = seedBoxMax[i];
 					}
 				}
-				myFlowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);
-				
+				myFlowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);	
 			}
 		} else { //determine how many seed points to send to flowlib
 			
@@ -2275,7 +2367,7 @@ float FlowParams::maxRange(int index, int timestep){
 //if not valid, timeSamplingEnd is set to last valid frame in sequence established by 
 //timeSamplingStart and timeSamplingInterval
 bool FlowParams::
-validateSampling(int minFrame)
+validateSampling(int minFrame, int numRefs, const int varnums[3])
 {
 	//Don't do anything if no data has been read:
 	if (!DataStatus::getInstance()->getDataMgr()) return false;
@@ -2288,7 +2380,7 @@ validateSampling(int minFrame)
 	//See if start is valid; if not set to first valid start:
 	int ts;
 	for (ts = timeSamplingStart; ts <= maxFrame; ts++) {
-		if (validateVectorField(ts)) break;
+		if (validateVectorField(ts, numRefs, varnums)) break;
 	}
 	//do there exist valid frames?
 	if (ts > maxFrame) {
@@ -2316,10 +2408,10 @@ validateSampling(int minFrame)
 		changed = true;
 	}
 	//It is OK if the second one is valid or if there is no second one:
-	if (!validateVectorField(timeSamplingStart+timeSamplingInterval)){
+	if (!validateVectorField(timeSamplingStart+timeSamplingInterval, numRefs, varnums)){
 		//Need to find the first valid increment:
 		for (ts = timeSamplingStart+1; ts <= maxFrame; ts++){
-			if (validateVectorField(ts)) break;
+			if (validateVectorField(ts, numRefs, varnums)) break;
 		}
 		//Is there a valid second timestep?
 		if (ts > maxFrame){
@@ -2333,7 +2425,7 @@ validateSampling(int minFrame)
 	}
 	//Now establish the last frame
 	for (ts = timeSamplingStart; ts <= timeSamplingEnd; ts+= timeSamplingInterval){
-		if (!validateVectorField(ts)) break;
+		if (!validateVectorField(ts, numRefs, varnums)) break;
 	}
 	if (ts > timeSamplingEnd) return (!changed);
 	timeSamplingEnd = ts - timeSamplingInterval;
@@ -2344,18 +2436,15 @@ validateSampling(int minFrame)
 //
  
 bool FlowParams::
-validateVectorField(int ts) {
+validateVectorField(int ts, int refLevel, const int varNums[3]) {
 	DataStatus* dStatus = DataStatus::getInstance();
 	if (!dStatus) return false;
-	for (int var = 0; var<3; var++){
-		if(dStatus->maxXFormPresent(var, ts)< 0)
+	for (int i = 0; i< 3; i++){
+		if(dStatus->maxXFormPresent(varNums[i], ts)< refLevel)
 			return false;
 	}
 	return true;
 }
-
-			
-
 
 int FlowParams::calcMaxPoints(){
 	int numPrePoints = 0, numPostPoints = 0;
@@ -2495,6 +2584,21 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep, int min
 		return false;
 	}
 	flowLib->SetRegion(numRefinements, min_dim, max_dim, min_bdim, max_bdim);
+	// Also, specify the bounds of the rake, in case it is needed:
+	double rakeMinCoords[3];
+	double rakeMaxCoords[3];
+	for (int i = 0; i<3; i++){
+		rakeMinCoords[i] = (double)seedBoxMin[i];
+		rakeMaxCoords[i] = (double)seedBoxMax[i];
+	}
+	DataStatus* ds = DataStatus::getInstance();
+	const VDFIOBase* myReader = ds->getRegionReader();
+	
+	myReader->MapUserToBlk(timeStep, rakeMinCoords, min_bdim, numRefinements);
+	myReader->MapUserToVox(timeStep, rakeMinCoords, min_dim, numRefinements);
+	myReader->MapUserToBlk(timeStep, rakeMaxCoords, max_bdim, numRefinements);
+	myReader->MapUserToVox(timeStep, rakeMaxCoords, max_dim, numRefinements);
+	flowLib->SetRakeRegion(min_dim, max_dim, min_bdim, max_bdim);
 	return true;
 }
 

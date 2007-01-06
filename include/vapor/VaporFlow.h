@@ -40,7 +40,7 @@ namespace VAPoR
 		void SetUnsteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
 
 		void SetRegion(size_t num_xforms, const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3]);
-		
+		void SetRakeRegion(const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3]);
 		void SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps);
 		void SetSteadyTimeSteps(size_t timeStep, int direction){
 			steadyStartTimeStep = timeStep;
@@ -66,7 +66,7 @@ namespace VAPoR
 		//Uses settings established by SetRandomSeedPoints, SetDistributedSeedPoints,
 		//or SetRegularSeedPoints
 
-		int GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed);
+		int GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed, int stride = 3);
 
 		//Version that actually does the work
 		bool GenStreamLinesNoRake(FlowLineData* container, float* seeds);
@@ -88,11 +88,11 @@ namespace VAPoR
 		//Returns false if unsuccessful at setting up variables
 		//Note that the field is NOT scaled by the current scale factor
 		//unless the boolean argument is true
-		FieldData* setupFieldData(const char* varx, const char* vary, const char* varz, double minExt[3], double maxExt[3], int numRefinements, int timestep, bool scaleField);
+		FieldData* setupFieldData(const char* varx, const char* vary, const char* varz, bool useRakeBounds, int numRefinements, int timestep, bool scaleField);
 	
 		//Obtain min/max vector magnitude in specified region.  Return false on error 
 		bool getFieldMagBounds(float* minVal, float* maxVal, const char* varx, const char* vary, const char* varz, 
-			double minExt[3], double maxExt[3], int numRefinements, int timestep);
+			bool useRakeBounds, int numRefinements, int timestep);
 	 
 	private:
 		size_t userTimeUnit;						// time unit in the original data
@@ -117,6 +117,8 @@ namespace VAPoR
 
 		float minRakeExt[3];						// minimal rake range 
 		float maxRakeExt[3];						// maximal rake range
+		size_t minBlkRake[3], maxBlkRake[3];
+		size_t minRake[3], maxRake[3];
 		size_t numSeeds[3];							// number of seeds
 		bool periodicDim[3];						// specify the periodic dimensions
 		bool fullInDim[3];							// determine if the current region is full in each dimension

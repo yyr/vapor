@@ -104,11 +104,11 @@ public:
 	DataMgr* getDataMgr() {return dataMgr;}
 	Metadata* getMetadata() {return currentMetadata;}
 
-		
+	//find the session variable name associated with session index
 	static std::string& getVariableName(int varNum) {return variableNames[varNum];}
 	//Find the session num of a name, or -1 if it's not metadata:
 	static int getSessionVariableNum(const std::string& str);
-	//Insert variableName if necessary; return index
+	//Insert variableName if necessary; return sessionVariableNum
 	static int mergeVariableName(const std::string& str);
 
 

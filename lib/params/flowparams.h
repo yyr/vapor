@@ -154,6 +154,7 @@ public:
 		return (int)(randomGen ? allGeneratorCount : (int)(generatorCount[0]*generatorCount[1]*generatorCount[2]));
 	}
 	int getNumListSeedPoints() {return (int)seedPointList.size();}
+	float* getRakeSeeds(RegionParams* rParams, int* numseeds);
 	std::vector<Point4>& getSeedPointList(){return seedPointList;}
 	void pushSeed(Point4& newSeed){seedPointList.push_back(newSeed);}
 	void moveLastSeed(const float* newCoords){
@@ -223,7 +224,7 @@ public:
 	//Independent of animation params
 	//Provide an info message if data does not match input request
 	//Return false if anything changed
-	bool validateSampling(int minFrame);
+	bool validateSampling(int minFrame, int numRefs, const int varnums[3]);
 	void setFlowType(int typenum){flowType = typenum;}
 	void setNumRefinements(int numtrans){numRefinements = numtrans;}
 	void setMaxNumTrans(int maxNT) {maxNumRefinements = maxNT;}
@@ -234,6 +235,10 @@ public:
 	void setSteadyScale(float val){steadyScale = val;}
 	void setUnsteadyScale(float val){unsteadyScale = val;}
 	
+	int* getSteadyVarNums() {return steadyVarNum;}
+	int* getUnsteadyVarNums() {return unsteadyVarNum;}
+	int* getPriorityVarNums() {return priorityVarNum;}
+	int* getSeedDistVarNums() {return seedDistVarNum;}
 	void setXSteadyVarNum(int varnum){magChanged = true; steadyVarNum[0] = varnum;
 		if (priorityIsSteady) priorityVarNum[0] = varnum;
 		if (seedDistIsSteady) seedDistVarNum[0] = varnum;
@@ -398,7 +403,7 @@ protected:
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 	
 	//check if vector field is present for a timestep
-	bool validateVectorField(int timestep);
+	bool validateVectorField(int timestep, int numRefs, const int varnums[3]);
 
 	//Find the average vector flow value over current region, at specified resolution.
 	//Note:  this can be time-consuming!
