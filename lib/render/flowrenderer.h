@@ -44,19 +44,8 @@ public:
 	int getNumListSeedPointsUsed(int timeStep) {return numListSeedPointsUsed[timeStep];}
 	
 
-	//Obtain the current flow data.  
-	float* getFlowData(int timeStep, bool isRake){
-		if (isRake){
-			return rakeFlowData[timeStep];
-		} else {
-			return listFlowData[timeStep];
-		}
-	}
-	//Obtain the current flow data.  
-	float* getRGBAs(int timeStep){
-		return steadyFlowRGBAs[timeStep];
-	}
-
+	//Obtain the current flow data.
+	
 	//The data dirty and needsRefresh flags are used to control updates 
 	//The data dirty indicates whether or not the current flow data is valid.
 	//The needsRefresh flag indicates whether or not invalid data should be
@@ -106,6 +95,8 @@ public:
 	bool rebuildFlowData(int timeStep);
 	void setRegionValid(bool trueFalse) {regionIsValid = trueFalse;}
 	bool regionValid() {return regionIsValid;}
+	PathLineData* getUnsteadyCache() {return unsteadyFlowCache;}
+	FlowLineData* getSteadyCache(int timeStep) {return steadyFlowCache[timeStep];}
 
 
 protected:

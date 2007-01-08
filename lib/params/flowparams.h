@@ -311,9 +311,7 @@ public:
 	int getComboPriorityVarnum(int indx) {return comboPriorityVarNum[indx];}
 	
 	int getNumComboVariables() {return numComboVariables;}
-	// helper functions for writing stream and path lines
-	bool writeStreamline(FILE* saveFile, int streamNum, int frameNum, float* flowDataArray);
-	bool writePathline(FILE* saveFile, int pathNum, int minFrame, int injectionNum, float* flowDataArray);
+
 	float getOpacityScale(); 
 	void setOpacityScale(float val); 
 	int getMaxFrame() {return maxFrame;}

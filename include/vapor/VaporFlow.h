@@ -82,6 +82,8 @@ namespace VAPoR
 			float minField = 0.f, float maxField = 1.e30f);
 		//Go through the steady field lines, identify the point on each line with the highest
 		//priority.  Insert resulting points into the pathContainer.
+		//A unique point is inserted for each nonempty field line (provided it is 
+		//inside the current region)
 		bool prioritizeSeeds(FlowLineData* container, PathLineData* pathContainer, int timestep);
 		
 		//Methods to encapsulate getting data out of a field.  

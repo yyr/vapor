@@ -259,14 +259,14 @@ class FLOW_API vtCStreakLine : public vtCTimeVaryingFieldLine
 public:
 	vtCStreakLine(CVectorField* pField);
 	~vtCStreakLine(void);
-	void execute(const float t, float* points, const unsigned int* startPositions, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
+	//void execute(const float t, float* points, const unsigned int* startPositions, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
 	void execute(const float t, PathLineData* container, bool bInjectSeeds);
 	int addSeeds(int tstep, PathLineData* container);
 protected:
 	
 	// code specific to streakline
-	void computeStreakLine(const float t, float* points, const unsigned int* startPositions, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
-	void advectOldParticles(vtListParticleIter start, 
+	//void computeStreakLine(const float t, float* points, const unsigned int* startPositions, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
+	/*void advectOldParticles(vtListParticleIter start, 
 							vtListParticleIter end, 
 							float* points,
 							const unsigned int* startPositions, 
@@ -275,6 +275,7 @@ protected:
 							float finalTime,
 							vector<vtListParticleIter>& deadList,
 							float* speeds=0);
+							*/
 
 	// code specific to streakline
 	void computeStreakLine(const float t, PathLineData* container, bool bInjectSeeds);

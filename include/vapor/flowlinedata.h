@@ -173,6 +173,11 @@ class FLOW_API PathLineData : public FlowLineData {
 			int indx = getEndIndex(lineNum);
 			return ((int)((float)indx/samplesPerTStep + startTimeStep));
 		}
+		//Get time associated with point in flow, 
+		//Doesn't check whether this is a valid point in the flow.
+		float getTimeInPath(int lineNum, int index){
+			return (index/samplesPerTStep + startTimeStep);
+		}
 		// Convert timesteps to indices:
 		int getIndexFromTimestep(int ts){
 			return ((int)(((float)(ts - startTimeStep)*samplesPerTStep) + 0.5f));

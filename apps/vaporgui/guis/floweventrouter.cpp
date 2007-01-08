@@ -67,6 +67,7 @@
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
 #include "vapor/VDFIOBase.h"
+#include "vapor/flowlinedata.h"
 #include "tabmanager.h"
 #include "glutil.h"
 #include "flowparams.h"
@@ -2269,14 +2270,19 @@ void FlowEventRouter::saveSeeds(){
 }
 // Save all the points of the current flow.
 // Don't support undo/redo
-// If flow is unsteady, save all the points of all the pathlines, with their times.
-// If flow is steady, just save the points of the streamlines for the current animation time.
-// For FieldLineAdvection, just save the points in the current fieldline
-// Include the timestep 
+// If flow is unsteady, save all the points of the pathlines, with their times.
+// If flow is steady, or for field line advection,
+//	just save the points of the streamlines for the current animation time.
+// Include the current timestep 
 //
 void FlowEventRouter::saveFlowLines(){
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(fParams);
+	if (!fRenderer){
+		MessageReporter::errorMsg("Flow cannot be saved until rendering is enabled");
+		return;
+	}
 	//Launch an open-file dialog
 	
 	 QString filename = QFileDialog::getSaveFileName(
@@ -2305,90 +2311,124 @@ void FlowEventRouter::saveFlowLines(){
 	}
 	//Refresh the flow, if necessary
 	refreshFlow();
-	FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(fParams);
+	
 	//Get min/max timesteps from applicable animation params
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
-	if (fParams->flowIsSteady()){
-		//What's the current timestep?
-		int vizNum = VizWinMgr::getInstance()->getActiveViz();
-		AnimationParams* myAnimationParams = VizWinMgr::getInstance()->getAnimationParams(vizNum);
-		int timeStep = myAnimationParams->getCurrentFrameNumber();
-		assert (fRenderer);
-		//
-		//Save the steady flowlines resulting from the rake (in reverse order)
-		//Get the rake flow data:
-		if (fParams->rakeEnabled()){
-			if (fRenderer->flowDataIsDirty(timeStep))
-				fRenderer->rebuildFlowData(timeStep);
-			float* flowDataArray = fRenderer->getFlowData(timeStep,true);
-			assert(flowDataArray);
-			int numSeedPoints = fRenderer->getNumRakeSeedPointsUsed();
-			for (int i = numSeedPoints -1; i>=0; i--){
-				if (!fParams->writeStreamline(saveFile,i,timeStep,flowDataArray)){
-					MessageReporter::errorMsg("Flow Save Error;\nUnable to write data to %s",filename.ascii());
-					return;
+	//What's the current timestep?
+	int vizNum = vizMgr->getActiveViz();
+	AnimationParams* myAnimationParams = vizMgr->getAnimationParams(vizNum);
+	int timeStep = myAnimationParams->getCurrentFrameNumber();
+	assert (fRenderer);
+	//
+	//Rebuild if necessary:
+	if (fRenderer->flowDataIsDirty(timeStep))
+		if (!fRenderer->rebuildFlowData(timeStep)) {
+			MessageReporter::errorMsg("Unable to build stream lines for timestep %d",timeStep);
+			return;
+		}
+	if (fParams->getFlowType() != 1){//steady flow, or field line advection
+	
+		FlowLineData* flowData = fRenderer->getSteadyCache(timeStep);
+		
+		for (int i = 0; i<flowData->getNumLines(); i++){
+			float padValue[3];
+			for (int k = 0; k<3; k++) { padValue[k] = END_FLOW_FLAG;}
+			//Check for a stationary point.  
+			int startIndex = flowData->getStartIndex(i);
+			if (startIndex > 0 && flowData->getFlowPoint(i,startIndex-1)[0] == STATIONARY_STREAM_FLAG) {
+				for (int k = 0; k<3; k++) {
+					padValue[k] = flowData->getFlowPoint(i,startIndex)[k];
 				}
 			}
-		}
-		if (fParams->listEnabled()&&(fRenderer->getNumListSeedPointsUsed(timeStep) > 0)){
-			if (fRenderer->flowDataIsDirty(timeStep))
-				fRenderer->rebuildFlowData(timeStep);
-			float* flowDataArray = fRenderer->getFlowData(timeStep, false);
 			
-			assert(flowDataArray);
-			int numSeedPoints = fRenderer->getNumListSeedPointsUsed(timeStep);
-			for (int i = 0; i<numSeedPoints; i++){
-				if (!fParams->writeStreamline(saveFile,i,timeStep,flowDataArray)){
-					MessageReporter::errorMsg("Flow Save Error;\nUnable to write data to %s",filename.ascii());
+			//For each stream line write out "END_FLOW_FLAG" before and 
+			//after the actual data:
+			
+			for (int j = 0; j < flowData->getStartIndex(i); j++){
+				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
+					padValue[0],padValue[1],padValue[2],(float)timeStep);
+				if (rc <= 0){
+					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
 					return;
 				}
 			}
+			for (int j = flowData->getStartIndex(i); j<= flowData->getEndIndex(i); j++){
+				float* point = flowData->getFlowPoint(i,j);
+				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
+					point[0],point[1],point[2],
+					(float)timeStep);
+				if (rc <= 0){
+					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
+					return;
+				}
+			}
+			//Check for stationary point at end:
+			for (int k = 0; k<3; k++) { padValue[k] = END_FLOW_FLAG;}
+			//Check for a stationary point.  
+			int endIndex = flowData->getEndIndex(i);
+			if (endIndex < flowData->getMaxPoints()-1 && flowData->getFlowPoint(i,endIndex+1)[0] == STATIONARY_STREAM_FLAG) {
+				for (int k = 0; k<3; k++) {
+					padValue[k] = flowData->getFlowPoint(i,endIndex)[k];
+				}
+			}
+			//Pad to end:
+			for (int j = flowData->getEndIndex(i)+1; j< flowData->getMaxPoints(); j++){
+				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
+					padValue[0],padValue[1],padValue[2],(float)timeStep);
+				if (rc <= 0){
+					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
+					return;
+				}
+			}
+			
 		}
+		//Done with writing flow lines:
+		fclose(saveFile);
+		return;
 	} else {
-		//Write the (entire) set of pathlines to file.
-		//Loop over all injections:
-		int maxPoints = fParams->calcMaxPoints();
-		if (fParams->rakeEnabled()){
-			if (fRenderer->flowDataIsDirty(0))
-				fRenderer->rebuildFlowData(0);
-			float* flowDataArray = fRenderer->getFlowData(0, true);
-			
-			assert(flowDataArray);
-			//for (int injNum = 0; injNum < fParams->getNumInjections(); injNum++){
-				
-				int numSeedPoints = fRenderer->getNumRakeSeedPointsUsed();
-				
-				//Offset to start of the injection:
-				float* flowDataPtr = flowDataArray + 3*numSeedPoints*maxPoints;
-				for (int i = numSeedPoints -1; i>=0; i--){
-					if (!fParams->writePathline(saveFile,i, minFrame, 1,flowDataPtr)){
-						MessageReporter::errorMsg("Flow Save Error;\nUnable to write data to %s",filename.ascii());
-						return;
-					}
+		//Write out the unsteady flow lines.
+		//It's like steady flow, but we use a pathlinedata, and write the
+		//times as we go.  Don't need to check for stationary points.
+
+		PathLineData* pathData = fRenderer->getUnsteadyCache();
+		for (int i = 0; i<pathData->getNumLines(); i++){
+			//For each path line write out "END_FLOW_FLAG" before and 
+			//after the actual data:
+			for (int j = 0; j< pathData->getStartIndex(i); j++){
+				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
+					END_FLOW_FLAG,END_FLOW_FLAG,END_FLOW_FLAG,
+					-1.f);
+				if (rc <= 0){
+					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
+					return;
 				}
-			//}
-		}
-		if (fParams->listEnabled()&&(fRenderer->getNumListSeedPointsUsed(0) > 0)){
-			if (fRenderer->flowDataIsDirty(0))
-				fRenderer->rebuildFlowData(0);
-			float* flowDataArray = fRenderer->getFlowData(0,false);
-			
-			assert(flowDataArray);
-			//for (int injNum = 0; injNum < fParams->getNumInjections(); injNum++){
-				//This appears to be wrong!!
-				int numSeedPoints = fRenderer->getNumListSeedPointsUsed(0);
-				float* flowDataPtr = flowDataArray+ 3*numSeedPoints*maxPoints;
-				for (int i = 0; i<numSeedPoints; i++){
-					if (!fParams->writePathline(saveFile,i,minFrame, 1,flowDataPtr)){
-						MessageReporter::errorMsg("Flow Save Error;\nUnable to write data to %s",filename.ascii());
-						return;
-					}
+			}
+			for (int j = pathData->getStartIndex(i); j<= pathData->getEndIndex(i); j++){
+				float* point = pathData->getFlowPoint(i,j);
+				float time = pathData->getTimeInPath(i,j);
+				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
+					point[0],point[1],point[2],time);
+				if (rc <= 0){
+					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
+					return;
 				}
-			//}
+			}
+			for (int j = pathData->getEndIndex(i)+1; j< pathData->getMaxPoints(); j++){
+				int rc = fprintf(saveFile,"%8g %8g %8g %8g\n",
+					END_FLOW_FLAG,END_FLOW_FLAG,END_FLOW_FLAG, -1.f);
+				if (rc <= 0){
+					MessageReporter::errorMsg("Unable to write stream line for timestep %d",timeStep);
+					return;
+				}
+			}
+			
 		}
+		//Done with writing flow lines:
+		fclose(saveFile);
+		return;
 	}
-	fclose(saveFile);
+	
 }
 //Save undo/redo state when user grabs a rake handle
 //
