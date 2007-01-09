@@ -7,9 +7,9 @@
 ** program may be used, distributed and modified without limitation.
 **
 *****************************************************************************/
-#include "images/back.xpm"
-#include "images/forward.xpm"
-#include "images/home2.xpm"
+#include "../images/back.xpm"
+#include "../images/forward.xpm"
+#include "../images/home2.xpm"
 #include "helpwindow.h"
 #include <qstatusbar.h>
 #include <qpixmap.h>
@@ -155,7 +155,7 @@ HelpWindow::HelpWindow( const QString& home_, const QString& _path,
 
 }
 
-void HelpWindow::showHelp(QString& filename){
+void HelpWindow::showHelp(const QString& filename){
 	QString filePath = QString(getenv("VAPOR_HOME"))+"/doc/help/"+filename;
 	if (!theHelpWindow){
 		theHelpWindow = new HelpWindow(filePath, filePath);

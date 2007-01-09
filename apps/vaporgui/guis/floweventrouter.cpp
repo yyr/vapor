@@ -320,9 +320,9 @@ void FlowEventRouter::addSample(){
 void FlowEventRouter::showSetupHelp(){
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
 	if (fParams->getFlowType() == 1){ 
-		HelpWindow::showHelp(QString("UnsteadyHelp.html"));
+		HelpWindow::showHelp(("UnsteadyHelp.html"));
 	} else {
-		HelpWindow::showHelp(QString("FieldLineAdvectionHelp.html"));
+		HelpWindow::showHelp(("FieldLineAdvectionHelp.html"));
 	}
 }
 //Delete the current selected row
