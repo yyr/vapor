@@ -1286,7 +1286,7 @@
                                                         </spacer>
                                                         <widget class="QPushButton">
                                                             <property name="name">
-                                                                <cstring>wizardButton</cstring>
+                                                                <cstring>flowHelpButton</cstring>
                                                             </property>
                                                             <property name="enabled">
                                                                 <bool>true</bool>
@@ -2385,7 +2385,7 @@
                                                 <cstring>textLabel1_4</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Timestep sample min, max, interval</string>
+                                                <string>Timestep sample start,end,increment</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify evenly spaced timesteps by a start, end and increment</string>

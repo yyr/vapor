@@ -49,6 +49,7 @@
 #include "panelcommand.h"
 #include "messagereporter.h"
 #include "seedlisteditor.h"
+#include "helpwindow.h"
 #include <qlineedit.h>
 #include <qcombobox.h>
 #include <qspinbox.h>
@@ -105,6 +106,7 @@ FlowEventRouter::hookUpTab()
 	//Connect up the sampleTable events:
 	connect (addSampleButton1,SIGNAL(clicked()), this, SLOT(addSample()));
 	connect (addSampleButton2,SIGNAL(clicked()), this, SLOT(addSample()));
+	connect (flowHelpButton, SIGNAL(clicked()), this, SLOT(showSetupHelp()));
 	connect (deleteSampleButton1,SIGNAL(clicked()), this, SLOT(deleteSample()));
 	connect (deleteSampleButton2,SIGNAL(clicked()), this, SLOT(deleteSample()));
 	connect (timestepSampleTable1, SIGNAL(valueChanged(int,int)), this, SLOT(timestepChanged1(int,int)));
@@ -313,6 +315,15 @@ FlowEventRouter::hookUpTab()
 void FlowEventRouter::addSample(){
 	timestepSampleTable1->insertRows(timestepSampleTable1->numRows());
 	timestepSampleTable2->insertRows(timestepSampleTable2->numRows());
+}
+//Show setup instructions for flow:
+void FlowEventRouter::showSetupHelp(){
+	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	if (fParams->getFlowType() == 1){ 
+		HelpWindow::showHelp(QString("UnsteadyHelp.html"));
+	} else {
+		HelpWindow::showHelp(QString("FieldLineAdvectionHelp.html"));
+	}
 }
 //Delete the current selected row
 void FlowEventRouter::deleteSample(){
@@ -906,7 +917,7 @@ void FlowEventRouter::updateTab(){
 			steadyFieldFrame->hide();
 			unsteadyFieldFrame->show();
 			periodicFrame->hide();
-			wizardButton->setText("Unsteady Flow Setup");
+			flowHelpButton->setText("Unsteady Flow Setup Help");
 			unsteadyGraphicFrame->show();
 			steadyAutoGraphicFrame->hide();
 			seedtimeIncrementEdit->setEnabled(true);
@@ -920,7 +931,7 @@ void FlowEventRouter::updateTab(){
 			steadyFieldFrame->show();
 			unsteadyFieldFrame->show();
 			periodicFrame->show();
-			wizardButton->setText("Flow Line Advection Setup");
+			flowHelpButton->setText("Flow Line Advection Setup Help");
 			unsteadyGraphicFrame->show();
 			if (autoScale){
 				steadyAutoGraphicFrame->show();
@@ -1537,6 +1548,7 @@ guiSetFlowType(int typenum){
 		}
 	} 
 	PanelCommand::captureEnd(cmd, fParams);
+	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::

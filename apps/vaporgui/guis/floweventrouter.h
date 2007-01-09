@@ -87,6 +87,7 @@ public slots:
 
 	void guiSetRakeToRegion();
 protected slots:
+	void showSetupHelp();
 	void addSample();
 	void deleteSample();
 	void timestepChanged1(int row, int col);

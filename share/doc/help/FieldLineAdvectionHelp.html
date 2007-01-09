@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>Field Line Advection Setup</title>
+</head>
+<body>
+<div style="text-align: center;">
+<div style="text-align: center;"></div>
+<h3 style="text-align: center;"><font size="+2">How to Set Up Field
+Line Advection</font></h3>
+</div>
+<ol>
+  <li><font size="+2"> Load a Metadata file (*.vdf file) into VAPOR. </font></li>
+  <li><font size="+2">In the Basic Flow Settings: </font>
+    <ol>
+      <li><font size="+2">Specify "Field Line Advection&gt; as the
+flow type </font></li>
+      <li><font size="+2"> Specify three variables for the unsteady
+(e.g. velocity)
+field</font></li>
+      <font size="+2"> </font><li><font size="+2">Specify three
+variables for the steady
+(e.g. magnetic) field</font></li>
+      <li><font size="+2">Specify the "Unsteady field scale
+factor".&nbsp; This
+depends on the space and time scales that were used when the data was
+generated.&nbsp; It is the ratio:
+(spatial-correction-factor)/(time-correction-factor), where:</font></li>
+      <ul>
+        <li><font size="+2">(time-correction-factor) is the number of
+simulation
+time steps per time step in the .vdf files</font></li>
+        <li><font size="+2">(spatial-correction-factor) is the extent
+of the ful
+domain size in VAPOR (see the VAPOR region panel) to the actual user
+domain extent that was used in the simulation</font></li>
+      </ul>
+    </ol>
+    <font size="+2"> </font></li>
+  <li><font size="+2">Set up flow seeding as follows:</font></li>
+  <ol>
+    <li><font size="+2">Decide whether to use a random rake, nonrandom
+rake, or a
+list of seeds, as the starting seeds for the field lines to be advected.</font></li>
+    <ul>
+      <li><font size="+2">If you are using a rake,&nbsp; the position
+and size of
+the rake can be established by using sliders, typing in numerical
+values, or by using the rake tool in the visualizer window.</font></li>
+      <li><font size="+2">To use a list of seeds, either type it in
+(using the
+"edit seed list" button) or read the seeds from a text file.&nbsp; Each
+seed in the list has (x,y,z)-coordinates, as well as a time.&nbsp; If
+the time is negative, that seed point is valid for all time steps.</font></li>
+    </ul>
+    <li><font size="+2">Specify the one time step when the seed points
+are to be
+injected into the flow, using the first of the thrree values labeled
+"Seed time start, end, increment".&nbsp; Only one time step can be used
+for seed injection.<br>
+      </font></li>
+    <ul>
+      <li><font size="+2">If the unsteady field data is not available
+at every
+time step, you must specify the time steps that will be sampled, using
+the &#8220;Advanced Field Line Advection Parameters&#8221;.&nbsp; By default, every
+time step is sampled from beginning to end, using values in &#8220;Time step
+sample start, end, increment&#8221;.&nbsp; Check the optional &#8220;Use time step
+list&#8221; to specify an arbitrary set of time steps that will be sampled.</font></li>
+    </ul>
+  </ol>
+</ol>
+<div style="text-align: center;">
+<h2><font size="+2">Optional Settings to Consider</font></h2>
+</div>
+<h3 style="text-align: center;"></h3>
+<font size="+2"><span style="font-weight: bold;">Nonuniform random seed
+placement</span><br>
+<br>
+&nbsp;&nbsp;&nbsp; If you are using the &#8220;Random Rake&#8221; for seed
+placement, the distribution of random seeds can be biased by a field
+magnitude using the &#8220;Advanced Field Line Advection
+Parameters&#8221;.&nbsp;&nbsp;&nbsp; As you increase the bias (above 0), the
+seeds are chosen at larger field magnitude values, approaching the
+maximum field magnitude within the rake bounds.&nbsp; Bias values below
+zero result in seeds to be distributed with field magnitudes nearer
+zero.&nbsp; The three variables labeled &#8220;Seed Distrib. Field&#8221; identify
+the vector field whose magnitude is used to determine the seed
+distribution.<br>
+&nbsp;<br>
+&nbsp;<br>
+<span style="font-weight: bold;">Seed Prioritization.</span><br>
+&nbsp;&nbsp;&nbsp; By default, the field line advection algorithm
+maximizes the steady field magnitude along each field line to determine
+the points that will be advected to the next time step.&nbsp; The field
+that is used for this prioritization, can be specified by the
+user.&nbsp; Also, values labeled &#8220;Priority Field Min, Max&#8221; can be
+specified.&nbsp;&nbsp; The search for the largest field value is
+terminated when field magnitudes outside the (Min, Max) range are
+encountered.<br>
+<br>
+<span style="font-weight: bold;">Color and opacity settings</span><br>
+&nbsp;&nbsp;&nbsp; By default, path lines have a constant color and
+opacity.&nbsp;&nbsp; Using the Color/Opacity mapping, you can make the
+color and opacity depend on any of the following:<br>
+<br>
+</font>
+<ol>
+  <ol>
+    <li><font size="+2">Position along Flow (This is a value between 0
+and 1 along
+a steady field line indicating the integration position at that point
+relative to the full integration) <br>
+      </font></li>
+    <li><font size="+2">Field Magnitude (The magnitude of the steady
+field at the
+position along the path line)</font></li>
+    <li><font size="+2">Seed Index.&nbsp; The seeds are numbered from 0
+to N-1
+where N is the number of different seed points.&nbsp; If this option is
+selected, each field line has color or opacity determined by its seed
+point.</font></li>
+    <li><font size="+2">&nbsp;Variable.&nbsp; The color or opacity is a
+mapping of
+an arbitrary variable at the position of the point in the current VAPOR
+data collection.</font></li>
+  </ol>
+</ol>
+<font size="+2">When one of these mappings is selected, be sure to
+specify the
+color
+(or opacity) map endpoints to include the range of values to be
+mapped.&nbsp; Then use the color editor or the opacity editor to
+specify the color or opacity at specific points along that range.<br>
+<br>
+</font>
+</body>
+</html>

@@ -90,8 +90,7 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 			//Setup for biased distribution:
 			//First calc min/max of field in rake.
 			float fieldMin, fieldMax;
-			double minExt[3], maxExt[3];
-			for (int i = 0; i< 3; i++) {minExt[i] = rakeMin[i]; maxExt[i] = rakeMax[i];}
+			
 			bool rc = vFlow->getFieldMagBounds(&fieldMin, &fieldMax, varx, vary, varz, 
 				true, numRefinements, timeStep);
 			if (!rc) return false;
