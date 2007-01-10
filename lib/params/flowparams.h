@@ -222,7 +222,7 @@ public:
 	
 	//Check the variables in the flow data for missing timesteps 
 	//Independent of animation params
-	//Provide an info message if data does not match input request
+	//Provide a warning message if data does not match input request
 	//Return false if anything changed
 	bool validateSampling(int minFrame, int numRefs, const int varnums[3]);
 	void setFlowType(int typenum){flowType = typenum;}
@@ -356,6 +356,8 @@ protected:
 	static const string _autoScaleAttr;
 	static const string _steadyFlowDirectionAttr;
 	static const string _unsteadyFlowDirectionAttr;
+	static const string _useTimestepSampleListAttr;
+	static const string _timestepSampleListAttr;
 
 
 	//flow seeding tags and attributes

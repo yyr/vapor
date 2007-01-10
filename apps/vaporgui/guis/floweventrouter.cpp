@@ -2087,8 +2087,12 @@ guiToggleTimestepSample(bool on){
 	addSampleButton2->setEnabled(on);
 	addSampleButton1->setEnabled(on);
 	PanelCommand::captureEnd(cmd, fParams);
+
+
 	//This has no real effect until the next rendering
 	updateTab();
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 	
 void FlowEventRouter::

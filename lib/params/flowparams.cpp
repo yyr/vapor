@@ -62,6 +62,8 @@ using namespace VAPoR;
 	const string FlowParams::_timestepAttr = "TimeStep";
 	const string FlowParams::_steadyFlowDirectionAttr = "SteadyFlowDirection";
 	const string FlowParams::_unsteadyFlowDirectionAttr = "UnsteadyFlowDirection";
+	const string FlowParams::_useTimestepSampleListAttr = "UseTimestepSampleList";
+	const string FlowParams::_timestepSampleListAttr = "TimestepSampleList";
 
 	const string FlowParams::_mappedVariableNamesAttr = "MappedVariableNames";//obsolete
 	const string FlowParams::_steadyVariableNamesAttr = "SteadyVariableNames";
@@ -1310,6 +1312,24 @@ buildNode() {
 	attrs[_timeSamplingAttr] = oss.str();
 
 	oss.str(empty);
+	if (useTimestepSampleList){
+		oss << "true";
+	} else {
+		oss << "false";
+	}
+	attrs[_useTimestepSampleListAttr] =  oss.str();
+
+	if (unsteadyTimestepList.size()> 0){
+		oss.str(empty);
+		//First entry is the size of the list, followed by the values in the list
+		oss << (long) unsteadyTimestepList.size();
+		for (int i = 0; i<unsteadyTimestepList.size(); i++){
+			oss<<" "<<(long)unsteadyTimestepList[i];
+		}
+		attrs[_timestepSampleListAttr] = oss.str();
+	}
+
+	oss.str(empty);
 	for (int i = 0; i< 3; i++){
 		if (periodicDim[i]) oss << "true ";
 		else oss << "false ";
@@ -1534,6 +1554,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		}
 		priorityIsSteady = true;
 		seedDistIsSteady = true;
+		useTimestepSampleList = false;
+		unsteadyTimestepList.clear();
 
 		//If it's a Flow tag, save 11 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
@@ -1658,6 +1680,20 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _timeSamplingAttr) == 0){
 				ist >> timeSamplingStart;ist >>timeSamplingEnd; ist>>timeSamplingInterval;
 			}
+			else if (StrCmpNoCase(attribName, _useTimestepSampleListAttr) == 0){
+				if (value == "true") useTimestepSampleList = true; else useTimestepSampleList = false;
+			}
+
+			else if (StrCmpNoCase(attribName, _timestepSampleListAttr) == 0){
+				//The first value is the list size, followed by the entries in the list:
+				int listLength, tstep;
+				ist >> listLength;
+				for (int i = 0; i<listLength; i++){
+					ist >> tstep;
+					unsteadyTimestepList.push_back(tstep);
+				}
+			}
+
 			else if (StrCmpNoCase(attribName, _smoothnessAttr) == 0) {
 				ist >> steadySmoothness;
 			}
@@ -2249,8 +2285,20 @@ bool FlowParams::
 validateSampling(int minFrame, int numRefs, const int varnums[3])
 {
 	//Don't do anything if no data has been read:
-	if (!DataStatus::getInstance()->getDataMgr()) return false;
+	if (!DataStatus::getInstance()->getDataMgr()) return true;
 	
+	if (useTimestepSampleList){
+		//Just check all the sample times, see if the field exists for each step:
+		for (int i = 0; i< unsteadyTimestepList.size(); i++){
+			int ts = unsteadyTimestepList[i];
+			if (!validateVectorField(ts,numRefs,varnums)){
+				MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Invalid timestep sample list");
+				return true;
+			}
+		}
+		return true;
+	}
+
 	bool changed = false;
 	if (timeSamplingStart < minFrame || timeSamplingStart > maxFrame){
 		timeSamplingStart = minFrame;
@@ -2261,11 +2309,13 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 	for (ts = timeSamplingStart; ts <= maxFrame; ts++) {
 		if (validateVectorField(ts, numRefs, varnums)) break;
 	}
+	//Now ts is the first valid frame.
 	//do there exist valid frames?
 	if (ts > maxFrame) {
 		timeSamplingStart = minFrame;
 		timeSamplingEnd = minFrame;
 		timeSamplingInterval = 1;
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Invalid time sampling specification");
 		return false;
 	}
 	//was the proposed start invalid?
@@ -2279,6 +2329,7 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 			timeSamplingEnd = timeSamplingStart;
 			changed = true;
 		}
+		if(changed) MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification was modified");
 		return !changed;
 	}
 	//Now we have a valid start, see if the increment is invalid.
@@ -2296,6 +2347,7 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 		if (ts > maxFrame){
 			timeSamplingInterval = 1;
 			timeSamplingEnd = timeSamplingStart;
+			MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification was modified");
 			return false;
 		}
 		//Use the second valid step to define interval:
@@ -2306,12 +2358,18 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 	for (ts = timeSamplingStart; ts <= timeSamplingEnd; ts+= timeSamplingInterval){
 		if (!validateVectorField(ts, numRefs, varnums)) break;
 	}
-	if (ts > timeSamplingEnd) return (!changed);
-	timeSamplingEnd = ts - timeSamplingInterval;
-	return false;
+	if (ts > timeSamplingEnd){
+		if(changed) MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification changed");
+		return (!changed);
+	} else {
+		timeSamplingEnd = ts - timeSamplingInterval;
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification changed");
+		return false;
+	}
 }
 
-//Check to see if there is valid field data for specified timestep
+//Check to see if there is valid field data for specified timestep.
+//Return true if its ok
 //
  
 bool FlowParams::

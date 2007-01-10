@@ -880,7 +880,15 @@ errorCallbackFcn(const char* msg, int err_code){
 	strng += QString::number(err_code);
 	strng += "\n Message: ";
 	strng += msg;
-	MessageReporter::warningMsg(strng.ascii());
+	if (err_code & 0x2000){
+		MessageReporter::warningMsg(strng.ascii());
+	} else if (err_code & 0x4000){
+		MessageReporter::errorMsg(strng.ascii());
+	} else if (err_code & 0x8000){
+		MessageReporter::fatalMsg(strng.ascii());
+	} else {
+		MessageReporter::errorMsg((QString("Unclassified error: ")+strng).ascii());
+	}
 	//Turn off error:
 	MyBase::SetErrCode(0);
 }

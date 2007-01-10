@@ -35,6 +35,7 @@ namespace VAPoR
     // Warning Codes     0x2001 - 0x2FFF
     VAPOR_WARNING               = 0x2000,
     VAPOR_WARNING_GL_SHADER_LOG = 0x2001,
+	VAPOR_WARNING_FLOW			= 0x2100,
     
     // Error Codes       0x4001 - 0x4FFF
     VAPOR_ERROR                    = 0x4000,
