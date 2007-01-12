@@ -62,9 +62,18 @@ NETCDF_LIB_PATH=
 # Set QTDIR to the root of the QT directory where the directories 'bin',
 # 'lib', and 'include' may be found, if not in a standard location. Qt 
 # refers to Trolltech's Qt, available (with some amount of hunting) from
-# http://www.trolltech.com
+# http://www.trolltech.com, and when possible, from the vapor
+# web site: www.vapor.ucar.edu.
 #
 QTDIR =
+
+# Set QT_LIB_PATH to the directory where "libqt-mt.*" may be found if 
+# ***NOT*** under $(QTDIR)/lib. This macro, if set, overrides the 
+# the default location, $(QTDIR)/lib, and may be needed on platforms
+# with mixed word size support (Linux32 and Linux64).
+#
+QT_LIB_PATH = 
+
 
 # Set to 1 if you have SGI Volumizer installed on your system and you would
 # like to compile vapor's Volumizer rendering engine. Volumizer is a 
