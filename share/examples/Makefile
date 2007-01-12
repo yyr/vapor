@@ -1,6 +1,6 @@
 TOP = ../
 
-include $(TOP)/make/config/arch.mk
+include $(TOP)/make/config/prebase.mk
 
 SUBDIRS += idl 
 

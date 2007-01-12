@@ -1,6 +1,6 @@
 TOP = ../..
 
-include ${TOP}/make/config/arch.mk
+include ${TOP}/make/config/prebase.mk
 include misc/misc.mk
 include guis/guis.mk
 include main/main.mk
@@ -39,7 +39,9 @@ endif
 
 ifeq ($(ARCH),WIN32) 
 MAKEFILE_LDFLAGS += "/LIBPATH:$(VOLUMIZER_ROOT)/lib"
-MAKEFILE_LDFLAGS += "/LIBPATH:$(QTDIR)/lib"
+ifdef QT_LIB_PATH
+MAKEFILE_LDFLAGS += "/LIBPATH:$(QT_LIB_PATH)"
+endif
 LIBRARIES += mpr
 LIBRARIES += qt-mt334
 LIBRARIES += qtmain
@@ -52,7 +54,9 @@ LIBRARIES += qt-mt
 LIBRARIES += GLEW
 LIBRARIES += GL
 LIBRARIES += GLU
-MAKEFILE_LDFLAGS += -L$(QTDIR)/lib 
+ifdef	QT_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
+endif
 endif
 
 

@@ -1,6 +1,6 @@
 TOP = ../..
 
-include ${TOP}/make/config/arch.mk
+include ${TOP}/make/config/prebase.mk
 
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CFLAGS += /D"JPEG_EXPORTS" 

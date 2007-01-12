@@ -5,7 +5,7 @@ set build64 = BUILD_64_BIT
 set root = INSTALL_PREFIX_DIR
 set expat = EXPAT_LIB_PATH
 set netcdf = NETCDF_LIB_PATH
-set qt = QTDIR/lib
+set qt = QT_LIB_PATH
 set idl = BUILD_IDL_WRAPPERS
 
 set auxlib = ""

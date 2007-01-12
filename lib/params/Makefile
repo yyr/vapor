@@ -1,6 +1,6 @@
 TOP = ../..
 
-include ${TOP}/make/config/arch.mk
+include ${TOP}/make/config/prebase.mk
 
 SHARED = 0
 QT = 1
@@ -38,13 +38,21 @@ ifeq ($(ARCH),WIN32)
 LIBRARIES += qt-mt334 
 LIBRARIES += glu32
 LIBRARIES += opengl32
-MAKEFILE_LDFLAGS += "/LIBPATH:$(QTDIR)\lib"
+
+ifdef   QT_LIB_PATH
+MAKEFILE_LDFLAGS += "/LIBPATH:$(QT_LIB_PATH)"
+endif
+
 else
 
 LIBRARIES += qt-mt
 LIBRARIES += GL
 LIBRARIES += GLU
-MAKEFILE_LDFLAGS += -L$(QTDIR)/lib
+
+ifdef   QT_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
+endif
+
 endif
 
 include ${TOP}/make/config/base.mk

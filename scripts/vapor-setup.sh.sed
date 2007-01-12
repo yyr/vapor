@@ -5,7 +5,7 @@ build64=BUILD_64_BIT
 root=INSTALL_PREFIX_DIR
 expat=EXPAT_LIB_PATH
 netcdf=NETCDF_LIB_PATH
-qt=QTDIR/lib
+qt=QT_LIB_PATH
 idl=BUILD_IDL_WRAPPERS
 
 auxlib=""

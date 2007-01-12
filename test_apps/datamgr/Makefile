@@ -1,6 +1,6 @@
 TOP = ../..
 
-include ${TOP}/make/config/arch.mk
+include ${TOP}/make/config/prebase.mk
 
 PROGRAM = test_datamgr
 FILES = test_datamgr

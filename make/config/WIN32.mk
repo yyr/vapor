@@ -3,7 +3,6 @@
 #
 # See the file LICENSE.txt for information on redistributing this software.
 
-
 WINDOWS=1
 G++-INCLUDE-DIR = /usr/include/g++
 CXX = cl
@@ -26,16 +25,6 @@ LDFLAGS          += /nologo user32.lib kernel32.lib /LARGEADDRESSAWARE
 LD_RELEASE_FLAGS += /NODEFAULTLIB:"msvcrtd" /NODEFAULTLIB:"msvcr71d" 
 LD_DEBUG_FLAGS   += 
  
-ifndef $(EXPAT_LIB_PATH)
-EXPAT_LIB_PATH := "C:/Expat-1.95.8/Libs"
-endif
-ifndef $(VOLUMIZER_ROOT)
-VOLUMIZER_ROOT := C:/PROGRA~1/SILICO~1/OPENGL~1
-endif
-
-EXPATLIB := "$(EXPAT_LIB_PATH)/libs/libexpat.lib"
-
-QTLIB = "$(QTDIR)/lib/qt-mt334.lib"
 
 CXXFLAGS += -I"$(VOLUMIZER_ROOT)/include"
 CXXFLAGS += /Fd"$(OBJDIR)/vc70.pdb"

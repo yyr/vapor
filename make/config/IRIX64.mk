@@ -1,22 +1,3 @@
-
-
-ifdef   QTDIR
-QTLIB = -L$(QTDIR)/lib
-endif
-QTLIB += -lqt
-
-ifdef   OGL_LIB_PATH
-OGLLIBS = -L$(OGL_LIB_PATH)
-endif
-OGLLIBS += -lGLU -lGL  -lX11
-
-ifndef EXPAT_LIB_PATH
-EXPAT_LIB_PATH = /usr/freeware/lib64
-endif
-
-EXPATLIB += -L$(EXPAT_LIB_PATH)
-EXPATLIB += -lexpat
-
 G++-INCLUDE-DIR = /usr/include/g++
 CXX = CC
 CC = cc

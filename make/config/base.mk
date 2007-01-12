@@ -10,24 +10,11 @@ PROJECT = vapor
 # LEAVE THESE THINGS ALONE!
 ###########################
 
-include $(TOP)/make/config/arch.mk
-
 ifneq ($(ARCH), WIN32)
 PLATFORM = $(ARCH)_$(MACHTYPE)
 else
 PLATFORM = $(ARCH)
 endif
-
-#
-#	Prevent local makefiles which source this file from overwriting 
-#	these variables
-#
-CXXFLAGS :=
-CFLAGS :=
-LDFLAGS :=
-
-include $(TOP)/make/config/$(ARCH).mk
-
 
 ifdef PROGRAM
 BUILDDIR := $(TOP)/targets/$(PLATFORM)/built/$(PROGRAM)

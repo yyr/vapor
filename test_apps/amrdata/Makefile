@@ -1,6 +1,6 @@
 TOP = ../..
 
-include ${TOP}/make/config/arch.mk
+include ${TOP}/make/config/prebase.mk
 
 PROGRAM = test_amrdata
 FILES = test_amrdata flashhdf5

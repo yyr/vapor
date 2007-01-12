@@ -1,26 +1,3 @@
-# Copyright (c) 2001, Stanford University
-# All rights reserved.
-#
-# See the file LICENSE.txt for information on redistributing this software.
-
-ifdef QTDIR
-QTLIB = -L$(QTDIR)/lib
-endif
-QTLIB += -lqt-mt
-
-ifdef OGL_LIB_PATH
-OGLLIBS = -L$(OGL_LIB_PATH)
-else
-OGLLIBS = -L/System/Library/Frameworks/OpenGL.framework/Libraries
-endif
-OGLLIBS += -L/usr/X11R6/lib -lGLU -lGL  -lX11
-
-ifdef   EXPAT_LIB_PATH
-EXPATLIB := -L$(EXPAT_LIB_PATH)
-endif
-EXPATLIB += -lexpat
-
-
 G++-INCLUDE-DIR = /usr/include/g++
 CXX = c++ -fno-common
 CC = cc -fno-common

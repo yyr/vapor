@@ -9,21 +9,6 @@
 # 1209: The controlling expression is constant.
 # 1552: The variable "i" is set but never used.
 
-ifdef   QTDIR
-QTLIB = -L$(QTDIR)/lib
-endif
-QTLIB += -lqt
-
-ifdef   OGL_LIB_PATH
-OGLLIBS = -L$(OGL_LIB_PATH)
-endif
-OGLLIBS += -lGLU -lGL  -lX11
-
-ifdef   EXPAT_LIB_PATH
-EXPATLIB = -L$(EXPAT_LIB_PATH)
-endif
-EXPATLIB += -lexpat
-
 G++-INCLUDE-DIR = /usr/include/g++
 CXX = CC
 CC = cc

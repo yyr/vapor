@@ -3,24 +3,6 @@
 #
 # See the file LICENSE.txt for information on redistributing this software.
 
-ifdef	QTDIR
-QTLIB = -L$(QTDIR)/lib
-endif
-QTLIB += -lqt-mt
-
-ifdef	OGL_LIB_PATH
-OGLLIBS = -L$(OGL_LIB_PATH)
-else
-OGLLIBS = -L/usr/lib
-endif
-OGLLIBS += -lGLU -lGL  -lX11
-
-ifdef   EXPAT_LIB_PATH
-EXPATLIB := -L$(EXPAT_LIB_PATH)
-endif
-EXPATLIB += -lexpat
-
-
 G++-INCLUDE-DIR = /usr/include/g++
 
 ifeq	($(HAVE_INTEL_COMPILERS),1)
@@ -31,9 +13,6 @@ CXX = g++
 CC = gcc
 endif
 
-# Mike Houston reports 20-30% speed-ups with these compiler flags on
-# P4/Xeon systems:
-#-O3 -DNDEBUG -fno-strict-aliasing -fomit-frame-pointer -fexpensive-optimizations -falign-functions=4 -funroll-loops -malign-double -fprefetch-loop-arrays -march=pentium4 -mcpu=pentium4 -msse2 -mfpmath=sse 
 
 #CXXFLAGS          += -DLINUX -Wall -Werror
 

@@ -1,6 +1,6 @@
 TOP = ../..
 
-include ${TOP}/make/config/arch.mk
+include ${TOP}/make/config/prebase.mk
 
 SHARED = 0
 QT = 1
@@ -48,14 +48,16 @@ LIBRARIES += glu32
 LIBRARIES += opengl32
 LIBRARIES += glew32
 MAKEFILE_LDFLAGS += "/LIBPATH:$(VOLUMIZER_ROOT)/lib"
-MAKEFILE_LDFLAGS += "/LIBPATH:$(QTDIR)\lib"
+MAKEFILE_LDFLAGS += "/LIBPATH:$(QT_LIB_PATH)"
 else
 
 LIBRARIES += qt-mt
 LIBRARIES += GL
 LIBRARIES += GLU
 LIBRARIES += GLEW
-MAKEFILE_LDFLAGS += -L$(QTDIR)/lib
+ifdef	QT_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
+endif
 MAKEFILE_CXXFLAGS += -I$(VOLUMIZER_ROOT)/include
 endif
 

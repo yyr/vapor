@@ -1,6 +1,6 @@
 TOP = ../..
 
-include ${TOP}/make/config/arch.mk
+include ${TOP}/make/config/prebase.mk
 
 EX_FILES = PrintMetaVDF.pro ReadRegionVDF.pro ReadVDF.pro \
 	WriteTimeVaryVDF.pro WriteVDF.pro expregion.pro impexp.pro \

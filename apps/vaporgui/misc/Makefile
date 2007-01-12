@@ -1,6 +1,6 @@
 TOP = ../../..
 
-include ${TOP}/make/config/arch.mk
+include ${TOP}/make/config/prebase.mk
 QT = 1
 PROGRAM = vaporgui
 COMPILE_ONLY = 1
@@ -26,10 +26,14 @@ MAKEFILE_INCLUDE_DIRS := -I../guis -I../main -I../../../lib/params -I../../../li
 
 ifeq ($(ARCH),WIN32) 
 MAKEFILE_LDFLAGS += "/LIBPATH:$(VOLUMIZER_ROOT)/lib"
-MAKEFILE_LDFLAGS += "/LIBPATH:$(QTDIR)/lib"
+ifdef	QT_LIB_PATH
+MAKEFILE_LDFLAGS += "/LIBPATH:$(QT_LIB_PATH)"
+endif
 
 else   
-MAKEFILE_LDFLAGS += -L$(QTDIR)/lib 
+ifdef	QT_LIB_PATH
+MAKEFILE_LDFLAGS += -L$(QT_LIB_PATH)
+endif
 endif
 
 ifeq ($(ARCH),Darwin)
@@ -54,7 +58,6 @@ QT_HEADERS := $(QT_MISC_HEADERS)
   
 include ${TOP}/make/config/base.mk
 
-#MAKEFILE_LDFLAGS += $(QTLIB)
 
 #testtarget:;echo $(FILES)
 
