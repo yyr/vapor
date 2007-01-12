@@ -253,7 +253,8 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	int istat;
 	PointInfo thisParticle;
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
-	float dt, cell_volume, mag, curTime;
+	float dt, cell_volume, mag; 
+	double curTime;
 	VECTOR3 vel;
 	float totalStepsize = 0.0;
 	bool onAdaptive = true;
@@ -263,7 +264,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	thisParticle = seedInfo;
 	prevInterpolant = thisInterpolant = thisParticle.interpolant;
 	seedTrace.push_back(new VECTOR3(seedInfo.phyCoord));
-	curTime = m_fCurrentTime;
+	curTime = (double)m_fCurrentTime;
 
 	istat = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, m_fCurrentTime, vel);
 	if(istat == OUT_OF_BOUND)

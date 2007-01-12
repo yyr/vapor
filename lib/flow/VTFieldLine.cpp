@@ -77,7 +77,7 @@ int vtCFieldLine::euler_cauchy(TIME_DIR, TIME_DEP,float*, float)
 //////////////////////////////////////////////////////////////////////////
 int vtCFieldLine::runge_kutta2(TIME_DIR time_dir, TIME_DEP time_dep, 
 							   PointInfo& ci, 
-							   float* t, float dt)
+							   double* t, float dt)
 {
 	int istat;
 	istat = OKAY;
@@ -87,7 +87,7 @@ int vtCFieldLine::runge_kutta2(TIME_DIR time_dir, TIME_DEP time_dep,
 int vtCFieldLine::runge_kutta4(TIME_DIR time_dir, 
 							   TIME_DEP time_dep, 
 							   PointInfo& ci, 
-							   float* t,			// initial time
+							   double* t,			// initial time
 							   float dt)			// stepsize
 {
 	int i, istat;
@@ -113,7 +113,7 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 	// 2nd step of the Runge-Kutta scheme
 	fromCell = ci.inCell;
 	if ( time_dep  == UNSTEADY)
-		*t += (float)0.5*time_dir*dt;
+		*t += 0.5*time_dir*dt;
 	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
 	if ( istat!= 1 )
 	{
@@ -142,7 +142,7 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 
 	//    4th step of the Runge-Kutta scheme
 	if ( time_dep  == UNSTEADY)
-		*t += (float)0.5*time_dir*dt;
+		*t += 0.5*time_dir*dt;
 	fromCell = ci.inCell;
 	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
 	if ( istat != 1 )
@@ -786,12 +786,15 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 		float x1 = (**pIter1)[0];
 		float y1 = (**pIter1)[1];
 		float z1 = (**pIter1)[2];
+		//Do we need to remove this point from the seedTrace??????
 		container->setPointAtTime(lineNum, nextTime,x1,y1,z1);
 		if(container->doSpeeds()){ //Repeat the last speed
 			container->setSpeedAtTime(lineNum, nextTime, currentSpeed);
 		}
 	}
-	
-	
+	//Don't carry over insignificant negative leftover times, since,
+	//They can screw up the next sampling
+	assert(leftoverTime > -1.e-4);
+	if (leftoverTime < 0.f) leftoverTime= 0.f;
 	return leftoverTime;
 }

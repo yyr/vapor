@@ -411,7 +411,10 @@ void FlowEventRouter::populateTimestepTables(){
 	timestepSampleTable2->setNumRows(tSteps.size());
 	for (int i = 0; i< tSteps.size(); i++){
 		timestepSampleTable1->setText(i,0,QString::number(tSteps[i]));
+		timestepSampleTable2->setText(i,0,QString::number(tSteps[i]));
 	}
+	timestepSampleCheckbox1->setChecked(fParams->usingTimestepSampleList());
+	timestepSampleCheckbox2->setChecked(fParams->usingTimestepSampleList());
 }
 
 
@@ -636,7 +639,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
 			int maxFrame = fParams->getMaxFrame();
 			if (seedTimeStart < minFrame) {seedTimeStart = minFrame; changed = true;}
-			if (seedTimeEnd >= maxFrame) {seedTimeEnd = maxFrame-1; changed = true;}
+			if (seedTimeEnd > maxFrame) {seedTimeEnd = maxFrame; changed = true;}
 			if (seedTimeEnd < seedTimeStart) {seedTimeEnd = seedTimeStart; changed = true;}
 			if (changed){
 				seedtimeStartEdit->setText(QString::number(seedTimeStart));

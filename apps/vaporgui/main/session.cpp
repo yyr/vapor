@@ -877,7 +877,7 @@ updateTFFilePath(QString* s){
 void Session::
 errorCallbackFcn(const char* msg, int err_code){
 	QString strng("Error Code: ");
-	strng += QString::number(err_code);
+	strng += QString::number(err_code,16);
 	strng += "\n Message: ";
 	strng += msg;
 	if (err_code & 0x2000){

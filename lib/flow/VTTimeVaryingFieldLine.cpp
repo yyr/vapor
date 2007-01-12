@@ -74,7 +74,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 											bool bAdaptive)
 {
 	int istat;
-	float curTime, dt;
+	double curTime, dt;
 	PointInfo pt;
 
 	pt = initialPoint.m_pointInfo;
@@ -86,7 +86,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 
 	curTime = initialTime;
 
-	while(curTime < finalTime)
+	while((float)curTime < finalTime)
 	{
 		if(int_order == SECOND)
 			istat = runge_kutta2(m_timeDir, UNSTEADY, pt, &curTime, dt);
@@ -118,7 +118,8 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	PointInfo seedInfo;
 	PointInfo thisParticle;
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
-	float dt, cell_volume, mag, curTime;
+	float dt, cell_volume, mag; 
+	double curTime;
 	VECTOR3 vel;
 	int nSetAdaptiveCount = 0;
 
@@ -146,17 +147,17 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 		// how much advection time left
 		
 		if (m_timeDir == FORWARD) {
-			float timeLeft = (finalTime - curTime);
+			float timeLeft = (finalTime - (float)curTime);
 			if (dt > timeLeft) 
 				dt = timeLeft;
 		} else {
-			float timeLeft = curTime - finalTime;
+			float timeLeft = (float)curTime - finalTime;
 			if (dt > timeLeft) 
 				dt = timeLeft;
 		}
 		
-		//if(m_timeDir*(finalTime-curTime)< dt)
-		//	dt = fabs(finalTime-curTime);
+		
+		
 		
 		second_prevInterpolant = prevInterpolant;
 		prevInterpolant = thisInterpolant;
@@ -174,7 +175,8 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);
-
+			
+			
 			if(istat == OUT_OF_BOUND)			// out of boundary
 				return OUT_OF_BOUND;
 
@@ -219,15 +221,17 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 					list<float>::iterator pIter = stepList.end();
 					pIter--;
 					curTime -= (*pIter)*m_timeDir;
+					
 					pIter--;
 					curTime -= (*pIter)*m_timeDir;
+					
 					stepList.pop_back();
 					stepList.pop_back();
 				}
 			}
 		}// end of retrace
 	}// end of advection
-
+	
 	finalPoint.m_pointInfo.Set(thisParticle);
 	return 1;
 }

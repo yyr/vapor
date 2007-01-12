@@ -30,12 +30,14 @@ namespace VAPoR
   enum errorcodes
   {
     // Diagnostic Codes  0x1001 - 0x1FFF
+	//Currently, diagnostic codes are not used
     VAPOR_DIAGNOSTIC = 0x1000,
     
     // Warning Codes     0x2001 - 0x2FFF
     VAPOR_WARNING               = 0x2000,
     VAPOR_WARNING_GL_SHADER_LOG = 0x2001,
 	VAPOR_WARNING_FLOW			= 0x2100,
+	VAPOR_WARNING_DATA_UNAVAILABLE	= 0x2003,
     
     // Error Codes       0x4001 - 0x4FFF
     VAPOR_ERROR                    = 0x4000,

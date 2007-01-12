@@ -132,6 +132,16 @@ public:
 	void setTimeSamplingStart(int val){timeSamplingStart = val;}
 	int getTimeSamplingEnd() {return timeSamplingEnd;}
 	void setTimeSamplingEnd(int val){timeSamplingEnd = val;}
+	int getNumTimestepSamples(){
+		if (usingTimestepSampleList())
+			return unsteadyTimestepList.size();
+		else return (1+(timeSamplingEnd - timeSamplingStart)/timeSamplingInterval);
+	}
+	int getTimestepSample(int n) {
+		if (usingTimestepSampleList())
+			return unsteadyTimestepList[n];
+		else return (timeSamplingStart+n*timeSamplingInterval);
+	}
 	int getFirstSampleTimestep() {
 		if (usingTimestepSampleList() && unsteadyTimestepList.size()>0) return unsteadyTimestepList[0];
 		else return timeSamplingStart;

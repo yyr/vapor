@@ -47,7 +47,7 @@
 #include <iostream>
 #include "assert.h"
 #include "vapor/MyBase.h"
-#include "errorcodes.h"
+#include "vapor/errorcodes.h"
 
 //#include <GL/gl.h>
 #include <qgl.h>

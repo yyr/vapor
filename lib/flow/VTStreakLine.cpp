@@ -147,7 +147,10 @@ void vtCStreakLine::computeStreakLine(const float t,
 					thisSeed->m_pointInfo.phyCoord.y(),
 					thisSeed->m_pointInfo.phyCoord.z());
 				//Indicate that the path ends here (at least for this direction)
-				container->setFlowEndAtTime(thisSeed->ptId, currentT);
+				if (container->getFlowDirection() > 0)
+					container->setFlowEndAtTime(thisSeed->ptId, currentT);
+				else 
+					container->setFlowStartAtTime(thisSeed->ptId, currentT);
 			}
 		}
 	}

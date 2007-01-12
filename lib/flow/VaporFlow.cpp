@@ -8,6 +8,7 @@
 #include "VTFieldLine.h"
 #include "math.h"
 
+
 using namespace VetsUtil;
 using namespace VAPoR;
 
@@ -277,7 +278,7 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 	float *regionData = dataMgr->GetRegion(ts, varName, numXForms, minBlkRegion, maxBlkRegion,1);
 	SetErrMsgCB(errorCallback);
 	if (!regionData) {
-		SetErrMsg(103,"Error obtaining field data for timestep %d, variable %s",ts, varName);
+		SetErrMsg("Error obtaining field data for timestep %d, variable %s",ts, varName);
 		return 0;
 	}
 	return regionData;

@@ -198,9 +198,11 @@ elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& tag, const cha
 			}
 			else if (StrCmpNoCase(attribName, _startFrameAttr) == 0) {
 				ist >> startFrame;
+				if (startFrame < minFrame) minFrame = startFrame;
 			}
 			else if (StrCmpNoCase(attribName, _endFrameAttr) == 0) {
 				ist >> endFrame;
+				if (endFrame > maxFrame) maxFrame = endFrame;
 			}
 			else if (StrCmpNoCase(attribName, _currentFrameAttr) == 0) {
 				ist >> currentFrame;

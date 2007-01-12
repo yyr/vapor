@@ -43,7 +43,7 @@
 #include <math.h>
 #include "vapor/Metadata.h"
 #include "vapor/DataMgr.h"
-#include "errorcodes.h"
+#include "vapor/errorcodes.h"
 
 
 using namespace VAPoR;

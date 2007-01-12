@@ -36,6 +36,7 @@
 #include <qstring.h>
 #include <qapplication.h>
 #include <qcursor.h>
+#include "vapor/errorcodes.h"
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -249,7 +250,7 @@ void DataStatus::calcDataRange(int varnum, int ts){
 					
 		if(!mnmx){
 			//Post an error:
-			SetErrMsg("Missing DataRange in variable %s, at timestep %d \n Interval [0,1] assumed",
+			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Missing DataRange in variable %s, at timestep %d \n Interval [0,1] assumed",
 				getMetadata()->GetVariableNames()[varnum].c_str(), ts);
 		}
 		else{

@@ -156,7 +156,7 @@ HelpWindow::HelpWindow( const QString& home_, const QString& _path,
 }
 
 void HelpWindow::showHelp(const QString& filename){
-	QString filePath = QString(getenv("VAPOR_HOME"))+"/doc/help/"+filename;
+	QString filePath = QString(getenv("VAPOR_HOME"))+"/doc/vapor/gui/"+filename;
 	if (!theHelpWindow){
 		theHelpWindow = new HelpWindow(filePath, filePath);
 	} 

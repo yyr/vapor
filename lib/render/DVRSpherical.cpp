@@ -28,7 +28,7 @@
 #include "BBox.h"
 #include "glutil.h"
 #include "params.h"
-#include "errorcodes.h"
+#include "vapor/errorcodes.h"
 
 #include "Matrix3d.h"
 #include "Point3d.h"

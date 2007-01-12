@@ -32,7 +32,7 @@
 #include "vapor/VaporFlow.h"
 #include "vapor/flowlinedata.h"
 #include "glutil.h"
-#include "errorcodes.h"
+#include "vapor/errorcodes.h"
 
 #include <qapplication.h>
 #include <qcursor.h>
@@ -330,9 +330,9 @@ reinit(bool doOverride){
 		//with the current region settings
 		
 		//numRefinements = rParams->validateNumTrans(numRefinements);
-		if (seedTimeStart >= maxFrame) seedTimeStart = maxFrame-1;
+		if (seedTimeStart > maxFrame) seedTimeStart = maxFrame;
 		if (seedTimeStart < minFrame) seedTimeStart = minFrame;
-		if (seedTimeEnd >= maxFrame) seedTimeEnd = maxFrame-1;
+		if (seedTimeEnd > maxFrame) seedTimeEnd = maxFrame;
 		if (seedTimeEnd < seedTimeStart) seedTimeEnd = seedTimeStart;
 	}
 	
@@ -463,10 +463,13 @@ reinit(bool doOverride){
 		timeSamplingEnd = maxFrame;
 		timeSamplingInterval = 1;
 	}
-	if (flowType != 1)
-		validateSampling(minFrame, numRefinements, steadyVarNum);
-	if (flowType != 0)
-		validateSampling(minFrame, numRefinements, unsteadyVarNum);
+	//Don't validate sampling if this is just the default params:
+	if (vizNum >= 0){
+		if (flowType != 1)
+			validateSampling(minFrame, numRefinements, steadyVarNum);
+		if (flowType != 0)
+			validateSampling(minFrame, numRefinements, unsteadyVarNum);
+	}
 
 	
 	//Now set up bounds arrays based on current mapped variable settings:
@@ -2281,6 +2284,7 @@ float FlowParams::maxRange(int index, int timestep){
 //timeSamplingInterval is set to difference between second and first valid frame.
 //if not valid, timeSamplingEnd is set to last valid frame in sequence established by 
 //timeSamplingStart and timeSamplingInterval
+//Returns false if the sampling is changed.
 bool FlowParams::
 validateSampling(int minFrame, int numRefs, const int varnums[3])
 {
@@ -2478,19 +2482,20 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep, int min
 		bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, steadyVarNum, 3);
 	
 		if(!dataValid){
-			MyBase::SetErrMsg("Vector field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
+			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Steady field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
 			return 0;
 		}
 	} else { //Find the intersection of all the regions for the timesteps to be sampled.
 		size_t gmin_dim[3],gmax_dim[3],gmin_bdim[3], gmax_bdim[3];
 		rParams->getRegionVoxelCoords(numRefinements, gmin_dim, gmax_dim, gmin_bdim,gmax_bdim);
-		int firstSample = timeSamplingStart;
-		int lastSample = Min(timeSamplingEnd, maxFrame);
+		int firstSample = getFirstSampleTimestep();
+		int lastSample = Min(getLastSampleTimestep(), maxFrame);
 		if (timeSamplingStart < minFrame) firstSample = ((1+minFrame/timeSamplingInterval)*timeSamplingInterval);
-		for (int i = firstSample; i<= lastSample; i+= timeSamplingInterval){
-			bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, i, unsteadyVarNum, 3);
+		for (int indx = 0; indx < getNumTimestepSamples(); indx++){
+			int ts = getTimestepSample(indx);
+			bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, ts, unsteadyVarNum, 3);
 			if(!dataValid){
-				SetErrMsg(102,"Vector field data unavailable for refinement %d at timestep %d", numRefinements, i);
+				SetErrMsg(VAPOR_ERROR_FLOW,"Unsteady field data unavailable for refinement %d at timestep %d", numRefinements,ts);
 				return 0;
 			}
 			//Intersect the available region bounds.

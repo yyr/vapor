@@ -20,7 +20,7 @@
 #include "params.h"
 #include "flowrenderer.h"
 #include "vapor/VaporFlow.h"
-#include "errorcodes.h"
+#include "vapor/errorcodes.h"
 #include "glwindow.h"
 #include "trackball.h"
 #include "glutil.h"
@@ -866,6 +866,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 		bool OK = false;
 		int prevStep, nextStep;
 		int dir;
+		int numTimestepsToRender;
 		switch (flowType) {
 			case (0): 
 				steadyFlowCache[timeStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, timeStep, minFrame, rParams, false);
@@ -881,6 +882,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 				//Then incrementally advect from start to end, via sampled timesteps.  
 				prevStep = myFlowParams->getUnsteadyTimestepSample(0,minFrame, maxFrame);
+				numTimestepsToRender = 0;
 				for (int i = 1;; i++) {
 					nextStep = myFlowParams->getUnsteadyTimestepSample(i,minFrame, maxFrame);
 					if (nextStep < 0 || prevStep < 0) break;
@@ -891,6 +893,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 						prevStep = nextStep;
 						continue;
 					}
+					numTimestepsToRender++;
 					//At some point we might allow users to interrupt at this point:
 					//The following is time consuming...
 					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep);
@@ -903,6 +906,11 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					prevStep = nextStep;
 				}
 				QApplication::restoreOverrideCursor();
+				if (numTimestepsToRender < 1){
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "Insufficient valid timesteps for unsteady integration");
+				} else {
+					MyBase::SetDiagMsg("Integrated %d timesteps", numTimestepsToRender);
+				}
 				if(!constColors) myFlowParams->mapColors(unsteadyFlowCache, timeStep, minFrame);
 				break;
 			case (2):
