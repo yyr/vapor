@@ -812,7 +812,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		//are taken to be seeds for ExtendPathLines
 		int nseeds = pStreakLine->addSeeds(iFor, container);
 		bInject = (nseeds > 0);
-
+		
 		pStreakLine->execute((float)iFor, container, bInject);
 		
 	

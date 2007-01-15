@@ -87,7 +87,6 @@ void vtCStreakLine::computeStreakLine(const float t,
 
 		int count;
 		count = -1;			// enumerate seed in this injection
-
 		// advect the new generated particles from this time step
 		vtListParticleIter pIter = m_lSeeds.begin();
 		for(; pIter != m_lSeeds.end(); pIter++)

@@ -112,7 +112,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 											float finalTime,
 											vtListSeedTrace& seedTrace,
 											list<float>& stepList,
-											bool bAdaptive)
+											bool bAdaptive)//always true??
 {  
 	int istat;
 	PointInfo seedInfo;
@@ -140,21 +140,23 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
 	mag = vel.GetMag();
 	dt = pow(cell_volume, (float)0.3333333f) / mag;
+
+	int currentProgress = 0;
+	int maxProgress = 0;
 	
 	// start to advect
+	
 	while(curTime*m_timeDir < finalTime*m_timeDir)
 	{
 		// how much advection time left
-		
+		float timeLeft;
 		if (m_timeDir == FORWARD) {
-			float timeLeft = (finalTime - (float)curTime);
-			if (dt > timeLeft) 
-				dt = timeLeft;
+			timeLeft = (finalTime - (float)curTime);
 		} else {
-			float timeLeft = (float)curTime - finalTime;
-			if (dt > timeLeft) 
-				dt = timeLeft;
+			timeLeft = (float)curTime - finalTime;
 		}
+		if (dt > timeLeft) dt = timeLeft;
+		if (timeLeft < 1.e-6) break;
 		
 		
 		
@@ -166,7 +168,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 		while(retrace)
 		{
 			retrace = false;
-			
+			double oldCurtime = curTime;
 			if(int_order == SECOND)
 				istat = runge_kutta2(m_timeDir, UNSTEADY, thisParticle, &curTime, dt);
 			else
@@ -175,6 +177,10 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);
+			currentProgress++;
+			if (currentProgress > maxProgress) {
+				maxProgress = currentProgress;
+			}
 			
 			
 			if(istat == OUT_OF_BOUND)			// out of boundary
@@ -212,8 +218,9 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 					nSetAdaptiveCount = 0;
 
 				// roll back and retrace
-				if(retrace)			
+				if(retrace)	//The stepsize was reduced.		
 				{
+					assert(currentProgress >= maxProgress - 2);
 					thisInterpolant = prevInterpolant = second_prevInterpolant;
 					seedTrace.pop_back();
 					seedTrace.pop_back();
@@ -227,6 +234,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 					
 					stepList.pop_back();
 					stepList.pop_back();
+					currentProgress -= 2;
 				}
 			}
 		}// end of retrace
