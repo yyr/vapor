@@ -1222,18 +1222,22 @@
                                                                     <string>Backward</string>
                                                                 </property>
                                                             </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>As Needed</string>
-                                                                </property>
-                                                            </item>
                                                             <property name="name">
                                                                 <cstring>unsteadyDirectionCombo</cstring>
+                                                            </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>100</width>
+                                                                    <height>0</height>
+                                                                </size>
                                                             </property>
                                                             <property name="currentItem">
                                                                 <number>0</number>
                                                             </property>
                                                             <property name="sizeLimit">
+                                                                <number>2</number>
+                                                            </property>
+                                                            <property name="maxCount">
                                                                 <number>2</number>
                                                             </property>
                                                             <property name="toolTip" stdset="0">

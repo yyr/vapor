@@ -633,7 +633,9 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		}	
 		if(flowType != 0){//rake settings that are for non-steady flow
 			int seedTimeStart = seedtimeStartEdit->text().toUInt();
-			int seedTimeEnd = seedtimeEndEdit->text().toUInt(); 
+			int seedTimeEnd = seedTimeStart;
+			if (flowType == 1)
+				seedTimeEnd = seedtimeEndEdit->text().toUInt(); 
 			bool changed = false;
 			VizWinMgr* vizMgr = VizWinMgr::getInstance();
 			int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
@@ -643,7 +645,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			if (seedTimeEnd < seedTimeStart) {seedTimeEnd = seedTimeStart; changed = true;}
 			if (changed){
 				seedtimeStartEdit->setText(QString::number(seedTimeStart));
-				seedtimeEndEdit->setText(QString::number(seedTimeEnd));
+				if(flowType == 1) seedtimeEndEdit->setText(QString::number(seedTimeEnd));
 			}
 			fParams->setSeedTimeStart(seedTimeStart);
 			fParams->setSeedTimeEnd(seedTimeEnd);
@@ -1174,9 +1176,9 @@ void FlowEventRouter::updateTab(){
 	}
 	if (flowType == 2) {
 		steadySamplesSlider2->setValue((int)(256.0*log10((float)fParams->getObjectsPerFlowline()/2.f)*0.33333));
-		//Set the combo to display "bidirectional" and be disabled.
-		unsteadyDirectionCombo->setSizeLimit(3);
-		unsteadyDirectionCombo->setCurrentItem(2);
+		//Set the combo to display "As Needed" and be disabled.
+		unsteadyDirectionCombo->changeItem(QString("As Needed"),0);
+		unsteadyDirectionCombo->setCurrentItem(0);
 		unsteadyDirectionCombo->setEnabled(false);
 	}
 	
@@ -1189,8 +1191,10 @@ void FlowEventRouter::updateTab(){
 			steadyScaleEdit2->setText(QString::number(fParams->getSteadyScale()));
 		}
 	} else {//set the combo to just show forward & backward and be enabled
+		//dir = -1 results in combo position 1
+		unsteadyDirectionCombo->changeItem(QString("Forward"),0);
 		unsteadyDirectionCombo->setCurrentItem((1-fParams->getUnsteadyDirection())/2);
-		unsteadyDirectionCombo->setSizeLimit(2);
+		unsteadyDirectionCombo->setMaxCount(2);
 		unsteadyDirectionCombo->setEnabled(true);
 	}
 	if (flowType != 0) {
@@ -1257,7 +1261,10 @@ void FlowEventRouter::updateTab(){
 	zCenterEdit->setText(QString::number(0.5f*(seedBoxMax[2]+seedBoxMin[2]),'g',5));
 	seedtimeIncrementEdit->setText(QString::number(fParams->getSeedTimeIncrement()));
 	seedtimeStartEdit->setText(QString::number(fParams->getSeedTimeStart()));
-	seedtimeEndEdit->setText(QString::number(fParams->getSeedTimeEnd()));
+	if (flowType != 2)
+		seedtimeEndEdit->setText(QString::number(fParams->getSeedTimeEnd()));
+	else 
+		seedtimeEndEdit->setText(QString::number(fParams->getSeedTimeStart()));
 
 	//Put the opacity and color bounds for the currently chosen mappings
 	//These should be the actual range of the variables
@@ -2333,7 +2340,7 @@ void FlowEventRouter::saveFlowLines(){
 	
 	//Get min/max timesteps from applicable animation params
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
+
 	//What's the current timestep?
 	int vizNum = vizMgr->getActiveViz();
 	AnimationParams* myAnimationParams = vizMgr->getAnimationParams(vizNum);
