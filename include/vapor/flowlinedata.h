@@ -188,19 +188,7 @@ class FLOW_API PathLineData : public FlowLineData {
 		virtual int getNumLines() {return actualNumLines;}
 		//Determine how many lines exist at a given time step
 		int getNumLinesAtTime(int timeStep);
-		/*
-		void setSeedTime(int lineNum, int timeStep) { seedTimes[lineNum] = timeStep;}
-		float getTimestep(int lineNum, int pointIndex) {//need to revisit with unsteady flow.
-			//flowdirection is no longer unique!
-			//See how many timeSteps are before seed issued...
-			int emptyTimes = (int)(seedTimes[lineNum]*samplesPerTStep);
-			//Exclude positions before/after seed injection
-			if (flowDirection > 0 && pointIndex < emptyTimes) return -1.f;
-			if (flowDirection < 0 && (mxPoints - pointIndex) <= emptyTimes) return -1.f;
-			if (flowDirection > 0) return( (float)seedTimes[lineNum] + (float)pointIndex/samplesPerTStep);
-			else return(seedTimes[lineNum] - (float)pointIndex/samplesPerTStep);
-		}
-		*/
+		
 		float getSamplesPerTimestep(){return samplesPerTStep;}
 		void setSeedIndex(int linenum, int seedIndex){seedIndices[linenum] = seedIndex;}
 		int getSeedIndex(int linenum){return seedIndices[linenum];}

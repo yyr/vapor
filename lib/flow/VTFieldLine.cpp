@@ -15,6 +15,7 @@
 #include "VTFieldLine.h"
 #include "vapor/VaporFlow.h"
 #include "vapor/flowlinedata.h"
+#include "vapor/errorcodes.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -274,183 +275,7 @@ void vtCFieldLine::setSeedPoints(float* points, int numPoints, float t)
 	m_nNumSeeds = numPoints;
 }
 
-//////////////////////////////////////////////////////////////////////////
-// sample stream/streak line to get points with correct interval
-//AN:  Returns the amount of (unused) time remaining, to be used
-//in next step.  return value only used in streaklines, not streamlines.
-//////////////////////////////////////////////////////////////////////////
-float vtCFieldLine::SampleFieldline(float* positions,
-								   const unsigned int* startPositions,
-								   unsigned int& posInPoints,
-								   vtListSeedTrace* seedTrace,
-								   list<float>* stepList,
-								   bool bRecordSeed,
-								   int traceState,
-								   float* speeds,
-								   float remainingTime)
-{
-	list<VECTOR3*>::iterator pIter1;
-	list<VECTOR3*>::iterator pIter2;
-	list<float>::iterator pStepIter;
-	list<float>::iterator pStepIterEnd;
-	float stepsizeLeft;
-	int count;
-	unsigned int ptr;
-	unsigned int ptrSpeed;
-	float leftoverTime = 0.f;
 
-	ptr = posInPoints;
-	
-	pIter1 = seedTrace->begin();
-	if(bRecordSeed)
-	{
-		assert(ptr < fullArraySize);
-		// the first one is seed
-		positions[ptr++] = (**pIter1)[0];
-		positions[ptr++] = (**pIter1)[1];
-		positions[ptr++] = (**pIter1)[2];
-
-		if(speeds != NULL)
-		{
-			PointInfo pointInfo;
-			VECTOR3 nodeData;
-			float t;
-
-			ptrSpeed = (ptr-3)/3;
-			pointInfo.phyCoord.Set(positions[ptr-3], positions[ptr-2], positions[ptr-1]);
-			if(!m_pField->isTimeVarying())
-				t = m_pField->GetStartTime();
-			else
-				t = m_pField->GetStartTime() + m_fSamplingRate*(ptrSpeed-((int)((float)ptrSpeed/(float)m_nMaxsize)*m_nMaxsize));
-			m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
-			speeds[ptrSpeed] = nodeData.GetMag();
-		}
-#ifdef DEBUG
-		//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
-#endif
-	}
-	
-	count = 1;
-	//AN:  Removed this assert, 10/05/05.
-	//The problem is that sometimes a point will be very slightly out, and the 
-	//bounds test in the runge-kutta is imprecise enough to not detect it.
-	//if((int)seedTrace->size() == 1) assert(traceState == CRITICAL_POINT);
-	//Initialize with END_FLOW_FLAG...
-	if((int)seedTrace->size() == 1 && traceState != CRITICAL_POINT)
-	{
-		assert(ptr < fullArraySize);
-		positions[ptr] = END_FLOW_FLAG;
-		posInPoints = ptr;
-		return 0.f;
-	}
-
-	// other advecting result
-	pIter2 = seedTrace->begin();
-	pIter2++;
-	pStepIter = stepList->begin();
-	stepsizeLeft = *pStepIter + remainingTime;
-	if(traceState != OUT_OF_BOUND)
-		pStepIterEnd = stepList->end();
-	else
-	{
-		pStepIterEnd = stepList->end();
-		pStepIterEnd--;
-	}
-	while((count < m_nMaxsize) && (pStepIter != pStepIterEnd))
-	{
-		float ratio;
-		//AN:  Reduced the threshold to 100*EPS because we were clipping
-		//off the last sample point in path lines
-		if(stepsizeLeft < (m_fSamplingRate-(1.e-4)))
-		{
-			pIter1++;
-			pIter2++;
-			pStepIter++;
-			if (pStepIter == pStepIterEnd){
-				leftoverTime = stepsizeLeft;
-			} else 
-				stepsizeLeft += *pStepIter;
-		}
-		else
-		{
-			stepsizeLeft -= m_fSamplingRate;
-			ratio = (*pStepIter - stepsizeLeft)/(*pStepIter);
-			assert(ptr < fullArraySize);
-			positions[ptr++] = Lerp((**pIter1)[0], (**pIter2)[0], ratio);
-			positions[ptr++] = Lerp((**pIter1)[1], (**pIter2)[1], ratio);
-			positions[ptr++] = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
-
-#ifdef DEBUG
-			//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
-#endif
-
-			// get the velocity value of this point
-			if(speeds != NULL)
-			{
-				PointInfo pointInfo;
-				VECTOR3 nodeData;
-				float t;
-
-				ptrSpeed = (ptr-3)/3;
-				pointInfo.phyCoord.Set(positions[ptr-3], positions[ptr-2], positions[ptr-1]);
-				if(!m_pField->isTimeVarying())
-					t = m_pField->GetStartTime();
-				else
-					t = m_pField->GetStartTime() + m_fSamplingRate*(ptrSpeed-((int)((float)ptrSpeed/(float)m_nMaxsize)*m_nMaxsize));
-				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
-				speeds[ptrSpeed] = nodeData.GetMag();
-			}
-
-			count++;
-		}
-	}
-
-	// if # of sampled points < maximal points asked
-	int numSampled, whichSeed;
-	whichSeed = (ptr-1)/(m_nMaxsize*3);
-	numSampled = (ptr - startPositions[whichSeed])/3;
-	if((numSampled < m_nMaxsize)&& (traceState == OUT_OF_BOUND))				// out of boundary
-	{
-	 	pIter1 = seedTrace->end();
-		pIter1--;
-		assert(ptr < fullArraySize);
-		positions[ptr++] = (**pIter1)[0];
-		positions[ptr++] = (**pIter1)[1];
-		positions[ptr++] = (**pIter1)[2];
-		//AN: 10/10/05
-		//Set the END_FLOW_FLAG if this is not the last point in the flow:
-		if (numSampled < m_nMaxsize -1){
-			positions[ptr] = END_FLOW_FLAG;
-			assert(ptr < fullArraySize);
-		}
-		
-		if(speeds != NULL)
-		{
-			ptrSpeed = (ptr-3)/3;
-			speeds[ptrSpeed] = speeds[ptrSpeed-1];
-		}
-
-	}
-	// if # of sampled points < maximal points asked
-	else if((numSampled < m_nMaxsize)&& (traceState == CRITICAL_POINT))				// critical pt
-	{
-		positions[ptr] = STATIONARY_STREAM_FLAG;
-
-		if(speeds != NULL)
-		{
-			ptrSpeed = ptr/3;
-			speeds[ptrSpeed] = 0.f;
-		}
-
-	}
-	else if(numSampled < m_nMaxsize) {
-		positions[ptr] = END_FLOW_FLAG;
-		assert(ptr < fullArraySize);
-	}
-
-	posInPoints = ptr; 
-	return leftoverTime;
-}
 //////////////////////////////////////////////////////////////////////////
 //resample stream/streak line to get points with correct interval
 //AN:  Returns the amount of (unused) time remaining, to be used
@@ -711,6 +536,8 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 			container->setFlowEndAtTime(lineNum, firstT);
 		else 
 			container->setFlowStartAtTime(lineNum, firstT);
+
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW, "Seed for flow line %d outside of region",lineNum);
 		return 0.f;
 	}
 
@@ -791,6 +618,7 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 		if(container->doSpeeds()){ //Repeat the last speed
 			container->setSpeedAtTime(lineNum, nextTime, currentSpeed);
 		}
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW, "Unsteady flow line %d exited region at time %.2f", lineNum, nextTime);
 	}
 	//Don't carry over insignificant negative leftover times, since,
 	//They can screw up the next sampling

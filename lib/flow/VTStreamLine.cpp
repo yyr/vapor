@@ -108,13 +108,6 @@ int vtCStreamLine::getBackwardTracing(void)
 //	listSeedTraces: For each seed, return a list keeping the trace it
 //					advects
 //////////////////////////////////////////////////////////////////////////
-void vtCStreamLine::execute(const void* userData, 
-							float* points,
-							float* speeds)
-{
-	m_fCurrentTime = *(float *)userData;
-	computeStreamLine(userData, points, speeds);
-}
 //New version, uses FlowLineData instead of points array to write results of advection.
 void vtCStreamLine::computeStreamLine(float curTime, FlowLineData* container){
 	m_fCurrentTime = curTime;
@@ -183,65 +176,6 @@ void vtCStreamLine::computeStreamLine(float curTime, FlowLineData* container){
 		seedNum++;
 	}
 }
-void vtCStreamLine::computeStreamLine(const void* userData,
-									  float* points,
-									  float* speeds)
-{
-	vtListParticleIter sIter;
-	unsigned int posInPoints;			// used to record the current points usage
-	int count;
-	int istat;
-	unsigned int* startPositions;
-	
-	startPositions = new unsigned int[(int)m_lSeeds.size()];
-	for(int iFor = 0; iFor < (int)m_lSeeds.size(); iFor++)
-		startPositions[iFor] = iFor * m_nMaxsize * 3;
-	
-	posInPoints = 0;
-	count = 0;
-	for(sIter = m_lSeeds.begin(); sIter != m_lSeeds.end(); ++sIter)
-	{
-		vtParticleInfo* thisSeed = *sIter;
-		posInPoints = count * m_nMaxsize * 3;
-		count++;
-	
-		if(thisSeed->itsValidFlag == 1)			// valid seed
-		{
-			if(m_itsTraceDir & BACKWARD_DIR)
-			{
-				vtListSeedTrace* backTrace;
-				list<float>* stepList;
-				backTrace = new vtListSeedTrace;
-				stepList = new list<float>;
-				istat = computeFieldLine(BACKWARD,m_integrationOrder, STEADY, *backTrace, *stepList, thisSeed->m_pointInfo);
-				SampleFieldline(points, startPositions, posInPoints, backTrace, stepList, true, istat, speeds);
-				backTrace->clear();
-				stepList->clear();
-			}
-			if(m_itsTraceDir & FORWARD_DIR)
-			{
-				vtListSeedTrace* forwardTrace;
-				list<float>* stepList;
-				forwardTrace = new vtListSeedTrace;
-				stepList = new list<float>;
-				istat = computeFieldLine(FORWARD,m_integrationOrder, STEADY, *forwardTrace, *stepList, thisSeed->m_pointInfo);
-				SampleFieldline(points, startPositions, posInPoints, forwardTrace, stepList, true, istat, speeds);
-				forwardTrace->clear();
-				stepList->clear();
-			}
-		}
-		else                // out of data region.  Just mark seed as end, don't advect.
-        {
-            points[posInPoints++] = thisSeed->m_pointInfo.phyCoord.x();
-            points[posInPoints++] = thisSeed->m_pointInfo.phyCoord.y();
-            points[posInPoints++] = thisSeed->m_pointInfo.phyCoord.z();
-            points[posInPoints] = END_FLOW_FLAG;
-        }
-	}
-
-	delete[] startPositions;
-}
-
 
 int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 									 INTEG_ORD integ_ord,

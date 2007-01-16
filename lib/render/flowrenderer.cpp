@@ -925,6 +925,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				//It's possible that we changed the flow direction, so tell the flow params:
 				dir = (myFlowParams->getSeedTimeStart() > timeStep) ? -1 : 1;
 				myFlowParams->setUnsteadyDirection(dir);
+				unsteadyFlowCache->setPathDirection(dir);
 
 				//Find the seed time step in the sample time steps
 				//Start at the seed point and go forwards or backwards to current time:
@@ -960,15 +961,16 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				for (int i = startSampleNum;; i++){
 					prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
 					nextStep = myFlowParams->getUnsteadyTimestepSample(i+1, minFrame, maxFrame);
-					if (prevStep < 0 || nextStep < 0) { 
-						// past the end...
-						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Cannot advect beyond sampled timesteps");
-						QApplication::restoreOverrideCursor();
-						return false;
+					if (timeStep != prevStep) {
+						if (prevStep < 0 || nextStep < 0) { 
+							// past the end...
+							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Cannot advect beyond sampled timesteps");
+							QApplication::restoreOverrideCursor();
+							return false;
+						}
+						//Check if prevStep and nextStep are valid, if so, skip:
+						if (!flowDataDirty[prevStep] && !flowDataDirty[nextStep]) continue;
 					}
-					//Check if prevStep and nextStep are valid, if so, skip:
-					if (!flowDataDirty[prevStep] && !flowDataDirty[nextStep]) continue;
-					
 					//If prevstep is dirty, rebuild it:
 					if (flowDataDirty[prevStep]){
 						if (steadyFlowCache[prevStep]){

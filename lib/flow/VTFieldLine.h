@@ -143,16 +143,7 @@ protected:
 					const float& maxStepsize, 
 					float* dt, 
 					bool& bAdaptive);
-	float SampleFieldline(float* positions,
-						 const unsigned int* startPositions,	// start positions for each sampled line
-						 unsigned int& posInPoints,
-						 vtListSeedTrace* seedTrace,
-						 list<float>* stepList,
-						 bool bRecordSeed,
-						 int traceState,
-						 float* speeds=0,
-						 float timeLeft = 0.f);
-	//New version, will eventually replace above:
+	
 	float SampleFieldline(FlowLineData* container,
 								   int lineNum, // = seedNum
 								   int direction, // -1 or +1
@@ -324,16 +315,14 @@ public:
 	vtCStreamLine(CVectorField* pField);
 	~vtCStreamLine(void);
 
-	void execute(const void* userData, float* positions, float* speeds=0);
 	void setForwardTracing(int enabled);
 	void setBackwardTracing(int enabled);
 	int  getForwardTracing(void);
 	int  getBackwardTracing(void);
-	//New version, replace version below:
+	//New version, uses flowlinedata
 	void computeStreamLine(float curTime, FlowLineData* container);
 	
 protected:
-	void computeStreamLine(const void* userData, float* positions, float* speeds=0);
 	int computeFieldLine(TIME_DIR, INTEG_ORD, TIME_DEP, vtListSeedTrace&, list<float>&, PointInfo&);
 
 	

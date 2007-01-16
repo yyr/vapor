@@ -937,7 +937,7 @@ void FlowEventRouter::updateTab(){
 			unsteadyFieldFrame->show();
 			periodicFrame->show();
 			flowHelpButton->setText("Flow Line Advection Setup Help");
-			unsteadyGraphicFrame->show();
+			unsteadyGraphicFrame->hide();
 			if (autoScale){
 				steadyAutoGraphicFrame->show();
 				steadySamplesSlider2->setEnabled(false);
