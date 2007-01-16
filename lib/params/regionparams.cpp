@@ -217,7 +217,8 @@ convertToBoxExtentsInCube(int refLevel, size_t min_dim[3], size_t max_dim[3], fl
 	
 bool RegionParams::
 getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
-		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, const int* varNums, int numVars){
+		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, const int* varNums, int numVars,
+		double regMin[3], double regMax[3]){
 	//First determine the bounds specified in this RegionParams
 	int i;
 	bool retVal = true;
@@ -282,7 +283,12 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		min_bdim[i] = min_dim[i] / bs[i];
 		max_bdim[i] = max_dim[i] / bs[i];
 	}
-
+	//If bounds are needed, calculate them:
+	if (regMax && regMin){
+		//Do mapping to voxel coords
+		myReader->MapVoxToUser(timestep, min_dim, regMin, numxforms);
+		myReader->MapVoxToUser(timestep, max_dim, regMax, numxforms);
+	}
 	
 	return retVal;
 }

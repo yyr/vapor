@@ -607,6 +607,7 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds){
 	DataStatus* ds = DataStatus::getInstance();
 	VaporFlow* flowLib = new VaporFlow(ds->getDataMgr());
 	if (!flowLib) return 0;
+	
 	setupFlowRegion(rParams, flowLib, seedTimeStart, seedTimeStart);
 	//Prepare the flowLib:
 	int numSeedPoints = getNumRakeSeedPoints();
@@ -1110,7 +1111,7 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 	int numTimesteps;
 	int* timeStepList;
 	if (useTimestepSampleList) {
-		numTimesteps = unsteadyTimestepList.size();
+		numTimesteps = (int)unsteadyTimestepList.size();
 		timeStepList = new int[numTimesteps];
 		for (int i = 0; i<numTimesteps; i++){
 			timeStepList[i] = unsteadyTimestepList[i];
@@ -1128,7 +1129,10 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 		delete timeStepList;
 		return false;
 	}
+	
 	if (!setupFlowRegion(rParams, flowLib, -1, minFrame)) return 0;
+
+	//Get bounds
 	// setup integration parameters:
 	
 	float minIntegStep = SMALLEST_MIN_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MIN_STEP; 
@@ -1182,8 +1186,9 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 		//just in the steady flowLineData
 		PathLineData* pathLines = new PathLineData(numLines, mPoints, false, false, minFrame, maxFrame, sampleRate);
 		// Now insert the seeds:
-		int seedsInserted = insertSeeds(flowLib, pathLines, seedTimeStart);
+		int seedsInserted = insertSeeds(rParams, flowLib, pathLines, seedTimeStart);
 		if (seedsInserted <= 0) { 
+			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"No valid flow seeds to advect");
 			delete pathLines;
 			return 0;
 		}
@@ -1203,9 +1208,10 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 		for (int i = seedTimeStart; i<= seedTimeEnd; i+= seedTimeIncrement){
 			//Don't insert if invalid timestep 
 			if (i < minFrame || i > maxFrame) continue;
-			seedsInserted += insertSeeds(flowLib, pathLines, i);
+			seedsInserted += insertSeeds(rParams, flowLib, pathLines, i);
 		}
 		if (seedsInserted <= 0) { 
+			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"No valid flow seeds to advect");
 			delete pathLines;
 			return 0;
 		}
@@ -1216,8 +1222,16 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 //Return the actual number of seeds that were inserted and were inside the current region 
 //If the seed list is being used, only use seeds that are valid at the specified
 //timestep
-int FlowParams::insertSeeds(VaporFlow* fLib, PathLineData* pathLines, int timeStep){
+int FlowParams::insertSeeds(RegionParams* rParams, VaporFlow* fLib, PathLineData* pathLines, int timeStep){
 	int seedCount = 0;
+	//Get the region bounds for testing seeds:
+	double minExt[3], maxExt[3];
+	size_t min_dim[3], max_dim[3]; 
+	size_t min_bdim[3], max_bdim[3];
+	bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
+			timeStep, unsteadyVarNum, 3, minExt, maxExt);
+	assert(dataValid); //This was checked earlier...
+	int seedsInRegion = 0;
 	if(doRake){
 		//Allocate an array to hold the seeds:
 		float* seeds = new float[3*calcNumSeedPoints(timeStep)];
@@ -1227,10 +1241,15 @@ int FlowParams::insertSeeds(VaporFlow* fLib, PathLineData* pathLines, int timeSt
 			return 0;
 		}
 		for (int i = 0; i<seedCount; i++){
+			bool inside = true;
+			for (int j = 0; j< 3; j++){
+				if (seeds[3*i+j] < minExt[j] || seeds[3*i+j] > maxExt[j]) inside = false;
+			}
+			if (inside) seedsInRegion++;
 			pathLines->insertSeedAtTime(i, timeStep, seeds[3*i], seeds[3*i+1], seeds[3*i+2]);
 		}
 		delete seeds;
-		return seedCount;
+		
 
 	} else { //insert from seedList
 		
@@ -1238,10 +1257,21 @@ int FlowParams::insertSeeds(VaporFlow* fLib, PathLineData* pathLines, int timeSt
 			Point4 point = seedPointList[i];
 			float tstep = point.getVal(3);
 			if (tstep >= 0.f && ((int)(tstep +0.5f) != timeStep)) continue;
+			bool inside = true;
+			for (int j = 0; j< 3; j++){
+				if (point.getVal(j) < minExt[j] || point.getVal(j) > maxExt[j]) inside = false;
+			}
+			if (inside) seedsInRegion++;
 			pathLines->insertSeedAtTime(i, timeStep, point.getVal(0), point.getVal(1), point.getVal(2));
 			seedCount++;
 		}
 	}
+	if (seedCount > seedsInRegion){
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
+			"Flow seeds outside region: %d\n of total %d seeds.",
+			seedCount - seedsInRegion, seedCount);
+	}
+
 	return seedCount;
 
 }
@@ -2319,7 +2349,7 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 		timeSamplingStart = minFrame;
 		timeSamplingEnd = minFrame;
 		timeSamplingInterval = 1;
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Invalid time sampling specification");
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Invalid time sampling was specified");
 		return false;
 	}
 	//was the proposed start invalid?
@@ -2333,7 +2363,7 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 			timeSamplingEnd = timeSamplingStart;
 			changed = true;
 		}
-		if(changed) MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification was modified");
+		//if(changed) MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification was modified");
 		return !changed;
 	}
 	//Now we have a valid start, see if the increment is invalid.
@@ -2351,7 +2381,7 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 		if (ts > maxFrame){
 			timeSamplingInterval = 1;
 			timeSamplingEnd = timeSamplingStart;
-			MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification was modified");
+			//MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification was modified");
 			return false;
 		}
 		//Use the second valid step to define interval:
@@ -2363,11 +2393,11 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 		if (!validateVectorField(ts, numRefs, varnums)) break;
 	}
 	if (ts > timeSamplingEnd){
-		if(changed) MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification changed");
+		//if(changed) MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification changed");
 		return (!changed);
 	} else {
 		timeSamplingEnd = ts - timeSamplingInterval;
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification changed");
+		//MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"time sampling specification changed");
 		return false;
 	}
 }
@@ -2472,14 +2502,16 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 }
 //Tell the flowLib about the current region, return false on error
 bool FlowParams::
-setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep, int minFrame){
+setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep, 
+				int minFrame){
 	size_t min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
 	
 	//For steady flow, determine what is the available region for the current time step.
 	//For other flow, determine the available region for all the sampled timesteps.
 	if (flowType == 0 ){
-		bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, steadyVarNum, 3);
+		bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
+			timeStep, steadyVarNum, 3);
 	
 		if(!dataValid){
 			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Steady field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
@@ -2493,7 +2525,8 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep, int min
 		if (timeSamplingStart < minFrame) firstSample = ((1+minFrame/timeSamplingInterval)*timeSamplingInterval);
 		for (int indx = 0; indx < getNumTimestepSamples(); indx++){
 			int ts = getTimestepSample(indx);
-			bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, ts, unsteadyVarNum, 3);
+			bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
+				ts, unsteadyVarNum, 3);
 			if(!dataValid){
 				SetErrMsg(VAPOR_ERROR_FLOW,"Unsteady field data unavailable for refinement %d at timestep %d", numRefinements,ts);
 				return 0;

@@ -54,7 +54,10 @@ public:
 	//New version of above, to supply available region bounds when not full
 	//Must specify the variable(s) that is/are being rendered.
 	//Returns false if there is no data
-	bool getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], size_t min_bdim[3], size_t max_bdim[3], size_t timestep, const int* varNums, int numVars);
+	//Optionally provides user extents.
+	bool getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
+		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, 
+		const int* varNums, int numVars, double* regMin = 0, double* regMax = 0);
 	//Static method that converts box to extents in cube, independent of actual
 	//extents in region.
 	static void convertToBoxExtentsInCube(int refLevel, size_t min_dim[3], size_t max_dim[3], float extents[6]);

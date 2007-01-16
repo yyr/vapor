@@ -14,6 +14,7 @@
 
 #include "VTFieldLine.h"
 #include "vapor/VaporFlow.h"
+#include "vapor/errorcodes.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -59,7 +60,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 {
 	float currentT = t;
 	float finalT = currentT + m_timeDir;
-	
+	int numPointsAdvected;
 	vector<vtListParticleIter> deadList;
 	int istat;
 	int dir = container->getFlowDirection();
@@ -71,7 +72,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 	// advect the previous old particles
 	deadList.clear();
 	//m_itsParticles is the current list of particles being advected.
-	advectOldParticles( m_itsParticles.begin(), 
+	numPointsAdvected = advectOldParticles( m_itsParticles.begin(), 
 						m_itsParticles.end(), 
 						container,
 						currentT, 
@@ -134,6 +135,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 				// for next timestep's advection
 				if(istat == OKAY)
 				{
+					numPointsAdvected++;
 					nextP.m_fStartTime = currentT;
 					nextP.ptId = thisSeed->ptId;
 					m_itsParticles.push_back(new vtParticleInfo(nextP));
@@ -164,6 +166,10 @@ void vtCStreakLine::computeStreakLine(const float t,
 		delete pi;
 		m_itsParticles.erase(v);
 	}
+	if(numPointsAdvected == 0) {
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"No unsteady flow lines remain in region at time step %d",
+			finalT);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -171,7 +177,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 // New version, uses PathLineData, lineNums indicating which
 // lines in the container are active.
 //////////////////////////////////////////////////////////////////////////
-void vtCStreakLine::advectOldParticles( vtListParticleIter start, 
+int vtCStreakLine::advectOldParticles( vtListParticleIter start, 
 										vtListParticleIter end, 
 										PathLineData* container,
 										float initialTime,
@@ -179,6 +185,7 @@ void vtCStreakLine::advectOldParticles( vtListParticleIter start,
 										vector<vtListParticleIter>& deadList)
 										
 {
+	int numAdvected = 0;
 	// advect the old particles first
 	vtListParticleIter pIter = start;
 	int istat;
@@ -230,11 +237,14 @@ void vtCStreakLine::advectOldParticles( vtListParticleIter start,
 #endif
 
 		// for next timestep's advection
-		if(istat == OKAY)
+		if(istat == OKAY){
 			++pIter;
+			numAdvected++;
+		}
 		else				
 			deadList.push_back(pIter++);
 	}
+	return numAdvected;
 }
 //////////////////////////////////////////////////////////////////////////
 // AN:  initialize seeds from container.  replaces VtFieldLine::SetSeedPoints().

@@ -4,6 +4,7 @@
 
 #include "vapor/VaporFlow.h"
 #include "vapor/flowlinedata.h"
+#include "vapor/errorcodes.h"
 #include "Rake.h"
 #include "VTFieldLine.h"
 #include "math.h"
@@ -505,7 +506,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	pField->SetUserTimeStepInc(0, 1);
 	
 	// create streamline
-	vtCStreamLine* pStreamLine = new vtCStreamLine(pField);;
+	vtCStreamLine* pStreamLine = new vtCStreamLine(pField);
 
 	float currentT = (float)steadyStartTimeStep;
 
@@ -519,6 +520,23 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		pStreamLine->setForwardTracing(false);
 
 	pStreamLine->setMaxPoints(container->getMaxPoints());
+	//test the seeds:
+	int seedsInRegion = 0;
+	for (int i = 0; i<numSeeds; i++){
+		bool out = false;
+		for (int j = 0; j< 3; j++){
+			if (seedPtr[3*i+j] < regMin[j] || seedPtr[3*i+j] > regMax[j]){
+				out = true;
+				break;
+			}
+		}
+		if (!out) seedsInRegion++;
+	}
+		
+	if (seedsInRegion < numSeeds){
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
+			"Flow seeds outside region: %d\n of total %d seeds.",numSeeds - seedsInRegion, numSeeds);
+	}
 	pStreamLine->setSeedPoints(seedPtr, numSeeds, currentT);
 	pStreamLine->SetSamplingRate(animationTimeStepSize);
 	pStreamLine->SetInitStepSize(initialStepSize);

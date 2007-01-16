@@ -424,8 +424,10 @@ void SolidRake::GenSeedRandom(const size_t numSeeds[3],
 
 	for(iFor = 0; iFor < 3; iFor++)
 	{
-		lll[iFor] = min[iFor];
-		hhh[iFor] = max[iFor];
+		//shrink slightly, to ensure seeds lie entirely inside edge cells
+		float edgeWidth = (max[iFor]-min[iFor])*0.03;
+		lll[iFor] = min[iFor]+edgeWidth;
+		hhh[iFor] = max[iFor]-edgeWidth;
 	}
 
 	hll[0] = hhh[0];	hll[1] = lll[1];	hll[2] = lll[2];
@@ -460,11 +462,13 @@ bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 	// eight corners
 	float lll[3], hll[3], lhl[3], hhl[3], llh[3], hlh[3], lhh[3], hhh[3];
 	
-
+	
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
-		lll[iFor] = min[iFor];
-		hhh[iFor] = max[iFor];
+		//shrink slightly, to ensure seeds lie entirely inside edge cells
+		float edgeWidth = (max[iFor]-min[iFor])*0.03;
+		lll[iFor] = min[iFor]+edgeWidth;
+		hhh[iFor] = max[iFor]-edgeWidth;
 	}
 
 	hll[0] = hhh[0];	hll[1] = lll[1];	hll[2] = lll[2];

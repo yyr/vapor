@@ -134,7 +134,7 @@ public:
 	void setTimeSamplingEnd(int val){timeSamplingEnd = val;}
 	int getNumTimestepSamples(){
 		if (usingTimestepSampleList())
-			return unsteadyTimestepList.size();
+			return (int)unsteadyTimestepList.size();
 		else return (1+(timeSamplingEnd - timeSamplingStart)/timeSamplingInterval);
 	}
 	int getTimestepSample(int n) {
@@ -409,7 +409,7 @@ protected:
 	static const string _steadyFlowLengthAttr;
 	
 	//Insert seeds into a pathLineData at the specified time step.
-	int insertSeeds(VaporFlow* fLib, PathLineData* pathLines, int timeStep);
+	int insertSeeds(RegionParams* rParams, VaporFlow* fLib, PathLineData* pathLines, int timeStep);
 	void setCurrentDimension(int dimNum) {currentDimension = dimNum;}
 	
 	//check if vector field is present for a timestep

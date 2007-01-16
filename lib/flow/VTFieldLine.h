@@ -255,22 +255,10 @@ public:
 	int addSeeds(int tstep, PathLineData* container);
 protected:
 	
-	// code specific to streakline
-	//void computeStreakLine(const float t, float* points, const unsigned int* startPositions, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
-	/*void advectOldParticles(vtListParticleIter start, 
-							vtListParticleIter end, 
-							float* points,
-							const unsigned int* startPositions, 
-							unsigned int* pointers,
-							float initialTime, 
-							float finalTime,
-							vector<vtListParticleIter>& deadList,
-							float* speeds=0);
-							*/
 
 	// code specific to streakline
 	void computeStreakLine(const float t, PathLineData* container, bool bInjectSeeds);
-	void advectOldParticles(vtListParticleIter start, 
+	int advectOldParticles(vtListParticleIter start, 
 							vtListParticleIter end, 
 							PathLineData* container,
 							float initialTime, 

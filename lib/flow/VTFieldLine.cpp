@@ -618,7 +618,6 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 		if(container->doSpeeds()){ //Repeat the last speed
 			container->setSpeedAtTime(lineNum, nextTime, currentSpeed);
 		}
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW, "Unsteady flow line %d exited region at time %.2f", lineNum, nextTime);
 	}
 	//Don't carry over insignificant negative leftover times, since,
 	//They can screw up the next sampling
