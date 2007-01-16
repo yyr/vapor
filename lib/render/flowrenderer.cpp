@@ -179,7 +179,7 @@ void FlowRenderer::
 renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum){
 	RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
-	
+	calcPeriodicExtents();
 	int mxPoints = flowLineData->getMaxPoints();
 	
 	GLdouble topPlane[] = {0., -1., 0., 1.};
@@ -773,7 +773,7 @@ flowDataIsDirty(int timeStep){
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	if (myFlowParams->getFlowType() != 1)
 		return (flowDataDirty && flowDataDirty[timeStep]);
-	else return false;
+	else return flowDataDirty;
 }
 bool FlowRenderer::
 flowMapIsDirty(int timeStep){
@@ -876,7 +876,8 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				//Create a PathLineData with all the seeds in it
 				unsteadyFlowCache = myFlowParams->setupPathLineData(myFlowLib, minFrame, maxFrame, rParams);
 				if (!unsteadyFlowCache) {
-					MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "No seeds for unsteady flow");
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW, 
+						"No seeds for unsteady flow.\n Ensure sample times are consistent with seed times");
 					return false;
 				}
 				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));

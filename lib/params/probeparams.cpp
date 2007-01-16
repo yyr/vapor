@@ -319,14 +319,12 @@ reinit(bool doOverride){
 	transFunc = newTransFunc;
 	
 	numVariables = newNumVariables;
-	bool wasEnabled = enabled;
 	setEnabled(false);
 	// set up the texture cache
 	setProbeDirty();
 	if (probeTextures) delete probeTextures;
 	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
 	probeTextures = 0;
-
 	return true;
 }
 //Initialize to default state

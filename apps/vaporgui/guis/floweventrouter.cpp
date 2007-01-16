@@ -1970,26 +1970,39 @@ guiSetAutoRefresh(bool autoOn){
 	if (!fRenderer) return;
 	//see if we need to schedule a render (when autoOn is enabled)
 	bool needRender = false;
-	if(autoOn) { //set the needsRefresh for all the dirty frames
-		for (int i = 0; i<=maxFrame; i++) {
-			if (fRenderer->flowDataIsDirty(i)) {
-				fRenderer->setNeedOfRefresh(i,true);
+	if(autoOn) { 
+		//flowtype != 1: set the needsRefresh for all the dirty frames
+		if (fParams->getFlowType()!= 1){
+			for (int i = 0; i<=maxFrame; i++) {
+				if (fRenderer->flowDataIsDirty(i)) {
+					fRenderer->setNeedOfRefresh(i,true);
+					needRender = true;
+				}
+			}
+		} else {
+			if (fRenderer->allFlowDataIsDirty()){
+				fRenderer->setAllNeedRefresh(true);
 				needRender = true;
 			}
 		}
 	}
 	//Also see if button needs to be enabled (at least one frame is dirty)
 	if (!autoOn){
-		for (int i = 0; i<=maxFrame; i++) {
-			fRenderer->setNeedOfRefresh(i,false);
-			if (fRenderer->flowDataIsDirty(i)) {
-				needEnable = true;
+		if (fParams->getFlowType() != 1){
+			for (int i = 0; i<=maxFrame; i++) {
+				fRenderer->setNeedOfRefresh(i,false);
+				if (fRenderer->flowDataIsDirty(i)) {
+					needEnable = true;
+				}
 			}
+		} else {
+			fRenderer->setAllNeedRefresh(false);
+			needEnable = false;
 		}
 	}
 	//If we are turning it on, 
 	//we may need to schedule a render.  
-	refreshButton->setEnabled((!fParams->refreshIsAuto()) && needEnable);
+	refreshButton->setEnabled(!autoOn && needEnable);
 	if (needRender) VizWinMgr::getInstance()->refreshFlow(fParams);
 }
 

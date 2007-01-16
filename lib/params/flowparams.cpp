@@ -1268,7 +1268,7 @@ int FlowParams::insertSeeds(RegionParams* rParams, VaporFlow* fLib, PathLineData
 	}
 	if (seedCount > seedsInRegion){
 		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
-			"Flow seeds outside region: %d\n of total %d seeds.",
+			"Flow seeds are outside region: \n %d seeds outside of total %d seeds.",
 			seedCount - seedsInRegion, seedCount);
 	}
 

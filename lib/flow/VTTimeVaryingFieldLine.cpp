@@ -112,7 +112,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 											float finalTime,
 											vtListSeedTrace& seedTrace,
 											list<float>& stepList,
-											bool bAdaptive)//always true??
+											bool bAdaptive)//not always true!!
 {  
 	int istat;
 	PointInfo seedInfo;
@@ -168,7 +168,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 		while(retrace)
 		{
 			retrace = false;
-			double oldCurtime = curTime;
+			
 			if(int_order == SECOND)
 				istat = runge_kutta2(m_timeDir, UNSTEADY, thisParticle, &curTime, dt);
 			else
@@ -188,8 +188,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 
 			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, curTime, vel);
 			// Don't test for critical points on streaklines!
-			//if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
-			//	return CRITICAL_POINT;
+			
 
 			nSetAdaptiveCount++;
 

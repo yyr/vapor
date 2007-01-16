@@ -111,23 +111,7 @@ protected:
 	static const string _maxSizeAttr;
 	static const string _numTransAttr;
 	
-	
-	
 	//Methods to make sliders and text valid and consistent for region:
-	/*void textToSlider(int coord, float center, float size);
-	void sliderToText(int coord, int center, int size);
-	
-	
-	void setXCenter(int sliderVal);
-	void setXSize(int sliderVal);
-	void setYCenter(int sliderVal);
-	void setYSize(int sliderVal);
-	void setZCenter(int sliderVal);
-	void setZSize(int sliderVal);
-	*/
-	//Region dirty bit is kept in vizWin
-	//
-	//void setDirty();  
 
 	int infoNumRefinements, infoVarNum, infoTimeStep;
 

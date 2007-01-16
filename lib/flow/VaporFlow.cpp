@@ -535,7 +535,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		
 	if (seedsInRegion < numSeeds){
 		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
-			"Flow seeds outside region: %d\n of total %d seeds.",numSeeds - seedsInRegion, numSeeds);
+			"Flow seeds are outside region: \n %d seeds outside of total %d seeds.",numSeeds - seedsInRegion, numSeeds);
 	}
 	pStreamLine->setSeedPoints(seedPtr, numSeeds, currentT);
 	pStreamLine->SetSamplingRate(animationTimeStepSize);

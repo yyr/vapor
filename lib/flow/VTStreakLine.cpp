@@ -168,7 +168,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 	}
 	if(numPointsAdvected == 0) {
 		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"No unsteady flow lines remain in region at time step %d",
-			finalT);
+			(int)finalT);
 	}
 }
 
