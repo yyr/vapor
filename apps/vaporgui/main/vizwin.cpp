@@ -447,7 +447,7 @@ mouseReleaseEvent(QMouseEvent*e){
 				myWinMgr->getViewpointParams(myWindowNum));
 		}
 		//Force an update of region params, so low res is shown
-		setRegionDirty(true);
+		setRegionNavigating(true);
 		myGLWindow->updateGL();
 	}
 	

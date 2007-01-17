@@ -131,8 +131,11 @@ void FlowRenderer::paintGL()
 	//If the regionValid flag is off, need a change before we try to render again..
 	if (!regionValid()) return;
 	
+
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
+	//If the region is dirty, always need to rebuild:
+	if(myGLWindow->regionIsDirty()) setDataDirty();
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
 	int flowType = myFlowParams->getFlowType();
 	int timeStep = currentFrameNum;
@@ -772,8 +775,8 @@ flowDataIsDirty(int timeStep){
 	if (allDataDirtyFlag) return true;
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	if (myFlowParams->getFlowType() != 1)
-		return (flowDataDirty && flowDataDirty[timeStep]);
-	else return flowDataDirty;
+		return ((flowDataDirty != 0) && flowDataDirty[timeStep]);
+	else return (flowDataDirty != 0);
 }
 bool FlowRenderer::
 flowMapIsDirty(int timeStep){
@@ -876,7 +879,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				//Create a PathLineData with all the seeds in it
 				unsteadyFlowCache = myFlowParams->setupPathLineData(myFlowLib, minFrame, maxFrame, rParams);
 				if (!unsteadyFlowCache) {
-					MyBase::SetErrMsg(VAPOR_ERROR_FLOW, 
+					MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, 
 						"No seeds for unsteady flow.\n Ensure sample times are consistent with seed times");
 					return false;
 				}
@@ -965,7 +968,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					if (timeStep != prevStep) {
 						if (prevStep < 0 || nextStep < 0) { 
 							// past the end...
-							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Cannot advect beyond sampled timesteps");
+							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Timestep setup error:\nCannot advect beyond sampled timesteps");
 							QApplication::restoreOverrideCursor();
 							return false;
 						}
@@ -982,7 +985,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 						//the seeds in the unsteadycache.  This should only be needed the first time.
 						steadyFlowCache[prevStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, unsteadyFlowCache, prevStep, minFrame, rParams, true);
 						if(!steadyFlowCache[prevStep]){
-							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Unable to perform steady integration at timestep %d", prevStep);
+							MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", prevStep);
 							QApplication::restoreOverrideCursor();
 							return false;
 						}
@@ -1007,7 +1010,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				
 					steadyFlowCache[nextStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, unsteadyFlowCache, nextStep, minFrame, rParams, true);
 					if(!steadyFlowCache[nextStep]){
-						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Unable to perform steady integration at timestep %d", prevStep);
+						MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", prevStep);
 						QApplication::restoreOverrideCursor();
 						return false;
 					}

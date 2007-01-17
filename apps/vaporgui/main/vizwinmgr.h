@@ -311,9 +311,9 @@ public:
 	
 	void setRegionDirty(RegionParams* p){setVizDirty(p, RegionBit, true);}
 	
-	//Similarly for AnimationParams:
+	//AnimationParams, force a render.  Probe & Volume renderer need to rebuild
 	//
-	void setAnimationDirty(AnimationParams* ap){setVizDirty(ap, RegionBit, true);}
+	void setAnimationDirty(AnimationParams* ap){setVizDirty(ap, AnimationBit, true);}
 	//Force rerender of window using a flowParams, or region params..
 	//
 	void refreshFlow(FlowParams*);

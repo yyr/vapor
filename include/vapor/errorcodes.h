@@ -47,6 +47,9 @@ namespace VAPoR
 
 	//Flow errors
 	VAPOR_ERROR_FLOW = 0x4100,
+	VAPOR_ERROR_SEEDS = 0x4101,
+	VAPOR_ERROR_INTEGRATION = 0x4102,
+	VAPOR_ERROR_FLOW_DATA = 0x4103,
     
     // Fatal Codes       0x8001 - 0x8FFF
     VAPOR_FATAL = 0x8000

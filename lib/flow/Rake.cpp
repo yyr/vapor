@@ -1,6 +1,7 @@
 #include "Rake.h"
 #include "assert.h"
 #include "vapor/VaporFlow.h"
+#include "vapor/errorcodes.h"
 #include "Field.h"
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -93,13 +94,19 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 			
 			bool rc = vFlow->getFieldMagBounds(&fieldMin, &fieldMax, varx, vary, varz, 
 				true, numRefinements, timeStep);
-			if (!rc) return false;
+			if (!rc) {
+				return false;
+			}
 			//Then set up the FieldData
 			FieldData* fData = vFlow->setupFieldData(varx, vary, varz, true, numRefinements, timeStep, false);
 			if (!fData) {delete pRake; return false;}
 			
 			rc = pRake->GenSeedBiased(distribBias,fieldMin,fieldMax, fData,numSeeds,  rakeMin,rakeMax, pSeeds, randomSeed, stride);
-			if (!rc) {delete fData; delete pRake; return false;}
+			if (!rc) {
+				MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,
+					"Unable to generate requested number of distributed seed points.\nTry smaller bias.");
+				delete fData; delete pRake; return false;
+			}
 		}
 	}
 	else

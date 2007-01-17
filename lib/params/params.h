@@ -39,7 +39,8 @@ enum DirtyBitType {
 	RegionBit,
 	ColorscaleBit,
 	NavigatingBit,
-    LightingBit
+    LightingBit,
+	AnimationBit
 };
 class XmlNode;
 class MapperFunction;

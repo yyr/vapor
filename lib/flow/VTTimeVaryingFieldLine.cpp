@@ -192,7 +192,12 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 			
 
 			nSetAdaptiveCount++;
-
+			//nSetAdaptiveCount counts the number of advections since the last time
+			//the adaptive step size was at the minimum, or from the very start.
+			//The following test says that we turn adaptive integration back on
+			//two steps after the minimum stepsize is attained.
+			//We could avoid this by not turning off adaptive integration at all,
+			//Since, when we are at minimum stepsize, retrace will be false
 			if((nSetAdaptiveCount == 2) && (bAdaptive == false))
 				bAdaptive = true;
 
@@ -214,6 +219,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 				minStepsize = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
 				maxStepsize = m_fMaxStepSize * pow(cell_volume, (float)0.3333333f) / mag;
 				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, bAdaptive);
+				
 				if(bAdaptive == false)
 					nSetAdaptiveCount = 0;
 

@@ -128,8 +128,8 @@ void Session::init() {
 	recordingCount = 0;
 	metadataSaved = false;
 #ifdef WIN32
-	cacheMB = 500;
-	currentMetadataFile = "F:\\run4\\RUN4.vdf";
+	cacheMB = 1024;
+	currentMetadataFile = "C:\\*.vdf";
 	currentJpegDirectory = "C:\\temp";
 	currentFlowDirectory = "C:\\temp";
 #else

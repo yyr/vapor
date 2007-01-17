@@ -440,7 +440,7 @@ void AnimationEventRouter::guiSetLocal(Params* p, bool lg){
 	//Need to rerender the active viz, and set its change bit
 	AnimationController::getInstance()->paramsChanged(viznum);
 	VizWin* viz = VizWinMgr::getInstance()->getVizWin(viznum);
-	viz->setRegionDirty(true);
+	viz->setAnimationDirty(true);
 	viz->updateGL();
 }
 

@@ -332,7 +332,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   // set up region. Only need to do this if the data
   // roi changes, or if the datarange has changed.
   //
-  if (regionValid&&(myGLWindow->regionIsDirty()|| datarangeIsDirty()||myGLWindow->regionIsNavigating())) 
+  if (regionValid&&(myGLWindow->regionIsDirty()
+	  || datarangeIsDirty()||myGLWindow->regionIsNavigating()
+	  || myGLWindow->animationIsDirty())) 
   {
     
     myGLWindow->setRenderNew();

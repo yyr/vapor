@@ -312,9 +312,10 @@ void GLWindow::paintGL()
 	
 	swapBuffers();
 	glPopMatrix();
-	//Always clear the regionDirty flag:
+	//Always clear the regionDirty and animationDirty flags:
 	
 	setDirtyBit(Params::RegionParamsType,RegionBit,false);
+	setDirtyBit(Params::AnimationParamsType,AnimationBit,false);
 	bool mouseIsDown = postRenderCB(winNum, isControlled);
 	//Capture the image, if not navigating:
 	if (renderNew && !mouseIsDown) doFrameCapture();

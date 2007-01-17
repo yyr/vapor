@@ -864,7 +864,7 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, Regio
 		}
 		numSeedPoints = seedCounter;
 		if (numSeedPoints == 0) {
-			MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "No seeds at current time step");
+			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "No seeds at current time step");
 			return false;
 		}
 		seedCounter = 0;
@@ -916,7 +916,7 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, Regio
 	}
 
 	if (!rc){
-		MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "Error integrating steady flow lines");	
+		MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION, "Error integrating steady flow lines");	
 		delete flowData;
 		return 0;
 	}
@@ -1020,7 +1020,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 			}
 			numSeedPoints = seedCounter;
 			if (numSeedPoints == 0) {
-				MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "No seeds at current time step");
+				MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "No seeds at current time step");
 				return false;
 			}
 			seedCounter = 0;
@@ -1077,8 +1077,9 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 		}
 	}
 	if (!rc){
-		MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "Error integrating steady flow lines");	
+		MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION, "Error integrating steady flow lines");	
 		delete steadyFlowData;
+		QApplication::restoreOverrideCursor();
 		return 0;
 	}
 
@@ -1188,7 +1189,7 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 		// Now insert the seeds:
 		int seedsInserted = insertSeeds(rParams, flowLib, pathLines, seedTimeStart);
 		if (seedsInserted <= 0) { 
-			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"No valid flow seeds to advect");
+			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,"No valid flow seeds to advect");
 			delete pathLines;
 			return 0;
 		}
@@ -1211,7 +1212,7 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 			seedsInserted += insertSeeds(rParams, flowLib, pathLines, i);
 		}
 		if (seedsInserted <= 0) { 
-			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"No valid flow seeds to advect");
+			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,"No valid flow seeds to advect");
 			delete pathLines;
 			return 0;
 		}
@@ -2514,7 +2515,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep,
 			timeStep, steadyVarNum, 3);
 	
 		if(!dataValid){
-			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Steady field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
+			MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Steady field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
 			return 0;
 		}
 	} else { //Find the intersection of all the regions for the timesteps to be sampled.
@@ -2528,7 +2529,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep,
 			bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
 				ts, unsteadyVarNum, 3);
 			if(!dataValid){
-				SetErrMsg(VAPOR_ERROR_FLOW,"Unsteady field data unavailable for refinement %d at timestep %d", numRefinements,ts);
+				SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Unsteady field data unavailable for refinement %d at timestep %d", numRefinements,ts);
 				return 0;
 			}
 			//Intersect the available region bounds.

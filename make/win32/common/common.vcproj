@@ -164,6 +164,9 @@
 				RelativePath="..\..\..\include\vapor\EasyThreads.h">
 			</File>
 			<File
+				RelativePath="..\..\..\include\vapor\errorcodes.h">
+			</File>
+			<File
 				RelativePath="..\..\..\include\vapor\MyBase.h">
 			</File>
 			<File

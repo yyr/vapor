@@ -113,6 +113,7 @@ public:
 	bool regionIsDirty() {return vizIsDirty(RegionBit);}
 	bool regionIsNavigating() {return vizIsDirty(NavigatingBit);}
 	bool lightingIsDirty() {return vizIsDirty(LightingBit);}
+	bool animationIsDirty() {return vizIsDirty(AnimationBit);}
 	
 	void setRegionDirty(bool isDirty){ setDirtyBit(Params::RegionParamsType, RegionBit,isDirty);}
 	void setRegionNavigating(bool isDirty){ setDirtyBit(Params::ViewpointParamsType,NavigatingBit,isDirty);}

@@ -126,7 +126,7 @@ getTimeToFinish(int viznum, int currentTime){
 void AnimationController::
 startVisualizer(int viznum, int currentTime){
 	startTime[viznum] = currentTime;
-	VizWinMgr::getInstance()->getVizWin(viznum)->setRegionDirty(true);
+	VizWinMgr::getInstance()->getVizWin(viznum)->setAnimationDirty(true);
 	VizWinMgr::getInstance()->getVizWin(viznum)->updateGL();
 }
 //Activate renderer prior to starting play, in response to user clicking "play" button.

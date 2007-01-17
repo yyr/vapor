@@ -255,9 +255,9 @@ FlowEventRouter::hookUpTab()
 	connect (seedtimeIncrementEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	
 	connect (firstDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (firstDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (firstDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (lastDisplayFrameEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
-	connect (lastDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
+	connect (lastDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (diameterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (diameterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (arrowheadEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -654,22 +654,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			int seedTimeIncrement = seedtimeIncrementEdit->text().toUInt();
 			if (seedTimeIncrement < 1) seedTimeIncrement = 1;
 			fParams->setSeedTimeIncrement(seedTimeIncrement);
-			int lastDisplayFrame = lastDisplayFrameEdit->text().toInt();
-			int firstDisplayFrame = firstDisplayFrameEdit->text().toInt();
-			//Make sure that steady flow has non-positive firstDisplayAge
-			if (firstDisplayFrame > 0 && fParams->flowIsSteady()){
-				firstDisplayFrame = 0;
-				firstDisplayFrameEdit->setText(QString::number(firstDisplayFrame));
-			}
-		
-			//Make sure at least one frame is displayed.
-			//
-			if (firstDisplayFrame >= lastDisplayFrame) {
-				lastDisplayFrame = firstDisplayFrame+1;
-				lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
-			}
-			fParams->setFirstDisplayFrame(firstDisplayFrame);
-			fParams->setLastDisplayFrame(lastDisplayFrame);
+			
 		} //end of rake settings for unsteady flow
 	} // end of flow Data changed
 	if (flowGraphicsChanged){
@@ -690,6 +675,19 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		fParams->setShapeDiameter(shapeDiameter);
 		fParams->setArrowDiameter(arrowDiameter);
 		fParams->setConstantOpacity(constantOpacity);
+		if (fParams->getFlowType() == 1){
+			int lastDisplayFrame = lastDisplayFrameEdit->text().toInt();
+			int firstDisplayFrame = firstDisplayFrameEdit->text().toInt();
+			
+			//Make sure at least one frame is displayed.
+			//
+			if (firstDisplayFrame >= lastDisplayFrame) {
+				lastDisplayFrame = firstDisplayFrame+1;
+				lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
+			}
+			fParams->setFirstDisplayFrame(firstDisplayFrame);
+			fParams->setLastDisplayFrame(lastDisplayFrame);
+		}
 	}
 	
 	guiSetTextChanged(false);

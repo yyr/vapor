@@ -280,7 +280,8 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 				assert (rollbackCount < 1000);//If we got here, it's surely an infinite loop!
 					
 				// roll back and retrace
-				//A hack to stop double retracing (which results in infinite loop!)
+				//the doingRetrace flag is to stop double retracing (which results in infinite loop!)
+				//Note a slightly different approach is in VTTimeVaryingFieldLine.cpp
 				if(retrace && !doingRetrace)			
 				{
 					thisInterpolant = prevInterpolant = second_prevInterpolant;

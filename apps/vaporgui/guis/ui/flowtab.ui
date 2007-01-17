@@ -5230,7 +5230,7 @@
                                         </font>
                                     </property>
                                     <property name="text">
-                                        <string>Shape Parameters</string>
+                                        <string>Appearance Parameters</string>
                                     </property>
                                     <property name="alignment">
                                         <set>AlignCenter</set>
