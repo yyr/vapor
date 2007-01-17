@@ -713,7 +713,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 
 	// initialize streak line
 	vtCStreakLine* pStreakLine;
-	float currentT = 0.0;
+	
 	pStreakLine = new vtCStreakLine(pField);
 	
 	pStreakLine->SetTimeDir(timeDir);
@@ -731,9 +731,6 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	float *xDataPtr =0, *yDataPtr = 0, *zDataPtr =0;
 	float *xDataPtr2 =0, *yDataPtr2 = 0, *zDataPtr2 =0;
 
-	
-	
-	int index = -1;
 	bool bInject;
 
 	int currIndex = sampleStartIndex;
@@ -984,7 +981,7 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	int totalXNum = (maxBlk[0]-minBlk[0]+1)* bs[0];
 	int totalYNum = (maxBlk[1]-minBlk[1]+1)* bs[1];
 	int totalZNum = (maxBlk[2]-minBlk[2]+1)* bs[2];
-	int totalNum = totalXNum*totalYNum*totalZNum;
+	
 	//Now get the data from the dataMgr:
 	pUData = new float*[1];
 	pVData = new float*[1];

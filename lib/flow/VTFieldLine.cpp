@@ -511,7 +511,6 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 		{
 			PointInfo pointInfo;
 			VECTOR3 nodeData;
-			float t;
 
 			pointInfo.phyCoord.Set(x,y,z);
 			

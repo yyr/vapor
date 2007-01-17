@@ -968,7 +968,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					if (timeStep != prevStep) {
 						if (prevStep < 0 || nextStep < 0) { 
 							// past the end...
-							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Timestep setup error:\nCannot advect beyond sampled timesteps");
+							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Flow timestep setup error:\nCannot advect beyond sampled timesteps");
 							QApplication::restoreOverrideCursor();
 							return false;
 						}

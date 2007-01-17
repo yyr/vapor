@@ -337,26 +337,42 @@ void FlowEventRouter::deleteSample(){
 	}
 }
 //Respond to user has typed in a row. Convert it to an int, swap it up or down
+//until it's in ascending order.
 void FlowEventRouter::timestepChanged1(int row, int col){
 	int newVal = timestepSampleTable1->text(row,col).toInt();
 	int i;
-	for (i= row -1; i>=0; i--) {
-		int rowInt = timestepSampleTable1->text(i,col).toInt();
-		if (rowInt < newVal) break;
-	}
-	if (row > i+1){
-		timestepSampleTable1->swapRows(row,i+1);
-	}
-	for (i= row + 1; i< timestepSampleTable1->numRows(); i++){
+	//First, find the first one above it that's larger:
+	for (i = 0; i< row; i++){
 		int rowInt = timestepSampleTable1->text(i,col).toInt();
 		if (rowInt > newVal) break;
 	}
-	if (row < i-1){
-		timestepSampleTable1->swapRows(row,i-1);
+	if (i < row) { //found one to swap:  Swap from row to i
+		for (int j = row; j>i; j--){
+			timestepSampleTable1->swapRows(j,j-1);
+		}
+		//It changed, update the flowparams:
+		guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
+		return;
+	} 
+	//Now look below this one for the lowest one that is smaller
+	for (i =  timestepSampleTable1->numRows()-1; i>row; i--){
+		int rowInt = timestepSampleTable1->text(i,col).toInt();
+		if (rowInt < newVal) break;
 	}
-	//It changed, update the flowparams:
+	if (i > row){ //found one to swap:  Swap from row to i
+		for (int j = row; j<i; j++){
+			timestepSampleTable1->swapRows(j,j+1);
+		}
+		//It changed, update the flowparams:
+		guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
+		return;
+	} 
+	//No Change:
 	guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
+	return;
 }
+//Send the contents of the timestepTable to the params.
+//Assumes that the timestepTable is sorted in ascending order.
 void FlowEventRouter::guiUpdateUnsteadyTimes(QTable* tbl, const char* descr){	
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
@@ -375,25 +391,40 @@ void FlowEventRouter::guiUpdateUnsteadyTimes(QTable* tbl, const char* descr){
 	PanelCommand::captureEnd(cmd, fParams);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
+//Respond to user has typed in a row. Convert it to an int, swap it up or down
+//until it's in ascending order.
 void FlowEventRouter::timestepChanged2(int row, int col){
-	
 	int newVal = timestepSampleTable2->text(row,col).toInt();
 	int i;
-	for (i= row -1; i>=0; i--) {
-		int rowInt = timestepSampleTable2->text(i,col).toInt();
-		if (rowInt < newVal) break;
-	}
-	if (row > i+1){
-		timestepSampleTable2->swapRows(row,i+1);
-	}
-	for (i= row +1; i< timestepSampleTable2->numRows(); i++){
+	//First, find the first one above it that's larger:
+	for (i = 0; i< row; i++){
 		int rowInt = timestepSampleTable2->text(i,col).toInt();
 		if (rowInt > newVal) break;
 	}
-	if (row < i-1){
-		timestepSampleTable2->swapRows(row,i-1);
+	if (i < row) { //found one to swap:  Swap from row to i
+		for (int j = row; j>i; j--){
+			timestepSampleTable2->swapRows(j,j-1);
+		}
+		//It changed, update the flowparams:
+		guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
+		return;
+	} 
+	//Now look below this one for the lowest one that is smaller
+	for (i =  timestepSampleTable2->numRows()-1; i>row; i--){
+		int rowInt = timestepSampleTable2->text(i,col).toInt();
+		if (rowInt < newVal) break;
 	}
+	if (i > row){ //found one to swap:  Swap from row to i
+		for (int j = row; j<i; j++){
+			timestepSampleTable2->swapRows(j,j+1);
+		}
+		//It changed, update the flowparams:
+		guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
+		return;
+	} 
+	//No Change:
 	guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
+	return;
 }
 
 void FlowEventRouter::toggleShowMap(){
