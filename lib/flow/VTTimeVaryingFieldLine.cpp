@@ -177,6 +177,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);
+			
 			currentProgress++;
 			if (currentProgress > maxProgress) {
 				maxProgress = currentProgress;
@@ -216,10 +217,11 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 				if(bAdaptive == false)
 					nSetAdaptiveCount = 0;
 
-				// roll back and retrace
-				if(retrace)	//The stepsize was reduced.		
+				// If the stepsize was reduced, 
+				// roll back and retrace, but only if we have come back two steps from
+				// the last pop_back
+				if(retrace && (currentProgress >= maxProgress))	//The stepsize was reduced.		
 				{
-					assert(currentProgress >= maxProgress - 2);
 					thisInterpolant = prevInterpolant = second_prevInterpolant;
 					seedTrace.pop_back();
 					seedTrace.pop_back();
