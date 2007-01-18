@@ -1231,7 +1231,11 @@ int FlowParams::insertSeeds(RegionParams* rParams, VaporFlow* fLib, PathLineData
 	size_t min_bdim[3], max_bdim[3];
 	bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
 			timeStep, unsteadyVarNum, 3, minExt, maxExt);
-	assert(dataValid); //This was checked earlier...
+	if (!dataValid) {
+		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at time step %d\nVector field may not be available",timeStep);
+		return 0;
+	}
+	
 	int seedsInRegion = 0;
 	if(doRake){
 		//Allocate an array to hold the seeds:
@@ -2024,7 +2028,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
-			opacSize[i] = (int)((ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements)));
+			opacSize[i] = ds->getFullSizeAtLevel(numRefinements,i);
 			maxSize[i] = opacSize[i]/bs[i] -1;
 			opacVarMin[i] = DataStatus::getInstance()->getExtents()[i];
 			opacVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];
@@ -2044,7 +2048,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
-			colorSize[i] = (int)((ds->getFullDataSize(i) >> (ds->getNumTransforms() - numRefinements)));
+			colorSize[i] = (int)ds->getFullSizeAtLevel(numRefinements,i);
 			maxSize[i] = (colorSize[i]/bs[i] - 1);
 			colorVarMin[i] = DataStatus::getInstance()->getExtents()[i];
 			colorVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];
@@ -2069,7 +2073,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 					opacVar = 0.f;
 					break;
 				case (1): //age
-					if (flowIsSteady())
+					if (flowType != 1)
 						//Map k in [0..objectsPerFlowline] to the interval (0,1)
 						opacVar =  
 							(float)pointNum/((float)objectsPerFlowline);
@@ -2419,7 +2423,7 @@ validateVectorField(int ts, int refLevel, const int varNums[3]) {
 }
 
 int FlowParams::calcMaxPoints(){
-	int numPrePoints = 0, numPostPoints = 0;
+	
 	if (flowType != 1) { //steady or flow line advection
 		
 		maxPoints = objectsPerFlowline+1;

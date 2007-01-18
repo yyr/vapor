@@ -69,8 +69,8 @@ public:
     ~VizWin();
 
 	
-	void setDirtyBit(Params::ParamType renderType, DirtyBitType t, bool val){
-		myGLWindow->setDirtyBit(renderType,t,val);
+	void setDirtyBit(DirtyBitType t, bool val){
+		myGLWindow->setDirtyBit(t,val);
 	}
 		
 	bool vizIsDirty(DirtyBitType t){return myGLWindow->vizIsDirty(t);}
@@ -94,12 +94,12 @@ public:
 	GLWindow* getGLWindow() {return myGLWindow;}
 	
 	
-	void setRegionDirty(bool isDirty){ setDirtyBit(Params::RegionParamsType, RegionBit,isDirty);}
-	void setAnimationDirty(bool isDirty){ setDirtyBit(Params::AnimationParamsType, AnimationBit,isDirty);}
+	void setRegionDirty(bool isDirty){ setDirtyBit(RegionBit,isDirty);}
+	void setAnimationDirty(bool isDirty){ setDirtyBit(AnimationBit,isDirty);}
 	//void setDvrClutDirty(bool isDirty){ setDirtyBit(Params::DvrParamsType,DvrClutBit, isDirty);}
 	
 	//void setDvrDatarangeDirty(bool isDirty){ setDirtyBit(Params::DvrParamsType,DvrDatarangeBit,isDirty);}
-	void setRegionNavigating(bool isDirty){ setDirtyBit(Params::ViewpointParamsType,NavigatingBit,isDirty);}
+	void setRegionNavigating(bool isDirty){ setDirtyBit(DvrRegionBit,isDirty);}
 	//void setFlowDataDirty(bool isDirty) {setDirtyBit(Params::FlowParamsType,FlowDataBit,isDirty);}
 	//void setFlowGraphicsDirty(bool isDirty) {setDirtyBit(Params::FlowParamsType,FlowGraphicsBit,isDirty);}
 	
@@ -110,7 +110,7 @@ public:
 	//bool flowDataIsDirty() {return vizIsDirty(FlowDataBit);}
 	//bool flowGraphicsIsDirty() {return vizIsDirty(FlowGraphicsBit);}
 
-	bool regionIsNavigating() {return vizIsDirty(NavigatingBit);}
+	bool regionIsNavigating() {return vizIsDirty(DvrRegionBit);}
 	
 	void setMouseDown(bool downUp) {
 		mouseDownHere = downUp;

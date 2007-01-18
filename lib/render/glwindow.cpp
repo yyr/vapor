@@ -88,12 +88,13 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 
 	vizDirtyBit.clear();
 	//setDirtyBit(Params::DvrParamsType,DvrClutBit, true);
-	setDirtyBit(Params::DvrParamsType,ProbeTextureBit, true);
+	setDirtyBit(ProbeTextureBit, true);
 	//setDirtyBit(Params::DvrParamsType,DvrDatarangeBit, true);
-	setDirtyBit(Params::RegionParamsType,RegionBit, true);
-	setDirtyBit(Params::ViewpointParamsType,NavigatingBit, true);
-	setDirtyBit(Params::DvrParamsType,ColorscaleBit, true);
-    setDirtyBit(Params::DvrParamsType,LightingBit, true);
+	setDirtyBit(RegionBit, true);
+	setDirtyBit(NavigatingBit, true);
+	setDirtyBit(ColorscaleBit, true);
+    setDirtyBit(LightingBit, true);
+	setDirtyBit(DvrRegionBit, true);
 
 	capturing = false;
 	newCapture = false;
@@ -314,8 +315,9 @@ void GLWindow::paintGL()
 	glPopMatrix();
 	//Always clear the regionDirty and animationDirty flags:
 	
-	setDirtyBit(Params::RegionParamsType,RegionBit,false);
-	setDirtyBit(Params::AnimationParamsType,AnimationBit,false);
+	setDirtyBit(RegionBit,false);
+	setDirtyBit(AnimationBit,false);
+	setDirtyBit(DvrRegionBit,false);
 	bool mouseIsDown = postRenderCB(winNum, isControlled);
 	//Capture the image, if not navigating:
 	if (renderNew && !mouseIsDown) doFrameCapture();
@@ -1296,18 +1298,10 @@ Renderer* GLWindow::getRenderer(RenderParams* p){
 	return found_iter->second;
 }
 
-//In addition to setting the dirty bit, call the renderer's setDirty if
-//the bit is being turned on.
+//set the dirty bit, 
 void GLWindow::
-setDirtyBit(Params::ParamType renType, DirtyBitType t, bool nowDirty){
+setDirtyBit(DirtyBitType t, bool nowDirty){
 	vizDirtyBit[t] = nowDirty;
-	if (nowDirty){
-		for (int i = 0; i< getNumRenderers(); i++){
-			if (getRendererType(i) == renType){
-				getRenderer(i)->setDirty(t);
-			}
-		}
-	}
 }
 bool GLWindow::
 vizIsDirty(DirtyBitType t) {

@@ -1408,10 +1408,9 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 
 	//Get the data dimensions (at current resolution):
 	int dataSize[3];
-	const size_t totTransforms = ds->getCurrentMetadata()->GetNumTransforms();
 	int numRefinements = pParams->getNumRefinements();
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = (ds->getFullDataSize(i))>>(totTransforms - numRefinements);
+		dataSize[i] = ds->getFullSizeAtLevel(numRefinements,i);
 	}
 	
 	//Find the region that contains the probe.
@@ -1526,11 +1525,10 @@ refreshHistogram(RenderParams* p){
 	//Get the data dimensions (at current resolution):
 	size_t dataSize[3];
 	float gridSpacing[3];
-	const size_t totTransforms = DataStatus::getInstance()->getCurrentMetadata()->GetNumTransforms();
 	const float* extents = DataStatus::getInstance()->getExtents();
 	int numRefinements = pParams->getNumRefinements();
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = (DataStatus::getInstance()->getFullDataSize(i))>>(totTransforms - numRefinements);
+		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i);
 		gridSpacing[i] = (extents[i+3]-extents[i])/(float)(dataSize[i]-1);
 		if (boxMin[i]< 0) boxMin[i] = 0;
 		if (boxMax[i] >= dataSize[i]) boxMax[i] = dataSize[i] - 1;

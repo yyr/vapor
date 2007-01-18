@@ -753,7 +753,7 @@ void ProbeParams::getBoundingBox(size_t boxMin[3], size_t boxMax[3]){
 	const float* extents = DataStatus::getInstance()->getExtents();
 	//Start by initializing extents, and variables that will be min,max
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = (DataStatus::getInstance()->getFullDataSize(i))>>(totTransforms - numRefinements);
+		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i);
 		boxMin[i] = dataSize[i]-1;
 		boxMax[i] = 0;
 	}
@@ -813,7 +813,7 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], 
 	}
 	//Now do the block dimensions:
 	for (int i = 0; i< 3; i++){
-		size_t dataSize = (DataStatus::getInstance()->getFullDataSize(i))>>(totTransforms - numRefinements);
+		size_t dataSize = DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i);
 		if(boxMax[i] > dataSize-1) boxMax[i] = dataSize - 1;
 		if (boxMin[i] > boxMax[i]) boxMax[i] = boxMin[i];
 		//And make the block coords:
@@ -934,7 +934,7 @@ calcProbeTexture(int ts, int texWidth, int texHeight){
 	const size_t totTransforms = DataStatus::getInstance()->getCurrentMetadata()->GetNumTransforms();
 	//Start by initializing extents
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = (DataStatus::getInstance()->getFullDataSize(i))>>(totTransforms - numRefinements);
+		dataSize[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i);
 	}
 	//Determine the integer extents of the containing cube, truncate to
 	//valid integer coords:

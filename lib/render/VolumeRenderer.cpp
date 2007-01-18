@@ -333,7 +333,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   // roi changes, or if the datarange has changed.
   //
   if (regionValid&&(myGLWindow->regionIsDirty()
-	  || datarangeIsDirty()||myGLWindow->regionIsNavigating()
+	  || datarangeIsDirty()||myGLWindow->dvrRegionIsNavigating()
 	  || myGLWindow->animationIsDirty())) 
   {
     
@@ -496,7 +496,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   clutDirtyBit = false;
   datarangeDirtyBit = false;
   
-  myGLWindow->setRegionNavigating(false);
+  myGLWindow->setDvrRegionNavigating(false);
   myGLWindow->setLightingDirty(false);
 }
 

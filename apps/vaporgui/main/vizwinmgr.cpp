@@ -1608,12 +1608,13 @@ bool VizWinMgr::elementEndHandler(ExpatParseMgr* pm, int depth , std::string& ta
 	}
 }
 //General function for non-render dirty bit setting:
+//Sets the dirty bit in all windows that are using the specified params.
 void VizWinMgr::setVizDirty(Params* p, DirtyBitType bittype, bool bit, bool refresh){
 	if (!(DataStatus::getInstance()->getDataMgr())) return;
 	VizWin* vw;
 	if (p->getVizNum()>= 0){
 		vw = getVizWin(p->getVizNum());
-		vw->setDirtyBit(p->getParamType(),bittype, bit);
+		vw->setDirtyBit(bittype, bit);
 		if(bit&&refresh) vw->updateGL();
 	} else if (!p->isRenderParams()) {
 		//Need to check all the windows whose params are global,
@@ -1621,7 +1622,7 @@ void VizWinMgr::setVizDirty(Params* p, DirtyBitType bittype, bool bit, bool refr
 		for (int i = 0; i<MAXVIZWINS; i++){
 			if (!paramArray[i] || paramArray[i]->isLocal()) continue;
 			vw = getVizWin(i);
-			vw->setDirtyBit(p->getParamType(),bittype, bit);
+			vw->setDirtyBit(bittype, bit);
 			if(bit&&refresh) vw->updateGL();
 		}
 	}

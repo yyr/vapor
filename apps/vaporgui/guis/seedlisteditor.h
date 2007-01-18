@@ -45,9 +45,7 @@ public slots:
     void addSeed();
     void deleteSeed();
     void valueChanged( int row, int col );
-	void selectionChanged();
 	
-
 protected slots:
 	void currentChanged( int row, int col );
 	void accept();
@@ -58,7 +56,7 @@ protected:
 	QPushButton *deletePushButton;
     QPushButton *okPushButton;
     QPushButton *cancelPushButton;
-	void checkPushButton(int row);
+	void checkPushButton();
 
 protected:
     QVBoxLayout *tableButtonBox;

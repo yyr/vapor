@@ -68,6 +68,7 @@ DataStatus()
 		extents[i+3] = 1.f;
 	}
 	theDataStatus = this;
+	
 }
 
 // After a metadata::merge, call resetDataStatus to 
@@ -142,10 +143,14 @@ reset(DataMgr* dm, size_t cachesize){
 
 
 	numTransforms = currentMetadata->GetNumTransforms();
-
+	for (int k = 0; k<dataAtLevel.size(); k++) delete dataAtLevel[k];
+	dataAtLevel.clear();
+	for (int k = 0; k<= numTransforms; k++){
+		dataAtLevel.push_back(new size_t[3]);
+	}
 	
 	for (int k = 0; k< 3; k++){
-		fullDataSize[k] = currentMetadata->GetDimension()[k]; 
+		fullDataSize[k] = currentMetadata->GetDimension()[k];
 	}
 	
 
@@ -164,6 +169,10 @@ reset(DataMgr* dm, size_t cachesize){
 	//Construct a mapping from variable nums to variable names, first use the
 	//nums and names that are active, then the remainder.
 	WaveletBlock3DRegionReader* myReader = (WaveletBlock3DRegionReader*)dm->GetRegionReader();
+	size_t temp[3];
+	for (int lev = 0; lev <= numTransforms; lev++){
+		myReader->GetDim(dataAtLevel[lev],lev);
+	}
 	bool someDataOverall = false;
 	for (int var = 0; var< numVariables; var++){
 		bool dataExists = false;
@@ -220,6 +229,9 @@ DataStatus::
 		delete maxNumTransforms[i];
 		delete dataMin[i];
 		delete dataMax[i];
+	}
+	for (int i = 0; i< dataAtLevel.size(); i++){
+		delete dataAtLevel[i];
 	}
 	theDataStatus = 0;
 }

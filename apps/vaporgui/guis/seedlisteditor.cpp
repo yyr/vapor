@@ -27,7 +27,7 @@ SeedListEditor::SeedListEditor( int numSeeds, FlowParams* fp,
     table = new QTable( this, "seed table" );
     table->setNumCols( 4 );
     table->setNumRows( numSeeds );
-    
+	table->setSelectionMode(QTable::SingleRow);
     table->setColumnWidth( 0, 60 );
     table->setColumnWidth( 1, 60 ); 
     table->setColumnWidth( 2, 60 );
@@ -77,7 +77,6 @@ SeedListEditor::SeedListEditor( int numSeeds, FlowParams* fp,
     tableButtonBox->addLayout( buttonBox );
    
     connect( table, SIGNAL( currentChanged(int,int) ),this, SLOT( currentChanged(int,int) ) );
-	connect( table, SIGNAL( selectionChanged() ),this, SLOT( selectionChanged() ) );
     connect( table, SIGNAL( valueChanged(int,int) ),this, SLOT( valueChanged(int,int) ) );
     connect( deletePushButton, SIGNAL( clicked() ), this, SLOT( deleteSeed() ) );
 	connect( addPushButton, SIGNAL( clicked() ), this, SLOT( addSeed() ) );
@@ -102,17 +101,10 @@ SeedListEditor::SeedListEditor( int numSeeds, FlowParams* fp,
 }
 
 
-void SeedListEditor::currentChanged( int row, int  )
+void SeedListEditor::currentChanged( int , int  )
 {
-	checkPushButton(row);
+	checkPushButton();
 }
-void SeedListEditor::selectionChanged( )
-{
-	for (int i = 0; i< table->numRows(); i++){
-		checkPushButton(i);
-	}
-}
-
 
 void SeedListEditor::valueChanged( int row, int col )
 {
@@ -144,7 +136,7 @@ void SeedListEditor::addSeed()
 	table->setText(insertRow,1, QString("0.0"));
 	table->setText(insertRow,2, QString("0.0"));
 	table->setText(insertRow,3, QString(" * "));
-	checkPushButton(insertRow);
+	checkPushButton();
 	changed = true;
     
 }
@@ -156,7 +148,7 @@ void SeedListEditor::deleteSeed()
 		
 		table->removeRow(curRow);
 
-	checkPushButton(curRow);
+	checkPushButton();
 	changed = true;
 }
 
@@ -182,10 +174,13 @@ void SeedListEditor::accept()
 	}
 	QDialog::accept();
 }
-void SeedListEditor::checkPushButton( int row)
+void SeedListEditor::checkPushButton()
 {
-	if (table->isRowSelected(row,true))
-		deletePushButton->setEnabled( true );
-	else 
-		deletePushButton->setEnabled( false );
+	for (int i = 0; i<table->numRows(); i++){
+		if (table->isRowSelected(i,true)){
+			deletePushButton->setEnabled( true );
+			return;
+		}
+	}
+	deletePushButton->setEnabled( false );
 }

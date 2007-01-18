@@ -108,16 +108,17 @@ public:
 	void setRenderNew() {renderNew = true;}
 	void draw3DCursor(const float position[3]);
 
-	void setDirtyBit(Params::ParamType renderType, DirtyBitType t, bool val);
+	void setDirtyBit(DirtyBitType t, bool val);
 	bool vizIsDirty(DirtyBitType t);
 	bool regionIsDirty() {return vizIsDirty(RegionBit);}
-	bool regionIsNavigating() {return vizIsDirty(NavigatingBit);}
+	bool dvrRegionIsNavigating(){return vizIsDirty(DvrRegionBit);}
+	
 	bool lightingIsDirty() {return vizIsDirty(LightingBit);}
 	bool animationIsDirty() {return vizIsDirty(AnimationBit);}
 	
-	void setRegionDirty(bool isDirty){ setDirtyBit(Params::RegionParamsType, RegionBit,isDirty);}
-	void setRegionNavigating(bool isDirty){ setDirtyBit(Params::ViewpointParamsType,NavigatingBit,isDirty);}
-	void setLightingDirty(bool isDirty) {setDirtyBit(Params::DvrParamsType,LightingBit,isDirty);}
+	void setRegionDirty(bool isDirty){ setDirtyBit(RegionBit,isDirty);}
+	void setDvrRegionNavigating(bool isDirty){ setDirtyBit(DvrRegionBit,isDirty);}
+	void setLightingDirty(bool isDirty) {setDirtyBit(LightingBit,isDirty);}
 
 
 

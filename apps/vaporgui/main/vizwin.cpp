@@ -367,8 +367,8 @@ mousePressEvent(QMouseEvent* e){
 		myTrackball->MouseOnTrackball(0, e->button(), e->x(), e->y(), width(), height());
 		setMouseDown(true);
 		mouseDownPosition = e->pos();
-		//Force an update of region params, so low res is shown
-		setDirtyBit(Params::ViewpointParamsType,NavigatingBit,true);
+		//Force an update of dvr region params, so low res is shown
+		setDirtyBit(DvrRegionBit,true);
 	}
 	
 }

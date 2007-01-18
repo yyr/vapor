@@ -157,8 +157,7 @@ int CartesianGrid::getCellVertices(int cellId,
 	int totalCell = xcelldim() * ycelldim() * zcelldim();
 	int xidx, yidx, zidx, index;
 
-	if((cellId < 0) || (cellId >= totalCell))
-		return -1;
+	
 
 	vVertices.clear();
 	zidx = cellId / (xcelldim() * ycelldim());
@@ -197,6 +196,8 @@ int CartesianGrid::getCellVertices(int cellId,
 		return 1;
 	}
 	//Otherwise handle normal case:
+	if((cellId < 0) || (cellId >= totalCell))
+		return -1;
 	for(int kFor = 0; kFor < 2; kFor++)
 		for(int jFor = 0; jFor < 2; jFor++)
             for(int iFor = 0; iFor < 2; iFor++)

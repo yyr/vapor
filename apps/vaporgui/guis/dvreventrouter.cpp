@@ -469,10 +469,10 @@ void DvrEventRouter::updateTab(){
     {
       transferFunctionFrame->setVariableName("");
     }
-
+	//Force the dvr to refresh
 	VizWinMgr::getInstance()->setClutDirty(dvrParams);
     VizWinMgr::getInstance()->setDatarangeDirty(dvrParams);
-	VizWinMgr::getInstance()->setVizDirty(dvrParams,RegionBit,true);
+	VizWinMgr::getInstance()->setVizDirty(dvrParams,DvrRegionBit,true, true);
 
 	
 	//Disable the typeCombo whenever the renderer is enabled:
@@ -575,7 +575,7 @@ guiSetNumRefinements(int num){
 	dParams->setNumRefinements(newNum);
 	if (newNum != num) refinementCombo->setCurrentItem(newNum);
 	PanelCommand::captureEnd(cmd, dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit,true);
+	VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
 }
 void DvrEventRouter::
 guiSetEnabled(bool value, int instance){
@@ -613,7 +613,7 @@ guiSetEnabled(bool value, int instance){
 	setDatarangeDirty(dParams);
 	setEditorDirty();
 	vizWinMgr->setClutDirty(dParams);
-	vizWinMgr->setVizDirty(dParams,RegionBit,true);
+	vizWinMgr->setVizDirty(dParams,DvrRegionBit,true);
 
 	if (dParams->getMapperFunc())
     {
@@ -664,7 +664,7 @@ guiSetComboVarNum(int val){
 	
 	dParams->setVarNum(Session::getInstance()->mapMetadataToRealVarNum(val));
 	updateMapBounds(dParams);
-	VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit,true);
+	VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
 	setDatarangeDirty(dParams);
 		
@@ -896,7 +896,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 	if (prevEnabled == nowEnabled) {
 		if (!prevEnabled) return;
 		setDatarangeDirty(dParams);
-		VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit,true);
+		VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
 		return;
 	}
 	
@@ -923,7 +923,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 
 		//force the renderer to refresh region data  (why?)
 		
-		VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit,true);
+		VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
 		setDatarangeDirty(dParams);
 		
         lightingCheckbox->setEnabled(myDvr->hasLighting());

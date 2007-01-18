@@ -162,12 +162,14 @@ void VaporFlow::SetRegion(size_t num_xforms,
 	const size_t* fullDims = dataMgr->GetMetadata()->GetDimension();
 	const std::vector<double> extents = dataMgr->GetMetadata()->GetExtents();
 	int max_xforms = dataMgr->GetMetadata()->GetNumTransforms();
+	size_t fullDataSize[3];
+	dataMgr->GetRegionReader()->GetDim(fullDataSize,num_xforms);
 	for (int i = 0; i< 3; i++){
 		minBlkRegion[i] = min_bdim[i];
 		maxBlkRegion[i] = max_bdim[i];
 		minRegion[i] = min[i];
 		maxRegion[i] = max[i];
-		if (min[i] == 0 && max[i] == ((fullDims[i]>>(max_xforms-num_xforms))-1)) fullInDim[i] = true; 
+		if (min[i] == 0 && max[i] == (fullDataSize[i]-1)) fullInDim[i] = true; 
 		else fullInDim[i] = false;
 		//Establish the period, in case the data is periodic.
 		flowPeriod[i] = (extents[i+3] - extents[i])*((float)fullDims[i])/((float)(fullDims[i]-1)); 

@@ -467,7 +467,7 @@ captureMouseUp(){
 	updateTab();
 	PanelCommand::captureEnd(savedCommand, vpParams);
 	//Set region  dirty
-	VizWinMgr::getInstance()->setVizDirty(vpParams, NavigatingBit, true);
+	VizWinMgr::getInstance()->setVizDirty(vpParams, DvrRegionBit, true);
 	savedCommand = 0;
 	//Force rerender??
 }

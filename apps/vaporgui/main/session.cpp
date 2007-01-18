@@ -927,10 +927,8 @@ void Session::getExtents(int refLevel, float extents[6]){
 	size_t fullMin[3] = {0,0,0};
 	size_t fullMax[3];
 	double dbextents[6];
-	int maxTrans = DataStatus::getInstance()->getNumTransforms();
 	for (int i = 0; i<3; i++){
-		int fullsize = DataStatus::getInstance()->getFullDataSize()[i];
-		fullMax[i] = (fullsize>>(maxTrans - refLevel)) -1;
+		fullMax[i] = (int) DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i) - 1;
 	}
 	DataStatus::getInstance()->mapVoxelToUserCoords(refLevel, fullMin, dbextents);
 	DataStatus::getInstance()->mapVoxelToUserCoords(refLevel, fullMax, dbextents+3);

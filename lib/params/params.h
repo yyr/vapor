@@ -33,14 +33,17 @@ using namespace VetsUtil;
 #define MAXVIZWINS 16
 
 namespace VAPoR{
-//The dirty bits are kept in each GLWindow, one for each type:
+//The dirty bits are kept in each GLWindow, 
+//These are dirty flags that need to be communicated between different params;
+//i.e. a change in one params forces a renderer to rebuild
 enum DirtyBitType {
 	ProbeTextureBit,
-	RegionBit,
+	RegionBit,//Set when the region bounds change
+	DvrRegionBit,//Set when dvr needs to refresh its region data
 	ColorscaleBit,
-	NavigatingBit,
+	NavigatingBit,//Set when the viewpoint changes
     LightingBit,
-	AnimationBit
+	AnimationBit //Set when the current frame number changes
 };
 class XmlNode;
 class MapperFunction;

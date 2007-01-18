@@ -95,6 +95,7 @@ public:
 	//Find the first timestep that has any data
 	int getFirstTimestep(int varnum);
 	size_t getFullDataSize(int dim){return fullDataSize[dim];}
+	size_t getFullSizeAtLevel(int lev, int dim) {return dataAtLevel[lev][dim];}
 	const size_t* getFullDataSize() {return fullDataSize;}
 	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){
 		myReader->MapVoxToUser(0, voxCoords, userCoords, refLevel);
@@ -164,6 +165,7 @@ private:
 	//int numVariables;
 	
 	size_t fullDataSize[3];
+	std::vector<size_t*> dataAtLevel;
 	float extents[6];
 	VDFIOBase* myReader;
 
