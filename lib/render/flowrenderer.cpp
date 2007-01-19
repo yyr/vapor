@@ -62,8 +62,6 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 	steadyFlowCache = new FlowLineData*[numFrames];
 	unsteadyFlowCache = 0;
 	
-	rakeFlowData = new float*[numFrames];
-	listFlowData = new float*[numFrames];
 	numListSeedPointsUsed = new int[numFrames];
 	steadyFlowRGBAs = new float*[numFrames];
 	
@@ -73,15 +71,11 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 	numRakeSeedPointsUsed = 0;
 	for (int i = 0; i<numFrames; i++){
 		steadyFlowCache[i] = 0;
-		
-		//??TEMP??
-		rakeFlowData[i] = 0;
-		listFlowData[i] = 0;
 
 		numListSeedPointsUsed[i] = 0;
 		steadyFlowRGBAs[i] = 0;
 		
-		flowDataDirty[i] = 0;
+		flowDataDirty[i] = false;
 		needRefreshFlag[i] = false;
 		flowMapDirty[i] = 0;
 	}
@@ -110,9 +104,6 @@ FlowRenderer::~FlowRenderer()
 	delete steadyFlowCache;
 	delete steadyFlowRGBAs;
 	if (unsteadyFlowRGBAs) delete unsteadyFlowRGBAs;
-	
-	delete rakeFlowData;
-	delete listFlowData;
 	
 	delete numListSeedPointsUsed;
 	delete needRefreshFlag;
@@ -155,10 +146,15 @@ void FlowRenderer::paintGL()
 	} else { //just rebuild the rgba's if necessary:
 		if (!constColors && flowMapIsDirty(timeStep)){
 			if (flowType != 1)
-				myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
+				if (steadyFlowCache[timeStep]) {
+					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
+					didRebuild = true;
+				}
 			else 
-				myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame);
-			didRebuild = true;
+				if(unsteadyFlowCache) {
+					myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame);
+					didRebuild = true;
+				}
 		}
 	}
 	//OK, now render the cache.  The rgba's were rebuilt too.
@@ -176,6 +172,7 @@ void FlowRenderer::paintGL()
 		setFlowMapClean(timeStep);
 		myGLWindow->setRenderNew();
 	}
+	printOpenGLError();
 }
 //New version of rendering, uses FlowLineData, used on both steady and unsteady flow.
 void FlowRenderer::
@@ -247,10 +244,11 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 				glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
 				glEnable(GL_LIGHT2);
 			}
+			glPopMatrix();
 		} else {
 			glDisable(GL_LIGHTING); //No lights
 		}
-		glPopMatrix();
+		
 	} else {//points are not lit..
 		glDisable(GL_LIGHTING);
 		
@@ -390,7 +388,7 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	glDisable(GL_CLIP_PLANE4);
 	glDisable(GL_CLIP_PLANE5);
 	glPopMatrix();
-
+	printOpenGLError();
 	if (currentFrameNum != lastTimeStep){
 		myGLWindow->setRenderNew();
 		lastTimeStep = currentFrameNum;
@@ -493,6 +491,7 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 		glVertex3fv(startVertex+3*k);
 	}
 	glEnd();
+	
 			
 	//calc for endpoints:
 	for (i = 0; i<6; i++){
@@ -776,7 +775,7 @@ flowDataIsDirty(int timeStep){
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	if (myFlowParams->getFlowType() != 1)
 		return ((flowDataDirty != 0) && flowDataDirty[timeStep]);
-	else return (flowDataDirty != 0);
+	else return false; //The allDataDirty flag indicates the unsteady data is dirty
 }
 bool FlowRenderer::
 flowMapIsDirty(int timeStep){
@@ -870,6 +869,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 		int prevStep, nextStep;
 		int dir;
 		int numTimestepsToRender;
+		bool foundCurrentTimestep;
 		switch (flowType) {
 			case (0): 
 				steadyFlowCache[timeStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, timeStep, minFrame, rParams, false);
@@ -934,13 +934,13 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				//Find the seed time step in the sample time steps
 				//Start at the seed point and go forwards or backwards to current time:
 				//Iterate to find the first sample step that coincides with the first (and only)
-				//seed time
+				//seed time.
 				int startSampleNum;
 				
 				for (int i = 0;; i++){
 					prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
 					if (prevStep < 0) {
-						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Invalid sampling/seed times for field line advection");
+						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Error: seed time is not a sample time for field line advection");
 						return false;
 					}
 					if (prevStep == myFlowParams->getSeedTimeStart()) {
@@ -959,8 +959,19 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				//  (stop if we are at or beyond the current time step)
 				//2.  Perform unsteady integration to the next sample time. 
 				//
-				//Note that we assume the current time step is a sample time.  If it's not
+				//Check to be sure the current timestep is a sample time.  If it's not
 				//Then we won't build the steady flow there.
+				foundCurrentTimestep = false;
+				for (int i = startSampleNum;; i++){
+					int tstep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
+					if (tstep < 0) break;
+					if (tstep == timeStep) foundCurrentTimestep = true;
+				}
+				if (!foundCurrentTimestep){
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Field Line advection error:\nCurrent timestep %d is not a sample time", timeStep);
+					return false;
+				}
+
 				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 				for (int i = startSampleNum;; i++){
 					prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
@@ -1040,7 +1051,7 @@ setAllNeedRefresh(bool value){
 	for (int i = 0; i< mxframe; i++){
 		needRefreshFlag[i] = value;
 	}
-	unsteadyNeedsRefreshFlag = true;
+	unsteadyNeedsRefreshFlag = value;
 }
 //Map periodic coords into data extents.
 //This is called each time a new point is rendered along a stream line.  oldcycle is initially (0,0,0)
@@ -1634,7 +1645,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 			
 		} //end of one tube rendering.  
 		
-
+		printOpenGLError();
 	} //end of loop over seedPoints
 	
 	

@@ -253,12 +253,12 @@ textToSlider(RegionParams* rp, int coord, float newCenter, float newSize){
 	//Then push the center to the middle if the region doesn't fit
 	bool centerChanged = false;
 	bool sizeChanged = false;
-	DataStatus* ds = DataStatus::getInstance();
+	Session* ses = Session::getInstance();
 	const float* extents; 
 	float regMin = 0.f;
 	float regMax = 1.f;
-	if (ds){
-		extents = DataStatus::getInstance()->getExtents();
+	if (ses){
+		extents = ses->getExtents();
 		regMin = extents[coord];
 		regMax = extents[coord+3];
 	}
@@ -345,12 +345,12 @@ sliderToText(RegionParams* rp, int coord, int slideCenter, int slideSize){
 	//force the size to be no greater than the max possible.
 	//And force the center to fit in the region.  
 	//Then push the center to the middle if the region doesn't fit
-	DataStatus* ds = DataStatus::getInstance();
+	Session* ses = Session::getInstance();
 	const float* extents; 
 	float regMin = 0.f;
 	float regMax = 1.f;
-	if (ds){
-		extents = DataStatus::getInstance()->getExtents();
+	if (ses){
+		extents = ses->getExtents();
 		regMin = extents[coord];
 		regMax = extents[coord+3];
 	}
@@ -416,9 +416,9 @@ refreshRegionInfo(RegionParams* rParams){
 	size_t bs = 32;
 	int mdVarNum = variableCombo->currentItem();
 	//This index is only relevant to metadata numbering
-	//Session* ses = Session::getInstance();
+	Session* ses = Session::getInstance();
 	DataStatus* ds= DataStatus::getInstance();
-	if (!ds || !ds->getDataMgr()) return;
+	if (!ds->getDataMgr()) ds = 0;
 	int timeStep = timestepSpin->value();
 	//Distinguish between the actual data available and the numtransforms
 	//in the metadata.  If the data isn't there, we will display blanks
@@ -436,7 +436,7 @@ refreshRegionInfo(RegionParams* rParams){
 
 	int refLevel = refinementCombo->currentItem();
 	
-	const float* fullDataExtents = ds->getExtents();
+	const float* fullDataExtents = ses->getExtents();
 
 	fullMinXLabel->setText(QString::number(fullDataExtents[0], 'g', 5));
 	fullMinYLabel->setText(QString::number(fullDataExtents[1], 'g', 5));
@@ -472,7 +472,7 @@ refreshRegionInfo(RegionParams* rParams){
 	size_t min_bdim[3], max_bdim[3];
 	
 	// if region isn't valid just don't show the bounds:
-	if (refLevel <= maxRefLevel){
+	if (ds && refLevel <= maxRefLevel){
 		rParams->getRegionVoxelCoords(refLevel,min_dim,max_dim,min_bdim,max_bdim);
 		minXVoxSelectedLabel->setText(QString::number(min_dim[0]));
 		minYVoxSelectedLabel->setText(QString::number(min_dim[1]));
@@ -508,7 +508,7 @@ refreshRegionInfo(RegionParams* rParams){
 	
 	double var_ext[6];
 	int rc = -1;
-	if (refLevel <= maxRefLevel && ds->getDataMgr())
+	if (ds && refLevel <= maxRefLevel )
 		rc = ((DataMgr*)ds->getDataMgr())->GetValidRegion(timeStep, varName.c_str(),refLevel, min_vdim, max_vdim);
 	if (rc>= 0)	{
 		minXVoxVarLabel->setText(QString::number(min_vdim[0]));

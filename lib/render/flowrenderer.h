@@ -137,9 +137,8 @@ protected:
 	//These are mapped to flowRGBs and speeds are released
 	//after the data is obtained.
 	//There is potentially one array for each timestep (with streamlines)
-	//With Pathlines, there is one array, rakeFlowData[0].
-	float** rakeFlowData;
-	float** listFlowData;
+	//With Pathlines, there is one array, 
+	
 	//Array of pointers to FlowLineData containers
 	FlowLineData** steadyFlowCache;
 	

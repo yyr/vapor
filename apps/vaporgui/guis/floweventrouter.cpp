@@ -1575,6 +1575,7 @@ void FlowEventRouter::
 guiSetFlowType(int typenum){
 	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	if (fParams->getFlowType() == typenum) return;
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set flow type");
 	fParams->setFlowType(typenum);
 	if (typenum == 0){
@@ -1589,6 +1590,14 @@ guiSetFlowType(int typenum){
 	PanelCommand::captureEnd(cmd, fParams);
 	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+	//If refresh is not auto, clear the needs refresh flags
+	if (!fParams->refreshIsAuto()){
+		FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(fParams);
+		if (!fRenderer) return;
+		//Clear all the needs refresh flags:
+		fRenderer->setAllNeedRefresh(false);
+		refreshButton->setEnabled(true);
+	}
 }
 void FlowEventRouter::
 guiSetSteadyDirection(int comboIndex){

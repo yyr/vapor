@@ -888,7 +888,7 @@ void MainForm::loadData()
 		QFileInfo fInfo(filename);
 		if (fInfo.isReadable() && fInfo.isFile())
 			Session::getInstance()->resetMetadata(filename.ascii(), true);
-		else MessageReporter::errorMsg(" %s is not a valid metadata file", filename.ascii());
+		else MessageReporter::errorMsg("Unable to read metadata file %s", filename.ascii());
 	}
 	
 }

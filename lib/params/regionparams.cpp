@@ -116,6 +116,7 @@ restart(){
 	infoVarNum = 0;
 	infoTimeStep = 0;
 	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) ds = 0;
 	const float* fullDataExtents;
 	if (ds) fullDataExtents = DataStatus::getInstance()->getExtents();
 	
@@ -167,7 +168,7 @@ reinit(bool doOverride){
 void RegionParams::setRegionMin(int coord, float minval, bool checkMax){
 	DataStatus* ds = DataStatus::getInstance();
 	const float* fullDataExtents;
-	if (ds){
+	if (ds->getDataMgr()){
 		fullDataExtents = ds->getExtents();
 		if (minval < fullDataExtents[coord]) minval = fullDataExtents[coord];
 		if (minval > fullDataExtents[coord+3]) minval = fullDataExtents[coord+3];
@@ -178,7 +179,7 @@ void RegionParams::setRegionMin(int coord, float minval, bool checkMax){
 void RegionParams::setRegionMax(int coord, float maxval, bool checkMin){
 	DataStatus* ds = DataStatus::getInstance();
 	const float* fullDataExtents;
-	if (ds){
+	if (ds->getDataMgr()){
 		fullDataExtents = DataStatus::getInstance()->getExtents();
 		if (maxval < fullDataExtents[coord]) maxval = fullDataExtents[coord];
 		if (maxval > fullDataExtents[coord+3]) maxval = fullDataExtents[coord+3];

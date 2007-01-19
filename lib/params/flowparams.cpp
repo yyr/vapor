@@ -201,7 +201,7 @@ restart() {
 	generatorCount[0]=generatorCount[1]=generatorCount[2] = 1;
 
 	allGeneratorCount = 10;
-	seedTimeStart = 1; 
+	seedTimeStart = 0; 
 	seedTimeEnd = 100; 
 	seedTimeIncrement = 1;
 	currentDimension = 0;
