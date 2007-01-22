@@ -5,6 +5,7 @@ GUI_FILES := \
 	regioneventrouter viewpointeventrouter probeeventrouter \
 	probeframe glprobewindow \
 	DomainWidget GLWidget OpacityWidget \
+	qthumbwheel \
 	TFLocationTip ControlPointEditor MappingFrame ColorbarWidget
 
 
@@ -15,6 +16,7 @@ GUI_QT_HEADERS := \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
 	DomainWidget GLWidget OpacityWidget ControlPointEditor \
+	qthumbwheel \
 	MappingFrame ColorbarWidget
 
 

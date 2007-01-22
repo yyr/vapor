@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>437</width>
-            <height>1306</height>
+            <width>450</width>
+            <height>1284</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout145</cstring>
+                <cstring>layout82</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -254,7 +254,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>39</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -274,7 +274,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout74</cstring>
+                                <cstring>layout81</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -282,7 +282,7 @@
                                 </property>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout82</cstring>
+                                        <cstring>layout38</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -300,7 +300,7 @@
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>34</width>
+                                                    <width>20</width>
                                                     <height>21</height>
                                                 </size>
                                             </property>
@@ -310,7 +310,7 @@
                                                 <cstring>textLabel1_2</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Refinement</string>
+                                                <string>Refinement Level</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -366,7 +366,35 @@
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>34</width>
+                                                    <width>30</width>
+                                                    <height>21</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>planarCheckbox</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Planar</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Check to force probe to be planar</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer34_3</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>81</width>
                                                     <height>21</height>
                                                 </size>
                                             </property>
@@ -953,7 +981,7 @@
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout34</cstring>
+                                        <cstring>layout80</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -1054,7 +1082,7 @@
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>18</width>
+                                                    <width>16</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -1106,34 +1134,6 @@
                                                                 <string>Phi angle (angle from +Z) of probe normal vector</string>
                                                             </property>
                                                         </widget>
-                                                        <widget class="QSlider" row="0" column="1">
-                                                            <property name="name">
-                                                                <cstring>thetaSlider</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>7</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="minValue">
-                                                                <number>0</number>
-                                                            </property>
-                                                            <property name="maxValue">
-                                                                <number>360</number>
-                                                            </property>
-                                                            <property name="value">
-                                                                <number>128</number>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>theta (rotation angle from +X axis)of probe normal vector</string>
-                                                            </property>
-                                                        </widget>
                                                         <widget class="QLineEdit" row="0" column="2">
                                                             <property name="name">
                                                                 <cstring>thetaEdit</cstring>
@@ -1176,37 +1176,85 @@
                                                                 <set>WordBreak|AlignCenter</set>
                                                             </property>
                                                         </widget>
-                                                        <widget class="QSlider" row="1" column="1">
-                                                            <property name="name">
-                                                                <cstring>phiSlider</cstring>
-                                                            </property>
-                                                            <property name="sizePolicy">
-                                                                <sizepolicy>
-                                                                    <hsizetype>7</hsizetype>
-                                                                    <vsizetype>7</vsizetype>
-                                                                    <horstretch>0</horstretch>
-                                                                    <verstretch>0</verstretch>
-                                                                </sizepolicy>
-                                                            </property>
-                                                            <property name="minValue">
-                                                                <number>0</number>
-                                                            </property>
-                                                            <property name="maxValue">
-                                                                <number>180</number>
-                                                            </property>
-                                                            <property name="value">
-                                                                <number>128</number>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="toolTip" stdset="0">
-                                                                <string>Phi angle (angle from +Z) of probe normal vector</string>
-                                                            </property>
-                                                        </widget>
                                                     </grid>
                                                 </widget>
                                             </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout79</cstring>
+                                            </property>
+                                            <grid>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel" row="0" column="0">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_5</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>X</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignVCenter|AlignRight</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QThumbWheel" row="1" column="1">
+                                                    <property name="name">
+                                                        <cstring>thumbWheel8</cstring>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>120</width>
+                                                            <height>20</height>
+                                                        </size>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QThumbWheel" row="2" column="1">
+                                                    <property name="name">
+                                                        <cstring>thumbWheel9</cstring>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>120</width>
+                                                            <height>20</height>
+                                                        </size>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="1" column="0">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_5_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Y</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignVCenter|AlignRight</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel" row="2" column="0">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_5_2_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Z</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignVCenter|AlignRight</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QThumbWheel" row="0" column="1">
+                                                    <property name="name">
+                                                        <cstring>thumbWheel7</cstring>
+                                                    </property>
+                                                    <property name="minimumSize">
+                                                        <size>
+                                                            <width>120</width>
+                                                            <height>20</height>
+                                                        </size>
+                                                    </property>
+                                                </widget>
+                                            </grid>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -2364,6 +2412,22 @@ Selected Point</string>
         <signal>copyInstance(int, int)</signal>
         <signal>renameInstance(int, QString&amp;)</signal>
     </customwidget>
+    <customwidget>
+        <class>QThumbWheel</class>
+        <header location="local">../../guis/qthumbwheel.h</header>
+        <sizehint>
+            <width>-1</width>
+            <height>-1</height>
+        </sizehint>
+        <container>0</container>
+        <sizepolicy>
+            <hordata>5</hordata>
+            <verdata>5</verdata>
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+        </sizepolicy>
+        <pixmap>image1</pixmap>
+    </customwidget>
 </customwidgets>
 <images>
     <image name="image0">
@@ -2376,6 +2440,9 @@ Selected Point</string>
 <layoutdefaults spacing="6" margin="11"/>
 <includehints>
     <includehint>instancetable.h</includehint>
+    <includehint>qthumbwheel.h</includehint>
+    <includehint>qthumbwheel.h</includehint>
+    <includehint>qthumbwheel.h</includehint>
     <includehint>probeframe.h</includehint>
     <includehint>vapor::mappingframe.h</includehint>
 </includehints>

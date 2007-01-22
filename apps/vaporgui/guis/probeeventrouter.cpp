@@ -136,8 +136,7 @@ ProbeEventRouter::hookUpTab()
 	connect (xSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeXSize()));
 	connect (ySizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeYSize()));
 	connect (zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeZSize()));
-	connect (thetaSlider, SIGNAL(sliderReleased()), this, SLOT (guiReleaseThetaSlider()));
-	connect (phiSlider, SIGNAL(sliderReleased()), this, SLOT (guiReleasePhiSlider()));
+	
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(probeLoadTF()));
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(probeSaveTF()));
 	
@@ -361,10 +360,6 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 
 	probeParams->setTheta(thetaVal);
 	probeParams->setPhi(phiVal);
-	int thetaInt = (int)(thetaVal + 180.5f);
-	int phiInt = (int)(phiVal + 0.5f);
-	if (thetaSlider->value() != thetaInt) thetaSlider->setValue(thetaInt);
-	if (phiSlider->value() != phiInt) phiSlider->setValue(phiInt);
 
 	probeParams->setHistoStretch(histoScaleEdit->text().toFloat());
 
@@ -592,14 +587,7 @@ void ProbeEventRouter::updateTab(){
 	refinementCombo->setCurrentItem(probeParams->getNumRefinements());
 	histoScaleEdit->setText(QString::number(probeParams->getHistoStretch()));
 
-	//set the theta/phi sliders
-	float thetaVal = probeParams->getTheta();
-	float phiVal = probeParams->getPhi();
-	int thetaInt = (int)(thetaVal + 180.5f);
-	int phiInt = (int)(phiVal + 0.5f);
-	if (thetaSlider->value() != thetaInt) thetaSlider->setValue(thetaInt);
-	if (phiSlider->value() != phiInt) phiSlider->setValue(phiInt);
-
+	
 	//Set the values of box extents:
 	float probeMin[3],probeMax[3];
 	probeParams->getBox(probeMin,probeMax);
@@ -1076,33 +1064,7 @@ guiSetZSize(int sliderval){
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 
 }
-void ProbeEventRouter::
-guiReleaseThetaSlider(){
-	confirmText(false);
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "move theta slider");
-	int sliderVal = thetaSlider->value();
-	pParams->setTheta((float)(sliderVal-180));
-	PanelCommand::captureEnd(cmd, pParams);
-	pParams->setProbeDirty();
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-	updateTab();
-}
-void ProbeEventRouter::
-guiReleasePhiSlider(){
-	confirmText(false);
-	
-	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "move theta slider");
-	int sliderVal = phiSlider->value();
-	pParams->setPhi((float)sliderVal);
-	PanelCommand::captureEnd(cmd, pParams);
-	pParams->setProbeDirty();
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
-	updateTab();
-}
+
 void ProbeEventRouter::
 guiSetNumRefinements(int n){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();

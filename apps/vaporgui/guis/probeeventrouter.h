@@ -138,8 +138,7 @@ protected slots:
 	void guiCenterProbe();
 	void probeAddSeed();
 	void probeAttachSeed(bool attach);
-	void guiReleaseThetaSlider();
-	void guiReleasePhiSlider();
+	
 	void guiChangeVariables();
 	void setProbeXCenter();
 	void setProbeYCenter();

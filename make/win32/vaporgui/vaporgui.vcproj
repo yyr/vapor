@@ -217,6 +217,9 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\probeframe.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\qthumbwheel.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\regioneventrouter.cpp">
 			</File>
 			<File
@@ -655,6 +658,29 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\qthumbwheel.h">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing qthumbwheel.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qthumbwheel.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_qthumbwheel.cpp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing qthumbwheel.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\qthumbwheel.h -o ..\..\..\apps\vaporgui\moc\moc_qthumbwheel.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_qthumbwheel.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\regioneventrouter.h">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -959,6 +985,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_probetab.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_qthumbwheel.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_regioneventrouter.cpp">
