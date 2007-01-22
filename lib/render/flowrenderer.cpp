@@ -131,6 +131,7 @@ void FlowRenderer::paintGL()
 	int flowType = myFlowParams->getFlowType();
 	int timeStep = currentFrameNum;
 	bool didRebuild = false;
+	bool didRemap = false;
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex()) == 0);
 	
 	constFlowColor[3] = myFlowParams->getConstantOpacity();
@@ -143,17 +144,18 @@ void FlowRenderer::paintGL()
 	if ((flowDataIsDirty(timeStep) && needsRefresh(myFlowParams,timeStep))){
 		if(!rebuildFlowData(timeStep)) return;
 		didRebuild = true;
+		didRemap = true;
 	} else { //just rebuild the rgba's if necessary:
 		if (!constColors && flowMapIsDirty(timeStep)){
 			if (flowType != 1)
 				if (steadyFlowCache[timeStep]) {
 					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
-					didRebuild = true;
+					didRemap = true;
 				}
 			else 
 				if(unsteadyFlowCache) {
 					myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame);
-					didRebuild = true;
+					didRemap = true;
 				}
 		}
 	}
@@ -166,7 +168,9 @@ void FlowRenderer::paintGL()
 			renderFlowData(unsteadyFlowCache,constColors, currentFrameNum);
 	}
 		
-	
+	if (didRemap) {
+		setFlowMapClean(timeStep);
+	}
 	if (didRebuild){
 		setFlowDataClean(timeStep);
 		setFlowMapClean(timeStep);
@@ -292,7 +296,8 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	if (diam < 1.e-10) diam = 1.e-10f;
 
 	//Set up size constants:
-	//voxelSize is actually the max of the sides of the voxel in user coords
+	//voxelSize is actually the max of the sides of the voxel in user coords,
+	//At full resolution
 	const float* fullExtent = DataStatus::getInstance()->getExtents();
 	const size_t* fullDims = DataStatus::getInstance()->getFullDataSize();
 	voxelSize = Max((fullExtent[5]-fullExtent[2])/fullDims[0],
@@ -310,7 +315,7 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	if (myFlowParams->getFlowType() != 1){
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
-			if (diam < 2.f){//Render as lines, not cylinders
+			if (diam < 0.2f){//Render as lines, not cylinders
 				renderCurves(flowLineData, diam, (nLights>0), 0, mxPoints-1, constColors);
 			
 			} else { //render as cylinders
@@ -869,7 +874,6 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 		int prevStep, nextStep;
 		int dir;
 		int numTimestepsToRender;
-		bool foundCurrentTimestep;
 		switch (flowType) {
 			case (0): 
 				steadyFlowCache[timeStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, timeStep, minFrame, rParams, false);
@@ -940,7 +944,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				for (int i = 0;; i++){
 					prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
 					if (prevStep < 0) {
-						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Error: seed time is not a sample time for field line advection");
+						MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Seed time is not a sample time for field line advection");
 						return false;
 					}
 					if (prevStep == myFlowParams->getSeedTimeStart()) {
@@ -959,19 +963,9 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				//  (stop if we are at or beyond the current time step)
 				//2.  Perform unsteady integration to the next sample time. 
 				//
-				//Check to be sure the current timestep is a sample time.  If it's not
-				//Then we won't build the steady flow there.
-				foundCurrentTimestep = false;
-				for (int i = startSampleNum;; i++){
-					int tstep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
-					if (tstep < 0) break;
-					if (tstep == timeStep) foundCurrentTimestep = true;
-				}
-				if (!foundCurrentTimestep){
-					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Field Line advection error:\nCurrent timestep %d is not a sample time", timeStep);
-					return false;
-				}
 
+				//Note that we assume the current time step is a sample time.  If it's not
+				//Then we won't build the steady flow there.
 				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 				for (int i = startSampleNum;; i++){
 					prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
@@ -979,7 +973,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					if (timeStep != prevStep) {
 						if (prevStep < 0 || nextStep < 0) { 
 							// past the end...
-							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Flow timestep setup error:\nCannot advect beyond sampled timesteps");
+							MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Field Line Advection\nCannot advect to unsampled timestep %d", timeStep);
 							QApplication::restoreOverrideCursor();
 							return false;
 						}

@@ -895,9 +895,9 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, Regio
 	myFlowLib->ScaleSteadyTimeStepSizes(steadyScale, 1.f/(float)objectsPerFlowline);
 	
 	//Note:  Following duplicates code in calcMaxPoints()
-	maxPoints = objectsPerFlowline+1;
+	maxPoints = objectsPerFlowline;
 	if (maxPoints < 2) maxPoints = 2;
-	if (steadyFlowDirection == 0 && maxPoints < 4) maxPoints = 4;
+	if (steadyFlowDirection == 0 && maxPoints < 3) maxPoints = 3;
 
 	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
 	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
@@ -1053,9 +1053,9 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 	myFlowLib->ScaleSteadyTimeStepSizes(steadyScale, 1.f/(float)objectsPerFlowline);
 	
 	//Note:  Following duplicates code in calcMaxPoints()
-	maxPoints = objectsPerFlowline+1;
+	maxPoints = objectsPerFlowline;
 	if (maxPoints < 2) maxPoints = 2;
-	if (steadyFlowDirection == 0 && maxPoints < 4) maxPoints = 4;
+	if (steadyFlowDirection == 0 && maxPoints < 3) maxPoints = 3;
 
 	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
 	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
@@ -2426,9 +2426,9 @@ int FlowParams::calcMaxPoints(){
 	
 	if (flowType != 1) { //steady or flow line advection
 		
-		maxPoints = objectsPerFlowline+1;
+		maxPoints = objectsPerFlowline;
 		if (maxPoints < 2) maxPoints = 2;
-		if (steadyFlowDirection == 0 && maxPoints < 4) maxPoints = 4;
+		if (steadyFlowDirection == 0 && maxPoints < 3) maxPoints = 3;
 	} else {
 		
 		//For unsteady flow, use the time steps in the DataStatus.

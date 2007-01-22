@@ -181,8 +181,7 @@ protected:
 	int seedIncrement, startSeed, endSeed, firstDisplayAge, lastDisplayAge;
 	float objectsPerTimestep;
 	bool doList, doRake;
-	float* flowDataArray;
-	float* flowRGBAs;
+	
 	int maxPoints;
 	int numSeedPoints;
 	bool regionIsValid;

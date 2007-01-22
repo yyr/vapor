@@ -1450,7 +1450,6 @@ guiCenterRake(const float* coords){
 	fParams->setBox(seedBoxMin, seedBoxMax);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 //Add an individual seed to the set of seeds
@@ -1566,7 +1565,6 @@ guiSetRakeToRegion(){
 	}
 	fParams->setBox(seedBoxMin,seedBoxMax);
 	PanelCommand::captureEnd(cmd, fParams);
-	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	
@@ -1609,6 +1607,7 @@ guiSetSteadyDirection(int comboIndex){
 	fParams->setSteadyDirection(flowDir);
 	PanelCommand::captureEnd(cmd, fParams);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 }
 void FlowEventRouter::
 guiSetUnsteadyDirection(int comboIndex){
@@ -1620,6 +1619,7 @@ guiSetUnsteadyDirection(int comboIndex){
 	fParams->setUnsteadyDirection(flowDir);
 	PanelCommand::captureEnd(cmd, fParams);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 }
 void FlowEventRouter::
 guiSetNumRefinements(int n){
@@ -1644,7 +1644,7 @@ guiSetXComboSteadyVarNum(int varnum){
 	fParams->setComboSteadyVarnum(0,varnum);
 	fParams->setXSteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1655,7 +1655,7 @@ guiSetYComboSteadyVarNum(int varnum){
 	fParams->setComboSteadyVarnum(1,varnum);
 	fParams->setYSteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1666,7 +1666,7 @@ guiSetZComboSteadyVarNum(int varnum){
 	fParams->setComboSteadyVarnum(2,varnum);
 	fParams->setZSteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1677,7 +1677,7 @@ guiSetXComboSeedDistVarNum(int varnum){
 	fParams->setComboSeedDistVarnum(0,varnum);
 	fParams->setXSeedDistVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1688,7 +1688,7 @@ guiSetYComboSeedDistVarNum(int varnum){
 	fParams->setComboSeedDistVarnum(1,varnum);
 	fParams->setYSeedDistVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1699,7 +1699,7 @@ guiSetZComboSeedDistVarNum(int varnum){
 	fParams->setComboSeedDistVarnum(2,varnum);
 	fParams->setZSeedDistVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1710,7 +1710,7 @@ guiSetXComboPriorityVarNum(int varnum){
 	fParams->setComboPriorityVarnum(0,varnum);
 	fParams->setXPriorityVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1721,7 +1721,7 @@ guiSetYComboPriorityVarNum(int varnum){
 	fParams->setComboPriorityVarnum(1,varnum);
 	fParams->setYPriorityVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1732,7 +1732,7 @@ guiSetZComboPriorityVarNum(int varnum){
 	fParams->setComboPriorityVarnum(2,varnum);
 	fParams->setZPriorityVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1743,7 +1743,7 @@ guiSetXComboUnsteadyVarNum(int varnum){
 	fParams->setComboUnsteadyVarnum(0,varnum);
 	fParams->setXUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1754,7 +1754,7 @@ guiSetYComboUnsteadyVarNum(int varnum){
 	fParams->setComboUnsteadyVarnum(1,varnum);
 	fParams->setYUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1765,7 +1765,7 @@ guiSetZComboUnsteadyVarNum(int varnum){
 	fParams->setComboUnsteadyVarnum(2,varnum);
 	fParams->setZUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToRealVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
-	
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 
@@ -1899,6 +1899,7 @@ guiCheckPeriodicX(bool periodic){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic X coords");
 	fParams->setPeriodicDim(0,periodic);
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
 	
@@ -1909,6 +1910,7 @@ guiCheckPeriodicY(bool periodic){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic Y coords");
 	fParams->setPeriodicDim(1,periodic);
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
 	
@@ -1919,6 +1921,7 @@ guiCheckPeriodicZ(bool periodic){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic Z coords");
 	fParams->setPeriodicDim(2,periodic);
+	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
 	
@@ -2801,7 +2804,6 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,  bool newWindow){
 		viz->getGLWindow()->prependRenderer(fParams,myRenderer);
 		myRenderer->setAllNeedRefresh(fParams->refreshIsAuto());
 		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-		
 		vizWinMgr->setFlowDataDirty(fParams);
 		return;
 	}
