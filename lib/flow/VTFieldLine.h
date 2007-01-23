@@ -161,7 +161,8 @@ protected:
 								   list<float>* stepList,
 								   bool bRecordSeed,
 								   int traceState,
-								   float remainingTime = 0.f);
+								   float remainingTime = 0.f,
+								   bool doingFLA = false);
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -251,19 +252,21 @@ public:
 	vtCStreakLine(CVectorField* pField);
 	~vtCStreakLine(void);
 	//void execute(const float t, float* points, const unsigned int* startPositions, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
-	void execute(const float t, PathLineData* container, bool bInjectSeeds);
+	void execute(const float t, PathLineData* container, bool bInjectSeeds, bool doingFLA);
 	int addSeeds(int tstep, PathLineData* container);
 protected:
 	
 
 	// code specific to streakline
-	void computeStreakLine(const float t, PathLineData* container, bool bInjectSeeds);
+	void computeStreakLine(const float t, PathLineData* container, bool bInjectSeeds,
+		bool doingFLA);
 	int advectOldParticles(vtListParticleIter start, 
 							vtListParticleIter end, 
 							PathLineData* container,
 							float initialTime, 
 							float finalTime,
-							vector<vtListParticleIter>& deadList);
+							vector<vtListParticleIter>& deadList,
+							bool doingFLA);
 							
 };
 

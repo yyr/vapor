@@ -485,7 +485,8 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 								   list<float>* stepList,
 								   bool bRecordSeed,
 								   int traceState,
-								   float remainingTime)
+								   float remainingTime,
+								   bool doFLA)
 {
 	list<VECTOR3*>::iterator pIter1;
 	list<VECTOR3*>::iterator pIter2;
@@ -605,8 +606,11 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 
 	//After exiting the loop we got to the end
 	//of the data to be resampled. 
-	//Output the out of bounds end point if the line went out of bounds.
-	if (traceState == OUT_OF_BOUND){
+	//Output the out of bounds end point if the line went out of bounds,
+	//Providing we are not doing FLA.
+	//( with FLA, do not do anything, leave last point alone)
+
+	if (!doFLA && traceState == OUT_OF_BOUND){
 		pIter1++;
 		nextTime += m_fSamplingRate*direction;
 		float x1 = (**pIter1)[0];

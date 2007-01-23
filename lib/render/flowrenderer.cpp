@@ -904,7 +904,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					numTimestepsToRender++;
 					//At some point we might allow users to interrupt at this point:
 					//The following is time consuming...
-					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep);
+					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep, false);
 					if (!OK) {
 						delete unsteadyFlowCache;
 						unsteadyFlowCache = 0;
@@ -1003,7 +1003,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					//To do the next step, need first to advect from prevStep:
 					//extend the pathline from prevstep to nextstep
 					
-					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep);
+					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep, true);
 					if (!OK) {
 						QApplication::restoreOverrideCursor();
 						return false;

@@ -45,18 +45,20 @@ vtCStreakLine::~vtCStreakLine(void)
 //////////////////////////////////////////////////////////////////////////
 void vtCStreakLine::execute(const float t, 
 							PathLineData* container, 
-							bool bInjectSeeds)
+							bool bInjectSeeds,
+							bool doingFLA)
 							
 							
 {
-	computeStreakLine(t, container, bInjectSeeds);
+	computeStreakLine(t, container, bInjectSeeds, doingFLA);
 }
 ////////////////////////////////////////////////
 // New version uses path line data and lineNums
 //////////////////////////////////////////////
 void vtCStreakLine::computeStreakLine(const float t, 
 									  PathLineData* container,
-									  bool bInjectSeeds)
+									  bool bInjectSeeds,
+									  bool doingFLA)
 {
 	float currentT = t;
 	float finalT = currentT + m_timeDir;
@@ -77,7 +79,8 @@ void vtCStreakLine::computeStreakLine(const float t,
 						container,
 						currentT, 
 						finalT, 
-						deadList);
+						deadList,
+						doingFLA);
 
 	if(bInjectSeeds)
 	{
@@ -122,7 +125,8 @@ void vtCStreakLine::computeStreakLine(const float t,
 						nextP.m_pointInfo.phyCoord[2]);
 #endif
 	
-				nextP.unusedTime = SampleFieldline(container, currentT, finalT, thisSeed->ptId, dir, forwardTrace, stepList, true, istat, 0.f);	
+				nextP.unusedTime = SampleFieldline(container, currentT, finalT, thisSeed->ptId, dir, 
+					forwardTrace, stepList, true, istat, 0.f, doingFLA);	
 
 #ifdef DEBUG
 				fprintf(fDebug, "istat = %d, posInPoints = %u\n", istat, posInPoints);
@@ -182,7 +186,8 @@ int vtCStreakLine::advectOldParticles( vtListParticleIter start,
 										PathLineData* container,
 										float initialTime,
 										float finalTime,
-										vector<vtListParticleIter>& deadList)
+										vector<vtListParticleIter>& deadList,
+										bool doingFLA)
 										
 {
 	int numAdvected = 0;
@@ -225,7 +230,9 @@ int vtCStreakLine::advectOldParticles( vtListParticleIter start,
 				thisParticle->m_pointInfo.phyCoord[2]);
 #endif
 		float timeLeft = thisParticle->unusedTime;
-		thisParticle->unusedTime = SampleFieldline(container, initialTime, finalTime, thisParticle->ptId, dir, forwardTrace, stepList, false, istat, timeLeft);	
+		thisParticle->unusedTime = SampleFieldline(container, initialTime, finalTime, 
+			thisParticle->ptId, dir, forwardTrace, stepList, 
+			false, istat, timeLeft, doingFLA);	
 		
 
 #ifdef DEBUG

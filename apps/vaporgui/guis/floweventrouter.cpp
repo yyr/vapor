@@ -69,6 +69,7 @@
 #include "vapor/XmlNode.h"
 #include "vapor/VDFIOBase.h"
 #include "vapor/flowlinedata.h"
+#include "vapor/VaporFlow.h"
 #include "tabmanager.h"
 #include "glutil.h"
 #include "flowparams.h"
@@ -448,7 +449,6 @@ void FlowEventRouter::populateTimestepTables(){
 	timestepSampleCheckbox2->setChecked(fParams->usingTimestepSampleList());
 }
 
-
 void FlowEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
 	bool needRegen = flowDataChanged;
@@ -491,9 +491,11 @@ void FlowEventRouter::confirmText(bool /*render*/){
 	bool autoscale = fParams->isAutoScale();
 	if (flowDataChanged){
 		//Do settings that depend on flowType:
+		float seedDistBias;
 		if (flowType == 0){
-			fParams->setSeedDistBias(biasEdit1->text().toFloat());
-			
+			seedDistBias = biasEdit1->text().toFloat();
+			if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
+			biasSlider1->setValue((int)(seedDistBias*128.f/10.f));
 			if (!autoscale){
 				int sampleRate = steadySamplesEdit1->text().toInt();
 				if (sampleRate < 2 || sampleRate > 2000){
@@ -529,8 +531,9 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		}
 
 		if (flowType == 1){
-			fParams->setSeedDistBias(biasEdit2->text().toFloat());
-			
+			seedDistBias = biasEdit2->text().toFloat();
+			if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
+			biasSlider2->setValue((int)(seedDistBias*128.f/10.f));
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
@@ -579,7 +582,9 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			
 			fParams->setPriorityMin(priorityFieldMinEdit->text().toFloat());
 			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
-			fParams->setSeedDistBias(biasEdit3->text().toFloat());
+			seedDistBias = biasEdit3->text().toFloat();
+			if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
+			biasSlider3->setValue((int)(seedDistBias*128.f/10.f));
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit2->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit2->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit2->text().toInt());
@@ -687,6 +692,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setSeedTimeIncrement(seedTimeIncrement);
 			
 		} //end of rake settings for unsteady flow
+		fParams->setSeedDistBias(seedDistBias);
 	} // end of flow Data changed
 	if (flowGraphicsChanged){
 		//change the parameters.  
@@ -1016,7 +1022,7 @@ void FlowEventRouter::updateTab(){
 				zSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(2));
 				biasVal = fParams->getSeedDistBias();
 				biasEdit1->setText(QString::number(biasVal));
-				biasSlider1->setValue((int)(biasVal*10.f/128.f));
+				biasSlider1->setValue((int)(biasVal*128.f/10.f));
 				break;
 			case (1) : //unsteady
 				advancedSteadyFrame->hide();
@@ -1033,7 +1039,7 @@ void FlowEventRouter::updateTab(){
 				zSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(2));
 				biasVal = fParams->getSeedDistBias();
 				biasEdit2->setText(QString::number(biasVal));
-				biasSlider2->setValue((int)(biasVal*10.f/128.f));
+				biasSlider2->setValue((int)(biasVal*128.f/10.f));
 				break;
 			case(2) : //field line advection
 				advancedSteadyFrame->hide();
@@ -1056,7 +1062,7 @@ void FlowEventRouter::updateTab(){
 				zSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(2));
 				biasVal = fParams->getSeedDistBias();
 				biasEdit3->setText(QString::number(biasVal));
-				biasSlider3->setValue((int)(biasVal*10.f/128.f));
+				biasSlider3->setValue((int)(biasVal*128.f/10.f));
 				priorityFieldMinEdit->setText(QString::number(fParams->getPriorityMin()));
 				priorityFieldMaxEdit->setText(QString::number(fParams->getPriorityMax()));
 				break;

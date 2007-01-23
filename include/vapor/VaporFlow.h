@@ -72,7 +72,8 @@ namespace VAPoR
 		bool GenStreamLinesNoRake(FlowLineData* container, float* seeds);
 		
 		//Incrementally do path lines:
-		bool ExtendPathLines(PathLineData* container, int startTimeStep, int endTimeStep);
+		bool ExtendPathLines(PathLineData* container, int startTimeStep, int endTimeStep,
+			bool doingFLA);
 
 		void SetPeriodicDimensions(bool xPeriodic, bool yPeriodic, bool zPeriodic);
 		

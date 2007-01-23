@@ -604,7 +604,8 @@ bool VaporFlow::GenStreamLines (FlowLineData* steadyContainer, PathLineData* uns
 //(Eventually seeds will be added enroute)
 //This can be either backwards or forwards in time.
 /////////////////////////////////////////////////////////////////////////////////////
-bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int endTimeStep){
+bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int endTimeStep
+								,bool doingFLA){
 	animationTimeStepSize = unsteadyAnimationTimeStepMultiplier;
 
 	//Make the container aware of the correct direction (note that this can change)
@@ -658,7 +659,8 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	pSolution->SetTimeScaleFactor(unsteadyUserTimeStepMultiplier);
 	
 	pSolution->SetTime(startTimeStep, endTimeStep);
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
+	//For unsteady flow, periodicity is always off:
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, false,false,false);
 	
 	// set the boundary of physical grid
 	
@@ -830,7 +832,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		int nseeds = pStreakLine->addSeeds(iFor, container);
 		bInject = (nseeds > 0);
 		
-		pStreakLine->execute((float)iFor, container, bInject);
+		pStreakLine->execute((float)iFor, container, bInject, doingFLA);
 		
 	
 	}

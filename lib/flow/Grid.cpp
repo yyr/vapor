@@ -13,7 +13,7 @@
 #endif
 
 #include "Grid.h"
-
+#include "vapor/flowlinedata.h"
 using namespace VetsUtil;
 using namespace VAPoR;
 
@@ -99,7 +99,7 @@ bool CartesianGrid::isInBBox(VECTOR3& pos)
 //////////////////////////////////////////////////////////////////////////
 bool CartesianGrid::isInRegion(VECTOR3& pos)
 {
-	
+	if (pos[0] == END_FLOW_FLAG) return false;
 	if( (periodicDim[0]||(pos[0] >= m_vMinRegBound[0]) && (pos[0] <= m_vMaxRegBound[0]) )&&
 		(periodicDim[1]||(pos[1] >= m_vMinRegBound[1]) && (pos[1] <= m_vMaxRegBound[1]) )&&
 		(periodicDim[2]||(pos[2] >= m_vMinRegBound[2]) && (pos[2] <= m_vMaxRegBound[2]))  )
@@ -160,10 +160,14 @@ int CartesianGrid::getCellVertices(int cellId,
 	
 
 	vVertices.clear();
-	zidx = cellId / (xcelldim() * ycelldim());
-	yidx = cellId % (xcelldim() * ycelldim());
-	yidx = yidx / xcelldim();
-	xidx = cellId - zidx * xcelldim() * ycelldim() - yidx * xcelldim();
+	//Extract the x, y, z coords from the cellid:
+	
+	xidx = cellId % xcelldim();
+	int leftover = cellId - xidx;
+	leftover = leftover/xcelldim();
+	yidx = leftover % ycelldim();
+	zidx = (leftover - yidx)/ycelldim();
+
 	//Special case for periodic data:  It can go up to very end of array, and must 
 	//then cycle around to start of array in that dimension
 	if (xidx >= xcelldim() || yidx >= ycelldim() || zidx >= zcelldim()){
