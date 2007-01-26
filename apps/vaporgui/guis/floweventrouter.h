@@ -111,7 +111,7 @@ protected slots:
 	void refreshFlow();
 	void setFlowEnabled(bool val,int instance);
 	void guiSetFlowType(int typenum);
-	
+	void guiSetFLAOption(int choice);
 	void guiSetNumRefinements(int numtrans);
 	void guiSetXComboSteadyVarNum(int varnum);
 	void guiSetYComboSteadyVarNum(int varnum);

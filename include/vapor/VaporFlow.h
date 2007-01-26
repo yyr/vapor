@@ -75,6 +75,9 @@ namespace VAPoR
 		bool ExtendPathLines(PathLineData* container, int startTimeStep, int endTimeStep,
 			bool doingFLA);
 
+		//Like the above, but put results into fieldLineData array.  
+		bool AdvectFieldLines(FlowLineData** containerArray, int startTimeStep, int endTimeStep, int maxNumSamples);
+
 		void SetPeriodicDimensions(bool xPeriodic, bool yPeriodic, bool zPeriodic);
 		
 		float* GetData(size_t ts, const char* varName);
@@ -84,7 +87,8 @@ namespace VAPoR
 		//Go through the steady field lines, identify the point on each line with the highest
 		//priority.  Insert resulting points into the pathContainer.
 		//A unique point is inserted for each nonempty field line (provided it is 
-		//inside the current region)
+		//inside the current region).
+		//Does different things based on whether the container or pathContainer are non-null
 		bool prioritizeSeeds(FlowLineData* container, PathLineData* pathContainer, int timestep);
 		
 		//Methods to encapsulate getting data out of a field.  

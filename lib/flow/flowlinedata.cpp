@@ -164,3 +164,68 @@ getPointAtTime(int lineNum, float timeStep){
 	}
 	return flowLineLists[lineNum]+ 3*posn;
 }
+//Method to identify a set of points along a field line for advection to
+//a subsequent timestep. Resulting indices are inserted in indexList, which
+//must have "desiredNumsamples" ints.
+//Returns the number of samples actually found.
+int FlowLineData::resampleFieldLines(int* indexList, int desiredNumSamples, int lineNum)
+{
+	assert(desiredNumSamples > 1);
+	//First, count the number of points in the flData associated with the lineNum:
+	int validCount = 0;
+	for (int i = getStartIndex(lineNum); i<= getEndIndex(lineNum); i++){
+		if (*(getFlowPoint(lineNum, i)) == END_FLOW_FLAG) continue;
+		validCount++;
+	}
+	if (validCount == 0) return 0;
+	int numSamples = Min(validCount, desiredNumSamples);
+
+	//Now resample:
+	int count = 0;
+	for (int i = getStartIndex(lineNum); i<= getEndIndex(lineNum); i++){
+		if (*(getFlowPoint(lineNum, i)) == END_FLOW_FLAG) continue;
+		if (numSamples < validCount){ //subsample
+			int index = (int)(0.5f + (float)count*(float)(numSamples-1)/(float)(validCount-1));
+			indexList[index] = i;
+		} else { //take em all
+			indexList[count] = i;
+		}
+		count++;
+	}
+	return numSamples;
+}
+//Make forward lines with valid points start at first valid point,
+//bypassing endflowflags.
+void FlowLineData::
+realignFlowLines(){
+	assert(flowDirection == 1);
+	for (int line = 0; line< getNumLines(); line++){
+		//Look for first non-flag point in each flow line
+		int newStartIndex = -1;
+		for (int ptnum = 0; ptnum < getFlowLength(line); ptnum++){
+			if ((*getFlowPoint(line,ptnum)) == END_FLOW_FLAG) continue;
+			newStartIndex = ptnum;
+			break;
+		}
+		if (newStartIndex == 0) continue; //It's OK
+		if (newStartIndex == -1) { //No valid points
+			setFlowEnd(line,0);
+		} else { //Need to realign.. move all points up
+			int increment = 3*newStartIndex;
+			int goodIndex = 0;
+			for (int index = 0; index < (getFlowLength(line)-newStartIndex)*3; index++){
+				//move every point until we encounter an end-flow-flag:
+				float val = flowLineLists[line][index+increment];
+				if (val == END_FLOW_FLAG) {
+					assert(index > 2);
+					break;
+				}
+				flowLineLists[line][index] = val;
+				goodIndex = index;
+			}
+			//At the end, goodIndex is the last valid index:
+			setFlowEnd(line, goodIndex/3);
+		}
+	}
+
+}

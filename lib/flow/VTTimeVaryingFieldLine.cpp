@@ -132,10 +132,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	istat = m_pField->at_phys(seedInfo.fromCell, seedInfo.phyCoord, seedInfo, initialTime, vel);
 	if(istat == OUT_OF_BOUND)
 		return OUT_OF_BOUND;
-	//Don't test for critical points on pathlines or streaklines
-	//if((abs(vel[0]) < EPS) && (abs(vel[1]) < EPS) && (abs(vel[2]) < EPS))
-		//return CRITICAL_POINT;
-
+	
 	// get the initial stepsize
 	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
 	mag = vel.GetMag();

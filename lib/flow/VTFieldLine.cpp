@@ -472,7 +472,7 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 
 //////////////////////////////////////////////////////////////////////////
 //resample path line to get points with correct interval
-//AN:  Returns the amount of (unused) time remaining, to be used
+//Returns the amount of (unused) time remaining, to be used
 //in next step.  return value only used in pathlines, not streamlines.
 //This new version uses PathLineData.  Resampled points are inserted in
 //either the forward or reverse direction
@@ -498,7 +498,7 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 	float leftoverTime = 0.f;
 
 	pIter1 = seedTrace->begin();
-	if(bRecordSeed) 
+	if(bRecordSeed) //Used (if necessary) to put the 1st point into the pathLine
 	{
 		
 		// the first one is seed
@@ -571,9 +571,9 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 			} else 
 				stepsizeLeft += *pStepIter;
 
-			x = (**pIter1)[0];
-			y = (**pIter1)[1];
-			z = (**pIter1)[2];
+			//x = (**pIter1)[0];
+			//y = (**pIter1)[1];
+			//z = (**pIter1)[2];
 			
 		}
 		else
@@ -628,3 +628,102 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 	if (leftoverTime < 0.f) leftoverTime= 0.f;
 	return leftoverTime;
 }
+
+//////////////////////////////////////////////////////////////////////////
+//Alternate version of above for resampling the points advected from
+//resampled field lines
+//in next step.  return values are put into flData at specified time.
+//This new version uses PathLineData.  Resampled points are inserted in
+//either the forward or reverse direction
+//////////////////////////////////////////////////////////////////////////
+float vtCFieldLine::SampleFLALine(FlowLineData** flData,
+								   float firstT, float lastT,
+								   int direction, // -1 or +1
+								   int lineNum, int pointNum, //from ptId
+								   vtListSeedTrace* seedTrace,
+								   list<float>* stepList,
+								   int traceState,
+								   float remainingTime)
+								  
+{
+	list<VECTOR3*>::iterator pIter1;
+	list<VECTOR3*>::iterator pIter2;
+	list<float>::iterator pStepIter;
+	list<float>::iterator pStepIterEnd;
+	float stepsizeLeft;
+	float x,y,z;
+	float currentSpeed = 0.f;
+	float leftoverTime = 0.f;
+
+	pIter1 = seedTrace->begin();
+
+	
+	//Deal with line that exits instantly (i.e. seed outside of region??)
+	if((int)seedTrace->size() == 1 && traceState != CRITICAL_POINT)
+	{
+		//This probably won't ever happen?
+		assert(0);
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW, "Seed for flow line %d outside of region",lineNum);
+		return 0.f;
+	}
+
+	// process points after the first:
+	pIter2 = seedTrace->begin();
+	pIter2++;
+	pStepIter = stepList->begin();
+	stepsizeLeft = *pStepIter + remainingTime;
+	//Establish the last point.  Stop one before end if OUT_OF_BOUND:
+	if(traceState != OUT_OF_BOUND) 
+		pStepIterEnd = stepList->end();
+	else
+	{
+		pStepIterEnd = stepList->end();
+		pStepIterEnd--;
+	}
+	float nextTime = firstT;
+	while(pStepIter != pStepIterEnd)
+	{
+		
+		float ratio;
+		//Check if we are within epsilon of end:
+		if(stepsizeLeft < (m_fSamplingRate-(1.e-4)))
+		{
+			pIter1++;
+			pIter2++;
+			pStepIter++;
+			if (pStepIter == pStepIterEnd){
+				leftoverTime = stepsizeLeft;
+			} else 
+				stepsizeLeft += *pStepIter;
+		}
+		else
+		{
+			stepsizeLeft -= m_fSamplingRate;
+			nextTime += m_fSamplingRate*direction;
+			ratio = (*pStepIter - stepsizeLeft)/(*pStepIter);
+			
+			x = Lerp((**pIter1)[0], (**pIter2)[0], ratio);
+			y = Lerp((**pIter1)[1], (**pIter2)[1], ratio);
+			z = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
+			flData[(int)(nextTime+0.5f)]->setFlowPoint(lineNum, pointNum, x,y,z);
+		}
+	}
+
+	//After exiting the loop we got to the end
+	//of the data to be resampled. 
+	//Output the END_FLOW_FLAG if the line went out of bounds,
+
+	if (traceState == OUT_OF_BOUND){
+		pIter1++;
+		nextTime += m_fSamplingRate*direction;
+		
+		flData[(int)(nextTime+0.5)]->setFlowPoint(lineNum, pointNum, END_FLOW_FLAG,
+			END_FLOW_FLAG, END_FLOW_FLAG);
+	}
+	//Don't carry over insignificant negative leftover times, since,
+	//They can screw up the next sampling
+	assert(leftoverTime > -1.e-4);
+	if (leftoverTime < 0.f) leftoverTime= 0.f;
+	return leftoverTime;
+}
+

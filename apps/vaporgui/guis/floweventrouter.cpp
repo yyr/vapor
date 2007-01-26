@@ -91,7 +91,6 @@ FlowEventRouter::FlowEventRouter(QWidget* parent,const char* name): FlowTab(pare
 	flowGraphicsChanged = false;
 	showAdvanced = false;
 	showMapEditor = true;
-	
 }
 
 
@@ -124,7 +123,7 @@ FlowEventRouter::hookUpTab()
 	connect (showMappingButton, SIGNAL(clicked()), this, SLOT(toggleShowMap()));
 	connect (hideMappingButton, SIGNAL(clicked()), this, SLOT(toggleShowMap()));
 	
-	
+	connect (flaOptionCombo, SIGNAL(activated(int)), this, SLOT(guiSetFLAOption(int)));
 	connect (flowTypeCombo, SIGNAL( activated(int) ), this, SLOT( guiSetFlowType(int) ) );
 	connect (steadyDirectionCombo, SIGNAL( activated(int) ), this, SLOT( guiSetSteadyDirection(int) ) );
 	connect (unsteadyDirectionCombo, SIGNAL( activated(int) ), this, SLOT( guiSetUnsteadyDirection(int) ) );
@@ -178,6 +177,7 @@ FlowEventRouter::hookUpTab()
 	connect (periodicYCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicY(bool)));
 	connect (periodicZCheck,SIGNAL(toggled(bool)), this, SLOT(guiCheckPeriodicZ(bool)));
 	//Line edits.  Note that the textChanged may either affect the flow or the geometry
+	
 	connect (smoothnessSamplesEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (smoothnessSamplesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (steadyLengthEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -189,6 +189,8 @@ FlowEventRouter::hookUpTab()
 	connect (steadySamplesEdit2,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (steadySamplesEdit2,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	
+	connect (flaSamplesEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (flaSamplesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (xSeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (xSeedEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabFlowTextChanged(const QString&)));
 	connect (ySeedEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -579,7 +581,12 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		}
 
 		if(flowType == 2) {//Flow line advection only
-			
+			int numFlaSamples = 1;
+			if (flaOptionCombo->currentItem() == 1){
+				numFlaSamples = flaSamplesEdit->text().toInt();
+				if (numFlaSamples < 2) numFlaSamples = 2;
+			}
+			fParams->setNumFLASamples(numFlaSamples);
 			fParams->setPriorityMin(priorityFieldMinEdit->text().toFloat());
 			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
 			seedDistBias = biasEdit3->text().toFloat();
@@ -935,7 +942,6 @@ void FlowEventRouter::updateTab(){
 		case (0) : //steady
 			steadyFieldFrame->show();
 			unsteadyFieldFrame->hide();
-			periodicFrame->show();
 			unsteadyGraphicFrame->hide();
 			if (autoScale){
 				steadyAutoGraphicFrame->show();
@@ -956,7 +962,6 @@ void FlowEventRouter::updateTab(){
 		case (1) : //unsteady
 			steadyFieldFrame->hide();
 			unsteadyFieldFrame->show();
-			periodicFrame->hide();
 			flowHelpButton->setText("Unsteady Flow Setup Help");
 			unsteadyGraphicFrame->show();
 			steadyAutoGraphicFrame->hide();
@@ -968,9 +973,9 @@ void FlowEventRouter::updateTab(){
 			opacmapEntityCombo->changeItem("Time Step",1);
 			break;
 		case(2) : //field line advection
+			
 			steadyFieldFrame->show();
 			unsteadyFieldFrame->show();
-			periodicFrame->show();
 			flowHelpButton->setText("Flow Line Advection Setup Help");
 			unsteadyGraphicFrame->hide();
 			if (autoScale){
@@ -1013,7 +1018,6 @@ void FlowEventRouter::updateTab(){
 				advancedLineAdvectionFrame->hide();
 				steadyFieldFrame->show();
 				unsteadyFieldFrame->hide();
-				periodicFrame->show();
 				autoScaleCheckbox1->setChecked(autoScale);
 				steadyScaleEdit1->setText(QString::number(fParams->getSteadyScale()));
 				steadyScaleEdit1->setEnabled(!autoScale);
@@ -1047,6 +1051,14 @@ void FlowEventRouter::updateTab(){
 				advancedLineAdvectionFrame->show();
 				timestepSampleTable2->horizontalHeader()->hide();
 				timestepSampleTable2->setTopMargin(0);
+				{
+					int advectBeforePriorOption = 
+						fParams->getFLAAdvectBeforePrioritize() ? 1 : 0 ;
+					flaOptionCombo->setCurrentItem(advectBeforePriorOption);
+					int numSamps = (advectBeforePriorOption == 0) ? 1 : fParams->getNumFLASamples() ;
+					flaSamplesEdit->setEnabled(advectBeforePriorOption == 1);
+					flaSamplesEdit->setText(QString::number(numSamps));
+				}
 				timesampleIncrementEdit2->setText(QString::number(fParams->getTimeSamplingInterval()));
 				timesampleStartEdit2->setText(QString::number(fParams->getTimeSamplingStart()));
 				timesampleEndEdit2->setText(QString::number(fParams->getTimeSamplingEnd()));
@@ -2214,6 +2226,17 @@ guiSetEditMode(bool mode){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "set edit/navigate mode");
 	fParams->setEditMode(mode);
+	PanelCommand::captureEnd(cmd, fParams);
+}
+void FlowEventRouter::
+guiSetFLAOption(int option){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams, "set Field Line Advection ordering");
+	fParams->setFLAAdvectBeforePrioritize(option == 1);
+	if (option == 0) flaSamplesEdit->setText(QString::number(1));
+	else flaSamplesEdit->setText(QString::number(fParams->getNumFLASamples()));
+	flaSamplesEdit->setEnabled(option != 0);
 	PanelCommand::captureEnd(cmd, fParams);
 }
 void FlowEventRouter::

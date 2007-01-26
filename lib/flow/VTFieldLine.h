@@ -163,6 +163,16 @@ protected:
 								   int traceState,
 								   float remainingTime = 0.f,
 								   bool doingFLA = false);
+	//Version of above for multiFLA, puts sampled points into containers from firstT to lastT, at
+	//position specified by pointNum, lineNum
+	float SampleFLALine(FlowLineData** containers,
+			float firstT, float lastT, //timestep interval
+			int lineNum, int pointNum,
+			int direction, // -1 or +1 .. could be determined from firstT, lastT
+			vtListSeedTrace* seedTrace,
+			list<float>* stepList,
+			int traceState,
+			float remainingTime = 0.f);
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -254,12 +264,16 @@ public:
 	//void execute(const float t, float* points, const unsigned int* startPositions, unsigned int* pointers, bool bInjectSeeds, int iInjection, float* speeds=0);
 	void execute(const float t, PathLineData* container, bool bInjectSeeds, bool doingFLA);
 	int addSeeds(int tstep, PathLineData* container);
+	int addFLASeeds(int tstep, FlowLineData* container, int maxNumSamples);
+	//advect points of field lines, put them in an array of fieldLineData.
+	void advectFLAPoints(int tstep, int flowDir, FlowLineData** flDataArray, bool bInjectSeeds);
 protected:
 	
 
 	// code specific to streakline
 	void computeStreakLine(const float t, PathLineData* container, bool bInjectSeeds,
 		bool doingFLA);
+	
 	int advectOldParticles(vtListParticleIter start, 
 							vtListParticleIter end, 
 							PathLineData* container,
@@ -267,6 +281,13 @@ protected:
 							float finalTime,
 							vector<vtListParticleIter>& deadList,
 							bool doingFLA);
+	//Alternate version for advecting multiple points into field line array
+	int advectOldParticles( vtListParticleIter start, 
+										vtListParticleIter end, 
+										FlowLineData** flArray,
+										float initialTime,
+										float finalTime,
+										vector<vtListParticleIter>& deadList);
 							
 };
 

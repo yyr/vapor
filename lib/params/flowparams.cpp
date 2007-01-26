@@ -72,6 +72,8 @@ using namespace VAPoR;
 	const string FlowParams::_priorityVariableNamesAttr = "PriorityVariableNames";
 	const string FlowParams::_priorityBoundsAttr = "PriorityBounds";
 	const string FlowParams::_seedDistBiasAttr = "SeedDistribBias";
+	const string FlowParams::_numFLASamplesAttr = "NumFLASamples";
+	const string FlowParams::_advectBeforePrioritizeAttr = "AdvectBeforePrioritize";
 
 	const string FlowParams::_periodicDimsAttr = "PeriodicDimensions";
 	const string FlowParams::_steadyFlowAttr = "SteadyFlow";//obsolete
@@ -139,7 +141,8 @@ void FlowParams::
 restart() {
 	magChanged = true;
 	autoScale = true;
-	
+	numFLASamples = 2;
+	flaAdvectBeforePrioritize = false;
 	steadyFlowDirection = 0;
 	unsteadyFlowDirection = 1; //default is forward
 	steadyFlowLength = 1.f;
@@ -788,7 +791,7 @@ getTimeSampleIndex(int tstep, int minStep, int maxStep){
 //Results go into container.
 //If speeds are used for rgba mapping, they are (temporarily) calculated
 //and then mapped.
-
+/* Obsolete:
 FlowLineData* FlowParams::
 regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, RegionParams* rParams){
 	
@@ -932,15 +935,22 @@ regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, Regio
 
 	return flowData;
 }
-//Generate steady flow data, like above method, but uses seeds in the pathData container.
+*/
+//Generate steady flow data.
+//Seeds are from one of three sources:
+// If the input FlowLineData* is non-null, it contains the seeds
+// Else, if the pathLineData is non-null, it contains the seeds,
+// otherwise they come from the rake/seedlist
+// If the FlowLineData* is 0, a new one is constructed, and returned.
+// If the flowLineData is nonzero, it is reused and returned.
 //Produces a FlowLineData containing the flow lines.
 //If speeds are used for rgba mapping, they are (temporarily) calculated
 //and then mapped.
-//If the pathData is null, we get the seeds from the rake or seedlist
+//If prioritize is true, the 
+
 FlowLineData* FlowParams::
-regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int timeStep, int minFrame, RegionParams* rParams, bool prioritize){
-	
-	
+regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLineData* pathData, 
+			int timeStep, int minFrame, RegionParams* rParams, bool prioritize){
 	float* seedList = 0;
 	if (!myFlowLib) return 0;
 	
@@ -979,14 +989,21 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 		myFlowLib->SetPriorityField(xVar, yVar, zVar);
 	}
 	
-	
 	myFlowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
-	
 	if (!setupFlowRegion(rParams, myFlowLib, timeStep, minFrame)) return 0;
 	
 	int numSeedPoints;
-	if (pathData)numSeedPoints = pathData->getNumLines();
-	else {// get the seed points from the rake or seedlist...
+	if (flowLines) {  //Get the seeds from the flow lines:
+		numSeedPoints = flowLines->getNumLines();
+		seedList = new float[numSeedPoints*3];
+		for (int i = 0; i<numSeedPoints; i++){
+			for (int k = 0; k<3; k++) {
+				seedList[3*i+k] = (flowLines->getFlowPoint(i,0))[k];
+			}
+		}
+	} else if (pathData) {
+		numSeedPoints = pathData->getNumLines();
+	} else {// get the seed points from the rake or seedlist...
 		if (doRake){
 			numSeedPoints = getNumRakeSeedPoints();
 			if (randomGen) {
@@ -1045,28 +1062,24 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 	
 	
 	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
-
-	//myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
 	myFlowLib->SetSteadyTimeSteps(timeStep, steadyFlowDirection); 
-	
-	
 	myFlowLib->ScaleSteadyTimeStepSizes(steadyScale, 1.f/(float)objectsPerFlowline);
 	
-	//Note:  Following duplicates code in calcMaxPoints()
-	maxPoints = objectsPerFlowline;
-	if (maxPoints < 2) maxPoints = 2;
-	if (steadyFlowDirection == 0 && maxPoints < 3) maxPoints = 3;
+	maxPoints = calcMaxPoints();
 
 	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
 	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
 
 
-	FlowLineData* steadyFlowData = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, steadyFlowDirection, doRGBAs); 
+	FlowLineData* steadyFlowData = flowLines;
+	if (!steadyFlowData) steadyFlowData = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, steadyFlowDirection, doRGBAs); 
 
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	
+
 	bool rc;
-	if (pathData){
+	if (flowLines) { //Use the seedlist constructed above:
+		rc = myFlowLib->GenStreamLinesNoRake(steadyFlowData,seedList);
+	} else if (pathData){
 	//generate the steady flow lines 
 		rc =  myFlowLib->GenStreamLines(steadyFlowData, pathData, timeStep, prioritize);
 	} else { // use rake or seed list..
@@ -1076,16 +1089,14 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, PathLineData* pathData, int tim
 			rc = myFlowLib->GenStreamLinesNoRake(steadyFlowData,seedList);
 		}
 	}
+	//Restore original cursor:
+	QApplication::restoreOverrideCursor();
+
 	if (!rc){
 		MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION, "Error integrating steady flow lines");	
 		delete steadyFlowData;
-		QApplication::restoreOverrideCursor();
 		return 0;
 	}
-
-
-	//Restore original cursor:
-	QApplication::restoreOverrideCursor();
 	//Now map colors (if needed)
 		
 	if (doRGBAs){
@@ -1187,7 +1198,7 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 		//just in the steady flowLineData
 		PathLineData* pathLines = new PathLineData(numLines, mPoints, false, false, minFrame, maxFrame, sampleRate);
 		// Now insert the seeds:
-		int seedsInserted = insertSeeds(rParams, flowLib, pathLines, seedTimeStart);
+		int seedsInserted = insertUnsteadySeeds(rParams, flowLib, pathLines, seedTimeStart);
 		if (seedsInserted <= 0) { 
 			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,"No valid flow seeds to advect");
 			delete pathLines;
@@ -1209,7 +1220,7 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 		for (int i = seedTimeStart; i<= seedTimeEnd; i+= seedTimeIncrement){
 			//Don't insert if invalid timestep 
 			if (i < minFrame || i > maxFrame) continue;
-			seedsInserted += insertSeeds(rParams, flowLib, pathLines, i);
+			seedsInserted += insertUnsteadySeeds(rParams, flowLib, pathLines, i);
 		}
 		if (seedsInserted <= 0) { 
 			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,"No valid flow seeds to advect");
@@ -1219,11 +1230,11 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 		return pathLines;
 	}
 }
-//Insert seeds for the specified timeStep.
-//Return the actual number of seeds that were inserted and were inside the current region 
+//Insert seeds for the specified timeStep into pathLineData.
+//Return the actual number of seeds that were inserted 
 //If the seed list is being used, only use seeds that are valid at the specified
 //timestep
-int FlowParams::insertSeeds(RegionParams* rParams, VaporFlow* fLib, PathLineData* pathLines, int timeStep){
+int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, PathLineData* pathLines, int timeStep){
 	int seedCount = 0;
 	//Get the region bounds for testing seeds:
 	double minExt[3], maxExt[3];
@@ -1280,7 +1291,71 @@ int FlowParams::insertSeeds(RegionParams* rParams, VaporFlow* fLib, PathLineData
 	return seedCount;
 
 }
+//Insert seeds for the specified timeStep into fieldLineData.
+//Return the actual number of seeds that were inserted
+//If the seed list is being used, only use seeds that are valid at the specified
+//timestep
+int FlowParams::insertSteadySeeds(RegionParams* rParams, VaporFlow* fLib, FlowLineData* flowLines, int timeStep){
+	int seedCount = 0;
+	//Get the region bounds for testing seeds:
+	double minExt[3], maxExt[3];
+	size_t min_dim[3], max_dim[3]; 
+	size_t min_bdim[3], max_bdim[3];
+	bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
+			timeStep, unsteadyVarNum, 3, minExt, maxExt);
+	if (!dataValid) {
+		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at time step %d\nVector field may not be available",timeStep);
+		return 0;
+	}
+	
+	int seedsInRegion = 0;
+	if(doRake){
+		//Allocate an array to hold the seeds:
+		float* seeds = new float[3*calcNumSeedPoints(timeStep)];
+		seedCount = fLib->GenRakeSeeds(seeds, timeStep, randomSeed);
+		if (seedCount < calcNumSeedPoints(timeStep)) {
+			delete seeds;
+			return 0;
+		}
+		for (int i = 0; i<seedCount; i++){
+			bool inside = true;
+			for (int j = 0; j< 3; j++){
+				if (seeds[3*i+j] < minExt[j] || seeds[3*i+j] > maxExt[j]) inside = false;
+			}
+			if (inside) seedsInRegion++;
+			//Set this seed as the start point in the line:
+			flowLines->setFlowPoint(i, 0, seeds[3*i], seeds[3*i+1], seeds[3*i+2]);
+			flowLines->setFlowStart(i,0);
+			flowLines->setFlowEnd(i,0);
+		}
+		delete seeds;
+		
 
+	} else { //insert from seedList
+		
+		for (int i = 0; i< getNumListSeedPoints(); i++){
+			Point4 point = seedPointList[i];
+			float tstep = point.getVal(3);
+			if (tstep >= 0.f && ((int)(tstep +0.5f) != timeStep)) continue;
+			bool inside = true;
+			for (int j = 0; j< 3; j++){
+				if (point.getVal(j) < minExt[j] || point.getVal(j) > maxExt[j]) inside = false;
+			}
+			if (inside) seedsInRegion++;
+			flowLines->setFlowPoint(i, 0, point.getVal(0), point.getVal(1), point.getVal(2));
+			flowLines->setFlowStart(i,0);
+			flowLines->setFlowEnd(i,0);
+			seedCount++;
+		}
+	}
+	if (seedCount > seedsInRegion){
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
+			"Flow seeds are outside region: \n %d seeds outside of total %d seeds.",
+			seedCount - seedsInRegion, seedCount);
+	}
+	return seedCount;
+
+}
 //Method to construct Xml for state saving
 XmlNode* FlowParams::
 buildNode() {
@@ -1380,6 +1455,17 @@ buildNode() {
 	else 
 		oss << "false";
 	attrs[_autoRefreshAttr] = oss.str();
+
+	oss.str(empty);
+	if (flaAdvectBeforePrioritize)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_advectBeforePrioritizeAttr] = oss.str();
+
+	oss.str(empty);
+	oss << numFLASamples;
+	attrs[_numFLASamplesAttr] = oss.str();
 	
 	oss.str(empty);
 	if (autoScale)
@@ -1743,6 +1829,13 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _seedDistBiasAttr) == 0) {
 				ist >> seedDistBias;
+			}
+			else if (StrCmpNoCase(attribName, _advectBeforePrioritizeAttr) == 0) {
+				if (value == "true") flaAdvectBeforePrioritize = true;
+				else flaAdvectBeforePrioritize = false;
+			}
+			else if (StrCmpNoCase(attribName, _numFLASamplesAttr) == 0) {
+				ist >> numFLASamples;
 			}
 			else return false;
 		}
@@ -2581,5 +2674,107 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep,
 	flowLib->SetRakeRegion(min_dim, max_dim, min_bdim, max_bdim);
 	return true;
 }
+//Perform all the major steps in field line advection where the prioritization is
+//done at the "next" time step.  Results are placed in the steadyFlowCache.
+//If steadyFlowCache[startTime] does not exists, it is created, and populated with
+//seed points, and these are advected to steady flow lines.
+//Then, create a new, default, steadyFlowCache for all intermediate times.
+//Then the following is repeated for each valid seed (seedNum) at startTime:
+//	 Call resampleFieldLines, obtaining indices to a set of points along the
+//		flow line associated with seedNum
+//   Call AdvectFieldLines(seedNum).  This will advect all those points in the
+//		unsteady field, inserting the results in subsequent steadyFlowCache's in the
+//		positions associated with the pointIndex and seedNum.
+//	 Find the maximal point that survived the advection, using VaporFlow::prioritizeSeeds,
+//		inserting it in the last position.
+//	 Perform steadyFlowAdvection on the last time step
+bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, int startTime, int endTime, int minFrame, RegionParams* rParams){
+	
+	//Get some initial settings:
+	int numSeedPoints = calcNumSeedPoints(getFirstSampleTimestep());
+	maxPoints = calcMaxPoints();
+	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
+	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
+
+	//Create new flowLineData at startTime if needed:
+	if (!steadyFlowCache[startTime]){
+		
+		steadyFlowCache[startTime] = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, steadyFlowDirection, doRGBAs); 
+		//Now populate this with seed points:
+		int nlines = insertSteadySeeds(rParams, myFlowLib, steadyFlowCache[startTime], startTime);
+		if (nlines <= 0) {
+			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "No seeds to start field line advection");
+			return false;
+		}
+		//Now do a steady advection
+		regenerateSteadyFieldLines(myFlowLib, steadyFlowCache[startTime], 0, startTime, minFrame, rParams, false);
+	}
+	if (startTime == endTime) return true;
+	//Create new flow line data for all other times:
+	int timeDir = (startTime < endTime) ? 1 : -1 ;
+	for (int i = startTime + timeDir;; i+= timeDir){
+		if (steadyFlowCache[i]) delete steadyFlowCache[i];
+		//Each intermediate cache will not use speeds, and will go forward.
+		if (i != endTime)
+			steadyFlowCache[i] = new FlowLineData(numSeedPoints, maxPoints, false, 1, doRGBAs); 
+		else {
+			//The last one leaves space for speeds if needed.
+			//It will later be modified to get the same direction as the starting line.
+			steadyFlowCache[i] = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, 1, doRGBAs); 
+		}
+		
+	}
+	//Loop over (valid) seeds from the start time:
+	int forwardSamples = getNumFLASamples();
+	
+	
+	if (!myFlowLib->AdvectFieldLines(steadyFlowCache,startTime,endTime,forwardSamples)){
+		MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Error advecting field lines");
+		return false;
+	}
+
+	//For each seed, put the highest priority seed at the start position at endTime
+	if(!myFlowLib->prioritizeSeeds(steadyFlowCache[endTime],0,endTime)){
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Unable to prioritize seeds");
+	}
+	//If there are intermediate field lines, realign them to start at valid points.
+	for (int i = startTime+1; i< endTime; i++){
+		steadyFlowCache[i]->realignFlowLines();
+	}
+
+	//Then do steady advection at the end time:
+	regenerateSteadyFieldLines(myFlowLib, steadyFlowCache[endTime], 0, endTime, minFrame, rParams, false);
+	
+	return true;
+}
+bool FlowParams::
+singleAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, PathLineData* unsteadyFlowCache, int prevStep, int nextStep, int minFrame, RegionParams* rParams){
+	
+	//Perform steady integration on prevstep, reprioritizing
+	//the seeds in the unsteadycache.  This should only be needed the first time.
+	if (!steadyFlowCache[prevStep])
+		steadyFlowCache[prevStep] = regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, prevStep, minFrame, rParams, true);
+	if(!steadyFlowCache[prevStep]){
+		MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", prevStep);
+		QApplication::restoreOverrideCursor();
+		return false;
+	}
+				
+	//Otherwise, we need to build nextStep:
+	assert(!steadyFlowCache[nextStep]);
+	//To do the next step, need first to advect from prevStep:
+	//extend the pathline from prevstep to nextstep, prioritizing first:
+					
+	if(!myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep, true))
+		return false;
+
+	steadyFlowCache[nextStep] = regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, nextStep, minFrame, rParams, true);
+	if(!steadyFlowCache[nextStep]){
+		MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", prevStep);
+		return false;
+	}
+	return true;
+}
+
 
 	

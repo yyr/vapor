@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>450</width>
-            <height>565</height>
+            <height>689</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout14</cstring>
+                <cstring>layout185</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -145,7 +145,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>31</height>
+                            <height>49</height>
                         </size>
                     </property>
                 </spacer>
@@ -445,7 +445,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>31</width>
-                            <height>28</height>
+                            <height>49</height>
                         </size>
                     </property>
                 </spacer>
@@ -635,7 +635,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>30</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -706,6 +706,173 @@
                 </widget>
                 <spacer>
                     <property name="name">
+                        <cstring>spacer190</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>21</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout243</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout242</cstring>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout241</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer72_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>38</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>timestepSampleCheckbox</cstring>
+                                            </property>
+                                            <property name="enabled">
+                                                <bool>true</bool>
+                                            </property>
+                                            <property name="text">
+                                                <string>Use explicit time steps</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Check to use the list of time steps</string>
+                                            </property>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout240</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>addSampleButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Add</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Click to add another timestep to the list</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>deleteSampleButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Delete</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Click to delete the current time step</string>
+                                            </property>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                            </vbox>
+                        </widget>
+                        <widget class="QTable">
+                            <property name="name">
+                                <cstring>timestepSampleTable</cstring>
+                            </property>
+                            <property name="enabled">
+                                <bool>false</bool>
+                            </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>32767</width>
+                                    <height>150</height>
+                                </size>
+                            </property>
+                            <property name="hScrollBarMode">
+                                <enum>AlwaysOff</enum>
+                            </property>
+                            <property name="numRows">
+                                <number>1</number>
+                            </property>
+                            <property name="numCols">
+                                <number>1</number>
+                            </property>
+                            <property name="sorting">
+                                <bool>true</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify time steps to be sampled</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer73</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>30</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                    </hbox>
+                </widget>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel2_3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Explicit Time Step Control</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignCenter</set>
+                    </property>
+                </widget>
+                <spacer>
+                    <property name="name">
                         <cstring>spacer19</cstring>
                     </property>
                     <property name="orientation">
@@ -717,7 +884,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>21</width>
-                            <height>29</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -827,7 +994,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>30</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>

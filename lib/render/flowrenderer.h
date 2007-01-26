@@ -101,7 +101,10 @@ protected:
 
 	void calcPeriodicExtents();
 	int numFrames;
-			
+	
+	
+	
+	
 	//Render geometry using the current values of flowDataArray, flowRGBAs
 	
 

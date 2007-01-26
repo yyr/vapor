@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>437</width>
-            <height>2633</height>
+            <height>2645</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout89</cstring>
+                <cstring>layout168</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -251,7 +251,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout89</cstring>
+                                <cstring>layout165</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -511,6 +511,103 @@
                                                 <size>
                                                     <width>101</width>
                                                     <height>21</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout41</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer41</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>86</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_8</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Vector fields periodic in:</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>periodicXCheck</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>40</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>X</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>periodicYCheck</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>40</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>Y</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QCheckBox">
+                                            <property name="name">
+                                                <cstring>periodicZCheck</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>40</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>Z</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer40_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>97</width>
+                                                    <height>20</height>
                                                 </size>
                                             </property>
                                         </spacer>
@@ -1417,119 +1514,6 @@
                                             </vbox>
                                         </widget>
                                     </hbox>
-                                </widget>
-                                <widget class="QFrame">
-                                    <property name="name">
-                                        <cstring>periodicFrame</cstring>
-                                    </property>
-                                    <property name="frameShape">
-                                        <enum>NoFrame</enum>
-                                    </property>
-                                    <property name="frameShadow">
-                                        <enum>Sunken</enum>
-                                    </property>
-                                    <vbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <widget class="QLayoutWidget">
-                                            <property name="name">
-                                                <cstring>layout41</cstring>
-                                            </property>
-                                            <hbox>
-                                                <property name="name">
-                                                    <cstring>unnamed</cstring>
-                                                </property>
-                                                <spacer>
-                                                    <property name="name">
-                                                        <cstring>spacer41</cstring>
-                                                    </property>
-                                                    <property name="orientation">
-                                                        <enum>Horizontal</enum>
-                                                    </property>
-                                                    <property name="sizeType">
-                                                        <enum>Expanding</enum>
-                                                    </property>
-                                                    <property name="sizeHint">
-                                                        <size>
-                                                            <width>86</width>
-                                                            <height>20</height>
-                                                        </size>
-                                                    </property>
-                                                </spacer>
-                                                <widget class="QLabel">
-                                                    <property name="name">
-                                                        <cstring>textLabel1_8</cstring>
-                                                    </property>
-                                                    <property name="text">
-                                                        <string>Steady field periodic in:</string>
-                                                    </property>
-                                                    <property name="alignment">
-                                                        <set>AlignCenter</set>
-                                                    </property>
-                                                </widget>
-                                                <widget class="QCheckBox">
-                                                    <property name="name">
-                                                        <cstring>periodicXCheck</cstring>
-                                                    </property>
-                                                    <property name="maximumSize">
-                                                        <size>
-                                                            <width>40</width>
-                                                            <height>32767</height>
-                                                        </size>
-                                                    </property>
-                                                    <property name="text">
-                                                        <string>X</string>
-                                                    </property>
-                                                </widget>
-                                                <widget class="QCheckBox">
-                                                    <property name="name">
-                                                        <cstring>periodicYCheck</cstring>
-                                                    </property>
-                                                    <property name="maximumSize">
-                                                        <size>
-                                                            <width>40</width>
-                                                            <height>32767</height>
-                                                        </size>
-                                                    </property>
-                                                    <property name="text">
-                                                        <string>Y</string>
-                                                    </property>
-                                                </widget>
-                                                <widget class="QCheckBox">
-                                                    <property name="name">
-                                                        <cstring>periodicZCheck</cstring>
-                                                    </property>
-                                                    <property name="maximumSize">
-                                                        <size>
-                                                            <width>40</width>
-                                                            <height>32767</height>
-                                                        </size>
-                                                    </property>
-                                                    <property name="text">
-                                                        <string>Z</string>
-                                                    </property>
-                                                </widget>
-                                                <spacer>
-                                                    <property name="name">
-                                                        <cstring>spacer40_2</cstring>
-                                                    </property>
-                                                    <property name="orientation">
-                                                        <enum>Horizontal</enum>
-                                                    </property>
-                                                    <property name="sizeType">
-                                                        <enum>Expanding</enum>
-                                                    </property>
-                                                    <property name="sizeHint">
-                                                        <size>
-                                                            <width>97</width>
-                                                            <height>20</height>
-                                                        </size>
-                                                    </property>
-                                                </spacer>
-                                            </hbox>
-                                        </widget>
-                                    </vbox>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
@@ -2960,7 +2944,7 @@
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout88</cstring>
+                                <cstring>layout167</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -4016,6 +4000,73 @@
                                                 </size>
                                             </property>
                                         </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout166</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QComboBox">
+                                            <item>
+                                                <property name="text">
+                                                    <string>Prioritize before advection</string>
+                                                </property>
+                                            </item>
+                                            <item>
+                                                <property name="text">
+                                                    <string>Prioritize after advection</string>
+                                                </property>
+                                            </item>
+                                            <property name="name">
+                                                <cstring>flaOptionCombo</cstring>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Select whether the steady seeds are prioritized before or after advection in time</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer175</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_10</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>No of samples</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>flaSamplesEdit</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>1</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the number of sample points that are advected and then prioritized</string>
+                                            </property>
+                                        </widget>
                                     </hbox>
                                 </widget>
                                 <widget class="QLayoutWidget">

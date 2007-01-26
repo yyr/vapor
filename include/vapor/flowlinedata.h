@@ -125,7 +125,16 @@ namespace VAPoR
 		int getEndIndex(int lineNum) {return startIndices[lineNum]+lineLengths[lineNum] -1;}
 		
 		int getFlowDirection() {return flowDirection;}
-		
+		//Following is only to be used before inserting points.  
+		void setFlowDirection(int fDir) {flowDirection = fDir;}
+		//Sample indices along specified flowline.
+		//Caller supplies int indexList[numSamples], which is populated by method, returning
+		//The number of actual samples <= desiredNumSamples.
+		int resampleFieldLines(int* indexList, int desiredNumSamples, int lineNum);
+
+		//Realign all the flow lines so that the first point is not END_FLOW_FLAG, if possible
+		//Requires direction = 1
+		void realignFlowLines();
 		
 	protected:
 		int integrationStartPosn; //Where in the list does the integration begin? 
