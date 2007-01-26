@@ -70,7 +70,7 @@ endif
 
 if ( "$idl" == 1 ) then
 	if !($?IDL_DLM_PATH) then
-		setenv IDL_DLM_PATH "$root/lib"
+		setenv IDL_DLM_PATH "$root/lib:<IDL_DEFAULT>"
 	else
 		setenv IDL_DLM_PATH "$root/lib:$IDL_DLM_PATH"
 	endif

@@ -86,7 +86,7 @@ if [ "$idl" -eq 1 ]
 then
 	if [ -z "${IDL_DLM_PATH}" ]
 	then
-		IDL_DLM_PATH="$root/lib"; export IDL_DLM_PATH
+		IDL_DLM_PATH="$root/lib:<IDL_DEFAULT>"; export IDL_DLM_PATH
 	else
 		IDL_DLM_PATH="$root/lib:$IDL_DLM_PATH"; export IDL_DLM_PATH
 	fi
