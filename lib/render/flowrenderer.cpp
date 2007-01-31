@@ -1033,52 +1033,10 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 								if (i == nextStep) break;
 							}
 						}
-
-						/* Previous code...
-						//If prevstep is dirty, rebuild it:
-						if (flowDataDirty[prevStep]){
-							if (steadyFlowCache[prevStep]){
-								delete steadyFlowCache[prevStep];
-							}
-							
-							//Perform steady integration on prevstep, reprioritizing
-							//the seeds in the unsteadycache.  This should only be needed the first time.
-							steadyFlowCache[prevStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, prevStep, minFrame, rParams, true);
-							if(!steadyFlowCache[prevStep]){
-								MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", prevStep);
-								QApplication::restoreOverrideCursor();
-								return false;
-							}
-							flowDataDirty[prevStep] = false;
-						}
-						//If prevStep is current step, we can stop now:
-						if (timeStep == prevStep) { OK = true; break;}
-						//Otherwise, we need to build nextStep:
-						assert(flowDataDirty[nextStep]);
-						//To do the next step, need first to advect from prevStep:
-						//extend the pathline from prevstep to nextstep
-						
-						OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep, true);
-						if (!OK) {
-							QApplication::restoreOverrideCursor();
-							return false;
-						}
-						//Then do the steady integration on nextStep:
-						if (steadyFlowCache[nextStep]){
-							delete steadyFlowCache[nextStep];
-						}
-					
-						steadyFlowCache[nextStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, nextStep, minFrame, rParams, true);
-						if(!steadyFlowCache[nextStep]){
-							MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", prevStep);
-							QApplication::restoreOverrideCursor();
-							return false;
-						}
-						flowDataDirty[nextStep] = false;
-						*/
 						
 						//Stop here if the current timestep is done:
-						if (timeStep == nextStep) { OK = true; break;}
+						if (unsteadyFlowDir > 0 && timeStep <= nextStep) { OK = true; break;}
+						if (unsteadyFlowDir < 0 && timeStep >= nextStep) { OK = true; break;}
 					}
 					QApplication::restoreOverrideCursor();
 				}

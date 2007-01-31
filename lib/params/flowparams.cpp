@@ -787,155 +787,7 @@ getTimeSampleIndex(int tstep, int minStep, int maxStep){
 	}
 	return -1;
 }
-//Generate steady flow data, either from a rake or from a seed list.
-//Results go into container.
-//If speeds are used for rgba mapping, they are (temporarily) calculated
-//and then mapped.
-/* Obsolete:
-FlowLineData* FlowParams::
-regenerateSteadyFlowData(VaporFlow* myFlowLib, int timeStep, int minFrame, RegionParams* rParams){
-	
-	
-	float* seedList = 0;
-	if (!myFlowLib) return 0;
-	
-	//If we are doing autoscale, calculate the average field 
-	//magnitude at lowest resolution, over the full domain:
-	if (autoScale && magChanged){
-		float avgMag = getAvgVectorMag(rParams, 0, timeStep);
-		if (avgMag == 0.f) avgMag = 1.f;
-		magChanged = false;
-		//Scale the steady field so that it will go steadyFlowLength diameters 
-		//in unit time
-		
-		const float* fullExtents = DataStatus::getInstance()->getExtents();
-		float diff[3];
-		vsub(fullExtents, fullExtents+3, diff);
-		float diam = sqrt(vdot(diff, diff));
-		steadyScale = diam*steadyFlowLength/avgMag;
-		//And set the numsamples
-		objectsPerFlowline = steadyFlowLength*steadySmoothness;
-	}
 
-	DataStatus* ds;
-	//specify field components:
-	ds = DataStatus::getInstance();
-	const char* xVar, *yVar, *zVar;
-	
-	xVar = ds->getVariableName(steadyVarNum[0]).c_str();
-	yVar = ds->getVariableName(steadyVarNum[1]).c_str();
-	zVar = ds->getVariableName(steadyVarNum[2]).c_str();
-	myFlowLib->SetSteadyFieldComponents(xVar, yVar, zVar);
-	
-	
-	myFlowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
-
-	if (!setupFlowRegion(rParams, myFlowLib, timeStep, minFrame)) return 0;
-	
-
-	int numSeedPoints;
-	if (doRake){
-		numSeedPoints = getNumRakeSeedPoints();
-		if (randomGen){
-			xVar = ds->getVariableName(seedDistVarNum[0]).c_str();
-			yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
-			zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
-			myFlowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
-				xVar, yVar, zVar, seedDistBias);
-		} else {
-			float boxmin[3], boxmax[3];
-			for (int i = 0; i<3; i++){
-				if (generatorCount[i] <= 1) {
-					boxmin[i] = (seedBoxMin[i]+seedBoxMax[i])*0.5f;
-					boxmax[i] = boxmin[i];
-				} else {
-					boxmin[i] = seedBoxMin[i];
-					boxmax[i] = seedBoxMax[i];
-				}
-			}
-			myFlowLib->SetRegularSeedPoints(boxmin, boxmax, generatorCount);
-		}
-	} else { //determine how many seed points to send to flowlib
-		
-		//For steady flow, count how many seeds will be in the array
-		int seedCounter = 0;
-		for (int i = 0; i<getNumListSeedPoints(); i++){
-			float time = seedPointList[i].getVal(3);
-			if ((time < 0.f) || ((int)(time+0.5f) == timeStep)){
-				seedCounter++;
-			}
-		}
-		numSeedPoints = seedCounter;
-		if (numSeedPoints == 0) {
-			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "No seeds at current time step");
-			return false;
-		}
-		seedCounter = 0;
-		seedList = new float[numSeedPoints*3];
-		for (int i = 0; i<getNumListSeedPoints(); i++){
-			float time = seedPointList[i].getVal(3);
-			if ((time < 0.f) || ((int)(time+0.5f) == timeStep)){
-				for (int j = 0; j< 3; j++){
-					seedList[3*seedCounter+j] = seedPointList[i].getVal(j);
-				}
-				seedCounter++;
-			}
-		}
-		
-	}
-	// setup integration parameters:
-	
-	float minIntegStep = SMALLEST_MIN_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MIN_STEP; 
-	float maxIntegStep = SMALLEST_MAX_STEP*(integrationAccuracy) + (1.f - integrationAccuracy)*LARGEST_MAX_STEP; 
-	
-	
-	myFlowLib->SetIntegrationParams(minIntegStep, maxIntegStep);
-
-	//myFlowLib->SetTimeStepInterval(timeStep, maxFrame, timeSamplingInterval);
-	myFlowLib->SetSteadyTimeSteps(timeStep, steadyFlowDirection); 
-	
-	
-	myFlowLib->ScaleSteadyTimeStepSizes(steadyScale, 1.f/(float)objectsPerFlowline);
-	
-	//Note:  Following duplicates code in calcMaxPoints()
-	maxPoints = objectsPerFlowline;
-	if (maxPoints < 2) maxPoints = 2;
-	if (steadyFlowDirection == 0 && maxPoints < 3) maxPoints = 3;
-
-	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
-	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
-
-	FlowLineData* flowData = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, steadyFlowDirection, doRGBAs); 
-		
-
-	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	
-	bool rc = true;
-	
-	if (doRake){
-		rc = myFlowLib->GenStreamLines(flowData, randomSeed);
-	} else {
-		rc = myFlowLib->GenStreamLinesNoRake(flowData,seedList);
-	}
-
-	if (!rc){
-		MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION, "Error integrating steady flow lines");	
-		delete flowData;
-		return 0;
-	}
-
-
-	//Restore original cursor:
-	QApplication::restoreOverrideCursor();
-	//Now map colors (if needed)
-		
-	if (doRGBAs){
-		mapColors(flowData, timeStep, minFrame);
-	}
-
-	return flowData;
-}
-*/
 //Generate steady flow data.
 //Seeds are from one of three sources:
 // If the input FlowLineData* is non-null, it contains the seeds
@@ -989,7 +841,6 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 		myFlowLib->SetPriorityField(xVar, yVar, zVar);
 	}
 	
-	myFlowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
 	if (!setupFlowRegion(rParams, myFlowLib, timeStep, minFrame)) return 0;
 	
 	int numSeedPoints;
@@ -2628,6 +2479,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep,
 	size_t min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
 	
+	flowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
 	//For steady flow, determine what is the available region for the current time step.
 	//For other flow, determine the available region for all the sampled timesteps.
 	if (flowType == 0 ){
@@ -2779,17 +2631,7 @@ bool FlowParams::
 singleAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, PathLineData* unsteadyFlowCache, int prevStep, int nextStep, int minFrame, RegionParams* rParams){
 	
 	assert(steadyFlowCache[prevStep]);
-	/*
-	//Perform steady integration on prevstep, reprioritizing
-	//the seeds in the unsteadycache.  This should only be needed the first time.
-	if (!steadyFlowCache[prevStep])
-		steadyFlowCache[prevStep] = regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, prevStep, minFrame, rParams, true);
-	if(!steadyFlowCache[prevStep]){
-		MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", prevStep);
-		QApplication::restoreOverrideCursor();
-		return false;
-	}
-				*/
+	
 	//we need to build nextStep:
 	assert(!steadyFlowCache[nextStep]);
 	//To do the next step, need first to advect from prevStep:
@@ -2844,6 +2686,13 @@ bool FlowParams::validateSettings(int tstep){
 	// needed for all sample time steps.
 
 	if (flowType != 0) {
+		if (getNumTimestepSamples() <= 0){
+			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+				"No timestep samples available for unsteady flow\n%s",
+				"Auto refresh has been disabled to enable corrective action");
+				autoRefresh = false;
+				return false;
+		}
 		for (int i = 0; i<getNumTimestepSamples(); i++){
 			int ts = getTimestepSample(i);
 			if (!ds->fieldDataOK(numRefinements, ts, 

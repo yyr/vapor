@@ -341,7 +341,7 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 		if (pathContainer && steadyFlowDirection <= 0){
 			for (int ptindx = startPos; ptindx >= container->getStartIndex(line); ptindx--){
 				float* pt = container->getFlowPoint(line, ptindx);
-				if (pt[0] == END_FLOW_FLAG) {
+				if (pt[0] == END_FLOW_FLAG || pt[0] == STATIONARY_STREAM_FLAG) {
 					if (pathContainer) break;
 					else continue;
 				}
@@ -361,7 +361,7 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 		if ((!pathContainer) || steadyFlowDirection >= 0){
 			for (int ptindx = startPos; ptindx <= container->getEndIndex(line); ptindx++){
 				float* pt = container->getFlowPoint(line, ptindx);
-				if (pt[0] == END_FLOW_FLAG)	{
+				if (pt[0] == END_FLOW_FLAG || pt[0] == STATIONARY_STREAM_FLAG)	{
 					if (pathContainer) break;
 					else continue;
 				}
@@ -381,7 +381,7 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 		//Now put the winner back into the steady flow data at position 0,
 		//or into the path container.
 		//Make appropriate modifications to that flowLine if necessary
-		//If no winner, it should be END_FLOW_FLAG.
+		//If no winner, set it to END_FLOW_FLAG.
 		if (pathContainer){
 			if (maxPoint)
 				pathContainer->setPointAtTime(line,(float)timeStep, maxPoint[0],maxPoint[1],maxPoint[2]);
@@ -712,8 +712,8 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	pSolution->SetTimeScaleFactor(unsteadyUserTimeStepMultiplier);
 	
 	pSolution->SetTime(startTimeStep, endTimeStep);
-	//For unsteady flow, periodicity is always off:
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, false,false,false);
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
+	pCartesianGrid->setPeriod(flowPeriod);
 	
 	// set the boundary of physical grid
 	
@@ -971,8 +971,8 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	pSolution->SetTimeScaleFactor(unsteadyUserTimeStepMultiplier);
 	
 	pSolution->SetTime(startTimeStep, endTimeStep);
-	//For unsteady flow, periodicity is always off:
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, false,false,false);
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
+	pCartesianGrid->setPeriod(flowPeriod);
 	
 	// set the boundary of physical grid
 	
@@ -1228,7 +1228,9 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	else
 		pSolution->SetTimeScaleFactor(1.f);
 	pSolution->SetTime(timestep, timestep);
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, false, false, false);
+	
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
+	pCartesianGrid->setPeriod(flowPeriod);
 	
 	// set the boundary of physical grid
 	
