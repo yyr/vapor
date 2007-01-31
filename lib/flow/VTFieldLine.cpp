@@ -347,10 +347,14 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 	//Deal with line that exits instantly (i.e. seed outside of region)
 	if((int)seedTrace->size() == 1 && traceState != CRITICAL_POINT)
 	{
-		if (direction > 0)
+		if (direction > 0){
 			container->setFlowEnd(lineNum, 0);
-		else 
+			container->addExit(lineNum, 2);
+		}
+		else {
 			container->setFlowStart(lineNum, 0);
+			container->addExit(lineNum, 1);
+		}
 		return 0.f;
 	}
 
@@ -433,6 +437,10 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 		y = (**pIter1)[1];
 		z = (**pIter1)[2];
 		container->setFlowPoint(lineNum, insertionPosn,x,y,z);
+		if (direction > 0)
+			container->addExit(lineNum, 2);
+		else 
+			container->addExit(lineNum, 1);
 
 		
 		//AN: 10/10/05
@@ -633,13 +641,11 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 //Alternate version of above for resampling the points advected from
 //resampled field lines
 //in next step.  return values are put into flData at specified time.
-//This new version uses PathLineData.  Resampled points are inserted in
-//either the forward or reverse direction
 //////////////////////////////////////////////////////////////////////////
 float vtCFieldLine::SampleFLALine(FlowLineData** flData,
 								   float firstT, float lastT,
-								   int direction, // -1 or +1
 								   int lineNum, int pointNum, //from ptId
+								   int direction, // -1 or +1
 								   vtListSeedTrace* seedTrace,
 								   list<float>* stepList,
 								   int traceState,

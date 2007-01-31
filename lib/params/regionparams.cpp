@@ -199,8 +199,7 @@ convertToBoxExtentsInCube(int refLevel, size_t min_dim[3], size_t max_dim[3], fl
 	DataStatus* ds = DataStatus::getInstance();
 	const size_t fullMin[3] = {0,0,0};
 	size_t fullMax[3];
-	int maxRef = ds->getNumTransforms();
-	const size_t* fullDims = DataStatus::getInstance()->getFullDataSize();
+	
 	for (int i = 0; i<3; i++) fullMax[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i) - 1;
 
 	ds->mapVoxelToUserCoords(refLevel, fullMin, fullExtents);

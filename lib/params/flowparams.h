@@ -51,10 +51,10 @@ public:
 
 	// Reinitialize due to new Session:
 	bool reinit(bool doOverride);
-	//Override default set-enabled to create/destroy FlowLib
-	//virtual void setEnabled(bool value);
 	
-	
+	//Check that the current settings are OK for rebuilding the flow at timestep
+	//Issue error/warning messages as appropriate.  Return false on error.
+	bool validateSettings(int timestep);
 
 	//Save, restore stuff:
 	XmlNode* buildNode(); 
@@ -86,7 +86,7 @@ public:
 	
 	//To rebuild the PathLineData associated with field line advection, need to do the following:
 	//1.  Create a new PathLineData with the starting seeds in it:
-	PathLineData* setupPathLineData(VaporFlow*, int minFrame, int maxFrame, RegionParams* rParams);
+	FlowLineData* setupUnsteadyStartData(VaporFlow*, int minFrame, int maxFrame, RegionParams* rParams);
 	bool setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep, int minFrame);
 
 	//2.  Call GenStreamLines for the seed time, prioritizing the seeds, and putting the

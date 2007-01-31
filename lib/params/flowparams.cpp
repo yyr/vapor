@@ -188,7 +188,7 @@ restart() {
 	constantColor = qRgb(255,0,0);
 	constantOpacity = 1.f;
 	timeSamplingInterval = 1;
-	timeSamplingStart = 1;
+	timeSamplingStart = 0;
 	timeSamplingEnd = 100;
 	
 	editMode = true;
@@ -613,7 +613,7 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds){
 	
 	setupFlowRegion(rParams, flowLib, seedTimeStart, seedTimeStart);
 	//Prepare the flowLib:
-	int numSeedPoints = getNumRakeSeedPoints();
+	
 	if (randomGen){
 		const char* xVar = ds->getVariableName(seedDistVarNum[0]).c_str();
 		const char* yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
@@ -998,7 +998,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 		seedList = new float[numSeedPoints*3];
 		for (int i = 0; i<numSeedPoints; i++){
 			for (int k = 0; k<3; k++) {
-				seedList[3*i+k] = (flowLines->getFlowPoint(i,0))[k];
+				seedList[3*i+k] = flowLines->getFlowPoint(i,flowLines->getSeedPosition())[k];
 			}
 		}
 	} else if (pathData) {
@@ -1111,8 +1111,8 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 //  Does setup of flow lib for unsteady advection
 //  Returns null if there are no seeds, or if unable to allocate memory
 ///////////////////////////////////////////////////////////
-PathLineData* FlowParams::
-setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* rParams){
+FlowLineData* FlowParams::
+setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* rParams){
 	//The number of lines is the total number of seeds to be inserted.
 	int numLines = 0;
 	//The max number of points in the unsteady flow
@@ -1194,17 +1194,39 @@ setupPathLineData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionParams* 
 	
 	if (flowType == 2){ //field line advection only inserts at first seed frame:
 		int numLines = calcNumSeedPoints(seedTimeStart);
-		//In field line advection, we don't store speeds or colors in the path line data,
-		//just in the steady flowLineData
-		PathLineData* pathLines = new PathLineData(numLines, mPoints, false, false, minFrame, maxFrame, sampleRate);
-		// Now insert the seeds:
-		int seedsInserted = insertUnsteadySeeds(rParams, flowLib, pathLines, seedTimeStart);
-		if (seedsInserted <= 0) { 
-			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,"No valid flow seeds to advect");
-			delete pathLines;
-			return 0;
+		if (flaAdvectBeforePrioritize) {
+			//Here there is no path line data.
+			//All points are kept in flow line data (steadyCache)
+			//Get some initial settings:
+			maxPoints = calcMaxPoints();
+			bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
+			bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
+			FlowLineData* flData1 = new FlowLineData(numLines, maxPoints, useSpeeds, steadyFlowDirection, doRGBAs); 
+			//Now set this up with seed points:
+			int nlines = insertSteadySeeds(rParams, flowLib, flData1, seedTimeStart);
+			if (nlines <= 0) {
+				MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "No seeds to start field line advection");
+				delete flData1;
+				return 0;
+			}
+			//Then do a steady advection at the start time
+			FlowLineData* flData = regenerateSteadyFieldLines(flowLib, flData1, 0, seedTimeStart, minFrame, rParams, false);
+			if (!flData) delete flData1;
+			return flData;
+		} else {
+			//In this version of field line advection, 
+			// we don't store speeds or colors in the path line data,
+			// just in the steady flowLineData
+			PathLineData* pathLines = new PathLineData(numLines, mPoints, false, false, minFrame, maxFrame, sampleRate);
+			// Now insert the seeds:
+			int seedsInserted = insertUnsteadySeeds(rParams, flowLib, pathLines, seedTimeStart);
+			if (seedsInserted <= 0) { 
+				MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,"No valid flow seeds to advect");
+				delete pathLines;
+				return 0;
+			}
+			return (FlowLineData*)pathLines;
 		}
-		return pathLines;
 	} else { //Unsteady flow; Insert at all seed frames (independent of sampling)
 		//Count the number of lines (i.e. seeds) for all seed times.
 		for (int i = seedTimeStart; i<= seedTimeEnd; i+= seedTimeIncrement){
@@ -1291,7 +1313,8 @@ int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, Path
 	return seedCount;
 
 }
-//Insert seeds for the specified timeStep into fieldLineData.
+//Insert seeds for the specified timeStep into fieldLineData, using rake or 
+//list.
 //Return the actual number of seeds that were inserted
 //If the seed list is being used, only use seeds that are valid at the specified
 //timestep
@@ -2619,7 +2642,6 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep,
 		size_t gmin_dim[3],gmax_dim[3],gmin_bdim[3], gmax_bdim[3];
 		rParams->getRegionVoxelCoords(numRefinements, gmin_dim, gmax_dim, gmin_bdim,gmax_bdim);
 		int firstSample = getFirstSampleTimestep();
-		int lastSample = Min(getLastSampleTimestep(), maxFrame);
 		if (timeSamplingStart < minFrame) firstSample = ((1+minFrame/timeSamplingInterval)*timeSamplingInterval);
 		for (int indx = 0; indx < getNumTimestepSamples(); indx++){
 			int ts = getTimestepSample(indx);
@@ -2696,22 +2718,16 @@ bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** stea
 	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
 	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
 
-	//Create new flowLineData at startTime if needed:
-	if (!steadyFlowCache[startTime]){
-		
-		steadyFlowCache[startTime] = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, steadyFlowDirection, doRGBAs); 
-		//Now populate this with seed points:
-		int nlines = insertSteadySeeds(rParams, myFlowLib, steadyFlowCache[startTime], startTime);
-		if (nlines <= 0) {
-			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "No seeds to start field line advection");
-			return false;
-		}
-		//Now do a steady advection
-		regenerateSteadyFieldLines(myFlowLib, steadyFlowCache[startTime], 0, startTime, minFrame, rParams, false);
-	}
-	if (startTime == endTime) return true;
+	//  Previous cache should already exist:
+	assert(steadyFlowCache[startTime]);
+	
+	assert (startTime != endTime);
 	//Create new flow line data for all other times:
 	int timeDir = (startTime < endTime) ? 1 : -1 ;
+	int forwardSamples = getNumFLASamples();
+	if (forwardSamples < 2) forwardSamples = 2;
+	if (forwardSamples > steadyFlowCache[startTime]->getMaxPoints())
+		forwardSamples = steadyFlowCache[startTime]->getMaxPoints();
 	for (int i = startTime + timeDir;; i+= timeDir){
 		if (steadyFlowCache[i]) delete steadyFlowCache[i];
 		//Each intermediate cache will not use speeds, and will go forward.
@@ -2722,17 +2738,19 @@ bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** stea
 			//It will later be modified to get the same direction as the starting line.
 			steadyFlowCache[i] = new FlowLineData(numSeedPoints, maxPoints, useSpeeds, 1, doRGBAs); 
 		}
-		
+		//Fill the steadyFlow cache with END_FLOW_FLAG's:
+		for (int line = 0; line < numSeedPoints; line++){
+			for (int j = 0; j < forwardSamples; j++){
+				steadyFlowCache[i]->setFlowPoint(line, j, END_FLOW_FLAG,END_FLOW_FLAG,END_FLOW_FLAG);
+			}
+		}
+		if(i == endTime) break;
 	}
-	//Loop over (valid) seeds from the start time:
-	int forwardSamples = getNumFLASamples();
-	
 	
 	if (!myFlowLib->AdvectFieldLines(steadyFlowCache,startTime,endTime,forwardSamples)){
-		MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Error advecting field lines");
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"No flow lines were advected to time step %d", endTime);
 		return false;
 	}
-
 	//For each seed, put the highest priority seed at the start position at endTime
 	if(!myFlowLib->prioritizeSeeds(steadyFlowCache[endTime],0,endTime)){
 		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Unable to prioritize seeds");
@@ -2740,8 +2758,18 @@ bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** stea
 	//If there are intermediate field lines, realign them to start at valid points.
 	for (int i = startTime+1; i< endTime; i++){
 		steadyFlowCache[i]->realignFlowLines();
+	} 
+	//See how many seeds have exited the region.
+	int prevSeeds = 0;
+	int postSeeds = 0;
+	for (int i = 0; i<numSeedPoints; i++){
+		if (steadyFlowCache[startTime]->getFlowStart(i)[0] != END_FLOW_FLAG) prevSeeds++;
+		if (steadyFlowCache[endTime]->getFlowStart(i)[0] != END_FLOW_FLAG) postSeeds++;
 	}
-
+	if (postSeeds < prevSeeds){
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW, "%d field lines remain in region at time %d",
+			postSeeds, endTime);
+	}
 	//Then do steady advection at the end time:
 	regenerateSteadyFieldLines(myFlowLib, steadyFlowCache[endTime], 0, endTime, minFrame, rParams, false);
 	
@@ -2750,6 +2778,8 @@ bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** stea
 bool FlowParams::
 singleAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, PathLineData* unsteadyFlowCache, int prevStep, int nextStep, int minFrame, RegionParams* rParams){
 	
+	assert(steadyFlowCache[prevStep]);
+	/*
 	//Perform steady integration on prevstep, reprioritizing
 	//the seeds in the unsteadycache.  This should only be needed the first time.
 	if (!steadyFlowCache[prevStep])
@@ -2759,8 +2789,8 @@ singleAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, Pat
 		QApplication::restoreOverrideCursor();
 		return false;
 	}
-				
-	//Otherwise, we need to build nextStep:
+				*/
+	//we need to build nextStep:
 	assert(!steadyFlowCache[nextStep]);
 	//To do the next step, need first to advect from prevStep:
 	//extend the pathline from prevstep to nextstep, prioritizing first:
@@ -2777,4 +2807,249 @@ singleAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, Pat
 }
 
 
+bool FlowParams::validateSettings(int tstep){
+	//See if the steady field is OK (type 0 and 2)
+		// for type 0, needed for tstep
+		// for type 2, needed for all sample times 
+	DataStatus* ds = DataStatus::getInstance();
+	switch (flowType) {
+		case (0) : 
+			if (!ds->fieldDataOK(numRefinements, tstep, 
+						steadyVarNum[0],steadyVarNum[1], steadyVarNum[2])){
+				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+						"Steady field not available at required resolution for timestep %d\n%s",
+						tstep, "Auto refresh has been disabled to enable corrective action");
+				autoRefresh = false;
+				return false;
+			}
+			break;
+		case (1) :
+			break;
+		case (2) :
+			for (int i = 0; i<getNumTimestepSamples(); i++){
+				int ts = getTimestepSample(i);
+				if (!ds->fieldDataOK(numRefinements, ts, 
+						steadyVarNum[0],steadyVarNum[1], steadyVarNum[2])){
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+							"Steady field not available at required resolution for timestep %d\n%s",
+							ts, "Auto refresh has been disabled to enable corrective action");
+					autoRefresh = false;
+					return false;
+				}
+			}
+			break;
+	}//end switch
+
+	//See if the unsteady field is OK  (type 1 and 2)
+	// needed for all sample time steps.
+
+	if (flowType != 0) {
+		for (int i = 0; i<getNumTimestepSamples(); i++){
+			int ts = getTimestepSample(i);
+			if (!ds->fieldDataOK(numRefinements, ts, 
+					unsteadyVarNum[0],unsteadyVarNum[1], unsteadyVarNum[2])){
+				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+						"Unsteady field not available at required resolution for timestep %d\n%s",
+						ts, "Auto refresh has been disabled to enable corrective action");
+				autoRefresh = false;
+				return false;
+			}
+		}
+	}
+		
+	//See if the seed prioritization field is OK, provided using random
+	//rake and bias != 0.    
+		//for type 0 needed for tstep
+		//for type 1 needed for all seed times between first and last sample time
+		//for type 2 needed for seed time start
 	
+	if (seedDistBias != 0.f && doRake && randomGen){
+		switch (flowType) {
+			case (0) :
+				if (!ds->fieldDataOK(numRefinements, tstep, 
+						seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+							"Seed distribution field not available at required resolution for timestep %d\n%s",
+							tstep, "Auto refresh has been disabled to enable corrective action");
+					autoRefresh = false;
+					return false;
+				}
+				break;
+			case(1) :
+				for (int i = seedTimeStart; i<= seedTimeEnd; i+= seedTimeIncrement){
+					if (i >= getFirstSampleTimestep() && i <= getLastSampleTimestep()) {
+						if (!ds->fieldDataOK(numRefinements, i, 
+								seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
+							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+									"Seed distribution field not available at required resolution for timestep %d\n%s",
+									i, "Auto refresh has been disabled to enable corrective action");
+							autoRefresh = false;
+							return false;
+						}
+					}
+				}
+				break;
+			case(2) :
+				{ 
+					if (!ds->fieldDataOK(numRefinements, seedTimeStart, 
+							seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
+						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+								"Seed distribution field not available at required resolution for timestep %d\n%s",
+								seedTimeStart, "Auto refresh has been disabled to enable corrective action");
+						autoRefresh = false;
+						return false;
+					}
+				}
+				break;
+		}//end switch
+	}
+
+	//see if the fla prioritization field is OK (type 2)
+	// needed for all sample timesteps
+	if (flowType == 2) {
+		for (int i = 0; i<getNumTimestepSamples(); i++){
+			int ts = getTimestepSample(i);
+			if (!ds->fieldDataOK(numRefinements, ts, 
+					priorityVarNum[0],priorityVarNum[1], priorityVarNum[2])){
+				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+						"Prioritization field not available at required resolution for timestep %d\n%s",
+						ts, "Auto refresh has been disabled to enable corrective action");
+				autoRefresh = false;
+				return false;
+			}
+		}
+	}
+	// See if samples and seeds are consistent:
+	// for type 0, need both samples and seeds at tstep
+	switch (flowType){
+		case (0) : 
+			//Is tstep a seed time?  
+			if (!doRake) {
+				bool found = false;
+				for (int i = 0; i< seedPointList.size(); i++){
+					if (seedPointList[i].getVal(3) < 0.f || tstep == (int)(seedPointList[i].getVal(3)+0.5f)) 
+					{
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+						"No seed points specified for timestep %d\n%s",
+						tstep, "Auto refresh has been disabled to enable corrective action");
+					autoRefresh = false;
+					return false;
+				}
+			}
+			break;
+		// for type 1, need a seed at or after first sample timestep
+		//	plus need tstep to be after first sample and after first seed
+		// If rake is used, seed times are determined by start, end, increment.
+		// If seed list is used seed times are from seed
+		case (1) :
+			{
+				int ts;
+				bool found = false;
+				
+				if (unsteadyFlowDirection > 0) {
+					ts = getFirstSampleTimestep();
+					for (int i = seedTimeStart; i<= seedTimeEnd; i+= seedTimeIncrement){
+						//see if there is a seed after time ts:
+						if (ts > i) continue;
+						if (doRake) {found = true; break;}
+						//See if there is a seed in the list at this time step:
+						for (int j = 0; j<seedPointList.size(); j++){
+							if (seedPointList[j].getVal(3) < 0.f || i == (int)(seedPointList[j].getVal(3)+0.5f)){
+								found = true;
+								break;
+							}
+						}
+						if (found) break;
+					}
+				} else {
+					ts = getLastSampleTimestep();
+					for (int i = seedTimeStart; i<= seedTimeEnd; i+= seedTimeIncrement){
+						//see if there is a seed before time ts:
+						if (ts < i) continue;
+						if (doRake) {found = true; break;}
+						//See if there is a seed in the list at this time step:
+						for (int j = 0; j<seedPointList.size(); j++){
+							if (seedPointList[j].getVal(3) < 0.f || i == (int)(seedPointList[j].getVal(3)+0.5f)){
+								found = true;
+								break;
+							}
+						}
+						if (found) break;
+					}
+				}
+				if (!found) {
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+							"No seeds available after the first sample time %d of the unsteady flow\n%s",
+							ts,"Auto refresh has been disabled to enable corrective action");
+						autoRefresh = false;
+						return false;
+					}
+			}
+			break;
+		// for type 2, need seed time start to be a sample time, and for there to
+		//		be a seed at that time.
+		//  Also: need there to be a sample time at tstep, or on the other side of
+		//	tstep from seedTimeStart.
+		case (2) : 
+			{
+				bool OK = false;
+				//See if there are any seeds at seed time start:
+				if (!doRake) {
+					//See if there is a seed in the list at start time step:
+					for (int j = 0; j<seedPointList.size(); j++){
+						if ((seedPointList[j].getVal(3) < 0.f) || (seedTimeStart == (int)(seedPointList[j].getVal(3)+0.5f))){
+							OK = true;
+							break;
+						}
+					}
+					if (!OK) {
+						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+								"No seeds available at start seed time %d \n%s",
+								seedTimeStart,
+								"Auto refresh has been disabled to enable corrective action");
+						autoRefresh = false;
+						return false;
+					}
+				}
+				//See if the seedTimeStart is a sample time
+				OK = false;
+				for (int i = 0; i<getNumTimestepSamples(); i++){
+					if (getTimestepSample(i) == seedTimeStart){
+						OK = true;
+						break;
+					}
+				}
+				if (!OK) {
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+							"start seed time %d is not a sample time\n%s",
+							seedTimeStart,
+							"Auto refresh has been disabled to enable corrective action");
+					autoRefresh = false;
+					return false;
+				}
+
+				//Verify that there's a sample time on the 'other' side of current time:
+				OK = false;
+				for (int i = 0; i<getNumTimestepSamples(); i++){
+					if (tstep <= seedTimeStart &&
+						getTimestepSample(i) <= tstep) OK = true;
+					if (tstep >= seedTimeStart &&
+						getTimestepSample(i) >= tstep) OK = true;
+					if (OK) break;
+				}
+				if (!OK){
+					MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
+						"Cannot perform field line advection from the seed time %d to current time %d\n%s",
+						seedTimeStart, tstep,
+						"Because the current time is not between the seed time and a sample time");
+				}
+			}
+			break;
+		}   //End of switch
+	return true;
+}

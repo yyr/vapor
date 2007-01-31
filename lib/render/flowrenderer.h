@@ -71,6 +71,9 @@ public:
 	// There is also an "unsteadyNeedsRefresh" flag, indicating that all 
 
 	void setNeedOfRefresh(int timeStep, bool value){ if(needRefreshFlag)needRefreshFlag[timeStep]=value;}
+	//Set needs refresh flag for all dirty frames.  Returns true if anything
+	//Needs to be refreshed
+	bool setDirtyNeedsRefresh(FlowParams*);
 	bool needsRefresh(FlowParams* fParams, int timeStep); 
 	void setAllNeedRefresh(bool value);
 	bool flowDataIsDirty(int timeStep);
@@ -189,8 +192,6 @@ protected:
 	int numSeedPoints;
 	bool regionIsValid;
 	
-
-	//FlowParams* myFlowParams;
 	//Remember the last time step that was rendered, for capturing.
 	int lastTimeStep;
 	//save the periodic extents (slightly different than extents)

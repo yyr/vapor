@@ -169,7 +169,7 @@ reset(DataMgr* dm, size_t cachesize){
 	//Construct a mapping from variable nums to variable names, first use the
 	//nums and names that are active, then the remainder.
 	WaveletBlock3DRegionReader* myReader = (WaveletBlock3DRegionReader*)dm->GetRegionReader();
-	size_t temp[3];
+	
 	for (int lev = 0; lev <= numTransforms; lev++){
 		myReader->GetDim(dataAtLevel[lev],lev);
 	}

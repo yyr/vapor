@@ -87,6 +87,15 @@ public:
 	//Determine if variable is present for *any* timestep 
 	//Needed for setting DVR panel
 	bool variableIsPresent(int varnum) {return variableExists[varnum];}
+
+	//Verify that field data is present at specified resolution and timestep.
+	//Ignore variable if varnum is < 0
+	bool fieldDataOK(int refLevel, int tstep, int varx, int vary, int varz){
+		if (varx >= 0 && maxXFormPresent(varx, tstep) < refLevel) return false;
+		if (vary >= 0 && maxXFormPresent(vary, tstep) < refLevel) return false;
+		if (varz >= 0 && maxXFormPresent(varz, tstep) < refLevel) return false;
+		return true;
+	}
 	
 	int getNumTimesteps() {return numTimesteps;}
 	//determine the maxnumtransforms in the vdf, may not actually have any data at

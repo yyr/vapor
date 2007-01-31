@@ -28,6 +28,7 @@ FlowLineData::FlowLineData(int numLines, int maxPoints, bool useSpeeds,  int dir
 	startIndices = new int[numLines];
 	
 	lineLengths = new int[numLines];
+	exitCodes = new int[numLines];
 	flowLineLists = new float*[numLines];
 	if (doRGBAs) flowRGBAs = new float*[numLines];
 	else flowRGBAs = 0;
@@ -42,6 +43,7 @@ FlowLineData::FlowLineData(int numLines, int maxPoints, bool useSpeeds,  int dir
 		else if (flowDirection < 0) startIndices[i] = mxPoints -1;
 		else startIndices[i] = -1; //Invalid value, must be reset to use.
 		lineLengths[i] = -1;
+		exitCodes[i] = 0;
 	}
 }
 FlowLineData::~FlowLineData() {
@@ -56,6 +58,19 @@ FlowLineData::~FlowLineData() {
 	delete flowLineLists;
 	if (speedLists) delete speedLists;
 	if (flowRGBAs) delete flowRGBAs;
+}
+void FlowLineData::
+setFlowPoint(int lineNum, int integPos, float x, float y, float z){
+	assert(integPos+integrationStartPosn < mxPoints);
+	assert(integPos+integrationStartPosn >= 0 );
+	*(flowLineLists[lineNum]+ 3*(integPos+ integrationStartPosn)) = x;
+	*(flowLineLists[lineNum]+ 3*(integPos+ integrationStartPosn)+1) = y;
+	*(flowLineLists[lineNum]+ 3*(integPos+ integrationStartPosn)+2) = z;
+	//Adjust start/end as appropriate
+	if (startIndices[lineNum] < 0 || (startIndices[lineNum] > integPos + integrationStartPosn))
+		setFlowStart(lineNum, integPos);
+	if (lineLengths[lineNum] < ((integPos + integrationStartPosn) - startIndices[lineNum])+1)
+		setFlowEnd(lineNum, integPos);
 }
 //Establish an end (rendering order) position for a flow line, after start already established.
 void FlowLineData::
@@ -177,12 +192,17 @@ int FlowLineData::resampleFieldLines(int* indexList, int desiredNumSamples, int 
 		if (*(getFlowPoint(lineNum, i)) == END_FLOW_FLAG) continue;
 		validCount++;
 	}
-	if (validCount == 0) return 0;
+	int firstIndex = getStartIndex(lineNum);
+	int lastIndex = getEndIndex(lineNum);
+	//Adjust to avoid exiting points:
+	if (exitAtStart(lineNum)) {validCount--; firstIndex++;}
+	if (exitAtEnd(lineNum)) {validCount--; lastIndex--;}
+	if (validCount <= 0) return 0;
 	int numSamples = Min(validCount, desiredNumSamples);
 
 	//Now resample:
 	int count = 0;
-	for (int i = getStartIndex(lineNum); i<= getEndIndex(lineNum); i++){
+	for (int i = firstIndex; i<= lastIndex; i++){
 		if (*(getFlowPoint(lineNum, i)) == END_FLOW_FLAG) continue;
 		if (numSamples < validCount){ //subsample
 			int index = (int)(0.5f + (float)count*(float)(numSamples-1)/(float)(validCount-1));

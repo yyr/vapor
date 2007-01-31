@@ -161,7 +161,7 @@ void VaporFlow::SetRegion(size_t num_xforms,
 	numXForms = num_xforms;
 	const size_t* fullDims = dataMgr->GetMetadata()->GetDimension();
 	const std::vector<double> extents = dataMgr->GetMetadata()->GetExtents();
-	int max_xforms = dataMgr->GetMetadata()->GetNumTransforms();
+	
 	size_t fullDataSize[3];
 	dataMgr->GetRegionReader()->GetDim(fullDataSize,num_xforms);
 	for (int i = 0; i< 3; i++){
@@ -308,7 +308,7 @@ int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed,
 // Also can be used for maximizing over multiple forward advections, by using
 // pathContainer = 0.
 // If the pathContainer is null, then the min/max priority values are ignored,
-// the direction is assumed to be 1 but will be changed to steadyFlowDirection
+// the direction is assumed to be 1 but is changed to steadyFlowDirection
 // the final values are put back into the FlowLineData at the integ. start position, and
 // END_FLOW_FLAGS are bypassed (they don't end the search for max).
 //
@@ -553,22 +553,26 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		pStreamLine->setForwardTracing(false);
 
 	pStreamLine->setMaxPoints(container->getMaxPoints());
-	//test the seeds:
+	//test the seeds, but don't count the ones that are already outside from previous advection
 	int seedsInRegion = 0;
+	int totalSeeds = numSeeds;
 	for (int i = 0; i<numSeeds; i++){
-		bool out = false;
+		if (seedPtr[3*i] == END_FLOW_FLAG){
+			totalSeeds--;
+			continue;
+		}
 		for (int j = 0; j< 3; j++){
 			if (seedPtr[3*i+j] < regMin[j] || seedPtr[3*i+j] > regMax[j]){
-				out = true;
 				break;
 			}
 		}
-		if (!out) seedsInRegion++;
+		seedsInRegion++;
 	}
 		
-	if (seedsInRegion < numSeeds){
+	if (seedsInRegion < totalSeeds){
 		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
-			"Flow seeds are outside region: \n %d seeds outside of total %d seeds.",numSeeds - seedsInRegion, numSeeds);
+			" %d Steady flow lines have left region at timestep %d:",
+			numSeeds - seedsInRegion, steadyStartTimeStep);
 	}
 	pStreamLine->setSeedPoints(seedPtr, numSeeds, currentT);
 	pStreamLine->SetSamplingRate(animationTimeStepSize);
@@ -1276,9 +1280,6 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
 	
 	float **pUData, **pVData, **pWData;
-	int totalXNum = (maxBlk[0]-minBlk[0]+1)* bs[0];
-	int totalYNum = (maxBlk[1]-minBlk[1]+1)* bs[1];
-	int totalZNum = (maxBlk[2]-minBlk[2]+1)* bs[2];
 	
 	//Now get the data from the dataMgr:
 	pUData = new float*[1];

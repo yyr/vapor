@@ -311,622 +311,6 @@ FlowEventRouter::hookUpTab()
 
 }
 
-/*********************************************************************************
- * Slots associated with FlowTab:
- *********************************************************************************/
-//Add a new (blank) row to the table
-void FlowEventRouter::addSample(){
-	timestepSampleTable1->insertRows(timestepSampleTable1->numRows());
-	timestepSampleTable2->insertRows(timestepSampleTable2->numRows());
-}
-//Show setup instructions for flow:
-void FlowEventRouter::showSetupHelp(){
-	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
-	if (fParams->getFlowType() == 1){ 
-		HelpWindow::showHelp(("UnsteadyHelp.html"));
-	} else {
-		HelpWindow::showHelp(("FieldLineAdvectionHelp.html"));
-	}
-}
-//Delete the current selected row
-void FlowEventRouter::deleteSample(){
-	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
-	if (fParams->getFlowType() == 1){
-		timestepSampleTable1->removeRow(timestepSampleTable1->currentRow());
-		guiUpdateUnsteadyTimes(timestepSampleTable1, "remove unsteady timestep");
-	} else {
-		timestepSampleTable2->removeRow(timestepSampleTable2->currentRow());
-		guiUpdateUnsteadyTimes(timestepSampleTable2, "remove unsteady timestep");
-	}
-}
-//Respond to user has typed in a row. Convert it to an int, swap it up or down
-//until it's in ascending order.
-void FlowEventRouter::timestepChanged1(int row, int col){
-	int newVal = timestepSampleTable1->text(row,col).toInt();
-	int i;
-	//First, find the first one above it that's larger:
-	for (i = 0; i< row; i++){
-		int rowInt = timestepSampleTable1->text(i,col).toInt();
-		if (rowInt > newVal) break;
-	}
-	if (i < row) { //found one to swap:  Swap from row to i
-		for (int j = row; j>i; j--){
-			timestepSampleTable1->swapRows(j,j-1);
-		}
-		//It changed, update the flowparams:
-		guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
-		return;
-	} 
-	//Now look below this one for the lowest one that is smaller
-	for (i =  timestepSampleTable1->numRows()-1; i>row; i--){
-		int rowInt = timestepSampleTable1->text(i,col).toInt();
-		if (rowInt < newVal) break;
-	}
-	if (i > row){ //found one to swap:  Swap from row to i
-		for (int j = row; j<i; j++){
-			timestepSampleTable1->swapRows(j,j+1);
-		}
-		//It changed, update the flowparams:
-		guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
-		return;
-	} 
-	//No Change:
-	guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
-	return;
-}
-//Send the contents of the timestepTable to the params.
-//Assumes that the timestepTable is sorted in ascending order.
-void FlowEventRouter::guiUpdateUnsteadyTimes(QTable* tbl, const char* descr){	
-	confirmText(false);
-	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
-	PanelCommand* cmd = PanelCommand::captureStart(fParams, descr);
-	std::vector<int>& timesteplist = fParams->getUnsteadyTimesteps();
-	timesteplist.clear();
-	int prevTime = -1;
-	for (int i = 0; i< tbl->numRows(); i++){
-		int newTime = tbl->text(i,0).toInt();
-		if (newTime > prevTime) {
-			timesteplist.push_back(newTime);
-			prevTime = newTime;
-		}
-	}
-	
-	PanelCommand::captureEnd(cmd, fParams);
-	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
-}
-//Respond to user has typed in a row. Convert it to an int, swap it up or down
-//until it's in ascending order.
-void FlowEventRouter::timestepChanged2(int row, int col){
-	int newVal = timestepSampleTable2->text(row,col).toInt();
-	int i;
-	//First, find the first one above it that's larger:
-	for (i = 0; i< row; i++){
-		int rowInt = timestepSampleTable2->text(i,col).toInt();
-		if (rowInt > newVal) break;
-	}
-	if (i < row) { //found one to swap:  Swap from row to i
-		for (int j = row; j>i; j--){
-			timestepSampleTable2->swapRows(j,j-1);
-		}
-		//It changed, update the flowparams:
-		guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
-		return;
-	} 
-	//Now look below this one for the lowest one that is smaller
-	for (i =  timestepSampleTable2->numRows()-1; i>row; i--){
-		int rowInt = timestepSampleTable2->text(i,col).toInt();
-		if (rowInt < newVal) break;
-	}
-	if (i > row){ //found one to swap:  Swap from row to i
-		for (int j = row; j<i; j++){
-			timestepSampleTable2->swapRows(j,j+1);
-		}
-		//It changed, update the flowparams:
-		guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
-		return;
-	} 
-	//No Change:
-	guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
-	return;
-}
-
-void FlowEventRouter::toggleShowMap(){
-	showMapEditor = !showMapEditor;
-	updateTab();
-}
-void FlowEventRouter::toggleAdvanced(){
-	showAdvanced = !showAdvanced;
-	updateTab();
-}
-void FlowEventRouter::populateTimestepTables(){
-	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
-	std::vector<int>& tSteps = fParams->getUnsteadyTimesteps();
-	timestepSampleTable1->setNumRows(tSteps.size());
-	timestepSampleTable2->setNumRows(tSteps.size());
-	for (int i = 0; i< tSteps.size(); i++){
-		timestepSampleTable1->setText(i,0,QString::number(tSteps[i]));
-		timestepSampleTable2->setText(i,0,QString::number(tSteps[i]));
-	}
-	timestepSampleCheckbox1->setChecked(fParams->usingTimestepSampleList());
-	timestepSampleCheckbox2->setChecked(fParams->usingTimestepSampleList());
-}
-
-void FlowEventRouter::confirmText(bool /*render*/){
-	if (!textChangedFlag) return;
-	bool needRegen = flowDataChanged;
-	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
-	PanelCommand* cmd = PanelCommand::captureStart(fParams, "edit Flow text");
-	if (mapBoundsChanged){
-		float colorMapMin = minColormapEdit->text().toFloat();
-		float colorMapMax = maxColormapEdit->text().toFloat();
-		if (colorMapMin >= colorMapMax){
-			colorMapMax = colorMapMin+1.e-6;
-			maxColormapEdit->setText(QString::number(colorMapMax));
-		}
-		float opacMapMin = minOpacmapEdit->text().toFloat();
-		float opacMapMax = maxOpacmapEdit->text().toFloat();
-		if (opacMapMin >= opacMapMax){
-			opacMapMax = opacMapMin+1.e-6;
-			maxOpacmapEdit->setText(QString::number(opacMapMax));
-		}
-		MapperFunction* mapperFunction = fParams->getMapperFunc();
-		if (mapperFunction){
-			mapperFunction->setMaxColorMapValue(colorMapMax);
-			mapperFunction->setMinColorMapValue(colorMapMin);
-			mapperFunction->setMaxOpacMapValue(opacMapMax);
-			mapperFunction->setMinOpacMapValue(opacMapMin);
-		}
-		fParams->setMinColorMapBound(colorMapMin);
-		fParams->setMaxColorMapBound(colorMapMax);
-		
-		fParams->setMinOpacMapBound(opacMapMin);
-		fParams->setMaxOpacMapBound(opacMapMax);
-		
-		//Align the editor:
-		fParams->setMinColorEditBound(fParams->getMinColorMapBound(),fParams->getColorMapEntityIndex());
-		fParams->setMaxColorEditBound(fParams->getMaxColorMapBound(),fParams->getColorMapEntityIndex());
-		fParams->setMinOpacEditBound(fParams->getMinOpacMapBound(),fParams->getOpacMapEntityIndex());
-		fParams->setMaxOpacEditBound(fParams->getMaxOpacMapBound(),fParams->getOpacMapEntityIndex());
-		setEditorDirty();
-	}
-	int flowType = fParams->getFlowType();
-	bool autoscale = fParams->isAutoScale();
-	if (flowDataChanged){
-		//Do settings that depend on flowType:
-		float seedDistBias;
-		if (flowType == 0){
-			seedDistBias = biasEdit1->text().toFloat();
-			if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
-			biasSlider1->setValue((int)(seedDistBias*128.f/10.f));
-			if (!autoscale){
-				int sampleRate = steadySamplesEdit1->text().toInt();
-				if (sampleRate < 2 || sampleRate > 2000){
-					sampleRate = 2;
-					steadySamplesEdit1->setText(QString::number(sampleRate));
-				}
-				
-				steadySamplesSlider1->setValue((int)(256.0*log10((float)sampleRate/2.f)*0.33333));
-				fParams->setObjectsPerFlowline(sampleRate);
-
-				float velocityScale = steadyScaleEdit1->text().toFloat();
-				if (velocityScale < 1.e-20f){
-					velocityScale = 1.e-20f;
-					steadyScaleEdit1->setText(QString::number(velocityScale));
-				}
-				fParams->setSteadyScale(velocityScale);
-			}
-		} else {//set up unsteady flow sample rate, velocity scale
-			int sampleRate = unsteadySamplesEdit->text().toInt();
-			if (sampleRate < 1 || sampleRate > 256){
-				sampleRate = 1;
-				unsteadySamplesEdit->setText(QString::number(sampleRate));
-			}
-			unsteadySamplesSlider->setValue(sampleRate);
-			fParams->setObjectsPerTimestep(sampleRate);
-
-			float velocityScale = unsteadyScaleEdit->text().toFloat();
-			if (velocityScale < 1.e-20f){
-				velocityScale = 1.e-20f;
-				unsteadyScaleEdit->setText(QString::number(velocityScale));
-			}
-			fParams->setUnsteadyScale(velocityScale);		
-		}
-
-		if (flowType == 1){
-			seedDistBias = biasEdit2->text().toFloat();
-			if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
-			biasSlider2->setValue((int)(seedDistBias*128.f/10.f));
-			fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
-			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
-			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
-			int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
-			if (!fParams->validateSampling(minFrame,
-				fParams->getNumRefinements(), fParams->getUnsteadyVarNums())){//did anything change?
-				timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
-				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
-				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
-			}
-		} else if (autoscale){ // auto steady flow settings for flow type 0 and 2:
-			//Look at smoothness (samples per along flowline, per region diameter)
-			//and flow length (in diameter units). The product of smoothness and flow length
-			//is the total number of samples (maxPoints) and needs to be kept between
-			//2 and 10000
-			bool changed = false;
-			float sampleRate = smoothnessSamplesEdit->text().toFloat();
-			float flowLen = steadyLengthEdit->text().toFloat();
-
-			if (sampleRate < 0.1f || sampleRate > 1000.f) {
-				sampleRate = 20.f;
-				changed = true;
-			} 
-			if (flowLen < 0.01f || flowLen > 100.f){
-				flowLen = 1.f;
-				changed = true;
-			}
-			if (flowLen*sampleRate < 2.f || flowLen*sampleRate > 10000.f){
-				sampleRate = 20.f;
-				flowLen = 1.f;
-				changed = true;
-			}
-			if (changed){
-				smoothnessSamplesEdit->setText(QString::number(sampleRate));
-				steadyLengthEdit->setText(QString::number(flowLen));
-				
-			}
-			smoothnessSlider->setValue((int)(256.0*(log10((float)sampleRate)+1.f)*0.25f));
-			steadyLengthSlider->setValue((int)(256.0*(log10((float)flowLen)+2.f)*0.25f));
-			fParams->setSteadyFlowLength(flowLen);
-			fParams->setSteadySmoothness(sampleRate);
-			
-		}
-
-		if(flowType == 2) {//Flow line advection only
-			int numFlaSamples = 1;
-			if (flaOptionCombo->currentItem() == 1){
-				numFlaSamples = flaSamplesEdit->text().toInt();
-				if (numFlaSamples < 2) numFlaSamples = 2;
-			}
-			fParams->setNumFLASamples(numFlaSamples);
-			fParams->setPriorityMin(priorityFieldMinEdit->text().toFloat());
-			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
-			seedDistBias = biasEdit3->text().toFloat();
-			if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
-			biasSlider3->setValue((int)(seedDistBias*128.f/10.f));
-			fParams->setTimeSamplingInterval(timesampleIncrementEdit2->text().toInt());
-			fParams->setTimeSamplingStart(timesampleStartEdit2->text().toInt());
-			fParams->setTimeSamplingEnd(timesampleEndEdit2->text().toInt());
-			int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
-			if (!fParams->validateSampling(minFrame,
-				fParams->getNumRefinements(), fParams->getUnsteadyVarNums())){//did anything change?
-				timesampleIncrementEdit2->setText(QString::number(fParams->getTimeSamplingInterval()));
-				timesampleStartEdit2->setText(QString::number(fParams->getTimeSamplingStart()));
-				timesampleEndEdit2->setText(QString::number(fParams->getTimeSamplingEnd()));
-			}
-			if (!autoscale){
-				//steady scaling stuff for flow line advection
-				int sampleRate = steadySamplesEdit2->text().toInt();
-				if (sampleRate < 2 || sampleRate > 2000){
-					sampleRate = 2;
-					steadySamplesEdit2->setText(QString::number(sampleRate));
-				}
-				steadySamplesSlider2->setValue((int)(256.0*log10((float)sampleRate/2.f)*0.33333));
-				fParams->setObjectsPerFlowline(sampleRate);
-
-				float velocityScale = steadyScaleEdit2->text().toFloat();
-				if (velocityScale < 1.e-20f){
-					velocityScale = 1.e-20f;
-					steadyScaleEdit2->setText(QString::number(velocityScale));
-				}
-				fParams->setSteadyScale(velocityScale);
-			}
-		}
-		
-		float integrationAccuracy = integrationAccuracyEdit->text().toFloat();
-		if (integrationAccuracy < 0.f || integrationAccuracy > 1.f) {
-			if (integrationAccuracy > 1.f) integrationAccuracy = 1.f;
-			if (integrationAccuracy < 0.f) integrationAccuracy = 0.f;
-			integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
-		}
-		fParams->setIntegrationAccuracy(integrationAccuracy);
-		float steadyFlowLen = steadyLengthEdit->text().toFloat();
-		if (steadyFlowLen != fParams->getSteadyFlowLength()){
-			if (steadyFlowLen < 0.01f || steadyFlowLen > 100.f) steadyFlowLen = 1.f;
-			fParams->setSteadyFlowLength(steadyFlowLen);
-		}
-		
-		fParams->setRandomSeed(randomSeedEdit->text().toUInt());
-
-		//Do Rake settings
-		
-		float boxCtr = xCenterEdit->text().toFloat();
-		float boxSize = xSizeEdit->text().toFloat();
-		float seedBoxMin[3],seedBoxMax[3];
-		seedBoxMin[0] = boxCtr - 0.5*boxSize;
-		seedBoxMax[0] = boxCtr + 0.5*boxSize;
-		textToSlider(fParams,0, boxCtr, boxSize);
-		boxCtr = yCenterEdit->text().toFloat();
-		boxSize = ySizeEdit->text().toFloat();
-		seedBoxMin[1] = boxCtr - 0.5*boxSize;
-		seedBoxMax[1] = boxCtr + 0.5*boxSize;
-		textToSlider(fParams,1, boxCtr, boxSize);
-		boxCtr = zCenterEdit->text().toFloat();
-		boxSize = zSizeEdit->text().toFloat();
-		seedBoxMin[2] = boxCtr - 0.5*boxSize;
-		seedBoxMax[2] = boxCtr + 0.5*boxSize;
-		textToSlider(fParams,2, boxCtr, boxSize);
-
-		if (fParams->isRandom()){
-			int genCount = generatorCountEdit->text().toInt();
-			if (genCount < 1) {
-				genCount = 1;
-				generatorCountEdit->setText(QString::number(genCount));
-			}
-			fParams->setTotalNumGenerators(genCount);
-		} else {
-			int genCount = xSeedEdit->text().toInt();
-			if (genCount<1)genCount = 1;
-			fParams->setNumGenerators(0,genCount);
-			genCount = ySeedEdit->text().toInt();
-			if (genCount<1)genCount = 1;
-			fParams->setNumGenerators(1,genCount);
-			genCount = zSeedEdit->text().toInt();
-			if (genCount<1)genCount = 1;
-			fParams->setNumGenerators(2,genCount);
-			generatorCountEdit->setText(QString::number(fParams->getNumRakeSeedPoints()));
-		}	
-		if(flowType != 0){//rake settings that are for non-steady flow
-			int seedTimeStart = seedtimeStartEdit->text().toUInt();
-			int seedTimeEnd = seedTimeStart;
-			if (flowType == 1)
-				seedTimeEnd = seedtimeEndEdit->text().toUInt(); 
-			bool changed = false;
-			VizWinMgr* vizMgr = VizWinMgr::getInstance();
-			int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
-			int maxFrame = fParams->getMaxFrame();
-			if (seedTimeStart < minFrame) {seedTimeStart = minFrame; changed = true;}
-			if (seedTimeEnd > maxFrame) {seedTimeEnd = maxFrame; changed = true;}
-			if (seedTimeEnd < seedTimeStart) {seedTimeEnd = seedTimeStart; changed = true;}
-			if (changed){
-				seedtimeStartEdit->setText(QString::number(seedTimeStart));
-				if(flowType == 1) seedtimeEndEdit->setText(QString::number(seedTimeEnd));
-			}
-			fParams->setSeedTimeStart(seedTimeStart);
-			fParams->setSeedTimeEnd(seedTimeEnd);
-			
-
-			int seedTimeIncrement = seedtimeIncrementEdit->text().toUInt();
-			if (seedTimeIncrement < 1) seedTimeIncrement = 1;
-			fParams->setSeedTimeIncrement(seedTimeIncrement);
-			
-		} //end of rake settings for unsteady flow
-		fParams->setSeedDistBias(seedDistBias);
-	} // end of flow Data changed
-	if (flowGraphicsChanged){
-		//change the parameters.  
-		float shapeDiameter = diameterEdit->text().toFloat();
-		if (shapeDiameter < 0.f) {
-			shapeDiameter = 0.f;
-			diameterEdit->setText(QString::number(shapeDiameter));
-		}
-		float arrowDiameter = arrowheadEdit->text().toFloat();
-		if (arrowDiameter < 1.f) {
-			arrowDiameter = 1.f;
-			arrowheadEdit->setText(QString::number(arrowDiameter));
-		}
-		float constantOpacity = constantOpacityEdit->text().toFloat();
-		if (constantOpacity < 0.f) constantOpacity = 0.f;
-		if (constantOpacity > 1.f) constantOpacity = 1.f;
-		fParams->setShapeDiameter(shapeDiameter);
-		fParams->setArrowDiameter(arrowDiameter);
-		fParams->setConstantOpacity(constantOpacity);
-		if (fParams->getFlowType() == 1){
-			int lastDisplayFrame = lastDisplayFrameEdit->text().toInt();
-			int firstDisplayFrame = firstDisplayFrameEdit->text().toInt();
-			
-			//Make sure at least one frame is displayed.
-			//
-			if (firstDisplayFrame >= lastDisplayFrame) {
-				lastDisplayFrame = firstDisplayFrame+1;
-				lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
-			}
-			fParams->setFirstDisplayFrame(firstDisplayFrame);
-			fParams->setLastDisplayFrame(lastDisplayFrame);
-		}
-	}
-	
-	guiSetTextChanged(false);
-	//If the data changed, need to setFlowDataDirty; otherwise
-	//just need to setFlowMappingDirty.
-	mapBoundsChanged = false;
-	flowGraphicsChanged = false;
-	flowDataChanged = false;
-	if(needRegen){
-		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-		VizWinMgr::getInstance()->setFlowDataDirty(fParams);
-	} else {
-		VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
-	}
-
-	PanelCommand::captureEnd(cmd, fParams);
-}
-void FlowEventRouter::
-flowTabReturnPressed(void){
-	confirmText(true);
-}
-
-
-/*************************************************************************************
- * slots associated with FlowTab
- *************************************************************************************/
-void FlowEventRouter::guiChangeInstance(int newCurrent){
-	//Do this in the parent class:
-	performGuiChangeInstance(newCurrent);
-	
-}
-void FlowEventRouter::guiNewInstance(){
-	performGuiNewInstance();
-	
-}
-void FlowEventRouter::guiDeleteInstance(){
-	performGuiDeleteInstance();
-	
-}
-
-void FlowEventRouter::guiCopyInstanceTo(int toViz){
-	if (toViz == 0) return; 
-	if (toViz == 1) {performGuiCopyInstance();return;}
-	int viznum = copyCount[toViz];
-	copyCombo->setCurrentItem(0);
-	performGuiCopyInstanceToViz(viznum);
-}
-
-//There are text changed events for flow (requiring rebuilding flow data),
-//for graphics (requiring regenerating flow graphics), and
-//for dataRange (requiring change of data mapping range, hence regenerating flow graphics)
-void FlowEventRouter::setFlowTabFlowTextChanged(const QString&){
-	setFlowDataChanged(true);
-	guiSetTextChanged(true);
-}
-
-/*
- * Respond to a slider release
- */
-void FlowEventRouter::
-flowOpacityScale() {
-	guiSetOpacityScale(opacityScaleSlider->value());
-}
-
-void FlowEventRouter::setFlowTabGraphicsTextChanged(const QString&){
-	setFlowGraphicsChanged(true);
-	guiSetTextChanged(true);
-}
-void FlowEventRouter::setFlowTabRangeTextChanged(const QString&){
-	
-	setMapBoundsChanged(true);
-	guiSetTextChanged(true);
-}
-
-
-void FlowEventRouter::
-setFlowEnabled(bool val, int instance){
-	
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	FlowParams* myFlowParams = vizMgr->getFlowParams(winnum, instance);
-	//Make sure this is a change:
-	if (myFlowParams->isEnabled() == val ) return;
-	guiSetEnabled(val, instance);
-	//Make the change in enablement occur in the rendering window, 
-	// Local/Global is not changing.
-	updateRenderer(myFlowParams, !val, false);
-}
-
-
-void FlowEventRouter::
-setFlowXCenter(){
-	guiSetXCenter(
-		xCenterSlider->value());
-}
-void FlowEventRouter::
-setFlowYCenter(){
-	guiSetYCenter(
-		yCenterSlider->value());
-}
-void FlowEventRouter::
-setFlowZCenter(){
-	guiSetZCenter(
-		zCenterSlider->value());
-}
-void FlowEventRouter::
-setFlowXSize(){
-	guiSetXSize(
-		xSizeSlider->value());
-}
-void FlowEventRouter::
-setFlowYSize(){
-	guiSetYSize(
-		ySizeSlider->value());
-}
-void FlowEventRouter::
-setFlowZSize(){
-	guiSetZSize(
-		zSizeSlider->value());
-}
-void FlowEventRouter::
-setFlowSteadySamples1(){
-	int sliderPos = steadySamplesSlider1->value();
-	guiSetSteadySamples(sliderPos);
-}
-void FlowEventRouter::
-setFlowSteadySamples2(){
-	int sliderPos = steadySamplesSlider2->value();
-	guiSetSteadySamples(sliderPos);
-}
-void FlowEventRouter::
-setBiasFromSlider1(){
-	int sliderPos = biasSlider1->value();
-	float biasVal = 10.f*sliderPos/128.f;
-	biasEdit1->setText(QString::number(biasVal));
-	guiSetSeedDistBias(biasVal);
-}
-void FlowEventRouter::
-setBiasFromSlider2(){
-	int sliderPos = biasSlider2->value();
-	float biasVal = 10.f*sliderPos/128.f;
-	biasEdit2->setText(QString::number(biasVal));
-	guiSetSeedDistBias(biasVal);
-}
-void FlowEventRouter::
-setBiasFromSlider3(){
-	int sliderPos = biasSlider3->value();
-	float biasVal = 10.f*sliderPos/128.f;
-	biasEdit3->setText(QString::number(biasVal));
-	guiSetSeedDistBias(biasVal);
-}
-void FlowEventRouter::
-setFlowSmoothness(){
-	int sliderPos = smoothnessSlider->value();
-	guiSetSmoothness(sliderPos);
-}
-void FlowEventRouter::
-setFlowUnsteadySamples(){
-	int sliderPos = unsteadySamplesSlider->value();
-	guiSetUnsteadySamples(sliderPos);
-}
-void FlowEventRouter::
-setSteadyLength(){
-	int sliderPos = steadyLengthSlider->value();
-	guiSetSteadyLength(sliderPos);
-}
-/*
- * Respond to user clicking the color button
- */
-void FlowEventRouter::
-setFlowConstantColor(){
-	
-	//Bring up a color selector dialog:
-	QColor newColor = QColorDialog::getColor(constantColorButton->paletteBackgroundColor(), this, "Constant Color Selection");
-	//Set button color
-	constantColorButton->setPaletteBackgroundColor(newColor);
-	//Set parameter value of the appropriate parameter set:
-	guiSetConstantColor(newColor);
-}
-
-
-
-
-void FlowEventRouter::
-setFlowEditMode(bool mode){
-	navigateButton->setOn(!mode);
-	guiSetEditMode(mode);
-}
-void FlowEventRouter::
-setFlowNavigateMode(bool mode){
-	editButton->setOn(!mode);
-	guiSetEditMode(!mode);
-}
-
-
 //Insert values from params into tab panel.
 //This is called whenever the tab is displayed
 //
@@ -1330,6 +714,628 @@ void FlowEventRouter::updateTab(){
 	VizWinMgr::getInstance()->getTabManager()->update();
 }
 
+
+void FlowEventRouter::confirmText(bool /*render*/){
+	if (!textChangedFlag) return;
+	bool needRegen = flowDataChanged;
+	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams, "edit Flow text");
+	if (mapBoundsChanged){
+		float colorMapMin = minColormapEdit->text().toFloat();
+		float colorMapMax = maxColormapEdit->text().toFloat();
+		if (colorMapMin >= colorMapMax){
+			colorMapMax = colorMapMin+1.e-6;
+			maxColormapEdit->setText(QString::number(colorMapMax));
+		}
+		float opacMapMin = minOpacmapEdit->text().toFloat();
+		float opacMapMax = maxOpacmapEdit->text().toFloat();
+		if (opacMapMin >= opacMapMax){
+			opacMapMax = opacMapMin+1.e-6;
+			maxOpacmapEdit->setText(QString::number(opacMapMax));
+		}
+		MapperFunction* mapperFunction = fParams->getMapperFunc();
+		if (mapperFunction){
+			mapperFunction->setMaxColorMapValue(colorMapMax);
+			mapperFunction->setMinColorMapValue(colorMapMin);
+			mapperFunction->setMaxOpacMapValue(opacMapMax);
+			mapperFunction->setMinOpacMapValue(opacMapMin);
+		}
+		fParams->setMinColorMapBound(colorMapMin);
+		fParams->setMaxColorMapBound(colorMapMax);
+		
+		fParams->setMinOpacMapBound(opacMapMin);
+		fParams->setMaxOpacMapBound(opacMapMax);
+		
+		//Align the editor:
+		fParams->setMinColorEditBound(fParams->getMinColorMapBound(),fParams->getColorMapEntityIndex());
+		fParams->setMaxColorEditBound(fParams->getMaxColorMapBound(),fParams->getColorMapEntityIndex());
+		fParams->setMinOpacEditBound(fParams->getMinOpacMapBound(),fParams->getOpacMapEntityIndex());
+		fParams->setMaxOpacEditBound(fParams->getMaxOpacMapBound(),fParams->getOpacMapEntityIndex());
+		setEditorDirty();
+	}
+	int flowType = fParams->getFlowType();
+	bool autoscale = fParams->isAutoScale();
+	if (flowDataChanged){
+		//Do settings that depend on flowType:
+		float seedDistBias;
+		if (flowType == 0){
+			if (showAdvanced){
+				seedDistBias = biasEdit1->text().toFloat();
+				if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
+				biasSlider1->setValue((int)(seedDistBias*128.f/10.f));
+			}
+			if (!autoscale && showAdvanced){
+				int sampleRate = steadySamplesEdit1->text().toInt();
+				if (sampleRate < 2 || sampleRate > 2000){
+					sampleRate = 2;
+					steadySamplesEdit1->setText(QString::number(sampleRate));
+				}
+				
+				steadySamplesSlider1->setValue((int)(256.0*log10((float)sampleRate/2.f)*0.33333));
+				fParams->setObjectsPerFlowline(sampleRate);
+
+				float velocityScale = steadyScaleEdit1->text().toFloat();
+				if (velocityScale < 1.e-20f){
+					velocityScale = 1.e-20f;
+					steadyScaleEdit1->setText(QString::number(velocityScale));
+				}
+				fParams->setSteadyScale(velocityScale);
+			}
+		} else {//set up unsteady flow sample rate, velocity scale
+			int sampleRate = unsteadySamplesEdit->text().toInt();
+			if (sampleRate < 1 || sampleRate > 256){
+				sampleRate = 1;
+				unsteadySamplesEdit->setText(QString::number(sampleRate));
+			}
+			unsteadySamplesSlider->setValue(sampleRate);
+			fParams->setObjectsPerTimestep(sampleRate);
+
+			float velocityScale = unsteadyScaleEdit->text().toFloat();
+			if (velocityScale < 1.e-20f){
+				velocityScale = 1.e-20f;
+				unsteadyScaleEdit->setText(QString::number(velocityScale));
+			}
+			fParams->setUnsteadyScale(velocityScale);		
+		}
+
+		if (flowType == 1  && showAdvanced){
+			seedDistBias = biasEdit2->text().toFloat();
+			if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
+			biasSlider2->setValue((int)(seedDistBias*128.f/10.f));
+			fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
+			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
+			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
+			int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
+			if (!fParams->validateSampling(minFrame,
+				fParams->getNumRefinements(), fParams->getUnsteadyVarNums())){//did anything change?
+				timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
+				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
+				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
+			}
+		} else if (autoscale){ // auto steady flow settings for flow type 0 and 2:
+			//Look at smoothness (samples per along flowline, per region diameter)
+			//and flow length (in diameter units). The product of smoothness and flow length
+			//is the total number of samples (maxPoints) and needs to be kept between
+			//2 and 10000
+			bool changed = false;
+			float sampleRate = smoothnessSamplesEdit->text().toFloat();
+			float flowLen = steadyLengthEdit->text().toFloat();
+
+			if (sampleRate < 0.1f || sampleRate > 1000.f) {
+				sampleRate = 20.f;
+				changed = true;
+			} 
+			if (flowLen < 0.01f || flowLen > 100.f){
+				flowLen = 1.f;
+				changed = true;
+			}
+			if (flowLen*sampleRate < 2.f || flowLen*sampleRate > 10000.f){
+				sampleRate = 20.f;
+				flowLen = 1.f;
+				changed = true;
+			}
+			if (changed){
+				smoothnessSamplesEdit->setText(QString::number(sampleRate));
+				steadyLengthEdit->setText(QString::number(flowLen));
+				
+			}
+			smoothnessSlider->setValue((int)(256.0*(log10((float)sampleRate)+1.f)*0.25f));
+			steadyLengthSlider->setValue((int)(256.0*(log10((float)flowLen)+2.f)*0.25f));
+			fParams->setSteadyFlowLength(flowLen);
+			fParams->setSteadySmoothness(sampleRate);
+			
+		}
+
+		if(flowType == 2 && showAdvanced) {//Flow line advection only
+			
+			int numFlaSamples = 1;
+			if (flaOptionCombo->currentItem() == 1){
+				numFlaSamples = flaSamplesEdit->text().toInt();
+				if (numFlaSamples < 2) {
+					numFlaSamples = 2;
+					flaSamplesEdit->setText("2");
+				}
+			}
+			fParams->setNumFLASamples(numFlaSamples);
+			fParams->setPriorityMin(priorityFieldMinEdit->text().toFloat());
+			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
+			seedDistBias = biasEdit3->text().toFloat();
+			if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
+			biasSlider3->setValue((int)(seedDistBias*128.f/10.f));
+			fParams->setTimeSamplingInterval(timesampleIncrementEdit2->text().toInt());
+			fParams->setTimeSamplingStart(timesampleStartEdit2->text().toInt());
+			fParams->setTimeSamplingEnd(timesampleEndEdit2->text().toInt());
+			int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
+			if (!fParams->validateSampling(minFrame,
+				fParams->getNumRefinements(), fParams->getUnsteadyVarNums())){//did anything change?
+				timesampleIncrementEdit2->setText(QString::number(fParams->getTimeSamplingInterval()));
+				timesampleStartEdit2->setText(QString::number(fParams->getTimeSamplingStart()));
+				timesampleEndEdit2->setText(QString::number(fParams->getTimeSamplingEnd()));
+			}
+			if (!autoscale){
+				//steady scaling stuff for flow line advection
+				int sampleRate = steadySamplesEdit2->text().toInt();
+				if (sampleRate < 2 || sampleRate > 2000){
+					sampleRate = 2;
+					steadySamplesEdit2->setText(QString::number(sampleRate));
+				}
+				steadySamplesSlider2->setValue((int)(256.0*log10((float)sampleRate/2.f)*0.33333));
+				fParams->setObjectsPerFlowline(sampleRate);
+
+				float velocityScale = steadyScaleEdit2->text().toFloat();
+				if (velocityScale < 1.e-20f){
+					velocityScale = 1.e-20f;
+					steadyScaleEdit2->setText(QString::number(velocityScale));
+				}
+				fParams->setSteadyScale(velocityScale);
+			}
+		}
+		
+		float integrationAccuracy = integrationAccuracyEdit->text().toFloat();
+		if (integrationAccuracy < 0.f || integrationAccuracy > 1.f) {
+			if (integrationAccuracy > 1.f) integrationAccuracy = 1.f;
+			if (integrationAccuracy < 0.f) integrationAccuracy = 0.f;
+			integrationAccuracyEdit->setText(QString::number(integrationAccuracy));
+		}
+		fParams->setIntegrationAccuracy(integrationAccuracy);
+		float steadyFlowLen = steadyLengthEdit->text().toFloat();
+		if (steadyFlowLen != fParams->getSteadyFlowLength()){
+			if (steadyFlowLen < 0.01f || steadyFlowLen > 100.f) steadyFlowLen = 1.f;
+			fParams->setSteadyFlowLength(steadyFlowLen);
+		}
+		
+		fParams->setRandomSeed(randomSeedEdit->text().toUInt());
+
+		//Do Rake settings
+		
+		float boxCtr = xCenterEdit->text().toFloat();
+		float boxSize = xSizeEdit->text().toFloat();
+		float seedBoxMin[3],seedBoxMax[3];
+		seedBoxMin[0] = boxCtr - 0.5*boxSize;
+		seedBoxMax[0] = boxCtr + 0.5*boxSize;
+		textToSlider(fParams,0, boxCtr, boxSize);
+		boxCtr = yCenterEdit->text().toFloat();
+		boxSize = ySizeEdit->text().toFloat();
+		seedBoxMin[1] = boxCtr - 0.5*boxSize;
+		seedBoxMax[1] = boxCtr + 0.5*boxSize;
+		textToSlider(fParams,1, boxCtr, boxSize);
+		boxCtr = zCenterEdit->text().toFloat();
+		boxSize = zSizeEdit->text().toFloat();
+		seedBoxMin[2] = boxCtr - 0.5*boxSize;
+		seedBoxMax[2] = boxCtr + 0.5*boxSize;
+		textToSlider(fParams,2, boxCtr, boxSize);
+
+		if (fParams->isRandom()){
+			int genCount = generatorCountEdit->text().toInt();
+			if (genCount < 1) {
+				genCount = 1;
+				generatorCountEdit->setText(QString::number(genCount));
+			}
+			fParams->setTotalNumGenerators(genCount);
+		} else {
+			int genCount = xSeedEdit->text().toInt();
+			if (genCount<1)genCount = 1;
+			fParams->setNumGenerators(0,genCount);
+			genCount = ySeedEdit->text().toInt();
+			if (genCount<1)genCount = 1;
+			fParams->setNumGenerators(1,genCount);
+			genCount = zSeedEdit->text().toInt();
+			if (genCount<1)genCount = 1;
+			fParams->setNumGenerators(2,genCount);
+			generatorCountEdit->setText(QString::number(fParams->getNumRakeSeedPoints()));
+		}	
+		if(flowType != 0){//rake settings that are for non-steady flow
+			int seedTimeStart = seedtimeStartEdit->text().toUInt();
+			int seedTimeEnd = seedTimeStart;
+			if (flowType == 1)
+				seedTimeEnd = seedtimeEndEdit->text().toUInt(); 
+			bool changed = false;
+			VizWinMgr* vizMgr = VizWinMgr::getInstance();
+			int minFrame = vizMgr->getAnimationParams(vizMgr->getActiveViz())->getStartFrameNumber();
+			int maxFrame = fParams->getMaxFrame();
+			if (seedTimeStart < minFrame) {seedTimeStart = minFrame; changed = true;}
+			if (seedTimeEnd > maxFrame) {seedTimeEnd = maxFrame; changed = true;}
+			if (seedTimeEnd < seedTimeStart) {seedTimeEnd = seedTimeStart; changed = true;}
+			if (changed){
+				seedtimeStartEdit->setText(QString::number(seedTimeStart));
+				if(flowType == 1) seedtimeEndEdit->setText(QString::number(seedTimeEnd));
+			}
+			fParams->setSeedTimeStart(seedTimeStart);
+			fParams->setSeedTimeEnd(seedTimeEnd);
+			
+
+			int seedTimeIncrement = seedtimeIncrementEdit->text().toUInt();
+			if (seedTimeIncrement < 1) seedTimeIncrement = 1;
+			fParams->setSeedTimeIncrement(seedTimeIncrement);
+			
+		} //end of rake settings for unsteady flow
+		fParams->setSeedDistBias(seedDistBias);
+	} // end of flow Data changed
+	if (flowGraphicsChanged){
+		//change the parameters.  
+		float shapeDiameter = diameterEdit->text().toFloat();
+		if (shapeDiameter < 0.f) {
+			shapeDiameter = 0.f;
+			diameterEdit->setText(QString::number(shapeDiameter));
+		}
+		float arrowDiameter = arrowheadEdit->text().toFloat();
+		if (arrowDiameter < 1.f) {
+			arrowDiameter = 1.f;
+			arrowheadEdit->setText(QString::number(arrowDiameter));
+		}
+		float constantOpacity = constantOpacityEdit->text().toFloat();
+		if (constantOpacity < 0.f) constantOpacity = 0.f;
+		if (constantOpacity > 1.f) constantOpacity = 1.f;
+		fParams->setShapeDiameter(shapeDiameter);
+		fParams->setArrowDiameter(arrowDiameter);
+		fParams->setConstantOpacity(constantOpacity);
+		if (fParams->getFlowType() == 1){
+			int lastDisplayFrame = lastDisplayFrameEdit->text().toInt();
+			int firstDisplayFrame = firstDisplayFrameEdit->text().toInt();
+			
+			//Make sure at least one frame is displayed.
+			//
+			if (firstDisplayFrame >= lastDisplayFrame) {
+				lastDisplayFrame = firstDisplayFrame+1;
+				lastDisplayFrameEdit->setText(QString::number(lastDisplayFrame));
+			}
+			fParams->setFirstDisplayFrame(firstDisplayFrame);
+			fParams->setLastDisplayFrame(lastDisplayFrame);
+		}
+	}
+	
+	guiSetTextChanged(false);
+	//If the data changed, need to setFlowDataDirty; otherwise
+	//just need to setFlowMappingDirty.
+	mapBoundsChanged = false;
+	flowGraphicsChanged = false;
+	flowDataChanged = false;
+	if(needRegen){
+		if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+		VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+	} else {
+		VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);
+	}
+
+	PanelCommand::captureEnd(cmd, fParams);
+}
+
+/*********************************************************************************
+ * Slots associated with FlowTab:
+ *********************************************************************************/
+//Add a new (blank) row to the table
+void FlowEventRouter::addSample(){
+	timestepSampleTable1->insertRows(timestepSampleTable1->numRows());
+	timestepSampleTable2->insertRows(timestepSampleTable2->numRows());
+}
+//Show setup instructions for flow:
+void FlowEventRouter::showSetupHelp(){
+	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	if (fParams->getFlowType() == 1){ 
+		HelpWindow::showHelp(("UnsteadyHelp.html"));
+	} else {
+		HelpWindow::showHelp(("FieldLineAdvectionHelp.html"));
+	}
+}
+//Delete the current selected row
+void FlowEventRouter::deleteSample(){
+	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	if (fParams->getFlowType() == 1){
+		timestepSampleTable1->removeRow(timestepSampleTable1->currentRow());
+		guiUpdateUnsteadyTimes(timestepSampleTable1, "remove unsteady timestep");
+	} else {
+		timestepSampleTable2->removeRow(timestepSampleTable2->currentRow());
+		guiUpdateUnsteadyTimes(timestepSampleTable2, "remove unsteady timestep");
+	}
+}
+//Respond to user has typed in a row. Convert it to an int, swap it up or down
+//until it's in ascending order.
+void FlowEventRouter::timestepChanged1(int row, int col){
+	int newVal = timestepSampleTable1->text(row,col).toInt();
+	int i;
+	//First, find the first one above it that's larger:
+	for (i = 0; i< row; i++){
+		int rowInt = timestepSampleTable1->text(i,col).toInt();
+		if (rowInt > newVal) break;
+	}
+	if (i < row) { //found one to swap:  Swap from row to i
+		for (int j = row; j>i; j--){
+			timestepSampleTable1->swapRows(j,j-1);
+		}
+		//It changed, update the flowparams:
+		guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
+		return;
+	} 
+	//Now look below this one for the lowest one that is smaller
+	for (i =  timestepSampleTable1->numRows()-1; i>row; i--){
+		int rowInt = timestepSampleTable1->text(i,col).toInt();
+		if (rowInt < newVal) break;
+	}
+	if (i > row){ //found one to swap:  Swap from row to i
+		for (int j = row; j<i; j++){
+			timestepSampleTable1->swapRows(j,j+1);
+		}
+		//It changed, update the flowparams:
+		guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
+		return;
+	} 
+	//No Change:
+	guiUpdateUnsteadyTimes(timestepSampleTable1, "edit unsteady timesteps");
+	return;
+}
+//Send the contents of the timestepTable to the params.
+//Assumes that the timestepTable is sorted in ascending order.
+void FlowEventRouter::guiUpdateUnsteadyTimes(QTable* tbl, const char* descr){	
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams, descr);
+	std::vector<int>& timesteplist = fParams->getUnsteadyTimesteps();
+	timesteplist.clear();
+	int prevTime = -1;
+	for (int i = 0; i< tbl->numRows(); i++){
+		int newTime = tbl->text(i,0).toInt();
+		if (newTime > prevTime) {
+			timesteplist.push_back(newTime);
+			prevTime = newTime;
+		}
+	}
+	
+	PanelCommand::captureEnd(cmd, fParams);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
+}
+//Respond to user has typed in a row. Convert it to an int, swap it up or down
+//until it's in ascending order.
+void FlowEventRouter::timestepChanged2(int row, int col){
+	int newVal = timestepSampleTable2->text(row,col).toInt();
+	int i;
+	//First, find the first one above it that's larger:
+	for (i = 0; i< row; i++){
+		int rowInt = timestepSampleTable2->text(i,col).toInt();
+		if (rowInt > newVal) break;
+	}
+	if (i < row) { //found one to swap:  Swap from row to i
+		for (int j = row; j>i; j--){
+			timestepSampleTable2->swapRows(j,j-1);
+		}
+		//It changed, update the flowparams:
+		guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
+		return;
+	} 
+	//Now look below this one for the lowest one that is smaller
+	for (i =  timestepSampleTable2->numRows()-1; i>row; i--){
+		int rowInt = timestepSampleTable2->text(i,col).toInt();
+		if (rowInt < newVal) break;
+	}
+	if (i > row){ //found one to swap:  Swap from row to i
+		for (int j = row; j<i; j++){
+			timestepSampleTable2->swapRows(j,j+1);
+		}
+		//It changed, update the flowparams:
+		guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
+		return;
+	} 
+	//No Change:
+	guiUpdateUnsteadyTimes(timestepSampleTable2, "edit unsteady timesteps");
+	return;
+}
+
+void FlowEventRouter::toggleShowMap(){
+	showMapEditor = !showMapEditor;
+	updateTab();
+}
+void FlowEventRouter::toggleAdvanced(){
+	showAdvanced = !showAdvanced;
+	updateTab();
+}
+void FlowEventRouter::populateTimestepTables(){
+	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	std::vector<int>& tSteps = fParams->getUnsteadyTimesteps();
+	timestepSampleTable1->setNumRows(tSteps.size());
+	timestepSampleTable2->setNumRows(tSteps.size());
+	for (int i = 0; i< tSteps.size(); i++){
+		timestepSampleTable1->setText(i,0,QString::number(tSteps[i]));
+		timestepSampleTable2->setText(i,0,QString::number(tSteps[i]));
+	}
+	timestepSampleCheckbox1->setChecked(fParams->usingTimestepSampleList());
+	timestepSampleCheckbox2->setChecked(fParams->usingTimestepSampleList());
+}
+
+void FlowEventRouter::
+flowTabReturnPressed(void){
+	confirmText(true);
+}
+
+
+/*************************************************************************************
+ * slots associated with FlowTab
+ *************************************************************************************/
+void FlowEventRouter::guiChangeInstance(int newCurrent){
+	//Do this in the parent class:
+	performGuiChangeInstance(newCurrent);
+	
+}
+void FlowEventRouter::guiNewInstance(){
+	performGuiNewInstance();
+	
+}
+void FlowEventRouter::guiDeleteInstance(){
+	performGuiDeleteInstance();
+	
+}
+
+void FlowEventRouter::guiCopyInstanceTo(int toViz){
+	if (toViz == 0) return; 
+	if (toViz == 1) {performGuiCopyInstance();return;}
+	int viznum = copyCount[toViz];
+	copyCombo->setCurrentItem(0);
+	performGuiCopyInstanceToViz(viznum);
+}
+
+//There are text changed events for flow (requiring rebuilding flow data),
+//for graphics (requiring regenerating flow graphics), and
+//for dataRange (requiring change of data mapping range, hence regenerating flow graphics)
+void FlowEventRouter::setFlowTabFlowTextChanged(const QString&){
+	setFlowDataChanged(true);
+	guiSetTextChanged(true);
+}
+
+/*
+ * Respond to a slider release
+ */
+void FlowEventRouter::
+flowOpacityScale() {
+	guiSetOpacityScale(opacityScaleSlider->value());
+}
+
+void FlowEventRouter::setFlowTabGraphicsTextChanged(const QString&){
+	setFlowGraphicsChanged(true);
+	guiSetTextChanged(true);
+}
+void FlowEventRouter::setFlowTabRangeTextChanged(const QString&){
+	
+	setMapBoundsChanged(true);
+	guiSetTextChanged(true);
+}
+
+
+void FlowEventRouter::
+setFlowEnabled(bool val, int instance){
+	
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	FlowParams* myFlowParams = vizMgr->getFlowParams(winnum, instance);
+	//Make sure this is a change:
+	if (myFlowParams->isEnabled() == val ) return;
+	guiSetEnabled(val, instance);
+	//Make the change in enablement occur in the rendering window, 
+	// Local/Global is not changing.
+	updateRenderer(myFlowParams, !val, false);
+}
+
+
+void FlowEventRouter::
+setFlowXCenter(){
+	guiSetXCenter(
+		xCenterSlider->value());
+}
+void FlowEventRouter::
+setFlowYCenter(){
+	guiSetYCenter(
+		yCenterSlider->value());
+}
+void FlowEventRouter::
+setFlowZCenter(){
+	guiSetZCenter(
+		zCenterSlider->value());
+}
+void FlowEventRouter::
+setFlowXSize(){
+	guiSetXSize(
+		xSizeSlider->value());
+}
+void FlowEventRouter::
+setFlowYSize(){
+	guiSetYSize(
+		ySizeSlider->value());
+}
+void FlowEventRouter::
+setFlowZSize(){
+	guiSetZSize(
+		zSizeSlider->value());
+}
+void FlowEventRouter::
+setFlowSteadySamples1(){
+	int sliderPos = steadySamplesSlider1->value();
+	guiSetSteadySamples(sliderPos);
+}
+void FlowEventRouter::
+setFlowSteadySamples2(){
+	int sliderPos = steadySamplesSlider2->value();
+	guiSetSteadySamples(sliderPos);
+}
+void FlowEventRouter::
+setBiasFromSlider1(){
+	int sliderPos = biasSlider1->value();
+	float biasVal = 10.f*sliderPos/128.f;
+	biasEdit1->setText(QString::number(biasVal));
+	guiSetSeedDistBias(biasVal);
+}
+void FlowEventRouter::
+setBiasFromSlider2(){
+	int sliderPos = biasSlider2->value();
+	float biasVal = 10.f*sliderPos/128.f;
+	biasEdit2->setText(QString::number(biasVal));
+	guiSetSeedDistBias(biasVal);
+}
+void FlowEventRouter::
+setBiasFromSlider3(){
+	int sliderPos = biasSlider3->value();
+	float biasVal = 10.f*sliderPos/128.f;
+	biasEdit3->setText(QString::number(biasVal));
+	guiSetSeedDistBias(biasVal);
+}
+void FlowEventRouter::
+setFlowSmoothness(){
+	int sliderPos = smoothnessSlider->value();
+	guiSetSmoothness(sliderPos);
+}
+void FlowEventRouter::
+setFlowUnsteadySamples(){
+	int sliderPos = unsteadySamplesSlider->value();
+	guiSetUnsteadySamples(sliderPos);
+}
+void FlowEventRouter::
+setSteadyLength(){
+	int sliderPos = steadyLengthSlider->value();
+	guiSetSteadyLength(sliderPos);
+}
+/*
+ * Respond to user clicking the color button
+ */
+void FlowEventRouter::
+setFlowConstantColor(){
+	
+	//Bring up a color selector dialog:
+	QColor newColor = QColorDialog::getColor(constantColorButton->paletteBackgroundColor(), this, "Constant Color Selection");
+	//Set button color
+	constantColorButton->setPaletteBackgroundColor(newColor);
+	//Set parameter value of the appropriate parameter set:
+	guiSetConstantColor(newColor);
+}
+
+
+
+
+void FlowEventRouter::
+setFlowEditMode(bool mode){
+	navigateButton->setOn(!mode);
+	guiSetEditMode(mode);
+}
+void FlowEventRouter::
+setFlowNavigateMode(bool mode){
+	editButton->setOn(!mode);
+	guiSetEditMode(!mode);
+}
 
 
 
@@ -2047,17 +2053,7 @@ guiSetAutoRefresh(bool autoOn){
 	}
 	//Also see if button needs to be enabled (at least one frame is dirty)
 	if (!autoOn){
-		if (fParams->getFlowType() != 1){
-			for (int i = 0; i<=maxFrame; i++) {
-				fRenderer->setNeedOfRefresh(i,false);
-				if (fRenderer->flowDataIsDirty(i)) {
-					needEnable = true;
-				}
-			}
-		} else {
-			fRenderer->setAllNeedRefresh(false);
-			needEnable = false;
-		}
+		needEnable = fRenderer->setDirtyNeedsRefresh(fParams);
 	}
 	//If we are turning it on, 
 	//we may need to schedule a render.  
@@ -2236,7 +2232,9 @@ guiSetFLAOption(int option){
 	fParams->setFLAAdvectBeforePrioritize(option == 1);
 	if (option == 0) flaSamplesEdit->setText(QString::number(1));
 	else flaSamplesEdit->setText(QString::number(fParams->getNumFLASamples()));
+	guiSetTextChanged(false);
 	flaSamplesEdit->setEnabled(option != 0);
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
 }
 void FlowEventRouter::

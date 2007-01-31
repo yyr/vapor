@@ -791,20 +791,23 @@ flowMapIsDirty(int timeStep){
 	else return false;
 }
 
-//Rebuild the data cache from scratch, and the 
+//Rebuild the data cache (full rebuild or partial)
 //RGBA mapping data 
 //Return false on failure.
 //If the 
 bool FlowRenderer::rebuildFlowData(int timeStep){
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
+
+	//Check it out:
+	if (!myFlowParams->validateSettings(timeStep)) {
+		setDirtyNeedsRefresh(myFlowParams);
+		return false;
+	}
 	//Establish parameters that will be saved with the cache:
 	
 	bool doRake = myFlowParams->rakeEnabled();
 	doList = !doRake;
 	int flowType = myFlowParams->getFlowType();  //steady, unsteady, and field line advect
-
-	bool doSpeeds = myFlowParams->getColorMapEntityIndex() == 2 || 
-		myFlowParams->getOpacMapEntityIndex() == 2;
 
 	//For unsteady flow, the min/max frame interval can be narrowed by the
 	//timesampling interval.  It doesn't make any sense to extrapolate outside
@@ -832,7 +835,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 		!(flowDataIsDirty(timeStep) && needsRefresh(myFlowParams,timeStep)) );
 	bool constColors = ((myFlowParams->getColorMapEntityIndex() + myFlowParams->getOpacMapEntityIndex())== 0);
 	
-	//Clean the cache, unless this is just a rebuild of the graphics:
+	//Clean the dirty parts of cache, unless this is just a rebuild of the graphics:
 	if (!graphicsOnly){
 		if (allFlowDataIsDirty()){
 			if (steadyFlowCache[timeStep]){
@@ -843,7 +846,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				delete unsteadyFlowCache;
 				unsteadyFlowCache = 0;
 			}
-		} else { //Just delete the stuff for this timestep:
+		} else { //Just delete the stuff for this one timestep:
 			if (steadyFlowCache[timeStep]){
 				delete steadyFlowCache[timeStep];
 				steadyFlowCache[timeStep] = 0;
@@ -880,8 +883,9 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				OK = (steadyFlowCache[timeStep] != 0);
 				break;
 			case (1):
+				
 				//Create a PathLineData with all the seeds in it
-				unsteadyFlowCache = myFlowParams->setupPathLineData(myFlowLib, minFrame, maxFrame, rParams);
+				unsteadyFlowCache = (PathLineData*)myFlowParams->setupUnsteadyStartData(myFlowLib, minFrame, maxFrame, rParams);
 				if (!unsteadyFlowCache) {
 					MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, 
 						"No seeds for unsteady flow.\n Ensure sample times are consistent with seed times");
@@ -922,127 +926,160 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				if(!constColors) myFlowParams->mapColors(unsteadyFlowCache, timeStep, minFrame);
 				break;
 			case (2):
-				//Check if we need to do a partial or full rebuild.
-				if (allDataDirtyFlag){
-					if (unsteadyFlowCache) delete unsteadyFlowCache;
-					//Create a PathLineData with only the initial timestep of seeds in it:
-					unsteadyFlowCache = myFlowParams->setupPathLineData(myFlowLib, minFrame, maxFrame, rParams);
-					allDataDirtyFlag = false;
-				}
-				assert(unsteadyFlowCache);
-				//It's possible that we changed the flow direction, so tell the flow params:
-				dir = (myFlowParams->getSeedTimeStart() > timeStep) ? -1 : 1;
-				myFlowParams->setUnsteadyDirection(dir);
-				unsteadyFlowCache->setPathDirection(dir);
-
-				//Find the seed time step in the sample time steps
-				//Start at the seed point and go forwards or backwards to current time:
-				//Iterate to find the first sample step that coincides with the first (and only)
-				//seed time.
-				int startSampleNum;
-				
-				for (int i = 0;; i++){
-					prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
-					if (prevStep < 0) {
-						MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Seed time is not a sample time for field line advection");
-						return false;
+				{
+					int seedTimeStart = myFlowParams->getSeedTimeStart();
+					QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+					//Check if we need to do a partial or full rebuild.
+					if (allDataDirtyFlag){
+						if (unsteadyFlowCache) { delete unsteadyFlowCache; unsteadyFlowCache = 0;}
+						for (int i = 0; i< numFrames; i++){
+							if (steadyFlowCache[i]) {
+								delete steadyFlowCache[i];
+								steadyFlowCache[i] = 0;
+							}
+						}
+						if (!myFlowParams->getFLAAdvectBeforePrioritize()){
+							
+							//Create a PathLineData with only the initial timestep of seeds in it:
+							unsteadyFlowCache = (PathLineData*)myFlowParams->setupUnsteadyStartData(myFlowLib, minFrame, maxFrame, rParams);
+							//And build the first time step:
+							allDataDirtyFlag = false;
+							
+							//Perform steady integration at first time step, reprioritizing
+							//the seeds in the unsteadycache.  This should only be needed the first time.
+							steadyFlowCache[seedTimeStart] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, seedTimeStart, minFrame, rParams, true);
+							if(!steadyFlowCache[seedTimeStart]){
+								MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", seedTimeStart);
+								QApplication::restoreOverrideCursor();
+								return false;
+							}
+							flowDataDirty[seedTimeStart] = false;
+							//It's possible that we changed the flow direction, so tell the flow params:
+							dir = (myFlowParams->getSeedTimeStart() > timeStep) ? -1 : 1;
+							myFlowParams->setUnsteadyDirection(dir);
+							unsteadyFlowCache->setPathDirection(dir);
+						} else { //set up first time step for multi-advect.
+							steadyFlowCache[seedTimeStart] = myFlowParams->setupUnsteadyStartData(myFlowLib, minFrame, maxFrame, rParams);
+							allDataDirtyFlag = false;
+						}
 					}
-					if (prevStep == myFlowParams->getSeedTimeStart()) {
-						startSampleNum = i;
-						break;
+					
+					// Stop here if the start time step is current time step
+					if (timeStep == seedTimeStart) {
+						QApplication::restoreOverrideCursor();
+						return true;
 					}
-				}
-				//At the completion of the following, the steady flow will be calculated for
-				//every sample time between the seedTimeStart up to and including the current time.
-				//This can be done in either forward or reverse direction from the seedTimeStart.
-				//Repeatedly, starting with the first seed time, which must also be a sample time,
-				//iterate over sample times:
-				//0.  Check if this sample time has a valid steady flow.
-				//If so, continue (to the next sample time)
-				//1.  Perform steady integration at this sample time, prioritizing seeds.
-				//  (stop if we are at or beyond the current time step)
-				//2.  Perform unsteady integration to the next sample time. 
-				//
+					//Otherwise set up for iterating from seedTimeStart to the
+					//current time.
+					//Find the seed time step in the sample time steps
+					//Start at the seed point and go forwards or backwards to current time:
+					//Iterate to find the first sample step that coincides with the first (and only)
+					//seed time.
+					int startSampleNum;
+					
+					for (int i = 0;; i++){
+						prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
+						if (prevStep < 0) {
+							MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Seed time is not a sample time for field line advection");
+							return false;
+						}
+						if (prevStep == seedTimeStart) {
+							startSampleNum = i;
+							break;
+						}
+					}
+					//At the completion of the following, the steady flow will be calculated for
+					//every sample time between the seedTimeStart up to and including the current time.
+					//This can be done in either forward or reverse direction from the seedTimeStart.
+					//Repeatedly, starting with the first seed time, which must also be a sample time,
+					//iterate over sample times:
+					//0.  Check if this sample time has a valid steady flow.
+					//If so, continue (to the next sample time)
+					//1.  Perform steady integration at this sample time, prioritizing seeds.
+					//  (stop if we are at or beyond the current time step)
+					//2.  Perform unsteady integration to the next sample time. 
+					//
 
-				//Note that we assume the current time step is a sample time.  If it's not
-				//Then we won't build the steady flow there.
-				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-				for (int i = startSampleNum;; i++){
-					prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
-					nextStep = myFlowParams->getUnsteadyTimestepSample(i+1, minFrame, maxFrame);
-					if (timeStep != prevStep) {
-						if (prevStep < 0 || nextStep < 0) { 
-							// past the end...
-							MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Field Line Advection\nCannot advect to unsampled timestep %d", timeStep);
+					//Note that we assume the current time step is a sample time.  If it's not
+					//Then we won't build the steady flow there.
+					
+					for (int i = startSampleNum;; i++){
+						prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
+						nextStep = myFlowParams->getUnsteadyTimestepSample(i+1, minFrame, maxFrame);
+						if (timeStep != prevStep) {
+							if (prevStep < 0 || nextStep < 0) { 
+								// past the end...
+								MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Field Line Advection\nCannot advect to unsampled timestep %d", timeStep);
+								QApplication::restoreOverrideCursor();
+								return false;
+							}
+							//Check if prevStep and nextStep are valid, if so, skip:
+							if (!flowDataDirty[prevStep] && !flowDataDirty[nextStep]) continue;
+						}
+						//At this point we know we need to advect from prevStep to nextStep
+						//This is either performed by advecting before or after prioritization
+						bool OK;
+						if (myFlowParams->getFLAAdvectBeforePrioritize()){
+							OK = myFlowParams->multiAdvectFieldLines(myFlowLib, steadyFlowCache, prevStep, nextStep,minFrame,rParams);
+						} else {
+							OK = myFlowParams->singleAdvectFieldLines(myFlowLib, steadyFlowCache,unsteadyFlowCache,prevStep, nextStep, minFrame, rParams);
+						}
+						if (OK) { //Clear all the dirty flags:
+							int increm = (nextStep > prevStep) ? 1 : -1;
+							for (int i = prevStep;; i += increm){
+								flowDataDirty[i] = false;
+								if (i == nextStep) break;
+							}
+						}
+
+						/* Previous code...
+						//If prevstep is dirty, rebuild it:
+						if (flowDataDirty[prevStep]){
+							if (steadyFlowCache[prevStep]){
+								delete steadyFlowCache[prevStep];
+							}
+							
+							//Perform steady integration on prevstep, reprioritizing
+							//the seeds in the unsteadycache.  This should only be needed the first time.
+							steadyFlowCache[prevStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, prevStep, minFrame, rParams, true);
+							if(!steadyFlowCache[prevStep]){
+								MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", prevStep);
+								QApplication::restoreOverrideCursor();
+								return false;
+							}
+							flowDataDirty[prevStep] = false;
+						}
+						//If prevStep is current step, we can stop now:
+						if (timeStep == prevStep) { OK = true; break;}
+						//Otherwise, we need to build nextStep:
+						assert(flowDataDirty[nextStep]);
+						//To do the next step, need first to advect from prevStep:
+						//extend the pathline from prevstep to nextstep
+						
+						OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep, true);
+						if (!OK) {
 							QApplication::restoreOverrideCursor();
 							return false;
 						}
-						//Check if prevStep and nextStep are valid, if so, skip:
-						if (!flowDataDirty[prevStep] && !flowDataDirty[nextStep]) continue;
-					}
-					//At this point we know we need to advect from prevStep to nextStep
-					//This is either performed by advecting before or after prioritization
-					bool OK;
-					if (myFlowParams->getFLAAdvectBeforePrioritize()){
-						OK = myFlowParams->multiAdvectFieldLines(myFlowLib, steadyFlowCache,prevStep, nextStep,minFrame,rParams);
-					} else {
-						OK = myFlowParams->singleAdvectFieldLines(myFlowLib, steadyFlowCache,unsteadyFlowCache,prevStep, nextStep, minFrame, rParams);
-					}
-					if (OK) { //Clear all the dirty flags:
-						int increm = (nextStep > prevStep) ? 1 : -1;
-						for (int i = prevStep;; i += increm){
-							flowDataDirty[i] = false;
-							if (i == nextStep) break;
+						//Then do the steady integration on nextStep:
+						if (steadyFlowCache[nextStep]){
+							delete steadyFlowCache[nextStep];
 						}
-					}
-
-					/* Previous code...
-					//If prevstep is dirty, rebuild it:
-					if (flowDataDirty[prevStep]){
-						if (steadyFlowCache[prevStep]){
-							delete steadyFlowCache[prevStep];
-						}
-						
-						//Perform steady integration on prevstep, reprioritizing
-						//the seeds in the unsteadycache.  This should only be needed the first time.
-						steadyFlowCache[prevStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, prevStep, minFrame, rParams, true);
-						if(!steadyFlowCache[prevStep]){
+					
+						steadyFlowCache[nextStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, nextStep, minFrame, rParams, true);
+						if(!steadyFlowCache[nextStep]){
 							MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", prevStep);
 							QApplication::restoreOverrideCursor();
 							return false;
 						}
-						flowDataDirty[prevStep] = false;
+						flowDataDirty[nextStep] = false;
+						*/
+						
+						//Stop here if the current timestep is done:
+						if (timeStep == nextStep) { OK = true; break;}
 					}
-					//If prevStep is current step, we can stop now:
-					if (timeStep == prevStep) { OK = true; break;}
-					//Otherwise, we need to build nextStep:
-					assert(flowDataDirty[nextStep]);
-					//To do the next step, need first to advect from prevStep:
-					//extend the pathline from prevstep to nextstep
-					
-					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep, true);
-					if (!OK) {
-						QApplication::restoreOverrideCursor();
-						return false;
-					}
-					//Then do the steady integration on nextStep:
-					if (steadyFlowCache[nextStep]){
-						delete steadyFlowCache[nextStep];
-					}
-				
-					steadyFlowCache[nextStep] = myFlowParams->regenerateSteadyFieldLines(myFlowLib, 0, unsteadyFlowCache, nextStep, minFrame, rParams, true);
-					if(!steadyFlowCache[nextStep]){
-						MyBase::SetErrMsg(VAPOR_ERROR_INTEGRATION,"Unable to perform steady integration at timestep %d", prevStep);
-						QApplication::restoreOverrideCursor();
-						return false;
-					}
-					flowDataDirty[nextStep] = false;
-					*/
-					
-					//Stop here if the current timestep is done:
-					if (timeStep == nextStep) { OK = true; break;}
+					QApplication::restoreOverrideCursor();
 				}
-				QApplication::restoreOverrideCursor();
 				break;  //End of case(2)
 			default: assert(0); break;
 		} //End of switch()
@@ -1882,6 +1919,24 @@ renderArrows(FlowLineData* flowLineData, float radius, bool isLit, int firstAge,
 
 	} //end of loop over seedPoints
 	//Special symbol at stationary flow:
-	
-		
 }
+//Turn off all the need refresh flags, as when autoRefresh is enabled.
+//Return true if anything was dirty, that would indicate the need to enable
+//the refresh button.
+bool FlowRenderer::
+setDirtyNeedsRefresh(FlowParams* fParams) {
+	bool isDirty = false;
+	if (fParams->getFlowType() != 1){
+		for (int i = 0; i<=maxFrame; i++) {
+			setNeedOfRefresh(i,false);
+			if (flowDataIsDirty(i)) {
+				isDirty = true;
+			}
+		}
+	} else {
+		isDirty = allFlowDataIsDirty();
+		setAllNeedRefresh(false);
+	}
+	return isDirty;
+}
+
