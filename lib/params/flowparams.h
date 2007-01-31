@@ -114,7 +114,7 @@ public:
 	bool singleAdvectFieldLines(VaporFlow*, FlowLineData**, PathLineData*, int startTime, int endTime, int minFrame, RegionParams*);
 	//Methods to allow iteration over unsteady timestep samples in either direction,
 	//within a prescribed min/max interval.  Returns -1 at end of interval 
-	int getUnsteadyTimestepSample(int index, int minStep, int maxStep);
+	int getUnsteadyTimestepSample(int index, int minStep, int maxStep, int flowDir);
 	int getTimeSampleIndex(int ts, int minStep, int maxStep);
 
 	void calcSeedExtents(float *extents);

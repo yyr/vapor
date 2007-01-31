@@ -190,6 +190,7 @@ int FlowLineData::resampleFieldLines(int* indexList, int desiredNumSamples, int 
 	int validCount = 0;
 	for (int i = getStartIndex(lineNum); i<= getEndIndex(lineNum); i++){
 		if (*(getFlowPoint(lineNum, i)) == END_FLOW_FLAG) continue;
+		if (*(getFlowPoint(lineNum, i)) == STATIONARY_STREAM_FLAG) continue;
 		validCount++;
 	}
 	int firstIndex = getStartIndex(lineNum);
@@ -204,6 +205,7 @@ int FlowLineData::resampleFieldLines(int* indexList, int desiredNumSamples, int 
 	int count = 0;
 	for (int i = firstIndex; i<= lastIndex; i++){
 		if (*(getFlowPoint(lineNum, i)) == END_FLOW_FLAG) continue;
+		if (*(getFlowPoint(lineNum, i)) == STATIONARY_STREAM_FLAG) continue;
 		if (numSamples < validCount){ //subsample
 			int index = (int)(0.5f + (float)count*(float)(numSamples-1)/(float)(validCount-1));
 			indexList[index] = i;
@@ -224,6 +226,7 @@ realignFlowLines(){
 		int newStartIndex = -1;
 		for (int ptnum = 0; ptnum < getFlowLength(line); ptnum++){
 			if ((*getFlowPoint(line,ptnum)) == END_FLOW_FLAG) continue;
+			if (*(getFlowPoint(line,ptnum)) == STATIONARY_STREAM_FLAG) continue;
 			newStartIndex = ptnum;
 			break;
 		}
@@ -234,9 +237,9 @@ realignFlowLines(){
 			int increment = 3*newStartIndex;
 			int goodIndex = 0;
 			for (int index = 0; index < (getFlowLength(line)-newStartIndex)*3; index++){
-				//move every point until we encounter an end-flow-flag:
+				//move every point until we encounter an end-flow-flag, or stationary stream flag
 				float val = flowLineLists[line][index+increment];
-				if (val == END_FLOW_FLAG) {
+				if (val == END_FLOW_FLAG || val == STATIONARY_STREAM_FLAG) {
 					assert(index > 2);
 					break;
 				}

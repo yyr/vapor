@@ -875,7 +875,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	if (!graphicsOnly) {
 		bool OK = false;
 		int prevStep, nextStep;
-		int dir;
+		int unsteadyFlowDir;
 		int numTimestepsToRender;
 		switch (flowType) {
 			case (0): 
@@ -892,11 +892,12 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					return false;
 				}
 				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+				unsteadyFlowDir = myFlowParams->getUnsteadyDirection();
 				//Then incrementally advect from start to end, via sampled timesteps.  
-				prevStep = myFlowParams->getUnsteadyTimestepSample(0,minFrame, maxFrame);
+				prevStep = myFlowParams->getUnsteadyTimestepSample(0,minFrame, maxFrame, unsteadyFlowDir);
 				numTimestepsToRender = 0;
 				for (int i = 1;; i++) {
-					nextStep = myFlowParams->getUnsteadyTimestepSample(i,minFrame, maxFrame);
+					nextStep = myFlowParams->getUnsteadyTimestepSample(i,minFrame, maxFrame,unsteadyFlowDir);
 					if (nextStep < 0 || prevStep < 0) break;
 					assert(nextStep != prevStep);
 					//Check if there's nothing to advect at this timestep
@@ -928,6 +929,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 			case (2):
 				{
 					int seedTimeStart = myFlowParams->getSeedTimeStart();
+					unsteadyFlowDir = (seedTimeStart > timeStep) ? -1 : 1;
 					QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 					//Check if we need to do a partial or full rebuild.
 					if (allDataDirtyFlag){
@@ -955,9 +957,9 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 							}
 							flowDataDirty[seedTimeStart] = false;
 							//It's possible that we changed the flow direction, so tell the flow params:
-							dir = (myFlowParams->getSeedTimeStart() > timeStep) ? -1 : 1;
-							myFlowParams->setUnsteadyDirection(dir);
-							unsteadyFlowCache->setPathDirection(dir);
+							
+							myFlowParams->setUnsteadyDirection(unsteadyFlowDir);
+							unsteadyFlowCache->setPathDirection(unsteadyFlowDir);
 						} else { //set up first time step for multi-advect.
 							steadyFlowCache[seedTimeStart] = myFlowParams->setupUnsteadyStartData(myFlowLib, minFrame, maxFrame, rParams);
 							allDataDirtyFlag = false;
@@ -978,7 +980,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					int startSampleNum;
 					
 					for (int i = 0;; i++){
-						prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
+						prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame, unsteadyFlowDir);
 						if (prevStep < 0) {
 							MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Seed time is not a sample time for field line advection");
 							return false;
@@ -1004,8 +1006,8 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					//Then we won't build the steady flow there.
 					
 					for (int i = startSampleNum;; i++){
-						prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame);
-						nextStep = myFlowParams->getUnsteadyTimestepSample(i+1, minFrame, maxFrame);
+						prevStep = myFlowParams->getUnsteadyTimestepSample(i, minFrame, maxFrame,unsteadyFlowDir);
+						nextStep = myFlowParams->getUnsteadyTimestepSample(i+1, minFrame, maxFrame,unsteadyFlowDir);
 						if (timeStep != prevStep) {
 							if (prevStep < 0 || nextStep < 0) { 
 								// past the end...

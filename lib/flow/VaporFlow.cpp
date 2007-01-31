@@ -324,6 +324,11 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 		false, numXForms, timeStep, false);
 	if (!fData) return false;
 	
+	//If we are doing multi-advection, create an array to hold the maximizing points
+	float** maxPointHolder = 0;
+	if (!pathContainer) {
+		maxPointHolder = new float*[container->getNumLines()];
+	}
 	//Go through the seeds, calculate the prioritization magnitude at each point, starting
 	//At the seed, going first backwards and then forwards
 	
@@ -373,21 +378,32 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 				if (pathContainer && val >= maxPriorityVal) break;
 			}
 		}
-		//Now put the winner back into the unsteady advection array.
+		//Now put the winner back into the steady flow data at position 0,
+		//or into the path container.
 		//Make appropriate modifications to that flowLine if necessary
-		//If no winner, it's probably END_FLOW_FLAG.  do nothing.
-		if (maxPoint){
-			if (pathContainer){
+		//If no winner, it should be END_FLOW_FLAG.
+		if (pathContainer){
+			if (maxPoint)
 				pathContainer->setPointAtTime(line,(float)timeStep, maxPoint[0],maxPoint[1],maxPoint[2]);
-			} else {
-				container->setFlowDirection(steadyFlowDirection);
-				container->setFlowPoint(line, 0, maxPoint[0],maxPoint[1],maxPoint[2]);
-				container->setFlowStart(line, 0);
-				container->setFlowEnd(line, 0);
-			}
+		} else {
+			maxPointHolder[line] = maxPoint;
 		}
+		
 	}//end loop over line
-
+	//Now move the seeds in the container to the appropriate position for steady flow advection
+	if (!pathContainer){
+		container->setFlowDirection(steadyFlowDirection);
+		for (int line = 0; line< container->getNumLines(); line++){
+			container->setFlowStart(line, 0);
+			container->setFlowEnd(line, 0);
+			if (maxPointHolder[line])
+				container->setFlowPoint(line, 0, 
+					maxPointHolder[line][0],maxPointHolder[line][1],maxPointHolder[line][2]);
+			else 
+				container->setFlowPoint(line, 0, END_FLOW_FLAG,END_FLOW_FLAG,END_FLOW_FLAG);
+		}
+		delete [] maxPointHolder;
+	}
 	//Release the locks on the prioritization field..
 	delete fData;
 	

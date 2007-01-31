@@ -705,8 +705,8 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds){
 //unnecessary samples before the first seed time.
 
 int FlowParams::
-getUnsteadyTimestepSample(int index, int minStep, int maxStep){
-	if (unsteadyFlowDirection > 0){
+getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowDir){
+	if (unsteadyFlowDir > 0){
 		
 		if (useTimestepSampleList){
 			int position = -1;
