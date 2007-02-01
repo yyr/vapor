@@ -125,7 +125,14 @@ public slots:
 	void setBindButtons(bool canbind);
 
 protected slots:
-	
+	//Handle thumbwheel events:
+	void rotateXWheel(int);
+	void rotateYWheel(int);
+	void rotateZWheel(int);
+	void guiReleaseXWheel(int);
+	void guiReleaseYWheel(int);
+	void guiReleaseZWheel(int);
+
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();

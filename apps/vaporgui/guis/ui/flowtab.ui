@@ -963,6 +963,18 @@
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify how many geometric shapes will be displayed per scene diameter distance</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The smoothness value indicates how
+frequently steady field lines are sampled
+along their length when they are displayed.
+This value is the typical number of samples
+in a field line of length equal to the diameter
+of the full data domain.  This is based on
+the average field magnitude in the region
+and does not necessary give the
+actual sample spacing of an individual
+field line.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -982,6 +994,18 @@
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify how many geometric shapes will be displayed per scene diameter distance</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The smoothness value indicates how
+frequently steady field lines are sampled
+along their length when they are displayed.
+This value is the typical number of samples
+in a field line of length equal to the diameter
+of the full data domain.  This is based on
+the average field magnitude in the region
+and does not necessary give the
+actual sample spacing of an individual
+field line.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -1037,6 +1061,16 @@
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the typical length of flow lines relative to domain size</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>This value determines the typical
+length of field lines relative to the
+diameter of the full data extents.
+It is based on the average steady
+field magnitude in the region, and
+does not specify the actual length
+of individual field lines.  Field lines
+that exit the region will be shorter.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -1067,6 +1101,16 @@
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the typical length of flow lines relative to domain size</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>This value determines the typical
+length of field lines relative to the
+diameter of the full data extents.
+It is based on the average steady
+field magnitude in the region, and
+does not specify the actual length
+of individual field lines.  Field lines
+that exit the region will be shorter.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -1491,6 +1535,18 @@
                                                                 <string>This factor scales the vector field magnitude. Must be consistent with simulation time step size and domain size.</string>
                                                                 <comment>Comment is here</comment>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Specify a value here to correct your spatial 
+and temporal units to match the actual physical 
+units used to generate the vector field data.
+This value should be set to the reciprocal of 
+the number of time steps per second.  
+If the spatial extents are not equal to the actual 
+extents used in the simulation, then this factor 
+should be multiplied by the ratio of the 
+simulated extents to the data extents in the 
+VAPOR region panel.</string>
+                                                            </property>
                                                         </widget>
                                                         <spacer>
                                                             <property name="name">
@@ -1684,6 +1740,9 @@
                                     </property>
                                     <property name="text">
                                         <string>Show Advanced Flow Parameters</string>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Click to set additional optional parameters as needed</string>
                                     </property>
                                 </widget>
                                 <spacer>
@@ -3508,6 +3567,16 @@
                                             <property name="toolTip" stdset="0">
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -3541,6 +3610,16 @@
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -3965,6 +4044,17 @@
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify range of priority field magnitudes to be considered in identifying seeds to advect in time</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The min and max of the priority field are only used
+with advection before prioritization.  In this case, 
+the search for maximal priority starts at the seed
+and goes first backwards, then forwards, along the
+steady field line.  The search is stopped if
+a point on the field line is found that is less than
+this min, or larger than this max.  If the min or max are
+not attained, the selected point is the largest of
+all points sampled along the field line.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -3981,6 +4071,17 @@
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify range of priority field magnitudes to be considered in identifying seeds to advect in time</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The min and max of the priority field are only used
+with advection before prioritization.  In this case, 
+the search for maximal priority starts at the seed
+and goes first backwards, then forwards, along the
+steady field line.  The search is stopped if
+a point on the field line is found that is less than
+this min, or larger than this max.  If the min or max are
+not attained, the selected point is the largest of
+all points sampled along the field line.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -4026,6 +4127,28 @@
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Select whether the steady seeds are prioritized before or after advection in time</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Determine how the steady flow seed 
+at a 'subsequent' time step is determined
+from a flow line at a 'previous' time step.
+(Note that previous and next refer to 
+the order the unsteady integration is 
+performed, not the actual time-order of
+time steps.)
+To advect a field line to the 'next' time,
+either one point is selected to advect,
+by prioritizing before the advection.
+Alternatively, multiple, evenly spaced,
+points are selected to advect, and
+the prioritization happens after their
+time-advection.  
+In the first case, the field line at the
+next time step results from the time-
+In the second case, the seed at the next
+time step is obtained as the time-
+advected point with maximal priority
+at the next time step.</string>
                                             </property>
                                         </widget>
                                         <spacer>

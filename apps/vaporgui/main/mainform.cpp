@@ -79,6 +79,7 @@
 #include "sessionparameters.h"
 #include "vizfeatureparams.h"
 #include "sessionparams.h"
+#include "vapor/Version.h"
 
 //The following are pixmaps that are used in gui:
 #include "images/cascade.xpm"
@@ -199,7 +200,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     helpIndexAction = new QAction( this, "helpIndexAction" );
 	helpIndexAction->setEnabled(false);
     helpAboutAction = new QAction( this, "helpAboutAction" );
-	helpAboutAction->setEnabled(false);
+	helpAboutAction->setEnabled(true);
     
     dataBrowse_DataAction = new QAction( this, "dataBrowse_DataAction" );
 	dataBrowse_DataAction->setEnabled(false);
@@ -842,6 +843,12 @@ void MainForm::helpContents()
 
 void MainForm::helpAbout()
 {
+	QString versionInfo(QString("Visualization and Analysis Platform for atmospheric, Oceanic and solar Research\n") + 
+		QString("Developed at the National Center for Atmospheric Research (NCAR), Boulder, Colorado 80305, U.S.A.\nWeb site: http://www.vapor.ucar.edu\n")+
+		QString("Version: ")+
+		Version::GetVersionString().c_str());
+
+	QMessageBox::information(this, "Information about VAPOR",versionInfo.ascii());
 
 }
 void MainForm::batchSetup(){

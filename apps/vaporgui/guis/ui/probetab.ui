@@ -1100,7 +1100,7 @@
                                                         <cstring>textLabel3_2</cstring>
                                                     </property>
                                                     <property name="text">
-                                                        <string>Orientation</string>
+                                                        <string>Rotation</string>
                                                     </property>
                                                     <property name="alignment">
                                                         <set>AlignCenter</set>
@@ -1201,7 +1201,7 @@
                                                 </widget>
                                                 <widget class="QThumbWheel" row="1" column="1">
                                                     <property name="name">
-                                                        <cstring>thumbWheel8</cstring>
+                                                        <cstring>yThumbWheel</cstring>
                                                     </property>
                                                     <property name="minimumSize">
                                                         <size>
@@ -1212,7 +1212,7 @@
                                                 </widget>
                                                 <widget class="QThumbWheel" row="2" column="1">
                                                     <property name="name">
-                                                        <cstring>thumbWheel9</cstring>
+                                                        <cstring>zThumbWheel</cstring>
                                                     </property>
                                                     <property name="minimumSize">
                                                         <size>
@@ -1245,7 +1245,7 @@
                                                 </widget>
                                                 <widget class="QThumbWheel" row="0" column="1">
                                                     <property name="name">
-                                                        <cstring>thumbWheel7</cstring>
+                                                        <cstring>xThumbWheel</cstring>
                                                     </property>
                                                     <property name="minimumSize">
                                                         <size>

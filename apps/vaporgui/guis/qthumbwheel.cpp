@@ -50,6 +50,8 @@ QThumbWheel::QThumbWheel( QWidget *parent, const char *name )
     : QFrame( parent, name )
 {
     orient = Horizontal;
+	setRange(-100000,100000);
+	
     init();
 }
 
@@ -70,7 +72,7 @@ void QThumbWheel::init()
     track = TRUE;
     mousePressed = FALSE;
     pressedAt = -1;
-    rat = 1.0;
+    rat = 100.0;
     setFrameStyle( WinPanel | Sunken );
     setMargin( 2 );
     setFocusPolicy( WheelFocus );
@@ -104,7 +106,7 @@ void QThumbWheel::setValue( int value )
 void QThumbWheel::valueChange()
 {
     repaint( FALSE );
-    emit valueChanged(value());
+    emit valueChanged(value()-mousePressedAtValue);
 }
 
 void QThumbWheel::rangeChange()
@@ -165,6 +167,7 @@ void QThumbWheel::mousePressEvent( QMouseEvent *e )
     if ( e->button() == LeftButton ) {
 	mousePressed = TRUE;
 	pressedAt = valueFromPosition( e->pos() );
+	mousePressedAtValue = value();
     }
 }
 
@@ -177,6 +180,7 @@ void QThumbWheel::mouseReleaseEvent( QMouseEvent *e )
     int movedTo = valueFromPosition( e->pos() );
     setValue( value() + movedTo - pressedAt );
     pressedAt = movedTo;
+	emit released(value()-mousePressedAtValue);
 }
 
 /*!

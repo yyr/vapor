@@ -33,6 +33,13 @@
 ** Contact info@trolltech.com if any conditions of this licensing are
 ** not clear to you.
 **
+** Modified January 2006 by A. Norton, NCAR
+** For use in rotating probe in VAPOR scene
+** Changes include:
+** signals valueChanged and released now produce relative values since mouse press.
+** Wheel rotation is horizontal
+** Scaled so that full width of thumbwheel produces value change of 1000.
+**
 **********************************************************************/
 
 #ifndef QTHUMBWHEEL_H
@@ -65,6 +72,7 @@ public slots:
 
 signals:
     void 	valueChanged( int value );
+	void	released(int value);
 
 protected:
     void 	valueChange();
@@ -88,6 +96,7 @@ private:
 
     double 	rat;
     int		pressedAt;
+	int		mousePressedAtValue;
     Orientation orient;
     uint	track : 1;
     uint	mousePressed : 1;

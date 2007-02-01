@@ -54,6 +54,7 @@
 #include "probeframe.h"
 #include "floweventrouter.h"
 #include "instancetable.h"
+#include "qthumbwheel.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -126,6 +127,12 @@ ProbeEventRouter::hookUpTab()
 	connect (rakeCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRake()));
 	connect (probeCenterButton, SIGNAL(clicked()), this, SLOT(guiCenterProbe()));
 	connect (addSeedButton, SIGNAL(clicked()), this, SLOT(probeAddSeed()));
+	connect (xThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateXWheel(int)));
+	connect (yThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateYWheel(int)));
+	connect (zThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateZWheel(int)));
+	connect (xThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseXWheel(int)));
+	connect (yThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseYWheel(int)));
+	connect (zThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseZWheel(int)));
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(probeAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	
@@ -182,6 +189,23 @@ ProbeEventRouter::hookUpTab()
 /*********************************************************************************
  * Slots associated with ProbeTab:
  *********************************************************************************/
+void ProbeEventRouter::
+rotateXWheel(int val){
+	qWarning("Wheel rotation: %d",val);
+}
+void ProbeEventRouter::
+rotateYWheel(int val){
+}
+void ProbeEventRouter::
+rotateZWheel(int){}
+void ProbeEventRouter::
+guiReleaseXWheel(int val){
+	int foo = val;
+}
+void ProbeEventRouter::
+guiReleaseYWheel(int){}
+void ProbeEventRouter::
+guiReleaseZWheel(int){}
 void ProbeEventRouter::guiChangeInstance(int inst){
 	performGuiChangeInstance(inst);
 }
