@@ -115,6 +115,7 @@ public:
     QAction* helpContentsAction;
     QAction* helpIndexAction;
     QAction* helpAboutAction;
+	QAction* whatsThisAction;
     //Data menu
     QAction* dataBrowse_DataAction;
 	QAction* dataExportToIDLAction;

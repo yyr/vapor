@@ -49,6 +49,7 @@
 #include <qstatusbar.h>
 #include <qlabel.h>
 #include <qspinbox.h>
+#include <qtoolbutton.h>
 
 
 #include <iostream>
@@ -194,11 +195,15 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	editUndoAction->setEnabled(false);
 	editRedoAction->setEnabled(false);
     
-    
-    helpContentsAction = new QAction( this, "helpContentsAction" );
-	helpContentsAction->setEnabled(false);
-    helpIndexAction = new QAction( this, "helpIndexAction" );
-	helpIndexAction->setEnabled(false);
+	//whatsThisAction = new QAction(QIconSet(*QWhatsThis::whatsThisButton(0)->pixmap()),"What's This?",SHIFT+Key_F1,0);
+	//whatsThisAction = new QAction("What's This?",SHIFT+Key_F1,0);
+	whatsThisAction = new QAction(this, "whatsthisaction");
+	whatsThisAction->setEnabled(true);
+	
+    //helpContentsAction = new QAction( this, "helpContentsAction" );
+	//helpContentsAction->setEnabled(false);
+    //helpIndexAction = new QAction( this, "helpIndexAction" );
+	//helpIndexAction->setEnabled(false);
     helpAboutAction = new QAction( this, "helpAboutAction" );
 	helpAboutAction->setEnabled(true);
     
@@ -390,8 +395,9 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
     Main_Form->insertItem( QString(""), Animation, 6 );
     
     helpMenu = new QPopupMenu( this );
-    helpContentsAction->addTo( helpMenu );
-    helpIndexAction->addTo( helpMenu );
+    //helpContentsAction->addTo( helpMenu );
+    //helpIndexAction->addTo( helpMenu );
+	whatsThisAction->addTo(helpMenu);
     helpMenu->insertSeparator();
     helpAboutAction->addTo( helpMenu );
     Main_Form->insertItem( QString(""), helpMenu, 7 );
@@ -417,9 +423,9 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
 	
 
-    
-    connect( helpIndexAction, SIGNAL( activated() ), this, SLOT( helpIndex() ) );
-    connect( helpContentsAction, SIGNAL( activated() ), this, SLOT( helpContents() ) );
+    connect (whatsThisAction, SIGNAL(activated()), SLOT(whatsThis()));
+    //connect( helpIndexAction, SIGNAL( activated() ), this, SLOT( helpIndex() ) );
+    //connect( helpContentsAction, SIGNAL( activated() ), this, SLOT( helpContents() ) );
     connect( helpAboutAction, SIGNAL( activated() ), this, SLOT( helpAbout() ) );
     
     connect( dataBrowse_DataAction, SIGNAL( activated() ), this, SLOT( browseData() ) );
@@ -536,19 +542,22 @@ void MainForm::languageChange()
     editSessionParamsAction->setMenuText( tr("&Edit Session Parameters"));
     editSessionParamsAction->setToolTip("Launch a panel for setting session parameters"); 
     
-    helpContentsAction->setText( tr( "Contents" ) );
-    helpContentsAction->setMenuText( tr( "&Contents..." ) );
-    helpContentsAction->setToolTip( tr( "Help Contents" ) );
-    helpContentsAction->setAccel( QString::null );
-    helpIndexAction->setText( tr( "Index" ) );
-    helpIndexAction->setMenuText( tr( "&Index..." ) );
-    helpIndexAction->setToolTip( tr( "Help Index" ) );
-    helpIndexAction->setAccel( QString::null );
-    helpAboutAction->setText( tr( "About" ) );
-    helpAboutAction->setMenuText( tr( "&About" ) );
-    helpAboutAction->setToolTip( tr( "Help About" ) );
+   
+	
+    helpAboutAction->setText( tr( "About VAPOR" ) );
+    helpAboutAction->setMenuText( tr( "About VAPOR" ) );
+    helpAboutAction->setToolTip( tr( "Information about VAPOR" ) );
     helpAboutAction->setAccel( QString::null );
-    
+
+	whatsThisAction->setText( tr( "What's This?" ) );
+    whatsThisAction->setMenuText( tr( "What's This?" ) );
+	whatsThisAction->setToolTip(tr(QString("Click here, then click over an object for context-sensitive help;  ")+
+		"Or just click Shift-F1 over the object"));
+	whatsThisAction->setAccel(QString::null);
+	whatsThisAction->setIconSet(QIconSet(*QWhatsThis::whatsThisButton(0)->pixmap()));
+	//whatsThisAction = new QAction(QIconSet(*QWhatsThis::whatsThisButton(0)->pixmap()),"What's This?",SHIFT+Key_F1,0);
+	//whatsThisAction = new QAction("What's This?",SHIFT+Key_F1,0);
+
     dataBrowse_DataAction->setText( tr( "Browse Data" ) );
     dataBrowse_DataAction->setMenuText( tr( "&Browse Data" ) );
 	dataBrowse_DataAction->setToolTip("Browse filesystem to examine properties of available datasets"); 

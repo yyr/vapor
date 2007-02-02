@@ -245,6 +245,11 @@
                     <property name="frameShadow">
                         <enum>Raised</enum>
                     </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>These are the parameters that 
+must be specified for any flow
+integration.</string>
+                    </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
@@ -496,6 +501,20 @@
                                             <property name="toolTip" stdset="0">
                                                 <string>Control integration accuracy (between 0 and 1)</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Integration accuracy is a parameter 
+between 0 and 1 that controls the integration
+interval during flow integration. Flow lines are
+calculated using Runge-Kutta order 4 
+numerical integration. The integration interval
+is adaptively changed so as to keep the
+vector field angular change between 3 and
+15 degrees over the interval.  When integration
+accuracy is 0, the interval can vary between
+4 and 10 grid cells.  When the accuracy is 1,
+the interval can vary between 0.05 and 0.25
+grid cells.</string>
+                                            </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -551,6 +570,9 @@
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify any dimensions in which all vector fields are periodic.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QCheckBox">
                                             <property name="name">
@@ -564,6 +586,9 @@
                                             </property>
                                             <property name="text">
                                                 <string>X</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify any dimensions in which all vector fields are periodic.</string>
                                             </property>
                                         </widget>
                                         <widget class="QCheckBox">
@@ -579,6 +604,9 @@
                                             <property name="text">
                                                 <string>Y</string>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify any dimensions in which all vector fields are periodic.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QCheckBox">
                                             <property name="name">
@@ -592,6 +620,9 @@
                                             </property>
                                             <property name="text">
                                                 <string>Z</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify any dimensions in which all vector fields are periodic.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -1062,9 +1093,9 @@ field line.</string>
                                                                 <string>Specify the typical length of flow lines relative to domain size</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>This value determines the typical
-length of field lines relative to the
-diameter of the full data extents.
+                                                                <string>The flow length value determines the 
+typical length of field lines relative to 
+the diameter of the full data extents.
 It is based on the average steady
 field magnitude in the region, and
 does not specify the actual length
@@ -1103,9 +1134,9 @@ that exit the region will be shorter.</string>
                                                                 <string>Specify the typical length of flow lines relative to domain size</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>This value determines the typical
-length of field lines relative to the
-diameter of the full data extents.
+                                                                <string>The flow length value determines the 
+typical length of field lines relative to 
+the diameter of the full data extents.
 It is based on the average steady
 field magnitude in the region, and
 does not specify the actual length
@@ -1383,6 +1414,16 @@ that exit the region will be shorter.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the time-direction of unsteady flow integration</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>In unsteady flow, all seeds are
+advected in the same temporal 
+direction.  When using field line
+advection, the temporal direction
+can be positive or negative, and
+is determined by whether the
+seed time is before or after the
+current time step.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -1837,6 +1878,9 @@ VAPOR region panel.</string>
                                             <property name="checked">
                                                 <bool>true</bool>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Enable or disable the automatic calculation of steady field smoothness and length</string>
+                                            </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -2092,6 +2136,16 @@ VAPOR region panel.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -2125,6 +2179,16 @@ VAPOR region panel.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -2203,6 +2267,16 @@ VAPOR region panel.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the X coord of the field</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QComboBox">
                                             <item>
@@ -2248,6 +2322,16 @@ VAPOR region panel.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the Y coord of the field</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QComboBox">
                                             <item>
@@ -2292,6 +2376,16 @@ VAPOR region panel.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the Z coord of the field</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2344,6 +2438,9 @@ VAPOR region panel.</string>
                                             </property>
                                             <property name="text">
                                                 <string>Hide Advanced Settings</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Hide the setting in this advanced panel</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2457,6 +2554,11 @@ VAPOR region panel.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>specify min timestep of a sequence</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Specify a set of time steps that will be
+used to sample the vector fields
+during unsteady flow integration.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -2477,6 +2579,11 @@ VAPOR region panel.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>specify max timestep of a sequence</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Specify a set of time steps that will be
+used to sample the vector fields
+during unsteady flow integration.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -2496,6 +2603,11 @@ VAPOR region panel.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>specify the time interval between timestep samples</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Specify a set of time steps that will be
+used to sample the vector fields
+during unsteady flow integration.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2571,6 +2683,11 @@ VAPOR region panel.</string>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Check to use the list of time steps</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Specify a set of time steps that will be
+used to sample the vector fields
+during unsteady flow integration.</string>
+                                                            </property>
                                                         </widget>
                                                     </hbox>
                                                 </widget>
@@ -2592,6 +2709,11 @@ VAPOR region panel.</string>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Click to add another timestep to the list</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Specify a set of time steps that will be
+used to sample the vector fields
+during unsteady flow integration.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QPushButton">
                                                             <property name="name">
@@ -2602,6 +2724,11 @@ VAPOR region panel.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Click to delete the current time step</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Specify a set of time steps that will be
+used to sample the vector fields
+during unsteady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -2635,6 +2762,11 @@ VAPOR region panel.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify time steps to be sampled</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Specify a set of time steps that will be
+used to sample the vector fields
+during unsteady flow integration.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2710,6 +2842,16 @@ VAPOR region panel.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -2743,6 +2885,16 @@ VAPOR region panel.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -2821,6 +2973,16 @@ VAPOR region panel.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the X coord of the field</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QComboBox">
                                             <item>
@@ -2866,6 +3028,16 @@ VAPOR region panel.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the Y coord of the field</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QComboBox">
                                             <item>
@@ -2910,6 +3082,16 @@ VAPOR region panel.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the Z coord of the field</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The bias value is used to produce randomly placed 
+seeds that are biased either toward larger or smaller
+values of the seed distribution field.  A value of 0
+results in uniformly distributed seeds.  If b&gt;0 is the
+bias then (m/M)^b is the probability that a random 
+point p whose seed distribution magnitude is m 
+is accepted, where M is the maximum seed
+distribution magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2962,6 +3144,9 @@ VAPOR region panel.</string>
                                             </property>
                                             <property name="text">
                                                 <string>Hide Advanced Settings</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Hide the setting in this advanced panel</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -3057,6 +3242,9 @@ VAPOR region panel.</string>
                                             </property>
                                             <property name="checked">
                                                 <bool>false</bool>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Enable or disable the automatic calculation of steady field smoothness and length</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -3428,6 +3616,14 @@ VAPOR region panel.</string>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Check to use the list of time steps</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Specify a set of time steps that will be
+used to sample the vector fields
+during unsteady flow integration.
+During field line advection,
+These time steps will also be
+used during steady flow integration.</string>
+                                                            </property>
                                                         </widget>
                                                     </hbox>
                                                 </widget>
@@ -3449,6 +3645,14 @@ VAPOR region panel.</string>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Click to add another timestep to the list</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Specify a set of time steps that will be
+used to sample the vector fields
+during unsteady flow integration.
+During field line advection,
+These time steps will also be
+used during steady flow integration.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QPushButton">
                                                             <property name="name">
@@ -3459,6 +3663,14 @@ VAPOR region panel.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Click to delete the current time step</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Specify a set of time steps that will be
+used to sample the vector fields
+during unsteady flow integration.
+During field line advection,
+These time steps will also be
+used during steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -3492,6 +3704,14 @@ VAPOR region panel.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify time steps to be sampled</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Specify a set of time steps that will be
+used to sample the vector fields
+during unsteady flow integration.
+During field line advection,
+These time steps will also be
+used during steady flow integration.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -3882,6 +4102,19 @@ distribution magnitude of points in the rake.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify field components to be used in prioritizing seeds to advect to next time step</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The seed priority field is used to
+determine which seed points are used
+in going from one time step to the 
+next.  If prioritization occurs before
+advection, then the points with largest
+priority field magnitude are advected
+to become seeds at the next time step.
+If prioritization occurs after advection, 
+then advected points with the largest
+priority field value are used to seed the
+steady flow at the next time step.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QComboBox">
                                             <item>
@@ -3927,6 +4160,19 @@ distribution magnitude of points in the rake.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify field components to be used in prioritizing seeds to advect to next time step</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The seed priority field is used to
+determine which seed points are used
+in going from one time step to the 
+next.  If prioritization occurs before
+advection, then the points with largest
+priority field magnitude are advected
+to become seeds at the next time step.
+If prioritization occurs after advection, 
+then advected points with the largest
+priority field value are used to seed the
+steady flow at the next time step.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QComboBox">
                                             <item>
@@ -3971,6 +4217,19 @@ distribution magnitude of points in the rake.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify field components to be used in prioritizing seeds to advect to next time step</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The seed priority field is used to
+determine which seed points are used
+in going from one time step to the 
+next.  If prioritization occurs before
+advection, then the points with largest
+priority field magnitude are advected
+to become seeds at the next time step.
+If prioritization occurs after advection, 
+then advected points with the largest
+priority field value are used to seed the
+steady flow at the next time step.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -4223,6 +4482,9 @@ at the next time step.</string>
                                             </property>
                                             <property name="text">
                                                 <string>Hide Advanced Settings</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Hide the setting in this advanced panel</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -5284,6 +5546,15 @@ at the next time step.</string>
                                                     <property name="text">
                                                         <string>Seed time start, end, increment</string>
                                                     </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>Specify the starting, ending, and 
+an increment, determining the 
+time steps when seeds will be 
+injected into an unsteady flow.
+With field line advection, seeds
+are only injected at the starting
+time.</string>
+                                                    </property>
                                                 </widget>
                                                 <widget class="QLineEdit">
                                                     <property name="name">
@@ -5304,6 +5575,15 @@ at the next time step.</string>
                                                     <property name="toolTip" stdset="0">
                                                         <string>Specify the first time step for seed points</string>
                                                     </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>Specify the starting, ending, and 
+an increment, determining the 
+time steps when seeds will be 
+injected into an unsteady flow.
+With field line advection, seeds
+are only injected at the starting
+time.</string>
+                                                    </property>
                                                 </widget>
                                                 <widget class="QLineEdit">
                                                     <property name="name">
@@ -5323,6 +5603,15 @@ at the next time step.</string>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
                                                         <string>Specify the end time step for unsteady seed points</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>Specify the starting, ending, and 
+an increment, determining the 
+time steps when seeds will be 
+injected into an unsteady flow.
+With field line advection, seeds
+are only injected at the starting
+time.</string>
                                                     </property>
                                                 </widget>
                                                 <widget class="QLineEdit">
@@ -5346,6 +5635,15 @@ at the next time step.</string>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
                                                         <string>Specify the time step difference between unsteady flowseeding times</string>
+                                                    </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>Specify the starting, ending, and 
+an increment, determining the 
+time steps when seeds will be 
+injected into an unsteady flow.
+With field line advection, seeds
+are only injected at the starting
+time.</string>
                                                     </property>
                                                 </widget>
                                                 <spacer>
@@ -5723,6 +6021,18 @@ at the next time step.</string>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify number of timesteps to display before current timestep</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The timestep display interval is
+used to control the portion of an
+unsteady flow that is visible based
+on the current time frame (specified in
+the animation panel).  At current timestep
+T, the unsteady flow lines between 
+T+min and T+max will be displayed.
+Use a very large negative value of min
+if you want to show the complete history
+of each flow line.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -5742,6 +6052,18 @@ at the next time step.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the max number of timesteps after the current timestep for the flow to display</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The timestep display interval is
+used to control the portion of an
+unsteady flow that is visible based
+on the current time frame (specified in
+the animation panel).  At current timestep
+T, the unsteady flow lines between 
+T+min and T+max will be displayed.
+Use a very large negative value of min
+if you want to show the complete history
+of each flow line.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
