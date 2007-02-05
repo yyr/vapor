@@ -127,17 +127,13 @@ void Session::init() {
 	int i;
 	recordingCount = 0;
 	metadataSaved = false;
-#ifdef WIN32
 	cacheMB = 1024;
-	currentMetadataFile = "C:\\*.vdf";
-	currentJpegDirectory = "C:\\temp";
-	currentFlowDirectory = "C:\\temp";
-#else
-	cacheMB = 1024;
-	currentMetadataFile = "*.vdf";
-	currentJpegDirectory = "/tmp";	
-	currentFlowDirectory = "/tmp";
-#endif
+
+	currentMetadataFile = "";
+	currentJpegDirectory = "";	
+	currentFlowDirectory = "";
+	currentTFPath = "";
+
 	currentExportFile = ImpExp::GetPath();
 	//Delete all the saved transfer functions:
 	for (i = 0; i<numTFs; i++){
@@ -148,14 +144,14 @@ void Session::init() {
 		delete keptTFs;
 		delete tfNames;
 	}
-	currentTFPath = "/tmp";
+	
 	
 	numTFs = 0;
 	tfNames = 0;
 	keptTFs = 0;
 	tfListSize = 0;
 	
-	GLWindow::setJpegQuality(75);
+	GLWindow::setJpegQuality(100);
 	dataExists = false;
 	
 	newSession = true;

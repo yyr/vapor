@@ -507,27 +507,27 @@ probe volume.</string>
                                                 <widget class="QListBox">
                                                     <item>
                                                         <property name="text">
-                                                            <string>wz</string>
+                                                            <string>not present</string>
                                                         </property>
                                                     </item>
                                                     <item>
                                                         <property name="text">
-                                                            <string>wy</string>
+                                                            <string>not present</string>
                                                         </property>
                                                     </item>
                                                     <item>
                                                         <property name="text">
-                                                            <string>ax</string>
+                                                            <string>not present</string>
                                                         </property>
                                                     </item>
                                                     <item>
                                                         <property name="text">
-                                                            <string>ay</string>
+                                                            <string>not present</string>
                                                         </property>
                                                     </item>
                                                     <item>
                                                         <property name="text">
-                                                            <string>az</string>
+                                                            <string>not present</string>
                                                         </property>
                                                     </item>
                                                     <property name="name">
@@ -647,6 +647,9 @@ probe volume.</string>
                                                             <property name="maxValue">
                                                                 <number>256</number>
                                                             </property>
+                                                            <property name="pageStep">
+                                                                <number>1</number>
+                                                            </property>
                                                             <property name="value">
                                                                 <number>128</number>
                                                             </property>
@@ -732,6 +735,9 @@ probe volume.</string>
                                                             <property name="maxValue">
                                                                 <number>256</number>
                                                             </property>
+                                                            <property name="pageStep">
+                                                                <number>1</number>
+                                                            </property>
                                                             <property name="value">
                                                                 <number>22</number>
                                                             </property>
@@ -816,6 +822,9 @@ probe volume.</string>
                                                             </property>
                                                             <property name="maxValue">
                                                                 <number>256</number>
+                                                            </property>
+                                                            <property name="pageStep">
+                                                                <number>1</number>
                                                             </property>
                                                             <property name="value">
                                                                 <number>0</number>
@@ -931,6 +940,9 @@ probe volume.</string>
                                                             <property name="maxValue">
                                                                 <number>256</number>
                                                             </property>
+                                                            <property name="pageStep">
+                                                                <number>1</number>
+                                                            </property>
                                                             <property name="value">
                                                                 <number>128</number>
                                                             </property>
@@ -938,19 +950,24 @@ probe volume.</string>
                                                                 <enum>Horizontal</enum>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the X size of probe in scene</string>
+                                                                <string>Specify the width (X size) of probe in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>The Xp, Yp, and Zp values
-represent the size of the probe,
-in user space.
-These are labelled "Xp"
-"Yp" and "Zp" to remind
-the user that these will not
-be the same as the X, Y, and
-Z coordinate axes in the volume
-whenever the probe rotation is
-nonzero.</string>
+                                                                <string>Manipulate the size of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe size 
+by two volume cells (at the current
+refinement level) in any dimension,
+by clicking on the bar of a slider to the 
+left or right of the slider handle.
+The Xp, Yp, and Zp sizes refer to 
+the probe sizes &lt;i&gt;before&lt;/i&gt; it is 
+mapped into the data volume.  The
+Xp and Yp axes are the (x,y) coordinates
+in the cross-section view below.
+If there is a nonzero rotation, the Xp,
+Yp, and Zp axes will not be the
+same as the X, Y, and Z axes.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
@@ -981,17 +998,24 @@ nonzero.</string>
                                                                 <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the X size of probe in scene</string>
+                                                                <string>Specify the width (X size) of probe in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>The XP, YP, and ZP values
-represent the size of the probe,
-in user coordinate space.
-However if the probe is 
-rotated, these coordinate
-axes may not coincide with 
-the X, Y, and Z axes 
-in user space.</string>
+                                                                <string>Manipulate the size of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe size 
+by two volume cells (at the current
+refinement level) in any dimension,
+by clicking on the bar of a slider to the 
+left or right of the slider handle.
+The Xp, Yp, and Zp sizes refer to 
+the probe sizes &lt;i&gt;before&lt;/i&gt; it is 
+mapped into the data volume.  The
+Xp and Yp axes are the (x,y) coordinates
+in the cross-section view below.
+If there is a nonzero rotation, the Xp,
+Yp, and Zp axes will not be the
+same as the X, Y, and Z axes.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -1038,6 +1062,9 @@ in user space.</string>
                                                             <property name="maxValue">
                                                                 <number>256</number>
                                                             </property>
+                                                            <property name="pageStep">
+                                                                <number>1</number>
+                                                            </property>
                                                             <property name="value">
                                                                 <number>22</number>
                                                             </property>
@@ -1045,17 +1072,24 @@ in user space.</string>
                                                                 <enum>Horizontal</enum>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the Y size of probe in scene</string>
+                                                                <string>Specify the Y size height (Y-size)  of probe in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>The XP, YP, and ZP values
-represent the size of the probe,
-in user coordinate space.
-However if the probe is 
-rotated, these coordinate
-axes may not coincide with 
-the X, Y, and Z axes 
-in user space.</string>
+                                                                <string>Manipulate the size of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe size 
+by two volume cells (at the current
+refinement level) in any dimension,
+by clicking on the bar of a slider to the 
+left or right of the slider handle.
+The Xp, Yp, and Zp sizes refer to 
+the probe sizes &lt;i&gt;before&lt;/i&gt; it is 
+mapped into the data volume.  The
+Xp and Yp axes are the (x,y) coordinates
+in the cross-section view below.
+If there is a nonzero rotation, the Xp,
+Yp, and Zp axes will not be the
+same as the X, Y, and Z axes.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
@@ -1086,17 +1120,24 @@ in user space.</string>
                                                                 <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the Y size of probe in scene</string>
+                                                                <string>Specify the Y size height (Y-size)  of probe in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>The XP, YP, and ZP values
-represent the size of the probe,
-in user coordinate space.
-However if the probe is 
-rotated, these coordinate
-axes may not coincide with 
-the X, Y, and Z axes 
-in user space.</string>
+                                                                <string>Manipulate the size of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe size 
+by two volume cells (at the current
+refinement level) in any dimension,
+by clicking on the bar of a slider to the 
+left or right of the slider handle.
+The Xp, Yp, and Zp sizes refer to 
+the probe sizes &lt;i&gt;before&lt;/i&gt; it is 
+mapped into the data volume.  The
+Xp and Yp axes are the (x,y) coordinates
+in the cross-section view below.
+If there is a nonzero rotation, the Xp,
+Yp, and Zp axes will not be the
+same as the X, Y, and Z axes.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -1146,6 +1187,9 @@ in user space.</string>
                                                             <property name="maxValue">
                                                                 <number>256</number>
                                                             </property>
+                                                            <property name="pageStep">
+                                                                <number>1</number>
+                                                            </property>
                                                             <property name="value">
                                                                 <number>0</number>
                                                             </property>
@@ -1153,17 +1197,24 @@ in user space.</string>
                                                                 <enum>Horizontal</enum>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the Y size of probe in scene</string>
+                                                                <string>Specify the thickness (Z size) of probe in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>The XP, YP, and ZP values
-represent the size of the probe,
-in user coordinate space.
-However if the probe is 
-rotated, these coordinate
-axes may not coincide with 
-the X, Y, and Z axes 
-in user space.</string>
+                                                                <string>Manipulate the size of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe size 
+by two volume cells (at the current
+refinement level) in any dimension,
+by clicking on the bar of a slider to the 
+left or right of the slider handle.
+The Xp, Yp, and Zp sizes refer to 
+the probe sizes &lt;i&gt;before&lt;/i&gt; it is 
+mapped into the data volume.  The
+Xp and Yp axes are the (x,y) coordinates
+in the cross-section view below.
+If there is a nonzero rotation, the Xp,
+Yp, and Zp axes will not be the
+same as the X, Y, and Z axes.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
@@ -1194,17 +1245,24 @@ in user space.</string>
                                                                 <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the Y size of probe in scene</string>
+                                                                <string>Specify the thickness (Z size) of probe in scene</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>The XP, YP, and ZP values
-represent the size of the probe,
-in user coordinate space.
-However if the probe is 
-rotated, these coordinate
-axes may not coincide with 
-the X, Y, and Z axes 
-in user space.</string>
+                                                                <string>Manipulate the size of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe size 
+by two volume cells (at the current
+refinement level) in any dimension,
+by clicking on the bar of a slider to the 
+left or right of the slider handle.
+The Xp, Yp, and Zp sizes refer to 
+the probe sizes &lt;i&gt;before&lt;/i&gt; it is 
+mapped into the data volume.  The
+Xp and Yp axes are the (x,y) coordinates
+in the cross-section view below.
+If there is a nonzero rotation, the Xp,
+Yp, and Zp axes will not be the
+same as the X, Y, and Z axes.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>

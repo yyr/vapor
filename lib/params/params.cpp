@@ -213,7 +213,7 @@ buildCoordTransform(float transformMatrix[12], float extraThickness, float rotat
 	transformMatrix[6] = 0.5*boxSize[2]*rotMatrix[5];
 	//3rd row:
 	transformMatrix[8] = 0.5*boxSize[0]*rotMatrix[6];
-	transformMatrix[9] = 0.5*boxSize[0]*rotMatrix[7];
+	transformMatrix[9] = 0.5*boxSize[1]*rotMatrix[7];
 	transformMatrix[10] = 0.5*boxSize[2]*rotMatrix[8];
 	//last column, i.e. translation:
 	transformMatrix[3] = .5f*(boxMax[0]+boxMin[0]);

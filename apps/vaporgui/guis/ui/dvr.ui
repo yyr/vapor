@@ -387,22 +387,22 @@
                                 <widget class="QComboBox">
                                     <item>
                                         <property name="text">
-                                            <string>Density</string>
+                                            <string>not present</string>
                                         </property>
                                     </item>
                                     <item>
                                         <property name="text">
-                                            <string>Vorticity</string>
+                                            <string>not present</string>
                                         </property>
                                     </item>
                                     <item>
                                         <property name="text">
-                                            <string>Velocity-norm</string>
+                                            <string>not present</string>
                                         </property>
                                     </item>
                                     <item>
                                         <property name="text">
-                                            <string>Temperature</string>
+                                            <string>not present</string>
                                         </property>
                                     </item>
                                     <property name="name">
@@ -410,7 +410,7 @@
                                     </property>
                                     <property name="maximumSize">
                                         <size>
-                                            <width>71</width>
+                                            <width>100</width>
                                             <height>32767</height>
                                         </size>
                                     </property>

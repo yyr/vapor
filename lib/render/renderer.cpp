@@ -89,8 +89,10 @@ buildColorscaleImage(){
 	painter.setPen(myPen);
 
 	//Setup font:
+	int textHeight;
 	int numtics = myGLWindow->getColorbarNumTics();
-	int textHeight = imgHeight/(2*numtics);
+	if (numtics == 0) textHeight = imgHeight;  
+	else  textHeight = imgHeight/(2*numtics);
 	if (textHeight > imgHeight/15) textHeight = imgHeight/15;
 	QFont textFont;
 	textFont.setPixelSize(textHeight);
@@ -122,6 +124,8 @@ buildColorscaleImage(){
 	//Calculate coefficients that convert screen coords to ycoords, 
 	//Inverting above calc of ycoord.
 	//
+	//With no tics, use the whole scale
+	if (numtics == 0) numtics = 1000;
 	double A = (myTransFunc->getMaxMapValue() - myTransFunc->getMinMapValue())*(double)(numtics)/
 		((double)(1.-numtics)*(double)imgHeight);
 	double B = myTransFunc->getMaxMapValue() - A*(double)imgHeight*.5/(double)(numtics);

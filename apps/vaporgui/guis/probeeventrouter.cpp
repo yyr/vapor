@@ -100,6 +100,13 @@ ProbeEventRouter::~ProbeEventRouter(){
 void
 ProbeEventRouter::hookUpTab()
 {
+	//Nudge sliders by clicking on slider bar:
+	connect (xSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXSize(int)));
+	connect (xCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeXCenter(int)));
+	connect (ySizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYSize(int)));
+	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYCenter(int)));
+	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZSize(int)));
+	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZCenter(int)));
 	connect (xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (yCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (zCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
@@ -195,7 +202,7 @@ ProbeEventRouter::hookUpTab()
  *********************************************************************************/
 void ProbeEventRouter::
 rotateXWheel(int val){
-	qWarning("Wheel rotation: %d",val);
+	
 	//Find the current manip in the active visualizer
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
@@ -1291,15 +1298,19 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 	int oldSliderSize, oldSliderCenter;
 	switch(coord) {
 		case 0:
+			
 			oldSliderSize = xSizeSlider->value();
+			
 			oldSliderCenter = xCenterSlider->value();
-			if (oldSliderSize != sliderSize)
+			if (oldSliderSize != sliderSize){
 				xSizeSlider->setValue(sliderSize);
+			}
 			
 			if (oldSliderCenter != sliderCenter)
 				xCenterSlider->setValue(sliderCenter);
 			if(centerChanged) xCenterEdit->setText(QString::number(newCenter));
-			
+			lastXSizeSlider = sliderSize;
+			lastXCenterSlider = sliderCenter;
 			break;
 		case 1:
 			oldSliderSize = ySizeSlider->value();
@@ -1310,7 +1321,8 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 			if (oldSliderCenter != sliderCenter)
 				yCenterSlider->setValue(sliderCenter);
 			if(centerChanged) yCenterEdit->setText(QString::number(newCenter));
-			
+			lastYSizeSlider = sliderSize;
+			lastYCenterSlider = sliderCenter;
 			break;
 		case 2:
 			oldSliderSize = zSizeSlider->value();
@@ -1322,7 +1334,8 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 			if (oldSliderCenter != sliderCenter)
 				zCenterSlider->setValue(sliderCenter);
 			if(centerChanged) zCenterEdit->setText(QString::number(newCenter));
-			
+			lastZSizeSlider = sliderSize;
+			lastZCenterSlider = sliderCenter;
 			break;
 		default:
 			assert(0);
@@ -1890,3 +1903,262 @@ void ProbeEventRouter::captureImage() {
 			filename.ascii());
 }
 
+void ProbeEventRouter::guiNudgeXSize(int val) {
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastXSizeSlider) != 1) {
+		lastXSizeSlider = val;
+		return;
+	}
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe X size");
+	
+	//See if the change was an increase or decrease:
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
+	float pmin = pParams->getProbeMin(0);
+	float pmax = pParams->getProbeMax(0);
+	float maxExtent = ds->getExtents()[3];
+	float minExtent = ds->getExtents()[0];
+	float newSize = pmax - pmin;
+	if (val > lastXSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
+		lastXSizeSlider++;
+		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
+			pParams->setProbeMin(0, pmin-voxelSize);
+			pParams->setProbeMax(0, pmax+voxelSize);
+			newSize = newSize + 2.*voxelSize;
+		}
+	} else {
+		lastXSizeSlider--;
+		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
+			pParams->setProbeMin(0, pmin+voxelSize);
+			pParams->setProbeMax(0, pmax-voxelSize);
+			newSize = newSize - 2.*voxelSize;
+		}
+	}
+	//Determine where the slider really should be:
+	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
+	if(lastXSizeSlider != newSliderPos){
+		lastXSizeSlider = newSliderPos;
+		xSizeSlider->setValue(newSliderPos);
+	}
+	updateTab();
+	PanelCommand::captureEnd(cmd,pParams);
+}
+void ProbeEventRouter::guiNudgeXCenter(int val) {
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastXCenterSlider) != 1) {
+		lastXCenterSlider = val;
+		return;
+	}
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe X center");
+	
+	//See if the change was an increase or decrease:
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
+	float pmin = pParams->getProbeMin(0);
+	float pmax = pParams->getProbeMax(0);
+	float maxExtent = ds->getExtents()[3];
+	float minExtent = ds->getExtents()[0];
+	float newCenter = (pmin+pmax)*0.5f;
+	if (val > lastXCenterSlider){//move by 1 voxel, but don't move past end
+		lastXCenterSlider++;
+		if (pmax+voxelSize <= maxExtent){ 
+			pParams->setProbeMin(0, pmin+voxelSize);
+			pParams->setProbeMax(0, pmax+voxelSize);
+			newCenter = (pmin+pmax)*0.5f + voxelSize;
+		}
+	} else {
+		lastXCenterSlider--;
+		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
+			pParams->setProbeMin(0, pmin-voxelSize);
+			pParams->setProbeMax(0, pmax-voxelSize);
+			newCenter = (pmin+pmax)*0.5f - voxelSize;
+		}
+	}
+	//Determine where the slider really should be:
+	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
+	if(lastXCenterSlider != newSliderPos){
+		lastXCenterSlider = newSliderPos;
+		xCenterSlider->setValue(newSliderPos);
+	}
+	updateTab();
+	PanelCommand::captureEnd(cmd,pParams);
+}
+void ProbeEventRouter::guiNudgeYCenter(int val) {
+DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastYCenterSlider) != 1) {
+		lastYCenterSlider = val;
+		return;
+	}
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Y center");
+	
+	//See if the change was an increase or decrease:
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
+	float pmin = pParams->getProbeMin(1);
+	float pmax = pParams->getProbeMax(1);
+	float maxExtent = ds->getExtents()[4];
+	float minExtent = ds->getExtents()[1];
+	float newCenter = (pmin+pmax)*0.5f;
+	if (val > lastYCenterSlider){//move by 1 voxel, but don't move past end
+		lastYCenterSlider++;
+		if (pmax+voxelSize <= maxExtent){ 
+			pParams->setProbeMin(1, pmin+voxelSize);
+			pParams->setProbeMax(1, pmax+voxelSize);
+			newCenter = (pmin+pmax)*0.5f + voxelSize;
+		}
+	} else {
+		lastYCenterSlider--;
+		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
+			pParams->setProbeMin(1, pmin-voxelSize);
+			pParams->setProbeMax(1, pmax-voxelSize);
+			newCenter = (pmin+pmax)*0.5f - voxelSize;
+		}
+	}
+	//Determine where the slider really should be:
+	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
+	if(lastYCenterSlider != newSliderPos){
+		lastYCenterSlider = newSliderPos;
+		yCenterSlider->setValue(newSliderPos);
+	}
+	updateTab();
+	PanelCommand::captureEnd(cmd,pParams);
+}
+void ProbeEventRouter::guiNudgeZCenter(int val) {
+DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastZCenterSlider) != 1) {
+		lastZCenterSlider = val;
+		return;
+	}
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Z center");
+	
+	//See if the change was an increase or decrease:
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2);
+	float pmin = pParams->getProbeMin(2);
+	float pmax = pParams->getProbeMax(2);
+	float maxExtent = ds->getExtents()[5];
+	float minExtent = ds->getExtents()[2];
+	float newCenter = (pmin+pmax)*0.5f;
+	if (val > lastZCenterSlider){//move by 1 voxel, but don't move past end
+		lastZCenterSlider++;
+		if (pmax+voxelSize <= maxExtent){ 
+			pParams->setProbeMin(2, pmin+voxelSize);
+			pParams->setProbeMax(2, pmax+voxelSize);
+			newCenter = (pmin+pmax)*0.5f + voxelSize;
+		}
+	} else {
+		lastZCenterSlider--;
+		if (pmin-voxelSize >= minExtent) {//slide 1 voxel down:
+			pParams->setProbeMin(2, pmin-voxelSize);
+			pParams->setProbeMax(2, pmax-voxelSize);
+			newCenter = (pmin+pmax)*0.5f - voxelSize;
+		}
+	}
+	//Determine where the slider really should be:
+	int newSliderPos = (int)(256.*(newCenter - minExtent)/(maxExtent-minExtent) +0.5f);
+	if(lastZCenterSlider != newSliderPos){
+		lastZCenterSlider = newSliderPos;
+		zCenterSlider->setValue(newSliderPos);
+	}
+	updateTab();
+	PanelCommand::captureEnd(cmd,pParams);
+}
+
+void ProbeEventRouter::guiNudgeYSize(int val) {
+DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastYSizeSlider) != 1) {
+		lastYSizeSlider = val;
+		return;
+	}
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Y size");
+	
+	//See if the change was an increase or decrease:
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
+	float pmin = pParams->getProbeMin(1);
+	float pmax = pParams->getProbeMax(1);
+	float maxExtent = ds->getExtents()[4];
+	float minExtent = ds->getExtents()[1];
+	float newSize = pmax - pmin;
+	if (val > lastYSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
+		lastYSizeSlider++;
+		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
+			pParams->setProbeMin(1, pmin-voxelSize);
+			pParams->setProbeMax(1, pmax+voxelSize);
+			newSize = newSize + 2.*voxelSize;
+		}
+	} else {
+		lastYSizeSlider--;
+		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
+			pParams->setProbeMin(1, pmin+voxelSize);
+			pParams->setProbeMax(1, pmax-voxelSize);
+			newSize = newSize - 2.*voxelSize;
+		}
+	}
+	//Determine where the slider really should be:
+	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
+	if(lastYSizeSlider != newSliderPos){
+		lastYSizeSlider = newSliderPos;
+		ySizeSlider->setValue(newSliderPos);
+	}
+	updateTab();
+	PanelCommand::captureEnd(cmd,pParams);
+}
+void ProbeEventRouter::guiNudgeZSize(int val) {
+DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
+	//ignore if change is not 1 
+	if(abs(val - lastZSizeSlider) != 1) {
+		lastZSizeSlider = val;
+		return;
+	}
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Z size");
+	
+	//See if the change was an increase or decrease:
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2);
+	float pmin = pParams->getProbeMin(2);
+	float pmax = pParams->getProbeMax(2);
+	float maxExtent = ds->getExtents()[5];
+	float minExtent = ds->getExtents()[2];
+	float newSize = pmax - pmin;
+	if (val > lastZSizeSlider){//increase size by 1 voxel on each end, but no bigger than region:
+		lastZSizeSlider++;
+		if (pmax-pmin+2.f*voxelSize <= (maxExtent - minExtent)){ 
+			pParams->setProbeMin(2, pmin-voxelSize);
+			pParams->setProbeMax(2, pmax+voxelSize);
+			newSize = newSize + 2.*voxelSize;
+		}
+	} else {
+		lastZSizeSlider--;
+		if ((pmax - pmin) >= 2.f*voxelSize) {//shrink by 1 voxel on each side:
+			pParams->setProbeMin(2, pmin+voxelSize);
+			pParams->setProbeMax(2, pmax-voxelSize);
+			newSize = newSize - 2.*voxelSize;
+		}
+	}
+	//Determine where the slider really should be:
+	int newSliderPos = (int)(256.*newSize/(maxExtent-minExtent) +0.5f);
+	if(lastZSizeSlider != newSliderPos){
+		lastZSizeSlider = newSliderPos;
+		zSizeSlider->setValue(newSliderPos);
+	}
+	updateTab();
+	PanelCommand::captureEnd(cmd,pParams);
+}

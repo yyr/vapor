@@ -275,7 +275,7 @@ copyFromDialog(){
 	
 
 	numColorbarTics = vizFeatureDlg->numTicsEdit->text().toInt();
-	if (numColorbarTics <2) numColorbarTics = 2;
+	if (numColorbarTics <2) numColorbarTics = 0;
 	if (numColorbarTics > 50) numColorbarTics = 50;
 	showBar = vizFeatureDlg->colorbarCheckbox->isChecked();
 	showAxes = vizFeatureDlg->axisCheckbox->isChecked();

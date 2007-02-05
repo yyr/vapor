@@ -125,6 +125,13 @@ public slots:
 	void setBindButtons(bool canbind);
 
 protected slots:
+	void guiNudgeXSize(int);
+	void guiNudgeXCenter(int);
+	void guiNudgeYSize(int);
+	void guiNudgeYCenter(int);
+	void guiNudgeZSize(int);
+	void guiNudgeZCenter(int);
+	
 	//Handle thumbwheel events:
 	void rotateXWheel(int);
 	void rotateYWheel(int);
@@ -179,6 +186,8 @@ protected:
 	bool ignoreListboxChanges;
 	int numVariables;
 	int copyCount[MAXVIZWINS+1];
+	int lastXSizeSlider, lastYSizeSlider, lastZSizeSlider;
+	int lastXCenterSlider, lastYCenterSlider, lastZCenterSlider;
 };
 
 };

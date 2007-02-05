@@ -702,27 +702,17 @@ grid cells.</string>
                                                         <widget class="QComboBox">
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wx</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wy</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wz</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>enst</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>r0</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <property name="name">
@@ -741,27 +731,17 @@ grid cells.</string>
                                                         <widget class="QComboBox">
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wx</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wy</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wz</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>enst</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>r0</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <property name="name">
@@ -774,7 +754,7 @@ grid cells.</string>
                                                                 </size>
                                                             </property>
                                                             <property name="currentItem">
-                                                                <number>1</number>
+                                                                <number>0</number>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the variable that is mapped to the Y coord of the field</string>
@@ -783,27 +763,17 @@ grid cells.</string>
                                                         <widget class="QComboBox">
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wx</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wy</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wz</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>enst</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>r0</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <property name="name">
@@ -816,7 +786,7 @@ grid cells.</string>
                                                                 </size>
                                                             </property>
                                                             <property name="currentItem">
-                                                                <number>2</number>
+                                                                <number>0</number>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the variable that is mapped to the Z coord of the field</string>
@@ -1208,27 +1178,17 @@ that exit the region will be shorter.</string>
                                                         <widget class="QComboBox">
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wx</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wy</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wz</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>enst</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>r0</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <property name="name">
@@ -1247,27 +1207,17 @@ that exit the region will be shorter.</string>
                                                         <widget class="QComboBox">
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wx</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wy</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wz</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>enst</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>r0</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <property name="name">
@@ -1280,7 +1230,7 @@ that exit the region will be shorter.</string>
                                                                 </size>
                                                             </property>
                                                             <property name="currentItem">
-                                                                <number>1</number>
+                                                                <number>0</number>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the variable that is mapped to the Y coord of the field</string>
@@ -1289,27 +1239,17 @@ that exit the region will be shorter.</string>
                                                         <widget class="QComboBox">
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wx</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wy</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <item>
                                                                 <property name="text">
-                                                                    <string>wz</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>enst</string>
-                                                                </property>
-                                                            </item>
-                                                            <item>
-                                                                <property name="text">
-                                                                    <string>r0</string>
+                                                                    <string>N/A</string>
                                                                 </property>
                                                             </item>
                                                             <property name="name">
@@ -1322,7 +1262,7 @@ that exit the region will be shorter.</string>
                                                                 </size>
                                                             </property>
                                                             <property name="currentItem">
-                                                                <number>2</number>
+                                                                <number>0</number>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the variable that is mapped to the Z coord of the field</string>
@@ -2229,27 +2169,17 @@ distribution magnitude of points in the rake.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -2281,27 +2211,17 @@ distribution magnitude of points in the rake.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -2317,7 +2237,7 @@ distribution magnitude of points in the rake.</string>
                                                 </size>
                                             </property>
                                             <property name="currentItem">
-                                                <number>1</number>
+                                                <number>0</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the Y coord of the field</string>
@@ -2336,27 +2256,17 @@ distribution magnitude of points in the rake.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -2372,7 +2282,7 @@ distribution magnitude of points in the rake.</string>
                                                 </size>
                                             </property>
                                             <property name="currentItem">
-                                                <number>2</number>
+                                                <number>0</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the Z coord of the field</string>
@@ -2935,27 +2845,17 @@ distribution magnitude of points in the rake.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -2987,27 +2887,17 @@ distribution magnitude of points in the rake.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -3023,7 +2913,7 @@ distribution magnitude of points in the rake.</string>
                                                 </size>
                                             </property>
                                             <property name="currentItem">
-                                                <number>1</number>
+                                                <number>0</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the Y coord of the field</string>
@@ -3042,27 +2932,17 @@ distribution magnitude of points in the rake.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -3078,7 +2958,7 @@ distribution magnitude of points in the rake.</string>
                                                 </size>
                                             </property>
                                             <property name="currentItem">
-                                                <number>2</number>
+                                                <number>0</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the Z coord of the field</string>
@@ -3880,27 +3760,17 @@ distribution magnitude of points in the rake.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -3922,27 +3792,17 @@ distribution magnitude of points in the rake.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -3958,7 +3818,7 @@ distribution magnitude of points in the rake.</string>
                                                 </size>
                                             </property>
                                             <property name="currentItem">
-                                                <number>1</number>
+                                                <number>0</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the Y coord of the field</string>
@@ -3967,27 +3827,17 @@ distribution magnitude of points in the rake.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -4003,7 +3853,7 @@ distribution magnitude of points in the rake.</string>
                                                 </size>
                                             </property>
                                             <property name="currentItem">
-                                                <number>2</number>
+                                                <number>0</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the variable that is mapped to the Z coord of the field</string>
@@ -4064,27 +3914,17 @@ distribution magnitude of points in the rake.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -4119,27 +3959,17 @@ steady flow at the next time step.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -4155,7 +3985,7 @@ steady flow at the next time step.</string>
                                                 </size>
                                             </property>
                                             <property name="currentItem">
-                                                <number>1</number>
+                                                <number>0</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify field components to be used in prioritizing seeds to advect to next time step</string>
@@ -4177,27 +4007,17 @@ steady flow at the next time step.</string>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
-                                                    <string>wx</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wy</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <item>
                                                 <property name="text">
-                                                    <string>wz</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>enst</string>
-                                                </property>
-                                            </item>
-                                            <item>
-                                                <property name="text">
-                                                    <string>r0</string>
+                                                    <string>N/A</string>
                                                 </property>
                                             </item>
                                             <property name="name">
@@ -4213,7 +4033,7 @@ steady flow at the next time step.</string>
                                                 </size>
                                             </property>
                                             <property name="currentItem">
-                                                <number>2</number>
+                                                <number>0</number>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify field components to be used in prioritizing seeds to advect to next time step</string>
