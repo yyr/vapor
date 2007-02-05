@@ -117,6 +117,9 @@ protected:
 	float handleSizeInCube;
 	float subregionFrameColor[3];
 	float initialSelectionRay[3];
+	//Following only used by rotating manip subclasses:
+	float tempRotation;
+	int tempRotAxis;
 	
 };
 //Subclass that allows the box to be rotated, and for it to be slid outside
@@ -128,6 +131,11 @@ public:
 	virtual void render();
 	virtual void slideHandle(int handleNum, float movedRay[3]);
 	virtual void mouseRelease(float screenCoords[2]);
+	//While dragging the thumbwheel call this.
+	//When drag is over, set rot to 0.f
+	void setTempRotation(float rot, int axis) {
+		tempRotation = rot; tempRotAxis = axis;
+	}
 protected:
 	virtual void drawBoxFaces();
 	float constrainStretch(float currentDist);

@@ -126,14 +126,7 @@ public:
 	//get/set methods
 	void setNumRefinements(int numtrans){numRefinements = numtrans; setProbeDirty();}
 	void setMaxNumRefinements(int numtrans) {maxNumRefinements = numtrans;}
-	void setXCenter(int sliderval);
-	void setYCenter(int sliderval);
-	void setZCenter(int sliderval);
-	void setXSize(int sliderval);
-	void setYSize(int sliderval);
-	void setZSize(int sliderval);
-	void textToSlider(int coord, float center, float size);
-	void sliderToText(int coord, int center, int size);
+	
 	//This needs to be fixed to handle multiple variables!
 	virtual int getVarNum() { return firstVarNum;}
 	
@@ -170,8 +163,13 @@ public:
 
 	virtual float getPhi() {return phi;}
 	virtual float getTheta() {return theta;}
+	virtual float getPsi() {return psi;}
+	
 	void setTheta(float th) {theta = th;}
 	void setPhi(float ph) {phi = ph;}
+	void setPsi(float ps) {psi = ps;}
+	bool isPlanar() {return planar;}
+	void setPlanar(bool val) {planar = val;}
 	virtual void getBox(float boxmin[], float boxmax[]){
 		for (int i = 0; i< 3; i++){
 			boxmin[i]=probeMin[i];
@@ -207,6 +205,8 @@ public:
 	void setNumVariablesSelected(int numselected){numVariablesSelected = numselected;}
 	//Get the bounding box of data that is actually on disk.  return false if empty
 	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3]);
+
+	
 	
 
 protected:
@@ -220,7 +220,9 @@ protected:
 	static const string _cursorCoordsAttr;
 	static const string _phiAttr;
 	static const string _thetaAttr;
+	static const string _psiAttr;
 	static const string _numTransformsAttr;
+	static const string _planarAttr;
 	
 	
 	
@@ -246,7 +248,7 @@ protected:
 	
 	
 	std::vector<bool> variableSelected;
-
+	bool planar; //whether the probe is required to be planar
 	bool clutDirty;
 	//The first variable selected is used to specify 
 	//which TF will be used.
@@ -263,7 +265,7 @@ protected:
 	//State variables controlled by GUI:
 	float probeMin[3], probeMax[3];
 	int numRefinements, maxNumRefinements;
-	float theta, phi;
+	float theta, phi, psi;
 	float selectPoint[3];
 	float cursorCoords[2];
 	

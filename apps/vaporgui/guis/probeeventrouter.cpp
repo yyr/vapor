@@ -105,6 +105,7 @@ ProbeEventRouter::hookUpTab()
 	connect (zCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (thetaEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (phiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
+	connect (psiEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (xSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (zSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
@@ -121,18 +122,21 @@ ProbeEventRouter::hookUpTab()
 	connect (zSizeEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (thetaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (phiEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
+	connect (psiEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (histoScaleEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (regionCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRegion()));
 	connect (viewCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterView()));
 	connect (rakeCenterButton, SIGNAL(clicked()), this, SLOT(probeCenterRake()));
 	connect (probeCenterButton, SIGNAL(clicked()), this, SLOT(guiCenterProbe()));
 	connect (addSeedButton, SIGNAL(clicked()), this, SLOT(probeAddSeed()));
+	connect (axisAlignButton, SIGNAL(clicked()), this, SLOT(guiAxisAlign()));
 	connect (xThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateXWheel(int)));
 	connect (yThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateYWheel(int)));
 	connect (zThumbWheel, SIGNAL(valueChanged(int)), this, SLOT(rotateZWheel(int)));
 	connect (xThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseXWheel(int)));
 	connect (yThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseYWheel(int)));
 	connect (zThumbWheel, SIGNAL(released(int)), this, SLOT(guiReleaseZWheel(int)));
+	connect (planarCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiTogglePlanar(bool)));
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(probeAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	
@@ -192,20 +196,96 @@ ProbeEventRouter::hookUpTab()
 void ProbeEventRouter::
 rotateXWheel(int val){
 	qWarning("Wheel rotation: %d",val);
+	//Find the current manip in the active visualizer
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	manip->setTempRotation((float)val/10.f, 0);
+	viz->updateGL();
+	
 }
 void ProbeEventRouter::
 rotateYWheel(int val){
+	
+	//Find the current manip in the active visualizer
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	manip->setTempRotation(-(float)val/10.f, 1);
+	viz->updateGL();
 }
 void ProbeEventRouter::
-rotateZWheel(int){}
+rotateZWheel(int val){
+	//Find the current manip in the active visualizer
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	manip->setTempRotation((float)val/10.f, 2);
+	viz->updateGL();
+}
 void ProbeEventRouter::
 guiReleaseXWheel(int val){
-	int foo = val;
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
+	//Now finalize the rotation
+	float newTheta, newPhi, newPsi;
+	pParams->convertThetaPhiPsi(&newTheta, &newPhi, &newPsi, 0, (float)val/10.f);
+	pParams->setTheta(newTheta);
+	pParams->setPhi(newPhi);
+	pParams->setPsi(newPsi);
+	//Reset the manip:
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	manip->setTempRotation(0.f, 0);
+
+	updateTab();
+	pParams->setProbeDirty();
+	PanelCommand::captureEnd(cmd,pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::
-guiReleaseYWheel(int){}
+guiReleaseYWheel(int val){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
+	//Now finalize the rotation
+	float newTheta, newPhi, newPsi;
+	pParams->convertThetaPhiPsi(&newTheta, &newPhi, &newPsi, 1, -(float)val/10.f);
+	pParams->setTheta(newTheta);
+	pParams->setPhi(newPhi);
+	pParams->setPsi(newPsi);
+	//Reset the manip:
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	manip->setTempRotation(0.f, 1);
+
+	updateTab();
+	pParams->setProbeDirty();
+	PanelCommand::captureEnd(cmd,pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+}
 void ProbeEventRouter::
-guiReleaseZWheel(int){}
+guiReleaseZWheel(int val){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
+	//Now finalize the rotation
+	float newTheta, newPhi, newPsi;
+	pParams->convertThetaPhiPsi(&newTheta, &newPhi, &newPsi, 2, (float)val/10.f);
+	pParams->setTheta(newTheta);
+	pParams->setPhi(newPhi);
+	pParams->setPsi(newPsi);
+	//Reset the manip:
+	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
+	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
+	manip->setTempRotation(0.f, 2);
+
+	updateTab();
+	pParams->setProbeDirty();
+	PanelCommand::captureEnd(cmd,pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+}
 void ProbeEventRouter::guiChangeInstance(int inst){
 	performGuiChangeInstance(inst);
 }
@@ -328,6 +408,55 @@ probeAddSeed(){
 	fRouter->guiAddSeed(pt);
 }	
 void ProbeEventRouter::
+guiTogglePlanar(bool isOn){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "toggle planar probe");
+	if (isOn){
+		//when make it planar, force z-thickness to 0:
+		pParams->setPlanar(true);
+		setZSize(pParams,0);
+		zSizeSlider->setEnabled(false);
+		zSizeEdit->setEnabled(false);
+	} else {
+		pParams->setPlanar(false);
+		zSizeSlider->setEnabled(true);
+		zSizeEdit->setEnabled(true);
+	}
+	//Force a redraw, update tab
+	updateTab();
+	pParams->setProbeDirty();
+	PanelCommand::captureEnd(cmd,pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+}
+void ProbeEventRouter::
+guiAxisAlign(){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "axis-align probe");
+	float theta = pParams->getTheta();
+	//convert to closest number of quarter-turns
+	int angleInt = (int)(((theta+180.)/90.)+0.5) - 2;
+	theta = angleInt*90.;
+	float psi = pParams->getPsi();
+	angleInt = (int)(((psi+180.)/90.)+0.5) - 2;
+	psi = angleInt*90.;
+	float phi = pParams->getPhi();
+	angleInt = (int)((phi/90.)+0.5);
+	phi = angleInt*90.;
+	pParams->setPhi(phi);
+	pParams->setPsi(psi);
+	pParams->setTheta(theta);
+	//Force a redraw, update tab
+	updateTab();
+	pParams->setProbeDirty();
+	PanelCommand::captureEnd(cmd,pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+
+}	
+void ProbeEventRouter::
 probeAttachSeed(bool attach){
 	if (attach) probeAddSeed();
 	FlowParams* fParams = (FlowParams*)VizWinMgr::getInstance()->getApplicableParams(Params::FlowParamsType);
@@ -376,14 +505,19 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 	float thetaVal = thetaEdit->text().toFloat();
 	while (thetaVal > 180.f) thetaVal -= 360.f;
 	while (thetaVal < -180.f) thetaVal += 360.f;
-	thetaEdit->setText(QString::number(thetaVal));
+	thetaEdit->setText(QString::number(thetaVal,'f',1));
 	float phiVal = phiEdit->text().toFloat();
 	while (phiVal > 180.f) phiVal -= 180.f;
 	while (phiVal < 0.f) phiVal += 180.f;
-	phiEdit->setText(QString::number(phiVal));
+	phiEdit->setText(QString::number(phiVal,'f',1));
+	float psiVal = psiEdit->text().toFloat();
+	while (psiVal > 180.f) psiVal -= 360.f;
+	while (psiVal < -180.f) psiVal += 360.f;
+	psiEdit->setText(QString::number(psiVal,'f',1));
 
 	probeParams->setTheta(thetaVal);
 	probeParams->setPhi(phiVal);
+	probeParams->setPsi(psiVal);
 
 	probeParams->setHistoStretch(histoScaleEdit->text().toFloat());
 
@@ -611,6 +745,15 @@ void ProbeEventRouter::updateTab(){
 	refinementCombo->setCurrentItem(probeParams->getNumRefinements());
 	histoScaleEdit->setText(QString::number(probeParams->getHistoStretch()));
 
+	//Check if planar:
+	bool isPlanar = probeParams->isPlanar();
+	if (isPlanar){
+		zSizeSlider->setEnabled(false);
+		zSizeEdit->setEnabled(false);
+	} else {
+		zSizeSlider->setEnabled(true);
+		zSizeEdit->setEnabled(true);
+	}
 	
 	//Set the values of box extents:
 	float probeMin[3],probeMax[3];
@@ -625,8 +768,9 @@ void ProbeEventRouter::updateTab(){
 	yCenterEdit->setText(QString::number(0.5f*(probeMax[1]+probeMin[1]),'g',5));
 	zSizeEdit->setText(QString::number(probeMax[2]-probeMin[2],'g', 4));
 	zCenterEdit->setText(QString::number(0.5f*(probeMax[2]+probeMin[2]),'g',5));
-	thetaEdit->setText(QString::number(probeParams->getTheta()));
-	phiEdit->setText(QString::number(probeParams->getPhi()));
+	thetaEdit->setText(QString::number(probeParams->getTheta(),'f',1));
+	phiEdit->setText(QString::number(probeParams->getPhi(),'f',1));
+	psiEdit->setText(QString::number(probeParams->getPsi(),'f',1));
 	const float* selectedPoint = probeParams->getSelectedPoint();
 	selectedXLabel->setText(QString::number(selectedPoint[0]));
 	selectedYLabel->setText(QString::number(selectedPoint[1]));

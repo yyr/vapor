@@ -99,6 +99,25 @@ PARAMS_API void	mcopy (GLfloat *m1, GLfloat *m2);
 PARAMS_API void	mmult (GLfloat *m1, GLfloat *m2, GLfloat *prod);
 PARAMS_API void	minvert (GLfloat *mat, GLfloat *result);
 
+//Some routines to handle 3x3 rotation matrices, represented as 9 floats, 
+//where the column index increments faster (like in 4x4 case
+PARAMS_API void	mmult33(const float* m1, const float* m2, float* result);
+
+//Same as above, but use the transpose (i.e. inverse for rotations) on the left
+PARAMS_API void	mmultt33(const float* m1Trans, const float* m2, float* result);
+
+//Determine a rotation matrix from (theta, phi, psi) (radians), that is, 
+//find the rotation matrix that first rotates in (x,y) by psi, then takes the vector (0,0,1) 
+//to the vector with direction (theta,phi) by rotating by phi in the (x,z) plane and then
+//rotating in the (x,y)plane by theta.
+PARAMS_API void	getRotationMatrix(float theta, float phi, float psi, float* matrix);
+
+//Determine a rotation matrix about an axis:
+PARAMS_API void getAxisRotation(int axis, float rotation, float* matrix);
+
+//Determine the psi, phi, theta from a rotation matrix:
+PARAMS_API void getRotAngles(float* theta, float* phi, float* psi, const float* matrix);
+
 PARAMS_API void	qnormal (float *q);
 PARAMS_API void	qmult (const float *q1, const float *q2, float *dest);
 PARAMS_API void	qmatrix (const float *q, GLfloat *m);

@@ -125,6 +125,7 @@ public:
 	//Box orientation:
 	virtual float getPhi() {return 0.f;}
 	virtual float getTheta() {return 0.f;}
+	virtual float getPsi() {return 0.f;}
 	
 	//Determine the box extents in the unit cube.
 	void calcBoxExtentsInCube(float* extents);
@@ -133,10 +134,10 @@ public:
 		{return calcBoxExtentsInCube(extents);}
 	void calcBoxExtents(float* extents);
 	//Calculate the box in world coords, using any theta or phi
-	void calcBoxCorners(float corners[8][3], float extraThickness = 0.f);
+	void calcBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
 	// Construct transformation as a mapping of [-1,1]^3 into volume array
 	// coordinates at current resolution
-	void buildCoordTransform(float transformMatrix[12], float extraThickness = 0.f);
+	void buildCoordTransform(float transformMatrix[12], float extraThickness, float rotation = 0.f, int axis = -1);
 
 
 	//The restart method goes back to initial state
@@ -163,6 +164,10 @@ public:
     //
     static bool searchCmdLine(const char *flag);
     static const char* parseCmdLine(const char *flag);
+
+	//Determine a new value of theta and phi when the probe is rotated around either the
+	//x-, y-, or z- axis.  axis is 0,1,or 1. rotation is in degrees.
+	void convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, int axis, float rotation);
 
 protected:
 	bool local;

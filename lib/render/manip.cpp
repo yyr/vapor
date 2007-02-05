@@ -57,6 +57,8 @@ TranslateStretchManip::TranslateStretchManip(GLWindow* win, Params* p) : Manip(w
 	setParams(p);
 	selectedHandle = -1;
 	isStretching = false;
+	tempRotation = 0.f;
+	tempRotAxis = -1;
 }
 
 // Determine if the mouse is over any of the six handles.
@@ -412,7 +414,7 @@ void TranslateStretchManip::render(){
 void TranslateStretchManip::drawBoxFaces(){
 	float corners[8][3];
 	
-	myParams->calcBoxCorners(corners);
+	myParams->calcBoxCorners(corners, 0.f);
 	
 	//Now the corners need to be put into the unit cube, and displaced appropriately
 	//Either displace just half the corners or do the opposite ones as well.
@@ -532,6 +534,9 @@ captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int b
 	//qWarning(" initial selection ray: %f %f %f", initialSelectionRay[0],initialSelectionRay[1],initialSelectionRay[2]);
 	if (buttonNum > 1) isStretching = true; 
 	else isStretching = false;
+	//Reset any active rotation
+	tempRotation = 0.f;
+	tempRotAxis = -1;
 }
 
 //Slide the handle based on mouse move from previous capture.  
@@ -665,12 +670,13 @@ void TranslateStretchManip::drawHandleConnector(int handleNum, float* handleExte
 //Subclass constructor.  Allows rotated cube to be translated and stretched
 //
 TranslateRotateManip::TranslateRotateManip(GLWindow* w, Params* p) : TranslateStretchManip(w,p){
+	
 }
 void TranslateRotateManip::drawBoxFaces(){
 	float corners[8][3];
 	Permuter* myPermuter = 0;
 	if (isStretching) myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi());
-	myParams->calcBoxCorners(corners);
+	myParams->calcBoxCorners(corners, 0.f, tempRotation, tempRotAxis);
 	//Now the corners need to be put into the unit cube, and displaced appropriately
 	
 	//Either displace just half the corners (when stretching) or do the opposite ones as well.
@@ -853,7 +859,7 @@ slideHandle(int handleNum, float movedRay[3]){
 //Following code should be invoked during OpenGL rendering.
 //Assumes coords are already setup.
 //This renders the box and the associated handles.
-//Takes into account any rotation.
+//Takes into account theta/phi rotations
 //If a handle is selected, it is highlighted, and the box is slid in the handle
 //direction according to the current translation.
 //This rendering takes place in cube coords

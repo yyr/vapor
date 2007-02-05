@@ -136,6 +136,8 @@ protected slots:
 	void guiChangeInstance(int);
 	void guiNewInstance();
 	void guiDeleteInstance();
+	void guiAxisAlign();
+	void guiTogglePlanar(bool);
 	
 	void guiCopyInstanceTo(int toViz);
 	//Slots for probe panel:

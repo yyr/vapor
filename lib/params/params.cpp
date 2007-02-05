@@ -116,9 +116,9 @@ void Params::calcBoxExtents(float* extents){
 	}
 }
 void Params::
-calcBoxCorners(float corners[8][3], float extraThickness){
+calcBoxCorners(float corners[8][3], float extraThickness, float rotation, int axis){
 	float transformMatrix[12];
-	buildCoordTransform(transformMatrix, extraThickness);
+	buildCoordTransform(transformMatrix, extraThickness, rotation, axis);
 	float boxCoord[3];
 	//Return the corners of the box (in world space)
 	//Go counter-clockwise around the back, then around the front
@@ -148,10 +148,12 @@ calcBoxCorners(float corners[8][3], float extraThickness){
 	vtransform(boxCoord, transformMatrix, corners[6]);
 	
 }
-//Optional extraThickness parameter results in mapping to fatter box,
-//Useful to prevent degenerate transform when box is flattened
+//extraThickness parameter results in mapping to fatter box,
+//Useful to prevent degenerate transform when box is flattened.
+//Optional rotation and axis parameters modify theta and phi
+//by rotation about axis.  Rotation is in degrees!
 void Params::
-buildCoordTransform(float transformMatrix[12], float extraThickness){
+buildCoordTransform(float transformMatrix[12], float extraThickness, float rotation, int axis){
 	//Note:  transformMatrix is a 3x4 matrix that converts Box coords
 	// in the range [-1,1] to float coords in the volume.
 	//The last column of the matrix is the translation
@@ -178,12 +180,15 @@ buildCoordTransform(float transformMatrix[12], float extraThickness){
 	// 3rd:  CthSph  -SthSph  Cph
 	//Note we are reversing phi, since it is more intuitive to have the user
 	//looking down the negative z-axis.
-	float theta = getTheta();
-	float phi = getPhi();
-	float cosTheta = cos(theta*M_PI/180.);
-	float sinTheta = sin(theta*M_PI/180.);
-	float sinPhi = sin((180.-phi)*M_PI/180.);
-	float cosPhi = cos((180.-phi)*M_PI/180.);
+	float theta, phi, psi;
+	if (rotation != 0.f) {
+		convertThetaPhiPsi(&theta,&phi,&psi, axis, rotation);
+	} else {
+		theta = getTheta();
+		phi = getPhi();
+		psi = getPsi();
+	}
+	
 	float boxSize[3];
 	float boxMin[3], boxMax[3];
 	getBox(boxMin, boxMax);
@@ -194,42 +199,26 @@ buildCoordTransform(float transformMatrix[12], float extraThickness){
 		boxSize[i] = (boxMax[i] - boxMin[i]);
 	}
 	
-	//1st row (phi first then theta)
-	//Also, negate phi 
-	transformMatrix[0] = 0.5*boxSize[0]*cosTheta*cosPhi;
-	transformMatrix[1] = -0.5*boxSize[1]*sinTheta;
-	transformMatrix[2] = -0.5*boxSize[2]*cosTheta*sinPhi;
-	//2nd row:
-	transformMatrix[4] = sinTheta*cosPhi*0.5*boxSize[0];
-	transformMatrix[5] = cosTheta*0.5*boxSize[1];
-	transformMatrix[6] = -sinTheta*sinPhi*0.5*boxSize[2];
-	//3rd row:
-	transformMatrix[8] = sinPhi*0.5*boxSize[0];
-	transformMatrix[9] = 0.f;
-	transformMatrix[10] = cosPhi*0.5*boxSize[2];
-	//last column
-	transformMatrix[3] = .5f*(boxMax[0]+boxMin[0]);
-	transformMatrix[7] = .5f*(boxMax[1]+boxMin[1]);
-	transformMatrix[11] = .5f*(boxMax[2]+boxMin[2]);
+	//Get the 3x3 rotation matrix:
+	float rotMatrix[9];
+	getRotationMatrix(theta*M_PI/180., phi*M_PI/180., psi*M_PI/180., rotMatrix);
 
-	/*
-	//1st row (with theta first, then phi.  Problem:  this doesn't work.
-	transformMatrix[0] = 0.5*boxSize[0]*cosTheta*cosPhi;
-	transformMatrix[1] = -0.5*boxSize[1]*sinTheta*cosPhi;
-	transformMatrix[2] = -0.5*boxSize[2]*sinPhi;
+	//then scale according to box:
+	transformMatrix[0] = 0.5*boxSize[0]*rotMatrix[0];
+	transformMatrix[1] = 0.5*boxSize[1]*rotMatrix[1];
+	transformMatrix[2] = 0.5*boxSize[2]*rotMatrix[2];
 	//2nd row:
-	transformMatrix[4] = sinTheta*0.5*boxSize[0];
-	transformMatrix[5] = cosTheta*0.5*boxSize[1];
-	transformMatrix[6] = 0.f;
+	transformMatrix[4] = 0.5*boxSize[0]*rotMatrix[3];
+	transformMatrix[5] = 0.5*boxSize[1]*rotMatrix[4];
+	transformMatrix[6] = 0.5*boxSize[2]*rotMatrix[5];
 	//3rd row:
-	transformMatrix[8] = sinPhi*cosTheta*0.5*boxSize[0];
-	transformMatrix[9] = -sinPhi*sinTheta*0.5*boxSize[0];
-	transformMatrix[10] = cosPhi*0.5*boxSize[2];
-	//last column
+	transformMatrix[8] = 0.5*boxSize[0]*rotMatrix[6];
+	transformMatrix[9] = 0.5*boxSize[0]*rotMatrix[7];
+	transformMatrix[10] = 0.5*boxSize[2]*rotMatrix[8];
+	//last column, i.e. translation:
 	transformMatrix[3] = .5f*(boxMax[0]+boxMin[0]);
 	transformMatrix[7] = .5f*(boxMax[1]+boxMin[1]);
 	transformMatrix[11] = .5f*(boxMax[2]+boxMin[2]);
-	*/
 	
 }
 
@@ -317,3 +306,26 @@ void Params::BailOut(const char *errstr, char *fname, int lineno)
 	//MessageReporter::fatalMsg(errorMessage);
     //app->quit();
 }
+//Determine a new value of theta phi and psi when the probe is rotated around either the
+//x-, y-, or z- axis.  axis is 0,1,or 1. rotation is in degrees.
+//newTheta and newPhi are in degrees, with theta between -180 and 180, phi between 0 and 180
+//and newPsi between -180 and 180
+void Params::convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, int axis, float rotation){
+
+	//First, get original rotation matrix R0(theta, phi, psi)
+	float origMatrix[9], axisRotate[9], newMatrix[9];
+	getRotationMatrix(getTheta()*M_PI/180., getPhi()*M_PI/180., getPsi()*M_PI/180., origMatrix);
+	//Second, get rotation matrix R1(axis,rotation)
+	getAxisRotation(axis, rotation*M_PI/180., axisRotate);
+	//New rotation matrix is R1*R0
+	mmult33(axisRotate, origMatrix, newMatrix);
+	//Calculate newTheta, newPhi, newPsi from R1*R0 
+	getRotAngles(newTheta, newPhi, newPsi, newMatrix);
+	//Convert back to degrees:
+	(*newTheta) *= (180./M_PI);
+	(*newPhi) *= (180./M_PI);
+	(*newPsi) *= (180./M_PI);
+	return;
+}
+	
+	

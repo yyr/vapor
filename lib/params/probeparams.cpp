@@ -56,7 +56,9 @@ const string ProbeParams::_probeMaxAttr = "ProbeMax";
 const string ProbeParams::_cursorCoordsAttr = "CursorCoords";
 const string ProbeParams::_phiAttr = "PhiAngle";
 const string ProbeParams::_thetaAttr = "ThetaAngle";
+const string ProbeParams::_psiAttr = "PsiAngle";
 const string ProbeParams::_numTransformsAttr = "NumTransforms";
+const string ProbeParams::_planarAttr = "Planar";
 
 
 ProbeParams::ProbeParams(int winnum) : RenderParams(winnum){
@@ -180,6 +182,7 @@ reinit(bool doOverride){
 		//default values for phi, theta,  cursorPosition
 		phi = 0.f;
 		theta = 0.f;
+		psi = 0.f;
 		
 		cursorCoords[0] = cursorCoords[1] = 0.0f;
 		numRefinements = 0;
@@ -331,6 +334,7 @@ reinit(bool doOverride){
 //
 void ProbeParams::
 restart(){
+	planar = true;
 	textureWidth = textureHeight = 0;
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
@@ -379,6 +383,7 @@ restart(){
 	maxNumRefinements = 10;
 	theta = 0.f;
 	phi = 0.f;
+	psi = 0.f;
 	for (int i = 0; i<3; i++){
 		probeMin[i] = 0.f;
 		probeMax[i] = 1.f;
@@ -450,6 +455,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _editModeAttr) == 0){
 				if (value == "true") setEditMode(true); 
 				else setEditMode(false);
+			}
+			else if (StrCmpNoCase(attribName, _planarAttr) == 0){
+				if (value == "true") setPlanar(true); 
+				else setPlanar(false);
 			}
 			else return false;
 		}
@@ -565,6 +574,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _phiAttr) == 0) {
 				ist >> phi;
 			}
+			else if (StrCmpNoCase(attribName, _psiAttr) == 0) {
+				ist >> psi;
+			}
 			else if (StrCmpNoCase(attribName, _probeMinAttr) == 0) {
 				ist >> probeMin[0];ist >> probeMin[1];ist >> probeMin[2];
 			}
@@ -651,6 +663,14 @@ buildNode() {
 	else 
 		oss << "false";
 	attrs[_editModeAttr] = oss.str();
+
+	oss.str(empty);
+	if (planar)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_planarAttr] = oss.str();
+
 	oss.str(empty);
 	oss << (double)getHistoStretch();
 	attrs[_histoStretchAttr] = oss.str();
@@ -698,6 +718,9 @@ buildNode() {
 	oss.str(empty);
 	oss << (double)phi;
 	attrs[_phiAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)psi;
+	attrs[_psiAttr] = oss.str();
 	oss.str(empty);
 	oss << (double) theta;
 	attrs[_thetaAttr] = oss.str();
@@ -747,7 +770,7 @@ void ProbeParams::getBoundingBox(size_t boxMin[3], size_t boxMax[3]){
 	
 	float transformMatrix[12];
 	//Set up to transform from probe into volume:
-	buildCoordTransform(transformMatrix);
+	buildCoordTransform(transformMatrix, 0.f);
 	size_t dataSize[3];
 	const size_t totTransforms = DataStatus::getInstance()->getCurrentMetadata()->GetNumTransforms();
 	const float* extents = DataStatus::getInstance()->getExtents();
@@ -832,7 +855,7 @@ void ProbeParams::calcContainingBoxExtentsInCube(float* bigBoxExtents){
 	//obtained by mapping all 8 corners into the space.
 	//It will not necessarily fit inside the unit cube.
 	float corners[8][3];
-	calcBoxCorners(corners);
+	calcBoxCorners(corners, 0.f);
 	
 	float boxMin[3],boxMax[3];
 	int crd, cor;
@@ -871,7 +894,7 @@ void ProbeParams::mapCursor(){
 	//Get the transform matrix:
 	float transformMatrix[12];
 	float probeCoord[3];
-	buildCoordTransform(transformMatrix);
+	buildCoordTransform(transformMatrix, 0.f);
 	//The cursor sits in the z=0 plane of the probe box coord system.
 	//x is reversed because we are looking from the opposite direction (?)
 	probeCoord[0] = -cursorCoords[0];
@@ -927,7 +950,7 @@ calcProbeTexture(int ts, int texWidth, int texHeight){
 	float transformMatrix[12];
 	
 	//Set up to transform from probe into volume:
-	buildCoordTransform(transformMatrix);
+	buildCoordTransform(transformMatrix, 0.f);
 	int numRefinements = getNumRefinements();
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
@@ -1081,5 +1104,3 @@ calcProbeTexture(int ts, int texWidth, int texHeight){
 }
 
 
-
-		

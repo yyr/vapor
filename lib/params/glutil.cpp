@@ -861,6 +861,121 @@ uint nextPowerOf2(uint n)
   return p;
 }
 
+//Some routines to handle 3x3 rotation matrices, represented as 9 floats, 
+//where the column index increments faster 
+void mmult33(const float* m1, const float* m2, float* result){
+	for (int row = 0; row < 3; row++){
+		for (int col = 0; col < 3; col++) {
+			result[row*3 + col] = (m1[row*3]  * m2[col] + 
+				m1[1+row*3] * m2[col+3] +
+				m1[2+row*3] * m2[col+6]);
+		}
+	}
+}
+
+//Same as above, but use the transpose (i.e. inverse for rotations) on the left
+void mmultt33(const float* m1Trans, const float* m2, float* result){
+for (int row = 0; row < 3; row++){
+		for (int col = 0; col < 3; col++) {
+			result[row*3 + col] = (m1Trans[row]  * m2[col] + 
+				m1Trans[3+row] * m2[col+3] +
+				m1Trans[6+row] * m2[col+6]);
+		}
+	}
+}
+//Determine a rotation matrix from (theta, phi, psi) (radians), that is, 
+//find the rotation matrix that first rotates in (x,y) by psi, then takes the vector (0,0,1) 
+//to the vector with direction (theta,phi) by rotating by phi in the (x,z) plane and then
+//rotating in the (x,y)plane by theta.
+void getRotationMatrix(float theta, float phi, float psi, float* matrix){
+	//do the theta-phi rotation first:
+	float mtrx1[9], mtrx2[9];
+	float cosTheta = cos(theta);
+	float sinTheta = sin(theta);
+	float cosPhi = cos(phi);
+	float sinPhi = sin(phi);
+	float cosPsi = cos(psi);
+	float sinPsi = sin(psi);
+	//specify mtrx1 as an (X,Z) rotation by -phi, followed by an (X,Y) rotation by theta:
+	mtrx1[0] = cosTheta*cosPhi;
+	mtrx1[1] = -sinTheta;
+	mtrx1[2] = cosTheta*sinPhi;
+	//2nd row:
+	mtrx1[3] = sinTheta*cosPhi;
+	mtrx1[4] = cosTheta;
+	mtrx1[5] = sinTheta*sinPhi;
+	//3rd row:
+	mtrx1[6] = -sinPhi;
+	mtrx1[7] = 0.f;
+	mtrx1[8] = cosPhi;
+	// mtrx2 is a rotation by psi in the x,y plane:
+	mtrx2[0] = cosPsi;
+	mtrx2[1] = -sinPsi;
+	mtrx2[2] = 0.f;
+	mtrx2[3] = sinPsi;
+	mtrx2[4] = cosPsi;
+	mtrx2[5] = 0.f;
+	mtrx2[6] = 0.f;
+	mtrx2[7] = 0.f;
+	mtrx2[8] = 1.f;
+	mmult33(mtrx1, mtrx2, matrix);
+}
+
+//Determine a rotation matrix about an axis:
+PARAMS_API void getAxisRotation(int axis, float rotation, float* matrix){
+	for (int col = 0; col < 3; col++){
+		for (int row = 0; row < 3; row++) {
+			if (row == axis && col == axis) matrix[col+row*3] = 1.f;
+			else if (row == axis || col == axis) matrix[col+row*3] = 0.f;
+			else {
+				if (row == col) matrix[col+row*3] = cos(rotation);
+				else if (row > col) matrix[col+row*3] = sin(rotation);
+				else matrix[col+row*3] = -sin(rotation);
+			}
+		}
+	}
+}
+
+//Determine the psi, phi, theta (radians!) from a rotation matrix.
+//the rotation matrix rotates about the z-axis by psi,
+//then takes the z-axis to the unit vector with spherical
+//coordinates theta and phi.
+void getRotAngles(float* theta, float* phi, float* psi, const float* matrix){
+	//First find phi and theta by looking at matrix applied to 0,0,1:
+	float vec[3];
+	float tempPhi, tempTheta;
+	float tempPsi = 0.f;
+	float tMatrix1[9], tMatrix2[9];
+	vec[0] = matrix[2];
+	vec[1] = matrix[5];
+	vec[2] = matrix[8];
+	//float cosPhi = vec[2];
+	tempPhi = acos(vec[2]); //unique angle between 0 and pi
+	//now project vec[0], vec[1] to x,y plane:
+
+	float normsq = (vec[0]*vec[0]+vec[1]*vec[1]);
+	if (normsq == 0.f) tempTheta = 0.f;
+	else {
+		tempTheta = acos(vec[0]/sqrt(normsq));
+		//If sin(theta)<0 then theta is negative:
+		if (vec[1] < 0) tempTheta = -tempTheta;
+	}
+	//Find the transformation determined by theta, phi:
+	getRotationMatrix(tempTheta, tempPhi, tempPsi, tMatrix1);
+
+	//Apply the inverse of this to the input matrix:
+	mmultt33(tMatrix1, matrix, tMatrix2);
+	//Now the resulting matrix is a rotation by psi
+	//Cos psi and sin psi are in the first column:
+	assert (abs(tMatrix2[0]) <= 1.f);
+	tempPsi = acos(tMatrix2[0]);
+	if (tMatrix2[3] < 0.f) tempPsi = -tempPsi;
+
+	*theta = tempTheta;
+	*phi = tempPhi;
+	*psi = tempPsi;
+	return;
+}
 
 #define DEAD
 #ifdef	DEAD

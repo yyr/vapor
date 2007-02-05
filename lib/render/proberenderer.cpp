@@ -89,7 +89,7 @@ void ProbeRenderer::paintGL()
 	}
 
 	float corners[8][3];
-	myProbeParams->calcBoxCorners(corners);
+	myProbeParams->calcBoxCorners(corners, 0.f);
 	for (int cor = 0; cor < 8; cor++)
 		ViewpointParams::worldToCube(corners[cor],corners[cor]);
 	

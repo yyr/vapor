@@ -223,7 +223,7 @@ getFarNearDist(RegionParams* rParams, float* fr, float* nr){
 	if ((minProj < 1.e-20f) || (maxProj <= minProj)) {//big box is not far enough away
 		//Calculate distances to region corners:
 		float corners[8][3];
-		rParams->calcBoxCorners(corners);
+		rParams->calcBoxCorners(corners, 0.f);
 		minProj = 1.e30f;
 		//Project each corner along the line in the view direction
 		for (int i = 0; i< 8; i++){
