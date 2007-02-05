@@ -322,6 +322,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
 	alignViewCombo = new QComboBox(vizToolBar);
 	alignViewCombo->insertItem("Align View");
+	alignViewCombo->insertItem("Nearest axis");
 	alignViewCombo->insertItem("     + X ");
 	alignViewCombo->insertItem("     + Y ");
 	alignViewCombo->insertItem("     + Z ");

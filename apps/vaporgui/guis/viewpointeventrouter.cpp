@@ -369,30 +369,64 @@ guiCenterFullRegion(RegionParams* rParams){
 	
 }
 //Align the view direction to one of the axes.
-//axis is 1,2,3 for +X,Y,Z,  and -1,-2,-3 for -X,-Y,-Z
+//axis is 2,3,4 for +X,Y,Z,  and 5,6,7 for -X,-Y,-Z
 //
 void ViewpointEventRouter::
 guiAlignView(int axis){
 	float vdir[3] = {0.f, 0.f, 0.f};
 	float up[3] = {0.f, 1.f, 0.f};
+	float axes[3][3] = {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
 	float vpos[3];
 	if (savedCommand) {
 		delete savedCommand;
 		savedCommand = 0;
 	}
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
+	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
+	if (axis == 1) {  //Special case to align to closest axis.
+		//determine the closest view direction and up vector to the current viewpoint.
+		//Check the dot product with all axes
+		float maxVDot = -1.f;
+		int bestVDir;
+		float maxUDot = -1.f;
+		int bestUDir;
+		float* curViewDir = currentViewpoint->getViewDir();
+		float* curUpVec = currentViewpoint->getUpVec();
+		for (int i = 0; i< 3; i++){
+			float dotVProd = vdot(axes[i], curViewDir);
+			float dotUProd = vdot(axes[i], curUpVec);
+			if (abs(dotVProd) > maxVDot) {
+				maxVDot = abs(dotVProd);
+				bestVDir = i+1;
+				if (dotVProd < 0.f) bestVDir = -i-1; 
+			}
+			if (abs(dotUProd) > maxUDot) {
+				maxUDot = abs(dotUProd);
+				bestUDir = i+1;
+				if (dotUProd < 0.f) bestUDir = -i-1; 
+			}
+		}
+		for (int i = 0; i< 3; i++){
+			if (bestVDir > 0) vdir[i] = axes[bestVDir-1][i];
+			else vdir[i] = -axes[-1-bestVDir][i];
+
+			if (bestUDir > 0) up[i] = axes[bestUDir-1][i];
+			else up[i] = -axes[-1-bestUDir][i];
+		}
+	} else {
 	//establish view direction, up vector:
-	switch (axis){
-		case(1): vdir[0] = 1.f; break;
-		case(2): vdir[1] = 1.f; up[1]=0.f; up[0] = 1.f; break;
-		case(3): vdir[2] = 1.f; break;
-		case(4): vdir[0] = -1.f; break;
-		case(5): vdir[1] = -1.f; up[1]=0.f; up[0] = 1.f; break;
-		case(6): vdir[2] = -1.f; break;
-		default: assert(0);
+		switch (axis){
+			case(2): vdir[0] = 1.f; break;
+			case(3): vdir[1] = 1.f; up[1]=0.f; up[0] = 1.f; break;
+			case(4): vdir[2] = 1.f; break;
+			case(5): vdir[0] = -1.f; break;
+			case(6): vdir[1] = -1.f; up[1]=0.f; up[0] = 1.f; break;
+			case(7): vdir[2] = -1.f; break;
+			default: assert(0);
+		}
 	}
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "align viewpoint to axis");
-	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
+	
 	
 	//Determine distance from center to camera:
 	vsub(currentViewpoint->getCameraPos(),currentViewpoint->getRotationCenter(),vpos);
@@ -401,7 +435,7 @@ guiAlignView(int axis){
 	currentViewpoint->setViewDir(vdir);
 	//Make the up vector +Y, or +X
 	currentViewpoint->setUpVec(up);
-	//Position the camera the same distance from the center but down the -X direction
+	//Position the camera the same distance from the center but down the -axis direction
 	vmult(vdir, viewDist, vdir);
 	vsub(currentViewpoint->getRotationCenter(), vdir, vpos);
 	currentViewpoint->setCameraPos(vpos);

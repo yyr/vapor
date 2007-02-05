@@ -167,6 +167,18 @@ DvrEventRouter::hookUpTab()
  * Slots associated with DvrTab:
  *********************************************************************************/
 void DvrEventRouter::guiChangeInstance(int newCurrent){
+	
+	//
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	int numInst = vizMgr->getNumDvrInstances(winnum);
+	for (int i = 0; i< numInst; i++){
+		//If another instance is enabled, 
+		//then enable newCurrent (which will disable the other one)
+		if (vizMgr->getDvrParams(winnum, i)->isEnabled() && 
+			i != newCurrent)
+			setDvrEnabled(true, newCurrent);
+	}
 	performGuiChangeInstance(newCurrent);
 }
 void DvrEventRouter::guiNewInstance(){
@@ -224,12 +236,18 @@ setDvrEnabled(bool val, int instance){
 	DvrParams* dParams = vizMgr->getDvrParams(activeViz, instance);
 	//Make sure this is a change:
 	if (dParams->isEnabled() == val ) return;
+	//If we are enabling, also make this the current instance:
+	if (val) {
+		performGuiChangeInstance(instance);
+	}
 	guiSetEnabled(val,instance);
 	typeCombo->setEnabled(!val);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
 	updateRenderer(dParams,!val, false);
+	
 	setEditorDirty();
+	updateTab();
 }
 
 
