@@ -233,6 +233,24 @@ void OpacityWidget::deselect()
 }
 
 //----------------------------------------------------------------------------
+// 
+//----------------------------------------------------------------------------
+bool OpacityWidget::enabled() const
+{
+  return _opacityMap->isEnabled();
+}
+
+//----------------------------------------------------------------------------
+// 
+//----------------------------------------------------------------------------
+void OpacityWidget::enable(bool flag)
+{
+  _enabled = flag;
+  _opacityMap->setEnabled(flag);
+}
+
+
+//----------------------------------------------------------------------------
 // Deselect selected control points
 //----------------------------------------------------------------------------
 void OpacityWidget::deleteSelectedControlPoint()
@@ -277,7 +295,7 @@ void OpacityWidget::paintGL()
       
   glPushMatrix();
   {
-    if (_enabled && _selected != NONE)
+    if (_selected != NONE)
     {
       glColor4f(1.0, 1.0, 0.5, 1.0);
       
@@ -448,13 +466,20 @@ void OpacityWidget::drawCurve()
 
   float step = width() / (segments-1);
 
-  if (_selected != NONE)
+  if (enabled())
   {
-    glColor3f(1.0, 1.0, 1.0);
+    if (_selected != NONE)
+    {
+      glColor3f(1.0, 1.0, 1.0);
+    }
+    else
+    {
+      glColor3f(0.65, 0.65, 0.65);
+    }
   }
   else
   {
-    glColor3f(0.5, 0.5, 0.5);
+    glColor3f(0.4, 0.0, 0.0);    
   }
 
   glEnable(GL_BLEND);

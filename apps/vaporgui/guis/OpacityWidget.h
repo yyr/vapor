@@ -63,6 +63,9 @@ public:
   virtual void select(int handle, Qt::ButtonState state);
   virtual void deselect();
 
+  virtual bool enabled() const;   
+  virtual void enable(bool flag); 
+
   std::list<float> selectedPoints();
 
   virtual void setGeometry(float x0, float x1, float y0, float y1);
