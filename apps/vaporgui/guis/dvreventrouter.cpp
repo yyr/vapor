@@ -479,7 +479,7 @@ void DvrEventRouter::updateTab(){
     if (session->getNumVariables())
     {
       int varnum = dvrParams->getVarNum();
-      const std::string& varname = session->getMetadataVarName(varnum);
+      const std::string& varname = session->getVariableName(varnum);
       
       transferFunctionFrame->setVariableName(varname);
     }
@@ -968,7 +968,7 @@ setEditorDirty(RenderParams *p){
     if (session->getNumVariables())
     {
       int varnum = dp->getVarNum();
-      const std::string& varname = session->getMetadataVarName(varnum);
+      const std::string& varname = session->getVariableName(varnum);
       
       transferFunctionFrame->setVariableName(varname);
     }

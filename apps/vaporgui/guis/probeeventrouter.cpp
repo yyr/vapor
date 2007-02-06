@@ -740,7 +740,7 @@ void ProbeEventRouter::updateTab(){
     if (ses->getNumVariables())
     {
       int varnum = probeParams->getVarNum();
-      const std::string& varname = ses->getMetadataVarName(varnum);
+      const std::string& varname = ses->getVariableName(varnum);
       
       transferFunctionFrame->setVariableName(varname);
     }
@@ -986,7 +986,7 @@ setEditorDirty(RenderParams* p){
     if (session->getNumVariables())
     {
       int varnum = dp->getVarNum();
-      const std::string& varname = session->getMetadataVarName(varnum);
+      const std::string& varname = session->getVariableName(varnum);
       
       transferFunctionFrame->setVariableName(varname);
     }
