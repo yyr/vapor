@@ -79,6 +79,9 @@ public:
   void             type(OpacityMap::Type type) { _type = type; }
   OpacityMap::Type type() const              { return _type; }
 
+  bool isEnabled() { return _enabled; }
+  void setEnabled(bool flag) { _enabled = flag;}
+
   float minValue() const;      // Data Coordinates
   void  minValue(float value); // Data Coordinates
 
@@ -143,6 +146,8 @@ private:
   float _minValue;
   float _maxValue;
 
+  bool  _enabled;
+
   vector<ControlPoint*> _controlPoints;
 
   double _mean;
@@ -161,6 +166,7 @@ private:
   static const string _tag;
   static const string _minTag;
   static const string _maxTag;
+  static const string _enabledTag;
   static const string _meanTag;
   static const string _ssqTag;
   static const string _freqTag;

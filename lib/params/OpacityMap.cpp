@@ -41,6 +41,7 @@ using namespace VAPoR;
 const string OpacityMap::_tag = "OpacityMap";
 const string OpacityMap::_minTag = "MinValue";
 const string OpacityMap::_maxTag = "MaxValue";
+const string OpacityMap::_enabledTag = "Enabled";
 const string OpacityMap::_meanTag = "Mean";
 const string OpacityMap::_ssqTag = "SSq";
 const string OpacityMap::_freqTag = "Freq";
@@ -93,6 +94,7 @@ OpacityMap::OpacityMap(RenderParams *params, OpacityMap::Type type) :
   _type(type),
   _minValue(0.0),
   _maxValue(1.0),
+  _enabled(true),
   _mean(0.5),
   _ssq(0.1),
   _freq(5.0),
@@ -118,6 +120,7 @@ OpacityMap::OpacityMap(const OpacityMap &omap) :
   _type(omap._type),
   _minValue(omap._minValue),
   _maxValue(omap._maxValue),
+  _enabled(omap._enabled),
   _mean(omap._mean),
   _ssq(omap._ssq),
   _freq(omap._freq),
@@ -181,6 +184,10 @@ XmlNode* OpacityMap::buildNode()
   oss.str(empty);
   oss << (double)_maxValue;
   attrs[_maxTag] = oss.str();
+
+  oss.str(empty);
+  oss << (bool)_enabled;
+  attrs[_enabledTag] = oss.str();
 
   oss.str(empty);
   oss << (double)_mean;
@@ -719,6 +726,12 @@ bool OpacityMap::elementStartHandler(ExpatParseMgr* pm, int depth, string& tag,
       else if (StrCmpNoCase(attribName, _maxTag) == 0) 
       {
         ist >> _maxValue;
+      }
+
+      // Enabled
+      else if (StrCmpNoCase(attribName, _enabledTag) == 0) 
+      {
+        ist >> _enabled;
       }
 
       // Type

@@ -6,8 +6,7 @@
 //																		*
 //************************************************************************/
 //					
-//	File:		transferfunction.cpp
-//
+//	File:		transferfunction.cpp//
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
 //			PO 3000, Boulder, Colorado
@@ -126,6 +125,10 @@ XmlNode* TransferFunction::buildNode(const string& tfname)
   oss << (double)getMaxMapValue();
   attrs[_rightBoundAttr] = oss.str();
 
+  oss.str(empty);
+  oss << (int)getOpacityComposition();
+  attrs[_opacityCompositionAttr] = oss.str();
+
   // 
   // Add children nodes 
   //
@@ -227,6 +230,12 @@ bool TransferFunction::elementStartHandler(ExpatParseMgr* pm, int depth ,
         ist >> floatval;
         setMaxMapValue(floatval);
       }   
+      else if (StrCmpNoCase(attribName, _opacityCompositionAttr) == 0) 
+      {
+        int type;
+        ist >> type;
+        setOpacityComposition((CompositionType)type);
+      }
       else return false;
     }
 

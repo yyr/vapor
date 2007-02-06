@@ -100,6 +100,18 @@ public:
 	float getOpacityScaleFactor()         { return opacityScaleFactor; }
 
     //
+    // Opacity composition
+    //
+    enum CompositionType
+    {
+      ADDITION = 0,
+      MULTIPLICATION = 1
+    };
+
+    void setOpacityComposition(CompositionType t) { _compType = t; }
+    CompositionType getOpacityComposition() { return _compType; }
+
+    //
     // Colormap
     //
     Colormap*   getColormap() { return _colormap; }
@@ -191,6 +203,8 @@ protected:
 protected:
 
     vector<OpacityMap*>  _opacityMaps;
+    CompositionType      _compType;
+
     Colormap            *_colormap;
 
     //
@@ -200,6 +214,7 @@ protected:
 	static const string _rightColorBoundAttr;
 	static const string _leftOpacityBoundAttr;
 	static const string _rightOpacityBoundAttr;
+    static const string _opacityCompositionAttr;
 	static const string _hsvAttr;
 	static const string _positionAttr;
 	static const string _opacityAttr;

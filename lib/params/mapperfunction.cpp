@@ -50,11 +50,13 @@ const string MapperFunction::_leftColorBoundAttr = "LeftColorBound";
 const string MapperFunction::_rightColorBoundAttr = "RightColorBound";
 const string MapperFunction::_leftOpacityBoundAttr = "LeftOpacityBound";
 const string MapperFunction::_rightOpacityBoundAttr = "RightOpacityBound";
+const string MapperFunction::_opacityCompositionAttr = "OpacityComposition";
 const string MapperFunction::_hsvAttr = "HSV";
 const string MapperFunction::_positionAttr = "Position";
 const string MapperFunction::_opacityAttr = "Opacity";
 const string MapperFunction::_opacityControlPointTag = "OpacityControlPoint";
 const string MapperFunction::_colorControlPointTag = "ColorControlPoint";
+
 
 //----------------------------------------------------------------------------
 // Constructor for empty, default Mapper function
@@ -68,6 +70,7 @@ MapperFunction::MapperFunction()
     opacVarNum  = 0;	
     
 	_colormap = new Colormap(NULL);
+    _compType = ADDITION;
 }
 
 //----------------------------------------------------------------------------
@@ -91,12 +94,14 @@ MapperFunction::MapperFunction(RenderParams* p, int nBits)
     _colormap = new Colormap(myParams);
 
     _opacityMaps.push_back(new OpacityMap(myParams));
+    _compType = ADDITION;
 }
 
 //----------------------------------------------------------------------------
 // Copy Constructor
 //----------------------------------------------------------------------------
 MapperFunction::MapperFunction(const MapperFunction &mapper) :
+  _compType(mapper._compType),
   _colormap(new Colormap(*mapper._colormap)),
   minColorMapBound(mapper.minColorMapBound),
   maxColorMapBound(mapper.maxColorMapBound),
@@ -146,20 +151,38 @@ float MapperFunction::opacityValue(float value)
   float opacScale = opacityScaleFactor;
   opacScale = opacScale*opacScale;
   
-  float opacity = opacScale;
+  float opacity = 0.0;
+
+  if (_compType == MULTIPLICATION)
+  {
+    opacity = 1.0;
+  }
 
   for (int i=0; i<_opacityMaps.size(); i++)
   {
     OpacityMap *omap = _opacityMaps[i];
 
-    if (omap->bounds(value))
+    if (omap->isEnabled() && omap->bounds(value))
     {
-      opacity *= omap->opacity(value);
+      if (_compType == ADDITION)
+      {
+        opacity += omap->opacity(value);
+      }
+      else // _compType == MULTIPLICATION
+      {
+        opacity *= omap->opacity(value);
+      }
+        
       count++;
+
+      if (opacity*opacScale > 1.0)
+      {
+        return 1.0;
+      }
     }
   }
 
-  if (count) return opacity;
+  if (count) return opacity*opacScale;
 
   return 0.0;
 }
@@ -427,6 +450,10 @@ XmlNode* MapperFunction::buildNode(const string& tfname)
   oss.str(empty);
   oss << (double)getMaxOpacMapValue();
   attrs[_rightOpacityBoundAttr] = oss.str();
+  oss.str(empty);
+  oss << (int)getOpacityComposition();
+  attrs[_opacityCompositionAttr] = oss.str();
+  
 	
   // 
   // Add children nodes 
@@ -502,6 +529,12 @@ bool MapperFunction::elementStartHandler(ExpatParseMgr* pm,
         ist >> floatval;
         setMaxOpacMapValue(floatval);
       }      
+      else if (StrCmpNoCase(attribName, _opacityCompositionAttr) == 0) 
+      {
+        int type;
+        ist >> type;
+        setOpacityComposition((CompositionType)type);
+     }
       else
       {
         return false;
