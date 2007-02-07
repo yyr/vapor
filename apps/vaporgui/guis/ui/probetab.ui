@@ -433,7 +433,7 @@
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>By checking this box, the
 thickness (i.e. Zp -size) of
-the probe is forced to be 0.
+the probe is forced to be 0,
 This enables the probe to be
 used as a contour plane.
 This can be un-checked, and
@@ -599,7 +599,7 @@ probe volume.</string>
                                                         </sizepolicy>
                                                     </property>
                                                     <property name="text">
-                                                        <string>Probe Center</string>
+                                                        <string>Probe/Contour Center</string>
                                                     </property>
                                                     <property name="alignment">
                                                         <set>WordBreak|AlignCenter</set>
@@ -892,7 +892,7 @@ probe volume.</string>
                                                         </sizepolicy>
                                                     </property>
                                                     <property name="text">
-                                                        <string>Probe Size</string>
+                                                        <string>Probe/Contour Size</string>
                                                     </property>
                                                     <property name="alignment">
                                                         <set>WordBreak|AlignCenter</set>
@@ -1426,7 +1426,7 @@ same as the X, Y, and Z axes.</string>
                                                         <string>Axis-Align</string>
                                                     </property>
                                                     <property name="toolTip" stdset="0">
-                                                        <string>Click to rotate probe to nearest axis alignment.</string>
+                                                        <string>Click to rotate probe/contour plane to nearest axis alignment.</string>
                                                     </property>
                                                 </widget>
                                             </vbox>
@@ -1502,6 +1502,9 @@ same as the X, Y, and Z axes.</string>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Rotate About X-Axis</string>
+                                                            </property>
                                                         </widget>
                                                     </hbox>
                                                 </widget>
@@ -1540,6 +1543,9 @@ same as the X, Y, and Z axes.</string>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Rotate about Y-Axis</string>
+                                                            </property>
                                                         </widget>
                                                     </hbox>
                                                 </widget>
@@ -1577,6 +1583,9 @@ same as the X, Y, and Z axes.</string>
                                                                     <width>150</width>
                                                                     <height>20</height>
                                                                 </size>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Rotate about Z-axis</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -1924,7 +1933,23 @@ Selected Point</string>
                                                 <string>Attach Point to Flow Seed</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Enable continuous update of the flow using selected point as seed</string>
+                                                <string>Check this box to attach the selected point to a seed in the currently applicable flow instance at the current time step.</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The current selected point in the probe
+can be inserted into the list of seeds in
+the flow instance that is currently active
+in the active visualizer.  When you click "Add
+Point to Flow Seeds", the point will be
+added to the list of seeds at the current
+time step. The resulting flow line will be 
+immediately visualized if that flow instance
+is enabled and set to use the seed list,
+provided of course that the seed is inside
+the current region.
+If you check the "Attach Point to flow seed",
+then the seed will move around as you
+change the selection in the probe</string>
                                             </property>
                                         </widget>
                                         <widget class="QPushButton">
@@ -1935,7 +1960,23 @@ Selected Point</string>
                                                 <string>Add Point to Flow Seeds</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Click to add the selected point to the seeds for the applicable flow panel.</string>
+                                                <string>Click to add the selected point to the seeds for the applicable flow panel, at the current time step</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The current selected point in the probe
+can be inserted into the list of seeds in
+the flow instance that is currently active
+in the active visualizer.  When you click "Add
+Point to Flow Seeds", the point will be
+added to the list of seeds at the current
+time step. The resulting flow line will be 
+immediately visualized if that flow instance
+is enabled and set to use the seed list,
+provided of course that the seed is inside
+the current region.
+If you check the "Attach Point to flow seed",
+then the seed will move around as you
+change the selection in the probe</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -1984,7 +2025,10 @@ Selected Point</string>
                                                 <string>Region Center</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Click to recenter region at selected point</string>
+                                                <string>Click to move the current region center to the selected point</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When this is clicked, the seceted point is made the center of the current region.  The region is shrunk as necessary to fit within the full data extents.</string>
                                             </property>
                                         </widget>
                                         <widget class="QPushButton">
@@ -2006,7 +2050,10 @@ Selected Point</string>
                                                 <string>Rake Center</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Click to creenter flow rake at selected point</string>
+                                                <string>Click to reenter flow rake at selected point</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When clicked, the current selected point becomes the center of the current rake (for the current active flow instance).  The rake will be shrunk as necessary to fit within the data domain.</string>
                                             </property>
                                         </widget>
                                         <widget class="QPushButton">
@@ -2017,7 +2064,7 @@ Selected Point</string>
                                                 <string>Probe Center</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Click to recenter the probe at selected point</string>
+                                                <string>Click to recenter this probe at selected point</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -2634,7 +2681,7 @@ Selected Point</string>
                                                 <cstring>textLabel1_8</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Histo scalling factor</string>
+                                                <string>Histo scaling factor</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
