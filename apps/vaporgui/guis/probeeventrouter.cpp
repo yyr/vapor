@@ -711,6 +711,8 @@ void ProbeEventRouter::updateTab(){
 	
 	deleteInstanceButton->setEnabled(vizMgr->getNumProbeInstances(winnum) > 1);
 	
+	planarCheckbox->setChecked(probeParams->isPlanar());
+
 	int numViz = vizMgr->getNumVisualizers();
 
 	copyCombo->clear();
