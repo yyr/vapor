@@ -2392,7 +2392,7 @@ distribution magnitude of points in the rake.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout244</cstring>
+                                <cstring>layout103</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -2541,12 +2541,29 @@ during unsteady flow integration.</string>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout243</cstring>
+                                        <cstring>layout102</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer105</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>41</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
                                                 <cstring>layout242</cstring>
@@ -2652,9 +2669,15 @@ during unsteady flow integration.</string>
                                             <property name="enabled">
                                                 <bool>false</bool>
                                             </property>
+                                            <property name="minimumSize">
+                                                <size>
+                                                    <width>100</width>
+                                                    <height>0</height>
+                                                </size>
+                                            </property>
                                             <property name="maximumSize">
                                                 <size>
-                                                    <width>32767</width>
+                                                    <width>180</width>
                                                     <height>150</height>
                                                 </size>
                                             </property>
@@ -2691,7 +2714,7 @@ during unsteady flow integration.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>30</width>
+                                                    <width>40</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -3068,7 +3091,7 @@ distribution magnitude of points in the rake.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout167</cstring>
+                                <cstring>layout121</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -3444,12 +3467,29 @@ distribution magnitude of points in the rake.</string>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout327</cstring>
+                                        <cstring>layout120</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer122</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>41</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
                                                 <cstring>layout242_2</cstring>
@@ -3564,9 +3604,23 @@ used during steady flow integration.</string>
                                             <property name="enabled">
                                                 <bool>false</bool>
                                             </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>3</hsizetype>
+                                                    <vsizetype>7</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="minimumSize">
+                                                <size>
+                                                    <width>100</width>
+                                                    <height>0</height>
+                                                </size>
+                                            </property>
                                             <property name="maximumSize">
                                                 <size>
-                                                    <width>150</width>
+                                                    <width>180</width>
                                                     <height>150</height>
                                                 </size>
                                             </property>
@@ -3606,7 +3660,7 @@ used during steady flow integration.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>51</width>
+                                                    <width>20</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>

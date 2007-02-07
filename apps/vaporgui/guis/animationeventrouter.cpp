@@ -37,6 +37,7 @@
 #include <qfiledialog.h>
 #include <qlabel.h>
 #include <qlistbox.h>
+#include <qtable.h>
 #include "animationparams.h"
 #include "vizwinmgr.h"
 #include "session.h"
@@ -105,6 +106,11 @@ AnimationEventRouter::hookUpTab()
 	connect (frameStepSlider, SIGNAL(sliderReleased()), this, SLOT (animationSetFrameStep()));
 	connect (animationSlider, SIGNAL(sliderReleased()), this, SLOT (animationSetPosition()));
 
+	connect (timestepSampleCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
+	connect (timestepSampleTable, SIGNAL(valueChanged(int,int)), this, SLOT(timestepChanged(int,int)));
+	connect (addSampleButton,SIGNAL(clicked()), this, SLOT(addSample()));
+	connect (deleteSampleButton,SIGNAL(clicked()), this, SLOT(deleteSample()));
+	
 	//Button clicking for toggle buttons:
 	connect(pauseButton, SIGNAL(clicked()), this, SLOT(animationPauseClick()));
 	connect(playReverseButton, SIGNAL(clicked()), this, SLOT(animationPlayReverseClick()));
@@ -232,6 +238,13 @@ void AnimationEventRouter::updateTab(){
 		LocalGlobal->setCurrentItem(1);
 	else 
 		LocalGlobal->setCurrentItem(0);
+
+	//Set up the timestep sample table:
+	timestepSampleTable->horizontalHeader()->hide();
+	timestepSampleTable->setSelectionMode(QTable::SingleRow);
+	timestepSampleTable->setTopMargin(0);
+	timestepSampleTable->setColumnWidth(0,35);
+	populateTimestepTable();
 
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
@@ -449,47 +462,22 @@ void AnimationEventRouter::guiSingleStep(bool forward){
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	PanelCommand* cmd;
 	int currentFrame = aParams->getCurrentFrameNumber();
-	int frameStepSize = aParams->getFrameStepSize();
+	int dir = (forward ? 1 : -1);
+	int nextFrame = aParams->getNextFrame(dir);
+	if (nextFrame == currentFrame) return;
 	if (forward){
 		cmd = PanelCommand::captureStart(aParams,"Single-step forward");
-		currentFrame += frameStepSize;
 	} else {
 		cmd = PanelCommand::captureStart(aParams,"Single-step reverse");
-		currentFrame -= frameStepSize;
 	}
-	int startFrame = aParams->getStartFrameNumber();
-	int endFrame = aParams->getEndFrameNumber();
-	bool repeatPlay = aParams->isRepeating();
-	if (startFrame == endFrame) currentFrame = startFrame;
-	else {
-		if (!repeatPlay) {
-			if (currentFrame > endFrame) currentFrame = endFrame;
-			if (currentFrame < startFrame) currentFrame = startFrame;
-		}
-		else {// repeating.  Force to loop in region
-			if (currentFrame > endFrame) {
-				assert(forward);
-				currentFrame = startFrame -1 + (currentFrame -endFrame);
-				if (currentFrame > endFrame) currentFrame = endFrame;
-			}
-			if (currentFrame < startFrame) {
-				assert (!forward);
-				currentFrame = endFrame +1 - (startFrame-currentFrame);
-				if (currentFrame < startFrame) currentFrame = startFrame;
-			}
-		}
-	}
-	currentFrameEdit->setText(QString::number(currentFrame));
-	aParams->setCurrentFrameNumber(currentFrame);
+	currentFrameEdit->setText(QString::number(nextFrame));
+	aParams->setCurrentFrameNumber(nextFrame);
 	setSliders(aParams);
 	guiSetTextChanged(false);
-	assert(currentFrame >= startFrame && currentFrame <= endFrame);
 	PanelCommand::captureEnd(cmd, aParams);
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
 	update();
-	
-
 }
 //Set the position slider consistent with latest value of currentPosition, frameStep, and bounds
 void AnimationEventRouter::
@@ -517,4 +505,93 @@ void AnimationEventRouter::makeCurrent(Params* /* prev params p*/, Params* newPa
 	VizWinMgr* vwm = VizWinMgr::getInstance();
 	vwm->setAnimationParams(vizNum, aParams);
 	updateTab();
+}
+void AnimationEventRouter::
+guiToggleTimestepSample(bool on){
+	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(aParams,  "toggle use of timestep sample list");
+	aParams->setTimestepSampleList(on);
+	timestepSampleTable->setEnabled(on);
+	frameStepSlider->setEnabled(!on);
+	frameStepEdit->setEnabled(!on);
+	deleteSampleButton->setEnabled(on);
+	addSampleButton->setEnabled(on);
+	PanelCommand::captureEnd(cmd, aParams);
+
+	//This has no real effect until the next animation playing.
+	updateTab();
+	
+}
+//Respond to user has typed in a row of timestep table. Convert it to an int, swap it up or down
+//until it's in ascending order.
+void AnimationEventRouter::timestepChanged(int row, int col){
+	int newVal = timestepSampleTable->text(row,col).toInt();
+	int i;
+	//First, find the first one above it that's larger:
+	for (i = 0; i< row; i++){
+		int rowInt = timestepSampleTable->text(i,col).toInt();
+		if (rowInt > newVal) break;
+	}
+	if (i < row) { //found one to swap:  Swap from row to i
+		for (int j = row; j>i; j--){
+			timestepSampleTable->swapRows(j,j-1);
+		}
+		//It changed, update the flowparams:
+		guiUpdateTimestepList(timestepSampleTable, "edit timestep list");
+		return;
+	} 
+	//Now look below this one for the lowest one that is smaller
+	for (i =  timestepSampleTable->numRows()-1; i>row; i--){
+		int rowInt = timestepSampleTable->text(i,col).toInt();
+		if (rowInt < newVal) break;
+	}
+	if (i > row){ //found one to swap:  Swap from row to i
+		for (int j = row; j<i; j++){
+			timestepSampleTable->swapRows(j,j+1);
+		}
+		//It changed, update the flowparams:
+		guiUpdateTimestepList(timestepSampleTable, "edit timestep list");
+		return;
+	} 
+	//No Change of order, just value:
+	guiUpdateTimestepList(timestepSampleTable, "edit timestep list");
+	return;
+}
+//Send the contents of the timestepTable to the params.
+//Assumes that the timestepTable is sorted in ascending order.
+void AnimationEventRouter::guiUpdateTimestepList(QTable* tbl, const char* descr){	
+	confirmText(false);
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, descr);
+	std::vector<int>& timesteplist = aParams->getTimestepList();
+	timesteplist.clear();
+	int prevTime = -1;
+	for (int i = 0; i< tbl->numRows(); i++){
+		int newTime = tbl->text(i,0).toInt();
+		if (newTime > prevTime) {
+			timesteplist.push_back(newTime);
+			prevTime = newTime;
+		}
+	}
+	
+	PanelCommand::captureEnd(cmd, aParams);
+}
+//Add a new (blank) row to the table
+void AnimationEventRouter::addSample(){
+	timestepSampleTable->insertRows(timestepSampleTable->numRows());
+}
+//Delete the current selected row
+void AnimationEventRouter::deleteSample(){
+	timestepSampleTable->removeRow(timestepSampleTable->currentRow());
+	guiUpdateTimestepList(timestepSampleTable, "remove timestep from list");
+}
+void AnimationEventRouter::populateTimestepTable(){
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	std::vector<int>& tSteps = aParams->getTimestepList();
+	timestepSampleTable->setNumRows(tSteps.size());
+	for (int i = 0; i< tSteps.size(); i++){
+		timestepSampleTable->setText(i,0,QString::number(tSteps[i]));
+	}
+	timestepSampleCheckbox->setChecked(aParams->usingTimestepList());
 }

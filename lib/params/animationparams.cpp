@@ -72,7 +72,8 @@ restart(){
 	minFrame = 1;
 	currentFrame = 0;
 	maxWait = 60.f;
-	
+	useTimestepSampleList = false;
+	timestepList.clear();
 	
 }
 //Respond to change in Metadata
@@ -131,40 +132,76 @@ reinit(bool doOverride){
 //It should not be called if the UI has changed the frame number; in that case
 //setDirty should be called, and AnimationController::paramsChanged() should be
 //called, to force any ongoing animation to not increment the frame number
-//This returns true if the caller needs to set the change bit, because the
+//This returns true if the caller needs to set the change bit, because 
 //we have changed to "pause" status
 bool AnimationParams::
 advanceFrame(){
-	
 	assert(playDirection);
-	bool retCode = false;
-	int lastFrameCompleted = currentFrame;
-	currentFrame += playDirection*frameStepSize;
-	if (currentFrame > endFrame) {
-		if (repeatPlay) {
-			currentFrame = startFrame - 1 + (currentFrame - endFrame);
-			if (currentFrame > endFrame) currentFrame = endFrame;
-		} else {
-			//Stop if we are at the end:
-			currentFrame = endFrame;
+	int newFrame = getNextFrame(playDirection);
+	if (newFrame == currentFrame) return true;
+	//See if direction needs to change:
+	if (((newFrame-currentFrame)*playDirection) > 0) {
+		//No change in direction
+		currentFrame = newFrame;
+		return false;
+	} else {
+		currentFrame = newFrame;
+		return true;
+	}
+}
+//Determine the next frame.  dir must be 1 or -1
+//Returns currentTimestep if no change.
+//If value returned is in opposite direction from dir, then there needs to
+//be a direction change
+int AnimationParams::
+getNextFrame(int dir){
+	//If we are using timestep list, find the current frame in that list:
+	if(usingTimestepList() && timestepList.size() > 0){
+		int prevIndex = -1; 
+		int nextIndex = -1;
+		int firstValidFrame = -1;
+		int lastValidFrame = -1;
+		bool match = false;
+		for (int i = 0; i< timestepList.size(); i++){
+			if (timestepList[i] >= startFrame && timestepList[i] <= endFrame){
+				if (firstValidFrame < 0) firstValidFrame = timestepList[i];
+				lastValidFrame = timestepList[i];
+			} else continue;  //Ignore any timesteps outside the valid range.
+			if (timestepList[i] < currentFrame) prevIndex = i; //before
+			else if (timestepList[i] == currentFrame) match = true;//at
+			else if (nextIndex < 0) nextIndex = i;//beyond
 		}
-	}
-	if (currentFrame < startFrame){
-		if (repeatPlay) {
-			currentFrame = endFrame + 1 - (startFrame - currentFrame);
-			if (currentFrame < startFrame) currentFrame = startFrame;
-		} else {
-			//Stop if we are at the end:
-			currentFrame = startFrame;
+		if (lastValidFrame < 0) {
+			//no valid frames
+			return currentFrame;
 		}
+		//is currentFrame at or past the end/beginning?
+		if (dir > 0 && (nextIndex < 0) ){ 
+			if (repeatPlay)  return firstValidFrame;
+			else return currentFrame;
+		} 
+		if (dir < 0 && prevIndex < 0)	{
+			if (repeatPlay) return lastValidFrame;
+			else return currentFrame;
+		}
+		//If we got this far, must be inside the valid range.
+		if (dir > 0) return(timestepList[nextIndex]); 
+		else return(timestepList[prevIndex]);
+				
+	} else {//not using timestep sample list:
+		int testFrame = currentFrame + dir*frameStepSize;
+		if (testFrame > endFrame){ 
+			if (repeatPlay) return startFrame;
+			else return endFrame;
+		}
+		if (testFrame < startFrame){
+			if (repeatPlay) return endFrame;
+			else return startFrame;
+		}
+		//It's OK...
+		return testFrame;
+		
 	}
-	if (currentFrame == lastFrameCompleted) {
-		//Change to "pause" status:
-		playDirection = 0;
-		retCode = true;//Need to set the change bit, for the next rendering
-	}
-	
-	return retCode;
 }
 
 bool AnimationParams::
@@ -172,6 +209,8 @@ elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& tag, const cha
 	if (StrCmpNoCase(tag, _animationParamsTag) == 0) {
 		//If it's a Animation params tag, save 7 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
+		useTimestepSampleList = false;
+		timestepList.clear();
 		while (*attrs) {
 			string attribName = *attrs;
 			attrs++;
@@ -206,6 +245,18 @@ elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& tag, const cha
 			}
 			else if (StrCmpNoCase(attribName, _currentFrameAttr) == 0) {
 				ist >> currentFrame;
+			}
+			else if (StrCmpNoCase(attribName, _useTimestepSampleListAttr) == 0){
+				if (value == "true") useTimestepSampleList = true; else useTimestepSampleList = false;
+			}
+			else if (StrCmpNoCase(attribName, _timestepSampleListAttr) == 0){
+				//The first value is the list size, followed by the entries in the list:
+				int listLength, tstep;
+				ist >> listLength;
+				for (int i = 0; i<listLength; i++){
+					ist >> tstep;
+					timestepList.push_back(tstep);
+				}
 			}
 			else return false;
 		}
@@ -279,6 +330,25 @@ buildNode(){
 	else 
 		oss << "false";
 	attrs[_repeatAttr] = oss.str();
+
+	oss.str(empty);
+	if (useTimestepSampleList){
+		oss << "true";
+	} else {
+		oss << "false";
+	}
+	attrs[_useTimestepSampleListAttr] =  oss.str();
+
+	if (timestepList.size()> 0){
+		oss.str(empty);
+		//First entry is the size of the list, followed by the values in the list
+		oss << (long) timestepList.size();
+		for (int i = 0; i<timestepList.size(); i++){
+			oss<<" "<<(long)timestepList[i];
+		}
+		attrs[_timestepSampleListAttr] = oss.str();
+	}
+
 
 	XmlNode* animationNode = new XmlNode(_animationParamsTag, attrs, 0);
 

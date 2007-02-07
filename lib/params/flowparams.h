@@ -377,8 +377,7 @@ protected:
 	static const string _autoScaleAttr;
 	static const string _steadyFlowDirectionAttr;
 	static const string _unsteadyFlowDirectionAttr;
-	static const string _useTimestepSampleListAttr;
-	static const string _timestepSampleListAttr;
+	
 
 
 	//flow seeding tags and attributes

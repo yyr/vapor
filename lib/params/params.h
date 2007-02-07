@@ -92,6 +92,8 @@ public:
 	static const string _variableNameAttr;
 	static const string _opacityScaleAttr;
 	static const string _numTransformsAttr;
+	static const string _useTimestepSampleListAttr;
+	static const string _timestepSampleListAttr;
 
 	
 	//Each params must be able to make a "deep" copy,

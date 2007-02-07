@@ -47,6 +47,8 @@ const string Params::_leftEditBoundAttr = "LeftEditBound";
 const string Params::_rightEditBoundAttr = "RightEditBound";
 const string Params::_variableNameAttr = "VariableName";
 const string Params::_opacityScaleAttr = "OpacityScale";
+const string Params::_useTimestepSampleListAttr = "UseTimestepSampleList";
+const string Params::_timestepSampleListAttr = "TimestepSampleList";
 
 
 QString& Params::paramName(Params::ParamType type){

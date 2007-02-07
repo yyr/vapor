@@ -62,8 +62,6 @@ using namespace VAPoR;
 	const string FlowParams::_timestepAttr = "TimeStep";
 	const string FlowParams::_steadyFlowDirectionAttr = "SteadyFlowDirection";
 	const string FlowParams::_unsteadyFlowDirectionAttr = "UnsteadyFlowDirection";
-	const string FlowParams::_useTimestepSampleListAttr = "UseTimestepSampleList";
-	const string FlowParams::_timestepSampleListAttr = "TimestepSampleList";
 
 	const string FlowParams::_mappedVariableNamesAttr = "MappedVariableNames";//obsolete
 	const string FlowParams::_steadyVariableNamesAttr = "SteadyVariableNames";
@@ -151,6 +149,7 @@ restart() {
 	autoRefresh = true;
 	enabled = false;
 	useTimestepSampleList = false;
+	unsteadyTimestepList.clear();
 
 	flowType = 0; //steady
 	
@@ -240,7 +239,7 @@ restart() {
 	}
 	
 	seedPointList.clear();
-	unsteadyTimestepList.clear();
+	
 	
 	maxPoints = 0;
 	maxFrame = 0;

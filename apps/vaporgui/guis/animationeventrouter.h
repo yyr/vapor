@@ -27,6 +27,8 @@
 #include "vapor/MyBase.h"
 #include "animationtab.h"
 
+class QTable;
+
 
 using namespace VetsUtil;
 
@@ -48,28 +50,35 @@ public:
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
-	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
-	
-	
-
-	
 	virtual void reinitTab(bool doOverride);
-	
-	void setSliders (AnimationParams* a);
-
+	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
 	//Following are set by gui, result in save history state, 
 	//plus notification to animation controller
 	void guiSetPlay(int direction);
+	virtual void guiSetLocal(Params* p, bool lg);
+	void guiToggleReplay(bool replay);
+
+protected:
+	void setSliders (AnimationParams* a);
+
+	
 	void guiJumpToBegin();
 	void guiJumpToEnd();
 	void guiSetPosition(int sliderposition);
 	void guiSetFrameStep(int sliderposition);
-	void guiToggleReplay(bool replay);
+	
 	void guiSingleStep(bool forward);
 	//Need to do more than Params::guiSetLocal():
-	virtual void guiSetLocal(Params* p, bool lg);
+	
+	void guiUpdateTimestepList(QTable* tbl, const char* descr);
+
+	void populateTimestepTable();
 	
 protected slots:
+	void guiToggleTimestepSample(bool on);
+	void timestepChanged(int row, int col);
+	void addSample();
+	void deleteSample();
 	void setAtabTextChanged(const QString& qs);
 	void animationReturnPressed();
 	//Animation slots:

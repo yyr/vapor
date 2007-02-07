@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout185</cstring>
+                <cstring>layout101</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -145,7 +145,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>49</height>
+                            <height>46</height>
                         </size>
                     </property>
                 </spacer>
@@ -445,7 +445,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>31</width>
-                            <height>49</height>
+                            <height>46</height>
                         </size>
                     </property>
                 </spacer>
@@ -635,7 +635,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>17</height>
                         </size>
                     </property>
                 </spacer>
@@ -717,18 +717,35 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>21</height>
+                            <height>18</height>
                         </size>
                     </property>
                 </spacer>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout243</cstring>
+                        <cstring>layout100</cstring>
                     </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
                         </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer104</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>51</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
                         <widget class="QLayoutWidget">
                             <property name="name">
                                 <cstring>layout242</cstring>
@@ -819,9 +836,15 @@
                             <property name="enabled">
                                 <bool>false</bool>
                             </property>
+                            <property name="minimumSize">
+                                <size>
+                                    <width>100</width>
+                                    <height>0</height>
+                                </size>
+                            </property>
                             <property name="maximumSize">
                                 <size>
-                                    <width>32767</width>
+                                    <width>500</width>
                                     <height>150</height>
                                 </size>
                             </property>
@@ -853,7 +876,7 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>30</width>
+                                    <width>40</width>
                                     <height>20</height>
                                 </size>
                             </property>
@@ -884,7 +907,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>21</width>
-                            <height>20</height>
+                            <height>17</height>
                         </size>
                     </property>
                 </spacer>
@@ -994,7 +1017,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>17</height>
                         </size>
                     </property>
                 </spacer>

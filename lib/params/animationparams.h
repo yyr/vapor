@@ -67,9 +67,14 @@ public:
 	void setMaxWait(float wait) {maxWait = wait;}
 	void setPlayDirection(int val){playDirection = val;}
 
-	//When rendering is finished, renderer calls this.  Returns true if the change bit
-	//needs to be set.
+	//When rendering is finished, renderer calls this.  Returns true no change (if the change bit
+	//needs to be set. 
+	//It advances the currentFrame to the next one
 	bool advanceFrame();
+	int getNextFrame(int dir); //Determine the next frame in the specified direction
+	bool usingTimestepList() {return useTimestepSampleList;}
+	void setTimestepSampleList(bool on) {useTimestepSampleList = on;}
+	std::vector<int>& getTimestepList() { return timestepList;}
 	
 	XmlNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
@@ -93,6 +98,8 @@ protected:
 	int endFrame;
 	int maxFrame, minFrame;
 	int currentFrame;
+	bool useTimestepSampleList;
+	std::vector<int> timestepList;
 	
 };
 };
