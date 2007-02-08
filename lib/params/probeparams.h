@@ -128,7 +128,7 @@ public:
 	void setMaxNumRefinements(int numtrans) {maxNumRefinements = numtrans;}
 	
 	//This needs to be fixed to handle multiple variables!
-	virtual int getVarNum() { return firstVarNum;}
+	virtual int getSessionVarNum() { return firstVarNum;}
 	
 	int getImageWidth() { return textureWidth;}
 	int getImageHeight() {return textureHeight;}
@@ -194,8 +194,8 @@ public:
 		//Always clear out the cache
 		if (!value) setProbeDirty();
 	}
-	void setVariableSelected(int index, bool value){
-		variableSelected[index] = value;
+	void setVariableSelected(int sessionVarNum, bool value){
+		variableSelected[sessionVarNum] = value;
 	}
 	bool variableIsSelected(int index) {
 		if (index >= (int)variableSelected.size()) return false;

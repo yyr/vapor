@@ -210,8 +210,8 @@ public:
 	bool isEnabled(){return enabled;}
 	virtual void setEnabled(bool value) {enabled = value;}
 	
-
-	virtual int getVarNum(){ assert(0); return -1;}
+	
+	virtual int getSessionVarNum(){ assert(0); return -1;}
 	virtual float getHistoStretch() { assert(0); return 1.f;}
 	virtual void setBindButtons() {return;}//Needs to be removed!
 	virtual bool getEditMode() {assert(0); return true;}

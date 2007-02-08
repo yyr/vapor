@@ -117,7 +117,7 @@ public:
 	DataMgr* getDataMgr() {return dataMgr;}
 	Metadata* getMetadata() {return currentMetadata;}
 
-	//find the session variable name associated with session index
+	//find the *session* variable name associated with session index
 	static std::string& getVariableName(int varNum) {return variableNames[varNum];}
 	//Find the session num of a name, or -1 if it's not metadata:
 	static int getSessionVariableNum(const std::string& str);
@@ -127,22 +127,25 @@ public:
 
 	static void addVarName(const std::string newName) {variableNames.push_back(newName);}
 	//"Metadata" variables are those that are in current metadata, as opposed to
-	//"real" variables are those in session
+	//"session" variables are those in session
 	static int getNumMetadataVariables() {return numMetadataVariables;}
-	static int mapMetadataToRealVarNum(int varnum) 
+	static int mapMetadataToSessionVarNum(int varnum) 
 		{ if(!mapMetadataVars) return 0; 
 		return mapMetadataVars[varnum];}
-	static int mapRealToMetadataVarNum(int var);
-	static std::string& getMetadataVarName(int varnum) {
+	static int mapSessionToMetadataVarNum(int var);
+	// Find the name that corresponds to a metadata variable num
+	// should be the same as getting it from the metadata directly
+	static std::string& getMetadataVarName(int mdvarnum) {
 		if (!mapMetadataVars) return variableNames[0];
-		return (variableNames[mapMetadataVars[varnum]]);}
-	static int getNumVariables(){return (int)variableNames.size();}
+		return (variableNames[mapMetadataVars[mdvarnum]]);}
+	//getNumSessionVariables returns the number of session variables
+	static int getNumSessionVariables(){return (int)variableNames.size();}
 	static void clearVariableNames() {variableNames.clear();}
 	static void removeMetadataVars(){
 		if (mapMetadataVars) delete mapMetadataVars;
 		clearMetadataVars();
 	}
-	//void fillMetadataVars();
+	
 	static void clearMetadataVars() {mapMetadataVars = 0; numMetadataVariables = 0;}
 	//Get full data extents in cube coords
 	void getMaxExtentsInCube(float maxExtents[3]);
@@ -155,7 +158,8 @@ private:
 	//Cache size in megabytes
 	size_t cacheMB;
 	void calcDataRange(int varnum, int ts);
-	//Identify if a variable is active:
+	//Identify if a session variable is active.  This requires it to be a metadata variable,
+	//and for there to be actual data behind it.
 	std::vector<bool> variableExists;
 	//for each int variable there is an int vector of num transforms for each time step.
 	//value is -1 if no data at that timestep
@@ -165,6 +169,7 @@ private:
 	bool renderOK;
 	
 	//track min and max data values for each variable and timestep (at max transform level)
+	//Indexed by session variable nums
 	std::vector<float*> dataMin;
 	std::vector<float*> dataMax;
 	//specify the minimum and max time step that actually have data:
@@ -184,7 +189,7 @@ private:
 	// the variableNames array specifies the name associated with each variable num.
 	//Note that this
 	//contains (possibly properly) the corresponding variableNames in the
-	//dataStatus.  The number of metadataVariables should coincide with the 
+	//dataMgr.  The number of metadataVariables should coincide with the 
 	//number of variables in the datastatus that have actual data associated with them.
 	static std::vector<std::string> variableNames;
 	static int numMetadataVariables;

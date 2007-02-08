@@ -370,7 +370,7 @@ sessionLoadTF(DvrParams* dParams, QString* name){
 	std::string s(name->ascii());
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
-	int varNum = dParams->getVarNum();
+	int varNum = dParams->getSessionVarNum();
 	dParams->hookupTF(tf, varNum);
 	PanelCommand::captureEnd(cmd, dParams);
 	setEditorDirty();
@@ -380,7 +380,7 @@ sessionLoadTF(DvrParams* dParams, QString* name){
 void DvrEventRouter::
 fileLoadTF(DvrParams* dParams){
 	if (dParams->getNumVariables() <= 0) return;
-	int varNum = dParams->getVarNum();
+	int varNum = dParams->getSessionVarNum();
 	//Open a file load dialog
 	
     QString s = QFileDialog::getOpenFileName(
@@ -476,9 +476,9 @@ void DvrEventRouter::updateTab(){
     transferFunctionFrame->setMapperFunction(dvrParams->getMapperFunc());
     transferFunctionFrame->update();
 
-    if (session->getNumVariables())
+    if (session->getNumSessionVariables())
     {
-      int varnum = dvrParams->getVarNum();
+      int varnum = dvrParams->getSessionVarNum();
       const std::string& varname = session->getVariableName(varnum);
       
       transferFunctionFrame->setVariableName(varname);
@@ -680,7 +680,7 @@ guiSetComboVarNum(int val){
 	
 	
 	
-	dParams->setVarNum(Session::getInstance()->mapMetadataToRealVarNum(val));
+	dParams->setVarNum(Session::getInstance()->mapMetadataToSessionVarNum(val));
 	updateMapBounds(dParams);
 	VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
@@ -965,9 +965,9 @@ setEditorDirty(RenderParams *p){
 
     Session *session = Session::getInstance();
 
-    if (session->getNumVariables())
+    if (session->getNumSessionVariables())
     {
-      int varnum = dp->getVarNum();
+      int varnum = dp->getSessionVarNum();
       const std::string& varname = session->getVariableName(varnum);
       
       transferFunctionFrame->setVariableName(varname);
@@ -986,7 +986,7 @@ setEditorDirty(RenderParams *p){
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
 Histo* DvrEventRouter::getHistogram(RenderParams* p, bool mustGet){
 	DvrParams* dParams = (DvrParams*)p;
-	int numVariables = DataStatus::getInstance()->getNumVariables();
+	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
 
 	if (!histogramList){
 		if (!mustGet) return 0;
@@ -995,7 +995,7 @@ Histo* DvrEventRouter::getHistogram(RenderParams* p, bool mustGet){
 		for (int i = 0; i<numVariables; i++)
 			histogramList[i] = 0;
 	}
-	int varNum = dParams->getVarNum();
+	int varNum = dParams->getSessionVarNum();
 	const float* currentDatarange = dParams->getCurrentDatarange();
 	if (histogramList[varNum]) return histogramList[varNum];
 	
@@ -1022,10 +1022,10 @@ void DvrEventRouter::refreshHistogram(RenderParams* p){
 	}
 	else rParams = vizWinMgr->getRegionParams(vizNum);
 
-	int varNum = dParams->getVarNum();
+	int varNum = dParams->getSessionVarNum();
 	
 	if (!DataStatus::getInstance()->getDataMgr()) return;
-	int numVariables = DataStatus::getInstance()->getNumVariables();
+	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	if (!histogramList){
 		histogramList = new Histo*[numVariables];
 		numHistograms = numVariables;
@@ -1049,9 +1049,10 @@ void DvrEventRouter::refreshHistogram(RenderParams* p){
 	
 	const Metadata* metaData = Session::getInstance()->getCurrentMetadata();
 	//Now get the data:
+	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	unsigned char* data = (unsigned char*) dataMgr->GetRegionUInt8(
-					timeStep, (const char*) metaData->GetVariableNames()[varNum].c_str(),
+		timeStep, (const char*)DataStatus::getInstance()->getVariableName(varNum).c_str(),
 					numTrans,
 					min_bdim, max_bdim,
 					dParams->getCurrentDatarange(),
@@ -1253,7 +1254,7 @@ void DvrEventRouter::benchmarkPreamble()
 
   const size_t *bs = metadata->GetBlockSize();
   int timeStep     = vizmgr->getActiveAnimationParams()->getCurrentFrameNumber();
-  int varNum       = dvrParams->getVarNum();
+  int varNum       = dvrParams->getSessionVarNum();
   int numxforms    = dvrParams->getNumRefinements();
 
   regionParams->getAvailableVoxelCoords(numxforms, 

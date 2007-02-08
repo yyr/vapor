@@ -105,7 +105,7 @@ reset(DataMgr* dm, size_t cachesize){
 	
 	for (int i = 0; i<numVars; i++){
 		bool match = false;
-		for (int j = 0; j< getNumVariables(); j++){
+		for (int j = 0; j< getNumSessionVariables(); j++){
 			if (getVariableName(j) == currentMetadata->GetVariableNames()[i]){
 				mapMetadataVars[i] = j;
 				match = true;
@@ -119,7 +119,7 @@ reset(DataMgr* dm, size_t cachesize){
 		mapMetadataVars[i] = variableNames.size()-1;
 	}
 
-	int numVariables = getNumVariables();
+	int numVariables = getNumSessionVariables();
 	
 	variableExists.resize(numVariables);
 	
@@ -243,7 +243,7 @@ getFirstTimestep(int varnum){
 	return -1;
 }
 	
-// calculate the datarange for a specific variable and timestep:
+// calculate the datarange for a specific session variable and timestep:
 // Performed on demand.
 // 
 void DataStatus::calcDataRange(int varnum, int ts){
@@ -256,7 +256,7 @@ void DataStatus::calcDataRange(int varnum, int ts){
 		ErrMsgCB_T errorCallback = GetErrMsgCB();
 		SetErrMsgCB(0);
 		const float* mnmx = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
-			getMetadata()->GetVariableNames()[varnum].c_str());
+			getVariableName(varnum).c_str());
 		//Turn it back on:
 		SetErrMsgCB(errorCallback);
 					
@@ -289,30 +289,13 @@ int DataStatus::mergeVariableName(const string& str){
 	variableNames.push_back(str);
 	return (variableNames.size()-1);
 }
-int DataStatus::mapRealToMetadataVarNum(int realVarNum){
+int DataStatus::mapSessionToMetadataVarNum(int sesVarNum){
 	for (int i = 0; i< numMetadataVariables; i++){
-		if (mapMetadataVars[i] == realVarNum) return i;
+		if (mapMetadataVars[i] == sesVarNum) return i;
 	}
 	return -1;
 }
-/*
-void DataStatus::fillMetadataVars(){
-	removeMetadataVars();
-	for (int i = 0; i< getNumVariables(); i++){
-		if (variableIsPresent(i)){
-			numMetadataVariables++;
-		}
-	}
-	mapMetadataVars = new int[numMetadataVariables];
-	int posnCounter = 0;
-	//fill in the values...
-	for (int i = 0; i< getNumVariables(); i++){
-		if (variableIsPresent(i)){
-			mapMetadataVars[posnCounter++] = i;
-		}
-	}
-}
-*/
+
 
 //Convert the max extents into cube coords
 void DataStatus::getMaxExtentsInCube(float maxExtents[3]){

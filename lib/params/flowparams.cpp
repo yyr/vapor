@@ -360,7 +360,7 @@ reinit(bool doOverride){
 	//Set up variables:
 	//Get the variable names:
 	
-	int newNumVariables = DataStatus::getInstance()->getNumVariables();
+	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables();
 	int newNumComboVariables = DataStatus::getInstance()->getNumMetadataVariables();
 	
 	//Rebuild map bounds arrays:
@@ -398,11 +398,11 @@ reinit(bool doOverride){
 	if (doOverride){
 		for (int j = 0; j<3; j++){
 			comboSteadyVarNum[j] = Min(j,newNumComboVariables-1);
-			steadyVarNum[j] = DataStatus::getInstance()->mapMetadataToRealVarNum(comboSteadyVarNum[j]);
+			steadyVarNum[j] = DataStatus::getInstance()->mapMetadataToSessionVarNum(comboSteadyVarNum[j]);
 		}
 		for (int j = 0; j<3; j++){
 			comboUnsteadyVarNum[j] = Min(j,newNumComboVariables-1);
-			unsteadyVarNum[j] = DataStatus::getInstance()->mapMetadataToRealVarNum(comboUnsteadyVarNum[j]);
+			unsteadyVarNum[j] = DataStatus::getInstance()->mapMetadataToSessionVarNum(comboUnsteadyVarNum[j]);
 		}
 	} 
 	for (int dim = 0; dim < 3; dim++){
@@ -454,10 +454,10 @@ reinit(bool doOverride){
 	}
 	//Determine the combo var nums from the varNum's
 	for (int dim = 0; dim < 3; dim++){
-		comboSteadyVarNum[dim] = DataStatus::getInstance()->mapRealToMetadataVarNum(steadyVarNum[dim]);
-		comboUnsteadyVarNum[dim] = DataStatus::getInstance()->mapRealToMetadataVarNum(unsteadyVarNum[dim]);
-		comboSeedDistVarNum[dim] = DataStatus::getInstance()->mapRealToMetadataVarNum(seedDistVarNum[dim]);
-		comboPriorityVarNum[dim] = DataStatus::getInstance()->mapRealToMetadataVarNum(priorityVarNum[dim]);
+		comboSteadyVarNum[dim] = DataStatus::getInstance()->mapSessionToMetadataVarNum(steadyVarNum[dim]);
+		comboUnsteadyVarNum[dim] = DataStatus::getInstance()->mapSessionToMetadataVarNum(unsteadyVarNum[dim]);
+		comboSeedDistVarNum[dim] = DataStatus::getInstance()->mapSessionToMetadataVarNum(seedDistVarNum[dim]);
+		comboPriorityVarNum[dim] = DataStatus::getInstance()->mapSessionToMetadataVarNum(priorityVarNum[dim]);
 	}
 	//Set up sampling.  
 	if (doOverride){

@@ -142,36 +142,9 @@ public:
 	
 	
 	const Metadata* getCurrentMetadata() {return currentMetadata;}
-	/* moved to DataStatus...
-	float getDataMin(int varNum, int timestep){
-		if (currentDataStatus){
-			return (float)currentDataStatus->getDataMin(varNum, timestep);
-		}
-		else return 0;
-	}
-	float getDataMax(int varNum, int timestep){
-		if (currentDataStatus){
-			return (float)currentDataStatus->getDataMax(varNum, timestep);
-		}
-		else return 0;
-	}
-	bool dataIsPresent(int varnum, int timeStep){
-		if (currentDataStatus)
-			return currentDataStatus->dataIsPresent(varnum, timeStep);
-		else return false;
-	}
-	*/
-	int getNumVariables(){return DataStatus::getNumVariables();}
-	/*	
-	size_t getMinTimestep(){
-		if (currentDataStatus) return currentDataStatus->getMinTimestep();
-		return 0;
-	}
-	size_t getMaxTimestep(){
-		if (currentDataStatus)return currentDataStatus->getMaxTimestep();
-		return 1;
-	}
-	*/
+	
+	int getNumSessionVariables(){return DataStatus::getNumSessionVariables();}
+	
 	
 	//Methods to control the command queue:
 	//When a new command is issued, call "addToHistory"
@@ -259,12 +232,15 @@ public:
 
 	void addVarName(const string newName) {DataStatus::addVarName(newName);}
 	//"Metadata" variables are those that are in current metadata, as opposed to
-	//"real" variables are those in session
+	//"session" variables are those in session
+	//In general the indices in combo boxes are metadata var nums, but
+	//Info about the variables (e.g. transfer functions, datastatus info) are
+	//indexed by session var nums.
 	int getNumMetadataVariables() {return DataStatus::getNumMetadataVariables();}
-	int mapMetadataToRealVarNum(int varnum){
-		return DataStatus::mapMetadataToRealVarNum(varnum);
+	int mapMetadataToSessionVarNum(int varnum){
+		return DataStatus::mapMetadataToSessionVarNum(varnum);
 	}
-	int mapRealToMetadataVarNum(int var) {return DataStatus::mapRealToMetadataVarNum(var);}
+	int mapSessionToMetadataVarNum(int var) {return DataStatus::mapSessionToMetadataVarNum(var);}
 	string& getMetadataVarName(int varnum) {
 		return DataStatus::getMetadataVarName(varnum);
 	}
@@ -335,14 +311,6 @@ protected:
 	string currentFlowDirectory;
 	string currentLogfileName;
 
-	// the variableNames array specifies the name associated with each variable num.
-	//Note that this
-	//contains (possibly properly) the corresponding variableNames in the
-	//dataStatus.  The number of metadataVariables should coincide with the 
-	//number of variables in the datastatus that have actual data associated with them.
-	//std::vector<string> variableNames;
-	//int numMetadataVariables;
-	//int* mapMetadataVars;
 	bool metadataSaved;
 };
 

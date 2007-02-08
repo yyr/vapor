@@ -278,7 +278,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   DvrParams* myDVRParams = (DvrParams*)currentRenderParams;
   //This is no longer the case, because of multiple instancing:
   //assert(myDVRParams == myGLWindow->getActiveDvrParams());
-  int varNum = myDVRParams->getVarNum();
+  int varNum = myDVRParams->getSessionVarNum();
 	
   
   //AN:  (2/10/05):  Calculate 'extents' to be the real coords in (0,1) that
@@ -345,7 +345,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     //Turn off error callback, look for memory allocation problem.
     
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	const char* varname = (DataStatus::getInstance()->getVariableName(myDVRParams->getVarNum()).c_str());
+	const char* varname = (DataStatus::getInstance()->getVariableName(myDVRParams->getSessionVarNum()).c_str());
     void* data = 
       (void*) myDataMgr->GetRegionUInt8(
                                         timeStep,

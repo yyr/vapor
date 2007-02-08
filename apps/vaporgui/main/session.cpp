@@ -502,7 +502,7 @@ exportData(){
 	
 	int rc = exporter.Export(currentMetadataFile,
 		currentFrame,
-		getVariableName(d->getVarNum()),
+		getVariableName(d->getSessionVarNum()),
 		minCoords,
 		maxCoords,
 		frameInterval);
@@ -894,31 +894,7 @@ infoCallbackFcn(const char* msg){
 	MessageReporter::infoMsg("%s",msg);
 }
 
-/*
-//Find which index is associated with a name, or -1 if not metadata:
-int Session::getSessionVariableNum(const string& str){
-	for (int i = 0; i<variableNames.size(); i++){
-		if(variableNames[i] == str) return i;
-	}
-	return -1;
-}
-//Make sure this name is in list; if not, insert it, return index.
-//Useful in parsing
-int Session::mergeVariableName(const string& str){
-	for (int i = 0; i<variableNames.size(); i++){
-		if(variableNames[i] == str) return i;
-	}
-	//Not found, put it in:
-	variableNames.push_back(str);
-	return (variableNames.size()-1);
-}
-int Session::mapRealToMetadataVarNum(int realVarNum){
-	for (int i = 0; i< numMetadataVariables; i++){
-		if (mapMetadataVars[i] == realVarNum) return i;
-	}
-	return -1;
-}
-*/
+
 void Session::getExtents(int refLevel, float extents[6]){
 	size_t fullMin[3] = {0,0,0};
 	size_t fullMax[3];

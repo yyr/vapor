@@ -329,14 +329,14 @@ mousePressEvent(QMouseEvent* e){
 						int tolerance = 20;
 						int thet = (int)(fabs(pParams->getTheta())+0.5f);
 						int ph = (int)(fabs(pParams->getPhi())+ 0.5f);
+						int ps = (int)(fabs(pParams->getPsi())+ 0.5f);
 						//Make sure that these are within tolerance of a multiple of 90
 						if (abs(((thet+45)/90)*90 -thet) > tolerance) break;
-						
+						if (abs(((ps+45)/90)*90 -ps) > tolerance) break;
 						if (abs(((ph+45)/90)*90 -ph) > tolerance) break;
 						
 					}
 
-					//if (buttonNum > 1 &&(pParams->getTheta()!= 0.f || pParams->getPhi() != 0.f)) break;
 					float dirVec[3];
 					//Find the direction vector of the camera (World coords)
 					myGLWindow->pixelToVector(e->x(), height()-e->y(), 

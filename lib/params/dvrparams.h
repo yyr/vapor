@@ -70,7 +70,7 @@ public:
 	//as well as force a rebuilding of the transfer function
 	//
 	void setVarNum(int val); 
-	virtual int getVarNum() {return varNum;}
+	virtual int getSessionVarNum() {return varNum;}
 	const char* getVariableName() {
 		return (const char*) (DataStatus::getInstance()->getVariableName(varNum).c_str());
 	}

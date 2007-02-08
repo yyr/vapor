@@ -439,11 +439,11 @@ protected:
 	int numRefinements, maxNumRefinements;
 	int numComboVariables;// = number of variables in metadata with data associated
 	
-	int steadyVarNum[3]; //field variable num's in x, y, and z.
+	int steadyVarNum[3]; //field variable num's in x, y, and z.  These are session var nums
 	int unsteadyVarNum[3]; //field variable num's in x, y, and z.
 	int priorityVarNum[3]; //varnum for priority field
 	int seedDistVarNum[3]; //varnum for seed distrib
-	int comboSteadyVarNum[3];  //indices in combos
+	int comboSteadyVarNum[3];  //indices in combos.  These are metadata var nums.
 	int comboUnsteadyVarNum[3];  //indices in combos
 	int comboPriorityVarNum[3];
 	int comboSeedDistVarNum[3];

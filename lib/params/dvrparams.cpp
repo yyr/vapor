@@ -119,7 +119,7 @@ setVarNum(int val)
 	//reset the editing display range shown on the tab, 
 	//this also sets dirty flag
 	//Set the combo var num to point to the varNum:
-	comboVarNum = DataStatus::getInstance()->mapRealToMetadataVarNum(varNum);
+	comboVarNum = DataStatus::getInstance()->mapSessionToMetadataVarNum(varNum);
 }
 
 
@@ -160,7 +160,7 @@ reinit(bool doOverride){
 	int i;
 	DataStatus* ds = DataStatus::getInstance();
 	
-	int totNumVariables = ds->getNumVariables();
+	int totNumVariables = ds->getNumSessionVariables();
 	//See if current varNum is valid.  It needs to correspond to data
 	//if not, reset to first variable that is present:
 	if (varNum >= totNumVariables || 
@@ -222,17 +222,21 @@ reinit(bool doOverride){
 				newTransFunc[i] = transFunc[i];
 				newMinEdit[i] = minColorEditBounds[i];
 				newMaxEdit[i] = maxColorEditBounds[i];
-			} else { //create new tf
+			} else { 
+				//create new tf.  This is a variable that is in the metadata, but
+				//not previously in the session
+				int metadataVarNum = DataStatus::getInstance()->mapSessionToMetadataVarNum(i);
+				assert(metadataVarNum >= 0);
 				newTransFunc[i] = new TransferFunction(this, numBits);
 
-				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
-				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
-				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
-				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
-                newTransFunc[i]->setVarNum(i);
+				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(metadataVarNum));
+				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(metadataVarNum));
+				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(metadataVarNum);
+				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(metadataVarNum);
+                newTransFunc[i]->setVarNum(metadataVarNum);
 			}
 		}
-			//Delete trans funcs.
+			//Delete trans funcs that are not in the session
 		for (i = totNumVariables; i<numVariables; i++){
 			delete transFunc[i];
 		}

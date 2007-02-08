@@ -208,7 +208,7 @@ reinit(bool doOverride){
 	}
 	//Get the variable names:
 
-	int newNumVariables = DataStatus::getInstance()->getNumVariables();
+	int newNumVariables = DataStatus::getInstance()->getNumSessionVariables();
 	
 	//See if current firstVarNum is valid
 	//if not, reset to first variable that is present:
@@ -239,6 +239,13 @@ reinit(bool doOverride){
 		if (newNumVariables != numVariables){
 			variableSelected.resize(newNumVariables, false);
 		} 
+		//Make sure that current selection is valid, by unselecting
+		//anything that isn't there:
+		for (int i = 0; i<newNumVariables; i++){
+			if (variableSelected[i] && 
+				!DataStatus::getInstance()->variableIsPresent(i))
+				variableSelected[i] = false;
+		}
 	}
 	variableSelected[firstVarNum] = true;
 
@@ -817,7 +824,7 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], 
 	bool retVal = true;
 	int i;
 	//Now intersect with available bounds based on variables:
-	for (int varIndex = 0; varIndex < DataStatus::getInstance()->getNumVariables(); varIndex++){
+	for (int varIndex = 0; varIndex < DataStatus::getInstance()->getNumSessionVariables(); varIndex++){
 		if (!variableSelected[varIndex]) continue;
 		if (DataStatus::getInstance()->maxXFormPresent(varIndex,timeStep) < numRefinements){
 			retVal = false;
@@ -917,11 +924,11 @@ void ProbeParams::setProbeDirty(){
 }
 
 float* ProbeParams::
-getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep){
+getContainingVolume(size_t blkMin[3], size_t blkMax[3], int sessionVarNum, int timeStep){
 	//Get the region (int coords) associated with the specified variable at the
 	//current probe extents
 	int numRefinements = getNumRefinements();
-	int maxRes = DataStatus::getInstance()->maxXFormPresent(varNum,timeStep);
+	int maxRes = DataStatus::getInstance()->maxXFormPresent(sessionVarNum,timeStep);
 	if (maxRes < numRefinements){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
 			"Probe data unavailable for refinement level %d at timestep %d",
@@ -930,7 +937,7 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep
 	}
 	
 	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-		DataStatus::getInstance()->getVariableName(varNum).c_str(),
+		DataStatus::getInstance()->getVariableName(sessionVarNum).c_str(),
 		numRefinements, blkMin, blkMax, 0);
 	
 	return reg;
@@ -974,7 +981,7 @@ calcProbeTexture(int ts, int texWidth, int texHeight){
 	float** volData = new float*[numVariables];
 	//Now obtain all of the volumes needed for this probe:
 	int totVars = 0;
-	for (int varnum = 0; varnum < DataStatus::getInstance()->getNumVariables(); varnum++){
+	for (int varnum = 0; varnum < DataStatus::getInstance()->getNumSessionVariables(); varnum++){
 		if (!variableIsSelected(varnum)) continue;
 		volData[totVars] = getContainingVolume(blkMin, blkMax, varnum, ts);
 		if (!volData[totVars]) {

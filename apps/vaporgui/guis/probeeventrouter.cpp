@@ -640,7 +640,7 @@ sessionLoadTF(ProbeParams* dParams, QString* name){
 	std::string s(name->ascii());
 	TransferFunction* tf = Session::getInstance()->getTF(&s);
 	assert(tf);
-	int varNum = dParams->getVarNum();
+	int varNum = dParams->getSessionVarNum();
 	dParams->hookupTF(tf, varNum);
 	PanelCommand::captureEnd(cmd, dParams);
 	setDatarangeDirty(dParams);
@@ -649,7 +649,8 @@ sessionLoadTF(ProbeParams* dParams, QString* name){
 void ProbeEventRouter::
 fileLoadTF(ProbeParams* dParams){
 	
-	int varNum = dParams->getVarNum();
+	//The transfer function is indexed by firstVarNum, which is a session variable num
+	int varNum = dParams->getSessionVarNum();
 	//Open a file load dialog
 	
     QString s = QFileDialog::getOpenFileName(
@@ -739,9 +740,9 @@ void ProbeEventRouter::updateTab(){
     transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
     transferFunctionFrame->update();
 
-    if (ses->getNumVariables())
+    if (ses->getNumSessionVariables())
     {
-      int varnum = probeParams->getVarNum();
+      int varnum = probeParams->getSessionVarNum();
       const std::string& varname = ses->getVariableName(varnum);
       
       transferFunctionFrame->setVariableName(varname);
@@ -795,8 +796,8 @@ void ProbeEventRouter::updateTab(){
 	//Turn off listBox message-listening
 	ignoreListboxChanges = true;
 	for (int i = 0; i< ses->getNumMetadataVariables(); i++){
-		if (variableListBox->isSelected(i) != probeParams->variableIsSelected(ses->mapMetadataToRealVarNum(i)))
-			variableListBox->setSelected(i, probeParams->variableIsSelected(ses->mapMetadataToRealVarNum(i)));
+		if (variableListBox->isSelected(i) != probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)))
+			variableListBox->setSelected(i, probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)));
 	}
 	ignoreListboxChanges = false;
 
@@ -859,7 +860,7 @@ void ProbeEventRouter::
 reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
 	
-	numVariables = DataStatus::getInstance()->getNumVariables();
+	numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	//Set the names in the variable listbox
 	ignoreListboxChanges = true;
 	variableListBox->clear();
@@ -985,9 +986,9 @@ setEditorDirty(RenderParams* p){
 
     Session *session = Session::getInstance();
 
-    if (session->getNumVariables())
+    if (session->getNumSessionVariables())
     {
-      int varnum = dp->getVarNum();
+      int varnum = dp->getSessionVarNum();
       const std::string& varname = session->getVariableName(varnum);
       
       transferFunctionFrame->setVariableName(varname);
@@ -1128,15 +1129,16 @@ guiChangeVariables(){
 	int numSelected = 0;
 	//Session* ses = Session::getInstance();
 	for (int i = 0; i< DataStatus::getInstance()->getNumMetadataVariables(); i++){
-		int varnum = DataStatus::getInstance()->mapMetadataToRealVarNum(i);
+		//Index by session variable num:
+		int varnum = DataStatus::getInstance()->mapMetadataToSessionVarNum(i);
 		if (variableListBox->isSelected(i)){
-			pParams->setVariableSelected(i,true);
+			pParams->setVariableSelected(varnum,true);
 			
 			if(firstVar == -1) firstVar = varnum;
 			numSelected++;
 		}
 		else 
-			pParams->setVariableSelected(i,false);
+			pParams->setVariableSelected(varnum,false);
 	}
 	//If nothing is selected, select the first one:
 	if (firstVar == -1) {
@@ -1581,7 +1583,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	//Now obtain all of the volumes needed for this probe:
 	int totVars = 0;
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	for (int varnum = 0; varnum < ds->getNumVariables(); varnum++){
+	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, varnum, timeStep);
 		totVars++;
@@ -1608,6 +1610,9 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
 Histo* ProbeEventRouter::getHistogram(RenderParams* p, bool mustGet){
 	ProbeParams* pParams = (ProbeParams*)p;
+	//There's a histogram for each session variable!  Unlike DVR params, since
+	//We need to remember TF's based on first Session variable number
+
 	if (!histogramList){
 		if (!mustGet) return 0;
 		histogramList = new Histo*[numVariables];
@@ -1657,7 +1662,7 @@ refreshHistogram(RenderParams* p){
 	//Now obtain all of the volumes needed for this probe:
 	int totVars = 0;
 	
-	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumVariables(); varnum++){
+	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumSessionVariables(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		assert(varnum >= firstVarNum);
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
