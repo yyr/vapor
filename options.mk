@@ -22,13 +22,13 @@ RELEASE=0
 # Set DEBUG to 1 if you want diagnostic messages turned on
 DEBUG=0
 
-# Set BENCHMARK or PROFILE to 1 for volume rendering framerate diagnostics
+# Set BENCHMARK or PROFILE to 1 for framerate diagnostics
 BENCHMARK=0
 PROFILING=0
 
 # Set SPHERICAL_GRID to 1 to enable spherical grid rendering proof-of-concept
 # code.
-SPHERICAL_GRID=0
+SPHERICAL_GRID=1
 
 # Set EXPAT_INC_PATH to the directory where 'expat.h' may be found if not
 # in a standard location. expat.h is part of the Expat XML Parser, available
