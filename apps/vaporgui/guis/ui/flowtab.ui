@@ -1587,6 +1587,23 @@ VAPOR region panel.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Check to recalculate flow whenever parameters change</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When Autorefresh is on, flow lines will be
+recalculated and displayed whenever you
+make a change in the flow panel that changes
+the result of flow integration.  If the flow integration
+is very time-consuming (e.g. with unsteady flow),
+you should turn off Autorefresh, in order to 
+manually control when the flow integration will
+be performed.  When you have made all the
+changes and are ready for a recalculation, 
+you can click the "Refresh Flow" button.
+If multiple time steps are involved, not all
+will be recalculated at the time you press the
+"Refresh Flow" button.  The flow at some
+time steps may not be refreshed until those
+time steps are specified in the animation panel.</string>
+                                            </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -1617,6 +1634,23 @@ VAPOR region panel.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Click to recalculate flow using current settings</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When Autorefresh is on, flow lines will be
+recalculated and displayed whenever you
+make a change in the flow panel that changes
+the result of flow integration.  If the flow integration
+is very time-consuming (e.g. with unsteady flow),
+you should turn off Autorefresh, in order to 
+manually control when the flow integration will
+be performed.  When you have made all the
+changes and are ready for a recalculation, 
+you can click the "Refresh Flow" button.
+If multiple time steps are involved, not all
+will be recalculated at the time you press the
+"Refresh Flow" button.  The flow at some
+time steps may not be refreshed until those
+time steps are specified in the animation panel.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -6406,6 +6440,14 @@ of each flow line.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the minimum entity value that is mapped to color</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The data limits for the opacity and color maps are
+set to the likely max and min bounds for the associated
+variable.  However these are not always correct, since 
+they may be based on data limits at different time steps.
+Users should always set the endpoints if the values do
+not appear consistent with known data bounds.</string>
+                                            </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -6470,6 +6512,14 @@ of each flow line.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the maximum entity value that is mapped to color</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The data limits for the opacity and color maps are
+set to the likely max and min bounds for the associated
+variable.  However these are not always correct, since 
+they may be based on data limits at different time steps.
+Users should always set the endpoints if the values do
+not appear consistent with known data bounds.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -6591,6 +6641,14 @@ of each flow line.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the minimum entity value that is mapped to color</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The data limits for the opacity and color maps are
+set to the likely max and min bounds for the associated
+variable.  However these are not always correct, since 
+they may be based on data limits at different time steps.
+Users should always set the endpoints if the values do
+not appear consistent with known data bounds.</string>
+                                            </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -6655,6 +6713,14 @@ of each flow line.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the maximum entity value that is mapped to color</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The data limits for the opacity and color maps are
+set to the likely max and min bounds for the associated
+variable.  However these are not always correct, since 
+they may be based on data limits at different time steps.
+Users should always set the endpoints if the values do
+not appear consistent with known data bounds.</string>
                                             </property>
                                         </widget>
                                     </hbox>

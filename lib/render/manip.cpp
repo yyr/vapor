@@ -427,14 +427,13 @@ void TranslateStretchManip::drawBoxFaces(){
 			// for axis == 0, handles on corners  1,3,5,7 (cor&1 is 1)
 			// for axis == 1, handles on corners  0,1,4,5 (cor&2 is 0)
 			// for axis == 2, handles on corners  4,5,6,7 (cor&4 is 4) 
+			//HMMM That's wrong.  The same expression works for x,y, and z
+			// for axis == 0, handles on corners 0,2,4,6
+			// for axis == 2, handles on corners 0,1,2,3
+			//This fixes a bug (2/7/07)
 			if (isStretching) {
-				if (axis != 1){
-					if (((cor>>axis)&1) && selectedHandle >= 3) continue;
-					if (!((cor>>axis)&1) && selectedHandle < 3) continue;
-				} else { //axis == 1
-					if (((cor>>axis)&1) && selectedHandle < 3) continue;
-					if (!((cor>>axis)&1) && selectedHandle >= 3) continue;
-				}
+				if (((cor>>axis)&1) && selectedHandle < 3) continue;
+				if (!((cor>>axis)&1) && selectedHandle >= 3) continue;
 			}
 			corners[cor][axis] += dragDistance;
 		}
@@ -675,7 +674,7 @@ TranslateRotateManip::TranslateRotateManip(GLWindow* w, Params* p) : TranslateSt
 void TranslateRotateManip::drawBoxFaces(){
 	float corners[8][3];
 	Permuter* myPermuter = 0;
-	if (isStretching) myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi());
+	if (isStretching) myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi(),myParams->getPsi());
 	myParams->calcBoxCorners(corners, 0.f, tempRotation, tempRotAxis);
 	//Now the corners need to be put into the unit cube, and displaced appropriately
 	
@@ -686,14 +685,14 @@ void TranslateRotateManip::drawBoxFaces(){
 			int axis = (selectedHandle < 3) ? (2-selectedHandle):(selectedHandle-3);
 			//The corners associated with a handle are as follows:
 			//If the handle is on the low end, i.e. selectedHandle < 3, then
-			// for axis == 0, handles on corners  1,3,5,7 (cor&1 is 1)
+			// for axis == 0, handles on corners  0,2,4,6 (cor&1 is 0)
 			// for axis == 1, handles on corners  0,1,4,5 (cor&2 is 0)
-			// for axis == 2, handles on corners  4,5,6,7 (cor&4 is 4) 
+			// for axis == 2, handles on corners  0,1,2,3 (cor&4 is 0) 
 			
 			if (isStretching) {
-				//Based on the angles (phi and theta) the user is grabbing 
+				//Based on the angles (phi theta psi) the user is grabbing 
 				//a rotated side of the cube. These vertices slide with the mouse.
-				//rotate the selected handle by theta, phi to find the side that corresponds to
+				//rotate the selected handle by theta, phi, psi to find the side that corresponds to
 				//the corners that need to be moved
 				int newHandle; 
 				if (selectedHandle<3) newHandle = myPermuter->permute(selectedHandle-3);
@@ -702,17 +701,9 @@ void TranslateRotateManip::drawBoxFaces(){
 				else newHandle +=2;
 				int axis2 = (newHandle < 3) ? (2-newHandle):(newHandle-3);
 				
-				
-				if (axis2 != 1){
-					if (((cor>>axis2)&1) && newHandle >= 3) continue;
-					if (!((cor>>axis2)&1) && newHandle < 3) continue;
-					
-				} else { //axis2 == 1
-					
-					if (((cor>>axis2)&1) && newHandle < 3) continue;
-					if (!((cor>>axis2)&1) && newHandle >= 3) continue;
-					
-				}
+				if (((cor>>axis2)&1) && newHandle < 3) continue;
+				if (!((cor>>axis2)&1) && newHandle >= 3) continue;
+			
 			}
 			corners[cor][axis] += dragDistance;
 		}
@@ -930,7 +921,7 @@ mouseRelease(float /*screenCoords*/[2]){
 		//coords are associated with handle.  Only those are to be
 		//translated.
 		if (isStretching){
-			myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi());
+			myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi(),myParams->getPsi());
 			//Based on the angles (phi and theta) the user is grabbing 
 			//a rotated side of the cube. These vertices slide with the mouse.
 			//rotate the selected handle by theta, phi to find the side that corresponds to
@@ -976,7 +967,7 @@ float TranslateRotateManip::constrainStretch(float currentDist){
 	float boxMin[3],boxMax[3];
 	myParams->getBox(boxMin,boxMax);
 	
-	Permuter* myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi());
+	Permuter* myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi(),myParams->getPsi());
 	//Based on the angles (phi and theta) the user is grabbing 
 	//a rotated side of the cube. These vertices slide with the mouse.
 	//rotate the selected handle by theta, phi to find the side that corresponds to
@@ -998,17 +989,21 @@ float TranslateRotateManip::constrainStretch(float currentDist){
 	delete myPermuter;
 	return (dist*ViewpointParams::getMaxCubeSide());
 }
-TranslateRotateManip::Permuter::Permuter(float theta, float phi){
+TranslateRotateManip::Permuter::Permuter(float theta, float phi, float psi){
 	//Find the nearest multiple of 90 degrees > 0
 	theta += 44.f;
 	phi += 44.f;
+	psi += 44.f;
 	while(theta < 0.f) theta += 360.f;
 	while(phi < 0.f) phi += 360.f;
+	while(psi < 0.f) psi += 360.f;
 	//Then convert to right angles between 0 and 3:
 	thetaRot = (int)(theta/90.f);
 	thetaRot = thetaRot%4;
 	phiRot = (int)(phi/90.f);
 	phiRot = phiRot%4;
+	psiRot = (int)(psi/90.f);
+	psiRot = psiRot%4;
 }
 int TranslateRotateManip::Permuter::permute(int i){
 	//first do the theta permutation:
@@ -1040,6 +1035,22 @@ int TranslateRotateManip::Permuter::permute(int i){
 		case 3: // 1->3, 3->-1, -1 -> -3, -3 ->1
 			if (abs(i) == 1) i = -3*i;
 			else if (abs(i) == 3) i = i/3;
+			break;
+		default:
+			break;
+	}
+	//finally do the psi permutation:
+	switch (psiRot){
+		case 1: // 1->-2, -2->-1, -1 -> 2, 2 ->1
+			if (abs(i) == 1) i = -2*i;
+			else if (abs(i) == 2) i = i/2;
+			break;
+		case 2: 
+			if (abs(i) < 3) i = -i;
+			break;
+		case 3: // 1->2, 2->-1, -1 -> -2, -2 ->1
+			if (abs(i) == 1) i = 2*i;
+			else if (abs(i) == 2) i = -i/2;
 			break;
 		default:
 			break;

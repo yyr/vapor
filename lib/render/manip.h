@@ -142,11 +142,12 @@ protected:
 	//utility class for handling permutations resulting from rotations of mult of 90 degrees:
 	class Permuter {
 	public:
-		Permuter(float theta, float phi);
+		Permuter(float theta, float phi, float psi);
 		int permute(int i);
 	private:
 		int thetaRot; 
 		int phiRot;
+		int psiRot;
 	};
 
 };

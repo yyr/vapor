@@ -2325,6 +2325,14 @@ change the selection in the probe</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Minimum of transfer function domain</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The actual data bounds are based on the range
+of data values of the variable (or of the magnitude
+of the vector field) in the first time step.  These values 
+are only a guide.  The TF Domain Bounds can be 
+reset to any range, and a histogram constructed,
+to determine the actual data values in that range.</string>
+                                            </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -2384,6 +2392,14 @@ change the selection in the probe</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Maximum of transfer function domain</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The actual data bounds are based on the range
+of data values of the variable (or of the magnitude
+of the vector field) in the first time step.  These values 
+are only a guide.  The TF Domain Bounds can be 
+reset to any range, and a histogram constructed,
+to determine the actual data values in that range.</string>
+                                            </property>
                                         </widget>
                                     </hbox>
                                 </widget>
@@ -2406,16 +2422,30 @@ change the selection in the probe</string>
                                             <property name="text">
                                                 <string>0.0</string>
                                             </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Data bounds are estimated from the variable at the first available time step.</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The actual data bounds are based on the range
+of data values of the variable (or of the magnitude
+of the vector field) in the first time step.  These values 
+are only a guide.  The TF Domain Bounds can be 
+reset to any range, and a histogram constructed,
+to determine the actual data values in that range.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLabel">
                                             <property name="name">
                                                 <cstring>textLabel2_5</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Actual Data Bounds</string>
+                                                <string>Data Bounds</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Data bounds are estimated from the variable at the first available time step.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLabel">
@@ -2431,6 +2461,17 @@ change the selection in the probe</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignVCenter|AlignRight</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Data bounds are estimated from the variable at the first available time step.</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The actual data bounds are based on the range
+of data values of the variable (or of the magnitude
+of the vector field) in the first time step.  These values 
+are only a guide.  The TF Domain Bounds can be 
+reset to any range, and a histogram constructed,
+to determine the actual data values in that range.</string>
                                             </property>
                                         </widget>
                                     </hbox>
