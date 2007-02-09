@@ -98,7 +98,7 @@ void GLProbeWindow::setTextureSize(float horiz, float vert){
 		rectTop = texAspect/winAspect;
 		
 	} else {
-		rectLeft = winAspect/texAspect;
+		rectLeft = -winAspect/texAspect;
 		rectTop = 1.f;
 	}
 }

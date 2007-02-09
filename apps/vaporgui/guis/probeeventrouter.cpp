@@ -1778,8 +1778,7 @@ refreshHistogram(RenderParams* p){
 			}
 		}
 	}
-	setEditorDirty();
-	update();
+
 }
 
 	
