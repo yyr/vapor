@@ -1155,6 +1155,16 @@ getEventRouter(Params::ParamType t){
 			return 0;
 	}
 }
+void VizWinMgr::
+initViews(){
+	for (int i = 0; i< MAXVIZWINS; i++){
+		if (vizWin[i]) {
+			if (vpParams[i]->isLocal())
+				vizWin[i]->setValuesFromGui(vpParams[i]);
+			else vizWin[i]->setValuesFromGui(globalVPParams);
+		}
+	}
+}
 // force all the existing params to restart (return to initial state)
 //
 void VizWinMgr::

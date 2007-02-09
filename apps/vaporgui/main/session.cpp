@@ -641,6 +641,8 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 		newSession = false;
 	}
 
+	//Make all the visualizers use their viewpoint params:
+	myVizWinMgr->initViews();
 	//Restart the animation controller:
 	AnimationController::getInstance()->restart();
 

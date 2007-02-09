@@ -357,6 +357,9 @@ public:
 	//reset to starting state
 	//
 	void restartParams();
+
+	//Make each window use its viewpoint params
+	void initViews();
 	
 	//Methods to handle save/restore
 	XmlNode* buildNode();

@@ -38,6 +38,11 @@
     <property name="toolTip" stdset="0">
         <string></string>
     </property>
+    <property name="whatsThis" stdset="0">
+        <string>This DVR panel controls volume rendering.
+To use it you must first load a dataset from the Data menu.
+Then check the instance checkbox to start rendering.</string>
+    </property>
     <hbox>
         <property name="name">
             <cstring>unnamed</cstring>
@@ -81,6 +86,15 @@
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Select current instance by clicking at left.  Check the box to enable rendering.</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>The instance checkbox determines which DVR
+is actively rendering.  Only one can render at one time.
+You can have any number of DVR instances in
+each visualization window.  Use the "New" button or the 
+"Duplicate In" selector to create new instances.
+The instance that is selected is controlled by the
+values in this DVR panel</string>
                             </property>
                         </widget>
                         <spacer>
@@ -493,6 +507,15 @@
                                     </property>
                                     <property name="toolTip" stdset="0">
                                         <string>With renderer disabled, choose the volume renderer to be used</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The Renderer Type selector controls the graphics 
+hardware capability that is used for volume rendering.  
+Only the capabilities that are supported on the current 
+platform are shown.  Usually the default setting will provide 
+the fastest and highest quality rendering.
+To change renderer type, the renderer must first
+be disabled.</string>
                                     </property>
                                 </widget>
                                 <spacer>
