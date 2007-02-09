@@ -520,8 +520,9 @@ void FlowEventRouter::updateTab(){
 	
 	
 	flowTypeCombo->setCurrentItem(flowType);
-	
-	refinementCombo->setCurrentItem(fParams->getNumRefinements());
+	int numRefs = fParams->getNumRefinements();
+	if(numRefs <= refinementCombo->count())
+		refinementCombo->setCurrentItem(numRefs);
 
 	float sliderVal = fParams->getOpacityScale();
 	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));

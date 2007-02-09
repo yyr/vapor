@@ -606,7 +606,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 		//Is there any data here?
 		if(!dataExists) {
 			MessageReporter::errorMsg("%s",
-				"Session: No data in specified dataset");
+				"Session: No data in specified dataset, or data in specified files cannot be read");
 			delete dataMgr;
 			dataMgr = 0;
 			return false;

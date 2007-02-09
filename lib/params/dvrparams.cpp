@@ -115,11 +115,6 @@ void DvrParams::
 setVarNum(int val) 
 {
 	varNum = val;
-	
-	//reset the editing display range shown on the tab, 
-	//this also sets dirty flag
-	//Set the combo var num to point to the varNum:
-	comboVarNum = DataStatus::getInstance()->mapSessionToMetadataVarNum(varNum);
 }
 
 
@@ -168,7 +163,7 @@ reinit(bool doOverride){
 		varNum = -1;
 		for (i = 0; i<totNumVariables; i++) {
 			if (ds->variableIsPresent(i)){
-				varNum = i;
+				setVarNum(i);
 				break;
 			}
 		}
@@ -281,7 +276,6 @@ void DvrParams::
 restart(){
 	histoStretchFactor = 1.f;
 	varNum = 0;
-	comboVarNum = 0;
 	lightingOn = false;
 	numBits = 8;
 	
@@ -387,7 +381,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 		}
 		// Now set the values obtained from attribute parsing.
 		//Need to match up the varName with the varNum!!
-		varNum = DataStatus::getInstance()->mergeVariableName(activeVarName);
+		setVarNum(DataStatus::getInstance()->mergeVariableName(activeVarName));
 		//Create space for the variables:
 		int numVars = Max (newNumVariables, 1);
 		if (minColorEditBounds) delete minColorEditBounds;

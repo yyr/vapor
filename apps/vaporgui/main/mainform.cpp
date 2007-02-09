@@ -713,6 +713,9 @@ void MainForm::saveMetadata()
 			MessageReporter::errorMsg("There is no Metadata to save in current session");
 		return;
 	}
+	//Warn the user that this file is not portable:
+	MessageReporter::warningMsg("Note that the Metadata file to be written is non-portable;\n%s",
+		"You may not be able to load the associated data from another system");
 	//This directly saves the session to the current vdf directory
    QString filename = QFileDialog::getSaveFileName(Session::getInstance()->getMetadataFile().c_str(),
 		"Vapor Metadata Files (*.vdf)",

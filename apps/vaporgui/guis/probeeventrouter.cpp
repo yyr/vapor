@@ -751,8 +751,10 @@ void ProbeEventRouter::updateTab(){
     {
       transferFunctionFrame->setVariableName("");
     }
-
-	refinementCombo->setCurrentItem(probeParams->getNumRefinements());
+	int numRefs = probeParams->getNumRefinements();
+	if(numRefs <= refinementCombo->count())
+		refinementCombo->setCurrentItem(numRefs);
+	
 	histoScaleEdit->setText(QString::number(probeParams->getHistoStretch()));
 
 	//Check if planar:

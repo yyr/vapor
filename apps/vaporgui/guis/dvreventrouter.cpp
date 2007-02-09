@@ -497,7 +497,9 @@ void DvrEventRouter::updateTab(){
 	typeCombo->setEnabled(!(dvrParams->isEnabled()));
 	typeCombo->setCurrentItem(typemapi[dvrParams->getType()]);
 
-	refinementCombo->setCurrentItem(dvrParams->getNumRefinements());
+	int numRefs = dvrParams->getNumRefinements();
+	if(numRefs <= refinementCombo->count())
+		refinementCombo->setCurrentItem(numRefs);
 	variableCombo->setCurrentItem(dvrParams->getComboVarNum());
 	
 	lightingCheckbox->setChecked(dvrParams->getLighting());

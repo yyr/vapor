@@ -157,7 +157,7 @@ public:
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float getHistoStretch(){return histoStretchFactor;}
 	
-	int getComboVarNum(){return comboVarNum;}
+	int getComboVarNum(){return DataStatus::getInstance()->mapSessionToMetadataVarNum(varNum);}
 	int getNumVariables() {return numVariables;}
 	TransferFunction* getTransFunc(int varnum) {return (transFunc ? transFunc[varnum] : 0);}
 	TransferFunction* getTransFunc() {return ((transFunc && numVariables>0) ? transFunc[varNum] : 0);}
@@ -188,10 +188,7 @@ protected:
 	float histoStretchFactor;
 	PanelCommand* savedCommand;
 	int varNum;
-	int comboVarNum;
 	int numVariables;
-	
-	
 	
 };
 };
