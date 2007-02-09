@@ -987,20 +987,26 @@ setEditorDirty(RenderParams *p){
 Histo* DvrEventRouter::getHistogram(RenderParams* p, bool mustGet){
 	DvrParams* dParams = (DvrParams*)p;
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
-
-	if (!histogramList){
+	int varNum = dParams->getSessionVarNum();
+	//Make sure we are using a valid variable num
+	if (varNum >= numHistograms || !histogramList){
+		
 		if (!mustGet) return 0;
 		histogramList = new Histo*[numVariables];
 		numHistograms = numVariables;
 		for (int i = 0; i<numVariables; i++)
 			histogramList[i] = 0;
 	}
-	int varNum = dParams->getSessionVarNum();
+	
 	const float* currentDatarange = dParams->getCurrentDatarange();
-	if (histogramList[varNum]) return histogramList[varNum];
+	if (histogramList[varNum]) {
+		
+		return histogramList[varNum];
+	}
 	
 	if (!mustGet) return 0;
 	histogramList[varNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
+	
 	refreshHistogram(dParams);
 	return histogramList[varNum];
 	

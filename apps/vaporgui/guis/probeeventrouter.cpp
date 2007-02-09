@@ -1612,14 +1612,16 @@ Histo* ProbeEventRouter::getHistogram(RenderParams* p, bool mustGet){
 	ProbeParams* pParams = (ProbeParams*)p;
 	//There's a histogram for each session variable!  Unlike DVR params, since
 	//We need to remember TF's based on first Session variable number
-
-	if (!histogramList){
+	//Make sure we are using a valid variable num (this can be a problem
+	//right after parsing a new session)
+	int firstVarNum = pParams->getFirstVarNum();
+	if (firstVarNum >= numHistograms || !histogramList){
 		if (!mustGet) return 0;
 		histogramList = new Histo*[numVariables];
 		for (int i = 0; i<numVariables; i++)
 			histogramList[i] = 0;
 	}
-	int firstVarNum = pParams->getFirstVarNum();
+	
 	const float* currentDatarange = pParams->getCurrentDatarange();
 	if (histogramList[firstVarNum]) return histogramList[firstVarNum];
 	
