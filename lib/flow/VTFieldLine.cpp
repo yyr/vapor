@@ -23,9 +23,7 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // definition of class FieldLine
 //////////////////////////////////////////////////////////////////////////
-#ifdef DEBUG
-	extern FILE* fDebug;
-#endif
+
 
 vtCFieldLine::vtCFieldLine(CVectorField* pField):
 m_nNumSeeds(0),
@@ -333,9 +331,7 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 			currentSpeed = nodeData.GetMag();
 			container->setSpeed(lineNum, 0, currentSpeed);
 		}
-#ifdef DEBUG
-		//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
-#endif
+
 	}
 	insertionPosn = direction;
 	count = 1;
@@ -396,9 +392,6 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 			z = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
 			container->setFlowPoint(lineNum, insertionPosn,x,y,z);
 
-#ifdef DEBUG
-			//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
-#endif
 
 			// get the velocity value of this point
 			if(container->doSpeeds())
@@ -527,9 +520,7 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 			currentSpeed = nodeData.GetMag();
 			container->setSpeedAtTime(lineNum, firstT, currentSpeed);
 		}
-#ifdef DEBUG
-		//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
-#endif
+
 	}
 	
 	//AN:  Removed this assert, 10/05/05.
@@ -595,9 +586,7 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 			z = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
 			container->setPointAtTime(lineNum, nextTime,x,y,z);
 
-#ifdef DEBUG
-			//fprintf(fDebug, "point (%f, %f, %f)\n", positions[ptr-3], positions[ptr-2], positions[ptr-1]);
-#endif
+
 
 			// get the velocity value of this point, use next time step.
 			if(container->doSpeeds())

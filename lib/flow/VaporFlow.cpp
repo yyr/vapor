@@ -13,9 +13,7 @@
 using namespace VetsUtil;
 using namespace VAPoR;
 
-#ifdef DEBUG
-	FILE* fDebug;
-#endif
+
 
 VaporFlow::VaporFlow(DataMgr* dm)
 {
@@ -59,9 +57,6 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	bUseRandomSeeds = false;
 	periodicDim[0]= periodicDim[1]= periodicDim[2]= false;
 
-#ifdef DEBUG
-	fDebug = fopen("C:\\Liya\\debug.txt", "w");
-#endif
 }
 
 VaporFlow::~VaporFlow()
@@ -81,9 +76,6 @@ VaporFlow::~VaporFlow()
 	if(zSeedDistVarName) delete zSeedDistVarName;
 	
 	
-#ifdef DEBUG
-	fclose(fDebug);
-#endif
 }
 
 void VaporFlow::Reset(void)

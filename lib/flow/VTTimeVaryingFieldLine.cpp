@@ -20,9 +20,6 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // methods common to all time varying field lines
 //////////////////////////////////////////////////////////////////////////
-#ifdef DEBUG
-	extern FILE* fStreakDebug;
-#endif
 
 vtCTimeVaryingFieldLine::vtCTimeVaryingFieldLine(CVectorField* pField) : 
 vtCFieldLine(pField),

@@ -22,9 +22,7 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // class implementation of Numerical StreakLine
 //////////////////////////////////////////////////////////////////////////
-#ifdef DEBUG
-	extern FILE* fDebug;
-#endif
+
 
 vtCStreakLine::vtCStreakLine(CVectorField* pField) : 
 vtCTimeVaryingFieldLine(pField)
@@ -67,9 +65,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 	int istat;
 	int dir = container->getFlowDirection();
 	
-#ifdef DEBUG
-	fprintf(fDebug, "**********************Advect Old Particles**************************\n");
-#endif
+
 
 	// advect the previous old particles
 	deadList.clear();
@@ -85,9 +81,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 	if(bInjectSeeds)
 	{
 
-#ifdef DEBUG
-		fprintf(fDebug, "**********************Advect New Particles**************************\n");
-#endif
+
 
 		int count;
 		count = -1;			// enumerate seed in this injection
@@ -114,27 +108,10 @@ void vtCStreakLine::computeStreakLine(const float t,
 										*stepList, 
 										true);
 
-#ifdef DEBUG
-				fprintf(fDebug, "************************************************\n");
-				fprintf(fDebug, "Start(%f, %f, %f), end(%f, %f, %f)\n", 
-						thisSeed->m_pointInfo.phyCoord[0], 
-						thisSeed->m_pointInfo.phyCoord[1], 
-						thisSeed->m_pointInfo.phyCoord[2], 
-						nextP.m_pointInfo.phyCoord[0], 
-						nextP.m_pointInfo.phyCoord[1], 
-						nextP.m_pointInfo.phyCoord[2]);
-#endif
+
 	
 				nextP.unusedTime = SampleFieldline(container, currentT, finalT, thisSeed->ptId, dir, 
 					forwardTrace, stepList, true, istat, 0.f, doingFLA);	
-
-#ifdef DEBUG
-				fprintf(fDebug, "istat = %d, posInPoints = %u\n", istat, posInPoints);
-#endif
-
-#ifdef DEBUG
-				fprintf(fDebug, "************************************************\n");
-#endif
 
 				// for next timestep's advection
 				if(istat == OKAY)

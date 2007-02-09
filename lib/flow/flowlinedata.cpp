@@ -9,9 +9,6 @@
 using namespace VetsUtil;
 using namespace VAPoR;
 
-#ifdef DEBUG
-	FILE* fDebug;
-#endif
 
 
 

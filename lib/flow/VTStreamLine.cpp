@@ -23,7 +23,7 @@ using namespace VAPoR;
 //////////////////////////////////////////////////////////////////////////
 // definition of class FieldLine
 //////////////////////////////////////////////////////////////////////////
-extern FILE* fDebug;
+//extern FILE* fDebug;
 
 vtCStreamLine::vtCStreamLine(CVectorField* pField):
 vtCFieldLine(pField),
@@ -211,9 +211,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	mag = vel.GetMag();
 	dt = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
 
-#ifdef DEBUG
-	fprintf(fDebug, "************************************************\n");
-#endif
+
 	int rollbackCount = 0;
 	// start to advect
 	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
@@ -223,10 +221,6 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 		prevInterpolant = thisInterpolant;
 		int retrace = true;
 
-#ifdef DEBUG
-		fprintf(fDebug, "Point(%f, %f, %f), stepSize = %f\n", 
-				thisParticle.phyCoord[0], thisParticle.phyCoord[1], thisParticle.phyCoord[2],dt);
-#endif
 
 		while(retrace)
 		{
@@ -274,9 +268,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, onAdaptive);
 				if(onAdaptive == false)
 					nSetAdaptiveCount = 0;
-#ifdef DEBUG
-				fprintf(fDebug, "retrace = %d\n", retrace);
-#endif
+
 				assert (rollbackCount < 1000);//If we got here, it's surely an infinite loop!
 					
 				// roll back and retrace
