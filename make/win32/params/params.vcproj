@@ -201,6 +201,9 @@
 				RelativePath="..\..\..\lib\params\dvrparams.h">
 			</File>
 			<File
+				RelativePath="..\..\..\include\vapor\errorcodes.h">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\flowparams.h">
 			</File>
 			<File

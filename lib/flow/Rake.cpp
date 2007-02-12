@@ -107,6 +107,8 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 					"Unable to generate requested number of distributed seed points.\nTry smaller bias.");
 				delete fData; delete pRake; return false;
 			}
+			fData->releaseData(vFlow->getDataMgr());
+			delete fData;
 		}
 	}
 	else

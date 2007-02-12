@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>438</width>
-            <height>907</height>
+            <height>905</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -40,8 +40,9 @@
     </property>
     <property name="whatsThis" stdset="0">
         <string>This DVR panel controls volume rendering.
-To use it you must first load a dataset from the Data menu.
-Then check the instance checkbox to start rendering.</string>
+To use it you must first load a dataset from the 
+Data menu.  Then check the instance checkbox 
+to start rendering.</string>
     </property>
     <hbox>
         <property name="name">
@@ -88,13 +89,15 @@ Then check the instance checkbox to start rendering.</string>
                                 <string>Select current instance by clicking at left.  Check the box to enable rendering.</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>The instance checkbox determines which DVR
-is actively rendering.  Only one can render at one time.
-You can have any number of DVR instances in
-each visualization window.  Use the "New" button or the 
-"Duplicate In" selector to create new instances.
-The instance that is selected is controlled by the
-values in this DVR panel</string>
+                                <string>The instance checkbox determines which 
+DVR is actively rendering.  Only one can 
+render at one time.  You can have any 
+number of DVR instances in each 
+visualization window.  Use the "New"  button 
+or the "Duplicate In" selector to create new 
+DVR instances. The instance that is 
+selected is controlled by the values in this 
+(currently displayed) DVR panel.</string>
                             </property>
                         </widget>
                         <spacer>
@@ -362,6 +365,9 @@ values in this DVR panel</string>
                                     <property name="maxCount">
                                         <number>5</number>
                                     </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify the refinement level (resolution) of the data being visualized</string>
+                                    </property>
                                 </widget>
                                 <spacer>
                                     <property name="name">
@@ -509,13 +515,14 @@ values in this DVR panel</string>
                                         <string>With renderer disabled, choose the volume renderer to be used</string>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The Renderer Type selector controls the graphics 
-hardware capability that is used for volume rendering.  
-Only the capabilities that are supported on the current 
-platform are shown.  Usually the default setting will provide 
-the fastest and highest quality rendering.
-To change renderer type, the renderer must first
-be disabled.</string>
+                                        <string>The Renderer Type selector controls the 
+graphics hardware capability that is used 
+for volume rendering.  Only the capabilities
+that are supported on your current 
+system are shown.  Usually the default 
+setting will provide the fastest and highest 
+quality rendering.  To change renderer
+type, the renderer must first be disabled.</string>
                                     </property>
                                 </widget>
                                 <spacer>
@@ -579,6 +586,14 @@ be disabled.</string>
                                     <height>130</height>
                                 </size>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>The color selector is used to view and
+to set the color of the currently selected 
+color control point.  The value can be set
+by typing in a RGB or HSV value, or by 
+selecting a color from the palette and
+an intensity from the slider</string>
+                            </property>
                         </widget>
                         <widget class="QLabel">
                             <property name="name">
@@ -619,6 +634,17 @@ be disabled.</string>
                                     <property name="toolTip" stdset="0">
                                         <string>Select and edit control points</string>
                                     </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The Edit and Zoom/Pan button select
+two modes of mouse interaction in the
+transfer function window.  In Zoom/Pan
+mode, click-drag the left mouse to change
+the region of the transfer function that is
+visible in the window, without changing
+the transfer function itself.  In Edit mode
+the left mouse button is used to select
+and move control points.</string>
+                                    </property>
                                 </widget>
                                 <widget class="QPushButton">
                                     <property name="name">
@@ -632,6 +658,17 @@ be disabled.</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
                                         <string>Use mouse to zoom and pan edit window</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The Edit and Zoom/Pan button select
+two modes of mouse interaction in the
+transfer function window.  In Zoom/Pan
+mode, click-drag the left mouse to change
+the region of the transfer function that is
+visible in the window, without changing
+the transfer function itself.  In Edit mode
+the left mouse button is used to select
+and move control points.</string>
                                     </property>
                                 </widget>
                                 <widget class="QPushButton">
@@ -653,7 +690,19 @@ be disabled.</string>
                                         <string>Histo</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
-                                        <string>Click to build a new histogram based on the current region settings, animation timestep, and transfer function bounds</string>
+                                        <string>Click to refresh the histogram based on the current region settings, animation timestep, and transfer function bounds</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>Click the Histo button to refresh the
+histogram that is displayed in the transfer
+function edit window.  The data that is 
+histogrammed is determined by the 
+current variable, the refinement level,
+the current time step, the applicable
+region extents, and the data bounds.
+Use the right mouse menu in the 
+transfer function window to choose
+how the histogram is scaled.</string>
                                     </property>
                                 </widget>
                             </hbox>
@@ -681,6 +730,19 @@ be disabled.</string>
                                     </property>
                                     <property name="opacityMapping" stdset="0">
                                         <bool>true</bool>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The transfer function editor displays a 
+mapping (called a "transfer function")
+from the data variable to opacity and color,
+This is used when you volume render the
+variable.  The opacity values are shown
+as a green curve.  The color is determined
+by the set of control points along the color
+bar at the bottom.  A histogram of data 
+values is shown in blue-green behind 
+the opacity curve.  Additional options are
+available from the right mouse button.</string>
                                     </property>
                                 </widget>
                                 <widget class="QLayoutWidget">
@@ -748,11 +810,14 @@ be disabled.</string>
                                         <string>Minimum of transfer function domain</string>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The actual data bounds are based on the range
-of data values in the first time step.  These values 
-are only a guide.  The TF Domain Bounds can be 
-reset to any range, and a histogram constructed,
-to determine the actual data values in that range.</string>
+                                        <string>The displayed data bounds are based on 
+the range of data values in the first time step
+of the dataset.  These values are only a 
+guide.  The TF Domain Bounds can be 
+reset to any range.  Click on the "histo" 
+button to construct, a histogram and thereby
+to determine the actual data values in the
+specified range.</string>
                                     </property>
                                 </widget>
                                 <spacer>
@@ -814,11 +879,14 @@ to determine the actual data values in that range.</string>
                                         <string>Maximum of transfer function domain</string>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The actual data bounds are based on the range
-of data values in the first time step.  These values 
-are only a guide.  The TF Domain Bounds can be 
-reset to any range, and a histogram constructed,
-to determine the actual data values in that range.</string>
+                                        <string>The displayed data bounds are based on 
+the range of data values in the first time step
+of the dataset.  These values are only a 
+guide.  The TF Domain Bounds can be 
+reset to any range.  Click on the "histo" button 
+to construct, a histogram and thereby to
+determine the actual data values in the
+specified range.</string>
                                     </property>
                                 </widget>
                             </hbox>
@@ -846,11 +914,14 @@ to determine the actual data values in that range.</string>
                                         <string>Data bounds are estimated from the variable at the first available time step.</string>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The actual data bounds are based on the range
-of data values in the first time step.  These values 
-are only a guide.  The TF Domain Bounds can be 
-reset to any range, and a histogram constructed,
-to determine the actual data values in that range.</string>
+                                        <string>The displayed data bounds are based on 
+the range of data values in the first time step
+of the dataset.  These values are only a 
+guide.  The TF Domain Bounds can be 
+reset to any range.  Click on the "histo" button 
+to construct, a histogram and thereby to
+determine the actual data values in the
+specified range.</string>
                                     </property>
                                 </widget>
                                 <widget class="QLabel">
@@ -885,11 +956,14 @@ to determine the actual data values in that range.</string>
                                         <string>Data bounds are estimated from the variable at the first available time step.</string>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The actual data bounds are based on the range
-of data values in the first time step.  These values 
-are only a guide.  The TF Domain Bounds can be 
-reset to any range, and a histogram constructed,
-to determine the actual data values in that range.</string>
+                                        <string>The displayed data bounds are based on 
+the range of data values in the first time step
+of the dataset.  These values are only a 
+guide.  The TF Domain Bounds can be 
+reset to any range.  Click on the "histo" button 
+to construct, a histogram and thereby to
+determine the actual data values in the
+specified range.</string>
                                     </property>
                                 </widget>
                             </hbox>
@@ -994,6 +1068,16 @@ to determine the actual data values in that range.</string>
                                     <property name="toolTip" stdset="0">
                                         <string>Move selected color to same x coord as selected opacity </string>
                                     </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>When exactly one color control point
+and exacty one opacity control point 
+are selected, click on these "Bind"
+buttons to force those two control
+points to coincide.  Either the opacity
+control point is moved to position of
+the color control point, or vice-versa,
+depending on which button is clicked.</string>
+                                    </property>
                                 </widget>
                                 <spacer row="0" column="2">
                                     <property name="name">
@@ -1058,6 +1142,16 @@ to determine the actual data values in that range.</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
                                         <string>Move selected opacity to same x coord as selected color</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>When exactly one color control point
+and exacty one opacity control point 
+are selected, click on these "Bind"
+buttons to force those two control
+points to coincide.  Either the opacity
+control point is moved to position of
+the color control point, or vice-versa,
+depending on which button is clicked.</string>
                                     </property>
                                 </widget>
                                 <spacer row="0" column="4">
@@ -1240,6 +1334,13 @@ to determine the actual data values in that range.</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
                                         <string>Set lighting on or off</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The Lighting-On checkbox can only be
+used if your graphics hardware supports
+it.  When enabled, the light source is 
+controlled by the lighting parameters
+of Light No. 1 in the Viewpoint panel.</string>
                                     </property>
                                 </widget>
                                 <spacer>

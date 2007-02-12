@@ -63,7 +63,7 @@ void SessionParams::launch(){
 		Session* currentSession = Session::getInstance();
 		MessageReporter* mReporter = MessageReporter::getInstance();
 		int newVal = sessionParamsDlg->cacheSizeEdit->text().toInt();
-		if (newVal > 100 && newVal != currentSession->getCacheMB()){
+		if (newVal > 10 && newVal != currentSession->getCacheMB()){
 			currentSession->setCacheMB(newVal);
 			MessageReporter::warningMsg("%s","Cache size will change at next metadata loading"); 
 		}

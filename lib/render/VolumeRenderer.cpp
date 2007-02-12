@@ -46,7 +46,7 @@
 #include <qstring.h>
 #include <qstatusbar.h>
 
-
+#include "vapor/errorcodes.h"
 #include "VolumeRenderer.h"
 #include "regionparams.h"
 #include "animationparams.h"
@@ -336,7 +336,14 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	  || datarangeIsDirty()||myGLWindow->dvrRegionIsNavigating()
 	  || myGLWindow->animationIsDirty())) 
   {
-    
+    //Check if the region/resolution is too big:
+	  int numMBs = RegionParams::getMBStorageNeeded(extents, extents+3, numxforms);
+	  int cacheSize = DataStatus::getInstance()->getCacheMB();
+	  if (numMBs > (int)(0.75*cacheSize)){
+		  MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current region and resolution.\n%s",
+			  "Lower the refinement level, reduce the region size, or increase the cache size.");
+		  return;
+	  }
     myGLWindow->setRenderNew();
     int	rc;
     int nx,ny,nz;

@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>440</width>
-            <height>836</height>
+            <height>649</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -37,6 +37,12 @@
     </property>
     <property name="toolTip" stdset="0">
         <string></string>
+    </property>
+    <property name="whatsThis" stdset="0">
+        <string>This viewpoint and lights panel 
+specifies the position of the viewer
+and the lights that illuminate the
+scene.</string>
     </property>
     <hbox>
         <property name="name">
@@ -114,6 +120,16 @@
                             <property name="toolTip" stdset="0">
                                 <string>Apply these settings to visualizers, either globally or locally</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Viewpoint and lights parameters
+can be either "local" or "global".
+To apply these parameters to
+only the one (selected) visualizer, 
+set this to "local".  All visualizers
+that have this set to "global" will
+share the same viewpoint and
+lights.</string>
+                            </property>
                         </widget>
                         <spacer>
                             <property name="name">
@@ -174,6 +190,17 @@
                             <property name="text">
                                 <string>0.7071</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
+                            </property>
                         </widget>
                         <widget class="QLabel" row="0" column="2">
                             <property name="name">
@@ -198,6 +225,17 @@
                             <property name="name">
                                 <cstring>camPos0</cstring>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
+                            </property>
                         </widget>
                         <widget class="QLineEdit" row="1" column="2">
                             <property name="name">
@@ -205,6 +243,17 @@
                             </property>
                             <property name="text">
                                 <string>3.12332</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="0" column="0">
@@ -249,6 +298,17 @@
                             <property name="text">
                                 <string>0.5002</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
+                            </property>
                         </widget>
                         <widget class="QLabel" row="2" column="0">
                             <property name="name">
@@ -265,6 +325,17 @@
                             <property name="text">
                                 <string>0.5</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
+                            </property>
                         </widget>
                         <widget class="QLineEdit" row="4" column="3">
                             <property name="name">
@@ -272,6 +343,17 @@
                             </property>
                             <property name="text">
                                 <string>0.5</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="3" column="0">
@@ -289,6 +371,17 @@
                             <property name="text">
                                 <string>0.7071</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
+                            </property>
                         </widget>
                         <widget class="QLineEdit" row="1" column="3">
                             <property name="name">
@@ -296,6 +389,17 @@
                             </property>
                             <property name="text">
                                 <string>-0.24556</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit" row="3" column="3">
@@ -305,6 +409,17 @@
                             <property name="text">
                                 <string>1.0</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
+                            </property>
                         </widget>
                         <widget class="QLineEdit" row="3" column="1">
                             <property name="name">
@@ -312,6 +427,17 @@
                             </property>
                             <property name="text">
                                 <string>0.0</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit" row="3" column="2">
@@ -321,6 +447,17 @@
                             <property name="text">
                                 <string>0.0</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
+                            </property>
                         </widget>
                         <widget class="QLineEdit" row="4" column="2">
                             <property name="name">
@@ -328,6 +465,17 @@
                             </property>
                             <property name="text">
                                 <string>0.5</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These four vectors specify where
+the camera is located, in the same
+coordinates system as the 
+data is located (see the region panel).
+The rotation center specifies the 
+position (usually the center of the
+current region) around which the 
+scene rotates or zooms during
+mouse navigation.</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="0" column="1">
@@ -579,6 +727,14 @@
                             <property name="alignment">
                                 <set>AlignHCenter</set>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Vapor allows up to three lights to be used 
+in flow visualization, and one for volume
+rendering.  The orientation vectors specify
+the direction to the light source from the
+viewer position, so (0,0,-1) is a light 
+originating behind the viewer</string>
+                            </property>
                         </widget>
                         <spacer row="4" column="2">
                             <property name="name">
@@ -621,6 +777,14 @@
                             <property name="alignment">
                                 <set>AlignHCenter</set>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Vapor allows up to three lights to be used 
+in flow visualization, and one for volume
+rendering.  The orientation vectors specify
+the direction to the light source from the
+viewer position, so (0,0,-1) is a light 
+originating behind the viewer</string>
+                            </property>
                         </widget>
                         <widget class="QLineEdit" row="1" column="1">
                             <property name="name">
@@ -637,6 +801,14 @@
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify direction vector of light source relative to viewing direction</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Vapor allows up to three lights to be used 
+in flow visualization, and one for volume
+rendering.  The orientation vectors specify
+the direction to the light source from the
+viewer position, so (0,0,-1) is a light 
+originating behind the viewer</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="0" column="2">
@@ -663,6 +835,14 @@
                             <property name="alignment">
                                 <set>AlignHCenter</set>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Vapor allows up to three lights to be used 
+in flow visualization, and one for volume
+rendering.  The orientation vectors specify
+the direction to the light source from the
+viewer position, so (0,0,-1) is a light 
+originating behind the viewer</string>
+                            </property>
                         </widget>
                         <widget class="QLineEdit" row="5" column="2">
                             <property name="name">
@@ -677,6 +857,14 @@
                             <property name="alignment">
                                 <set>AlignHCenter</set>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Vapor allows up to three lights to be used 
+in flow visualization, and one for volume
+rendering.  The orientation vectors specify
+the direction to the light source from the
+viewer position, so (0,0,-1) is a light 
+originating behind the viewer</string>
+                            </property>
                         </widget>
                         <widget class="QLineEdit" row="3" column="1">
                             <property name="name">
@@ -690,6 +878,14 @@
                             </property>
                             <property name="alignment">
                                 <set>AlignHCenter</set>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Vapor allows up to three lights to be used 
+in flow visualization, and one for volume
+rendering.  The orientation vectors specify
+the direction to the light source from the
+viewer position, so (0,0,-1) is a light 
+originating behind the viewer</string>
                             </property>
                         </widget>
                         <spacer row="2" column="1">
@@ -756,6 +952,14 @@
                             <property name="alignment">
                                 <set>AlignHCenter</set>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Vapor allows up to three lights to be used 
+in flow visualization, and one for volume
+rendering.  The orientation vectors specify
+the direction to the light source from the
+viewer position, so (0,0,-1) is a light 
+originating behind the viewer</string>
+                            </property>
                         </widget>
                         <spacer row="0" column="0">
                             <property name="name">
@@ -786,6 +990,14 @@
                             </property>
                             <property name="alignment">
                                 <set>AlignHCenter</set>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Vapor allows up to three lights to be used 
+in flow visualization, and one for volume
+rendering.  The orientation vectors specify
+the direction to the light source from the
+viewer position, so (0,0,-1) is a light 
+originating behind the viewer</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="0" column="1">
@@ -845,6 +1057,14 @@
                             </property>
                             <property name="alignment">
                                 <set>AlignHCenter</set>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Vapor allows up to three lights to be used 
+in flow visualization, and one for volume
+rendering.  The orientation vectors specify
+the direction to the light source from the
+viewer position, so (0,0,-1) is a light 
+originating behind the viewer</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="3" column="0">
@@ -1008,6 +1228,14 @@
                                     <property name="alignment">
                                         <set>AlignHCenter</set>
                                     </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The lighting coefficients describe 
+reflection and absorption properties 
+of the light sources.  All lights are white.
+The ambient coefficient and the shininess 
+exponent are associated with all three 
+light sources.</string>
+                                    </property>
                                 </widget>
                                 <spacer row="4" column="2">
                                     <property name="name">
@@ -1042,6 +1270,14 @@
                                     <property name="toolTip" stdset="0">
                                         <string>Specify a value between 0 and 1 for the diffuse component of light source</string>
                                     </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The lighting coefficients describe 
+reflection and absorption properties 
+of the light sources.  All lights are white.
+The ambient coefficient and the shininess 
+exponent are associated with all three 
+light sources.</string>
+                                    </property>
                                 </widget>
                                 <widget class="QLabel" row="0" column="2">
                                     <property name="name">
@@ -1073,6 +1309,14 @@
                                     <property name="toolTip" stdset="0">
                                         <string>Specify a value between 0 and 1 for the intensity of the specular component of the light source</string>
                                     </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The lighting coefficients describe 
+reflection and absorption properties 
+of the light sources.  All lights are white.
+The ambient coefficient and the shininess 
+exponent are associated with all three 
+light sources.</string>
+                                    </property>
                                 </widget>
                                 <widget class="QLineEdit" row="5" column="2">
                                     <property name="name">
@@ -1090,6 +1334,14 @@
                                     <property name="toolTip" stdset="0">
                                         <string>Specify a value between 0 and 1 for the intensity of the specular component of the light source</string>
                                     </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The lighting coefficients describe 
+reflection and absorption properties 
+of the light sources.  All lights are white.
+The ambient coefficient and the shininess 
+exponent are associated with all three 
+light sources.</string>
+                                    </property>
                                 </widget>
                                 <widget class="QLineEdit" row="3" column="1">
                                     <property name="name">
@@ -1103,6 +1355,14 @@
                                     </property>
                                     <property name="alignment">
                                         <set>AlignHCenter</set>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The lighting coefficients describe 
+reflection and absorption properties 
+of the light sources.  All lights are white.
+The ambient coefficient and the shininess 
+exponent are associated with all three 
+light sources.</string>
                                     </property>
                                 </widget>
                                 <spacer row="2" column="1">
@@ -1188,6 +1448,14 @@
                                     </property>
                                     <property name="toolTip" stdset="0">
                                         <string>Specify a value between 0 and 1 for the intensity of the specular component of the light source</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The lighting coefficients describe 
+reflection and absorption properties 
+of the light sources.  All lights are white.
+The ambient coefficient and the shininess 
+exponent are associated with all three 
+light sources.</string>
                                     </property>
                                 </widget>
                                 <widget class="QLabel" row="0" column="1">
@@ -1288,6 +1556,14 @@
                                     <property name="alignment">
                                         <set>AlignHCenter</set>
                                     </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The lighting coefficients describe 
+reflection and absorption properties 
+of the light sources.  All lights are white.
+The ambient coefficient and the shininess 
+exponent are associated with all three 
+light sources.</string>
+                                    </property>
                                 </widget>
                                 <spacer>
                                     <property name="name">
@@ -1327,6 +1603,14 @@
                                     <property name="alignment">
                                         <set>AlignHCenter</set>
                                     </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The lighting coefficients describe 
+reflection and absorption properties 
+of the light sources.  All lights are white.
+The ambient coefficient and the shininess 
+exponent are associated with all three 
+light sources.</string>
+                                    </property>
                                 </widget>
                                 <spacer>
                                     <property name="name">
@@ -1365,140 +1649,6 @@
                             </property>
                         </spacer>
                     </hbox>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer24</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
-                            <height>18</height>
-                        </size>
-                    </property>
-                </spacer>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout94</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>loadButton</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="text">
-                                <string>Load Viewpoint</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Load viewpoint from file</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer121</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>111</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>saveButton</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="text">
-                                <string>Save Viewpoint</string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Save viewpoint to file</string>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer98</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
-                            <height>19</height>
-                        </size>
-                    </property>
-                </spacer>
-                <widget class="QPushButton">
-                    <property name="name">
-                        <cstring>copyToButton</cstring>
-                    </property>
-                    <property name="enabled">
-                        <bool>false</bool>
-                    </property>
-                    <property name="text">
-                        <string>Copy Settings to </string>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Copy these viewpoint/light settings to the global or another local or global viewpoint/lights panel</string>
-                    </property>
-                </widget>
-                <widget class="QComboBox">
-                    <item>
-                        <property name="text">
-                            <string>Global</string>
-                        </property>
-                    </item>
-                    <item>
-                        <property name="text">
-                            <string>Visualizer 0</string>
-                        </property>
-                    </item>
-                    <item>
-                        <property name="text">
-                            <string>Visualizer 2</string>
-                        </property>
-                    </item>
-                    <item>
-                        <property name="text">
-                            <string>Visualizer 3</string>
-                        </property>
-                    </item>
-                    <property name="name">
-                        <cstring>copyTargetCombo</cstring>
-                    </property>
-                    <property name="enabled">
-                        <bool>false</bool>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Copy these viewpoint/light settings to the global or another local or global viewpoint/lights panel</string>
-                    </property>
                 </widget>
             </vbox>
         </widget>

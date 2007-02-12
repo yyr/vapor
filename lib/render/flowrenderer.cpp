@@ -800,15 +800,36 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 
 	//Check it out:
 	if (!myFlowParams->validateSettings(timeStep)) {
-		setDirtyNeedsRefresh(myFlowParams);
+		//If it's not OK, we turned of autoRefresh.  
+		//Also turn off all the needsRefreshflags, so we won't try to render.
+		setAllNeedRefresh(false);
+		return false;
+	}
+	int flowType = myFlowParams->getFlowType();  //steady, unsteady, and field line advect
+
+	//Check that we have a large-enough cache.  
+	
+	RegionParams* rParams = myGLWindow->getActiveRegionParams();
+	int numRefs = myFlowParams->getNumRefinements();
+	int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(), rParams->getRegionMax(), numRefs);
+	
+	//3 variables are needed for
+	//steady integration, 6 are needed for unsteady integration.
+	if (flowType == 0) numMBs *= 3; else numMBs *= 6;
+	int cacheSize = DataStatus::getInstance()->getCacheMB();
+	if (numMBs > (int)(0.75*cacheSize)){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for flow integration at current region and resolution.\n%s\n%s",
+			"Lower the refinement level, reduce the region size, or increase the cache size.",
+			"autoRefresh has been disabled");
+		myFlowParams->setAutoRefresh(false);
+		setAllNeedRefresh(false);
 		return false;
 	}
 	//Establish parameters that will be saved with the cache:
 	
 	bool doRake = myFlowParams->rakeEnabled();
 	doList = !doRake;
-	int flowType = myFlowParams->getFlowType();  //steady, unsteady, and field line advect
-
+	
 	//For unsteady flow, the min/max frame interval can be narrowed by the
 	//timesampling interval.  It doesn't make any sense to extrapolate outside
 	//that interval.  Likewise, the seeding cannot happen before the start of the
@@ -828,7 +849,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	}
 
 	maxPoints = myFlowParams->calcMaxPoints();
-	RegionParams* rParams = myGLWindow->getActiveRegionParams();
+	
 	//Check if we are just doing graphics (not reintegrating flow)
 	//that occurs if the map bit is dirty, but there's no need to rebuild data.
 	bool graphicsOnly = (flowMapIsDirty(timeStep) && 

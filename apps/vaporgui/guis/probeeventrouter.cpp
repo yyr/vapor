@@ -77,6 +77,7 @@
 #include "savetfdialog.h"
 #include "loadtfdialog.h"
 #include "VolumeRenderer.h"
+#include "vapor/errorcodes.h"
 
 using namespace VAPoR;
 
@@ -1622,6 +1623,7 @@ Histo* ProbeEventRouter::getHistogram(RenderParams* p, bool mustGet){
 		histogramList = new Histo*[numVariables];
 		for (int i = 0; i<numVariables; i++)
 			histogramList[i] = 0;
+		numHistograms = numVariables;
 	}
 	
 	const float* currentDatarange = pParams->getCurrentDatarange();
@@ -1658,7 +1660,26 @@ refreshHistogram(RenderParams* p){
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	
 	pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, boxMin, boxMax);
-
+	//Make sure this box will fit in current 
+	//Check if the region/resolution is too big:
+	int numRefinements = pParams->getNumRefinements();
+	float boxExts[6];
+	RegionParams::convertToBoxExtentsInCube(numRefinements,boxMin, boxMax,boxExts); 
+	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, numRefinements);
+	//Check how many variables are needed:
+	int varCount = 0;
+	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumSessionVariables(); varnum++){
+		if (pParams->variableIsSelected(varnum)) varCount++;
+	}
+	int cacheSize = DataStatus::getInstance()->getCacheMB();
+	if (numMBs*varCount > (int)(cacheSize*0.75)){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current probe and resolution.\n%s \n%s",
+			"Lower the refinement level, reduce the probe size, or increase the cache size.",
+			"Rendering has been disabled.");
+		pParams->setEnabled(false);
+		updateTab();
+		return;
+	}
 	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then histogram rms on the variables (if > 1 specified)
@@ -1680,7 +1701,7 @@ refreshHistogram(RenderParams* p){
 	size_t dataSize[3];
 	float gridSpacing[3];
 	const float* extents = DataStatus::getInstance()->getExtents();
-	int numRefinements = pParams->getNumRefinements();
+	
 	for (int i = 0; i< 3; i++){
 		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i);
 		gridSpacing[i] = (extents[i+3]-extents[i])/(float)(dataSize[i]-1);

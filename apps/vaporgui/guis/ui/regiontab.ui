@@ -38,6 +38,18 @@
     <property name="toolTip" stdset="0">
         <string></string>
     </property>
+    <property name="whatsThis" stdset="0">
+        <string>The Region panel specifies a box
+within the full domain (as defined by
+the .vdf  or metadata file.
+There are various options for
+copying these settings to/from 
+the rake and/or probe that
+are defined in the active visualizer,
+(the rake and probe settings
+are specified in the flow and in
+the probe panels).</string>
+    </property>
     <hbox>
         <property name="name">
             <cstring>unnamed</cstring>
@@ -111,6 +123,15 @@
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Apply these settings to visualizers, either globally or locally</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Region  parameters
+can be either "local" or "global".
+To apply these parameters to
+only the one (selected) visualizer, 
+set this to "local".  All visualizers
+that have this set to "global" will
+share the same region settings.</string>
                             </property>
                         </widget>
                         <spacer>
@@ -1346,6 +1367,22 @@
                     </property>
                     <property name="frameShadow">
                         <enum>Raised</enum>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>The Region Information about Loaded
+Data provides a general way of inquiring
+about spatial and temporal extents
+of any dataset that is currently available
+(i.e.that has been loaded).  When
+the Refinement, variable name, and
+timestep are specified, the values 
+displayed below indicate the full
+extent of the data (IDC Extents),
+the extents of the specific variable,
+and the extents associated with
+the current region.  These boxes
+are blank when the data is not
+available.</string>
                     </property>
                     <hbox>
                         <property name="name">

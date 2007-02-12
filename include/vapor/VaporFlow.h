@@ -97,9 +97,12 @@ namespace VAPoR
 		//unless the boolean argument is true
 		FieldData* setupFieldData(const char* varx, const char* vary, const char* varz, bool useRakeBounds, int numRefinements, int timestep, bool scaleField);
 	
+		void releaseFieldData(FieldData*);
 		//Obtain min/max vector magnitude in specified region.  Return false on error 
 		bool getFieldMagBounds(float* minVal, float* maxVal, const char* varx, const char* vary, const char* varz, 
 			bool useRakeBounds, int numRefinements, int timestep);
+
+		DataMgr* getDataMgr(){return dataMgr;}
 	 
 	private:
 		size_t userTimeUnit;						// time unit in the original data

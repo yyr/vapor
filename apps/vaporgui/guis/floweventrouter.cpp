@@ -970,7 +970,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setSeedTimeIncrement(seedTimeIncrement);
 			
 		} //end of rake settings for unsteady flow
-		fParams->setSeedDistBias(seedDistBias);
+		if (showAdvanced) fParams->setSeedDistBias(seedDistBias);
 	} // end of flow Data changed
 	if (flowGraphicsChanged){
 		//change the parameters.  

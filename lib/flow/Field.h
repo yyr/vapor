@@ -15,6 +15,7 @@
 #include "header.h"
 #include "Grid.h"
 #include "Solution.h"
+#include "vapor/DataMgr.h"
 
 //////////////////////////////////////////////////////////////////////////
 // vector field class
@@ -75,6 +76,7 @@ public:
 		float** xdata, float** ydata, float** zdata, int tstep);
 		
 	float getFieldMag(float point[3]);
+	void releaseData(DataMgr*);
 private:
 	//information kept in the FieldData: 
 	int timeStep;

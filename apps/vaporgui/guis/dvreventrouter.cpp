@@ -78,6 +78,7 @@
 #include "loadtfdialog.h"
 #include "colorpicker.h"
 #include "VolumeRenderer.h"
+#include "vapor/errorcodes.h"
 
 using namespace VAPoR;
 
@@ -1055,6 +1056,17 @@ void DvrEventRouter::refreshHistogram(RenderParams* p){
 		return;
 	}
 	
+	//Check if the region/resolution is too big:
+	  int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(), rParams->getRegionMax(), numTrans);
+	  int cacheSize = DataStatus::getInstance()->getCacheMB();
+	  if (numMBs > (int)(0.75*cacheSize)){
+		  MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current region and resolution.\n%s \n%s",
+			  "Lower the refinement level, reduce the region size, or increase the cache size.",
+			  "Rendering has been disabled.");
+		  dParams->setEnabled(false);
+		  updateTab();
+		  return;
+	  }
 	const Metadata* metaData = Session::getInstance()->getCurrentMetadata();
 	//Now get the data:
 	

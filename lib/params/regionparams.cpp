@@ -193,7 +193,7 @@ void RegionParams::setRegionMax(int coord, float maxval, bool checkMin){
 //coords, that may be smaller than region coords)
 //
 void RegionParams::
-convertToBoxExtentsInCube(int refLevel, size_t min_dim[3], size_t max_dim[3], float extents[6]){
+convertToBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]){
 	double fullExtents[6];
 	double subExtents[6];
 	DataStatus* ds = DataStatus::getInstance();
@@ -458,4 +458,32 @@ buildNode(){
 	regionNode->SetElementDouble(_regionMaxTag,bounds);
 		
 	return regionNode;
+}
+//Static method to find how many megabytes are needed for a dataset.
+int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, int refLevel){
+	
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getCurrentMetadata()) return 0;
+	
+	int bs = *(ds->getCurrentMetadata()->GetBlockSize());
+	
+	size_t min_bdim[3], max_bdim[3];
+	double userMinCoords[3];
+	double userMaxCoords[3];
+	for (int i = 0; i<3; i++){
+		userMinCoords[i] = (double)boxMin[i];
+		userMaxCoords[i] = (double)boxMax[i];
+	}
+	const VDFIOBase* myReader = ds->getRegionReader();
+	if (!myReader) return 0;
+	size_t timestep = DataStatus::getInstance()->getMinTimestep();
+	myReader->MapUserToBlk(timestep, userMinCoords, min_bdim, refLevel);
+	myReader->MapUserToBlk(timestep, userMaxCoords, max_bdim, refLevel);
+	
+	
+	float numVoxels = (float)(bs*bs*bs*(max_bdim[0]-min_bdim[0]+1)*(max_bdim[1]-min_bdim[1]+1)*(max_bdim[2]-min_bdim[2]+1));
+	
+	//divide by 1 million for megabytes, mult by 4 for 4 bytes per voxel:
+	float fullMB = numVoxels/262144.f;
+	return (int)fullMB;
 }

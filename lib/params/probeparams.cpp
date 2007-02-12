@@ -34,6 +34,7 @@
 #include <math.h>
 #include "glutil.h"
 #include "probeparams.h"
+#include "regionparams.h"
 #include "params.h"
 #include "transferfunction.h"
 
@@ -975,6 +976,23 @@ calcProbeTexture(int ts, int texWidth, int texHeight){
 	
 	getAvailableBoundingBox(ts,blkMin, blkMax, coordMin, coordMax);
 	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
+
+	float boxExts[6];
+	RegionParams::convertToBoxExtentsInCube(numRefinements,coordMin, coordMax,boxExts); 
+	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, numRefinements);
+	//Check how many variables are needed:
+	int varCount = 0;
+	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumSessionVariables(); varnum++){
+		if (variableIsSelected(varnum)) varCount++;
+	}
+	int cacheSize = DataStatus::getInstance()->getCacheMB();
+	if (numMBs*varCount > (int)(cacheSize*0.75)){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current probe and resolution.\n%s \n%s",
+			"Lower the refinement level, reduce the probe size, or increase the cache size.",
+			"Rendering has been disabled.");
+		setEnabled(false);
+		return 0;
+	}
 	
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then do rms on the variables (if > 1 specified)

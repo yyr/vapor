@@ -199,6 +199,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	//whatsThisAction = new QAction("What's This?",SHIFT+Key_F1,0);
 	whatsThisAction = new QAction(this, "whatsthisaction");
 	whatsThisAction->setEnabled(true);
+
 	
     //helpContentsAction = new QAction( this, "helpContentsAction" );
 	//helpContentsAction->setEnabled(false);
@@ -550,8 +551,8 @@ void MainForm::languageChange()
     helpAboutAction->setToolTip( tr( "Information about VAPOR" ) );
     helpAboutAction->setAccel( QString::null );
 
-	whatsThisAction->setText( tr( "What's This?" ) );
-    whatsThisAction->setMenuText( tr( "What's This?" ) );
+	whatsThisAction->setText( tr( "Explain This" ) );
+    whatsThisAction->setMenuText( tr( "Explain This" ) );
 	whatsThisAction->setToolTip(tr(QString("Click here, then click over an object for context-sensitive help;  ")+
 		"Or just click Shift-F1 over the object"));
 	whatsThisAction->setAccel(QString::null);

@@ -156,8 +156,8 @@ restart() {
 	numRefinements = 0; 
 	maxNumRefinements = 4; 
 	numComboVariables = 0;
-	firstDisplayFrame = 0;
-	lastDisplayFrame = 20;
+	firstDisplayFrame = -100;
+	lastDisplayFrame = 0;
 	
 	steadyVarNum[0]= 0;
 	steadyVarNum[1] = 1;
@@ -617,6 +617,7 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds){
 		const char* xVar = ds->getVariableName(seedDistVarNum[0]).c_str();
 		const char* yVar = ds->getVariableName(seedDistVarNum[1]).c_str();
 		const char* zVar = ds->getVariableName(seedDistVarNum[2]).c_str();
+		assert(seedDistBias > -10.f && seedDistBias < 10.f);
 		flowLib->SetDistributedSeedPoints(seedBoxMin, seedBoxMax, (int)allGeneratorCount, 
 			xVar, yVar, zVar, seedDistBias);
 	} else {//Set up the uniform rake bounds
@@ -2685,7 +2686,7 @@ bool FlowParams::validateSettings(int tstep){
 	// needed for all sample time steps.
 
 	if (flowType != 0) {
-		if (getNumTimestepSamples() <= 0){
+		if (getNumTimestepSamples() <= 1){
 			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 				"No timestep samples available for unsteady flow\n%s",
 				"Auto refresh has been disabled to enable corrective action");

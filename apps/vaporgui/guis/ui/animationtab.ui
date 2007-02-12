@@ -38,6 +38,13 @@
     <property name="toolTip" stdset="0">
         <string></string>
     </property>
+    <property name="whatsThis" stdset="0">
+        <string>The animation panel determines the
+time step that is displayed in the
+current visualizer.  The playing
+and replaying of sequences of
+time steps is also controlled here.</string>
+    </property>
     <hbox>
         <property name="name">
             <cstring>unnamed</cstring>
@@ -111,6 +118,16 @@
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Apply these settings to visualizers, either globally or locally</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Animation parameters
+can be either "local" or "global".
+To apply these parameters to
+only the one (selected) visualizer, 
+set this to "local".  All visualizers
+that have this set to "global" will
+share the same timestep, and
+animate in unison.</string>
                             </property>
                         </widget>
                         <spacer>
@@ -663,6 +680,12 @@
                             <property name="toolTip" stdset="0">
                                 <string>Step size between successive frames</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>When explicit time steps are not specified, 
+the animation steps forward or backward
+a fixed number of time steps, controlled
+by this slider and text box.</string>
+                            </property>
                         </widget>
                         <widget class="QLineEdit">
                             <property name="name">
@@ -689,6 +712,12 @@
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Step size between successive frames</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>When explicit time steps are not specified, 
+the animation steps forward or backward
+a fixed number of time steps, controlled
+by this slider and text box.</string>
                             </property>
                         </widget>
                     </hbox>
@@ -792,6 +821,10 @@
                                             <property name="toolTip" stdset="0">
                                                 <string>Check to use the list of time steps</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Specify a list of time steps that will be
+displayed during the animation.</string>
+                                            </property>
                                         </widget>
                                     </hbox>
                                 </widget>
@@ -813,6 +846,10 @@
                                             <property name="toolTip" stdset="0">
                                                 <string>Click to add another timestep to the list</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Specify a list of time steps that will be
+displayed during the animation.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QPushButton">
                                             <property name="name">
@@ -823,6 +860,10 @@
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Click to delete the current time step</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Specify a list of time steps that will be
+displayed during the animation.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -862,6 +903,10 @@
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify time steps to be sampled</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Specify a list of time steps that will be
+displayed during the animation.</string>
                             </property>
                         </widget>
                         <spacer>

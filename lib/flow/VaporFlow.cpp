@@ -397,6 +397,7 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 		delete [] maxPointHolder;
 	}
 	//Release the locks on the prioritization field..
+	fData->releaseData(dataMgr);
 	delete fData;
 	
 	return true;
@@ -1267,6 +1268,7 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	fData->setup(pField, pCartesianGrid, pUData, pVData, pWData, timestep);
 	return fData;
 }
+
 //Obtain bounds on field magnitude
 bool VaporFlow::
 getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* vary, const char* varz, 

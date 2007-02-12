@@ -60,7 +60,7 @@ public:
 		const int* varNums, int numVars, double* regMin = 0, double* regMax = 0);
 	//Static method that converts box to extents in cube, independent of actual
 	//extents in region.
-	static void convertToBoxExtentsInCube(int refLevel, size_t min_dim[3], size_t max_dim[3], float extents[6]);
+	static void convertToBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
 	//void setTab(RegionTab* tab) {myRegionTab = tab;}
 	
 	float getRegionMin(int coord){ return regionMin[coord];}
@@ -71,6 +71,9 @@ public:
 		return (0.5f*(regionMin[indx]+regionMax[indx]));
 	}
 	
+	//Determine how many megabytes will be needed for one variable at specified
+	//refinement level, specified box extents.
+	static int getMBStorageNeeded(const float* boxMin, const float* boxMax, int refLevel);
 	// Reinitialize due to new Session:
 	bool reinit(bool doOverride);
 	void restart();
