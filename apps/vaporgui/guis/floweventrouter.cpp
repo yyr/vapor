@@ -2826,6 +2826,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,  bool newWindow){
 
 		//This was intended to find if there was a field specification error.
 		//But it will be tested later anyway, maybe it's not necessary?
+		/*
 		bool rc1=true, rc2=true;
 		if (fParams->getFlowType() != 1)
 			rc1 = fParams->validateSampling(minFrame, fParams->getNumRefinements(), fParams->getSteadyVarNums());
@@ -2838,6 +2839,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,  bool newWindow){
 			updateTab();
 			return;
 		}
+		*/
 		FlowRenderer* myRenderer = new FlowRenderer (viz->getGLWindow(), fParams);
 		viz->getGLWindow()->prependRenderer(fParams,myRenderer);
 		myRenderer->setAllNeedRefresh(fParams->refreshIsAuto());
