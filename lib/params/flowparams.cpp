@@ -1725,6 +1725,15 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		maxOpacBounds = new float[numComboVariables+4];
 		minColorBounds = new float[numComboVariables+4];
 		maxColorBounds = new float[numComboVariables+4];
+		//Do same for edit bounds
+		delete minOpacEditBounds;
+		delete maxOpacEditBounds;
+		delete minColorEditBounds;
+		delete maxColorEditBounds;
+		minOpacEditBounds = new float[numComboVariables+4];
+		maxOpacEditBounds = new float[numComboVariables+4];
+		minColorEditBounds = new float[numComboVariables+4];
+		maxColorEditBounds = new float[numComboVariables+4];
 		return true;
 	}
 	//Parse the seeding node:
@@ -1908,6 +1917,11 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 		maxColorBounds[varNum] = rightColorBound;
 		minOpacBounds[varNum]= leftOpacBound;
 		maxOpacBounds[varNum] = rightOpacBound;
+		minColorEditBounds[varNum]= leftColorBound;
+		maxColorEditBounds[varNum] = rightColorBound;
+		minOpacEditBounds[varNum]= leftOpacBound;
+		maxOpacEditBounds[varNum] = rightOpacBound;
+		
 	}
 	return true;
 }
