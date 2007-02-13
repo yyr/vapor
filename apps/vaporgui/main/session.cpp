@@ -42,6 +42,7 @@
 #include "animationcontroller.h"
 #include "transferfunction.h"
 #include <qstring.h>
+#include "tabmanager.h"
 
 using namespace VAPoR;
 Session* Session::theSession = 0;
@@ -887,6 +888,7 @@ errorCallbackFcn(const char* msg, int err_code){
 	} else {
 		MessageReporter::errorMsg((QString("Unclassified error: ")+strng).ascii());
 	}
+	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateTab();
 	//Turn off error:
 	MyBase::SetErrCode(0);
 }

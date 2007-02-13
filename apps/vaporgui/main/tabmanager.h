@@ -22,6 +22,7 @@
 #include <qtabwidget.h>
 #include <qwidget.h>
 #include "params.h"
+#include "eventrouter.h"
 
 namespace VAPoR {
 class Session;
@@ -70,6 +71,10 @@ class TabManager : public QTabWidget{
 		//Determine if a widget is the current front tab
 		bool isFrontTab(QWidget* wid){
 			return (wid == widgets[currentFrontPage]);}
+
+		EventRouter* getFrontEventRouter() { 
+			return VizWinMgr::getInstance()->getEventRouter(widgetTypes[currentFrontPage]);
+		}
 	public slots:
 		void newFrontTab(QWidget*);
 

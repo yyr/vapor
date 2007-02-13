@@ -2321,7 +2321,7 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 		timeSamplingStart = minFrame;
 		timeSamplingEnd = minFrame;
 		timeSamplingInterval = 1;
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Invalid time sampling was specified");
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Vector field is not available at any sampled time steps");
 		return false;
 	}
 	//was the proposed start invalid?
@@ -2329,7 +2329,7 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 		timeSamplingStart = ts;
 		changed = true;
 	}
-	//If the proposed sampling is just one frame, it's ok
+	//If the proposed sampling is just one frame, it's only ok for steady flow
 	if (timeSamplingEnd < timeSamplingStart+timeSamplingInterval) {
 		if (timeSamplingEnd < timeSamplingStart) {
 			timeSamplingEnd = timeSamplingStart;
@@ -2658,10 +2658,11 @@ bool FlowParams::validateSettings(int tstep){
 		case (0) : 
 			if (!ds->fieldDataOK(numRefinements, tstep, 
 						steadyVarNum[0],steadyVarNum[1], steadyVarNum[2])){
+				autoRefresh = false;
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 						"Steady field not available at required resolution for timestep %d\n%s",
 						tstep, "Auto refresh has been disabled to enable corrective action");
-				autoRefresh = false;
+				
 				return false;
 			}
 			break;
@@ -2672,10 +2673,11 @@ bool FlowParams::validateSettings(int tstep){
 				int ts = getTimestepSample(i);
 				if (!ds->fieldDataOK(numRefinements, ts, 
 						steadyVarNum[0],steadyVarNum[1], steadyVarNum[2])){
+					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 							"Steady field not available at required resolution for timestep %d\n%s",
 							ts, "Auto refresh has been disabled to enable corrective action");
-					autoRefresh = false;
+					
 					return false;
 				}
 			}
@@ -2687,20 +2689,22 @@ bool FlowParams::validateSettings(int tstep){
 
 	if (flowType != 0) {
 		if (getNumTimestepSamples() <= 1){
+			autoRefresh = false;
 			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 				"No timestep samples available for unsteady flow\n%s",
 				"Auto refresh has been disabled to enable corrective action");
-				autoRefresh = false;
+				
 				return false;
 		}
 		for (int i = 0; i<getNumTimestepSamples(); i++){
 			int ts = getTimestepSample(i);
 			if (!ds->fieldDataOK(numRefinements, ts, 
 					unsteadyVarNum[0],unsteadyVarNum[1], unsteadyVarNum[2])){
+				autoRefresh = false;
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 						"Unsteady field not available at required resolution for timestep %d\n%s",
 						ts, "Auto refresh has been disabled to enable corrective action");
-				autoRefresh = false;
+				
 				return false;
 			}
 		}
@@ -2717,10 +2721,11 @@ bool FlowParams::validateSettings(int tstep){
 			case (0) :
 				if (!ds->fieldDataOK(numRefinements, tstep, 
 						seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
+					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 							"Seed distribution field not available at required resolution for timestep %d\n%s",
 							tstep, "Auto refresh has been disabled to enable corrective action");
-					autoRefresh = false;
+					
 					return false;
 				}
 				break;
@@ -2729,10 +2734,11 @@ bool FlowParams::validateSettings(int tstep){
 					if (i >= getFirstSampleTimestep() && i <= getLastSampleTimestep()) {
 						if (!ds->fieldDataOK(numRefinements, i, 
 								seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
+							autoRefresh = false;
 							MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 									"Seed distribution field not available at required resolution for timestep %d\n%s",
 									i, "Auto refresh has been disabled to enable corrective action");
-							autoRefresh = false;
+							
 							return false;
 						}
 					}
@@ -2742,10 +2748,11 @@ bool FlowParams::validateSettings(int tstep){
 				{ 
 					if (!ds->fieldDataOK(numRefinements, seedTimeStart, 
 							seedDistVarNum[0],seedDistVarNum[1], seedDistVarNum[2])){
+						autoRefresh = false;
 						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 								"Seed distribution field not available at required resolution for timestep %d\n%s",
 								seedTimeStart, "Auto refresh has been disabled to enable corrective action");
-						autoRefresh = false;
+						
 						return false;
 					}
 				}
@@ -2760,10 +2767,11 @@ bool FlowParams::validateSettings(int tstep){
 			int ts = getTimestepSample(i);
 			if (!ds->fieldDataOK(numRefinements, ts, 
 					priorityVarNum[0],priorityVarNum[1], priorityVarNum[2])){
+				autoRefresh = false;
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 						"Prioritization field not available at required resolution for timestep %d\n%s",
 						ts, "Auto refresh has been disabled to enable corrective action");
-				autoRefresh = false;
+				
 				return false;
 			}
 		}
@@ -2783,10 +2791,11 @@ bool FlowParams::validateSettings(int tstep){
 					}
 				}
 				if (!found) {
+					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 						"No seed points specified for timestep %d\n%s",
 						tstep, "Auto refresh has been disabled to enable corrective action");
-					autoRefresh = false;
+					
 					return false;
 				}
 			}
@@ -2832,10 +2841,11 @@ bool FlowParams::validateSettings(int tstep){
 					}
 				}
 				if (!found) {
+					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 							"No seeds available after the first sample time %d of the unsteady flow\n%s",
 							ts,"Auto refresh has been disabled to enable corrective action");
-						autoRefresh = false;
+						
 						return false;
 					}
 			}
@@ -2857,11 +2867,12 @@ bool FlowParams::validateSettings(int tstep){
 						}
 					}
 					if (!OK) {
+						autoRefresh = false;
 						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 								"No seeds available at start seed time %d \n%s",
 								seedTimeStart,
 								"Auto refresh has been disabled to enable corrective action");
-						autoRefresh = false;
+						
 						return false;
 					}
 				}
@@ -2874,11 +2885,12 @@ bool FlowParams::validateSettings(int tstep){
 					}
 				}
 				if (!OK) {
+					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 							"start seed time %d is not a sample time\n%s",
 							seedTimeStart,
 							"Auto refresh has been disabled to enable corrective action");
-					autoRefresh = false;
+					
 					return false;
 				}
 

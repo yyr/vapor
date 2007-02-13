@@ -70,6 +70,7 @@
 #include "vapor/VDFIOBase.h"
 #include "vapor/flowlinedata.h"
 #include "vapor/VaporFlow.h"
+#include "vapor/errorcodes.h"
 #include "tabmanager.h"
 #include "glutil.h"
 #include "flowparams.h"
@@ -322,6 +323,7 @@ void FlowEventRouter::updateTab(){
 	bool autoScale = fParams->isAutoScale();
 	Session::getInstance()->blockRecording();
 
+	
 	switch (flowType){
 		case (0) : //steady
 			steadyFieldFrame->show();
@@ -707,6 +709,7 @@ void FlowEventRouter::updateTab(){
 	var = fParams->getOpacMapEntityIndex();
 	minOpacityBound->setText(QString::number(fParams->minRange(var, tstep)));
 	maxOpacityBound->setText(QString::number(fParams->maxRange(var, tstep)));
+	updateMapBounds(fParams);
 	
 	guiSetTextChanged(false);
 
@@ -2821,13 +2824,20 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,  bool newWindow){
 	
 	if (nowEnabled && !prevEnabled ){//For case 2:  create a renderer in the active window:
 
-		//First, make sure we have valid fielddata:
+		//This was intended to find if there was a field specification error.
+		//But it will be tested later anyway, maybe it's not necessary?
+		bool rc1=true, rc2=true;
 		if (fParams->getFlowType() != 1)
-			fParams->validateSampling(minFrame, fParams->getNumRefinements(), fParams->getSteadyVarNums());
+			rc1 = fParams->validateSampling(minFrame, fParams->getNumRefinements(), fParams->getSteadyVarNums());
 		if (fParams->getFlowType() != 0)
-			fParams->validateSampling(minFrame, fParams->getNumRefinements(), fParams->getUnsteadyVarNums());
+			rc2 = fParams->validateSampling(minFrame, fParams->getNumRefinements(), fParams->getUnsteadyVarNums());
 
-
+		if (!rc1 || !rc2) { //Something was wrong; don't enable:
+			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,"Vector field setup error. Flow not enabled");
+			fParams->setEnabled(false);
+			updateTab();
+			return;
+		}
 		FlowRenderer* myRenderer = new FlowRenderer (viz->getGLWindow(), fParams);
 		viz->getGLWindow()->prependRenderer(fParams,myRenderer);
 		myRenderer->setAllNeedRefresh(fParams->refreshIsAuto());
