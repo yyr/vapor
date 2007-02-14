@@ -157,7 +157,7 @@ restart() {
 	maxNumRefinements = 4; 
 	numComboVariables = 0;
 	firstDisplayFrame = -100;
-	lastDisplayFrame = 0;
+	lastDisplayFrame = 1;
 	
 	steadyVarNum[0]= 0;
 	steadyVarNum[1] = 1;

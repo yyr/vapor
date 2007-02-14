@@ -467,6 +467,7 @@ void SolidRake::GenSeedRandom(const size_t numSeeds[3],
 bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData* fData, 
 		const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, 
 		unsigned int randomSeed, int stride){
+	assert( bias >= -10.f && bias <= 10.f);
 	int totalNum;
 	// eight corners
 	float lll[3], hll[3], lhl[3], hhl[3], llh[3], hlh[3], lhh[3], hhh[3];

@@ -1565,7 +1565,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 				vadd(evenVertex+3*i, flowLineData->getFlowPoint(tubeNum, tubeStartIndex), evenVertex+3*i);
 			}
 			//Draw a  starting cap on the cylinder:
-			for (i = 0; i<3; i++){ normalizedNormal[i] = evenA[i]*sceneScaleFactor;}
+			for (int i = 0; i<3; i++){ normalizedNormal[i] = evenA[i]*sceneScaleFactor;}
 			glBegin(GL_POLYGON);
 			glNormal3fv(normalizedNormal);
 			for (int k = 0; k<6; k++){
@@ -1702,7 +1702,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 				else
 					glColor4fv(nextRGBA);
 			}
-			for (i = 0; i<3; i++){ normalizedNormal[i] = currentA[i]*sceneScaleFactor;}
+			for (int i = 0; i<3; i++){ normalizedNormal[i] = currentA[i]*sceneScaleFactor;}
 			glBegin(GL_POLYGON);
 			glNormal3fv(normalizedNormal);
 			for (int ka = 5; ka>=0; ka--){

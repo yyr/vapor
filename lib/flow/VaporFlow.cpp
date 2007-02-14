@@ -420,6 +420,7 @@ void VaporFlow::SetPriorityField(const char* varx, const char* vary, const char*
 void VaporFlow::SetDistributedSeedPoints(const float min[3], const float max[3], int numSeeds, 
 	const char* varx, const char* vary, const char* varz, float bias)
 {
+	assert( bias >= -10.f && bias <= 10.f);
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
 		minRakeExt[iFor] = min[iFor];

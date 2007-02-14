@@ -27,7 +27,6 @@ namespace VAPoR {
 
 class RENDER_API FlowRenderer : public Renderer
 {
-    Q_OBJECT
 
 public:
 

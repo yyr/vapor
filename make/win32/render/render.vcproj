@@ -305,9 +305,6 @@
 		<Filter
 			Name="Generated MOC Files">
 			<File
-				RelativePath="..\..\..\lib\moc\moc_flowrenderer.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\lib\moc\moc_renderer.cpp">
 			</File>
 		</Filter>
