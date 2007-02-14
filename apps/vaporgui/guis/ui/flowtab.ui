@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>437</width>
-            <height>2645</height>
+            <height>2646</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -294,8 +294,8 @@ is controlled by the values in this
                         <enum>Raised</enum>
                     </property>
                     <property name="whatsThis" stdset="0">
-                        <string>The Basic Flow Parameters are the 
-parameters that must be specified 
+                        <string>The Basic Flow Parameters are the
+parameters that must be specified
 for any flow integration.</string>
                     </property>
                     <hbox>
@@ -1590,16 +1590,16 @@ current time step.</string>
                                                                 <comment>Comment is here</comment>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>Specify a value here to correct your spatial 
-and temporal units to match the actual physical 
-units used to generate the vector field data.
-This value should be set to the reciprocal of 
-the number of time steps per second.  
-If the spatial extents are not equal to the actual 
-extents used in the simulation, then this factor 
-should be multiplied by the ratio of the 
-simulated extents to the data extents in the 
-VAPOR region panel.</string>
+                                                                <string>Specify a value here to correct your spatial
+and temporal units to match the actual
+physical units used to generate the vector
+field data.  This value should be set to the
+reciprocal of the number of time steps per
+second.  If the spatial extents are not equal
+to the actual extents used in the simulation,
+then this factor should be multiplied by the
+ratio of the simulated extents to the data
+extents in the VAPOR region panel.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -1863,6 +1863,14 @@ time steps are specified in the animation panel.</string>
                     </property>
                     <property name="frameShadow">
                         <enum>Raised</enum>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>The advanced steady flow 
+panel enables setting of 
+some optional parameters.
+Usually the default values 
+of these parameters will
+work OK.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -2492,6 +2500,19 @@ distribution magnitude of points in the rake.</string>
                     </property>
                     <property name="frameShadow">
                         <enum>Raised</enum>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>The advanced unsteady flow
+parameters are needed 
+to change some default settings.
+For example they can be set
+to sample only a subset of the
+available time steps, or to 
+enable seeds to be distributed
+according to field magnitude.
+Click on the button "Unsteady 
+Flow Setup Help" for more 
+information.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -3200,6 +3221,14 @@ distribution magnitude of points in the rake.</string>
                     </property>
                     <property name="frameShadow">
                         <enum>Raised</enum>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>The advanced field line advection
+parameters allow for precise setting
+of optional parameters for advecting
+field lines. Click the button "Flow Line
+Advection Setup Help" for more
+detailed information.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -5702,9 +5731,13 @@ time.</string>
                         <enum>Raised</enum>
                     </property>
                     <property name="whatsThis" stdset="0">
-                        <string>The Shape Parameters determine
-the geometry that is used to display
-the flow lines.</string>
+                        <string>The Flow panel controls the
+integration of vector fields to
+produce flow lines.  To use it, 
+load a data set, set up the 
+basic flow parameters,
+and then click on the instance
+check-box to start a flow integration.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -6684,14 +6717,14 @@ not appear consistent with known data bounds.</string>
                                             <property name="whatsThis" stdset="0">
                                                 <string>The color editor displays a 
 mapping from the Color entity
-to opacity,  This editor is only 
-available when you select an 
+to opacity,  This editor is only
+available when you select an
 entity other than "Constant" for
 color mapping.   This mapping
 determines the color of flow lines
-in the visualizer.  Additional 
-options are available from the right 
-mouse button.</string>
+in the visualizer.  Additional
+options are available from the
+right mouse button.</string>
                                             </property>
                                         </widget>
                                         <widget class="VAPoR::MappingFrame" row="0" column="0">
@@ -6708,17 +6741,17 @@ mouse button.</string>
                                                 <bool>true</bool>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The opacity editor displays a 
+                                                <string>The opacity editor displays a
 mapping from the opacity entity
-to opacity,  This editor is only 
-available when you select an 
+to opacity,  This editor is only
+available when you select an
 entity other than "Constant" for
 opacity mapping.   This mapping
 determines the opacity of flow lines
-in the visualizer. The opacity values are 
-shown as a green curve.   Additional 
-options are available from the right 
-mouse button.</string>
+in the visualizer. The opacity values
+are shown as a green curve.
+Additional options are available from
+the right mouse button.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLayoutWidget" row="0" column="1">

@@ -413,6 +413,24 @@ probeAddSeed(){
 	
 	pt.set1Val(3,(float)ap->getCurrentFrameNumber());
 	FlowEventRouter* fRouter = VizWinMgr::getInstance()->getFlowRouter();
+	//Check that it's OK:
+	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	if (!fParams->isEnabled()){
+		MessageReporter::warningMsg("Seed is being added to a disabled flow");
+	}
+	if (fParams->rakeEnabled()){
+		MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
+			"the target flow is using a rake instead of seed list");
+	}
+	//Check that the point is in the current Region:
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+	float boxMin[3], boxMax[3];
+	rParams->getBox(boxMin, boxMax);
+	if (pt.getVal(0) < boxMin[0] || pt.getVal(1) < boxMin[1] || pt.getVal(2) < boxMin[2] ||
+		pt.getVal(0) > boxMax[0] || pt.getVal(1) > boxMax[1] || pt.getVal(2) > boxMax[2]) {
+			MessageReporter::warningMsg("Seed will not result in a flow line because\n%s",
+			"the seed point is outside the current region");
+	}
 	fRouter->guiAddSeed(pt);
 }	
 void ProbeEventRouter::
