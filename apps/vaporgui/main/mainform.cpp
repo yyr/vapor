@@ -120,7 +120,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 
 	modeStatusWidget = 0;
 	
-	sessionSaveFile.setAscii("/tmp/VaporSaved.vss");
+	sessionSaveFile.setAscii("VaporSaved.vss");
 
     (void)statusBar();
     if ( !name )
