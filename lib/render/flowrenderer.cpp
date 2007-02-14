@@ -204,14 +204,19 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	int nLights = 0;
 	if (myFlowParams->getShapeType() != 1) {//rendering tubes/lines/arrows
 		float diffColor[4], specColor[4], ambColor[4];
+		float diffLight[3], specLight[3];
 		GLfloat lmodel_ambient[4];
 		specColor[0]=specColor[1]=specColor[2]=0.8f;
 		ambColor[0]=ambColor[1]=ambColor[2]=0.f;
 		diffColor[3]=specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
+
+		//specColor[3] = 0.01f;
 		
 		ViewpointParams* vpParams =  myGLWindow->getActiveViewpointParams();
 		nLights = vpParams->getNumLights();
+		
 		if (nLights > 0){
+			
 			glPushMatrix();
 			glLoadIdentity();
 			glShadeModel(GL_SMOOTH);
@@ -222,30 +227,31 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
 			glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
 			
-			specColor[0] = specColor[1] = specColor[2] = vpParams->getSpecularCoeff(0);
-			diffColor[0] = diffColor[1] = diffColor[2] = vpParams->getDiffuseCoeff(0);
-			glLightfv(GL_LIGHT0, GL_DIFFUSE, diffColor);
-			glLightfv(GL_LIGHT0, GL_SPECULAR, specColor);
+			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(0);
+			
+			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(0);
+			glLightfv(GL_LIGHT0, GL_DIFFUSE, diffLight);
+			glLightfv(GL_LIGHT0, GL_SPECULAR, specLight);
 			glLightfv(GL_LIGHT0, GL_AMBIENT, ambColor);
 			glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
 			glEnable(GL_LIGHTING);
 			glEnable(GL_LIGHT0);
 			if (nLights > 1){
 				glLightfv(GL_LIGHT1, GL_POSITION, vpParams->getLightDirection(1));
-				specColor[0] = specColor[1] = specColor[2] = vpParams->getSpecularCoeff(1);
-				diffColor[0] = diffColor[1] = diffColor[2] = vpParams->getDiffuseCoeff(1);
-				glLightfv(GL_LIGHT1, GL_DIFFUSE, diffColor);
-				glLightfv(GL_LIGHT1, GL_SPECULAR, specColor);
+				specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(1);
+				diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(1);
+				glLightfv(GL_LIGHT1, GL_DIFFUSE, diffLight);
+				glLightfv(GL_LIGHT1, GL_SPECULAR, specLight);
 				glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
 				glEnable(GL_LIGHT1);
 			}
 			if (nLights > 2){
 				glLightfv(GL_LIGHT2, GL_POSITION, vpParams->getLightDirection(2));
-				specColor[0] = specColor[1] = specColor[2] = vpParams->getSpecularCoeff(2);
-				diffColor[0] = diffColor[1] = diffColor[2] = vpParams->getDiffuseCoeff(2);
-				glLightfv(GL_LIGHT2, GL_DIFFUSE, diffColor);
-				glLightfv(GL_LIGHT2, GL_SPECULAR, specColor);
-				glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
+				specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(2);
+				diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(2);
+				glLightfv(GL_LIGHT2, GL_DIFFUSE, diffLight);
+				glLightfv(GL_LIGHT2, GL_SPECULAR, specLight);
+				glLightfv(GL_LIGHT2, GL_AMBIENT, ambColor);
 				glEnable(GL_LIGHT2);
 			}
 			glPopMatrix();
@@ -262,8 +268,8 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	glPushMatrix();
 	
 	//scale:
-	float scaleFactor = 1.f/ViewpointParams::getMaxCubeSide();
-	glScalef(scaleFactor, scaleFactor, scaleFactor);
+	sceneScaleFactor = 1.f/ViewpointParams::getMaxCubeSide();
+	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
 
 	//translate to put origin at corner:
 	float* transVec = ViewpointParams::getMinCubeCoords();
@@ -462,6 +468,7 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 	float nextVertex[18];
 	float testVec[3];
 	float testVec2[3];
+	float normalizedNormal[3];
 	int i;
 	//Calculate nextPoint and vertexPoint, for arrowhead
 	
@@ -489,9 +496,9 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 		if (isLit) glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
 		else glColor4fv(nextRGBA);
 	}
-	
+	for (i = 0; i<3; i++){ normalizedNormal[i] = dirVec[i]*sceneScaleFactor;}
 	glBegin(GL_POLYGON);
-	glNormal3fv(dirVec);
+	glNormal3fv(normalizedNormal);
 	for (int k = 0; k<6; k++){
 		glVertex3fv(startVertex+3*k);
 	}
@@ -511,7 +518,11 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 		//add to current point
 		vadd(nextVertex+3*i, nextPoint, nextVertex+3*i);
 					
+		//renormalize normal vectors:
+		vscale(nextNormal+3*i, sceneScaleFactor);
+		vscale(startNormal+3*i, sceneScaleFactor);
 	}
+	
 	
 	//Now make a triangle strip for cylinder sides:
 	glBegin(GL_TRIANGLE_STRIP);
@@ -577,12 +588,16 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 		for (int k = 0; k<3; k++){
 			startNormal[3*i+k] = 0.5*startNormal[3*i+k] + 0.5*dirVec[k];
 		}
+		vscale(startNormal+3*i, sceneScaleFactor);
 	}
+	
 	//Create a triangle fan from these 6 vertices.  Continue to use
 	//previous color settings
 	
+	vcopy(dirVec,normalizedNormal);
+	vscale(normalizedNormal, sceneScaleFactor);
 	glBegin(GL_TRIANGLE_FAN);
-	glNormal3fv(dirVec);
+	glNormal3fv(normalizedNormal);
 	glVertex3fv(vertexPoint);
 	for (i = 0; i< 6; i++){
 		glNormal3fv(startNormal+3*i);
@@ -598,6 +613,8 @@ void FlowRenderer::drawArrow(bool isLit, float* firstColor, float* startPoint, f
 //center points indexed by startIndex and startIndex+1
 //Orthogonal frame at first point is (dirVec, UVec, bVec)
 //U and B are orthog to direction of cylinder, determine plane for 6 points
+//Note that this has the side-effect of evaluating currentNormal and currentVertex,
+//Uses existing values of prevNormal, PrevVertex
 //
 
 void FlowRenderer::drawTube(bool isLit, float* secondColor, float startPoint[3], float endPoint[3], float* currentB, float* currentU, float radius, bool constMap,
@@ -607,6 +624,8 @@ void FlowRenderer::drawTube(bool isLit, float* secondColor, float startPoint[3],
 	const float sines[6] = {0.f, sqrt(3.)/2., sqrt(3.)/2., 0.f, -sqrt(3.)/2., -sqrt(3.)/2.};
 	const float coses[6] = {1.f, 0.5, -0.5, -1., -.5, 0.5};
 	float testVec[3],testVec2[3];
+	//storage to hold normalized normal vectors:
+	float normalA[18], normalB[18];
 	float* prevRGBA, *nextRGBA;
 	//calculate 6 points in plane orthog to currentA, in plane of endPoint:
 	for (int i = 0; i<6; i++){
@@ -623,6 +642,10 @@ void FlowRenderer::drawTube(bool isLit, float* secondColor, float startPoint[3],
 		//qWarning(" current Vertex, normal: %f %f %f, %f %f %f",
 			//currentVertex[3*i],currentVertex[3*i+1],currentVertex[3*i+2],
 			//currentNormal[3*i],currentNormal[3*i+1],currentNormal[3*i+2]);
+		vcopy(currentNormal+3*i, normalA+3*i);
+		vcopy(prevNormal+3*i, normalB+3*i);
+		vscale(normalA+3*i, sceneScaleFactor);
+		vscale(normalB+3*i, sceneScaleFactor);
 	}
 	
 	if (!constMap){
@@ -635,31 +658,31 @@ void FlowRenderer::drawTube(bool isLit, float* secondColor, float startPoint[3],
 	if (constMap){
 		for (int i = 0; i< 6; i++){
 
-			glNormal3fv(currentNormal+3*i);
+			glNormal3fv(normalA+3*i);
 			glVertex3fv(currentVertex+3*i);
-			glNormal3fv(prevNormal+3*i);
+			glNormal3fv(normalB+3*i);
 			glVertex3fv(prevVertex+3*i);
 		}
 		//repeat first two vertices to close cylinder:
-		glNormal3fv(currentNormal);
+		glNormal3fv(normalA);
 		glVertex3fv(currentVertex);
-		glNormal3fv(prevNormal);
+		glNormal3fv(normalB);
 		glVertex3fv(prevVertex);
 	} else if (isLit){
 		for (int i = 0; i< 6; i++){
 			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
-			glNormal3fv(currentNormal+3*i);
+			glNormal3fv(normalA+3*i);
 			glVertex3fv(currentVertex+3*i);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
-			glNormal3fv(prevNormal+3*i);
+			glNormal3fv(normalB+3*i);
 			glVertex3fv(prevVertex+3*i);
 		}
 		//repeat first two vertices to close cylinder:
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, nextRGBA);
-		glNormal3fv(currentNormal);
+		glNormal3fv(normalA);
 		glVertex3fv(currentVertex);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, prevRGBA);
-		glNormal3fv(prevNormal);
+		glNormal3fv(normalB);
 		glVertex3fv(prevVertex);
 	} else {//unlit, mapped
 		for (int i = 0; i< 6; i++){
@@ -681,41 +704,54 @@ void FlowRenderer::drawTube(bool isLit, float* secondColor, float startPoint[3],
 void FlowRenderer::renderStationary(float* point){
 	
 	const float stationaryColor[4] = {.5f,.5f,.5f,1.f};
-	
+	//Normals for each face
+	float normalVecs[24] = {
+		0.5f,.5f,.707f,
+		-0.5f,.5f,.707f,
+		-0.5f,-.5f,.707f,
+		0.5f,-.5f,.707f,
+		0.5f,.5f,-.707f,
+		-0.5f,.5f,-.707f,
+		-0.5f,-.5f,-.707f,
+		0.5f,-.5f,-.707f };
+		
+	for (int i = 0; i<24; i++) normalVecs[i] *= sceneScaleFactor;
+
+
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, stationaryColor);
 	glColor4fv(stationaryColor);
 	glBegin(GL_TRIANGLES);
-	glNormal3f(0.5f,.5f,.707f);
+	glNormal3fv(normalVecs);
 	glVertex3f(point[0],point[1],point[2]+stationaryRadius);
 	glVertex3f(point[0]+stationaryRadius, point[1], point[2]);
 	glVertex3f(point[0], point[1]+stationaryRadius, point[2]);
-	glNormal3f(-0.5f,.5f,.707f);
+	glNormal3fv(normalVecs+3);
 	glVertex3f(point[0],point[1],point[2]+stationaryRadius);
 	glVertex3f(point[0], point[1]+stationaryRadius, point[2]);
 	glVertex3f(point[0]-stationaryRadius, point[1], point[2]);
 	
-	glNormal3f(-0.5f,-.5f,.707f);
+	glNormal3fv(normalVecs+6);
 	glVertex3f(point[0],point[1],point[2]+stationaryRadius);
 	glVertex3f(point[0]-stationaryRadius, point[1], point[2]);
 	glVertex3f(point[0], point[1]-stationaryRadius, point[2]);
-	glNormal3f(0.5f,-.5f,.707f);
+	glNormal3fv(normalVecs+9);
 	glVertex3f(point[0],point[1],point[2]+stationaryRadius);
 	glVertex3f(point[0], point[1]-stationaryRadius, point[2]);
 	glVertex3f(point[0]+stationaryRadius, point[1], point[2]);
 	
-	glNormal3f(0.5f,.5f,-.707f);
+	glNormal3fv(normalVecs+12);
 	glVertex3f(point[0],point[1],point[2]-stationaryRadius);
 	glVertex3f(point[0], point[1]+stationaryRadius, point[2]);
 	glVertex3f(point[0]+stationaryRadius, point[1], point[2]);
-	glNormal3f(-0.5f,.5f,-.707f);
+	glNormal3fv(normalVecs+15);
 	glVertex3f(point[0],point[1],point[2]-stationaryRadius);
 	glVertex3f(point[0]-stationaryRadius, point[1], point[2]);
 	glVertex3f(point[0], point[1]+stationaryRadius, point[2]);
-	glNormal3f(-0.5f,-.5f,-.707f);
+	glNormal3fv(normalVecs+18);
 	glVertex3f(point[0],point[1],point[2]-stationaryRadius);
 	glVertex3f(point[0], point[1]-stationaryRadius, point[2]);
 	glVertex3f(point[0]-stationaryRadius, point[1], point[2]);
-	glNormal3f(0.5f,-.5f,-.707f);
+	glNormal3fv(normalVecs+21);
 	glVertex3f(point[0],point[1],point[2]-stationaryRadius);
 	glVertex3f(point[0]+stationaryRadius, point[1], point[2]);
 	glVertex3f(point[0], point[1]-stationaryRadius, point[2]);
@@ -1278,6 +1314,7 @@ renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, 
 					if (len == 0.f){//  0 projection, take normvec = 0,0,1
 						vset(normVec, 0.,0.,1.);
 					} 
+					vscale(normVec,sceneScaleFactor);
 					glNormal3fv(normVec);
 					//only call mapPeriodicCycle to translate, or detect leaving the region, after the first point
 					newcycle = mapPeriodicCycle(point, mappedPoint, currentCycle, newCycle);
@@ -1405,6 +1442,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 	float len;
 	float testVec[3];
 	float testVec2[3];
+	float normalizedNormal[3];
 	//Vectors to hold the start and end arrow coordinates.
 	//They may be translated due to periodic boundary conditions.
 	float startPoint[3], endPoint[3];
@@ -1527,9 +1565,9 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 				vadd(evenVertex+3*i, flowLineData->getFlowPoint(tubeNum, tubeStartIndex), evenVertex+3*i);
 			}
 			//Draw a  starting cap on the cylinder:
-			
+			for (i = 0; i<3; i++){ normalizedNormal[i] = evenA[i]*sceneScaleFactor;}
 			glBegin(GL_POLYGON);
-			glNormal3fv(evenA);
+			glNormal3fv(normalizedNormal);
 			for (int k = 0; k<6; k++){
 				glVertex3fv(evenVertex+3*k);
 			}
@@ -1664,8 +1702,9 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 				else
 					glColor4fv(nextRGBA);
 			}
+			for (i = 0; i<3; i++){ normalizedNormal[i] = currentA[i]*sceneScaleFactor;}
 			glBegin(GL_POLYGON);
-			glNormal3fv(currentA);
+			glNormal3fv(normalizedNormal);
 			for (int ka = 5; ka>=0; ka--){
 				glVertex3fv(currentVertex+3*ka);
 			}

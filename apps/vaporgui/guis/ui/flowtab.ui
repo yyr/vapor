@@ -76,6 +76,18 @@
                             <property name="toolTip" stdset="0">
                                 <string>Select current instance by clicking at left.  Check the box to enable rendering.</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>The instance checkbox determines which
+flow settings are actively rendering.  You
+can only use it after a dataset has been
+loaded. You can have any number of flow
+instances rendering in each visualization 
+window.  Use the "New"  button or the 
+"Duplicate In" selector to create new flow 
+instances. The instance that is selected
+is controlled by the values in this 
+(currently displayed) flow panel.</string>
+                            </property>
                         </widget>
                         <spacer>
                             <property name="name">
@@ -120,6 +132,18 @@
                                             <property name="toolTip" stdset="0">
                                                 <string>Create a new, default instance of this renderer</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The instance checkbox determines which
+flow settings are actively rendering.  You
+can only use it after a dataset has been
+loaded. You can have any number of flow
+instances rendering in each visualization 
+window.  Use the "New"  button or the 
+"Duplicate In" selector to create new flow 
+instances. The instance that is selected
+is controlled by the values in this 
+(currently displayed) flow panel.</string>
+                                            </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -147,6 +171,18 @@
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Delete current renderer Instance</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The instance checkbox determines which
+flow settings are actively rendering.  You
+can only use it after a dataset has been
+loaded. You can have any number of flow
+instances rendering in each visualization 
+window.  Use the "New"  button or the 
+"Duplicate In" selector to create new flow 
+instances. The instance that is selected
+is controlled by the values in this 
+(currently displayed) flow panel.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -193,6 +229,18 @@
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Select a visualizer where this renderer instance will be copied</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The instance checkbox determines which
+flow settings are actively rendering.  You
+can only use it after a dataset has been
+loaded. You can have any number of flow
+instances rendering in each visualization 
+window.  Use the "New"  button or the 
+"Duplicate In" selector to create new flow 
+instances. The instance that is selected
+is controlled by the values in this 
+(currently displayed) flow panel.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -246,9 +294,9 @@
                         <enum>Raised</enum>
                     </property>
                     <property name="whatsThis" stdset="0">
-                        <string>These are the parameters that 
-must be specified for any flow
-integration.</string>
+                        <string>The Basic Flow Parameters are the 
+parameters that must be specified 
+for any flow integration.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -341,6 +389,19 @@ integration.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify whether the flow will vary with timesteps in the data</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The flow type can be either steady,
+unsteady, or field line advection.
+Steady flow integrates the flow
+lines at a fixed time.  Unsteady
+flow integrates a flow that changes
+over time.  When you have both
+an unsteady and a steady
+flow field, you can use field
+line advection to see how
+the steady field lines move
+in the unsteady field.</string>
+                                            </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -368,6 +429,9 @@ integration.</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>The refinement level specifies the resolution of data that is used</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -409,6 +473,9 @@ integration.</string>
                                             </property>
                                             <property name="maxCount">
                                                 <number>5</number>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>The refinement level specifies the resolution of data that is used</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -871,6 +938,9 @@ grid cells.</string>
                                                             </property>
                                                             <property name="sizeLimit">
                                                                 <number>3</number>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the direction in which the steady field will be integrated.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -1419,6 +1489,9 @@ current time step.</string>
                                                             </property>
                                                             <property name="text">
                                                                 <string>Unsteady Flow Setup Help</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Show instructions for setting up an unsteady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -2499,9 +2572,12 @@ distribution magnitude of points in the rake.</string>
                                                 <string>specify min timestep of a sequence</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Specify a set of time steps that will be
-used to sample the vector fields
-during unsteady flow integration.</string>
+                                                <string>The timestep sample min/max/interval
+provides a way of sampling data
+from evenly spaced time samples.
+If you need arbitrary spacing of 
+time steps, use the time step list
+(below) instead.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2524,9 +2600,12 @@ during unsteady flow integration.</string>
                                                 <string>specify max timestep of a sequence</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Specify a set of time steps that will be
-used to sample the vector fields
-during unsteady flow integration.</string>
+                                                <string>The timestep sample min/max/interval
+provides a way of sampling data
+from evenly spaced time samples.
+If you need arbitrary spacing of 
+time steps, use the time step list
+(below) instead.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2549,9 +2628,12 @@ during unsteady flow integration.</string>
                                                 <string>specify the time interval between timestep samples</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Specify a set of time steps that will be
-used to sample the vector fields
-during unsteady flow integration.</string>
+                                                <string>The timestep sample min/max/interval
+provides a way of sampling data
+from evenly spaced time samples.
+If you need arbitrary spacing of 
+time steps, use the time step list
+(below) instead.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -3439,6 +3521,14 @@ distribution magnitude of points in the rake.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>specify min timestep of a sequence</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The timestep sample min/max/interval
+provides a way of sampling data
+from evenly spaced time samples.
+If you need arbitrary spacing of 
+time steps, use the time step list
+(below) instead.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -3459,6 +3549,14 @@ distribution magnitude of points in the rake.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>specify max timestep of a sequence</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The timestep sample min/max/interval
+provides a way of sampling data
+from evenly spaced time samples.
+If you need arbitrary spacing of 
+time steps, use the time step list
+(below) instead.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -3478,6 +3576,14 @@ distribution magnitude of points in the rake.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>specify the time interval between timestep samples</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The timestep sample min/max/interval
+provides a way of sampling data
+from evenly spaced time samples.
+If you need arbitrary spacing of 
+time steps, use the time step list
+(below) instead.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -4427,6 +4533,12 @@ at the next time step.</string>
                     </property>
                     <property name="frameShadow">
                         <enum>Raised</enum>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>The flow seeding parameters 
+determine the time and location
+of seeds that are inserted into
+the flow.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -5589,6 +5701,11 @@ time.</string>
                     <property name="frameShadow">
                         <enum>Raised</enum>
                     </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>The Shape Parameters determine
+the geometry that is used to display
+the flow lines.</string>
+                    </property>
                     <hbox>
                         <property name="name">
                             <cstring>unnamed</cstring>
@@ -5610,10 +5727,15 @@ time.</string>
                                         </font>
                                     </property>
                                     <property name="text">
-                                        <string>Appearance Parameters</string>
+                                        <string>Shape Parameters</string>
                                     </property>
                                     <property name="alignment">
                                         <set>AlignCenter</set>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The Shape Parameters determine
+the geometry that is used to display
+the flow lines.</string>
                                     </property>
                                 </widget>
                                 <widget class="QLayoutWidget">
@@ -6067,6 +6189,12 @@ of each flow line.</string>
                     </property>
                     <property name="frameShadow">
                         <enum>Raised</enum>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>The color and opacity of the flow
+lines are set by defining a color
+mapping and an opacity mapping
+in this panel.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -6553,6 +6681,18 @@ not appear consistent with known data bounds.</string>
                                             <property name="colorMapping" stdset="0">
                                                 <bool>true</bool>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The color editor displays a 
+mapping from the Color entity
+to opacity,  This editor is only 
+available when you select an 
+entity other than "Constant" for
+color mapping.   This mapping
+determines the color of flow lines
+in the visualizer.  Additional 
+options are available from the right 
+mouse button.</string>
+                                            </property>
                                         </widget>
                                         <widget class="VAPoR::MappingFrame" row="0" column="0">
                                             <property name="name">
@@ -6566,6 +6706,19 @@ not appear consistent with known data bounds.</string>
                                             </property>
                                             <property name="opacityMapping" stdset="0">
                                                 <bool>true</bool>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The opacity editor displays a 
+mapping from the opacity entity
+to opacity,  This editor is only 
+available when you select an 
+entity other than "Constant" for
+opacity mapping.   This mapping
+determines the opacity of flow lines
+in the visualizer. The opacity values are 
+shown as a green curve.   Additional 
+options are available from the right 
+mouse button.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLayoutWidget" row="0" column="1">
@@ -6810,6 +6963,9 @@ not appear consistent with known data bounds.</string>
                                             </property>
                                             <property name="text">
                                                 <string>Hide Color/Opacity Mapping</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Hide this panel</string>
                                             </property>
                                         </widget>
                                         <spacer>

@@ -85,14 +85,15 @@
                             <property name="whatsThis" stdset="0">
                                 <string>The instance checkbox determines which
 Probe/Contour planes are actively 
-rendering in the active visualizer.  The
-identifying number (at the left) selects
-the probe instance whose parameters
-are currently edited in this panel.  Any 
-number of instances can render at the same
-time.  Use the "New"  button or the 
-"Duplicate In" selector to create 
-new Probe/Contour instances.</string>
+rendering in the active visualizer.  You 
+can only use it after a data set has been
+loaded.  The identifying number (at the 
+left) selects the probe instance whose 
+parameters are currently edited in this 
+panel.  Any  number of instances can 
+render at the same time.  Use the "New" 
+button or the "Duplicate In" selector to 
+create new Probe/Contour instances.</string>
                             </property>
                         </widget>
                         <spacer>
@@ -141,14 +142,15 @@ new Probe/Contour instances.</string>
                                             <property name="whatsThis" stdset="0">
                                                 <string>The instance checkbox determines which
 Probe/Contour planes are actively 
-rendering in the active visualizer.  The
-identifying number (at the left) selects
-the probe instance whose parameters
-are currently edited in this panel.  Any 
-number of instances can render at the same
-time.  Use the "New"  button or the 
-"Duplicate In" selector to create 
-new Probe/Contour instances.</string>
+rendering in the active visualizer.  You 
+can only use it after a data set has been
+loaded.  The identifying number (at the 
+left) selects the probe instance whose 
+parameters are currently edited in this 
+panel.  Any  number of instances can 
+render at the same time.  Use the "New" 
+button or the "Duplicate In" selector to 
+create new Probe/Contour instances.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -181,14 +183,15 @@ new Probe/Contour instances.</string>
                                             <property name="whatsThis" stdset="0">
                                                 <string>The instance checkbox determines which
 Probe/Contour planes are actively 
-rendering in the active visualizer.  The
-identifying number (at the left) selects
-the probe instance whose parameters
-are currently edited in this panel.  Any 
-number of instances can render at the same
-time.  Use the "New"  button or the 
-"Duplicate In" selector to create 
-new Probe/Contour instances.</string>
+rendering in the active visualizer.  You 
+can only use it after a data set has been
+loaded.  The identifying number (at the 
+left) selects the probe instance whose 
+parameters are currently edited in this 
+panel.  Any  number of instances can 
+render at the same time.  Use the "New" 
+button or the "Duplicate In" selector to 
+create new Probe/Contour instances.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -239,14 +242,15 @@ new Probe/Contour instances.</string>
                                             <property name="whatsThis" stdset="0">
                                                 <string>The instance checkbox determines which
 Probe/Contour planes are actively 
-rendering in the active visualizer.  The
-identifying number (at the left) selects
-the probe instance whose parameters
-are currently edited in this panel.  Any 
-number of instances can render at the same
-time.  Use the "New"  button or the 
-"Duplicate In" selector to create 
-new Probe/Contour instances.</string>
+rendering in the active visualizer.  You 
+can only use it after a data set has been
+loaded.  The identifying number (at the 
+left) selects the probe instance whose 
+parameters are currently edited in this 
+panel.  Any  number of instances can 
+render at the same time.  Use the "New" 
+button or the "Duplicate In" selector to 
+create new Probe/Contour instances.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -315,6 +319,19 @@ new Probe/Contour instances.</string>
                     </property>
                     <property name="frameShadow">
                         <enum>Raised</enum>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>The Probe/Contour panel
+controls the location and 
+orientation of a 2- or 3- dimensional
+volume that is placed within the 
+full data volume.  It is useful
+for histogramming, displaying,
+and selecting variable values 
+within the volume.  This is 
+used in conjunction with the
+Data Probe Tool from the main
+window toolbar.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -681,6 +698,19 @@ selected.</string>
                                                     <property name="alignment">
                                                         <set>WordBreak|AlignCenter</set>
                                                     </property>
+                                                    <property name="whatsThis" stdset="0">
+                                                        <string>Manipulate the location of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the probe is
+positioned.</string>
+                                                    </property>
                                                 </widget>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
@@ -736,6 +766,19 @@ selected.</string>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the X center of probe in scene</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Manipulate the location of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the probe is
+positioned.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -766,6 +809,19 @@ selected.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the X center of probe in scene</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Manipulate the location of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the probe is
+positioned.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -824,6 +880,19 @@ selected.</string>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the Y center of probe in scene</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Manipulate the location of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the probe is
+positioned.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -854,6 +923,19 @@ selected.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the Y center of probe in scene</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Manipulate the location of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the probe is
+positioned.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -912,6 +994,19 @@ selected.</string>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the Z center of probe in scene</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Manipulate the location of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the probe is
+positioned.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -942,6 +1037,19 @@ selected.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the Z center of probe in scene</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Manipulate the location of the probe
+with these sliders and/or text boxes.
+You can "nudge" the probe by
+one volume cell (at the current
+refinement level) in any direction
+by clicking on the bar of a slider to
+the left or right of the slider handle.
+The X, Y, and Z center refer to 
+the coordinates in the 3D volume
+where the center of the probe is
+positioned.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -1035,13 +1143,14 @@ with these sliders and/or text boxes.
 You can "nudge" the probe size 
 by two volume cells (at the current
 refinement level) in any dimension,
-by clicking on the bar of a slider to 
+by clicking on the bar of a slider to
 the left or right of the slider handle.
 The Xp, Yp, and Zp sizes refer to 
-the probe sizes before it is mapped 
-into the data volume.  The Xp and 
-Yp axes are the (x,y) coordinates
-in the cross-section view (below).
+the probe sizes before it is 
+mapped into the data volume.  
+The Xp and Yp axes are the (x,y) 
+coordinates in the cross-section 
+view (below).
 If there is a nonzero rotation, the Xp,
 Yp, and Zp axes will not be the
 same as the X, Y, and Z axes.</string>
@@ -1083,13 +1192,14 @@ with these sliders and/or text boxes.
 You can "nudge" the probe size 
 by two volume cells (at the current
 refinement level) in any dimension,
-by clicking on the bar of a slider to 
+by clicking on the bar of a slider to
 the left or right of the slider handle.
 The Xp, Yp, and Zp sizes refer to 
-the probe sizes before it is mapped 
-into the data volume.  The Xp and 
-Yp axes are the (x,y) coordinates
-in the cross-section view (below).
+the probe sizes before it is 
+mapped into the data volume.  
+The Xp and Yp axes are the (x,y) 
+coordinates in the cross-section 
+view (below).
 If there is a nonzero rotation, the Xp,
 Yp, and Zp axes will not be the
 same as the X, Y, and Z axes.</string>
@@ -1157,13 +1267,14 @@ with these sliders and/or text boxes.
 You can "nudge" the probe size 
 by two volume cells (at the current
 refinement level) in any dimension,
-by clicking on the bar of a slider to 
+by clicking on the bar of a slider to
 the left or right of the slider handle.
 The Xp, Yp, and Zp sizes refer to 
-the probe sizes before it is mapped 
-into the data volume.  The Xp and 
-Yp axes are the (x,y) coordinates
-in the cross-section view (below).
+the probe sizes before it is 
+mapped into the data volume.  
+The Xp and Yp axes are the (x,y) 
+coordinates in the cross-section 
+view (below).
 If there is a nonzero rotation, the Xp,
 Yp, and Zp axes will not be the
 same as the X, Y, and Z axes.</string>
@@ -1205,13 +1316,14 @@ with these sliders and/or text boxes.
 You can "nudge" the probe size 
 by two volume cells (at the current
 refinement level) in any dimension,
-by clicking on the bar of a slider to 
+by clicking on the bar of a slider to
 the left or right of the slider handle.
 The Xp, Yp, and Zp sizes refer to 
-the probe sizes before it is mapped 
-into the data volume.  The Xp and 
-Yp axes are the (x,y) coordinates
-in the cross-section view (below).
+the probe sizes before it is 
+mapped into the data volume.  
+The Xp and Yp axes are the (x,y) 
+coordinates in the cross-section 
+view (below).
 If there is a nonzero rotation, the Xp,
 Yp, and Zp axes will not be the
 same as the X, Y, and Z axes.</string>
@@ -1282,13 +1394,14 @@ with these sliders and/or text boxes.
 You can "nudge" the probe size 
 by two volume cells (at the current
 refinement level) in any dimension,
-by clicking on the bar of a slider to 
+by clicking on the bar of a slider to
 the left or right of the slider handle.
 The Xp, Yp, and Zp sizes refer to 
-the probe sizes before it is mapped 
-into the data volume.  The Xp and 
-Yp axes are the (x,y) coordinates
-in the cross-section view (below).
+the probe sizes before it is 
+mapped into the data volume.  
+The Xp and Yp axes are the (x,y) 
+coordinates in the cross-section 
+view (below).
 If there is a nonzero rotation, the Xp,
 Yp, and Zp axes will not be the
 same as the X, Y, and Z axes.</string>
@@ -1330,13 +1443,14 @@ with these sliders and/or text boxes.
 You can "nudge" the probe size 
 by two volume cells (at the current
 refinement level) in any dimension,
-by clicking on the bar of a slider to 
+by clicking on the bar of a slider to
 the left or right of the slider handle.
 The Xp, Yp, and Zp sizes refer to 
-the probe sizes before it is mapped 
-into the data volume.  The Xp and 
-Yp axes are the (x,y) coordinates
-in the cross-section view (below).
+the probe sizes before it is 
+mapped into the data volume.  
+The Xp and Yp axes are the (x,y) 
+coordinates in the cross-section 
+view (below).
 If there is a nonzero rotation, the Xp,
 Yp, and Zp axes will not be the
 same as the X, Y, and Z axes.</string>
@@ -2629,10 +2743,14 @@ how the histogram is scaled.</string>
                                             <property name="whatsThis" stdset="0">
                                                 <string>The transfer function editor displays a 
 mapping (called a "transfer function")
-from the data variable to opacity and color,
-This is used when you volume render the
-variable.  The opacity values are shown
-as a green curve.  The color is determined
+from the data variable(s) to opacity and 
+color,  This is used when you view a 
+slice or contour plane of the variable(s). 
+Opacity only affects the in-scene copy
+of the contour plane, not the cross-section
+view in this panel. 
+The opacity values are shown as a 
+green curve.  The color is determined
 by the set of control points along the color
 bar at the bottom.  A histogram of data 
 values is shown in blue-green behind 
