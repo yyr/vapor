@@ -1105,6 +1105,7 @@ void FlowEventRouter::guiUpdateUnsteadyTimes(QTable* tbl, const char* descr){
 	}
 	
 	PanelCommand::captureEnd(cmd, fParams);
+	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 //Respond to user has typed in a row. Convert it to an int, swap it up or down

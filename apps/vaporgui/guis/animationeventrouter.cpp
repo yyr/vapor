@@ -214,20 +214,33 @@ void AnimationEventRouter::updateTab(){
 	frameStepEdit->setText(strn.setNum(aParams->getFrameStepSize()));
 	maxWaitEdit->setText(strn.setNum(aParams->getMaxWait(),'g',3));
 	int playDirection = aParams->getPlayDirection();
+
 	if (playDirection==0) {//pause
 		//pauseButton->setDown(true);
 		playForwardButton->setDown(false);
 		playReverseButton->setDown(false);
-		
+		stepForwardButton->setEnabled(true);
+		stepReverseButton->setEnabled(true);
 	} else if (playDirection==1){//forward play
 		//pauseButton->setDown(false);
 		playForwardButton->setDown(true);
 		playReverseButton->setDown(false);
-		
+		if (!aParams->isRepeating() && currentFrame >= endFrame){
+			//kludge to make the buttons update at the end of
+			//the animation sequence.  The problem is that
+			//the update can't be called from the shared controller thread,
+			//so we have to catch the animation end by other means.
+			stepForwardButton->setEnabled(true);
+			stepReverseButton->setEnabled(true);
+		}
 	} else {//reverse play
 		//pauseButton->setDown(false);
 		playForwardButton->setDown(false);
 		playReverseButton->setDown(true);
+		if (!aParams->isRepeating() && currentFrame <= startFrame){
+			stepForwardButton->setEnabled(true);
+			stepReverseButton->setEnabled(true);
+		}
 	}
 	if (aParams->isRepeating()){
 		replayButton->setOn(true);
@@ -362,7 +375,7 @@ void AnimationEventRouter::guiSetPlay(int direction){
 	PanelCommand::captureEnd(cmd, aParams);
 	if (direction && !previousDirection) VizWinMgr::getInstance()->startPlay(aParams);
 	else if (!direction) VizWinMgr::getInstance()->animationParamsChanged(aParams);
-	update();
+	updateTab();
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
 	
 }
@@ -576,6 +589,7 @@ void AnimationEventRouter::guiUpdateTimestepList(QTable* tbl, const char* descr)
 	}
 	
 	PanelCommand::captureEnd(cmd, aParams);
+	updateTab();
 }
 //Add a new (blank) row to the table
 void AnimationEventRouter::addSample(){

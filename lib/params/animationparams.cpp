@@ -74,6 +74,7 @@ restart(){
 	maxWait = 60.f;
 	useTimestepSampleList = false;
 	timestepList.clear();
+	stateChanged = true;
 	
 }
 //Respond to change in Metadata
@@ -138,8 +139,13 @@ bool AnimationParams::
 advanceFrame(){
 	assert(playDirection);
 	int newFrame = getNextFrame(playDirection);
-	if (newFrame == currentFrame) return true;
+	if (newFrame == currentFrame ) {
+		if (repeatPlay) return false;
+		setPlayDirection(0);
+		return true;
+	}
 	//See if direction needs to change:
+
 	if (((newFrame-currentFrame)*playDirection) > 0) {
 		//No change in direction
 		currentFrame = newFrame;
@@ -192,11 +198,11 @@ getNextFrame(int dir){
 		int testFrame = currentFrame + dir*frameStepSize;
 		if (testFrame > endFrame){ 
 			if (repeatPlay) return startFrame;
-			else return endFrame;
+			else return currentFrame;
 		}
 		if (testFrame < startFrame){
 			if (repeatPlay) return endFrame;
-			else return startFrame;
+			else return currentFrame;
 		}
 		//It's OK...
 		return testFrame;

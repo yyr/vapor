@@ -375,7 +375,7 @@ void ViewpointEventRouter::
 guiAlignView(int axis){
 	float vdir[3] = {0.f, 0.f, 0.f};
 	float up[3] = {0.f, 1.f, 0.f};
-	float axes[3][3] = {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
+	float axes[3][3] = {{1.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 0.f, 1.f}};
 	float vpos[3];
 	if (savedCommand) {
 		delete savedCommand;

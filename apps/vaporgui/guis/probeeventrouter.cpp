@@ -857,7 +857,11 @@ guiCopyRegionToProbe(){
 	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "copy region to probe");
-	
+	if (pParams->isPlanar()){//maybe need to turn off planar:
+		if (rParams->getRegionMin(2) < rParams->getRegionMax(2)){
+			pParams->setPlanar(false);
+		}
+	}
 	for (int i = 0; i< 3; i++){
 		pParams->setProbeMin(i, rParams->getRegionMin(i));
 		pParams->setProbeMax(i, rParams->getRegionMax(i));

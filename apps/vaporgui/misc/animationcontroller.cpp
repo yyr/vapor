@@ -171,9 +171,14 @@ endRendering(int vizNum){
 	
 	animationMutex.lock();
 	
-	// check if this window is animating, if not just leave
+	// check if this window is animating, if not just leave, maybe update the tab
 	if (!isActive(vizNum)) { 
 		animationMutex.unlock();
+		AnimationParams* aParams = VizWinMgr::getInstance()->getAnimationParams(vizNum);
+		if (aParams->isStateChanged()){
+			VizWinMgr::getInstance()->getAnimationRouter()->updateTab();
+			aParams->setStateChanged(false);
+		}
 		return;
 	}
 	assert(renderStarted(vizNum));

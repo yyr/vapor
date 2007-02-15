@@ -24,6 +24,7 @@
 #include <qmutex.h>
 #include <qdatetime.h>
 #include "animationcontroller.h"
+#include "animationeventrouter.h"
 #include "controllerthread.h"
 #include "vizwinmgr.h"
 #include "vizwin.h"
@@ -196,7 +197,12 @@ endRendering(int vizNum){
 	} else {
 		//Note if the change bit needs to be set:
 		bool setChange = myVizWinMgr->getAnimationParams(vizNum)->advanceFrame();
-		if (setChange) myAnimationController->setChangeBitsLocked(vizNum);
+		if (setChange) {
+			myAnimationController->setChangeBitsLocked(vizNum);
+			//if (!myVizWinMgr->getAnimationParams(vizNum)->isRepeating()){
+			//	myVizWinMgr->getAnimationRouter()->guiSetPlay(0);
+			//}
+		}
 	}
 }
 

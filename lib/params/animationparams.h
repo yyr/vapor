@@ -65,7 +65,10 @@ public:
 	void setFrameStepSize(int sz){ frameStepSize = sz;}
 	void setMaxFrameRate(float val) {maxFrameRate = val;}
 	void setMaxWait(float wait) {maxWait = wait;}
-	void setPlayDirection(int val){playDirection = val;}
+	void setPlayDirection(int val){stateChanged = true; playDirection = val;}
+	bool isStateChanged() {return stateChanged;}
+	//Used when the state changes during a render:
+	void setStateChanged(bool state) {stateChanged = state;}
 
 	//When rendering is finished, renderer calls this.  Returns true no change (if the change bit
 	//needs to be set. 
@@ -100,6 +103,8 @@ protected:
 	int currentFrame;
 	bool useTimestepSampleList;
 	std::vector<int> timestepList;
+	//If the animation state is changed, gui needs to update:
+	bool stateChanged;
 	
 };
 };

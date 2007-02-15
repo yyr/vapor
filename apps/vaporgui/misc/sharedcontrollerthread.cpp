@@ -33,6 +33,7 @@
 #include "messagereporter.h"
 #include "glutil.h"
 #include "dvrparams.h"
+#include "animationeventrouter.h"
 using namespace VAPoR;
 
 SharedControllerThread::SharedControllerThread() : QThread(){
