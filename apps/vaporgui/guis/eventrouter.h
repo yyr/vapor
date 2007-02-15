@@ -53,6 +53,12 @@ public:
 	virtual void hookUpTab() = 0;
 	//Set all the fields in the tab based on current params
 	virtual void updateTab() = 0;
+	//Update only tab state that is most urgent after an error message.
+	//In particular, don't update any GL widgets in the tab.
+	//This is to deal with error messages coming from the rendering thread
+	//that are trapped in the gui thread.
+	//Default does nothing
+	virtual void updateUrgentTabState() {return;}
 	//Method to install a new params for undo and redo.
 	//Instance is -1 for non-render params
 	virtual void makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance = -1) = 0;

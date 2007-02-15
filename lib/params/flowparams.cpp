@@ -2675,7 +2675,7 @@ bool FlowParams::validateSettings(int tstep){
 				autoRefresh = false;
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 						"Steady field not available at required resolution for timestep %d\n%s",
-						tstep, "Auto refresh has been disabled to enable corrective action");
+						tstep, "Auto refresh has been disabled to facilitate corrective action");
 				
 				return false;
 			}
@@ -2690,7 +2690,7 @@ bool FlowParams::validateSettings(int tstep){
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 							"Steady field not available at required resolution for timestep %d\n%s",
-							ts, "Auto refresh has been disabled to enable corrective action");
+							ts, "Auto refresh has been disabled to facilitate corrective action");
 					
 					return false;
 				}
@@ -2705,8 +2705,8 @@ bool FlowParams::validateSettings(int tstep){
 		if (getNumTimestepSamples() <= 1){
 			autoRefresh = false;
 			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-				"No timestep samples available for unsteady flow\n%s",
-				"Auto refresh has been disabled to enable corrective action");
+				"At least two time step samples are necessary for unsteady flow integration.\n%s",
+				"Auto refresh has been disabled to facilitate corrective action");
 				
 				return false;
 		}
@@ -2717,7 +2717,7 @@ bool FlowParams::validateSettings(int tstep){
 				autoRefresh = false;
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 						"Unsteady field not available at required resolution for timestep %d\n%s",
-						ts, "Auto refresh has been disabled to enable corrective action");
+						ts, "Auto refresh has been disabled to facilitate corrective action");
 				
 				return false;
 			}
@@ -2738,7 +2738,7 @@ bool FlowParams::validateSettings(int tstep){
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 							"Seed distribution field not available at required resolution for timestep %d\n%s",
-							tstep, "Auto refresh has been disabled to enable corrective action");
+							tstep, "Auto refresh has been disabled to facilitate corrective action");
 					
 					return false;
 				}
@@ -2765,7 +2765,7 @@ bool FlowParams::validateSettings(int tstep){
 						autoRefresh = false;
 						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 								"Seed distribution field not available at required resolution for timestep %d\n%s",
-								seedTimeStart, "Auto refresh has been disabled to enable corrective action");
+								seedTimeStart, "Auto refresh has been disabled to facilitate corrective action");
 						
 						return false;
 					}
@@ -2784,7 +2784,7 @@ bool FlowParams::validateSettings(int tstep){
 				autoRefresh = false;
 				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 						"Prioritization field not available at required resolution for timestep %d\n%s",
-						ts, "Auto refresh has been disabled to enable corrective action");
+						ts, "Auto refresh has been disabled to facilitate corrective action");
 				
 				return false;
 			}
@@ -2808,7 +2808,7 @@ bool FlowParams::validateSettings(int tstep){
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 						"No seed points specified for timestep %d\n%s",
-						tstep, "Auto refresh has been disabled to enable corrective action");
+						tstep, "Auto refresh has been disabled to facilitate corrective action");
 					
 					return false;
 				}
@@ -2858,7 +2858,7 @@ bool FlowParams::validateSettings(int tstep){
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 							"No seeds available after the first sample time %d of the unsteady flow\n%s",
-							ts,"Auto refresh has been disabled to enable corrective action");
+							ts,"Auto refresh has been disabled to facilitate corrective action");
 						
 						return false;
 					}
@@ -2885,7 +2885,7 @@ bool FlowParams::validateSettings(int tstep){
 						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 								"No seeds available at start seed time %d \n%s",
 								seedTimeStart,
-								"Auto refresh has been disabled to enable corrective action");
+								"Auto refresh has been disabled to facilitate corrective action");
 						
 						return false;
 					}
@@ -2918,11 +2918,14 @@ bool FlowParams::validateSettings(int tstep){
 					if (OK) break;
 				}
 				if (!OK){
-					MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
-						"Cannot perform field line advection from the seed time %d to current time %d\n%s",
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+						"Cannot perform field line advection from the seed time %d to current time %d\n%s\n%s",
 						seedTimeStart, tstep,
-						"Because the current time is not between the seed time and a sample time");
+						"Because the current time is not between the seed time and a sample time",
+						"Auto refresh has been disabled to facilitate corrective action");
+					return false;
 				}
+
 			}
 			break;
 		}   //End of switch

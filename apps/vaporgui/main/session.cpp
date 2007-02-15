@@ -31,6 +31,7 @@
 #include <qapplication.h>
 #include <qcursor.h>
 #include <qaction.h>
+#include <qcheckbox.h>
 #include <cassert>
 #include <cstring>
 #include <iostream>
@@ -41,6 +42,7 @@
 #include "vapor/ImpExp.h"
 #include "animationcontroller.h"
 #include "transferfunction.h"
+#include "floweventrouter.h"
 #include <qstring.h>
 #include "tabmanager.h"
 
@@ -888,7 +890,10 @@ errorCallbackFcn(const char* msg, int err_code){
 	} else {
 		MessageReporter::errorMsg((QString("Unclassified error: ")+strng).ascii());
 	}
-	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateTab();
+	FlowEventRouter* ev = VizWinMgr::getInstance()->getFlowRouter();
+	
+	ev->autoRefreshCheckbox->setChecked(false);
+	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
 	//Turn off error:
 	MyBase::SetErrCode(0);
 }

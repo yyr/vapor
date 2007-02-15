@@ -717,7 +717,13 @@ void FlowEventRouter::updateTab(){
 	
 	VizWinMgr::getInstance()->getTabManager()->update();
 }
-
+//Initially the only state that needs updating is the auto refresh checkbox:
+void FlowEventRouter::updateUrgentTabState(){
+	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
+	if (fParams) {
+		autoRefreshCheckbox->setChecked(fParams->refreshIsAuto());
+	}
+}
 
 void FlowEventRouter::confirmText(bool /*render*/){
 	if (!textChangedFlag) return;
