@@ -4649,6 +4649,23 @@ the flow.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify whether seeds are from a list, or a random or nonrandom rake</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Flow seeds are either specified by
+a rake (random or nonrandom) or
+by a seed list.  The seeds in a 
+seed list are valid for specific
+time steps, whereas seeds in
+a rake are inserted in the 
+region at every valid time
+step.  With unsteady flow,
+the valid seed insertion times
+include only the times specified 
+by "Seed time start, end, 
+increment".  With field line
+advection, the only allowed
+seed insertion time is the
+"Seed time start" value.</string>
+                                            </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -4767,6 +4784,18 @@ the flow.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Edit the current list of seed points</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When you edit a seed list,
+you specify 3 spatial and one
+temporal coordinate.  If the 
+temporal coordinate is '*',
+or a negative value, then
+the seed is valid for all
+time steps.  Otherwise it
+is just valid for the timestep
+closest to the temporal
+coordinate.</string>
                                             </property>
                                         </widget>
                                         <spacer>

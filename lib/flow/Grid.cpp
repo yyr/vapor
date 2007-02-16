@@ -155,7 +155,8 @@ int CartesianGrid::getCellVertices(int cellId,
 								   CellTopoType cellType, 
 								   vector<int>& vVertices)
 {
-	int totalCell = xcelldim() * ycelldim() * zcelldim();
+	//max valid index +1:
+	int totalCell = xdim() * ydim() * zdim();
 	int xidx, yidx, zidx, index;
 
 	
@@ -163,14 +164,15 @@ int CartesianGrid::getCellVertices(int cellId,
 	vVertices.clear();
 	//Extract the x, y, z coords from the cellid:
 	
-	xidx = cellId % xcelldim();
+	xidx = cellId % xdim();
 	int leftover = cellId - xidx;
-	leftover = leftover/xcelldim();
-	yidx = leftover % ycelldim();
-	zidx = (leftover - yidx)/ycelldim();
+	leftover = leftover/xdim();
+	yidx = leftover % ydim();
+	zidx = (leftover - yidx)/ydim();
 
 	//Special case for periodic data:  It can go up to very end of array, and must 
-	//then cycle around to start of array in that dimension
+	//then cycle around to start of array in that dimension.
+	//e.g. xcelldim = xdim - 1 is the end voxel in the x dimension
 	if (xidx >= xcelldim() || yidx >= ycelldim() || zidx >= zcelldim()){
 		int xindx, yindx, zindx;
 		for(int kFor = 0; kFor < 2; kFor++){
@@ -264,7 +266,7 @@ bool CartesianGrid::isInCell(PointInfo& pInfo, const int cellId)
 	yidx = (int)floor(compVec[1]);
 	zidx = (int)floor(compVec[2]);
 
-	int inCell = zidx * ycelldim() * xcelldim() + yidx * xcelldim() + xidx;
+	int inCell = zidx * ydim() * xdim() + yidx * xdim() + xidx;
 	if(cellId == inCell)
 	{
 		pInfo.interpolant.Set(compVec[0] - (float)xidx, compVec[1] - (float)yidx, compVec[2] - (float)zidx);
@@ -319,7 +321,7 @@ int CartesianGrid::phys_to_cell(PointInfo& pInfo)
 	assert (xidx < m_nDimension[0]);
 	assert (yidx < m_nDimension[1]);
 	assert (zidx < m_nDimension[2]);
-	int inCell = zidx * ycelldim() * xcelldim() + yidx * xcelldim() + xidx;
+	int inCell = zidx * ydim() * xdim() + yidx * xdim() + xidx;
 
 	pInfo.inCell = inCell;
 	pInfo.interpolant.Set(compVec[0] - (float)xidx, compVec[1] - (float)yidx, compVec[2] - (float)zidx);
