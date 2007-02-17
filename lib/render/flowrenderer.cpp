@@ -1122,7 +1122,7 @@ setAllNeedRefresh(bool value){
 //Map periodic coords into data extents.
 //This is called each time a new point is rendered along a stream line.  oldcycle is initially (0,0,0)
 //establishing that the first point is rendered inside the base cycle (even if it is outside, as with a pre-point).
-//If the first point is out, then the second point must be in, so oldcycle = 0,0,0 is also passed in with the
+//If the first point is out, then the second point must be in??? so oldcycle = 0,0,0 is also passed in with the
 //second point.
 //If the first point is inside, the second point will pass in oldcycle from the first call (which must be (0,0,0)).
 //In any case, this function should not be called for the first point of the streamline, but it must be called for the
@@ -1293,9 +1293,12 @@ renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, 
 					if(constMap) glColor4fv(constFlowColor);
 					glBegin(GL_LINE_STRIP);
 					endGL = false;
-					mappedPoint[0]=point[0];
-					mappedPoint[1]=point[1];
-					mappedPoint[2]=point[2];
+
+					//Establish the first cycle, use it for first two points:
+					bool modifiedCycle = mapPeriodicCycle(point, mappedPoint, currentCycle, newCycle);
+					if (modifiedCycle) 
+						newcycle = mapPeriodicCycle(point, mappedPoint, newCycle, currentCycle);
+					
 				}
 				else {
 					vsub(point, point-3, dirVec);
@@ -1382,9 +1385,11 @@ renderCurves(FlowLineData* flowLineData,float radius, bool isLit, int firstAge, 
 					if(constMap) glColor4fv(constFlowColor);
 					glBegin(GL_LINE_STRIP);
 					endGL = false;
-					mappedPoint[0]=point[0];
-					mappedPoint[1]=point[1];
-					mappedPoint[2]=point[2];
+					//Establish the first cycle, use it for first two points:
+					bool modifiedCycle = mapPeriodicCycle(point, mappedPoint, currentCycle, newCycle);
+					if (modifiedCycle) 
+						newcycle = mapPeriodicCycle(point, mappedPoint, newCycle, currentCycle);
+			
 				} else {  //Call mapPeriodiccycle for every point after the first:
 					newcycle = mapPeriodicCycle(point, mappedPoint, currentCycle, newCycle);
 				}
@@ -1589,7 +1594,7 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 			float* prevNormal;
 			
 
-			//prepare to render the first cyclinder in the tube.
+			//prepare to render the first cylinder in the tube.
 			currentCycle[0]=currentCycle[1]=currentCycle[2]=0;
 			newcycle = false;
 
@@ -1665,17 +1670,30 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 					vcopy(endPoint, startPoint);
 					newcycle = mapPeriodicCycle(point, endPoint, currentCycle, newCycle);
 				} else { //first time through, startPoint is point-3, endPoint is point
-					vcopy(point-3, startPoint);
-					vcopy(point, endPoint);
+					//Establish the first cycle, use it for first two points:
+					bool modifiedCycle = mapPeriodicCycle(point-3, startPoint, currentCycle, newCycle);
+					if (modifiedCycle) {
+						//remap start point
+						mapPeriodicCycle(point-3, startPoint, newCycle, currentCycle);
+						//also translate the prevVertex by the difference we just applied to startPoint
+						for (int j = 0; j< 6; j++){
+							for (int k = 0; k<3; k++){
+								prevVertex[3*j+k] += startPoint[k]-point[k-3];
+							}
+						}
+					}
+					newcycle = mapPeriodicCycle(point, endPoint, currentCycle, newCycle);
+					//vcopy(point-3, startPoint);
+					//vcopy(point, endPoint);
 				}
 				drawTube(isLit, flowLineData->getFlowRGBAs(tubeNum,tubeIndex), startPoint, endPoint, currentB, currentU, radius, constMap,
 					prevNormal, prevVertex, currentNormal, currentVertex);
 
-				//If the arrow exited the region (in cyclic case) need to reset the points.  Note that
+				//If the tube exited the region (in cyclic case) need to reset the points.  Note that
 				//the direction vectors don't need to be changed:
 				if (newcycle){
 					float nextStartPoint[3];
-					//Establish a new cycle for a translate of the last arrow endpoint:
+					//Establish a new cycle for a translate of the last tube endpoint:
 					newcycle = mapPeriodicCycle(point, endPoint, newCycle, currentCycle);
 					assert(!newcycle);
 					//Also map the startPoint to the same cycle, but we don't use the resulting cycle
@@ -1910,11 +1928,15 @@ renderArrows(FlowLineData* flowLineData, float radius, bool isLit, int firstAge,
 					vcopy(endPoint, startPoint);
 					newcycle = mapPeriodicCycle(point, endPoint, currentCycle, newCycle);
 				} else { //first time through, startPoint is point-3, endPoint is point
-					vcopy(point-3, startPoint);
-					vcopy(point, endPoint);
+					//Establish the first cycle, use it for first two points:
+					bool modifiedCycle = mapPeriodicCycle(point-3, startPoint, currentCycle, newCycle);
+					if (modifiedCycle) mapPeriodicCycle(point-3, startPoint, newCycle, currentCycle);
+					//Then put the second point into the same cycle
+					newcycle = mapPeriodicCycle(point, endPoint, currentCycle, newCycle);
+					//vcopy(point-3, startPoint);
+					//vcopy(point, endPoint);
 				}
-				//float* startPoint = flowDataArray+3*(firstIndex);
-				//float* endPoint = flowDataArray+3*(firstIndex+1);
+				
 				drawArrow(isLit, flowLineData->getFlowRGBAs(tubeNum,tubeIndex-1), startPoint, endPoint, currentN, currentB, currentU, radius, constMap);
 
 				//If the arrow exited the region (in cyclic case) need to restart the points.  Note that
