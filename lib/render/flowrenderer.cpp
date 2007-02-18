@@ -42,7 +42,6 @@
 //Constants used for arrow design:
 //VERTEX_ANGLE = 45 degrees (angle between direction vector and head edge
 #define ARROW_LENGTH_FACTOR  0.90f //fraction of full length used by cylinder
-#define MIN_STATIONARY_RADIUS 2.f //minimum in voxels of stationary octahedron
 /*!
   Create a FlowRenderer 
 */
@@ -309,10 +308,8 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	voxelSize = Max((fullExtent[5]-fullExtent[2])/fullDims[0],
 		Max((fullExtent[4]-fullExtent[1])/fullDims[1], (fullExtent[3]-fullExtent[0])/fullDims[2]));
 		
-	//stationary radius is radius of stationary point symbol in user coords
-	if (diam > 2*MIN_STATIONARY_RADIUS)
-		stationaryRadius = voxelSize*0.5*diam;
-	else stationaryRadius = voxelSize*MIN_STATIONARY_RADIUS;
+	
+	stationaryRadius = 0.5f*voxelSize*myFlowParams->getDiamondDiameter();
 	float userRadius = 0.5f*diam*voxelSize;
 	arrowHeadRadius = (myFlowParams->getArrowDiameter())*userRadius;
 
@@ -702,7 +699,7 @@ void FlowRenderer::drawTube(bool isLit, float* secondColor, float startPoint[3],
 
 //Render a symbol for stationary flowline (octahedron?)
 void FlowRenderer::renderStationary(float* point){
-	
+	if (stationaryRadius <= 0.f) return;
 	const float stationaryColor[4] = {.5f,.5f,.5f,1.f};
 	//Normals for each face
 	float normalVecs[24] = {

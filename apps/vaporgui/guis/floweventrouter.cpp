@@ -264,6 +264,9 @@ FlowEventRouter::hookUpTab()
 	connect (lastDisplayFrameEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (diameterEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (diameterEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
+	connect (diamondSizeEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
+	connect (diamondSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
+	
 	connect (arrowheadEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
 	connect (arrowheadEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setFlowTabGraphicsTextChanged(const QString&)));
 	connect (minColormapEdit,SIGNAL(returnPressed()), this, SLOT(flowTabReturnPressed()));
@@ -676,6 +679,7 @@ void FlowEventRouter::updateTab(){
 	firstDisplayFrameEdit->setText(QString::number(fParams->getFirstDisplayFrame()));
 	lastDisplayFrameEdit->setText(QString::number(fParams->getLastDisplayFrame()));
 	diameterEdit->setText(QString::number(fParams->getShapeDiameter()));
+	diamondSizeEdit->setText(QString::number(fParams->getDiamondDiameter()));
 	arrowheadEdit->setText(QString::number(fParams->getArrowDiameter()));
 	constantOpacityEdit->setText(QString::number(fParams->getConstantOpacity()));
 	constantColorButton->setPaletteBackgroundColor(QColor(fParams->getConstantColor()));
@@ -988,6 +992,11 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			shapeDiameter = 0.f;
 			diameterEdit->setText(QString::number(shapeDiameter));
 		}
+		float diamondDiameter = diamondSizeEdit->text().toFloat();
+		if (diamondDiameter < 0.f) {
+			diamondDiameter = 0.f;
+			diamondSizeEdit->setText(QString::number(diamondDiameter));
+		}
 		float arrowDiameter = arrowheadEdit->text().toFloat();
 		if (arrowDiameter < 1.f) {
 			arrowDiameter = 1.f;
@@ -998,6 +1007,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		if (constantOpacity > 1.f) constantOpacity = 1.f;
 		fParams->setShapeDiameter(shapeDiameter);
 		fParams->setArrowDiameter(arrowDiameter);
+		fParams->setDiamondDiameter(diamondDiameter);
 		fParams->setConstantOpacity(constantOpacity);
 		if (fParams->getFlowType() == 1){
 			int lastDisplayFrame = lastDisplayFrameEdit->text().toInt();

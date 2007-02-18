@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout168</cstring>
+                <cstring>layout87</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -5774,7 +5774,7 @@ check-box to start a flow integration.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout90</cstring>
+                                <cstring>layout86</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -5802,26 +5802,15 @@ the flow lines.</string>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout67</cstring>
+                                        <cstring>layout85</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
-                                        <widget class="QLabel">
-                                            <property name="name">
-                                                <cstring>textLabel4</cstring>
-                                            </property>
-                                            <property name="text">
-                                                <string>Shape</string>
-                                            </property>
-                                            <property name="alignment">
-                                                <set>AlignCenter</set>
-                                            </property>
-                                        </widget>
                                         <spacer>
                                             <property name="name">
-                                                <cstring>spacer76</cstring>
+                                                <cstring>spacer91</cstring>
                                             </property>
                                             <property name="orientation">
                                                 <enum>Horizontal</enum>
@@ -5836,6 +5825,17 @@ the flow lines.</string>
                                                 </size>
                                             </property>
                                         </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel4</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Shape</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
                                         <widget class="QComboBox">
                                             <item>
                                                 <property name="text">
@@ -5871,7 +5871,7 @@ the flow lines.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>22</width>
+                                                    <width>16</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -5882,6 +5882,9 @@ the flow lines.</string>
                                             </property>
                                             <property name="text">
                                                 <string>Diameter</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -5907,6 +5910,33 @@ the flow lines.</string>
                                         <spacer>
                                             <property name="name">
                                                 <cstring>spacer47</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>16</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout84</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer92_3</cstring>
                                             </property>
                                             <property name="orientation">
                                                 <enum>Horizontal</enum>
@@ -5949,6 +5979,83 @@ the flow lines.</string>
                                                 <string>Specify the diameter of arrowheads relative to tube diameter</string>
                                             </property>
                                         </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer93_3</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_11</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Diamond size</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>During the line integration of steady
+flow, whenever the field value is so 
+small that further integration will not 
+exit the current voxel, that point is
+renderer as a silver diamond shape.
+This value controls the diameter
+of such diamonds.</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>diamondSizeEdit</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>40</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify the diameter of diamonds, used to denote critical points</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>During the line integration of steady
+flow, whenever the field value is so 
+small that further integration will not 
+exit the current voxel, that point is
+renderer as a silver diamond shape.
+This value controls the diameter
+of such diamonds.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer94_4</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
                                     </hbox>
                                 </widget>
                                 <widget class="QFrame">

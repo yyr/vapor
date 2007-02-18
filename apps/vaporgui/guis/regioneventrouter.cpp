@@ -40,6 +40,7 @@
 #include "regionparams.h"
 #include "regiontab.h"
 #include "floweventrouter.h"
+#include "messagereporter.h"
 #include "mainform.h"
 #include "vizwinmgr.h"
 #include "session.h"
@@ -570,6 +571,13 @@ guiCopyProbeToRegion(){
 	RegionParams* rParams = (RegionParams*)VizWinMgr::getInstance()->getApplicableParams(Params::RegionParamsType);
 	PanelCommand* cmd = PanelCommand::captureStart(rParams,  "copy probe to region");
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	if (pParams->getPhi() != 0.f ||
+		pParams->getTheta() != 0.f ||
+		pParams->getPsi() != 0.f) {
+			MessageReporter::warningMsg("Note: current probe is rotated.\n%s",
+				"Copied region will ignore that rotation.");
+	}
+
 	for (int i = 0; i< 3; i++){
 		rParams->setRegionMin(i, pParams->getProbeMin(i));
 		rParams->setRegionMax(i, pParams->getProbeMax(i));

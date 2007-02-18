@@ -134,8 +134,10 @@ public:
 	int getSeedTimeIncrement() {return seedTimeIncrement;}
 	void setSeedTimeIncrement(int val){seedTimeIncrement = val;}
 	float getShapeDiameter() {return shapeDiameter;}
+	float getDiamondDiameter() {return diamondDiameter;}
 	float getArrowDiameter() {return arrowDiameter;}
 	void setShapeDiameter(float val) {shapeDiameter=val;}
+	void setDiamondDiameter(float val) {diamondDiameter=val;}
 	void setArrowDiameter(float val) {arrowDiameter=val;}
 	int getTimeSamplingInterval() {return timeSamplingInterval;}
 	void setTimeSamplingInterval(int val){timeSamplingInterval = val;}
@@ -402,6 +404,7 @@ protected:
 	static const string _objectsPerTimestepAttr;
 	static const string _displayIntervalAttr;
 	static const string _shapeDiameterAttr;
+	static const string _diamondDiameterAttr;
 	static const string _arrowDiameterAttr;
 	static const string _colorMappedEntityAttr;
 	static const string _opacityMappedEntityAttr;
@@ -476,6 +479,7 @@ protected:
 	int firstDisplayFrame, lastDisplayFrame;
 	
 	float shapeDiameter;
+	float diamondDiameter;
 	float arrowDiameter;
 	QRgb constantColor;
 	float constantOpacity;

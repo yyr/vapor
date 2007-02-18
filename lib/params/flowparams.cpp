@@ -98,6 +98,7 @@ using namespace VAPoR;
 	const string FlowParams::_displayIntervalAttr = "DisplayInterval";
 	const string FlowParams::_steadyFlowLengthAttr = "SteadyFlowLength";
 	const string FlowParams::_shapeDiameterAttr = "ShapeDiameter";
+	const string FlowParams::_diamondDiameterAttr = "DiamondDiameter";
 	const string FlowParams::_arrowDiameterAttr = "ArrowheadDiameter";
 	const string FlowParams::_colorMappedEntityAttr = "ColorMappedEntityIndex";
 	const string FlowParams::_opacityMappedEntityAttr = "OpacityMappedEntityIndex";
@@ -214,6 +215,7 @@ restart() {
 
 	shapeDiameter = 1.f;
 	arrowDiameter = 2.f;
+	diamondDiameter = 2.f;
 
 	colorMapEntity.clear();
 	colorMapEntity.push_back("Constant");
@@ -1456,6 +1458,9 @@ buildNode() {
 	oss << (float)shapeDiameter;
 	attrs[_shapeDiameterAttr] = oss.str();
 	oss.str(empty);
+	oss << (float)diamondDiameter;
+	attrs[_diamondDiameterAttr] = oss.str();
+	oss.str(empty);
 	oss << (float)arrowDiameter;
 	attrs[_arrowDiameterAttr] = oss.str();
 	oss.str(empty);
@@ -1828,6 +1833,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _shapeDiameterAttr) == 0) {
 				ist >> shapeDiameter;
+			}
+			else if (StrCmpNoCase(attribName, _diamondDiameterAttr) == 0) {
+				ist >> diamondDiameter;
 			}
 			else if (StrCmpNoCase(attribName, _arrowDiameterAttr) == 0) {
 				ist >> arrowDiameter;
