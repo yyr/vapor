@@ -18,7 +18,7 @@ FILES = \
 	DVRShader DVRLookup DVRVolumizer DVRSpherical
 
 QT_HEADERS = \
-	renderer flowrenderer 
+	renderer 
   
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += -D"RENDER_EXPORTS"
