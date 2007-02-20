@@ -890,9 +890,7 @@ errorCallbackFcn(const char* msg, int err_code){
 	} else {
 		MessageReporter::errorMsg((QString("Unclassified error: ")+strng).ascii());
 	}
-	FlowEventRouter* ev = VizWinMgr::getInstance()->getFlowRouter();
 	
-	ev->autoRefreshCheckbox->setChecked(false);
 	MainForm::getInstance()->getTabManager()->getFrontEventRouter()->updateUrgentTabState();
 	//Turn off error:
 	MyBase::SetErrCode(0);

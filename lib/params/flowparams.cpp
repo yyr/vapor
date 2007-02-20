@@ -2640,10 +2640,10 @@ bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** stea
 		if (steadyFlowCache[startTime]->getFlowStart(i)[0] != END_FLOW_FLAG) prevSeeds++;
 		if (steadyFlowCache[endTime]->getFlowStart(i)[0] != END_FLOW_FLAG) postSeeds++;
 	}
-	if (postSeeds < prevSeeds){
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW, "%d field lines remain in region at time %d",
-			postSeeds, endTime);
-	}
+	//if (postSeeds < prevSeeds){
+	//	MyBase::SetErrMsg(VAPOR_WARNING_FLOW, "%d field lines remain in region at time %d",
+	//		postSeeds, endTime);
+	//}
 	//Then do steady advection at the end time:
 	regenerateSteadyFieldLines(myFlowLib, steadyFlowCache[endTime], 0, endTime, minFrame, rParams, false);
 	
