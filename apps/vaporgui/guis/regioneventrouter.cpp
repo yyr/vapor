@@ -575,14 +575,11 @@ guiCopyProbeToRegion(){
 		pParams->getTheta() != 0.f ||
 		pParams->getPsi() != 0.f) {
 			MessageReporter::warningMsg("Note: current probe is rotated.\n%s",
-				"Copied region will ignore that rotation.");
+				"Copied region is the smallest axis-aligned box that contains the probe");
 	}
-
-	for (int i = 0; i< 3; i++){
-		rParams->setRegionMin(i, pParams->getProbeMin(i));
-		rParams->setRegionMax(i, pParams->getProbeMax(i));
-	}
-	//Note:  the probe may not fit in the region.  
+	float regMin[3], regMax[3];
+	pParams->getContainingRegion(regMin, regMax);
+	rParams->setBox(regMin, regMax);
 	updateTab();
 	VizWinMgr::getInstance()->setVizDirty(rParams, RegionBit, true);
 	PanelCommand::captureEnd(cmd,rParams);

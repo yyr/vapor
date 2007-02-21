@@ -967,6 +967,7 @@ void MainForm::newSession()
 {
 
 	Session::getInstance()->resetMetadata(0, false);
+	MessageReporter::getInstance()->resetCounts();
 	
 }
 void MainForm::launchVisualizer()

@@ -253,6 +253,8 @@ bool Session::
 loadFromFile(ifstream& ifs){
 	//Call resetMetadata to clean stuff out
 	resetMetadata(0,true);
+	//Reset message counts:
+	MessageReporter::getInstance()->resetCounts();
 	//Then set values from file.
 	ExpatParseMgr* parseMgr = new ExpatParseMgr(this);
 	tempParsedTF = 0;

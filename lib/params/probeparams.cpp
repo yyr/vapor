@@ -763,7 +763,40 @@ void ProbeParams::setMinOpacMapBound(float val){
 void ProbeParams::setMaxOpacMapBound(float val){
 	getMapperFunc()->setMaxOpacMapValue(val);
 }
-
+void ProbeParams::getContainingRegion(float regMin[3], float regMax[3]){
+	//Determine the smallest axis-aligned cube that contains the probe.  This is
+	//obtained by mapping all 8 corners into the space.
+	//Note that this is just a floating point version of getBoundingBox(), below.
+	float transformMatrix[12];
+	//Set up to transform from probe (coords [-1,1]) into volume:
+	buildCoordTransform(transformMatrix, 0.f);
+	const float* extents = DataStatus::getInstance()->getExtents();
+	//Start by initializing extents, and variables that will be min,max
+	for (int i = 0; i< 3; i++){
+		regMin[i] = 1.e30f;
+		regMax[i] = -1.e30f;
+	}
+	
+	for (int corner = 0; corner< 8; corner++){
+		int intCoord[3];
+		float startVec[3], resultVec[3];
+		intCoord[0] = corner%2;
+		intCoord[1] = (corner/2)%2;
+		intCoord[2] = (corner/4)%2;
+		for (int i = 0; i<3; i++)
+			startVec[i] = -1.f + (float)(2.f*intCoord[i]);
+		// calculate the mapping of this corner,
+		vtransform(startVec, transformMatrix, resultVec);
+		// force mapped corner to lie in the full extents, and then force box to contain the corner:
+		for (int i = 0; i<3; i++) {
+			if (resultVec[i] < extents[i]) resultVec[i] = extents[i];
+			if (resultVec[i] > extents[i+3]) resultVec[i] = extents[i+3];
+			if (resultVec[i] < regMin[i]) regMin[i] = resultVec[i];
+			if (resultVec[i] > regMax[i]) regMax[i] = resultVec[i];
+		}
+	}
+	return;
+}
 
 
 

@@ -70,6 +70,7 @@ public:
 	//Whenever there's a change in settings, reset all error counts to 0
 	//Reopen the Log file (it is always used for fatal messages)
 	void reset(const char* newLogFileName);
+	void resetCounts() {messageCount.clear();}
 
 protected:
 	static MessageReporter* theReporter;
