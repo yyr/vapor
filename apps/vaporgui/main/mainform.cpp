@@ -453,7 +453,7 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	
 	connect (probeAction, SIGNAL(toggled(bool)), this, SLOT(setProbe(bool)));
 	connect (rakeAction, SIGNAL(toggled(bool)), this, SLOT(setRake(bool)));
-	connect (moveLightsAction, SIGNAL(toggled(bool)), this, SLOT(setLights(bool)));
+	//connect (moveLightsAction, SIGNAL(toggled(bool)), this, SLOT(setLights(bool)));
 	connect (cascadeAction, SIGNAL(activated()), myVizMgr, SLOT(cascade()));
 	connect (tileAction, SIGNAL(activated()), myVizMgr, SLOT(fitSpace()));
 	connect (homeAction, SIGNAL(activated()), myVizMgr, SLOT(home()));
