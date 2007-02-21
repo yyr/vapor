@@ -202,12 +202,12 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	//Set up lighting, if we are rendering tubes or lines:
 	int nLights = 0;
 	if (myFlowParams->getShapeType() != 1) {//rendering tubes/lines/arrows
-		float diffColor[4], specColor[4], ambColor[4];
+		float specColor[4], ambColor[4];
 		float diffLight[3], specLight[3];
 		GLfloat lmodel_ambient[4];
 		specColor[0]=specColor[1]=specColor[2]=0.8f;
 		ambColor[0]=ambColor[1]=ambColor[2]=0.f;
-		diffColor[3]=specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
+		specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
 
 		//specColor[3] = 0.01f;
 		

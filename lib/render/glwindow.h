@@ -134,7 +134,7 @@ public:
 	float getAxisCoord(int i){return axisCoord[i];}
 	float getColorbarLLCoord(int i) {return colorbarLLCoord[i];}
 	float getColorbarURCoord(int i) {return colorbarURCoord[i];}
-	float getColorbarNumTics() {return numColorbarTics;}
+	int getColorbarNumTics() {return numColorbarTics;}
 	void setBackgroundColor(QColor& c) {backgroundColor = c;}
 	void setColorbarBackgroundColor(QColor& c) {colorbarBackgroundColor = c;}
 	void setRegionFrameColor(QColor& c) {regionFrameColor = c;}

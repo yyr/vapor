@@ -89,8 +89,8 @@
 #include "images/rake.xpm"
 #include "images/wheel.xpm"
 #include "images/cube.xpm"
-#include "images/planes.xpm"
-#include "images/lightbulb.xpm"
+//#include "images/planes.xpm"
+//#include "images/lightbulb.xpm"
 #include "images/home.xpm"
 #include "images/sethome.xpm" 
 #include "images/eye.xpm"
@@ -268,11 +268,11 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	rakeAction->setToggleAction(true);
 	rakeAction->setOn(false);
 
-	QPixmap* lightsIcon = new QPixmap(lightbulb);
-	moveLightsAction = new QAction("Move Lights Mode", *lightsIcon,
-		"&Lights", CTRL+Key_L, mouseModeActions);
-	moveLightsAction->setToggleAction(true);
-	moveLightsAction->setOn(false);
+	//QPixmap* lightsIcon = new QPixmap(lightbulb);
+	//moveLightsAction = new QAction("Move Lights Mode", *lightsIcon,
+	//	"&Lights", CTRL+Key_L, mouseModeActions);
+	//moveLightsAction->setToggleAction(true);
+	//moveLightsAction->setOn(false);
 
 	//Insert toolbar and actions:
 	QPixmap* homeIcon = new QPixmap(home);

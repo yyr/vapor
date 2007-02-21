@@ -752,8 +752,8 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		int nextSampledStep = unsteadyTimestepList[sampleIndex+timeDir];
 		
 		if(dataMgr->GetMetadata()->HasTSUserTime(prevSampledStep)&&dataMgr->GetMetadata()->HasTSUserTime(nextSampledStep))
-			pUserTimeSteps[tIndex] = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
-									   dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep)[0];
+			pUserTimeSteps[tIndex] = (int)(dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
+									   dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep)[0]);
 		else
 			pUserTimeSteps[tIndex] = nextSampledStep - prevSampledStep;
 		//following should make the value always positive
@@ -1011,8 +1011,8 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 		int nextSampledStep = unsteadyTimestepList[sampleIndex+timeDir];
 		
 		if(dataMgr->GetMetadata()->HasTSUserTime(prevSampledStep)&&dataMgr->GetMetadata()->HasTSUserTime(nextSampledStep))
-			pUserTimeSteps[tIndex] = dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
-									   dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep)[0];
+			pUserTimeSteps[tIndex] = (int)(dataMgr->GetMetadata()->GetTSUserTime(nextSampledStep)[0] - 
+									   dataMgr->GetMetadata()->GetTSUserTime(prevSampledStep)[0]);
 		else
 			pUserTimeSteps[tIndex] = nextSampledStep - prevSampledStep;
 		//following should make the value always positive

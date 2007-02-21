@@ -1067,7 +1067,7 @@ void DvrEventRouter::refreshHistogram(RenderParams* p){
 		  updateTab();
 		  return;
 	  }
-	const Metadata* metaData = Session::getInstance()->getCurrentMetadata();
+	//const Metadata* metaData = Session::getInstance()->getCurrentMetadata();
 	//Now get the data:
 	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));

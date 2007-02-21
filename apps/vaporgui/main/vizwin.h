@@ -162,7 +162,7 @@ public:
 	float getAxisCoord(int i){return myGLWindow->getAxisCoord(i);}
 	float getColorbarLLCoord(int i) {return myGLWindow->getColorbarLLCoord(i);}
 	float getColorbarURCoord(int i) {return myGLWindow->getColorbarURCoord(i);}
-	float getColorbarNumTics() {return myGLWindow->getColorbarNumTics();}
+	int getColorbarNumTics() {return myGLWindow->getColorbarNumTics();}
 
 	void setBackgroundColor(QColor& c) {myGLWindow->setBackgroundColor(c);}
 	void setColorbarBackgroundColor(QColor& c) {myGLWindow->setColorbarBackgroundColor( c);}

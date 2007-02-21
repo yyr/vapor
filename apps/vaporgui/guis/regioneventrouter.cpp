@@ -425,14 +425,14 @@ refreshRegionInfo(RegionParams* rParams){
 	//in the metadata.  If the data isn't there, we will display blanks
 	//in the "selected" area.
 	int maxRefLevel = 10;
-	int numTrans = 10;
+	
 	int varNum = -1;
 	std::string varName;
 	if (ds ) {
 		varName = ds->getCurrentMetadata()->GetVariableNames()[mdVarNum];
 		varNum = ds->getSessionVariableNum(varName);
 		maxRefLevel = ds->maxXFormPresent(varNum, timeStep);
-		numTrans = ds->getNumTransforms();
+		
 	} 
 
 	int refLevel = refinementCombo->currentItem();

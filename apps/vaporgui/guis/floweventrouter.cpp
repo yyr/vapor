@@ -924,19 +924,15 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		
 		float boxCtr = xCenterEdit->text().toFloat();
 		float boxSize = xSizeEdit->text().toFloat();
-		float seedBoxMin[3],seedBoxMax[3];
-		seedBoxMin[0] = boxCtr - 0.5*boxSize;
-		seedBoxMax[0] = boxCtr + 0.5*boxSize;
+		
 		textToSlider(fParams,0, boxCtr, boxSize);
 		boxCtr = yCenterEdit->text().toFloat();
 		boxSize = ySizeEdit->text().toFloat();
-		seedBoxMin[1] = boxCtr - 0.5*boxSize;
-		seedBoxMax[1] = boxCtr + 0.5*boxSize;
+		
 		textToSlider(fParams,1, boxCtr, boxSize);
 		boxCtr = zCenterEdit->text().toFloat();
 		boxSize = zSizeEdit->text().toFloat();
-		seedBoxMin[2] = boxCtr - 0.5*boxSize;
-		seedBoxMax[2] = boxCtr + 0.5*boxSize;
+		
 		textToSlider(fParams,2, boxCtr, boxSize);
 
 		if (fParams->isRandom()){

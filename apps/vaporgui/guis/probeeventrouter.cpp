@@ -1734,7 +1734,7 @@ refreshHistogram(RenderParams* p){
 	for (int i = 0; i< 3; i++){
 		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i);
 		gridSpacing[i] = (extents[i+3]-extents[i])/(float)(dataSize[i]-1);
-		if (boxMin[i]< 0) boxMin[i] = 0;
+		//if (boxMin[i]< 0) boxMin[i] = 0;  //unsigned, can't be < 0
 		if (boxMax[i] >= dataSize[i]) boxMax[i] = dataSize[i] - 1;
 	}
 	float voxSize = vlength(gridSpacing);

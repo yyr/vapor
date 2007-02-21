@@ -167,14 +167,14 @@ getNextFrame(int dir){
 		int nextIndex = -1;
 		int firstValidFrame = -1;
 		int lastValidFrame = -1;
-		bool match = false;
+		
 		for (int i = 0; i< timestepList.size(); i++){
 			if (timestepList[i] >= startFrame && timestepList[i] <= endFrame){
 				if (firstValidFrame < 0) firstValidFrame = timestepList[i];
 				lastValidFrame = timestepList[i];
 			} else continue;  //Ignore any timesteps outside the valid range.
 			if (timestepList[i] < currentFrame) prevIndex = i; //before
-			else if (timestepList[i] == currentFrame) match = true;//at
+			else if (timestepList[i] == currentFrame) continue;//at
 			else if (nextIndex < 0) nextIndex = i;//beyond
 		}
 		if (lastValidFrame < 0) {

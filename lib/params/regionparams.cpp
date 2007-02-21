@@ -487,3 +487,4 @@ int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, i
 	float fullMB = numVoxels/262144.f;
 	return (int)fullMB;
 }
+ 
