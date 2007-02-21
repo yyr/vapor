@@ -980,6 +980,14 @@ float TranslateRotateManip::constrainStretch(float currentDist){
 	//And axis2 is the axis of the grabbed side
 	int axis2 = (newHandle < 3) ? (2-newHandle):(newHandle-3);
 		
+	//Don't drag the z-axis if it's planar:
+	if (axis2 == 2){
+		ProbeParams* pParams = (ProbeParams*) myParams;
+		if (pParams->isPlanar()) {
+			delete myPermuter;
+			return 0.f;
+		}
+	}
 	if (selectedHandle < 3){	
 			if (dist > (boxMax[axis2]-boxMin[axis2])) dist = (boxMax[axis2]-boxMin[axis2]);
 	}
