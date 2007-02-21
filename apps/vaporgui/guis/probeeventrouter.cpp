@@ -88,6 +88,7 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): ProbeTab(p
 	ignoreListboxChanges = false;
 	numVariables = 0;
 	seedAttached = false;
+	notNudgingSliders = false;
 	
 }
 
@@ -720,7 +721,7 @@ fileLoadTF(ProbeParams* dParams){
 //Insert values from params into tab panel
 //
 void ProbeEventRouter::updateTab(){
-	
+	notNudgingSliders = true;  //don't generate nudge events
 	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);
@@ -793,12 +794,12 @@ void ProbeEventRouter::updateTab(){
 		textToSlider(probeParams, i, (probeMin[i]+probeMax[i])*0.5f,
 			probeMax[i]-probeMin[i]);
 	}
-	xSizeEdit->setText(QString::number(probeMax[0]-probeMin[0],'g', 4));
-	xCenterEdit->setText(QString::number(0.5f*(probeMax[0]+probeMin[0]),'g',5));
-	ySizeEdit->setText(QString::number(probeMax[1]-probeMin[1],'g', 4));
-	yCenterEdit->setText(QString::number(0.5f*(probeMax[1]+probeMin[1]),'g',5));
-	zSizeEdit->setText(QString::number(probeMax[2]-probeMin[2],'g', 4));
-	zCenterEdit->setText(QString::number(0.5f*(probeMax[2]+probeMin[2]),'g',5));
+	xSizeEdit->setText(QString::number(probeMax[0]-probeMin[0],'g',7));
+	xCenterEdit->setText(QString::number(0.5f*(probeMax[0]+probeMin[0]),'g',7));
+	ySizeEdit->setText(QString::number(probeMax[1]-probeMin[1],'g',7));
+	yCenterEdit->setText(QString::number(0.5f*(probeMax[1]+probeMin[1]),'g',7));
+	zSizeEdit->setText(QString::number(probeMax[2]-probeMin[2],'g',7));
+	zCenterEdit->setText(QString::number(0.5f*(probeMax[2]+probeMin[2]),'g',7));
 	thetaEdit->setText(QString::number(probeParams->getTheta(),'f',1));
 	phiEdit->setText(QString::number(probeParams->getPhi(),'f',1));
 	psiEdit->setText(QString::number(probeParams->getPsi(),'f',1));
@@ -849,6 +850,7 @@ void ProbeEventRouter::updateTab(){
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
 	vizMgr->getTabManager()->update();
+	notNudgingSliders = false;
 }
 //Make region match probe.  Responds to button in region panel
 void ProbeEventRouter::
@@ -1292,6 +1294,7 @@ guiSetNumRefinements(int n){
 	
 //Set slider position, based on text change. 
 //Requirement is that center is inside full domain.
+//Should not change values in params unless the text is invalid.
 //
 void ProbeEventRouter::
 textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
@@ -1319,8 +1322,10 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 	
 	boxMin = newCenter - newSize*0.5f; 
 	boxMax= newCenter + newSize*0.5f; 
-	pParams->setProbeMin(coord, boxMin);
-	pParams->setProbeMax(coord, boxMax);
+	if (centerChanged){
+		pParams->setProbeMin(coord, boxMin);
+		pParams->setProbeMax(coord, boxMax);
+	}
 	
 	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
 	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));
@@ -1337,7 +1342,7 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 			
 			if (oldSliderCenter != sliderCenter)
 				xCenterSlider->setValue(sliderCenter);
-			if(centerChanged) xCenterEdit->setText(QString::number(newCenter));
+			if(centerChanged) xCenterEdit->setText(QString::number(newCenter,'g',7));
 			lastXSizeSlider = sliderSize;
 			lastXCenterSlider = sliderCenter;
 			break;
@@ -1349,7 +1354,7 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 			
 			if (oldSliderCenter != sliderCenter)
 				yCenterSlider->setValue(sliderCenter);
-			if(centerChanged) yCenterEdit->setText(QString::number(newCenter));
+			if(centerChanged) yCenterEdit->setText(QString::number(newCenter,'g',7));
 			lastYSizeSlider = sliderSize;
 			lastYCenterSlider = sliderCenter;
 			break;
@@ -1362,7 +1367,7 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 			
 			if (oldSliderCenter != sliderCenter)
 				zCenterSlider->setValue(sliderCenter);
-			if(centerChanged) zCenterEdit->setText(QString::number(newCenter));
+			if(centerChanged) zCenterEdit->setText(QString::number(newCenter,'g',7));
 			lastZSizeSlider = sliderSize;
 			lastZCenterSlider = sliderCenter;
 			break;
@@ -1370,9 +1375,11 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 			assert(0);
 	}
 	guiSetTextChanged(false);
-	pParams->setProbeDirty();
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	if(centerChanged) {
+		pParams->setProbeDirty();
+		probeTextureFrame->update();
+		VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	}
 	update();
 	return;
 }
@@ -1403,18 +1410,18 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	
 	switch(coord) {
 		case 0:
-			xSizeEdit->setText(QString::number(newSize));
-			xCenterEdit->setText(QString::number(newCenter));
+			xSizeEdit->setText(QString::number(newSize,'g',7));
+			xCenterEdit->setText(QString::number(newCenter,'g',7));
 			selectedXLabel->setText(QString::number(selectedPoint[coord]));
 			break;
 		case 1:
-			ySizeEdit->setText(QString::number(newSize));
-			yCenterEdit->setText(QString::number(newCenter));
+			ySizeEdit->setText(QString::number(newSize,'g',7));
+			yCenterEdit->setText(QString::number(newCenter,'g',7));
 			selectedYLabel->setText(QString::number(selectedPoint[coord]));
 			break;
 		case 2:
-			zSizeEdit->setText(QString::number(newSize));
-			zCenterEdit->setText(QString::number(newCenter));
+			zSizeEdit->setText(QString::number(newSize,'g',7));
+			zCenterEdit->setText(QString::number(newCenter,'g',7));
 			selectedZLabel->setText(QString::number(selectedPoint[coord]));
 			break;
 		default:
@@ -1957,8 +1964,10 @@ void ProbeEventRouter::captureImage() {
 }
 
 void ProbeEventRouter::guiNudgeXSize(int val) {
+	if (notNudgingSliders) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
+	
 	//ignore if change is not 1 
 	if(abs(val - lastXSizeSlider) != 1) {
 		lastXSizeSlider = val;
@@ -2000,6 +2009,7 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 	PanelCommand::captureEnd(cmd,pParams);
 }
 void ProbeEventRouter::guiNudgeXCenter(int val) {
+	if (notNudgingSliders) return;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
@@ -2043,7 +2053,8 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 	PanelCommand::captureEnd(cmd,pParams);
 }
 void ProbeEventRouter::guiNudgeYCenter(int val) {
-DataStatus* ds = DataStatus::getInstance();
+	if (notNudgingSliders) return;
+	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastYCenterSlider) != 1) {
@@ -2086,7 +2097,8 @@ DataStatus* ds = DataStatus::getInstance();
 	PanelCommand::captureEnd(cmd,pParams);
 }
 void ProbeEventRouter::guiNudgeZCenter(int val) {
-DataStatus* ds = DataStatus::getInstance();
+	if (notNudgingSliders) return;
+	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastZCenterSlider) != 1) {
@@ -2130,7 +2142,8 @@ DataStatus* ds = DataStatus::getInstance();
 }
 
 void ProbeEventRouter::guiNudgeYSize(int val) {
-DataStatus* ds = DataStatus::getInstance();
+	if (notNudgingSliders) return;
+	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastYSizeSlider) != 1) {
@@ -2173,7 +2186,8 @@ DataStatus* ds = DataStatus::getInstance();
 	PanelCommand::captureEnd(cmd,pParams);
 }
 void ProbeEventRouter::guiNudgeZSize(int val) {
-DataStatus* ds = DataStatus::getInstance();
+	if (notNudgingSliders) return;
+	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return;
 	//ignore if change is not 1 
 	if(abs(val - lastZSizeSlider) != 1) {

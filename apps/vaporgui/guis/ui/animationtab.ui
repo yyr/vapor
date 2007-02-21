@@ -822,8 +822,8 @@ by this slider and text box.</string>
                                                 <string>Check to use the list of time steps</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Specify a list of time steps that will be
-displayed during the animation.</string>
+                                                <string>Specify a list of time steps that will
+be played during the animation.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -847,8 +847,8 @@ displayed during the animation.</string>
                                                 <string>Click to add another timestep to the list</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Specify a list of time steps that will be
-displayed during the animation.</string>
+                                                <string>Specify a list of time steps that will
+be played during the animation.</string>
                                             </property>
                                         </widget>
                                         <widget class="QPushButton">
@@ -862,8 +862,8 @@ displayed during the animation.</string>
                                                 <string>Click to delete the current time step</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Specify a list of time steps that will be
-displayed during the animation.</string>
+                                                <string>Specify a list of time steps that will
+be played during the animation.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -905,8 +905,8 @@ displayed during the animation.</string>
                                 <string>Specify time steps to be sampled</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Specify a list of time steps that will be
-displayed during the animation.</string>
+                                <string>Specify a list of time steps that will
+be played during the animation.</string>
                             </property>
                         </widget>
                         <spacer>

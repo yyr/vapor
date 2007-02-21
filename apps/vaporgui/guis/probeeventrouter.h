@@ -184,6 +184,9 @@ protected:
 	//Flag to enable resetting of the listbox without
 	//triggering a gui changed event
 	bool ignoreListboxChanges;
+	//Flag to ignore slider events caused by updating tab,
+	//so they won't be recognized as a nudge event.
+	bool notNudgingSliders;
 	int numVariables;
 	int copyCount[MAXVIZWINS+1];
 	int lastXSizeSlider, lastYSizeSlider, lastZSizeSlider;

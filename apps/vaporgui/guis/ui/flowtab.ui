@@ -5792,9 +5792,9 @@ time.</string>
                                                         <string>Specify the first time step for seed points</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
-                                                        <string>Specify the starting, ending, and 
-an increment, determining the 
-time steps when seeds will be 
+                                                        <string>Specify the starting, ending, and
+an increment, determining the
+time steps when seeds will be
 injected into an unsteady flow.
 With field line advection, seeds
 are only injected at the starting
@@ -5898,13 +5898,10 @@ time.</string>
                         <enum>Raised</enum>
                     </property>
                     <property name="whatsThis" stdset="0">
-                        <string>The Flow panel controls the
-integration of vector fields to
-produce flow lines.  To use it, 
-load a data set, set up the 
-basic flow parameters,
-and then click on the instance
-check-box to start a flow integration.</string>
+                        <string>The shape parameters
+control the geometry that
+is used to represent the
+flow.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -6241,6 +6238,15 @@ of such diamonds.</string>
                                                             <property name="text">
                                                                 <string>Unsteady samples per time step</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The unsteady samples per time
+step determines how many
+points along an unsteady flow
+line will be shown between
+two successive time steps.  If this
+value is 1, then there will be one
+point per time step.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QSlider">
                                                             <property name="name">
@@ -6268,6 +6274,15 @@ of such diamonds.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the number of geometric samples per time step</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The unsteady samples per time
+step determines how many
+points along an unsteady flow
+line will be shown between
+two successive time steps.  If this
+value is 1, then there will be one
+point per time step.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
@@ -6299,6 +6314,15 @@ of such diamonds.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the number of geometric samples per time step</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The unsteady samples per time
+step determines how many
+points along an unsteady flow
+line will be shown between
+two successive time steps.  If this
+value is 1, then there will be one
+point per time step.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -6361,14 +6385,17 @@ of such diamonds.</string>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>The timestep display interval is
 used to control the portion of an
-unsteady flow that is visible based
-on the current time frame (specified in
-the animation panel).  At current timestep
-T, the unsteady flow lines between 
-T+min and T+max will be displayed.
-Use a very large negative value of min
-if you want to show the complete history
-of each flow line.</string>
+unsteady flow that is visible
+at each time step, depending
+on the current time frame  (as
+specified in the animation 
+panel).  If T is the current timestep,
+the unsteady flow lines between
+T+min and T+max will be
+displayed.  Use a large negative 
+value of min if you want to show 
+the complete history of each 
+flow line.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
@@ -6393,14 +6420,17 @@ of each flow line.</string>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>The timestep display interval is
 used to control the portion of an
-unsteady flow that is visible based
-on the current time frame (specified in
-the animation panel).  At current timestep
-T, the unsteady flow lines between 
-T+min and T+max will be displayed.
-Use a very large negative value of min
-if you want to show the complete history
-of each flow line.</string>
+unsteady flow that is visible
+at each time step, depending
+on the current time frame  (as
+specified in the animation 
+panel).  If T is the current timestep,
+the unsteady flow lines between
+T+min and T+max will be
+displayed.  Use a large negative 
+value of min if you want to show 
+the complete history of each 
+flow line.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
