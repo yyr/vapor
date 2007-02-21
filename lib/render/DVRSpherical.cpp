@@ -118,47 +118,7 @@ int DVRSpherical::GraphicsInit()
   //
   // Create, Load & Compile the lighting shader program
   //
-  _shaders[LIGHT] = new ShaderProgram();
-  _shaders[LIGHT]->create();
-  
-  if (Params::searchCmdLine("--lightingFS"))
-  {
-    _shaders[LIGHT]->loadFragmentShader(Params::parseCmdLine("--lightingFS"));
-  }
-  else
-  {
-    _shaders[LIGHT]->loadFragmentSource(fragment_shader_lighting);
-  }
-
-  if (!_shaders[LIGHT]->compile())
-  {
-    return -1;
-  }
-
-  _shaders[LIGHT]->enable();
-
-  if (GLEW_VERSION_2_0)
-  {
-    glUniform1i(_shaders[LIGHT]->uniformLocation("colormap"), 1);
-    glUniform1i(_shaders[LIGHT]->uniformLocation("volumeTexture"), 0);
-    glUniform1f(_shaders[LIGHT]->uniformLocation("kd"), 0.8);
-    glUniform1f(_shaders[LIGHT]->uniformLocation("ka"), 0.2);
-    glUniform1f(_shaders[LIGHT]->uniformLocation("ks"), 0.5);
-    glUniform1f(_shaders[LIGHT]->uniformLocation("expS"), 20);
-    glUniform3f(_shaders[LIGHT]->uniformLocation("lightPosition"), 0,0,1);
-  }
-  else
-  {
-    glUniform1iARB(_shaders[LIGHT]->uniformLocation("colormap"), 1);
-    glUniform1iARB(_shaders[LIGHT]->uniformLocation("volumeTexture"), 0);
-    glUniform1fARB(_shaders[LIGHT]->uniformLocation("kd"), 0.8);
-    glUniform1fARB(_shaders[LIGHT]->uniformLocation("ka"), 0.2);
-    glUniform1fARB(_shaders[LIGHT]->uniformLocation("ks"), 0.5);
-    glUniform1fARB(_shaders[LIGHT]->uniformLocation("expS"), 20);
-    glUniform3fARB(_shaders[LIGHT]->uniformLocation("lightPosition"), 0,0,1);
-  }
-
-  _shaders[LIGHT]->disable();
+  // TBD ...
 
   //
   // Set the current shader
