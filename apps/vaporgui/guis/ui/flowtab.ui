@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>437</width>
-            <height>2646</height>
+            <height>2657</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -1076,7 +1076,10 @@ of the full data domain.  This is based on
 the average field magnitude in the region
 and does not necessary give the
 actual sample spacing of an individual
-field line.</string>
+field line.  To explicitly set the 
+sampling rate, un-check the
+option "Automatically scale steady
+field" in the advanced flow parameters.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -1140,7 +1143,13 @@ It is based on the average steady
 field magnitude in the region, and
 does not specify the actual length
 of individual field lines.  Field lines
-that exit the region will be shorter.</string>
+that exit the region will be shorter.
+To manually control the length,
+ un-check the option "Automatically 
+scale steady field" in the advanced 
+flow parameters, and adjust the 
+steady field scale factor 
+appropriately.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
@@ -1181,7 +1190,13 @@ It is based on the average steady
 field magnitude in the region, and
 does not specify the actual length
 of individual field lines.  Field lines
-that exit the region will be shorter.</string>
+that exit the region will be shorter.
+To manually control the length,
+ un-check the option "Automatically 
+scale steady field" in the advanced 
+flow parameters, and adjust the 
+steady field scale factor 
+appropriately.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -1979,6 +1994,9 @@ work OK.</string>
                                             <property name="text">
                                                 <string>Steady samples per flow line</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string></string>
+                                            </property>
                                         </widget>
                                         <widget class="QSlider">
                                             <property name="name">
@@ -2006,6 +2024,9 @@ work OK.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the number of samples along the length of a flow line</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string></string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2037,6 +2058,9 @@ work OK.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the number of samples along the length of a flow line</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string></string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -2081,6 +2105,9 @@ work OK.</string>
                                             <property name="text">
                                                 <string>Steady field scale factor</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string></string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -2116,6 +2143,9 @@ work OK.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>This factor scales the vector field magnitude.  If too small, display will just show diamonds (fixed points).  If too large, flow will consist of straight lines due to flow rapidly exiting region.</string>
                                                 <comment>Comment is here</comment>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string></string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2192,14 +2222,23 @@ work OK.</string>
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2236,14 +2275,23 @@ distribution magnitude of points in the rake.</string>
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -2313,14 +2361,23 @@ distribution magnitude of points in the rake.</string>
                                                 <string>Specify the variable that is mapped to the X coord of the field</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -2358,14 +2415,23 @@ distribution magnitude of points in the rake.</string>
                                                 <string>Specify the variable that is mapped to the Y coord of the field</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -2403,14 +2469,23 @@ distribution magnitude of points in the rake.</string>
                                                 <string>Specify the variable that is mapped to the Z coord of the field</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2913,14 +2988,23 @@ during unsteady flow integration.</string>
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2957,14 +3041,23 @@ distribution magnitude of points in the rake.</string>
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -3034,14 +3127,23 @@ distribution magnitude of points in the rake.</string>
                                                 <string>Specify the variable that is mapped to the X coord of the field</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -3079,14 +3181,23 @@ distribution magnitude of points in the rake.</string>
                                                 <string>Specify the variable that is mapped to the Y coord of the field</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                         <widget class="QComboBox">
@@ -3124,14 +3235,23 @@ distribution magnitude of points in the rake.</string>
                                                 <string>Specify the variable that is mapped to the Z coord of the field</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -3891,14 +4011,23 @@ used during steady flow integration.</string>
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -3935,14 +4064,23 @@ distribution magnitude of points in the rake.</string>
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The bias value is used to produce randomly placed 
-seeds that are biased either toward larger or smaller
-values of the seed distribution field.  A value of 0
-results in uniformly distributed seeds.  If b&gt;0 is the
-bias then (m/M)^b is the probability that a random 
-point p whose seed distribution magnitude is m 
-is accepted, where M is the maximum seed
-distribution magnitude of points in the rake.</string>
+                                                <string>Bias and seed distribution field:
+The bias value is used to produce 
+randomly placed seeds that are 
+biased either toward larger or 
+smaller values of the seed 
+distribution field.  Positive bias
+results in seeds with larger values
+of the field, negative bias results
+in seeds with smaller field values.
+A value of 0 results in uniformly 
+distributed seeds.  If b&gt;0 is the 
+bias then (m/M)^b is the probability 
+that a random point p whose seed 
+distribution field magnitude is m 
+is accepted, where M is the 
+maximum seed distribution 
+magnitude of points in the rake.</string>
                                             </property>
                                         </widget>
                                     </hbox>

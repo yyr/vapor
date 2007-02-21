@@ -1690,6 +1690,7 @@ guiSetXComboSteadyVarNum(int varnum){
 	fParams->setXSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1701,6 +1702,7 @@ guiSetYComboSteadyVarNum(int varnum){
 	fParams->setYSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
@@ -1712,6 +1714,7 @@ guiSetZComboSteadyVarNum(int varnum){
 	fParams->setZSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
+	updateTab();
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 }
 void FlowEventRouter::
