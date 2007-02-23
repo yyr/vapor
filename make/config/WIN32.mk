@@ -67,3 +67,4 @@ MPI_LDFLAGS += mpichd.lib
 
 INSTALL_EXEC = $(CP)
 INSTALL_NONEXEC = $(CP)
+CLD_EXCLUDE_LIBS = -exclude ^/usr -exclude ^/lib

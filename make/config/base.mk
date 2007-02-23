@@ -351,6 +351,9 @@ install:: all
 	@$(ECHO) "Installing header files $(HEADER_FILES) in $(INSTALL_INCDIR)."
 	@$(MAKE_INSTALL_INCDIR)
 	@for i in $(HEADER_FILES); do $(INSTALL_NONEXEC) $(INCDIR)/$(PROJECT)/$$i $(INSTALL_INCDIR); done
+
+install-dep:: install
+
 endif
 endif
 
@@ -580,23 +583,35 @@ define MAKE_INSTALL_INCDIR
 endef
 
 ifdef SUBDIRS
+
 install:: 
 	@for i in $(SUBDIRS); do $(MAKE) -C $$i install; done
+
+install-dep:: install
+	@for i in $(SUBDIRS); do $(MAKE) -C $$i install-dep; done
+
 endif
 
 ifdef COMPILE_ONLY
 install:: all
+install-dep:: install
 else
+install-dep:: 
 install:: all
 ifdef LIBRARY
 	@$(ECHO) "Installing library $(LIBRARY) in $(INSTALL_LIBDIR)."
 	@$(MAKE_INSTALL_LIBDIR)
 	$(INSTALL_EXEC) $(LIB_TARGET) $(INSTALL_LIBDIR)
+install-dep:: install
 else
 ifdef PROGRAM
 	@$(ECHO) "Installing program $(PROGRAM) in $(INSTALL_BINDIR)."
 	@$(MAKE_INSTALL_BINDIR)
 	$(INSTALL_EXEC) $(PROG_TARGET) $(INSTALL_BINDIR)
+install-dep:: install
+	@$(ECHO) "Installing program $(PROGRAM) library dependencies in $(INSTALL_LIBDIR)."
+	$(TOP)/buildutils/copylibdeps.pl $(CLD_EXCLUDE_LIBS) $(CLD_INCLUDE_LIBS) $(PROG_TARGET) $(INSTALL_LIBDIR)
+
 endif
 endif
 endif

@@ -59,3 +59,4 @@ MPI_CC = mpicc
 MPI_CXX = mpiCC
 MPI_LDFLAGS =
 
+CLD_EXCLUDE_LIBS = -exclude ^/usr -exclude ^/lib
