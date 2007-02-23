@@ -967,7 +967,10 @@ void getRotAngles(float* theta, float* phi, float* psi, const float* matrix){
 	mmultt33(tMatrix1, matrix, tMatrix2);
 	//Now the resulting matrix is a rotation by psi
 	//Cos psi and sin psi are in the first column:
-	assert (abs(tMatrix2[0]) <= 1.f);
+	if (abs(tMatrix2[0]) > 1.f){
+		if(tMatrix2[0] > 0.f) tMatrix2[0] = 1.f;
+		else tMatrix2[0] = -1.f;
+	}
 	tempPsi = acos(tMatrix2[0]);
 	if (tMatrix2[3] < 0.f) tempPsi = -tempPsi;
 
