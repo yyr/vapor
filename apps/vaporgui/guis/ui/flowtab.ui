@@ -1001,26 +1001,9 @@ grid cells.</string>
                                                                 <cstring>geometrySamplesLabel</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Smoothness</string>
+                                                                <string>Steady Line Smoothness</string>
                                                             </property>
                                                         </widget>
-                                                        <spacer>
-                                                            <property name="name">
-                                                                <cstring>spacer77</cstring>
-                                                            </property>
-                                                            <property name="orientation">
-                                                                <enum>Horizontal</enum>
-                                                            </property>
-                                                            <property name="sizeType">
-                                                                <enum>Expanding</enum>
-                                                            </property>
-                                                            <property name="sizeHint">
-                                                                <size>
-                                                                    <width>42</width>
-                                                                    <height>21</height>
-                                                                </size>
-                                                            </property>
-                                                        </spacer>
                                                         <widget class="QSlider">
                                                             <property name="name">
                                                                 <cstring>smoothnessSlider</cstring>
@@ -1105,7 +1088,7 @@ field" in the advanced flow parameters.</string>
                                                                 </sizepolicy>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Average Steady Flow Length</string>
+                                                                <string>Typical Steady Flow Length</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QSlider">
@@ -4485,15 +4468,20 @@ steady flow at the next time step.</string>
                                                 <string>Specify range of priority field magnitudes to be considered in identifying seeds to advect in time</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The min and max of the priority field are only used
-with advection before prioritization.  In this case, 
-the search for maximal priority starts at the seed
-and goes first backwards, then forwards, along the
-steady field line.  The search is stopped if
-a point on the field line is found that is less than
-this min, or larger than this max.  If the min or max are
-not attained, the selected point is the largest of
-all points sampled along the field line.</string>
+                                                <string>The min and max of the priority field are only 
+used with advection before prioritization.  In this 
+case, the search for maximal priority starts at 
+the seed and goes first backwards, then 
+forwards, along the steady field line.  The 
+search is stopped if a point on the field line 
+is found that has priority field magnitude less 
+than the specified min, or larger than the 
+specified max.  If the min or max are not 
+attained, the selected point is the 
+one with the largest priority field magnitude
+of all points sampled along the field line.
+If the max is set to 0, then the seed point
+will be the selected point.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -4513,15 +4501,20 @@ all points sampled along the field line.</string>
                                                 <string>Specify range of priority field magnitudes to be considered in identifying seeds to advect in time</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The min and max of the priority field are only used
-with advection before prioritization.  In this case, 
-the search for maximal priority starts at the seed
-and goes first backwards, then forwards, along the
-steady field line.  The search is stopped if
-a point on the field line is found that is less than
-this min, or larger than this max.  If the min or max are
-not attained, the selected point is the largest of
-all points sampled along the field line.</string>
+                                                <string>The min and max of the priority field are only 
+used with advection before prioritization.  In this 
+case, the search for maximal priority starts at 
+the seed and goes first backwards, then 
+forwards, along the steady field line.  The 
+search is stopped if a point on the field line 
+is found that has priority field magnitude less 
+than the specified min, or larger than the 
+specified max.  If the min or max are not 
+attained, the selected point is the 
+one with the largest priority field magnitude
+of all points sampled along the field line.
+If the max is set to 0, then the seed point
+will be the selected point.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -4569,26 +4562,38 @@ all points sampled along the field line.</string>
                                                 <string>Select whether the steady seeds are prioritized before or after advection in time</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Determine how the steady flow seed 
-at a 'subsequent' time step is determined
-from a flow line at a 'previous' time step.
-(Note that previous and next refer to 
-the order the unsteady integration is 
-performed, not the actual time-order of
-time steps.)
-To advect a field line to the 'next' time,
-either one point is selected to advect,
-by prioritizing before the advection.
-Alternatively, multiple, evenly spaced,
-points are selected to advect, and
-the prioritization happens after their
-time-advection.  
-In the first case, the field line at the
-next time step results from the time-
-In the second case, the seed at the next
-time step is obtained as the time-
-advected point with maximal priority
-at the next time step.</string>
+                                                <string>In field line advection you can
+choose how the steady flow seed 
+at the 'next' time step is determined
+from a flow line at the 'previous' time 
+step.  (Note that previous and next 
+refer to the order the unsteady 
+integration is performed, not the 
+actual time-order of time steps.)
+To advect a field line to the 'next' 
+time, if you choose "prioritize before 
+advection" then one point is 
+selected to advect in the
+unsteady field, by maximizing
+the prioritization field magnitude
+among points along the steady field 
+line, Alternatively, when you 
+choose "prioritize after advection",
+multiple, evenly spaced,
+points are selected from the
+steady field line to advect to
+the next time step, and
+the seed point for the next
+time step is found by maximizing
+the prioritization field among 
+the time-advected points at
+the subsequent time step.
+The number of points at the
+next time step is determined
+by the "No. to advect" value.
+The second choice is useful
+when the field lines exit the
+current region early.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -4613,7 +4618,10 @@ at the next time step.</string>
                                                 <cstring>textLabel1_10</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>No of samples</string>
+                                                <string>No to advect</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Specify how many points on each field line will be advected to the next time step</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -6160,6 +6168,12 @@ of such diamonds.</string>
                                                     <width>40</width>
                                                     <height>32767</height>
                                                 </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>2</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the diameter of diamonds, used to denote critical points</string>

@@ -1,5 +1,5 @@
 #ifdef WIN32
-#pragma warning(disable : 4251 4100)
+#pragma warning(disable : 4244 4251 4267 4100)
 #endif
 
 #include "vapor/VaporFlow.h"
@@ -34,7 +34,7 @@ VaporFlow::VaporFlow(DataMgr* dm)
 	zSeedDistVarName = NULL;
 
 	minPriorityVal = 0.f;
-	maxPriorityVal = 1.e30;
+	maxPriorityVal = 1.e30f;
 	seedDistBias = 0.f;
 
 	numXForms = 0;
@@ -270,7 +270,7 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 	//
 	ErrMsgCB_T errorCallback = GetErrMsgCB();
 	SetErrMsgCB(0);
-	float *regionData = dataMgr->GetRegion(ts, varName, numXForms, minBlkRegion, maxBlkRegion,1);
+	float *regionData = dataMgr->GetRegion(ts, varName, (int)numXForms, minBlkRegion, maxBlkRegion,1);
 	SetErrMsgCB(errorCallback);
 	if (!regionData) {
 		SetErrMsg("Error obtaining field data for timestep %d, variable %s",ts, varName);
@@ -281,7 +281,7 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 //Generate the seeds for the rake.  If rake is random calculates distributed seeds 
 int VaporFlow::GenRakeSeeds(float* seeds, int timeStep, unsigned int randomSeed, int stride){
 	int seedNum;
-	seedNum = numSeeds[0]*numSeeds[1]*numSeeds[2];
+	seedNum = (int)(numSeeds[0]*numSeeds[1]*numSeeds[2]);
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
 	if (bUseRandomSeeds && seedDistBias != 0.f){
 		pSeedGenerator->SetSeedDistrib(seedDistBias, timeStep, numXForms,xSeedDistVarName, ySeedDistVarName, zSeedDistVarName);
@@ -308,14 +308,16 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 	//Use the current Region, obtain the priority field.
 	//First map the region to doubles:
 	double minDouble[3], maxDouble[3];
+	
 	const VDFIOBase* myReader = dataMgr->GetRegionReader();
-	myReader->MapVoxToUser(timeStep,minRegion, minDouble, numXForms);
-	myReader->MapVoxToUser(timeStep,maxRegion, maxDouble, numXForms);
+	myReader->MapVoxToUser(timeStep,minRegion, minDouble, (int)numXForms);
+	myReader->MapVoxToUser(timeStep,maxRegion, maxDouble, (int)numXForms);
 	//Use the current region bounds, not the rake bounds...
 	FieldData* fData = setupFieldData(xPriorityVarName, yPriorityVarName, zPriorityVarName, 
-		false, numXForms, timeStep, false);
+		false, (int)numXForms, timeStep, false);
 	if (!fData) return false;
-	
+	//Note that pathContainer is 0 if we are prioritizing after advection.
+	//In that case the search does not stop if minPriorityVal or maxPriorityVal are attained.
 	//If we are doing multi-advection, create an array to hold the maximizing points
 	float** maxPointHolder = 0;
 	if (!pathContainer) {
@@ -329,6 +331,7 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 		if (!pathContainer) maxVal = -1.f;
 		int startPos = container->getSeedPosition();
 		float* maxPoint = 0;
+		bool searchOver = false;
 		//First search backwards (if pathContainer != 0)
 		if (pathContainer && steadyFlowDirection <= 0){
 			for (int ptindx = startPos; ptindx >= container->getStartIndex(line); ptindx--){
@@ -342,15 +345,15 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 					if (pathContainer) break;
 					else continue;
 				}
-				if (pathContainer && val < minPriorityVal) break;
+				if (pathContainer && val < minPriorityVal) {maxPoint = pt; searchOver = true; break;}
 				if (val > maxVal){ //establish a new max
 					maxVal = val;
 					maxPoint = pt;
 				}
-				if (pathContainer && val >= maxPriorityVal) break;
+				if (pathContainer && val >= maxPriorityVal) {maxPoint = pt; searchOver = true; break;}
 			}
 		}
-		if ((!pathContainer) || steadyFlowDirection >= 0){
+		if (!searchOver && ((!pathContainer) || steadyFlowDirection >= 0)){
 			for (int ptindx = startPos; ptindx <= container->getEndIndex(line); ptindx++){
 				float* pt = container->getFlowPoint(line, ptindx);
 				if (pt[0] == END_FLOW_FLAG || pt[0] == STATIONARY_STREAM_FLAG)	{
@@ -362,24 +365,28 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 					if (pathContainer) break;
 					else continue;
 				}
-				if (pathContainer && val < minPriorityVal) break;
+				if (pathContainer && val < minPriorityVal) {maxPoint = pt; break;}
 				if (val > maxVal){ //establish a new max
 					maxVal = val;
 					maxPoint = pt;
 				}
-				if (pathContainer && val >= maxPriorityVal) break;
+				if (pathContainer && val >= maxPriorityVal) {maxPoint = pt; break;}
 			}
 		}
 		//Now put the winner back into the steady flow data at position 0,
 		//or into the path container.
 		//Make appropriate modifications to that flowLine if necessary
-		//If no winner, set it to END_FLOW_FLAG.
+		
+		
 		if (pathContainer){
-			if (maxPoint)
+			if (maxPoint)//If no winner, do nothing:
 				pathContainer->setPointAtTime(line,(float)timeStep, maxPoint[0],maxPoint[1],maxPoint[2]);
 		} else {
+			//Insert the point, or a null if there is no point, this is tested-for
+			//before inserting below.
 			maxPointHolder[line] = maxPoint;
 		}
+	
 		
 	}//end loop over line
 	//Now move the seeds in the container to the appropriate position for steady flow advection
@@ -448,12 +455,12 @@ bool VaporFlow::GenStreamLines(FlowLineData* container, unsigned int randomSeed)
 	// first generate seeds
 	float* seedPtr;
 	int seedNum;
-	seedNum = numSeeds[0]*numSeeds[1]*numSeeds[2];
+	seedNum = (int)(numSeeds[0]*numSeeds[1]*numSeeds[2]);
 	assert(seedNum == container->getNumLines());
 	seedPtr = new float[seedNum*3];
 	SeedGenerator* pSeedGenerator = new SeedGenerator(minRakeExt, maxRakeExt, numSeeds);
 	if (bUseRandomSeeds && seedDistBias != 0.f)
-		pSeedGenerator->SetSeedDistrib(seedDistBias, steadyStartTimeStep, numXForms,
+		pSeedGenerator->SetSeedDistrib(seedDistBias, steadyStartTimeStep, (int)numXForms,
 			xSeedDistVarName,ySeedDistVarName,zSeedDistVarName);
 	bool rc = pSeedGenerator->GetSeeds(this, seedPtr, bUseRandomSeeds, randomSeed);
 	delete pSeedGenerator;
@@ -489,9 +496,9 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	Solution* pSolution;
 	CartesianGrid* pCartesianGrid;
 	float **pUData, **pVData, **pWData;
-	int totalXNum = (maxBlkRegion[0]-minBlkRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize()[0];
-	int totalYNum = (maxBlkRegion[1]-minBlkRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize()[1];
-	int totalZNum = (maxBlkRegion[2]-minBlkRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize()[2];
+	int totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0]+1)* dataMgr->GetMetadata()->GetBlockSize()[0];
+	int totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1]+1)* dataMgr->GetMetadata()->GetBlockSize()[1];
+	int totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2]+1)* dataMgr->GetMetadata()->GetBlockSize()[2];
 	int totalNum = totalXNum*totalYNum*totalZNum;
 	pUData = new float*[1];
 	pVData = new float*[1];
@@ -513,8 +520,8 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	}
 
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
-	pSolution->SetTimeScaleFactor(steadyUserTimeStepMultiplier);
-	pSolution->SetTime(steadyStartTimeStep, steadyStartTimeStep);
+	pSolution->SetTimeScaleFactor((float)steadyUserTimeStepMultiplier);
+	pSolution->SetTime((int)steadyStartTimeStep, (int)steadyStartTimeStep);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
 	pCartesianGrid->setPeriod(flowPeriod);
 	// set the boundary of physical grid
@@ -527,20 +534,20 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 		blockRegionMin[i] = bs[i]*minBlkRegion[i];
 		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
 	}
-	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMin, minUser, numXForms);
-	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMax, maxUser, numXForms);
-	myReader->MapVoxToUser(steadyStartTimeStep, minRegion, regMin, numXForms);
-	myReader->MapVoxToUser(steadyStartTimeStep, maxRegion, regMax, numXForms);
+	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMin, minUser, (int)numXForms);
+	myReader->MapVoxToUser(steadyStartTimeStep, blockRegionMax, maxUser, (int)numXForms);
+	myReader->MapVoxToUser(steadyStartTimeStep, minRegion, regMin, (int)numXForms);
+	myReader->MapVoxToUser(steadyStartTimeStep, maxRegion, regMax, (int)numXForms);
 	
 	//Use current region to determine coords of grid boundary:
 	
 	//Now adjust minB, maxB to block region extents:
 	
 	for (int i = 0; i< 3; i++){
-		minB[i] = minUser[i];
-		maxB[i] = maxUser[i];
-		minR[i] = regMin[i];
-		maxR[i] = regMax[i];
+		minB[i] = (float)minUser[i];
+		maxB[i] = (float)maxUser[i];
+		minR[i] = (float)regMin[i];
+		maxR[i] = (float)regMax[i];
 	}
 	
 	pCartesianGrid->SetRegionExtents(minR,maxR);
@@ -585,11 +592,11 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 			numSeeds - seedsInRegion, steadyStartTimeStep);
 	}
 	pStreamLine->setSeedPoints(seedPtr, numSeeds, currentT);
-	pStreamLine->SetSamplingRate(animationTimeStepSize);
+	pStreamLine->SetSamplingRate((float)animationTimeStepSize);
 	pStreamLine->SetInitStepSize(initialStepSize);
 	pStreamLine->SetMaxStepSize(maxStepSize);
 	pStreamLine->setIntegrationOrder(FOURTH);
-	pStreamLine->SetStationaryCutoff((0.1f*pCartesianGrid->GetGridSpacing(0))/(container->getMaxPoints()*steadyAnimationTimeStepMultiplier));
+	pStreamLine->SetStationaryCutoff((0.1f*pCartesianGrid->GetGridSpacing(0))/(container->getMaxPoints()*(float)steadyAnimationTimeStepMultiplier));
 	pStreamLine->computeStreamLine(currentT, container);
 	
 	//AN: Removed a call to Reset() here. This requires all vapor flow state to be
@@ -674,10 +681,10 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	
 	int totalXNum, totalYNum, totalZNum, totalNum;
 	
-    totalXNum = (maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize()[0];
-	totalYNum = (maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize()[1];
-	totalZNum = (maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize()[2];
-	totalNum = totalXNum*totalYNum*totalZNum;
+    totalXNum = (int)(maxBlkRegion[0]-minBlkRegion[0] + 1)* dataMgr->GetMetadata()->GetBlockSize()[0];
+	totalYNum = (int)(maxBlkRegion[1]-minBlkRegion[1] + 1)* dataMgr->GetMetadata()->GetBlockSize()[1];
+	totalZNum = (int)(maxBlkRegion[2]-minBlkRegion[2] + 1)* dataMgr->GetMetadata()->GetBlockSize()[2];
+	totalNum = (int)(totalXNum*totalYNum*totalZNum);
 	
 	//realStartTime and realEndTime are actual limits of time steps for which positions
 	//are calculated.
@@ -687,7 +694,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	//Note that the unsteadyTimestepList is in forward time order
 	int sampleStartIndex = -1;
 	int sampleEndIndex = -1;
-	for (int indx = 0; indx< numUnsteadyTimesteps; indx++){
+	for (int indx = 0; indx< (int)numUnsteadyTimesteps; indx++){
 		if (unsteadyTimestepList[indx] == startTimeStep) sampleStartIndex = indx;
 		if (unsteadyTimestepList[indx] == endTimeStep) sampleEndIndex = indx;
 	}
@@ -703,7 +710,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	memset(pVData, 0, sizeof(float*)*numTimeSamples);
 	memset(pWData, 0, sizeof(float*)*numTimeSamples);
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, numTimesteps);
-	pSolution->SetTimeScaleFactor(unsteadyUserTimeStepMultiplier);
+	pSolution->SetTimeScaleFactor((float)unsteadyUserTimeStepMultiplier);
 	
 	pSolution->SetTime(startTimeStep, endTimeStep);
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
@@ -720,15 +727,15 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		blockRegionMin[i] = bs[i]*minBlkRegion[i];
 		blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
 	}
-	myReader->MapVoxToUser(startTimeStep, blockRegionMin, minUser, numXForms);
-	myReader->MapVoxToUser(startTimeStep, blockRegionMax, maxUser, numXForms);
-	myReader->MapVoxToUser(startTimeStep, minRegion, regMin, numXForms);
-	myReader->MapVoxToUser(startTimeStep, maxRegion, regMax, numXForms);
+	myReader->MapVoxToUser(startTimeStep, blockRegionMin, minUser, (int)numXForms);
+	myReader->MapVoxToUser(startTimeStep, blockRegionMax, maxUser, (int)numXForms);
+	myReader->MapVoxToUser(startTimeStep, minRegion, regMin, (int)numXForms);
+	myReader->MapVoxToUser(startTimeStep, maxRegion, regMax, (int)numXForms);
 	
-	minB.Set(minUser[0], minUser[1], minUser[2]);
-	maxB.Set(maxUser[0], maxUser[1], maxUser[2]);
-	minR.Set(regMin[0], regMin[1], regMin[2]);
-	maxR.Set(regMax[0], regMax[1], regMax[2]);
+	minB.Set((float)minUser[0], (float)minUser[1], (float)minUser[2]);
+	maxB.Set((float)maxUser[0], (float)maxUser[1], (float)maxUser[2]);
+	minR.Set((float)regMin[0], (float)regMin[1], (float)regMin[2]);
+	maxR.Set((float)regMax[0], (float)regMax[1], (float)regMax[2]);
 	pCartesianGrid->SetBoundary(minB, maxB);
 	pCartesianGrid->SetRegionExtents(minR,maxR);
 	
@@ -946,7 +953,7 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	//Note that the unsteadyTimestepList is in forward time order
 	int sampleStartIndex = -1;
 	int sampleEndIndex = -1;
-	for (int indx = 0; indx< numUnsteadyTimesteps; indx++){
+	for (int indx = 0; indx< (int)numUnsteadyTimesteps; indx++){
 		if (unsteadyTimestepList[indx] == startTimeStep) sampleStartIndex = indx;
 		if (unsteadyTimestepList[indx] == endTimeStep) sampleEndIndex = indx;
 	}

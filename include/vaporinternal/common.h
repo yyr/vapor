@@ -1,5 +1,6 @@
 
 #ifdef WIN32
+#pragma warning(disable : 4018 4244 4267 4305)
 #ifdef COMMON_EXPORTS
 #define COMMON_API __declspec(dllexport)
 #else

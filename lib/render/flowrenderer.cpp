@@ -146,16 +146,18 @@ void FlowRenderer::paintGL()
 		didRemap = true;
 	} else { //just rebuild the rgba's if necessary:
 		if (!constColors && flowMapIsDirty(timeStep)){
-			if (flowType != 1)
+			if (flowType != 1){
 				if (steadyFlowCache[timeStep]) {
 					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
 					didRemap = true;
 				}
-			else 
+			}
+			else {//flowtype = 1
 				if(unsteadyFlowCache) {
 					myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame);
 					didRemap = true;
 				}
+			}
 		}
 	}
 	//OK, now render the cache.  The rgba's were rebuilt too.
@@ -318,7 +320,7 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	if (myFlowParams->getFlowType() != 1){
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
-			if (diam < 0.2f){//Render as lines, not cylinders
+			if (diam < 0.05f){//Render as lines, not cylinders
 				renderCurves(flowLineData, diam, (nLights>0), 0, mxPoints-1, constColors);
 			
 			} else { //render as cylinders
@@ -363,7 +365,7 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 		//Now do the rendering of this interval:
 		if (myFlowParams->getShapeType() == 0) {//rendering tubes/lines:
 				
-			if (diam < 2.f){//Render as lines, not cylinders
+			if (diam < .05f){//Render as lines, not cylinders
 				renderCurves(flowLineData, diam, (nLights>0), firstGeom, lastGeom,
 					constColors);
 			
@@ -849,7 +851,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	//3 variables are needed for
 	//steady integration, 6 are needed for unsteady integration.
 	if (flowType == 0) numMBs *= 3; else numMBs *= 6;
-	int cacheSize = DataStatus::getInstance()->getCacheMB();
+	int cacheSize = (int)DataStatus::getInstance()->getCacheMB();
 	if (numMBs > (int)(0.75*cacheSize)){
 		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for flow integration at current region and resolution.\n%s\n%s",
 			"Lower the refinement level, reduce the region size, or increase the cache size.",

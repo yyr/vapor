@@ -832,32 +832,45 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			//is the total number of samples (maxPoints) and needs to be kept between
 			//2 and 10000
 			bool changed = false;
-			float sampleRate = smoothnessSamplesEdit->text().toFloat();
-			float flowLen = steadyLengthEdit->text().toFloat();
-
-			if (sampleRate < 0.1f || sampleRate > 1000.f) {
-				sampleRate = 20.f;
-				changed = true;
-			} 
-			if (flowLen < 0.01f || flowLen > 100.f){
-				flowLen = 1.f;
+			
+			//Make sure flowLen*smoothness is between 2 and 10000.
+			//following code adapted from guiSetSteadyLength
+			float steadySmoothness = smoothnessSamplesEdit->text().toFloat();
+			float len = steadyLengthEdit->text().toFloat();
+			//First make sure they fit within bounds of sliders:
+			if (steadySmoothness < .1f){
+				steadySmoothness = .1f;
 				changed = true;
 			}
-			if (flowLen*sampleRate < 2.f || flowLen*sampleRate > 10000.f){
-				sampleRate = 20.f;
-				flowLen = 1.f;
+			if (steadySmoothness > 1000.f){
+				steadySmoothness = 1000.f;
 				changed = true;
+			}
+			if (len < 0.01f) {
+				len = 0.01f;
+				changed = true;
+			}
+			if (len > 100.f){
+				len = 100.f;
+				changed = true;
+			}
+			//then adjust the product, changing length if necessary:
+			if (steadySmoothness*len > 10000.f){
+				changed = true;
+				len = 10000.f/steadySmoothness;
+			}
+			if (steadySmoothness*len < 2.f){ 
+				changed = true;
+				len = 2.f/steadySmoothness;
 			}
 			if (changed){
-				smoothnessSamplesEdit->setText(QString::number(sampleRate));
-				steadyLengthEdit->setText(QString::number(flowLen));
-				
+				smoothnessSamplesEdit->setText(QString::number(steadySmoothness));
+				steadyLengthEdit->setText(QString::number(len));
 			}
-			smoothnessSlider->setValue((int)(256.0*(log10((float)sampleRate)+1.f)*0.25f));
-			steadyLengthSlider->setValue((int)(256.0*(log10((float)flowLen)+2.f)*0.25f));
-			fParams->setSteadyFlowLength(flowLen);
-			fParams->setSteadySmoothness(sampleRate);
-			
+			smoothnessSlider->setValue((int)(256.0*(log10((float)steadySmoothness)+1.f)*0.25f));
+			steadyLengthSlider->setValue((int)(256.0*(log10((float)len)+2.f)*0.25f));
+			fParams->setSteadyFlowLength(len);
+			fParams->setSteadySmoothness(steadySmoothness);
 		}
 
 		if(flowType == 2 && showAdvanced) {//Flow line advection only
@@ -2809,7 +2822,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled,  bool newWindow){
 		//visualizer is needed
 		viz = vizWinMgr->getVizWin(fParams->getVizNum());
 	} 
-	int minFrame = vizWinMgr->getActiveAnimationParams()->getStartFrameNumber();
+	//int minFrame = vizWinMgr->getActiveAnimationParams()->getStartFrameNumber();
 	
 	//Four cases to consider:
 	//1.  change of local/global with unchanged disabled renderer; do nothing.

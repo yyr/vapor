@@ -840,7 +840,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 		xVar = ds->getVariableName(priorityVarNum[0]).c_str();
 		yVar = ds->getVariableName(priorityVarNum[1]).c_str();
 		zVar = ds->getVariableName(priorityVarNum[2]).c_str();
-		myFlowLib->SetPriorityField(xVar, yVar, zVar);
+		myFlowLib->SetPriorityField(xVar, yVar, zVar, priorityMin, priorityMax);
 	}
 	
 	if (!setupFlowRegion(rParams, myFlowLib, timeStep, minFrame)) return 0;
