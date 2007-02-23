@@ -205,7 +205,7 @@ restart() {
 
 	allGeneratorCount = 10;
 	seedTimeStart = 0; 
-	seedTimeEnd = 100; 
+	seedTimeEnd = 0; 
 	seedTimeIncrement = 1;
 	currentDimension = 0;
 
@@ -323,7 +323,7 @@ reinit(bool doOverride){
 		
 		numRefinements = 0;
 		seedTimeStart = minFrame;
-		seedTimeEnd = maxFrame;
+		seedTimeEnd = minFrame;
 		seedTimeIncrement = 1;
 		autoRefresh = true;
 		periodicDim[0]=periodicDim[1]=periodicDim[2];
@@ -2229,19 +2229,19 @@ calcSeedExtents(float* extents){
 //When we set the min/map bounds, must save them locally and in the mapper function
 void FlowParams::setMinColorMapBound(float val){
 	minColorBounds[getColorMapEntityIndex()] = val;	
-	getMapperFunc()->setMinColorMapValue(val);
+	if(getMapperFunc())getMapperFunc()->setMinColorMapValue(val);
 }
 void FlowParams::setMaxColorMapBound(float val){
 	maxColorBounds[getColorMapEntityIndex()] = val;
-	getMapperFunc()->setMaxColorMapValue(val);
+	if(getMapperFunc())getMapperFunc()->setMaxColorMapValue(val);
 }
 void FlowParams::setMinOpacMapBound(float val){
 	minOpacBounds[getOpacMapEntityIndex()] = val;
-	getMapperFunc()->setMinOpacMapValue(val);
+	if(getMapperFunc())getMapperFunc()->setMinOpacMapValue(val);
 }
 void FlowParams::setMaxOpacMapBound(float val){
 	maxOpacBounds[getOpacMapEntityIndex()] = val;
-	getMapperFunc()->setMaxOpacMapValue(val);
+	if(getMapperFunc())getMapperFunc()->setMaxOpacMapValue(val);
 }
 
 //Determine the max and min (likely range) associated with a mapped index:

@@ -77,6 +77,7 @@ void ProbeRenderer::paintGL()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_DEPTH_TEST);// will not correct blending, but will be OK wrt other opaque geometry.
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTex);
 		//Do write to the z buffer
