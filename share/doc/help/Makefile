@@ -1,11 +1,9 @@
-TOP = ../
+TOP = ../../
 
 include $(TOP)/make/config/prebase.mk
 
-SUBDIRS = Doxygen help
 
-DOCS = IDLExtRefManual.doc QuickstartGuide.doc ReferenceManual.doc \
-	VDCIntro.doc
+DOCS = FieldLineAdvectionHelp.html  UnsteadyHelp.html
 
 VERSION = $(shell cat $(TOP)/Version)
 INSTALL_DOC_DIR = $(INSTALL_PREFIX_DIR)/share/doc/$(VERSION)
