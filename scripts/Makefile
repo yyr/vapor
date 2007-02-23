@@ -5,7 +5,7 @@ include ${TOP}/make/config/prebase.mk
 
 include ${TOP}/make/config/base.mk
 
-all: $(BINDIR)/vapor-setup.sh $(BINDIR)/vapor-setup.csh
+all:: $(BINDIR)/vapor-setup.sh $(BINDIR)/vapor-setup.csh
 
 $(BINDIR)/vapor-setup.sh: vapor-setup.sh.sed Makefile
 	sed -e s#ARCH#$(ARCH)# \

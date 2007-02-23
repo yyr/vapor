@@ -12,6 +12,8 @@ use File::Spec;
 $0 =~ s/.*\///;
 $ProgName = $0;
 
+$ENV{"LD_LIBRARY_PATH"} = "";
+
 sub usage {
 	my($msg) = @_;
 

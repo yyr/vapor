@@ -10,6 +10,12 @@ endif
 
 include ${TOP}/make/config/base.mk
 
+all:: Version
+
+Version: $(BINDIR)/vaporversion
+	@LD_LIBRARY_PATH=$(DSO_DIR); export LD_LIBRARY_PATH; $(BINDIR)/vaporversion > Version
+
+
 install-dep:: install
 	@sed -e s#ARCH#$(ARCH)# < vapor-install.csh.sed > $(INSTALL_PREFIX_DIR)/vapor-install.csh
 	@chmod +x $(INSTALL_PREFIX_DIR)/vapor-install.csh

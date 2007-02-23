@@ -253,16 +253,16 @@ CXXFLAGS += $(MAKEFILE_CXXFLAGS)
 CFLAGS += $(MAKEFILE_CFLAGS)
 
 ifndef SUBDIRS
-all: arch $(PRECOMP) headers dep
+all:: arch $(PRECOMP) headers dep
 recurse: $(PROG_TARGET) $(LIB_TARGET) done
 else
 ifdef PROGRAM
 #if both subdirs and program, need to just link at the top level directory
-all: subdirs arch $(PRECOMP) dep
+all:: subdirs arch $(PRECOMP) dep
 recurse: $(PROG_TARGET) $(LIB_TARGET) done
 else
 
-all: subdirs
+all:: subdirs
 
 endif
 

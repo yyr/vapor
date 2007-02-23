@@ -35,7 +35,7 @@ echo "Installing VAPOR to $directory"
 #
 # Copy the distribution to the target directory
 #
-tar cf - bin include lib examples | (cd $directory; tar xf -)
+tar cf - bin include lib share | (cd $directory; tar xf -)
 
 if (-e /bin/sed) set sedcmd = /bin/sed
 if (-e /usr/bin/sed) set sedcmd = /usr/bin/sed
