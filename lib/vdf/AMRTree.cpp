@@ -676,7 +676,7 @@ int	AMRTree::_parameshGetBaseBlocks(
 	baseblocks.push_back(firstblk);
 
 	int	err = 0;
-	int	i;
+	int	ii;
 
 	idx = 0;
 	for(int z=0; z<basedim[2] && !err; z++) {
@@ -689,10 +689,10 @@ int	AMRTree::_parameshGetBaseBlocks(
 				if (x < basedim[0]-1) {
 					nbr--;	// elements in gids are off by 1
 
-					for(i=0; i<tmpbb.size() && nbr !=tmpbb[i]; i++);
+					for(ii=0; ii<tmpbb.size() && nbr !=tmpbb[ii]; ii++);
 
-					if (nbr != tmpbb[i]) err = 1;
-					baseblocks.push_back(tmpbb[i]);
+					if (nbr != tmpbb[ii]) err = 1;
+					baseblocks.push_back(tmpbb[ii]);
 				}
 				else if (nbr > -20) err = 1;
 				idx++;
@@ -703,10 +703,10 @@ int	AMRTree::_parameshGetBaseBlocks(
 			if (y < basedim[1]-1) {
 				nbr--;	// elements in gids are off by 1
 
-				for(i=0; i<tmpbb.size() && nbr !=tmpbb[i]; i++);
+				for(ii=0; ii<tmpbb.size() && nbr !=tmpbb[ii]; ii++);
 
-				if (nbr != tmpbb[i]) err = 1;
-				baseblocks.push_back(tmpbb[i]);
+				if (nbr != tmpbb[ii]) err = 1;
+				baseblocks.push_back(tmpbb[ii]);
 			}
 			else if (nbr > -20) err = 1;
 
@@ -716,10 +716,10 @@ int	AMRTree::_parameshGetBaseBlocks(
 		if (z < basedim[2]-1) {
 			nbr--;	// elements in gids are off by 1
 
-			for(i=0; i<tmpbb.size() && nbr !=tmpbb[i]; i++);
+			for(ii=0; ii<tmpbb.size() && nbr !=tmpbb[ii]; ii++);
 
-			if (nbr != tmpbb[i]) err = 1;
-			baseblocks.push_back(tmpbb[i]);
+			if (nbr != tmpbb[ii]) err = 1;
+			baseblocks.push_back(tmpbb[ii]);
 		}
 		else if (nbr > -20) err = 1;
 	}

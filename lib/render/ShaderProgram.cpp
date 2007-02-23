@@ -231,7 +231,7 @@ void ShaderProgram::create()
 bool ShaderProgram::compile()
 {
   std::list<GLuint>::iterator iter;
-  bool compiled = true;
+  //bool compiled = true;
 
   //
   // Compile all the shaders
@@ -251,7 +251,7 @@ bool ShaderProgram::compile()
       glGetShaderiv(shader, GL_COMPILE_STATUS, &shaderCompiled);
       printOpenGLError();
 
-      compiled &= shaderCompiled;
+      //compiled &= shaderCompiled;
       
       //
       // Print log information
@@ -286,7 +286,7 @@ bool ShaderProgram::compile()
                                 &shaderCompiled);
       printOpenGLError();
 
-      compiled &= shaderCompiled;
+      //compiled &= shaderCompiled;
       
       //
       // Print log information
@@ -313,7 +313,8 @@ bool ShaderProgram::compile()
       }
     }
 
-    if (!compiled)
+    //if (!compiled)
+    if (!shaderCompiled)
     {
       return false;
     }

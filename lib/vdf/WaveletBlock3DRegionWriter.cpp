@@ -302,23 +302,23 @@ int	WaveletBlock3DRegionWriter::_WriteRegion(
 		// level 0 super-block-aligned volume that encloses the region.
 		//
 		if (IsOdd(_volBMin[i])) {	// not superblock aligned yet
-			size_t tmp = (_volBMin[i]-1) >> _num_reflevels-1;
-			octmin[i] = tmp * (1 << _num_reflevels-1);
+			size_t tmp = (_volBMin[i]-1) >> (_num_reflevels-1);
+			octmin[i] = tmp * (1 << (_num_reflevels-1));
 			regstart[i] = octmin[i] - (_volBMin[i]-1);
 		}
 		else {
-			size_t tmp = _volBMin[i] >> _num_reflevels-1;
-			octmin[i] = tmp * (1 << _num_reflevels-1);
+			size_t tmp = _volBMin[i] >> (_num_reflevels-1);
+			octmin[i] = tmp * (1 << (_num_reflevels-1));
 			regstart[i] = octmin[i] - _volBMin[i];
 		}
 
 		if (IsOdd(_volBMax[i])) {
-			size_t tmp = (_volBMax[i]+1) >> _num_reflevels-1;
-			octmax[i] = (tmp+1) * (1 << _num_reflevels-1) - 1;
+			size_t tmp = (_volBMax[i]+1) >> (_num_reflevels-1);
+			octmax[i] = (tmp+1) * (1 << (_num_reflevels-1)) - 1;
 		}
 		else {
-			size_t tmp = _volBMax[i] >> _num_reflevels-1;
-			octmax[i] = (tmp+1) * (1 << _num_reflevels-1) - 1;
+			size_t tmp = _volBMax[i] >> (_num_reflevels-1);
+			octmax[i] = (tmp+1) * (1 << (_num_reflevels-1)) - 1;
 		}
 
 	}
