@@ -1241,8 +1241,8 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	//Determine the bounds of the full block region (it's what is used for mapping)
 	if (useRakeBounds){
 		for (int i = 0; i< 3; i++){
-		blockRegionMin[i] = bs[i]*minBlkRake[i];
-		blockRegionMax[i] = bs[i]*(maxBlkRake[i]+1)-1;
+			blockRegionMin[i] = bs[i]*minBlkRake[i];
+			blockRegionMax[i] = bs[i]*(maxBlkRake[i]+1)-1;
 		}
 	} else {
 		for (int i = 0; i< 3; i++){

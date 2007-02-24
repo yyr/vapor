@@ -497,9 +497,7 @@ bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 	int trials;
 	for (trials = 0; trials< 100000; trials++) 
 	{
-		if (trials == 57){
-			int bar = 0;
-		}
+		
 		float coeff[3], point[3];
 		float randomTest = 0.f;
 		//A value of 0.f or 1.f is unacceptable...
@@ -521,15 +519,18 @@ bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 		//Now test if it's OK.
 		float ratio, acceptProb;
 		if (bias > 0.f){
-			ratio = (mag-fieldMin)/(fieldMax-fieldMin);
-			acceptProb = pow(ratio,bias);
+			//Note:  mag can be less than fieldMin, because it is
+			//the norm of an interpolated position
+			if (mag <= fieldMin) {ratio = 0.f; acceptProb = 0.f;}
+			else {
+				ratio = (mag-fieldMin)/(fieldMax-fieldMin);
+				acceptProb = pow(ratio,bias);
+			}
 		} else {
 			ratio = (fieldMax - mag)/(fieldMax-fieldMin);
 			acceptProb = pow(ratio,-bias);
 		}
-		if (ratio < 0.f){
-			int foo =0;
-		}
+		
 		assert (ratio >= 0.f && ratio <= 1.f);
 			
 		//The probability that we accept this point is acceptProb;

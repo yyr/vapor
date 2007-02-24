@@ -11,6 +11,7 @@
 #include "../images/forward.xpm"
 #include "../images/home2.xpm"
 #include "helpwindow.h"
+#include "vapor/version.h"
 #include <qstatusbar.h>
 #include <qpixmap.h>
 #include <qimage.h>
@@ -39,6 +40,8 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+
+using namespace VetsUtil;
 
 HelpWindow* HelpWindow::theHelpWindow = 0;
 
@@ -156,7 +159,9 @@ HelpWindow::HelpWindow( const QString& home_, const QString& _path,
 }
 
 void HelpWindow::showHelp(const QString& filename){
-	QString filePath = QString(getenv("VAPOR_HOME"))+"/doc/vapor/gui/"+filename;
+	
+	QString appver(Version::GetVersionString().c_str());
+	QString filePath = QString(getenv("VAPOR_HOME"))+"/share/doc/"+appver+'/'+filename;
 	if (!theHelpWindow){
 		theHelpWindow = new HelpWindow(filePath, filePath);
 	} 
