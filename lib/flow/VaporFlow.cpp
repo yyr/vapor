@@ -522,7 +522,8 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	pSolution = new Solution(pUData, pVData, pWData, totalNum, 1);
 	pSolution->SetTimeScaleFactor((float)steadyUserTimeStepMultiplier);
 	pSolution->SetTime((int)steadyStartTimeStep, (int)steadyStartTimeStep);
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, 
+		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxRegion);
 	pCartesianGrid->setPeriod(flowPeriod);
 	// set the boundary of physical grid
 	VDFIOBase* myReader = (VDFIOBase*)dataMgr->GetRegionReader();
@@ -713,7 +714,8 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	pSolution->SetTimeScaleFactor((float)unsteadyUserTimeStepMultiplier);
 	
 	pSolution->SetTime(startTimeStep, endTimeStep);
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, 
+		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxRegion);
 	pCartesianGrid->setPeriod(flowPeriod);
 	
 	// set the boundary of physical grid
@@ -972,7 +974,8 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	pSolution->SetTimeScaleFactor(unsteadyUserTimeStepMultiplier);
 	
 	pSolution->SetTime(startTimeStep, endTimeStep);
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, 
+		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxRegion);
 	pCartesianGrid->setPeriod(flowPeriod);
 	
 	// set the boundary of physical grid
@@ -1230,7 +1233,8 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 		pSolution->SetTimeScaleFactor(1.f);
 	pSolution->SetTime(timestep, timestep);
 	
-	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2));
+	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, 
+		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxRegion);
 	pCartesianGrid->setPeriod(flowPeriod);
 	
 	// set the boundary of physical grid

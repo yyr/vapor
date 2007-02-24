@@ -129,6 +129,10 @@ class FLOW_API CartesianGrid : public Grid
 private:
 	int m_nDimension[3];				// dimensions of the grid that is mapped to the 
 										// current block-region
+	int m_nMaxRegionDim[3];				// dimensions of the possibly smaller grid
+										// which represents the largest valid
+										// x,y,z coordinates in the region.
+										// Needed for periodic bound testing.
 	VECTOR3 m_vMinBound, m_vMaxBound;	// min and max  user coord bounds of the block-region of data
 										//obtained from the datamgr.
 	VECTOR3 m_vMinRegBound, m_vMaxRegBound;	// min and max region user coord extents specified by UI
@@ -146,7 +150,8 @@ private:
 
 public:
 	// constructor and deconstructor
-	CartesianGrid(int xdim, int ydim, int zdim, bool xper, bool yper, bool zper);
+	CartesianGrid(int xdim, int ydim, int zdim, 
+		bool xper, bool yper, bool zper, size_t maxIntCoords[3]);
 	CartesianGrid();
 	virtual ~CartesianGrid(){}
 	

@@ -28,7 +28,8 @@ CartesianGrid::CartesianGrid()
 	Reset();
 }
 
-CartesianGrid::CartesianGrid(int xdim, int ydim, int zdim, bool xperiodic, bool yperiodic, bool zperiodic)
+CartesianGrid::CartesianGrid(int xdim, int ydim, int zdim, 
+			bool xperiodic, bool yperiodic, bool zperiodic, size_t maxIntCoords[3])
 {
 	m_nDimension[0] = xdim;
 	m_nDimension[1] = ydim;
@@ -36,6 +37,7 @@ CartesianGrid::CartesianGrid(int xdim, int ydim, int zdim, bool xperiodic, bool 
 	periodicDim[0] = xperiodic;
 	periodicDim[1] = yperiodic;
 	periodicDim[2] = zperiodic;
+	for (int i = 0; i< 3; i++) m_nMaxRegionDim[i] = maxIntCoords[i];
 }
 
 
@@ -170,27 +172,27 @@ int CartesianGrid::getCellVertices(int cellId,
 	yidx = leftover % ydim();
 	zidx = (leftover - yidx)/ydim();
 
-	//Special case for periodic data:  It can go up to very end of array, and must 
+	//Special case for periodic data:  It can go up to very end of region, and must 
 	//then cycle around to start of array in that dimension.
-	//e.g. xcelldim = xdim - 1 is the end voxel in the x dimension
-	if (xidx >= xcelldim() || yidx >= ycelldim() || zidx >= zcelldim()){
+	//e.g. m_nMagRegionDim[0] is the end voxel in the x dimension
+	if (xidx >= m_nMaxRegionDim[0] || yidx >= m_nMaxRegionDim[1] || zidx >= m_nMaxRegionDim[2]){
 		int xindx, yindx, zindx;
 		for(int kFor = 0; kFor < 2; kFor++){
 			zindx = zidx + kFor;
-			if (zindx > zcelldim()){
-				assert (periodicDim[2] && (zindx == zcelldim()+1));
+			if (zindx > m_nMaxRegionDim[2]){
+				assert (periodicDim[2] && (zindx == m_nMaxRegionDim[2]+1));
 				zindx = 0;
 			}
 			for(int jFor = 0; jFor < 2; jFor++){
 				yindx = yidx + jFor;
-				if (yindx > ycelldim()){
-					assert (periodicDim[1] && (yindx == ycelldim()+1));
+				if (yindx > m_nMaxRegionDim[1]){
+					assert (periodicDim[1] && (yindx == m_nMaxRegionDim[1]+1));
 					yindx = 0;
 				}
 				for(int iFor = 0; iFor < 2; iFor++){
 					xindx = xidx + iFor;
-					if (xindx > xcelldim()){
-						assert (periodicDim[0] && (xindx == xcelldim()+1));
+					if (xindx > m_nMaxRegionDim[0]){
+						assert (periodicDim[0] && (xindx == m_nMaxRegionDim[0]+1));
 						xindx = 0;
 					}
 				
