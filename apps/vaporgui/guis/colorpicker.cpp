@@ -246,14 +246,25 @@ ColorShower::ColorShower( QWidget *parent, const char *name )
     gl->addWidget( l, 2, 3 );
     gl->addWidget( bEd, 2, 4 );
 
+	//AN 2/26/07
+	//Modified following so typed-in colors are only used after
+	//<enter> is pressed in a color text box.
+	//Makes it consistent with rest of VAPOR app, and easier to
+	//specify a color by its 3 components
+    //connect( hEd, SIGNAL(textChanged(const QString&)), this, SLOT(hsvEd()) );
+    //connect( sEd, SIGNAL(textChanged(const QString&)), this, SLOT(hsvEd()) );
+    //connect( vEd, SIGNAL(textChanged(const QString&)), this, SLOT(hsvEd()) );
+	connect(hEd,SIGNAL(returnPressed()),this, SLOT(hsvEd()));
+	connect(sEd,SIGNAL(returnPressed()),this, SLOT(hsvEd()));
+	connect(vEd,SIGNAL(returnPressed()),this, SLOT(hsvEd()));
 
-    connect( hEd, SIGNAL(textChanged(const QString&)), this, SLOT(hsvEd()) );
-    connect( sEd, SIGNAL(textChanged(const QString&)), this, SLOT(hsvEd()) );
-    connect( vEd, SIGNAL(textChanged(const QString&)), this, SLOT(hsvEd()) );
+    //connect( rEd, SIGNAL(textChanged(const QString&)), this, SLOT(rgbEd()) );
+    //connect( gEd, SIGNAL(textChanged(const QString&)), this, SLOT(rgbEd()) );
+    //connect( bEd, SIGNAL(textChanged(const QString&)), this, SLOT(rgbEd()) );
 
-    connect( rEd, SIGNAL(textChanged(const QString&)), this, SLOT(rgbEd()) );
-    connect( gEd, SIGNAL(textChanged(const QString&)), this, SLOT(rgbEd()) );
-    connect( bEd, SIGNAL(textChanged(const QString&)), this, SLOT(rgbEd()) );
+	connect( rEd, SIGNAL(returnPressed()), this, SLOT(rgbEd()) );
+    connect( gEd, SIGNAL(returnPressed()), this, SLOT(rgbEd()) );
+    connect( bEd, SIGNAL(returnPressed()), this, SLOT(rgbEd()) );
 
 	lab = new ColorShowLabel( this );
     lab->setMinimumWidth( 60 ); //###
