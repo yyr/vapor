@@ -12,8 +12,14 @@ include ${TOP}/make/config/base.mk
 
 all:: Version
 
+ifeq ($(ARCH),Darwin)
+
+Version: $(BINDIR)/vaporversion
+	@DYLD_LIBRARY_PATH=$(DSO_DIR); export DYLD_LIBRARY_PATH; $(BINDIR)/vaporversion > Version
+else
 Version: $(BINDIR)/vaporversion
 	@LD_LIBRARY_PATH=$(DSO_DIR); export LD_LIBRARY_PATH; $(BINDIR)/vaporversion > Version
+endif
 
 $(BINDIR)/vaporversion:
 
