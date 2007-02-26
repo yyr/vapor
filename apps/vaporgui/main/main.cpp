@@ -42,6 +42,10 @@ int main( int argc, char ** argv ) {
 	//Comment out the next line to see qWarnings in console:
 	//qInstallMsgHandler( myMessageOutput );
 	//Needed for SGI to avoid dithering:
+
+#ifdef	Darwin
+	if (! getenv("DISPLAY")) setenv("DISPLAY", ":0.0",0);
+#endif
 	QApplication::setColorSpec( QApplication::ManyColor );
     QApplication a( argc, argv );
 	app = &a;
