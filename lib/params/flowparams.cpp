@@ -2625,7 +2625,7 @@ bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** stea
 		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"No flow lines were advected to time step %d", endTime);
 		return false;
 	}
-	//For each seed, put the highest priority seed at the start position at endTime
+	//For each line, put the highest priority seed at the start position at endTime
 	if(!myFlowLib->prioritizeSeeds(steadyFlowCache[endTime],0,endTime)){
 		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Unable to prioritize seeds");
 	}

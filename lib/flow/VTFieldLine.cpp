@@ -700,6 +700,7 @@ float vtCFieldLine::SampleFLALine(FlowLineData** flData,
 			x = Lerp((**pIter1)[0], (**pIter2)[0], ratio);
 			y = Lerp((**pIter1)[1], (**pIter2)[1], ratio);
 			z = Lerp((**pIter1)[2], (**pIter2)[2], ratio);
+			
 			flData[(int)(nextTime+0.5f)]->setFlowPoint(lineNum, pointNum, x,y,z);
 		}
 	}

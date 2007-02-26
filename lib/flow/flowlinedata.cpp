@@ -188,6 +188,7 @@ int FlowLineData::resampleFieldLines(int* indexList, int desiredNumSamples, int 
 	for (int i = getStartIndex(lineNum); i<= getEndIndex(lineNum); i++){
 		if (*(getFlowPoint(lineNum, i)) == END_FLOW_FLAG) continue;
 		if (*(getFlowPoint(lineNum, i)) == STATIONARY_STREAM_FLAG) continue;
+		
 		validCount++;
 	}
 	int firstIndex = getStartIndex(lineNum);
@@ -198,19 +199,28 @@ int FlowLineData::resampleFieldLines(int* indexList, int desiredNumSamples, int 
 	if (validCount <= 0) return 0;
 	int numSamples = Min(validCount, desiredNumSamples);
 
-	//Now resample:
-	int count = 0;
+	int validPosn = 0;
+	int formerIndex = -1;
 	for (int i = firstIndex; i<= lastIndex; i++){
 		if (*(getFlowPoint(lineNum, i)) == END_FLOW_FLAG) continue;
 		if (*(getFlowPoint(lineNum, i)) == STATIONARY_STREAM_FLAG) continue;
+		
 		if (numSamples < validCount){ //subsample
-			int index = (int)(0.5f + (float)count*(float)(numSamples-1)/(float)(validCount-1));
-			indexList[index] = i;
+			//validPosn should be between 0 and validCount-1
+			//map validPosn to an index between 0 and numSamples-1
+			int index = (int)(0.5f + (float)validPosn*(float)(numSamples-1)/(float)(validCount-1));
+			//For the first half, take the first value for a given index, for second half take the last one
+			//i.e., in the first half, only use index when it is not equal to prevIndex.
+			if ((validPosn > validCount/2) || formerIndex != index)
+				indexList[index] = i;
+			formerIndex = index;
+			validPosn++;
 		} else { //take em all
-			indexList[count] = i;
+			indexList[validPosn++] = i;
 		}
-		count++;
 	}
+	assert (numSamples == validCount || formerIndex == numSamples-1);
+
 	return numSamples;
 }
 //Make forward lines with valid points start at first valid point,

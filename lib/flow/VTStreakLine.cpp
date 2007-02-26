@@ -436,15 +436,17 @@ int vtCStreakLine::addFLASeeds(int tstep, FlowLineData* container, int maxNumSam
 	for (int i = 0; i< numLines; i++){
 		sampleIndices[i] = new int[maxNumSamples];
 		sampleCount[i] = container->resampleFieldLines(sampleIndices[i],maxNumSamples,i);
+		assert(sampleCount[i]<=maxNumSamples);
 	}
 	
 	int numSeeds = 0;
 	
 	for (int line = 0; line < container->getNumLines(); line++){
 		for (int pointNum = 0; pointNum < sampleCount[line]; pointNum++){
-			//Use the pointId to encode both the pointNum and the line:
-			// pointNum = ptId%numLines, pointNum = (ptId - line)/numLines
-			//This will determine where the advected points get inserted.
+			// Use the pointId to encode both the pointNum and the line:
+			// line = ptId%numLines, pointNum = (ptId - line)/numLines
+			// This will be used determine where the advected points get inserted at the
+			// next time step
 			int pointID = numLines*pointNum + line;
 			//Get the seed
 			vtParticleInfo* newParticle = new vtParticleInfo;
@@ -461,11 +463,14 @@ int vtCStreakLine::addFLASeeds(int tstep, FlowLineData* container, int maxNumSam
 			
 			if (!m_pField->is_in_grid(newParticle->m_pointInfo.phyCoord)) {
 				newParticle->itsValidFlag = 0;
-				assert(0);
-			} else newParticle->itsValidFlag = 1;
-			
-			m_lSeeds.push_back(newParticle);
-			numSeeds++;
+				//Occasionally, more than one point can be invalid at the end of a streamline,
+				//because the resampling produces multiple samples out of bounds.  When that
+				//occurs we just won't advect the invalid points to the next timestep.
+			} else {
+				newParticle->itsValidFlag = 1;
+				m_lSeeds.push_back(newParticle);
+				numSeeds++;
+			}
 		}
 	}
 	m_nNumSeeds = numSeeds;
