@@ -138,7 +138,6 @@ FlowParams::~FlowParams(){
 //Set everything in sight to default state:
 void FlowParams::
 restart() {
-	magChanged = true;
 	autoScale = true;
 	numFLASamples = 2;
 	flaAdvectBeforePrioritize = false;
@@ -809,11 +808,12 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 	if (!myFlowLib) return 0;
 	
 	//If we are doing autoscale, calculate the average field 
-	//magnitude at lowest resolution, over the full domain:
-	if (autoScale && magChanged){
+	//magnitude at lowest resolution, over the region:
+	if (autoScale){
 		float avgMag = getAvgVectorMag(rParams, 0, timeStep);
-		if (avgMag == 0.f) avgMag = 1.f;
-		magChanged = false;
+		//If error, just use 1.
+		if (avgMag <= 0.f) avgMag = 1.f;
+		
 		//Scale the steady field so that it will go steadyFlowLength diameters 
 		//in unit time
 		
@@ -2443,7 +2443,7 @@ int FlowParams::calcNumSeedPoints(int timeStep){
 	return seedCounter;
 }
 //Function to calculate the average magnitude of the steady vector field over specified region
-//Plan on using this to help automatically set vector scale factor.
+//used to automatically set vector scale factor.
 float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeStep){
 	
 	float* varData[3];
@@ -2480,7 +2480,7 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 					(j - min_bdim[1]*bSize)*(bSize*(max_bdim[0]-min_bdim[0]+1)) +
 					(k - min_bdim[2]*bSize)*(bSize*(max_bdim[1]-min_bdim[1]+1))*(bSize*(max_bdim[0]-min_bdim[0]+1));
 				float sumsq = varData[0][xyzCoord]*varData[0][xyzCoord]+varData[1][xyzCoord]*varData[1][xyzCoord]+varData[2][xyzCoord]*varData[2][xyzCoord];
-				//dataMax = Max(dataMax, sqrt(sumsq));
+				
 				dataSum += sqrt(sumsq);
 				numPts++;
 			}
@@ -2492,7 +2492,7 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 	QApplication::restoreOverrideCursor();
 	if (numPts == 0) return -1.f;
 	return (dataSum/(float)numPts);
-	//return dataMax;
+	
 }
 //Tell the flowLib about the current region, return false on error
 bool FlowParams::

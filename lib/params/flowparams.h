@@ -164,7 +164,7 @@ public:
 		else return timeSamplingEnd;
 	}
 	bool isAutoScale(){return autoScale;}
-	void setAutoScale(bool val){magChanged = true; autoScale = val;}
+	void setAutoScale(bool val){autoScale = val;}
 	
 	//Distinguish between the number of seed points specified in the
 	//current settings and the number actually used the last time
@@ -198,9 +198,9 @@ public:
 	void setSteadyDirection(int dir){steadyFlowDirection = dir;}
 	void setUnsteadyDirection(int dir){unsteadyFlowDirection = dir;}
 	float getSteadyFlowLength(){return steadyFlowLength;}
-	void setSteadyFlowLength(float val) {magChanged = true; steadyFlowLength = val;}
+	void setSteadyFlowLength(float val) {steadyFlowLength = val;}
 	float getSteadySmoothness(){return steadySmoothness;}
-	void setSteadySmoothness(float val) {magChanged = true; steadySmoothness = val;}
+	void setSteadySmoothness(float val) {steadySmoothness = val;}
 	
 	
 	
@@ -262,15 +262,15 @@ public:
 	int* getUnsteadyVarNums() {return unsteadyVarNum;}
 	int* getPriorityVarNums() {return priorityVarNum;}
 	int* getSeedDistVarNums() {return seedDistVarNum;}
-	void setXSteadyVarNum(int varnum){magChanged = true; steadyVarNum[0] = varnum;
+	void setXSteadyVarNum(int varnum){steadyVarNum[0] = varnum;
 		if (priorityIsSteady) priorityVarNum[0] = varnum;
 		if (seedDistIsSteady) seedDistVarNum[0] = varnum;
 	}
-	void setYSteadyVarNum(int varnum){magChanged = true; steadyVarNum[1] = varnum;
+	void setYSteadyVarNum(int varnum){steadyVarNum[1] = varnum;
 		if (priorityIsSteady) priorityVarNum[1] = varnum;
 		if (seedDistIsSteady) seedDistVarNum[1] = varnum;
 	}
-	void setZSteadyVarNum(int varnum){magChanged = true; steadyVarNum[2] = varnum;
+	void setZSteadyVarNum(int varnum){steadyVarNum[2] = varnum;
 		if (priorityIsSteady) priorityVarNum[2] = varnum;
 		if (seedDistIsSteady) seedDistVarNum[2] = varnum;
 	}
@@ -517,7 +517,7 @@ protected:
 	int unsteadyFlowDirection; //either -1 or 1, backwards or forwards
 	int steadyFlowDirection; //either -1, 1, or 0 backwards, forwards, or both
 	float steadyFlowLength;
-	bool magChanged;  //flag to indicate need to recalculate averageFieldMag
+	
 
 };
 };
