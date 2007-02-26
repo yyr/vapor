@@ -83,6 +83,7 @@
 #include "vapor/Version.h"
 
 //The following are pixmaps that are used in gui:
+#include "images/vapor-icon-32.xpm"
 #include "images/cascade.xpm"
 #include "images/tiles.xpm"
 #include "images/probe.xpm"
@@ -121,6 +122,8 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	modeStatusWidget = 0;
 	
 	sessionSaveFile.setAscii("VaporSaved.vss");
+	//QPixmap* vaporIcon = new QPixmap(vapor_icon___));
+	setIcon(QPixmap(vapor_icon___));
 
     (void)statusBar();
     if ( !name )
@@ -295,9 +298,6 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	QPixmap* cascadeIcon = new QPixmap(cascade);
 	cascadeAction = new QAction("Cascade Windows", *cascadeIcon,
 		"C&ascade", CTRL+Key_A, this);
-
-	
-	
 
     // toolbars for mouse modes and visualizers
     modeToolBar = new QToolBar( QString(""), this, DockTop); 
