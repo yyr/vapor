@@ -216,18 +216,23 @@ void TextureBrick::load(GLint internalFormat, GLint format)
 
   glBindTexture(GL_TEXTURE_3D, _texid);
 
-  if (_dnx >= _nx && _dny >= _ny && _dnz >= _nz)
+// 
+// If we "own" the data, it's stored in texture bricks that are
+// guaranteed to be powers-of-two (dimensioned by _nx,_ny,_nz). 
+// Similary true, if we don't own the data but the data dimensions match
+// the "next power of two dimensions" (_nx,_ny, _nz).  N.B. In the
+// former case, the bricks need only be partially filled with valid data.
+//
+// else, the data volume pointed to by _data are now a power-of-two
+// and will need to be download as a subimage.
+//
+  if (_haveOwnership || (_dnx==_nx && _dny==_ny) && (_dnz==_nz)) 
   {
     glTexImage3D(GL_TEXTURE_3D, 0, internalFormat,
                  _nx, _ny, _nz, 0, _format, GL_UNSIGNED_BYTE, _data);
   }
   else
   {
-    //
-    // The data dimensions and the brick dimensions are different. This
-    // will occur in several circumstances (e.g., with non-power-of-2 data).
-    // We'll create the texture object, but only load what we need to...
-    //
     glTexImage3D(GL_TEXTURE_3D, 0, internalFormat,
                  _nx, _ny, _nz, 0, _format, GL_UNSIGNED_BYTE, NULL);
 
@@ -243,14 +248,14 @@ void TextureBrick::reload()
 {
   glBindTexture(GL_TEXTURE_3D, _texid);
 
-  if (_dnx <= _nx && _dny <= _ny && _dnz <= _nz)
+  if (_haveOwnership || (_dnx==_nx && _dny==_ny) && (_dnz==_nz)) 
   {
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _dnx, _dny, _dnz, 
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, 
                     _format, GL_UNSIGNED_BYTE, _data);
   }
   else
   {
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, 
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _dnx, _dny, _dnz, 
                     _format, GL_UNSIGNED_BYTE, _data);
   }
 }
@@ -265,6 +270,7 @@ void TextureBrick::fill(GLubyte *data,
                         int nx, int ny, int nz, 
                         int xoffset, int yoffset, int zoffset)
 { 
+
   _nx = bx;
   _ny = by;
   _nz = bz;
