@@ -1079,7 +1079,7 @@ calcProbeTexture(int ts, int texWidth, int texHeight){
 			}
 		}
 		//To get texture width, take distance in array coords, get first power of 2
-		//that exceeds integer dist:
+		//that exceeds integer dist, but at least 64.
 		int distsq = (icor[0][0]-icor[1][0])*(icor[0][0]-icor[1][0]) + 
 			(icor[0][1]-icor[1][1])*(icor[0][1]-icor[1][1])+
 			(icor[0][2]-icor[1][2])*(icor[0][2]-icor[1][2]);
@@ -1090,6 +1090,8 @@ calcProbeTexture(int ts, int texWidth, int texHeight){
 		int ydist = (int)sqrt((float)distsq);
 		textureWidth = 1<<(VetsUtil::ILog2(xdist));
 		textureHeight = 1<<(VetsUtil::ILog2(ydist));
+		if (textureWidth < 64) textureWidth = 64;
+		if (textureHeight < 64) textureHeight = 64;
 		texWidth = textureWidth;
 		texHeight = textureHeight;
 	}
@@ -1115,6 +1117,8 @@ calcProbeTexture(int ts, int texWidth, int texHeight){
 			//This should only fail if they aren't even in the full volume.
 			bool dataOK = true;
 			for (int i = 0; i< 3; i++){
+				if (dataCoord[i]< extents[i] || dataCoord[i] > extents[i+3])
+					dataOK = false;
 				if (arrayCoord[i] < coordMin[i] ||
 					arrayCoord[i] > coordMax[i] ) {
 						dataOK = false;
