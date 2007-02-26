@@ -882,8 +882,9 @@ void FlowEventRouter::confirmText(bool /*render*/){
 					numFlaSamples = 2;
 					flaSamplesEdit->setText("2");
 				}
+				fParams->setNumFLASamples(numFlaSamples);
 			}
-			fParams->setNumFLASamples(numFlaSamples);
+			
 			fParams->setPriorityMin(priorityFieldMinEdit->text().toFloat());
 			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
 			seedDistBias = biasEdit3->text().toFloat();

@@ -139,7 +139,7 @@ FlowParams::~FlowParams(){
 void FlowParams::
 restart() {
 	autoScale = true;
-	numFLASamples = 2;
+	numFLASamples = 5;
 	flaAdvectBeforePrioritize = false;
 	steadyFlowDirection = 0;
 	unsteadyFlowDirection = 1; //default is forward

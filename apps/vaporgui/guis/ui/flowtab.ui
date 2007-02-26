@@ -4629,7 +4629,7 @@ current region early.</string>
                                                 <cstring>textLabel1_10</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>No to advect</string>
+                                                <string>Points to advect</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify how many points on each field line will be advected to the next time step</string>
