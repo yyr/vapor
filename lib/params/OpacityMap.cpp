@@ -498,11 +498,12 @@ void OpacityMap::minValue(float value)
 // 
 // The minimum value is stored as normalized coordinates in the parameter 
 // space. Therefore, the opacity map will change relative to any changes in
-// the parameter space. 
+// the parameter space.  Slightly increased to ensure that, even with
+// numerical error, the max value always is in the opacity map domain
 //----------------------------------------------------------------------------
 float OpacityMap::maxValue() const
 {
-  return _params->getMinOpacMapBound() + _maxValue * 
+  return _params->getMinOpacMapBound() + _maxValue * 1.0001 * 
     (_params->getMaxOpacMapBound() - _params->getMinOpacMapBound());
 }
 
