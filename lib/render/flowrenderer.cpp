@@ -944,7 +944,9 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				unsteadyFlowCache = (PathLineData*)myFlowParams->setupUnsteadyStartData(myFlowLib, minFrame, maxFrame, rParams);
 				if (!unsteadyFlowCache) {
 					MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, 
-						"No seeds for unsteady flow.\n Ensure sample times are consistent with seed times");
+						"No seeds for unsteady flow from time steps %d to %d .\n%s",
+						minFrame, maxFrame,
+						"Ensure sample times are consistent with seed times\n");
 					return false;
 				}
 				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));

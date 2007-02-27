@@ -321,10 +321,16 @@ FlowEventRouter::hookUpTab()
 void FlowEventRouter::updateTab(){
 	
 	DataStatus* dStatus = DataStatus::getInstance();
+	if (dStatus->getDataMgr()) instanceTable->setEnabled(true);
+	else instanceTable->setEnabled(false);
+	instanceTable->rebuild(this);
+
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	int flowType = fParams->getFlowType();
 	bool autoScale = fParams->isAutoScale();
 	Session::getInstance()->blockRecording();
+
+	
 
 	
 	switch (flowType){
@@ -480,10 +486,7 @@ void FlowEventRouter::updateTab(){
 	updateGeometry();
 	adjustSize();
 
-	if (dStatus->getDataMgr()) instanceTable->setEnabled(true);
-	else instanceTable->setEnabled(false);
-	instanceTable->rebuild(this);
-
+	
 	VizWinMgr* vizMgr = VizWinMgr::getInstance();
 	int winnum = vizMgr->getActiveViz();
 	int numViz = vizMgr->getNumVisualizers();
@@ -714,11 +717,11 @@ void FlowEventRouter::updateTab(){
 	minOpacityBound->setText(QString::number(fParams->minRange(var, tstep)));
 	maxOpacityBound->setText(QString::number(fParams->maxRange(var, tstep)));
 	updateMapBounds(fParams);
-	
-	guiSetTextChanged(false);
 
-	Session::getInstance()->unblockRecording();
+	update();
+	guiSetTextChanged(false);
 	
+	Session::getInstance()->unblockRecording();
 	VizWinMgr::getInstance()->getTabManager()->update();
 }
 //Initially the only state that needs updating is the auto refresh checkbox:
@@ -1257,6 +1260,10 @@ setFlowEnabled(bool val, int instance){
 	FlowParams* myFlowParams = vizMgr->getFlowParams(winnum, instance);
 	//Make sure this is a change:
 	if (myFlowParams->isEnabled() == val ) return;
+	//If we are enabling, also make this the current instance:
+	if (val) {
+		performGuiChangeInstance(instance);
+	}
 	guiSetEnabled(val, instance);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.
@@ -1590,6 +1597,7 @@ guiSetEnabled(bool on, int instance){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "enable/disable flow render",instance);
 	fParams->setEnabled(on);
 	PanelCommand::captureEnd(cmd, fParams);
+	updateTab();
 }
 //Respond to a change in opacity scale factor
 void FlowEventRouter::

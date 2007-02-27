@@ -40,7 +40,7 @@ QApplication* app;
 int main( int argc, char ** argv ) {
 	//Install our own message handler.
 	//Comment out the next line to see qWarnings in console:
-	//qInstallMsgHandler( myMessageOutput );
+	qInstallMsgHandler( myMessageOutput );
 	//Needed for SGI to avoid dithering:
 
 #ifdef	Darwin
@@ -78,11 +78,12 @@ int main( int argc, char ** argv ) {
 	}
 
 #endif
-    
-    MainForm* mw = new MainForm();
+	QString fileName("");
+    if (argc > 1) fileName = argv[1];
+    MainForm* mw = new MainForm(fileName);
 	
 	
-    mw->setCaption( "VAPoR User Interface" );
+    mw->setCaption( "VAPOR User Interface" );
     mw->show();
     a.connect( &a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()) );
     return a.exec();

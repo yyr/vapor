@@ -332,6 +332,10 @@ setProbeEnabled(bool val, int instance){
 	ProbeParams* pParams = vizMgr->getProbeParams(activeViz,instance);
 	//Make sure this is a change:
 	if (pParams->isEnabled() == val ) return;
+	//If we are enabling, also make this the current instance:
+	if (val) {
+		performGuiChangeInstance(instance);
+	}
 	guiSetEnabled(val, instance);
 	//Make the change in enablement occur in the rendering window, 
 	// Local/Global is not changing.

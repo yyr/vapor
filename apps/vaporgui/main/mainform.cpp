@@ -108,7 +108,7 @@ MainForm* MainForm::theMainForm = 0;
 
 //Only the main program should call the constructor:
 //
-MainForm::MainForm( QWidget* parent, const char* name, WFlags )
+MainForm::MainForm(QString& fileName, QWidget* parent, const char* name, WFlags )
     : QMainWindow( parent, name, WDestructiveClose )
 {
 	theMainForm = this;
@@ -487,6 +487,31 @@ MainForm::MainForm( QWidget* parent, const char* name, WFlags )
 	
     show();
 	VizWinMgr::getInstance()->getDvrRouter()->initTypes();
+
+	if(fileName != ""){
+		if (fileName.endsWith(".vss")){
+
+			ifstream is;
+		
+			is.open(fileName.ascii());
+
+			if (!is){//Report error if you can't open the file
+				MessageReporter::errorMsg("Unable to open session file: %s", fileName.ascii());
+				return;
+			}
+			//Remember file if load is successful:
+			if(Session::getInstance()->loadFromFile(is)){
+				sessionSaveFile = fileName;
+			}
+		} else if (fileName.endsWith(".vdf")){
+#ifdef WIN32
+			//Windows:  Need to reverse the backwards slashes, so that
+			//DataMgr can deal with this path
+			fileName.replace('\\','/');
+#endif
+			Session::getInstance()->resetMetadata(fileName.ascii(), false);
+		}
+	}
 
 }
 
