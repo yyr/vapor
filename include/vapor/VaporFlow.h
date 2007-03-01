@@ -50,7 +50,9 @@ namespace VAPoR
 		void ScaleSteadyTimeStepSizes(double userTimeStepMultiplier, double animationTimeStepMultiplier);
 		void ScaleUnsteadyTimeStepSizes(double userTimeStepMultiplier, double animationTimeStepMultiplier);
 		
-		void SetRandomSeedPoints(const float min[3], const float max[3], int numSeeds);
+		
+		//Following is obsolete, replaced by SetDistributedSeedPoints:
+		//void SetRandomSeedPoints(const float min[3], const float max[3], int numSeeds);
 		void SetRegularSeedPoints(const float min[3], const float max[3], const size_t numSeeds[3]);
 		void SetIntegrationParams(float initStepSize, float maxStepSize);
 		void SetDistributedSeedPoints(const float min[3], const float max[3], int numSeeds, 

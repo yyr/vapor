@@ -835,7 +835,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 
 	//Check it out:
 	if (!myFlowParams->validateSettings(timeStep)) {
-		//If it's not OK, we turned of autoRefresh.  
+		//If it's not OK, we turn off autoRefresh.  
 		//Also turn off all the needsRefreshflags, so we won't try to render.
 		setAllNeedRefresh(false);
 		return false;
@@ -1459,14 +1459,15 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 	
 	for (int tubeNum = 0; tubeNum < flowLineData->getNumLines(); tubeNum++){
 		//Skip the tube entirely if first point is end-flow 
-		//This can occur in the middle of a Pathline, but not with flowLineData!
+		//This can occur in the middle of a Pathline, 
+		//also with flowLineData after it's left the region
 		
 		int firstIndex = Max(firstAge, flowLineData->getStartIndex(tubeNum));
 		int lastIndex = Min(lastAge, flowLineData->getEndIndex(tubeNum));
 		if (firstIndex >= lastIndex) continue;
 		float* point = flowLineData->getFlowPoint(tubeNum, firstIndex);
-		
-		assert(*point != END_FLOW_FLAG);
+		if(*point == END_FLOW_FLAG) continue;
+		//assert(*point != END_FLOW_FLAG);
 		//Cycle through the points looking for a valid tubeStartIndex.
 		//If the first one is at the end, we don't render anything
 		//

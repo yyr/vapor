@@ -40,7 +40,7 @@ namespace VAPoR
 		bool GetSeeds(VaporFlow* vFlow, float* pSeeds, const bool bRandom, const unsigned int randomSeed, int stride = 3);
 		void SetSeedDistrib(float distbias, int ts, size_t numrefin,
 			const char* xvar, const char* yvar, const char* zvar){
-				assert( distbias >= -10.f && distbias <= 10.f);
+				assert( distbias >= -15.f && distbias <= 15.f);
 			distribBias = distbias;
 			timeStep = ts;
 			numRefinements = numrefin;

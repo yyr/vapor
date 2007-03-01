@@ -404,7 +404,7 @@ void FlowEventRouter::updateTab(){
 	}
 
 	if (showAdvanced){
-		float biasVal;
+		float biasVal = fParams->getSeedDistBias();
 		switch (flowType){
 			case (0) : //steady
 
@@ -419,9 +419,8 @@ void FlowEventRouter::updateTab(){
 				xSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(0));
 				ySeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(1));
 				zSeedDistCombo1->setCurrentItem(fParams->getComboSeedDistVarnum(2));
-				biasVal = fParams->getSeedDistBias();
 				biasEdit1->setText(QString::number(biasVal));
-				biasSlider1->setValue((int)(biasVal*128.f/10.f));
+				biasSlider1->setValue((int)(biasVal*128.f/15.f));
 				break;
 			case (1) : //unsteady
 				advancedSteadyFrame->hide();
@@ -436,9 +435,8 @@ void FlowEventRouter::updateTab(){
 				xSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(0));
 				ySeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(1));
 				zSeedDistCombo2->setCurrentItem(fParams->getComboSeedDistVarnum(2));
-				biasVal = fParams->getSeedDistBias();
 				biasEdit2->setText(QString::number(biasVal));
-				biasSlider2->setValue((int)(biasVal*128.f/10.f));
+				biasSlider2->setValue((int)(biasVal*128.f/15.f));
 				break;
 			case(2) : //field line advection
 				advancedSteadyFrame->hide();
@@ -467,9 +465,8 @@ void FlowEventRouter::updateTab(){
 				xSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(0));
 				ySeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(1));
 				zSeedPriorityCombo->setCurrentItem(fParams->getComboPriorityVarnum(2));
-				biasVal = fParams->getSeedDistBias();
 				biasEdit3->setText(QString::number(biasVal));
-				biasSlider3->setValue((int)(biasVal*128.f/10.f));
+				biasSlider3->setValue((int)(biasVal*128.f/15.f));
 				priorityFieldMinEdit->setText(QString::number(fParams->getPriorityMin()));
 				priorityFieldMaxEdit->setText(QString::number(fParams->getPriorityMax()));
 				break;
@@ -778,8 +775,8 @@ void FlowEventRouter::confirmText(bool /*render*/){
 		if (flowType == 0){
 			if (showAdvanced){
 				seedDistBias = biasEdit1->text().toFloat();
-				if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
-				biasSlider1->setValue((int)(seedDistBias*128.f/10.f));
+				if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
+				biasSlider1->setValue((int)(seedDistBias*128.f/15.f));
 			}
 			if (!autoscale && showAdvanced){
 				int sampleRate = steadySamplesEdit1->text().toInt();
@@ -817,8 +814,8 @@ void FlowEventRouter::confirmText(bool /*render*/){
 
 		if (flowType == 1  && showAdvanced){
 			seedDistBias = biasEdit2->text().toFloat();
-			if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
-			biasSlider2->setValue((int)(seedDistBias*128.f/10.f));
+			if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
+			biasSlider2->setValue((int)(seedDistBias*128.f/15.f));
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit1->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
@@ -891,8 +888,8 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setPriorityMin(priorityFieldMinEdit->text().toFloat());
 			fParams->setPriorityMax(priorityFieldMaxEdit->text().toFloat());
 			seedDistBias = biasEdit3->text().toFloat();
-			if (seedDistBias < -10.f || seedDistBias > 10.f) seedDistBias = 0.f;
-			biasSlider3->setValue((int)(seedDistBias*128.f/10.f));
+			if (seedDistBias < -15.f || seedDistBias > 15.f) seedDistBias = 0.f;
+			biasSlider3->setValue((int)(seedDistBias*128.f/15.f));
 			fParams->setTimeSamplingInterval(timesampleIncrementEdit2->text().toInt());
 			fParams->setTimeSamplingStart(timesampleStartEdit2->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit2->text().toInt());
@@ -1314,21 +1311,21 @@ setFlowSteadySamples2(){
 void FlowEventRouter::
 setBiasFromSlider1(){
 	int sliderPos = biasSlider1->value();
-	float biasVal = 10.f*sliderPos/128.f;
+	float biasVal = 15.f*sliderPos/128.f;
 	biasEdit1->setText(QString::number(biasVal));
 	guiSetSeedDistBias(biasVal);
 }
 void FlowEventRouter::
 setBiasFromSlider2(){
 	int sliderPos = biasSlider2->value();
-	float biasVal = 10.f*sliderPos/128.f;
+	float biasVal = 15.f*sliderPos/128.f;
 	biasEdit2->setText(QString::number(biasVal));
 	guiSetSeedDistBias(biasVal);
 }
 void FlowEventRouter::
 setBiasFromSlider3(){
 	int sliderPos = biasSlider3->value();
-	float biasVal = 10.f*sliderPos/128.f;
+	float biasVal = 15.f*sliderPos/128.f;
 	biasEdit3->setText(QString::number(biasVal));
 	guiSetSeedDistBias(biasVal);
 }
@@ -2384,7 +2381,8 @@ void FlowEventRouter::saveSeeds(){
 	//If there's a rake have the flowParams generate the seeds
 	if (fParams->rakeEnabled()){
 		RegionParams* rParams = VizWinMgr::getActiveRegionParams();
-		seedPoints = fParams->getRakeSeeds(rParams, &numSeeds);
+		AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
+		seedPoints = fParams->getRakeSeeds(rParams, &numSeeds,aParams->getCurrentFrameNumber());
 		if (!seedPoints || numSeeds <= 0){
 			MessageReporter::errorMsg("Unable to generate rake seeds");
 			return;

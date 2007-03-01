@@ -87,7 +87,7 @@ public:
 	//To rebuild the PathLineData associated with field line advection, need to do the following:
 	//1.  Create a new PathLineData with the starting seeds in it:
 	FlowLineData* setupUnsteadyStartData(VaporFlow*, int minFrame, int maxFrame, RegionParams* rParams);
-	bool setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep, int minFrame);
+	bool setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep);
 
 	//2.  Call GenStreamLines for the seed time, prioritizing the seeds, and putting the
 	//		resulting FlowLineData into the cache.  Done by calling regenerateSteadyFlowData.
@@ -177,14 +177,14 @@ public:
 		return (int)(randomGen ? allGeneratorCount : (int)(generatorCount[0]*generatorCount[1]*generatorCount[2]));
 	}
 	int getNumListSeedPoints() {return (int)seedPointList.size();}
-	float* getRakeSeeds(RegionParams* rParams, int* numseeds);
+	float* getRakeSeeds(RegionParams* rParams, int* numseeds, int steadyTimestep);
 	std::vector<Point4>& getSeedPointList(){return seedPointList;}
 	void pushSeed(Point4& newSeed){seedPointList.push_back(newSeed);}
 	void moveLastSeed(const float* newCoords){
 		if (seedPointList.size() > 0)
 			seedPointList[seedPointList.size()-1].set3Val(newCoords);
 	}
-	void emptySeedList(){seedPointList.empty();}
+	void emptySeedList(){seedPointList.clear();}
 	int getColorMapEntityIndex() ;
 	int getOpacMapEntityIndex() ;
 	std::string& getColorMapEntity(int indx) {return colorMapEntity[indx];}
@@ -303,7 +303,7 @@ public:
 	void setPriorityMin(float val){priorityMin = val;}
 	void setPriorityMax(float val){priorityMax = val;}
 	void setSeedDistBias(float val){
-		if (val>= -10.f && val <= 10.f)
+		if (val>= -15.f && val <= 15.f)
 			seedDistBias = val;
 		else seedDistBias = 0.f;
 	}

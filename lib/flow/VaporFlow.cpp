@@ -217,7 +217,9 @@ void VaporFlow::ScaleUnsteadyTimeStepSizes(double userTimeStepMultiplier,
 //////////////////////////////////////////////////////////////////////////
 // specify a set of seed points randomly generated over the specified
 // spatial interval. Points can be in axis aligned dimension 0, 1, 2, 3
+// Obsolete, replaced by Distributed version below.
 //////////////////////////////////////////////////////////////////////////
+/*
 void VaporFlow::SetRandomSeedPoints(const float min[3], 
 									const float max[3], 
 									int numSeeds)
@@ -233,7 +235,7 @@ void VaporFlow::SetRandomSeedPoints(const float min[3],
 
 	bUseRandomSeeds = true;
 }
-
+*/
 //////////////////////////////////////////////////////////////////////////
 // specify a set of seed points regularly generated over the specified
 // spatial interval. Points can be in axis aligned dimension 0, 1, 2, 3
@@ -427,7 +429,7 @@ void VaporFlow::SetPriorityField(const char* varx, const char* vary, const char*
 void VaporFlow::SetDistributedSeedPoints(const float min[3], const float max[3], int numSeeds, 
 	const char* varx, const char* vary, const char* varz, float bias)
 {
-	assert( bias >= -10.f && bias <= 10.f);
+	assert( bias >= -15.f && bias <= 15.f);
 	for(int iFor = 0; iFor < 3; iFor++)
 	{
 		minRakeExt[iFor] = min[iFor];
@@ -1172,7 +1174,7 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	
 	return true;
 }
-//Prepare for obtaining values from a vector field.  Uses either region bounds or
+//Prepare for obtaining values from a vector field.  Uses integer region bounds or
 //rake bounds.  numRefinements does not need to be same as region numrefinements.
 //scaleField indicates whether or not the field is scaled by current steady field scale factor.
 FieldData* VaporFlow::
@@ -1181,19 +1183,29 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	
 	size_t minInt[3], maxInt[3];
 	size_t minBlk[3], maxBlk[3];
-	double minExt[3], maxExt[3];
+	size_t blockRegionMin[3],blockRegionMax[3];
+	
 	double minUser[3], maxUser[3]; //coords we will use for mapping (full block bounds)
 	if (useRakeBounds){
-		for (int i = 0; i< 3; i++) { minExt[i] = minRake[i]; maxExt[i] = maxRake[i];}
+		for (int i = 0; i< 3; i++) {
+			minInt[i] = minRake[i];
+			maxInt[i] = maxRake[i];
+			minBlk[i] = minBlkRake[i];
+			maxBlk[i] = maxBlkRake[i];
+		}
+			
 	} else {
-		for (int i = 0; i< 3; i++) { minExt[i] = minRegion[i]; maxExt[i] = maxRegion[i];}
+		for (int i = 0; i< 3; i++) {
+			minInt[i] = minRegion[i];
+			maxInt[i] = maxRegion[i];
+			minBlk[i] = minBlkRegion[i];
+			maxBlk[i] = maxBlkRegion[i];
+		}
 	}
 	
+	
 	const VDFIOBase* myReader = dataMgr->GetRegionReader();
-	myReader->MapUserToVox((size_t)timestep, minExt, minInt, numRefinements);
-	myReader->MapUserToVox((size_t)timestep, maxExt, maxInt, numRefinements);
-	myReader->MapUserToBlk((size_t)timestep, minExt, minBlk, numRefinements);
-	myReader->MapUserToBlk((size_t)timestep, maxExt, maxBlk, numRefinements);
+	
 	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
 	// get the field data, lock it in place:
 	// create field object
@@ -1234,25 +1246,20 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	pSolution->SetTime(timestep, timestep);
 	
 	pCartesianGrid = new CartesianGrid(totalXNum, totalYNum, totalZNum, 
-		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxRegion);
+		regionPeriodicDim(0),regionPeriodicDim(1),regionPeriodicDim(2),maxInt);
 	pCartesianGrid->setPeriod(flowPeriod);
 	
 	// set the boundary of physical grid
 	
 	VECTOR3 minB, maxB, minR, maxR;
 	double regMin[3],regMax[3];
-	size_t blockRegionMin[3],blockRegionMax[3];
-	//Determine the bounds of the full block region (it's what is used for mapping)
-	if (useRakeBounds){
-		for (int i = 0; i< 3; i++){
-			blockRegionMin[i] = bs[i]*minBlkRake[i];
-			blockRegionMax[i] = bs[i]*(maxBlkRake[i]+1)-1;
-		}
-	} else {
-		for (int i = 0; i< 3; i++){
-			blockRegionMin[i] = bs[i]*minBlkRegion[i];
-			blockRegionMax[i] = bs[i]*(maxBlkRegion[i]+1)-1;
-		}
+	
+	//Determine the bounds of the full block region (it's what is used for 
+	// coordinate mapping)
+	//Convert block extents to integer coords:
+	for (int i = 0; i<3; i++){
+		blockRegionMin[i] = bs[i]*minBlk[i];
+		blockRegionMax[i] = bs[i]*(maxBlk[i]+1)-1;
 	}
 	myReader->MapVoxToUser(timestep, blockRegionMin, minUser, numRefinements);
 	myReader->MapVoxToUser(timestep, blockRegionMax, maxUser, numRefinements);
@@ -1260,7 +1267,6 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	myReader->MapVoxToUser(timestep, minInt, regMin, numRefinements);
 	myReader->MapVoxToUser(timestep, maxInt, regMax, numRefinements);
 	
-	//Use current region to determine coords of grid boundary:
 	
 	//Now adjust minB, maxB to block region extents:
 	
@@ -1281,7 +1287,8 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	return fData;
 }
 
-//Obtain bounds on field magnitude
+//Obtain bounds on field magnitude, using voxel bounds on either rake or 
+//region.
 bool VaporFlow::
 getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* vary, const char* varz, 
 	bool useRakeBounds, int numRefinements, int timestep){
@@ -1289,18 +1296,29 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	//As in the above method, set up the mapping and get the data.
 	size_t minInt[3], maxInt[3];
 	size_t minBlk[3], maxBlk[3];
-	double maxExt[3], minExt[3];
+	
 	if (useRakeBounds){
-		for (int i = 0; i< 3; i++) {minExt[i] = minRake[i]; maxExt[i] = maxRake[i];}
+		for (int i = 0; i< 3; i++) {
+			minInt[i] = minRake[i];
+			maxInt[i] = maxRake[i];
+			minBlk[i] = minBlkRake[i];
+			maxBlk[i] = maxBlkRake[i];
+		}
+			
 	} else {
-		for (int i = 0; i< 3; i++) {minExt[i] = minRegion[i]; maxExt[i] = maxRegion[i];}
+		for (int i = 0; i< 3; i++) {
+			minInt[i] = minRegion[i];
+			maxInt[i] = maxRegion[i];
+			minBlk[i] = minBlkRegion[i];
+			maxBlk[i] = maxBlkRegion[i];
+		}
 	}
 	
-	const VDFIOBase* myReader = dataMgr->GetRegionReader();
-	myReader->MapUserToVox((size_t)timestep, minExt, minInt, numRefinements);
-	myReader->MapUserToVox((size_t)timestep, maxExt, maxInt, numRefinements);
-	myReader->MapUserToBlk((size_t)timestep, minExt, minBlk, numRefinements);
-	myReader->MapUserToBlk((size_t)timestep, maxExt, maxBlk, numRefinements);
+	//const VDFIOBase* myReader = dataMgr->GetRegionReader();
+	//myReader->MapUserToVox((size_t)timestep, minExt, minInt, numRefinements);
+	//myReader->MapUserToVox((size_t)timestep, maxExt, maxInt, numRefinements);
+	//myReader->MapUserToBlk((size_t)timestep, minExt, minBlk, numRefinements);
+	//myReader->MapUserToBlk((size_t)timestep, maxExt, maxBlk, numRefinements);
 	const size_t* bs = dataMgr->GetMetadata()->GetBlockSize();
 	
 	float **pUData, **pVData, **pWData;

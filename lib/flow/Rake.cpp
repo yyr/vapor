@@ -104,7 +104,7 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 			rc = pRake->GenSeedBiased(distribBias,fieldMin,fieldMax, fData,numSeeds,  rakeMin,rakeMax, pSeeds, randomSeed, stride);
 			if (!rc) {
 				MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,
-					"Unable to generate requested number of distributed seed points.\nTry smaller bias.");
+					"Unable to generate requested number of distributed seed points.\nTry a bias closer to 0.");
 				delete fData; delete pRake; return false;
 			}
 			fData->releaseData(vFlow->getDataMgr());
@@ -467,7 +467,7 @@ void SolidRake::GenSeedRandom(const size_t numSeeds[3],
 bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldData* fData, 
 		const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed, 
 		unsigned int randomSeed, int stride){
-	assert( bias >= -10.f && bias <= 10.f);
+	assert( bias >= -15.f && bias <= 15.f);
 	int totalNum;
 	// eight corners
 	float lll[3], hll[3], lhl[3], hhl[3], llh[3], hlh[3], lhh[3], hhh[3];
@@ -492,10 +492,10 @@ bool SolidRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 	srand(RAND_MAX-randomSeed);
 
 	totalNum = numSeeds[0] * numSeeds[1] * numSeeds[2];
-	//Repeatedly try to find seeds. Try at most 100000 times
+	//Repeatedly try to find seeds. Try at most 500000 times
 	int seedCount = 0;
 	int trials;
-	for (trials = 0; trials< 100000; trials++) 
+	for (trials = 0; trials< 500000; trials++) 
 	{
 		
 		float coeff[3], point[3];
