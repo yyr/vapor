@@ -211,15 +211,15 @@ void HelpWindow::showHelp(const QString& filename){
 	QString filePath;
 
 	string dirpath;
-	if (get_doc_path_from_bundle(dirpath)) {
-		filePath = QString(dirpath+"/"+appver+"/"+filename);
-	}
-	else if (char *home = getenv("VAPOR_HOME")) {
+	if (char *home = getenv("VAPOR_HOME")) {
 		string homestr(home);
-		filePath = QString(homestr+"/share/doc/"+appver+'/'+filename);
+		filePath = QString(homestr+"/share/doc/vapor-"+appver+'/'+filename);
+	}
+	else if (get_doc_path_from_bundle(dirpath)) {
+		filePath = QString(dirpath+"/vapor-"+appver+"/"+filename);
 	}
 	else {
-		filePath = QString("./share/doc/"+appver+'/'+filename);
+		filePath = QString("./share/doc/vapor-"+appver+'/'+filename);
 	}
 	if (!theHelpWindow){
 		theHelpWindow = new HelpWindow(filePath, filePath);
