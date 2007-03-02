@@ -62,7 +62,7 @@ endif
 
 ifeq ($(ARCH),Darwin)
 MAKEFILE_INCLUDE_DIRS += -I/usr/X11R6/include
-MAKEFILE_LDFLAGS += -framework OpenGL  -L/usr/X11R6/lib
+MAKEFILE_LDFLAGS += -framework OpenGL  -L/usr/X11R6/lib -framework CoreFoundation -framework CoreServices
 MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
 endif   
 
