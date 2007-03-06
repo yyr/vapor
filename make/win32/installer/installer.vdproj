@@ -718,7 +718,7 @@
             {
             "Name" = "8:VAPOR session file"
             "Description" = "8:"
-            "Extensions" = "8:.ses"
+            "Extensions" = "8:.vss"
             "MIME" = "8:"
             "Icon" = "8:_74BD8C24EB3D484A830E70304E7E7145"
             "IconIndex" = "3:0"
@@ -879,7 +879,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:VAPOR"
         "ProductCode" = "8:{6F971C6A-006D-4308-8167-AAFD5BBAE451}"
-        "PackageCode" = "8:{DDD3F4D8-7237-4E6D-919E-41803E4AE593}"
+        "PackageCode" = "8:{9DA95C55-A3D4-433C-B60E-DA9A16077A2A}"
         "UpgradeCode" = "8:{F677E6B7-B4AF-4C49-B434-828BF52FA844}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
