@@ -90,6 +90,7 @@
 				AdditionalDependencies="..\..\..\targets\win32\bin\vdf.lib ..\..\..\targets\win32\bin\common.lib mpr.lib qt-mt334.lib opengl32.lib glu32.lib"
 				OutputFile="../../../targets/win32/bin/render.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="C:\QTRelease\3.3.4\lib"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"

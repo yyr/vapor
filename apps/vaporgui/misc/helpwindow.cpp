@@ -207,20 +207,24 @@ bool get_doc_path_from_bundle(string &path) {
 
 void HelpWindow::showHelp(const QString& filename){
 	
+
 	QString appver(Version::GetVersionString().c_str());
 	QString filePath;
 
 	string dirpath;
 	if (char *home = getenv("VAPOR_HOME")) {
 		string homestr(home);
-		filePath = QString(homestr+"/share/doc/vapor-"+appver+'/'+filename);
+		filePath = QString(homestr.c_str())+"/share/doc/vapor-"+appver+'/'+filename;
 	}
 	else if (get_doc_path_from_bundle(dirpath)) {
-		filePath = QString(dirpath+"/vapor-"+appver+"/"+filename);
+		filePath = QString(dirpath.c_str())+"/vapor-"+appver+"/"+filename;
 	}
 	else {
 		filePath = QString("./share/doc/vapor-"+appver+'/'+filename);
 	}
+#ifdef WIN32
+	filePath.replace('/','\\');
+#endif
 	if (!theHelpWindow){
 		theHelpWindow = new HelpWindow(filePath, filePath);
 	} 

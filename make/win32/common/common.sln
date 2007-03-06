@@ -78,6 +78,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "render", "..\render\render.
 		{E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05} = {E0DD83F3-7673-4A7D-B9D5-C1ABEC0F5C05}
 	EndProjectSection
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "installer", "..\installer\installer.vdproj", "{5AD78999-8DB8-4DEC-96DC-4AB28652BF00}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -136,6 +140,8 @@ Global
 		{9FD418C0-1BFF-4BA3-B901-3AC872588F06}.Debug.Build.0 = Debug|Win32
 		{9FD418C0-1BFF-4BA3-B901-3AC872588F06}.Release.ActiveCfg = Release|Win32
 		{9FD418C0-1BFF-4BA3-B901-3AC872588F06}.Release.Build.0 = Release|Win32
+		{5AD78999-8DB8-4DEC-96DC-4AB28652BF00}.Debug.ActiveCfg = Debug
+		{5AD78999-8DB8-4DEC-96DC-4AB28652BF00}.Release.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
