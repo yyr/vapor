@@ -1689,9 +1689,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _unsteadyFlowDirectionAttr) == 0){
 				ist >> unsteadyFlowDirection;
 			}
-			else if (StrCmpNoCase(attribName, _velocityScaleAttr) == 0){
+			else if (StrCmpNoCase(attribName, _velocityScaleAttr) == 0){//obsolete, used in 1.0
 				ist >> steadyScale;
-				ist >> unsteadyScale;
+				unsteadyScale = steadyScale;
 			}
 			else if (StrCmpNoCase(attribName, _steadyScaleAttr) == 0){
 				ist >> steadyScale;

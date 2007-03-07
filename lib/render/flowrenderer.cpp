@@ -155,6 +155,9 @@ void FlowRenderer::paintGL()
 			else {//flowtype = 1
 				if(unsteadyFlowCache) {
 					myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame);
+					//First and last age can change with flow graphics.
+					firstDisplayAge = myFlowParams->getFirstDisplayFrame();
+					lastDisplayAge = myFlowParams->getLastDisplayFrame();
 					didRemap = true;
 				}
 			}
