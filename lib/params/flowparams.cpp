@@ -2831,10 +2831,10 @@ bool FlowParams::validateSettings(int tstep){
 					}
 				}
 				if (!found) {
-					autoRefresh = false;
-					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-						"No seed points specified for timestep %d\n%s",
-						tstep, "Auto refresh has been disabled to facilitate corrective action");
+					
+					MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
+						"No seed points specified for timestep %d\n",
+						tstep); 
 					
 					return false;
 				}
