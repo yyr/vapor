@@ -427,13 +427,13 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 			} else if (StrCmpNoCase(tag, Params::_dvrParamsTag) == 0){
 				// just ignore it
 				assert(tempParsedPanel);
-				delete tempParsedPanel;
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::DvrParamsType);
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_probeParamsTag) == 0){
 				// just ignore it
 				assert(tempParsedPanel);
-				delete tempParsedPanel;
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::ProbeParamsType);
 				tempParsedPanel = 0;
 				return true;
 			} else if (StrCmpNoCase(tag, Params::_regionParamsTag) == 0){
@@ -454,7 +454,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 			} else if (StrCmpNoCase(tag, Params::_flowParamsTag) == 0){
 				// just ignore it
 				assert(tempParsedPanel);
-                delete tempParsedPanel;
+                vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::FlowParamsType);
 				tempParsedPanel = 0;
 				return true;
 			} else return false;

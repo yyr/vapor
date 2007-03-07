@@ -762,6 +762,8 @@ reinitTab(bool doOverride){
 	for (i = 0; i<= numRefinements; i++){
 		refinementCombo->insertItem(QString::number(i));
 	}
+	if (VizWinMgr::getInstance()->getNumVisualizers() > 1) LocalGlobal->setEnabled(true);
+	else LocalGlobal->setEnabled(false);
 }
 
 

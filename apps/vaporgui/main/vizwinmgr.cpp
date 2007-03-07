@@ -386,7 +386,18 @@ createDefaultParams(int winnum){
 //
 void VizWinMgr::replaceGlobalParams(Params* p, Params::ParamType typ){
 	switch (typ){
-		
+		case (Params::DvrParamsType):
+			if(defaultDvrParams) delete defaultDvrParams;
+			defaultDvrParams = (DvrParams*)p;
+			return;
+		case (Params::ProbeParamsType):
+			if(defaultProbeParams) delete defaultProbeParams;
+			defaultProbeParams = (ProbeParams*)p;
+			return;
+		case (Params::FlowParamsType):
+			if(defaultFlowParams) delete defaultFlowParams;
+			defaultFlowParams = (FlowParams*)p;
+			return;
 		case (Params::RegionParamsType):
 			if(globalRegionParams) delete globalRegionParams;
 			globalRegionParams = (RegionParams*)p;
@@ -941,6 +952,7 @@ setVpLocalGlobal(int val){
 		viewpointEventRouter->guiSetLocal(vpParams[activeViz],false);
 		viewpointEventRouter->updateTab();
 		vizWin[activeViz]->getGLWindow()->setActiveViewpointParams(globalVPParams);
+		vizWin[activeViz]->setGlobalViewpoint(true);
 		tabManager->show();
 	} else { //Local: Do we need to create new parameters?
 		if (!vpParams[activeViz]){
@@ -1245,6 +1257,7 @@ reinitializeParams(bool doOverride){
 	dvrEventRouter->reinitTab(doOverride);
 	probeEventRouter->reinitTab(doOverride);
 	animationEventRouter->reinitTab(doOverride);
+	viewpointEventRouter->reinitTab(doOverride);
 	globalAnimationParams->reinit(doOverride);
 }
 

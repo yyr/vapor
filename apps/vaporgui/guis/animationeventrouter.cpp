@@ -273,7 +273,8 @@ void AnimationEventRouter::updateTab(){
 
 void AnimationEventRouter::
 reinitTab(bool doOverride){
-	//Currently nothing to customize?
+	if (VizWinMgr::getInstance()->getNumVisualizers() > 1) LocalGlobal->setEnabled(true);
+	else LocalGlobal->setEnabled(false);
 }
 
 /*************************************************************************************
