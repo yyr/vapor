@@ -74,7 +74,7 @@ public:
 	
 	
 	void fileLoadTF(DvrParams* dParams);
-	void sessionLoadTF(DvrParams* dParams, QString* name);
+	void sessionLoadTF(QString* name);
 	void fileSaveTF(DvrParams* dParams);
 	//Following methods are set from gui, have undo/redo support:
 	//

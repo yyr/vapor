@@ -32,13 +32,13 @@ class QComboBox;
 class QLabel;
 
 namespace VAPoR {
-class RenderParams;
+class EventRouter;
 class LoadTFDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    LoadTFDialog(RenderParams*, QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
+    LoadTFDialog(EventRouter*, QWidget* parent = 0, const char* name = 0, bool modal = FALSE, WFlags fl = 0 );
     ~LoadTFDialog();
 
     QPushButton* fileLoadButton;
@@ -57,7 +57,7 @@ protected:
     QSpacerItem* spacer26;
     QSpacerItem* spacer27;
 	QString* loadName;
-	RenderParams* myParams;
+	EventRouter* myRouter;
 
 protected slots:
     virtual void languageChange();

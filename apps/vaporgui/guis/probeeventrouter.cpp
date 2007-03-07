@@ -380,7 +380,7 @@ probeLoadTF(void){
 	
 	//If there are no TF's currently in Session, just launch file load dialog.
 	if (Session::getInstance()->getNumTFs() > 0){
-		LoadTFDialog* loadTFDialog = new LoadTFDialog(pParams,this,
+		LoadTFDialog* loadTFDialog = new LoadTFDialog(this, this,
 			"Load TF Dialog", true);
 		int rc = loadTFDialog->exec();
 		if (rc == 0) return;
@@ -654,9 +654,10 @@ fileSaveTF(ProbeParams* dParams){
 //Assumes name is valid
 //
 void ProbeEventRouter::
-sessionLoadTF(ProbeParams* dParams, QString* name){
+sessionLoadTF(QString* name){
 	
 	confirmText(false);
+	ProbeParams* dParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Load Transfer Function from Session");
 	
 	//Get the transfer function from the session:

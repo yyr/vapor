@@ -345,7 +345,7 @@ dvrLoadTF(void){
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
 	
 	if (Session::getInstance()->getNumTFs() > 0){
-		LoadTFDialog* loadTFDialog = new LoadTFDialog(dParams,this,
+		LoadTFDialog* loadTFDialog = new LoadTFDialog(this, this,
 			"Load TF Dialog", true);
 		int rc = loadTFDialog->exec();
 		if (rc == 0) return;
@@ -360,7 +360,8 @@ dvrLoadTF(void){
 //Assumes name is valid
 //
 void DvrEventRouter::
-sessionLoadTF(DvrParams* dParams, QString* name){
+sessionLoadTF(QString* name){
+	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
 	if (dParams-> getNumVariables() <= 0) return;
 	confirmText(false);
 	

@@ -57,7 +57,7 @@ public:
 
 
 	void fileLoadTF(ProbeParams* dParams);
-	void sessionLoadTF(ProbeParams* dParams, QString* name);
+	void sessionLoadTF(QString* name);
 	void fileSaveTF(ProbeParams* dParams);
 	
 	

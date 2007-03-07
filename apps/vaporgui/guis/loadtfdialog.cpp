@@ -28,7 +28,7 @@
 #include <qlabel.h>
 #include <qcombobox.h>
 
-#include "params.h"
+#include "eventrouter.h"
 using namespace VAPoR;
 
 /*
@@ -38,12 +38,12 @@ using namespace VAPoR;
  *  The dialog will by default be modeless, unless you set 'modal' to
  *  TRUE to construct a modal dialog.
  */
-LoadTFDialog::LoadTFDialog(RenderParams* params,  QWidget* parent, const char* name, bool modal, WFlags fl )
+LoadTFDialog::LoadTFDialog(EventRouter* router,  QWidget* parent, const char* name, bool modal, WFlags fl )
     : QDialog( parent, name, modal, fl )
 {
     if ( !name )
 	setName( "LoadTFDialog" );
-	myParams = params;
+	myRouter = router;
     LoadTFDialogLayout = new QHBoxLayout( this, 11, 6, "LoadTFDialogLayout"); 
 
     layout23 = new QVBoxLayout( 0, 0, 6, "layout23"); 
@@ -150,7 +150,7 @@ void LoadTFDialog::fileLoad()
 
 void LoadTFDialog::sessionLoad()
 {
-	myParams->sessionLoadTF(loadName);
+	myRouter->sessionLoadTF(loadName);
     done(2);
 }
 void LoadTFDialog::setTFName(const QString& s){

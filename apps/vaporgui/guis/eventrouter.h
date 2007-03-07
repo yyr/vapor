@@ -88,6 +88,7 @@ public:
 	//handle possible connections from editors, frames, etc.
 	virtual void cleanParams(Params*) {}
 	
+	virtual void sessionLoadTF(QString* ) {assert(0);}
 	//Clone the params and any other related classes.
 	//Default just clones the params:
 	virtual Params* deepCopy(Params* p) {return (p->deepCopy());}

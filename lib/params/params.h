@@ -257,7 +257,7 @@ public:
 	float getMaxOpacEditBound(int var) {
 		return maxOpacEditBounds[var];
 	}
-	virtual void sessionLoadTF(QString* ) {return;}
+	
 	virtual MapperFunction* getMapperFunc()=0;
 	virtual int getNumRefinements()=0;
 
