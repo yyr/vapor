@@ -842,7 +842,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 		float diam = sqrt(vdot(diff, diff));
 		steadyScale = diam*steadyFlowLength/avgMag;
 		//And set the numsamples
-		objectsPerFlowline = steadyFlowLength*steadySmoothness;
+		objectsPerFlowline = (int) (steadyFlowLength*steadySmoothness);
 	}
 
 	DataStatus* ds;

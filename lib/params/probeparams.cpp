@@ -813,7 +813,6 @@ void ProbeParams::getBoundingBox(size_t boxMin[3], size_t boxMax[3]){
 	//Set up to transform from probe into volume:
 	buildCoordTransform(transformMatrix, 0.f);
 	size_t dataSize[3];
-	const size_t totTransforms = DataStatus::getInstance()->getCurrentMetadata()->GetNumTransforms();
 	const float* extents = DataStatus::getInstance()->getExtents();
 	//Start by initializing extents, and variables that will be min,max
 	for (int i = 0; i< 3; i++){
@@ -853,7 +852,6 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], 
 	getBoundingBox(boxMin, boxMax);
 	
 	const size_t* bs = DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize();
-	int totTransforms = DataStatus::getInstance()->getCurrentMetadata()->GetNumTransforms();
 	size_t temp_min[3],temp_max[3];
 	bool retVal = true;
 	int i;
@@ -995,7 +993,6 @@ calcProbeTexture(int ts, int texWidth, int texHeight){
 	int numRefinements = getNumRefinements();
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
-	const size_t totTransforms = DataStatus::getInstance()->getCurrentMetadata()->GetNumTransforms();
 	//Start by initializing extents
 	for (int i = 0; i< 3; i++){
 		dataSize[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i);

@@ -647,7 +647,6 @@ float vtCFieldLine::SampleFLALine(FlowLineData** flData,
 	list<float>::iterator pStepIterEnd;
 	float stepsizeLeft;
 	float x,y,z;
-	float currentSpeed = 0.f;
 	float leftoverTime = 0.f;
 
 	pIter1 = seedTrace->begin();

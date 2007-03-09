@@ -1290,9 +1290,6 @@ void DvrEventRouter::benchmarkPreamble()
   VizWin *vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
   if (!vizWin) return;
 
-  VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
-
   cout << " " << typeCombo->currentText() << " @ ";
   cout << nx << "x" << ny << "x" << nz << endl;
 

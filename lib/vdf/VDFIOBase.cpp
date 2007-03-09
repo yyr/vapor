@@ -227,7 +227,7 @@ void	VDFIOBase::MapUserToVox(
 			lextents[i+3] = lextents[i] + (deltax * (dim[i]-1));
 
 			a = (vcoord0[i] - lextents[i]) / (lextents[i+3]-lextents[i]);
-			vcoord1[i] = rint(a * (double) (dim[i]-1));
+			vcoord1[i] = (size_t) rint(a * (double) (dim[i]-1));
 
 			if (vcoord1[i] > (dim[i]-1)) vcoord1[i] = dim[i]-1;
 		}
