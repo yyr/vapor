@@ -3,7 +3,7 @@
 use English;
 use POSIX;
 use Cwd;
-use Cwd 'realpath';
+use Cwd 'abs_path';
 use File::Basename;
 #use File::Glob;
 use File::Copy;
@@ -11,8 +11,6 @@ use File::Spec;
 
 $0 =~ s/.*\///;
 $ProgName = $0;
-
-$ENV{"LD_LIBRARY_PATH"} = "";
 
 sub usage {
 	my($msg) = @_;
@@ -30,6 +28,7 @@ sub usage {
 	printf STDERR $format, "------ ----", "-------", "-----------";
 	printf STDERR $format, "-exclude", "expression", "Paths to exclude";
 	printf STDERR $format, "-include", "expression", "Paths to include (override -exclude)";
+	printf STDERR $format, "-ldlibpath", "expression", "library search path";
 	print STDERR "\n";
 
     
@@ -67,7 +66,7 @@ sub get_deps {
 	# clean up path to target
 	#
 	my($volume, $directories, $file) = File::Spec->splitpath($target);
-	$directories = realpath($directories);
+	$directories = abs_path($directories);
 	$target = File::Spec->catpath($volume, $directories, $file);
 
 	$darwin = 0;
@@ -110,7 +109,7 @@ LINE:	foreach $line (@lines) {
 		# clean up directory path
 		#
 		my($volume, $directories, $file) = File::Spec->splitpath($lib);
-		$directories = realpath($directories);
+		$directories = abs_path($directories);
 		$lib = File::Spec->catpath($volume, $directories, $file);
 
 
@@ -163,6 +162,10 @@ while ($ARGV[0] =~ /^-/) {
         defined($_ = shift @ARGV) || die "Missing argument";
 		push(@IncludePaths, $_);
     }
+    elsif (/^-ldlibpath$/) {
+        defined($_ = shift @ARGV) || die "Missing argument";
+		$LD_LIBRARY_PATH = defined(LD_LIBRARY_PATH) ? "$LD_LIBRARY_PATH:$_" : $_;
+    }
     else {
         usage("Invalid option: $_");
     }
@@ -179,6 +182,11 @@ if (! -d $Libdir) {
 }
 
 @Targets = @ARGV;
+
+print "LD_LIBRARY_PATH = $LD_LIBRARY_PATH\n";
+$ENV{"LD_LIBRARY_PATH"} = $LD_LIBRARY_PATH;
+$ENV{"LD_LIBRARYN32_PATH"} = $LD_LIBRARY_PATH;
+$ENV{"LD_LIBRARY64_PATH"} = $LD_LIBRARY_PATH;
 
 @cpfiles = ();
 while (defined($target = shift(@Targets))) {

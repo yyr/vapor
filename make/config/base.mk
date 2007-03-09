@@ -608,9 +608,22 @@ ifdef PROGRAM
 	@$(ECHO) "Installing program $(PROGRAM) in $(INSTALL_BINDIR)."
 	@$(MAKE_INSTALL_BINDIR)
 	$(INSTALL_EXEC) $(PROG_TARGET) $(INSTALL_BINDIR)
+
+ifdef NETCDF_LIB_PATH
+LDLIBPATHS += -ldlibpath $(NETCDF_LIB_PATH)
+endif
+
+ifdef QT_LIB_PATH
+LDLIBPATHS += -ldlibpath $(QT_LIB_PATH)
+endif
+
+ifdef EXPAT_LIB_PATH
+LDLIBPATHS += -ldlibpath $(EXPAT_LIB_PATH)
+endif
+
 install-dep:: install
 	@$(ECHO) "Installing program $(PROGRAM) library dependencies in $(INSTALL_LIBDIR)."
-	$(TOP)/buildutils/copylibdeps.pl $(CLD_EXCLUDE_LIBS) $(CLD_INCLUDE_LIBS) $(PROG_TARGET) $(INSTALL_LIBDIR)
+	$(TOP)/buildutils/copylibdeps.pl $(LDLIBPATHS) $(CLD_EXCLUDE_LIBS) $(CLD_INCLUDE_LIBS) $(PROG_TARGET) $(INSTALL_LIBDIR)
 
 endif
 endif
