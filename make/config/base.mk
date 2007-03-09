@@ -623,7 +623,7 @@ endif
 
 install-dep:: install
 	@$(ECHO) "Installing program $(PROGRAM) library dependencies in $(INSTALL_LIBDIR)."
-	$(TOP)/buildutils/copylibdeps.pl $(LDLIBPATHS) $(CLD_EXCLUDE_LIBS) $(CLD_INCLUDE_LIBS) $(PROG_TARGET) $(INSTALL_LIBDIR)
+	$(PERL) $(TOP)/buildutils/copylibdeps.pl $(LDLIBPATHS) $(CLD_EXCLUDE_LIBS) $(CLD_INCLUDE_LIBS) $(PROG_TARGET) $(INSTALL_LIBDIR)
 
 endif
 endif

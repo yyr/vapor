@@ -94,10 +94,10 @@ sub get_deps {
 LINE:	foreach $line (@lines) {
 		$line =~ s/^\s+//;
 		if ($darwin) {
-			($lib) = split(/\s/, $line)
+			($lib) = split(/\s+/, $line)
 		}
 		else {
-			($junk1, $junk2, $lib) = split(/\s/, $line)
+			($junk1, $junk2, $lib) = split(/\s+/, $line)
 		}
 		next LINE if (! defined($lib));
 		if ($lib =~ "not found") {
@@ -164,7 +164,7 @@ while ($ARGV[0] =~ /^-/) {
     }
     elsif (/^-ldlibpath$/) {
         defined($_ = shift @ARGV) || die "Missing argument";
-		$LD_LIBRARY_PATH = defined(LD_LIBRARY_PATH) ? "$LD_LIBRARY_PATH:$_" : $_;
+		$LD_LIBRARY_PATH = defined($LD_LIBRARY_PATH) ? "$LD_LIBRARY_PATH:$_" : $_;
     }
     else {
         usage("Invalid option: $_");
@@ -183,7 +183,6 @@ if (! -d $Libdir) {
 
 @Targets = @ARGV;
 
-print "LD_LIBRARY_PATH = $LD_LIBRARY_PATH\n";
 $ENV{"LD_LIBRARY_PATH"} = $LD_LIBRARY_PATH;
 $ENV{"LD_LIBRARYN32_PATH"} = $LD_LIBRARY_PATH;
 $ENV{"LD_LIBRARY64_PATH"} = $LD_LIBRARY_PATH;
