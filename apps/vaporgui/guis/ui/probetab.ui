@@ -504,13 +504,13 @@ window toolbar.</string>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>The "Probe is Planar" checkbox
 sets the thickness (i.e. Zp -size) of
-the probe to 0,  This enables the 
+the probe to 0,  This enables the
 probe to be used as a contour plane.
-When the box is not checked, the 
-Zp -size can be increased, enabling 
+When the box is not checked, the
+Zp -size can be increased, enabling
 the histogramming of data over
-larger volumes within the region.  
-However, when the Zp size is greater 
+larger volumes within the region.
+However, when the Zp size is greater
 than 0, the cross-section view will
 remain that of a 2-dimensional
 slice through the center of the
@@ -2082,7 +2082,7 @@ axis alignment.</string>
                                                         </size>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
-                                                        <string>The cross-section view shows 
+                                                        <string>The cross-section view shows
 an image of the center slice through
 the probe, the slice determined by
 Zp = 0.  The colors in the slice are
@@ -2096,12 +2096,11 @@ as the color of the transfer function.
 Left-mouse clicks in this window are
 used to select a point in the probe,
 that is displayed with a cursor.
-In probe-mode, the cursor is 
+In data probe mode, the cursor is
 also shown in 3D in the visualizer.
 The coordinates and variable value
-at the selected point are shown 
-to the right of the cross-section view.
-</string>
+at the selected point are shown
+to the right of the cross-section view.</string>
                                                     </property>
                                                 </widget>
                                             </vbox>
@@ -2466,7 +2465,7 @@ change the selection in the probe</string>
                                                 <string>Click to move the current region center to the selected point</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>When this is clicked, the seceted point is made the center of the current region.  The region is shrunk as necessary to fit within the full data extents.</string>
+                                                <string>When this is clicked, the selected point is made the center of the current region.  The region is shrunk as necessary to fit within the full data extents.</string>
                                             </property>
                                         </widget>
                                         <widget class="QPushButton">
@@ -2478,6 +2477,9 @@ change the selection in the probe</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Click to recenter viewpoint at selected point</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When this is clicked, the current viewpoint is modified to point at the selected point and the selected point becomes the rotation center.</string>
                                             </property>
                                         </widget>
                                         <widget class="QPushButton">
@@ -2503,6 +2505,9 @@ change the selection in the probe</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Click to recenter this probe at selected point</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When this button is clicked, this probe is moved so that its center becomes the selected point.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -2690,6 +2695,9 @@ and move control points.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Align edit window with transfer function domain</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The "Fit to View" button is used to make the current editing region coincide with the transfer function domain bounds.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QPushButton">
                                             <property name="name">
@@ -2823,11 +2831,11 @@ available from the right mouse button.</string>
                                                 <string>Minimum of transfer function domain</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The displayed data bounds are based on 
+                                                <string>The displayed data bounds are based on
 the range of data values in the first time step
-of the dataset.  These values are only a 
-guide.  The TF Domain Bounds can be 
-reset to any range.  Click on the "histo" 
+of the dataset.  These values are only a
+guide.  The TF Domain Bounds can be
+reset to any range.  Click on the "histo"
 button to construct, a histogram and thereby
 to determine the actual data values in the
 specified range.</string>
@@ -2892,11 +2900,11 @@ specified range.</string>
                                                 <string>Maximum of transfer function domain</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The displayed data bounds are based on 
+                                                <string>The displayed data bounds are based on
 the range of data values in the first time step
-of the dataset.  These values are only a 
-guide.  The TF Domain Bounds can be 
-reset to any range.  Click on the "histo" 
+of the dataset.  These values are only a
+guide.  The TF Domain Bounds can be
+reset to any range.  Click on the "histo"
 button to construct, a histogram and thereby
 to determine the actual data values in the
 specified range.</string>
@@ -2927,11 +2935,11 @@ specified range.</string>
                                                 <string>Data bounds are estimated from the variable at the first available time step.</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The displayed data bounds are based on 
+                                                <string>The displayed data bounds are based on
 the range of data values in the first time step
-of the dataset.  These values are only a 
-guide.  The TF Domain Bounds can be 
-reset to any range.  Click on the "histo" 
+of the dataset.  These values are only a
+guide.  The TF Domain Bounds can be
+reset to any range.  Click on the "histo"
 button to construct, a histogram and thereby
 to determine the actual data values in the
 specified range.</string>
@@ -2969,11 +2977,11 @@ specified range.</string>
                                                 <string>Data bounds are estimated from the variable at the first available time step.</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The displayed data bounds are based on 
+                                                <string>The displayed data bounds are based on
 the range of data values in the first time step
-of the dataset.  These values are only a 
-guide.  The TF Domain Bounds can be 
-reset to any range.  Click on the "histo" 
+of the dataset.  These values are only a
+guide.  The TF Domain Bounds can be
+reset to any range.  Click on the "histo"
 button to construct, a histogram and thereby
 to determine the actual data values in the
 specified range.</string>
@@ -3249,6 +3257,9 @@ depending on which button is clicked.</string>
                                             <property name="text">
                                                 <string>Histo scaling factor</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The Histo scaling factor rescales the displayed histogram linearly by that factor.  Use the right mouse in the opacity window to choose nonlinear scaling options.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -3268,6 +3279,9 @@ depending on which button is clicked.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Scale factor for histogram display</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The Histo scaling factor rescales the displayed histogram linearly by that factor.  Use the right mouse in the opacity window to choose nonlinear scaling options.</string>
                                             </property>
                                         </widget>
                                         <spacer>

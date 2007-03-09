@@ -124,7 +124,7 @@ scene.</string>
                                 <string>Viewpoint and lights parameters
 can be either "local" or "global".
 To apply these parameters to
-only the one (selected) visualizer, 
+only the one (selected) visualizer,
 set this to "local".  All visualizers
 that have this set to "global" will
 share the same viewpoint and
@@ -193,13 +193,14 @@ lights.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="0" column="2">
@@ -228,13 +229,14 @@ mouse navigation.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit" row="1" column="2">
@@ -247,13 +249,14 @@ mouse navigation.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="0" column="0">
@@ -301,13 +304,14 @@ mouse navigation.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="2" column="0">
@@ -328,13 +332,14 @@ mouse navigation.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit" row="4" column="3">
@@ -347,13 +352,14 @@ mouse navigation.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="3" column="0">
@@ -374,13 +380,14 @@ mouse navigation.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit" row="1" column="3">
@@ -393,13 +400,14 @@ mouse navigation.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit" row="3" column="3">
@@ -412,13 +420,14 @@ mouse navigation.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit" row="3" column="1">
@@ -431,13 +440,14 @@ mouse navigation.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit" row="3" column="2">
@@ -450,13 +460,14 @@ mouse navigation.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit" row="4" column="2">
@@ -469,13 +480,14 @@ mouse navigation.</string>
                             <property name="whatsThis" stdset="0">
                                 <string>These four vectors specify where
 the camera is located, in the same
-coordinates system as the 
+coordinates system as the
 data is located (see the region panel).
-The rotation center specifies the 
+The rotation center specifies the
 position (usually the center of the
-current region) around which the 
+current region) around which the
 scene rotates or zooms during
-mouse navigation.</string>
+mouse navigation, which is also
+where the camera is pointed.</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="0" column="1">
@@ -728,11 +740,11 @@ mouse navigation.</string>
                                 <set>AlignHCenter</set>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Vapor allows up to three lights to be used 
+                                <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
 rendering.  The orientation vectors specify
 the direction to the light source from the
-viewer position, so (0,0,-1) is a light 
+viewer position, so (0,0,-1) is a light
 originating behind the viewer</string>
                             </property>
                         </widget>
@@ -778,11 +790,11 @@ originating behind the viewer</string>
                                 <set>AlignHCenter</set>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Vapor allows up to three lights to be used 
+                                <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
 rendering.  The orientation vectors specify
 the direction to the light source from the
-viewer position, so (0,0,-1) is a light 
+viewer position, so (0,0,-1) is a light
 originating behind the viewer</string>
                             </property>
                         </widget>
@@ -803,11 +815,11 @@ originating behind the viewer</string>
                                 <string>Specify direction vector of light source relative to viewing direction</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Vapor allows up to three lights to be used 
+                                <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
 rendering.  The orientation vectors specify
 the direction to the light source from the
-viewer position, so (0,0,-1) is a light 
+viewer position, so (0,0,-1) is a light
 originating behind the viewer</string>
                             </property>
                         </widget>
@@ -836,11 +848,11 @@ originating behind the viewer</string>
                                 <set>AlignHCenter</set>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Vapor allows up to three lights to be used 
+                                <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
 rendering.  The orientation vectors specify
 the direction to the light source from the
-viewer position, so (0,0,-1) is a light 
+viewer position, so (0,0,-1) is a light
 originating behind the viewer</string>
                             </property>
                         </widget>
@@ -858,11 +870,11 @@ originating behind the viewer</string>
                                 <set>AlignHCenter</set>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Vapor allows up to three lights to be used 
+                                <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
 rendering.  The orientation vectors specify
 the direction to the light source from the
-viewer position, so (0,0,-1) is a light 
+viewer position, so (0,0,-1) is a light
 originating behind the viewer</string>
                             </property>
                         </widget>
@@ -880,11 +892,11 @@ originating behind the viewer</string>
                                 <set>AlignHCenter</set>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Vapor allows up to three lights to be used 
+                                <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
 rendering.  The orientation vectors specify
 the direction to the light source from the
-viewer position, so (0,0,-1) is a light 
+viewer position, so (0,0,-1) is a light
 originating behind the viewer</string>
                             </property>
                         </widget>
@@ -953,11 +965,11 @@ originating behind the viewer</string>
                                 <set>AlignHCenter</set>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Vapor allows up to three lights to be used 
+                                <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
 rendering.  The orientation vectors specify
 the direction to the light source from the
-viewer position, so (0,0,-1) is a light 
+viewer position, so (0,0,-1) is a light
 originating behind the viewer</string>
                             </property>
                         </widget>
@@ -992,11 +1004,11 @@ originating behind the viewer</string>
                                 <set>AlignHCenter</set>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Vapor allows up to three lights to be used 
+                                <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
 rendering.  The orientation vectors specify
 the direction to the light source from the
-viewer position, so (0,0,-1) is a light 
+viewer position, so (0,0,-1) is a light
 originating behind the viewer</string>
                             </property>
                         </widget>
@@ -1059,11 +1071,11 @@ originating behind the viewer</string>
                                 <set>AlignHCenter</set>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Vapor allows up to three lights to be used 
+                                <string>VAPOR allows up to three lights to be used
 in flow visualization, and one for volume
 rendering.  The orientation vectors specify
 the direction to the light source from the
-viewer position, so (0,0,-1) is a light 
+viewer position, so (0,0,-1) is a light
 originating behind the viewer</string>
                             </property>
                         </widget>
@@ -1229,12 +1241,13 @@ originating behind the viewer</string>
                                         <set>AlignHCenter</set>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The lighting coefficients describe 
-reflection and absorption properties 
-of the light sources.  All lights are white.
-The ambient coefficient and the shininess 
-exponent are associated with all three 
-light sources.</string>
+                                        <string>The lighting coefficients describe
+reflection and absorption properties
+associated with the three light 
+sources.  All lights are white.
+The ambient coefficient and the
+shininess exponent are associated
+with all three light sources.</string>
                                     </property>
                                 </widget>
                                 <spacer row="4" column="2">
@@ -1271,12 +1284,13 @@ light sources.</string>
                                         <string>Specify a value between 0 and 1 for the diffuse component of light source</string>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The lighting coefficients describe 
-reflection and absorption properties 
-of the light sources.  All lights are white.
-The ambient coefficient and the shininess 
-exponent are associated with all three 
-light sources.</string>
+                                        <string>The lighting coefficients describe
+reflection and absorption properties
+associated with the three light 
+sources.  All lights are white.
+The ambient coefficient and the
+shininess exponent are associated
+with all three light sources.</string>
                                     </property>
                                 </widget>
                                 <widget class="QLabel" row="0" column="2">
@@ -1310,12 +1324,13 @@ light sources.</string>
                                         <string>Specify a value between 0 and 1 for the intensity of the specular component of the light source</string>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The lighting coefficients describe 
-reflection and absorption properties 
-of the light sources.  All lights are white.
-The ambient coefficient and the shininess 
-exponent are associated with all three 
-light sources.</string>
+                                        <string>The lighting coefficients describe
+reflection and absorption properties
+associated with the three light 
+sources.  All lights are white.
+The ambient coefficient and the
+shininess exponent are associated
+with all three light sources.</string>
                                     </property>
                                 </widget>
                                 <widget class="QLineEdit" row="5" column="2">
@@ -1335,12 +1350,13 @@ light sources.</string>
                                         <string>Specify a value between 0 and 1 for the intensity of the specular component of the light source</string>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The lighting coefficients describe 
-reflection and absorption properties 
-of the light sources.  All lights are white.
-The ambient coefficient and the shininess 
-exponent are associated with all three 
-light sources.</string>
+                                        <string>The lighting coefficients describe
+reflection and absorption properties
+associated with the three light 
+sources.  All lights are white.
+The ambient coefficient and the
+shininess exponent are associated
+with all three light sources.</string>
                                     </property>
                                 </widget>
                                 <widget class="QLineEdit" row="3" column="1">
@@ -1357,12 +1373,13 @@ light sources.</string>
                                         <set>AlignHCenter</set>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The lighting coefficients describe 
-reflection and absorption properties 
-of the light sources.  All lights are white.
-The ambient coefficient and the shininess 
-exponent are associated with all three 
-light sources.</string>
+                                        <string>The lighting coefficients describe
+reflection and absorption properties
+associated with the three light 
+sources.  All lights are white.
+The ambient coefficient and the
+shininess exponent are associated
+with all three light sources.</string>
                                     </property>
                                 </widget>
                                 <spacer row="2" column="1">
@@ -1450,12 +1467,13 @@ light sources.</string>
                                         <string>Specify a value between 0 and 1 for the intensity of the specular component of the light source</string>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The lighting coefficients describe 
-reflection and absorption properties 
-of the light sources.  All lights are white.
-The ambient coefficient and the shininess 
-exponent are associated with all three 
-light sources.</string>
+                                        <string>The lighting coefficients describe
+reflection and absorption properties
+associated with the three light 
+sources.  All lights are white.
+The ambient coefficient and the
+shininess exponent are associated
+with all three light sources.</string>
                                     </property>
                                 </widget>
                                 <widget class="QLabel" row="0" column="1">
@@ -1557,12 +1575,13 @@ light sources.</string>
                                         <set>AlignHCenter</set>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The lighting coefficients describe 
-reflection and absorption properties 
-of the light sources.  All lights are white.
-The ambient coefficient and the shininess 
-exponent are associated with all three 
-light sources.</string>
+                                        <string>The lighting coefficients describe
+reflection and absorption properties
+associated with the three light 
+sources.  All lights are white.
+The ambient coefficient and the
+shininess exponent are associated
+with all three light sources.</string>
                                     </property>
                                 </widget>
                                 <spacer>
@@ -1604,12 +1623,13 @@ light sources.</string>
                                         <set>AlignHCenter</set>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The lighting coefficients describe 
-reflection and absorption properties 
-of the light sources.  All lights are white.
-The ambient coefficient and the shininess 
-exponent are associated with all three 
-light sources.</string>
+                                        <string>The lighting coefficients describe
+reflection and absorption properties
+associated with the three light 
+sources.  All lights are white.
+The ambient coefficient and the
+shininess exponent are associated
+with all three light sources.</string>
                                     </property>
                                 </widget>
                                 <spacer>

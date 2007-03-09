@@ -120,14 +120,13 @@ time steps is also controlled here.</string>
                                 <string>Apply these settings to visualizers, either globally or locally</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>Animation parameters
-can be either "local" or "global".
-To apply these parameters to
-only the one (selected) visualizer, 
-set this to "local".  All visualizers
-that have this set to "global" will
-share the same timestep, and
-animate in unison.</string>
+                                <string>Animation parameters can be either
+"local" or "global".  To apply these
+parameters to only the one (selected)
+visualizer, set this to "local".  All
+visualizers that have this value set to
+"global" will share the same time-
+step, and will animate in unison.</string>
                             </property>
                         </widget>
                         <spacer>
@@ -681,10 +680,11 @@ animate in unison.</string>
                                 <string>Step size between successive frames</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>When explicit time steps are not specified, 
-the animation steps forward or backward
-a fixed number of time steps, controlled
-by this slider and text box.</string>
+                                <string>When explicit time steps are not
+specified, the animation steps forward
+or backward a fixed number of time
+steps, controlled by the frame step
+size slider and text box.</string>
                             </property>
                         </widget>
                         <widget class="QLineEdit">
@@ -714,10 +714,11 @@ by this slider and text box.</string>
                                 <string>Step size between successive frames</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>When explicit time steps are not specified, 
-the animation steps forward or backward
-a fixed number of time steps, controlled
-by this slider and text box.</string>
+                                <string>When explicit time steps are not
+specified, the animation steps forward
+or backward a fixed number of time
+steps, controlled by the frame step
+size slider and text box.</string>
                             </property>
                         </widget>
                     </hbox>
@@ -1066,61 +1067,6 @@ be played during the animation.</string>
                         </size>
                     </property>
                 </spacer>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout32</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <widget class="QPushButton">
-                            <property name="name">
-                                <cstring>copyToButton</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="text">
-                                <string>Copy Settings to </string>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Copy these settings to another local or global region panel</string>
-                            </property>
-                        </widget>
-                        <widget class="QComboBox">
-                            <item>
-                                <property name="text">
-                                    <string>Global</string>
-                                </property>
-                            </item>
-                            <item>
-                                <property name="text">
-                                    <string>Visualizer 0</string>
-                                </property>
-                            </item>
-                            <item>
-                                <property name="text">
-                                    <string>Visualizer 2</string>
-                                </property>
-                            </item>
-                            <item>
-                                <property name="text">
-                                    <string>Visualizer 3</string>
-                                </property>
-                            </item>
-                            <property name="name">
-                                <cstring>copyTargetCombo</cstring>
-                            </property>
-                            <property name="enabled">
-                                <bool>false</bool>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>Copy these settings to another local or global region panel</string>
-                            </property>
-                        </widget>
-                    </hbox>
-                </widget>
             </vbox>
         </widget>
     </hbox>

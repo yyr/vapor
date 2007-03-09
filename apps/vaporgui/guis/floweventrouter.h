@@ -57,7 +57,7 @@ public:
 	virtual void cleanParams(Params* p); 
 	
 	void fileLoadTF(FlowParams* dParams);
-	void sessionLoadTF(QString* name) {assert(0);}  
+	void sessionLoadTF(QString*) {assert(0);}  
 	void fileSaveTF(FlowParams* dParams);
 		
 	//There are multiple notions of "dirty" here!

@@ -78,14 +78,14 @@
                             </property>
                             <property name="whatsThis" stdset="0">
                                 <string>The instance checkbox determines which
-flow settings are actively rendering.  You
+flow settings are currently rendering.  You
 can only use it after a dataset has been
 loaded. You can have any number of flow
-instances rendering in each visualization 
-window.  Use the "New"  button or the 
-"Duplicate In" selector to create new flow 
+instances rendering in each visualization
+window.  Use the "New"  button or the
+"Duplicate In" selector to create new flow
 instances. The instance that is selected
-is controlled by the values in this 
+is controlled by the values in this
 (currently displayed) flow panel.</string>
                             </property>
                         </widget>
@@ -134,14 +134,14 @@ is controlled by the values in this
                                             </property>
                                             <property name="whatsThis" stdset="0">
                                                 <string>The instance checkbox determines which
-flow settings are actively rendering.  You
+flow settings are currently rendering.  You
 can only use it after a dataset has been
 loaded. You can have any number of flow
-instances rendering in each visualization 
-window.  Use the "New"  button or the 
-"Duplicate In" selector to create new flow 
+instances rendering in each visualization
+window.  Use the "New"  button or the
+"Duplicate In" selector to create new flow
 instances. The instance that is selected
-is controlled by the values in this 
+is controlled by the values in this
 (currently displayed) flow panel.</string>
                                             </property>
                                         </widget>
@@ -174,14 +174,14 @@ is controlled by the values in this
                                             </property>
                                             <property name="whatsThis" stdset="0">
                                                 <string>The instance checkbox determines which
-flow settings are actively rendering.  You
+flow settings are currently rendering.  You
 can only use it after a dataset has been
 loaded. You can have any number of flow
-instances rendering in each visualization 
-window.  Use the "New"  button or the 
-"Duplicate In" selector to create new flow 
+instances rendering in each visualization
+window.  Use the "New"  button or the
+"Duplicate In" selector to create new flow
 instances. The instance that is selected
-is controlled by the values in this 
+is controlled by the values in this
 (currently displayed) flow panel.</string>
                                             </property>
                                         </widget>
@@ -232,14 +232,14 @@ is controlled by the values in this
                                             </property>
                                             <property name="whatsThis" stdset="0">
                                                 <string>The instance checkbox determines which
-flow settings are actively rendering.  You
+flow settings are currently rendering.  You
 can only use it after a dataset has been
 loaded. You can have any number of flow
-instances rendering in each visualization 
-window.  Use the "New"  button or the 
-"Duplicate In" selector to create new flow 
+instances rendering in each visualization
+window.  Use the "New"  button or the
+"Duplicate In" selector to create new flow
 instances. The instance that is selected
-is controlled by the values in this 
+is controlled by the values in this
 (currently displayed) flow panel.</string>
                                             </property>
                                         </widget>
@@ -640,6 +640,14 @@ grid cells.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify any dimensions in which all vector fields are periodic.</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When the x, y, or z-periodic checkboxes
+are checked, all vector fields in the dataset
+are assumed to be periodic, with period
+equal to the full extent of the data.  Periodicity
+is used in all flow integration and flow 
+rendering calculations.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QCheckBox">
                                             <property name="name">
@@ -656,6 +664,14 @@ grid cells.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify any dimensions in which all vector fields are periodic.</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When the x, y, or z-periodic checkboxes
+are checked, all vector fields in the dataset
+are assumed to be periodic, with period
+equal to the full extent of the data.  Periodicity
+is used in all flow integration and flow 
+rendering calculations.</string>
                                             </property>
                                         </widget>
                                         <widget class="QCheckBox">
@@ -674,6 +690,14 @@ grid cells.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify any dimensions in which all vector fields are periodic.</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When the x, y, or z-periodic checkboxes
+are checked, all vector fields in the dataset
+are assumed to be periodic, with period
+equal to the full extent of the data.  Periodicity
+is used in all flow integration and flow 
+rendering calculations.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QCheckBox">
                                             <property name="name">
@@ -690,6 +714,14 @@ grid cells.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify any dimensions in which all vector fields are periodic.</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When the x, y, or z-periodic checkboxes
+are checked, all vector fields in the dataset
+are assumed to be periodic, with period
+equal to the full extent of the data.  Periodicity
+is used in all flow integration and flow 
+rendering calculations.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -1671,20 +1703,22 @@ extents in the VAPOR region panel.</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
                                                 <string>When Autorefresh is on, flow lines will be
-recalculated and displayed whenever you
-make a change in the flow panel that changes
-the result of flow integration.  If the flow integration
-is very time-consuming (e.g. with unsteady flow),
-you should turn off Autorefresh, in order to 
-manually control when the flow integration will
-be performed.  When you have made all the
-changes and are ready for a recalculation, 
-you can click the "Refresh Flow" button.
-If multiple time steps are involved, not all
-will be recalculated at the time you press the
-"Refresh Flow" button.  The flow at some
-time steps may not be refreshed until those
-time steps are specified in the animation panel.</string>
+recalculated and displayed whenever
+youmake a change in the flow panel that
+changes the result of flow integration.
+If the flow integration is very time-consuming
+(e.g. with unsteady flow), you should turn
+off Autorefresh, in order to manually
+control when the flow integration will
+be performed.  When you have made
+all the changes and are ready for a
+recalculation, click the "Refresh Flow"
+button.If multiple time steps are involved,
+not all time steps will be recalculated at
+the time you press the "Refresh Flow"
+button.  The flow at some time steps will
+not be refreshed until those time steps
+are requested in the animation panel.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -1989,7 +2023,16 @@ work OK.</string>
                                                 <string>Steady samples per flow line</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string></string>
+                                                <string>When the "Automatically scale" is not
+checked, the length and smoothness
+of steady flow lines is manually
+controlled, by a user-specified
+vector scale factor and a user-
+specified number of samples
+per flow line.  When "Automatic
+scale is checked, these values
+are established in the Basic
+Flow Parameters above.</string>
                                             </property>
                                         </widget>
                                         <widget class="QSlider">
@@ -2020,7 +2063,16 @@ work OK.</string>
                                                 <string>Specify the number of samples along the length of a flow line</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string></string>
+                                                <string>When the "Automatically scale" is not
+checked, the length and smoothness
+of steady flow lines is manually
+controlled, by a user-specified
+vector scale factor and a user-
+specified number of samples
+per flow line.  When "Automatic
+scale is checked, these values
+are established in the Basic
+Flow Parameters above.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2054,7 +2106,16 @@ work OK.</string>
                                                 <string>Specify the number of samples along the length of a flow line</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string></string>
+                                                <string>When the "Automatically scale" is not
+checked, the length and smoothness
+of steady flow lines is manually
+controlled, by a user-specified
+vector scale factor and a user-
+specified number of samples
+per flow line.  When "Automatic
+scale is checked, these values
+are established in the Basic
+Flow Parameters above.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -2100,7 +2161,16 @@ work OK.</string>
                                                 <string>Steady field scale factor</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string></string>
+                                                <string>When the "Automatically scale" is not
+checked, the length and smoothness
+of steady flow lines is manually
+controlled, by a user-specified
+vector scale factor and a user-
+specified number of samples
+per flow line.  When "Automatic
+scale is checked, these values
+are established in the Basic
+Flow Parameters above.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2139,7 +2209,16 @@ work OK.</string>
                                                 <comment>Comment is here</comment>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string></string>
+                                                <string>When the "Automatically scale" is not
+checked, the length and smoothness
+of steady flow lines is manually
+controlled, by a user-specified
+vector scale factor and a user-
+specified number of samples
+per flow line.  When "Automatic
+scale is checked, these values
+are established in the Basic
+Flow Parameters above.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2819,7 +2898,10 @@ time steps, use the time step list
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>Specify a set of time steps that will be
 used to sample the vector fields
-during unsteady flow integration.</string>
+during unsteady flow integration.
+During field line advection,
+These time steps will also be
+used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -2845,7 +2927,10 @@ during unsteady flow integration.</string>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>Specify a set of time steps that will be
 used to sample the vector fields
-during unsteady flow integration.</string>
+during unsteady flow integration.
+During field line advection,
+These time steps will also be
+used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QPushButton">
@@ -2861,7 +2946,10 @@ during unsteady flow integration.</string>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>Specify a set of time steps that will be
 used to sample the vector fields
-during unsteady flow integration.</string>
+during unsteady flow integration.
+During field line advection,
+These time steps will also be
+used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -2905,7 +2993,10 @@ during unsteady flow integration.</string>
                                             <property name="whatsThis" stdset="0">
                                                 <string>Specify a set of time steps that will be
 used to sample the vector fields
-during unsteady flow integration.</string>
+during unsteady flow integration.
+During field line advection,
+These time steps will also be
+used for steady flow integration.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2982,7 +3073,7 @@ during unsteady flow integration.</string>
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Bias and seed distribution field
+                                                <string>Bias and seed distribution field:
 The bias value is used to produce
 randomly placed seeds that are
 biased either toward larger or
@@ -2990,7 +3081,7 @@ smaller values of the seed
 distribution field.  Positive bias
 results in seeds with larger values
 of the field, negative bias results
-in seeds with smaller field values
+in seeds with smaller field values.
 A value of 0 results in uniformly
 distributed seeds.  If b&gt;0 is the
 bias then (m/M)^b is the probability
@@ -3035,7 +3126,7 @@ magnitude of points in the rake.</string>
                                                 <string>Bias distribution toward higher or lower magnitude of seed distribution field. 0 for uniform distribution</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Bias and seed distribution field
+                                                <string>Bias and seed distribution field:
 The bias value is used to produce
 randomly placed seeds that are
 biased either toward larger or
@@ -3043,7 +3134,7 @@ smaller values of the seed
 distribution field.  Positive bias
 results in seeds with larger values
 of the field, negative bias results
-in seeds with smaller field values
+in seeds with smaller field values.
 A value of 0 results in uniformly
 distributed seeds.  If b&gt;0 is the
 bias then (m/M)^b is the probability
@@ -3121,7 +3212,7 @@ magnitude of points in the rake.</string>
                                                 <string>Specify the variable that is mapped to the X coord of the field</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Bias and seed distribution field
+                                                <string>Bias and seed distribution field:
 The bias value is used to produce
 randomly placed seeds that are
 biased either toward larger or
@@ -3129,7 +3220,7 @@ smaller values of the seed
 distribution field.  Positive bias
 results in seeds with larger values
 of the field, negative bias results
-in seeds with smaller field values
+in seeds with smaller field values.
 A value of 0 results in uniformly
 distributed seeds.  If b&gt;0 is the
 bias then (m/M)^b is the probability
@@ -3175,7 +3266,7 @@ magnitude of points in the rake.</string>
                                                 <string>Specify the variable that is mapped to the Y coord of the field</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Bias and seed distribution field
+                                                <string>Bias and seed distribution field:
 The bias value is used to produce
 randomly placed seeds that are
 biased either toward larger or
@@ -3183,7 +3274,7 @@ smaller values of the seed
 distribution field.  Positive bias
 results in seeds with larger values
 of the field, negative bias results
-in seeds with smaller field values
+in seeds with smaller field values.
 A value of 0 results in uniformly
 distributed seeds.  If b&gt;0 is the
 bias then (m/M)^b is the probability
@@ -3229,7 +3320,7 @@ magnitude of points in the rake.</string>
                                                 <string>Specify the variable that is mapped to the Z coord of the field</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>Bias and seed distribution field
+                                                <string>Bias and seed distribution field:
 The bias value is used to produce
 randomly placed seeds that are
 biased either toward larger or
@@ -3237,7 +3328,7 @@ smaller values of the seed
 distribution field.  Positive bias
 results in seeds with larger values
 of the field, negative bias results
-in seeds with smaller field values
+in seeds with smaller field values.
 A value of 0 results in uniformly
 distributed seeds.  If b&gt;0 is the
 bias then (m/M)^b is the probability
@@ -3825,7 +3916,7 @@ used to sample the vector fields
 during unsteady flow integration.
 During field line advection,
 These time steps will also be
-used during steady flow integration.</string>
+used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -3854,7 +3945,7 @@ used to sample the vector fields
 during unsteady flow integration.
 During field line advection,
 These time steps will also be
-used during steady flow integration.</string>
+used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QPushButton">
@@ -3873,7 +3964,7 @@ used to sample the vector fields
 during unsteady flow integration.
 During field line advection,
 These time steps will also be
-used during steady flow integration.</string>
+used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -3928,7 +4019,7 @@ used to sample the vector fields
 during unsteady flow integration.
 During field line advection,
 These time steps will also be
-used during steady flow integration.</string>
+used for steady flow integration.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -4479,17 +4570,17 @@ steady flow at the next time step.</string>
                                                 <string>Specify range of priority field magnitudes to be considered in identifying seeds to advect in time</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The min and max of the priority field are only 
-used with advection before prioritization.  In this 
-case, the search for maximal priority starts at 
-the seed and goes first backwards, then 
-forwards, along the steady field line.  The 
-search is stopped if a point on the field line 
-is found that has priority field magnitude less 
-than the specified min, or larger than the 
-specified max.  If the min or max are not 
-attained, the selected point is the 
-one with the largest priority field magnitude
+                                                <string>The min and max of the priority field are only
+used with advection before prioritization.  In
+that case, the search for maximal priority
+starts at the seed and goes first backwards,
+then forwards, along the steady field line.
+The search is stopped if a point on the field
+lineis found that has priority field magnitude
+lessthan the specified min, or larger than
+the specified max.  If the min or max are
+not attained, the selected point is the one
+with the largest priority field magnitude
 of all points sampled along the field line.
 If the max is set to 0, then the seed point
 will be the selected point.</string>
@@ -4512,17 +4603,17 @@ will be the selected point.</string>
                                                 <string>Specify range of priority field magnitudes to be considered in identifying seeds to advect in time</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The min and max of the priority field are only 
-used with advection before prioritization.  In this 
-case, the search for maximal priority starts at 
-the seed and goes first backwards, then 
-forwards, along the steady field line.  The 
-search is stopped if a point on the field line 
-is found that has priority field magnitude less 
-than the specified min, or larger than the 
-specified max.  If the min or max are not 
-attained, the selected point is the 
-one with the largest priority field magnitude
+                                                <string>The min and max of the priority field are only
+used with advection before prioritization.  In
+that case, the search for maximal priority
+starts at the seed and goes first backwards,
+then forwards, along the steady field line.
+The search is stopped if a point on the field
+lineis found that has priority field magnitude
+lessthan the specified min, or larger than
+the specified max.  If the min or max are
+not attained, the selected point is the one
+with the largest priority field magnitude
 of all points sampled along the field line.
 If the max is set to 0, then the seed point
 will be the selected point.</string>
@@ -4601,7 +4692,7 @@ the time-advected points at
 the subsequent time step.
 The number of points at the
 next time step is determined
-by the "No. to advect" value.
+by the "Points to advect" value.
 The second choice is useful
 when the field lines exit the
 current region early.</string>
@@ -5782,12 +5873,15 @@ coordinate.</string>
                                                         <string>Seed time start, end, increment</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
-                                                        <string>Specify the starting, ending, and 
-an increment, determining the 
-time steps when seeds will be 
+                                                        <string>Specify the starting, ending, and
+a time-step increment, determining
+the time steps when seeds may be
 injected into an unsteady flow.
 With field line advection, seeds
 are only injected at the starting
+time.  When using a seed list,
+a seed is not injected if its time
+value does not match the seeding
 time.</string>
                                                     </property>
                                                 </widget>
@@ -5812,11 +5906,14 @@ time.</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
                                                         <string>Specify the starting, ending, and
-an increment, determining the
-time steps when seeds will be
+a time-step increment, determining
+the time steps when seeds may be
 injected into an unsteady flow.
 With field line advection, seeds
 are only injected at the starting
+time.  When using a seed list,
+a seed is not injected if its time
+value does not match the seeding
 time.</string>
                                                     </property>
                                                 </widget>
@@ -5840,12 +5937,15 @@ time.</string>
                                                         <string>Specify the end time step for unsteady seed points</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
-                                                        <string>Specify the starting, ending, and 
-an increment, determining the 
-time steps when seeds will be 
+                                                        <string>Specify the starting, ending, and
+a time-step increment, determining
+the time steps when seeds may be
 injected into an unsteady flow.
 With field line advection, seeds
 are only injected at the starting
+time.  When using a seed list,
+a seed is not injected if its time
+value does not match the seeding
 time.</string>
                                                     </property>
                                                 </widget>
@@ -5872,12 +5972,15 @@ time.</string>
                                                         <string>Specify the time step difference between unsteady flowseeding times</string>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">
-                                                        <string>Specify the starting, ending, and 
-an increment, determining the 
-time steps when seeds will be 
+                                                        <string>Specify the starting, ending, and
+a time-step increment, determining
+the time steps when seeds may be
 injected into an unsteady flow.
 With field line advection, seeds
 are only injected at the starting
+time.  When using a seed list,
+a seed is not injected if its time
+value does not match the seeding
 time.</string>
                                                     </property>
                                                 </widget>
@@ -6417,9 +6520,9 @@ specified in the animation
 panel).  If T is the current timestep,
 the unsteady flow lines between
 T+min and T+max will be
-displayed.  Use a large negative 
-value of min if you want to show 
-the complete history of each 
+displayed.  Use a large negative
+value of min if you want to show
+the complete history of each
 flow line.</string>
                                                             </property>
                                                         </widget>
@@ -6452,9 +6555,9 @@ specified in the animation
 panel).  If T is the current timestep,
 the unsteady flow lines between
 T+min and T+max will be
-displayed.  Use a large negative 
-value of min if you want to show 
-the complete history of each 
+displayed.  Use a large negative
+value of min if you want to show
+the complete history of each
 flow line.</string>
                                                             </property>
                                                         </widget>
@@ -6779,6 +6882,9 @@ in this panel.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Align edit window with transfer function domain</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>The "Fit to View" button is used to make the current editing region coincide with the opacity map and color map domain bounds.</string>
+                                            </property>
                                         </widget>
                                     </hbox>
                                 </widget>
@@ -6931,12 +7037,15 @@ in this panel.</string>
                                                 <string>Specify the minimum entity value that is mapped to color</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The data limits for the opacity and color maps are
-set to the likely max and min bounds for the associated
-variable.  However these are not always correct, since 
-they may be based on data limits at different time steps.
-Users should always set the endpoints if the values do
-not appear consistent with known data bounds.</string>
+                                                <string>The data limits for the opacity and color
+maps are set to the likely max and min
+bounds for the associated variable.
+However these are not always correct,
+since they may be based on data limits
+at time steps other than the current one.
+Users should always set these endpoints
+if the values are not consistent with data
+bounds.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -7004,12 +7113,15 @@ not appear consistent with known data bounds.</string>
                                                 <string>Specify the maximum entity value that is mapped to color</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The data limits for the opacity and color maps are
-set to the likely max and min bounds for the associated
-variable.  However these are not always correct, since 
-they may be based on data limits at different time steps.
-Users should always set the endpoints if the values do
-not appear consistent with known data bounds.</string>
+                                                <string>The data limits for the opacity and color
+maps are set to the likely max and min
+bounds for the associated variable.
+However these are not always correct,
+since they may be based on data limits
+at time steps other than the current one.
+Users should always set these endpoints
+if the values are not consistent with data
+bounds.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -7157,12 +7269,15 @@ the right mouse button.</string>
                                                 <string>Specify the minimum entity value that is mapped to color</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The data limits for the opacity and color maps are
-set to the likely max and min bounds for the associated
-variable.  However these are not always correct, since 
-they may be based on data limits at different time steps.
-Users should always set the endpoints if the values do
-not appear consistent with known data bounds.</string>
+                                                <string>The data limits for the opacity and color
+maps are set to the likely max and min
+bounds for the associated variable.
+However these are not always correct,
+since they may be based on data limits
+at time steps other than the current one.
+Users should always set these endpoints
+if the values are not consistent with data
+bounds.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -7230,12 +7345,15 @@ not appear consistent with known data bounds.</string>
                                                 <string>Specify the maximum entity value that is mapped to color</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The data limits for the opacity and color maps are
-set to the likely max and min bounds for the associated
-variable.  However these are not always correct, since 
-they may be based on data limits at different time steps.
-Users should always set the endpoints if the values do
-not appear consistent with known data bounds.</string>
+                                                <string>The data limits for the opacity and color
+maps are set to the likely max and min
+bounds for the associated variable.
+However these are not always correct,
+since they may be based on data limits
+at time steps other than the current one.
+Users should always set these endpoints
+if the values are not consistent with data
+bounds.</string>
                                             </property>
                                         </widget>
                                     </hbox>

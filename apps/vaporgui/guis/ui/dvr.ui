@@ -89,13 +89,13 @@ checkbox to start rendering.</string>
                                 <string>Select current instance by clicking at left.  Check the box to enable rendering.</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>The instance checkbox determines which 
+                                <string>The instance checkbox determines which
 DVR is actively rendering.  You can only
-use it after a dataset has been loaded. 
-Only one DVR can render at one time.  
-You can have any number of DVR 
-instances in each visualization window.  
-Use the "New"  button or the "Duplicate 
+use it after a dataset has been loaded.
+Only one DVR can render at one time.
+You can have any number of DVR
+instances in each visualization window.
+Use the "New"  button or the "Duplicate
 In" selector to create new renderer
 instances. The instance that is selected
 is controlled by the values in this
@@ -682,6 +682,9 @@ and move control points.</string>
                                     </property>
                                     <property name="toolTip" stdset="0">
                                         <string>Align edit window with transfer function domain</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The "Fit to View" button is used to make the current editing region coincide with the transfer function domain bounds.</string>
                                     </property>
                                 </widget>
                                 <widget class="QPushButton">
