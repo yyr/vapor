@@ -11,7 +11,7 @@ Line Advection</h2>
   <li>In the Basic Flow Settings: 
     <ol>
       <li>Specify "Field Line Advection" as the flow type </li>
-      <li> Specify three variables for the unsteady (e.g. velocity) field</li>
+      <li>Specify three variables for the unsteady (e.g. velocity) field</li>
       <li>Specify three variables for the steady (e.g. magnetic) field</li>
       <li>Specify the "Unsteady field scale factor".&nbsp; This
 depends on the space and time scales that were used when the data was
@@ -20,8 +20,8 @@ generated.&nbsp; It is the ratio:
       <ul>
         <li>(time-correction-factor) is the number of
 simulation time steps per time step in the .vdf files</li>
-        <li>(spatial-correction-factor) is the extent
-of the ful
+        <li>(spatial-correction-factor) is the ratio
+of the full
 domain size in VAPOR (see the VAPOR region panel) to the actual user
 domain extent that was used in the simulation</li>
       </ul>
@@ -31,21 +31,23 @@ domain extent that was used in the simulation</li>
   <ol>
     <li>Decide whether to use a random rake, nonrandom
 rake, or a
-list of seeds, as the starting seeds for the field lines to be advected.</li>
+list of seeds, as the starting seed points for the field lines to be advected.</li>
     <ul>
       <li>If you are using a rake,&nbsp; the position
 and size of
 the rake can be established by using sliders, typing in numerical
 values, or by using the rake tool in the visualizer window.</li>
       <li>To use a list of seeds, either type it in
-(using the "edit seed list" button) or read the seeds from a text file.&nbsp; Each
+(using the "edit seed list" button), or read the seeds from a text file, or
+specify the seed points with the probe tool.&nbsp; Each
 seed in the list has (x,y,z)-coordinates, as well as a time.&nbsp; If
-the time is negative, that seed point is valid for all time steps.</li>
+the time is negative, that seed point is valid for any time step;
+otherwise it will only be used to seed the flow at the specified
+time step.</li>
     </ul>
-    <li>Specify the one time step when the seed points
-are to be
-injected into the flow, using the first of the thrree values labeled
-"Seed time start, end, increment".&nbsp; Only one time step can be used
+    <li>Specify the one time step when the seed points are to be
+injected into the flow, using the first of the three values labeled
+"Seed time start, end, increment".&nbsp; Only one time step isused
 for seed injection.<br>
       </li>
     <ul>
@@ -61,23 +63,21 @@ list&#8221; to specify an arbitrary set of time steps that will be sampled.</li>
 <div style="text-align: center;">
 <h2>Optional Settings to Consider</h2>
 </div>
-<br> Click on the button labeled "Show Advanced Flow Parameters" for these settings.
+Click on the button labeled "Show Advanced Flow Parameters" for these settings.
 <br>
-<span style="font-weight: bold;">Nonuniform random seed placement</span><br>
-<br>
+<span style="font-weight: bold;">Nonuniform random seed placement:</span><br>
 &nbsp;&nbsp;&nbsp; If you are using the &#8220;Random Rake&#8221; for seed
 placement, the distribution of random seeds can be biased by a field
 magnitude using the &#8220;Advanced Field Line Advection
 Parameters&#8221;.&nbsp;&nbsp;&nbsp; As you increase the bias (above 0), the
 seeds are chosen at larger field magnitude values, approaching the
 maximum field magnitude within the rake bounds.&nbsp; Bias values below
-zero result in seeds to be distributed with field magnitudes nearer
+zero result in seed points having field magnitude nearer
 zero.&nbsp; The three variables labeled &#8220;Seed Distrib. Field&#8221; identify
 the vector field whose magnitude is used to determine the seed
 distribution.<br>
 &nbsp;<br>
-&nbsp;<br>
-<span style="font-weight: bold;">Seed Prioritization.</span><br>
+<span style="font-weight: bold;">Seed Prioritization:</span><br>
 &nbsp;&nbsp;&nbsp; By default, the field line advection algorithm
 maximizes the steady field magnitude along each field line to determine
 the points that will be advected to the next time step.&nbsp; The field
@@ -97,12 +97,12 @@ the next time step.  The second approach, "Prioritize after advection" is useful
 from the first approach exit the current region, resulting in early termination of the 
 field line advection.
 <br>
-<span style="font-weight: bold;">Color and opacity settings</span><br>
+<br>
+<span style="font-weight: bold;">Color and opacity settings:</span><br>
 &nbsp;&nbsp;&nbsp; By default, path lines have a constant color and
 opacity.&nbsp;&nbsp; Using the Color/Opacity mapping, you can make the
 color and opacity depend on any of the following:<br>
 <br>
-
 <ol>
   <ol>
     <li>Position along Flow (This is a value between 0

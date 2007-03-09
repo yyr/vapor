@@ -22,7 +22,7 @@ flow type </font></li>
 field</font></li>
       <font size="+2"> </font><li><font size="+2">Specify the
 "Unsteady Integration Direction" as either "Forward" or
-"Backward".&nbsp; Seeds will be followed (advected) in the specified
+"Backward".&nbsp; Seeds will be advected in the specified
 direction by integrating the unsteady field either forwards or
 backwards in time.<br>
         </font></li>
@@ -35,8 +35,8 @@ generated.&nbsp; It is the ratio:
         <li><font size="+2">(time-correction-factor) is the number of
 simulation
 time steps per time step in the .vdf files</font></li>
-        <li><font size="+2">(spatial-correction-factor) is the extent
-of the ful
+        <li><font size="+2">(spatial-correction-factor) is the ratio
+of the full
 domain size in VAPOR (see the VAPOR region panel) to the actual user
 domain extent that was used in the simulation</font></li>
       </ul>
@@ -50,13 +50,14 @@ list of seeds, as the starting seeds for the field lines to be advected.</font><
     <ul>
       <li><font size="+2">If you are using a rake,&nbsp; the position
 and size of
-the rake can be established by using sliders, typing in numerical
+the rake can be established by using sliders, by typing in numerical
 values, or by using the rake tool in the visualizer window.</font></li>
       <li><font size="+2">To use a list of seeds, either type it in
 (using the
-"edit seed list" button) or read the seeds from a text file.&nbsp; Each
+"edit seed list" button), read the seeds from a text file,
+or insert them using the probe tool.&nbsp; Each
 seed in the list has (x,y,z)-coordinates, as well as a time.&nbsp; If
-the time is negative, that seed point is valid for all time steps.</font></li>
+the time is negative, that seed point is valid for all seed time steps.</font></li>
     </ul>
     <li><font size="+2">Specify the time
 steps when the seed points are to be
@@ -67,7 +68,7 @@ a+2b,...,a+kb, where a is the "Seed Time
 Start", b is the "increment" and the largest injection time, a+kb, is
 no greater than the "Seed Time End".&nbsp; If the seeds are from a seed
 list, and the seed time is nonnegative, then that seed is only injected
-at the one specified time step.</font></li>
+at its specified time step.</font></li>
     <li><font size="+2">In the Shape
 parameters:</font></li>
     <ol>
@@ -99,30 +100,24 @@ later be used to animate the path line evolution.</font></font></li>
       <font size="+2"><font size="+2"> </font></font>
     </ol>
     <font size="+2"><font size="+2"> <li><font size="+2">If the
-unsteady field data is not available at
-every
+unsteady field data is not available at every
 time step, you must specify the time steps that will be sampled, using
-the &#8220;Advanced Field Line Advection Parameters&#8221;.&nbsp; By default, every
+the &#8220;Advanced Unsteady Flow Parameters&#8221;.&nbsp; By default, every
 time step is sampled from beginning to end, using values in &#8220;Time step
 sample start, end, increment&#8221;.&nbsp; Check the optional &#8220;Use time step
 list&#8221; to specify an arbitrary set of time steps that will be sampled.</font></li>
     </font><br>
-    <br>
-    </font>
+</font>
   </ol>
   <div style="text-align: center;">
   <h3><big></big></h3>
-  <h3 style="text-align: center;"><font size="+2"><font size="+2"><font
- size="+2">Optional Settings to Consider</font></font></font></h3>
-  <h3><big></big></h3>
-  </div>
+     </div>
   <font size="+2"><font size="+2"><font size="+2"><span
  style="font-weight: bold;">Nonuniform random seed
-placement</span><br>
-  <br>
+placement:</span><br>
 &nbsp;&nbsp;&nbsp; If you are using the &#8220;Random Rake&#8221; for seed
 placement, the distribution of random seeds can be biased by a field
-magnitude using the &#8220;Advanced Field Line Advection
+magnitude using the &#8220;Advanced Unsteady Flow
 Parameters&#8221;.&nbsp;&nbsp;&nbsp; As you increase the bias (above 0), the
 seeds are chosen at larger field magnitude values, approaching the
 maximum field magnitude within the rake bounds.&nbsp; Bias values below
@@ -131,17 +126,6 @@ zero.&nbsp; The three variables labeled &#8220;Seed Distrib. Field&#8221; identi
 the vector field whose magnitude is used to determine the seed
 distribution.<br>
 &nbsp;<br>
-&nbsp;<br>
-  <span style="font-weight: bold;">Seed Prioritization.</span><br>
-&nbsp;&nbsp;&nbsp; By default, the field line advection algorithm
-maximizes the steady field magnitude along each field line to determine
-the points that will be advected to the next time step.&nbsp; The field
-that is used for this prioritization, can be specified by the
-user.&nbsp; Also, values labeled &#8220;Priority Field Min, Max&#8221; can be
-specified.&nbsp;&nbsp; The search for the largest field value is
-terminated when field magnitudes outside the (Min, Max) range are
-encountered.<br>
-  <br>
   <span style="font-weight: bold;">Color and opacity settings</span><br>
 &nbsp;&nbsp;&nbsp; By default, path lines have a constant color and
 opacity.&nbsp;&nbsp; Using the Color/Opacity mapping, you can make the

@@ -4576,19 +4576,19 @@ will be the selected point.</string>
                                                 <string>In field line advection you can
 choose how the steady flow seed 
 at the 'next' time step is determined
-from a flow line at the 'previous' time 
+from a flow line at the 'previous' time
 step.  (Note that previous and next 
-refer to the order the unsteady 
-integration is performed, not the 
+refer to the order the unsteady
+integration is performed, not the
 actual time-order of time steps.)
-To advect a field line to the 'next' 
-time, if you choose "prioritize before 
-advection" then one point is 
+To advect a field line to the 'next'
+time, if you choose "prioritize before
+advection" then one point is
 selected to advect in the
 unsteady field, by maximizing
 the prioritization field magnitude
-among points along the steady field 
-line, Alternatively, when you 
+among points along the steady field
+line, Alternatively, when you
 choose "prioritize after advection",
 multiple, evenly spaced,
 points are selected from the
@@ -4596,7 +4596,7 @@ steady field line to advect to
 the next time step, and
 the seed point for the next
 time step is found by maximizing
-the prioritization field among 
+the prioritization field among
 the time-advected points at
 the subsequent time step.
 The number of points at the
