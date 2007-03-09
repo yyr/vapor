@@ -517,12 +517,12 @@ is controlled by the values in this
                                         <string>With renderer disabled, choose the volume renderer to be used</string>
                                     </property>
                                     <property name="whatsThis" stdset="0">
-                                        <string>The Renderer Type selector controls the 
-graphics hardware capability that is used 
+                                        <string>The Renderer Type selector controls the
+graphics hardware capability that is used
 for volume rendering.  Only the capabilities
-that are supported on your current 
-system are shown.  Usually the default 
-setting will provide the fastest and highest 
+that are supported on your current
+system are shown.  Usually the default
+setting will provide the fastest and highest
 quality rendering.  To change renderer
 type, the renderer must first be disabled.</string>
                                     </property>

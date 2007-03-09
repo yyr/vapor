@@ -2089,7 +2089,9 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 						opacVar = (float)(minFrame + (float)pointNum/(float)objectsPerTimestep);
 					break;
 				case (2): //speed
-					opacVar = container->getSpeed(lineNum,pointNum);
+					if (container->doSpeeds())
+						opacVar = container->getSpeed(lineNum,pointNum);
+					else opacVar = 0.f;
 					break;
 				case (3): //opacity mapped from seed index
 					opacVar = container->getSeedIndex(lineNum);
@@ -2131,7 +2133,10 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 						colorVar = (float)(minFrame + (float)pointNum/(float)objectsPerTimestep);
 					break;
 				case (2): //speed
-					colorVar = container->getSpeed(lineNum,pointNum);
+					//In case the speeds haven't been built yet:
+					if (container->doSpeeds())
+						colorVar = container->getSpeed(lineNum,pointNum);
+					else colorVar = 0.f;
 					break;
 
 				case (3) : //seed index.  Will use same color along each line
