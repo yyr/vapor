@@ -38,6 +38,6 @@ idlpath = sysenv("IDL_DLM_PATH")
 
 'Insert vapor_home\bin at start of IDL_DLM_PATH
 if idlpath <> "" Then 
-	idlpath = ":" & idlpath
+	idlpath = ";" & idlpath
 End if
 sysenv("IDL_DLM_PATH") = vaporbin & idlpath 
