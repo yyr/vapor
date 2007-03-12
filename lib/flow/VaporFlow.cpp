@@ -798,7 +798,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 	int currIndex = sampleStartIndex;
 	int prevSample = startTimeStep;
 	int nextSample = unsteadyTimestepList[sampleStartIndex+timeDir];
-	int tsIndex; //Index that counts the sampled timesteps from 0
+	int tsIndex=0; //Index that counts the sampled timesteps from 0
 	// Go through all the timesteps, one at a time. Ifor is the time Step.
 	// For each pair (prevSample, nextSample) integrate between them.
 	for(int iFor = startTimeStep; iFor != endTimeStep; iFor += timeDir)
@@ -1065,7 +1065,7 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 	int currIndex = sampleStartIndex;
 	int prevSample = startTimeStep;
 	int nextSample = unsteadyTimestepList[sampleStartIndex+timeDir];
-	int tsIndex; //Index that counts the sampled timesteps from 0
+	int tsIndex=0; //Index that counts the sampled timesteps from 0
 	// Go through all the timesteps, one at a time. Ifor is the time Step.
 	// For each pair (prevSample, nextSample) integrate between them.
 	// Actually, this will probably only be used when there are exactly 2 sampled timestep,

@@ -319,14 +319,13 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 		{
 			PointInfo pointInfo;
 			VECTOR3 nodeData;
-			float t;
+			float t = 0.f;
 
 			pointInfo.phyCoord.Set(x,y,z);
 			if(!m_pField->isTimeVarying())
 				t = m_pField->GetStartTime();
 			else assert(0);
-			//else //Need to fix this for unsteady flow
-				//t = m_pField->GetStartTime() + m_fSamplingRate*(ptrSpeed-((int)((float)ptrSpeed/(float)m_nMaxsize)*m_nMaxsize));
+			
 			m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
 			currentSpeed = nodeData.GetMag();
 			container->setSpeed(lineNum, 0, currentSpeed);
@@ -398,7 +397,7 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 			{
 				PointInfo pointInfo;
 				VECTOR3 nodeData;
-				float t;
+				float t = 0.f;
 
 				
 				pointInfo.phyCoord.Set(x, y, z);

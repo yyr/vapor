@@ -117,7 +117,7 @@ restart(){
 	infoTimeStep = 0;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) ds = 0;
-	const float* fullDataExtents;
+	const float* fullDataExtents = 0;
 	if (ds) fullDataExtents = DataStatus::getInstance()->getExtents();
 	
 	

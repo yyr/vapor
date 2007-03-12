@@ -628,7 +628,8 @@ void FlowRenderer::drawTube(bool isLit, float* secondColor, float startPoint[3],
 	float testVec[3],testVec2[3];
 	//storage to hold normalized normal vectors:
 	float normalA[18], normalB[18];
-	float* prevRGBA, *nextRGBA;
+	float* prevRGBA=0; 
+	float* nextRGBA= 0;
 	//calculate 6 points in plane orthog to currentA, in plane of endPoint:
 	for (int i = 0; i<6; i++){
 		//testVec and testVec2 are components of point in plane
@@ -1589,11 +1590,11 @@ renderTubes(FlowLineData* flowLineData, float radius, bool isLit, int firstAge, 
 			//toggle even and odd.
 			float* currentN;
 			float* currentU;
-			float* currentA;
+			float* currentA = 0;
 			float* prevN;
 			float* prevA;
 			float* prevU;
-			float* currentVertex;
+			float* currentVertex = 0;
 			float* currentNormal;
 			float* prevVertex;
 			float* prevNormal;

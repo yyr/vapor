@@ -387,9 +387,9 @@ guiAlignView(int axis){
 		//determine the closest view direction and up vector to the current viewpoint.
 		//Check the dot product with all axes
 		float maxVDot = -1.f;
-		int bestVDir;
+		int bestVDir = 0;
 		float maxUDot = -1.f;
-		int bestUDir;
+		int bestUDir = 0;
 		float* curViewDir = currentViewpoint->getViewDir();
 		float* curUpVec = currentViewpoint->getUpVec();
 		for (int i = 0; i< 3; i++){

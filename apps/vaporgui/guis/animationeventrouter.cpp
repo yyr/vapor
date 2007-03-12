@@ -345,7 +345,7 @@ animationStepReverseClick(){
 
 void AnimationEventRouter::guiSetPlay(int direction){
 	confirmText(false);
-	PanelCommand* cmd;
+	PanelCommand* cmd = 0;
 	AnimationParams* aParams = VizWinMgr::getActiveAnimationParams();
 	switch (direction) {
 		case -1:

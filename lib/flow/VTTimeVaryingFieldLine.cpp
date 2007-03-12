@@ -70,7 +70,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 											float finalTime,
 											bool bAdaptive)
 {
-	int istat;
+	int istat = -1;
 	double curTime, dt;
 	PointInfo pt;
 

@@ -771,7 +771,7 @@ void FlowEventRouter::confirmText(bool /*render*/){
 	bool autoscale = fParams->isAutoScale();
 	if (flowDataChanged){
 		//Do settings that depend on flowType:
-		float seedDistBias;
+		float seedDistBias = 0.f;
 		if (flowType == 0){
 			if (showAdvanced){
 				seedDistBias = biasEdit1->text().toFloat();

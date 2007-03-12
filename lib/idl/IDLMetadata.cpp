@@ -82,7 +82,7 @@ IDL_VPTR vdfMetadataCreate(int argc, IDL_VPTR *argv, char *argk)
 	//
 	argc = IDL_KWProcessByOffset(argc, argv, argk, kw_pars,NULL,1,&kw);
 
-	Metadata *metadata;
+	Metadata *metadata = 0;
 
 	if (argc == 1) {
 		IDL_ENSURE_SCALAR(argv[0]);

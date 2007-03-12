@@ -2014,7 +2014,8 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 	float colorMax = mapperFunction->getMaxColorMapValue();
 
 	float opacVar, colorVar;
-	float* opacRegion, *colorRegion;
+	float* opacRegion = 0; 
+	float* colorRegion = 0;
 	float opacVarMin[3], opacVarMax[3], colorVarMin[3], colorVarMax[3];
 	int opacSize[3],colorSize[3];
 	DataStatus* ds = DataStatus::getInstance();

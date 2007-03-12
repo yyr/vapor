@@ -123,9 +123,9 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 		offset = ((t - (float)m_nStartT)*m_TimeDir)/(float)m_nTimeIncrement;
 		assert(offset >= 0.0f);
 		lowT = (int)floor(offset);
+		highT = lowT + 1;
 		if(offset != (float)lowT)
 		{
-			highT = lowT + 1;
 			ratio = (m_nUserTimeStepInc + (t - (int)t)*m_nUserTimeStep)/(float)m_pUserTimeSteps[lowT];
 			if (m_TimeDir == BACKWARD) ratio = 1.f - ratio;
 		}
@@ -158,7 +158,8 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 void Solution::Normalize(bool bLocal)
 {
 	int iFor, jFor;
-	float mag, u, v, w;
+	float mag = 0.f; 
+	float u, v, w;
 
 	m_fMinMag = FLT_MAX;
 	m_fMaxMag = -FLT_MAX;
