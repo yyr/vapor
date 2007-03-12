@@ -14,7 +14,7 @@ vaporhome = Right(inputstring, len(inputstring) - posn -1)
 vaporhome = vaporhome & "VAPOR"
 vaporbin = vaporhome & "\bin;"
 vaporidl = vaporhome & "\bin"
-vaporidl2 = vaporhome & "\bin:"
+vaporidl2 = vaporhome & "\bin;"
 set shell = CreateObject("wscript.shell")
 If allUserProp Then
 	set sysEnv = shell.Environment("SYSTEM")
