@@ -1659,11 +1659,14 @@ guiSetFlowType(int typenum){
 }
 void FlowEventRouter::
 guiSetSteadyDirection(int comboIndex){
-	confirmText(false);
+	
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set steady flow direction");
 	//combo has values 0,1,2
 	int flowDir = comboIndex-1;
+	if (fParams->getSteadyDirection() == flowDir) return;
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set steady flow direction");
+	
 	fParams->setSteadyDirection(flowDir);
 	PanelCommand::captureEnd(cmd, fParams);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1671,11 +1674,15 @@ guiSetSteadyDirection(int comboIndex){
 }
 void FlowEventRouter::
 guiSetUnsteadyDirection(int comboIndex){
-	confirmText(false);
+	
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set unsteady flow direction");
 	//combo has values 0,1, resp corresponding to +1, -1
 	int flowDir = 1-2*comboIndex;
+	if (flowDir == fParams->getUnsteadyDirection()) return;
+	confirmText(false);
+
+	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set unsteady flow direction");
+	
 	fParams->setUnsteadyDirection(flowDir);
 	PanelCommand::captureEnd(cmd, fParams);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1683,8 +1690,10 @@ guiSetUnsteadyDirection(int comboIndex){
 }
 void FlowEventRouter::
 guiSetNumRefinements(int n){
-	confirmText(false);
+	
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	if (fParams->getNumRefinements() == n) return;
+	confirmText(false);
 	int newNumTrans = ((RegionParams*)(VizWinMgr::getActiveRegionParams()))->validateNumTrans(n);
 	if (newNumTrans != n) {
 		MessageReporter::warningMsg("%s","Invalid number of Refinements for current region, data cache size");
@@ -2056,11 +2065,12 @@ guiSetZSize(int sliderval){
 }
 void FlowEventRouter::
 guiSetAutoRefresh(bool autoOn){
-	confirmText(false);
+	
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	//For our purposes here we consider all frame numbers in session:
 	//Check if it's a change
 	if (autoOn == fParams->refreshIsAuto()) return;
+	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "toggle auto flow refresh");
 	fParams->setAutoRefresh(autoOn);
 	PanelCommand::captureEnd(cmd, fParams);
@@ -2174,9 +2184,10 @@ refreshFlow(){
 void FlowEventRouter::
 guiToggleAutoScale(bool on){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
-	confirmText(false);
+	
 	bool wasOn = fParams->isAutoScale();
 	if (wasOn == on) return;
+	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle auto scale steady field");
 	fParams->setAutoScale(on);
 	//Refresh if we are turning it on...
