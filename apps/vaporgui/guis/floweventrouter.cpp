@@ -1967,8 +1967,10 @@ guiSetSteadyLength(int sliderPos){
 
 void FlowEventRouter::
 guiCheckPeriodicX(bool periodic){
-	confirmText(false);
+	
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	if (fParams->getPeriodicDim(0) == periodic) return;
+	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic X coords");
 	fParams->setPeriodicDim(0,periodic);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
@@ -1978,8 +1980,9 @@ guiCheckPeriodicX(bool periodic){
 }
 void FlowEventRouter::
 guiCheckPeriodicY(bool periodic){
-	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	if (fParams->getPeriodicDim(1) == periodic) return;
+	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic Y coords");
 	fParams->setPeriodicDim(1,periodic);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
@@ -1989,8 +1992,9 @@ guiCheckPeriodicY(bool periodic){
 }
 void FlowEventRouter::
 guiCheckPeriodicZ(bool periodic){
-	confirmText(false);
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
+	if (fParams->getPeriodicDim(2) == periodic) return;
+	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "toggle periodic Z coords");
 	fParams->setPeriodicDim(2,periodic);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
