@@ -1237,9 +1237,9 @@ int FlowParams::insertSteadySeeds(RegionParams* rParams, VaporFlow* fLib, FlowLi
 				if (point.getVal(j) < minExt[j] || point.getVal(j) > maxExt[j]) inside = false;
 			}
 			if (inside) seedsInRegion++;
-			flowLines->setFlowPoint(i, 0, point.getVal(0), point.getVal(1), point.getVal(2));
-			flowLines->setFlowStart(i,0);
-			flowLines->setFlowEnd(i,0);
+			flowLines->setFlowPoint(seedCount, 0, point.getVal(0), point.getVal(1), point.getVal(2));
+			flowLines->setFlowStart(seedCount,0);
+			flowLines->setFlowEnd(seedCount,0);
 			seedCount++;
 		}
 	}
@@ -2611,7 +2611,8 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 bool FlowParams::multiAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, int startTime, int endTime, int minFrame, RegionParams* rParams){
 	
 	//Get some initial settings:
-	int numSeedPoints = calcNumSeedPoints(getFirstSampleTimestep());
+	//One-line Fix for bug 1680062 in 1.1.0:
+	int numSeedPoints = calcNumSeedPoints(seedTimeStart);
 	maxPoints = calcMaxPoints();
 	bool useSpeeds =  (getColorMapEntityIndex() == 2 || getOpacMapEntityIndex() == 2);
 	bool doRGBAs = (getColorMapEntityIndex() + getOpacMapEntityIndex() > 0);
