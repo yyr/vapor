@@ -39,15 +39,24 @@ void myMessageOutput( QtMsgType type, const char *msg )
 QApplication* app;
 int main( int argc, char ** argv ) {
 	//Install our own message handler.
-	//Comment out the next line to see qWarnings in console:
-	qInstallMsgHandler( myMessageOutput );
 	//Needed for SGI to avoid dithering:
 
 #ifdef	Darwin
 	if (! getenv("DISPLAY")) setenv("DISPLAY", ":0.0",0);
 #endif
+#ifdef Q_WS_X11
+	if (!getenv("DISPLAY")){
+		fprintf(stderr,"Error:  X11 DISPLAY variable is not defined. %s \n",
+		"Vapor user interface requires X server to be available.");
+		exit(-1);
+	}
+#endif
 	QApplication::setColorSpec( QApplication::ManyColor );
-    QApplication a( argc, argv );
+    	QApplication a( argc, argv,true );
+	
+	//Comment out the next line to see qWarnings in console:
+	qInstallMsgHandler( myMessageOutput );
+
 	app = &a;
 	a.setStyle("windows");
 	a.setPalette(QPalette(QColor(233,236,216), QColor(233,236,216)));
