@@ -218,18 +218,25 @@ reinit(bool doOverride){
 				newMinEdit[i] = minColorEditBounds[i];
 				newMaxEdit[i] = maxColorEditBounds[i];
 			} else { 
-				//create new tf.  This is a variable that is in the metadata, but
-				//not previously in the session
-				int metadataVarNum = DataStatus::getInstance()->mapSessionToMetadataVarNum(i);
-				assert(metadataVarNum >= 0);
-				newTransFunc[i] = new TransferFunction(this, numBits);
+				//attempt to make use of existing transfer functions, edit ranges.
+				//delete any that are no longer referenced
+				for (i = 0; i<totNumVariables; i++){
+					if(i<numVariables){
+						newTransFunc[i] = transFunc[i];
+						newMinEdit[i] = minColorEditBounds[i];
+						newMaxEdit[i] = maxColorEditBounds[i];
+					} else { //create new tf
+						newTransFunc[i] = new TransferFunction(this, numBits);
 
-				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(metadataVarNum));
-				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(metadataVarNum));
-				newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(metadataVarNum);
-				newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(metadataVarNum);
-                newTransFunc[i]->setVarNum(metadataVarNum);
+						newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
+						newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
+						newMinEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
+						newMaxEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+						newTransFunc[i]->setVarNum(i);
+					}
+				}
 			}
+			
 		}
 			//Delete trans funcs that are not in the session
 		for (i = totNumVariables; i<numVariables; i++){
