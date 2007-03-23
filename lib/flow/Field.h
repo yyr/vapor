@@ -63,6 +63,7 @@ public:
 	int GetEndTime(void) { return m_pSolution->GetEndTime(); }
 	void SetUserTimeStepInc(int timeInc, int curTimeInc) { m_pSolution->SetUserTimeStepInc(timeInc, curTimeInc); }
 	void SetUserTimeSteps(int* pUserTimeSteps) { m_pSolution->SetUserTimeSteps(pUserTimeSteps); }
+	float getTimeScaleFactor(){return m_pSolution->GetTimeScaleFactor();}
 	//int GetTimeIncrement(void) { return m_pSolution->GetTimeIncrement(); }
 };
 //Helper class to get data out of a vector field

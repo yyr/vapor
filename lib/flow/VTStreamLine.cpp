@@ -167,7 +167,7 @@ void vtCStreamLine::computeStreamLine(float curTime, FlowLineData* container){
 
 				pointInfo.phyCoord.Set(x,y,z);	
 				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
-				container->setSpeed(seedNum, 0, nodeData.GetMag());
+				container->setSpeed(seedNum, 0, nodeData.GetMag()/m_pField->getTimeScaleFactor());
 			}
 			container->setFlowStart(seedNum, 0);
 			container->setFlowEnd(seedNum, 0);

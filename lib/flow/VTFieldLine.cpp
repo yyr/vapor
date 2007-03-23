@@ -327,7 +327,7 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 			else assert(0);
 			
 			m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
-			currentSpeed = nodeData.GetMag();
+			currentSpeed = nodeData.GetMag()/m_pField->getTimeScaleFactor();
 			container->setSpeed(lineNum, 0, currentSpeed);
 		}
 
@@ -406,7 +406,7 @@ float vtCFieldLine::SampleFieldline(FlowLineData* container,
 				else assert (0);
 				//	t = m_pField->GetStartTime() + m_fSamplingRate*(ptrSpeed-((int)((float)ptrSpeed/(float)m_nMaxsize)*m_nMaxsize));
 				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, t, nodeData);
-				currentSpeed =  nodeData.GetMag(); 
+				currentSpeed =  nodeData.GetMag()/m_pField->getTimeScaleFactor(); 
 				container->setSpeed(lineNum, insertionPosn, currentSpeed);
 			}
 
@@ -516,7 +516,7 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 			pointInfo.phyCoord.Set(x,y,z);
 			
 			m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, firstT, nodeData);
-			currentSpeed = nodeData.GetMag();
+			currentSpeed = nodeData.GetMag()/m_pField->getTimeScaleFactor();
 			container->setSpeedAtTime(lineNum, firstT, currentSpeed);
 		}
 
@@ -594,7 +594,7 @@ float vtCFieldLine::SampleFieldline(PathLineData* container,
 				VECTOR3 nodeData;
 				pointInfo.phyCoord.Set(x, y, z);
 				m_pField->at_phys(-1, pointInfo.phyCoord, pointInfo, nextTime, nodeData);
-				currentSpeed =  nodeData.GetMag(); 
+				currentSpeed =  nodeData.GetMag()/m_pField->getTimeScaleFactor(); 
 				container->setSpeedAtTime(lineNum, nextTime, currentSpeed);
 			}
 		}
