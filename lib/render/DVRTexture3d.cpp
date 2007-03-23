@@ -126,14 +126,27 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
       _bricks[0]->volumeMin(extents[0], extents[1], extents[2]);
       _bricks[0]->volumeMax(extents[3], extents[4], extents[5]);
       
-      _bricks[0]->textureMin((float)data_roi[0]/(_nx-1), 
-                             (float)data_roi[1]/(_ny-1), 
-                             (float)data_roi[2]/(_nz-1));
-      
-      _bricks[0]->textureMax((float)data_roi[3]/(_nx-1), 
-                             (float)data_roi[4]/(_ny-1), 
-                             (float)data_roi[5]/(_nz-1));
+       // Compute min and max texture coordinates. When texture wrap mode is 
+       // set to GL_CLAMP_TO_EDGE the min and max coordinates are:
+       // min = 1.0/2N and max = 1.0 - min.
+       //
+       float mins = 1.0 / (2*_nx);
+       float maxs = 1.0 - mins;
+       float mint = 1.0 / (2*_ny);
+       float maxt = 1.0 - mint;
+       float minr = 1.0 / (2*_nz);
+       float maxr = 1.0 - minr;
 
+      _bricks[0]->textureMin(
+        mins + (data_roi[0] * (maxs-mins)/(_nx-1)), 
+        mint + (data_roi[1] * (maxt-mint)/(_ny-1)), 
+        minr + (data_roi[2] * (maxr-minr)/(_nz-1)));
+
+      _bricks[0]->textureMax(
+        mins + (data_roi[3] * (maxs-mins)/(_nx-1)), 
+        mint + (data_roi[4] * (maxt-mint)/(_ny-1)), 
+        minr + (data_roi[5] * (maxr-minr)/(_nz-1)));
+      
       _bricks[0]->fill((GLubyte*)data, nx, ny, nz);
       
       loadTexture(_bricks[0]);
@@ -315,6 +328,13 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
   glFlush();
 }
 
+float clamp(float x, float min, float max) {
+	assert(min<=max);
+	if (x < min) return min;
+	if (x > max) return max;
+	return(x);
+}
+
 //----------------------------------------------------------------------------
 // Find the intersections of the plane with the boxes.
 //----------------------------------------------------------------------------
@@ -364,10 +384,16 @@ int DVRTexture3d::intersect(const Vect3d &sp,
       verts[intersections].z(p0.z + t*(p1.z - p0.z));
       
       // Compute the texture interseciton
-      tverts[intersections].x(t0.x + t*(t1.x - t0.x));
-      tverts[intersections].y(t0.y + t*(t1.y - t0.y));
-      tverts[intersections].z(t0.z + t*(t1.z - t0.z));
-      
+      tverts[intersections].x(clamp(
+        t0.x + t*(t1.x - t0.x), textureBox.minZ().x, textureBox.maxZ().x)
+      );
+      tverts[intersections].y(clamp(
+        t0.y + t*(t1.y - t0.y), textureBox.minZ().y, textureBox.maxZ().y)
+      );
+      tverts[intersections].z(clamp(
+        t0.z + t*(t1.z - t0.z), textureBox.minZ().z, textureBox.maxZ().z)
+      );
+
       // Compute view coordinate intersection
       rverts[intersections].x(r0.x + t*(r1.x - r0.x));
       rverts[intersections].y(r0.y + t*(r1.y - r0.y));
