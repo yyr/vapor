@@ -2891,7 +2891,7 @@ bool FlowParams::validateSettings(int tstep){
 						break;
 					}
 				}
-				if (!found) {
+				if (!found && seedPointList.size()>0 ) {
 					
 					MyBase::SetErrMsg(VAPOR_WARNING_FLOW,
 						"No seed points specified for timestep %d\n",
