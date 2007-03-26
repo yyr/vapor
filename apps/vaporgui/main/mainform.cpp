@@ -992,6 +992,8 @@ void MainForm::newSession()
 {
 
 	Session::getInstance()->resetMetadata(0, false);
+	//Reset to default cache size:
+	Session::getInstance()->setCacheMB(1024);
 	MessageReporter::getInstance()->resetCounts();
 	
 }

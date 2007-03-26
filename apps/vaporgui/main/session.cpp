@@ -70,6 +70,7 @@ Session::Session() {
 	previousClass = 0;
 	dataMgr = 0;
 	currentMetadata = 0;
+	cacheMB = 1024;
 	
 	//Note that the session will create the vizwinmgr!
 	VizWinMgr::getInstance();
@@ -130,7 +131,6 @@ void Session::init() {
 	int i;
 	recordingCount = 0;
 	metadataSaved = false;
-	cacheMB = 1024;
 
 	currentMetadataFile = "";
 	currentJpegDirectory = "";	
