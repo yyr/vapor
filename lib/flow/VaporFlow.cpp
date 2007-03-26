@@ -1193,7 +1193,6 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 			minBlk[i] = minBlkRake[i];
 			maxBlk[i] = maxBlkRake[i];
 		}
-			
 	} else {
 		for (int i = 0; i< 3; i++) {
 			minInt[i] = minRegion[i];

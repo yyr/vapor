@@ -908,8 +908,9 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 				}
 			}
 			numSeedPoints = seedCounter;
-			if (numSeedPoints == 0) {
-				MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "No seeds at current time step");
+			//Only give a warning if the seed list is nonempty:
+			if (numSeedPoints == 0 && getNumListSeedPoints() > 0) {
+				MyBase::SetErrMsg(VAPOR_WARNING_SEEDS, "No seeds at current time step");
 				return false;
 			}
 			seedCounter = 0;
@@ -2591,6 +2592,36 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	myReader->MapUserToVox(timeStep, rakeMinCoords, min_dim, numRefinements);
 	myReader->MapUserToBlk(timeStep, rakeMaxCoords, max_bdim, numRefinements);
 	myReader->MapUserToVox(timeStep, rakeMaxCoords, max_dim, numRefinements);
+	//Now make sure the region actually contains the rake bounds:
+	double testRakeMin[3],testRakeMax[3];
+	myReader->MapVoxToUser(timeStep,min_dim, testRakeMin,numRefinements);
+	myReader->MapVoxToUser(timeStep,max_dim, testRakeMax,numRefinements);
+	bool changed = false;
+	for (int i = 0; i< 3; i++){
+		if (testRakeMin[i] > rakeMinCoords[i]) {
+			//min_dim must be reduced:
+			//assert(min_dim[i] > 0);
+			if (min_dim > 0) {
+				min_dim[i]--;
+				changed = true;
+			}
+		}
+		if (testRakeMax[i] < rakeMaxCoords[i]){
+			//max_dim must be increased to include the max extent:
+			if (max_dim[i] < ds->getFullSizeAtLevel(numRefinements, i) -1){
+				max_dim[i]++;
+				changed = true;
+			}
+		}
+	}
+	if (changed) {
+		myReader->MapVoxToUser(timeStep,min_dim, rakeMinCoords,numRefinements);
+		myReader->MapVoxToUser(timeStep,max_dim, rakeMaxCoords,numRefinements);
+		myReader->MapUserToBlk(timeStep, rakeMinCoords, min_bdim, numRefinements);
+		myReader->MapUserToVox(timeStep, rakeMinCoords, min_dim, numRefinements);
+		myReader->MapUserToBlk(timeStep, rakeMaxCoords, max_bdim, numRefinements);
+		myReader->MapUserToVox(timeStep, rakeMaxCoords, max_dim, numRefinements);
+	}
 	flowLib->SetRakeRegion(min_dim, max_dim, min_bdim, max_bdim);
 	return true;
 }
@@ -2697,10 +2728,33 @@ singleAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, Pat
 
 
 bool FlowParams::validateSettings(int tstep){
+	DataStatus* ds = DataStatus::getInstance();
+	//If we are using a rake, force it to fit inside the current data extents
+	if (doRake){
+		float levExts[6];
+		ds->getExtentsAtLevel(numRefinements, levExts);
+		//Shrink levexts slightly:
+		for (int i = 0; i< 3; i++){
+			float mid = (levExts[i]+levExts[i+3])*0.5;
+			levExts[i] = 0.999999*levExts[i] + 0.000001*mid;
+			levExts[i+3] = 0.999999*levExts[i+3] + 0.000001*mid;
+		}
+
+		for (int i = 0; i<3; i++){
+			if(seedBoxMin[i] < levExts[i]) seedBoxMin[i] = levExts[i];
+			if(seedBoxMax[i] < levExts[i]) seedBoxMax[i] = levExts[i];
+			if(seedBoxMax[i] > levExts[i+3]) seedBoxMax[i] = levExts[i+3];
+			if(seedBoxMin[i] > levExts[i+3]) seedBoxMin[i] = levExts[i+3];
+			if(seedBoxMax[i] < seedBoxMin[i]){
+				seedBoxMin[i] = levExts[i];
+				seedBoxMax[i] = levExts[i+3];
+			}
+		}
+	}
 	//See if the steady field is OK (type 0 and 2)
 		// for type 0, needed for tstep
 		// for type 2, needed for all sample times 
-	DataStatus* ds = DataStatus::getInstance();
+	
 	switch (flowType) {
 		case (0) : 
 			if (!ds->fieldDataOK(numRefinements, tstep, 

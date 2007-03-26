@@ -134,26 +134,28 @@ void PointRake::GenSeedRandom(const size_t numSeeds[3],
 							  const float max[3], 
 							  float* pSeed,
 							  unsigned int randomSeed,
-							  int )
+							  int stride)
 {
-	for(int iFor = 0; iFor < 3; iFor++)
-		pSeed[iFor] = min[iFor];
+	GenSeedRegular(numSeeds, min, max, pSeed, stride);
 }
 bool PointRake::GenSeedBiased(float , float , float , FieldData* , 
-		const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed , unsigned int , int)
+		const size_t numSeeds[3], const float min[3], const float max[3], float* pSeed , unsigned int , int stride)
 {
-	for(int iFor = 0; iFor < 3; iFor++)
-		pSeed[iFor] = min[iFor];
+	GenSeedRegular(numSeeds, min, max, pSeed, stride);
 	return true;
 }
 void PointRake::GenSeedRegular(const size_t numSeeds[3], 
 							  const float min[3], 
 							  const float max[3], 
 							  float* pSeed,
-							  int )
+							  int stride)
 {
-	for(int iFor = 0; iFor < 3; iFor++)
-		pSeed[iFor] = min[iFor];
+	int totalNum = numSeeds[0] * numSeeds[1] * numSeeds[2];
+	for (int count = 0; count < totalNum; count++) {
+		for(int iFor = 0; iFor < 3; iFor++)
+			pSeed[count*stride + iFor] = (min[iFor]+max[iFor])*0.5;
+	}
+	return;
 }
 /************************************************************************/
 /*					 		LineRake Class                              */
@@ -305,14 +307,29 @@ bool PlaneRake::GenSeedBiased(float bias, float fieldMin, float fieldMax, FieldD
 	float ll[3], hl[3], hh[3], lh[3];
 	int iFor;
 
+	int sameCoord[3];
 	for(iFor = 0; iFor < 3; iFor++)
 	{
 		ll[iFor] = min[iFor];
 		hh[iFor] = max[iFor];
+		if (min[iFor] == max[iFor]) sameCoord[iFor] = 1;
+		else sameCoord[iFor] = 0;
 	}
-
-	hl[0] = hh[0];	hl[1] = ll[1];	hl[2] = ll[2];
-	lh[0] = ll[0];	lh[1] = hh[1];	lh[2] = hh[2];
+	assert(sameCoord[0] + sameCoord[1] + sameCoord[2] == 1);
+	//There should be two coords that are not the same.  hl and lh take opposite values for those
+	bool firstDiff = true;
+	for (int i = 0; i< 3; i++){
+		if (sameCoord[i]) {
+			hl[i] = lh[i] = ll[i];
+		} else if (firstDiff){
+			lh[i] = ll[i];
+			hl[i] = hh[i];
+			firstDiff = false;
+		} else {
+			lh[i] = hh[i];
+			hl[i] = ll[i];
+		}
+	}
 
 	// initialize random number generator
 	srand(randomSeed);

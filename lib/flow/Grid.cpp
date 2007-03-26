@@ -180,19 +180,27 @@ int CartesianGrid::getCellVertices(int cellId,
 		for(int kFor = 0; kFor < 2; kFor++){
 			zindx = zidx + kFor;
 			if (zindx > m_nMaxRegionDim[2]){
-				assert (periodicDim[2] && (zindx == m_nMaxRegionDim[2]+1));
+				assert ((periodicDim[2] && (zindx == m_nMaxRegionDim[2]+1)) ||
+					//it's also ok for this to be on the edge of for random planar rake
+					(!periodicDim[2] && (zindx == 1 || zindx == m_nMaxRegionDim[2]+1)));
+					
 				zindx = 0;
 			}
 			for(int jFor = 0; jFor < 2; jFor++){
 				yindx = yidx + jFor;
 				if (yindx > m_nMaxRegionDim[1]){
-					assert (periodicDim[1] && (yindx == m_nMaxRegionDim[1]+1));
+					assert ((periodicDim[1] && (yindx == m_nMaxRegionDim[1]+1) )||
+					//it's also ok for this to be on the edge of for random planar rake
+					(!periodicDim[1] && (yindx == 1 || yindx == m_nMaxRegionDim[1]+1)));
+						
 					yindx = 0;
 				}
 				for(int iFor = 0; iFor < 2; iFor++){
 					xindx = xidx + iFor;
 					if (xindx > m_nMaxRegionDim[0]){
-						assert (periodicDim[0] && (xindx == m_nMaxRegionDim[0]+1));
+						assert ((periodicDim[0] && (xindx == m_nMaxRegionDim[0]+1))||
+						//it's also ok for this to be on the edge of for random planar rake
+						(!periodicDim[0] && (xindx == 1 || xindx == m_nMaxRegionDim[0]+1)));
 						xindx = 0;
 					}
 				

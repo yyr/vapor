@@ -836,7 +836,7 @@ flowMapIsDirty(int timeStep){
 //If the 
 bool FlowRenderer::rebuildFlowData(int timeStep){
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
-
+	//If we are using a rake, force it to lie (slightly) within the data extents
 	//Check it out:
 	if (!myFlowParams->validateSettings(timeStep)) {
 		//If it's not OK, we turn off autoRefresh.  

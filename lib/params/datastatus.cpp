@@ -304,3 +304,16 @@ void DataStatus::getMaxExtentsInCube(float maxExtents[3]){
 	maxExtents[1] = (extents[4]-extents[1])/maxSize;
 	maxExtents[2] = (extents[5]-extents[2])/maxSize;
 }
+//Determine the min and max extents at a given level:
+void DataStatus::getExtentsAtLevel(int level, float exts[6]){
+	size_t minm[3], maxm[3];
+	double usermin[3], usermax[3];
+	int minframe = (int)minTimeStep;
+	myReader->GetValidRegion(minm, maxm, level);
+	myReader->MapVoxToUser(minframe, minm, usermin, level);
+	myReader->MapVoxToUser(minframe, maxm, usermax, level);
+	for (int i = 0; i<3; i++){
+		exts[i] = (float)usermin[i];
+		exts[i+3] = (float)usermax[i];
+	}
+}

@@ -54,6 +54,9 @@ public:
 	// Get methods:
 	//
 	const float* getExtents() {return extents;}
+	//Determine the min and max extents at a level
+	void getExtentsAtLevel(int level, float exts[6]);
+	
 	size_t getCacheMB() {return cacheMB;}
 	size_t getMinTimestep() {return minTimeStep;}
 	size_t getMaxTimestep() {return maxTimeStep;}
