@@ -962,7 +962,7 @@ getContainingVolume(size_t blkMin[3], size_t blkMax[3], int sessionVarNum, int t
 	int numRefinements = getNumRefinements();
 	int maxRes = DataStatus::getInstance()->maxXFormPresent(sessionVarNum,timeStep);
 	if (maxRes < numRefinements){
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_UNAVAILABLE,
+		MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,
 			"Probe data unavailable for refinement level %d at timestep %d",
 			numRefinements, timeStep);
 		return 0;

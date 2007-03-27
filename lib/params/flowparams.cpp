@@ -2540,7 +2540,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			timeStep, steadyVarNum, 3);
 	
 		if(!dataValid){
-			MyBase::SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Steady field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
+			MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Steady field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
 			return 0;
 		}
 	} else { //Find the intersection of all the regions for the timesteps to be sampled.
@@ -2552,7 +2552,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
 				ts, unsteadyVarNum, 3);
 			if(!dataValid){
-				SetErrMsg(VAPOR_ERROR_FLOW_DATA,"Unsteady field data unavailable for refinement %d at timestep %d", numRefinements,ts);
+				SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Unsteady field data unavailable for refinement %d at timestep %d", numRefinements,ts);
 				return 0;
 			}
 			//Intersect the available region bounds.

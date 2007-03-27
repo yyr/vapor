@@ -308,7 +308,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	  timeStep,&varNum, 1);
 	
   if(!regionValid) {
-	  SetErrMsg("Volume data unavailable for refinement level %d at timestep %d", numxforms, timeStep);
+	  SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Volume data unavailable for refinement level %d at timestep %d", numxforms, timeStep);
 	  return;
   }
   RegionParams::convertToBoxExtentsInCube(numxforms, min_dim, max_dim, extents);    

@@ -947,10 +947,12 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				//Create a PathLineData with all the seeds in it
 				unsteadyFlowCache = (PathLineData*)myFlowParams->setupUnsteadyStartData(myFlowLib, minFrame, maxFrame, rParams);
 				if (!unsteadyFlowCache) {
-					MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, 
-						"No seeds for unsteady flow from time steps %d to %d .\n%s",
-						minFrame, maxFrame,
-						"Ensure sample times are consistent with seed times\n");
+					if (myFlowParams->rakeEnabled() || myFlowParams->getNumListSeedPoints() > 0){
+						MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, 
+							"No seeds for unsteady flow from time steps %d to %d .\n%s",
+							minFrame, maxFrame,
+							"Ensure sample times are consistent with seed times\n");
+					}
 					return false;
 				}
 				QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
