@@ -1094,9 +1094,12 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			// Now insert the seeds:
 			int seedsInserted = insertUnsteadySeeds(rParams, flowLib, pathLines, seedTimeStart);
 			if (seedsInserted <= 0) { 
-				MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,"No valid flow seeds to advect");
-				delete pathLines;
-				return 0;
+				//Make sure that (if list is used) that it's nonempty
+				if (doRake || listEnabled()){
+					MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,"No valid flow seeds to advect");
+					delete pathLines;
+					return 0;
+				}
 			}
 			return (FlowLineData*)pathLines;
 		}
@@ -1118,9 +1121,11 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 			seedsInserted += insertUnsteadySeeds(rParams, flowLib, pathLines, i);
 		}
 		if (seedsInserted <= 0) { 
-			MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,"No valid flow seeds to advect");
-			delete pathLines;
-			return 0;
+			if (doRake || listEnabled()){
+				MyBase::SetErrMsg(VAPOR_ERROR_SEEDS,"No valid flow seeds to advect");
+				delete pathLines;
+				return 0;
+			}
 		}
 		return pathLines;
 	}
@@ -2925,7 +2930,7 @@ bool FlowParams::validateSettings(int tstep){
 						}
 						if (found) break;
 					}
-				} else {
+				} else { //go backwards in time:
 					ts = getLastSampleTimestep();
 					for (int i = seedTimeStart; i<= seedTimeEnd; i+= seedTimeIncrement){
 						//see if there is a seed before time ts:
@@ -2941,14 +2946,14 @@ bool FlowParams::validateSettings(int tstep){
 						if (found) break;
 					}
 				}
-				if (!found) {
+				if (!found && seedPointList.size()> 0) {
 					autoRefresh = false;
 					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 							"No seeds available after the first sample time %d of the unsteady flow\n%s",
 							ts,"Auto refresh has been disabled to facilitate corrective action");
 						
 						return false;
-					}
+				}
 			}
 			break;
 		// for type 2, need seed time start to be a sample time, and for there to
@@ -2967,7 +2972,7 @@ bool FlowParams::validateSettings(int tstep){
 							break;
 						}
 					}
-					if (!OK) {
+					if (!OK && seedPointList.size() > 0) {
 						autoRefresh = false;
 						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 								"No seeds available at start seed time %d \n%s",
