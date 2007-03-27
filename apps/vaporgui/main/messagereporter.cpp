@@ -102,7 +102,7 @@ reset(const char* newLogFileName){
 	}
 	//reset message counts
 	messageCount.clear();
-	
+	lastMessage.clear();
 	Session::getInstance()->setLogfileName(newLogFileName);
 }
 
@@ -161,7 +161,10 @@ postMsg(messagePriority t, const char* message){
 		writeLog(t, message);
 	}
 	if (count < maxPopup[t]){
+		//Don't popup the same message twice in a row, don't count the repetition either.
+		if (!lastMessage.compare(message)) return;
 		doPopup(t, message);
+		lastMessage.assign(message);
 	}
 	messageCount[message] = count+1;
 	

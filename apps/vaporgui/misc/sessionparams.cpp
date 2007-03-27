@@ -42,6 +42,8 @@ SessionParams::SessionParams(){
 }
 void SessionParams::launch(){
 	
+	MessageReporter* mReporter = MessageReporter::getInstance();
+	
 	sessionParamsDlg = new SessionParameters((QWidget*)MainForm::getInstance());
 	QString str;
 	sessionParamsDlg->cacheSizeEdit->setText(str.setNum(cacheSize));
@@ -61,7 +63,7 @@ void SessionParams::launch(){
 	if (rc){
 		//see if the memory size changed:
 		Session* currentSession = Session::getInstance();
-		MessageReporter* mReporter = MessageReporter::getInstance();
+		
 		int newVal = sessionParamsDlg->cacheSizeEdit->text().toInt();
 		if (newVal > 10 && newVal != currentSession->getCacheMB()){
 			currentSession->setCacheMB(newVal);
@@ -71,6 +73,7 @@ void SessionParams::launch(){
 		int newQual = sessionParamsDlg->jpegQuality->text().toInt();
 		if (newQual > 0 && newQual <= 100) GLWindow::setJpegQuality(newQual);
 
+		//Did the popup numbers change?
 		//set the log/popup numbers:
 		maxPopup[0] = sessionParamsDlg->maxInfoPopup->text().toInt();
 		maxPopup[1] = sessionParamsDlg->maxWarnPopup->text().toInt();
@@ -78,10 +81,18 @@ void SessionParams::launch(){
 		maxLog[0] = sessionParamsDlg->maxInfoLog->text().toInt();
 		maxLog[1] = sessionParamsDlg->maxWarnLog->text().toInt();
 		maxLog[2] = sessionParamsDlg->maxErrorLog->text().toInt();
+		bool changed = false;
 		for (int i = 0; i<3; i++){
-			if (maxPopup[i] >= 0) mReporter->setMaxPopup((MessageReporter::messagePriority)i,maxPopup[i]);
-			if (maxLog[i] >= 0) mReporter->setMaxLog((MessageReporter::messagePriority)i,maxLog[i]);
+			if (maxPopup[i] >= 0 && maxPopup[i] != mReporter->getMaxPopup((MessageReporter::messagePriority)i)) {
+				mReporter->setMaxPopup((MessageReporter::messagePriority)i,maxPopup[i]);
+				changed = true;
+			}
+			if (maxLog[i] >= 0 && maxLog[i] != mReporter->getMaxLog((MessageReporter::messagePriority)i)){
+				mReporter->setMaxLog((MessageReporter::messagePriority)i,maxLog[i]);
+				changed = true;
+			}
 		}
+		if (changed) mReporter->resetCounts();
 		//see if the filename changed:
 		if (logFileName != sessionParamsDlg->logFileName->text().ascii())
 			mReporter->reset(sessionParamsDlg->logFileName->text().ascii());

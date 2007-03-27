@@ -144,7 +144,8 @@ void GLProbeWindow::paintGL()
 		glEnable(GL_TEXTURE_2D);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
 	} else {
-		glColor4f(0.,0.,0.,0.);
+		return;
+		//glColor4f(0.,0.,0.,0.);
 	}
 	glBegin(GL_QUADS);
 	//Just specify the rectangle corners

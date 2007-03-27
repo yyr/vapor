@@ -70,7 +70,7 @@ public:
 	//Whenever there's a change in settings, reset all error counts to 0
 	//Reopen the Log file (it is always used for fatal messages)
 	void reset(const char* newLogFileName);
-	void resetCounts() {messageCount.clear();}
+	void resetCounts() {messageCount.clear();lastMessage.clear();}
 
 protected:
 	static MessageReporter* theReporter;
@@ -80,6 +80,7 @@ protected:
 	//Utility to make string from args
 	static char* convertText(const char* format, va_list args);
 	std::map<std::string, int> messageCount;
+	std::string lastMessage;
 	//Keep track of current settings
 	FILE* logFile;
 	

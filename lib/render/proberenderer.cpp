@@ -59,7 +59,7 @@ void ProbeRenderer::paintGL()
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	ProbeParams* myProbeParams = (ProbeParams*)currentRenderParams;
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
-	unsigned char* probeTex = myProbeParams->getProbeTexture(currentFrameNum);
+	unsigned char* probeTex = 0;
 	
 	if (myProbeParams->probeIsDirty(currentFrameNum)){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
