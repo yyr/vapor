@@ -198,15 +198,18 @@ void mmult(GLfloat *m1, GLfloat *m2, GLfloat *prod)
 }
 
 
-void minvert(GLfloat *mat, GLfloat *result)
+//4x4 matrix inversion.  Fixed (AN 4/07) so that it doesn't try to divide by very small 
+//pivot elements.  Returns 0 if not invertible
+int minvert(GLfloat *mat, GLfloat *result)
 {
-    /* Invert a 4x4 matrix
-     */
+    // Invert a 4x4 matrix
+   
     int         i, j, k;
     float       temp;
     float       m[8][4];
    
     mcopy(idmatrix, result);
+	// mat[i,j] is row j, col i:
     for (i = 0;  i < 4;  i++) {
         for (j = 0;  j < 4;  j++) {
             m[i][j] = mat[i+4*j];
@@ -214,43 +217,47 @@ void minvert(GLfloat *mat, GLfloat *result)
         }
     }
    
-    /* Work across by columns
-     */
+    // Work across by columns (i is col index):
+    
     for (i = 0; i < 4; i++) {
-        j = i;
-        while (m[i][j] == 0  &&  j < 4)
-            j++;
-		assert (j<4);  //Otherwise, can't invert!
-        //Verify(j < 4, "cannot invert matrix");
+		//Find largest entry in the column below the diagonal:
+		float maxval = 0.f;
+		int pivot = -1;
+		for (int rw = i; rw < 4; rw++){
+			if (fabs(m[rw][i]) > maxval){
+				maxval = fabs(m[rw][i]);
+				pivot = rw;
+			}
+		}
+		if(pivot < 0) return 0; //otherwise, can't invert!
 
-        if (i != j)
-            for (k = 0;  k < 8;  k++) {
+		if (pivot != i){ //Swap i and pivot row:
+			for (k = i;  k < 8;  k++) {
                 temp = m[k][i];
-                m[k][i] = m[k][j];
-                m[k][j] = temp;
+                m[k][i] = m[k][pivot];
+                m[k][pivot] = temp;
             }
+		}
+        
 
-        /* Divide original row
-         */
+        // Divide original row by pivot element, which is now the [i][i] element:
+        
         for (j = 7;  j >= i;  j--)
             m[j][i] /= m[i][i];
 
-        /* Subtract other rows
-         */
+        // Subtract other rows, to make row i be the only row with nonzero elt in col i:
+        
         for (j = 0;  j < 4;  j++)
             if (i != j)
                 for (k = 7;  k >= i;  k--)
                     m[k][j] -= m[k][i] * m[i][j];
     }
-
+	//copy back the last 4 columns:
     for (i = 0;  i < 4;  i++)
         for (j = 0;  j < 4;  j++)
             result[i+4*j] = m[i+4][j];
+	return 1;
 }
-
-
-
-
 
 void qnormal(float *q)
 {
@@ -584,7 +591,8 @@ makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* mtrx){
 	vcopy(vdir, minv + 8);
 	vscale(minv+8, -1.f);
 	vcopy(vpos, minv+ 12);
-	minvert(minv, mtrx);
+	int rc = minvert(minv, mtrx);
+	assert(rc);
 }
 void	matrix4x4_vec3_mult(
 	const GLfloat	m[16],

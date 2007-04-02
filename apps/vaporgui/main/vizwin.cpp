@@ -829,12 +829,13 @@ changeViewerFrame(){
 		setModelViewMatrix(modelViewMtx);
 
 	//Invert it:
-	minvert(m, minv);
+	int rc = minvert(m, minv);
+	assert(rc);
 	vscale(minv+8, -1.f);
 	if (!myGLWindow->getPerspective()){
-		//Note:  This is a bad hack.  Putting off the time when I correctly implement
+		//Note:  This is a hack.  Putting off the time when we correctly implement
 		//Ortho coords to actually send perspective viewer to infinity.
-		//get the scale out of the (1st 3 elements of ) matrix:
+		//get the scale out of the (1st 3 elements of) matrix:
 		//
 		float scale = vlength(m);
 		float trans;

@@ -97,7 +97,7 @@ PARAMS_API void	vtransform4 (const float *v, GLfloat *mat, float *vt);
 PARAMS_API bool	pointOnRight(float* pt1, float* pt2, float* testPt);
 PARAMS_API void	mcopy (GLfloat *m1, GLfloat *m2);
 PARAMS_API void	mmult (GLfloat *m1, GLfloat *m2, GLfloat *prod);
-PARAMS_API void	minvert (GLfloat *mat, GLfloat *result);
+PARAMS_API int	minvert (GLfloat *mat, GLfloat *result);
 
 //Some routines to handle 3x3 rotation matrices, represented as 9 floats, 
 //where the column index increments faster (like in 4x4 case
