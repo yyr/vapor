@@ -2378,15 +2378,22 @@ void FlowEventRouter::saveSeeds(){
 	if (filename.isNull())
 		 return;
 
-	//Extract the path, and the root name, from the returned string.
-	QFileInfo* fileInfo = new QFileInfo(filename);
-	//Save the path for future captures
-	Session::getInstance()->setFlowDirectory(fileInfo->dirPath(true).ascii());
-	
 	//If the file has no suffix, add .txt
 	if (filename.find(".") == -1){
 		filename.append(".txt");
 	}
+
+	QFileInfo fileInfo(filename);
+	if (fileInfo.exists()){
+		int rc = QMessageBox::warning(0, "Seed Point File Exists.", QString("OK to replace seed point file \n%1 ?").arg(filename), QMessageBox::Ok, 
+			QMessageBox::No);
+		if (rc != QMessageBox::Ok) return;
+	}
+	//Extract the path, and the root name, from the returned string.
+	//Save the path for future captures
+	Session::getInstance()->setFlowDirectory(fileInfo.dirPath(true).ascii());
+	
+	
 	//Open the save file:
 	FILE* saveFile = fopen(filename.ascii(),"w");
 	if (!saveFile){
@@ -2458,15 +2465,22 @@ void FlowEventRouter::saveFlowLines(){
 	if (filename.isNull()){
 		 return;
 	}
-	//Extract the path, and the root name, from the returned string.
-	QFileInfo* fileInfo = new QFileInfo(filename);
-	//Save the path for future captures
-	Session::getInstance()->setFlowDirectory(fileInfo->dirPath(true).ascii());
-	
 	//If the file has no suffix, add .txt
 	if (filename.find(".") == -1){
 		filename.append(".txt");
 	}
+
+	QFileInfo fileInfo(filename);
+	if (fileInfo.exists()){
+		int rc = QMessageBox::warning(0, "Flow File Exists", QString("OK to replace flow point file \n%1 ?").arg(filename), QMessageBox::Ok, 
+			QMessageBox::No);
+		if (rc != QMessageBox::Ok) return;
+	}
+	//Extract the path, and the root name, from the returned string.
+	//Save the path for future captures
+	Session::getInstance()->setFlowDirectory(fileInfo.dirPath(true).ascii());
+	
+	
 	//Open the save file:
 	FILE* saveFile = fopen(filename.ascii(),"w");
 	if (!saveFile){
