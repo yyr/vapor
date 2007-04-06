@@ -555,9 +555,11 @@ void FlowEventRouter::updateTab(){
 	periodicYCheck->setChecked(fParams->getPeriodicDim(1));
 	periodicZCheck->setChecked(fParams->getPeriodicDim(2));
 	
-	int comboSetting = 0;
-	if (fParams->rakeEnabled()) comboSetting = 1;
-	if (fParams->isRandom()) comboSetting = 2;
+	int comboSetting = 0;  //Using seed list
+	if (fParams->rakeEnabled()) {
+		comboSetting = 1;
+		if (fParams->isRandom()) comboSetting = 2;
+	}
 	rakeListCombo->setCurrentItem(comboSetting);
 	
 	randomSeedEdit->setEnabled(fParams->isRandom()&&fParams->rakeEnabled());

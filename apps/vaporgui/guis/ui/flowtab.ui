@@ -1908,12 +1908,13 @@ time steps are specified in the animation panel.</string>
                         <enum>Raised</enum>
                     </property>
                     <property name="whatsThis" stdset="0">
-                        <string>The advanced steady flow 
+                        <string>The advanced steady flow
 panel enables setting of 
-some optional parameters.
-Usually the default values 
+various optional parameters.
+Usually the default values
 of these parameters will
-work OK.</string>
+work OK.  Click on a specific
+widget for more info.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -2023,16 +2024,17 @@ work OK.</string>
                                                 <string>Steady samples per flow line</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>When the "Automatically scale" is not
+                                                <string>When "Automatically scale steady field"
+is checked, the scale factor and samples
+per flow line are determined by the
+length and smoothness settings
+in the Basic Flow Parameters above.
+When the "Automatically scale" is not
 checked, the length and smoothness
 of steady flow lines is manually
-controlled, by a user-specified
-vector scale factor and a user-
-specified number of samples
-per flow line.  When "Automatic
-scale is checked, these values
-are established in the Basic
-Flow Parameters above.</string>
+controlled by the vector scale factor
+and the specified number of samples
+per flow line.</string>
                                             </property>
                                         </widget>
                                         <widget class="QSlider">
@@ -2063,16 +2065,17 @@ Flow Parameters above.</string>
                                                 <string>Specify the number of samples along the length of a flow line</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>When the "Automatically scale" is not
+                                                <string>When "Automatically scale steady field"
+is checked, the scale factor and samples
+per flow line are determined by the
+length and smoothness settings
+in the Basic Flow Parameters above.
+When the "Automatically scale" is not
 checked, the length and smoothness
 of steady flow lines is manually
-controlled, by a user-specified
-vector scale factor and a user-
-specified number of samples
-per flow line.  When "Automatic
-scale is checked, these values
-are established in the Basic
-Flow Parameters above.</string>
+controlled by the vector scale factor
+and the specified number of samples
+per flow line.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2106,16 +2109,17 @@ Flow Parameters above.</string>
                                                 <string>Specify the number of samples along the length of a flow line</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>When the "Automatically scale" is not
+                                                <string>When "Automatically scale steady field"
+is checked, the scale factor and samples
+per flow line are determined by the
+length and smoothness settings
+in the Basic Flow Parameters above.
+When the "Automatically scale" is not
 checked, the length and smoothness
 of steady flow lines is manually
-controlled, by a user-specified
-vector scale factor and a user-
-specified number of samples
-per flow line.  When "Automatic
-scale is checked, these values
-are established in the Basic
-Flow Parameters above.</string>
+controlled by the vector scale factor
+and the specified number of samples
+per flow line.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -2161,16 +2165,17 @@ Flow Parameters above.</string>
                                                 <string>Steady field scale factor</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>When the "Automatically scale" is not
+                                                <string>When "Automatically scale steady field"
+is checked, the scale factor and samples
+per flow line are determined by the
+length and smoothness settings
+in the Basic Flow Parameters above.
+When the "Automatically scale" is not
 checked, the length and smoothness
 of steady flow lines is manually
-controlled, by a user-specified
-vector scale factor and a user-
-specified number of samples
-per flow line.  When "Automatic
-scale is checked, these values
-are established in the Basic
-Flow Parameters above.</string>
+controlled by the vector scale factor
+and the specified number of samples
+per flow line.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -2209,16 +2214,17 @@ Flow Parameters above.</string>
                                                 <comment>Comment is here</comment>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>When the "Automatically scale" is not
+                                                <string>When "Automatically scale steady field"
+is checked, the scale factor and samples
+per flow line are determined by the
+length and smoothness settings
+in the Basic Flow Parameters above.
+When the "Automatically scale" is not
 checked, the length and smoothness
 of steady flow lines is manually
-controlled, by a user-specified
-vector scale factor and a user-
-specified number of samples
-per flow line.  When "Automatic
-scale is checked, these values
-are established in the Basic
-Flow Parameters above.</string>
+controlled by the vector scale factor
+and the specified number of samples
+per flow line.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -2651,15 +2657,15 @@ magnitude of points in the rake.</string>
                     </property>
                     <property name="whatsThis" stdset="0">
                         <string>The advanced unsteady flow
-parameters are needed 
+parameters are needed
 to change some default settings.
 For example they can be set
 to sample only a subset of the
-available time steps, or to 
+available time steps, or to
 enable seeds to be distributed
 according to field magnitude.
-Click on the button "Unsteady 
-Flow Setup Help" for more 
+Click on the button "Unsteady
+Flow Setup Help" for more
 information.</string>
                     </property>
                     <hbox>
@@ -3499,6 +3505,19 @@ detailed information.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>Enable or disable the automatic calculation of steady field smoothness and length</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When "Automatically scale steady field"
+is checked, the scale factor and samples
+per flow line are determined by the
+length and smoothness settings
+in the Basic Flow Parameters above.
+When the "Automatically scale" is not
+checked, the length and smoothness
+of steady flow lines is manually
+controlled by the vector scale factor
+and the specified number of samples
+per flow line.</string>
+                                            </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
@@ -3542,6 +3561,19 @@ detailed information.</string>
                                             <property name="text">
                                                 <string>Steady samples per flow line</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When "Automatically scale steady field"
+is checked, the scale factor and samples
+per flow line are determined by the
+length and smoothness settings
+in the Basic Flow Parameters above.
+When the "Automatically scale" is not
+checked, the length and smoothness
+of steady flow lines is manually
+controlled by the vector scale factor
+and the specified number of samples
+per flow line.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QSlider">
                                             <property name="name">
@@ -3569,6 +3601,19 @@ detailed information.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the number of samples along the length of a flow line</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When "Automatically scale steady field"
+is checked, the scale factor and samples
+per flow line are determined by the
+length and smoothness settings
+in the Basic Flow Parameters above.
+When the "Automatically scale" is not
+checked, the length and smoothness
+of steady flow lines is manually
+controlled by the vector scale factor
+and the specified number of samples
+per flow line.</string>
                                             </property>
                                         </widget>
                                         <widget class="QLineEdit">
@@ -3600,6 +3645,19 @@ detailed information.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify the number of samples along the length of a flow line</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When "Automatically scale steady field"
+is checked, the scale factor and samples
+per flow line are determined by the
+length and smoothness settings
+in the Basic Flow Parameters above.
+When the "Automatically scale" is not
+checked, the length and smoothness
+of steady flow lines is manually
+controlled by the vector scale factor
+and the specified number of samples
+per flow line.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -3644,6 +3702,19 @@ detailed information.</string>
                                             <property name="text">
                                                 <string>Steady field scale factor</string>
                                             </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When "Automatically scale steady field"
+is checked, the scale factor and samples
+per flow line are determined by the
+length and smoothness settings
+in the Basic Flow Parameters above.
+When the "Automatically scale" is not
+checked, the length and smoothness
+of steady flow lines is manually
+controlled by the vector scale factor
+and the specified number of samples
+per flow line.</string>
+                                            </property>
                                         </widget>
                                         <widget class="QLineEdit">
                                             <property name="name">
@@ -3679,6 +3750,19 @@ detailed information.</string>
                                             <property name="toolTip" stdset="0">
                                                 <string>This factor scales the vector field magnitude.  If too small, display will just show diamonds (fixed points).  If too large, flow will consist of straight lines due to flow rapidly exiting region.</string>
                                                 <comment>Comment is here</comment>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When "Automatically scale steady field"
+is checked, the scale factor and samples
+per flow line are determined by the
+length and smoothness settings
+in the Basic Flow Parameters above.
+When the "Automatically scale" is not
+checked, the length and smoothness
+of steady flow lines is manually
+controlled by the vector scale factor
+and the specified number of samples
+per flow line.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -4812,10 +4896,10 @@ current region early.</string>
                         <enum>Raised</enum>
                     </property>
                     <property name="whatsThis" stdset="0">
-                        <string>The flow seeding parameters 
+                        <string>The flow seeding parameters
 determine the time and location
-of seeds that are inserted into
-the flow.</string>
+of seed points that are inserted
+into the flow.</string>
                     </property>
                     <hbox>
                         <property name="name">

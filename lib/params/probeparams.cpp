@@ -393,9 +393,11 @@ restart(){
 	phi = 0.f;
 	psi = 0.f;
 	for (int i = 0; i<3; i++){
-		probeMin[i] = 0.f;
-		probeMax[i] = 1.f;
-		selectPoint[i] = 0.f;
+		if (i < 2) probeMin[i] = 0.4f;
+		else probeMin[i] = 0.5f;
+		if(i<2) probeMax[i] = 0.6f;
+		else probeMax[i] = 0.5f;
+		selectPoint[i] = 0.5f;
 	}
 	
 	
