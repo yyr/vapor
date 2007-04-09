@@ -59,6 +59,7 @@ void SessionParams::launch(){
 	sessionParamsDlg->maxErrorPopup->setText(str.setNum(maxPopup[2]));
 	sessionParamsDlg->maxWarnPopup->setText(str.setNum(maxPopup[1]));
 	sessionParamsDlg->maxInfoPopup->setText(str.setNum(maxPopup[0]));
+	connect(sessionParamsDlg->resetCountButton, SIGNAL(pressed()), this, SLOT(resetCounts()));
 	int rc = sessionParamsDlg->exec();
 	if (rc){
 		//see if the memory size changed:
@@ -109,4 +110,8 @@ logFileChoose(){
 		sessionParamsDlg->logFileName->setText(s);
 		sessionParamsDlg->update();
 	}
+}
+void SessionParams::
+resetCounts(){
+	MessageReporter::getInstance()->resetCounts();
 }

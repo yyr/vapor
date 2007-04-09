@@ -102,7 +102,7 @@ reset(const char* newLogFileName){
 	}
 	//reset message counts
 	messageCount.clear();
-	lastMessage.clear();
+	
 	Session::getInstance()->setLogfileName(newLogFileName);
 }
 
@@ -160,11 +160,15 @@ postMsg(messagePriority t, const char* message){
 	if (count < maxLogMsg[t]){
 		writeLog(t, message);
 	}
-	if (count < maxPopup[t]){
-		//Don't popup the same message twice in a row, don't count the repetition either.
-		if (!lastMessage.compare(message)) return;
-		doPopup(t, message);
-		lastMessage.assign(message);
+	if (count == maxPopup[t] -1){
+		//Users can reset the message count if they don't want to silence it:
+		if (doLastPopup(t, message)){
+			messageCount[message] = 0;
+			return;
+		}
+	} else if (count < maxPopup[t]){
+		
+		doPopup(t, message);	
 	}
 	messageCount[message] = count+1;
 	
@@ -217,7 +221,35 @@ doPopup(messagePriority t, const char* message){
 	}
 	return;
 }
-
+//This is the last popup before messages are silenced; if users ask for it,
+//they can continue to get messages
+bool MessageReporter::
+doLastPopup(messagePriority t, const char* message){
+	QString longMessage = QString(message)+"\nThis message will not be repeated unless you click Continue."
+		+"\nAll messages may be resumed from the Edit Session Parameters dialog";
+	int doContinue = 1;
+	switch (t){
+		case Fatal :
+			QMessageBox::critical(MainForm::getInstance(), "VAPoR Fatal Error", message, 
+				QMessageBox::Ok, QMessageBox::NoButton );
+			break;
+		case Error :
+			doContinue = QMessageBox::critical(MainForm::getInstance(), "VAPoR Error", longMessage, 
+				"OK","Continue displaying message");
+			break;
+		case Warning :
+			doContinue = QMessageBox::warning(MainForm::getInstance(), "VAPoR Warning", longMessage, 
+				"OK","Continue displaying message");
+			break;
+		case Info :
+			doContinue = QMessageBox::information(MainForm::getInstance(), "VAPoR Information", longMessage, 
+				"OK","Continue displaying message");
+			break;
+		default:
+			assert(0);
+	}
+	return (doContinue==1);
+}
 char* MessageReporter::
 convertText(const char* format, va_list args){
 	bool done = false;

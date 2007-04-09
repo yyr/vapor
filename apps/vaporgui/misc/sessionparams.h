@@ -41,6 +41,7 @@ public:
 	
 public slots:
 	void logFileChoose();
+	void resetCounts();
 	
 protected:
 	
