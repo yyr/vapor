@@ -92,6 +92,7 @@
 				OutputFile="../../../targets/win32/bin/params.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\QTRelease\3.3.4\lib"
+				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
