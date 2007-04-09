@@ -218,26 +218,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\flowrenderer.h">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing flowrenderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\lib\render\flowrenderer.h -o ..\..\..\lib\moc\moc_flowrenderer.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\lib\moc\moc_flowrenderer.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing flowrenderer.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\lib\render\flowrenderer.h -o ..\..\..\lib\moc\moc_flowrenderer.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\lib\moc\moc_flowrenderer.cpp"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\glwindow.h">
