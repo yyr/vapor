@@ -89,7 +89,10 @@ public:
 	}
 	//Determine if variable is present for *any* timestep 
 	//Needed for setting DVR panel
-	bool variableIsPresent(int varnum) {return variableExists[varnum];}
+	bool variableIsPresent(int varnum) {
+		if (varnum < variableExists.size()) return variableExists[varnum];
+		else return false;
+	}
 
 	//Verify that field data is present at specified resolution and timestep.
 	//Ignore variable if varnum is < 0
