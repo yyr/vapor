@@ -70,7 +70,7 @@ foreach fullpath ($InstDest/VAPOR.app/Contents/SharedSupport/examples/*)
 		/bin/rm /usr/local/share/examples/$file
 	endif
 
-	ln -s $InstDest/VAPOR.app/Contents/MacOS/$file /usr/local/share/examples/$file
+	ln -s $InstDest/VAPOR.app/Contents/SharedSupport/examples/$file /usr/local/share/examples/$file
 	if ($status != 0) exit 1
 end
 
@@ -92,6 +92,6 @@ foreach fullpath ($InstDest/VAPOR.app/Contents/SharedSupport/doc/*)
 		/bin/rm /usr/local/share/doc/$file
 	endif
 
-	ln -s $InstDest/VAPOR.app/Contents/MacOS/$file /usr/local/share/doc/$file
+	ln -s $InstDest/VAPOR.app/Contents/SharedSupport/doc/$file /usr/local/share/doc/$file
 	if ($status != 0) exit 1
 end
