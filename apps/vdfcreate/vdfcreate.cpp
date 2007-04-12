@@ -30,17 +30,17 @@ struct opt_t {
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"dimension",1, "512x512x512",	"Volume dimensions (NXxNYxNZ)"},
+	{"dimension",1, "512x512x512",	"Volume dimensions expressed in grid points (NXxNYxNZ)"},
 	{"numts",	1, 	"1",			"Number of timesteps"},
-	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor (NXxNYxNZ)"},
+	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor expressed in grid points (NXxNYxNZ)"},
 	{"level",	1, 	"0",			"Maximum refinement level. 0 => no refinement"},
 	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients"},
 	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients"},
 	{"comment",	1,	"",				"Top-level comment"},
 	{"gridtype",	1,	"regular",	"Data grid type (regular|streched|block_amr)"}, 
 	{"coordsystem",	1,	"cartesian","Top-level comment (cartesian|spherical)"},
-	{"extents",	1,	"0:0:0:0:0:0",	"Domain extents in user coordinates"},
-	{"periodic",	1,	"0:0:0",	"Colon delimited 3-element vector specifying periodicity of X,Y,Z coordinate axes"},
+	{"extents",	1,	"0:0:0:0:0:0",	"Colon delimited 6-element vector specifying domain extents in user coordinates (X0:Y0:Z0:X1:Y1:Z1)"},
+	{"periodic",	1,	"0:0:0",	"Colon delimited 3-element boolean (0=>nonperiodic, 1=>periodic) vector specifying periodicity of X,Y,Z coordinate axes (X:Y:Z)"},
 	{"varnames",1,	"var1",			"Colon delimited list of variable names"},
 	{"mtkcompat",	0,	"",			"Force compatibility with older mtk files"},
 	{"help",	0,	"",				"Print this message and exit"},
