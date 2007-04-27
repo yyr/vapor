@@ -84,7 +84,7 @@
                                 </font>
                             </property>
                             <property name="maxValue">
-                                <number>1000</number>
+                                <number>100000</number>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify the timestep in this session  for the first timestep of the merged data</string>
