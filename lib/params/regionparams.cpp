@@ -191,6 +191,7 @@ void RegionParams::setRegionMax(int coord, float maxval, bool checkMin){
 
 //static method to do conversion to box coords (probably based on available
 //coords, that may be smaller than region coords)
+//Then puts into unit cube, for use by volume rendering
 //
 void RegionParams::
 convertToBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]){
@@ -214,7 +215,18 @@ convertToBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t ma
 	}
 	
 }
+//static method to do conversion to box coords (probably based on available
+//coords, that may be smaller than region coords)
+//
+void RegionParams::
+convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]){
+	double dbExtents[6];
+	DataStatus* ds = DataStatus::getInstance();
 	
+	ds->mapVoxelToUserCoords(refLevel, min_dim, dbExtents);
+	ds->mapVoxelToUserCoords(refLevel, max_dim, dbExtents+3);
+	for (int i = 0; i< 6; i++) extents[i] = (float)dbExtents[i];
+}	
 bool RegionParams::
 getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
 		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, const int* varNums, int numVars,

@@ -61,7 +61,8 @@ public:
 	//Static method that converts box to extents in cube, independent of actual
 	//extents in region.
 	static void convertToBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
-	//void setTab(RegionTab* tab) {myRegionTab = tab;}
+	static void convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
+	
 	
 	float getRegionMin(int coord){ return regionMin[coord];}
 	float getRegionMax(int coord){ return regionMax[coord];}

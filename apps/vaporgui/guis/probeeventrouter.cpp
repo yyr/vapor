@@ -1698,7 +1698,7 @@ refreshHistogram(RenderParams* p){
 	//Check if the region/resolution is too big:
 	int numRefinements = pParams->getNumRefinements();
 	float boxExts[6];
-	RegionParams::convertToBoxExtentsInCube(numRefinements,boxMin, boxMax,boxExts); 
+	RegionParams::convertToBoxExtents(numRefinements,boxMin, boxMax,boxExts); 
 	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, numRefinements);
 	//Check how many variables are needed:
 	int varCount = 0;
@@ -1795,15 +1795,15 @@ refreshHistogram(RenderParams* p){
 	//Now loop over the grid points in the bounding box
 	for (size_t k = boxMin[2]; k <= boxMax[2]; k++){
 		xyz[2] = extents[2] + (((float)k)/(float)(dataSize[2]-1))*(extents[5]-extents[2]);
-		if (xyz[2] > boxExts[5] || xyz[2] < boxExts[2]) continue;
+		if (xyz[2] > (boxExts[5]+voxSize) || (xyz[2] < boxExts[2]-voxSize)) continue;
 		for (size_t j = boxMin[1]; j <= boxMax[1]; j++){
 			xyz[1] = extents[1] + (((float)j)/(float)(dataSize[1]-1))*(extents[4]-extents[1]);
-			if (xyz[1] > boxExts[4] || xyz[1] < boxExts[1]) continue;
+			if (xyz[1] > (boxExts[4]+voxSize) || xyz[1] < (boxExts[1]-voxSize)) continue;
 			for (size_t i = boxMin[0]; i <= boxMax[0]; i++){
 				xyz[0] = extents[0] + (((float)i)/(float)(dataSize[0]-1))*(extents[3]-extents[0]);
-				if (xyz[0] > boxExts[3] || xyz[0] < boxExts[0]) continue;
+				if (xyz[0] > (boxExts[3]+voxSize) || xyz[0] < (boxExts[0]-voxSize)) continue;
 				//test if x,y,z is in probe:
-				if (pParams->distanceToCube(xyz, normals, corner)<=0.5f*voxSize){
+				if (pParams->distanceToCube(xyz, normals, corner) < voxSize){
 					//incount++;
 					//Point is (almost) inside.
 					//Evaluate the variable(s):
