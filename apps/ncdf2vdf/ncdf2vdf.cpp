@@ -1,0 +1,468 @@
+//
+//
+//***********************************************************************
+//                                                                       *
+//                            Copyright (C)  2005                        *
+//            University Corporation for Atmospheric Research            *
+//                            All Rights Reserved                        *
+//                                                                       *
+//***********************************************************************/
+//
+//      File:		ncdf2vdf.cpp
+//
+//      Author:         Alan Norton
+//                      National Center for Atmospheric Research
+//                      PO 3000, Boulder, Colorado
+//
+//      Date:           May 3, 2007
+//
+//      Description:	Read a NetCDF file containing a 3D array of floats or doubles
+//			and insert the volume into an existing
+//			Vapor Data Collection
+//
+#include <iostream>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
+#include <cmath>
+#include <netcdf.h>
+
+#include <vapor/CFuncs.h>
+#include <vapor/OptionParser.h>
+#include <vapor/Metadata.h>
+#include <vapor/WaveletBlock3DBufWriter.h>
+#include <vapor/WaveletBlock3DRegionWriter.h>
+#ifdef WIN32
+#include "windows.h"
+#endif
+
+using namespace VetsUtil;
+using namespace VAPoR;
+
+#define NC_ERR_READ(nc_status) \
+    if (nc_status != NC_NOERR) { \
+        fprintf(stderr, \
+            "%s: Error reading netCDF file at line %d : %s \n",  ProgName, __LINE__, nc_strerror(nc_status) \
+        ); \
+    exit(1);\
+    }
+
+//
+//	Command line argument stuff
+//
+struct opt_t {
+	int	ts;
+	char *varname;
+	char *ncdfvarname;
+	int level;
+	vector <string> dimnames;
+	OptionParser::Boolean_T	help;
+	OptionParser::Boolean_T	debug;
+	OptionParser::Boolean_T	quiet;
+} opt;
+
+OptionParser::OptDescRec_T	set_opts[] = {
+	{"ts",		1, 	"0","Timestep of data file starting from 0"},
+	{"varname",	1, 	"var1",	"Name of variable"},
+	{"ncdfvar",	1, 	"???????",	"Name of variable in NetCDF, if different"},
+	{"level",	1, 	"-1",	"Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
+	{"help",	0,	"",	"Print this message and exit"},
+	{"debug",	0,	"",	"Enable debugging"},
+	{"quiet",	0,	"",	"Operate quietly"},
+	{"dimnames", 1, "xdim:ydim:zdim", "Colon-separated list of x-, y-, and z-dimension names in NetCDF file"},
+	{NULL}
+};
+
+
+OptionParser::Option_T	get_options[] = {
+	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
+	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
+	{"ncdfvar", VetsUtil::CvtToString, &opt.ncdfvarname, sizeof(opt.ncdfvarname)},
+	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
+	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
+	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
+	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
+	{"dimnames", VetsUtil::CvtToStrVec, &opt.dimnames, sizeof(opt.dimnames)},
+	{NULL}
+};
+
+const char	*ProgName;
+
+//
+// Backup a .vdf file
+//
+void save_file(const char *file) {
+	FILE	*ifp, *ofp;
+	int	c;
+
+	string oldfile(file);
+	oldfile.append(".old");
+
+	ifp = fopen(file, "rb");
+	if (! ifp) {
+		cerr << ProgName << ": Could not open file \"" << 
+			file << "\" : " <<strerror(errno) << endl;
+
+		exit(1);
+	}
+
+	ofp = fopen(oldfile.c_str(), "wb");
+	if (! ifp) {
+		cerr << ProgName << ": Could not open file \"" << 
+			oldfile << "\" : " <<strerror(errno) << endl;
+
+		exit(1);
+	}
+
+	do {
+		c = fgetc(ifp);
+		if (c != EOF) c = fputc(c,ofp); 
+
+	} while (c != EOF);
+
+	if (ferror(ifp)) {
+		cerr << ProgName << ": Error reading file \"" << 
+			file << "\" : " <<strerror(errno) << endl;
+
+		exit(1);
+	}
+
+	if (ferror(ofp)) {
+		cerr << ProgName << ": Error writing file \"" << 
+			oldfile << "\" : " <<strerror(errno) << endl;
+
+		exit(1);
+	}
+}
+	
+
+
+void	process_volume(
+	WaveletBlock3DBufWriter *bufwriter,
+	const size_t *dim, //dimensions from vdf
+	const int ncid,
+	double *read_timer
+) {
+
+	// Check out the netcdf file.
+	// It needs to have the specified variable name, and the specified dimension names
+	// The dimensions must agree with the dimensions in the metadata, and they 
+	// must be in the same order.
+	size_t* ncdfdims;
+	size_t* start;
+	size_t* count;
+	
+
+    int nc_status;
+
+    int ndims;          // # dims in source file
+    int nvars;          // number of variables (not used)
+    int ngatts;         // number of global attributes (not used)
+    int xdimid;         // id of unlimited dimension (not used)
+	int varid;			// id of variable we are reading
+
+	nc_status = nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid);
+	
+	NC_ERR_READ(nc_status);
+
+	//Check on the variable we are going to read:
+	nc_status = nc_inq_varid(ncid, opt.ncdfvarname, &varid);
+	if (nc_status != NC_NOERR){
+		fprintf(stderr, "variable %s not found in netcdf file\n", opt.ncdfvarname);
+		exit(1);
+	}
+	
+	//allocate array for dimensions in the netcdf file:
+	ncdfdims = new size_t[ndims];
+	
+	//Get all the dimensions in the file:
+	for (int d=0; d<ndims; d++) {
+		nc_status = nc_inq_dimlen(ncid, d, &ncdfdims[d]);
+		NC_ERR_READ(nc_status);
+	}
+
+	
+	char name[NC_MAX_NAME+1];
+	nc_type xtype;
+	int ndimids;
+	//Array of dimension id's used in netcdf file
+	int dimids[NC_MAX_VAR_DIMS];
+	int natts;
+
+	//Find the type and the dimensions associated with the variable:
+	nc_status = nc_inq_var(
+		ncid, varid, name, &xtype, &ndimids,
+		dimids, &natts
+	);
+	NC_ERR_READ(nc_status);
+
+	//Need at least 3 dimensions
+	if (ndimids < 3) {
+		cerr << ProgName << ": Insufficient netcdf variable dimensions" << endl;
+		exit(1);
+	}
+	//Go through the dimensions looking for the 3 dimensions that we are using.
+	
+	bool foundXDim = false, foundYDim = false, foundZDim = false;
+	int dimIndex[3];// dimension ID's for each of the 3 dimensions we are using
+	for (int i = 0; i<ndimids; i++){
+		//For each dimension id, get the name associated with it
+		nc_status = nc_inq_dimname(ncid, dimids[i], name);
+		NC_ERR_READ(nc_status);
+		//See if that dimension name is a coordinate of the desired array.
+		if (!foundXDim){
+			if (strcmp(name, opt.dimnames[0].c_str()) == 0){
+				foundXDim = true;
+				dimIndex[0] = i;
+			} 
+		} 
+		if (!foundYDim) {
+			if (strcmp(name, opt.dimnames[1].c_str()) == 0){
+				foundYDim = true;
+				dimIndex[1] = i;
+				continue;
+			}
+		} 
+		if (!foundZDim) {
+			if (strcmp(name, opt.dimnames[2].c_str()) == 0){
+				foundZDim = true;
+				dimIndex[2] = i;
+				continue;
+			}
+		}
+	}
+	if (!foundZDim || !foundYDim || !foundXDim){
+		fprintf(stderr, "Specified Netcdf dimension name not found");
+		exit(1);
+	}
+
+	// Prepare the count and start arrays for extracting slices from the data:
+	
+	count = new size_t[ndimids];
+	start = new size_t[ndimids];
+	for (int i = 0; i<ndimids; i++){
+		count[i] = 1;
+		start[i] = 0;
+	}
+	//Verify that the vdf and the netcdf agree on each dimension, while setting up the
+	//counts for reading.
+	//
+	for (int i = 0; i< 3; i++){
+		count[dimIndex[i]] = ncdfdims[dimIndex[i]];
+		if (count[dimIndex[i]] != dim[i]){
+			fprintf(stderr, "NetCDF and VDF array dimensions do not match\n");
+			exit(1);
+		}
+	}
+
+	int elem_size = 0;
+	switch (xtype) {
+		case NC_FLOAT:
+			elem_size = sizeof(float);
+			break;
+		case NC_DOUBLE:
+			elem_size = sizeof(double);
+			break;
+		default:
+			cerr << ProgName << ": Invalid variable data type" << endl;
+			exit(1);
+			break;
+	}
+
+	size_t size = count[0]*count[1];
+	//allocate a buffer big enough for 2d slice (constant z):
+	if(!opt.quiet) fprintf(stderr, "dimensions of array are %d %d %d\n",count[0],count[1],count[2]);
+	
+	size *= elem_size;
+	unsigned char *buffer = new unsigned char[size];
+	fprintf(stderr," buffer size allocated: %d\n", size);
+	
+	float* slice_f = (float*)buffer;
+	double* slice_d = (double*)buffer;
+	//
+	// Translate the volume one slice at a time
+	//
+	for(int z=0; z<dim[2]; z++) {
+
+		if (z%10== 0 && ! opt.quiet) {
+			cout << "Reading slice # " << z << endl;
+		}
+
+		TIMER_START(t1);
+		start[dimIndex[2]] = z;
+		
+		fprintf(stderr, "Read starts %d %d %d %d, counts %d %d %d %d\n",
+				start[0],start[1],start[2],start[3],count[0],count[1],count[2],count[3]);
+		if (xtype == NC_FLOAT) {
+		
+			
+			fprintf(stderr," calling getvarafloat\n");
+			nc_status = nc_get_vara_float(
+				ncid, varid, start, count, slice_f
+			);
+			fprintf(stderr," called getvarafloat\n");
+			NC_ERR_READ(nc_status);
+		} else if (xtype == NC_DOUBLE){
+			
+			nc_status = nc_get_vara_double(
+				ncid, varid, start, count, slice_d
+			);
+			NC_ERR_READ(nc_status);
+			//Convert to float:
+			
+			for(int i=0; i<dim[0]*dim[1]; i++) *slice_f++ = (float) *slice_d++;
+		}
+		TIMER_STOP(t1, *read_timer);
+		//
+		// Write a single slice of data
+		//
+		bufwriter->WriteSlice((float *) slice_f);
+		if (bufwriter->GetErrCode() != 0) {
+			cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+			exit(1);
+		}
+
+	}
+}
+
+
+int	main(int argc, char **argv) {
+
+	OptionParser op;
+	
+	const char	*metafile;
+	const char	*netCDFfile;
+
+	double	timer = 0.0;
+	double	read_timer = 0.0;
+	string	s;
+	const Metadata	*metadata;
+
+	//
+	// Parse command line arguments
+	//
+	ProgName = Basename(argv[0]);
+
+	if (op.AppendOptions(set_opts) < 0) {
+		cerr << ProgName << " : " << op.GetErrMsg();
+		exit(1);
+	}
+
+	if (op.ParseOptions(&argc, argv, get_options) < 0) {
+		cerr << ProgName << " : " << op.GetErrMsg();
+		exit(1);
+	}
+
+	if (opt.help) {
+		cerr << "Usage: " << ProgName << " [options] metafile datafile" << endl;
+		op.PrintOptionHelp(stderr);
+		exit(0);
+	}
+
+	if (argc != 3) {
+		cerr << "Usage: " << ProgName << " [options] metafile NetCDFfile" << endl;
+		op.PrintOptionHelp(stderr);
+		exit(1);
+	}
+
+	metafile = argv[1];	// Path to a vdf file
+	netCDFfile = argv[2];	// Path to raw data file 
+
+    if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
+
+	WaveletBlock3DIO	*wbwriter;
+
+	//
+	// Create an appropriate WaveletBlock writer. Initialize with
+	// path to .vdf file
+	//
+	
+	wbwriter = new WaveletBlock3DBufWriter(metafile, 0);
+	
+	if (wbwriter->GetErrCode() != 0) {
+		cerr << ProgName << " : " << wbwriter->GetErrMsg() << endl;
+		exit(1);
+	}
+
+	// Get a pointer to the Metadata object associated with
+	// the WaveletBlock3DBufWriter object
+	//
+	metadata = wbwriter->GetMetadata();
+
+
+	//
+	// Open a variable for writing at the indicated time step
+	//
+	if (wbwriter->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
+		cerr << ProgName << " : " << wbwriter->GetErrMsg() << endl;
+		exit(1);
+	} 
+
+	//
+	// If pre version 2, create a backup of the .vdf file. The 
+	// translation process will generate a new .vdf file
+	//
+	if (metadata->GetVDFVersion() < 2) save_file(metafile);
+
+	// If the netcdf variable name was not specified, use the same name as
+	//  in the vdf
+	if (strcmp(opt.ncdfvarname,"???????") == 0){
+		opt.ncdfvarname = opt.varname;
+	}
+	
+	
+    int nc_status;
+    int ncid;
+
+    nc_status = nc_open(netCDFfile, NC_NOWRITE, &ncid);
+	NC_ERR_READ(nc_status);
+
+   
+	// Get the dimensions of the volume
+	//
+	const size_t *dim = metadata->GetDimension();
+
+
+	TIMER_START(t0);
+
+	process_volume((WaveletBlock3DBufWriter *) wbwriter, dim, ncid, &read_timer);
+	
+	// Close the variable. We're done writing.
+	//
+	wbwriter->CloseVariable();
+	if (wbwriter->GetErrCode() != 0) {
+		cerr << ProgName << ": " << wbwriter->GetErrMsg() << endl;
+		exit(1);
+	}
+	TIMER_STOP(t0,timer);
+
+	if (! opt.quiet) {
+		float	write_timer = wbwriter->GetWriteTimer();
+		float	xform_timer = wbwriter->GetXFormTimer();
+		const float *range = wbwriter->GetDataRange();
+
+		fprintf(stdout, "read time : %f\n", read_timer);
+		fprintf(stdout, "write time : %f\n", write_timer);
+		fprintf(stdout, "transform time : %f\n", xform_timer);
+		fprintf(stdout, "total transform time : %f\n", timer);
+		fprintf(stdout, "min and max values of data output: %g, %g\n",range[0], range[1]);
+	}
+
+	// For pre-version 2 vdf files we need to write out the updated metafile. 
+	// If we don't call this then
+	// the .vdf file will not be updated with stats gathered from
+	// the volume we just translated.
+	//
+	if (metadata->GetVDFVersion() < 2) {
+		Metadata *m = (Metadata *) metadata;
+		m->Write(metafile);
+	}
+	nc_close(ncid);
+	exit(0);
+}
+
