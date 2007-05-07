@@ -156,6 +156,7 @@ void	process_volume(
 	size_t* ncdfdims;
 	size_t* start;
 	size_t* count;
+	size_t* fullCount;
 	
 
     int nc_status;
@@ -209,7 +210,18 @@ void	process_volume(
 	//Go through the dimensions looking for the 3 dimensions that we are using.
 	
 	bool foundXDim = false, foundYDim = false, foundZDim = false;
-	int dimIndex[3];// dimension ID's for each of the 3 dimensions we are using
+	int dimIDs[3];// dimension ID's (in netcdf file) for each of the 3 dimensions we are using
+	int dimIndex[3]; //specify which dimension (for this variable) is associated with x,y,z
+	// Initialize the count and start arrays for extracting slices from the data:
+	count = new size_t[ndimids];
+	start = new size_t[ndimids];
+	fullCount = new size_t[ndimids];
+	for (int i = 0; i<ndimids; i++){
+		fullCount[i] = 1;
+		start[i] = 0;
+		count[i] = 1;
+	}
+
 	for (int i = 0; i<ndimids; i++){
 		//For each dimension id, get the name associated with it
 		nc_status = nc_inq_dimname(ncid, dimids[i], name);
@@ -218,13 +230,26 @@ void	process_volume(
 		if (!foundXDim){
 			if (strcmp(name, opt.dimnames[0].c_str()) == 0){
 				foundXDim = true;
+				dimIDs[0] = dimids[i];
 				dimIndex[0] = i;
+				if (ncdfdims[dimIDs[0]] != dim[0]){
+					fprintf(stderr, "NetCDF and VDF array do not match in dimension 0\n");
+					exit(1);
+				}
+				fullCount[i] = dim[0];
+				continue;
 			} 
 		} 
 		if (!foundYDim) {
 			if (strcmp(name, opt.dimnames[1].c_str()) == 0){
 				foundYDim = true;
+				dimIDs[1] = dimids[i];
 				dimIndex[1] = i;
+				if (ncdfdims[dimIDs[1]] != dim[1]){
+					fprintf(stderr, "NetCDF and VDF array do not match in dimension 1\n");
+					exit(1);
+				}
+				fullCount[i] = dim[1];
 				continue;
 			}
 		} 
@@ -232,6 +257,12 @@ void	process_volume(
 			if (strcmp(name, opt.dimnames[2].c_str()) == 0){
 				foundZDim = true;
 				dimIndex[2] = i;
+				dimIDs[2] = dimids[i];
+				if (ncdfdims[dimIDs[2]] != dim[2]){
+					fprintf(stderr, "NetCDF and VDF array do not match in dimension 2\n");
+					exit(1);
+				}
+				fullCount[i] = dim[2];
 				continue;
 			}
 		}
@@ -239,25 +270,6 @@ void	process_volume(
 	if (!foundZDim || !foundYDim || !foundXDim){
 		fprintf(stderr, "Specified Netcdf dimension name not found");
 		exit(1);
-	}
-
-	// Prepare the count and start arrays for extracting slices from the data:
-	
-	count = new size_t[ndimids];
-	start = new size_t[ndimids];
-	for (int i = 0; i<ndimids; i++){
-		count[i] = 1;
-		start[i] = 0;
-	}
-	//Verify that the vdf and the netcdf agree on each dimension, while setting up the
-	//counts for reading.
-	//
-	for (int i = 0; i< 3; i++){
-		count[dimIndex[i]] = ncdfdims[dimIndex[i]];
-		if (count[dimIndex[i]] != dim[i]){
-			fprintf(stderr, "NetCDF and VDF array dimensions do not match\n");
-			exit(1);
-		}
 	}
 
 	int elem_size = 0;
@@ -274,9 +286,10 @@ void	process_volume(
 			break;
 	}
 
-	size_t size = count[0]*count[1];
+	size_t size = fullCount[dimIndex[0]]*fullCount[dimIndex[1]];
 	//allocate a buffer big enough for 2d slice (constant z):
-	if(!opt.quiet) fprintf(stderr, "dimensions of array are %d %d %d\n",count[0],count[1],count[2]);
+	if(!opt.quiet) fprintf(stderr, "dimensions of array are %d %d %d\n",
+		fullCount[dimIndex[0]],fullCount[dimIndex[1]],fullCount[dimIndex[2]]);
 	
 	size *= elem_size;
 	unsigned char *buffer = new unsigned char[size];
@@ -287,6 +300,9 @@ void	process_volume(
 	//
 	// Translate the volume one slice at a time
 	//
+	// Set up counts to only grab a z-slice
+	for (int i = 0; i< ndimids; i++) count[i] = fullCount[i];
+	count[dimIndex[2]] = 1;
 	for(int z=0; z<dim[2]; z++) {
 
 		if (z%10== 0 && ! opt.quiet) {
