@@ -68,7 +68,7 @@ struct opt_t {
 
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts",		1, 	"0","Timestep of data file starting from 0"},
-	{"varname",	1, 	"var1",	"Name of variable"},
+	{"varname",	1, 	"var1",	"Name of variable in metadata"},
 	{"ncdfvar",	1, 	"???????",	"Name of variable in NetCDF, if different"},
 	{"level",	1, 	"-1",	"Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
 	{"help",	0,	"",	"Print this message and exit"},
