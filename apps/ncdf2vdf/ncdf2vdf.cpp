@@ -14,7 +14,7 @@
 //                      National Center for Atmospheric Research
 //                      PO 3000, Boulder, Colorado
 //
-//      Date:           May 3, 2007
+//      Date:           May 7, 2007
 //
 //      Description:	Read a NetCDF file containing a 3D array of floats or doubles
 //			and insert the volume into an existing
@@ -207,7 +207,6 @@ void	process_volume(
 		cerr << ProgName << ": Insufficient netcdf variable dimensions" << endl;
 		exit(1);
 	}
-	//Go through the dimensions looking for the 3 dimensions that we are using.
 	
 	bool foundXDim = false, foundYDim = false, foundZDim = false;
 	int dimIDs[3];// dimension ID's (in netcdf file) for each of the 3 dimensions we are using
@@ -222,6 +221,7 @@ void	process_volume(
 		count[i] = 1;
 	}
 
+	//Go through the dimensions looking for the 3 dimensions that we are using.
 	for (int i = 0; i<ndimids; i++){
 		//For each dimension id, get the name associated with it
 		nc_status = nc_inq_dimname(ncid, dimids[i], name);
@@ -288,7 +288,7 @@ void	process_volume(
 
 	size_t size = fullCount[dimIndex[0]]*fullCount[dimIndex[1]];
 	//allocate a buffer big enough for 2d slice (constant z):
-	if(!opt.quiet) fprintf(stderr, "dimensions of array are %d %d %d\n",
+	if(!opt.quiet) fprintf(stderr, "dimensions of array are: %d %d %d\n",
 		fullCount[dimIndex[0]],fullCount[dimIndex[1]],fullCount[dimIndex[2]]);
 	
 	size *= elem_size;
@@ -305,23 +305,19 @@ void	process_volume(
 	count[dimIndex[2]] = 1;
 	for(int z=0; z<dim[2]; z++) {
 
-		if (z%10== 0 && ! opt.quiet) {
+		if (z%50 == 0 && ! opt.quiet) {
 			cout << "Reading slice # " << z << endl;
 		}
 
 		TIMER_START(t1);
 		start[dimIndex[2]] = z;
 		
-		fprintf(stderr, "Read starts %d %d %d %d, counts %d %d %d %d\n",
-				start[0],start[1],start[2],start[3],count[0],count[1],count[2],count[3]);
 		if (xtype == NC_FLOAT) {
 		
-			
-			fprintf(stderr," calling getvarafloat\n");
 			nc_status = nc_get_vara_float(
 				ncid, varid, start, count, slice_f
 			);
-			fprintf(stderr," called getvarafloat\n");
+			
 			NC_ERR_READ(nc_status);
 		} else if (xtype == NC_DOUBLE){
 			
