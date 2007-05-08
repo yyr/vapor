@@ -163,6 +163,11 @@ COMMON_API int	CvtToDimension3D(const char *from, void *to);
 //
 COMMON_API int CvtToStrVec(const char *from, void *to);
 
+// convert a colon delimited ascii string to vector of C++ 
+// STL ints: (vector <int> *)
+//
+COMMON_API int CvtToIntVec(const char *from, void *to);
+
 // Convert a colon-delimited pair of integers to a IntRange_T type
 //
 COMMON_API int	CvtToIntRange(const char *from, void *to);
