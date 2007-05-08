@@ -240,6 +240,38 @@ int	VetsUtil::CvtToStrVec(
 
 	return(1);
 }
+//
+//	CvtToIntVec()
+//
+//	convert a colon delimited ascii string to vector of C++ STL ints
+//
+int	VetsUtil::CvtToIntVec(
+	const char	*from,	/* the string	*/
+	void		*to
+) {
+	vector <int> *vptr	= (vector <int> *) to;
+
+	string::size_type idx;
+
+    string s(from);
+    while (! s.empty() && (idx = s.find(":", 0)) != string::npos) {
+		int val;
+		int nints = sscanf(s.substr(0,idx).c_str(),"%d",&val);
+		if (nints == 1)
+			vptr->push_back(val);
+		else vptr->push_back(0);
+        s.erase(0,idx+1);
+    }
+    if (! s.empty()) {
+        int val;
+		int nints = sscanf(s.c_str(),"%d",&val);
+		if (nints == 1)
+			vptr->push_back(val);
+		else vptr->push_back(0);
+    }
+
+	return(1);
+}
 
 //
 //	CvtToIntRange()
