@@ -82,10 +82,6 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "installer", "..\installer\i
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ncdf2raw", "..\ncdf2raw\ncdf2raw.vcproj", "{70B0700A-93D3-4183-969C-E3F093D57EF7}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ncdf2vdf", "..\ncdf2vdf\ncdf2vdf.vcproj", "{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
@@ -152,10 +148,6 @@ Global
 		{9FD418C0-1BFF-4BA3-B901-3AC872588F06}.Release.Build.0 = Release|Win32
 		{5AD78999-8DB8-4DEC-96DC-4AB28652BF00}.Debug.ActiveCfg = Debug
 		{5AD78999-8DB8-4DEC-96DC-4AB28652BF00}.Release.ActiveCfg = Release
-		{70B0700A-93D3-4183-969C-E3F093D57EF7}.Debug.ActiveCfg = Debug|Win32
-		{70B0700A-93D3-4183-969C-E3F093D57EF7}.Debug.Build.0 = Debug|Win32
-		{70B0700A-93D3-4183-969C-E3F093D57EF7}.Release.ActiveCfg = Release|Win32
-		{70B0700A-93D3-4183-969C-E3F093D57EF7}.Release.Build.0 = Release|Win32
 		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Debug.ActiveCfg = Debug|Win32
 		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Debug.Build.0 = Debug|Win32
 		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Release.ActiveCfg = Release|Win32

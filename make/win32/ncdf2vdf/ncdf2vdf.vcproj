@@ -84,8 +84,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="netcdf.lib"
 				OutputFile=".\..\..\..\targets\win32\bin\ncdf2vdf.exe"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;$(NETCDF_LIB_PATH)&quot;"
 				IgnoreDefaultLibraryNames="msvcrtd;msvcr71d"
 				GenerateDebugInformation="FALSE"
 				SubSystem="1"
