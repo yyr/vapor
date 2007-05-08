@@ -61,6 +61,8 @@ struct opt_t {
 	char *ncdfvarname;
 	int level;
 	vector <string> dimnames;
+	vector <string> constDimNames;
+	vector <size_t> constDimValues;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
@@ -75,6 +77,8 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
 	{"dimnames", 1, "xdim:ydim:zdim", "Colon-separated list of x-, y-, and z-dimension names in NetCDF file"},
+	{"cnstnames",1, "constDimName", "Colon-separated list of constant dimension names"},
+	{"cnstvals",1,"0", "Colon-separated list of constant dimension values, for corresponding constant dimension names"},
 	{NULL}
 };
 
@@ -88,6 +92,8 @@ OptionParser::Option_T	get_options[] = {
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{"dimnames", VetsUtil::CvtToStrVec, &opt.dimnames, sizeof(opt.dimnames)},
+	{"cnstnames", VetsUtil::CvtToStrVec, &opt.constDimNames, sizeof(opt.constDimNames)},
+	{"cnstvals", VetsUtil::CvtToIntVec, &opt.constDimValues, sizeof(opt.constDimValues)},
 	{NULL}
 };
 
@@ -221,7 +227,30 @@ void	process_volume(
 		count[i] = 1;
 	}
 
-	//Go through the dimensions looking for the 3 dimensions that we are using.
+	//Make sure any constant dimension names are valid:
+	for (int i = 0; i<opt.constDimNames.size(); i++){
+		int constDimID;
+		if (nc_inq_dimid(ncid, opt.constDimNames[i].c_str(), &constDimID) != NC_NOERR){
+			fprintf(stderr, "Constant dimension name %s not in NetCDF file\n",
+				opt.constDimNames[i].c_str());
+			exit(1);
+		}
+		//OK, found it.  Verify that the constant value is OK:
+		size_t constDimLen=0;
+		if((nc_inq_dimlen(ncid, constDimID, &constDimLen) != NC_NOERR) ||
+			constDimLen <= opt.constDimValues[i] ||
+			opt.constDimValues[i] < 0)
+		{
+			fprintf(stderr, "Invalid value of constant dimension %s\n",
+				opt.constDimNames[i].c_str());
+			exit(1);
+		}
+	}
+
+
+			
+	//Go through the dimensions looking for the 3 dimensions that we are using,
+	//as well as the constant dimension names/values
 	for (int i = 0; i<ndimids; i++){
 		//For each dimension id, get the name associated with it
 		nc_status = nc_inq_dimname(ncid, dimids[i], name);
@@ -264,6 +293,13 @@ void	process_volume(
 				}
 				fullCount[i] = dim[2];
 				continue;
+			}
+		}
+		//See if the dimension name is an identified constant dimension:
+		for (int k = 0; k<opt.constDimNames.size(); k++){
+			if (strcmp(name, opt.constDimNames[k].c_str()) == 0){
+				start[i] = (size_t) opt.constDimValues[k];
+				break;
 			}
 		}
 	}
@@ -379,6 +415,12 @@ int	main(int argc, char **argv) {
 	if (argc != 3) {
 		cerr << "Usage: " << ProgName << " [options] metafile NetCDFfile" << endl;
 		op.PrintOptionHelp(stderr);
+		exit(1);
+	}
+
+	//Make sure that the names and values of constant dimensions agree:
+	if (opt.constDimNames.size() != opt.constDimValues.size()){
+		cerr << "The number of constant dimension names and constant dimension values must be the same" << endl;
 		exit(1);
 	}
 
