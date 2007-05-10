@@ -158,7 +158,7 @@ MainForm::MainForm(QString& fileName, QWidget* parent, const char* name, WFlags 
 	//This is just large enough to show the whole width of flow tab, with a scrollbar
 	//on right (on windows, linux, and irix)  Using default settings of 
 	//qtconfig (10 pt font)
-	tabWidget->setMinimumWidth(200);
+	tabWidget->setMinimumWidth(100);
     tabWidget->setMinimumHeight(500);
 	
 	

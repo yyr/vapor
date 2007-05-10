@@ -77,7 +77,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
 	{"dimnames", 1, "xdim:ydim:zdim", "Colon-separated list of x-, y-, and z-dimension names in NetCDF file"},
-	{"cnstnames",1, "constDimName", "Colon-separated list of constant dimension names"},
+	{"cnstnames",1, "-", "Colon-separated list of constant dimension names"},
 	{"cnstvals",1,"0", "Colon-separated list of constant dimension values, for corresponding constant dimension names"},
 	{NULL}
 };
@@ -419,6 +419,11 @@ int	main(int argc, char **argv) {
 	}
 
 	//Make sure that the names and values of constant dimensions agree:
+	if (opt.constDimNames[0] == "-"){
+		//make sure we aren't dealing with nothing:
+		opt.constDimNames.clear();
+		opt.constDimValues.clear();
+	}
 	if (opt.constDimNames.size() != opt.constDimValues.size()){
 		cerr << "The number of constant dimension names and constant dimension values must be the same" << endl;
 		exit(1);
