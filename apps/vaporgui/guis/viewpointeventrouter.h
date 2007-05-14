@@ -77,7 +77,7 @@ public:
 
 	
 protected slots:
-	
+	void guiSetStereoMode(int);
 	void viewpointReturnPressed();
 	void setVtabTextChanged(const QString& qs);
 

@@ -65,7 +65,7 @@ void
 ViewpointEventRouter::hookUpTab()
 {
 	
-	//connect (perspectiveCombo, SIGNAL (activated(int)), this, SLOT (setVPPerspective(int)));
+	connect (stereoCombo, SIGNAL (activated(int)), this, SLOT (guiSetStereoMode(int)));
 	connect (numLights, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (lightPos00, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (lightPos01, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
@@ -96,6 +96,7 @@ ViewpointEventRouter::hookUpTab()
 	connect (lightSpec2, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (shininessEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	connect (ambientEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
+	connect (stereoSeparationEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( setVtabTextChanged(const QString&)));
 	
 	//Connect all the returnPressed signals, these will update the visualizer.
 	connect (lightPos00, SIGNAL( returnPressed()), this, SLOT(viewpointReturnPressed()));
@@ -129,6 +130,7 @@ ViewpointEventRouter::hookUpTab()
 	connect (rotCenter1, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (rotCenter2, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
 	connect (numLights, SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed()));
+	connect (stereoSeparationEdit,SIGNAL( returnPressed()) , this, SLOT(viewpointReturnPressed())); 
 
 }
 
@@ -224,6 +226,12 @@ void ViewpointEventRouter::confirmText(bool /*render*/){
 	vParams->setRotationCenter(0,rotCenter0->text().toFloat());
 	vParams->setRotationCenter(1,rotCenter1->text().toFloat());
 	vParams->setRotationCenter(2,rotCenter2->text().toFloat());
+
+	float sepAngle = stereoSeparationEdit->text().toFloat();
+	vParams->setStereoSeparation(sepAngle);
+	if (sepAngle > 0.f) stereoCombo->setEnabled(true); 
+	else stereoCombo->setEnabled(false);
+
 	
 	PanelCommand::captureEnd(cmd, vParams);
 	updateRenderer(vParams,false, false);
@@ -316,6 +324,12 @@ void ViewpointEventRouter::updateTab(){
 	lightSpec2->setEnabled(lightOn);
 	lightDiff2->setEnabled(lightOn);
 
+	stereoSeparationEdit->setText(QString::number(vpParams->getStereoSeparation()));
+	stereoCombo->setCurrentItem(vpParams->getStereoMode());
+	if (vpParams->getStereoSeparation() > 0.f)
+		stereoCombo->setEnabled(true);
+	else 
+		stereoCombo->setEnabled(false);
 	
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
@@ -471,7 +485,67 @@ guiSetCenter(const float* coords){
 	PanelCommand::captureEnd(cmd,vpParams);
 	
 }
+void ViewpointEventRouter::guiSetStereoMode(int mode){
+	//Make sure it's a change in mode.
+	ViewpointParams* vpParams = VizWinMgr::getActiveVPParams();
+	int oldMode = vpParams->getStereoMode();
+	if (oldMode == mode) return;
+	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "set stereo mode");
+	float sep = vpParams->getStereoSeparation();
+	// How does the angle change?
+	float angleChange = sep*M_PI/180.;
+	if (oldMode == 0){
+		if (mode == 1) angleChange = -0.5*angleChange; //left eye uses negative angle
+		else angleChange = 0.5*angleChange;
+	} else if (oldMode == 1){
+		//left to right, either half or full angle
+		if (mode == 0) angleChange = 0.5*angleChange;
+	} else { //oldMode == 2; right to left rotation
+		if (mode == 0) angleChange = -0.5*angleChange;
+		else angleChange = -angleChange;
+	}
+	vpParams->setStereoMode(mode);
+	//	set the view direction to point from the camera to the rotation center.
+	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
+	//Determine the new viewDir:
+	float vdir[3], updir[3], upComp[3], rightdir[3], newCamPos[3];
+	vsub(currentViewpoint->getRotationCenter(),currentViewpoint->getCameraPos(), vdir);
+	//Remember the distance:
+	float vdist = vlength(vdir);
+	
+	//Make sure the viewDir is normalized:
+	vnormal(vdir);
+	//Get the up vector:
+	vcopy(currentViewpoint->getUpVec(), updir);
+	//find the component of updir in vdir direction, subtract it from updir, then normalize,
+	//so that updir is orthogonal to vdir.
+	vmult(updir, vdot(updir,vdir), upComp);
+	vsub(updir, upComp, updir);
+	vnormal(updir);
+	//Next find the vector pointing to the right (vdir x up)
+	vcross(vdir, updir, rightdir);
+	//Rotate vdir by angleChange in the plane of vdir and rightdir.
+	//New direction is cos(angle)*vdir - sin(angle)*rightdir
+	//(neg rotation because left eye uses rotation to right)
+	
+	vmult(vdir, cos(angleChange), vdir);
+	vmult(rightdir, sin(angleChange), rightdir);
+	vsub(vdir, rightdir, vdir);
 
+
+	//New camera position is obtained by subtracting vdist*vdir from rotationCenter:
+	vmult(vdir, vdist, newCamPos);
+	vsub(currentViewpoint->getRotationCenter(), newCamPos, newCamPos);
+	//Now specify the new viewpoint:
+	currentViewpoint->setCameraPos(newCamPos);
+	currentViewpoint->setViewDir(vdir);
+	currentViewpoint->setUpVec(updir);
+	
+	//	rotate the viewpoint the appropriate amount right or left.
+	//  set render windows dirty
+	updateRenderer(vpParams,false,  false);
+	PanelCommand::captureEnd(cmd,vpParams);
+}
 void ViewpointEventRouter::
 setHomeViewpoint(){
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);

@@ -48,6 +48,8 @@ const string ViewpointParams::_diffuseLightAttr = "DiffuseCoefficient";
 const string ViewpointParams::_ambientLightAttr = "AmbientCoefficient";
 const string ViewpointParams::_specularLightAttr = "SpecularCoefficient";
 const string ViewpointParams::_specularExponentAttr = "SpecularExponent";
+const string ViewpointParams::_stereoModeAttr = "StereoMode";
+const string ViewpointParams::_stereoSeparationAttr = "StereoSeparation";
 
 ViewpointParams::ViewpointParams(int winnum): Params(winnum){
 	thisParamType = ViewpointParamsType;
@@ -124,6 +126,8 @@ restart(){
 	if (currentViewpoint) delete currentViewpoint;
 	currentViewpoint = new Viewpoint();
 	//Set default values in viewpoint:
+	stereoSeparation = 0.f;
+	stereoMode = 0; //Center view
 	currentViewpoint->setPerspective(true);
 	for (int i = 0; i< 3; i++){
 		setCameraPos(i,0.5f);
@@ -269,7 +273,16 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 				ist >> ambientCoeff;
 			}
 			else if (StrCmpNoCase(attribName, _specularExponentAttr) == 0){
-				ist >>specularExp;
+				ist >> specularExp;
+			}
+			else if (StrCmpNoCase(attribName, _stereoSeparationAttr) == 0){
+				ist >> stereoSeparation;
+			}
+			//Possible values are center, left, right (0,1,2)
+			else if (StrCmpNoCase(attribName, _stereoModeAttr) == 0){
+				if (value == "left") setStereoMode(1);
+				else if (value == "right") setStereoMode(2);
+				else setStereoMode(0);
 			}
 			else return false;
 		}
@@ -376,7 +389,15 @@ buildNode(){
 	oss.str(empty);
 	oss << (long) specularExp;
 	attrs[_specularExponentAttr] = oss.str();
-	
+	oss.str(empty);
+	oss << (double)stereoSeparation;
+	attrs[_stereoSeparationAttr] = oss.str();
+	oss.str(empty);
+	if (stereoMode == 1) oss << "left";
+	else if (stereoMode == 2) oss << "right";
+	else oss << "center";
+	attrs[_stereoModeAttr] = oss.str();
+
 	XmlNode* vpParamsNode = new XmlNode(_viewpointParamsTag, attrs, 2);
 	
 	//Now add children: lights, and home and current viewpoints:

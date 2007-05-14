@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>440</width>
-            <height>649</height>
+            <height>775</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -50,7 +50,7 @@ scene.</string>
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout43</cstring>
+                <cstring>layout11</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -163,7 +163,7 @@ lights.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>18</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -530,10 +530,175 @@ where the camera is pointed.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>18</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel4_3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Stereo Controls</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignCenter</set>
+                    </property>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout10</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer32</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>41</width>
+                                    <height>21</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel1_5</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Separation Angle:</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignCenter</set>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>stereoSeparationEdit</cstring>
+                            </property>
+                            <property name="maximumSize">
+                                <size>
+                                    <width>70</width>
+                                    <height>32767</height>
+                                </size>
+                            </property>
+                            <property name="text">
+                                <string>0</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify separation angle in degrees between left and right stereo viewpoints</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer33</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>21</width>
+                                    <height>21</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel2_3</cstring>
+                            </property>
+                            <property name="text">
+                                <string>View:</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignCenter</set>
+                            </property>
+                        </widget>
+                        <widget class="QComboBox">
+                            <item>
+                                <property name="text">
+                                    <string>Center</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>Left</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>Right</string>
+                                </property>
+                            </item>
+                            <property name="name">
+                                <cstring>stereoCombo</cstring>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Change viewpoint to Left, Right, or Center for creating stereo pairs</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer34</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>31</width>
+                                    <height>21</height>
+                                </size>
+                            </property>
+                        </spacer>
+                    </hbox>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer35</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel3_3</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Lighting Parameters</string>
+                    </property>
+                    <property name="alignment">
+                        <set>AlignCenter</set>
+                    </property>
+                </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
                         <cstring>layout30</cstring>
@@ -650,7 +815,7 @@ where the camera is pointed.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>18</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -1116,7 +1281,7 @@ originating behind the viewer</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>26</height>
                         </size>
                     </property>
                 </spacer>

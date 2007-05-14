@@ -56,6 +56,10 @@ public:
 	void setUpVec(float* val) {currentViewpoint->setUpVec(val);}
 	bool hasPerspective(){return currentViewpoint->hasPerspective();}
 	void setPerspective(bool on) {currentViewpoint->setPerspective(on);}
+	int getStereoMode(){ return stereoMode;}
+	void setStereoMode(int mode) {stereoMode = mode;}
+	float getStereoSeparation() {return stereoSeparation;}
+	void setStereoSeparation(float angle){stereoSeparation = angle;}
 	int getNumLights() { return numLights;}
 	void setNumLights(int nlights) {numLights = nlights;}
 	const float* getLightDirection(int lightNum){return lightDirection[lightNum];}
@@ -133,10 +137,14 @@ protected:
 	static const string _ambientLightAttr;
 	static const string _specularLightAttr;
 	static const string _specularExponentAttr;
+	static const string _stereoModeAttr;
+	static const string _stereoSeparationAttr;
 	
 	
 	Viewpoint* currentViewpoint;
 	Viewpoint* homeViewpoint;
+	float stereoSeparation;
+	int stereoMode; //0 for center, 1 for left, 2 for right
 	
 	int numLights;
 	int parsingLightNum;
