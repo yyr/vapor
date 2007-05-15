@@ -269,7 +269,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth , std::string& tagString, cons
 			else if (StrCmpNoCase(attribName, _localAttr) == 0) {
 				if (value == "true") setLocal(true); else setLocal(false);
 			}
-			if (StrCmpNoCase(attribName, _ambientLightAttr) == 0) {
+			else if (StrCmpNoCase(attribName, _ambientLightAttr) == 0) {
 				ist >> ambientCoeff;
 			}
 			else if (StrCmpNoCase(attribName, _specularExponentAttr) == 0){
