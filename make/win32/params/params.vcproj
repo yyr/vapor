@@ -256,6 +256,32 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
 		</Filter>
+		<Filter
+			Name="Forms">
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\ui\isotab.ui">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing isotab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\isotab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot; -o &quot;tmp\moc\moc_isotab.cpp&quot;
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\isotab.cpp&quot;;&quot;tmp\moc\moc_isotab.cpp&quot;"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Uic&apos;ing isotab.ui..."
+						CommandLine="$(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.ui&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot; &amp;&amp; $(QTDIR)\bin\uic.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.ui&quot; -i &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot; -o &quot;..\..\..\apps\vaporgui\guis\ui\isotab.cpp&quot; &amp;&amp; $(QTDIR)\bin\moc.exe &quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot; -o &quot;tmp\moc\moc_isotab.cpp&quot;
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
+						Outputs="&quot;..\..\..\apps\vaporgui\guis\ui\isotab.h&quot;;&quot;..\..\..\apps\vaporgui\guis\ui\isotab.cpp&quot;;&quot;tmp\moc\moc_isotab.cpp&quot;"/>
+				</FileConfiguration>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
