@@ -191,6 +191,13 @@ endRendering(int vizNum){
 		myUnsharedController->endRendering(vizNum);
 	animationMutex.unlock();
 	
+	AnimationParams* aParams = VizWinMgr::getInstance()->getAnimationParams(vizNum);
+	if (aParams->isStateChanged()){
+		aParams->setStateChanged(false);
+		VizWinMgr::getInstance()->getAnimationRouter()->updateTab();
+		if (!aParams->isPlaying()) return;
+	}
+
 	//Do call Update dialog here because Update can't be called from the 
 	//controller thread (X11 limitation!)
 	//See if this is the active visualizer
