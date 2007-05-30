@@ -62,7 +62,7 @@ struct opt_t {
 	int level;
 	vector <string> dimnames;
 	vector <string> constDimNames;
-	vector <size_t> constDimValues;
+	vector <int> constDimValues;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
@@ -425,7 +425,7 @@ int	main(int argc, char **argv) {
 		opt.constDimValues.clear();
 	}
 	if (opt.constDimNames.size() != opt.constDimValues.size()){
-		cerr << "The number of constant dimension names and constant dimension values must be the same" << endl;
+		cerr << "The number of constant dimension names "<< opt.constDimNames.size() << " and constant dimension values "<< opt.constDimValues.size() <<" must be the same" << endl;
 		exit(1);
 	}
 
