@@ -220,12 +220,12 @@ int minvert(GLfloat *mat, GLfloat *result)
     // Work across by columns (i is col index):
     
     for (i = 0; i < 4; i++) {
-		//Find largest entry in the column below the diagonal:
+		//Find largest entry in the column, below the diagonal:
 		float maxval = 0.f;
 		int pivot = -1;
 		for (int rw = i; rw < 4; rw++){
-			if (fabs(m[rw][i]) > maxval){
-				maxval = fabs(m[rw][i]);
+			if (fabs(m[i][rw]) > maxval){
+				maxval = fabs(m[i][rw]);
 				pivot = rw;
 			}
 		}
