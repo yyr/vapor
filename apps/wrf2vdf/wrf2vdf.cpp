@@ -57,6 +57,7 @@ using namespace VAPoR;
 //
 struct opt_t {
 	int	ts;
+	int wrfts;
 	char *varname;
 	int level;
 	float low_out;
@@ -67,8 +68,9 @@ struct opt_t {
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"ts",		1, 	"0","Timestep of data file starting from 0"},
-	{"varname",	1, 	"var1",	"Name of variable in wrf (=same as in metadata)"},
+	{"ts",		1, 	"0","Timestep of metadata starting from 0"},
+	{"wrfts",	1,  "-1", "Timestep in WRF data if different from metadata"},
+	{"varname",	1, 	"var1",	"Name of variable in WRF (=same as in metadata)"},
 	{"level",	1, 	"-1",	"Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
@@ -81,6 +83,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 
 OptionParser::Option_T	get_options[] = {
 	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
+	{"wrfts", VetsUtil::CvtToInt, &opt.wrfts, sizeof(opt.wrfts)},
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
@@ -433,7 +436,7 @@ void	process_volume(
 		if (strcmp(name, "Time") == 0){
 			
 			dimIndex[0] = i;
-			start[i] = (size_t) opt.ts;
+			start[i] = (size_t) opt.wrfts;
 			continue;
 		}
 		 
@@ -590,6 +593,8 @@ int	main(int argc, char **argv) {
 	metafile = argv[1];	// Path to a vdf file
 	netCDFfile = argv[2];	// Path to raw data file 
 
+	//See if wrfts is set
+	if (opt.wrfts < 0) opt.wrfts = opt.ts;
     if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
 	WaveletBlock3DIO	*wbwriter;
