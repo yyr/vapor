@@ -261,7 +261,10 @@ void	process_volume(
 				foundXDim = true;
 				dimIDs[0] = dimids[i];
 				dimIndex[0] = i;
-				if (ncdfdims[dimIDs[0]] != dim[0]){
+				//Allow dimension to be off by 1, in case of 
+				//staggered dimensions.
+				if (ncdfdims[dimIDs[0]] != dim[0] &&
+					ncdfdims[dimIDs[0]] != (dim[0]+1)){
 					fprintf(stderr, "NetCDF and VDF array do not match in dimension 0\n");
 					exit(1);
 				}
@@ -274,7 +277,8 @@ void	process_volume(
 				foundYDim = true;
 				dimIDs[1] = dimids[i];
 				dimIndex[1] = i;
-				if (ncdfdims[dimIDs[1]] != dim[1]){
+				if (ncdfdims[dimIDs[1]] != dim[1] &&
+					ncdfdims[dimIDs[1]] != (dim[1]+1)){
 					fprintf(stderr, "NetCDF and VDF array do not match in dimension 1\n");
 					exit(1);
 				}
@@ -287,7 +291,8 @@ void	process_volume(
 				foundZDim = true;
 				dimIndex[2] = i;
 				dimIDs[2] = dimids[i];
-				if (ncdfdims[dimIDs[2]] != dim[2]){
+				if (ncdfdims[dimIDs[2]] != dim[2] &&
+					ncdfdims[dimIDs[2]] != (dim[2]+1)){
 					fprintf(stderr, "NetCDF and VDF array do not match in dimension 2\n");
 					exit(1);
 				}

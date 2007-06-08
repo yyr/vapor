@@ -677,7 +677,7 @@ void	OptionParser::PrintOptionHelp(
 
 	fprintf(
 		stderr, 
-		"\nCopyright 2006 The National Center for Atmospheric Research\n"
+		"\nCopyright 2007 The National Center for Atmospheric Research\n"
 	);
 
 	fprintf(

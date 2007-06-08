@@ -390,7 +390,7 @@ int	main(int argc, char **argv) {
 	//
 	if (metadata->GetVDFVersion() < 2) save_file(metafile);
 
-	fp = FOPEN64(datafile, "r");
+	fp = FOPEN64(datafile, "rb");
 	if (! fp) {
 		cerr << ProgName << ": Could not open file \"" << 
 			datafile << "\" : " <<strerror(errno) << endl;
