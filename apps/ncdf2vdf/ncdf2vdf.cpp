@@ -329,12 +329,17 @@ void	process_volume(
 
 	size_t size = fullCount[dimIndex[0]]*fullCount[dimIndex[1]];
 	//allocate a buffer big enough for 2d slice (constant z):
+	
+	float* fbuffer = new float[size];
+	double *dbuffer = 0;
+	if (xtype == NC_DOUBLE) dbuffer = new double[size];
 	if(!opt.quiet) fprintf(stderr, "dimensions of array are: %d %d %d\n",
 		fullCount[dimIndex[0]],fullCount[dimIndex[1]],fullCount[dimIndex[2]]);
 	
 	size *= elem_size;
 	unsigned char *buffer = new unsigned char[size];
 	fprintf(stderr," buffer size allocated: %d\n", size);
+	
 	
 	
 	
@@ -352,36 +357,39 @@ void	process_volume(
 
 		TIMER_START(t1);
 		start[dimIndex[2]] = z;
-		double* slice_d = (double*)buffer;
-		float* slice_f = (float*)buffer;
+		
 		if (xtype == NC_FLOAT) {
 		
 			nc_status = nc_get_vara_float(
-				ncid, varid, start, count, slice_f
+				ncid, varid, start, count, fbuffer
 			);
 			
 			NC_ERR_READ(nc_status);
 		} else if (xtype == NC_DOUBLE){
 			
 			nc_status = nc_get_vara_double(
-				ncid, varid, start, count, slice_d
+				ncid, varid, start, count, dbuffer
 			);
 			NC_ERR_READ(nc_status);
 			//Convert to float:
 			
-			for(int i=0; i<dim[0]*dim[1]; i++) *(slice_f++) = (float) *(slice_d++);
+			
+			for(int i=0; i<dim[0]*dim[1]; i++) fbuffer[i] = (float)dbuffer[i];
 		}
 		TIMER_STOP(t1, *read_timer);
 		//
 		// Write a single slice of data
 		//
-		bufwriter->WriteSlice((float *) slice_f);
+		
+		bufwriter->WriteSlice(fbuffer);
 		if (bufwriter->GetErrCode() != 0) {
 			cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
 			exit(1);
 		}
 
 	}
+	delete fbuffer;
+	if (dbuffer) delete dbuffer;
 }
 
 
