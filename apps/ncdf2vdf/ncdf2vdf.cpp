@@ -336,8 +336,8 @@ void	process_volume(
 	unsigned char *buffer = new unsigned char[size];
 	fprintf(stderr," buffer size allocated: %d\n", size);
 	
-	float* slice_f = (float*)buffer;
-	double* slice_d = (double*)buffer;
+	
+	
 	//
 	// Translate the volume one slice at a time
 	//
@@ -352,7 +352,8 @@ void	process_volume(
 
 		TIMER_START(t1);
 		start[dimIndex[2]] = z;
-		
+		double* slice_d = (double*)buffer;
+		float* slice_f = (float*)buffer;
 		if (xtype == NC_FLOAT) {
 		
 			nc_status = nc_get_vara_float(
@@ -368,7 +369,7 @@ void	process_volume(
 			NC_ERR_READ(nc_status);
 			//Convert to float:
 			
-			for(int i=0; i<dim[0]*dim[1]; i++) *slice_f++ = (float) *slice_d++;
+			for(int i=0; i<dim[0]*dim[1]; i++) *(slice_f++) = (float) *(slice_d++);
 		}
 		TIMER_STOP(t1, *read_timer);
 		//
