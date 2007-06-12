@@ -74,7 +74,7 @@ void OpacityWidget::move(float dx, float dy, float)
   if ((_selected == BOTTOM_LEFT  || _selected == TOP_LEFT ||
        _selected == BOTTOM_RIGHT || _selected == TOP_RIGHT ||
        _selected == BORDER) &&
-      left() + dx > right() && right() + dx < left())
+      left() + dx >= right() && right() + dx <= left())
   {
     _opacityMap->minValue(_opacityMap->minValue() + dx*scaling);
     _opacityMap->maxValue(_opacityMap->maxValue() + dx*scaling);
@@ -102,13 +102,13 @@ void OpacityWidget::drag(float dx, float dy, float)
   float scaling = (_parent->maxDataValue() - _parent->minDataValue());
 
   if ((_selected == BOTTOM_LEFT || _selected == TOP_LEFT) &&
-      left() + dx < right() && left() + dx > 0.0)
+      left() + dx <= right() && left() + dx >= 0.0)
   {
     _opacityMap->minValue(_opacityMap->minValue() + dx*scaling);
   }
 
   else if ((_selected == BOTTOM_RIGHT || _selected == TOP_RIGHT) &&
-           right() + dx > left() && right() + dx < 1.0)
+           right() + dx >= left() && right() + dx <= 1.0)
   {
     _opacityMap->maxValue(_opacityMap->maxValue() + dx*scaling);
   }
@@ -137,7 +137,7 @@ void OpacityWidget::drag(float dx, float dy, float)
   }
 
   else if (_selected == BORDER &&
-           left() + dx < right() && right() + dx > left())
+           left() + dx <= right() && right() + dx >= left())
   {
     _opacityMap->minValue(_opacityMap->minValue() + dx*scaling);
     _opacityMap->maxValue(_opacityMap->maxValue() + dx*scaling);
