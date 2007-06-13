@@ -2,7 +2,9 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-IDL_EXAMPLES = PrintMetaVDF.pro ReadRegionVDF.pro ReadVDF.pro \
+IDL_EXAMPLES = AddMagVDF.pro AddCurlVDF.pro PrintMetaVDF.pro \
+	curl_findiff.pro deriv_findiff.pro pencil2vapor.pro \
+	ReadRegionVDF.pro ReadVDF.pro \
 	WriteTimeVaryVDF.pro WriteVDF.pro expregion.pro impexp.pro \
 	impregion.pro marschner_lobb.pro QuickStartEx1.pro myderiv.pro
 
