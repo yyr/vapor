@@ -124,6 +124,13 @@ slcx = fltarr(dim[0],dim[1])
 slcy = fltarr(dim[0],dim[1])
 slcz = fltarr(dim[0],dim[1])
 
+;   Determine the grid spacing
+
+extents = VDF_GETEXTENTS(mfd)
+deltax = (extents[3] - extents[0])/FLOAT(dim[0])
+deltay = (extents[4] - extents[1])/FLOAT(dim[1])
+deltaz = (extents[5] - extents[2])/FLOAT(dim[2])
+
 FOR z = 0, dim[2]-1 DO BEGIN
     vdc_bufreadslice, dfdx, slcx
 
@@ -158,7 +165,7 @@ ENDFOR
 vdc_closevar, dfdz
 vdc_bufreaddestroy, dfdz
 ;  Now perform the curl on the data
-curl_findiff,srcx,srcy,srcz,dstx,dsty,dstz,.01,.01,.01
+curl_findiff,srcx,srcy,srcz,dstx,dsty,dstz,deltax,deltay,deltaz
 
 print,'performed the curl on ',varx,' ', vary,' ', varz
 
@@ -202,4 +209,5 @@ vdc_bufwritedestroy, dfdcurlz
 vdf_write,mfd,vdffile
 vdf_destroy, mfd
 
+print,'Curl completed'
 end
