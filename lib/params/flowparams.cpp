@@ -2121,6 +2121,9 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 					if (x>=opacSize[0]) x = opacSize[0]-1;
 					if (y>=opacSize[1]) y = opacSize[1]-1;
 					if (z>=opacSize[2]) z = opacSize[2]-1;
+					if (x < 0) x = 0;
+					if (y < 0) y = 0;
+					if (z < 0) z = 0;
 					
 					opacVar = opacRegion[x+opacSize[0]*(y+opacSize[1]*z)];
 					break;
@@ -2165,8 +2168,11 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 					y = (int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
 					z = (int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
 					if (x>=colorSize[0]) x = colorSize[0]-1;
+					if (x<0) x = 0;
 					if (y>=colorSize[1]) y = colorSize[1]-1;
+					if (y<0) y = 0;
 					if (z>=colorSize[2]) z = colorSize[2]-1;
+					if (z<0) z = 0;
 					colorVar = colorRegion[x+colorSize[0]*(y+colorSize[1]*z)];
 					break;
 			}
