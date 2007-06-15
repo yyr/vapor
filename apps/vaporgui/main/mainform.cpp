@@ -108,7 +108,7 @@ MainForm* MainForm::theMainForm = 0;
 
 //Only the main program should call the constructor:
 //
-MainForm::MainForm(QString& fileName, QWidget* parent, const char* name, WFlags )
+MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const char* name, WFlags )
     : QMainWindow( parent, name, WDestructiveClose )
 {
 	theMainForm = this;
@@ -118,6 +118,7 @@ MainForm::MainForm(QString& fileName, QWidget* parent, const char* name, WFlags 
 	theAnimationTab = 0;
 	theFlowTab = 0;
 	theProbeTab = 0;
+	theApp = app;
 
 	modeStatusWidget = 0;
 	

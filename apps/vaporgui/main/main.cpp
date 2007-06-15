@@ -89,7 +89,7 @@ int main( int argc, char ** argv ) {
 #endif
 	QString fileName("");
     if (argc > 1) fileName = argv[1];
-    MainForm* mw = new MainForm(fileName);
+    MainForm* mw = new MainForm(fileName,app);
 	
 	
     mw->setCaption( "VAPOR User Interface" );

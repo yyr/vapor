@@ -30,7 +30,7 @@
 
 #include "command.h"
 #include "params.h"
-
+class QApplication;
 class QVBoxLayout;
 class QHBoxLayout;
 class QGridLayout;
@@ -77,7 +77,7 @@ public:
 			assert(0);
 		return theMainForm;
 	}
-    MainForm(QString& fileName, QWidget* parent = 0, const char* name = 0, WFlags fl = WType_TopLevel );
+    MainForm(QString& fileName, QApplication* app, QWidget* parent = 0, const char* name = 0, WFlags fl = WType_TopLevel );
     ~MainForm();
 
     
@@ -175,6 +175,7 @@ public:
 	QWorkspace* getWorkspace() {return myWorkspace;}
 	//Disable the editUndo/Redo action:
 	void disableUndoRedo();
+	QApplication* getApp() {return theApp;}
 	
 	
 	
@@ -245,6 +246,7 @@ protected:
 	FlowEventRouter* theFlowTab;
 	ProbeEventRouter* theProbeTab;
 	AnimationEventRouter* theAnimationTab;
+	QApplication* theApp;
 	
 	VizSelectCombo* windowSelector;
 

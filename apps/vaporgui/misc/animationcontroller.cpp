@@ -16,8 +16,8 @@
 //
 //	Description:	Implements the AnimationController class
 //		
-
-
+#include "mainform.h"
+#include <qapplication.h>
 #include <qwaitcondition.h>
 #include <qthread.h>
 #include <qmutex.h>
@@ -202,6 +202,12 @@ endRendering(int vizNum){
 	//controller thread (X11 limitation!)
 	//See if this is the active visualizer
 	if (VizWinMgr::getInstance()->getActiveViz() == vizNum){
+		
+		QApplication* app = MainForm::getInstance()->getApp();
+		bool hasEvents = app->hasPendingEvents();
+		if (hasEvents) {
+			app->processEvents();
+		}
 		VizWinMgr::getInstance()->getAnimationRouter()->updateTab();
 	}
 	
