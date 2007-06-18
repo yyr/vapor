@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout87</cstring>
+                <cstring>layout88</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -304,7 +304,7 @@ for any flow integration.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout165</cstring>
+                                <cstring>layout87</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -327,7 +327,7 @@ for any flow integration.</string>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout105</cstring>
+                                        <cstring>layout85</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -345,7 +345,7 @@ for any flow integration.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>51</width>
+                                                    <width>16</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -405,7 +405,7 @@ in the unsteady field.</string>
                                         </widget>
                                         <spacer>
                                             <property name="name">
-                                                <cstring>spacer21_2</cstring>
+                                                <cstring>spacer93_4</cstring>
                                             </property>
                                             <property name="orientation">
                                                 <enum>Horizontal</enum>
@@ -415,8 +415,63 @@ in the unsteady field.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>40</width>
+                                                    <width>21</width>
                                                     <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>stopButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>STOP</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Click to interrupt current unsteady flow integration at completion of current time step</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer92</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>44</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout86</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer24_2_2_2</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>16</width>
+                                                    <height>21</height>
                                                 </size>
                                             </property>
                                         </spacer>
@@ -480,7 +535,7 @@ in the unsteady field.</string>
                                         </widget>
                                         <spacer>
                                             <property name="name">
-                                                <cstring>spacer92</cstring>
+                                                <cstring>spacer21_2</cstring>
                                             </property>
                                             <property name="orientation">
                                                 <enum>Horizontal</enum>
@@ -490,35 +545,8 @@ in the unsteady field.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>86</width>
+                                                    <width>16</width>
                                                     <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                    </hbox>
-                                </widget>
-                                <widget class="QLayoutWidget">
-                                    <property name="name">
-                                        <cstring>layout47_2_2_2</cstring>
-                                    </property>
-                                    <hbox>
-                                        <property name="name">
-                                            <cstring>unnamed</cstring>
-                                        </property>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer24_2_2_2</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>43</width>
-                                                    <height>21</height>
                                                 </size>
                                             </property>
                                         </spacer>
@@ -595,7 +623,7 @@ grid cells.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>101</width>
+                                                    <width>20</width>
                                                     <height>21</height>
                                                 </size>
                                             </property>

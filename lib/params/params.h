@@ -208,7 +208,7 @@ public:
 	virtual void setLocal(bool ){ assert(0);}
 		
 	bool isEnabled(){return enabled;}
-	virtual void setEnabled(bool value) {enabled = value;}
+	virtual void setEnabled(bool value) {enabled = value; stopFlag = false;}
 	
 	
 	virtual int getSessionVarNum(){ assert(0); return -1;}
@@ -260,12 +260,15 @@ public:
 	
 	virtual MapperFunction* getMapperFunc()=0;
 	virtual int getNumRefinements()=0;
+	void setStopFlag(bool val = true) {stopFlag = val;}
+	bool getStopFlag() {return stopFlag;}
 
 protected:
 	
 	// The enabled flag is only used by renderer params
 	//
 	bool enabled;
+	bool stopFlag;  //Indicates if user asked to stop (only with flow calc now)
 	//Needed for renderer params:
 	float* minColorEditBounds;
 	float* maxColorEditBounds;

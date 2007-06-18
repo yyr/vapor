@@ -844,6 +844,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 		setAllNeedRefresh(false);
 		return false;
 	}
+	myFlowParams->setStopFlag(false);
 	int flowType = myFlowParams->getFlowType();  //steady, unsteady, and field line advect
 
 	//Check that we have a large-enough cache.  
@@ -971,7 +972,18 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 						continue;
 					}
 					numTimestepsToRender++;
-					//At some point we might allow users to interrupt at this point:
+					//allow users to interrupt at this point:
+					DataStatus* ds = DataStatus::getInstance();
+					ds->getApp()->processEvents();
+					if (myFlowParams->getStopFlag()){
+						delete unsteadyFlowCache;
+						unsteadyFlowCache = 0;
+						setAllNeedRefresh(false);
+						QApplication::restoreOverrideCursor();
+						MyBase::SetErrMsg(VAPOR_WARNING_FLOW_STOP,"Flow Integration Terminated");
+						return false;
+					}
+
 					//The following is time consuming...
 					OK = myFlowLib->ExtendPathLines(unsteadyFlowCache, prevStep, nextStep, false);
 					if (!OK) {
@@ -1082,8 +1094,19 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 							//Check if prevStep and nextStep are valid, if so, skip:
 							if (!flowDataDirty[prevStep] && !flowDataDirty[nextStep]) continue;
 						}
+						//allow users to interrupt at this point:
+						DataStatus* ds = DataStatus::getInstance();
+						ds->getApp()->processEvents();
+						if (myFlowParams->getStopFlag()){
+							
+							setAllNeedRefresh(false);
+							QApplication::restoreOverrideCursor();
+							MyBase::SetErrMsg(VAPOR_WARNING_FLOW_STOP,"Flow Integration Terminated");
+							return false;
+						}
 						//At this point we know we need to advect from prevStep to nextStep
 						//This is either performed by advecting before or after prioritization
+
 						bool OK;
 						if (myFlowParams->getFLAAdvectBeforePrioritize()){
 							OK = myFlowParams->multiAdvectFieldLines(myFlowLib, steadyFlowCache, prevStep, nextStep,minFrame,rParams);

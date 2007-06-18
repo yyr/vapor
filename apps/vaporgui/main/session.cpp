@@ -744,8 +744,8 @@ void Session::resetCommandQueue(){
 void Session::
 setupDataStatus(){
 	DataStatus* currentDataStatus = DataStatus::getInstance();
-	
-	if(currentDataStatus->reset(dataMgr, cacheMB)) {
+	QApplication* app = MainForm::getInstance()->getApp();
+	if(currentDataStatus->reset(dataMgr, cacheMB, app)) {
 		dataExists = true;
 		
 		//currentDataStatus->fillMetadataVars();

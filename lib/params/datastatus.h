@@ -28,6 +28,7 @@
 
 #include "vapor/VDFIOBase.h"
 #include "vapor/MyBase.h"
+class QApplication;
 
 namespace VAPoR {
 class DataMgr;
@@ -47,9 +48,10 @@ public:
 		if (!theDataStatus) theDataStatus = new DataStatus;
 		return theDataStatus;
 	}
+	QApplication* getApp() {return theApp;}
 	//Reset the datastatus when a new datamgr is opened.
 	//This avoids all "Set" methods:
-	bool reset(DataMgr* dm, size_t cachesize);
+	bool reset(DataMgr* dm, size_t cachesize, QApplication* app);
 	
 	// Get methods:
 	//
@@ -173,6 +175,7 @@ private:
 	Metadata* currentMetadata;
 	DataMgr* dataMgr;
 	bool renderOK;
+	QApplication* theApp;
 	
 	//track min and max data values for each variable and timestep (at max transform level)
 	//Indexed by session variable nums

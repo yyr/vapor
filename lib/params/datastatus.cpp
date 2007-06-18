@@ -76,7 +76,7 @@ DataStatus()
 // return true if there was anything to set up.
 // 
 bool DataStatus::
-reset(DataMgr* dm, size_t cachesize){
+reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	cacheMB = cachesize;
 	
 	currentMetadata = (Metadata*)dm->GetMetadata();

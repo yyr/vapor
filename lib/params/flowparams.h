@@ -353,6 +353,7 @@ public:
 	void periodicMap(float origCoords[3],float newCoords[3]);
 	std::vector<int>& getUnsteadyTimesteps() { return unsteadyTimestepList;}
 	
+	
 
 	
 protected:
@@ -517,6 +518,7 @@ protected:
 	int unsteadyFlowDirection; //either -1 or 1, backwards or forwards
 	int steadyFlowDirection; //either -1, 1, or 0 backwards, forwards, or both
 	float steadyFlowLength;
+	
 	
 
 };

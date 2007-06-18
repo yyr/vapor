@@ -115,6 +115,7 @@ FlowEventRouter::hookUpTab()
 	connect (timestepSampleCheckbox1, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
 	connect (timestepSampleCheckbox2, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
 	
+	connect (stopButton, SIGNAL(clicked()), this, SLOT(stopClicked()));
 	connect (showAdvancedButton, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
 	connect (hideAdvanced1, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
 	connect (hideAdvanced2, SIGNAL(clicked()), this, SLOT(toggleAdvanced()));
@@ -330,7 +331,7 @@ void FlowEventRouter::updateTab(){
 	bool autoScale = fParams->isAutoScale();
 	Session::getInstance()->blockRecording();
 
-	
+	stopButton->setEnabled( flowType != 0 && fParams->isEnabled());
 
 	
 	switch (flowType){
@@ -1055,6 +1056,18 @@ void FlowEventRouter::confirmText(bool /*render*/){
 /*********************************************************************************
  * Slots associated with FlowTab:
  *********************************************************************************/
+//Respond to user click "STOP"
+void FlowEventRouter::stopClicked(){
+	//Set the "Stop" flag in the params
+	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	
+	//Turn off autoRefresh (does this screw up undo/redo queue?
+	guiSetAutoRefresh(false);
+	if (fParams->isEnabled()){
+		fParams->setStopFlag();
+		refreshButton->setEnabled(true);
+	}
+}
 //Add a new (blank) row to the table
 void FlowEventRouter::addSample(){
 	timestepSampleTable1->insertRows(timestepSampleTable1->numRows());
@@ -2079,6 +2092,7 @@ guiSetAutoRefresh(bool autoOn){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "toggle auto flow refresh");
 	fParams->setAutoRefresh(autoOn);
+	
 	PanelCommand::captureEnd(cmd, fParams);
 	
 	//If we are turning off autoRefresh, turn off all the needsRefresh flags 
@@ -2165,6 +2179,7 @@ void FlowEventRouter::
 refreshFlow(){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	confirmText(false);
+	
 	//set all dirty frames to need rendering.
 
 	FlowRenderer* fRenderer = (FlowRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(fParams);

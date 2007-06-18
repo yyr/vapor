@@ -88,6 +88,7 @@ public slots:
 
 	void guiSetRakeToRegion();
 protected slots:
+	void stopClicked();
 	void showSetupHelp();
 	void addSample();
 	void deleteSample();
