@@ -122,31 +122,19 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
       // rather than calling buildBricks(...). 
       //
       _bricks.push_back(new TextureBrick());
-      
+
       _bricks[0]->volumeMin(extents[0], extents[1], extents[2]);
       _bricks[0]->volumeMax(extents[3], extents[4], extents[5]);
-      
-       // Compute min and max texture coordinates. When texture wrap mode is 
-       // set to GL_CLAMP_TO_EDGE the min and max coordinates are:
-       // min = 1.0/2N and max = 1.0 - min.
-       //
-       float mins = 1.0 / (2*_nx);
-       float maxs = 1.0 - mins;
-       float mint = 1.0 / (2*_ny);
-       float maxt = 1.0 - mint;
-       float minr = 1.0 / (2*_nz);
-       float maxr = 1.0 - minr;
 
-      _bricks[0]->textureMin(
-        mins + (data_roi[0] * (maxs-mins)/(_nx-1)), 
-        mint + (data_roi[1] * (maxt-mint)/(_ny-1)), 
-        minr + (data_roi[2] * (maxr-minr)/(_nz-1)));
+      _bricks[0]->textureMin((data_roi[0])/(float)(_nx-1),
+                             (data_roi[1])/(float)(_ny-1),
+                             (data_roi[2])/(float)(_nz-1));
 
-      _bricks[0]->textureMax(
-        mins + (data_roi[3] * (maxs-mins)/(_nx-1)), 
-        mint + (data_roi[4] * (maxt-mint)/(_ny-1)), 
-        minr + (data_roi[5] * (maxr-minr)/(_nz-1)));
-      
+      _bricks[0]->textureMax((data_roi[3])/(float)(_nx-1), 
+                             (data_roi[4])/(float)(_ny-1), 
+                             (data_roi[5])/(float)(_nz-1));
+
+
       _bricks[0]->fill((GLubyte*)data, nx, ny, nz);
       
       loadTexture(_bricks[0]);
