@@ -122,7 +122,7 @@ static char fragment_shader_lighting[] =
   "                   texture3D(volumeTexture,\n" 
   "                             gl_TexCoord[0].xyz + vec3(0,0,-dz)).x).a;\n"
   "  "
-  "  gradient = normalize((a1-a0)/2.0);\n"
+  "  gradient = (a1-a0)/2.0;\n"
   "  "
   "  return gradient;\n"
   "}\n";
