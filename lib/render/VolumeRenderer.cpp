@@ -269,9 +269,12 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   float matrix[16];
   
   static float extents[6];
+  static float padded_extents[6];
   
   size_t max_dim[3];
   size_t min_dim[3];
+  size_t max_pad_dim[3];
+  size_t min_pad_dim[3];
   size_t max_bdim[3];
   size_t min_bdim[3];
   int data_roi[6];
@@ -395,6 +398,21 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     datablock[4] = (int)((max_bdim[1]+1)*bs[1]-1);
     datablock[5] = (int)((max_bdim[2]+1)*bs[2]-1);
 
+    //
+    // Calculate the extents of the volume when it's padded by a single
+    // voxel.
+    //    
+    min_pad_dim[0] = min_dim[0] + 1; 
+    min_pad_dim[1] = min_dim[1] + 1; 
+    min_pad_dim[2] = min_dim[2] + 1;
+    max_pad_dim[0] = max_dim[0] - 1; 
+    max_pad_dim[1] = max_dim[1] - 1; 
+    max_pad_dim[2] = max_dim[2] - 1;
+
+    RegionParams::convertToBoxExtentsInCube(numxforms, 
+                                            min_pad_dim, max_pad_dim, 
+                                            padded_extents); 
+   
     // make subregion origin (0,0,0)
     // Note that this doesn't affect the calc of nx,ny,nz.
     // Also, save original dims, will need them to find extents.
@@ -409,19 +427,41 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     ny = (int)((max_bdim[1] - min_bdim[1] + 1) * bs[1]);
     nz = (int)((max_bdim[2] - min_bdim[2] + 1) * bs[2]);
 
-    data_roi[0] = (int)min_dim[0];
-    data_roi[1] = (int)min_dim[1];
-    data_roi[2] = (int)min_dim[2];
-    data_roi[3] = (int)max_dim[0];
-    data_roi[4] = (int)max_dim[1];
-    data_roi[5] = (int)max_dim[2];
-    
-    rc = driver->SetRegion(data,
-                           nx, ny, nz,
-                           data_roi, 
-                           extents, 
-                           datablock, 
-                           numxforms);
+	if (_type == DvrParams::DVR_SPHERICAL_SHADER)
+    {
+      data_roi[0] = (int)min_dim[0];
+      data_roi[1] = (int)min_dim[1];
+      data_roi[2] = (int)min_dim[2];
+      data_roi[3] = (int)max_dim[0];
+      data_roi[4] = (int)max_dim[1];
+      data_roi[5] = (int)max_dim[2];
+
+      rc = driver->SetRegion(data,
+                             nx, ny, nz,
+                             data_roi, 
+                             extents, 
+                             datablock, 
+                             numxforms);
+    }
+    else
+    {
+      //
+      // Pad the roi with a single voxel in each axis. This ensures
+      // data will be available for gradient calculations. 
+      //
+      data_roi[0] = (int)min_dim[0]+1;
+      data_roi[1] = (int)min_dim[1]+1;
+      data_roi[2] = (int)min_dim[2]+1;
+      data_roi[3] = (int)max_dim[0]-1;
+      data_roi[4] = (int)max_dim[1]-1;
+      data_roi[5] = (int)max_dim[2]-1;
+      
+      rc = driver->SetRegion(data,
+                             nx, ny, nz,
+                             data_roi, padded_extents,
+                             datablock, numxforms
+                             );
+    }
     
     if (rc < 0) {
       fprintf(stderr, "Error in DVRVolume::SetRegion\n");
