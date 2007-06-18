@@ -25,18 +25,33 @@
 
 using namespace VAPoR;
 
+#ifndef MAX
+#define MAX(a,b)        ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#define MIN(a,b)        ((a) < (b) ? (a) : (b))
+#endif
+
+#ifndef M_E
+#define M_E 2.71828182845904523536
+#endif
+
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
 DVRShader::DVRShader(DataType_T type, int nthreads) :
   DVRTexture3d(type, nthreads),
-  _colormap(NULL),
+ _colormap(NULL),
   _shader(NULL),
-  _texid(0),
-  _cmapid(0)
+  _lighting(false),
+  _preintegration(false),
+  _texid(0)
 {
-  _shaders[DEFAULT] = NULL;
-  _shaders[LIGHT]   = NULL;
+  _shaders[DEFAULT]              = NULL;
+  _shaders[LIGHT]                = NULL;
+  _shaders[PRE_INTEGRATED]       = NULL;
+  _shaders[PRE_INTEGRATED_LIGHT] = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -50,13 +65,81 @@ DVRShader::~DVRShader()
   delete _shaders[LIGHT];
   _shaders[LIGHT] = NULL;
 
+  delete _shaders[PRE_INTEGRATED];
+  _shaders[PRE_INTEGRATED] = NULL;
+
+  delete _shaders[PRE_INTEGRATED_LIGHT];
+  _shaders[PRE_INTEGRATED_LIGHT] = NULL;
+
   delete [] _colormap;
   _colormap = NULL;
 
   glDeleteTextures(1, &_texid);
-  glDeleteTextures(1, &_cmapid);
+  glDeleteTextures(2, _cmapid);
 }
 
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+bool DVRShader::createShader(ShaderType type, 
+                             const char *vertexCommandLine,
+                             const char *vertexSource,
+                             const char *fragCommandLine,
+                             const char *fragmentSource)
+{
+  _shaders[type] = new ShaderProgram();
+  _shaders[type]->create();
+
+  //
+  // Vertex shader
+  //
+  if (Params::searchCmdLine(vertexCommandLine))
+  {
+    _shaders[type]->loadVertexShader(Params::parseCmdLine(vertexCommandLine));
+  }
+  else if (vertexSource)
+  {
+    _shaders[type]->loadVertexSource(vertexSource);
+  }
+
+  //
+  // Fragment shader
+  //
+  if (Params::searchCmdLine(fragCommandLine))
+  {
+    _shaders[type]->loadFragmentShader(Params::parseCmdLine(fragCommandLine));
+  }
+  else if (fragmentSource)
+  {
+    _shaders[type]->loadFragmentSource(fragmentSource);
+  }
+
+  if (!_shaders[type]->compile())
+  {
+    return false;
+  }
+
+  //
+  // Set up initial uniform values
+  //
+  _shaders[type]->enable();
+
+  if (GLEW_VERSION_2_0)
+  {
+    glUniform1i(_shaders[type]->uniformLocation("colormap"), 1);
+    glUniform1i(_shaders[type]->uniformLocation("volumeTexture"), 0);
+  }
+  else
+  {
+    glUniform1iARB(_shaders[type]->uniformLocation("colormap"), 1);
+    glUniform1iARB(_shaders[type]->uniformLocation("volumeTexture"), 0);
+  }
+
+  _shaders[type]->disable();
+
+  return true;
+}
 
 //----------------------------------------------------------------------------
 //
@@ -70,97 +153,51 @@ int DVRShader::GraphicsInit()
   //
   // Create, Load & Compile the default shader program
   //
-  _shaders[DEFAULT] = new ShaderProgram();
-  _shaders[DEFAULT]->create();
-
-  if (Params::searchCmdLine("--defaultFS"))
-  {
-    _shaders[DEFAULT]->loadFragmentShader(Params::parseCmdLine("--defaultFS"));
-  }
-  else
-  {
-    _shaders[DEFAULT]->loadFragmentSource(fragment_shader_default);
-  }
-
-  if (!_shaders[DEFAULT]->compile())
+  if (!createShader(DEFAULT, 
+                    NULL, 
+                    NULL, 
+                    "--default-fragement-shader", 
+                    fragment_shader_default))
   {
     return -1;
   }
-
-  //
-  // Set up initial uniform values
-  //
-  _shaders[DEFAULT]->enable();
-
-  if (GLEW_VERSION_2_0)
-  {
-    glUniform1i(_shaders[DEFAULT]->uniformLocation("colormap"), 1);
-    glUniform1i(_shaders[DEFAULT]->uniformLocation("volumeTexture"), 0);
-  }
-  else
-  {
-    glUniform1iARB(_shaders[DEFAULT]->uniformLocation("colormap"), 1);
-    glUniform1iARB(_shaders[DEFAULT]->uniformLocation("volumeTexture"), 0);
-  }
-
-  _shaders[DEFAULT]->disable();
-
-
 
   //
   // Create, Load & Compile the lighting shader program
   //
-  _shaders[LIGHT] = new ShaderProgram();
-  _shaders[LIGHT]->create();
-  
-  if (Params::searchCmdLine("--lightingFS"))
-  {
-    _shaders[LIGHT]->loadFragmentShader(Params::parseCmdLine("--lightingFS"));
-  }
-  else
-  {
-    _shaders[LIGHT]->loadFragmentSource(fragment_shader_lighting);
-  }
-
-  if (Params::searchCmdLine("--lightingVS"))
-  {
-    _shaders[LIGHT]->loadVertexShader(Params::parseCmdLine("--lightingVS"));
-  }
-  else
-  {
-    _shaders[LIGHT]->loadVertexSource(vertex_shader_lighting);
-  }
-
-  if (!_shaders[LIGHT]->compile())
+  if (!createShader(LIGHT,
+                    "--lighting-vertex-shader",
+                    vertex_shader_lighting,
+                    "--lighting-fragment-shader",
+                    fragment_shader_lighting))
   {
     return -1;
   }
 
-  _shaders[LIGHT]->enable();
-
-  if (GLEW_VERSION_2_0)
+  //
+  // Create, Load & Compile the pre-integrated shader program
+  //
+  if (!createShader(PRE_INTEGRATED,
+                    "--preintegrated-vertex-shader",
+                    vertex_shader_preintegrated,
+                    "--preintegrated-fragment-shader",
+                    fragment_shader_preintegrated))
   {
-    glUniform1i(_shaders[LIGHT]->uniformLocation("colormap"), 1);
-    glUniform1i(_shaders[LIGHT]->uniformLocation("volumeTexture"), 0);
-    glUniform1f(_shaders[LIGHT]->uniformLocation("kd"), 0.8);
-    glUniform1f(_shaders[LIGHT]->uniformLocation("ka"), 0.2);
-    glUniform1f(_shaders[LIGHT]->uniformLocation("ks"), 0.5);
-    glUniform1f(_shaders[LIGHT]->uniformLocation("expS"), 20);
-    glUniform3f(_shaders[LIGHT]->uniformLocation("lightDirection"), 0,0,1);
-  }
-  else
-  {
-    glUniform1iARB(_shaders[LIGHT]->uniformLocation("colormap"), 1);
-    glUniform1iARB(_shaders[LIGHT]->uniformLocation("volumeTexture"), 0);
-    glUniform1fARB(_shaders[LIGHT]->uniformLocation("kd"), 0.8);
-    glUniform1fARB(_shaders[LIGHT]->uniformLocation("ka"), 0.2);
-    glUniform1fARB(_shaders[LIGHT]->uniformLocation("ks"), 0.5);
-    glUniform1fARB(_shaders[LIGHT]->uniformLocation("expS"), 20);
-    glUniform3fARB(_shaders[LIGHT]->uniformLocation("lightDirection"), 0,0,1);
+    return -1;
   }
 
-  _shaders[LIGHT]->disable();
-
+  //
+  // Create, Load & Compile the lighted pre-integrated shader program
+  //
+  if (!createShader(PRE_INTEGRATED_LIGHT,
+                    "--preintegrated-lighting-vertex-shader",
+                    vertex_shader_preintegrated_lighting,
+                    "--preintegrated-lighting-fragment-shader",
+                    fragment_shader_preintegrated_lighting))
+  {
+    return -1;
+  }
+                    
   //
   // Set the current shader
   //
@@ -187,22 +224,20 @@ int DVRShader::SetRegion(void *data,
     _nx = nx; _ny = ny; _nz = nz;
     _data = data;
 
-    if (_shaders[LIGHT])
+    if (_lighting)
     {
-      _shaders[LIGHT]->enable();
+      _shader->enable();
 
       if (GLEW_VERSION_2_0)
       {
-        glUniform3f(_shaders[LIGHT]->uniformLocation("dimensions"), 
-                    nx, ny, nz);
+        glUniform3f(_shader->uniformLocation("dimensions"), nx, ny, nz);
       }
       else
       {
-        glUniform3fARB(_shaders[LIGHT]->uniformLocation("dimensions"), 
-                       nx, ny, nz);
+        glUniform3fARB(_shader->uniformLocation("dimensions"), nx, ny, nz);
       }
 
-      _shaders[LIGHT]->disable();
+      _shader->disable();
     }
   }
 
@@ -242,17 +277,29 @@ int DVRShader::Render(const float matrix[16])
   glPolygonMode(GL_FRONT, GL_FILL);
   glPolygonMode(GL_BACK, GL_LINE);
 
-  if (GLEW_VERSION_2_0) {
+  if (GLEW_VERSION_2_0) 
+  {
     glActiveTexture(GL_TEXTURE0);
   }
-  else {
+  else 
+  {
     glActiveTextureARB(GL_TEXTURE0_ARB);
   }
+
   glEnable(GL_TEXTURE_3D);
   glBindTexture(GL_TEXTURE_3D, _texid);
 
-  glEnable(GL_TEXTURE_1D);
-
+  if (_preintegration)
+  {
+    glEnable(GL_TEXTURE_2D);  
+    glBindTexture(GL_TEXTURE_2D, _cmapid[1]);
+  }
+  else
+  {
+    glEnable(GL_TEXTURE_1D);
+    glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
+  }
+  
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -265,6 +312,7 @@ int DVRShader::Render(const float matrix[16])
 
   glDisable(GL_BLEND);
   glDisable(GL_TEXTURE_3D);
+  glDisable(GL_TEXTURE_2D);
   glDisable(GL_TEXTURE_1D);
 
   if (_shader) _shader->disable();
@@ -297,13 +345,15 @@ void DVRShader::SetCLUT(const float ctab[256][4])
     _colormap[i*4+3] = ctab[i][3];
   }
 
-  if (GLEW_VERSION_2_0) {
+  if (GLEW_VERSION_2_0) 
+  {
     glActiveTexture(GL_TEXTURE1);
   }
-  else {
+  else 
+  {
     glActiveTextureARB(GL_TEXTURE1_ARB);
   }
-  glBindTexture(GL_TEXTURE_1D, _cmapid);
+  glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
   
   glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA,
                   GL_FLOAT, _colormap);
@@ -317,6 +367,12 @@ void DVRShader::SetCLUT(const float ctab[256][4])
 //----------------------------------------------------------------------------
 void DVRShader::SetOLUT(const float atab[256][4], const int numRefinements)
 {
+  if (_preintegration)
+  {
+    SetPreIntegrationTable(atab, numRefinements);
+    return;
+  }
+
   //
   // Calculate opacity correction. Delta is 1 for the ffineest refinement, 
   // multiplied by 2^n (the sampling distance)
@@ -340,15 +396,133 @@ void DVRShader::SetOLUT(const float atab[256][4], const int numRefinements)
     _colormap[i*4+3] = opac;
   }
 
-  if (GLEW_VERSION_2_0) {
+  if (GLEW_VERSION_2_0) 
+  {
     glActiveTexture(GL_TEXTURE1);
   }
-  else {
+  else 
+  {
     glActiveTextureARB(GL_TEXTURE1_ARB);
   }
-  glBindTexture(GL_TEXTURE_1D, _cmapid);
+
+  glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
   
   glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA,
+                  GL_FLOAT, _colormap);
+
+  glFlush();
+}
+
+double clamp(double v, double min, double max)
+{
+  return MAX(MIN(v, max), min);
+}
+
+//----------------------------------------------------------------------------
+// Set the pre-integrated color table used to render the volume applying an 
+// opacity correction.
+//----------------------------------------------------------------------------
+void DVRShader::SetPreIntegrationTable(const float atab[256][4], 
+                                       const int numRefinements)
+{
+  double factor;
+  double ifunc[256][4];
+  double r = 0;
+  double g = 0;
+  double b = 0;
+  double a = 0;
+
+
+  ifunc[0][0] = 0.0;
+  ifunc[0][1] = 0.0;
+  ifunc[0][2] = 0.0;
+  ifunc[0][3] = 0.0;
+
+  float opac[256];
+
+  double delta = (double)(1<<numRefinements);
+  opac[0] = MIN(1.0, 1.0 - pow((1.0 - atab[0][3]), delta));
+
+  // 
+  // Compute integral functions & opacity correction
+  //
+
+  for (int i=1; i<256; i++)
+  {
+
+    opac[i] = MIN(1.0, 1.0 - pow((1.0 - atab[i][3]), delta));
+
+    a = 255.0*(opac[i-1]+opac[i])/2.0;
+
+    // Opacity-weighted
+    //ifunc[i][0] = ifunc[i-1][0] + (atab[i-1][0]+atab[i][0])/2.0*a;
+    //ifunc[i][1] = ifunc[i-1][1] + (atab[i-1][1]+atab[i][1])/2.0*a;
+    //ifunc[i][2] = ifunc[i-1][2] + (atab[i-1][2]+atab[i][2])/2.0*a;
+
+    // No weighting
+    ifunc[i][0] = ifunc[i-1][0] + (atab[i-1][0]+atab[i][0])/2.0*255;
+    ifunc[i][1] = ifunc[i-1][1] + (atab[i-1][1]+atab[i][1])/2.0*255;
+    ifunc[i][2] = ifunc[i-1][2] + (atab[i-1][2]+atab[i][2])/2.0*255;
+
+    ifunc[i][3] = ifunc[i-1][3] + a;
+  }    
+
+  //
+  // Compute lookup table
+  //
+  for (int sb=0; sb<256; sb++)
+  {
+    for (int sf=0; sf<256; sf++)
+    {
+      int smin = MIN(sb, sf);
+      int smax = MAX(sb, sf);
+
+      if (smin != smax)
+      {
+        factor = 1.0 / (double)(smax - smin);
+        
+        r = factor * (ifunc[smax][0] - ifunc[smin][0]);
+        g = factor * (ifunc[smax][1] - ifunc[smin][1]);
+        b = factor * (ifunc[smax][2] - ifunc[smin][2]);
+        a = 256.0 * 
+          (1.0 - expf(-(ifunc[smax][3] - ifunc[smin][3]) * factor / 255.0));
+      }
+      else
+      {
+        // Opacity-weighted
+        //r = 255.0 * atab[smin][0] * atab[smin][3];
+        //g = 255.0 * atab[smin][1] * atab[smin][3];
+        //b = 255.0 * atab[smin][2] * atab[smin][3];
+
+        // No weighting
+        r = 255.0 * atab[smin][0];
+        g = 255.0 * atab[smin][1];
+        b = 255.0 * atab[smin][2];
+        a = 256 * (1.0 - expf(-opac[smin]));
+
+      }
+
+      int index = (sf + sb*256) * 4;
+
+      _colormap[index + 0] = clamp(r/255.0, 0.0, 1.0);
+      _colormap[index + 1] = clamp(g/255.0, 0.0, 1.0);
+      _colormap[index + 2] = clamp(b/255.0, 0.0, 1.0);
+      _colormap[index + 3] = clamp(a/255.0, 0.0, 1.0);
+    }
+  }
+
+  if (GLEW_VERSION_2_0) 
+  {
+    glActiveTexture(GL_TEXTURE1);
+  }
+  else 
+  {
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+  }
+
+  glBindTexture(GL_TEXTURE_2D, _cmapid[1]);
+  
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA,
                   GL_FLOAT, _colormap);
 
   glFlush();
@@ -357,9 +531,60 @@ void DVRShader::SetOLUT(const float atab[256][4], const int numRefinements)
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
+void DVRShader::SetView(const float *pos, const float *dir) 
+{
+  assert(dir);
+  assert(pos);
+
+  if (_preintegration)
+  {
+    GLfloat vdir[4] = {dir[0], dir[1], dir[2], 1.0};
+    GLfloat vpos[4] = {pos[0], pos[1], pos[2], 1.0};
+
+    _shader->enable();
+    
+    if (GLEW_VERSION_2_0)
+    {
+      glUniform4f(_shader->uniformLocation("vdir"), 
+                  vdir[0], vdir[1], vdir[2], vdir[3]);
+      glUniform4f(_shader->uniformLocation("vpos"), 
+                  vpos[0], vpos[1], vpos[2], vpos[3]);
+    }
+    else
+    {
+      glUniform4fARB(_shader->uniformLocation("vdir"),
+                     vdir[0], vdir[1], vdir[2], vdir[3]);
+      glUniform4fARB(_shader->uniformLocation("vpos"),
+                     vpos[0], vpos[1], vpos[2], vpos[3]);
+    }
+    
+    _shader->disable();
+  }
+}
+
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DVRShader::SetPreintegrationOnOff(int on) 
+{
+  _preintegration = on;
+
+  _shader = shader(); assert(_shader);
+
+  initShaderVariables();
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
 void DVRShader::SetLightingOnOff(int on) 
 {
-  _shader = on ? _shaders[LIGHT] : _shaders[DEFAULT];
+  _lighting = on;
+
+  _shader = shader(); assert(_shader);
+
+  initShaderVariables();
 }
 
 //----------------------------------------------------------------------------
@@ -367,26 +592,26 @@ void DVRShader::SetLightingOnOff(int on)
 //----------------------------------------------------------------------------
 void DVRShader::SetLightingCoeff(float kd, float ka, float ks, float expS)
 {
-  if (_shaders[LIGHT])
+  if (_lighting)
   {
-    _shaders[LIGHT]->enable();
+    _shader->enable();
 
     if (GLEW_VERSION_2_0)
     {
-      glUniform1f(_shaders[LIGHT]->uniformLocation("kd"), kd);
-      glUniform1f(_shaders[LIGHT]->uniformLocation("ka"), ka);
-      glUniform1f(_shaders[LIGHT]->uniformLocation("ks"), ks);
-      glUniform1f(_shaders[LIGHT]->uniformLocation("expS"), expS);
+      glUniform1f(_shader->uniformLocation("kd"), kd);
+      glUniform1f(_shader->uniformLocation("ka"), ka);
+      glUniform1f(_shader->uniformLocation("ks"), ks);
+      glUniform1f(_shader->uniformLocation("expS"), expS);
     }
     else
     {
-      glUniform1fARB(_shaders[LIGHT]->uniformLocation("kd"), kd);
-      glUniform1fARB(_shaders[LIGHT]->uniformLocation("ka"), ka);
-      glUniform1fARB(_shaders[LIGHT]->uniformLocation("ks"), ks);
-      glUniform1fARB(_shaders[LIGHT]->uniformLocation("expS"), expS);
+      glUniform1fARB(_shader->uniformLocation("kd"), kd);
+      glUniform1fARB(_shader->uniformLocation("ka"), ka);
+      glUniform1fARB(_shader->uniformLocation("ks"), ks);
+      glUniform1fARB(_shader->uniformLocation("expS"), expS);
     }
 
-    _shaders[LIGHT]->disable();
+    _shader->disable();
   }
 }
 
@@ -395,22 +620,22 @@ void DVRShader::SetLightingCoeff(float kd, float ka, float ks, float expS)
 //----------------------------------------------------------------------------
 void DVRShader::SetLightingLocation(const float *pos)
 {
-  if (_shaders[LIGHT])
+  if (_lighting)
   {
-    _shaders[LIGHT]->enable();
+    _shader->enable();
 
     if (GLEW_VERSION_2_0)
     {
-      glUniform3f(_shaders[LIGHT]->uniformLocation("lightDirection"), 
+      glUniform3f(_shader->uniformLocation("lightDirection"), 
                   pos[0], pos[1], pos[2]);
     }
     else
     {
-      glUniform3fARB(_shaders[LIGHT]->uniformLocation("lightDirection"), 
+      glUniform3fARB(_shader->uniformLocation("lightDirection"), 
                      pos[0], pos[1], pos[2]);
     }
 
-    _shaders[LIGHT]->disable();
+    _shader->disable();
   }
 }
 
@@ -424,17 +649,24 @@ void DVRShader::initTextures()
   //
   // Setup the colormap texture
   //
-  glGenTextures(1, &_cmapid);
-  if (GLEW_VERSION_2_0) {
+  glGenTextures(2, _cmapid);
+
+  if (GLEW_VERSION_2_0) 
+  {
     glActiveTexture(GL_TEXTURE1);
   }
-  else {
+  else 
+  {
     glActiveTextureARB(GL_TEXTURE1_ARB);
   }
-  glBindTexture(GL_TEXTURE_1D, _cmapid);
 
-  _colormap = new float[256*4];
+  _colormap = new float[256*256*4];
   
+  //
+  // Standard colormap
+  //
+  glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
+
   glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 256, 0, GL_RGBA,
                GL_FLOAT, _colormap);
 
@@ -442,9 +674,57 @@ void DVRShader::initTextures()
   glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 
+  //
+  // Pre-Integrated colormap
+  //
+  glBindTexture(GL_TEXTURE_2D, _cmapid[1]);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA,
+               GL_FLOAT, _colormap);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
   glFlush();
 }
 
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DVRShader::initShaderVariables()
+{
+  assert(_shader);
+
+  _shader->enable();
+  
+  if (_preintegration)
+  {
+    if (GLEW_VERSION_2_0)
+    {
+      glUniform1f(_shader->uniformLocation("delta"), _delta);
+    }
+    else
+    {
+      glUniform1fARB(_shader->uniformLocation("delta"), _delta);
+    }
+  }
+
+  if (_lighting)
+  {
+    if (GLEW_VERSION_2_0)
+    {
+      glUniform3f(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
+    }
+    else
+    {
+      glUniform3fARB(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
+    }
+  } 
+
+  _shader->disable();
+}
 
 //----------------------------------------------------------------------------
 //
@@ -452,4 +732,27 @@ void DVRShader::initTextures()
 bool DVRShader::supported()
 {
   return (ShaderProgram::supported() && GLEW_ARB_multitexture);
+}
+
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+ShaderProgram* DVRShader::shader()
+{
+  if (_preintegration && _lighting)
+  {
+    return _shaders[PRE_INTEGRATED_LIGHT];
+  }
+  
+  if (_preintegration && !_lighting)
+  {
+    return _shaders[PRE_INTEGRATED];
+  }
+  
+  if (!_preintegration && _lighting)
+  {
+    return _shaders[LIGHT];
+  }
+  
+  return _shaders[DEFAULT];
 }

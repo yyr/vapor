@@ -46,7 +46,7 @@ const string DvrParams::_activeVariableNameAttr = "ActiveVariableName";
 const string DvrParams::_editModeAttr = "TFEditMode";
 const string DvrParams::_histoStretchAttr = "HistoStretchFactor";
 const string DvrParams::_dvrLightingAttr = "DVRLighting";
-
+const string DvrParams::_dvrPreIntegrationAttr = "DVRPreIntegration";
 
 
 DvrParams::DvrParams(int winnum) : RenderParams(winnum)
@@ -284,6 +284,7 @@ restart(){
 	histoStretchFactor = 1.f;
 	varNum = 0;
 	lightingOn = false;
+    preIntegrationOn = false;
 	numBits = 8;
 	
 	if(numVariables > 0){
@@ -384,7 +385,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _dvrLightingAttr) == 0) {
 				if (value == "true") setLighting(true); else setLighting(false);
 			}
-			else return false;
+			else if (StrCmpNoCase(attribName, _dvrPreIntegrationAttr) == 0) {
+              if (value == "true") setPreIntegration(true); else setPreIntegration(false);
+			}
+            else return false;
 		}
 		// Now set the values obtained from attribute parsing.
 		//Need to match up the varName with the varNum!!
@@ -548,6 +552,13 @@ buildNode() {
 	else 
 		oss << "false";
 	attrs[_dvrLightingAttr] = oss.str();
+
+	oss.str(empty);
+	if (preIntegrationOn)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_dvrPreIntegrationAttr] = oss.str();
 
 	XmlNode* dvrNode = new XmlNode(_dvrParamsTag, attrs, 3);
 

@@ -108,6 +108,8 @@ DvrEventRouter::hookUpTab()
 	
 	connect (variableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetComboVarNum(int) ) );
 	connect (lightingCheckbox, SIGNAL( toggled(bool) ), this, SLOT( guiSetLighting(bool) ) );
+	connect (preintegratedCheckbox, SIGNAL( toggled(bool) ), 
+             this, SLOT( guiSetPreintegration(bool) ) );
  
 	connect (histoScaleEdit,SIGNAL(textChanged(const QString&)),this, SLOT(setDvrTabTextChanged(const QString&)));
 	connect (leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
@@ -505,6 +507,8 @@ void DvrEventRouter::updateTab(){
 	variableCombo->setCurrentItem(dvrParams->getComboVarNum());
 	
 	lightingCheckbox->setChecked(dvrParams->getLighting());
+	preintegratedCheckbox->setChecked(dvrParams->getPreIntegration());
+
 	numBitsSpin->setValue(dvrParams->getNumBits());
 	histoScaleEdit->setText(QString::number(dvrParams->getHistoStretch()));
 	
@@ -809,7 +813,22 @@ guiSetLighting(bool val){
 	dParams->setLighting(val);
 	PanelCommand::captureEnd(cmd, dParams);
 
+	VizWinMgr::getInstance()->setClutDirty(dParams);
     VizWinMgr::getInstance()->setVizDirty(dParams,LightingBit,true);		
+}
+
+void DvrEventRouter::guiSetPreintegration(bool val)
+{
+	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
+	confirmText(false);
+	
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle dvr pre-intgrated transfer functions");
+		
+	dParams->setPreIntegration(val);
+	PanelCommand::captureEnd(cmd, dParams);
+
+	VizWinMgr::getInstance()->setClutDirty(dParams);
+    VizWinMgr::getInstance()->setVizDirty(dParams, LightingBit, true);		
 }
 
 //Respond to a change in histogram stretch factor
@@ -949,6 +968,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 		setDatarangeDirty(dParams);
 		
         lightingCheckbox->setEnabled(myDvr->hasLighting());
+        preintegratedCheckbox->setEnabled(myDvr->hasPreintegration());
 
 		//Quit 
 		return;
@@ -1149,8 +1169,10 @@ void DvrEventRouter::runBenchmarks()
   VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
   if (!vizWin) return;
 
-  VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
+  DvrParams *dvrParams     = VizWinMgr::getInstance()->getActiveDvrParams();
+
+  VolumeRenderer* renderer = 
+    (VolumeRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(dvrParams);
 
   if (benchmarkTimer == NULL)
   {
@@ -1202,8 +1224,9 @@ void DvrEventRouter::nextBenchmark()
   VizWin *vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
   if (!vizWin) return;
 
-  VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
+  DvrParams *dvrParams     = VizWinMgr::getInstance()->getActiveDvrParams();
+  VolumeRenderer* renderer = 
+    (VolumeRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(dvrParams);
 
   benchmark++;
 
@@ -1304,8 +1327,11 @@ void DvrEventRouter::renderBenchmark()
   VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
   if (!vizWin) return;
 
-  VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
+  DvrParams *dvrParams     = VizWinMgr::getInstance()->getActiveDvrParams();
+
+  VolumeRenderer* renderer = 
+    (VolumeRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(dvrParams);
+
 
   if (renderer->renderedFrames() < 100 && renderer->elapsedTime() < 10.0)
   {
@@ -1330,8 +1356,9 @@ void DvrEventRouter::temporalBenchmark()
   VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
   if (!vizWin) return;
 
-  VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
+  DvrParams *dvrParams     = VizWinMgr::getInstance()->getActiveDvrParams();
+  VolumeRenderer* renderer = 
+    (VolumeRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(dvrParams);
 
   if (renderer->renderedFrames() > 3 && 
       (renderer->renderedFrames() > 100 || renderer->elapsedTime() > 10.0))
@@ -1355,8 +1382,9 @@ void DvrEventRouter::tfeditBenchmark()
   VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
   if (!vizWin) return;
 
-  VolumeRenderer *renderer =
-    (VolumeRenderer*)(vizWin->getGLWindow()->getRenderer(Params::DvrParamsType));
+  DvrParams *dvrParams     = VizWinMgr::getInstance()->getActiveDvrParams();
+  VolumeRenderer* renderer = 
+    (VolumeRenderer*)VizWinMgr::getInstance()->getActiveVisualizer()->getGLWindow()->getRenderer(dvrParams);
 
   if (renderer->renderedFrames() < 255 && renderer->elapsedTime() < 10.0)
   {

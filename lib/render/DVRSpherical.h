@@ -51,6 +51,7 @@ class RENDER_API DVRSpherical : public DVRShader
                         int level);
 
   virtual int HasLighting() const { return false; };
+  virtual int HasPreintegration() const { return false; };
 
   static bool supported();
 

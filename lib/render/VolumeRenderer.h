@@ -46,6 +46,7 @@ namespace VAPoR {
     virtual void paintGL();
 
     bool hasLighting();
+    bool hasPreintegration();
 
     static bool supported(DvrParams::DvrType type);
 	

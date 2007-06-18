@@ -122,6 +122,7 @@ protected slots:
 	void guiSetComboVarNum(int val);
 	void guiSetNumBits(int val);
 	void guiSetLighting(bool val);
+	void guiSetPreintegration(bool val);
 	void guiSetNumRefinements(int num);
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();

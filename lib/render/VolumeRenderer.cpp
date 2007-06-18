@@ -135,6 +135,19 @@ bool VolumeRenderer::hasLighting()
   return false;
 }
 
+//----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+bool VolumeRenderer::hasPreintegration()
+{
+  if (driver)
+  {
+    return driver->HasPreintegration();
+  }
+
+  return false;
+}
+
 
 //----------------------------------------------------------------------------
 // static
@@ -274,6 +287,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   RegionParams* myRegionParams = myGLWindow->getActiveRegionParams();
   int timeStep = myGLWindow->getActiveAnimationParams()->getCurrentFrameNumber();
   
+  ViewpointParams *vpParams = myGLWindow->getActiveViewpointParams();  
 	
   DvrParams* myDVRParams = (DvrParams*)currentRenderParams;
   //This is no longer the case, because of multiple instancing:
@@ -306,7 +320,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //qWarning(" calculating region bounds for next render");
   bool regionValid = myRegionParams->getAvailableVoxelCoords(numxforms, min_dim, max_dim, min_bdim, max_bdim, 
 	  timeStep,&varNum, 1);
-	
+
   if(!regionValid) {
 	  const char* vname = DataStatus::getInstance()->getVariableName(varNum).c_str();
 	  SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Volume data unavailable for refinement level %d of variable %s, at current timestep", 
@@ -394,20 +408,20 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     nx = (int)((max_bdim[0] - min_bdim[0] + 1) * bs[0]);
     ny = (int)((max_bdim[1] - min_bdim[1] + 1) * bs[1]);
     nz = (int)((max_bdim[2] - min_bdim[2] + 1) * bs[2]);
-	
+
     data_roi[0] = (int)min_dim[0];
     data_roi[1] = (int)min_dim[1];
     data_roi[2] = (int)min_dim[2];
     data_roi[3] = (int)max_dim[0];
     data_roi[4] = (int)max_dim[1];
     data_roi[5] = (int)max_dim[2];
-
-	//qWarning("setting region in renderer");
+    
     rc = driver->SetRegion(data,
                            nx, ny, nz,
-                           data_roi, extents,
-                           datablock, numxforms
-                           );
+                           data_roi, 
+                           extents, 
+                           datablock, 
+                           numxforms);
     
     if (rc < 0) {
       fprintf(stderr, "Error in DVRVolume::SetRegion\n");
@@ -419,10 +433,13 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	
   }
   
-  if (clutIsDirty()) {
+  if (clutIsDirty()) 
+  {
     myGLWindow->setRenderNew();
-    //Same table sets CLUT and OLUT
-    //
+  
+    bool preint = myDVRParams->getPreIntegration();
+
+    driver->SetPreintegrationOnOff(preint);
 
     if (_type == DvrParams::DVR_VOLUMIZER)
     {
@@ -435,8 +452,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
   if (myGLWindow->lightingIsDirty())
   {
-    ViewpointParams *vpParams = myGLWindow->getActiveViewpointParams();
-    
     bool shading = myDVRParams->getLighting();
 
     driver->SetLightingOnOff(shading);
@@ -469,6 +484,12 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     //   myDVRParams->setAttenuationDirty(false);
     //
   }
+
+  //
+  // Update the DVR's view
+  //
+  driver->SetView(vpParams->getCameraPos(), vpParams->getViewDir());
+
   // Modelview matrix
   //
   glMatrixMode(GL_MODELVIEW);

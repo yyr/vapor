@@ -29,6 +29,7 @@
 #include "glutil.h"
 #include "params.h"
 #include "vapor/errorcodes.h"
+#include "datastatus.h"
 
 #include "Matrix3d.h"
 #include "Point3d.h"
@@ -42,8 +43,9 @@ using namespace VAPoR;
 DVRSpherical::DVRSpherical(DataType_T type, int nthreads) :
   DVRShader(type, nthreads)
 {
-  _shaders[DEFAULT] = NULL;
-  _shaders[LIGHT]   = NULL;
+  _shaders[DEFAULT]        = NULL;
+  _shaders[LIGHT]          = NULL;
+  _shaders[PRE_INTEGRATED] = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -59,9 +61,6 @@ DVRSpherical::~DVRSpherical()
 
   delete [] _colormap;
   _colormap = NULL;
-
-  glDeleteTextures(1, &_texid);
-  glDeleteTextures(1, &_cmapid);
 }
 
 
@@ -145,9 +144,9 @@ int DVRSpherical::SetRegion(void *data,
   {
     _data = data;
 
-    if (_shaders[LIGHT])
+    if (_lighting)
     {
-      _shaders[LIGHT]->enable();
+      _shader->enable();
 
       // TBD -- should the shader get the power of 2 dimensions?
 
@@ -162,7 +161,7 @@ int DVRSpherical::SetRegion(void *data,
                        nx, ny, nz);
       }
 
-      _shaders[LIGHT]->disable();
+      _shader->disable();
     }
   }
 
@@ -183,12 +182,12 @@ int DVRSpherical::SetRegion(void *data,
     //
     // Hard-code the volume extents to the unit cube 
     //
-    _vmin.x = 0.0; //extents[0];
-    _vmin.y = 0.0; //extents[1];
-    _vmin.z = 0.0; //extents[2];
-    _vmax.x = 1.0; //extents[3];
-    _vmax.y = 1.0; //extents[4];
-    _vmax.z = 1.0; //extents[5];
+    _vmin.x = extents[0];
+    _vmin.y = extents[1];
+    _vmin.z = extents[2];
+    _vmax.x = extents[3];
+    _vmax.y = extents[4];
+    _vmax.z = extents[5];
     
     _delta = fabs(_vmin.z-_vmax.z) / (2.0*nz); 
     
@@ -231,15 +230,12 @@ int DVRSpherical::SetRegion(void *data,
                     (float)data_roi[4]/(_ny-1), 
                     (float)data_roi[5]/(_nz-1));
 
-        // Kludge -- hard coding radial extents. The radial extents
-        // probably need to set in the vdf file. 
-        //
         glUniform3f(_shader->uniformLocation("dmin"), 
-                    (float)0.71,
+                    (float)0.7,
                     (float)extents[1],
                     (float)extents[2]);
         glUniform3f(_shader->uniformLocation("dmax"), 
-                    (float).96,
+                    (float)0.96,
                     (float)extents[4],
                     (float)extents[5]);
 
@@ -255,11 +251,8 @@ int DVRSpherical::SetRegion(void *data,
                        (float)data_roi[4]/(_ny-1), 
                        (float)data_roi[5]/(_nz-1));
 
-        // Kludge -- hard coding radial extents. The radial extents
-        // probably need to set in the vdf file. 
-        //
         glUniform3fARB(_shader->uniformLocation("dmin"), 
-                       (float)0.71,
+                       (float)0.7,
                        (float)extents[1],
                        (float)extents[2]);
         glUniform3fARB(_shader->uniformLocation("dmax"), 

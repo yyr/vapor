@@ -24,6 +24,7 @@ namespace VAPoR {
 
 class RENDER_API DVRShader : public DVRTexture3d
 {
+
  public:
 
 
@@ -44,10 +45,17 @@ class RENDER_API DVRShader : public DVRTexture3d
   virtual int Render(const float matrix[16]);
 
   virtual int HasType(DataType_T type);
+  virtual int HasPreintegration() const { return true; };
   virtual int HasLighting() const { return true; };
 
   virtual void SetCLUT(const float ctab[256][4]);
   virtual void SetOLUT(const float ftab[256][4], const int numRefinenements);
+
+  virtual void SetView(const float *pos, const float *dir);
+
+  virtual void SetPreintegrationOnOff(int );
+  virtual void SetPreIntegrationTable(const float tab[256][4], const int nR);
+
   virtual void SetLightingOnOff(int on);
   virtual void SetLightingCoeff(float kd, float ka, float ks, float expS);
   virtual void SetLightingLocation(const float *pos);
@@ -56,22 +64,36 @@ class RENDER_API DVRShader : public DVRTexture3d
 
 protected:
 
+  enum ShaderType
+  {
+    DEFAULT = 0,
+    LIGHT,
+    PRE_INTEGRATED,
+    PRE_INTEGRATED_LIGHT
+  };
+
   void initTextures();
+  void initShaderVariables();
+
+  bool createShader(ShaderType,
+                    const char *vertexCommandLine,
+                    const char *vertexSource,
+                    const char *fragCommandLine,
+                    const char *fragmentSource);
+
+  ShaderProgram* shader();
 
 protected:
 
-  enum // Shaders
-  {
-    DEFAULT = 0,
-    LIGHT
-  };
-
   float          *_colormap;
   ShaderProgram  *_shader;
-  ShaderProgram  *_shaders[2];
+  ShaderProgram  *_shaders[4];
+
+  bool            _lighting;
+  bool            _preintegration;
 
   GLuint _texid;
-  GLuint _cmapid;
+  GLuint _cmapid[2];
   
   int    _nx;
   int    _ny;

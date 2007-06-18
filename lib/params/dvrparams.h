@@ -64,6 +64,8 @@ public:
 	void setLighting(bool val) {lightingOn = val; }
 	bool getLighting() const { return lightingOn; }
 
+	void setPreIntegration(bool val) {preIntegrationOn = val; }
+	bool getPreIntegration() const { return preIntegrationOn; }
 	
 	//In addition to setting variableNum, must also 
 	//update mapping bounds and edit bounds
@@ -168,12 +170,14 @@ protected:
 	static const string _histoStretchAttr;
 	static const string _activeVariableNameAttr;
 	static const string _dvrLightingAttr;
+    static const string _dvrPreIntegrationAttr;
 
 	DvrType type;
     
 	void refreshCtab();
 
 	bool lightingOn;
+    bool preIntegrationOn;
 	float currentDatarange[2];
 	int numBits;
 	

@@ -244,6 +244,8 @@ distanceToCube(const float point[3],const float normals[6][3], const float corne
 //----------------------------------------------------------------------------
 bool Params::searchCmdLine(const char *flag)
 {
+ if (!flag) return false;
+ 
   int argc    = qApp->argc();
   char **argv = qApp->argv();
 
@@ -267,6 +269,8 @@ bool Params::searchCmdLine(const char *flag)
 //----------------------------------------------------------------------------
 const char* Params::parseCmdLine(const char *flag)
 {
+ if (!flag) return NULL;
+ 
   int argc    = qApp->argc();
   char **argv = qApp->argv();
 

@@ -84,7 +84,6 @@ public:
     const int data_box[6],
     int refLevel
  ) = 0;
-
 	
  // This version of the SetRegion method permits the non-uniform 
  // spacing of voxels. Three coordinate arrays, xcoords, ycoords, and
@@ -145,9 +144,26 @@ public:
  // 
  virtual void	SetOLUT(const float ftab[256][4], const int numRefinements) = 0;
 
+ // Sets the view direction
+ //
+ virtual void SetView(const float *pos, const float *dir) {}
+
+ // Sets the preintegration table
+ //
+ virtual void SetPreIntegrationTable(const float tab[256][4], const int nR) {}
+
+
  // Returns true if the driver supports a lighting model
  //
  virtual int	HasLighting() const { return (0); };
+
+ // Returns true if the driver supports pre-integrated transfer functions
+ //
+ virtual int	HasPreintegration() const { return (0); };
+
+ // Turn pre-integrated volume rendering on/off
+ //
+ virtual void	SetPreintegrationOnOff(int ) { return; } ;
 
  // Turn gradient-based lighting on/off
  //

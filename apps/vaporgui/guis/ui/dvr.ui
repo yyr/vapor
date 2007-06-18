@@ -1292,7 +1292,7 @@ depending on which button is clicked.</string>
                         </widget>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout21</cstring>
+                                <cstring>layout17</cstring>
                             </property>
                             <hbox>
                                 <property name="name">
@@ -1310,7 +1310,7 @@ depending on which button is clicked.</string>
                                     </property>
                                     <property name="sizeHint">
                                         <size>
-                                            <width>81</width>
+                                            <width>30</width>
                                             <height>21</height>
                                         </size>
                                     </property>
@@ -1360,7 +1360,57 @@ of Light No. 1 in the Viewpoint panel.</string>
                                     </property>
                                     <property name="sizeHint">
                                         <size>
-                                            <width>151</width>
+                                            <width>16</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QCheckBox">
+                                    <property name="name">
+                                        <cstring>preintegratedCheckbox</cstring>
+                                    </property>
+                                    <property name="enabled">
+                                        <bool>true</bool>
+                                    </property>
+                                    <property name="sizePolicy">
+                                        <sizepolicy>
+                                            <hsizetype>7</hsizetype>
+                                            <vsizetype>0</vsizetype>
+                                            <horstretch>0</horstretch>
+                                            <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                    </property>
+                                    <property name="font">
+                                        <font>
+                                        </font>
+                                    </property>
+                                    <property name="text">
+                                        <string>Pre-integration On</string>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Set lighting on or off</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The Lighting-On checkbox can only be
+used if your graphics hardware supports
+it.  When enabled, the light source is 
+controlled by the lighting parameters
+of Light No. 1 in the Viewpoint panel.</string>
+                                    </property>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer19_2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Horizontal</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>16</width>
                                             <height>20</height>
                                         </size>
                                     </property>
