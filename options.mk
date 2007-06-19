@@ -23,7 +23,7 @@ RELEASE=0
 DEBUG=0
 
 # Set BENCHMARK or PROFILE to 1 for framerate diagnostics
-BENCHMARK=1
+BENCHMARK=0
 PROFILING=0
 
 # Set SPHERICAL_GRID to 1 to enable spherical grid rendering proof-of-concept
@@ -94,13 +94,13 @@ VOLUMIZER_ROOT =
 # analysis and data processing capabilities of vapor are greatly limitted
 # without IDL
 #
-BUILD_IDL_WRAPPERS = 1
+BUILD_IDL_WRAPPERS = 0
 
 # Set to path to IDL include directory. 
 # This is the # path to the directory that contains the file "idl_export.h"
 # (Only needed if BUILD_IDL_WRAPPERS is 1)
 #
-IDL_INC_PATH=/fs/local/apps/rsi/idl_6.2/external/include
+IDL_INC_PATH=
 
 # Set to 1 if you want the VAPoR GUI to be built. Otherwise only the 
 # VAPoR libraries and support utilities are compiled
