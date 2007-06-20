@@ -2,24 +2,53 @@
 ;   AddCurlVDF.pro
 ;
 ;   Utility to read three variables from a VDF, calculate their curl
-;   and put it back into the VDF.
+;   and optionally the curl's magnitude, and put them back into the VDF.
 ;   All three variables must be present at full resolution.
-;   This is performed one time-step at a time.
+;
+;   The .pro files curl_findiff.pro and deriv_findiff.pro must be in the
+;   directory from which you started idl.
+;
 ;   The vdf file is replaced.  The previous vdf file is saved, with
 ;   _saved appended to its name, in case of catastrophic failure
 ;
 ;   Arguments are:
 ;   vdffile = file path of the metadata file
 ;   varx, vary, varz = the 3 variables defining the file
-;     whose magnitude is being calculated
-;   curlx,curly,curlz are the names for the three components
-;   of the curl being calculated
-;   timestep specifies the (only) timestep for which the magnitude
-;     is calculated.  If multiple timesteps are needed,
-;     the calculation must be repeated for each of them.
+;       whose magnitude is being calculated
+;   curlx,curly,curlz = the names for the three components
+;       of the curl being calculated
+;   tsstart = the time step to start with (or the only time step)
+;   tsmax = (keyword parameter) the time step to stop with (don't specify
+;           if you only want the one time step, tsstart)
+;   tsival = (keyword parameter) the interval between time steps (will compute
+;            info for tsstart, tsstart + tsival, etc.) (again, don't specify if
+;            you only want the one time step, tsstart)
+;   mag = (keyword parameter) name of curl's magnitude (do not specify if you
+;         don't want the
+;         magnitude of the curl written)
+;   onlymag = (keyword parameter) set this to anything if you only want the 
+;             curl's magnitude and not the actual vector field (note that you
+;             must still supply names for curlx, curly, curlz)
+;
+;   Note: if you want to add the magnitude later, use AddMagVDF
 ;
 
-PRO AddCurlVDF,vdffile,varx,vary,varz,curlx,curly,curlz,timestep
+PRO AddCurlVDF, vdffile,varx,vary,varz,curlx,curly,curlz,tsstart, $
+                TSMAX=tsmax,TSIVAL=tsival,MAG=mag,ONLYMAG=onlymag
+
+;   Make sure we're actually doing something
+IF ( ~keyword_set(mag) && keyword_set(onlymag) ) THEN BEGIN
+    print, "Neither curl nor curl's magnitude requested.  Nothing modified."
+    RETURN
+ENDIF
+
+
+;   
+;   Variable timestep now functions as a switch and initializer
+;
+timestep = tsstart
+IF ( ~keyword_set(tsmax) ) THEN tsmax=tsstart
+IF ( ~keyword_set(tsival) ) THEN tsival=1
 
 ;
 ;   Start with the current metadata:
@@ -38,33 +67,50 @@ vdf_write,mfd,savedvdffile
 ;   Add the new variable names to the current variable names:
 ;
 
+;
+;   How many variable names?
+;
+IF ( keyword_set(mag) && ~keyword_set(onlymag) ) THEN newnum = 4 
+IF ( keyword_set(mag) && keyword_set(onlymag) ) THEN newnum = 1
+IF ( ~keyword_set(mag) ) THEN newnum = 3
+
 varnames = vdf_getvarnames(mfd)
 numvarsarray = size(varnames)
-numvars = 3 + numvarsarray[1]
+numvars = newnum + numvarsarray[1]
 newvarnames = strarr(numvars)
 ;   Need to make sure these are not in the list!
 repeatvariables = 0
 print, 'numvars = ',numvars
-FOR I = 0, numvars-4 DO BEGIN
+FOR I = 0, numvars-newnum-1 DO BEGIN
     print, 'I = ',I,' var = ',varnames[I]
     newvarnames[I] = varnames[I]
-    if (varnames[I] EQ curlx) THEN repeatvariables = 1+repeatvariables
-    if (varnames[I] EQ curly) THEN repeatvariables = 1+repeatvariables
-    if (varnames[I] EQ curlz) THEN repeatvariables = 1+repeatvariables
+    IF ( ~keyword_set(onlymag) ) THEN BEGIN
+        IF (varnames[I] EQ curlx) THEN repeatvariables = 1+repeatvariables
+        IF (varnames[I] EQ curly) THEN repeatvariables = 1+repeatvariables
+        IF (varnames[I] EQ curlz) THEN repeatvariables = 1+repeatvariables
+    ENDIF
+        IF ( keyword_set(mag) ) THEN BEGIN
+        IF ( varnames [I] EQ mag ) THEN repeatvariables += 1
+    ENDIF
 ENDFOR
 
-IF (repeatvariables GT 0 AND repeatvariables LT 3) THEN BEGIN
+IF (repeatvariables GT 0 AND repeatvariables LT newnum) THEN BEGIN
     print, 'ERROR:  some but not all curl variable names exist already'
     STOP
 ENDIF
 
 IF (repeatvariables EQ 0) THEN BEGIN
-    newvarnames[numvars-3] = curlx
-    newvarnames[numvars-2] = curly
-    newvarnames[numvars-1] = curlz
+    IF ( ~keyword_set(onlymag) ) THEN BEGIN
+        newvarnames[numvars-newnum] = curlx
+        newvarnames[numvars-newnum+1] = curly
+        newvarnames[numvars-newnum+2] = curlz
+    ENDIF
+    IF ( keyword_set(mag) && ~keyword_set(onlymag) ) THEN $
+        newvarnames[numvars-newnum+3] = mag
+    IF ( keyword_set(onlymag) ) THEN newvarnames[numvars-newnum] = mag
 ENDIF
 
-IF (repeatvariables EQ 3) THEN newvarnames = varnames
+IF (repeatvariables EQ newnum) THEN newvarnames = varnames
 
 
 ;
@@ -75,6 +121,14 @@ if (repeatvariables EQ 0) THEN vdf_setvarnames,mfd,newvarnames
 reflevel = vdf_getnumtransforms(mfd)
 numtimesteps = vdf_getnumtimesteps(mfd)
 
+
+;
+;   Begin loop that iterates over time steps
+;
+REPEAT BEGIN
+
+print, "Working on time step ", timestep
+
 ;
 ;   Create "Buffered Read" objects for each variable to read the data, passing the
 ;   metadata object handle created by vdf_create() as an argument
@@ -83,10 +137,8 @@ numtimesteps = vdf_getnumtimesteps(mfd)
 dfdx = vdc_bufreadcreate(mfd)
 dfdy = vdc_bufreadcreate(mfd)
 dfdz = vdc_bufreadcreate(mfd)
-dfdcurlx = vdc_bufwritecreate(mfd)
-dfdcurly = vdc_bufwritecreate(mfd)
-dfdcurlz = vdc_bufwritecreate(mfd)
-
+IF ( ~keyword_set(onlymag) ) THEN BEGIN
+ENDIF
 
 ;
 ;
@@ -170,44 +222,76 @@ curl_findiff,srcx,srcy,srcz,dstx,dsty,dstz,deltax,deltay,deltaz
 print,'performed the curl on ',varx,' ', vary,' ', varz
 
 
-vdc_openvarwrite, dfdcurlx, timestep, curlx, reflevel
+IF ( ~keyword_set(onlymag) ) THEN BEGIN
 
-; write the data one slice at a time
-FOR z = 0, dim[2]-1 DO BEGIN
-    slcx = dstx[*,*,z]
-    vdc_bufwriteslice,dfdcurlx, slcx
-    ;  Report every 100 writes:
-    IF ((z MOD 100) EQ 0) THEN print,'writing x slice ',z
-ENDFOR
+    dfdcurlx = vdc_bufwritecreate(mfd)
+    vdc_openvarwrite, dfdcurlx, timestep, curlx, reflevel
+    ; write the data one slice at a time
+    FOR z = 0, dim[2]-1 DO BEGIN
+        slcx = dstx[*,*,z]
+        vdc_bufwriteslice,dfdcurlx, slcx
+        ;  Report every 100 writes:
+        IF ((z MOD 100) EQ 0) THEN print,'writing x slice ',z
+    ENDFOR
+    vdc_closevar, dfdcurlx
+    vdc_bufwritedestroy, dfdcurlx
 
-vdc_closevar, dfdcurlx
-vdc_bufwritedestroy, dfdcurlx
-vdc_openvarwrite, dfdcurly, timestep, curly, reflevel
-FOR z = 0, dim[2]-1 DO BEGIN
-    slcy = dsty[*,*,z]
-    vdc_bufwriteslice,dfdcurly, slcy
-    ;  Report every 100 writes:
-    IF ((z MOD 100) EQ 0) THEN print,'writing y slice ',z
-ENDFOR
+    dfdcurly = vdc_bufwritecreate(mfd)
+    vdc_openvarwrite, dfdcurly, timestep, curly, reflevel
+    FOR z = 0, dim[2]-1 DO BEGIN
+        slcy = dsty[*,*,z]
+        vdc_bufwriteslice,dfdcurly, slcy
+        ;  Report every 100 writes:
+        IF ((z MOD 100) EQ 0) THEN print,'writing y slice ',z
+    ENDFOR
+    vdc_closevar, dfdcurly
+    vdc_bufwritedestroy, dfdcurly
 
-vdc_closevar, dfdcurly
-vdc_bufwritedestroy, dfdcurly
-vdc_openvarwrite, dfdcurlz, timestep, curlz, reflevel
-FOR z = 0, dim[2]-1 DO BEGIN
-    slcz = dstz[*,*,z]
-    vdc_bufwriteslice,dfdcurlz, slcz
-    ;  Report every 100 writes:
-    IF ((z MOD 100) EQ 0) THEN print,'writing z slice ',z
-ENDFOR
+    dfdcurlz = vdc_bufwritecreate(mfd)
+    vdc_openvarwrite, dfdcurlz, timestep, curlz, reflevel
+    FOR z = 0, dim[2]-1 DO BEGIN
+        slcz = dstz[*,*,z]
+        vdc_bufwriteslice,dfdcurlz, slcz
+        ;  Report every 100 writes:
+        IF ((z MOD 100) EQ 0) THEN print,'writing z slice ',z
+    ENDFOR
+    vdc_closevar, dfdcurlz
+    vdc_bufwritedestroy, dfdcurlz
 
-vdc_closevar, dfdcurlz
-vdc_bufwritedestroy, dfdcurlz
+ENDIF
+
+;
+; If desired, compute and write the magnitude of the curl
+;
+IF ( keyword_set(mag) ) THEN BEGIN
+    dfdmag = vdc_bufwritecreate(mfd)
+    allMag = fltarr(dim[0],dim[1],dim[2])
+    allMag = sqrt( dstx^2 + dsty^2 + dstz^2 )
+    slcmag = fltarr(dim[0],dim[1])
+    vdc_openvarwrite, dfdmag, timestep, mag, reflevel
+    FOR z = 0, dim[2]-1 DO BEGIN
+        slcmag = allMag[*,*,z]
+        vdc_bufwriteslice, dfdmag, slcmag
+        ;  Report every 100 writes
+        IF ( (z MOD 100) EQ 0) THEN print, "Writing magnitude's z slice ", z
+    ENDFOR
+    vdc_closevar, dfdmag
+    vdc_bufwritedestroy, dfdmag
+ENDIF
+
 ;
 ;  Replace the vdf file with the new one
 ;
 
 vdf_write,mfd,vdffile
-vdf_destroy, mfd
+;vdf_destroy, mfd
 
 print,'Curl completed'
-end
+
+timestep += tsival
+
+ENDREP UNTIL ( timestep GT tsmax )
+
+vdf_destroy, mfd
+
+END
