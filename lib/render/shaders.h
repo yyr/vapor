@@ -145,12 +145,13 @@ static char vertex_shader_preintegrated[] =
   "  gl_TexCoord[0] = gl_MultiTexCoord0;\n"
   "  gl_Position    = ftransform();\n"
   " "
-  "  vec4 sf        = gl_MultiTexCoord0;\n"
+  "  vec4 sf        =  gl_Vertex;\n"
   "  "
   "  vec4 eye2vert  = normalize(sf - vpos);\n"
   "  vec4 sb        = sf - eye2vert * (delta / dot(normalize(vdir), eye2vert));\n"
   "  "
-  "  gl_TexCoord[1] = sb; \n"
+  "  // Finally, convert sb into texture coordinates\n"
+  "  gl_TexCoord[1] = gl_TextureMatrix[0] * sb; \n"
   "}\n";
 
 //----------------------------------------------------------------------------
@@ -191,12 +192,12 @@ static char vertex_shader_preintegrated_lighting[] =
   "  gl_TexCoord[0] = gl_MultiTexCoord0;\n"
   "  gl_Position    = ftransform();\n"
   " "
-  "  vec4 sf        = gl_MultiTexCoord0;\n"
+  "  vec4 sf        = gl_Vertex;\n"
   "  "
   "  vec4 eye2vert  = normalize(sf - vpos);\n"
   "  vec4 sb        = sf - eye2vert * (delta / dot(normalize(vdir), eye2vert));\n"
-  "  "
-  "  gl_TexCoord[1] = sb; \n"
+  "  // Finally, convert sb into texture coordinates\n"
+  "  gl_TexCoord[1] = gl_TextureMatrix[0] * sb; \n"
   "  "
   "  view           = normalize(-gl_Position.xyz);\n"
   "}\n";

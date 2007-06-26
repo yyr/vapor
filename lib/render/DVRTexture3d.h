@@ -64,9 +64,9 @@ class RENDER_API DVRTexture3d : public DVRBase
 
 protected:
 
-  void drawViewAlignedSlices(const TextureBrick *brick,
-                             const Matrix3d &modelview,
-                             const Matrix3d &modelviewInverse);
+  virtual void drawViewAlignedSlices(const TextureBrick *brick,
+                                     const Matrix3d &modelview,
+                                     const Matrix3d &modelviewInverse);
   void renderBricks();
 
   int  intersect(const Vect3d &sp, const Vect3d &spn, 

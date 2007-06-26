@@ -756,3 +756,39 @@ ShaderProgram* DVRShader::shader()
   
   return _shaders[DEFAULT];
 }
+
+//----------------------------------------------------------------------------
+// Draw the proxy geometry for the brick. Overriden to setup the texture
+// matrix that the shader can use to convert object coordinates to 
+// texture coordinates. 
+//----------------------------------------------------------------------------
+void DVRShader::drawViewAlignedSlices(const TextureBrick *brick,
+                                      const Matrix3d &modelview,
+                                      const Matrix3d &modelviewInverse)
+{
+  glMatrixMode(GL_TEXTURE);
+  glLoadIdentity();
+
+  if (_preintegration)
+  {
+    Point3d vmax = brick->volumeMax();
+    Point3d vmin = brick->volumeMin();
+    Point3d tmax = brick->textureMax();
+    Point3d tmin = brick->textureMin();
+
+    Point3d scale((tmax.x - tmin.x) / (vmax.x - vmin.x),
+                  (tmax.y - tmin.y) / (vmax.y - vmin.y),
+                  (tmax.z - tmin.z) / (vmax.z - vmin.z));
+
+    Point3d trans((tmin.x / scale.x) - vmin.x,
+                  (tmin.y / scale.y) - vmin.y,
+                  (tmin.z / scale.z) - vmin.z);
+
+    glScaled(scale.x, scale.y, scale.z);
+    glTranslated(trans.x, trans.y, trans.z);
+  }
+
+  glMatrixMode(GL_MODELVIEW);
+
+  DVRTexture3d::drawViewAlignedSlices(brick, modelview, modelviewInverse);
+}

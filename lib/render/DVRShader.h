@@ -83,6 +83,10 @@ protected:
 
   ShaderProgram* shader();
 
+  virtual void drawViewAlignedSlices(const TextureBrick *brick,
+                                     const Matrix3d &modelview,
+                                     const Matrix3d &modelviewInverse);
+
 protected:
 
   float          *_colormap;
