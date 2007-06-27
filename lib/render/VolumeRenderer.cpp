@@ -308,8 +308,23 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   if (myGLWindow->mouseIsDown()) 
   {
     numxforms = 0;
+    driver->SetRenderFast(true);
+
+    // Need update sampling rate & opacity correction 
+    setClutDirty(); 
   }
-  else numxforms = myDVRParams->getNumRefinements();
+  else
+  {
+    numxforms = myDVRParams->getNumRefinements();
+    
+    if (driver->GetRenderFast())
+    {
+      driver->SetRenderFast(false);
+
+      // Need update sampling rate & opacity correction
+      setClutDirty();
+    }
+  }
 
   //Whenever numxforms changes, we need to dirty the clut, since
   //that affects the opacity correction.
@@ -476,7 +491,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   if (clutIsDirty()) 
   {
     myGLWindow->setRenderNew();
-  
+
     bool preint = myDVRParams->getPreIntegration();
 
     driver->SetPreintegrationOnOff(preint);

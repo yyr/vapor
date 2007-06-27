@@ -35,6 +35,10 @@
 #include "Point3d.h"
 #include "shaders.h"
 
+#ifndef MAX
+#define MAX(a,b)        ((a) > (b) ? (a) : (b))
+#endif
+
 using namespace VAPoR;
 
 //----------------------------------------------------------------------------
@@ -306,6 +310,44 @@ bool DVRSpherical::supported()
   return (ShaderProgram::supported() && GLEW_ARB_multitexture);
 }
 
+//----------------------------------------------------------------------------
+// Calculate the sampling distance
+//----------------------------------------------------------------------------
+void DVRSpherical::calculateSampling()
+{
+  //
+  // Get the modelview matrix and its inverse
+  //
+  Matrix3d modelview;   
+  Matrix3d modelviewInverse;
+
+  glGetFloatv(GL_MODELVIEW_MATRIX, modelview.data());  
+  modelview.inverse(modelviewInverse);
+
+  BBox volumeBox(_vmin, _vmax);
+
+  volumeBox.transform(modelview);
+
+  // 
+  // Calculate the the minimum and maximum z-position of the rotated bounding
+  // boxes. Equivalent to but quicker than:
+  //
+  // Vect3d maxv(0, 0, rotatedBox.maxZ().z); 
+  // Vect3d minv(0, 0, rotatedBox.minZ().z); 
+  // maxv = modelviewInverse * maxd;
+  // minv = modelviewInverse * mind;
+  //
+  Vect3d maxv(modelviewInverse(2,0)*volumeBox.maxZ().z,
+              modelviewInverse(2,1)*volumeBox.maxZ().z,
+              modelviewInverse(2,2)*volumeBox.maxZ().z);
+  Vect3d minv(modelviewInverse(2,0)*volumeBox.minZ().z,
+              modelviewInverse(2,1)*volumeBox.minZ().z,
+              modelviewInverse(2,2)*volumeBox.minZ().z);
+
+  _delta = fabs(_vmin.z-_vmax.z) / _nz; 
+  _samples = (maxv - minv).mag() / _delta;
+  _samplingRate = 2.0; // TBD
+}
 
 //----------------------------------------------------------------------------
 // Proof-of-concept Shader

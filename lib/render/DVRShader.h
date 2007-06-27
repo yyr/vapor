@@ -83,6 +83,8 @@ protected:
 
   ShaderProgram* shader();
 
+  virtual void calculateSampling();
+
   virtual void drawViewAlignedSlices(const TextureBrick *brick,
                                      const Matrix3d &modelview,
                                      const Matrix3d &modelviewInverse);
@@ -98,7 +100,7 @@ protected:
 
   GLuint _texid;
   GLuint _cmapid[2];
-  
+
   int    _nx;
   int    _ny;
   int    _nz;

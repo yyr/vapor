@@ -212,6 +212,11 @@ public:
  //
  virtual void	SetPerspectiveOnOff(int )  { return; };
 
+ // Get/Set rendering to "fast" mode
+ // 
+ virtual bool   GetRenderFast() const { return false; }
+ virtual void   SetRenderFast(bool)   { return; }
+
 private:
 
 };

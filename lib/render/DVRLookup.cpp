@@ -170,10 +170,15 @@ void DVRLookup::SetCLUT(const float ctab[256][4])
 void DVRLookup::SetOLUT(const float atab[256][4], const int numRefinements)
 {
   //
+  // Compute the sampling distance and rate
+  //
+  calculateSampling();
+
+  //
   // Calculate opacity correction. Delta is 1 for the fineest refinement, 
   // multiplied by 2^n (the sampling distance)
   //
-  double delta = (double)(1<<numRefinements);
+  double delta = 2.0/_samplingRate * (double)(1<<numRefinements);
 
   for(int i=0; i<256; i++) 
   {

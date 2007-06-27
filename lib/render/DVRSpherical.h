@@ -57,6 +57,10 @@ class RENDER_API DVRSpherical : public DVRShader
 
  protected:
 
+  virtual void calculateSampling();
+
+ protected:
+
   static char spherical_shader_default[];
 
 };

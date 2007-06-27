@@ -367,6 +367,11 @@ void DVRShader::SetCLUT(const float ctab[256][4])
 //----------------------------------------------------------------------------
 void DVRShader::SetOLUT(const float atab[256][4], const int numRefinements)
 {
+  //
+  // Compute the sampling distance and rate
+  //
+  calculateSampling();
+
   if (_preintegration)
   {
     SetPreIntegrationTable(atab, numRefinements);
@@ -377,7 +382,7 @@ void DVRShader::SetOLUT(const float atab[256][4], const int numRefinements)
   // Calculate opacity correction. Delta is 1 for the ffineest refinement, 
   // multiplied by 2^n (the sampling distance)
   //
-  double delta = (double)(1<<numRefinements);
+  double delta = 2.0/_samplingRate * (double)(1<<numRefinements);
 
   for(int i=0; i<256; i++) 
   {
@@ -440,7 +445,8 @@ void DVRShader::SetPreIntegrationTable(const float atab[256][4],
 
   float opac[256];
 
-  double delta = (double)(1<<numRefinements);
+  double delta = 2.0/_samplingRate * (double)(1<<numRefinements);
+
   opac[0] = MIN(1.0, 1.0 - pow((1.0 - atab[0][3]), delta));
 
   // 
@@ -704,6 +710,7 @@ void DVRShader::initShaderVariables()
     if (GLEW_VERSION_2_0)
     {
       glUniform1f(_shader->uniformLocation("delta"), _delta);
+
     }
     else
     {
@@ -758,6 +765,30 @@ ShaderProgram* DVRShader::shader()
 }
 
 //----------------------------------------------------------------------------
+//
+//----------------------------------------------------------------------------
+void DVRShader::calculateSampling()
+{
+  DVRTexture3d::calculateSampling();
+
+  if (_preintegration)
+  {
+    _shader->enable();
+
+    if (GLEW_VERSION_2_0)
+    {
+      glUniform1f(_shader->uniformLocation("delta"), _delta);
+    }
+    else
+    {
+      glUniform1fARB(_shader->uniformLocation("delta"), _delta);
+    }
+
+    _shader->disable();
+  }
+}
+
+//----------------------------------------------------------------------------
 // Draw the proxy geometry for the brick. Overriden to setup the texture
 // matrix that the shader can use to convert object coordinates to 
 // texture coordinates. 
@@ -792,3 +823,4 @@ void DVRShader::drawViewAlignedSlices(const TextureBrick *brick,
 
   DVRTexture3d::drawViewAlignedSlices(brick, modelview, modelviewInverse);
 }
+

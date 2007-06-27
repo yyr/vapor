@@ -60,13 +60,19 @@ class RENDER_API DVRTexture3d : public DVRBase
                         const int data_box[6],
                         int level);
 
+  virtual bool   GetRenderFast() const       { return _renderFast; }
+  virtual void   SetRenderFast(bool fast)    { _renderFast = fast; }
+
   virtual void loadTexture(TextureBrick *brick) = 0;
 
 protected:
 
+  virtual void calculateSampling();
+
   virtual void drawViewAlignedSlices(const TextureBrick *brick,
                                      const Matrix3d &modelview,
                                      const Matrix3d &modelviewInverse);
+
   void renderBricks();
 
   int  intersect(const Vect3d &sp, const Vect3d &spn, 
@@ -96,12 +102,21 @@ protected:
   int    _by;
   int    _bz;
 
-  float  _delta; 
+  bool   _renderFast;
+
+  float  _delta;
+  float  _samples;
+  float  _samplingRate;
+  int    _minimumSamples;
   int    _maxTexture;
   int    _maxBrickDim;
  
   // Texture bricks
   vector<TextureBrick*> _bricks;
+
+  // Voxel extents
+  Point3d _dmin;
+  Point3d _dmax;
 
   // Data extents
   Point3d _vmin;

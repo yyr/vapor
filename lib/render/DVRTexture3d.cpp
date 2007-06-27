@@ -48,7 +48,11 @@ DVRTexture3d::DVRTexture3d(DataType_T type, int nthreads) :
   _bx(0),
   _by(0),
   _bz(0),  
+  _renderFast(false),
   _delta(0.0),
+  _samples(0),
+  _samplingRate(2.0),
+  _minimumSamples(384),
   _maxTexture(maxTextureSize(GL_LUMINANCE8)),
   _maxBrickDim(128), // NOTE: This should always be <= _maxTexture
   _lastRegion()
@@ -88,6 +92,13 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
 { 
   _data = data;
 
+  _dmin.x = data_roi[0];
+  _dmin.y = data_roi[1];
+  _dmin.z = data_roi[2];
+  _dmax.x = data_roi[3];
+  _dmax.y = data_roi[4];
+  _dmax.z = data_roi[5];
+
   if (_lastRegion.update(nx, ny, nz, data_roi, data_box, extents))
   {
     if (_nx != nx || _ny != ny || _nz != nz)
@@ -103,8 +114,6 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
     _vmax.x = extents[3];
     _vmax.y = extents[4];
     _vmax.z = extents[5];
-    
-    _delta = fabs(_vmin.z-_vmax.z) / nz; 
     
     for (int i=0; i<_bricks.size(); i++)
     {
@@ -200,6 +209,78 @@ void DVRTexture3d::renderBricks()
 }
 
 //----------------------------------------------------------------------------
+// Calculate the sampling distance
+//----------------------------------------------------------------------------
+void DVRTexture3d::calculateSampling()
+{
+  //
+  // Get the modelview matrix and its inverse
+  //
+  Matrix3d modelview;   
+  Matrix3d modelviewInverse;
+
+  glGetFloatv(GL_MODELVIEW_MATRIX, modelview.data());  
+  modelview.inverse(modelviewInverse);
+
+  BBox volumeBox(_vmin, _vmax);
+  BBox voxelBox(_dmin, _dmax);
+
+  volumeBox.transform(modelview);
+  voxelBox.transform(modelview);
+
+  // 
+  // Calculate the the minimum and maximum z-position of the rotated bounding
+  // boxes. Equivalent to but quicker than:
+  //
+  // Vect3d maxv(0, 0, rotatedBox.maxZ().z); 
+  // Vect3d minv(0, 0, rotatedBox.minZ().z); 
+  // maxv = modelviewInverse * maxd;
+  // minv = modelviewInverse * mind;
+  //
+  Vect3d maxv(modelviewInverse(2,0)*volumeBox.maxZ().z,
+              modelviewInverse(2,1)*volumeBox.maxZ().z,
+              modelviewInverse(2,2)*volumeBox.maxZ().z);
+  Vect3d minv(modelviewInverse(2,0)*volumeBox.minZ().z,
+              modelviewInverse(2,1)*volumeBox.minZ().z,
+              modelviewInverse(2,2)*volumeBox.minZ().z);
+
+  Vect3d maxd(modelviewInverse(2,0)*voxelBox.maxZ().z,
+              modelviewInverse(2,1)*voxelBox.maxZ().z,
+              modelviewInverse(2,2)*voxelBox.maxZ().z);
+  Vect3d mind(modelviewInverse(2,0)*voxelBox.minZ().z,
+              modelviewInverse(2,1)*voxelBox.minZ().z,
+              modelviewInverse(2,2)*voxelBox.minZ().z);
+
+  //
+  // Distance in world coordinates
+  //
+  float distance = (maxv - minv).mag();
+
+  //
+  // Sampling theory tells us that we need two samples per voxel for
+  // reconstruction of the signal. 
+  //
+  _samplingRate = 2.0;
+  _samples = _samplingRate * (maxd - mind).mag();
+
+  //
+  // But we'll oversample to _minimumSamples (if we're not in fast render mode)
+  // for a smooth appearance at low refinement levels.
+  //
+  if (!_renderFast && _samples < _minimumSamples)
+  {
+    _samples = _minimumSamples;
+
+    //
+    // Recalculate the sampling rate -- used later for the opacity correction
+    //
+    _samplingRate = _samples / (maxd - mind).mag();
+  }
+
+  _delta = distance / _samples;
+}
+
+//----------------------------------------------------------------------------
 // Draw the proxy geometry
 //----------------------------------------------------------------------------
 void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
@@ -239,30 +320,7 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
   //
   // Calculate the distance between slices
   //
-
-  // 
-  // Calculate the the minimum and maximum z-position of the rotated bounding
-  // box. Equivalent to but quicker than:
-  //
-  // Vect3d maxd(0, 0, rotatedBox.maxZ().z); 
-  // Vect3d mind(0, 0, rotatedBox.minZ().z); 
-  // maxv = modelviewInverse * maxd;
-  // minv = modelviewInverse * mind;
-  //
-  Vect3d maxv(modelviewInverse(2,0)*rotatedBox.maxZ().z,
-              modelviewInverse(2,1)*rotatedBox.maxZ().z,
-              modelviewInverse(2,2)*rotatedBox.maxZ().z);
-  Vect3d minv(modelviewInverse(2,0)*rotatedBox.minZ().z,
-              modelviewInverse(2,1)*rotatedBox.minZ().z,
-              modelviewInverse(2,2)*rotatedBox.minZ().z);
-  
-  maxv -= minv;
-
-  float sampleDistance = maxv.mag();
-
   Vect3d sliceDelta = slicePlaneNormal * _delta;
-
-  int samples = (int)(sampleDistance / _delta);
 
   //
   // Calculate edge intersections between the plane and the boxes
@@ -271,7 +329,7 @@ void DVRTexture3d::drawViewAlignedSlices(const TextureBrick *brick,
   Vect3d tverts[6];  // for texture intersections
   Vect3d rverts[6];  // for transformed edge intersections
 
-  for(int i = 0 ; i <= samples; i++)
+  for(int i = 0 ; i <= _samples; i++)
   { 
     int order[6] ={0,1,2,3,4,5};
     int size = 0;
