@@ -66,6 +66,33 @@ const string Metadata::_vdfVersionAttr = "VDFVersion";
 const string Metadata::_numChildrenAttr = "NumChildren";
 
 
+int Metadata::SetDefaults() {
+
+	vector <long> periodic_boundary(3,0);
+	SetPeriodicBoundary(periodic_boundary);
+
+	// Set some default metadata attributes. 
+	//
+	string gridTypeStr = "regular";
+	SetGridType(gridTypeStr);
+
+	string coordSystemType = "cartesian";
+	SetCoordSystemType(coordSystemType);
+
+	double maxdim = max(_dim[0], max(_dim[1],_dim[2]));
+	double extents[] = {
+		0.0, 0.0, 0.0, 
+		(double) _dim[0]/maxdim, 
+		(double) _dim[1]/maxdim, 
+		(double) _dim[2]/maxdim
+	};
+
+	vector<double> extentsVec(extents, &extents[sizeof(extents)/sizeof(extents[0])]);
+	SetExtents(extentsVec);
+
+	return(0);
+}
+
 // Initialize the class object
 //
 int Metadata::_init(
@@ -105,7 +132,6 @@ int Metadata::_init(
 	_vdfVersion = vdfVersion;
 
 	_varNames.clear();
-	_periodicBoundaryDefault.assign(3,0);
 
 	oss.str(empty);
 	oss << (unsigned int)_bs[0] << " " << (unsigned int)_bs[1] << " " << (unsigned int)_bs[2];
@@ -142,23 +168,7 @@ int Metadata::_init(
 	_rootnode = new XmlNode(_rootTag, attrs);
 	if (XmlNode::GetErrCode() != 0) return(-1);
 	
-
-	// Set some default metadata attributes. 
-	//
-	string gridTypeStr = "regular";
-	_rootnode->SetElementString(_gridTypeTag, gridTypeStr);
-
-	string coordSystemType = "cartesian";
-	_rootnode->SetElementString(_coordSystemTypeTag, coordSystemType);
-
-	double maxdim = max(dim[0], max(dim[1],dim[2]));
-	double extents[] = {
-		0.0, 0.0, 0.0, 
-		(double) dim[0]/maxdim, (double) dim[1]/maxdim, (double) dim[2]/maxdim
-	};
-
-	vector<double> extentsVec(extents, &extents[sizeof(extents)/sizeof(extents[0])]);
-	SetExtents(extentsVec);
+	_periodicBoundaryDefault.assign(3,0);
 
 	if (SetNumTimeSteps(1) < 0) return(-1);
 
@@ -168,7 +178,9 @@ int Metadata::_init(
 	string comment = "";
 	_rootnode->SetElementString(_commentTag, comment);
 
-	return(0);
+	
+
+	return(SetDefaults());
 }
 
 Metadata::Metadata(
@@ -192,6 +204,8 @@ Metadata::Metadata(
 	}
 	_objInitialized = 1;
 }
+
+
 
 
 Metadata::Metadata(const string &path) {

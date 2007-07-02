@@ -10,7 +10,7 @@ FILES = \
 	VDFIOBase WaveletBlock3DIO WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter XmlNode ImpExp vdf ExpatParseMgr AMRIO \
-	AMRTree AMRTreeBranch AMRData 
+	AMRTree AMRTreeBranch AMRData MetadataSpherical
 
 HEADER_FILES = \
 	BlkMemMgr DataMgr Metadata WaveletBlock3D \
@@ -18,7 +18,7 @@ HEADER_FILES = \
 	VDFIOBase WaveletBlock3DIO WaveletBlock3DReader \
 	WaveletBlock3DRegionReader WaveletBlock3DRegionWriter \
 	WaveletBlock3DWriter XmlNode ImpExp ExpatParseMgr AMRIO \
-	AMRTree AMRTreeBranch AMRData 
+	AMRTree AMRTreeBranch AMRData MetadataSpherical
 
 ifdef	NETCDF_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
