@@ -58,25 +58,27 @@ using namespace VAPoR;
 struct opt_t {
 	int	ts;
 	int wrfts;
-	char *varname;
+	vector<string> varnames;
 	int level;
-	float low_out;
-	float high_out;
+	vector<int> low_out;
+	vector<int> high_out;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
+	OptionParser::Boolean_T lowextrp;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts",		1, 	"0","Timestep of metadata starting from 0"},
 	{"wrfts",	1,  "-1", "Timestep in WRF data if different from metadata"},
-	{"varname",	1, 	"var1",	"Name of variable in WRF (=same as in metadata)"},
+	{"varnames",	1, 	"var1",	"Colon-delimited list of variable names (=same as in metadata)"},
 	{"level",	1, 	"-1",	"Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
-	{"lowval",	1, "-1.e30", "value assigned points below grid"},
-	{"highval",	1, "1.e30", "value assigned points above grid"},
+	{"lowvals",	1, "-32767", "Mask value assigned points below grid"},
+	{"hivals",	1, "32767", "Mask value assigned points above grid"},
+	{"lowextrp",    0,      "", "Use ground-level data values for points below grid (overrides lowvals option)"},
 	{NULL}
 };
 
@@ -84,13 +86,14 @@ OptionParser::OptDescRec_T	set_opts[] = {
 OptionParser::Option_T	get_options[] = {
 	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
 	{"wrfts", VetsUtil::CvtToInt, &opt.wrfts, sizeof(opt.wrfts)},
-	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
+	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
-	{"lowval", VetsUtil::CvtToFloat, &opt.low_out, sizeof(opt.low_out)},
-	{"highval", VetsUtil::CvtToFloat, &opt.high_out, sizeof(opt.high_out)},
+	{"lowvals", VetsUtil::CvtToIntVec, &opt.low_out, sizeof(opt.low_out)},
+	{"hivals", VetsUtil::CvtToIntVec, &opt.high_out, sizeof(opt.high_out)},
+	{"lowextrp", VetsUtil::CvtToBoolean, &opt.lowextrp, sizeof(opt.lowextrp)},
 	{NULL}
 };
 
@@ -169,7 +172,9 @@ void save_file(const char *file) {
 // In both cases the hsize coordinate is the slowly changing one.
 //
 void interpolateSlice(int hsize, int elevLayers, float* elevs, 
-					  float* varData, float* gridData, int stag, float* minLayerWidth, float* maxHt ){
+		      float* varData, float* gridData, int stag,
+		      float* minLayerWidth, float* maxHt, int tooLow,
+                      int tooHigh ){
 	
 	int varLayers = elevLayers - (1-stag);  //number of vertical variable data values
 	//Do this one horizontal coord at a time, since we need to resamp the vert coord:
@@ -183,7 +188,7 @@ void interpolateSlice(int hsize, int elevLayers, float* elevs,
 			*maxHt = elevs[hsize*(elevLayers -1) + j];
 		if (*minLayerWidth > (elevs[hsize +j] - elevs[j]))
 			*minLayerWidth = (elevs[hsize +j] - elevs[j]);
-		for (int i = 0; i < gridHeight; i++){
+		for (int i = gridHeight-1; i >= 0; i--){
 			// convert the grid index to an elevation.
 			// ht is the height of a cell in the grid:
 			float ht = (maxElevation - minElevation)/(float)(gridHeight-1);
@@ -191,17 +196,31 @@ void interpolateSlice(int hsize, int elevLayers, float* elevs,
 			
 			//compare with top and bottom layers:
 			if (vertHeight < elevs[j]){
-				gridData[i*hsize + j] =  opt.low_out;
-				continue;
+			// Depending on opt.lowextrp, either set "below the
+                        // world" invalid data values to the user-assigned mask
+			// values in the "lowvals" option, or to the value of 
+			// the (valid) data on the ground level
+				if( opt.lowextrp )
+				{
+					gridData[i*hsize + j] = 
+					    gridData[(i + 1)*hsize + j];
+					continue;
+				}
+				else
+				{
+					gridData[i*hsize + j] = tooLow;
+					continue;
+				}
 			}
 			else if(vertHeight > elevs[hsize*(elevLayers -1) + j]){
-				gridData[i*hsize + j] =  opt.high_out;
+				gridData[i*hsize + j] = tooHigh;
 				continue;
 			}
 			//If stag==1 then the interpolation is based on the position between elev values.
 			//If stag==0 then the interpolation is between midpoints between elev values.
 	
 			//adjust setting of CurrentLevel to indicate the elev level below vertHeight.
+			currentLevel = 0;
 			while (vertHeight > elevs[j+hsize*(currentLevel+1)]){
 				currentLevel++;
 				assert(currentLevel < elevLayers);
@@ -266,9 +285,12 @@ void interpolateSlice(int hsize, int elevLayers, float* elevs,
 
 void	process_volume(
 	WaveletBlock3DBufWriter *bufwriter,
+	string whichVar,   // Variable we wish to write
 	const size_t *dim, //dimensions from vdf
 	const int ncid,
-	double *read_timer
+	double *read_timer,
+        int tooLow,
+        int tooHigh
 ) {
 
 	// Check out the netcdf file.
@@ -299,9 +321,9 @@ void	process_volume(
 	NC_ERR_READ(nc_status);
 
 	//Check on the variable we are going to read:
-	nc_status = nc_inq_varid(ncid, opt.varname, &varid);
+	nc_status = nc_inq_varid(ncid, whichVar.c_str(), &varid);
 	if (nc_status != NC_NOERR){
-		fprintf(stderr, "variable %s not found in netcdf file\n", opt.varname);
+		fprintf(stderr, "variable %s not found in netcdf file\n", whichVar.c_str() );
 		exit(1);
 	}
 	//Check on PH and PHB
@@ -509,7 +531,7 @@ void	process_volume(
 		
 		NC_ERR_READ(nc_status);
 		
-		//Also grab PB and PHB for this slice:
+		//Also grab PH and PHB for this slice:
 		nc_status = nc_get_vara_float(
 			ncid, phVarid, start, elev_count, phBuffer
 		);
@@ -521,7 +543,7 @@ void	process_volume(
 		//
 		// Interpolate a single slice of data.  
 		//
-		//Calculate elevation, which is (PB+PBH)/g
+		//Calculate elevation, which is (PH+PHB)/g
 		int hsize = dim[0];
 		
 		for (int layer = 0; layer< elevLayers; layer++){
@@ -530,8 +552,8 @@ void	process_volume(
 				phBuffer[layer*hsize+j] /= 9.8f;
 			}
 		}
-		interpolateSlice(hsize, elevLayers, phBuffer, buffer, outBuffer, stag,
-			&minWidth, &maxHeight);
+		interpolateSlice(hsize, elevLayers, phBuffer, buffer, outBuffer,
+				 stag, &minWidth, &maxHeight, tooLow, tooHigh);
 	
 		
 		bufwriter->WriteSlice(outBuffer);
@@ -590,6 +612,19 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+	// If no below-the-grid or above-the-grid values were specificied,
+        // use defaults
+        if( opt.low_out.size() == 1 && opt.low_out[0] == -32767 )
+	{
+		for( size_t i = 0 ; i < opt.varnames.size() ; i++ )
+			opt.low_out.push_back(-32767);
+	}
+	if( opt.high_out.size() == 1 && opt.high_out[0] == 32767 )
+	{
+		for( size_t i = 0 ; i < opt.varnames.size() ; i++ )
+			opt.high_out.push_back(32767);
+	}
+	
 	metafile = argv[1];	// Path to a vdf file
 	netCDFfile = argv[2];	// Path to raw data file 
 
@@ -598,7 +633,6 @@ int	main(int argc, char **argv) {
     if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
 	WaveletBlock3DIO	*wbwriter;
-
 	//
 	// Create an appropriate WaveletBlock writer. Initialize with
 	// path to .vdf file
@@ -616,28 +650,29 @@ int	main(int argc, char **argv) {
 	//
 	metadata = wbwriter->GetMetadata();
 
+	int nc_status;
+        int nc_statusTemp;
+	int ncid;
+	int varidtemp;	
 
-	//
-	// Open a variable for writing at the indicated time step
-	//
-	if (wbwriter->OpenVariableWrite(opt.ts, opt.varname, opt.level) < 0) {
-		cerr << ProgName << " : " << wbwriter->GetErrMsg() << endl;
-		exit(1);
-	} 
-
-	//
-	// If pre version 2, create a backup of the .vdf file. The 
-	// translation process will generate a new .vdf file
-	//
-	if (metadata->GetVDFVersion() < 2) save_file(metafile);
-
-    int nc_status;
-    int ncid;
-
-    nc_status = nc_open(netCDFfile, NC_NOWRITE, &ncid);
+	nc_status = nc_open(netCDFfile, NC_NOWRITE, &ncid);
 	NC_ERR_READ(nc_status);
 
-   
+	// Make sure all variables are valid
+	for( vector<string>::iterator it = opt.varnames.begin() ;
+             it != opt.varnames.end() ; it++ )
+        {
+		nc_statusTemp = nc_inq_varid( ncid, (*it).c_str(), &varidtemp );
+		if (nc_statusTemp != NC_NOERR)
+		{
+			fprintf(stderr,"variable %s not found in netcdf file\n",
+				(*it).c_str() );
+			exit(1);
+		}
+	}
+
+
+	   
 	// Get the dimensions of the volume
 	//
 	const size_t *dim = metadata->GetDimension();
@@ -646,41 +681,67 @@ int	main(int argc, char **argv) {
 	maxElevation = exts[4];
 	gridHeight = dim[1];
 
+	int loopIndex = 0;
+	// Begin looping over variables	
+	for( vector<string>::iterator it = opt.varnames.begin() ; 
+             it != opt.varnames.end() ; it++ )
+        {
 
-	TIMER_START(t0);
+		//
+		// Open a variable for writing at the indicated time step
+		//
+		if (wbwriter->OpenVariableWrite(opt.ts, (*it).c_str(), opt.level) < 0) {
+			cerr << ProgName << " : " << wbwriter->GetErrMsg() << endl;
+			exit(1);
+		} 
 
-	process_volume((WaveletBlock3DBufWriter *) wbwriter, dim, ncid, &read_timer);
+		//
+		// If pre version 2, create a backup of the .vdf file. The 
+		// translation process will generate a new .vdf file
+		//
+		if (metadata->GetVDFVersion() < 2) save_file(metafile);
 	
-	// Close the variable. We're done writing.
-	//
-	wbwriter->CloseVariable();
-	if (wbwriter->GetErrCode() != 0) {
-		cerr << ProgName << ": " << wbwriter->GetErrMsg() << endl;
-		exit(1);
-	}
-	TIMER_STOP(t0,timer);
+		TIMER_START(t0);
+		
+		fprintf(stdout, "Working on variable %s\n", (*it).c_str() );
 
-	if (! opt.quiet) {
-		float	write_timer = wbwriter->GetWriteTimer();
-		float	xform_timer = wbwriter->GetXFormTimer();
-		const float *range = wbwriter->GetDataRange();
+		process_volume((WaveletBlock3DBufWriter *) wbwriter, *it, dim,
+                                ncid, &read_timer, opt.low_out[loopIndex],
+			        opt.high_out[loopIndex] );
 
-		fprintf(stdout, "read time : %f\n", read_timer);
-		fprintf(stdout, "write time : %f\n", write_timer);
-		fprintf(stdout, "transform time : %f\n", xform_timer);
-		fprintf(stdout, "total transform time : %f\n", timer);
-		fprintf(stdout, "min and max values of data output: %g, %g\n",range[0], range[1]);
-	}
+		// Close the variable. We're done writing.
+		//
+		wbwriter->CloseVariable();
+		if (wbwriter->GetErrCode() != 0) {
+			cerr << ProgName << ": " << wbwriter->GetErrMsg() << endl;
+			exit(1);
+		}
+		TIMER_STOP(t0,timer);
 
-	// For pre-version 2 vdf files we need to write out the updated metafile. 
-	// If we don't call this then
-	// the .vdf file will not be updated with stats gathered from
-	// the volume we just translated.
-	//
-	if (metadata->GetVDFVersion() < 2) {
-		Metadata *m = (Metadata *) metadata;
-		m->Write(metafile);
+		if (! opt.quiet) {
+			float	write_timer = wbwriter->GetWriteTimer();
+			float	xform_timer = wbwriter->GetXFormTimer();
+			const float *range = wbwriter->GetDataRange();
+			fprintf(stdout, "read time : %f\n", read_timer);
+			fprintf(stdout, "write time : %f\n", write_timer);
+			fprintf(stdout, "transform time : %f\n", xform_timer);
+			fprintf(stdout, "total transform time : %f\n", timer);
+			fprintf(stdout, "min and max values of data output: %g, %g\n",range[0], range[1]);
+		}
+
+		// For pre-version 2 vdf files we need to write out the updated metafile. 
+		// If we don't call this then
+		// the .vdf file will not be updated with stats gathered from
+		// the volume we just translated.
+		//
+		if (metadata->GetVDFVersion() < 2) {
+			Metadata *m = (Metadata *) metadata;
+			m->Write(metafile);
+		}
+		loopIndex++;
 	}
+	// End looping over variables
+
 	nc_close(ncid);
 	exit(0);
 }
