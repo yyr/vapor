@@ -33,7 +33,7 @@ using namespace VetsUtil;
 
 // Static member initialization
 //
-const string MetadataSpherical::_gridPermutationTag = "gridPermutation";
+const string MetadataSpherical::_gridPermutationTag = "GridPermutation";
 
 
 int MetadataSpherical::SetDefaults() {
