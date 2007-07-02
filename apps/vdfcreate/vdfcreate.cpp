@@ -5,12 +5,14 @@
 
 #include <vapor/OptionParser.h>
 #include <vapor/Metadata.h>
+#include <vapor/MetadataSpherical.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;
 
 int	cvtToExtents(const char *from, void *to);
 int	cvtTo3DBool(const char *from, void *to);
+int	cvtToOrder(const char *from, void *to);
 
 struct opt_t {
 	OptionParser::Dimension3D_T	dim;
@@ -23,6 +25,7 @@ struct opt_t {
 	char *coordsystem;
 	char *gridtype;
 	float extents[6];
+	int order[3];
 	int periodic[3];
 	vector <string> varnames;
 	OptionParser::Boolean_T	mtkcompat;
@@ -40,6 +43,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"gridtype",	1,	"regular",	"Data grid type (regular|streched|block_amr)"}, 
 	{"coordsystem",	1,	"cartesian","Top-level comment (cartesian|spherical)"},
 	{"extents",	1,	"0:0:0:0:0:0",	"Colon delimited 6-element vector specifying domain extents in user coordinates (X0:Y0:Z0:X1:Y1:Z1)"},
+	{"order",	1,	"0:1:2",	"Colon delimited 3-element vector specifying permutation ordering of raw data on disk "},
 	{"periodic",	1,	"0:0:0",	"Colon delimited 3-element boolean (0=>nonperiodic, 1=>periodic) vector specifying periodicity of X,Y,Z coordinate axes (X:Y:Z)"},
 	{"varnames",1,	"var1",			"Colon delimited list of variable names"},
 	{"mtkcompat",	0,	"",			"Force compatibility with older mtk files"},
@@ -59,6 +63,7 @@ OptionParser::Option_T	get_options[] = {
 	{"gridtype", VetsUtil::CvtToString, &opt.gridtype, sizeof(opt.gridtype)},
 	{"coordsystem", VetsUtil::CvtToString, &opt.coordsystem, sizeof(opt.coordsystem)},
 	{"extents", cvtToExtents, &opt.extents, sizeof(opt.extents)},
+	{"order", cvtToOrder, &opt.order, sizeof(opt.order)},
 	{"periodic", cvtTo3DBool, &opt.periodic, sizeof(opt.periodic)},
 	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
 	{"mtkcompat", VetsUtil::CvtToBoolean, &opt.mtkcompat, sizeof(opt.mtkcompat)},
@@ -105,11 +110,25 @@ int	main(int argc, char **argv) {
 	dim[1] = opt.dim.ny;
 	dim[2] = opt.dim.nz;
 
-	if (opt.mtkcompat) {
-		file = new Metadata(dim,opt.level,bs,opt.nfilter,opt.nlifting, 0, 0);
+	s.assign(opt.coordsystem);
+	if (s.compare("spherical") == 0) {
+		size_t perm[] = {opt.order[0], opt.order[1], opt.order[2]};
+
+		file = new MetadataSpherical(
+			dim,opt.level,bs,perm, opt.nfilter,opt.nlifting
+		);
 	}
 	else {
-		file = new Metadata(dim,opt.level,bs,opt.nfilter,opt.nlifting);
+		if (opt.mtkcompat) {
+			file = new Metadata(
+				dim,opt.level,bs,opt.nfilter,opt.nlifting, 0, 0
+			);
+		}
+		else {
+			file = new Metadata(
+				dim,opt.level,bs,opt.nfilter,opt.nlifting
+			);
+		}
 	}
 
 	if (Metadata::GetErrCode()) {
@@ -134,11 +153,13 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+#ifdef	DEAD
 	s.assign(opt.coordsystem);
 	if (file->SetCoordSystemType(s) < 0) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
+#endif
 
 	int doExtents = 0;
 	for(int i=0; i<5; i++) {
@@ -183,6 +204,21 @@ int	main(int argc, char **argv) {
 	}
 
 	
+}
+
+int	cvtToOrder(
+	const char *from, void *to
+) {
+	int   *iptr   = (int *) to;
+
+	if (! from) {
+		iptr[0] = iptr[1] = iptr[2];
+	}
+	else if (!  (sscanf(from,"%d:%d:%d", &iptr[0],&iptr[1],&iptr[2]) == 3)) { 
+
+		return(-1);
+	}
+	return(1);
 }
 
 int	cvtToExtents(
