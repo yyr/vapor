@@ -904,7 +904,7 @@ public:
 	return(_variableUserDSTags);
  }
 
-private:
+protected:
  int	_objInitialized;	// has the obj successfully been initialized?
  XmlNode	*_rootnode;		// root node of the xml tree
  vector <string> _varNames;	// Names of all the field variables
@@ -999,6 +999,7 @@ bool elementEndHandler(ExpatParseMgr*, int depth , std::string& );
  void _endElementHandler1(ExpatParseMgr*,const string &tag);
  void _endElementHandler2(ExpatParseMgr*,const string &tag);
  void _endElementHandler3(ExpatParseMgr*,const string &tag);
+ virtual int SetDefaults();	// Set some defaults 
 
 
 };
