@@ -88,7 +88,7 @@ float RenderParams::getMaxOpacMapBound(){
 }
 
 //For params subclasses that have a box:
-void Params::calcBoxExtentsInCube(float* extents){
+void Params::calcStretchedBoxExtentsInCube(float* extents){
 	float boxMin[3], boxMax[3];
 	getBox(boxMin, boxMax);
 	float maxSize = 1.f;
@@ -99,24 +99,39 @@ void Params::calcBoxExtentsInCube(float* extents){
 		}
 		return;
 	}
-	const float* fullExtents = DataStatus::getInstance()->getExtents();
-	
+	const float* fullExtents = DataStatus::getInstance()->getStretchedExtents();
+	const float* stretchFactors = DataStatus::getInstance()->getStretchFactors();
 	maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
 	for (int i = 0; i<3; i++){
-		extents[i] = (boxMin[i] - fullExtents[i])/maxSize;
-		extents[i+3] = (boxMax[i] - fullExtents[i])/maxSize;
+		extents[i] = (boxMin[i]*stretchFactors[i] - fullExtents[i])/maxSize;
+		extents[i+3] = (boxMax[i]*stretchFactors[i] - fullExtents[i])/maxSize;
 	}
 }
-//For params subclasses that have a box, do the same in world coords
+//For params subclasses that have a box, do the same in (unstretched) world coords
 void Params::calcBoxExtents(float* extents){
 	
 	float boxMin[3], boxMax[3];
 	getBox(boxMin, boxMax);
+	
 	for (int i = 0; i<3; i++){
 		extents[i] = boxMin[i];
 		extents[i+3] = boxMax[i];
 	}
 }
+//For params subclasses that have a box, do the same in stretched world coords
+void Params::calcStretchedBoxExtents(float* extents){
+	
+	float boxMin[3], boxMax[3];
+	getBox(boxMin, boxMax);
+	const float* stretchFactors = DataStatus::getInstance()->getStretchFactors();
+	
+	for (int i = 0; i<3; i++){
+		extents[i] = boxMin[i]*stretchFactors[i];
+		extents[i+3] = boxMax[i]*stretchFactors[i];
+	}
+}
+//Following calculates box corners in world space.  Does not use
+//stretching.
 void Params::
 calcBoxCorners(float corners[8][3], float extraThickness, float rotation, int axis){
 	float transformMatrix[12];
@@ -334,4 +349,22 @@ void Params::convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, i
 	return;
 }
 	
+void Params::getStretchedBox(float boxmin[3], float boxmax[3]){
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	getBox(boxmin,boxmax);
+	for (int i = 0; i< 3; i++){
+		boxmin[i] *= stretch[i];
+		boxmax[i] *= stretch[i];
+	}
+}
+void Params::setStretchedBox(const float boxmin[3], const float boxmax[3]){
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	float newBoxmin[3], newBoxmax[3];
+	for (int i = 0; i< 3; i++){
+		newBoxmin[i] = boxmin[i]/stretch[i];
+		newBoxmax[i] = boxmax[i]/stretch[i];
+	}
+	setBox(newBoxmin, newBoxmax);
+}
+
 	

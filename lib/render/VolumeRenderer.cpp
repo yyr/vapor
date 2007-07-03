@@ -345,7 +345,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		  numxforms, vname);
 	  return;
   }
-  RegionParams::convertToBoxExtentsInCube(numxforms, min_dim, max_dim, extents);    
+  RegionParams::convertToStretchedBoxExtentsInCube(numxforms, min_dim, max_dim, extents);    
   //Make the depth buffer writable
   glDepthMask(GL_TRUE);
   //and readable
@@ -424,7 +424,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     max_pad_dim[1] = max_dim[1] - 1; 
     max_pad_dim[2] = max_dim[2] - 1;
 
-    RegionParams::convertToBoxExtentsInCube(numxforms, 
+    RegionParams::convertToStretchedBoxExtentsInCube(numxforms, 
                                             min_pad_dim, max_pad_dim, 
                                             padded_extents); 
    

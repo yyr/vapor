@@ -27,6 +27,7 @@
 #include <cstdarg>
 #include <cstring>
 #include <vapor/MetadataSpherical.h>
+#include "assert.h"
 
 using namespace VAPoR;
 using namespace VetsUtil;

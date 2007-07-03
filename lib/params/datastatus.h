@@ -53,9 +53,19 @@ public:
 	//This avoids all "Set" methods:
 	bool reset(DataMgr* dm, size_t cachesize, QApplication* app);
 	
+	//Update based on current stretch factor:
+	void stretchExtents(float factor[3]){
+		for (int i = 0; i< 3; i++) {
+			stretchedExtents[i] = extents[i]*factor[i];
+			stretchedExtents[i+3] = extents[i+3]*factor[i];
+			stretchFactors[i] = factor[i];
+		}
+	}
 	// Get methods:
 	//
 	const float* getExtents() {return extents;}
+	const float* getStretchedExtents() {return stretchedExtents;}
+	
 	//Determine the min and max extents at a level
 	void getExtentsAtLevel(int level, float exts[6]);
 	
@@ -114,7 +124,7 @@ public:
 	size_t getFullDataSize(int dim){return fullDataSize[dim];}
 	size_t getFullSizeAtLevel(int lev, int dim) {return dataAtLevel[lev][dim];}
 	float getVoxelSize(int lev, int dim){
-		return ((extents[dim+3]-extents[dim])/(float)getFullSizeAtLevel(lev,dim));
+		return ((stretchedExtents[dim+3]-stretchedExtents[dim])/(float)getFullSizeAtLevel(lev,dim));
 	}
 	const size_t* getFullDataSize() {return fullDataSize;}
 	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){
@@ -155,8 +165,10 @@ public:
 	}
 	
 	static void clearMetadataVars() {mapMetadataVars = 0; numMetadataVariables = 0;}
-	//Get full data extents in cube coords
-	void getMaxExtentsInCube(float maxExtents[3]);
+	//Get full stretched data extents in cube coords
+	void getMaxStretchedExtentsInCube(float maxExtents[3]);
+	const float* getStretchFactors() {return stretchFactors;}
+	
 	bool renderReady() {return renderOK;}
 	void setRenderReady(bool nowOK) {renderOK = nowOK;}
 		
@@ -193,6 +205,8 @@ private:
 	size_t fullDataSize[3];
 	std::vector<size_t*> dataAtLevel;
 	float extents[6];
+	float stretchedExtents[6];
+	float stretchFactors[3];
 	VDFIOBase* myReader;
 
 	// the variableNames array specifies the name associated with each variable num.

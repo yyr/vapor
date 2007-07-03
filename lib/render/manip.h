@@ -60,7 +60,7 @@ protected:
 	int mouseDownPosition[2];
 	float mouseDownIntersect[3];
 	
-	void getBoxVertices(float vertices[8][3]);
+	//void getBoxVertices(float vertices[8][3]);
 	Params* myParams;
 	GLWindow* myGLWin;
 	

@@ -261,7 +261,7 @@ mousePressEvent(QMouseEvent* e){
 				RegionParams* rParams = myWinMgr->getRegionParams(myWindowNum);
 				TranslateStretchManip* regionManip = myGLWindow->getRegionManip();
 				regionManip->setParams(rParams);
-				rParams->calcBoxExtentsInCube(boxExtents);
+				rParams->calcStretchedBoxExtentsInCube(boxExtents);
 				int handleNum = regionManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
 					float dirVec[3];
@@ -290,7 +290,7 @@ mousePressEvent(QMouseEvent* e){
 				FlowParams* fParams = myWinMgr->getFlowParams(myWindowNum);
 				TranslateStretchManip* flowManip = myGLWindow->getFlowManip();
 				flowManip->setParams(fParams);
-				fParams->calcBoxExtentsInCube(boxExtents);
+				fParams->calcStretchedBoxExtentsInCube(boxExtents);
 				int handleNum = flowManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
 					float dirVec[3];
@@ -320,7 +320,7 @@ mousePressEvent(QMouseEvent* e){
 				TranslateRotateManip* probeManip = myGLWindow->getProbeManip();
 				probeManip->setParams(pParams);
 				//pParams->calcBoxExtentsInCube(boxExtents);
-				pParams->calcContainingBoxExtentsInCube(boxExtents);
+				pParams->calcContainingStretchedBoxExtentsInCube(boxExtents);
 				int handleNum = probeManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
 					//Stretching doesn't work well if rotation is not a multiple of 90 deg.
@@ -615,7 +615,7 @@ void VizWin::setFocus(){
 void VizWin::
 changeCoords(float *vpos, float* vdir, float* upvec) {
 	float worldPos[3];
-	ViewpointParams::worldFromCube(vpos,worldPos);
+	ViewpointParams::worldFromStretchedCube(vpos,worldPos);
 	myWinMgr->getViewpointRouter()->navigate(myWinMgr->getViewpointParams(myWindowNum),worldPos, vdir, upvec);
 	
 	myGLWindow->setViewerCoordsChanged(false);
@@ -641,8 +641,8 @@ setValuesFromGui(ViewpointParams* vpparams){
 	float transCameraPos[3];
 	float cubeCoords[3];
 	//Must transform from world coords to unit cube coords for trackball.
-	ViewpointParams::worldToCube(vp->getCameraPos(), transCameraPos);
-	ViewpointParams::worldToCube(vpparams->getRotationCenter(), cubeCoords);
+	ViewpointParams::worldToStretchedCube(vp->getCameraPos(), transCameraPos);
+	ViewpointParams::worldToStretchedCube(vpparams->getRotationCenter(), cubeCoords);
 	myTrackball->setFromFrame(transCameraPos, vp->getViewDir(), vp->getUpVec(), cubeCoords, vp->hasPerspective());
 	
 	//If the perspective was changed, a resize event will be triggered at next redraw:
@@ -717,7 +717,7 @@ pointOverCube(RegionParams* rParams, float screenCoords[2]){
 
 	//Then transform them in-place to cube coords.
 	for (int j = 0; j<8; j++)
-		ViewpointParams::worldToCube(corners+j*3, corners+j*3);
+		ViewpointParams::worldToStretchedCube(corners+j*3, corners+j*3);
 	//Finally, for each face, test the point:
 	
 	//Back (as viewed from the positive z-axis):
@@ -789,7 +789,7 @@ pointOverCube(FlowParams* fParams, float screenCoords[2]){
 
 	//Then transform them in-place to cube coords.
 	for (int j = 0; j<8; j++)
-		ViewpointParams::worldToCube(corners+j*3, corners+j*3);
+		ViewpointParams::worldToStretchedCube(corners+j*3, corners+j*3);
 	//Finally, for each face, test the point:
 	
 	//Back (as viewed from the positive z-axis):

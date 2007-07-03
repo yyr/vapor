@@ -48,6 +48,7 @@
 
 using namespace VAPoR;
 Session* Session::theSession = 0;
+const string Session::_stretchFactorsAttr = "StretchFactors";
 const string Session::_cacheSizeAttr = "CacheSize";
 const string Session::_jpegQualityAttr = "JpegQuality";
 const string Session::_metadataPathAttr = "MetadataPath";
@@ -71,6 +72,8 @@ Session::Session() {
 	dataMgr = 0;
 	currentMetadata = 0;
 	cacheMB = 1024;
+	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
+	visualizeSpherically = false;
 	
 	//Note that the session will create the vizwinmgr!
 	VizWinMgr::getInstance();
@@ -136,7 +139,8 @@ void Session::init() {
 	currentJpegDirectory = "";	
 	currentFlowDirectory = "";
 	currentTFPath = "";
-
+	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
+	visualizeSpherically = false;
 	currentExportFile = ImpExp::GetPath();
 	//Delete all the saved transfer functions:
 	for (i = 0; i<numTFs; i++){
@@ -160,6 +164,8 @@ void Session::init() {
 	newSession = true;
 	extents[0] = extents[1] = extents[2] = 0.f;
 	extents[3] = extents[4] = extents[5] = 1.f;
+	stretchedExtents[0] = stretchedExtents[1] = stretchedExtents[2] = 0.f;
+	stretchedExtents[3] = stretchedExtents[4] = stretchedExtents[5] = 1.f;
 	DataStatus::removeMetadataVars();
 	
 }
@@ -195,6 +201,8 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)GLWindow::getJpegQuality();
 	attrs[_jpegQualityAttr] = oss.str();
+	
+
 	attrs[_metadataPathAttr] = currentMetadataFile;
 	attrs[_transferFunctionPathAttr] = currentTFPath;
 	attrs[_imageCapturePathAttr] = currentJpegDirectory;
@@ -207,6 +215,9 @@ buildNode() {
 		(long)msgRpt->getMaxPopup(MessageReporter::Warning) << " " <<
 		(long)msgRpt->getMaxPopup(MessageReporter::Error);
 	attrs[_maxPopupAttr] = oss.str();
+	oss.str(empty);
+	oss << (double)stretchFactors[0] << " " << (double)stretchFactors[1] << " " << (double)stretchFactors[2];
+	attrs[_stretchFactorsAttr] = oss.str();
 	oss.str(empty);
 	oss << extents[0]<<" "<<extents[1]<<" "<<extents[2]<<" "<<extents[3]<<" "<<extents[4]<<" "<<extents[5];
 	attrs[_dataExtentsAttr] = oss.str();
@@ -288,6 +299,11 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				if (StrCmpNoCase(attr, _cacheSizeAttr) == 0) {
 					ist >> cacheMB;
 				}
+				else if (StrCmpNoCase(attr, _stretchFactorsAttr) == 0) {
+					ist >> stretchFactors[0];
+					ist >> stretchFactors[1];
+					ist >> stretchFactors[2];
+				}
 				else if (StrCmpNoCase(attr, _jpegQualityAttr) == 0) {
 					int qual;
 					ist >> qual;
@@ -330,6 +346,11 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				else {
 					pm->parseError("Invalid session tag attribute : \"%s\"", attr.c_str());
 				}
+			}
+			//After parsing all session attr's, set the stretched Extents:
+			for (int i = 0; i<3; i++){
+				stretchedExtents[i] = extents[i]*stretchFactors[i];
+				stretchedExtents[i+3] = extents[i+3]*stretchFactors[i];
 			}
 			return true;
 		}
@@ -594,8 +615,10 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	//Get the extents from the metadata, if it exists:
 	if (currentMetadata){
 		std::vector<double> mdExtents = currentMetadata->GetExtents();
-		for (i = 0; i< 6; i++)
+		for (i = 0; i< 6; i++){
 			extents[i] = (float)mdExtents[i];
+			stretchedExtents[i] = extents[i]*stretchFactors[i%3];
+		}
 	}
 	//Histo::releaseHistograms();
 	
@@ -747,7 +770,7 @@ setupDataStatus(){
 	QApplication* app = MainForm::getInstance()->getApp();
 	if(currentDataStatus->reset(dataMgr, cacheMB, app)) {
 		dataExists = true;
-		
+		currentDataStatus->stretchExtents(stretchFactors);
 		//currentDataStatus->fillMetadataVars();
 	}
 	else dataExists = false;
@@ -903,7 +926,7 @@ infoCallbackFcn(const char* msg){
 	MessageReporter::infoMsg("%s",msg);
 }
 
-
+/*
 void Session::getExtents(int refLevel, float extents[6]){
 	size_t fullMin[3] = {0,0,0};
 	size_t fullMax[3];
@@ -915,3 +938,5 @@ void Session::getExtents(int refLevel, float extents[6]){
 	DataStatus::getInstance()->mapVoxelToUserCoords(refLevel, fullMax, dbextents+3);
 	for (int i = 0; i< 6; i++) extents[i] = (float)dbextents[i];
 }
+*/
+

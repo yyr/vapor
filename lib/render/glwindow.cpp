@@ -259,8 +259,8 @@ void GLWindow::paintGL()
 	}
 
 	
-	getActiveRegionParams()->calcBoxExtentsInCube(extents);
-	DataStatus::getInstance()->getMaxExtentsInCube(maxFull);
+	getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents);
+	DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
 
 	
 	//Make the depth buffer writable
@@ -326,7 +326,7 @@ void GLWindow::paintGL()
 //Draw a 3D cursor at specified world coords
 void GLWindow::draw3DCursor(const float position[3]){
 	float cubePosition[3];
-	ViewpointParams::worldToCube(position, cubePosition);
+	ViewpointParams::worldToStretchedCube(position, cubePosition);
 	glLineWidth(3.f);
 	glColor3f(1.f,1.f,1.f);
 	glBegin(GL_LINES);
@@ -402,9 +402,10 @@ bool GLWindow::pixelToVector(int x, int y, const float camPos[3], float dirVec[3
 		v[1] = (float)pt[1];
 		v[2] = (float)pt[2];
 		//transform position to world coords
-		ViewpointParams::worldFromCube(v,dirVec);
+		ViewpointParams::worldFromStretchedCube(v,dirVec);
 		//Subtract viewer coords to get a direction vector:
 		vsub(dirVec, camPos, dirVec);
+		
 	}
 	return success;
 }
@@ -1119,6 +1120,7 @@ void GLWindow::drawAxes(float* extents){
 			maxLen = extents[i+3] - extents[i];
 		}
 	}
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	float len = maxLen*0.2f;
 	glColor3f(1.f,0.f,0.f);
 	glLineWidth( 4.0 );
@@ -1361,11 +1363,14 @@ float GLWindow::getPixelSize(){
 	//at viewer distance (dist from camera to view center)
 	ViewpointParams* vpParams = getActiveViewpointParams();
 	vsub(vpParams->getRotationCenter(),vpParams->getCameraPos(),temp);
+	//Apply stretch factor:
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	for (int i = 0; i<3; i++) temp[i] = stretch[i]*temp[i];
 	float distToScene = vlength(temp);
 	//tan(45 deg *0.5) is ratio between half-height and dist to scene
 	float halfHeight = tan(M_PI*0.125)* distToScene;
-	return (2.f*halfHeight/(float)height());
-
+	return (2.f*halfHeight/(float)height()); 
+	
 }
 void GLWindow::setActiveParams(Params* p, Params::ParamType t){
 	switch (t) {

@@ -161,6 +161,9 @@
 				RelativePath="..\..\..\lib\vdf\Metadata.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\MetadataSpherical.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\vdf.cpp">
 			</File>
 			<File

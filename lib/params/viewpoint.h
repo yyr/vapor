@@ -29,6 +29,7 @@ public:
 	float* getRotationCenter() {return rotationCenter;}
 	float getRotationCenter(int i) {return rotationCenter[i];}
 	void setRotationCenter(int i, float val) { rotationCenter[i] = val;}
+	void setRotationCenter(float* val) {rotationCenter[0] = val[0]; rotationCenter[1]=val[1]; rotationCenter[2] = val[2];}
 	void setPerspective(bool on) {perspective = on;}
 	bool hasPerspective() {return perspective;}
 	XmlNode* buildNode();

@@ -49,6 +49,7 @@ protected:
 	int cacheSize;
 	int maxPopup[3];
 	int maxLog[3];
+	float stretch[3];
 	SessionParameters* sessionParamsDlg;
 	
 };

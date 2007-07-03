@@ -21,6 +21,9 @@
 #include "sessionparameters.h"
 #include "mainform.h"
 #include "messagereporter.h"
+#include "vizwinmgr.h"
+#include "vizwin.h"
+#include "viewpointparams.h"
 #include <qfiledialog.h>
 #include <qlineedit.h>
 #include <qpushbutton.h>
@@ -31,9 +34,11 @@ using namespace VAPoR;
 //Save current session parameters in this class
 SessionParams::SessionParams(){
 	Session* currentSession = Session::getInstance();
+	for (int i = 0; i< 3; i++) stretch[i] = currentSession->getStretch(i);
 	MessageReporter* mReporter = MessageReporter::getInstance();
 	jpegQuality = GLWindow::getJpegQuality();
 	cacheSize = currentSession->getCacheMB();
+	
 	for (int i = 0; i<3; i++){
 		MessageReporter::messagePriority mP = (MessageReporter::messagePriority) i;
 		maxPopup[i] = mReporter->getMaxPopup(mP);
@@ -45,6 +50,10 @@ void SessionParams::launch(){
 	MessageReporter* mReporter = MessageReporter::getInstance();
 	
 	sessionParamsDlg = new SessionParameters((QWidget*)MainForm::getInstance());
+	sessionParamsDlg->stretch0Edit->setText(QString::number(stretch[0]));
+	sessionParamsDlg->stretch1Edit->setText(QString::number(stretch[1]));
+	sessionParamsDlg->stretch2Edit->setText(QString::number(stretch[2]));
+	
 	QString str;
 	sessionParamsDlg->cacheSizeEdit->setText(str.setNum(cacheSize));
 	sessionParamsDlg->jpegQuality->setText(str.setNum(jpegQuality));
@@ -94,6 +103,57 @@ void SessionParams::launch(){
 			}
 		}
 		if (changed) mReporter->resetCounts();
+		changed = false;
+		float newStretch[3];
+		float ratio[3] = { 1.f, 1.f, 1.f };
+		newStretch[0] = sessionParamsDlg->stretch0Edit->text().toFloat();
+		newStretch[1] = sessionParamsDlg->stretch1Edit->text().toFloat();
+		newStretch[2] = sessionParamsDlg->stretch2Edit->text().toFloat();
+		float minStretch = 1.e30f;
+		for (int i= 0; i<3; i++){
+			if (newStretch[i] <= 0.f) newStretch[i] = 1.f;
+			if (newStretch[i] < minStretch) minStretch = newStretch[i];
+		}
+		//Normalize so minimum stretch is 1
+		for (int i= 0; i<3; i++){
+			if (minStretch != 1.f) newStretch[i] /= minStretch;
+			if (newStretch[i] != stretch[i]){
+				ratio[i] = newStretch[i]/stretch[i];
+				changed = true;
+				currentSession->setStretch(i, newStretch[i]);
+			}
+		}
+		
+		if (changed) {
+			
+			DataStatus* ds = DataStatus::getInstance();
+			ds->stretchExtents(newStretch);
+			
+			VizWinMgr* vizMgr = VizWinMgr::getInstance();
+			//Set the region dirty bit in every window:
+			bool firstShared = false;
+			for (int j = 0; j< MAXVIZWINS; j++) {
+				VizWin* win = vizMgr->getVizWin(j);
+				if (!win) continue;
+				
+				//Only do each viewpoint params once
+				ViewpointParams* vpp = vizMgr->getViewpointParams(j);
+				
+				if (!vpp->isLocal()) {
+					if(firstShared) continue;
+					else firstShared = true;
+				}
+				vpp->rescale(ratio);
+				vpp->setCoordTrans();
+				win->setValuesFromGui(vpp);
+				vizMgr->resetViews(vizMgr->getRegionParams(j),vpp);
+				vizMgr->setViewerCoordsChanged(vpp);
+				win->setDirtyBit(RegionBit, true);
+			}
+			
+		}
+
+
 		//see if the filename changed:
 		if (logFileName != sessionParamsDlg->logFileName->text().ascii())
 			mReporter->reset(sessionParamsDlg->logFileName->text().ascii());

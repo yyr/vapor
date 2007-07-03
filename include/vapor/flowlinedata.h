@@ -132,6 +132,10 @@ namespace VAPoR
 		//The number of actual samples <= desiredNumSamples.
 		int resampleFieldLines(int* indexList, int desiredNumSamples, int lineNum);
 
+		//Scale all the field lines by a (uniform) factor-triple.
+		//Needed if the data has been stretched uniformly
+		void scaleLines(const float scalefactor[3]);
+
 		//Realign all the flow lines so that the first point is not END_FLOW_FLAG, if possible
 		//Requires direction = 1
 		void realignFlowLines();
@@ -182,6 +186,8 @@ class FLOW_API PathLineData : public FlowLineData {
 		void setFlowEndAtTime(int lineNum, float endTime);
 		void insertSeedAtTime(int seedIndex, int timeStep, float x, float y, float z);
 		float* getPointAtTime(int lineNum, float timeStep);
+
+		
 		
 		//Convert first and last indices to timesteps
 		int getFirstTimestep(int lineNum){

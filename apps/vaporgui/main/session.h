@@ -214,9 +214,17 @@ public:
 	string& getLogfileName() {return currentLogfileName;}
 	void setLogfileName(const char* newname){currentLogfileName = newname;}
 	const float* getExtents() {return extents;}
+	const float* getStretchedExtents() {return stretchedExtents;}
 	float getExtents(int i) {return extents[i];}
+	float getStretchedExtents(int i) {return stretchedExtents[i];}
+	float getStretch(int j) {return stretchFactors[j];}
+	void setStretch(int j, float val) {
+		stretchFactors[j] = val;
+		stretchedExtents[j] = val*extents[j];
+		stretchedExtents[j+3] = val*extents[j+3];
+	}
 	//Better version of getExtents, uses refinement level
-	void getExtents(int refLevel, float extents[6]);
+	//void getExtents(int refLevel, float extents[6]);
 		
 	std::string& getVariableName(int varNum) {
 		return DataStatus::getVariableName(varNum);}
@@ -247,6 +255,7 @@ public:
 		
 	
 protected:
+	static const string _stretchFactorsAttr;
 	static const string _cacheSizeAttr;
 	static const string _jpegQualityAttr;
 	static const string _metadataPathAttr;
@@ -286,14 +295,21 @@ protected:
 	int recordingCount;
 	Histo** currentHistograms;
 	const Metadata* currentMetadata;
+
+	//Following parameters are in session state, modified by session panel:
 	//Cache size in megabytes
 	size_t cacheMB;
+	string currentLogfileName;
+	string currentExportFile;
+	float stretchFactors[3];
+	bool visualizeSpherically;
 	
 	
 	bool dataExists;
 	bool newSession;
 	bool renderOK;
 	float extents[6];
+	float stretchedExtents[6];
 	//TransferFunctions are kept, by name, in the session:
 	TransferFunction** keptTFs;
 	//hold a transfer function during parsing (between when the start and end tags
@@ -306,10 +322,9 @@ protected:
 	// the most recent successfully accessed one is part of the state
 	string currentTFPath;
 	string currentMetadataFile;
-	string currentExportFile;
 	string currentJpegDirectory;
 	string currentFlowDirectory;
-	string currentLogfileName;
+	
 
 	bool metadataSaved;
 };

@@ -92,7 +92,7 @@ void ProbeRenderer::paintGL()
 	float corners[8][3];
 	myProbeParams->calcBoxCorners(corners, 0.f);
 	for (int cor = 0; cor < 8; cor++)
-		ViewpointParams::worldToCube(corners[cor],corners[cor]);
+		ViewpointParams::worldToStretchedCube(corners[cor],corners[cor]);
 	
 	//determine the corners of the textured plane.
 	//the front corners are numbered 4 more than the back.

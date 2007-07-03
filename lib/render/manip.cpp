@@ -32,10 +32,11 @@ const float Manip::unselectedFaceColor[4] = {0.8f,0.2f,0.0f,0.8f};
 // Manip Methods
 //Obtain the vertices of the box, in the unit cube, put them into an array
 //
+/*
 void Manip::
 getBoxVertices(float vertices[8][3]){
 	float extents[6];
-	getParams()->calcBoxExtentsInCube(extents);
+	getParams()->calcStretchedBoxExtentsInCube(extents);
 	for (int vert = 0; vert< 8; vert++){
 		for (int i = 0; i< 3; i++){
 			if ((vert>>i)&1) vertices[vert][i] = extents[i+3];
@@ -44,6 +45,7 @@ getBoxVertices(float vertices[8][3]){
 	}
 	
 }
+*/
 //Methods for TranslateStretchManip:
 //
 
@@ -83,7 +85,7 @@ mouseIsOverHandle(float screenCoords[2], float* boxExtents, int* faceNum){
 	//Get the camera position in cube coords.  This is needed to determine
 	//which handles are in front of the box.
 	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
-	ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camPos);
+	ViewpointParams::worldToStretchedCube(myViewpointParams->getCameraPos(), camPos);
 	//qWarning(" mouseHandleTest: campos is %f %f %f",camPos[0],camPos[1],camPos[2]);
 	//Determine the octant based on camera relative to box center:
 	int octant = 0;
@@ -206,7 +208,7 @@ makeHandleExtents(int sortPosition, float handleExtents[6], int octant, float bo
 	
 	//Now create the cube associated with newPosition.  It's just the handle translated
 	//up or down in the direction associated with newPosition
-	float worldHandleDiameter = handleSizeInCube*ViewpointParams::getMaxCubeSide();
+	float worldHandleDiameter = handleSizeInCube;
 	for (int coord = 0; coord<3; coord++){
 		//Start at the box center position
 		handleExtents[coord] = .5f*(-worldHandleDiameter +(boxExtents[coord+3] + boxExtents[coord]));
@@ -308,7 +310,7 @@ void TranslateStretchManip::drawCubeFaces(float* extents, bool isSelected){
 
 //Note: This is performed in world coordinates!
 
-//Determine intersection (in world coords) of ray with handle
+//Determine intersection (in world coords!) of ray with handle
 bool TranslateStretchManip::
 rayHandleIntersect(float ray[3], float cameraPos[3], int handleNum, int faceNum, float intersect[3]){
 
@@ -364,12 +366,12 @@ void TranslateStretchManip::render(){
 	float extents[6];
 	//Calculate the box extents, and the viewer position, in the unit cube,
 	//Without any rotation applied:
-	myParams->calcBoxExtentsInCube(extents);
+	myParams->calcStretchedBoxExtentsInCube(extents);
 	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
-	ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
+	ViewpointParams::worldToStretchedCube(myViewpointParams->getCameraPos(), camVec);
 
 	//Set the handleSize, in cube coords:
-	handleSizeInCube = myGLWin->getPixelSize()*(float)HANDLE_DIAMETER/ViewpointParams::getMaxCubeSide();
+	handleSizeInCube = myGLWin->getPixelSize()*(float)HANDLE_DIAMETER/myViewpointParams->getMaxStretchedCubeSide();
 	
 	//Color depends on which item selected. (reg color vs highlight color)
 	//Selected item is rendered at current offset
@@ -419,7 +421,7 @@ void TranslateStretchManip::drawBoxFaces(){
 	//Now the corners need to be put into the unit cube, and displaced appropriately
 	//Either displace just half the corners or do the opposite ones as well.
 	for (int cor = 0; cor < 8; cor++){
-		ViewpointParams::worldToCube(corners[cor],corners[cor]);
+		ViewpointParams::worldToStretchedCube(corners[cor],corners[cor]);
 		if (selectedHandle >= 0) {
 			int axis = (selectedHandle < 3) ? (2-selectedHandle):(selectedHandle-3);
 			//The corners associated with a handle are as follows:
@@ -496,8 +498,8 @@ mouseRelease(float /*screenCoords*/[2]){
 		float boxMin[3], boxMax[3];
 		int axis = (selectedHandle <3) ? (2-selectedHandle): (selectedHandle-3);
 		//Convert dragDistance to world coords:
-		float dist = dragDistance*ViewpointParams::getMaxCubeSide();
-		myParams->getBox(boxMin,boxMax);
+		float dist = dragDistance*ViewpointParams::getMaxStretchedCubeSide();
+		myParams->getStretchedBox(boxMin,boxMax);
 		//Check if we are stretching.  If so, only move coords associated with
 		//handle:
 		if (isStretching){
@@ -511,7 +513,7 @@ mouseRelease(float /*screenCoords*/[2]){
 			boxMax[axis]+=dist;
 		}
 
-		myParams->setBox(boxMin, boxMax);
+		myParams->setStretchedBox(boxMin, boxMax);
 	}
 	dragDistance = 0.f;
 	selectedHandle = -1;
@@ -530,6 +532,7 @@ captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int b
 	//The selection ray is the vector from the camera to the intersection point,
 	//So subtract the camera position
 	vsub(initialSelectionRay, camPos, initialSelectionRay);
+
 	//qWarning(" initial selection ray: %f %f %f", initialSelectionRay[0],initialSelectionRay[1],initialSelectionRay[2]);
 	if (buttonNum > 1) isStretching = true; 
 	else isStretching = false;
@@ -544,7 +547,9 @@ captureMouseDown(int handleNum, int faceNum, float* camPos, float* dirVec, int b
 //the ray (in the scene) associated with the new mouse position is as near
 //as possible to the line projected from the original mouse position in the
 //direction of planar motion.
-//Everything is done in WORLD coords.
+//Initially calc done in  WORLD coords,
+//Converted to stretched world coords for bounds testing,
+//then final displacement is in cube coords.
 //
 
 void TranslateStretchManip::
@@ -571,18 +576,23 @@ slideHandle(int handleNum, float movedRay[3]){
 
 	float denom = vdot(q,q);
 	dragDistance = 0.f;
-	if (denom != 0.f)
+	//convert to stretched world coords.
+	if (denom != 0.f){
 		dragDistance = -vdot(q,r)/denom;
+		dragDistance *= (DataStatus::getInstance()->getStretchFactors())[coord];
+		//qWarning("drag dist, stretch factor: %g %g\n",dragDistance, (DataStatus::getInstance()->getStretchFactors())[coord]);
+	}
+	
 	
 	
 	//Make sure the displacement is OK.  Not allowed to
 	//Slide box out of full domain box.
 	//If stretching, not allowed to push face through opposite face.
 	
-	//Do this calculation in world coords
+	//Do this calculation in stretched world coords
 	float boxExtents[6];
-	const float* extents = DataStatus::getInstance()->getExtents();
-	myParams->calcBoxExtents(boxExtents);
+	const float* extents = DataStatus::getInstance()->getStretchedExtents();
+	myParams->calcStretchedBoxExtents(boxExtents);
 	
 	if (isStretching){ //don't push through opposite face ..
 		//Depends on whether we are pushing the "low" or "high" handle
@@ -612,8 +622,8 @@ slideHandle(int handleNum, float movedRay[3]){
 			dragDistance = extents[coord+3] - boxExtents[coord+3];
 		}
 	}
-	//now convert to cube coords:
-	dragDistance /= ViewpointParams::getMaxCubeSide();
+	//now convert from stretched world to cube coords:
+	dragDistance /= ViewpointParams::getMaxStretchedCubeSide();
 
 }
 
@@ -680,7 +690,7 @@ void TranslateRotateManip::drawBoxFaces(){
 	
 	//Either displace just half the corners (when stretching) or do the opposite ones as well.
 	for (int cor = 0; cor < 8; cor++){
-		ViewpointParams::worldToCube(corners[cor],corners[cor]);
+		ViewpointParams::worldToStretchedCube(corners[cor],corners[cor]);
 		if (selectedHandle >= 0) {
 			int axis = (selectedHandle < 3) ? (2-selectedHandle):(selectedHandle-3);
 			//The corners associated with a handle are as follows:
@@ -819,16 +829,20 @@ slideHandle(int handleNum, float movedRay[3]){
 
 	float denom = vdot(q,q);
 	dragDistance = 0.f;
-	if (denom != 0.f)
+	//Convert the drag distance to stretched world coords
+	if (denom != 0.f){
 		dragDistance = -vdot(q,r)/denom;
+		dragDistance *= (DataStatus::getInstance()->getStretchFactors())[coord];
+		//qWarning("drag dist, stretch factor: %g %g\n",dragDistance, (DataStatus::getInstance()->getStretchFactors())[coord]);
+	}
 	
 	
 	//Make sure the displacement is OK.  Not allowed to
 	//slide or stretch box center out of full domain box.
-	//Do this calculation in world coords
+	//Do this calculation in stretched world coords
 	float boxExtents[6];
-	const float* extents = DataStatus::getInstance()->getExtents();
-	myParams->calcBoxExtents(boxExtents);
+	const float* extents = DataStatus::getInstance()->getStretchedExtents();
+	myParams->calcStretchedBoxExtents(boxExtents);
 	float boxCenter = 0.5f*(boxExtents[coord]+boxExtents[coord+3]);
 	if (isStretching){ //don't push through opposite face ..
 		dragDistance = constrainStretch(dragDistance);
@@ -842,8 +856,8 @@ slideHandle(int handleNum, float movedRay[3]){
 		} 
 	}
 
-	//now convert to cube coords:
-	dragDistance /= ViewpointParams::getMaxCubeSide();
+	//now convert from stretched world to cube coords:
+	dragDistance /= ViewpointParams::getMaxStretchedCubeSide();
 
 	
 }
@@ -862,12 +876,12 @@ void TranslateRotateManip::render(){
 	//Calculate the box extents, and the viewer position, in the unit cube,
 	//With any rotation applied:
 	//myParams->calcBoxExtentsInCube(extents);
-	myParams->calcContainingBoxExtentsInCube(extents);
+	myParams->calcContainingStretchedBoxExtentsInCube(extents);
 	ViewpointParams* myViewpointParams = myGLWin->getActiveViewpointParams();
-	ViewpointParams::worldToCube(myViewpointParams->getCameraPos(), camVec);
+	ViewpointParams::worldToStretchedCube(myViewpointParams->getCameraPos(), camVec);
 
 	//Set the handleSize, in cube coords:
-	handleSizeInCube = myGLWin->getPixelSize()*(float)HANDLE_DIAMETER/ViewpointParams::getMaxCubeSide();
+	handleSizeInCube = myGLWin->getPixelSize()*(float)HANDLE_DIAMETER/myViewpointParams->getMaxStretchedCubeSide();
 	
 	//Color depends on which item selected. (reg color vs highlight color)
 	//Selected item is rendered at current offset
@@ -915,8 +929,8 @@ mouseRelease(float /*screenCoords*/[2]){
 		float boxMin[3], boxMax[3];
 		int axis = (selectedHandle <3) ? (2-selectedHandle): (selectedHandle-3);
 		//Convert dragDistance to world coords:
-		float dist = dragDistance*ViewpointParams::getMaxCubeSide();
-		myParams->getBox(boxMin,boxMax);
+		float dist = dragDistance*ViewpointParams::getMaxStretchedCubeSide();
+		myParams->getStretchedBox(boxMin,boxMax);
 		//Check if we are stretching.  If so, need to decide what
 		//coords are associated with handle.  Only those are to be
 		//translated.
@@ -954,7 +968,7 @@ mouseRelease(float /*screenCoords*/[2]){
 			boxMax[axis]+=dist;
 		}
 
-		myParams->setBox(boxMin, boxMax);
+		myParams->setStretchedBox(boxMin, boxMax);
 	}
 	dragDistance = 0.f;
 	selectedHandle = -1;
@@ -963,9 +977,9 @@ mouseRelease(float /*screenCoords*/[2]){
 //requiring that the resulting box will have all its min coords less than
 //its max coords.
 float TranslateRotateManip::constrainStretch(float currentDist){
-	float dist = currentDist/ViewpointParams::getMaxCubeSide();
+	float dist = currentDist/ViewpointParams::getMaxStretchedCubeSide();
 	float boxMin[3],boxMax[3];
-	myParams->getBox(boxMin,boxMax);
+	myParams->getStretchedBox(boxMin,boxMax);
 	
 	Permuter* myPermuter = new Permuter(myParams->getTheta(),myParams->getPhi(),myParams->getPsi());
 	//Based on the angles (phi and theta) the user is grabbing 
@@ -995,7 +1009,7 @@ float TranslateRotateManip::constrainStretch(float currentDist){
 			if (dist < (boxMin[axis2]-boxMax[axis2])) dist = (boxMin[axis2]-boxMax[axis2]);
 	}
 	delete myPermuter;
-	return (dist*ViewpointParams::getMaxCubeSide());
+	return (dist*ViewpointParams::getMaxStretchedCubeSide());
 }
 TranslateRotateManip::Permuter::Permuter(float theta, float phi, float psi){
 	//Find the nearest multiple of 90 degrees > 0

@@ -65,8 +65,13 @@ DataStatus()
 	numTransforms = 0;
 	for (int i = 0; i< 3; i++){
 		extents[i] = 0.f;
+		stretchedExtents[i] = 0.f;
 		extents[i+3] = 1.f;
+		stretchedExtents[i+3] = 1.f;
+		stretchFactors[i] = 1.f;
+		fullDataSize[i] = 64;
 	}
+	
 	theDataStatus = this;
 	
 }
@@ -297,12 +302,12 @@ int DataStatus::mapSessionToMetadataVarNum(int sesVarNum){
 }
 
 
-//Convert the max extents into cube coords
-void DataStatus::getMaxExtentsInCube(float maxExtents[3]){
-	float maxSize = Max(extents[3]-extents[0],Max(extents[4]-extents[1],extents[5]-extents[2]));
-	maxExtents[0] = (extents[3]-extents[0])/maxSize;
-	maxExtents[1] = (extents[4]-extents[1])/maxSize;
-	maxExtents[2] = (extents[5]-extents[2])/maxSize;
+//Convert the max stretched extents into cube coords
+void DataStatus::getMaxStretchedExtentsInCube(float maxExtents[3]){
+	float maxSize = Max(stretchedExtents[3]-stretchedExtents[0],Max(stretchedExtents[4]-stretchedExtents[1],stretchedExtents[5]-stretchedExtents[2]));
+	maxExtents[0] = (stretchedExtents[3]-stretchedExtents[0])/maxSize;
+	maxExtents[1] = (stretchedExtents[4]-stretchedExtents[1])/maxSize;
+	maxExtents[2] = (stretchedExtents[5]-stretchedExtents[2])/maxSize;
 }
 //Determine the min and max extents at a given level:
 void DataStatus::getExtentsAtLevel(int level, float exts[6]){

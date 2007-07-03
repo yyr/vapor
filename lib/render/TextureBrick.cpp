@@ -107,7 +107,7 @@ void TextureBrick::setDataBlock(int level, const int box[6], const int block[6])
   size_t min[3] = {block[0]+box[0], block[1]+box[1], block[2]+box[2]};
   size_t max[3] = {block[3]+box[0], block[4]+box[1], block[5]+box[2]};
 
-  RegionParams::convertToBoxExtentsInCube(level, min, max, extents);
+  RegionParams::convertToStretchedBoxExtentsInCube(level, min, max, extents);
 
   _dmin.x = extents[0]; 
   _dmin.y = extents[1]; 
@@ -130,7 +130,7 @@ void TextureBrick::setROI(int level, const int box[6], const int roi[6])
   size_t min[3] = {roi[0]+box[0], roi[1]+box[1], roi[2]+box[2]};
   size_t max[3] = {roi[3]+box[0], roi[4]+box[1], roi[5]+box[2]};
 
-  RegionParams::convertToBoxExtentsInCube(level, min, max, extents);
+  RegionParams::convertToStretchedBoxExtentsInCube(level, min, max, extents);
 
   _vmin.x = extents[0]; 
   _vmin.y = extents[1]; 

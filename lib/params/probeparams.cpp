@@ -888,9 +888,9 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], 
 	return retVal;
 }
 
-//Find the smallest extents containing the probe, 
-//Similar to above, but using extents
-void ProbeParams::calcContainingBoxExtentsInCube(float* bigBoxExtents){
+//Find the smallest stretched extents containing the probe, 
+//Similar to above, but using stretched extents
+void ProbeParams::calcContainingStretchedBoxExtentsInCube(float* bigBoxExtents){
 	if(!DataStatus::getInstance()) return;
 	//Determine the smallest axis-aligned cube that contains the probe.  This is
 	//obtained by mapping all 8 corners into the space.
@@ -918,13 +918,13 @@ void ProbeParams::calcContainingBoxExtentsInCube(float* bigBoxExtents){
 		}
 	}
 	//Now convert the min,max back into extents in unit cube:
-	
-	const float* fullExtents = DataStatus::getInstance()->getExtents();
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const float* fullExtents = DataStatus::getInstance()->getStretchedExtents();
 	
 	float maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
 	for (crd = 0; crd<3; crd++){
-		bigBoxExtents[crd] = (boxMin[crd] - fullExtents[crd])/maxSize;
-		bigBoxExtents[crd+3] = (boxMax[crd] - fullExtents[crd])/maxSize;
+		bigBoxExtents[crd] = (boxMin[crd]*stretch[crd] - fullExtents[crd])/maxSize;
+		bigBoxExtents[crd+3] = (boxMax[crd]*stretch[crd] - fullExtents[crd])/maxSize;
 	}
 	return;
 }
@@ -1011,7 +1011,7 @@ calcProbeTexture(int ts, int texWidth, int texHeight){
 	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
 
 	float boxExts[6];
-	RegionParams::convertToBoxExtentsInCube(numRefinements,coordMin, coordMax,boxExts); 
+	RegionParams::convertToStretchedBoxExtentsInCube(numRefinements,coordMin, coordMax,boxExts); 
 	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, numRefinements);
 	//Check how many variables are needed:
 	int varCount = 0;

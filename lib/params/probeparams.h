@@ -183,7 +183,7 @@ public:
 		}
 	}
 	//Get the bounding extents of probe, in cube coords
-	virtual void calcContainingBoxExtentsInCube(float* extents);
+	virtual void calcContainingStretchedBoxExtentsInCube(float* extents);
 	
 	virtual int getNumRefinements() {return numRefinements;}
 	void hookupTF(TransferFunction* t, int index);

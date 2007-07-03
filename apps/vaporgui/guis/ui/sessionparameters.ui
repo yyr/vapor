@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>422</width>
-            <height>441</height>
+            <height>608</height>
         </rect>
     </property>
     <property name="caption">
@@ -24,7 +24,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout8</cstring>
+                <cstring>layout11</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -79,6 +79,85 @@
                 <spacer>
                     <property name="name">
                         <cstring>spacer50</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>16</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout8</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel1_4</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Scene Stretch Factors X, Y, Z:</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignCenter</set>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer20</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>31</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>stretch0Edit</cstring>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>stretch1Edit</cstring>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>stretch2Edit</cstring>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer24</cstring>
                     </property>
                     <property name="orientation">
                         <enum>Vertical</enum>
@@ -349,6 +428,23 @@
                         </spacer>
                     </grid>
                 </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer25</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
                 <widget class="QLabel">
                     <property name="name">
                         <cstring>textLabel5</cstring>
@@ -583,7 +679,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>21</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>

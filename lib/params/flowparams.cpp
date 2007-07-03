@@ -971,6 +971,8 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 		delete steadyFlowData;
 		return 0;
 	}
+	//Rescale now (prior to color mapping)
+	steadyFlowData->scaleLines(DataStatus::getInstance()->getStretchFactors());
 	//Now map colors (if needed)
 		
 	if (doRGBAs){
@@ -2115,7 +2117,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 					//	break;
 					//}
 					float remappedPoint[3];
-					periodicMap(dataPoint,remappedPoint);
+					periodicMap(dataPoint,remappedPoint,true);
 					x = (int)(0.5f+((remappedPoint[0] - opacVarMin[0])*opacSize[0])/(opacVarMax[0]-opacVarMin[0]));
 					y = (int)(0.5f+((remappedPoint[1] - opacVarMin[1])*opacSize[1])/(opacVarMax[1]-opacVarMin[1]));
 					z = (int)(0.5f+((remappedPoint[2] - opacVarMin[2])*opacSize[2])/(opacVarMax[2]-opacVarMin[2]));
@@ -2164,7 +2166,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 					//	break;
 					//}
 					float remappedPoint[3];
-					periodicMap(dataPoint,remappedPoint);
+					periodicMap(dataPoint,remappedPoint,true);
 					x = (int)(0.5f+((remappedPoint[0] - colorVarMin[0])*colorSize[0])/(colorVarMax[0]-colorVarMin[0]));
 					y = (int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
 					z = (int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
@@ -2202,8 +2204,11 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 }
 //Map periodic coords into data extents.
 //Note this is different than the mapping used by flowlib (at least when numrefinements < max numrefinements)
-void FlowParams::periodicMap(float origCoords[3], float mappedCoords[3]){
-	const float* extents = DataStatus::getInstance()->getExtents();
+//If unscale is true then the resulting values are divided by scale factor
+//(note that input values are always pre-scaled)
+void FlowParams::periodicMap(float origCoords[3], float mappedCoords[3],bool unscale){
+	const float* extents = DataStatus::getInstance()->getStretchedExtents();
+	const float* scales = DataStatus::getInstance()->getStretchFactors();
 	for (int i = 0; i<3; i++){
 		mappedCoords[i] = origCoords[i];
 		if (periodicDim[i]){
@@ -2211,6 +2216,7 @@ void FlowParams::periodicMap(float origCoords[3], float mappedCoords[3]){
 			while (mappedCoords[i] < extents[i]) {mappedCoords[i] += (extents[i+3]-extents[i]);}
 			while (mappedCoords[i] > extents[i+3]) {mappedCoords[i] -= (extents[i+3]-extents[i]);}
 		}
+		if (unscale) mappedCoords[i] /= scales[i];
 	}
 }
 
@@ -2241,7 +2247,7 @@ setOpacMapEntity( int entityNum){
 }
 
 
-
+/*
 //Calculate the extents of the seedBox region when transformed into the unit cube
 void FlowParams::
 calcSeedExtents(float* extents){
@@ -2263,6 +2269,7 @@ calcSeedExtents(float* extents){
 		extents[i+3] = (seedBoxMax[i] - fullExtent[i])/maxCrd;
 	}
 }
+*/
 
 //When we set the min/map bounds, must save them locally and in the mapper function
 void FlowParams::setMinColorMapBound(float val){

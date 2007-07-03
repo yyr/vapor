@@ -122,21 +122,27 @@ public:
 	//as regionParams, probeParams, flowParams:
 	//Set the box by copying the arrays provided as arguments.
 	virtual void setBox(const float[3] /*boxMin[3]*/, const float /*boxMax*/[3]) {assert(0);}
+	void setStretchedBox(const float[3], const float[3]);
 	//Make a box by copying values to the arguments
 	virtual void getBox(float /*boxMin*/[3], float /*boxMax*/[3]) {assert( 0);}
+
+	void getStretchedBox(float boxmin[3], float boxmax[3]);
 	//Box orientation:
 	virtual float getPhi() {return 0.f;}
 	virtual float getTheta() {return 0.f;}
 	virtual float getPsi() {return 0.f;}
 	
 	//Determine the box extents in the unit cube.
-	void calcBoxExtentsInCube(float* extents);
+	void calcStretchedBoxExtentsInCube(float* extents);
 	//Extension that allows container of rotated box to be larger:
-	virtual void calcContainingBoxExtentsInCube(float* extents) 
-		{return calcBoxExtentsInCube(extents);}
+	virtual void calcContainingStretchedBoxExtentsInCube(float* extents) 
+		{return calcStretchedBoxExtentsInCube(extents);}
+	void calcStretchedBoxExtents(float* extents);
 	void calcBoxExtents(float* extents);
 	//Calculate the box in world coords, using any theta or phi
 	void calcBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
+	//void calcStretchedBoxCorners(float corners[8][3], float extraThickness, float rotation = 0.f, int axis = -1);
+	
 	// Construct transformation as a mapping of [-1,1]^3 into volume array
 	// coordinates at current resolution
 	void buildCoordTransform(float transformMatrix[12], float extraThickness, float rotation = 0.f, int axis = -1);

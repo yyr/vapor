@@ -116,7 +116,7 @@ restart(){
 	infoVarNum = 0;
 	infoTimeStep = 0;
 	DataStatus* ds = DataStatus::getInstance();
-	if (!ds->getDataMgr()) ds = 0;
+	if (!ds || !ds->getDataMgr()) ds = 0;
 	const float* fullDataExtents = 0;
 	if (ds) fullDataExtents = DataStatus::getInstance()->getExtents();
 	
@@ -168,7 +168,7 @@ reinit(bool doOverride){
 void RegionParams::setRegionMin(int coord, float minval, bool checkMax){
 	DataStatus* ds = DataStatus::getInstance();
 	const float* fullDataExtents;
-	if (ds->getDataMgr()){
+	if (ds && ds->getDataMgr()){
 		fullDataExtents = ds->getExtents();
 		if (minval < fullDataExtents[coord]) minval = fullDataExtents[coord];
 		if (minval > fullDataExtents[coord+3]) minval = fullDataExtents[coord+3];
@@ -179,7 +179,7 @@ void RegionParams::setRegionMin(int coord, float minval, bool checkMax){
 void RegionParams::setRegionMax(int coord, float maxval, bool checkMin){
 	DataStatus* ds = DataStatus::getInstance();
 	const float* fullDataExtents;
-	if (ds->getDataMgr()){
+	if (ds && ds->getDataMgr()){
 		fullDataExtents = DataStatus::getInstance()->getExtents();
 		if (maxval < fullDataExtents[coord]) maxval = fullDataExtents[coord];
 		if (maxval > fullDataExtents[coord+3]) maxval = fullDataExtents[coord+3];
@@ -194,7 +194,7 @@ void RegionParams::setRegionMax(int coord, float maxval, bool checkMin){
 //Then puts into unit cube, for use by volume rendering
 //
 void RegionParams::
-convertToBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]){
+convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]){
 	double fullExtents[6];
 	double subExtents[6];
 	DataStatus* ds = DataStatus::getInstance();
@@ -207,6 +207,14 @@ convertToBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t ma
 	ds->mapVoxelToUserCoords(refLevel, fullMax, fullExtents+3);
 	ds->mapVoxelToUserCoords(refLevel, min_dim, subExtents);
 	ds->mapVoxelToUserCoords(refLevel, max_dim, subExtents+3);
+
+	// Now apply stretch factors
+	const float* stretchFactor = ds->getStretchFactors();
+	for (int i = 0; i<6; i++){
+		fullExtents[i] *= stretchFactor[i%3];
+		subExtents[i] *= stretchFactor[i%3];
+	}
+
 	
 	double maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
 	for (int i = 0; i<3; i++){

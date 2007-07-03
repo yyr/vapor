@@ -272,20 +272,21 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	glPushMatrix();
 	
 	//scale:
-	sceneScaleFactor = 1.f/ViewpointParams::getMaxCubeSide();
+	sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
 	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
 
 	//translate to put origin at corner:
-	float* transVec = ViewpointParams::getMinCubeCoords();
+	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
 	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
 	
 	//Set up clipping planes
-	topPlane[3] = myRegionParams->getRegionMax(1);
-	botPlane[3] = -myRegionParams->getRegionMin(1);
-	leftPlane[3] = -myRegionParams->getRegionMin(0);
-	rightPlane[3] = myRegionParams->getRegionMax(0);
-	frontPlane[3] = myRegionParams->getRegionMax(2);
-	backPlane[3] = -myRegionParams->getRegionMin(2);
+	const float* scales = DataStatus::getInstance()->getStretchFactors();
+	topPlane[3] = myRegionParams->getRegionMax(1)*scales[1];
+	botPlane[3] = -myRegionParams->getRegionMin(1)*scales[1];
+	leftPlane[3] = -myRegionParams->getRegionMin(0)*scales[0];
+	rightPlane[3] = myRegionParams->getRegionMax(0)*scales[0];
+	frontPlane[3] = myRegionParams->getRegionMax(2)*scales[2];
+	backPlane[3] = -myRegionParams->getRegionMin(2)*scales[2];
 	
 	glClipPlane(GL_CLIP_PLANE0, topPlane);
 	glEnable(GL_CLIP_PLANE0);
@@ -308,7 +309,7 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	//Set up size constants:
 	//voxelSize is actually the max of the sides of the voxel in user coords,
 	//At full resolution
-	const float* fullExtent = DataStatus::getInstance()->getExtents();
+	const float* fullExtent = DataStatus::getInstance()->getStretchedExtents();
 	const size_t* fullDims = DataStatus::getInstance()->getFullDataSize();
 	voxelSize = Max((fullExtent[5]-fullExtent[2])/fullDims[0],
 		Max((fullExtent[4]-fullExtent[1])/fullDims[1], (fullExtent[3]-fullExtent[0])/fullDims[2]));
@@ -1000,6 +1001,10 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				} else {
 					MyBase::SetDiagMsg("Integrated %d timesteps", numTimestepsToRender);
 				}
+				//Note: the flow lines need to be rescaled here, before colors are mapped,
+				//because color mapping can use the values in the flow lines if a variable is
+				//being mapped to colors.
+				unsteadyFlowCache->scaleLines(DataStatus::getInstance()->getStretchFactors());
 				if(!constColors) myFlowParams->mapColors(unsteadyFlowCache, timeStep, minFrame);
 				break;
 			case (2):
@@ -1113,7 +1118,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 						} else {
 							OK = myFlowParams->singleAdvectFieldLines(myFlowLib, steadyFlowCache,unsteadyFlowCache,prevStep, nextStep, minFrame, rParams);
 						}
-						if (OK) { //Clear all the dirty flags:
+						if (OK) { //Clear all the dirty flags
 							int increm = (nextStep > prevStep) ? 1 : -1;
 							for (int i = prevStep;; i += increm){
 								flowDataDirty[i] = false;
@@ -1191,7 +1196,7 @@ void FlowRenderer::calcPeriodicExtents() {
 	// position in the data.  The period is actually one voxel beyond the end of the data, since that point
 	// is not repeated.
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = DataStatus::getInstance()->getStretchedExtents();
 	for (int i = 0; i<3; i++){
 		periodicExtents[i] = extents[i];
 		if (myFlowParams->getPeriodicDim(i)){
@@ -1261,7 +1266,7 @@ renderPoints(FlowLineData* flowLineData, float radius, int firstAge, int lastAge
 				endGL = true;
 				break;
 			}
-			myFlowParams->periodicMap(point, mappedPoint);
+			myFlowParams->periodicMap(point, mappedPoint, false);
 			glVertex3fv(mappedPoint);
 		}	
 		if(!endGL) glEnd();

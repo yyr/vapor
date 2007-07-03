@@ -117,7 +117,7 @@ public:
 	int getUnsteadyTimestepSample(int index, int minStep, int maxStep, int flowDir);
 	int getTimeSampleIndex(int ts, int minStep, int maxStep);
 
-	void calcSeedExtents(float *extents);
+	//void calcSeedExtents(float *extents);
 	float getSeedRegionMin(int coord){ return seedBoxMin[coord];}
 	float getSeedRegionMax(int coord){ return seedBoxMax[coord];}
 	
@@ -350,7 +350,7 @@ public:
 	}
 	void setPeriodicDim(int coord, bool val){periodicDim[coord] = val;}
 	bool getPeriodicDim(int coord){return periodicDim[coord];}
-	void periodicMap(float origCoords[3],float newCoords[3]);
+	void periodicMap(float origCoords[3],float newCoords[3], bool unscale);
 	std::vector<int>& getUnsteadyTimesteps() { return unsteadyTimestepList;}
 	
 	

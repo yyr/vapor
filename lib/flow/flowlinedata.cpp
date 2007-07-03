@@ -95,6 +95,19 @@ getMaxLength(int dir){//How far we can integrate in a direction:
 	//otherwise max length is shortest distance to end (forward or backward)
 	return (Min(1+integrationStartPosn, mxPoints - integrationStartPosn));
 }
+void FlowLineData::
+scaleLines(const float scaleFactor[3]){
+	if (scaleFactor[0] == 1.f && scaleFactor[1] == 1.f && scaleFactor[2] == 1.f) return;
+	for (int i = 0; i< getNumLines(); i++){
+		for (int j = getStartIndex(i); j <= getEndIndex(i); j++){
+			float* pnt = getFlowPoint(i,j);
+			if (pnt[0] == END_FLOW_FLAG || pnt[0] == STATIONARY_STREAM_FLAG) continue;
+			pnt[0] *= scaleFactor[0];
+			pnt[1] *= scaleFactor[1];
+			pnt[2] *= scaleFactor[2];
+		}
+	}
+}
 //Method for resetting the value of a point in unsteady flow (after reprioritization).
 //Also can be used to append a point to the start or end of an existing unsteady flow line.
 void PathLineData::setPointAtTime(int lineNum, float timeStep, float x, float y, float z){

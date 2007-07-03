@@ -39,7 +39,7 @@ BBox::BBox(RegionParams &regionParams)
   
   float extents[6];
   
-  regionParams.calcBoxExtentsInCube(extents);
+  regionParams.calcStretchedBoxExtentsInCube(extents);
   
   _minIndex = 0;
   _maxIndex = 7;

@@ -34,9 +34,12 @@
 #include "vapor/XmlNode.h"
 #include "datastatus.h"
 #include "regionparams.h"
-float VAPoR::ViewpointParams::maxCubeSide = 1.f;
-float VAPoR::ViewpointParams::minCubeCoord[3] = {0.f,0.f,0.f};
-float VAPoR::ViewpointParams::maxCubeCoord[3] = {1.f,1.f,1.f};
+
+float VAPoR::ViewpointParams::maxStretchedCubeSide = 1.f;
+
+
+float VAPoR::ViewpointParams::minStretchedCubeCoord[3] = {0.f,0.f,0.f};
+float VAPoR::ViewpointParams::maxStretchedCubeCoord[3] = {1.f,1.f,1.f};
 
 using namespace VAPoR;
 const string ViewpointParams::_currentViewTag = "CurrentViewpoint";
@@ -85,12 +88,14 @@ centerFullRegion(){
 		fullExtent[3]-fullExtent[0]));
 	//calculate the camera position: center - 2.5*viewDir*maxSide;
 	//Position the camera 2.5*maxSide units away from the center, aimed
-	//at the center
+	//at the center.
+	//But divide it by stretch factors
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	//Make sure the viewDir is normalized:
 	vnormal(currentViewpoint->getViewDir());
 	for (int i = 0; i<3; i++){
 		float dataCenter = 0.5f*(fullExtent[i+3]+fullExtent[i]);
-		float camPosCrd = dataCenter -2.5*maxSide*currentViewpoint->getViewDir(i);
+		float camPosCrd = dataCenter -2.5*maxSide*currentViewpoint->getViewDir(i)/stretch[i];
 		currentViewpoint->setCameraPos(i, camPosCrd);
 		setRotationCenter(i,dataCenter);
 	}
@@ -168,37 +173,71 @@ reinit(bool doOverride){
 	
 	return true;
 }
-//Static methods for converting between world coords and unit cube coords:
+//Rescale viewing parameters when the scene is rescaled by factor
+void ViewpointParams::
+rescale (float scaleFac[3]){
+	float vtemp[3], vtemp2[3];
+	Viewpoint* vp = getCurrentViewpoint();
+	Viewpoint* vph = getHomeViewpoint();
+	float* vps = vp->getCameraPos();
+	float* vctr = vp->getRotationCenter();
+	vsub(vps, vctr, vtemp);
+	//Want to move the camera in or out, based on scaling in directions orthogonal to view dir.
+	for (int i = 0; i<3; i++){
+		vtemp[i] /= scaleFac[i];
+	}
+	vadd(vtemp, vctr, vtemp2);
+	vp->setCameraPos(vtemp2);
+	//Do same for home viewpoint
+	vps = vph->getCameraPos();
+	vctr = vph->getRotationCenter();
+	vsub(vps, vctr, vtemp);
+	for (int i = 0; i<3; i++){
+		vtemp[i] /= scaleFac[i];
+	}
+	vadd(vtemp, vctr, vtemp2);
+	vph->setCameraPos(vtemp2);
+}
+
+
+//Static methods for converting between world coords and stretched unit cube coords
 //
 void ViewpointParams::
-worldToCube(const float fromCoords[3], float toCoords[3]){
+worldToStretchedCube(const float fromCoords[3], float toCoords[3]){
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	for (int i = 0; i<3; i++){
-		toCoords[i] = (fromCoords[i]-minCubeCoord[i])/maxCubeSide;
+		toCoords[i] = (fromCoords[i]*stretch[i]-minStretchedCubeCoord[i])/maxStretchedCubeSide;
 	}
 	return;
 }
 
+
+
 void ViewpointParams::
-worldFromCube(float fromCoords[3], float toCoords[3]){
+worldFromStretchedCube(float fromCoords[3], float toCoords[3]){
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	for (int i = 0; i<3; i++){
-		toCoords[i] = (fromCoords[i]*maxCubeSide) + minCubeCoord[i];
+		toCoords[i] = ((fromCoords[i]*maxStretchedCubeSide) + minStretchedCubeCoord[i])/stretch[i];
 	}
 	return;
 }
 void ViewpointParams::
 setCoordTrans(){
 	if (!DataStatus::getInstance()) return;
-	const float* extents = DataStatus::getInstance()->getExtents();
-	maxCubeSide = -1.f;
+	const float* strExtents = DataStatus::getInstance()->getStretchedExtents();
+	
+	maxStretchedCubeSide = -1.f;
+	
 	int i;
 	//find largest cube side, it will map to 1.0
 	for (i = 0; i<3; i++) {
-		if ((float)(extents[i+3]-extents[i]) > maxCubeSide) maxCubeSide = (float)(extents[i+3]-extents[i]);
-		minCubeCoord[i] = (float)extents[i];
-		maxCubeCoord[i] = (float)extents[i+3];
+		
+		if ((float)(strExtents[i+3]-strExtents[i]) > maxStretchedCubeSide) maxStretchedCubeSide = (float)(strExtents[i+3]-strExtents[i]);
+		minStretchedCubeCoord[i] = (float)strExtents[i];
+		maxStretchedCubeCoord[i] = (float)strExtents[i+3];
 	}
 }
-//Find far and near dist along view direction. 
+//Find far and near dist along view direction, in world coordinates 
 //Far is distance from camera to furthest corner of full volume
 //Near is distance to full volume if it's positive, otherwise
 //is distance to closest corner of region.
@@ -212,41 +251,21 @@ getFarNearDist(RegionParams* rParams, float* fr, float* nr){
 	float minProj = 1.e30f;
 	//Make sure the viewDir is normalized:
 	vnormal(currentViewpoint->getViewDir());
-	//project corners of full box in view direction:
 	for (int i = 0; i<8; i++){
 		for (int j = 0; j< 3; j++){
 			cor[j] = ( (i>>j)&1) ? extents[j+3] : extents[j];
 		}
 		vsub(cor, getCameraPos(), wrk);
-		//float len1 = wrk[0]*getViewDir()[0]+wrk[1]*getViewDir()[1]+wrk[2]*getViewDir()[2];
-		float len = vdot(wrk, getViewDir());
-		//check for max and min of len's
-		if (len > maxProj) maxProj = len;
-		if (len < minProj) minProj = len;
+		float dist = vlength(wrk);
+		if (minProj > dist) minProj = dist;
+		if (maxProj < dist) maxProj = dist;
 	}
-	if ((minProj < 1.e-20f) || (maxProj <= minProj)) {//big box is not far enough away
-		//Calculate distances to region corners:
-		float corners[8][3];
-		rParams->calcBoxCorners(corners, 0.f);
-		minProj = 1.e30f;
-		//Project each corner along the line in the view direction
-		for (int i = 0; i< 8; i++){
-			//first subtract a corner from the camera, and 
-			//project the resulting vector in the camera direction 
-			vsub(corners[i],getCameraPos(),wrk);
-			float len = vdot(wrk,getViewDir());
-			//check for min of len's
-			if (len < minProj) minProj = len;
-		}
-		//ensure far > near
-		if (maxProj < 2.f*minProj) maxProj = 2.f*minProj;
-
-	}
-	//Now these coords must be stretched based on cube coord system extents
-	float maxCoord = Max(Max(maxCubeCoord[0],maxCubeCoord[1]),maxCubeCoord[2]);
-
-	*fr = maxProj/maxCoord;
-	*nr = minProj/maxCoord;
+	if (maxProj < 1.e-10f) maxProj = 1.e-10f;
+	if (minProj > 0.03f*maxProj) minProj = 0.03f*maxProj;
+	
+	*fr = maxProj;
+	*nr = minProj;
+	return;
 }
 
 

@@ -345,17 +345,43 @@ guiCenterSubRegion(RegionParams* rParams){
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "center sub-region view");
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
-	//Find the largest of the dimensions of the current region:
+	//Find the largest of the dimensions of the current region, projected orthogonal to view
+	//direction:
+	//Make sure the viewDir is normalized:
+	vnormal(currentViewpoint->getViewDir());
+	float regionSideVector[3], compVec[3], projvec[3];
+	float maxProj = -1.f;
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	for (int i = 0; i< 3; i++){
+		//Make a vector that points along side(i) of subregion,
+		
+		for (int j = 0; j<3; j++){
+			regionSideVector[j] = 0.f;
+			if (j == i) {
+				regionSideVector[j] = rParams->getRegionMax(j) - rParams->getRegionMin(j);
+				
+			}
+		}
+		//Now find its component orthogonal to view direction:
+		float dotprod = vdot(currentViewpoint->getViewDir(),regionSideVector);
+		vmult(currentViewpoint->getViewDir(),dotprod,compVec);
+		//projvec is projection orthogonal to view dir:
+		vsub(regionSideVector,compVec,projvec);
+		float proj = vlength(projvec);
+		if (proj > maxProj) maxProj = proj;
+	}
+
+	
+
 	float maxSide = Max(rParams->getRegionMax(2)-rParams->getRegionMin(2), 
 		Max(rParams->getRegionMax(0)-rParams->getRegionMin(0),
 		rParams->getRegionMax(1)-rParams->getRegionMin(1)));
 	//calculate the camera position: center - 2*viewDir*maxSide;
 	//Position the camera 2.5*maxSide units away from the center, aimed
 	//at the center
-	//Make sure the viewDir is normalized:
-	vnormal(currentViewpoint->getViewDir());
+	
 	for (int i = 0; i<3; i++){
-		float camPosCrd = rParams->getRegionCenter(i) -2.5*maxSide*currentViewpoint->getViewDir(i);
+		float camPosCrd = rParams->getRegionCenter(i) -(2.5*maxProj*currentViewpoint->getViewDir(i)/stretch[i]);
 		currentViewpoint->setCameraPos(i, camPosCrd);
 		vpParams->setRotationCenter(i,rParams->getRegionCenter(i));
 	}

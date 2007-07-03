@@ -90,8 +90,9 @@ public:
 	float* getRotationCenter(){return currentViewpoint->getRotationCenter();}
 	float getRotationCenter(int i){ return currentViewpoint->getRotationCenter(i);}
 	void setRotationCenter(int i, float val){currentViewpoint->setRotationCenter(i,val);}
+	void setRotationCenter(float* vec){currentViewpoint->setRotationCenter(vec);}
 	
-	
+	void rescale(float scaleFac[3]);
 
 	//determine far and near distance to region based on current viewpoint
 	void getFarNearDist(RegionParams* rParams, float* far, float* near);
@@ -102,16 +103,19 @@ public:
 	
 	//Transformations to convert world coords to (unit)render cube and back
 	//
-	static void worldToCube(const float fromCoords[3], float toCoords[3]);
+	//static void worldToCube(const float fromCoords[3], float toCoords[3]);
+	static void worldToStretchedCube(const float fromCoords[3], float toCoords[3]);
 
 	static void worldFromCube(float fromCoords[3], float toCoords[3]);
+	static void worldFromStretchedCube(float fromCoords[3], float toCoords[3]);
 	static void setCoordTrans();
-	static float* getMinCubeCoords() {return minCubeCoord;}
-	static float* getMaxCubeCoords() {return maxCubeCoord;}
+	static float* getMinStretchedCubeCoords() {return minStretchedCubeCoord;}
+	
 
 	//Following determines scale factor in coord transformation:
 	//
-	static float getMaxCubeSide() {return maxCubeSide;}
+	//static float getMaxCubeSide() {return maxCubeSide;}
+	static float getMaxStretchedCubeSide() {return maxStretchedCubeSide;}
 
 	//Maintain the OpenGL Model Matrices, since they can be shared between visualizers
 	
@@ -156,10 +160,12 @@ protected:
 
 	//Static coeffs for affine coord conversion:
 	//
-	static float minCubeCoord[3];
-	static float maxCubeSide;
+	static float minStretchedCubeCoord[3];
+	static float maxStretchedCubeCoord[3];
+	
+	static float maxStretchedCubeSide;
 	//Max sides
-	static float maxCubeCoord[3];
+	
 	//GL state saved here since it may be shared...
 	//
 	double modelViewMatrix[16];
