@@ -371,11 +371,7 @@ guiCenterSubRegion(RegionParams* rParams){
 		if (proj > maxProj) maxProj = proj;
 	}
 
-	
 
-	float maxSide = Max(rParams->getRegionMax(2)-rParams->getRegionMin(2), 
-		Max(rParams->getRegionMax(0)-rParams->getRegionMin(0),
-		rParams->getRegionMax(1)-rParams->getRegionMin(1)));
 	//calculate the camera position: center - 2*viewDir*maxSide;
 	//Position the camera 2.5*maxSide units away from the center, aimed
 	//at the center

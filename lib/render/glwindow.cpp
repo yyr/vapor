@@ -146,6 +146,7 @@ void GLWindow::resizeGL( int width, int height )
 		//glFrustum( -w, w, -h, h, mindist,(wCenter[2]+ maxDim + 1.0) );
 		//gluPerspective(45., w, mindist, (wCenter[2]+ maxDim + 10.0) );
 		gluPerspective(45., w, nearDist, farDist );
+		//gluPerspective(45., w, 1.0, 5. );
 		//save the current value...
 		glGetDoublev(GL_PROJECTION_MATRIX, projectionMatrix);
 		
@@ -180,14 +181,15 @@ void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 	//Get the nearest and furthest distance to region from current viewpoint
 	float fr, nr;
 	vParams->getFarNearDist(rParams, &fr, &nr);
+	float scaleFac = vParams->getMaxStretchedCubeSide();
 	if (fr <= 0.f) { //region is behind camera
 		fr = Max(1.f,-fr);
 	}
 	if (nr <= 0.f){ //camera is inside region
 		nr = 0.01f*fr;
 	}
-	farDist = fr*4.f;  
-	nearDist = nr*0.25f;
+	farDist = fr*4.f/scaleFac; 
+	nearDist = nr*0.25f/scaleFac;
 	needsResize = true;
 }
 

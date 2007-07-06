@@ -245,7 +245,7 @@ setCoordTrans(){
 void ViewpointParams::
 getFarNearDist(RegionParams* rParams, float* fr, float* nr){
 	//First check full box
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = DataStatus::getInstance()->getStretchedExtents();
 	float wrk[3], cor[3];
 	float maxProj = -.1e30f;
 	float minProj = 1.e30f;
