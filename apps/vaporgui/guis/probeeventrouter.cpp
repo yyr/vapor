@@ -1311,20 +1311,24 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 	float regMin = 0.f;
 	float regMax = 1.f;
 	float boxMin,boxMax;
-	if (ds){
+	if (ds && ds->getDataMgr()){
 		extents = DataStatus::getInstance()->getExtents();
 		regMin = extents[coord];
 		regMax = extents[coord+3];
-	}
-	if (newCenter < regMin) {
-		newCenter = regMin;
-		centerChanged = true;
-	}
-	if (newCenter > regMax) {
-		newCenter = regMax;
-		centerChanged = true;
-	}
 	
+		if (newCenter < regMin) {
+			newCenter = regMin;
+			centerChanged = true;
+		}
+		if (newCenter > regMax) {
+			newCenter = regMax;
+			centerChanged = true;
+		}
+	} else {
+		regMin = newCenter - newSize*0.5f; 
+		regMax = newCenter + newSize*0.5f;
+	}
+		
 	boxMin = newCenter - newSize*0.5f; 
 	boxMax= newCenter + newSize*0.5f; 
 	if (centerChanged){
