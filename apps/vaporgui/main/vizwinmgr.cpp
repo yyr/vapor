@@ -1171,9 +1171,13 @@ void VizWinMgr::
 initViews(){
 	for (int i = 0; i< MAXVIZWINS; i++){
 		if (vizWin[i]) {
-			if (vpParams[i]->isLocal())
+			if (vpParams[i]->isLocal()){
 				vizWin[i]->setValuesFromGui(vpParams[i]);
+				
+			}
 			else vizWin[i]->setValuesFromGui(globalVPParams);
+
+			vizWin[i]->getGLWindow()->setViewerCoordsChanged(true);
 		}
 	}
 }
