@@ -188,11 +188,14 @@ reinit(bool doOverride){
 		cursorCoords[0] = cursorCoords[1] = 0.0f;
 		numRefinements = 0;
 	} else {
-		//Force the probe size to be no larger than the domain, and 
-		//force the probe center to be inside the domain
+		//Force the probe size to be no larger than the domain extents, and 
+		//force the probe center to be inside the domain.  Note that
+		//because of rotation, the probe max/min may not correspond
+		//to the same extents.
+		float maxExtents = Max(Max(extents[3]-extents[0],extents[4]-extents[1]),extents[5]-extents[2]);
 		for (i = 0; i<3; i++){
-			if (probeMax[i] - probeMin[i] > (extents[i+3]-extents[i]))
-				probeMax[i] = probeMin[i] + extents[i+3]-extents[i];
+			if (probeMax[i] - probeMin[i] > maxExtents)
+				probeMax[i] = probeMin[i] + maxExtents;
 			float center = 0.5f*(probeMin[i]+probeMax[i]);
 			if (center < extents[i]) {
 				probeMin[i] += (extents[i]-center);
