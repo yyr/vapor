@@ -647,6 +647,7 @@ updateRenderer(ViewpointParams* vpParams, bool prevEnabled,   bool newWindow){
 	//(All global visualizers will be sharing the same trackball)
 	//
 	VizWin* viz = myVizMgr->getActiveVisualizer();
+	viz->getGLWindow()->setViewerCoordsChanged(true);
 	//If this panel is associated with the active visualizer, stuff the values
 	//into that viz:
 	if (viz) {
