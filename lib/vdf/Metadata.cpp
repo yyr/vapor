@@ -55,6 +55,8 @@ const string Metadata::_xCoordsTag = "XCoords";
 const string Metadata::_yCoordsTag = "YCoords";
 const string Metadata::_zCoordsTag = "ZCoords";
 const string Metadata::_periodicBoundaryTag = "PeriodicBoundary";
+const string Metadata::_gridPermutationTag = "GridPermutation";
+
 
 const string Metadata::_blockSizeAttr = "BlockSize";
 const string Metadata::_dimensionLengthAttr = "DimensionLength";
@@ -169,6 +171,11 @@ int Metadata::_init(
 	if (XmlNode::GetErrCode() != 0) return(-1);
 	
 	_periodicBoundaryDefault.assign(3,0);
+
+	_gridPermutationDefault.assign(3,0);	// allocate space
+	_gridPermutationDefault[0] = 0;
+	_gridPermutationDefault[1] = 1;
+	_gridPermutationDefault[2] = 2;
 
 	if (SetNumTimeSteps(1) < 0) return(-1);
 
@@ -1115,6 +1122,18 @@ void	Metadata::_startElementHandler1(ExpatParseMgr* pm,
 			return;
 		}
 	}
+	else if (StrCmpNoCase(tag, _periodicBoundaryTag) == 0) {
+		if (StrCmpNoCase(type, _longType) != 0) {
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
+			return;
+		}
+	}
+	else if (StrCmpNoCase(tag, _gridPermutationTag) == 0) {
+		if (StrCmpNoCase(type, _longType) != 0) {
+			pm->parseError("Invalid attribute type : \"%s\"", type.c_str());
+			return;
+		}
+	}
 	else {
 		// must be user data
 		if (!((StrCmpNoCase(type, _stringType) != 0) ||
@@ -1356,6 +1375,18 @@ void	Metadata::_endElementHandler1(ExpatParseMgr* pm,
 			vec.push_back(v);
 		}
 		if (SetVariableNames(vec) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
+			return;
+		}
+	}
+	else if (StrCmpNoCase(tag, _periodicBoundaryTag) == 0) {
+		if (SetPeriodicBoundary(pm->getLongData()) < 0) {
+			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
+			return;
+		}
+	}
+	else if (StrCmpNoCase(tag, _gridPermutationTag) == 0) {
+		if (SetGridPermutation(pm->getLongData()) < 0) {
 			string s(GetErrMsg()); pm->parseError("%s", s.c_str());
 			return;
 		}

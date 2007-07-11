@@ -32,10 +32,6 @@
 using namespace VAPoR;
 using namespace VetsUtil;
 
-// Static member initialization
-//
-const string MetadataSpherical::_gridPermutationTag = "GridPermutation";
-
 
 int MetadataSpherical::SetDefaults() {
 
@@ -53,19 +49,20 @@ int MetadataSpherical::SetDefaults() {
 	//
 	vector<double> extentsVec(6,0.0);
 	vector <long> periodic_boundary(3,0);
+	const vector <long> rvec = GetGridPermutation();
 	for (int i=0; i<3; i++) {
-		switch (_permutation[i]) {
+		switch (rvec[i]) {
 		case 0: {	// longitude
 			double incr = 360.0 / (double)_dim[i];
-			extentsVec[i] = 0 + (incr / 2.0);
-			extentsVec[i+3] = 360 - (incr / 2.0);
+			extentsVec[i] = -180 + (incr / 2.0);
+			extentsVec[i+3] = 180 - (incr / 2.0);
 		periodic_boundary[i] = 1;
 		}
 		break;
 		case 1: {	// lattitude
 			double incr = 180.0 / (double)_dim[i];
-			extentsVec[i] = 0 + (incr / 2.0);
-			extentsVec[i+3] = 180 - (incr / 2.0);
+			extentsVec[i] = -90 + (incr / 2.0);
+			extentsVec[i+3] = 90 - (incr / 2.0);
 		periodic_boundary[i] = 1;
 		}
 		break;
@@ -76,7 +73,7 @@ int MetadataSpherical::SetDefaults() {
 		}
 		break;
 		default:
-			assert(_permutation[i] > 2);
+			assert(rvec[i] > 2);
 		break;
 		}
 	}
@@ -98,10 +95,9 @@ MetadataSpherical::MetadataSpherical(
 
 	vector <long> v;
 	for(int i=0; i<3; i++) {
-		_permutation[i] = permutation[i];
 		v.push_back((long) permutation[i]);
 	}
-	_rootnode->SetElementLong(_gridPermutationTag, v);
+	SetGridPermutation(v);
 
 	SetDefaults();
 }
@@ -110,10 +106,6 @@ MetadataSpherical::MetadataSpherical(
 	const string &path
 ) : Metadata(path) {
 
-	const vector <long> rvec = _rootnode->GetElementLong(_gridPermutationTag);
-	for(int i=0; i<3; i++) {
-		_permutation[i] = rvec[i];
-	}
 }
 
 MetadataSpherical::~MetadataSpherical() {
