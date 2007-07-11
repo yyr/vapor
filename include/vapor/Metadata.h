@@ -401,6 +401,36 @@ public:
 	return(_rootnode->HasElementDouble(_periodicBoundaryTag));
 	};
 
+ //! Set the grid coordinate ordering
+ //!
+ //! \param value A three-element array indicating the association
+ //! between the X,Y,Z (long, lat, radius) coordinates and the 
+ //! ordering of the data. By default, the fastest varying coordinate
+ //! is X (long.), followed by Y (lat), then Z (radius). This method
+ //! permits a permutation of the data oredering to be specified via
+ //! a three-element array containing a permutation of the ordered set 
+ //! (0,1,2).  
+ //!
+ //! \retval status Returns a non-negative integer on success
+ //
+ int SetGridPermutation(const vector<long> &value) {
+	_rootnode->SetElementLong(_gridPermutationTag, value);
+	return(0);
+ }
+
+ //! Return a three-element integer array indicating the coordinate
+ //! ordering permutation.
+ //!
+ //! \retval integer-vector  
+ //
+ const vector<long> &GetGridPermutation() const {
+	if (_rootnode->HasElementLong(_gridPermutationTag)) {
+		return(_rootnode->GetElementLong(_gridPermutationTag));
+	} else {
+		return(_gridPermutationDefault);
+	}
+	};
+
 
  //! Set the time of a time step in user-defined coordinates.
  //!
@@ -927,6 +957,7 @@ protected:
  string _currentVar;	// name of variable currently being processed
  long 	_currentTS;	// Number of time step currently being processed
  vector <long> _periodicBoundaryDefault;	// default periodic boundary mask
+ vector <long> _gridPermutationDefault;	// default grid permutation
 
 
  // Known xml tags
@@ -948,6 +979,7 @@ protected:
  static const string _yCoordsTag;
  static const string _zCoordsTag;
  static const string _periodicBoundaryTag;
+ static const string _gridPermutationTag;
 
  // known xml attribute names
  //

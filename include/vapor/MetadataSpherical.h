@@ -38,12 +38,6 @@ public:
 protected: 
 	int SetDefaults();
 private:
- int _permutation[3];
-
- // Known xml tags
- //
- static const string _gridPermutationTag;
-
 
 };
 
