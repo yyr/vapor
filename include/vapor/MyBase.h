@@ -46,6 +46,10 @@ using namespace std;
 
 namespace VetsUtil {
 
+//Codes used for variables outside valid grid
+const float ABOVE_GRID = 1.e30f;
+const float BELOW_GRID = -1.e30f;
+
 //
 // The MyBase base class provides a simple error reporting mechanism 
 // that can be used by derrived classes. N.B. the error messages/codes
@@ -228,6 +232,8 @@ public:
  static int	DiagMsgSize;
  static FILE	*DiagMsgFilePtr;
  static DiagMsgCB_T DiagMsgCB;
+
+ 
 
 protected:
 	void	SetClassName(const string &name) { _className = name; };

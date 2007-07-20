@@ -92,7 +92,9 @@ RegionEventRouter::hookUpTab()
 	connect (xSizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 	connect (ySizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 	connect (zSizeEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
+	connect (fullHeightEdit, SIGNAL( textChanged(const QString&) ), this, SLOT(setRegionTabTextChanged(const QString&)));
 	
+	connect (fullHeightEdit, SIGNAL( returnPressed()), this, SLOT(regionReturnPressed()));
 	connect (xCntrEdit, SIGNAL( returnPressed()), this, SLOT(regionReturnPressed()));
 	connect (yCntrEdit, SIGNAL( returnPressed()), this, SLOT(regionReturnPressed()));
 	connect (zCntrEdit, SIGNAL( returnPressed() ), this, SLOT(regionReturnPressed()));
@@ -138,6 +140,17 @@ void RegionEventRouter::confirmText(bool /*render*/){
 	regSize[0] = xSizeEdit->text().toFloat();
 	regSize[1] = ySizeEdit->text().toFloat();
 	regSize[2] = zSizeEdit->text().toFloat();
+
+	//Decide whether we are interested in the value of the fullGridHeight:
+	bool layered = false;
+	DataStatus* ds = DataStatus::getInstance();
+	const Metadata* md = ds->getCurrentMetadata();
+	if (md) {
+		const string& gtype = md->GetGridType();
+		layered = (StrCmpNoCase(gtype,"layered") == 0);
+	}
+	if (layered) rParams->setFullGridHeight((size_t)(fullHeightEdit->text().toInt()));
+	
 	for (int i = 0; i<3; i++)
 		textToSlider(rParams,i,centerPos[i],regSize[i]);
 
@@ -155,11 +168,6 @@ void RegionEventRouter::
 regionReturnPressed(void){
 	confirmText(true);
 }
-
-/* 
- * Respond to a release of the max size slider
- *
- */
 
 
 /*
@@ -233,6 +241,25 @@ void RegionEventRouter::updateTab(){
 	yCntrEdit->setText(QString::number(0.5f*(regionMax[1]+regionMin[1]),'g',5));
 	zSizeEdit->setText(QString::number(regionMax[2]-regionMin[2],'g', 4));
 	zCntrEdit->setText(QString::number(0.5f*(regionMax[2]+regionMin[2]),'g',5));
+	
+	bool layered = false;
+	DataStatus* ds = DataStatus::getInstance();
+	const VDFIOBase* reader = ds->getRegionReader();
+	
+	if (reader) {
+		const Metadata* md = ds->getMetadata();
+		const string& gtype = md->GetGridType();
+		layered = (StrCmpNoCase(gtype,"layered") == 0);
+		if (layered)
+			fullHeightEdit->setText(QString::number(rParams->getFullGridHeight()));
+		else {
+			size_t dims[3];
+			reader->GetDim(dims, -1);
+			fullHeightEdit->setText(QString::number(dims[2]));
+		}
+	}
+	else fullHeightEdit->setText("0");
+	fullHeightEdit->setEnabled(layered && (reader != 0));
 	
 	
 	if (rParams->isLocal())
@@ -493,7 +520,7 @@ refreshRegionInfo(RegionParams* rParams){
 	if (ds){
 		//Entire region size in voxels
 		for (int i = 0; i<3; i++){
-			max_dim[i] = ds->getFullSizeAtLevel(refLevel,i) - 1;
+			max_dim[i] = ds->getFullSizeAtLevel(refLevel,i,rParams->getFullGridHeight()) - 1;
 	
 		}
 	}
@@ -510,7 +537,8 @@ refreshRegionInfo(RegionParams* rParams){
 	double var_ext[6];
 	int rc = -1;
 	if (ds && refLevel <= maxRefLevel )
-		rc = ((DataMgr*)ds->getDataMgr())->GetValidRegion(timeStep, varName.c_str(),refLevel, min_vdim, max_vdim);
+		rc = ((DataMgr*)ds->getDataMgr())->GetValidRegion(timeStep, varName.c_str(),
+			refLevel, min_vdim, max_vdim, rParams->getFullGridHeight());
 	if (rc>= 0)	{
 		minXVoxVarLabel->setText(QString::number(min_vdim[0]));
 		minYVoxVarLabel->setText(QString::number(min_vdim[1]));

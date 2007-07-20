@@ -60,7 +60,7 @@ public:
 		const int* varNums, int numVars, double* regMin = 0, double* regMax = 0);
 	//Static method that converts box to extents in cube, independent of actual
 	//extents in region.
-	static void convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
+	static void convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6], size_t fullHeight);
 	static void convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
 	
 	
@@ -71,6 +71,8 @@ public:
 	float getRegionCenter(int indx) {
 		return (0.5f*(regionMin[indx]+regionMax[indx]));
 	}
+	int getFullGridHeight(){ return fullHeight;}
+	void setFullGridHeight(int val) {fullHeight = val;}
 	
 	//Determine how many megabytes will be needed for one variable at specified
 	//refinement level, specified box extents.
@@ -114,6 +116,7 @@ protected:
 	static const string _regionSizeTag;
 	static const string _maxSizeAttr;
 	static const string _numTransAttr;
+	static const string _fullHeightAttr;
 	
 	//Methods to make sliders and text valid and consistent for region:
 
@@ -121,6 +124,8 @@ protected:
 
 	//Actual region bounds
 	float regionMax[3],regionMin[3];
+	//Full grid height for layered data.  0 otherwise.
+	size_t fullHeight;
 	
 	//RegionTab* myRegionTab;
 	

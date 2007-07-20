@@ -1593,12 +1593,12 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	if (!pParams->isEnabled()) return 0.f;
 	int arrayCoord[3];
 	const float* extents = ds->getExtents();
-
+	size_t fullHeight = VizWinMgr::getActiveRegionParams()->getFullGridHeight();
 	//Get the data dimensions (at current resolution):
 	int dataSize[3];
 	int numRefinements = pParams->getNumRefinements();
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = ds->getFullSizeAtLevel(numRefinements,i);
+		dataSize[i] = ds->getFullSizeAtLevel(numRefinements,i,fullHeight);
 	}
 	
 	//Find the region that contains the probe.
@@ -1606,7 +1606,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	size_t blkMin[3], blkMax[3];
 	size_t coordMin[3], coordMax[3];
-	if (!pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, coordMin, coordMax)) return OUT_OF_BOUNDS;
+	if (!pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, coordMin, coordMax, fullHeight)) return OUT_OF_BOUNDS;
 	for (int i = 0; i< 3; i++){
 		if ((point[i] < extents[i]) || (point[i] > extents[i+3])) return OUT_OF_BOUNDS;
 		arrayCoord[i] = (int) (0.5f+((float)dataSize[i])*(point[i] - extents[i])/(extents[i+3]-extents[i]));
@@ -1626,7 +1626,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
-		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, varnum, timeStep);
+		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, varnum, timeStep, fullHeight);
 		totVars++;
 	}
 	QApplication::restoreOverrideCursor();
@@ -1696,8 +1696,8 @@ refreshHistogram(RenderParams* p){
 	size_t blkMin[3],blkMax[3];
 	size_t boxMin[3],boxMax[3];
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	
-	pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, boxMin, boxMax);
+	size_t fullHeight = VizWinMgr::getActiveRegionParams()->getFullGridHeight();
+	pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, boxMin, boxMax, fullHeight);
 	//Make sure this box will fit in current 
 	//Check if the region/resolution is too big:
 	int numRefinements = pParams->getNumRefinements();
@@ -1729,7 +1729,7 @@ refreshHistogram(RenderParams* p){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		assert(varnum >= firstVarNum);
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, varnum, timeStep);
+		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, varnum, timeStep, fullHeight);
 		QApplication::restoreOverrideCursor();
 		if (!volData[totVars]) return;
 		totVars++;
@@ -1741,7 +1741,7 @@ refreshHistogram(RenderParams* p){
 	const float* extents = DataStatus::getInstance()->getExtents();
 	
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i);
+		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i,fullHeight);
 		gridSpacing[i] = (extents[i+3]-extents[i])/(float)(dataSize[i]-1);
 		//if (boxMin[i]< 0) boxMin[i] = 0;  //unsigned, can't be < 0
 		if (boxMax[i] >= dataSize[i]) boxMax[i] = dataSize[i] - 1;
@@ -1918,9 +1918,11 @@ void ProbeEventRouter::captureImage() {
 	//Save the path for future captures
 	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+	size_t fullHeight = rParams->getFullGridHeight();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	//Make sure we have created a probe texture already...
-	unsigned char* probeTex = pParams->getProbeTexture(timestep);
+	unsigned char* probeTex = pParams->getProbeTexture(timestep,fullHeight);
 	if (!probeTex){
 		MessageReporter::errorMsg("Image Capture Error;\nNo image to capture");
 		return;
@@ -1942,7 +1944,7 @@ void ProbeEventRouter::captureImage() {
 		ht = (int) (0.5f + (aspRatio/imAspect)*(float)ht);
 	}
 	//Construct the probe texture of the desired dimensions:
-	probeTex = pParams->calcProbeTexture(timestep,wid,ht);
+	probeTex = pParams->calcProbeTexture(timestep,wid,ht, fullHeight);
 	//Construct an RGB image from this.  Ignore alpha.
 	unsigned char* buf = new unsigned char[3*wid*ht];
 	for (int i = 0; i< wid*ht; i++){
@@ -1986,10 +1988,11 @@ void ProbeEventRouter::guiNudgeXSize(int val) {
 	}
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe X size");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0, rParams->getFullGridHeight());
 	float pmin = pParams->getProbeMin(0);
 	float pmax = pParams->getProbeMax(0);
 	float maxExtent = ds->getExtents()[3];
@@ -2030,10 +2033,11 @@ void ProbeEventRouter::guiNudgeXCenter(int val) {
 	}
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe X center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0);
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 0, rParams->getFullGridHeight());
 	float pmin = pParams->getProbeMin(0);
 	float pmax = pParams->getProbeMax(0);
 	float maxExtent = ds->getExtents()[3];
@@ -2074,10 +2078,11 @@ void ProbeEventRouter::guiNudgeYCenter(int val) {
 	}
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Y center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1, rParams->getFullGridHeight());
 	float pmin = pParams->getProbeMin(1);
 	float pmax = pParams->getProbeMax(1);
 	float maxExtent = ds->getExtents()[4];
@@ -2118,10 +2123,11 @@ void ProbeEventRouter::guiNudgeZCenter(int val) {
 	}
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Z center");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2);
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2, rParams->getFullGridHeight());
 	float pmin = pParams->getProbeMin(2);
 	float pmax = pParams->getProbeMax(2);
 	float maxExtent = ds->getExtents()[5];
@@ -2163,10 +2169,11 @@ void ProbeEventRouter::guiNudgeYSize(int val) {
 	}
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Y size");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1);
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 1, rParams->getFullGridHeight());
 	float pmin = pParams->getProbeMin(1);
 	float pmax = pParams->getProbeMax(1);
 	float maxExtent = ds->getExtents()[4];
@@ -2207,10 +2214,11 @@ void ProbeEventRouter::guiNudgeZSize(int val) {
 	}
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "nudge probe Z size");
 	
 	//See if the change was an increase or decrease:
-	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2);
+	float voxelSize = ds->getVoxelSize(pParams->getNumRefinements(), 2, rParams->getFullGridHeight());
 	float pmin = pParams->getProbeMin(2);
 	float pmax = pParams->getProbeMax(2);
 	float maxExtent = ds->getExtents()[5];

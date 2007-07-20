@@ -88,7 +88,8 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
                             const int data_roi[6],
                             const float extents[6],
                             const int data_box[6],
-                            int level) 
+                            int level,
+							size_t fullHeight) 
 { 
   _data = data;
 
@@ -154,7 +155,7 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
       // The data will not fit completely within texture memory, need to 
       // subdivide into multiple bricks.
       //
-      buildBricks(level, data_box, data_roi, nx, ny, nz);
+      buildBricks(level, data_box, data_roi, nx, ny, nz, fullHeight);
     }
   }
   else
@@ -524,7 +525,7 @@ void DVRTexture3d::findVertexOrder(const Vect3d verts[6], int order[6],
 // Brick the texture data so that each brick will fit into texture memory.
 //----------------------------------------------------------------------------
 void DVRTexture3d::buildBricks(int level, const int box[6], const int roi[6],
-                               int nx, int ny, int nz)
+                               int nx, int ny, int nz, size_t fullHeight)
 {
   // 
   // Calculate the brick size (_bx, _by, _bz are initialized to _nx, _ny, _nz
@@ -618,7 +619,7 @@ void DVRTexture3d::buildBricks(int level, const int box[6], const int roi[6],
         //
         // Set the extents of the brick's data box
         //
-        brick->setDataBlock(level, box, bbox);
+        brick->setDataBlock(level, box, bbox, fullHeight);
 
         if (_vmin.z >= brick->dataMax().z || _vmax.z <= brick->dataMin().z ||
             _vmin.y >= brick->dataMax().y || _vmax.y <= brick->dataMin().y ||
@@ -641,7 +642,7 @@ void DVRTexture3d::buildBricks(int level, const int box[6], const int roi[6],
           broi[0] = (bbox[0] > roi[0]) ? bbox[0] + 1 : roi[0];
           broi[3] = (bbox[3] < roi[3]) ? bbox[3] - 1 : roi[3];
 
-          brick->setROI(level, box, broi);
+          brick->setROI(level, box, broi, fullHeight);
 
           //
           // Set the texture coordinates of the brick.

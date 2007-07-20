@@ -106,6 +106,7 @@ public:
  //! \param[in] reflevel Refinement level requested
  //! \param[in] min Minimum region bounds in blocks
  //! \param[in] max Maximum region bounds in blocks
+ //! \param[in] full_height full domain height in voxels, for layered data
  //! \param[in] lock If true, the memory region will be locked into the 
  //! cache (i.e. valid after subsequent GetRegion() calls).
  //! \retval ptr A pointer to a region containing the desired data, or NULL
@@ -118,6 +119,7 @@ public:
     int reflevel,
     const size_t min[3],
     const size_t max[3],
+	size_t full_height,
     int lock = 0
  );
 
@@ -154,7 +156,9 @@ public:
     int reflevel,
     const size_t min[3],
     const size_t max[3],
+	size_t full_height,
 	const float range[2],
+	unsigned char outVal,
     int lock = 0
 );
 
@@ -245,7 +249,8 @@ public:
     const char *varname,
     int reflevel,
     size_t min[3],
-    size_t max[3]
+    size_t max[3],
+	size_t full_height
  );
 
  
@@ -274,6 +279,7 @@ private:
 	int reflevel;
 	size_t min[3];
 	size_t max[3];
+	size_t fullHeight;
 	_dataTypes_t	type;
 	int	timestamp;
 	int lock_counter;
@@ -284,7 +290,7 @@ private:
  map <string, float *> _quantizationRangeMap;	
 
  map <size_t, map<string, float *> > _dataRangeMap;
- map <size_t, map<string, map<int, size_t *> > > _validRegMinMaxMap;
+ map <size_t, map<string, map<int, map<size_t ,size_t *> > > > _validRegMinMaxMap;
 
  map <size_t, map<string, vector<region_t *> > > _regionsMap;
 
@@ -305,6 +311,7 @@ private:
 	_dataTypes_t    type,
 	const size_t min[3],
 	const size_t max[3],
+	size_t full_height,
 	int lock
  );
 
@@ -315,6 +322,7 @@ private:
 	_dataTypes_t type,
 	const size_t min[3],
 	const size_t max[3],
+	size_t full_height,
 	int lock
  ); 
 
@@ -324,7 +332,8 @@ private:
 	int reflevel,
 	_dataTypes_t type,
 	const size_t min[3],
-	const size_t max[3]
+	const size_t max[3],
+	size_t full_height
  );
 
  int	set_quantization_range(const char *varname, const float range[2]);
@@ -338,7 +347,7 @@ private:
 
  float	*get_cached_data_range(size_t ts, const char *varname);
 
- size_t *get_cached_reg_min_max(size_t ts, const char *varname, int reflevel);
+ size_t *get_cached_reg_min_max(size_t ts, const char *varname, int reflevel, size_t full_height);
 
 };
 

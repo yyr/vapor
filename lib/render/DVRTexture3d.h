@@ -58,7 +58,8 @@ class RENDER_API DVRTexture3d : public DVRBase
                         const int data_roi[6],
                         const float extents[6],
                         const int data_box[6],
-                        int level);
+                        int level,
+						size_t fullHeight);
 
   virtual bool   GetRenderFast() const       { return _renderFast; }
   virtual void   SetRenderFast(bool fast)    { _renderFast = fast; }
@@ -83,7 +84,7 @@ protected:
   void findVertexOrder(const Vect3d verts[6], int order[6], int degree);
 
   void buildBricks(int level, const int bbox[6], const int data_roi[6],
-                   int nx, int ny, int nz);
+                   int nx, int ny, int nz, size_t fullHeight);
   void sortBricks(const Matrix3d &modelview);
 
   static int maxTextureSize(GLenum format);

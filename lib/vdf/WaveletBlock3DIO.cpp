@@ -159,7 +159,7 @@ int    WaveletBlock3DIO::VariableExists(
     size_t timestep,
     const char *varname,
     int reflevel
-) {
+) const {
 	string basename;
 
     if (reflevel < 0) reflevel = _num_reflevels - 1;
@@ -383,7 +383,7 @@ int WaveletBlock3DIO::open_var_write(
 
 		size_t minreg[3];
 		size_t maxreg[3];
-		GetValidRegion(minreg, maxreg,_num_reflevels-1);
+		GetValidRegion(minreg, maxreg,0,_num_reflevels-1);
 		int minreg_int[] = {minreg[0], minreg[1], minreg[2]};
 		rc = nc_put_att_int(
 			_ncids[j],NC_GLOBAL,_nativeMinValidRegionName.c_str(),NC_INT, 3, 
@@ -398,7 +398,7 @@ int WaveletBlock3DIO::open_var_write(
 		);
 		NC_ERR_WRITE(rc,path)
 
-		GetValidRegion(minreg, maxreg,j);
+		GetValidRegion(minreg, maxreg,0,j);
 		int rminreg_int[] = {minreg[0], minreg[1], minreg[2]};
 		rc = nc_put_att_int(
 			_ncids[j],NC_GLOBAL,_refLevMinValidRegionName.c_str(),NC_INT, 3, 
@@ -441,7 +441,8 @@ int WaveletBlock3DIO::open_var_write(
 int	WaveletBlock3DIO::OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel
+	int reflevel,
+	size_t //full_height
 ) {
 	string basename;
 
@@ -726,7 +727,7 @@ int	WaveletBlock3DIO::CloseVariable()
 
 					size_t minreg[3];
 					size_t maxreg[3];
-					GetValidRegion(minreg, maxreg,_num_reflevels-1);
+					GetValidRegion(minreg, maxreg,0,_num_reflevels-1);
 					int minreg_int[] = {minreg[0], minreg[1], minreg[2]};
 					rc = nc_put_att_int(
 						_ncids[j],NC_GLOBAL,_nativeMinValidRegionName.c_str(),
@@ -741,7 +742,7 @@ int	WaveletBlock3DIO::CloseVariable()
 					);
 					NC_ERR_WRITE(rc,_ncpaths[j])
 
-					GetValidRegion(minreg, maxreg,j);
+					GetValidRegion(minreg, maxreg,0,j);
 					int rminreg_int[] = {minreg[0], minreg[1], minreg[2]};
 					rc = nc_put_att_int(
 						_ncids[j],NC_GLOBAL,_refLevMinValidRegionName.c_str(),

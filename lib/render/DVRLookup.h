@@ -33,7 +33,8 @@ class RENDER_API DVRLookup : public DVRTexture3d
                         const int data_roi[6],
                         const float extents[6],
                         const int data_box[6],
-                        int level);
+                        int level,
+						size_t fullHeight);
 
   virtual void loadTexture(TextureBrick *brick);
 

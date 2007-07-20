@@ -56,7 +56,8 @@ int DVRLookup::SetRegion(void *data,
                          const int roi[6],
                          const float extents[6],
                          const int box[6],
-                         int level) 
+                         int level,
+						 size_t fullHeight) 
 { 
   //
   // Construct the color mapping
@@ -70,7 +71,7 @@ int DVRLookup::SetRegion(void *data,
   //
   // Initialize the geometry extents & texture
   //
-  return DVRTexture3d::SetRegion(data, nx, ny, nz, roi, extents, box, level);
+  return DVRTexture3d::SetRegion(data, nx, ny, nz, roi, extents, box, level, fullHeight);
 }
 
 //----------------------------------------------------------------------------

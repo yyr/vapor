@@ -82,7 +82,8 @@ public:
 	const int data_roi[6],
 	const float extents[6],
     const int data_box[6],
-    int refLevel
+    int refLevel,
+	size_t fullHeight
  ) = 0;
 	
  // This version of the SetRegion method permits the non-uniform 

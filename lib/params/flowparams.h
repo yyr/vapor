@@ -54,7 +54,7 @@ public:
 	
 	//Check that the current settings are OK for rebuilding the flow at timestep
 	//Issue error/warning messages as appropriate.  Return false on error.
-	bool validateSettings(int timestep);
+	bool validateSettings(int timestep, size_t fullHeight);
 
 	//Save, restore stuff:
 	XmlNode* buildNode(); 
@@ -241,7 +241,7 @@ public:
 		return seedPointList[i].getVal(coord);
 	}
 	virtual int getNumRefinements() {return numRefinements;}
-	void mapColors(FlowLineData*, int timeStep, int minFrame);
+	void mapColors(FlowLineData*, int timeStep, int minFrame, size_t full_height);
 	
 	//Check the variables in the flow data for missing timesteps 
 	//Independent of animation params

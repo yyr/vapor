@@ -345,7 +345,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		  numxforms, vname);
 	  return;
   }
-  RegionParams::convertToStretchedBoxExtentsInCube(numxforms, min_dim, max_dim, extents);    
+  RegionParams::convertToStretchedBoxExtentsInCube(numxforms, min_dim, max_dim, extents,
+	  myRegionParams->getFullGridHeight());    
   //Make the depth buffer writable
   glDepthMask(GL_TRUE);
   //and readable
@@ -384,7 +385,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
    
 	//qWarning("Requesting region from dataMgr");
     //Turn off error callback, look for memory allocation problem.
-    
+    char outVal = (char)0;
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	const char* varname = (DataStatus::getInstance()->getVariableName(myDVRParams->getSessionVarNum()).c_str());
     void* data = 
@@ -394,7 +395,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
                                         numxforms,
                                         min_bdim,
                                         max_bdim,
+										myRegionParams->getFullGridHeight(),
                                         myDVRParams->getCurrentDatarange(),
+										outVal,
                                         0 //Don't lock!
                                         );
     //Turn it back on:
@@ -426,7 +429,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
     RegionParams::convertToStretchedBoxExtentsInCube(numxforms, 
                                             min_pad_dim, max_pad_dim, 
-                                            padded_extents); 
+                                            padded_extents,
+											myRegionParams->getFullGridHeight()); 
    
     // make subregion origin (0,0,0)
     // Note that this doesn't affect the calc of nx,ny,nz.
@@ -456,7 +460,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
                              data_roi, 
                              extents, 
                              datablock, 
-                             numxforms);
+                             numxforms,
+							 myRegionParams->getFullGridHeight()
+							 );
     }
     else
     {
@@ -474,7 +480,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
       rc = driver->SetRegion(data,
                              nx, ny, nz,
                              data_roi, padded_extents,
-                             datablock, numxforms
+                             datablock, numxforms,
+							 myRegionParams->getFullGridHeight()
                              );
     }
     

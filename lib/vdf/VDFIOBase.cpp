@@ -120,7 +120,7 @@ void	VDFIOBase::GetDimBlk(
 }
 
 void	VDFIOBase::GetValidRegion(
-	size_t min[3], size_t max[3], int reflevel
+	size_t min[3], size_t max[3], size_t full_height, int reflevel
 ) const {
 
 	if (reflevel < 0) reflevel = _num_reflevels - 1;
@@ -129,6 +129,10 @@ void	VDFIOBase::GetValidRegion(
 	for (int i=0; i<3; i++) {
 		min[i] = _validRegMin[i] >> ldelta;
 		max[i] = _validRegMax[i] >> ldelta;
+	}
+	if (full_height != 0){
+		min[2] = 0;
+		max[2] = (full_height-1) >> ldelta;
 	}
 }
 

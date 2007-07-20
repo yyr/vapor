@@ -56,6 +56,7 @@ DataStatus::
 DataStatus()
 {
 	dataMgr = 0;
+	currentMetadata = 0;
 	renderOK = false;
 	myReader = 0;
 	cacheMB = 0;
@@ -154,10 +155,9 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 		dataAtLevel.push_back(new size_t[3]);
 	}
 	
-	for (int k = 0; k< 3; k++){
-		fullDataSize[k] = currentMetadata->GetDimension()[k];
-	}
 	
+	myReader->GetDim(fullDataSize, -1);
+		
 
 	//As we go through the variables and timesteps, keep Track of min and max times
 	unsigned int mints = 1000000000;
@@ -173,8 +173,8 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	//Extend the list of session variables to include all that are in dataStatus.
 	//Construct a mapping from variable nums to variable names, first use the
 	//nums and names that are active, then the remainder.
-	WaveletBlock3DRegionReader* myReader = (WaveletBlock3DRegionReader*)dm->GetRegionReader();
-	
+	//WaveletBlock3DRegionReader* myReader = (WaveletBlock3DRegionReader*)dm->GetRegionReader();
+	const VDFIOBase* myReader = dm->GetRegionReader();
 	for (int lev = 0; lev <= numTransforms; lev++){
 		myReader->GetDim(dataAtLevel[lev],lev);
 	}
@@ -310,11 +310,11 @@ void DataStatus::getMaxStretchedExtentsInCube(float maxExtents[3]){
 	maxExtents[2] = (stretchedExtents[5]-stretchedExtents[2])/maxSize;
 }
 //Determine the min and max extents at a given level:
-void DataStatus::getExtentsAtLevel(int level, float exts[6]){
+void DataStatus::getExtentsAtLevel(int level, float exts[6], size_t fullHeight){
 	size_t minm[3], maxm[3];
 	double usermin[3], usermax[3];
 	int minframe = (int)minTimeStep;
-	myReader->GetValidRegion(minm, maxm, level);
+	myReader->GetValidRegion(minm, maxm, level, fullHeight);
 	myReader->MapVoxToUser(minframe, minm, usermin, level);
 	myReader->MapVoxToUser(minframe, maxm, usermax, level);
 	for (int i = 0; i<3; i++){

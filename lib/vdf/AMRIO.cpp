@@ -100,7 +100,7 @@ int    AMRIO::VariableExists(
     size_t timestep,
     const char *varname,
     int reflevel
-) {
+) const {
 
 	SetDiagMsg("AMRIO::VariableExists(%d, %s, %d)", timestep, varname,reflevel);
 
@@ -269,7 +269,8 @@ int	AMRIO::OpenVariableWrite(
 int	AMRIO::OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel
+	int reflevel,
+	size_t //full_height
 ) {
 
 	SetDiagMsg("AMRIO::OpenVariableRead(%d, %s, %d)",timestep,varname,reflevel);
@@ -405,7 +406,7 @@ int	AMRIO::GetBlockMaxs(
 }
 
 
-int AMRIO::mkpath(size_t timestep, const char *varname, string *path) {
+int AMRIO::mkpath(size_t timestep, const char *varname, string *path) const {
 
 	path->clear();
 
@@ -419,7 +420,7 @@ int AMRIO::mkpath(size_t timestep, const char *varname, string *path) {
 	return(0);
 }
 
-int AMRIO::mkpath(size_t timestep, string *path) {
+int AMRIO::mkpath(size_t timestep, string *path) const {
 
 	path->clear();
 

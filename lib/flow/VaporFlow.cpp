@@ -148,14 +148,17 @@ void VaporFlow::SetRegion(size_t num_xforms,
 						  const size_t min[3], 
 						  const size_t max[3],
 						  const size_t min_bdim[3],
-						  const size_t max_bdim[3])
+						  const size_t max_bdim[3],
+						  size_t fullGridHeight)
 {
+	full_height = fullGridHeight;
 	numXForms = num_xforms;
-	const size_t* fullDims = dataMgr->GetMetadata()->GetDimension();
+	size_t fullDims[3];
 	const std::vector<double> extents = dataMgr->GetMetadata()->GetExtents();
 	
 	size_t fullDataSize[3];
 	dataMgr->GetRegionReader()->GetDim(fullDataSize,num_xforms);
+	dataMgr->GetRegionReader()->GetDim(fullDims,-1);
 	for (int i = 0; i< 3; i++){
 		minBlkRegion[i] = min_bdim[i];
 		maxBlkRegion[i] = max_bdim[i];
@@ -272,7 +275,7 @@ float* VaporFlow::GetData(size_t ts, const char* varName)
 	//
 	ErrMsgCB_T errorCallback = GetErrMsgCB();
 	SetErrMsgCB(0);
-	float *regionData = dataMgr->GetRegion(ts, varName, (int)numXForms, minBlkRegion, maxBlkRegion,1);
+	float *regionData = dataMgr->GetRegion(ts, varName, (int)numXForms, minBlkRegion, maxBlkRegion,full_height,1);
 	SetErrMsgCB(errorCallback);
 	if (!regionData) {
 		SetErrMsg("Error obtaining field data for timestep %d, variable %s",ts, varName);
@@ -1221,15 +1224,15 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	pUData = new float*[1];
 	pVData = new float*[1];
 	pWData = new float*[1];
-	pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, 1);
+	pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, full_height, 1);
 	if (pUData[0]== 0)
 		return 0;
-	pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk, 1);
+	pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk, full_height, 1);
 	if (pVData[0] == 0) {
 		dataMgr->UnlockRegion(pUData[0]);
 		return 0;
 	}
-	pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk, 1);
+	pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk, full_height, 1);
 	if (pWData[0] == 0) {
 		dataMgr->UnlockRegion(pUData[0]);
 		dataMgr->UnlockRegion(pVData[0]);
@@ -1326,15 +1329,15 @@ getFieldMagBounds(float* minVal, float* maxVal,const char* varx, const char* var
 	pUData = new float*[1];
 	pVData = new float*[1];
 	pWData = new float*[1];
-	pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, 1);
+	pUData[0] = dataMgr->GetRegion(timestep, varx, numRefinements, minBlk, maxBlk, full_height, 1);
 	if (pUData[0]== 0)
 		return false;
-	pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk, 1);
+	pVData[0] = dataMgr->GetRegion(timestep, vary, numRefinements, minBlk, maxBlk, full_height, 1);
 	if (pVData[0] == 0) {
 		dataMgr->UnlockRegion(pUData[0]);
 		return false;
 	}
-	pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk, 1);
+	pWData[0] = dataMgr->GetRegion(timestep, varz, numRefinements, minBlk, maxBlk, full_height, 1);
 	if (pWData[0] == 0) {
 		dataMgr->UnlockRegion(pUData[0]);
 		dataMgr->UnlockRegion(pVData[0]);

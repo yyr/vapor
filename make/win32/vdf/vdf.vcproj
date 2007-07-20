@@ -158,6 +158,9 @@
 				RelativePath="..\..\..\lib\vdf\ImpExp.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\LayeredIO.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\Metadata.cpp">
 			</File>
 			<File
@@ -202,16 +205,16 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
-				RelativePath="..\..\..\lib\vdf\AMRData.h">
+				RelativePath="..\..\..\include\vapor\AMRData.h">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\AMRIO.h">
+				RelativePath="..\..\..\include\vapor\AMRIO.h">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\AMRTree.h">
+				RelativePath="..\..\..\include\vapor\AMRTree.h">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\AMRTreeBranch.h">
+				RelativePath="..\..\..\include\vapor\AMRTreeBranch.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\BlkMemMgr.h">
@@ -226,13 +229,16 @@
 				RelativePath="..\..\..\include\vapor\ImpExp.h">
 			</File>
 			<File
+				RelativePath="..\..\..\include\vapor\LayeredIO.h">
+			</File>
+			<File
 				RelativePath="..\..\..\include\vapor\Lifting1D.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\Metadata.h">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\VDFIOBase.h">
+				RelativePath="..\..\..\include\vapor\VDFIOBase.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlock3D.h">
@@ -244,7 +250,7 @@
 				RelativePath="..\..\..\include\vapor\WaveletBlock3DBufWriter.h">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock3DIO.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlock3DIO.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlock3DReader.h">
@@ -253,7 +259,7 @@
 				RelativePath="..\..\..\include\vapor\WaveletBlock3DRegionReader.h">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\vdf\WaveletBlock3DRegionWriter.h">
+				RelativePath="..\..\..\include\vapor\WaveletBlock3DRegionWriter.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\WaveletBlock3DWriter.h">

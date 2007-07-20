@@ -976,7 +976,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 	//Now map colors (if needed)
 		
 	if (doRGBAs){
-		mapColors(steadyFlowData, timeStep, minFrame);
+		mapColors(steadyFlowData, timeStep, minFrame, rParams->getFullGridHeight());
 	}
 
 	return steadyFlowData;
@@ -2011,7 +2011,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 //the mapping
 //
 void FlowParams::
-mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
+mapColors(FlowLineData* container, int currentTimeStep, int minFrame, size_t fullHeight){
 	//Create lut based on current mapping data
 	float* lut = new float[256*4];
 	mapperFunction->makeLut(lut);
@@ -2046,7 +2046,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
-			opacSize[i] = ds->getFullSizeAtLevel(numRefinements,i);
+			opacSize[i] = ds->getFullSizeAtLevel(numRefinements,i,fullHeight);
 			maxSize[i] = opacSize[i]/bs[i] -1;
 			opacVarMin[i] = DataStatus::getInstance()->getExtents()[i];
 			opacVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];
@@ -2054,7 +2054,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		opacRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			opacMapEntity[getOpacMapEntityIndex()].c_str(),
-			numRefinements, (size_t*) minSize, (size_t*) maxSize, 0);
+			numRefinements, (size_t*) minSize, (size_t*) maxSize, fullHeight,0);
 		QApplication::restoreOverrideCursor();
 	}
 	if (getColorMapEntityIndex() > 3){
@@ -2066,7 +2066,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i< 3; i++){
 			minSize[i] = 0;
-			colorSize[i] = (int)ds->getFullSizeAtLevel(numRefinements,i);
+			colorSize[i] = (int)ds->getFullSizeAtLevel(numRefinements,i,fullHeight);
 			maxSize[i] = (colorSize[i]/bs[i] - 1);
 			colorVarMin[i] = DataStatus::getInstance()->getExtents()[i];
 			colorVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];
@@ -2074,7 +2074,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		colorRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			colorMapEntity[getColorMapEntityIndex()].c_str(),
-			numRefinements, (size_t*) minSize, (size_t*) maxSize, 0);
+			numRefinements, (size_t*) minSize, (size_t*) maxSize, fullHeight, 0);
 		QApplication::restoreOverrideCursor();
 
 	}
@@ -2497,14 +2497,14 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 	bool ok =  rParams->getAvailableVoxelCoords(numrefts, min_dim, max_dim, min_bdim,  max_bdim, (size_t)timeStep, steadyVarNum, 3);
 	if (!ok) return -1.f;
 
-
+	size_t fullHeight = rParams->getFullGridHeight();
 	DataMgr* dataMgr = (DataMgr*)(DataStatus::getInstance()->getDataMgr());
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	//Obtain the variables from the dataMgr:
 	for (int var = 0; var<3; var++){
 		varData[var] = dataMgr->GetRegion((size_t)timeStep,
 			DataStatus::getInstance()->getVariableName(steadyVarNum[var]).c_str(),
-			numrefts, min_bdim, max_bdim, 1);
+			numrefts, min_bdim, max_bdim, fullHeight, 1);
 		if (!varData[var]) {
 			//release currently locked regions:
 			for (int k = 0; k<var; k++){
@@ -2547,6 +2547,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	size_t min_bdim[3], max_bdim[3];
 	
 	flowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
+	size_t fullHeight = rParams->getFullGridHeight();
 	//For steady flow, determine what is the available region for the current time step.
 	//For other flow, determine the available region for all the sampled timesteps.
 	if (flowType == 0 ){
@@ -2596,7 +2597,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			DataStatus::getInstance()->getCacheMB());
 		return false;
 	}
-	flowLib->SetRegion(numRefinements, min_dim, max_dim, min_bdim, max_bdim);
+	flowLib->SetRegion(numRefinements, min_dim, max_dim, min_bdim, max_bdim, rParams->getFullGridHeight());
 	// Also, specify the bounds of the rake, in case it is needed:
 	double rakeMinCoords[3];
 	double rakeMaxCoords[3];
@@ -2627,7 +2628,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		}
 		if (testRakeMax[i] < rakeMaxCoords[i]){
 			//max_dim must be increased to include the max extent:
-			if (max_dim[i] < ds->getFullSizeAtLevel(numRefinements, i) -1){
+			if (max_dim[i] < ds->getFullSizeAtLevel(numRefinements, i, fullHeight) -1){
 				max_dim[i]++;
 				changed = true;
 			}
@@ -2746,12 +2747,12 @@ singleAdvectFieldLines(VaporFlow* myFlowLib, FlowLineData** steadyFlowCache, Pat
 }
 
 
-bool FlowParams::validateSettings(int tstep){
+bool FlowParams::validateSettings(int tstep, size_t fullHeight){
 	DataStatus* ds = DataStatus::getInstance();
 	//If we are using a rake, force it to fit inside the current data extents
 	if (doRake){
 		float levExts[6];
-		ds->getExtentsAtLevel(numRefinements, levExts);
+		ds->getExtentsAtLevel(numRefinements, levExts, fullHeight);
 		//Shrink levexts slightly:
 		for (int i = 0; i< 3; i++){
 			float mid = (levExts[i]+levExts[i+3])*0.5;

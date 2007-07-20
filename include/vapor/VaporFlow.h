@@ -39,7 +39,7 @@ namespace VAPoR
 		void SetSteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
 		void SetUnsteadyFieldComponents(const char* xvar, const char* yvar, const char* zvar);
 
-		void SetRegion(size_t num_xforms, const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3]);
+		void SetRegion(size_t num_xforms, const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3], size_t fullGridHeight);
 		void SetRakeRegion(const size_t min[3], const size_t max[3], const size_t min_bdim[3], const size_t max_bdim[3]);
 		void SetUnsteadyTimeSteps(int timeStepList[], size_t numSteps);
 		void SetSteadyTimeSteps(size_t timeStep, int direction){
@@ -105,6 +105,7 @@ namespace VAPoR
 			bool useRakeBounds, int numRefinements, int timestep);
 
 		DataMgr* getDataMgr(){return dataMgr;}
+		size_t getFullGridHeight() {return full_height;}
 	 
 	private:
 		size_t userTimeUnit;						// time unit in the original data
@@ -154,6 +155,7 @@ namespace VAPoR
 		float* flowLineAdvectionSeeds;
 		float minPriorityVal, maxPriorityVal;
 		float seedDistBias;
+		size_t full_height;  //0 unless grid is layered.
 	};
 };
 

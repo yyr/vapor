@@ -214,7 +214,8 @@ int DVRShader::SetRegion(void *data,
                          const int roi[6],
                          const float extents[6],
                          const int box[6],
-                         int level) 
+                         int level,
+						 size_t fullHeight) 
 { 
   //
   // Set the texture data
@@ -244,7 +245,7 @@ int DVRShader::SetRegion(void *data,
   //
   // Set the geometry extents
   //
-  return DVRTexture3d::SetRegion(data, nx, ny, nz, roi, extents, box, level);
+  return DVRTexture3d::SetRegion(data, nx, ny, nz, roi, extents, box, level, fullHeight);
 }
 
 //----------------------------------------------------------------------------

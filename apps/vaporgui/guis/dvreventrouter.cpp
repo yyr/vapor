@@ -1051,7 +1051,7 @@ void DvrEventRouter::refreshHistogram(RenderParams* p){
 		rParams = vizWinMgr->getActiveRegionParams();
 	}
 	else rParams = vizWinMgr->getRegionParams(vizNum);
-
+	size_t fullHeight = rParams->getFullGridHeight();
 	int varNum = dParams->getSessionVarNum();
 	
 	if (!DataStatus::getInstance()->getDataMgr()) return;
@@ -1090,13 +1090,15 @@ void DvrEventRouter::refreshHistogram(RenderParams* p){
 	  }
 	//const Metadata* metaData = Session::getInstance()->getCurrentMetadata();
 	//Now get the data:
-	
+	char outval = (char)0;
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	unsigned char* data = (unsigned char*) dataMgr->GetRegionUInt8(
 		timeStep, (const char*)DataStatus::getInstance()->getVariableName(varNum).c_str(),
 					numTrans,
 					min_bdim, max_bdim,
+					fullHeight,
 					dParams->getCurrentDatarange(),
+					outval,
 					0 //Don't lock!
 		);
 	QApplication::restoreOverrideCursor();

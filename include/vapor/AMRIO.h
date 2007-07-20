@@ -99,7 +99,7 @@ public:
 	size_t ts,
 	const char *varname,
 	int reflevel = 0
- );
+ ) const ;
 
  //! Open the specified AMR octree for writing
  //!
@@ -219,7 +219,8 @@ public:
  int	OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = 0,
+	size_t full_height = 0
  );
 
  //! Close the currently opened variable.
@@ -310,8 +311,8 @@ private:
 
 
  int _AMRIO();
- int mkpath(size_t timestep, string *path);
- int mkpath(size_t timestep, const char *varname, string *path);
+ int mkpath(size_t timestep, string *path) const;
+ int mkpath(size_t timestep, const char *varname, string *path) const;
 
 };
 

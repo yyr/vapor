@@ -67,7 +67,7 @@ public:
 	const float* getStretchedExtents() {return stretchedExtents;}
 	
 	//Determine the min and max extents at a level
-	void getExtentsAtLevel(int level, float exts[6]);
+	void getExtentsAtLevel(int level, float exts[6], size_t fullHeight);
 	
 	size_t getCacheMB() {return cacheMB;}
 	size_t getMinTimestep() {return minTimeStep;}
@@ -122,9 +122,11 @@ public:
 	//Find the first timestep that has any data
 	int getFirstTimestep(int varnum);
 	size_t getFullDataSize(int dim){return fullDataSize[dim];}
-	size_t getFullSizeAtLevel(int lev, int dim) {return dataAtLevel[lev][dim];}
-	float getVoxelSize(int lev, int dim){
-		return ((stretchedExtents[dim+3]-stretchedExtents[dim])/(float)getFullSizeAtLevel(lev,dim));
+	size_t getFullSizeAtLevel(int lev, int dim, size_t fullHeight) 
+		{if (dim < 2 || fullHeight == 0) return dataAtLevel[lev][dim];
+		 return (fullHeight >> (numTransforms - lev));}
+	float getVoxelSize(int lev, int dim, size_t fullHeight){
+		return ((stretchedExtents[dim+3]-stretchedExtents[dim])/(float)getFullSizeAtLevel(lev,dim, fullHeight));
 	}
 	const size_t* getFullDataSize() {return fullDataSize;}
 	void mapVoxelToUserCoords(int refLevel, const size_t voxCoords[3], double userCoords[3]){

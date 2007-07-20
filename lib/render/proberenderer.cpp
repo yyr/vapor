@@ -58,15 +58,16 @@ void ProbeRenderer::paintGL()
 	
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	ProbeParams* myProbeParams = (ProbeParams*)currentRenderParams;
+	size_t fullHeight = myGLWindow->getActiveRegionParams()->getFullGridHeight();
 	int currentFrameNum = myAnimationParams->getCurrentFrameNumber();
 	unsigned char* probeTex = 0;
 	
 	if (myProbeParams->probeIsDirty(currentFrameNum)){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		probeTex = myProbeParams->getProbeTexture(currentFrameNum);
+		probeTex = myProbeParams->getProbeTexture(currentFrameNum,fullHeight);
 		QApplication::restoreOverrideCursor();
 	} else {
-		probeTex = myProbeParams->getProbeTexture(currentFrameNum);
+		probeTex = myProbeParams->getProbeTexture(currentFrameNum,fullHeight);
 	}
 	int imgWidth = myProbeParams->getImageWidth();
 	int imgHeight = myProbeParams->getImageHeight();

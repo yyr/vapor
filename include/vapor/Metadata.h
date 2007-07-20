@@ -236,7 +236,7 @@ public:
 
  //! Set the grid type. 
  //!
- //! \param[in] value Grid type. One of \b regular or \b stretched
+ //! \param[in] value Grid type. One of \b regular or \b stretched or \b layered
  //! \retval status Returns a non-negative integer on success
  //
  int SetGridType(const string &value);
@@ -257,6 +257,7 @@ public:
 	return(
 		(VetsUtil::StrCmpNoCase(value,"regular") == 0) || 
 		(VetsUtil::StrCmpNoCase(value,"stretched") == 0) || 
+		(VetsUtil::StrCmpNoCase(value,"layered") == 0) || 
 		(VetsUtil::StrCmpNoCase(value,"block_amr") == 0)
 	);
 	}

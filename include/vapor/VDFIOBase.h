@@ -105,11 +105,11 @@ public:
  //! refinement level is 0 (zero). A value of -1 indicates the finest
  //! refinement level contained in the VDC.
  //
- virtual int	VariableExists(
+ virtual int VariableExists(
 	size_t ts,
 	const char *varname,
 	int reflevel = 0
- ) = 0;
+ ) const = 0;
 
  //! Open the named variable for writing
  //!
@@ -160,13 +160,16 @@ public:
  //! \param[in] varname Name of the variable to read
  //! \param[in] reflevel Refinement level of the variable. A value of -1
  //! indicates the maximum refinment level defined for the VDC
+ //! \param[in] full_height is used only with layered data, indicates
+ //! the vertical grid size to interpolate to, at max refinement level.
  //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
  virtual int	OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel = 0
+	int reflevel = 0,
+	size_t full_height = 0
  ) = 0;
 
  //! Close the currently opened variable.
@@ -179,9 +182,12 @@ public:
  //! 
  //! Get the resulting dimension of the volume
  //! after undergoing a specified number of forward transforms. 
- //! If the number of transforms is zero, the
+ //! If the number of transforms is zero, and the
+ //! grid type is not layered, the
  //! value returned is the native volume dimension as specified in the
  //! Metadata structure used to construct the class.
+ //! With layered data, the third coordinate depends
+ //! on the user-specified interpolation.
  //! \param[in] reflevel Refinement level of the variable
  //! \param[out] dim Transformed dimension.
  //!
@@ -207,6 +213,11 @@ public:
  //! be used to query the valid domain of the currently opened volume. Results
  //! are returned in voxel coordinates, relative to the refinement level
  //! indicated by \p reflevel.
+ //! 
+ //! When layered data is used, valid subregions can be restricted 
+ //! horizontally, but must include the full vertical extent of 
+ //! the data.  In that case the result of GetValidRegion depends
+ //! on the region height in voxels, and can vary from region to region.
  //!
  //! \param[out] min A pointer to the minimum bounds of the subvolume
  //! \param[out] max A pointer to the maximum bounds of the subvolume
@@ -218,7 +229,7 @@ public:
  //! \sa OpenVariableWrite(), OpenVariableRead()
  //
  virtual void GetValidRegion(
-    size_t min[3], size_t max[3], int reflevel
+    size_t min[3], size_t max[3], size_t full_height, int reflevel
  ) const;
 
 
@@ -406,6 +417,8 @@ public:
  //! the method has succeeded.
  const float *GetDataRange() const {return (_dataRange);};
 
+ void SetDataRange(const float* rng){_dataRange[0] = rng[0]; _dataRange[1] = rng[1];}
+
 
 protected:
  const VAPoR::Metadata *_metadata;
@@ -425,7 +438,8 @@ protected:
  float _dataRange[2];	// min and max range of data;
  size_t _validRegMin[3];
  size_t _validRegMax[3];	// Bounds (in voxels) of valid region relative
-							// to volume at finest level.
+							// to volume at finest level.  With layered IO,
+							// these are the bounds of the layered data.
 
  double	_read_timer;
  double	_write_timer;

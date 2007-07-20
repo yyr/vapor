@@ -154,11 +154,11 @@ public:
 		if (probeTextures[timestep]) delete probeTextures[timestep];
 		probeTextures[timestep] = tex;
 	}
-	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep);
-	unsigned char* calcProbeTexture(int timestep, int wid = 0, int ht = 0);
-	unsigned char* getProbeTexture(int timestep){
+	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep, size_t fullHeight);
+	unsigned char* calcProbeTexture(int timestep, int wid, int ht, size_t fullGridHeight);
+	unsigned char* getProbeTexture(int timestep, size_t fullHeight){
 		if (!probeIsDirty(timestep)) return probeTextures[timestep];
-		return calcProbeTexture(timestep);
+		return calcProbeTexture(timestep, 0,0, fullHeight);
 	}
 
 	virtual float getPhi() {return phi;}
@@ -204,7 +204,7 @@ public:
 	int getFirstVarNum() {return firstVarNum;}
 	void setNumVariablesSelected(int numselected){numVariablesSelected = numselected;}
 	//Get the bounding box of data that is actually on disk.  return false if empty
-	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3]);
+	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], size_t fullHeight);
 	//Obtain the smallest region that contains the probe, and fits within the full data volume:
 	void getContainingRegion(float regMin[3], float regMax[3]);
 	
@@ -234,7 +234,7 @@ protected:
 	
 	//Find smallest containing cube in integer coords, using
 	//current numRefinementsforms, that will contain image of probe
-	void getBoundingBox(size_t boxMin[3], size_t boxMax[3]);
+	void getBoundingBox(size_t boxMin[3], size_t boxMax[3], size_t fullHeight);
 	
 	float currentDatarange[2];
 	

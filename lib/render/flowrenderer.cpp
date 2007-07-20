@@ -123,6 +123,7 @@ void FlowRenderer::paintGL()
 	
 
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
+	size_t fullHeight = myGLWindow->getActiveRegionParams()->getFullGridHeight();
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	//If the region is dirty, always need to rebuild:
 	if(myGLWindow->regionIsDirty()) setDataDirty();
@@ -148,13 +149,13 @@ void FlowRenderer::paintGL()
 		if (!constColors && flowMapIsDirty(timeStep)){
 			if (flowType != 1){
 				if (steadyFlowCache[timeStep]) {
-					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
+					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame, fullHeight);
 					didRemap = true;
 				}
 			}
 			else {//flowtype = 1
 				if(unsteadyFlowCache) {
-					myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame);
+					myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame, fullHeight);
 					//First and last age can change with flow graphics.
 					firstDisplayAge = myFlowParams->getFirstDisplayFrame();
 					lastDisplayAge = myFlowParams->getLastDisplayFrame();
@@ -837,9 +838,11 @@ flowMapIsDirty(int timeStep){
 //If the 
 bool FlowRenderer::rebuildFlowData(int timeStep){
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
+	RegionParams* rParams = myGLWindow->getActiveRegionParams();
+	size_t fullHeight = rParams->getFullGridHeight();
 	//If we are using a rake, force it to lie (slightly) within the data extents
 	//Check it out:
-	if (!myFlowParams->validateSettings(timeStep)) {
+	if (!myFlowParams->validateSettings(timeStep, fullHeight)) {
 		//If it's not OK, we turn off autoRefresh.  
 		//Also turn off all the needsRefreshflags, so we won't try to render.
 		setAllNeedRefresh(false);
@@ -850,7 +853,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 
 	//Check that we have a large-enough cache.  
 	
-	RegionParams* rParams = myGLWindow->getActiveRegionParams();
+	
 	int numRefs = myFlowParams->getNumRefinements();
 	int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(), rParams->getRegionMax(), numRefs);
 	
@@ -1005,7 +1008,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				//because color mapping can use the values in the flow lines if a variable is
 				//being mapped to colors.
 				unsteadyFlowCache->scaleLines(DataStatus::getInstance()->getStretchFactors());
-				if(!constColors) myFlowParams->mapColors(unsteadyFlowCache, timeStep, minFrame);
+				if(!constColors) myFlowParams->mapColors(unsteadyFlowCache, timeStep, minFrame, fullHeight);
 				break;
 			case (2):
 				{
@@ -1139,9 +1142,9 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	//Now we only rebuild the rgba's if we didn't build the flow lines
 	else if (!constColors) {
 		if (flowType != 1)
-			myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame);
+			myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame, fullHeight);
 		else 
-			myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame);
+			myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame, fullHeight);
 	}
 	return true;
 }
@@ -1197,10 +1200,12 @@ void FlowRenderer::calcPeriodicExtents() {
 	// is not repeated.
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	const float* extents = DataStatus::getInstance()->getStretchedExtents();
+	size_t dims[3];
+	DataStatus::getInstance()->getRegionReader()->GetDim(dims, -1);
 	for (int i = 0; i<3; i++){
 		periodicExtents[i] = extents[i];
 		if (myFlowParams->getPeriodicDim(i)){
-			float dim = (float)DataStatus::getInstance()->getCurrentMetadata()->GetDimension()[i];
+			float dim = (float)dims[i];
 			periodicExtents[i+3] = extents[i] + (extents[i+3]-extents[i])*(dim/(dim-1.f));
 		}
 		//With nonperiodic data, just use the extents (close enough, prevents surprises!)

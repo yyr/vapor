@@ -45,6 +45,7 @@
 #include "vapor/Metadata.h"
 #include "vapor/XmlNode.h"
 #include "vapor/VDFIOBase.h"
+#include "vapor/LayeredIO.h"
 //#include "glutil.h"
 
 
@@ -56,6 +57,7 @@ const string RegionParams::_maxSizeAttr = "MaxSizeSlider";
 const string RegionParams::_numTransAttr = "NumTrans";
 const string RegionParams::_regionMinTag = "RegionMin";
 const string RegionParams::_regionMaxTag = "RegionMax";
+const string RegionParams::_fullHeightAttr = "FullGridHeight";
 
 RegionParams::RegionParams(int winnum): Params(winnum){
 	thisParamType = RegionParamsType;
@@ -115,6 +117,7 @@ restart(){
 	infoNumRefinements = 0; 
 	infoVarNum = 0;
 	infoTimeStep = 0;
+	fullHeight = 0;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds || !ds->getDataMgr()) ds = 0;
 	const float* fullDataExtents = 0;
@@ -140,12 +143,14 @@ reinit(bool doOverride){
 	int i;
 	
 	const float* extents = DataStatus::getInstance()->getExtents();
-	
+	bool isLayered = (DataStatus::getInstance()->getCurrentMetadata()->GetGridType().compare("layered") == 0);
 	if (doOverride) {
 		for (i = 0; i< 3; i++) {
 			regionMin[i] = extents[i];
 			regionMax[i] = extents[i+3];
 		}
+		if (isLayered) fullHeight = DataStatus::getInstance()->getFullDataSize(2);
+		else fullHeight = 0;
 	} else {
 		//Just force them to fit in current volume 
 		for (i = 0; i< 3; i++) {
@@ -160,6 +165,7 @@ reinit(bool doOverride){
 			if (regionMax[i] < extents[i])
 				regionMax[i] = extents[i];
 		}
+		if (isLayered && fullHeight == 0) fullHeight = DataStatus::getInstance()->getFullDataSize(2);
 	}
 	
 	return true;	
@@ -194,14 +200,14 @@ void RegionParams::setRegionMax(int coord, float maxval, bool checkMin){
 //Then puts into unit cube, for use by volume rendering
 //
 void RegionParams::
-convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]){
+convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6],size_t fullHeight){
 	double fullExtents[6];
 	double subExtents[6];
 	DataStatus* ds = DataStatus::getInstance();
 	const size_t fullMin[3] = {0,0,0};
 	size_t fullMax[3];
 	
-	for (int i = 0; i<3; i++) fullMax[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i) - 1;
+	for (int i = 0; i<3; i++) fullMax[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i,fullHeight) - 1;
 
 	ds->mapVoxelToUserCoords(refLevel, fullMin, fullExtents);
 	ds->mapVoxelToUserCoords(refLevel, fullMax, fullExtents+3);
@@ -267,7 +273,10 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		userMaxCoords[i] = (double)regionMax[i];
 	}
 	const VDFIOBase* myReader = ds->getRegionReader();
-	
+
+	if (ds->getCurrentMetadata()->GetGridType().compare("layered") == 0){
+		((LayeredIO*)myReader)->SetGridHeight(fullHeight);
+	}
 	//Do mapping to voxel coords
 	myReader->MapUserToVox(timestep, userMinCoords, min_dim, numxforms);
 	myReader->MapUserToVox(timestep, userMaxCoords, max_dim, numxforms);
@@ -288,7 +297,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	size_t temp_min[3], temp_max[3];
 	for (int varIndex = 0; varIndex < numVars; varIndex++){
 		const string varName = ds->getVariableName(varNums[varIndex]);
-		int rc = ((DataMgr*)ds->getDataMgr())->GetValidRegion(timestep, varName.c_str(),numxforms, temp_min, temp_max);
+		int rc = ((DataMgr*)ds->getDataMgr())->GetValidRegion(timestep, varName.c_str(),numxforms, temp_min, temp_max, fullHeight);
 		if (rc < 0) retVal = false;
 		else for (i = 0; i< 3; i++){
 			if (min_dim[i] < temp_min[i]) min_dim[i] = temp_min[i];
@@ -370,6 +379,9 @@ elementStartHandler(ExpatParseMgr* pm, int /* depth*/ , std::string& tagString, 
 				ist >> numTrans;
 			}
 			*/
+			else if (StrCmpNoCase(attribName, _fullHeightAttr) == 0) {
+				ist >> fullHeight;
+			}
 			else return false;
 		}
 		return true;
@@ -452,6 +464,10 @@ buildNode(){
 	oss.str(empty);
 	oss << (long)vizNum;
 	attrs[_vizNumAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)fullHeight;
+	attrs[_fullHeightAttr] = oss.str();
 
 	oss.str(empty);
 	if (local)

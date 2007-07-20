@@ -152,7 +152,7 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
-				RelativePath="..\..\..\lib\common\Base64.h">
+				RelativePath="..\..\..\include\vapor\Base64.h">
 			</File>
 			<File
 				RelativePath="..\..\..\include\vapor\CFuncs.h">

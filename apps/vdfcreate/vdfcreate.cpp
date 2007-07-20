@@ -40,7 +40,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients"},
 	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients"},
 	{"comment",	1,	"",				"Top-level comment"},
-	{"gridtype",	1,	"regular",	"Data grid type (regular|streched|block_amr)"}, 
+	{"gridtype",	1,	"regular",	"Data grid type (regular|layered|stretched|block_amr)"}, 
 	{"coordsystem",	1,	"cartesian","Top-level comment (cartesian|spherical)"},
 	{"extents",	1,	"0:0:0:0:0:0",	"Colon delimited 6-element vector specifying domain extents in user coordinates (X0:Y0:Z0:X1:Y1:Z1)"},
 	{"order",	1,	"0:1:2",	"Colon delimited 3-element vector specifying permutation ordering of raw data on disk "},

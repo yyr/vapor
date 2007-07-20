@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>433</width>
-            <height>812</height>
+            <height>910</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -36,7 +36,7 @@
         <string>Region Settings</string>
     </property>
     <property name="toolTip" stdset="0">
-        <string></string>
+        <string>Full vertical (Z) size of grid at highest refinement level</string>
     </property>
     <property name="whatsThis" stdset="0">
         <string>The Region panel specifies a box
@@ -56,7 +56,7 @@ the probe panels).</string>
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout209</cstring>
+                <cstring>layout50</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -168,7 +168,7 @@ share the same region settings.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>25</height>
                         </size>
                     </property>
                 </spacer>
@@ -683,7 +683,7 @@ share the same region settings.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>25</height>
                         </size>
                     </property>
                 </spacer>
@@ -1111,7 +1111,102 @@ share the same region settings.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>25</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout49</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer28</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>31</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Specify the full vertical (Z) grid height at highest refinement level.  Used with layered datasets (e.g. WRF) to enable dynamic control of data interpolation.</string>
+                            </property>
+                        </spacer>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel1_5</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Full Vertical (Z) Grid Size</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignCenter</set>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Specify the full vertical (Z) grid height at highest refinement level.  Used with layered datasets (e.g. WRF) to enable dynamic control of data interpolation.</string>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>fullHeightEdit</cstring>
+                            </property>
+                            <property name="text">
+                                <string>0</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignHCenter</set>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Specify the full vertical (Z) grid height at highest refinement level.  Used with layered datasets (e.g. WRF) to enable dynamic control of data interpolation.</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer27</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>51</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>Specify the full vertical (Z) grid height at highest refinement level.  Used with layered datasets (e.g. WRF) to enable dynamic control of data interpolation.</string>
+                            </property>
+                        </spacer>
+                    </hbox>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer26</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -1183,7 +1278,7 @@ share the same region settings.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>25</height>
                         </size>
                     </property>
                 </spacer>
@@ -1356,7 +1451,7 @@ share the same region settings.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>25</height>
                         </size>
                     </property>
                 </spacer>
@@ -3064,23 +3159,6 @@ available.</string>
                         </widget>
                     </hbox>
                 </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer45</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
-                            <height>16</height>
-                        </size>
-                    </property>
-                </spacer>
             </vbox>
         </widget>
     </hbox>

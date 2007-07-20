@@ -149,9 +149,6 @@
 			<File
 				RelativePath="..\..\..\lib\idl\IDLWbIo.cpp">
 			</File>
-			<File
-				RelativePath="..\..\..\lib\vdf\VDFIOBase.cpp">
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

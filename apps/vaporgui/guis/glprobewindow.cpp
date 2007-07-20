@@ -107,6 +107,7 @@ void GLProbeWindow::setTextureSize(float horiz, float vert){
 void GLProbeWindow::paintGL()
 {
 	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
+	size_t fullHeight = VizWinMgr::getActiveRegionParams()->getFullGridHeight();
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
 
 	//VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
@@ -132,10 +133,10 @@ void GLProbeWindow::paintGL()
 	if(myParams){
 		if (myParams->probeIsDirty(timestep)){
 			QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-			probeTexture = myParams->getProbeTexture(timestep);
+			probeTexture = myParams->getProbeTexture(timestep,fullHeight);
 			QApplication::restoreOverrideCursor();
 		} else {
-			probeTexture = myParams->getProbeTexture(timestep);
+			probeTexture = myParams->getProbeTexture(timestep,fullHeight);
 		}
 	}
 	int imgWidth = myParams->getImageWidth();

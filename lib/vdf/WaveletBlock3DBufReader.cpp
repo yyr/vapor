@@ -61,7 +61,8 @@ WaveletBlock3DBufReader::~WaveletBlock3DBufReader(
 int	WaveletBlock3DBufReader::OpenVariableRead(
 	size_t timestep,
 	const char *varname,
-	int reflevel
+	int reflevel,
+	size_t //full_height
 ) {
 	int	rc;
 	size_t size;
