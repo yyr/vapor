@@ -139,13 +139,25 @@ public:
 
 	//find the *session* variable name associated with session index
 	static std::string& getVariableName(int varNum) {return variableNames[varNum];}
+	static float getBelowValue(int varNum) {return belowValues[varNum];}
+	static float getAboveValue(int varNum) {return aboveValues[varNum];}
+
 	//Find the session num of a name, or -1 if it's not metadata:
 	static int getSessionVariableNum(const std::string& str);
 	//Insert variableName if necessary; return sessionVariableNum
 	static int mergeVariableName(const std::string& str);
 
 
-	static void addVarName(const std::string newName) {variableNames.push_back(newName);}
+	static void addVarName(const std::string newName) {
+		variableNames.push_back(newName);
+		aboveValues.push_back(VetsUtil::ABOVE_GRID);
+		belowValues.push_back(VetsUtil::BELOW_GRID);
+	}
+	//Set outside values for an existing session variable 
+	static void setOutsideValues(int varnum, float belowVal, float aboveVal){
+		belowValues[varnum] = belowVal;
+		aboveValues[varnum] = aboveVal;
+	}
 	//"Metadata" variables are those that are in current metadata, as opposed to
 	//"session" variables are those in session
 	static int getNumMetadataVariables() {return numMetadataVariables;}
@@ -160,7 +172,11 @@ public:
 		return (variableNames[mapMetadataVars[mdvarnum]]);}
 	//getNumSessionVariables returns the number of session variables
 	static int getNumSessionVariables(){return (int)variableNames.size();}
-	static void clearVariableNames() {variableNames.clear();}
+	static void clearVariableNames() {
+		variableNames.clear();
+		aboveValues.clear();
+		belowValues.clear();
+	}
 	static void removeMetadataVars(){
 		if (mapMetadataVars) delete mapMetadataVars;
 		clearMetadataVars();
@@ -217,6 +233,8 @@ private:
 	//dataMgr.  The number of metadataVariables should coincide with the 
 	//number of variables in the datastatus that have actual data associated with them.
 	static std::vector<std::string> variableNames;
+	static std::vector<float> belowValues;
+	static std::vector<float> aboveValues;
 	static int numMetadataVariables;
 	static int* mapMetadataVars;
 	

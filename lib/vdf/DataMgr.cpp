@@ -392,7 +392,8 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	const size_t max[3],
 	size_t full_height,
 	const float range[2],
-	unsigned char outval,
+	unsigned char lowval,
+	unsigned char hival,
 	int lock
 ) {
 	unsigned char	*ublks = NULL;
@@ -401,9 +402,9 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	int	x,y,z;
 
 	SetDiagMsg(
-		"DataMgr::GetRegionUInt8(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],%d,%d)",
+		"DataMgr::GetRegionUInt8(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],%d,%d,%d)",
 		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2], full_height,
-		range[0], range[1], outval, lock
+		range[0], range[1], lowval, hival, lock
 	);
 
 	// 
@@ -447,10 +448,10 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	for(y=0;y<ny;y++) {
 	for(x=0;x<nx;x++) {
 		double	f;
-
-		if (*fptr < range[0]) *ucptr = 0;
+		if (*fptr == BELOW_GRID) *ucptr = lowval;
+		else if (*fptr == ABOVE_GRID) *ucptr = hival;
+		else if (*fptr < range[0]) *ucptr = 0;
 		else if (*fptr > range[1]) *ucptr = 255;
-		else if (*fptr == BELOW_GRID) *ucptr = outval;
 		else {
 			f = (*fptr - range[0]) / (range[1] - range[0]) * 255;
 			*ucptr = (unsigned char) rint(f);

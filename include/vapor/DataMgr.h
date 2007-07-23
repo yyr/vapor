@@ -158,7 +158,8 @@ public:
     const size_t max[3],
 	size_t full_height,
 	const float range[2],
-	unsigned char outVal,
+	unsigned char loVal,
+	unsigned char hiVal,
     int lock = 0
 );
 
@@ -268,7 +269,7 @@ public:
  //! Return the metadata class object associated with this class
  //!
  const  Metadata *GetMetadata() const { return (_metadata); };
-
+void	free_all();
 
 private:
  int	_objInitialized;
@@ -338,7 +339,7 @@ private:
 
  int	set_quantization_range(const char *varname, const float range[2]);
 
- void	free_all();
+ 
  void	free_var(const string &, int do_native);
 
  int	free_lru();

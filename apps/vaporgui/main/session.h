@@ -228,7 +228,12 @@ public:
 		
 	std::string& getVariableName(int varNum) {
 		return DataStatus::getVariableName(varNum);}
-
+	float getAboveValue(int varNum) {
+		return DataStatus::getAboveValue(varNum);
+	}
+	float getBelowValue(int varNum) {
+		return DataStatus::getBelowValue(varNum);
+	}
 	//Find the session num of a name, or -1 if it's not metadata:
 	int getSessionVariableNum(const string& str){
 		return DataStatus::getSessionVariableNum(str);
@@ -236,8 +241,6 @@ public:
 	//Insert variableName if necessary; return index
 	int mergeVariableName(const string& str){
 		return DataStatus::mergeVariableName(str);}
-
-
 	void addVarName(const string newName) {DataStatus::addVarName(newName);}
 	//"Metadata" variables are those that are in current metadata, as opposed to
 	//"session" variables are those in session
@@ -267,9 +270,13 @@ protected:
 	static const string _maxLogAttr;
 	static const string _exportFileNameAttr;
 	static const string _sessionTag;
+	static const string _sessionVariableTag;
 	static const string _globalParameterPanelsTag;
 	static const string _globalTransferFunctionsTag;
 	static const string _dataExtentsAttr;
+	static const string _variableNameAttr;
+	static const string _belowGridAttr;
+	static const string _aboveGridAttr;
 
 	XmlNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);

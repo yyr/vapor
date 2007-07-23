@@ -46,6 +46,8 @@ using namespace VetsUtil;
 //Following are static, must persist even when there is no instance:
 DataStatus* DataStatus::theDataStatus = 0;
 std::vector<std::string> DataStatus::variableNames;
+std::vector<float> DataStatus::aboveValues;
+std::vector<float> DataStatus::belowValues;
 int DataStatus::numMetadataVariables = 0;
 int* DataStatus::mapMetadataVars = 0;
 //Default constructor
@@ -291,7 +293,7 @@ int DataStatus::mergeVariableName(const string& str){
 		if(variableNames[i] == str) return i;
 	}
 	//Not found, put it in:
-	variableNames.push_back(str);
+	addVarName(str);
 	return (variableNames.size()-1);
 }
 int DataStatus::mapSessionToMetadataVarNum(int sesVarNum){

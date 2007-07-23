@@ -28,6 +28,7 @@
 #include <qlineedit.h>
 #include <qpushbutton.h>
 #include <qmessagebox.h>
+#include <qcombobox.h>
 
 
 using namespace VAPoR;
@@ -69,6 +70,27 @@ void SessionParams::launch(){
 	sessionParamsDlg->maxWarnPopup->setText(str.setNum(maxPopup[1]));
 	sessionParamsDlg->maxInfoPopup->setText(str.setNum(maxPopup[0]));
 	connect(sessionParamsDlg->resetCountButton, SIGNAL(pressed()), this, SLOT(resetCounts()));
+
+	//set the sessionVariables:
+	sessionVariableNum = 0;
+	DataStatus* ds = DataStatus::getInstance();
+	bool isLayered = (ds->getMetadata() && (StrCmpNoCase(ds->getMetadata()->GetGridType(),"Layered") == 0));
+	sessionParamsDlg->outsideValFrame->setEnabled(isLayered);
+	sessionParamsDlg->variableCombo->setCurrentItem(sessionVariableNum);
+	if (isLayered) sessionParamsDlg->buttonOk->setDefault(false);
+	if (ds->getNumSessionVariables()>0){
+		sessionParamsDlg->lowValEdit->setText(QString::number(ds->getBelowValue(sessionVariableNum)));
+		sessionParamsDlg->highValEdit->setText(QString::number(ds->getAboveValue(sessionVariableNum)));
+		sessionParamsDlg->variableCombo->clear();
+		for (int i = 0; i<ds->getNumSessionVariables(); i++){
+			sessionParamsDlg->variableCombo->insertItem(ds->getVariableName(i).c_str());
+		}
+
+	}
+	connect(sessionParamsDlg->variableCombo, SIGNAL(activated(int)), this, SLOT(setVariableNum(int)));
+	connect(sessionParamsDlg->lowValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
+	connect(sessionParamsDlg->highValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
+	outValsChanged = false;
 	int rc = sessionParamsDlg->exec();
 	if (rc){
 		//see if the memory size changed:
@@ -103,7 +125,7 @@ void SessionParams::launch(){
 			}
 		}
 		if (changed) mReporter->resetCounts();
-		changed = false;
+		bool stretchChanged = false;
 		float newStretch[3];
 		float ratio[3] = { 1.f, 1.f, 1.f };
 		newStretch[0] = sessionParamsDlg->stretch0Edit->text().toFloat();
@@ -119,12 +141,12 @@ void SessionParams::launch(){
 			if (minStretch != 1.f) newStretch[i] /= minStretch;
 			if (newStretch[i] != stretch[i]){
 				ratio[i] = newStretch[i]/stretch[i];
-				changed = true;
+				stretchChanged = true;
 				currentSession->setStretch(i, newStretch[i]);
 			}
 		}
 		
-		if (changed) {
+		if (stretchChanged) {
 			
 			DataStatus* ds = DataStatus::getInstance();
 			ds->stretchExtents(newStretch);
@@ -152,6 +174,23 @@ void SessionParams::launch(){
 			}
 			
 		}
+		if (outValsChanged) {
+			
+			VizWinMgr* vizMgr = VizWinMgr::getInstance();
+			
+			for (int j = 0; j< MAXVIZWINS; j++) {
+				VizWin* win = vizMgr->getVizWin(j);
+				if (!win) continue;
+				//do each dvr
+
+				DvrParams* dp = vizMgr->getDvrParams(j);
+				vizMgr->setDatarangeDirty(dp);
+			}
+
+			DataStatus::getInstance()->getDataMgr()->free_all();
+			
+		}
+
 
 
 		//see if the filename changed:
@@ -174,4 +213,18 @@ logFileChoose(){
 void SessionParams::
 resetCounts(){
 	MessageReporter::getInstance()->resetCounts();
+}
+void SessionParams::
+setVariableNum(int varNum){
+	sessionVariableNum = varNum;
+	sessionParamsDlg->lowValEdit->setText(QString::number(DataStatus::getInstance()->getBelowValue(sessionVariableNum)));
+	sessionParamsDlg->highValEdit->setText(QString::number(DataStatus::getInstance()->getAboveValue(sessionVariableNum)));
+	
+}
+void SessionParams::
+setOutsideVal(){
+	float aboveVal = sessionParamsDlg->highValEdit->text().toFloat();
+	float belowVal = sessionParamsDlg->lowValEdit->text().toFloat();
+	DataStatus::getInstance()->setOutsideValues(sessionVariableNum, belowVal, aboveVal);
+	outValsChanged = true;
 }

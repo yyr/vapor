@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>422</width>
-            <height>608</height>
+            <height>734</height>
         </rect>
     </property>
     <property name="caption">
@@ -157,7 +157,7 @@
                 </widget>
                 <spacer>
                     <property name="name">
-                        <cstring>spacer24</cstring>
+                        <cstring>spacer23</cstring>
                     </property>
                     <property name="orientation">
                         <enum>Vertical</enum>
@@ -169,6 +169,121 @@
                         <size>
                             <width>20</width>
                             <height>21</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>outsideValFrame</cstring>
+                    </property>
+                    <property name="enabled">
+                        <bool>false</bool>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout10</cstring>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel1_5</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Variable values outside grid (for layered data)</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout9</cstring>
+                                    </property>
+                                    <grid>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel" row="0" column="1">
+                                            <property name="name">
+                                                <cstring>textLabel2_2_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Value below grid</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel" row="0" column="2">
+                                            <property name="name">
+                                                <cstring>textLabel2_2_2_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Value above grid</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLabel" row="0" column="0">
+                                            <property name="name">
+                                                <cstring>textLabel2_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Variable</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit" row="1" column="2">
+                                            <property name="name">
+                                                <cstring>highValEdit</cstring>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit" row="1" column="1">
+                                            <property name="name">
+                                                <cstring>lowValEdit</cstring>
+                                            </property>
+                                        </widget>
+                                        <widget class="QComboBox" row="1" column="0">
+                                            <property name="name">
+                                                <cstring>variableCombo</cstring>
+                                            </property>
+                                        </widget>
+                                    </grid>
+                                </widget>
+                            </vbox>
+                        </widget>
+                    </hbox>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer24</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -751,7 +866,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>45</height>
                         </size>
                     </property>
                 </spacer>

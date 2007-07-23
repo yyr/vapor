@@ -42,6 +42,8 @@ public:
 public slots:
 	void logFileChoose();
 	void resetCounts();
+	void setVariableNum(int);
+	void setOutsideVal();
 	
 protected:
 	
@@ -51,6 +53,8 @@ protected:
 	int maxLog[3];
 	float stretch[3];
 	SessionParameters* sessionParamsDlg;
+	int sessionVariableNum;
+	bool outValsChanged;
 	
 };
 };

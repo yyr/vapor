@@ -192,6 +192,19 @@ int	main(int argc, char **argv) {
 	}
 	
 
+	if (file->GetGridType().compare("layered") == 0){
+		//Make sure there's an ELEVATION variable in the vdf
+		bool hasElevation = false;
+		for (int i = 0; i<opt.varnames.size(); i++){
+			if (opt.varnames[i].compare("ELEVATION") == 0){
+				hasElevation = true;
+				break;
+			}
+		}
+		if (!hasElevation){
+			opt.varnames.push_back("ELEVATION");
+		}
+	}
 	if (file->SetVariableNames(opt.varnames) < 0) {
 		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);

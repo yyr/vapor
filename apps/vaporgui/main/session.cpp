@@ -64,6 +64,10 @@ const string Session::_dataExtentsAttr = "DataExtents";
 const string Session::_sessionTag = "Session";
 const string Session::_globalParameterPanelsTag = "GlobalParameterPanels";
 const string Session::_globalTransferFunctionsTag = "GlobalTransferFunctions";
+const string Session::_sessionVariableTag = "SessionVariable";
+const string Session::_variableNameAttr = "VariableName";
+const string Session::_aboveGridAttr = "AboveGridValue";
+const string Session::_belowGridAttr = "BelowGridValue";
 Session::Session() {
 	
 	MyBase::SetErrMsgCB(errorCallbackFcn);
@@ -228,9 +232,11 @@ buildNode() {
 		<< (long)msgRpt->getMaxLog(MessageReporter::Error);
 	attrs[_maxLogAttr] = oss.str();
 
-	XmlNode* mainNode = new XmlNode(_sessionTag, attrs, numTFs+2);
+	int numSesVars = getNumSessionVariables();
+	XmlNode* mainNode = new XmlNode(_sessionTag, attrs, numSesVars+numTFs+2);
 
 	//Now add children:  One for all the saved transfer functions,
+	//One for each of the session variables,
 	//one for the global params, and one for the visualizers
 	
 	//Create a global transfer function node
@@ -242,6 +248,21 @@ buildNode() {
 			XmlNode* tfNode = keptTFs[i]->buildNode(*tfNames[i]);
 			globalTFs->AddChild(tfNode);
 		}
+	}
+	for (int i = 0; i< numSesVars; i++){
+		std::map <string, string> attrs;
+		attrs.clear();
+		ostringstream oss;
+		oss.str(empty);
+		oss << getVariableName(i);
+		attrs[_variableNameAttr] = oss.str();
+		oss.str(empty);
+		oss << getBelowValue(i);
+		attrs[_belowGridAttr] = oss.str();
+		oss.str(empty);
+		oss << getAboveValue(i);
+		attrs[_aboveGridAttr] = oss.str();
+		mainNode->NewChild(_sessionVariableTag, attrs,0);
 	}
 	//Create a global params node, and populate it.
 	attrs.clear();
@@ -356,6 +377,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 		}
 		case(1): 
 			//Parse child tags
+
 			if (StrCmpNoCase(tag, _globalParameterPanelsTag) == 0){
 				return true;//The Params class will parse it at level 2 
 			} else if (StrCmpNoCase(tag, VizWinMgr::_visualizersTag) == 0) {
@@ -368,8 +390,38 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				return true;
 			} else if (StrCmpNoCase(tag, _globalTransferFunctionsTag) == 0){
 				return true;
-			} else return false;
+			} else if (StrCmpNoCase(tag, _sessionVariableTag) == 0){
+				//start with default above/below values
+				float belowVal = BELOW_GRID;
+				float aboveVal = ABOVE_GRID;
+				std::string varName;
+				
+				while (*attrs) {
+					string attr = *attrs;
+					attrs++;
+					string value = *attrs;
+					attrs++;
+					istringstream ist(value);
+					if (StrCmpNoCase(attr, _variableNameAttr) == 0) {
+						ist >> varName;
+					}
+					else if (StrCmpNoCase(attr, _belowGridAttr) == 0){
+						ist >> belowVal;
+					}
+					else if (StrCmpNoCase(attr, _aboveGridAttr) == 0){
+						ist >> aboveVal;
+					}
+					else return false;
+				}
+				if (varName == "") return false;
+				int varnum = mergeVariableName(varName);
+				DataStatus::getInstance()->setOutsideValues(varnum, belowVal, aboveVal);
+				return true;
+			}
+			return false;
+
 		case(2):
+			//parse grandchild tags
 			if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0){
 				//Need to "push" to transfer function parser.
 				//That parser will "pop" back to session when done.
@@ -417,7 +469,8 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				pm->pushClassStack(tempParsedPanel);
 				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
 				return true;
-			} else return false;
+			} 
+			else return false;
 		default: return false;
 	}
 }
@@ -436,6 +489,7 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 			if (StrCmpNoCase(tag, _globalTransferFunctionsTag) == 0) return true;
 			if (StrCmpNoCase(tag, _globalParameterPanelsTag) == 0) return true;
 			if (StrCmpNoCase(tag, VizWinMgr::_visualizersTag) == 0) return true;
+			if (StrCmpNoCase(tag, _sessionVariableTag) == 0) return true;
 			return false;
 		case (2): //process transfer functions and global parameter panels
 			if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0){
