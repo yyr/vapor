@@ -224,6 +224,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	QApplication::restoreOverrideCursor();
 	minTimeStep = (size_t)mints;
 	maxTimeStep = (size_t)maxts;
+	dataMgr->SetLowHighVals(variableNames, belowValues, aboveValues);
 	return someDataOverall;
 }
 

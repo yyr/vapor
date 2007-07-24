@@ -189,6 +189,9 @@ public:
 	
 	bool renderReady() {return renderOK;}
 	void setRenderReady(bool nowOK) {renderOK = nowOK;}
+	vector<string> getVariableNames() {return variableNames;}
+	vector<float> getBelowValues() {return belowValues;}
+	vector<float> getAboveValues() {return aboveValues;}
 		
 	
 private:

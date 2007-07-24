@@ -1098,7 +1098,6 @@ void DvrEventRouter::refreshHistogram(RenderParams* p){
 					min_bdim, max_bdim,
 					fullHeight,
 					dParams->getCurrentDatarange(),
-					outval,outval,
 					0 //Don't lock!
 		);
 	QApplication::restoreOverrideCursor();

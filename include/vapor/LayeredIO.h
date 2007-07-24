@@ -153,9 +153,15 @@ public:
  //! way to reset the counter (without creating a new class object)
  //!
  double	GetXFormTimer() const { return(_xform_timer); };
-
+//! Return the WaveletBlock3DRegionReader that is used by this LayeredIO
+//! to read the associated wavelet block data
+//
  WaveletBlock3DRegionReader* GetWBReader() { return wbRegionReader;}
- int InterpolateRegion(float* blks, const float* elevblocks, const float* wbblocks, const size_t minblks[3], const size_t maxblks[3], size_t full_height);
+
+ int InterpolateRegion(float* blks, const float* elevblocks, const float* wbblocks, 
+	 const size_t minblks[3], const size_t maxblks[3], 
+	 size_t full_height,
+	 float lowValue, float highValue);
  void SetGridHeight(size_t full_height);
 protected:
  static const int MAX_LEVELS = 16;	// Max # of forward transforms permitted

@@ -653,6 +653,7 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 			if (rc < 0) return false;
 			dataMgr = new DataMgr(currentMetadata, cacheMB, 1);
 		}
+		
 		currentMetadata = dataMgr->GetMetadata();
 		if (currentMetadata->GetErrCode() != 0) {
 			MessageReporter::errorMsg("Data Loading error %d, creating Metadata:\n %s",

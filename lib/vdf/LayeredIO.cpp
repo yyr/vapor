@@ -123,7 +123,9 @@ int	LayeredIO::CloseVariable()
 //Produce interpolated region, using elev grid (elevBlks) and variable data on levels (levVarBlks)
 // minblks, maxblks specify the region in block coords
 int LayeredIO::
-InterpolateRegion(float* interpBlks, const float* elevBlks, const float* levVarBlks, const size_t minblks[3], const size_t maxblks[3], size_t full_height)
+InterpolateRegion(float* interpBlks, const float* elevBlks, const float* levVarBlks, 
+				  const size_t minblks[3], const size_t maxblks[3], size_t full_height,
+				  float lowVal, float highVal)
 {
 	//First, find the actual coord extents that we are going to interpolate:
 	size_t minInterpGrid[3], maxInterpGrid[3];
@@ -207,11 +209,11 @@ InterpolateRegion(float* interpBlks, const float* elevBlks, const float* levVarB
 			
 				//compare with top and bottom layers of elevation
 				if (vertHeight < elevBlks[relIndex]){
-					interpBlks[relIndex + (z-zmin)*zincrem] = BELOW_GRID;
+					interpBlks[relIndex + (z-zmin)*zincrem] = lowVal;
 					continue;
 				}
 				else if(vertHeight > elevBlks[relIndex+zincrem*maxLayerGrid[2]]) {
-					interpBlks[relIndex + (z-zmin)*zincrem] = ABOVE_GRID;
+					interpBlks[relIndex + (z-zmin)*zincrem] = highVal;
 					continue;
 				}
 			

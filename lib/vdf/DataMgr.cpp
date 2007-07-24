@@ -54,7 +54,10 @@ int	DataMgr::_DataMgr(
 		// Use of []'s creates an entry in map
 		_quantizationRangeMap[varnames[i]] = range;
 	}
-
+	//Initially set high/low vals to defaults:
+	lowValMap.clear();
+	highValMap.clear();
+	setDefaultHighLowVals();
 	return(0);
 }
 
@@ -301,8 +304,10 @@ float	*DataMgr::GetRegion(
 			layerReader->CloseVariable();
 			return NULL;
 		}
-			
-		rc = layerReader->InterpolateRegion(blks, elevblocks, wbblocks, min, max, full_height);
+		float belowVal = GetLowValue(varname);
+		float aboveVal = GetHighValue(varname);
+		rc = layerReader->InterpolateRegion(blks, elevblocks, wbblocks, 
+			min, max, full_height, belowVal, aboveVal);
 		if (rc < 0) {
 			string s = layerReader->GetErrMsg();
 			SetErrMsg(
@@ -392,8 +397,6 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	const size_t max[3],
 	size_t full_height,
 	const float range[2],
-	unsigned char lowval,
-	unsigned char hival,
 	int lock
 ) {
 	unsigned char	*ublks = NULL;
@@ -402,9 +405,9 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	int	x,y,z;
 
 	SetDiagMsg(
-		"DataMgr::GetRegionUInt8(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],%d,%d,%d)",
+		"DataMgr::GetRegionUInt8(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],%d)",
 		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2], full_height,
-		range[0], range[1], lowval, hival, lock
+		range[0], range[1], lock
 	);
 
 	// 
@@ -448,9 +451,7 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	for(y=0;y<ny;y++) {
 	for(x=0;x<nx;x++) {
 		double	f;
-		if (*fptr == BELOW_GRID) *ucptr = lowval;
-		else if (*fptr == ABOVE_GRID) *ucptr = hival;
-		else if (*fptr < range[0]) *ucptr = 0;
+		if (*fptr < range[0]) *ucptr = 0;
 		else if (*fptr > range[1]) *ucptr = 255;
 		else {
 			f = (*fptr - range[0]) / (range[1] - range[0]) * 255;
@@ -1060,4 +1061,31 @@ size_t *DataMgr::get_cached_reg_min_max(
 
 	// Not cached
 	return(NULL);
+}
+
+void DataMgr::SetLowHighVals(const vector<std::string>&varNames, const vector<float>&lowVals,
+							 const vector<float>&highVals)
+{
+	lowValMap.clear();
+	highValMap.clear();
+	setDefaultHighLowVals();
+	for (int i = 0; i<varNames.size(); i++){
+		lowValMap[varNames[i]] = lowVals[i];
+		highValMap[varNames[i]] = highVals[i];
+	}
+	
+	//Purge the cache
+	free_all();
+}
+void DataMgr::setDefaultHighLowVals()
+{
+	 //Set all variables in the Metadata to defaults:
+	
+	const vector<string> mdnames = _metadata->GetVariableNames();
+	for (int i = 0; i< mdnames.size(); i++){
+		
+		lowValMap[mdnames[i]] = BELOW_GRID;
+		highValMap[mdnames[i]] = ABOVE_GRID;
+	
+	}
 }

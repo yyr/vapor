@@ -386,10 +386,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
    
 	//qWarning("Requesting region from dataMgr");
     //Turn off error callback, look for memory allocation problem.
-	float lowFloat = DataStatus::getInstance()->getBelowValue(varNum);
-	float hiFloat = DataStatus::getInstance()->getAboveValue(varNum);
-    unsigned char lowVal = (unsigned char)myDVRParams->getTransFunc()->mapFloatToIndex(lowFloat);
-	unsigned char hiVal = (unsigned char)myDVRParams->getTransFunc()->mapFloatToIndex(hiFloat);
+	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	const char* varname = (DataStatus::getInstance()->getVariableName(myDVRParams->getSessionVarNum()).c_str());
     void* data = 
@@ -401,7 +398,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
                                         max_bdim,
 										myRegionParams->getFullGridHeight(),
                                         myDVRParams->getCurrentDatarange(),
-										lowVal,hiVal,
                                         0 //Don't lock!
                                         );
     //Turn it back on:

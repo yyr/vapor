@@ -44,6 +44,7 @@ public slots:
 	void resetCounts();
 	void setVariableNum(int);
 	void setOutsideVal();
+	void changeOutsideVal(const QString&);
 	
 protected:
 	
@@ -55,6 +56,7 @@ protected:
 	SessionParameters* sessionParamsDlg;
 	int sessionVariableNum;
 	bool outValsChanged;
+	bool newOutVals;
 	
 };
 };

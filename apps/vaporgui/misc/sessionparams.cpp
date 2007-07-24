@@ -90,7 +90,10 @@ void SessionParams::launch(){
 	connect(sessionParamsDlg->variableCombo, SIGNAL(activated(int)), this, SLOT(setVariableNum(int)));
 	connect(sessionParamsDlg->lowValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
 	connect(sessionParamsDlg->highValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
+	connect(sessionParamsDlg->highValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
+	connect(sessionParamsDlg->lowValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
 	outValsChanged = false;
+	newOutVals = false;
 	int rc = sessionParamsDlg->exec();
 	if (rc){
 		//see if the memory size changed:
@@ -174,10 +177,16 @@ void SessionParams::launch(){
 			}
 			
 		}
+		if (newOutVals){
+			float aboveVal = sessionParamsDlg->highValEdit->text().toFloat();
+			float belowVal = sessionParamsDlg->lowValEdit->text().toFloat();
+			DataStatus::getInstance()->setOutsideValues(sessionVariableNum, belowVal, aboveVal);
+			outValsChanged = true;
+		}
 		if (outValsChanged) {
 			
 			VizWinMgr* vizMgr = VizWinMgr::getInstance();
-			
+			DataStatus* ds = DataStatus::getInstance();
 			for (int j = 0; j< MAXVIZWINS; j++) {
 				VizWin* win = vizMgr->getVizWin(j);
 				if (!win) continue;
@@ -187,8 +196,10 @@ void SessionParams::launch(){
 				vizMgr->setDatarangeDirty(dp);
 			}
 
-			DataStatus::getInstance()->getDataMgr()->free_all();
-			
+			ds->getDataMgr()->SetLowHighVals(
+				ds->getVariableNames(),
+				ds->getBelowValues(),
+				ds->getAboveValues());
 		}
 
 
@@ -219,6 +230,7 @@ setVariableNum(int varNum){
 	sessionVariableNum = varNum;
 	sessionParamsDlg->lowValEdit->setText(QString::number(DataStatus::getInstance()->getBelowValue(sessionVariableNum)));
 	sessionParamsDlg->highValEdit->setText(QString::number(DataStatus::getInstance()->getAboveValue(sessionVariableNum)));
+	newOutVals = false;
 	
 }
 void SessionParams::
@@ -227,4 +239,8 @@ setOutsideVal(){
 	float belowVal = sessionParamsDlg->lowValEdit->text().toFloat();
 	DataStatus::getInstance()->setOutsideValues(sessionVariableNum, belowVal, aboveVal);
 	outValsChanged = true;
+}
+void SessionParams::
+changeOutsideVal(const QString&){
+	newOutVals = true;
 }

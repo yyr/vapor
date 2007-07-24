@@ -158,8 +158,6 @@ public:
     const size_t max[3],
 	size_t full_height,
 	const float range[2],
-	unsigned char loVal,
-	unsigned char hiVal,
     int lock = 0
 );
 
@@ -269,7 +267,48 @@ public:
  //! Return the metadata class object associated with this class
  //!
  const  Metadata *GetMetadata() const { return (_metadata); };
-void	free_all();
+
+ //! Establish the data values that will be returned when a volume
+ //! lies outside the valid volume for which data values are specified.
+ //! This is needed when using layered data.
+ //! This method modifies all the below/above values
+ //! associated with specified vector of variable names
+ //! \p varNames, to the corresponding values specified by
+ //! \p lowVals and \p highvals.
+ //! If a specified variable name is not in the metadata,
+ //! that name will be ignored.
+ //! The vectors of low values and high values must
+ //! be the same length as the vector of variable names.
+ //! This method will also purge any cached regions.
+ //! Any pre-existing low/high values are removed.
+ //! Variables not specified will revert to the default
+ //! Low/High values of -1.e30, 1.e30.
+ //!
+ //! \param[in] varNames A vector of variable names (strings) 
+ //! \param[in] lowVals A vector of low values for associated variables (floats)
+ //! \param[in] highVals A vector of high values for associated variables (floats)
+ //!
+ //
+ void SetLowHighVals(
+	 const vector<string>& varNames,
+	 const vector<float>& lowVals,
+	 const vector<float>& highVals
+ );
+ //! Method to retrieve current low value for variable
+ //!
+ //! \param[in] varName variable name (string) 
+ //! \retval lowValue A float value that is assigned to points below grid
+ //!
+ //
+ float GetLowValue(string varName) {return lowValMap[varName];}
+ //! Method to retrieve current high value for variable
+ //!
+ //! \param[in] varName variable name (string) 
+ //! \retval highValue A float value that is assigned to points above grid
+ //!
+ //
+ float GetHighValue(string varName) {return highValMap[varName];}
+
 
 private:
  int	_objInitialized;
@@ -296,6 +335,9 @@ private:
  map <size_t, map<string, vector<region_t *> > > _regionsMap;
 
  map <void *, region_t *> _lockedRegionsMap;
+
+ map <string, float> lowValMap;
+ map <string, float> highValMap;
 
  const Metadata	*_metadata;
 
@@ -339,7 +381,8 @@ private:
 
  int	set_quantization_range(const char *varname, const float range[2]);
 
- 
+ void   setDefaultHighLowVals();
+ void	free_all();
  void	free_var(const string &, int do_native);
 
  int	free_lru();
