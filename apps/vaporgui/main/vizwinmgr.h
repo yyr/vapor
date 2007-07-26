@@ -404,6 +404,9 @@ signals:
 	void changeName(QString&, int);
 	
 protected:
+	static const string _vizSurfaceEnabledAttr;
+	static const string _vizSurfaceColorAttr;
+	static const string _vizSurfaceRefinementAttr;
 	static const string _vizWinTag;
 	static const string _vizWinNameAttr;
 	static const string _vizBgColorAttr;

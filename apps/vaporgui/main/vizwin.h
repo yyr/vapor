@@ -96,20 +96,11 @@ public:
 	
 	void setRegionDirty(bool isDirty){ setDirtyBit(RegionBit,isDirty);}
 	void setAnimationDirty(bool isDirty){ setDirtyBit(AnimationBit,isDirty);}
-	//void setDvrClutDirty(bool isDirty){ setDirtyBit(Params::DvrParamsType,DvrClutBit, isDirty);}
-	
-	//void setDvrDatarangeDirty(bool isDirty){ setDirtyBit(Params::DvrParamsType,DvrDatarangeBit,isDirty);}
 	void setRegionNavigating(bool isDirty){ setDirtyBit(DvrRegionBit,isDirty);}
-	//void setFlowDataDirty(bool isDirty) {setDirtyBit(Params::FlowParamsType,FlowDataBit,isDirty);}
-	//void setFlowGraphicsDirty(bool isDirty) {setDirtyBit(Params::FlowParamsType,FlowGraphicsBit,isDirty);}
 	
 	bool regionIsDirty() {return vizIsDirty(RegionBit);}
 
-	//bool dvrClutIsDirty(DvrParams* ) {return vizIsDirty(DvrClutBit);}
-	//bool dvrDatarangeIsDirty(DvrParams* ) {return vizIsDirty(DvrDatarangeBit);}
-	//bool flowDataIsDirty() {return vizIsDirty(FlowDataBit);}
-	//bool flowGraphicsIsDirty() {return vizIsDirty(FlowGraphicsBit);}
-
+	
 	bool regionIsNavigating() {return vizIsDirty(DvrRegionBit);}
 	
 	void setMouseDown(bool downUp) {
@@ -119,34 +110,7 @@ public:
 	bool mouseIsDown() {return mouseDownHere;}
 	int pointOverCube(RegionParams* rParams, float screenCoords[2]);
 	int pointOverCube(FlowParams* rParams, float screenCoords[2]);
-/* Following all moved to GLWindow:
-	//Determine the approximate size of a pixel in terms of viewer coordinates.
-	float getPixelSize();
-	bool viewerCoordsChanged() {return newViewerCoords;}
-	void setViewerCoordsChanged(bool isNew) {newViewerCoords = isNew;}
-	bool isCapturing() {return (capturing != 0);}
-	bool isSingleCapturing() {return (capturing == 1);}
-	void startCapture(QString& name, int startNum) {
-		capturing = 2;
-		captureNum = startNum;
-		captureName = name;
-		newCapture = true;
-		updateGL();
-	}
-	void singleCapture(QString& name){
-		capturing = 1;
-		captureName = name;
-		newCapture = true;
-		updateGL();
-	}
-	bool captureIsNew() { return newCapture;}
-	void setCaptureNew(bool isNew){ newCapture = isNew;}
-	void stopCapture() {capturing = 0;}
-	//Routine is called at the end of rendering.  If capture is 1 or 2, it converts image
-	//to jpeg and saves file.  If it ever encounters an error, it turns off capture.
-	//If capture is 1 (single frame capture) it turns off capture.
-	void doFrameCapture();
-*/
+
 	//Access visualizer features
 	
 	QColor& getBackgroundColor() {return myGLWindow->getBackgroundColor();}
@@ -176,7 +140,15 @@ public:
 	void setColorbarLLCoord(int i, float crd) {myGLWindow->setColorbarLLCoord( i,  crd);;}
 	void setColorbarURCoord(int i, float crd) {myGLWindow->setColorbarURCoord( i,  crd);}
 	void setColorbarNumTics(int i) {myGLWindow->setColorbarNumTics( i);}
+
+	void setSurfaceColor(QColor& c) {myGLWindow->setSurfaceColor(c);}
+	void setSurfaceRefinementLevel(int lev) {myGLWindow->setSurfaceRefinementLevel(lev);}
+	void enableSurfaceRendering(bool val) {myGLWindow->enableSurfaceRendering(val);}
 	
+	QColor& getSurfaceColor() {return myGLWindow->getSurfaceColor();}
+	int getSurfaceRefinementLevel() {return myGLWindow->getSurfaceRefinementLevel();}
+	bool surfaceRenderingEnabled(){return myGLWindow->surfaceRenderingEnabled();}
+
 	bool colorbarIsDirty() {return myGLWindow->colorbarIsDirty();}
 	void setColorbarDirty(bool val){myGLWindow->setColorbarDirty(val);}
 	

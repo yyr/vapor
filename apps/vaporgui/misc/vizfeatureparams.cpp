@@ -60,6 +60,9 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	colorbarBackgroundColor = vfParams.colorbarBackgroundColor;
 	regionFrameColor = vfParams.regionFrameColor;
 	subregionFrameColor = vfParams.subregionFrameColor;
+	surfaceColor = vfParams.surfaceColor;
+	showSurface = vfParams.showSurface;
+	surfaceRefinement =  vfParams.surfaceRefinement;
 }
 //Set up the dialog with current parameters from current active visualizer
 void VizFeatureParams::launch(){
@@ -79,6 +82,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->backgroundColorButton, SIGNAL(clicked()), this, SLOT(selectBackgroundColor()));
 	connect (vizFeatureDlg->regionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectRegionFrameColor()));
 	connect (vizFeatureDlg->subregionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectSubregionFrameColor()));
+	connect (vizFeatureDlg->surfaceColorButton,SIGNAL(clicked()), this, SLOT(selectSurfaceColor()));
 	connect (vizFeatureDlg->vizNameEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	
 	connect (vizFeatureDlg->axisXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -94,7 +98,11 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->regionCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->subregionCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->applyButton, SIGNAL(clicked()), this, SLOT(applySettings()));
+	connect (vizFeatureDlg->refinementCombo, SIGNAL (activated()), this, SLOT(panelChanged()));
+
+	
 	
 	
 	
@@ -179,6 +187,13 @@ selectColorbarBackgroundColor(){
 	vizFeatureDlg->colorbarBackgroundButton->setPaletteBackgroundColor(bgColor);
 	dialogChanged = true;
 }
+void VizFeatureParams::
+selectSurfaceColor(){
+	//Launch colorselector, put result into the button
+	QColor sfColor = QColorDialog::getColor(surfaceColor,0,0);
+	vizFeatureDlg->surfaceColorButton->setPaletteBackgroundColor(sfColor);
+	dialogChanged = true;
+}
 	
 //Copy values into 'this' and into the dialog, using current comboIndex
 //Also set up the visualizer combo
@@ -236,6 +251,29 @@ setDialog(){
 	colorbarBackgroundColor = vizWin->getColorbarBackgroundColor();
 	vizFeatureDlg->colorbarBackgroundButton->setPaletteBackgroundColor(colorbarBackgroundColor);
 
+	DataStatus* ds = DataStatus::getInstance();
+	bool isLayered = (ds->getMetadata() && (StrCmpNoCase(ds->getMetadata()->GetGridType(),"Layered") == 0));
+	int numRefs = ds->getNumTransforms();
+	if (isLayered){
+		vizFeatureDlg->refinementCombo->setMaxCount(numRefs+1);
+		vizFeatureDlg->refinementCombo->clear();
+		for (i = 0; i<= numRefs; i++){
+			vizFeatureDlg->refinementCombo->insertItem(QString::number(i));
+		}
+	}
+	surfaceColor = vizWin->getSurfaceColor();
+	surfaceRefinement = vizWin->getSurfaceRefinementLevel();
+	vizFeatureDlg->surfaceColorButton->setPaletteBackgroundColor(surfaceColor);
+	vizFeatureDlg->refinementCombo->setCurrentItem(surfaceRefinement);
+	showSurface = (vizWin->surfaceRenderingEnabled() && isLayered);
+	vizFeatureDlg->surfaceCheckbox->setChecked(showSurface);
+	
+	vizFeatureDlg->refinementCombo->setEnabled(isLayered);
+	vizFeatureDlg->surfaceCheckbox->setEnabled(isLayered);
+	vizFeatureDlg->surfaceColorButton->setEnabled(isLayered);
+
+	
+
 }
 //Copy values from the dialog into 'this', and also to the visualizer state specified
 //by the currentComboIndex (not the actual combo index).  This event gets captured in the
@@ -287,6 +325,9 @@ copyFromDialog(){
 	backgroundColor = vizFeatureDlg->backgroundColorButton->paletteBackgroundColor();
 	colorbarBackgroundColor = vizFeatureDlg->colorbarBackgroundButton->paletteBackgroundColor();
 
+	surfaceColor = vizFeatureDlg->surfaceColorButton->paletteBackgroundColor();
+	showSurface = vizFeatureDlg->surfaceCheckbox->isChecked();
+	surfaceRefinement = vizFeatureDlg->refinementCombo->currentItem();
 	applyToViz(vizNum);
 
 	//Save the new visualizer state in the history
@@ -315,6 +356,11 @@ applyToViz(int vizNum){
 	vizWin->setColorbarBackgroundColor(colorbarBackgroundColor);
 	vizWin->setRegionFrameColor(regionFrameColor);
 	vizWin->setSubregionFrameColor(subregionFrameColor);
+	
+	vizWin->setSurfaceColor(surfaceColor);
+	vizWin->enableSurfaceRendering(showSurface);
+	vizWin->setSurfaceRefinementLevel(surfaceRefinement);
+	vizWin->getGLWindow()->invalidateElevGrid();
 	vizWin->setColorbarDirty(true);
 	vizWin->updateGL();
 }

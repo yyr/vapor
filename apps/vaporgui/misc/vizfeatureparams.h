@@ -52,6 +52,7 @@ protected slots:
 	void selectSubregionFrameColor();
 	void selectBackgroundColor();
 	void selectColorbarBackgroundColor();
+	void selectSurfaceColor();
 	void applySettings();
 	
 protected:
@@ -76,10 +77,13 @@ protected:
 	float colorbarLLCoords[2];
 	float colorbarURCoords[2];
 	int numColorbarTics;
+	int surfaceRefinement;
+	bool showSurface;
 	QColor backgroundColor;
 	QColor regionFrameColor;
 	QColor subregionFrameColor;
 	QColor colorbarBackgroundColor;
+	QColor surfaceColor;
 	
 	
 	

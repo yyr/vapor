@@ -38,6 +38,7 @@
 #include "common.h"
 #include "flowrenderer.h"
 #include "VolumeRenderer.h"
+#include "vapor/errorcodes.h"
 using namespace VAPoR;
 int GLWindow::activeWindowNum = 0;
 bool GLWindow::regionShareFlag = true;
@@ -71,6 +72,9 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	regionFrameColor = QColor(white);
 	subregionFrameColor = QColor(red);
 	colorbarBackgroundColor = QColor(black);
+	surfaceColor = QColor(150,75,0);
+	renderSurface = false;
+	surfaceRefLevel = 0;
 	axesEnabled = false;
 	regionFrameEnabled = true;
 	subregionFrameEnabled = false;
@@ -105,6 +109,9 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	
 	myFlowManip = new TranslateStretchManip(this, 0);
 	myRegionManip = new TranslateStretchManip(this, 0);
+
+	elevVert = 0;
+	elevNorm = 0;
 	
 }
 
@@ -120,6 +127,7 @@ GLWindow::~GLWindow()
 		delete renderer[i];
 	}
 	setNumRenderers(0);
+	invalidateElevGrid();
 }
 
 
@@ -246,6 +254,8 @@ void GLWindow::paintGL()
 	// Move to trackball view of scene  
 	glPushMatrix();
 	glLoadIdentity();
+	placeLights();
+
 	getTBall()->TrackballSetMatrix();
 
 	
@@ -281,6 +291,7 @@ void GLWindow::paintGL()
 	} 
 	if (axesAreEnabled()) drawAxes(extents);
 
+
 	//render the region geometry, if in region mode, and active visualizer, or region shared
 	//with active visualizer
 	if(GLWindow::getCurrentMouseMode() == GLWindow::regionMode && ( windowIsActive() ||
@@ -308,6 +319,9 @@ void GLWindow::paintGL()
 		//Also render the cursor
 		draw3DCursor(getActiveProbeParams()->getSelectedPoint());
 	} 
+
+	if (renderSurface) 
+		drawElevationGrid();
 
 	for (int i = 0; i< getNumRenderers(); i++){
 		renderer[i]->paintGL();
@@ -1113,6 +1127,285 @@ void GLWindow::setRegionFrameColorFlt(QColor& c){
 	regionFrameColorFlt[1]= (float)c.green()/255.;
 	regionFrameColorFlt[2]= (float)c.blue()/255.;
 }
+//Draw an elevation grid (surface) inside the current region extents:
+void GLWindow::drawElevationGrid(){
+	//If the region is dirty, or the timestep has changed, must rebuild.
+	if (regionIsDirty()) invalidateElevGrid();
+	//First, check if we have already constructed the elevation grid vertices.
+	//If not, rebuild them:
+	if (!elevVert) {
+		if(!rebuildElevationGrid()) return;
+	}
+	
+	//Establish clipping planes:
+	GLdouble topPlane[] = {0., -1., 0., 1.};
+	GLdouble rightPlane[] = {-1., 0., 0., 1.0};
+	GLdouble leftPlane[] = {1., 0., 0., 0.};
+	GLdouble botPlane[] = {0., 1., 0., 0.};
+	GLdouble frontPlane[] = {0., 0., -1., 1.};//z largest
+	GLdouble backPlane[] = {0., 0., 1., 0.};
+	//Apply a coord transform that moves the full region to the unit cube.
+	
+	glPushMatrix();
+	
+	//scale:
+	float sceneScaleFactor = 1.f/ViewpointParams::getMaxStretchedCubeSide();
+	glScalef(sceneScaleFactor, sceneScaleFactor, sceneScaleFactor);
+
+	//translate to put origin at corner:
+	float* transVec = ViewpointParams::getMinStretchedCubeCoords();
+	glTranslatef(-transVec[0],-transVec[1], -transVec[2]);
+	
+	//Set up clipping planes
+	const float* scales = DataStatus::getInstance()->getStretchFactors();
+	RegionParams* myRegionParams = getActiveRegionParams();
+	topPlane[3] = myRegionParams->getRegionMax(1)*scales[1];
+	botPlane[3] = -myRegionParams->getRegionMin(1)*scales[1];
+	leftPlane[3] = -myRegionParams->getRegionMin(0)*scales[0];
+	rightPlane[3] = myRegionParams->getRegionMax(0)*scales[0];
+	frontPlane[3] = myRegionParams->getRegionMax(2)*scales[2];
+	backPlane[3] = -myRegionParams->getRegionMin(2)*scales[2];
+	
+	glClipPlane(GL_CLIP_PLANE0, topPlane);
+	glEnable(GL_CLIP_PLANE0);
+	glClipPlane(GL_CLIP_PLANE1, rightPlane);
+	glEnable(GL_CLIP_PLANE1);
+	glClipPlane(GL_CLIP_PLANE2, botPlane);
+	glEnable(GL_CLIP_PLANE2);
+	glClipPlane(GL_CLIP_PLANE3, leftPlane);
+	glEnable(GL_CLIP_PLANE3);
+	glClipPlane(GL_CLIP_PLANE4, frontPlane);
+	glEnable(GL_CLIP_PLANE4);
+	glClipPlane(GL_CLIP_PLANE5, backPlane);
+	glEnable(GL_CLIP_PLANE5);
+
+	glPopMatrix();
+	//Set up  color
+	float elevGridColor[4];
+	elevGridColor[0] = ((float)surfaceColor.red())/255.f;
+	elevGridColor[1] = ((float)surfaceColor.green())/255.f;
+	elevGridColor[2] = ((float)surfaceColor.blue())/255.f;
+	elevGridColor[3] = 1.f;
+	ViewpointParams* vpParams = getActiveViewpointParams();
+	int nLights = vpParams->getNumLights();
+	
+	glShadeModel(GL_SMOOTH);
+	if (nLights >0){
+		glEnable(GL_LIGHTING);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, elevGridColor);
+	} else {
+		glDisable(GL_LIGHTING);
+		glColor3fv(elevGridColor);
+	}
+	/*
+		float specColor[4], ambColor[4];
+		float diffLight[3], specLight[3];
+		GLfloat lmodel_ambient[4];
+		specColor[0]=specColor[1]=specColor[2]=0.8f;
+		ambColor[0]=ambColor[1]=ambColor[2]=0.f;
+		specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
+		glPushMatrix();
+		glLoadIdentity();
+		glShadeModel(GL_SMOOTH);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, elevGridColor);
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, vpParams->getExponent());
+		lmodel_ambient[0]=lmodel_ambient[1]=lmodel_ambient[2] = vpParams->getAmbientCoeff();
+		//All the geometry will get a white specular color:
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
+		glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
+			
+		specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(0);
+			
+		diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(0);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, diffLight);
+		glLightfv(GL_LIGHT0, GL_SPECULAR, specLight);
+		glLightfv(GL_LIGHT0, GL_AMBIENT, ambColor);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		if (nLights > 1){
+			glLightfv(GL_LIGHT1, GL_POSITION, vpParams->getLightDirection(1));
+			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(1);
+			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(1);
+			glLightfv(GL_LIGHT1, GL_DIFFUSE, diffLight);
+			glLightfv(GL_LIGHT1, GL_SPECULAR, specLight);
+			glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
+			glEnable(GL_LIGHT1);
+		}
+		if (nLights > 2){
+			glLightfv(GL_LIGHT2, GL_POSITION, vpParams->getLightDirection(2));
+			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(2);
+			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(2);
+			glLightfv(GL_LIGHT2, GL_DIFFUSE, diffLight);
+			glLightfv(GL_LIGHT2, GL_SPECULAR, specLight);
+			glLightfv(GL_LIGHT2, GL_AMBIENT, ambColor);
+			glEnable(GL_LIGHT2);
+		}
+		glPopMatrix();
+	} else {
+		glDisable(GL_LIGHTING); //No lights
+		glColor3fv(elevGridColor);
+	}
+	*/
+	//Now we can just traverse the elev grid, one row at a time:
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	for (int j = 0; j< maxYElev-1; j++){
+		glBegin(GL_TRIANGLE_STRIP);
+		//float vert[3], norm[3];
+		for (int i = 0; i< maxXElev-1; i+=2){
+		
+			
+			//Each quad is described by sending 4 vertices, i.e. the points indexed by
+			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j)  
+			
+			glNormal3fv(elevNorm+3*(i+(j+1)*maxXElev));
+			glVertex3fv(elevVert+3*(i+(j+1)*maxXElev));
+
+			
+			glNormal3fv(elevNorm+3*(i+j*maxXElev));
+			glVertex3fv(elevVert+3*(i+j*maxXElev));
+
+			
+			glNormal3fv(elevNorm+3*((i+1)+(j+1)*maxXElev));
+			glVertex3fv(elevVert+3*((i+1)+(j+1)*maxXElev));
+
+			//vcopy(elevVert+3*((i+1)+j*maxXElev), vert);
+			//vcopy(elevNorm+3*((i+1)+j*maxXElev), norm);
+			glNormal3fv(elevNorm+3*((i+1)+j*maxXElev));
+			glVertex3fv(elevVert+3*((i+1)+j*maxXElev));
+
+		}
+		glEnd();
+	}
+	
+	glDisable(GL_CLIP_PLANE0);
+	glDisable(GL_CLIP_PLANE1);
+	glDisable(GL_CLIP_PLANE2);
+	glDisable(GL_CLIP_PLANE3);
+	glDisable(GL_CLIP_PLANE4);
+	glDisable(GL_CLIP_PLANE5);
+	glDisable(GL_LIGHTING);
+	printOpenGLError();
+}
+void GLWindow::invalidateElevGrid(){
+	if (elevVert){
+		float * elevPtr = elevVert;
+		elevVert = 0;
+		delete elevPtr;
+		delete elevNorm;
+		elevNorm = 0;
+	}
+}
+bool GLWindow::rebuildElevationGrid(){
+	//Reconstruct the elevation grid.
+	//First, find the grid coordinate ranges
+	size_t min_dim[3], max_dim[3], min_bdim[3],max_bdim[3];
+	double regMin[3],regMax[3];
+	size_t timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
+	DataStatus* ds = DataStatus::getInstance();
+	int varNum = DataStatus::getSessionVariableNum("ELEVATION");
+	DataMgr* dataMgr = ds->getDataMgr();
+	bool regionValid = getActiveRegionParams()->getAvailableVoxelCoords(surfaceRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
+			timeStep,&varNum, 1, regMin, regMax);
+
+	if(!regionValid) {
+		SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Volume data unavailable for refinement level %d of ELEVATION, at current timestep", 
+			surfaceRefLevel);
+		return false;
+	}
+	//Modify 3rd coord of region extents to obtain only bottom layer:
+	min_dim[2] = max_dim[2] = 0;
+	min_bdim[2] = max_bdim[2] = 0;
+	//Then, ask the Datamgr to retrieve the lowest level of the ELEVATION data, without
+	//performing the interpolation step
+	float* elevData = dataMgr->GetRegion(timeStep, "ELEVATION", surfaceRefLevel, min_bdim, max_bdim, 0,0);
+
+	if (!elevData) return true;
+	//Then create arrays to hold the vertices and their normals:
+	maxXElev = max_dim[0] - min_dim[0] +1;
+	maxYElev = max_dim[1] - min_dim[1] +1;
+	elevVert = new float[3*maxXElev*maxYElev];
+	elevNorm = new float[3*maxXElev*maxYElev];
+
+	//Then loop over all the vertices in the Elevation data. 
+	//For each vertex, construct the corresponding 3d point as well as the normal vector.
+	//These must be converted to
+	//stretched cube coordinates.  The x and y coordinates are determined by
+	//scaling them to the extents. (Need to know the actual min/max stretched cube extents
+	//that correspond to the min/max grid extents)
+	//The z coordinate is taken from the data array, converted to stretched cube coords
+	//using parameters in the viewpoint params.
+	
+	float worldCoord[3];
+	const size_t* bs = ds->getMetadata()->GetBlockSize();
+	for (int j = 0; j<maxYElev; j++){
+		worldCoord[1] = regMin[1] + (float)j*(regMax[1] - regMin[1])/(float)(maxYElev-1);
+		size_t ycrd = (min_dim[1] - bs[1]*min_bdim[1]+j)*(max_bdim[0]-min_bdim[0]+1)*bs[0];
+			
+		for (int i = 0; i<maxXElev; i++){
+			int pntPos = 3*(i+j*maxXElev);
+			worldCoord[0] = regMin[0] + (float)i*(regMax[0] - regMin[0])/(float)(maxXElev-1);
+			size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+i;
+			worldCoord[2] = elevData[xcrd+ycrd];
+			//Convert and put results into elevation grid vertices:
+			ViewpointParams::worldToStretchedCube(worldCoord,elevVert+pntPos);
+		}
+	}
+	//Now calculate normals:
+	calcElevGridNormals();
+	return true;
+}
+//Once the elevation grid vertices are determined, calculate the normals.  Use the stretched
+//cube coords in the elevVert array.
+//The normal vectors are determined by looking at z-coords of adjacent vertices in both 
+//x and y.  Suppose that dzx is the change in z associated with an x-change of dz,
+//and that dzy is the change in z associated with a y-change of dy.  Let the normal
+//vector be (a,b,c).  Then a/c is equal to dzx/dx, and b/c is equal to dzy/dy.  So
+// (a,b,c) is proportional to (dzx*dy, dzy*dx, 1) 
+//Must compensate for stretching, since the actual z-differences between
+//adjacent vertices will be miniscule
+void GLWindow::calcElevGridNormals(){
+	const float* stretchFac = DataStatus::getInstance()->getStretchFactors();
+	
+	//Go over the grid of vertices, calculating normals
+	//by looking at adjacent x,y,z coords.
+	for (int j = 0; j < maxYElev; j++){
+		for (int i = 0; i< maxXElev; i++){
+			float* point = elevVert+3*(i+maxXElev*j);
+			float* norm = elevNorm+3*(i+maxXElev*j);
+			//do differences of right point vs left point,
+			//except at edges of grid just do differences
+			//between current point and adjacent point:
+			float dx, dy, dzx, dzy;
+			if (i>0 && i <maxXElev-1){
+				dx = *(point+3) - *(point-3);
+				dzx = *(point+5) - *(point-1);
+			} else if (i == 0) {
+				dx = *(point+3) - *(point);
+				dzx = *(point+5) - *(point+2);
+			} else if (i == maxXElev-1) {
+				dx = *(point) - *(point-3);
+				dzx = *(point+2) - *(point-1);
+			}
+			if (j>0 && j <maxYElev-1){
+				dy = *(point+1+3*maxXElev) - *(point+1 - 3*maxXElev);
+				dzy = *(point+2+3*maxXElev) - *(point+2 - 3*maxXElev);
+			} else if (j == 0) {
+				dy = *(point+1+3*maxXElev) - *(point+1);
+				dzy = *(point+2+3*maxXElev) - *(point+2);
+			} else if (j == maxYElev-1) {
+				dy = *(point+1) - *(point+1 - 3*maxXElev);
+				dzy = *(point+2) - *(point+2 - 3*maxXElev);
+			}
+			norm[0] = dy*dzx;
+			norm[1] = dx*dzy;
+			norm[2] = 1.f;
+			for (int k = 0; k < 3; k++) norm[k] /= stretchFac[k];
+			vnormal(norm);
+		}
+	}
+}
+
 void GLWindow::drawAxes(float* extents){
 	float origin[3];
 	float maxLen = -1.f;
@@ -1397,6 +1690,61 @@ void GLWindow::setActiveParams(Params* p, Params::ParamType t){
 		default: assert(0);
 	}
 	return;
+}
+
+void GLWindow::placeLights(){
+	ViewpointParams* vpParams = getActiveViewpointParams();
+	int nLights = vpParams->getNumLights();
+	if (nLights >0){
+		float specColor[4], ambColor[4];
+		float diffLight[3], specLight[3];
+		GLfloat lmodel_ambient[4];
+		specColor[0]=specColor[1]=specColor[2]=0.8f;
+		ambColor[0]=ambColor[1]=ambColor[2]=0.f;
+		specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
+		
+		
+		
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, vpParams->getExponent());
+		lmodel_ambient[0]=lmodel_ambient[1]=lmodel_ambient[2] = vpParams->getAmbientCoeff();
+		//All the geometry will get a white specular color:
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
+		glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
+			
+		specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(0);
+			
+		diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(0);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, diffLight);
+		glLightfv(GL_LIGHT0, GL_SPECULAR, specLight);
+		glLightfv(GL_LIGHT0, GL_AMBIENT, ambColor);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
+		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+		
+		glEnable(GL_LIGHT0);
+		if (nLights > 1){
+			glLightfv(GL_LIGHT1, GL_POSITION, vpParams->getLightDirection(1));
+			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(1);
+			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(1);
+			glLightfv(GL_LIGHT1, GL_DIFFUSE, diffLight);
+			glLightfv(GL_LIGHT1, GL_SPECULAR, specLight);
+			glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
+			glEnable(GL_LIGHT1);
+		} else {
+			glDisable(GL_LIGHT1);
+		}
+		if (nLights > 2){
+			glLightfv(GL_LIGHT2, GL_POSITION, vpParams->getLightDirection(2));
+			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(2);
+			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(2);
+			glLightfv(GL_LIGHT2, GL_DIFFUSE, diffLight);
+			glLightfv(GL_LIGHT2, GL_SPECULAR, specLight);
+			glLightfv(GL_LIGHT2, GL_AMBIENT, ambColor);
+			glEnable(GL_LIGHT2);
+		} else {
+			glDisable(GL_LIGHT2);
+		}
+		
+	} 
 }
 
 int GLWindow::getJpegQuality() {return jpegQuality;}

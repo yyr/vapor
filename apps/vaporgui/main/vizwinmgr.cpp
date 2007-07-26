@@ -102,6 +102,9 @@ const string VizWinMgr::_vizColorbarURPositionAttr = "ColorbarURPosition";
 const string VizWinMgr::_vizColorbarNumTicsAttr = "ColorbarNumTics";
 const string VizWinMgr::_vizAxesEnabledAttr = "AxesEnabled";
 const string VizWinMgr::_vizColorbarEnabledAttr = "ColorbarEnabled";
+const string VizWinMgr::_vizSurfaceEnabledAttr = "SurfaceRenderingEnabled";
+const string VizWinMgr::_vizSurfaceColorAttr = "SurfaceColor";
+const string VizWinMgr::_vizSurfaceRefinementAttr = "SurfaceRefinement";
 const string VizWinMgr::_vizRegionFrameEnabledAttr = "RegionFrameEnabled";
 const string VizWinMgr::_vizSubregionFrameEnabledAttr = "SubregionFrameEnabled";
 const string VizWinMgr::_visualizerNumAttr = "VisualizerNum";
@@ -1313,13 +1316,24 @@ XmlNode* VizWinMgr::buildNode() {
 				<< (long)clr.green() << " "
 				<< (long)clr.blue();
 			attrs[_vizColorbarBackgroundColorAttr] = oss.str();
+
+			oss.str(empty);
+			clr = vizWin[i]->getSurfaceColor();
+			oss << (long)clr.red() << " "
+				<< (long)clr.green() << " "
+				<< (long)clr.blue();
+			attrs[_vizSurfaceColorAttr] = oss.str();
 			
 			oss.str(empty);
 			if (vizWin[i]->axesAreEnabled()) oss<<"true";
 				else oss << "false";
 			attrs[_vizAxesEnabledAttr] = oss.str();
 
-			
+			oss.str(empty);
+			if (vizWin[i]->surfaceRenderingEnabled()) oss<<"true";
+				else oss << "false";
+			attrs[_vizSurfaceEnabledAttr] = oss.str();
+
 			oss.str(empty);
 			if (vizWin[i]->regionFrameIsEnabled()) oss<<"true";
 				else oss<<"false";
@@ -1330,6 +1344,10 @@ XmlNode* VizWinMgr::buildNode() {
 				else oss<<"false";
 			attrs[_vizSubregionFrameEnabledAttr] = oss.str();
 			
+			oss.str(empty);
+			oss << vizWin[i]->getSurfaceRefinementLevel();
+			attrs[_vizSurfaceRefinementAttr] = oss.str();
+
 			oss.str(empty);
 			oss << (float)vizWin[i]->getAxisCoord(0) << " "
 				<< (float)vizWin[i]->getAxisCoord(1) << " "
@@ -1405,6 +1423,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		QColor winRgColor(white);
 		QColor winSubrgColor(red);
 		QColor winColorbarColor(white);
+		QColor winSurfaceColor(darkRed);
 		float axisPos[3];
 		axisPos[0]=axisPos[1]=axisPos[2]=0.f;
 		float colorbarLLPos[2], colorbarURPos[2];
@@ -1416,6 +1435,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		bool colorbarEnabled = false;
 		bool regionEnabled = false;
 		bool subregionEnabled = false;
+		bool surfaceEnabled = false;
+		int surfaceRefinement = 0;
 		int numViz = -1;
 		while (*attrs) {
 			string attr = *attrs;
@@ -1445,6 +1466,14 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				ist >> r; ist>>g; ist>>b;
 				winColorbarColor.setRgb(r,g,b);
 			}
+			else if (StrCmpNoCase(attr, _vizSurfaceColorAttr) == 0) {
+				int r,g,b;
+				ist >> r; ist>>g; ist>>b;
+				winSurfaceColor.setRgb(r,g,b);
+			}
+			else if (StrCmpNoCase(attr, _vizSurfaceRefinementAttr) == 0) {
+				ist >> surfaceRefinement;
+			}
 			else if (StrCmpNoCase(attr, _vizAxisPositionAttr) == 0) {
 				ist >> axisPos[0]; ist>>axisPos[1]; ist>>axisPos[2];
 			}
@@ -1460,6 +1489,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			else if (StrCmpNoCase(attr, _vizAxesEnabledAttr) == 0) {
 				if (value == "true") axesEnabled = true; 
 				else axesEnabled = false; 
+			}
+			else if (StrCmpNoCase(attr, _vizSurfaceEnabledAttr) == 0) {
+				if (value == "true") surfaceEnabled = true; 
+				else surfaceEnabled = false; 
 			}
 			else if (StrCmpNoCase(attr, _vizColorbarEnabledAttr) == 0) {
 				if (value == "true") colorbarEnabled = true; 
@@ -1491,6 +1524,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->enableColorbar(colorbarEnabled);
 		vizWin[parsingVizNum]->enableRegionFrame(regionEnabled);
 		vizWin[parsingVizNum]->enableSubregionFrame(subregionEnabled);
+		vizWin[parsingVizNum]->enableSurfaceRendering(surfaceEnabled);
+		vizWin[parsingVizNum]->setSurfaceRefinementLevel(surfaceRefinement);
+		vizWin[parsingVizNum]->setSurfaceColor(winSurfaceColor);
+
 		for (int j = 0; j< 3; j++){
 			vizWin[parsingVizNum]->setAxisCoord(j, axisPos[j]);
 		}
