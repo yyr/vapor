@@ -161,7 +161,7 @@ public:
  //! \param[in] reflevel Refinement level of the variable. A value of -1
  //! indicates the maximum refinment level defined for the VDC
  //! \param[in] full_height is used only with layered data, indicates
- //! the vertical grid size to interpolate to, at max refinement level.
+ //! the vertical grid size to interpolate to at max refinement level.
  //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
@@ -195,7 +195,7 @@ public:
  //
  virtual void	GetDim(size_t dim[3], int reflevel = 0) const;
 
- //! Get dimesion of a volume in blocks
+ //! Get dimension of a volume in blocks
  //!
  //! Performs same operation as GetDim() except returns
  //! dimensions in block coordinates instead of voxels.
@@ -223,6 +223,8 @@ public:
  //! \param[out] max A pointer to the maximum bounds of the subvolume
  //! \param[in] reflevel Refinement level of the variable. A value of -1
  //! indicates the maximum refinment level defined for the VDC
+ //! \param[in] full_height is used with layered data, indicates
+ //! interpolation resolution.  full_height is 0 for nonlayered data
  //! \retval status Returns a negative value if the volume is not opened
  //! for reading or writing.
  //!

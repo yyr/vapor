@@ -72,9 +72,9 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	regionFrameColor = QColor(white);
 	subregionFrameColor = QColor(red);
 	colorbarBackgroundColor = QColor(black);
-	surfaceColor = QColor(150,75,0);
-	renderSurface = false;
-	surfaceRefLevel = 0;
+	elevColor = QColor(150,75,0);
+	renderElevGrid = false;
+	elevGridRefLevel = 0;
 	axesEnabled = false;
 	regionFrameEnabled = true;
 	subregionFrameEnabled = false;
@@ -112,6 +112,7 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 
 	elevVert = 0;
 	elevNorm = 0;
+	numElevTimesteps = 0;
 	
 }
 
@@ -319,10 +320,13 @@ void GLWindow::paintGL()
 		//Also render the cursor
 		draw3DCursor(getActiveProbeParams()->getSelectedPoint());
 	} 
-
-	if (renderSurface) 
-		drawElevationGrid();
-
+	
+	if (renderElevGrid) {
+		if (DataStatus::getInstance()->dataIsLayered()){
+			size_t timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
+			drawElevationGrid(timeStep);
+		}
+	}
 	for (int i = 0; i< getNumRenderers(); i++){
 		renderer[i]->paintGL();
 	}
@@ -1128,13 +1132,13 @@ void GLWindow::setRegionFrameColorFlt(QColor& c){
 	regionFrameColorFlt[2]= (float)c.blue()/255.;
 }
 //Draw an elevation grid (surface) inside the current region extents:
-void GLWindow::drawElevationGrid(){
+void GLWindow::drawElevationGrid(size_t timeStep){
 	//If the region is dirty, or the timestep has changed, must rebuild.
 	if (regionIsDirty()) invalidateElevGrid();
 	//First, check if we have already constructed the elevation grid vertices.
 	//If not, rebuild them:
-	if (!elevVert) {
-		if(!rebuildElevationGrid()) return;
+	if (!elevVert || !elevVert[timeStep]) {
+		if(!rebuildElevationGrid(timeStep)) return;
 	}
 	
 	//Establish clipping planes:
@@ -1182,9 +1186,9 @@ void GLWindow::drawElevationGrid(){
 	glPopMatrix();
 	//Set up  color
 	float elevGridColor[4];
-	elevGridColor[0] = ((float)surfaceColor.red())/255.f;
-	elevGridColor[1] = ((float)surfaceColor.green())/255.f;
-	elevGridColor[2] = ((float)surfaceColor.blue())/255.f;
+	elevGridColor[0] = ((float)elevColor.red())/255.f;
+	elevGridColor[1] = ((float)elevColor.green())/255.f;
+	elevGridColor[2] = ((float)elevColor.blue())/255.f;
 	elevGridColor[3] = 1.f;
 	ViewpointParams* vpParams = getActiveViewpointParams();
 	int nLights = vpParams->getNumLights();
@@ -1197,56 +1201,7 @@ void GLWindow::drawElevationGrid(){
 		glDisable(GL_LIGHTING);
 		glColor3fv(elevGridColor);
 	}
-	/*
-		float specColor[4], ambColor[4];
-		float diffLight[3], specLight[3];
-		GLfloat lmodel_ambient[4];
-		specColor[0]=specColor[1]=specColor[2]=0.8f;
-		ambColor[0]=ambColor[1]=ambColor[2]=0.f;
-		specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
-		glPushMatrix();
-		glLoadIdentity();
-		glShadeModel(GL_SMOOTH);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, elevGridColor);
-		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, vpParams->getExponent());
-		lmodel_ambient[0]=lmodel_ambient[1]=lmodel_ambient[2] = vpParams->getAmbientCoeff();
-		//All the geometry will get a white specular color:
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
-		glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
-			
-		specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(0);
-			
-		diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(0);
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, diffLight);
-		glLightfv(GL_LIGHT0, GL_SPECULAR, specLight);
-		glLightfv(GL_LIGHT0, GL_AMBIENT, ambColor);
-		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		if (nLights > 1){
-			glLightfv(GL_LIGHT1, GL_POSITION, vpParams->getLightDirection(1));
-			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(1);
-			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(1);
-			glLightfv(GL_LIGHT1, GL_DIFFUSE, diffLight);
-			glLightfv(GL_LIGHT1, GL_SPECULAR, specLight);
-			glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
-			glEnable(GL_LIGHT1);
-		}
-		if (nLights > 2){
-			glLightfv(GL_LIGHT2, GL_POSITION, vpParams->getLightDirection(2));
-			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(2);
-			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(2);
-			glLightfv(GL_LIGHT2, GL_DIFFUSE, diffLight);
-			glLightfv(GL_LIGHT2, GL_SPECULAR, specLight);
-			glLightfv(GL_LIGHT2, GL_AMBIENT, ambColor);
-			glEnable(GL_LIGHT2);
-		}
-		glPopMatrix();
-	} else {
-		glDisable(GL_LIGHTING); //No lights
-		glColor3fv(elevGridColor);
-	}
-	*/
+	
 	//Now we can just traverse the elev grid, one row at a time:
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	for (int j = 0; j< maxYElev-1; j++){
@@ -1258,21 +1213,21 @@ void GLWindow::drawElevationGrid(){
 			//Each quad is described by sending 4 vertices, i.e. the points indexed by
 			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j)  
 			
-			glNormal3fv(elevNorm+3*(i+(j+1)*maxXElev));
-			glVertex3fv(elevVert+3*(i+(j+1)*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*maxXElev));
+			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*maxXElev));
 
 			
-			glNormal3fv(elevNorm+3*(i+j*maxXElev));
-			glVertex3fv(elevVert+3*(i+j*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*(i+j*maxXElev));
+			glVertex3fv(elevVert[timeStep]+3*(i+j*maxXElev));
 
 			
-			glNormal3fv(elevNorm+3*((i+1)+(j+1)*maxXElev));
-			glVertex3fv(elevVert+3*((i+1)+(j+1)*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*((i+1)+(j+1)*maxXElev));
+			glVertex3fv(elevVert[timeStep]+3*((i+1)+(j+1)*maxXElev));
 
 			//vcopy(elevVert+3*((i+1)+j*maxXElev), vert);
 			//vcopy(elevNorm+3*((i+1)+j*maxXElev), norm);
-			glNormal3fv(elevNorm+3*((i+1)+j*maxXElev));
-			glVertex3fv(elevVert+3*((i+1)+j*maxXElev));
+			glNormal3fv(elevNorm[timeStep]+3*((i+1)+j*maxXElev));
+			glVertex3fv(elevVert[timeStep]+3*((i+1)+j*maxXElev));
 
 		}
 		glEnd();
@@ -1287,30 +1242,53 @@ void GLWindow::drawElevationGrid(){
 	glDisable(GL_LIGHTING);
 	printOpenGLError();
 }
+//Invalidate array.  Set pointers to zero before deleting so we\
+//can't accidentally get trapped with bad pointer.
 void GLWindow::invalidateElevGrid(){
 	if (elevVert){
-		float * elevPtr = elevVert;
+		for (int i = 0; i<numElevTimesteps; i++){
+			if (elevVert[i]){
+				float * elevPtr = elevVert[i];
+				elevVert[i] = 0;
+				delete elevPtr;
+				delete elevNorm[i];
+				elevNorm[i] = 0;
+			}
+		}
+		float ** tmpArray = elevVert;
 		elevVert = 0;
-		delete elevPtr;
+		delete tmpArray;
 		delete elevNorm;
 		elevNorm = 0;
+		numElevTimesteps = 0;
 	}
 }
-bool GLWindow::rebuildElevationGrid(){
+bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	//Reconstruct the elevation grid.
-	//First, find the grid coordinate ranges
+	//First, check that the cache is OK:
+	if (!elevVert){
+		numElevTimesteps = DataStatus::getInstance()->getMaxTimestep() + 1;
+		elevVert = new float*[numElevTimesteps];
+		elevNorm = new float*[numElevTimesteps];
+		for (int i = 0; i< numElevTimesteps; i++){
+			elevVert[i] = 0;
+			elevNorm[i] = 0;
+		}
+	}
+
+	//find the grid coordinate ranges
 	size_t min_dim[3], max_dim[3], min_bdim[3],max_bdim[3];
 	double regMin[3],regMax[3];
-	size_t timeStep = getActiveAnimationParams()->getCurrentFrameNumber();
+	
 	DataStatus* ds = DataStatus::getInstance();
 	int varNum = DataStatus::getSessionVariableNum("ELEVATION");
 	DataMgr* dataMgr = ds->getDataMgr();
-	bool regionValid = getActiveRegionParams()->getAvailableVoxelCoords(surfaceRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
+	bool regionValid = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
 			timeStep,&varNum, 1, regMin, regMax);
 
 	if(!regionValid) {
 		SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Volume data unavailable for refinement level %d of ELEVATION, at current timestep", 
-			surfaceRefLevel);
+			elevGridRefLevel);
 		return false;
 	}
 	//Modify 3rd coord of region extents to obtain only bottom layer:
@@ -1318,14 +1296,14 @@ bool GLWindow::rebuildElevationGrid(){
 	min_bdim[2] = max_bdim[2] = 0;
 	//Then, ask the Datamgr to retrieve the lowest level of the ELEVATION data, without
 	//performing the interpolation step
-	float* elevData = dataMgr->GetRegion(timeStep, "ELEVATION", surfaceRefLevel, min_bdim, max_bdim, 0,0);
+	float* elevData = dataMgr->GetRegion(timeStep, "ELEVATION", elevGridRefLevel, min_bdim, max_bdim, 0,0);
 
 	if (!elevData) return true;
 	//Then create arrays to hold the vertices and their normals:
 	maxXElev = max_dim[0] - min_dim[0] +1;
 	maxYElev = max_dim[1] - min_dim[1] +1;
-	elevVert = new float[3*maxXElev*maxYElev];
-	elevNorm = new float[3*maxXElev*maxYElev];
+	elevVert[timeStep] = new float[3*maxXElev*maxYElev];
+	elevNorm[timeStep] = new float[3*maxXElev*maxYElev];
 
 	//Then loop over all the vertices in the Elevation data. 
 	//For each vertex, construct the corresponding 3d point as well as the normal vector.
@@ -1348,11 +1326,11 @@ bool GLWindow::rebuildElevationGrid(){
 			size_t xcrd = min_dim[0] - bs[0]*min_bdim[0]+i;
 			worldCoord[2] = elevData[xcrd+ycrd];
 			//Convert and put results into elevation grid vertices:
-			ViewpointParams::worldToStretchedCube(worldCoord,elevVert+pntPos);
+			ViewpointParams::worldToStretchedCube(worldCoord,elevVert[timeStep]+pntPos);
 		}
 	}
 	//Now calculate normals:
-	calcElevGridNormals();
+	calcElevGridNormals(timeStep);
 	return true;
 }
 //Once the elevation grid vertices are determined, calculate the normals.  Use the stretched
@@ -1364,19 +1342,19 @@ bool GLWindow::rebuildElevationGrid(){
 // (a,b,c) is proportional to (dzx*dy, dzy*dx, 1) 
 //Must compensate for stretching, since the actual z-differences between
 //adjacent vertices will be miniscule
-void GLWindow::calcElevGridNormals(){
+void GLWindow::calcElevGridNormals(size_t timeStep){
 	const float* stretchFac = DataStatus::getInstance()->getStretchFactors();
 	
 	//Go over the grid of vertices, calculating normals
 	//by looking at adjacent x,y,z coords.
 	for (int j = 0; j < maxYElev; j++){
 		for (int i = 0; i< maxXElev; i++){
-			float* point = elevVert+3*(i+maxXElev*j);
-			float* norm = elevNorm+3*(i+maxXElev*j);
+			float* point = elevVert[timeStep]+3*(i+maxXElev*j);
+			float* norm = elevNorm[timeStep]+3*(i+maxXElev*j);
 			//do differences of right point vs left point,
 			//except at edges of grid just do differences
 			//between current point and adjacent point:
-			float dx, dy, dzx, dzy;
+			float dx=0.f, dy=0.f, dzx=0.f, dzy=0.f;
 			if (i>0 && i <maxXElev-1){
 				dx = *(point+3) - *(point-3);
 				dzx = *(point+5) - *(point-1);

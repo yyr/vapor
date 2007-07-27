@@ -143,7 +143,7 @@ reinit(bool doOverride){
 	int i;
 	
 	const float* extents = DataStatus::getInstance()->getExtents();
-	bool isLayered = (DataStatus::getInstance()->getCurrentMetadata()->GetGridType().compare("layered") == 0);
+	bool isLayered = DataStatus::getInstance()->dataIsLayered();
 	if (doOverride) {
 		for (i = 0; i< 3; i++) {
 			regionMin[i] = extents[i];
@@ -274,7 +274,7 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	}
 	const VDFIOBase* myReader = ds->getRegionReader();
 
-	if (ds->getCurrentMetadata()->GetGridType().compare("layered") == 0){
+	if (ds->dataIsLayered()){
 		((LayeredIO*)myReader)->SetGridHeight(fullHeight);
 	}
 	//Do mapping to voxel coords

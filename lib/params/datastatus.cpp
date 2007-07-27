@@ -325,3 +325,12 @@ void DataStatus::getExtentsAtLevel(int level, float exts[6], size_t fullHeight){
 		exts[i+3] = (float)usermax[i];
 	}
 }
+bool DataStatus::dataIsLayered(){
+	if (!currentMetadata) return false;
+	if(!(StrCmpNoCase(currentMetadata->GetGridType(),"layered") == 0)) return false;
+	//Check if there is an ELEVATION variable:
+	for (int i = 0; i<variableNames.size(); i++){
+		if (StrCmpNoCase(variableNames[i],"ELEVATION") == 0) return true;
+	}
+	return false;
+}

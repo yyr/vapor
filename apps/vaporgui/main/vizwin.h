@@ -141,13 +141,13 @@ public:
 	void setColorbarURCoord(int i, float crd) {myGLWindow->setColorbarURCoord( i,  crd);}
 	void setColorbarNumTics(int i) {myGLWindow->setColorbarNumTics( i);}
 
-	void setSurfaceColor(QColor& c) {myGLWindow->setSurfaceColor(c);}
-	void setSurfaceRefinementLevel(int lev) {myGLWindow->setSurfaceRefinementLevel(lev);}
-	void enableSurfaceRendering(bool val) {myGLWindow->enableSurfaceRendering(val);}
+	void setElevGridColor(QColor& c) {myGLWindow->setElevGridColor(c);}
+	void setElevGridRefinementLevel(int lev) {myGLWindow->setElevGridRefinementLevel(lev);}
+	void enableElevGridRendering(bool val) {myGLWindow->enableElevGridRendering(val);}
 	
-	QColor& getSurfaceColor() {return myGLWindow->getSurfaceColor();}
-	int getSurfaceRefinementLevel() {return myGLWindow->getSurfaceRefinementLevel();}
-	bool surfaceRenderingEnabled(){return myGLWindow->surfaceRenderingEnabled();}
+	QColor& getElevGridColor() {return myGLWindow->getElevGridColor();}
+	int getElevGridRefinementLevel() {return myGLWindow->getElevGridRefinementLevel();}
+	bool elevGridRenderingEnabled(){return myGLWindow->elevGridRenderingEnabled();}
 
 	bool colorbarIsDirty() {return myGLWindow->colorbarIsDirty();}
 	void setColorbarDirty(bool val){myGLWindow->setColorbarDirty(val);}

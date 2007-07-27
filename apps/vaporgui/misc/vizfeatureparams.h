@@ -52,7 +52,7 @@ protected slots:
 	void selectSubregionFrameColor();
 	void selectBackgroundColor();
 	void selectColorbarBackgroundColor();
-	void selectSurfaceColor();
+	void selectElevGridColor();
 	void applySettings();
 	
 protected:
@@ -77,13 +77,13 @@ protected:
 	float colorbarLLCoords[2];
 	float colorbarURCoords[2];
 	int numColorbarTics;
-	int surfaceRefinement;
-	bool showSurface;
+	int elevGridRefinement;
+	bool showElevGrid;
 	QColor backgroundColor;
 	QColor regionFrameColor;
 	QColor subregionFrameColor;
 	QColor colorbarBackgroundColor;
-	QColor surfaceColor;
+	QColor elevGridColor;
 	
 	
 	

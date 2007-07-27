@@ -103,6 +103,7 @@ int	LayeredIO::OpenVariableRead(
 	_timeStep = timestep;
 	_varName.assign(varname);
 	_reflevel = reflevel;
+	
 	if (full_height != 0) _dim[2] = full_height;
 	GetDimBlk(_bdim, _num_reflevels-1);
 	
@@ -122,7 +123,7 @@ int	LayeredIO::CloseVariable()
 }
 //Produce interpolated region, using elev grid (elevBlks) and variable data on levels (levVarBlks)
 // minblks, maxblks specify the region in block coords
-int LayeredIO::
+void LayeredIO::
 InterpolateRegion(float* interpBlks, const float* elevBlks, const float* levVarBlks, 
 				  const size_t minblks[3], const size_t maxblks[3], size_t full_height,
 				  float lowVal, float highVal)
@@ -171,14 +172,12 @@ InterpolateRegion(float* interpBlks, const float* elevBlks, const float* levVarB
 
 	//Determine the vertical size of the interpolated grid 
 	int interpGridHeight = full_height >> (_num_reflevels - 1 - _reflevel);
-	assert(interpGridHeight == maxInterpGrid[2]+1);
 
 	//Restrict the interpolated region based on blocks requested:
 	minInterpGrid[2] = _bs[2]*minblks[2];
 	if (_bs[2]*(maxblks[2]+1) -1 < maxInterpGrid[2])
 		maxInterpGrid[2] = _bs[2]*(maxblks[2]+1) -1;
 	
-	assert(minInterpGrid[2] <= maxInterpGrid[2]);
 	
 	//identify the interval we are interpolating:
 	
@@ -239,5 +238,5 @@ InterpolateRegion(float* interpBlks, const float* elevBlks, const float* levVarB
 			
 		} //End loop over j
 	} //End loop over i
-	return 0;
+	return;
 }

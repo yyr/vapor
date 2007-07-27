@@ -1088,9 +1088,9 @@ void DvrEventRouter::refreshHistogram(RenderParams* p){
 		  updateTab();
 		  return;
 	  }
-	//const Metadata* metaData = Session::getInstance()->getCurrentMetadata();
+	
 	//Now get the data:
-	char outval = (char)0;
+	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	unsigned char* data = (unsigned char*) dataMgr->GetRegionUInt8(
 		timeStep, (const char*)DataStatus::getInstance()->getVariableName(varNum).c_str(),

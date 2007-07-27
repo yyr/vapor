@@ -23,7 +23,11 @@ class WaveletBlock3DRegionReader;
 //! \date    $Date$
 //!
 //! This class provides an API for performing low-level IO 
-//! to/from VDF files
+//! to/from VDF files.  Data is retrieved in a two-step process.  First,
+//! the data is reconstructed from wavelet coefficients to a 3D array, representing
+//! the data values along horizontal layers of the data.  Then the data is 
+//! interpolated from the layered representation to a uniform gridded representation.
+//! The height of the uniform grid can vary dynamically.
 //
 class VDF_API	LayeredIO : public VAPoR::VDFIOBase {
 
@@ -129,6 +133,8 @@ public:
  //! \param[in] varname Name of the variable to read
  //! \param[in] reflevel Refinement level of the variable. A value of -1
  //! indicates the maximum refinment level defined for the VDC
+ //! \param[in] full_height indicates the grid height for interpolation.
+ //! Use full_height = 0 when opening just to obtain data range.
  //! \retval status Returns a non-negative value on success
  //! \sa Metadata::GetVariableNames(), Metadata::GetNumTransforms()
  //!
@@ -157,12 +163,29 @@ public:
 //! to read the associated wavelet block data
 //
  WaveletBlock3DRegionReader* GetWBReader() { return wbRegionReader;}
-
- int InterpolateRegion(float* blks, const float* elevblocks, const float* wbblocks, 
+//! Performs an interpolation, converting layered data to uniformly gridded data.
+//! \param[out] blks returns a blocked region of interpolated data 
+//! \param[in] elevblocks is the blocked region of elevation data, representing
+//! the elevation associated with each point on a layer
+//! \param[in] wbblocks is the blocked region of layered data, 
+//! of the desired variable in its WB representation.
+//! Note that both elevblocks and weblocks are currently required to be available
+//! at the full vertical (Z) extent of the volume.
+//! \param[in] minblks specifies the output region min block coordinates
+//! \param[in] maxblks specifies the output region max block coordinates
+//!
+void InterpolateRegion(float* blks, const float* elevblocks, const float* wbblocks, 
 	 const size_t minblks[3], const size_t maxblks[3], 
 	 size_t full_height,
 	 float lowValue, float highValue);
- void SetGridHeight(size_t full_height);
+//!
+//!  Specify the interpolation height to be used for grid interpolation.
+//!  This is necessary if the grid height has been modified and new region extents
+//!  are to be calculated before a variable is opened.
+//!  \param[in] full_height is the full number of voxels to be used in
+//!  interpolating the data at the highest refinement level.
+//!
+void SetGridHeight(size_t full_height);
 protected:
  static const int MAX_LEVELS = 16;	// Max # of forward transforms permitted
 

@@ -135,9 +135,9 @@ public:
 	float getColorbarLLCoord(int i) {return colorbarLLCoord[i];}
 	float getColorbarURCoord(int i) {return colorbarURCoord[i];}
 	int getColorbarNumTics() {return numColorbarTics;}
-	QColor& getSurfaceColor() {return surfaceColor;}
+	QColor& getElevGridColor() {return elevColor;}
 	
-	bool surfaceRenderingEnabled() {return renderSurface;}
+	bool elevGridRenderingEnabled() {return renderElevGrid;}
 	void setBackgroundColor(QColor& c) {backgroundColor = c;}
 	void setColorbarBackgroundColor(QColor& c) {colorbarBackgroundColor = c;}
 	void setRegionFrameColor(QColor& c) {regionFrameColor = c;}
@@ -146,9 +146,9 @@ public:
 	void enableColorbar(bool enable) {colorbarEnabled = enable;}
 	void enableRegionFrame(bool enable) {regionFrameEnabled = enable;}
 	void enableSubregionFrame(bool enable) {subregionFrameEnabled = enable;}
-	void setSurfaceColor(QColor& c) {surfaceColor = c;}
-	void setSurfaceRefinementLevel(int lev) {surfaceRefLevel = lev;}
-	void enableSurfaceRendering(bool val) {renderSurface = val;}
+	void setElevGridColor(QColor& c) {elevColor = c;}
+	void setElevGridRefinementLevel(int lev) {elevGridRefLevel = lev;}
+	void enableElevGridRendering(bool val) {renderElevGrid = val;}
 	void setAxisCoord(int i, float val){axisCoord[i] = val;}
 	void setColorbarLLCoord(int i, float crd) {colorbarLLCoord[i] = crd;}
 	void setColorbarURCoord(int i, float crd) {colorbarURCoord[i] = crd;}
@@ -156,7 +156,7 @@ public:
 	bool colorbarIsDirty() {return colorbarDirty;}
 	void setColorbarDirty(bool val){colorbarDirty = val;}
 	
-	int getSurfaceRefinementLevel() {return surfaceRefLevel;}
+	int getElevGridRefinementLevel() {return elevGridRefLevel;}
 	
 
 
@@ -305,10 +305,10 @@ protected:
 	
 	void drawSubregionBounds(float* extents);
 	void drawAxes(float* extents);
-	void drawElevationGrid();
+	void drawElevationGrid(size_t timestep);
 	void placeLights();
-	bool rebuildElevationGrid();
-	void calcElevGridNormals();
+	bool rebuildElevationGrid(size_t timestep);
+	void calcElevGridNormals(size_t timestep);
 	//Helper functions for drawing region bounds:
 	static float* cornerPoint(float* extents, int faceNum);
 	// Faces of the cube are numbered 0..5 based on view from pos z axis:
@@ -321,12 +321,14 @@ protected:
 	float regionFrameColorFlt[3];
 	float subregionFrameColorFlt[3];
 
-	//Cached elevation grid (must be rebuilt each time step)
+	//Cached elevation grid (one for each time step)
 	int maxXElev, maxYElev;
-	float* elevVert, *elevNorm;
-	QColor surfaceColor;
-	int surfaceRefLevel;
-	bool renderSurface;
+	float** elevVert, **elevNorm;
+	int numElevTimesteps;
+	//Additional parameters used for elev grid:
+	QColor elevColor;
+	int elevGridRefLevel;
+	bool renderElevGrid;
 
 	float	wCenter[3]; //World center coords
 	float	maxDim;		//Max of x, y, z size in world coords

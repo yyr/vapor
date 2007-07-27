@@ -142,13 +142,10 @@ void RegionEventRouter::confirmText(bool /*render*/){
 	regSize[2] = zSizeEdit->text().toFloat();
 
 	//Decide whether we are interested in the value of the fullGridHeight:
-	bool layered = false;
+	
 	DataStatus* ds = DataStatus::getInstance();
-	const Metadata* md = ds->getCurrentMetadata();
-	if (md) {
-		const string& gtype = md->GetGridType();
-		layered = (StrCmpNoCase(gtype,"layered") == 0);
-	}
+	bool layered = ds->dataIsLayered();
+	
 	if (layered) rParams->setFullGridHeight((size_t)(fullHeightEdit->text().toInt()));
 	
 	for (int i = 0; i<3; i++)
@@ -247,9 +244,7 @@ void RegionEventRouter::updateTab(){
 	const VDFIOBase* reader = ds->getRegionReader();
 	
 	if (reader) {
-		const Metadata* md = ds->getMetadata();
-		const string& gtype = md->GetGridType();
-		layered = (StrCmpNoCase(gtype,"layered") == 0);
+		layered = ds->dataIsLayered();
 		if (layered)
 			fullHeightEdit->setText(QString::number(rParams->getFullGridHeight()));
 		else {

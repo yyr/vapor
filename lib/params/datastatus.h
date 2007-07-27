@@ -78,7 +78,8 @@ public:
 		if (!variableExists[varnum]) return false;
 		return (maxNumTransforms[varnum][timestep] >= 0);
 	}
-	
+	bool dataIsLayered();
+
 	double getDataMax(int varNum, int timestep){
 		if (!dataIsPresent(varNum, timestep))return 1.0f;
 		if (dataMax[varNum][timestep] == -1.e30f)

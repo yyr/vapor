@@ -60,9 +60,9 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	colorbarBackgroundColor = vfParams.colorbarBackgroundColor;
 	regionFrameColor = vfParams.regionFrameColor;
 	subregionFrameColor = vfParams.subregionFrameColor;
-	surfaceColor = vfParams.surfaceColor;
-	showSurface = vfParams.showSurface;
-	surfaceRefinement =  vfParams.surfaceRefinement;
+	elevGridColor = vfParams.elevGridColor;
+	showElevGrid = vfParams.showElevGrid;
+	elevGridRefinement =  vfParams.elevGridRefinement;
 }
 //Set up the dialog with current parameters from current active visualizer
 void VizFeatureParams::launch(){
@@ -82,7 +82,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->backgroundColorButton, SIGNAL(clicked()), this, SLOT(selectBackgroundColor()));
 	connect (vizFeatureDlg->regionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectRegionFrameColor()));
 	connect (vizFeatureDlg->subregionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectSubregionFrameColor()));
-	connect (vizFeatureDlg->surfaceColorButton,SIGNAL(clicked()), this, SLOT(selectSurfaceColor()));
+	connect (vizFeatureDlg->surfaceColorButton,SIGNAL(clicked()), this, SLOT(selectElevGridColor()));
 	connect (vizFeatureDlg->vizNameEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	
 	connect (vizFeatureDlg->axisXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -188,9 +188,9 @@ selectColorbarBackgroundColor(){
 	dialogChanged = true;
 }
 void VizFeatureParams::
-selectSurfaceColor(){
+selectElevGridColor(){
 	//Launch colorselector, put result into the button
-	QColor sfColor = QColorDialog::getColor(surfaceColor,0,0);
+	QColor sfColor = QColorDialog::getColor(elevGridColor,0,0);
 	vizFeatureDlg->surfaceColorButton->setPaletteBackgroundColor(sfColor);
 	dialogChanged = true;
 }
@@ -252,7 +252,7 @@ setDialog(){
 	vizFeatureDlg->colorbarBackgroundButton->setPaletteBackgroundColor(colorbarBackgroundColor);
 
 	DataStatus* ds = DataStatus::getInstance();
-	bool isLayered = (ds->getMetadata() && (StrCmpNoCase(ds->getMetadata()->GetGridType(),"Layered") == 0));
+	bool isLayered = ds->dataIsLayered();
 	int numRefs = ds->getNumTransforms();
 	if (isLayered){
 		vizFeatureDlg->refinementCombo->setMaxCount(numRefs+1);
@@ -261,12 +261,12 @@ setDialog(){
 			vizFeatureDlg->refinementCombo->insertItem(QString::number(i));
 		}
 	}
-	surfaceColor = vizWin->getSurfaceColor();
-	surfaceRefinement = vizWin->getSurfaceRefinementLevel();
-	vizFeatureDlg->surfaceColorButton->setPaletteBackgroundColor(surfaceColor);
-	vizFeatureDlg->refinementCombo->setCurrentItem(surfaceRefinement);
-	showSurface = (vizWin->surfaceRenderingEnabled() && isLayered);
-	vizFeatureDlg->surfaceCheckbox->setChecked(showSurface);
+	elevGridColor = vizWin->getElevGridColor();
+	elevGridRefinement = vizWin->getElevGridRefinementLevel();
+	vizFeatureDlg->surfaceColorButton->setPaletteBackgroundColor(elevGridColor);
+	vizFeatureDlg->refinementCombo->setCurrentItem(elevGridRefinement);
+	showElevGrid = (vizWin->elevGridRenderingEnabled() && isLayered);
+	vizFeatureDlg->surfaceCheckbox->setChecked(showElevGrid);
 	
 	vizFeatureDlg->refinementCombo->setEnabled(isLayered);
 	vizFeatureDlg->surfaceCheckbox->setEnabled(isLayered);
@@ -325,9 +325,9 @@ copyFromDialog(){
 	backgroundColor = vizFeatureDlg->backgroundColorButton->paletteBackgroundColor();
 	colorbarBackgroundColor = vizFeatureDlg->colorbarBackgroundButton->paletteBackgroundColor();
 
-	surfaceColor = vizFeatureDlg->surfaceColorButton->paletteBackgroundColor();
-	showSurface = vizFeatureDlg->surfaceCheckbox->isChecked();
-	surfaceRefinement = vizFeatureDlg->refinementCombo->currentItem();
+	elevGridColor = vizFeatureDlg->surfaceColorButton->paletteBackgroundColor();
+	showElevGrid = vizFeatureDlg->surfaceCheckbox->isChecked();
+	elevGridRefinement = vizFeatureDlg->refinementCombo->currentItem();
 	applyToViz(vizNum);
 
 	//Save the new visualizer state in the history
@@ -357,9 +357,9 @@ applyToViz(int vizNum){
 	vizWin->setRegionFrameColor(regionFrameColor);
 	vizWin->setSubregionFrameColor(subregionFrameColor);
 	
-	vizWin->setSurfaceColor(surfaceColor);
-	vizWin->enableSurfaceRendering(showSurface);
-	vizWin->setSurfaceRefinementLevel(surfaceRefinement);
+	vizWin->setElevGridColor(elevGridColor);
+	vizWin->enableElevGridRendering(showElevGrid);
+	vizWin->setElevGridRefinementLevel(elevGridRefinement);
 	vizWin->getGLWindow()->invalidateElevGrid();
 	vizWin->setColorbarDirty(true);
 	vizWin->updateGL();

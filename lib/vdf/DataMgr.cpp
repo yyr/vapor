@@ -306,18 +306,8 @@ float	*DataMgr::GetRegion(
 		}
 		float belowVal = GetLowValue(varname);
 		float aboveVal = GetHighValue(varname);
-		rc = layerReader->InterpolateRegion(blks, elevblocks, wbblocks, 
+		layerReader->InterpolateRegion(blks, elevblocks, wbblocks, 
 			min, max, full_height, belowVal, aboveVal);
-		if (rc < 0) {
-			string s = layerReader->GetErrMsg();
-			SetErrMsg(
-				"Failed to interpolate region : %s", s.c_str()
-			);
-			(void) free_region(ts,varname,reflevel,FLOAT32,min,max,full_height);
-			UnlockRegion(wbblocks);
-			layerReader->CloseVariable();
-			return (NULL);
-		}
 		
 		//unlock the wbregion, we are done with it
 		UnlockRegion(wbblocks);

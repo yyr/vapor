@@ -106,7 +106,8 @@ public:
  //! \param[in] reflevel Refinement level requested
  //! \param[in] min Minimum region bounds in blocks
  //! \param[in] max Maximum region bounds in blocks
- //! \param[in] full_height full domain height in voxels, for layered data
+ //! \param[in] full_height: full domain height in voxels, at max refinement level,
+ //! for layered data; or zero, if data is being retrieved from its WB representation.
  //! \param[in] lock If true, the memory region will be locked into the 
  //! cache (i.e. valid after subsequent GetRegion() calls).
  //! \retval ptr A pointer to a region containing the desired data, or NULL
@@ -142,6 +143,8 @@ public:
  //! \param[in] reflevel Transformation number requested
  //! \param[in] min Minimum region bounds in blocks
  //! \param[in] max Maximum region bounds in blocks
+ //! \param[in] full_height is full domain height in voxels, at max refinement level,
+ //! for layered data; or zero, if the WB data is being retrieved.
  //! \param[in] range A two-element vector specifying the minimum and maximum
  //! quantization mapping. 
  //! \param[in] lock If true, the memory region will be locked into the 
@@ -240,6 +243,8 @@ public:
  //! \param[in] reflevel Refinement level of the variable
  //! \param[out] min Minimum coordinate bounds (in voxels) of volume
  //! \param[out] max Maximum coordinate bounds (in voxels) of volume
+ //! \param[in] full_height is nonzero only for layered data, specifies
+ //! the full z-resolution to which the data is being interpolated.
  //! \retval status A non-negative int is returned on success
  //!
  //
