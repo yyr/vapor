@@ -1681,8 +1681,6 @@ void GLWindow::placeLights(){
 		ambColor[0]=ambColor[1]=ambColor[2]=0.f;
 		specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
 		
-		
-		
 		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, vpParams->getExponent());
 		lmodel_ambient[0]=lmodel_ambient[1]=lmodel_ambient[2] = vpParams->getAmbientCoeff();
 		//All the geometry will get a white specular color:
@@ -1696,7 +1694,7 @@ void GLWindow::placeLights(){
 		glLightfv(GL_LIGHT0, GL_SPECULAR, specLight);
 		glLightfv(GL_LIGHT0, GL_AMBIENT, ambColor);
 		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
-		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+		//glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 		
 		glEnable(GL_LIGHT0);
 		if (nLights > 1){

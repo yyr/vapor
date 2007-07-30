@@ -51,9 +51,7 @@ public:
 
 	// solution functions
 	void SetValue(int t, float* pUData, float* pVData, float* pWData);
-	float* GetUValue(int t) {return m_pUDataArray[t];};
-	float* GetVValue(int t) {return m_pVDataArray[t];};
-	float* GetWValue(int t) {return m_pWDataArray[t];};
+	
 	bool isTimeVarying(void);
 	int GetValue(int id, const float t, VECTOR3& nodeData);
 	void Normalize(bool bLocal);

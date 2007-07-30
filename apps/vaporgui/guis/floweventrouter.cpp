@@ -1409,17 +1409,17 @@ reinitTab(bool doOverride){
 	//Set up the combo 
 	
 	xSteadyVarCombo->clear();
-	xSteadyVarCombo->setMaxCount(newNumComboVariables);
+	xSteadyVarCombo->setMaxCount(newNumComboVariables+1);
 	ySteadyVarCombo->clear();
-	ySteadyVarCombo->setMaxCount(newNumComboVariables);
+	ySteadyVarCombo->setMaxCount(newNumComboVariables+1);
 	zSteadyVarCombo->clear();
-	zSteadyVarCombo->setMaxCount(newNumComboVariables);
+	zSteadyVarCombo->setMaxCount(newNumComboVariables+1);
 	xUnsteadyVarCombo->clear();
-	xUnsteadyVarCombo->setMaxCount(newNumComboVariables);
+	xUnsteadyVarCombo->setMaxCount(newNumComboVariables+1);
 	yUnsteadyVarCombo->clear();
-	yUnsteadyVarCombo->setMaxCount(newNumComboVariables);
+	yUnsteadyVarCombo->setMaxCount(newNumComboVariables+1);
 	zUnsteadyVarCombo->clear();
-	zUnsteadyVarCombo->setMaxCount(newNumComboVariables);
+	zUnsteadyVarCombo->setMaxCount(newNumComboVariables+1);
 	xSeedPriorityCombo->clear();
 	xSeedPriorityCombo->setMaxCount(newNumComboVariables);
 	ySeedPriorityCombo->clear();
@@ -1445,6 +1445,14 @@ reinitTab(bool doOverride){
 	zSeedDistCombo3->clear();
 	zSeedDistCombo3->setMaxCount(newNumComboVariables);
 
+	//Put a "0" at the start of the variable combos
+	const QString& text = QString("0");
+	xSteadyVarCombo->insertItem(text);
+	ySteadyVarCombo->insertItem(text);
+	zSteadyVarCombo->insertItem(text);
+	xUnsteadyVarCombo->insertItem(text);
+	yUnsteadyVarCombo->insertItem(text);
+	zUnsteadyVarCombo->insertItem(text);
 	for (int i = 0; i< newNumComboVariables; i++){
 		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
 		//Direct conversion of std::string& to QString doesn't seem to work
@@ -1469,6 +1477,7 @@ reinitTab(bool doOverride){
 		ySeedPriorityCombo->insertItem(text);
 		zSeedPriorityCombo->insertItem(text);
 	}
+	
 	std::vector<string> colorMapEntity;
 	std::vector<string> opacMapEntity;
 	colorMapEntity.clear();
@@ -1726,7 +1735,9 @@ guiSetXComboSteadyVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set X steady field variable");
 	fParams->setComboSteadyVarnum(0,varnum);
-	fParams->setXSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	if (varnum == 0) fParams->setXSteadyVarNum(0);
+	else 
+		fParams->setXSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	updateTab();
@@ -1738,7 +1749,9 @@ guiSetYComboSteadyVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Y steady field variable");
 	fParams->setComboSteadyVarnum(1,varnum);
-	fParams->setYSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	if (varnum == 0)fParams->setYSteadyVarNum(0);
+	else
+		fParams->setYSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	updateTab();
@@ -1750,7 +1763,8 @@ guiSetZComboSteadyVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z steady field variable");
 	fParams->setComboSteadyVarnum(2,varnum);
-	fParams->setZSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	if (varnum == 0)fParams->setZSteadyVarNum(0);
+	else fParams->setZSteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	updateTab();
@@ -1828,7 +1842,8 @@ guiSetXComboUnsteadyVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set X unsteady field variable");
 	fParams->setComboUnsteadyVarnum(0,varnum);
-	fParams->setXUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	if (varnum == 0)fParams->setXUnsteadyVarNum(0);
+	else fParams->setXUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1839,7 +1854,8 @@ guiSetYComboUnsteadyVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Y unsteady field variable");
 	fParams->setComboUnsteadyVarnum(1,varnum);
-	fParams->setYUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	if (varnum == 0)fParams->setYUnsteadyVarNum(0);
+	else fParams->setYUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
@@ -1850,7 +1866,8 @@ guiSetZComboUnsteadyVarNum(int varnum){
 	FlowParams* fParams = VizWinMgr::getActiveFlowParams();
 	PanelCommand* cmd = PanelCommand::captureStart(fParams,  "set Z unsteady field variable");
 	fParams->setComboUnsteadyVarnum(2,varnum);
-	fParams->setZUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum));
+	if (varnum == 0)fParams->setZUnsteadyVarNum(0);
+	else fParams->setZUnsteadyVarNum(DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);

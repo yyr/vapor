@@ -206,68 +206,24 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	glEnable (GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//Set up lighting, if we are rendering tubes or lines:
-	int nLights = 0;
-	if (myFlowParams->getShapeType() != 1) {//rendering tubes/lines/arrows
-		float specColor[4], ambColor[4];
-		float diffLight[3], specLight[3];
-		GLfloat lmodel_ambient[4];
-		specColor[0]=specColor[1]=specColor[2]=0.8f;
-		ambColor[0]=ambColor[1]=ambColor[2]=0.f;
-		specColor[3]=ambColor[3]=lmodel_ambient[3]=1.f;
-
-		//specColor[3] = 0.01f;
-		
-		ViewpointParams* vpParams =  myGLWindow->getActiveViewpointParams();
-		nLights = vpParams->getNumLights();
-		
-		if (nLights > 0){
-			
-			glPushMatrix();
-			glLoadIdentity();
-			glShadeModel(GL_SMOOTH);
-			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, constFlowColor);
-			glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, vpParams->getExponent());
-			lmodel_ambient[0]=lmodel_ambient[1]=lmodel_ambient[2] = vpParams->getAmbientCoeff();
-			//All the geometry will get a white specular color:
-			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
-			glLightfv(GL_LIGHT0, GL_POSITION, vpParams->getLightDirection(0));
-			
-			specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(0);
-			
-			diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(0);
-			glLightfv(GL_LIGHT0, GL_DIFFUSE, diffLight);
-			glLightfv(GL_LIGHT0, GL_SPECULAR, specLight);
-			glLightfv(GL_LIGHT0, GL_AMBIENT, ambColor);
-			glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
-			glEnable(GL_LIGHTING);
-			glEnable(GL_LIGHT0);
-			if (nLights > 1){
-				glLightfv(GL_LIGHT1, GL_POSITION, vpParams->getLightDirection(1));
-				specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(1);
-				diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(1);
-				glLightfv(GL_LIGHT1, GL_DIFFUSE, diffLight);
-				glLightfv(GL_LIGHT1, GL_SPECULAR, specLight);
-				glLightfv(GL_LIGHT1, GL_AMBIENT, ambColor);
-				glEnable(GL_LIGHT1);
-			}
-			if (nLights > 2){
-				glLightfv(GL_LIGHT2, GL_POSITION, vpParams->getLightDirection(2));
-				specLight[0] = specLight[1] = specLight[2] = vpParams->getSpecularCoeff(2);
-				diffLight[0] = diffLight[1] = diffLight[2] = vpParams->getDiffuseCoeff(2);
-				glLightfv(GL_LIGHT2, GL_DIFFUSE, diffLight);
-				glLightfv(GL_LIGHT2, GL_SPECULAR, specLight);
-				glLightfv(GL_LIGHT2, GL_AMBIENT, ambColor);
-				glEnable(GL_LIGHT2);
-			}
-			glPopMatrix();
-		} else {
-			glDisable(GL_LIGHTING); //No lights
-		}
-		
-	} else {//points are not lit..
+	ViewpointParams* vpParams =  myGLWindow->getActiveViewpointParams();
+	int nLights = vpParams->getNumLights();
+	if (myFlowParams->getShapeType() == 1) {
+		nLights = 0; //Points are unlit
 		glDisable(GL_LIGHTING);
-		
 	}
+	else {
+		glShadeModel(GL_SMOOTH);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, constFlowColor);
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, vpParams->getExponent());
+		//All the geometry will get a white specular color:
+		float specColor[4];
+		specColor[0]=specColor[1]=specColor[2]=0.8f;
+		specColor[3] = 1.f;
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
+		glEnable(GL_LIGHTING);
+	}
+	
 	//Apply a coord transform that moves the full region to the unit cube.
 	
 	glPushMatrix();

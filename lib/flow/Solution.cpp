@@ -77,9 +77,10 @@ void Solution::SetValue(int t, float* pUData, float* pVData, float* pWData)
 {
 	if((t >= 0) && (t < m_nTimeSteps))
 	{
-		m_pUDataArray[t] = pUData;
-		m_pVDataArray[t] = pVData;
-		m_pWDataArray[t] = pWData;
+		//Test before assigning; null pointer indicates zero data:
+		if(m_pUDataArray) m_pUDataArray[t] = pUData;
+		if(m_pVDataArray) m_pVDataArray[t] = pVData;
+		if(m_pWDataArray) m_pWDataArray[t] = pWData;
 	}
 }
 
@@ -111,10 +112,15 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 	if(m_TimeDir == BACKWARD && ( (t > m_nStartT) || (t < m_nEndT)))		// time is valid
 		return -1;
 
-	if(!isTimeVarying())
-		nodeData.Set(m_pUDataArray[(int)(t - m_nStartT)][id]*m_fTimeScaleFactor, 
-					 m_pVDataArray[(int)(t - m_nStartT)][id]*m_fTimeScaleFactor, 
-					 m_pWDataArray[(int)(t - m_nStartT)][id]*m_fTimeScaleFactor);
+	if(!isTimeVarying()){
+		float valX = 0.f;
+		if (m_pUDataArray) valX = m_pUDataArray[(int)(t - m_nStartT)][id]*m_fTimeScaleFactor;
+		float valY = 0.f;
+		if (m_pVDataArray) valY = m_pVDataArray[(int)(t - m_nStartT)][id]*m_fTimeScaleFactor;
+		float valZ = 0.f;
+		if (m_pWDataArray) valZ = m_pWDataArray[(int)(t - m_nStartT)][id]*m_fTimeScaleFactor;
+		nodeData.Set(valX,valY,valZ);
+	}
 	else
 	{
 		int lowT, highT;
@@ -134,17 +140,23 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 
 		if(lowT*m_TimeDir >= m_nEndT*m_TimeDir)
 			ratio = 0.0;
-		
+		float lowU = m_pUDataArray ? m_pUDataArray[lowT][id] : 0.f;
+		float lowV = m_pVDataArray ? m_pVDataArray[lowT][id] : 0.f;
+		float lowW = m_pWDataArray ? m_pWDataArray[lowT][id] : 0.f;
 		if(ratio == 0.0)
-			nodeData.Set(m_pUDataArray[lowT][id]*m_fTimeScaleFactor, 
-						 m_pVDataArray[lowT][id]*m_fTimeScaleFactor, 
-						 m_pWDataArray[lowT][id]*m_fTimeScaleFactor);
-		else
-            nodeData.Set(m_fTimeScaleFactor*Lerp(m_pUDataArray[lowT][id], m_pUDataArray[highT][id], ratio), 
-						 m_fTimeScaleFactor*Lerp(m_pVDataArray[lowT][id], m_pVDataArray[highT][id], ratio),
-						 m_fTimeScaleFactor*Lerp(m_pWDataArray[lowT][id], m_pWDataArray[highT][id], ratio));
-	}
+			nodeData.Set(lowU*m_fTimeScaleFactor, 
+						 lowV*m_fTimeScaleFactor, 
+						 lowW*m_fTimeScaleFactor);
+		else{
+			float hiU = m_pUDataArray ? m_pUDataArray[highT][id] : 0.f;
+			float hiV = m_pVDataArray ? m_pVDataArray[highT][id] : 0.f;
+			float hiW = m_pWDataArray ? m_pWDataArray[highT][id] : 0.f;
+            nodeData.Set(m_fTimeScaleFactor*Lerp(lowU,hiU, ratio), 
+						 m_fTimeScaleFactor*Lerp(lowV,hiV, ratio),
+						 m_fTimeScaleFactor*Lerp(lowW,hiW, ratio));
 	
+		}
+	}
 	return 1;
 }
 
@@ -161,6 +173,9 @@ void Solution::Normalize(bool bLocal)
 	float mag = 0.f; 
 	float u, v, w;
 
+	//Note:  this method should not be used by VAPOR because it
+	//modifies the data arrays from the DataMgr
+	assert(0);
 	m_fMinMag = FLT_MAX;
 	m_fMaxMag = -FLT_MAX;
 

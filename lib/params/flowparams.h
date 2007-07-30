@@ -263,16 +263,16 @@ public:
 	int* getPriorityVarNums() {return priorityVarNum;}
 	int* getSeedDistVarNums() {return seedDistVarNum;}
 	void setXSteadyVarNum(int varnum){steadyVarNum[0] = varnum;
-		if (priorityIsSteady) priorityVarNum[0] = varnum;
-		if (seedDistIsSteady) seedDistVarNum[0] = varnum;
+		if (priorityIsSteady && varnum > 0) priorityVarNum[0] = varnum-1;
+		if (seedDistIsSteady && varnum > 0) seedDistVarNum[0] = varnum-1;
 	}
 	void setYSteadyVarNum(int varnum){steadyVarNum[1] = varnum;
-		if (priorityIsSteady) priorityVarNum[1] = varnum;
-		if (seedDistIsSteady) seedDistVarNum[1] = varnum;
+		if (priorityIsSteady&& varnum > 0) priorityVarNum[1] = varnum-1;
+		if (seedDistIsSteady&& varnum > 0) seedDistVarNum[1] = varnum-1;
 	}
 	void setZSteadyVarNum(int varnum){steadyVarNum[2] = varnum;
-		if (priorityIsSteady) priorityVarNum[2] = varnum;
-		if (seedDistIsSteady) seedDistVarNum[2] = varnum;
+		if (priorityIsSteady&& varnum > 0) priorityVarNum[2] = varnum-1;
+		if (seedDistIsSteady&& varnum > 0) seedDistVarNum[2] = varnum-1;
 	}
 	void setXUnsteadyVarNum(int varnum){unsteadyVarNum[0] = varnum;}
 	void setYUnsteadyVarNum(int varnum){unsteadyVarNum[1] = varnum;}
@@ -280,24 +280,24 @@ public:
 	//When seed dist or priority vars are changed (!= steady), set the flags too.
 	void setXSeedDistVarNum(int varnum){
 		seedDistVarNum[0] = varnum;
-		if (varnum != steadyVarNum[0]) seedDistIsSteady = false;
+		if (varnum != steadyVarNum[0]-1) seedDistIsSteady = false;
 	}
 	void setYSeedDistVarNum(int varnum){
 		seedDistVarNum[1] = varnum;
-		if (varnum != steadyVarNum[1]) seedDistIsSteady = false;
+		if (varnum != steadyVarNum[1]-1) seedDistIsSteady = false;
 	}
 	void setZSeedDistVarNum(int varnum){
 		seedDistVarNum[2] = varnum;
-		if (varnum != steadyVarNum[2]) seedDistIsSteady = false;
+		if (varnum != steadyVarNum[2]-1) seedDistIsSteady = false;
 	}
 	void setXPriorityVarNum(int varnum){priorityVarNum[0] = varnum;
-		if (varnum != steadyVarNum[0]) priorityIsSteady = false;
+		if (varnum != steadyVarNum[0]-1) priorityIsSteady = false;
 	}
 	void setYPriorityVarNum(int varnum){priorityVarNum[1] = varnum;
-		if (varnum != steadyVarNum[1]) priorityIsSteady = false;
+		if (varnum != steadyVarNum[1]-1) priorityIsSteady = false;
 	}
 	void setZPriorityVarNum(int varnum){priorityVarNum[2] = varnum;
-		if (varnum != steadyVarNum[2]) priorityIsSteady = false;
+		if (varnum != steadyVarNum[2]-1) priorityIsSteady = false;
 	}
 	
 	void setPriorityMin(float val){priorityMin = val;}
@@ -322,8 +322,8 @@ public:
 	void setOpacMapEntity( int entityNum);
 	void setComboSteadyVarnum(int indx, int varnum){
 		comboSteadyVarNum[indx] = varnum;
-		if (priorityIsSteady) comboPriorityVarNum[indx] = varnum;
-		if (seedDistIsSteady) comboSeedDistVarNum[indx] = varnum;
+		if (priorityIsSteady && varnum >0) comboPriorityVarNum[indx] = varnum-1;
+		if (seedDistIsSteady && varnum >0) comboSeedDistVarNum[indx] = varnum-1;
 	}
 	int getComboSteadyVarnum(int indx) {return comboSteadyVarNum[indx];}
 	void setComboUnsteadyVarnum(int indx, int varnum){comboUnsteadyVarNum[indx] = varnum;}
