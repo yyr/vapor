@@ -255,7 +255,7 @@ void GLWindow::paintGL()
 	// Move to trackball view of scene  
 	glPushMatrix();
 	glLoadIdentity();
-	placeLights();
+	//placeLights();
 
 	getTBall()->TrackballSetMatrix();
 
