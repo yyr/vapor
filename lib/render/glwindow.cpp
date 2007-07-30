@@ -255,7 +255,7 @@ void GLWindow::paintGL()
 	// Move to trackball view of scene  
 	glPushMatrix();
 	glLoadIdentity();
-	//placeLights();
+	placeLights();
 
 	getTBall()->TrackballSetMatrix();
 
@@ -1694,6 +1694,7 @@ void GLWindow::placeLights(){
 		glLightfv(GL_LIGHT0, GL_SPECULAR, specLight);
 		glLightfv(GL_LIGHT0, GL_AMBIENT, ambColor);
 		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
+		//Following has unpleasant effects on flow line lighting
 		//glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 		
 		glEnable(GL_LIGHT0);
