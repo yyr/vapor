@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>437</width>
-            <height>2657</height>
+            <height>2661</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -829,6 +829,11 @@ rendering calculations.</string>
                                                         <widget class="QComboBox">
                                                             <item>
                                                                 <property name="text">
+                                                                    <string>0</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
                                                                     <string>N/A</string>
                                                                 </property>
                                                             </item>
@@ -856,6 +861,11 @@ rendering calculations.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QComboBox">
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>0</string>
+                                                                </property>
+                                                            </item>
                                                             <item>
                                                                 <property name="text">
                                                                     <string>N/A</string>
@@ -888,6 +898,11 @@ rendering calculations.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QComboBox">
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>0</string>
+                                                                </property>
+                                                            </item>
                                                             <item>
                                                                 <property name="text">
                                                                     <string>N/A</string>
@@ -1306,6 +1321,11 @@ factor appropriately.</string>
                                                         <widget class="QComboBox">
                                                             <item>
                                                                 <property name="text">
+                                                                    <string>0</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
                                                                     <string>N/A</string>
                                                                 </property>
                                                             </item>
@@ -1333,6 +1353,11 @@ factor appropriately.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QComboBox">
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>0</string>
+                                                                </property>
+                                                            </item>
                                                             <item>
                                                                 <property name="text">
                                                                     <string>N/A</string>
@@ -1365,6 +1390,11 @@ factor appropriately.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QComboBox">
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>0</string>
+                                                                </property>
+                                                            </item>
                                                             <item>
                                                                 <property name="text">
                                                                     <string>N/A</string>
