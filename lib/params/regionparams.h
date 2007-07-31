@@ -79,7 +79,7 @@ public:
 	static int getMBStorageNeeded(const float* boxMin, const float* boxMax, int refLevel);
 	// Reinitialize due to new Session:
 	bool reinit(bool doOverride);
-	void restart();
+	virtual void restart();
 	
 	XmlNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);

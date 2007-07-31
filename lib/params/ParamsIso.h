@@ -28,7 +28,7 @@
 
 #include "vapor/XmlNode.h"
 #include "vapor/ExpatParseMgr.h"
-#include "ParamsBase.h"
+#include "params.h"
 
 namespace VAPoR{
 
@@ -41,7 +41,7 @@ namespace VAPoR{
 //! \date    $Date$
 //!
 //! 
-class PARAMS_API ParamsIso : public ParamsBase {
+class PARAMS_API ParamsIso : public RenderParams {
 
 	
 public: 
@@ -58,7 +58,7 @@ public:
  //! This pure virtual method must be implented by the derived class to
  //! restore state to the default
  //
- virtual void ResetDefault();
+ virtual void restart();
 
  void SetIsoValue(double value);
  double GetIsoValue();

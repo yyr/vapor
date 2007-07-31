@@ -62,7 +62,7 @@ public:
  typedef void (*DiagMsgCB_T) (const char *msg);
 
  MyBase();
- const string &GetClassName() const {return (_className); };
+ const string &getClassName() const {return (_className); };
 
 
  //! Record a formatted error message. 

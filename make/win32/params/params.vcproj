@@ -162,9 +162,6 @@
 				RelativePath="..\..\..\lib\params\params.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\ParamsBase.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\lib\params\ParamsIso.cpp">
 			</File>
 			<File
@@ -225,9 +222,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\params.h">
-			</File>
-			<File
-				RelativePath="..\..\..\lib\params\ParamsBase.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\ParamsIso.h">

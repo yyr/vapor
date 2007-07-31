@@ -38,16 +38,16 @@ namespace {
 
 ParamsIso::ParamsIso(
 	XmlNode *parent
-) : ParamsBase(parent, IsoName) {
+) : RenderParams(parent, IsoName) {
 
-	ResetDefault();
+	restart();
 }
 
 
 ParamsIso::~ParamsIso() {}
 
 
-void ParamsIso::ResetDefault() {
+void ParamsIso::restart() {
 	SetIsoValue(1.0);
 	SetNormalOnOff(0);
 

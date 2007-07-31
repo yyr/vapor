@@ -45,7 +45,7 @@ WaveletBlock3DIO *varGetIO(
 	}
 
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) var->value.memint;
-	const string	&classname = io->GetClassName();
+	const string	&classname = io->getClassName();
 
 	if (! ((classname.compare("WaveletBlock3DBufReader") == 0) ||
 		(classname.compare("WaveletBlock3DRegionReader") == 0) ||
@@ -90,7 +90,7 @@ void vdcBufReaderDestroy(int argc, IDL_VPTR *argv)
 {
 
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
-	const string	&classname = io->GetClassName();
+	const string	&classname = io->getClassName();
 
 	if (! (classname.compare("WaveletBlock3DBufReader") == 0)) {
 		errFatal("Invalid VDC IO handle type for operation");
@@ -106,7 +106,7 @@ void vdcReadSlice(int argc, IDL_VPTR *argv)
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
 	IDL_VPTR	slice_var = argv[1];
 
-	const string	&classname = io->GetClassName();
+	const string	&classname = io->getClassName();
 
 	if (! (classname.compare("WaveletBlock3DBufReader") == 0)) {
 		errFatal("Invalid VDC IO handle type for operation");
@@ -166,7 +166,7 @@ IDL_VPTR vdcRegionReaderCreate(int argc, IDL_VPTR *argv)
 void vdcRegionReaderDestroy(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
-	const string	&classname = io->GetClassName();
+	const string	&classname = io->getClassName();
 
 	if (! (classname.compare("WaveletBlock3DRegionReader") == 0)) {
 		errFatal("Invalid VDC IO handle type for operation");
@@ -184,7 +184,7 @@ void vdcReadRegion(int argc, IDL_VPTR *argv)
 	IDL_VPTR max_var = IDL_BasicTypeConversion(1, &argv[2],IDL_TYP_LONG);
 	IDL_VPTR	region_var = argv[3];
 
-	const string	&classname = io->GetClassName();
+	const string	&classname = io->getClassName();
 
 	if (! (classname.compare("WaveletBlock3DRegionReader") == 0)) {
 		errFatal("Invalid VDC IO handle type for operation");
@@ -255,7 +255,7 @@ IDL_VPTR vdcRegionWriterCreate(int argc, IDL_VPTR *argv)
 void vdcRegionWriterDestroy(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
-	const string	&classname = io->GetClassName();
+	const string	&classname = io->getClassName();
 
 	if (! (classname.compare("WaveletBlock3DRegionWriter") == 0)) {
 		errFatal("Invalid VDC IO handle type for operation");
@@ -272,7 +272,7 @@ void vdcWriteRegion(int argc, IDL_VPTR *argv)
 	IDL_VPTR region_var = argv[1];
 	IDL_VPTR min_var = IDL_BasicTypeConversion(1, &argv[2],IDL_TYP_LONG);
 
-	const string	&classname = io->GetClassName();
+	const string	&classname = io->getClassName();
 
 	if (! (classname.compare("WaveletBlock3DRegionWriter") == 0)) {
 		errFatal("Invalid VDC IO handle type for operation");
@@ -337,7 +337,7 @@ IDL_VPTR vdcBufWriterCreate(int argc, IDL_VPTR *argv)
 void vdcBufWriterDestroy(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
-	const string	&classname = io->GetClassName();
+	const string	&classname = io->getClassName();
 
 	if (! (classname.compare("WaveletBlock3DBufWriter") == 0)) {
 		errFatal("Invalid VDC IO handle type for operation");
@@ -353,7 +353,7 @@ void vdcWriteSlice(int argc, IDL_VPTR *argv)
 	WaveletBlock3DIO	*io = (WaveletBlock3DIO *) varGetIO(argv[0]);
 	IDL_VPTR	slice_var = argv[1];
 
-	const string	&classname = io->GetClassName();
+	const string	&classname = io->getClassName();
 
 	if (! (classname.compare("WaveletBlock3DBufWriter") == 0)) {
 		errFatal("Invalid VDC IO handle type for operation");
@@ -383,7 +383,7 @@ void vdcOpenVarRead(int argc, IDL_VPTR *argv)
 	char *varname = IDL_VarGetString(argv[2]);
 	IDL_LONG reflevel = IDL_LongScalar(argv[3]);
 
-	const string &classname = io->GetClassName();
+	const string &classname = io->getClassName();
 	if (classname.compare("WaveletBlock3DBufReader") == 0) { 
 		WaveletBlock3DBufReader *reader = (WaveletBlock3DBufReader *) io;
 		reader->OpenVariableRead((size_t) ts, varname, reflevel);
@@ -408,7 +408,7 @@ void vdcOpenVarWrite(int argc, IDL_VPTR *argv)
 		reflevel = IDL_LongScalar(argv[3]);
 	}
 
-	const string	&classname = io->GetClassName();
+	const string	&classname = io->getClassName();
 
 
 	if (classname.compare("WaveletBlock3DBufWriter") == 0) {
@@ -431,7 +431,7 @@ void vdcCloseVar(int argc, IDL_VPTR *argv)
 {
 	WaveletBlock3DIO	*io = varGetIO(argv[0]);
 
-	const string &classname = io->GetClassName();
+	const string &classname = io->getClassName();
 	if (classname.compare("WaveletBlock3DBufReader") == 0) { 
 		WaveletBlock3DBufReader *obj = (WaveletBlock3DBufReader *) io;
 		obj->CloseVariable();

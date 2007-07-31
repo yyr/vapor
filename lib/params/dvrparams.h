@@ -151,7 +151,7 @@ public:
 	int checkNumRefinements(int num) {return num;}
 	//Implement virtual function to deal with new session:
 	bool reinit(bool doOverride);
-	void restart();
+	virtual void restart();
 	XmlNode* buildNode(); 
 	bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/);
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
