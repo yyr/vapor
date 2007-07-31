@@ -64,13 +64,7 @@ const int MAX_WRF_TS = 1000; // Maximum number of time steps you think
 //
 struct opt_t {
 	vector<string> varnames;
-	OptionParser::Boolean_T phnorm;
-	OptionParser::Boolean_T wind3d;
-	OptionParser::Boolean_T wind2d;
-	OptionParser::Boolean_T pfull;
-	OptionParser::Boolean_T pnorm;
-	OptionParser::Boolean_T theta;
-	OptionParser::Boolean_T tk;
+	vector<string> dervars;
 	int tsincr;
 	char * tsstart;
 	char * tsend;
@@ -81,34 +75,22 @@ struct opt_t {
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"varnames",	1, 	"novars",	"Name of variable in metadata"},
-	{"phnorm",0,	"", "Add normalized geopotential (PH+PHB)/PHB to VDC"},
-	{"wind3d",  0,  "", "Add 3D wind speed=(U^2+V^2+W^2)^1/2 to VDC"},
-	{"wind2d",  0,  "", "Add 2D wind speed=(U^2+V^2)^1/2 to VDC"},
-	{"pfull",	0,	"",	"Add full pressure=P+PB to VDC"},
-	{"pnorm",	0,	"",	"Add normalized pressure=(P+PB)/PB to VDC"},
-	{"theta",	0,	"",	"Add Theta=T+300 to VDC"},
-	{"tk",		0,	"",	"Add temperature in Kelvin=0.037*Theta*P_full^0.29\n\t\t\t\tto VDC"},
-	{"tsincr",	1,	"1","Increment between Vapor times steps to convert\n\t\t\t\t(e.g., 3=every third)"},
+	{"varnames",1, 	"novars",	"Colon delimited list of variable names in\n\t\t\t\tmetadata to convert"},
+	{"dervars",	1,	"nodervars","Colon delimited list of derived variables\n\t\t\t\tto convert.  Choices are:\n\t\t\t\tphnorm: normalized geopotential (PH+PHB)/PHB\n\t\t\t\twind3d: 3D wind speed (U^2+V^2+W^2)^1/2\n\t\t\t\twind2d: 2D wind speed (U^2+V^2)^1/2\n\t\t\t\tpfull: full pressure P+PB\n\t\t\t\tpnorm: normalized pressure (P+PB)/PB\n\t\t\t\ttheta: potential temperature T+300\n\t\t\t\ttk: temp. in Kelvin 0.037*Theta*P_full^0.29"},
+	{"tsincr",	1,	"1","Increment between Vapor times steps to convert\n\t\t\t\t(e.g., 3=every third), from Vapor time step 0"},
 	{"tsstart", 1,  "???????", "Starting time stamp for conversion (default is\n\t\t\t\tfound in VDF"},
 	{"tsend",	1,  "9999-12-31_23:59:59", "Last time stamp to convert (default is latest\n\t\t\t\ttime stamp)"},
 	{"level",	1, 	"-1","Refinement levels saved. 0=>coarsest, 1=>next\n\t\t\t\trefinement, etc. -1=>finest"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
-	{"quiet",	0,	"",	"Operate quietly (outputs only lowest vertical\n\t\t\t\textents)"},
+	{"quiet",	0,	"",	"Operate quietly (outputs only vertical extents\n\t\t\t\tthat are lower than those in the VDF)"},
 	{NULL}
 };
 
 
 OptionParser::Option_T	get_options[] = {
 	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
-	{"phnorm", VetsUtil::CvtToBoolean,&opt.phnorm, sizeof(opt.phnorm)},
-	{"wind3d", VetsUtil::CvtToBoolean, &opt.wind3d, sizeof(opt.wind3d)},
-	{"wind2d", VetsUtil::CvtToBoolean, &opt.wind2d, sizeof(opt.wind2d)},
-	{"pfull", VetsUtil::CvtToBoolean, &opt.pfull, sizeof(opt.pfull)},
-	{"pnorm", VetsUtil::CvtToBoolean, &opt.pnorm, sizeof(opt.pnorm)},
-	{"theta", VetsUtil::CvtToBoolean, &opt.theta, sizeof(opt.theta)},
-	{"tk", VetsUtil::CvtToBoolean, &opt.tk, sizeof(opt.tk)},
+	{"dervars", VetsUtil::CvtToStrVec, &opt.dervars, sizeof(opt.dervars)},
 	{"tsincr", VetsUtil::CvtToInt, &opt.tsincr, sizeof(opt.tsincr)},
 	{"tsstart", VetsUtil::CvtToString, &opt.tsstart, sizeof(opt.tsstart)},
 	{"tsend", VetsUtil::CvtToString, &opt.tsend, sizeof(opt.tsend)},
@@ -924,7 +906,8 @@ void DoGeopotStuff(
 				   const char * metafile, // Path and file name of VDF
 				   int ndims, // Number of dimensions in netCDF file
 				   const size_t * dim, // Dimensions of VDF
-				   float * newExts // Array for lowest extents
+				   float * newExts, // Array for lowest extents
+				   bool wantPhnorm // True if you want to output PH_norm, false otherwise
         	       )
 {
 	size_t phIndex, phbIndex; // Indices of desiredVars corresponding to PH and PHB variables
@@ -992,7 +975,7 @@ void DoGeopotStuff(
 	// For normalized geopotential (if desired)
 	WaveletBlock3DIO	*geopnormWriter;
 	WaveletBlock3DBufWriter *geopnormBufWriter;
-	if ( opt.phnorm )
+	if ( wantPhnorm )
 		MakeWritersOpen( geopnormWriter, geopnormBufWriter, aVaporTs, "PH_norm", metafile );
 	// For PH (if desired)
 	WaveletBlock3DIO	*phWriter;
@@ -1033,7 +1016,7 @@ void DoGeopotStuff(
 		elevBufWriter->WriteSlice( workBuffer );
 				
 		// Find and write normalized geopotential, if desired
-		if ( opt.phnorm )
+		if ( wantPhnorm )
 		{
 			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
 				workBuffer[i] *= 9.81/phbBuffer[i];
@@ -1044,7 +1027,7 @@ void DoGeopotStuff(
 
 	// Close the variables. We're done writing.
 	CloseVar( elevWriter );
-	if ( opt.phnorm )
+	if ( wantPhnorm )
 		CloseVar( geopnormWriter );
 	if ( wantPh )
 		CloseVar( phWriter );
@@ -1080,7 +1063,9 @@ void DoWindSpeed(
 				               	    // in desiredVars) still needs to be written
 				const char * metafile, // Path and file name of VDF
 				int ndims, // Number of dimensions in netCDF file
-				const size_t * dim // Dimensions of VDF
+				const size_t * dim, // Dimensions of VDF
+				bool wantWind2d, // True if you want to output 2D wind speed, false otherwise
+				bool wantWind3d // True if you want to output 3D wind speed, false otherwise
 				)
 {
 	bool wantU = false; // Whether or not user wants to convert these quantities
@@ -1125,19 +1110,19 @@ void DoWindSpeed(
 
 	// Even if user doesn't want to convert U, V, and W, we still need to know
 	// them in order to find wind speed
-	if ( !wantU && (opt.wind2d || opt.wind3d) )
+	if ( !wantU && (wantWind2d || wantWind3d) )
 	{
 		uInfoTemp.name = "U";
 		GetVarInfo( ncid, ndims, uInfoTemp, dim );
 		uInfoPtr = &uInfoTemp;
 	}
-	if ( !wantV && (opt.wind2d || opt.wind3d) )
+	if ( !wantV && (wantWind2d || wantWind3d) )
 	{
 		vInfoTemp.name = "V";
 		GetVarInfo( ncid, ndims, vInfoTemp, dim );
 		vInfoPtr = &vInfoTemp;
 	}
-	if ( !wantW && opt.wind3d ) // Only need W for 3D wind speed
+	if ( !wantW && wantWind3d ) // Only need W for 3D wind speed
 	{
 		wInfoTemp.name = "W";
 		GetVarInfo( ncid, ndims, wInfoTemp, dim );
@@ -1154,25 +1139,25 @@ void DoWindSpeed(
 	float * workBuffer = 0;
 
 	// Allocate arrays
-	if ( wantU || opt.wind2d || opt.wind3d )
+	if ( wantU || wantWind2d || wantWind3d )
 	{
 		uBuffer = new float[(*uInfoPtr).sliceSize];
 		if ( (*uInfoPtr).stag[2] )
 			uBufferAbove = new float[(*uInfoPtr).sliceSize];
 	}
-	if ( wantV || opt.wind2d || opt.wind3d )
+	if ( wantV || wantWind2d || wantWind3d )
 	{
 		vBuffer = new float[(*vInfoPtr).sliceSize];
 		if ( (*vInfoPtr).stag[2] )
 			vBufferAbove = new float[(*vInfoPtr).sliceSize];
 	}
-	if ( wantW || opt.wind3d )
+	if ( wantW || wantWind3d )
 	{
 		wBuffer = new float[(*wInfoPtr).sliceSize];
 		if ( (*wInfoPtr).stag[2] )
 			wBufferAbove = new float[(*wInfoPtr).sliceSize];
 	}
-	if ( opt.wind2d || opt.wind3d )
+	if ( wantWind2d || wantWind3d )
 		workBuffer = new float[(dim[0]*dim[1])];
 
 	// Create stuff we need for writing data
@@ -1194,12 +1179,12 @@ void DoWindSpeed(
 	// For 2D wind (if desired)
 	WaveletBlock3DIO	*wind2dWriter;
 	WaveletBlock3DBufWriter *wind2dBufWriter;
-	if ( opt.wind2d )
+	if ( wantWind2d )
 		MakeWritersOpen( wind2dWriter, wind2dBufWriter, aVaporTs, "Wind_UV", metafile );
 	// For 3D wind (if desired)
 	WaveletBlock3DIO	*wind3dWriter;
 	WaveletBlock3DBufWriter *wind3dBufWriter;
-	if ( opt.wind3d )
+	if ( wantWind3d )
 		MakeWritersOpen( wind3dWriter, wind3dBufWriter, aVaporTs, "Wind_UVW", metafile );
 
 	// Switches to prevent redundant reads in case of vertical staggering
@@ -1211,11 +1196,11 @@ void DoWindSpeed(
 	for ( size_t z = 0 ; z < dim[2] ; z++ )
 	{
 		// Read (if desired or needed)
-		if ( wantU || opt.wind2d || opt.wind3d )
+		if ( wantU || wantWind2d || wantWind3d )
 			GetZSlice( ncid, (*uInfoPtr), wrfT, z, uBuffer, uBufferAbove, needAnotherU, dim );
-		if ( wantV || opt.wind2d || opt.wind3d )
+		if ( wantV || wantWind2d || wantWind3d )
 			GetZSlice( ncid, (*vInfoPtr), wrfT, z, vBuffer, vBufferAbove, needAnotherV, dim );
-		if ( wantW || opt.wind3d )
+		if ( wantW || wantWind3d )
 			GetZSlice( ncid, (*wInfoPtr), wrfT, z, wBuffer, wBufferAbove, needAnotherW, dim );
 		
 		// Write U, V, W (if desired)
@@ -1227,20 +1212,20 @@ void DoWindSpeed(
 			wBufWriter->WriteSlice( wBuffer );
 
 		// Calculate and write 2D wind (if desired or needed)
-		if ( opt.wind2d )
+		if ( wantWind2d )
 		{
 			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
 				workBuffer[i] = sqrt( uBuffer[i]*uBuffer[i] + vBuffer[i]*vBuffer[i] );
 			wind2dBufWriter->WriteSlice( workBuffer );
 		}
 		// Calculate and write 3D wind (if desired)
-		if ( opt.wind2d && opt.wind3d ) // Maybe a hair faster
+		if ( wantWind2d && wantWind3d ) // Maybe a hair faster
 		{
 			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
 				workBuffer[i] = sqrt( workBuffer[i]*workBuffer[i] + wBuffer[i]*wBuffer[i] );
 			wind3dBufWriter->WriteSlice( workBuffer );
 		}
-		if ( opt.wind3d && !opt.wind2d )
+		if ( wantWind3d && !wantWind2d )
 		{
 			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
 				workBuffer[i] = sqrt( uBuffer[i]*uBuffer[i] + vBuffer[i]*vBuffer[i] + wBuffer[i]*wBuffer[i] );
@@ -1264,29 +1249,29 @@ void DoWindSpeed(
 		CloseVar( wWriter );
 		stillNeeded[wIndex] = false;
 	}
-	if ( opt.wind2d )
+	if ( wantWind2d )
 		CloseVar( wind2dWriter );
-	if ( opt.wind3d )
+	if ( wantWind3d )
 		CloseVar( wind3dWriter );
-	if ( wantU || opt.wind2d || opt.wind3d )
+	if ( wantU || wantWind2d || wantWind3d )
 	{
 		delete [] uBuffer;
 		if ( (*uInfoPtr).stag[2] )
 			delete uBufferAbove;
 	}
-	if ( wantV || opt.wind2d || opt.wind3d )
+	if ( wantV || wantWind2d || wantWind3d )
 	{
 		delete [] vBuffer;
 		if ( (*vInfoPtr).stag[2] )
 			delete [] vBufferAbove;
 	}
-	if ( wantW || opt.wind3d )
+	if ( wantW || wantWind3d )
 	{
 		delete [] wBuffer;
 		if ( (*wInfoPtr).stag[2] )
 			delete [] wBufferAbove;
 	}
-	if ( opt.wind2d || opt.wind3d )
+	if ( wantWind2d || wantWind3d )
 		delete [] workBuffer;
 }
 
@@ -1307,7 +1292,11 @@ void DoPTStuff(
 				               	    // in desiredVars) still needs to be written
 				const char * metafile, // Path and file name of VDF
 				int ndims, // Number of dimensions in netCDF file
-				const size_t * dim // Dimensions of VDF
+				const size_t * dim, // Dimensions of VDF
+				bool wantPfull, // True if user wants P_full output, false otherwise
+				bool wantPnorm, // ...likewise
+				bool wantTheta,
+				bool wantTk
 				)
 {
 	bool wantP = false; // Will hold whether or not user wants these converted
@@ -1348,19 +1337,19 @@ void DoPTStuff(
 		// already have such info
 
 	// Even if user doesn't want P, PB, T, we may still need them
-	if ( !wantP && (opt.pfull || opt.pnorm || opt.tk) )
+	if ( !wantP && (wantPfull || wantPnorm || wantTk) )
 	{
 		pTempInfo.name = "P";
 		GetVarInfo( ncid, ndims, pTempInfo, dim );
 		pInfoPtr = &pTempInfo;
 	}
-	if ( !wantPb && (opt.pfull || opt.pnorm || opt.tk) )
+	if ( !wantPb && (wantPfull || wantPnorm || wantTk) )
 	{
 		pbTempInfo.name = "PB";
 		GetVarInfo( ncid, ndims, pbTempInfo, dim );
 		pbInfoPtr = &pbTempInfo;
 	}
-	if ( !wantT && (opt.theta || opt.tk) )
+	if ( !wantT && (wantTheta || wantTk) )
 	{
 		tTempInfo.name = "T";
 		GetVarInfo( ncid, ndims, tTempInfo, dim );
@@ -1377,25 +1366,25 @@ void DoPTStuff(
 	float * workBuffer = 0;
 
 	// Allocate arrays
-	if ( wantP || opt.pfull || opt.pnorm || opt.tk )
+	if ( wantP || wantPfull || wantPnorm || wantTk )
 	{
 		pBuffer = new float[(*pInfoPtr).sliceSize];
 		if ( (*pInfoPtr).stag[2] )
 			pBufferAbove = new float[(*pInfoPtr).sliceSize];
 	}
-	if ( wantPb || opt.pfull || opt.pnorm || opt.tk )
+	if ( wantPb || wantPfull || wantPnorm || wantTk )
 	{
 		pbBuffer = new float[(*pbInfoPtr).sliceSize];
 		if ( (*pbInfoPtr).stag[2] )
 			pbBufferAbove = new float[(*pbInfoPtr).sliceSize];
 	}
-	if ( wantT || opt.theta || opt.tk )
+	if ( wantT || wantTheta || wantTk )
 	{
 		tBuffer = new float[(*tInfoPtr).sliceSize];
 		if ( (*tInfoPtr).stag[2] )
 			tBufferAbove = new float[(*tInfoPtr).sliceSize];
 	}
-	if ( opt.pfull || opt.pnorm || opt.theta || opt.tk )
+	if ( wantPfull || wantPnorm || wantTheta || wantTk )
 		workBuffer = new float[dim[0]*dim[1]];
 
 	// Create whatever writers we may need
@@ -1417,22 +1406,22 @@ void DoPTStuff(
 	// For P_full
 	WaveletBlock3DIO	*pfullWriter;
 	WaveletBlock3DBufWriter *pfullBufWriter;
-	if ( opt.pfull )
+	if ( wantPfull )
 		MakeWritersOpen( pfullWriter, pfullBufWriter, aVaporTs, "P_full", metafile );
 	// For P_norm
 	WaveletBlock3DIO	*pnormWriter;
 	WaveletBlock3DBufWriter *pnormBufWriter;
-	if ( opt.pnorm )
+	if ( wantPnorm )
 		MakeWritersOpen( pnormWriter, pnormBufWriter, aVaporTs, "P_norm", metafile );
 	// For Theta
 	WaveletBlock3DIO	*thetaWriter;
 	WaveletBlock3DBufWriter *thetaBufWriter;
-	if ( opt.theta )
+	if ( wantTheta )
 		MakeWritersOpen( thetaWriter, thetaBufWriter, aVaporTs, "Theta", metafile );
 	// For TK
 	WaveletBlock3DIO	*tkWriter;
 	WaveletBlock3DBufWriter *tkBufWriter;
-	if ( opt.tk )
+	if ( wantTk )
 		MakeWritersOpen( tkWriter, tkBufWriter, aVaporTs, "TK", metafile );
 
 	// Switches to prevent redundant reads in the case of vertical staggering
@@ -1444,11 +1433,11 @@ void DoPTStuff(
 	for ( size_t z = 0 ; z < dim[2] ; z++ )
 	{
 		// Read
-		if ( wantP || opt.pfull || opt.pnorm || opt.tk )
+		if ( wantP || wantPfull || wantPnorm || wantTk )
 			GetZSlice( ncid, (*pInfoPtr), wrfT, z, pBuffer, pBufferAbove, needAnotherP, dim );
-		if ( wantPb || opt.pfull || opt.pnorm || opt.tk )
+		if ( wantPb || wantPfull || wantPnorm || wantTk )
 			GetZSlice( ncid, (*pbInfoPtr), wrfT, z, pbBuffer, pbBufferAbove, needAnotherPb, dim );
-		if ( wantT || opt.theta || opt.tk )
+		if ( wantT || wantTheta || wantTk )
 			GetZSlice( ncid, (*tInfoPtr), wrfT, z, tBuffer, tBufferAbove, needAnotherT, dim );
 		// Write out any desired WRF variables
 		if ( wantP )
@@ -1458,34 +1447,34 @@ void DoPTStuff(
 		if ( wantT )
 			tBufWriter->WriteSlice( tBuffer );
 		// Find and write Theta (if desired)
-		if ( opt.theta )
+		if ( wantTheta )
 		{
 			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
 				workBuffer[i] = tBuffer[i] + 300.0;
 			thetaBufWriter->WriteSlice( workBuffer );
 		}
 		// Find and write P_norm (if desired)
-		if ( opt.pnorm )
+		if ( wantPnorm )
 		{
 			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
 				workBuffer[i] = pBuffer[i]/pbBuffer[i] + 1.0;
 			pnormBufWriter->WriteSlice( workBuffer );
 		}
 		// Find and write P_full (if desired)
-		if ( opt.pfull && opt.pnorm)
+		if ( wantPfull && wantPnorm)
 		{
 			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
 				workBuffer[i] *= pbBuffer[i];
 			pfullBufWriter->WriteSlice( workBuffer );
 		}
-		if ( opt.pfull && !opt.pnorm )
+		if ( wantPfull && !wantPnorm )
 		{
 			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
 				workBuffer[i] = pBuffer[i] + pbBuffer[i];
 			pfullBufWriter->WriteSlice( workBuffer );
 		}
 		// Find and write TK (if desired).  Forget optimizations.
-		if ( opt.tk )
+		if ( wantTk )
 		{	
 			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
 				workBuffer[i] = 0.03719785781*(tBuffer[i] + 300.0)
@@ -1495,25 +1484,25 @@ void DoPTStuff(
 	}
 
 	// Cleanup
-	if ( wantP || opt.pfull || opt.pnorm || opt.tk )
+	if ( wantP || wantPfull || wantPnorm || wantTk )
 	{
 		delete [] pBuffer;
 		if ( (*pInfoPtr).stag[2] )
 			delete [] pBufferAbove;
 	}
-	if ( wantPb || opt.pfull || opt.pnorm || opt.tk )
+	if ( wantPb || wantPfull || wantPnorm || wantTk )
 	{
 		delete [] pbBuffer;
 		if ( (*pbInfoPtr).stag[2] )
 			delete [] pbBufferAbove;
 	}
-	if ( wantT || opt.theta || opt.tk )
+	if ( wantT || wantTheta || wantTk )
 	{
 		delete [] tBuffer;
 		if ( (*tInfoPtr).stag[2] )
 			delete tBufferAbove;
 	}
-	if ( opt.pfull || opt.pnorm || opt.theta || opt.tk )
+	if ( wantPfull || wantPnorm || wantTheta || wantTk )
 		delete [] workBuffer;
 	if ( wantP )
 	{
@@ -1531,13 +1520,13 @@ void DoPTStuff(
 		CloseVar( tWriter );
 		stillNeeded[tIndex] = false;
 	}
-	if ( opt.pfull )
+	if ( wantPfull )
 		CloseVar( pfullWriter );
-	if ( opt.pnorm )
+	if ( wantPnorm )
 		CloseVar( pnormWriter );
-	if ( opt.theta )
+	if ( wantTheta )
 		CloseVar( thetaWriter );
-	if ( opt.tk )
+	if ( wantTk )
 		CloseVar( tkWriter );
 }
 
@@ -1582,13 +1571,22 @@ int	main(int argc, char **argv) {
 	
 	metafile = argv[1];	// Path to a vdf file
 	netCDFfile = argv[2];	// Path to netCDF data file
+
+	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
+
+	WaveletBlock3DIO	*wbwriter;
+	wbwriter = new WaveletBlock3DBufWriter(metafile, 0);
+	if (wbwriter->GetErrCode() != 0) {
+		cerr << ProgName << " : " << wbwriter->GetErrMsg() << endl;
+		exit(1);
+	}
 	
 	int ncid; // Holds file ID of netCDF file
 	int ndims; // Holds number of dimensions in netCDF file
 	size_t howManyTimes; // Number of time steps in the WRF file
 	size_t vaporTs[MAX_WRF_TS]; // Holds corresponding Vapor time steps
 	bool tsOk[MAX_WRF_TS]; // Says whether or not to convert a time step
-	long minDeltaT = 21600; // Minimum WRF physical timestep for output
+	long minDeltaT = 0; // Minimum WRF physical timestep for output
 	char * tsNaught = new char[20]; // WRF time stamp corresponding to Vapor's step 0
 	char * startTime = new char[20];
 	char * endTime = new char[20];
@@ -1598,12 +1596,6 @@ int	main(int argc, char **argv) {
 	
 	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
-	WaveletBlock3DIO	*wbwriter;
-	wbwriter = new WaveletBlock3DBufWriter(metafile, 0);
-	if (wbwriter->GetErrCode() != 0) {
-		cerr << ProgName << " : " << wbwriter->GetErrMsg() << endl;
-		exit(1);
-	}
 	// Must typecast wbwriter so that we can use it for writing
 	WaveletBlock3DBufWriter *bufwriter;
 	bufwriter = (WaveletBlock3DBufWriter *) wbwriter;
@@ -1649,7 +1641,38 @@ int	main(int argc, char **argv) {
 			GetVarInfo( ncid, ndims, theVars[i], dim );
 	}
 
-	TIMER_START(t0);
+	// Decide what derived variables we want
+	bool wantPfull = false;
+	bool wantPnorm = false;
+	bool wantPhnorm = false;
+	bool wantTheta = false;
+	bool wantTk = false;
+	bool wantWind3d = false;
+	bool wantWind2d = false;
+	for ( int i = 0 ; i < opt.dervars.size() ; i++ )
+	{
+		if ( opt.dervars[i] == "pfull" )
+			wantPfull = true;
+		else if ( opt.dervars[i] == "pnorm" )
+			wantPnorm = true;
+		else if ( opt.dervars[i] == "phnorm" )
+			wantPhnorm = true;
+		else if ( opt.dervars[i] == "theta" )
+			wantTheta = true;
+		else if ( opt.dervars[i] == "tk" )
+			wantTk = true;
+		else if ( opt.dervars[i] == "wind2d" )
+			wantWind2d = true;
+		else if ( opt.dervars[i] == "wind3d" )
+			wantWind3d = true;
+		else if ( opt.dervars[i] == "nodervars" ) // Default
+			continue;
+		else
+		{
+			fprintf( stderr, "Invalid derived variable\n" );
+			exit( 1 );
+		}
+	}
 
 	// Allocate space for variables
 	float * fBuffer = new float[(dim[0] + 1)*(dim[1] + 1)];
@@ -1663,9 +1686,10 @@ int	main(int argc, char **argv) {
 		}
 	}
 
-	// Array to hold bottom of layers (for changing extents).  Set to
-	// initial values that are sure to be changed.
-	float newExts[] = { 400000, 400000 };
+	// Get extents from VDF so that we know if we need to advise the
+	// user to change them
+	const vector<double> exts = metadata->GetExtents();
+	float newExts[] = { exts[2], exts[5] };
 
 	// Convert data for all time steps that we're supposed to
 	for ( size_t wrfT = 0 ; wrfT < howManyTimes ; wrfT++ )
@@ -1680,13 +1704,16 @@ int	main(int argc, char **argv) {
 			stillNeeded[i] = true;
 
 		// Find elevation and do all the geopotential stuff
-		DoGeopotStuff( ncid, theVars, vaporTs[wrfT], wrfT, stillNeeded, metafile, ndims, dim, newExts );
+		DoGeopotStuff( ncid, theVars, vaporTs[wrfT], wrfT, stillNeeded,
+					   metafile, ndims, dim, newExts, wantPhnorm );
 		// Find wind speeds, if necessary
-		if ( opt.wind2d || opt.wind3d )
-			DoWindSpeed( ncid, theVars, vaporTs[wrfT], wrfT, stillNeeded, metafile, ndims, dim );
+		if ( wantWind2d || wantWind3d )
+			DoWindSpeed( ncid, theVars, vaporTs[wrfT], wrfT, stillNeeded,
+						 metafile, ndims, dim, wantWind2d, wantWind3d );
 		// Find P- or T-related derived variables, if necessary
-		if ( opt.theta || opt.tk || opt.pnorm || opt.pfull )
-			DoPTStuff( ncid, theVars, vaporTs[wrfT], wrfT, stillNeeded, metafile, ndims, dim );
+		if ( wantTheta || wantTk || wantPnorm || wantPfull )
+			DoPTStuff( ncid, theVars, vaporTs[wrfT], wrfT, stillNeeded, metafile, 
+					   ndims, dim, wantPfull, wantPnorm, wantTheta, wantTk );
 
 		// If we don't want any WRF variables, we're done
 		if ( strcmp( opt.varnames[0].c_str(), "novars" ) == 0 )
@@ -1719,21 +1746,6 @@ int	main(int argc, char **argv) {
 			}
 		}
 	}
-
-	//TIMER_STOP(t0,timer);
-
-	// Timings have become inaccurate due to revisions
-	/*if (! opt.quiet) {
-		float	write_timer = wbwriter->GetWriteTimer();
-		float	xform_timer = wbwriter->GetXFormTimer();
-		const float *range = wbwriter->GetDataRange();
-
-		fprintf(stdout, "read time : %f\n", read_timer);
-		fprintf(stdout, "write time : %f\n", write_timer);
-		fprintf(stdout, "transform time : %f\n", xform_timer);
-		fprintf(stdout, "total transform time : %f\n", timer);
-		fprintf(stdout, "min and max values of data output: %g, %g\n",range[0], range[1]);
-	}*/
 
 	// For pre-version 2 vdf files we need to write out the updated metafile. 
 	// If we don't call this then
