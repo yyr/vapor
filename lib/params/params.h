@@ -236,13 +236,13 @@ protected:
 	ParamType thisParamType;
 	
 	
-private:
+
 	//inserted from J. Clyne's ParamsBase.h, so
 	//that params class now supports ParamsBase functionality:
- ParamNode *_currentParamNode;
- ParamNode *_rootParamNode;
+	ParamNode *_currentParamNode;
+	ParamNode *_rootParamNode;
 
- int _parseDepth;
+	int _parseDepth;
 
 
 protected:

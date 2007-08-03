@@ -177,6 +177,16 @@ void IsoEventRouter::updateTab(){
 	lightingCheckbox->setChecked(isoParams->GetNormalOnOff());
 	histoScaleEdit->setText(QString::number(isoParams->GetHistoStretch()));
 	isoValueEdit->setText(QString::number(isoParams->GetIsoValue()));
+	const vector<double>& coords = isoParams->GetSelectedPoint();
+	const float* bnds = isoParams->GetHistoBounds();
+	const float* clr = isoParams->GetConstantColor();
+	leftHistoEdit->setText(QString::number(bnds[0]));
+	rightHistoEdit->setText(QString::number(bnds[1]));
+	constantOpacityEdit->setText(QString::number(clr[3]));
+	selectedXEdit->setText(QString::number(coords[0]));
+	selectedYEdit->setText(QString::number(coords[1]));
+	selectedZEdit->setText(QString::number(coords[2]));
+	constantColorButton->setPaletteBackgroundColor(QColor((int)(.5+clr[0]*255.),(int)(.5+clr[1]*255.),(int)(.5+clr[2]*255.)));
 
 	update();
 	guiSetTextChanged(false);
@@ -231,18 +241,6 @@ setIsoNavigateMode(bool mode){
 	editMode = !mode;
 }
 void IsoEventRouter::guiChangeInstance(int newCurrent){
-	
-	//
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	int numInst = vizMgr->getNumIsoInstances(winnum);
-	for (int i = 0; i< numInst; i++){
-		//If another instance is enabled, 
-		//then enable newCurrent (which will disable the other one)
-		if (vizMgr->getIsoParams(winnum, i)->isEnabled() && 
-			i != newCurrent)
-			setIsoEnabled(true, newCurrent);
-	}
 	performGuiChangeInstance(newCurrent);
 }
 void IsoEventRouter::guiNewInstance(){

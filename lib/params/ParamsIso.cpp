@@ -252,6 +252,14 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
  
 RenderParams* ParamsIso::deepRCopy(){
 	ParamsIso* newParams = new ParamsIso(*this);
+	// Need to clone the xmlnode; 
+	if (_rootParamNode) newParams->_rootParamNode = new ParamNode(*_rootParamNode);
+	//Probably these are always the same when we clone...
+	assert(_rootParamNode == _currentParamNode);
+	if (_rootParamNode == _currentParamNode)
+		newParams->_currentParamNode = newParams->_rootParamNode;
+	else newParams->_currentParamNode = new ParamNode(*_currentParamNode);
+	
 	return (RenderParams*)newParams;
 }
 
