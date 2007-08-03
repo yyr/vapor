@@ -24,11 +24,13 @@
 #include "vizwin.h"
 #include <qcolor.h>
 #include "dvrparams.h"
+#include "ParamsIso.h"
 #include "animationeventrouter.h"
 #include "viewpointeventrouter.h"
 #include "regioneventrouter.h"
 #include "floweventrouter.h"
 #include "dvreventrouter.h"
+#include "isoeventrouter.h"
 #include "probeeventrouter.h"
 using namespace VAPoR;
 VizActivateCommand::VizActivateCommand(VizWin* win, int prevViz, int nextViz, Command::activateType t){
@@ -38,6 +40,7 @@ VizActivateCommand::VizActivateCommand(VizWin* win, int prevViz, int nextViz, Co
 	regionParams=0;
 	vpParams = 0;
 	dvrParamsList.clear();
+	isoParamsList.clear();
 	probeParamsList.clear();
 	flowParamsList.clear();
 	animationParams = 0;
@@ -75,6 +78,7 @@ VizActivateCommand::~VizActivateCommand(){
 	for (unsigned int i = 0; i<dvrParamsList.size(); i++) delete dvrParamsList[i];
 	for (unsigned int i = 0; i<flowParamsList.size(); i++) delete flowParamsList[i];
 	for (unsigned int i = 0; i<probeParamsList.size(); i++) delete probeParamsList[i];
+	for (unsigned int i = 0; i<isoParamsList.size(); i++) delete isoParamsList[i];
 
 	if (regionParams) delete regionParams;
 	if (vpParams) delete vpParams;
@@ -94,6 +98,7 @@ void VizActivateCommand::unDo(){
 			//first disconnect the visualizer from the current panels 
 			
 			vizWinMgr->getAllDvrParams(currentActiveViznum).clear();
+			vizWinMgr->getAllIsoParams(currentActiveViznum).clear();
 			vizWinMgr->getAllFlowParams(currentActiveViznum).clear();
 			vizWinMgr->getAllProbeParams(currentActiveViznum).clear();
 
@@ -132,6 +137,11 @@ void VizActivateCommand::unDo(){
 			for (unsigned int inst = 1; inst < dvrParamsList.size(); inst++){
 				vizWinMgr->getDvrRouter()->makeCurrent(0, dvrParamsList[inst], true, inst);
 			}
+			vizWinMgr->getIsoRouter()->makeCurrent(vizWinMgr->getIsoParams(currentActiveViznum,0),
+					isoParamsList[0], true, 0);
+			for (unsigned int inst = 1; inst < isoParamsList.size(); inst++){
+				vizWinMgr->getIsoRouter()->makeCurrent(0, isoParamsList[inst], true, inst);
+			}
 			vizWinMgr->getProbeRouter()->makeCurrent(vizWinMgr->getProbeParams(currentActiveViznum,0),
 					probeParamsList[0], true, 0);
 			for (unsigned int inst = 1; inst < probeParamsList.size(); inst++){
@@ -167,14 +177,7 @@ void VizActivateCommand::reDo(){
 			//Note that normally killing a viz has the side-effect of deleting its params.
 			//Therefore we need to disconnect the params in the state before killViz
 			//This maybe wrong--why shouldn't we delete the params???
-		/*  Don't set the params to 0...
-			vizWinMgr->setDvrParams(lastActiveViznum, 0);
-			vizWinMgr->setFlowParams(lastActiveViznum, 0);
-			vizWinMgr->setProbeParams(lastActiveViznum, 0);
-			vizWinMgr->setRegionParams(lastActiveViznum, 0);
-			vizWinMgr->setViewpointParams(lastActiveViznum, 0);
-			vizWinMgr->setAnimationParams(lastActiveViznum, 0);
-		*/
+		
 			vizWinMgr->killViz(lastActiveViznum);
 			break;
 		case activate:
@@ -199,6 +202,9 @@ void VizActivateCommand::cloneStateParams(VizWin* win, int viznum){
 	//Clone the whole vector of dvr/probe/flow params
 	for (int inst = 0; inst<vizWinMgr->getNumDvrInstances(viznum); inst++){
 		dvrParamsList.push_back((DvrParams*)vizWinMgr->getDvrParams(viznum, inst)->deepCopy());
+	}
+	for (int inst = 0; inst<vizWinMgr->getNumIsoInstances(viznum); inst++){
+		isoParamsList.push_back((ParamsIso*)vizWinMgr->getIsoParams(viznum, inst)->deepCopy());
 	}
 	for (int inst = 0; inst<vizWinMgr->getNumProbeInstances(viznum); inst++){
 		probeParamsList.push_back((ProbeParams*)vizWinMgr->getProbeParams(viznum, inst)->deepCopy());

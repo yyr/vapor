@@ -190,6 +190,9 @@
 				RelativePath="..\..\..\apps\vaporgui\guis\instancetable.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\isoeventrouter.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\loadtfdialog.cpp">
 			</File>
 			<File
@@ -511,6 +514,29 @@
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
 						Outputs="..\..\..\apps\vaporgui\moc\moc_instancetable.cpp"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\guis\isoeventrouter.h">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing isoeventrouter.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isoeventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_isoeventrouter.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_isoeventrouter.cpp"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing isoeventrouter.h..."
+						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\isoeventrouter.h -o ..\..\..\apps\vaporgui\moc\moc_isoeventrouter.cpp
+"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
+						Outputs="..\..\..\apps\vaporgui\moc\moc_isoeventrouter.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -964,6 +990,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_instancetable.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\apps\vaporgui\moc\moc_isoeventrouter.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_isotab.cpp">

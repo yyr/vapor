@@ -171,6 +171,7 @@ public:
 	static std::string& getMetadataVarName(int mdvarnum) {
 		if (!mapMetadataVars) return variableNames[0];
 		return (variableNames[mapMetadataVars[mdvarnum]]);}
+	int getMetadataVarNum(std::string varname);
 	//getNumSessionVariables returns the number of session variables
 	static int getNumSessionVariables(){return (int)variableNames.size();}
 	static void clearVariableNames() {

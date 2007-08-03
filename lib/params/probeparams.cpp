@@ -685,7 +685,7 @@ buildNode() {
 	attrs[_planarAttr] = oss.str();
 
 	oss.str(empty);
-	oss << (double)getHistoStretch();
+	oss << (double)GetHistoStretch();
 	attrs[_histoStretchAttr] = oss.str();
 	
 	XmlNode* probeNode = new XmlNode(_probeParamsTag, attrs, 3);

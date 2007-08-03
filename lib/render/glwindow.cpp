@@ -25,6 +25,7 @@
 #include "renderer.h"
 #include "viewpointparams.h"
 #include "dvrparams.h"
+#include "ParamsIso.h"
 #include "regionparams.h"
 #include "probeparams.h"
 #include "animationparams.h"
@@ -1242,7 +1243,7 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	glDisable(GL_LIGHTING);
 	printOpenGLError();
 }
-//Invalidate array.  Set pointers to zero before deleting so we\
+//Invalidate array.  Set pointers to zero before deleting so we
 //can't accidentally get trapped with bad pointer.
 void GLWindow::invalidateElevGrid(){
 	if (elevVert){
@@ -1480,7 +1481,6 @@ appendRenderer(RenderParams* rp, Renderer* ren)
 {
 	Params::ParamType renType = rp->getParamType();
 	if (numRenderers < MAXNUMRENDERERS){
-		assert(renType == Params::DvrParamsType);
 		mapRenderer(rp, ren);
 		renderer[numRenderers] = ren;
 		renderType[numRenderers++] = renType;
@@ -1652,6 +1652,9 @@ void GLWindow::setActiveParams(Params* p, Params::ParamType t){
 			return;
 		case Params::DvrParamsType :
 			setActiveDvrParams((DvrParams*)p);
+			return;
+		case Params::IsoParamsType :
+			setActiveIsoParams((ParamsIso*)p);
 			return;
 		case Params::RegionParamsType :
 			setActiveRegionParams((RegionParams*)p);

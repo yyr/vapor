@@ -41,6 +41,7 @@ typedef bool (*renderCBFcn)(int winnum, bool newCoords);
 class ViewpointParams;
 class RegionParams;
 class DvrParams;
+class ParamsIso;
 class AnimationParams;
 class FlowParams;
 class ProbeParams;
@@ -195,6 +196,7 @@ public:
 	}
 	void setActiveAnimationParams(AnimationParams* p) {currentAnimationParams = p;}
 	void setActiveDvrParams(DvrParams* p) {currentDvrParams = p; }
+	void setActiveIsoParams(ParamsIso* p) {currentIsoParams = p; }
 	void setActiveFlowParams(FlowParams* p) {
 		currentFlowParams = p; myFlowManip->setParams((Params*)currentFlowParams);
 	}
@@ -206,6 +208,7 @@ public:
 	RegionParams* getActiveRegionParams() {return currentRegionParams;}
 	AnimationParams* getActiveAnimationParams() {return currentAnimationParams;}
 	DvrParams* getActiveDvrParams() {return currentDvrParams;}
+	ParamsIso* getActiveIsoParams() {return currentIsoParams;}
 	FlowParams* getActiveFlowParams() {return currentFlowParams;}
 	ProbeParams* getActiveProbeParams() {return currentProbeParams;}
 
@@ -379,6 +382,7 @@ protected:
 	AnimationParams* currentAnimationParams;
 	FlowParams* currentFlowParams;
 	DvrParams* currentDvrParams;
+	ParamsIso* currentIsoParams;
 	ProbeParams* currentProbeParams;
 
 	renderCBFcn preRenderCB;

@@ -334,3 +334,13 @@ bool DataStatus::dataIsLayered(){
 	}
 	return false;
 }
+int DataStatus::
+getMetadataVarNum(std::string varname){
+	if (currentMetadata == 0) return -1;
+
+	const vector<string>& names = currentMetadata->GetVariableNames();
+	for (int i = 0; i<names.size(); i++){
+		if (names[i] == varname) return i;
+	}
+	return -1;
+}

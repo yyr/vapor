@@ -4,7 +4,7 @@
 //
 //***********************************************************************
 //                                                                      *
-//                      Copyright (C)  2006	                        *
+//                      Copyright (C)  2006	                            *
 //          University Corporation for Atmospheric Research             *
 //                      All Rights Reserved                             *
 //                                                                      *
@@ -29,6 +29,7 @@
 #include "vapor/XmlNode.h"
 #include "vapor/ExpatParseMgr.h"
 #include "params.h"
+#include "datastatus.h"
 
 namespace VAPoR{
 
@@ -49,7 +50,7 @@ public:
 
  //! Create a ParamsIso abstract base class from scratch
  //!
- ParamsIso(XmlNode *parent);
+ ParamsIso(XmlNode *parent, int winnum);
 
  virtual ~ParamsIso();
 
@@ -60,6 +61,32 @@ public:
  //
  virtual void restart();
 
+ //Methods required by Params class:
+ virtual int getNumRefinements() {
+	 return GetRefinementLevel();
+ }
+ virtual RenderParams* deepRCopy();
+ virtual Params* deepCopy() {return (Params*)deepRCopy();}
+ virtual int getSessionVarNum(){
+	 return DataStatus::getInstance()->getSessionVariableNum(
+		 GetVariableName());
+ }
+ virtual bool reinit(bool override);
+
+ virtual float GetHistoStretch();
+ 
+ //Note:  This is not right.  Unclear if datarange is used in Iso
+ virtual const float* getCurrentDatarange(){
+	 return GetHistoBounds();
+ }
+ 
+ //Following not yet available for iso params:
+ virtual MapperFunction* getMapperFunc() {return 0;}
+ void setMinColorMapBound(float) {}
+ void setMaxColorMapBound(float) {}
+ void setMinOpacMapBound(float) {}
+ void setMaxOpacMapBound(float) {}
+
  void SetIsoValue(double value);
  double GetIsoValue();
  void RegisterIsoValueDirtyFlag(ParamNode::DirtyFlag *df);
@@ -68,18 +95,46 @@ public:
  bool GetNormalOnOff();
  void RegisterNormalOnOffDirtyFlag(ParamNode::DirtyFlag *df);
 
-
  void SetConstantColor(float rgba[4]);
  const float *GetConstantColor();
  void RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df);
 
+ void SetHistoBounds(float bnds[2]);
+ const float* GetHistoBounds();
+
+ void SetHistoStretch(float scale);
+ 
+
+ void SetSelectedPoint(float pnt[3]);
+ const vector<double>& GetSelectedPoint();
+
+ void SetRefinementLevel(int level);
+ int GetRefinementLevel();
+ void RegisterRefinementDirtyFlag(ParamNode::DirtyFlag *df);
+
+ void SetVisualizerNum(int viznum);
+ int GetVisualizerNum();
+
+ void SetVariableName(const string& varName);
+ const string& GetVariableName();
+ void RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df);
+ virtual XmlNode* buildNode();
 
 private:
  static const string _IsoValueTag;
  static const string _NormalOnOffTag;
  static const string _ConstantColorTag;
+ static const string _HistoBoundsTag;
+ static const string _HistoScaleTag;
+ static const string _SelectedPointTag;
+ static const string _RefinementLevelTag;
+ static const string _VisualizerNumTag;
+ static const string _VariableNameTag;
+
 
  float _constcolorbuf[4];
+ float _histoBounds[2];
+ int numRefinements;
  
 };
 

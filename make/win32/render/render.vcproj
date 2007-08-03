@@ -158,6 +158,9 @@
 				RelativePath="..\..\..\lib\render\glwindow.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\render\isorenderer.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\render\manip.cpp">
 			</File>
 			<File
@@ -221,6 +224,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\glwindow.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\render\isorenderer.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\manip.h">

@@ -56,6 +56,7 @@
 #include <fstream>
 #include <sstream>
 #include "dvreventrouter.h"
+#include "isoeventrouter.h"
 #include "setoffset.h"
 #include "vizwin.h"
 #include "floweventrouter.h"
@@ -71,6 +72,7 @@
 #include "viewpointparams.h"
 #include "regionparams.h"
 #include "dvrparams.h"
+#include "ParamsIso.h"
 
 #include "animationparams.h"
 #include "probeparams.h"
@@ -114,6 +116,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	theMainForm = this;
 	theRegionTab = 0;
 	theDvrTab = 0;
+	theIsoTab = 0;
 	theVizTab = 0;
 	theAnimationTab = 0;
 	theFlowTab = 0;
@@ -476,7 +479,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	viewpoint();
 	region();
 	launchProbeTab();
-	
+	launchIsoTab();
 	launchFlowTab();
 	//The last one is in front:
 	renderDVR();
@@ -1084,19 +1087,42 @@ renderDVR(){
 		//myVizMgr->getDvrParams(-1)->setTab(theDvrTab);
 		myVizMgr->hookUpDvrTab(theDvrTab);
 	}
-	
-	
 	int posn = tabWidget->findWidget(Params::DvrParamsType);
-         
 	//Create a new parameter class to work with the widget
-		
-    
 	if (posn < 0){
 		tabWidget->insertWidget(theDvrTab, Params::DvrParamsType, true );
 	} else {
 		tabWidget->moveToFront(Params::DvrParamsType);
 	}
 	theDvrTab->updateTab();
+	
+}
+/*
+ * Launch the Isosurface panel
+ */
+void MainForm::
+launchIsoTab(){
+    //Do the Iso panel here
+	//Determine which is the current active window:
+	VizWinMgr* myVizMgr = VizWinMgr::getInstance();
+	if (!theIsoTab){
+		theIsoTab = new IsoEventRouter(tabWidget, "Iso");
+		//myVizMgr->getDvrParams(-1)->setTab(theDvrTab);
+		myVizMgr->hookUpIsoTab(theIsoTab);
+	}
+	
+	
+	int posn = tabWidget->findWidget(Params::IsoParamsType);
+         
+	//Create a new parameter class to work with the widget
+		
+    
+	if (posn < 0){
+		tabWidget->insertWidget(theIsoTab, Params::IsoParamsType, true );
+	} else {
+		tabWidget->moveToFront(Params::IsoParamsType);
+	}
+	theIsoTab->updateTab();
 	
 }
 /*

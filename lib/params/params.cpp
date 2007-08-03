@@ -35,6 +35,7 @@
 using namespace VAPoR;
 
 const string Params::_dvrParamsTag = "DvrPanelParameters";
+const string Params::_isoParamsTag = "IsoPanelParameters";
 const string Params::_probeParamsTag = "ProbePanelParameters";
 const string Params::_regionParamsTag = "RegionPanelParameters";
 const string Params::_animationParamsTag = "AnimationPanelParameters";
@@ -65,6 +66,8 @@ QString& Params::paramName(Params::ParamType type){
 			return *(new QString("Flow"));
 		case(DvrParamsType):
 			return *(new QString("DVR"));
+		case(IsoParamsType):
+			return *(new QString("Iso"));
 		case(ProbeParamsType):
 			return *(new QString("Probe"));
 		
@@ -369,17 +372,22 @@ void Params::setStretchedBox(const float boxmin[3], const float boxmax[3]){
 	setBox(newBoxmin, newBoxmax);
 }
 
-//Following methods inserted from ParamsBase.cpp
+//Following methods adapted from ParamsBase.cpp
 
 Params::Params(
-	XmlNode *parent, const string &name
+	XmlNode *parent, const string &name, int winNum
 ) {
-	assert (parent->GetNumChildren() == 0);
+	vizNum = winNum;
+	if(winNum < 0) local = false; else local = true;
+	thisParamType = UnknownParamsType;
+	previousClass = 0;
+
+	assert (!parent || parent->GetNumChildren() == 0);
 
 	map <string, string> attrs;
 	_rootParamNode = new ParamNode(name, attrs);
 	_currentParamNode = _rootParamNode;
-	parent->AddChild(_rootParamNode);
+	if(parent) parent->AddChild(_rootParamNode);
 
 	_parseDepth = 0;
 }
@@ -475,12 +483,17 @@ bool Params::elementEndHandler(ExpatParseMgr* pm, int depth, string& tag) {
 	}
 
 
-	if (! state->has_data) {
-		(void) Pop();
-	}
+	//if (! state->has_data) {
+	//	(void) Pop();
+	//}
 
+	if (_parseDepth == 0){
+		ParsedXml* px = pm->popClassStack();
+		bool ok = px->elementEndHandler(pm, depth, tag);
+		return ok;
+	}
+	return true;
 	
-	return (true);
 }
 
 ParamNode *Params::Push(
@@ -525,22 +538,28 @@ void Params::Clear() {
 	XmlNode *parent = _rootParamNode->GetParent();
 	string name = _rootParamNode->Tag();
 
-	// Delete current root node
-	int nchildren = parent->GetNumChildren();
-	for (int i=0; i<nchildren; i++) {
-		parent->DeleteChild(0);	// Should only be one childe
+	if (parent){
+		// Delete current root node
+		int nchildren = parent->GetNumChildren();
+		for (int i=0; i<nchildren; i++) {
+			parent->DeleteChild(0);	// Should only be one childe
+		}
 	}
-
 	// Create a new root node
 	//
 	map <string, string> attrs;
 	_rootParamNode = new ParamNode(name, attrs);
 	_currentParamNode = _rootParamNode;
-	parent->AddChild(_rootParamNode);
+	if(parent) parent->AddChild(_rootParamNode);
 
 }
  
-RenderParams::RenderParams(XmlNode *parent, const string &name):Params(parent, name){}
+RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Params(parent, name, winnum){
+	minColorEditBounds = 0;
+	maxColorEditBounds = 0;
+	minOpacEditBounds = 0;
+	maxOpacEditBounds = 0;
+}
 
 
 	

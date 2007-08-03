@@ -30,6 +30,7 @@
 #include "regioneventrouter.h"
 #include "floweventrouter.h"
 #include "dvreventrouter.h"
+#include "isoeventrouter.h"
 #include "probeeventrouter.h"
 #include "viewpointeventrouter.h"
 #include "animationeventrouter.h"
@@ -160,6 +161,9 @@ newFrontTab(QWidget*) {
 	} else if (newType == Params::DvrParamsType){
 		DvrEventRouter* der = VizWinMgr::getInstance()->getDvrRouter();
 		der->updateTab();
+	} else if (newType == Params::IsoParamsType){
+		IsoEventRouter* ier = VizWinMgr::getInstance()->getIsoRouter();
+		ier->updateTab();
 	} else if (newType == Params::ViewpointParamsType){
 		ViewpointEventRouter* ver = VizWinMgr::getInstance()->getViewpointRouter();
 		ver->updateTab();

@@ -143,12 +143,6 @@ public:
 	
 	void setClut(const float newTable[256][4]);
 	
-
-	//Verify that this numRefinements is valid
-	//with the current applicable region and animation steps:
-	//Return the largest valid number <= num
-	//
-	int checkNumRefinements(int num) {return num;}
 	//Implement virtual function to deal with new session:
 	bool reinit(bool doOverride);
 	virtual void restart();
@@ -157,7 +151,7 @@ public:
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	virtual MapperFunction* getMapperFunc();
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
-	virtual float getHistoStretch(){return histoStretchFactor;}
+	virtual float GetHistoStretch(){return histoStretchFactor;}
 	
 	int getComboVarNum(){return DataStatus::getInstance()->mapSessionToMetadataVarNum(varNum);}
 	int getNumVariables() {return numVariables;}

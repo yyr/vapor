@@ -26,6 +26,7 @@
 #include "regionparams.h"
 #include "viewpointparams.h"
 #include "dvrparams.h"
+#include "ParamsIso.h"
 #include "glutil.h"
 #include "transferfunction.h"
 #include "Colormap.h"

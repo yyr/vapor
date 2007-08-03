@@ -1,36 +1,36 @@
-//-- VolumeRender.h ----------------------------------------------------------
+//-- isorenderer.h ----------------------------------------------------------
 //   
-//                   Copyright (C)  2005
+//                   Copyright (C)  2007
 //     University Corporation for Atmospheric Research
 //                   All Rights Reserved
 //
 //----------------------------------------------------------------------------
 //
-//      File:           VolumeRenderer.h
+//      File:           isorenderer.h
 //
-//      Author:         Kenny Gruchalla
+//      Author:         Alan Norton
 //
-//      Date:           December 2005
+//      Date:           August 2007
 //
-//      Description:  Definition of VolumeRenderer class
+//      Description:  Definition of IsoRenderer class
 //
 //
 //
 //----------------------------------------------------------------------------
 
-#ifndef	VolumeRenderer_H
-#define	VolumeRenderer_H
+#ifndef	ISORENDERER_H
+#define	ISORENDERER_H
 
 #include <stdio.h>
 #include "vapor/DataMgr.h"
 #include "DVRBase.h"
 #include "renderer.h"
 #include "glwindow.h"
-#include "dvrparams.h"
+#include "VolumeRenderer.h"
 
 namespace VAPoR {
 
-  class RENDER_API VolumeRenderer : public Renderer 
+  class RENDER_API IsoRenderer : public VolumeRenderer
   {
 	
       
@@ -39,8 +39,8 @@ namespace VAPoR {
 	virtual bool datarangeIsDirty() {return datarangeDirtyBit;}
 	virtual void setClutDirty(){clutDirtyBit = true;}
 	virtual void setDatarangeDirty(){datarangeDirtyBit = true;}
-    VolumeRenderer(GLWindow *w, DvrParams::DvrType type, RenderParams* rp);
-    virtual ~VolumeRenderer();
+    IsoRenderer(GLWindow *w, DvrParams::DvrType type, RenderParams* rp);
+    virtual ~IsoRenderer();
     
 	virtual void initializeGL();
     virtual void paintGL();
@@ -57,21 +57,16 @@ namespace VAPoR {
     //#endif
 
   protected:
-    bool datarangeDirtyBit;
-	bool clutDirtyBit;
-
+    
     virtual DVRBase* create_driver(DvrParams::DvrType type, int nthreads);
 
-    DVRBase* driver;
-    DvrParams::DvrType _type;
-
+  private:
+   
     virtual void DrawVoxelScene(unsigned fast);
     virtual void DrawVoxelWindow(unsigned fast);
 
-    int    _frames;
-    double _seconds;
 
   };
 };
 
-#endif //VOLUMERRENDERER_H
+#endif //ISORENDERER_H

@@ -510,7 +510,7 @@ void DvrEventRouter::updateTab(){
 	preintegratedCheckbox->setChecked(dvrParams->getPreIntegration());
 
 	numBitsSpin->setValue(dvrParams->getNumBits());
-	histoScaleEdit->setText(QString::number(dvrParams->getHistoStretch()));
+	histoScaleEdit->setText(QString::number(dvrParams->GetHistoStretch()));
 	
 
 	updateMapBounds(dvrParams);
@@ -591,15 +591,14 @@ guiSetEditMode(bool mode){
 void DvrEventRouter::
 guiSetNumRefinements(int num){
 	confirmText(false);
-	//make sure we are setting it to a valid number
+	//make sure we are changing it
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
-	int newNum = dParams->checkNumRefinements(num);
-	if (newNum == dParams->getNumRefinements()) return;
+	if (num == dParams->getNumRefinements()) return;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set number of refinements");
 		
-	dParams->setNumRefinements(newNum);
-	if (newNum != num) refinementCombo->setCurrentItem(newNum);
+	dParams->setNumRefinements(num);
+	refinementCombo->setCurrentItem(num);
 	PanelCommand::captureEnd(cmd, dParams);
 	VizWinMgr::getInstance()->setVizDirty(dParams,DvrRegionBit,true);
 }

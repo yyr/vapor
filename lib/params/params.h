@@ -56,8 +56,14 @@ public:
 	
 
 Params(
-	XmlNode *parent, const string &name
+	XmlNode *parent, const string &name, int winNum
  );
+Params(int winNum) {
+	vizNum = winNum;
+	if(winNum < 0) local = false; else local = true;
+	thisParamType = UnknownParamsType;
+	previousClass = 0;
+}
 	
  //! Destroy object
  //!
@@ -105,15 +111,7 @@ Params(
  //!
  ParamNode *GetRootNode() { return(_rootParamNode); }
 
-	Params(int winNum) {
-		vizNum = winNum;
-		if(winNum < 0) local = false; else local = true;
-		
-		thisParamType = UnknownParamsType;
-		previousClass = 0;
-		
-		
-	}
+	
 	
 	virtual bool isRenderParams() {return false;}
 	enum ParamType {
@@ -121,6 +119,7 @@ Params(
 		ViewpointParamsType,
 		RegionParamsType,
 		DvrParamsType,
+		IsoParamsType,
 		ProbeParamsType,
 		AnimationParamsType,
 		FlowParamsType
@@ -130,6 +129,7 @@ Params(
 
 	static QString& paramName(ParamType);
 	static const string _dvrParamsTag;
+	static const string _isoParamsTag;
 	static const string _probeParamsTag;
 	static const string _regionParamsTag;
 	static const string _viewpointParamsTag;
@@ -169,8 +169,6 @@ Params(
 	//
 	virtual bool reinit(bool) {return false;}
 
-	
-	
 	//Following methods are redefined by params that control a box (region), such
 	//as regionParams, probeParams, flowParams:
 	//Set the box by copying the arrays provided as arguments.
@@ -328,7 +326,7 @@ public:
 		maxOpacEditBounds = 0;
 		
 	}
-	RenderParams(XmlNode *parent, const string &name); 
+	RenderParams(XmlNode *parent, const string &name, int winnum); 
 	virtual ~RenderParams(){
 		if (minColorEditBounds) delete minColorEditBounds;
 		if (maxColorEditBounds) delete maxColorEditBounds;
@@ -347,11 +345,11 @@ public:
 	
 	
 	virtual int getSessionVarNum(){ assert(0); return -1;}
-	virtual float getHistoStretch() { assert(0); return 1.f;}
+	virtual float GetHistoStretch() { assert(0); return 1.f;}
 	virtual void setBindButtons() {return;}//Needs to be removed!
 	virtual bool getEditMode() {assert(0); return true;}
 	virtual const float* getCurrentDatarange(){assert(0); return(0);}
-	virtual void setCurrentDatarange(){assert(0);}
+
 
 	//The following must be redefined by renderer params.  Parent version should never happen
 	virtual void setMinColorMapBound(float ) =0;

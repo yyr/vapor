@@ -1406,7 +1406,7 @@ buildNode() {
 	for (int i = 0; i<3; i++){
 		if(steadyVarNum[i]> 0) varnam1[i] = ds->getVariableName(steadyVarNum[i]-1).c_str();
 	}
-	oss << varnam1[0] << varnam1[1] << varnam1[2];
+	oss << varnam1[0] <<" " << varnam1[1] <<" "<< varnam1[2];
 		//oss << ds->getVariableName(steadyVarNum[0])<<" "<<ds->getVariableName(steadyVarNum[1])<<" "<<ds->getVariableName(steadyVarNum[2]);
 	attrs[_steadyVariableNamesAttr] = oss.str();
 	
@@ -1416,7 +1416,7 @@ buildNode() {
 	for (int i = 0; i<3; i++){
 		if(unsteadyVarNum[i]> 0) varnam2[i] = ds->getVariableName(unsteadyVarNum[i]-1).c_str();
 	}
-	oss << varnam2[0] << varnam2[1] << varnam2[2];
+	oss << varnam2[0] <<" "<< varnam2[1]<<" " << varnam2[2];
 	//oss << ds->getVariableName(unsteadyVarNum[0])<<" "<<ds->getVariableName(unsteadyVarNum[1])<<" "<<ds->getVariableName(unsteadyVarNum[2]);
 	attrs[_unsteadyVariableNamesAttr] = oss.str();
 

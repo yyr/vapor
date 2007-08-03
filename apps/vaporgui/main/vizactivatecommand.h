@@ -30,6 +30,7 @@ class Session;
 class RegionParams;
 class ViewpointParams;
 class DvrParams;
+class ParamsIso;
 class ProbeParams;
 
 class AnimationParams;
@@ -64,6 +65,7 @@ protected:
 	RegionParams* regionParams;
 	
 	std::vector<DvrParams*> dvrParamsList;
+	std::vector<ParamsIso*> isoParamsList;
 	std::vector<ProbeParams*> probeParamsList;
 	AnimationParams* animationParams;
 	std::vector<FlowParams*> flowParamsList;

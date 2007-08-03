@@ -42,6 +42,7 @@ class QTimer;
 #include "flowparams.h"
 #include "dvrparams.h"
 #include "animationparams.h"
+#include "ParamsIso.h"
 #include "vaporinternal/common.h"
 #include "params.h"
 #include "command.h"
@@ -49,6 +50,7 @@ class QTimer;
 
 class RegionTab;
 class Dvr;
+class IsoTab;
 class ProbeTab;
 class VizTab;
 class FlowTab;
@@ -77,6 +79,7 @@ class DvrEventRouter;
 class ProbeEventRouter;
 class ViewpointEventRouter;
 class FlowEventRouter;
+class IsoEventRouter;
 
 
 class VizWinMgr : public QObject, public ParsedXml
@@ -101,6 +104,8 @@ public:
 	//Get active params always uses current instance on renderparams.
 	static DvrParams* getActiveDvrParams(){
 		return (getInstance()->getDvrParams(getInstance()->activeViz));}
+	static ParamsIso* getActiveIsoParams(){
+		return (getInstance()->getIsoParams(getInstance()->activeViz));}
 	static ProbeParams* getActiveProbeParams(){
 		return (getInstance()->getProbeParams(getInstance()->activeViz));}
 	static RegionParams* getActiveRegionParams(){
@@ -172,6 +177,7 @@ public:
 	//For a renderer, there will only exist a local version.
 	// If instance is negative, return the current instance.
 	DvrParams* getDvrParams(int winNum, int instance = -1);
+	ParamsIso* getIsoParams(int winNum, int instance = -1);
 	ProbeParams* getProbeParams(int winNum, int instance = -1);
 
 	Params* getParams(int winNum, Params::ParamType pType, int instance = -1);
@@ -179,12 +185,15 @@ public:
 	int getNumFlowInstances(int winnum){return flowParamsInstances[winnum].size();}
 	int getNumProbeInstances(int winnum){return probeParamsInstances[winnum].size();}
 	int getNumDvrInstances(int winnum){return dvrParamsInstances[winnum].size();}
+	int getNumIsoInstances(int winnum){return isoParamsInstances[winnum].size();}
 	int getNumInstances(int winnum, Params::ParamType pType);
 	int getCurrentFlowInstIndex(int winnum) {return currentFlowInstance[winnum];}
 	int getCurrentDvrInstIndex(int winnum) {return currentDvrInstance[winnum];}
+	int getCurrentIsoInstIndex(int winnum) {return currentIsoInstance[winnum];}
 	int getCurrentProbeInstIndex(int winnum) {return currentProbeInstance[winnum];}
 	void setCurrentFlowInstIndex(int winnum, int inst) {currentFlowInstance[winnum] = inst;}
 	void setCurrentDvrInstIndex(int winnum, int inst) {currentDvrInstance[winnum] = inst;}
+	void setCurrentIsoInstIndex(int winnum, int inst) {currentIsoInstance[winnum] = inst;}
 	void setCurrentProbeInstIndex(int winnum, int inst) {currentProbeInstance[winnum] = inst;}
 	void setCurrentInstanceIndex(int winnum, int inst, Params::ParamType t);
 	int getCurrentInstanceIndex(int winnum, Params::ParamType t);
@@ -199,6 +208,9 @@ public:
 	void appendDvrInstance(int winnum, DvrParams* dp){
 		dvrParamsInstances[winnum].push_back(dp);
 	}
+	void appendIsoInstance(int winnum, ParamsIso* ip){
+		isoParamsInstances[winnum].push_back(ip);
+	}
 	void appendProbeInstance(int winnum, ProbeParams* pp){
 		probeParamsInstances[winnum].push_back(pp);
 	}
@@ -208,6 +220,9 @@ public:
 	}
 	void insertDvrInstance(int winnum, int posn, DvrParams* dp){
 		dvrParamsInstances[winnum].insert(dvrParamsInstances[winnum].begin()+posn, dp);
+	}
+	void insertIsoInstance(int winnum, int posn, ParamsIso* dp){
+		isoParamsInstances[winnum].insert(isoParamsInstances[winnum].begin()+posn, dp);
 	}
 	void insertProbeInstance(int winnum, int posn, ProbeParams* pp){
 		probeParamsInstances[winnum].insert(probeParamsInstances[winnum].begin()+posn, pp);
@@ -233,6 +248,16 @@ public:
 			currentDvrInstance[winnum]--;
 		delete dParams;
 	}
+	void removeIsoInstance(int winnum, int instance){
+		ParamsIso* iParams = isoParamsInstances[winnum].at(instance);
+		if (currentIsoInstance[winnum] > instance)
+			currentIsoInstance[winnum]--;
+		isoParamsInstances[winnum].erase(isoParamsInstances[winnum].begin()+instance);
+		//Did we remove last one?
+		if (currentIsoInstance[winnum] >= (int)isoParamsInstances[winnum].size())
+			currentIsoInstance[winnum]--;
+		delete iParams;
+	}
 	void removeProbeInstance(int winnum, int instance){
 		ProbeParams* pParams = probeParamsInstances[winnum].at(instance);
 		if (currentProbeInstance[winnum] > instance)
@@ -249,6 +274,7 @@ public:
 	RegionEventRouter* getRegionRouter() {return regionEventRouter;}
 	AnimationEventRouter* getAnimationRouter() {return animationEventRouter;}
 	DvrEventRouter* getDvrRouter() {return dvrEventRouter;}
+	IsoEventRouter* getIsoRouter() {return isoEventRouter;}
 	ProbeEventRouter* getProbeRouter() {return probeEventRouter;}
 	ViewpointEventRouter* getViewpointRouter() {return viewpointEventRouter;}
 	FlowEventRouter* getFlowRouter() {return flowEventRouter;}
@@ -263,6 +289,7 @@ public:
 	void hookUpViewpointTab(ViewpointEventRouter*);
 	void hookUpRegionTab(RegionEventRouter*);
 	void hookUpDvrTab(DvrEventRouter*);
+	void hookUpIsoTab(IsoEventRouter*);
 	void hookUpProbeTab(ProbeEventRouter*);
 	void hookUpAnimationTab(AnimationEventRouter*);
 	void hookUpFlowTab(FlowEventRouter*);
@@ -273,6 +300,7 @@ public:
 	
 	std::vector<FlowParams*>& getAllFlowParams(int i) {return flowParamsInstances[i];}
 	std::vector<DvrParams*>& getAllDvrParams(int i) {return dvrParamsInstances[i];}
+	std::vector<ParamsIso*>& getAllIsoParams(int i) {return isoParamsInstances[i];}
 	std::vector<ProbeParams*>& getAllProbeParams(int i) {return probeParamsInstances[i];}
 	
 
@@ -437,6 +465,8 @@ protected:
 	
 	vector<DvrParams*> dvrParamsInstances[MAXVIZWINS];
 	int currentDvrInstance[MAXVIZWINS];
+	vector<ParamsIso*> isoParamsInstances[MAXVIZWINS];
+	int currentIsoInstance[MAXVIZWINS];
 	vector<ProbeParams*> probeParamsInstances[MAXVIZWINS];
 	int currentProbeInstance[MAXVIZWINS];
 	vector<FlowParams*> flowParamsInstances[MAXVIZWINS];
@@ -465,11 +495,13 @@ protected:
 	FlowParams* defaultFlowParams;
 	ProbeParams* defaultProbeParams;
 	DvrParams* defaultDvrParams;
+	ParamsIso* defaultIsoParams;
 	
 	AnimationParams* globalAnimationParams;
 
 	RegionEventRouter* regionEventRouter;
 	DvrEventRouter* dvrEventRouter;
+	IsoEventRouter* isoEventRouter;
 	ProbeEventRouter* probeEventRouter;
 	ViewpointEventRouter* viewpointEventRouter;
 	AnimationEventRouter* animationEventRouter;
@@ -479,7 +511,7 @@ protected:
     TabManager* tabManager;
    
     int activeViz;
-	int parsingVizNum, parsingDvrInstance, parsingFlowInstance, parsingProbeInstance;
+	int parsingVizNum, parsingDvrInstance, parsingIsoInstance,parsingFlowInstance, parsingProbeInstance;
 	
     QWorkspace* myWorkspace;
 	

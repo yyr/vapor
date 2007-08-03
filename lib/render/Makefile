@@ -12,7 +12,7 @@ FILES = \
 	DVRBase DVRDebug \
 	glwindow renderer \
 	manip proberenderer\
-	trackball flowrenderer \
+	trackball flowrenderer isorenderer\
 	VolumeRenderer BBox ShaderProgram TextureBrick \
 	Vect3d Matrix3d Stopwatch DVRTexture3d \
 	DVRShader DVRLookup DVRVolumizer DVRSpherical

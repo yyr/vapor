@@ -125,6 +125,7 @@ class DataStatus;
 class VDFIOBase;
 class TransferFunction;
 class DvrParams;
+class ParamsIso;
 class RegionParams;
 
 

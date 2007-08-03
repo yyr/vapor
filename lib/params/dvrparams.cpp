@@ -543,7 +543,7 @@ buildNode() {
 		oss << "false";
 	attrs[_editModeAttr] = oss.str();
 	oss.str(empty);
-	oss << (double)getHistoStretch();
+	oss << (double)GetHistoStretch();
 	attrs[_histoStretchAttr] = oss.str();
 
 	oss.str(empty);

@@ -23,6 +23,7 @@
 #endif
 #include "session.h"
 #include "dvrparams.h"
+#include "ParamsIso.h"
 #include "vapor/DataMgr.h"
 #include "vizwinmgr.h"
 #include "mainform.h"
@@ -436,6 +437,13 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				pm->pushClassStack(tempParsedPanel);
 				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
 				return true;
+			} else if (StrCmpNoCase(tag, Params::_isoParamsTag) == 0){
+				//Need to "push" to iso parser.
+				//That parser will "pop" back to session when done.
+				tempParsedPanel = new ParamsIso(0, -1);
+				pm->pushClassStack(tempParsedPanel);
+				tempParsedPanel->elementStartHandler(pm, depth, tag, attrs);
+				return true;
 			} else if (StrCmpNoCase(tag, Params::_probeParamsTag) == 0){
 				//Need to "push" to probe parser.
 				//That parser will "pop" back to session when done.
@@ -505,6 +513,12 @@ elementEndHandler(ExpatParseMgr* pm, int depth, std::string& tag){
 				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::DvrParamsType);
 				tempParsedPanel = 0;
 				return true;
+			} else if (StrCmpNoCase(tag, Params::_isoParamsTag) == 0){
+				// just ignore it
+				assert(tempParsedPanel);
+				vizWinMgr->replaceGlobalParams(tempParsedPanel,Params::IsoParamsType);
+				tempParsedPanel = 0;
+				return true;
 			} else if (StrCmpNoCase(tag, Params::_probeParamsTag) == 0){
 				// just ignore it
 				assert(tempParsedPanel);
@@ -560,7 +574,7 @@ exportData(){
 	//
 	AnimationParams*  p = winMgr->getAnimationParams(winNum);
 	RegionParams* r = winMgr->getRegionParams(winNum);
-	DvrParams* d = winMgr->getDvrParams(winNum);
+	DvrParams* dParams = winMgr->getDvrParams(winNum);
 	//always go for max number of transforms:
 	int numxforms = DataStatus::getInstance()->getNumTransforms();
 	
@@ -582,7 +596,7 @@ exportData(){
 	
 	int rc = exporter.Export(currentMetadataFile,
 		currentFrame,
-		getVariableName(d->getSessionVarNum()),
+		getVariableName(dParams->getSessionVarNum()),
 		minCoords,
 		maxCoords,
 		frameInterval);

@@ -3,7 +3,7 @@ GUI_FILES := \
 	vizselectcombo seedlisteditor instancetable \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
-	probeframe glprobewindow \
+	isoeventrouter probeframe glprobewindow \
 	DomainWidget GLWidget OpacityWidget \
 	qthumbwheel \
 	TFLocationTip ControlPointEditor MappingFrame ColorbarWidget
@@ -15,7 +15,7 @@ GUI_QT_HEADERS := \
 	probeframe seedlisteditor instancetable \
 	animationeventrouter dvreventrouter floweventrouter \
 	regioneventrouter viewpointeventrouter probeeventrouter \
-	DomainWidget GLWidget OpacityWidget ControlPointEditor \
+	isoeventrouter DomainWidget GLWidget OpacityWidget ControlPointEditor \
 	qthumbwheel \
 	MappingFrame ColorbarWidget
 

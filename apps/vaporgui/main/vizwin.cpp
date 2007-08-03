@@ -115,6 +115,7 @@ VizWin::VizWin( QWorkspace* parent, const char* name, WFlags fl, VizWinMgr* myMg
 	myGLWindow->setActiveRegionParams(myWinMgr->getRegionParams(myWindowNum));
 	myGLWindow->setActiveAnimationParams(myWinMgr->getAnimationParams(myWindowNum));
 	myGLWindow->setActiveDvrParams(myWinMgr->getDvrParams(myWindowNum));
+	myGLWindow->setActiveIsoParams(myWinMgr->getIsoParams(myWindowNum));
 	myGLWindow->setActiveFlowParams(myWinMgr->getFlowParams(myWindowNum));
 	myGLWindow->setActiveProbeParams(myWinMgr->getProbeParams(myWindowNum));
 	myGLWindow->setPreRenderCB(preRenderSetup);

@@ -62,6 +62,7 @@ class Session;
 class RegionEventRouter;
 class AnimationEventRouter;
 class DvrEventRouter;
+class IsoEventRouter;
 class ViewpointEventRouter;
 class ProbeEventRouter;
 class FlowEventRouter;
@@ -213,6 +214,7 @@ public slots:
     virtual void renderDVR();
 	virtual void animationParams();
 	virtual void launchFlowTab();
+	virtual void launchIsoTab();
 	virtual void launchProbeTab();
     virtual void batchSetup();
 
@@ -243,6 +245,7 @@ protected:
 	ViewpointEventRouter* theVizTab;
 	RegionEventRouter* theRegionTab;
 	DvrEventRouter* theDvrTab;
+	IsoEventRouter* theIsoTab;
 	FlowEventRouter* theFlowTab;
 	ProbeEventRouter* theProbeTab;
 	AnimationEventRouter* theAnimationTab;

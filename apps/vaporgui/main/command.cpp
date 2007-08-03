@@ -139,6 +139,9 @@ void TabChangeCommand::unDo(){
 		case Params::DvrParamsType:
 			MainForm::getInstance()->renderDVR();
 			break;
+		case Params::IsoParamsType:
+			MainForm::getInstance()->launchIsoTab();
+			break;
 		case Params::ProbeParamsType:
 			MainForm::getInstance()->launchProbeTab();
 			break;
@@ -171,6 +174,9 @@ void TabChangeCommand::reDo(){
 		case Params::DvrParamsType:
 			MainForm::getInstance()->renderDVR();
 			break;
+		case Params::IsoParamsType:
+			MainForm::getInstance()->launchIsoTab();
+			break;
 		case Params::ProbeParamsType:
 			MainForm::getInstance()->launchProbeTab();
 			break;
@@ -195,6 +201,8 @@ tabName(Params::ParamType t){
 			return " region ";
 		case Params::DvrParamsType:
 			return " dvr ";
+		case Params::IsoParamsType:
+			return " Iso ";
 		case Params::AnimationParamsType:
 			return " animation ";
 		case Params::FlowParamsType:

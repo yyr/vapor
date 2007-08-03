@@ -144,7 +144,7 @@ public:
 	bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/);
 	virtual MapperFunction* getMapperFunc();
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
-	virtual float getHistoStretch(){return histoStretchFactor;}
+	virtual float GetHistoStretch(){return histoStretchFactor;}
 	
 	void setProbeTexture(unsigned char* tex, int timestep){ 
 		if (!probeTextures) {
