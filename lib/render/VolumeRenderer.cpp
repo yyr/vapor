@@ -47,6 +47,7 @@
 #include <qstatusbar.h>
 
 #include "vapor/errorcodes.h"
+#include "vapor/MetadataSpherical.h"
 #include "VolumeRenderer.h"
 #include "regionparams.h"
 #include "animationparams.h"
@@ -71,6 +72,10 @@
 #include "glutil.h"
 #include "dvrparams.h"
 #include "vapor/MyBase.h"
+
+// Floating-point equivalience comparison
+#define EPSILON 5.960464478e-8
+#define FLTEQ(a,b) (fabs(a-b) < fabs(a*EPSILON) && fabs(a-b) < fabs(b*EPSILON))
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -155,6 +160,13 @@ bool VolumeRenderer::hasPreintegration()
 //----------------------------------------------------------------------------
 bool VolumeRenderer::supported(DvrParams::DvrType type)
 {
+  bool spherical = DataStatus::getInstance()->sphericalTransform();
+
+  if (spherical && type != DvrParams::DVR_SPHERICAL_SHADER)
+  {
+    return false;
+  }
+
   switch (type)
   {
      case DvrParams::DVR_TEXTURE3D_LOOKUP:
@@ -170,7 +182,7 @@ bool VolumeRenderer::supported(DvrParams::DvrType type)
      case DvrParams::DVR_SPHERICAL_SHADER:
      {
 #    ifdef SPHERICAL_GRID
-       return DVRSpherical::supported();
+       return DVRSpherical::supported() && spherical;
 #    else
        return false;
 #    endif
@@ -281,9 +293,10 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   int data_roi[6];
   int datablock[6];
   int i;
-  
+
+  DataStatus *ds = DataStatus::getInstance();
   DataMgr* myDataMgr = DataStatus::getInstance()->getDataMgr();
-  const Metadata* myMetadata = DataStatus::getInstance()->getCurrentMetadata();
+  const Metadata* metadata = DataStatus::getInstance()->getCurrentMetadata();
 	
   // Nothing to do if there's no data source!
   if (!myDataMgr) return;
@@ -335,7 +348,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     savedNumXForms = numxforms;
   }
 
-  const size_t *bs = myMetadata->GetBlockSize();
+  const size_t *bs = metadata->GetBlockSize();
   //qWarning(" calculating region bounds for next render");
   bool regionValid = myRegionParams->getAvailableVoxelCoords(numxforms, min_dim, max_dim, min_bdim, max_bdim, 
 	  timeStep,&varNum, 1);
@@ -352,7 +365,6 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   glDepthMask(GL_TRUE);
   //and readable
   glEnable(GL_DEPTH_TEST);
-  
   
   //This works around a volumizer/opengl bug!!!
   //If you issue a non-unit glColor before the volume rendering, it 
@@ -448,6 +460,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
 	if (_type == DvrParams::DVR_SPHERICAL_SHADER)
     {
+      vector<bool> clip(3, false);
+      const vector<long> &periodic = metadata->GetPeriodicBoundary();
+
       data_roi[0] = (int)min_dim[0];
       data_roi[1] = (int)min_dim[1];
       data_roi[2] = (int)min_dim[2];
@@ -455,14 +470,32 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
       data_roi[4] = (int)max_dim[1];
       data_roi[5] = (int)max_dim[2];
 
-      rc = driver->SetRegion(data,
-                             nx, ny, nz,
-                             data_roi, 
-                             extents, 
-                             datablock, 
-                             numxforms,
-							 myRegionParams->getFullGridHeight()
-							 );
+      extents[0] = myRegionParams->getRegionMin(0);
+      extents[1] = myRegionParams->getRegionMin(1);
+      extents[2] = myRegionParams->getRegionMin(2);
+      extents[3] = myRegionParams->getRegionMax(0);
+      extents[4] = myRegionParams->getRegionMax(1);
+      extents[5] = myRegionParams->getRegionMax(2);
+
+      clip[0] = !(periodic[0] &&
+                  FLTEQ(extents[0], metadata->GetExtents()[0]) &&
+                  FLTEQ(extents[3], metadata->GetExtents()[3]));
+      clip[1] = !(periodic[1] && 
+                  FLTEQ(extents[1], metadata->GetExtents()[1]) &&
+                  FLTEQ(extents[4], metadata->GetExtents()[4]));
+      clip[2] = !(periodic[2] && 
+                  FLTEQ(extents[2], metadata->GetExtents()[2]) &&
+                  FLTEQ(extents[5], metadata->GetExtents()[5]));
+
+      rc = driver->SetRegionSpherical(data,
+                                      nx, ny, nz,
+                                      data_roi, 
+                                      extents, 
+                                      datablock, 
+                                      numxforms,
+                                      myRegionParams->getFullGridHeight(),
+                                      metadata->GetGridPermutation(),
+                                      clip);
     }
     else
     {
@@ -509,7 +542,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     }
 	
     driver->SetOLUT(myDVRParams->getClut(), 
-                    myMetadata->GetNumTransforms() - numxforms);
+                    metadata->GetNumTransforms() - numxforms);
   }
 
   if (myGLWindow->lightingIsDirty())

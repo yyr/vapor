@@ -49,7 +49,17 @@ class RENDER_API DVRSpherical : public DVRShader
                         const float extents[6],
                         const int data_box[6],
                         int level,
-						size_t fullHeight);
+                        size_t fullHeight) { assert(0); }
+
+  virtual int SetRegionSpherical(void *data, 
+                                 int nx, int ny, int nz, 
+                                 const int data_roi[6],
+                                 const float extents[6],
+                                 const int data_box[6],
+                                 int level,
+                                 size_t fullHeight,
+                                 const std::vector<long> &permutation,
+                                 const std::vector<bool> &clipping);
 
   virtual int HasLighting() const { return false; };
   virtual int HasPreintegration() const { return false; };
@@ -60,10 +70,16 @@ class RENDER_API DVRSpherical : public DVRShader
 
   virtual void calculateSampling();
 
+  void permute(const vector<long>& permutation,
+               float result[3], float x, float y, float z);
+
  protected:
 
   static char spherical_shader_default[];
 
+  int   _nr;
+  float _shellWidth;
+  int   _level;
 };
 
 };

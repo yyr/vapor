@@ -47,14 +47,20 @@ SessionParams::SessionParams(){
 	}
 }
 void SessionParams::launch(){
-	
+    Session* currentSession = Session::getInstance();	
 	MessageReporter* mReporter = MessageReporter::getInstance();
 	
 	sessionParamsDlg = new SessionParameters((QWidget*)MainForm::getInstance());
 	sessionParamsDlg->stretch0Edit->setText(QString::number(stretch[0]));
 	sessionParamsDlg->stretch1Edit->setText(QString::number(stretch[1]));
 	sessionParamsDlg->stretch2Edit->setText(QString::number(stretch[2]));
-	
+
+	bool enableStretch = !currentSession->sphericalTransform();
+    sessionParamsDlg->stretch0Edit->setEnabled(enableStretch);
+    sessionParamsDlg->stretch1Edit->setEnabled(enableStretch);
+    sessionParamsDlg->stretch2Edit->setEnabled(enableStretch);
+
+
 	QString str;
 	sessionParamsDlg->cacheSizeEdit->setText(str.setNum(cacheSize));
 	sessionParamsDlg->jpegQuality->setText(str.setNum(jpegQuality));
@@ -97,8 +103,6 @@ void SessionParams::launch(){
 	int rc = sessionParamsDlg->exec();
 	if (rc){
 		//see if the memory size changed:
-		Session* currentSession = Session::getInstance();
-		
 		int newVal = sessionParamsDlg->cacheSizeEdit->text().toInt();
 		if (newVal > 10 && newVal != currentSession->getCacheMB()){
 			currentSession->setCacheMB(newVal);
@@ -225,6 +229,7 @@ void SessionParams::
 resetCounts(){
 	MessageReporter::getInstance()->resetCounts();
 }
+
 void SessionParams::
 setVariableNum(int varNum){
 	sessionVariableNum = varNum;

@@ -208,11 +208,11 @@ void GLWindow::paintGL()
 {
 	
 	GLenum	buffer;
-	float extents[6];
+	float extents[6] = {0.f,0.f,0.f,1.f,1.f,1.f};
 	float minFull[3] = {0.f,0.f,0.f};
-	float maxFull[3];
-	
-	if (nowPainting) return;
+	float maxFull[3] = {1.f,1.f,1.f};
+
+    if (nowPainting) return;
 	nowPainting = true;
 	//Force a resize if perspective has changed:
 	if (perspective != oldPerspective || needsResize){
@@ -232,12 +232,16 @@ void GLWindow::paintGL()
 	glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 	
 	glDrawBuffer(buffer);
-	
-	if (!DataStatus::getInstance() ||!(DataStatus::getInstance()->renderReady())) {
+
+	DataStatus *dataStatus = DataStatus::getInstance();
+
+	if (!dataStatus ||!(dataStatus->renderReady())) {
 		swapBuffers();
 		nowPainting = false;
 		return;
 	}
+
+    bool sphericalTransform = (dataStatus && dataStatus->sphericalTransform());
 	
 	//Modified 2/28/06:  Go ahead and "render" even if no active renderers:
 	
@@ -272,10 +276,8 @@ void GLWindow::paintGL()
 		setViewerCoordsChanged(false);
 	}
 
-	
-	getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents);
-	DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
-
+    getActiveRegionParams()->calcStretchedBoxExtentsInCube(extents);
+    DataStatus::getInstance()->getMaxStretchedExtentsInCube(maxFull);
 	
 	//Make the depth buffer writable
 	glDepthMask(GL_TRUE);
@@ -285,27 +287,34 @@ void GLWindow::paintGL()
 	glEnable (GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if(regionFrameIsEnabled()|| GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
-		renderDomainFrame(extents, minFull, maxFull);
-	} 
-	if(subregionFrameIsEnabled()&& !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode)){
-		drawSubregionBounds(extents);
-	} 
-	if (axesAreEnabled()) drawAxes(extents);
+    if(regionFrameIsEnabled()|| GLWindow::getCurrentMouseMode() == GLWindow::regionMode){
+      renderDomainFrame(extents, minFull, maxFull);
+    } 
+
+    if(subregionFrameIsEnabled() && 
+       !(GLWindow::getCurrentMouseMode() == GLWindow::regionMode) &&
+       !sphericalTransform)
+    {
+      drawSubregionBounds(extents);
+    } 
+
+    if (axesAreEnabled()) drawAxes(extents);
 
 
 	//render the region geometry, if in region mode, and active visualizer, or region shared
 	//with active visualizer
-	if(GLWindow::getCurrentMouseMode() == GLWindow::regionMode && ( windowIsActive() ||
-		(!getActiveRegionParams()->isLocal() && activeWinSharesRegion()))){
-
+	if(GLWindow::getCurrentMouseMode() == GLWindow::regionMode && 
+       (windowIsActive() || 
+        (!getActiveRegionParams()->isLocal() && activeWinSharesRegion())) &&
+       !sphericalTransform)
+    {
 		TranslateStretchManip* regionManip = getRegionManip();
 		regionManip->setParams(getActiveRegionParams());
 		regionManip->render();
-		
 	} 
 	//render the rake geometry, if in rake mode, on active visualizer
-	else if((GLWindow::getCurrentMouseMode() == GLWindow::rakeMode)&& windowIsActive()){
+	else if((GLWindow::getCurrentMouseMode() == GLWindow::rakeMode) && 
+            windowIsActive() && !sphericalTransform){
 		
 		TranslateStretchManip* flowManip = getFlowManip();
 		flowManip->setParams((Params*)getActiveFlowParams());
@@ -524,7 +533,6 @@ getModelMatrix() {
 //Grid resolution is up to 2x2x2
 //
 void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull){
-
 	int i; 
 	int numLines[3];
 	float regionSize, fullSize[3], modMin[3],modMax[3];
@@ -562,7 +570,6 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 			
 			glVertex3f(  modMin[0],  yCrd, zCrd );   
 			glVertex3f( modMax[0],  yCrd, zCrd );
-			
 		}
 		//Draw lines in y-direction for each x
 		for (x = 0; x<=numLines[0]; x++){
@@ -570,7 +577,6 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 			
 			glVertex3f(  xCrd, modMin[1], zCrd );   
 			glVertex3f( xCrd, modMax[1], zCrd );
-			
 		}
 	}
 	//Do the lines in each y-plane

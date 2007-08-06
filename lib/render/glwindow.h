@@ -321,6 +321,7 @@ protected:
 	void drawRegionFaceLines(float* extents, int selectedFace);
 	void drawProbeFace(float* corners, int faceNum, bool isSelected);
 
+
 	float regionFrameColorFlt[3];
 	float subregionFrameColorFlt[3];
 

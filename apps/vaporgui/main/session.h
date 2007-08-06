@@ -256,6 +256,12 @@ public:
 	string& getMetadataVarName(int varnum) {
 		return DataStatus::getMetadataVarName(varnum);
 	}
+
+    bool sphericalTransform()
+    {
+      return (DataStatus::getInstance() &&
+              DataStatus::getInstance()->sphericalTransform());
+    }
 		
 	
 protected:

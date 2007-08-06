@@ -47,6 +47,11 @@
 #include <qstring.h>
 #include "tabmanager.h"
 
+
+#ifndef MAX
+#define MAX(a,b)        ((a) > (b) ? (a) : (b))
+#endif
+
 using namespace VAPoR;
 Session* Session::theSession = 0;
 const string Session::_stretchFactorsAttr = "StretchFactors";
@@ -684,6 +689,29 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	//Get the extents from the metadata, if it exists:
 	if (currentMetadata){
 		std::vector<double> mdExtents = currentMetadata->GetExtents();
+
+        // Automatically calculate stretch factors for spherical data, 
+        // so that, volume bounding box will be a unit cube. The spherical
+        // rendering will be centered in this unit cube. This is a bit of
+        // a hack. However, until vapor is re-designed to with a more 
+        // general framework that can handle non-cartesian coordinate
+        // systems, this provides a convenient, low-impact way to handle 
+        // the volume exents vs. data extents issue for spherical rendering.
+        if (currentMetadata->GetCoordSystemType() == "spherical")
+        {
+          float maxExtent = 0;
+
+          for (int i=0; i<3; i++)
+          {
+            maxExtent = MAX(mdExtents[i+3] - mdExtents[i], maxExtent);
+          }
+
+          for (int i=0; i<3; i++)
+          {
+            stretchFactors[i] = maxExtent / (mdExtents[i+3] - mdExtents[i]);
+          }
+        }
+
 		for (i = 0; i< 6; i++){
 			extents[i] = (float)mdExtents[i];
 			stretchedExtents[i] = extents[i]*stretchFactors[i%3];

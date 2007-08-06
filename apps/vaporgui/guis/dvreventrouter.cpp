@@ -732,6 +732,7 @@ void DvrEventRouter::initTypes()
   
   typeCombo->clear();
 
+
   if (VolumeRenderer::supported(DvrParams::DVR_VOLUMIZER))
   {
     typeCombo->insertItem("Volumizer", index);
@@ -739,7 +740,8 @@ void DvrEventRouter::initTypes()
     typemapi[DvrParams::DVR_VOLUMIZER] = index;
     index++;
   }
-	if (VolumeRenderer::supported(DvrParams::DVR_TEXTURE3D_SHADER))
+
+  if (VolumeRenderer::supported(DvrParams::DVR_TEXTURE3D_SHADER))
   {
     typeCombo->insertItem("3DTexture-Shader", index);
     typemap[index] = DvrParams::DVR_TEXTURE3D_SHADER;

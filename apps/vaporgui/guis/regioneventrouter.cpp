@@ -263,10 +263,61 @@ void RegionEventRouter::updateTab(){
 		LocalGlobal->setCurrentItem(0);
 	refreshRegionInfo(rParams);
 	guiSetTextChanged(false);
+
+    relabel();
 	
 	Session::getInstance()->unblockRecording();
 	VizWinMgr::getInstance()->getTabManager()->update();
 }
+
+
+// Update the axes labels
+//
+void RegionEventRouter::relabel()
+{
+  if (Session::getInstance()->sphericalTransform())
+  {
+    QString labels[3] = {"Lon", "Lat", "Rad"};
+    const Metadata *metadata = Session::getInstance()->getCurrentMetadata();
+    const vector<long> &permutation = metadata->GetGridPermutation();
+
+    xCenterLabel->setText(labels[permutation[0]]);
+    yCenterLabel->setText(labels[permutation[1]]);
+    zCenterLabel->setText(labels[permutation[2]]);
+    
+    xSizeLabel->setText(labels[permutation[0]] + " Size");
+    ySizeLabel->setText(labels[permutation[1]] + " Size");
+    zSizeLabel->setText(labels[permutation[2]] + " Size");
+    
+    xUserLabel->setText("User " + labels[permutation[0]]);
+    yUserLabel->setText("User " + labels[permutation[1]]);
+    zUserLabel->setText("User " + labels[permutation[2]]);
+    
+                          
+    xVoxelLabel->setText("Voxel " + labels[permutation[0]]);
+    yVoxelLabel->setText("Voxel " + labels[permutation[1]]);
+    zVoxelLabel->setText("Voxel " + labels[permutation[2]]);
+  }
+  else
+  {
+    xCenterLabel->setText("X");
+    yCenterLabel->setText("Y");
+    zCenterLabel->setText("Z");
+
+    xSizeLabel->setText("X Size");
+    ySizeLabel->setText("Y Size");
+    zSizeLabel->setText("Z Size");
+
+    xUserLabel->setText("User X");
+    yUserLabel->setText("User Y");
+    zUserLabel->setText("User Z");
+
+    xVoxelLabel->setText("Voxel X");
+    yVoxelLabel->setText("Voxel Y");
+    zVoxelLabel->setText("Voxel Z");
+  }
+}
+
 //Set slider position, based on text change. 
 //
 void RegionEventRouter::

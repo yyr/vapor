@@ -20,6 +20,7 @@
 #define	dvrbase_h
 
 #include <stdio.h>
+#include <vector.h>
 #include "vapor/MyBase.h"
 
 using namespace VetsUtil;
@@ -86,6 +87,36 @@ public:
 	size_t fullHeight
  ) = 0;
 	
+
+ // Specify the region of data to render with a grid permutation and
+ // clipping information (currently only used for spherical rendering). 
+ //
+ // The type of each data element (voxel) is as specified by the constructor.
+ // The 'n?' parameters
+ // specify the dimension of the volume in voxels. The 'data_roi' array
+ // specifies the extents of a subregion of interest contained within
+ // the volume. The units are specified in voxels. To specify the
+ // entire volume, the contents of data_roi should be set to
+ // {0,0,0,nx-1,ny-1,nz-1}.
+ // The 'extents' arrays specifies the geometic extents of the volume in
+ // world coordinates. The volumetric extents of the data_roi, specified
+ // in integer coordinates, will be mapped (translated and scaled) to the 
+ // world coordinates
+ // specified by 'extents'
+ // Modification by AN, 2/10/05:  'extents' is subvolume of the unit cube
+ // (0,1)x(0,1)x(0,1).  Actual mapping to real coords is done in application.
+ //
+ virtual int SetRegionSpherical(void *data, 
+                                int nx, int ny, int nz, 
+                                const int data_roi[6],
+                                const float extents[6],
+                                const int data_box[6],
+                                int level,
+                                size_t fullHeight,
+                                const std::vector<long> &permutation,
+                                const std::vector<bool> &clipping)
+ { SetErrMsg("Driver does not support Spherical Grids"); return(-1); }
+
  // This version of the SetRegion method permits the non-uniform 
  // spacing of voxels. Three coordinate arrays, xcoords, ycoords, and
  // zcoords, specify the X,Y,Z coordinates of the voxels making up

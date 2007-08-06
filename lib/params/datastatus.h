@@ -63,8 +63,8 @@ public:
 	}
 	// Get methods:
 	//
-	const float* getExtents() {return extents;}
-	const float* getStretchedExtents() {return stretchedExtents;}
+	const float* getExtents() { return extents; }
+	const float* getStretchedExtents() { return stretchedExtents; }
 	
 	//Determine the min and max extents at a level
 	void getExtentsAtLevel(int level, float exts[6], size_t fullHeight);
@@ -191,9 +191,13 @@ public:
 	
 	bool renderReady() {return renderOK;}
 	void setRenderReady(bool nowOK) {renderOK = nowOK;}
+
+    bool sphericalTransform();
+
 	vector<string> getVariableNames() {return variableNames;}
 	vector<float> getBelowValues() {return belowValues;}
 	vector<float> getAboveValues() {return aboveValues;}
+
 		
 	
 private:

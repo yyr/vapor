@@ -58,7 +58,7 @@ DataStatus::
 DataStatus()
 {
 	dataMgr = 0;
-	currentMetadata = 0;
+    currentMetadata = 0;
 	renderOK = false;
 	myReader = 0;
 	cacheMB = 0;
@@ -325,6 +325,17 @@ void DataStatus::getExtentsAtLevel(int level, float exts[6], size_t fullHeight){
 		exts[i+3] = (float)usermax[i];
 	}
 }
+
+bool DataStatus::sphericalTransform()
+{
+  if (currentMetadata)
+  {
+    return (currentMetadata->GetCoordSystemType() == "spherical");
+  }
+
+  return false;
+}
+
 bool DataStatus::dataIsLayered(){
 	if (!currentMetadata) return false;
 	if(!(StrCmpNoCase(currentMetadata->GetGridType(),"layered") == 0)) return false;
@@ -334,6 +345,7 @@ bool DataStatus::dataIsLayered(){
 	}
 	return false;
 }
+
 int DataStatus::
 getMetadataVarNum(std::string varname){
 	if (currentMetadata == 0) return -1;

@@ -322,6 +322,9 @@ FlowEventRouter::hookUpTab()
 void FlowEventRouter::updateTab(){
 	
 	DataStatus* dStatus = DataStatus::getInstance();
+
+    setEnabled(!Session::getInstance()->sphericalTransform());
+
 	if (dStatus->getDataMgr()) instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);
@@ -1394,6 +1397,11 @@ setFlowNavigateMode(bool mode){
 //any of the localFlowParams are setup.
 void FlowEventRouter::
 reinitTab(bool doOverride){
+
+ DataStatus *dataStatus = DataStatus::getInstance();
+
+ setEnabled(!Session::getInstance()->sphericalTransform());
+
 	flowDataChanged = false;
 	mapBoundsChanged = false;
 	flowGraphicsChanged = false;

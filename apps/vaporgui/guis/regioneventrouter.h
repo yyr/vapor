@@ -48,6 +48,7 @@ public:
 	virtual void hookUpTab();
 	virtual void confirmText(bool /*render*/);
 	virtual void updateTab();
+    virtual void relabel();
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
 
 	

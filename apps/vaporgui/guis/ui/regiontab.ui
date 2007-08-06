@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>433</width>
+            <width>442</width>
             <height>910</height>
         </rect>
     </property>
@@ -313,7 +313,7 @@ share the same region settings.</string>
                                         </property>
                                         <widget class="QLabel">
                                             <property name="name">
-                                                <cstring>textLabel3_12</cstring>
+                                                <cstring>xCenterLabel</cstring>
                                             </property>
                                             <property name="sizePolicy">
                                                 <sizepolicy>
@@ -404,7 +404,7 @@ share the same region settings.</string>
                                         </property>
                                         <widget class="QLabel">
                                             <property name="name">
-                                                <cstring>textLabel3</cstring>
+                                                <cstring>yCenterLabel</cstring>
                                             </property>
                                             <property name="sizePolicy">
                                                 <sizepolicy>
@@ -495,7 +495,7 @@ share the same region settings.</string>
                                         </property>
                                         <widget class="QLabel">
                                             <property name="name">
-                                                <cstring>textLabel3_13</cstring>
+                                                <cstring>zCenterLabel</cstring>
                                             </property>
                                             <property name="sizePolicy">
                                                 <sizepolicy>
@@ -713,7 +713,7 @@ share the same region settings.</string>
                                 </widget>
                                 <widget class="QLabel">
                                     <property name="name">
-                                        <cstring>textLabel3_9</cstring>
+                                        <cstring>xSizeLabel</cstring>
                                     </property>
                                     <property name="sizePolicy">
                                         <sizepolicy>
@@ -732,7 +732,7 @@ share the same region settings.</string>
                                 </widget>
                                 <widget class="QLabel">
                                     <property name="name">
-                                        <cstring>textLabel3_10</cstring>
+                                        <cstring>ySizeLabel</cstring>
                                     </property>
                                     <property name="sizePolicy">
                                         <sizepolicy>
@@ -751,7 +751,7 @@ share the same region settings.</string>
                                 </widget>
                                 <widget class="QLabel">
                                     <property name="name">
-                                        <cstring>textLabel3_11_3</cstring>
+                                        <cstring>zSizeLabel</cstring>
                                     </property>
                                     <property name="sizePolicy">
                                         <sizepolicy>
@@ -1524,7 +1524,6 @@ available.</string>
                                             </property>
                                             <property name="font">
                                                 <font>
-                                                    <pointsize>10</pointsize>
                                                 </font>
                                             </property>
                                             <property name="text">
@@ -1805,7 +1804,7 @@ available.</string>
                                                         </widget>
                                                         <widget class="QLabel">
                                                             <property name="name">
-                                                                <cstring>textLabel3_9_2</cstring>
+                                                                <cstring>xUserLabel</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -1830,7 +1829,7 @@ available.</string>
                                                         </widget>
                                                         <widget class="QLabel">
                                                             <property name="name">
-                                                                <cstring>textLabel3_10_2</cstring>
+                                                                <cstring>yUserLabel</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -1849,7 +1848,7 @@ available.</string>
                                                         </widget>
                                                         <widget class="QLabel">
                                                             <property name="name">
-                                                                <cstring>textLabel3_11_3_2</cstring>
+                                                                <cstring>zUserLabel</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -1878,7 +1877,7 @@ available.</string>
                                                         </property>
                                                         <widget class="QLabel">
                                                             <property name="name">
-                                                                <cstring>textLabel3_9_2_2</cstring>
+                                                                <cstring>xVoxelLabel</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -1897,7 +1896,7 @@ available.</string>
                                                         </widget>
                                                         <widget class="QLabel">
                                                             <property name="name">
-                                                                <cstring>textLabel3_10_2_2</cstring>
+                                                                <cstring>yVoxelLabel</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>
@@ -1916,7 +1915,7 @@ available.</string>
                                                         </widget>
                                                         <widget class="QLabel">
                                                             <property name="name">
-                                                                <cstring>textLabel3_11_3_2_2</cstring>
+                                                                <cstring>zVoxelLabel</cstring>
                                                             </property>
                                                             <property name="sizePolicy">
                                                                 <sizepolicy>

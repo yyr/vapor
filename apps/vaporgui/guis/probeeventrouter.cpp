@@ -727,6 +727,9 @@ fileLoadTF(ProbeParams* dParams){
 //
 void ProbeEventRouter::updateTab(){
 	notNudgingSliders = true;  //don't generate nudge events
+
+    setEnabled(!Session::getInstance()->sphericalTransform());
+
 	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
 	else instanceTable->setEnabled(false);
 	instanceTable->rebuild(this);
@@ -892,6 +895,8 @@ void ProbeEventRouter::
 reinitTab(bool doOverride){
 	Session* ses = Session::getInstance();
 	
+    setEnabled(!ses->sphericalTransform());
+
 	numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	//Set the names in the variable listbox
 	ignoreListboxChanges = true;
