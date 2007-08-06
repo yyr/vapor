@@ -81,11 +81,31 @@ public:
  }
  
  //Following not yet available for iso params:
- virtual MapperFunction* getMapperFunc() {return 0;}
+ virtual MapperFunction* getMapperFunc() {return dummyMapperFunc;}
  void setMinColorMapBound(float) {}
  void setMaxColorMapBound(float) {}
- void setMinOpacMapBound(float) {}
- void setMaxOpacMapBound(float) {}
+
+ //Opacity map/edit bounds are being used for histo bounds:
+ void setMinOpacMapBound(float minhisto);
+ void setMaxOpacMapBound(float maxhisto);
+ virtual float getMinOpacMapBound(){
+	 return GetHistoBounds()[0];
+ }
+ virtual float getMaxOpacMapBound(){
+	 return GetHistoBounds()[1];
+ }
+ virtual void setMinOpacEditBound(float val, int ) {
+		minOpacEditBounds[0] = val;
+}
+virtual void setMaxOpacEditBound(float val, int ) {
+	maxOpacEditBounds[0] = val;
+}
+virtual float getMinOpacEditBound(int ) {
+	return minOpacEditBounds[0];
+}
+virtual float getMaxOpacEditBound(int ) {
+	return maxOpacEditBounds[0];
+}
 
  void SetIsoValue(double value);
  double GetIsoValue();
@@ -98,6 +118,10 @@ public:
  void SetConstantColor(float rgba[4]);
  const float *GetConstantColor();
  void RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df);
+
+ //Force histo bounds to match dummyMapperFunction bounds
+ void updateHistoBounds();
+
 
  void SetHistoBounds(float bnds[2]);
  const float* GetHistoBounds();
@@ -135,6 +159,7 @@ private:
  float _constcolorbuf[4];
  float _histoBounds[2];
  int numRefinements;
+ MapperFunction* dummyMapperFunc;
  
 };
 

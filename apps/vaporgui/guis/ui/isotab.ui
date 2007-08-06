@@ -578,6 +578,12 @@ window toolbar.</string>
                                                                     <property name="text">
                                                                         <string>Edit</string>
                                                                     </property>
+                                                                    <property name="toggleButton">
+                                                                        <bool>true</bool>
+                                                                    </property>
+                                                                    <property name="on">
+                                                                        <bool>true</bool>
+                                                                    </property>
                                                                 </widget>
                                                                 <widget class="QPushButton">
                                                                     <property name="name">

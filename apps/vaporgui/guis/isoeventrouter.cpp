@@ -79,7 +79,10 @@ using namespace VAPoR;
 
 IsoEventRouter::IsoEventRouter(QWidget* parent,const char* name): IsoTab(parent, name), EventRouter(){
 	myParamsType = Params::IsoParamsType;
-	savedCommand = 0;   
+	savedCommand = 0;  
+	
+	isoSelectionFrame->setOpacityMapping(true);
+	isoSelectionFrame->setColorMapping(false);
 }
 
 
@@ -128,6 +131,16 @@ IsoEventRouter::hookUpTab()
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setIsoEnabled(bool,int)));
+	
+	// isoSelectionFrame controls:
+	connect(editButton, SIGNAL(toggled(bool)), 
+            isoSelectionFrame, SLOT(setEditMode(bool)));
+	connect(alignButton, SIGNAL(clicked()),
+            isoSelectionFrame, SLOT(fitToView()));
+    connect(isoSelectionFrame, SIGNAL(startChange(QString)), 
+            this, SLOT(guiStartChangeIsoSelection(QString)));
+    connect(isoSelectionFrame, SIGNAL(endChange()),
+            this, SLOT(guiEndChangeIsoSelection()));
 
 }
 //Insert values from params into tab panel
@@ -187,7 +200,15 @@ void IsoEventRouter::updateTab(){
 	selectedYEdit->setText(QString::number(coords[1]));
 	selectedZEdit->setText(QString::number(coords[2]));
 	constantColorButton->setPaletteBackgroundColor(QColor((int)(.5+clr[0]*255.),(int)(.5+clr[1]*255.),(int)(.5+clr[2]*255.)));
-
+	
+	assert(isoParams->getMapperFunc()->getParams() == isoParams);
+	
+	isoSelectionFrame->setMapperFunction(isoParams->getMapperFunc());
+	
+    isoSelectionFrame->setVariableName(isoParams->GetVariableName());
+	updateMapBounds(isoParams);
+	isoSelectionFrame->update();
+   
 	update();
 	guiSetTextChanged(false);
 	Session::getInstance()->unblockRecording();
@@ -215,6 +236,11 @@ void IsoEventRouter::confirmText(bool /*render*/){
 	bnds[0] = leftHistoEdit->text().toFloat();
 	bnds[1] = rightHistoEdit->text().toFloat();
 	iParams->SetHistoBounds(bnds);
+
+	if (iParams->getMapperFunc()) {
+		(iParams->getMapperFunc())->setMinOpacMapValue(bnds[0]);
+		(iParams->getMapperFunc())->setMaxOpacMapValue(bnds[1]);
+	}
 	float coords[3];
 	coords[0] = selectedXEdit->text().toFloat();
 	coords[1] = selectedYEdit->text().toFloat();
@@ -223,13 +249,32 @@ void IsoEventRouter::confirmText(bool /*render*/){
 	iParams->SetIsoValue(isoValueEdit->text().toFloat());
 	
 	guiSetTextChanged(false);
-
+	setEditorDirty(iParams);
     VizWinMgr::getInstance()->setVizDirty(iParams, LightingBit, true);		
 	PanelCommand::captureEnd(cmd, iParams);
 }
 /*********************************************************************************
  * Slots associated with IsoTab:
  *********************************************************************************/
+void IsoEventRouter::
+guiStartChangeIsoSelection(QString qstr){
+	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
+	guiSetTextChanged(false);
+	//If another command is in process, don't disturb it:
+	if (savedCommand) return;
+	ParamsIso* pi = VizWinMgr::getInstance()->getActiveIsoParams();
+    savedCommand = PanelCommand::captureStart(pi, qstr.latin1());
+}
+//This will set dirty bits and undo/redo changes to histo bounds and eventually iso value
+void IsoEventRouter::
+guiEndChangeIsoSelection(){
+	if (!savedCommand) return;
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	iParams->updateHistoBounds();
+	PanelCommand::captureEnd(savedCommand,iParams);
+	savedCommand = 0;
+
+}
 void IsoEventRouter::
 setIsoEditMode(bool mode){
 	navigateButton->setOn(!mode);
@@ -310,6 +355,7 @@ refreshHisto(){
 	if (dataManager) {
 		refreshHistogram(iParams);
 	}
+	setEditorDirty(iParams);
 }
 
 
@@ -349,6 +395,8 @@ reinitTab(bool doOverride){
 		histogramList = 0;
 		numHistograms = 0;
 	}
+	
+	isoSelectionFrame->update();
 	updateTab();
 }
 
@@ -439,7 +487,7 @@ guiSetComboVarNum(int val){
 	//also set dirty flag
 	
 	iParams->SetVariableName(DataStatus::getInstance()->getMetadataVarName(val));
-
+	updateMapBounds(iParams);
 	updateHistoBounds(iParams);
 		
 	PanelCommand::captureEnd(cmd, iParams);
@@ -551,9 +599,15 @@ Histo* IsoEventRouter::getHistogram(RenderParams* p, bool mustGet){
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	int varNum = iParams->getSessionVarNum();
 	//Make sure we are using a valid variable num
-	if (varNum >= numHistograms || !histogramList){
+	if (varNum < 0 || varNum >= numHistograms || !histogramList){
 		
 		if (!mustGet) return 0;
+		if (histogramList){
+			for(int i = 0; i< numHistograms; i++){
+				delete histogramList[i];
+			}
+			delete histogramList;
+		}
 		histogramList = new Histo*[numVariables];
 		numHistograms = numVariables;
 		for (int i = 0; i<numVariables; i++)
@@ -587,6 +641,8 @@ void IsoEventRouter::refreshHistogram(RenderParams* p){
 		//different dvr panels if they are shared.  But the current active
 		//region params will apply here.
 		rParams = vizWinMgr->getActiveRegionParams();
+	} else {
+		rParams = vizWinMgr->getRegionParams(vizNum);
 	}
 	
 	size_t fullHeight = rParams->getFullGridHeight();
@@ -708,4 +764,39 @@ guiSetConstantColor(QColor& newColor){
 	iParams->SetConstantColor(fColor);
 	PanelCommand::captureEnd(cmd, iParams);
 }
+/*
+ * Method to be invoked after the user has moved the right or left bounds
+ * of the histogram window
+ * Make the textboxes consistent with the new left/right bounds, but
+ * don't trigger a new undo/redo event
+ */
+void IsoEventRouter::
+updateMapBounds(RenderParams* params){
+	ParamsIso* isoParams = (ParamsIso*)params;
+	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	int varNum = DataStatus::getInstance()->getSessionVariableNum(isoParams->GetVariableName());
+	QString strn;
+	minDataBound->setText(strn.setNum(DataStatus::getInstance()->getDataMin(varNum, currentTimeStep)));
+	maxDataBound->setText(strn.setNum(DataStatus::getInstance()->getDataMax(varNum, currentTimeStep)));
+	
+	if (isoParams->getMapperFunc()){
+		leftHistoEdit->setText(strn.setNum(isoParams->getMapperFunc()->getMinOpacMapValue(),'g',4));
+		rightHistoEdit->setText(strn.setNum(isoParams->getMapperFunc()->getMaxOpacMapValue(),'g',4));
+	} else {
+		leftHistoEdit->setText("0.0");
+		rightHistoEdit->setText("1.0");
+	}
+	
+	setEditorDirty(isoParams);
+}
+void IsoEventRouter::
+setEditorDirty(RenderParams* p){
+	ParamsIso* ip = (ParamsIso*)p;
+	if(!ip) ip = VizWinMgr::getInstance()->getActiveIsoParams();
+	if(ip->getMapperFunc())ip->getMapperFunc()->setParams(ip);
+    isoSelectionFrame->setMapperFunction(ip->getMapperFunc());
+	isoSelectionFrame->setVariableName(ip->GetVariableName());
+    isoSelectionFrame->update();
 
+	
+}

@@ -375,19 +375,19 @@ public:
 	}
 	//And opacity:
 	
-	float getMinOpacMapBound();	
-	float getMaxOpacMapBound(); 
+	virtual float getMinOpacMapBound();	
+	virtual float getMaxOpacMapBound(); 
 	
-	void setMinOpacEditBound(float val, int var) {
+	virtual void setMinOpacEditBound(float val, int var) {
 		minOpacEditBounds[var] = val;
 	}
-	void setMaxOpacEditBound(float val, int var) {
+	virtual void setMaxOpacEditBound(float val, int var) {
 		maxOpacEditBounds[var] = val;
 	}
-	float getMinOpacEditBound(int var) {
+	virtual float getMinOpacEditBound(int var) {
 		return minOpacEditBounds[var];
 	}
-	float getMaxOpacEditBound(int var) {
+	virtual float getMaxOpacEditBound(int var) {
 		return maxOpacEditBounds[var];
 	}
 	

@@ -24,6 +24,7 @@
 
 
 #include "ParamsIso.h"
+#include "mapperfunction.h"
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -46,6 +47,13 @@ ParamsIso::ParamsIso(
 	XmlNode *parent, int winnum
 ) : RenderParams(parent, Params::_isoParamsTag, winnum) {
 	thisParamType = IsoParamsType;
+	dummyMapperFunc = new MapperFunction(this, 8);
+	minOpacEditBounds = new float[1];
+	maxOpacEditBounds = new float[1];
+	//Need to do this better:
+	OpacityMap* foo = dummyMapperFunc->getOpacityMap(0);
+    dummyMapperFunc->deleteOpacityMap(foo);
+	
 	restart();
 }
 
@@ -87,6 +95,8 @@ reinit(bool doOverride){
 	const float* curBounds = GetHistoBounds();
 	float bnds[2];
 	bnds[0] = curBounds[0]; bnds[1] = curBounds[1];
+	
+
 	float isoval = GetIsoValue();
 	float dataMin = DataStatus::getInstance()->getDefaultDataMin(varNum);
 	float dataMax = DataStatus::getInstance()->getDefaultDataMax(varNum);
@@ -112,6 +122,10 @@ reinit(bool doOverride){
 			SetHistoBounds(bnds);
 
 	}
+	minOpacEditBounds[0] = bnds[0];
+	maxOpacEditBounds[0] = bnds[1];
+	dummyMapperFunc->setMinOpacMapValue(bnds[0]);
+	dummyMapperFunc->setMaxOpacMapValue(bnds[1]);
 	if (doOverride) {
 		SetHistoStretch(1.0);
 		float col[4] = {1.f, 1.f, 1.f, 1.f};
@@ -127,6 +141,9 @@ void ParamsIso::restart() {
 	float bnds[2] = {0.0, 1.0};
 	SetHistoBounds(bnds);
 
+	minOpacEditBounds[0] = 0.f;
+	maxOpacEditBounds[0] = 1.f;
+
 	SetHistoStretch(1.0);
 
 	float pnt[3] = {0.0, 0.0, 0.0};
@@ -134,7 +151,7 @@ void ParamsIso::restart() {
 
 	SetRefinementLevel(0);
 
-	SetVisualizerNum(0);
+	SetVisualizerNum(vizNum);
 
 	SetVariableName("N/A");
 
@@ -234,6 +251,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
  void ParamsIso::SetVisualizerNum(int viznum){
 	vector<long> valvec(1,(long)viznum);
 	GetRootNode()->SetElementLong(_VisualizerNumTag,valvec);
+	vizNum = viznum;
  }
  int ParamsIso::GetVisualizerNum(){
 	vector<long>& valvec = GetRootNode()->GetElementLong(_RefinementLevelTag);
@@ -259,8 +277,37 @@ RenderParams* ParamsIso::deepRCopy(){
 	if (_rootParamNode == _currentParamNode)
 		newParams->_currentParamNode = newParams->_rootParamNode;
 	else newParams->_currentParamNode = new ParamNode(*_currentParamNode);
-	
+	newParams->dummyMapperFunc = new MapperFunction(*dummyMapperFunc);
+	newParams->dummyMapperFunc->setParams(newParams);
+	newParams->minOpacEditBounds = new float[1];
+	newParams->maxOpacEditBounds = new float[1];
+	newParams->minOpacEditBounds[0] = minOpacEditBounds[0];
+	newParams->maxOpacEditBounds[0] = maxOpacEditBounds[0];
 	return (RenderParams*)newParams;
 }
-
+//Opacity map bounds are being used for histo bounds:
+void ParamsIso::setMinOpacMapBound(float minhisto){
+	const float* bnds = GetHistoBounds();
+	float nbds[2];
+	nbds[0] = minhisto;
+	nbds[1] = bnds[1];
+	SetHistoBounds(nbds);
+	dummyMapperFunc->setMinOpacMapValue(minhisto);
+	return;
+}
+void ParamsIso::setMaxOpacMapBound(float maxhisto){
+	const float* bnds = GetHistoBounds();
+	float nbds[2];
+	nbds[1] = maxhisto;
+	nbds[0] = bnds[0];
+	SetHistoBounds(nbds);
+	dummyMapperFunc->setMaxOpacMapValue(maxhisto);
+	return;
+}
+void ParamsIso::updateHistoBounds(){
+	float newBnds[2];
+	newBnds[0] = dummyMapperFunc->getMinOpacMapValue();
+	newBnds[1] = dummyMapperFunc->getMaxOpacMapValue();
+	SetHistoBounds(newBnds);
+}
 

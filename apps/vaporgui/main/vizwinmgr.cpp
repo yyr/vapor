@@ -369,7 +369,7 @@ createDefaultParams(int winnum){
 	setCurrentDvrInstIndex(winnum,0);
 
 	ParamsIso* iParams = (ParamsIso*)(defaultIsoParams->deepCopy());
-	iParams->setVizNum(winnum);
+	iParams->SetVisualizerNum(winnum);
 	iParams->setEnabled(false);
 	assert (getNumIsoInstances(winnum) == 0);
 	isoParamsInstances[winnum].push_back(iParams);

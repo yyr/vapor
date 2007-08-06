@@ -91,12 +91,15 @@ protected slots:
 	void setIsoNavigateMode(bool);
 	void setConstantColor();
 	void passThruPoint();
+	void guiStartChangeIsoSelection(QString);
+	void guiEndChangeIsoSelection();
 	
 
 
 protected:
-
-	void updateHistoBounds(RenderParams*p);
+	virtual void setEditorDirty(RenderParams *p = 0);
+	void updateHistoBounds(RenderParams*);
+	virtual void updateMapBounds(RenderParams*);
 	int copyCount[MAXVIZWINS+1];
 	bool editMode;
 };
