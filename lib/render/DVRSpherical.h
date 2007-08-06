@@ -26,7 +26,7 @@
 #include "Vect3d.h"
 
 #include <vector>
-
+#include "assert.h"
 namespace VAPoR {
 
   class BBox;
@@ -49,7 +49,7 @@ class RENDER_API DVRSpherical : public DVRShader
                         const float extents[6],
                         const int data_box[6],
                         int level,
-                        size_t fullHeight) { assert(0); }
+                        size_t fullHeight) { assert(0); return 0; }
 
   virtual int SetRegionSpherical(void *data, 
                                  int nx, int ny, int nz, 

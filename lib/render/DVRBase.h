@@ -20,7 +20,7 @@
 #define	dvrbase_h
 
 #include <stdio.h>
-#include <vector.h>
+#include <vector>
 #include "vapor/MyBase.h"
 
 using namespace VetsUtil;
