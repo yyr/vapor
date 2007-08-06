@@ -317,7 +317,7 @@ void DataStatus::getExtentsAtLevel(int level, float exts[6], size_t fullHeight){
 	size_t minm[3], maxm[3];
 	double usermin[3], usermax[3];
 	int minframe = (int)minTimeStep;
-	myReader->GetValidRegion(minm, maxm, level, fullHeight);
+	myReader->GetValidRegion(minm, maxm, fullHeight, level);
 	myReader->MapVoxToUser(minframe, minm, usermin, level);
 	myReader->MapVoxToUser(minframe, maxm, usermax, level);
 	for (int i = 0; i<3; i++){
