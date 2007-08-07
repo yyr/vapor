@@ -2498,7 +2498,9 @@ validateVectorField(int ts, int refLevel, const int varNums[3]) {
 int FlowParams::calcMaxPoints(){
 	
 	if (flowType != 1) { //steady or flow line advection
-		
+		if (autoScale) {
+			objectsPerFlowline = steadyFlowLength*steadySmoothness;
+		}
 		maxPoints = objectsPerFlowline;
 		if (maxPoints < 2) maxPoints = 2;
 		if (steadyFlowDirection == 0 && maxPoints < 3) maxPoints = 3;
