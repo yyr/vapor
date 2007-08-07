@@ -1,0 +1,160 @@
+#!/bin/sh
+
+# Print help if that's all the user wants
+if [[ $# == 0 || $1 == "-help" || $1 == "-h" || $1 == "--h" || \
+		  $1 == "--help" ]] ; then
+	echo "
+Usage: w2v.sh [options] metafile WrfNetCdfs
+WrfNetCdfs may be a single WRF output file, or a file name containing wild
+    cards.  All wildcards must be preceded by a backslash.  A list of files is
+   	not allowed.
+Options are:
+    -varnames arg       Colon delimited list of variable names in metadata to 
+                            convert 
+    -dervars  arg       Colon delimited list of derived variables to convert. 
+                            Choices are: 
+                            phnorm: normalized geopotential (PH+PHB)/PHB 
+                            wind3d: 3D wind speed (U^2+V^2+W^2)^1/2 
+                            wind2d: 2D wind speed (U^2+V^2)^1/2 
+                            pfull: full pressure P+PB 
+                            pnorm: normalized pressure (P+PB)/PB 
+                            theta: potential temperature T+300
+                            tk: temperature in Kelvin 0.037(T+300)(P+PB)^0.29 
+    -tsincr   arg       Increment between Vapor time steps to convert (e.g., 
+                            3=every third), from Vapor time step 0 
+    -tsstart  arg       Starting time stamp for conversion in format
+                            yyyy-mm-dd_hh:mm:ss 
+    -tsend    arg       Last time stamp to convert in format 
+                            yyyy-mm-dd_hh:mm:ss 
+    -level    arg       Refinement levels saved.  0=coarsest, 1=next refinement
+                            etc.  -1=finest 
+    -quiet              Only output suggested vertical extents at end of
+                            conversion
+    -help               Print this help screen and exit
+"
+exit 0
+fi
+
+# Boolean quiet switch
+QUIET=0
+
+# The bare-bones command to execute
+command="wrf2vdf"
+
+# Loop over arguments
+while [[ $1 == -* ]] ; do
+	case "$1" in
+		-varnames)
+			shift
+			if [[ $1 == -* ]] ; then
+				echo "$0: varnames option requires argument"
+				exit 1
+			fi
+			command="$command -varnames $1"
+			;;
+		-dervars)
+			shift
+			if [[ $1 == -* ]] ; then
+				echo "$0: dervars option requires argument"
+				exit 1
+			fi
+			command="$command -dervars $1"
+			;;
+		-tsincr)
+			shift
+			if [[ $1 == -* ]] ; then
+				echo "$0: tsincr option requires argument"
+				exit 1
+			fi
+			command="$command -tsincr $1"
+			;;
+		-tsstart)
+			shift
+			if [[ $1 == -* ]] ; then
+				echo "$0: tsstart option requires argument"
+				exit 1
+			fi
+			command="$command -tsstart $1"
+			;;
+		-tsend)
+			shift
+			if [[ $1 == -* ]] ; then
+				echo "$0: tsend option requires argument"
+				exit 1
+			fi
+			command="$command -tsend $1"
+			;;
+		-level)
+			shift
+			if [[ $1 == -* && $1 != -1 ]] ; then
+				echo "$0: level option requires argument"
+				exit 1
+			fi
+			command="$command -level $1"
+			;;
+		-quiet)
+			# This is the script's quiet flag, not wrf2vdf's
+			QUIET=1
+			;;
+		*)
+			echo "$0: unrecognized option"
+			echo "Execute w2v.sh -help to see allowed options"
+			exit 1
+			;;
+	esac
+	shift
+done
+
+# Add the quiet option so that we get the updated extents
+command="$command -quiet $1"
+
+# The files we are going to convert
+WRFFILES=$2
+
+# We need these variables to change, so initialize them with some values that
+# are sure to be altered.  These hold the most restrictive vertical extents.
+LOWEST=400000
+HIGHEST=400000
+
+# Loop over given files
+for FILENOW in $WRFFILES ; do
+	
+	if [[ $QUIET != 1 ]] ; then
+		echo Working on WRF file $FILENOW
+	fi
+
+	# Call the conversion application
+	NEWEXTS=$($command $FILENOW)
+	EXITSTAT=$?
+
+	# Check for errors
+	if [[ $EXITSTAT != 0 ]] ; then
+		echo "$0: wrf2vdf exited with non-zero exit status"
+		echo Command executed:
+		echo $command $FILENOW
+		echo Exit status: $EXITSTAT
+		exit $EXITSTAT
+	fi
+
+	# These are the new vertical extents
+	NEWLOW=$(echo $NEWEXTS | awk '{print $1}')
+	NEWHIGH=$(echo $NEWEXTS | awk '{print $2}')
+
+	# See if the new extents are more restrictive than the old ones
+	if [[ $NEWLOW < $LOWEST ]] ; then
+		LOWEST=$NEWLOW
+	fi
+	if [[ $NEWHIGH < $HIGHEST ]] ; then
+		HIGHEST=$NEWHIGH
+	fi
+
+done
+
+echo
+if [[ $QUIET != 1 ]] ; then
+	echo Command executed \(not including WRF file names\):
+	echo $command
+fi
+echo Lowest elevation of bottom layer: $LOWEST.
+echo Lowest elevation of top layer: $HIGHEST.
+echo You may want to adjust the vertical extents in your .vdf file accordingly.
