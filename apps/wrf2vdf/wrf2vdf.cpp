@@ -1729,6 +1729,8 @@ int	main(int argc, char **argv) {
 					cerr << ProgName << " : " << wbwriter->GetErrMsg() << endl;
 					exit(1);
 				}
+				needAnother = true; // Every variable starts this way
+				// Read and write slices of a variable
 				for ( size_t z = 0 ; z < dim[2] ; z++ )
 				{
 					GetZSlice( ncid, theVars[i], wrfT, z, fBuffer, fBufferAbove, needAnother, dim );
@@ -1742,7 +1744,7 @@ int	main(int argc, char **argv) {
 					cerr << ProgName << ": " << wbwriter->GetErrMsg() << endl;
 					exit(1);
 				}
-				stillNeeded[i] = true; // Now we're done with the ith variable
+				stillNeeded[i] = false; // Now we're done with the ith variable
 			}
 		}
 	}
