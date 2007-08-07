@@ -149,13 +149,13 @@ void FlowRenderer::paintGL()
 		if (!constColors && flowMapIsDirty(timeStep)){
 			if (flowType != 1){
 				if (steadyFlowCache[timeStep]) {
-					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame, fullHeight);
+					myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame, myGLWindow->getActiveRegionParams());
 					didRemap = true;
 				}
 			}
 			else {//flowtype = 1
 				if(unsteadyFlowCache) {
-					myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame, fullHeight);
+					myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame, myGLWindow->getActiveRegionParams());
 					//First and last age can change with flow graphics.
 					firstDisplayAge = myFlowParams->getFirstDisplayFrame();
 					lastDisplayAge = myFlowParams->getLastDisplayFrame();
@@ -964,7 +964,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 				//because color mapping can use the values in the flow lines if a variable is
 				//being mapped to colors.
 				unsteadyFlowCache->scaleLines(DataStatus::getInstance()->getStretchFactors());
-				if(!constColors) myFlowParams->mapColors(unsteadyFlowCache, timeStep, minFrame, fullHeight);
+				if(!constColors) myFlowParams->mapColors(unsteadyFlowCache, timeStep, minFrame, rParams);
 				break;
 			case (2):
 				{
@@ -1098,9 +1098,9 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 	//Now we only rebuild the rgba's if we didn't build the flow lines
 	else if (!constColors) {
 		if (flowType != 1)
-			myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame, fullHeight);
+			myFlowParams->mapColors(steadyFlowCache[timeStep],timeStep, minFrame, rParams);
 		else 
-			myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame, fullHeight);
+			myFlowParams->mapColors(unsteadyFlowCache,timeStep, minFrame, rParams);
 	}
 	return true;
 }

@@ -989,7 +989,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 	//Now map colors (if needed)
 		
 	if (doRGBAs){
-		mapColors(steadyFlowData, timeStep, minFrame, rParams->getFullGridHeight());
+		mapColors(steadyFlowData, timeStep, minFrame, rParams);
 	}
 
 	return steadyFlowData;
@@ -2047,12 +2047,12 @@ elementEndHandler(ExpatParseMgr* pm, int depth , std::string& tag){
 //the mapping
 //
 void FlowParams::
-mapColors(FlowLineData* container, int currentTimeStep, int minFrame, size_t fullHeight){
+mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionParams* rParams){
 	//Create lut based on current mapping data
 	float* lut = new float[256*4];
 	mapperFunction->makeLut(lut);
 	//Setup mapping
-	
+	size_t fullHeight = rParams->getFullGridHeight();
 	float opacMin = mapperFunction->getMinOpacMapValue();
 	float colorMin = mapperFunction->getMinColorMapValue();
 	float opacMax = mapperFunction->getMaxOpacMapValue();
@@ -2061,58 +2061,72 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, size_t ful
 	float opacVar, colorVar;
 	float* opacRegion = 0; 
 	float* colorRegion = 0;
-	float opacVarMin[3], opacVarMax[3], colorVarMin[3], colorVarMax[3];
+	double opacVarMin[3], opacVarMax[3];
+	double colorVarMin[3], colorVarMax[3];
+	
 	int opacSize[3],colorSize[3];
 	DataStatus* ds = DataStatus::getInstance();
 	//Make sure RGBAs are available if needed:
 	if (getOpacMapEntityIndex() + getColorMapEntityIndex() > 0)
 		container->enableRGBAs();
 		
-	//Get the variable (entire region) if needed
+	//Get the variable (entire region) if needed for mapping opac/color
 	if (getOpacMapEntityIndex() > 3){
-		//set up args for GetRegion
 		//If flow is unsteady, just get the first available timestep
 		int timeStep = currentTimeStep;
-		if(flowType != 0){//unsteady flow
+		if(flowType == 1){//unsteady flow
 			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
-			if (timeStep < 0) MyBase::SetErrMsg("No data for mapped variable");
+			if (timeStep < 0) MyBase::SetErrMsg("No data for opacity mapped variable");
 		}
-		size_t minSize[3];
-		size_t maxSize[3];
+		size_t min_dim[3], max_dim[3], min_bdim[3], max_bdim[3];
+		
+		int opacVarnum = getOpacMapEntityIndex()-4;
+		bool ok = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_bdim, max_bdim,
+			timeStep, &opacVarnum, 1, opacVarMin, opacVarMax);
+		if(!ok){
+			MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Opacity mapped variable data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
+			return;
+		}
 		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
-		for (int i = 0; i< 3; i++){
-			minSize[i] = 0;
-			opacSize[i] = ds->getFullSizeAtLevel(numRefinements,i,fullHeight);
-			maxSize[i] = opacSize[i]/bs[i] -1;
-			opacVarMin[i] = DataStatus::getInstance()->getExtents()[i];
-			opacVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];
+		for (int i = 0; i<3; i++){
+			opacSize[i] = (max_bdim[i] - min_bdim[i] +1)*bs[i];
 		}
+
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		opacRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-			opacMapEntity[getOpacMapEntityIndex()].c_str(),
-			numRefinements, (size_t*) minSize, (size_t*) maxSize, fullHeight,0);
+			colorMapEntity[getOpacMapEntityIndex()].c_str(),
+			numRefinements, min_bdim, max_bdim, fullHeight, 0);
 		QApplication::restoreOverrideCursor();
 	}
 	if (getColorMapEntityIndex() > 3){
 		//set up args for GetRegion
-		int timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-4);
-		if (timeStep < 0) MyBase::SetErrMsg("No data for mapped variable");
-		size_t minSize[3];
-		size_t maxSize[3];
-		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
-		for (int i = 0; i< 3; i++){
-			minSize[i] = 0;
-			colorSize[i] = (int)ds->getFullSizeAtLevel(numRefinements,i,fullHeight);
-			maxSize[i] = (colorSize[i]/bs[i] - 1);
-			colorVarMin[i] = DataStatus::getInstance()->getExtents()[i];
-			colorVarMax[i] = DataStatus::getInstance()->getExtents()[i+3];
+		//If flow is unsteady, just get the first available timestep
+		int timeStep = currentTimeStep;
+		if(flowType == 1){//unsteady flow
+			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
+			if (timeStep < 0) MyBase::SetErrMsg("No data for mapped variable");
 		}
+		
+		size_t min_dim[3], max_dim[3], min_bdim[3], max_bdim[3];
+		
+		int colorVarnum = getColorMapEntityIndex()-4;
+		bool ok = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_bdim, max_bdim,
+			timeStep, &colorVarnum, 1, colorVarMin, colorVarMax);
+		if(!ok){
+			MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Color map variable data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
+			return;
+		}
+		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
+		for (int i = 0; i<3; i++){
+			colorSize[i] = (max_bdim[i] - min_bdim[i] +1)*bs[i];
+		}
+
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		colorRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			colorMapEntity[getColorMapEntityIndex()].c_str(),
-			numRefinements, (size_t*) minSize, (size_t*) maxSize, fullHeight, 0);
+			numRefinements, min_bdim, max_bdim, fullHeight, 0);
 		QApplication::restoreOverrideCursor();
-
+		
 	}
 	
 	//Cycle through all the points.  Map to rgba as we go.

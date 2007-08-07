@@ -1398,9 +1398,8 @@ setFlowNavigateMode(bool mode){
 void FlowEventRouter::
 reinitTab(bool doOverride){
 
- DataStatus *dataStatus = DataStatus::getInstance();
 
- setEnabled(!Session::getInstance()->sphericalTransform());
+	setEnabled(!Session::getInstance()->sphericalTransform());
 
 	flowDataChanged = false;
 	mapBoundsChanged = false;
@@ -2693,51 +2692,52 @@ textToSlider(FlowParams* fParams,int coord, float newCenter, float newSize){
 	bool sizeChanged = false;
 	DataStatus* ds = DataStatus::getInstance();
 	const float* extents; 
-	float regMin = 0.f;
-	float regMax = 1.f;
-	if (ds){
+	float regMin = newCenter - 0.5f*newSize;
+	float regMax = newCenter  + 0.5f*newSize;
+	if (ds->getDataMgr()){
 		extents = DataStatus::getInstance()->getExtents();
 		regMin = extents[coord];
 		regMax = extents[coord+3];
-	}
 	
-	if (newSize > (regMax-regMin)){
-		newSize = regMax-regMin;
-		sizeChanged = true;
-	}
-	if (newSize < 0.f) {
-		newSize = 0.f;
-		sizeChanged = true;
-	}
-	if (newCenter < regMin) {
-		newCenter = regMin;
-		centerChanged = true;
-	}
-	if (newCenter > regMax) {
-		newCenter = regMax;
-		centerChanged = true;
-	}
-	if ((newCenter - newSize*0.5f) < regMin){
-		newCenter = regMin+ newSize*0.5f;
-		centerChanged = true;
-	}
-	if ((newCenter + newSize*0.5f) > regMax){
-		newCenter = regMax- newSize*0.5f;
-		centerChanged = true;
-	}
-	//For small size make generator count 1 in that dimension
-	if (newSize <= 0.f && !fParams->isRandom()){
-		if (fParams->getNumGenerators(coord) != 1) {
-			fParams->setNumGenerators(coord,1);
-			switch(coord){
-				case 0: xSeedEdit->setText("1"); break;
-				case 1: ySeedEdit->setText("1"); break;
-				case 2: zSeedEdit->setText("1"); break;
+	
+		if (newSize > (regMax-regMin)){
+			newSize = regMax-regMin;
+			sizeChanged = true;
+		}
+		if (newSize < 0.f) {
+			newSize = 0.f;
+			sizeChanged = true;
+		}
+		if (newCenter < regMin) {
+			newCenter = regMin;
+			centerChanged = true;
+		}
+		if (newCenter > regMax) {
+			newCenter = regMax;
+			centerChanged = true;
+		}
+		if ((newCenter - newSize*0.5f) < regMin){
+			newCenter = regMin+ newSize*0.5f;
+			centerChanged = true;
+		}
+		if ((newCenter + newSize*0.5f) > regMax){
+			newCenter = regMax- newSize*0.5f;
+			centerChanged = true;
+		}
+		//For small size make generator count 1 in that dimension
+		if (newSize <= 0.f && !fParams->isRandom()){
+			if (fParams->getNumGenerators(coord) != 1) {
+				fParams->setNumGenerators(coord,1);
+				switch(coord){
+					case 0: xSeedEdit->setText("1"); break;
+					case 1: ySeedEdit->setText("1"); break;
+					case 2: zSeedEdit->setText("1"); break;
+				}
 			}
 		}
+		fParams->setSeedRegionMin(coord, newCenter - newSize*0.5f); 
+		fParams->setSeedRegionMax(coord, newCenter + newSize*0.5f); 
 	}
-	fParams->setSeedRegionMin(coord, newCenter - newSize*0.5f); 
-	fParams->setSeedRegionMax(coord, newCenter + newSize*0.5f); 
 	
 	int sliderSize = (int)(0.5f+ 256.f*newSize/(regMax - regMin));
 	int sliderCenter = (int)(0.5f+ 256.f*(newCenter - regMin)/(regMax - regMin));

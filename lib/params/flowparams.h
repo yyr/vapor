@@ -241,7 +241,7 @@ public:
 		return seedPointList[i].getVal(coord);
 	}
 	virtual int getNumRefinements() {return numRefinements;}
-	void mapColors(FlowLineData*, int timeStep, int minFrame, size_t full_height);
+	void mapColors(FlowLineData*, int timeStep, int minFrame, RegionParams* rParams);
 	
 	//Check the variables in the flow data for missing timesteps 
 	//Independent of animation params

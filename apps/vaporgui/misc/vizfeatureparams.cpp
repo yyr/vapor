@@ -100,7 +100,7 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->colorbarCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->applyButton, SIGNAL(clicked()), this, SLOT(applySettings()));
-	connect (vizFeatureDlg->refinementCombo, SIGNAL (activated()), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->refinementCombo, SIGNAL (activated(int)), this, SLOT(panelChanged()));
 
 	
 	
