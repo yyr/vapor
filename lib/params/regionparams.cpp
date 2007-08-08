@@ -149,7 +149,7 @@ reinit(bool doOverride){
 			regionMin[i] = extents[i];
 			regionMax[i] = extents[i+3];
 		}
-		if (isLayered) fullHeight = DataStatus::getInstance()->getFullDataSize(2);
+		if (isLayered) fullHeight = 4*DataStatus::getInstance()->getFullDataSize(2);
 		else fullHeight = 0;
 	} else {
 		//Just force them to fit in current volume 
@@ -165,7 +165,10 @@ reinit(bool doOverride){
 			if (regionMax[i] < extents[i])
 				regionMax[i] = extents[i];
 		}
-		if (isLayered && fullHeight == 0) fullHeight = DataStatus::getInstance()->getFullDataSize(2);
+		//If layered data is being read into a session that was not
+		//set for layered data, then the fullheight may need to be
+		//set to default
+		if (isLayered && fullHeight == 0) fullHeight = 4*DataStatus::getInstance()->getFullDataSize(2);
 	}
 	
 	return true;	
