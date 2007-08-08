@@ -23,6 +23,7 @@
 #pragma warning(disable : 4251 4100)
 #endif
 #include "mainform.h"
+#include <qdockarea.h>
 #include <qvariant.h>
 #include <qpushbutton.h>
 #include <qtabwidget.h>
@@ -307,6 +308,13 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     modeToolBar = new QToolBar( QString(""), this, DockTop); 
 	vizToolBar = new QToolBar( QString(""), this, DockTop); 
 	vizToolBar->setOffset(2000);
+	vizToolBar->setVerticallyStretchable(false);
+	QDockArea* dkArea = leftDock();
+	dkArea->setAcceptDockWindow(vizToolBar, false);
+	dkArea->setAcceptDockWindow(modeToolBar, false);
+	dkArea = rightDock();
+	dkArea->setAcceptDockWindow(vizToolBar, false);
+	dkArea->setAcceptDockWindow(modeToolBar, false);
 	
 
 	//Add a QComboBox to toolbar to select window
