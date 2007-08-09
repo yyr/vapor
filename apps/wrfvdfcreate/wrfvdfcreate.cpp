@@ -41,19 +41,19 @@ struct opt_t {
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"smplwrf", 1,  "???????",		"Sample WRF file from which to get dimensions,\n\t\t\t\textents, and starting time stamp"},
-	{"dimension",1, "512x512x512",	"Volume dimensions expressed in grid points\n\t\t\t\t(NXxNYxNZ) if no sample WRF file is given"},
+	{"smplwrf", 1,  "???????",		"Sample WRF file from which to get dimensions,\n\t\t\t\textents, and starting time stamp (optional, see\n\t\t\t\tnext three options)"},
+	{"dimension",1, "512x512x512",	"Volume dimensions (unstaggered) expressed in grid\n\t\t\t\tpoints (NXxNYxNZ) if no sample WRF file is\n\t\t\t\tgiven"},
 	{"extents",	1,	"0:0:0:0:0:0",	"Colon delimited 6-element vector specifying\n\t\t\t\tdomain extents in user coordinates\n\t\t\t\t(X0:Y0:Z0:X1:Y1:Z1) if different from that in\n\t\t\t\tsample WRF"},
-	{"startt",	1,	"1970-01-01_00:00:00", "Starting time stamp, if different from that in\n\t\t\t\tsample WRF (default if no WRF is Jan 1, 1970)"},
-	{"numts",	1, 	"1",			"Number of Vapor time steps"},
-	{"deltat",	1,	"1",			"Seconds per Vapor time step"},
-	{"varnames",1,	"var1",			"Colon delimited list of variable names"},
+	{"startt",	1,	"1970-01-01_00:00:00", "Starting time stamp, if different from\n\t\t\t\tSTART_DATE attribute in sample WRF\n\t\t\t\t(default if no WRF is Jan 1, 1970)"},
+	{"numts",	1, 	"1",			"Number of Vapor time steps (default is 1)"},
+	{"deltat",	1,	"1",			"Seconds per Vapor time step (default is 1)"},
+	{"varnames",1,	"var1",			"Colon delimited list of all variables to be\n\t\t\t\textracted from WRF data"},
 	{"dervars", 1,	"ELEVATION",	"Colon delimited list of desired derived\n\t\t\t\tvariables.  Choices are:\n\t\t\t\tphnorm: normalized geopotential (PH+PHB)/PHB\n\t\t\t\twind3d: 3D wind speed (U^2+V^2+W^2)^1/2\n\t\t\t\twind2d: 2D wind speed (U^2+V^2)^1/2\n\t\t\t\tpfull: full pressure P+PB\n\t\t\t\tpnorm: normalized pressure (P+PB)/PB\n\t\t\t\ttheta: potential temperature T+300\n\t\t\t\ttk: temp. in Kelvin 0.037*Theta*P_full^0.29"},
-	{"level",	1, 	"0",			"Maximum refinement level. 0 => no refinement"},
-	{"comment",	1,	"",				"Top-level comment"},
-	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor expressed in\n\t\t\t\tgrid points (NXxNYxNZ)"},
-	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients"},
-	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients"},
+	{"level",	1, 	"2",			"Maximum refinement level. 0 => no refinement\n\t\t\t\t(default is 2)"},
+	{"comment",	1,	"",				"Top-level comment (optional)"},
+	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor expressed in\n\t\t\t\tgrid points (NXxNYxNZ) (default is 32)"},
+	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients (default\n\t\t\t\tis 1)"},
+	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients (default\n\t\t\t\tis 1)"},
 	{"help",	0,	"",				"Print this message and exit"},
 	{NULL}
 };
@@ -354,7 +354,6 @@ void InterpHorizSlice(
 	size_t yStagDim = dim[1] + 1;
 
 	size_t xDimWillBe = xUnstagDim; // More convenience
-	size_t yDimWillBe = yUnstagDim;
 	size_t xDimNow, yDimNow;
 	if ( thisVar.stag[0] )
 		xDimNow = xStagDim;
@@ -478,14 +477,15 @@ void OpenWrfGetMeta(
 					float & dy, // Place to put DY attribute (out)
 					float * vertExts, // Vertical extents (out)
 					size_t * dimLens, // Lengths of x, y, and z dimensions (out)
-					char * startDate // Place to put START_DATE attribute (out)
+					char * startDate, // Place to put START_DATE attribute (out)
+					vector<string> & wrfVars // Variable names in WRF file (out)
 					)
 {
 	int nc_status; // Holds error codes for debugging
 	int ncid; // Holds netCDF file ID
 	int ndims; // Number of dimensions in netCDF
 	int ngatts; // Number of global attributes
-	int nvars; // Number of variables (not used)
+	int nvars; // Number of variables
 	int xdimid; // ID of unlimited dimension (not used)
 	
 	char dimName[NC_MAX_NAME + 1]; // Temporary holder for dimension names
@@ -495,6 +495,15 @@ void OpenWrfGetMeta(
 	// Find the number of dimensions, variables, and global attributes, and check
 	// the existance of the unlimited dimension (not that we need to)
 	NC_ERR_READ( nc_status = nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid ) );
+
+	// Find out variable names
+	for ( int i = 0 ; i < nvars ; i++ )
+	{
+		// Might as well use dimName for now
+		NC_ERR_READ( nc_status = nc_inq_varname( ncid, i, dimName ) );
+		wrfVars.push_back( dimName );
+	}
+
 
 	// Find out dimension lengths.  x <==> west_east, y <==> south_north,
 	// z <==> bottom_top.  Need names, too, for finding vertical extents.
@@ -657,15 +666,36 @@ int	main(int argc, char **argv) {
 	// If this evaluates, we're using the sample WRF file to get the
 	// dimensions, extents, and starting time stamp
 	float vertExts[2]; // Find out vertical extents
+	vector<string> wrfVars(0); // Holds names of variables in WRF file
 	if ( strcmp( opt.smplwrf, "???????" ) != 0 )
 	{
-		OpenWrfGetMeta( opt.smplwrf, dx, dy, vertExts, dimLens, startDate );
+		OpenWrfGetMeta( opt.smplwrf, dx, dy, vertExts, dimLens, startDate, wrfVars );
 		dim[0] = dimLens[0];
 		dim[1] = dimLens[1];
 		dim[2] = dimLens[2];
 	}
 	// In Windows, the final character of startDate is really ugly
 	startDate[19]='\0';
+
+	// Check to see if all the desired WRF variables are actually in the WRF file
+	bool foundVar = false;
+	if ( strcmp( opt.smplwrf, "???????" ) != 0 )
+	{
+		for ( int i = 0 ; i < opt.varnames.size() ; i++ )
+		{
+			foundVar = false;
+			for ( int j = 0 ; j < wrfVars.size() ; j++ )
+				if ( wrfVars[j] == opt.varnames[i] )
+				{
+					foundVar = true;
+					break;
+				}
+
+			if ( !foundVar )
+				cerr << argv[0] << ": Warning: desired WRF variable " << opt.varnames[i]
+					 << "\n\tdoes not appear in sample WRF file." << endl;
+		}
+	}
 
 	char coordsystem[] = "cartesian";
 	s.assign(coordsystem);
