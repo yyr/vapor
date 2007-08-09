@@ -2585,12 +2585,15 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 				int xyzCoord = (i - min_bdim[0]*bSize) +
 					(j - min_bdim[1]*bSize)*(bSize*(max_bdim[0]-min_bdim[0]+1)) +
 					(k - min_bdim[2]*bSize)*(bSize*(max_bdim[1]-min_bdim[1]+1))*(bSize*(max_bdim[0]-min_bdim[0]+1));
-				float varXsq = (varData[0] ? varData[0][xyzCoord]*varData[0][xyzCoord] : 0.f);
-				float varYsq = (varData[1] ? varData[1][xyzCoord]*varData[1][xyzCoord] : 0.f);
-				float varZsq = (varData[2] ? varData[2][xyzCoord]*varData[2][xyzCoord] : 0.f);
-				float sumsq = varXsq+varYsq+varZsq;
 				
-				dataSum += sqrt(sumsq);
+				float varX = (varData[0] ? varData[0][xyzCoord] : 0.f);
+				if (varX == BELOW_GRID || varX == ABOVE_GRID) continue;
+				float varY = (varData[1] ? varData[1][xyzCoord] : 0.f);
+				if (varY == BELOW_GRID || varY == ABOVE_GRID) continue;
+				float varZ = (varData[2] ? varData[2][xyzCoord] : 0.f);
+				if (varZ == BELOW_GRID || varZ == ABOVE_GRID) continue;
+				
+				dataSum += sqrt(varX*varX+varY*varY+varZ*varZ);
 				numPts++;
 			}
 		}

@@ -511,20 +511,11 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 {
 	int numSeeds = container->getNumLines();
 	
-	// scale animationTimeStep and userTimeStep
-	if((dataMgr->GetMetadata()->HasTSUserTime(steadyStartTimeStep))&&(dataMgr->GetMetadata()->HasTSUserTime(steadyStartTimeStep+1)))
-	{
-		double diff;
-		diff =  dataMgr->GetMetadata()->GetTSUserTime(steadyStartTimeStep+1)[0] - dataMgr->GetMetadata()->GetTSUserTime(steadyStartTimeStep)[0];
-		userTimeStepSize = diff*steadyUserTimeStepMultiplier;
-		animationTimeStepSize = diff*steadyAnimationTimeStepMultiplier;
-	}
-	else
-	{
-		userTimeStepSize = steadyUserTimeStepMultiplier;
-		animationTimeStepSize = steadyAnimationTimeStepMultiplier;
-	}
-
+	// scale animationTimeStep and userTimeStep.  
+	
+	userTimeStepSize = steadyUserTimeStepMultiplier;
+	animationTimeStepSize = steadyAnimationTimeStepMultiplier;
+	
 	// create field object
 	CVectorField* pField;
 	Solution* pSolution;
