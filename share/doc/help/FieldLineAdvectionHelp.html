@@ -15,11 +15,11 @@ Line Advection</h2>
       <li>Specify three variables for the steady (e.g. magnetic) field</li>
       <li>Specify the "Unsteady field scale factor".&nbsp; This
 depends on the space and time scales that were used when the data was
-generated.&nbsp; It is the ratio:
-(spatial-correction-factor)/(time-correction-factor), where:</li>
+generated.&nbsp; It is the product:
+(spatial-correction-factor)*(time-correction-factor), where:</li>
       <ul>
         <li>(time-correction-factor) is the number of
-simulation time units per Vapor (.vdf) time step</li>
+simulation time units (e.g. seconds) per Vapor (.vdf) time step</li>
         <li>(spatial-correction-factor) is the ratio
 of the full
 domain size in VAPOR (see the VAPOR region panel) to the actual user
