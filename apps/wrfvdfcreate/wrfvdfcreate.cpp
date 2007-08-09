@@ -44,7 +44,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"smplwrf", 1,  "???????",		"Sample WRF file from which to get dimensions,\n\t\t\t\textents, and starting time stamp (optional, see\n\t\t\t\tnext three options)"},
 	{"dimension",1, "512x512x512",	"Volume dimensions (unstaggered) expressed in grid\n\t\t\t\tpoints (NXxNYxNZ) if no sample WRF file is\n\t\t\t\tgiven"},
 	{"extents",	1,	"0:0:0:0:0:0",	"Colon delimited 6-element vector specifying\n\t\t\t\tdomain extents in user coordinates\n\t\t\t\t(X0:Y0:Z0:X1:Y1:Z1) if different from that in\n\t\t\t\tsample WRF"},
-	{"startt",	1,	"1970-01-01_00:00:00", "Starting time stamp, if different from\n\t\t\t\tSTART_DATE attribute in sample WRF\n\t\t\t\t(default if no WRF is Jan 1, 1970)"},
+	{"startt",	1,	"1970-01-01_00:00:00", "Starting time stamp, if different from\n\t\t\t\tSIMULATION_START_DATE attribute (or\n\t\t\t\tSTART_DATE if not available) in sample WRF\n\t\t\t\t(default if no WRF is Jan 1, 1970)"},
 	{"numts",	1, 	"1",			"Number of Vapor time steps (default is 1)"},
 	{"deltat",	1,	"1",			"Seconds per Vapor time step (default is 1)"},
 	{"varnames",1,	"var1",			"Colon delimited list of all variables to be\n\t\t\t\textracted from WRF data"},
@@ -566,8 +566,18 @@ void OpenWrfGetMeta(
 	// Get DX and DY
 	NC_ERR_READ( nc_status = nc_get_att_float( ncid, NC_GLOBAL, "DX", &dx ) );
 	NC_ERR_READ( nc_status = nc_get_att_float( ncid, NC_GLOBAL, "DY", &dy ) );
+	
 	// Get starting time stamp
-	NC_ERR_READ( nc_status = nc_get_att_text( ncid, NC_GLOBAL, "START_DATE", startDate ) );
+	// We'd prefer SIMULATION_START_DATE, but it's okay if it doesn't exist
+	nc_status = nc_get_att_text( ncid, NC_GLOBAL, "SIMULATION_START_DATE", startDate );
+	if ( nc_status == -43 ) // nc_get_att_text returns -43 if the attribute wasn't found
+	{
+		// If we're in here, SIMULATION_START_DATE wasn't found, so we'll use START_DATE
+		NC_ERR_READ( nc_status = nc_get_att_text( ncid, NC_GLOBAL, "START_DATE", startDate ) );
+	}
+	else if ( nc_status != 0 ) // If this happens, some other error occurred
+		NC_ERR_READ( nc_status );
+
 
 	// Get ready to read PH and PHB
 	varInfo phInfo; // structs for variable information
