@@ -734,7 +734,9 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 
 void IsoEventRouter::cleanParams(Params* p) 
 {
-  
+	isoSelectionFrame->setMapperFunction(NULL);
+	isoSelectionFrame->setVariableName("");
+	isoSelectionFrame->update(); 
 }
 	
 /*
