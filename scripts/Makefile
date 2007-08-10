@@ -5,7 +5,7 @@ include ${TOP}/make/config/prebase.mk
 
 include ${TOP}/make/config/base.mk
 
-all:: $(BINDIR)/vapor-setup.sh $(BINDIR)/vapor-setup.csh w2v
+all:: $(BINDIR)/vapor-setup.sh $(BINDIR)/vapor-setup.csh wrf2vdfbatch
 
 $(BINDIR)/vapor-setup.sh: FRC
 	sed -e s#ARCH#$(ARCH)# \
@@ -17,11 +17,11 @@ $(BINDIR)/vapor-setup.sh: FRC
 		-e s#BUILD_IDL_WRAPPERS#$(BUILD_IDL_WRAPPERS)# \
 		< vapor-setup.sh.sed > $@
 
-w2v: FRC
+wrf2vdfbatch: FRC
 
-install:: $(BINDIR)/vapor-setup.sh w2v
+install:: $(BINDIR)/vapor-setup.sh wrf2vdfbatch
 	@$(INSTALL_EXEC) $(BINDIR)/vapor-setup.sh $(INSTALL_BINDIR)
-	@$(INSTALL_EXEC) w2v $(INSTALL_BINDIR)
+	@$(INSTALL_EXEC) wrf2vdfbatch $(INSTALL_BINDIR)
 
 $(BINDIR)/vapor-setup.csh: FRC
 	sed -e s#ARCH#$(ARCH)# \
@@ -39,7 +39,7 @@ install:: $(BINDIR)/vapor-setup.csh
 	@$(INSTALL_EXEC) $(BINDIR)/vapor-setup.csh $(INSTALL_BINDIR)
 
 clean::
-	@$(RM) $(BINDIR)/vapor-setup.sh $(BINDIR)/vapor-setup.csh $(BINDIR)/w2v
+	@$(RM) $(BINDIR)/vapor-setup.sh $(BINDIR)/vapor-setup.csh $(BINDIR)/wrf2vdbatch
 
 subdirs::
 
