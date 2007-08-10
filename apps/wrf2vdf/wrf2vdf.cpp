@@ -24,6 +24,7 @@
 
 
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -50,6 +51,8 @@ using namespace VAPoR;
 
 const int MAX_WRF_TS = 1000; // Maximum number of time steps you think
 							 // we'd find in a single WRF output file
+const int TSWIDTH = 22; // Width of Time Stamp output field
+const int CONVWIDTH = 13; // Width of Converted? output field
 
 #define NC_ERR_READ(nc_status) \
     if (nc_status != NC_NOERR) { \
@@ -65,6 +68,7 @@ const int MAX_WRF_TS = 1000; // Maximum number of time steps you think
 struct opt_t {
 	vector<string> varnames;
 	vector<string> dervars;
+	vector<string> atypvars;
 	int tsincr;
 	char * tsstart;
 	char * tsend;
@@ -76,6 +80,7 @@ struct opt_t {
 
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"varnames",1, 	"novars",	"Colon delimited list of variable names in\n\t\t\t\tmetadata to convert"},
+	{"atypvars",1,	"noatyps",	"Colon delimited list of atypical names for\n\t\t\t\tU:V:W:PH:PHB:P:PB:T that appear in WRF file"},
 	{"dervars",	1,	"nodervars","Colon delimited list of derived variables\n\t\t\t\tto convert.  Choices are:\n\t\t\t\tphnorm: normalized geopotential (PH+PHB)/PHB\n\t\t\t\twind3d: 3D wind speed (U^2+V^2+W^2)^1/2\n\t\t\t\twind2d: 2D wind speed (U^2+V^2)^1/2\n\t\t\t\tpfull: full pressure P+PB\n\t\t\t\tpnorm: normalized pressure (P+PB)/PB\n\t\t\t\ttheta: potential temperature T+300\n\t\t\t\ttk: temp. in Kelvin 0.037*Theta*P_full^0.29"},
 	{"tsincr",	1,	"1","Increment between Vapor times steps to convert\n\t\t\t\t(e.g., 3=every third), from Vapor time step 0"},
 	{"tsstart", 1,  "???????", "Starting time stamp for conversion (default is\n\t\t\t\tfound in VDF"},
@@ -90,6 +95,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 
 OptionParser::Option_T	get_options[] = {
 	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
+	{"atypvars", VetsUtil::CvtToStrVec, &opt.atypvars, sizeof(opt.atypvars)},
 	{"dervars", VetsUtil::CvtToStrVec, &opt.dervars, sizeof(opt.dervars)},
 	{"tsincr", VetsUtil::CvtToInt, &opt.tsincr, sizeof(opt.tsincr)},
 	{"tsstart", VetsUtil::CvtToString, &opt.tsstart, sizeof(opt.tsstart)},
@@ -114,6 +120,19 @@ struct varInfo
 	bool stag[3]; // Indicates which of the dimensions are staggered
 	size_t sliceSize; // Size of a z slice before any interpolation of staggered grids
 };
+
+// A struct for storing names of certain WRF variables
+struct WRFNames
+{
+	const char * U;
+	const char * V;
+	const char * W;
+	const char * PH;
+	const char * PHB;
+	const char * P;
+	const char * PB;
+	const char * T;
+} wrfNames;
 
 
 
@@ -362,6 +381,7 @@ void OpenWrfFile(
 				 int & ndims, // Number of dimensions in the file (output)
 				 size_t & howManyTimes, // Number of times appearing in file (output)
 				 size_t * vaporTs, // Vapor time steps in file (output)
+				 vector<string> & tStamps, // Time stamps in WRF file (output)
 				 bool * tsOk, // Element is true if corresponding Vapor time should be converted (output)
 				 long minDeltaT, // Minimum number of seconds between any two time steps (input)
 				 char * startTime, // Earliest time stamp to convert (input)
@@ -466,7 +486,9 @@ void OpenWrfFile(
 	for ( int i = 0 ; i < howManyTimes ; i++ )
 	{
 		NC_ERR_READ( nc_status = nc_get_vara_text( ncid, timesId, start, count, charTimes[i] ) );
+		charTimes[19] = '\0';
 		start[timeSpot]++;
+		tStamps.push_back( charTimes[i] );
 	}
 	
 	bool tsOkTemp; // Temporary variable
@@ -730,11 +752,6 @@ void ReadZSlice(
 		}
 	}
 	count[thisVar.dimIndex[2]] = 1; // Grab only 1 z value
-
-	if (z%50 == 0 && ! opt.quiet) // Too much clutter for script to handle--use quiet option
-		cout << "Reading slice # " << z << endl;
-
-//	TIMER_START(t1);
 	start[thisVar.dimIndex[2]] = z;
 		
 	if (thisVar.xtype == NC_FLOAT)
@@ -748,7 +765,6 @@ void ReadZSlice(
 		for(int i=0; i<dim[0]*dim[1]; i++)
 			fbuffer[i] = (float)dbuffer[i];
 	}
-//	TIMER_STOP(t1, *read_timer);
 
 	delete [] count;
 	delete [] start;
@@ -773,7 +789,6 @@ void InterpHorizSlice(
 	size_t yStagDim = dim[1] + 1;
 
 	size_t xDimWillBe = xUnstagDim; // More convenience
-	size_t yDimWillBe = yUnstagDim;
 	size_t xDimNow, yDimNow;
 	if ( thisVar.stag[0] )
 		xDimNow = xStagDim;
@@ -906,11 +921,13 @@ void DoGeopotStuff(
 				   const char * metafile, // Path and file name of VDF
 				   int ndims, // Number of dimensions in netCDF file
 				   const size_t * dim, // Dimensions of VDF
+				   float * theseExts, // Array for lowest vertical extents for this time step only
 				   float * newExts, // Array for lowest extents
 				   bool wantPhnorm // True if you want to output PH_norm, false otherwise
         	       )
 {
-	size_t phIndex, phbIndex; // Indices of desiredVars corresponding to PH and PHB variables
+	size_t phIndex = 0; // Indices of desiredVars corresponding to PH and PHB
+	size_t phbIndex = 0;
 	bool wantPh = false; // Whether or not user wants to output PH, PHB
 	bool wantPhb = false;
 
@@ -920,14 +937,14 @@ void DoGeopotStuff(
 	// See if user wants to output PH and/or PHB
 	for ( size_t i = 0 ; i < desiredVars.size() ; i++ )
 	{
-		if ( strcmp( desiredVars[i].name, "PH" ) == 0 ) // User wants PH output
+		if ( strcmp( desiredVars[i].name, wrfNames.PH ) == 0 ) // User wants PH output
 		{
 			phIndex = i;
 			phInfoPtr = &desiredVars[i];
 			wantPh = true;
 			continue;
 		}
-		if ( strcmp( desiredVars[i].name, "PHB" ) == 0 ) // User wants PHB output
+		if ( strcmp( desiredVars[i].name, wrfNames.PHB ) == 0 ) // User wants PHB output
 		{
 			phbIndex = i;
 			phbInfoPtr = &desiredVars[i];
@@ -940,13 +957,13 @@ void DoGeopotStuff(
 
 	if ( !wantPh ) // User doesn't want PH output, but we still need info about PH
 	{
-		phTemp.name = "PH";
+		phTemp.name = wrfNames.PH;
 		GetVarInfo( ncid, ndims, phTemp, dim );
 		phInfoPtr = &phTemp;
 	}
 	if ( !wantPhb ) // User doesn't want PHB output, but we still need info about PHB
 	{
-		phbTemp.name = "PHB";
+		phbTemp.name = wrfNames.PHB;
 		GetVarInfo( ncid, ndims, phbTemp, dim );
 		phbInfoPtr = &phbTemp;
 	}
@@ -1008,10 +1025,14 @@ void DoGeopotStuff(
 			workBuffer[i] = (phBuffer[i] + phbBuffer[i])/9.81;
 			// Want to find the bottom of the bottom layer and the bottom of the
 			// top layer so that we can output them
+			if ( z == 0 && workBuffer[i] < theseExts[0] )
+				theseExts[0] = workBuffer[i]; // Bottom of bottom for this time step
+			if ( z == dim[2] - 1 && workBuffer[i] < theseExts[1] )
+				theseExts[1] = workBuffer[i]; // Bottom of top for this time step
 			if ( z == 0 && workBuffer[i] < newExts[0] )
-				newExts[0] = workBuffer[i];
+				newExts[0] = workBuffer[i]; // Bottom of bottom for all time steps
 			if ( z == dim[2] - 1 && workBuffer[i] < newExts[1] )
-				newExts[1] = workBuffer[i];
+				newExts[1] = workBuffer[i]; // Bottom of top for all time steps
 		}
 		elevBufWriter->WriteSlice( workBuffer );
 				
@@ -1076,27 +1097,28 @@ void DoWindSpeed(
 	varInfo * vInfoPtr = 0;
 	varInfo * wInfoPtr = 0;
 
-	int uIndex, vIndex, wIndex; // Indices of these variables (only used if user
-								// wants U, V, W)
+	int uIndex = 0; // Indices of these variables in desiredVars)
+	int vIndex = 0;
+	int wIndex = 0;
 
 	// See if user wants U, V, W output
 	for ( int i = 0 ; i < opt.varnames.size() ; i++ )
 	{
-		if ( strcmp( desiredVars[i].name, "U" ) == 0 )
+		if ( strcmp( desiredVars[i].name, wrfNames.U ) == 0 )
 		{
 			wantU = true;
 			uInfoPtr = &desiredVars[i];
 			uIndex = i;
 			continue;
 		}
-		if ( strcmp( desiredVars[i].name, "V" ) == 0 )
+		if ( strcmp( desiredVars[i].name, wrfNames.V ) == 0 )
 		{
 			wantV = true;
 			vInfoPtr = &desiredVars[i];
 			vIndex = i;
 			continue;
 		}
-		if ( strcmp( desiredVars[i].name, "W" ) == 0 )
+		if ( strcmp( desiredVars[i].name, wrfNames.W ) == 0 )
 		{
 			wantW = true;
 			wInfoPtr = &desiredVars[i];
@@ -1112,19 +1134,19 @@ void DoWindSpeed(
 	// them in order to find wind speed
 	if ( !wantU && (wantWind2d || wantWind3d) )
 	{
-		uInfoTemp.name = "U";
+		uInfoTemp.name = wrfNames.U;
 		GetVarInfo( ncid, ndims, uInfoTemp, dim );
 		uInfoPtr = &uInfoTemp;
 	}
 	if ( !wantV && (wantWind2d || wantWind3d) )
 	{
-		vInfoTemp.name = "V";
+		vInfoTemp.name = wrfNames.V;
 		GetVarInfo( ncid, ndims, vInfoTemp, dim );
 		vInfoPtr = &vInfoTemp;
 	}
 	if ( !wantW && wantWind3d ) // Only need W for 3D wind speed
 	{
-		wInfoTemp.name = "W";
+		wInfoTemp.name = wrfNames.W;
 		GetVarInfo( ncid, ndims, wInfoTemp, dim );
 		wInfoPtr = &wInfoTemp;
 	}
@@ -1302,7 +1324,9 @@ void DoPTStuff(
 	bool wantP = false; // Will hold whether or not user wants these converted
 	bool wantPb = false;
 	bool wantT = false;
-	size_t pIndex, pbIndex, tIndex; // Indices of these variables in desiredVars
+	size_t pIndex = 0; // Indices of these variables in desiredVars
+	size_t pbIndex = 0;
+	size_t tIndex = 0;
 	varInfo * pInfoPtr = 0; // Pointers to information about variables
 	varInfo * pbInfoPtr = 0;
 	varInfo * tInfoPtr = 0;
@@ -1310,21 +1334,21 @@ void DoPTStuff(
 	// Find out if user wants WRF variables converted
 	for ( size_t i = 0 ; i < desiredVars.size() ; i++ )
 	{
-		if ( strcmp( desiredVars[i].name, "P" ) == 0 )
+		if ( strcmp( desiredVars[i].name, wrfNames.P ) == 0 )
 		{
 			wantP = true;
 			pIndex = i;
 			pInfoPtr = &desiredVars[i];
 			continue;
 		}
-		if ( strcmp( desiredVars[i].name, "PB" ) == 0 )
+		if ( strcmp( desiredVars[i].name, wrfNames.PB ) == 0 )
 		{
 			wantPb = true;
 			pbIndex = i;
 			pbInfoPtr = &desiredVars[i];
 			continue;
 		}
-		if ( strcmp( desiredVars[i].name, "T" ) == 0 )
+		if ( strcmp( desiredVars[i].name, wrfNames.T ) == 0 )
 		{
 			wantT = true;
 			tIndex = i;
@@ -1339,19 +1363,19 @@ void DoPTStuff(
 	// Even if user doesn't want P, PB, T, we may still need them
 	if ( !wantP && (wantPfull || wantPnorm || wantTk) )
 	{
-		pTempInfo.name = "P";
+		pTempInfo.name = wrfNames.P;
 		GetVarInfo( ncid, ndims, pTempInfo, dim );
 		pInfoPtr = &pTempInfo;
 	}
 	if ( !wantPb && (wantPfull || wantPnorm || wantTk) )
 	{
-		pbTempInfo.name = "PB";
+		pbTempInfo.name = wrfNames.PB;
 		GetVarInfo( ncid, ndims, pbTempInfo, dim );
 		pbInfoPtr = &pbTempInfo;
 	}
 	if ( !wantT && (wantTheta || wantTk) )
 	{
-		tTempInfo.name = "T";
+		tTempInfo.name = wrfNames.T;
 		GetVarInfo( ncid, ndims, tTempInfo, dim );
 		tInfoPtr = &tTempInfo;
 	}
@@ -1532,15 +1556,13 @@ void DoPTStuff(
 
 
 
-int	main(int argc, char **argv) {
-
+int	main(int argc, char **argv) 
+{
 	OptionParser op;
 	
 	const char	*metafile;
 	const char	*netCDFfile; // Path to netCDF file 
 	
-	double	timer = 0.0;
-	double	read_timer = 0.0;
 	string	s;
 	const Metadata	*metadata;
 
@@ -1567,6 +1589,35 @@ int	main(int argc, char **argv) {
 		cerr << "Usage: " << ProgName << " [options] metafile NetCDFfile" << endl;
 		op.PrintOptionHelp(stderr);
 		exit(1);
+	}
+	// Handle atypical variable naming
+	if ( opt.atypvars[0] == "noatyps" )
+	{
+		// Default values
+		wrfNames.U = "U";
+		wrfNames.V = "V";
+		wrfNames.W = "W";
+		wrfNames.PH = "PH";
+		wrfNames.PHB = "PHB";
+		wrfNames.P = "P";
+		wrfNames.PB = "PB";
+		wrfNames.T = "T";
+	}
+	else if ( opt.atypvars.size() != 8 )
+	{
+		cerr << "If -atypvars option is given, colon delimited list must have exactly eight elements specifying names of variables which are typically named U:V:W:PH:PHB:P:PB:T" << endl;
+		exit( 1 );
+	}
+	else
+	{
+		wrfNames.U = opt.atypvars[0].c_str();
+		wrfNames.V = opt.atypvars[1].c_str();
+		wrfNames.W = opt.atypvars[2].c_str();
+		wrfNames.PH = opt.atypvars[3].c_str();
+		wrfNames.PHB = opt.atypvars[4].c_str();
+		wrfNames.P = opt.atypvars[5].c_str();
+		wrfNames.PB = opt.atypvars[6].c_str();
+		wrfNames.T = opt.atypvars[7].c_str();
 	}
 	
 	metafile = argv[1];	// Path to a vdf file
@@ -1623,9 +1674,10 @@ int	main(int argc, char **argv) {
 	if ( strcmp( startTime, "???????" ) == 0 ) // If no startTime option is given,
 		startTime = tsNaught;				   // default to starting stamp from VDF
 	maxVts = metadata->GetNumTimeSteps() - 1;
+	vector<string> tStamps(0); // Holds time stamps for output
 
 	// Get info from the WRF file
-	OpenWrfFile( netCDFfile, ncid, ndims, howManyTimes, vaporTs,\
+	OpenWrfFile( netCDFfile, ncid, ndims, howManyTimes, vaporTs, tStamps,
 				 tsOk, minDeltaT, startTime, endTime, maxVts, tsNaught );
 
 	// Create varInfo structs for all the variables to be converted
@@ -1689,13 +1741,34 @@ int	main(int argc, char **argv) {
 	// Get extents from VDF so that we know if we need to advise the
 	// user to change them
 	const vector<double> exts = metadata->GetExtents();
-	float newExts[] = { exts[2], exts[5] };
+	float newExts[] = { exts[2], exts[5] }; // Bottom of bottom and bottom of top for all time steps
+	float theseExts[2]; // Bottom of bottom and bottom of top for each time step
+
+	// Counts how many time steps were actually converted
+	int totalConverted = 0;
+
+	// Heading for all the output info
+	cout.setf( ios::fixed );
+	cout.setf( ios::showpoint );
+	cout.precision( 2 );
+	cout.setf(ios::left);
+	if ( !opt.quiet )
+		cout << setw(TSWIDTH) << "Time Stamp" << setw(CONVWIDTH) << "Converted?" << "Low Vert. Extents" << endl;
 
 	// Convert data for all time steps that we're supposed to
 	for ( size_t wrfT = 0 ; wrfT < howManyTimes ; wrfT++ )
 	{
+		// If we want output, print what time step we're working on
+		if ( !opt.quiet )
+			cout << setw(TSWIDTH) << tStamps[wrfT];
+
 		if ( tsOk[wrfT] == false )
+		{
+			// Tell user we didn't convert this
+			if ( !opt.quiet )
+				cout << setw(CONVWIDTH) << "No" << endl;
 			continue; // If we don't want this time step, skip everything below
+		}
 				
 		// Needed to avoid redundant readings when variable is vertically staggered
 		// (handled entirely by GetZSlice)
@@ -1703,9 +1776,13 @@ int	main(int argc, char **argv) {
 		for ( int i = 0 ; i < opt.varnames.size() ; i++ )
 			stillNeeded[i] = true;
 
+		// theseExts must be reset to default values at every time step
+		theseExts[0] = 400000.0;
+		theseExts[1] = 400000.0;
+
 		// Find elevation and do all the geopotential stuff
 		DoGeopotStuff( ncid, theVars, vaporTs[wrfT], wrfT, stillNeeded,
-					   metafile, ndims, dim, newExts, wantPhnorm );
+					   metafile, ndims, dim, theseExts, newExts, wantPhnorm );
 		// Find wind speeds, if necessary
 		if ( wantWind2d || wantWind3d )
 			DoWindSpeed( ncid, theVars, vaporTs[wrfT], wrfT, stillNeeded,
@@ -1747,6 +1824,11 @@ int	main(int argc, char **argv) {
 				stillNeeded[i] = false; // Now we're done with the ith variable
 			}
 		}
+		// Tell user we converted this time step
+		if ( !opt.quiet )
+			cout << setw(CONVWIDTH) << "Yes" << theseExts[0] << " to " << theseExts[1] << endl;
+		// Successfully converted a time step--make a note of it
+		totalConverted++;
 	}
 
 	// For pre-version 2 vdf files we need to write out the updated metafile. 
@@ -1759,9 +1841,14 @@ int	main(int argc, char **argv) {
 		m->Write(metafile);
 	}
 
-	// Report the bottom of the top and bottom layers so that script can
-	// tell users how to adjust their extents
-	fprintf( stdout, "%f %f\n", newExts[0], newExts[1] );
+	// Report summary information
+	if ( !opt.quiet )
+	{
+		cout << "Most restrictive vertical extents: " << newExts[0] << " to " << newExts[1] << endl;
+		cout << "Time steps converted: " << totalConverted << " of " << howManyTimes << endl;
+	}
+	else // Quieter version of the most restrictive extents--needed by script
+		cout << newExts[0] << " " << newExts[1] << endl;
 	
 	delete [] tsNaught;
 //	delete [] startTime; // Don't know why, but Visual C++ says bad assertion
