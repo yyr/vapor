@@ -129,9 +129,12 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 		offset = ((t - (float)m_nStartT)*m_TimeDir)/(float)m_nTimeIncrement;
 		assert(offset >= 0.0f);
 		lowT = (int)floor(offset);
+		
 		highT = lowT + 1;
 		if(offset != (float)lowT)
-		{
+		{//Note:  if lowT is always zero here, that implies that only the first value
+		//in the array array m_pUserTimeSteps is ever used.  This appear to be the case.
+			assert(lowT == 0);
 			ratio = (m_nUserTimeStepInc + (t - (int)t)*m_nUserTimeStep)/(float)m_pUserTimeSteps[lowT];
 			if (m_TimeDir == BACKWARD) ratio = 1.f - ratio;
 		}
@@ -144,16 +147,16 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 		float lowV = m_pVDataArray ? m_pVDataArray[lowT][id] : 0.f;
 		float lowW = m_pWDataArray ? m_pWDataArray[lowT][id] : 0.f;
 		if(ratio == 0.0)
-			nodeData.Set(lowU*m_fTimeScaleFactor, 
-						 lowV*m_fTimeScaleFactor, 
-						 lowW*m_fTimeScaleFactor);
+			nodeData.Set(lowU*m_fTimeScaleFactor*m_nUserTimeStep, 
+						 lowV*m_fTimeScaleFactor*m_nUserTimeStep, 
+						 lowW*m_fTimeScaleFactor*m_nUserTimeStep);
 		else{
 			float hiU = m_pUDataArray ? m_pUDataArray[highT][id] : 0.f;
 			float hiV = m_pVDataArray ? m_pVDataArray[highT][id] : 0.f;
 			float hiW = m_pWDataArray ? m_pWDataArray[highT][id] : 0.f;
-            nodeData.Set(m_fTimeScaleFactor*Lerp(lowU,hiU, ratio), 
-						 m_fTimeScaleFactor*Lerp(lowV,hiV, ratio),
-						 m_fTimeScaleFactor*Lerp(lowW,hiW, ratio));
+            nodeData.Set(m_fTimeScaleFactor*Lerp(lowU,hiU, ratio)*m_nUserTimeStep, 
+						 m_fTimeScaleFactor*Lerp(lowV,hiV, ratio)*m_nUserTimeStep,
+						 m_fTimeScaleFactor*Lerp(lowW,hiW, ratio)*m_nUserTimeStep);
 	
 		}
 	}

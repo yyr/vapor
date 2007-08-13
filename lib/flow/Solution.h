@@ -35,10 +35,10 @@ private:
 	int m_nEndT;						// end timestep
 	int m_nTimeIncrement;				// time steps between sampled time steps
 										
-	int m_nUserTimeStepInc;				// usertimestep between previous time step and previous
+	float m_nUserTimeStepInc;				// usertimestep between previous time step and previous
 										// sampled time step
-	int m_nUserTimeStep;				// usertimestep between current time step and next time step
-	int* m_pUserTimeSteps;				// time step increment between two sampled time steps
+	float m_nUserTimeStep;				// usertimestep between current time step and next time step
+	float* m_pUserTimeSteps;				// time step increment between two sampled time steps
 	TIME_DIR m_TimeDir;			// time direction forward or backwards
 
 public:
@@ -60,8 +60,8 @@ public:
 	int GetEndTime(void) {return m_nEndT;}
 	void SetTimeIncrement(int timeInc, VAPoR::TIME_DIR isForward) { m_nTimeIncrement = timeInc; m_TimeDir = isForward; }
 	
-	void SetUserTimeStepInc(int timeInc, int curTimeInc) { m_nUserTimeStepInc = timeInc; m_nUserTimeStep = curTimeInc; }
-	void SetUserTimeSteps(int* pUserTimeSteps) { m_pUserTimeSteps = pUserTimeSteps; }
+	void SetUserTimeStepInc(float timeInc, float curTimeInc) { m_nUserTimeStepInc = timeInc; m_nUserTimeStep = curTimeInc; }
+	void SetUserTimeSteps(float* pUserTimeSteps) { m_pUserTimeSteps = pUserTimeSteps; }
 	void SetTimeScaleFactor(float timeScaleFactor) { m_fTimeScaleFactor = timeScaleFactor; }
 	float GetTimeScaleFactor() {return m_fTimeScaleFactor;}
 };

@@ -61,8 +61,8 @@ public:
 	
 	int GetStartTime(void) { return m_pSolution->GetStartTime(); }
 	int GetEndTime(void) { return m_pSolution->GetEndTime(); }
-	void SetUserTimeStepInc(int timeInc, int curTimeInc) { m_pSolution->SetUserTimeStepInc(timeInc, curTimeInc); }
-	void SetUserTimeSteps(int* pUserTimeSteps) { m_pSolution->SetUserTimeSteps(pUserTimeSteps); }
+	void SetUserTimeStepInc(float timeInc, float curTimeInc) { m_pSolution->SetUserTimeStepInc(timeInc, curTimeInc); }
+	void SetUserTimeSteps(float* pUserTimeSteps) { m_pSolution->SetUserTimeSteps(pUserTimeSteps); }
 	float getTimeScaleFactor(){return m_pSolution->GetTimeScaleFactor();}
 	//int GetTimeIncrement(void) { return m_pSolution->GetTimeIncrement(); }
 };

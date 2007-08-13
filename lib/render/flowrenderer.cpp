@@ -268,8 +268,8 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	//At full resolution
 	const float* fullExtent = DataStatus::getInstance()->getStretchedExtents();
 	const size_t* fullDims = DataStatus::getInstance()->getFullDataSize();
-	voxelSize = Max((fullExtent[5]-fullExtent[2])/fullDims[0],
-		Max((fullExtent[4]-fullExtent[1])/fullDims[1], (fullExtent[3]-fullExtent[0])/fullDims[2]));
+	voxelSize = Max((fullExtent[5]-fullExtent[2])/fullDims[2],
+		Max((fullExtent[4]-fullExtent[1])/fullDims[1], (fullExtent[3]-fullExtent[0])/fullDims[0]));
 		
 	
 	stationaryRadius = 0.5f*voxelSize*myFlowParams->getDiamondDiameter();

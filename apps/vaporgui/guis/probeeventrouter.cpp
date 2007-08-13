@@ -1631,7 +1631,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
-		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, varnum, timeStep, fullHeight);
+		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, varnum, timeStep, fullHeight);
 		totVars++;
 	}
 	QApplication::restoreOverrideCursor();
@@ -1734,7 +1734,7 @@ refreshHistogram(RenderParams* p){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		assert(varnum >= firstVarNum);
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, varnum, timeStep, fullHeight);
+		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, varnum, timeStep, fullHeight);
 		QApplication::restoreOverrideCursor();
 		if (!volData[totVars]) return;
 		totVars++;
