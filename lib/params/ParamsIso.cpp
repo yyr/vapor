@@ -88,6 +88,7 @@ reinit(bool doOverride){
 		numrefs = 0;
 	} else {  //Try to use existing value
 		if (numrefs > maxNumRefinements) numrefs = maxNumRefinements;
+		if (numrefs < 0) numrefs = 0;
 	}
 	SetRefinementLevel(numrefs);
 	
