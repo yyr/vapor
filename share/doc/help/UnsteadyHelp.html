@@ -33,12 +33,16 @@ generated.&nbsp; It is the product:
 (spatial-correction-factor)*(time-correction-factor), where:</font></li>
       <ul>
         <li><font size="+2">(time-correction-factor) is the number of
-simulation time units (e.g. seconds) per vapor (.vdf) time step.
+simulation time units (e.g. seconds) per vapor (.vdf) time step.  If
+the user times are correctly specified in the metadata (vdf file) then this 
+factor should be 1.
 </font></li>
         <li><font size="+2">(spatial-correction-factor) is the ratio
 of the full
 domain size in VAPOR (see the VAPOR region panel) to the actual user
-domain extent that was used in the simulation</font></li>
+domain extents that were used in the simulation.  If the data extents in
+the metadata (vdf file)
+are correctly specified to the actual user coordinates, then this factor should be 1.</font></li>
       </ul>
     </ol>
     <font size="+2"> </font></li>
