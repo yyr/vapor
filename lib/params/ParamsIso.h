@@ -158,7 +158,7 @@ private:
 
  float _constcolorbuf[4];
  float _histoBounds[2];
- int numRefinements;
+
  MapperFunction* dummyMapperFunc;
  
 };

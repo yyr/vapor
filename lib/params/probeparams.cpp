@@ -962,26 +962,7 @@ void ProbeParams::setProbeDirty(){
 	textureWidth = textureHeight = 0;
 }
 
-float* ProbeParams::
-getContainingVolume(size_t blkMin[3], size_t blkMax[3], int sessionVarNum, int timeStep, size_t fullHeight){
-	//Get the region (int coords) associated with the specified variable at the
-	//current probe extents
-	int numRefinements = getNumRefinements();
-	int maxRes = DataStatus::getInstance()->maxXFormPresent(sessionVarNum,timeStep);
-	if (maxRes < numRefinements){
-		const char* vname = DataStatus::getInstance()->getVariableName(sessionVarNum).c_str();
-		MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,
-			"Probe data unavailable for refinement level %d of variable %s, at current timestep",
-			numRefinements, vname);
-		return 0;
-	}
-	
-	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-		DataStatus::getInstance()->getVariableName(sessionVarNum).c_str(),
-		numRefinements, blkMin, blkMax, fullHeight, 0);
-	
-	return reg;
-}
+
 //Calculate the probe texture (if it needs refreshing).
 //It's kept (cached) in the probe params
 //If nonzero texture dimensions are provided, then the cached image
@@ -1039,7 +1020,7 @@ calcProbeTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	int totVars = 0;
 	for (int varnum = 0; varnum < DataStatus::getInstance()->getNumSessionVariables(); varnum++){
 		if (!variableIsSelected(varnum)) continue;
-		volData[totVars] = getContainingVolume(blkMin, blkMax, varnum, ts, fullHeight);
+		volData[totVars] = getContainingVolume(blkMin, blkMax, numRefinements, varnum, ts, fullHeight);
 		if (!volData[totVars]) {
 			return 0;
 		}

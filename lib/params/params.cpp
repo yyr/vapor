@@ -30,6 +30,8 @@
 #include "mapperfunction.h"
 #include "glutil.h"
 #include "ParamNode.h"
+#include "vapor/DataMgr.h"
+#include "vapor/errorcodes.h"
 
 
 using namespace VAPoR;
@@ -561,5 +563,24 @@ RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Para
 	maxOpacEditBounds = 0;
 }
 
-
+float* Params::
+getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessionVarNum, int timeStep, size_t fullHeight){
+	//Get the region (int coords) associated with the specified variable at the
+	//current probe extents
+	
+	int maxRes = DataStatus::getInstance()->maxXFormPresent(sessionVarNum,timeStep);
+	if (maxRes < refLevel){
+		const char* vname = DataStatus::getInstance()->getVariableName(sessionVarNum).c_str();
+		MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,
+			"Probe data unavailable for refinement level %d of variable %s, at current timestep",
+			refLevel, vname);
+		return 0;
+	}
+	
+	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
+		DataStatus::getInstance()->getVariableName(sessionVarNum).c_str(),
+		refLevel, blkMin, blkMax, fullHeight, 0);
+	
+	return reg;
+}
 	

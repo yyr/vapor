@@ -527,3 +527,44 @@ int RegionParams::getMBStorageNeeded(const float* boxMin, const float* boxMax, i
 	return (int)fullMB;
 }
  
+//calculate the variable, at a specific point.
+//Returns the OUT_OF_BOUNDS flag if point is not in current region
+//
+
+
+float RegionParams::
+calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, int timeStep){
+	
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds || !ds->getDataMgr()) return 0.f;
+
+	//Get the data dimensions (at current resolution):
+	int voxCoords[3];
+	const size_t* bs = ds->getMetadata()->GetBlockSize();
+	
+	double regMin[3], regMax[3];
+	size_t min_dim[3],max_dim[3], min_bdim[3], max_bdim[3],blkmin[3], blkmax[3];
+	bool ok = getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, &sessionVarNum, 1, regMin, regMax);
+	if (!ok) return OUT_OF_BOUNDS;
+	//Get the closest voxel coords of the point, and the block coords that
+	//contain it.
+	for (int i = 0; i<3; i++) {
+		if (point[i] < regMin[i]) return OUT_OF_BOUNDS;
+		if (point[i] > regMax[i]) return OUT_OF_BOUNDS;
+		voxCoords[i] = (int)((max_dim[i] - min_dim[i])*(point[i] - regMin[i])/(regMax[i] - regMin[i]) + 0.5);
+		
+		blkmin[i] = voxCoords[i]/bs[i];
+		blkmax[i] = blkmin[i];
+		//Reset the voxel coords to index within the block:
+		voxCoords[i] -= blkmin[i]*bs[i];
+	}
+	// Obtain the region:
+	float *reg = getContainingVolume(blkmin,blkmax, numRefinements, sessionVarNum, timeStep, getFullGridHeight());
+	if (!reg) return OUT_OF_BOUNDS;
+	
+	//find the coords within this block:
+	int xyzcoord = voxCoords[0] + bs[0]*voxCoords[1] + bs[0]*bs[1]*voxCoords[2];
+
+	float val = reg[xyzcoord];
+	return val;
+}

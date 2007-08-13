@@ -23,7 +23,7 @@
 #define PROBEPARAMS_H
 
 #define HISTOSTRETCHCONSTANT 0.1f
-#define OUT_OF_BOUNDS -1.e30f
+
 #include <qwidget.h>
 #include "params.h"
 
@@ -154,7 +154,6 @@ public:
 		if (probeTextures[timestep]) delete probeTextures[timestep];
 		probeTextures[timestep] = tex;
 	}
-	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int varNum, int timeStep, size_t fullHeight);
 	unsigned char* calcProbeTexture(int timestep, int wid, int ht, size_t fullGridHeight);
 	unsigned char* getProbeTexture(int timestep, size_t fullHeight){
 		if (!probeIsDirty(timestep)) return probeTextures[timestep];

@@ -57,13 +57,14 @@ public:
 	//Optionally provides user extents.
 	bool getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
 		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, 
-		const int* varNums, int numVars, double* regMin = 0, double* regMax = 0);
+		const int* sesVarNums, int numVars, double* regMin = 0, double* regMax = 0);
 	//Static method that converts box to extents in cube, independent of actual
 	//extents in region.
 	static void convertToStretchedBoxExtentsInCube(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6], size_t fullHeight);
 	static void convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[3], float extents[6]);
 	
-	
+	float calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, int timeStep);
+
 	float getRegionMin(int coord){ return regionMin[coord];}
 	float getRegionMax(int coord){ return regionMax[coord];}
 	float* getRegionMin() {return regionMin;}

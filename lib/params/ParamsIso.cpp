@@ -83,13 +83,13 @@ reinit(bool doOverride){
 	
 	//Set up the numRefinements. 
 	int maxNumRefinements = ds->getNumTransforms();
-	
-	if (doOverride){
-		numRefinements = 0;
-	} else {//Try to use existing value
-		if (numRefinements > maxNumRefinements) numRefinements = maxNumRefinements;
+	int numrefs = GetRefinementLevel();
+	if (doOverride) { 
+		numrefs = 0;
+	} else {  //Try to use existing value
+		if (numrefs > maxNumRefinements) numrefs = maxNumRefinements;
 	}
-	SetRefinementLevel(numRefinements);
+	SetRefinementLevel(numrefs);
 	
 	//Make sure histo bounds and iso Value are valid
 	const float* curBounds = GetHistoBounds();

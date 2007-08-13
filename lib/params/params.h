@@ -33,6 +33,7 @@ using namespace VetsUtil;
 //Error tolerance for gui parameters:
 #define ROUND_OFF 1.e-6f
 #define MAXVIZWINS 16
+#define OUT_OF_BOUNDS -1.e30f
 
 namespace VAPoR{
 //The dirty bits are kept in each GLWindow, 
@@ -226,7 +227,9 @@ Params(int winNum) {
 	//Determine a new value of theta and phi when the probe is rotated around either the
 	//x-, y-, or z- axis.  axis is 0,1,or 1. rotation is in degrees.
 	void convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, int axis, float rotation);
-
+	//Get a variable region from the datamanager
+	float* getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refinements, int varNum, int timeStep, size_t fullHeight);
+	
 protected:
 	bool local;
 	
@@ -395,6 +398,8 @@ public:
 	virtual int getNumRefinements()=0;
 	void setStopFlag(bool val = true) {stopFlag = val;}
 	bool getStopFlag() {return stopFlag;}
+
+	
 
 protected:
 	
