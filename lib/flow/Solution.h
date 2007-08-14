@@ -64,6 +64,7 @@ public:
 	void SetUserTimeSteps(float* pUserTimeSteps) { m_pUserTimeSteps = pUserTimeSteps; }
 	void SetTimeScaleFactor(float timeScaleFactor) { m_fTimeScaleFactor = timeScaleFactor; }
 	float GetTimeScaleFactor() {return m_fTimeScaleFactor;}
+	float GetCurUserTimeStep() {return m_nUserTimeStep;}
 };
 };
 #endif

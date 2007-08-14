@@ -64,6 +64,7 @@ public:
 	void SetUserTimeStepInc(float timeInc, float curTimeInc) { m_pSolution->SetUserTimeStepInc(timeInc, curTimeInc); }
 	void SetUserTimeSteps(float* pUserTimeSteps) { m_pSolution->SetUserTimeSteps(pUserTimeSteps); }
 	float getTimeScaleFactor(){return m_pSolution->GetTimeScaleFactor();}
+	float GetCurUserTimeStep() {return m_pSolution->GetCurUserTimeStep();}
 	//int GetTimeIncrement(void) { return m_pSolution->GetTimeIncrement(); }
 };
 //Helper class to get data out of a vector field
