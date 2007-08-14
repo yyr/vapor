@@ -209,28 +209,40 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	// get the initial step size
 	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
 	mag = vel.GetMag();
+	
 	dt = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
-
+	
+	//Determine the value of mag*dt to project 10 times init size.  
+	float maxMagDt = 10.*dt*mag;
 
 	int rollbackCount = 0;
 	// start to advect
+	
 	while(totalStepsize < (float)((m_nMaxsize-1)*m_fSamplingRate))
 	{
 		bool doingRetrace = false;
 		second_prevInterpolant = prevInterpolant;
 		prevInterpolant = thisInterpolant;
 		int retrace = true;
-
+		
+		
 
 		while(retrace)
 		{
 			retrace = false;
 			
-			if(integ_ord == SECOND)
-				istat = runge_kutta2(time_dir, time_dep, thisParticle, &curTime, dt);
-			else
-				istat = runge_kutta4(time_dir, time_dep, thisParticle, &curTime, dt);
+			for(int magTry = 0; magTry < 20; magTry++) {
+				if(integ_ord == SECOND)
+					istat = runge_kutta2(time_dir, time_dep, thisParticle, &curTime, dt, maxMagDt);
+				else
+					istat = runge_kutta4(time_dir, time_dep, thisParticle, &curTime, dt, maxMagDt);
+			
+				if (istat != FIELD_TOO_BIG) break;
+				//Shrink dt by factor of 10.
+				dt = 0.1*dt;
 
+			}
+			assert (istat != FIELD_TOO_BIG);
 			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);
@@ -239,6 +251,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 				return OUT_OF_BOUND;
 
 			m_pField->at_phys(thisParticle.fromCell, thisParticle.phyCoord, thisParticle, m_fCurrentTime, vel);
+			
 			if((abs(vel[0]) < m_fStationaryCutoff) && (abs(vel[1]) < m_fStationaryCutoff) && (abs(vel[2]) < m_fStationaryCutoff))
 				return CRITICAL_POINT;
 
@@ -289,6 +302,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 				} else doingRetrace = false;
 			}
 		}// end of retrace
+		//What was the distance advected?
 	}// end of advection
 	return (OKAY);
 }

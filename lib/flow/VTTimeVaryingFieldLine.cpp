@@ -73,7 +73,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	int istat = -1;
 	double curTime, dt;
 	PointInfo pt;
-
+	assert(0);   // This code is not used in VAPOR
 	pt = initialPoint.m_pointInfo;
 
 	if(m_itsTimeAdaptionFlag == 1)
@@ -86,9 +86,9 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	while((float)curTime < finalTime)
 	{
 		if(int_order == SECOND)
-			istat = runge_kutta2(m_timeDir, UNSTEADY, pt, &curTime, dt);
+			istat = runge_kutta2(m_timeDir, UNSTEADY, pt, &curTime, dt,0.);
 		else
-			istat = runge_kutta4(m_timeDir, UNSTEADY, pt, &curTime, dt);
+			istat = runge_kutta4(m_timeDir, UNSTEADY, pt, &curTime, dt,0.);
 
 		if(istat != 1)
 			return istat;
@@ -134,6 +134,8 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
 	mag = vel.GetMag();
 	dt = pow(cell_volume, (float)0.3333333f) / mag;
+	//Allow dt*mag to be 10 times the initial setting:
+	float maxDtMag = dt*mag*10.f;
 
 	int currentProgress = 0;
 	int maxProgress = 0;
@@ -162,12 +164,16 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 		while(retrace)
 		{
 			retrace = false;
-			
-			if(int_order == SECOND)
-				istat = runge_kutta2(m_timeDir, UNSTEADY, thisParticle, &curTime, dt);
-			else
-				istat = runge_kutta4(m_timeDir, UNSTEADY, thisParticle, &curTime, dt);
-
+			//Loop until dt*mag is small enough, dividing dt by 10 if necessary
+			for (int tries = 0; tries < 20; tries++){
+				if(int_order == SECOND)
+					istat = runge_kutta2(m_timeDir, UNSTEADY, thisParticle, &curTime, dt,maxDtMag);
+				else
+					istat = runge_kutta4(m_timeDir, UNSTEADY, thisParticle, &curTime, dt,maxDtMag);
+				if (istat != FIELD_TOO_BIG) break;
+				dt = dt *0.1;
+			}
+			assert(istat != FIELD_TOO_BIG);
 			thisInterpolant = thisParticle.interpolant;
 			seedTrace.push_back(new VECTOR3(thisParticle.phyCoord));
 			stepList.push_back(dt);

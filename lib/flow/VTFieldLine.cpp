@@ -76,7 +76,7 @@ int vtCFieldLine::euler_cauchy(TIME_DIR, TIME_DEP,float*, float)
 //////////////////////////////////////////////////////////////////////////
 int vtCFieldLine::runge_kutta2(TIME_DIR time_dir, TIME_DEP time_dep, 
 							   PointInfo& ci, 
-							   double* t, float dt)
+							   double* t, float dt, float prevMag)
 {
 	int istat;
 	istat = OKAY;
@@ -87,7 +87,8 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 							   TIME_DEP time_dep, 
 							   PointInfo& ci, 
 							   double* t,			// initial time
-							   float dt)			// stepsize
+							   float dt,			//stepsize
+							   float maxMagDt)		//Largest value of dt*mag(vec)
 {
 	int i, istat;
 	VECTOR3 pt0;
@@ -100,20 +101,27 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 
 	// 1st step of the Runge-Kutta scheme
 	istat = m_pField->at_phys(ci.fromCell, pt, ci, *t, vel);
+	
 	if ( istat != 1 )
 		return OUT_OF_BOUND;
+
+	if (vel.GetMag()*dt > maxMagDt) return FIELD_TOO_BIG;
+
 	for( i=0; i<3; i++ )
 	{
 		pt0[i] = pt[i];
 		k1[i] = time_dir*dt*vel[i];
 		pt[i] = pt0[i]+k1[i]*(float)0.5;
 	}
-
+	
 	// 2nd step of the Runge-Kutta scheme
 	fromCell = ci.inCell;
 	if ( time_dep  == UNSTEADY)
 		*t += 0.5*time_dir*dt;
 	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
+
+	if (vel.GetMag()*dt > maxMagDt) return FIELD_TOO_BIG;
+
 	if ( istat!= 1 )
 	{
 		ci.phyCoord = pt;
@@ -128,6 +136,9 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 	// 3rd step of the Runge-Kutta scheme
 	fromCell = ci.inCell;
 	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
+
+	if (vel.GetMag()*dt > maxMagDt) return FIELD_TOO_BIG;
+
 	if ( istat != 1 )
 	{
 		ci.phyCoord = pt;
@@ -144,6 +155,7 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 		*t += 0.5*time_dir*dt;
 	fromCell = ci.inCell;
 	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
+	if (vel.GetMag()*dt > maxMagDt) return FIELD_TOO_BIG;
 	if ( istat != 1 )
 	{
 		ci.phyCoord = pt;

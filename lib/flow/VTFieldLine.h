@@ -28,7 +28,7 @@ enum INTEG_ORD{ SECOND = 2, FOURTH = 4};		// integration order
 
 enum TIME_DEP{ STEADY=0,UNSTEADY=1 };	
 enum TRACE_DIR{OFF=0, BACKWARD_DIR=1, FORWARD_DIR=2, BACKWARD_AND_FORWARD=3};
-enum ADVECT_STATUS{OUT_OF_BOUND = -1, CRITICAL_POINT = 0, OKAY = 1};
+enum ADVECT_STATUS{OUT_OF_BOUND = -1, CRITICAL_POINT = 0, FIELD_TOO_BIG = -2, OKAY = 1};
 
 class FlowLineData;
 class PathLineData;
@@ -134,8 +134,8 @@ public:
 protected:
 	void releaseSeedMemory(void);
 	int euler_cauchy(TIME_DIR, TIME_DEP,float*, float);
-	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, double*, float);
-	int runge_kutta2(TIME_DIR, TIME_DEP, PointInfo&, double*, float);
+	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, double*, float, float);
+	int runge_kutta2(TIME_DIR, TIME_DEP, PointInfo&, double*, float, float);
 	int adapt_step( const VECTOR3& p2, 
 					const VECTOR3& p1, 
 					const VECTOR3& p0, 
