@@ -129,7 +129,7 @@ virtual float getMaxOpacEditBound(int ) {
  void SetHistoStretch(float scale);
  
 
- void SetSelectedPoint(float pnt[3]);
+ void SetSelectedPoint(const float pnt[3]);
  const vector<double>& GetSelectedPoint();
 
  void SetRefinementLevel(int level);

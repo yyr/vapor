@@ -565,8 +565,8 @@ RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Para
 
 float* Params::
 getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessionVarNum, int timeStep, size_t fullHeight){
-	//Get the region (int coords) associated with the specified variable at the
-	//current probe extents
+	//Get the region associated with the specified variable in the 
+	//specified block extents
 	
 	int maxRes = DataStatus::getInstance()->maxXFormPresent(sessionVarNum,timeStep);
 	if (maxRes < refLevel){

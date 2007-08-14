@@ -1592,29 +1592,38 @@ guiEndCursorMove(){
 
 float ProbeEventRouter::
 calcCurrentValue(ProbeParams* pParams, const float point[3]){
+	double regMin[3],regMax[3];
 	if (numVariables <= 0) return OUT_OF_BOUNDS;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds || !ds->getDataMgr()) return 0.f;
 	if (!pParams->isEnabled()) return 0.f;
 	int arrayCoord[3];
-	const float* extents = ds->getExtents();
-	size_t fullHeight = VizWinMgr::getActiveRegionParams()->getFullGridHeight();
+	
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+	
 	//Get the data dimensions (at current resolution):
-	int dataSize[3];
+	
 	int numRefinements = pParams->getNumRefinements();
-	for (int i = 0; i< 3; i++){
-		dataSize[i] = ds->getFullSizeAtLevel(numRefinements,i,fullHeight);
-	}
 	
 	//Find the region that contains the probe.
+
+	//List the variables we are interested in
+	int* sessionVarNums = new int[numVariables];
+	int totVars = 0;
+	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
+		if (!pParams->variableIsSelected(varnum)) continue;
+		sessionVarNums[totVars++] = varnum;
+	}
 	
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	size_t blkMin[3], blkMax[3];
 	size_t coordMin[3], coordMax[3];
-	if (!pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, coordMin, coordMax, fullHeight)) return OUT_OF_BOUNDS;
+	if (!rParams->getAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
+		sessionVarNums, totVars, regMin, regMax)) return OUT_OF_BOUNDS;
+
 	for (int i = 0; i< 3; i++){
-		if ((point[i] < extents[i]) || (point[i] > extents[i+3])) return OUT_OF_BOUNDS;
-		arrayCoord[i] = (int) (0.5f+((float)dataSize[i])*(point[i] - extents[i])/(extents[i+3]-extents[i]));
+		if ((point[i] < regMin[i]) || (point[i] > regMax[i])) return OUT_OF_BOUNDS;
+		arrayCoord[i] = (int) (0.5f+((float)(coordMax[i]- coordMin[i]))*(point[i] - regMin[i])/(regMax[i]-regMin[i]));
 		//Make sure the transformed coords are in the probe region
 		if (arrayCoord[i] < (int)coordMin[i] || arrayCoord[i] > (int)coordMax[i] ) {
 			return OUT_OF_BOUNDS;
@@ -1627,7 +1636,8 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	//volume for each variable specified, then do rms on the variables (if > 1 specified)
 	float** volData = new float*[numVariables];
 	//Now obtain all of the volumes needed for this probe:
-	int totVars = 0;
+	totVars = 0;
+	size_t fullHeight = rParams->getFullGridHeight();
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;

@@ -228,7 +228,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	return (float)valvec[0];
  }
 
- void ParamsIso::SetSelectedPoint(float pnt[3]){
+ void ParamsIso::SetSelectedPoint(const float pnt[3]){
 	vector <double> valvec(3);
 	valvec[0] = pnt[0]; valvec[1]= pnt[1]; valvec[2]= pnt[2];
 	GetRootNode()->SetElementDouble(_SelectedPointTag, valvec);

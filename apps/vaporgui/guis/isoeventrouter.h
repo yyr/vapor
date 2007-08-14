@@ -76,7 +76,7 @@ protected slots:
 	void guiNewInstance();
 	void guiDeleteInstance();
 	void guiCopyInstanceTo(int toViz);
-	
+	void guiCopyProbePoint();
 
 	void guiSetComboVarNum(int val);
 	
@@ -90,7 +90,7 @@ protected slots:
 	void setIsoEditMode(bool);
 	void setIsoNavigateMode(bool);
 	void setConstantColor();
-	void passThruPoint();
+	void guiPassThruPoint();
 	void guiStartChangeIsoSelection(QString);
 	void guiEndChangeIsoSelection();
 	
@@ -100,6 +100,7 @@ protected:
 	virtual void setEditorDirty(RenderParams *p = 0);
 	void updateHistoBounds(RenderParams*);
 	virtual void updateMapBounds(RenderParams*);
+	float evaluateSelectedPoint();
 	int copyCount[MAXVIZWINS+1];
 	bool editMode;
 };

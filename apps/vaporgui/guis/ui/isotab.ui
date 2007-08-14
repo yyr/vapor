@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>439</width>
-            <height>855</height>
+            <height>868</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout43</cstring>
+                <cstring>layout25</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -295,7 +295,7 @@ create new Probe/Contour instances.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>34</height>
+                            <height>31</height>
                         </size>
                     </property>
                 </spacer>
@@ -328,7 +328,7 @@ window toolbar.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout42</cstring>
+                                <cstring>layout24</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -522,84 +522,76 @@ window toolbar.</string>
                                         </size>
                                     </property>
                                 </spacer>
-                                <widget class="QLayoutWidget">
+                                <widget class="QFrame">
                                     <property name="name">
-                                        <cstring>layout41</cstring>
+                                        <cstring>Isovalue_Frame</cstring>
                                     </property>
-                                    <vbox>
+                                    <property name="frameShape">
+                                        <enum>StyledPanel</enum>
+                                    </property>
+                                    <property name="frameShadow">
+                                        <enum>Raised</enum>
+                                    </property>
+                                    <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
-                                        <widget class="QFrame">
+                                        <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>Isovalue_Frame</cstring>
+                                                <cstring>layout23</cstring>
                                             </property>
-                                            <property name="frameShape">
-                                                <enum>StyledPanel</enum>
-                                            </property>
-                                            <property name="frameShadow">
-                                                <enum>Raised</enum>
-                                            </property>
-                                            <hbox>
+                                            <vbox>
                                                 <property name="name">
                                                     <cstring>unnamed</cstring>
                                                 </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Isovalue Selection</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout125</cstring>
+                                                        <cstring>layout120</cstring>
                                                     </property>
-                                                    <vbox>
+                                                    <hbox>
                                                         <property name="name">
                                                             <cstring>unnamed</cstring>
                                                         </property>
-                                                        <widget class="QLabel">
+                                                        <widget class="QPushButton">
                                                             <property name="name">
-                                                                <cstring>textLabel1</cstring>
+                                                                <cstring>editButton</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Isovalue Selection</string>
+                                                                <string>Edit</string>
                                                             </property>
-                                                            <property name="alignment">
-                                                                <set>AlignCenter</set>
+                                                            <property name="toggleButton">
+                                                                <bool>true</bool>
+                                                            </property>
+                                                            <property name="on">
+                                                                <bool>true</bool>
                                                             </property>
                                                         </widget>
-                                                        <widget class="QLayoutWidget">
+                                                        <widget class="QPushButton">
                                                             <property name="name">
-                                                                <cstring>layout120</cstring>
+                                                                <cstring>navigateButton</cstring>
                                                             </property>
-                                                            <hbox>
-                                                                <property name="name">
-                                                                    <cstring>unnamed</cstring>
-                                                                </property>
-                                                                <widget class="QPushButton">
-                                                                    <property name="name">
-                                                                        <cstring>editButton</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Edit</string>
-                                                                    </property>
-                                                                    <property name="toggleButton">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                    <property name="on">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton">
-                                                                    <property name="name">
-                                                                        <cstring>navigateButton</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Zoom/Pan</string>
-                                                                    </property>
-                                                                    <property name="toggleButton">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Use mouse to zoom and pan edit window</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>The Edit and Zoom/Pan button select
+                                                            <property name="text">
+                                                                <string>Zoom/Pan</string>
+                                                            </property>
+                                                            <property name="toggleButton">
+                                                                <bool>true</bool>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Use mouse to zoom and pan edit window</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The Edit and Zoom/Pan button select
 two modes of mouse interaction in the
 transfer function window.  In Zoom/Pan
 mode, click-drag the left mouse to change
@@ -608,34 +600,34 @@ visible in the window, without changing
 the transfer function itself.  In Edit mode
 the left mouse button is used to select
 and move control points.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton">
-                                                                    <property name="name">
-                                                                        <cstring>alignButton</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Fit to View</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Align edit window with transfer function domain</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>The "Fit to View" button is used to make the current editing region coincide with the transfer function domain bounds.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton">
-                                                                    <property name="name">
-                                                                        <cstring>newHistoButton</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Histo</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Click to build a new histogram based on the current region settings, animation timestep, and transfer function bounds</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>Click the Histo button to refresh the
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>alignButton</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Fit to View</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Align edit window with transfer function domain</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The "Fit to View" button is used to make the current editing region coincide with the transfer function domain bounds.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>newHistoButton</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Histo</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Click to build a new histogram based on the current region settings, animation timestep, and transfer function bounds</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Click the Histo button to refresh the
 histogram that is displayed in the transfer
 function edit window.  The data that is 
 histogrammed is determined by the 
@@ -645,36 +637,36 @@ and rotation, and the TF data bounds.
 Use the right mouse menu in the 
 transfer function window to choose
 how the histogram is scaled.</string>
-                                                                    </property>
-                                                                </widget>
-                                                            </hbox>
-                                                        </widget>
-                                                        <widget class="QLayoutWidget">
-                                                            <property name="name">
-                                                                <cstring>layout67</cstring>
                                                             </property>
-                                                            <hbox>
-                                                                <property name="name">
-                                                                    <cstring>unnamed</cstring>
-                                                                </property>
-                                                                <widget class="VAPoR::MappingFrame">
-                                                                    <property name="name">
-                                                                        <cstring>isoSelectionFrame</cstring>
-                                                                    </property>
-                                                                    <property name="minimumSize">
-                                                                        <size>
-                                                                            <width>0</width>
-                                                                            <height>190</height>
-                                                                        </size>
-                                                                    </property>
-                                                                    <property name="colorMapping" stdset="0">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                    <property name="opacityMapping" stdset="0">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>The transfer function editor displays a 
+                                                        </widget>
+                                                    </hbox>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout67</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="VAPoR::MappingFrame">
+                                                            <property name="name">
+                                                                <cstring>isoSelectionFrame</cstring>
+                                                            </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>0</width>
+                                                                    <height>190</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="colorMapping" stdset="0">
+                                                                <bool>true</bool>
+                                                            </property>
+                                                            <property name="opacityMapping" stdset="0">
+                                                                <bool>true</bool>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The transfer function editor displays a 
 mapping (called a "transfer function")
 from the data variable(s) to opacity and 
 color,  This is used when you view a 
@@ -689,334 +681,759 @@ bar at the bottom.  A histogram of data
 values is shown in blue-green behind 
 the opacity curve.  Additional options are
 available from the right mouse button.</string>
-                                                                    </property>
-                                                                </widget>
-                                                            </hbox>
-                                                        </widget>
-                                                        <widget class="QLayoutWidget">
-                                                            <property name="name">
-                                                                <cstring>layout26</cstring>
                                                             </property>
-                                                            <hbox>
-                                                                <property name="name">
-                                                                    <cstring>unnamed</cstring>
-                                                                </property>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer33</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>91</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QLabel">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel2</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Isosurface Value</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignCenter</set>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLineEdit">
-                                                                    <property name="name">
-                                                                        <cstring>isoValueEdit</cstring>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignHCenter</set>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer34_3</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>71</width>
-                                                                            <height>21</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                            </hbox>
                                                         </widget>
-                                                        <widget class="QLayoutWidget">
+                                                    </hbox>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout26</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <spacer>
                                                             <property name="name">
-                                                                <cstring>layout33</cstring>
+                                                                <cstring>spacer33</cstring>
                                                             </property>
-                                                            <hbox>
-                                                                <property name="name">
-                                                                    <cstring>unnamed</cstring>
-                                                                </property>
-                                                                <widget class="QLineEdit">
-                                                                    <property name="name">
-                                                                        <cstring>leftHistoEdit</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>0.0</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Minimum of transfer function domain</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>The displayed data bounds are based on
-the range of data values in the first time step
-of the dataset.  These values are only a
-guide.  The TF Domain Bounds can be
-reset to any range.  Click on the "histo"
-button to construct, a histogram and thereby
-to determine the actual data values in the
-specified range.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer34</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>48</width>
-                                                                            <height>21</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QLabel">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel2_3</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Histo Domain Bounds</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignCenter</set>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer35</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>67</width>
-                                                                            <height>21</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QLineEdit">
-                                                                    <property name="name">
-                                                                        <cstring>rightHistoEdit</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>1.0</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignRight</set>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Maximum of transfer function domain</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>The displayed data bounds are based on
-the range of data values in the first time step
-of the dataset.  These values are only a
-guide.  The TF Domain Bounds can be
-reset to any range.  Click on the "histo"
-button to construct, a histogram and thereby
-to determine the actual data values in the
-specified range.</string>
-                                                                    </property>
-                                                                </widget>
-                                                            </hbox>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>91</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel2</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Isosurface Value</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
                                                         </widget>
-                                                        <widget class="QLayoutWidget">
+                                                        <widget class="QLineEdit">
                                                             <property name="name">
-                                                                <cstring>layout30</cstring>
+                                                                <cstring>isoValueEdit</cstring>
                                                             </property>
-                                                            <hbox>
-                                                                <property name="name">
-                                                                    <cstring>unnamed</cstring>
-                                                                </property>
-                                                                <widget class="QLabel">
-                                                                    <property name="name">
-                                                                        <cstring>minDataBound</cstring>
-                                                                    </property>
-                                                                    <property name="font">
-                                                                        <font>
-                                                                        </font>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>0.0</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Data bounds are estimated from the variable at the first available time step.</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>The displayed data bounds are based on
-the range of data values in the first time step
-of the dataset.  These values are only a
-guide.  The TF Domain Bounds can be
-reset to any range.  Click on the "histo"
-button to construct, a histogram and thereby
-to determine the actual data values in the
-specified range.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLabel">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel2_5</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Data Bounds</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignCenter</set>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Data bounds are estimated from the variable at the first available time step.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLabel">
-                                                                    <property name="name">
-                                                                        <cstring>maxDataBound</cstring>
-                                                                    </property>
-                                                                    <property name="font">
-                                                                        <font>
-                                                                        </font>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>1.0</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignVCenter|AlignRight</set>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Data bounds are estimated from the variable at the first available time step.</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>The displayed data bounds are based on
-the range of data values in the first time step
-of the dataset.  These values are only a
-guide.  The TF Domain Bounds can be
-reset to any range.  Click on the "histo"
-button to construct, a histogram and thereby
-to determine the actual data values in the
-specified range.</string>
-                                                                    </property>
-                                                                </widget>
-                                                            </hbox>
-                                                        </widget>
-                                                        <widget class="QLayoutWidget">
-                                                            <property name="name">
-                                                                <cstring>layout21_2</cstring>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
                                                             </property>
-                                                            <hbox>
-                                                                <property name="name">
-                                                                    <cstring>unnamed</cstring>
-                                                                </property>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer28_3</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>40</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QLabel">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel1_8</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Histo scaling factor</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>The Histo scaling factor rescales the displayed histogram linearly by that factor.  Use the right mouse in the opacity window to choose nonlinear scaling options.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLineEdit">
-                                                                    <property name="name">
-                                                                        <cstring>histoScaleEdit</cstring>
-                                                                    </property>
-                                                                    <property name="maximumSize">
-                                                                        <size>
-                                                                            <width>50</width>
-                                                                            <height>32767</height>
-                                                                        </size>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>1</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignHCenter</set>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Scale factor for histogram display</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>The Histo scaling factor rescales the displayed histogram linearly by that factor.  Use the right mouse in the opacity window to choose nonlinear scaling options.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer29_2</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>31</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                            </hbox>
                                                         </widget>
                                                         <spacer>
                                                             <property name="name">
-                                                                <cstring>spacer213</cstring>
+                                                                <cstring>spacer34_3</cstring>
                                                             </property>
                                                             <property name="orientation">
-                                                                <enum>Vertical</enum>
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>71</width>
+                                                                    <height>21</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                    </hbox>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout33</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>leftHistoEdit</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>0.0</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Minimum of transfer function domain</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The displayed data bounds are based on
+the range of data values in the first time step
+of the dataset.  These values are only a
+guide.  The TF Domain Bounds can be
+reset to any range.  Click on the "histo"
+button to construct, a histogram and thereby
+to determine the actual data values in the
+specified range.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer34</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>48</width>
+                                                                    <height>21</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel2_3</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Histo Domain Bounds</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer35</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>67</width>
+                                                                    <height>21</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>rightHistoEdit</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>1.0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignRight</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Maximum of transfer function domain</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The displayed data bounds are based on
+the range of data values in the first time step
+of the dataset.  These values are only a
+guide.  The TF Domain Bounds can be
+reset to any range.  Click on the "histo"
+button to construct, a histogram and thereby
+to determine the actual data values in the
+specified range.</string>
+                                                            </property>
+                                                        </widget>
+                                                    </hbox>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout30</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>minDataBound</cstring>
+                                                            </property>
+                                                            <property name="font">
+                                                                <font>
+                                                                </font>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>0.0</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Data bounds are estimated from the variable at the first available time step.</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The displayed data bounds are based on
+the range of data values in the first time step
+of the dataset.  These values are only a
+guide.  The TF Domain Bounds can be
+reset to any range.  Click on the "histo"
+button to construct, a histogram and thereby
+to determine the actual data values in the
+specified range.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel2_5</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Data Bounds</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Data bounds are estimated from the variable at the first available time step.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>maxDataBound</cstring>
+                                                            </property>
+                                                            <property name="font">
+                                                                <font>
+                                                                </font>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>1.0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignVCenter|AlignRight</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Data bounds are estimated from the variable at the first available time step.</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The displayed data bounds are based on
+the range of data values in the first time step
+of the dataset.  These values are only a
+guide.  The TF Domain Bounds can be
+reset to any range.  Click on the "histo"
+button to construct, a histogram and thereby
+to determine the actual data values in the
+specified range.</string>
+                                                            </property>
+                                                        </widget>
+                                                    </hbox>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout21_2</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer28_3</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>40</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel1_8</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Histo scaling factor</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The Histo scaling factor rescales the displayed histogram linearly by that factor.  Use the right mouse in the opacity window to choose nonlinear scaling options.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>histoScaleEdit</cstring>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>50</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>1</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Scale factor for histogram display</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The Histo scaling factor rescales the displayed histogram linearly by that factor.  Use the right mouse in the opacity window to choose nonlinear scaling options.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer29_2</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>31</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                    </hbox>
+                                                </widget>
+                                                <spacer>
+                                                    <property name="name">
+                                                        <cstring>spacer213</cstring>
+                                                    </property>
+                                                    <property name="orientation">
+                                                        <enum>Vertical</enum>
+                                                    </property>
+                                                    <property name="sizeType">
+                                                        <enum>Expanding</enum>
+                                                    </property>
+                                                    <property name="sizeHint">
+                                                        <size>
+                                                            <width>20</width>
+                                                            <height>16</height>
+                                                        </size>
+                                                    </property>
+                                                </spacer>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Isosurface through specific point</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout124</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer209</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>46</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel5</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Point Coordinates</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the coordinates of a point that will have an isosurface through it</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>selectedXEdit</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>0.0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the coordinates of a point that will have an isosurface through it</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>selectedYEdit</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>0.0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the coordinates of a point that will have an isosurface through it</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>selectedZEdit</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>0.0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the coordinates of a point that will have an isosurface through it</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer210</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>46</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                    </hbox>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout22</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer212</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>16</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel9</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Value of Variable at Point</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer214</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>16</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>variableValueLabel</cstring>
+                                                            </property>
+                                                            <property name="minimumSize">
+                                                                <size>
+                                                                    <width>95</width>
+                                                                    <height>0</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="paletteBackgroundColor">
+                                                                <color>
+                                                                    <red>255</red>
+                                                                    <green>255</green>
+                                                                    <blue>255</blue>
+                                                                </color>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string></string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Value of variable at selected point</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer31</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>31</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                    </hbox>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout21</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer211</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>16</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>passThruButton</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Pass Iso Thru Point</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Set the isovalue to be the value of the variable at the specific point</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer29</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>31</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>copyPointButton</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Copy Point from Probe</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Copy point coordinates from the selected point in the current applicable probe</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer30</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>31</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                    </hbox>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer124</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>27</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QFrame">
+                                    <property name="name">
+                                        <cstring>mappingFrame</cstring>
+                                    </property>
+                                    <property name="frameShape">
+                                        <enum>StyledPanel</enum>
+                                    </property>
+                                    <property name="frameShadow">
+                                        <enum>Raised</enum>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>The color and opacity of the flow
+lines are set by defining a color
+mapping and an opacity mapping
+in this panel.</string>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout40</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel16</cstring>
+                                                    </property>
+                                                    <property name="font">
+                                                        <font>
+                                                        </font>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Appearance Parameters</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout39</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer54</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>51</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel1_6</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Color:</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>constantColorButton</cstring>
+                                                            </property>
+                                                            <property name="paletteBackgroundColor">
+                                                                <color>
+                                                                    <red>255</red>
+                                                                    <green>0</green>
+                                                                    <blue>0</blue>
+                                                                </color>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string></string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Clisk to specify color used in constant map</string>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer75</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
                                                             </property>
                                                             <property name="sizeType">
                                                                 <enum>Expanding</enum>
@@ -1024,474 +1441,134 @@ specified range.</string>
                                                             <property name="sizeHint">
                                                                 <size>
                                                                     <width>20</width>
-                                                                    <height>16</height>
+                                                                    <height>20</height>
                                                                 </size>
                                                             </property>
                                                         </spacer>
                                                         <widget class="QLabel">
                                                             <property name="name">
-                                                                <cstring>textLabel1_2</cstring>
+                                                                <cstring>textLabel2_2</cstring>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Isosurface through specific point</string>
+                                                                <string>Opacity:</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
                                                             </property>
                                                         </widget>
-                                                        <widget class="QLayoutWidget">
+                                                        <widget class="QLineEdit">
                                                             <property name="name">
-                                                                <cstring>layout124</cstring>
+                                                                <cstring>constantOpacityEdit</cstring>
                                                             </property>
-                                                            <hbox>
-                                                                <property name="name">
-                                                                    <cstring>unnamed</cstring>
-                                                                </property>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer209</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>46</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QLabel">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel5</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Point Coordinates</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLineEdit">
-                                                                    <property name="name">
-                                                                        <cstring>selectedXEdit</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>0.0</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignHCenter</set>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLineEdit">
-                                                                    <property name="name">
-                                                                        <cstring>selectedYEdit</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>0.0</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignHCenter</set>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLineEdit">
-                                                                    <property name="name">
-                                                                        <cstring>selectedZEdit</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>0.0</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignHCenter</set>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer210</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>46</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                            </hbox>
+                                                            <property name="text">
+                                                                <string>1.0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignHCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify opacity value used in constant mapping</string>
+                                                            </property>
                                                         </widget>
-                                                        <widget class="QLayoutWidget">
+                                                        <spacer>
                                                             <property name="name">
-                                                                <cstring>layout206</cstring>
+                                                                <cstring>spacer55</cstring>
                                                             </property>
-                                                            <hbox>
-                                                                <property name="name">
-                                                                    <cstring>unnamed</cstring>
-                                                                </property>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer212</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>16</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QLabel">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel9</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Variable at Point</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignCenter</set>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer214</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>31</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QLabel">
-                                                                    <property name="name">
-                                                                        <cstring>variableValueLabel</cstring>
-                                                                    </property>
-                                                                    <property name="minimumSize">
-                                                                        <size>
-                                                                            <width>45</width>
-                                                                            <height>0</height>
-                                                                        </size>
-                                                                    </property>
-                                                                    <property name="paletteBackgroundColor">
-                                                                        <color>
-                                                                            <red>255</red>
-                                                                            <green>255</green>
-                                                                            <blue>255</blue>
-                                                                        </color>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string></string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignCenter</set>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>value or magnitude of variable(s)at selected point</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton">
-                                                                    <property name="name">
-                                                                        <cstring>passThruButton</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Pass Iso Thru Point</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer211</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>47</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                            </hbox>
-                                                        </widget>
-                                                    </vbox>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>21</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                    </hbox>
                                                 </widget>
-                                            </hbox>
-                                        </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer124</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Vertical</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>20</width>
-                                                    <height>27</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QFrame">
-                                            <property name="name">
-                                                <cstring>mappingFrame</cstring>
-                                            </property>
-                                            <property name="frameShape">
-                                                <enum>StyledPanel</enum>
-                                            </property>
-                                            <property name="frameShadow">
-                                                <enum>Raised</enum>
-                                            </property>
-                                            <property name="whatsThis" stdset="0">
-                                                <string>The color and opacity of the flow
-lines are set by defining a color
-mapping and an opacity mapping
-in this panel.</string>
-                                            </property>
-                                            <hbox>
-                                                <property name="name">
-                                                    <cstring>unnamed</cstring>
-                                                </property>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout40</cstring>
+                                                        <cstring>layout21_4</cstring>
                                                     </property>
-                                                    <vbox>
+                                                    <hbox>
                                                         <property name="name">
                                                             <cstring>unnamed</cstring>
                                                         </property>
-                                                        <widget class="QLabel">
+                                                        <spacer>
                                                             <property name="name">
-                                                                <cstring>textLabel16</cstring>
+                                                                <cstring>spacer18_2</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>81</width>
+                                                                    <height>21</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QCheckBox">
+                                                            <property name="name">
+                                                                <cstring>lightingCheckbox</cstring>
+                                                            </property>
+                                                            <property name="enabled">
+                                                                <bool>true</bool>
+                                                            </property>
+                                                            <property name="sizePolicy">
+                                                                <sizepolicy>
+                                                                    <hsizetype>7</hsizetype>
+                                                                    <vsizetype>0</vsizetype>
+                                                                    <horstretch>0</horstretch>
+                                                                    <verstretch>0</verstretch>
+                                                                </sizepolicy>
                                                             </property>
                                                             <property name="font">
                                                                 <font>
                                                                 </font>
                                                             </property>
                                                             <property name="text">
-                                                                <string>Appearance Parameters</string>
+                                                                <string>Lighting On</string>
                                                             </property>
-                                                            <property name="alignment">
-                                                                <set>AlignCenter</set>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Set lighting on or off</string>
                                                             </property>
-                                                        </widget>
-                                                        <widget class="QLayoutWidget">
-                                                            <property name="name">
-                                                                <cstring>layout39</cstring>
-                                                            </property>
-                                                            <hbox>
-                                                                <property name="name">
-                                                                    <cstring>unnamed</cstring>
-                                                                </property>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer54</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>51</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QLabel">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel1_6</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Color:</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignCenter</set>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QPushButton">
-                                                                    <property name="name">
-                                                                        <cstring>constantColorButton</cstring>
-                                                                    </property>
-                                                                    <property name="paletteBackgroundColor">
-                                                                        <color>
-                                                                            <red>255</red>
-                                                                            <green>0</green>
-                                                                            <blue>0</blue>
-                                                                        </color>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string></string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Clisk to specify color used in constant map</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer75</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>20</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QLabel">
-                                                                    <property name="name">
-                                                                        <cstring>textLabel2_2</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Opacity:</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignCenter</set>
-                                                                    </property>
-                                                                </widget>
-                                                                <widget class="QLineEdit">
-                                                                    <property name="name">
-                                                                        <cstring>constantOpacityEdit</cstring>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>1.0</string>
-                                                                    </property>
-                                                                    <property name="alignment">
-                                                                        <set>AlignHCenter</set>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Specify opacity value used in constant mapping</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer55</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>21</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                            </hbox>
-                                                        </widget>
-                                                        <widget class="QLayoutWidget">
-                                                            <property name="name">
-                                                                <cstring>layout21_4</cstring>
-                                                            </property>
-                                                            <hbox>
-                                                                <property name="name">
-                                                                    <cstring>unnamed</cstring>
-                                                                </property>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer18_2</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>81</width>
-                                                                            <height>21</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                                <widget class="QCheckBox">
-                                                                    <property name="name">
-                                                                        <cstring>lightingCheckbox</cstring>
-                                                                    </property>
-                                                                    <property name="enabled">
-                                                                        <bool>true</bool>
-                                                                    </property>
-                                                                    <property name="sizePolicy">
-                                                                        <sizepolicy>
-                                                                            <hsizetype>7</hsizetype>
-                                                                            <vsizetype>0</vsizetype>
-                                                                            <horstretch>0</horstretch>
-                                                                            <verstretch>0</verstretch>
-                                                                        </sizepolicy>
-                                                                    </property>
-                                                                    <property name="font">
-                                                                        <font>
-                                                                        </font>
-                                                                    </property>
-                                                                    <property name="text">
-                                                                        <string>Lighting On</string>
-                                                                    </property>
-                                                                    <property name="toolTip" stdset="0">
-                                                                        <string>Set lighting on or off</string>
-                                                                    </property>
-                                                                    <property name="whatsThis" stdset="0">
-                                                                        <string>The Lighting-On checkbox can only be
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The Lighting-On checkbox can only be
 used if your graphics hardware supports
 it.  When enabled, the light source is 
 controlled by the lighting parameters
 of Light No. 1 in the Viewpoint panel.</string>
-                                                                    </property>
-                                                                </widget>
-                                                                <spacer>
-                                                                    <property name="name">
-                                                                        <cstring>spacer19</cstring>
-                                                                    </property>
-                                                                    <property name="orientation">
-                                                                        <enum>Horizontal</enum>
-                                                                    </property>
-                                                                    <property name="sizeType">
-                                                                        <enum>Expanding</enum>
-                                                                    </property>
-                                                                    <property name="sizeHint">
-                                                                        <size>
-                                                                            <width>151</width>
-                                                                            <height>20</height>
-                                                                        </size>
-                                                                    </property>
-                                                                </spacer>
-                                                            </hbox>
+                                                            </property>
                                                         </widget>
-                                                    </vbox>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer19</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>151</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                    </hbox>
                                                 </widget>
-                                            </hbox>
+                                            </vbox>
                                         </widget>
-                                    </vbox>
+                                    </hbox>
                                 </widget>
                             </vbox>
                         </widget>

@@ -123,7 +123,8 @@ IsoEventRouter::hookUpTab()
 	connect(editButton, SIGNAL(toggled(bool)), this, SLOT(setIsoEditMode(bool)));
 	connect(navigateButton, SIGNAL(toggled(bool)), this, SLOT(setIsoNavigateMode(bool)));
 	connect (constantColorButton, SIGNAL(clicked()), this, SLOT(setConstantColor()));
-	connect (passThruButton, SIGNAL(clicked()), this, SLOT(passThruPoint()));
+	connect (passThruButton, SIGNAL(clicked()), this, SLOT(guiPassThruPoint()));
+	connect (copyPointButton, SIGNAL(clicked()), this, SLOT(guiCopyProbePoint()));
 	
 	//Instance table stuff:
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
@@ -208,6 +209,11 @@ void IsoEventRouter::updateTab(){
     isoSelectionFrame->setVariableName(isoParams->GetVariableName());
 	updateMapBounds(isoParams);
 	isoSelectionFrame->update();
+
+	float val = evaluateSelectedPoint();
+	if (val != OUT_OF_BOUNDS)
+		variableValueLabel->setText(QString::number(val));
+	else variableValueLabel->setText("");
    
 	update();
 	guiSetTextChanged(false);
@@ -338,11 +344,33 @@ setIsoEnabled(bool val, int instance){
 	updateTab();
 }
 //Slot that changes the isovalue to be the function value at the selectionPoint
-//Must Evaluate the current variable at the selection point, update the
-//gui to show that value, then change the iso value to that value.
+//Must Evaluate the current variable at the selection point, 
+//then change the iso value to that value.
 //Has no effect if there is no dataMgr
-void IsoEventRouter::passThruPoint(){
+void IsoEventRouter::guiPassThruPoint(){
+	confirmText(false);
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "pass iso thru point");
+	float val = evaluateSelectedPoint();
+	if (val != OUT_OF_BOUNDS)
+		iParams->SetIsoValue(val);
+	PanelCommand::captureEnd(cmd, iParams);
+	updateTab(); 
 }
+float IsoEventRouter::evaluateSelectedPoint(){
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	if (!iParams->isEnabled()) return OUT_OF_BOUNDS;
+	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	const vector<double> pnt = iParams->GetSelectedPoint();
+	float fltpnt[3];
+	int numRefinements = iParams->GetRefinementLevel();
+	int sessionVarNum = iParams->getSessionVarNum();
+	for (int i = 0; i<3; i++) fltpnt[i] = pnt[i];
+	float val = rParams->calcCurrentValue(sessionVarNum, fltpnt, numRefinements, timeStep);
+	return val;
+}
+
 
 void IsoEventRouter::
 refreshHisto(){
@@ -471,6 +499,18 @@ updateHistoBounds(RenderParams* params){
 	minDataBound->setText(strn.setNum(minData));
 	maxDataBound->setText(strn.setNum(maxData));
 	
+}
+//Copy the point from the probe to the iso panel.  Don't do anything with it.
+void IsoEventRouter::
+guiCopyProbePoint(){
+	confirmText(false);
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "copy point from probe");
+	const float* selectedpoint = pParams->getSelectedPoint();
+	iParams->SetSelectedPoint(selectedpoint);
+	PanelCommand::captureEnd(cmd, iParams);
+	updateTab();
 }
 void IsoEventRouter::
 guiSetComboVarNum(int val){

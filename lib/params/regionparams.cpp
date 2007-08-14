@@ -536,7 +536,7 @@ float RegionParams::
 calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, int timeStep){
 	
 	DataStatus* ds = DataStatus::getInstance();
-	if (!ds || !ds->getDataMgr()) return 0.f;
+	if (!ds || !ds->getDataMgr()) return OUT_OF_BOUNDS;
 
 	//Get the data dimensions (at current resolution):
 	int voxCoords[3];
@@ -551,7 +551,7 @@ calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, in
 	for (int i = 0; i<3; i++) {
 		if (point[i] < regMin[i]) return OUT_OF_BOUNDS;
 		if (point[i] > regMax[i]) return OUT_OF_BOUNDS;
-		voxCoords[i] = (int)((max_dim[i] - min_dim[i])*(point[i] - regMin[i])/(regMax[i] - regMin[i]) + 0.5);
+		voxCoords[i] = (int)((float)(max_dim[i] - min_dim[i])*(point[i] - regMin[i])/(regMax[i] - regMin[i]) + 0.5);
 		
 		blkmin[i] = voxCoords[i]/bs[i];
 		blkmax[i] = blkmin[i];
