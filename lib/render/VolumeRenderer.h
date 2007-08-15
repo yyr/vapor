@@ -64,6 +64,7 @@ namespace VAPoR {
 
     DVRBase* driver;
     DvrParams::DvrType _type;
+	DVRBase::DataType_T _voxelType;
 
     virtual void DrawVoxelScene(unsigned fast);
     virtual void DrawVoxelWindow(unsigned fast);

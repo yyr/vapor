@@ -58,6 +58,7 @@
 
 #include "DVRLookup.h"
 #include "DVRShader.h"
+#include "DVRRayCaster.h"
 #include "DVRSpherical.h"
 #ifdef VOLUMIZER
 #include "DVRVolumizer.h"
@@ -92,6 +93,8 @@ VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderPar
 	
 	
 {
+  _voxelType = DVRBase::UINT8;
+//  _voxelType = DVRBase::UINT16;
   //Construct dvrvolumizer
   driver = create_driver(type, 1);
   clutDirtyBit = false;
@@ -228,40 +231,39 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
 {
   int argc = 0;
   char** argv = 0;
-  DVRBase::DataType_T type = DVRBase::UINT8;
   DVRBase *driver = NULL;
 
   if (dvrType == DvrParams::DVR_TEXTURE3D_LOOKUP) 
   {
-    driver = new DVRLookup(type, 1);
+    driver = new DVRLookup(_voxelType, 1);
   }
 
   else if (dvrType == DvrParams::DVR_TEXTURE3D_SHADER)
   {
-    driver = new DVRShader(type, 1);
+    driver = new DVRShader(_voxelType, 1);
   }
 
   else if (dvrType == DvrParams::DVR_SPHERICAL_SHADER)
   {
-    driver = new DVRSpherical(type, 1);
+    driver = new DVRSpherical(_voxelType, 1);
   }
 
 #ifdef VOLUMIZER
   else if (dvrType == DvrParams::DVR_VOLUMIZER)
   {
-    driver = new DVRVolumizer(&argc, argv, type, 1);
+    driver = new DVRVolumizer(&argc, argv, _voxelType, 1);
   }
 #endif
 
   else if (dvrType == DvrParams::DVR_DEBUG)
   {
-    driver = new DVRDebug(&argc, argv, type, 1);
+    driver = new DVRDebug(&argc, argv, _voxelType, 1);
   }
   
 #ifdef	DVR_STRETCHEDGRID
   else if (dvrType == DvrParams::DVR_STRETCHED_GRID)
   {
-    driver = new DVRStretchedGrid(&argc, argv, type, nthreads);
+    driver = new DVRStretchedGrid(&argc, argv, _voxelType, nthreads);
   }
 #endif
   else 
@@ -401,8 +403,10 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	const char* varname = (DataStatus::getInstance()->getVariableName(myDVRParams->getSessionVarNum()).c_str());
-    void* data = 
-      (void*) myDataMgr->GetRegionUInt8(
+
+	void* data;
+	if (_voxelType == DVRBase::UINT8) {
+		data = (void*) myDataMgr->GetRegionUInt8(
                                         timeStep,
                                         varname,
                                         numxforms,
@@ -412,6 +416,19 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
                                         myDVRParams->getCurrentDatarange(),
                                         0 //Don't lock!
                                         );
+	}
+	else {
+		data = (void*) myDataMgr->GetRegionUInt16(
+                                        timeStep,
+                                        varname,
+                                        numxforms,
+                                        min_bdim,
+                                        max_bdim,
+										myRegionParams->getFullGridHeight(),
+                                        myDVRParams->getCurrentDatarange(),
+                                        0 //Don't lock!
+                                        );
+	}
     //Turn it back on:
     
 	QApplication::restoreOverrideCursor();
