@@ -45,8 +45,7 @@ DVRShader::DVRShader(DataType_T type, int nthreads) :
  _colormap(NULL),
   _shader(NULL),
   _lighting(false),
-  _preintegration(false),
-  _texid(0)
+  _preintegration(false)
 {
   _shaders[DEFAULT]              = NULL;
   _shaders[LIGHT]                = NULL;
@@ -59,23 +58,18 @@ DVRShader::DVRShader(DataType_T type, int nthreads) :
 //----------------------------------------------------------------------------
 DVRShader::~DVRShader() 
 {
-  delete _shaders[DEFAULT];
-  _shaders[DEFAULT] = NULL;
+  map <int, ShaderProgram *>::iterator pos;
 
-  delete _shaders[LIGHT];
-  _shaders[LIGHT] = NULL;
+  for(pos=_shaders.begin(); pos != _shaders.end(); ++pos) {
+    if (pos->second) delete pos->second;
+    pos->second = NULL;
+  }
 
-  delete _shaders[PRE_INTEGRATED];
-  _shaders[PRE_INTEGRATED] = NULL;
-
-  delete _shaders[PRE_INTEGRATED_LIGHT];
-  _shaders[PRE_INTEGRATED_LIGHT] = NULL;
-
-  delete [] _colormap;
+  if (_colormap) delete [] _colormap;
   _colormap = NULL;
 
-  glDeleteTextures(1, &_texid);
   glDeleteTextures(2, _cmapid);
+
 }
 
 
@@ -217,6 +211,7 @@ int DVRShader::SetRegion(void *data,
                          int level,
 						 size_t fullHeight) 
 { 
+
   //
   // Set the texture data
   //
@@ -262,8 +257,11 @@ void DVRShader::loadTexture(TextureBrick *brick)
     glActiveTextureARB(GL_TEXTURE0_ARB);
   }
 
-  brick->load(GL_LUMINANCE8, GL_LUMINANCE);
-
+  if (_type == GL_UNSIGNED_BYTE) {
+    brick->load(GL_LUMINANCE8, GL_LUMINANCE);
+  } else {
+    brick->load(GL_LUMINANCE16, GL_LUMINANCE);
+  }
   printOpenGLError();
 }
 
@@ -288,7 +286,6 @@ int DVRShader::Render(const float matrix[16])
   }
 
   glEnable(GL_TEXTURE_3D);
-  glBindTexture(GL_TEXTURE_3D, _texid);
 
   if (_preintegration)
   {

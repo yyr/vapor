@@ -53,12 +53,17 @@ DVRTexture3d::DVRTexture3d(DataType_T type, int nthreads) :
   _samples(0),
   _samplingRate(2.0),
   _minimumSamples(384),
-  _maxTexture(maxTextureSize(GL_LUMINANCE8)),
   _maxBrickDim(128), // NOTE: This should always be <= _maxTexture
   _lastRegion()
 {
-  if (type != UINT8) 
-  {
+  if (type == UINT8) {
+	_type = GL_UNSIGNED_BYTE;
+    _maxTexture = maxTextureSize(GL_LUMINANCE8, _type);
+  } else if (type == UINT16) {
+	_type = GL_UNSIGNED_SHORT;
+    _maxTexture = maxTextureSize(GL_LUMINANCE16, _type);
+  }
+  else {
     QString strng("Volume Renderer error; Unsupported voxel type: ");
     strng += QString::number(type);
 	Params::BailOut(strng.ascii(),__FILE__,__LINE__);
@@ -131,7 +136,7 @@ int DVRTexture3d::SetRegion(void *data, int nx, int ny, int nz,
       // needed. We can save a few cycles by setting up the single brick here,
       // rather than calling buildBricks(...). 
       //
-      _bricks.push_back(new TextureBrick());
+      _bricks.push_back(new TextureBrick(_type));
 
       _bricks[0]->volumeMin(extents[0], extents[1], extents[2]);
       _bricks[0]->volumeMax(extents[3], extents[4], extents[5]);
@@ -204,7 +209,7 @@ void DVRTexture3d::renderBricks()
     if (brick->valid())
     {
       glBindTexture(GL_TEXTURE_3D, brick->handle());
-      drawViewAlignedSlices(brick, modelview, modelviewInverse);
+      renderBrick(brick, modelview, modelviewInverse);
     }
   }
 }
@@ -279,6 +284,17 @@ void DVRTexture3d::calculateSampling()
   }
 
   _delta = distance / _samples;
+}
+
+//----------------------------------------------------------------------------
+// Render a single brick
+//----------------------------------------------------------------------------
+void DVRTexture3d::renderBrick(const TextureBrick *brick,
+                                         const Matrix3d &modelview,
+                                         const Matrix3d &modelviewInverse)
+
+{
+	drawViewAlignedSlices(brick, modelview, modelviewInverse);
 }
 
 //----------------------------------------------------------------------------
@@ -614,7 +630,7 @@ void DVRTexture3d::buildBricks(int level, const int box[6], const int roi[6],
 
       for (int x=0; x<nbricks[0]; x++)
       {
-        brick = new TextureBrick();
+        brick = new TextureBrick(_type);
 
         //
         // Set the extents of the brick's data box
@@ -734,8 +750,9 @@ void DVRTexture3d::sortBricks(const Matrix3d &modelview)
 //----------------------------------------------------------------------------
 // Determine and return the maximum texture size (in bytes). 
 //----------------------------------------------------------------------------
-int DVRTexture3d::maxTextureSize(GLenum format)
+int DVRTexture3d::maxTextureSize(GLenum format, GLenum type)
 {
+
 
 #if defined(__sgi) || defined(Darwin)
 
@@ -761,7 +778,7 @@ int DVRTexture3d::maxTextureSize(GLenum format)
   for (int i = 128; i < 2*MAX_TEX_SZ; i*=2)
   {
     glTexImage3D(GL_PROXY_TEXTURE_3D, 0, format, i, i, i, 0,
-                 GL_LUMINANCE, GL_UNSIGNED_BYTE, NULL);
+                 GL_LUMINANCE, type, NULL);
 
     GLint width;
     GLint height;

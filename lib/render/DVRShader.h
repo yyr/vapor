@@ -15,6 +15,7 @@
 #include "Vect3d.h"
 
 #include <vector>
+#include <map>
 
 namespace VAPoR {
 
@@ -76,7 +77,7 @@ protected:
   void initTextures();
   void initShaderVariables();
 
-  bool createShader(ShaderType,
+  virtual bool createShader(ShaderType,
                     const char *vertexCommandLine,
                     const char *vertexSource,
                     const char *fragCommandLine,
@@ -94,12 +95,11 @@ protected:
 
   float          *_colormap;
   ShaderProgram  *_shader;
-  ShaderProgram  *_shaders[4];
+  map <int, ShaderProgram *> _shaders;
 
   bool            _lighting;
   bool            _preintegration;
 
-  GLuint _texid;
   GLuint _cmapid[2];
 
   int    _nx;

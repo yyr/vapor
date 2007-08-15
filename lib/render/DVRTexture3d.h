@@ -66,11 +66,17 @@ class RENDER_API DVRTexture3d : public DVRBase
 
   virtual void loadTexture(TextureBrick *brick) = 0;
 
+  virtual void Resize(int width, int height) {return;};
+
 protected:
 
   virtual void calculateSampling();
 
   virtual void drawViewAlignedSlices(const TextureBrick *brick,
+                                     const Matrix3d &modelview,
+                                     const Matrix3d &modelviewInverse);
+
+  virtual void renderBrick(const TextureBrick *brick,
                                      const Matrix3d &modelview,
                                      const Matrix3d &modelviewInverse);
 
@@ -87,7 +93,8 @@ protected:
                    int nx, int ny, int nz, size_t fullHeight);
   void sortBricks(const Matrix3d &modelview);
 
-  static int maxTextureSize(GLenum format);
+  static int maxTextureSize(GLenum format, GLenum type);
+
 
 protected:
 
@@ -129,6 +136,9 @@ protected:
 
   // Region state
   RegionState _lastRegion;
+
+  // Voxel type
+  GLenum _type;
 
 };
 
