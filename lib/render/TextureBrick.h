@@ -20,7 +20,7 @@ class RENDER_API TextureBrick
 {
  public:
    
-  TextureBrick();
+  TextureBrick(GLenum type = GL_UNSIGNED_BYTE);
   virtual ~TextureBrick();
 
   void bind() const     { glBindTexture(GL_TEXTURE_3D, _texid); }
@@ -34,7 +34,7 @@ class RENDER_API TextureBrick
 
   void* data() { return _data; }
 
-  void load(GLint internalFormat, GLint format);
+  void load(GLint internalFormat, GLenum format);
   void reload();
 
   void fill(GLubyte *data, 
@@ -142,7 +142,13 @@ class RENDER_API TextureBrick
   GLuint _texid;
 
   // Texture data format
-  GLint _format;
+  GLenum _format;
+
+  // Texture data type
+  GLenum _type;
+
+  // size of texel in bytes;
+  int _size;
 
   // Data
   GLubyte *_data;

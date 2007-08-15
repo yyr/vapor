@@ -23,7 +23,7 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-TextureBrick::TextureBrick() :
+TextureBrick::TextureBrick(GLenum type) :
   _nx(0),
   _ny(0),
   _nz(0),
@@ -39,12 +39,17 @@ TextureBrick::TextureBrick() :
   _tmax(0,0,0),
   _texid(0),
   _format(GL_LUMINANCE),
+  _type(type),
   _data(NULL),
   _haveOwnership(false),
   _dnx(0),
   _dny(0),
   _dnz(0)
 {
+  assert(type == GL_UNSIGNED_BYTE || type == GL_UNSIGNED_SHORT);
+  if (_type == GL_UNSIGNED_BYTE) _size = 1;
+  if (_type == GL_UNSIGNED_SHORT) _size = 2;
+
   //
   // Setup the 3d texture
   //
@@ -210,7 +215,7 @@ bool TextureBrick::valid() const
 //----------------------------------------------------------------------------
 // Load data into the texture object
 //----------------------------------------------------------------------------
-void TextureBrick::load(GLint internalFormat, GLint format)
+void TextureBrick::load(GLint internalFormat, GLenum format)
 {
   _format = format;
 
@@ -229,15 +234,16 @@ void TextureBrick::load(GLint internalFormat, GLint format)
   if (_haveOwnership || (_dnx==_nx && _dny==_ny) && (_dnz==_nz)) 
   {
     glTexImage3D(GL_TEXTURE_3D, 0, internalFormat,
-                 _nx, _ny, _nz, 0, _format, GL_UNSIGNED_BYTE, _data);
+                 _nx, _ny, _nz, 0, _format, _type, _data);
+
   }
   else
   {
     glTexImage3D(GL_TEXTURE_3D, 0, internalFormat,
-                 _nx, _ny, _nz, 0, _format, GL_UNSIGNED_BYTE, NULL);
+                 _nx, _ny, _nz, 0, _format, _type, NULL);
 
     glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0,
-                    _dnx, _dny, _dnz, _format, GL_UNSIGNED_BYTE, _data);
+                    _dnx, _dny, _dnz, _format, _type, _data);
   }
 }
 
@@ -251,12 +257,12 @@ void TextureBrick::reload()
   if (_haveOwnership || (_dnx==_nx && _dny==_ny) && (_dnz==_nz)) 
   {
     glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _nx, _ny, _nz, 
-                    _format, GL_UNSIGNED_BYTE, _data);
+                    _format, _type, _data);
   }
   else
   {
     glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, _dnx, _dny, _dnz, 
-                    _format, GL_UNSIGNED_BYTE, _data);
+                    _format, _type, _data);
   }
 }
 
@@ -289,7 +295,8 @@ void TextureBrick::fill(GLubyte *data,
   }
 
   _haveOwnership = true;
-  _data = new GLubyte[_nx*_ny*_nz];
+  _data = new GLubyte[_nx*_ny*_nz*_size];
+  assert(_data != NULL);
 
   //
   // Copy over the data
@@ -298,13 +305,13 @@ void TextureBrick::fill(GLubyte *data,
   {
     for (int y=0; y<by && y+yoffset<=_dny; y++)
     {
-      int di = (xoffset +
-                MIN(y+yoffset, _dny-1)*_dnx + 
-                MIN(z+zoffset, _dnz-1)*_dnx*_dny);
+      int di = (xoffset*_size +
+                MIN(y+yoffset, _dny-1)*_dnx*_size + 
+                MIN(z+zoffset, _dnz-1)*_dnx*_dny*_size);
 
-      int ti = y*_nx + z*_nx*_ny;
+      int ti = y*_nx*_size + z*_nx*_ny*_size;
 
-      memcpy(&_data[ti], &data[di], MIN(bx, _dnx-_xoffset)*sizeof(GLubyte));
+      memcpy(&_data[ti], &data[di], MIN(bx, _dnx-_xoffset)*_size);
     }
   }
 }
@@ -351,13 +358,13 @@ void TextureBrick::refill(GLubyte *data)
     {
       for (int y=0; y<_ny && y+_yoffset<=_dny; y++)
       {
-        int di = (_xoffset +
-                  MIN(y+_yoffset, _dny-1)*_dnx + 
-                  MIN(z+_zoffset, _dnz-1)*_dnx*_dny);
+        int di = (_xoffset*_size +
+                  MIN(y+_yoffset, _dny-1)*_dnx*_size + 
+                  MIN(z+_zoffset, _dnz-1)*_dnx*_dny*_size);
         
-        int ti = y*_nx + z*_nx*_ny;
+        int ti = y*_nx*_size + z*_nx*_ny*_size;
         
-        memcpy(&_data[ti], &data[di], MIN(_nx, _dnx-_xoffset)*sizeof(GLubyte));
+        memcpy(&_data[ti], &data[di], MIN(_nx, _dnx-_xoffset)*_size);
       }
     }
   }
