@@ -1384,7 +1384,8 @@ void GLWindow::calcElevGridNormals(size_t timeStep){
 			}
 			norm[0] = dy*dzx;
 			norm[1] = dx*dzy;
-			norm[2] = 1.f;
+			//Making the following small accentuates the angular differences when lit:
+			norm[2] = 1.f/ELEVATION_GRID_ACCENT;
 			for (int k = 0; k < 3; k++) norm[k] /= stretchFac[k];
 			vnormal(norm);
 		}

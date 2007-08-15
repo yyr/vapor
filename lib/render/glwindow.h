@@ -34,6 +34,9 @@
 //No more than 10 renderers in a window:
 //Eventually this may be dynamic.
 #define MAXNUMRENDERERS 10
+//Following factor accentuates the terrain changes by pointing the
+//normals more away from the vertical
+#define ELEVATION_GRID_ACCENT 20.f
 
 namespace VAPoR {
 

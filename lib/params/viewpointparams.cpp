@@ -106,27 +106,27 @@ centerFullRegion(){
 void ViewpointParams::
 restart(){
 	
-	numLights = 1;
+	numLights = 2;
 	lightDirection[0][0] = 0.f;
 	lightDirection[0][1] = 0.f;
 	lightDirection[0][2] = 1.f;
 	lightDirection[1][0] = 0.f;
 	lightDirection[1][1] = 1.f;
 	lightDirection[1][2] = 0.f;
-	lightDirection[2][0] = 0.f;
+	lightDirection[2][0] = 1.f;
 	lightDirection[2][1] = 0.f;
-	lightDirection[2][2] = 1.f;
+	lightDirection[2][2] = 0.f;
 	//final component is 0 (for gl directional light)
 	lightDirection[0][3] = 0.f;
 	lightDirection[1][3] = 0.f;
 	lightDirection[2][3] = 0.f;
 	diffuseCoeff[0] = 0.8f;
-	specularCoeff[0] = 0.5f;
-	specularExp = 10.f;
+	specularCoeff[0] = 0.3f;
+	specularExp = 20.f;
 	diffuseCoeff[1] = 0.8f;
-	specularCoeff[1] = 0.5f;
+	specularCoeff[1] = 0.3f;
 	diffuseCoeff[2] = 0.8f;
-	specularCoeff[2] = 0.5f;
+	specularCoeff[2] = 0.3f;
 	ambientCoeff = 0.1f;
 	if (currentViewpoint) delete currentViewpoint;
 	currentViewpoint = new Viewpoint();
