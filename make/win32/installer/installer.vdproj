@@ -45,6 +45,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_306B89F6317C48329F8C613A4D96550C"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_3742FDC9BD914D39AD678AF00519F06C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -52,6 +58,12 @@
         "Entry"
         {
         "MsmKey" = "8:_3902F569CFA142668353B1C83FDCB732"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_44548E50FCC84B7EB4949CD8FABCC37E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -154,13 +166,13 @@
         "Entry"
         {
         "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
-        "OwnerKey" = "8:_3742FDC9BD914D39AD678AF00519F06C"
+        "OwnerKey" = "8:_306B89F6317C48329F8C613A4D96550C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
-        "OwnerKey" = "8:_C205D857DA374739813F2C95A034AC6E"
+        "OwnerKey" = "8:_EC4781CA7DB84F9D882B25B9FE82FE25"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -178,13 +190,13 @@
         "Entry"
         {
         "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
-        "OwnerKey" = "8:_CFB0FC7FD678498E9846B2C4DC04DB81"
+        "OwnerKey" = "8:_C6EA919E8F5C44F788A0FBF8D824669D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
-        "OwnerKey" = "8:_C6EA919E8F5C44F788A0FBF8D824669D"
+        "OwnerKey" = "8:_C205D857DA374739813F2C95A034AC6E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -215,6 +227,12 @@
         {
         "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
         "OwnerKey" = "8:_3902F569CFA142668353B1C83FDCB732"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_76C82137507D0BA35EA4F77549D029B2"
+        "OwnerKey" = "8:_3742FDC9BD914D39AD678AF00519F06C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -261,13 +279,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_CFB0FC7FD678498E9846B2C4DC04DB81"
+        "MsmKey" = "8:_DBF40E69DAAE4E0A857201E0486CB142"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_DBF40E69DAAE4E0A857201E0486CB142"
+        "MsmKey" = "8:_EC4781CA7DB84F9D882B25B9FE82FE25"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -280,13 +298,13 @@
         "Entry"
         {
         "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
-        "OwnerKey" = "8:_3742FDC9BD914D39AD678AF00519F06C"
+        "OwnerKey" = "8:_306B89F6317C48329F8C613A4D96550C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
-        "OwnerKey" = "8:_C205D857DA374739813F2C95A034AC6E"
+        "OwnerKey" = "8:_EC4781CA7DB84F9D882B25B9FE82FE25"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -310,13 +328,13 @@
         "Entry"
         {
         "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
-        "OwnerKey" = "8:_CFB0FC7FD678498E9846B2C4DC04DB81"
+        "OwnerKey" = "8:_C6EA919E8F5C44F788A0FBF8D824669D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
-        "OwnerKey" = "8:_C6EA919E8F5C44F788A0FBF8D824669D"
+        "OwnerKey" = "8:_C205D857DA374739813F2C95A034AC6E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -353,6 +371,12 @@
         {
         "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
         "OwnerKey" = "8:_3902F569CFA142668353B1C83FDCB732"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ED0B5E01D9F8453664251FA3FD409F84"
+        "OwnerKey" = "8:_3742FDC9BD914D39AD678AF00519F06C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -517,6 +541,26 @@
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
             "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{A582A373-4685-4296-BEFE-614B80A702C3}:_44548E50FCC84B7EB4949CD8FABCC37E"
+            {
+            "SourcePath" = "8:..\\..\\..\\scripts\\wrf2vdfbatch"
+            "TargetName" = "8:wrf2vdfbatch"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{A582A373-4685-4296-BEFE-614B80A702C3}:_4FA5E494DCDF7717E0C257CC8F3254EF"
@@ -1533,9 +1577,37 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_3742FDC9BD914D39AD678AF00519F06C"
+            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_306B89F6317C48329F8C613A4D96550C"
             {
             "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\wrf2vdf.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:Built"
+            "OutputProjectGuid" = "8:{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_3742FDC9BD914D39AD678AF00519F06C"
+            {
+            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\raw2vdf.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
@@ -1785,34 +1857,6 @@
                 {
                 }
             }
-            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_CFB0FC7FD678498E9846B2C4DC04DB81"
-            {
-            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\raw2vdf.exe"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            "ProjectOutputGroupRegister" = "3:1"
-            "OutputConfiguration" = "8:"
-            "OutputGroupCanonicalName" = "8:Built"
-            "OutputProjectGuid" = "8:{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}"
-            "ShowKeyOutput" = "11:TRUE"
-                "ExcludeFilters"
-                {
-                }
-            }
             "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_DBF40E69DAAE4E0A857201E0486CB142"
             {
             "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\vdfcreate.exe"
@@ -1836,6 +1880,34 @@
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:Built"
             "OutputProjectGuid" = "8:{A57612E6-649A-4C0E-8456-C4C80DB807A4}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{8062640A-2EEE-46E9-AB67-688E9A886E9F}:_EC4781CA7DB84F9D882B25B9FE82FE25"
+            {
+            "SourcePath" = "8:..\\..\\..\\targets\\Win32\\bin\\ncdf2vdf.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_72F705CD4FD641249BABA705EFFE47DE"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:Built"
+            "OutputProjectGuid" = "8:{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
