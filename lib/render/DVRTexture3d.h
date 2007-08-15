@@ -39,6 +39,11 @@ class RENDER_API DVRTexture3d : public DVRBase
 
     bool update(int nx, int ny, int nz, 
                 const int roi[6], const int box[6], const float extents[6]);
+
+    const int* roi()       { return _roi; }
+    const int* box()       { return _box; }
+    const float* extents() { return _ext; }
+
   protected:
 
     int   _dim[3];

@@ -94,7 +94,7 @@ VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderPar
 	
 {
   _voxelType = DVRBase::UINT8;
-//  _voxelType = DVRBase::UINT16;
+  //  _voxelType = DVRBase::UINT16;
   //Construct dvrvolumizer
   driver = create_driver(type, 1);
   clutDirtyBit = false;

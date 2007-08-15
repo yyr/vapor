@@ -75,7 +75,7 @@ protected:
   };
 
   void initTextures();
-  void initShaderVariables();
+  virtual void initShaderVariables();
 
   virtual bool createShader(ShaderType,
                     const char *vertexCommandLine,

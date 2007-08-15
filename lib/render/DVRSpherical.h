@@ -61,12 +61,14 @@ class RENDER_API DVRSpherical : public DVRShader
                                  const std::vector<long> &permutation,
                                  const std::vector<bool> &clipping);
 
-  virtual int HasLighting() const { return false; };
+  virtual int HasLighting() const { return true; };
   virtual int HasPreintegration() const { return false; };
 
   static bool supported();
 
  protected:
+
+  virtual void initShaderVariables();
 
   virtual void calculateSampling();
 
@@ -76,10 +78,14 @@ class RENDER_API DVRSpherical : public DVRShader
  protected:
 
   static char spherical_shader_default[];
+  static char spherical_shader_lighting[];
 
   int   _nr;
   float _shellWidth;
   int   _level;
+
+  std::vector<long> _permutation;
+  std::vector<bool> _clip;
 };
 
 };
