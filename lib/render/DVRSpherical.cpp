@@ -218,7 +218,7 @@ int DVRSpherical::SetRegionSpherical(void *data,
       // needed. We can save a few cycles by setting up the single brick here,
       // rather than calling buildBricks(...). 
       //
-      _bricks.push_back(new TextureBrick());
+      _bricks.push_back(new TextureBrick(_type));
       
       _bricks[0]->volumeMin(0, 0, 0);
       _bricks[0]->volumeMax(1, 1, 1);
