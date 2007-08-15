@@ -389,16 +389,54 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	const float range[2],
 	int lock
 ) {
-	unsigned char	*ublks = NULL;
-	const float	*fptr;
-	unsigned char *ucptr;
-	int	x,y,z;
-
 	SetDiagMsg(
 		"DataMgr::GetRegionUInt8(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],%d)",
 		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2], full_height,
 		range[0], range[1], lock
 	);
+
+	return(get_quantized_region(
+		ts, varname, reflevel, min, max, full_height, range, 
+		lock, DataMgr::UINT8
+	));
+}
+
+unsigned char	*DataMgr::GetRegionUInt16(
+	size_t ts,
+	const char *varname,
+	int reflevel,
+	const size_t min[3],
+	const size_t max[3],
+	size_t full_height,
+	const float range[2],
+	int lock
+) {
+	SetDiagMsg(
+		"DataMgr::GetRegionUInt16(%d,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],%d)",
+		ts,varname,reflevel,min[0],min[1],min[2],max[0],max[1],max[2], full_height,
+		range[0], range[1], lock
+	);
+
+	return(get_quantized_region(
+		ts, varname, reflevel, min, max, full_height, range, 
+		lock, DataMgr::UINT16
+	));
+}
+	
+unsigned char	*DataMgr::get_quantized_region(
+	size_t ts,
+	const char *varname,
+	int reflevel,
+	const size_t min[3],
+	const size_t max[3],
+	size_t full_height,
+	const float range[2],
+	int lock,
+	_dataTypes_t type
+) {
+
+	unsigned char	*ublks = NULL;
+
 
 	// 
 	// Set the data range for the quantization mapping. This operation 
@@ -408,7 +446,7 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	if (set_quantization_range(varname, range) < 0) return (NULL);
 
 	ublks = (unsigned char *) get_region_from_cache(
-		ts, varname, reflevel, DataMgr::UINT8, min, max, full_height, lock
+		ts, varname, reflevel, type, min, max, full_height, lock
 	);
 
 	if (ublks) return(ublks);
@@ -419,7 +457,7 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	if (! blks) return (NULL);
 
 	ublks = (unsigned char *) alloc_region(
-		ts,varname,reflevel,DataMgr::UINT8,min,max,full_height, lock
+		ts,varname,reflevel,type,min,max,full_height, lock
 	);
 	if (! ublks) {
 		UnlockRegion(blks);
@@ -428,29 +466,17 @@ unsigned char	*DataMgr::GetRegionUInt8(
 
 	// Quantize the floating point data;
 
-	fptr = blks;
-	ucptr = ublks;
-
 	const size_t *bs = _metadata->GetBlockSize();
 
 	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
 	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
 	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
 
-	for(z=0;z<nz;z++) {
-	for(y=0;y<ny;y++) {
-	for(x=0;x<nx;x++) {
-		double	f;
-		if (*fptr < range[0]) *ucptr = 0;
-		else if (*fptr > range[1]) *ucptr = 255;
-		else {
-			f = (*fptr - range[0]) / (range[1] - range[0]) * 255;
-			*ucptr = (unsigned char) rint(f);
-		}
-		ucptr++;
-		fptr++;
+	if (type == DataMgr::UINT8) {
+		quantize_region_uint8(blks, ublks, nx*ny*nz, range);
 	}
-	}
+	else {
+		quantize_region_uint16(blks, ublks, nx*ny*nz, range);
 	}
 
 	// Unlock the floating point data
@@ -458,6 +484,45 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	UnlockRegion(blks);
 
 	return(ublks);
+}
+
+void	DataMgr::quantize_region_uint8(
+	const float *fptr,
+	unsigned char *ucptr,
+	size_t size,
+	const float range[2]
+) {
+	for (size_t i = 0; i<size; i++) {
+		unsigned int	v;
+		if (*fptr < range[0]) *ucptr = 0;
+		else if (*fptr > range[1]) *ucptr = 255;
+		else {
+			v = (int) rint((*fptr - range[0]) / (range[1] - range[0]) * 255);
+			*ucptr = (unsigned char) v;
+		}
+		ucptr++;
+		fptr++;
+	}
+}
+
+void	DataMgr::quantize_region_uint16(
+	const float *fptr,
+	unsigned char *ucptr,
+	size_t size,
+	const float range[2]
+) {
+	for (size_t i = 0; i<size; i++) {
+		unsigned int	v;
+		if (*fptr < range[0]) *ucptr = 0;
+		else if (*fptr > range[1]) *ucptr = 65535;
+		else {
+			v = (int) rint((*fptr - range[0]) / (range[1] - range[0]) * 65535);
+			ucptr[0] = (unsigned char) (v & 0xff);
+			ucptr[1] = (unsigned char) ((v >> 8) & 0xff);
+		}
+		ucptr+=2;
+		fptr++;
+	}
 }
 
 const float	*DataMgr::GetDataRange(

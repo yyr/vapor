@@ -164,6 +164,44 @@ public:
     int lock = 0
 );
 
+ //! Read in, quantize and return a subregion from the multiresolution dataset
+ //!
+ //! This method is identical to the GetRegion() method except that the
+ //! data are returned as quantized, 16-bit unsigned integers. 
+ //! Regions with integer data types are created by quantizing
+ //! native floating point representations such that floating values
+ //! less than or equal to \p range[0] are mapped to min, and values 
+ //! greater than or equal to \p range[1] are mapped to max, where "min" and
+ //! "max" are the minimum and maximum values that may be represented 
+ //! by the integer type. For example, for 16-bit, unsigned ints min is 0
+ //! and max is 65535. Floating point values between \p range[0] and \p range[1]
+ //! are linearly interpolated between min and max.
+ //!
+ //! \param[in] ts A valid time step from the Metadata object used 
+ //! to initialize the class
+ //! \param[in] varname A valid variable name 
+ //! \param[in] reflevel Transformation number requested
+ //! \param[in] min Minimum region bounds in blocks
+ //! \param[in] max Maximum region bounds in blocks
+ //! \param[in] range A two-element vector specifying the minimum and maximum
+ //! quantization mapping. 
+ //! \param[in] lock If true, the memory region will be locked into the 
+ //! \retval ptr A pointer to a region containing the desired data, 
+ //! quantized to 16 bits, or NULL
+ //! if the region can not be extracted.
+ //! \sa WaveletBlock3DRegionReader, GetErrMsg(), GetRegion()
+ //
+ unsigned char   *GetRegionUInt16(
+    size_t ts,
+    const char *varname,
+    int reflevel,
+    const size_t min[3],
+    const size_t max[3],
+	size_t full_height,
+	const float range[2],
+    int lock = 0
+);
+
 
 #ifdef	DEAD
  //! Return the current data range as a two-element array
@@ -397,6 +435,22 @@ private:
  float	*get_cached_data_range(size_t ts, const char *varname);
 
  size_t *get_cached_reg_min_max(size_t ts, const char *varname, int reflevel, size_t full_height);
+
+ unsigned char   *get_quantized_region(
+	size_t ts, const char *varname, int reflevel, const size_t min[3],
+	const size_t max[3], size_t full_height, const float range[2], int lock,
+	_dataTypes_t type
+ );
+
+ void	quantize_region_uint8(
+    const float *fptr, unsigned char *ucptr, size_t size, const float range[2]
+ );
+
+ void	quantize_region_uint16(
+    const float *fptr, unsigned char *ucptr, size_t size, const float range[2]
+ );
+
+
 
 };
 
