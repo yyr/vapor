@@ -36,6 +36,16 @@ DomainWidget::DomainWidget(MappingFrame *parent, float min, float max) :
   _minY = 1.14;
   _maxY = 1.3;
 }
+IsoSlider::IsoSlider(MappingFrame *parent, float min, float max) :
+	DomainWidget(parent, min, max)
+  
+{
+	_minValue = 0.47;
+	_maxValue = 0.53;
+	_minY = -.10;
+	_maxY = 0.06;
+	_lineWidth = 0.02;
+}
 
 //----------------------------------------------------------------------------
 // Destructor
@@ -92,7 +102,16 @@ void DomainWidget::drag(float dx, float, float)
   
   emit changingDomain(_minValue, _maxValue);
 }
+void IsoSlider::drag(float dx, float, float)
+{
+  float scaling = (_parent->maxDataValue() - _parent->minDataValue());
 
+  _minValue += dx*scaling;
+  _maxValue += dx*scaling;
+   
+  
+  emit changingDomain(_minValue, _maxValue);
+}
 //----------------------------------------------------------------------------
 // Render the widget
 //----------------------------------------------------------------------------
@@ -166,9 +185,11 @@ void DomainWidget::paintGL()
 		width(), 10, 2);
 
 #endif
+	 glPopMatrix();
         glPopName();
       }
-      glPopMatrix();
+	
+      
     }
   }  
   glPopMatrix();
@@ -203,6 +224,13 @@ float DomainWidget::left()
 {
   return dataToWorld(_minValue);
 }
+//----------------------------------------------------------------------------
+// center of the widget in world coordinates
+//----------------------------------------------------------------------------
+float DomainWidget::mid()
+{
+  return (0.5*(dataToWorld(_minValue)+dataToWorld(_maxValue)));
+}
 
 //----------------------------------------------------------------------------
 // Transform the x position in the data (model) space into the opengl world 
@@ -222,4 +250,28 @@ float DomainWidget::worldToData(float x)
 {
   return _parent->minDataValue() + 
     (x * (_parent->maxDataValue() - _parent->minDataValue()));
+}
+void IsoSlider::paintGL(){
+	
+	DomainWidget::paintGL();
+	
+	glPushMatrix();
+	glPushName(VERTLINE);
+		{
+		
+		glColor3f(1.,1.,1.);
+	
+		glBegin(GL_QUADS);
+		glNormal3f(0.,0.,1.);
+		glVertex3f(mid()- 0.1*_lineWidth, 0.0, 0.0);
+		glVertex3f(mid()+ 0.1*_lineWidth, 0.0, 0.0);
+		glVertex3f(mid()+ 0.1*_lineWidth, 1.0, 0.0);
+		glVertex3f(mid()- 0.1*_lineWidth, 1.0, 0.0);
+		
+		glEnd();
+		
+      }
+	  glPopMatrix();
+      glPopName();
+	  printOpenGLError();
 }

@@ -83,6 +83,7 @@ IsoEventRouter::IsoEventRouter(QWidget* parent,const char* name): IsoTab(parent,
 	
 	isoSelectionFrame->setOpacityMapping(true);
 	isoSelectionFrame->setColorMapping(false);
+	isoSelectionFrame->setIsoSlider(true);
 }
 
 
@@ -208,6 +209,7 @@ void IsoEventRouter::updateTab(){
 	
     isoSelectionFrame->setVariableName(isoParams->GetVariableName());
 	updateMapBounds(isoParams);
+
 	isoSelectionFrame->update();
 
 	float val = evaluateSelectedPoint();
@@ -278,6 +280,7 @@ guiEndChangeIsoSelection(){
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	iParams->updateHistoBounds();
 	PanelCommand::captureEnd(savedCommand,iParams);
+	updateTab();
 	savedCommand = 0;
 
 }
@@ -838,6 +841,7 @@ setEditorDirty(RenderParams* p){
 	if(ip->getMapperFunc())ip->getMapperFunc()->setParams(ip);
     isoSelectionFrame->setMapperFunction(ip->getMapperFunc());
 	isoSelectionFrame->setVariableName(ip->GetVariableName());
+	isoSelectionFrame->setIsoValue(ip->GetIsoValue());
     isoSelectionFrame->update();
 
 	

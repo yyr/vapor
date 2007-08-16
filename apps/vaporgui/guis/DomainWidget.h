@@ -3,6 +3,7 @@
 // Copyright (C) 2006 Kenny Gruchalla.  All rights reserved.
 //
 // OpenGL-based widget used to scale and move the a transfer function domain. 
+// Also supports derived class: IsoSlider, with a limited subset of the functionality
 //
 //----------------------------------------------------------------------------
 
@@ -24,12 +25,13 @@ class MappingFrame;
  class DomainWidget : public GLWidget
 {
   Q_OBJECT
-
+protected:
   enum
   {
     LEFT,
     RIGHT,
-    BAR
+    BAR,
+	VERTLINE
   };
 
 public:
@@ -37,10 +39,10 @@ public:
   DomainWidget(MappingFrame *parent, float min=0.0, float max=1.0);
   virtual ~DomainWidget();
 
-  void paintGL();
+  virtual void paintGL();
 
   void move(float dx, float dy=0.0, float dz=0.0);
-  void drag(float dx, float dy=0.0, float dz=0.0);
+  virtual void drag(float dx, float dy=0.0, float dz=0.0);
 
   float minValue() const  { return _minValue; }
   float maxValue() const  { return _maxValue; }
@@ -52,7 +54,7 @@ public:
  signals:
 
   //
-  // Signals that the widget is being moved/edited
+  // Signals that the widget is being moved/edited.  Currently not connected.
   //
   void changingDomain(float min, float max);
 
@@ -62,16 +64,16 @@ public:
 
   float right();
   float left();
+  float mid();
     
   float dataToWorld(float x);
   float worldToData(float x);
-
-private:
+  float _minValue;
+  float _maxValue;
 
   MappingFrame *_parent;
 
-  float _minValue;
-  float _maxValue;
+ private:
 
   //
   // Frame data
@@ -79,6 +81,18 @@ private:
   float         _handleRadius;
   GLUquadric   *_quadHandle;
 };
+
+ class IsoSlider : public DomainWidget {
+ public:
+	IsoSlider(MappingFrame *parent, float min=0.0, float max=1.0);
+	virtual void drag(float dx, float dy=0.0, float dz=0.0);
+	virtual void paintGL();
+	void setIsoValue(float val){
+		setDomain(worldToData(dataToWorld(val) - 0.01), worldToData(dataToWorld(val) + 0.01));
+	}
+ protected:
+	 float _lineWidth;
+ };
 };
 
 #endif // DomainWidget_H

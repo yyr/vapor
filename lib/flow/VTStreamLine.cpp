@@ -226,7 +226,6 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 		int retrace = true;
 		
 		
-
 		while(retrace)
 		{
 			retrace = false;
@@ -282,7 +281,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 				if(onAdaptive == false)
 					nSetAdaptiveCount = 0;
 
-				assert (rollbackCount < 1000);//If we got here, it's surely an infinite loop!
+				assert (rollbackCount < 10000);//If we got here, it's surely an infinite loop!
 					
 				// roll back and retrace
 				//the doingRetrace flag is to stop double retracing (which results in infinite loop!)
