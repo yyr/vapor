@@ -139,6 +139,10 @@ virtual float getMaxOpacEditBound(int ) {
  void SetVisualizerNum(int viznum);
  int GetVisualizerNum();
 
+ void SetNumBits(int nbits);
+ int GetNumBits();
+ void RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag*);
+
  void SetVariableName(const string& varName);
  const string& GetVariableName();
  void RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df);
@@ -154,6 +158,7 @@ private:
  static const string _RefinementLevelTag;
  static const string _VisualizerNumTag;
  static const string _VariableNameTag;
+ static const string _NumBitsTag;
 
 
  float _constcolorbuf[4];

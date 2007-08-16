@@ -115,7 +115,7 @@ DvrEventRouter::hookUpTab()
 	connect (leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
 	connect (rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setDvrTabTextChanged(const QString&)));
 	connect (histoScaleEdit, SIGNAL( returnPressed() ), this, SLOT( dvrReturnPressed()));
-	connect (numBitsSpin, SIGNAL (valueChanged(int)), this, SLOT(guiSetNumBits(int)));
+	connect (numBitsCombo, SIGNAL (activated(int)), this, SLOT(guiSetNumBits(int)));
 	
 	// Transfer function controls:
 
@@ -509,7 +509,7 @@ void DvrEventRouter::updateTab(){
 	lightingCheckbox->setChecked(dvrParams->getLighting());
 	preintegratedCheckbox->setChecked(dvrParams->getPreIntegration());
 
-	numBitsSpin->setValue(dvrParams->getNumBits());
+	numBitsCombo->setCurrentItem((dvrParams->getNumBits())>>4);
 	histoScaleEdit->setText(QString::number(dvrParams->GetHistoStretch()));
 	
 
@@ -797,11 +797,11 @@ guiSetNumBits(int val){
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
 	confirmText(false);
 	
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set dvr number bits");
-		
-	dParams->setNumBits(val);
+	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set dvr voxel bits");
+	//Value is 0 or 1, corresponding to 8 or 16 bits
+	dParams->setNumBits(1<<(val+3));
 	PanelCommand::captureEnd(cmd, dParams);
-		
+	VizWinMgr::getInstance()->setVizDirty(dParams,RegionBit);
 	
 }
 void DvrEventRouter::
@@ -1287,7 +1287,7 @@ void DvrEventRouter::nextBenchmark()
 //----------------------------------------------------------------------------
 void DvrEventRouter::benchmarkPreamble()
 {
-  VizWinMgr *vizmgr = VizWinMgr::getInstance();
+  
 
   size_t max_dim[3];
   size_t min_dim[3];
@@ -1295,11 +1295,11 @@ void DvrEventRouter::benchmarkPreamble()
   size_t min_bdim[3];
 
   const Metadata *metadata      = Session::getInstance()->getCurrentMetadata();
-  RegionParams    *regionParams = vizmgr->getActiveRegionParams();
-  DvrParams       *dvrParams    = vizmgr->getActiveDvrParams();
+  RegionParams    *regionParams = VizWinMgr::getActiveRegionParams();
+  DvrParams       *dvrParams    = VizWinMgr::getActiveDvrParams();
 
   const size_t *bs = metadata->GetBlockSize();
-  int timeStep     = vizmgr->getActiveAnimationParams()->getCurrentFrameNumber();
+  int timeStep     = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
   int varNum       = dvrParams->getSessionVarNum();
   int numxforms    = dvrParams->getNumRefinements();
 

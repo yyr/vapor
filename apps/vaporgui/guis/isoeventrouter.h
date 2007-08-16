@@ -82,8 +82,10 @@ protected slots:
 	
 	void guiSetLighting(bool val);
 	void guiSetNumRefinements(int num);
+	void guiSetNumBits(int num);
 
 	void setIsoTabTextChanged(const QString& qs);
+	void setIsoTabRenderTextChanged(const QString& qs);
 	void isoReturnPressed();
 	void setIsoEnabled(bool on, int instance);
 	void refreshHisto();
@@ -103,6 +105,7 @@ protected:
 	float evaluateSelectedPoint();
 	int copyCount[MAXVIZWINS+1];
 	bool editMode;
+	bool renderTextChanged;
 };
 
 };

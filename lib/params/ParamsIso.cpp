@@ -38,6 +38,7 @@ const string ParamsIso::_SelectedPointTag = "SelectedPoint";
 const string ParamsIso::_RefinementLevelTag = "RefinementLevel";
 const string ParamsIso::_VisualizerNumTag = "VisualizerNum";
 const string ParamsIso::_VariableNameTag = "VariableName";
+const string ParamsIso::_NumBitsTag = "NumVoxelBits";
 
 namespace {
 	const string IsoName = "IsosurfaceParams";
@@ -138,6 +139,7 @@ reinit(bool doOverride){
 void ParamsIso::restart() {
 	SetIsoValue(1.0);
 	SetNormalOnOff(0);
+	SetNumBits(8);
 
 	float bnds[2] = {0.0, 1.0};
 	SetHistoBounds(bnds);
@@ -258,6 +260,17 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	vector<long>& valvec = GetRootNode()->GetElementLong(_RefinementLevelTag);
 	return (int)valvec[0];
  }
+ int ParamsIso::GetNumBits(){
+	vector<long>& valvec = GetRootNode()->GetElementLong(_NumBitsTag);
+	return (int)valvec[0];
+ }
+ void ParamsIso::SetNumBits(int numbits){
+	vector<long> valvec(1,(long)numbits);
+	GetRootNode()->SetElementLong(_NumBitsTag,valvec);
+ }
+void ParamsIso::RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag *df){
+	GetRootNode()->RegisterDirtyFlagLong(_NumBitsTag, df);
+}
 
  void ParamsIso::SetVariableName(const string& varName){
 	 GetRootNode()->SetElementString(_VariableNameTag, varName);

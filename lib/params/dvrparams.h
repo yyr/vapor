@@ -165,6 +165,7 @@ protected:
 	static const string _activeVariableNameAttr;
 	static const string _dvrLightingAttr;
     static const string _dvrPreIntegrationAttr;
+	static const string _numBitsAttr;
 
 	DvrType type;
     

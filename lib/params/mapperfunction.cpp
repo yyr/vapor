@@ -80,8 +80,8 @@ MapperFunction::MapperFunction(RenderParams* p, int nBits)
 {
 	myParams = p;
 	previousClass = 0;
-	
-	numEntries = 1<<nBits;
+	//Currently ignore the nBits parameter:
+	numEntries = 256;
 
 	minColorMapBound = 0.f;
 	maxColorMapBound = 1.f;

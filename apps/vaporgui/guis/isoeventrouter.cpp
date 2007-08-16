@@ -80,7 +80,7 @@ using namespace VAPoR;
 IsoEventRouter::IsoEventRouter(QWidget* parent,const char* name): IsoTab(parent, name), EventRouter(){
 	myParamsType = Params::IsoParamsType;
 	savedCommand = 0;  
-	
+	renderTextChanged = false;
 	isoSelectionFrame->setOpacityMapping(true);
 	isoSelectionFrame->setColorMapping(false);
 	isoSelectionFrame->setIsoSlider(true);
@@ -100,12 +100,13 @@ IsoEventRouter::hookUpTab()
 	
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (variableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetComboVarNum(int) ) );
+	connect (numBitsCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumBits(int)));
 	connect (lightingCheckbox, SIGNAL( toggled(bool) ), this, SLOT( guiSetLighting(bool) ) );
  
 	//Line edits:
 	connect (histoScaleEdit,SIGNAL(textChanged(const QString&)),this, SLOT(setIsoTabTextChanged(const QString&)));
 	connect (histoScaleEdit, SIGNAL(returnPressed() ), this, SLOT( isoReturnPressed()));
-	connect (isoValueEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabTextChanged(const QString&)));
+	connect (isoValueEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabRenderTextChanged(const QString&)));
 	connect (isoValueEdit, SIGNAL(returnPressed()), this, SLOT( isoReturnPressed()));
 	connect (leftHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabTextChanged(const QString&)));
 	connect (leftHistoEdit, SIGNAL(returnPressed()), this, SLOT(isoReturnPressed()));
@@ -117,7 +118,7 @@ IsoEventRouter::hookUpTab()
 	connect (selectedYEdit, SIGNAL(returnPressed()), this, SLOT( isoReturnPressed()));
 	connect (selectedZEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabTextChanged(const QString&)));
 	connect (selectedZEdit, SIGNAL(returnPressed()), this, SLOT( isoReturnPressed()));
-	connect (constantOpacityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabTextChanged(const QString&)));
+	connect (constantOpacityEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabRenderTextChanged(const QString&)));
 	connect (constantOpacityEdit, SIGNAL(returnPressed()), this, SLOT( isoReturnPressed()));
 	
 	connect(newHistoButton, SIGNAL(clicked()), this, SLOT(refreshHisto()));
@@ -181,7 +182,7 @@ void IsoEventRouter::updateTab(){
     
 	//Force the iso to refresh
 	
-	
+	numBitsCombo->setCurrentItem((isoParams->GetNumBits())>>4);
 	int numRefs = isoParams->getNumRefinements();
 	if(numRefs <= refinementCombo->count())
 		refinementCombo->setCurrentItem(numRefs);
@@ -219,6 +220,7 @@ void IsoEventRouter::updateTab(){
    
 	update();
 	guiSetTextChanged(false);
+	renderTextChanged = false;
 	Session::getInstance()->unblockRecording();
 	vizMgr->getTabManager()->update();
 }
@@ -258,8 +260,12 @@ void IsoEventRouter::confirmText(bool /*render*/){
 	
 	guiSetTextChanged(false);
 	setEditorDirty(iParams);
-    VizWinMgr::getInstance()->setVizDirty(iParams, LightingBit, true);		
+	
 	PanelCommand::captureEnd(cmd, iParams);
+	if (renderTextChanged)
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
+		
+	renderTextChanged = false;
 }
 /*********************************************************************************
  * Slots associated with IsoTab:
@@ -282,7 +288,7 @@ guiEndChangeIsoSelection(){
 	PanelCommand::captureEnd(savedCommand,iParams);
 	updateTab();
 	savedCommand = 0;
-
+	VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 void IsoEventRouter::
 setIsoEditMode(bool mode){
@@ -315,6 +321,11 @@ void IsoEventRouter::guiCopyInstanceTo(int toViz){
 void IsoEventRouter::
 setIsoTabTextChanged(const QString& ){
 	guiSetTextChanged(true);
+}
+void IsoEventRouter::
+setIsoTabRenderTextChanged(const QString& ){
+	guiSetTextChanged(true);
+	renderTextChanged = true;
 }
 
 void IsoEventRouter::
@@ -359,6 +370,7 @@ void IsoEventRouter::guiPassThruPoint(){
 		iParams->SetIsoValue(val);
 	PanelCommand::captureEnd(cmd, iParams);
 	updateTab(); 
+	VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 float IsoEventRouter::evaluateSelectedPoint(){
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
@@ -446,6 +458,7 @@ guiSetNumRefinements(int num){
 	iParams->SetRefinementLevel(num);
 	refinementCombo->setCurrentItem(num);
 	PanelCommand::captureEnd(cmd, iParams);
+	VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);
 	
 }
 void IsoEventRouter::
@@ -534,6 +547,8 @@ guiSetComboVarNum(int val){
 	updateHistoBounds(iParams);
 		
 	PanelCommand::captureEnd(cmd, iParams);
+	VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);
+	
 }
 		
 
@@ -549,7 +564,7 @@ guiSetLighting(bool val){
 	iParams->SetNormalOnOff(val);
 	PanelCommand::captureEnd(cmd, iParams);
 
-    VizWinMgr::getInstance()->setVizDirty(iParams,LightingBit,true);		
+    VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();	
 }
 
 
@@ -808,6 +823,7 @@ guiSetConstantColor(QColor& newColor){
 	fColor[3] = prevColor[3]; //opacity
 	iParams->SetConstantColor(fColor);
 	PanelCommand::captureEnd(cmd, iParams);
+	VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 /*
  * Method to be invoked after the user has moved the right or left bounds
@@ -844,5 +860,16 @@ setEditorDirty(RenderParams* p){
 	isoSelectionFrame->setIsoValue(ip->GetIsoValue());
     isoSelectionFrame->update();
 
+}
+void IsoEventRouter::
+guiSetNumBits(int val){
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	confirmText(false);
 	
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set iso voxel bits");
+	//Value is 0 or 1, corresponding to 8 or 16 bits
+	iParams->SetNumBits(1<<(val+3));
+	PanelCommand::captureEnd(cmd, iParams);
+		
+	VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);
 }

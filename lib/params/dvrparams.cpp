@@ -47,6 +47,7 @@ const string DvrParams::_editModeAttr = "TFEditMode";
 const string DvrParams::_histoStretchAttr = "HistoStretchFactor";
 const string DvrParams::_dvrLightingAttr = "DVRLighting";
 const string DvrParams::_dvrPreIntegrationAttr = "DVRPreIntegration";
+const string DvrParams::_numBitsAttr = "BitsPerVoxel";
 
 
 DvrParams::DvrParams(int winnum) : RenderParams(winnum)
@@ -388,6 +389,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			else if (StrCmpNoCase(attribName, _dvrPreIntegrationAttr) == 0) {
               if (value == "true") setPreIntegration(true); else setPreIntegration(false);
 			}
+			else if (StrCmpNoCase(attribName, _numBitsAttr) == 0){
+				ist >> numBits;
+			}
             else return false;
 		}
 		// Now set the values obtained from attribute parsing.
@@ -552,6 +556,10 @@ buildNode() {
 	else 
 		oss << "false";
 	attrs[_dvrLightingAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)numBits;
+	attrs[_numBitsAttr] = oss.str();
 
 	oss.str(empty);
 	if (preIntegrationOn)

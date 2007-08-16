@@ -39,7 +39,7 @@ class PARAMS_API MapperFunction : public ParsedXml
 
 public:
 	MapperFunction();
-	MapperFunction(RenderParams* p, int nBits);
+	MapperFunction(RenderParams* p, int nBits = 8);
 	MapperFunction(const MapperFunction &mapper);
 	virtual ~MapperFunction();
 

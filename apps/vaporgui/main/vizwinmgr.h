@@ -397,7 +397,7 @@ public:
 	static const string _visualizersTag;
 
 	//General function for all dirty bit setting:
-	void setVizDirty(Params* p, DirtyBitType bittype, bool bit, bool refresh = true);
+	void setVizDirty(Params* p, DirtyBitType bittype, bool bit = true, bool refresh = true);
 	Params* getCorrespondingGlobalParams(Params* p) {
 		return getGlobalParams(p->getParamType());
 	}

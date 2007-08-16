@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout25</cstring>
+                <cstring>layout43</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -295,7 +295,7 @@ create new Probe/Contour instances.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>31</height>
+                            <height>24</height>
                         </size>
                     </property>
                 </spacer>
@@ -328,7 +328,7 @@ window toolbar.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout24</cstring>
+                                <cstring>layout42</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -1205,7 +1205,7 @@ specified range.</string>
                                                                 <set>AlignCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Value of variable at selected point</string>
+                                                                <string>Value of variable at selected point, when renderer is enabled</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -1327,7 +1327,7 @@ specified range.</string>
                                     <property name="sizeHint">
                                         <size>
                                             <width>20</width>
-                                            <height>27</height>
+                                            <height>22</height>
                                         </size>
                                     </property>
                                 </spacer>
@@ -1353,7 +1353,7 @@ in this panel.</string>
                                         </property>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout40</cstring>
+                                                <cstring>layout41</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -1491,7 +1491,7 @@ in this panel.</string>
                                                 </widget>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout21_4</cstring>
+                                                        <cstring>layout40</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -1509,8 +1509,54 @@ in this panel.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>81</width>
+                                                                    <width>20</width>
                                                                     <height>21</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QLabel">
+                                                            <property name="name">
+                                                                <cstring>textLabel1_3</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Bits per voxel</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QComboBox">
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>8</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>16</string>
+                                                                </property>
+                                                            </item>
+                                                            <property name="name">
+                                                                <cstring>numBitsCombo</cstring>
+                                                            </property>
+                                                            <property name="sizeLimit">
+                                                                <number>2</number>
+                                                            </property>
+                                                            <property name="maxCount">
+                                                                <number>2</number>
+                                                            </property>
+                                                        </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer60</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>41</width>
+                                                                    <height>20</height>
                                                                 </size>
                                                             </property>
                                                         </spacer>
@@ -1559,7 +1605,7 @@ of Light No. 1 in the Viewpoint panel.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>151</width>
+                                                                    <width>40</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
