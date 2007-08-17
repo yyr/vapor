@@ -262,6 +262,11 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
  }
  int ParamsIso::GetNumBits(){
 	vector<long>& valvec = GetRootNode()->GetElementLong(_NumBitsTag);
+	if (valvec.size() == 0){
+		//For backwards compatibility, insert default value:
+		SetNumBits(8);
+		return 8;
+	}
 	return (int)valvec[0];
  }
  void ParamsIso::SetNumBits(int numbits){
