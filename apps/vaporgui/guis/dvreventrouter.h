@@ -93,11 +93,7 @@ public:
 
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
 
-		
-	virtual Histo* getHistogram(RenderParams*, bool);
-	virtual void refreshHistogram(RenderParams*);
 
-	//There are multiple notions of "dirty" here!
 	virtual void setEditorDirty(RenderParams* p = 0);
 		
 	virtual void reinitTab(bool doOverride);

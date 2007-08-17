@@ -79,12 +79,10 @@ public:
 	//Return OUT_OF_BOUNDS if not in probe and in full domain
 	float calcCurrentValue(ProbeParams* p, const float point[3]);
 
-	//Methods to support maintaining a list of histograms
-	//in each eventRouter (at least those with a TFE)
-	virtual Histo* getHistogram(RenderParams* p, bool mustGet);
+	//probe has a special version of histogramming
 	virtual void refreshHistogram(RenderParams* p);
 
-	//There are multiple notions of "dirty" here!
+
 	virtual void setEditorDirty(RenderParams* p = 0);
 		
 	virtual void reinitTab(bool doOverride);

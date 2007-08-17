@@ -65,8 +65,6 @@ public:
 
 
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
-	virtual Histo* getHistogram(RenderParams*, bool);
-	virtual void refreshHistogram(RenderParams*);
 		
 	virtual void reinitTab(bool doOverride);
 	void guiSetConstantColor(QColor& c);

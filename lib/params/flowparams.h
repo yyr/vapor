@@ -353,7 +353,8 @@ public:
 	void periodicMap(float origCoords[3],float newCoords[3], bool unscale);
 	std::vector<int>& getUnsteadyTimesteps() { return unsteadyTimestepList;}
 	
-	
+	//This virtual RenderParams method is not useful for flow params
+	virtual int getSessionVarNum() { assert(0); return -1;}
 
 	
 protected:

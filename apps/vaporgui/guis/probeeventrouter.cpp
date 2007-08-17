@@ -1663,31 +1663,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	delete volData;
 	return varVal;
 }
-//Obtain the current valid histogram.  if mustGet is false, don't build a new one.
-Histo* ProbeEventRouter::getHistogram(RenderParams* p, bool mustGet){
-	ProbeParams* pParams = (ProbeParams*)p;
-	//There's a histogram for each session variable!  Unlike DVR params, since
-	//We need to remember TF's based on first Session variable number
-	//Make sure we are using a valid variable num (this can be a problem
-	//right after parsing a new session)
-	int firstVarNum = pParams->getFirstVarNum();
-	if (firstVarNum >= numHistograms || !histogramList){
-		if (!mustGet) return 0;
-		histogramList = new Histo*[numVariables];
-		for (int i = 0; i<numVariables; i++)
-			histogramList[i] = 0;
-		numHistograms = numVariables;
-	}
-	
-	const float* currentDatarange = pParams->getCurrentDatarange();
-	if (histogramList[firstVarNum]) return histogramList[firstVarNum];
-	
-	if (!mustGet) return 0;
-	histogramList[firstVarNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
-	refreshHistogram(pParams);
-	return histogramList[firstVarNum];
-	
-}
+
 //Obtain a new histogram for the current selected variables.
 //Save it at the position associated with firstVarNum
 void ProbeEventRouter::

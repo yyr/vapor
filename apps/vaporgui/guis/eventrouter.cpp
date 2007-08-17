@@ -25,6 +25,12 @@
 #include "eventrouter.h"
 #include "params.h"
 #include "vizwinmgr.h"
+#include <qapplication.h>
+#include <qcursor.h>
+#include "vapor/DataMgr.h"
+#include "vapor/errorcodes.h"
+#include "session.h"
+#include "messagereporter.h"
 #include <vector>
 
 using namespace VAPoR;
@@ -128,7 +134,106 @@ void EventRouter::performGuiCopyInstanceToViz(int towin){
 	InstancedPanelCommand::capture(rParams, "copy renderer instance to viz", currentInstance, VAPoR::copyInstance, towin);
 }
 
+void EventRouter::refreshHistogram(RenderParams* renParams){
+	size_t min_dim[3],max_dim[3];
+	size_t min_bdim[3], max_bdim[3];
+	
+	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
+	DataMgr* dataMgr = Session::getInstance()->getDataMgr();
+	if(!dataMgr) return;
+	RegionParams* rParams;
+	int vizNum = renParams->getVizNum();
+	if (vizNum<0) {
+		//It's possible that multiple different region params apply to
+		//different dvr panels if they are shared.  But the current active
+		//region params will apply here.
+		rParams = vizWinMgr->getActiveRegionParams();
+	} else {
+		rParams = vizWinMgr->getRegionParams(vizNum);
+	}
+	
+	size_t fullHeight = rParams->getFullGridHeight();
+	int varNum = renParams->getSessionVarNum();
+	
+	if (!DataStatus::getInstance()->getDataMgr()) return;
+	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
+	if (!histogramList){
+		histogramList = new Histo*[numVariables];
+		numHistograms = numVariables;
+		for (int i = 0; i<numVariables; i++)
+			histogramList[i] = 0;
+	}
+	if (histogramList[varNum]){
+		delete histogramList[varNum];
+		histogramList[varNum] = 0;
+	}
+	int numTrans = renParams->getNumRefinements();
+	int timeStep = vizWinMgr->getAnimationParams(vizNum)->getCurrentFrameNumber();
+	const float * bnds = renParams->getCurrentDatarange();
+	
+	bool dataValid = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, min_bdim, max_bdim, timeStep, &varNum, 1);
+	if(!dataValid){
+		MessageReporter::warningMsg("Histogram data unavailable for refinement %d at timestep %d", numTrans, timeStep);
+		return;
+	}
+	
+	//Check if the region/resolution is too big:
+	  int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(), rParams->getRegionMax(), numTrans);
+	  int cacheSize = DataStatus::getInstance()->getCacheMB();
+	  if (numMBs > (int)(0.75*cacheSize)){
+		  MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current region and resolution.\n%s \n%s",
+			  "Lower the refinement level, reduce the region size, or increase the cache size.",
+			  "Rendering has been disabled.");
+		  renParams->setEnabled(false);
+		  updateTab();
+		  return;
+	  }
+	
+	//Now get the data:
+	
+	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+	unsigned char* data = (unsigned char*) dataMgr->GetRegionUInt8(
+					timeStep, 
+					(const char*)DataStatus::getInstance()->getVariableName(varNum).c_str(),
+					numTrans,
+					min_bdim, max_bdim,
+					fullHeight,
+					renParams->getCurrentDatarange(),
+					0 //Don't lock!
+		);
+	QApplication::restoreOverrideCursor();
+	//Make sure we can build a histogram
+	if (!data) {
+		MessageReporter::errorMsg("Invalid/nonexistent data cannot be histogrammed");
+		return;
+	}
 
+	histogramList[varNum] = new Histo(data,
+			min_dim, max_dim, min_bdim, max_bdim, bnds[0], bnds[1]);
+	
+}
+//Obtain the current valid histogram.  if mustGet is false, don't build a new one.
+Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet){
+	
+	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
+	int varNum = renParams->getSessionVarNum();
+	if (varNum >= numHistograms || !histogramList){
+		if (!mustGet) return 0;
+		histogramList = new Histo*[numVariables];
+		for (int i = 0; i<numVariables; i++)
+			histogramList[i] = 0;
+		numHistograms = numVariables;
+	}
+	
+	const float* currentDatarange = renParams->getCurrentDatarange();
+	if (histogramList[varNum]) return histogramList[varNum];
+	
+	if (!mustGet) return 0;
+	histogramList[varNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
+	refreshHistogram(renParams);
+	return histogramList[varNum];
+	
+}
 
 
 	

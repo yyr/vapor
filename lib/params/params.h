@@ -347,7 +347,7 @@ public:
 	virtual void setEnabled(bool value) {enabled = value; stopFlag = false;}
 	
 	
-	virtual int getSessionVarNum(){ assert(0); return -1;}
+	virtual int getSessionVarNum() = 0;
 	virtual float GetHistoStretch() { assert(0); return 1.f;}
 	virtual void setBindButtons() {return;}//Needs to be removed!
 	virtual bool getEditMode() {assert(0); return true;}

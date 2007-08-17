@@ -119,8 +119,8 @@ public:
 	//Methods to support maintaining a list of histograms
 	//in each router (at least those with a TFE)
 
-	virtual Histo* getHistogram(RenderParams*, bool /*mustGet*/) { return 0;}
-	virtual void refreshHistogram(RenderParams* ) {assert(0);}
+	virtual Histo* getHistogram(RenderParams*, bool mustGet);
+	virtual void refreshHistogram(RenderParams* );
 
 	//For render params, setEditorDirty uses the current instance if Params
 	//arg is null
