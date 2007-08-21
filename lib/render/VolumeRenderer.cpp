@@ -86,17 +86,18 @@ using namespace VetsUtil;
 //----------------------------------------------------------------------------
 VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderParams* rp) 
   : Renderer(glw, rp),
-    driver(NULL),
+    _driver(NULL),
     _type(type),
     _frames(0),
     _seconds(0)
 	
 	
 {
+
   _voxelType = DVRBase::UINT8;
   //  _voxelType = DVRBase::UINT16;
   //Construct dvrvolumizer
-  driver = create_driver(type, 1);
+  _driver = create_driver(type, 1);
   clutDirtyBit = false;
   datarangeDirtyBit = false;
 }
@@ -106,8 +107,8 @@ VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderPar
 //----------------------------------------------------------------------------
 VolumeRenderer::~VolumeRenderer()
 {
-  delete driver;
-  driver = NULL;
+  if (_driver) delete _driver;
+  _driver = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -117,7 +118,7 @@ void VolumeRenderer::initializeGL()
 {
   myGLWindow->makeCurrent();
     
-  if (driver->GraphicsInit() < 0) 
+  if (_driver->GraphicsInit() < 0) 
   {
 	  Params::BailOut("OpenGL: Failure to initialize driver",__FILE__,__LINE__);
   }
@@ -136,9 +137,9 @@ void VolumeRenderer::paintGL()
 //----------------------------------------------------------------------------
 bool VolumeRenderer::hasLighting()
 {
-  if (driver)
+  if (_driver)
   {
-    return driver->HasLighting();
+    return _driver->HasLighting();
   }
 
   return false;
@@ -149,9 +150,9 @@ bool VolumeRenderer::hasLighting()
 //----------------------------------------------------------------------------
 bool VolumeRenderer::hasPreintegration()
 {
-  if (driver)
+  if (_driver)
   {
-    return driver->HasPreintegration();
+    return _driver->HasPreintegration();
   }
 
   return false;
@@ -189,6 +190,11 @@ bool VolumeRenderer::supported(DvrParams::DvrType type)
 #    else
        return false;
 #    endif
+     }
+
+     case DvrParams::DVR_RAY_CASTER:
+     {
+       return DVRRayCaster::supported();
      }
 
      case DvrParams::DVR_VOLUMIZER:
@@ -237,15 +243,17 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   {
     driver = new DVRLookup(_voxelType, 1);
   }
-
   else if (dvrType == DvrParams::DVR_TEXTURE3D_SHADER)
   {
     driver = new DVRShader(_voxelType, 1);
   }
-
   else if (dvrType == DvrParams::DVR_SPHERICAL_SHADER)
   {
     driver = new DVRSpherical(_voxelType, 1);
+  }
+  else if (dvrType == DvrParams::DVR_RAY_CASTER)
+  {
+    driver = new DVRRayCaster(_voxelType, 1);
   }
 
 #ifdef VOLUMIZER
@@ -296,7 +304,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   int datablock[6];
   int i;
 
-  DataStatus *ds = DataStatus::getInstance();
+
   DataMgr* myDataMgr = DataStatus::getInstance()->getDataMgr();
   const Metadata* metadata = DataStatus::getInstance()->getCurrentMetadata();
 	
@@ -308,10 +316,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   
   ViewpointParams *vpParams = myGLWindow->getActiveViewpointParams();  
 	
-  DvrParams* myDVRParams = (DvrParams*)currentRenderParams;
   //This is no longer the case, because of multiple instancing:
   //assert(myDVRParams == myGLWindow->getActiveDvrParams());
-  int varNum = myDVRParams->getSessionVarNum();
+  int varNum = currentRenderParams->getSessionVarNum();
 	
   
   //AN:  (2/10/05):  Calculate 'extents' to be the real coords in (0,1) that
@@ -324,18 +331,18 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   if (myGLWindow->mouseIsDown()) 
   {
     numxforms = 0;
-    driver->SetRenderFast(true);
+    _driver->SetRenderFast(true);
 
     // Need update sampling rate & opacity correction 
     setClutDirty(); 
   }
   else
   {
-    numxforms = myDVRParams->getNumRefinements();
+    numxforms = currentRenderParams->getNumRefinements();
     
-    if (driver->GetRenderFast())
+    if (_driver->GetRenderFast())
     {
-      driver->SetRenderFast(false);
+      _driver->SetRenderFast(false);
 
       // Need update sampling rate & opacity correction
       setClutDirty();
@@ -402,7 +409,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     //Turn off error callback, look for memory allocation problem.
 	
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	const char* varname = (DataStatus::getInstance()->getVariableName(myDVRParams->getSessionVarNum()).c_str());
+	const char* varname = (DataStatus::getInstance()->getVariableName(currentRenderParams->getSessionVarNum()).c_str());
+
 
 	void* data;
 	if (_voxelType == DVRBase::UINT8) {
@@ -413,7 +421,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
                                         min_bdim,
                                         max_bdim,
 										myRegionParams->getFullGridHeight(),
-                                        myDVRParams->getCurrentDatarange(),
+                                        currentRenderParams->getCurrentDatarange(),
                                         0 //Don't lock!
                                         );
 	}
@@ -425,7 +433,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
                                         min_bdim,
                                         max_bdim,
 										myRegionParams->getFullGridHeight(),
-                                        myDVRParams->getCurrentDatarange(),
+                                        currentRenderParams->getCurrentDatarange(),
                                         0 //Don't lock!
                                         );
 	}
@@ -504,7 +512,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
                   FLTEQ(extents[2], metadata->GetExtents()[2]) &&
                   FLTEQ(extents[5], metadata->GetExtents()[5]));
 
-      rc = driver->SetRegionSpherical(data,
+      rc = _driver->SetRegionSpherical(data,
                                       nx, ny, nz,
                                       data_roi, 
                                       extents, 
@@ -527,7 +535,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
       data_roi[4] = (int)max_dim[1]-1;
       data_roi[5] = (int)max_dim[2]-1;
       
-      rc = driver->SetRegion(data,
+      rc = _driver->SetRegion(data,
                              nx, ny, nz,
                              data_roi, padded_extents,
                              datablock, numxforms,
@@ -544,63 +552,12 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	
 	
   }
-  
-  if (clutIsDirty()) 
-  {
-    myGLWindow->setRenderNew();
 
-    bool preint = myDVRParams->getPreIntegration();
+  UpdateDriverRenderParamsSpec(currentRenderParams);
 
-    driver->SetPreintegrationOnOff(preint);
-
-    if (_type == DvrParams::DVR_VOLUMIZER)
-    {
-      driver->SetCLUT(myDVRParams->getClut());
-    }
-	
-    driver->SetOLUT(myDVRParams->getClut(), 
-                    metadata->GetNumTransforms() - numxforms);
-  }
-
-  if (myGLWindow->lightingIsDirty())
-  {
-    bool shading = myDVRParams->getLighting();
-
-    driver->SetLightingOnOff(shading);
-
-    if (shading)
-    {
-      driver->SetLightingCoeff(vpParams->getDiffuseCoeff(0),
-                               vpParams->getAmbientCoeff(),
-                               vpParams->getSpecularCoeff(0),
-                               vpParams->getExponent());
-
-      if (vpParams->getNumLights() >= 1)
-      {
-        driver->SetLightingLocation(vpParams->getLightDirection(0));
-      }
-    }
-    
-    // Attenuation is not supported yet...
-    // if (myDVRParams->attenuationIsDirty()) 
-    // {
-    //   driver->SetAmbient(myDVRParams->getAmbientAttenuation(),
-    //                      myDVRParams->getAmbientAttenuation(),
-    //                      myDVRParams->getAmbientAttenuation());
-    //   driver->SetDiffuse(myDVRParams->getDiffuseAttenuation(),
-    //                      myDVRParams->getDiffuseAttenuation(),
-    //                      myDVRParams->getDiffuseAttenuation());
-    //   driver->SetSpecular(myDVRParams->getSpecularAttenuation(),
-    //                       myDVRParams->getSpecularAttenuation(),
-    //                       myDVRParams->getSpecularAttenuation());
-    //   myDVRParams->setAttenuationDirty(false);
-    //
-  }
-
-  //
   // Update the DVR's view
   //
-  driver->SetView(vpParams->getCameraPos(), vpParams->getViewDir());
+  _driver->SetView(vpParams->getCameraPos(), vpParams->getViewDir());
 
   // Modelview matrix
   //
@@ -614,7 +571,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //Make the z-buffer read-only for the volume data
   glDepthMask(GL_FALSE);
   //qWarning("Starting render");
-  if (driver->Render((GLfloat *) matrix ) < 0){
+  if (_driver->Render((GLfloat *) matrix ) < 0){
     SetErrMsg("Unable to Render");
     return;
   }
@@ -697,4 +654,60 @@ void VolumeRenderer::DrawVoxelWindow(unsigned fast)
   DrawVoxelScene(fast);
 
 #endif
+}
+
+
+void VolumeRenderer::UpdateDriverRenderParamsSpec(
+	RenderParams *rp
+) {
+	DvrParams *myDVRParams = (DvrParams *) rp;
+
+	if (clutIsDirty()) {
+		const Metadata* metadata = DataStatus::getInstance()->getCurrentMetadata();
+		myGLWindow->setRenderNew();
+
+		bool preint = myDVRParams->getPreIntegration();
+
+		_driver->SetPreintegrationOnOff(preint);
+
+		if (_type == DvrParams::DVR_VOLUMIZER) {
+			_driver->SetCLUT(myDVRParams->getClut());
+		}
+
+		_driver->SetOLUT(myDVRParams->getClut(), 
+		metadata->GetNumTransforms() - savedNumXForms);
+	}
+
+	if (myGLWindow->lightingIsDirty()) {
+		bool shading = myDVRParams->getLighting();
+
+		_driver->SetLightingOnOff(shading);
+
+		if (shading) {
+			  ViewpointParams *vpParams = myGLWindow->getActiveViewpointParams();  
+			_driver->SetLightingCoeff(
+				vpParams->getDiffuseCoeff(0), vpParams->getAmbientCoeff(),
+				vpParams->getSpecularCoeff(0), vpParams->getExponent()
+			);
+
+			if (vpParams->getNumLights() >= 1) {
+				_driver->SetLightingLocation(vpParams->getLightDirection(0));
+			}
+		}
+
+		// Attenuation is not supported yet...
+		// if (myDVRParams->attenuationIsDirty()) 
+		// {
+		//   _driver->SetAmbient(myDVRParams->getAmbientAttenuation(),
+		//                      myDVRParams->getAmbientAttenuation(),
+		//                      myDVRParams->getAmbientAttenuation());
+		//   _driver->SetDiffuse(myDVRParams->getDiffuseAttenuation(),
+		//                      myDVRParams->getDiffuseAttenuation(),
+		//                      myDVRParams->getDiffuseAttenuation());
+		//   _driver->SetSpecular(myDVRParams->getSpecularAttenuation(),
+		//                       myDVRParams->getSpecularAttenuation(),
+		//                       myDVRParams->getSpecularAttenuation());
+		//   myDVRParams->setAttenuationDirty(false);
+		//}
+	}
 }

@@ -45,12 +45,23 @@ DVRShader::DVRShader(DataType_T type, int nthreads) :
  _colormap(NULL),
   _shader(NULL),
   _lighting(false),
-  _preintegration(false)
+  _preintegration(false),
+  _kd(0.0),
+  _ka(0.0),
+  _ks(0.0),
+  _expS(0.0)
 {
   _shaders[DEFAULT]              = NULL;
   _shaders[LIGHT]                = NULL;
   _shaders[PRE_INTEGRATED]       = NULL;
   _shaders[PRE_INTEGRATED_LIGHT] = NULL;
+
+  for (int i=0; i<3; i++) _pos[i] = 0.0;
+
+  for (int i=0; i<4; i++) {
+    _vdir[i] = 0.0;
+    _vpos[i] = 0.0;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -132,6 +143,7 @@ bool DVRShader::createShader(ShaderType type,
 
   _shaders[type]->disable();
 
+
   return true;
 }
 
@@ -197,6 +209,8 @@ int DVRShader::GraphicsInit()
   //
   _shader = _shaders[DEFAULT];
 
+  initShaderVariables();
+
   return 0;
 }
 
@@ -212,30 +226,9 @@ int DVRShader::SetRegion(void *data,
 						 size_t fullHeight) 
 { 
 
-  //
-  // Set the texture data
-  //
-  if (_nx != nx || _ny != ny || _nz != nz)
-  {
-    _nx = nx; _ny = ny; _nz = nz;
-    _data = data;
+  _nx = nx; _ny = ny; _nz = nz;
+  _data = data;
 
-    if (_lighting)
-    {
-      _shader->enable();
-
-      if (GLEW_VERSION_2_0)
-      {
-        glUniform3f(_shader->uniformLocation("dimensions"), nx, ny, nz);
-      }
-      else
-      {
-        glUniform3fARB(_shader->uniformLocation("dimensions"), nx, ny, nz);
-      }
-
-      _shader->disable();
-    }
-  }
 
   //
   // Set the geometry extents
@@ -540,30 +533,12 @@ void DVRShader::SetView(const float *pos, const float *dir)
   assert(dir);
   assert(pos);
 
-  if (_preintegration)
-  {
-    GLfloat vdir[4] = {dir[0], dir[1], dir[2], 1.0};
-    GLfloat vpos[4] = {pos[0], pos[1], pos[2], 1.0};
-
-    _shader->enable();
-    
-    if (GLEW_VERSION_2_0)
-    {
-      glUniform4f(_shader->uniformLocation("vdir"), 
-                  vdir[0], vdir[1], vdir[2], vdir[3]);
-      glUniform4f(_shader->uniformLocation("vpos"), 
-                  vpos[0], vpos[1], vpos[2], vpos[3]);
-    }
-    else
-    {
-      glUniform4fARB(_shader->uniformLocation("vdir"),
-                     vdir[0], vdir[1], vdir[2], vdir[3]);
-      glUniform4fARB(_shader->uniformLocation("vpos"),
-                     vpos[0], vpos[1], vpos[2], vpos[3]);
-    }
-    
-    _shader->disable();
+  for (int i=0; i<4; i++) {
+    _vdir[i] = dir[i];
+    _vpos[i] = pos[i];
   }
+  initShaderVariables();
+
 }
 
 
@@ -596,27 +571,12 @@ void DVRShader::SetLightingOnOff(int on)
 //----------------------------------------------------------------------------
 void DVRShader::SetLightingCoeff(float kd, float ka, float ks, float expS)
 {
-  if (_lighting)
-  {
-    _shader->enable();
+	_kd = kd;
+	_ka = ka;
+	_ks = ks;
+	_expS = expS;
 
-    if (GLEW_VERSION_2_0)
-    {
-      glUniform1f(_shader->uniformLocation("kd"), kd);
-      glUniform1f(_shader->uniformLocation("ka"), ka);
-      glUniform1f(_shader->uniformLocation("ks"), ks);
-      glUniform1f(_shader->uniformLocation("expS"), expS);
-    }
-    else
-    {
-      glUniform1fARB(_shader->uniformLocation("kd"), kd);
-      glUniform1fARB(_shader->uniformLocation("ka"), ka);
-      glUniform1fARB(_shader->uniformLocation("ks"), ks);
-      glUniform1fARB(_shader->uniformLocation("expS"), expS);
-    }
-
-    _shader->disable();
-  }
+	initShaderVariables();
 }
 
 //----------------------------------------------------------------------------
@@ -624,23 +584,11 @@ void DVRShader::SetLightingCoeff(float kd, float ka, float ks, float expS)
 //----------------------------------------------------------------------------
 void DVRShader::SetLightingLocation(const float *pos)
 {
-  if (_lighting)
-  {
-    _shader->enable();
+	_pos[0] = pos[0];
+	_pos[1] = pos[1];
+	_pos[2] = pos[2];
 
-    if (GLEW_VERSION_2_0)
-    {
-      glUniform3f(_shader->uniformLocation("lightDirection"), 
-                  pos[0], pos[1], pos[2]);
-    }
-    else
-    {
-      glUniform3fARB(_shader->uniformLocation("lightDirection"), 
-                     pos[0], pos[1], pos[2]);
-    }
-
-    _shader->disable();
-  }
+	initShaderVariables();
 }
 
 
@@ -708,11 +656,27 @@ void DVRShader::initShaderVariables()
     if (GLEW_VERSION_2_0)
     {
       glUniform1f(_shader->uniformLocation("delta"), _delta);
+      glUniform4f(
+        _shader->uniformLocation("vdir"), 
+        _vdir[0], _vdir[1], _vdir[2], _vdir[3]
+      );
+      glUniform4f(
+        _shader->uniformLocation("vpos"), 
+        _vpos[0], _vpos[1], _vpos[2], _vpos[3]
+      );
 
     }
     else
     {
       glUniform1fARB(_shader->uniformLocation("delta"), _delta);
+      glUniform4fARB(
+        _shader->uniformLocation("vdir"), 
+        _vdir[0], _vdir[1], _vdir[2], _vdir[3]
+      );
+      glUniform4fARB(
+        _shader->uniformLocation("vpos"), 
+        _vpos[0], _vpos[1], _vpos[2], _vpos[3]
+      );
     }
   }
 
@@ -721,10 +685,24 @@ void DVRShader::initShaderVariables()
     if (GLEW_VERSION_2_0)
     {
       glUniform3f(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
+      glUniform1f(_shader->uniformLocation("kd"), _kd);
+      glUniform1f(_shader->uniformLocation("ka"), _ka);
+      glUniform1f(_shader->uniformLocation("ks"), _ks);
+      glUniform1f(_shader->uniformLocation("expS"), _expS);
+      glUniform3f(
+        _shader->uniformLocation("lightDirection"), _pos[0], _pos[1], _pos[2]
+      );
     }
     else
     {
       glUniform3fARB(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
+      glUniform1fARB(_shader->uniformLocation("kd"), _kd);
+      glUniform1fARB(_shader->uniformLocation("ka"), _ka);
+      glUniform1fARB(_shader->uniformLocation("ks"), _ks);
+      glUniform1fARB(_shader->uniformLocation("expS"), _expS);
+      glUniform3fARB(
+        _shader->uniformLocation("lightDirection"), _pos[0], _pos[1], _pos[2]
+      );
     }
   } 
 

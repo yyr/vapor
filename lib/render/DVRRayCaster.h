@@ -22,6 +22,8 @@ namespace VAPoR {
 
 class RENDER_API DVRRayCaster : public DVRShader
 {
+ private: 
+  const static int MAX_ISO_VALUES = 1;
 
  public:
 
@@ -42,8 +44,6 @@ class RENDER_API DVRRayCaster : public DVRShader
   virtual void SetPreintegrationOnOff(int ) {return;}
   virtual void SetPreIntegrationTable(const float tab[256][4], const int nR) {return;}
 
-  virtual void SetLightingOnOff(int on);
-
   static bool supported();
 
   // Set the isovalues to be displayed. values is an array of isovalues.
@@ -56,7 +56,7 @@ class RENDER_API DVRRayCaster : public DVRShader
   virtual void SetIsoValues(const float *values, const float *colors, int n);
 
   // return the maximum number of isovalues that may be set
-  static int GetMaxIsoValues() {return (1); };
+  static int GetMaxIsoValues() {return (MAX_ISO_VALUES); };
 
   virtual void Resize(int width, int height);
 
@@ -70,9 +70,10 @@ protected:
 	BACKFACE
   };
 
-  void initTextures();
+  virtual void initTextures();
+  virtual void initShaderVariables();
 
-  bool createShader(ShaderType,
+  virtual bool createShader(ShaderType,
                     const char *vertexCommandLine,
                     const char *vertexSource,
                     const char *fragCommandLine,
@@ -81,11 +82,11 @@ protected:
   ShaderProgram* shader();
 
 
-  void drawVolumeFaces(const BBox &box, const BBox &tbox);
+  virtual void drawVolumeFaces(const BBox &box, const BBox &tbox);
 
-  void render_backface(const BBox &box, const BBox &tbox); 
+  virtual void render_backface(const BBox &box, const BBox &tbox); 
 
-  void raycasting_pass(
+  virtual void raycasting_pass(
 	const TextureBrick *brick, const BBox &box, const BBox &tbox
   );
 
@@ -98,6 +99,11 @@ protected:
 
   GLuint _framebufferid;
   GLuint _backface_bufferid;	// the FBO buffer
+
+  float _values[MAX_ISO_VALUES];
+  float _colors[MAX_ISO_VALUES*4];
+  int _nisos;
+
 
 };
 

@@ -42,12 +42,6 @@ namespace VAPoR {
     IsoRenderer(GLWindow *w, DvrParams::DvrType type, RenderParams* rp);
     virtual ~IsoRenderer();
     
-	virtual void initializeGL();
-    virtual void paintGL();
-
-    virtual bool hasLighting();
-    virtual bool hasPreintegration();
-
     static bool supported(DvrParams::DvrType type);
 	
     //#ifdef BENCHMARKING
@@ -56,15 +50,18 @@ namespace VAPoR {
     virtual int   renderedFrames() { return _frames;  } 
     //#endif
 
+	virtual void setRenderParams(RenderParams* rp);
+
+
   protected:
+
+	void UpdateDriverRenderParamsSpec(RenderParams *rp);
     
-    virtual DVRBase* create_driver(DvrParams::DvrType type, int nthreads);
 
   private:
-   
-    virtual void DrawVoxelScene(unsigned fast);
-    virtual void DrawVoxelWindow(unsigned fast);
 
+	ParamNode::DirtyFlag _lightOnOffDF;
+	ParamNode::DirtyFlag _isovalueDF;
 
   };
 };

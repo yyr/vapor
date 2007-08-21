@@ -50,7 +50,7 @@ public:
     virtual void		paintGL() = 0;
 	
 	//Whenever the params associated with the renderer is changed, must call this:
-	void setRenderParams(RenderParams* rp) {currentRenderParams = rp;}
+	virtual void setRenderParams(RenderParams* rp) {currentRenderParams = rp;}
 	RenderParams* getRenderParams(){return currentRenderParams;}
 	
 signals:

@@ -32,6 +32,9 @@ DVRRayCaster::DVRRayCaster(DataType_T type, int nthreads) :
 	_lighting = false;
 	_framebufferid = 0;
 	_backface_bufferid = 0;
+
+	_nisos = 0;
+
 }
 
 //----------------------------------------------------------------------------
@@ -82,28 +85,15 @@ bool DVRRayCaster::createShader(ShaderType type,
 	// Set up initial uniform values
 	//
 	if (type != BACKFACE) {
-		float values[] = {0.5};
-		float colors[] = {1.0, 0.0, 0.0, 1.0};
-		//int n = sizeof(values) / sizeof(values[0]);
 		_shaders[type]->enable();
 
 		if (GLEW_VERSION_2_0) {
 			glUniform1i(_shaders[type]->uniformLocation("volumeTexture"), 0);
 			glUniform1i(_shaders[type]->uniformLocation("backface_buffer"), 1);
-			//glUniform1fv(_shaders[type]->uniformLocation("isovalues"), n, values);
-			//glUniform4fv(_shaders[type]->uniformLocation("isocolors"), n, colors);
-			//glUniform1i(_shaders[type]->uniformLocation("numiso"), n);
-			glUniform4f(_shaders[type]->uniformLocation("isocolors"), colors[0], colors[1], colors[2], colors[3]);
-			glUniform1f(_shaders[type]->uniformLocation("isovalues"), values[0]);
 		}
 		else {
 			glUniform1iARB(_shaders[type]->uniformLocation("volumeTexture"), 0);
 			glUniform1iARB(_shaders[type]->uniformLocation("backface_buffer"), 1);
-			//glUniform1fvARB(_shaders[type]->uniformLocation("isovalues"), n, values);
-			//glUniform4fvARB(_shaders[type]->uniformLocation("isocolors"), n, colors);
-			//glUniform1iARB(_shaders[type]->uniformLocation("numiso"), n);
-			glUniform4fARB(_shaders[type]->uniformLocation("isocolors"), colors[0], colors[1], colors[2], colors[3]);
-			glUniform1fARB(_shaders[type]->uniformLocation("isovalues"), values[0]);
 		}
 
 		_shaders[type]->disable();
@@ -132,7 +122,6 @@ int DVRRayCaster::GraphicsInit()
 
 		return -1;
 	}
-
 	if (!createShader(
 		LIGHT, 
 		"--iso-lighting-vertex-shader", vertex_shader_iso_lighting,
@@ -163,20 +152,14 @@ int DVRRayCaster::GraphicsInit()
 int DVRRayCaster::Render(const float matrix[16])
 {
 	if (_shader) _shader->enable();
+
 	DVRTexture3d::calculateSampling();
 	float delta = _delta * 2;
-cerr << "Delta hardcoded = " << delta << endl;
-cerr << "Dimensions need not be set here - set in DVRShader\n";
+
 	if (GLEW_VERSION_2_0) {
 		glUniform1f(_shader->uniformLocation("delta"), delta);
-		if (_lighting) {
-			glUniform3f(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
-		}
 	} else {
 		glUniform1fARB(_shader->uniformLocation("delta"), delta);
-		if (_lighting) {
-			glUniform3fARB(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
-		}
 	}
 	if (_shader) _shader->disable();
 
@@ -313,13 +296,6 @@ void DVRRayCaster::raycasting_pass(
 		glBindTexture(GL_TEXTURE_2D, _backface_bufferid);
 	}
 
-#ifdef	DEAD
-_shader->disable();
-glDisable(GL_TEXTURE_1D);
-glDisable(GL_TEXTURE_2D);
-glDisable(GL_TEXTURE_3D);
-#endif
-
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
@@ -353,6 +329,8 @@ void DVRRayCaster::renderBrick(
 	BBox volumeBox  = brick->volumeBox();
 	BBox textureBox = brick->textureBox();
 
+	glDepthMask(GL_TRUE);
+
 	// Parent class enables default shader
 	_shader->disable();
 
@@ -371,6 +349,15 @@ void DVRRayCaster::renderBrick(
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
 	raycasting_pass(brick, volumeBox, textureBox);
+
+#ifdef	DEAD
+glDisable(GL_TEXTURE_1D);
+glDisable(GL_TEXTURE_2D);
+glDisable(GL_TEXTURE_3D);
+glDisable(GL_DEPTH_TEST);
+glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+drawVolumeFaces(volumeBox, textureBox);
+#endif
 
 	printOpenGLError();
 }
@@ -392,34 +379,24 @@ int DVRRayCaster::HasType(DataType_T type)
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-void DVRRayCaster::SetLightingOnOff(int on) 
-{
-	_lighting = on;
-
-	_shader = shader(); assert(_shader);
-
-}
 
 void DVRRayCaster::SetIsoValues(
 	const float *values, const float *colors, int n
 ) {
+
 	if (n > GetMaxIsoValues()) n = GetMaxIsoValues();
 
-	if (_shader) _shader->enable();
-	if (GLEW_VERSION_2_0) {
-		//glUniform1fv(_shader->uniformLocation("isovalues"), n, values);
-		//glUniform4fv(_shader->uniformLocation("isocolors"), n, colors);
-		//glUniform1i(_shader->uniformLocation("numiso"), n);
-		glUniform4f(_shader->uniformLocation("isocolors"), colors[0], colors[1], colors[2], colors[3]);
-		glUniform1f(_shader->uniformLocation("isovalues"), values[0]);
-	} else {
-		//glUniform1fvARB(_shader->uniformLocation("isovalues"), n, values);
-		//glUniform4fvARB(_shader->uniformLocation("isocolors"), n, colors);
-		//glUniform1iARB(_shader->uniformLocation("numiso"), n);
-		glUniform4fARB(_shader->uniformLocation("isocolors"), colors[0], colors[1], colors[2], colors[3]);
-		glUniform1fARB(_shader->uniformLocation("isovalues"), values[0]);
+	_nisos = n;
+	for (int i=0; i<n; i++) {
+		_values[i] = values[i];
+		_colors[i*4+0] = colors[i*4+0];
+		_colors[i*4+1] = colors[i*4+1];
+		_colors[i*4+2] = colors[i*4+2];
+		_colors[i*4+3] = colors[i*4+3];
 	}
-	if (_shader) _shader->disable();
+
+	initShaderVariables();
+
 }
 
 
@@ -461,6 +438,64 @@ void DVRRayCaster::initTextures()
 
 	glFlush();	// Necessary???
 }
+
+void DVRRayCaster::initShaderVariables() {
+
+	assert(_shader);
+
+	_shader->enable();
+
+	if (GLEW_VERSION_2_0) {
+		//glUniform1fv(_shader->uniformLocation("isovalues"), _nisos, _values);
+		//glUniform4fv(_shader->uniformLocation("isocolors"), _nisos, _colors);
+		//glUniform1i(_shader->uniformLocation("numiso"), _nisos);
+
+		glUniform4f(
+			_shader->uniformLocation("isocolors"), 
+			_colors[0], _colors[1], _colors[2], _colors[3]
+		);
+		glUniform1f(_shader->uniformLocation("isovalues"), _values[0]);
+	} else {
+		//glUniform1fvARB(_shader->uniformLocation("isovalues"), _nisos, _values);
+		//glUniform4fvARB(_shader->uniformLocation("isocolors"), _nisos, _colors);
+		//glUniform1iARB(_shader->uniformLocation("numiso"), _nisos);
+
+		glUniform4fARB(
+			_shader->uniformLocation("isocolors"), 
+			_colors[0], _colors[1], _colors[2], _colors[3]
+		);
+		glUniform1fARB(_shader->uniformLocation("isovalues"), _values[0]);
+	}
+
+	if (_lighting) {
+		if (GLEW_VERSION_2_0) {   
+			glUniform3f(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
+			glUniform1f(_shader->uniformLocation("kd"), _kd);
+			glUniform1f(_shader->uniformLocation("ka"), _ka);
+			glUniform1f(_shader->uniformLocation("ks"), _ks);
+			glUniform1f(_shader->uniformLocation("expS"), _expS);
+			glUniform3f(
+				_shader->uniformLocation("lightDirection"), 
+				_pos[0], _pos[1], _pos[2]
+			);
+		}       
+		else {   
+			glUniform3fARB(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
+			glUniform1fARB(_shader->uniformLocation("kd"), _kd);
+			glUniform1fARB(_shader->uniformLocation("ka"), _ka);
+			glUniform1fARB(_shader->uniformLocation("ks"), _ks);
+			glUniform1fARB(_shader->uniformLocation("expS"), _expS);
+			glUniform3fARB(
+				_shader->uniformLocation("lightDirection"), 
+				_pos[0], _pos[1], _pos[2]
+			);
+		}       
+	}
+
+	_shader->disable();
+}
+
+
 
 void DVRRayCaster::Resize(int width, int height) {
 

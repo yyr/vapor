@@ -105,6 +105,14 @@ protected:
   int    _nx;
   int    _ny;
   int    _nz;
+
+  float _kd;
+  float _ka;
+  float _ks;
+  float _expS;
+  float _pos[3];
+  float _vdir[4];
+  float _vpos[4];
 };
 
 };
