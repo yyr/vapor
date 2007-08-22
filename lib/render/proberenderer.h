@@ -19,6 +19,9 @@
 #ifndef PROBERENDERER_H
 #define PROBERENDERER_H
 
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include "assert.h"
 #include "renderer.h"
 #include "probeparams.h"
@@ -37,6 +40,7 @@ public:
 
 
 protected:
+	GLuint _probeid;
 
 
 };

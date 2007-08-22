@@ -35,6 +35,7 @@ using namespace VAPoR;
 ProbeRenderer::ProbeRenderer(GLWindow* glw, ProbeParams* pParams )
 :Renderer(glw, pParams)
 {
+	_probeid = 0;
     
 }
 
@@ -45,6 +46,7 @@ ProbeRenderer::ProbeRenderer(GLWindow* glw, ProbeParams* pParams )
 
 ProbeRenderer::~ProbeRenderer()
 {
+	if (_probeid) glDeleteTextures(1, &_probeid);
 	
 }
 
@@ -55,6 +57,7 @@ ProbeRenderer::~ProbeRenderer()
 
 void ProbeRenderer::paintGL()
 {
+cerr << "ProbeRenderer::paintGL\n";
 	
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	ProbeParams* myProbeParams = (ProbeParams*)currentRenderParams;
@@ -72,14 +75,13 @@ void ProbeRenderer::paintGL()
 	int imgWidth = myProbeParams->getImageWidth();
 	int imgHeight = myProbeParams->getImageHeight();
 	if (probeTex){
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+
+		glBindTexture(GL_TEXTURE_2D, _probeid);
 		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_DEPTH_TEST);// will not correct blending, but will be OK wrt other opaque geometry.
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTex);
 		//Do write to the z buffer
 		glDepthMask(GL_TRUE);
@@ -129,4 +131,10 @@ void ProbeRenderer::initializeGL()
 {
 	myGLWindow->makeCurrent();
 	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
+
+	glGenTextures(1, &_probeid);
+	glBindTexture(GL_TEXTURE_2D, _probeid);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 }
