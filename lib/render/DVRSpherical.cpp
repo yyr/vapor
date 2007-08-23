@@ -351,6 +351,12 @@ void DVRSpherical::initShaderVariables()
     if (_lighting)
     {
       glUniform3f(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
+      glUniform1f(_shader->uniformLocation("kd"), _kd);
+      glUniform1f(_shader->uniformLocation("ka"), _ka);
+      glUniform1f(_shader->uniformLocation("ks"), _ks);
+      glUniform1f(_shader->uniformLocation("expS"), _expS);
+      glUniform3f(_shader->uniformLocation("lightDirection"), 
+                  _pos[0], _pos[1], _pos[2]);
     } 
     
     float tmpv[3];
@@ -407,6 +413,12 @@ void DVRSpherical::initShaderVariables()
     if (_lighting)
     {
       glUniform3fARB(_shader->uniformLocation("dimensions"), _nx, _ny, _nz);
+      glUniform1fARB(_shader->uniformLocation("kd"), _kd);
+      glUniform1fARB(_shader->uniformLocation("ka"), _ka);
+      glUniform1fARB(_shader->uniformLocation("ks"), _ks);
+      glUniform1fARB(_shader->uniformLocation("expS"), _expS);
+      glUniform3fARB(_shader->uniformLocation("lightDirection"), 
+                     _pos[0], _pos[1], _pos[2]);
     }
 
     float tmpv[3];
