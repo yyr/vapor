@@ -98,7 +98,8 @@ protected:
 
 
   GLuint _framebufferid;
-  GLuint _backface_bufferid;	// the FBO buffer
+  GLuint _backface_texcrd_texid;	// the FBO color buffer
+  GLuint _backface_depth_texid;	// the FBO depth buffer
 
   float _values[MAX_ISO_VALUES];
   float _colors[MAX_ISO_VALUES*4];

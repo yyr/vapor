@@ -57,7 +57,6 @@ ProbeRenderer::~ProbeRenderer()
 
 void ProbeRenderer::paintGL()
 {
-cerr << "ProbeRenderer::paintGL\n";
 	
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
 	ProbeParams* myProbeParams = (ProbeParams*)currentRenderParams;

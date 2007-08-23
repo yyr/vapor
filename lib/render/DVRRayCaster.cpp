@@ -31,7 +31,8 @@ DVRRayCaster::DVRRayCaster(DataType_T type, int nthreads) :
 {
 	_lighting = false;
 	_framebufferid = 0;
-	_backface_bufferid = 0;
+	_backface_texcrd_texid = 0;
+	_backface_depth_texid = 0;
 
 	_nisos = 0;
 
@@ -45,7 +46,8 @@ DVRRayCaster::~DVRRayCaster()
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,0);
 	if (_framebufferid) glDeleteFramebuffersEXT(1, &_framebufferid);
 
-	if (_backface_bufferid) glDeleteTextures(1, &_backface_bufferid);
+	if (_backface_texcrd_texid) glDeleteTextures(1, &_backface_texcrd_texid);
+	if (_backface_depth_texid) glDeleteTextures(1, &_backface_depth_texid);
 }
 
 bool DVRRayCaster::createShader(ShaderType type,
@@ -89,11 +91,13 @@ bool DVRRayCaster::createShader(ShaderType type,
 
 		if (GLEW_VERSION_2_0) {
 			glUniform1i(_shaders[type]->uniformLocation("volumeTexture"), 0);
-			glUniform1i(_shaders[type]->uniformLocation("backface_buffer"), 1);
+			glUniform1i(_shaders[type]->uniformLocation("texcrd_buffer"), 1);
+			glUniform1i(_shaders[type]->uniformLocation("depth_buffer"), 2);
 		}
 		else {
 			glUniform1iARB(_shaders[type]->uniformLocation("volumeTexture"), 0);
-			glUniform1iARB(_shaders[type]->uniformLocation("backface_buffer"), 1);
+			glUniform1iARB(_shaders[type]->uniformLocation("texcrd_buffer"), 1);
+			glUniform1iARB(_shaders[type]->uniformLocation("depth_buffer"), 2);
 		}
 
 		_shaders[type]->disable();
@@ -130,12 +134,14 @@ int DVRRayCaster::GraphicsInit()
 		return -1;
 	}
 
+#ifdef	DEAD
 	if (!createShader(
 		BACKFACE, NULL, NULL,
 		"--backface-fragment-shader", fragment_shader_backface)) {
 
 		return -1;
 	}
+#endif
 
 	//
 	// Set the current shader
@@ -260,40 +266,49 @@ void DVRRayCaster::render_backface(
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDisable(GL_BLEND);
 
+#ifdef	DEAD
 	_shaders[BACKFACE]->enable();
+#endif
 	drawVolumeFaces(box, tbox);
+#ifdef	DEAD
 	_shaders[BACKFACE]->disable();
+#endif
 
     glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 
 }
 
+// render the front-facing polygons
+//
 void DVRRayCaster::raycasting_pass(
 	const TextureBrick *brick, const BBox &box, const BBox &tbox
 ) {
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_3D);
 
 	if (GLEW_VERSION_2_0) {
 
 		glActiveTexture(GL_TEXTURE0);
-		glEnable(GL_TEXTURE_3D);
 		glBindTexture(GL_TEXTURE_3D, brick->handle());
 
 		glActiveTexture(GL_TEXTURE1);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, _backface_bufferid);
+		glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
 
 	} else {
 
 		glActiveTextureARB(GL_TEXTURE0_ARB);
-		glEnable(GL_TEXTURE_3D);
 		glBindTexture(GL_TEXTURE_3D, brick->handle());
 
 		glActiveTextureARB(GL_TEXTURE1_ARB);
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, _backface_bufferid);
+		glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
+
+		glActiveTextureARB(GL_TEXTURE2_ARB);
+		glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
 	}
 
 	glEnable(GL_CULL_FACE);
@@ -306,15 +321,23 @@ void DVRRayCaster::raycasting_pass(
 	glDisable(GL_CULL_FACE);
 
 	if (GLEW_VERSION_2_0) {
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
 		glActiveTexture(GL_TEXTURE1);
-		glDisable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
 		glActiveTexture(GL_TEXTURE0);
-		glDisable(GL_TEXTURE_3D);
+		glBindTexture(GL_TEXTURE_3D, 0);
 	} else {
+		glActiveTextureARB(GL_TEXTURE2_ARB);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
 		glActiveTextureARB(GL_TEXTURE1_ARB);
-		glDisable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
 		glActiveTextureARB(GL_TEXTURE0_ARB);
-		glDisable(GL_TEXTURE_3D);
+		glBindTexture(GL_TEXTURE_3D, 0);
 	}
 }
 
@@ -329,6 +352,7 @@ void DVRRayCaster::renderBrick(
 	BBox volumeBox  = brick->volumeBox();
 	BBox textureBox = brick->textureBox();
 
+	// Write depth info.
 	glDepthMask(GL_TRUE);
 
 	// Parent class enables default shader
@@ -337,27 +361,18 @@ void DVRRayCaster::renderBrick(
 	// enable rendering to FBO
 	glBindFramebufferEXT (GL_FRAMEBUFFER_EXT, _framebufferid);
 
-	// Render to texture
-    glFramebufferTexture2DEXT(
-		GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 
-		_backface_bufferid, 0
-	);
+	// No depth comparisons
+	glDepthFunc(GL_ALWAYS);
 
     render_backface(volumeBox, textureBox);
-
+	 
 	// disable rendering to FBO
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-	raycasting_pass(brick, volumeBox, textureBox);
+	// Restore normal depth comparison for ray casting pass.
+	glDepthFunc(GL_LESS);
 
-#ifdef	DEAD
-glDisable(GL_TEXTURE_1D);
-glDisable(GL_TEXTURE_2D);
-glDisable(GL_TEXTURE_3D);
-glDisable(GL_DEPTH_TEST);
-glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-drawVolumeFaces(volumeBox, textureBox);
-#endif
+	raycasting_pass(brick, volumeBox, textureBox);
 
 	printOpenGLError();
 }
@@ -369,10 +384,10 @@ drawVolumeFaces(volumeBox, textureBox);
 //----------------------------------------------------------------------------
 int DVRRayCaster::HasType(DataType_T type) 
 {
-  if (type == UINT8) 
-    return(1);
-  else 
-    return(0);
+	if (type == UINT8 || type == UINT16) 
+		return(1);
+	else 
+		return(0);
 }
 
 
@@ -417,8 +432,8 @@ void DVRRayCaster::initTextures()
 	glGenFramebuffersEXT(1, &_framebufferid);
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,_framebufferid);
 
-	glGenTextures(1, &_backface_bufferid);
-	glBindTexture(GL_TEXTURE_2D, _backface_bufferid);
+	glGenTextures(1, &_backface_texcrd_texid);
+	glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -430,11 +445,39 @@ void DVRRayCaster::initTextures()
 	);
 	glFramebufferTexture2DEXT(
 		GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 
-		_backface_bufferid, 0
+		_backface_texcrd_texid, 0
 	);
+
+	glGenTextures(1, &_backface_depth_texid);
+	glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameterf( GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
+
+	glTexImage2D(
+		GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32, viewport[2], viewport[3], 0, 
+		GL_DEPTH_COMPONENT, GL_FLOAT, NULL
+	);
+	glFramebufferTexture2DEXT(
+		GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, 
+		_backface_depth_texid, 0
+	);
+
+	GLenum status = (GLenum) glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
+		cerr << "Failed to create fbo\n";
+	}
+
+
 
 	// Bind the default frame buffer
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glFlush();	// Necessary???
 }
@@ -495,20 +538,20 @@ void DVRRayCaster::initShaderVariables() {
 	_shader->disable();
 }
 
-
-
 void DVRRayCaster::Resize(int width, int height) {
 
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,_framebufferid);
 
-	glBindTexture(GL_TEXTURE_2D, _backface_bufferid);
+	glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
 	glTexImage2D(
 		GL_TEXTURE_2D, 0,GL_RGBA16F_ARB, width, height, 0, 
 		GL_RGBA, GL_FLOAT, NULL
 	);
-	glFramebufferTexture2DEXT(
-		GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 
-		_backface_bufferid, 0
+
+	glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
+	glTexImage2D(
+		GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32, width, height, 0, 
+		GL_DEPTH_COMPONENT, GL_FLOAT, NULL
 	);
 
 	// Bind the default frame buffer
@@ -527,7 +570,7 @@ bool DVRRayCaster::supported()
 		DVRShader::supported() && 
 		GLEW_EXT_framebuffer_object && 
 		GLEW_ARB_vertex_buffer_object &&
-		ntexunits >= 2
+		ntexunits >= 3
 	);
 }
 
