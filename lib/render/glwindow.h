@@ -159,6 +159,8 @@ public:
 	void setColorbarNumTics(int i) {numColorbarTics = i;}
 	bool colorbarIsDirty() {return colorbarDirty;}
 	void setColorbarDirty(bool val){colorbarDirty = val;}
+
+	
 	
 	int getElevGridRefinementLevel() {return elevGridRefLevel;}
 	
@@ -266,6 +268,15 @@ public:
 	static void setRegionShareFlag(bool regionIsShared){regionShareFlag = regionIsShared;}
 	void invalidateElevGrid();
 
+	const GLdouble* getProjectionMatrix() { return projectionMatrix;}	
+	bool projMatrixIsDirty() {return 1;}
+	void getNearFarClippingPlanes(GLfloat *near, GLfloat *far) {
+		*near = nearDist; *far = farDist;
+	}
+
+	bool viewportIsDirty() {return 1;}
+	const GLint* getViewport() {return viewport;}
+
 protected:
 	int winNum;
 	static int jpegQuality;
@@ -290,8 +301,7 @@ protected:
 	//
 	GLdouble* getModelMatrix();
 		
-	GLdouble* getProjectionMatrix() { return projectionMatrix;}	
-	GLint* getViewport() {return viewport;}
+
 	 
 	//These methods cannot be overridden, but the initialize and paint methods
 	//call the corresponding Renderer methods.
