@@ -319,6 +319,16 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //This is no longer the case, because of multiple instancing:
   //assert(myDVRParams == myGLWindow->getActiveDvrParams());
   int varNum = currentRenderParams->getSessionVarNum();
+
+  if (myGLWindow->viewportIsDirty()) {
+    const GLint* viewport = myGLWindow->getViewport();
+    _driver->Resize(viewport[2], viewport[3]);
+  }
+  if (myGLWindow->projMatrixIsDirty()) {
+    GLfloat near, far;
+    myGLWindow->getNearFarClippingPlanes(&near, &far);
+    _driver->SetNearFar(near, far);
+  }
 	
   
   //AN:  (2/10/05):  Calculate 'extents' to be the real coords in (0,1) that

@@ -71,8 +71,6 @@ class RENDER_API DVRTexture3d : public DVRBase
 
   virtual void loadTexture(TextureBrick *brick) = 0;
 
-  virtual void Resize(int width, int height) {return;};
-
 protected:
 
   virtual void calculateSampling();

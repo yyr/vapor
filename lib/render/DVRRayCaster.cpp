@@ -33,6 +33,8 @@ DVRRayCaster::DVRRayCaster(DataType_T type, int nthreads) :
 	_framebufferid = 0;
 	_backface_texcrd_texid = 0;
 	_backface_depth_texid = 0;
+	_nearClip = 1.0;
+	_farClip = 2.0;
 
 	_nisos = 0;
 
@@ -414,6 +416,16 @@ void DVRRayCaster::SetIsoValues(
 
 }
 
+void DVRRayCaster::SetNearFar(GLfloat near, GLfloat far) {
+
+	_nearClip = near;
+	_farClip = far;
+	initShaderVariables();
+}
+
+
+
+
 
 
 //----------------------------------------------------------------------------
@@ -498,6 +510,8 @@ void DVRRayCaster::initShaderVariables() {
 			_colors[0], _colors[1], _colors[2], _colors[3]
 		);
 		glUniform1f(_shader->uniformLocation("isovalues"), _values[0]);
+		glUniform1f(_shader->uniformLocation("zN"), _nearClip);
+		glUniform1f(_shader->uniformLocation("zF"), _farClip);
 	} else {
 		//glUniform1fvARB(_shader->uniformLocation("isovalues"), _nisos, _values);
 		//glUniform4fvARB(_shader->uniformLocation("isocolors"), _nisos, _colors);
@@ -508,6 +522,8 @@ void DVRRayCaster::initShaderVariables() {
 			_colors[0], _colors[1], _colors[2], _colors[3]
 		);
 		glUniform1fARB(_shader->uniformLocation("isovalues"), _values[0]);
+		glUniform1fARB(_shader->uniformLocation("zN"), _nearClip);
+		glUniform1fARB(_shader->uniformLocation("zF"), _farClip);
 	}
 
 	if (_lighting) {

@@ -249,6 +249,13 @@ public:
  virtual bool   GetRenderFast() const { return false; }
  virtual void   SetRenderFast(bool)   { return; }
 
+ // Notifiy the driver that the window size has changed.
+ virtual void Resize(int width, int height) {return;};
+
+ // Notify the driver that the near and far clipping planes have changed.
+ virtual void SetNearFar(float near, float far) {return;};
+
+
 private:
 
 };

@@ -59,6 +59,8 @@ class RENDER_API DVRRayCaster : public DVRShader
   static int GetMaxIsoValues() {return (MAX_ISO_VALUES); };
 
   virtual void Resize(int width, int height);
+  virtual void SetNearFar(GLfloat near, GLfloat far);
+
 
 
 protected:
@@ -100,6 +102,9 @@ protected:
   GLuint _framebufferid;
   GLuint _backface_texcrd_texid;	// the FBO color buffer
   GLuint _backface_depth_texid;	// the FBO depth buffer
+
+  GLfloat _nearClip;
+  GLfloat _farClip;	// near and far clipping planes
 
   float _values[MAX_ISO_VALUES];
   float _colors[MAX_ISO_VALUES*4];
