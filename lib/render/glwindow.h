@@ -119,6 +119,8 @@ public:
 	
 	bool lightingIsDirty() {return vizIsDirty(LightingBit);}
 	bool animationIsDirty() {return vizIsDirty(AnimationBit);}
+	bool projMatrixIsDirty() {return vizIsDirty(ProjMatrixBit);}
+	bool viewportIsDirty() {return vizIsDirty(ViewportBit);}
 	
 	void setRegionDirty(bool isDirty){ setDirtyBit(RegionBit,isDirty);}
 	void setDvrRegionNavigating(bool isDirty){ setDirtyBit(DvrRegionBit,isDirty);}
@@ -271,12 +273,12 @@ public:
 	void invalidateElevGrid();
 
 	const GLdouble* getProjectionMatrix() { return projectionMatrix;}	
-	bool projMatrixIsDirty() {return 1;}
+	
 	void getNearFarClippingPlanes(GLfloat *nearplane, GLfloat *farplane) {
 		*nearplane = nearDist; *farplane = farDist;
 	}
 
-	bool viewportIsDirty() {return 1;}
+	
 	const GLint* getViewport() {return viewport;}
 
 protected:

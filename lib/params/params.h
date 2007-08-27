@@ -44,8 +44,9 @@ enum DirtyBitType {
 	RegionBit,//Set when the region bounds change
 	DvrRegionBit,//Set when dvr needs to refresh its region data
 	ColorscaleBit,
-	NavigatingBit,//Set when the viewpoint changes
     LightingBit,
+	ProjMatrixBit,
+	ViewportBit,
 	AnimationBit //Set when the current frame number changes
 };
 class XmlNode;

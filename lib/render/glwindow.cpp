@@ -99,10 +99,12 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	setDirtyBit(ProbeTextureBit, true);
 	//setDirtyBit(Params::DvrParamsType,DvrDatarangeBit, true);
 	setDirtyBit(RegionBit, true);
-	setDirtyBit(NavigatingBit, true);
+	
 	setDirtyBit(ColorscaleBit, true);
     setDirtyBit(LightingBit, true);
 	setDirtyBit(DvrRegionBit, true);
+	setDirtyBit(ViewportBit, true);
+	setDirtyBit(ProjMatrixBit, true);
 
 	capturing = false;
 	newCapture = false;
@@ -149,6 +151,7 @@ void GLWindow::resizeGL( int width, int height )
 	glViewport( 0, 0, (GLint)width, (GLint)height );
 	//Save the current value...
 	glGetIntegerv(GL_VIEWPORT, viewport);
+	setDirtyBit(ViewportBit, true);
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -346,11 +349,13 @@ void GLWindow::paintGL()
 	
 	swapBuffers();
 	glPopMatrix();
-	//Always clear the regionDirty and animationDirty flags:
+	//clear dirty bits
 	
 	setDirtyBit(RegionBit,false);
 	setDirtyBit(AnimationBit,false);
 	setDirtyBit(DvrRegionBit,false);
+	setDirtyBit(ProjMatrixBit, false);
+	setDirtyBit(ViewportBit, false);
 	bool mouseIsDown = postRenderCB(winNum, isControlled);
 	//Capture the image, if not navigating:
 	if (renderNew && !mouseIsDown) doFrameCapture();
