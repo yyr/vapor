@@ -140,6 +140,9 @@
 				RelativePath="..\..\..\lib\render\DVRLookup.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\render\DVRRayCaster.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\render\DVRShader.cpp">
 			</File>
 			<File
@@ -208,6 +211,9 @@
 				RelativePath="..\..\..\lib\render\DVRLookup.h">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\render\DVRRayCaster.h">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\render\DVRShader.h">
 			</File>
 			<File
@@ -239,6 +245,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\proberenderer.h">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\render\raycast_shaders.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\render\renderer.h">
