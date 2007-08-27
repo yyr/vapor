@@ -550,6 +550,7 @@ mouseMoveEvent(QMouseEvent* e){
 		myTrackball->MouseOnTrackball(1, e->button(), e->x(), e->y(), width(), height());
 		//Note that the coords have changed:
 		myGLWindow->setViewerCoordsChanged(true);
+		setDirtyBit(ProjMatrixBit, true);
 	}
 	myGLWindow->updateGL();
 	return;
@@ -650,7 +651,7 @@ setValuesFromGui(ViewpointParams* vpparams){
 	
 	myGLWindow->setPerspective(vp->hasPerspective());
 	//Set dirty bit.
-	//?setViewerCoordsChanged(true);  Probably not right to comment this out!!! AN, 2/21/06
+	setDirtyBit(ProjMatrixBit,true);
 	//Force a redraw
 	myGLWindow->update();
 }
