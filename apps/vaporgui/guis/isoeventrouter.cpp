@@ -608,8 +608,11 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 		IsoRenderer* myIso = new IsoRenderer(viz->getGLWindow(), DvrParams::DVR_RAY_CASTER,iParams);
 
         
-		
-		viz->getGLWindow()->appendRenderer(iParams, myIso);
+		//Render order depends on whether opaque or not; 
+		//transparent isos get rendered later.
+		int order = 4;
+		if (iParams->GetConstantColor()[3] < 1.f) order = 6;
+		viz->getGLWindow()->insertRenderer(iParams, myIso, order);
 
 		//force the renderer to refresh region data  (why?)
 		
