@@ -546,12 +546,12 @@ void IsoEventRouter::
 guiSetLighting(bool val){
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	confirmText(false);
-	
+	if (iParams->GetNormalOnOff() == val) return;
 	PanelCommand* cmd = PanelCommand::captureStart(iParams,  "toggle iso lighting");
 	iParams->SetNormalOnOff(val);
 	PanelCommand::captureEnd(cmd, iParams);
-
-    VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();	
+	if (iParams->isEnabled())
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();	
 }
 
 
