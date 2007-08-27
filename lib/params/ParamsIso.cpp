@@ -139,7 +139,7 @@ reinit(bool doOverride){
 
 void ParamsIso::restart() {
 	SetIsoValue(1.0);
-	SetNormalOnOff(0);
+	SetNormalOnOff(1);
 	SetNumBits(8);
 
 	float bnds[2] = {0.0, 1.0};

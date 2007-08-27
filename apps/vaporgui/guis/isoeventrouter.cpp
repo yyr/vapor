@@ -108,9 +108,9 @@ IsoEventRouter::hookUpTab()
 	connect (histoScaleEdit, SIGNAL(returnPressed() ), this, SLOT( isoReturnPressed()));
 	connect (isoValueEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabRenderTextChanged(const QString&)));
 	connect (isoValueEdit, SIGNAL(returnPressed()), this, SLOT( isoReturnPressed()));
-	connect (leftHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabTextChanged(const QString&)));
+	connect (leftHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabRenderTextChanged(const QString&)));
 	connect (leftHistoEdit, SIGNAL(returnPressed()), this, SLOT(isoReturnPressed()));
-	connect (rightHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabTextChanged(const QString&)));
+	connect (rightHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabRenderTextChanged(const QString&)));
 	connect (rightHistoEdit, SIGNAL(returnPressed()), this, SLOT(isoReturnPressed()));
 	connect (selectedXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabTextChanged(const QString&)));
 	connect (selectedXEdit, SIGNAL( returnPressed()), this, SLOT( isoReturnPressed()));
@@ -178,10 +178,11 @@ void IsoEventRouter::updateTab(){
 
 	ParamsIso* isoParams = (ParamsIso*) VizWinMgr::getActiveIsoParams();
 	deleteInstanceButton->setEnabled(vizMgr->getNumIsoInstances(winnum) > 1);
+
 	QString strn;
     
 	//Force the iso to refresh
-	
+	numBitsCombo->setEnabled(!isoParams->isEnabled());
 	numBitsCombo->setCurrentItem((isoParams->GetNumBits())>>4);
 	int numRefs = isoParams->getNumRefinements();
 	if(numRefs <= refinementCombo->count())
@@ -243,9 +244,13 @@ void IsoEventRouter::confirmText(bool /*render*/){
 		iParams->SetConstantColor(newColor);
 	}
 	float bnds[2];
+	const float* oldBnds = iParams->GetHistoBounds();
 	bnds[0] = leftHistoEdit->text().toFloat();
 	bnds[1] = rightHistoEdit->text().toFloat();
-	iParams->SetHistoBounds(bnds);
+	if (bnds[0] != oldBnds[0] || bnds[1] != oldBnds[1]){
+		iParams->SetHistoBounds(bnds);
+		setDatarangeDirty(iParams);
+	}
 
 	if (iParams->getMapperFunc()) {
 		(iParams->getMapperFunc())->setMinOpacMapValue(bnds[0]);
@@ -288,7 +293,7 @@ guiEndChangeIsoSelection(){
 	PanelCommand::captureEnd(savedCommand,iParams);
 	updateTab();
 	savedCommand = 0;
-	VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
+	setDatarangeDirty(iParams);
 }
 void IsoEventRouter::
 setIsoEditMode(bool mode){
@@ -738,4 +743,20 @@ guiSetNumBits(int val){
 	PanelCommand::captureEnd(cmd, iParams);
 		
 	VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);
+}
+//Method to invalidate a datarange, and to force a rendering
+//with new data quantization
+void IsoEventRouter::
+setDatarangeDirty(RenderParams* params)
+{
+	ParamsIso* iParams = (ParamsIso*)params;
+	if (!iParams->getMapperFunc()) return;
+	const float* currentDatarange = iParams->GetHistoBounds();
+	float drange[2];
+	drange[0] = iParams->getMapperFunc()->getMinColorMapValue();
+	drange[1] = iParams->getMapperFunc()->getMaxColorMapValue();
+	if (currentDatarange[0] != drange[0] || currentDatarange[1] != drange[1]){
+			iParams->SetHistoBounds(drange);
+			VizWinMgr::getInstance()->setDatarangeDirty(iParams);
+	}
 }

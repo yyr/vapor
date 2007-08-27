@@ -99,6 +99,7 @@ protected slots:
 protected:
 	virtual void setEditorDirty(RenderParams *p = 0);
 	void updateHistoBounds(RenderParams*);
+	virtual void setDatarangeDirty(RenderParams*);
 	virtual void updateMapBounds(RenderParams*);
 	float evaluateSelectedPoint();
 	int copyCount[MAXVIZWINS+1];

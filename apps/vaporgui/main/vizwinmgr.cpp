@@ -1803,7 +1803,7 @@ void VizWinMgr::setClutDirty(DvrParams* p){
 	volRend->setClutDirty();
 	vw->updateGL();
 }
-void VizWinMgr::setDatarangeDirty(DvrParams* p){
+void VizWinMgr::setDatarangeDirty(RenderParams* p){
 	if (!(DataStatus::getInstance()->getDataMgr())) return;
 	VizWin* vw = getVizWin(p->getVizNum());
 	if (!vw) return;

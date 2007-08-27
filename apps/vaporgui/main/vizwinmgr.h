@@ -356,7 +356,7 @@ public:
 	void setClutDirty(ProbeParams* p){setVizDirty(p, ProbeTextureBit, true);}
 	//Force dvr renderers to get latest DataRange
 	//
-	void setDatarangeDirty(DvrParams* p); 
+	void setDatarangeDirty(RenderParams* p); 
 	void setFlowGraphicsDirty(FlowParams* p);
 	void setFlowDataDirty(FlowParams* p);
 	

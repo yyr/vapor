@@ -36,9 +36,23 @@ struct opt_t {
 	float extents[6];
 	vector <string> varnames;
 	vector<string> dervars;
+	vector<string> atypvars;
 	OptionParser::Boolean_T	help;
 	char * smplwrf;
 } opt;
+
+// A struct for storing names of certain WRF variables
+struct WRFNames
+{
+	const char * U;
+	const char * V;
+	const char * W;
+	const char * PH;
+	const char * PHB;
+	const char * P;
+	const char * PB;
+	const char * T;
+} wrfNames;
 
 OptionParser::OptDescRec_T	set_opts[] = {
 	{"smplwrf", 1,  "???????",		"Sample WRF file from which to get dimensions,\n\t\t\t\textents, and starting time stamp (optional, see\n\t\t\t\tnext three options)"},
@@ -50,6 +64,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"varnames",1,	"var1",			"Colon delimited list of all variables to be\n\t\t\t\textracted from WRF data"},
 	{"dervars", 1,	"ELEVATION",	"Colon delimited list of desired derived\n\t\t\t\tvariables.  Choices are:\n\t\t\t\tphnorm: normalized geopotential (PH+PHB)/PHB\n\t\t\t\twind3d: 3D wind speed (U^2+V^2+W^2)^1/2\n\t\t\t\twind2d: 2D wind speed (U^2+V^2)^1/2\n\t\t\t\tpfull: full pressure P+PB\n\t\t\t\tpnorm: normalized pressure (P+PB)/PB\n\t\t\t\ttheta: potential temperature T+300\n\t\t\t\ttk: temp. in Kelvin 0.037*Theta*P_full^0.29"},
 	{"level",	1, 	"2",			"Maximum refinement level. 0 => no refinement\n\t\t\t\t(default is 2)"},
+	{"atypvars",1,	"noatyps",		"Colon delimited list of atypical names for\n\t\t\t\tU:V:W:PH:PHB:P:PB:T that appear in WRF file"},
 	{"comment",	1,	"",				"Top-level comment (optional)"},
 	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor expressed in\n\t\t\t\tgrid points (NXxNYxNZ) (default is 32)"},
 	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients (default\n\t\t\t\tis 1)"},
@@ -69,6 +84,7 @@ OptionParser::Option_T	get_options[] = {
 	{"varnames", VetsUtil::CvtToStrVec, &opt.varnames, sizeof(opt.varnames)},
 	{"dervars", VetsUtil::CvtToStrVec, &opt.dervars, sizeof(opt.dervars)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
+	{"atypvars", VetsUtil::CvtToStrVec, &opt.atypvars, sizeof(opt.atypvars)},
 	{"comment", VetsUtil::CvtToString, &opt.comment, sizeof(opt.comment)},
 	{"bs", VetsUtil::CvtToDimension3D, &opt.bs, sizeof(opt.bs)},
 	{"nfilter", VetsUtil::CvtToInt, &opt.nfilter, sizeof(opt.nfilter)},
@@ -582,8 +598,8 @@ void OpenWrfGetMeta(
 	// Get ready to read PH and PHB
 	varInfo phInfo; // structs for variable information
 	varInfo phbInfo;
-	phInfo.name = "PH";
-	phbInfo.name = "PHB";
+	phInfo.name = wrfNames.PH;
+	phbInfo.name = wrfNames.PHB;
 
 	GetVarInfo( ncid, ndims, phInfo, dimLens );
 	GetVarInfo( ncid, ndims, phbInfo, dimLens );
@@ -662,6 +678,35 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
+	// Handle atypical variable naming
+	if ( opt.atypvars[0] == "noatyps" )
+	{
+		// Default values
+		wrfNames.U = "U";
+		wrfNames.V = "V";
+		wrfNames.W = "W";
+		wrfNames.PH = "PH";
+		wrfNames.PHB = "PHB";
+		wrfNames.P = "P";
+		wrfNames.PB = "PB";
+		wrfNames.T = "T";
+	}
+	else if ( opt.atypvars.size() != 8 )
+	{
+		cerr << "If -atypvars option is given, colon delimited list must have exactly eight elements specifying names of variables which are typically named U:V:W:PH:PHB:P:PB:T" << endl;
+		exit( 1 );
+	}
+	else
+	{
+		wrfNames.U = opt.atypvars[0].c_str();
+		wrfNames.V = opt.atypvars[1].c_str();
+		wrfNames.W = opt.atypvars[2].c_str();
+		wrfNames.PH = opt.atypvars[3].c_str();
+		wrfNames.PHB = opt.atypvars[4].c_str();
+		wrfNames.P = opt.atypvars[5].c_str();
+		wrfNames.PB = opt.atypvars[6].c_str();
+		wrfNames.T = opt.atypvars[7].c_str();
+	}
 	bs[0] = opt.bs.nx;
 	bs[1] = opt.bs.ny;
 	bs[2] = opt.bs.nz;
