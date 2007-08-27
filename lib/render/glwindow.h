@@ -270,8 +270,8 @@ public:
 
 	const GLdouble* getProjectionMatrix() { return projectionMatrix;}	
 	bool projMatrixIsDirty() {return 1;}
-	void getNearFarClippingPlanes(GLfloat *near, GLfloat *far) {
-		*near = nearDist; *far = farDist;
+	void getNearFarClippingPlanes(GLfloat *nearplane, GLfloat *farplane) {
+		*nearplane = nearDist; *farplane = farDist;
 	}
 
 	bool viewportIsDirty() {return 1;}

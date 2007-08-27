@@ -416,10 +416,10 @@ void DVRRayCaster::SetIsoValues(
 
 }
 
-void DVRRayCaster::SetNearFar(GLfloat near, GLfloat far) {
+void DVRRayCaster::SetNearFar(GLfloat nearplane, GLfloat farplane) {
 
-	_nearClip = near;
-	_farClip = far;
+	_nearClip = nearplane;
+	_farClip = farplane;
 	initShaderVariables();
 }
 

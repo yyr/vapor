@@ -60,9 +60,10 @@ ParamsIso::ParamsIso(
 
 
 ParamsIso::~ParamsIso() {}
-
+//Return a clone of the xml node, since buildNode() will eventually
+//destroy the node it uses.
 XmlNode* ParamsIso::buildNode(){
-	return GetRootNode();
+	return new XmlNode(*GetRootNode());
 }
 //Initialize for new metadata.  Keep old transfer functions
 //

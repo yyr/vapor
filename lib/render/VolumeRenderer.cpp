@@ -325,9 +325,9 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
     _driver->Resize(viewport[2], viewport[3]);
   }
   if (myGLWindow->projMatrixIsDirty()) {
-    GLfloat near, far;
-    myGLWindow->getNearFarClippingPlanes(&near, &far);
-    _driver->SetNearFar(near, far);
+    GLfloat nearplane, farplane;
+    myGLWindow->getNearFarClippingPlanes(&nearplane, &farplane);
+    _driver->SetNearFar(nearplane, farplane);
   }
 	
   
