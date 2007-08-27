@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -13,6 +14,7 @@ using namespace VAPoR;
 int	cvtToExtents(const char *from, void *to);
 int	cvtTo3DBool(const char *from, void *to);
 int	cvtToOrder(const char *from, void *to);
+int	getUserTimes(const char *path, vector <double> &timevec);
 
 struct opt_t {
 	OptionParser::Dimension3D_T	dim;
@@ -24,6 +26,7 @@ struct opt_t {
 	char *comment;
 	char *coordsystem;
 	char *gridtype;
+	char *usertimes;
 	float extents[6];
 	int order[3];
 	int periodic[3];
@@ -41,6 +44,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"nlifting",1, 	"1",			"Number of wavelet lifting coefficients"},
 	{"comment",	1,	"",				"Top-level comment"},
 	{"gridtype",	1,	"regular",	"Data grid type (regular|layered|stretched|block_amr)"}, 
+	{"usertimes",	1,	"",	"Path to a file containing a whitespace delineated list of user times. If present, -numts option is ignored."}, 
 	{"coordsystem",	1,	"cartesian","Top-level comment (cartesian|spherical)"},
 	{"extents",	1,	"0:0:0:0:0:0",	"Colon delimited 6-element vector specifying domain extents in user coordinates (X0:Y0:Z0:X1:Y1:Z1)"},
 	{"order",	1,	"0:1:2",	"Colon delimited 3-element vector specifying permutation ordering of raw data on disk "},
@@ -61,6 +65,7 @@ OptionParser::Option_T	get_options[] = {
 	{"nlifting", VetsUtil::CvtToInt, &opt.nlifting, sizeof(opt.nlifting)},
 	{"comment", VetsUtil::CvtToString, &opt.comment, sizeof(opt.comment)},
 	{"gridtype", VetsUtil::CvtToString, &opt.gridtype, sizeof(opt.gridtype)},
+	{"usertimes", VetsUtil::CvtToString, &opt.usertimes, sizeof(opt.usertimes)},
 	{"coordsystem", VetsUtil::CvtToString, &opt.coordsystem, sizeof(opt.coordsystem)},
 	{"extents", cvtToExtents, &opt.extents, sizeof(opt.extents)},
 	{"order", cvtToOrder, &opt.order, sizeof(opt.order)},
@@ -136,9 +141,29 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 
-	if (file->SetNumTimeSteps(opt.numts) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
-		exit(1);
+	if (strlen(opt.usertimes)) {
+		vector <double> usertimes;
+		if (getUserTimes(opt.usertimes, usertimes)<0) {
+			cerr << MyBase::GetErrMsg() << endl;
+			exit(1);
+		}
+		if (file->SetNumTimeSteps(usertimes.size()) < 0) {
+			cerr << Metadata::GetErrMsg() << endl;
+			exit(1);
+		}
+		for (size_t t=0; t<usertimes.size(); t++) {
+			vector <double> vec(1,usertimes[t]);
+			if (file->SetTSUserTime(t, vec) < 0) {
+				cerr << Metadata::GetErrMsg() << endl;
+				exit(1);
+			}
+		}
+	}
+	else {
+		if (file->SetNumTimeSteps(opt.numts) < 0) {
+			cerr << Metadata::GetErrMsg() << endl;
+			exit(1);
+		}
 	}
 
 	s.assign(opt.comment);
@@ -265,3 +290,41 @@ int	cvtTo3DBool(
 	return(1);
 }
 
+
+int	getUserTimes(const char *path, vector <double> &timevec) {
+
+	ifstream fin(path);
+	if (! fin) { 
+		MyBase::SetErrMsg("Error opening file %s", path);
+		return(-1);
+	}
+
+	timevec.clear();
+
+	double d;
+	while (fin >> d) {
+		timevec.push_back(d);
+	}
+	fin.close();
+
+	// Make sure times are monotonic.
+	//
+	int mono = 1;
+	if (timevec.size() > 1) {
+		if (timevec[0]>=timevec[timevec.size()-1]) {
+			for(int i=0; i<timevec.size()-1; i++) {
+				if (timevec[i]<timevec[i+1]) mono = 0;
+			}
+		} else {
+			for(int i=0; i<timevec.size()-1; i++) {
+				if (timevec[i]>timevec[i+1]) mono = 0;
+			}
+		}
+	}
+	if (! mono) {
+		MyBase::SetErrMsg("User times sequence must be monotonic");
+		return(-1);
+	}
+
+	return(0);
+}
