@@ -33,7 +33,7 @@
 
 //No more than 10 renderers in a window:
 //Eventually this may be dynamic.
-#define MAXNUMRENDERERS 10
+#define MAXNUMRENDERERS 20
 //Following factor accentuates the terrain changes by pointing the
 //normals more away from the vertical
 #define ELEVATION_GRID_ACCENT 20.f
@@ -176,10 +176,12 @@ public:
 	Renderer* getRenderer(int i) {return renderer[i];}
 	Renderer* getRenderer(RenderParams* p);
 	
-	//Renderers can be added early or late, depending on whether
-	//they should render last.  DVR's need to be last, since they don't write the z buffer
-	void prependRenderer(RenderParams* p, Renderer* ren);
-	void appendRenderer(RenderParams* p, Renderer* ren);
+	//Renderers can be added early or late, using a "render Order" parameter.
+	//The order is between 0 and 10; lower order gets rendered first.
+	//
+	void prependRenderer(RenderParams* p, Renderer* ren) {insertRenderer(p, ren, 0);}
+	void appendRenderer(RenderParams* p, Renderer* ren){insertRenderer(p, ren, 10);}
+	void insertRenderer(RenderParams* p, Renderer* ren, int order);
 	bool removeRenderer(RenderParams* p);  //Return true if successful
 	//Find a renderParams in renderer list, if it exists:
 	RenderParams* findARenderer(Params::ParamType renderertype);
@@ -288,6 +290,7 @@ protected:
 	std::map<DirtyBitType,bool> vizDirtyBit; 
 	Renderer* renderer[MAXNUMRENDERERS];
 	Params::ParamType renderType[MAXNUMRENDERERS];
+	int renderOrder[MAXNUMRENDERERS];
 
 	//Map params to renderer for set/get dirty bits, etc:
 	

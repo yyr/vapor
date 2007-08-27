@@ -88,8 +88,11 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	colorbarURCoord[1] = 0.5f;
 	numColorbarTics = 11;
 	numRenderers = 0;
-    for (int i = 0; i< MAXNUMRENDERERS; i++)
+	for (int i = 0; i< MAXNUMRENDERERS; i++){
+		renderType[i] = Params::UnknownParamsType;
+		renderOrder[i] = 0;
 		renderer[i] = 0;
+	}
 
 	vizDirtyBit.clear();
 	//setDirtyBit(Params::DvrParamsType,DvrClutBit, true);
@@ -1474,45 +1477,30 @@ void GLWindow::drawAxes(float* extents){
 	glEnd();
 }
 
-
-
-/*
- * Add a renderer to this visualization window
- * Add it at the end of the list.
- * This happens when the dvr renderer is enabled, or if
- * the local/global switch causes a new one to be enabled
- * Currently only volume renderers are appended.
- */
-void GLWindow::
-appendRenderer(RenderParams* rp, Renderer* ren)
-{
-	Params::ParamType renType = rp->getParamType();
-	if (numRenderers < MAXNUMRENDERERS){
-		mapRenderer(rp, ren);
-		renderer[numRenderers] = ren;
-		renderType[numRenderers++] = renType;
-		ren->initializeGL();
-		update();
-	}
-}
 /*
  * Insert a renderer to this visualization window
- * Add it at the start of the list.
- * This happens when a flow renderer or iso renderer is added
+ * Add it after all renderers of lower render order
  */
 void GLWindow::
-prependRenderer(RenderParams* rp, Renderer* ren)
+insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 {
 	Params::ParamType rendType = rp->getParamType();
-	assert(rendType == Params::FlowParamsType || rendType == Params::ProbeParamsType);
+	
 	if (numRenderers < MAXNUMRENDERERS){
 		mapRenderer(rp, ren);
+		//Move every renderer with higher order up:
 		for (int i = numRenderers; i> 0; i--){
-			renderer[i] = renderer[i-1];
-			renderType[i] = renderType[i-1];
+			if (renderOrder[i-1] >= newOrder){
+				renderOrder[i] = renderOrder[i-1];
+				renderer[i] = renderer[i-1];
+				renderType[i] = renderType[i-1];
+			}
+			else break; //found a renderer that has lower order
 		}
-		renderer[0] = ren;
-		renderType[0] = rendType;
+		int newPosn = i;
+		renderer[i] = ren;
+		renderType[i] = rendType;
+		renderOrder[i] = newOrder;
 		numRenderers++;
 		ren->initializeGL();
 		update();
@@ -1546,6 +1534,7 @@ bool GLWindow::removeRenderer(RenderParams* rp){
 	for (int j = foundIndex; j<numRenderers; j++){
 		renderer[j] = renderer[j+1];
 		renderType[j] = renderType[j+1];
+		renderOrder[j] = renderOrder[j+1];
 	}
 	updateGL();
 	return true;
