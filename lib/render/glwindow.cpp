@@ -1489,7 +1489,8 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 	if (numRenderers < MAXNUMRENDERERS){
 		mapRenderer(rp, ren);
 		//Move every renderer with higher order up:
-		for (int i = numRenderers; i> 0; i--){
+		int i;
+		for (i = numRenderers; i> 0; i--){
 			if (renderOrder[i-1] >= newOrder){
 				renderOrder[i] = renderOrder[i-1];
 				renderer[i] = renderer[i-1];
@@ -1497,7 +1498,6 @@ insertRenderer(RenderParams* rp, Renderer* ren, int newOrder)
 			}
 			else break; //found a renderer that has lower order
 		}
-		int newPosn = i;
 		renderer[i] = ren;
 		renderType[i] = rendType;
 		renderOrder[i] = newOrder;
