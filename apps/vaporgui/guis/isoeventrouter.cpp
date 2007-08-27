@@ -470,26 +470,8 @@ guiSetEnabled(bool value, int instance){
 	
 	if (value == iParams->isEnabled()) return;
 	confirmText(false);
-	//On enable, disable any existing iso renderer in this window:
-	if (value){
-		
-		VizWin* viz = vizWinMgr->getActiveVisualizer();
-		ParamsIso* prevParams = (ParamsIso*)viz->getGLWindow()->findARenderer(Params::IsoParamsType);
-		assert(prevParams != iParams);
-		if (prevParams){
-			
-			int prevInstance = vizWinMgr->findInstanceIndex(winnum, prevParams, Params::IsoParamsType);
-			assert (prevInstance >= 0);
-			//Put the disable in the history:
-			PanelCommand* cmd = PanelCommand::captureStart(prevParams, "disable existing iso", prevInstance);
-			prevParams->setEnabled(false);
-			//turn it off in the instanceTable
-			instanceTable->checkEnabledBox(false, prevInstance);
-			PanelCommand::captureEnd(cmd, prevParams);
-			updateRenderer(prevParams,true,false);
-		}
-	}
-	//now continue with the current instance:
+	
+	//enable the current instance:
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "toggle iso enabled", instance);
 	iParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, iParams);
