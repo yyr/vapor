@@ -623,7 +623,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 	
 	if (nowEnabled && !prevEnabled ){//For case 2.:  create a renderer in the active window:
 
-		IsoRenderer* myIso = new IsoRenderer(viz->getGLWindow(), DvrParams::DVR_TEXTURE3D_SHADER,iParams);
+		IsoRenderer* myIso = new IsoRenderer(viz->getGLWindow(), DvrParams::DVR_RAY_CASTER,iParams);
 
         
 		
