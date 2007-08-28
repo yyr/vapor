@@ -115,7 +115,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	PointInfo seedInfo;
 	PointInfo thisParticle;
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
-	float dt, cell_volume, mag; 
+	double dt, cell_volume, mag; 
 	double curTime;
 	VECTOR3 vel;
 	int nSetAdaptiveCount = 0;
@@ -132,8 +132,8 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	
 	// get the initial stepsize
 	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
-	mag = vel.GetMag();
-	dt = pow(cell_volume, (float)0.3333333f) / mag;
+	mag = vel.GetDMag();
+	dt = pow(cell_volume, 0.3333333) / mag;
 	//Allow dt*mag to be 10 times the initial setting:
 	float maxDtMag = dt*mag*10.f;
 
@@ -145,11 +145,11 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 	while(curTime*m_timeDir < finalTime*m_timeDir)
 	{
 		// how much advection time left
-		float timeLeft;
+		double timeLeft;
 		if (m_timeDir == FORWARD) {
-			timeLeft = (finalTime - (float)curTime);
+			timeLeft = (finalTime - curTime);
 		} else {
-			timeLeft = (float)curTime - finalTime;
+			timeLeft = curTime - finalTime;
 		}
 		if (dt > timeLeft) dt = timeLeft;
 		if (timeLeft < 1.e-6) break;
@@ -165,7 +165,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 		{
 			retrace = false;
 			//Loop until dt*mag is small enough, dividing dt by 10 if necessary
-			for (int tries = 0; tries < 20; tries++){
+			for (int tries = 0; tries < 40; tries++){
 				if(int_order == SECOND)
 					istat = runge_kutta2(m_timeDir, UNSTEADY, thisParticle, &curTime, dt,maxDtMag);
 				else
@@ -204,7 +204,7 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 			// just generate valid new point
 			if(((int)seedTrace.size() > 2) && (bAdaptive))
 			{
-				float minStepsize, maxStepsize;
+				double minStepsize, maxStepsize;
 				VECTOR3 thisPhy, prevPhy, second_prevPhy;
 				list<VECTOR3*>::iterator pIter = seedTrace.end();
 				pIter--;
@@ -215,9 +215,9 @@ int vtCTimeVaryingFieldLine::advectParticle(INTEG_ORD int_order,
 				second_prevPhy = **pIter;
 
 				cell_volume = m_pField->volume_of_cell(thisParticle.inCell);
-				mag = vel.GetMag();
-				minStepsize = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
-				maxStepsize = m_fMaxStepSize * pow(cell_volume, (float)0.3333333f) / mag;
+				mag = vel.GetDMag();
+				minStepsize = m_fInitStepSize * pow(cell_volume, 0.3333333) / mag;
+				maxStepsize = m_fMaxStepSize * pow(cell_volume, 0.3333333) / mag;
 				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, bAdaptive);
 				
 				if(bAdaptive == false)

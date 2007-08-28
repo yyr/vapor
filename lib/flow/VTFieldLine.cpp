@@ -76,7 +76,7 @@ int vtCFieldLine::euler_cauchy(TIME_DIR, TIME_DEP,float*, float)
 //////////////////////////////////////////////////////////////////////////
 int vtCFieldLine::runge_kutta2(TIME_DIR time_dir, TIME_DEP time_dep, 
 							   PointInfo& ci, 
-							   double* t, float dt, float prevMag)
+							   double* t, double dt, double prevMag)
 {
 	int istat;
 	istat = OKAY;
@@ -87,8 +87,8 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 							   TIME_DEP time_dep, 
 							   PointInfo& ci, 
 							   double* t,			// initial time
-							   float dt,			//stepsize
-							   float maxMagDt)		//Largest value of dt*mag(vec)
+							   double dt,			//stepsize
+							   double maxMagDt)		//Largest value of dt*mag(vec)
 {
 	int i, istat;
 	VECTOR3 pt0;
@@ -105,7 +105,9 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 	if ( istat != 1 )
 		return OUT_OF_BOUND;
 
-	if (vel.GetMag()*dt > maxMagDt) return FIELD_TOO_BIG;
+	if (vel.GetDMag()*dt > maxMagDt) {
+		return FIELD_TOO_BIG;
+	}
 
 	for( i=0; i<3; i++ )
 	{
@@ -120,8 +122,9 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 		*t += 0.5*time_dir*dt;
 	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
 
-	if (vel.GetMag()*dt > maxMagDt) return FIELD_TOO_BIG;
-
+	if (vel.GetDMag()*dt > maxMagDt){ 
+		return FIELD_TOO_BIG;
+	}
 	if ( istat!= 1 )
 	{
 		ci.phyCoord = pt;
@@ -137,7 +140,9 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 	fromCell = ci.inCell;
 	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
 
-	if (vel.GetMag()*dt > maxMagDt) return FIELD_TOO_BIG;
+	if (vel.GetDMag()*dt > maxMagDt){
+		return FIELD_TOO_BIG;
+	}
 
 	if ( istat != 1 )
 	{
@@ -155,7 +160,9 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 		*t += 0.5*time_dir*dt;
 	fromCell = ci.inCell;
 	istat=m_pField->at_phys(fromCell, pt, ci, *t, vel);
-	if (vel.GetMag()*dt > maxMagDt) return FIELD_TOO_BIG;
+	if (vel.GetDMag()*dt > maxMagDt){
+		return FIELD_TOO_BIG;
+	}
 	if ( istat != 1 )
 	{
 		ci.phyCoord = pt;
@@ -179,9 +186,9 @@ int vtCFieldLine::runge_kutta4(TIME_DIR time_dir,
 int vtCFieldLine::adapt_step(const VECTOR3& p2, 
 							 const VECTOR3& p1, 
 							 const VECTOR3& p0,
-							 const float& minStepsize, 
-							 const float& maxStepsize,
-							 float* dt,
+							 const double& minStepsize, 
+							 const double& maxStepsize,
+							 double* dt,
 							 bool& bAdaptive)
 {
 	int retrace = false;
@@ -197,7 +204,7 @@ int vtCFieldLine::adapt_step(const VECTOR3& p2,
 
 	if(cos_p2p1p0 < m_fLowerAngleAccuracy)
 	{
-		*dt = (*dt) * (float)0.5;
+		*dt = (*dt) * 0.5;
 		retrace = true;
 		if(*dt < minStepsize)
 		{

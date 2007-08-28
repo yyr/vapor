@@ -134,14 +134,14 @@ public:
 protected:
 	void releaseSeedMemory(void);
 	int euler_cauchy(TIME_DIR, TIME_DEP,float*, float);
-	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, double*, float, float);
-	int runge_kutta2(TIME_DIR, TIME_DEP, PointInfo&, double*, float, float);
+	int runge_kutta4(TIME_DIR, TIME_DEP, PointInfo&, double*, double, double);
+	int runge_kutta2(TIME_DIR, TIME_DEP, PointInfo&, double*, double, double);
 	int adapt_step( const VECTOR3& p2, 
 					const VECTOR3& p1, 
 					const VECTOR3& p0, 
-					const float& minStepsize, 
-					const float& maxStepsize, 
-					float* dt, 
+					const double& minStepsize, 
+					const double& maxStepsize, 
+					double* dt, 
 					bool& bAdaptive);
 	
 	float SampleFieldline(FlowLineData* container,

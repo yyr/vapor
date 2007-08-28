@@ -187,7 +187,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 	int istat;
 	PointInfo thisParticle;
 	VECTOR3 thisInterpolant, prevInterpolant, second_prevInterpolant;
-	float dt, cell_volume, mag; 
+	double dt, cell_volume, mag; 
 	double curTime;
 	VECTOR3 vel;
 	float totalStepsize = 0.0;
@@ -208,12 +208,12 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 		
 	// get the initial step size
 	cell_volume = m_pField->volume_of_cell(seedInfo.inCell);
-	mag = vel.GetMag();
+	mag = vel.GetDMag();
 	
-	dt = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
+	dt = m_fInitStepSize * pow(cell_volume, 0.3333333) / mag;
 	
 	//Determine the value of mag*dt to project 10 times init size.  
-	float maxMagDt = 10.*dt*mag;
+	double maxMagDt = 10.*dt*mag;
 
 	int rollbackCount = 0;
 	// start to advect
@@ -230,7 +230,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 		{
 			retrace = false;
 			
-			for(int magTry = 0; magTry < 20; magTry++) {
+			for(int magTry = 0; magTry < 40; magTry++) {
 				if(integ_ord == SECOND)
 					istat = runge_kutta2(time_dir, time_dep, thisParticle, &curTime, dt, maxMagDt);
 				else
@@ -263,7 +263,7 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 			// just generate valid new point
 			if(((int)seedTrace.size() > 2)&&(onAdaptive))
 			{
-				float minStepsize, maxStepsize;
+				double minStepsize, maxStepsize;
 				VECTOR3 thisPhy, prevPhy, second_prevPhy;
 				list<VECTOR3*>::iterator pIter = seedTrace.end();
 				pIter--;
@@ -274,9 +274,9 @@ int vtCStreamLine::computeFieldLine(TIME_DIR time_dir,
 				second_prevPhy = **pIter;
 
 				cell_volume = m_pField->volume_of_cell(thisParticle.inCell);
-				mag = vel.GetMag();
-				minStepsize = m_fInitStepSize * pow(cell_volume, (float)0.3333333f) / mag;
-				maxStepsize = m_fMaxStepSize * pow(cell_volume, (float)0.3333333f) / mag;
+				mag = vel.GetDMag();
+				minStepsize = m_fInitStepSize * pow(cell_volume, 0.3333333) / mag;
+				maxStepsize = m_fMaxStepSize * pow(cell_volume, 0.3333333) / mag;
 				retrace = adapt_step(second_prevPhy, prevPhy, thisPhy, minStepsize, maxStepsize, &dt, onAdaptive);
 				if(onAdaptive == false)
 					nSetAdaptiveCount = 0;

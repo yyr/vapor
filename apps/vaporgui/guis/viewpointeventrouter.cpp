@@ -599,7 +599,7 @@ captureMouseUp(){
 	//Set region  dirty
 	VizWinMgr::getInstance()->setVizDirty(vpParams, DvrRegionBit, true);
 	savedCommand = 0;
-	//Force rerender??
+	
 }
 
 

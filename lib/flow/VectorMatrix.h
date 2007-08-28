@@ -77,6 +77,7 @@ public :
 	float operator ()(const int i) const {return(vec[i]);}			// return i'th element
 	void Zero() {vec[0] = vec[1] = vec[2] = 0.0;}					// make zero vector
 	float GetMag() {return (float)(sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]));}	// get magnitude
+	double GetDMag() {return (sqrt((double)vec[0]*(double)vec[0] + (double)vec[1]*(double)vec[1] + (double)vec[2]*(double)vec[2]));}	// get magnitude as double
 	const VECTOR3 & operator =(const VECTOR3 & v0)					// copy vector v0
 	{vec[0] = v0(0); vec[1] = v0(1); vec[2] = v0(2); return(*this);}
 	
