@@ -486,7 +486,7 @@ void OpenWrfFile(
 	for ( int i = 0 ; i < howManyTimes ; i++ )
 	{
 		NC_ERR_READ( nc_status = nc_get_vara_text( ncid, timesId, start, count, charTimes[i] ) );
-		charTimes[19] = '\0';
+		charTimes[i][19] = '\0';
 		start[timeSpot]++;
 		tStamps.push_back( charTimes[i] );
 	}

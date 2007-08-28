@@ -399,168 +399,174 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   // set up region. Only need to do this if the data
   // roi changes, or if the datarange has changed.
   //
+  /*
+  bool regDirty = myGLWindow->regionIsDirty();
+  bool rangeDirty = datarangeIsDirty();
+  bool navigateDirty = myGLWindow->dvrRegionIsNavigating();
+  bool animDirty = animationIsDirty();
+  */
   if (regionValid&&(myGLWindow->regionIsDirty()
 	  || datarangeIsDirty()||myGLWindow->dvrRegionIsNavigating()
 	  || myGLWindow->animationIsDirty())) 
   {
-    //Check if the region/resolution is too big:
-	  int numMBs = RegionParams::getMBStorageNeeded(extents, extents+3, numxforms);
-	  int cacheSize = DataStatus::getInstance()->getCacheMB();
-	  if (numMBs > (int)(0.75*cacheSize)){
-		  MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current region and resolution.\n%s",
-			  "Lower the refinement level, reduce the region size, or increase the cache size.");
-		  return;
-	  }
-    myGLWindow->setRenderNew();
-    int	rc;
-    int nx,ny,nz;
-   
-	//qWarning("Requesting region from dataMgr");
-    //Turn off error callback, look for memory allocation problem.
-	
-	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	const char* varname = (DataStatus::getInstance()->getVariableName(currentRenderParams->getSessionVarNum()).c_str());
+		//Check if the region/resolution is too big:
+		int numMBs = RegionParams::getMBStorageNeeded(extents, extents+3, numxforms);
+		int cacheSize = DataStatus::getInstance()->getCacheMB();
+		if (numMBs > (int)(0.75*cacheSize)){
+			MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current region and resolution.\n%s",
+				"Lower the refinement level, reduce the region size, or increase the cache size.");
+			return;
+		}
+		myGLWindow->setRenderNew();
+		int	rc;
+		int nx,ny,nz;
+	   
+		//qWarning("Requesting region from dataMgr");
+		//Turn off error callback, look for memory allocation problem.
+		
+		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+		const char* varname = (DataStatus::getInstance()->getVariableName(currentRenderParams->getSessionVarNum()).c_str());
 
 
-	void* data;
-	if (_voxelType == DVRBase::UINT8) {
-		data = (void*) myDataMgr->GetRegionUInt8(
-                                        timeStep,
-                                        varname,
-                                        numxforms,
-                                        min_bdim,
-                                        max_bdim,
+		void* data;
+		if (_voxelType == DVRBase::UINT8) {
+			data = (void*) myDataMgr->GetRegionUInt8(
+											timeStep,
+											varname,
+											numxforms,
+											min_bdim,
+											max_bdim,
+											myRegionParams->getFullGridHeight(),
+											currentRenderParams->getCurrentDatarange(),
+											0 //Don't lock!
+											);
+		}
+		else {
+			data = (void*) myDataMgr->GetRegionUInt16(
+											timeStep,
+											varname,
+											numxforms,
+											min_bdim,
+											max_bdim,
+											myRegionParams->getFullGridHeight(),
+											currentRenderParams->getCurrentDatarange(),
+											0 //Don't lock!
+											);
+		}
+		//Turn it back on:
+	    
+		QApplication::restoreOverrideCursor();
+		
+		if (!data){
+		SetErrMsg("Unable to obtain volume data\n");
+		return;
+		}
+
+		datablock[0] = (int)(min_bdim[0]*bs[0]);
+		datablock[1] = (int)(min_bdim[1]*bs[1]);
+		datablock[2] = (int)(min_bdim[2]*bs[2]);
+		datablock[3] = (int)((max_bdim[0]+1)*bs[0]-1);
+		datablock[4] = (int)((max_bdim[1]+1)*bs[1]-1);
+		datablock[5] = (int)((max_bdim[2]+1)*bs[2]-1);
+
+		//
+		// Calculate the extents of the volume when it's padded by a single
+		// voxel.
+		//    
+		min_pad_dim[0] = min_dim[0] + 1; 
+		min_pad_dim[1] = min_dim[1] + 1; 
+		min_pad_dim[2] = min_dim[2] + 1;
+		max_pad_dim[0] = max_dim[0] - 1; 
+		max_pad_dim[1] = max_dim[1] - 1; 
+		max_pad_dim[2] = max_dim[2] - 1;
+
+		RegionParams::convertToStretchedBoxExtentsInCube(numxforms, 
+												min_pad_dim, max_pad_dim, 
+												padded_extents,
+												myRegionParams->getFullGridHeight()); 
+	   
+		// make subregion origin (0,0,0)
+		// Note that this doesn't affect the calc of nx,ny,nz.
+		// Also, save original dims, will need them to find extents.
+		for(i=0; i<3; i++) {
+		while(min_bdim[i] > 0) {
+			min_dim[i] -= bs[i]; max_dim[i] -= bs[i];
+			min_bdim[i] -= 1; max_bdim[i] -= 1;
+		}
+		}
+		
+		nx = (int)((max_bdim[0] - min_bdim[0] + 1) * bs[0]);
+		ny = (int)((max_bdim[1] - min_bdim[1] + 1) * bs[1]);
+		nz = (int)((max_bdim[2] - min_bdim[2] + 1) * bs[2]);
+
+		if (_type == DvrParams::DVR_SPHERICAL_SHADER)
+		{
+		vector<bool> clip(3, false);
+		const vector<long> &periodic = metadata->GetPeriodicBoundary();
+
+		data_roi[0] = (int)min_dim[0];
+		data_roi[1] = (int)min_dim[1];
+		data_roi[2] = (int)min_dim[2];
+		data_roi[3] = (int)max_dim[0];
+		data_roi[4] = (int)max_dim[1];
+		data_roi[5] = (int)max_dim[2];
+
+		extents[0] = myRegionParams->getRegionMin(0);
+		extents[1] = myRegionParams->getRegionMin(1);
+		extents[2] = myRegionParams->getRegionMin(2);
+		extents[3] = myRegionParams->getRegionMax(0);
+		extents[4] = myRegionParams->getRegionMax(1);
+		extents[5] = myRegionParams->getRegionMax(2);
+
+		clip[0] = !(periodic[0] &&
+					FLTEQ(extents[0], metadata->GetExtents()[0]) &&
+					FLTEQ(extents[3], metadata->GetExtents()[3]));
+		clip[1] = !(periodic[1] && 
+					FLTEQ(extents[1], metadata->GetExtents()[1]) &&
+					FLTEQ(extents[4], metadata->GetExtents()[4]));
+		clip[2] = !(periodic[2] && 
+					FLTEQ(extents[2], metadata->GetExtents()[2]) &&
+					FLTEQ(extents[5], metadata->GetExtents()[5]));
+
+		rc = _driver->SetRegionSpherical(data,
+										nx, ny, nz,
+										data_roi, 
+										extents, 
+										datablock, 
+										numxforms,
 										myRegionParams->getFullGridHeight(),
-                                        currentRenderParams->getCurrentDatarange(),
-                                        0 //Don't lock!
-                                        );
-	}
-	else {
-		data = (void*) myDataMgr->GetRegionUInt16(
-                                        timeStep,
-                                        varname,
-                                        numxforms,
-                                        min_bdim,
-                                        max_bdim,
-										myRegionParams->getFullGridHeight(),
-                                        currentRenderParams->getCurrentDatarange(),
-                                        0 //Don't lock!
-                                        );
-	}
-    //Turn it back on:
-    
-	QApplication::restoreOverrideCursor();
-	
-    if (!data){
-      SetErrMsg("Unable to obtain volume data\n");
-      return;
-    }
-
-    datablock[0] = (int)(min_bdim[0]*bs[0]);
-    datablock[1] = (int)(min_bdim[1]*bs[1]);
-    datablock[2] = (int)(min_bdim[2]*bs[2]);
-    datablock[3] = (int)((max_bdim[0]+1)*bs[0]-1);
-    datablock[4] = (int)((max_bdim[1]+1)*bs[1]-1);
-    datablock[5] = (int)((max_bdim[2]+1)*bs[2]-1);
-
-    //
-    // Calculate the extents of the volume when it's padded by a single
-    // voxel.
-    //    
-    min_pad_dim[0] = min_dim[0] + 1; 
-    min_pad_dim[1] = min_dim[1] + 1; 
-    min_pad_dim[2] = min_dim[2] + 1;
-    max_pad_dim[0] = max_dim[0] - 1; 
-    max_pad_dim[1] = max_dim[1] - 1; 
-    max_pad_dim[2] = max_dim[2] - 1;
-
-    RegionParams::convertToStretchedBoxExtentsInCube(numxforms, 
-                                            min_pad_dim, max_pad_dim, 
-                                            padded_extents,
-											myRegionParams->getFullGridHeight()); 
-   
-    // make subregion origin (0,0,0)
-    // Note that this doesn't affect the calc of nx,ny,nz.
-    // Also, save original dims, will need them to find extents.
-    for(i=0; i<3; i++) {
-      while(min_bdim[i] > 0) {
-        min_dim[i] -= bs[i]; max_dim[i] -= bs[i];
-        min_bdim[i] -= 1; max_bdim[i] -= 1;
-      }
-    }
-	
-    nx = (int)((max_bdim[0] - min_bdim[0] + 1) * bs[0]);
-    ny = (int)((max_bdim[1] - min_bdim[1] + 1) * bs[1]);
-    nz = (int)((max_bdim[2] - min_bdim[2] + 1) * bs[2]);
-
-	if (_type == DvrParams::DVR_SPHERICAL_SHADER)
-    {
-      vector<bool> clip(3, false);
-      const vector<long> &periodic = metadata->GetPeriodicBoundary();
-
-      data_roi[0] = (int)min_dim[0];
-      data_roi[1] = (int)min_dim[1];
-      data_roi[2] = (int)min_dim[2];
-      data_roi[3] = (int)max_dim[0];
-      data_roi[4] = (int)max_dim[1];
-      data_roi[5] = (int)max_dim[2];
-
-      extents[0] = myRegionParams->getRegionMin(0);
-      extents[1] = myRegionParams->getRegionMin(1);
-      extents[2] = myRegionParams->getRegionMin(2);
-      extents[3] = myRegionParams->getRegionMax(0);
-      extents[4] = myRegionParams->getRegionMax(1);
-      extents[5] = myRegionParams->getRegionMax(2);
-
-      clip[0] = !(periodic[0] &&
-                  FLTEQ(extents[0], metadata->GetExtents()[0]) &&
-                  FLTEQ(extents[3], metadata->GetExtents()[3]));
-      clip[1] = !(periodic[1] && 
-                  FLTEQ(extents[1], metadata->GetExtents()[1]) &&
-                  FLTEQ(extents[4], metadata->GetExtents()[4]));
-      clip[2] = !(periodic[2] && 
-                  FLTEQ(extents[2], metadata->GetExtents()[2]) &&
-                  FLTEQ(extents[5], metadata->GetExtents()[5]));
-
-      rc = _driver->SetRegionSpherical(data,
-                                      nx, ny, nz,
-                                      data_roi, 
-                                      extents, 
-                                      datablock, 
-                                      numxforms,
-                                      myRegionParams->getFullGridHeight(),
-                                      metadata->GetGridPermutation(),
-                                      clip);
-    }
-    else
-    {
-      //
-      // Pad the roi with a single voxel in each axis. This ensures
-      // data will be available for gradient calculations. 
-      //
-      data_roi[0] = (int)min_dim[0]+1;
-      data_roi[1] = (int)min_dim[1]+1;
-      data_roi[2] = (int)min_dim[2]+1;
-      data_roi[3] = (int)max_dim[0]-1;
-      data_roi[4] = (int)max_dim[1]-1;
-      data_roi[5] = (int)max_dim[2]-1;
-      
-      rc = _driver->SetRegion(data,
-                             nx, ny, nz,
-                             data_roi, padded_extents,
-                             datablock, numxforms,
-							 myRegionParams->getFullGridHeight()
-                             );
-    }
-    
-    if (rc < 0) {
-      fprintf(stderr, "Error in DVRVolume::SetRegion\n");
-      fflush(stderr);
-      
-      return;
-    }
-	
-	
+										metadata->GetGridPermutation(),
+										clip);
+		}
+		else
+		{
+		//
+		// Pad the roi with a single voxel in each axis. This ensures
+		// data will be available for gradient calculations. 
+		//
+		data_roi[0] = (int)min_dim[0]+1;
+		data_roi[1] = (int)min_dim[1]+1;
+		data_roi[2] = (int)min_dim[2]+1;
+		data_roi[3] = (int)max_dim[0]-1;
+		data_roi[4] = (int)max_dim[1]-1;
+		data_roi[5] = (int)max_dim[2]-1;
+	      
+		rc = _driver->SetRegion(data,
+								nx, ny, nz,
+								data_roi, padded_extents,
+								datablock, numxforms,
+								myRegionParams->getFullGridHeight()
+								);
+		}
+	    
+		if (rc < 0) {
+		fprintf(stderr, "Error in DVRVolume::SetRegion\n");
+		fflush(stderr);
+	      
+		return;
+		}
+		
+		
   }
 
   UpdateDriverRenderParamsSpec(currentRenderParams);
