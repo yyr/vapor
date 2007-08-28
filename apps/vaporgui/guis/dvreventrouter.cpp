@@ -497,8 +497,9 @@ void DvrEventRouter::updateTab(){
 	VizWinMgr::getInstance()->setVizDirty(dvrParams,DvrRegionBit,true, true);
 
 	
-	//Disable the typeCombo whenever the renderer is enabled:
+	//Disable the typeCombo and bits per pixel whenever the renderer is enabled:
 	typeCombo->setEnabled(!(dvrParams->isEnabled()));
+	numBitsCombo->setEnabled(!(dvrParams->isEnabled()));
 	typeCombo->setCurrentItem(typemapi[dvrParams->getType()]);
 
 	int numRefs = dvrParams->getNumRefinements();
