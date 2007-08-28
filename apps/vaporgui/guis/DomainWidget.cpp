@@ -25,26 +25,17 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-DomainWidget::DomainWidget(MappingFrame *parent, float min, float max) :
+DomainWidget::DomainWidget(QWidget *parent, Qt::Orientation orientation,
+                           float min, float max) :
   GLWidget(parent),
-  _parent(parent),
   _minValue(min),
   _maxValue(max),
   _handleRadius(0.06),
-  _quadHandle(gluNewQuadric())
+  _quadHandle(gluNewQuadric()),
+  _orientation(orientation)
 {
   _minY = 1.14;
   _maxY = 1.3;
-}
-IsoSlider::IsoSlider(MappingFrame *parent, float min, float max) :
-	DomainWidget(parent, min, max)
-  
-{
-	_minValue = 0.47;
-	_maxValue = 0.53;
-	_minY = -.10;
-	_maxY = 0.06;
-	_lineWidth = 0.02;
 }
 
 //----------------------------------------------------------------------------
@@ -59,19 +50,18 @@ DomainWidget::~DomainWidget()
 //----------------------------------------------------------------------------
 float DomainWidget::width()
 {
-  return right() - left();
+  return _maxValue - _minValue;
 }
 
 //----------------------------------------------------------------------------
 // Move the entire domain
 //----------------------------------------------------------------------------
-void DomainWidget::move(float dx, float, float)
+void DomainWidget::move(float dx, float dy, float)
 {
   if (_selected != NONE)
   {
-    float scaling = (_parent->maxDataValue() - _parent->minDataValue());
-    _minValue += dx*scaling;
-    _maxValue += dx*scaling;
+    _minValue += (_orientation == Qt::Horizontal) ? dx : dy;
+    _maxValue += (_orientation == Qt::Horizontal) ? dx : dy;
 
     emit changingDomain(_minValue, _maxValue);
   }
@@ -80,116 +70,218 @@ void DomainWidget::move(float dx, float, float)
 //----------------------------------------------------------------------------
 // Drag an element of the domain.
 //----------------------------------------------------------------------------
-void DomainWidget::drag(float dx, float, float)
+void DomainWidget::drag(float dx, float dy, float)
 {
-  float scaling = (_parent->maxDataValue() - _parent->minDataValue());
-
-  if (_selected == LEFT && _minValue + dx*scaling < _maxValue)
+  if (_selected == LEFT && _minValue + dx < _maxValue)
   {
-    _minValue += dx*scaling;
+    _minValue += (_orientation == Qt::Horizontal) ? dx : dy;
   }
 
-  else if (_selected == RIGHT && _maxValue + dx*scaling > _minValue)
+  else if (_selected == RIGHT && _maxValue + dx > _minValue)
   {
-    _maxValue += dx*scaling;
+    _maxValue += (_orientation == Qt::Horizontal) ? dx : dy;
   }
 
   else if (_selected == BAR)
   {
-    _minValue += dx*scaling;
-    _maxValue += dx*scaling;
+    _minValue += (_orientation == Qt::Horizontal) ? dx : dy;
+    _maxValue += (_orientation == Qt::Horizontal) ? dx : dy;
   }    
-  
-  emit changingDomain(_minValue, _maxValue);
-}
-void IsoSlider::drag(float dx, float, float)
-{
-  float scaling = (_parent->maxDataValue() - _parent->minDataValue());
 
-  _minValue += dx*scaling;
-  _maxValue += dx*scaling;
-   
-  
   emit changingDomain(_minValue, _maxValue);
 }
+
+
 //----------------------------------------------------------------------------
 // Render the widget
 //----------------------------------------------------------------------------
 void DomainWidget::paintGL()
 {
-
   float length = 0.03;
-  float y = (_maxY + _minY) / 2.0;
 
   printOpenGLError();
-
   glPushName(_id);
   glPushMatrix();
   {
     if (_enabled)
     {
-      glColor3f(1, 0.3, 0.3);
-
-      glPushMatrix();
+#ifdef Darwin
+      // 
+      // Mac version is not rendering the gluCylinders for some
+      // reason. Replace with simplier geometry for the Mac.
+      //
+      if (_orientation == Qt::Horizontal)
       {
-        glPushName(LEFT);
-#ifdef	Darwin
-	glBegin(GL_TRIANGLES);
-		glVertex3f(left()-length, y, 0.0);
-		glVertex3f(left(), y+_handleRadius, 0.0);
-		glVertex3f(left(), y-_handleRadius, 0.0);
-	glEnd();
-#else
-	glTranslatef(left()-length, y, 0.0);
-	glRotatef(90, 0, 1, 0);
-	gluCylinder(_quadHandle, 0.0, _handleRadius, length, 10, 2);
-#endif
-        glPopName();
-      }
-      glPopMatrix();
+        float y = (_maxY + _minY) / 2.0;
 
-      glPushMatrix();
-      {
-        glPushName(RIGHT);
-#ifdef	Darwin
-	glBegin(GL_TRIANGLES);
-		glVertex3f(right()+length, y, 0.0);
-		glVertex3f(right(), y+_handleRadius, 0.0);
-		glVertex3f(right(), y-_handleRadius, 0.0);
-	glEnd();
-#else
-	glTranslatef(right(), y, 0.0);
-	glRotatef(90, 0, 1, 0);
-	gluCylinder(_quadHandle, _handleRadius, 0.0, length, 10, 2);
-#endif
-        glPopName();
-      }
-      glPopMatrix();
+        glColor3f(1, 0.3, 0.3);
 
-      glColor3f(0.7, 0.0, 0.0);
+        glPushMatrix();
+        {
+          glPushName(LEFT);
+          glBegin(GL_TRIANGLES);
+          glVertex3f(_minValue-length, y, 0.0);
+          glVertex3f(_minValue, y+_handleRadius, 0.0);
+          glVertex3f(_minValue, y-_handleRadius, 0.0);
+          glEnd();
+          glPopName();
+        }
+        glPopMatrix();
+
+        glPushMatrix();
+        {
+          glPushName(RIGHT);
+          glBegin(GL_TRIANGLES);
+          glVertex3f(_maxValue+length, y, 0.0);
+          glVertex3f(_maxValue, y+_handleRadius, 0.0);
+          glVertex3f(_maxValue, y-_handleRadius, 0.0);
+          glEnd();
+          glPopName();
+        }
+        glPopMatrix();
+
+        glColor3f(0.7, 0.0, 0.0);
       
-      glPushMatrix();
-      {
-        glPushName(BAR);
-#ifdef	Darwin
-	glBegin(GL_QUADS);
-		glVertex3f(left(), y + 0.4*_handleRadius, 0.0);
-		glVertex3f(right(), y + 0.4*_handleRadius, 0.0);
-		glVertex3f(right(), y - 0.4*_handleRadius, 0.0);
-		glVertex3f(left(), y - 0.4*_handleRadius, 0.0);
-	glEnd();
-#else
-	glTranslatef(left(), y, 0.0);
-	glRotatef(90, 0, 1, 0);
-	gluCylinder(_quadHandle, 0.4*_handleRadius, 0.4*_handleRadius, 
-		width(), 10, 2);
-
-#endif
-	 glPopMatrix();
-        glPopName();
+        glPushMatrix();
+        {
+          glPushName(BAR);
+          glBegin(GL_QUADS);
+          glVertex3f(_minValue, y + 0.4*_handleRadius, 0.0);
+          glVertex3f(_maxValue, y + 0.4*_handleRadius, 0.0);
+          glVertex3f(_maxValue, y - 0.4*_handleRadius, 0.0);
+          glVertex3f(_minValue, y - 0.4*_handleRadius, 0.0);
+          glEnd();
+          glPopName();
+        }
+        glPopMatrix();
       }
-	
+      else // Vertical
+      {
+        float x = 1 - (_maxY + _minY) / 2.0;
+
+        glColor3f(1, 0.3, 0.3);
+
+        glPushMatrix();
+        {
+          glPushName(LEFT);
+          glBegin(GL_TRIANGLES);
+          glVertex3f(x, _minValue-length, 0.0);
+          glVertex3f(x+_handleRadius, _minValue, 0.0);
+          glVertex3f(x-_handleRadius, _minValue, 0.0);
+          glEnd();
+          glPopName();
+        }
+        glPopMatrix();
+
+        glPushMatrix();
+        {
+          glPushName(RIGHT);
+          glBegin(GL_TRIANGLES);
+          glVertex3f(x, _maxValue+length, 0.0);
+          glVertex3f(x+_handleRadius, _maxValue, 0.0);
+          glVertex3f(x-_handleRadius, _maxValue, 0.0);
+          glEnd();
+          glPopName();
+        }
+        glPopMatrix();
+
+        glColor3f(0.7, 0.0, 0.0);
       
+        glPushMatrix();
+        {
+          glPushName(BAR);
+          glBegin(GL_QUADS);
+          glVertex3f(x + 0.4*_handleRadius, _minValue, 0.0);
+          glVertex3f(x + 0.4*_handleRadius, _maxValue, 0.0);
+          glVertex3f(x - 0.4*_handleRadius, _maxValue, 0.0);
+          glVertex3f(x - 0.4*_handleRadius, _minValue, 0.0);
+          glEnd();
+          glPopName();
+        }
+        glPopMatrix();
+      }
+#else      
+      if (_orientation == Qt::Horizontal)
+      {
+        float y = (_maxY + _minY) / 2.0;
+
+        glColor3f(1, 0.3, 0.3);
+
+        glPushMatrix();
+        {
+          glPushName(LEFT);
+          glTranslatef(_minValue-length, y, 0.0);
+          glRotatef(90, 0, 1, 0);
+          gluCylinder(_quadHandle, 0.0, _handleRadius, length, 10, 2);
+          glPopName();
+        }
+        glPopMatrix();
+
+        glPushMatrix();
+        {
+          glPushName(RIGHT);
+          glTranslatef(_maxValue, y, 0.0);
+          glRotatef(90, 0, 1, 0);
+          gluCylinder(_quadHandle, _handleRadius, 0.0, length, 10, 2);
+          glPopName();
+        }
+        glPopMatrix();
+
+        glColor3f(0.7, 0.0, 0.0);
+      
+        glPushMatrix();
+        {
+          glPushName(BAR);
+          glTranslatef(_minValue, y, 0.0);
+          glRotatef(90, 0, 1, 0);
+          gluCylinder(_quadHandle, 0.4*_handleRadius, 0.4*_handleRadius, 
+                      width(), 10, 2);
+          
+          glPopName();
+        }
+        glPopMatrix();
+      }
+      else // Vertical
+      {
+        float x = 1 - (_maxY + _minY) / 2.0;
+
+        glColor3f(1, 0.3, 0.3);
+
+        glPushMatrix();
+        {
+          glPushName(LEFT);
+          glTranslatef(x, _minValue-length, 0.0);
+          glRotatef(90, -1, 0, 0);
+          gluCylinder(_quadHandle, 0.0, _handleRadius, length, 10, 2);
+          glPopName();
+        }
+        glPopMatrix();
+
+        glPushMatrix();
+        {
+          glPushName(RIGHT);
+          glTranslatef(x, _maxValue, 0.0);
+          glRotatef(90, -1, 0, 0);
+          gluCylinder(_quadHandle, _handleRadius, 0.0, length, 10, 2);
+          glPopName();
+        }
+        glPopMatrix();
+
+        glColor3f(0.7, 0.0, 0.0);
+      
+        glPushMatrix();
+        {
+          glPushName(BAR);
+          glTranslatef(x, _minValue, 0.0);
+          glRotatef(90, -1, 0, 0);
+          gluCylinder(_quadHandle, 0.4*_handleRadius, 0.4*_handleRadius, 
+                      width(), 10, 2);
+          
+          glPopName();
+        }
+        glPopMatrix();
+      }
+#endif
     }
   }  
   glPopMatrix();
@@ -210,47 +302,46 @@ void DomainWidget::setGeometry(float x0, float x1, float y0, float y1)
 
 
 //----------------------------------------------------------------------------
-// Rightmost extent of the widget in world coodinates
-//----------------------------------------------------------------------------
-float DomainWidget::right()
-{
-  return dataToWorld(_maxValue);
-}
-
-//----------------------------------------------------------------------------
-// Leftmost extent of the widget in world coordinates
-//----------------------------------------------------------------------------
-float DomainWidget::left()
-{
-  return dataToWorld(_minValue);
-}
-//----------------------------------------------------------------------------
 // center of the widget in world coordinates
 //----------------------------------------------------------------------------
 float DomainWidget::mid()
 {
-  return (0.5*(dataToWorld(_minValue)+dataToWorld(_maxValue)));
+  return (0.5*(_minValue+_maxValue));
+}
+
+
+
+//############################################################################
+// IsoSlider
+//############################################################################
+
+//----------------------------------------------------------------------------
+// Constructor
+//----------------------------------------------------------------------------
+IsoSlider::IsoSlider(QWidget *parent, float min, float max) :
+  DomainWidget(parent, Qt::Horizontal, min, max)  
+{
+	_minValue = 0.47;
+	_maxValue = 0.53;
+	_minY = -.10;
+	_maxY = 0.06;
+	_lineWidth = 0.02;
 }
 
 //----------------------------------------------------------------------------
-// Transform the x position in the data (model) space into the opengl world 
-// space 
+// Drag an element of the Iso-domain.
 //----------------------------------------------------------------------------
-float DomainWidget::dataToWorld(float x)
+void IsoSlider::drag(float dx, float, float)
 {
-  return (x - _parent->minDataValue()) / 
-    (_parent->maxDataValue() - _parent->minDataValue());
+  _minValue += dx;
+  _maxValue += dx;   
+  
+  emit changingDomain(_minValue, _maxValue);
 }
 
 //----------------------------------------------------------------------------
-// Transform the x position in the opengl world space into the data (model) 
-// space
+//
 //----------------------------------------------------------------------------
-float DomainWidget::worldToData(float x)
-{
-  return _parent->minDataValue() + 
-    (x * (_parent->maxDataValue() - _parent->minDataValue()));
-}
 void IsoSlider::paintGL(){
 	
 	DomainWidget::paintGL();

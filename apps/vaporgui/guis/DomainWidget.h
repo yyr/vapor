@@ -14,15 +14,16 @@
 #include <vapor/MyBase.h>
 
 #include <qobject.h>
+#include <iostream>
+using namespace std;
 
 struct GLUquadric;
 
 namespace VAPoR {
 
 class Params;
-class MappingFrame;
 
- class DomainWidget : public GLWidget
+class DomainWidget : public GLWidget
 {
   Q_OBJECT
 protected:
@@ -36,18 +37,19 @@ protected:
 
 public:
 
-  DomainWidget(MappingFrame *parent, float min=0.0, float max=1.0);
+  DomainWidget(QWidget *parent, Qt::Orientation = Qt::Horizontal,
+               float min=0.0, float max=1.0);
   virtual ~DomainWidget();
 
   virtual void paintGL();
 
-  void move(float dx, float dy=0.0, float dz=0.0);
-  virtual void drag(float dx, float dy=0.0, float dz=0.0);
+  void move(float dx, float dy=0.0, float dz=0.0); // world-coordinates
+  virtual void drag(float dx, float dy=0.0, float dz=0.0); // world-coordinates
 
-  float minValue() const  { return _minValue; }
-  float maxValue() const  { return _maxValue; }
+  float minValue() const  { return _minValue; } // world-coordinates
+  float maxValue() const  { return _maxValue; } // world-coordinates
 
-  void setDomain(float minv, float maxv) {_minValue = minv; _maxValue = maxv;}
+  void setDomain(float minv, float maxv) { _minValue = minv; _maxValue = maxv;}
 
   virtual void setGeometry(float x0, float x1, float y0, float y1);
 
@@ -61,17 +63,10 @@ public:
  protected:
 
   float width();
-
-  float right();
-  float left();
   float mid();
     
-  float dataToWorld(float x);
-  float worldToData(float x);
   float _minValue;
   float _maxValue;
-
-  MappingFrame *_parent;
 
  private:
 
@@ -80,16 +75,22 @@ public:
   //
   float         _handleRadius;
   GLUquadric   *_quadHandle;
+
+  Qt::Orientation _orientation;
 };
 
- class IsoSlider : public DomainWidget {
+
+class IsoSlider : public DomainWidget 
+{
  public:
-	IsoSlider(MappingFrame *parent, float min=0.0, float max=1.0);
-	virtual void drag(float dx, float dy=0.0, float dz=0.0);
+
+	IsoSlider(QWidget *parent, float min=0.0, float max=1.0);
+
+	virtual void drag(float dx, float dy=0.0, float dz=0.0); 
 	virtual void paintGL();
-	void setIsoValue(float val){
-		setDomain(worldToData(dataToWorld(val) - 0.01), worldToData(dataToWorld(val) + 0.01));
-	}
+
+	void setIsoValue(float val) { setDomain(val - 0.01, val + 0.01); }
+
  protected:
 	 float _lineWidth;
  };
