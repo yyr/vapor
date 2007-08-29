@@ -82,14 +82,17 @@ the vector field whose magnitude is used to determine the seed
 distribution.<br>
 &nbsp;<br>
 <span style="font-weight: bold;">Seed Prioritization:</span><br>
-&nbsp;&nbsp;&nbsp; By default, the field line advection algorithm
-maximizes the steady field magnitude along each field line to determine
+&nbsp;&nbsp;&nbsp; The field line advection algorithm
+maximizes a field magnitude along each field line to determine
 the points that will be advected to the next time step.&nbsp; The field
 that is used for this prioritization is specified as the "Seed Priority Field".&nbsp; 
 Also, values labeled &#8220;Priority Field Min, Max&#8221; can be
 specified.&nbsp;&nbsp; The search for the largest field value is
-terminated when field magnitudes outside the (Min, Max) range are
-encountered.<br>
+terminated when field magnitude exceeds the value of &#8220;Priority Field Max&#8221.  If the 
+priority field magnitude at a point is less than its magnitude at the seed point
+multiplied by the &#8220;Priority Field Min&#8221, then the search is terminated and
+the field line is truncated at that point.
+<br>
 You can choose whether the seed prioritization occurs before or after the time-advection.
 If you select "Prioritize before advection", then the seed for a field line at the next time
 step is chosen by maximizing the priority field along the field line at the current time step.

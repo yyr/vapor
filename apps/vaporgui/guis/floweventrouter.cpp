@@ -454,6 +454,8 @@ void FlowEventRouter::updateTab(){
 					flaOptionCombo->setCurrentItem(advectBeforePriorOption);
 					int numSamps = (advectBeforePriorOption == 0) ? 1 : fParams->getNumFLASamples() ;
 					flaSamplesEdit->setEnabled(advectBeforePriorOption == 1);
+					priorityFieldMinEdit->setEnabled(advectBeforePriorOption != 1);
+					priorityFieldMaxEdit->setEnabled(advectBeforePriorOption != 1);
 					flaSamplesEdit->setText(QString::number(numSamps));
 				}
 				timesampleIncrementEdit2->setText(QString::number(fParams->getTimeSamplingInterval()));
@@ -2329,6 +2331,8 @@ guiSetFLAOption(int option){
 	else flaSamplesEdit->setText(QString::number(fParams->getNumFLASamples()));
 	guiSetTextChanged(false);
 	flaSamplesEdit->setEnabled(option != 0);
+	priorityFieldMinEdit->setEnabled(option == 0);
+	priorityFieldMaxEdit->setEnabled(option == 0);
 	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
 	PanelCommand::captureEnd(cmd, fParams);
 }

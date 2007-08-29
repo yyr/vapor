@@ -103,7 +103,7 @@ namespace VAPoR
 			startIndices[lineNum] = integrationStartPosn + integPos;
 			if (prevStart < 0) lineLengths[lineNum] = 1;
 			else {
-				lineLengths[lineNum] += prevStart - integPos;
+				lineLengths[lineNum] += (prevStart - integPos - integrationStartPosn);
 			}
 
 		}

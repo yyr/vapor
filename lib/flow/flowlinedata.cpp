@@ -196,6 +196,7 @@ getPointAtTime(int lineNum, float timeStep){
 int FlowLineData::resampleFieldLines(int* indexList, int desiredNumSamples, int lineNum)
 {
 	assert(desiredNumSamples > 1);
+	
 	//First, count the number of points in the flData associated with the lineNum:
 	int validCount = 0;
 	for (int i = getStartIndex(lineNum); i<= getEndIndex(lineNum); i++){

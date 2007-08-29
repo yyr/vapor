@@ -361,11 +361,15 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 	//At the seed, going first backwards and then forwards
 	
 	for (int line = 0; line< container->getNumLines(); line++){
-		float maxVal = minPriorityVal - 1.f;
-		if (!pathContainer) maxVal = -1.f;
+		float maxVal =  - 1.f;
+		
 		int startPos = container->getSeedPosition();
 		float* maxPoint = 0;
 		bool searchOver = false;
+		float* startPt = container->getFlowPoint(line,startPos);
+		if (startPt[0] == END_FLOW_FLAG || startPt[0] == STATIONARY_STREAM_FLAG)
+			continue;
+		float startMag = fData->getFieldMag(startPt);
 		//First search backwards (if pathContainer != 0)
 		if (pathContainer && steadyFlowDirection <= 0){
 			for (int ptindx = startPos; ptindx >= container->getStartIndex(line); ptindx--){
@@ -379,7 +383,13 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 					if (pathContainer) break;
 					else continue;
 				}
-				if (pathContainer && val < minPriorityVal) {maxPoint = pt; searchOver = true; break;}
+				if (pathContainer && val < minPriorityVal*startMag) {
+					//If val is below min, don't search further this way:
+					
+					//shorten the steady flow line:
+					container->setFlowStart(line, ptindx - startPos);
+					break;
+				}
 				if (val > maxVal){ //establish a new max
 					maxVal = val;
 					maxPoint = pt;
@@ -399,7 +409,11 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 					if (pathContainer) break;
 					else continue;
 				}
-				if (pathContainer && val < minPriorityVal) {maxPoint = pt; break;}
+				if (pathContainer && val < minPriorityVal*startMag) {
+					//Shorten the steady field line to end at pt:
+					container->setFlowEnd(line, ptindx - startPos);
+					break;
+				}
 				if (val > maxVal){ //establish a new max
 					maxVal = val;
 					maxPoint = pt;
