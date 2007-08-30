@@ -217,6 +217,7 @@ Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet){
 	
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	int varNum = renParams->getSessionVarNum();
+	if (varNum >= numVariables || varNum < 0) return 0;
 	if (varNum >= numHistograms || !histogramList){
 		if (!mustGet) return 0;
 		histogramList = new Histo*[numVariables];
