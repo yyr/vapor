@@ -1542,6 +1542,9 @@ in this panel.</string>
                                                             <property name="maxCount">
                                                                 <number>2</number>
                                                             </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify the precision of the isosurface renderer, when the renderer is disabled</string>
+                                                            </property>
                                                         </widget>
                                                         <spacer>
                                                             <property name="name">
