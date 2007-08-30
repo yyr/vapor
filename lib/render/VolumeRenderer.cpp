@@ -72,6 +72,7 @@
 
 #include "glutil.h"
 #include "dvrparams.h"
+#include "ParamsIso.h"
 #include "vapor/MyBase.h"
 
 // Floating-point equivalience comparison
@@ -94,8 +95,6 @@ VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderPar
 	
 {
 
-  _voxelType = DVRBase::UINT8;
-  //  _voxelType = DVRBase::UINT16;
   //Construct dvrvolumizer
   _driver = create_driver(type, 1);
   clutDirtyBit = false;
@@ -241,36 +240,50 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
 
   if (dvrType == DvrParams::DVR_TEXTURE3D_LOOKUP) 
   {
+	DvrParams *rp = (DvrParams *) currentRenderParams;
+	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
     driver = new DVRLookup(_voxelType, 1);
   }
   else if (dvrType == DvrParams::DVR_TEXTURE3D_SHADER)
   {
+	DvrParams *rp = (DvrParams *) currentRenderParams;
+	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
     driver = new DVRShader(_voxelType, 1);
   }
   else if (dvrType == DvrParams::DVR_SPHERICAL_SHADER)
   {
+	DvrParams *rp = (DvrParams *) currentRenderParams;
+	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
     driver = new DVRSpherical(_voxelType, 1);
   }
   else if (dvrType == DvrParams::DVR_RAY_CASTER)
   {
+	ParamsIso *rp = (ParamsIso *) currentRenderParams;
+	_voxelType = rp->GetNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
     driver = new DVRRayCaster(_voxelType, 1);
   }
 
 #ifdef VOLUMIZER
   else if (dvrType == DvrParams::DVR_VOLUMIZER)
   {
+	DvrParams *rp = (DvrParams *) currentRenderParams;
+	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
     driver = new DVRVolumizer(&argc, argv, _voxelType, 1);
   }
 #endif
 
   else if (dvrType == DvrParams::DVR_DEBUG)
   {
+	DvrParams *rp = (DvrParams *) currentRenderParams;
+	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
     driver = new DVRDebug(&argc, argv, _voxelType, 1);
   }
   
 #ifdef	DVR_STRETCHEDGRID
   else if (dvrType == DvrParams::DVR_STRETCHED_GRID)
   {
+	DvrParams *rp = (DvrParams *) currentRenderParams;
+	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
     driver = new DVRStretchedGrid(&argc, argv, _voxelType, nthreads);
   }
 #endif
