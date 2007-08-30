@@ -421,13 +421,26 @@ void AnimationEventRouter::guiSetPosition(int position){
 	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Change current frame number");
 	int startFrame = aParams->getStartFrameNumber();
 	int endFrame = aParams->getEndFrameNumber();
-	
-	aParams->setCurrentFrameNumber(startFrame + (int)((float)(endFrame - startFrame)*(float)position/1000.f));
+	int newFrameNum = startFrame + (int)((float)(endFrame - startFrame)*(float)position/1000.f);
+	//Find the nearest valid frame number:
+	DataStatus* ds = DataStatus::getInstance();
+	int maxdist = ds->getMaxTimestep()-ds->getMinTimestep();
+	for (int i = 0; i< maxdist; i++){
+		if (ds->dataIsPresent(newFrameNum+i)) {
+			newFrameNum += i;
+			break;
+		}
+		if (ds->dataIsPresent(newFrameNum-i)) {
+			newFrameNum -= i;
+			break;
+		}
+	}
+	aParams->setCurrentFrameNumber(newFrameNum);
 	int currentFrame = aParams->getCurrentFrameNumber();
 	currentFrameEdit->setText(QString::number(currentFrame));
 	PanelCommand::captureEnd(cmd, aParams);
 	guiSetTextChanged(false);
-	update();
+	updateTab();
 	VizWinMgr::getInstance()->animationParamsChanged(aParams);
 	VizWinMgr::getInstance()->setAnimationDirty(aParams);
 }
