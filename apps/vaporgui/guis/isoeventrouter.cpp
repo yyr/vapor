@@ -753,10 +753,10 @@ setDatarangeDirty(RenderParams* params)
 	if (!iParams->getMapperFunc()) return;
 	const float* currentDatarange = iParams->GetHistoBounds();
 	float drange[2];
-	drange[0] = iParams->getMapperFunc()->getMinColorMapValue();
-	drange[1] = iParams->getMapperFunc()->getMaxColorMapValue();
+	drange[0] = iParams->getMapperFunc()->getMinOpacMapValue();
+	drange[1] = iParams->getMapperFunc()->getMaxOpacMapValue();
 	if (currentDatarange[0] != drange[0] || currentDatarange[1] != drange[1]){
 			iParams->SetHistoBounds(drange);
-			VizWinMgr::getInstance()->setDatarangeDirty(iParams);
 	}
+	VizWinMgr::getInstance()->setDatarangeDirty(iParams);
 }
