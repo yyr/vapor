@@ -194,18 +194,27 @@ getNextFrame(int dir){
 		if (dir > 0) return(timestepList[nextIndex]); 
 		else return(timestepList[prevIndex]);
 				
-	} else {//not using timestep sample list:
+	} else {
+		//not using timestep sample list.
+		// find next valid frame for which there exists data:
 		int testFrame = currentFrame + dir*frameStepSize;
-		if (testFrame > endFrame){ 
-			if (repeatPlay) return startFrame;
-			else return currentFrame;
+		DataStatus* ds = DataStatus::getInstance();
+		for (int i = 1; i<= (endFrame - startFrame + frameStepSize)/frameStepSize; i++){
+			if (ds->dataIsPresent(testFrame)) break;
+			testFrame += dir*frameStepSize;
+			if (testFrame > endFrame){ 
+				if (repeatPlay) testFrame =  startFrame;
+				else testFrame = currentFrame;
+			}
+			if (testFrame < startFrame){
+				if (repeatPlay) testFrame = endFrame;
+				else testFrame = currentFrame;
+			}
 		}
-		if (testFrame < startFrame){
-			if (repeatPlay) return endFrame;
-			else return currentFrame;
-		}
-		//It's OK...
+		//It's OK, or we looped all the way around:
+		
 		return testFrame;
+		
 		
 	}
 }
