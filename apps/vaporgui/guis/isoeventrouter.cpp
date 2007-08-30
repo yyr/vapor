@@ -182,7 +182,7 @@ void IsoEventRouter::updateTab(){
 	QString strn;
     
 	//Force the iso to refresh
-	numBitsCombo->setEnabled(!isoParams->isEnabled());
+	
 	numBitsCombo->setCurrentItem((isoParams->GetNumBits())>>4);
 	int numRefs = isoParams->getNumRefinements();
 	if(numRefs <= refinementCombo->count())
@@ -736,7 +736,11 @@ void IsoEventRouter::
 guiSetNumBits(int val){
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	confirmText(false);
-	
+	if (iParams->isEnabled()){
+		MessageReporter::warningMsg("Renderer must be disabled before changing bits per voxel");
+		updateTab();
+		return;
+	}
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set iso voxel bits");
 	//Value is 0 or 1, corresponding to 8 or 16 bits
 	iParams->SetNumBits(1<<(val+3));

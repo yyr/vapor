@@ -499,7 +499,7 @@ void DvrEventRouter::updateTab(){
 	
 	//Disable the typeCombo and bits per pixel whenever the renderer is enabled:
 	typeCombo->setEnabled(!(dvrParams->isEnabled()));
-	numBitsCombo->setEnabled(!(dvrParams->isEnabled()));
+	
 	typeCombo->setCurrentItem(typemapi[dvrParams->getType()]);
 
 	int numRefs = dvrParams->getNumRefinements();
@@ -797,6 +797,11 @@ void DvrEventRouter::
 guiSetNumBits(int val){
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
 	confirmText(false);
+	if (dParams->isEnabled()){
+		MessageReporter::warningMsg("Renderer must be disabled before changing bits per voxel");
+		updateTab();
+		return;
+	}
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "set dvr voxel bits");
 	//Value is 0 or 1, corresponding to 8 or 16 bits
