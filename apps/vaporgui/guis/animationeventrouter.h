@@ -79,6 +79,7 @@ protected slots:
 	void timestepChanged(int row, int col);
 	void addSample();
 	void deleteSample();
+	void guiRebuildList();
 	void setAtabTextChanged(const QString& qs);
 	void animationReturnPressed();
 	//Animation slots:

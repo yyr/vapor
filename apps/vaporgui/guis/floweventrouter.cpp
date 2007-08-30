@@ -110,6 +110,8 @@ FlowEventRouter::hookUpTab()
 	connect (flowHelpButton, SIGNAL(clicked()), this, SLOT(showSetupHelp()));
 	connect (deleteSampleButton1,SIGNAL(clicked()), this, SLOT(deleteSample()));
 	connect (deleteSampleButton2,SIGNAL(clicked()), this, SLOT(deleteSample()));
+	connect (rebuildButton1, SIGNAL(clicked()), this, SLOT(guiRebuildList()));
+	connect (rebuildButton2, SIGNAL(clicked()), this, SLOT(guiRebuildList()));
 	connect (timestepSampleTable1, SIGNAL(valueChanged(int,int)), this, SLOT(timestepChanged1(int,int)));
 	connect (timestepSampleTable2, SIGNAL(valueChanged(int,int)), this, SLOT(timestepChanged2(int,int)));
 	connect (timestepSampleCheckbox1, SIGNAL(toggled(bool)), this, SLOT(guiToggleTimestepSample(bool)));
@@ -1097,6 +1099,23 @@ void FlowEventRouter::deleteSample(){
 		timestepSampleTable2->removeRow(timestepSampleTable2->currentRow());
 		guiUpdateUnsteadyTimes(timestepSampleTable2, "remove unsteady timestep");
 	}
+}
+//Rebuild the list of timestep samples.
+void FlowEventRouter::guiRebuildList(){
+	confirmText(false);
+	FlowParams* fParams = VizWinMgr::getInstance()->getActiveFlowParams();
+	PanelCommand* cmd = PanelCommand::captureStart(fParams, "Rebuild timestep list");
+	std::vector<int>& timesteplist = fParams->getUnsteadyTimesteps();
+	timesteplist.clear();
+	DataStatus* ds = DataStatus::getInstance();
+	int minTime = ds->getMinTimestep();
+	int maxTime = ds->getMaxTimestep();
+	for (int i = minTime; i<= maxTime; i++){
+		if (ds->dataIsPresent(i)) timesteplist.push_back(i);
+	}
+	populateTimestepTables();
+	PanelCommand::captureEnd(cmd, fParams);
+	updateTab();
 }
 //Respond to user has typed in a row. Convert it to an int, swap it up or down
 //until it's in ascending order.

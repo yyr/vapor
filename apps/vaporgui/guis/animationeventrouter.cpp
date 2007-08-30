@@ -110,6 +110,7 @@ AnimationEventRouter::hookUpTab()
 	connect (timestepSampleTable, SIGNAL(valueChanged(int,int)), this, SLOT(timestepChanged(int,int)));
 	connect (addSampleButton,SIGNAL(clicked()), this, SLOT(addSample()));
 	connect (deleteSampleButton,SIGNAL(clicked()), this, SLOT(deleteSample()));
+	connect (rebuildButton, SIGNAL(clicked()), this, SLOT(guiRebuildList()));
 	
 	//Button clicking for toggle buttons:
 	connect(pauseButton, SIGNAL(clicked()), this, SLOT(animationPauseClick()));
@@ -609,5 +610,21 @@ void AnimationEventRouter::populateTimestepTable(){
 		timestepSampleTable->setText(i,0,QString::number(tSteps[i]));
 	}
 	timestepSampleCheckbox->setChecked(aParams->usingTimestepList());
+}
+void AnimationEventRouter::guiRebuildList(){
+	confirmText(false);
+	AnimationParams* aParams = VizWinMgr::getInstance()->getActiveAnimationParams();
+	PanelCommand* cmd = PanelCommand::captureStart(aParams, "Rebuild timestep list");
+	std::vector<int>& timesteplist = aParams->getTimestepList();
+	timesteplist.clear();
+	DataStatus* ds = DataStatus::getInstance();
+	int minTime = ds->getMinTimestep();
+	int maxTime = ds->getMaxTimestep();
+	for (int i = minTime; i<= maxTime; i++){
+		if (ds->dataIsPresent(i)) timesteplist.push_back(i);
+	}
+	populateTimestepTable();
+	PanelCommand::captureEnd(cmd, aParams);
+	updateTab();
 }
  

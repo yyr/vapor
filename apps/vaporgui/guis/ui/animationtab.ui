@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>450</width>
-            <height>689</height>
+            <height>619</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -51,7 +51,7 @@ time steps is also controlled here.</string>
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout101</cstring>
+                <cstring>layout21</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -161,7 +161,7 @@ step, and will animate in unison.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>46</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -461,7 +461,7 @@ step, and will animate in unison.</string>
                     <property name="sizeHint">
                         <size>
                             <width>31</width>
-                            <height>46</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -651,7 +651,7 @@ step, and will animate in unison.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>17</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -747,13 +747,13 @@ size slider and text box.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>18</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout100</cstring>
+                        <cstring>layout20</cstring>
                     </property>
                     <hbox>
                         <property name="name">
@@ -771,14 +771,14 @@ size slider and text box.</string>
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>51</width>
+                                    <width>16</width>
                                     <height>20</height>
                                 </size>
                             </property>
                         </spacer>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout242</cstring>
+                                <cstring>layout19</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -786,7 +786,7 @@ size slider and text box.</string>
                                 </property>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout241</cstring>
+                                        <cstring>layout18</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -804,7 +804,7 @@ size slider and text box.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>38</width>
+                                                    <width>30</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -827,11 +827,28 @@ size slider and text box.</string>
 be played during the animation.</string>
                                             </property>
                                         </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer17</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>51</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
                                     </hbox>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout240</cstring>
+                                        <cstring>layout16</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -865,6 +882,20 @@ be played during the animation.</string>
                                             <property name="whatsThis" stdset="0">
                                                 <string>Specify a list of time steps that will
 be played during the animation.</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>rebuildButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Rebuild</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Rebuild list of time steps</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>Click Rebuild to construct a list of time steps based on the time steps for which there is data.</string>
                                             </property>
                                         </widget>
                                     </hbox>
@@ -922,7 +953,7 @@ be played during the animation.</string>
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>40</width>
+                                    <width>20</width>
                                     <height>20</height>
                                 </size>
                             </property>
@@ -953,7 +984,7 @@ be played during the animation.</string>
                     <property name="sizeHint">
                         <size>
                             <width>21</width>
-                            <height>17</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -1063,7 +1094,7 @@ be played during the animation.</string>
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>17</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>

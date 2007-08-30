@@ -94,6 +94,7 @@ protected slots:
 	void showSetupHelp();
 	void addSample();
 	void deleteSample();
+	void guiRebuildList();
 	void timestepChanged1(int row, int col);
 	void timestepChanged2(int row, int col);
 	void toggleAdvanced();

@@ -38,7 +38,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout88</cstring>
+                <cstring>layout122</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -2732,7 +2732,7 @@ information.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout103</cstring>
+                                <cstring>layout116</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -2890,7 +2890,7 @@ time steps, use the time step list
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout102</cstring>
+                                        <cstring>layout115</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -2908,14 +2908,14 @@ time steps, use the time step list
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>41</width>
+                                                    <width>16</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
                                         </spacer>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout242</cstring>
+                                                <cstring>layout114</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -2923,7 +2923,7 @@ time steps, use the time step list
                                                 </property>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout241</cstring>
+                                                        <cstring>layout113</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -2941,7 +2941,7 @@ time steps, use the time step list
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>38</width>
+                                                                    <width>35</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -2968,11 +2968,28 @@ These time steps will also be
 used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer115</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>31</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
                                                     </hbox>
                                                 </widget>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout240</cstring>
+                                                        <cstring>layout112</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -3014,6 +3031,17 @@ during unsteady flow integration.
 During field line advection,
 These time steps will also be
 used for steady flow integration.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>rebuildButton1</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Rebuild</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Build a list of timesteps based on the timesteps available in the data</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -3075,7 +3103,7 @@ used for steady flow integration.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>40</width>
+                                                    <width>20</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -4001,14 +4029,14 @@ time steps, use the time step list
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>41</width>
+                                                    <width>16</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
                                         </spacer>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout242_2</cstring>
+                                                <cstring>layout114_2</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -4016,7 +4044,7 @@ time steps, use the time step list
                                                 </property>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout241_2</cstring>
+                                                        <cstring>layout113_2</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -4034,7 +4062,7 @@ time steps, use the time step list
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>38</width>
+                                                                    <width>35</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -4061,11 +4089,28 @@ These time steps will also be
 used for steady flow integration.</string>
                                                             </property>
                                                         </widget>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer115_2</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>31</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
                                                     </hbox>
                                                 </widget>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout240_2</cstring>
+                                                        <cstring>layout112_2</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -4107,6 +4152,17 @@ during unsteady flow integration.
 During field line advection,
 These time steps will also be
 used for steady flow integration.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>rebuildButton2</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Rebuild</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Build a list of timesteps based on the timesteps available in the data</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
