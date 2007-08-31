@@ -2578,6 +2578,25 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 	int bSize =  (int)(*(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize()));
 	int numPts = 0;
 	float dataSum = 0.f;
+	DataStatus* ds = DataStatus::getInstance();
+	
+	float lowx = 0.f, highx = 0.f, lowy = 0.f, highy = 0.f, lowz = 0.f, highz = 0.f;
+	bool xnull = (steadyVarNum[0] == 0);
+	bool ynull = (steadyVarNum[1] == 0);
+	bool znull = (steadyVarNum[2] == 0);
+	if (!xnull) {
+		lowx = ds->getBelowValue(steadyVarNum[0]);
+		highx = ds->getAboveValue(steadyVarNum[0]);
+	}
+	if (!ynull) {
+		lowy = ds->getBelowValue(steadyVarNum[1]);
+		highy = ds->getAboveValue(steadyVarNum[1]);
+	}
+	if (!znull) {
+		lowz = ds->getBelowValue(steadyVarNum[2]);
+		highz = ds->getAboveValue(steadyVarNum[2]);
+	}
+	
 	//OK, we got the data. find the sum:
 	for (size_t i = min_dim[0]; i<=max_dim[0]; i++){
 		for (size_t j = min_dim[1]; j<=max_dim[1]; j++){
@@ -2586,12 +2605,16 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 					(j - min_bdim[1]*bSize)*(bSize*(max_bdim[0]-min_bdim[0]+1)) +
 					(k - min_bdim[2]*bSize)*(bSize*(max_bdim[1]-min_bdim[1]+1))*(bSize*(max_bdim[0]-min_bdim[0]+1));
 				
-				float varX = (varData[0] ? varData[0][xyzCoord] : 0.f);
-				if (varX == BELOW_GRID || varX == ABOVE_GRID) continue;
-				float varY = (varData[1] ? varData[1][xyzCoord] : 0.f);
-				if (varY == BELOW_GRID || varY == ABOVE_GRID) continue;
-				float varZ = (varData[2] ? varData[2][xyzCoord] : 0.f);
-				if (varZ == BELOW_GRID || varZ == ABOVE_GRID) continue;
+				float varX = (xnull ? 0.f : varData[0][xyzCoord]);
+				float varY = (ynull ? 0.f : varData[1][xyzCoord]);
+				float varZ = (znull ? 0.f : varData[2][xyzCoord]);
+				//points above or below grid have all nonzero coords at high/low val
+
+				//Test if all the non-null components are either above or below
+				//the grid.  If so, don't count it.
+				
+				if ((znull || varZ == lowz) && (ynull || varY == lowy) && (xnull || varX == lowx)) continue;
+				if ((znull || varZ == highz) && (ynull || varY == highy) && (xnull || varX == highx)) continue;
 				
 				dataSum += sqrt(varX*varX+varY*varY+varZ*varZ);
 				numPts++;

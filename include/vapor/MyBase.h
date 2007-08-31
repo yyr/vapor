@@ -46,9 +46,9 @@ using namespace std;
 
 namespace VetsUtil {
 
-//Codes used for variables outside valid grid
-const float ABOVE_GRID = 1.e30f;
-const float BELOW_GRID = -1.e30f;
+//default values used for variables outside valid grid
+const float ABOVE_GRID = 0.f;
+const float BELOW_GRID = 0.f;
 
 //
 // The MyBase base class provides a simple error reporting mechanism 
