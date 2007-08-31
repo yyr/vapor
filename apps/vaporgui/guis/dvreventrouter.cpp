@@ -104,6 +104,7 @@ DvrEventRouter::hookUpTab()
 	connect (typeCombo, SIGNAL(activated(int)), this, SLOT(guiSetType(int)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(dvrLoadTF()));
+	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(dvrLoadInstalledTF()));
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(dvrSaveTF()));
 	
 	connect (variableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetComboVarNum(int) ) );
@@ -342,6 +343,14 @@ fileSaveTF(DvrParams* dParams){
 	Session::getInstance()->updateTFFilePath(&s);
 }
 void DvrEventRouter::
+dvrLoadInstalledTF(){
+	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
+	//Get the path from the environment:
+	char *home = getenv("VAPOR_HOME");
+	QString installPath = QString(home)+ "/share/palettes";
+	fileLoadTF(dParams,installPath.ascii(),false);
+}
+void DvrEventRouter::
 dvrLoadTF(void){
 	//If there are no TF's currently in Session, just launch file load dialog.
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
@@ -351,10 +360,13 @@ dvrLoadTF(void){
 			"Load TF Dialog", true);
 		int rc = loadTFDialog->exec();
 		if (rc == 0) return;
-		if (rc == 1) fileLoadTF(dParams);
+		if (rc == 1) {
+			fileLoadTF(dParams, Session::getInstance()->getTFFilePath().c_str(),true);
+			
+		}
 		//if rc == 2, we already (probably) loaded a tf from the session
 	} else {
-		fileLoadTF(dParams);
+		fileLoadTF(dParams, Session::getInstance()->getTFFilePath().c_str(),true);
 	}
 	setEditorDirty();
 }
@@ -382,13 +394,13 @@ sessionLoadTF(QString* name){
 	VizWinMgr::getInstance()->setClutDirty(dParams);
 }
 void DvrEventRouter::
-fileLoadTF(DvrParams* dParams){
+fileLoadTF(DvrParams* dParams, const char* startPath, bool savePath){
 	if (dParams->getNumVariables() <= 0) return;
 	int varNum = dParams->getSessionVarNum();
 	//Open a file load dialog
 	
     QString s = QFileDialog::getOpenFileName(
-                    Session::getInstance()->getTFFilePath().c_str(),
+                    startPath,
                     "Vapor Transfer Functions (*.vtf)",
                     0,
                     "load TF dialog",
@@ -426,9 +438,10 @@ fileLoadTF(DvrParams* dParams){
 	}
 
 	dParams->hookupTF(t, varNum);
-	PanelCommand::captureEnd(cmd, dParams);
 	//Remember the path to the file:
-	Session::getInstance()->updateTFFilePath(&s);
+	if(savePath) Session::getInstance()->updateTFFilePath(&s);
+	PanelCommand::captureEnd(cmd, dParams);
+	
 	setEditorDirty();
 	setDatarangeDirty(dParams);
 	VizWinMgr::getInstance()->setClutDirty(dParams);

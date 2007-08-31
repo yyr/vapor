@@ -73,7 +73,7 @@ public:
 
 	
 	
-	void fileLoadTF(DvrParams* dParams);
+	void fileLoadTF(DvrParams* dParams, const char* filepath, bool savePath);
 	void sessionLoadTF(QString* name);
 	void fileSaveTF(DvrParams* dParams);
 	//Following methods are set from gui, have undo/redo support:
@@ -136,6 +136,7 @@ protected slots:
 	void dvrOpacityScale();
 	
 	void dvrLoadTF();
+	void dvrLoadInstalledTF();
 	void dvrSaveTF();
 	void refreshHisto();
 

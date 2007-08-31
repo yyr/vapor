@@ -158,6 +158,7 @@ ProbeEventRouter::hookUpTab()
 	connect (zSizeSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeZSize()));
 	
 	connect (loadButton, SIGNAL(clicked()), this, SLOT(probeLoadTF()));
+	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(probeLoadInstalledTF()));
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(probeSaveTF()));
 	
 	connect (captureButton, SIGNAL(clicked()), this, SLOT(captureImage()));
@@ -373,7 +374,14 @@ void ProbeEventRouter::
 probeOpacityScale() {
 	guiSetOpacityScale(opacityScaleSlider->value());
 }
-
+void ProbeEventRouter::
+probeLoadInstalledTF(){
+	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	//Get the path from the environment:
+	char *home = getenv("VAPOR_HOME");
+	QString installPath = QString(home)+ "/share/palettes";
+	fileLoadTF(pParams,installPath.ascii(),false);
+}
 void ProbeEventRouter::
 probeLoadTF(void){
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
@@ -384,10 +392,10 @@ probeLoadTF(void){
 			"Load TF Dialog", true);
 		int rc = loadTFDialog->exec();
 		if (rc == 0) return;
-		if (rc == 1) fileLoadTF(pParams);
+		if (rc == 1) fileLoadTF(pParams, Session::getInstance()->getTFFilePath().c_str(), true);
 		//if rc == 2, we already (probably) loaded a tf from the session
 	} else {
-		fileLoadTF(pParams);
+		fileLoadTF(pParams, Session::getInstance()->getTFFilePath().c_str(), true);
 	}
 	
 	setEditorDirty();
@@ -672,14 +680,14 @@ sessionLoadTF(QString* name){
 	setEditorDirty();
 }
 void ProbeEventRouter::
-fileLoadTF(ProbeParams* dParams){
+fileLoadTF(ProbeParams* dParams, const char* path, bool savePath){
 	
 	//The transfer function is indexed by firstVarNum, which is a session variable num
 	int varNum = dParams->getSessionVarNum();
 	//Open a file load dialog
 	
     QString s = QFileDialog::getOpenFileName(
-                    Session::getInstance()->getTFFilePath().c_str(),
+                    path,
                     "Vapor Transfer Functions (*.vtf)",
                     0,
                     "load TF dialog",
@@ -718,7 +726,7 @@ fileLoadTF(ProbeParams* dParams){
 	dParams->hookupTF(t, varNum);
 	PanelCommand::captureEnd(cmd, dParams);
 	//Remember the path to the file:
-	Session::getInstance()->updateTFFilePath(&s);
+	if(savePath) Session::getInstance()->updateTFFilePath(&s);
 	setDatarangeDirty(dParams);
 	setEditorDirty();
 }

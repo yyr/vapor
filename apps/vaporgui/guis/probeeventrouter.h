@@ -56,7 +56,7 @@ public:
 	virtual void cleanParams(Params* p); 
 
 
-	void fileLoadTF(ProbeParams* dParams);
+	void fileLoadTF(ProbeParams* dParams, const char* path, bool savePath);
 	void sessionLoadTF(QString* name);
 	void fileSaveTF(ProbeParams* dParams);
 	
@@ -168,6 +168,7 @@ protected slots:
 	void guiBindColorToOpac();
 	void guiBindOpacToColor();
 	void probeLoadTF();
+	void probeLoadInstalledTF();
 	void probeSaveTF();
 	void refreshProbeHisto();
 	void guiSetNumRefinements(int numtrans);

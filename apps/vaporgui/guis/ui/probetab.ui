@@ -6,7 +6,7 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>0</x>
+            <x>1</x>
             <y>0</y>
             <width>450</width>
             <height>1369</height>
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout48</cstring>
+                <cstring>layout169</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -339,7 +339,7 @@ window toolbar.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout47</cstring>
+                                <cstring>layout168</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -2991,30 +2991,13 @@ specified range.</string>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout22</cstring>
+                                        <cstring>layout166</cstring>
                                     </property>
-                                    <grid>
+                                    <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
-                                        <widget class="QPushButton" row="1" column="3">
-                                            <property name="name">
-                                                <cstring>saveButton</cstring>
-                                            </property>
-                                            <property name="maximumSize">
-                                                <size>
-                                                    <width>200</width>
-                                                    <height>32767</height>
-                                                </size>
-                                            </property>
-                                            <property name="text">
-                                                <string>Save Transfer Function</string>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Save this transfer function to a file or session</string>
-                                            </property>
-                                        </widget>
-                                        <spacer row="0" column="0">
+                                        <spacer>
                                             <property name="name">
                                                 <cstring>spacer43</cstring>
                                             </property>
@@ -3026,54 +3009,12 @@ specified range.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>30</width>
+                                                    <width>47</width>
                                                     <height>21</height>
                                                 </size>
                                             </property>
                                         </spacer>
-                                        <widget class="QPushButton" row="1" column="1">
-                                            <property name="name">
-                                                <cstring>loadButton</cstring>
-                                            </property>
-                                            <property name="sizePolicy">
-                                                <sizepolicy>
-                                                    <hsizetype>1</hsizetype>
-                                                    <vsizetype>0</vsizetype>
-                                                    <horstretch>0</horstretch>
-                                                    <verstretch>0</verstretch>
-                                                </sizepolicy>
-                                            </property>
-                                            <property name="maximumSize">
-                                                <size>
-                                                    <width>200</width>
-                                                    <height>32767</height>
-                                                </size>
-                                            </property>
-                                            <property name="text">
-                                                <string>Load Transfer Function</string>
-                                            </property>
-                                            <property name="toolTip" stdset="0">
-                                                <string>Load transfer function from file or session</string>
-                                            </property>
-                                        </widget>
-                                        <spacer row="1" column="4">
-                                            <property name="name">
-                                                <cstring>spacer46</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>41</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QPushButton" row="0" column="1">
+                                        <widget class="QPushButton">
                                             <property name="name">
                                                 <cstring>ColorBindButton</cstring>
                                             </property>
@@ -3094,7 +3035,7 @@ the color control point, or vice-versa,
 depending on which button is clicked.</string>
                                             </property>
                                         </widget>
-                                        <spacer row="0" column="2">
+                                        <spacer>
                                             <property name="name">
                                                 <cstring>spacer27</cstring>
                                             </property>
@@ -3106,46 +3047,12 @@ depending on which button is clicked.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>20</width>
+                                                    <width>16</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
                                         </spacer>
-                                        <spacer row="1" column="0">
-                                            <property name="name">
-                                                <cstring>spacer45</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>61</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <spacer row="1" column="2">
-                                            <property name="name">
-                                                <cstring>spacer30</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>20</width>
-                                                    <height>21</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
-                                        <widget class="QPushButton" row="0" column="3">
+                                        <widget class="QPushButton">
                                             <property name="name">
                                                 <cstring>OpacityBindButton</cstring>
                                             </property>
@@ -3166,7 +3073,7 @@ the color control point, or vice-versa,
 depending on which button is clicked.</string>
                                             </property>
                                         </widget>
-                                        <spacer row="0" column="4">
+                                        <spacer>
                                             <property name="name">
                                                 <cstring>spacer44</cstring>
                                             </property>
@@ -3178,12 +3085,143 @@ depending on which button is clicked.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>40</width>
+                                                    <width>27</width>
                                                     <height>21</height>
                                                 </size>
                                             </property>
                                         </spacer>
-                                    </grid>
+                                    </hbox>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout122</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer45</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>16</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>loadButton</cstring>
+                                            </property>
+                                            <property name="sizePolicy">
+                                                <sizepolicy>
+                                                    <hsizetype>1</hsizetype>
+                                                    <vsizetype>0</vsizetype>
+                                                    <horstretch>0</horstretch>
+                                                    <verstretch>0</verstretch>
+                                                </sizepolicy>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>200</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>Load TF</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Load transfer function from file or session</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer160</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>31</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>loadInstalledButton</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Load Installed TF</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Load Transfer Function from directory of pre-installed transfer functions</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer30</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>16</width>
+                                                    <height>21</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QPushButton">
+                                            <property name="name">
+                                                <cstring>saveButton</cstring>
+                                            </property>
+                                            <property name="maximumSize">
+                                                <size>
+                                                    <width>200</width>
+                                                    <height>32767</height>
+                                                </size>
+                                            </property>
+                                            <property name="text">
+                                                <string>Save TF</string>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Save this transfer function to a file or session</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer46</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>23</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
