@@ -1642,8 +1642,9 @@ int	main(int argc, char **argv)
 	char * startTime = new char[20];
 	char * endTime = new char[20];
 	long maxVts = 1; // The last Vapor time step
-	startTime = opt.tsstart; // Starting time stamp from option list
-	endTime = opt.tsend; // Last time step to convert
+
+	strcpy(startTime, opt.tsstart);// Starting time stamp from option list
+	strcpy(endTime, opt.tsend);// Last time step to convert
 	
 	if (opt.debug) MyBase::SetDiagMsgFilePtr(stderr);
 
@@ -1672,7 +1673,7 @@ int	main(int argc, char **argv)
 	mindtTemp = metadata->GetUserDataLong( "WRF_MIN_DT" );
 	minDeltaT = mindtTemp[0];
 	if ( strcmp( startTime, "???????" ) == 0 ) // If no startTime option is given,
-		startTime = tsNaught;				   // default to starting stamp from VDF
+		strcpy(startTime,tsNaught);				   // default to starting stamp from VDF
 	maxVts = metadata->GetNumTimeSteps() - 1;
 	vector<string> tStamps(0); // Holds time stamps for output
 
@@ -1756,6 +1757,7 @@ int	main(int argc, char **argv)
 		cout << setw(TSWIDTH) << "Time Stamp" << setw(CONVWIDTH) << "Converted?" << "Low Vert. Extents" << endl;
 
 	// Convert data for all time steps that we're supposed to
+
 	for ( size_t wrfT = 0 ; wrfT < howManyTimes ; wrfT++ )
 	{
 		// If we want output, print what time step we're working on
@@ -1844,15 +1846,19 @@ int	main(int argc, char **argv)
 	// Report summary information
 	if ( !opt.quiet )
 	{
-		cout << "Most restrictive vertical extents: " << newExts[0] << " to " << newExts[1] << endl;
-		cout << "Time steps converted: " << totalConverted << " of " << howManyTimes << endl;
+		if (totalConverted > 0) {
+			cout << "Most restrictive vertical extents: " << newExts[0] << " to " << newExts[1] << endl;
+			cout << "Time steps converted: " << totalConverted << " of " << howManyTimes << endl;
+		} else {
+			cout << "No times in WRF file match the time steps specified in Vapor metadata." << endl;
+		}
 	}
 	else // Quieter version of the most restrictive extents--needed by script
 		cout << newExts[0] << " " << newExts[1] << endl;
 	
 	delete [] tsNaught;
-//	delete [] startTime; // Don't know why, but Visual C++ says bad assertion
-	delete [] endTime;
+	delete startTime; 
+	delete endTime;
 	delete [] stillNeeded;
 	delete [] fBuffer;
 	for ( size_t i = 0 ; i < opt.varnames.size() ; i++ )
