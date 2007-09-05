@@ -100,10 +100,21 @@ const string VizWinMgr::_vizColorbarBackgroundColorAttr = "ColorbarBackgroundCol
 const string VizWinMgr::_vizRegionColorAttr = "RegionFrameColor";
 const string VizWinMgr::_vizSubregionColorAttr = "SubregionFrameColor";
 const string VizWinMgr::_vizAxisPositionAttr = "AxisPosition";
+const string VizWinMgr::_vizAxisOriginAttr = "AxisOriginPosition";
+const string VizWinMgr::_vizMinTicAttr = "MinTicPositions";
+const string VizWinMgr::_vizMaxTicAttr = "MaxTicPositions";
+const string VizWinMgr::_vizTicLengthAttr = "AxisTicLengths";
+const string VizWinMgr::_vizTicDirAttr = "TicDirections";
+const string VizWinMgr::_vizNumTicsAttr = "NumTicMarks";
+const string VizWinMgr::_vizAxisColorAttr = "AxisAnnotationColor";
+const string VizWinMgr::_vizTicWidthAttr = "TicWidth";
+const string VizWinMgr::_vizLabelHeightAttr = "AxisLabelHeight";
+const string VizWinMgr::_vizLabelDigitsAttr = "AxisLabelDigits";
 const string VizWinMgr::_vizColorbarLLPositionAttr = "ColorbarLLPosition";
 const string VizWinMgr::_vizColorbarURPositionAttr = "ColorbarURPosition";
 const string VizWinMgr::_vizColorbarNumTicsAttr = "ColorbarNumTics";
-const string VizWinMgr::_vizAxesEnabledAttr = "AxesEnabled";
+const string VizWinMgr::_vizAxisArrowsEnabledAttr = "AxesEnabled";
+const string VizWinMgr::_vizAxisAnnotationEnabledAttr = "AxisAnnotationEnabled";
 const string VizWinMgr::_vizColorbarEnabledAttr = "ColorbarEnabled";
 const string VizWinMgr::_vizElevGridEnabledAttr = "ElevGridRenderingEnabled";
 const string VizWinMgr::_vizElevGridColorAttr = "ElevGridColor";
@@ -1397,9 +1408,9 @@ XmlNode* VizWinMgr::buildNode() {
 			attrs[_vizElevGridColorAttr] = oss.str();
 			
 			oss.str(empty);
-			if (vizWin[i]->axesAreEnabled()) oss<<"true";
+			if (vizWin[i]->axisArrowsAreEnabled()) oss<<"true";
 				else oss << "false";
-			attrs[_vizAxesEnabledAttr] = oss.str();
+			attrs[_vizAxisArrowsEnabledAttr] = oss.str();
 
 			oss.str(empty);
 			if (vizWin[i]->elevGridRenderingEnabled()) oss<<"true";
@@ -1421,10 +1432,67 @@ XmlNode* VizWinMgr::buildNode() {
 			attrs[_vizElevGridRefinementAttr] = oss.str();
 
 			oss.str(empty);
-			oss << (float)vizWin[i]->getAxisCoord(0) << " "
-				<< (float)vizWin[i]->getAxisCoord(1) << " "
-				<< (float)vizWin[i]->getAxisCoord(2);
+			oss << (float)vizWin[i]->getAxisArrowCoord(0) << " "
+				<< (float)vizWin[i]->getAxisArrowCoord(1) << " "
+				<< (float)vizWin[i]->getAxisArrowCoord(2);
 			attrs[_vizAxisPositionAttr] = oss.str();
+
+			oss.str(empty);
+			if (vizWin[i]->axisAnnotationIsEnabled())oss<<"true";
+			else oss<<"false";
+			attrs[_vizAxisAnnotationEnabledAttr] = oss.str();
+
+			oss.str(empty);
+			oss << (float)vizWin[i]->getAxisOriginCoord(0) << " "
+				<< (float)vizWin[i]->getAxisOriginCoord(1) << " "
+				<< (float)vizWin[i]->getAxisOriginCoord(2);
+			attrs[_vizAxisOriginAttr] = oss.str();
+
+			oss.str(empty);
+			oss << (float)vizWin[i]->getMinTic(0) << " "
+				<< (float)vizWin[i]->getMinTic(1) << " "
+				<< (float)vizWin[i]->getMinTic(2);
+			attrs[_vizMinTicAttr] = oss.str();
+
+			oss.str(empty);
+			oss << (float)vizWin[i]->getMaxTic(0) << " "
+				<< (float)vizWin[i]->getMaxTic(1) << " "
+				<< (float)vizWin[i]->getMaxTic(2);
+			attrs[_vizMaxTicAttr] = oss.str();
+
+			oss.str(empty);
+			oss << (float)vizWin[i]->getTicLength(0) << " "
+				<< (float)vizWin[i]->getTicLength(1) << " "
+				<< (float)vizWin[i]->getTicLength(2);
+			attrs[_vizTicLengthAttr] = oss.str();
+
+			oss.str(empty);
+			oss << (long)vizWin[i]->getNumTics(0) << " "
+				<< (long)vizWin[i]->getNumTics(1) << " "
+				<< (long)vizWin[i]->getNumTics(2);
+			attrs[_vizNumTicsAttr] = oss.str();
+
+			oss.str(empty);
+			oss << (long)vizWin[i]->getTicDir(0) << " "
+				<< (long)vizWin[i]->getTicDir(1) << " "
+				<< (long)vizWin[i]->getTicDir(2);
+			attrs[_vizTicDirAttr] = oss.str();
+
+			oss.str(empty);
+			oss << (float)vizWin[i]->getTicWidth();
+			attrs[_vizTicWidthAttr] = oss.str();
+			oss.str(empty);
+			oss << (long)vizWin[i]->getLabelHeight();
+			attrs[_vizLabelHeightAttr] = oss.str();
+			oss.str(empty);
+			oss << (long)vizWin[i]->getLabelDigits();
+			attrs[_vizLabelDigitsAttr] = oss.str();
+			oss.str(empty);
+			clr = vizWin[i]->getAxisColor();
+			oss << (long)clr.red() << " "
+				<< (long)clr.green() << " "
+				<< (long)clr.blue();
+			attrs[_vizAxisColorAttr] = oss.str();
 
 			oss.str(empty);
 			if (vizWin[i]->colorbarIsEnabled()) oss << "true";
@@ -1500,14 +1568,27 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		QColor winSubrgColor(red);
 		QColor winColorbarColor(white);
 		QColor winElevGridColor(darkRed);
-		float axisPos[3];
+		float axisPos[3], axisOriginPos[3];
+		float minTic[3], maxTic[3], ticLength[3];
+		int numTics[3], ticDir[3];
 		axisPos[0]=axisPos[1]=axisPos[2]=0.f;
+		minTic[0] = minTic[1] = minTic[2] = 0.f;
+		maxTic[0] = maxTic[1] = maxTic[2] = 1.f;
+		numTics[0] = numTics[1] = numTics[2] = 6;
+		ticDir[0] = 1; ticDir[1] = 0; ticDir[2] = 0;
+		ticLength[0] = ticLength[1] = ticLength[2] = 0.05f;
+		axisOriginPos[0]=axisOriginPos[1]=axisOriginPos[2]=0.f;
+		QColor axisColor(white);
+		int labelHeight = 10;
+		int labelDigits = 4;
+		float ticWidth = 2.f;
 		float colorbarLLPos[2], colorbarURPos[2];
 		colorbarLLPos[0]=colorbarLLPos[1]=0.f;
 		colorbarURPos[0]=0.1f;
 		colorbarURPos[1]=0.3f;
 		int colorbarTics = 11;
 		bool axesEnabled = false;
+		bool axisAnnotationEnabled = false;
 		bool colorbarEnabled = false;
 		bool regionEnabled = false;
 		bool subregionEnabled = false;
@@ -1553,6 +1634,38 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			else if (StrCmpNoCase(attr, _vizAxisPositionAttr) == 0) {
 				ist >> axisPos[0]; ist>>axisPos[1]; ist>>axisPos[2];
 			}
+			else if (StrCmpNoCase(attr, _vizAxisOriginAttr) == 0) {
+				ist >> axisOriginPos[0]; ist>>axisOriginPos[1]; ist>>axisOriginPos[2];
+			}
+			else if (StrCmpNoCase(attr, _vizMinTicAttr) == 0) {
+				ist >> minTic[0]; ist>>minTic[1]; ist>>minTic[2];
+			}
+			else if (StrCmpNoCase(attr, _vizMaxTicAttr) == 0) {
+				ist >> maxTic[0]; ist>>maxTic[1]; ist>>maxTic[2];
+			}
+			else if (StrCmpNoCase(attr, _vizNumTicsAttr) == 0) {
+				ist >> numTics[0]; ist>>numTics[1]; ist>>numTics[2];
+			}
+			else if (StrCmpNoCase(attr, _vizTicLengthAttr) == 0) {
+				ist >> ticLength[0]; ist>>ticLength[1]; ist>>ticLength[2];
+			}
+			else if (StrCmpNoCase(attr, _vizTicDirAttr) == 0) {
+				ist >> ticDir[0]; ist>>ticDir[1]; ist>>ticDir[2];
+			}
+			else if (StrCmpNoCase(attr, _vizLabelHeightAttr) == 0) {
+				ist >> labelHeight;
+			}
+			else if (StrCmpNoCase(attr, _vizLabelDigitsAttr) == 0) {
+				ist >> labelDigits;
+			}
+			else if (StrCmpNoCase(attr, _vizTicWidthAttr) == 0) {
+				ist >> ticWidth;
+			}
+			else if (StrCmpNoCase(attr, _vizAxisColorAttr) == 0) {
+				int r,g,b;
+				ist >> r; ist>>g; ist>>b;
+				axisColor.setRgb(r,g,b);
+			}
 			else if (StrCmpNoCase(attr, _vizColorbarNumTicsAttr) == 0) {
 				ist >> colorbarTics;
 			}
@@ -1562,9 +1675,13 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			else if (StrCmpNoCase(attr, _vizColorbarURPositionAttr) == 0) {
 				ist >> colorbarURPos[0]; ist>>colorbarURPos[1];
 			}
-			else if (StrCmpNoCase(attr, _vizAxesEnabledAttr) == 0) {
+			else if (StrCmpNoCase(attr, _vizAxisArrowsEnabledAttr) == 0) {
 				if (value == "true") axesEnabled = true; 
 				else axesEnabled = false; 
+			}
+			else if (StrCmpNoCase(attr, _vizAxisAnnotationEnabledAttr) == 0) {
+				if (value == "true") axisAnnotationEnabled = true; 
+				else axisAnnotationEnabled = false; 
 			}
 			else if (StrCmpNoCase(attr, _vizElevGridEnabledAttr) == 0) {
 				if (value == "true") elevGridEnabled = true; 
@@ -1597,7 +1714,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->setRegionFrameColor(winRgColor);
 		vizWin[parsingVizNum]->setSubregionFrameColor(winSubrgColor);
 		vizWin[parsingVizNum]->setColorbarBackgroundColor(winColorbarColor);
-		vizWin[parsingVizNum]->enableAxes(axesEnabled);
+		vizWin[parsingVizNum]->enableAxisArrows(axesEnabled);
+		vizWin[parsingVizNum]->enableAxisAnnotation(axisAnnotationEnabled);
 		vizWin[parsingVizNum]->enableColorbar(colorbarEnabled);
 		vizWin[parsingVizNum]->enableRegionFrame(regionEnabled);
 		vizWin[parsingVizNum]->enableSubregionFrame(subregionEnabled);
@@ -1606,8 +1724,18 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->setElevGridColor(winElevGridColor);
 
 		for (int j = 0; j< 3; j++){
-			vizWin[parsingVizNum]->setAxisCoord(j, axisPos[j]);
+			vizWin[parsingVizNum]->setAxisArrowCoord(j, axisPos[j]);
+			vizWin[parsingVizNum]->setAxisOriginCoord(j, axisOriginPos[j]);
+			vizWin[parsingVizNum]->setNumTics(j, numTics[j]);
+			vizWin[parsingVizNum]->setMinTic(j, minTic[j]);
+			vizWin[parsingVizNum]->setMaxTic(j, maxTic[j]);
+			vizWin[parsingVizNum]->setTicLength(j, ticLength[j]);
+			vizWin[parsingVizNum]->setTicDir(j, ticDir[j]);
 		}
+		vizWin[parsingVizNum]->setLabelHeight(labelHeight);
+		vizWin[parsingVizNum]->setLabelDigits(labelDigits);
+		vizWin[parsingVizNum]->setTicWidth(ticWidth);
+		vizWin[parsingVizNum]->setAxisColor(axisColor);
 		vizWin[parsingVizNum]->setColorbarLLCoord(0, colorbarLLPos[0]);
 		vizWin[parsingVizNum]->setColorbarLLCoord(1, colorbarLLPos[1]);
 		vizWin[parsingVizNum]->setColorbarURCoord(0, colorbarURPos[0]);

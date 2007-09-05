@@ -37,7 +37,7 @@
 //Following factor accentuates the terrain changes by pointing the
 //normals more away from the vertical
 #define ELEVATION_GRID_ACCENT 20.f
-
+class QLabel;
 namespace VAPoR {
 
 typedef bool (*renderCBFcn)(int winnum, bool newCoords);
@@ -133,11 +133,22 @@ public:
 	QColor& getRegionFrameColor() {return regionFrameColor;}
 	QColor& getSubregionFrameColor() {return subregionFrameColor;}
 	QColor& getColorbarBackgroundColor() {return colorbarBackgroundColor;}
-	bool axesAreEnabled() {return axesEnabled;}
+	bool axisArrowsAreEnabled() {return axisArrowsEnabled;}
+	bool axisAnnotationIsEnabled() {return axisAnnotationEnabled;}
 	bool colorbarIsEnabled() {return colorbarEnabled;}
 	bool regionFrameIsEnabled() {return regionFrameEnabled;}
 	bool subregionFrameIsEnabled() {return subregionFrameEnabled;}
-	float getAxisCoord(int i){return axisCoord[i];}
+	float getAxisArrowCoord(int i){return axisArrowCoord[i];}
+	float getAxisOriginCoord(int i){return axisOriginCoord[i];}
+	float getMinTic(int i){return minTic[i];}
+	float getMaxTic(int i){return maxTic[i];}
+	float getTicLength(int i){return ticLength[i];}
+	int getNumTics(int i){return numTics[i];}
+	int getTicDir(int i){return ticDir[i];}
+	int getLabelHeight() {return labelHeight;}
+	int getLabelDigits() {return labelDigits;}
+	float getTicWidth(){return ticWidth;}
+	QColor& getAxisColor() {return axisColor;}
 	float getColorbarLLCoord(int i) {return colorbarLLCoord[i];}
 	float getColorbarURCoord(int i) {return colorbarURCoord[i];}
 	int getColorbarNumTics() {return numColorbarTics;}
@@ -148,14 +159,25 @@ public:
 	void setColorbarBackgroundColor(QColor& c) {colorbarBackgroundColor = c;}
 	void setRegionFrameColor(QColor& c) {regionFrameColor = c;}
 	void setSubregionFrameColor(QColor& c) {subregionFrameColor = c;}
-	void enableAxes(bool enable) {axesEnabled = enable;}
+	void enableAxisArrows(bool enable) {axisArrowsEnabled = enable;}
+	void enableAxisAnnotation(bool enable) {axisAnnotationEnabled = enable;}
 	void enableColorbar(bool enable) {colorbarEnabled = enable;}
 	void enableRegionFrame(bool enable) {regionFrameEnabled = enable;}
 	void enableSubregionFrame(bool enable) {subregionFrameEnabled = enable;}
 	void setElevGridColor(QColor& c) {elevColor = c;}
 	void setElevGridRefinementLevel(int lev) {elevGridRefLevel = lev;}
 	void enableElevGridRendering(bool val) {renderElevGrid = val;}
-	void setAxisCoord(int i, float val){axisCoord[i] = val;}
+	void setAxisArrowCoord(int i, float val){axisArrowCoord[i] = val;}
+	void setAxisOriginCoord(int i, float val){axisOriginCoord[i] = val;}
+	void setNumTics(int i, int val) {numTics[i] = val;}
+	void setTicDir(int i, int val) {ticDir[i] = val;}
+	void setMinTic(int i, float val) {minTic[i] = val;}
+	void setMaxTic(int i, float val) {maxTic[i] = val;}
+	void setTicLength(int i, float val) {ticLength[i] = val;}
+	void setLabelHeight(int h){labelHeight = h;}
+	void setLabelDigits(int d) {labelDigits = d;}
+	void setTicWidth(float w) {ticWidth = w;}
+	void setAxisColor(QColor& c) {axisColor = c;}
 	void setColorbarLLCoord(int i, float crd) {colorbarLLCoord[i] = crd;}
 	void setColorbarURCoord(int i, float crd) {colorbarURCoord[i] = crd;}
 	void setColorbarNumTics(int i) {numColorbarTics = i;}
@@ -325,7 +347,10 @@ protected:
 	void renderRegionBounds(float* extents, int selectedFace, float faceDisplacement);
 	
 	void drawSubregionBounds(float* extents);
-	void drawAxes(float* extents);
+	void drawAxisArrows(float* extents);
+	void drawAxisTics();
+	void drawAxisLabels();
+	void deleteAxisLabels();
 	void drawElevationGrid(size_t timestep);
 	void placeLights();
 	bool rebuildElevationGrid(size_t timestep);
@@ -385,11 +410,22 @@ protected:
 	QColor subregionFrameColor;
 	QColor colorbarBackgroundColor;
 	
-	bool axesEnabled;
+	bool axisArrowsEnabled;
+	bool axisAnnotationEnabled;
 	bool regionFrameEnabled;
 	bool subregionFrameEnabled;
 	bool colorbarEnabled;
-	float axisCoord[3];
+	float axisArrowCoord[3];
+	float axisOriginCoord[3];
+	float minTic[3];
+	float maxTic[3];
+	float ticLength[3];
+	int ticDir[3];
+	int numTics[3];
+	int labelHeight, labelDigits;
+	float ticWidth;
+	QColor axisColor;
+
 	float colorbarLLCoord[2];
 	float colorbarURCoord[2];
 	int numColorbarTics;
@@ -412,6 +448,8 @@ protected:
 	//If the current window is not active, it will still share the region, if
 	//the region is shared, and the active region is shared.
 	static bool regionShareFlag;
+	QLabel** axisTextLabels[3];
+	int axisLabelNums[3];
 
 	
 };

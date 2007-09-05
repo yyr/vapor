@@ -34,6 +34,7 @@
 
 #include <math.h>
 #include <qgl.h>
+#include <qlabel.h>
 #include "assert.h"
 #include "vaporinternal/jpegapi.h"
 #include "common.h"
@@ -76,12 +77,28 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	elevColor = QColor(150,75,0);
 	renderElevGrid = false;
 	elevGridRefLevel = 0;
-	axesEnabled = false;
+	axisArrowsEnabled = false;
+	axisAnnotationEnabled = false;
 	regionFrameEnabled = true;
 	subregionFrameEnabled = false;
 	colorbarEnabled = false;
-	for (int i = 0; i<3; i++)
-	    axisCoord[i] = -0.f;
+	for (int i = 0; i<3; i++){
+	    axisArrowCoord[i] = 0.f;
+		axisOriginCoord[i] = 0.f;
+		numTics[i] = 6;
+		ticLength[i] = 0.05f;
+		minTic[i] = 0.f;
+		maxTic[i] = 1.f;
+		ticDir[i] = 0;
+		axisLabelNums[i] = 0;
+		axisTextLabels[i] = 0;
+	}
+	ticDir[0] = 1;
+	labelHeight = 10;
+	labelDigits = 4;
+	ticWidth = 2.f;
+	axisColor = QColor(white);
+
 	colorbarLLCoord[0] = 0.1f;
 	colorbarLLCoord[1] = 0.1f;
 	colorbarURCoord[0] = 0.3f;
@@ -304,7 +321,8 @@ void GLWindow::paintGL()
       drawSubregionBounds(extents);
     } 
 
-    if (axesAreEnabled()) drawAxes(extents);
+    if (axisArrowsAreEnabled()) drawAxisArrows(extents);
+	if (axisAnnotationIsEnabled() && !sphericalTransform) drawAxisTics();
 
 
 	//render the region geometry, if in region mode, and active visualizer, or region shared
@@ -343,11 +361,18 @@ void GLWindow::paintGL()
 			drawElevationGrid(timeStep);
 		}
 	}
+	if (axisAnnotationIsEnabled() && !sphericalTransform) drawAxisLabels();
+	else if (axisLabelNums[0]||axisLabelNums[1]||axisLabelNums[2]) deleteAxisLabels();
+
 	for (int i = 0; i< getNumRenderers(); i++){
 		renderer[i]->paintGL();
 	}
 	
 	swapBuffers();
+	
+
+	
+
 	glPopMatrix();
 	//clear dirty bits
 	
@@ -1399,12 +1424,159 @@ void GLWindow::calcElevGridNormals(size_t timeStep){
 		}
 	}
 }
+void GLWindow::deleteAxisLabels(){
+	
+	for (int i = 0; i<3; i++){
+		if (axisTextLabels[i]) {
+			for (int k = 0; k < axisLabelNums[i]; k++) delete axisTextLabels[i][k];
+			delete axisTextLabels[i];
+		}
+		axisLabelNums[i] = 0;
+	}
+}
 
-void GLWindow::drawAxes(float* extents){
+void GLWindow::drawAxisLabels() {
+	float origin[3], ticMin[3], ticMax[3];
+	
+	//Create new QLabels, if necessary:
+	for (int i = 0; i<3; i++){
+		if (axisLabelNums[i] != numTics[i]){
+			if (axisTextLabels[i]) {
+				for (int k = 0; k < axisLabelNums[i]; k++) delete axisTextLabels[i][k];
+				delete axisTextLabels[i];
+			}
+			axisTextLabels[i] = new QLabel*[numTics[i]];
+			for (int k = 0; k<numTics[i]; k++){
+				axisTextLabels[i][k] = new QLabel(this);
+				
+			}
+			axisLabelNums[i] = numTics[i];
+		}
+	}
+	//Set up the labels with right colors, size
+	QFont f;
+	f.setPointSize(labelHeight);
+	for (int i = 0; i<3; i++){
+		for (int k = 0; k<numTics[i]; k++){
+			axisTextLabels[i][k]->setFont(f);
+			axisTextLabels[i][k]->setPaletteForegroundColor(axisColor);
+			axisTextLabels[i][k]->setPaletteBackgroundColor(backgroundColor);
+		}
+	}
+
+	ViewpointParams::worldToStretchedCube(axisOriginCoord, origin);
+	//minTic and maxTic can be regarded as points in world space, defining
+	//corners of a box that's projected to axes.
+	ViewpointParams::worldToStretchedCube(minTic, ticMin);
+	ViewpointParams::worldToStretchedCube(maxTic, ticMax);
+	
+	float pointOnAxis[3];
+	float winCoords[2];
+	for (int axis = 0; axis < 3; axis++){
+		if (numTics[axis] > 1){
+			vcopy(origin, pointOnAxis);
+			for (int i = 0; i< numTics[axis]; i++){
+				pointOnAxis[axis] = ticMin[axis] + (float)i* (ticMax[axis] - ticMin[axis])/(float)(numTics[axis]-1);
+				float labelValue = minTic[axis] + (float)i* (maxTic[axis] - minTic[axis])/(float)(numTics[axis]-1);
+				projectPointToWin(pointOnAxis, winCoords);
+				int x = (int)(winCoords[0])+2*ticWidth;
+				int y = (int)(height()-winCoords[1])+2*ticWidth;
+				axisTextLabels[axis][i]->setText(QString::number(labelValue,'g',labelDigits));
+				axisTextLabels[axis][i]->adjustSize();
+				axisTextLabels[axis][i]->move(x,y);
+				if(labelHeight>0) axisTextLabels[axis][i]->show();
+				else axisTextLabels[axis][i]->hide();
+				
+			}
+		}
+	}
+	
+	
+}
+void GLWindow::drawAxisTics(){
+	float origin[3], ticMin[3], ticMax[3], ticLen[3];
+	ViewpointParams::worldToStretchedCube(axisOriginCoord, origin);
+	//minTic and maxTic can be regarded as points in world space, defining
+	//corners of a box that's projected to axes.
+	ViewpointParams::worldToStretchedCube(minTic, ticMin);
+	ViewpointParams::worldToStretchedCube(maxTic, ticMax);
+	//TicLength needs to be stretched based on which axes are used for tic direction
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	float maxStretchedCubeSide = ViewpointParams::getMaxStretchedCubeSide();
+	for (int i = 0; i<3; i++){
+		int j = ticDir[i];
+		ticLen[i] = ticLength[i]*stretch[j]/maxStretchedCubeSide;
+	}
+	
+	glDisable(GL_LIGHTING);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glColor3f((float)axisColor.red()/255.f,(float)axisColor.green()/255.f, (float)axisColor.blue()/255.f);
+	glLineWidth(ticWidth);
+	//Draw lines on x-axis:
+	glBegin(GL_LINES);
+	glVertex3f(ticMin[0],origin[1],origin[2]);
+	glVertex3f(ticMax[0],origin[1],origin[2]);
+	glVertex3f(origin[0],ticMin[1],origin[2]);
+	glVertex3f(origin[0],ticMax[1],origin[2]);
+	glVertex3f(origin[0],origin[1],ticMin[2]);
+	glVertex3f(origin[0],origin[1],ticMax[2]);
+	float pointOnAxis[3];
+	float ticVec[3], drawPosn[3];
+	//Now draw tic marks for x:
+	if (numTics[0] > 1 && ticLength[0] > 0.f){
+		pointOnAxis[1] = origin[1];
+		pointOnAxis[2] = origin[2];
+		ticVec[0] = 0.f; ticVec[1] = 0.f; ticVec[2] = 0.f;
+		if (ticDir[0] == 1) ticVec[1] = ticLen[0]; 
+		else ticVec[2] = ticLen[0];
+		for (int i = 0; i< numTics[0]; i++){
+			pointOnAxis[0] = ticMin[0] + (float)i* (ticMax[0] - ticMin[0])/(float)(numTics[0]-1);
+			vsub(pointOnAxis, ticVec, drawPosn);
+			glVertex3fv(drawPosn);
+			vadd(pointOnAxis, ticVec, drawPosn);
+			glVertex3fv(drawPosn);
+		}
+	}
+	//Now draw tic marks for y:
+	if (numTics[1] > 1 && ticLen[1] > 0.f){
+		pointOnAxis[0] = origin[0];
+		pointOnAxis[2] = origin[2];
+		ticVec[0] = 0.f; ticVec[1] = 0.f; ticVec[2] = 0.f;
+		if (ticDir[1] == 0) ticVec[0] = ticLen[1]; 
+		else ticVec[2] = ticLen[1];
+		for (int i = 0; i< numTics[1]; i++){
+			pointOnAxis[1] = ticMin[1] + (float)i* (ticMax[1] - ticMin[1])/(float)(numTics[1]-1);
+			vsub(pointOnAxis, ticVec, drawPosn);
+			glVertex3fv(drawPosn);
+			vadd(pointOnAxis, ticVec, drawPosn);
+			glVertex3fv(drawPosn);
+		}
+	}
+	//Now draw tic marks for z:
+	if (numTics[2] > 1 && ticLen[2] > 0.f){
+		pointOnAxis[0] = origin[0];
+		pointOnAxis[1] = origin[1];
+		ticVec[0] = 0.f; ticVec[1] = 0.f; ticVec[2] = 0.f;
+		if (ticDir[2] == 0) ticVec[0] = ticLen[2]; 
+		else ticVec[1] = ticLen[2];
+		for (int i = 0; i< numTics[2]; i++){
+			pointOnAxis[2] = ticMin[2] + (float)i* (ticMax[2] - ticMin[2])/(float)(numTics[2]-1);
+			vsub(pointOnAxis, ticVec, drawPosn);
+			glVertex3fv(drawPosn);
+			vadd(pointOnAxis, ticVec, drawPosn);
+			glVertex3fv(drawPosn);
+		}
+	}
+	glEnd();
+	
+}
+
+void GLWindow::drawAxisArrows(float* extents){
 	float origin[3];
 	float maxLen = -1.f;
 	for (int i = 0; i<3; i++){
-		origin[i] = extents[i] + (getAxisCoord(i))*(extents[i+3]-extents[i]);
+		origin[i] = extents[i] + (getAxisArrowCoord(i))*(extents[i+3]-extents[i]);
 		if (extents[i+3] - extents[i] > maxLen) {
 			maxLen = extents[i+3] - extents[i];
 		}

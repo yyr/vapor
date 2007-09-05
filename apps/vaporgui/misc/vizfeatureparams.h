@@ -53,7 +53,12 @@ protected slots:
 	void selectBackgroundColor();
 	void selectColorbarBackgroundColor();
 	void selectElevGridColor();
+	void selectAxisColor();
 	void applySettings();
+	void annotationChanged();
+	void xTicOrientationChanged(int);
+	void yTicOrientationChanged(int);
+	void zTicOrientationChanged(int);
 	
 protected:
 	//Copy data from vizwin to and from dialog (shadowed in this class)
@@ -70,20 +75,30 @@ protected:
 	bool dialogChanged;
 	QString vizName;
 	bool showBar;
-	bool showAxes;
+	bool showAxisArrows;
+	bool showElevGrid;
+	bool showAxisAnnotation;
 	bool showRegion;
 	bool showSubregion;
-	float axisCoords[3];
+	float axisArrowCoords[3];
+	float axisOriginCoords[3];
+	float minTic[3],maxTic[3],ticLength[3];
+	int numTics[3],ticDir[3];
+	int labelHeight, labelDigits;
+	float ticWidth;
+	QColor axisAnnotationColor;
+
 	float colorbarLLCoords[2];
 	float colorbarURCoords[2];
 	int numColorbarTics;
 	int elevGridRefinement;
-	bool showElevGrid;
+	
 	QColor backgroundColor;
 	QColor regionFrameColor;
 	QColor subregionFrameColor;
 	QColor colorbarBackgroundColor;
 	QColor elevGridColor;
+	
 	
 	
 	

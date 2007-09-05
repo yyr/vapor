@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>411</width>
-            <height>751</height>
+            <width>415</width>
+            <height>955</height>
         </rect>
     </property>
     <property name="caption">
@@ -103,7 +103,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>25</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -172,7 +172,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>25</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -245,7 +245,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>18</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -279,7 +279,7 @@
                                 <cstring>axisCheckbox</cstring>
                             </property>
                             <property name="text">
-                                <string>Enable Coordinate axes</string>
+                                <string>Show X,Y,Z (R,G,B) Arrows</string>
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>show colored X,Y,Z axes in scene</string>
@@ -309,7 +309,7 @@
                         <cstring>textLabel1_2</cstring>
                     </property>
                     <property name="text">
-                        <string>Axis position relative to current region:</string>
+                        <string>X,Y,Z arrow location relative to current region:</string>
                     </property>
                     <property name="alignment">
                         <set>AlignCenter</set>
@@ -364,6 +364,848 @@
                             <property name="toolTip" stdset="0">
                                 <string>Specify z-coord of axis relative to region in [0,1]</string>
                             </property>
+                        </widget>
+                    </hbox>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout11_2</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer20_2</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>51</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>axisAnnotationCheckbox</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Enable axis annotation</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>show colored X,Y,Z axes in scene</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer21_2</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>81</width>
+                                    <height>21</height>
+                                </size>
+                            </property>
+                        </spacer>
+                    </hbox>
+                </widget>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>axisAnnotationFrame</cstring>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout102</cstring>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel4</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Axis Annotation Properties</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout99</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer129</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout98</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_3</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Axis origin</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout10_2</cstring>
+                                                    </property>
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>axisOriginXEdit</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignRight</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify x-coord of axis origin in user coordinates</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>axisOriginYEdit</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignRight</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify y-coord of axis origin in user coordinates</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit">
+                                                            <property name="name">
+                                                                <cstring>axisOriginZEdit</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>0</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignRight</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Specify z-coord of axis origin in user coordinates</string>
+                                                            </property>
+                                                        </widget>
+                                                    </hbox>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer124</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout96</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Axis color</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QPushButton">
+                                                    <property name="name">
+                                                        <cstring>axisColorButton</cstring>
+                                                    </property>
+                                                    <property name="paletteBackgroundColor">
+                                                        <color>
+                                                            <red>255</red>
+                                                            <green>255</green>
+                                                            <blue>255</blue>
+                                                        </color>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string></string>
+                                                    </property>
+                                                    <property name="autoDefault">
+                                                        <bool>false</bool>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>click to specify color of axes, tic marks, and axis labels</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer125</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>21</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer131</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>17</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout95</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer126</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout91</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Label text size</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>labelHeightEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Point size of axis labels</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout91_3</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2_4</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Digits</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>labelDigitsEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Number of digits displayed in axis labels</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout91_2</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2_3</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Tic width</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>ticWidthEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Thickness of tic marks, in pixels</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer127</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>20</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer128</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>18</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout90</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout89</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Axis</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2_2_6</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>X</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2_2_7</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Y</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2_2_8</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Z</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout85</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2_2_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Min</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>xMinTicEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Minimum coordinate of tic mark on axis</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>yMinTicEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Minimum coordinate of tic mark on axis</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>zMinTicEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Minimum coordinate of tic mark on axis</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout86</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2_2_2_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Max</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>xMaxTicEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Maximum coordinate of tic mark on axis</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>yMaxTicEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Maximum coordinate of tic mark on axis</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>zMaxTicEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Maximum coordinate of tic mark on axis</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout86_2</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2_2_2_2_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Tics</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>xNumTicsEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Number of tic marks on axis</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>yNumTicsEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Number of tic marks on axis</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>zNumTicsEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Number of tic marks on axis</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout86_3</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2_2_2_2_3</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Tic size</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>xTicSizeEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Length of tic marks in user coordinates on this axis</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>yTicSizeEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Length of tic marks in user coordinates on this axis</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLineEdit">
+                                                    <property name="name">
+                                                        <cstring>zTicSizeEdit</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>20</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignHCenter</set>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Length of tic marks in user coordinates on this axis</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout84</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel2_7_2_2_5</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>Tic orient</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QComboBox">
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>Y</string>
+                                                        </property>
+                                                    </item>
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>Z</string>
+                                                        </property>
+                                                    </item>
+                                                    <property name="name">
+                                                        <cstring>xTicOrientCombo</cstring>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Direction of the tic marks on this axis</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QComboBox">
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>X</string>
+                                                        </property>
+                                                    </item>
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>Z</string>
+                                                        </property>
+                                                    </item>
+                                                    <property name="name">
+                                                        <cstring>yTicOrientCombo</cstring>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Direction of the tic marks on this axis</string>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QComboBox">
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>X</string>
+                                                        </property>
+                                                    </item>
+                                                    <item>
+                                                        <property name="text">
+                                                            <string>Y</string>
+                                                        </property>
+                                                    </item>
+                                                    <property name="name">
+                                                        <cstring>zTicOrientCombo</cstring>
+                                                    </property>
+                                                    <property name="toolTip" stdset="0">
+                                                        <string>Direction of the tic marks on this axis</string>
+                                                    </property>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                            </vbox>
                         </widget>
                     </hbox>
                 </widget>
@@ -628,7 +1470,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -826,7 +1668,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>18</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -1131,7 +1973,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>

@@ -119,11 +119,22 @@ public:
 	QColor& getColorbarBackgroundColor() {return myGLWindow->getColorbarBackgroundColor();}
 	
 	//Pass get/set onto glwindow:
-	bool axesAreEnabled() {return myGLWindow->axesAreEnabled();}
+	bool axisArrowsAreEnabled() {return myGLWindow->axisArrowsAreEnabled();}
+	bool axisAnnotationIsEnabled() {return myGLWindow->axisAnnotationIsEnabled();}
 	bool colorbarIsEnabled() {return myGLWindow->colorbarIsEnabled();}
 	bool regionFrameIsEnabled() {return myGLWindow->regionFrameIsEnabled();}
 	bool subregionFrameIsEnabled() {return myGLWindow->subregionFrameIsEnabled();}
-	float getAxisCoord(int i){return myGLWindow->getAxisCoord(i);}
+	float getAxisArrowCoord(int i){return myGLWindow->getAxisArrowCoord(i);}
+	float getAxisOriginCoord(int i){return myGLWindow->getAxisOriginCoord(i);}
+	float getMinTic(int i){return myGLWindow->getMinTic(i);}
+	float getMaxTic(int i){return myGLWindow->getMaxTic(i);}
+	float getTicLength(int i){return myGLWindow->getTicLength(i);}
+	int getNumTics(int i){return myGLWindow->getNumTics(i);}
+	int getTicDir(int i){return myGLWindow->getTicDir(i);}
+	int getLabelHeight(){return myGLWindow->getLabelHeight();}
+	int getLabelDigits(){return myGLWindow->getLabelDigits();}
+	float getTicWidth(){return myGLWindow->getTicWidth();}
+	QColor& getAxisColor(){return myGLWindow->getAxisColor();}
 	float getColorbarLLCoord(int i) {return myGLWindow->getColorbarLLCoord(i);}
 	float getColorbarURCoord(int i) {return myGLWindow->getColorbarURCoord(i);}
 	int getColorbarNumTics() {return myGLWindow->getColorbarNumTics();}
@@ -132,11 +143,23 @@ public:
 	void setColorbarBackgroundColor(QColor& c) {myGLWindow->setColorbarBackgroundColor( c);}
 	void setRegionFrameColor(QColor& c) {myGLWindow->setRegionFrameColor(c);}
 	void setSubregionFrameColor(QColor& c) {myGLWindow->setSubregionFrameColor(c);}
-	void enableAxes(bool enable) {myGLWindow->enableAxes(enable);}
+	void enableAxisArrows(bool enable) {myGLWindow->enableAxisArrows(enable);}
+	void enableAxisAnnotation(bool enable) {myGLWindow->enableAxisAnnotation(enable);}
 	void enableColorbar(bool enable) {myGLWindow->enableColorbar( enable) ;}
 	void enableRegionFrame(bool enable) {myGLWindow->enableRegionFrame( enable);}
 	void enableSubregionFrame(bool enable) {myGLWindow->enableSubregionFrame( enable);}
-	void setAxisCoord(int i, float val){myGLWindow->setAxisCoord( i,  val);}
+	void setAxisArrowCoord(int i, float val){myGLWindow->setAxisArrowCoord( i,  val);}
+	void setAxisOriginCoord(int i, float val){myGLWindow->setAxisOriginCoord( i,  val);}
+	void setMinTic(int i, float val){myGLWindow->setMinTic( i,  val);}
+	void setMaxTic(int i, float val){myGLWindow->setMaxTic( i,  val);}
+	void setTicLength(int i, float val){myGLWindow->setTicLength( i,  val);}
+	void setNumTics(int i, int val){myGLWindow->setNumTics( i,  val);}
+	void setTicDir(int i, int val){myGLWindow->setTicDir( i,  val);}
+	void setTicWidth(float val) {myGLWindow->setTicWidth(val);}
+	void setLabelHeight(int val) {myGLWindow->setLabelHeight(val);}
+	void setLabelDigits(int val) {myGLWindow->setLabelDigits(val);}
+	void setAxisColor(QColor& c) {myGLWindow->setAxisColor(c);}
+	
 	void setColorbarLLCoord(int i, float crd) {myGLWindow->setColorbarLLCoord( i,  crd);;}
 	void setColorbarURCoord(int i, float crd) {myGLWindow->setColorbarURCoord( i,  crd);}
 	void setColorbarNumTics(int i) {myGLWindow->setColorbarNumTics( i);}

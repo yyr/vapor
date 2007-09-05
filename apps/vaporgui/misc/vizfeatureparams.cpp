@@ -45,12 +45,23 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	currentComboIndex = vfParams.currentComboIndex;
 	vizName = vfParams.vizName;
 	showBar = vfParams.showBar;
-	showAxes = vfParams.showAxes;
+	showAxisArrows = vfParams.showAxisArrows;
 	showRegion = vfParams.showRegion;
 	showSubregion = vfParams.showSubregion;
-	axisCoords[0] = vfParams.axisCoords[0];
-	axisCoords[1] = vfParams.axisCoords[1];
-	axisCoords[2] = vfParams.axisCoords[2];
+	axisArrowCoords[0] = vfParams.axisArrowCoords[0];
+	axisArrowCoords[1] = vfParams.axisArrowCoords[1];
+	axisArrowCoords[2] = vfParams.axisArrowCoords[2];
+	
+	for (int i = 0; i< 3; i++){
+		minTic[i] = vfParams.minTic[i];
+		maxTic[i] = vfParams.maxTic[i];
+		numTics[i] = vfParams.numTics[i];
+		axisOriginCoords[i] = vfParams.axisOriginCoords[i];
+		ticLength[i] = vfParams.ticLength[i];
+		ticDir[i] = vfParams.ticDir[i];
+	}
+	axisAnnotationColor = vfParams.axisAnnotationColor;
+
 	colorbarLLCoords[0] = vfParams.colorbarLLCoords[0];
 	colorbarLLCoords[1] = vfParams.colorbarLLCoords[1];
 	colorbarURCoords[0] = vfParams.colorbarURCoords[0];
@@ -102,14 +113,39 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->applyButton, SIGNAL(clicked()), this, SLOT(applySettings()));
 	connect (vizFeatureDlg->refinementCombo, SIGNAL (activated(int)), this, SLOT(panelChanged()));
 
-	
-	
+	connect (vizFeatureDlg->axisAnnotationCheckbox, SIGNAL(clicked()), this, SLOT(annotationChanged()));
+	connect (vizFeatureDlg->xMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->yMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->zMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->xMaxTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->yMaxTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->zMaxTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->xNumTicsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->yNumTicsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->zNumTicsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->xTicSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->yTicSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->zTicSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->axisOriginYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->axisOriginZEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->axisOriginXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->xTicOrientCombo, SIGNAL(activated(int)), this, SLOT(xTicOrientationChanged(int)));
+	connect (vizFeatureDlg->yTicOrientCombo, SIGNAL(activated(int)), this, SLOT(yTicOrientationChanged(int)));
+	connect (vizFeatureDlg->zTicOrientCombo, SIGNAL(activated(int)), this, SLOT(zTicOrientationChanged(int)));
+	connect (vizFeatureDlg->labelHeightEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->labelDigitsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->ticWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->axisColorButton,SIGNAL(clicked()), this, SLOT(selectAxisColor()));
 	
 	
 	//Copy values into dialog, using current comboIndex:
 	setDialog();
 	dialogChanged = false;
-	
+	if (vizFeatureDlg->axisAnnotationCheckbox->isChecked()){
+		vizFeatureDlg->axisAnnotationFrame->show();
+	} else {
+		vizFeatureDlg->axisAnnotationFrame->hide();
+	}
 	
 	int rc = vizFeatureDlg->exec();
 	if (rc){
@@ -195,6 +231,12 @@ selectElevGridColor(){
 	dialogChanged = true;
 }
 	
+void VizFeatureParams::
+selectAxisColor(){
+	QColor axColor = QColorDialog::getColor(axisAnnotationColor,0,0);
+	vizFeatureDlg->axisColorButton->setPaletteBackgroundColor(axColor);
+	dialogChanged = true;
+}
 //Copy values into 'this' and into the dialog, using current comboIndex
 //Also set up the visualizer combo
 //
@@ -216,11 +258,51 @@ setDialog(){
 	vizName = vizWinMgr->getVizWinName(vizNum);
 	vizFeatureDlg->vizNameEdit->setText(vizName);
 	for (i = 0; i<3; i++){
-		axisCoords[i] = vizWin->getAxisCoord(i);
+		axisArrowCoords[i] = vizWin->getAxisArrowCoord(i);
 	}
-	vizFeatureDlg->axisXEdit->setText(QString::number(axisCoords[0]));
-	vizFeatureDlg->axisYEdit->setText(QString::number(axisCoords[1]));
-	vizFeatureDlg->axisZEdit->setText(QString::number(axisCoords[2]));
+	vizFeatureDlg->axisXEdit->setText(QString::number(axisArrowCoords[0]));
+	vizFeatureDlg->axisYEdit->setText(QString::number(axisArrowCoords[1]));
+	vizFeatureDlg->axisZEdit->setText(QString::number(axisArrowCoords[2]));
+
+	//Handle axis annotation parameters.
+	showAxisAnnotation = vizWin->axisAnnotationIsEnabled();
+
+	vizFeatureDlg->axisAnnotationCheckbox->setChecked(showAxisAnnotation);
+	//axis annotation setup:
+	for (i = 0; i<3; i++) axisOriginCoords[i] = vizWin->getAxisOriginCoord(i);
+	vizFeatureDlg->axisOriginXEdit->setText(QString::number(axisOriginCoords[0]));
+	vizFeatureDlg->axisOriginYEdit->setText(QString::number(axisOriginCoords[1]));
+	vizFeatureDlg->axisOriginZEdit->setText(QString::number(axisOriginCoords[2]));
+	for (i = 0; i< 3; i++) minTic[i] = vizWin->getMinTic(i);
+	for (i = 0; i< 3; i++) maxTic[i] = vizWin->getMaxTic(i);
+	for (i = 0; i< 3; i++) numTics[i] = vizWin->getNumTics(i);
+	for (i = 0; i< 3; i++) ticLength[i] = vizWin->getTicLength(i);
+	for (i = 0; i< 3; i++) ticDir[i] = vizWin->getTicDir(i);
+	vizFeatureDlg->xMinTicEdit->setText(QString::number(minTic[0]));
+	vizFeatureDlg->yMinTicEdit->setText(QString::number(minTic[1]));
+	vizFeatureDlg->zMinTicEdit->setText(QString::number(minTic[2]));
+	vizFeatureDlg->xMaxTicEdit->setText(QString::number(maxTic[0]));
+	vizFeatureDlg->yMaxTicEdit->setText(QString::number(maxTic[1]));
+	vizFeatureDlg->zMaxTicEdit->setText(QString::number(maxTic[2]));
+	vizFeatureDlg->xNumTicsEdit->setText(QString::number(numTics[0]));
+	vizFeatureDlg->yNumTicsEdit->setText(QString::number(numTics[1]));
+	vizFeatureDlg->zNumTicsEdit->setText(QString::number(numTics[2]));
+	vizFeatureDlg->xTicSizeEdit->setText(QString::number(ticLength[0]));
+	vizFeatureDlg->yTicSizeEdit->setText(QString::number(ticLength[1]));
+	vizFeatureDlg->zTicSizeEdit->setText(QString::number(ticLength[2]));
+	vizFeatureDlg->xTicOrientCombo->setCurrentItem(ticDir[0]-1);
+	vizFeatureDlg->yTicOrientCombo->setCurrentItem(ticDir[1]/2);
+	vizFeatureDlg->zTicOrientCombo->setCurrentItem(ticDir[2]);
+	labelHeight = vizWin->getLabelHeight();
+	labelDigits = vizWin->getLabelDigits();
+	ticWidth = vizWin->getTicWidth();
+	vizFeatureDlg->labelHeightEdit->setText(QString::number(labelHeight));
+	vizFeatureDlg->labelDigitsEdit->setText(QString::number(labelDigits));
+	vizFeatureDlg->ticWidthEdit->setText(QString::number(ticWidth));
+	axisAnnotationColor = vizWin->getAxisColor();
+	vizFeatureDlg->axisColorButton->setPaletteBackgroundColor(axisAnnotationColor);
+	
+	
 	
 	colorbarLLCoords[0] = vizWin->getColorbarLLCoord(0);
 	colorbarLLCoords[1] = vizWin->getColorbarLLCoord(1);
@@ -235,8 +317,8 @@ setDialog(){
 	vizFeatureDlg->numTicsEdit->setText(QString::number(numColorbarTics));
 	showBar = vizWin->colorbarIsEnabled();
 	vizFeatureDlg->colorbarCheckbox->setChecked(showBar);
-	showAxes = vizWin->axesAreEnabled();
-	vizFeatureDlg->axisCheckbox->setChecked(showAxes);
+	showAxisArrows = vizWin->axisArrowsAreEnabled();
+	vizFeatureDlg->axisCheckbox->setChecked(showAxisArrows);
 	showRegion = vizWin->regionFrameIsEnabled();
 	vizFeatureDlg->regionCheckbox->setChecked(showRegion);
 	showSubregion = vizWin->subregionFrameIsEnabled();
@@ -272,8 +354,6 @@ setDialog(){
 	vizFeatureDlg->surfaceCheckbox->setEnabled(isLayered);
 	vizFeatureDlg->surfaceColorButton->setEnabled(isLayered);
 
-	
-
 }
 //Copy values from the dialog into 'this', and also to the visualizer state specified
 //by the currentComboIndex (not the actual combo index).  This event gets captured in the
@@ -290,9 +370,32 @@ copyFromDialog(){
 	if (vizFeatureDlg->vizNameEdit->text() != vizName){
 		vizName = vizFeatureDlg->vizNameEdit->text();
 	}
-	axisCoords[0] = vizFeatureDlg->axisXEdit->text().toFloat();
-	axisCoords[1] = vizFeatureDlg->axisYEdit->text().toFloat();
-	axisCoords[2] = vizFeatureDlg->axisZEdit->text().toFloat();
+	axisArrowCoords[0] = vizFeatureDlg->axisXEdit->text().toFloat();
+	axisArrowCoords[1] = vizFeatureDlg->axisYEdit->text().toFloat();
+	axisArrowCoords[2] = vizFeatureDlg->axisZEdit->text().toFloat();
+	axisOriginCoords[0] = vizFeatureDlg->axisOriginXEdit->text().toFloat();
+	axisOriginCoords[1] = vizFeatureDlg->axisOriginYEdit->text().toFloat();
+	axisOriginCoords[2] = vizFeatureDlg->axisOriginZEdit->text().toFloat();
+	minTic[0] = vizFeatureDlg->xMinTicEdit->text().toFloat();
+	minTic[1] = vizFeatureDlg->yMinTicEdit->text().toFloat();
+	minTic[2] = vizFeatureDlg->zMinTicEdit->text().toFloat();
+	maxTic[0] = vizFeatureDlg->xMaxTicEdit->text().toFloat();
+	maxTic[1] = vizFeatureDlg->yMaxTicEdit->text().toFloat();
+	maxTic[2] = vizFeatureDlg->zMaxTicEdit->text().toFloat();
+	numTics[0] = vizFeatureDlg->xNumTicsEdit->text().toInt();
+	numTics[1] = vizFeatureDlg->yNumTicsEdit->text().toInt();
+	numTics[2] = vizFeatureDlg->zNumTicsEdit->text().toInt();
+	ticLength[0] = vizFeatureDlg->xTicSizeEdit->text().toFloat();
+	ticLength[1] = vizFeatureDlg->yTicSizeEdit->text().toFloat();
+	ticLength[2] = vizFeatureDlg->zTicSizeEdit->text().toFloat();
+	ticDir[0] = vizFeatureDlg->xTicOrientCombo->currentItem()+1;
+	ticDir[1] = vizFeatureDlg->yTicOrientCombo->currentItem()*2;
+	ticDir[2] = vizFeatureDlg->zTicOrientCombo->currentItem();
+	labelHeight = vizFeatureDlg->labelHeightEdit->text().toInt();
+	labelDigits = vizFeatureDlg->labelDigitsEdit->text().toInt();
+	ticWidth = vizFeatureDlg->ticWidthEdit->text().toFloat();
+	axisAnnotationColor = vizFeatureDlg->axisColorButton->paletteBackgroundColor();
+
 	
 	colorbarLLCoords[0] = vizFeatureDlg->colorbarLLXEdit->text().toFloat();
 	colorbarLLCoords[1] = vizFeatureDlg->colorbarLLYEdit->text().toFloat();
@@ -311,12 +414,11 @@ copyFromDialog(){
 	colorbarURCoords[0] = colorbarLLCoords[0]+wid;
 	colorbarURCoords[1] = colorbarLLCoords[1]+ht;
 	
-
 	numColorbarTics = vizFeatureDlg->numTicsEdit->text().toInt();
 	if (numColorbarTics <2) numColorbarTics = 0;
 	if (numColorbarTics > 50) numColorbarTics = 50;
 	showBar = vizFeatureDlg->colorbarCheckbox->isChecked();
-	showAxes = vizFeatureDlg->axisCheckbox->isChecked();
+	showAxisArrows = vizFeatureDlg->axisCheckbox->isChecked();
 	showRegion = vizFeatureDlg->regionCheckbox->isChecked();
 	showSubregion = vizFeatureDlg->subregionCheckbox->isChecked();
 
@@ -341,14 +443,26 @@ applyToViz(int vizNum){
 	VizWin* vizWin = vizWinMgr->getVizWin(vizNum);
 	vizWinMgr->setVizWinName(vizNum, vizName);
 	for (i = 0; i<3; i++){
-		vizWin->setAxisCoord(i, axisCoords[i]);
+		vizWin->setAxisArrowCoord(i, axisArrowCoords[i]);
+		vizWin->setAxisOriginCoord(i, axisOriginCoords[i]);
+		vizWin->setMinTic(i, minTic[i]);
+		vizWin->setMaxTic(i, maxTic[i]);
+		vizWin->setNumTics(i, numTics[i]);
+		vizWin->setTicLength(i, ticLength[i]);
+		vizWin->setTicDir(i, ticDir[i]);
 	}
+	vizWin->setAxisColor(axisAnnotationColor);
+	vizWin->setTicWidth(ticWidth);
+	vizWin->setLabelHeight(labelHeight);
+	vizWin->setLabelDigits(labelDigits);
 	vizWin->setColorbarLLCoord(0,colorbarLLCoords[0]);
 	vizWin->setColorbarLLCoord(1,colorbarLLCoords[1]);
 	vizWin->setColorbarURCoord(0,colorbarURCoords[0]);
 	vizWin->setColorbarURCoord(1,colorbarURCoords[1]);
+	
 	vizWin->enableColorbar(showBar);
-	vizWin->enableAxes(showAxes);
+	vizWin->enableAxisArrows(showAxisArrows);
+	vizWin->enableAxisAnnotation(showAxisAnnotation);
 	vizWin->enableRegionFrame(showRegion);
 	vizWin->enableSubregionFrame(showSubregion);
 	vizWin->setColorbarNumTics(numColorbarTics);
@@ -388,4 +502,28 @@ getVizNum(int comboIndex){
 	assert(0);
 	return -1;
 }
-
+// Response to a click on axisAnnotation checkbox:
+void VizFeatureParams::annotationChanged(){
+	if (vizFeatureDlg->axisAnnotationCheckbox->isChecked()){
+		vizFeatureDlg->axisAnnotationFrame->show();
+		showAxisAnnotation = true;
+	} else {
+		vizFeatureDlg->axisAnnotationFrame->hide();
+		showAxisAnnotation = false;
+	}
+	
+	vizFeatureDlg->update();
+	dialogChanged = true;
+}
+void VizFeatureParams::xTicOrientationChanged(int val){
+	ticDir[0] = val+1;
+	dialogChanged = true;
+}
+void VizFeatureParams::yTicOrientationChanged(int val){
+	ticDir[1] = 2*val;
+	dialogChanged = true;
+}
+void VizFeatureParams::zTicOrientationChanged(int val){
+	ticDir[2] = val;
+	dialogChanged = true;
+}
