@@ -35,6 +35,9 @@
 #include <math.h>
 #include <qgl.h>
 #include <qlabel.h>
+#include <qpainter.h>
+#include <qpixmap.h>
+#include <qimage.h>
 #include "assert.h"
 #include "vaporinternal/jpegapi.h"
 #include "common.h"
@@ -373,6 +376,10 @@ void GLWindow::paintGL()
 
 	
 
+	bool mouseIsDown = postRenderCB(winNum, isControlled);
+	//Capture the image, if not navigating:
+	if (renderNew && !mouseIsDown) doFrameCapture();
+
 	glPopMatrix();
 	//clear dirty bits
 	
@@ -381,9 +388,7 @@ void GLWindow::paintGL()
 	setDirtyBit(DvrRegionBit,false);
 	setDirtyBit(ProjMatrixBit, false);
 	setDirtyBit(ViewportBit, false);
-	bool mouseIsDown = postRenderCB(winNum, isControlled);
-	//Capture the image, if not navigating:
-	if (renderNew && !mouseIsDown) doFrameCapture();
+	
 	nowPainting = false;
 }
 //Draw a 3D cursor at specified world coords
@@ -1479,8 +1484,8 @@ void GLWindow::drawAxisLabels() {
 				pointOnAxis[axis] = ticMin[axis] + (float)i* (ticMax[axis] - ticMin[axis])/(float)(numTics[axis]-1);
 				float labelValue = minTic[axis] + (float)i* (maxTic[axis] - minTic[axis])/(float)(numTics[axis]-1);
 				projectPointToWin(pointOnAxis, winCoords);
-				int x = (int)(winCoords[0])+2*ticWidth;
-				int y = (int)(height()-winCoords[1])+2*ticWidth;
+				int x = (int)(winCoords[0]+2*ticWidth);
+				int y = (int)(height()-winCoords[1]+2*ticWidth);
 				axisTextLabels[axis][i]->setText(QString::number(labelValue,'g',labelDigits));
 				axisTextLabels[axis][i]->adjustSize();
 				axisTextLabels[axis][i]->move(x,y);
@@ -1490,8 +1495,70 @@ void GLWindow::drawAxisLabels() {
 			}
 		}
 	}
+}
+void GLWindow::addAxisLabels(unsigned char* buff){
+	//apply the existing axis labels to the image in the buffer
+	//The buffer must match the dimensions of the current window.
+	float origin[3], ticMin[3], ticMax[3];
 	
+	//The labels must already exist.
+	if(labelHeight <= 0) return;
+
+	ViewpointParams::worldToStretchedCube(axisOriginCoord, origin);
+	//minTic and maxTic can be regarded as points in world space, defining
+	//corners of a box that's projected to axes.
+	ViewpointParams::worldToStretchedCube(minTic, ticMin);
+	ViewpointParams::worldToStretchedCube(maxTic, ticMax);
 	
+	float pointOnAxis[3];
+	float winCoords[2];
+	QFont f;
+	f.setPointSize(labelHeight);
+	for (int axis = 0; axis < 3; axis++){
+		if (numTics[axis] > 1){
+			vcopy(origin, pointOnAxis);
+			for (int n = 0; n< numTics[axis]; n++){
+				pointOnAxis[axis] = ticMin[axis] + (float)n* (ticMax[axis] - ticMin[axis])/(float)(numTics[axis]-1);
+				projectPointToWin(pointOnAxis, winCoords);
+				int x = (int)(winCoords[0]+2*ticWidth);
+				int y = (int)(height()-winCoords[1]+2*ticWidth);
+				//Create a new QPixmap to paint into.  
+				//Then create a QPainter for the new Pixmap
+				//Then use QPainter::drawText() to put the text from the label
+				//into the QPixmap
+				//convert the QPixmap to a QImage
+				
+				int wid = axisTextLabels[axis][n]->width();
+				int ht = axisTextLabels[axis][n]->height();
+				QPixmap myPixmap(wid,ht);
+				myPixmap.fill(backgroundColor);
+				QPainter myPainter(&myPixmap);
+				myPainter.setPen(axisColor);
+
+				myPainter.setFont(f);
+				
+				const QString& labelText = axisTextLabels[axis][n]->text();
+				myPainter.drawText(0,0,wid,ht,Qt::AlignCenter|Qt::SingleLine,labelText,-1);	
+				QImage image = myPixmap.convertToImage();
+				assert(image != 0);
+				//Write the image to the buffer:
+				int stride = 3*width();
+				for (int j = 0; j<image.height(); j++){
+					if (j+y >= height()) continue;
+					for (int i = 0; i< image.width(); i++){
+						if (i+x >= width()) continue;
+						QRgb pixval = image.pixel(i,j);
+						//assert(pixval == 0);
+						buff[(x+i)*3 + stride*(y+j)] = (unsigned char)(qRed(pixval));
+						buff[(x+i)*3 + stride*(y+j)+1] = (unsigned char)(qGreen(pixval));
+						buff[(x+i)*3 + stride*(y+j)+2] = (unsigned char)(qBlue(pixval));
+					}
+				}
+				
+			}
+		}
+	}
+
 }
 void GLWindow::drawAxisTics(){
 	float origin[3], ticMin[3], ticMax[3], ticLen[3];
@@ -1784,6 +1851,10 @@ doFrameCapture(){
 		capturing = 0;
 		delete buf;
 		return;
+	}
+	//Add axis labels if necessary:
+	if (axisAnnotationIsEnabled() && !DataStatus::getInstance()->sphericalTransform()) {
+		addAxisLabels(buf);
 	}
 	//Now call the Jpeg library to compress and write the file
 	//

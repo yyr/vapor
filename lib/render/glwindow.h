@@ -350,6 +350,8 @@ protected:
 	void drawAxisArrows(float* extents);
 	void drawAxisTics();
 	void drawAxisLabels();
+	//Apply the axis labels to an image buffer:
+	void addAxisLabels(unsigned char* imageBuffer);
 	void deleteAxisLabels();
 	void drawElevationGrid(size_t timestep);
 	void placeLights();
