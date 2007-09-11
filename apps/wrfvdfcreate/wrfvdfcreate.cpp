@@ -99,6 +99,7 @@ int	GetWRFMetadata(
 	vector <long> _timestamps;
 
 	bool first = true;
+	bool success = false;
 
 	for (int i=0; i<nfiles; i++) {
 		float dx, dy;
@@ -117,7 +118,7 @@ int	GetWRFMetadata(
 			startDate, wrfVars, ts 
 		);
 		if (rc < 0) {
-			cerr << "Error processing file " << files[i] << "(" << MyBase::GetErrMsg() << "), skipping" << endl;
+			cerr << "Error processing file " << files[i] << ", skipping" << endl;
 			continue;
 		}
 		if (first) {
@@ -155,15 +156,18 @@ int	GetWRFMetadata(
 				continue;
 			}
 		}
+		first = false;
 
-		// Want min and max extents for entire data set
+		// Want _minimum_ vertical extents for entire data set for bottom
+		// and top layer.
 		//
 		if (vertExts[0] < _vertExts[0]) _vertExts[0] = vertExts[0];
-		if (vertExts[1] > _vertExts[1]) _vertExts[1] = vertExts[1];
+		if (vertExts[1] < _vertExts[1]) _vertExts[1] = vertExts[1];
 
 		for (int j=0; j<ts.size(); j++) {
 			_timestamps.push_back(ts[j]);
 		}
+		success = true;
 	}
 
 	// sort the time stamps, remove duplicates
@@ -193,7 +197,8 @@ int	GetWRFMetadata(
 
 	varnames = _wrfVars;
 
-	return(0);
+	if (success) return(0);
+	else return(-1);
 }
 	
 
@@ -209,6 +214,12 @@ void Usage(OptionParser &op, const char * msg) {
 	cerr << "Usage: " << ProgName << " [options] -startt time vdf_file" << endl;
 	op.PrintOptionHelp(stderr);
 
+}
+
+void ErrMsgCBHandler(const char *msg, int) {
+	cerr << ProgName << " : " << msg << endl;
+
+	MyBase::SetErrCode(0);
 }
 
 int	main(int argc, char **argv) {
@@ -232,6 +243,9 @@ int	main(int argc, char **argv) {
 		cerr << ProgName << " : " << OptionParser::GetErrMsg();
 		exit(1);
 	}
+
+	MyBase::SetErrMsgCB(ErrMsgCBHandler);
+
 
 	if (opt.help) {
 		Usage(op, NULL);
@@ -478,12 +492,11 @@ int	main(int argc, char **argv) {
         }
 
 		// Add a user readable comment with the time stamp
-		string comment("User Time String : ");
+		string tag("UserTimeStampString");
 		string wrftime_str;
 		(void) WRF::EpochToWRFTimeStr(timestamps[t], wrftime_str);
-		comment.append(wrftime_str);
 
-        if ( file->SetTSComment( t, comment ) < 0) {
+        if ( file->SetTSUserDataString( t, tag, wrftime_str ) < 0) {
             cerr << Metadata::GetErrMsg() << endl;
             exit( 1 );
         }
