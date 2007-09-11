@@ -26,7 +26,7 @@ using namespace VAPoR;
 int	WRF::GetVarInfo(
 	int ncid, // ID of the file we're reading
 	const char *name,
-	vector <ncdim_t> &ncdims,
+	const vector <ncdim_t> &ncdims,
 	varInfo & thisVar // Variable info
 ) {
 	int nc_status; // Holds error codes
@@ -296,7 +296,7 @@ int WRF::OpenWrfGetMeta(
 	float & dx, // Place to put DX attribute (out)
 	float & dy, // Place to put DY attribute (out)
 	float * vertExts, // Vertical extents (out)
-	size_t * dimLens, // Lengths of x, y, and z dimensions (out)
+	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
 	vector<string> & wrfVars, // Variable names in WRF file (out)
 	vector <long> &timestamps // Time stamps, in seconds (out)
@@ -456,14 +456,15 @@ int WRF::OpenWrfGetMeta(
 		float * phbBuf = new float[phb_slice_sz];
 		float * phbBufTemp = new float[phb_slice_sz];
 		
-		// Dummies needed by function
-		bool needAnotherPh = true;
-		bool needAnotherPhb = true;
 
+		bool first = true;
 		for (size_t t = 0; t<dimLens[3]; t++) {
-			bool first = true;
 			float height;
 			int rc;
+
+			// Dummies needed by function
+			bool needAnotherPh = true;
+			bool needAnotherPhb = true;
 
 			// Read bottom slices
 			rc = GetZSlice(
@@ -514,7 +515,7 @@ int WRF::OpenWrfGetMeta(
 				// Want to find the bottom of the bottom layer and the bottom 
 				// of the
 				// top layer so that we can output them
-				if (height > vertExts[1] ) vertExts[1] = height;
+				if (height < vertExts[1] ) vertExts[1] = height;
 			}
 			first = false;
 
@@ -543,7 +544,7 @@ int WRF::OpenWrfGetMeta(
 		string time_fmt(timesBuf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);
 		long etime;
 
-		if (WRFTimeStrToEpoch(time_fmt, &etime) < 0) continue;
+		if (WRFTimeStrToEpoch(time_fmt, &etime) < 0) return(-1);
 
 		timestamps.push_back(etime);
 	}

@@ -59,7 +59,7 @@ public:
  static int	GetVarInfo(
 	int ncid, // ID of the file we're reading
 	const char *name,
-	vector <ncdim_t> &ncdims,
+	const vector <ncdim_t> &ncdims,
 	varInfo_t & thisVar // Variable info
  );
 
@@ -113,7 +113,7 @@ public:
 	float & dx, // Place to put DX attribute (out)
 	float & dy, // Place to put DY attribute (out)
 	float * vertExts, // Vertical extents (out)
-	size_t * dimLens, // Lengths of x, y, and z dimensions (out)
+	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
 	vector<string> & wrfVars, // Variable names in WRF file (out)
 	vector <long> &timestamps // Time stamps, in seconds (out)
