@@ -111,8 +111,10 @@ int WRF::ReadZSlice4D(
 
 	start[thisVar.ndimids-4] = wrfT;
 	start[thisVar.ndimids-3] = z;
-	count[thisVar.ndimids-1] = thisVar.dimlens[thisVar.ndimids-1];
 	count[thisVar.ndimids-2] = thisVar.dimlens[thisVar.ndimids-2];
+	count[thisVar.ndimids-1] = thisVar.dimlens[thisVar.ndimids-1];
+
+cerr << "dimlens : " << count[thisVar.ndimids-2] << " " << count[thisVar.ndimids-1] << endl;
 
 	nc_status = nc_get_vara_float(ncid, thisVar.varid, start, count, fbuffer);
 	NC_ERR_READ(nc_status);
@@ -250,43 +252,63 @@ int WRF::GetZSlice(
 
 
 int WRF::WRFTimeStrToEpoch(
-	string wrftime,
-	long *etime
+	const string &wrftime,
+	time_t *seconds
 ) {
-	char *format = "%Y-%m-%d_%H:%M:%S";
+
+	int rc;
+	const char *format = "%4d-%2d-%2d_%2d:%2d:%2d";
 	struct tm ts;
 
-	if (strptime(wrftime.c_str(), format, &ts) == NULL) {
+	rc = sscanf(
+		wrftime.c_str(), format, &ts.tm_year, &ts.tm_mon, &ts.tm_mday, 
+		&ts.tm_hour, &ts.tm_min, &ts.tm_sec
+	);
+	if (rc != 6) {
 		MyBase::SetErrMsg("Unrecognized time stamp: %s", wrftime.c_str());
 		return(-1);
 	}
+	
+	ts.tm_mon -= 1;
+	ts.tm_year -= 1900;
+	ts.tm_isdst = 0;
 
-	*etime = mktime(&ts);
-	if (*etime == (time_t) -1) {
-		MyBase::SetErrMsg("Unrecognized time stamp: %s", wrftime.c_str());
-		return(-1);
-	}
+	// Set time zone to GMT
+	//
+	const char *env_save = getenv("TZ");
+
+	assert(setenv("TZ", "GMT0", 1) >=0);
+
+	*seconds = mktime(&ts);
+
+	// Restore time zone
+	//
+	if (env_save) setenv ("TZ", env_save, 1);
 
 	return(0);
 }
 
 int WRF::EpochToWRFTimeStr(
-	long etime,
-	string &wrftime
+	time_t seconds,
+	string &str
 ) {
-	char *format = "%Y-%m-%d_%H:%M:%S";
+
 	struct tm ts;
 
-	if (localtime_r(&etime, &ts) == NULL) {
-		MyBase::SetErrMsg("Unrecognized time stamp: %d", etime);
-		return(-1);
-	}
-
+	const char *format = "%4.4d-%2.2d-%2.2d_%2.2d:%2.2d:%2.2d";
 	char buf[128];
-	strftime(buf, sizeof(buf), format, &ts);
-	wrftime.assign(buf);
+
+	assert(gmtime_r(&seconds, &ts) != NULL);
+
+	ts.tm_year += 1900;
+	ts.tm_mon += 1;
+
+	sprintf(buf, format, ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec);
+
+	str = buf;
 
 	return(0);
+
 }
 
 
@@ -542,11 +564,11 @@ int WRF::OpenWrfGetMeta(
 	nc_status = nc_get_var_text(ncid, timeInfo.varid, timesBuf);
 	for (int i =0; i<timeInfo.dimlens[0]; i++) {
 		string time_fmt(timesBuf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);
-		long etime;
+		time_t seconds;
 
-		if (WRFTimeStrToEpoch(time_fmt, &etime) < 0) return(-1);
+		if (WRFTimeStrToEpoch(time_fmt, &seconds) < 0) return(-1);
 
-		timestamps.push_back(etime);
+		timestamps.push_back((long) seconds);
 	}
 	delete [] timesBuf;
 

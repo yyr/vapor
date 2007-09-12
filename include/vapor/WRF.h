@@ -97,12 +97,12 @@ public:
 
 
  static int WRFTimeStrToEpoch(
-	string wrftime,
-	long *etime
+	const string &wrftime,
+	time_t *seconds
  );
 
  static int EpochToWRFTimeStr(
-	long etime,
+	time_t seconds,
 	string &wrftime
  );
 
