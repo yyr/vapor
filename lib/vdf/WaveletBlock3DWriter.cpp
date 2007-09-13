@@ -484,7 +484,7 @@ int	WaveletBlock3DWriter::write_gamma_slabs(
 int	WaveletBlock3DWriter::my_realloc(
 ) {
 
-	for(int j=0; j<=_reflevel; j++) {
+	for(int j=0; j<=_num_reflevels-1; j++) {
 		if (! lambda_blks_c[j]) {
 
 			size_t	size;
