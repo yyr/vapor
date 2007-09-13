@@ -44,9 +44,9 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"numts",	1, 	"1",			"Number of Vapor time steps (default is 1)"},
 	{"deltat",	1,	"3600",			"Seconds per Vapor time step (default is 3600)"},
 	{"varnames",1,	"",			"Colon delimited list of all variables to be\n\t\t\t\textracted from WRF data"},
-	{"dervars", 1,	"",	"Colon delimited list of desired derived\n\t\t\t\tvariables.  Choices are:\n\t\t\t\tphnorm: normalized geopotential (PH+PHB)/PHB\n\t\t\t\twind3d: 3D wind speed (U^2+V^2+W^2)^1/2\n\t\t\t\twind2d: 2D wind speed (U^2+V^2)^1/2\n\t\t\t\tpfull: full pressure P+PB\n\t\t\t\tpnorm: normalized pressure (P+PB)/PB\n\t\t\t\ttheta: potential temperature T+300\n\t\t\t\ttk: temp. in Kelvin 0.037*Theta*P_full^0.29"},
+	{"dervars", 1,	"",	"Colon delimited list of desired derived\n\t\t\t\tvariables.  Choices are:\n\t\t\t\tPHNorm_: normalized geopotential (PH+PHB)/PHB\n\t\t\t\tUVW_: 3D wind speed (U^2+V^2+W^2)^1/2\n\t\t\t\tUV_: 2D wind speed (U^2+V^2)^1/2\n\t\t\t\tPFull_: full pressure P+PB\n\t\t\t\tPNorm_: normalized pressure (P+PB)/PB\n\t\t\t\tTheta_: potential temperature T+300\n\t\t\t\tTK_: temp. in Kelvin 0.037*Theta_*PFull_^0.29"},
 	{"level",	1, 	"2",			"Maximum refinement level. 0 => no refinement\n\t\t\t\t(default is 2)"},
-	{"atypvars",1,	"",		"Colon delimited list of atypical names for\n\t\t\t\tU:V:W:PH:PHB:P:PB:T that appear in WRF file"},
+	{"atypvars",1,	"U:V:W:PH:PHB:P:PB:T",		"Colon delimited list of atypical names for\n\t\t\t\tU:V:W:PH:PHB:P:PB:T that appear in WRF file"},
 	{"comment",	1,	"",				"Top-level comment (optional)"},
 	{"bs",		1, 	"32x32x32",		"Internal storage blocking factor expressed in\n\t\t\t\tgrid points (NXxNYxNZ) (default is 32)"},
 	{"nfilter",	1, 	"1",			"Number of wavelet filter coefficients (default\n\t\t\t\tis 1)"},
@@ -76,10 +76,6 @@ OptionParser::Option_T	get_options[] = {
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
 	{NULL}
 };
-
-
-
-
 
 int	GetWRFMetadata(
 	const char **files,
@@ -119,6 +115,7 @@ int	GetWRFMetadata(
 		);
 		if (rc < 0) {
 			cerr << "Error processing file " << files[i] << ", skipping" << endl;
+			MyBase::SetErrCode(0);
 			continue;
 		}
 		if (first) {
@@ -218,8 +215,6 @@ void Usage(OptionParser &op, const char * msg) {
 
 void ErrMsgCBHandler(const char *msg, int) {
 	cerr << ProgName << " : " << msg << endl;
-
-	MyBase::SetErrCode(0);
 }
 
 int	main(int argc, char **argv) {
@@ -255,31 +250,19 @@ int	main(int argc, char **argv) {
 	WRF::atypVarNames_t wrfNames;
 
 	// Handle atypical variable naming
-	if (! opt.atypvars.size()) {
-		// Default values
-		wrfNames.U = "U";
-		wrfNames.V = "V";
-		wrfNames.W = "W";
-		wrfNames.PH = "PH";
-		wrfNames.PHB = "PHB";
-		wrfNames.P = "P";
-		wrfNames.PB = "PB";
-		wrfNames.T = "T";
-	} 
-	else if ( opt.atypvars.size() != 8 ) {
+	if ( opt.atypvars.size() != 8 ) {
 		cerr << "If -atypvars option is given, colon delimited list must have exactly eight elements specifying names of variables which are typically named U:V:W:PH:PHB:P:PB:T" << endl;
 		exit( 1 );
 	}
-	else {
-		wrfNames.U = opt.atypvars[0];
-		wrfNames.V = opt.atypvars[1];
-		wrfNames.W = opt.atypvars[2];
-		wrfNames.PH = opt.atypvars[3];
-		wrfNames.PHB = opt.atypvars[4];
-		wrfNames.P = opt.atypvars[5];
-		wrfNames.PB = opt.atypvars[6];
-		wrfNames.T = opt.atypvars[7];
-	}
+
+	wrfNames.U = opt.atypvars[0];
+	wrfNames.V = opt.atypvars[1];
+	wrfNames.W = opt.atypvars[2];
+	wrfNames.PH = opt.atypvars[3];
+	wrfNames.PHB = opt.atypvars[4];
+	wrfNames.P = opt.atypvars[5];
+	wrfNames.PB = opt.atypvars[6];
+	wrfNames.T = opt.atypvars[7];
 	
 
 	argv++;
@@ -294,9 +277,9 @@ int	main(int argc, char **argv) {
 			Usage(op, "Expected -startt option");
 			exit(1);
 		}
-		long t;
-		if (WRF::WRFTimeStrToEpoch(opt.startt, &t) < 0) exit(1);
-		timestamps.push_back(t);
+		time_t seconds;
+		if (WRF::WRFTimeStrToEpoch(opt.startt, &seconds) < 0) exit(1);
+		timestamps.push_back((long) seconds);
 		for (size_t t = 1; t<opt.numts; t++) {
 			timestamps.push_back(timestamps[0]+(t*opt.deltat));
 		}
@@ -335,8 +318,8 @@ int	main(int argc, char **argv) {
 			);
 			if (rc<0) exit(1);
 
-			long t;
 			if (strlen(opt.startt) != 0) {
+				time_t seconds;
 				string startt(opt.startt);
 
 				if ((startt.compare("SIMULATION_START_DATE") == 0) ||
@@ -345,16 +328,16 @@ int	main(int argc, char **argv) {
 					startt = startDate;
 				}
 
-				if (WRF::WRFTimeStrToEpoch(startt, &t) < 0) exit(1);
-				timestamps[0] = t;
+				if (WRF::WRFTimeStrToEpoch(startt, &seconds) < 0) exit(1);
+				timestamps[0] = (long) seconds;
 			}
 
 			// Need to compute time stamps - ignore all but the
 			// first returned by GetWRFMetadata()
 			//
-			t = timestamps[0];
+			long tsave = timestamps[0];
 			timestamps.clear();
-			timestamps.push_back(t);
+			timestamps.push_back(tsave);
 			for (size_t t = 1; t<opt.numts; t++) {
 				timestamps.push_back(timestamps[0]+(t*opt.deltat));
 			}
@@ -401,26 +384,26 @@ int	main(int argc, char **argv) {
 	// Add derived variables to the list of variables
 	for ( int i = 0 ; i < opt.dervars.size() ; i++ )
 	{
-		if ( opt.dervars[i] == "pfull" ) {
-			vdfVarNames.push_back( "P_full" );
+		if ( opt.dervars[i] == "PFull_" ) {
+			vdfVarNames.push_back( "PFull_" );
 		}
-		else if ( opt.dervars[i] == "pnorm" ) {
-			vdfVarNames.push_back( "P_norm" );
+		else if ( opt.dervars[i] == "PNorm_" ) {
+			vdfVarNames.push_back( "PNorm_" );
 		}
-		else if ( opt.dervars[i] == "phnorm" ) {
-			vdfVarNames.push_back( "PH_norm" );
+		else if ( opt.dervars[i] == "PHNorm_" ) {
+			vdfVarNames.push_back( "PHNorm_" );
 		}
-		else if ( opt.dervars[i] == "theta" ) {
-			vdfVarNames.push_back( "Theta" );
+		else if ( opt.dervars[i] == "Theta_" ) {
+			vdfVarNames.push_back( "Theta_" );
 		}
-		else if ( opt.dervars[i] == "tk" ) {
-			vdfVarNames.push_back( "TK" );
+		else if ( opt.dervars[i] == "TK_" ) {
+			vdfVarNames.push_back( "TK_" );
 		}
-		else if ( opt.dervars[i] == "wind2d" ) {
-			vdfVarNames.push_back( "Wind_UV" );
+		else if ( opt.dervars[i] == "UV_" ) {
+			vdfVarNames.push_back( "UV_" );
 		}
-		else if ( opt.dervars[i] == "wind3d" ) {
-			vdfVarNames.push_back( "Wind_UVW" );
+		else if ( opt.dervars[i] == "UVW_" ) {
+			vdfVarNames.push_back( "UVW_" );
 		} else {
 			cerr << ProgName << " : Invalid derived variable : " <<
 				opt.dervars[i]  << endl;
@@ -438,24 +421,20 @@ int	main(int argc, char **argv) {
 	file = new Metadata( dim,opt.level,bs,opt.nfilter,opt.nlifting );	
 
 	if (Metadata::GetErrCode()) {
-		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
 
 	if (file->SetNumTimeSteps(timestamps.size()) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
 
 	s.assign(opt.comment);
 	if (file->SetComment(s) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
 
 	s.assign("layered");
 	if (file->SetGridType(s) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
 
@@ -472,13 +451,11 @@ int	main(int argc, char **argv) {
 			extentsVec.push_back(extents[i]);
 		}
 		if (file->SetExtents(extentsVec) < 0) {
-			cerr << Metadata::GetErrMsg() << endl;
 			exit(1);
 		}
 	}
 
 	if (file->SetVariableNames(vdfVarNames) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
 
@@ -487,23 +464,37 @@ int	main(int argc, char **argv) {
     {
 		vector<double> tsNow(1, (double) timestamps[t]);
         if ( file->SetTSUserTime( t, tsNow ) < 0) {
-            cerr << Metadata::GetErrMsg() << endl;
             exit( 1 );
         }
 
-		// Add a user readable comment with the time stamp
+		// Add a user readable tag with the time stamp
 		string tag("UserTimeStampString");
 		string wrftime_str;
-		(void) WRF::EpochToWRFTimeStr(timestamps[t], wrftime_str);
+		(void) WRF::EpochToWRFTimeStr((time_t) timestamps[t], wrftime_str);
 
         if ( file->SetTSUserDataString( t, tag, wrftime_str ) < 0) {
-            cerr << Metadata::GetErrMsg() << endl;
             exit( 1 );
         }
     }
 
+	// Specify the atypical var names for dependent variables
+	//
+	string tag("DependentVarNames");
+	string atypnames;
+	atypnames.append(wrfNames.U); atypnames.append(":");
+	atypnames.append(wrfNames.V); atypnames.append(":");
+	atypnames.append(wrfNames.W); atypnames.append(":");
+	atypnames.append(wrfNames.PH); atypnames.append(":");
+	atypnames.append(wrfNames.PHB); atypnames.append(":");
+	atypnames.append(wrfNames.P); atypnames.append(":");
+	atypnames.append(wrfNames.PB); atypnames.append(":");
+	atypnames.append(wrfNames.T);
+
+	if ( file->SetUserDataString(tag, atypnames ) < 0) {
+		exit( 1 );
+	}
+
 	if (file->Write(argv[argc-1]) < 0) {
-		cerr << Metadata::GetErrMsg() << endl;
 		exit(1);
 	}
 
