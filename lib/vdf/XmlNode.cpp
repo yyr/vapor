@@ -293,6 +293,9 @@ std::ostream& operator<<(ostream& os, const VAPoR::XmlNode& node) {
 
 	int	i;
 
+//	os.setf(ios_base::scientific, ios_base::floatfield);
+	os.precision(12);
+
 	plong = node._longmap.begin();
 	pdouble = node._doublemap.begin();
 	pstring = node._stringmap.begin();
