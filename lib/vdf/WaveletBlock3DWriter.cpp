@@ -499,6 +499,7 @@ int	WaveletBlock3DWriter::my_realloc(
 				SetErrMsg("new float[%d] : %s", size, strerror(errno));
 				return(-1);
 			}
+			memset(lambda_blks_c[j], 0, size*sizeof(lambda_blks_c[j][0]));
 		}
 	}
 

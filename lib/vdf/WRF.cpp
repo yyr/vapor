@@ -114,8 +114,6 @@ int WRF::ReadZSlice4D(
 	count[thisVar.ndimids-2] = thisVar.dimlens[thisVar.ndimids-2];
 	count[thisVar.ndimids-1] = thisVar.dimlens[thisVar.ndimids-1];
 
-cerr << "dimlens : " << count[thisVar.ndimids-2] << " " << count[thisVar.ndimids-1] << endl;
-
 	nc_status = nc_get_vara_float(ncid, thisVar.varid, start, count, fbuffer);
 	NC_ERR_READ(nc_status);
 
@@ -293,12 +291,17 @@ int WRF::EpochToWRFTimeStr(
 	string &str
 ) {
 
-	struct tm ts;
+	struct tm *tsptr, ts;;
 
 	const char *format = "%4.4d-%2.2d-%2.2d_%2.2d:%2.2d:%2.2d";
 	char buf[128];
 
-	assert(gmtime_r(&seconds, &ts) != NULL);
+	tsptr = gmtime(&seconds);
+	if (! tsptr) {
+		MyBase::SetErrMsg("gmtime(%d) : ???, (int) seconds");
+		return(-1);
+	}
+	ts = *tsptr;
 
 	ts.tm_year += 1900;
 	ts.tm_mon += 1;
