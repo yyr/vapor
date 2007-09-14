@@ -197,6 +197,9 @@
 				RelativePath="..\..\..\lib\vdf\WaveletBlock3DWriter.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\vdf\WRF.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\vdf\XmlNode.cpp">
 			</File>
 		</Filter>
