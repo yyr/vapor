@@ -159,6 +159,7 @@ public:
 		if (!probeIsDirty(timestep)) return probeTextures[timestep];
 		return calcProbeTexture(timestep, 0,0, fullHeight);
 	}
+	void getProbeVoxelExtents(size_t fullHeight, float voxdims[2]);
 
 	virtual float getPhi() {return phi;}
 	virtual float getTheta() {return theta;}

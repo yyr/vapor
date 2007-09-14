@@ -177,6 +177,9 @@ protected slots:
 	void captureImage();
 	
 protected:
+	//fix probe box to fit in domain:
+	void adjustBoxSize(ProbeParams*);
+	void resetTextureSize(ProbeParams*);
 	virtual void setDatarangeDirty(RenderParams*);
 	bool seedAttached;
 	FlowParams* attachedFlow;
@@ -190,6 +193,7 @@ protected:
 	int copyCount[MAXVIZWINS+1];
 	int lastXSizeSlider, lastYSizeSlider, lastZSizeSlider;
 	int lastXCenterSlider, lastYCenterSlider, lastZCenterSlider;
+	float maxBoxSize[3];
 };
 
 };

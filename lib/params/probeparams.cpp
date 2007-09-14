@@ -1151,4 +1151,50 @@ calcProbeTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	return probeTexture;
 }
 
-
+//Determine the voxel extents of probe mapped into data.
+//Similar code is in calcProbeTexture()
+void ProbeParams::
+getProbeVoxelExtents(size_t fullHeight, float voxdims[2]){
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) {
+		voxdims[0] = voxdims[1] = 1.f;
+		return;
+	}
+	const float* extents = DataStatus::getInstance()->getExtents();
+	float probeCoord[3];
+	//Can ignore depth, just mapping center plane
+	probeCoord[2] = 0.f;
+	float transformMatrix[12];
+	
+	//Set up to transform from probe into volume:
+	buildCoordTransform(transformMatrix, 0.f);
+	int numRefinements = getNumRefinements();
+	//Get the data dimensions (at this resolution):
+	int dataSize[3];
+	//Start by initializing integer extents
+	for (int i = 0; i< 3; i++){
+		dataSize[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i, fullHeight);
+	}
+	
+	float cor[4][3];
+		
+	for (int cornum = 0; cornum < 4; cornum++){
+		float dataCoord[3];
+		// coords relative to (-1,1)
+		probeCoord[1] = -1.f + 2.f*(float)(cornum/2);
+		probeCoord[0] = -1.f + 2.f*(float)(cornum%2);
+		//Then transform to values in data 
+		vtransform(probeCoord, transformMatrix, dataCoord);
+		//Then get array coords:
+		for (int i = 0; i<3; i++){
+			cor[cornum][i] = ((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]);
+		}
+	}
+	float vecWid[3], vecHt[3];
+	
+	vsub(cor[1],cor[0], vecWid);
+	vsub(cor[3],cor[1], vecHt);
+	voxdims[0] = vlength(vecWid);
+	voxdims[1] = vlength(vecHt);
+	return;
+}

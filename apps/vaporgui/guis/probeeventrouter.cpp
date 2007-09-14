@@ -245,7 +245,7 @@ guiReleaseXWheel(int val){
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
 	manip->setTempRotation(0.f, 0);
-
+	
 	updateTab();
 	pParams->setProbeDirty();
 	PanelCommand::captureEnd(cmd,pParams);
@@ -267,7 +267,7 @@ guiReleaseYWheel(int val){
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
 	manip->setTempRotation(0.f, 1);
-
+	
 	updateTab();
 	pParams->setProbeDirty();
 	PanelCommand::captureEnd(cmd,pParams);
@@ -289,7 +289,7 @@ guiReleaseZWheel(int val){
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
 	manip->setTempRotation(0.f, 2);
-
+	
 	updateTab();
 	pParams->setProbeDirty();
 	PanelCommand::captureEnd(cmd,pParams);
@@ -457,16 +457,18 @@ guiTogglePlanar(bool isOn){
 		setZSize(pParams,0);
 		zSizeSlider->setEnabled(false);
 		zSizeEdit->setEnabled(false);
+		probeTextureFrame->update();
+		updateTab();
 	} else {
 		pParams->setPlanar(false);
 		zSizeSlider->setEnabled(true);
 		zSizeEdit->setEnabled(true);
 	}
-	//Force a redraw, update tab
-	updateTab();
+	//Force a redraw
+	
 	pParams->setProbeDirty();
 	PanelCommand::captureEnd(cmd,pParams);
-	probeTextureFrame->update();
+	
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::
@@ -560,26 +562,34 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 
 	probeParams->setHistoStretch(histoScaleEdit->text().toFloat());
 
-	//Get slider positions from text boxes:
-		
-	float boxCtr = xCenterEdit->text().toFloat();
-	float boxSize[3];
+	//Set the probe size based on current text box settings:
+	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
 	boxSize[0] = xSizeEdit->text().toFloat();
-	probeParams->setProbeMin(0,boxCtr-0.5*boxSize[0]);
-	probeParams->setProbeMax(0,boxCtr+0.5*boxSize[0]);
-	
-	textToSlider(probeParams,0, boxCtr, boxSize[0]);
-	boxCtr = yCenterEdit->text().toFloat();
 	boxSize[1] = ySizeEdit->text().toFloat();
-	probeParams->setProbeMin(1,boxCtr-0.5*boxSize[1]);
-	probeParams->setProbeMax(1,boxCtr+0.5*boxSize[1]);
-	textToSlider(probeParams,1, boxCtr, boxSize[0]);
-	boxCtr = zCenterEdit->text().toFloat();
 	boxSize[2] = zSizeEdit->text().toFloat();
-	probeParams->setProbeMin(2,boxCtr-0.5*boxSize[2]);
-	probeParams->setProbeMax(2,boxCtr+0.5*boxSize[2]);
-	textToSlider(probeParams,2, boxCtr, boxSize[2]);
-	probeTextureFrame->setTextureSize(boxSize[0],boxSize[1]);
+	for (int i = 0; i<3; i++){
+		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
+		if (boxSize[i] > maxBoxSize[i]) boxSize[i] = maxBoxSize[i];
+	}
+	boxCenter[0] = xCenterEdit->text().toFloat();
+	boxCenter[1] = yCenterEdit->text().toFloat();
+	boxCenter[2] = zCenterEdit->text().toFloat();
+	probeParams->getBox(boxmin, boxmax);
+	const float* extents = DataStatus::getInstance()->getExtents();
+	for (int i = 0; i<3;i++){
+		if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
+		if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
+		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
+		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
+	}
+	probeParams->setBox(boxmin,boxmax);
+	adjustBoxSize(probeParams);
+	//set the center sliders:
+	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
+	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
+	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
+	resetTextureSize(probeParams);
+	//probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
 	probeParams->setProbeDirty();
 	if (probeParams->getMapperFunc()) {
 		((TransferFunction*)probeParams->getMapperFunc())->setMinMapValue(leftMappingBound->text().toFloat());
@@ -747,8 +757,9 @@ void ProbeEventRouter::updateTab(){
 	int winnum = vizMgr->getActiveViz();
 	
 	deleteInstanceButton->setEnabled(vizMgr->getNumProbeInstances(winnum) > 1);
-	
-	planarCheckbox->setChecked(probeParams->isPlanar());
+	if (planarCheckbox->isChecked() != probeParams->isPlanar()){
+		planarCheckbox->setChecked(probeParams->isPlanar());
+	}
 
 	int numViz = vizMgr->getNumVisualizers();
 
@@ -765,10 +776,10 @@ void ProbeEventRouter::updateTab(){
 			}
 		}
 	}
-
-	probeTextureFrame->setTextureSize(probeParams->getProbeMax(0) - probeParams->getProbeMin(0),
-		probeParams->getProbeMax(1) - probeParams->getProbeMin(1));
-
+	//setup the texture:
+	
+	resetTextureSize(probeParams);
+	
 	QString strn;
 	Session* ses = Session::getInstance();
 	ses->blockRecording();
@@ -802,20 +813,21 @@ void ProbeEventRouter::updateTab(){
 		zSizeSlider->setEnabled(true);
 		zSizeEdit->setEnabled(true);
 	}
+	//setup the size sliders 
+	adjustBoxSize(probeParams);
+
+	//And the center sliders/textboxes:
+	float boxmin[3],boxmax[3],boxCenter[3];
+	const float* extents = DataStatus::getInstance()->getExtents();
+	probeParams->getBox(boxmin, boxmax);
+	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f;
+	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
+	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
+	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
+	xCenterEdit->setText(QString::number(boxCenter[0]));
+	yCenterEdit->setText(QString::number(boxCenter[1]));
+	zCenterEdit->setText(QString::number(boxCenter[2]));
 	
-	//Set the values of box extents:
-	float probeMin[3],probeMax[3];
-	probeParams->getBox(probeMin,probeMax);
-	for (int i = 0; i<3; i++){
-		textToSlider(probeParams, i, (probeMin[i]+probeMax[i])*0.5f,
-			probeMax[i]-probeMin[i]);
-	}
-	xSizeEdit->setText(QString::number(probeMax[0]-probeMin[0],'g',7));
-	xCenterEdit->setText(QString::number(0.5f*(probeMax[0]+probeMin[0]),'g',7));
-	ySizeEdit->setText(QString::number(probeMax[1]-probeMin[1],'g',7));
-	yCenterEdit->setText(QString::number(0.5f*(probeMax[1]+probeMin[1]),'g',7));
-	zSizeEdit->setText(QString::number(probeMax[2]-probeMin[2],'g',7));
-	zCenterEdit->setText(QString::number(0.5f*(probeMax[2]+probeMin[2]),'g',7));
 	thetaEdit->setText(QString::number(probeParams->getTheta(),'f',1));
 	phiEdit->setText(QString::number(probeParams->getPhi(),'f',1));
 	psiEdit->setText(QString::number(probeParams->getPsi(),'f',1));
@@ -1250,10 +1262,10 @@ guiSetXSize(int sliderval){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe X size");
 	setXSize(pParams,sliderval);
-	float probeMin[3],probeMax[3];
-	pParams->getBox(probeMin,probeMax);
+	
 	PanelCommand::captureEnd(cmd, pParams);
-	probeTextureFrame->setTextureSize(probeMax[0]-probeMin[0],probeMax[1]-probeMin[1]);
+	//setup the texture:
+	resetTextureSize(pParams);
 	pParams->setProbeDirty();
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
@@ -1265,10 +1277,9 @@ guiSetYSize(int sliderval){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe Y size");
 	setYSize(pParams,sliderval);
-	float probeMin[3],probeMax[3];
-	pParams->getBox(probeMin,probeMax);
+	
 	PanelCommand::captureEnd(cmd, pParams);
-	probeTextureFrame->setTextureSize(probeMax[0]-probeMin[0],probeMax[1]-probeMin[1]);
+	resetTextureSize(pParams);
 	pParams->setProbeDirty();
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
@@ -1280,8 +1291,7 @@ guiSetZSize(int sliderval){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "slide probe Z size");
 	setZSize(pParams,sliderval);
-	float probeMin[3],probeMax[3];
-	pParams->getBox(probeMin,probeMax);
+	
 	PanelCommand::captureEnd(cmd, pParams);
 	pParams->setProbeDirty();
 	probeTextureFrame->update();
@@ -1316,6 +1326,10 @@ guiSetNumRefinements(int n){
 //
 void ProbeEventRouter::
 textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
+	pParams->setProbeMin(coord, newCenter-0.5f*newSize);
+	pParams->setProbeMax(coord, newCenter+0.5f*newSize);
+	adjustBoxSize(pParams);
+	return;
 	//force the new center to fit in the full domain,
 	
 	bool centerChanged = false;
@@ -1410,24 +1424,14 @@ textToSlider(ProbeParams* pParams, int coord, float newCenter, float newSize){
 void ProbeEventRouter::
 sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 	
-	//force the center to fit in the region.
-	DataStatus* ds = DataStatus::getInstance();
-	const float* extents; 
-	float regMin, regMax;
-	if (ds){
-		extents = DataStatus::getInstance()->getExtents();
-		regMin = extents[coord];
-		regMax = extents[coord+3];
-	} else {
-		regMin = 0.f;
-		regMax = 1.f;
-	}
-	float newSize = slideSize*(regMax-regMin)/256.f;
-	float newCenter = regMin+ slideCenter*(regMax-regMin)/256.f;
-	
-	
-	pParams->setProbeMin(coord, newCenter - newSize*0.5f);
-	pParams->setProbeMax(coord, newCenter + newSize*0.5f);
+	const float* extents = DataStatus::getInstance()->getExtents();
+	float newCenter = extents[coord] + ((float)slideCenter)*(extents[coord+3]-extents[coord])/256.f;
+	float newSize = maxBoxSize[coord]*(float)slideSize/256.f;
+	pParams->setProbeMin(coord, newCenter-0.5f*newSize);
+	pParams->setProbeMax(coord, newCenter+0.5f*newSize);
+	adjustBoxSize(pParams);
+	//Set the text in the edit boxes
+
 	const float* selectedPoint = pParams->getSelectedPoint();
 	
 	switch(coord) {
@@ -1450,15 +1454,14 @@ sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize){
 			assert(0);
 	}
 	guiSetTextChanged(false);
-	float probeMin[3],probeMax[3];
-	pParams->getBox(probeMin,probeMax);
-	probeTextureFrame->setTextureSize(probeMax[0]-probeMin[0],probeMax[1]-probeMin[1]);
+	resetTextureSize(pParams);
 	update();
 	//force a new render with new Probe data
 	pParams->setProbeDirty();
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 	return;
+	
 }	
 /*
  * Method to be invoked after the user has moved the right or left bounds
@@ -1513,9 +1516,10 @@ captureMouseDown(){
 void ProbeEventRouter::
 captureMouseUp(){
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	float boxMin[3],boxMax[3];
-	pParams->getBox(boxMin,boxMax);
-	probeTextureFrame->setTextureSize(boxMax[0]-boxMin[0],boxMax[1]-boxMin[1]);
+	//float boxMin[3],boxMax[3];
+	//pParams->getBox(boxMin,boxMax);
+	//probeTextureFrame->setTextureSize(boxMax[0]-boxMin[0],boxMax[1]-boxMin[1]);
+	resetTextureSize(pParams);
 	pParams->setProbeDirty();
 	//Update the tab if it's in front:
 	if(MainForm::getInstance()->getTabManager()->isFrontTab(this)) {
@@ -1814,9 +1818,7 @@ refreshHistogram(RenderParams* p){
 						(j - blkMin[1]*bSize)*(bSize*(blkMax[0]-blkMin[0]+1)) +
 						(k - blkMin[2]*bSize)*(bSize*(blkMax[1]-blkMin[1]+1))*(bSize*(blkMax[0]-blkMin[0]+1));
 					//qWarning(" sampled coord %d",xyzCoord);
-					
-				
-					
+	
 					assert(xyzCoord >= 0);
 					assert(xyzCoord < (int)((blkMax[0]-blkMin[0]+1)*(blkMax[1]-blkMin[1]+1)*(blkMax[2]-blkMin[2]+1)*bSize*bSize*bSize));
 					float varVal;
@@ -2246,4 +2248,73 @@ void ProbeEventRouter::guiNudgeZSize(int val) {
 	}
 	updateTab();
 	PanelCommand::captureEnd(cmd,pParams);
+}
+void ProbeEventRouter::
+adjustBoxSize(ProbeParams* pParams){
+	//Determine the max x, y, z sizes of probe:
+	
+	float boxmin[3], boxmax[3];
+	//Don't do anything if we haven't read the data yet:
+	if (!Session::getInstance()->getDataMgr()) return;
+	pParams->getBox(boxmin, boxmax);
+	float rotMatrix[9];
+	getRotationMatrix(pParams->getTheta()*M_PI/180.,pParams->getPhi()*M_PI/180., pParams->getPsi()*M_PI/180., rotMatrix);
+	//Apply rotation matrix inverted to full domain size
+	const float* extents = DataStatus::getInstance()->getExtents();
+	float extentSize[3];
+	for (int i= 0; i<3; i++) extentSize[i] = (extents[i+3]-extents[i]);
+	
+	//Transform each side of box by rotMatrix.   Effectively that amounts
+	//to multiplying each column of rotMatrix by the box side
+	//If it projects longer (in any dimension) than extents,
+	//then that side must be shrunk appropriately
+	//In other words, the max box is obtained by taking a column and multiplying it
+	//by the max extents in that dimension.
+	//The largest box size is obtained by finding the minimum of
+	//extentSize[i]/norm(col(i))
+
+	//For each j (axis) find max over i of (col(j))sub i /extent[i].
+	//This is the reciprocal of the max value of j box side.
+	for (int axis = 0; axis<3; axis++){
+		float maxval = 0.;
+		for (int i = 0; i<3; i++){
+			if ((abs(rotMatrix[3*i+axis])/extentSize[i])> maxval)
+				maxval = (abs(rotMatrix[3*i+axis])/extentSize[i]);
+		}
+		assert(maxval > 0.f);
+		maxBoxSize[axis] = 1.f/maxval;
+	}
+	
+	
+	//Now make sure the probe box fits
+	bool boxOK = true;
+	float boxmid[3];
+	for (int i = 0; i<3; i++){
+		if ((boxmax[i]-boxmin[i]) > maxBoxSize[i]){
+			boxOK = false;
+			boxmid[i] = 0.5f*(boxmax[i]+boxmin[i]);
+			boxmin[i] = boxmid[i] - 0.5f* maxBoxSize[i];
+			boxmax[i] = boxmid[i] + 0.5f*maxBoxSize[i];
+		}
+	}
+	
+	pParams->setBox(boxmin, boxmax);
+	//Set the size sliders appropriately:
+	xSizeEdit->setText(QString::number(boxmax[0]-boxmin[0]));
+	ySizeEdit->setText(QString::number(boxmax[1]-boxmin[1]));
+	zSizeEdit->setText(QString::number(boxmax[2]-boxmin[2]));
+	xSizeSlider->setValue((int)(256.f*(boxmax[0]-boxmin[0])/(maxBoxSize[0])));
+	ySizeSlider->setValue((int)(256.f*(boxmax[1]-boxmin[1])/(maxBoxSize[1])));
+	zSizeSlider->setValue((int)(256.f*(boxmax[2]-boxmin[2])/(maxBoxSize[2])));
+	
+	//Cancel any response to text events generated in this method:
+	//
+	guiSetTextChanged(false);
+}
+void ProbeEventRouter::resetTextureSize(ProbeParams* probeParams){
+	//setup the texture:
+	size_t fullHeight = VizWinMgr::getActiveRegionParams()->getFullGridHeight();
+	float voxDims[2];
+	probeParams->getProbeVoxelExtents(fullHeight, voxDims);
+	probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
 }

@@ -948,19 +948,24 @@ mouseRelease(float /*screenCoords*/[2]){
 			//And axis2 is the axis of the grabbed side
 			int axis2 = (newHandle < 3) ? (2-newHandle):(newHandle-3);
 				
-			
+			//Along axis, need to move center by half of distance.
 			//boxMin gets changed for nearHandle, boxMax for farHandle
 			//Need to also stretch box, since the rotation was about the middle:
-			//Note that if axis2 is axis then we either change the max or the min
+			//Note that if axis2 is axis then we only change the max or the min
 			boxMin[axis] += 0.5f*dist;
 			boxMax[axis] += 0.5f*dist;
+			//We need to stretch the size along axis2, without changing the center;
+			//However this stretch is affected by the relative stretch factors of 
+			//axis2 and axis
+			const float* stretch = DataStatus::getInstance()->getStretchFactors();
+			float dist2 = dist*stretch[axis2]/stretch[axis];
 			if (selectedHandle < 3){
-				boxMin[axis2] += 0.5f*dist;
-				boxMax[axis2] -= 0.5f*dist;
+				boxMin[axis2] += 0.5f*dist2;
+				boxMax[axis2] -= 0.5f*dist2;
 			}
 			else {
-				boxMax[axis2] += 0.5f*dist;
-				boxMin[axis2] -= 0.5f*dist;
+				boxMax[axis2] += 0.5f*dist2;
+				boxMin[axis2] -= 0.5f*dist2;
 			}
 			
 		} else {
@@ -991,9 +996,10 @@ float TranslateRotateManip::constrainStretch(float currentDist){
 	else newHandle = myPermuter->permute(selectedHandle - 2);
 	if (newHandle < 0) newHandle +=3;
 	else newHandle +=2;
-	//And axis2 is the axis of the grabbed side
+	// axis2 is the axis of the grabbed side before rotation
 	int axis2 = (newHandle < 3) ? (2-newHandle):(newHandle-3);
-		
+	// axis 1 is the axis in the scene
+	int axis1 = (selectedHandle < 3) ? (2 - selectedHandle):(selectedHandle -3);
 	//Don't drag the z-axis if it's planar:
 	if (axis2 == 2){
 		ProbeParams* pParams = (ProbeParams*) myParams;
@@ -1002,13 +1008,19 @@ float TranslateRotateManip::constrainStretch(float currentDist){
 			return 0.f;
 		}
 	}
-	if (selectedHandle < 3){	
-			if (dist > (boxMax[axis2]-boxMin[axis2])) dist = (boxMax[axis2]-boxMin[axis2]);
+	const float* strFacs = DataStatus::getInstance()->getStretchFactors();
+	float corrFactor = ViewpointParams::getMaxStretchedCubeSide()*strFacs[axis2]/strFacs[axis1]; 
+	
+	if (selectedHandle < 3){
+			if (dist*corrFactor > (boxMax[axis2]-boxMin[axis2])) 
+				dist = (boxMax[axis2]-boxMin[axis2])/corrFactor;
 	}
 	else {
-			if (dist < (boxMin[axis2]-boxMax[axis2])) dist = (boxMin[axis2]-boxMax[axis2]);
+			if (dist*corrFactor < (boxMin[axis2]-boxMax[axis2])) 
+				dist = (boxMin[axis2]-boxMax[axis2])/corrFactor;
 	}
 	delete myPermuter;
+	
 	return (dist*ViewpointParams::getMaxStretchedCubeSide());
 }
 TranslateRotateManip::Permuter::Permuter(float theta, float phi, float psi){
