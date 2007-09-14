@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <ctime>
 #include <netcdf.h>
 
 #include <vapor/CFuncs.h>
@@ -269,19 +270,9 @@ int WRF::WRFTimeStrToEpoch(
 	
 	ts.tm_mon -= 1;
 	ts.tm_year -= 1900;
-	ts.tm_isdst = 0;
-
-	// Set time zone to GMT
-	//
-	const char *env_save = getenv("TZ");
-
-	assert(setenv("TZ", "GMT0", 1) >=0);
+	ts.tm_isdst = -1;	// let mktime() figure out timezone
 
 	*seconds = mktime(&ts);
-
-	// Restore time zone
-	//
-	if (env_save) setenv ("TZ", env_save, 1);
 
 	return(0);
 }
@@ -292,26 +283,24 @@ int WRF::EpochToWRFTimeStr(
 ) {
 
 	struct tm *tsptr, ts;;
-
-	const char *format = "%4.4d-%2.2d-%2.2d_%2.2d:%2.2d:%2.2d";
+    const char *format = "%Y-%m-%d_%H:%M:%S";
 	char buf[128];
 
-	tsptr = gmtime(&seconds);
+	tsptr = localtime(&seconds);
 	if (! tsptr) {
-		MyBase::SetErrMsg("gmtime(%d) : ???, (int) seconds");
+		MyBase::SetErrMsg("localtime(%d) : ???, (int) seconds");
 		return(-1);
 	}
 	ts = *tsptr;
 
-	ts.tm_year += 1900;
-	ts.tm_mon += 1;
-
-	sprintf(buf, format, ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec);
+	if (strftime(buf,sizeof(buf), format, &ts) == 0) {
+		MyBase::SetErrMsg("strftime(%s) : ???, format");
+		return(-1);
+	}
 
 	str = buf;
 
 	return(0);
-
 }
 
 
