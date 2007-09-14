@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <algorithm>
 #include <netcdf.h>
 
 #include <vapor/CFuncs.h>
