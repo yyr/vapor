@@ -78,6 +78,28 @@ end
 #
 #
 #
+echo "Linking palettes..."
+
+if (! -d /usr/local/share/palettes) then
+	mkdir -p /usr/local/share/palettes
+	if ($status != 0) exit 1
+endif
+
+foreach fullpath ($InstDest/VAPOR.app/Contents/SharedSupport/palettes/*)
+
+	set file = `basename $fullpath`
+	if (-e  /usr/local/share/palettes/$file || -l /usr/local/share/palettes/$file) then
+		/bin/rm /usr/local/share/palettes/$file
+	endif
+
+	ln -s $InstDest/VAPOR.app/Contents/SharedSupport/palettes/$file /usr/local/share/palettes/$file
+	if ($status != 0) exit 1
+end
+
+#
+#
+#
+#
 echo "Linking doc..."
 
 if (! -d /usr/local/share/doc) then
