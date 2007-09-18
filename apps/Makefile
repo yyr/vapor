@@ -2,7 +2,8 @@ TOP = ../
 
 include $(TOP)/make/config/prebase.mk
 
-SUBDIRS = vdfcreate raw2vdf vdf2raw vaporversion ncdf2vdf wrf2vdf wrfvdfcreate
+SUBDIRS = vdfcreate raw2vdf vdf2raw vaporversion ncdf2vdf wrf2vdf \
+	wrfvdfcreate asciitf2vtf
 
 ifeq ($(BUILD_AMR_SUPPORT), 1)
 SUBDIRS += flashamr2vdf
