@@ -18,9 +18,9 @@
 //		A class to interpolate transfer function values
 //		Currently only supports linear interpolation
 //
-#include "math.h"
-#include "tfinterpolator.h"
-#include "assert.h"
+#include <cmath>
+#include <cassert>
+#include <vapor/tfinterpolator.h>
 using namespace VAPoR;
 	// Determine the interpolated value at intermediate value 0<=r<=1
 	// where the value at left and right endpoint is known

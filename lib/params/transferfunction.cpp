@@ -93,6 +93,11 @@ TransferFunction::TransferFunction(RenderParams* p, int nBits) :
   MapperFunction(p, nBits)
 {
 }
+
+TransferFunction::TransferFunction(const MapperFunctionBase &mapper) :
+  MapperFunction(mapper)
+{
+}
 	
 //----------------------------------------------------------------------------
 // Destructor

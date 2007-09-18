@@ -14,37 +14,33 @@
 //
 //	Date:		November 2004
 //
-//	Description:	Defines the TransferFunction class  
+//	Description:	Defines the TransferFunctionLite class  
 //		This is the mathematical definition of the transfer function
 //		It is defined in terms of floating point coordinates, converted
 //		into a mapping of quantized values (LUT) with specified domain at
-//		rendering time.  Interfaces to the TFEditor and DvrParams classes.
-//		The TransferFunction deals with an mapping on the interval [0,1]
+//		rendering time.  Interfaces to the TFEditor class.
+//		The TransferFunctionLite deals with an mapping on the interval [0,1]
 //		that is remapped to a specified interval by the user.
 //
-#ifndef TRANSFERFUNCTION_H
-#define TRANSFERFUNCTION_H
+#ifndef TRANSFERFUNCTIONBASE_H
+#define TRANSFERFUNCTIONBASE_H
 #define MAXCONTROLPOINTS 50
-#include "tfinterpolator.h"
-//#include "params.h"
-#include "mapperfunction.h"
-#include "vapor/ExpatParseMgr.h"
-#include <qcolor.h>
+#include <vapor/MapperFunctionBase.h>
+#include <vapor/ExpatParseMgr.h>
+#include <vapor/tfinterpolator.h>
 
 namespace VAPoR {
 class TFEditor;
-class RenderParams;
 class XmlNode;
 
-class PARAMS_API TransferFunction : public MapperFunction 
+class PARAMS_API TransferFunctionLite : public MapperFunctionBase 
 {
 
 public:
 
-	TransferFunction();
-	TransferFunction(RenderParams* p, int nBits=8);
-	TransferFunction(const MapperFunctionBase &mapper);
-	virtual ~TransferFunction();
+	TransferFunctionLite();
+	TransferFunctionLite(int nBits);
+	virtual ~TransferFunctionLite();
 
     //
 	// Note:  All public methods use actual real coords.
@@ -75,32 +71,9 @@ public:
 	// Failure results in false/null pointer
 	//
 	bool saveToFile(ofstream& f);
-    static TransferFunction* loadFromFile(ifstream& is, RenderParams *p);
 
-	XmlNode* buildNode(const string& tfname);
-	//All the parsing can be done with the start handlers
-	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, 
-                             const char **attr);
-	bool elementEndHandler(ExpatParseMgr*, int , std::string&);
-
-	//Transfer function tag is visible to session 
-	static const string _transferFunctionTag;
-	
 protected:
 
-    //
-	//Set to starting values
-	//
-	virtual void init();  
-	
-protected:
-	
-    //
-    // XML tags
-    //
-	static const string _tfNameAttr;
-	static const string _leftBoundAttr;
-	static const string _rightBoundAttr;
 };
 };
-#endif //TRANSFERFUNCTION_H
+#endif //TRANSFERFUNCTIONBASE_H

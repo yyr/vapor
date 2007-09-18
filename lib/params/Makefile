@@ -11,7 +11,12 @@ FILES = \
 	histo mapperfunction params probeparams regionparams \
 	tfinterpolator transferfunction viewpoint \
 	animationparams	viewpointparams \
-	Colormap OpacityMap ParamNode ParamsIso
+	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
+	MapperFunctionBase OpacityMapBase TransferFunctionLite
+
+HEADER_FILES = ColorMapBase MapperFunctionBase OpacityMapBase \
+	TransferFunctionLite tfinterpolator
+
 
 ifeq ($(ARCH),WIN32)
 MAKEFILE_CXXFLAGS += /D"PARAMS_EXPORTS"
