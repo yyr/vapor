@@ -76,6 +76,8 @@ MapperFunction::MapperFunction(RenderParams* p, int nBits) :
     _opacityMaps.clear();
 
 
+	// Now recreate them with the appropriate type
+	//
     _colormap = new Colormap(myParams);
 
     _opacityMaps.push_back(new OpacityMap(myParams));
@@ -88,11 +90,19 @@ MapperFunction::MapperFunction(const MapperFunction &mapper) :
 	MapperFunctionBase(mapper),
 	myParams(mapper.myParams)
 {
+	// Delete ColorMapBase and OpacityMapBase created by parent class
+	if (_colormap) delete _colormap;	
+
 	for (int i=0; i<_opacityMaps.size(); i++) {
 		delete _opacityMaps[i];
 		_opacityMaps[i] = NULL;
     }
     _opacityMaps.clear();
+
+	// Now recreate them with the appropriate type
+	//
+	const Colormap &cmap =  (const Colormap &) (*(mapper._colormap));
+	_colormap = new Colormap(cmap);
 
 	for (int i=0; i<mapper._opacityMaps.size(); i++) {
 		_opacityMaps.push_back(new OpacityMap((const OpacityMap &) (*mapper._opacityMaps[i])));
