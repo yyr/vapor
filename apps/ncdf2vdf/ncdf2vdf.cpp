@@ -63,6 +63,7 @@ struct opt_t {
 	vector <string> dimnames;
 	vector <string> constDimNames;
 	vector <int> constDimValues;
+	OptionParser::Boolean_T	swapz;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	debug;
 	OptionParser::Boolean_T	quiet;
@@ -73,6 +74,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"varname",	1, 	"var1",	"Name of variable in metadata"},
 	{"ncdfvar",	1, 	"???????",	"Name of variable in NetCDF, if different"},
 	{"level",	1, 	"-1",	"Refinement levels saved. 0=>coarsest, 1=>next refinement, etc. -1=>finest"},
+	{"swapz",	0,	"",	"Swap the order of processing for the Z coordinate (largest to smallest)"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
 	{"quiet",	0,	"",	"Operate quietly"},
@@ -88,6 +90,7 @@ OptionParser::Option_T	get_options[] = {
 	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
 	{"ncdfvar", VetsUtil::CvtToString, &opt.ncdfvarname, sizeof(opt.ncdfvarname)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
+	{"swapz", VetsUtil::CvtToBoolean, &opt.swapz, sizeof(opt.swapz)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
@@ -238,7 +241,7 @@ void	process_volume(
 		//OK, found it.  Verify that the constant value is OK:
 		size_t constDimLen=0;
 		if((nc_inq_dimlen(ncid, constDimID, &constDimLen) != NC_NOERR) ||
-			constDimLen <= opt.constDimValues[i] ||
+			constDimLen != opt.constDimValues[i] ||
 			opt.constDimValues[i] < 0)
 		{
 			fprintf(stderr, "Invalid value of constant dimension %s\n",
@@ -336,20 +339,21 @@ void	process_volume(
 	if(!opt.quiet) fprintf(stderr, "dimensions of array are: %d %d %d\n",
 		fullCount[dimIndex[0]],fullCount[dimIndex[1]],fullCount[dimIndex[2]]);
 	
-	size *= elem_size;
-	unsigned char *buffer = new unsigned char[size];
-	fprintf(stderr," buffer size allocated: %d\n", size);
-	
-	
-	
-	
 	//
 	// Translate the volume one slice at a time
 	//
 	// Set up counts to only grab a z-slice
 	for (int i = 0; i< ndimids; i++) count[i] = fullCount[i];
 	count[dimIndex[2]] = 1;
-	for(int z=0; z<dim[2]; z++) {
+	int zbegin = 0;
+	int zend = dim[2];
+	int zinc = 1;
+	if (opt.swapz) {
+		zbegin = dim[2]-1;
+		zend = -1;
+		zinc = -1;
+	}
+	for(int z=zbegin; z!=zend; z+=zinc) {
 
 		if (z%50 == 0 && ! opt.quiet) {
 			cout << "Reading slice # " << z << endl;
