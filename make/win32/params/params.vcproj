@@ -135,6 +135,9 @@
 				RelativePath="..\..\..\lib\params\Colormap.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\ColorMapBase.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\datastatus.cpp">
 			</File>
 			<File
@@ -153,7 +156,13 @@
 				RelativePath="..\..\..\lib\params\mapperfunction.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\MapperFunctionBase.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\OpacityMap.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\lib\params\OpacityMapBase.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\ParamNode.cpp">
@@ -177,6 +186,9 @@
 				RelativePath="..\..\..\lib\params\transferfunction.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\params\TransferFunctionLite.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\viewpoint.cpp">
 			</File>
 			<File
@@ -192,6 +204,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\Colormap.h">
+			</File>
+			<File
+				RelativePath="..\..\..\include\vapor\ColorMapBase.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\datastatus.h">
@@ -218,6 +233,9 @@
 				RelativePath="..\..\..\lib\params\OpacityMap.h">
 			</File>
 			<File
+				RelativePath="..\..\..\include\vapor\OpacityMapBase.h">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\params\ParamNode.h">
 			</File>
 			<File
@@ -233,7 +251,7 @@
 				RelativePath="..\..\..\lib\params\regionparams.h">
 			</File>
 			<File
-				RelativePath="..\..\..\lib\params\tfinterpolator.h">
+				RelativePath="..\..\..\include\vapor\tfinterpolator.h">
 			</File>
 			<File
 				RelativePath="..\..\..\lib\params\transferfunction.h">

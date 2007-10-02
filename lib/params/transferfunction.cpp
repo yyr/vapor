@@ -26,7 +26,7 @@
 #ifdef WIN32
 #pragma warning(disable : 4251 4100)
 #endif
-#include "tfinterpolator.h"
+#include "vapor/tfinterpolator.h"
 #include "transferfunction.h"
 #include "assert.h"
 #include "vaporinternal/common.h"

@@ -13,6 +13,7 @@
 #include <vapor/XmlNode.h>
 #include <vapor/MyBase.h>
 #include <vapor/ColorMapBase.h>
+#include "assert.h"
 
 #ifndef MAX
 #define MAX(a,b) ((a) > (b) ? (a) : (b))

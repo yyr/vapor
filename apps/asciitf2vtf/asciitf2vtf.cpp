@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
-
+#include <algorithm>
 #include <vapor/CFuncs.h>
 #include <vapor/OptionParser.h>
 #include <vapor/Metadata.h>

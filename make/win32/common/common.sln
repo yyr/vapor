@@ -100,6 +100,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wrfvdfcreate", "..\wrfvdfcr
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asciitf2vtf", "..\asciitf2vtf\asciitf2vtf.vcproj", "{110B2E1A-E116-46FE-BEFE-F63B558549BD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+		{E8FB619B-48D3-4B7E-B3F0-88939299995A} = {E8FB619B-48D3-4B7E-B3F0-88939299995A}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -172,6 +179,10 @@ Global
 		{31C701B3-60F3-48DC-9445-83BC83A9821B}.Debug.Build.0 = Debug|Win32
 		{31C701B3-60F3-48DC-9445-83BC83A9821B}.Release.ActiveCfg = Release|Win32
 		{31C701B3-60F3-48DC-9445-83BC83A9821B}.Release.Build.0 = Release|Win32
+		{110B2E1A-E116-46FE-BEFE-F63B558549BD}.Debug.ActiveCfg = Debug|Win32
+		{110B2E1A-E116-46FE-BEFE-F63B558549BD}.Debug.Build.0 = Debug|Win32
+		{110B2E1A-E116-46FE-BEFE-F63B558549BD}.Release.ActiveCfg = Release|Win32
+		{110B2E1A-E116-46FE-BEFE-F63B558549BD}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
