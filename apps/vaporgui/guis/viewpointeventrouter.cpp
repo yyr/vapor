@@ -493,13 +493,19 @@ guiSetCenter(const float* coords){
 		savedCommand = 0;
 	}
 	ViewpointParams* vpParams = (ViewpointParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ViewpointParamsType);
-	
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "set view center");
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
-	//Determine the new viewDir:
+	//Determine the new viewDir in stretched world coords
+	
 	vcopy(coords, vdir);
-	vsub(vdir,currentViewpoint->getCameraPos(), vdir);
-	//Make sure the viewDir is normalized:
+	//Stretch the new view center coords
+	for (int i = 0; i<3; i++) vdir[i] *= stretch[i];
+	float campos[3];
+	currentViewpoint->getStretchedCamPos(campos);
+	vsub(vdir,campos, vdir);
+	
 	vnormal(vdir);
 	currentViewpoint->setViewDir(vdir);
 	
