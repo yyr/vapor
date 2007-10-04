@@ -372,13 +372,10 @@ void GLWindow::paintGL()
 	}
 	
 	swapBuffers();
-	
 
 	
-
-	bool mouseIsDown = postRenderCB(winNum, isControlled);
 	//Capture the image, if not navigating:
-	if (renderNew && !mouseIsDown) doFrameCapture();
+	if (renderNew && !mouseDownHere) doFrameCapture();
 
 	glPopMatrix();
 	//clear dirty bits
@@ -388,8 +385,9 @@ void GLWindow::paintGL()
 	setDirtyBit(DvrRegionBit,false);
 	setDirtyBit(ProjMatrixBit, false);
 	setDirtyBit(ViewportBit, false);
-	
 	nowPainting = false;
+	postRenderCB(winNum, isControlled);
+	
 }
 //Draw a 3D cursor at specified world coords
 void GLWindow::draw3DCursor(const float position[3]){
