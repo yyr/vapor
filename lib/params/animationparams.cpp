@@ -200,8 +200,7 @@ getNextFrame(int dir){
 		int testFrame = currentFrame + dir*frameStepSize;
 		DataStatus* ds = DataStatus::getInstance();
 		for (int i = 1; i<= (endFrame - startFrame + frameStepSize)/frameStepSize; i++){
-			if (ds->dataIsPresent(testFrame)) break;
-			testFrame += dir*frameStepSize;
+			
 			if (testFrame > endFrame){ 
 				if (repeatPlay) testFrame =  startFrame;
 				else testFrame = currentFrame;
@@ -210,6 +209,8 @@ getNextFrame(int dir){
 				if (repeatPlay) testFrame = endFrame;
 				else testFrame = currentFrame;
 			}
+			if (ds->dataIsPresent(testFrame)) break;
+			testFrame += dir*frameStepSize;
 		}
 		//It's OK, or we looped all the way around:
 		
