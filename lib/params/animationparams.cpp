@@ -71,7 +71,7 @@ restart(){
 	maxFrame = 100; 
 	minFrame = 1;
 	currentFrame = 0;
-	maxWait = 60.f;
+	maxWait = 6000.f;
 	useTimestepSampleList = false;
 	timestepList.clear();
 	stateChanged = true;
