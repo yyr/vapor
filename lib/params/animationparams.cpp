@@ -213,6 +213,8 @@ getNextFrame(int dir){
 			testFrame += dir*frameStepSize;
 		}
 		//It's OK, or we looped all the way around:
+		if(i > ((endFrame - startFrame + frameStepSize)/frameStepSize))
+			testFrame = currentFrame;
 		
 		return testFrame;
 		
