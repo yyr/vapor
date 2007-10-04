@@ -195,11 +195,12 @@ getNextFrame(int dir){
 		else return(timestepList[prevIndex]);
 				
 	} else {
+		int i;
 		//not using timestep sample list.
 		// find next valid frame for which there exists data:
 		int testFrame = currentFrame + dir*frameStepSize;
 		DataStatus* ds = DataStatus::getInstance();
-		for (int i = 1; i<= (endFrame - startFrame + frameStepSize)/frameStepSize; i++){
+		for (i = 1; i<= (endFrame - startFrame + frameStepSize)/frameStepSize; i++){
 			
 			if (testFrame > endFrame){ 
 				if (repeatPlay) testFrame =  startFrame;
