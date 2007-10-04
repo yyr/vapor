@@ -130,7 +130,7 @@ PARAMS_API float   getScale(GLfloat* rotmatrix);
 inline void vset(float* a, const float x, const float y, const float z){a[0] = x, a[1] = y, a[2] = z;}
 inline float vdot(const float* a, const float* b)
 	{return (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]);}
-inline float vlength(const float*a) {return sqrt((double)vdot(a,a));}
+inline float vlength(const float*a) {return sqrt(vdot(a,a));}
 inline void vnormal(float *a) {vscale(a, 1/vlength(a));}
 inline void vcopy(const float* a, float* b) {b[0] = a[0], b[1] = a[1], b[2] = a[2];}
 inline void vsub(const float* a, const float* b, float* c)

@@ -4,6 +4,7 @@
 * This class describes a viewpoint
 */
 #include "vapor/ExpatParseMgr.h"
+#include "datastatus.h"
 namespace VAPoR {
 class XmlNode;
 
@@ -30,6 +31,40 @@ public:
 	float getRotationCenter(int i) {return rotationCenter[i];}
 	void setRotationCenter(int i, float val) { rotationCenter[i] = val;}
 	void setRotationCenter(float* val) {rotationCenter[0] = val[0]; rotationCenter[1]=val[1]; rotationCenter[2] = val[2];}
+	//Routines that deal with stretched coordinates:
+	void getStretchedUpVec(float* vec){
+		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		for (int i = 0; i<3; i++) vec[i] = stretch[i]*upVector[i];
+	}
+	void setStretchedUpVec(const float* vec){
+		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		for (int i = 0; i<3; i++) upVector[i] = vec[i]/stretch[i];
+	}
+	void getStretchedRotCtr(float* vec){
+		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		for (int i = 0; i<3; i++) vec[i] = stretch[i]*rotationCenter[i];
+	}
+	void setStretchedRotCtr(const float* vec){
+		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		for (int i = 0; i<3; i++) rotationCenter[i] = vec[i]/stretch[i];
+	}	
+	void setStretchedViewDir(const float* vec){
+		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		for (int i = 0; i<3; i++) viewDirection[i] = vec[i]/stretch[i];
+	}
+	void getStretchedViewDir(float* vec){
+		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		for (int i = 0; i<3; i++) vec[i] = stretch[i]*viewDirection[i];
+	}
+	void setStretchedCamPos(const float* vec){
+		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		for (int i = 0; i<3; i++) cameraPosition[i] = vec[i]/stretch[i];
+	}
+	void getStretchedCamPos(float* vec){
+		const float* stretch = DataStatus::getInstance()->getStretchFactors();
+		for (int i = 0; i<3; i++) vec[i] = stretch[i]*cameraPosition[i];
+	}
+
 	void setPerspective(bool on) {perspective = on;}
 	bool hasPerspective() {return perspective;}
 	XmlNode* buildNode();

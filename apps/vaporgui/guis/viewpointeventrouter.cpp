@@ -464,8 +464,12 @@ guiAlignView(int axis){
 	PanelCommand* cmd = PanelCommand::captureStart(vpParams, "align viewpoint to axis");
 	
 	
-	//Determine distance from center to camera:
-	vsub(currentViewpoint->getCameraPos(),currentViewpoint->getRotationCenter(),vpos);
+	//Determine distance from center to camera, in stretched coordinates
+	float scampos[3], srotctr[3];
+	currentViewpoint->getStretchedCamPos(scampos);
+	currentViewpoint->getStretchedRotCtr(srotctr);
+	//determine the relative position in stretched coords:
+	vsub(scampos,srotctr,vpos);
 	float viewDist = vlength(vpos);
 	//Keep the view center as is, make view direction vdir 
 	currentViewpoint->setViewDir(vdir);
@@ -473,8 +477,8 @@ guiAlignView(int axis){
 	currentViewpoint->setUpVec(up);
 	//Position the camera the same distance from the center but down the -axis direction
 	vmult(vdir, viewDist, vdir);
-	vsub(currentViewpoint->getRotationCenter(), vdir, vpos);
-	currentViewpoint->setCameraPos(vpos);
+	vsub(srotctr, vdir, vpos);
+	currentViewpoint->setStretchedCamPos(vpos);
 	updateTab();
 	updateRenderer(vpParams,false,false);
 	PanelCommand::captureEnd(cmd,vpParams);
