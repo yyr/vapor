@@ -263,12 +263,13 @@ void DataStatus::calcDataRange(int varnum, int ts){
 		//
 		ErrMsgCB_T errorCallback = GetErrMsgCB();
 		SetErrMsgCB(0);
-		const float* mnmx = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
-			getVariableName(varnum).c_str());
+		float mnmx[2];
+		int rc = ((DataMgr*)getDataMgr())->GetDataRange(ts, 
+			getVariableName(varnum).c_str(), mnmx);
 		//Turn it back on:
 		SetErrMsgCB(errorCallback);
 					
-		if(!mnmx){
+		if(rc<0){
 			//Post an error:
 			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Missing DataRange in variable %s, at timestep %d \n Interval [0,1] assumed",
 				getMetadata()->GetVariableNames()[varnum].c_str(), ts);

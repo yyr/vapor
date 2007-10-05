@@ -6,6 +6,7 @@
 #define	_DataMgr_h_
 
 
+#include <list>
 #include <vapor/MyBase.h>
 #include "vapor/BlkMemMgr.h"
 #include "vapor/WaveletBlock3DRegionReader.h"
@@ -261,12 +262,13 @@ public:
  //! \param[in] ts A valid time step from the Metadata object used 
  //! to initialize the class
  //! \param[in] varname Name of variable 
- //! \retval range A two-element vector containing the current 
- //! minimum and maximum or NULL if the variable is not known
+ //! \param[out] range  A two-element vector containing the current 
+ //! minimum and maximum.
+ //! \retval status Returns a non-negative value on success 
  //! quantization mapping.
  //!
  //
- const float	*GetDataRange(size_t ts, const char *varname);
+ int GetDataRange(size_t ts, const char *varname, float range[2]);
 
  //! Return the valid region bounds for the specified region
  //!
@@ -359,25 +361,26 @@ private:
  enum _dataTypes_t {UINT8,UINT16,UINT32,FLOAT32};
 
  typedef struct {
+	size_t ts;
+	string varname;
 	int reflevel;
 	size_t min[3];
 	size_t max[3];
-	size_t fullHeight;
+	size_t full_height;
 	_dataTypes_t	type;
-	int	timestamp;
 	int lock_counter;
 	void *blks;
  } region_t;
 
+ // a list of all allocated regions
+ list <region_t> _regionsList;
+
  // min and max bounds for quantization
  map <string, float *> _quantizationRangeMap;	
 
- map <size_t, map<string, float *> > _dataRangeMap;
+ map <size_t, map<string, float> > _dataRangeMinMap;
+ map <size_t, map<string, float> > _dataRangeMaxMap;
  map <size_t, map<string, map<int, map<size_t ,size_t *> > > > _validRegMinMaxMap;
-
- map <size_t, map<string, vector<region_t *> > > _regionsMap;
-
- map <void *, region_t *> _lockedRegionsMap;
 
  map <string, float> lowValMap;
  map <string, float> highValMap;
@@ -432,7 +435,7 @@ private:
 
  int	_DataMgr(size_t mem_size, unsigned int nthreads);
 
- float	*get_cached_data_range(size_t ts, const char *varname);
+ int get_cached_data_range(size_t ts, const char *varname, float range[2]);
 
  size_t *get_cached_reg_min_max(size_t ts, const char *varname, int reflevel, size_t full_height);
 

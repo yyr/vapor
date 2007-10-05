@@ -308,6 +308,7 @@ int DVRShader::Render(const float matrix[16])
 
   if (_shader) _shader->disable();
 
+  glFlush();
   return 0;
 }
 

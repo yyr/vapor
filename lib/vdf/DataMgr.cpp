@@ -22,9 +22,9 @@ int	DataMgr::_DataMgr(
 	_blk_mem_mgr = NULL;
 
 	_quantizationRangeMap.clear();
-	_regionsMap.clear();
-	_lockedRegionsMap.clear();
-	_dataRangeMap.clear();
+	_regionsList.clear();
+	_dataRangeMinMap.clear();
+	_dataRangeMaxMap.clear();
 	_validRegMinMaxMap.clear();
 
 	_timestamp = 0;
@@ -119,24 +119,14 @@ DataMgr::~DataMgr(
 
 	if (_regionReader) delete _regionReader;
 
-	_regionsMap.clear();
-	_lockedRegionsMap.clear();
+	_regionsList.clear();
 	_timestamp = 0;
 
 	free_all();
 	if (_blk_mem_mgr) delete _blk_mem_mgr;
 
-	map <size_t, map<string, float *> >::iterator p0;
-	for(p0 = _dataRangeMap.begin(); p0!=_dataRangeMap.end(); p0++) {
-
-		map<string, float * > &vmap = p0->second;
-		map <string, float * >::iterator t;
-
-		for(t = vmap.begin(); t!=vmap.end(); t++) {
-			if (t->second) delete [] t->second;
-		}
-	}
-	_dataRangeMap.clear();
+	_dataRangeMinMap.clear();
+	_dataRangeMaxMap.clear();
 
 	map <size_t, map<string, map<int, map<size_t, size_t *> > > >::iterator p1;
 	for(p1 = _validRegMinMaxMap.begin(); p1!=_validRegMinMaxMap.end(); p1++) {
@@ -345,20 +335,14 @@ float	*DataMgr::GetRegion(
 	}
 
 
-	const float *r = get_cached_data_range(ts, varname);
-	if (! r) {
+	float range[2];
+	if (get_cached_data_range(ts, varname, range) < 0) {
 
-		r = _regionReader->GetDataRange();
-
-		float *range = new float[2];
-		assert(range != NULL);
-
-		range[0] = r[0];
-		range[1] = r[1];
+		const float *r = _regionReader->GetDataRange();
 
 		// Use of []'s creates an entry in map
-		_dataRangeMap[ts][varname] = range;
-
+		_dataRangeMinMap[ts][varname] = r[0];
+		_dataRangeMaxMap[ts][varname] = r[1];
 	}
 
 
@@ -456,6 +440,7 @@ unsigned char	*DataMgr::get_quantized_region(
 	blks = GetRegion(ts, varname, reflevel, min, max, full_height, 1);
 	if (! blks) return (NULL);
 
+
 	ublks = (unsigned char *) alloc_region(
 		ts,varname,reflevel,type,min,max,full_height, lock
 	);
@@ -513,21 +498,27 @@ void	DataMgr::quantize_region_uint16(
 ) {
 	for (size_t i = 0; i<size; i++) {
 		unsigned int	v;
-		if (*fptr < range[0]) *ucptr = 0;
-		else if (*fptr > range[1]) *ucptr = 65535;
+		if (*fptr < range[0]) {
+			v = 0;
+		}
+		else if (*fptr > range[1]) {
+			v = 65535;
+		}
 		else {
 			v = (int) rint((*fptr - range[0]) / (range[1] - range[0]) * 65535);
-			ucptr[0] = (unsigned char) (v & 0xff);
-			ucptr[1] = (unsigned char) ((v >> 8) & 0xff);
 		}
+		ucptr[0] = (unsigned char) (v & 0xff);
+		ucptr[1] = (unsigned char) ((v >> 8) & 0xff);
+
 		ucptr+=2;
 		fptr++;
 	}
 }
 
-const float	*DataMgr::GetDataRange(
+int DataMgr::GetDataRange(
 	size_t ts,
-	const char *varname
+	const char *varname,
+	float *range
 ) {
 	int	rc;
 
@@ -536,17 +527,14 @@ const float	*DataMgr::GetDataRange(
 
 	// See if we've already cache'd it.
 	//
-	float *range = get_cached_data_range(ts, varname);
-	if (range) return(range);
+	if (get_cached_data_range(ts, varname, range) == 0) return(0);
 		
 
 	// Range isn't cache'd. Need to read it from the file
 	//
-	range = new float[2];
-	assert(range != NULL);
 
 	rc = _regionReader->OpenVariableRead(ts, varname, 0);
-	if (rc < 0) return (NULL);
+	if (rc < 0) return (-1);
 
 	// Ugh! For AMR data we have to read some data to get the
 	// range. i.e. simply opening the file doesn't provide
@@ -557,10 +545,10 @@ const float	*DataMgr::GetDataRange(
 		AMRTree amrtree;
 
 		rc = amrio->OpenTreeRead(ts);
-		if (rc < 0) return (NULL);
+		if (rc < 0) return (-1);
 
 		rc = amrio->TreeRead(&amrtree);
-		if (rc < 0) return (NULL);
+		if (rc < 0) return (-1);
 		(void) amrio->CloseTree();
 
 		//
@@ -571,10 +559,10 @@ const float	*DataMgr::GetDataRange(
 		size_t maxbase[3] = {1,1,1};
 		AMRData amrdata(&amrtree, bs, minbase, maxbase, 0);
 
-		if (AMRData::GetErrCode() != 0)  return(NULL);
+		if (AMRData::GetErrCode() != 0)  return(-1);
 
 		rc = amrio->VariableRead(&amrdata);
-		if (rc < 0) return (NULL);
+		if (rc < 0) return (-1);
 
 		(void) amrio->CloseVariable();
 	} else if (_metadata->GetGridType().compare("layered") == 0) {
@@ -593,11 +581,12 @@ const float	*DataMgr::GetDataRange(
 	range[1] = r[1];
 
 	// Use of []'s creates an entry in map
-	_dataRangeMap[ts][varname] = range;
+	_dataRangeMinMap[ts][varname] = range[0];
+	_dataRangeMaxMap[ts][varname] = range[1];
 
 	_regionReader->CloseVariable();
 
-	return(range);
+	return(0);
 }
 
 int DataMgr::GetValidRegion(
@@ -663,46 +652,40 @@ const float	*DataMgr::GetQuantizationRange(const char *varname) const {
 int	DataMgr::UnlockRegion(
 	float *blks
 ) {
-	region_t *regptr;
-	map <void *, region_t *>::iterator p;
-
 	SetDiagMsg("DataMgr::UnlockRegion()");
 
-	p = _lockedRegionsMap.find((void *) blks);
-	if (p == _lockedRegionsMap.end()) {
-		SetErrMsg("Couldn't unlock region - not found");
-		return(-1);
+	list <region_t>::iterator itr;
+	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
+		region_t &region = *itr;
+
+		if (region.blks == blks && region.lock_counter>0) {
+			region.lock_counter--;
+			return(0);
+		}
 	}
 
-	regptr = p->second;
-	if (regptr->lock_counter) regptr->lock_counter--;
-
-
-	if (regptr->lock_counter == 0) _lockedRegionsMap.erase(p);
-
-	return(0);
+	SetErrMsg("Couldn't unlock region - not found");
+	return(-1);
 }
 
 int	DataMgr::UnlockRegionUInt8(
 	unsigned char *blks
 ) {
-	region_t *regptr;
-	map <void *, region_t *>::iterator p;
 
 	SetDiagMsg("DataMgr::UnlockRegionUInt8()");
 
-	p = _lockedRegionsMap.find((void *) blks);
-	if (p == _lockedRegionsMap.end()) {
-		SetErrMsg("Couldn't unlock region - not found");
-		return(-1);
+	list <region_t>::iterator itr;
+	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
+		region_t &region = *itr;
+
+		if (region.blks == blks && region.lock_counter>0) {
+			region.lock_counter--;
+			return(0);
+		}
 	}
 
-	regptr = p->second;
-	if (regptr->lock_counter) regptr->lock_counter--;
-
-	if (regptr->lock_counter == 0) _lockedRegionsMap.erase(p);
-
-	return(0);
+	SetErrMsg("Couldn't unlock region - not found");
+	return(-1);
 }
 
 
@@ -717,45 +700,31 @@ void	*DataMgr::get_region_from_cache(
 	int	lock
 ) {
 
-	if (_regionsMap.empty()) return(NULL);
+	list <region_t>::iterator itr;
+	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
+		region_t &region = *itr;
 
-	map <size_t, map<string, vector<region_t *> > >::iterator p;
+		if (region.ts == ts &&
+			region.varname.compare(varname) == 0 &&
+			region.reflevel == reflevel &&
+			region.min[0] == min[0] &&
+			region.min[1] == min[1] &&
+			region.min[2] == min[2] &&
+			region.max[0] == max[0] &&
+			region.max[1] == max[1] &&
+			region.max[2] == max[2] &&
+			region.type == type &&
+			region.full_height == full_height) {
 
-	p = _regionsMap.find(ts);
-	if (p == _regionsMap.end()) return(NULL);
+			// Increment the lock counter
+			region.lock_counter += lock ? 1 : 0;
 
-	map<string, vector<region_t *> > &vmap = p->second;
-	map <string, vector<region_t *> >::iterator t;
+			// Move region to front of list
+			region_t tmp_region = region;
+			_regionsList.erase(itr);
+			_regionsList.push_back(tmp_region);
 
-	t = vmap.find(varname);
-	if (t == vmap.end()) return(NULL);
-
-	vector<region_t *> &regvec = t->second;
-
-	for(int i = 0; i<(int)regvec.size(); i++) {
-		region_t *regptr;
-
-		regptr = regvec[i];
-
-		if (regptr->type == type &&
-			regptr->reflevel == reflevel &&
-			regptr->min[0] == min[0] && 
-			regptr->min[1] == min[1] &&
-			regptr->min[2] == min[2] &&
-			regptr->max[0] == max[0] && 
-			regptr->max[1] == max[1] &&
-			regptr->max[2] == max[2] &&
-			regptr->fullHeight == full_height) {
-
-			regptr->lock_counter += lock ? 1 : 0;
-			regptr->timestamp = _timestamp;
-			_timestamp++;
-			assert(_timestamp > 0); // overflow -- should us a q
-
-			if (regptr->lock_counter == 1) {
-				_lockedRegionsMap[(void *) regptr->blks] = regptr;
-			}
-			return(regptr->blks);
+			return(region.blks);
 		}
 	}
 
@@ -772,17 +741,39 @@ void	*DataMgr::alloc_region(
 	size_t full_height,
 	int	lock
 ) {
-	region_t *regptr = NULL;
+
+	// See if requested region already exists
+	//
+	list <region_t>::iterator itr;
+	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
+		region_t &region = *itr;
+
+		if (region.ts == ts &&
+			region.varname.compare(varname) == 0 &&
+			region.reflevel == reflevel &&
+			region.min[0] == min[0] &&
+			region.min[1] == min[1] &&
+			region.min[2] == min[2] &&
+			region.max[0] == max[0] &&
+			region.max[1] == max[1] &&
+			region.max[2] == max[2] &&
+			region.type == type &&
+			region.full_height == full_height) {
+
+			// Reset the lock counter
+			region.lock_counter = lock;
+
+			// Move region to front of list
+			region_t tmp_region = region;
+			_regionsList.erase(itr);
+			_regionsList.push_back(tmp_region);
+
+			return(region.blks);
+		}
+	}
+
 	int	nblocks;
 	int	vs;
-	int	i;
-
-	// accessing the map with the '[]' syntax creates an empty 
-	// element if the key does not exist
-	//
-    map <string, vector<region_t *> > &varsMap = _regionsMap[ts];
-
-    vector<region_t *> &regvec = varsMap[varname];
 
 	switch (type) {
 	case UINT8:
@@ -797,63 +788,33 @@ void	*DataMgr::alloc_region(
 		
 	nblocks = (int)((max[0]-min[0]+1) * (max[1]-min[1]+1) * (max[2]-min[2]+1) * vs);
 
-	// See if already have a block allocation for this region
-	//
-	for(i = 0,regptr=NULL; i<(int)regvec.size() && regptr==NULL; i++) {
-
-		regptr = regvec[i];
-
-		if (regptr->type == type &&
-			regptr->reflevel == reflevel &&
-			regptr->min[0] == min[0] && 
-			regptr->min[1] == min[1] &&
-			regptr->min[2] == min[2] &&
-			regptr->max[0] == max[0] && 
-			regptr->max[1] == max[1] &&
-			regptr->max[2] == max[2] &&
-			regptr->fullHeight == full_height ) {
-
-
-			if (regptr->blks) _blk_mem_mgr->FreeMem(regptr->blks);
-			regptr->blks = NULL;
-
-		}
-		else {
-			regptr = NULL;
-		}
-	}
-
-	if (! regptr) {
-		regptr = new region_t;
-		regptr->reflevel = reflevel;
-		regptr->type = type;
-		regptr->min[0] = min[0];
-		regptr->min[1] = min[1];
-		regptr->min[2] = min[2];
-		regptr->max[0] = max[0];
-		regptr->max[1] = max[1];
-		regptr->max[2] = max[2];
-		regptr->fullHeight = full_height;
-
-		regvec.push_back(regptr);
-	}
-	regptr->timestamp = _timestamp;
-	_timestamp++;
-	assert(_timestamp > 0); // overflow -- should us a q
-	regptr->lock_counter = lock ? 1 : 0;
-
-	while (! (regptr->blks = _blk_mem_mgr->Alloc(nblocks))) {
+	float *blks;
+	while (! (blks = (float *) _blk_mem_mgr->Alloc(nblocks))) {
 		if (free_lru() < 0) {
 			SetErrMsg("Failed to allocate requested memory");
 			return(NULL);
 		}
 	}
 
-	if (regptr->lock_counter == 1) {
-		_lockedRegionsMap[(void *) regptr->blks] = regptr;
-	}
+	region_t region;
 
-	return(regptr->blks);
+	region.ts = ts;
+	region.varname.assign(varname);
+	region.reflevel = reflevel;
+	region.min[0] = min[0];
+	region.min[1] = min[1];
+	region.min[2] = min[2];
+	region.max[0] = max[0];
+	region.max[1] = max[1];
+	region.max[2] = max[2];
+	region.full_height = full_height;
+	region.type = type;
+	region.lock_counter = lock;
+	region.blks = blks;
+
+	_regionsList.push_back(region);
+
+	return(region.blks);
 }
 
 int	DataMgr::free_region(
@@ -865,158 +826,85 @@ int	DataMgr::free_region(
 	const size_t max[3],
 	size_t full_height
 ) {
-	if (_regionsMap.empty()) return(-1);
 
-	map <size_t, map<string, vector<region_t *> > >::iterator p;
+	list <region_t>::iterator itr;
+	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
+		const region_t &region = *itr;
 
-	p = _regionsMap.find(ts);
-	if (p == _regionsMap.end()) return(-1);
+		if (region.ts == ts &&
+			region.varname.compare(varname) == 0 &&
+			region.reflevel == reflevel &&
+			region.min[0] == min[0] &&
+			region.min[1] == min[1] &&
+			region.min[2] == min[2] &&
+			region.max[0] == max[0] &&
+			region.max[1] == max[1] &&
+			region.max[2] == max[2] &&
+			region.type == type &&
+			region.full_height == full_height) {
 
-	map<string, vector<region_t *> > &vmap = p->second;
-	map <string, vector<region_t *> >::iterator t;
-
-	t = vmap.find(varname);
-	if (t == vmap.end()) return(-1);
-
-	vector<region_t *> &regvec = t->second;
-
-	for(int i = 0; i<(int)regvec.size(); i++) {
-		region_t *regptr = regvec[i];
-
-		if (regptr->type == type &&
-			regptr->reflevel == reflevel &&
-			regptr->min[0] == min[0] && 
-			regptr->min[1] == min[1] &&
-			regptr->min[2] == min[2] &&
-			regptr->max[0] == max[0] && 
-			regptr->max[1] == max[1] &&
-			regptr->max[2] == max[2] &&
-			regptr->fullHeight == full_height) {
-
-			if (regptr->lock_counter == 0) {
-				if (regptr->blks) _blk_mem_mgr->FreeMem(regptr->blks);
+			if (region.lock_counter == 0) {
+				if (region.blks) _blk_mem_mgr->FreeMem(region.blks);
 				
-				delete regptr;
-				regvec.erase(regvec.begin()+i);
+				_regionsList.erase(itr);
 				return(0);
 			}
 		}
 	}
+
 	return(-1);
 }
 
 void	DataMgr::free_all() {
 
-	map <size_t, map<string, vector<region_t *> > >::iterator p;
-	for(p = _regionsMap.begin(); p!=_regionsMap.end(); p++) {
+	list <region_t>::iterator itr;
+	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
+		const region_t &region = *itr;
 
-		map<string, vector<region_t *> > &vmap = p->second;
-		map <string, vector<region_t *> >::iterator t;
-
-		for(t = vmap.begin(); t!=vmap.end(); t++) {
-			vector <region_t *> &regvec = t->second;
-
-			// Erase matching elements 
-			//
-			vector <region_t *>::iterator itr;
-			itr = regvec.begin();
-			while (itr != regvec.end()) {
-				region_t *regptr = *itr;
-
-				if (regptr->blks) _blk_mem_mgr->FreeMem(regptr->blks);
-				delete regptr;
-				++itr;
-			}
-			regvec.clear();
-		}
+		if (region.blks) _blk_mem_mgr->FreeMem(region.blks);
+			
+		_regionsList.erase(itr);
 	}
 }
 
 void	DataMgr::free_var(const string &varname, int do_native) {
 
-	map <size_t, map<string, vector<region_t *> > >::iterator p;
-	for(p = _regionsMap.begin(); p!=_regionsMap.end(); p++) {
+	list <region_t>::iterator itr;
+	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
+		const region_t &region = *itr;
 
-		map<string, vector<region_t *> > &vmap = p->second;
-		map <string, vector<region_t *> >::iterator t;
+		if (region.varname.compare(varname) == 0 &&
+			(region.type != DataMgr::FLOAT32 || do_native)) {
 
-		t = vmap.find(varname);
-		if (t == vmap.end()) continue;
-
-		vector <region_t *> &regvec = t->second;
-
-		// Erase matching elements 
-		//
-		vector <region_t *>::iterator itr;
-		itr = regvec.begin();
-		while (itr != regvec.end()) {
-			region_t *regptr = *itr;
-
-			if (regptr->type != DataMgr::FLOAT32 || do_native) {
-				if (regptr->blks) _blk_mem_mgr->FreeMem(regptr->blks);
-				delete regptr;
-				regvec.erase(itr);
-
-				// Changed the vector. Need to reset the pointer
-				// to the beginning.
-				//
-				itr = regvec.begin();
-			}
-			else {
-				++itr;
-			}
+			if (region.blks) _blk_mem_mgr->FreeMem(region.blks);
+				
+			_regionsList.erase(itr);
 		}
 	}
+
 }
 
 
 int	DataMgr::free_lru(
 ) {
-	region_t *regptr;
 
-	int	lrutime = _timestamp;
-	int	lruindex = -1;	
-	vector <region_t *> *lruvec = NULL;
-
-	// search for lowest time stamp
+	// The least recently used region is at the front of the list
 	//
-	map <size_t, map<string, vector<region_t *> > >::iterator p;
+	list <region_t>::iterator itr;
+	for(itr = _regionsList.begin(); itr!=_regionsList.end(); itr++) {
+		const region_t &region = *itr;
 
-	for(p = _regionsMap.begin(); p!=_regionsMap.end(); p++) {
-
-		map<string, vector<region_t *> > &vmap = p->second;
-		map <string, vector<region_t *> >::iterator t;
-
-		for(t = vmap.begin(); t!=vmap.end(); t++) {
-			vector <region_t *> &regvec = t->second;
-
-			for(int i=0; i<(int)regvec.size(); i++) {
-				regptr = regvec[i];
-
-				if (regptr->timestamp < lrutime && regptr->lock_counter == 0) {
-
-					lrutime = regptr->timestamp;
-					lruvec = &regvec;
-					lruindex = i;
-				}
-				
-			}
+		if (region.lock_counter == 0) {
+			if (region.blks) _blk_mem_mgr->FreeMem(region.blks);
+			_regionsList.erase(itr);
+			return(0);
 		}
 	}
 
-	if (lruindex < 0) return(-1);	// nothing to free;
-
-	regptr = lruvec->at(lruindex);
-	lruvec->erase(lruvec->begin()+lruindex);
-
-
-	if (regptr->blks) _blk_mem_mgr->FreeMem(regptr->blks);
-	regptr->blks = NULL;
-
-	delete regptr;
-
-	return(0);
+	// nothing to free
+	return(-1);
 }
+	
 
 int	DataMgr::set_quantization_range(const char *varname, const float range[2]) {
 	string varstr = varname;
@@ -1048,33 +936,46 @@ int	DataMgr::set_quantization_range(const char *varname, const float range[2]) {
 	return(0);
 }
 
-float *DataMgr::get_cached_data_range(
+int DataMgr::get_cached_data_range(
 	size_t ts,
-	const char *varname
+	const char *varname,
+	float *range
 ) {
 
 	// See if we've already cache'd it.
 	//
-	if (! _dataRangeMap.empty()) {
 
-		map <size_t, map<string, float *> >::iterator p;
+	// Min value
+	if (_dataRangeMinMap.empty()) return(-1);
 
-		p = _dataRangeMap.find(ts);
+	map <size_t, map<string, float> >::iterator p;
 
-		if (! (p == _dataRangeMap.end())) {
 
-			map <string, float *> &vmap = p->second;
-			map <string, float *>::iterator t;
+	p = _dataRangeMinMap.find(ts);
 
-			t = vmap.find(varname);
-			if (! (t == vmap.end())) {
-				return (t->second);
-			}
-		}
-	}
+	if (p == _dataRangeMinMap.end()) return(-1);
 
-	// Not cached
-	return(NULL);
+	map <string, float> &vmap = p->second;
+	map <string, float>::iterator t;
+
+	t = vmap.find(varname);
+	if (t == vmap.end()) return(-1);
+	range[0] = t->second;
+
+	// Max value
+	if (_dataRangeMaxMap.empty()) return(-1);
+
+	p = _dataRangeMaxMap.find(ts);
+
+	if (p == _dataRangeMaxMap.end()) return(-1);
+
+	vmap = p->second;
+
+	t = vmap.find(varname);
+	if (t == vmap.end()) return(-1);
+	range[1] = t->second;
+
+	return(0);
 }
 
 size_t *DataMgr::get_cached_reg_min_max(
