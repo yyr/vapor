@@ -509,6 +509,11 @@ guiCopyProbePoint(){
 	confirmText(false);
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	//Issue a warning if the probe resolution does not match iso resolution;
+	if (pParams->getNumRefinements() != iParams->getNumRefinements()){
+		MessageReporter::warningMsg("Note:  Refinement levels of probe and isosurface are different.\n%s",
+			"Variable values may differ as a result");
+	}
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "copy point from probe");
 	const float* selectedpoint = pParams->getSelectedPoint();
 	iParams->SetSelectedPoint(selectedpoint);
