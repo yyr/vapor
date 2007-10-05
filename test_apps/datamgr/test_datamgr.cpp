@@ -22,9 +22,9 @@ struct {
 	char *varname;
 	char *savefilebase;
 	int	level;
+	char *dtype;
 	OptionParser::Boolean_T	help;
 	OptionParser::Boolean_T	quiet;
-	OptionParser::Boolean_T	do_float;
 	OptionParser::Boolean_T	debug;
 	OptionParser::IntRange_T xregion;
 	OptionParser::IntRange_T yregion;
@@ -39,9 +39,9 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"varname",	1, 	"var1",	"Name of variable"},
 	{"savefilebase",	1, 	"",	"Base path name to output file"},
 	{"level",1, "0","Multiresution refinement level. Zero implies coarsest resolution"},
+	{"dtype",	1,	"float",	"data type (float|uint8|uint16)"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"quiet",	0,	"",	"Operate quitely"},
-	{"float",	0,	"",	"Read native floating point data (no quantization)"},
 	{"debug",	0,	"",	"Debug mode"},
     {"xregion", 1, "-1:-1", "X dimension subregion bounds (min:max)"},
     {"yregion", 1, "-1:-1", "Y dimension subregion bounds (min:max)"},
@@ -60,7 +60,7 @@ OptionParser::Option_T	get_options[] = {
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"help", VetsUtil::CvtToBoolean, &opt.help, sizeof(opt.help)},
 	{"quiet", VetsUtil::CvtToBoolean, &opt.quiet, sizeof(opt.quiet)},
-	{"float", VetsUtil::CvtToBoolean, &opt.do_float, sizeof(opt.do_float)},
+	{"dtype", VetsUtil::CvtToString, &opt.dtype, sizeof(opt.dtype)},
 	{"debug", VetsUtil::CvtToBoolean, &opt.debug, sizeof(opt.debug)},
 	{"xregion", VetsUtil::CvtToIntRange, &opt.xregion, sizeof(opt.xregion)},
 	{"yregion", VetsUtil::CvtToIntRange, &opt.yregion, sizeof(opt.yregion)},
@@ -79,7 +79,6 @@ int main(int argc, char **argv) {
 	double	timer = 0.0;
 	string	s;
 
-
 	ProgName = Basename(argv[0]);
 
 	if (op.AppendOptions(set_opts) < 0) {
@@ -93,7 +92,7 @@ int main(int argc, char **argv) {
 	}
 
 	if (opt.help) {
-		cerr << "Usage: " << ProgName << " [options] metafile datafile" << endl;
+		cerr << "Usage: " << ProgName << " [options] metafile " << endl;
 		op.PrintOptionHelp(stderr);
 		exit(0);
 	}
@@ -161,7 +160,7 @@ int main(int argc, char **argv) {
 				}
 			}
 
-			if (opt.do_float) {
+			if (strcmp(opt.dtype, "float") == 0) {
 				float *fptr;
 				fptr = datamgr->GetRegion(
 					ts, opt.varname, opt.level, min, max, 0
@@ -180,11 +179,11 @@ int main(int argc, char **argv) {
 					fclose(fp);
 				}
 			}
-			else {
+			else if (strcmp(opt.dtype, "uint8") == 0) {
 				float qrange[2] = {0.0, 1.0};
 				unsigned char *ucptr;
 				ucptr = datamgr->GetRegionUInt8(
-					ts, opt.varname, opt.level, min, max, qrange, 0
+					ts, opt.varname, opt.level, min, max, 0, qrange, 0
 				);
 				if (! ucptr) {
 					delete datamgr;
@@ -199,8 +198,27 @@ int main(int argc, char **argv) {
 					fclose(fp);
 				}
 			}
+			else if (strcmp(opt.dtype, "uint16") == 0) {
+				float qrange[2] = {0.0, 1.0};
+				unsigned char *ucptr;
+				ucptr = datamgr->GetRegionUInt16(
+					ts, opt.varname, opt.level, min, max, 0, qrange, 0
+				);
+				if (! ucptr) {
+					delete datamgr;
+					cerr << ProgName << " : " << datamgr->GetErrMsg() << endl;
+					exit(1);
+				}
 
-			const float *r = datamgr->GetDataRange(ts, opt.varname);
+				if (fp) {
+					size_t size = (max[0]-min[0]+1) * (max[1]-min[1]+1) * (max[2]-min[2]+1) * bs[0]*bs[1]*bs[2] * 2;
+
+					fwrite(ucptr, sizeof(ucptr[0]), size, fp);
+					fclose(fp);
+				}
+			}
+			float r[2];
+			datamgr->GetDataRange(ts, opt.varname, r);
 			cout << "Data Range : [" << r[0] << ", " << r[1] << "]" << endl;
 		}
 
