@@ -863,8 +863,8 @@ void	DataMgr::free_all() {
 
 		if (region.blks) _blk_mem_mgr->FreeMem(region.blks);
 			
-		_regionsList.erase(itr);
 	}
+	_regionsList.clear();
 }
 
 void	DataMgr::free_var(const string &varname, int do_native) {
@@ -879,6 +879,7 @@ void	DataMgr::free_var(const string &varname, int do_native) {
 			if (region.blks) _blk_mem_mgr->FreeMem(region.blks);
 				
 			_regionsList.erase(itr);
+			itr = _regionsList.begin();
 		}
 	}
 
