@@ -724,7 +724,7 @@ void	*DataMgr::get_region_from_cache(
 			_regionsList.erase(itr);
 			_regionsList.push_back(tmp_region);
 
-			return(region.blks);
+			return(tmp_region.blks);
 		}
 	}
 
@@ -768,7 +768,7 @@ void	*DataMgr::alloc_region(
 			_regionsList.erase(itr);
 			_regionsList.push_back(tmp_region);
 
-			return(region.blks);
+			return(tmp_region.blks);
 		}
 	}
 
