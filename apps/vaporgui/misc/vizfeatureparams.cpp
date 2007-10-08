@@ -6,7 +6,7 @@
 //																		*
 //************************************************************************/
 //
-//	File:		sessionparams.cpp
+//	File:		vizfeatureparams.cpp
 //
 //	Author:		Alan Norton
 //			National Center for Atmospheric Research
@@ -14,7 +14,7 @@
 //
 //	Date:		October 2004
 //
-//	Description:	Implements the SessionParams class.
+//	Description:	Implements the VizFeatureParams class.
 //
 #include "vizfeatureparams.h"
 #include "command.h"
@@ -29,6 +29,9 @@
 #include <qcombobox.h>
 #include <qcheckbox.h>
 #include <qcolordialog.h>
+#include <qscrollview.h>
+#include <qvbox.h>
+#include <qlayout.h>
 
 
 using namespace VAPoR;
@@ -36,12 +39,14 @@ using namespace VAPoR;
 VizFeatureParams::VizFeatureParams(){
 	dialogChanged = false;
 	vizFeatureDlg = 0;
+	featureHolder = 0;
 	currentComboIndex = -1;
 }
 //Clone a new vizfeatureparams
 VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	dialogChanged = false;
 	vizFeatureDlg = 0;
+	featureHolder = 0;
 	currentComboIndex = vfParams.currentComboIndex;
 	vizName = vfParams.vizName;
 	showBar = vfParams.showBar;
@@ -86,16 +91,25 @@ void VizFeatureParams::launch(){
 	}
 	//Determine corresponding combo index for currentVizNum:
 	currentComboIndex = getComboIndex(vizNum);
-	vizFeatureDlg = new VizFeatures((QWidget*)MainForm::getInstance());
+	
+	featureHolder = new ScrollContainer((QWidget*)MainForm::getInstance());
+	
+	QScrollView* sv = new QScrollView(featureHolder);
+	sv->setHScrollBarMode(QScrollView::AlwaysOff);
+	sv->setVScrollBarMode(QScrollView::AlwaysOn);
+	featureHolder->setScroller(sv);
+	
+	vizFeatureDlg = new VizFeatures(featureHolder);
+	
+	sv->addChild(vizFeatureDlg);
+	
 	//Do connections.  
-	int ok = connect(vizFeatureDlg->currentNameCombo, SIGNAL(activated(int)), this, SLOT(visualizerSelected(int)));
-	assert(ok);
+	connect(vizFeatureDlg->currentNameCombo, SIGNAL(activated(int)), this, SLOT(visualizerSelected(int)));
 	connect (vizFeatureDlg->backgroundColorButton, SIGNAL(clicked()), this, SLOT(selectBackgroundColor()));
 	connect (vizFeatureDlg->regionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectRegionFrameColor()));
 	connect (vizFeatureDlg->subregionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectSubregionFrameColor()));
 	connect (vizFeatureDlg->surfaceColorButton,SIGNAL(clicked()), this, SLOT(selectElevGridColor()));
 	connect (vizFeatureDlg->vizNameEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
-	
 	connect (vizFeatureDlg->axisXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisZEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -136,8 +150,9 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->labelDigitsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->ticWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisColorButton,SIGNAL(clicked()), this, SLOT(selectAxisColor()));
-	
-	
+	connect (vizFeatureDlg->buttonOk, SIGNAL(clicked()), this, SLOT(okClicked()));
+	connect (vizFeatureDlg->buttonCancel,SIGNAL(clicked()), featureHolder, SLOT(reject()));
+	connect (this, SIGNAL(doneWithIt()), featureHolder, SLOT(reject()));
 	//Copy values into dialog, using current comboIndex:
 	setDialog();
 	dialogChanged = false;
@@ -147,17 +162,17 @@ void VizFeatureParams::launch(){
 		vizFeatureDlg->axisAnnotationFrame->hide();
 	}
 	
-	int rc = vizFeatureDlg->exec();
-	if (rc){
-		//If user clicks OK, need to store values back to visualizer, plus
-		//save changes in history
-		if (dialogChanged) {
-			copyFromDialog();
-			
-		} 
-	} 
-	delete vizFeatureDlg;
-	vizFeatureDlg = 0;
+	int h = 690;
+	int w = 415;
+	if (h > MainForm::getInstance()->height()){
+		h = MainForm::getInstance()->height();
+	}
+	vizFeatureDlg->setGeometry(0, 0, w, h);
+
+	featureHolder->setGeometry(50, 50, w+28,h);
+	sv->setGeometry(0, 0, w+28,h);
+	featureHolder->exec();
+	
 }
 //Slots to identify that a change has occurred
 void VizFeatureParams::
@@ -526,4 +541,14 @@ void VizFeatureParams::yTicOrientationChanged(int val){
 void VizFeatureParams::zTicOrientationChanged(int val){
 	ticDir[2] = val;
 	dialogChanged = true;
+}
+void VizFeatureParams::okClicked(){
+
+	//If user clicks OK, need to store values back to visualizer, plus
+	//save changes in history
+	if (dialogChanged) {
+		copyFromDialog();
+	} 
+	emit doneWithIt();
+	
 }

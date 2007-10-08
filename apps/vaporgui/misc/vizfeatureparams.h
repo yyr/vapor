@@ -28,6 +28,8 @@
 #define VIZFEATUREPARAMS_H
  
 #include <qwidget.h>
+#include <qscrollview.h>
+#include <qdialog.h>
 
 class QWidget;
 class VizFeatures;
@@ -44,7 +46,24 @@ public:
 	//Launch a VizFeature dialog.  Put its values into visualizer(s) if it succeeds.
 	void launch();
 	void applyToViz(int viznum);
+	class ScrollContainer : public QDialog {
+	public:
+		ScrollContainer(QWidget* parent) : QDialog(parent) {
+			setCaption("Visualizer Feature Selection");}
+		void setScroller(QScrollView* sv){scroller = sv;}
+	protected:
+		virtual void resizeEvent(QResizeEvent* event){
+			if (scroller) {
+				scroller->setGeometry(0,0, event->size().width(), event->size().height());
+			}
+		}
+		QScrollView* scroller;
+	};
+
 	
+signals: 
+	void doneWithIt();
+
 protected slots:
 	void visualizerSelected(int comboIndex);
 	void panelChanged();
@@ -59,6 +78,7 @@ protected slots:
 	void xTicOrientationChanged(int);
 	void yTicOrientationChanged(int);
 	void zTicOrientationChanged(int);
+	void okClicked();
 	
 protected:
 	//Copy data from vizwin to and from dialog (shadowed in this class)
@@ -69,6 +89,7 @@ protected:
 	int getComboIndex(int vizNum);
 	int getVizNum(int comboIndex);
 	VizFeatures* vizFeatureDlg;
+	ScrollContainer* featureHolder;
 
 	//State of one visualizer is saved here:
 	int currentComboIndex;
@@ -99,9 +120,8 @@ protected:
 	QColor colorbarBackgroundColor;
 	QColor elevGridColor;
 	
-	
-	
-	
 };
+
+
 };
 #endif //VIZFEATUREPARAMS_H 

@@ -1,30 +1,37 @@
 <!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>VizFeatures</class>
-<widget class="QDialog">
+<widget class="QWidget">
     <property name="name">
         <cstring>VizFeatures</cstring>
     </property>
     <property name="geometry">
         <rect>
-            <x>0</x>
+            <x>1</x>
             <y>0</y>
             <width>415</width>
             <height>955</height>
         </rect>
     </property>
-    <property name="sizePolicy">
-        <sizepolicy>
-            <hsizetype>5</hsizetype>
-            <vsizetype>1</vsizetype>
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-        </sizepolicy>
+    <property name="minimumSize">
+        <size>
+            <width>415</width>
+            <height>0</height>
+        </size>
+    </property>
+    <property name="maximumSize">
+        <size>
+            <width>415</width>
+            <height>32767</height>
+        </size>
+    </property>
+    <property name="baseSize">
+        <size>
+            <width>415</width>
+            <height>0</height>
+        </size>
     </property>
     <property name="caption">
-        <string>Set Visualizer Features</string>
-    </property>
-    <property name="sizeGripEnabled">
-        <bool>true</bool>
+        <string>Form1</string>
     </property>
     <hbox>
         <property name="name">
@@ -1542,7 +1549,7 @@
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout102</cstring>
+                        <cstring>layout102_2</cstring>
                     </property>
                     <hbox>
                         <property name="name">
@@ -1987,7 +1994,7 @@
                 </spacer>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout16</cstring>
+                        <cstring>layout16_2</cstring>
                     </property>
                     <hbox>
                         <property name="name">
@@ -2070,19 +2077,5 @@
         </widget>
     </hbox>
 </widget>
-<connections>
-    <connection>
-        <sender>buttonOk</sender>
-        <signal>clicked()</signal>
-        <receiver>VizFeatures</receiver>
-        <slot>accept()</slot>
-    </connection>
-    <connection>
-        <sender>buttonCancel</sender>
-        <signal>clicked()</signal>
-        <receiver>VizFeatures</receiver>
-        <slot>reject()</slot>
-    </connection>
-</connections>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>
