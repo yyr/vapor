@@ -168,9 +168,11 @@ void VizFeatureParams::launch(){
 		h = MainForm::getInstance()->height();
 	}
 	vizFeatureDlg->setGeometry(0, 0, w, h);
-
-	featureHolder->setGeometry(50, 50, w+28,h);
-	sv->setGeometry(0, 0, w+28,h);
+	int swidth = sv->verticalScrollBar()->width();
+	featureHolder->setGeometry(50, 50, w+swidth,h);
+	
+	sv->resizeContents(w,h);
+	
 	featureHolder->exec();
 	
 }
@@ -549,6 +551,7 @@ void VizFeatureParams::okClicked(){
 	if (dialogChanged) {
 		copyFromDialog();
 	} 
+	
 	emit doneWithIt();
 	
 }
