@@ -93,3 +93,7 @@ asciitf2vtf -cmap color.txt -omap opacity.txt map.vtf
 =head1 SEE ALSO
 
 =head1 NOTES
+
+=head1 HISTORY
+
+Last updated on $Date$
