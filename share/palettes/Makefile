@@ -2,7 +2,7 @@ TOP = ../..
 
 include ${TOP}/make/config/prebase.mk
 
-TFS = farge_turb1.vtf
+TFS = farge_turb1.vtf grayscale.vtf
 
 
 VERSION = $(shell cat $(TOP)/Version)
