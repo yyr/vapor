@@ -54,6 +54,8 @@
 
 using namespace VAPoR;
 Session* Session::theSession = 0;
+const string Session::_specifyTextureSizeAttr = "SpecifyTextureSize";
+const string Session::_textureSizeAttr = "SpecifiedTextureSize";
 const string Session::_stretchFactorsAttr = "StretchFactors";
 const string Session::_cacheSizeAttr = "CacheSize";
 const string Session::_jpegQualityAttr = "JpegQuality";
@@ -84,6 +86,7 @@ Session::Session() {
 	cacheMB = 1024;
 	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
 	visualizeSpherically = false;
+	
 	
 	//Note that the session will create the vizwinmgr!
 	VizWinMgr::getInstance();
@@ -144,6 +147,9 @@ void Session::init() {
 	int i;
 	recordingCount = 0;
 	metadataSaved = false;
+
+	textureSizeSpecified = false;
+	textureSize = 0;
 
 	currentMetadataFile = "";
 	currentJpegDirectory = "";	
@@ -211,7 +217,17 @@ buildNode() {
 	oss.str(empty);
 	oss << (long)GLWindow::getJpegQuality();
 	attrs[_jpegQualityAttr] = oss.str();
-	
+
+	oss.str(empty);
+	if (textureSizeSpecified)
+		oss << "true";
+	else 
+		oss << "false";
+	attrs[_specifyTextureSizeAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)textureSize;
+	attrs[_textureSizeAttr] = oss.str();
 
 	attrs[_metadataPathAttr] = currentMetadataFile;
 	attrs[_transferFunctionPathAttr] = currentTFPath;
@@ -322,8 +338,16 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 
 				istringstream ist(value);
 				int int1, int2, int3;
-				
-				if (StrCmpNoCase(attr, _cacheSizeAttr) == 0) {
+				if (StrCmpNoCase(attr, _specifyTextureSizeAttr) == 0) {
+					string boolVal;
+					ist >> boolVal;
+					if (boolVal == "true") textureSizeSpecified = true;
+					else textureSizeSpecified = false;
+				}
+				else if (StrCmpNoCase(attr, _textureSizeAttr) == 0){
+					ist >> textureSize;
+				}
+				else if (StrCmpNoCase(attr, _cacheSizeAttr) == 0) {
 					ist >> cacheMB;
 				}
 				else if (StrCmpNoCase(attr, _stretchFactorsAttr) == 0) {
@@ -682,9 +706,9 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 			dataMgr = 0;
 			return false;
 		}
-
-		
 	} 
+
+	
 
 	//Get the extents from the metadata, if it exists:
 	if (currentMetadata){
@@ -868,7 +892,8 @@ setupDataStatus(){
 	if(currentDataStatus->reset(dataMgr, cacheMB, app)) {
 		dataExists = true;
 		currentDataStatus->stretchExtents(stretchFactors);
-		//currentDataStatus->fillMetadataVars();
+		currentDataStatus->specifyTextureSize(specifyTextureSize);
+		currentDataStatus->setTextureSize(textureSize);
 	}
 	else dataExists = false;
 }

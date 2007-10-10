@@ -29,6 +29,7 @@
 #include <qpushbutton.h>
 #include <qmessagebox.h>
 #include <qcombobox.h>
+#include <qcheckbox.h>
 
 
 using namespace VAPoR;
@@ -91,13 +92,21 @@ void SessionParams::launch(){
 		for (int i = 0; i<ds->getNumSessionVariables(); i++){
 			sessionParamsDlg->variableCombo->insertItem(ds->getVariableName(i).c_str());
 		}
-
+	}
+	sessionParamsDlg->textureSizeCheckbox->setChecked(currentSession->textureSizeIsSpecified());
+	if (currentSession->textureSizeIsSpecified()){
+		sessionParamsDlg->textureSizeEdit->setEnabled(true);
+		sessionParamsDlg->textureSizeEdit->setText(QString::number(currentSession->getTextureSize()));
+	} else {
+		sessionParamsDlg->textureSizeEdit->setEnabled(false);
+		sessionParamsDlg->textureSizeEdit->setText("");
 	}
 	connect(sessionParamsDlg->variableCombo, SIGNAL(activated(int)), this, SLOT(setVariableNum(int)));
 	connect(sessionParamsDlg->lowValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
 	connect(sessionParamsDlg->highValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
 	connect(sessionParamsDlg->highValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
 	connect(sessionParamsDlg->lowValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
+	connect(sessionParamsDlg->textureSizeCheckbox, SIGNAL(toggled(bool)), this, SLOT(changeTextureSize(bool)));
 	outValsChanged = false;
 	newOutVals = false;
 	int rc = sessionParamsDlg->exec();
@@ -108,10 +117,17 @@ void SessionParams::launch(){
 			currentSession->setCacheMB(newVal);
 			MessageReporter::warningMsg("%s","Cache size will change at next metadata loading"); 
 		}
+		//note the texture size
+		
+		currentSession->specifyTextureSize(sessionParamsDlg->textureSizeCheckbox->isChecked());
+		if (currentSession->textureSizeIsSpecified()){
+			currentSession->setTextureSize(sessionParamsDlg->textureSizeEdit->text().toInt());
+		}
 		//Set the image quality:
 		int newQual = sessionParamsDlg->jpegQuality->text().toInt();
 		if (newQual > 0 && newQual <= 100) GLWindow::setJpegQuality(newQual);
 
+		
 		//Did the popup numbers change?
 		//set the log/popup numbers:
 		maxPopup[0] = sessionParamsDlg->maxInfoPopup->text().toInt();
@@ -248,4 +264,13 @@ setOutsideVal(){
 void SessionParams::
 changeOutsideVal(const QString&){
 	newOutVals = true;
+}
+void SessionParams::
+changeTextureSize(bool canChange){
+	sessionParamsDlg->textureSizeEdit->setEnabled(canChange);
+	if (canChange) 
+		sessionParamsDlg->textureSizeEdit->setText(
+			QString::number(Session::getInstance()->getTextureSize()));
+	else 
+		sessionParamsDlg->textureSizeEdit->setText("");
 }

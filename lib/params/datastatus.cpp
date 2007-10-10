@@ -57,6 +57,8 @@ int* DataStatus::mapMetadataVars = 0;
 DataStatus::
 DataStatus()
 {
+	textureSizeSpecified = false;
+	textureSize = 0;
 	dataMgr = 0;
     currentMetadata = 0;
 	renderOK = false;

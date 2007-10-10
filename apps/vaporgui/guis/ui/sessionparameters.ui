@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>422</width>
-            <height>734</height>
+            <height>622</height>
         </rect>
     </property>
     <property name="caption">
@@ -24,7 +24,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout11</cstring>
+                <cstring>layout12</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -78,6 +78,69 @@
                 </widget>
                 <spacer>
                     <property name="name">
+                        <cstring>spacer24_2</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout11</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>textureSizeCheckbox</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Specify graphics texture size</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Click to override default graphics texture size</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer25_2</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>41</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>textureSizeEdit</cstring>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify max 3D graphics texture size along each axis</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+                <spacer>
+                    <property name="name">
                         <cstring>spacer50</cstring>
                     </property>
                     <property name="orientation">
@@ -89,7 +152,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -168,7 +231,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>21</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -352,7 +415,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>37</height>
                         </size>
                     </property>
                 </spacer>
@@ -556,7 +619,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>37</height>
                         </size>
                     </property>
                 </spacer>
@@ -794,7 +857,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>37</height>
                         </size>
                     </property>
                 </spacer>

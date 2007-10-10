@@ -262,9 +262,23 @@ public:
       return (DataStatus::getInstance() &&
               DataStatus::getInstance()->sphericalTransform());
     }
+
+	//Save texture size values, pass to datastatus too.
+	bool textureSizeIsSpecified() {return textureSizeSpecified;}
+	void setTextureSize(int val){
+		textureSize = val;
+		DataStatus::getInstance()->setTextureSize(val);
+	}
+	int getTextureSize() {return textureSize;}
+	void specifyTextureSize(bool val){ 
+		textureSizeSpecified = val;
+		DataStatus::getInstance()->specifyTextureSize(val);
+	}
 		
 	
 protected:
+	static const string _specifyTextureSizeAttr;
+	static const string _textureSizeAttr;
 	static const string _stretchFactorsAttr;
 	static const string _cacheSizeAttr;
 	static const string _jpegQualityAttr;
@@ -317,6 +331,9 @@ protected:
 	string currentExportFile;
 	float stretchFactors[3];
 	bool visualizeSpherically;
+
+	bool textureSizeSpecified;
+	int textureSize;
 	
 	
 	bool dataExists;
@@ -341,6 +358,7 @@ protected:
 	
 
 	bool metadataSaved;
+
 };
 
 }; //end VAPoR namespace

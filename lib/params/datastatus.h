@@ -208,7 +208,11 @@ public:
 	vector<float> getBelowValues() {return belowValues;}
 	vector<float> getAboveValues() {return aboveValues;}
 
-		
+	//used for specifying nondefault graphics hardware texture size:
+	void specifyTextureSize(bool val) {textureSizeSpecified = val;}
+	bool textureSizeIsSpecified(){return textureSizeSpecified;}
+	int getTextureSize() {return textureSize;}
+	void setTextureSize(int val) { textureSize = val;}
 	
 private:
 	static DataStatus* theDataStatus;
@@ -256,6 +260,9 @@ private:
 	static std::vector<float> aboveValues;
 	static int numMetadataVariables;
 	static int* mapMetadataVars;
+
+	int textureSize;
+	bool textureSizeSpecified;
 	
 };
 
