@@ -90,7 +90,9 @@ VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderPar
     _driver(NULL),
     _type(type),
     _frames(0),
-    _seconds(0)
+    _seconds(0),
+	_userTextureSize(0),
+	_userTextureSizeIsSet(false)
 	
 	
 {
@@ -408,6 +410,25 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   //Save the coord trans matrix, to pass to volumizer
   glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *) matrix);
   
+  bool userTextureSizeIsSet = DataStatus::getInstance()->textureSizeIsSpecified();
+  int userTextureSize = DataStatus::getInstance()->getTextureSize();
+  bool forceReload = false;
+
+  if ((userTextureSizeIsSet != _userTextureSizeIsSet) || 
+	(userTextureSize != _userTextureSize)) { 
+
+	_userTextureSize = userTextureSize;
+	_userTextureSizeIsSet = userTextureSizeIsSet;
+    forceReload = true;
+
+	if (_userTextureSizeIsSet) {
+		_driver->SetMaxTexture(_userTextureSize);
+	}
+	else {
+		_driver->SetMaxTexture(512);
+	}
+  }
+		
   
   // set up region. Only need to do this if the data
   // roi changes, or if the datarange has changed.
@@ -418,7 +439,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
   bool navigateDirty = myGLWindow->dvrRegionIsNavigating();
   bool animDirty = animationIsDirty();
   */
-  if (regionValid&&(myGLWindow->regionIsDirty()
+  if (regionValid&&(myGLWindow->regionIsDirty() || forceReload
 	  || datarangeIsDirty()||myGLWindow->dvrRegionIsNavigating()
 	  || myGLWindow->animationIsDirty())) 
   {

@@ -74,6 +74,9 @@ namespace VAPoR {
     int    _frames;
     double _seconds;
 
+	int _userTextureSize;
+	bool _userTextureSizeIsSet;
+
   };
 };
 

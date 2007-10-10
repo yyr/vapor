@@ -278,6 +278,7 @@ void DVRRayCaster::render_backface(
 
     glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
+printOpenGLError();
 
 }
 
@@ -341,6 +342,7 @@ void DVRRayCaster::raycasting_pass(
 		glActiveTextureARB(GL_TEXTURE0_ARB);
 		glBindTexture(GL_TEXTURE_3D, 0);
 	}
+printOpenGLError();
 }
 
 //----------------------------------------------------------------------------
@@ -459,6 +461,7 @@ void DVRRayCaster::initTextures()
 		GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 
 		_backface_texcrd_texid, 0
 	);
+printOpenGLError();
 
 	glGenTextures(1, &_backface_depth_texid);
 	glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
@@ -479,6 +482,7 @@ void DVRRayCaster::initTextures()
 		GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, 
 		_backface_depth_texid, 0
 	);
+printOpenGLError();
 
 	GLenum status = (GLenum) glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
@@ -492,11 +496,13 @@ void DVRRayCaster::initTextures()
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glFlush();	// Necessary???
+printOpenGLError();
 }
 
 void DVRRayCaster::initShaderVariables() {
 
 	assert(_shader);
+
 
 	_shader->enable();
 

@@ -753,11 +753,19 @@ void DVRTexture3d::sortBricks(const Matrix3d &modelview)
 int DVRTexture3d::maxTextureSize(GLenum format, GLenum type)
 {
 
-#if defined(__sgi) || defined(Darwin)
+  const char *s = (const char *) glGetString(GL_VENDOR);
+  if (! s) return(128);
+  string glvendor;
+  for(int i=0; i<strlen(s); i++) {
+    glvendor.append(1, toupper(s[i]));
+  }
 
-  return 128;
+  if ((glvendor.find("INTEL") != string::npos) || 
+	  (glvendor.find("SGI") != string::npos)) {
+		
+    return 128;
+ }
 
-#else
 
   // Upper limit on texture size - maximum value returned by this 
   // function. 
@@ -767,14 +775,13 @@ int DVRTexture3d::maxTextureSize(GLenum format, GLenum type)
   // drivers, in some instances returning values larger than what the
   // card will actually support.
   //
-  const int MAX_TEX_SZ = 512; 
 
   if (GLEW_ATI_fragment_shader)
   {
     return 256;
   }
 
-  for (int i = 128; i < 2*MAX_TEX_SZ; i*=2)
+  for (int i = 128; i < 2*_max_texture; i*=2)
   {
     glTexImage3D(GL_PROXY_TEXTURE_3D, 0, format, i, i, i, 0,
                  GL_LUMINANCE, type, NULL);
@@ -798,9 +805,18 @@ int DVRTexture3d::maxTextureSize(GLenum format, GLenum type)
     }
   }
 
-  return MAX_TEX_SZ;
+  return _max_texture;
 
-#endif
+}
+
+void DVRTexture3d::SetMaxTexture(int texsize) {
+	_max_texture = texsize;
+
+  if (_type == GL_UNSIGNED_BYTE) {
+    _maxTexture = maxTextureSize(GL_LUMINANCE8, _type);
+  } else if (_type == GL_UNSIGNED_SHORT) {
+    _maxTexture = maxTextureSize(GL_LUMINANCE16, _type);
+  }
 }
 
 

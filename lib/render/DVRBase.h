@@ -255,6 +255,12 @@ public:
  // Notify the driver that the near and far clipping planes have changed.
  virtual void SetNearFar(float near, float far) {return;};
 
+ // Set maximum
+ virtual void SetMaxTexture(int texsize) {_max_texture = texsize;};
+
+
+protected:
+  int _max_texture;
 
 private:
 

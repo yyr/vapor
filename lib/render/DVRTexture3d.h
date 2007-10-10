@@ -96,7 +96,9 @@ protected:
                    int nx, int ny, int nz, size_t fullHeight);
   void sortBricks(const Matrix3d &modelview);
 
-  static int maxTextureSize(GLenum format, GLenum type);
+  int maxTextureSize(GLenum format, GLenum type);
+
+  virtual void SetMaxTexture(int texsize);
 
 
 protected:

@@ -23,5 +23,6 @@
 #include "DVRBase.h"
 using namespace VAPoR;
 DVRBase::DVRBase() 
-{ }
-
+{ 
+	_max_texture = 512;
+}
