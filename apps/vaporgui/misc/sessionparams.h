@@ -46,6 +46,7 @@ public slots:
 	void setOutsideVal();
 	void changeOutsideVal(const QString&);
 	void changeTextureSize(bool);
+	void doHelp();
 	
 protected:
 	

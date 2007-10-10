@@ -18,6 +18,9 @@
     <property name="sizeGripEnabled">
         <bool>true</bool>
     </property>
+    <property name="whatsThis" stdset="0">
+        <string>The session paramaters panel allows for the setting of parameters that apply to all operations of the Vapor user interface.  More information is provided for specific elements in this panel.</string>
+    </property>
     <hbox>
         <property name="name">
             <cstring>unnamed</cstring>
@@ -45,6 +48,9 @@
                             <property name="text">
                                 <string>Cache Size (Megabytes)</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>The data cache size is the total amount of memory that VAPOR will used to hold volume data.  Best performance is obtained by choosing a value approximately equal to the physical memory that is available for the application.  If this is too large or too small the performance will be slowed.</string>
+                            </property>
                         </widget>
                         <spacer>
                             <property name="name">
@@ -71,7 +77,10 @@
                                 <set>AlignHCenter</set>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Specify number of megabytes that will be used for loading volume data</string>
+                                <string>Specify total number of megabytes that will be used for data cache</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>The data cache size is the total amount of memory that VAPOR will used to hold volume data.  Best performance is obtained by choosing a value approximately equal to the physical memory that is available for the application.  If this is too large or too small the performance will be slowed.</string>
                             </property>
                         </widget>
                     </hbox>
@@ -111,6 +120,9 @@
                             <property name="toolTip" stdset="0">
                                 <string>Click to override default graphics texture size</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but small enough so that this rendering is reasonably fast.</string>
+                            </property>
                         </widget>
                         <spacer>
                             <property name="name">
@@ -128,6 +140,9 @@
                                     <height>20</height>
                                 </size>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but small enough so that this rendering is reasonably fast.</string>
+                            </property>
                         </spacer>
                         <widget class="QLineEdit">
                             <property name="name">
@@ -135,6 +150,9 @@
                             </property>
                             <property name="toolTip" stdset="0">
                                 <string>Specify max 3D graphics texture size along each axis</string>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but small enough so that this rendering is reasonably fast.</string>
                             </property>
                         </widget>
                     </hbox>
@@ -174,6 +192,9 @@
                             <property name="alignment">
                                 <set>AlignCenter</set>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These three stretch factors provide a visual scaling of the data appearance, without changing the actual coordinates or the flow integration.</string>
+                            </property>
                         </widget>
                         <spacer>
                             <property name="name">
@@ -199,6 +220,9 @@
                             <property name="alignment">
                                 <set>AlignHCenter</set>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These three stretch factors provide a visual scaling of the data appearance, without changing the actual coordinates or the flow integration.</string>
+                            </property>
                         </widget>
                         <widget class="QLineEdit">
                             <property name="name">
@@ -207,6 +231,9 @@
                             <property name="alignment">
                                 <set>AlignHCenter</set>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These three stretch factors provide a visual scaling of the data appearance, without changing the actual coordinates or the flow integration.</string>
+                            </property>
                         </widget>
                         <widget class="QLineEdit">
                             <property name="name">
@@ -214,6 +241,9 @@
                             </property>
                             <property name="alignment">
                                 <set>AlignHCenter</set>
+                            </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>These three stretch factors provide a visual scaling of the data appearance, without changing the actual coordinates or the flow integration.</string>
                             </property>
                         </widget>
                     </hbox>
@@ -247,6 +277,9 @@
                     </property>
                     <property name="frameShadow">
                         <enum>Raised</enum>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>When visualizing layered data (such as WRF output) there can be points within the region that are above the highest layer or below the lowest layer in the dataset.  By default, the values of all variables are zero above or below the layered data..  Use this section to specify nonzero values above or below the layered data.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -952,7 +985,7 @@
                                 <cstring>buttonHelp</cstring>
                             </property>
                             <property name="enabled">
-                                <bool>false</bool>
+                                <bool>true</bool>
                             </property>
                             <property name="text">
                                 <string>&amp;Help</string>
@@ -960,8 +993,14 @@
                             <property name="accel">
                                 <string>F1</string>
                             </property>
+                            <property name="autoRepeat">
+                                <bool>false</bool>
+                            </property>
                             <property name="autoDefault">
                                 <bool>true</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Click to get context-sensitive help on this panel</string>
                             </property>
                         </widget>
                         <spacer>

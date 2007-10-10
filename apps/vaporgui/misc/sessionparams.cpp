@@ -30,6 +30,7 @@
 #include <qmessagebox.h>
 #include <qcombobox.h>
 #include <qcheckbox.h>
+#include <qwhatsthis.h>
 
 
 using namespace VAPoR;
@@ -77,6 +78,7 @@ void SessionParams::launch(){
 	sessionParamsDlg->maxWarnPopup->setText(str.setNum(maxPopup[1]));
 	sessionParamsDlg->maxInfoPopup->setText(str.setNum(maxPopup[0]));
 	connect(sessionParamsDlg->resetCountButton, SIGNAL(pressed()), this, SLOT(resetCounts()));
+	connect(sessionParamsDlg->buttonHelp, SIGNAL(released()), this, SLOT(doHelp()));
 
 	//set the sessionVariables:
 	sessionVariableNum = 0;
@@ -273,4 +275,8 @@ changeTextureSize(bool canChange){
 			QString::number(Session::getInstance()->getTextureSize()));
 	else 
 		sessionParamsDlg->textureSizeEdit->setText("");
+}
+void SessionParams::
+doHelp(){
+	QWhatsThis::enterWhatsThisMode();
 }
