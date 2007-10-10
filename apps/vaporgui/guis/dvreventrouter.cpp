@@ -493,7 +493,7 @@ void DvrEventRouter::updateTab(){
     transferFunctionFrame->setMapperFunction(dvrParams->getMapperFunc());
     transferFunctionFrame->update();
 
-    if (session->getNumSessionVariables())
+    if (session->getNumSessionVariables()&&DataStatus::getInstance()->getDataMgr())
     {
       int varnum = dvrParams->getSessionVarNum();
       const std::string& varname = session->getVariableName(varnum);

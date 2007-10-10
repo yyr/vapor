@@ -480,6 +480,8 @@ guiSetEnabled(bool value, int instance){
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "toggle iso enabled", instance);
 	iParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, iParams);
+	RegionParams* rParams = vizWinMgr->getActiveRegionParams();
+	vizWinMgr->setRegionDirty(rParams);
 }
 
 /*
