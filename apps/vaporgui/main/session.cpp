@@ -892,7 +892,7 @@ setupDataStatus(){
 	if(currentDataStatus->reset(dataMgr, cacheMB, app)) {
 		dataExists = true;
 		currentDataStatus->stretchExtents(stretchFactors);
-		currentDataStatus->specifyTextureSize(specifyTextureSize);
+		currentDataStatus->specifyTextureSize(textureSizeSpecified);
 		currentDataStatus->setTextureSize(textureSize);
 	}
 	else dataExists = false;
