@@ -35,7 +35,7 @@ public:
     ProbeRenderer( GLWindow* , ProbeParams* );
     ~ProbeRenderer();
 	
-	virtual void		initializeGL();
+	virtual int		initializeGL();
     virtual void		paintGL();
 
 

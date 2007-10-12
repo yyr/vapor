@@ -33,7 +33,7 @@ public:
     FlowRenderer( GLWindow* , FlowParams* );
     ~FlowRenderer();
 	
-	virtual void		initializeGL();
+	virtual int		initializeGL();
     virtual void		paintGL();
 
 	//Methods to access and to rebuild the flow data cache.

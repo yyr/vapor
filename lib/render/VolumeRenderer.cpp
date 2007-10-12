@@ -115,14 +115,16 @@ VolumeRenderer::~VolumeRenderer()
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-void VolumeRenderer::initializeGL()
+int VolumeRenderer::initializeGL()
 {
   myGLWindow->makeCurrent();
     
   if (_driver->GraphicsInit() < 0) 
   {
 	  Params::BailOut("OpenGL: Failure to initialize driver",__FILE__,__LINE__);
+      return(-1);
   }
+  return(0);
 }
 
 //----------------------------------------------------------------------------

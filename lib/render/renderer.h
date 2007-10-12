@@ -46,7 +46,7 @@ public:
 	//Following are called by the glwindow class attached to the vizwin
 	//as needed for rendering
 	//
-    virtual void		initializeGL() = 0;
+    virtual int		initializeGL() = 0;
     virtual void		paintGL() = 0;
 	
 	//Whenever the params associated with the renderer is changed, must call this:

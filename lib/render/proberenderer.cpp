@@ -126,7 +126,7 @@ void ProbeRenderer::paintGL()
   Set up the OpenGL rendering state, 
 */
 
-void ProbeRenderer::initializeGL()
+int ProbeRenderer::initializeGL()
 {
 	myGLWindow->makeCurrent();
 	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
@@ -136,4 +136,5 @@ void ProbeRenderer::initializeGL()
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	return(0);
 }
