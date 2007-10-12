@@ -243,13 +243,6 @@ void DVRShader::loadTexture(TextureBrick *brick)
 {
   printOpenGLError();
 
-  if (GLEW_VERSION_2_0) {
-    glActiveTexture(GL_TEXTURE0);
-  }
-  else {
-    glActiveTextureARB(GL_TEXTURE0_ARB);
-  }
-
   if (_type == GL_UNSIGNED_BYTE) {
     brick->load(GL_LUMINANCE8, GL_LUMINANCE);
   } else {
@@ -269,28 +262,36 @@ int DVRShader::Render(const float matrix[16])
   glPolygonMode(GL_FRONT, GL_FILL);
   glPolygonMode(GL_BACK, GL_LINE);
 
-  if (GLEW_VERSION_2_0) 
-  {
+  if (_preintegration) {
+    glEnable(GL_TEXTURE_2D);  
+    if (GLEW_VERSION_2_0) {
+      glActiveTexture(GL_TEXTURE1);
+    }
+    else {
+      glActiveTextureARB(GL_TEXTURE1_ARB);
+    }
+    glBindTexture(GL_TEXTURE_2D, _cmapid[1]);
+  }
+  else {
+    glEnable(GL_TEXTURE_1D);
+    if (GLEW_VERSION_2_0) {
+      glActiveTexture(GL_TEXTURE1);
+    }
+    else {
+      glActiveTextureARB(GL_TEXTURE1_ARB);
+    }
+    glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
+  }
+
+  if (GLEW_VERSION_2_0) {
     glActiveTexture(GL_TEXTURE0);
   }
-  else 
-  {
+  else {
     glActiveTextureARB(GL_TEXTURE0_ARB);
   }
 
   glEnable(GL_TEXTURE_3D);
 
-  if (_preintegration)
-  {
-    glEnable(GL_TEXTURE_2D);  
-    glBindTexture(GL_TEXTURE_2D, _cmapid[1]);
-  }
-  else
-  {
-    glEnable(GL_TEXTURE_1D);
-    glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
-  }
-  
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -300,6 +301,24 @@ int DVRShader::Render(const float matrix[16])
   glDisable(GL_DITHER);
 
   renderBricks();
+
+  if (GLEW_VERSION_2_0) {
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(GL_TEXTURE_1D, 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_3D, 0);
+  } else {
+
+    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(GL_TEXTURE_1D, 0);
+
+    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glBindTexture(GL_TEXTURE_3D, 0);
+  }
 
   glDisable(GL_BLEND);
   glDisable(GL_TEXTURE_3D);
@@ -337,14 +356,6 @@ void DVRShader::SetCLUT(const float ctab[256][4])
     _colormap[i*4+3] = ctab[i][3];
   }
 
-  if (GLEW_VERSION_2_0) 
-  {
-    glActiveTexture(GL_TEXTURE1);
-  }
-  else 
-  {
-    glActiveTextureARB(GL_TEXTURE1_ARB);
-  }
   glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
   
   glTexSubImage1D(GL_TEXTURE_1D, 0, 0, 256, GL_RGBA,
@@ -391,15 +402,6 @@ void DVRShader::SetOLUT(const float atab[256][4], const int numRefinements)
     _colormap[i*4+1] = atab[i][1];
     _colormap[i*4+2] = atab[i][2];
     _colormap[i*4+3] = opac;
-  }
-
-  if (GLEW_VERSION_2_0) 
-  {
-    glActiveTexture(GL_TEXTURE1);
-  }
-  else 
-  {
-    glActiveTextureARB(GL_TEXTURE1_ARB);
   }
 
   glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
@@ -509,15 +511,6 @@ void DVRShader::SetPreIntegrationTable(const float atab[256][4],
     }
   }
 
-  if (GLEW_VERSION_2_0) 
-  {
-    glActiveTexture(GL_TEXTURE1);
-  }
-  else 
-  {
-    glActiveTextureARB(GL_TEXTURE1_ARB);
-  }
-
   glBindTexture(GL_TEXTURE_2D, _cmapid[1]);
   
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 256, GL_RGBA,
@@ -604,15 +597,6 @@ void DVRShader::initTextures()
   //
   glGenTextures(2, _cmapid);
 
-  if (GLEW_VERSION_2_0) 
-  {
-    glActiveTexture(GL_TEXTURE1);
-  }
-  else 
-  {
-    glActiveTextureARB(GL_TEXTURE1_ARB);
-  }
-
   _colormap = new float[256*256*4];
   
   //
@@ -640,6 +624,8 @@ void DVRShader::initTextures()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+  glBindTexture(GL_TEXTURE_1D, 0);
+  glBindTexture(GL_TEXTURE_2D, 0);
   glFlush();
 }
 

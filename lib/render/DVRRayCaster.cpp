@@ -293,8 +293,6 @@ void DVRRayCaster::raycasting_pass(
 
 	if (GLEW_VERSION_2_0) {
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_3D, brick->handle());
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
@@ -302,16 +300,19 @@ void DVRRayCaster::raycasting_pass(
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
 
-	} else {
-
-		glActiveTextureARB(GL_TEXTURE0_ARB);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_3D, brick->handle());
+
+	} else {
 
 		glActiveTextureARB(GL_TEXTURE1_ARB);
 		glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
 
 		glActiveTextureARB(GL_TEXTURE2_ARB);
 		glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
+
+		glActiveTextureARB(GL_TEXTURE0_ARB);
+		glBindTexture(GL_TEXTURE_3D, brick->handle());
 	}
 
 	glEnable(GL_CULL_FACE);
