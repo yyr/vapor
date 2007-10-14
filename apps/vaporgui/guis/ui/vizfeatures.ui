@@ -6,7 +6,7 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>1</x>
+            <x>0</x>
             <y>0</y>
             <width>415</width>
             <height>955</height>
@@ -2005,7 +2005,7 @@
                                 <cstring>buttonHelp</cstring>
                             </property>
                             <property name="enabled">
-                                <bool>false</bool>
+                                <bool>true</bool>
                             </property>
                             <property name="text">
                                 <string>&amp;Help</string>
@@ -2015,6 +2015,9 @@
                             </property>
                             <property name="autoDefault">
                                 <bool>false</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Click to obtain context-sensitive help in this panel</string>
                             </property>
                         </widget>
                         <widget class="QPushButton">

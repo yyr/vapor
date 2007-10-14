@@ -121,7 +121,7 @@
                                 <string>Click to override default graphics texture size</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but small enough so that this rendering is reasonably fast.</string>
+                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but large enough so that this rendering is reasonably fast.</string>
                             </property>
                         </widget>
                         <spacer>
@@ -141,7 +141,7 @@
                                 </size>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but small enough so that this rendering is reasonably fast.</string>
+                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but large enough so that this rendering is reasonably fast.</string>
                             </property>
                         </spacer>
                         <widget class="QLineEdit">
@@ -152,7 +152,7 @@
                                 <string>Specify max 3D graphics texture size along each axis</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but small enough so that this rendering is reasonably fast.</string>
+                                <string>VAPOR normally provides a reasonable default graphics texture size.  However in some cases the size is too small (resulting in poor performance) or too large (resulting in garbage images).  These problems can be resolved by tuning this texture size parameter.  This parameter represents the side of the largest cube that will be rendered from the GPU texture memory.  The texture size should be chosen small enough that very large images can be rendered correctly, but large enough so that this rendering is reasonably fast.</string>
                             </property>
                         </widget>
                     </hbox>
@@ -220,6 +220,9 @@
                             <property name="alignment">
                                 <set>AlignHCenter</set>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Stretch factor in X direction</string>
+                            </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These three stretch factors provide a visual scaling of the data appearance, without changing the actual coordinates or the flow integration.</string>
                             </property>
@@ -231,6 +234,9 @@
                             <property name="alignment">
                                 <set>AlignHCenter</set>
                             </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Stretch factor in Y direction</string>
+                            </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These three stretch factors provide a visual scaling of the data appearance, without changing the actual coordinates or the flow integration.</string>
                             </property>
@@ -241,6 +247,9 @@
                             </property>
                             <property name="alignment">
                                 <set>AlignHCenter</set>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Stretch factor in Z direction</string>
                             </property>
                             <property name="whatsThis" stdset="0">
                                 <string>These three stretch factors provide a visual scaling of the data appearance, without changing the actual coordinates or the flow integration.</string>

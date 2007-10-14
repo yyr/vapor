@@ -648,11 +648,12 @@ guiSetEnabled(bool value, int instance){
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "toggle dvr enabled", instance);
 	dParams->setEnabled(value);
 	PanelCommand::captureEnd(cmd, dParams);
-		
+	
 	setDatarangeDirty(dParams);
 	setEditorDirty();
 	vizWinMgr->setClutDirty(dParams);
 	vizWinMgr->setVizDirty(dParams,DvrRegionBit,true);
+	vizWinMgr->setVizDirty(dParams,LightingBit, true);
 
 	if (dParams->getMapperFunc())
     {
