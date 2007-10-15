@@ -150,6 +150,7 @@ IsoEventRouter::hookUpTab()
 //
 void IsoEventRouter::updateTab(){
 	Session *session = Session::getInstance();
+	setEnabled(!session->sphericalTransform());
 	session->blockRecording();
 
 	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
