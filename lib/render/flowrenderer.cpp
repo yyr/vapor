@@ -208,7 +208,7 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
 	//Set up lighting, if we are rendering tubes or lines:
 	ViewpointParams* vpParams =  myGLWindow->getActiveViewpointParams();
 	int nLights = vpParams->getNumLights();
-	if (myFlowParams->getShapeType() == 1) {
+	if (myFlowParams->getShapeType() == 1 || nLights == 0) {
 		nLights = 0; //Points are unlit
 		glDisable(GL_LIGHTING);
 	}
