@@ -74,7 +74,9 @@ void ProbeRenderer::paintGL()
 	int imgWidth = myProbeParams->getImageWidth();
 	int imgHeight = myProbeParams->getImageHeight();
 	if (probeTex){
-
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
 		glBindTexture(GL_TEXTURE_2D, _probeid);
 		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
