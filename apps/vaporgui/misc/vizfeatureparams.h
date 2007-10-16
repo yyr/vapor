@@ -79,6 +79,7 @@ protected slots:
 	void yTicOrientationChanged(int);
 	void zTicOrientationChanged(int);
 	void okClicked();
+	void doHelp();
 	
 protected:
 	//Copy data from vizwin to and from dialog (shadowed in this class)

@@ -38,6 +38,9 @@
     <property name="toolTip" stdset="0">
         <string></string>
     </property>
+    <property name="whatsThis" stdset="0">
+        <string>This panel allows controls the rendering of isosurfaces</string>
+    </property>
     <hbox>
         <property name="name">
             <cstring>unnamed</cstring>
@@ -229,17 +232,17 @@ create new Probe/Contour instances.</string>
                                                 <string>Select a visualizer where this renderer instance will be copied</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The instance checkbox determines which
-Probe/Contour planes are actively 
-rendering in the active visualizer.  You 
+                                                <string>The instance checkbox determines
+which isosurfaces are actively
+rendering in the active visualizer.  You
 can only use it after a data set has been
-loaded.  The identifying number (at the 
-left) selects the probe instance whose 
-parameters are currently edited in this 
-panel.  Any  number of instances can 
-render at the same time.  Use the "New" 
-button or the "Duplicate In" selector to 
-create new Probe/Contour instances.</string>
+loaded.  The identifying number (at the
+left) selects the instance whose
+parameters are currently edited in this
+panel.  Any  number of instances can
+render at the same time.  Use the "New"
+button or the "Duplicate In" selector to
+create new isosurface instances.</string>
                                             </property>
                                         </widget>
                                         <spacer>
@@ -310,17 +313,10 @@ create new Probe/Contour instances.</string>
                         <enum>Raised</enum>
                     </property>
                     <property name="whatsThis" stdset="0">
-                        <string>The Probe/Contour panel
-controls the location and 
-orientation of a 2- or 3- dimensional
-volume that is placed within the 
-full data volume.  It is useful
-for histogramming, displaying,
-and selecting variable values 
-within the volume.  This is 
-used in conjunction with the
-Data Probe Tool from the main
-window toolbar.</string>
+                        <string>The Isosurface panel
+controls the rendering
+of one or more isosurfaces
+in the scene.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -665,22 +661,11 @@ how the histogram is scaled.</string>
                                                             <property name="opacityMapping" stdset="0">
                                                                 <bool>true</bool>
                                                             </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>This window displays a histogram of the variable in the specified interval, and allows you to pick the isovalue</string>
+                                                            </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>The transfer function editor displays a 
-mapping (called a "transfer function")
-from the data variable(s) to opacity and 
-color,  This is used when you view a 
-slice or contour plane of the variable(s). 
-Opacity only affects the in-scene copy
-of the contour plane, not the cross-section
-view in this panel. 
-The opacity values are shown as a 
-green curve.  The color is determined
-by the set of control points along the color
-bar at the bottom.  A histogram of data 
-values is shown in blue-green behind 
-the opacity curve.  Additional options are
-available from the right mouse button.</string>
+                                                                <string>This window displays a histogram of the current variable and allows you to position the isovalue by moving the slider at the bottom.  You can change the left and right bounds of the histogram by sliding the arrow at the top of this window.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -728,6 +713,9 @@ available from the right mouse button.</string>
                                                             <property name="alignment">
                                                                 <set>AlignHCenter</set>
                                                             </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Thd isosurface value is the value of the specified variable for which an isosurface will be rendered.</string>
+                                                            </property>
                                                         </widget>
                                                         <spacer>
                                                             <property name="name">
@@ -764,7 +752,7 @@ available from the right mouse button.</string>
                                                                 <string>0.0</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Minimum of transfer function domain</string>
+                                                                <string>Minimum of histogrammed domain</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>The displayed data bounds are based on
@@ -833,17 +821,19 @@ specified range.</string>
                                                                 <set>AlignRight</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Maximum of transfer function domain</string>
+                                                                <string>Maximum of histogrammed domain</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
                                                                 <string>The displayed data bounds are based on
 the range of data values in the first time step
 of the dataset.  These values are only a
-guide.  The TF Domain Bounds can be
+guide.  The histogram bounds can be
 reset to any range.  Click on the "histo"
 button to construct, a histogram and thereby
 to determine the actual data values in the
-specified range.</string>
+specified range.  If you can't see the isovalue
+in the display, set it to a value between the
+left and right bounds.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -1080,6 +1070,9 @@ specified range.</string>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the coordinates of a point that will have an isosurface through it</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The three point coordinates can be used to construct an isosurface through a point in the scene.  Set them to any valid point where the variable is defined, and then click on "Pass Iso Thru Point" to construct an isosurface through that point.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -1094,6 +1087,9 @@ specified range.</string>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the coordinates of a point that will have an isosurface through it</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The three point coordinates can be used to construct an isosurface through a point in the scene.  Set them to any valid point where the variable is defined, and then click on "Pass Iso Thru Point" to construct an isosurface through that point.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -1107,6 +1103,9 @@ specified range.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Specify the coordinates of a point that will have an isosurface through it</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The three point coordinates can be used to construct an isosurface through a point in the scene.  Set them to any valid point where the variable is defined, and then click on "Pass Iso Thru Point" to construct an isosurface through that point.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -1262,6 +1261,9 @@ specified range.</string>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Set the isovalue to be the value of the variable at the specific point</string>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>Click on this button to make the current isovalue be the value of the function at the current point coordinates.</string>
+                                                            </property>
                                                         </widget>
                                                         <spacer>
                                                             <property name="name">
@@ -1289,6 +1291,9 @@ specified range.</string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
                                                                 <string>Copy point coordinates from the selected point in the current applicable probe</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>To create an isosurface through a specific point in the scene, you can first identify the point in the probe panel.  Then click on the "Copy Point from Probe" button, and then click on "Pass Iso Thru Point".  Both the Probe and the Iso panel should be at the same refinement level.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -1340,12 +1345,6 @@ specified range.</string>
                                     </property>
                                     <property name="frameShadow">
                                         <enum>Raised</enum>
-                                    </property>
-                                    <property name="whatsThis" stdset="0">
-                                        <string>The color and opacity of the flow
-lines are set by defining a color
-mapping and an opacity mapping
-in this panel.</string>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -1409,6 +1408,9 @@ in this panel.</string>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The color and opacity of the isosurface are set by the color button and the opacity value.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QPushButton">
                                                             <property name="name">
@@ -1425,7 +1427,10 @@ in this panel.</string>
                                                                 <string></string>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Clisk to specify color used in constant map</string>
+                                                                <string>Click to specify a color for the isosurface</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The color and opacity of the isosurface are set by the color button and the opacity value.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -1455,6 +1460,9 @@ in this panel.</string>
                                                             <property name="alignment">
                                                                 <set>AlignCenter</set>
                                                             </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The color and opacity of the isosurface are set by the color button and the opacity value.</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -1467,7 +1475,10 @@ in this panel.</string>
                                                                 <set>AlignHCenter</set>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify opacity value used in constant mapping</string>
+                                                                <string>Specify opacity value of the isosurface</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The color and opacity of the isosurface are set by the color button and the opacity value.</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -1543,7 +1554,7 @@ in this panel.</string>
                                                                 <number>2</number>
                                                             </property>
                                                             <property name="toolTip" stdset="0">
-                                                                <string>Specify the precision of the isosurface renderer, when the renderer is disabled</string>
+                                                                <string>Specify the precision of the isosurface renderer, can  only be modified when the renderer is disabled</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -1589,11 +1600,9 @@ in this panel.</string>
                                                                 <string>Set lighting on or off</string>
                                                             </property>
                                                             <property name="whatsThis" stdset="0">
-                                                                <string>The Lighting-On checkbox can only be
-used if your graphics hardware supports
-it.  When enabled, the light source is 
-controlled by the lighting parameters
-of Light No. 1 in the Viewpoint panel.</string>
+                                                                <string>The Lighting-On checkbox determines
+whether the isosurface will be shaded
+or not..</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>

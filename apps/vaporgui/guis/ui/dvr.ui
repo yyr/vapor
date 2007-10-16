@@ -1443,14 +1443,13 @@ of Light No. 1 in the Viewpoint panel.</string>
                                                 <string>Pre-integration On</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
-                                                <string>Set lighting on or off</string>
+                                                <string>turn on pre-integration</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>The Lighting-On checkbox can only be
-used if your graphics hardware supports
-it.  When enabled, the light source is 
-controlled by the lighting parameters
-of Light No. 1 in the Viewpoint panel.</string>
+                                                <string>Pre-integration results in a
+higher quality rendered image,
+with somewhat increased 
+rendering time.</string>
                                             </property>
                                         </widget>
                                         <spacer>

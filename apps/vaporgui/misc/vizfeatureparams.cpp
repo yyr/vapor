@@ -32,6 +32,7 @@
 #include <qscrollview.h>
 #include <qvbox.h>
 #include <qlayout.h>
+#include <qwhatsthis.h>
 
 
 using namespace VAPoR;
@@ -153,6 +154,8 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->buttonOk, SIGNAL(clicked()), this, SLOT(okClicked()));
 	connect (vizFeatureDlg->buttonCancel,SIGNAL(clicked()), featureHolder, SLOT(reject()));
 	connect (this, SIGNAL(doneWithIt()), featureHolder, SLOT(reject()));
+	connect(vizFeatureDlg->buttonHelp, SIGNAL(released()), this, SLOT(doHelp()));
+
 	//Copy values into dialog, using current comboIndex:
 	setDialog();
 	dialogChanged = false;
@@ -554,4 +557,8 @@ void VizFeatureParams::okClicked(){
 	
 	emit doneWithIt();
 	
+}
+void VizFeatureParams::
+doHelp(){
+	QWhatsThis::enterWhatsThisMode();
 }

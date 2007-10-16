@@ -33,6 +33,9 @@
     <property name="caption">
         <string>Form1</string>
     </property>
+    <property name="whatsThis" stdset="0">
+        <string>This panel specifies properties of each visualizer.  Additional information is available as a tooltip for each element.</string>
+    </property>
     <hbox>
         <property name="name">
             <cstring>unnamed</cstring>
@@ -417,6 +420,9 @@
                             <property name="toolTip" stdset="0">
                                 <string>show colored X,Y,Z axes in scene</string>
                             </property>
+                            <property name="whatsThis" stdset="0">
+                                <string>This checkbox enables you to specify how the axes will be marked and labelled</string>
+                            </property>
                         </widget>
                         <spacer>
                             <property name="name">
@@ -446,6 +452,9 @@
                     </property>
                     <property name="frameShadow">
                         <enum>Raised</enum>
+                    </property>
+                    <property name="whatsThis" stdset="0">
+                        <string>To display (x,y,z)-axes with tic marks and to display coordinates at the tic marks, specify the min and max coordinate values, the number of tic marks on each axis, and the orientation of the tic marks.</string>
                     </property>
                     <hbox>
                         <property name="name">
@@ -1525,7 +1534,7 @@
                                 <string>Enable rendering of lowest elevation level</string>
                             </property>
                             <property name="whatsThis" stdset="0">
-                                <string>When using layered data, specify if the minimum surface (or terrain) is to be displayed.</string>
+                                <string>When using a layered dataset, you can render a surface at elevation zero (i.e. at the bottom of the bottom layer of the data.  The color and refinement of this surface can also be specified here.</string>
                             </property>
                         </widget>
                         <spacer>
@@ -1877,7 +1886,7 @@
                                 <cstring>textLabel2_4</cstring>
                             </property>
                             <property name="text">
-                                <string>Number of Tic Marks</string>
+                                <string>Number of  color scale Tic Marks</string>
                             </property>
                         </widget>
                         <spacer>
