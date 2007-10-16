@@ -46,12 +46,13 @@ public:
 	//Following are called by the glwindow class attached to the vizwin
 	//as needed for rendering
 	//
-    virtual int		initializeGL() = 0;
+    virtual void	initializeGL() = 0;
     virtual void		paintGL() = 0;
 	
 	//Whenever the params associated with the renderer is changed, must call this:
 	virtual void setRenderParams(RenderParams* rp) {currentRenderParams = rp;}
 	RenderParams* getRenderParams(){return currentRenderParams;}
+	bool isInitialized() {return initialized;}
 	
 signals:
 
@@ -72,7 +73,7 @@ protected:
 	float regionFrameColor[3];
 	float subregionFrameColor[3];
 	int savedNumXForms;
-	
+	bool initialized;
 };
 };
 

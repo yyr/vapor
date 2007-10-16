@@ -115,16 +115,17 @@ VolumeRenderer::~VolumeRenderer()
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-int VolumeRenderer::initializeGL()
+void VolumeRenderer::initializeGL()
 {
   myGLWindow->makeCurrent();
     
   if (_driver->GraphicsInit() < 0) 
   {
-	  Params::BailOut("OpenGL: Failure to initialize driver",__FILE__,__LINE__);
-      return(-1);
-  }
-  return(0);
+	  MyBase::SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,"OpenGL: Failure to initialize driver in file %s at line %d",__FILE__,__LINE__);
+      initialized = false;
+  } else
+	initialized = true;
+  return;
 }
 
 //----------------------------------------------------------------------------

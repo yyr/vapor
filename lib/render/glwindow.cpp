@@ -368,7 +368,7 @@ void GLWindow::paintGL()
 	else if (axisLabelNums[0]||axisLabelNums[1]||axisLabelNums[2]) deleteAxisLabels();
 
 	for (int i = 0; i< getNumRenderers(); i++){
-		renderer[i]->paintGL();
+		if(renderer[i]->isInitialized()) renderer[i]->paintGL();
 	}
 	
 	swapBuffers();

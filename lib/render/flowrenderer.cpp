@@ -372,12 +372,12 @@ renderFlowData(FlowLineData* flowLineData,bool constColors, int currentFrameNum)
   Set up the OpenGL rendering state, and define display list
 */
 
-int FlowRenderer::initializeGL()
+void FlowRenderer::initializeGL()
 {
 	myGLWindow->makeCurrent();
-	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
+	//myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
 	setRegionValid(true);
-	return(0);
+	initialized = true;
 }
 /****************************************************************************
  * 

@@ -74,6 +74,9 @@ void ProbeRenderer::paintGL()
 	int imgWidth = myProbeParams->getImageWidth();
 	int imgHeight = myProbeParams->getImageHeight();
 	if (probeTex){
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
@@ -128,15 +131,13 @@ void ProbeRenderer::paintGL()
   Set up the OpenGL rendering state, 
 */
 
-int ProbeRenderer::initializeGL()
+void ProbeRenderer::initializeGL()
 {
 	myGLWindow->makeCurrent();
 	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
 
 	glGenTextures(1, &_probeid);
 	glBindTexture(GL_TEXTURE_2D, _probeid);
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	return(0);
+	
+	initialized = true;
 }
