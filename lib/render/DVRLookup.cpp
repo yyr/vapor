@@ -238,7 +238,6 @@ void DVRLookup::initColormap()
   glPixelMapfv(GL_PIXEL_MAP_I_TO_G, 256, _colormap+1*256);
   glPixelMapfv(GL_PIXEL_MAP_I_TO_B, 256, _colormap+2*256);
   glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, _colormap+3*256);
-  glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
 
   glFlush();
 }
