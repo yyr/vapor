@@ -551,7 +551,7 @@ calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, in
 	for (int i = 0; i<3; i++) {
 		if (point[i] < regMin[i]) return OUT_OF_BOUNDS;
 		if (point[i] > regMax[i]) return OUT_OF_BOUNDS;
-		voxCoords[i] = (int)((float)(max_dim[i] - min_dim[i])*(point[i] - regMin[i])/(regMax[i] - regMin[i]) + 0.5);
+		voxCoords[i] = min_dim[i]+(int)((float)(max_dim[i] - min_dim[i])*(point[i] - regMin[i])/(regMax[i] - regMin[i]) + 0.5);
 		
 		blkmin[i] = voxCoords[i]/bs[i];
 		blkmax[i] = blkmin[i];

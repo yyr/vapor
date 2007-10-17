@@ -6,7 +6,7 @@
     </property>
     <property name="geometry">
         <rect>
-            <x>1</x>
+            <x>0</x>
             <y>0</y>
             <width>450</width>
             <height>1369</height>
@@ -2292,7 +2292,7 @@ Selected Point</string>
                                                                         <set>AlignCenter</set>
                                                                     </property>
                                                                     <property name="toolTip" stdset="0">
-                                                                        <string>value or magnitude of variable(s)at selected point</string>
+                                                                        <string>value or magnitude of variable(s)at selected point (if point is in current region)</string>
                                                                     </property>
                                                                 </widget>
                                                                 <spacer>

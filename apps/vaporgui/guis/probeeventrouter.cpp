@@ -1597,8 +1597,6 @@ guiEndCursorMove(){
 }
 //calculate the variable, or rms of the variables, at a specific point.
 //Returns the OUT_OF_BOUNDS flag if point is not (in region and in probe).
-//In order to exploit the datamgr cache, always obtain the data from the same
-//regions that are accessed in building the probe texture.
 //
 
 
@@ -1635,14 +1633,20 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 
 	for (int i = 0; i< 3; i++){
 		if ((point[i] < regMin[i]) || (point[i] > regMax[i])) return OUT_OF_BOUNDS;
-		arrayCoord[i] = (int) (0.5f+((float)(coordMax[i]- coordMin[i]))*(point[i] - regMin[i])/(regMax[i]-regMin[i]));
-		//Make sure the transformed coords are in the probe region
+		arrayCoord[i] = coordMin[i] + (int) (0.5f+((float)(coordMax[i]- coordMin[i]))*(point[i] - regMin[i])/(regMax[i]-regMin[i]));
+		//Make sure the transformed coords are in the region
 		if (arrayCoord[i] < (int)coordMin[i] || arrayCoord[i] > (int)coordMax[i] ) {
 			return OUT_OF_BOUNDS;
 		} 
 	}
 	
-	int bSize =  *(ds->getCurrentMetadata()->GetBlockSize());
+	const size_t* bSize =  ds->getCurrentMetadata()->GetBlockSize();
+
+	//Get the block coords (in the full volume) of the desired array coordinate:
+	for (int i = 0; i< 3; i++){
+		blkMin[i] = arrayCoord[i]/bSize[i];
+		blkMax[i] = blkMin[i];
+	}
 	
 	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
 	//volume for each variable specified, then do rms on the variables (if > 1 specified)
@@ -1654,13 +1658,18 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, varnum, timeStep, fullHeight);
+		if (!volData[totVars]) {
+			//failure to get data.  
+			QApplication::restoreOverrideCursor();
+			return OUT_OF_BOUNDS;
+		}
 		totVars++;
 	}
 	QApplication::restoreOverrideCursor();
 			
-	int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize) +
-		(arrayCoord[1] - blkMin[1]*bSize)*(bSize*(blkMax[0]-blkMin[0]+1)) +
-		(arrayCoord[2] - blkMin[2]*bSize)*(bSize*(blkMax[1]-blkMin[1]+1))*(bSize*(blkMax[0]-blkMin[0]+1));
+	int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize[0]) +
+		(arrayCoord[1] - blkMin[1]*bSize[1])*(bSize[1]*(blkMax[0]-blkMin[0]+1)) +
+		(arrayCoord[2] - blkMin[2]*bSize[2])*(bSize[1]*(blkMax[1]-blkMin[1]+1))*(bSize[0]*(blkMax[0]-blkMin[0]+1));
 	
 	float varVal;
 	//use the int xyzCoord to index into the loaded data
