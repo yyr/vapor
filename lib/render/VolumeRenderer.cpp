@@ -121,7 +121,11 @@ void VolumeRenderer::initializeGL()
     
   if (_driver->GraphicsInit() < 0) 
   {
-	  MyBase::SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,"OpenGL: Failure to initialize driver in file %s at line %d",__FILE__,__LINE__);
+	  MyBase::SetErrMsg(VAPOR_ERROR_DRIVER_FAILURE,"Failure to initialize OpenGL renderer.  Possible remedies:\n %s %s %s",
+		  "   Specify a different Renderer Type,\n",
+		  "   Install newer graphics drivers on your system, or\n",
+		  "   Install one of the recommended graphics cards.\n"
+		  );
       initialized = false;
   } else
 	initialized = true;

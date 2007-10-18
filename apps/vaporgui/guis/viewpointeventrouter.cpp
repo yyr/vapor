@@ -427,7 +427,7 @@ guiAlignView(int axis){
 		float maxUDot = -1.f;
 		int bestUDir = 0;
 		float* curViewDir = currentViewpoint->getViewDir();
-		float* curUpVec = currentViewpoint->getUpVec();
+		const float* curUpVec = currentViewpoint->getUpVec();
 		for (int i = 0; i< 3; i++){
 			float dotVProd = vdot(axes[i], curViewDir);
 			float dotUProd = vdot(axes[i], curUpVec);
@@ -541,14 +541,20 @@ void ViewpointEventRouter::guiSetStereoMode(int mode){
 	Viewpoint* currentViewpoint = vpParams->getCurrentViewpoint();
 	//Determine the new viewDir:
 	float vdir[3], updir[3], upComp[3], rightdir[3], newCamPos[3];
-	vsub(currentViewpoint->getRotationCenter(),currentViewpoint->getCameraPos(), vdir);
+	float rotCtr[3], camPos[3];
+	currentViewpoint->getStretchedRotCtr(rotCtr);
+	currentViewpoint->getStretchedCamPos(camPos);
+	vsub(rotCtr, camPos, vdir);
 	//Remember the distance:
 	float vdist = vlength(vdir);
 	
 	//Make sure the viewDir is normalized:
 	vnormal(vdir);
 	//Get the up vector:
-	vcopy(currentViewpoint->getUpVec(), updir);
+	float* upvec = currentViewpoint->getUpVec();
+	vcopy(upvec, updir);
+	vnormal(updir);
+	
 	//find the component of updir in vdir direction, subtract it from updir, then normalize,
 	//so that updir is orthogonal to vdir.
 	vmult(updir, vdot(updir,vdir), upComp);
@@ -567,13 +573,12 @@ void ViewpointEventRouter::guiSetStereoMode(int mode){
 
 	//New camera position is obtained by subtracting vdist*vdir from rotationCenter:
 	vmult(vdir, vdist, newCamPos);
-	vsub(currentViewpoint->getRotationCenter(), newCamPos, newCamPos);
+	vsub(rotCtr, newCamPos, newCamPos);
 	//Now specify the new viewpoint:
-	currentViewpoint->setCameraPos(newCamPos);
+	currentViewpoint->setStretchedCamPos(newCamPos);
 	currentViewpoint->setViewDir(vdir);
 	currentViewpoint->setUpVec(updir);
 	
-	//	rotate the viewpoint the appropriate amount right or left.
 	//  set render windows dirty
 	updateRenderer(vpParams,false,  false);
 	PanelCommand::captureEnd(cmd,vpParams);

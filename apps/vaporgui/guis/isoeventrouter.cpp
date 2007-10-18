@@ -52,6 +52,7 @@
 #include "panelcommand.h"
 #include "messagereporter.h"
 #include "isorenderer.h"
+#include "DVRRayCaster.h"
 
 #include <vector>
 #include <string>
@@ -475,8 +476,16 @@ guiSetEnabled(bool value, int instance){
 	ParamsIso* iParams = vizWinMgr->getIsoParams(winnum, instance);
 	
 	if (value == iParams->isEnabled()) return;
-	confirmText(false);
 	
+	
+	//Check if we really can do raycasting:
+	if (value && !DVRRayCaster::supported()){
+		MessageReporter::errorMsg("This computer's Graphics capabilities do not support isosurfacing %s\n",
+			"You may need to update graphics drivers or install a supported graphics card to do isosurfaces.");
+		return;
+	}
+	confirmText(false);
+
 	//enable the current instance:
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "toggle iso enabled", instance);
 	iParams->setEnabled(value);
