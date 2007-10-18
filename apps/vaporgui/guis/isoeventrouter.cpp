@@ -480,8 +480,8 @@ guiSetEnabled(bool value, int instance){
 	
 	//Check if we really can do raycasting:
 	if (value && !DVRRayCaster::supported()){
-		MessageReporter::errorMsg("This computer's Graphics capabilities do not support isosurfacing %s\n",
-			"You may need to update graphics drivers or install a supported graphics card to do isosurfaces.");
+		MessageReporter::errorMsg("This computer's graphics capabilities do not support isosurfacing.\n %s\n",
+			"Update graphics drivers or install a supported graphics card to render isosurfaces.");
 		return;
 	}
 	confirmText(false);
