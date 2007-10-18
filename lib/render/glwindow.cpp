@@ -1433,6 +1433,7 @@ void GLWindow::deleteAxisLabels(){
 		if (axisTextLabels[i]) {
 			for (int k = 0; k < axisLabelNums[i]; k++) delete axisTextLabels[i][k];
 			delete axisTextLabels[i];
+			axisTextLabels[i] = 0;
 		}
 		axisLabelNums[i] = 0;
 	}
@@ -1445,13 +1446,13 @@ void GLWindow::drawAxisLabels() {
 	for (int i = 0; i<3; i++){
 		if (axisLabelNums[i] != numTics[i]){
 			if (axisTextLabels[i]) {
-				for (int k = 0; k < axisLabelNums[i]; k++) delete axisTextLabels[i][k];
-				delete axisTextLabels[i];
+				for (int k = 0; k<numTics[i]; k++) delete axisTextLabels[i][k];
+				delete[] axisTextLabels[i];
+				//QT will delete the labels? 
 			}
 			axisTextLabels[i] = new QLabel*[numTics[i]];
 			for (int k = 0; k<numTics[i]; k++){
 				axisTextLabels[i][k] = new QLabel(this);
-				
 			}
 			axisLabelNums[i] = numTics[i];
 		}

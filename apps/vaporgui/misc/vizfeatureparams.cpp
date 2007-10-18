@@ -66,7 +66,11 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 		ticLength[i] = vfParams.ticLength[i];
 		ticDir[i] = vfParams.ticDir[i];
 	}
+	showAxisAnnotation = vfParams.showAxisAnnotation;
 	axisAnnotationColor = vfParams.axisAnnotationColor;
+	labelHeight = vfParams.labelHeight;
+	labelDigits = vfParams.labelDigits;
+	ticWidth = vfParams.ticWidth;
 
 	colorbarLLCoords[0] = vfParams.colorbarLLCoords[0];
 	colorbarLLCoords[1] = vfParams.colorbarLLCoords[1];
@@ -415,7 +419,7 @@ copyFromDialog(){
 	labelDigits = vizFeatureDlg->labelDigitsEdit->text().toInt();
 	ticWidth = vizFeatureDlg->ticWidthEdit->text().toFloat();
 	axisAnnotationColor = vizFeatureDlg->axisColorButton->paletteBackgroundColor();
-
+	showAxisAnnotation = vizFeatureDlg->axisAnnotationCheckbox->isChecked();
 	
 	colorbarLLCoords[0] = vizFeatureDlg->colorbarLLXEdit->text().toFloat();
 	colorbarLLCoords[1] = vizFeatureDlg->colorbarLLYEdit->text().toFloat();
@@ -526,10 +530,10 @@ getVizNum(int comboIndex){
 void VizFeatureParams::annotationChanged(){
 	if (vizFeatureDlg->axisAnnotationCheckbox->isChecked()){
 		vizFeatureDlg->axisAnnotationFrame->show();
-		showAxisAnnotation = true;
+		
 	} else {
 		vizFeatureDlg->axisAnnotationFrame->hide();
-		showAxisAnnotation = false;
+		
 	}
 	
 	vizFeatureDlg->update();
