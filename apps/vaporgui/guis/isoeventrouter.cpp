@@ -181,6 +181,7 @@ void IsoEventRouter::updateTab(){
 	ParamsIso* isoParams = (ParamsIso*) VizWinMgr::getActiveIsoParams();
 	deleteInstanceButton->setEnabled(vizMgr->getNumIsoInstances(winnum) > 1);
 
+
 	QString strn;
     
 	//Force the iso to refresh
@@ -220,9 +221,12 @@ void IsoEventRouter::updateTab(){
 	if (val != OUT_OF_BOUNDS)
 		variableValueLabel->setText(QString::number(val));
 	else variableValueLabel->setText("");
+	passThruButton->setEnabled((val!= OUT_OF_BOUNDS) && isoParams->isEnabled());
    
 	update();
 	guiSetTextChanged(false);
+	//if (renderTextChanged)
+	//	VizWinMgr::getInstance()->getVizWin(isoParams->getVizNum())->updateGL();
 	renderTextChanged = false;
 	Session::getInstance()->unblockRecording();
 	vizMgr->getTabManager()->update();
@@ -264,6 +268,12 @@ void IsoEventRouter::confirmText(bool /*render*/){
 	coords[2] = selectedZEdit->text().toFloat();
 	iParams->SetSelectedPoint(coords);
 	iParams->SetIsoValue(isoValueEdit->text().toFloat());
+
+	float val = evaluateSelectedPoint();
+	if (val != OUT_OF_BOUNDS)
+		variableValueLabel->setText(QString::number(val));
+	else variableValueLabel->setText("");
+	passThruButton->setEnabled((val!= OUT_OF_BOUNDS) && iParams->isEnabled());
 	
 	guiSetTextChanged(false);
 	setEditorDirty(iParams);
@@ -661,12 +671,15 @@ void IsoEventRouter::
 makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 	assert(instance >= 0);
 	ParamsIso* iParams = (ParamsIso*)(newParams->deepCopy());
+	iParams->GetRootNode()->SetAllFlags(true);
 	int vizNum = iParams->getVizNum();
 	//If we are creating one, it should be the first missing instance:
 	if (!prevParams) assert(VizWinMgr::getInstance()->getNumIsoInstances(vizNum) == instance);
 	VizWinMgr::getInstance()->setParams(vizNum, iParams, Params::IsoParamsType, instance);
 	
 	updateTab();
+	
+
 	ParamsIso* formerParams = (ParamsIso*)prevParams;
 	bool wasEnabled = false;
 	if (formerParams) wasEnabled = formerParams->isEnabled();
@@ -674,6 +687,12 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 	if (newWin || (formerParams->isEnabled() != iParams->isEnabled())){
 		updateRenderer(iParams, wasEnabled,  newWin);
 	}
+	//Set datarange dirty flag, so will need to check everything...
+	//Rerender:
+	VizWinMgr::getInstance()->setDatarangeDirty(iParams);
+	//VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);
+	
+
 
 }
 

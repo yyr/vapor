@@ -71,7 +71,15 @@ public:
 
 
  ~ParamNode();
-
+ //! Set all the flags dirty (or clean)
+ //!
+ //! This method is useful if it is necessary to
+ //! force all clients to refresh their state, e.g.
+ //! if the ParamNode has been cloned from 
+ //! another node.
+ //
+ void SetAllFlags(bool dirty);
+	
  //! Set an ParamNode parameter of type long
  //!
  //! This method defines and sets a parameter of type long. The

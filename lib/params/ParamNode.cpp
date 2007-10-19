@@ -253,3 +253,40 @@ void ParamNode::UnRegisterDirtyFlagString(
 		}
 	}
 }
+void ParamNode::SetAllFlags(bool dirty){
+	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyStringFlags.begin();
+	
+	while (p != _dirtyStringFlags.end()){
+
+		vector <DirtyFlag *> &dirtyflags = p->second;
+		for(int i=0; i<dirtyflags.size(); i++) {
+			if (dirty) dirtyflags[i]->Set();
+			else dirtyflags[i]->Clear();
+		}
+		p++;
+	}
+	map <string, vector <DirtyFlag *> >::iterator q =  _dirtyDoubleFlags.begin();
+	
+	while (q != _dirtyDoubleFlags.end()){
+
+		vector <DirtyFlag *> &dirtyflags = q->second;
+		for(int i=0; i<dirtyflags.size(); i++) {
+			if (dirty) dirtyflags[i]->Set();
+			else dirtyflags[i]->Clear();
+		}
+		q++;
+	}
+	map <string, vector <DirtyFlag *> >::iterator r =  _dirtyLongFlags.begin();
+	
+	while (r != _dirtyLongFlags.end()){
+
+		vector <DirtyFlag *> &dirtyflags = r->second;
+		for(int i=0; i<dirtyflags.size(); i++) {
+			if (dirty) dirtyflags[i]->Set();
+			else dirtyflags[i]->Clear();
+		}
+		r++;
+	}
+
+
+}
