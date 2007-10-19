@@ -154,7 +154,7 @@ int DVRShader::GraphicsInit()
 {
   glewInit();
 
-  initTextures();
+  if (initTextures() < 0) return(-1);
 
   //
   // Create, Load & Compile the default shader program
@@ -589,7 +589,7 @@ void DVRShader::SetLightingLocation(const float *pos)
 //----------------------------------------------------------------------------
 // Initalize the textures (i.e., 3d volume texture and the 1D colormap texture)
 //----------------------------------------------------------------------------
-void DVRShader::initTextures()
+int DVRShader::initTextures()
 {
 
   //
@@ -627,6 +627,8 @@ void DVRShader::initTextures()
   glBindTexture(GL_TEXTURE_1D, 0);
   glBindTexture(GL_TEXTURE_2D, 0);
   glFlush();
+
+  return(0);
 }
 
 //----------------------------------------------------------------------------

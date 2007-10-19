@@ -115,7 +115,7 @@ int DVRRayCaster::GraphicsInit()
 {
 	glewInit();
 
-	initTextures();
+	if (initTextures() < 0) return(-1);
 
 	//
 	// Create, Load & Compile the shader programs
@@ -434,7 +434,7 @@ void DVRRayCaster::SetNearFar(GLfloat nearplane, GLfloat farplane) {
 //----------------------------------------------------------------------------
 // Initalize the textures (i.e., 3d volume texture and the 1D colormap texture)
 //----------------------------------------------------------------------------
-void DVRRayCaster::initTextures()
+int DVRRayCaster::initTextures()
 {
 
 	DVRShader::initTextures();
@@ -488,9 +488,8 @@ printOpenGLError();
 	GLenum status = (GLenum) glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
 		cerr << "Failed to create fbo\n";
+		return(-1);
 	}
-
-
 
 	// Bind the default frame buffer
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
@@ -498,6 +497,7 @@ printOpenGLError();
 
 	glFlush();	// Necessary???
 printOpenGLError();
+	return(0);
 }
 
 void DVRRayCaster::initShaderVariables() {

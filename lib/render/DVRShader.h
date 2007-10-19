@@ -74,7 +74,7 @@ protected:
     PRE_INTEGRATED_LIGHT
   };
 
-  void initTextures();
+  int initTextures();
   virtual void initShaderVariables();
 
   virtual bool createShader(ShaderType,

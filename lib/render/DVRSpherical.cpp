@@ -87,7 +87,7 @@ int DVRSpherical::GraphicsInit()
 {
   glewInit();
 
-  initTextures();
+  if (initTextures() < 0) return(-1);
 
   //
   // Create, Load & Compile the default shader program

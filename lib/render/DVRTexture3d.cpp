@@ -13,6 +13,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <qgl.h>
+#include <cctype>
 #include "params.h"
 #include "DVRTexture3d.h"
 #include "TextureBrick.h"
@@ -757,7 +758,7 @@ int DVRTexture3d::maxTextureSize(GLenum format, GLenum type)
   if (! s) return(128);
   string glvendor;
   for(int i=0; i<strlen(s); i++) {
-    glvendor.append(1, toupper(s[i]));
+    glvendor.append(1, (char) toupper(s[i]));
   }
 
   if ((glvendor.find("INTEL") != string::npos) || 

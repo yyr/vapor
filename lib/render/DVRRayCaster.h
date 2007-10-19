@@ -72,7 +72,7 @@ protected:
 	BACKFACE
   };
 
-  virtual void initTextures();
+  virtual int initTextures();
   virtual void initShaderVariables();
 
   virtual bool createShader(ShaderType,
