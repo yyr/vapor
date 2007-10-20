@@ -114,7 +114,7 @@ int	GetWRFMetadata(
 			files[i], wrfNames, dx, dy, vertExtsPtr, dimLens, 
 			startDate, wrfVars, ts 
 		);
-		if (rc < 0) {
+		if (rc < 0 || vertExtsPtr[0] >= vertExtsPtr[1]) {
 			cerr << "Error processing file " << files[i] << ", skipping" << endl;
 			MyBase::SetErrCode(0);
 			continue;
@@ -450,6 +450,7 @@ int	main(int argc, char **argv) {
 		vector <double> extentsVec;
 		for(int i=0; i<6; i++) {
 			extentsVec.push_back(extents[i]);
+			cerr << extents[i] << endl;
 		}
 		if (file->SetExtents(extentsVec) < 0) {
 			exit(1);
