@@ -436,6 +436,27 @@ void DVRRayCaster::SetNearFar(GLfloat nearplane, GLfloat farplane) {
 //----------------------------------------------------------------------------
 int DVRRayCaster::initTextures()
 {
+	// List of acceptable frame buffer object internal types 
+	//
+	GLint colorInternalFormats[] = {
+		GL_RGBA16F_ARB, GL_RGBA16, GL_RGBA16, GL_RGBA8, GL_RGBA
+	};
+	GLenum colorInternalTypes[] = {
+		GL_FLOAT, GL_INT, GL_INT, GL_INT, GL_INT
+	};
+	int num_color_fmts = 
+		sizeof(colorInternalFormats)/sizeof(colorInternalFormats[0]);
+
+	GLint depthInternalFormats[] = {
+		GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, 
+		GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT
+	};
+	GLenum depthInternalTypes[] = {
+		GL_FLOAT, GL_FLOAT, GL_FLOAT,
+		GL_INT, GL_INT, GL_INT,
+	};
+	int num_depth_fmts = 
+		sizeof(depthInternalFormats)/sizeof(depthInternalFormats[0]);
 
 	DVRShader::initTextures();
 
@@ -454,15 +475,32 @@ int DVRRayCaster::initTextures()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexImage2D(
-		GL_TEXTURE_2D, 0,GL_RGBA16F_ARB, viewport[2], viewport[3], 0, 
-		GL_RGBA, GL_FLOAT, NULL
-	);
-	glFramebufferTexture2DEXT(
-		GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 
-		_backface_texcrd_texid, 0
-	);
-printOpenGLError();
+
+	// Try to find a supported format
+	//
+	GLenum status;
+	for (int i=0; i<num_color_fmts; i++) {
+		glTexImage2D(
+			GL_TEXTURE_2D, 0,colorInternalFormats[i], 
+			viewport[2], viewport[3], 0, GL_RGBA, colorInternalTypes[i], NULL
+		);
+		glFramebufferTexture2DEXT(
+			GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, 
+			_backface_texcrd_texid, 0
+		);
+		status = (GLenum) glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+		if (status == GL_FRAMEBUFFER_COMPLETE_EXT) {
+			_colorInternalFormat = colorInternalFormats[i];
+			_colorInternalType = colorInternalTypes[i];
+			break;
+		}
+	}
+	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
+		SetErrMsg(
+			"Failed to create OpenGL color framebuffer_object : %d", status
+		);
+		return(-1);
+	}
 
 	glGenTextures(1, &_backface_depth_texid);
 	glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
@@ -475,19 +513,28 @@ printOpenGLError();
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
 	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_NEVER);
 
-	glTexImage2D(
-		GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32, viewport[2], viewport[3], 0, 
-		GL_DEPTH_COMPONENT, GL_FLOAT, NULL
-	);
-	glFramebufferTexture2DEXT(
-		GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, 
-		_backface_depth_texid, 0
-	);
-printOpenGLError();
+	for (int i=0; i<num_depth_fmts; i++) {
+		glTexImage2D(
+			GL_TEXTURE_2D, 0,depthInternalFormats[i], viewport[2], viewport[3],
+			0, GL_DEPTH_COMPONENT, depthInternalTypes[i], NULL
+		);
 
-	GLenum status = (GLenum) glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+		glFramebufferTexture2DEXT(
+			GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, 
+			_backface_depth_texid, 0
+		);
+
+		status = (GLenum) glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+		if (status == GL_FRAMEBUFFER_COMPLETE_EXT) {
+			_depthInternalFormat = depthInternalFormats[i];
+			_depthInternalType = depthInternalTypes[i];
+			break;
+		}
+	}
 	if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
-		cerr << "Failed to create fbo\n";
+		SetErrMsg(
+			"Failed to create OpenGL depth framebuffer_object : %d", status
+		);
 		return(-1);
 	}
 
@@ -495,8 +542,7 @@ printOpenGLError();
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	glFlush();	// Necessary???
-printOpenGLError();
+	printOpenGLError();
 	return(0);
 }
 
@@ -567,14 +613,14 @@ void DVRRayCaster::Resize(int width, int height) {
 
 	glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
 	glTexImage2D(
-		GL_TEXTURE_2D, 0,GL_RGBA16F_ARB, width, height, 0, 
-		GL_RGBA, GL_FLOAT, NULL
+		GL_TEXTURE_2D, 0,_colorInternalFormat, width, height, 0, 
+		GL_RGBA, _colorInternalType, NULL
 	);
 
 	glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
 	glTexImage2D(
-		GL_TEXTURE_2D, 0,GL_DEPTH_COMPONENT32, width, height, 0, 
-		GL_DEPTH_COMPONENT, GL_FLOAT, NULL
+		GL_TEXTURE_2D, 0,_depthInternalFormat, width, height, 0, 
+		GL_DEPTH_COMPONENT, _depthInternalType, NULL
 	);
 
 	// Bind the default frame buffer

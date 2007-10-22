@@ -110,6 +110,11 @@ protected:
   float _colors[MAX_ISO_VALUES*4];
   int _nisos;
 
+  GLint _colorInternalFormat;	// format/type of interal frame buffer object
+  GLenum _colorInternalType;
+  GLint _depthInternalFormat;
+  GLenum _depthInternalType;
+
 
 };
 
