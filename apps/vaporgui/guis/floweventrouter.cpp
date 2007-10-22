@@ -830,8 +830,11 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setTimeSamplingStart(timesampleStartEdit1->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit1->text().toInt());
 			int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
+			int unsteadyvars[3];
+			for (int i = 0; i<3; i++) unsteadyvars[i] = (fParams->getUnsteadyVarNums())[i]-1;
+			
 			if (!fParams->validateSampling(minFrame,
-				fParams->getNumRefinements(), fParams->getUnsteadyVarNums())){//did anything change?
+				fParams->getNumRefinements(), unsteadyvars)){//did anything change?
 				timesampleIncrementEdit1->setText(QString::number(fParams->getTimeSamplingInterval()));
 				timesampleStartEdit1->setText(QString::number(fParams->getTimeSamplingStart()));
 				timesampleEndEdit1->setText(QString::number(fParams->getTimeSamplingEnd()));
@@ -904,8 +907,10 @@ void FlowEventRouter::confirmText(bool /*render*/){
 			fParams->setTimeSamplingStart(timesampleStartEdit2->text().toInt());
 			fParams->setTimeSamplingEnd(timesampleEndEdit2->text().toInt());
 			int minFrame = VizWinMgr::getInstance()->getActiveAnimationParams()->getStartFrameNumber();
+			int unsteadyvars[3];
+			for (int i = 0; i<3; i++) unsteadyvars[i] = fParams->getUnsteadyVarNums()[i]-1;
 			if (!fParams->validateSampling(minFrame,
-				fParams->getNumRefinements(), fParams->getUnsteadyVarNums())){//did anything change?
+				fParams->getNumRefinements(), unsteadyvars)){//did anything change?
 				timesampleIncrementEdit2->setText(QString::number(fParams->getTimeSamplingInterval()));
 				timesampleStartEdit2->setText(QString::number(fParams->getTimeSamplingStart()));
 				timesampleEndEdit2->setText(QString::number(fParams->getTimeSamplingEnd()));

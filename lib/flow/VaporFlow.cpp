@@ -592,7 +592,7 @@ bool VaporFlow::GenStreamLinesNoRake(FlowLineData* container,
 	pCartesianGrid->SetRegionExtents(minR,maxR);
 	pCartesianGrid->SetBoundary(minB, maxB);
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
-	pField->SetUserTimeStepInc(0, 1);
+	pField->SetUserTimeStepInc(0);
 	
 	// create streamline
 	vtCStreamLine* pStreamLine = new vtCStreamLine(pField);
@@ -864,18 +864,23 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		// get usertimestep differences between the current time step and previous and next sampled time steps
 		//Currently only one vapor time step is integrated at a time.
 		double diff = 0.0, curDiff = 0.0;
+		double vaporDiff = 1.; // Vapor time step difference
 	
 		if(dataMgr->GetMetadata()->HasTSUserTime(iFor)){
 			diff = dataMgr->GetMetadata()->GetTSUserTime(iFor)[0] -
 				dataMgr->GetMetadata()->GetTSUserTime(prevSample)[0];
 			curDiff = dataMgr->GetMetadata()->GetTSUserTime(nextSample)[0] - 
 					  dataMgr->GetMetadata()->GetTSUserTime(iFor)[0];
+			
 		} else {
 			diff = (iFor - prevSample);
 			curDiff = (nextSample - iFor);
+			
 		}
 		
-		pField->SetUserTimeStepInc((float)diff, (float)curDiff);
+		pField->SetUserTimeStepInc((float)diff);
+		float vaporTimeDiff = (float)(numTimesteps -1)/(float)(numTimeSamples -1);
+		pField->SetUserTimePerVaporTS(abs((diff+curDiff)/vaporTimeDiff));
 		//specify the number of time steps between time samples
 		pSolution->SetTimeIncrement((numTimesteps -1)/(numTimeSamples -1), timeDir);
 		// need get new field data?
@@ -1146,8 +1151,10 @@ bool VaporFlow::AdvectFieldLines(FlowLineData** flArray, int startTimeStep, int 
 			diff = (iFor - prevSample);
 			curDiff = (nextSample - iFor);
 		}
-		
-		pField->SetUserTimeStepInc((float)diff, (float)curDiff);
+		float vaporTimeDiff = (float)(numTimesteps -1)/(float)(numTimeSamples -1);
+		pField->SetUserTimePerVaporTS(abs((diff+curDiff)/vaporTimeDiff));
+		pField->SetUserTimeStepInc((float)diff);
+	
 		//specify the number of time steps between time samples
 		pSolution->SetTimeIncrement((numTimesteps -1)/(numTimeSamples -1), timeDir);
 		// need get new field data?
@@ -1332,7 +1339,7 @@ setupFieldData(const char* varx, const char* vary, const char* varz,
 	pCartesianGrid->SetRegionExtents(minR,maxR);
 	pCartesianGrid->SetBoundary(minB, maxB);
 	pField = new CVectorField(pCartesianGrid, pSolution, 1);
-	pField->SetUserTimeStepInc(0.f, 1.f);
+	pField->SetUserTimeStepInc(0.f);
 
 	FieldData* fData = new FieldData();
 	fData->setup(pField, pCartesianGrid, pUData, pVData, pWData, timestep);

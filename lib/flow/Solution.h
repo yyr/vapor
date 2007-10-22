@@ -37,9 +37,11 @@ private:
 										
 	float m_nUserTimeStepInc;				// usertimestep between previous time step and previous
 										// sampled time step
-	float m_nUserTimeStep;				// usertimestep between current time step and next time step
+	//float m_nUserTimeStep;				// usertimestep between current time step and next time step
+										// divided by the number of time steps!!!
 	float* m_pUserTimeSteps;				// time step increment between two sampled time steps
 	TIME_DIR m_TimeDir;			// time direction forward or backwards
+	float m_fUserTimePerVaporTS;    //User time per vapor time step.
 
 public:
 	// constructor
@@ -60,11 +62,13 @@ public:
 	int GetEndTime(void) {return m_nEndT;}
 	void SetTimeIncrement(int timeInc, VAPoR::TIME_DIR isForward) { m_nTimeIncrement = timeInc; m_TimeDir = isForward; }
 	
-	void SetUserTimeStepInc(float timeInc, float curTimeInc) { m_nUserTimeStepInc = timeInc; m_nUserTimeStep = curTimeInc; }
+	void SetUserTimeStepInc(float timeInc) { m_nUserTimeStepInc = timeInc; }
 	void SetUserTimeSteps(float* pUserTimeSteps) { m_pUserTimeSteps = pUserTimeSteps; }
 	void SetTimeScaleFactor(float timeScaleFactor) { m_fTimeScaleFactor = timeScaleFactor; }
+	void SetUserTimePerVaporTS(float val) {m_fUserTimePerVaporTS = val;}
 	float GetTimeScaleFactor() {return m_fTimeScaleFactor;}
-	float GetCurUserTimeStep() {return m_nUserTimeStep;}
+	//float GetCurUserTimeStep() {return m_nUserTimeStep;}
+	float GetUserTimePerVaporTS() {return m_fUserTimePerVaporTS;}
 };
 };
 #endif

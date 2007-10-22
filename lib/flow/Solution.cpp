@@ -45,7 +45,7 @@ Solution::Solution(float** pUData, float** pVData, float** pWData,
 	m_fTimeScaleFactor = 1.0;
 	m_nTimeIncrement = 1;
 	m_nUserTimeStepInc = 0;
-	m_nUserTimeStep = 1;
+	m_fUserTimePerVaporTS = 1.f;
 	m_pUserTimeSteps = NULL;
 }
 
@@ -66,7 +66,7 @@ void Solution::Reset()
 	m_nEndT = 0;
 	m_nTimeIncrement = 1;
 	m_nUserTimeStepInc = 0;
-	m_nUserTimeStep = 1;
+	m_fUserTimePerVaporTS = 1.f;
 	m_pUserTimeSteps = NULL;
 }
 
@@ -127,10 +127,14 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 		float ratio = 0.0;
 		float offset;
 		offset = ((t - (float)m_nStartT)*m_TimeDir)/(float)m_nTimeIncrement;
-		assert(offset >= 0.0f);
+		assert(offset >= 0.0f && offset <= 1.0f);
 		lowT = (int)floor(offset);
+		if (lowT == 1) lowT = 0;
 		
 		highT = lowT + 1;
+		
+		ratio = offset;
+		/*  This appears to be wrong:
 		if(offset != (float)lowT)
 		{//Note:  if lowT is always zero here, that implies that only the first value
 		//in the array array m_pUserTimeSteps is ever used.  This appear to be the case.
@@ -140,23 +144,23 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 		}
 		else
 			ratio = 0.0;
-
-		if(lowT*m_TimeDir >= m_nEndT*m_TimeDir)
-			ratio = 0.0;
+		*/
+		//if(lowT*m_TimeDir >= m_nEndT*m_TimeDir)
+		//	ratio = 0.0; //What is this test for!!!
 		float lowU = m_pUDataArray ? m_pUDataArray[lowT][id] : 0.f;
 		float lowV = m_pVDataArray ? m_pVDataArray[lowT][id] : 0.f;
 		float lowW = m_pWDataArray ? m_pWDataArray[lowT][id] : 0.f;
 		if(ratio == 0.0)
-			nodeData.Set(lowU*m_fTimeScaleFactor*m_nUserTimeStep, 
-						 lowV*m_fTimeScaleFactor*m_nUserTimeStep, 
-						 lowW*m_fTimeScaleFactor*m_nUserTimeStep);
+			nodeData.Set(lowU*m_fTimeScaleFactor*m_fUserTimePerVaporTS, 
+						 lowV*m_fTimeScaleFactor*m_fUserTimePerVaporTS, 
+						 lowW*m_fTimeScaleFactor*m_fUserTimePerVaporTS);
 		else{
 			float hiU = m_pUDataArray ? m_pUDataArray[highT][id] : 0.f;
 			float hiV = m_pVDataArray ? m_pVDataArray[highT][id] : 0.f;
 			float hiW = m_pWDataArray ? m_pWDataArray[highT][id] : 0.f;
-            nodeData.Set(m_fTimeScaleFactor*Lerp(lowU,hiU, ratio)*m_nUserTimeStep, 
-						 m_fTimeScaleFactor*Lerp(lowV,hiV, ratio)*m_nUserTimeStep,
-						 m_fTimeScaleFactor*Lerp(lowW,hiW, ratio)*m_nUserTimeStep);
+            nodeData.Set(m_fTimeScaleFactor*Lerp(lowU,hiU, ratio)*m_fUserTimePerVaporTS, 
+						 m_fTimeScaleFactor*Lerp(lowV,hiV, ratio)*m_fUserTimePerVaporTS,
+						 m_fTimeScaleFactor*Lerp(lowW,hiW, ratio)*m_fUserTimePerVaporTS);
 	
 		}
 	}
