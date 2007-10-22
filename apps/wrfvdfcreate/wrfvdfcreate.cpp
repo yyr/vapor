@@ -450,7 +450,6 @@ int	main(int argc, char **argv) {
 		vector <double> extentsVec;
 		for(int i=0; i<6; i++) {
 			extentsVec.push_back(extents[i]);
-			cerr << extents[i] << endl;
 		}
 		if (file->SetExtents(extentsVec) < 0) {
 			exit(1);
