@@ -330,6 +330,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 		{
 			if (StrCmpNoCase(tag, _sessionTag) != 0) return false;
 			MessageReporter* msgRpt = MessageReporter::getInstance();
+			//Start with default stretch factors
+			float stretchFac[3];
+			stretchFac[0]=stretchFac[1]=stretchFac[2] = 1.f;
 			while (*attrs) {
 				string attr = *attrs;
 				attrs++;
@@ -351,9 +354,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					ist >> cacheMB;
 				}
 				else if (StrCmpNoCase(attr, _stretchFactorsAttr) == 0) {
-					ist >> stretchFactors[0];
-					ist >> stretchFactors[1];
-					ist >> stretchFactors[2];
+					ist >> stretchFac[0];
+					ist >> stretchFac[1];
+					ist >> stretchFac[2];
 				}
 				else if (StrCmpNoCase(attr, _jpegQualityAttr) == 0) {
 					int qual;
@@ -400,6 +403,7 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 			}
 			//After parsing all session attr's, set the stretched Extents:
 			for (int i = 0; i<3; i++){
+				stretchFactors[i] = stretchFac[i];
 				stretchedExtents[i] = extents[i]*stretchFactors[i];
 				stretchedExtents[i+3] = extents[i+3]*stretchFactors[i];
 			}

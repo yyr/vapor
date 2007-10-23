@@ -912,7 +912,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 				pField->SetSolutionData(tsIndex-1,0,0,0);
 			}
 			//now get data for second ( next) sampled timestep. 
-			bool gotData = Get3Data(iFor, xUnsteadyVarName,
+			bool gotData = Get3Data(nextSample, xUnsteadyVarName,
 				yUnsteadyVarName, zUnsteadyVarName, &xDataPtr2, &yDataPtr2,
 				&zDataPtr2);
 			if(!gotData){
