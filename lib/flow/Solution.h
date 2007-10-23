@@ -67,7 +67,7 @@ public:
 	void SetTimeScaleFactor(float timeScaleFactor) { m_fTimeScaleFactor = timeScaleFactor; }
 	void SetUserTimePerVaporTS(float val) {m_fUserTimePerVaporTS = val;}
 	float GetTimeScaleFactor() {return m_fTimeScaleFactor;}
-	//float GetCurUserTimeStep() {return m_nUserTimeStep;}
+	
 	float GetUserTimePerVaporTS() {return m_fUserTimePerVaporTS;}
 };
 };

@@ -65,9 +65,9 @@ public:
 	void SetUserTimeSteps(float* pUserTimeSteps) { m_pSolution->SetUserTimeSteps(pUserTimeSteps); }
 	void SetUserTimePerVaporTS(float val){m_pSolution->SetUserTimePerVaporTS(val);}
 	float getTimeScaleFactor(){return m_pSolution->GetTimeScaleFactor();}
-	//float GetCurUserTimeStep() {return m_pSolution->GetCurUserTimeStep();}
+	
 	float GetUserTimePerVaporTS() { return m_pSolution->GetUserTimePerVaporTS();}
-	//int GetTimeIncrement(void) { return m_pSolution->GetTimeIncrement(); }
+
 };
 //Helper class to get data out of a vector field
 class FLOW_API FieldData {

@@ -134,19 +134,7 @@ int Solution::GetValue(int id, float t, VECTOR3& nodeData)
 		highT = lowT + 1;
 		
 		ratio = offset;
-		/*  This appears to be wrong:
-		if(offset != (float)lowT)
-		{//Note:  if lowT is always zero here, that implies that only the first value
-		//in the array array m_pUserTimeSteps is ever used.  This appear to be the case.
-			assert(lowT == 0);
-			ratio = (m_nUserTimeStepInc + (t - (int)t)*m_nUserTimeStep)/(float)m_pUserTimeSteps[lowT];
-			if (m_TimeDir == BACKWARD) ratio = 1.f - ratio;
-		}
-		else
-			ratio = 0.0;
-		*/
-		//if(lowT*m_TimeDir >= m_nEndT*m_TimeDir)
-		//	ratio = 0.0; //What is this test for!!!
+		
 		float lowU = m_pUDataArray ? m_pUDataArray[lowT][id] : 0.f;
 		float lowV = m_pVDataArray ? m_pVDataArray[lowT][id] : 0.f;
 		float lowW = m_pWDataArray ? m_pWDataArray[lowT][id] : 0.f;

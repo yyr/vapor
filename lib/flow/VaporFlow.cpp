@@ -864,8 +864,7 @@ bool VaporFlow::ExtendPathLines(PathLineData* container, int startTimeStep, int 
 		// get usertimestep differences between the current time step and previous and next sampled time steps
 		//Currently only one vapor time step is integrated at a time.
 		double diff = 0.0, curDiff = 0.0;
-		double vaporDiff = 1.; // Vapor time step difference
-	
+		
 		if(dataMgr->GetMetadata()->HasTSUserTime(iFor)){
 			diff = dataMgr->GetMetadata()->GetTSUserTime(iFor)[0] -
 				dataMgr->GetMetadata()->GetTSUserTime(prevSample)[0];

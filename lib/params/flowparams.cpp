@@ -2103,7 +2103,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		//If flow is unsteady, just get the first available timestep
 		int timeStep = currentTimeStep;
 		if(flowType == 1){//unsteady flow
-			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
+			timeStep = ds->getFirstTimestep(getColorMapEntityIndex()-4);
 			if (timeStep < 0) MyBase::SetErrMsg("No data for mapped variable");
 		}
 		
