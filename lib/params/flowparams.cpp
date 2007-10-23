@@ -2063,7 +2063,9 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 	float* colorRegion = 0;
 	double opacVarMin[3], opacVarMax[3];
 	double colorVarMin[3], colorVarMax[3];
-	
+	//min and max of valid mappings into data volume:
+	int opacMinMap[3], opacMaxMap[3], colorMinMap[3], colorMaxMap[3];
+	float opacBoxSize[3], colorBoxSize[3];
 	int opacSize[3],colorSize[3];
 	DataStatus* ds = DataStatus::getInstance();
 	//Make sure RGBAs are available if needed:
@@ -2090,6 +2092,9 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i<3; i++){
 			opacSize[i] = (max_bdim[i] - min_bdim[i] +1)*bs[i];
+			opacMinMap[i] = min_dim[i];
+			opacMaxMap[i] = max_dim[i];
+			opacBoxSize[i] = max_dim[i]-min_dim[i]+1;
 		}
 
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -2119,6 +2124,9 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
 		for (int i = 0; i<3; i++){
 			colorSize[i] = (max_bdim[i] - min_bdim[i] +1)*bs[i];
+			colorMinMap[i] = min_dim[i];
+			colorMaxMap[i] = max_dim[i];
+			colorBoxSize[i] = max_dim[i]-min_dim[i]+1;
 		}
 
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -2168,15 +2176,16 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 					//}
 					float remappedPoint[3];
 					periodicMap(dataPoint,remappedPoint,true);
-					x = (int)(0.5f+((remappedPoint[0] - opacVarMin[0])*opacSize[0])/(opacVarMax[0]-opacVarMin[0]));
-					y = (int)(0.5f+((remappedPoint[1] - opacVarMin[1])*opacSize[1])/(opacVarMax[1]-opacVarMin[1]));
-					z = (int)(0.5f+((remappedPoint[2] - opacVarMin[2])*opacSize[2])/(opacVarMax[2]-opacVarMin[2]));
-					if (x>=opacSize[0]) x = opacSize[0]-1;
-					if (y>=opacSize[1]) y = opacSize[1]-1;
-					if (z>=opacSize[2]) z = opacSize[2]-1;
-					if (x < 0) x = 0;
-					if (y < 0) y = 0;
-					if (z < 0) z = 0;
+					//Convert point into integer coordinates in box:
+					x = (int)(0.5f+((remappedPoint[0] - opacVarMin[0])*opacBoxSize[0])/(opacVarMax[0]-opacVarMin[0]));
+					y = (int)(0.5f+((remappedPoint[1] - opacVarMin[1])*opacBoxSize[1])/(opacVarMax[1]-opacVarMin[1]));
+					z = (int)(0.5f+((remappedPoint[2] - opacVarMin[2])*opacBoxSize[2])/(opacVarMax[2]-opacVarMin[2]));
+					if (x>=opacMaxMap[0]) x = opacMaxMap[0]-1;
+					if (y>=opacMaxMap[1]) y = opacMaxMap[1]-1;
+					if (z>=opacMaxMap[2]) z = opacMaxMap[2]-1;
+					if (x < opacMinMap[0]) x = opacMinMap[0];
+					if (y < opacMinMap[1]) y = opacMinMap[1];
+					if (z < opacMinMap[2]) z = opacMinMap[2];
 					
 					opacVar = opacRegion[x+opacSize[0]*(y+opacSize[1]*z)];
 					break;
@@ -2217,15 +2226,15 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 					//}
 					float remappedPoint[3];
 					periodicMap(dataPoint,remappedPoint,true);
-					x = (int)(0.5f+((remappedPoint[0] - colorVarMin[0])*colorSize[0])/(colorVarMax[0]-colorVarMin[0]));
-					y = (int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorSize[1])/(colorVarMax[1]-colorVarMin[1]));
-					z = (int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorSize[2])/(colorVarMax[2]-colorVarMin[2]));
-					if (x>=colorSize[0]) x = colorSize[0]-1;
-					if (x<0) x = 0;
-					if (y>=colorSize[1]) y = colorSize[1]-1;
-					if (y<0) y = 0;
-					if (z>=colorSize[2]) z = colorSize[2]-1;
-					if (z<0) z = 0;
+					x = (int)(0.5f+((remappedPoint[0] - colorVarMin[0])*colorBoxSize[0])/(colorVarMax[0]-colorVarMin[0]));
+					y = (int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorBoxSize[1])/(colorVarMax[1]-colorVarMin[1]));
+					z = (int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorBoxSize[2])/(colorVarMax[2]-colorVarMin[2]));
+					if (x>=colorMaxMap[0]) x = colorMaxMap[0]-1;
+					if (y>=colorMaxMap[1]) y = colorMaxMap[1]-1;
+					if (z>=colorMaxMap[2]) z = colorMaxMap[2]-1;
+					if (x < colorMinMap[0]) x = colorMinMap[0];
+					if (y < colorMinMap[1]) y = colorMinMap[1];
+					if (z < colorMinMap[2]) z = colorMinMap[2];
 					colorVar = colorRegion[x+colorSize[0]*(y+colorSize[1]*z)];
 					break;
 			}
