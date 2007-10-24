@@ -178,7 +178,7 @@ void	StereoPerspective (int fovy, float aspect, float nearDist, float farDist, f
 
 PARAMS_API int printOglError(char *file, int line);
 
-#define printOpenGLError() printOglError(__FILE__, __LINE__);
+#define printOpenGLError() printOglError(__FILE__, __LINE__)
 
 class PARAMS_API Point4{
 public:
