@@ -88,7 +88,8 @@ int	GetWRFMetadata(
 	vector <string> &varnames,
 	string startDate
 ) {
-	float _dx, _dy;
+	float _dx = 0.0;
+	float _dy = 0.0;
 	float _vertExts[2];
 	size_t _dimLens[4];
 	vector <long> ts;

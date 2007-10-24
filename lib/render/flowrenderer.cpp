@@ -123,7 +123,6 @@ void FlowRenderer::paintGL()
 	
 
 	AnimationParams* myAnimationParams = myGLWindow->getActiveAnimationParams();
-	size_t fullHeight = myGLWindow->getActiveRegionParams()->getFullGridHeight();
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	//If the region is dirty, always need to rebuild:
 	if(myGLWindow->regionIsDirty()) setDataDirty();

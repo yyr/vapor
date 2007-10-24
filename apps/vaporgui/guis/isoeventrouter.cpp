@@ -592,6 +592,7 @@ guiSetLighting(bool val){
  */
 void IsoEventRouter::
 updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
+
 	
 	
 	ParamsIso* iParams = (ParamsIso*)rParams;
