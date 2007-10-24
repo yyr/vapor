@@ -260,7 +260,8 @@ int DVRShader::Render(const float matrix[16])
   if (_shader) if (_shader->enable() < 0) return(-1);
 
   glPolygonMode(GL_FRONT, GL_FILL);
-  glPolygonMode(GL_BACK, GL_LINE);
+  glCullFace(GL_BACK);
+  glEnable(GL_CULL_FACE);
 
   if (_preintegration) {
     glEnable(GL_TEXTURE_2D);  
@@ -324,6 +325,7 @@ int DVRShader::Render(const float matrix[16])
   glDisable(GL_TEXTURE_3D);
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_TEXTURE_1D);
+  glDisable(GL_CULL_FACE);
 
   if (_shader) _shader->disable();
 

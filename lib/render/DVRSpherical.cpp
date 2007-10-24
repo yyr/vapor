@@ -132,12 +132,6 @@ int DVRSpherical::GraphicsInit()
   _shaders[DEFAULT]->disable();
 
 
-
-  //
-  // Create, Load & Compile the lighting shader program
-  //
-  // TBD ...
-
   //
   // Set the current shader
   //
@@ -264,6 +258,133 @@ int DVRSpherical::SetRegionSpherical(void *data,
 }
 
 //----------------------------------------------------------------------------
+// Draw the proxy geometry optmized to a spherical shell
+//----------------------------------------------------------------------------
+void DVRSpherical::drawViewAlignedSlices(const TextureBrick *brick,
+                                         const Matrix3d &modelview,
+                                         const Matrix3d &modelviewInverse)
+{
+  float tmpv[3];
+  const float *extents = _lastRegion.extents();
+    
+  permute(_permutation, tmpv, extents[0], extents[1], extents[2]);
+  float r0 = tmpv[2]/2.0; // inner shell radius
+
+  permute(_permutation, tmpv, extents[3], extents[4], extents[5]);
+  float r1 = tmpv[2]/2.0; // outer shell raduis
+
+  //
+  //  
+  //
+  BBox volumeBox  = brick->volumeBox();
+  BBox textureBox = brick->textureBox();
+  BBox rotatedBox(volumeBox);
+  
+  //
+  // transform the volume into world coordinates
+  //
+  rotatedBox.transform(modelview);
+
+  //
+  // Calculate the slice plane normal (i.e., the view plane normal transformed
+  // into model space). 
+  //
+  // slicePlaneNormal = modelviewInverse * viewPlaneNormal; 
+  //                                       (0,0,1);
+  //
+  Vect3d slicePlaneNormal(modelviewInverse(2,0), 
+                          modelviewInverse(2,1),
+                          modelviewInverse(2,2)); 
+  //Vect3d slicePlaneNormal(0,0,1);
+  slicePlaneNormal.unitize();
+
+  //
+  // Calculate the distance between slices
+  //
+  Vect3d sliceDelta = slicePlaneNormal * _delta;
+
+  //
+  // Define the slice view aligned slice plane. The plane will be positioned
+  // one delta inside the outer radius of the shell.
+  //
+  Vect3d center(Point3d(0,0,0), volumeBox.center());
+  Vect3d slicePoint = center - (r1 * slicePlaneNormal) + sliceDelta;
+
+  Vect3d sliceOrtho;
+
+  if (slicePlaneNormal.dot(Vect3d(1,1,0)) != 0.0)
+  {
+    sliceOrtho = slicePlaneNormal.cross(Vect3d(1,1,0));
+  }
+  else
+  {
+    sliceOrtho = slicePlaneNormal.cross(Vect3d(0,1,0));
+  }
+
+  sliceOrtho.unitize();
+
+  //
+  // Calculate edge intersections between the plane and the spherical shell
+  //
+
+  //
+  // TBD -- This code creates proxy geometry for the full spherical shell,
+  // ignoring the brick's extents. This won't work once we support spherical
+  // bricking. Also, when less than a full region has been selected, this
+  // code superflously samples empty space. The shader handles that; however,
+  // it still incurs the expensive coordinate transform. This should be 
+  // fixed.
+  //
+  for(int i = 0 ; i <= _samples; i++)
+  { 
+    float d = (center - slicePoint).mag();
+
+    if (r1 > d)
+    {
+      float rg0 = 0.0;
+      float rg1 = sqrt(r1*r1 - d*d);
+
+      if (r0 > d)
+      {
+        rg0 = sqrt(r0*r0 - d*d);
+      }
+
+      //
+      // Draw donut (shell-plane intersection) and texture map it
+      //
+      glBegin(GL_QUAD_STRIP); 
+      {
+        for (float theta=-M_PI/20.0; theta<=2.0*M_PI; theta+=M_PI/20.0)
+        {
+          Vect3d v = (cos(theta)*sliceOrtho +
+                      sin(theta)*slicePlaneNormal.cross(sliceOrtho));
+
+          v.unitize();
+
+          Vect3d v0 = slicePoint + v * rg0;
+          Vect3d v1 = slicePoint + v * rg1;
+
+          glTexCoord3f(v0.x(), v0.y(), v0.z());          
+          glVertex3f(v0.x(), v0.y(), v0.z());
+
+          glTexCoord3f(v1.x(), v1.y(), v1.z());          
+          glVertex3f(v1.x(), v1.y(), v1.z());
+
+        }
+      }
+      glEnd();
+    }
+
+    //
+    // increment the slice plane by the slice distance
+    //
+    slicePoint += sliceDelta;    
+  }
+
+  glFlush();
+}
+
+//----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
 bool DVRSpherical::supported()
@@ -313,7 +434,7 @@ void DVRSpherical::calculateSampling()
   {
     _samples = _nr * ((maxv - minv).mag() / _shellWidth);
   }
-  
+
   _delta = (maxv - minv).mag() / _samples; 
   _samplingRate = (1.0/(float)(_level+1))*(_shellWidth / _delta) / (float)_nr;
   

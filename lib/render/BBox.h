@@ -31,6 +31,8 @@ namespace VAPoR {
     // Transform the bounding box 
     void transform(const Matrix3d &m);
 
+    Point3d center() const;
+
     // Return the minimum & maximum extents
     inline const Point3d& minZ() const { return _corners[_minIndex]; }
     inline const Point3d& maxZ() const { return _corners[_maxIndex]; }

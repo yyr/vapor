@@ -139,3 +139,39 @@ void BBox::transform(const Matrix3d &m)
   }
 }
 
+//----------------------------------------------------------------------------
+// Box center
+//----------------------------------------------------------------------------
+Point3d BBox::center() const
+{
+  Point3d centerPt;
+
+  int minxi = 0;
+  int maxxi = 0;
+  int minyi = 0;
+  int maxyi = 0;
+  int minzi = 0;
+  int maxzi = 0;
+
+  for (int i=0; i<8; i++)
+  {
+    // x
+    if (_corners[minxi].x > _corners[i].x) minxi = i;
+    if (_corners[maxxi].x < _corners[i].x) maxxi = i; 
+    // y
+    if (_corners[minyi].y > _corners[i].y) minyi = i;
+    if (_corners[maxyi].y < _corners[i].y) maxyi = i; 
+    // z
+    if (_corners[minzi].z > _corners[i].z) minzi = i;
+    if (_corners[maxzi].z < _corners[i].z) maxzi = i; 
+  }
+
+  centerPt.x = _corners[minxi].x + 
+    (_corners[maxxi].x - _corners[minxi].x) / 2.0;  
+  centerPt.y = _corners[minyi].y + 
+    (_corners[maxyi].y - _corners[minyi].y) / 2.0;  
+  centerPt.z = _corners[minzi].z + 
+    (_corners[maxzi].z - _corners[minzi].z) / 2.0;
+
+  return centerPt;
+}
