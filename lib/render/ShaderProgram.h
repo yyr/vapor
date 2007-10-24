@@ -38,7 +38,7 @@ class RENDER_API ShaderProgram
 
   void create();
   bool compile();
-  void enable();
+  int enable();
   void disable();
 
   GLint uniformLocation(const char *uniformName);

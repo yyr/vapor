@@ -89,7 +89,7 @@ bool DVRRayCaster::createShader(ShaderType type,
 	// Set up initial uniform values
 	//
 	if (type != BACKFACE) {
-		_shaders[type]->enable();
+		if (_shaders[type]->enable() < 0) return(false);;
 
 		if (GLEW_VERSION_2_0) {
 			glUniform1i(_shaders[type]->uniformLocation("volumeTexture"), 0);
@@ -159,7 +159,7 @@ int DVRRayCaster::GraphicsInit()
 //----------------------------------------------------------------------------
 int DVRRayCaster::Render(const float matrix[16])
 {
-	if (_shader) _shader->enable();
+	if (_shader) if (_shader->enable() < 0) return(0);
 
 	DVRTexture3d::calculateSampling();
 	float delta = _delta * 2;
@@ -268,13 +268,7 @@ void DVRRayCaster::render_backface(
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDisable(GL_BLEND);
 
-#ifdef	DEAD
-	_shaders[BACKFACE]->enable();
-#endif
 	drawVolumeFaces(box, tbox);
-#ifdef	DEAD
-	_shaders[BACKFACE]->disable();
-#endif
 
     glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -318,9 +312,10 @@ void DVRRayCaster::raycasting_pass(
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
-	_shader->enable();
-	drawVolumeFaces(box, tbox);
-	_shader->disable();
+	if (_shader->enable() == 0) {
+		drawVolumeFaces(box, tbox);
+		_shader->disable();
+	}
 
 	glDisable(GL_CULL_FACE);
 
@@ -343,7 +338,7 @@ void DVRRayCaster::raycasting_pass(
 		glActiveTextureARB(GL_TEXTURE0_ARB);
 		glBindTexture(GL_TEXTURE_3D, 0);
 	}
-printOpenGLError();
+	printOpenGLError();
 }
 
 //----------------------------------------------------------------------------
@@ -550,8 +545,7 @@ void DVRRayCaster::initShaderVariables() {
 
 	assert(_shader);
 
-
-	_shader->enable();
+	if (_shader->enable() < 0) return;
 
 	if (GLEW_VERSION_2_0) {
 		//glUniform1fv(_shader->uniformLocation("isovalues"), _nisos, _values);

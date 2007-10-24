@@ -116,7 +116,7 @@ int DVRSpherical::GraphicsInit()
   //
   // Set up initial uniform values
   //
-  _shaders[DEFAULT]->enable();
+  if (_shaders[DEFAULT]->enable() < 0) return(-1);
 
   if (GLEW_VERSION_2_0)
   {
@@ -340,7 +340,7 @@ void DVRSpherical::permute(const vector<long>& permutation,
 void DVRSpherical::initShaderVariables()
 {
   assert(_shader);
-  _shader->enable();
+  if (_shader->enable() < 0) return;
 
   const int *data_roi  = _lastRegion.roi();
   const float *extents = _lastRegion.extents();

@@ -128,7 +128,7 @@ bool DVRShader::createShader(ShaderType type,
   //
   // Set up initial uniform values
   //
-  _shaders[type]->enable();
+  if (_shaders[type]->enable() < 0) return(false);
 
   if (GLEW_VERSION_2_0)
   {
@@ -257,7 +257,7 @@ void DVRShader::loadTexture(TextureBrick *brick)
 //----------------------------------------------------------------------------
 int DVRShader::Render(const float matrix[16])
 {
-  if (_shader) _shader->enable();
+  if (_shader) if (_shader->enable() < 0) return(-1);
 
   glPolygonMode(GL_FRONT, GL_FILL);
   glPolygonMode(GL_BACK, GL_LINE);
@@ -638,7 +638,7 @@ void DVRShader::initShaderVariables()
 {
   assert(_shader);
 
-  _shader->enable();
+  if (_shader->enable() < 0) return;
   
   if (_preintegration)
   {
@@ -738,7 +738,7 @@ void DVRShader::calculateSampling()
 
   if (_preintegration)
   {
-    _shader->enable();
+    if (_shader->enable() < 0) return;
 
     if (GLEW_VERSION_2_0)
     {

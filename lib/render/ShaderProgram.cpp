@@ -391,7 +391,7 @@ bool ShaderProgram::compile()
 //----------------------------------------------------------------------------
 // Enable the shader program.
 //----------------------------------------------------------------------------
-void ShaderProgram::enable()
+int ShaderProgram::enable()
 {
   if (GLEW_VERSION_2_0)
   {
@@ -402,7 +402,8 @@ void ShaderProgram::enable()
     glUseProgramObjectARB(_program);
   }
 
-  printOpenGLError();
+  if (printOpenGLError() != 0) return(-1);
+  return(0);
 }
 
 
