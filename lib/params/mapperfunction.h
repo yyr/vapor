@@ -58,7 +58,7 @@ public:
     //
     virtual OpacityMap* createOpacityMap(OpacityMap::Type type=OpacityMap::CONTROL_POINT);
 
-	virtual OpacityMap* MapperFunction::getOpacityMap(int index);
+	virtual OpacityMap* getOpacityMap(int index);
 
 	virtual Colormap*   getColormap();
 

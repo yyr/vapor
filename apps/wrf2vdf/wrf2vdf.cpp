@@ -162,8 +162,8 @@ int OpenWrfFile(
 	int & ncid // ID of netCDF file (output)
 ) {
 	
-	int nc_status;		// Holds error codes for debugging
-	NC_ERR_READ( nc_status = nc_open(netCDFfile, NC_NOWRITE, &ncid ));
+	int nc_status = nc_open(netCDFfile, NC_NOWRITE, &ncid );
+	NC_ERR_READ( nc_status );
 
 	return(0);
 }
@@ -928,9 +928,9 @@ int GetVDFInfo(
 		string s = metadata->GetTSUserDataString(t, tag);
 		StrRmWhiteSpace(s);
 			
-		long t0;
+		time_t t0;
 		if (WRF::WRFTimeStrToEpoch(s, &t0) < 0) return(-1);
-		timestamps.push_back(t0);
+		timestamps.push_back((long) t0);
 #endif
 	}
 
@@ -983,6 +983,7 @@ int GetWRFInfo(
 		file, atypnames_dummy, dx, dy, NULL, dimLens, startDate,
 		vars, timestamps
 	);
+	if (rc<0) return(-1);
 	for (int i=0; i<3; i++) dims[i] = dimLens[i];
 
 	return(0);
@@ -1138,7 +1139,8 @@ int GetVarsInfo(
 	// Find the number of dimensions, variables, and global 
 	// attributes, and check
 	// the existance of the unlimited dimension
-	NC_ERR_READ( nc_status = nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid ) );
+	nc_status = nc_inq(ncid, &ndims, &nvars, &ngatts, &xdimid );
+	NC_ERR_READ( nc_status );
 
 	// build list of all dimensions found in the file
 	//
@@ -1375,8 +1377,8 @@ int	main(int argc, char **argv) {
 
 		// Figure out which timesteps we're copying 
 		//
-		long tfirst = *(vdf_timestamps.begin());
-		long tlast = *(vdf_timestamps.end()-1);
+		time_t tfirst = *(vdf_timestamps.begin());
+		time_t tlast = *(vdf_timestamps.end()-1);
 		if (strlen(opt.tsstart) != 0) {
 			if (WRF::WRFTimeStrToEpoch(opt.tsstart, &tfirst) < 0) exit(1);
 		}

@@ -93,7 +93,7 @@ centerFullRegion(){
 	const float* stretch = DataStatus::getInstance()->getStretchFactors();
 	//Make sure the viewDir is normalized:
 	vnormal(currentViewpoint->getViewDir());
-	for (int i = 0; i<3; i++){ 
+	for (int i = 0; i<3; i++){
 		float dataCenter = 0.5f*(fullExtent[i+3]+fullExtent[i]);
 		float camPosCrd = dataCenter -2.5*maxSide*currentViewpoint->getViewDir(i)/stretch[i];
 		currentViewpoint->setCameraPos(i, camPosCrd);

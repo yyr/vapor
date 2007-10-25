@@ -84,7 +84,7 @@ Params(int winNum) {
  //!
  //! \param[in] parent Parent XmlNode.
  //
- void Params::SetParent(XmlNode *parent);
+ void SetParent(XmlNode *parent);
 
 
  //! Xml start tag parsing method
