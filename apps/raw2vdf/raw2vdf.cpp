@@ -55,6 +55,7 @@ struct opt_t {
 	OptionParser::IntRange_T xregion;
 	OptionParser::IntRange_T yregion;
 	OptionParser::IntRange_T zregion;
+	int staggeredDim;
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
@@ -69,6 +70,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"xregion", 1, "-1:-1", "X dimension subregion bounds (min:max)"},
 	{"yregion", 1, "-1:-1", "Y dimension subregion bounds (min:max)"},
 	{"zregion", 1, "-1:-1", "Z dimension subregion bounds (min:max)"},
+	{"stagdim", 1, "0", "1, 2, or 3 indicate staggered in x, y, or z"},
 	{NULL}
 };
 
@@ -85,6 +87,7 @@ OptionParser::Option_T	get_options[] = {
 	{"xregion", VetsUtil::CvtToIntRange, &opt.xregion, sizeof(opt.xregion)},
 	{"yregion", VetsUtil::CvtToIntRange, &opt.yregion, sizeof(opt.yregion)},
 	{"zregion", VetsUtil::CvtToIntRange, &opt.zregion, sizeof(opt.zregion)},
+	{"stagdim", VetsUtil::CvtToInt, &opt.staggeredDim, sizeof(opt.staggeredDim)},
 	{NULL}
 };
 
@@ -163,25 +166,106 @@ void	process_volume(
 	double *read_timer
 ) {
 
-	// Allocate a buffer large enough to hold one slice of data
+	// Allocate a buffer large enough to hold one slice of data,
+	// plus one if staggered.
 	//
 	int element_sz;
 	if (opt.dbl) element_sz = sizeof(double);
 	else element_sz = sizeof (float);
 
-	unsigned char *slice = new unsigned char [dim[0]*dim[1]*element_sz];
+	//dimx and dimy are the size of the input data:
+	size_t dimx,dimy;
+	dimx = (opt.staggeredDim == 1) ? dim[0]+1 : dim[0];
+	dimy = (opt.staggeredDim == 2) ? dim[1]+1 : dim[1];
+	unsigned char *slice = new unsigned char [dimx*dimy*element_sz];
+	unsigned char *slice1 = 0;
+	//Allocate extra slice if z-staggered:
+	if (opt.staggeredDim == 3) slice1 = new unsigned char [dimx*dimy*element_sz];
 
 	//
-	// Translate the volume one slice at a time
+	// Translate the volume one slice at a time, if z not staggered
 	//
-	for(int z=0; z<dim[2]; z++) {
+	if (opt.staggeredDim != 3){
+		for(int z=0; z<dim[2]; z++) {
 
-		if (z%10== 0 && ! opt.quiet) {
-			cout << "Reading slice # " << z << endl;
-		}
+			if (z%10== 0 && ! opt.quiet) {
+				cout << "Reading slice # " << z << endl;
+			}
 
+			TIMER_START(t1);
+			int rc = fread(slice, element_sz, dimx*dimy, fp);
+			if (rc != dimx*dimy) {
+				if (rc<0) {
+					cerr << ProgName << ": Error reading input file : " << 
+						strerror(errno) << endl;
+				}
+				else {
+					cerr << ProgName << ": short read" << endl;
+				}
+				exit(1);
+			}
+			TIMER_STOP(t1, *read_timer);
+
+			//
+			// If the data stored on disk are byte swapped relative
+			// to the machine we're running on...
+			//
+			if (opt.swapbytes) {
+				swapbytes(slice, element_sz, dimx*dimy); 
+			}
+
+			// Convert data from double to float if needed.
+			if (opt.dbl) {
+				float *fptr = (float *) slice;
+				double *dptr = (double *) slice;
+				for(int i=0; i<dimx*dimy; i++) *fptr++ = (float) *dptr++;
+			}
+			// If staggered in x, average to smaller array.  Need to
+			// shrink (in x) as we go, bypassing
+			//
+			float* fslice = (float*)slice;
+			if (opt.staggeredDim == 1){
+				size_t inposn = 0;
+				//Loop over output positions:
+				for (int j = 0; j<dim[1]; j++){
+					for (int i = 0; i< dim[0]; i++){
+						fslice[i+dim[0]*j] = 
+							0.5*(fslice[inposn]+fslice[inposn+1]);
+						inposn++;
+					}
+					//At end of row, skip one position:
+					inposn++;
+				}
+				//at the end, the inposn should be one past the end of the data:
+				assert(inposn == dimx*dimy);
+			}
+			
+			//
+			// If staggered in y, average each row, ignore the
+			// last row
+			//
+			else if (opt.staggeredDim == 2){
+				for (int j = 0; j<dim[1]; j++){
+					for (int i = 0; i<dim[0]; i++){
+						fslice[i+dim[0]*j] =
+							(fslice[i+dim[0]*j]+fslice[i+dim[0]*(j+1)])*0.5;
+					}
+				}
+			}
+			// Write a single slice of data
+			//
+			bufwriter->WriteSlice((float *) slice);
+			if (bufwriter->GetErrCode() != 0) {
+				cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+				exit(1);
+			}
+		} 
+	} else { //Deal with staggered in z dimension
+		unsigned char* oldslice = slice;
+		unsigned char* newslice = slice1;
+		//Read ahead one slice:
 		TIMER_START(t1);
-		int rc = fread(slice, element_sz, dim[0]*dim[1], fp);
+		int rc = fread(newslice, element_sz, dim[0]*dim[1], fp);
 		if (rc != dim[0]*dim[1]) {
 			if (rc<0) {
 				cerr << ProgName << ": Error reading input file : " << 
@@ -193,28 +277,71 @@ void	process_volume(
 			exit(1);
 		}
 		TIMER_STOP(t1, *read_timer);
-
-		//
-		// If the data stored on disk are byte swapped relative
-		// to the machine we're running on...
-		//
 		if (opt.swapbytes) {
-			swapbytes(slice, element_sz, dim[0]*dim[1]); 
+			swapbytes(newslice, element_sz, dim[0]*dim[1]); 
 		}
 
 		// Convert data from double to float if needed.
 		if (opt.dbl) {
-			float *fptr = (float *) slice;
-			double *dptr = (double *) slice;
+			float *fptr = (float *) newslice;
+			double *dptr = (double *) newslice;
 			for(int i=0; i<dim[0]*dim[1]; i++) *fptr++ = (float) *dptr++;
 		}
-		//
-		// Write a single slice of data
-		//
-		bufwriter->WriteSlice((float *) slice);
-		if (bufwriter->GetErrCode() != 0) {
-			cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
-			exit(1);
+		//read one slice ahead
+		for(int z=0; z<dim[2]; z++) {
+			//swap old and new slice arrays:
+			unsigned char* swapslice = oldslice;
+			oldslice = newslice;
+			newslice = swapslice;
+
+			if (z%10== 0 && ! opt.quiet) {
+				cout << "Reading slice # " << z << endl;
+			}
+
+			TIMER_START(t1);
+			int rc = fread(newslice, element_sz, dim[0]*dim[1], fp);
+			if (rc != dim[0]*dim[1]) {
+				if (rc<0) {
+					cerr << ProgName << ": Error reading input file : " << 
+						strerror(errno) << endl;
+				}
+				else {
+					cerr << ProgName << ": short read" << endl;
+				}
+				exit(1);
+			}
+			TIMER_STOP(t1, *read_timer);
+
+			//
+			// If the data stored on disk are byte swapped relative
+			// to the machine we're running on...
+			//
+			if (opt.swapbytes) {
+				swapbytes(newslice, element_sz, dim[0]*dim[1]); 
+			}
+
+			// Convert data from double to float if needed.
+			if (opt.dbl) {
+				float *fptr = (float *) newslice;
+				double *dptr = (double *) newslice;
+				for(int i=0; i<dim[0]*dim[1]; i++) *fptr++ = (float) *dptr++;
+			}
+			//Average old and new slices:
+			float* outFloat = (float*) oldslice;
+			float* newFloat = (float*) newslice;
+			for (int i = 0; i< dim[0]*dim[1]; i++){
+				*outFloat = 0.5*(*outFloat + *newFloat);
+				outFloat++;
+				newFloat++;
+			}
+			//
+			// Write a single slice of data
+			//
+			bufwriter->WriteSlice((float *) oldslice);
+			if (bufwriter->GetErrCode() != 0) {
+				cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+				exit(1);
+			}
 		}
 
 	}
@@ -230,7 +357,11 @@ void	process_region(
 	size_t min[3] = {opt.xregion.min, opt.yregion.min, opt.zregion.min};
 	size_t max[3] = {opt.xregion.max, opt.yregion.max, opt.zregion.max};
 	size_t rdim[3];
-
+	//Check that we are not doing staggered dimensions:
+	if( opt.staggeredDim != 0){
+		cerr << ProgName << ": " << "Staggered dimensions not supported for subregion" << endl;
+				exit(1);
+	}
 	for(int i=0; i<3; i++) {
 		if (min[i] == (size_t) -1)  min[i] = 0;
 		if (max[i] == (size_t) -1)  max[i] = dim[i]-1;
