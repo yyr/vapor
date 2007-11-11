@@ -51,7 +51,10 @@ int main( int argc, char ** argv ) {
 		exit(-1);
 	}
 #endif
-	QApplication::setColorSpec( QApplication::ManyColor );
+
+#ifdef IRIX    
+	    QApplication::setColorSpec( QApplication::ManyColor );
+#endif
     	QApplication a( argc, argv,true );
 	
 	//Comment out the next line to see qWarnings in console:
