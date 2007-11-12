@@ -75,11 +75,9 @@ protected slots:
 	void selectAxisColor();
 	void applySettings();
 	void annotationChanged();
-	void xTicOrientationChanged(int);
-	void yTicOrientationChanged(int);
-	void zTicOrientationChanged(int);
 	void okClicked();
 	void doHelp();
+	void imageToggled(bool);
 	
 protected:
 	//Copy data from vizwin to and from dialog (shadowed in this class)
@@ -102,6 +100,12 @@ protected:
 	bool showAxisAnnotation;
 	bool showRegion;
 	bool showSubregion;
+
+	bool textureSurface;
+	int surfaceRotation;
+	bool surfaceUpsideDown;
+	QString surfaceImageFilename;
+
 	float axisArrowCoords[3];
 	float axisOriginCoords[3];
 	float minTic[3],maxTic[3],ticLength[3];

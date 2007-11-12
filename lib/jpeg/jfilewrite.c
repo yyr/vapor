@@ -16,7 +16,9 @@
 
 
 #include <stdio.h>
-
+#include <memory.h>
+#include <stdlib.h>
+#include <malloc.h>
 /*
  * Include file for users of JPEG library.
  * You will need to have included system headers that define at least
@@ -284,14 +286,16 @@ write_JPEG_file (FILE * outfile, int image_width, int image_height, unsigned cha
  */
 
 
+JPEG_GLOBAL(void) free_image (unsigned char* image){
+	free(image);
+}
 /*
  * Sample routine for JPEG decompression.  We assume that the source file name
  * is passed in.  We want to return 1 on success, 0 on error.
  */
 
 
-JPEG_GLOBAL(int)
-read_JPEG_file (char * filename)
+JPEG_GLOBAL(int) read_JPEG_file (const char * filename, unsigned char** imageBuffer, int* width, int* height)
 {
   /* This struct contains the JPEG decompression parameters and pointers to
    * working space (which is allocated as needed by the JPEG library).
@@ -306,6 +310,9 @@ read_JPEG_file (char * filename)
   FILE * infile;		/* source file */
   JSAMPARRAY buffer;		/* Output row buffer */
   int row_stride;		/* physical row width in output buffer */
+  int newXDim, newYDim;  /* dimensions for resampling*/
+  int k, testval;
+  unsigned char* firstImage;
 
   /* In this example we want to open the input file before doing anything else,
    * so that the setjmp() error recovery below can assume the file is open.
@@ -373,6 +380,10 @@ read_JPEG_file (char * filename)
   buffer = (*cinfo.mem->alloc_sarray)
 		((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
 
+  firstImage = (unsigned char*) malloc((size_t) (row_stride*cinfo.output_height));
+  
+  
+
   /* Step 6: while (scan lines remain to be read) */
   /*           jpeg_read_scanlines(...); */
 
@@ -386,7 +397,35 @@ read_JPEG_file (char * filename)
      */
     (void) jpeg_read_scanlines(&cinfo, buffer, 1);
     /* Assume put_scanline_someplace wants a pointer and sample count. */
+	memcpy((void*)(firstImage + (cinfo.output_scanline-1)*(cinfo.output_width)*3), buffer[0], (size_t)cinfo.output_width*3);
     //put_scanline_someplace(buffer[0], row_stride);
+  }
+  //Find first power of two no greater than image dimensions:
+  newXDim = cinfo.output_width;
+  newYDim = cinfo.output_height;
+  for (k = 0; k<30; k++){
+	  testval = newXDim >> k;
+	  if (testval == 0){
+		  newXDim = (newXDim >> (k-1))<<(k-1);
+		  break;
+	  }
+  }
+  for (k = 0; k<30; k++){
+	  testval = newYDim >> k;
+	  if (testval == 0){
+		  newYDim = (newYDim >> (k-1))<<(k-1);
+		  break;
+	  }
+  }
+
+  *width = newXDim;
+  *height = newYDim;
+  if (newXDim == cinfo.output_width && newYDim == cinfo.output_height){
+	  *imageBuffer = firstImage;
+  } else {
+	  *imageBuffer = (unsigned char*) malloc((size_t) (3*newXDim*newYDim));
+	  resampleImage(firstImage, cinfo.output_width, cinfo.output_height, *imageBuffer, newXDim, newYDim);
+	  free (firstImage);
   }
 
   /* Step 7: Finish decompression */
@@ -415,7 +454,26 @@ read_JPEG_file (char * filename)
   /* And we're done! */
   return 1;
 }
+/* method to resample rgb image to smaller image,
+	needed to handle OpenGL power-of-two limitations.
+	*/
 
+JPEG_GLOBAL(int) resampleImage(unsigned char* image1, int xin, int yin, unsigned char* image2, int xout, int yout){
+	/*Simplest approach:  Just sample one pixel for each:*/
+	int i, j, k;
+	for (j = 0; j<yout; j++){
+		float ycrd = (float)j/(float)(yout-1); //Normalize to 0..1
+		int ysample = (int)(ycrd*(float)(yin -1) + 0.5f);
+		for (i = 0; i<xout; i++){
+			float xcrd = (float)i/(float)(xout-1); //Normalize to 0..1
+			int xsample = (int)(xcrd*(float)(xin -1) + 0.5f);
+			for (k = 0; k<3; k++){
+				image2[k+ 3*(i + xout*j)] = image1[k+3*(xsample + ysample*xin)];
+			}
+		}
+	}
+	return 0;
+}
 
 /*
  * SOME FINE POINTS:

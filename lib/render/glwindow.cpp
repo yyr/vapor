@@ -79,6 +79,11 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	colorbarBackgroundColor = QColor(black);
 	elevColor = QColor(150,75,0);
 	renderElevGrid = false;
+	surfaceTextureEnabled = false;
+	textureRotation = 0;
+	textureUpsideDown = false;
+	textureFilename = QString("imageFile.jpg");
+	elevGridTexture = 0;
 	elevGridRefLevel = 0;
 	axisArrowsEnabled = false;
 	axisAnnotationEnabled = false;
@@ -139,6 +144,7 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	elevVert = 0;
 	elevNorm = 0;
 	numElevTimesteps = 0;
+	_elevTexid = 0;
 	
 }
 
@@ -155,6 +161,7 @@ GLWindow::~GLWindow()
 	}
 	setNumRenderers(0);
 	invalidateElevGrid();
+	if (_elevTexid) glDeleteTextures(1, &_elevTexid);
 }
 
 
@@ -419,7 +426,8 @@ void GLWindow::initializeGL()
 	for (int i = 0; i< getNumRenderers(); i++){
 		renderer[i]->initializeGL();
 	}
-    
+    glGenTextures(1, &_elevTexid);
+	glBindTexture(GL_TEXTURE_2D, _elevTexid);
     //
     // Initialize the graphics-dependent dvrparam state
     //
@@ -1244,33 +1252,84 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 		glDisable(GL_LIGHTING);
 		glColor3fv(elevGridColor);
 	}
+	//Check if there is a texture to apply:
 	
+	if (elevGridTextureEnabled() && !elevGridTexture){
+		//Read the texture file:
+		
+		int rc = read_JPEG_file(textureFilename.ascii(),&elevGridTexture,&elevGridWidth,&elevGridHeight);
+		if (!rc) {enableElevGridTexture(false);}
+	}
+	if (elevGridTextureEnabled()){
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
+		glMatrixMode(GL_MODELVIEW);
+		glBindTexture(GL_TEXTURE_2D, _elevTexid);
+		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glEnable(GL_BLEND);
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_DEPTH_TEST);// want OK wrt other opaque geometry.
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, elevGridWidth, elevGridHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, elevGridTexture);
+	}
 	//Now we can just traverse the elev grid, one row at a time:
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	for (int j = 0; j< maxYElev-1; j++){
 		glBegin(GL_TRIANGLE_STRIP);
 		//float vert[3], norm[3];
-		for (int i = 0; i< maxXElev-1; i+=2){
+		if(elevGridTextureEnabled()) for (int i = 0; i< maxXElev-1; i+=2){
 		
+			//Each quad is described by sending 4 vertices, i.e. the points indexed by
+			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j)  
 			
+			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*maxXElev));
+			glTexCoord2fv(setTexCrd(i,j+1));
+			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*maxXElev));
+			
+
+			
+			glNormal3fv(elevNorm[timeStep]+3*(i+j*maxXElev));
+			glTexCoord2fv(setTexCrd(i,j));
+			glVertex3fv(elevVert[timeStep]+3*(i+j*maxXElev));
+			
+
+			
+			glNormal3fv(elevNorm[timeStep]+3*((i+1)+(j+1)*maxXElev));
+			glTexCoord2fv(setTexCrd(i+1,j+1));
+			glVertex3fv(elevVert[timeStep]+3*((i+1)+(j+1)*maxXElev));
+			
+
+			//vcopy(elevVert+3*((i+1)+j*maxXElev), vert);
+			//vcopy(elevNorm+3*((i+1)+j*maxXElev), norm);
+			glNormal3fv(elevNorm[timeStep]+3*((i+1)+j*maxXElev));
+			glTexCoord2fv(setTexCrd(i+1,j));
+			glVertex3fv(elevVert[timeStep]+3*((i+1)+j*maxXElev));
+			
+
+		}
+		
+		else for (int i = 0; i< maxXElev-1; i+=2){ //No texture
+		
 			//Each quad is described by sending 4 vertices, i.e. the points indexed by
 			//by (i,j+1), (i,j), (i+1,j+1), (i+1,j)  
 			
 			glNormal3fv(elevNorm[timeStep]+3*(i+(j+1)*maxXElev));
 			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*maxXElev));
-
 			
 			glNormal3fv(elevNorm[timeStep]+3*(i+j*maxXElev));
 			glVertex3fv(elevVert[timeStep]+3*(i+j*maxXElev));
-
 			
 			glNormal3fv(elevNorm[timeStep]+3*((i+1)+(j+1)*maxXElev));
 			glVertex3fv(elevVert[timeStep]+3*((i+1)+(j+1)*maxXElev));
-
+			
 			//vcopy(elevVert+3*((i+1)+j*maxXElev), vert);
 			//vcopy(elevNorm+3*((i+1)+j*maxXElev), norm);
 			glNormal3fv(elevNorm[timeStep]+3*((i+1)+j*maxXElev));
 			glVertex3fv(elevVert[timeStep]+3*((i+1)+j*maxXElev));
+			
 
 		}
 		glEnd();
@@ -1283,8 +1342,41 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	glDisable(GL_CLIP_PLANE4);
 	glDisable(GL_CLIP_PLANE5);
 	glDisable(GL_LIGHTING);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_TEXTURE_2D);
 	printOpenGLError();
 }
+//Handle reorientation of texture by calc of tex coords:
+GLfloat* GLWindow::
+setTexCrd(int i, int j){
+	static GLfloat tcoord[2];
+	switch (textureRotation) {
+		case (0) :
+			tcoord[0] = (float)i/(float)(maxXElev-1);
+			tcoord[1] = (float)j/(float)(maxYElev-1);
+			break;
+		case (90) :
+			tcoord[0] = (float)j/(float)(maxYElev-1);
+			tcoord[1] = (float)(maxXElev - i -1)/(float)(maxXElev-1);
+			break;
+		case(180) :
+			tcoord[0] = (float)(maxXElev - i -1)/(float)(maxXElev-1);
+			tcoord[1] = (float)(maxYElev - j -1)/(float)(maxYElev-1);
+			break;
+		case(270) :
+			tcoord[1] = (float)(i)/(float)(maxXElev-1);
+			tcoord[0] = (float)(maxYElev - j -1)/(float)(maxYElev-1);
+			break;
+		default:
+			assert(0);
+	}
+	if (textureUpsideDown) {
+		tcoord[0] = 1.f - tcoord[0];
+	}
+	return tcoord;
+	
+}
+
 //Invalidate array.  Set pointers to zero before deleting so we
 //can't accidentally get trapped with bad pointer.
 void GLWindow::invalidateElevGrid(){

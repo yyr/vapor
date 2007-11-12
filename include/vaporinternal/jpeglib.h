@@ -1041,6 +1041,7 @@ JPEG_EXTERN(boolean) jpeg_resync_to_restart JPP((j_decompress_ptr cinfo,
 					    int desired));
 
 JPEG_GLOBAL(void) foobar();
+JPEG_GLOBAL(int) resampleImage(unsigned char* image1, int xin, int yin, unsigned char* image2, int xout, int yout);
 
 /* These marker codes are exported since applications and data source modules
  * are likely to want to use them.

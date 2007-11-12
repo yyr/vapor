@@ -167,6 +167,14 @@ public:
 	void setElevGridColor(QColor& c) {myGLWindow->setElevGridColor(c);}
 	void setElevGridRefinementLevel(int lev) {myGLWindow->setElevGridRefinementLevel(lev);}
 	void enableElevGridRendering(bool val) {myGLWindow->enableElevGridRendering(val);}
+	void enableElevGridTexture(bool val){myGLWindow->enableElevGridTexture(val);}
+	void rotateTexture(int val){myGLWindow->rotateTexture(val);}
+	void invertTexture(bool val) {myGLWindow->invertTexture(val);}
+	void setTextureFile(QString fn){ myGLWindow->setTextureFile(fn);}
+	bool elevGridTextureEnabled(){return myGLWindow->elevGridTextureEnabled();}
+	int getTextureRotation(){return myGLWindow->getTextureRotation();}
+	bool textureInverted() {return myGLWindow->textureInverted();}
+	QString& getTextureFile(){return myGLWindow->getTextureFile();}
 	
 	QColor& getElevGridColor() {return myGLWindow->getElevGridColor();}
 	int getElevGridRefinementLevel() {return myGLWindow->getElevGridRefinementLevel();}

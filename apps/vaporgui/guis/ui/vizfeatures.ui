@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>415</width>
-            <height>955</height>
+            <height>1074</height>
         </rect>
     </property>
     <property name="minimumSize">
@@ -42,7 +42,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout103</cstring>
+                <cstring>layout51</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -1500,7 +1500,7 @@
                 </spacer>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout13_2</cstring>
+                        <cstring>layout50</cstring>
                     </property>
                     <hbox>
                         <property name="name">
@@ -1508,7 +1508,7 @@
                         </property>
                         <spacer>
                             <property name="name">
-                                <cstring>spacer24_2</cstring>
+                                <cstring>spacer70</cstring>
                             </property>
                             <property name="orientation">
                                 <enum>Horizontal</enum>
@@ -1518,8 +1518,8 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>51</width>
-                                    <height>20</height>
+                                    <width>31</width>
+                                    <height>21</height>
                                 </size>
                             </property>
                         </spacer>
@@ -1539,7 +1539,7 @@
                         </widget>
                         <spacer>
                             <property name="name">
-                                <cstring>spacer25_2</cstring>
+                                <cstring>spacer71</cstring>
                             </property>
                             <property name="orientation">
                                 <enum>Horizontal</enum>
@@ -1549,7 +1549,7 @@
                             </property>
                             <property name="sizeHint">
                                 <size>
-                                    <width>81</width>
+                                    <width>71</width>
                                     <height>20</height>
                                 </size>
                             </property>
@@ -1677,6 +1677,210 @@
                                 <string>Click to specify color of surface</string>
                             </property>
                         </widget>
+                    </hbox>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout48</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer68</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>20</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>imageCheckbox</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Use surface image</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Check to specify and use a jpeg file on surface</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer64</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>41</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel1_2_4</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Image jpeg:</string>
+                            </property>
+                        </widget>
+                        <widget class="QLineEdit">
+                            <property name="name">
+                                <cstring>imageFilenameEdit</cstring>
+                            </property>
+                            <property name="enabled">
+                                <bool>false</bool>
+                            </property>
+                            <property name="minimumSize">
+                                <size>
+                                    <width>125</width>
+                                    <height>0</height>
+                                </size>
+                            </property>
+                            <property name="text">
+                                <string>filename</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignRight</set>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Current Image Jpeg file name</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer69</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>31</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                    </hbox>
+                </widget>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout47</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer65</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>21</width>
+                                    <height>21</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel1_4</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Image Orientation:</string>
+                            </property>
+                            <property name="alignment">
+                                <set>AlignCenter</set>
+                            </property>
+                        </widget>
+                        <widget class="QComboBox">
+                            <item>
+                                <property name="text">
+                                    <string>rotate 0 </string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>rotate 90</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>rotate 180</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>rotate 270</string>
+                                </property>
+                            </item>
+                            <property name="name">
+                                <cstring>imageRotationCombo</cstring>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify image rotation as multiple of 90 degrees</string>
+                            </property>
+                        </widget>
+                        <widget class="QComboBox">
+                            <item>
+                                <property name="text">
+                                    <string>top up</string>
+                                </property>
+                            </item>
+                            <item>
+                                <property name="text">
+                                    <string>top down</string>
+                                </property>
+                            </item>
+                            <property name="name">
+                                <cstring>imageUpDownCombo</cstring>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Specify whether the image is upside down or not</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer67</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>41</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
                     </hbox>
                 </widget>
                 <spacer>

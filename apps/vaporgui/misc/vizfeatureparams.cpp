@@ -24,6 +24,7 @@
 #include "messagereporter.h"
 #include "mainform.h"
 #include <qlineedit.h>
+#include <qfiledialog.h>
 #include <qpushbutton.h>
 #include <qmessagebox.h>
 #include <qcombobox.h>
@@ -42,6 +43,7 @@ VizFeatureParams::VizFeatureParams(){
 	vizFeatureDlg = 0;
 	featureHolder = 0;
 	currentComboIndex = -1;
+	textureSurface = false;
 }
 //Clone a new vizfeatureparams
 VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
@@ -54,6 +56,10 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	showAxisArrows = vfParams.showAxisArrows;
 	showRegion = vfParams.showRegion;
 	showSubregion = vfParams.showSubregion;
+	surfaceImageFilename = vfParams.surfaceImageFilename;
+	surfaceRotation = vfParams.surfaceRotation;
+	surfaceUpsideDown = vfParams.surfaceUpsideDown;
+	textureSurface = vfParams.textureSurface;
 	axisArrowCoords[0] = vfParams.axisArrowCoords[0];
 	axisArrowCoords[1] = vfParams.axisArrowCoords[1];
 	axisArrowCoords[2] = vfParams.axisArrowCoords[2];
@@ -108,6 +114,26 @@ void VizFeatureParams::launch(){
 	
 	sv->addChild(vizFeatureDlg);
 	
+	
+	//Copy values into dialog, using current comboIndex:
+	setDialog();
+	dialogChanged = false;
+	if (vizFeatureDlg->axisAnnotationCheckbox->isChecked()){
+		vizFeatureDlg->axisAnnotationFrame->show();
+	} else {
+		vizFeatureDlg->axisAnnotationFrame->hide();
+	}
+	
+	int h = MainForm::getInstance()->height();
+	if ( h > 750) h = 750;
+	int w = 415;
+	
+	vizFeatureDlg->setGeometry(0, 0, w, h);
+	int swidth = sv->verticalScrollBar()->width();
+	featureHolder->setGeometry(50, 50, w+swidth,h);
+	
+	sv->resizeContents(w,h);
+	
 	//Do connections.  
 	connect(vizFeatureDlg->currentNameCombo, SIGNAL(activated(int)), this, SLOT(visualizerSelected(int)));
 	connect (vizFeatureDlg->backgroundColorButton, SIGNAL(clicked()), this, SLOT(selectBackgroundColor()));
@@ -131,7 +157,6 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->applyButton, SIGNAL(clicked()), this, SLOT(applySettings()));
 	connect (vizFeatureDlg->refinementCombo, SIGNAL (activated(int)), this, SLOT(panelChanged()));
-
 	connect (vizFeatureDlg->axisAnnotationCheckbox, SIGNAL(clicked()), this, SLOT(annotationChanged()));
 	connect (vizFeatureDlg->xMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->yMinTicEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -148,9 +173,9 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->axisOriginYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisOriginZEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisOriginXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->xTicOrientCombo, SIGNAL(activated(int)), this, SLOT(xTicOrientationChanged(int)));
-	connect (vizFeatureDlg->yTicOrientCombo, SIGNAL(activated(int)), this, SLOT(yTicOrientationChanged(int)));
-	connect (vizFeatureDlg->zTicOrientCombo, SIGNAL(activated(int)), this, SLOT(zTicOrientationChanged(int)));
+	connect (vizFeatureDlg->xTicOrientCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->yTicOrientCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->zTicOrientCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->labelHeightEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->labelDigitsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->ticWidthEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -158,28 +183,11 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->buttonOk, SIGNAL(clicked()), this, SLOT(okClicked()));
 	connect (vizFeatureDlg->buttonCancel,SIGNAL(clicked()), featureHolder, SLOT(reject()));
 	connect (this, SIGNAL(doneWithIt()), featureHolder, SLOT(reject()));
-	connect(vizFeatureDlg->buttonHelp, SIGNAL(released()), this, SLOT(doHelp()));
+	connect (vizFeatureDlg->buttonHelp, SIGNAL(released()), this, SLOT(doHelp()));
+	connect (vizFeatureDlg->imageCheckbox, SIGNAL(toggled(bool)), this, SLOT(imageToggled(bool)));
+	connect (vizFeatureDlg->imageRotationCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->imageUpDownCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
 
-	//Copy values into dialog, using current comboIndex:
-	setDialog();
-	dialogChanged = false;
-	if (vizFeatureDlg->axisAnnotationCheckbox->isChecked()){
-		vizFeatureDlg->axisAnnotationFrame->show();
-	} else {
-		vizFeatureDlg->axisAnnotationFrame->hide();
-	}
-	
-	int h = 690;
-	int w = 415;
-	if (h > MainForm::getInstance()->height()){
-		h = MainForm::getInstance()->height();
-	}
-	vizFeatureDlg->setGeometry(0, 0, w, h);
-	int swidth = sv->verticalScrollBar()->width();
-	featureHolder->setGeometry(50, 50, w+swidth,h);
-	
-	sv->resizeContents(w,h);
-	
 	featureHolder->exec();
 	
 }
@@ -373,10 +381,21 @@ setDialog(){
 	vizFeatureDlg->refinementCombo->setCurrentItem(elevGridRefinement);
 	showElevGrid = (vizWin->elevGridRenderingEnabled() && isLayered);
 	vizFeatureDlg->surfaceCheckbox->setChecked(showElevGrid);
+	textureSurface = vizWin->elevGridTextureEnabled();
+	vizFeatureDlg->imageCheckbox->setChecked(textureSurface);
+	surfaceUpsideDown = vizWin->textureInverted();
+	vizFeatureDlg->imageUpDownCombo->setCurrentItem(surfaceUpsideDown ? 1 : 0);
+	surfaceRotation = vizWin->getTextureRotation();
+	vizFeatureDlg->imageRotationCombo->setCurrentItem(surfaceRotation/90);
+	surfaceImageFilename = vizWin->getTextureFile();
+	vizFeatureDlg->imageFilenameEdit->setText(surfaceImageFilename);
 	
 	vizFeatureDlg->refinementCombo->setEnabled(isLayered);
 	vizFeatureDlg->surfaceCheckbox->setEnabled(isLayered);
 	vizFeatureDlg->surfaceColorButton->setEnabled(isLayered);
+	vizFeatureDlg->imageCheckbox->setEnabled(isLayered);
+	vizFeatureDlg->imageRotationCombo->setEnabled(isLayered);
+	vizFeatureDlg->imageUpDownCombo->setEnabled(isLayered);
 
 }
 //Copy values from the dialog into 'this', and also to the visualizer state specified
@@ -454,6 +473,11 @@ copyFromDialog(){
 	elevGridColor = vizFeatureDlg->surfaceColorButton->paletteBackgroundColor();
 	showElevGrid = vizFeatureDlg->surfaceCheckbox->isChecked();
 	elevGridRefinement = vizFeatureDlg->refinementCombo->currentItem();
+	textureSurface = vizFeatureDlg->imageCheckbox->isChecked();
+	surfaceRotation = vizFeatureDlg->imageRotationCombo->currentItem()*90;
+	surfaceUpsideDown = (vizFeatureDlg->imageUpDownCombo->currentItem() == 1);
+	surfaceImageFilename = vizFeatureDlg->imageFilenameEdit->text();
+
 	applyToViz(vizNum);
 
 	//Save the new visualizer state in the history
@@ -498,6 +522,11 @@ applyToViz(int vizNum){
 	vizWin->setElevGridColor(elevGridColor);
 	vizWin->enableElevGridRendering(showElevGrid);
 	vizWin->setElevGridRefinementLevel(elevGridRefinement);
+	vizWin->enableElevGridTexture(textureSurface); 
+	vizWin->rotateTexture(surfaceRotation);
+	vizWin->invertTexture(surfaceUpsideDown);
+	vizWin->setTextureFile(surfaceImageFilename);
+
 	vizWin->getGLWindow()->invalidateElevGrid();
 	vizWin->setColorbarDirty(true);
 	vizWin->updateGL();
@@ -530,27 +559,14 @@ getVizNum(int comboIndex){
 void VizFeatureParams::annotationChanged(){
 	if (vizFeatureDlg->axisAnnotationCheckbox->isChecked()){
 		vizFeatureDlg->axisAnnotationFrame->show();
-		
 	} else {
 		vizFeatureDlg->axisAnnotationFrame->hide();
-		
 	}
 	
 	vizFeatureDlg->update();
 	dialogChanged = true;
 }
-void VizFeatureParams::xTicOrientationChanged(int val){
-	ticDir[0] = val+1;
-	dialogChanged = true;
-}
-void VizFeatureParams::yTicOrientationChanged(int val){
-	ticDir[1] = 2*val;
-	dialogChanged = true;
-}
-void VizFeatureParams::zTicOrientationChanged(int val){
-	ticDir[2] = val;
-	dialogChanged = true;
-}
+
 void VizFeatureParams::okClicked(){
 
 	//If user clicks OK, need to store values back to visualizer, plus
@@ -565,4 +581,24 @@ void VizFeatureParams::okClicked(){
 void VizFeatureParams::
 doHelp(){
 	QWhatsThis::enterWhatsThisMode();
+}
+void VizFeatureParams::
+imageToggled(bool onOff){
+	if (!onOff) {
+		
+		dialogChanged = true;
+	}
+	else { 
+		//select a filename, if succeed turn on textureSurface.
+		QString filename = QFileDialog::getOpenFileName(surfaceImageFilename,
+			"Image files (*.jpg)",
+			vizFeatureDlg,
+			"Open Image File Dialog",
+			"Choose the Image File to map to terrain");
+		if(filename.length() == 0) return;
+		
+		vizFeatureDlg->imageFilenameEdit->setText(filename);
+		dialogChanged = true;
+	}
+
 }

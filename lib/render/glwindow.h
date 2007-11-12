@@ -30,6 +30,7 @@
 #include "manip.h"
 #include "vapor/MyBase.h"
 #include "common.h"
+#include "vaporinternal/jpegapi.h"
 
 //No more than 10 renderers in a window:
 //Eventually this may be dynamic.
@@ -153,6 +154,18 @@ public:
 	float getColorbarURCoord(int i) {return colorbarURCoord[i];}
 	int getColorbarNumTics() {return numColorbarTics;}
 	QColor& getElevGridColor() {return elevColor;}
+
+	void enableElevGridTexture(bool val){surfaceTextureEnabled = val;
+		if(elevGridTexture) free_image(elevGridTexture);
+		elevGridTexture = 0;
+	}
+	void rotateTexture(int val){textureRotation = val;}
+	void invertTexture(bool val) {textureUpsideDown = val;}
+	void setTextureFile(QString fn){ textureFilename = fn;}
+	bool elevGridTextureEnabled(){return surfaceTextureEnabled;}
+	int getTextureRotation(){return textureRotation;}
+	bool textureInverted() {return textureUpsideDown;}
+	QString& getTextureFile(){return textureFilename;}
 	
 	bool elevGridRenderingEnabled() {return renderElevGrid;}
 	void setBackgroundColor(QColor& c) {backgroundColor = c;}
@@ -328,8 +341,10 @@ protected:
 	//
 	GLdouble* getModelMatrix();
 		
-
-	 
+	GLfloat tcoord[2];
+	GLuint _elevTexid;
+	GLfloat* setTexCrd(int i, int j);
+	
 	//These methods cannot be overridden, but the initialize and paint methods
 	//call the corresponding Renderer methods.
 	//
@@ -378,6 +393,8 @@ protected:
 	QColor elevColor;
 	int elevGridRefLevel;
 	bool renderElevGrid;
+	unsigned char* elevGridTexture;
+	int elevGridWidth, elevGridHeight;
 
 	float	wCenter[3]; //World center coords
 	float	maxDim;		//Max of x, y, z size in world coords
@@ -411,6 +428,10 @@ protected:
 	QColor regionFrameColor;
 	QColor subregionFrameColor;
 	QColor colorbarBackgroundColor;
+	bool surfaceTextureEnabled;
+	int textureRotation;
+	bool textureUpsideDown;
+	QString textureFilename;
 	
 	bool axisArrowsEnabled;
 	bool axisAnnotationEnabled;

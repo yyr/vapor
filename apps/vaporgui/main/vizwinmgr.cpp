@@ -122,6 +122,9 @@ const string VizWinMgr::_vizElevGridRefinementAttr = "ElevGridRefinement";
 const string VizWinMgr::_vizRegionFrameEnabledAttr = "RegionFrameEnabled";
 const string VizWinMgr::_vizSubregionFrameEnabledAttr = "SubregionFrameEnabled";
 const string VizWinMgr::_visualizerNumAttr = "VisualizerNum";
+const string  VizWinMgr::_vizElevGridInvertedAttr = "ElevGridInverted";
+const string  VizWinMgr::_vizElevGridRotationAttr = "ElevGridRotation";
+const string  VizWinMgr::_vizElevGridTextureNameAttr = "ElevGridTextureFilename";
 
 
 /******************************************************************
@@ -1418,6 +1421,19 @@ XmlNode* VizWinMgr::buildNode() {
 			attrs[_vizElevGridEnabledAttr] = oss.str();
 
 			oss.str(empty);
+			if (vizWin[i]->textureInverted()) oss << "true";
+				else oss << "false";
+			attrs[_vizElevGridInvertedAttr] = oss.str();
+
+			oss.str(empty);
+			oss << vizWin[i]->getTextureFile().ascii();
+			attrs[_vizElevGridTextureNameAttr] = oss.str();
+
+			oss.str(empty);
+			oss << vizWin[i]->getTextureRotation();
+			attrs[_vizElevGridRotationAttr] = oss.str();
+
+			oss.str(empty);
 			if (vizWin[i]->regionFrameIsEnabled()) oss<<"true";
 				else oss<<"false";
 			attrs[_vizRegionFrameEnabledAttr] = oss.str();
@@ -1594,6 +1610,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		bool subregionEnabled = false;
 		bool elevGridEnabled = false;
 		int elevGridRefinement = 0;
+		bool elevGridInverted = false;
+		int elevGridRotation = 0;
+		string elevGridTexture = "imageFile.jpg";
 		int numViz = -1;
 		while (*attrs) {
 			string attr = *attrs;
@@ -1630,6 +1649,16 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			}
 			else if (StrCmpNoCase(attr, _vizElevGridRefinementAttr) == 0) {
 				ist >> elevGridRefinement;
+			}
+			else if (StrCmpNoCase(attr, _vizElevGridRotationAttr) == 0) {
+				ist >> elevGridRotation;
+			}
+			else if (StrCmpNoCase(attr, _vizElevGridInvertedAttr) == 0) {
+				if (value == "true") elevGridInverted = true; 
+				else elevGridInverted = false; 
+			}
+			else if (StrCmpNoCase(attr, _vizElevGridTextureNameAttr) == 0) {
+				ist >> elevGridTexture;
 			}
 			else if (StrCmpNoCase(attr, _vizAxisPositionAttr) == 0) {
 				ist >> axisPos[0]; ist>>axisPos[1]; ist>>axisPos[2];
@@ -1722,6 +1751,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->enableElevGridRendering(elevGridEnabled);
 		vizWin[parsingVizNum]->setElevGridRefinementLevel(elevGridRefinement);
 		vizWin[parsingVizNum]->setElevGridColor(winElevGridColor);
+		vizWin[parsingVizNum]->enableElevGridTexture(false);
+		vizWin[parsingVizNum]->rotateTexture(elevGridRotation);
+		vizWin[parsingVizNum]->invertTexture(elevGridInverted);
+		vizWin[parsingVizNum]->setTextureFile(QString(elevGridTexture.c_str()));
 
 		for (int j = 0; j< 3; j++){
 			vizWin[parsingVizNum]->setAxisArrowCoord(j, axisPos[j]);
