@@ -185,7 +185,7 @@ reset(DataMgr* dm, size_t cachesize, QApplication* app){
 	bool someDataOverall = false;
 	for (int var = 0; var< numVariables; var++){
 		bool dataExists = false;
-		string s = getVariableName(var);
+		//string s = getVariableName(var);
 		//Check first if this variable is in the metadata:
 		bool inMetadata = false;
 		for (int i = 0; i< (int)currentMetadata->GetVariableNames().size(); i++){
