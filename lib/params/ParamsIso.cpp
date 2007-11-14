@@ -110,10 +110,12 @@ reinit(bool doOverride){
 		isoval = 0.5f*(bnds[0]+bnds[1]);
 		SetHistoBounds(bnds);
 		SetIsoValue(isoval);
-	} else {
-		//only modify the existing bounds and isovalue if they 
-		//lie outside the data bounds:
-		float newVal = isoval;
+	} 
+		//Don't modify the existing bounds and isovalue if they 
+		//lie outside the data bounds, since they could be OK for another time step.
+		//I.e., retain the values in the session.
+		/*
+	else { float newVal = isoval;
 		if (newVal < dataMin) newVal = dataMin;
 		if (newVal > dataMax) newVal = dataMax;
 		if (newVal != isoval) SetIsoValue(newVal);
@@ -124,8 +126,9 @@ reinit(bool doOverride){
 		}
 		if (bnds[0] != curBounds[0] || bnds[1] != curBounds[1])
 			SetHistoBounds(bnds);
+			
 
-	}
+	}*/
 	minOpacEditBounds[0] = bnds[0];
 	maxOpacEditBounds[0] = bnds[1];
 	dummyMapperFunc->setMinOpacMapValue(bnds[0]);
