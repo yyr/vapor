@@ -397,7 +397,9 @@ JPEG_GLOBAL(int) read_JPEG_file (const char * filename, unsigned char** imageBuf
      */
     (void) jpeg_read_scanlines(&cinfo, buffer, 1);
     /* Assume put_scanline_someplace wants a pointer and sample count. */
-	memcpy((void*)(firstImage + (cinfo.output_scanline-1)*(cinfo.output_width)*3), buffer[0], (size_t)cinfo.output_width*3);
+	/* actually put the scanline in the image in reverse order, so that openGL will
+	scan it in the correct order*/
+	memcpy((void*)(firstImage + (cinfo.output_height - cinfo.output_scanline)*(cinfo.output_width)*3), buffer[0], (size_t)cinfo.output_width*3);
     //put_scanline_someplace(buffer[0], row_stride);
   }
   //Find first power of two no greater than image dimensions:

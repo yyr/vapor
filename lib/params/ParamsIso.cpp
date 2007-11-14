@@ -75,6 +75,7 @@ reinit(bool doOverride){
 	int totNumVariables = ds->getNumMetadataVariables();
 	if (totNumVariables <= 0) return false;
 	int varNum = ds->getMetadataVarNum(GetVariableName());
+	
 	//See if current variable name is valid.  It needs to be in the metadata.
 	//if not, reset to first variable that is present:
 	if (varNum < 0) 
@@ -82,7 +83,7 @@ reinit(bool doOverride){
 		SetVariableName(ds->getMetadataVarName(0));
 		varNum = 0;
 	}
-	
+	int sesVarNum = ds->mapMetadataToSessionVarNum(varNum);
 	//Set up the numRefinements. 
 	int maxNumRefinements = ds->getNumTransforms();
 	int numrefs = GetRefinementLevel();
@@ -101,8 +102,8 @@ reinit(bool doOverride){
 	
 
 	float isoval = GetIsoValue();
-	float dataMin = DataStatus::getInstance()->getDefaultDataMin(varNum);
-	float dataMax = DataStatus::getInstance()->getDefaultDataMax(varNum);
+	float dataMin = DataStatus::getInstance()->getDefaultDataMin(sesVarNum);
+	float dataMax = DataStatus::getInstance()->getDefaultDataMax(sesVarNum);
 	if (doOverride) {
 		bnds[0] = dataMin;
 		bnds[1] = dataMax;

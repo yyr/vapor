@@ -1261,21 +1261,20 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 		if (!rc) {enableElevGridTexture(false);}
 	}
 	if (elevGridTextureEnabled()){
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glMatrixMode(GL_TEXTURE);
+		glPushMatrix();
+		//Put an identity on the Texture matrix stack.
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
 		glBindTexture(GL_TEXTURE_2D, _elevTexid);
-		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//glEnable(GL_BLEND);
 		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_DEPTH_TEST);// want OK wrt other opaque geometry.
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, elevGridWidth, elevGridHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, elevGridTexture);
 	}
 	//Now we can just traverse the elev grid, one row at a time:
+	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	for (int j = 0; j< maxYElev-1; j++){
 		glBegin(GL_TRIANGLE_STRIP);
@@ -1289,21 +1288,15 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 			glTexCoord2fv(setTexCrd(i,j+1));
 			glVertex3fv(elevVert[timeStep]+3*(i+(j+1)*maxXElev));
 			
-
-			
 			glNormal3fv(elevNorm[timeStep]+3*(i+j*maxXElev));
 			glTexCoord2fv(setTexCrd(i,j));
 			glVertex3fv(elevVert[timeStep]+3*(i+j*maxXElev));
-			
-
 			
 			glNormal3fv(elevNorm[timeStep]+3*((i+1)+(j+1)*maxXElev));
 			glTexCoord2fv(setTexCrd(i+1,j+1));
 			glVertex3fv(elevVert[timeStep]+3*((i+1)+(j+1)*maxXElev));
 			
 
-			//vcopy(elevVert+3*((i+1)+j*maxXElev), vert);
-			//vcopy(elevNorm+3*((i+1)+j*maxXElev), norm);
 			glNormal3fv(elevNorm[timeStep]+3*((i+1)+j*maxXElev));
 			glTexCoord2fv(setTexCrd(i+1,j));
 			glVertex3fv(elevVert[timeStep]+3*((i+1)+j*maxXElev));
@@ -1325,12 +1318,9 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 			glNormal3fv(elevNorm[timeStep]+3*((i+1)+(j+1)*maxXElev));
 			glVertex3fv(elevVert[timeStep]+3*((i+1)+(j+1)*maxXElev));
 			
-			//vcopy(elevVert+3*((i+1)+j*maxXElev), vert);
-			//vcopy(elevNorm+3*((i+1)+j*maxXElev), norm);
 			glNormal3fv(elevNorm[timeStep]+3*((i+1)+j*maxXElev));
 			glVertex3fv(elevVert[timeStep]+3*((i+1)+j*maxXElev));
 			
-
 		}
 		glEnd();
 	}
@@ -1342,8 +1332,16 @@ void GLWindow::drawElevationGrid(size_t timeStep){
 	glDisable(GL_CLIP_PLANE4);
 	glDisable(GL_CLIP_PLANE5);
 	glDisable(GL_LIGHTING);
-	glDepthMask(GL_FALSE);
-	glDisable(GL_TEXTURE_2D);
+	//undo gl state changes
+	if (elevGridTextureEnabled()){
+		glDepthMask(GL_FALSE);
+		glMatrixMode(GL_TEXTURE);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glDisable(GL_BLEND);
+		glDisable(GL_TEXTURE_2D);
+	}
+
 	printOpenGLError();
 }
 //Handle reorientation of texture by calc of tex coords:
