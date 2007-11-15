@@ -309,12 +309,15 @@ float	*DataMgr::GetRegion(
 		WaveletBlock3DRegionReader *wbreader;
 		if (_metadata->GetGridType().compare("layered") == 0 ){
 			wbreader = ((LayeredIO*) _regionReader) -> GetWBReader();
+			//Need to call OpenVariableRead before setting the datarange...
+			wbreader->OpenVariableRead(ts, varname, reflevel, 0);
 			_regionReader->SetDataRange(wbreader->GetDataRange());
 		}
-		else wbreader = 
-			(WaveletBlock3DRegionReader *) _regionReader;
-
-		wbreader->OpenVariableRead(ts, varname, reflevel, 0);
+		else {
+			wbreader = 
+				(WaveletBlock3DRegionReader *) _regionReader;
+			wbreader->OpenVariableRead(ts, varname, reflevel, 0);
+		}
 
 		blks = (float *) alloc_region(
 			ts,varname,reflevel,DataMgr::FLOAT32,min,max,0,lock
