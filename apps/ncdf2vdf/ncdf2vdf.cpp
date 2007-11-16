@@ -241,11 +241,13 @@ void	process_volume(
 		//OK, found it.  Verify that the constant value is OK:
 		size_t constDimLen=0;
 		if((nc_inq_dimlen(ncid, constDimID, &constDimLen) != NC_NOERR) ||
-			constDimLen != opt.constDimValues[i] ||
+			constDimLen <= opt.constDimValues[i] ||
 			opt.constDimValues[i] < 0)
 		{
-			fprintf(stderr, "Invalid value of constant dimension %s\n",
-				opt.constDimNames[i].c_str());
+			fprintf(stderr, "Invalid value %d of constant dimension %s of length %d\n",
+				opt.constDimValues[i],
+				opt.constDimNames[i].c_str(),
+				constDimLen);
 			exit(1);
 		}
 	}
