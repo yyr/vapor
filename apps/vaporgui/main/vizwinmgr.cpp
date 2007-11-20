@@ -1986,7 +1986,7 @@ void VizWinMgr::setFlowGraphicsDirty(FlowParams* p){
 	flowRend->setGraphicsDirty();
 	vw->updateGL();
 }
-void VizWinMgr::setFlowDataDirty(FlowParams* p){
+void VizWinMgr::setFlowDataDirty(FlowParams* p, bool doInterrupt){
 	if (!(DataStatus::getInstance()->getDataMgr())) return;
 	VizWin* vw = getVizWin(p->getVizNum());
 	if (!vw) return;
@@ -1994,7 +1994,7 @@ void VizWinMgr::setFlowDataDirty(FlowParams* p){
 	if (!glwin) return;
 	FlowRenderer* flowRend = (FlowRenderer*)glwin->getRenderer(p);
 	if(!flowRend) return;
-	flowRend->setDataDirty();
+	flowRend->setDataDirty(doInterrupt);
 	vw->updateGL();
 }
 

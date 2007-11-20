@@ -358,7 +358,7 @@ public:
 	//
 	void setDatarangeDirty(RenderParams* p); 
 	void setFlowGraphicsDirty(FlowParams* p);
-	void setFlowDataDirty(FlowParams* p);
+	void setFlowDataDirty(FlowParams* p, bool doInterrupt = true);
 	
 	bool flowDataIsDirty(FlowParams* p);
 	//Tell the animationController that the frame counter has changed 

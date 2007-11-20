@@ -89,7 +89,8 @@ public:
 
 	//When a bit is set dirty, must set appropriate bits for 
 	//all timesteps.
-	void setDataDirty();
+	void setDataDirty(bool doInterrupt = true);
+	
 	void setGraphicsDirty();
 
 	bool rebuildFlowData(int timeStep);
@@ -104,7 +105,7 @@ protected:
 	void calcPeriodicExtents();
 	int numFrames;
 	
-	
+	bool interruptFlag;
 	
 	
 	//Render geometry using the current values of flowDataArray, flowRGBAs

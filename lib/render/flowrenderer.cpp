@@ -85,6 +85,7 @@ FlowRenderer::FlowRenderer(GLWindow* glw, FlowParams* fParams )
 
 	setRegionValid(true);
 	lastTimeStep = -1;
+	interruptFlag = true;
 }
 
 
@@ -734,6 +735,7 @@ void FlowRenderer::setFlowDataClean(int timeStep){
 	allDataDirtyFlag = false;
 	if (myFlowParams->getFlowType() == 1){
 		unsteadyNeedsRefreshFlag = false;
+		interruptFlag = true;
 	}
 	else {
 		flowDataDirty[timeStep] = false;
@@ -747,8 +749,10 @@ void FlowRenderer::setFlowMapClean(int timeStep){
 	if (myFlowParams->getFlowType() != 1)
 		flowMapDirty[timeStep] = false;
 }
-void FlowRenderer::setDataDirty()
+
+void FlowRenderer::setDataDirty(bool doInterrupt)
 {
+	interruptFlag = doInterrupt;
 	FlowParams* myFlowParams = (FlowParams*)currentRenderParams;
 	setRegionValid(true);  // reset this bit so we will try to render again...
 	//set all the dirty flags for all the frames
@@ -934,7 +938,7 @@ bool FlowRenderer::rebuildFlowData(int timeStep){
 					numTimestepsToRender++;
 					//allow users to interrupt at this point:
 					DataStatus* ds = DataStatus::getInstance();
-					ds->getApp()->processEvents();
+					if(interruptFlag) ds->getApp()->processEvents();
 					if (myFlowParams->getStopFlag()){
 						delete unsteadyFlowCache;
 						unsteadyFlowCache = 0;

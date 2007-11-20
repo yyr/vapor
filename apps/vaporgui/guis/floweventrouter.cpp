@@ -1588,8 +1588,9 @@ guiMoveLastSeed(const float coords[3]){
 	fParams->moveLastSeed(coords);
 	PanelCommand::captureEnd(cmd, fParams);
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
-	VizWinMgr::getInstance()->setFlowDataDirty(fParams);
-	VizWinMgr::getInstance()->refreshFlow(fParams);
+	//Do not want to interrupt during flow construction here, it can ruin the probe 
+	VizWinMgr::getInstance()->setFlowDataDirty(fParams, false);
+	
 }
 //Turn on/off the rake and the seedlist:
 void FlowEventRouter::guiSetRakeList(int index){
