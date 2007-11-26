@@ -148,8 +148,7 @@ void vtCStreakLine::computeStreakLine(const float t,
 		m_itsParticles.erase(v);
 	}
 	if(numPointsAdvected == 0) {
-		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"No unsteady flow seeds remain in region at time step %d",
-			(int)finalT);
+		MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"All unsteady flow lines have exited region.");
 	}
 }
 
