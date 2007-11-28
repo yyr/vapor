@@ -364,22 +364,22 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					GLWindow::setJpegQuality(qual);
 				}
 				else if (StrCmpNoCase(attr, _transferFunctionPathAttr) == 0) {
-					ist >> currentTFPath;
+					currentTFPath = value;
 				}
 				else if (StrCmpNoCase(attr, _imageCapturePathAttr) == 0) {
-					ist >> currentJpegDirectory;
+					currentJpegDirectory = value;
 				}
 				else if (StrCmpNoCase(attr, _flowDirectoryPathAttr) == 0) {
-					ist >> currentFlowDirectory;
+					currentFlowDirectory = value;
 				}
 				else if (StrCmpNoCase(attr, _metadataPathAttr) == 0) {
-					ist >> currentMetadataFile;
+					currentMetadataFile = value;
 				}
 				else if (StrCmpNoCase(attr, _exportFileNameAttr) == 0) {
-					ist >> currentExportFile;
+					currentExportFile = value;
 				}
 				else if (StrCmpNoCase(attr, _logFileNameAttr) == 0) {
-					ist >> currentLogfileName;
+					currentLogfileName = value;
 				}
 				else if (StrCmpNoCase(attr, _maxPopupAttr) == 0) {
 					ist >> int1; ist>>int2; ist>>int3;

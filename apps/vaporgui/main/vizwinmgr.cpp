@@ -1658,7 +1658,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 				else elevGridInverted = false; 
 			}
 			else if (StrCmpNoCase(attr, _vizElevGridTextureNameAttr) == 0) {
-				ist >> elevGridTexture;
+				elevGridTexture = value;
 			}
 			else if (StrCmpNoCase(attr, _vizAxisPositionAttr) == 0) {
 				ist >> axisPos[0]; ist>>axisPos[1]; ist>>axisPos[2];
