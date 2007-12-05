@@ -546,6 +546,9 @@ void FlowEventRouter::updateTab(){
 
 	refreshButton->setEnabled(!fParams->refreshIsAuto() && VizWinMgr::getInstance()->flowDataIsDirty(fParams));
 	autoRefreshCheckbox->setChecked(fParams->refreshIsAuto());
+
+	if (fParams->refreshIsAuto()) autoRefreshCheckbox->setPaletteBackgroundColor(QColor(236,233,216));
+	else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(red));
 	//Always allow at least 4 variables in combo:
 	int numVars = fParams->getNumComboVariables();
 	if (numVars < 4) numVars = 4;
@@ -736,6 +739,8 @@ void FlowEventRouter::updateUrgentTabState(){
 	FlowParams* fParams = (FlowParams*) VizWinMgr::getActiveFlowParams();
 	if (fParams) {
 		autoRefreshCheckbox->setChecked(fParams->refreshIsAuto());
+		if (fParams->refreshIsAuto()) autoRefreshCheckbox->setPaletteBackgroundColor(QColor(236,233,216));
+		else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(red));
 	}
 }
 
@@ -2143,6 +2148,8 @@ guiSetAutoRefresh(bool autoOn){
 	confirmText(false);
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "toggle auto flow refresh");
 	fParams->setAutoRefresh(autoOn);
+	if (autoOn) autoRefreshCheckbox->setPaletteBackgroundColor(QColor(236,233,216));
+	else autoRefreshCheckbox->setPaletteBackgroundColor(QColor(red));
 	
 	PanelCommand::captureEnd(cmd, fParams);
 	

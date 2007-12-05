@@ -1162,7 +1162,9 @@ int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, Path
 	bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
 			timeStep, varnums, varcount, minExt, maxExt);
 	if (!dataValid) {
-		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at time step %d\nVector field may not be available",timeStep);
+		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at current time step. %s\n %s\n",
+			"Vector field may not be available;",
+			"Also be sure that seed injection times are timestep sample times");
 		return 0;
 	}
 	
@@ -1227,7 +1229,9 @@ int FlowParams::insertSteadySeeds(RegionParams* rParams, VaporFlow* fLib, FlowLi
 	bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
 			timeStep, varnums,varcount, minExt, maxExt);
 	if (!dataValid) {
-		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at time step %d\nVector field may not be available",timeStep);
+		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at current time step. %s\n %s\n",
+			"Vector field may not be available;",
+			"Also be sure that seed injection times are timestep sample times");
 		return 0;
 	}
 	
