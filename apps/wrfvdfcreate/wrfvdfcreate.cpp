@@ -208,7 +208,7 @@ void Usage(OptionParser &op, const char * msg) {
 	if (msg) {
 		cerr << ProgName << " : " << msg << endl;
 	}
-	cerr << "Usage: " << ProgName << " [options] wrf_ncdf_file vdf_file" << endl;
+	cerr << "Usage: " << ProgName << " [options] wrf_ncdf_file... vdf_file" << endl;
 	cerr << "Usage: " << ProgName << " [options] -samplwrf wrf_ncdf_file vdf_file" << endl;
 	cerr << "Usage: " << ProgName << " [options] -startt time vdf_file" << endl;
 	op.PrintOptionHelp(stderr);
@@ -293,7 +293,7 @@ int	main(int argc, char **argv) {
 		wrfVarNames = opt.varnames;
 		
 	}
-	else {	// Template file specified
+	else if (argc >= 1) {	// Template file specified
 		int rc;
 		string startDate;
 
@@ -381,6 +381,10 @@ int	main(int argc, char **argv) {
 		else {
 			vdfVarNames = wrfVarNames;
 		}
+	}
+	else {
+		Usage(op, "Invalid syntax");
+		exit(1);
 	}
 
 	// Add derived variables to the list of variables
