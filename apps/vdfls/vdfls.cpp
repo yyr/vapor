@@ -37,7 +37,7 @@ OptionParser::OptDescRec_T	set_opts[] = {
 	{"ts",		1, 	"0","Timestep of data file starting from 0"},
 	{"varname",	1, 	"var1",	"Name of variable"},
 	{"level",1, "-1","Refinement levels reported. 0=>coarsest, 1=>next refinement, etc. -1=>all"},
-	{"sort",1, "time","Sort order, one of (time|level)"},
+	{"sort",1, "time","Sort order, one of (time|level|varname)"},
 	{"long",	0,	"",	"Use a long listing format"},
 	{"help",	0,	"",	"Print this message and exit"},
 	{"debug",	0,	"",	"Enable debugging"},
@@ -306,7 +306,6 @@ int	main(int argc, char **argv) {
 		exit(1);
 	}
 	
-	map <long, map <string, VarFileInfo > >::iterator iter1;
 
 	string sort = opt.sort;
 
@@ -315,6 +314,7 @@ int	main(int argc, char **argv) {
 	else level = opt.level+1;
 
 	if (sort.compare("time") == 0) {
+		map <long, map <string, VarFileInfo > >::iterator iter1;
 		for (iter1 = statsvec.begin(); iter1 != statsvec.end(); iter1++) {
 			map <string, VarFileInfo>::iterator iter2;
 
@@ -329,11 +329,28 @@ int	main(int argc, char **argv) {
 	}
 	else if (sort.compare("level") == 0) {
 		for (int j=0; j<level; j++) {
+			map <long, map <string, VarFileInfo > >::iterator iter1;
 			for (iter1 = statsvec.begin(); iter1 != statsvec.end(); iter1++) {
 				map <string, VarFileInfo>::iterator iter2;
 
 				for (iter2 = iter1->second.begin(); iter2 != iter1->second.end(); iter2++) {
 					const VarFileInfo &vfiref = iter2->second;
+
+					PrintVariable(wb,vfiref, j);
+				}
+			}
+		}
+	}
+	else if (sort.compare("varname") == 0) {
+		const vector <string> varNames = metadata->GetVariableNames();
+		vector <string>::const_iterator iter1;
+		for (iter1=varNames.begin(); iter1 != varNames.end(); iter1++) {
+		
+			for (int j=0; j<level; j++) {
+				map <long, map <string, VarFileInfo > >::iterator iter2;
+				for (iter2 = statsvec.begin(); iter2 != statsvec.end(); iter2++) {
+
+					const VarFileInfo &vfiref = iter2->second[*iter1];;
 
 					PrintVariable(wb,vfiref, j);
 				}
