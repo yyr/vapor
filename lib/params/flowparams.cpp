@@ -2071,7 +2071,10 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 	int opacMinMap[3], opacMaxMap[3], colorMinMap[3], colorMaxMap[3];
 	float opacBoxSize[3], colorBoxSize[3];
 	int opacSize[3],colorSize[3];
+	//separate color, opac min_bdim
+	size_t min_cbdim[3], min_obdim[3];
 	DataStatus* ds = DataStatus::getInstance();
+	const size_t *bs = ds->getDataMgr()->GetMetadata()->GetBlockSize();
 	//Make sure RGBAs are available if needed:
 	if (getOpacMapEntityIndex() + getColorMapEntityIndex() > 0)
 		container->enableRGBAs();
@@ -2084,18 +2087,18 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
 			if (timeStep < 0) MyBase::SetErrMsg("No data for opacity mapped variable");
 		}
-		size_t min_dim[3], max_dim[3], min_bdim[3], max_bdim[3];
+		size_t min_dim[3], max_dim[3], max_bdim[3];
 		
 		int opacVarnum = getOpacMapEntityIndex()-4;
-		bool ok = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_bdim, max_bdim,
+		bool ok = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_obdim, max_bdim,
 			timeStep, &opacVarnum, 1, opacVarMin, opacVarMax);
 		if(!ok){
 			MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Opacity mapped variable data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
 			return;
 		}
-		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
+		
 		for (int i = 0; i<3; i++){
-			opacSize[i] = (max_bdim[i] - min_bdim[i] +1)*bs[i];
+			opacSize[i] = (max_bdim[i] - min_obdim[i] +1)*bs[i];
 			opacMinMap[i] = min_dim[i];
 			opacMaxMap[i] = max_dim[i];
 			opacBoxSize[i] = max_dim[i]-min_dim[i]+1;
@@ -2104,7 +2107,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		opacRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			colorMapEntity[getOpacMapEntityIndex()].c_str(),
-			numRefinements, min_bdim, max_bdim, fullHeight, 0);
+			numRefinements, min_obdim, max_bdim, fullHeight, 0);
 		QApplication::restoreOverrideCursor();
 	}
 	if (getColorMapEntityIndex() > 3){
@@ -2116,18 +2119,18 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 			if (timeStep < 0) MyBase::SetErrMsg("No data for mapped variable");
 		}
 		
-		size_t min_dim[3], max_dim[3], min_bdim[3], max_bdim[3];
+		size_t min_dim[3], max_dim[3], max_bdim[3];
 		
 		int colorVarnum = getColorMapEntityIndex()-4;
-		bool ok = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_bdim, max_bdim,
+		bool ok = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_cbdim, max_bdim,
 			timeStep, &colorVarnum, 1, colorVarMin, colorVarMax);
 		if(!ok){
 			MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Color map variable data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
 			return;
 		}
-		const size_t *bs = DataStatus::getInstance()->getDataMgr()->GetMetadata()->GetBlockSize();
+		
 		for (int i = 0; i<3; i++){
-			colorSize[i] = (max_bdim[i] - min_bdim[i] +1)*bs[i];
+			colorSize[i] = (max_bdim[i] - min_cbdim[i] +1)*bs[i];
 			colorMinMap[i] = min_dim[i];
 			colorMaxMap[i] = max_dim[i];
 			colorBoxSize[i] = max_dim[i]-min_dim[i]+1;
@@ -2136,7 +2139,7 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		colorRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			colorMapEntity[getColorMapEntityIndex()].c_str(),
-			numRefinements, min_bdim, max_bdim, fullHeight, 0);
+			numRefinements, min_cbdim, max_bdim, fullHeight, 0);
 		QApplication::restoreOverrideCursor();
 		
 	}
@@ -2181,16 +2184,19 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 					float remappedPoint[3];
 					periodicMap(dataPoint,remappedPoint,true);
 					//Convert point into integer coordinates in box:
-					x = (int)(0.5f+((remappedPoint[0] - opacVarMin[0])*opacBoxSize[0])/(opacVarMax[0]-opacVarMin[0]));
-					y = (int)(0.5f+((remappedPoint[1] - opacVarMin[1])*opacBoxSize[1])/(opacVarMax[1]-opacVarMin[1]));
-					z = (int)(0.5f+((remappedPoint[2] - opacVarMin[2])*opacBoxSize[2])/(opacVarMax[2]-opacVarMin[2]));
-					if (x>=opacMaxMap[0]) x = opacMaxMap[0]-1;
-					if (y>=opacMaxMap[1]) y = opacMaxMap[1]-1;
-					if (z>=opacMaxMap[2]) z = opacMaxMap[2]-1;
+					x = opacMinMap[0]+(int)(0.5f+((remappedPoint[0] - opacVarMin[0])*opacBoxSize[0])/(opacVarMax[0]-opacVarMin[0]));
+					y = opacMinMap[1]+(int)(0.5f+((remappedPoint[1] - opacVarMin[1])*opacBoxSize[1])/(opacVarMax[1]-opacVarMin[1]));
+					z = opacMinMap[2]+(int)(0.5f+((remappedPoint[2] - opacVarMin[2])*opacBoxSize[2])/(opacVarMax[2]-opacVarMin[2]));
+
+					if (x>opacMaxMap[0]) x = opacMaxMap[0];
+					if (y>opacMaxMap[1]) y = opacMaxMap[1];
+					if (z>opacMaxMap[2]) z = opacMaxMap[2];
 					if (x < opacMinMap[0]) x = opacMinMap[0];
 					if (y < opacMinMap[1]) y = opacMinMap[1];
 					if (z < opacMinMap[2]) z = opacMinMap[2];
-					
+					x -= min_obdim[0]*bs[0];
+					y -= min_obdim[1]*bs[1];
+					z -= min_obdim[2]*bs[2];
 					opacVar = opacRegion[x+opacSize[0]*(y+opacSize[1]*z)];
 					break;
 			}
@@ -2223,22 +2229,21 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 					int x,y,z;
 					float* dataPoint = container->getFlowPoint(lineNum,pointNum);
 					assert(dataPoint[0] != IGNORE_FLAG);
-					//Check for ignore flag... map to min color
-					//if (dataPoint[0] == IGNORE_FLAG){
-					//	colorVar = colorMin;
-					//	break;
-					//}
+					
 					float remappedPoint[3];
 					periodicMap(dataPoint,remappedPoint,true);
-					x = (int)(0.5f+((remappedPoint[0] - colorVarMin[0])*colorBoxSize[0])/(colorVarMax[0]-colorVarMin[0]));
-					y = (int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorBoxSize[1])/(colorVarMax[1]-colorVarMin[1]));
-					z = (int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorBoxSize[2])/(colorVarMax[2]-colorVarMin[2]));
-					if (x>=colorMaxMap[0]) x = colorMaxMap[0]-1;
-					if (y>=colorMaxMap[1]) y = colorMaxMap[1]-1;
-					if (z>=colorMaxMap[2]) z = colorMaxMap[2]-1;
+					x = colorMinMap[0]+(int)(0.5f+((remappedPoint[0] - colorVarMin[0])*colorBoxSize[0])/(colorVarMax[0]-colorVarMin[0]));
+					y = colorMinMap[1]+(int)(0.5f+((remappedPoint[1] - colorVarMin[1])*colorBoxSize[1])/(colorVarMax[1]-colorVarMin[1]));
+					z = colorMinMap[2]+(int)(0.5f+((remappedPoint[2] - colorVarMin[2])*colorBoxSize[2])/(colorVarMax[2]-colorVarMin[2]));
+					if (x > colorMaxMap[0]) x = colorMaxMap[0];
+					if (y > colorMaxMap[1]) y = colorMaxMap[1];
+					if (z > colorMaxMap[2]) z = colorMaxMap[2];
 					if (x < colorMinMap[0]) x = colorMinMap[0];
 					if (y < colorMinMap[1]) y = colorMinMap[1];
 					if (z < colorMinMap[2]) z = colorMinMap[2];
+					x -= min_cbdim[0]*bs[0];
+					y -= min_cbdim[1]*bs[1];
+					z -= min_cbdim[2]*bs[2];
 					colorVar = colorRegion[x+colorSize[0]*(y+colorSize[1]*z)];
 					break;
 			}
