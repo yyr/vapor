@@ -136,7 +136,7 @@ startPlay(int viznum) {
 	animationMutex.lock();
 	//Sometimes we get here with an active visualizer.  That should be OK.
 	if(isActive(viznum))
-		MessageReporter::warningMsg("Animation starting an active visualizer");
+		MessageReporter::infoMsg("Animation starting an active visualizer");
 	else activate(viznum);
 	setFinishRender(viznum);
 	//This is where we set the local/global bit, which will determine
