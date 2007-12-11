@@ -290,7 +290,7 @@ int	main(int argc, char **argv) {
 		dim[1] = opt.dim.ny;
 		dim[2] = opt.dim.nz;
 
-		wrfVarNames = opt.varnames;
+		vdfVarNames = opt.varnames;
 		
 	}
 	else if (argc >= 1) {	// Template file specified
