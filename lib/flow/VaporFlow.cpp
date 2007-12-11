@@ -356,6 +356,7 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 	float** maxPointHolder = 0;
 	if (!pathContainer) {
 		maxPointHolder = new float*[container->getNumLines()];
+		for (int i = 0; i<container->getNumLines(); i++) maxPointHolder[i] = 0;
 	}
 	//Go through the seeds, calculate the prioritization magnitude at each point, starting
 	//At the seed, going first backwards and then forwards
@@ -366,10 +367,16 @@ bool VaporFlow::prioritizeSeeds(FlowLineData* container, PathLineData* pathConta
 		int startPos = container->getSeedPosition();
 		float* maxPoint = 0;
 		bool searchOver = false;
-		float* startPt = container->getFlowPoint(line,startPos);
-		if (startPt[0] == END_FLOW_FLAG || startPt[0] == STATIONARY_STREAM_FLAG)
-			continue;
-		float startMag = fData->getFieldMag(startPt);
+		
+		float startMag = -1.f;
+		float* startPt = 0;
+		if (pathContainer){
+			//Initialize with starting point, if pathContainer exists
+			startPt = container->getFlowPoint(line,startPos);
+			if (startPt[0] == END_FLOW_FLAG || startPt[0] == STATIONARY_STREAM_FLAG)
+				continue; // if the seed is already out, the line is bad
+			startMag = fData->getFieldMag(startPt);
+		}
 		//First search backwards (if pathContainer != 0)
 		if (pathContainer && steadyFlowDirection <= 0){
 			for (int ptindx = startPos; ptindx >= container->getStartIndex(line); ptindx--){
