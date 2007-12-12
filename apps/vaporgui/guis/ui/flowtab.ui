@@ -1051,6 +1051,12 @@ rendering calculations.</string>
                                     <property name="frameShadow">
                                         <enum>Raised</enum>
                                     </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>Specify steady line smoothness and length when the flow lines are automatically scaled</string>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>When autoscale is checked (in the advanced steady flow parameters), the steady line smoothness slider and steady flow length slider are used to determine the scale factor and the resampling frequency used for integrating and displaying steady flow lines.  If autoscale is not checked, these values are set manually in the advanced steady flow parameters.</string>
+                                    </property>
                                     <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
@@ -2037,6 +2043,9 @@ widget for more info.</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Enable or disable the automatic calculation of steady field smoothness and length</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>When the steady field is automatically scaled, the scaling factor and the samples per flow line are controlled by the smoothness slider and the steady flow length slider in the basic flow parameters.  Otherwise these factors are manually controlled by the settings in the advanced steady flow parameters.</string>
                                             </property>
                                         </widget>
                                         <spacer>
