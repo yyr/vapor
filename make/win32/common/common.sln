@@ -107,6 +107,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asciitf2vtf", "..\asciitf2v
 		{E8FB619B-48D3-4B7E-B3F0-88939299995A} = {E8FB619B-48D3-4B7E-B3F0-88939299995A}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdfls", "..\vdfls\vdfls.vcproj", "{4292EC1A-B910-452B-B6B2-EC593050598A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -183,6 +189,12 @@ Global
 		{110B2E1A-E116-46FE-BEFE-F63B558549BD}.Debug.Build.0 = Debug|Win32
 		{110B2E1A-E116-46FE-BEFE-F63B558549BD}.Release.ActiveCfg = Release|Win32
 		{110B2E1A-E116-46FE-BEFE-F63B558549BD}.Release.Build.0 = Release|Win32
+		{4292EC1A-B910-452B-B6B2-EC593050598A}.Debug.ActiveCfg = Debug|Win32
+		{4292EC1A-B910-452B-B6B2-EC593050598A}.Debug.Build.0 = Debug|Win32
+		{4292EC1A-B910-452B-B6B2-EC593050598A}.Release.ActiveCfg = Release|Win32
+		{4292EC1A-B910-452B-B6B2-EC593050598A}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionItems) = postSolution
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection

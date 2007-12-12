@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cerrno>
 #include <cassert>
+#include <ctime>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -192,7 +193,14 @@ int getStats(
 void ErrMsgCB (const char *msg, int) {
 	cerr << ProgName << ": " << msg << endl;
 }
-
+//Windows has a different way of handling the mode bits
+#ifdef WIN32
+void print_mode(unsigned short st_mode) {
+	if (_S_IREAD & st_mode) cout << "r"; else cout << "-";
+	if (_S_IWRITE & st_mode) cout << "w"; else cout << "-";
+	if (_S_IEXEC & st_mode) cout << "x"; else cout << "-";
+}
+#else
 void print_mode(mode_t st_mode) {
 	for (int i=2; i>=0; i--) {
 		unsigned char o = st_mode >> i*3;
@@ -201,6 +209,7 @@ void print_mode(mode_t st_mode) {
 		if (o & 01) cout << "x"; else cout << "-";
 	}
 }
+#endif
 
 void print_dim(WaveletBlock3DIO *wb, int j) {
 
