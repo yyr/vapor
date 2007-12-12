@@ -345,12 +345,18 @@ void FlowEventRouter::updateTab(){
 			unsteadyFieldFrame->hide();
 			unsteadyGraphicFrame->hide();
 			if (autoScale){
-				steadyAutoGraphicFrame->show();
+				smoothnessSlider->setEnabled(true);
+				smoothnessSamplesEdit->setEnabled(true);
+				steadyLengthEdit->setEnabled(true);
+				steadyLengthSlider->setEnabled(true);
 				steadySamplesSlider1->setEnabled(false);
 				steadySamplesEdit1->setEnabled(false);
 				steadyScaleEdit1->setEnabled(false);
 			} else {
-				steadyAutoGraphicFrame->hide();
+				smoothnessSlider->setEnabled(false);
+				smoothnessSamplesEdit->setEnabled(false);
+				steadyLengthEdit->setEnabled(false);
+				steadyLengthSlider->setEnabled(false);
 				steadySamplesSlider1->setEnabled(true);
 				steadySamplesEdit1->setEnabled(true);
 				steadyScaleEdit1->setEnabled(false);
@@ -365,7 +371,10 @@ void FlowEventRouter::updateTab(){
 			unsteadyFieldFrame->show();
 			flowHelpButton->setText("Unsteady Flow Setup Help");
 			unsteadyGraphicFrame->show();
-			steadyAutoGraphicFrame->hide();
+			smoothnessSlider->setEnabled(false);
+			smoothnessSamplesEdit->setEnabled(false);
+			steadyLengthEdit->setEnabled(false);
+			steadyLengthSlider->setEnabled(false);
 			seedtimeIncrementEdit->setEnabled(true);
 			seedtimeEndEdit->setEnabled(true);
 			seedTimeFrame->show();
@@ -380,12 +389,18 @@ void FlowEventRouter::updateTab(){
 			flowHelpButton->setText("Field Line Advection Setup Help");
 			unsteadyGraphicFrame->hide();
 			if (autoScale){
-				steadyAutoGraphicFrame->show();
+				smoothnessSlider->setEnabled(true);
+				smoothnessSamplesEdit->setEnabled(true);
+				steadyLengthEdit->setEnabled(true);
+				steadyLengthSlider->setEnabled(true);
 				steadySamplesSlider2->setEnabled(false);
 				steadySamplesEdit2->setEnabled(false);
 				steadyScaleEdit2->setEnabled(false);
 			} else {
-				steadyAutoGraphicFrame->hide();
+				smoothnessSlider->setEnabled(false);
+				smoothnessSamplesEdit->setEnabled(false);
+				steadyLengthEdit->setEnabled(false);
+				steadyLengthSlider->setEnabled(false);
 				steadySamplesSlider2->setEnabled(true);
 				steadySamplesEdit2->setEnabled(true);
 				steadyScaleEdit2->setEnabled(true);
