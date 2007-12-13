@@ -82,18 +82,6 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "installer", "..\installer\i
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ncdf2vdf", "..\ncdf2vdf\ncdf2vdf.vcproj", "{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}"
-	ProjectSection(ProjectDependencies) = postProject
-		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
-		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wrf2vdf", "..\wrf2vdf\wrf2vdf.vcproj", "{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}"
-	ProjectSection(ProjectDependencies) = postProject
-		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
-		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wrfvdfcreate", "..\wrfvdfcreate\wrfvdfcreate.vcproj", "{31C701B3-60F3-48DC-9445-83BC83A9821B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
@@ -113,10 +101,24 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vdfls", "..\vdfls\vdfls.vcp
 		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ncdfToVapor", "..\ncdfToVapor\ncdfToVapor.vcproj", "{B81034E2-EF06-4D43-BFA7-85B05CFA1290}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wrfToVdf", "..\wrfToVdf\wrfToVdf.vcproj", "{C7A1F828-2D46-4609-B92A-326DD3C5A6FC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{29C8AC86-3D4B-4081-9D20-0770B10C4D30} = {29C8AC86-3D4B-4081-9D20-0770B10C4D30}
+		{91C4E098-BC79-4784-94B7-C96B3548682D} = {91C4E098-BC79-4784-94B7-C96B3548682D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
 		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
 		{31CFF039-709C-3804-9B46-2ED0A8D45C92}.Debug.ActiveCfg = Debug|Win32
@@ -173,14 +175,6 @@ Global
 		{9FD418C0-1BFF-4BA3-B901-3AC872588F06}.Release.Build.0 = Release|Win32
 		{5AD78999-8DB8-4DEC-96DC-4AB28652BF00}.Debug.ActiveCfg = Debug
 		{5AD78999-8DB8-4DEC-96DC-4AB28652BF00}.Release.ActiveCfg = Release
-		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Debug.ActiveCfg = Debug|Win32
-		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Debug.Build.0 = Debug|Win32
-		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Release.ActiveCfg = Release|Win32
-		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Release.Build.0 = Release|Win32
-		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Debug.ActiveCfg = Debug|Win32
-		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Debug.Build.0 = Debug|Win32
-		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Release.ActiveCfg = Release|Win32
-		{3D889BD5-C9D4-4F25-9664-E111D6CD1FB9}.Release.Build.0 = Release|Win32
 		{31C701B3-60F3-48DC-9445-83BC83A9821B}.Debug.ActiveCfg = Debug|Win32
 		{31C701B3-60F3-48DC-9445-83BC83A9821B}.Debug.Build.0 = Debug|Win32
 		{31C701B3-60F3-48DC-9445-83BC83A9821B}.Release.ActiveCfg = Release|Win32
@@ -193,6 +187,14 @@ Global
 		{4292EC1A-B910-452B-B6B2-EC593050598A}.Debug.Build.0 = Debug|Win32
 		{4292EC1A-B910-452B-B6B2-EC593050598A}.Release.ActiveCfg = Release|Win32
 		{4292EC1A-B910-452B-B6B2-EC593050598A}.Release.Build.0 = Release|Win32
+		{B81034E2-EF06-4D43-BFA7-85B05CFA1290}.Debug.ActiveCfg = Debug|Win32
+		{B81034E2-EF06-4D43-BFA7-85B05CFA1290}.Debug.Build.0 = Debug|Win32
+		{B81034E2-EF06-4D43-BFA7-85B05CFA1290}.Release.ActiveCfg = Release|Win32
+		{B81034E2-EF06-4D43-BFA7-85B05CFA1290}.Release.Build.0 = Release|Win32
+		{C7A1F828-2D46-4609-B92A-326DD3C5A6FC}.Debug.ActiveCfg = Debug|Win32
+		{C7A1F828-2D46-4609-B92A-326DD3C5A6FC}.Debug.Build.0 = Debug|Win32
+		{C7A1F828-2D46-4609-B92A-326DD3C5A6FC}.Release.ActiveCfg = Release|Win32
+		{C7A1F828-2D46-4609-B92A-326DD3C5A6FC}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionItems) = postSolution
 	EndGlobalSection
