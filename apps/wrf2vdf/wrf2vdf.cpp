@@ -374,10 +374,13 @@ int DoGeopotStuff(
 
 
 // Reads/calculates and outputs any of these quantities: U, V, W,
-// 2D wind speed (U-V plane) and 3D wind speed
-int DoWindSpeed(
+// 2D wind speed (U-V plane), 3D wind speed, and vertical vorticity (relative to
+// a WRF level, i.e., not vertically interpolated to a Cartesian grid)
+int DoWindStuff(
 	int ncid, 
 	const size_t dim[3],
+	double dx, // Grid spacings from WRF file
+	double dy,
 	const map<string, WRF::varInfo_t *> &var_info_map, 
 	size_t aVaporTs, 
 	int wrfT, 
@@ -390,10 +393,11 @@ int DoWindSpeed(
 	bool wantW = find(varnames.begin(),varnames.end(),wrfNames.W)!=varnames.end();
 	bool wantUV = find(varnames.begin(),varnames.end(),"UV_")!=varnames.end();
 	bool wantUVW = find(varnames.begin(),varnames.end(),"UVW_")!=varnames.end();
+	bool wantOmZ = find(varnames.begin(),varnames.end(),"omZ_")!=varnames.end();
 
 	// Make sure we have work to do.
 	//
-	if (! (wantU || wantV || wantW || wantUV || wantUVW)) return(0);
+	if (! (wantU || wantV || wantW || wantUV || wantUVW || wantOmZ)) return(0);
 
 	map<string, WRF::varInfo_t *>::const_iterator itr;
 
@@ -413,6 +417,7 @@ int DoWindSpeed(
 	static float * wBuffer = NULL;
 	static float * uvBuffer = NULL;
 	static float * uvwBuffer = NULL;
+	static float * omZBuffer = NULL;
 
 	static float * uBufferAbove = NULL; 
 	static float * vBufferAbove = NULL;
@@ -420,7 +425,7 @@ int DoWindSpeed(
 
 	size_t slice_sz;
 
-	if (wantU || wantUV || wantUVW) {
+	if (wantU || wantUV || wantUVW || wantOmZ) {
 		slice_sz = uInfoPtr->dimlens[uInfoPtr->ndimids-1] *
             uInfoPtr->dimlens[uInfoPtr->ndimids-2];
 
@@ -429,7 +434,7 @@ int DoWindSpeed(
 		if ( uInfoPtr->stag[2] )
 			if (! uBufferAbove) uBufferAbove = new float[slice_sz];
 	}
-	if (wantV || wantUV || wantUVW) {
+	if (wantV || wantUV || wantUVW || wantOmZ) {
 		slice_sz = vInfoPtr->dimlens[vInfoPtr->ndimids-1] *
             vInfoPtr->dimlens[vInfoPtr->ndimids-2];
 
@@ -451,6 +456,9 @@ int DoWindSpeed(
 	if ( wantUVW ) {
 		if (! uvwBuffer) uvwBuffer = new float[dim[0]*dim[1]]; 
 	}
+	if ( wantOmZ ) {
+		if (! omZBuffer) omZBuffer = new float[dim[0]*dim[1]];
+	}
 
 	// Prepare wavelet block writers
 	//
@@ -459,6 +467,7 @@ int DoWindSpeed(
 	WaveletBlock3DBufWriter * wWriter = NULL;
 	WaveletBlock3DBufWriter * uvWriter = NULL;
 	WaveletBlock3DBufWriter * uvwWriter = NULL;
+	WaveletBlock3DBufWriter * omZWriter = NULL;
 
 	if ( wantU ) {
 		uWriter = new WaveletBlock3DBufWriter(metadata);
@@ -495,6 +504,13 @@ int DoWindSpeed(
 		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
 		varnames.erase(find(varnames.begin(), varnames.end(), "UVW_"));
 	}
+	if ( wantOmZ ) {
+		omZWriter = new WaveletBlock3DBufWriter(metadata);
+		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
+		omZWriter->OpenVariableWrite(aVaporTs, "omZ_", opt.level);
+		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
+		varnames.erase(find(varnames.begin(), varnames.end(), "omZ_"));
+	}
 
 
 	// Switches to prevent redundant reads in case of vertical staggering
@@ -507,7 +523,7 @@ int DoWindSpeed(
 	for ( size_t z = 0 ; z < dim[2] ; z++ )
 	{
 		// Read (if desired or needed)
-		if ( wantU || wantUV || wantUVW ) {
+		if ( wantU || wantUV || wantUVW || wantOmZ ) {
 			rc = WRF::GetZSlice(
 				ncid, (*uInfoPtr), wrfT, z, uBuffer, uBufferAbove, 
 				needAnotherU, dim
@@ -515,7 +531,7 @@ int DoWindSpeed(
 			if (rc<0) break;
 		}
 
-		if ( wantV || wantUV || wantUVW ) {
+		if ( wantV || wantUV || wantUVW || wantOmZ ) {
 			rc = WRF::GetZSlice(
 				ncid, (*vInfoPtr), wrfT, z, vBuffer, vBufferAbove, 
 				needAnotherV, dim
@@ -542,11 +558,35 @@ int DoWindSpeed(
 				uvBuffer[i] = sqrt( uBuffer[i]*uBuffer[i] + vBuffer[i]*vBuffer[i] );
 			uvWriter->WriteSlice( uvBuffer );
 		}
-
+		// Calculate and write 3D wind (if desired)
 		if ( wantUVW ) {
 			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
 				uvwBuffer[i] = sqrt( uBuffer[i]*uBuffer[i] + vBuffer[i]*vBuffer[i] + wBuffer[i]*wBuffer[i] );
 			uvwWriter->WriteSlice( uvwBuffer );
+		}
+		// Calculate and write vertical vorticity (if desired)
+		if ( wantOmZ ) {
+			double dVdx, dUdy; // Holds derivatives used in calculation of curl
+			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
+			{
+				// On the boundaries of the domain, use forward or backward
+				// finite differences
+				if ( i % dim[0] == 0 ) // On left edge of domain
+					dVdx = (vBuffer[i + 1] - vBuffer[i])/dx;
+				else if ( (i % dim[0]) + 1 == 0 ) // On right edge
+					dVdx = (vBuffer[i] - vBuffer[i - 1])/dx;
+				else // In the middle--use centered difference
+					dVdx = (vBuffer[i + 1] - vBuffer[i - 1])/(2.0*dx);
+				if ( i >= 0 && i < dim[0] ) // On the bottom edge
+					dUdy = (uBuffer[i + dim[0]] - uBuffer[i])/dy;
+				else if ( i >= dim[0]*(dim[1] - 1) ) // On top edge
+					dUdy = (uBuffer[i] - uBuffer[i - dim[0]])/dy;
+				else // In the middle
+					dUdy = (uBuffer[i + dim[0]] - uBuffer[i - dim[0]])/(2.0*dy);
+				// Calculate the vertical vorticity at that grid point
+				omZBuffer[i] = dVdx - dUdy;
+			}
+			omZWriter->WriteSlice( omZBuffer );
 		}
 	}
 
@@ -572,6 +612,10 @@ int DoWindSpeed(
 	if (uvwWriter) {
 		uvwWriter->CloseVariable();
 		delete uvwWriter;
+	}
+	if (omZWriter) {
+		omZWriter->CloseVariable();
+		delete omZWriter;
 	}
 
 	return(rc);
@@ -967,7 +1011,9 @@ int GetWRFInfo(
 	const char *file,
 	vector <string> &vars,
 	vector <long>	&timestamps,
-	size_t dims[3]
+	size_t dims[3],
+	float & dx,
+	float & dy
 ) {
 	int rc;
 
@@ -975,7 +1021,6 @@ int GetWRFInfo(
 	timestamps.clear();
 
 	const WRF::atypVarNames_t atypnames_dummy;
-	float dx, dy;
 	size_t dimLens[4];
 	string startDate;
 
@@ -1084,6 +1129,15 @@ void SelectVariables(
 				copy_vars.push_back(v);
 			}
 		}
+		else if (v.compare("omZ_")==0) {
+			if (
+				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.U)!=wrf_vars.end()) &&
+				(find(wrf_vars.begin(),wrf_vars.end(),wrfNames.V)!=wrf_vars.end()) &&
+				(find(copy_vars.begin(),copy_vars.end(),v)==copy_vars.end())
+			) {
+				copy_vars.push_back(v);
+			}
+		}
 		else {
 			// Variable is not a derived quantity
 			//
@@ -1165,6 +1219,7 @@ int GetVarsInfo(
 	derived.push_back("TK_");
 	derived.push_back("UV_");
 	derived.push_back("UVW_");
+	derived.push_back("omZ_");
 
 
 	// Get variable info for all variables
@@ -1257,7 +1312,7 @@ int GetVarsInfo(
 			return(-1);
 	}
 
-	itr = find(copy_vars.begin(), copy_vars.end(), "UV_");
+	itr = find(copy_vars.begin(), copy_vars.end(), "UVW_");
 	if (itr != copy_vars.end()) {
 
 		if (get_dep_var_info(ncid, ncdims, wrfNames.U, var_info_map) < 0)
@@ -1267,6 +1322,16 @@ int GetVarsInfo(
 			return(-1);
 
 		if (get_dep_var_info(ncid, ncdims, wrfNames.W, var_info_map) < 0)
+			return(-1);
+	}
+
+	itr = find(copy_vars.begin(), copy_vars.end(), "omZ_");
+	if (itr != copy_vars.end()) {
+
+		if (get_dep_var_info(ncid, ncdims, wrfNames.U, var_info_map) < 0)
+			return(-1);
+
+		if (get_dep_var_info(ncid, ncdims, wrfNames.V, var_info_map) < 0)
 			return(-1);
 	}
 
@@ -1353,13 +1418,15 @@ int	main(int argc, char **argv) {
 		vector <string> copy_vars;		// list of vars to copy
 		int ncid;
 
+		float dx, dy; // Needed for vorticity calculation
+
 		// time steps to copy to in VDC
 		vector <long> copy_vdf_timesteps;
 
 		// time steps to copy from in netCDF file
 		vector <long> copy_wrf_timesteps;
 
-		rc = GetWRFInfo(argv[arg], wrf_vars, wrf_timestamps, wrf_dims);
+		rc = GetWRFInfo(argv[arg], wrf_vars, wrf_timestamps, wrf_dims, dx, dy);
 		if (rc<0) {
 			cerr << "Skipping file " << argv[arg] << endl;
 			continue;
@@ -1462,8 +1529,8 @@ int	main(int argc, char **argv) {
 			}
 
 			// Find wind speeds, if necessary
-			rc = DoWindSpeed( 
-				ncid, vdf_dims, var_info_map, vdf_ts, wrf_ts,
+			rc = DoWindStuff( 
+				ncid, vdf_dims, dx, dy, var_info_map, vdf_ts, wrf_ts,
 				metadata, wrfNames, vars
 			);
 			if (rc<0) MyBase::SetErrCode(0);
