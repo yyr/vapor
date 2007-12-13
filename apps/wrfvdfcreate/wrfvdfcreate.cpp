@@ -209,7 +209,7 @@ void Usage(OptionParser &op, const char * msg) {
 		cerr << ProgName << " : " << msg << endl;
 	}
 	cerr << "Usage: " << ProgName << " [options] wrf_ncdf_file... vdf_file" << endl;
-	cerr << "Usage: " << ProgName << " [options] -samplwrf wrf_ncdf_file vdf_file" << endl;
+	cerr << "Usage: " << ProgName << " [options] -smplwrf wrf_ncdf_file vdf_file" << endl;
 	cerr << "Usage: " << ProgName << " [options] -startt time vdf_file" << endl;
 	op.PrintOptionHelp(stderr);
 
@@ -346,7 +346,7 @@ int	main(int argc, char **argv) {
 		}
 		else {
 			if (strlen(opt.smplwrf) != 0) {
-				Usage(op, "Unexpected -samplwrf option");
+				Usage(op, "Unexpected -smplwrf option");
 				exit(1);
 			}
 			rc = GetWRFMetadata(
