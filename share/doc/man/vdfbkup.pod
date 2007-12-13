@@ -8,6 +8,10 @@ B<vdfbkup.pl> [options] I<vdffile> I<directory>
 
 B<vdfbkup.pl> [options] I<vdffile> I<command [command args]>
 
+B<vdfbkup.pl> [options] B<-restart> I<directory>
+
+B<vdfbkup.pl> [options] B<-restart> I<command [command args]>
+
 =head1 DESCRIPTION
 
 B<vdfbkup.pl> will make a backup of VAPOR Data Collection (VDC) associated
@@ -23,6 +27,9 @@ in a tar file. Files that exceed the threshold are backed up directly:
 copied, without modification to I<directory> if the first form of the
 command is used, or passed as arguments to I<command> if the second form
 of B<vdfbkup.pl> is invoked.
+
+The third and fourth forms of the command allow restarting from a 
+previous, failed session.
 
 
 =head1 OPTIONS
@@ -69,6 +76,15 @@ files would be backed up by B<vdfbkup.pl> if this option were not present.
 
 Operate quietly. Normally, B<vdfbkup.pl> is quite verbose, echoing each
 command before executing it.
+
+=item -restart
+
+Attempt to restart from a previous session. B<vdfbkup.pl> maintains a 
+state file as it backs up data. If the command is terminated 
+abnormally this option allows restarts using the state file. The state
+file maintains only the .vdf file and lists of files yet to be
+successfully copied. It does not contain other command line arguments 
+passed to the failed command.
 
 =back
 
