@@ -573,7 +573,7 @@ int DoWindStuff(
 				// finite differences
 				if ( i % dim[0] == 0 ) // On left edge of domain
 					dVdx = (vBuffer[i + 1] - vBuffer[i])/dx;
-				else if ( (i % dim[0]) + 1 == 0 ) // On right edge
+				else if ( (i + 1) % dim[0] == 0 ) // On right edge
 					dVdx = (vBuffer[i] - vBuffer[i - 1])/dx;
 				else // In the middle--use centered difference
 					dVdx = (vBuffer[i + 1] - vBuffer[i - 1])/(2.0*dx);
