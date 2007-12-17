@@ -275,7 +275,7 @@ int DoGeopotStuff(
 	if ( wantPhnorm ) {
 		phnormWriter = new WaveletBlock3DBufWriter(metadata);
 		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
-		phbWriter->OpenVariableWrite(aVaporTs, "PHNorm_", opt.level);
+		phnormWriter->OpenVariableWrite(aVaporTs, "PHNorm_", opt.level);
 		if (WaveletBlock3DBufWriter::GetErrCode() != 0) return(-1);
 		varnames.erase(find(varnames.begin(), varnames.end(), "PHNorm_"));
 	}
@@ -335,6 +335,7 @@ int DoGeopotStuff(
 		}
 
 		if ( wantEle ) eleWriter->WriteSlice( workBuffer );
+
 				
 		// Find and write normalized geopotential, if desired
 		if ( wantPhnorm )
