@@ -592,7 +592,7 @@ makeModelviewMatrix(float* vpos, float* vdir, float* upvec, float* mtrx){
 	vscale(minv+8, -1.f);
 	vcopy(vpos, minv+ 12);
 	int rc = minvert(minv, mtrx);
-	assert(rc);
+	if(!rc) assert(rc);//Only catch this in debug mode
 }
 void	matrix4x4_vec3_mult(
 	const GLfloat	m[16],

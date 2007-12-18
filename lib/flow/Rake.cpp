@@ -73,7 +73,7 @@ bool SeedGenerator::GetSeeds(VaporFlow* vFlow,
 							 const unsigned int randomSeed,
 							 int stride)
 {
-	Rake* pRake;
+	Rake* pRake = 0;
 
 	if(rakeDimension == POINT)
 		pRake = new PointRake();

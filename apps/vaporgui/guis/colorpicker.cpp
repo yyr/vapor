@@ -38,7 +38,9 @@
 //#include "qpopupmenu.h"
 
 #include "colorpicker.h"
-
+//Color picker dimensions:
+static int pWidth = 140;
+static int pHeight = 120;
 QPoint ColorPicker::colPt()
 { return QPoint( (360-hue)*(pWidth-1)/360, (255-sat)*(pHeight-1)/255 ); }
 int ColorPicker::huePt( const QPoint &pt )

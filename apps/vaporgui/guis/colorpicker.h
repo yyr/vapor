@@ -65,9 +65,7 @@ private:
 
     QPixmap *pix;
 };
-//Color picker dimensions:
-static int pWidth = 140;
-static int pHeight = 120;
+
 
 class ColorShowLabel : public QFrame
 {

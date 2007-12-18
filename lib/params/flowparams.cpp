@@ -2531,7 +2531,7 @@ int FlowParams::calcMaxPoints(){
 	
 	if (flowType != 1) { //steady or flow line advection
 		if (autoScale) {
-			objectsPerFlowline = steadyFlowLength*steadySmoothness;
+			objectsPerFlowline = (int)(steadyFlowLength*steadySmoothness);
 		}
 		maxPoints = objectsPerFlowline;
 		if (maxPoints < 2) maxPoints = 2;
