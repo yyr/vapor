@@ -697,7 +697,7 @@ int AMRTreeBranch::get_ith_refined_cell(
 				count++;
 			}
 			if (count == ithcell) {
-				return ((parentidx << NBITS-1) + i);
+				return ((parentidx << (NBITS-1)) + i);
 			}
 		}
 		parentidx++;

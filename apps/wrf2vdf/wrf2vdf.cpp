@@ -825,8 +825,8 @@ int DoPTStuff(
 		if ( wantTk ) {	
 			for ( size_t i = 0 ; i < dim[0]*dim[1] ; i++ )
 				workBuffer[i] = (tBuffer[i] + 300.0)
-								* pow( pBuffer[i] + pbBuffer[i], 0.286 )
-								/ pow( 100000.0, 0.286 );
+								* pow( (float)(pBuffer[i] + pbBuffer[i]), 0.286f )
+								/ pow( 100000.0f, 0.286f );
 			tkWriter->WriteSlice( workBuffer );
 		}
 	}
