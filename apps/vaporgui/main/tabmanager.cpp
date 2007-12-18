@@ -47,7 +47,7 @@ TabManager::TabManager(QWidget* parent, const char* name,  WFlags f)
 	haveMultipleViz = false;
 	
 	int ok = connect(this, SIGNAL(currentChanged(QWidget*)), this, SLOT(newFrontTab(QWidget*)));
-	assert (ok);
+	if(!ok) assert (ok);
 	currentFrontPage = -1;
 }
 //Insert a new tabbed widget at the end of the tabs

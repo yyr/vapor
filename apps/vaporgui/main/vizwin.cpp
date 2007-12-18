@@ -832,7 +832,7 @@ changeViewerFrame(){
 
 	//Invert it:
 	int rc = minvert(m, minv);
-	assert(rc);
+	if(!rc) assert(rc);
 	vscale(minv+8, -1.f);
 	if (!myGLWindow->getPerspective()){
 		//Note:  This is a hack.  Putting off the time when we correctly implement

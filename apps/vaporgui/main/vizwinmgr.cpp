@@ -700,7 +700,7 @@ void VizWinMgr::setParams(int winnum, Params* p, Params::ParamType t, int inst){
 			rend->setRenderParams(newRParams);
 			glwin->mapRenderer(newRParams,rend);
 			bool ok = glwin->unmapRenderer(prevRParams);
-			assert(ok);
+			if(!ok) assert(ok);
 		}
 
 	}
