@@ -603,6 +603,11 @@ exportData(){
 		MessageReporter::errorMsg("Export of pre-version-2 metadata not supported");
 		return;
 	}
+	const string& gtype = currentMetadata->GetGridType();
+	if (gtype == "layered") {
+		MessageReporter::errorMsg("Export of data on layered grids not supported");
+		return;
+	}
 	//Set up arguments to Export():
 	//
 	AnimationParams*  p = winMgr->getAnimationParams(winNum);
