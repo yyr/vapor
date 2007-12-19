@@ -237,16 +237,19 @@ setCoordTrans(){
 		maxStretchedCubeCoord[i] = (float)strExtents[i+3];
 	}
 }
-//Find far and near dist along view direction, in world coordinates 
+//Find far and near dist along view direction, in world coordinates,
+//and in box coords
 //Far is distance from camera to furthest corner of full volume
 //Near is distance to full volume if it's positive, otherwise
 //is distance to closest corner of region.
 //
 void ViewpointParams::
-getFarNearDist(RegionParams* rParams, float* fr, float* nr){
+getFarNearDist(RegionParams* rParams, float* fr, float* nr, float* boxFar, float* boxNear){
 	//First check full box
 	const float* extents = DataStatus::getInstance()->getStretchedExtents();
 	float wrk[3], cor[3];
+	float nearPt[3],farPt[3];
+	float nearPtBox[3],farPtBox[3],camPosBox[3];
 	float maxProj = -.1e30f;
 	float minProj = 1.e30f;
 	//Make sure the viewDir is normalized:
@@ -257,14 +260,33 @@ getFarNearDist(RegionParams* rParams, float* fr, float* nr){
 		}
 		vsub(cor, getCameraPos(), wrk);
 		float dist = vlength(wrk);
-		if (minProj > dist) minProj = dist;
-		if (maxProj < dist) maxProj = dist;
+		if (minProj > dist) {
+			minProj = dist;
+			vcopy(cor, nearPt);
+		}
+		if (maxProj < dist) {
+			maxProj = dist;
+			vcopy(cor, farPt);
+		}
 	}
 	if (maxProj < 1.e-10f) maxProj = 1.e-10f;
 	if (minProj > 0.03f*maxProj) minProj = 0.03f*maxProj;
 	
 	*fr = maxProj;
 	*nr = minProj;
+	//Find box coords of nearPt, farPt, camPos
+	worldToStretchedCube(nearPt, nearPtBox);
+	worldToStretchedCube(farPt, farPtBox);
+	worldToStretchedCube(getCameraPos(), camPosBox);
+	vsub(camPosBox,nearPtBox,nearPtBox);
+	vsub(camPosBox,farPtBox,farPtBox);
+	minProj = vlength(farPtBox);
+	maxProj = vlength(nearPtBox);
+	if (maxProj < 1.e-10f) maxProj = 1.e-10f;
+	if (minProj > 0.03f*maxProj) minProj = 0.03f*maxProj;
+
+	*boxFar = maxProj;
+	*boxNear = minProj;
 	return;
 }
 

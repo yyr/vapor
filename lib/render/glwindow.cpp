@@ -222,17 +222,12 @@ void GLWindow::resizeGL( int width, int height )
 	
 void GLWindow::resetView(RegionParams* rParams, ViewpointParams* vParams){
 	//Get the nearest and furthest distance to region from current viewpoint
-	float fr, nr;
-	vParams->getFarNearDist(rParams, &fr, &nr);
-	float scaleFac = vParams->getMaxStretchedCubeSide();
-	if (fr <= 0.f) { //region is behind camera
-		fr = Max(1.f,-fr);
-	}
-	if (nr <= 0.f){ //camera is inside region
-		nr = 0.01f*fr;
-	}
-	farDist = fr*4.f/scaleFac; 
-	nearDist = nr*0.25f/scaleFac;
+	float fr, nr, frbx, nrbx;
+	vParams->getFarNearDist(rParams, &fr, &nr, &frbx, &nrbx);
+	
+	farDist = frbx*4.f;
+	nearDist = nrbx*0.25f;
+	
 	needsResize = true;
 }
 

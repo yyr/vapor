@@ -95,7 +95,7 @@ public:
 	void rescale(float scaleFac[3]);
 
 	//determine far and near distance to region based on current viewpoint
-	void getFarNearDist(RegionParams* rParams, float* far, float* near);
+	void getFarNearDist(RegionParams* rParams, float* far, float* near, float* boxFar, float* boxNear);
 	
 	//Reset viewpoint when new session is started:
 	virtual bool reinit(bool doOverride);
