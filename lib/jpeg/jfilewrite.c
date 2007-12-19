@@ -16,9 +16,7 @@
 
 
 #include <stdio.h>
-#include <memory.h>
 #include <stdlib.h>
-#include <malloc.h>
 /*
  * Include file for users of JPEG library.
  * You will need to have included system headers that define at least
