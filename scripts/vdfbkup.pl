@@ -68,7 +68,7 @@ sub     usage {
 	}
 
 	print STDERR "Usage: $ProgName [options] vdffile (directory|command)\n";
-	print STDERR "Usage: $ProgName [options] -restart (directory|command)\n";
+	print STDERR "Usage: $ProgName -restart\n";
 	print STDERR "\nWhere \"options\" are:\n\n";
 	printf STDERR $format, "Option name", "Default", '#args', "Description";
 	printf STDERR $format, "------ ----", "-------", '-----', "-----------";
@@ -274,7 +274,7 @@ sub vdfsplit {
 sub	tarit {
 	local($tarfile, @files) = @_;
 
-	my(@cmd) = ("tar", "-cbf", $BS, $tarfile, @files);
+	my(@cmd) = ("tar", "-c", "-b", $BS, "-f", $tarfile, @files);
 
 	mysystem(@cmd);
 
@@ -290,28 +290,32 @@ sub	tarit {
 	}
 }
 
+#
+# Save state of @CmdLineArgs, $VDFFile, @FilesToTar, @TarNames, and 
+# @FilesToCopy variables
+#
 sub save_state {
-	my($vdffile, $files_to_copy_ref, $files_to_tar_ref, $tar_names_ref) = @_;
-
-	my(@files_to_copy) = @$files_to_copy_ref;
-	my(@files_to_tar) = @$files_to_tar_ref;
-	my(@tar_names) = @$tar_names_ref;
 
 	if (! open (RESTART, "> $RestartFile")) { 
 		print STDERR "Can't open state file $RestartFile\n";
 		return;
 	}
 
-	$vdffile = abs_path($vdffile);
+	foreach $arg (@CmdLineArgs) {
+		print RESTART "$arg\n";
+	}
+	print RESTART "END_CMD_LINE_ARGS\n";
+
+	$vdffile = abs_path($VDFFile);
 	print RESTART "$vdffile\n";
 
-	foreach $file (@files_to_copy) {
+	foreach $file (@FilesToCopy) {
 		print RESTART "$file\n";
 	}
 
-	foreach $listref (@files_to_tar) {
+	foreach $listref (@FilesToTar) {
 		@a = @$listref;
-		$tarfile = shift @tar_names;
+		$tarfile = shift @TarNames;
 		print RESTART "$tarfile\n";
 		foreach $file (@a) {
 			print RESTART "$file\n";
@@ -320,6 +324,10 @@ sub save_state {
 	close RESTART;
 }
 
+#
+# Restore state of @CmdLineArgs, $VDFFile, @FilesToTar, @TarNames, and 
+# @FilesToCopy variables
+#
 sub restore_state {
 
 	if (! open (RESTART, "< $RestartFile")) { 
@@ -327,35 +335,45 @@ sub restore_state {
 		return ();
 	}
 
-	my($vdffile);
-	if (! defined($vdffile = <RESTART>)) {
+	my($done) = 0;
+	while ((!$done) && ($_ = <RESTART>)) {
+		chop $_;
+
+		if ($_ =~ /^END_CMD_LINE_ARGS$/) {
+			$done = 1;
+			next;
+		}
+		push @CmdLineArgs, $_;
+	}
+
+	if (! defined($VDFFile = <RESTART>)) {
 		print STDERR "Bogus restart file\n";
 		return();
 	}
-	chop $vdffile;
+	chop $VDFFile;
 
-	my(@files_to_copy) = ();
-	my(@tar_names) = ();
+	@FilesToCopy = ();
+	@TarNames = ();
 	my($done) = 0;
 	while ((!$done) && ($_ = <RESTART>)) {
 		chop $_;
 
 		if ($_ =~ /\.tar$/) {
-			push @tar_names, $_;
+			push @TarNames, $_;
 			$done = 1;
 			next;
 		}
-		push @files_to_copy, $_;
+		push @FilesToCopy, $_;
 	}
-	my(@files_to_tar) = ();
+	@FilesToTar = ();
 
 	@list = ();
 	while ($_ = <RESTART>) {
 		chop $_;
 
 		if ($_ =~ /\.tar$/) {
-			push @tar_names, $_;
-			push @files_to_tar, [@list];
+			push @TarNames, $_;
+			push @FilesToTar, [@list];
 			@list = ();
 			next;
 		}
@@ -363,12 +381,11 @@ sub restore_state {
 	}
 
 	if (@list) {
-		push @files_to_tar, [@list];
+		push @FilesToTar, [@list];
 	}
 
 	close RESTART;
 
-	return($vdffile, \@files_to_copy, \@files_to_tar, \@tar_names);
 }
 
 sub tar_create {
@@ -384,13 +401,6 @@ sub tar_create {
 
 	$MaxTarSize *= 0.95;	# allow for tar overhead.
 
-	if ($Restart) {
-		($vdffile, $ftc_ref, $ftt_ref, $tn_ref) = restore_state();
-		@files_to_copy = @$ftc_ref;
-		@files_to_tar = @$ftt_ref;
-		@tar_names = @$tn_ref;
-	}
-	
 
 	my($volume, $directory, $vdfbase) = File::Spec->splitpath($vdffile);
 	chdir $directory or die "$ProgName: Can't cd to $directory: $!\n";
@@ -417,12 +427,12 @@ sub tar_create {
 		}
 
 
-		@files_to_tar = ();	# list of lists of files to tar
-		@files_to_copy = ();# list of files to copy without tarring
+		@FilesToTar = ();	# list of lists of files to tar
+		@FilesToCopy = ();# list of files to copy without tarring
 		$targlen = 0;
 		$tsize = $tsize_all = 0;
 		@list = ();
-		@tar_names = ();
+		@TarNames = ();
 		foreach $file (@files) {
 			if (-f $file) {
 				($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size, $atime,$mtime,$ctime,$blksize,$blocks) = stat($file);
@@ -435,7 +445,7 @@ sub tar_create {
 			$arglen = length("$file ");
 
 			if ($size > $MaxSize) {
-				push @files_to_copy, $file;
+				push @FilesToCopy, $file;
 				$tsize_all += $size;
 				next;
 			}
@@ -452,8 +462,8 @@ sub tar_create {
 				($varname0 ne $varname) ||
 				($level0 != $level)) {
 
-				push @files_to_tar, [@list];
-				push @tar_names, sprintf("%s_%4.4d-%4.4d.nc%d.tar", $varname0, $ts0, $ts1, $level0);
+				push @FilesToTar, [@list];
+				push @TarNames, sprintf("%s_%4.4d-%4.4d.nc%d.tar", $varname0, $ts0, $ts1, $level0);
 				@list = ();
 				($varname0, $ts0, $level0) = vdfsplit($file);
 				($varname1, $ts1, $level1) = vdfsplit($file);
@@ -470,8 +480,8 @@ sub tar_create {
 		}
 
 		if (@list) {
-			push @files_to_tar, [@list];
-			push @tar_names, sprintf("%s_%4.4d-%4.4d.nc%d.tar", $varname0, $ts0, $ts1, $level0);
+			push @FilesToTar, [@list];
+			push @TarNames, sprintf("%s_%4.4d-%4.4d.nc%d.tar", $varname0, $ts0, $ts1, $level0);
 		}
 	}
 
@@ -490,9 +500,9 @@ sub tar_create {
 	}
 
 
-	save_state($vdffile, \@files_to_copy, \@files_to_tar, \@tar_names);
+	save_state();
 
-	while ($file = shift(@files_to_copy)) {
+	while ($file = shift(@FilesToCopy)) {
 		if (defined ($TargetDirectory)) {
 			copyit($file, $TargetDirectory);
 		}
@@ -503,11 +513,11 @@ sub tar_create {
 			}
 			mysystem(@cmd);
 		}
-		save_state($vdffile, \@files_to_copy, \@files_to_tar, \@tar_names);
+		save_state();
 	}
 
-	while ($listref = shift(@files_to_tar)) {
-		$tarbase = shift(@tar_names);
+	while ($listref = shift(@FilesToTar)) {
+		$tarbase = shift(@TarNames);
 		if (defined ($TargetDirectory)) {
 			$tarfile = File::Spec->catfile($TargetDirectory, $tarbase);
 		}
@@ -525,7 +535,7 @@ sub tar_create {
 
 			unlink $tarfile;
 		}
-		save_state($vdffile, \@files_to_copy, \@files_to_tar, \@tar_names);
+		save_state();
 	}
 }
 
@@ -543,13 +553,18 @@ $MaxMsg		= "128";
 @VDFLSCmd	= ("vdfls", "-sort", "varname");
 $RestartFile = File::Spec->catfile(cwd(), ".vdfbkup_restart.txt");
 
+@CmdLineArgs = @ARGV;
 @ARGV = configure(@ARGV);
 
 
 if ($Restart) {
-	if (@ARGV < 1) {
-		usage("Wrong # of arguments - no files specified");
+	if (@ARGV != 0) {
+		usage("Wrong # of arguments");
 	}
+	restore_state();
+	@ARGV = @CmdLineArgs;
+	@ARGV = configure(@ARGV);
+
 } else {
 	if (-f $RestartFile) {
 		print STDERR "A restart file, $RestartFile,\n"; 
@@ -558,11 +573,13 @@ if ($Restart) {
 		print STDERR "must remove the restart file or use the -restart option.\n";
 		exit (1);
 	}
-	if (@ARGV < 2) {
-		usage("Wrong # of arguments - no files specified");
-	}
-	$VDFFile = shift @ARGV;
 }
+
+if (@ARGV < 2) {
+	usage("Wrong # of arguments - no files specified");
+}
+
+$VDFFile = shift @ARGV;
 
 if (defined $TargetDirectory) {undef $TargetDirectory;}
 if (defined @BackupCmd) {undef @BackupCmd;}
