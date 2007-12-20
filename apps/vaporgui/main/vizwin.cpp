@@ -265,9 +265,14 @@ mousePressEvent(QMouseEvent* e){
 				rParams->calcStretchedBoxExtentsInCube(boxExtents);
 				int handleNum = regionManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
+					//Set up for sliding:
+					if (!myGLWindow->startHandleSlide(screenCoords, handleNum,rParams)){
+						doNavigate = true;
+						break;
+					}
 					float dirVec[3];
 					//Find the direction vector of the camera (World coords)
-					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+					myGLWindow->pixelToVector(screenCoords, 
 						vParams->getCameraPos(), dirVec);
 					//Remember which handle we hit, highlight it, save the intersection point.
 					regionManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
@@ -294,9 +299,14 @@ mousePressEvent(QMouseEvent* e){
 				fParams->calcStretchedBoxExtentsInCube(boxExtents);
 				int handleNum = flowManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
+					//Set up for sliding:
+					if (!myGLWindow->startHandleSlide(screenCoords, handleNum,fParams)){
+						doNavigate = true;
+						break;
+					}
 					float dirVec[3];
 					//Find the direction vector of the camera (World coords)
-					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+					myGLWindow->pixelToVector(screenCoords, 
 						vParams->getCameraPos(), dirVec);
 					//Remember which handle we hit, highlight it, save the intersection point.
 					flowManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
@@ -324,6 +334,7 @@ mousePressEvent(QMouseEvent* e){
 				pParams->calcContainingStretchedBoxExtentsInCube(boxExtents);
 				int handleNum = probeManip->mouseIsOverHandle(screenCoords, boxExtents, &faceNum);
 				if (handleNum >= 0) {
+
 					//Stretching doesn't work well if rotation is not a multiple of 90 deg.
 					if (buttonNum > 1) {
 						//check if the rotation angle is approx a multiple of 90 degrees:
@@ -337,10 +348,14 @@ mousePressEvent(QMouseEvent* e){
 						if (abs(((ph+45)/90)*90 -ph) > tolerance) break;
 						
 					}
-
+					//Set up for sliding:
+					if (!myGLWindow->startHandleSlide(screenCoords, handleNum, pParams)){
+						doNavigate = true;
+						break;
+					}
 					float dirVec[3];
 					//Find the direction vector of the camera (World coords)
-					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+					myGLWindow->pixelToVector(screenCoords, 
 						vParams->getCameraPos(), dirVec);
 					//Remember which handle we hit, highlight it, save the intersection point.
 					probeManip->captureMouseDown(handleNum, faceNum, vParams->getCameraPos(), dirVec, buttonNum);
@@ -476,17 +491,22 @@ mouseMoveEvent(QMouseEvent* e){
 	//Respond based on what activity we are tracking
 	//Need to tell the appropriate params about the change,
 	//And it should refresh the panel
-	
+	float mouseCoords[2];
+	float projMouseCoords[2];
+	mouseCoords[0] = (float) e->x();
+	mouseCoords[1] = (float) height()-e->y();
+
 	switch (GLWindow::getCurrentMouseMode()){
 		case GLWindow::regionMode :
 			{
 				TranslateStretchManip* myRegionManip = myGLWindow->getRegionManip();
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				int handleNum = myRegionManip->draggingHandle();
-				//In probe mode, check first to see if we are dragging face
+				//In region mode, check first to see if we are dragging face
 				if (handleNum >= 0){
+					if (!myGLWindow->projectPointToLine(mouseCoords,projMouseCoords)) break;
 					float dirVec[3];
-					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+					myGLWindow->pixelToVector(projMouseCoords, 
 						vParams->getCameraPos(), dirVec);
 					
 					myRegionManip->slideHandle(handleNum, dirVec);
@@ -502,13 +522,12 @@ mouseMoveEvent(QMouseEvent* e){
 				TranslateStretchManip* myFlowManip = myGLWindow->getFlowManip();
 				ViewpointParams* vParams = myWinMgr->getViewpointParams(myWindowNum);
 				int handleNum = myFlowManip->draggingHandle();
-				//In probe mode, check first to see if we are dragging face
+				//In rake mode, check first to see if we are dragging face
 				if (handleNum >= 0){
+					if (!myGLWindow->projectPointToLine(mouseCoords,projMouseCoords)) break;
 					float dirVec[3];
-					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+					myGLWindow->pixelToVector(projMouseCoords, 
 						vParams->getCameraPos(), dirVec);
-					//Don't Convert dirvec from world to cube coords
-					//ViewpointParams::worldToCube(dirVec,dirVec);
 					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
 					myFlowManip->slideHandle(handleNum, dirVec);
 					myGLWindow->updateGL();
@@ -525,11 +544,10 @@ mouseMoveEvent(QMouseEvent* e){
 				int handleNum = myProbeManip->draggingHandle();
 				//In probe mode, check first to see if we are dragging face
 				if (handleNum >= 0){
+					if (!myGLWindow->projectPointToLine(mouseCoords,projMouseCoords)) break;
 					float dirVec[3];
-					myGLWindow->pixelToVector(e->x(), height()-e->y(), 
+					myGLWindow->pixelToVector(projMouseCoords, 
 						vParams->getCameraPos(), dirVec);
-					//Don't Convert dirvec from world to cube coords
-					//ViewpointParams::worldToCube(dirVec,dirVec);
 					//qWarning("Sliding handle %d, direction %f %f %f", handleNum, dirVec[0],dirVec[1],dirVec[2]);
 					myProbeManip->slideHandle(handleNum, dirVec);
 					myGLWindow->updateGL();

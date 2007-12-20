@@ -459,11 +459,11 @@ bool GLWindow::projectPointToWin(float cubeCoords[3], float winCoords[2]){
 //from the camera associated with the screen coords.  Note screen coords
 //are OpenGL style
 //
-bool GLWindow::pixelToVector(int x, int y, const float camPos[3], float dirVec[3]){
+bool GLWindow::pixelToVector(float winCoords[2], const float camPos[3], float dirVec[3]){
 	GLdouble pt[3];
 	float v[3];
 	//Obtain the coords of a point in view:
-	bool success = gluUnProject((GLdouble)x,(GLdouble)y,(GLdouble)1.0, getModelMatrix(),
+	bool success = gluUnProject((GLdouble)winCoords[0],(GLdouble)winCoords[1],(GLdouble)1.0, getModelMatrix(),
 		getProjectionMatrix(), getViewport(),pt, pt+1, pt+2);
 	if (success){
 		//Convert point to float
@@ -2057,4 +2057,63 @@ void GLWindow::placeLights(){
 
 int GLWindow::getJpegQuality() {return jpegQuality;}
 void GLWindow::setJpegQuality(int qual){jpegQuality = qual;}
+
+// Project the current mouse coordinates to a line in screen space.
+// The line starts at the mouseDownPosition, and points in the
+// direction resulting from projecting to the screen the axis 
+// associated with the dragHandle.  Returns false on error.
+bool GLWindow::projectPointToLine(float mouseCoords[2], float projCoords[2]){
+	//  State saved at a mouse press is:
+	//	mouseDownPoint[2] = P
+	//  handleProjVec[2] unit vector (U)
+	//
+	// When the mouse is moved, project to the line:
+	// point Q projects to P + aU, where a = (Q-P).U = dotprod
+	float diff[2];
+	if (!mouseDownHere) return false;
+	diff[0] = mouseCoords[0] - mouseDownPoint[0];
+	diff[1] = mouseCoords[1] - mouseDownPoint[1];
+	float dotprod = diff[0]*handleProjVec[0]+diff[1]*handleProjVec[1];
+	projCoords[0] = mouseDownPoint[0] + dotprod*handleProjVec[0];
+	projCoords[1] = mouseDownPoint[1] + dotprod*handleProjVec[1];
+	
+	return true;
+}
+bool GLWindow::startHandleSlide(float mouseCoords[2], int handleNum, Params* manipParams){
+	// When the mouse is first pressed over a handle, 
+	// need to save the
+	// windows coordinates of the click, as well as
+	// calculate a 2D unit vector in the direction of the slide,
+	// projected into the window.
+
+	mouseDownPoint[0] = mouseCoords[0];
+	mouseDownPoint[1] = mouseCoords[1];
+	//Get the cube coords of the rotation center:
+	
+	float boxCtr[3]; 
+	float winCoords[2];
+	float dispCoords[2];
+	
+	if (handleNum > 2) handleNum = handleNum-3;
+	else handleNum = 2 - handleNum;
+	float boxExtents[6];
+	manipParams->calcStretchedBoxExtentsInCube(boxExtents);
+	for (int i = 0; i<3; i++){boxCtr[i] = (boxExtents[i] + boxExtents[i+3])*0.5f;}
+	// project the boxCtr and one more point, to get a direction vector
+	
+	if (!projectPointToWin(boxCtr, winCoords)) return false;
+	boxCtr[handleNum] += 0.1f;
+	if (!projectPointToWin(boxCtr, dispCoords)) return false;
+	//Direction vector is difference:
+	handleProjVec[0] = dispCoords[0] - winCoords[0];
+	handleProjVec[1] = dispCoords[1] - winCoords[1];
+	float vecNorm = sqrt(handleProjVec[0]*handleProjVec[0]+handleProjVec[1]*handleProjVec[1]);
+	if (vecNorm == 0.f) return false;
+	handleProjVec[0] /= vecNorm;
+	handleProjVec[1] /= vecNorm;
+	return true;
+}
+
+
+
 

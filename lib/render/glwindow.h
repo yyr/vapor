@@ -102,10 +102,21 @@ public:
 	//Return true if in front of camera
 	//
 	bool projectPointToWin(float cubeCoords[3], float winCoords[2]);
+
+	// Project the current mouse coordinates to a line in screen space.
+	// The line starts at the mouseDownPosition, and points in the
+	// direction resulting from projecting to the screen the axis 
+	// associated with the dragHandle.  Returns false on error.
+
+	bool projectPointToLine(float mouseCoords[2], float projCoords[2]);
+
+	//Params argument is the params that owns the manip
+	bool startHandleSlide(float mouseCoords[2], int handleNum, Params* p);
+	
 	//Determine a unit direction vector associated with a pixel.  Uses OpenGL screencoords
 	// I.e. y = 0 at bottom.  Returns false on failure.
 	//
-	bool pixelToVector(int x, int y, const float cameraPos[3], float dirVec[3]);
+	bool pixelToVector(float winCoords[2], const float cameraPos[3], float dirVec[3]);
 
 	//Get the current image in the front buffer;
 	bool getPixelData(unsigned char* data);
@@ -473,6 +484,12 @@ protected:
 	static bool regionShareFlag;
 	QLabel** axisTextLabels[3];
 	int axisLabelNums[3];
+
+	//state to save during handle slide:
+	// screen coords where mouse is pressed:
+	float mouseDownPoint[2];
+	// unit vector in direction of handle
+	float handleProjVec[2];
 
 	
 };
