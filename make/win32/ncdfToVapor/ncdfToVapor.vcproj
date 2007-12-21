@@ -39,7 +39,7 @@
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(NETCDF_LIB_PATH)&quot;"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/ncdfToVapor.pdb"
+				ProgramDatabaseFile="../../../targets/win32/bin/ncdfToVapor.pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool

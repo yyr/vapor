@@ -38,7 +38,7 @@
 				OutputFile=".\..\..\..\targets\win32\bin\asciitf2vtf.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/asciitf2vtf.pdb"
+				ProgramDatabaseFile="../../../targets/win32/bin/asciitf2vtf.pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool

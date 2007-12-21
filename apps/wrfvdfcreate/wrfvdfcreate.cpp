@@ -91,11 +91,11 @@ int	GetWRFMetadata(
 	float _dx = 0.0;
 	float _dy = 0.0;
 	float _vertExts[2];
-	size_t _dimLens[4];
+	
 	vector <long> ts;
 	vector<string> _wrfVars(0); // Holds names of variables in WRF file
 	vector <long> _timestamps;
-
+	size_t _dimLens[3];
 	bool first = true;
 	bool success = false;
 
@@ -103,7 +103,7 @@ int	GetWRFMetadata(
 		float dx, dy;
 		float vertExts[2] = {0.0, 0.0};
 		float *vertExtsPtr = vertExts;
-		size_t dimLens[3];
+		size_t dimLens[4];  //last one holds time, not used
 		vector<string> wrfVars(0); // Holds names of variables in WRF file
 		int rc;
 
@@ -115,7 +115,7 @@ int	GetWRFMetadata(
 			files[i], wrfNames, dx, dy, vertExtsPtr, dimLens, 
 			startDate, wrfVars, ts 
 		);
-		if (rc < 0 || vertExtsPtr[0] >= vertExtsPtr[1]) {
+		if (rc < 0 || (vertExtsPtr && vertExtsPtr[0] >= vertExtsPtr[1])) {
 			cerr << "Error processing file " << files[i] << ", skipping" << endl;
 			MyBase::SetErrCode(0);
 			continue;
@@ -309,6 +309,7 @@ int	main(int argc, char **argv) {
 			for(int i=0; i<6; i++) {
 				extents[i] = opt.extents[i];
 			}
+			
 		}
 
 		if (argc == 1) {	// Single template

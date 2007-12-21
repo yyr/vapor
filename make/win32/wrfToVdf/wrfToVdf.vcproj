@@ -39,7 +39,7 @@
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(NETCDF_LIB_PATH)&quot;"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/wrfToVdf.pdb"
+				ProgramDatabaseFile="../../../targets/win32/bin/wrfToVdf.pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool
