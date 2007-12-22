@@ -68,6 +68,7 @@ protected slots:
 	void visualizerSelected(int comboIndex);
 	void panelChanged();
 	void selectRegionFrameColor();
+	void selectTimeTextColor();
 	void selectSubregionFrameColor();
 	void selectBackgroundColor();
 	void selectColorbarBackgroundColor();
@@ -105,17 +106,20 @@ protected:
 	int surfaceRotation;
 	bool surfaceUpsideDown;
 	QString surfaceImageFilename;
+	int timeAnnotType;//0,1,2 
 
 	float axisArrowCoords[3];
 	float axisOriginCoords[3];
 	float minTic[3],maxTic[3],ticLength[3];
 	int numTics[3],ticDir[3];
 	int labelHeight, labelDigits;
+	int timeAnnotTextSize;
 	float ticWidth;
 	QColor axisAnnotationColor;
 
 	float colorbarLLCoords[2];
 	float colorbarURCoords[2];
+	float timeAnnotCoords[2];
 	int numColorbarTics;
 	int elevGridRefinement;
 	
@@ -124,6 +128,7 @@ protected:
 	QColor subregionFrameColor;
 	QColor colorbarBackgroundColor;
 	QColor elevGridColor;
+	QColor timeAnnotColor;
 	
 };
 

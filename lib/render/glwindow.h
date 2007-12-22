@@ -177,6 +177,19 @@ public:
 	int getTextureRotation(){return textureRotation;}
 	bool textureInverted() {return textureUpsideDown;}
 	QString& getTextureFile(){return textureFilename;}
+
+	int getTimeAnnotType() {return timeAnnotType;}
+	int getTimeAnnotTextSize() {return timeAnnotTextSize;}
+	float getTimeAnnotCoord(int j){return timeAnnotCoords[j];}
+	QColor getTimeAnnotColor(){return timeAnnotColor;}
+	void setTimeAnnotTextSize(int size){timeAnnotTextSize = size;}
+	void setTimeAnnotColor(QColor c) {timeAnnotColor = c;}
+	void setTimeAnnotType(int t) {timeAnnotType = t;}
+	void setTimeAnnotCoords(float crds[2]){
+		timeAnnotCoords[0] = crds[0]; 
+		timeAnnotCoords[1] = crds[1];
+	}
+
 	
 	bool elevGridRenderingEnabled() {return renderElevGrid;}
 	void setBackgroundColor(QColor& c) {backgroundColor = c;}
@@ -443,6 +456,11 @@ protected:
 	int textureRotation;
 	bool textureUpsideDown;
 	QString textureFilename;
+
+	int timeAnnotType;
+	int timeAnnotTextSize;
+	float timeAnnotCoords[2];
+	QColor timeAnnotColor;
 	
 	bool axisArrowsEnabled;
 	bool axisAnnotationEnabled;

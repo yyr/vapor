@@ -432,6 +432,10 @@ signals:
 	void changeName(QString&, int);
 	
 protected:
+	static const string _vizTimeAnnotColorAttr;
+	static const string _vizTimeAnnotTextSizeAttr;
+	static const string _vizTimeAnnotTypeAttr;
+	static const string _vizTimeAnnotCoordsAttr;
 	static const string _vizElevGridEnabledAttr;
 	static const string _vizElevGridColorAttr;
 	static const string _vizElevGridRefinementAttr;

@@ -90,6 +90,12 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	elevGridColor = vfParams.elevGridColor;
 	showElevGrid = vfParams.showElevGrid;
 	elevGridRefinement =  vfParams.elevGridRefinement;
+
+	timeAnnotCoords[0] = vfParams.timeAnnotCoords[0];
+	timeAnnotCoords[1] = vfParams.timeAnnotCoords[1];
+	timeAnnotColor = vfParams.timeAnnotColor;
+	timeAnnotType = vfParams.timeAnnotType;
+	timeAnnotTextSize = vfParams.timeAnnotTextSize;
 }
 //Set up the dialog with current parameters from current active visualizer
 void VizFeatureParams::launch(){
@@ -133,6 +139,23 @@ void VizFeatureParams::launch(){
 	featureHolder->setGeometry(50, 50, w+swidth,h);
 	
 	sv->resizeContents(w,h);
+	
+	//Check if we have time stamps in data:
+	int numTimeTypes = 1;
+	const Metadata* md = DataStatus::getInstance()->getCurrentMetadata();
+	int firstTime = DataStatus::getInstance()->getMinTimestep();
+	if (md){
+		const vector<string>& userTags = md->GetTSUserDataStringTags();
+		bool tagOK = false;
+		for (int k = 0; k < userTags.size(); k++){
+			if (userTags[k] == "UserTimeStampString") {tagOK = true; break;}
+		}
+		if (tagOK){ //make sure it's there at the first time step
+			const string& timeStamp = md->GetTSUserDataString(firstTime,"UserTimeStampString");
+			if (timeStamp != "") numTimeTypes = 2;
+		}
+	}
+	vizFeatureDlg->timeCombo->setMaxCount(numTimeTypes);
 	
 	//Do connections.  
 	connect(vizFeatureDlg->currentNameCombo, SIGNAL(activated(int)), this, SLOT(visualizerSelected(int)));
@@ -188,6 +211,12 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->imageRotationCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->imageUpDownCombo, SIGNAL(activated(int)), this, SLOT(panelChanged()));
 
+	connect (vizFeatureDlg->timeLLXEdit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->timeLLYEdit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->timeSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->timeCombo,SIGNAL(activated(int)), this, SLOT(panelChanged()));
+	connect (vizFeatureDlg->timeColorButton,SIGNAL(clicked()), this, SLOT(selectTimeTextColor()));
+	
 	featureHolder->exec();
 	
 }
@@ -233,6 +262,12 @@ void VizFeatureParams::
 selectRegionFrameColor(){
 	QColor frameColor = QColorDialog::getColor(regionFrameColor,0,0);
 	vizFeatureDlg->regionFrameColorButton->setPaletteBackgroundColor(frameColor);
+	dialogChanged = true;
+}
+void VizFeatureParams::
+selectTimeTextColor(){
+	QColor tColor = QColorDialog::getColor(timeAnnotColor,0,0);
+	vizFeatureDlg->timeColorButton->setPaletteBackgroundColor(tColor);
 	dialogChanged = true;
 }
 void VizFeatureParams::
@@ -345,6 +380,17 @@ setDialog(){
 	vizFeatureDlg->colorbarXSizeEdit->setText(QString::number(colorbarURCoords[0]-colorbarLLCoords[0]));
 	vizFeatureDlg->colorbarYSizeEdit->setText(QString::number(colorbarURCoords[1]-colorbarLLCoords[1]));
 
+	timeAnnotCoords[0] = vizWin->getTimeAnnotCoord(0);
+	timeAnnotCoords[1] = vizWin->getTimeAnnotCoord(1);
+	timeAnnotType = vizWin->getTimeAnnotType();
+	timeAnnotColor = vizWin->getTimeAnnotColor();
+	timeAnnotTextSize = vizWin->getTimeAnnotTextSize();
+	vizFeatureDlg->timeCombo->setCurrentItem(timeAnnotType);
+	vizFeatureDlg->timeLLXEdit->setText(QString::number(timeAnnotCoords[0]));
+	vizFeatureDlg->timeLLYEdit->setText(QString::number(timeAnnotCoords[1]));
+	vizFeatureDlg->timeSizeEdit->setText(QString::number(timeAnnotTextSize));
+	vizFeatureDlg->timeColorButton->setPaletteBackgroundColor(timeAnnotColor);
+
 	numColorbarTics = vizWin->getColorbarNumTics();
 	vizFeatureDlg->numTicsEdit->setText(QString::number(numColorbarTics));
 	showBar = vizWin->colorbarIsEnabled();
@@ -440,6 +486,18 @@ copyFromDialog(){
 	axisAnnotationColor = vizFeatureDlg->axisColorButton->paletteBackgroundColor();
 	showAxisAnnotation = vizFeatureDlg->axisAnnotationCheckbox->isChecked();
 	
+	timeAnnotCoords[0] = vizFeatureDlg->timeLLXEdit->text().toFloat();
+	timeAnnotCoords[1] = vizFeatureDlg->timeLLYEdit->text().toFloat();
+	//validate:
+	if (timeAnnotCoords[0] < 0.f) timeAnnotCoords[0] = 0.f;
+	if (timeAnnotCoords[0] > 1.f) timeAnnotCoords[0] = 1.f;
+	if (timeAnnotCoords[1] < 0.f) timeAnnotCoords[0] = 0.f;
+	if (timeAnnotCoords[1] > 1.f) timeAnnotCoords[0] = 1.f;
+
+	timeAnnotType = vizFeatureDlg->timeCombo->currentItem();
+	timeAnnotTextSize = vizFeatureDlg->timeSizeEdit->text().toInt();
+	timeAnnotColor = vizFeatureDlg->timeColorButton->paletteBackgroundColor();
+
 	colorbarLLCoords[0] = vizFeatureDlg->colorbarLLXEdit->text().toFloat();
 	colorbarLLCoords[1] = vizFeatureDlg->colorbarLLYEdit->text().toFloat();
 	float wid = vizFeatureDlg->colorbarXSizeEdit->text().toFloat();
@@ -518,6 +576,11 @@ applyToViz(int vizNum){
 	vizWin->setColorbarBackgroundColor(colorbarBackgroundColor);
 	vizWin->setRegionFrameColor(regionFrameColor);
 	vizWin->setSubregionFrameColor(subregionFrameColor);
+
+	vizWin->setTimeAnnotCoords(timeAnnotCoords);
+	vizWin->setTimeAnnotColor(timeAnnotColor);
+	vizWin->setTimeAnnotTextSize(timeAnnotTextSize);
+	vizWin->setTimeAnnotType(timeAnnotType);
 	
 	vizWin->setElevGridColor(elevGridColor);
 	vizWin->enableElevGridRendering(showElevGrid);

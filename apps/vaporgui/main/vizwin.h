@@ -175,6 +175,15 @@ public:
 	int getTextureRotation(){return myGLWindow->getTextureRotation();}
 	bool textureInverted() {return myGLWindow->textureInverted();}
 	QString& getTextureFile(){return myGLWindow->getTextureFile();}
+
+	void setTimeAnnotCoords(float crds[2]){myGLWindow->setTimeAnnotCoords(crds);}
+	float getTimeAnnotCoord(int j) {return myGLWindow->getTimeAnnotCoord(j);}
+	void setTimeAnnotColor(QColor c) {myGLWindow->setTimeAnnotColor(c);}
+	QColor getTimeAnnotColor() {return myGLWindow->getTimeAnnotColor();}
+	void setTimeAnnotType(int t) {myGLWindow->setTimeAnnotType(t);}
+	int getTimeAnnotType(){ return myGLWindow->getTimeAnnotType();}
+	void setTimeAnnotTextSize(int size){myGLWindow->setTimeAnnotTextSize(size);}
+	int getTimeAnnotTextSize(){return myGLWindow->getTimeAnnotTextSize();}
 	
 	QColor& getElevGridColor() {return myGLWindow->getElevGridColor();}
 	int getElevGridRefinementLevel() {return myGLWindow->getElevGridRefinementLevel();}

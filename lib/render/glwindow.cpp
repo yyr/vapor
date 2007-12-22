@@ -73,6 +73,12 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	mouseDownHere = false;
 
 	//values of features:
+	timeAnnotColor = QColor(white);
+	timeAnnotCoords[0] = 0.1f;
+	timeAnnotCoords[1] = 0.1f;
+	timeAnnotTextSize = 10;
+	timeAnnotType = 0;
+
 	backgroundColor =  QColor(black);
 	regionFrameColor = QColor(white);
 	subregionFrameColor = QColor(red);

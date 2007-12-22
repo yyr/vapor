@@ -96,6 +96,10 @@ const string VizWinMgr::_visualizersTag = "Visualizers";
 const string VizWinMgr::_vizWinTag = "VizWindow";
 const string VizWinMgr::_vizWinNameAttr = "WindowName";
 const string VizWinMgr::_vizBgColorAttr = "BackgroundColor";
+const string VizWinMgr::_vizTimeAnnotColorAttr = "TimeAnnotationColor";
+const string VizWinMgr::_vizTimeAnnotTypeAttr = "TimeAnnotationType";
+const string VizWinMgr::_vizTimeAnnotCoordsAttr = "TimeAnnotationCoords";
+const string VizWinMgr::_vizTimeAnnotTextSizeAttr = "TimeAnnotationTextSize";
 const string VizWinMgr::_vizColorbarBackgroundColorAttr = "ColorbarBackgroundColor";
 const string VizWinMgr::_vizRegionColorAttr = "RegionFrameColor";
 const string VizWinMgr::_vizSubregionColorAttr = "SubregionFrameColor";
@@ -1409,7 +1413,32 @@ XmlNode* VizWinMgr::buildNode() {
 				<< (long)clr.green() << " "
 				<< (long)clr.blue();
 			attrs[_vizElevGridColorAttr] = oss.str();
+
+			oss.str(empty);
+			clr = vizWin[i]->getTimeAnnotColor();
+			oss << (long)clr.red() << " "
+				<< (long)clr.green() << " "
+				<< (long)clr.blue();
+			attrs[_vizTimeAnnotColorAttr] = oss.str();
 			
+			oss.str(empty);
+			int tt = vizWin[i]->getTimeAnnotType();
+			if (tt == 2) oss << "timestamp";
+			else if (tt == 1) oss << "timestep";
+			else  oss << "none";
+			attrs[_vizTimeAnnotTypeAttr] = oss.str();
+
+			oss.str(empty);
+			int ts = vizWin[i]->getTimeAnnotTextSize();
+			oss << (long)ts;
+			attrs[_vizTimeAnnotTextSizeAttr] = oss.str();
+
+			oss.str(empty);
+			float xpos = vizWin[i]->getTimeAnnotCoord(0);
+			float ypos = vizWin[i]->getTimeAnnotCoord(1);
+			oss << xpos << " " << ypos;
+			attrs[_vizTimeAnnotCoordsAttr] = oss.str();
+	
 			oss.str(empty);
 			if (vizWin[i]->axisArrowsAreEnabled()) oss<<"true";
 				else oss << "false";
@@ -1584,6 +1613,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		QColor winSubrgColor(red);
 		QColor winColorbarColor(white);
 		QColor winElevGridColor(darkRed);
+		QColor winTimeAnnotColor(white);
+		float winTimeAnnotCoords[2] = {0.1f, 0.1f};
+		int winTimeAnnotTextSize = 10;
+		int winTimeAnnotType = 0;
 		float axisPos[3], axisOriginPos[3];
 		float minTic[3], maxTic[3], ticLength[3];
 		int numTics[3], ticDir[3];
@@ -1622,7 +1655,21 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			istringstream ist(value);	
 			if (StrCmpNoCase(attr, _vizWinNameAttr) == 0) {
 				winName = value;
-			} else if (StrCmpNoCase(attr, _vizBgColorAttr) == 0) {
+			} else if (StrCmpNoCase(attr, _vizTimeAnnotColorAttr) == 0) {
+				int r,g,b;
+				ist >> r; ist >> g; ist >> b;
+				winTimeAnnotColor.setRgb(r,g,b);
+			} else if (StrCmpNoCase(attr, _vizTimeAnnotCoordsAttr) == 0) {
+				ist >> winTimeAnnotCoords[0];
+				ist >> winTimeAnnotCoords[1];
+			} else if (StrCmpNoCase(attr, _vizTimeAnnotTextSizeAttr) == 0) {
+				ist >> winTimeAnnotTextSize;
+			} else if (StrCmpNoCase(attr, _vizTimeAnnotTypeAttr) == 0){
+				if (value == "timestep") winTimeAnnotType = 1;
+				else if (value == "timestamp") winTimeAnnotType = 2;
+				else winTimeAnnotType = 0; //value = "none"
+			}
+			else if (StrCmpNoCase(attr, _vizBgColorAttr) == 0) {
 				int r,g,b;
 				ist >> r; ist>>g; ist>>b;
 				winBgColor.setRgb(r,g,b);
@@ -1756,6 +1803,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		vizWin[parsingVizNum]->invertTexture(elevGridInverted);
 		vizWin[parsingVizNum]->setTextureFile(QString(elevGridTexture.c_str()));
 
+		vizWin[parsingVizNum]->setTimeAnnotColor(winTimeAnnotColor);
+		vizWin[parsingVizNum]->setTimeAnnotCoords(winTimeAnnotCoords);
+		vizWin[parsingVizNum]->setTimeAnnotTextSize(winTimeAnnotTextSize);
+		vizWin[parsingVizNum]->setTimeAnnotType(winTimeAnnotType);
 		for (int j = 0; j< 3; j++){
 			vizWin[parsingVizNum]->setAxisArrowCoord(j, axisPos[j]);
 			vizWin[parsingVizNum]->setAxisOriginCoord(j, axisOriginPos[j]);
