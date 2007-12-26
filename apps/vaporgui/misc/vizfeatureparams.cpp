@@ -224,6 +224,7 @@ void VizFeatureParams::launch(){
 void VizFeatureParams::
 panelChanged(){
 	dialogChanged = true;
+	vizFeatureDlg->update();
 }
 //Respond to clicking "apply" button
 //
@@ -591,6 +592,7 @@ applyToViz(int vizNum){
 	vizWin->setTextureFile(surfaceImageFilename);
 
 	vizWin->getGLWindow()->invalidateElevGrid();
+	vizWin->getGLWindow()->invalidateTextInScene();
 	vizWin->setColorbarDirty(true);
 	vizWin->updateGL();
 }
@@ -637,7 +639,6 @@ void VizFeatureParams::okClicked(){
 	if (dialogChanged) {
 		copyFromDialog();
 	} 
-	
 	emit doneWithIt();
 	
 }

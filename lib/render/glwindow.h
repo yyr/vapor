@@ -26,6 +26,7 @@
 #include <map>
 #include "trackball.h"
 #include "qcolor.h"
+#include "qlabel.h"
 #include "params.h"
 #include "manip.h"
 #include "vapor/MyBase.h"
@@ -330,6 +331,7 @@ public:
 	static bool activeWinSharesRegion() {return regionShareFlag;}
 	static void setRegionShareFlag(bool regionIsShared){regionShareFlag = regionIsShared;}
 	void invalidateElevGrid();
+	void invalidateTextInScene(){ if (timeAnnotLabel){delete timeAnnotLabel; timeAnnotLabel = 0;}}
 
 	const GLdouble* getProjectionMatrix() { return projectionMatrix;}	
 	
@@ -389,8 +391,10 @@ protected:
 	void drawAxisArrows(float* extents);
 	void drawAxisTics();
 	void drawAxisLabels();
+	void drawTimeAnnotation();
 	//Apply the axis labels to an image buffer:
 	void addAxisLabels(unsigned char* imageBuffer);
+	void addTimeToBuffer(unsigned char* imageBuffer);
 	void deleteAxisLabels();
 	void drawElevationGrid(size_t timestep);
 	void placeLights();
@@ -501,6 +505,7 @@ protected:
 	//the region is shared, and the active region is shared.
 	static bool regionShareFlag;
 	QLabel** axisTextLabels[3];
+	QLabel* timeAnnotLabel;
 	int axisLabelNums[3];
 
 	//state to save during handle slide:

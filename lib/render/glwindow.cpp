@@ -53,6 +53,7 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 : QGLWidget(fmt, parent, name)
 
 {
+	timeAnnotLabel = 0;
 	winNum = windowNum;
 	rendererMapping.clear();
 	assert(rendererMapping.size() == 0);
@@ -168,6 +169,7 @@ GLWindow::~GLWindow()
 	setNumRenderers(0);
 	invalidateElevGrid();
 	if (_elevTexid) glDeleteTextures(1, &_elevTexid);
+	if (timeAnnotLabel) delete timeAnnotLabel;
 }
 
 
@@ -375,10 +377,19 @@ void GLWindow::paintGL()
 	if (axisAnnotationIsEnabled() && !sphericalTransform) drawAxisLabels();
 	else if (axisLabelNums[0]||axisLabelNums[1]||axisLabelNums[2]) deleteAxisLabels();
 
+	//Apply time annotation:
+	if (getTimeAnnotType()){
+		drawTimeAnnotation();
+	} else {
+		if(timeAnnotLabel) timeAnnotLabel->hide();
+	}
 	for (int i = 0; i< getNumRenderers(); i++){
 		if(renderer[i]->isInitialized()) renderer[i]->paintGL();
 	}
 	
+
+	
+
 	swapBuffers();
 
 	
@@ -1529,7 +1540,41 @@ void GLWindow::deleteAxisLabels(){
 		axisLabelNums[i] = 0;
 	}
 }
+void GLWindow::drawTimeAnnotation(){
 
+	//Always need to check the time:
+	size_t timeStep = (size_t)currentAnimationParams->getCurrentFrameNumber(); 
+	QString labelContents;
+	if (timeAnnotType == 1){
+		labelContents = QString("TimeStep: ")+QString::number((int)timeStep) + " ";
+	}
+	else {//get string from metadata
+		const Metadata* md = DataStatus::getInstance()->getMetadata();
+		if (!md) labelContents = QString("");
+		else {
+			const string& timeStamp = md->GetTSUserDataString(timeStep,"UserTimeStampString");
+			labelContents = QString("Date/Time: ")+QString(timeStamp.c_str());
+		}
+	}
+	if(!timeAnnotLabel) { //Do we need a new label?
+		QFont f;
+		f.setPointSize(timeAnnotTextSize);
+		timeAnnotLabel = new QLabel(this);
+		timeAnnotLabel->setFont(f);
+		timeAnnotLabel->setPaletteBackgroundColor(backgroundColor);
+		timeAnnotLabel->setPaletteForegroundColor(timeAnnotColor);
+	}
+	
+	timeAnnotLabel->setText(labelContents);
+	timeAnnotLabel->adjustSize();
+	int xposn = (int)(width()*timeAnnotCoords[0]);
+	int yposn = (int)(height()*(1.f-timeAnnotCoords[1]));
+	timeAnnotLabel->move(xposn, yposn);
+	
+	if(timeAnnotTextSize>0) timeAnnotLabel->show();
+	else timeAnnotLabel->hide();
+	
+}
 void GLWindow::drawAxisLabels() {
 	float origin[3], ticMin[3], ticMax[3];
 	
@@ -1649,6 +1694,47 @@ void GLWindow::addAxisLabels(unsigned char* buff){
 		}
 	}
 
+}
+//Apply the time stamps to the buffer so it will
+//show up in jpegs
+void GLWindow::addTimeToBuffer(unsigned char* buff){
+	if (!timeAnnotLabel || timeAnnotTextSize <= 0) return;
+	//Create a new QPixmap to paint into.  
+	//Then create a QPainter for the new Pixmap
+	//Then use QPainter::drawText() to put the text from the label
+	//into the QPixmap
+	//convert the QPixmap to a QImage
+	int xposn = (int)(width()*timeAnnotCoords[0]);
+	int yposn = (int)(height()*(1.f-timeAnnotCoords[1]));
+	int wid = timeAnnotLabel->width();
+	int ht = timeAnnotLabel->height();
+	QPixmap myPixmap(wid,ht);
+	myPixmap.fill(backgroundColor);
+	QPainter myPainter(&myPixmap);
+	myPainter.setPen(timeAnnotColor);
+	QFont f;
+	f.setPointSize(timeAnnotTextSize);
+
+	myPainter.setFont(f);
+				
+	const QString& labelText = timeAnnotLabel->text();
+	myPainter.drawText(0,0,wid,ht,Qt::AlignCenter|Qt::SingleLine,labelText,-1);	
+	QImage image = myPixmap.convertToImage();
+	assert(image != 0);
+	//Write the image to the buffer:
+	int stride = 3*width();
+	for (int j = 0; j<image.height(); j++){
+		if (j+yposn >= height()) continue;
+		for (int i = 0; i< image.width(); i++){
+			if (i+xposn >= width()) continue;
+			QRgb pixval = image.pixel(i,j);
+			//assert(pixval == 0);
+			buff[(xposn+i)*3 + stride*(yposn+j)] = (unsigned char)(qRed(pixval));
+			buff[(xposn+i)*3 + stride*(yposn+j)+1] = (unsigned char)(qGreen(pixval));
+			buff[(xposn+i)*3 + stride*(yposn+j)+2] = (unsigned char)(qBlue(pixval));
+		}
+	}
+				
 }
 void GLWindow::drawAxisTics(){
 	float origin[3], ticMin[3], ticMax[3], ticLen[3];
@@ -1945,6 +2031,10 @@ doFrameCapture(){
 	//Add axis labels if necessary:
 	if (axisAnnotationIsEnabled() && !DataStatus::getInstance()->sphericalTransform()) {
 		addAxisLabels(buf);
+	}
+	//Add time stamps if necessary
+	if (timeAnnotType && timeAnnotLabel){
+		addTimeToBuffer(buf);
 	}
 	//Now call the Jpeg library to compress and write the file
 	//
