@@ -1402,6 +1402,12 @@
                                             <property name="name">
                                                 <cstring>timeLLXEdit</cstring>
                                             </property>
+                                            <property name="text">
+                                                <string>0.1</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify lower-left coordinate of time annotation relative to visualizer size</string>
                                             </property>
@@ -1409,6 +1415,12 @@
                                         <widget class="QLineEdit">
                                             <property name="name">
                                                 <cstring>timeLLYEdit</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>0.1</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Specify lower-left coordinate of time annotation relative to visualizer size</string>
@@ -2449,7 +2461,7 @@
                                                 <string>1</string>
                                             </property>
                                             <property name="alignment">
-                                                <set>AlignRight</set>
+                                                <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>specify color scale width in [0,1]</string>
@@ -2463,7 +2475,7 @@
                                                 <string>0</string>
                                             </property>
                                             <property name="alignment">
-                                                <set>AlignRight</set>
+                                                <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>specify color scale lower-left x corner in [0,1]</string>
@@ -2494,7 +2506,7 @@
                                                 <string>0</string>
                                             </property>
                                             <property name="alignment">
-                                                <set>AlignRight</set>
+                                                <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>specify color scale lower-left y corner in [0,1]</string>
@@ -2525,7 +2537,7 @@
                                                 <string>1</string>
                                             </property>
                                             <property name="alignment">
-                                                <set>AlignRight</set>
+                                                <set>AlignHCenter</set>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>specify color scale height in [0,1]</string>
