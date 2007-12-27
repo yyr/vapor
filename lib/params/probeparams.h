@@ -184,7 +184,8 @@ public:
 	}
 	//Get the bounding extents of probe, in cube coords
 	virtual void calcContainingStretchedBoxExtentsInCube(float* extents);
-	
+	//change box dimensions after a rotation so that it appears to be the same size:
+	void rotateAndRenormalizeBox(int axis, float rotVal);
 	virtual int getNumRefinements() {return numRefinements;}
 	void hookupTF(TransferFunction* t, int index);
 	float getOpacityScale(); 
@@ -235,7 +236,9 @@ protected:
 	//Find smallest containing cube in integer coords, using
 	//current numRefinementsforms, that will contain image of probe
 	void getBoundingBox(size_t boxMin[3], size_t boxMax[3], size_t fullHeight);
-	
+	//Get the rotated box sides in the unit cube, based on current angles:
+	void getRotatedBoxDims(float boxdims[3]);
+
 	float currentDatarange[2];
 	
 	bool editMode;

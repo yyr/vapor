@@ -1198,3 +1198,62 @@ getProbeVoxelExtents(size_t fullHeight, float voxdims[2]){
 	voxdims[1] = vlength(vecHt);
 	return;
 }
+// Determine the length of the box sides, when rotated and stretched and put into
+// unit cube
+void ProbeParams::getRotatedBoxDims(float boxdims[3]){
+	float corners[8][3];
+	//Find all 8 corners but we will only use 4:
+	//cor(1)-cor[0] is x side
+	//cor[2] - cor[0] is y side
+	//cor[4] - cor[0] is z side
+	calcBoxCorners(corners, 0.f);
+	
+	const float* stretch = DataStatus::getInstance()->getStretchFactors();
+	const float* fullExtents = DataStatus::getInstance()->getStretchedExtents();
+	
+	float maxSize = Max(Max(fullExtents[3]-fullExtents[0],fullExtents[4]-fullExtents[1]),fullExtents[5]-fullExtents[2]);
+	//Obtain the 4 corners needed (0,1,2,4) in the unit cube
+	float xformCors[4][3];
+	for (int cornum = 0; cornum<4; cornum++){
+		int corIndx = cornum;
+		if (corIndx == 3) corIndx = 4;
+		for (int crd = 0; crd<3; crd++){
+			xformCors[cornum][crd] = (corners[corIndx][crd]*stretch[crd] - fullExtents[crd])/maxSize;
+		}
+	}
+	//Now find the actual length (dist between corner 1,2,4 and 0):
+	float distvec[3];
+	for (int dim = 0; dim <3; dim++){
+		for (int crd = 0; crd < 3; crd++){
+			distvec[crd] = xformCors[dim+1][crd] - xformCors[0][crd];
+		}
+		boxdims[dim] = vlength(distvec);
+	}
+}
+void ProbeParams::rotateAndRenormalizeBox(int axis, float rotVal){
+	//Find the change in box side lengths before and after rotation
+	float beforeRot[3],afterRot[3]; 
+	float changeSize[3] = {1.f,1.f,1.f};
+	getRotatedBoxDims(beforeRot);
+	//Now finalize the rotation
+	float newTheta, newPhi, newPsi;
+	convertThetaPhiPsi(&newTheta, &newPhi, &newPsi, axis, rotVal);
+	setTheta(newTheta);
+	setPhi(newPhi);
+	setPsi(newPsi);
+	getRotatedBoxDims(afterRot);
+	for (int i = 0; i<3; i++){
+		if (afterRot[i]> 0.f) changeSize[i] = beforeRot[i]/afterRot[i];
+	}
+
+	//Modify box size so it appears to have same dimensions:
+	float boxmin[3],boxmax[3];
+	getBox(boxmin, boxmax);
+	for (int i = 0; i< 3; i++){
+		float boxmid = (boxmax[i]+boxmin[i])*0.5;
+		float boxlen = (boxmax[i] - boxmin[i]);
+		boxmax[i] = boxmid + 0.5f*boxlen*changeSize[i];
+		boxmin[i] = boxmid - 0.5f*boxlen*changeSize[i];
+	}
+	setBox(boxmin, boxmax);
+}

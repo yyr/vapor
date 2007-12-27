@@ -335,7 +335,7 @@ void Params::BailOut(const char *errstr, char *fname, int lineno)
     //app->quit();
 }
 //Determine a new value of theta phi and psi when the probe is rotated around either the
-//x-, y-, or z- axis.  axis is 0,1,or 1. rotation is in degrees.
+//x-, y-, or z- axis.  axis is 0,1,or 2 1. rotation is in degrees.
 //newTheta and newPhi are in degrees, with theta between -180 and 180, phi between 0 and 180
 //and newPsi between -180 and 180
 void Params::convertThetaPhiPsi(float *newTheta, float* newPhi, float* newPsi, int axis, float rotation){

@@ -235,12 +235,10 @@ guiReleaseXWheel(int val){
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
-	//Now finalize the rotation
-	float newTheta, newPhi, newPsi;
-	pParams->convertThetaPhiPsi(&newTheta, &newPhi, &newPsi, 0, (float)val/10.f);
-	pParams->setTheta(newTheta);
-	pParams->setPhi(newPhi);
-	pParams->setPsi(newPsi);
+
+	//Renormalize and apply rotation:
+	pParams->rotateAndRenormalizeBox(0, (float)val/10.f);
+
 	//Reset the manip:
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
@@ -257,12 +255,8 @@ guiReleaseYWheel(int val){
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
-	//Now finalize the rotation
-	float newTheta, newPhi, newPsi;
-	pParams->convertThetaPhiPsi(&newTheta, &newPhi, &newPsi, 1, -(float)val/10.f);
-	pParams->setTheta(newTheta);
-	pParams->setPhi(newPhi);
-	pParams->setPsi(newPsi);
+	//Renormalize and apply rotation:
+	pParams->rotateAndRenormalizeBox(1, -(float)val/10.f);
 	//Reset the manip:
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
@@ -279,12 +273,8 @@ guiReleaseZWheel(int val){
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
 	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "rotate probe");
-	//Now finalize the rotation
-	float newTheta, newPhi, newPsi;
-	pParams->convertThetaPhiPsi(&newTheta, &newPhi, &newPsi, 2, (float)val/10.f);
-	pParams->setTheta(newTheta);
-	pParams->setPhi(newPhi);
-	pParams->setPsi(newPsi);
+	//Renormalize and apply rotation:
+	pParams->rotateAndRenormalizeBox(2, (float)val/10.f);
 	//Reset the manip:
 	VizWin* viz = VizWinMgr::getInstance()->getActiveVisualizer();
 	TranslateRotateManip* manip = viz->getGLWindow()->getProbeManip();
