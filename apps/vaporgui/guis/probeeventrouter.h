@@ -137,6 +137,7 @@ protected slots:
 	void guiReleaseXWheel(int);
 	void guiReleaseYWheel(int);
 	void guiReleaseZWheel(int);
+	void guiRotate90(int);
 
 	void guiChangeInstance(int);
 	void guiNewInstance();

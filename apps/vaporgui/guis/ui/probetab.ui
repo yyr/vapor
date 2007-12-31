@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout169</cstring>
+                <cstring>layout50</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -339,7 +339,7 @@ window toolbar.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout168</cstring>
+                                <cstring>layout49</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -1464,32 +1464,15 @@ same as the X, Y, and Z axes.</string>
                                 </widget>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout45</cstring>
+                                        <cstring>layout48</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
                                             <cstring>unnamed</cstring>
                                         </property>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer64</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>16</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout44</cstring>
+                                                <cstring>layout47</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -1514,11 +1497,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                     </property>
                                                 </widget>
                                                 <widget class="QLayoutWidget">
@@ -1557,11 +1543,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLineEdit" row="1" column="2">
@@ -1592,11 +1581,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLabel" row="0" column="0">
@@ -1618,11 +1610,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLineEdit" row="1" column="1">
@@ -1653,11 +1648,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLabel" row="0" column="2">
@@ -1679,11 +1677,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QLabel" row="0" column="1">
@@ -1705,27 +1706,44 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                     </grid>
                                                 </widget>
-                                                <widget class="QPushButton">
+                                                <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>axisAlignButton</cstring>
+                                                        <cstring>layout45</cstring>
                                                     </property>
-                                                    <property name="text">
-                                                        <string>Axis-Align</string>
-                                                    </property>
-                                                    <property name="toolTip" stdset="0">
-                                                        <string>Click to rotate probe/contour plane to nearest axis alignment.</string>
-                                                    </property>
-                                                    <property name="whatsThis" stdset="0">
-                                                        <string>The orientation of the probe is controlled
+                                                    <hbox>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>axisAlignButton</cstring>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>80</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Axis-Align</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Click to rotate probe/contour plane to nearest axis alignment.</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The orientation of the probe is controlled
 by three angles, theta, phi, and psi.  Theta
 and phi are spherical angles determining
 the direction of the plane normal to the
@@ -1733,32 +1751,92 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
-                                                    </property>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QComboBox">
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>90 deg rotate</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>+ X</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>+ Y</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>+ Z</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>- X</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>- Y</string>
+                                                                </property>
+                                                            </item>
+                                                            <item>
+                                                                <property name="text">
+                                                                    <string>- Z</string>
+                                                                </property>
+                                                            </item>
+                                                            <property name="name">
+                                                                <cstring>rotate90Combo</cstring>
+                                                            </property>
+                                                            <property name="maximumSize">
+                                                                <size>
+                                                                    <width>110</width>
+                                                                    <height>32767</height>
+                                                                </size>
+                                                            </property>
+                                                            <property name="font">
+                                                                <font>
+                                                                    <pointsize>9</pointsize>
+                                                                </font>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Rotate probe 90 degrees about center using selected axis direction</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>The orientation of the probe is controlled
+by three angles, theta, phi, and psi.  Theta
+and phi are spherical angles determining
+the direction of the plane normal to the
+center plane (contour plane) of the probe.
+Psi determines the angle of rotation about
+the normal vector.  The orientation can be
+controlled by dragging the X, Y, and Z 
+thumb wheels, and by typing angles
+(in degrees) into the text boxes.
+Clicking on the "Axis-Align" button
+will reset the orientation to the nearest
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
+                                                            </property>
+                                                        </widget>
+                                                    </hbox>
                                                 </widget>
                                             </vbox>
                                         </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer65</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>16</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
                                                 <cstring>layout68</cstring>
@@ -1786,11 +1864,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                     </property>
                                                 </widget>
                                                 <widget class="QLayoutWidget">
@@ -1826,11 +1907,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QThumbWheel">
@@ -1855,11 +1939,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -1897,11 +1984,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QThumbWheel">
@@ -1926,11 +2016,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
@@ -1968,11 +2061,14 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                         <widget class="QThumbWheel">
@@ -1997,34 +2093,20 @@ center plane (contour plane) of the probe.
 Psi determines the angle of rotation about
 the normal vector.  The orientation can be
 controlled by dragging the X, Y, and Z 
-thumb wheels, or by typing angles
+thumb wheels, and by typing angles
 (in degrees) into the text boxes.
 Clicking on the "Axis-Align" button
 will reset the orientation to the nearest
-axis alignment.</string>
+axis alignment.  Clicking on the 
+"90 deg rotate" selector rotates the
+probe 90 degrees about the
+selected axis.</string>
                                                             </property>
                                                         </widget>
                                                     </hbox>
                                                 </widget>
                                             </vbox>
                                         </widget>
-                                        <spacer>
-                                            <property name="name">
-                                                <cstring>spacer66</cstring>
-                                            </property>
-                                            <property name="orientation">
-                                                <enum>Horizontal</enum>
-                                            </property>
-                                            <property name="sizeType">
-                                                <enum>Expanding</enum>
-                                            </property>
-                                            <property name="sizeHint">
-                                                <size>
-                                                    <width>18</width>
-                                                    <height>20</height>
-                                                </size>
-                                            </property>
-                                        </spacer>
                                     </hbox>
                                 </widget>
                                 <spacer>

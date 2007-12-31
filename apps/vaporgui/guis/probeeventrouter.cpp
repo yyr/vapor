@@ -148,7 +148,7 @@ ProbeEventRouter::hookUpTab()
 	connect (planarCheckbox, SIGNAL(toggled(bool)), this, SLOT(guiTogglePlanar(bool)));
 	connect (attachSeedCheckbox,SIGNAL(toggled(bool)),this, SLOT(probeAttachSeed(bool)));
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
-	
+	connect (rotate90Combo,SIGNAL(activated(int)), this, SLOT(guiRotate90(int)));
 	connect (variableListBox,SIGNAL(selectionChanged(void)), this, SLOT(guiChangeVariables(void)));
 	connect (xCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeXCenter()));
 	connect (yCenterSlider, SIGNAL(sliderReleased()), this, SLOT (setProbeYCenter()));
@@ -285,6 +285,23 @@ guiReleaseZWheel(int val){
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+}
+void ProbeEventRouter::guiRotate90(int selection){
+	if (selection == 0) return;
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "90 deg probe rotation");
+	int axis = (selection < 4) ? selection - 1 : selection -4;
+	float angle = (selection < 4) ? 90.f : -90.f;
+	//Renormalize and apply rotation:
+	pParams->rotateAndRenormalizeBox(axis, angle);
+	rotate90Combo->setCurrentItem(0);
+	updateTab();
+	pParams->setProbeDirty();
+	PanelCommand::captureEnd(cmd,pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+
 }
 void ProbeEventRouter::guiChangeInstance(int inst){
 	performGuiChangeInstance(inst);
