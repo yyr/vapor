@@ -313,9 +313,10 @@ sub save_state {
 		print RESTART "$file\n";
 	}
 
+	my(@tar_names) = @TarNames;
 	foreach $listref (@FilesToTar) {
 		@a = @$listref;
-		$tarfile = shift @TarNames;
+		$tarfile = shift @tar_names;
 		print RESTART "$tarfile\n";
 		foreach $file (@a) {
 			print RESTART "$file\n";
