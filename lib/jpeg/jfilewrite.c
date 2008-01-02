@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 /*
  * Include file for users of JPEG library.
  * You will need to have included system headers that define at least
