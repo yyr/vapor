@@ -5,7 +5,8 @@ include $(TOP)/make/config/prebase.mk
 SUBDIRS = Doxygen help
 
 DOCS = IDLExtRefManual.doc QuickstartGuide.doc ReferenceManual.doc \
-	VDCIntro.doc WRFsupport.doc GeorgiaCaseStudy.doc
+	VDCIntro.doc WRFsupport.doc GeorgiaCaseStudy.doc \
+	WRFGetStarted.doc
 
 VERSION = $(shell cat $(TOP)/Version)
 INSTALL_DOC_DIR = $(INSTALL_PREFIX_DIR)/share/doc/$(VERSION)
