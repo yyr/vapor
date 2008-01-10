@@ -24,8 +24,6 @@ using namespace VAPoR;
 
 
 struct opt_t {
-	int	ts;
-	char *varname;
 	int	level;
 	char *sort;
 	OptionParser::Boolean_T	l;
@@ -35,8 +33,6 @@ struct opt_t {
 } opt;
 
 OptionParser::OptDescRec_T	set_opts[] = {
-	{"ts",		1, 	"0","Timestep of data file starting from 0"},
-	{"varname",	1, 	"var1",	"Name of variable"},
 	{"level",1, "-1","Refinement levels reported. 0=>coarsest, 1=>next refinement, etc. -1=>all"},
 	{"sort",1, "time","Sort order, one of (time|level|varname)"},
 	{"long",	0,	"",	"Use a long listing format"},
@@ -48,8 +44,6 @@ OptionParser::OptDescRec_T	set_opts[] = {
 
 
 OptionParser::Option_T	get_options[] = {
-	{"ts", VetsUtil::CvtToInt, &opt.ts, sizeof(opt.ts)},
-	{"varname", VetsUtil::CvtToString, &opt.varname, sizeof(opt.varname)},
 	{"level", VetsUtil::CvtToInt, &opt.level, sizeof(opt.level)},
 	{"sort", VetsUtil::CvtToString, &opt.sort, sizeof(opt.sort)},
 	{"long", VetsUtil::CvtToBoolean, &opt.l, sizeof(opt.l)},
