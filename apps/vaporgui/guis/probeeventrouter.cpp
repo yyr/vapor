@@ -792,7 +792,7 @@ void ProbeEventRouter::updateTab(){
 	ses->blockRecording();
 
     transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
-    transferFunctionFrame->update();
+    transferFunctionFrame->updateParams();
 
     if (ses->getNumSessionVariables())
     {
@@ -1046,7 +1046,7 @@ setEditorDirty(RenderParams* p){
 	if(!dp) dp = VizWinMgr::getInstance()->getActiveProbeParams();
 	if(dp->getMapperFunc())dp->getMapperFunc()->setParams(dp);
     transferFunctionFrame->setMapperFunction(dp->getMapperFunc());
-    transferFunctionFrame->update();
+    transferFunctionFrame->updateParams();
 
     Session *session = Session::getInstance();
 

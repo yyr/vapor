@@ -215,7 +215,7 @@ void IsoEventRouter::updateTab(){
     isoSelectionFrame->setVariableName(isoParams->GetVariableName());
 	updateMapBounds(isoParams);
 
-	isoSelectionFrame->update();
+	isoSelectionFrame->updateParams();
 
 	float val = evaluateSelectedPoint();
 	if (val != OUT_OF_BOUNDS)
@@ -456,7 +456,7 @@ reinitTab(bool doOverride){
 		numHistograms = 0;
 	}
 	
-	isoSelectionFrame->update();
+	isoSelectionFrame->updateParams();
 	updateTab();
 }
 
@@ -702,7 +702,7 @@ void IsoEventRouter::cleanParams(Params* p)
 {
 	isoSelectionFrame->setMapperFunction(NULL);
 	isoSelectionFrame->setVariableName("");
-	isoSelectionFrame->update(); 
+	isoSelectionFrame->updateParams(); 
 }
 	
 /*
@@ -766,7 +766,7 @@ setEditorDirty(RenderParams* p){
     isoSelectionFrame->setMapperFunction(ip->getMapperFunc());
 	isoSelectionFrame->setVariableName(ip->GetVariableName());
 	isoSelectionFrame->setIsoValue(ip->GetIsoValue());
-    isoSelectionFrame->update();
+    isoSelectionFrame->updateParams();
 
 }
 void IsoEventRouter::

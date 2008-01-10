@@ -3088,11 +3088,11 @@ setEditorDirty(RenderParams* p ){
 	if(fp->getMapperFunc())fp->getMapperFunc()->setParams(fp);
     opacityMappingFrame->setMapperFunction(fp->getMapperFunc());
     opacityMappingFrame->setVariableName(opacmapEntityCombo->currentText().latin1());
-    opacityMappingFrame->update();
+    opacityMappingFrame->updateParams();
     
     colorMappingFrame->setMapperFunction(fp->getMapperFunc());
     colorMappingFrame->setVariableName(colormapEntityCombo->currentText().latin1());
-    colorMappingFrame->update();
+    colorMappingFrame->updateParams();
 }
 //Make the new params current
 void FlowEventRouter::
@@ -3129,10 +3129,10 @@ void FlowEventRouter::cleanParams(Params* p)
 {
   opacityMappingFrame->setMapperFunction(NULL);
   opacityMappingFrame->setVariableName("");
-  opacityMappingFrame->update();
+  opacityMappingFrame->updateParams();
 
   colorMappingFrame->setMapperFunction(NULL);
   colorMappingFrame->setVariableName("");
-  colorMappingFrame->update();
+  colorMappingFrame->updateParams();
 }
 	

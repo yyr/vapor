@@ -491,7 +491,7 @@ void DvrEventRouter::updateTab(){
 	
 
     transferFunctionFrame->setMapperFunction(dvrParams->getMapperFunc());
-    transferFunctionFrame->update();
+    transferFunctionFrame->updateParams();
 
     if (session->getNumSessionVariables()&&DataStatus::getInstance()->getDataMgr())
     {
@@ -1006,7 +1006,7 @@ setEditorDirty(RenderParams *p){
 	if (!dp) dp = VizWinMgr::getInstance()->getActiveDvrParams();
 	if(dp->getMapperFunc())dp->getMapperFunc()->setParams(dp);
     transferFunctionFrame->setMapperFunction(dp->getMapperFunc());
-    transferFunctionFrame->update();
+    transferFunctionFrame->updateParams();
 
     Session *session = Session::getInstance();
 
@@ -1320,7 +1320,7 @@ void DvrEventRouter::cleanParams(Params* p)
 {
   transferFunctionFrame->setMapperFunction(NULL);
   transferFunctionFrame->setVariableName("");
-  transferFunctionFrame->update();
+  transferFunctionFrame->updateParams();
 }
 	
 
