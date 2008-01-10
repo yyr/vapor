@@ -896,6 +896,7 @@ void MainForm::helpAbout()
 {
 	QString versionInfo(QString("Visualization and Analysis Platform for atmospheric, Oceanic and solar Research\n") + 
 		QString("Developed at the National Center for Atmospheric Research (NCAR), Boulder, Colorado 80305, U.S.A.\nWeb site: http://www.vapor.ucar.edu\n")+
+		QString("Contact: vapor@ucar.edu\n")+
 		QString("Version: ")+
 		Version::GetVersionString().c_str());
 
