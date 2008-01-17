@@ -148,8 +148,67 @@ void save_file(const char *file) {
 		exit(1);
 	}
 }
-	
+//Perform averaging as needed for staggered dimensions.  If x is staggered, the output array
+//is different from the input; otherwise it's the same.
+//
+void averageSlice(nc_type dataType,void* inSlice, void* outSlice, 
+					  size_t inX, size_t inY, size_t outX, size_t outY) {
+	float *inFloat = (float*)inSlice; 
+	float *outFloat = (float*)outSlice;
+	double *inDouble = (double*)inSlice;
+	double* outDouble = (double*)outSlice;
 
+	if (dataType == NC_FLOAT) {
+		if (inX > outX){ //average in x, over all y; array is inSizeX by inSizeY
+			//In this case the outSlice is one shorter (in X) than the inSlice
+			for (int iy = 0; iy < inY; iy++){
+				for (int ix = 0; ix < outX; ix++) {
+					outFloat[ix+iy*outX] = 0.5*(inFloat[ix+1+iy*inX]+inFloat[ix+iy*inX]);
+				}
+			}
+		}
+		if (inY > outY){ //average in y, over all x.  Input data is always in outSlice:
+			for (int ix = 0; ix < outX; ix++){
+				for (int iy = 0; iy < outY; iy++) {
+					outFloat[ix+iy*outX] = 0.5*(outFloat[ix+iy*outX]+outFloat[ix+(iy+1)*outX]);
+				}
+			}
+		}
+	} else { //Same, but with doubles:
+		if (inX > outX){ //average in x, over all y; array is inSizeX by inSizeY
+			//In this case the outSlice is one shorter (in X) than the inSlice
+			for (int iy = 0; iy < inY; iy++){
+				for (int ix = 0; ix < outX; ix++) {
+					outDouble[ix+iy*outX] = 0.5*(inDouble[ix+1+iy*inX]+inDouble[ix+iy*inX]);
+				}
+			}
+		}
+		if (inY > outY){ //average in y, over all x.  Input data is always in outSlice:
+			for (int ix = 0; ix < outX; ix++){
+				for (int iy = 0; iy < outY; iy++) {
+					outDouble[ix+iy*outX] = 0.5*(outDouble[ix+iy*outX]+outDouble[ix+(iy+1)*outX]);
+				}
+			}
+		}
+	}
+	// if no averaging, but output is not input, then copy to output:
+	if (inX == outX && inY == outY){
+		if (dataType == NC_FLOAT && inFloat != outFloat) {
+			for (int iy = 0; iy < inY; iy++){
+				for (int ix = 0; ix < inX; ix++) {
+					outFloat[ix+iy*inX] = inFloat[ix+iy*inX];
+				}
+			}
+		} else if (inDouble != outDouble) {
+			for (int ix = 0; ix < inX; ix++){
+				for (int iy = 0; iy < inY; iy++) {
+					outDouble[ix+iy*inX] = inDouble[ix+iy*inX];
+				}
+			}
+		}
+	}
+	return;
+}
 
 void	process_volume(
 	WaveletBlock3DBufWriter *bufwriter,
@@ -165,7 +224,7 @@ void	process_volume(
 	size_t* ncdfdims;
 	size_t* start;
 	size_t* count;
-	size_t* fullCount;
+	size_t* outCount, *inCount;
 	
 
     int nc_status;
@@ -223,9 +282,11 @@ void	process_volume(
 	// Initialize the count and start arrays for extracting slices from the data:
 	count = new size_t[ndimids];
 	start = new size_t[ndimids];
-	fullCount = new size_t[ndimids];
+	outCount = new size_t[ndimids];
+	inCount = new size_t[ndimids];
 	for (int i = 0; i<ndimids; i++){
-		fullCount[i] = 1;
+		outCount[i] = 1;
+		inCount[i] = 1;
 		start[i] = 0;
 		count[i] = 1;
 	}
@@ -252,8 +313,7 @@ void	process_volume(
 		}
 	}
 
-
-			
+	
 	//Go through the dimensions looking for the 3 dimensions that we are using,
 	//as well as the constant dimension names/values
 	for (int i = 0; i<ndimids; i++){
@@ -273,7 +333,8 @@ void	process_volume(
 					fprintf(stderr, "NetCDF and VDF array do not match in dimension 0\n");
 					exit(1);
 				}
-				fullCount[i] = dim[0];
+				outCount[i] = dim[0];
+				inCount[i] = ncdfdims[dimIDs[0]];
 				continue;
 			} 
 		} 
@@ -287,7 +348,9 @@ void	process_volume(
 					fprintf(stderr, "NetCDF and VDF array do not match in dimension 1\n");
 					exit(1);
 				}
-				fullCount[i] = dim[1];
+				outCount[i] = dim[1];
+				inCount[i] = ncdfdims[dimIDs[1]];
+				
 				continue;
 			}
 		} 
@@ -301,7 +364,10 @@ void	process_volume(
 					fprintf(stderr, "NetCDF and VDF array do not match in dimension 2\n");
 					exit(1);
 				}
-				fullCount[i] = dim[2];
+				
+				outCount[i] = dim[2];
+				inCount[i] = ncdfdims[dimIDs[2]];
+				
 				continue;
 			}
 		}
@@ -332,70 +398,209 @@ void	process_volume(
 			break;
 	}
 
-	size_t size = fullCount[dimIndex[0]]*fullCount[dimIndex[1]];
-	//allocate a buffer big enough for 2d slice (constant z):
+	size_t outSize = outCount[dimIndex[0]]*inCount[dimIndex[1]];
+	size_t inSize = inCount[dimIndex[0]]*inCount[dimIndex[1]];
+	//allocate a buffer big enough for input 2D slice (constant z):
 	
-	float* fbuffer = new float[size];
-	double *dbuffer = 0;
-	if (xtype == NC_DOUBLE) dbuffer = new double[size];
-	if(!opt.quiet) fprintf(stderr, "dimensions of array are: %d %d %d\n",
-		fullCount[dimIndex[0]],fullCount[dimIndex[1]],fullCount[dimIndex[2]]);
+	float* inFBuffer = 0, *outFBuffer = 0, *outFBuffer2 = 0;
+	double *inDBuffer = 0, *outDBuffer = 0, *outDBuffer2 = 0;
+	
+	if (xtype == NC_DOUBLE) inDBuffer = new double[inSize];
+	else inFBuffer = new float[inSize];
+
+	// If data is staggered in x, need additional buffer for output
+
+	if (inCount[dimIndex[0]]>outCount[dimIndex[0]]){
+		if (!opt.quiet) fprintf(stderr, "variable is staggered in x\n");
+		if (xtype == NC_DOUBLE) outDBuffer = new double[outSize];
+		else outFBuffer = new float[outSize];
+	} else {
+		outFBuffer = inFBuffer;
+		outDBuffer = inDBuffer;
+	}
+	//Always need an outFBuffer, (for conversion if data is double)
+	if (!outFBuffer) outFBuffer = new float[outSize];
+
+	if (inCount[dimIndex[1]]>outCount[dimIndex[1]] && !opt.quiet)
+		fprintf(stderr, "variable is staggered in y\n");
+	if (inCount[dimIndex[2]]>outCount[dimIndex[2]] && !opt.quiet)
+		fprintf(stderr, "variable is staggered in z\n");
+
+	if(!opt.quiet) fprintf(stderr, "dimensions of output array are: %d %d %d\n",
+		outCount[dimIndex[0]],outCount[dimIndex[1]],outCount[dimIndex[2]]);
 	
 	//
 	// Translate the volume one slice at a time
 	//
-	// Set up counts to only grab a z-slice
-	for (int i = 0; i< ndimids; i++) count[i] = fullCount[i];
+	// Set up counts to grab a z-slice of input
+	for (int i = 0; i< ndimids; i++) count[i] = inCount[i];
 	count[dimIndex[2]] = 1;
+	//set up z traversal interval based on input data size:
 	int zbegin = 0;
-	int zend = dim[2];
+	int zend = ncdfdims[dimIDs[2]];
 	int zinc = 1;
+	//Prepare for reversing in z:
 	if (opt.swapz) {
-		zbegin = dim[2]-1;
+		zbegin = ncdfdims[dimIDs[2]]-1;
 		zend = -1;
 		zinc = -1;
 	}
-	for(int z=zbegin; z!=zend; z+=zinc) {
+	int inSizeX = inCount[dimIndex[0]], inSizeY = inCount[dimIndex[1]];
+	int outSizeX = outCount[dimIndex[0]], outSizeY = outCount[dimIndex[1]];
 
-		if (z%50 == 0 && ! opt.quiet) {
-			cout << "Reading slice # " << z << endl;
-		}
+	//Handle z-staggered separate from un-staggered
+	if(ncdfdims[dimIDs[2]] == dim[2]) {
+		for(int z=zbegin; z!=zend; z+=zinc) {
 
+			if (z%50 == 0 && ! opt.quiet) {
+				cout << "Reading slice # " << z << endl;
+			}
+
+			TIMER_START(t1);
+			start[dimIndex[2]] = z;
+			
+			if (xtype == NC_FLOAT) {
+			
+				nc_status = nc_get_vara_float(
+					ncid, varid, start, count, inFBuffer
+				);
+				
+				NC_ERR_READ(nc_status);
+				TIMER_STOP(t1, *read_timer);
+				averageSlice(xtype,(void*)inFBuffer, (void*)outFBuffer, 
+						inSizeX, inSizeY, outSizeX, outSizeY);
+
+				
+			} else if (xtype == NC_DOUBLE){
+				
+				nc_status = nc_get_vara_double(
+					ncid, varid, start, count, inDBuffer
+				);
+				NC_ERR_READ(nc_status);
+				TIMER_STOP(t1, *read_timer);
+				averageSlice(xtype,(void*)inDBuffer, (void*)outDBuffer, 
+						inSizeX, inSizeY, outSizeX, outSizeY);
+				//Convert to float:
+				for(int i=0; i<dim[0]*dim[1]; i++) outFBuffer[i] = (float)outDBuffer[i];
+			}
+			//
+			// Write a single slice of data
+			//
+			
+			bufwriter->WriteSlice(outFBuffer);
+			if (bufwriter->GetErrCode() != 0) {
+				cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+				exit(1);
+			}
+		} 
+		
+		
+
+	} else { //handle staggered z-dimension
+		if (xtype == NC_DOUBLE) outDBuffer2 = new double[outSize];
+		else outFBuffer2 = new float[outSize];
+		//Identify pointers to buffers.  These are swapped each time we
+		//average two slices
+		double* newDBuffer = outDBuffer2;
+		double* oldDBuffer = outDBuffer;
+		float* newFBuffer = outFBuffer2;
+		float* oldFBuffer = outFBuffer;
+		
+		//First, read newbuffer, average inside slice as needed
 		TIMER_START(t1);
-		start[dimIndex[2]] = z;
+		start[dimIndex[2]] = zbegin;
 		
 		if (xtype == NC_FLOAT) {
 		
 			nc_status = nc_get_vara_float(
-				ncid, varid, start, count, fbuffer
+				ncid, varid, start, count, inFBuffer
 			);
 			
 			NC_ERR_READ(nc_status);
+			TIMER_STOP(t1, *read_timer);
+			averageSlice(xtype,(void*)inFBuffer, (void*)newFBuffer, 
+					inSizeX, inSizeY, outSizeX, outSizeY);
+			
 		} else if (xtype == NC_DOUBLE){
 			
 			nc_status = nc_get_vara_double(
-				ncid, varid, start, count, dbuffer
+				ncid, varid, start, count, inDBuffer
 			);
 			NC_ERR_READ(nc_status);
-			//Convert to float:
-			
-			
-			for(int i=0; i<dim[0]*dim[1]; i++) fbuffer[i] = (float)dbuffer[i];
+			TIMER_STOP(t1, *read_timer);
+			averageSlice(xtype,(void*)inDBuffer, (void*)newDBuffer, 
+					inSizeX, inSizeY, outSizeX, outSizeY);
 		}
-		TIMER_STOP(t1, *read_timer);
-		//
-		// Write a single slice of data
-		//
+	
 		
-		bufwriter->WriteSlice(fbuffer);
-		if (bufwriter->GetErrCode() != 0) {
-			cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
-			exit(1);
-		}
+		//Repeatedly, loop over output lines, averaging each pair::
+		for(int z=zbegin+zinc; z!=zend; z+=zinc) {
 
+			if (z%50 == 1 && ! opt.quiet) {
+				cout << "Reading slice # " << z << endl;
+			}
+
+			
+			start[dimIndex[2]] = z;
+			//  swap pointers
+			float *tempFBuffer = newFBuffer;
+			double* tempDBuffer = newDBuffer;
+			newFBuffer = oldFBuffer;
+			newDBuffer = oldDBuffer;
+			oldFBuffer = tempFBuffer;
+			oldDBuffer = tempDBuffer;
+			//  read newBuffer
+			
+			if (xtype == NC_FLOAT) {
+				TIMER_START(t1);
+				nc_status = nc_get_vara_float(
+					ncid, varid, start, count, inFBuffer
+				);
+				
+				NC_ERR_READ(nc_status);
+				TIMER_STOP(t1, *read_timer);
+				averageSlice(xtype,(void*)inFBuffer, (void*)newFBuffer, 
+						inSizeX, inSizeY, outSizeX, outSizeY);
+				//Average two slices putting result into oldBuffer
+				for(int i=0; i<dim[0]*dim[1]; i++) oldFBuffer[i] = 0.5*(oldFBuffer[i]+newFBuffer[i]);
+				//Write out oldFBuffer:
+				bufwriter->WriteSlice(oldFBuffer);
+				if (bufwriter->GetErrCode() != 0) {
+					cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+					exit(1);
+				}
+			} else if (xtype == NC_DOUBLE){
+				TIMER_START(t1);
+				nc_status = nc_get_vara_double(
+					ncid, varid, start, count, inDBuffer
+				);
+				NC_ERR_READ(nc_status);
+				TIMER_STOP(t1, *read_timer);
+				averageSlice(xtype,(void*)inDBuffer, (void*)newDBuffer, 
+						inSizeX, inSizeY, outSizeX, outSizeY);
+				//Average two slices putting result into outFBuffer
+				for(int i=0; i<dim[0]*dim[1]; i++) outFBuffer[i] =(float)( 0.5*(oldDBuffer[i]+newDBuffer[i]));
+				//Write out outFBuffer:
+				bufwriter->WriteSlice(outFBuffer);
+				if (bufwriter->GetErrCode() != 0) {
+					cerr << ProgName << ": " << bufwriter->GetErrMsg() << endl;
+					exit(1);
+				}
+			}
+			
+			
+		}
+		//Delete extra buffers:
+		if (outFBuffer2) delete outFBuffer2;
+		if (outDBuffer2) delete outDBuffer2;
 	}
-	delete fbuffer;
-	if (dbuffer) delete dbuffer;
+	
+	if (inFBuffer && inFBuffer != outFBuffer) delete inFBuffer;
+	if (inDBuffer && inDBuffer != outDBuffer)
+		delete inDBuffer;
+
+	delete outFBuffer;
+	if (outDBuffer) delete outDBuffer;
 }
 
 
