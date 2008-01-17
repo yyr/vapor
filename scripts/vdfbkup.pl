@@ -50,7 +50,6 @@ $tmpdirdef = defined($ENV{'TMPDIR'}) ? $ENV{'TMPDIR'} : "/tmp";
 "maxsize",	"MaxSize",	"500",	'1', "Max size of file to tar (MBytes)",
 "maxarg",	"MaxArg",	"70000",'1', "Max size of unix cmd line(bytes)",
 "bs",	"BS",	"512",'1', "Tar blocking factor (bs*512 bytes)",
-"tmpdir",	"TmpDir",	"$tmpdirdef",	'1', "Path to scratch directory",
 "nr",		"NotReally",	"0",	'0', "Echo, but do not execute cmds",
 "quiet",	"Quiet",	"0",	'0', "Operate quitely",
 "nolog",	"NoLog",	"0",	'0', "Do not create a log file",
@@ -393,7 +392,6 @@ sub tar_create {
 	my($vdffile) = @_;
 
 	if (! $Quiet) {
-		printf "%-30.30s: %s\n", "Tmp directory", $TmpDir;
 		printf "%-30.30s: %s\n", "Max tar file size (MB's)", $MaxTarSize;
 		printf "%-30.30s: %s\n", "Max tar file element size (MB's)", $MaxSize;
 		printf "%-30.30s: %s\n", "Max arg length (bytes)", $MaxArg;
@@ -495,7 +493,9 @@ sub tar_create {
 	else {
 		my(@cmd) = (@BackupCmd);
 		foreach $_ (@cmd) {
+			my($dummy1, $dummy2, $filebase) = File::Spec->splitpath($vdfbase);
 			$_ =~ s/%s/$vdfbase/;
+			$_ =~ s/%b/$filebase/;
 		}
 		mysystem(@cmd);
 	}
@@ -510,7 +510,9 @@ sub tar_create {
 		else {
 			my(@cmd) = (@BackupCmd);
 			foreach $_ (@cmd) {
+				my($dummy1, $dummy2, $filebase) = File::Spec->splitpath($file);
 				$_ =~ s/%s/$file/;
+				$_ =~ s/%b/$filebase/;
 			}
 			mysystem(@cmd);
 		}
@@ -523,14 +525,16 @@ sub tar_create {
 			$tarfile = File::Spec->catfile($TargetDirectory, $tarbase);
 		}
 		else {
-			$tarfile = File::Spec->catfile($TmpDir, $tarbase);
+			$tarfile = $tarbase;
 		}
 		@files = @$listref;
 		tarit($tarfile, @files);
 		if (defined (@BackupCmd)) {
 			my(@cmd) = (@BackupCmd);
 			foreach $_ (@cmd) {
+				my($dummy1, $dummy2, $filebase) = File::Spec->splitpath($tarfile);
 				$_ =~ s/%s/$tarfile/;
+				$_ =~ s/%b/$filebase/;
 			}
 			mysystem(@cmd);
 
@@ -550,7 +554,7 @@ sub tar_create {
 $0              =~ s/.*\///;
 $ProgName       = $0;
 $MBYTE		= 1024 * 1024;
-$MaxMsg		= "128";
+$MaxMsg		= "256";
 @VDFLSCmd	= ("vdfls", "-sort", "varname");
 $RestartFile = File::Spec->catfile(cwd(), ".vdfbkup_restart.txt");
 
@@ -598,7 +602,7 @@ if (defined $TargetDirectory) {
 	$LogFile = File::Spec->catfile($TargetDirectory, "vdfbkup.log");
 }
 else  {
-	$LogFile = File::Spec->catfile($TmpDir, "vdfbkup.log");
+	$LogFile = "vdfbkup.log";
 }
 	
 
@@ -612,7 +616,9 @@ if (defined @BackupCmd && ! $NoLog) {
 	close FILE;
 	my(@cmd) = (@BackupCmd);
 	foreach $_ (@cmd) {
+		my($dummy1, $dummy2, $filebase) = File::Spec->splitpath($LogFile);
 		$_ =~ s/%s/$LogFile/;
+		$_ =~ s/%b/$filebase/;
 	}
 	mysystem(@cmd);
 	unlink $LogFile if (! $NotReally);
