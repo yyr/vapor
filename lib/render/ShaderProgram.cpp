@@ -259,7 +259,7 @@ bool ShaderProgram::compile()
       glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infologLength);
       printOpenGLError();
       
-      if (infologLength > 1)
+      if (shaderCompiled != GL_TRUE && infologLength > 1)
       {
         GLchar *infoLog = new GLchar[infologLength];
         int nWritten  = 0;
@@ -296,7 +296,7 @@ bool ShaderProgram::compile()
                                 &infologLength);
       printOpenGLError();
       
-      if (infologLength > 1)
+      if (shaderCompiled != GL_TRUE && infologLength > 1)
       {
         GLchar *infoLog = new GLchar[infologLength];
         int nWritten  = 0;
