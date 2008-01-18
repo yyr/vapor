@@ -23,7 +23,7 @@ class RENDER_API DVRLookup : public DVRTexture3d
  public:
 
 
-  DVRLookup(DataType_T type, int nthreads);
+  DVRLookup(GLenum type, int nthreads);
   virtual ~DVRLookup();
 
   virtual int GraphicsInit();
@@ -39,8 +39,6 @@ class RENDER_API DVRLookup : public DVRTexture3d
   virtual void loadTexture(TextureBrick *brick);
 
   virtual int Render(const float matrix[16]);
-
-  virtual int HasType(DataType_T type);
 
   virtual void SetCLUT(const float ctab[256][4]);
   virtual void SetOLUT(const float ftab[256][4], const int numRefinenements);

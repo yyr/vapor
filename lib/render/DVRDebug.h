@@ -31,7 +31,6 @@ public:
  DVRDebug(
 	int *argc,
 	char **argv,
-	DataType_T type,
 	int	nthreads
  );
 
@@ -62,8 +61,6 @@ int SetRegionStretched(
  virtual int	Render(
 	const float	matrix[16]
  );
-
- virtual int	HasType(DataType_T type);
 
  static void	PrintOptions(FILE *fp);
 

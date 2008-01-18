@@ -55,7 +55,7 @@ class RENDER_API DVRTexture3d : public DVRBase
  public:
 
 
-  DVRTexture3d(DataType_T type, int nthreads);
+  DVRTexture3d(GLint internalFormat, GLenum format, GLenum type, int nthreads);
   virtual ~DVRTexture3d();
 
   virtual int SetRegion(void *data, 
@@ -96,7 +96,7 @@ protected:
                    int nx, int ny, int nz, size_t fullHeight);
   void sortBricks(const Matrix3d &modelview);
 
-  int maxTextureSize(GLenum format, GLenum type);
+  int maxTextureSize(GLint internalFormat, GLenum format, GLenum type);
 
   virtual void SetMaxTexture(int texsize);
 
@@ -141,6 +141,12 @@ protected:
 
   // Region state
   RegionState _lastRegion;
+
+  // Texture internal data format
+  GLenum _internalFormat; 
+  
+  // Texture data format
+  GLenum _format;
 
   // Voxel type
   GLenum _type;

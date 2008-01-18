@@ -44,8 +44,9 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-DVRSpherical::DVRSpherical(DataType_T type, int nthreads) :
-  DVRShader(type, nthreads),
+DVRSpherical::DVRSpherical(
+	GLint internalFormat, GLenum format, GLenum type, int nthreads
+) : DVRShader(internalFormat, format, type, nthreads),
   _nr(0),
   _shellWidth(1.0),
   _permutation(3),
@@ -212,7 +213,7 @@ int DVRSpherical::SetRegionSpherical(void *data,
       // needed. We can save a few cycles by setting up the single brick here,
       // rather than calling buildBricks(...). 
       //
-      _bricks.push_back(new TextureBrick(_type));
+      _bricks.push_back(new TextureBrick(_internalFormat, _format, _type));
       
       _bricks[0]->volumeMin(0, 0, 0);
       _bricks[0]->volumeMax(1, 1, 1);

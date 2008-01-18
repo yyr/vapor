@@ -44,7 +44,6 @@ public:
  DVRVolumizer(
 	int *argc,
 	char **argv,
-	DataType_T type,
 	int	nthreads
  );
 
@@ -65,7 +64,6 @@ public:
 	const float	matrix[16]
  );
 
- virtual int	HasType(DataType_T type);
 
  static void	PrintOptions(FILE *fp);
 

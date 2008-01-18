@@ -40,8 +40,9 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-DVRShader::DVRShader(DataType_T type, int nthreads) :
-  DVRTexture3d(type, nthreads),
+DVRShader::DVRShader(
+	GLint internalFormat, GLenum format, GLenum type, int nthreads
+) : DVRTexture3d(internalFormat, format, type, nthreads),
  _colormap(NULL),
   _shader(NULL),
   _lighting(false),
@@ -243,11 +244,7 @@ void DVRShader::loadTexture(TextureBrick *brick)
 {
   printOpenGLError();
 
-  if (_type == GL_UNSIGNED_BYTE) {
-    brick->load(GL_LUMINANCE8, GL_LUMINANCE);
-  } else {
-    brick->load(GL_LUMINANCE16, GL_LUMINANCE);
-  }
+  brick->load();
   printOpenGLError();
 }
 
@@ -331,17 +328,6 @@ int DVRShader::Render(const float matrix[16])
 
   glFlush();
   return 0;
-}
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-int DVRShader::HasType(DataType_T type) 
-{
-  if (type == UINT8) 
-    return(1);
-  else 
-    return(0);
 }
 
 //----------------------------------------------------------------------------

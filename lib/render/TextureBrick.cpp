@@ -23,7 +23,7 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-TextureBrick::TextureBrick(GLenum type) :
+TextureBrick::TextureBrick(GLint internalFormat, GLenum format, GLenum type) :
   _nx(0),
   _ny(0),
   _nz(0),
@@ -38,7 +38,8 @@ TextureBrick::TextureBrick(GLenum type) :
   _tmin(0,0,0),
   _tmax(0,0,0),
   _texid(0),
-  _format(GL_LUMINANCE),
+  _internalFormat(internalFormat),
+  _format(format),
   _type(type),
   _data(NULL),
   _haveOwnership(false),
@@ -46,10 +47,50 @@ TextureBrick::TextureBrick(GLenum type) :
   _dny(0),
   _dnz(0)
 {
-  assert(type == GL_UNSIGNED_BYTE || type == GL_UNSIGNED_SHORT);
-  if (_type == GL_UNSIGNED_BYTE) _size = 1;
-  if (_type == GL_UNSIGNED_SHORT) _size = 2;
+	// Find size of texture elements
+	//
+	_size = 0;
+	switch (format) {
+	case GL_COLOR_INDEX:
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	case GL_LUMINANCE:
+		_size = 1;
+		break;
+	case GL_LUMINANCE_ALPHA:
+		_size = 2;
+		break;
+	case GL_RGB:
+	case GL_BGR:
+		_size = 3;
+		break;
+	case GL_RGBA:
+	case GL_BGRA:
+		_size = 4;
+		break;
+	}
+	assert (_size != 0);
 
+	switch (type) {
+	case GL_UNSIGNED_BYTE:
+	case GL_BYTE:
+		break;
+	case GL_UNSIGNED_SHORT:
+	case GL_SHORT:
+		_size *= 2;
+		break;
+	case GL_UNSIGNED_INT:
+	case GL_INT:
+	case GL_FLOAT:
+		_size *= 4;
+		break;
+	default:
+		assert(type == GL_UNSIGNED_BYTE);
+		break;
+	}
+	
   //
   // Setup the 3d texture
   //
@@ -215,9 +256,8 @@ bool TextureBrick::valid() const
 //----------------------------------------------------------------------------
 // Load data into the texture object
 //----------------------------------------------------------------------------
-void TextureBrick::load(GLint internalFormat, GLenum format)
+void TextureBrick::load()
 {
-  _format = format;
 
   glBindTexture(GL_TEXTURE_3D, _texid);
 
@@ -233,13 +273,13 @@ void TextureBrick::load(GLint internalFormat, GLenum format)
 //
   if (_haveOwnership || (_dnx==_nx && _dny==_ny) && (_dnz==_nz)) 
   {
-    glTexImage3D(GL_TEXTURE_3D, 0, internalFormat,
+    glTexImage3D(GL_TEXTURE_3D, 0, _internalFormat,
                  _nx, _ny, _nz, 0, _format, _type, _data);
 
   }
   else
   {
-    glTexImage3D(GL_TEXTURE_3D, 0, internalFormat,
+    glTexImage3D(GL_TEXTURE_3D, 0, _internalFormat,
                  _nx, _ny, _nz, 0, _format, _type, NULL);
 
     glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0,

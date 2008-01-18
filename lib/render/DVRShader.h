@@ -29,7 +29,7 @@ class RENDER_API DVRShader : public DVRTexture3d
  public:
 
 
-  DVRShader(DataType_T type, int nthreads);
+  DVRShader(GLint internalFormat, GLenum format, GLenum type, int nthreads);
   virtual ~DVRShader();
 
   virtual int GraphicsInit();
@@ -46,7 +46,6 @@ class RENDER_API DVRShader : public DVRTexture3d
 
   virtual int Render(const float matrix[16]);
 
-  virtual int HasType(DataType_T type);
   virtual int HasPreintegration() const { return true; };
   virtual int HasLighting() const { return true; };
 

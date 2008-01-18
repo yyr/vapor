@@ -20,8 +20,8 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-DVRLookup::DVRLookup(DataType_T type, int nthreads) :
-  DVRTexture3d(type, nthreads),
+DVRLookup::DVRLookup(GLenum type, int nthreads) :
+  DVRTexture3d(GL_RGB8, GL_COLOR_INDEX, type, nthreads),
   _colormap(NULL)
 {
   if (GLEW_NV_fragment_program)
@@ -81,7 +81,7 @@ void DVRLookup::loadTexture(TextureBrick *brick)
 { 
   glBindTexture(GL_TEXTURE_3D, brick->handle());
 
-  brick->load(GL_RGBA8, GL_COLOR_INDEX);
+  brick->load();
 
   printOpenGLError();
 }
@@ -112,17 +112,6 @@ int DVRLookup::Render(const float matrix[16])
   glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
 
   return 0;
-}
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-int DVRLookup::HasType(DataType_T type) 
-{
-  if (type == UINT8) 
-    return(1);
-  else 
-    return(0);
 }
 
 //----------------------------------------------------------------------------

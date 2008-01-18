@@ -28,14 +28,6 @@ namespace VAPoR {
 class	RENDER_API DVRBase : public MyBase {
 public:
 
- // Enumerated type representing type of data elements (e.g. byte, short)
- //
- enum DataType_T {
-	UINT8,
-	UINT16,
-	FLOAT32
- };
-
 
  // Construct driver. Destructively parse any options passed by 'argv' and 
  // 'argc' and recogized by this driver.
@@ -46,7 +38,6 @@ public:
  //DVRBase(
 //	int *argc,
 //	char **argv,
-//	DataType_T type,
  //);
 
  DVRBase();
@@ -157,11 +148,6 @@ public:
  virtual int	Render(
 	const float	matrix[16]
  ) = 0;
-
- // Return's true if the specified data type, 'type' is supported by the
- // driver.
- //
- virtual int	HasType(DataType_T ) {return (0); }
 
  // Prints a description of the options supported by the driver's constructor
  // to the file pointer indicated by 'fp'.

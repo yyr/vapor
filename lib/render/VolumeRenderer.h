@@ -64,7 +64,6 @@ namespace VAPoR {
 
     DVRBase* _driver;
     DvrParams::DvrType _type;
-	DVRBase::DataType_T _voxelType;
 
     virtual void DrawVoxelScene(unsigned fast);
     virtual void DrawVoxelWindow(unsigned fast);
@@ -76,6 +75,7 @@ namespace VAPoR {
 
 	int _userTextureSize;
 	bool _userTextureSizeIsSet;
+    GLenum _voxelType;
 
   };
 };

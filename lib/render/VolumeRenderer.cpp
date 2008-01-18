@@ -246,37 +246,41 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   int argc = 0;
   char** argv = 0;
   DVRBase *driver = NULL;
+  GLenum format = GL_LUMINANCE;
 
   if (dvrType == DvrParams::DVR_TEXTURE3D_LOOKUP) 
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
-	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
+    _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
     driver = new DVRLookup(_voxelType, 1);
   }
   else if (dvrType == DvrParams::DVR_TEXTURE3D_SHADER)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
-	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
-    driver = new DVRShader(_voxelType, 1);
+    _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
+    GLenum internalFormat = rp->getNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
+    driver = new DVRShader(internalFormat, format, _voxelType, 1);
   }
   else if (dvrType == DvrParams::DVR_SPHERICAL_SHADER)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
-	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
-    driver = new DVRSpherical(_voxelType, 1);
+    _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
+    GLenum internalFormat = rp->getNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
+    driver = new DVRSpherical(internalFormat, format, _voxelType, 1);
   }
   else if (dvrType == DvrParams::DVR_RAY_CASTER)
   {
 	ParamsIso *rp = (ParamsIso *) currentRenderParams;
-	_voxelType = rp->GetNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
-    driver = new DVRRayCaster(_voxelType, 1);
+    _voxelType = rp->GetNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
+    GLenum internalFormat = rp->GetNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
+    driver = new DVRRayCaster(internalFormat, format, _voxelType, 1);
   }
 
 #ifdef VOLUMIZER
   else if (dvrType == DvrParams::DVR_VOLUMIZER)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
-	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
+    _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
     driver = new DVRVolumizer(&argc, argv, _voxelType, 1);
   }
 #endif
@@ -284,15 +288,15 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
   else if (dvrType == DvrParams::DVR_DEBUG)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
-	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
-    driver = new DVRDebug(&argc, argv, _voxelType, 1);
+    _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
+    driver = new DVRDebug(&argc, argv, 1);
   }
   
 #ifdef	DVR_STRETCHEDGRID
   else if (dvrType == DvrParams::DVR_STRETCHED_GRID)
   {
 	DvrParams *rp = (DvrParams *) currentRenderParams;
-	_voxelType = rp->getNumBits() == 8 ? DVRBase::UINT8 : DVRBase::UINT16; 
+    _voxelType = rp->getNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
     driver = new DVRStretchedGrid(&argc, argv, _voxelType, nthreads);
   }
 #endif
@@ -470,7 +474,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 
 
 		void* data;
-		if (_voxelType == DVRBase::UINT8) {
+		if (_voxelType == GL_UNSIGNED_BYTE) {
 			data = (void*) myDataMgr->GetRegionUInt8(
 											timeStep,
 											varname,

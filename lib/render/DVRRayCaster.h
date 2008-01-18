@@ -28,14 +28,13 @@ class RENDER_API DVRRayCaster : public DVRShader
  public:
 
 
-  DVRRayCaster(DataType_T type, int nthreads);
+  DVRRayCaster(GLint internalFormat, GLenum format, GLenum type, int nthreads);
   virtual ~DVRRayCaster();
 
   virtual int GraphicsInit();
   
   virtual int Render(const float matrix[16]);
 
-  virtual int HasType(DataType_T type);
   virtual int HasPreintegration() const { return false; };
   virtual int HasLighting() const { return true; };
 

@@ -26,8 +26,9 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-DVRRayCaster::DVRRayCaster(DataType_T type, int nthreads) :
-  DVRShader(type, nthreads)
+DVRRayCaster::DVRRayCaster(
+	GLint internalFormat, GLenum format, GLenum type, int nthreads
+) : DVRShader(internalFormat, format, type, nthreads)
 {
 	_lighting = false;
 	_framebufferid = 0;
@@ -375,19 +376,6 @@ void DVRRayCaster::renderBrick(
 	raycasting_pass(brick, volumeBox, textureBox);
 
 	printOpenGLError();
-}
-
-
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-int DVRRayCaster::HasType(DataType_T type) 
-{
-	if (type == UINT8 || type == UINT16) 
-		return(1);
-	else 
-		return(0);
 }
 
 

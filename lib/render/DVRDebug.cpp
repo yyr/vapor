@@ -23,7 +23,6 @@ using namespace VAPoR;
 DVRDebug::DVRDebug(
 	int *argc,
 	char **argv,
-	DataType_T type,
 	int	nthreads
 ) {
 	int	i;
@@ -33,7 +32,6 @@ DVRDebug::DVRDebug(
 	for(i=0; i<*argc; i++) {
 		fprintf(stdout, "argv[%d] = %s\n", i, argv[i]);
 	}
-	fprintf(stdout, "\ttype = %d\n", type);
 	fprintf(stdout, "\tnthreads = %d\n", nthreads);
 }
 
@@ -147,15 +145,6 @@ int	DVRDebug::Render(
 
 	return(0);
 }
-
-int	DVRDebug::HasType(DataType_T type) {
-
-	fprintf(stdout, "\nDVRDebug::HasType() called\n");
-
-	fprintf(stdout, "\ttype = %d\n", type);
-	return(1);
-}
-
 
 void	DVRDebug::PrintOptions(FILE *fp) {
 

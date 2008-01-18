@@ -38,7 +38,7 @@ class RENDER_API DVRSpherical : public DVRShader
  public:
 
 
-  DVRSpherical(DataType_T type, int nthreads);
+  DVRSpherical(GLint internalFormat, GLenum format, GLenum type, int nthreads);
   virtual ~DVRSpherical();
 
   virtual int GraphicsInit();

@@ -48,7 +48,6 @@ static void	deletion_cb(
 DVRVolumizer::DVRVolumizer(
 	int * ,//argc
 	char **, //argv
-	DataType_T type,
 	int	nthreads
 ) {
 	int	i;
@@ -256,12 +255,6 @@ int	DVRVolumizer::Render(
 
 	return(0);
 }
-
-int     DVRVolumizer::HasType(DataType_T type) {
-	if (type == UINT8) return(1);
-	else return(0);
-}
-
 
 void	DVRVolumizer::PrintOptions(FILE *) {
 }
