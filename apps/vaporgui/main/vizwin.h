@@ -159,6 +159,16 @@ public:
 	void setLabelHeight(int val) {myGLWindow->setLabelHeight(val);}
 	void setLabelDigits(int val) {myGLWindow->setLabelDigits(val);}
 	void setAxisColor(QColor& c) {myGLWindow->setAxisColor(c);}
+
+	void setAxisExtents(const float* extents){
+		for (int i = 0; i<3; i++){
+			setMinTic(i, extents[i]);
+			setMaxTic(i, extents[i+3]);
+		}
+		setTicLength(0, 0.05*(extents[4]-extents[1]));
+		setTicLength(1, 0.05*(extents[3]-extents[0]));
+		setTicLength(2, 0.05*(extents[3]-extents[0]));
+	}
 	
 	void setColorbarLLCoord(int i, float crd) {myGLWindow->setColorbarLLCoord( i,  crd);;}
 	void setColorbarURCoord(int i, float crd) {myGLWindow->setColorbarURCoord( i,  crd);}

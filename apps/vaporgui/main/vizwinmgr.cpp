@@ -365,6 +365,11 @@ launchVisualizer(int useWindowNum, const char* newName, int newNum)
 		emit enableMultiViz(true);
 	}
 
+	//Initialize axis annotation to use full extents:
+	const float *extents = Session::getInstance()->getExtents();
+	vizWin[useWindowNum]->setAxisExtents(extents);
+	
+
 	//Prepare the visualizer for animation control.  It won't animate until user clicks
 	//play
 	//
