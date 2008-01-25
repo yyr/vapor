@@ -114,6 +114,10 @@ protected:
   GLint _depthInternalFormat;
   GLenum _depthInternalType;
 
+  GLenum _texcrd_texunit;	// Texture unit numbers
+  GLenum _depth_texunit;
+  GLint _texcrd_sampler;	// Texture unit sampler numbers
+  GLint _depth_sampler;
 
 };
 

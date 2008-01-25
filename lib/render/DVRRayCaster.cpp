@@ -39,6 +39,16 @@ DVRRayCaster::DVRRayCaster(
 
 	_nisos = 0;
 
+	if (GLEW_VERSION_2_0) {
+		_texcrd_texunit = GL_TEXTURE1;
+		_depth_texunit = GL_TEXTURE2;
+	}
+	else {
+		_texcrd_texunit = GL_TEXTURE1_ARB;
+		_depth_texunit = GL_TEXTURE2_ARB;
+	}
+	_texcrd_sampler = 1;
+	_depth_sampler = 2;
 }
 
 //----------------------------------------------------------------------------
@@ -94,13 +104,23 @@ bool DVRRayCaster::createShader(ShaderType type,
 
 		if (GLEW_VERSION_2_0) {
 			glUniform1i(_shaders[type]->uniformLocation("volumeTexture"), 0);
-			glUniform1i(_shaders[type]->uniformLocation("texcrd_buffer"), 1);
-			glUniform1i(_shaders[type]->uniformLocation("depth_buffer"), 2);
+			glUniform1i(
+				_shaders[type]->uniformLocation("texcrd_buffer"), 
+				_texcrd_sampler
+			);
+			glUniform1i(
+				_shaders[type]->uniformLocation("depth_buffer"), _depth_sampler
+			);
 		}
 		else {
 			glUniform1iARB(_shaders[type]->uniformLocation("volumeTexture"), 0);
-			glUniform1iARB(_shaders[type]->uniformLocation("texcrd_buffer"), 1);
-			glUniform1iARB(_shaders[type]->uniformLocation("depth_buffer"), 2);
+			glUniform1iARB(
+				_shaders[type]->uniformLocation("texcrd_buffer"), 
+				_texcrd_sampler
+			);
+			glUniform1iARB(
+				_shaders[type]->uniformLocation("depth_buffer"), _depth_sampler
+			);
 		}
 
 		_shaders[type]->disable();
@@ -273,7 +293,7 @@ void DVRRayCaster::render_backface(
 
     glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
-printOpenGLError();
+	printOpenGLError();
 
 }
 
@@ -283,30 +303,34 @@ void DVRRayCaster::raycasting_pass(
 	const TextureBrick *brick, const BBox &box, const BBox &tbox
 ) {
 
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_TEXTURE_3D);
 
 	if (GLEW_VERSION_2_0) {
 
 
-		glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(_texcrd_texunit);
+		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
 
-		glActiveTexture(GL_TEXTURE2);
+		glActiveTexture(_depth_texunit);
+		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
 
 		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_3D);
 		glBindTexture(GL_TEXTURE_3D, brick->handle());
 
 	} else {
 
-		glActiveTextureARB(GL_TEXTURE1_ARB);
+		glActiveTextureARB(_texcrd_texunit);
+		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
 
-		glActiveTextureARB(GL_TEXTURE2_ARB);
+		glActiveTextureARB(_depth_texunit);
+		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
 
 		glActiveTextureARB(GL_TEXTURE0_ARB);
+		glEnable(GL_TEXTURE_3D);
 		glBindTexture(GL_TEXTURE_3D, brick->handle());
 	}
 
@@ -321,24 +345,29 @@ void DVRRayCaster::raycasting_pass(
 	glDisable(GL_CULL_FACE);
 
 	if (GLEW_VERSION_2_0) {
-		glActiveTexture(GL_TEXTURE2);
+		glActiveTexture(_depth_texunit);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
 
-		glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(_texcrd_texunit);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_3D, 0);
 	} else {
-		glActiveTextureARB(GL_TEXTURE2_ARB);
+		glActiveTextureARB(_depth_texunit);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
 
-		glActiveTextureARB(GL_TEXTURE1_ARB);
+		glActiveTextureARB(_texcrd_texunit);
 		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
 
 		glActiveTextureARB(GL_TEXTURE0_ARB);
 		glBindTexture(GL_TEXTURE_3D, 0);
 	}
+	glDisable(GL_TEXTURE_3D);
 	printOpenGLError();
 }
 

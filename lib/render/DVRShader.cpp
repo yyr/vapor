@@ -261,23 +261,23 @@ int DVRShader::Render(const float matrix[16])
   glEnable(GL_CULL_FACE);
 
   if (_preintegration) {
-    glEnable(GL_TEXTURE_2D);  
     if (GLEW_VERSION_2_0) {
       glActiveTexture(GL_TEXTURE1);
     }
     else {
       glActiveTextureARB(GL_TEXTURE1_ARB);
     }
+    glEnable(GL_TEXTURE_2D);  
     glBindTexture(GL_TEXTURE_2D, _cmapid[1]);
   }
   else {
-    glEnable(GL_TEXTURE_1D);
     if (GLEW_VERSION_2_0) {
       glActiveTexture(GL_TEXTURE1);
     }
     else {
       glActiveTextureARB(GL_TEXTURE1_ARB);
     }
+    glEnable(GL_TEXTURE_1D);
     glBindTexture(GL_TEXTURE_1D, _cmapid[0]);
   }
 
@@ -305,23 +305,25 @@ int DVRShader::Render(const float matrix[16])
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindTexture(GL_TEXTURE_1D, 0);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_TEXTURE_1D);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_3D, 0);
   } else {
 
     glActiveTextureARB(GL_TEXTURE1_ARB);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindTexture(GL_TEXTURE_1D, 0);
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_TEXTURE_1D);
 
     glActiveTextureARB(GL_TEXTURE0_ARB);
-    glBindTexture(GL_TEXTURE_3D, 0);
   }
 
-  glDisable(GL_BLEND);
+  glBindTexture(GL_TEXTURE_3D, 0);
   glDisable(GL_TEXTURE_3D);
-  glDisable(GL_TEXTURE_2D);
-  glDisable(GL_TEXTURE_1D);
+
+  glDisable(GL_BLEND);
   glDisable(GL_CULL_FACE);
 
   if (_shader) _shader->disable();
@@ -586,6 +588,12 @@ int DVRShader::initTextures()
   glGenTextures(2, _cmapid);
 
   _colormap = new float[256*256*4];
+  for (int i=0; i<256; i++) { 
+    _colormap[i*4+0] = (float) i / 255.0;
+    _colormap[i*4+1] = (float) i / 255.0;
+    _colormap[i*4+2] = (float) i / 255.0;
+    _colormap[i*4+3] = 1.0;
+  }
   
   //
   // Standard colormap
