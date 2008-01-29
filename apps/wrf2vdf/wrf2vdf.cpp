@@ -941,7 +941,7 @@ int DoIndependentVars(
 int GetVDFInfo(
 	const char *metafile,
 	vector <string> &vars,
-	vector <long>	&timestamps,
+	vector <TIME64_T>	&timestamps,
 	WRF::atypVarNames_t  &wrfNames,
 	size_t dims[3],
 	vector <double> &extents
@@ -967,16 +967,16 @@ int GetVDFInfo(
 		
 #ifdef	DEAD
 		const vector <double> &v = metadata->GetTSUserTime(t);
-		timestamps.push_back((long) v[0]);
+		timestamps.push_back((TIME64_T) v[0]);
 #else
 
 		string tag("UserTimeStampString");
 		string s = metadata->GetTSUserDataString(t, tag);
 		StrRmWhiteSpace(s);
 			
-		time_t t0;
+		TIME64_T t0;
 		if (WRF::WRFTimeStrToEpoch(s, &t0) < 0) return(-1);
-		timestamps.push_back((long) t0);
+		timestamps.push_back(t0);
 #endif
 	}
 
@@ -1012,7 +1012,7 @@ int GetVDFInfo(
 int GetWRFInfo(
 	const char *file,
 	vector <string> &vars,
-	vector <long>	&timestamps,
+	vector <TIME64_T>	&timestamps,
 	size_t dims[3],
 	float & dx,
 	float & dy
@@ -1394,7 +1394,7 @@ int	main(int argc, char **argv) {
 	// Get all the metadata info we need from the VDC metafile
 	//
 	vector <string> vdf_vars;		// vars contained in VDF
-	vector <long> vdf_timestamps;	// User timestamps contained in VDF
+	vector <TIME64_T> vdf_timestamps;	// User timestamps contained in VDF
 	size_t vdf_dims[3];				// VDF dimensions
 	vector <double> vdf_extents;
 	int rc;
@@ -1415,7 +1415,7 @@ int	main(int argc, char **argv) {
 	for (int arg = 0; arg<argc && TotalTimeSteps < MaxTimeSteps; arg++) {
 
 		vector <string> wrf_vars;		// vars contained in netCDF file
-		vector <long> wrf_timestamps;	// timestamps contained in netCDF file
+		vector <TIME64_T> wrf_timestamps;	// timestamps contained in netCDF file
 		size_t wrf_dims[4];				// dims of 3d vars
 		vector <string> copy_vars;		// list of vars to copy
 		int ncid;
@@ -1446,8 +1446,8 @@ int	main(int argc, char **argv) {
 
 		// Figure out which timesteps we're copying 
 		//
-		time_t tfirst = *(vdf_timestamps.begin());
-		time_t tlast = *(vdf_timestamps.end()-1);
+		TIME64_T tfirst = *(vdf_timestamps.begin());
+		TIME64_T tlast = *(vdf_timestamps.end()-1);
 		if (strlen(opt.tsstart) != 0) {
 			if (WRF::WRFTimeStrToEpoch(opt.tsstart, &tfirst) < 0) exit(1);
 		}
@@ -1456,8 +1456,8 @@ int	main(int argc, char **argv) {
 		}
 			
 		for (size_t t=0; t<wrf_timestamps.size(); t++) {
-			long tstamp = wrf_timestamps[t];
-			vector <long>::iterator itr;
+			TIME64_T tstamp = wrf_timestamps[t];
+			vector <TIME64_T>::iterator itr;
 			if (
 				tstamp >= tfirst && 
 				tstamp <= tlast &&

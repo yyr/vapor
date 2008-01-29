@@ -82,7 +82,7 @@ int	GetWRFMetadata(
 	const char **files,
 	int nfiles,
 	const WRF::atypVarNames_t wrfNames,
-	vector <long> &timestamps,
+	vector <TIME64_T> &timestamps,
 	float extents[6],
 	size_t dims[3],
 	vector <string> &varnames,
@@ -92,9 +92,9 @@ int	GetWRFMetadata(
 	float _dy = 0.0;
 	float _vertExts[2];
 	
-	vector <long> ts;
+	vector <TIME64_T> ts;
 	vector<string> _wrfVars(0); // Holds names of variables in WRF file
-	vector <long> _timestamps;
+	vector <TIME64_T> _timestamps;
 	size_t _dimLens[3];
 	bool first = true;
 	bool success = false;
@@ -269,7 +269,7 @@ int	main(int argc, char **argv) {
 
 	argv++;
 	argc--;
-	vector <long> timestamps;
+	vector <TIME64_T> timestamps;
 	vector <string> wrfVarNames;
 	vector <string> vdfVarNames;
 
@@ -279,10 +279,10 @@ int	main(int argc, char **argv) {
 			Usage(op, "Expected -startt option");
 			exit(1);
 		}
-		time_t seconds;
+		TIME64_T seconds;
 		if (WRF::WRFTimeStrToEpoch(opt.startt, &seconds) < 0) exit(1);
-		timestamps.push_back((long) seconds);
-		for (size_t t = 1; t<opt.numts; t++) {
+		timestamps.push_back(seconds);
+		for (TIME64_T t = 1; t<opt.numts; t++) {
 			timestamps.push_back(timestamps[0]+(t*opt.deltat));
 		}
 
@@ -322,7 +322,7 @@ int	main(int argc, char **argv) {
 			if (rc<0) exit(1);
 
 			if (strlen(opt.startt) != 0) {
-				time_t seconds;
+				TIME64_T seconds;
 				string startt(opt.startt);
 
 				if ((startt.compare("SIMULATION_START_DATE") == 0) ||
@@ -332,13 +332,13 @@ int	main(int argc, char **argv) {
 				}
 
 				if (WRF::WRFTimeStrToEpoch(startt, &seconds) < 0) exit(1);
-				timestamps[0] = (long) seconds;
+				timestamps[0] = seconds;
 			}
 
 			// Need to compute time stamps - ignore all but the
 			// first returned by GetWRFMetadata()
 			//
-			long tsave = timestamps[0];
+			TIME64_T tsave = timestamps[0];
 			timestamps.clear();
 			timestamps.push_back(tsave);
 			for (size_t t = 1; t<opt.numts; t++) {
@@ -481,7 +481,7 @@ int	main(int argc, char **argv) {
 		// Add a user readable tag with the time stamp
 		string tag("UserTimeStampString");
 		string wrftime_str;
-		(void) WRF::EpochToWRFTimeStr((time_t) timestamps[t], wrftime_str);
+		(void) WRF::EpochToWRFTimeStr(timestamps[t], wrftime_str);
 
         if ( file->SetTSUserDataString( t, tag, wrftime_str ) < 0) {
             exit( 1 );

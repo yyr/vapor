@@ -252,7 +252,7 @@ int WRF::GetZSlice(
 
 int WRF::WRFTimeStrToEpoch(
 	const string &wrftime,
-	time_t *seconds
+	TIME64_T *seconds
 ) {
 
 	int rc;
@@ -272,26 +272,21 @@ int WRF::WRFTimeStrToEpoch(
 	ts.tm_year -= 1900;
 	ts.tm_isdst = -1;	// let mktime() figure out timezone
 
-	*seconds = mktime(&ts);
+	*seconds = MkTime64(&ts);
 
 	return(0);
 }
 
 int WRF::EpochToWRFTimeStr(
-	time_t seconds,
+	TIME64_T seconds,
 	string &str
 ) {
 
-	struct tm *tsptr, ts;;
+	struct tm ts;
     const char *format = "%Y-%m-%d_%H:%M:%S";
 	char buf[128];
 
-	tsptr = localtime(&seconds);
-	if (! tsptr) {
-		MyBase::SetErrMsg("localtime(%d) : ???, (int) seconds");
-		return(-1);
-	}
-	ts = *tsptr;
+	GmTime64_r(&seconds, &ts);
 
 	if (strftime(buf,sizeof(buf), format, &ts) == 0) {
 		MyBase::SetErrMsg("strftime(%s) : ???, format");
@@ -313,7 +308,7 @@ int WRF::OpenWrfGetMeta(
 	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
 	vector<string> & wrfVars, // Variable names in WRF file (out)
-	vector <long> &timestamps // Time stamps, in seconds (out)
+	vector <TIME64_T> &timestamps // Time stamps, in seconds (out)
 ) {
 	int nc_status; // Holds error codes for debugging
 	int ncid; // Holds netCDF file ID
@@ -556,11 +551,11 @@ int WRF::OpenWrfGetMeta(
 	nc_status = nc_get_var_text(ncid, timeInfo.varid, timesBuf);
 	for (int i =0; i<timeInfo.dimlens[0]; i++) {
 		string time_fmt(timesBuf+(i*timeInfo.dimlens[1]), timeInfo.dimlens[1]);
-		time_t seconds;
+		TIME64_T seconds;
 
 		if (WRFTimeStrToEpoch(time_fmt, &seconds) < 0) return(-1);
 
-		timestamps.push_back((long) seconds);
+		timestamps.push_back(seconds);
 	}
 	delete [] timesBuf;
 
