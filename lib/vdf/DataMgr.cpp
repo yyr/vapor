@@ -388,6 +388,85 @@ unsigned char	*DataMgr::GetRegionUInt8(
 	));
 }
 
+unsigned char	*DataMgr::GetRegionUInt8(
+	size_t ts,
+	const char *varname1,
+	const char *varname2,
+	int reflevel,
+	const size_t min[3],
+	const size_t max[3],
+	size_t full_height,
+	const float range1[2],
+	const float range2[2],
+	int lock
+) {
+	SetDiagMsg(
+		"DataMgr::GetRegionUInt8(%d,%s,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],[%f,%f],%d)",
+		ts,varname1, varname2, reflevel,min[0],min[1],min[2],
+		max[0],max[1],max[2], full_height, range1[0], range1[1], 
+		range2[0], range2[1], lock
+	);
+
+	string varname = varname1;
+	varname += "+";
+	varname += varname2;
+	unsigned char *ublks = NULL;
+
+	// 
+	// Verify that the quantization range hasn't changed for
+	// either variable. If it hasn't, attempt to get the
+	// interleaved field array from the cache.
+	//
+	if ((set_quantization_range(varname1, range1) == 0) && 
+		(set_quantization_range(varname2, range2) == 0)) {
+
+		ublks = (unsigned char *) get_region_from_cache(
+			ts, varname.c_str(), reflevel, DataMgr::UINT16, 
+			min, max, full_height, lock
+		);
+	}
+	if (ublks) return(ublks);
+
+	// Interleaved array is not in cache so we'll need to
+	// construct it
+	//
+	const size_t *bs = _metadata->GetBlockSize();
+
+	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
+	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
+	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
+	size_t size = nx*ny*nz;
+
+	unsigned char *ublks1, *ublks2;
+
+	ublks = (unsigned char *) alloc_region(
+		ts,varname.c_str(),reflevel,DataMgr::UINT16,
+		min,max,full_height, lock
+	);
+	if (! ublks) return(NULL);
+
+	ublks1 = get_quantized_region(
+		ts, varname1, reflevel, min, max, full_height, range1, 
+		0, DataMgr::UINT8
+	);
+	if (! ublks1) return (NULL);
+
+	for (size_t i = 0; i<size; i++) {
+		ublks[2*i] = ublks1[i];
+	}
+
+	ublks2 = get_quantized_region(
+		ts, varname2, reflevel, min, max, full_height, range2, 
+		0, DataMgr::UINT8
+	);
+	if (! ublks2) return (NULL);
+
+	for (size_t i = 0; i<size; i++) {
+		ublks[2*i+1] = ublks2[i];
+	}
+	return(ublks);
+}
+
 unsigned char	*DataMgr::GetRegionUInt16(
 	size_t ts,
 	const char *varname,
@@ -408,6 +487,87 @@ unsigned char	*DataMgr::GetRegionUInt16(
 		ts, varname, reflevel, min, max, full_height, range, 
 		lock, DataMgr::UINT16
 	));
+}
+
+unsigned char	*DataMgr::GetRegionUInt16(
+	size_t ts,
+	const char *varname1,
+	const char *varname2,
+	int reflevel,
+	const size_t min[3],
+	const size_t max[3],
+	size_t full_height,
+	const float range1[2],
+	const float range2[2],
+	int lock
+) {
+	SetDiagMsg(
+		"DataMgr::GetRegionUInt16(%d,%s,%s,%d,[%d,%d,%d],[%d,%d,%d],%d,[%f,%f],[%f,%f],%d)",
+		ts,varname1, varname2, reflevel,min[0],min[1],min[2],
+		max[0],max[1],max[2], full_height, range1[0], range1[1], 
+		range2[0], range2[1], lock
+	);
+
+	string varname = varname1;
+	varname += "+";
+	varname += varname2;
+	unsigned char *ublks = NULL;
+
+	// 
+	// Verify that the quantization range hasn't changed for
+	// either variable. If it hasn't, attempt to get the
+	// interleaved field array from the cache.
+	//
+	if ((set_quantization_range(varname1, range1) == 0) && 
+		(set_quantization_range(varname2, range2) == 0)) {
+
+		ublks = (unsigned char *) get_region_from_cache(
+			ts, varname.c_str(), reflevel, DataMgr::UINT32, 
+			min, max, full_height, lock
+		);
+	}
+	if (ublks) return(ublks);
+
+	// Interleaved array is not in cache so we'll need to
+	// construct it
+	//
+	const size_t *bs = _metadata->GetBlockSize();
+
+	int	nz = (int)((max[2]-min[2]+1) * bs[2]);
+	int	ny = (int)((max[1]-min[1]+1) * bs[1]);
+	int	nx = (int)((max[0]-min[0]+1) * bs[0]);
+	size_t size = nx*ny*nz;
+
+	unsigned char *ublks1, *ublks2;
+
+	ublks = (unsigned char *) alloc_region(
+		ts,varname.c_str(),reflevel,DataMgr::UINT32,
+		min,max,full_height, lock
+	);
+	if (! ublks) return(NULL);
+
+	ublks1 = get_quantized_region(
+		ts, varname1, reflevel, min, max, full_height, range1, 
+		0, DataMgr::UINT16
+	);
+	if (! ublks1) return (NULL);
+
+	for (size_t i = 0; i<size; i++) {
+		ublks[2*2*i+0] = ublks1[2*i+0];
+		ublks[2*2*i+1] = ublks1[2*i+1];
+	}
+
+	ublks2 = get_quantized_region(
+		ts, varname2, reflevel, min, max, full_height, range2, 
+		0, DataMgr::UINT16
+	);
+	if (! ublks2) return (NULL);
+
+	for (size_t i = 0; i<size; i++) {
+		ublks[2*2*i+2] = ublks1[2*i+0];
+		ublks[2*2*i+3] = ublks1[2*i+1];
+	}
+	return(ublks);
 }
 	
 unsigned char	*DataMgr::get_quantized_region(
@@ -937,7 +1097,7 @@ int	DataMgr::set_quantization_range(const char *varname, const float range[2]) {
 	// Invalidate the cache of quantized quantities
 	//
 	free_var(varstr, 0);
-	return(0);
+	return(1);
 }
 
 int DataMgr::get_cached_data_range(
