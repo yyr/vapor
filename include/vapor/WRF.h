@@ -12,6 +12,7 @@
 #include <vector>
 #include <sstream>
 #include <netcdf.h>
+#include <vapor/PVTime.h>
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -98,11 +99,11 @@ public:
 
  static int WRFTimeStrToEpoch(
 	const string &wrftime,
-	time_t *seconds
+	TIME64_T *seconds
  );
 
  static int EpochToWRFTimeStr(
-	time_t seconds,
+	TIME64_T seconds,
 	string &wrftime
  );
 
@@ -116,7 +117,7 @@ public:
 	size_t dimLens[4], // Lengths of x, y, and z dimensions (out)
 	string &startDate, // Place to put START_DATE attribute (out)
 	vector<string> & wrfVars, // Variable names in WRF file (out)
-	vector <long> &timestamps // Time stamps, in seconds (out)
+	vector <TIME64_T> &timestamps // Time stamps, in seconds (out)
 );
 
 private:

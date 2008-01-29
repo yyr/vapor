@@ -165,6 +165,83 @@ public:
     int lock = 0
 );
 
+ //! Read in, quantize and return a pair of subregions from the 
+ //! multiresolution dataset
+ //!
+ //! This method is identical to the GetRegionUInt8() method except that the
+ //! two variables are read and their values are stored in a single,
+ //! interleaved array.
+ //!
+ //! \param[in] ts A valid time step from the Metadata object used 
+ //! to initialize the class
+ //! \param[in] varname1 First variable name 
+ //! \param[in] varname2 Second variable name 
+ //! \param[in] reflevel Transformation number requested
+ //! \param[in] min Minimum region bounds in blocks
+ //! \param[in] max Maximum region bounds in blocks
+ //! \param[in] full_height is full domain height in voxels, at max refinement level,
+ //! for layered data; or zero, if the WB data is being retrieved.
+ //! \param[in] range1 First variable data range
+ //! \param[in] range2 Second variable data range
+ //! quantization mapping. 
+ //! \param[in] lock If true, the memory region will be locked into the 
+ //! \retval ptr A pointer to a region containing the desired data, 
+ //! quantized to 8 bits, or NULL
+ //! if the region can not be extracted.
+ //! \sa WaveletBlock3DRegionReader, GetErrMsg(), GetRegion()
+ //
+ unsigned char   *GetRegionUInt8(
+    size_t ts,
+    const char *varname1,
+    const char *varname2,
+    int reflevel,
+    const size_t min[3],
+    const size_t max[3],
+	size_t full_height,
+	const float range1[2],
+	const float range2[2],
+    int lock = 0
+);
+
+ //! Read in, quantize and return a pair of subregions from the 
+ //! multiresolution dataset
+ //!
+ //! This method is identical to the GetRegionUInt16() method except that the
+ //! two variables are read and their values are stored in a single,
+ //! interleaved array.
+ //!
+ //! \param[in] ts A valid time step from the Metadata object used 
+ //! to initialize the class
+ //! \param[in] varname1 First variable name 
+ //! \param[in] varname2 Second variable name 
+ //! \param[in] reflevel Transformation number requested
+ //! \param[in] min Minimum region bounds in blocks
+ //! \param[in] max Maximum region bounds in blocks
+ //! \param[in] full_height is full domain height in voxels, at max refinement level,
+ //! for layered data; or zero, if the WB data is being retrieved.
+ //! \param[in] range1 First variable data range
+ //! \param[in] range2 Second variable data range
+ //! quantization mapping. 
+ //! \param[in] lock If true, the memory region will be locked into the 
+ //! \retval ptr A pointer to a region containing the desired data, 
+ //! quantized to 16 bits, or NULL
+ //! if the region can not be extracted.
+ //! \sa WaveletBlock3DRegionReader, GetErrMsg(), GetRegion()
+ //
+ unsigned char   *GetRegionUInt16(
+    size_t ts,
+    const char *varname1,
+    const char *varname2,
+    int reflevel,
+    const size_t min[3],
+    const size_t max[3],
+	size_t full_height,
+	const float range1[2],
+	const float range2[2],
+    int lock = 0
+);
+
+
  //! Read in, quantize and return a subregion from the multiresolution dataset
  //!
  //! This method is identical to the GetRegion() method except that the

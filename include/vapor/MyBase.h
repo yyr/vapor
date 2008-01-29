@@ -394,6 +394,9 @@ private:
 #endif
 
 
+#ifndef	TIME64_T
+#define TIME64_T int64_t
+#endif
 
 
 #endif //MYBASE_H
