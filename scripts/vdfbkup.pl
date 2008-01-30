@@ -588,7 +588,7 @@ if (defined $TargetDirectory) {undef $TargetDirectory;}
 if (defined @BackupCmd) {undef @BackupCmd;}
 
 if (-d $ARGV[0]) {
-	$TargetDirectory = shift @ARGV;
+	$TargetDirectory = abs_path(shift @ARGV);
 } else {
 	@BackupCmd = @ARGV;
 }
@@ -604,12 +604,13 @@ else  {
 }
 	
 
+my($volume, $directory, $vdfbase) = File::Spec->splitpath($VDFFile);
+chdir $directory or die "$ProgName: Can't cd to $directory: $!\n";
+
 if (! $NoLog) {
 	open (FILE, "> $LogFile") || die "Can't open log file $LogFile for writing!";
 }
 
-my($volume, $directory, $vdfbase) = File::Spec->splitpath($VDFFile);
-chdir $directory or die "$ProgName: Can't cd to $directory: $!\n";
 
 tar_create($vdfbase);
 
