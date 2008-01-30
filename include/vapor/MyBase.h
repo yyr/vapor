@@ -395,7 +395,11 @@ private:
 
 
 #ifndef	TIME64_T
+#ifdef WIN32
+#define TIME64_T __int64
+#else
 #define TIME64_T int64_t
+#endif
 #endif
 
 
