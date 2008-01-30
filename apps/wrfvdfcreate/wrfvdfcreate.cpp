@@ -291,7 +291,16 @@ int	main(int argc, char **argv) {
 		dim[2] = opt.dim.nz;
 
 		vdfVarNames = opt.varnames;
-		
+
+		bool doExtents = false;
+		for(int i=0; i<5; i++) {
+			if (opt.extents[i] != opt.extents[i+1]) doExtents = true;
+		}
+		if (doExtents) {
+			for(int i=0; i<6; i++) {
+				extents[i] = opt.extents[i];
+			}
+		}
 	}
 	else if (argc >= 1) {	// Template file specified
 		int rc;
@@ -309,7 +318,6 @@ int	main(int argc, char **argv) {
 			for(int i=0; i<6; i++) {
 				extents[i] = opt.extents[i];
 			}
-			
 		}
 
 		if (argc == 1) {	// Single template
@@ -519,8 +527,9 @@ int	main(int argc, char **argv) {
 		cout << endl;
 
 		cout << "\tExtents : ";
+		const vector <double> extptr = file->GetExtents();
 		for(int i=0; i<6; i++) {
-			cout << extents[i] << " ";
+			cout << extptr[i] << " ";
 		}
 		cout << endl;
 	}
