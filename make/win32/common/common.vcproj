@@ -144,6 +144,9 @@
 				RelativePath="..\..\..\lib\common\OptionParser.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\lib\common\PVTime.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\lib\common\Version.cpp">
 			</File>
 		</Filter>
