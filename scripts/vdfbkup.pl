@@ -389,7 +389,7 @@ sub restore_state {
 }
 
 sub tar_create {
-	my($vdffile) = @_;
+	my($vdfbase) = @_;
 
 	if (! $Quiet) {
 		printf "%-30.30s: %s\n", "Max tar file size (MB's)", $MaxTarSize;
@@ -401,8 +401,6 @@ sub tar_create {
 	$MaxTarSize *= 0.95;	# allow for tar overhead.
 
 
-	my($volume, $directory, $vdfbase) = File::Spec->splitpath($vdffile);
-	chdir $directory or die "$ProgName: Can't cd to $directory: $!\n";
 
 	if (! $Restart) {
 
@@ -610,10 +608,16 @@ if (! $NoLog) {
 	open (FILE, "> $LogFile") || die "Can't open log file $LogFile for writing!";
 }
 
-tar_create($VDFFile);
+my($volume, $directory, $vdfbase) = File::Spec->splitpath($VDFFile);
+chdir $directory or die "$ProgName: Can't cd to $directory: $!\n";
+
+tar_create($vdfbase);
+
+if (! $NoLog) {
+	close FILE;
+}
 
 if (defined @BackupCmd && ! $NoLog) {
-	close FILE;
 	my(@cmd) = (@BackupCmd);
 	foreach $_ (@cmd) {
 		my($dummy1, $dummy2, $filebase) = File::Spec->splitpath($LogFile);
