@@ -149,8 +149,18 @@ static struct tm *_localtime64_r (const time_t * now, TIME64_T *_t, struct tm *p
     if (tm.tm_year > (2037 - 1900))
         tm.tm_year = 2037 - 1900;
     t = MkTime64 (&tm);
+#ifdef	WIN32
+	struct tm *tm_localtime_ptr, *tm_gmtime_ptr;
+
+    tm_localtime_ptr = localtime (&t);
+	tm_localtime = *tm_localtime_ptr;
+
+    tm_gmtime_ptr = gmtime (&t);
+	tm_gmtime = *tm_gmtime_ptr;
+#else
     localtime_r (&t, &tm_localtime);
     gmtime_r (&t, &tm_gmtime);
+#endif
     tl = *_t;
     tl += (MkTime64 (&tm_localtime) - MkTime64 (&tm_gmtime));
     _gmtime64_r (now, &tl, p);
