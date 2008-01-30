@@ -119,7 +119,6 @@ DataMgr::~DataMgr(
 
 	if (_regionReader) delete _regionReader;
 
-	_regionsList.clear();
 	_timestamp = 0;
 
 	free_all();
