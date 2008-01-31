@@ -65,7 +65,8 @@ MapperFunctionBase::MapperFunctionBase()
 	colorVarNum = 0;
     opacVarNum  = 0;	
     
-	_colormap = new ColorMapBase();
+    _colormap = NULL;
+
     _compType = ADDITION;
 }
 
@@ -86,9 +87,7 @@ MapperFunctionBase::MapperFunctionBase(int nBits)
 	colorVarNum = 0;
     opacVarNum  = 0;	
 
-    _colormap = new ColorMapBase();
-
-    _opacityMaps.push_back(new OpacityMapBase());
+    _colormap = NULL;
 
     _compType = ADDITION;
 }
@@ -98,7 +97,7 @@ MapperFunctionBase::MapperFunctionBase(int nBits)
 //----------------------------------------------------------------------------
 MapperFunctionBase::MapperFunctionBase(const MapperFunctionBase &mapper) :
   _compType(mapper._compType),
-  _colormap(new ColorMapBase(*mapper._colormap)),
+  _colormap(NULL),
   minColorMapBound(mapper.minColorMapBound),
   maxColorMapBound(mapper.maxColorMapBound),
   minOpacMapBound(mapper.minOpacMapBound),
@@ -109,10 +108,6 @@ MapperFunctionBase::MapperFunctionBase(const MapperFunctionBase &mapper) :
   opacVarNum(mapper.opacVarNum),
   opacityScaleFactor(mapper.opacityScaleFactor)
 {
-  for (int i=0; i<mapper._opacityMaps.size(); i++)
-  {
-    _opacityMaps.push_back(new OpacityMapBase(*mapper._opacityMaps[i]));
-  }
 }
 
 //----------------------------------------------------------------------------

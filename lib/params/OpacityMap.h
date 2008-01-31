@@ -17,7 +17,7 @@
 
 namespace VAPoR {
 
-class RenderParams;
+class MapperFunctionBase;
 class XmlNode;
 
 class PARAMS_API OpacityMap : public OpacityMapBase 
@@ -25,8 +25,8 @@ class PARAMS_API OpacityMap : public OpacityMapBase
 
 public:
 
-  OpacityMap(RenderParams *params, OpacityMap::Type type=CONTROL_POINT);
-  OpacityMap(const OpacityMap &omap);
+  OpacityMap(MapperFunctionBase *mapper, OpacityMap::Type type=CONTROL_POINT);
+  OpacityMap(const OpacityMap &omap, MapperFunctionBase *mapper);
 
   virtual ~OpacityMap();
 
@@ -38,11 +38,9 @@ public:
   virtual float maxValue() const;      // Data Coordinates
   virtual void  maxValue(float value); // Data Coordinates
 
-  void setParams(RenderParams *p) { _params = p; }
-
 private:
 
-  RenderParams *_params;
+  MapperFunctionBase *_mapper;
 
 };
 };

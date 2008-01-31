@@ -382,6 +382,7 @@ public:
 	virtual float getMinOpacMapBound();	
 	virtual float getMaxOpacMapBound(); 
 	
+
 	virtual void setMinOpacEditBound(float val, int var) {
 		minOpacEditBounds[var] = val;
 	}
@@ -394,6 +395,7 @@ public:
 	virtual float getMaxOpacEditBound(int var) {
 		return maxOpacEditBounds[var];
 	}
+
 	
 	virtual MapperFunction* getMapperFunc()=0;
 	virtual int getNumRefinements()=0;

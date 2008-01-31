@@ -48,10 +48,9 @@ using namespace VetsUtil;
 // Constructor for empty, default Mapper function
 //----------------------------------------------------------------------------
 MapperFunction::MapperFunction() : 
-	MapperFunctionBase()
+  MapperFunctionBase(),
+  _params(NULL)
 {	
-	myParams = 0;
-
 	// Delete ColorMapBase created by parent class
 	if (_colormap) delete _colormap;	
     
@@ -62,10 +61,9 @@ MapperFunction::MapperFunction() :
 // Constructor
 //----------------------------------------------------------------------------
 MapperFunction::MapperFunction(RenderParams* p, int nBits) :
-	MapperFunctionBase(nBits)
+  MapperFunctionBase(nBits),
+  _params(p)
 {
-	myParams = p;
-
 	// Delete ColorMapBase and OpacityMapBase created by parent class
 	if (_colormap) delete _colormap;	
 
@@ -78,50 +76,55 @@ MapperFunction::MapperFunction(RenderParams* p, int nBits) :
 
 	// Now recreate them with the appropriate type
 	//
-    _colormap = new Colormap(myParams);
+    _colormap = new Colormap(this);
 
-    _opacityMaps.push_back(new OpacityMap(myParams));
+    _opacityMaps.push_back(new OpacityMap(this));
 }
 
 //----------------------------------------------------------------------------
 // Copy Constructor
 //----------------------------------------------------------------------------
 MapperFunction::MapperFunction(const MapperFunction &mapper) :
-	MapperFunctionBase(mapper),
-	myParams(mapper.myParams)
+  MapperFunctionBase(mapper),
+  _params(mapper._params)
 {
 	// Delete ColorMapBase and OpacityMapBase created by parent class
 	if (_colormap) delete _colormap;	
 
-	for (int i=0; i<_opacityMaps.size(); i++) {
-		delete _opacityMaps[i];
-		_opacityMaps[i] = NULL;
+	for (int i=0; i<_opacityMaps.size(); i++) 
+    {
+      delete _opacityMaps[i];
+      _opacityMaps[i] = NULL;
     }
+
     _opacityMaps.clear();
 
 	// Now recreate them with the appropriate type
 	//
 	const Colormap &cmap =  (const Colormap &) (*(mapper._colormap));
-	_colormap = new Colormap(cmap);
+	_colormap = new Colormap(cmap, this);
 
-	for (int i=0; i<mapper._opacityMaps.size(); i++) {
-		_opacityMaps.push_back(new OpacityMap((const OpacityMap &) (*mapper._opacityMaps[i])));
+	for (int i=0; i<mapper._opacityMaps.size(); i++) 
+    {
+      _opacityMaps.push_back(new OpacityMap((const OpacityMap &) 
+                                            (*mapper._opacityMaps[i]), this));
 	}
 }
 
 MapperFunction::MapperFunction(const MapperFunctionBase &mapper) :
-	MapperFunctionBase(mapper)
+  MapperFunctionBase(mapper),
+  _params(NULL)
 {
-	myParams = NULL;
 	for (int i=0; i<_opacityMaps.size(); i++) {
 		delete _opacityMaps[i];
 		_opacityMaps[i] = NULL;
     }
     _opacityMaps.clear();
 
-	for (int i=0; i<mapper.getNumOpacityMaps(); i++) {
-		const OpacityMapBase *omap =  mapper.getOpacityMap(i);
-		_opacityMaps.push_back(new OpacityMap((const OpacityMap &) *omap));
+	for (int i=0; i<mapper.getNumOpacityMaps(); i++) 
+    {
+      const OpacityMapBase *omap =  mapper.getOpacityMap(i);
+      _opacityMaps.push_back(new OpacityMap((const OpacityMap &)*omap, this));
 	}
 }
 
@@ -149,31 +152,13 @@ QRgb MapperFunction::colorValue(float value)
   return qRgb(0,0,0);
 }
 
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
-void MapperFunction::setParams(RenderParams* p) 
-{
-  myParams = p; 
-
-  Colormap *cmap = (Colormap *) _colormap;
-  
-  cmap->setParams(p); 
-
-  for (int i=0; i<_opacityMaps.size(); i++)
-  {
-    OpacityMap *omap = (OpacityMap *) _opacityMaps[i];
-    omap->setParams(p);
-  }
-}
-
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
 OpacityMap* MapperFunction::createOpacityMap(OpacityMap::Type type)
 {
-  OpacityMap *omap = new OpacityMap(myParams, type);
+  OpacityMap *omap = new OpacityMap(this, type);
 
   _opacityMaps.push_back(omap);
 

@@ -12,8 +12,9 @@
 #include <sstream>
 #include <algorithm>
 #include <vapor/XmlNode.h>
+#include "assert.h"
 #include "Colormap.h"
-#include "params.h"
+#include "MapperFunctionBase.h"
 
 using namespace std;
 using namespace VAPoR;
@@ -24,18 +25,18 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-Colormap::Colormap(RenderParams *params) : 
+Colormap::Colormap(MapperFunctionBase *mapper) :
   ColorMapBase(),
-  _params(params)
+  _mapper(mapper)
 {
 }
 
 //----------------------------------------------------------------------------
 // Copy constructor
 //----------------------------------------------------------------------------
-Colormap::Colormap(const Colormap &cmap) : 
+Colormap::Colormap(const Colormap &cmap, MapperFunctionBase *mapper) : 
   ColorMapBase(cmap),
-  _params(cmap._params)
+  _mapper(mapper)
 {
 }
 
@@ -57,10 +58,10 @@ Colormap::~Colormap()
 //----------------------------------------------------------------------------
 float Colormap::minValue() const
 {
-  assert(_params);
+  assert(_mapper);
 
-  return _params->getMinColorMapBound() + _minValue * 
-    (_params->getMaxColorMapBound() - _params->getMinColorMapBound());
+  return _mapper->getMinColorMapValue() + _minValue * 
+    (_mapper->getMaxColorMapValue() - _mapper->getMinColorMapValue());
 }
 
 //----------------------------------------------------------------------------
@@ -72,11 +73,11 @@ float Colormap::minValue() const
 //----------------------------------------------------------------------------
 void Colormap::minValue(float value)
 {
-  assert(_params);
+  assert(_mapper);
 
   _minValue = 
-    (value - _params->getMinColorMapBound()) / 
-    (_params->getMaxColorMapBound() - _params->getMinColorMapBound());
+    (value - _mapper->getMinColorMapValue()) / 
+    (_mapper->getMaxColorMapValue() - _mapper->getMinColorMapValue());
 }
 
 //----------------------------------------------------------------------------
@@ -88,10 +89,10 @@ void Colormap::minValue(float value)
 //----------------------------------------------------------------------------
 float Colormap::maxValue() const
 {
-  assert(_params);
+  assert(_mapper);
 
-  return _params->getMinColorMapBound() + _maxValue * 
-    (_params->getMaxColorMapBound() - _params->getMinColorMapBound());
+  return _mapper->getMinColorMapValue() + _maxValue * 
+    (_mapper->getMaxColorMapValue() - _mapper->getMinColorMapValue());
 }
 
 //----------------------------------------------------------------------------
@@ -103,9 +104,9 @@ float Colormap::maxValue() const
 //----------------------------------------------------------------------------
 void Colormap::maxValue(float value)
 {
-  assert(_params);
+  assert(_mapper);
 
   _maxValue = 
-    (value - _params->getMinColorMapBound()) / 
-    (_params->getMaxColorMapBound()-_params->getMinColorMapBound());
+    (value - _mapper->getMinColorMapValue()) / 
+    (_mapper->getMaxColorMapValue()-_mapper->getMinColorMapValue());
 }

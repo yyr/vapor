@@ -27,12 +27,13 @@
 #include <vapor/tfinterpolator.h>
 #include <vapor/ExpatParseMgr.h>
 #include <vapor/MapperFunctionBase.h>
-//#include "params.h"
+
 #include "OpacityMap.h"
 #include "Colormap.h"
 
 namespace VAPoR {
 class Params;
+class RenderParams;
 class XmlNode;
 
 class PARAMS_API MapperFunction : public MapperFunctionBase 
@@ -45,8 +46,8 @@ public:
 	MapperFunction(const MapperFunctionBase &mapper);
 	virtual ~MapperFunction();
 
-	void setParams(RenderParams* p);
-	RenderParams* getParams() { return myParams; }
+	void setParams(RenderParams* p) { _params = p; }
+	RenderParams* getParams()       { return _params; }
 
     //
     // Function values
@@ -69,7 +70,7 @@ protected:
     //
     // Parent params
     //
-	RenderParams* myParams;
+	RenderParams* _params;
 	
 };
 };

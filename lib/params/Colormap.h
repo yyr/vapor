@@ -15,7 +15,7 @@
 
 namespace VAPoR {
 
-class RenderParams;
+class MapperFunctionBase;
 class XmlNode;
 
 class PARAMS_API Colormap : public ColorMapBase 
@@ -23,8 +23,8 @@ class PARAMS_API Colormap : public ColorMapBase
 
 public:
 
-  Colormap(RenderParams *params);
-  Colormap(const Colormap &cmap);
+  Colormap(MapperFunctionBase *mapper);
+  Colormap(const Colormap &cmap, MapperFunctionBase *mapper);
   const Colormap& operator=(const Colormap &cmap);
 
   virtual ~Colormap();
@@ -35,14 +35,12 @@ public:
   virtual float maxValue() const;      // Data Coordinates
   virtual void  maxValue(float value); // Data Coordinates
 
-   void setParams(RenderParams *p) { _params = p; }
-
 protected:
 
 
 private:
 
-  RenderParams *_params;
+  MapperFunctionBase *_mapper;
 
 };
 };

@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <vapor/XmlNode.h>
 #include "OpacityMap.h"
-#include "params.h"
+#include "MapperFunctionBase.h"
 
 #ifndef MAX
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -38,18 +38,18 @@ using namespace VAPoR;
 //----------------------------------------------------------------------------
 // Constructor
 //----------------------------------------------------------------------------
-OpacityMap::OpacityMap(RenderParams *params, OpacityMap::Type type) :
+OpacityMap::OpacityMap(MapperFunctionBase *mapper, OpacityMap::Type type) :
   OpacityMapBase(type),
-  _params(params)
+  _mapper(mapper)
 {
 }
 
 //----------------------------------------------------------------------------
 // Copy constructor
 //----------------------------------------------------------------------------
-OpacityMap::OpacityMap(const OpacityMap &omap) :
+OpacityMap::OpacityMap(const OpacityMap &omap, MapperFunctionBase *mapper) :
   OpacityMapBase(omap),
-  _params(omap._params)
+  _mapper(mapper)
 {
 }
 
@@ -69,8 +69,8 @@ OpacityMap::~OpacityMap()
 //----------------------------------------------------------------------------
 float OpacityMap::minValue() const
 {
-  return _params->getMinOpacMapBound() + _minValue * 
-    (_params->getMaxOpacMapBound() - _params->getMinOpacMapBound());
+  return _mapper->getMinOpacMapValue() + _minValue * 
+    (_mapper->getMaxOpacMapValue() - _mapper->getMinOpacMapValue());
 }
 
 //----------------------------------------------------------------------------
@@ -84,8 +84,8 @@ void OpacityMap::minValue(float value)
 {
   _minValue = 
     MAX(0.0, 
-        (value - _params->getMinOpacMapBound()) / 
-        (_params->getMaxOpacMapBound() - _params->getMinOpacMapBound()));
+        (value - _mapper->getMinOpacMapValue()) / 
+        (_mapper->getMaxOpacMapValue() - _mapper->getMinOpacMapValue()));
 }
 
 //----------------------------------------------------------------------------
@@ -98,8 +98,8 @@ void OpacityMap::minValue(float value)
 //----------------------------------------------------------------------------
 float OpacityMap::maxValue() const
 {
-  return _params->getMinOpacMapBound() + _maxValue * 1.0001 * 
-    (_params->getMaxOpacMapBound() - _params->getMinOpacMapBound());
+  return _mapper->getMinOpacMapValue() + _maxValue * 1.0001 * 
+    (_mapper->getMaxOpacMapValue() - _mapper->getMinOpacMapValue());
 }
 
 //----------------------------------------------------------------------------
@@ -113,6 +113,6 @@ void OpacityMap::maxValue(float value)
 {
   _maxValue = 
     MIN(1.0, 
-        (value - _params->getMinOpacMapBound()) / 
-        (_params->getMaxOpacMapBound()-_params->getMinOpacMapBound()));
+        (value - _mapper->getMinOpacMapValue()) / 
+        (_mapper->getMaxOpacMapValue()-_mapper->getMinOpacMapValue()));
 }
