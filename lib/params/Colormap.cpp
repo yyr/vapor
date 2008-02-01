@@ -14,7 +14,7 @@
 #include <vapor/XmlNode.h>
 #include "assert.h"
 #include "Colormap.h"
-#include "MapperFunctionBase.h"
+#include "vapor/MapperFunctionBase.h"
 
 using namespace std;
 using namespace VAPoR;
