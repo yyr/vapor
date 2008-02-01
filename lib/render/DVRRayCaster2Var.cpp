@@ -158,6 +158,26 @@ int DVRRayCaster2Var::GraphicsInit()
 void DVRRayCaster2Var::raycasting_pass(
 	const TextureBrick *brick, const BBox &box, const BBox &tbox
 ) {
+
+	// enable color map
+  if (_preintegration) {
+    if (GLEW_VERSION_2_0) {
+      glActiveTexture(GL_TEXTURE1);
+    }
+    else {
+      glActiveTextureARB(GL_TEXTURE1_ARB);
+    }
+    glEnable(GL_TEXTURE_2D);  
+  }
+  else {
+    if (GLEW_VERSION_2_0) {
+      glActiveTexture(GL_TEXTURE1);
+    }
+    else {
+      glActiveTextureARB(GL_TEXTURE1_ARB);
+    }
+    glEnable(GL_TEXTURE_1D);
+  }
 	DVRRayCaster::raycasting_pass(brick, box, tbox);
 }
 

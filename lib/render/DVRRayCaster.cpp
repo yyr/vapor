@@ -283,9 +283,26 @@ void DVRRayCaster::render_backface(
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
 
+    if (GLEW_VERSION_2_0) {
+      glActiveTexture(GL_TEXTURE1);
+    }
+    else {
+      glActiveTextureARB(GL_TEXTURE1_ARB);
+    }
 	glDisable(GL_TEXTURE_1D);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_TEXTURE_3D);
+
+    if (GLEW_VERSION_2_0) {
+      glActiveTexture(GL_TEXTURE0);
+    }
+    else {
+      glActiveTextureARB(GL_TEXTURE0_ARB);
+    }
+	glDisable(GL_TEXTURE_1D);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_3D);
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDisable(GL_BLEND);
 
