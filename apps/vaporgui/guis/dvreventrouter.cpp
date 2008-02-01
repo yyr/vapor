@@ -1214,10 +1214,9 @@ void DvrEventRouter::benchmarkPreamble()
   int varNum       = dvrParams->getSessionVarNum();
   int numxforms    = dvrParams->getNumRefinements();
 
-  regionParams->getAvailableVoxelCoords(numxforms, 
-                                        min_dim, max_dim, 
-                                        min_bdim, max_bdim, 
-                                        timeStep, &varNum, 1);
+
+  if(regionParams->getAvailableVoxelCoords(numxforms, min_dim, max_dim, min_bdim, max_bdim, 
+          timeStep, &varNum, 1) < 0 ) return;
   
   int nx = (max_bdim[0] - min_bdim[0] + 1) * bs[0];
   int ny = (max_bdim[1] - min_bdim[1] + 1) * bs[1];

@@ -68,6 +68,8 @@ DataStatus()
 	maxTimeStep = 0;
 	numTimesteps = 0;
 	numTransforms = 0;
+	doWarnIfDataMissing = true;
+	doUseLowerRefinementLevel = false;
 	for (int i = 0; i< 3; i++){
 		extents[i] = 0.f;
 		stretchedExtents[i] = 0.f;
@@ -246,9 +248,9 @@ DataStatus::
 	theDataStatus = 0;
 }
 int DataStatus::
-getFirstTimestep(int varnum){
+getFirstTimestep(int sesvarnum){
 	for (int i = 0; i< numTimesteps; i++){
-		if(dataIsPresent(varnum,i)) return i;
+		if(dataIsPresent(sesvarnum,i)) return i;
 	}
 	return -1;
 }
@@ -290,7 +292,7 @@ int DataStatus::getSessionVariableNum(const string& str){
 	}
 	return -1;
 }
-//Make sure this name is in list; if not, insert it, return index.
+//Make sure this name is in list; if not, insert it, return session var num index.
 //Useful in parsing
 int DataStatus::mergeVariableName(const string& str){
 	for (int i = 0; i<variableNames.size(); i++){
@@ -358,4 +360,13 @@ getMetadataVarNum(std::string varname){
 		if (names[i] == varname) return i;
 	}
 	return -1;
+}
+bool DataStatus::fieldDataOK(int refLevel, int tstep, int varx, int vary, int varz){
+	int testRefLevel = refLevel;
+	if (doUseLowerRefinementLevel) testRefLevel = 0;
+
+	if (varx >= 0 && (maxXFormPresent(varx, tstep) < testRefLevel)) return false;
+	if (vary >= 0 && (maxXFormPresent(vary, tstep) < testRefLevel)) return false;
+	if (varz >= 0 && (maxXFormPresent(varz, tstep) < testRefLevel)) return false;
+	return true;
 }

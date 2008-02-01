@@ -137,7 +137,7 @@ void EventRouter::performGuiCopyInstanceToViz(int towin){
 void EventRouter::refreshHistogram(RenderParams* renParams){
 	size_t min_dim[3],max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
-	
+	DataStatus* ds = DataStatus::getInstance();
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	DataMgr* dataMgr = Session::getInstance()->getDataMgr();
 	if(!dataMgr) return;
@@ -155,7 +155,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams){
 	size_t fullHeight = rParams->getFullGridHeight();
 	int varNum = renParams->getSessionVarNum();
 	
-	if (!DataStatus::getInstance()->getDataMgr()) return;
+	if (!ds->getDataMgr()) return;
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	if (!histogramList){
 		histogramList = new Histo*[numVariables];
@@ -171,14 +171,11 @@ void EventRouter::refreshHistogram(RenderParams* renParams){
 	int timeStep = vizWinMgr->getAnimationParams(vizNum)->getCurrentFrameNumber();
 	const float * bnds = renParams->getCurrentDatarange();
 	
-	bool dataValid = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, min_bdim, max_bdim, timeStep, &varNum, 1);
-	if(!dataValid){
-		MessageReporter::warningMsg("Histogram data unavailable for refinement %d at timestep %d", numTrans, timeStep);
-		return;
-	}
-	
+	int availRefLevel = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, min_bdim, max_bdim, timeStep, &varNum, 1);
+	if(availRefLevel < 0) return;
+		
 	//Check if the region/resolution is too big:
-	  int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(), rParams->getRegionMax(), numTrans);
+	  int numMBs = RegionParams::getMBStorageNeeded(rParams->getRegionMin(), rParams->getRegionMax(), availRefLevel);
 	  int cacheSize = DataStatus::getInstance()->getCacheMB();
 	  if (numMBs > (int)(0.75*cacheSize)){
 		  MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current region and resolution.\n%s \n%s",
@@ -195,7 +192,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams){
 	unsigned char* data = (unsigned char*) dataMgr->GetRegionUInt8(
 					timeStep, 
 					(const char*)DataStatus::getInstance()->getVariableName(varNum).c_str(),
-					numTrans,
+					availRefLevel,
 					min_bdim, max_bdim,
 					fullHeight,
 					renParams->getCurrentDatarange(),
@@ -204,7 +201,9 @@ void EventRouter::refreshHistogram(RenderParams* renParams){
 	QApplication::restoreOverrideCursor();
 	//Make sure we can build a histogram
 	if (!data) {
-		MessageReporter::errorMsg("Invalid/nonexistent data cannot be histogrammed");
+		if (ds->warnIfDataMissing())
+			MessageReporter::errorMsg("Invalid/nonexistent data cannot be histogrammed");
+		ds->setDataMissing(timeStep, availRefLevel, varNum);
 		return;
 	}
 

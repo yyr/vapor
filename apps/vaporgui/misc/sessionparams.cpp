@@ -51,6 +51,7 @@ SessionParams::SessionParams(){
 void SessionParams::launch(){
     Session* currentSession = Session::getInstance();	
 	MessageReporter* mReporter = MessageReporter::getInstance();
+	DataStatus* ds = DataStatus::getInstance();
 	
 	sessionParamsDlg = new SessionParameters((QWidget*)MainForm::getInstance());
 	sessionParamsDlg->stretch0Edit->setText(QString::number(stretch[0]));
@@ -61,6 +62,9 @@ void SessionParams::launch(){
     sessionParamsDlg->stretch0Edit->setEnabled(enableStretch);
     sessionParamsDlg->stretch1Edit->setEnabled(enableStretch);
     sessionParamsDlg->stretch2Edit->setEnabled(enableStretch);
+
+	sessionParamsDlg->missingDataCheckbox->setChecked(ds->warnIfDataMissing());
+	sessionParamsDlg->lowerRefinementCheckbox->setChecked(ds->useLowerRefinementLevel());
 
 
 	QString str;
@@ -82,7 +86,7 @@ void SessionParams::launch(){
 
 	//set the sessionVariables:
 	sessionVariableNum = 0;
-	DataStatus* ds = DataStatus::getInstance();
+	
 	bool isLayered = (ds->getMetadata() && (StrCmpNoCase(ds->getMetadata()->GetGridType(),"Layered") == 0));
 	sessionParamsDlg->outsideValFrame->setEnabled(isLayered);
 	sessionParamsDlg->variableCombo->setCurrentItem(sessionVariableNum);
@@ -129,6 +133,8 @@ void SessionParams::launch(){
 		int newQual = sessionParamsDlg->jpegQuality->text().toInt();
 		if (newQual > 0 && newQual <= 100) GLWindow::setJpegQuality(newQual);
 
+		ds->setWarnMissingData(sessionParamsDlg->missingDataCheckbox->isChecked());
+		ds->setUseLowerRefinementLevel(sessionParamsDlg->lowerRefinementCheckbox->isChecked());
 		
 		//Did the popup numbers change?
 		//set the log/popup numbers:

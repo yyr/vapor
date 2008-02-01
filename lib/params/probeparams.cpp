@@ -809,7 +809,7 @@ void ProbeParams::getContainingRegion(float regMin[3], float regMax[3]){
 //We also need the actual box coords (min and max) to check for valid coords in the block.
 //Note that the box region may be strictly smaller than the block region
 //
-void ProbeParams::getBoundingBox(size_t boxMin[3], size_t boxMax[3], size_t fullHeight){
+void ProbeParams::getBoundingBox(size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs){
 	//Determine the smallest axis-aligned cube that contains the probe.  This is
 	//obtained by mapping all 8 corners into the space
 	
@@ -821,7 +821,7 @@ void ProbeParams::getBoundingBox(size_t boxMin[3], size_t boxMax[3], size_t full
 	const float* extents = DataStatus::getInstance()->getExtents();
 	//Start by initializing extents, and variables that will be min,max
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i,fullHeight);
+		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(numRefs,i,fullHeight);
 		boxMin[i] = dataSize[i]-1;
 		boxMax[i] = 0;
 	}
@@ -853,10 +853,11 @@ void ProbeParams::getBoundingBox(size_t boxMin[3], size_t boxMax[3], size_t full
 //and current time step.  Restrict it to the available data.
 //
 bool ProbeParams::
-getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], size_t fullHeight){
+getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], 
+		size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs){
 	
 	//Start with the bounding box for this refinement level:
-	getBoundingBox(boxMin, boxMax, fullHeight);
+	getBoundingBox(boxMin, boxMax, fullHeight, numRefs);
 	
 	const size_t* bs = DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize();
 	size_t temp_min[3],temp_max[3];
@@ -865,12 +866,12 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], 
 	//Now intersect with available bounds based on variables:
 	for (int varIndex = 0; varIndex < DataStatus::getInstance()->getNumSessionVariables(); varIndex++){
 		if (!variableSelected[varIndex]) continue;
-		if (DataStatus::getInstance()->maxXFormPresent(varIndex,timeStep) < numRefinements){
+		if (DataStatus::getInstance()->maxXFormPresent(varIndex,timeStep) < numRefs){
 			retVal = false;
 			continue;
 		} else {
 			const string varName = DataStatus::getInstance()->getVariableName(varIndex);
-			int rc = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetValidRegion(timeStep, varName.c_str(),numRefinements, temp_min, temp_max, fullHeight);
+			int rc = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetValidRegion(timeStep, varName.c_str(),numRefs, temp_min, temp_max, fullHeight);
 			if (rc < 0) {
 				retVal = false;
 			}
@@ -882,7 +883,7 @@ getAvailableBoundingBox(int timeStep, size_t boxMinBlk[3], size_t boxMaxBlk[3], 
 	}
 	//Now do the block dimensions:
 	for (int i = 0; i< 3; i++){
-		size_t dataSize = DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i,fullHeight);
+		size_t dataSize = DataStatus::getInstance()->getFullSizeAtLevel(numRefs,i,fullHeight);
 		if(boxMax[i] > dataSize-1) boxMax[i] = dataSize - 1;
 		if (boxMin[i] > boxMax[i]) boxMax[i] = boxMin[i];
 		//And make the block coords:
@@ -970,21 +971,32 @@ void ProbeParams::setProbeDirty(){
 unsigned char* ProbeParams::
 calcProbeTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	if (!isEnabled()) return 0;
-	
-	if (!DataStatus::getInstance()->getDataMgr()) return 0;
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return 0;
 
 	bool doCache = (texWidth == 0 && texHeight == 0);
+	
+	int refLevel = getNumRefinements();
+	//reduce reflevel if not all variables are available:
+	if (ds->useLowerRefinementLevel()){
+		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){
+			if (variableIsSelected(varnum)){
+				refLevel = Min(ds->maxXFormPresent(varnum, ts), refLevel);
+			}
+		}
+	}
+	if (refLevel < 0) return 0;
 	
 	float transformMatrix[12];
 	
 	//Set up to transform from probe into volume:
 	buildCoordTransform(transformMatrix, 0.f);
-	int numRefinements = getNumRefinements();
+	
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
 	//Start by initializing extents
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = (int)DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i, fullHeight);
+		dataSize[i] = (int)ds->getFullSizeAtLevel(refLevel,i, fullHeight);
 	}
 	//Determine the integer extents of the containing cube, truncate to
 	//valid integer coords:
@@ -993,12 +1005,12 @@ calcProbeTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	size_t blkMin[3], blkMax[3];
 	size_t coordMin[3], coordMax[3];
 	
-	getAvailableBoundingBox(ts,blkMin, blkMax, coordMin, coordMax, fullHeight);
+	getAvailableBoundingBox(ts, blkMin, blkMax, coordMin, coordMax, fullHeight, refLevel);
 	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
 
 	float boxExts[6];
-	RegionParams::convertToStretchedBoxExtentsInCube(numRefinements,coordMin, coordMax,boxExts,fullHeight); 
-	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, numRefinements);
+	RegionParams::convertToStretchedBoxExtentsInCube(refLevel,coordMin, coordMax,boxExts,fullHeight); 
+	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, refLevel);
 	//Check how many variables are needed:
 	int varCount = 0;
 	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumSessionVariables(); varnum++){
@@ -1020,7 +1032,7 @@ calcProbeTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	int totVars = 0;
 	for (int varnum = 0; varnum < DataStatus::getInstance()->getNumSessionVariables(); varnum++){
 		if (!variableIsSelected(varnum)) continue;
-		volData[totVars] = getContainingVolume(blkMin, blkMax, numRefinements, varnum, ts, fullHeight);
+		volData[totVars] = getContainingVolume(blkMin, blkMax, refLevel, varnum, ts, fullHeight);
 		if (!volData[totVars]) {
 			return 0;
 		}
@@ -1044,7 +1056,7 @@ calcProbeTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	float probeCoord[3];
 	float dataCoord[3];
 	size_t arrayCoord[3];
-	const float* extents = DataStatus::getInstance()->getExtents();
+	const float* extents = ds->getExtents();
 	//Can ignore depth, just mapping center plane
 	probeCoord[2] = 0.f;
 
@@ -1168,7 +1180,7 @@ getProbeVoxelExtents(size_t fullHeight, float voxdims[2]){
 	
 	//Set up to transform from probe into volume:
 	buildCoordTransform(transformMatrix, 0.f);
-	int numRefinements = getNumRefinements();
+	
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
 	//Start by initializing integer extents

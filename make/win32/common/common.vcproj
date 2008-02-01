@@ -176,6 +176,9 @@
 				RelativePath="..\..\..\include\vapor\OptionParser.h">
 			</File>
 			<File
+				RelativePath="..\..\..\include\vapor\PVTime.h">
+			</File>
+			<File
 				RelativePath="..\..\..\include\vapor\Version.h">
 			</File>
 		</Filter>

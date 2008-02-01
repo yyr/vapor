@@ -205,7 +205,7 @@ public:
 	int getFirstVarNum() {return firstVarNum;}
 	void setNumVariablesSelected(int numselected){numVariablesSelected = numselected;}
 	//Get the bounding box of data that is actually on disk.  return false if empty
-	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], size_t fullHeight);
+	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs);
 	//Obtain the smallest region that contains the probe, and fits within the full data volume:
 	void getContainingRegion(float regMin[3], float regMax[3]);
 	
@@ -233,9 +233,9 @@ protected:
 			
 	//Utility functions for building texture and histogram
 	
-	//Find smallest containing cube in integer coords, using
-	//current numRefinementsforms, that will contain image of probe
-	void getBoundingBox(size_t boxMin[3], size_t boxMax[3], size_t fullHeight);
+	//Find smallest containing cube in integer coords, 
+	//that will contain image of probe
+	void getBoundingBox(size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs);
 	//Get the rotated box sides in the unit cube, based on current angles:
 	void getRotatedBoxDims(float boxdims[3]);
 

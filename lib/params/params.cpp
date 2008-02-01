@@ -562,25 +562,39 @@ RenderParams::RenderParams(XmlNode *parent, const string &name, int winnum):Para
 	minOpacEditBounds = 0;
 	maxOpacEditBounds = 0;
 }
-
+// Only used by Probe currently:
 float* Params::
 getContainingVolume(size_t blkMin[3], size_t blkMax[3], int refLevel, int sessionVarNum, int timeStep, size_t fullHeight){
 	//Get the region associated with the specified variable in the 
 	//specified block extents
-	
-	int maxRes = DataStatus::getInstance()->maxXFormPresent(sessionVarNum,timeStep);
-	if (maxRes < refLevel){
-		const char* vname = DataStatus::getInstance()->getVariableName(sessionVarNum).c_str();
-		MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,
-			"Probe data unavailable for refinement level %d of variable %s, at current timestep",
-			refLevel, vname);
+	DataStatus* ds = DataStatus::getInstance();
+	const char* vname = ds->getVariableName(sessionVarNum).c_str();
+	int maxRes = ds->maxXFormPresent(sessionVarNum,timeStep);
+
+	//Check if maxRes is not OK:
+	if (maxRes < 0 || (maxRes < refLevel && !ds->useLowerRefinementLevel())){
+		if (ds->warnIfDataMissing()){
+			MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,
+				"Probe data unavailable for refinement level %d of variable %s, at current timestep.\n %s",
+				refLevel, vname,
+				"This message can be silenced in user preferences panel.");
+		}
 		return 0;
 	}
+	//Modify refinement level if allowed:
+	if (refLevel > maxRes) refLevel = maxRes;
 	
 	float* reg = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-		DataStatus::getInstance()->getVariableName(sessionVarNum).c_str(),
-		refLevel, blkMin, blkMax, fullHeight, 0);
-	
+		vname, refLevel, blkMin, blkMax, fullHeight, 0);
+	if (!reg){
+		if (ds->warnIfDataMissing()){
+			MyBase::SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,
+				"Probe data unavailable for refinement level %d of variable %s, at current timestep.\n %s",
+				refLevel, vname,
+				"This message can be silenced in user preferences panel.");
+		}
+		ds->setDataMissing(timeStep,refLevel, sessionVarNum);
+	}
 	return reg;
 }
 	

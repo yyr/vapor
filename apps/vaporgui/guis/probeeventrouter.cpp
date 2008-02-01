@@ -1699,7 +1699,8 @@ refreshHistogram(RenderParams* p){
 	ProbeParams* pParams = (ProbeParams*)p;
 	int firstVarNum = pParams->getFirstVarNum();
 	const float* currentDatarange = pParams->getCurrentDatarange();
-	if (!DataStatus::getInstance()->getDataMgr()) return;
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return;
 	if (!histogramList){
 		histogramList = new Histo*[numVariables];
 		numHistograms = numVariables;
@@ -1711,21 +1712,33 @@ refreshHistogram(RenderParams* p){
 	}
 	Histo* histo = histogramList[firstVarNum];
 	histo->reset(256,currentDatarange[0],currentDatarange[1]);
+	//Determine what resolution is available:
+	int refLevel = pParams->getNumRefinements();
+	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	if (ds->useLowerRefinementLevel()){
+		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){
+			if (pParams->variableIsSelected(varnum)) {
+				refLevel = Min(ds->maxXFormPresent(varnum, timeStep), refLevel);
+			}
+		}
+		if (refLevel < 0) return;
+	}
+
 	//create the smallest containing box
 	size_t blkMin[3],blkMax[3];
 	size_t boxMin[3],boxMax[3];
-	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
+	
 	size_t fullHeight = VizWinMgr::getActiveRegionParams()->getFullGridHeight();
-	pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, boxMin, boxMax, fullHeight);
+	pParams->getAvailableBoundingBox(timeStep, blkMin, blkMax, boxMin, boxMax, fullHeight, refLevel);
 	//Make sure this box will fit in current 
 	//Check if the region/resolution is too big:
-	int numRefinements = pParams->getNumRefinements();
+	
 	float boxExts[6];
-	RegionParams::convertToBoxExtents(numRefinements,boxMin, boxMax,boxExts); 
-	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, numRefinements);
+	RegionParams::convertToBoxExtents(refLevel,boxMin, boxMax,boxExts); 
+	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, refLevel);
 	//Check how many variables are needed:
 	int varCount = 0;
-	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumSessionVariables(); varnum++){
+	for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){
 		if (pParams->variableIsSelected(varnum)) varCount++;
 	}
 	int cacheSize = DataStatus::getInstance()->getCacheMB();
@@ -1748,7 +1761,7 @@ refreshHistogram(RenderParams* p){
 		if (!pParams->variableIsSelected(varnum)) continue;
 		assert(varnum >= firstVarNum);
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, numRefinements, varnum, timeStep, fullHeight);
+		volData[totVars] = pParams->getContainingVolume(blkMin, blkMax, refLevel, varnum, timeStep, fullHeight);
 		QApplication::restoreOverrideCursor();
 		if (!volData[totVars]) return;
 		totVars++;
@@ -1760,7 +1773,7 @@ refreshHistogram(RenderParams* p){
 	const float* extents = DataStatus::getInstance()->getExtents();
 	
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(numRefinements,i,fullHeight);
+		dataSize[i] = DataStatus::getInstance()->getFullSizeAtLevel(refLevel,i,fullHeight);
 		gridSpacing[i] = (extents[i+3]-extents[i])/(float)(dataSize[i]-1);
 		//if (boxMin[i]< 0) boxMin[i] = 0;  //unsigned, can't be < 0
 		if (boxMax[i] >= dataSize[i]) boxMax[i] = dataSize[i] - 1;

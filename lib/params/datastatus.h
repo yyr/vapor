@@ -72,11 +72,11 @@ public:
 	size_t getCacheMB() {return cacheMB;}
 	size_t getMinTimestep() {return minTimeStep;}
 	size_t getMaxTimestep() {return maxTimeStep;}
-	bool dataIsPresent(int varnum, int timestep){
+	bool dataIsPresent(int sesvarnum, int timestep){
 		if (!dataMgr) return false;
 		if (timestep < (int)minTimeStep || timestep > (int)maxTimeStep) return false;
-		if (!variableExists[varnum]) return false;
-		return (maxNumTransforms[varnum][timestep] >= 0);
+		if (!variableExists[sesvarnum]) return false;
+		return (maxNumTransforms[sesvarnum][timestep] >= 0);
 	}
 	bool dataIsPresent(int timestep){
 		if (!dataMgr) return false;
@@ -117,21 +117,16 @@ public:
 		else return false;
 	}
 
-	//Verify that field data is present at specified resolution and timestep.
+	//Verify that field data is present at required resolution and timestep.
 	//Ignore variable if varnum is < 0
-	bool fieldDataOK(int refLevel, int tstep, int varx, int vary, int varz){
-		if (varx >= 0 && maxXFormPresent(varx, tstep) < refLevel) return false;
-		if (vary >= 0 && maxXFormPresent(vary, tstep) < refLevel) return false;
-		if (varz >= 0 && maxXFormPresent(varz, tstep) < refLevel) return false;
-		return true;
-	}
+	bool fieldDataOK(int refLevel, int tstep, int varx, int vary, int varz);
 	
 	int getNumTimesteps() {return numTimesteps;}
 	//determine the maxnumtransforms in the vdf, may not actually have any data at
 	//that level...
 	int getNumTransforms() {return numTransforms;}
-	//Find the first timestep that has any data
-	int getFirstTimestep(int varnum);
+	//Find the first timestep that has any data with specified session variable num
+	int getFirstTimestep(int sesvarnum);
 	size_t getFullDataSize(int dim){return fullDataSize[dim];}
 	size_t getFullSizeAtLevel(int lev, int dim, size_t fullHeight) 
 		{if (dim < 2 || fullHeight == 0) return dataAtLevel[lev][dim];
@@ -213,6 +208,16 @@ public:
 	bool textureSizeIsSpecified(){return textureSizeSpecified;}
 	int getTextureSize() {return textureSize;}
 	void setTextureSize(int val) { textureSize = val;}
+
+	bool warnIfDataMissing() {return doWarnIfDataMissing;}
+	bool useLowerRefinementLevel() {return doUseLowerRefinementLevel;}
+	void setWarnMissingData(bool val) {doWarnIfDataMissing = val;}
+	void setUseLowerRefinementLevel(bool val){doUseLowerRefinementLevel = val;}
+	//Note missing data if a request for the data fails:
+	void setDataMissing(int timestep, int refLevel, int sessionVarNum){
+		if (maxNumTransforms[sessionVarNum][timestep] >= refLevel)
+			maxNumTransforms[sessionVarNum][timestep] = refLevel -1;
+	}
 	
 private:
 	static DataStatus* theDataStatus;
@@ -240,8 +245,10 @@ private:
 	int numTransforms;
 	//numTimeSteps may include lots of times that are not used. 
 	int numTimesteps;
-	//numVariables is total number of variables in the session:
-	//int numVariables;
+
+	//Specify how to handle missing data
+	bool doWarnIfDataMissing;
+	bool doUseLowerRefinementLevel;
 	
 	size_t fullDataSize[3];
 	std::vector<size_t*> dataAtLevel;

@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>422</width>
-            <height>622</height>
+            <height>713</height>
         </rect>
     </property>
     <property name="caption">
@@ -27,7 +27,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout12</cstring>
+                <cstring>layout16</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -98,7 +98,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>35</height>
                         </size>
                     </property>
                 </spacer>
@@ -170,7 +170,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>36</height>
                         </size>
                     </property>
                 </spacer>
@@ -270,7 +270,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>35</height>
                         </size>
                     </property>
                 </spacer>
@@ -307,10 +307,10 @@
                                         <cstring>textLabel1_5</cstring>
                                     </property>
                                     <property name="text">
-                                        <string>Variable values outside grid (for layered data)</string>
+                                        <string>&lt;b&gt;Variable values outside grid (for layered data)&lt;/b&gt;</string>
                                     </property>
                                     <property name="alignment">
-                                        <set>AlignCenter</set>
+                                        <set>WordBreak|AlignCenter</set>
                                     </property>
                                 </widget>
                                 <widget class="QLayoutWidget">
@@ -388,7 +388,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>20</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -457,7 +457,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>37</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -650,6 +650,113 @@
                 </widget>
                 <spacer>
                     <property name="name">
+                        <cstring>spacer26</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>16</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout15</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer27</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>31</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout14</cstring>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel1_6</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>&lt;b&gt;Handling of missing data&lt;/b&gt;</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>WordBreak|AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <widget class="QCheckBox">
+                                    <property name="name">
+                                        <cstring>missingDataCheckbox</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Show warning messages for missing data</string>
+                                    </property>
+                                    <property name="checked">
+                                        <bool>true</bool>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>When checked a warning message will be presented if data is unavailable</string>
+                                    </property>
+                                </widget>
+                                <widget class="QCheckBox">
+                                    <property name="name">
+                                        <cstring>lowerRefinementCheckbox</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Use lower refinement level if available</string>
+                                    </property>
+                                    <property name="toolTip" stdset="0">
+                                        <string>If requested refinement level is unavailable, use highest available level, with no warning message</string>
+                                    </property>
+                                </widget>
+                            </vbox>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer28</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>41</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                    </hbox>
+                </widget>
+                <spacer>
+                    <property name="name">
                         <cstring>spacer25</cstring>
                     </property>
                     <property name="orientation">
@@ -661,7 +768,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>37</height>
+                            <height>16</height>
                         </size>
                     </property>
                 </spacer>
@@ -670,10 +777,10 @@
                         <cstring>textLabel5</cstring>
                     </property>
                     <property name="text">
-                        <string>Message Logging and Popups</string>
+                        <string>&lt;b&gt;Message Logging and Popups&lt;/b&gt;</string>
                     </property>
                     <property name="alignment">
-                        <set>AlignCenter</set>
+                        <set>WordBreak|AlignCenter</set>
                     </property>
                 </widget>
                 <widget class="QLayoutWidget">
@@ -899,7 +1006,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>37</height>
+                            <height>35</height>
                         </size>
                     </property>
                 </spacer>
@@ -971,7 +1078,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>45</height>
+                            <height>39</height>
                         </size>
                     </property>
                 </spacer>

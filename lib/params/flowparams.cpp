@@ -737,9 +737,16 @@ float* FlowParams::getRakeSeeds(RegionParams* rParams, int* numseeds, int timeSt
 //Function to iterate over sample time steps, whether in list or 
 //specified by interval.  The first sample step is moved up to avoid
 //unnecessary samples before the first seed time.
+//This skips any timesteps for which the unsteady field is not present
+//at the required refinement level
+//Note that this is always called after the list of valid unsteady timesteps has been
+//sent to flowlib, so it would be smarter to use that list in this function.
 
 int FlowParams::
 getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowDir){
+	DataStatus* ds = DataStatus::getInstance();
+	int minRefLevel = numRefinements;
+	if (ds->useLowerRefinementLevel()) minRefLevel = 0;
 	if (unsteadyFlowDir > 0){
 		
 		if (useTimestepSampleList){
@@ -747,6 +754,12 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 			for (int i = 0; i< unsteadyTimestepList.size(); i++){
 				int ts = unsteadyTimestepList[i];
 				if (ts >= minStep && ts <= maxStep) {
+					bool dataOK = true;
+					for (int j = 0; j<3; j++){
+						if (unsteadyVarNum[j] == 0) continue;
+						if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+					}
+					if(!dataOK) continue; //skip this timestep
 					position++; //count the number of acceptable steps 
 					if (position < index) continue;
 					return ts;
@@ -758,6 +771,14 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 			int ts = timeSamplingStart;
 			while (ts < minStep) ts += timeSamplingInterval;
 			ts += index*timeSamplingInterval;
+			for (;(ts <= maxStep && ts <= timeSamplingEnd); ts += timeSamplingInterval){
+				bool dataOK = true;
+				for (int j = 0; j<3; j++){
+					if (unsteadyVarNum[j] == 0) continue;
+					if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+				}
+				if(dataOK) break;
+			}
 			if (ts > maxStep || ts > timeSamplingEnd) return -1;
 			return ts;
 		}
@@ -767,6 +788,12 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 			for (int i = unsteadyTimestepList.size()-1; i >= 0; i--){
 				int ts = unsteadyTimestepList[i];
 				if (ts >= minStep && ts <= maxStep) {
+					bool dataOK = true;
+					for (int j = 0; j<3; j++){
+						if (unsteadyVarNum[j] == 0) continue;
+						if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+					}
+					if(!dataOK) continue; //skip this timestep
 					position++; //count the number of acceptable steps 
 					if (position < index) continue;
 					return ts;
@@ -779,6 +806,14 @@ getUnsteadyTimestepSample(int index, int minStep, int maxStep, int unsteadyFlowD
 			while (ts > timeSamplingStart && ((ts - timeSamplingStart)%timeSamplingInterval != 0)) ts--;
 			while (ts > maxStep) ts -= timeSamplingInterval;
 			ts -= index*timeSamplingInterval;
+			for (;(ts >= minStep && ts >= timeSamplingStart); ts -= timeSamplingInterval){
+				bool dataOK = true;
+				for (int j = 0; j<3; j++){
+					if (unsteadyVarNum[j] == 0) continue;
+					if(ds->maxXFormPresent(unsteadyVarNum[j]-1, ts)< minRefLevel) dataOK = false;
+				}
+				if(dataOK) break;
+			}
 			if (ts < minStep || ts < timeSamplingStart) return -1;
 			return ts;
 		}
@@ -865,8 +900,8 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 	const char* xVar = "0", *yVar = "0", *zVar = "0";
 	
 	if(steadyVarNum[0]>0) xVar = ds->getVariableName(steadyVarNum[0]-1).c_str();
-	if(steadyVarNum[1]>0)yVar = ds->getVariableName(steadyVarNum[1]-1).c_str();
-	if(steadyVarNum[2]>0)zVar = ds->getVariableName(steadyVarNum[2]-1).c_str();
+	if(steadyVarNum[1]>0) yVar = ds->getVariableName(steadyVarNum[1]-1).c_str();
+	if(steadyVarNum[2]>0) zVar = ds->getVariableName(steadyVarNum[2]-1).c_str();
 	myFlowLib->SetSteadyFieldComponents(xVar, yVar, zVar);
 
 	if (flowType == 2){ //establish prioritization field variables:
@@ -884,7 +919,7 @@ regenerateSteadyFieldLines(VaporFlow* myFlowLib, FlowLineData* flowLines, PathLi
 		seedList = new float[numSeedPoints*3];
 		for (int i = 0; i<numSeedPoints; i++){
 			for (int k = 0; k<3; k++) {
-				seedList[3*i+k] = flowLines->getFlowPoint(i,flowLines->getSeedPosition())[k];
+				seedList[3*i+k] = flowLines->getFlowPoint(i, flowLines->getSeedPosition())[k];
 			}
 		}
 	} else if (pathData) {
@@ -1008,27 +1043,53 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 	int mPoints = objectsPerTimestep*(maxFrame - minFrame + 1);
 
 	//build the unsteady timestep sample list.  This lists the timesteps to be sampled
-	//in the order of integration.
+	//in the order of integration.  Don't include timesteps for which the unsteady field
+	//is not available at the required resolution
+	DataStatus* ds = DataStatus::getInstance();
+	int minRefLevel = numRefinements;
+	if (ds->useLowerRefinementLevel()) minRefLevel = 0;
 	int numTimesteps;
 	int* timeStepList;
+	int numValidTimesteps = 0;
 	if (useTimestepSampleList) {
 		numTimesteps = (int)unsteadyTimestepList.size();
 		timeStepList = new int[numTimesteps];
 		for (int i = 0; i<numTimesteps; i++){
-			timeStepList[i] = unsteadyTimestepList[i];
+			bool levelOK = true;
+			for (int j = 0; j<3; j++){
+				if (unsteadyVarNum[j] && ds->maxXFormPresent(unsteadyVarNum[j]-1, unsteadyTimestepList[i]) < minRefLevel){
+					levelOK = false; break;
+				}
+			}
+			if (levelOK)
+				timeStepList[numValidTimesteps++] = unsteadyTimestepList[i];
+
 		}
 	}
 	else {
 		numTimesteps = 1+ (timeSamplingEnd - timeSamplingStart)/timeSamplingInterval;
 		timeStepList = new int[numTimesteps];
+
 		for (int i = 0; i< numTimesteps; i++){
-			timeStepList[i] = timeSamplingStart + i*timeSamplingInterval;
+			bool levelOK = true;
+			int tstep = timeSamplingStart + i*timeSamplingInterval;
+			for (int j = 0; j<3; j++){
+				if (unsteadyVarNum[j] && ds->maxXFormPresent(unsteadyVarNum[j]-1, tstep) < minRefLevel)
+					levelOK = false; break;
+			}
+			if(levelOK) timeStepList[numValidTimesteps++] = tstep;
 		}
 	}
-	if (numTimesteps < 2){
+	if (numValidTimesteps < 2){
 		MyBase::SetErrMsg(VAPOR_ERROR_FLOW, "Insufficient time steps for unsteady advection");
 		delete timeStepList;
 		return false;
+	}
+	if (numValidTimesteps < numTimesteps && ds->warnIfDataMissing()){
+		
+		SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Unsteady flow field data not available at required level %d for all requested timesteps\n %s", 
+			minRefLevel,
+			"This message can be silenced using the User Preference Panel settings." );
 	}
 	
 	if (!setupFlowRegion(rParams, flowLib, -1)) return 0;
@@ -1044,13 +1105,13 @@ setupUnsteadyStartData(VaporFlow* flowLib, int minFrame, int maxFrame, RegionPar
 
 	
 	const char* xVar="0", *yVar="0", *zVar="0";
-	DataStatus* ds = DataStatus::getInstance();
+	
 	if(unsteadyVarNum[0]>0)xVar = ds->getVariableName(unsteadyVarNum[0]-1).c_str();
 	if(unsteadyVarNum[1]>0)yVar = ds->getVariableName(unsteadyVarNum[1]-1).c_str();
 	if(unsteadyVarNum[2]>0)zVar = ds->getVariableName(unsteadyVarNum[2]-1).c_str();
 	flowLib->SetUnsteadyFieldComponents(xVar, yVar, zVar);
 	
-	flowLib->SetUnsteadyTimeSteps(timeStepList,numTimesteps);
+	flowLib->SetUnsteadyTimeSteps(timeStepList,numValidTimesteps);
 	
 	flowLib->ScaleUnsteadyTimeStepSizes(unsteadyScale, (float)objectsPerTimestep);
 
@@ -1156,12 +1217,12 @@ int FlowParams::insertUnsteadySeeds(RegionParams* rParams, VaporFlow* fLib, Path
 	double minExt[3], maxExt[3];
 	size_t min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
-	int varnums[3];
+	int sesvarnums[3];
 	int varcount = 0;
-	for (int i = 0; i< 3; i++){if (unsteadyVarNum[i]) varnums[varcount++] = unsteadyVarNum[i] -1;}
-	bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
-			timeStep, varnums, varcount, minExt, maxExt);
-	if (!dataValid) {
+	for (int i = 0; i< 3; i++){if (unsteadyVarNum[i]) sesvarnums[varcount++] = unsteadyVarNum[i] -1;}
+	int dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
+			timeStep, sesvarnums, varcount, minExt, maxExt);
+	if (dataValid < 0) {
 		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at current time step. %s\n %s\n",
 			"Vector field may not be available;",
 			"Also be sure that seed injection times are timestep sample times");
@@ -1223,12 +1284,12 @@ int FlowParams::insertSteadySeeds(RegionParams* rParams, VaporFlow* fLib, FlowLi
 	double minExt[3], maxExt[3];
 	size_t min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
-	int varnums[3];
+	int sesvarnums[3];
 	int varcount = 0;
-	for (int i = 0; i< 3; i++){if (steadyVarNum[i]) varnums[varcount++] = steadyVarNum[i] -1;}
-	bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
-			timeStep, varnums,varcount, minExt, maxExt);
-	if (!dataValid) {
+	for (int i = 0; i< 3; i++){if (steadyVarNum[i]) sesvarnums[varcount++] = steadyVarNum[i] -1;}
+	int dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
+			timeStep, sesvarnums,varcount, minExt, maxExt);
+	if (dataValid < 0) {
 		MyBase::SetErrMsg(VAPOR_ERROR_SEEDS, "Unable to inject seeds at current time step. %s\n %s\n",
 			"Vector field may not be available;",
 			"Also be sure that seed injection times are timestep sample times");
@@ -2084,18 +2145,15 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		//If flow is unsteady, just get the first available timestep
 		int timeStep = currentTimeStep;
 		if(flowType == 1){//unsteady flow
-			timeStep = ds->getFirstTimestep(getOpacMapEntityIndex()-4);
+			timeStep = ds->getFirstTimestep(ds->mapMetadataToSessionVarNum(getOpacMapEntityIndex()-4));
 			if (timeStep < 0) MyBase::SetErrMsg("No data for opacity mapped variable");
 		}
 		size_t min_dim[3], max_dim[3], max_bdim[3];
 		
-		int opacVarnum = getOpacMapEntityIndex()-4;
-		bool ok = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_obdim, max_bdim,
+		int opacVarnum = ds->mapMetadataToSessionVarNum(getOpacMapEntityIndex()-4);
+		int opacRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_obdim, max_bdim,
 			timeStep, &opacVarnum, 1, opacVarMin, opacVarMax);
-		if(!ok){
-			MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Opacity mapped variable data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
-			return;
-		}
+		if(opacRefLevel < 0) return; //warning message was provided by getAvailableVoxelCoords. Can't map colors.
 		
 		for (int i = 0; i<3; i++){
 			opacSize[i] = (max_bdim[i] - min_obdim[i] +1)*bs[i];
@@ -2106,9 +2164,16 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		opacRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
-			colorMapEntity[getOpacMapEntityIndex()].c_str(),
-			numRefinements, min_obdim, max_bdim, fullHeight, 0);
+			opacMapEntity[getOpacMapEntityIndex()].c_str(),
+			opacRefLevel, min_obdim, max_bdim, fullHeight, 0);
 		QApplication::restoreOverrideCursor();
+		if (!opacRegion){
+			if (DataStatus::getInstance()->warnIfDataMissing())
+				MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Opacity mapped variable data unavailable for refinement %d at timestep %d", opacRefLevel, timeStep);
+			DataStatus::getInstance()->setDataMissing(timeStep, opacRefLevel, opacVarnum);
+			return;
+		}
+
 	}
 	if (getColorMapEntityIndex() > 3){
 		//set up args for GetRegion
@@ -2120,14 +2185,12 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		}
 		
 		size_t min_dim[3], max_dim[3], max_bdim[3];
+
+		int colorVarnum = ds->mapMetadataToSessionVarNum(getColorMapEntityIndex()-4);
 		
-		int colorVarnum = getColorMapEntityIndex()-4;
-		bool ok = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_cbdim, max_bdim,
+		int colorRefLevel = rParams->getAvailableVoxelCoords(numRefinements,min_dim, max_dim, min_cbdim, max_bdim,
 			timeStep, &colorVarnum, 1, colorVarMin, colorVarMax);
-		if(!ok){
-			MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Color map variable data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
-			return;
-		}
+		if(colorRefLevel < 0) return;
 		
 		for (int i = 0; i<3; i++){
 			colorSize[i] = (max_bdim[i] - min_cbdim[i] +1)*bs[i];
@@ -2139,8 +2202,14 @@ mapColors(FlowLineData* container, int currentTimeStep, int minFrame, RegionPara
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 		colorRegion = ((DataMgr*)(DataStatus::getInstance()->getDataMgr()))->GetRegion((size_t)timeStep,
 			colorMapEntity[getColorMapEntityIndex()].c_str(),
-			numRefinements, min_cbdim, max_bdim, fullHeight, 0);
+			colorRefLevel, min_cbdim, max_bdim, fullHeight, 0);
 		QApplication::restoreOverrideCursor();
+		if (!colorRegion){
+			if (DataStatus::getInstance()->warnIfDataMissing())
+				MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Color mapped variable data unavailable for refinement %d at timestep %d", colorRefLevel, timeStep);
+			DataStatus::getInstance()->setDataMissing(timeStep, colorRefLevel, colorVarnum);
+			return;
+		}
 		
 	}
 	
@@ -2434,7 +2503,8 @@ validateSampling(int minFrame, int numRefs, const int varnums[3])
 		for (int i = 0; i< unsteadyTimestepList.size(); i++){
 			int ts = unsteadyTimestepList[i];
 			if (!validateVectorField(ts,numRefs,varnums)){
-				MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Invalid timestep sample list");
+				MyBase::SetErrMsg(VAPOR_WARNING_FLOW,"Invalid timestep sample list:\n %s",
+					"Unsteady field not available at requested refinement at all time steps in list.");
 				return true;
 			}
 		}
@@ -2519,6 +2589,7 @@ bool FlowParams::
 validateVectorField(int ts, int refLevel, const int varNums[3]) {
 	DataStatus* dStatus = DataStatus::getInstance();
 	if (!dStatus) return false;
+	if (dStatus->useLowerRefinementLevel()) refLevel = 0;
 	for (int i = 0; i< 3; i++){
 		if (varNums[i] < 0) continue;
 		if(dStatus->maxXFormPresent(varNums[i], ts)< refLevel)
@@ -2570,8 +2641,8 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 	int varnums[3];
 	int varcount = 0;
 	for (int i = 0; i< 3; i++){if (steadyVarNum[i]) varnums[varcount++] = steadyVarNum[i] -1;}
-	bool ok =  rParams->getAvailableVoxelCoords(numrefts, min_dim, max_dim, min_bdim,  max_bdim, (size_t)timeStep, varnums, varcount);
-	if (!ok) return -1.f;
+	int availRefLevel =  rParams->getAvailableVoxelCoords(numrefts, min_dim, max_dim, min_bdim,  max_bdim, (size_t)timeStep, varnums, varcount);
+	if (availRefLevel < 0) return -1.f;
 
 	size_t fullHeight = rParams->getFullGridHeight();
 	DataMgr* dataMgr = (DataMgr*)(DataStatus::getInstance()->getDataMgr());
@@ -2582,8 +2653,9 @@ float FlowParams::getAvgVectorMag(RegionParams* rParams, int numrefts, int timeS
 		else {
 			varData[var] = dataMgr->GetRegion((size_t)timeStep,
 				DataStatus::getInstance()->getVariableName(steadyVarNum[var]-1).c_str(),
-				numrefts, min_bdim, max_bdim, fullHeight, 1);
+				availRefLevel, min_bdim, max_bdim, fullHeight, 1);
 			if (!varData[var]) {
+				DataStatus::getInstance()->setDataMissing(timeStep, availRefLevel,steadyVarNum[var]);
 				//release currently locked regions:
 				for (int k = 0; k<var; k++){
 					dataMgr->UnlockRegion(varData[k]);
@@ -2653,37 +2725,62 @@ bool FlowParams::
 setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 	size_t min_dim[3], max_dim[3]; 
 	size_t min_bdim[3], max_bdim[3];
-	
+	DataStatus* ds = DataStatus::getInstance();
 	flowLib->SetPeriodicDimensions(periodicDim[0],periodicDim[1],periodicDim[2]);
 	size_t fullHeight = rParams->getFullGridHeight();
 	//For steady flow, determine what is the available region for the current time step.
 	//For other flow, determine the available region for all the sampled timesteps.
+	int availRefLevel = numRefinements;
 	if (flowType == 0 ){
 		int varnums[3];
 		int varcount = 0;
 		for (int i = 0; i< 3; i++){if (steadyVarNum[i]) varnums[varcount++] = steadyVarNum[i] -1;}
-		bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
+		availRefLevel = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
 			timeStep, varnums,varcount);
 	
-		if(!dataValid){
-			MyBase::SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Steady field data unavailable for refinement %d at timestep %d", numRefinements, timeStep);
+		if(availRefLevel < 0){
 			return 0;
 		}
-	} else { //Find the intersection of all the regions for the timesteps to be sampled.
-		size_t gmin_dim[3],gmax_dim[3],gmin_bdim[3], gmax_bdim[3];
-		rParams->getRegionVoxelCoords(numRefinements, gmin_dim, gmax_dim, gmin_bdim,gmax_bdim);
+	} else { 
+		//Unsteady flow.  Find the intersection of all the regions for the timesteps to be sampled.
+		// Also get available refinement level which is min of all ones available
 		
+		size_t gmin_dim[3],gmax_dim[3],gmin_bdim[3], gmax_bdim[3];
+		//Get min refinement level that's OK for all time steps for which there is data.
+		//We will skip timesteps with no data
+		if (ds->useLowerRefinementLevel()) {
+			for (int indx = 0; indx < getNumTimestepSamples(); indx++){
+				int ts = getTimestepSample(indx);
+				int levelAtTime = availRefLevel;
+				for (int i = 0; i< 3; i++){
+					if (unsteadyVarNum[i])
+						levelAtTime = Min(levelAtTime, ds->maxXFormPresent(unsteadyVarNum[i]-1, ts));
+				}
+				if (levelAtTime >= 0) availRefLevel = levelAtTime;
+			}
+		}
+
+		rParams->getRegionVoxelCoords(availRefLevel, gmin_dim, gmax_dim, gmin_bdim,gmax_bdim);
+		
+		//Intersect the regions for the timesteps with field data:
 		for (int indx = 0; indx < getNumTimestepSamples(); indx++){
 			int ts = getTimestepSample(indx);
+			bool tsIsOK = true;
+			for (int i = 0; i < 3; i++){
+				if (unsteadyVarNum[i] == 0) continue;
+				if(ds->maxXFormPresent(unsteadyVarNum[i]-1, ts) < 0) {tsIsOK = false;break;}
+				if((!ds->useLowerRefinementLevel())&& ds->maxXFormPresent(unsteadyVarNum[i]-1, ts) < availRefLevel){
+					tsIsOK = false; break;
+				}
+			}
+			if (!tsIsOK) continue;
 			int varnums[3];
 			int varcount = 0;
 			for (int i = 0; i< 3; i++){if (unsteadyVarNum[i]) varnums[varcount++] = unsteadyVarNum[i] -1;}
-			bool dataValid = rParams->getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, 
+			int refLevel = rParams->getAvailableVoxelCoords(availRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
 				ts, varnums, varcount);
-			if(!dataValid){
-				SetErrMsg(VAPOR_WARNING_FLOW_DATA,"Unsteady field data unavailable for refinement %d at timestep %d", numRefinements,ts);
-				return 0;
-			}
+			assert(refLevel == availRefLevel);
+			
 			//Intersect the available region bounds.
 			for (int i = 0; i< 3; i++){
 				gmin_dim[i] = Max(gmin_dim[i],min_dim[i]);
@@ -2711,7 +2808,7 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 			DataStatus::getInstance()->getCacheMB());
 		return false;
 	}
-	flowLib->SetRegion(numRefinements, min_dim, max_dim, min_bdim, max_bdim, rParams->getFullGridHeight());
+	flowLib->SetRegion(availRefLevel, min_dim, max_dim, min_bdim, max_bdim, rParams->getFullGridHeight());
 	// Also, specify the bounds of the rake, in case it is needed:
 	double rakeMinCoords[3];
 	double rakeMaxCoords[3];
@@ -2719,17 +2816,17 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		rakeMinCoords[i] = (double)seedBoxMin[i];
 		rakeMaxCoords[i] = (double)seedBoxMax[i];
 	}
-	DataStatus* ds = DataStatus::getInstance();
+	
 	const VDFIOBase* myReader = ds->getRegionReader();
 	
-	myReader->MapUserToBlk(timeStep, rakeMinCoords, min_bdim, numRefinements);
-	myReader->MapUserToVox(timeStep, rakeMinCoords, min_dim, numRefinements);
-	myReader->MapUserToBlk(timeStep, rakeMaxCoords, max_bdim, numRefinements);
-	myReader->MapUserToVox(timeStep, rakeMaxCoords, max_dim, numRefinements);
+	myReader->MapUserToBlk(timeStep, rakeMinCoords, min_bdim, availRefLevel);
+	myReader->MapUserToVox(timeStep, rakeMinCoords, min_dim, availRefLevel);
+	myReader->MapUserToBlk(timeStep, rakeMaxCoords, max_bdim, availRefLevel);
+	myReader->MapUserToVox(timeStep, rakeMaxCoords, max_dim, availRefLevel);
 	//Now make sure the region actually contains the rake bounds:
 	double testRakeMin[3],testRakeMax[3];
-	myReader->MapVoxToUser(timeStep,min_dim, testRakeMin,numRefinements);
-	myReader->MapVoxToUser(timeStep,max_dim, testRakeMax,numRefinements);
+	myReader->MapVoxToUser(timeStep,min_dim, testRakeMin,availRefLevel);
+	myReader->MapVoxToUser(timeStep,max_dim, testRakeMax,availRefLevel);
 	bool changed = false;
 	for (int i = 0; i< 3; i++){
 		if (testRakeMin[i] > rakeMinCoords[i]) {
@@ -2742,20 +2839,20 @@ setupFlowRegion(RegionParams* rParams, VaporFlow* flowLib, int timeStep){
 		}
 		if (testRakeMax[i] < rakeMaxCoords[i]){
 			//max_dim must be increased to include the max extent:
-			if (max_dim[i] < ds->getFullSizeAtLevel(numRefinements, i, fullHeight) -1){
+			if (max_dim[i] < ds->getFullSizeAtLevel(availRefLevel, i, fullHeight) -1){
 				max_dim[i]++;
 				changed = true;
 			}
 		}
 	}
-	if (changed) {
-		myReader->MapVoxToUser(timeStep,min_dim, rakeMinCoords,numRefinements);
-		myReader->MapVoxToUser(timeStep,max_dim, rakeMaxCoords,numRefinements);
-		myReader->MapUserToBlk(timeStep, rakeMinCoords, min_bdim, numRefinements);
-		myReader->MapUserToVox(timeStep, rakeMinCoords, min_dim, numRefinements);
-		myReader->MapUserToBlk(timeStep, rakeMaxCoords, max_bdim, numRefinements);
-		myReader->MapUserToVox(timeStep, rakeMaxCoords, max_dim, numRefinements);
-	}
+	
+	myReader->MapVoxToUser(timeStep,min_dim, rakeMinCoords,availRefLevel);
+	myReader->MapVoxToUser(timeStep,max_dim, rakeMaxCoords,availRefLevel);
+	myReader->MapUserToBlk(timeStep, rakeMinCoords, min_bdim, availRefLevel);
+	myReader->MapUserToVox(timeStep, rakeMinCoords, min_dim, availRefLevel);
+	myReader->MapUserToBlk(timeStep, rakeMaxCoords, max_bdim, availRefLevel);
+	myReader->MapUserToVox(timeStep, rakeMaxCoords, max_dim, availRefLevel);
+	
 	flowLib->SetRakeRegion(min_dim, max_dim, min_bdim, max_bdim);
 	return true;
 }
@@ -2893,11 +2990,13 @@ bool FlowParams::validateSettings(int tstep, size_t fullHeight){
 		case (0) : 
 			if (!ds->fieldDataOK(numRefinements, tstep, 
 						steadyVarNum[0]-1,steadyVarNum[1]-1, steadyVarNum[2]-1)){
-				autoRefresh = false;
-				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+				
+				if (ds->warnIfDataMissing()){
+					autoRefresh = false;
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 						"Steady field not available at required resolution for timestep %d\n%s",
 						tstep, "Auto refresh has been disabled to facilitate corrective action");
-				
+				}
 				return false;
 			}
 			break;
@@ -2908,39 +3007,53 @@ bool FlowParams::validateSettings(int tstep, size_t fullHeight){
 				int ts = getTimestepSample(i);
 				if (!ds->fieldDataOK(numRefinements, ts, 
 						steadyVarNum[0]-1,steadyVarNum[1]-1, steadyVarNum[2]-1)){
-					autoRefresh = false;
-					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+					if (ds->warnIfDataMissing()){
+						autoRefresh = false;
+						MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
 							"Steady field not available at required resolution for timestep %d\n%s",
 							ts, "Auto refresh has been disabled to facilitate corrective action");
+					}
 					
-					return false;
+					break;
 				}
 			}
 			break;
 	}//end switch
 
 	//See if the unsteady field is OK  (type 1 and 2)
-	// needed for all sample time steps.
-
+	// Need at least two legitimate time steps
 	if (flowType != 0) {
-		if (getNumTimestepSamples() <= 1){
+		int numLegitimate = 0;
+		for (int i = 0; i<getNumTimestepSamples(); i++){
+			int ts = getTimestepSample(i);
+			if (!ds->fieldDataOK(numRefinements, ts, 
+					unsteadyVarNum[0]-1,unsteadyVarNum[1]-1, unsteadyVarNum[2]-1)) continue;
+			if (flowType == 2 && !ds->fieldDataOK(numRefinements, ts, 
+					steadyVarNum[0]-1,steadyVarNum[1]-1, steadyVarNum[2]-1)) continue;
+			numLegitimate++;
+		}
+
+		if (numLegitimate <= 1){
 			autoRefresh = false;
 			MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-				"At least two time step samples are necessary for unsteady flow integration.\n%s",
+				"At least two time step samples at specified refinement are necessary for unsteady flow integration.\n%s",
 				"Auto refresh has been disabled to facilitate corrective action");
 				
 				return false;
 		}
-		for (int i = 0; i<getNumTimestepSamples(); i++){
-			int ts = getTimestepSample(i);
-			if (!ds->fieldDataOK(numRefinements, ts, 
-					unsteadyVarNum[0]-1,unsteadyVarNum[1]-1, unsteadyVarNum[2]-1)){
-				autoRefresh = false;
-				MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
-						"Unsteady field not available at required resolution for timestep %d\n%s",
-						ts, "Auto refresh has been disabled to facilitate corrective action");
-				
-				return false;
+		//If warnings are on, make sure the unsteady flow exists at every timestep:
+		if (ds->warnIfDataMissing()){
+			for (int i = 0; i<getNumTimestepSamples(); i++){
+				int ts = getTimestepSample(i);
+				if (!ds->fieldDataOK(numRefinements, ts, 
+						unsteadyVarNum[0]-1,unsteadyVarNum[1]-1, unsteadyVarNum[2]-1)){
+					autoRefresh = false;
+					MyBase::SetErrMsg(VAPOR_ERROR_FLOW,
+							"Unsteady field not available at required resolution for timestep %d\n%s",
+							ts, "Auto refresh has been disabled to facilitate corrective action");
+					
+					return false;
+				}
 			}
 		}
 	}
@@ -2951,7 +3064,7 @@ bool FlowParams::validateSettings(int tstep, size_t fullHeight){
 		//for type 1 needed for all seed times between first and last sample time
 		//for type 2 needed for seed time start
 	
-	if (seedDistBias != 0.f && doRake && randomGen){
+	if (seedDistBias != 0.f && doRake && randomGen && ds->warnIfDataMissing()){
 		switch (flowType) {
 			case (0) :
 				if (!ds->fieldDataOK(numRefinements, tstep, 
@@ -2997,7 +3110,7 @@ bool FlowParams::validateSettings(int tstep, size_t fullHeight){
 
 	//see if the fla prioritization field is OK (type 2)
 	// needed for all sample timesteps
-	if (flowType == 2) {
+	if (flowType == 2 && ds->warnIfDataMissing()) {
 		for (int i = 0; i<getNumTimestepSamples(); i++){
 			int ts = getTimestepSample(i);
 			if (!ds->fieldDataOK(numRefinements, ts, 

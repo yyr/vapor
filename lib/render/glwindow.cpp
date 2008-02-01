@@ -1428,22 +1428,30 @@ bool GLWindow::rebuildElevationGrid(size_t timeStep){
 	DataStatus* ds = DataStatus::getInstance();
 	int varNum = DataStatus::getSessionVariableNum("ELEVATION");
 	DataMgr* dataMgr = ds->getDataMgr();
-	bool regionValid = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
-			timeStep,&varNum, 1, regMin, regMax);
+	//Try to get requested refinement level or the nearest acceptable level:
+	int refLevel = getActiveRegionParams()->getAvailableVoxelCoords(elevGridRefLevel, min_dim, max_dim, min_bdim, max_bdim, 
+			timeStep, &varNum, 1, regMin, regMax);
+	
 
-	if(!regionValid) {
-		SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Volume data unavailable for refinement level %d of ELEVATION, at current timestep", 
-			elevGridRefLevel);
-		return false;
-	}
+	if(refLevel < 0) return false;
+		
+	
 	//Modify 3rd coord of region extents to obtain only bottom layer:
 	min_dim[2] = max_dim[2] = 0;
 	min_bdim[2] = max_bdim[2] = 0;
-	//Then, ask the Datamgr to retrieve the lowest level of the ELEVATION data, without
+	//Then, ask the Datamgr to retrieve the lowest layer of the ELEVATION data, without
 	//performing the interpolation step
-	float* elevData = dataMgr->GetRegion(timeStep, "ELEVATION", elevGridRefLevel, min_bdim, max_bdim, 0,0);
+	float* elevData = dataMgr->GetRegion(timeStep, "ELEVATION", refLevel, min_bdim, max_bdim, 0,0);
 
-	if (!elevData) return true;
+	if (!elevData) {
+		if (ds->warnIfDataMissing()){
+			SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"ELEVATION data unavailable at timestep %d.\n %s", 
+				timeStep,
+				"This message can be silenced using the User Preference Panel settings." );
+		}
+		ds->setDataMissing(timeStep, refLevel, ds->getSessionVariableNum(std::string("ELEVATION")));
+		return false;
+	}
 	//Then create arrays to hold the vertices and their normals:
 	maxXElev = max_dim[0] - min_dim[0] +1;
 	maxYElev = max_dim[1] - min_dim[1] +1;

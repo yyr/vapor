@@ -24,7 +24,7 @@
 #endif
 
 #include "regionparams.h"
-
+#include "vapor/errorcodes.h"
 
 #include "datastatus.h"
 
@@ -244,13 +244,13 @@ convertToBoxExtents(int refLevel, const size_t min_dim[3], const size_t max_dim[
 	ds->mapVoxelToUserCoords(refLevel, max_dim, dbExtents+3);
 	for (int i = 0; i< 6; i++) extents[i] = (float)dbExtents[i];
 }	
-bool RegionParams::
+int RegionParams::
 getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3], 
 		size_t min_bdim[3], size_t max_bdim[3], size_t timestep, const int* varNums, int numVars,
 		double regMin[3], double regMax[3]){
 	//First determine the bounds specified in this RegionParams
 	int i;
-	bool retVal = true;
+	
 	const size_t *bs ;
 	
 	DataStatus* ds = DataStatus::getInstance();
@@ -262,13 +262,23 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 			min_bdim[i] = 0;
 			max_bdim[i] = (32 >>numxforms) -1;
 		}
-		return false;
+		return -1;
 	}
 	//Check that the data exists for this timestep and refinement:
+	int minRefLevel = numxforms;
 	for (i = 0; i<numVars; i++){
-		if(DataStatus::getInstance()->maxXFormPresent(varNums[i],(int)timestep) < numxforms)
-			return false;
+		minRefLevel = Min(ds->maxXFormPresent(varNums[i],(int)timestep), minRefLevel);
+		//Test if it's acceptable, exit if not:
+		if (minRefLevel < 0 || (minRefLevel < numxforms && !ds->useLowerRefinementLevel())){
+			if (ds->warnIfDataMissing()){
+				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data unavailable for variable %s at current timestep.\n %s",
+					ds->getVariableName(varNums[i]).c_str(),
+					"This message can be silenced using the User Preference Panel settings.");
+			}
+			return -1;
+		}
 	}
+
 	double userMinCoords[3];
 	double userMaxCoords[3];
 	for (i = 0; i<3; i++){
@@ -281,8 +291,8 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 		((LayeredIO*)myReader)->SetGridHeight(fullHeight);
 	}
 	//Do mapping to voxel coords
-	myReader->MapUserToVox(timestep, userMinCoords, min_dim, numxforms);
-	myReader->MapUserToVox(timestep, userMaxCoords, max_dim, numxforms);
+	myReader->MapUserToVox(timestep, userMinCoords, min_dim, minRefLevel);
+	myReader->MapUserToVox(timestep, userMaxCoords, max_dim, minRefLevel);
 
 	for(i = 0; i< 3; i++){
 		//Make sure slab has nonzero thickness (this can only
@@ -300,13 +310,22 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	size_t temp_min[3], temp_max[3];
 	for (int varIndex = 0; varIndex < numVars; varIndex++){
 		const string varName = ds->getVariableName(varNums[varIndex]);
-		int rc = ((DataMgr*)ds->getDataMgr())->GetValidRegion(timestep, varName.c_str(),numxforms, temp_min, temp_max, fullHeight);
-		if (rc < 0) retVal = false;
+		int rc = ((DataMgr*)ds->getDataMgr())->GetValidRegion(timestep, varName.c_str(),minRefLevel, temp_min, temp_max, fullHeight);
+		if (rc < 0) {
+			//Tell the datastatus that the data isn't really there at minRefLevel:
+			ds->setDataMissing(timestep, minRefLevel, varNums[varIndex]);
+			if (ds->warnIfDataMissing()){
+				SetErrMsg(VAPOR_WARNING_DATA_UNAVAILABLE,"Data unavailable for variable %s at current timestep.\n %s",
+					varName.c_str(),
+					"This message can be silenced using the User Preference Panel settings.");
+			}
+			return -1;
+		}
 		else for (i = 0; i< 3; i++){
 			if (min_dim[i] < temp_min[i]) min_dim[i] = temp_min[i];
 			if (max_dim[i] > temp_max[i]) max_dim[i] = temp_max[i];
 			//Again check for validity:
-			if (min_dim[i] > max_dim[i]) retVal = false;
+			if (min_dim[i] > max_dim[i]) minRefLevel = -1;
 		}
 	}
 	//calc block dims
@@ -318,11 +337,11 @@ getAvailableVoxelCoords(int numxforms, size_t min_dim[3], size_t max_dim[3],
 	//If bounds are needed, calculate them:
 	if (regMax && regMin){
 		//Do mapping to voxel coords
-		myReader->MapVoxToUser(timestep, min_dim, regMin, numxforms);
-		myReader->MapVoxToUser(timestep, max_dim, regMax, numxforms);
+		myReader->MapVoxToUser(timestep, min_dim, regMin, minRefLevel);
+		myReader->MapVoxToUser(timestep, max_dim, regMax, minRefLevel);
 	}
 	
-	return retVal;
+	return minRefLevel;
 }
 
 void RegionParams::
@@ -544,8 +563,8 @@ calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, in
 	
 	double regMin[3], regMax[3];
 	size_t min_dim[3],max_dim[3], min_bdim[3], max_bdim[3],blkmin[3], blkmax[3];
-	bool ok = getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, &sessionVarNum, 1, regMin, regMax);
-	if (!ok) return OUT_OF_BOUNDS;
+	int availRefLevel = getAvailableVoxelCoords(numRefinements, min_dim, max_dim, min_bdim, max_bdim, timeStep, &sessionVarNum, 1, regMin, regMax);
+	if (availRefLevel < 0) return OUT_OF_BOUNDS;
 	//Get the closest voxel coords of the point, and the block coords that
 	//contain it.
 	for (int i = 0; i<3; i++) {
@@ -559,7 +578,7 @@ calcCurrentValue(int sessionVarNum, const float point[3], int numRefinements, in
 		voxCoords[i] -= blkmin[i]*bs[i];
 	}
 	// Obtain the region:
-	float *reg = getContainingVolume(blkmin,blkmax, numRefinements, sessionVarNum, timeStep, getFullGridHeight());
+	float *reg = getContainingVolume(blkmin,blkmax, availRefLevel, sessionVarNum, timeStep, getFullGridHeight());
 	if (!reg) return OUT_OF_BOUNDS;
 	
 	//find the coords within this block:
