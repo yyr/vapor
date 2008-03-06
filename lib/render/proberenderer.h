@@ -38,10 +38,19 @@ public:
 	virtual void	initializeGL();
     virtual void		paintGL();
 
-
+	//Method that uses OpenGL to construct an IBFV texture of specified size.
+	//Should be called within an OpenGL rendering context.
+	static unsigned char* buildIBFVTexture(ProbeParams*, int tstep);
+	
+	static unsigned char* getNextIBFVTexture(ProbeParams*, int frameNum, bool starting);
 protected:
 	GLuint _probeid;
-
+	static void makeIBFVPatterns(ProbeParams*);
+	static void getDP(float x, float y, float *px, float *py, float dmaxx, float dmaxy);
+	static void pushState();
+	static void popState();
+	static void stepIBFVTexture(ProbeParams*, int frameNum);
+	
 
 };
 };

@@ -89,12 +89,22 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): ProbeTab(p
 	numVariables = 0;
 	seedAttached = false;
 	notNudgingSliders = false;
+	animationFlag = false;
+	myIBFVThread = 0;
 	
 }
 
 
 ProbeEventRouter::~ProbeEventRouter(){
 	if (savedCommand) delete savedCommand;
+	
+	if (myIBFVThread){
+		animationFlag= false;
+		probeTextureFrame->setAnimatingTexture(false);
+		myIBFVThread->wait();
+		delete myIBFVThread;
+	}
+	
 }
 /**********************************************************
  * Whenever a new Probetab is created it must be hooked up here
@@ -119,7 +129,16 @@ ProbeEventRouter::hookUpTab()
 	connect (ySizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (zSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
+	connect(alphaEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
+	connect(setupFramesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
+	connect(fieldScaleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
+	connect(NMESHEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	
+	connect (alphaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
+	connect (setupFramesEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
+	connect (fieldScaleEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
+	connect (NMESHEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
+
 	connect (leftMappingBound, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (rightMappingBound, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	
@@ -197,12 +216,287 @@ ProbeEventRouter::hookUpTab()
 	connect (newInstanceButton, SIGNAL(clicked()), this, SLOT(guiNewInstance()));
 	connect (deleteInstanceButton, SIGNAL(clicked()),this, SLOT(guiDeleteInstance()));
 	connect (instanceTable, SIGNAL(enableInstance(bool,int)), this, SLOT(setProbeEnabled(bool,int)));
+	connect (probeTypeCombo, SIGNAL(activated(int)), this, SLOT(guiSetProbeType(int)));
+	connect (playButton, SIGNAL(clicked()), this, SLOT(ibfvPlay()));
+	connect (pauseButton, SIGNAL(clicked()), this, SLOT(ibfvPause()));
 	
 }
+//Insert values from params into tab panel
+//
+void ProbeEventRouter::updateTab(){
+	notNudgingSliders = true;  //don't generate nudge events
+
+    setEnabled(!Session::getInstance()->sphericalTransform());
+
+	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
+	else instanceTable->setEnabled(false);
+	instanceTable->rebuild(this);
+	
+	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
+	VizWinMgr* vizMgr = VizWinMgr::getInstance();
+	int winnum = vizMgr->getActiveViz();
+	int pType = probeParams->getProbeType();
+	probeTypeCombo->setCurrentItem(pType);
+	if (pType == 1) ibfvFrame->show(); 
+	else ibfvFrame->hide();
+
+	//set ibfv parameters:
+	alphaEdit->setText(QString::number(probeParams->getAlpha()));
+	setupFramesEdit->setText(QString::number(probeParams->getSetUpFrames()));
+	fieldScaleEdit->setText(QString::number(probeParams->getFieldScale()));
+	NMESHEdit->setText(QString::number(probeParams->getNMesh()));
+	
+	
+	deleteInstanceButton->setEnabled(vizMgr->getNumProbeInstances(winnum) > 1);
+	if (planarCheckbox->isChecked() != probeParams->isPlanar()){
+		planarCheckbox->setChecked(probeParams->isPlanar());
+	}
+
+	int numViz = vizMgr->getNumVisualizers();
+
+	copyCombo->clear();
+	copyCombo->insertItem("Duplicate In:");
+	copyCombo->insertItem("This visualizer");
+	if (numViz > 1) {
+		int copyNum = 2;
+		for (int i = 0; i<MAXVIZWINS; i++){
+			if (vizMgr->getVizWin(i) && winnum != i){
+				copyCombo->insertItem(vizMgr->getVizWinName(i));
+				//Remember the viznum corresponding to a combo item:
+				copyCount[copyNum++] = i;
+			}
+		}
+	}
+	//setup the texture:
+	
+	resetTextureSize(probeParams);
+	
+	QString strn;
+	Session* ses = Session::getInstance();
+	ses->blockRecording();
+
+    transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
+    transferFunctionFrame->updateParams();
+
+    if (ses->getNumSessionVariables())
+    {
+      int varnum = probeParams->getSessionVarNum();
+      const std::string& varname = ses->getVariableName(varnum);
+      
+      transferFunctionFrame->setVariableName(varname);
+    }
+    else
+    {
+      transferFunctionFrame->setVariableName("");
+    }
+	int numRefs = probeParams->getNumRefinements();
+	if(numRefs <= refinementCombo->count())
+		refinementCombo->setCurrentItem(numRefs);
+	
+	histoScaleEdit->setText(QString::number(probeParams->GetHistoStretch()));
+
+	//Check if planar:
+	bool isPlanar = probeParams->isPlanar();
+	if (isPlanar){
+		zSizeSlider->setEnabled(false);
+		zSizeEdit->setEnabled(false);
+	} else {
+		zSizeSlider->setEnabled(true);
+		zSizeEdit->setEnabled(true);
+	}
+	//setup the size sliders 
+	adjustBoxSize(probeParams);
+
+	//And the center sliders/textboxes:
+	float boxmin[3],boxmax[3],boxCenter[3];
+	const float* extents = DataStatus::getInstance()->getExtents();
+	probeParams->getBox(boxmin, boxmax);
+	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f;
+	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
+	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
+	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
+	xCenterEdit->setText(QString::number(boxCenter[0]));
+	yCenterEdit->setText(QString::number(boxCenter[1]));
+	zCenterEdit->setText(QString::number(boxCenter[2]));
+	
+	thetaEdit->setText(QString::number(probeParams->getTheta(),'f',1));
+	phiEdit->setText(QString::number(probeParams->getPhi(),'f',1));
+	psiEdit->setText(QString::number(probeParams->getPsi(),'f',1));
+	const float* selectedPoint = probeParams->getSelectedPoint();
+	selectedXLabel->setText(QString::number(selectedPoint[0]));
+	selectedYLabel->setText(QString::number(selectedPoint[1]));
+	selectedZLabel->setText(QString::number(selectedPoint[2]));
+	attachSeedCheckbox->setChecked(seedAttached);
+	float val = calcCurrentValue(probeParams,selectedPoint);
+
+	if (val == OUT_OF_BOUNDS)
+		valueMagLabel->setText(QString(" "));
+	else valueMagLabel->setText(QString::number(val));
+
+	//Set the selection in the variable listbox.
+	//Turn off listBox message-listening
+	ignoreListboxChanges = true;
+	for (int i = 0; i< ses->getNumMetadataVariables(); i++){
+		if (variableListBox->isSelected(i) != probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)))
+			variableListBox->setSelected(i, probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)));
+	}
+	ignoreListboxChanges = false;
+
+	updateMapBounds(probeParams);
+	
+	float sliderVal = probeParams->getOpacityScale();
+	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	
+	sliderVal = 256.f*(1.f -sliderVal);
+	opacityScaleSlider->setValue((int) sliderVal);
+	
+	
+	//Set the mode buttons:
+	
+	if (probeParams->getEditMode()){
+		
+		editButton->setOn(true);
+		navigateButton->setOn(false);
+	} else {
+		editButton->setOn(false);
+		navigateButton->setOn(true);
+	}
+		
+	
+	probeTextureFrame->setParams(probeParams);
+
+	update();
+	guiSetTextChanged(false);
+	Session::getInstance()->unblockRecording();
+	vizMgr->getTabManager()->update();
+	notNudgingSliders = false;
+}
+
+
+void ProbeEventRouter::confirmText(bool /*render*/){
+	if (!textChangedFlag) return;
+	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(probeParams, "edit Probe text");
+	QString strn;
+	
+	float thetaVal = thetaEdit->text().toFloat();
+	while (thetaVal > 180.f) thetaVal -= 360.f;
+	while (thetaVal < -180.f) thetaVal += 360.f;
+	thetaEdit->setText(QString::number(thetaVal,'f',1));
+	float phiVal = phiEdit->text().toFloat();
+	while (phiVal > 180.f) phiVal -= 180.f;
+	while (phiVal < 0.f) phiVal += 180.f;
+	phiEdit->setText(QString::number(phiVal,'f',1));
+	float psiVal = psiEdit->text().toFloat();
+	while (psiVal > 180.f) psiVal -= 360.f;
+	while (psiVal < -180.f) psiVal += 360.f;
+	psiEdit->setText(QString::number(psiVal,'f',1));
+
+	probeParams->setTheta(thetaVal);
+	probeParams->setPhi(phiVal);
+	probeParams->setPsi(psiVal);
+
+	probeParams->setHistoStretch(histoScaleEdit->text().toFloat());
+
+	//Set IBFV values:
+	probeParams->setAlpha(alphaEdit->text().toFloat());
+	probeParams->setFieldScale(fieldScaleEdit->text().toFloat());
+	probeParams->setNMesh(NMESHEdit->text().toInt());
+	probeParams->setSetUpFrames(setupFramesEdit->text().toInt());
+
+	//Set the probe size based on current text box settings:
+	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
+	boxSize[0] = xSizeEdit->text().toFloat();
+	boxSize[1] = ySizeEdit->text().toFloat();
+	boxSize[2] = zSizeEdit->text().toFloat();
+	for (int i = 0; i<3; i++){
+		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
+		if (boxSize[i] > maxBoxSize[i]) boxSize[i] = maxBoxSize[i];
+	}
+	boxCenter[0] = xCenterEdit->text().toFloat();
+	boxCenter[1] = yCenterEdit->text().toFloat();
+	boxCenter[2] = zCenterEdit->text().toFloat();
+	probeParams->getBox(boxmin, boxmax);
+	const float* extents = DataStatus::getInstance()->getExtents();
+	for (int i = 0; i<3;i++){
+		if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
+		if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
+		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
+		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
+	}
+	probeParams->setBox(boxmin,boxmax);
+	adjustBoxSize(probeParams);
+	//set the center sliders:
+	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
+	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
+	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
+	resetTextureSize(probeParams);
+	//probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
+	probeParams->setProbeDirty();
+	if (probeParams->getMapperFunc()) {
+		((TransferFunction*)probeParams->getMapperFunc())->setMinMapValue(leftMappingBound->text().toFloat());
+		((TransferFunction*)probeParams->getMapperFunc())->setMaxMapValue(rightMappingBound->text().toFloat());
+	
+		setDatarangeDirty(probeParams);
+		setEditorDirty();
+		update();
+		probeTextureFrame->update();
+	}
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(probeParams,ProbeTextureBit,true);
+	//If we are in probe mode, force a rerender of all windows using the probe:
+	if (GLWindow::getCurrentMouseMode() == GLWindow::probeMode){
+		VizWinMgr::getInstance()->refreshProbe(probeParams);
+	}
+	//Cancel any response to events generated in this method:
+	//
+	guiSetTextChanged(false);
+	PanelCommand::captureEnd(cmd, probeParams);
+}
+
 
 /*********************************************************************************
  * Slots associated with ProbeTab:
  *********************************************************************************/
+void ProbeEventRouter::guiSetProbeType(int t){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "change probe type");
+	pParams->setProbeType(t);
+	//always stop animation,
+	//Invalidate existing probe images:
+	pParams->setProbeDirty();
+	ibfvPause();
+	if (t == 0){
+		ibfvFrame->hide();
+		probeTextureFrame->update();
+		updateTab();
+	} else {
+		ibfvFrame->show();
+		probeTextureFrame->update();
+		updateTab();
+	}
+	PanelCommand::captureEnd(cmd, pParams);
+}
+void ProbeEventRouter::ibfvPlay(){
+	//Start playing.  Requires initializing the ibfv sequence,
+	//setting the animation flag (so subsequent updates go for animated texture)
+	//then starting the animation thread
+	//Don't allow multiple clicks
+	if(isAnimating()) return;
+	animationFlag = true;
+	probeTextureFrame->setAnimatingTexture(true);
+	myIBFVThread = new ProbeThread();
+	myIBFVThread->start();
+}
+void ProbeEventRouter::ibfvPause(){
+	animationFlag= false;
+	probeTextureFrame->setAnimatingTexture(false);
+	//terminate the animation thread.
+	if (myIBFVThread) delete myIBFVThread;
+	myIBFVThread = 0;
+}
+
 void ProbeEventRouter::
 rotateXWheel(int val){
 	
@@ -340,6 +634,7 @@ setProbeEnabled(bool val, int instance){
 	ProbeParams* pParams = vizMgr->getProbeParams(activeViz,instance);
 	//Make sure this is a change:
 	if (pParams->isEnabled() == val ) return;
+	if (!val) ibfvPause();//When disabling, stop animating ibfv
 	//If we are enabling, also make this the current instance:
 	if (val) {
 		performGuiChangeInstance(instance);
@@ -544,82 +839,6 @@ setProbeZSize(){
 		zSizeSlider->value());
 }
 
-void ProbeEventRouter::confirmText(bool /*render*/){
-	if (!textChangedFlag) return;
-	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(probeParams, "edit Probe text");
-	QString strn;
-	
-	float thetaVal = thetaEdit->text().toFloat();
-	while (thetaVal > 180.f) thetaVal -= 360.f;
-	while (thetaVal < -180.f) thetaVal += 360.f;
-	thetaEdit->setText(QString::number(thetaVal,'f',1));
-	float phiVal = phiEdit->text().toFloat();
-	while (phiVal > 180.f) phiVal -= 180.f;
-	while (phiVal < 0.f) phiVal += 180.f;
-	phiEdit->setText(QString::number(phiVal,'f',1));
-	float psiVal = psiEdit->text().toFloat();
-	while (psiVal > 180.f) psiVal -= 360.f;
-	while (psiVal < -180.f) psiVal += 360.f;
-	psiEdit->setText(QString::number(psiVal,'f',1));
-
-	probeParams->setTheta(thetaVal);
-	probeParams->setPhi(phiVal);
-	probeParams->setPsi(psiVal);
-
-	probeParams->setHistoStretch(histoScaleEdit->text().toFloat());
-
-	//Set the probe size based on current text box settings:
-	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
-	boxSize[0] = xSizeEdit->text().toFloat();
-	boxSize[1] = ySizeEdit->text().toFloat();
-	boxSize[2] = zSizeEdit->text().toFloat();
-	for (int i = 0; i<3; i++){
-		if (boxSize[i] < 0.f) boxSize[i] = 0.f;
-		if (boxSize[i] > maxBoxSize[i]) boxSize[i] = maxBoxSize[i];
-	}
-	boxCenter[0] = xCenterEdit->text().toFloat();
-	boxCenter[1] = yCenterEdit->text().toFloat();
-	boxCenter[2] = zCenterEdit->text().toFloat();
-	probeParams->getBox(boxmin, boxmax);
-	const float* extents = DataStatus::getInstance()->getExtents();
-	for (int i = 0; i<3;i++){
-		if (boxCenter[i] < extents[i])boxCenter[i] = extents[i];
-		if (boxCenter[i] > extents[i+3])boxCenter[i] = extents[i+3];
-		boxmin[i] = boxCenter[i] - 0.5f*boxSize[i];
-		boxmax[i] = boxCenter[i] + 0.5f*boxSize[i];
-	}
-	probeParams->setBox(boxmin,boxmax);
-	adjustBoxSize(probeParams);
-	//set the center sliders:
-	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
-	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
-	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
-	resetTextureSize(probeParams);
-	//probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
-	probeParams->setProbeDirty();
-	if (probeParams->getMapperFunc()) {
-		((TransferFunction*)probeParams->getMapperFunc())->setMinMapValue(leftMappingBound->text().toFloat());
-		((TransferFunction*)probeParams->getMapperFunc())->setMaxMapValue(rightMappingBound->text().toFloat());
-	
-		setDatarangeDirty(probeParams);
-		setEditorDirty();
-		update();
-		probeTextureFrame->update();
-	}
-	probeTextureFrame->update();
-	VizWinMgr::getInstance()->setVizDirty(probeParams,ProbeTextureBit,true);
-	//If we are in probe mode, force a rerender of all windows using the probe:
-	if (GLWindow::getCurrentMouseMode() == GLWindow::probeMode){
-		VizWinMgr::getInstance()->refreshProbe(probeParams);
-	}
-	//Cancel any response to events generated in this method:
-	//
-	guiSetTextChanged(false);
-	PanelCommand::captureEnd(cmd, probeParams);
-}
-
-
 
 
 //Respond to user click on save/load TF.  This launches the intermediate
@@ -748,145 +967,7 @@ fileLoadTF(ProbeParams* dParams, const char* path, bool savePath){
 	setEditorDirty();
 }
 
-//Insert values from params into tab panel
-//
-void ProbeEventRouter::updateTab(){
-	notNudgingSliders = true;  //don't generate nudge events
 
-    setEnabled(!Session::getInstance()->sphericalTransform());
-
-	if (DataStatus::getInstance()->getDataMgr()) instanceTable->setEnabled(true);
-	else instanceTable->setEnabled(false);
-	instanceTable->rebuild(this);
-	
-	ProbeParams* probeParams = VizWinMgr::getActiveProbeParams();
-	VizWinMgr* vizMgr = VizWinMgr::getInstance();
-	int winnum = vizMgr->getActiveViz();
-	
-	deleteInstanceButton->setEnabled(vizMgr->getNumProbeInstances(winnum) > 1);
-	if (planarCheckbox->isChecked() != probeParams->isPlanar()){
-		planarCheckbox->setChecked(probeParams->isPlanar());
-	}
-
-	int numViz = vizMgr->getNumVisualizers();
-
-	copyCombo->clear();
-	copyCombo->insertItem("Duplicate In:");
-	copyCombo->insertItem("This visualizer");
-	if (numViz > 1) {
-		int copyNum = 2;
-		for (int i = 0; i<MAXVIZWINS; i++){
-			if (vizMgr->getVizWin(i) && winnum != i){
-				copyCombo->insertItem(vizMgr->getVizWinName(i));
-				//Remember the viznum corresponding to a combo item:
-				copyCount[copyNum++] = i;
-			}
-		}
-	}
-	//setup the texture:
-	
-	resetTextureSize(probeParams);
-	
-	QString strn;
-	Session* ses = Session::getInstance();
-	ses->blockRecording();
-
-    transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
-    transferFunctionFrame->updateParams();
-
-    if (ses->getNumSessionVariables())
-    {
-      int varnum = probeParams->getSessionVarNum();
-      const std::string& varname = ses->getVariableName(varnum);
-      
-      transferFunctionFrame->setVariableName(varname);
-    }
-    else
-    {
-      transferFunctionFrame->setVariableName("");
-    }
-	int numRefs = probeParams->getNumRefinements();
-	if(numRefs <= refinementCombo->count())
-		refinementCombo->setCurrentItem(numRefs);
-	
-	histoScaleEdit->setText(QString::number(probeParams->GetHistoStretch()));
-
-	//Check if planar:
-	bool isPlanar = probeParams->isPlanar();
-	if (isPlanar){
-		zSizeSlider->setEnabled(false);
-		zSizeEdit->setEnabled(false);
-	} else {
-		zSizeSlider->setEnabled(true);
-		zSizeEdit->setEnabled(true);
-	}
-	//setup the size sliders 
-	adjustBoxSize(probeParams);
-
-	//And the center sliders/textboxes:
-	float boxmin[3],boxmax[3],boxCenter[3];
-	const float* extents = DataStatus::getInstance()->getExtents();
-	probeParams->getBox(boxmin, boxmax);
-	for (int i = 0; i<3; i++) boxCenter[i] = (boxmax[i]+boxmin[i])*0.5f;
-	xCenterSlider->setValue((int)(256.f*(boxCenter[0]-extents[0])/(extents[3]-extents[0])));
-	yCenterSlider->setValue((int)(256.f*(boxCenter[1]-extents[1])/(extents[4]-extents[1])));
-	zCenterSlider->setValue((int)(256.f*(boxCenter[2]-extents[2])/(extents[5]-extents[2])));
-	xCenterEdit->setText(QString::number(boxCenter[0]));
-	yCenterEdit->setText(QString::number(boxCenter[1]));
-	zCenterEdit->setText(QString::number(boxCenter[2]));
-	
-	thetaEdit->setText(QString::number(probeParams->getTheta(),'f',1));
-	phiEdit->setText(QString::number(probeParams->getPhi(),'f',1));
-	psiEdit->setText(QString::number(probeParams->getPsi(),'f',1));
-	const float* selectedPoint = probeParams->getSelectedPoint();
-	selectedXLabel->setText(QString::number(selectedPoint[0]));
-	selectedYLabel->setText(QString::number(selectedPoint[1]));
-	selectedZLabel->setText(QString::number(selectedPoint[2]));
-	attachSeedCheckbox->setChecked(seedAttached);
-	float val = calcCurrentValue(probeParams,selectedPoint);
-
-	if (val == OUT_OF_BOUNDS)
-		valueMagLabel->setText(QString(" "));
-	else valueMagLabel->setText(QString::number(val));
-
-	//Set the selection in the variable listbox.
-	//Turn off listBox message-listening
-	ignoreListboxChanges = true;
-	for (int i = 0; i< ses->getNumMetadataVariables(); i++){
-		if (variableListBox->isSelected(i) != probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)))
-			variableListBox->setSelected(i, probeParams->variableIsSelected(ses->mapMetadataToSessionVarNum(i)));
-	}
-	ignoreListboxChanges = false;
-
-	updateMapBounds(probeParams);
-	
-	float sliderVal = probeParams->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
-	
-	sliderVal = 256.f*(1.f -sliderVal);
-	opacityScaleSlider->setValue((int) sliderVal);
-	
-	
-	//Set the mode buttons:
-	
-	if (probeParams->getEditMode()){
-		
-		editButton->setOn(true);
-		navigateButton->setOn(false);
-	} else {
-		editButton->setOn(false);
-		navigateButton->setOn(true);
-	}
-		
-	
-	probeTextureFrame->setParams(probeParams);
-
-	update();
-	guiSetTextChanged(false);
-	Session::getInstance()->unblockRecording();
-	vizMgr->getTabManager()->update();
-	notNudgingSliders = false;
-}
 //Make region match probe.  Responds to button in region panel
 void ProbeEventRouter::
 guiCopyRegionToProbe(){
@@ -2346,4 +2427,20 @@ void ProbeEventRouter::resetTextureSize(ProbeParams* probeParams){
 	float voxDims[2];
 	probeParams->getProbeVoxelExtents(fullHeight, voxDims);
 	probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
+}
+//control the repeated display of IBFV frames, by repeatedly doing updateGL() on the glProbeWindow
+void ProbeThread::run(){
+	ProbeEventRouter* router = VizWinMgr::getInstance()->getProbeRouter();
+	while(1){
+		
+		//Delete the previous probe texture data, then
+		//display the next texture frame from the probe renderer:
+		if (!router->isAnimating()) return;
+		
+		router->probeTextureFrame->update();
+		
+		//20 frames per second:
+		msleep(50);
+		router->probeTextureFrame->advanceAnimatingFrame();
+	}
 }

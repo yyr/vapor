@@ -345,6 +345,7 @@ reinit(bool doOverride){
 //
 void ProbeParams::
 restart(){
+	probeType = 0;
 	planar = true;
 	textureWidth = textureHeight = 0;
 	histoStretchFactor = 1.f;
@@ -352,6 +353,12 @@ restart(){
 	setProbeDirty();
 	if (probeTextures) delete probeTextures;
 	probeTextures = 0;
+
+	setUpFrames = 50;
+	nMesh = 100;
+	alpha = 0.12f;
+	
+	fieldScale = 4.0f;
 	
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){

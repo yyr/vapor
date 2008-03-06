@@ -132,6 +132,9 @@ public:
 	
 	int getImageWidth() { return textureWidth;}
 	int getImageHeight() {return textureHeight;}
+
+	void setTextureSize(int wid, int ht) {textureWidth = wid; textureHeight = ht;}
+	
 	float getRealImageWidth() {return probeMax[0]-probeMin[0];}
 	float getRealImageHeight() {return probeMax[1]-probeMin[1];}
 	
@@ -208,9 +211,20 @@ public:
 	bool getAvailableBoundingBox(int timestep, size_t boxMinBlk[3], size_t boxMaxBlk[3], size_t boxMin[3], size_t boxMax[3], size_t fullHeight, int numRefs);
 	//Obtain the smallest region that contains the probe, and fits within the full data volume:
 	void getContainingRegion(float regMin[3], float regMax[3]);
-	
-	
 
+	int getProbeType() {return probeType;}
+	void setProbeType(int val) {probeType = val;}
+	//IBFV parameters:
+	float getAlpha() {return alpha;}
+	void setAlpha(float val) {alpha = val;}
+	float getFieldScale() {return fieldScale;}
+	void setFieldScale(float val) {fieldScale = val;}
+	
+	int getSetUpFrames(){return setUpFrames;}
+	void setSetUpFrames(int val){setUpFrames = val;}
+	int getNMesh(){return nMesh;}
+	void setNMesh(int val){nMesh = val;}
+	
 protected:
 	
 	static const string _editModeAttr;
@@ -259,6 +273,8 @@ protected:
 	int firstVarNum;
 	int numVariables;
 	int numVariablesSelected;
+
+	int probeType; //0 for data probe; 1 for IBFV
 	
 	
 	//Cache of probe textures, one per timestep.
@@ -274,6 +290,9 @@ protected:
 	float cursorCoords[2];
 	
 	int textureWidth, textureHeight;
+	//IBFV parameters:
+	float alpha, fieldScale;
+	int setUpFrames, nMesh;
 	
 
 	

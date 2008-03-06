@@ -20,7 +20,7 @@
 #ifndef PROBEEVENTROUTER_H
 #define PROBEEVENTROUTER_H
 
-
+#include <qthread.h>
 #include <qobject.h>
 #include "params.h"
 #include "eventrouter.h"
@@ -111,7 +111,7 @@ public:
 	void guiStartCursorMove();
 	void guiEndCursorMove();
 	void guiCopyRegionToProbe();
-	
+	bool isAnimating(){return animationFlag;}
 
 public slots:
     //
@@ -129,6 +129,9 @@ protected slots:
 	void guiNudgeYCenter(int);
 	void guiNudgeZSize(int);
 	void guiNudgeZCenter(int);
+	void guiSetProbeType(int);
+	void ibfvPlay();
+	void ibfvPause();
 	
 	//Handle thumbwheel events:
 	void rotateXWheel(int);
@@ -177,6 +180,7 @@ protected slots:
 	void probeReturnPressed();
 	void captureImage();
 	
+	
 protected:
 	//fix probe box to fit in domain:
 	void adjustBoxSize(ProbeParams*);
@@ -195,7 +199,14 @@ protected:
 	int lastXSizeSlider, lastYSizeSlider, lastZSizeSlider;
 	int lastXCenterSlider, lastYCenterSlider, lastZCenterSlider;
 	float maxBoxSize[3];
+	bool animationFlag;
+	QThread* myIBFVThread;
 };
+
+};
+class ProbeThread : public QThread{
+public:
+	void run();
 
 };
 

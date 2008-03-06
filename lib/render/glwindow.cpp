@@ -383,13 +383,11 @@ void GLWindow::paintGL()
 	} else {
 		if(timeAnnotLabel) timeAnnotLabel->hide();
 	}
+	
 	for (int i = 0; i< getNumRenderers(); i++){
 		if(renderer[i]->isInitialized()) renderer[i]->paintGL();
 	}
 	
-
-	
-
 	swapBuffers();
 
 	
@@ -430,7 +428,8 @@ void GLWindow::draw3DCursor(const float position[3]){
 
 void GLWindow::initializeGL()
 {
-    glewInit();
+    
+	glewInit();
 	//VizWinMgr::getInstance()->getDvrRouter()->initTypes();
     qglClearColor(getBackgroundColor()); 		// Let OpenGL clear to black
 	//Initialize existing renderers:

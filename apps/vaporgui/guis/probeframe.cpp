@@ -104,5 +104,10 @@ void ProbeFrame::mouseMoveEvent( QMouseEvent * e){
 void ProbeFrame::resizeEvent( QResizeEvent *  ){
 	needUpdate = true;
 }
-
-
+void ProbeFrame::updateGLWindow(){
+	if (glProbeWindow) {
+		update();
+		//This will cause updateGL().
+		//glProbeWindow->updateGL();
+	}
+}

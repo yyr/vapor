@@ -44,9 +44,16 @@ public:
 	void setTextureSize(float h, float v){
 		glProbeWindow->setTextureSize(h,v);
 	}
+	void setAnimatingTexture(bool val){
+		glProbeWindow->setAnimatingTexture(val);
+	}
+	void advanceAnimatingFrame(){
+		glProbeWindow->advanceAnimatingFrame();
+	}
 	void setParams(ProbeParams* p) {probeParams = p;}
 	ProbeParams* getParams() {return probeParams;}
-	void updateGLWindow(){if (glProbeWindow) glProbeWindow->updateGL();}
+	void updateGLWindow();
+	
 
 public slots:
 	
@@ -71,6 +78,7 @@ protected:
 	
 	bool mouseIsDown;
 	VAPoR::ProbeParams* probeParams;
+	
 };
 
 

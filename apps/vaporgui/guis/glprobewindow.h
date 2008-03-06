@@ -43,6 +43,9 @@ public:
 	
 	void setTextureSize(float horiz, float vert);
 	void mapPixelToProbeCoords(int ix, int iy, float* x, float* y);
+	void setAnimatingTexture(bool val){animatingTexture = val; animatingFrameNum = 0;animationStarting=true;}
+	void advanceAnimatingFrame(){animatingFrameNum++;}
+	
 
 
 protected:
@@ -59,6 +62,9 @@ protected:
 	float horizTexSize, vertTexSize;
 	float rectLeft, rectTop;
 	ProbeFrame* probeFrame;
+	bool animatingTexture;
+	int animatingFrameNum;
+	bool animationStarting;
 	
 
 };

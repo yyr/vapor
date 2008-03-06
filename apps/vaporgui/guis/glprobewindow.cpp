@@ -19,6 +19,7 @@
 //
 
 #include "glprobewindow.h"
+#include "proberenderer.h"
 
 #include "glutil.h"
 #include "probeframe.h"
@@ -37,12 +38,17 @@ GLProbeWindow::GLProbeWindow( const QGLFormat& fmt, QWidget* parent, const char*
 : QGLWidget(fmt, parent, name)
 
 {
+	
 	horizTexSize = 1.f;
 	vertTexSize = 1.f;
 	rectLeft = -1.f;
 	rectTop = 1.f;
 	probeFrame = pf;
-	
+	animatingTexture = false;
+	animatingFrameNum = 0;
+	animationStarting = true;
+	assert(doubleBuffer());
+	setAutoBufferSwap(true);
 }
 
 
@@ -106,31 +112,37 @@ void GLProbeWindow::setTextureSize(float horiz, float vert){
 
 void GLProbeWindow::paintGL()
 {
+	
 	ProbeParams* myParams = VizWinMgr::getActiveProbeParams();
 	size_t fullHeight = VizWinMgr::getActiveRegionParams()->getFullGridHeight();
 	int timestep = VizWinMgr::getInstance()->getActiveAnimationParams()->getCurrentFrameNumber();
 
-	//VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
-
     qglClearColor( QColor(233,236,216) ); 		// same as frame
-    //qglClearColor(vizWin->getBackgroundColor()); // same as vizualizer win
-
+   
 	glClearDepth(1);
 	glPolygonMode(GL_FRONT,GL_FILL);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	//glDrawBuffer(buffer);
-	//glColor3f(1.0f,0.f,0.f);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+	if (!myParams->isEnabled()) {return;}
 	
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glEnable(GL_BLEND);
 	glDisable(GL_BLEND);
 	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 	//get the probe texture:
-	
 	unsigned char* probeTexture = 0;
-	
-	if(myParams){
+	if (myParams->getProbeType() == 1) {  //IBFV texture
+		if (animatingTexture) {
+			probeTexture = ProbeRenderer::getNextIBFVTexture(myParams, animatingFrameNum, animationStarting);
+			animationStarting = false;
+		} else { //not animated
+			probeTexture = myParams->getProbeTexture(timestep, fullHeight);
+			if (!probeTexture) {
+				probeTexture = ProbeRenderer::buildIBFVTexture(myParams,  timestep);
+				myParams->setProbeTexture(probeTexture, timestep);
+			}
+		}
+		myParams->setTextureSize(256,256);
+	} else if(!probeTexture && myParams ){//normal probe
 		if (myParams->probeIsDirty(timestep)){
 			QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 			probeTexture = myParams->getProbeTexture(timestep,fullHeight);
@@ -148,6 +160,7 @@ void GLProbeWindow::paintGL()
 		return;
 		//glColor4f(0.,0.,0.,0.);
 	}
+
 	glBegin(GL_QUADS);
 	//Just specify the rectangle corners
 	glTexCoord2f(0.f,0.f); glVertex2f(rectLeft,-rectTop);
@@ -155,7 +168,7 @@ void GLProbeWindow::paintGL()
 	glTexCoord2f(1.f,1.f); glVertex2f(-rectLeft,rectTop);
 	glTexCoord2f(1.f, 0.f); glVertex2f(-rectLeft, -rectTop);
 	glEnd();
-	glFlush();
+	//glFlush();
 	if (probeTexture) glDisable(GL_TEXTURE_2D);
 	//Now draw the crosshairs
 	if (myParams){
@@ -172,7 +185,10 @@ void GLProbeWindow::paintGL()
 		glEnd();
 	}
 	
-      glDisable(GL_BLEND);
+    glDisable(GL_BLEND);
+	if ((myParams->getProbeType() == 1) && animatingTexture) {  //animating IBFV texture
+		delete probeTexture;
+	}
 }
 
 //
@@ -182,15 +198,15 @@ void GLProbeWindow::paintGL()
 void GLProbeWindow::initializeGL()
 {
    	makeCurrent();
+	
 	qglClearColor( QColor(233,236,216) ); 		// same as frame
     glShadeModel( GL_FLAT );
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glDisable(GL_LIGHTING);
 	//glGenTextures(1, &texName);
 	//glBindTexture(GL_TEXTURE_2D, texName);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//Build probe texture:
-	
     
 }
 //
