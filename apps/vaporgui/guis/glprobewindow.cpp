@@ -134,21 +134,17 @@ void GLProbeWindow::paintGL()
 		if (animatingTexture) {
 			probeTexture = ProbeRenderer::getNextIBFVTexture(myParams, animatingFrameNum, animationStarting);
 			animationStarting = false;
-		} else { //not animated
-			probeTexture = myParams->getProbeTexture(timestep, fullHeight);
-			if (!probeTexture) {
-				probeTexture = ProbeRenderer::buildIBFVTexture(myParams,  timestep);
-				myParams->setProbeTexture(probeTexture, timestep);
-			}
+		} else { //not animated.  Calculate it if necessary
+			probeTexture = ProbeRenderer::getProbeTexture(myParams, timestep, fullHeight);
 		}
 		myParams->setTextureSize(256,256);
-	} else if(!probeTexture && myParams ){//normal probe
+	} else if(myParams ){//data probe
 		if (myParams->probeIsDirty(timestep)){
 			QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-			probeTexture = myParams->getProbeTexture(timestep,fullHeight);
+			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,fullHeight);
 			QApplication::restoreOverrideCursor();
 		} else {
-			probeTexture = myParams->getProbeTexture(timestep,fullHeight);
+			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,fullHeight);
 		}
 	}
 	int imgWidth = myParams->getImageWidth();

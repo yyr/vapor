@@ -157,10 +157,10 @@ public:
 		if (probeTextures[timestep]) delete probeTextures[timestep];
 		probeTextures[timestep] = tex;
 	}
-	unsigned char* calcProbeTexture(int timestep, int wid, int ht, size_t fullGridHeight);
-	unsigned char* getProbeTexture(int timestep, size_t fullHeight){
-		if (!probeIsDirty(timestep)) return probeTextures[timestep];
-		return calcProbeTexture(timestep, 0,0, fullHeight);
+	unsigned char* calcProbeDataTexture(int timestep, int wid, int ht, size_t fullGridHeight);
+	
+	unsigned char* getCurrentProbeTexture(int timestep) {
+		return probeTextures[timestep];
 	}
 	void getProbeVoxelExtents(size_t fullHeight, float voxdims[2]);
 

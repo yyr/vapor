@@ -24,6 +24,7 @@
 #include "viewpointparams.h"
 #include "datastatus.h"
 #include "glwindow.h"
+#include "glutil.h"
 
 #include <qgl.h>
 #include <qcolor.h>
@@ -68,15 +69,10 @@ void ProbeRenderer::paintGL()
 	
 	if (myProbeParams->probeIsDirty(currentFrameNum)){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		if (myProbeParams->getProbeType() == 1) {  //IBFV texture
-			probeTex = buildIBFVTexture(myProbeParams,  currentFrameNum);
-			myProbeParams->setProbeTexture(probeTex, currentFrameNum);
-			myProbeParams->setTextureSize(wid,ht);
-			
-		} else probeTex = myProbeParams->getProbeTexture(currentFrameNum,fullHeight);
+		probeTex = getProbeTexture(myProbeParams,currentFrameNum,fullHeight);
 		QApplication::restoreOverrideCursor();
 	} else { //existing texture is OK:
-		probeTex = myProbeParams->getProbeTexture(currentFrameNum,fullHeight);
+		probeTex = getProbeTexture(myProbeParams,currentFrameNum,fullHeight);
 	}
 	int imgWidth = myProbeParams->getImageWidth();
 	int imgHeight = myProbeParams->getImageHeight();
@@ -152,11 +148,9 @@ void ProbeRenderer::initializeGL()
 	initialized = true;
 	
 }
-#define M_PI 3.141592653589793
+
 #define	NPN 64
-
 #define STEADYTIME 110
-
 int    Npat   = 32;
 float  sa;
 int firstListNum;
@@ -257,6 +251,9 @@ void ProbeRenderer::getDP(float x, float y, float *px, float *py, float dmaxx, f
 }
 //Set up the gl state for doing the ibfv in the aux buffer.
 void ProbeRenderer::pushState(){
+	int val;
+	glGetIntegerv(GL_MAX_DRAW_BUFFERS, &val);
+	qWarning("Max draw buffers: %d",val);
 	glDrawBuffer(GL_AUX0);
 	glReadBuffer(GL_AUX0);
 	glMatrixMode(GL_MODELVIEW);
@@ -302,6 +299,7 @@ void ProbeRenderer::pushState(){
    glPixelZoom(1.0,1.0);
    glDisable(GL_SCISSOR_TEST);
    glDisable(GL_STENCIL_TEST);
+   printOpenGLError();
 }
 void ProbeRenderer::popState(){
 	
@@ -314,7 +312,7 @@ void ProbeRenderer::popState(){
 	glPopMatrix();
 	glDrawBuffer(GL_BACK);
 	glReadBuffer(GL_BACK);
-	
+	printOpenGLError();
 }
 
 //Following method is called from glProbeWindow to get the next frame of the IBFV sequence.
@@ -387,7 +385,14 @@ void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int frameNum){
 		glDisable(GL_BLEND);
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
 							0, 0, wid, ht, 0);
-		
-		
-	
+}
+//Static method to calculate the probe texture whether IBFV or data
+unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, int frameNum, int fullHeight){
+	if (!pParams->probeIsDirty(frameNum)) return pParams->getCurrentProbeTexture(frameNum);
+	if (pParams->getProbeType() == 0) {return pParams->calcProbeDataTexture(frameNum, 0,0,fullHeight);}
+	//OK, now handle IBFV texture:
+	unsigned char* probeTex = buildIBFVTexture(pParams,  frameNum);
+	pParams->setProbeTexture(probeTex, frameNum);
+	pParams->setTextureSize(256,256);
+	return probeTex;
 }

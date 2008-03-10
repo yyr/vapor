@@ -43,6 +43,8 @@ public:
 	static unsigned char* buildIBFVTexture(ProbeParams*, int tstep);
 	
 	static unsigned char* getNextIBFVTexture(ProbeParams*, int frameNum, bool starting);
+
+	static unsigned char* getProbeTexture(ProbeParams*, int frameNum, int fullHeight);
 protected:
 	GLuint _probeid;
 	static void makeIBFVPatterns(ProbeParams*);

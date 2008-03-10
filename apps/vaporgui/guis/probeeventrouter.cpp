@@ -2033,7 +2033,7 @@ void ProbeEventRouter::captureImage() {
 	size_t fullHeight = rParams->getFullGridHeight();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	//Make sure we have created a probe texture already...
-	unsigned char* probeTex = pParams->getProbeTexture(timestep,fullHeight);
+	unsigned char* probeTex = pParams->getCurrentProbeTexture(timestep);
 	if (!probeTex){
 		MessageReporter::errorMsg("Image Capture Error;\nNo image to capture");
 		return;
@@ -2055,7 +2055,7 @@ void ProbeEventRouter::captureImage() {
 		ht = (int) (0.5f + (aspRatio/imAspect)*(float)ht);
 	}
 	//Construct the probe texture of the desired dimensions:
-	probeTex = pParams->calcProbeTexture(timestep,wid,ht, fullHeight);
+	probeTex = pParams->calcProbeDataTexture(timestep,wid,ht, fullHeight);
 	//Construct an RGB image from this.  Ignore alpha.
 	unsigned char* buf = new unsigned char[3*wid*ht];
 	for (int i = 0; i< wid*ht; i++){

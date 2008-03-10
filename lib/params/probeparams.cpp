@@ -976,7 +976,7 @@ void ProbeParams::setProbeDirty(){
 //If nonzero texture dimensions are provided, then the cached image
 //is not affected 
 unsigned char* ProbeParams::
-calcProbeTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
+calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	if (!isEnabled()) return 0;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return 0;
