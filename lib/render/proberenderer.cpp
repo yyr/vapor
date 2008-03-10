@@ -69,10 +69,10 @@ void ProbeRenderer::paintGL()
 	
 	if (myProbeParams->probeIsDirty(currentFrameNum)){
 		QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-		probeTex = getProbeTexture(myProbeParams,currentFrameNum,fullHeight);
+		probeTex = getProbeTexture(myProbeParams,currentFrameNum,fullHeight,true);
 		QApplication::restoreOverrideCursor();
 	} else { //existing texture is OK:
-		probeTex = getProbeTexture(myProbeParams,currentFrameNum,fullHeight);
+		probeTex = getProbeTexture(myProbeParams,currentFrameNum,fullHeight,true);
 	}
 	int imgWidth = myProbeParams->getImageWidth();
 	int imgHeight = myProbeParams->getImageHeight();
@@ -251,9 +251,11 @@ void ProbeRenderer::getDP(float x, float y, float *px, float *py, float dmaxx, f
 }
 //Set up the gl state for doing the ibfv in the aux buffer.
 void ProbeRenderer::pushState(){
-	int val;
-	glGetIntegerv(GL_MAX_DRAW_BUFFERS, &val);
-	qWarning("Max draw buffers: %d",val);
+	//int val;
+	//We need 2 draw buffers
+	//glGetIntegerv(GL_MAX_DRAW_BUFFERS, &val);
+	//assert(val > 1);
+
 	glDrawBuffer(GL_AUX0);
 	glReadBuffer(GL_AUX0);
 	glMatrixMode(GL_MODELVIEW);
@@ -387,12 +389,14 @@ void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int frameNum){
 							0, 0, wid, ht, 0);
 }
 //Static method to calculate the probe texture whether IBFV or data
-unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, int frameNum, int fullHeight){
+unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, int frameNum, int fullHeight, bool doCache){
 	if (!pParams->probeIsDirty(frameNum)) return pParams->getCurrentProbeTexture(frameNum);
 	if (pParams->getProbeType() == 0) {return pParams->calcProbeDataTexture(frameNum, 0,0,fullHeight);}
 	//OK, now handle IBFV texture:
 	unsigned char* probeTex = buildIBFVTexture(pParams,  frameNum);
-	pParams->setProbeTexture(probeTex, frameNum);
-	pParams->setTextureSize(256,256);
+	if (doCache){
+		pParams->setProbeTexture(probeTex, frameNum);
+		pParams->setTextureSize(256,256);
+	}
 	return probeTex;
 }
