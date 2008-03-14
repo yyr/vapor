@@ -67,6 +67,8 @@ ProbeParams::ProbeParams(int winnum) : RenderParams(winnum){
 	numVariables = 0;
 	probeTextures = 0;
 	maxTimestep = 1;
+	ibfvUField = 0;
+	ibfvVField = 0;
 	restart();
 	
 }
@@ -83,6 +85,14 @@ ProbeParams::~ProbeParams(){
 			if (probeTextures[i]) delete probeTextures[i];
 		}
 		delete probeTextures;
+	}
+	if (ibfvUField) {
+		for (int i = 0; i<= maxTimestep; i++){
+			if (ibfvUField[i]) delete ibfvUField[i];
+			if (ibfvVField[i]) delete ibfvVField[i];
+		}
+		delete ibfvUField;
+		delete ibfvVField;
 	}
 	
 }
@@ -112,6 +122,8 @@ deepRCopy(){
 	}
 	//Probe texture must be recreated when needed
 	newParams->probeTextures = 0;
+	newParams->ibfvUField = 0;
+	newParams->ibfvVField = 0;
 	
 	//never keep the SavedCommand:
 	
@@ -253,7 +265,39 @@ reinit(bool doOverride){
 	}
 	variableSelected[firstVarNum] = true;
 
-	
+	// set up the ibfv variables
+	int numComboVariables = DataStatus::getInstance()->getNumMetadataVariables()+1;
+	if (doOverride){
+		for (int j = 0; j<3; j++){
+			ibfvComboVarNum[j] = Min(j+1,numComboVariables);
+			ibfvSessionVarNum[j] = DataStatus::getInstance()->mapMetadataToSessionVarNum(ibfvComboVarNum[j]-1)+1;
+		}
+	} 
+	for (int dim = 0; dim < 3; dim++){
+		//See if current varNum is valid.  If not, 
+		//reset to first variable that is present:
+		if (ibfvSessionVarNum[dim] > 0) {
+			if (!DataStatus::getInstance()->variableIsPresent(ibfvSessionVarNum[dim]-1)){
+				ibfvSessionVarNum[dim] = -1;
+				for (i = 0; i<newNumVariables; i++) {
+					if (DataStatus::getInstance()->variableIsPresent(i)){
+						ibfvSessionVarNum[dim] = i+1;
+						break;
+					}
+				}
+			}
+		}
+	}
+	if (ibfvSessionVarNum[0] == -1){
+		return false;
+	}
+	//Determine the combo var nums from the varNum's
+	for (int dim = 0; dim < 3; dim++){
+		if(ibfvSessionVarNum[dim] == 0) ibfvComboVarNum[dim] = 0;
+		else 
+			ibfvComboVarNum[dim] = DataStatus::getInstance()->mapSessionToMetadataVarNum(ibfvSessionVarNum[dim]-1)+1;
+	}
+		
 	
 	//Create new arrays to hold bounds and transfer functions:
 	TransferFunction** newTransFunc = new TransferFunction*[newNumVariables];
@@ -337,8 +381,12 @@ reinit(bool doOverride){
 	// set up the texture cache
 	setProbeDirty();
 	if (probeTextures) delete probeTextures;
+	if (ibfvUField) delete ibfvUField;
+	if (ibfvVField) delete ibfvVField;
 	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
 	probeTextures = 0;
+	ibfvUField = 0;
+	ibfvVField = 0;
 	return true;
 }
 //Initialize to default state
@@ -347,12 +395,22 @@ void ProbeParams::
 restart(){
 	probeType = 0;
 	planar = true;
-	textureWidth = textureHeight = 0;
+	textureSize[0] = textureSize[1] = 0;
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
 	setProbeDirty();
 	if (probeTextures) delete probeTextures;
 	probeTextures = 0;
+	if (ibfvUField) delete ibfvUField;
+	if (ibfvVField) delete ibfvVField;
+	ibfvUField = 0;
+	ibfvVField = 0;
+	ibfvSessionVarNum[0]= 1;
+	ibfvSessionVarNum[1] = 2;
+	ibfvSessionVarNum[2] = 3;
+	ibfvComboVarNum[0]= 1;
+	ibfvComboVarNum[1] = 2;
+	ibfvComboVarNum[2] = 3;
 
 	setUpFrames = 50;
 	nMesh = 100;
@@ -783,6 +841,17 @@ void ProbeParams::getContainingRegion(float regMin[3], float regMax[3]){
 	//Set up to transform from probe (coords [-1,1]) into volume:
 	buildCoordTransform(transformMatrix, 0.f);
 	const float* extents = DataStatus::getInstance()->getExtents();
+
+	//Calculate the normal vector to the probe plane:
+	float zdir[3] = {0.f,0.f,1.f};
+	float normEnd[3];  //This will be the unit normal
+	float normBeg[3];
+	float zeroVec[3] = {0.f,0.f,0.f};
+	vtransform(zdir, transformMatrix, normEnd);
+	vtransform(zeroVec,transformMatrix,normBeg);
+	vsub(normEnd,normBeg,normEnd);
+	vnormal(normEnd);
+
 	//Start by initializing extents, and variables that will be min,max
 	for (int i = 0; i< 3; i++){
 		regMin[i] = 1.e30f;
@@ -967,7 +1036,16 @@ void ProbeParams::setProbeDirty(){
 			}
 		}
 	}
-	textureWidth = textureHeight = 0;
+	textureSize[0]= textureSize[1] = 0;
+	if (ibfvUField) {
+		for (int i = 0; i<= maxTimestep; i++){
+			if (ibfvUField[i]) delete ibfvUField[i];
+			ibfvUField[i] = 0;
+			if (ibfvVField[i])delete ibfvVField[i];
+			ibfvVField[i] = 0;
+		}
+	}
+
 }
 
 
@@ -1066,40 +1144,22 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	const float* extents = ds->getExtents();
 	//Can ignore depth, just mapping center plane
 	probeCoord[2] = 0.f;
-
-	if (doCache) {  //Need to determine appropriate texture dimensions
-		//First, map the corners of texture, to determine appropriate
-		//texture sizes and image aspect ratio:
-		int icor[4][3];
+	for (int cornum = 0; cornum < 4; cornum++){
+		// coords relative to (-1,1)
+		probeCoord[1] = -1.f + 2.f*(float)(cornum/2);
+		probeCoord[0] = -1.f + 2.f*(float)(cornum%2);
+		//Then transform to values in data 
+		vtransform(probeCoord, transformMatrix, dataCoord);
 		
-		for (int cornum = 0; cornum < 4; cornum++){
-			// coords relative to (-1,1)
-			probeCoord[1] = -1.f + 2.f*(float)(cornum/2);
-			probeCoord[0] = -1.f + 2.f*(float)(cornum%2);
-			//Then transform to values in data 
-			vtransform(probeCoord, transformMatrix, dataCoord);
-			//Then get array coords:
-			for (int i = 0; i<3; i++){
-				icor[cornum][i] = (size_t) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
-			}
-		}
-		//To get texture width, take distance in array coords, get first power of 2
-		//that exceeds integer dist, but at least 64.
-		int distsq = (icor[0][0]-icor[1][0])*(icor[0][0]-icor[1][0]) + 
-			(icor[0][1]-icor[1][1])*(icor[0][1]-icor[1][1])+
-			(icor[0][2]-icor[1][2])*(icor[0][2]-icor[1][2]);
-		int xdist = (int)sqrt((float)distsq);
-		distsq = (icor[0][0]-icor[2][0])*(icor[0][0]-icor[2][0]) + 
-			(icor[0][1]-icor[2][1])*(icor[0][1]-icor[2][1]) +
-			(icor[0][2]-icor[2][2])*(icor[0][2]-icor[2][2]);
-		int ydist = (int)sqrt((float)distsq);
-		textureWidth = 1<<(VetsUtil::ILog2(xdist));
-		textureHeight = 1<<(VetsUtil::ILog2(ydist));
-		if (textureWidth < 64) textureWidth = 64;
-		if (textureHeight < 64) textureHeight = 64;
-		texWidth = textureWidth;
-		texHeight = textureHeight;
 	}
+	
+	if (doCache) {
+		int txsize[2];
+		adjustTextureSize(fullHeight, txsize);
+		texWidth = txsize[0];
+		texHeight = txsize[1];
+	}
+	
 	
 	unsigned char* probeTexture = new unsigned char[texWidth*texHeight*4];
 
@@ -1169,7 +1229,61 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	if (doCache) setProbeTexture(probeTexture,ts);
 	return probeTexture;
 }
+void ProbeParams::adjustTextureSize(int fullHeight, int sz[2]){
+	//Need to determine appropriate texture dimensions
+	//First, map the corners of texture, to determine appropriate
+	//texture sizes and image aspect ratio:
+	//Get the data dimensions (at this resolution):
+	int dataSize[3];
+	//Start by initializing extents
+	DataStatus* ds = DataStatus::getInstance();
+	int refLevel = getNumRefinements();
+	for (int i = 0; i< 3; i++){
+		dataSize[i] = (int)ds->getFullSizeAtLevel(refLevel,i, fullHeight);
+	}
+	int icor[4][3];
+	float probeCoord[3];
+	float dataCoord[3];
+	
+	
+	const float* extents = ds->getExtents();
+	//Can ignore depth, just mapping center plane
+	probeCoord[2] = 0.f;
 
+	float transformMatrix[12];
+	
+	//Set up to transform from probe into volume:
+	buildCoordTransform(transformMatrix, 0.f);
+	
+	for (int cornum = 0; cornum < 4; cornum++){
+		// coords relative to (-1,1)
+		probeCoord[1] = -1.f + 2.f*(float)(cornum/2);
+		probeCoord[0] = -1.f + 2.f*(float)(cornum%2);
+		//Then transform to values in data 
+		vtransform(probeCoord, transformMatrix, dataCoord);
+		//Then get array coords:
+		for (int i = 0; i<3; i++){
+			icor[cornum][i] = (size_t) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
+		}
+	}
+	//To get texture width, take distance in array coords, get first power of 2
+	//that exceeds integer dist, but at least 64.
+	int distsq = (icor[0][0]-icor[1][0])*(icor[0][0]-icor[1][0]) + 
+		(icor[0][1]-icor[1][1])*(icor[0][1]-icor[1][1])+
+		(icor[0][2]-icor[1][2])*(icor[0][2]-icor[1][2]);
+	int xdist = (int)sqrt((float)distsq);
+	distsq = (icor[0][0]-icor[2][0])*(icor[0][0]-icor[2][0]) + 
+		(icor[0][1]-icor[2][1])*(icor[0][1]-icor[2][1]) +
+		(icor[0][2]-icor[2][2])*(icor[0][2]-icor[2][2]);
+	int ydist = (int)sqrt((float)distsq);
+	textureSize[0] = 1<<(VetsUtil::ILog2(xdist));
+	textureSize[1] = 1<<(VetsUtil::ILog2(ydist));
+	if (textureSize[0] < 256) textureSize[0] = 256;
+	if (textureSize[1] < 256) textureSize[1] = 256;
+	sz[0] = textureSize[0];
+	sz[1] = textureSize[1];
+	
+}
 //Determine the voxel extents of probe mapped into data.
 //Similar code is in calcProbeTexture()
 void ProbeParams::
@@ -1276,3 +1390,256 @@ void ProbeParams::rotateAndRenormalizeBox(int axis, float rotVal){
 	}
 	setBox(boxmin, boxmax);
 }
+//Advect the point (x,y) in the probe to the point (*px, *py)
+//Requres that buildIBFVFields be called first!
+//Input xa,ya are between 0 and 1, and *px, *py are in same coord space.
+void ProbeParams::getIBFVValue(int ts, float xa, float ya, float* px, float* py){
+	assert (ibfvUField && ibfvUField[ts]);
+	assert(xa >= 0.f && ya >= 0.f && xa < 1.f && ya < 1.f);
+	//convert xa and ya to grid coords
+	float x = xa * (float)(textureSize[0]-1);
+	float y = ya * (float)(textureSize[1]-1);
+	
+	float xfrac = x - floor(x);
+	float yfrac = y - floor(y);
+	float u00 = ibfvUField[ts][(int)x + textureSize[0]*(int)y];
+	float u10 = ibfvUField[ts][1+(int)x + textureSize[0]*(int)y];
+	float u11 = ibfvUField[ts][1+(int)x + textureSize[0]*(1+(int)y)];
+	float u01 = ibfvUField[ts][(int)x + textureSize[0]*(1+(int)y)];
+	float uval = (1.-xfrac)*((1.-yfrac)*u00+yfrac*u01)+
+		xfrac*((1.-yfrac)*u10+yfrac*u11);
+
+	float v00 = ibfvVField[ts][(int)x + textureSize[0]*(int)y];
+	float v10 = ibfvVField[ts][1+(int)x + textureSize[0]*(int)y];
+	float v11 = ibfvVField[ts][1+(int)x + textureSize[0]*(1+(int)y)];
+	float v01 = ibfvVField[ts][(int)x + textureSize[0]*(1+(int)y)];
+	float vval = (1.-xfrac)*((1.-yfrac)*v00+yfrac*v01)+
+		xfrac*((1.-yfrac)*v10+yfrac*v11);
+
+	//Resulting u, v has already been scaled to account for non-equal x,y dimensions,
+	//also multiplied by fieldScale and 0.01
+	float r = uval*uval+vval*vval;
+	if (r > fieldScale*fieldScale/(textureSize[0]*textureSize[1])) { 
+      r  = sqrt(r); 
+      uval *= fieldScale/(textureSize[0]*r); 
+      vval *= fieldScale/(textureSize[1]*r);  
+   }
+	*px = xa + uval;
+	*py = ya + vval;
+	
+}
+bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
+	//Set up the cache if it's not ready:
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return false;
+	if (!ibfvUField) {
+		ibfvUField = new float*[maxTimestep + 1];
+		ibfvVField = new float*[maxTimestep + 1];
+		for (int i = 0; i<= maxTimestep; i++) {ibfvUField[i] = 0; ibfvVField[i] = 0;}
+	}
+	//If the required data is valid, just return true:
+	if(ibfvUField[timestep] && ibfvVField[timestep]) return true;
+	
+	//Now obtain the field values for the current probe
+	//Session variable nums are -1 if the variable is 0
+	int sesVarNums[3];
+	
+	for (int i = 0; i<3; i++) sesVarNums[i] = ibfvSessionVarNum[i] -1;
+		
+	size_t blkMin[3],blkMax[3],coordMin[3],coordMax[3];
+	int actualRefLevel;
+	float** volData = getProbeVariables(timestep, fullHeight, 3, sesVarNums,
+				  blkMin, blkMax, coordMin, coordMax,&actualRefLevel);
+	if (!volData) return false;
+
+	//Then go through the array, projecting the field values to the 2D plane.
+	//Each (x,y) probe coord is converted to the closest point in the probe grid
+	//Each field value is also multiplied by scale factor, times a factor that relates the
+	//user coord system to the probe grid coords.
+	
+	//Get the data dimensions (at this resolution):
+	int dataSize[3];
+	for (int i = 0; i< 3; i++){
+		dataSize[i] = (int)ds->getFullSizeAtLevel(actualRefLevel,i, fullHeight);
+	}
+	//Set up to transform from probe into volume:
+	float transformMatrix[12];
+	buildCoordTransform(transformMatrix, 0.f);
+
+	//Get the 3x3 rotation matrix:
+	float rotMatrix[9], invMatrix[9];
+	getRotationMatrix(theta*M_PI/180., phi*M_PI/180., psi*M_PI/180., rotMatrix);
+	//Invert it by transposing:
+	invMatrix[0] = rotMatrix[0];
+	invMatrix[4] = rotMatrix[4];
+	invMatrix[8] = rotMatrix[8];
+	invMatrix[1] = rotMatrix[3];
+	invMatrix[2] = rotMatrix[6];
+	invMatrix[3] = rotMatrix[1];
+	invMatrix[5] = rotMatrix[7];
+	invMatrix[6] = rotMatrix[2];
+	invMatrix[7] = rotMatrix[5];
+
+	float probeCoord[3];
+	float dataCoord[3];
+	size_t arrayCoord[3];
+	const float* extents = ds->getExtents();
+	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
+	float worldCorner[4][3];
+	//Map corners of probe into volume 
+	probeCoord[2] = 0.f;
+	for (int cornum = 0; cornum < 4; cornum++){
+		// coords relative to (-1,1)
+		probeCoord[1] = -1.f + 2.f*(float)(cornum/2);
+		probeCoord[0] = -1.f + 2.f*(float)(cornum%2);
+		//Then transform to values in data 
+		vtransform(probeCoord, transformMatrix, worldCorner[cornum]);
+	}
+	vsub(worldCorner[2],worldCorner[0],dataCoord);
+	float xside = vlength(dataCoord);  
+	vsub(worldCorner[3],worldCorner[1],dataCoord);
+	float yside = vlength(dataCoord);
+	int texHeight = textureSize[1];
+	int texWidth = textureSize[0];
+	assert(textureSize[0] != 0); //Should be a valid value
+
+	ibfvXScale = (float)texWidth*fieldScale/xside;  //Cells per meter, times scale factor
+	ibfvYScale = (float)texHeight*fieldScale/yside;
+	//now divide to put in a reasonable scale 
+	ibfvXScale /= ((float)texWidth+(float)texHeight)*100.;
+	ibfvYScale /= ((float)texWidth+(float)texHeight)*100.;
+
+
+	if (ibfvUField[timestep]) delete ibfvUField[timestep];
+	if (ibfvVField[timestep]) delete ibfvVField[timestep];
+
+	ibfvUField[timestep] = new float[textureSize[0]*textureSize[1]];
+	ibfvVField[timestep] = new float[textureSize[0]*textureSize[1]];
+
+	//Loop over pixels in texture
+	for (int iy = 0; iy < texHeight; iy++){
+		//Map iy to a value between -1 and 1
+		probeCoord[1] = -1.f + 2.f*(float)iy/(float)(texHeight-1);
+		for (int ix = 0; ix < texWidth; ix++){
+			
+			//find the coords that the texture maps to
+			//probeCoord is the coord in the probe, dataCoord is in data volume 
+			//probeCoord goes from -1 to 1, 
+			//datacoord is a point in probe in world coords.
+			probeCoord[0] = -1.f + 2.f*(float)ix/(float)(texWidth-1);
+			vtransform(probeCoord, transformMatrix, dataCoord);
+			for (int i = 0; i<3; i++){
+				arrayCoord[i] = (size_t) (0.5f+((float)dataSize[i])*(dataCoord[i] - extents[i])/(extents[i+3]-extents[i]));
+			}
+			int xyzCoord = (arrayCoord[0] - blkMin[0]*bSize) +
+					(arrayCoord[1] - blkMin[1]*bSize)*(bSize*(blkMax[0]-blkMin[0]+1)) +
+					(arrayCoord[2] - blkMin[2]*bSize)*(bSize*(blkMax[1]-blkMin[1]+1))*(bSize*(blkMax[0]-blkMin[0]+1));
+			
+			int texPos = ix + texWidth*iy;
+			//Make sure the transformed coords are in the probe region
+			//This should only fail if they aren't even in the full volume.
+			bool dataOK = true;
+			for (int i = 0; i< 3; i++){
+				if (dataCoord[i]< extents[i] || dataCoord[i] > extents[i+3])
+					dataOK = false;
+				if (arrayCoord[i] < coordMin[i] || arrayCoord[i] > coordMax[i] ) 
+					dataOK = false;
+			}
+			
+			if(dataOK) { //find the coordinate in the data array
+				float vecField[3];
+				
+				//use xyzCoord to index into the loaded data
+				for (int k = 0; k<3; k++){
+					if(volData[k]) vecField[k] = volData[k][xyzCoord];
+					else vecField[k] = 0.f;
+				}
+				//Project this vector to the probe plane:
+				
+				projToPlane(vecField, invMatrix, ibfvUField[timestep]+texPos,ibfvVField[timestep]+texPos);
+			}
+			else {//point is out of region
+				ibfvUField[timestep][texPos] = 0.f;
+				ibfvVField[timestep][texPos] = 0.f;
+			}
+
+		}//End loop over ix
+	}//End loop over iy
+	delete volData;
+	return true;
+}
+//General routine that obtains 1 or more variables from the cache in the smallest volume that
+//contains the probe.  sesVarNums is a list of session variable numbers to be obtained.
+//If the variable num is negative, just returns a null data array.
+//Note that this is a generalization of the first part of calcProbeDataTexture
+//Provides several variables to be used in adressing into the data
+
+float** ProbeParams::
+getProbeVariables(int ts, size_t fullHeight, int numVars, int* sesVarNums,
+				  size_t blkMin[3], size_t blkMax[3], size_t coordMin[3], size_t coordMax[3],
+				  int* actualRefLevel){
+	if (!isEnabled()) return 0;
+	DataStatus* ds = DataStatus::getInstance();
+	if (!ds->getDataMgr()) return 0;
+	
+	int refLevel = getNumRefinements();
+	//reduce reflevel if not all variables are available:
+	if (ds->useLowerRefinementLevel()){
+		for (int varnum = 0; varnum < numVars; varnum++){
+			int sesVarNum = sesVarNums[varnum];
+			if (sesVarNum >= 0){
+				refLevel = Min(ds->maxXFormPresent(sesVarNum, ts), refLevel);
+			}
+		}
+	}
+	if (refLevel < 0) return 0;
+	*actualRefLevel = refLevel;
+	
+	//Determine the integer extents of the containing cube, truncate to
+	//valid integer coords:
+
+	getAvailableBoundingBox(ts, blkMin, blkMax, coordMin, coordMax, fullHeight, refLevel);
+	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
+
+	float boxExts[6];
+	RegionParams::convertToStretchedBoxExtentsInCube(refLevel,coordMin, coordMax,boxExts,fullHeight); 
+	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, refLevel);
+	
+	int cacheSize = DataStatus::getInstance()->getCacheMB();
+	if (numMBs*numVars > (int)(cacheSize*0.75)){
+		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current probe and resolution.\n%s \n%s",
+			"Lower the refinement level, reduce the probe size, or increase the cache size.",
+			"Rendering has been disabled.");
+		setEnabled(false);
+		return 0;
+	}
+	
+	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
+	//volume for each variable 
+	float** volData = new float*[numVars];
+	//obtain all of the volumes needed for this probe:
+	
+	for (int varnum = 0; varnum < numVars; varnum++){
+		int varindex = sesVarNums[varnum];
+		if (varindex < 0) {volData[varnum] = 0; continue;}   //handle the zero field as a 0 pointer
+		volData[varnum] = getContainingVolume(blkMin, blkMax, refLevel, varindex, ts, fullHeight);
+		if (!volData[varnum]) {
+			delete volData;
+			return 0;
+		}
+	}
+
+	return volData;
+}
+//Project a 3-vector to the probe plane.  Uses inverse rotation matrix
+void ProbeParams::projToPlane(float vecField[3], float invRotMtrx[9], float* U, float* V){
+	//Calculate component of vecField in direction of normVec:
+	float projVec[3];
+	vtransform3(vecField, invRotMtrx, projVec);
+	*U = projVec[0]*ibfvXScale;
+	*V = projVec[1]*ibfvYScale;
+}
+
+
+
+

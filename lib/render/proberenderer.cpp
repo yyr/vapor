@@ -56,8 +56,7 @@ ProbeRenderer::~ProbeRenderer()
 // Perform the rendering
 //
   
-int wid = 256;
-int ht = 256;
+
 void ProbeRenderer::paintGL()
 {
 	
@@ -74,8 +73,10 @@ void ProbeRenderer::paintGL()
 	} else { //existing texture is OK:
 		probeTex = getProbeTexture(myProbeParams,currentFrameNum,fullHeight,true);
 	}
-	int imgWidth = myProbeParams->getImageWidth();
-	int imgHeight = myProbeParams->getImageHeight();
+	int imgSize[2];
+	myProbeParams->getTextureSize(imgSize);
+	int imgWidth = imgSize[0];
+	int imgHeight = imgSize[1];
 	if (probeTex){
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -162,10 +163,14 @@ float tmaxx, tmaxy;
 //It uses openGL to build the texture.
 //It can be called from probeRenderer, or from glProbeWindow.
 
-unsigned char* ProbeRenderer::buildIBFVTexture(ProbeParams* pParams, int tstep){
+unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep){
 	
    float scale = pParams->getFieldScale();
-   
+   int txsize[2];
+   pParams->adjustTextureSize(fullHeight, txsize);
+   pParams->buildIBFVFields(tstep, fullHeight);
+   int wid = txsize[0];
+   int ht = txsize[1];
    tmaxx   = wid/(scale*NPN);
    tmaxy   = ht/(scale*NPN);
    dmaxx   = scale/wid;
@@ -173,7 +178,7 @@ unsigned char* ProbeRenderer::buildIBFVTexture(ProbeParams* pParams, int tstep){
 	
 	makeIBFVPatterns(pParams);
 	unsigned char* imageBuffer = new unsigned char[wid*ht*4];
-	pushState();
+	pushState(wid,ht);
 	
 	glClearColor(0,0,0,0);
 	glClearDepth(0);
@@ -185,7 +190,7 @@ unsigned char* ProbeRenderer::buildIBFVTexture(ProbeParams* pParams, int tstep){
 	int numSetupFrames = pParams->getSetUpFrames();
 	
 	for(int iframe = 0; iframe <= numSetupFrames; iframe++){//Calc image in back buffer:
-		stepIBFVTexture(pParams, iframe);
+		stepIBFVTexture(pParams, tstep, iframe);
 	}
 	
 
@@ -233,6 +238,20 @@ void ProbeRenderer::getDP(float x, float y, float *px, float *py, float dmaxx, f
 {
    float dx, dy, vx, vy, r;
   
+   dx = 2.*(x - 0.5);         
+   dy = 2.*(y - 0.5); 
+   r  = dx*dx + dy*dy; 
+   if (r < 0.0001) r = 0.0001;
+   r = sqrt(r);
+   vx = -sa*dy/r; //spiral rotation
+   vy = sa*dx/r;
+   r  = vx*vx + vy*vy;
+   if (r > dmaxx*dmaxy) { 
+      r  = sqrt(r); 
+      vx *= dmaxx/r; 
+      vy *= dmaxy/r; 
+   }
+   /*
    dx = x - 0.5;         
    dy = y - 0.5; 
    r  = dx*dx + dy*dy; 
@@ -245,12 +264,14 @@ void ProbeRenderer::getDP(float x, float y, float *px, float *py, float dmaxx, f
       vx *= dmaxx/r; 
       vy *= dmaxy/r; 
    }
+   */
    *px = x + vx;         
    *py = y + vy;
    
+   
 }
 //Set up the gl state for doing the ibfv in the aux buffer.
-void ProbeRenderer::pushState(){
+void ProbeRenderer::pushState(int wid, int ht){
 	//int val;
 	//We need 2 draw buffers
 	//glGetIntegerv(GL_MAX_DRAW_BUFFERS, &val);
@@ -321,14 +342,23 @@ void ProbeRenderer::popState(){
 //If animFrame == 0, it starts from beginning.
 //
 
-unsigned char* ProbeRenderer::getNextIBFVTexture(ProbeParams* pParams, int frameNum, bool isStarting){
+unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep, int frameNum, bool isStarting){
 	float scale = pParams->getFieldScale();
+	int sz[2];
+	pParams->getTextureSize(sz);
+	//if the texture cache is invalid need to adjust texture size:
+	if (isStarting || sz[0] == 0) {
+		pParams->adjustTextureSize(fullHeight, sz);
+		pParams->buildIBFVFields(tstep, fullHeight);
+	}
+	int wid = sz[0];
+	int ht = sz[1];
 	tmaxx   = wid/(scale*NPN);
     tmaxy   = ht/(scale*NPN);
     dmaxx   = scale/wid;
 	dmaxy   = scale/ht;
 	unsigned char* imageBuffer = new unsigned char[wid*ht*4];
-	pushState();
+	pushState(wid,ht);
 	
 	
 
@@ -340,7 +370,7 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(ProbeParams* pParams, int frame
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	}
 	
-	stepIBFVTexture(pParams, frameNum);
+	stepIBFVTexture(pParams, tstep, frameNum);
 	
 	
 
@@ -353,23 +383,26 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(ProbeParams* pParams, int frame
     return imageBuffer;
 
 }
-void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int frameNum){
+void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int frameNum){
 	 float x1, x2, y, px, py;
 	 int nmesh = pParams->getNMesh();
-	 
-	 float DM = ((float) (1.0/(nmesh-1.0)));
-		sa = 0.010*cos(STEADYTIME*2.0*M_PI/200.0);
+	 int txsize[2];
+	 pParams->getTextureSize(txsize);
+	 float DM = ((float) (0.999999/(nmesh-1.0)));
+		//sa = 0.010*cos(STEADYTIME*2.0*M_PI/200.0);
 		for (int i = 0; i < nmesh-1; i++) {
 			x1 = DM*i; x2 = x1 + DM;
 			glBegin(GL_QUAD_STRIP);
 			for (int j = 0; j < nmesh; j++) {
 				y = DM*j;
 				glTexCoord2f(x1, y); 
-				getDP(x1, y, &px, &py, dmaxx, dmaxy); 
+				pParams->getIBFVValue(timestep, x1, y, &px, &py);
+				//getDP(x1, y, &px, &py, dmaxx, dmaxy); 
 				glVertex2f(px, py);
 
 				glTexCoord2f(x2, y); 
-				getDP(x2, y, &px, &py, dmaxx, dmaxy); 
+				pParams->getIBFVValue(timestep, x2, y, &px, &py);
+				//getDP(x2, y, &px, &py, dmaxx, dmaxy); 
 				glVertex2f(px, py);
 			}
 			glEnd();
@@ -377,7 +410,7 @@ void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int frameNum){
    
 
 		glEnable(GL_BLEND); 
-		glCallList(frameNum % Npat + 1);
+		glCallList(frameNum % Npat + firstListNum);
 		glBegin(GL_QUAD_STRIP);
 			glTexCoord2f(0.0,  0.0);  glVertex2f(0.0, 0.0);
 			glTexCoord2f(0.0,  tmaxy); glVertex2f(0.0, 1.0);
@@ -386,17 +419,16 @@ void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int frameNum){
 		glEnd();
 		glDisable(GL_BLEND);
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-							0, 0, wid, ht, 0);
+							0, 0, txsize[0], txsize[1], 0);
 }
 //Static method to calculate the probe texture whether IBFV or data
 unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, int frameNum, int fullHeight, bool doCache){
 	if (!pParams->probeIsDirty(frameNum)) return pParams->getCurrentProbeTexture(frameNum);
 	if (pParams->getProbeType() == 0) {return pParams->calcProbeDataTexture(frameNum, 0,0,fullHeight);}
 	//OK, now handle IBFV texture:
-	unsigned char* probeTex = buildIBFVTexture(pParams,  frameNum);
+	unsigned char* probeTex = buildIBFVTexture(fullHeight, pParams,  frameNum);
 	if (doCache){
 		pParams->setProbeTexture(probeTex, frameNum);
-		pParams->setTextureSize(256,256);
 	}
 	return probeTex;
 }

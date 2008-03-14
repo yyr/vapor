@@ -653,6 +653,9 @@ window toolbar.</string>
                                                             <property name="orientation">
                                                                 <enum>Horizontal</enum>
                                                             </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Control how flow texture is smeared</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QLineEdit">
                                                             <property name="name">
@@ -660,6 +663,9 @@ window toolbar.</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignHCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Control how flow texture is smeared</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>
@@ -724,6 +730,9 @@ window toolbar.</string>
                                                             <property name="alignment">
                                                                 <set>AlignHCenter</set>
                                                             </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Vector field is scaled by this factor before advecting</string>
+                                                            </property>
                                                         </widget>
                                                         <spacer>
                                                             <property name="name">
@@ -787,6 +796,9 @@ window toolbar.</string>
                                                             <property name="alignment">
                                                                 <set>AlignHCenter</set>
                                                             </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Mesh size that is used for flow texture</string>
+                                                            </property>
                                                         </widget>
                                                         <spacer>
                                                             <property name="name">
@@ -849,6 +861,9 @@ window toolbar.</string>
                                                             </property>
                                                             <property name="alignment">
                                                                 <set>AlignHCenter</set>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Number of iterations performed to construct flow texture in scene</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>

@@ -130,14 +130,15 @@ void GLProbeWindow::paintGL()
 	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
 	//get the probe texture:
 	unsigned char* probeTexture = 0;
+	int imgSize[2];
 	if (myParams->getProbeType() == 1) {  //IBFV texture
 		if (animatingTexture) {
-			probeTexture = ProbeRenderer::getNextIBFVTexture(myParams, animatingFrameNum, animationStarting);
+			probeTexture = ProbeRenderer::getNextIBFVTexture(fullHeight,myParams, timestep, animatingFrameNum, animationStarting);
 			animationStarting = false;
 		} else { //not animated.  Calculate it if necessary
 			probeTexture = ProbeRenderer::getProbeTexture(myParams, timestep, fullHeight, false);
 		}
-		myParams->setTextureSize(256,256);
+		myParams->adjustTextureSize(fullHeight, imgSize);
 	} else if(myParams ){//data probe
 		if (myParams->probeIsDirty(timestep)){
 			QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
@@ -147,11 +148,11 @@ void GLProbeWindow::paintGL()
 			probeTexture = ProbeRenderer::getProbeTexture(myParams,timestep,fullHeight,false);
 		}
 	}
-	int imgWidth = myParams->getImageWidth();
-	int imgHeight = myParams->getImageHeight();
+	myParams->getTextureSize(imgSize);
+	
 	if(probeTexture) {
 		glEnable(GL_TEXTURE_2D);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth,imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgSize[0],imgSize[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, probeTexture);
 	} else {
 		return;
 		//glColor4f(0.,0.,0.,0.);

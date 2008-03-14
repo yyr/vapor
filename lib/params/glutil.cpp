@@ -153,6 +153,14 @@ void vtransform4(const float *v, GLfloat *mat, float *vt)
     t[3] = v[0]*mat[12] + v[1]*mat[13] + v[2]*mat[14] + mat[15];
     qcopy(t, vt);
 }
+void vtransform3(const float *v, float *mat, float *vt)
+{
+    /* 3x3 matrix multiply
+     */
+    vt[0] = v[0]*mat[0] + v[1]*mat[1] + v[2]*mat[2];
+    vt[1] = v[0]*mat[3] + v[1]*mat[4] + v[2]*mat[5];
+    vt[2] = v[0]*mat[6] + v[1]*mat[7] + v[2]*mat[8];
+}
 //Test whether a planar point is right (or left) of the oriented line from
 // pt1 to pt2
 bool pointOnRight(float* pt1, float* pt2, float* testPt){

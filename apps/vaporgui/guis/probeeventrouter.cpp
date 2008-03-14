@@ -119,6 +119,7 @@ ProbeEventRouter::hookUpTab()
 	connect (yCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeYCenter(int)));
 	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZSize(int)));
 	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZCenter(int)));
+	connect (alphaSlider, SIGNAL(sliderReleased()), this, SLOT(guiReleaseAlphaSlider()));
 	connect (xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (yCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (zCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
@@ -219,6 +220,9 @@ ProbeEventRouter::hookUpTab()
 	connect (probeTypeCombo, SIGNAL(activated(int)), this, SLOT(guiSetProbeType(int)));
 	connect (playButton, SIGNAL(clicked()), this, SLOT(ibfvPlay()));
 	connect (pauseButton, SIGNAL(clicked()), this, SLOT(ibfvPause()));
+	connect (xSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetXIBFVComboVarNum(int)));
+	connect (ySteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetYIBFVComboVarNum(int)));
+	connect (zSteadyVarCombo,SIGNAL(activated(int)), this, SLOT(guiSetZIBFVComboVarNum(int)));
 	
 }
 //Insert values from params into tab panel
@@ -245,7 +249,11 @@ void ProbeEventRouter::updateTab(){
 	setupFramesEdit->setText(QString::number(probeParams->getSetUpFrames()));
 	fieldScaleEdit->setText(QString::number(probeParams->getFieldScale()));
 	NMESHEdit->setText(QString::number(probeParams->getNMesh()));
-	
+	alphaSlider->setValue((int)((100.f *probeParams->getAlpha()+0.5f)));
+
+	xSteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(0));
+	ySteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(1));
+	zSteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(2));
 	
 	deleteInstanceButton->setEnabled(vizMgr->getNumProbeInstances(winnum) > 1);
 	if (planarCheckbox->isChecked() != probeParams->isPlanar()){
@@ -579,6 +587,19 @@ guiReleaseZWheel(int val){
 	PanelCommand::captureEnd(cmd,pParams);
 	probeTextureFrame->update();
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+}
+void ProbeEventRouter::
+guiReleaseAlphaSlider(){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "move alpha slider");
+	float sliderVal = (float)(alphaSlider->value())*0.01f;
+	pParams->setAlpha(sliderVal);
+	pParams->setProbeDirty();
+	PanelCommand::captureEnd(cmd, pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	updateTab();
 }
 void ProbeEventRouter::guiRotate90(int selection){
 	if (selection == 0) return;
@@ -1034,6 +1055,27 @@ reinitTab(bool doOverride){
 		delete histogramList;
 		histogramList = 0;
 		numHistograms = 0;
+	}
+	int newNumComboVariables = DataStatus::getInstance()->getNumMetadataVariables();
+	//Set up the ibfv variable combos
+	
+	xSteadyVarCombo->clear();
+	xSteadyVarCombo->setMaxCount(newNumComboVariables+1);
+	ySteadyVarCombo->clear();
+	ySteadyVarCombo->setMaxCount(newNumComboVariables+1);
+	zSteadyVarCombo->clear();
+	zSteadyVarCombo->setMaxCount(newNumComboVariables+1);
+	//Put a "0" at the start of the variable combos
+	const QString& text = QString("0");
+	xSteadyVarCombo->insertItem(text);
+	ySteadyVarCombo->insertItem(text);
+	zSteadyVarCombo->insertItem(text);
+	for (int i = 0; i< newNumComboVariables; i++){
+		const std::string& s = DataStatus::getInstance()->getMetadataVarName(i);
+		const QString& text = QString(s.c_str());
+		xSteadyVarCombo->insertItem(text);
+		ySteadyVarCombo->insertItem(text);
+		zSteadyVarCombo->insertItem(text);
 	}
 	updateTab();
 }
@@ -2042,11 +2084,13 @@ void ProbeEventRouter::captureImage() {
 	// the scene, then increase x or y to make the aspect ratio match the
 	// aspect ratio in the scene
 	float aspRatio = pParams->getRealImageHeight()/pParams->getRealImageWidth();
-	int wid = pParams->getImageWidth();
-	int ht = pParams->getImageHeight();
-	//Make sure the image is at least 300x300
-	if (wid < 200) wid = 200;
-	if (ht < 200) ht = 200;
+	int imgSize[2];
+	pParams->getTextureSize(imgSize);
+	int wid = imgSize[0];
+	int ht = imgSize[1];
+	//Make sure the image is at least 200x200
+	if (wid < 256) wid = 256;
+	if (ht < 256) ht = 256;
 	float imAspect = (float)ht/(float)wid;
 	if (imAspect > aspRatio){
 		//want ht/wid = asp, but ht/wid > asp; make wid larger:
@@ -2443,4 +2487,40 @@ void ProbeThread::run(){
 		msleep(50);
 		router->probeTextureFrame->advanceAnimatingFrame();
 	}
+}
+void ProbeEventRouter::
+guiSetXIBFVComboVarNum(int varnum){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set IBFV field X variable");
+	pParams->setIBFVComboVarNum(0,varnum);
+	if (varnum == 0) pParams->setIBFVSessionVarNum(0,0);
+	else 
+		pParams->setIBFVSessionVarNum(0, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+	PanelCommand::captureEnd(cmd, pParams);
+	pParams->setProbeDirty();
+}
+void ProbeEventRouter::
+guiSetYIBFVComboVarNum(int varnum){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set IBFV field Y variable");
+	pParams->setIBFVComboVarNum(1,varnum);
+	if (varnum == 0) pParams->setIBFVSessionVarNum(1,0);
+	else 
+		pParams->setIBFVSessionVarNum(1, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+	PanelCommand::captureEnd(cmd, pParams);
+	pParams->setProbeDirty();
+}
+void ProbeEventRouter::
+guiSetZIBFVComboVarNum(int varnum){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set IBFV field Z variable");
+	pParams->setIBFVComboVarNum(2,varnum);
+	if (varnum == 0) pParams->setIBFVSessionVarNum(2,0);
+	else 
+		pParams->setIBFVSessionVarNum(2, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
+	PanelCommand::captureEnd(cmd, pParams);
+	pParams->setProbeDirty();
 }

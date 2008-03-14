@@ -179,6 +179,10 @@ protected slots:
 	void setProbeTabTextChanged(const QString& qs);
 	void probeReturnPressed();
 	void captureImage();
+	void guiSetXIBFVComboVarNum(int varnum);
+	void guiSetYIBFVComboVarNum(int varnum);
+	void guiSetZIBFVComboVarNum(int varnum);
+	void guiReleaseAlphaSlider();
 	
 	
 protected:

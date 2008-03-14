@@ -130,11 +130,11 @@ public:
 	//This needs to be fixed to handle multiple variables!
 	virtual int getSessionVarNum() { return firstVarNum;}
 	
-	int getImageWidth() { return textureWidth;}
-	int getImageHeight() {return textureHeight;}
-
-	void setTextureSize(int wid, int ht) {textureWidth = wid; textureHeight = ht;}
+	void getTextureSize(int sze[2]) {sze[0] = textureSize[0]; sze[1] = textureSize[1];}
+	//set the texture size appropriately for either ibfv or data probe, return value in sz.
+	void adjustTextureSize(int fullHeight, int sz[2]);
 	
+
 	float getRealImageWidth() {return probeMax[0]-probeMin[0];}
 	float getRealImageHeight() {return probeMax[1]-probeMin[1];}
 	
@@ -158,7 +158,14 @@ public:
 		probeTextures[timestep] = tex;
 	}
 	unsigned char* calcProbeDataTexture(int timestep, int wid, int ht, size_t fullGridHeight);
-	
+
+	//General method that obtains a list of variables (containing the probe) from the dataMgr
+	//Also establishes values of blkMin, blkMax, coordMin, coordMax and actualRefLevel to be used
+	//for addressing into the volumes.  Replaces first half of calcProbeDataTexture.
+	float** getProbeVariables(int ts, size_t fullHeight, int numVars, int* sesVarNums,
+				  size_t blkMin[3], size_t blkMax[3], size_t coordMin[3], size_t coordMax[3],
+				  int* actualRefLevel);
+
 	unsigned char* getCurrentProbeTexture(int timestep) {
 		return probeTextures[timestep];
 	}
@@ -224,6 +231,20 @@ public:
 	void setSetUpFrames(int val){setUpFrames = val;}
 	int getNMesh(){return nMesh;}
 	void setNMesh(int val){nMesh = val;}
+	//Advect (x,y) to (*px, *py)
+	//all 4 are in grid coords of current probe
+	void getIBFVValue(int timestep, float x, float y, float* px, float* py);
+	bool buildIBFVFields(int timestep, int fullHeight);
+	//Project a 3-vector to the probe plane, provide the inverse 3x3 rotation matrix
+	void projToPlane(float vecField[3], float invRotMtrx[9], float* U, float* V);
+	void setIBFVComboVarNum(int indx, int varnum){
+		ibfvComboVarNum[indx] = varnum;
+	}
+	int getIBFVComboVarNum(int indx) {return ibfvComboVarNum[indx];}
+	void setIBFVSessionVarNum(int indx, int varnum){
+		ibfvSessionVarNum[indx] = varnum;
+	}
+	int getIBFVSessionVarNum(int indx) {return ibfvSessionVarNum[indx];}
 	
 protected:
 	
@@ -289,11 +310,20 @@ protected:
 	float selectPoint[3];
 	float cursorCoords[2];
 	
-	int textureWidth, textureHeight;
+	int textureSize[2];
 	//IBFV parameters:
 	float alpha, fieldScale;
 	int setUpFrames, nMesh;
 	
+	//There are 2 ibfv fields for each time step
+	//ibfvUField[t][w] is the U-value at point w = (x+wid*y) at timestep t
+	float** ibfvUField;
+	float** ibfvVField;
+	//To specify variable num, variable 0 is the constant 0 variable.
+	int ibfvComboVarNum[3];  //variable nums in combo. These are metadata var nums +1
+	int ibfvSessionVarNum[3]; // session variable nums +1
+	//scale factors for mapping grid cell space to world coords in probe. Used in projToPlane
+	float ibfvXScale, ibfvYScale;  
 
 	
 	
