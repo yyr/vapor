@@ -52,7 +52,7 @@ public:
 	}
 	void setParams(ProbeParams* p) {probeParams = p;}
 	ProbeParams* getParams() {return probeParams;}
-	void updateGLWindow();
+	
 	
 
 public slots:

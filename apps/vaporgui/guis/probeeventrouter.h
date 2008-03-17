@@ -112,6 +112,12 @@ public:
 	void guiEndCursorMove();
 	void guiCopyRegionToProbe();
 	bool isAnimating(){return animationFlag;}
+	void setProbeDirty(ProbeParams* pParams){
+		bool b = animationFlag;
+		if (b) ibfvPause();
+		pParams->setProbeDirty();
+		if (b) ibfvPlay();
+	}
 
 public slots:
     //

@@ -69,6 +69,8 @@ ProbeParams::ProbeParams(int winnum) : RenderParams(winnum){
 	maxTimestep = 1;
 	ibfvUField = 0;
 	ibfvVField = 0;
+	ibfvValid = 0;
+	ibfvMag = -1.f;
 	restart();
 	
 }
@@ -90,10 +92,13 @@ ProbeParams::~ProbeParams(){
 		for (int i = 0; i<= maxTimestep; i++){
 			if (ibfvUField[i]) delete ibfvUField[i];
 			if (ibfvVField[i]) delete ibfvVField[i];
+			if (ibfvValid[i]) delete ibfvValid[i];
 		}
 		delete ibfvUField;
 		delete ibfvVField;
+		delete ibfvValid;
 	}
+	ibfvMag = -1.f;
 	
 }
 
@@ -124,6 +129,8 @@ deepRCopy(){
 	newParams->probeTextures = 0;
 	newParams->ibfvUField = 0;
 	newParams->ibfvVField = 0;
+	newParams->ibfvValid = 0;
+	newParams->ibfvMag = -1.f;
 	
 	//never keep the SavedCommand:
 	
@@ -383,6 +390,7 @@ reinit(bool doOverride){
 	if (probeTextures) delete probeTextures;
 	if (ibfvUField) delete ibfvUField;
 	if (ibfvVField) delete ibfvVField;
+	if (ibfvValid) delete ibfvValid;
 	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
 	probeTextures = 0;
 	ibfvUField = 0;
@@ -403,8 +411,10 @@ restart(){
 	probeTextures = 0;
 	if (ibfvUField) delete ibfvUField;
 	if (ibfvVField) delete ibfvVField;
+	if (ibfvValid) delete ibfvValid;
 	ibfvUField = 0;
 	ibfvVField = 0;
+	ibfvMag = -1.f;
 	ibfvSessionVarNum[0]= 1;
 	ibfvSessionVarNum[1] = 2;
 	ibfvSessionVarNum[2] = 3;
@@ -1043,8 +1053,11 @@ void ProbeParams::setProbeDirty(){
 			ibfvUField[i] = 0;
 			if (ibfvVField[i])delete ibfvVField[i];
 			ibfvVField[i] = 0;
+			if (ibfvValid[i]) delete ibfvValid[i];
+			ibfvValid[i] = 0;
 		}
 	}
+	ibfvMag = -1.f;
 
 }
 
@@ -1393,8 +1406,10 @@ void ProbeParams::rotateAndRenormalizeBox(int axis, float rotVal){
 //Advect the point (x,y) in the probe to the point (*px, *py)
 //Requres that buildIBFVFields be called first!
 //Input xa,ya are between 0 and 1, and *px, *py are in same coord space.
+//Returns false if data is outside of region
 void ProbeParams::getIBFVValue(int ts, float xa, float ya, float* px, float* py){
 	assert (ibfvUField && ibfvUField[ts]);
+	
 	assert(xa >= 0.f && ya >= 0.f && xa < 1.f && ya < 1.f);
 	//convert xa and ya to grid coords
 	float x = xa * (float)(textureSize[0]-1);
@@ -1406,6 +1421,7 @@ void ProbeParams::getIBFVValue(int ts, float xa, float ya, float* px, float* py)
 	float u10 = ibfvUField[ts][1+(int)x + textureSize[0]*(int)y];
 	float u11 = ibfvUField[ts][1+(int)x + textureSize[0]*(1+(int)y)];
 	float u01 = ibfvUField[ts][(int)x + textureSize[0]*(1+(int)y)];
+	
 	float uval = (1.-xfrac)*((1.-yfrac)*u00+yfrac*u01)+
 		xfrac*((1.-yfrac)*u10+yfrac*u11);
 
@@ -1435,7 +1451,9 @@ bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
 	if (!ibfvUField) {
 		ibfvUField = new float*[maxTimestep + 1];
 		ibfvVField = new float*[maxTimestep + 1];
-		for (int i = 0; i<= maxTimestep; i++) {ibfvUField[i] = 0; ibfvVField[i] = 0;}
+		ibfvValid = new unsigned char*[maxTimestep + 1];
+		ibfvMag = -1.f;
+		for (int i = 0; i<= maxTimestep; i++) {ibfvUField[i] = 0; ibfvVField[i] = 0; ibfvValid[i] = 0;}
 	}
 	//If the required data is valid, just return true:
 	if(ibfvUField[timestep] && ibfvVField[timestep]) return true;
@@ -1503,19 +1521,22 @@ bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
 	int texWidth = textureSize[0];
 	assert(textureSize[0] != 0); //Should be a valid value
 
-	ibfvXScale = (float)texWidth*fieldScale/xside;  //Cells per meter, times scale factor
-	ibfvYScale = (float)texHeight*fieldScale/yside;
-	//now divide to put in a reasonable scale 
+	ibfvXScale = (float)texWidth/xside;  //Cells per meter, times scale factor
+	ibfvYScale = (float)texHeight/yside;
+	//now divide to put in a reasonable scale (actually, this is irrelevant because we renormalize later!)
 	ibfvXScale /= ((float)texWidth+(float)texHeight)*100.;
 	ibfvYScale /= ((float)texWidth+(float)texHeight)*100.;
 
 
 	if (ibfvUField[timestep]) delete ibfvUField[timestep];
 	if (ibfvVField[timestep]) delete ibfvVField[timestep];
+	if (ibfvValid[timestep]) delete ibfvValid[timestep];
 
 	ibfvUField[timestep] = new float[textureSize[0]*textureSize[1]];
 	ibfvVField[timestep] = new float[textureSize[0]*textureSize[1]];
-
+	ibfvValid[timestep] = new unsigned char[textureSize[0]*textureSize[1]];
+	float sumMag = 0.f;
+	int numValidPoints = 0;
 	//Loop over pixels in texture
 	for (int iy = 0; iy < texHeight; iy++){
 		//Map iy to a value between -1 and 1
@@ -1554,17 +1575,38 @@ bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
 					if(volData[k]) vecField[k] = volData[k][xyzCoord];
 					else vecField[k] = 0.f;
 				}
-				//Project this vector to the probe plane:
-				
-				projToPlane(vecField, invMatrix, ibfvUField[timestep]+texPos,ibfvVField[timestep]+texPos);
+				//Project this vector to the probe plane, saving the magnitude:
+				numValidPoints++;
+				float uVal, vVal;
+				projToPlane(vecField, invMatrix, &uVal,&vVal);
+				if(ibfvMag < 0.f) sumMag += (uVal*uVal + vVal*vVal);
+				ibfvUField[timestep][texPos] = uVal;
+				ibfvVField[timestep][texPos] = vVal;
+				ibfvValid[timestep][texPos] = 1;
 			}
 			else {//point is out of region
-				ibfvUField[timestep][texPos] = 0.f;
-				ibfvVField[timestep][texPos] = 0.f;
+				ibfvUField[timestep][texPos] = 0;
+				ibfvVField[timestep][texPos] = 0;
+				ibfvValid[timestep][texPos] = 0;
 			}
 
 		}//End loop over ix
 	}//End loop over iy
+	if (ibfvMag < 0.f) {  //calculate new magnitude, or use previously calculated mag
+		if (sumMag > 0.f) sumMag = sqrt(sumMag);
+		ibfvMag = sumMag;
+		if (ibfvMag == 0.f) ibfvMag = 1.f; //special case for constant 0 field
+	}
+	float scaleFac = fieldScale/ibfvMag;
+	//Now renormalize
+	for (int iy = 0; iy < texHeight; iy++){
+		for (int ix = 0; ix < texWidth; ix++){
+			int texPos = ix + texWidth*iy;
+			ibfvUField[timestep][texPos] *= scaleFac;
+			ibfvVField[timestep][texPos] *= scaleFac;
+		}
+	}
+			
 	delete volData;
 	return true;
 }

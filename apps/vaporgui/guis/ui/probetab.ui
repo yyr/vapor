@@ -650,6 +650,12 @@ window toolbar.</string>
                                                             <property name="name">
                                                                 <cstring>alphaSlider</cstring>
                                                             </property>
+                                                            <property name="maxValue">
+                                                                <number>100</number>
+                                                            </property>
+                                                            <property name="value">
+                                                                <number>12</number>
+                                                            </property>
                                                             <property name="orientation">
                                                                 <enum>Horizontal</enum>
                                                             </property>
@@ -929,6 +935,9 @@ window toolbar.</string>
                                                             <property name="pixmap">
                                                                 <pixmap>image0</pixmap>
                                                             </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>Stop playing the current flow animation</string>
+                                                            </property>
                                                         </widget>
                                                         <widget class="QPushButton">
                                                             <property name="name">
@@ -939,6 +948,9 @@ window toolbar.</string>
                                                             </property>
                                                             <property name="pixmap">
                                                                 <pixmap>image1</pixmap>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>play the current flow animation</string>
                                                             </property>
                                                         </widget>
                                                         <spacer>

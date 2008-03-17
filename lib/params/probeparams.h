@@ -245,6 +245,9 @@ public:
 		ibfvSessionVarNum[indx] = varnum;
 	}
 	int getIBFVSessionVarNum(int indx) {return ibfvSessionVarNum[indx];}
+	bool ibvfPointIsValid(int timestep, int uv){
+		return (ibfvValid[timestep][uv] != 0);
+	}
 	
 protected:
 	
@@ -317,8 +320,13 @@ protected:
 	
 	//There are 2 ibfv fields for each time step
 	//ibfvUField[t][w] is the U-value at point w = (x+wid*y) at timestep t
+	//ibfvValid indicates that the associated texture point is within valid region.
 	float** ibfvUField;
 	float** ibfvVField;
+	unsigned char** ibfvValid;
+	float ibfvMag; //Saves the average magnitude of the 2d field at the first time step calculated.
+	//This avoids change in normalization per timestep; perhaps it would be better to normalize
+	//different timesteps differently?
 	//To specify variable num, variable 0 is the constant 0 variable.
 	int ibfvComboVarNum[3];  //variable nums in combo. These are metadata var nums +1
 	int ibfvSessionVarNum[3]; // session variable nums +1

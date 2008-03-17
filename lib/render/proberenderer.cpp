@@ -199,7 +199,13 @@ unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pPar
 	popState();
 	//Eliminate transparency 
 	//later just merge in color and transparency here. 
-	for (int q = 0; q<wid*ht; q++){imageBuffer[4*q+3] = (unsigned char)255;}
+	for (int q = 0; q<wid*ht; q++){
+		if (pParams->ibvfPointIsValid(tstep, q))
+			imageBuffer[4*q+3] = (unsigned char)255;
+		else for (int r = 0; r<3; r++){
+			imageBuffer[4*q+r] = (unsigned char)0;
+		}
+	}
     return imageBuffer;
 
 }
@@ -379,7 +385,13 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 	popState();
 	//Eliminate transparency 
 	//later just merge in color  here. 
-	for (int q = 0; q<wid*ht; q++){imageBuffer[4*q+3] = (unsigned char)255;}
+	for (int q = 0; q<wid*ht; q++){
+		if (pParams->ibvfPointIsValid(tstep, q))
+			imageBuffer[4*q+3] = (unsigned char)255;
+		else for (int r = 0; r<3; r++){
+			imageBuffer[4*q+r] = (unsigned char)0;
+		}
+	}
     return imageBuffer;
 
 }
@@ -389,7 +401,7 @@ void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int fram
 	 int txsize[2];
 	 pParams->getTextureSize(txsize);
 	 float DM = ((float) (0.999999/(nmesh-1.0)));
-		//sa = 0.010*cos(STEADYTIME*2.0*M_PI/200.0);
+		sa = 0.010*cos(STEADYTIME*2.0*M_PI/200.0);
 		for (int i = 0; i < nmesh-1; i++) {
 			x1 = DM*i; x2 = x1 + DM;
 			glBegin(GL_QUAD_STRIP);
