@@ -262,6 +262,11 @@ protected:
 	static const string _psiAttr;
 	static const string _numTransformsAttr;
 	static const string _planarAttr;
+	static const string _fieldVarsAttr;
+	static const string _mergeColorAttr;
+	static const string _fieldScaleAttr;
+	static const string _alphaAttr;
+	static const string _probeTypeAttr;
 	
 	
 	

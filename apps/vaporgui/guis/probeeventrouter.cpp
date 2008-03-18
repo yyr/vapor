@@ -253,6 +253,8 @@ void ProbeEventRouter::updateTab(){
 	xSteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(0));
 	ySteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(1));
 	zSteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(2));
+
+	colorMergeCheckbox->setChecked(probeParams->ibfvColorMerged());
 	
 	deleteInstanceButton->setEnabled(vizMgr->getNumProbeInstances(winnum) > 1);
 	if (planarCheckbox->isChecked() != probeParams->isPlanar()){
@@ -1777,7 +1779,7 @@ calcCurrentValue(ProbeParams* pParams, const float point[3]){
 	int timeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	size_t blkMin[3], blkMax[3];
 	size_t coordMin[3], coordMax[3];
-	if (!rParams->getAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
+	if (0 > rParams->getAvailableVoxelCoords(numRefinements, coordMin, coordMax, blkMin, blkMax, timeStep,
 		sessionVarNums, totVars, regMin, regMax)) return OUT_OF_BOUNDS;
 
 	for (int i = 0; i< 3; i++){
@@ -2503,6 +2505,7 @@ guiSetXIBFVComboVarNum(int varnum){
 		pParams->setIBFVSessionVarNum(0, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::
 guiSetYIBFVComboVarNum(int varnum){
@@ -2515,6 +2518,7 @@ guiSetYIBFVComboVarNum(int varnum){
 		pParams->setIBFVSessionVarNum(1, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::
 guiSetZIBFVComboVarNum(int varnum){
@@ -2527,6 +2531,7 @@ guiSetZIBFVComboVarNum(int varnum){
 		pParams->setIBFVSessionVarNum(2, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, pParams);
 	setProbeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 void ProbeEventRouter::
 guiToggleColorMerge(bool val){
@@ -2536,6 +2541,7 @@ guiToggleColorMerge(bool val){
 	pParams->setIBFVColorMerged(val);
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
 }
 //control the repeated display of IBFV frames, by repeatedly doing updateGL() on the glProbeWindow
 void ProbeThread::run(){

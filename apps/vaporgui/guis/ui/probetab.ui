@@ -2859,7 +2859,7 @@ to the right of the cross-section view.</string>
                                             </property>
                                             <property name="minimumSize">
                                                 <size>
-                                                    <width>46</width>
+                                                    <width>60</width>
                                                     <height>0</height>
                                                 </size>
                                             </property>
@@ -2886,7 +2886,7 @@ to the right of the cross-section view.</string>
                                             </property>
                                             <property name="minimumSize">
                                                 <size>
-                                                    <width>45</width>
+                                                    <width>60</width>
                                                     <height>0</height>
                                                 </size>
                                             </property>
@@ -2913,7 +2913,7 @@ to the right of the cross-section view.</string>
                                             </property>
                                             <property name="minimumSize">
                                                 <size>
-                                                    <width>45</width>
+                                                    <width>60</width>
                                                     <height>0</height>
                                                 </size>
                                             </property>
@@ -2995,7 +2995,7 @@ to the right of the cross-section view.</string>
                                             </property>
                                             <property name="minimumSize">
                                                 <size>
-                                                    <width>45</width>
+                                                    <width>60</width>
                                                     <height>0</height>
                                                 </size>
                                             </property>

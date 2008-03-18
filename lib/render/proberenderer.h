@@ -48,7 +48,7 @@ public:
 protected:
 	GLuint _probeid;
 	static int makeIBFVPatterns(ProbeParams*, int prevListNum);
-	static void getDP(float x, float y, float *px, float *py, float dmaxx, float dmaxy);
+	//static void getDP(float x, float y, float *px, float *py, float dmaxx, float dmaxy);
 	static void pushState(int width, int height);
 	static void popState();
 	static void stepIBFVTexture(ProbeParams*, int timeStep, int frameNum, int listNum);

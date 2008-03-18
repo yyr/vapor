@@ -150,11 +150,11 @@ void ProbeRenderer::initializeGL()
 	initialized = true;
 	
 }
-
+// IBFV constants
 #define	NPN 64
 #define NMESH 100
-int    Npat   = 32;
-float  sa;
+#define Npat  32
+//float  sa;
 
 float dmaxx, dmaxy;
 float tmaxx, tmaxy;
@@ -245,6 +245,7 @@ int ProbeRenderer::makeIBFVPatterns(ProbeParams* pParams, int prevListNum)
 //Toy vector field integrator:  input x,y (in probe slice) get back position.
 //Need to modify so that works on 2d slice in 3d volume.  Will therefore need to have 2d 
 //vector field data slice to work on
+/*
 void ProbeRenderer::getDP(float x, float y, float *px, float *py, float dmaxx, float dmaxy) 
 {
    float dx, dy, vx, vy, r;
@@ -262,25 +263,13 @@ void ProbeRenderer::getDP(float x, float y, float *px, float *py, float dmaxx, f
       vx *= dmaxx/r; 
       vy *= dmaxy/r; 
    }
-   /*
-   dx = x - 0.5;         
-   dy = y - 0.5; 
-   r  = dx*dx + dy*dy; 
-   if (r < 0.0001) r = 0.0001;
-   vx = sa*dx/r + 0.02;  
-   vy = sa*dy/r;
-   r  = vx*vx + vy*vy;
-   if (r > dmaxx*dmaxy) { 
-      r  = sqrt(r); 
-      vx *= dmaxx/r; 
-      vy *= dmaxy/r; 
-   }
-   */
+   
    *px = x + vx;         
    *py = y + vy;
    
    
 }
+*/
 //Set up the gl state for doing the ibfv in the aux buffer.
 void ProbeRenderer::pushState(int wid, int ht){
 	//int val;

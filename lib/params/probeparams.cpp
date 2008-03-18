@@ -60,7 +60,11 @@ const string ProbeParams::_thetaAttr = "ThetaAngle";
 const string ProbeParams::_psiAttr = "PsiAngle";
 const string ProbeParams::_numTransformsAttr = "NumTransforms";
 const string ProbeParams::_planarAttr = "Planar";
-
+const string ProbeParams::_fieldVarsAttr = "FieldVariables";
+const string ProbeParams::_mergeColorAttr = "MergeColors";
+const string ProbeParams::_fieldScaleAttr = "FieldScale";
+const string ProbeParams::_alphaAttr= "Alpha";
+const string ProbeParams::_probeTypeAttr = "ProbeType";
 
 ProbeParams::ProbeParams(int winnum) : RenderParams(winnum){
 	thisParamType = ProbeParamsType;
@@ -511,7 +515,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 	if (StrCmpNoCase(tagString, _probeParamsTag) == 0) {
 		
 		int newNumVariables = 0;
-		//If it's a Probe tag, obtain 6 attributes (2 are from Params class)
+		//If it's a Probe tag, obtain 10 attributes (2 are from Params class)
 		//Do this by repeatedly pulling off the attribute name and value
 		while (*attrs) {
 			string attribName = *attrs;
@@ -548,6 +552,35 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				if (value == "true") setPlanar(true); 
 				else setPlanar(false);
 			}
+			else if (StrCmpNoCase(attribName, _mergeColorAttr) == 0){
+				if (value == "true") setIBFVColorMerged(true); 
+				else setIBFVColorMerged(false);
+			}
+			else if (StrCmpNoCase(attribName, _alphaAttr) == 0){
+				ist >> alpha;
+			}
+			else if (StrCmpNoCase(attribName, _fieldScaleAttr) == 0){
+				ist >> fieldScale;
+			}
+			else if (StrCmpNoCase(attribName, _probeTypeAttr) == 0){
+				ist >> probeType;
+			}
+			else if (StrCmpNoCase(attribName, _fieldVarsAttr) == 0) {
+				string vName;
+				for (int i = 0; i< 3; i++){
+					ist >> vName;//peel off the steady name
+					if (strcmp(vName.c_str(),"0") != 0){
+						int varnum = DataStatus::getInstance()->mergeVariableName(vName);
+						ibfvSessionVarNum[i] = varnum+1;
+					} else {
+						ibfvSessionVarNum[i] = 0;
+					}
+					//The combo setting will need to change when/if the variable is
+					//read in the metadata
+					ibfvComboVarNum[i] = -1;
+				}
+			}
+			
 			else return false;
 		}
 		//Create space for the variables:
@@ -762,7 +795,33 @@ buildNode() {
 	oss.str(empty);
 	oss << (double)GetHistoStretch();
 	attrs[_histoStretchAttr] = oss.str();
+
+	string fieldNames[3];
 	
+	oss.str(empty);
+	for (int i = 0; i<3; i++){
+		string varName = "0";
+		if (ibfvSessionVarNum[i]>0) varName = DataStatus::getInstance()->getVariableName(ibfvSessionVarNum[i]-1);
+		oss << varName << " ";
+	}
+	attrs[_fieldVarsAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)getAlpha();
+	attrs[_alphaAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (double)getFieldScale();
+	attrs[_fieldScaleAttr] = oss.str();
+
+	oss.str(empty);
+	oss << (long)getProbeType();
+	attrs[_probeTypeAttr] = oss.str();
+
+	oss.str(empty);
+	if (ibfvColorMerged()) oss << "true"; else oss << "false";
+	attrs[_mergeColorAttr] = oss.str();
+
 	XmlNode* probeNode = new XmlNode(_probeParamsTag, attrs, 3);
 
 	//Now add children:  
@@ -1068,73 +1127,42 @@ void ProbeParams::setProbeDirty(){
 //is not affected 
 unsigned char* ProbeParams::
 calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
+	size_t blkMin[3], blkMax[3];
+	size_t coordMin[3], coordMax[3];
 	if (!isEnabled()) return 0;
 	DataStatus* ds = DataStatus::getInstance();
 	if (!ds->getDataMgr()) return 0;
 
 	bool doCache = (texWidth == 0 && texHeight == 0);
-	
-	int refLevel = getNumRefinements();
-	//reduce reflevel if not all variables are available:
-	if (ds->useLowerRefinementLevel()){
-		for (int varnum = 0; varnum < (int)ds->getNumSessionVariables(); varnum++){
-			if (variableIsSelected(varnum)){
-				refLevel = Min(ds->maxXFormPresent(varnum, ts), refLevel);
-			}
-		}
+
+	//Make a list of the session variable nums we want:
+	int* sesVarNums = new int[ds->getNumSessionVariables()];
+	int actualRefLevel; 
+	int numVars = 0;
+	for (int varnum = 0; varnum < ds->getNumSessionVariables(); varnum++){
+		if (!variableIsSelected(varnum)) continue;
+		sesVarNums[numVars++] = varnum;
 	}
-	if (refLevel < 0) return 0;
 	
+	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
+	
+	float** volData = getProbeVariables(ts, fullHeight, numVars, sesVarNums,
+				  blkMin, blkMax, coordMin, coordMax, &actualRefLevel);
+
+	if(!volData){
+		delete sesVarNums;
+		return 0;
+	}
+
 	float transformMatrix[12];
-	
 	//Set up to transform from probe into volume:
 	buildCoordTransform(transformMatrix, 0.f);
-	
+
 	//Get the data dimensions (at this resolution):
 	int dataSize[3];
 	//Start by initializing extents
 	for (int i = 0; i< 3; i++){
-		dataSize[i] = (int)ds->getFullSizeAtLevel(refLevel,i, fullHeight);
-	}
-	//Determine the integer extents of the containing cube, truncate to
-	//valid integer coords:
-
-	
-	size_t blkMin[3], blkMax[3];
-	size_t coordMin[3], coordMax[3];
-	
-	getAvailableBoundingBox(ts, blkMin, blkMax, coordMin, coordMax, fullHeight, refLevel);
-	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
-
-	float boxExts[6];
-	RegionParams::convertToStretchedBoxExtentsInCube(refLevel,coordMin, coordMax,boxExts,fullHeight); 
-	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, refLevel);
-	//Check how many variables are needed:
-	int varCount = 0;
-	for (int varnum = 0; varnum < (int)DataStatus::getInstance()->getNumSessionVariables(); varnum++){
-		if (variableIsSelected(varnum)) varCount++;
-	}
-	int cacheSize = DataStatus::getInstance()->getCacheMB();
-	if (numMBs*varCount > (int)(cacheSize*0.75)){
-		MyBase::SetErrMsg(VAPOR_ERROR_DATA_TOO_BIG, "Current cache size is too small for current probe and resolution.\n%s \n%s",
-			"Lower the refinement level, reduce the probe size, or increase the cache size.",
-			"Rendering has been disabled.");
-		setEnabled(false);
-		return 0;
-	}
-	
-	//Specify an array of pointers to the volume(s) mapped.  We'll retrieve one
-	//volume for each variable specified, then do rms on the variables (if > 1 specified)
-	float** volData = new float*[numVariables];
-	//Now obtain all of the volumes needed for this probe:
-	int totVars = 0;
-	for (int varnum = 0; varnum < DataStatus::getInstance()->getNumSessionVariables(); varnum++){
-		if (!variableIsSelected(varnum)) continue;
-		volData[totVars] = getContainingVolume(blkMin, blkMax, refLevel, varnum, ts, fullHeight);
-		if (!volData[totVars]) {
-			return 0;
-		}
-		totVars++;
+		dataSize[i] = (int)ds->getFullSizeAtLevel(actualRefLevel,i, fullHeight);
 	}
 	//Now calculate the texture.
 	//
@@ -1211,10 +1239,10 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 				
 
 				//use the intDataCoords to index into the loaded data
-				if (totVars == 1) varVal = volData[0][xyzCoord];
+				if (numVars == 1) varVal = volData[0][xyzCoord];
 				else { //Add up the squares of the variables
 					varVal = 0.f;
-					for (int k = 0; k<totVars; k++){
+					for (int k = 0; k<numVars; k++){
 						varVal += volData[k][xyzCoord]*volData[k][xyzCoord];
 					}
 					varVal = sqrt(varVal);
@@ -1240,6 +1268,8 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 	}//End loop over iy
 	
 	if (doCache) setProbeTexture(probeTexture,ts);
+	delete volData;
+	delete sesVarNums;
 	return probeTexture;
 }
 void ProbeParams::adjustTextureSize(int fullHeight, int sz[2]){
