@@ -25,6 +25,7 @@
 #include "datastatus.h"
 #include "glwindow.h"
 #include "glutil.h"
+#include "vapor/errorcodes.h"
 
 #include <qgl.h>
 #include <qcolor.h>
@@ -169,7 +170,8 @@ unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pPar
    float scale = 4.f*pParams->getFieldScale();
    int txsize[2];
    pParams->adjustTextureSize(fullHeight, txsize);
-   pParams->buildIBFVFields(tstep, fullHeight);
+   bool ok = pParams->buildIBFVFields(tstep, fullHeight);
+   if (!ok) return 0;
    int wid = txsize[0];
    int ht = txsize[1];
    tmaxx   = wid/(scale*NPN);
@@ -358,7 +360,9 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 	//if the texture cache is invalid need to adjust texture size:
 	if (isStarting || sz[0] == 0) {
 		pParams->adjustTextureSize(fullHeight, sz);
-		pParams->buildIBFVFields(tstep, fullHeight);
+		
+		bool ok = pParams->buildIBFVFields(tstep, fullHeight);
+		if (!ok) return 0;
 	}
 	int wid = sz[0];
 	int ht = sz[1];
