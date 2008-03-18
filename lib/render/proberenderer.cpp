@@ -154,7 +154,7 @@ void ProbeRenderer::initializeGL()
 #define NMESH 100
 int    Npat   = 32;
 float  sa;
-int firstListNum;
+
 float dmaxx, dmaxy;
 float tmaxx, tmaxy;
 
@@ -162,6 +162,7 @@ float tmaxx, tmaxy;
 //Following method is called from paintGL() if no texture exists, prior to displaying the texture.
 //It uses openGL to build the texture.
 //It can be called from probeRenderer, or from glProbeWindow.
+//Every time it's called it generates a new list of patterns.
 
 unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep){
 	
@@ -175,8 +176,9 @@ unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pPar
    tmaxy   = ht/(scale*NPN);
    dmaxx   = scale/wid;
 	dmaxy   = scale/ht;
+	static int listNum = -1;
 	
-	makeIBFVPatterns(pParams);
+	listNum = makeIBFVPatterns(pParams, listNum);
 	unsigned char* imageBuffer = new unsigned char[wid*ht*4];
 	pushState(wid,ht);
 	
@@ -190,7 +192,7 @@ unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pPar
 	int numSetupFrames = alpha > 0.f ? (int)(4./alpha) : 100;
 	
 	for(int iframe = 0; iframe <= numSetupFrames; iframe++){//Calc image in back buffer:
-		stepIBFVTexture(pParams, tstep, iframe);
+		stepIBFVTexture(pParams, tstep, iframe, listNum);
 	}
 	
 
@@ -209,7 +211,7 @@ unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pPar
     return imageBuffer;
 
 }
-void ProbeRenderer::makeIBFVPatterns(ProbeParams* pParams) 
+int ProbeRenderer::makeIBFVPatterns(ProbeParams* pParams, int prevListNum) 
 { 
    int lut[256];
    int phase[NPN][NPN];
@@ -220,7 +222,8 @@ void ProbeRenderer::makeIBFVPatterns(ProbeParams* pParams)
    for (i = 0; i < 256; i++) lut[i] = i < 127 ? 0 : 255;
    for (i = 0; i < NPN; i++)
    for (j = 0; j < NPN; j++) phase[i][j] = rand() % 256; 
-   firstListNum = glGenLists(Npat+1);
+   if (prevListNum > 0) glDeleteLists(prevListNum,Npat+1);
+   int newListNum = glGenLists(Npat+1);
    for (k = 0; k < Npat; k++) {
       t = k*256/Npat;
       for (i = 0; i < NPN; i++) 
@@ -230,12 +233,12 @@ void ProbeRenderer::makeIBFVPatterns(ProbeParams* pParams)
           pat[i][j][2] = lut[(t + phase[i][j]) % 255];
           pat[i][j][3] = alpha;
       }
-      glNewList(firstListNum+k, GL_COMPILE);
+      glNewList(newListNum+k, GL_COMPILE);
       glTexImage2D(GL_TEXTURE_2D, 0, 4, NPN, NPN, 0, 
                    GL_RGBA, GL_UNSIGNED_BYTE, pat);
       glEndList();
    }
-   
+   return newListNum;
 }
 //Toy vector field integrator:  input x,y (in probe slice) get back position.
 //Need to modify so that works on 2d slice in 3d volume.  Will therefore need to have 2d 
@@ -348,12 +351,13 @@ void ProbeRenderer::popState(){
 //If animFrame == 0, it starts from beginning.
 //
 
-unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep, int frameNum, bool isStarting){
+unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep, int frameNum, bool isStarting, int* listNum){
 	float scale = 4.f*pParams->getFieldScale();
 	int sz[2];
 	pParams->getTextureSize(sz);
 	//if the texture cache is invalid need to adjust texture size:
 	if (isStarting || sz[0] == 0) {
+		qWarning("Animation starting");
 		pParams->adjustTextureSize(fullHeight, sz);
 		pParams->buildIBFVFields(tstep, fullHeight);
 	}
@@ -369,14 +373,14 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 	
 
 	if(isStarting) {
-		
-		makeIBFVPatterns(pParams);
+		qWarning("starting with alpha = %f",pParams->getAlpha());
+		*listNum = makeIBFVPatterns(pParams, *listNum);
 		glClearColor(0,0,0,0);
 		glClearDepth(0);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	}
 	
-	stepIBFVTexture(pParams, tstep, frameNum);
+	stepIBFVTexture(pParams, tstep, frameNum, *listNum);
 	
 	
 
@@ -395,7 +399,7 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
     return imageBuffer;
 
 }
-void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int frameNum){
+void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int frameNum, int listNum){
 	 float x1, x2, y, px, py;
 	 int nmesh = NMESH;
 	 int txsize[2];
@@ -422,7 +426,7 @@ void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int fram
    
 
 		glEnable(GL_BLEND); 
-		glCallList(frameNum % Npat + firstListNum);
+		glCallList(frameNum % Npat + listNum);
 		glBegin(GL_QUAD_STRIP);
 			glTexCoord2f(0.0,  0.0);  glVertex2f(0.0, 0.0);
 			glTexCoord2f(0.0,  tmaxy); glVertex2f(0.0, 1.0);

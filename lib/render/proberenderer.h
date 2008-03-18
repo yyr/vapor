@@ -42,16 +42,16 @@ public:
 	//Should be called within an OpenGL rendering context.
 	static unsigned char* buildIBFVTexture(int fullHeight, ProbeParams*, int tstep);
 	
-	static unsigned char* getNextIBFVTexture(int fullHeight, ProbeParams*, int tstep, int frameNum, bool starting);
+	static unsigned char* getNextIBFVTexture(int fullHeight, ProbeParams*, int tstep, int frameNum, bool starting, int* listNum);
 
 	static unsigned char* getProbeTexture(ProbeParams*, int frameNum, int fullHeight, bool doCache);
 protected:
 	GLuint _probeid;
-	static void makeIBFVPatterns(ProbeParams*);
+	static int makeIBFVPatterns(ProbeParams*, int prevListNum);
 	static void getDP(float x, float y, float *px, float *py, float dmaxx, float dmaxy);
 	static void pushState(int width, int height);
 	static void popState();
-	static void stepIBFVTexture(ProbeParams*, int timeStep, int frameNum);
+	static void stepIBFVTexture(ProbeParams*, int timeStep, int frameNum, int listNum);
 	
 
 };

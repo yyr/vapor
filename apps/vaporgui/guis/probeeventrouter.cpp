@@ -2492,24 +2492,6 @@ void ProbeEventRouter::resetTextureSize(ProbeParams* probeParams){
 	probeTextureFrame->setTextureSize(voxDims[0],voxDims[1]);
 }
 
-//control the repeated display of IBFV frames, by repeatedly doing updateGL() on the glProbeWindow
-void ProbeThread::run(){
-	ProbeEventRouter* router = VizWinMgr::getInstance()->getProbeRouter();
-	//int count = 0;
-	while(1){
-		
-		//Delete the previous probe texture data, then
-		//display the next texture frame from the probe renderer:
-		if (!router->isAnimating()) return;
-		
-		router->probeTextureFrame->update();
-		
-		//qWarning("called update %d on probe texture frame", count++);
-		//20 frames per second:
-		msleep(50);
-		router->probeTextureFrame->advanceAnimatingFrame();
-	}
-}
 void ProbeEventRouter::
 guiSetXIBFVComboVarNum(int varnum){
 	confirmText(false);
@@ -2554,4 +2536,22 @@ guiToggleColorMerge(bool val){
 	pParams->setIBFVColorMerged(val);
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
+}
+//control the repeated display of IBFV frames, by repeatedly doing updateGL() on the glProbeWindow
+void ProbeThread::run(){
+	ProbeEventRouter* router = VizWinMgr::getInstance()->getProbeRouter();
+	//int count = 0;
+	while(1){
+		
+		//Delete the previous probe texture data, then
+		//display the next texture frame from the probe renderer:
+		if (!router->isAnimating()) return;
+		
+		router->probeTextureFrame->update();
+		
+		//qWarning("called update %d on probe texture frame", count++);
+		//20 frames per second:
+		msleep(50);
+		router->probeTextureFrame->advanceAnimatingFrame();
+	}
 }

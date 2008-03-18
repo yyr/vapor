@@ -65,6 +65,7 @@ protected:
 	bool animatingTexture;
 	int animatingFrameNum;
 	bool animationStarting;
+	int patternListNum;
 	
 
 };
