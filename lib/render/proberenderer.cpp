@@ -357,7 +357,6 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 	pParams->getTextureSize(sz);
 	//if the texture cache is invalid need to adjust texture size:
 	if (isStarting || sz[0] == 0) {
-		qWarning("Animation starting");
 		pParams->adjustTextureSize(fullHeight, sz);
 		pParams->buildIBFVFields(tstep, fullHeight);
 	}
@@ -373,7 +372,6 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 	
 
 	if(isStarting) {
-		qWarning("starting with alpha = %f",pParams->getAlpha());
 		*listNum = makeIBFVPatterns(pParams, *listNum);
 		glClearColor(0,0,0,0);
 		glClearDepth(0);

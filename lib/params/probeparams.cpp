@@ -1513,20 +1513,16 @@ bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
 		//Then transform to values in data 
 		vtransform(probeCoord, transformMatrix, worldCorner[cornum]);
 	}
-	vsub(worldCorner[2],worldCorner[0],dataCoord);
+	vsub(worldCorner[1],worldCorner[0],dataCoord);
 	float xside = vlength(dataCoord);  
-	vsub(worldCorner[3],worldCorner[1],dataCoord);
+	vsub(worldCorner[2],worldCorner[0],dataCoord);
 	float yside = vlength(dataCoord);
 	int texHeight = textureSize[1];
 	int texWidth = textureSize[0];
 	assert(textureSize[0] != 0); //Should be a valid value
 
-	ibfvXScale = (float)texWidth/xside;  //Cells per meter, times scale factor
+	ibfvXScale = (float)texWidth/xside;  //Cells per meter
 	ibfvYScale = (float)texHeight/yside;
-	//now divide to put in a reasonable scale (actually, this is irrelevant because we renormalize later!)
-	ibfvXScale /= ((float)texWidth+(float)texHeight)*100.;
-	ibfvYScale /= ((float)texWidth+(float)texHeight)*100.;
-
 
 	if (ibfvUField[timestep]) delete ibfvUField[timestep];
 	if (ibfvVField[timestep]) delete ibfvVField[timestep];
