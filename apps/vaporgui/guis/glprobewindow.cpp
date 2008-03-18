@@ -50,6 +50,7 @@ GLProbeWindow::GLProbeWindow( const QGLFormat& fmt, QWidget* parent, const char*
 	assert(doubleBuffer());
 	setAutoBufferSwap(true);
 	patternListNum = -1;
+	currentAnimationTimestep = 0;
 }
 
 
@@ -133,10 +134,16 @@ void GLProbeWindow::paintGL()
 	unsigned char* probeTexture = 0;
 	int imgSize[2];
 	if (myParams->getProbeType() == 1) {  //IBFV texture
+		
 		if (animatingTexture) {
-			probeTexture = ProbeRenderer::getNextIBFVTexture(fullHeight,myParams, timestep, animatingFrameNum, animationStarting,
-				&patternListNum);
-			animationStarting = false;
+			if (animationStarting) currentAnimationTimestep = timestep;
+			if (currentAnimationTimestep == timestep){
+				probeTexture = ProbeRenderer::getNextIBFVTexture(fullHeight,myParams, timestep, animatingFrameNum, animationStarting,
+					&patternListNum);
+				animationStarting = false;
+			} else {
+				return;// timestep changed!
+			}
 		} else { //not animated.  Calculate it if necessary
 			probeTexture = ProbeRenderer::getProbeTexture(myParams, timestep, fullHeight, false);
 		}

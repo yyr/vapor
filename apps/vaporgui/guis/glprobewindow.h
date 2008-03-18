@@ -66,6 +66,7 @@ protected:
 	int animatingFrameNum;
 	bool animationStarting;
 	int patternListNum;
+	int currentAnimationTimestep;
 	
 
 };
