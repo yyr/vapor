@@ -71,6 +71,7 @@ ProbeParams::ProbeParams(int winnum) : RenderParams(winnum){
 	ibfvVField = 0;
 	ibfvValid = 0;
 	ibfvMag = -1.f;
+	mergeColor = false;
 	restart();
 	
 }
@@ -415,6 +416,7 @@ restart(){
 	ibfvUField = 0;
 	ibfvVField = 0;
 	ibfvMag = -1.f;
+	mergeColor = false;
 	ibfvSessionVarNum[0]= 1;
 	ibfvSessionVarNum[1] = 2;
 	ibfvSessionVarNum[2] = 3;
@@ -422,11 +424,9 @@ restart(){
 	ibfvComboVarNum[1] = 2;
 	ibfvComboVarNum[2] = 3;
 
-	setUpFrames = 50;
-	nMesh = 100;
 	alpha = 0.12f;
 	
-	fieldScale = 4.0f;
+	fieldScale = 1.0f;
 	
 	if(numVariables > 0){
 		for (int i = 0; i<numVariables; i++){
@@ -1435,10 +1435,10 @@ void ProbeParams::getIBFVValue(int ts, float xa, float ya, float* px, float* py)
 	//Resulting u, v has already been scaled to account for non-equal x,y dimensions,
 	//also multiplied by fieldScale and 0.01
 	float r = uval*uval+vval*vval;
-	if (r > fieldScale*fieldScale/(textureSize[0]*textureSize[1])) { 
+	if (r > 16.f*fieldScale*fieldScale/(textureSize[0]*textureSize[1])) { 
       r  = sqrt(r); 
-      uval *= fieldScale/(textureSize[0]*r); 
-      vval *= fieldScale/(textureSize[1]*r);  
+      uval *= 4.f*fieldScale/(textureSize[0]*r); 
+      vval *= 4.f*fieldScale/(textureSize[1]*r);  
    }
 	*px = xa + uval;
 	*py = ya + vval;
@@ -1597,7 +1597,7 @@ bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
 		ibfvMag = sumMag;
 		if (ibfvMag == 0.f) ibfvMag = 1.f; //special case for constant 0 field
 	}
-	float scaleFac = fieldScale/ibfvMag;
+	float scaleFac = 4.f*fieldScale/ibfvMag;
 	//Now renormalize
 	for (int iy = 0; iy < texHeight; iy++){
 		for (int ix = 0; ix < texWidth; ix++){

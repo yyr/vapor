@@ -138,6 +138,7 @@ protected slots:
 	void guiSetProbeType(int);
 	void ibfvPlay();
 	void ibfvPause();
+	void guiToggleColorMerge(bool);
 	
 	//Handle thumbwheel events:
 	void rotateXWheel(int);
@@ -189,6 +190,7 @@ protected slots:
 	void guiSetYIBFVComboVarNum(int varnum);
 	void guiSetZIBFVComboVarNum(int varnum);
 	void guiReleaseAlphaSlider();
+	void guiReleaseScaleSlider();
 	
 	
 protected:

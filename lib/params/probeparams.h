@@ -224,13 +224,10 @@ public:
 	//IBFV parameters:
 	float getAlpha() {return alpha;}
 	void setAlpha(float val) {alpha = val;}
+	//fieldScale is 1/4 times actual scale factor used.
 	float getFieldScale() {return fieldScale;}
 	void setFieldScale(float val) {fieldScale = val;}
 	
-	int getSetUpFrames(){return setUpFrames;}
-	void setSetUpFrames(int val){setUpFrames = val;}
-	int getNMesh(){return nMesh;}
-	void setNMesh(int val){nMesh = val;}
 	//Advect (x,y) to (*px, *py)
 	//all 4 are in grid coords of current probe
 	void getIBFVValue(int timestep, float x, float y, float* px, float* py);
@@ -248,6 +245,8 @@ public:
 	bool ibvfPointIsValid(int timestep, int uv){
 		return (ibfvValid[timestep][uv] != 0);
 	}
+	bool ibfvColorMerged() {return mergeColor;}
+	void setIBFVColorMerged(bool val) {mergeColor = val;}
 	
 protected:
 	
@@ -316,8 +315,7 @@ protected:
 	int textureSize[2];
 	//IBFV parameters:
 	float alpha, fieldScale;
-	int setUpFrames, nMesh;
-	
+	bool mergeColor;
 	//There are 2 ibfv fields for each time step
 	//ibfvUField[t][w] is the U-value at point w = (x+wid*y) at timestep t
 	//ibfvValid indicates that the associated texture point is within valid region.

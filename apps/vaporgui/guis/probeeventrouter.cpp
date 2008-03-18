@@ -120,6 +120,7 @@ ProbeEventRouter::hookUpTab()
 	connect (zSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZSize(int)));
 	connect (zCenterSlider, SIGNAL(valueChanged(int)), this, SLOT(guiNudgeZCenter(int)));
 	connect (alphaSlider, SIGNAL(sliderReleased()), this, SLOT(guiReleaseAlphaSlider()));
+	connect (scaleSlider, SIGNAL(sliderReleased()), this, SLOT(guiReleaseScaleSlider()));
 	connect (xCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (yCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (zCenterEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
@@ -131,14 +132,11 @@ ProbeEventRouter::hookUpTab()
 	connect (zSizeEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (histoScaleEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect(alphaEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect(setupFramesEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect(fieldScaleEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	connect(NMESHEdit,SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
-	
+	connect(colorMergeCheckbox,SIGNAL(toggled(bool)), this, SLOT(guiToggleColorMerge(bool)));
 	connect (alphaEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (setupFramesEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
+	
 	connect (fieldScaleEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
-	connect (NMESHEdit, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 
 	connect (leftMappingBound, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
 	connect (rightMappingBound, SIGNAL(returnPressed()), this, SLOT(probeReturnPressed()));
@@ -246,10 +244,11 @@ void ProbeEventRouter::updateTab(){
 
 	//set ibfv parameters:
 	alphaEdit->setText(QString::number(probeParams->getAlpha()));
-	setupFramesEdit->setText(QString::number(probeParams->getSetUpFrames()));
-	fieldScaleEdit->setText(QString::number(probeParams->getFieldScale()));
-	NMESHEdit->setText(QString::number(probeParams->getNMesh()));
+	
+	fieldScaleEdit->setText(QString::number(probeParams->getFieldScale(),'g',4));
+	
 	alphaSlider->setValue((int)((100.f *probeParams->getAlpha()+0.5f)));
+	scaleSlider->setValue((int)(((log10(probeParams->getFieldScale())+1.f))*50.f));
 
 	xSteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(0));
 	ySteadyVarCombo->setCurrentItem(probeParams->getIBFVComboVarNum(1));
@@ -409,8 +408,6 @@ void ProbeEventRouter::confirmText(bool /*render*/){
 	//Set IBFV values:
 	probeParams->setAlpha(alphaEdit->text().toFloat());
 	probeParams->setFieldScale(fieldScaleEdit->text().toFloat());
-	probeParams->setNMesh(NMESHEdit->text().toInt());
-	probeParams->setSetUpFrames(setupFramesEdit->text().toInt());
 
 	//Set the probe size based on current text box settings:
 	float boxSize[3], boxmin[3], boxmax[3], boxCenter[3];
@@ -598,6 +595,21 @@ guiReleaseAlphaSlider(){
 	PanelCommand* cmd = PanelCommand::captureStart(pParams, "move alpha slider");
 	float sliderVal = (float)(alphaSlider->value())*0.01f;
 	pParams->setAlpha(sliderVal);
+	setProbeDirty(pParams);
+	PanelCommand::captureEnd(cmd, pParams);
+	probeTextureFrame->update();
+	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	updateTab();
+}
+void ProbeEventRouter::
+guiReleaseScaleSlider(){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams, "move scale slider");
+	//scale slider goes from 0.1 to 10:
+	float sliderVal = (float)(scaleSlider->value())*0.02f - 1.f;// from -1 to 1
+	sliderVal = pow(10.f,sliderVal);
+	pParams->setFieldScale(sliderVal);
 	setProbeDirty(pParams);
 	PanelCommand::captureEnd(cmd, pParams);
 	probeTextureFrame->update();
@@ -2502,7 +2514,7 @@ void ProbeEventRouter::
 guiSetXIBFVComboVarNum(int varnum){
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set IBFV field X variable");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set flow field X variable");
 	pParams->setIBFVComboVarNum(0,varnum);
 	if (varnum == 0) pParams->setIBFVSessionVarNum(0,0);
 	else 
@@ -2514,7 +2526,7 @@ void ProbeEventRouter::
 guiSetYIBFVComboVarNum(int varnum){
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set IBFV field Y variable");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set flow field Y variable");
 	pParams->setIBFVComboVarNum(1,varnum);
 	if (varnum == 0) pParams->setIBFVSessionVarNum(1,0);
 	else 
@@ -2526,11 +2538,20 @@ void ProbeEventRouter::
 guiSetZIBFVComboVarNum(int varnum){
 	confirmText(false);
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set IBFV field Z variable");
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "set flow field Z variable");
 	pParams->setIBFVComboVarNum(2,varnum);
 	if (varnum == 0) pParams->setIBFVSessionVarNum(2,0);
 	else 
 		pParams->setIBFVSessionVarNum(2, DataStatus::getInstance()->mapMetadataToSessionVarNum(varnum-1)+1);
 	PanelCommand::captureEnd(cmd, pParams);
+	setProbeDirty(pParams);
+}
+void ProbeEventRouter::
+guiToggleColorMerge(bool val){
+	confirmText(false);
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	PanelCommand* cmd = PanelCommand::captureStart(pParams,  "toggle color merge");
+	pParams->setIBFVColorMerged(val);
+	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
 }

@@ -151,7 +151,7 @@ void ProbeRenderer::initializeGL()
 }
 
 #define	NPN 64
-#define STEADYTIME 110
+#define NMESH 100
 int    Npat   = 32;
 float  sa;
 int firstListNum;
@@ -165,7 +165,7 @@ float tmaxx, tmaxy;
 
 unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep){
 	
-   float scale = pParams->getFieldScale();
+   float scale = 4.f*pParams->getFieldScale();
    int txsize[2];
    pParams->adjustTextureSize(fullHeight, txsize);
    pParams->buildIBFVFields(tstep, fullHeight);
@@ -186,8 +186,8 @@ unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pPar
 	
 
 	
-	//makeIBFVPatterns();
-	int numSetupFrames = pParams->getSetUpFrames();
+	float alpha = pParams->getAlpha();
+	int numSetupFrames = alpha > 0.f ? (int)(4./alpha) : 100;
 	
 	for(int iframe = 0; iframe <= numSetupFrames; iframe++){//Calc image in back buffer:
 		stepIBFVTexture(pParams, tstep, iframe);
@@ -349,7 +349,7 @@ void ProbeRenderer::popState(){
 //
 
 unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep, int frameNum, bool isStarting){
-	float scale = pParams->getFieldScale();
+	float scale = 4.f*pParams->getFieldScale();
 	int sz[2];
 	pParams->getTextureSize(sz);
 	//if the texture cache is invalid need to adjust texture size:
@@ -397,11 +397,11 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 }
 void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int frameNum){
 	 float x1, x2, y, px, py;
-	 int nmesh = pParams->getNMesh();
+	 int nmesh = NMESH;
 	 int txsize[2];
 	 pParams->getTextureSize(txsize);
 	 float DM = ((float) (0.999999/(nmesh-1.0)));
-		sa = 0.010*cos(STEADYTIME*2.0*M_PI/200.0);
+		//sa = 0.010*cos(STEADYTIME*2.0*M_PI/200.0);
 		for (int i = 0; i < nmesh-1; i++) {
 			x1 = DM*i; x2 = x1 + DM;
 			glBegin(GL_QUAD_STRIP);
