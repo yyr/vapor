@@ -140,25 +140,19 @@ void ProbeRenderer::paintGL()
 
 void ProbeRenderer::initializeGL()
 {
-	
 	myGLWindow->makeCurrent();
 	myGLWindow->qglClearColor( Qt::black ); 		// Let OpenGL clear to black
-
 	glGenTextures(1, &_probeid);
 	glBindTexture(GL_TEXTURE_2D, _probeid);
-	
 	initialized = true;
-	
 }
-// IBFV constants
+// IBFV constants:
+//IBFV spot noise grid size
 #define	NPN 64
+//Size of polygonal mesh used for blending spot noise pattern
 #define NMESH 100
+//Number of different spot noise patterns
 #define Npat  32
-//float  sa;
-
-float dmaxx, dmaxy;
-float tmaxx, tmaxy;
-
 
 //Following method is called from paintGL() if no texture exists, prior to displaying the texture.
 //It uses openGL to build the texture.
@@ -167,17 +161,14 @@ float tmaxx, tmaxy;
 
 unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep){
 	
-   float scale = 4.f*pParams->getFieldScale();
-   int txsize[2];
-   pParams->adjustTextureSize(fullHeight, txsize);
-   bool ok = pParams->buildIBFVFields(tstep, fullHeight);
-   if (!ok) return 0;
-   int wid = txsize[0];
-   int ht = txsize[1];
-   tmaxx   = wid/(scale*NPN);
-   tmaxy   = ht/(scale*NPN);
-   dmaxx   = scale/wid;
-	dmaxy   = scale/ht;
+	
+	int txsize[2];
+	pParams->adjustTextureSize(fullHeight, txsize);
+	bool ok = pParams->buildIBFVFields(tstep, fullHeight);
+	if (!ok) return 0;
+	int wid = txsize[0];
+	int ht = txsize[1];
+   
 	static int listNum = -1;
 	
 	listNum = makeIBFVPatterns(pParams, listNum);
@@ -258,34 +249,7 @@ int ProbeRenderer::makeIBFVPatterns(ProbeParams* pParams, int prevListNum)
    }
    return newListNum;
 }
-//Toy vector field integrator:  input x,y (in probe slice) get back position.
-//Need to modify so that works on 2d slice in 3d volume.  Will therefore need to have 2d 
-//vector field data slice to work on
-/*
-void ProbeRenderer::getDP(float x, float y, float *px, float *py, float dmaxx, float dmaxy) 
-{
-   float dx, dy, vx, vy, r;
-  
-   dx = 2.*(x - 0.5);         
-   dy = 2.*(y - 0.5); 
-   r  = dx*dx + dy*dy; 
-   if (r < 0.0001) r = 0.0001;
-   r = sqrt(r);
-   vx = -sa*dy/r; //spiral rotation
-   vy = sa*dx/r;
-   r  = vx*vx + vy*vy;
-   if (r > dmaxx*dmaxy) { 
-      r  = sqrt(r); 
-      vx *= dmaxx/r; 
-      vy *= dmaxy/r; 
-   }
-   
-   *px = x + vx;         
-   *py = y + vy;
-   
-   
-}
-*/
+
 //Set up the gl state for doing the ibfv in the aux buffer.
 void ProbeRenderer::pushState(int wid, int ht){
 	//int val;
@@ -301,44 +265,44 @@ void ProbeRenderer::pushState(int wid, int ht){
 	
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
-   glLoadIdentity(); 
-   glTranslatef(-1.0, -1.0, 0.0); 
-   glScalef(2.0, 2.0, 1.0);
-  
-   glMatrixMode(GL_TEXTURE);
-   glPushMatrix();
-   glLoadIdentity();
-   
-   glPushAttrib(GL_ALL_ATTRIB_BITS);
-     
-   glViewport(0, 0, (GLsizei) wid, (GLsizei) ht);
-   glTexParameteri(GL_TEXTURE_2D, 
-                   GL_TEXTURE_WRAP_S, GL_REPEAT); 
-   glTexParameteri(GL_TEXTURE_2D, 
-                   GL_TEXTURE_WRAP_T, GL_REPEAT); 
-   glTexParameteri(GL_TEXTURE_2D, 
-                   GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-   glTexParameteri(GL_TEXTURE_2D, 
-                   GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-   glTexEnvf(GL_TEXTURE_ENV, 
-                   GL_TEXTURE_ENV_MODE, GL_REPLACE);
-   glEnable(GL_TEXTURE_2D);
-   glShadeModel(GL_FLAT);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   
-   glDisable(GL_CULL_FACE);
-   //glGetIntegerv(GL_UNPACK_ALIGNMENT, &glPixelAlign);
-   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-   glDisable(GL_LIGHTING);
-   glDisable(GL_DEPTH_TEST);
-   glDepthMask(GL_FALSE);
-   glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+	glLoadIdentity(); 
+	glTranslatef(-1.0, -1.0, 0.0); 
+	glScalef(2.0, 2.0, 1.0);
+	  
+	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
+	glLoadIdentity();
+	   
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	     
+	glViewport(0, 0, (GLsizei) wid, (GLsizei) ht);
+	glTexParameteri(GL_TEXTURE_2D, 
+					GL_TEXTURE_WRAP_S, GL_REPEAT); 
+	glTexParameteri(GL_TEXTURE_2D, 
+					GL_TEXTURE_WRAP_T, GL_REPEAT); 
+	glTexParameteri(GL_TEXTURE_2D, 
+					GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, 
+					GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexEnvf(GL_TEXTURE_ENV, 
+					GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glEnable(GL_TEXTURE_2D);
+	glShadeModel(GL_FLAT);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	   
+	glDisable(GL_CULL_FACE);
 	
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+	glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+		
 	glStencilMask(GL_TRUE);
-   glPixelZoom(1.0,1.0);
-   glDisable(GL_SCISSOR_TEST);
-   glDisable(GL_STENCIL_TEST);
-   printOpenGLError();
+	glPixelZoom(1.0,1.0);
+	glDisable(GL_SCISSOR_TEST);
+	glDisable(GL_STENCIL_TEST);
+	printOpenGLError();
 }
 void ProbeRenderer::popState(){
 	
@@ -359,26 +323,20 @@ void ProbeRenderer::popState(){
 //
 
 unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pParams, int tstep, int frameNum, bool isStarting, int* listNum){
-	float scale = 4.f*pParams->getFieldScale();
+	
 	int sz[2];
 	pParams->getTextureSize(sz);
 	//if the texture cache is invalid need to adjust texture size:
 	if (isStarting || sz[0] == 0) {
 		pParams->adjustTextureSize(fullHeight, sz);
-		
 		bool ok = pParams->buildIBFVFields(tstep, fullHeight);
 		if (!ok) return 0;
 	}
 	int wid = sz[0];
 	int ht = sz[1];
-	tmaxx   = wid/(scale*NPN);
-    tmaxy   = ht/(scale*NPN);
-    dmaxx   = scale/wid;
-	dmaxy   = scale/ht;
+
 	unsigned char* imageBuffer = new unsigned char[wid*ht*4];
 	pushState(wid,ht);
-	
-	
 
 	if(isStarting) {
 		*listNum = makeIBFVPatterns(pParams, *listNum);
@@ -386,10 +344,10 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 		glClearDepth(0);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	}
-	
+
 	stepIBFVTexture(pParams, tstep, frameNum, *listNum);
-	
-    //save in image buffer
+
+	//save in image buffer
 	glReadPixels(0,0,wid, ht, GL_RGBA, GL_UNSIGNED_BYTE, imageBuffer);
 	popState();
 	//Eliminate transparency 
@@ -422,46 +380,48 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 				imageBuffer[4*q+r] = (unsigned char)0;
 		}
 	}
-    return imageBuffer;
+	return imageBuffer;
 
 }
 void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int frameNum, int listNum){
-	 float x1, x2, y, px, py;
-	 int nmesh = NMESH;
-	 int txsize[2];
-	 pParams->getTextureSize(txsize);
-	 float DM = ((float) (0.999999/(nmesh-1.0)));
-		//sa = 0.010*cos(STEADYTIME*2.0*M_PI/200.0);
-		for (int i = 0; i < nmesh-1; i++) {
-			x1 = DM*i; x2 = x1 + DM;
-			glBegin(GL_QUAD_STRIP);
-			for (int j = 0; j < nmesh; j++) {
-				y = DM*j;
-				glTexCoord2f(x1, y); 
-				pParams->getIBFVValue(timestep, x1, y, &px, &py);
-				//getDP(x1, y, &px, &py, dmaxx, dmaxy); 
-				glVertex2f(px, py);
-
-				glTexCoord2f(x2, y); 
-				pParams->getIBFVValue(timestep, x2, y, &px, &py);
-				//getDP(x2, y, &px, &py, dmaxx, dmaxy); 
-				glVertex2f(px, py);
-			}
-			glEnd();
-		}
-   
-
-		glEnable(GL_BLEND); 
-		glCallList(frameNum % Npat + listNum);
+	float x1, x2, y, px, py;
+	
+	int nmesh = NMESH;
+	int txsize[2];
+	pParams->getTextureSize(txsize);
+	float scale = 4.f*pParams->getFieldScale();
+	float tmaxx   = txsize[0]/(scale*NPN);
+	float tmaxy   = txsize[1]/(scale*NPN);
+	float DM = ((float) (0.999999/(nmesh-1.0)));
+	
+	for (int i = 0; i < nmesh-1; i++) {
+		x1 = DM*i; x2 = x1 + DM;
 		glBegin(GL_QUAD_STRIP);
-			glTexCoord2f(0.0,  0.0);  glVertex2f(0.0, 0.0);
-			glTexCoord2f(0.0,  tmaxy); glVertex2f(0.0, 1.0);
-			glTexCoord2f(tmaxx, 0.0);  glVertex2f(1.0, 0.0);
-			glTexCoord2f(tmaxx, tmaxy); glVertex2f(1.0, 1.0);
+		for (int j = 0; j < nmesh; j++) {
+			y = DM*j;
+			glTexCoord2f(x1, y); 
+			pParams->getIBFVValue(timestep, x1, y, &px, &py);
+			glVertex2f(px, py);
+
+			glTexCoord2f(x2, y); 
+			pParams->getIBFVValue(timestep, x2, y, &px, &py);
+			glVertex2f(px, py);
+		}
 		glEnd();
-		glDisable(GL_BLEND);
-		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-							0, 0, txsize[0], txsize[1], 0);
+	}
+
+
+	glEnable(GL_BLEND); 
+	glCallList(frameNum % Npat + listNum);
+	glBegin(GL_QUAD_STRIP);
+		glTexCoord2f(0.0,  0.0);  glVertex2f(0.0, 0.0);
+		glTexCoord2f(0.0,  tmaxy); glVertex2f(0.0, 1.0);
+		glTexCoord2f(tmaxx, 0.0);  glVertex2f(1.0, 0.0);
+		glTexCoord2f(tmaxx, tmaxy); glVertex2f(1.0, 1.0);
+	glEnd();
+	glDisable(GL_BLEND);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+						0, 0, txsize[0], txsize[1], 0);
 }
 //Static method to calculate the probe texture whether IBFV or data or both
 unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, int frameNum, int fullHeight, bool doCache){
