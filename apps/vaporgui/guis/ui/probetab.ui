@@ -2746,7 +2746,7 @@ selected axis.</string>
                                                     <property name="minimumSize">
                                                         <size>
                                                             <width>380</width>
-                                                            <height>256</height>
+                                                            <height>261</height>
                                                         </size>
                                                     </property>
                                                     <property name="whatsThis" stdset="0">

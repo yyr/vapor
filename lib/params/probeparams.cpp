@@ -795,8 +795,6 @@ buildNode() {
 	oss.str(empty);
 	oss << (double)GetHistoStretch();
 	attrs[_histoStretchAttr] = oss.str();
-
-	string fieldNames[3];
 	
 	oss.str(empty);
 	for (int i = 0; i<3; i++){
@@ -1436,10 +1434,9 @@ void ProbeParams::rotateAndRenormalizeBox(int axis, float rotVal){
 //Advect the point (x,y) in the probe to the point (*px, *py)
 //Requres that buildIBFVFields be called first!
 //Input xa,ya are between 0 and 1, and *px, *py are in same coord space.
-//Returns false if data is outside of region
+//Requires valid data
 void ProbeParams::getIBFVValue(int ts, float xa, float ya, float* px, float* py){
-	assert (ibfvUField && ibfvUField[ts]);
-	
+	assert(ibfvUField && ibfvUField[ts]);
 	assert(xa >= 0.f && ya >= 0.f && xa < 1.f && ya < 1.f);
 	//convert xa and ya to grid coords
 	float x = xa * (float)(textureSize[0]-1);
@@ -1667,8 +1664,7 @@ getProbeVariables(int ts, size_t fullHeight, int numVars, int* sesVarNums,
 	//valid integer coords:
 
 	getAvailableBoundingBox(ts, blkMin, blkMax, coordMin, coordMax, fullHeight, refLevel);
-	int bSize =  *(DataStatus::getInstance()->getCurrentMetadata()->GetBlockSize());
-
+	
 	float boxExts[6];
 	RegionParams::convertToStretchedBoxExtentsInCube(refLevel,coordMin, coordMax,boxExts,fullHeight); 
 	int numMBs = RegionParams::getMBStorageNeeded(boxExts, boxExts+3, refLevel);

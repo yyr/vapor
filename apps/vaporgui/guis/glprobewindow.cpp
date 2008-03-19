@@ -140,7 +140,8 @@ void GLProbeWindow::paintGL()
 			if (currentAnimationTimestep == timestep){
 				probeTexture = ProbeRenderer::getNextIBFVTexture(fullHeight,myParams, timestep, animatingFrameNum, animationStarting,
 					&patternListNum);
-				animationStarting = false;
+				if(probeTexture) animationStarting = false;
+				else return; //failure to build texture
 			} else {
 				return;// timestep changed!
 			}
