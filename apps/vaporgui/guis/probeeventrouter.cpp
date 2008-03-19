@@ -2096,7 +2096,7 @@ void ProbeEventRouter::captureImage() {
 	size_t fullHeight = rParams->getFullGridHeight();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
 	//Make sure we have created a probe texture already...
-	unsigned char* probeTex = pParams->getCurrentProbeTexture(timestep);
+	unsigned char* probeTex = pParams->getCurrentProbeTexture(timestep, pParams->getProbeType());
 	if (!probeTex){
 		MessageReporter::errorMsg("Image Capture Error;\nNo image to capture");
 		return;
@@ -2542,6 +2542,7 @@ guiToggleColorMerge(bool val){
 	PanelCommand::captureEnd(cmd,pParams);
 	setProbeDirty(pParams);
 	VizWinMgr::getInstance()->setVizDirty(pParams,ProbeTextureBit,true);
+	updateTab();
 }
 //control the repeated display of IBFV frames, by repeatedly doing updateGL() on the glProbeWindow
 void ProbeThread::run(){

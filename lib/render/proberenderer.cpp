@@ -201,13 +201,29 @@ unsigned char* ProbeRenderer::buildIBFVTexture(int fullHeight, ProbeParams* pPar
     //save in image buffer
 	glReadPixels(0,0,wid, ht, GL_RGBA, GL_UNSIGNED_BYTE, imageBuffer);
 	popState();
-	//Eliminate transparency 
-	//later just merge in color and transparency here. 
+	//merge color or eliminate transparency.
+	unsigned char* dataTex = 0;
+	if (pParams->ibfvColorMerged()){
+		dataTex = pParams->getCurrentProbeTexture(tstep, 0);
+		assert(dataTex);
+	}
 	for (int q = 0; q<wid*ht; q++){
-		if (pParams->ibvfPointIsValid(tstep, q))
-			imageBuffer[4*q+3] = (unsigned char)255;
-		else for (int r = 0; r<3; r++){
-			imageBuffer[4*q+r] = (unsigned char)0;
+		if (pParams->ibvfPointIsValid(tstep, q)){
+			if (dataTex){
+				//copy over transparency:
+				imageBuffer[4*q+3] = dataTex[4*q+3];
+				//multiply color by ibfv value, then divide by 256
+				for (int c = 0; c<3; c++){
+					int val = (int)(imageBuffer[4*q+c])*(int)(dataTex[4*q+c]);
+					imageBuffer[4*q+c] = (unsigned char)(val>>8);
+				}
+				
+			} else { //make opaque:
+				imageBuffer[4*q+3] = (unsigned char)255;
+			}
+		} else { //invalid point
+			for (int r = 0; r<3; r++)
+				imageBuffer[4*q+r] = (unsigned char)0;
 		}
 	}
     return imageBuffer;
@@ -373,18 +389,37 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 	
 	stepIBFVTexture(pParams, tstep, frameNum, *listNum);
 	
-	
-
     //save in image buffer
 	glReadPixels(0,0,wid, ht, GL_RGBA, GL_UNSIGNED_BYTE, imageBuffer);
 	popState();
 	//Eliminate transparency 
 	//later just merge in color  here. 
+	unsigned char* dataTex = 0;
+	if (pParams->ibfvColorMerged()){
+		dataTex = pParams->getCurrentProbeTexture(tstep, 0);
+		if (!dataTex){
+			dataTex = pParams->calcProbeDataTexture(frameNum, 256,256,fullHeight);
+			//Always put this in the data texture cache...
+			pParams->setProbeTexture(dataTex,frameNum,0);
+		}
+	}
 	for (int q = 0; q<wid*ht; q++){
-		if (pParams->ibvfPointIsValid(tstep, q))
-			imageBuffer[4*q+3] = (unsigned char)255;
-		else for (int r = 0; r<3; r++){
-			imageBuffer[4*q+r] = (unsigned char)0;
+		if (pParams->ibvfPointIsValid(tstep, q)){
+			if (dataTex){
+				//copy over transparency:
+				imageBuffer[4*q+3] = dataTex[4*q+3];
+				//multiply color by ibfv value, then divide by 256
+				for (int c = 0; c<3; c++){
+					int val = (int)(imageBuffer[4*q+c])*(int)(dataTex[4*q+c]);
+					imageBuffer[4*q+c] = (unsigned char)(val>>8);
+				}
+				
+			} else { //make opaque:
+				imageBuffer[4*q+3] = (unsigned char)255;
+			}
+		} else { //invalid point
+			for (int r = 0; r<3; r++)
+				imageBuffer[4*q+r] = (unsigned char)0;
 		}
 	}
     return imageBuffer;
@@ -428,14 +463,21 @@ void ProbeRenderer::stepIBFVTexture(ProbeParams* pParams, int timestep, int fram
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
 							0, 0, txsize[0], txsize[1], 0);
 }
-//Static method to calculate the probe texture whether IBFV or data
+//Static method to calculate the probe texture whether IBFV or data or both
 unsigned char* ProbeRenderer::getProbeTexture(ProbeParams* pParams, int frameNum, int fullHeight, bool doCache){
-	if (!pParams->probeIsDirty(frameNum)) return pParams->getCurrentProbeTexture(frameNum);
+	if (!pParams->probeIsDirty(frameNum)) 
+		return pParams->getCurrentProbeTexture(frameNum, pParams->getProbeType());
+
 	if (pParams->getProbeType() == 0) {return pParams->calcProbeDataTexture(frameNum, 0,0,fullHeight);}
 	//OK, now handle IBFV texture:
+	if (pParams->ibfvColorMerged()){
+		unsigned char* dataTex = pParams->calcProbeDataTexture(frameNum, 256,256,fullHeight);
+		//Always put this in the cache...
+		pParams->setProbeTexture(dataTex,frameNum,0);
+	}
 	unsigned char* probeTex = buildIBFVTexture(fullHeight, pParams,  frameNum);
 	if (doCache){
-		pParams->setProbeTexture(probeTex, frameNum);
+		pParams->setProbeTexture(probeTex, frameNum, 1);
 	}
 	return probeTex;
 }

@@ -69,7 +69,8 @@ const string ProbeParams::_probeTypeAttr = "ProbeType";
 ProbeParams::ProbeParams(int winnum) : RenderParams(winnum){
 	thisParamType = ProbeParamsType;
 	numVariables = 0;
-	probeTextures = 0;
+	probeDataTextures = 0;
+	probeIBFVTextures = 0;
 	maxTimestep = 1;
 	ibfvUField = 0;
 	ibfvVField = 0;
@@ -87,11 +88,17 @@ ProbeParams::~ProbeParams(){
 		}
 		delete transFunc;
 	}
-	if (probeTextures) {
+	if (probeDataTextures) {
 		for (int i = 0; i<= maxTimestep; i++){
-			if (probeTextures[i]) delete probeTextures[i];
+			if (probeDataTextures[i]) delete probeDataTextures[i];
 		}
-		delete probeTextures;
+		delete probeDataTextures;
+	}
+	if (probeIBFVTextures) {
+		for (int i = 0; i<= maxTimestep; i++){
+			if (probeIBFVTextures[i]) delete probeIBFVTextures[i];
+		}
+		delete probeIBFVTextures;
 	}
 	if (ibfvUField) {
 		for (int i = 0; i<= maxTimestep; i++){
@@ -131,7 +138,8 @@ deepRCopy(){
 		newParams->transFunc[i] = new TransferFunction(*transFunc[i]);
 	}
 	//Probe texture must be recreated when needed
-	newParams->probeTextures = 0;
+	newParams->probeDataTextures = 0;
+	newParams->probeIBFVTextures = 0;
 	newParams->ibfvUField = 0;
 	newParams->ibfvVField = 0;
 	newParams->ibfvValid = 0;
@@ -392,12 +400,14 @@ reinit(bool doOverride){
 	setEnabled(false);
 	// set up the texture cache
 	setProbeDirty();
-	if (probeTextures) delete probeTextures;
+	if (probeDataTextures) delete probeDataTextures;
+	if (probeIBFVTextures) delete probeIBFVTextures;
 	if (ibfvUField) delete ibfvUField;
 	if (ibfvVField) delete ibfvVField;
 	if (ibfvValid) delete ibfvValid;
 	maxTimestep = DataStatus::getInstance()->getMaxTimestep();
-	probeTextures = 0;
+	probeDataTextures = 0;
+	probeIBFVTextures = 0;
 	ibfvUField = 0;
 	ibfvVField = 0;
 	return true;
@@ -412,8 +422,10 @@ restart(){
 	histoStretchFactor = 1.f;
 	firstVarNum = 0;
 	setProbeDirty();
-	if (probeTextures) delete probeTextures;
-	probeTextures = 0;
+	if (probeDataTextures) delete probeDataTextures;
+	probeDataTextures = 0;
+	if (probeIBFVTextures) delete probeIBFVTextures;
+	probeIBFVTextures = 0;
 	if (ibfvUField) delete ibfvUField;
 	if (ibfvVField) delete ibfvVField;
 	if (ibfvValid) delete ibfvValid;
@@ -1095,11 +1107,19 @@ void ProbeParams::mapCursor(){
 }
 //Clear out the cache
 void ProbeParams::setProbeDirty(){
-	if (probeTextures){
+	if (probeDataTextures){
 		for (int i = 0; i<=maxTimestep; i++){
-			if (probeTextures[i]) {
-				delete probeTextures[i];
-				probeTextures[i] = 0;
+			if (probeDataTextures[i]) {
+				delete probeDataTextures[i];
+				probeDataTextures[i] = 0;
+			}
+		}
+	}
+	if (probeIBFVTextures){
+		for (int i = 0; i<=maxTimestep; i++){
+			if (probeIBFVTextures[i]) {
+				delete probeIBFVTextures[i];
+				probeIBFVTextures[i] = 0;
 			}
 		}
 	}
@@ -1265,7 +1285,7 @@ calcProbeDataTexture(int ts, int texWidth, int texHeight, size_t fullHeight){
 		}//End loop over ix
 	}//End loop over iy
 	
-	if (doCache) setProbeTexture(probeTexture,ts);
+	if (doCache) setProbeTexture(probeTexture,ts, 0);
 	delete volData;
 	delete sesVarNums;
 	return probeTexture;

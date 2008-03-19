@@ -48,8 +48,8 @@ public:
 	virtual Params* deepCopy() {return (Params*)deepRCopy();}
 	
 	bool probeIsDirty(int timestep) {
-		if (!probeTextures) return true;
-		return (probeTextures[timestep] == 0);
+		if (probeType == 0) return (!probeDataTextures || probeDataTextures[timestep] == 0);
+		else return (!probeIBFVTextures || probeIBFVTextures[timestep] == 0);
 	}
 	virtual const float* getCurrentDatarange(){
 		return currentDatarange;
@@ -149,13 +149,15 @@ public:
 	void setHistoStretch(float factor){histoStretchFactor = factor;}
 	virtual float GetHistoStretch(){return histoStretchFactor;}
 	
-	void setProbeTexture(unsigned char* tex, int timestep){ 
-		if (!probeTextures) {
-			probeTextures = new unsigned char*[maxTimestep + 1];
-			for (int i = 0; i<= maxTimestep; i++) probeTextures[i] = 0;
+	void setProbeTexture(unsigned char* tex, int timestep, int textureType){ 
+		unsigned char** textureArray = (textureType == 0) ? probeDataTextures : probeIBFVTextures;
+		if (!textureArray){
+			textureArray = new unsigned char*[maxTimestep + 1];
+				for (int i = 0; i<= maxTimestep; i++) textureArray[i] = 0;
 		}
-		if (probeTextures[timestep]) delete probeTextures[timestep];
-		probeTextures[timestep] = tex;
+		if (textureArray[timestep]) delete textureArray[timestep];
+		textureArray[timestep] = tex;
+		if (textureType == 0) probeDataTextures = textureArray; else probeIBFVTextures = textureArray;
 	}
 	unsigned char* calcProbeDataTexture(int timestep, int wid, int ht, size_t fullGridHeight);
 
@@ -166,8 +168,9 @@ public:
 				  size_t blkMin[3], size_t blkMax[3], size_t coordMin[3], size_t coordMax[3],
 				  int* actualRefLevel);
 
-	unsigned char* getCurrentProbeTexture(int timestep) {
-		return probeTextures[timestep];
+	unsigned char* getCurrentProbeTexture(int timestep, int texType) {
+		if( texType == 0) return probeDataTextures[timestep];
+		else return probeIBFVTextures[timestep];
 	}
 	void getProbeVoxelExtents(size_t fullHeight, float voxdims[2]);
 
@@ -306,7 +309,8 @@ protected:
 	
 	
 	//Cache of probe textures, one per timestep.
-	unsigned char** probeTextures;
+	unsigned char** probeIBFVTextures;
+	unsigned char** probeDataTextures;
 	int maxTimestep;
 	
 	
