@@ -2239,9 +2239,6 @@ selected axis.</string>
                                     <property name="frameShadow">
                                         <enum>Raised</enum>
                                     </property>
-                                    <property name="toolTip" stdset="0">
-                                        <string>Parameters that control flow image in the probe</string>
-                                    </property>
                                     <property name="whatsThis" stdset="0">
                                         <string>Flow image in the Probe uses a technique called Image Based Flow Visualization, due to Jarke Van Wijk.  A random spot noise pattern is moved via the vector field.  Multiple such images are accumulated, giving the effect of smearing the random pattern along the direction of flow.  This can be seen evolving over time by clicking the "Play" and "Pause" button. The alpha value determines the fraction of new noise that is blended into the previous image.  The flow speed is scaled by the Scale parameter.</string>
                                     </property>

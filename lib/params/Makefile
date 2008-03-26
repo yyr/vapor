@@ -10,12 +10,12 @@ FILES = \
 	datastatus dvrparams flowparams glutil \
 	histo mapperfunction params probeparams regionparams \
 	tfinterpolator transferfunction viewpoint \
-	animationparams	viewpointparams \
+	animationparams	viewpointparams ParamsBase \
 	Colormap OpacityMap ParamNode ParamsIso ColorMapBase \
 	MapperFunctionBase OpacityMapBase TransferFunctionLite
 
 HEADER_FILES = ColorMapBase MapperFunctionBase OpacityMapBase \
-	TransferFunctionLite tfinterpolator
+	TransferFunctionLite tfinterpolator ParamsBase
 
 
 ifeq ($(ARCH),WIN32)

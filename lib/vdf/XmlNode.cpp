@@ -2,7 +2,7 @@
 //      $Id$
 //
 //************************************************************************
-//								*
+//								 *
 //		     Copyright (C)  2004			*
 //     University Corporation for Atmospheric Research		*
 //		     All Rights Reserved			*
@@ -66,6 +66,8 @@ XmlNode::~XmlNode() {
 	if (! _objInitialized) return;
 
 	for (int i=0; i<(int)_children.size(); i++) {
+		XmlNode* child = _children[i];
+		
 		delete _children[i];
 	}
 
@@ -203,7 +205,17 @@ void    XmlNode::AddChild( XmlNode* child)
 	_children.push_back(child);
 	return;
 }
-
+int XmlNode::ReplaceChild(XmlNode* prevChildNode, XmlNode* newChildNode){
+	for (int index = 0; index < _children.size(); index++){
+		XmlNode *node = _children[index];
+		if (node == prevChildNode) {
+			delete node;
+			_children[index] = newChildNode;
+			return index;
+		}
+	}
+	return -1;
+}
 
 int	XmlNode::DeleteChild(size_t index) {
 	if (index >= _children.size()) return(-1);

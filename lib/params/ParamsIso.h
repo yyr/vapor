@@ -30,9 +30,11 @@
 #include "vapor/ExpatParseMgr.h"
 #include "params.h"
 #include "datastatus.h"
+#include <vector>
 
 namespace VAPoR{
 
+class TransferFunction;
 //
 //! \class ParamsIso
 //! \brief A class for managing (storing and retrieving) 
@@ -147,6 +149,12 @@ virtual float getMaxOpacEditBound(int ) {
  const string& GetVariableName();
  void RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df);
  virtual XmlNode* buildNode();
+ 
+ virtual bool elementStartHandler(
+		ExpatParseMgr* pm, int depth, string& tag, const char ** attribs);
+ virtual bool elementEndHandler(ExpatParseMgr* pm, int depth, string& tag);
+protected:
+	
 
 private:
  static const string _IsoValueTag;
@@ -165,6 +173,9 @@ private:
  float _histoBounds[2];
 
  MapperFunction* dummyMapperFunc;
+
+ std::vector<TransferFunction*> transFunc;
+ int parsingVarNum;
  
 };
 

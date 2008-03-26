@@ -45,6 +45,7 @@ ParamNode::ParamNode(
 	_dirtyLongFlags = pn._dirtyLongFlags;
 	_dirtyDoubleFlags = pn._dirtyDoubleFlags;
 	_dirtyStringFlags = pn._dirtyStringFlags;
+	_dirtyNodeFlags = pn._dirtyNodeFlags;
 	
 }
 
@@ -116,6 +117,22 @@ string &ParamNode::SetElementString(
 		}
 	}
 	return(vec);
+}
+
+void ParamNode::SetNodeDirty(const string &tag){
+	// see if a dirty node flag watcher is registered for this tag. If not
+	// do nothing.
+	//
+	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyNodeFlags.find(tag);
+	if (p != _dirtyStringFlags.end()) { 
+
+		vector <DirtyFlag *> &dirtyflags = p->second;
+		for(int i=0; i<dirtyflags.size(); i++) {
+			DirtyFlag *df = dirtyflags[i];
+			df->Set();
+		}
+	}
+	return;
 }
 
 int ParamNode::AddChild(ParamNode* child) {
@@ -253,6 +270,50 @@ void ParamNode::UnRegisterDirtyFlagString(
 		}
 	}
 }
+
+	
+void ParamNode::RegisterDirtyFlagNode(
+	const string &tag, ParamNode::DirtyFlag *df
+) {
+	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyNodeFlags.find(tag);
+
+	if (p != _dirtyNodeFlags.end()) { 
+
+		vector <DirtyFlag *> &dirtyflags = p->second;
+
+		// Make sure flag doesn't already exist;
+		for(int i=0; i<dirtyflags.size(); i++) {
+			if (dirtyflags[i] == df) return;
+		}
+		dirtyflags.push_back(df);
+	}
+	else {
+		vector <DirtyFlag *> dirtyflags;
+		dirtyflags.push_back(df);
+		_dirtyNodeFlags[tag] = dirtyflags;
+	}
+}
+
+void ParamNode::UnRegisterDirtyFlagNode(
+	const string &tag, const ParamNode::DirtyFlag *df
+) {
+	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyNodeFlags.find(tag);
+
+	if (p == _dirtyNodeFlags.end()) return;
+
+
+	vector <DirtyFlag *> &dirtyflags = p->second;
+
+	// Find the dirty flag if it exists
+	//
+	for(int i=0; i<dirtyflags.size(); i++) {
+		if (dirtyflags[i] == df) {
+			dirtyflags.erase(dirtyflags.begin() + i);
+			return;
+		}
+	}
+}
+
 void ParamNode::SetAllFlags(bool dirty){
 	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyStringFlags.begin();
 	
@@ -288,5 +349,16 @@ void ParamNode::SetAllFlags(bool dirty){
 		r++;
 	}
 
+	map <string, vector <DirtyFlag *> >::iterator s =  _dirtyNodeFlags.begin();
+	
+	while (s != _dirtyNodeFlags.end()){
+
+		vector <DirtyFlag *> &dirtyflags = r->second;
+		for(int i=0; i<dirtyflags.size(); i++) {
+			if (dirty) dirtyflags[i]->Set();
+			else dirtyflags[i]->Clear();
+		}
+		s++;
+	}
 
 }

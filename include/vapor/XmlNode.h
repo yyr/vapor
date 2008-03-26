@@ -264,6 +264,17 @@ public:
  virtual int	DeleteChild(size_t index);
  virtual int	DeleteChild(const string &tag);
 
+ //! Replace the indicated child node with specified new child node
+ //! 
+ //! If indicated child does not exist, return -1, otherwise
+ //! return the index of the replaced child.
+ //!
+ //! \param[in] childNode Pointer to existing child node
+ //! \param[in] newChild Pointer to replacement child node
+ //! \retval status Returns non-negative child index on success
+
+ virtual int    ReplaceChild(XmlNode* childNode, XmlNode* newChild);
+
  //! Return the indicated child node. 
  //!
  //! Return the ith child of this node. The first child node is index=0,
@@ -296,7 +307,7 @@ public:
  //! Return the indicated child node. 
  //!
  //! Return the indicated tagged child node. Return NULL if the child 
- //! does not exist.
+ //! does not exist.  If multiple matches exists, returns first child with associated tag
  //! \param[in] tag Name of the child node to return
  //! \retval child Returns the indicated child, or NULL if the child
  //! could does not exist
@@ -316,9 +327,9 @@ public:
 
  //Following is a substitute for exporting the "<<" operator in windows.
  //I don't know how to export an operator<< !
- static ostream& streamOut(ostream& os, const XmlNode& node);
+static ostream& streamOut(ostream& os, const XmlNode& node);
 
-private:
+protected:
  int	_objInitialized;	// has the obj successfully been initialized?
 
  map <string, vector<long> > _longmap;	// node's long data

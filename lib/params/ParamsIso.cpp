@@ -25,6 +25,11 @@
 
 #include "ParamsIso.h"
 #include "mapperfunction.h"
+#include "transferfunction.h"
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 using namespace VetsUtil;
 using namespace VAPoR;
@@ -65,6 +70,7 @@ ParamsIso::~ParamsIso() {}
 XmlNode* ParamsIso::buildNode(){
 	return new XmlNode(*GetRootNode());
 }
+
 //Initialize for new metadata.  Keep old transfer functions
 //
 bool ParamsIso::
@@ -335,3 +341,112 @@ void ParamsIso::updateHistoBounds(){
 	SetHistoBounds(newBnds);
 }
 
+//Parsing of Iso node needs to handle tags for Variable,
+//TransferFunction and IsoControl.
+//Defers to parent for handling other stuff.
+bool ParamsIso::elementStartHandler(
+        ExpatParseMgr* pm, int depth, string& tag, const char ** attrs
+) {
+	ExpatStackElement *state = pm->getStateStackTop();
+	state->has_data = 0;
+	state->user_defined = 0;
+
+	if (StrCmpNoCase(tag, _variableTag) == 0){
+		_parseDepth++;
+		//Variable tag:  create a variable 
+		// The only supported attribute is the variable name:
+		string varName;
+		
+		float leftEdit = 0.f;
+		float rightEdit = 1.f;
+		float opacFac = 1.f;
+		while (*attrs) {
+			string attribName = *attrs;
+			attrs++;
+			string value = *attrs;
+			attrs++;
+			istringstream ist(value);
+			
+			if (StrCmpNoCase(attribName, _leftEditBoundAttr) == 0) {
+				ist >> leftEdit;
+			}
+			else if (StrCmpNoCase(attribName, _rightEditBoundAttr) == 0) {
+				ist >> rightEdit;
+			}
+			else if (StrCmpNoCase(attribName, _variableNameAttr) == 0){
+				ist >> varName;
+			}
+			else if (StrCmpNoCase(attribName, _opacityScaleAttr) == 0){
+				ist >> opacFac;
+			}
+			else return false;
+		}
+		//Add a "Variable" node to the retained parse tree:
+		ostringstream oss;
+		string empty;
+		map <string, string> varAttrs;
+		varAttrs[_variableNameAttr] = varName;
+
+		oss.str(empty);
+		oss << (double)leftEdit;
+		varAttrs[_leftEditBoundAttr] = oss.str();
+		oss.str(empty);
+		oss << (double)rightEdit;
+		varAttrs[_rightEditBoundAttr] = oss.str();
+		oss.str(empty);
+		oss << (double)opacFac;
+		varAttrs[_opacityScaleAttr] = oss.str();
+
+		ParamNode *variableNode = new ParamNode(_variableTag, varAttrs);
+		//Use XMLNode version of AddChild to add multiple children with same tag
+		_currentParamNode->XmlNode::AddChild(variableNode);
+		_currentParamNode = variableNode;
+	
+		//Add this variable to the session variable names, and set up
+		//this variable in the ParamsIso
+		parsingVarNum = DataStatus::mergeVariableName(varName);
+		//Make sure we have a place for it:
+		if (transFunc.size() < parsingVarNum +1){
+			int currentSize = transFunc.size();
+			for (int i = currentSize; i < parsingVarNum +1; i++){
+				//Insert nulls
+				transFunc.push_back(0);
+			}
+		}
+		if (transFunc[parsingVarNum]) {
+			delete transFunc[parsingVarNum];
+			transFunc[parsingVarNum] = 0;
+		}
+		return true;
+	} else if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0){
+		_parseDepth++;
+		//Now create the transfer function, and have it parse its state:
+		TransferFunction* tf = new TransferFunction(this, 8);
+		transFunc[parsingVarNum] = tf;
+		tf->setVarNum(parsingVarNum);
+		pm->pushClassStack(transFunc[parsingVarNum]);
+		//defer to the transfer function to do its own parsing:
+		tf->elementStartHandler(pm, depth, tag, attrs);
+		
+		return true;
+	} else { //Defer to parent class for iso parameter parsing
+		return ParamsBase::elementStartHandler(pm, depth, tag, attrs);
+	}
+}
+// At completion of parsing, need to save Transfer Function parse tree
+bool ParamsIso::elementEndHandler(ExpatParseMgr* pm, int depth, string& tag) {
+
+	if (_parseDepth == 3){
+		//popped back from TF parsing.  Build the xml tree for the transfer function.
+		assert(StrCmpNoCase(tag,TransferFunction::_transferFunctionTag) == 0);
+		XmlNode* tfNode = transFunc[parsingVarNum]->rebuildNode(true);
+		_currentParamNode->XmlNode::AddChild(tfNode);
+
+		_parseDepth--;
+		Pop();
+		return true;
+	}
+
+	else return ParamsBase::elementEndHandler(pm, depth, tag);
+
+}

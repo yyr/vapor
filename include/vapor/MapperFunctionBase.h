@@ -19,6 +19,7 @@
 //		that can be used to map data to either colors or opacities
 //		Subclasses can either implement color or transparency 
 //		mapping (or both)
+
 #ifndef MAPPERFUNCTIONBASE_H
 #define MAPPERFUNCTIONBASE_H
 #define MAXCONTROLPOINTS 50
@@ -27,10 +28,11 @@
 #include <vapor/OpacityMapBase.h>
 #include <vapor/ColorMapBase.h>
 #include <vapor/tfinterpolator.h>
+#include "vapor/ParamsBase.h"
 
 namespace VAPoR {
 class XmlNode;
-
+class ParamNode;
 class PARAMS_API MapperFunctionBase : public ParsedXml 
 {
 
@@ -175,7 +177,15 @@ public:
 	// except for specifying separate color and opacity bounds,
 	// and not having a name attribute
     //
-	virtual XmlNode* buildNode(const string& tfname) ;
+	virtual XmlNode* buildNode(const string& tfname); 
+
+	//Method to reconstruct the XmlTree rooted at this node.
+	//sets dirty bits in parent if _rootXmlNode is nonnull
+	//Replace _rootXmlNode with result of buildNode().
+	//Delete _rootXmlNode (and its children) if it's non-null
+	//Reparent _rootXmlNode if initialBuild is false
+	//Set parent dirty if it is a ParamNode
+	virtual XmlNode* rebuildNode(bool initialBuild);
 
 	//All the parsing can be done with the start handlers
 	virtual bool elementStartHandler(ExpatParseMgr*, int depth, 
@@ -197,6 +207,7 @@ protected:
 		
 protected:
 
+	XmlNode* _rootXmlNode; //Root of xml tree associated with this 
     vector<OpacityMapBase*>  _opacityMaps;
     CompositionType      _compType;
 

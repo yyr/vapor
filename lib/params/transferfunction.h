@@ -77,7 +77,8 @@ public:
 	bool saveToFile(ofstream& f);
     static TransferFunction* loadFromFile(ifstream& is, RenderParams *p);
 
-	XmlNode* buildNode(const string& tfname);
+	virtual XmlNode* buildNode(const string& tfname);
+	
 	//All the parsing can be done with the start handlers
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& s, 
                              const char **attr);

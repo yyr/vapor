@@ -102,6 +102,14 @@ public:
 
  string &SetElementString(const string &tag, const string &str);
 
+ //! Set the dirty flag associated with a ParamNode sub node
+ //! Has no effect if there the node is not registered.
+ //!
+ //! \param[in] tag Name of the element to mark dirty
+ //!
+ 
+ void SetNodeDirty(const string &tag);
+
  //! Add an existing node as a child of the current node.
  //!
  //! The new child node will be
@@ -154,7 +162,7 @@ public:
  //! \param[in] tag Name of ParamNode node
  //! \param[in] df A pointer to a dirty flag
  //!
- //! \sa UnRegisterDirtyFlagLong()
+ //! \sa RegisterDirtyFlagLong()
  //
  void RegisterDirtyFlagLong(const string &tag, ParamNode::DirtyFlag *df);
 
@@ -184,10 +192,41 @@ public:
 	const string &tag, const ParamNode::DirtyFlag *df
  );
 
-private:
+ //! Register a dirty flag with a subnode of the tree
+ //!
+ //! This method stores a pointer to the DirtyFlag \p df with
+ //! the long parameter named by \p tag. The ParamNode::DirtyFlag::Set()
+ //! method will be invoked whenever the associated node is 
+ //! modified, as a result of invoking rebuildNode(false)
+ //!
+ //! \param[in] tag Name of ParamNode node
+ //! \param[in] df A pointer to a dirty flag
+ //!
+ //! \sa RegisterDirtyFlagNode()
+ //
+ void RegisterDirtyFlagNode(const string &tag, ParamNode::DirtyFlag *df);
+
+ //! Unregister a dirty flag associated with the named node
+ //!
+ //! This method unregisters the DirtyFlag \p df associated with
+ //! the parameter subtree named by \p tag, previously registered
+ //! with RegisterDirtyFlagNode(). It is imperative that DirtyFlags pointers 
+ //! are unregistered if the objects they refer to are invalidated (deleted).
+ //!
+ //! \param[in] tag Name of ParamNode node of subtree
+ //! \param[in] df A pointer to a dirty flag
+ //!
+ //! \sa UnRegisterDirtyFlagNode()
+ //
+ void UnRegisterDirtyFlagNode(
+	const string &tag, const ParamNode::DirtyFlag *df
+ );
+
+protected:
  map <string, vector <DirtyFlag *> > _dirtyLongFlags;
  map <string, vector <DirtyFlag *> > _dirtyDoubleFlags;
  map <string, vector <DirtyFlag *> > _dirtyStringFlags;
+ map <string, vector <DirtyFlag *> > _dirtyNodeFlags;
 
 };
 

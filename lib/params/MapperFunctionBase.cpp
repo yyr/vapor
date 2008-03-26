@@ -38,6 +38,8 @@
 #include <vapor/MyBase.h>
 #include <vapor/XmlNode.h>
 #include <vapor/tfinterpolator.h>
+#include <vapor/ParamsBase.h>
+#include "ParamNode.h"
 
 using namespace VAPoR;
 using namespace VetsUtil;
@@ -68,6 +70,7 @@ MapperFunctionBase::MapperFunctionBase()
     _colormap = NULL;
 
     _compType = ADDITION;
+	_rootXmlNode = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -88,7 +91,7 @@ MapperFunctionBase::MapperFunctionBase(int nBits)
     opacVarNum  = 0;	
 
     _colormap = NULL;
-
+	_rootXmlNode = 0;
     _compType = ADDITION;
 }
 
@@ -98,6 +101,8 @@ MapperFunctionBase::MapperFunctionBase(int nBits)
 MapperFunctionBase::MapperFunctionBase(const MapperFunctionBase &mapper) :
   _compType(mapper._compType),
   _colormap(NULL),
+  //Don't copy the _rootXmlNode
+  _rootXmlNode(NULL),
   minColorMapBound(mapper.minColorMapBound),
   maxColorMapBound(mapper.maxColorMapBound),
   minOpacMapBound(mapper.minOpacMapBound),
@@ -108,6 +113,7 @@ MapperFunctionBase::MapperFunctionBase(const MapperFunctionBase &mapper) :
   opacVarNum(mapper.opacVarNum),
   opacityScaleFactor(mapper.opacityScaleFactor)
 {
+	
 }
 
 //----------------------------------------------------------------------------
@@ -115,6 +121,7 @@ MapperFunctionBase::MapperFunctionBase(const MapperFunctionBase &mapper) :
 //----------------------------------------------------------------------------
 MapperFunctionBase::~MapperFunctionBase() 
 {
+
     delete _colormap;
     _colormap = NULL;
 
@@ -396,6 +403,7 @@ void MapperFunctionBase::setOpaque()
 //----------------------------------------------------------------------------
 // Construct an XML node from the transfer function
 //----------------------------------------------------------------------------
+
 XmlNode* MapperFunctionBase::buildNode(const string& tfname) 
 {
   //Construct the main node
@@ -433,13 +441,13 @@ XmlNode* MapperFunctionBase::buildNode(const string& tfname)
   //
   for (int i=0; i<_opacityMaps.size(); i++)
   {
-    mainNode->AddChild(_opacityMaps[i]->buildNode());
+	  mainNode->XmlNode::AddChild(_opacityMaps[i]->buildNode());
   }
 
   //
   // Color map
   //
-  mainNode->AddChild(_colormap->buildNode());
+  mainNode->XmlNode::AddChild(_colormap->buildNode());
 
   return mainNode;
 }
@@ -609,4 +617,38 @@ bool MapperFunctionBase::elementEndHandler(ExpatParseMgr* pm, int depth ,
 	ParsedXml* px = pm->popClassStack();
 	bool ok = px->elementEndHandler(pm, depth, tag);
 	return ok;
+}
+//Method to reconstruct xml tree for this node (and its children).
+//Can be used for initial building of node, or re-building (not initial building) when
+//state changes.  When used for re-building, _rootXmlNode must be 
+//non-null.  
+//  (NB: _rootXmlNode is null when this is currently used
+//  in any params other than ParamsIso)
+//
+//This performs the following:
+	//Replace _rootXmlNode with result of buildNode().
+	//Delete previous _rootXmlNode (and its children) if it's non-null
+	//Reparent _rootXmlNode if reParent parameter is true
+	//Set parent dirty if it is a ParamNode
+XmlNode* MapperFunctionBase::rebuildNode(bool initialBuild){
+	
+	if (!initialBuild && !_rootXmlNode) return 0;
+	bool deleted = false;
+	XmlNode* oldNode = _rootXmlNode;
+	_rootXmlNode = buildNode("");
+	assert(_rootXmlNode);  //should always be valid!
+	if (oldNode) {
+		XmlNode* parent = oldNode->GetParent();
+		if (parent && !initialBuild) { //reparent
+			deleted = (0 <= parent->ReplaceChild(oldNode, _rootXmlNode));
+		}
+		if (parent) {//set dirty flag on ParamNode parent
+			ParamNode* pParent = dynamic_cast<ParamNode*>(parent);
+			if (pParent){
+				pParent->SetNodeDirty(oldNode->Tag());
+			}
+		}
+		if (!deleted) delete oldNode;
+	}
+	return _rootXmlNode;
 }

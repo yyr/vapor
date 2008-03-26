@@ -16,6 +16,7 @@
 
 namespace VAPoR {
 class ExpatParseMgr;
+class XmlNode;
 //abstract base class for classes that do xml parsing
 class VDF_API ParsedXml {
 public:
@@ -25,11 +26,13 @@ public:
 	virtual bool elementStartHandler(ExpatParseMgr*, int /* depth*/ , std::string& /*tag*/, const char ** /*attribs*/) = 0;
 	virtual bool elementEndHandler(ExpatParseMgr*, int /*depth*/ , std::string& /*tag*/) = 0;
 	virtual bool charHandler (ExpatParseMgr*, const XML_Char *, int ) {return true;}
-	//Prepare the class for subsequent parsing.  Default does nothing.
-	//These methods must be implemented if a class is to be handed-off the parsing from
-	//another class during parse tree traversal
+	
 	//Store previous class for stack
 	ParsedXml* previousClass;
+
+	//Method to reconstruct the XmlTree associated with this class.
+	//also can be used to set a dirty bit on the associated node.
+	virtual XmlNode* rebuildNode(bool /*firstBuild*/) {return 0;}
 protected:
 	// known xml attribute values
 	//
@@ -68,7 +71,6 @@ public:
 	//When the parsing is to be passed to another class, the original class must call
 	//pushClassStack when the xml for the new class is encountered in the startElementHandler.
 	
-	// (If these are not needed, I may remove them!)
 	void pushClassStack(ParsedXml* pc) {
 		pc->previousClass = currentParsedClass;
 		currentParsedClass = pc;

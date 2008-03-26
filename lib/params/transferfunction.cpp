@@ -109,6 +109,7 @@ TransferFunction::~TransferFunction()
 //----------------------------------------------------------------------------
 // Construct an XML node from the transfer function
 //----------------------------------------------------------------------------
+
 XmlNode* TransferFunction::buildNode(const string& tfname) 
 {
   // Construct the main node
@@ -146,13 +147,13 @@ XmlNode* TransferFunction::buildNode(const string& tfname)
   //
   for (int i=0; i<_opacityMaps.size(); i++)
   {
-    mainNode->AddChild(_opacityMaps[i]->buildNode());
+	  mainNode->XmlNode::AddChild(_opacityMaps[i]->buildNode());
   }
 
   //
   // Color map
   //
-  mainNode->AddChild(_colormap->buildNode());
+  mainNode->XmlNode::AddChild(_colormap->buildNode());
   
   return mainNode;
 }
