@@ -25,6 +25,8 @@
 #include "probeframe.h"
 #include "probeparams.h"
 #include "probeeventrouter.h"
+#include "messagereporter.h"
+#include "session.h"
 #include <math.h>
 #include <qgl.h>
 #include <qapplication.h>
@@ -177,6 +179,12 @@ void GLProbeWindow::paintGL()
 	glEnd();
 	//glFlush();
 	if (probeTexture) glDisable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
+	
+	if(capturing && animatingTexture){
+		doFrameCapture();
+	}
+
 	//Now draw the crosshairs
 	if (myParams){
 		const float* crossHairCoords = myParams->getCursorCoords();
@@ -192,7 +200,8 @@ void GLProbeWindow::paintGL()
 		glEnd();
 	}
 	
-    glDisable(GL_BLEND);
+    
+	
 	if ((myParams->getProbeType() == 1) && animatingTexture) {  //animating IBFV texture
 		delete probeTexture;
 	}
@@ -227,5 +236,101 @@ void GLProbeWindow::mapPixelToProbeCoords( int ix, int iy, float* x, float*y){
 	*x = xcoord/rectLeft;
 	*y = ycoord/rectTop;
 }
+//Produce an array based on current contents of the (front) buffer.
+//This is like the similar method in GLWindow.  Must be invoked while rendering.
+bool GLProbeWindow::
+getPixelData(int minx, int miny, int sizex, int sizey, unsigned char* data){
+	// set the current window 
+	makeCurrent();
+	 // Must clear previous errors first.
+	while(glGetError() != GL_NO_ERROR);
 
+	//if (front)
+	//
+	//glReadBuffer(GL_FRONT);
+	//
+	//else
+	//  {
+	glReadBuffer(GL_BACK);
+	//  }
+	glDisable( GL_SCISSOR_TEST );
+
+
+ 
+	// Turn off texturing in case it is on - some drivers have a problem
+	// getting / setting pixels with texturing enabled.
+	glDisable( GL_TEXTURE_2D );
+
+	assert( 0<=minx && minx < sizex);
+	assert(sizex <= width());
+	assert (0 <= miny && sizey > miny);
+	assert(sizey <= height());
+	// Calling pack alignment ensures that we can grab the any size window
+	glPixelStorei( GL_PACK_ALIGNMENT, 1 );
+	glReadPixels(minx, miny, sizex,sizey, GL_RGB,
+				GL_UNSIGNED_BYTE, data);
+	if (glGetError() != GL_NO_ERROR)
+		return false;
+	//Unfortunately gl reads these in the reverse order that jpeg expects, so
+	//Now we need to swap top and bottom!
+	unsigned char val;
+	for (int j = 0; j< sizey/2; j++){
+		for (int i = 0; i<sizex*3; i++){
+			val = data[i+sizex*3*j];
+			data[i+sizex*3*j] = data[i+sizex*3*(sizey-j-1)];
+			data[i+sizex*3*(sizey-j-1)] = val;
+		}
+	}
+	
+	return true;
+}
+
+//Capture the IBFV image.  Only used for capturing sequence of IBFV images
+void GLProbeWindow::
+doFrameCapture(){
+	
+	//Create a string consisting of captureName, followed by nnnn (framenum), 
+	//followed by .jpg
+	QString filename = captureName;
+	filename += (QString("%1").arg(captureNum)).rightJustify(4,'0');
+	filename +=  ".jpg";
+	
+	//Now open the jpeg file:
+	FILE* jpegFile = fopen(filename.ascii(), "wb");
+	if (!jpegFile) {
+		MessageReporter::errorMsg("Image Capture Error: Error opening output Jpeg file: %s",filename.ascii());
+		capturing = 0;
+		return;
+	}
+	//The window to extract is x from (rectLeft+1)*w/2 to (1-rectLeft)*w/2 -1
+	// y goes from ((1-rectTop)*h/2 to (1+rectTop)*h/2 -1
+	int minx = ((rectLeft+1.)*width()*.5)+.5;
+	int sizex = -rectLeft*width()-1;
+	int miny = ((1.-rectTop)*height()*.5)+.5;
+	int sizey = rectTop*height()-1;
+
+	unsigned char* pixData = new unsigned char[sizex*sizey*3];
+	
+	
+	if(!getPixelData(minx, miny, sizex,sizey,pixData)){
+		MessageReporter::errorMsg("Image Capture Error; error obtaining GL data");
+		capturing = 0;
+		delete pixData;
+		return;
+	}
+	
+	//Now call the Jpeg library to compress and write the file
+	//
+	int quality = GLWindow::getJpegQuality();
+	
+	int rc = write_JPEG_file(jpegFile, sizex,sizey, pixData, quality);
+	if (rc){
+		//Error!
+		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file ");
+		delete pixData;
+		return;
+	}
+	delete pixData;
+	captureNum++;
+}
 

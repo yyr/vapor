@@ -351,7 +351,7 @@ unsigned char* ProbeRenderer::getNextIBFVTexture(int fullHeight, ProbeParams* pP
 	glReadPixels(0,0,wid, ht, GL_RGBA, GL_UNSIGNED_BYTE, imageBuffer);
 	popState();
 	//Eliminate transparency 
-	//later just merge in color  here. 
+	//also merge in color  here. 
 	unsigned char* dataTex = 0;
 	if (pParams->ibfvColorMerged()){
 		dataTex = pParams->getCurrentProbeTexture(tstep, 0);

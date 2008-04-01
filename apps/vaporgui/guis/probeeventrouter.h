@@ -186,6 +186,7 @@ protected slots:
 	void setProbeTabTextChanged(const QString& qs);
 	void probeReturnPressed();
 	void captureImage();
+	void toggleFlowImageCapture();
 	void guiSetXIBFVComboVarNum(int varnum);
 	void guiSetYIBFVComboVarNum(int varnum);
 	void guiSetZIBFVComboVarNum(int varnum);
@@ -194,6 +195,7 @@ protected slots:
 	
 	
 protected:
+	bool capturingIBFV;
 	//fix probe box to fit in domain:
 	void adjustBoxSize(ProbeParams*);
 	void resetTextureSize(ProbeParams*);

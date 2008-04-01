@@ -36,6 +36,7 @@
 #include <qcolordialog.h>
 #include <qbuttongroup.h>
 #include <qfiledialog.h>
+#include <qfileinfo.h>
 #include <qlabel.h>
 #include <qlistbox.h>
 #include <qapplication.h>
@@ -91,6 +92,7 @@ ProbeEventRouter::ProbeEventRouter(QWidget* parent,const char* name): ProbeTab(p
 	notNudgingSliders = false;
 	animationFlag = false;
 	myIBFVThread = 0;
+	capturingIBFV = false;
 	
 }
 
@@ -180,6 +182,7 @@ ProbeEventRouter::hookUpTab()
 	connect (saveButton, SIGNAL(clicked()), this, SLOT(probeSaveTF()));
 	
 	connect (captureButton, SIGNAL(clicked()), this, SLOT(captureImage()));
+	connect (captureFlowButton, SIGNAL(clicked()), this, SLOT(toggleFlowImageCapture()));
 	connect (leftMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 	connect (rightMappingBound, SIGNAL(textChanged(const QString&)), this, SLOT(setProbeTabTextChanged(const QString&)));
 
@@ -241,7 +244,7 @@ void ProbeEventRouter::updateTab(){
 	probeTypeCombo->setCurrentItem(pType);
 	if (pType == 1) ibfvFrame->show(); 
 	else ibfvFrame->hide();
-
+	captureFlowButton->setEnabled(pType==1);
 	//set ibfv parameters:
 	alphaEdit->setText(QString::number(probeParams->getAlpha()));
 	
@@ -483,6 +486,7 @@ void ProbeEventRouter::guiSetProbeType(int t){
 		probeTextureFrame->update();
 		updateTab();
 	}
+	captureFlowButton->setEnabled(t==1);
 	PanelCommand::captureEnd(cmd, pParams);
 }
 void ProbeEventRouter::ibfvPlay(){
@@ -499,6 +503,8 @@ void ProbeEventRouter::ibfvPlay(){
 void ProbeEventRouter::ibfvPause(){
 	animationFlag= false;
 	probeTextureFrame->setAnimatingTexture(false);
+	if(capturingIBFV) toggleFlowImageCapture();
+	
 	//terminate the animation thread.
 	if (myIBFVThread) {
 		myIBFVThread->wait(200);
@@ -2089,46 +2095,78 @@ void ProbeEventRouter::captureImage() {
     
 	//Extract the path, and the root name, from the returned string.
 	QFileInfo* fileInfo = new QFileInfo(filename);
+	
+	if (fileInfo->exists()){
+		int rc = QMessageBox::warning(0, "File Exists", QString("OK to replace existing jpeg file?\n %1 ").arg(filename), QMessageBox::Ok, 
+			QMessageBox::No);
+		if (rc != QMessageBox::Ok) return;
+	}
 	//Save the path for future captures
 	Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
+	if (!filename.endsWith(".jpg")) filename += ".jpg";
+	//
+	//If this is IBFV, then we save texture as is.
+	//If this is data, then reconstruct with appropriate aspect ratio.
+	
 	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
-	RegionParams* rParams = VizWinMgr::getActiveRegionParams();
-	size_t fullHeight = rParams->getFullGridHeight();
 	int timestep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	//Make sure we have created a probe texture already...
-	unsigned char* probeTex = pParams->getCurrentProbeTexture(timestep, pParams->getProbeType());
-	if (!probeTex){
-		MessageReporter::errorMsg("Image Capture Error;\nNo image to capture");
-		return;
-	}
-	//Determine the image size.  Start with the texture dimensions in 
-	// the scene, then increase x or y to make the aspect ratio match the
-	// aspect ratio in the scene
-	float aspRatio = pParams->getRealImageHeight()/pParams->getRealImageWidth();
 	int imgSize[2];
 	pParams->getTextureSize(imgSize);
 	int wid = imgSize[0];
 	int ht = imgSize[1];
-	//Make sure the image is at least 200x200
-	if (wid < 256) wid = 256;
-	if (ht < 256) ht = 256;
-	float imAspect = (float)ht/(float)wid;
-	if (imAspect > aspRatio){
-		//want ht/wid = asp, but ht/wid > asp; make wid larger:
-		wid = (int)(0.5f+ (imAspect/aspRatio)*(float)wid);
-	} else { //Make ht larger:
-		ht = (int) (0.5f + (aspRatio/imAspect)*(float)ht);
+	unsigned char* probeTex;
+	unsigned char* buf;
+	if (pParams->getProbeType() == 1){
+		//Make sure we have created a probe texture already...
+		buf = pParams->getCurrentProbeTexture(timestep, 1);
+		if (!buf){
+			MessageReporter::errorMsg("Image Capture Error;\nNo image to capture");
+			return;
+		}
+	} else {
+		RegionParams* rParams = VizWinMgr::getActiveRegionParams();
+		size_t fullHeight = rParams->getFullGridHeight();
+		
+	
+		//Determine the image size.  Start with the texture dimensions in 
+		// the scene, then increase x or y to make the aspect ratio match the
+		// aspect ratio in the scene
+		float aspRatio = pParams->getRealImageHeight()/pParams->getRealImageWidth();
+	
+		//Make sure the image is at least 256x256
+		if (wid < 256) wid = 256;
+		if (ht < 256) ht = 256;
+		float imAspect = (float)ht/(float)wid;
+		if (imAspect > aspRatio){
+			//want ht/wid = asp, but ht/wid > asp; make wid larger:
+			wid = (int)(0.5f+ (imAspect/aspRatio)*(float)wid);
+		} else { //Make ht larger:
+			ht = (int) (0.5f + (aspRatio/imAspect)*(float)ht);
+		}
+		//Construct the probe texture of the desired dimensions:
+		buf = pParams->calcProbeDataTexture(timestep,wid,ht, fullHeight);
 	}
-	//Construct the probe texture of the desired dimensions:
-	probeTex = pParams->calcProbeDataTexture(timestep,wid,ht, fullHeight);
 	//Construct an RGB image from this.  Ignore alpha.
-	unsigned char* buf = new unsigned char[3*wid*ht];
-	for (int i = 0; i< wid*ht; i++){
-		for (int k = 0; k<3; k++){
-			buf[(wid*ht-i-1)*3+k] = probeTex[4*i+k];
+	//invert top and bottom while removing alpha component
+	probeTex = new unsigned char[3*wid*ht];
+	for (int j = 0; j<ht; j++){
+		for (int i = 0; i< wid; i++){
+			for (int k = 0; k<3; k++)
+				probeTex[k+3*(i+wid*j)] = buf[k+4*(i+wid*(ht-j+1))];
 		}
 	}
-	delete probeTex;
+		/*
+		for (int i = 0; i< wid*ht; i++){
+			for (int k = 0; k<3; k++){
+				buf[(wid*ht-i-1)*3+k] = probeTex[4*i+k];
+			}
+		}
+		*/
+	//Don't delete the IBFV image
+	if(pParams->getProbeType()== 0) delete buf;
+	
+	
+	
 	//Now open the jpeg file:
 	FILE* jpegFile = fopen(filename.ascii(), "wb");
 	if (!jpegFile) {
@@ -2138,7 +2176,8 @@ void ProbeEventRouter::captureImage() {
 	//Now call the Jpeg library to compress and write the file
 	//
 	int quality = GLWindow::getJpegQuality();
-	int rc = write_JPEG_file(jpegFile, wid, ht, buf, quality);
+	int rc = write_JPEG_file(jpegFile, wid, ht, probeTex, quality);
+	delete probeTex;
 	if (rc){
 		//Error!
 		MessageReporter::errorMsg("Image Capture Error; Error writing jpeg file %s",
@@ -2146,12 +2185,39 @@ void ProbeEventRouter::captureImage() {
 		delete buf;
 		return;
 	}
-	delete buf;
 	//Provide a message stating the capture in effect.
 	MessageReporter::infoMsg("Image is captured to %s",
 			filename.ascii());
 }
-
+//Start or stop image sequence capture
+void ProbeEventRouter::toggleFlowImageCapture() {
+	if (!capturingIBFV) {
+		//Launch file-open dialog:
+		QFileDialog fileDialog(Session::getInstance()->getJpegDirectory().c_str(),
+			"Jpeg Images (*.jpg)",
+			this,
+			"Image sequence capture dialog",
+			true);  //modal
+	
+		fileDialog.setMode(QFileDialog::AnyFile);
+		fileDialog.setCaption("Specify name for image sequence capture");
+		fileDialog.resize(450,450);
+		if (fileDialog.exec() != QDialog::Accepted) return;
+	
+		//Extract the path, and the root name, from the returned string.
+		QString filename = fileDialog.selectedFile();
+		QFileInfo* fileInfo = new QFileInfo(filename);
+		//Save the path for future captures
+		Session::getInstance()->setJpegDirectory(fileInfo->dirPath(true).ascii());
+		if (filename.endsWith(".jpg")) filename.truncate(filename.length()-4);
+		probeTextureFrame->setCaptureName(filename);
+		probeTextureFrame->setCaptureNum(0);
+	}
+	capturingIBFV = !capturingIBFV;
+	if(capturingIBFV) captureFlowButton->setText("Stop Capture");
+	else captureFlowButton->setText("Start Capture Sequence");
+	probeTextureFrame->setCapturing(capturingIBFV);
+}
 void ProbeEventRouter::guiNudgeXSize(int val) {
 	if (notNudgingSliders) return;
 	DataStatus* ds = DataStatus::getInstance();

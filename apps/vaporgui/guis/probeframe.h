@@ -52,6 +52,9 @@ public:
 	}
 	void setParams(ProbeParams* p) {probeParams = p;}
 	ProbeParams* getParams() {return probeParams;}
+	void setCaptureName(QString& name){glProbeWindow->setCaptureName(name);}
+	void setCapturing(bool doCapture){glProbeWindow->setCapturing(doCapture);}
+	void setCaptureNum(int num) {glProbeWindow->setCaptureNum(num);}
 	
 	
 

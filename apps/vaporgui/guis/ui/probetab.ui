@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>450</width>
-            <height>1871</height>
+            <height>1814</height>
         </rect>
     </property>
     <property name="sizePolicy">
@@ -44,7 +44,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout61</cstring>
+                <cstring>layout73</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -339,7 +339,7 @@ window toolbar.</string>
                         </property>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>layout60</cstring>
+                                <cstring>layout72</cstring>
                             </property>
                             <vbox>
                                 <property name="name">
@@ -2248,7 +2248,7 @@ selected axis.</string>
                                         </property>
                                         <widget class="QLayoutWidget">
                                             <property name="name">
-                                                <cstring>layout59</cstring>
+                                                <cstring>layout70</cstring>
                                             </property>
                                             <vbox>
                                                 <property name="name">
@@ -2552,7 +2552,7 @@ selected axis.</string>
                                                 </widget>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout55</cstring>
+                                                        <cstring>layout69</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
@@ -2570,7 +2570,7 @@ selected axis.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>31</width>
+                                                                    <width>20</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -2598,7 +2598,7 @@ selected axis.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>51</width>
+                                                                    <width>20</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -2607,12 +2607,48 @@ selected axis.</string>
                                                 </widget>
                                                 <widget class="QLayoutWidget">
                                                     <property name="name">
-                                                        <cstring>layout137</cstring>
+                                                        <cstring>layout68</cstring>
                                                     </property>
                                                     <hbox>
                                                         <property name="name">
                                                             <cstring>unnamed</cstring>
                                                         </property>
+                                                        <spacer>
+                                                            <property name="name">
+                                                                <cstring>spacer83</cstring>
+                                                            </property>
+                                                            <property name="orientation">
+                                                                <enum>Horizontal</enum>
+                                                            </property>
+                                                            <property name="sizeType">
+                                                                <enum>Expanding</enum>
+                                                            </property>
+                                                            <property name="sizeHint">
+                                                                <size>
+                                                                    <width>16</width>
+                                                                    <height>20</height>
+                                                                </size>
+                                                            </property>
+                                                        </spacer>
+                                                        <widget class="QPushButton">
+                                                            <property name="name">
+                                                                <cstring>captureFlowButton</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Start Capture Sequence</string>
+                                                            </property>
+                                                            <property name="toolTip" stdset="0">
+                                                                <string>click to start or stop capturing of images to jpeg files</string>
+                                                            </property>
+                                                            <property name="whatsThis" stdset="0">
+                                                                <string>When the "Capture image to file" 
+button is clicked, the current cross-
+section view is captured to a jpeg
+image file, of size sufficient to display
+the data at the selected refinement
+level.</string>
+                                                            </property>
+                                                        </widget>
                                                         <spacer>
                                                             <property name="name">
                                                                 <cstring>spacer53</cstring>
@@ -2625,7 +2661,7 @@ selected axis.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>100</width>
+                                                                    <width>16</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -2639,7 +2675,7 @@ selected axis.</string>
                                                             </property>
                                                             <property name="minimumSize">
                                                                 <size>
-                                                                    <width>100</width>
+                                                                    <width>70</width>
                                                                     <height>12</height>
                                                                 </size>
                                                             </property>
@@ -2659,7 +2695,7 @@ selected axis.</string>
                                                             </property>
                                                             <property name="minimumSize">
                                                                 <size>
-                                                                    <width>100</width>
+                                                                    <width>70</width>
                                                                     <height>0</height>
                                                                 </size>
                                                             </property>
@@ -2685,7 +2721,7 @@ selected axis.</string>
                                                             </property>
                                                             <property name="sizeHint">
                                                                 <size>
-                                                                    <width>100</width>
+                                                                    <width>16</width>
                                                                     <height>20</height>
                                                                 </size>
                                                             </property>
@@ -3238,7 +3274,7 @@ change the selection in the probe</string>
                                 </spacer>
                                 <widget class="QLayoutWidget">
                                     <property name="name">
-                                        <cstring>layout70</cstring>
+                                        <cstring>layout71</cstring>
                                     </property>
                                     <hbox>
                                         <property name="name">
@@ -3256,7 +3292,7 @@ change the selection in the probe</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>61</width>
+                                                    <width>41</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>
@@ -3266,23 +3302,18 @@ change the selection in the probe</string>
                                                 <cstring>captureButton</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Capture Image to File</string>
+                                                <string>Capture Current Probe Image</string>
                                             </property>
                                             <property name="toolTip" stdset="0">
                                                 <string>Click to write current  image to jpeg file</string>
                                             </property>
                                             <property name="whatsThis" stdset="0">
-                                                <string>When the "Capture image to file" 
-button is clicked, the current cross-
-section view is captured to a jpeg
-image file, of size sufficient to display
-the data at the selected refinement
-level.</string>
+                                                <string>When the "Capture image to file" button is clicked, the current cross-section view is captured to a jpeg image file, of size sufficient to display the data at the selected refinement level.  Flow images will not necessarily be captured at the correct aspect ratio.</string>
                                             </property>
                                         </widget>
                                         <spacer>
                                             <property name="name">
-                                                <cstring>spacer58</cstring>
+                                                <cstring>spacer100</cstring>
                                             </property>
                                             <property name="orientation">
                                                 <enum>Horizontal</enum>
@@ -3292,7 +3323,7 @@ level.</string>
                                             </property>
                                             <property name="sizeHint">
                                                 <size>
-                                                    <width>91</width>
+                                                    <width>41</width>
                                                     <height>20</height>
                                                 </size>
                                             </property>

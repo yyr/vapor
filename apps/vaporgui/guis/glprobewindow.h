@@ -45,6 +45,10 @@ public:
 	void mapPixelToProbeCoords(int ix, int iy, float* x, float* y);
 	void setAnimatingTexture(bool val){animatingTexture = val; animatingFrameNum = 0;animationStarting=true;}
 	void advanceAnimatingFrame(){animatingFrameNum++;}
+	void setCaptureName(QString& name){captureName = name;}
+	void setCapturing(bool doCapture){capturing = doCapture;}
+	void setCaptureNum(int num) {captureNum = num;}
+
 	
 
 
@@ -57,6 +61,9 @@ protected:
     void		paintGL();
     void		resizeGL( int w, int h );
 
+	bool getPixelData(int minx, int miny, int sizex, int sizey,unsigned char* pixData);
+	void doFrameCapture();
+
 	//Size of probe in world coords.
 	//This rectange will do its best to fill the probe space.
 	float horizTexSize, vertTexSize;
@@ -67,6 +74,9 @@ protected:
 	bool animationStarting;
 	int patternListNum;
 	int currentAnimationTimestep;
+	int captureNum;
+	QString captureName;
+	bool capturing;
 	
 
 };
