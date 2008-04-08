@@ -195,7 +195,7 @@ reinit(bool doOverride){
 			
 		}
 			//Delete trans funcs that are not in the current session
-		for (i = totNumVariables; i<numSessionVariables; i++){
+		for (int i = totNumVariables; i<numSessionVariables; i++){
 			delete transFunc[i];
 			delete isoControls[i];
 		}
@@ -223,7 +223,7 @@ reinit(bool doOverride){
 	//And clone the color edit bounds to use as opac edit bounds:
 	minOpacEditBounds = new float[totNumVariables];
 	maxOpacEditBounds = new float[totNumVariables];
-	for (i = 0; i<totNumVariables; i++){
+	for (int i = 0; i<totNumVariables; i++){
 		minOpacEditBounds[i] = minColorEditBounds[i];
 		maxOpacEditBounds[i] = maxColorEditBounds[i];
 	}
