@@ -42,6 +42,7 @@ Renderer::Renderer( GLWindow* glw, RenderParams* rp )
 	savedNumXForms = -1;
 	currentRenderParams = rp;
 	initialized = false;
+	clutDirtyBit = false;
 }
 
 

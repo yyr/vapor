@@ -179,15 +179,6 @@ public:
     //
 	virtual XmlNode* buildNode(const string& tfname); 
 
-	//Method to reconstruct the XmlTree rooted at this node.
-	//sets dirty bits in parent if _rootXmlNode is nonnull
-	//Replace _rootXmlNode with result of buildNode().
-	//Delete _rootXmlNode (and its children) if it's non-null
-	//Reparent _rootXmlNode if initialBuild is false
-	//Set parent dirty if it is a ParamNode
-	virtual XmlNode* rebuildNode(bool initialBuild);
-
-	//All the parsing can be done with the start handlers
 	virtual bool elementStartHandler(ExpatParseMgr*, int depth, 
                                      std::string&, const char **);
 
@@ -207,7 +198,6 @@ protected:
 		
 protected:
 
-	XmlNode* _rootXmlNode; //Root of xml tree associated with this 
     vector<OpacityMapBase*>  _opacityMaps;
     CompositionType      _compType;
 

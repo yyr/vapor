@@ -52,6 +52,7 @@ enum DirtyBitType {
 };
 class XmlNode;
 class MapperFunction;
+class TransferFunction;
 
 class PARAMS_API Params : public MyBase, public ParamsBase {
 	
@@ -162,10 +163,7 @@ Params(int winNum) : ParamsBase() {
 	void buildCoordTransform(float transformMatrix[12], float extraThickness, float rotation = 0.f, int axis = -1);
 
 
-	//The restart method goes back to initial state
-	//Made pure virtual to coincide with ParamsBase functionality
-	//
-	virtual void restart() = 0;
+	
 	
 	//Identify if this params is at the front of the tabbed params
 	//bool isCurrent(); 
@@ -239,6 +237,7 @@ public:
 	virtual const float* getCurrentDatarange(){assert(0); return(0);}
 
 
+	virtual void hookupTF(TransferFunction* , int ) {assert(0);}
 	//The following must be redefined by renderer params.  Parent version should never happen
 	virtual void setMinColorMapBound(float ) =0;
 	virtual void setMaxColorMapBound(float )=0;

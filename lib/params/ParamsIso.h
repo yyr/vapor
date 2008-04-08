@@ -30,11 +30,14 @@
 #include "vapor/ExpatParseMgr.h"
 #include "params.h"
 #include "datastatus.h"
+#include "mapperfunction.h"
 #include <vector>
 
 namespace VAPoR{
 
 class TransferFunction;
+class IsoControl;
+class MapperFunction;
 //
 //! \class ParamsIso
 //! \brief A class for managing (storing and retrieving) 
@@ -69,6 +72,7 @@ public:
  }
  virtual RenderParams* deepRCopy();
  virtual Params* deepCopy() {return (Params*)deepRCopy();}
+
  virtual int getSessionVarNum(){
 	 return DataStatus::getInstance()->getSessionVariableNum(
 		 GetVariableName());
@@ -76,42 +80,52 @@ public:
  virtual bool reinit(bool override);
 
  virtual float GetHistoStretch();
+ void SetHistoStretch(float scale);
+ void SetIsoHistoStretch(float scale);
+ float GetIsoHistoStretch();
  
- //Note:  This is not right.  Unclear if datarange is used in Iso
  virtual const float* getCurrentDatarange(){
 	 return GetHistoBounds();
  }
  
- //Following not yet available for iso params:
- virtual MapperFunction* getMapperFunc() {return dummyMapperFunc;}
- void setMinColorMapBound(float) {}
- void setMaxColorMapBound(float) {}
+//Obtain the transfer function
+virtual MapperFunction* getMapperFunc(); 
+IsoControl* getIsoControl();
+ //Virtual methods to set map bounds.  Get() is in parent class
+//this causes it to be set in the mapperfunction (transfer function)
+virtual void setMinColorMapBound(float val);
+virtual void setMaxColorMapBound(float val);
+virtual void setMinOpacMapBound(float val);
+virtual void setMaxOpacMapBound(float val);
 
- //Opacity map/edit bounds are being used for histo bounds:
- void setMinOpacMapBound(float minhisto);
- void setMaxOpacMapBound(float maxhisto);
- virtual float getMinOpacMapBound(){
-	 return GetHistoBounds()[0];
- }
- virtual float getMaxOpacMapBound(){
-	 return GetHistoBounds()[1];
- }
- virtual void setMinOpacEditBound(float val, int ) {
-		minOpacEditBounds[0] = val;
+void setMinMapEditBound(float val) {
+	setMinColorEditBound(val, GetMapVariableNum());
+	setMinOpacEditBound(val, GetMapVariableNum());
 }
-virtual void setMaxOpacEditBound(float val, int ) {
-	maxOpacEditBounds[0] = val;
+void setMaxMapEditBound(float val) {
+	setMaxColorEditBound(val, GetMapVariableNum());
+	setMaxOpacEditBound(val, GetMapVariableNum());
 }
-virtual float getMinOpacEditBound(int ) {
-	return minOpacEditBounds[0];
+float getMinMapEditBound() {
+	return minColorEditBounds[GetMapVariableNum()];
 }
-virtual float getMaxOpacEditBound(int ) {
-	return maxOpacEditBounds[0];
+float getMaxMapEditBound() {
+	return maxColorEditBounds[GetMapVariableNum()];
 }
+void setMinIsoEditBound(float val) {minIsoEditBounds[GetIsoVariableNum()] = val;} 
+void setMaxIsoEditBound(float val) {maxIsoEditBounds[GetIsoVariableNum()] = val;}  
 
+float getMinIsoEditBound() {
+	return minIsoEditBounds[GetIsoVariableNum()];
+}
+float getMaxIsoEditBound() {
+	return maxIsoEditBounds[GetIsoVariableNum()];
+}
  void SetIsoValue(double value);
  double GetIsoValue();
- void RegisterIsoValueDirtyFlag(ParamNode::DirtyFlag *df);
+ void RegisterIsoControlDirtyFlag(ParamNode::DirtyFlag *df);
+
+ void RegisterColorMapDirtyFlag(ParamNode::DirtyFlag *df);
 
  void SetNormalOnOff(bool flag);
  bool GetNormalOnOff();
@@ -120,16 +134,25 @@ virtual float getMaxOpacEditBound(int ) {
  void SetConstantColor(float rgba[4]);
  const float *GetConstantColor();
  void RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df);
+ bool getIsoEditMode(){return isoEditMode;}
+ bool getMapEditMode(){return mapEditMode;}
+ void setIsoEditMode(bool val){isoEditMode = val;}
+ void setMapEditMode(bool val){mapEditMode = val;}
+ float getOpacityScale(); 
+ void setOpacityScale(float val); 
 
- //Force histo bounds to match dummyMapperFunction bounds
+ //Force histo bounds to match IsoControl bounds
  void updateHistoBounds();
-
+ 
 
  void SetHistoBounds(float bnds[2]);
+ void SetMapBounds(float bnds[2]){
+	 getMapperFunc()->setMinOpacMapValue(bnds[0]);
+	 getMapperFunc()->setMaxOpacMapValue(bnds[1]);
+	 _rootParamNode->SetNodeDirty(_ColorMapTag);
+ }
  const float* GetHistoBounds();
-
- void SetHistoStretch(float scale);
- 
+ const float* GetMapBounds();
 
  void SetSelectedPoint(const float pnt[3]);
  const vector<double>& GetSelectedPoint();
@@ -144,38 +167,66 @@ virtual float getMaxOpacEditBound(int ) {
  void SetNumBits(int nbits);
  int GetNumBits();
  void RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag*);
-
+int GetMapVariableNum(){
+	return DataStatus::getInstance()->getSessionVariableNum(GetMapVariableName());
+}
+int GetIsoVariableNum(){
+	return DataStatus::getInstance()->getSessionVariableNum(GetVariableName());
+}
  void SetVariableName(const string& varName);
  const string& GetVariableName();
+ void SetMapVariableName(const string& varName);
+ const string& GetMapVariableName();
  void RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df);
+ void RegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df);
+
  virtual XmlNode* buildNode();
+ float (&getClut())[256][4] {
+		refreshCtab();
+		return ctab;
+	}
+ void refreshCtab();
  
  virtual bool elementStartHandler(
 		ExpatParseMgr* pm, int depth, string& tag, const char ** attribs);
  virtual bool elementEndHandler(ExpatParseMgr* pm, int depth, string& tag);
+
+ virtual void hookupTF(TransferFunction* tf, int index);
+
+ static const string _IsoValueTag;
+ static const string _IsoControlTag;
+ static const string _ColorMapTag;
+
 protected:
 	
 
 private:
- static const string _IsoValueTag;
+ 
  static const string _NormalOnOffTag;
  static const string _ConstantColorTag;
- static const string _HistoBoundsTag;
+ static const string _HistoBoundsTag;//obsolete
  static const string _HistoScaleTag;
+ static const string _MapHistoScaleTag;
  static const string _SelectedPointTag;
  static const string _RefinementLevelTag;
  static const string _VisualizerNumTag;
  static const string _VariableNameTag;
+ static const string _MapVariableNameTag;
  static const string _NumBitsTag;
 
+ float* minIsoEditBounds;
+ float* maxIsoEditBounds;
 
  float _constcolorbuf[4];
  float _histoBounds[2];
-
- MapperFunction* dummyMapperFunc;
-
+ bool isoEditMode;
+ bool mapEditMode;
+ 
+ std::vector<IsoControl*> isoControls;
  std::vector<TransferFunction*> transFunc;
  int parsingVarNum;
+ int numSessionVariables;
+ float ctab[256][4];
  
 };
 

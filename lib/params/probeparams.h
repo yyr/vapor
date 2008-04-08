@@ -200,7 +200,7 @@ public:
 	//change box dimensions after a rotation so that it appears to be the same size:
 	void rotateAndRenormalizeBox(int axis, float rotVal);
 	virtual int getNumRefinements() {return numRefinements;}
-	void hookupTF(TransferFunction* t, int index);
+	virtual void hookupTF(TransferFunction* t, int index);
 	float getOpacityScale(); 
 	void setOpacityScale(float val); 
 	virtual void setEnabled(bool value) {

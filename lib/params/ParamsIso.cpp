@@ -35,14 +35,18 @@ using namespace VetsUtil;
 using namespace VAPoR;
 
 const string ParamsIso::_IsoValueTag = "IsoValue";
+const string ParamsIso::_IsoControlTag = "IsoControl";
+const string ParamsIso::_ColorMapTag = "ColorMap";
 const string ParamsIso::_NormalOnOffTag = "NormalOnOff";
 const string ParamsIso::_ConstantColorTag = "ConstantColor";
 const string ParamsIso::_HistoBoundsTag = "HistoBounds";
 const string ParamsIso::_HistoScaleTag = "HistoScale";
+const string ParamsIso::_MapHistoScaleTag = "MapHistoScale";
 const string ParamsIso::_SelectedPointTag = "SelectedPoint";
 const string ParamsIso::_RefinementLevelTag = "RefinementLevel";
 const string ParamsIso::_VisualizerNumTag = "VisualizerNum";
 const string ParamsIso::_VariableNameTag = "VariableName";
+const string ParamsIso::_MapVariableNameTag = "MapVariableName";
 const string ParamsIso::_NumBitsTag = "NumVoxelBits";
 
 namespace {
@@ -53,43 +57,74 @@ ParamsIso::ParamsIso(
 	XmlNode *parent, int winnum
 ) : RenderParams(parent, Params::_isoParamsTag, winnum) {
 	thisParamType = IsoParamsType;
-	dummyMapperFunc = new MapperFunction(this, 8);
-	minOpacEditBounds = new float[1];
-	maxOpacEditBounds = new float[1];
-	//Need to do this better:
-	OpacityMap* foo = dummyMapperFunc->getOpacityMap(0);
-    dummyMapperFunc->deleteOpacityMap(foo);
 	
+	minIsoEditBounds = 0;
+	maxIsoEditBounds = 0;
 	restart();
 }
 
 
-ParamsIso::~ParamsIso() {}
-//Return a clone of the xml node, since buildNode() will eventually
-//destroy the node it uses.
+ParamsIso::~ParamsIso() {
+	for (int i = 0; i<transFunc.size(); i++){
+		delete transFunc[i];
+	}
+	for (int i = 0; i<isoControls.size(); i++){
+		delete isoControls[i];
+	}
+}
+//clone the xml node, (since buildNode() will eventually
+//destroy the node it uses).  Then add isoControl and TF nodes
 XmlNode* ParamsIso::buildNode(){
-	return new XmlNode(*GetRootNode());
+	XmlNode* clonedNode = new XmlNode(*GetRootNode());
+	
+	// For each session variable, create a variable node with appropriate attributes:
+	for (int i = 0; i<numSessionVariables; i++){
+		string varName = DataStatus::getInstance()->getVariableName(i);
+		//Create a "Variable" node
+		ostringstream oss;
+		string empty;
+		map <string, string> varAttrs;
+		varAttrs[_variableNameAttr] = varName;
+		
+		oss.str(empty);
+		oss << (double)(transFunc[i]->getOpacityScaleFactor());
+		varAttrs[_opacityScaleAttr] = oss.str();
+
+		XmlNode *variableNode = new XmlNode(_variableTag, varAttrs);
+		variableNode->AddChild(transFunc[i]->buildNode(""));
+		variableNode->AddChild(isoControls[i]->buildNode(""));
+		//Use XMLNode version of AddChild to add multiple children with same tag
+		clonedNode->XmlNode::AddChild(variableNode);
+	}
+	return clonedNode;
 }
 
 //Initialize for new metadata.  Keep old transfer functions
 //
+// For each new variable in the metadata create a variable child node, and build the
+// associated isoControl and transfer function nodes.
 bool ParamsIso::
 reinit(bool doOverride){
 
 	DataStatus* ds = DataStatus::getInstance();
 	
-	int totNumVariables = ds->getNumMetadataVariables();
+	int totNumVariables = ds->getNumSessionVariables();
 	if (totNumVariables <= 0) return false;
 	int varNum = ds->getMetadataVarNum(GetVariableName());
-	
+	int mapVarNum = ds->getMetadataVarNum(GetMapVariableName());
 	//See if current variable name is valid.  It needs to be in the metadata.
-	//if not, reset to first variable that is present:
+	//if not, reset to first variable that is present in metadata:
 	if (varNum < 0) 
 	{
 		SetVariableName(ds->getMetadataVarName(0));
 		varNum = 0;
 	}
-	int sesVarNum = ds->mapMetadataToSessionVarNum(varNum);
+	//use constant if variable is not available
+	if (mapVarNum < 0) 
+	{
+		SetMapVariableName("Constant");
+	}
+	
 	//Set up the numRefinements. 
 	int maxNumRefinements = ds->getNumTransforms();
 	int numrefs = GetRefinementLevel();
@@ -100,65 +135,125 @@ reinit(bool doOverride){
 		if (numrefs < 0) numrefs = 0;
 	}
 	SetRefinementLevel(numrefs);
-	
-	//Make sure histo bounds and iso Value are valid
-	const float* curBounds = GetHistoBounds();
-	float bnds[2];
-	bnds[0] = curBounds[0]; bnds[1] = curBounds[1];
-	
+	//Create arrays of IsoControls and TransferFunctions
+	assert(totNumVariables > 0);
+	TransferFunction** newTransFunc = new TransferFunction*[totNumVariables];
+	float* newMinMapEdit = new float[totNumVariables];
+	float* newMaxMapEdit = new float[totNumVariables];
+	float* newMinIsoEdit = new float[totNumVariables];
+	float* newMaxIsoEdit = new float[totNumVariables];
+	IsoControl** newIsoControls = new IsoControl*[totNumVariables];
 
-	float isoval = GetIsoValue();
-	float dataMin = DataStatus::getInstance()->getDefaultDataMin(sesVarNum);
-	float dataMax = DataStatus::getInstance()->getDefaultDataMax(sesVarNum);
-	if (doOverride) {
-		bnds[0] = dataMin;
-		bnds[1] = dataMax;
-		isoval = 0.5f*(bnds[0]+bnds[1]);
-		SetHistoBounds(bnds);
-		SetIsoValue(isoval);
-	} 
-		//Don't modify the existing bounds and isovalue if they 
-		//lie outside the data bounds, since they could be OK for another time step.
-		//I.e., retain the values in the session.
-		/*
-	else { float newVal = isoval;
-		if (newVal < dataMin) newVal = dataMin;
-		if (newVal > dataMax) newVal = dataMax;
-		if (newVal != isoval) SetIsoValue(newVal);
-		if (bnds[0] < dataMin) bnds[0] = dataMin;
-		if (bnds[1] > dataMax) bnds[1] = dataMax;
-		if (bnds[0] > bnds[1]){
-			bnds[0] = dataMin; bnds[1] = dataMax;
+	//If we are overriding previous values, delete the transfer functions, create new ones.
+	//Set the map bounds to the actual bounds in the data
+	if (doOverride){
+		for (int i = 0; i<totNumVariables; i++){
+			//will need to set the iso value:
+			float dataMin = DataStatus::getInstance()->getDefaultDataMin(i);
+			float dataMax = DataStatus::getInstance()->getDefaultDataMax(i);
+			newTransFunc[i] = new TransferFunction(this, 8);
+			newIsoControls[i] = new IsoControl(this, 8);
+			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
+			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
+			newMinIsoEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
+			newMaxIsoEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+			newMinMapEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
+			newMaxMapEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+			newIsoControls[i]->setMinHistoValue(DataStatus::getInstance()->getDefaultDataMin(i));
+            newIsoControls[i]->setMaxHistoValue(DataStatus::getInstance()->getDefaultDataMax(i));
+			newTransFunc[i]->setVarNum(i);
+			newIsoControls[i]->setVarNum(i);
+			newIsoControls[i]->setIsoValue(0.5*(dataMin+dataMax));
 		}
-		if (bnds[0] != curBounds[0] || bnds[1] != curBounds[1])
-			SetHistoBounds(bnds);
+	} else {
+		//attempt to make use of existing transfer functions
+		//delete any that are no longer referenced
+		//Copy tf bounds to edit bounds
+		for (int i = 0; i<totNumVariables; i++){
+			if(i<numSessionVariables){ //make copy of existing ones
+				newTransFunc[i] = transFunc[i];
+				newIsoControls[i] = isoControls[i];
+				newMinMapEdit[i] = transFunc[i]->getMinMapValue();
+				newMaxMapEdit[i] = transFunc[i]->getMaxMapValue();
+				newMinIsoEdit[i] = isoControls[i]->getMinHistoValue();
+				newMaxIsoEdit[i] = isoControls[i]->getMaxHistoValue();
+			} else { //create new tfs, isocontrols
+				
+				newIsoControls[i] = new IsoControl(this, 8);
+				newIsoControls[i]->setMinHistoValue(DataStatus::getInstance()->getDefaultDataMin(i));
+				newIsoControls[i]->setMaxHistoValue(DataStatus::getInstance()->getDefaultDataMax(i));
+				newIsoControls[i]->setVarNum(i);
+				newTransFunc[i] = new TransferFunction(this, 8);
+				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
+				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
+				newMinMapEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
+				newMaxMapEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+				newMinIsoEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
+				newMaxIsoEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
+				newTransFunc[i]->setVarNum(i);
+			}
 			
-
-	}*/
-	minOpacEditBounds[0] = bnds[0];
-	maxOpacEditBounds[0] = bnds[1];
-	dummyMapperFunc->setMinOpacMapValue(bnds[0]);
-	dummyMapperFunc->setMaxOpacMapValue(bnds[1]);
+		}
+			//Delete trans funcs that are not in the current session
+		for (i = totNumVariables; i<numSessionVariables; i++){
+			delete transFunc[i];
+			delete isoControls[i];
+		}
+	} //end if(doOverride)
+	//Now put the new transfer functions and isocontrols into
+	//the appropriate arrays:
+	transFunc.clear();
+	isoControls.clear();
+	for (int i = 0; i<totNumVariables; i++){
+		transFunc.push_back(newTransFunc[i]);
+		isoControls.push_back(newIsoControls[i]);
+	}
+	delete newTransFunc;
+	delete newIsoControls;
+	if(minColorEditBounds) delete minColorEditBounds;
+	if(maxColorEditBounds) delete maxColorEditBounds;
+	if(minOpacEditBounds) delete minOpacEditBounds;
+	if(maxOpacEditBounds) delete maxOpacEditBounds;
+	if(minIsoEditBounds) delete minIsoEditBounds;
+	if(maxIsoEditBounds) delete maxIsoEditBounds;
+	minColorEditBounds = newMinMapEdit;
+	maxColorEditBounds = newMaxMapEdit;
+	minIsoEditBounds = newMinIsoEdit;
+	maxIsoEditBounds = newMaxIsoEdit;
+	//And clone the color edit bounds to use as opac edit bounds:
+	minOpacEditBounds = new float[totNumVariables];
+	maxOpacEditBounds = new float[totNumVariables];
+	for (i = 0; i<totNumVariables; i++){
+		minOpacEditBounds[i] = minColorEditBounds[i];
+		maxOpacEditBounds[i] = maxColorEditBounds[i];
+	}
+	numSessionVariables = totNumVariables;
 	if (doOverride) {
 		SetHistoStretch(1.0);
+		SetIsoHistoStretch(1.0);
 		float col[4] = {1.f, 1.f, 1.f, 1.f};
 		SetConstantColor(col);
 	}
+	
 	return true;
 }
 
 void ParamsIso::restart() {
-	SetIsoValue(1.0);
+	
+	
+	for (int i = 0; i< numSessionVariables; i++){
+		delete transFunc[i];
+		delete isoControls[i];
+	}
+	transFunc.clear();
+	isoControls.clear();
+	numSessionVariables = 0;
+	
 	SetNormalOnOff(1);
 	SetNumBits(8);
 
-	float bnds[2] = {0.0, 1.0};
-	SetHistoBounds(bnds);
-
-	minOpacEditBounds[0] = 0.f;
-	maxOpacEditBounds[0] = 1.f;
-
 	SetHistoStretch(1.0);
+	SetIsoHistoStretch(1.0);
 
 	float pnt[3] = {0.0, 0.0, 0.0};
 	SetSelectedPoint(pnt);
@@ -169,22 +264,99 @@ void ParamsIso::restart() {
 
 	SetVariableName("N/A");
 
+	SetMapVariableName("Constant");
+
+
+	//Initialize the mapping bounds to [0,1] until data is read
+	
+	if (minColorEditBounds) delete minColorEditBounds;
+	if (maxColorEditBounds) delete maxColorEditBounds;
+	if (minOpacEditBounds) delete minOpacEditBounds;
+	if (maxOpacEditBounds) delete maxOpacEditBounds;
+	if (minIsoEditBounds) delete minIsoEditBounds;
+	if (maxIsoEditBounds) delete maxIsoEditBounds;
+	
+	
+	minColorEditBounds = new float[1];
+	maxColorEditBounds = new float[1];
+	minColorEditBounds[0] = 0.f;
+	maxColorEditBounds[0] = 1.f;
+	minOpacEditBounds = new float[1];
+	maxOpacEditBounds = new float[1];
+	minOpacEditBounds[0] = 0.f;
+	maxOpacEditBounds[0] = 1.f;
+	minIsoEditBounds = new float[1];
+	maxIsoEditBounds = new float[1];
+	minIsoEditBounds[0] = 0.f;
+	maxIsoEditBounds[0] = 1.f;
+	
+	mapEditMode = true;   //default is edit mode
+	isoEditMode = true;
+	
+	setEnabled(false);
 	float default_color[4] = {1.0, 1.0, 1.0, 1.0};
 	SetConstantColor(default_color);
+	
+}
+//Hook up the new transfer function in specified slot,
+//Delete the old one.  This is called whenever a new tf is loaded.
+//
+void ParamsIso::
+hookupTF(TransferFunction* tf, int index){
+
+	//Create a new TFEditor
+	if (transFunc[index]) delete transFunc[index];
+	transFunc[index] = tf;
+
+	minColorEditBounds[index] = tf->getMinMapValue();
+	maxColorEditBounds[index] = tf->getMaxMapValue();
+	tf->setParams(this);
+	int varnum = DataStatus::getInstance()->getSessionVariableNum(GetMapVariableName());
+	tf->setColorVarNum(varnum);
+	tf->setOpacVarNum(varnum);
+}
+MapperFunction* ParamsIso::getMapperFunc() {
+	return ((GetMapVariableNum()>=0) ? transFunc[GetMapVariableNum()] : 0);
+}
+IsoControl* ParamsIso::getIsoControl(){
+	return ((numSessionVariables > 0 && isoControls.size() > 0) ? isoControls[GetIsoVariableNum()] : 0);
 }
 
+void ParamsIso::setMinColorMapBound(float val){
+	getMapperFunc()->setMinColorMapValue(val);
+	_rootParamNode->SetNodeDirty(_IsoControlTag);
+}
+void ParamsIso::setMaxColorMapBound(float val){
+	getMapperFunc()->setMaxColorMapValue(val);
+	_rootParamNode->SetNodeDirty(_IsoControlTag);
+}
+
+
+void ParamsIso::setMinOpacMapBound(float val){
+	getMapperFunc()->setMinOpacMapValue(val);
+	_rootParamNode->SetNodeDirty(_IsoControlTag);
+}
+void ParamsIso::setMaxOpacMapBound(float val){
+	getMapperFunc()->setMaxOpacMapValue(val);
+	_rootParamNode->SetNodeDirty(_ColorMapTag);
+}
+
+
 void ParamsIso::SetIsoValue(double value) {
-	vector <double> valvec(1, value);
-	GetRootNode()->SetElementDouble(_IsoValueTag, valvec);
+	getIsoControl()->setIsoValue(value);
+	_rootParamNode->SetNodeDirty(_IsoControlTag);
 }
 
 double ParamsIso::GetIsoValue() {
-	vector <double> &valvec = GetRootNode()->GetElementDouble(_IsoValueTag);
-	return(valvec[0]);
+	return (isoControls.size()>0) ? getIsoControl()->getIsoValue() : 0.f;
 }
 
-void ParamsIso::RegisterIsoValueDirtyFlag(ParamNode::DirtyFlag *df) {
-	GetRootNode()->RegisterDirtyFlagDouble(_IsoValueTag, df);
+void ParamsIso::RegisterIsoControlDirtyFlag(ParamNode::DirtyFlag *df) {
+	GetRootNode()->RegisterDirtyFlagNode(_IsoControlTag, df);
+}
+
+void ParamsIso::RegisterColorMapDirtyFlag(ParamNode::DirtyFlag *df) {
+	GetRootNode()->RegisterDirtyFlagNode(_ColorMapTag, df);
 }
 
 void ParamsIso::SetNormalOnOff(bool flag) {
@@ -221,23 +393,49 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 
 
  void ParamsIso::SetHistoBounds(float bnds[2]){
-	vector <double> valvec(2);
-	valvec[0] = bnds[0]; valvec[1]= bnds[1];
-	GetRootNode()->SetElementDouble(_HistoBoundsTag, valvec);
+	IsoControl* isoContr = getIsoControl();
+	isoContr->setMinHistoValue(bnds[0]);
+	isoContr->setMaxHistoValue(bnds[1]);
+	_rootParamNode->SetNodeDirty(_IsoControlTag);
  }
  const float* ParamsIso::GetHistoBounds(){
-	const vector <double> valvec = GetRootNode()->GetElementDouble(_HistoBoundsTag);
-	_histoBounds[0]=(float)valvec[0];_histoBounds[1]=(float)valvec[1];
+	 if (!getIsoControl()){
+		 _histoBounds[0] = 0.f;
+		 _histoBounds[1] = 1.f;
+	 } else {
+		_histoBounds[0]=getIsoControl()->getMinHistoValue();
+		_histoBounds[1]=getIsoControl()->getMaxHistoValue();
+	 }
+	return( _histoBounds);
+ }
+ //Use _histoBounds to return tf bounds 
+ const float* ParamsIso::GetMapBounds(){
+	 if (!getMapperFunc() || GetMapVariableNum() < 0){
+		 _histoBounds[0] = 0.f;
+		 _histoBounds[1] = 1.f;
+	 } else {
+		_histoBounds[0]=getMapperFunc()->getMinOpacMapValue();
+		_histoBounds[1]=getMapperFunc()->getMaxOpacMapValue();
+	 }
 	return( _histoBounds);
  }
 	
- void ParamsIso::SetHistoStretch(float scale){
+ void ParamsIso::SetIsoHistoStretch(float scale){
 	vector <double> valvec(1, (double)scale);
 	GetRootNode()->SetElementDouble(_HistoScaleTag, valvec);
  }
 
- float ParamsIso::GetHistoStretch(){
+ float ParamsIso::GetIsoHistoStretch(){
 	vector<double>& valvec = GetRootNode()->GetElementDouble(_HistoScaleTag);
+	return (float)valvec[0];
+ }
+ void ParamsIso::SetHistoStretch(float scale){
+	vector <double> valvec(1, (double)scale);
+	GetRootNode()->SetElementDouble(_MapHistoScaleTag, valvec);
+ }
+
+ float ParamsIso::GetHistoStretch(){
+	vector<double>& valvec = GetRootNode()->GetElementDouble(_MapHistoScaleTag);
 	return (float)valvec[0];
  }
 
@@ -297,47 +495,64 @@ void ParamsIso::RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag *df){
  void ParamsIso::RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->RegisterDirtyFlagLong(_VariableNameTag, df);
 }
- 
+void ParamsIso::SetMapVariableName(const string& varName){
+	 GetRootNode()->SetElementString(_MapVariableNameTag, varName);
+ }
+ const string& ParamsIso::GetMapVariableName(){
+	 return GetRootNode()->GetElementString(_MapVariableNameTag);
+ }
+ void ParamsIso::RegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df){
+	GetRootNode()->RegisterDirtyFlagLong(_MapVariableNameTag, df);
+}
+void ParamsIso::
+refreshCtab() {
+	if (getMapperFunc())
+		((TransferFunction*)getMapperFunc())->makeLut((float*)ctab);
+}
 RenderParams* ParamsIso::deepRCopy(){
 	ParamsIso* newParams = new ParamsIso(*this);
 	// Need to clone the xmlnode; 
 	if (_rootParamNode) newParams->_rootParamNode = new ParamNode(*_rootParamNode);
+	
 	//Probably these are always the same when we clone...
 	assert(_rootParamNode == _currentParamNode);
 	if (_rootParamNode == _currentParamNode)
 		newParams->_currentParamNode = newParams->_rootParamNode;
 	else newParams->_currentParamNode = new ParamNode(*_currentParamNode);
-	newParams->dummyMapperFunc = new MapperFunction(*dummyMapperFunc);
-	newParams->dummyMapperFunc->setParams(newParams);
-	newParams->minOpacEditBounds = new float[1];
-	newParams->maxOpacEditBounds = new float[1];
-	newParams->minOpacEditBounds[0] = minOpacEditBounds[0];
-	newParams->maxOpacEditBounds[0] = maxOpacEditBounds[0];
+	//Copy the edit bounds:
+	newParams->minOpacEditBounds = new float[numSessionVariables];
+	newParams->maxOpacEditBounds = new float[numSessionVariables];
+	newParams->minColorEditBounds = new float[numSessionVariables];
+	newParams->maxColorEditBounds = new float[numSessionVariables];
+	newParams->minIsoEditBounds = new float[numSessionVariables];
+	newParams->maxIsoEditBounds = new float[numSessionVariables];
+	for (int i = 0; i<numSessionVariables; i++){
+		newParams->minOpacEditBounds[i] = minOpacEditBounds[i];
+		newParams->maxOpacEditBounds[i] = maxOpacEditBounds[i];
+		newParams->minColorEditBounds[i] = minColorEditBounds[i];
+		newParams->maxColorEditBounds[i] = maxColorEditBounds[i];
+		newParams->minIsoEditBounds[i] = minIsoEditBounds[i];
+		newParams->maxIsoEditBounds[i] = maxIsoEditBounds[i];
+	}
+	
+	//clone the IsoControls and Transfer Functions:
+	newParams->transFunc.clear();
+	newParams->isoControls.clear();
+	assert(transFunc.size() == isoControls.size());
+	for (int i = 0; i<isoControls.size(); i++){
+		newParams->isoControls.push_back(new IsoControl(*isoControls[i]));
+		newParams->transFunc.push_back(new TransferFunction(*transFunc[i]));
+		newParams->transFunc[i]->setParams(newParams);
+		newParams->isoControls[i]->setParams(newParams);
+	}
 	return (RenderParams*)newParams;
 }
-//Opacity map bounds are being used for histo bounds:
-void ParamsIso::setMinOpacMapBound(float minhisto){
-	const float* bnds = GetHistoBounds();
-	float nbds[2];
-	nbds[0] = minhisto;
-	nbds[1] = bnds[1];
-	SetHistoBounds(nbds);
-	dummyMapperFunc->setMinOpacMapValue(minhisto);
-	return;
-}
-void ParamsIso::setMaxOpacMapBound(float maxhisto){
-	const float* bnds = GetHistoBounds();
-	float nbds[2];
-	nbds[1] = maxhisto;
-	nbds[0] = bnds[0];
-	SetHistoBounds(nbds);
-	dummyMapperFunc->setMaxOpacMapValue(maxhisto);
-	return;
-}
+
 void ParamsIso::updateHistoBounds(){
+	if(!getIsoControl()) return;
 	float newBnds[2];
-	newBnds[0] = dummyMapperFunc->getMinOpacMapValue();
-	newBnds[1] = dummyMapperFunc->getMaxOpacMapValue();
+	newBnds[0] = getIsoControl()->getMinOpacMapValue();
+	newBnds[1] = getIsoControl()->getMaxOpacMapValue();
 	SetHistoBounds(newBnds);
 }
 
@@ -357,8 +572,6 @@ bool ParamsIso::elementStartHandler(
 		// The only supported attribute is the variable name:
 		string varName;
 		
-		float leftEdit = 0.f;
-		float rightEdit = 1.f;
 		float opacFac = 1.f;
 		while (*attrs) {
 			string attribName = *attrs;
@@ -367,13 +580,7 @@ bool ParamsIso::elementStartHandler(
 			attrs++;
 			istringstream ist(value);
 			
-			if (StrCmpNoCase(attribName, _leftEditBoundAttr) == 0) {
-				ist >> leftEdit;
-			}
-			else if (StrCmpNoCase(attribName, _rightEditBoundAttr) == 0) {
-				ist >> rightEdit;
-			}
-			else if (StrCmpNoCase(attribName, _variableNameAttr) == 0){
+			if (StrCmpNoCase(attribName, _variableNameAttr) == 0){
 				ist >> varName;
 			}
 			else if (StrCmpNoCase(attribName, _opacityScaleAttr) == 0){
@@ -381,30 +588,12 @@ bool ParamsIso::elementStartHandler(
 			}
 			else return false;
 		}
-		//Add a "Variable" node to the retained parse tree:
-		ostringstream oss;
-		string empty;
-		map <string, string> varAttrs;
-		varAttrs[_variableNameAttr] = varName;
-
-		oss.str(empty);
-		oss << (double)leftEdit;
-		varAttrs[_leftEditBoundAttr] = oss.str();
-		oss.str(empty);
-		oss << (double)rightEdit;
-		varAttrs[_rightEditBoundAttr] = oss.str();
-		oss.str(empty);
-		oss << (double)opacFac;
-		varAttrs[_opacityScaleAttr] = oss.str();
-
-		ParamNode *variableNode = new ParamNode(_variableTag, varAttrs);
-		//Use XMLNode version of AddChild to add multiple children with same tag
-		_currentParamNode->XmlNode::AddChild(variableNode);
-		_currentParamNode = variableNode;
 	
 		//Add this variable to the session variable names, and set up
 		//this variable in the ParamsIso
 		parsingVarNum = DataStatus::mergeVariableName(varName);
+		if (parsingVarNum >= numSessionVariables) numSessionVariables = parsingVarNum+1;
+		
 		//Make sure we have a place for it:
 		if (transFunc.size() < parsingVarNum +1){
 			int currentSize = transFunc.size();
@@ -416,6 +605,17 @@ bool ParamsIso::elementStartHandler(
 		if (transFunc[parsingVarNum]) {
 			delete transFunc[parsingVarNum];
 			transFunc[parsingVarNum] = 0;
+		}
+		if (isoControls.size() < parsingVarNum +1){
+			int currentSize = isoControls.size();
+			for (int i = currentSize; i < parsingVarNum +1; i++){
+				//Insert nulls
+				isoControls.push_back(0);
+			}
+		}
+		if (isoControls[parsingVarNum]) {
+			delete isoControls[parsingVarNum];
+			isoControls[parsingVarNum] = 0;
 		}
 		return true;
 	} else if (StrCmpNoCase(tag, TransferFunction::_transferFunctionTag) == 0){
@@ -429,24 +629,54 @@ bool ParamsIso::elementStartHandler(
 		tf->elementStartHandler(pm, depth, tag, attrs);
 		
 		return true;
+	} else if (StrCmpNoCase(tag, _IsoControlTag) == 0){
+		_parseDepth++;
+		//Now create the iso control, and have it parse its state:
+		IsoControl* ic = new IsoControl(this, 8);
+		isoControls[parsingVarNum] = ic;
+		ic->setVarNum(parsingVarNum);
+		pm->pushClassStack(isoControls[parsingVarNum]);
+		//defer to the transfer function to do its own parsing:
+		ic->elementStartHandler(pm, depth, tag, attrs);
+		
+		return true;
 	} else { //Defer to parent class for iso parameter parsing
+		numSessionVariables = 0;
 		return ParamsBase::elementStartHandler(pm, depth, tag, attrs);
 	}
 }
-// At completion of parsing, need to save Transfer Function parse tree
+// At completion of parsing, need pop back from tf or isocontrol parsing
 bool ParamsIso::elementEndHandler(ExpatParseMgr* pm, int depth, string& tag) {
 
 	if (_parseDepth == 3){
-		//popped back from TF parsing.  Build the xml tree for the transfer function.
-		assert(StrCmpNoCase(tag,TransferFunction::_transferFunctionTag) == 0);
-		XmlNode* tfNode = transFunc[parsingVarNum]->rebuildNode(true);
-		_currentParamNode->XmlNode::AddChild(tfNode);
-
-		_parseDepth--;
-		Pop();
-		return true;
+		//popped back from TF or IsoControl parsing.  
+		if ((StrCmpNoCase(tag,_IsoControlTag) == 0)||
+			(StrCmpNoCase(tag,TransferFunction::_transferFunctionTag) == 0)){
+			_parseDepth--;
+			Pop();
+			return true;
+		} 
+		else return false;
+		
 	}
 
 	else return ParamsBase::elementEndHandler(pm, depth, tag);
 
+}
+float ParamsIso::getOpacityScale() 
+{
+  if (numSessionVariables)
+  {
+    return transFunc[GetMapVariableNum()]->getOpacityScaleFactor();
+  }
+
+  return 1.0;
+}
+
+void ParamsIso::setOpacityScale(float val) 
+{
+  if (numSessionVariables)
+  {
+    transFunc[GetMapVariableNum()]->setOpacityScaleFactor(val);
+  }
 }

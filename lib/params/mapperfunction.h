@@ -73,5 +73,30 @@ protected:
 	RenderParams* _params;
 	
 };
+class PARAMS_API IsoControl : public MapperFunction{
+public:
+	IsoControl();
+	IsoControl(RenderParams* p, int nBits = 8);
+	//Copy constructor
+	IsoControl(const IsoControl &mapper);
+	virtual ~IsoControl();
+	void setIsoValue(double val){isoValue = val;}
+	double getIsoValue(){return isoValue;}
+	
+	virtual XmlNode* buildNode(const string&);
+	void setMinHistoValue(float val){setMinOpacMapValue(val);}
+	void setMaxHistoValue(float val){setMaxOpacMapValue(val);}
+	float getMinHistoValue() {return getMinOpacMapValue();}
+	float getMaxHistoValue() {return getMaxOpacMapValue();}
+	
+	virtual bool elementStartHandler(ExpatParseMgr*, int depth, 
+                                     std::string&, const char **);
+
+	virtual bool elementEndHandler(ExpatParseMgr*, int, std::string&);
+protected:
+	static const string _leftHistoBoundAttr;
+	static const string _rightHistoBoundAttr;
+	double isoValue;
+};
 };
 #endif //MAPPERFUNCTION_H

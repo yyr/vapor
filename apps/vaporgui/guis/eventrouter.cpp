@@ -27,11 +27,19 @@
 #include "vizwinmgr.h"
 #include <qapplication.h>
 #include <qcursor.h>
+#include <qmessagebox.h>
+#include <qfileinfo.h>
+#include <qfiledialog.h>
 #include "vapor/DataMgr.h"
 #include "vapor/errorcodes.h"
 #include "session.h"
 #include "messagereporter.h"
+#include "transferfunction.h"
+#include "loadtfdialog.h"
+#include "savetfdialog.h"
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 using namespace VAPoR;
 
@@ -134,7 +142,7 @@ void EventRouter::performGuiCopyInstanceToViz(int towin){
 	InstancedPanelCommand::capture(rParams, "copy renderer instance to viz", currentInstance, VAPoR::copyInstance, towin);
 }
 
-void EventRouter::refreshHistogram(RenderParams* renParams){
+void EventRouter::refreshHistogram(RenderParams* renParams, int varNum, const float dRange[2]){
 	size_t min_dim[3],max_dim[3];
 	size_t min_bdim[3], max_bdim[3];
 	DataStatus* ds = DataStatus::getInstance();
@@ -153,7 +161,6 @@ void EventRouter::refreshHistogram(RenderParams* renParams){
 	}
 	
 	size_t fullHeight = rParams->getFullGridHeight();
-	int varNum = renParams->getSessionVarNum();
 	
 	if (!ds->getDataMgr()) return;
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
@@ -169,7 +176,6 @@ void EventRouter::refreshHistogram(RenderParams* renParams){
 	}
 	int numTrans = renParams->getNumRefinements();
 	int timeStep = vizWinMgr->getAnimationParams(vizNum)->getCurrentFrameNumber();
-	const float * bnds = renParams->getCurrentDatarange();
 	
 	int availRefLevel = rParams->getAvailableVoxelCoords(numTrans, min_dim, max_dim, min_bdim, max_bdim, timeStep, &varNum, 1);
 	if(availRefLevel < 0) return;
@@ -195,7 +201,7 @@ void EventRouter::refreshHistogram(RenderParams* renParams){
 					availRefLevel,
 					min_bdim, max_bdim,
 					fullHeight,
-					renParams->getCurrentDatarange(),
+					dRange,
 					0 //Don't lock!
 		);
 	QApplication::restoreOverrideCursor();
@@ -208,11 +214,12 @@ void EventRouter::refreshHistogram(RenderParams* renParams){
 	}
 
 	histogramList[varNum] = new Histo(data,
-			min_dim, max_dim, min_bdim, max_bdim, bnds[0], bnds[1]);
+			min_dim, max_dim, min_bdim, max_bdim, dRange[0],dRange[1]);
 	
 }
 //Obtain the current valid histogram.  if mustGet is false, don't build a new one.
-Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet){
+//Boolean flag is only used by isoeventrouter version
+Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool ){
 	
 	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
 	int varNum = renParams->getSessionVarNum();
@@ -230,10 +237,140 @@ Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet){
 	
 	if (!mustGet) return 0;
 	histogramList[varNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
-	refreshHistogram(renParams);
+	refreshHistogram(renParams, varNum,currentDatarange);
 	return histogramList[varNum];
 	
 }
 
+//Respond to user click on save/load TF.  This launches the intermediate
+//dialog, then sends the result to the DVR params
+void EventRouter::
+saveTF(RenderParams* rParams){
+	SaveTFDialog* saveTFDialog = new SaveTFDialog(rParams,0,
+		"Save TF Dialog", true);
+	int rc = saveTFDialog->exec();
+	if (rc == 1) fileSaveTF(rParams);
+}
+void EventRouter::
+fileSaveTF(RenderParams* rParams){
+	//Launch a file save dialog, open resulting file
+    QString s = QFileDialog::getSaveFileName(
+					Session::getInstance()->getTFFilePath().c_str(),
+                    "Vapor Transfer Functions (*.vtf)",
+                    0,
+                    "save TF dialog",
+                    "Choose a filename to save the transfer function" );
+	//Did the user cancel?
+	if (s.length()== 0) return;
+	//Force the name to end with .vtf
+	if (!s.endsWith(".vtf")){
+		s += ".vtf";
+	}
+	QFileInfo finfo(s);
+	if (finfo.exists()){
+		int rc = QMessageBox::warning(0, "Transfer Function File Exists", QString("OK to replace transfer function file \n%1 ?").arg(s), QMessageBox::Ok, 
+			QMessageBox::No);
+		if (rc != QMessageBox::Ok) return;
+	}
+	ofstream fileout;
+	fileout.open(s.ascii());
+	if (! fileout) {
+		QString str("Unable to save to file: \n");
+		str += s;
+		MessageReporter::errorMsg( str.ascii());
+		return;
+	}
+	
+	
+	if (!((TransferFunction*)(rParams->getMapperFunc()))->saveToFile(fileout)){//Report error if can't save to file
+		QString str("Failed to write output file: \n");
+		str += s;
+		MessageReporter::errorMsg(str.ascii());
+		fileout.close();
+		return;
+	}
+	fileout.close();
+	Session::getInstance()->updateTFFilePath(&s);
+}
+void EventRouter::
+loadInstalledTF(RenderParams* rParams){
+	//Get the path from the environment:
+	char *home = getenv("VAPOR_HOME");
+	QString installPath = QString(home)+ "/share/palettes";
+	fileLoadTF(rParams,installPath.ascii(),false);
+}
+void EventRouter::
+loadTF(RenderParams* rParams){
+	//If there are no TF's currently in Session, just launch file load dialog.
+	
+	if (Session::getInstance()->getNumTFs() > 0){
+		LoadTFDialog* loadTFDialog = new LoadTFDialog(this, 0,
+			"Load TF Dialog", true);
+		int rc = loadTFDialog->exec();
+		if (rc == 0) return;
+		if (rc == 1) {
+			fileLoadTF(rParams, Session::getInstance()->getTFFilePath().c_str(),true);
+			
+		}
+		//if rc == 2, we already (probably) loaded a tf from the session
+	} else {
+		fileLoadTF(rParams, Session::getInstance()->getTFFilePath().c_str(),true);
+	}
+	setEditorDirty(rParams);
+}
+
+void EventRouter::
+fileLoadTF(RenderParams* rParams, const char* startPath, bool savePath){
+	if (DataStatus::getInstance()->getNumSessionVariables()<=0) return;
+	int varNum = rParams->getSessionVarNum();
+	//Open a file load dialog
+	
+    QString s = QFileDialog::getOpenFileName(
+                    startPath,
+                    "Vapor Transfer Functions (*.vtf)",
+                    0,
+                    "load TF dialog",
+                    "Choose a transfer function file to open" );
+	//Null string indicates nothing selected.
+	if (s.length() == 0) return;
+	//Force the name to end with .vtf
+	if (!s.endsWith(".vtf")){
+		s += ".vtf";
+	}
+	
+	ifstream is;
+	
+	is.open(s.ascii());
+
+	if (!is){//Report error if you can't open the file
+		QString str("Unable to open file: \n");
+		str+= s;
+		MessageReporter::errorMsg(str.ascii());
+		return;
+	}
+	//Start the history save:
+	confirmText(false);
+	
+	PanelCommand* cmd = PanelCommand::captureStart(rParams, "Load Transfer Function from file");
+	
+	TransferFunction* t = TransferFunction::loadFromFile(is, rParams);
+	if (!t){//Report error if can't load
+		QString str("Error loading transfer function. /nFailed to convert input file: \n ");
+		str += s;
+		MessageReporter::errorMsg(str.ascii());
+		//Don't put this into history!
+		delete cmd;
+		return;
+	}
+
+	rParams->hookupTF(t, varNum);
+	//Remember the path to the file:
+	if(savePath) Session::getInstance()->updateTFFilePath(&s);
+	PanelCommand::captureEnd(cmd, rParams);
+	
+	setEditorDirty(rParams);
+	setDatarangeDirty(rParams);
+	VizWinMgr::getInstance()->setClutDirty(rParams);
+}
 
 	

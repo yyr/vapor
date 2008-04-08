@@ -728,23 +728,17 @@ probeLoadInstalledTF(){
 	QString installPath = QString(home)+ "/share/palettes";
 	fileLoadTF(pParams,installPath.ascii(),false);
 }
+//Respond to user click on save/load TF.  This launches the intermediate
+//dialog, then sends the result to the Probe params
+void ProbeEventRouter::
+probeSaveTF(void){
+	ProbeParams* dParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
+	saveTF(dParams);
+}
 void ProbeEventRouter::
 probeLoadTF(void){
 	ProbeParams* pParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
-	
-	//If there are no TF's currently in Session, just launch file load dialog.
-	if (Session::getInstance()->getNumTFs() > 0){
-		LoadTFDialog* loadTFDialog = new LoadTFDialog(this, this,
-			"Load TF Dialog", true);
-		int rc = loadTFDialog->exec();
-		if (rc == 0) return;
-		if (rc == 1) fileLoadTF(pParams, Session::getInstance()->getTFFilePath().c_str(), true);
-		//if rc == 2, we already (probably) loaded a tf from the session
-	} else {
-		fileLoadTF(pParams, Session::getInstance()->getTFFilePath().c_str(), true);
-	}
-	
-	setEditorDirty();
+	loadTF(pParams);
 }
 void ProbeEventRouter::
 probeCenterRegion(){
@@ -885,59 +879,6 @@ setProbeZSize(){
 
 
 
-//Respond to user click on save/load TF.  This launches the intermediate
-//dialog, then sends the result to the Probe params
-void ProbeEventRouter::
-probeSaveTF(void){
-	ProbeParams* dParams = (ProbeParams*)VizWinMgr::getInstance()->getApplicableParams(Params::ProbeParamsType);
-	SaveTFDialog* saveTFDialog = new SaveTFDialog(dParams,this,
-		"Save TF Dialog", true);
-	int rc = saveTFDialog->exec();
-	if (rc == 1) fileSaveTF(dParams);
-}
-void ProbeEventRouter::
-fileSaveTF(ProbeParams* dParams){
-	//Launch a file save dialog, open resulting file
-    QString s = QFileDialog::getSaveFileName(
-					Session::getInstance()->getTFFilePath().c_str(),
-                    "Vapor Transfer Functions (*.vtf)",
-                    0,
-                    "save TF dialog",
-                    "Choose a filename to save the transfer function" );
-	//Did the user cancel?
-	if (s.length()== 0) return;
-	//Force the name to end with .vtf
-	if (!s.endsWith(".vtf")){
-		s += ".vtf";
-	}
-	QFileInfo finfo(s);
-	if (finfo.exists()){
-		int rc = QMessageBox::warning(0, "Transfer Function File Exists", QString("OK to replace transfer function file \n%1 ?").arg(s), QMessageBox::Ok, 
-			QMessageBox::No);
-		if (rc != QMessageBox::Ok) return;
-	}
-	ofstream fileout;
-	fileout.open(s.ascii());
-	if (! fileout) {
-		QString str("Unable to save to file: \n");
-		str += s;
-		MessageReporter::errorMsg( str.ascii());
-		return;
-	}
-	
-	
-	
-	if (!((TransferFunction*)(dParams->getMapperFunc()))->saveToFile(fileout)){//Report error if can't save to file
-		QString str("Failed to write output file: \n");
-		str += s;
-		MessageReporter::errorMsg(str.ascii());
-		fileout.close();
-		return;
-	}
-	fileout.close();
-	Session::getInstance()->updateTFFilePath(&s);
-}
-
 //Respond to user request to load/save TF
 //Assumes name is valid
 //
@@ -959,58 +900,6 @@ sessionLoadTF(QString* name){
 	setDatarangeDirty(dParams);
 	setEditorDirty();
 }
-void ProbeEventRouter::
-fileLoadTF(ProbeParams* dParams, const char* path, bool savePath){
-	
-	//The transfer function is indexed by firstVarNum, which is a session variable num
-	int varNum = dParams->getSessionVarNum();
-	//Open a file load dialog
-	
-    QString s = QFileDialog::getOpenFileName(
-                    path,
-                    "Vapor Transfer Functions (*.vtf)",
-                    0,
-                    "load TF dialog",
-                    "Choose a transfer function file to open" );
-	//Null string indicates nothing selected.
-	if (s.length() == 0) return;
-	//Force the name to end with .vtf
-	if (!s.endsWith(".vtf")){
-		s += ".vtf";
-	}
-	
-	ifstream is;
-	
-	is.open(s.ascii());
-
-	if (!is){//Report error if you can't open the file
-		QString str("Unable to open file: \n");
-		str+= s;
-		MessageReporter::errorMsg(str.ascii());
-		return;
-	}
-	//Start the history save:
-	confirmText(false);
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Load Transfer Function from file");
-	
-      TransferFunction* t = TransferFunction::loadFromFile(is, dParams);
-	if (!t){//Report error if can't load
-		QString str("Error loading transfer function. /nFailed to convert input file: \n ");
-		str += s;
-		MessageReporter::errorMsg(str.ascii());
-		//Don't put this into history!
-		delete cmd;
-		return;
-	}
-
-	dParams->hookupTF(t, varNum);
-	PanelCommand::captureEnd(cmd, dParams);
-	//Remember the path to the file:
-	if(savePath) Session::getInstance()->updateTFFilePath(&s);
-	setDatarangeDirty(dParams);
-	setEditorDirty();
-}
-
 
 //Make region match probe.  Responds to button in region panel
 void ProbeEventRouter::

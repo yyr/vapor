@@ -30,9 +30,6 @@ public:
 	//Store previous class for stack
 	ParsedXml* previousClass;
 
-	//Method to reconstruct the XmlTree associated with this class.
-	//also can be used to set a dirty bit on the associated node.
-	virtual XmlNode* rebuildNode(bool /*firstBuild*/) {return 0;}
 protected:
 	// known xml attribute values
 	//

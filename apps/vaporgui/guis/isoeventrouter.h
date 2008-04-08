@@ -27,6 +27,7 @@
 #include "eventrouter.h"
 #include "vapor/MyBase.h"
 #include "isotab.h"
+#include "transferfunction.h"
 
 
 
@@ -61,13 +62,16 @@ public:
 	
 	virtual void guiSetEnabled(bool value, int instance);
 
-
+	//special version for iso, since it has two different histograms.
+	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false);
 
 
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
 		
 	virtual void reinitTab(bool doOverride);
 	void guiSetConstantColor(QColor& c);
+	void guiSetOpacityScale(int val);
+	void sessionLoadTF(QString* name);
 	
 protected slots:
 	void guiChangeInstance(int);
@@ -76,7 +80,12 @@ protected slots:
 	void guiCopyInstanceTo(int toViz);
 	void guiCopyProbePoint();
 
+	void isoLoadTF();
+	void isoLoadInstalledTF();
+	void isoSaveTF();
+
 	void guiSetComboVarNum(int val);
+	void guiSetMapComboVarNum(int val);
 	
 	void guiSetLighting(bool val);
 	void guiSetNumRefinements(int num);
@@ -89,10 +98,22 @@ protected slots:
 	void refreshHisto();
 	void setIsoEditMode(bool);
 	void setIsoNavigateMode(bool);
+	void setTFNavigateMode(bool);
 	void setConstantColor();
 	void guiPassThruPoint();
 	void guiStartChangeIsoSelection(QString);
 	void guiEndChangeIsoSelection();
+	void isoOpacityScale();
+	void guiBindColorToOpac();
+	void guiBindOpacToColor();
+	void setTFEditMode(bool);
+	void guiSetTFAligned();
+	void guiSetIsoAligned();
+	void refreshTFHisto();
+	void guiStartChangeMapFcn(QString);
+    void guiEndChangeMapFcn();
+	void guiSetTFEditMode(bool);
+    void setBindButtons(bool);
 	
 
 

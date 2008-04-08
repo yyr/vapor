@@ -278,7 +278,8 @@ refreshHisto(){
 	//dParams->setDatarangeDirty();
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
-		refreshHistogram(dParams);
+		const float* datarange = dParams->getCurrentDatarange();
+		refreshHistogram(dParams,dParams->getSessionVarNum(),datarange);
 		setEditorDirty();
 	}
 }
@@ -295,11 +296,9 @@ dvrOpacityScale() {
 void DvrEventRouter::
 dvrSaveTF(void){
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
-	SaveTFDialog* saveTFDialog = new SaveTFDialog(dParams,this,
-		"Save TF Dialog", true);
-	int rc = saveTFDialog->exec();
-	if (rc == 1) fileSaveTF(dParams);
+	saveTF(dParams);
 }
+/*
 void DvrEventRouter::
 fileSaveTF(DvrParams* dParams){
 	//Launch a file save dialog, open resulting file
@@ -342,33 +341,17 @@ fileSaveTF(DvrParams* dParams){
 	fileout.close();
 	Session::getInstance()->updateTFFilePath(&s);
 }
+*/
 void DvrEventRouter::
 dvrLoadInstalledTF(){
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
-	//Get the path from the environment:
-	char *home = getenv("VAPOR_HOME");
-	QString installPath = QString(home)+ "/share/palettes";
-	fileLoadTF(dParams,installPath.ascii(),false);
+	loadInstalledTF(dParams);
 }
 void DvrEventRouter::
 dvrLoadTF(void){
 	//If there are no TF's currently in Session, just launch file load dialog.
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
-	
-	if (Session::getInstance()->getNumTFs() > 0){
-		LoadTFDialog* loadTFDialog = new LoadTFDialog(this, this,
-			"Load TF Dialog", true);
-		int rc = loadTFDialog->exec();
-		if (rc == 0) return;
-		if (rc == 1) {
-			fileLoadTF(dParams, Session::getInstance()->getTFFilePath().c_str(),true);
-			
-		}
-		//if rc == 2, we already (probably) loaded a tf from the session
-	} else {
-		fileLoadTF(dParams, Session::getInstance()->getTFFilePath().c_str(),true);
-	}
-	setEditorDirty();
+	loadTF(dParams);
 }
 //Respond to user request to load/save TF
 //Assumes name is valid
@@ -393,6 +376,7 @@ sessionLoadTF(QString* name){
 	setDatarangeDirty(dParams);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
 }
+/*
 void DvrEventRouter::
 fileLoadTF(DvrParams* dParams, const char* startPath, bool savePath){
 	if (dParams->getNumVariables() <= 0) return;
@@ -446,7 +430,7 @@ fileLoadTF(DvrParams* dParams, const char* startPath, bool savePath){
 	setDatarangeDirty(dParams);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
 }
-
+*/
 //Insert values from params into tab panel
 //
 void DvrEventRouter::updateTab(){

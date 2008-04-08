@@ -35,9 +35,9 @@ namespace VAPoR {
 	
       
   public:
-	virtual bool clutIsDirty() {return clutDirtyBit;}
+	
 	virtual bool datarangeIsDirty() {return datarangeDirtyBit;}
-	virtual void setClutDirty(){clutDirtyBit = true;}
+	
 	virtual void setDatarangeDirty(){datarangeDirtyBit = true;}
     VolumeRenderer(GLWindow *w, DvrParams::DvrType type, RenderParams* rp);
     virtual ~VolumeRenderer();
@@ -58,7 +58,6 @@ namespace VAPoR {
 
   protected:
     bool datarangeDirtyBit;
-	bool clutDirtyBit;
 
     virtual DVRBase* create_driver(DvrParams::DvrType type, int nthreads);
 

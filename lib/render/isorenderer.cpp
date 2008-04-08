@@ -94,7 +94,7 @@ void IsoRenderer::setRenderParams(RenderParams* rp) {
 
     ParamsIso *myParamsIso = (ParamsIso *) rp;
 
-	myParamsIso->RegisterIsoValueDirtyFlag(&_isovalueDF);
+	myParamsIso->RegisterIsoControlDirtyFlag(&_isovalueDF);
 	myParamsIso->RegisterConstantColorDirtyFlag(&_isovalueDF);
 	myParamsIso->RegisterNormalOnOffDirtyFlag(&_lightOnOffDF);
 }
@@ -113,7 +113,6 @@ void IsoRenderer::UpdateDriverRenderParamsSpec(RenderParams *rp) {
 		// Normalize isovalue
 		const float *range = currentRenderParams->getCurrentDatarange();
 		isoval = (isoval - range[0]) / (range[1] - range[0]);
-
 
 		driver->SetIsoValues(&isoval, color, 1);
 

@@ -197,7 +197,7 @@ public:
  //! This method stores a pointer to the DirtyFlag \p df with
  //! the long parameter named by \p tag. The ParamNode::DirtyFlag::Set()
  //! method will be invoked whenever the associated node is 
- //! modified, as a result of invoking rebuildNode(false)
+ //! modified, 
  //!
  //! \param[in] tag Name of ParamNode node
  //! \param[in] df A pointer to a dirty flag

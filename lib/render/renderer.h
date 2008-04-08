@@ -53,6 +53,9 @@ public:
 	virtual void setRenderParams(RenderParams* rp) {currentRenderParams = rp;}
 	RenderParams* getRenderParams(){return currentRenderParams;}
 	bool isInitialized() {return initialized;}
+
+	virtual bool clutIsDirty() {return clutDirtyBit;}
+	virtual void setClutDirty(){clutDirtyBit = true;}
 	
 signals:
 
@@ -74,6 +77,7 @@ protected:
 	float subregionFrameColor[3];
 	int savedNumXForms;
 	bool initialized;
+	bool clutDirtyBit;
 };
 };
 

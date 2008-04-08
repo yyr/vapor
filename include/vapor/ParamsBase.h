@@ -48,14 +48,12 @@
 //!		from ParsedXml.  These classes should implement elementStartHandler()
 //!		and elementEndHandler so they can do their own parsing.
 //! 3.  Classes that are associated with sub nodes should implement the 
-//!		rebuildNode() method.  rebuildNode(false) should be called after
-//!		changes are made that require notification or reconstructing the
-//!		parse tree.  The rebuildNode method must reconstruct the parse 
-//!		tree and add the new parse tree to the parent node.  In addition,
-//!		rebuildNode must invoke ParamNode::SetNodeDirty.  See the method
-//!		TransferFunction::rebuildNode() for an example of this.
-//! 4.  Client classes (e.g. renderers) that are interested in changes to the state of the
-//!		sub node must call ParamNode::RegisterDirtyFlagNode(), and respond
+//!		buildNode() method.  buildNode() will build an XML node for the sub node,
+//!     and must be called from the Params buildNode() method.
+//! 4.  Whenever data within a subnode changes, an appropriate dirty flag associated with
+//!     the node should be set in the parent Params node.
+//! 5.  Client classes (e.g. renderers) that are interested in changes to the state of the
+//!		sub node must call ParamNode::RegisterDirtyFlag*(), and respond
 //!		appropriately to the resulting DirtyFlag::Set().
 
 #ifndef ParamsBase_H
@@ -138,7 +136,13 @@ ParamNode *GetRootNode() { return(_rootParamNode); }
 
 virtual XmlNode* buildNode() { return 0;}
 
+//!	
+//! Method for manual setting of node flags
+//!
 
+void SetNodeDirty(const string& flag);
+
+virtual void restart() = 0;
 protected:
 	
 	ParamNode *_currentParamNode;

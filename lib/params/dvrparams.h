@@ -159,7 +159,7 @@ public:
 	TransferFunction* getTransFunc(int varnum) {return (transFunc ? transFunc[varnum] : 0);}
 	TransferFunction* getTransFunc() {return ((transFunc && numVariables>0) ? transFunc[varNum] : 0);}
 
-	void hookupTF(TransferFunction* t, int index);
+	virtual void hookupTF(TransferFunction* t, int index);
 protected:
 	static const string _editModeAttr;
 	static const string _histoStretchAttr;

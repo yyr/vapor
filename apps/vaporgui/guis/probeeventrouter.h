@@ -55,11 +55,7 @@ public:
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
 	virtual void cleanParams(Params* p); 
 
-
-	void fileLoadTF(ProbeParams* dParams, const char* path, bool savePath);
 	void sessionLoadTF(QString* name);
-	void fileSaveTF(ProbeParams* dParams);
-	
 	
 	void sliderToText(ProbeParams* pParams, int coord, int slideCenter, int slideSize);
 

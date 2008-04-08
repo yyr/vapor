@@ -350,10 +350,8 @@ public:
 	
 	//Force dvr renderer to get latest CLUT
 	//
-	void setClutDirty(DvrParams* p);
-	//Force probe renderer to get latest CLUT
-	//
-	void setClutDirty(ProbeParams* p){setVizDirty(p, ProbeTextureBit, true);}
+	void setClutDirty(RenderParams* p);
+	
 	//Force dvr renderers to get latest DataRange
 	//
 	void setDatarangeDirty(RenderParams* p); 

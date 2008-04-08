@@ -35,9 +35,9 @@ namespace VAPoR {
 	
       
   public:
-	virtual bool clutIsDirty() {return clutDirtyBit;}
+	
 	virtual bool datarangeIsDirty() {return datarangeDirtyBit;}
-	virtual void setClutDirty(){clutDirtyBit = true;}
+	
 	virtual void setDatarangeDirty(){datarangeDirtyBit = true;}
     IsoRenderer(GLWindow *w, DvrParams::DvrType type, RenderParams* rp);
     virtual ~IsoRenderer();

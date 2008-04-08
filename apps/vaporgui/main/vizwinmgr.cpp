@@ -1873,7 +1873,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 			}
 			assert(getNumIsoInstances(parsingVizNum) == (parsingIsoInstance+1));
 			
-			//Need to "push" to dvr parser.
+			//Need to "push" to iso parser.
 			//That parser will "pop" back to vizwinmgr when done.
 
 			isoEventRouter->cleanParams(iParams);
@@ -2009,15 +2009,15 @@ void VizWinMgr::setVizDirty(Params* p, DirtyBitType bittype, bool bit, bool refr
 	}
 }
 //Special cases for renderer dirty-bit setting
-void VizWinMgr::setClutDirty(DvrParams* p){
+void VizWinMgr::setClutDirty(RenderParams* p){
 	if (!(DataStatus::getInstance()->getDataMgr())) return;
 	VizWin* vw = getVizWin(p->getVizNum());
 	if (!vw) return;
 	GLWindow* glwin = vw->getGLWindow();
 	if (!glwin) return;
-	VolumeRenderer* volRend = (VolumeRenderer*)glwin->getRenderer(p);
-	if (!volRend) return;
-	volRend->setClutDirty();
+	Renderer* ren = glwin->getRenderer(p);
+	if (!ren) return;
+	ren->setClutDirty();
 	vw->updateGL();
 }
 void VizWinMgr::setDatarangeDirty(RenderParams* p){

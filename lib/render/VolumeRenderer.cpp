@@ -99,7 +99,7 @@ VolumeRenderer::VolumeRenderer(GLWindow* glw, DvrParams::DvrType type, RenderPar
 
   //Construct dvrvolumizer
   _driver = create_driver(type, 1);
-  clutDirtyBit = false;
+  
   datarangeDirtyBit = false;
 }
 

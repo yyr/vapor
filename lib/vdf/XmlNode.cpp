@@ -54,9 +54,10 @@ XmlNode::XmlNode(const XmlNode &node)
 {
 	*this = node;
 	this->_children.clear();
+	int foo = node._children.size();
 	for (int i=0; i<node._children.size(); i++) {
 		XmlNode *child = node._children[i];
-		XmlNode *newchild = child->Clone();
+		XmlNode *newchild = child->XmlNode::Clone();
 		this->AddChild(newchild);
 	}
 }
@@ -240,7 +241,7 @@ int	XmlNode::DeleteChild(const string &tag) {
 			return(0);
 		}
 	}
-	return(0);
+	return(-1);
 }
 
 XmlNode	*XmlNode::GetChild(size_t index) {

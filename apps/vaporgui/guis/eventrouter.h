@@ -119,8 +119,8 @@ public:
 	//Methods to support maintaining a list of histograms
 	//in each router (at least those with a TFE)
 
-	virtual Histo* getHistogram(RenderParams*, bool mustGet);
-	virtual void refreshHistogram(RenderParams* );
+	virtual Histo* getHistogram(RenderParams*, bool mustGet, bool isIsoWin = false);
+	virtual void refreshHistogram(RenderParams* , int sesVarNum, const float drange[2]);
 
 	//For render params, setEditorDirty uses the current instance if Params
 	//arg is null
@@ -131,6 +131,14 @@ public:
 	//Method for classes that capture mouse event events in viz win:
 	virtual void captureMouseUp() {assert(0);}
 	virtual void captureMouseDown() {assert(0);}
+
+//Methods for loading/saving transfer functions:
+void saveTF(RenderParams* rParams);
+void fileSaveTF(RenderParams* rParams);
+void loadInstalledTF(RenderParams* rParams);
+void loadTF(RenderParams* rParams);
+
+void fileLoadTF(RenderParams* rParams, const char* startPath, bool savePath);
 
 public slots:
 

@@ -101,18 +101,25 @@ IsoEventRouter::hookUpTab()
 	
 	connect (refinementCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumRefinements(int)));
 	connect (variableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetComboVarNum(int) ) );
+	connect (mapVariableCombo, SIGNAL( activated(int) ), this, SLOT( guiSetMapComboVarNum(int) ) );
 	connect (numBitsCombo,SIGNAL(activated(int)), this, SLOT(guiSetNumBits(int)));
 	connect (lightingCheckbox, SIGNAL( toggled(bool) ), this, SLOT( guiSetLighting(bool) ) );
  
 	//Line edits:
 	connect (histoScaleEdit,SIGNAL(textChanged(const QString&)),this, SLOT(setIsoTabTextChanged(const QString&)));
 	connect (histoScaleEdit, SIGNAL(returnPressed() ), this, SLOT( isoReturnPressed()));
+	connect (TFHistoScaleEdit,SIGNAL(textChanged(const QString&)),this, SLOT(setIsoTabTextChanged(const QString&)));
+	connect (TFHistoScaleEdit, SIGNAL(returnPressed() ), this, SLOT( isoReturnPressed()));
 	connect (isoValueEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabRenderTextChanged(const QString&)));
 	connect (isoValueEdit, SIGNAL(returnPressed()), this, SLOT( isoReturnPressed()));
 	connect (leftHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabRenderTextChanged(const QString&)));
 	connect (leftHistoEdit, SIGNAL(returnPressed()), this, SLOT(isoReturnPressed()));
 	connect (rightHistoEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabRenderTextChanged(const QString&)));
 	connect (rightHistoEdit, SIGNAL(returnPressed()), this, SLOT(isoReturnPressed()));
+	connect (leftMappingEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabRenderTextChanged(const QString&)));
+	connect (rightMappingEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabRenderTextChanged(const QString&)));
+	connect (leftMappingEdit, SIGNAL(returnPressed()), this, SLOT(isoReturnPressed()));
+	connect (rightMappingEdit, SIGNAL(returnPressed()), this, SLOT(isoReturnPressed()));
 	connect (selectedXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabTextChanged(const QString&)));
 	connect (selectedXEdit, SIGNAL( returnPressed()), this, SLOT( isoReturnPressed()));
 	connect (selectedYEdit, SIGNAL(textChanged(const QString&)), this, SLOT(setIsoTabTextChanged(const QString&)));
@@ -128,7 +135,36 @@ IsoEventRouter::hookUpTab()
 	connect (constantColorButton, SIGNAL(clicked()), this, SLOT(setConstantColor()));
 	connect (passThruButton, SIGNAL(clicked()), this, SLOT(guiPassThruPoint()));
 	connect (copyPointButton, SIGNAL(clicked()), this, SLOT(guiCopyProbePoint()));
+	// Transfer function controls:
+	connect (loadButton, SIGNAL(clicked()), this, SLOT(isoLoadTF()));
+	connect (loadInstalledButton, SIGNAL(clicked()), this, SLOT(isoLoadInstalledTF()));
+	connect (saveButton, SIGNAL(clicked()), this, SLOT(isoSaveTF()));
 	
+	connect (opacityScaleSlider, SIGNAL(sliderReleased()), this, SLOT (isoOpacityScale()));
+	connect (ColorBindButton, SIGNAL(pressed()), this, SLOT(guiBindColorToOpac()));
+	connect (OpacityBindButton, SIGNAL(pressed()), this, SLOT(guiBindOpacToColor()));
+	connect (TFnavigateButton, SIGNAL(toggled(bool)), this, SLOT(setTFNavigateMode(bool)));
+	
+	connect (TFeditButton, SIGNAL(toggled(bool)), this, SLOT(setTFEditMode(bool)));
+	
+	connect(TFalignButton, SIGNAL(clicked()), this, SLOT(guiSetTFAligned()));
+	
+	connect(TFHistoButton, SIGNAL(clicked()), this, SLOT(refreshTFHisto()));
+	connect(TFeditButton, SIGNAL(toggled(bool)), 
+            transferFunctionFrame, SLOT(setEditMode(bool)));
+
+	connect(TFalignButton, SIGNAL(clicked()),
+            transferFunctionFrame, SLOT(fitToView()));
+
+    connect(transferFunctionFrame, SIGNAL(startChange(QString)), 
+            this, SLOT(guiStartChangeMapFcn(QString)));
+
+    connect(transferFunctionFrame, SIGNAL(endChange()),
+            this, SLOT(guiEndChangeMapFcn()));
+
+    connect(transferFunctionFrame, SIGNAL(canBindControlPoints(bool)),
+            this, SLOT(setBindButtons(bool)));
+
 	//Instance table stuff:
 	connect (instanceTable, SIGNAL(changeCurrentInstance(int)), this, SLOT(guiChangeInstance(int)));
 	connect (copyCombo, SIGNAL(activated(int)), this, SLOT(guiCopyInstanceTo(int)));
@@ -139,6 +175,7 @@ IsoEventRouter::hookUpTab()
 	// isoSelectionFrame controls:
 	connect(editButton, SIGNAL(toggled(bool)), 
             isoSelectionFrame, SLOT(setEditMode(bool)));
+	connect(alignButton, SIGNAL(clicked()), this, SLOT(guiSetIsoAligned()));
 	connect(alignButton, SIGNAL(clicked()),
             isoSelectionFrame, SLOT(fitToView()));
     connect(isoSelectionFrame, SIGNAL(startChange(QString)), 
@@ -181,10 +218,38 @@ void IsoEventRouter::updateTab(){
 	ParamsIso* isoParams = (ParamsIso*) VizWinMgr::getActiveIsoParams();
 	deleteInstanceButton->setEnabled(vizMgr->getNumIsoInstances(winnum) > 1);
 
-
 	QString strn;
-    
-	//Force the iso to refresh
+	const std::string& varname = isoParams->GetMapVariableName();
+    int mapComboVarNum = 0;
+	if (StrCmpNoCase(varname, "Constant") != 0) {
+		//1 extra for constant
+		mapComboVarNum = 1+DataStatus::getInstance()->getMetadataVarNum(varname);
+	}
+		
+	
+	mapVariableCombo->setCurrentItem(mapComboVarNum);
+	//setup the transfer function editor:
+	if(mapComboVarNum > 0) {
+		transferFunctionFrame->setMapperFunction(isoParams->getMapperFunc());
+		updateMapBounds(isoParams);
+	}
+	else transferFunctionFrame->setMapperFunction(0);
+
+    transferFunctionFrame->updateParams();
+
+	
+    if (session->getNumSessionVariables())
+    {
+      
+      transferFunctionFrame->setVariableName(varname);
+    }
+    else
+    {
+      transferFunctionFrame->setVariableName("N/A");
+	  Session::getInstance()->unblockRecording();
+	  return;
+    }
+	
 	
 	numBitsCombo->setCurrentItem((isoParams->GetNumBits())>>4);
 	int numRefs = isoParams->getNumRefinements();
@@ -195,7 +260,8 @@ void IsoEventRouter::updateTab(){
 		isoParams->GetVariableName());
 	variableCombo->setCurrentItem(comboVarNum);
 	lightingCheckbox->setChecked(isoParams->GetNormalOnOff());
-	histoScaleEdit->setText(QString::number(isoParams->GetHistoStretch()));
+	histoScaleEdit->setText(QString::number(isoParams->GetIsoHistoStretch()));
+	TFHistoScaleEdit->setText(QString::number(isoParams->GetHistoStretch()));
 	isoValueEdit->setText(QString::number(isoParams->GetIsoValue()));
 	const vector<double>& coords = isoParams->GetSelectedPoint();
 	const float* bnds = isoParams->GetHistoBounds();
@@ -208,14 +274,15 @@ void IsoEventRouter::updateTab(){
 	selectedZEdit->setText(QString::number(coords[2]));
 	constantColorButton->setPaletteBackgroundColor(QColor((int)(.5+clr[0]*255.),(int)(.5+clr[1]*255.),(int)(.5+clr[2]*255.)));
 	
-	assert(isoParams->getMapperFunc()->getParams() == isoParams);
-	
-	isoSelectionFrame->setMapperFunction(isoParams->getMapperFunc());
+	if(isoParams->getIsoControl()){
+		assert(isoParams->getIsoControl()->getParams() == isoParams);
+	}
+	isoSelectionFrame->setMapperFunction(isoParams->getIsoControl());
 	
     isoSelectionFrame->setVariableName(isoParams->GetVariableName());
-	updateMapBounds(isoParams);
-
+	updateHistoBounds(isoParams);
 	isoSelectionFrame->updateParams();
+
 
 	float val = evaluateSelectedPoint();
 	if (val != OUT_OF_BOUNDS)
@@ -239,7 +306,8 @@ void IsoEventRouter::confirmText(bool /*render*/){
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "edit Iso text");
 	QString strn;
 	
-	iParams->SetHistoStretch(histoScaleEdit->text().toFloat());
+	iParams->SetIsoHistoStretch(histoScaleEdit->text().toFloat());
+	iParams->SetHistoStretch(TFHistoScaleEdit->text().toFloat());
 	float opac = constantOpacityEdit->text().toFloat();
 	const float *clr = iParams->GetConstantColor();
 	
@@ -250,24 +318,34 @@ void IsoEventRouter::confirmText(bool /*render*/){
 		iParams->SetConstantColor(newColor);
 	}
 	float bnds[2];
-	const float* oldBnds = iParams->GetHistoBounds();
+	//const float* oldBnds = iParams->GetHistoBounds();
 	bnds[0] = leftHistoEdit->text().toFloat();
 	bnds[1] = rightHistoEdit->text().toFloat();
-	if (bnds[0] != oldBnds[0] || bnds[1] != oldBnds[1]){
-		iParams->SetHistoBounds(bnds);
-		setDatarangeDirty(iParams);
-	}
 
-	if (iParams->getMapperFunc()) {
-		(iParams->getMapperFunc())->setMinOpacMapValue(bnds[0]);
-		(iParams->getMapperFunc())->setMaxOpacMapValue(bnds[1]);
+	if (iParams->getIsoControl()) {
+		(iParams->getIsoControl())->setMinHistoValue(bnds[0]);
+		(iParams->getIsoControl())->setMaxHistoValue(bnds[1]);
+	}
+	const float* oldMapBnds = iParams->GetMapBounds();
+	bnds[0] = leftMappingEdit->text().toFloat();
+	bnds[1] = rightMappingEdit->text().toFloat();
+	if (bnds[0] != oldMapBnds[0] || bnds[1] != oldMapBnds[1]){
+		iParams->SetMapBounds(bnds);
+	}
+	if (iParams->getMapperFunc()&& iParams->GetMapVariableNum()>=0) {
+		((TransferFunction*)iParams->getMapperFunc())->setMinMapValue(leftMappingEdit->text().toFloat());
+		((TransferFunction*)iParams->getMapperFunc())->setMaxMapValue(rightMappingEdit->text().toFloat());
+	
+		setDatarangeDirty(iParams);
+		setEditorDirty();
+		update();
 	}
 	float coords[3];
 	coords[0] = selectedXEdit->text().toFloat();
 	coords[1] = selectedYEdit->text().toFloat();
 	coords[2] = selectedZEdit->text().toFloat();
 	iParams->SetSelectedPoint(coords);
-	iParams->SetIsoValue(isoValueEdit->text().toFloat());
+	if(iParams->getIsoControl())iParams->getIsoControl()->setIsoValue(isoValueEdit->text().toFloat());
 
 	float val = evaluateSelectedPoint();
 	if (val != OUT_OF_BOUNDS)
@@ -287,6 +365,138 @@ void IsoEventRouter::confirmText(bool /*render*/){
 /*********************************************************************************
  * Slots associated with IsoTab:
  *********************************************************************************/
+
+void IsoEventRouter::isoLoadTF(){
+	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
+	
+	loadTF(iParams);
+}
+void IsoEventRouter::isoLoadInstalledTF(){
+	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
+	loadInstalledTF(iParams);
+}
+
+void IsoEventRouter::isoSaveTF(){
+	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
+	saveTF(iParams);
+}
+//Respond to user request to load/save TF
+//Assumes name is valid
+//
+void IsoEventRouter::
+sessionLoadTF(QString* name){
+	
+	confirmText(false);
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "Load Transfer Function from Session");
+	
+	//Get the transfer function from the session:
+	
+	std::string s(name->ascii());
+	TransferFunction* tf = Session::getInstance()->getTF(&s);
+	assert(tf);
+	int varNum = iParams->GetMapVariableNum();
+	iParams->hookupTF(tf, varNum);
+	PanelCommand::captureEnd(cmd, iParams);
+	VizWinMgr::getInstance()->setClutDirty(iParams);
+	setEditorDirty();
+}
+
+void IsoEventRouter::isoOpacityScale(){
+	guiSetOpacityScale(opacityScaleSlider->value());
+}
+//Respond to a change in opacity scale factor
+void IsoEventRouter::
+guiSetOpacityScale(int val){
+	ParamsIso* pi = VizWinMgr::getActiveIsoParams();
+	if(pi->GetMapVariableNum() < 0) return;
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(pi, "modify opacity scale slider");
+	pi->setOpacityScale( ((float)(256-val))/256.f);
+	float sliderVal = pi->getOpacityScale();
+	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	PanelCommand::captureEnd(cmd,pi);
+	VizWinMgr::getInstance()->setClutDirty(pi);
+}
+void IsoEventRouter::guiBindColorToOpac(){
+	confirmText(false);
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "bind Color to Opacity");
+    transferFunctionFrame->bindColorToOpacity();
+	PanelCommand::captureEnd(cmd, iParams);
+}
+void IsoEventRouter::guiBindOpacToColor(){
+	confirmText(false);
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "bind Opacity to Color");
+    transferFunctionFrame->bindOpacityToColor();
+	PanelCommand::captureEnd(cmd, iParams);
+}
+void IsoEventRouter::setTFNavigateMode(bool mode){
+	TFeditButton->setOn(!mode);
+	guiSetTFEditMode(!mode);
+}
+void IsoEventRouter::setTFEditMode(bool mode){
+	TFnavigateButton->setOn(!mode);
+	guiSetTFEditMode(mode);
+}
+void IsoEventRouter::guiSetTFAligned(){
+	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "align tf in edit frame");
+	setEditorDirty();
+	update();
+	PanelCommand::captureEnd(cmd, iParams);
+}void IsoEventRouter::guiSetIsoAligned(){
+	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
+	confirmText(false);
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "fit iso selection window to view");
+	setEditorDirty();
+	update();
+	PanelCommand::captureEnd(cmd, iParams);
+}
+void IsoEventRouter::refreshTFHisto(){
+	VizWin* vizWin = VizWinMgr::getInstance()->getActiveVisualizer();
+	if (!vizWin) return;
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	if (iParams->GetMapVariableNum()<0) return;
+	DataMgr* dataManager = Session::getInstance()->getDataMgr();
+	if (dataManager) {
+		const float* bnds = iParams->GetMapBounds();
+		refreshHistogram(iParams, iParams->GetMapVariableNum(),bnds);
+	}
+	setEditorDirty();
+}
+void IsoEventRouter::guiStartChangeMapFcn(QString qstr){
+	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
+	guiSetTextChanged(false);
+	//If another command is in process, don't disturb it:
+	if (savedCommand) return;
+	ParamsIso* pi = VizWinMgr::getInstance()->getActiveIsoParams();
+    savedCommand = PanelCommand::captureStart(pi, qstr.latin1());
+}
+
+void IsoEventRouter::guiSetTFEditMode(bool mode){
+	confirmText(false);
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set edit/navigate mode");
+	iParams->setMapEditMode(mode);
+	PanelCommand::captureEnd(cmd, iParams); 
+}
+void IsoEventRouter::setBindButtons(bool canbind){
+	OpacityBindButton->setEnabled(canbind);
+	ColorBindButton->setEnabled(canbind);
+}
+
+void IsoEventRouter::
+guiEndChangeMapFcn(){
+	if (!savedCommand) return;
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	PanelCommand::captureEnd(savedCommand,iParams);
+	setDatarangeDirty(iParams);
+	savedCommand = 0;
+	setEditorDirty(iParams);
+}
 void IsoEventRouter::
 guiStartChangeIsoSelection(QString qstr){
 	//If text has changed, and enter not pressed, will ignore it-- don't call confirmText()!
@@ -303,9 +513,13 @@ guiEndChangeIsoSelection(){
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	iParams->updateHistoBounds();
 	PanelCommand::captureEnd(savedCommand,iParams);
-	updateTab();
+	iParams->SetNodeDirty(ParamsIso::_IsoControlTag);
+	
 	savedCommand = 0;
+	setEditorDirty(iParams);
 	setDatarangeDirty(iParams);
+	updateTab();
+	
 }
 void IsoEventRouter::
 setIsoEditMode(bool mode){
@@ -413,7 +627,8 @@ refreshHisto(){
 	
 	DataMgr* dataManager = Session::getInstance()->getDataMgr();
 	if (dataManager) {
-		refreshHistogram(iParams);
+		const float* bnds = iParams->GetHistoBounds();
+		refreshHistogram(iParams,iParams->GetIsoVariableNum(),bnds);
 	}
 	setEditorDirty(iParams);
 }
@@ -436,6 +651,17 @@ reinitTab(bool doOverride){
 		//Maybe std was not enabled when QT was built?
 		const QString& text = QString(s.c_str());
 		variableCombo->insertItem(text);
+	}
+
+	mapVariableCombo->clear();
+	mapVariableCombo->setMaxCount(ses->getNumMetadataVariables()+1);
+	mapVariableCombo->insertItem("Constant");
+	for (i = 0; i< ses->getNumMetadataVariables(); i++){
+		const std::string& s = ses->getMetadataVarName(i);
+		//Direct conversion of std::string& to QString doesn't seem to work
+		//Maybe std was not enabled when QT was built?
+		const QString& text = QString(s.c_str());
+		mapVariableCombo->insertItem(text);
 	}
 
 	//Set up the refinement combo:
@@ -496,6 +722,21 @@ guiSetEnabled(bool value, int instance){
 	}
 	confirmText(false);
 
+	if (iParams->getMapperFunc() && iParams->GetMapVariableNum()>=0)
+    {
+      QString strn;
+
+      strn.setNum(iParams->getMapperFunc()->getMinColorMapValue(),'g',7);
+      leftMappingEdit->setText(strn);
+
+      strn.setNum(iParams->getMapperFunc()->getMaxColorMapValue(),'g',7);
+      rightMappingEdit->setText(strn);
+	} 
+    else 
+    {
+      leftMappingEdit->setText("0.0");
+      rightMappingEdit->setText("1.0");
+	}
 	//enable the current instance:
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "toggle iso enabled", instance);
 	iParams->setEnabled(value);
@@ -557,17 +798,38 @@ guiSetComboVarNum(int val){
 	//also set dirty flag
 	
 	iParams->SetVariableName(DataStatus::getInstance()->getMetadataVarName(val));
-	updateMapBounds(iParams);
+	
 	updateHistoBounds(iParams);
-		
+	
 	PanelCommand::captureEnd(cmd, iParams);
+	updateTab();
 	VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);
 	
 }
 		
+void IsoEventRouter::
+guiSetMapComboVarNum(int val){
+	confirmText(false);
+	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
+	//The mapcomboVarNum is the metadata num +1, but the ParamsIso keeps
+	//the session variable name
+	int comboVarNum = 1+DataStatus::getInstance()->getMetadataVarNum(iParams->GetMapVariableName());
+	if (val == comboVarNum) return;
+	
+	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set iso variable");
+		
+	//reset the display range shown on the histo window
+	//also set dirty flag
+	if(val > 0){
+		iParams->SetMapVariableName(DataStatus::getInstance()->getMetadataVarName(val-1));
+		updateMapBounds(iParams);
+	}
+	else iParams->SetMapVariableName("Constant");
 
-
-
+	PanelCommand::captureEnd(cmd, iParams);
+	updateTab();
+	VizWinMgr::getInstance()->setClutDirty(iParams);
+}
 
 void IsoEventRouter::
 guiSetLighting(bool val){
@@ -688,12 +950,9 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 	if (newWin || (formerParams->isEnabled() != iParams->isEnabled())){
 		updateRenderer(iParams, wasEnabled,  newWin);
 	}
-	//Set datarange dirty flag, so will need to check everything...
-	//Rerender:
-	VizWinMgr::getInstance()->setDatarangeDirty(iParams);
-	//VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);
+	//Set datarange dirty flag, so will need to check everything and rerender
 	
-
+	setDatarangeDirty(iParams);
 
 }
 
@@ -703,6 +962,9 @@ void IsoEventRouter::cleanParams(Params* p)
 	isoSelectionFrame->setMapperFunction(NULL);
 	isoSelectionFrame->setVariableName("");
 	isoSelectionFrame->updateParams(); 
+	transferFunctionFrame->setMapperFunction(NULL);
+	transferFunctionFrame->setVariableName("");
+	transferFunctionFrame->updateParams(); 
 }
 	
 /*
@@ -735,7 +997,7 @@ guiSetConstantColor(QColor& newColor){
 }
 /*
  * Method to be invoked after the user has moved the right or left bounds
- * of the histogram window
+ * of the transfer function window
  * Make the textboxes consistent with the new left/right bounds, but
  * don't trigger a new undo/redo event
  */
@@ -743,30 +1005,52 @@ void IsoEventRouter::
 updateMapBounds(RenderParams* params){
 	ParamsIso* isoParams = (ParamsIso*)params;
 	int currentTimeStep = VizWinMgr::getActiveAnimationParams()->getCurrentFrameNumber();
-	int varNum = DataStatus::getInstance()->getSessionVariableNum(isoParams->GetVariableName());
+	int varNum = DataStatus::getInstance()->getSessionVariableNum(isoParams->GetMapVariableName());
 	QString strn;
-	minDataBound->setText(strn.setNum(DataStatus::getInstance()->getDataMin(varNum, currentTimeStep)));
-	maxDataBound->setText(strn.setNum(DataStatus::getInstance()->getDataMax(varNum, currentTimeStep)));
 	
-	if (isoParams->getMapperFunc()){
-		leftHistoEdit->setText(strn.setNum(isoParams->getMapperFunc()->getMinOpacMapValue(),'g',4));
-		rightHistoEdit->setText(strn.setNum(isoParams->getMapperFunc()->getMaxOpacMapValue(),'g',4));
-	} else {
-		leftHistoEdit->setText("0.0");
-		rightHistoEdit->setText("1.0");
+	if (varNum >= 0){
+	
+		minTFDataBound->setText(strn.setNum(DataStatus::getInstance()->getDataMin(varNum, currentTimeStep)));
+		maxTFDataBound->setText(strn.setNum(DataStatus::getInstance()->getDataMax(varNum, currentTimeStep)));
+	
+		if (isoParams->getMapperFunc()){
+			leftMappingEdit->setText(strn.setNum(isoParams->getMapperFunc()->getMinOpacMapValue(),'g',4));
+			rightMappingEdit->setText(strn.setNum(isoParams->getMapperFunc()->getMaxOpacMapValue(),'g',4));
+		} else {
+			leftMappingEdit->setText("0.0");
+			rightMappingEdit->setText("1.0");
+		}
 	}
-	
 	setEditorDirty(isoParams);
 }
+//Set TF editor as well as isoControl editor dirty.
 void IsoEventRouter::
 setEditorDirty(RenderParams* p){
 	ParamsIso* ip = (ParamsIso*)p;
 	if(!ip) ip = VizWinMgr::getInstance()->getActiveIsoParams();
-	if(ip->getMapperFunc())ip->getMapperFunc()->setParams(ip);
-    isoSelectionFrame->setMapperFunction(ip->getMapperFunc());
+	if(ip->getIsoControl())ip->getIsoControl()->setParams(ip);
+    isoSelectionFrame->setMapperFunction(ip->getIsoControl());
 	isoSelectionFrame->setVariableName(ip->GetVariableName());
 	isoSelectionFrame->setIsoValue(ip->GetIsoValue());
     isoSelectionFrame->updateParams();
+	if(ip->getMapperFunc()&& ip->GetMapVariableNum() >= 0){
+		ip->getMapperFunc()->setParams(ip);
+		transferFunctionFrame->setMapperFunction(ip->getMapperFunc());
+		transferFunctionFrame->updateParams();
+	}
+
+    Session *session = Session::getInstance();
+
+    if (session->getNumSessionVariables())
+    {
+      const std::string& varname = ip->GetMapVariableName();
+      
+      transferFunctionFrame->setVariableName(varname);
+    }
+    else
+    {
+      transferFunctionFrame->setVariableName("N/A");
+    }
 
 }
 void IsoEventRouter::
@@ -791,13 +1075,35 @@ void IsoEventRouter::
 setDatarangeDirty(RenderParams* params)
 {
 	ParamsIso* iParams = (ParamsIso*)params;
-	if (!iParams->getMapperFunc()) return;
-	const float* currentDatarange = iParams->GetHistoBounds();
-	float drange[2];
-	drange[0] = iParams->getMapperFunc()->getMinOpacMapValue();
-	drange[1] = iParams->getMapperFunc()->getMaxOpacMapValue();
-	if (currentDatarange[0] != drange[0] || currentDatarange[1] != drange[1]){
-			iParams->SetHistoBounds(drange);
-	}
 	VizWinMgr::getInstance()->setDatarangeDirty(iParams);
+}
+//Obtain the current valid histogram.  if mustGet is false, don't build a new one.
+//Boolean flag is only used by isoeventrouter version
+Histo* IsoEventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool isIsoControl ){
+	
+	ParamsIso* iParams = (ParamsIso*)renParams;
+	int numVariables = DataStatus::getInstance()->getNumSessionVariables();
+	int varNum;
+	if (isIsoControl) varNum = iParams->GetIsoVariableNum();
+	else varNum = iParams->GetMapVariableNum();
+	
+	if (varNum >= numVariables || varNum < 0) return 0;
+	if (varNum >= numHistograms || !histogramList){
+		if (!mustGet) return 0;
+		histogramList = new Histo*[numVariables];
+		for (int i = 0; i<numVariables; i++)
+			histogramList[i] = 0;
+		numHistograms = numVariables;
+	}
+	
+	const float* currentDatarange;
+	if (isIsoControl) currentDatarange = iParams->GetHistoBounds();
+	else currentDatarange = iParams->GetMapBounds();
+	if (histogramList[varNum]) return histogramList[varNum];
+	
+	if (!mustGet) return 0;
+	histogramList[varNum] = new Histo(256,currentDatarange[0],currentDatarange[1]);
+	refreshHistogram(renParams, varNum,currentDatarange);
+	return histogramList[varNum];
+	
 }

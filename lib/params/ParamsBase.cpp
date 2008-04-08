@@ -76,7 +76,7 @@ bool ParamsBase::elementStartHandler(
 		// we might don't know the ancestory of the parameter 
 		// tree root node.
 		Clear();
-
+		restart(); //Required to ensure that all base tags get defined to default
 		if (StrCmpNoCase(tag, _rootParamNode->Tag()) != 0) {
 			pm->parseError("Invalid root tag");
 			return(false);
@@ -211,5 +211,8 @@ void ParamsBase::Clear() {
 	if(parent) parent->AddChild(_rootParamNode);
 
 }
-
+void ParamsBase::SetNodeDirty(const string& flag)
+{
+	_rootParamNode->SetNodeDirty(flag);
+}
 	

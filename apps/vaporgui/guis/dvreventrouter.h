@@ -70,30 +70,17 @@ public:
 	virtual void updateTab();
 	
 	virtual void cleanParams(Params* p); 
-
-	
-	
-	void fileLoadTF(DvrParams* dParams, const char* filepath, bool savePath);
 	void sessionLoadTF(QString* name);
-	void fileSaveTF(DvrParams* dParams);
+	
 	//Following methods are set from gui, have undo/redo support:
 	//
 	
 	virtual void guiSetEnabled(bool value, int instance);
-    
-	
-	
-	
 	void guiSetOpacityScale(int val);
 	void guiSetEditMode(bool val); //edit versus navigate mode
-	
-	
-	
 	DvrParams::DvrType getType(int num) {return typemap[num];}
 
 	virtual void updateRenderer(RenderParams* dParams, bool prevEnabled,  bool newWindow);
-
-
 	virtual void setEditorDirty(RenderParams* p = 0);
 		
 	virtual void reinitTab(bool doOverride);
