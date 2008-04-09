@@ -495,7 +495,6 @@ guiEndChangeMapFcn(){
 	PanelCommand::captureEnd(savedCommand,iParams);
 	setDatarangeDirty(iParams);
 	savedCommand = 0;
-	setEditorDirty(iParams);
 }
 void IsoEventRouter::
 guiStartChangeIsoSelection(QString qstr){
@@ -516,7 +515,6 @@ guiEndChangeIsoSelection(){
 	iParams->SetNodeDirty(ParamsIso::_IsoControlTag);
 	
 	savedCommand = 0;
-	setEditorDirty(iParams);
 	setDatarangeDirty(iParams);
 	updateTab();
 	
