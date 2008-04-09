@@ -135,10 +135,10 @@ public:
 //Methods for loading/saving transfer functions:
 void saveTF(RenderParams* rParams);
 void fileSaveTF(RenderParams* rParams);
-void loadInstalledTF(RenderParams* rParams);
-void loadTF(RenderParams* rParams);
+void loadInstalledTF(RenderParams* rParams, int varnum);
+void loadTF(RenderParams* rParams, int varnum);
 
-void fileLoadTF(RenderParams* rParams, const char* startPath, bool savePath);
+void fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePath);
 
 public slots:
 

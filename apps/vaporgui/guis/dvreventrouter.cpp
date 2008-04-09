@@ -345,13 +345,13 @@ fileSaveTF(DvrParams* dParams){
 void DvrEventRouter::
 dvrLoadInstalledTF(){
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
-	loadInstalledTF(dParams);
+	loadInstalledTF(dParams,dParams->getSessionVarNum());
 }
 void DvrEventRouter::
 dvrLoadTF(void){
 	//If there are no TF's currently in Session, just launch file load dialog.
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
-	loadTF(dParams);
+	loadTF(dParams,dParams->getSessionVarNum());
 }
 //Respond to user request to load/save TF
 //Assumes name is valid
@@ -376,61 +376,7 @@ sessionLoadTF(QString* name){
 	setDatarangeDirty(dParams);
 	VizWinMgr::getInstance()->setClutDirty(dParams);
 }
-/*
-void DvrEventRouter::
-fileLoadTF(DvrParams* dParams, const char* startPath, bool savePath){
-	if (dParams->getNumVariables() <= 0) return;
-	int varNum = dParams->getSessionVarNum();
-	//Open a file load dialog
-	
-    QString s = QFileDialog::getOpenFileName(
-                    startPath,
-                    "Vapor Transfer Functions (*.vtf)",
-                    0,
-                    "load TF dialog",
-                    "Choose a transfer function file to open" );
-	//Null string indicates nothing selected.
-	if (s.length() == 0) return;
-	//Force the name to end with .vtf
-	if (!s.endsWith(".vtf")){
-		s += ".vtf";
-	}
-	
-	ifstream is;
-	
-	is.open(s.ascii());
 
-	if (!is){//Report error if you can't open the file
-		QString str("Unable to open file: \n");
-		str+= s;
-		MessageReporter::errorMsg(str.ascii());
-		return;
-	}
-	//Start the history save:
-	confirmText(false);
-	
-	PanelCommand* cmd = PanelCommand::captureStart(dParams, "Load Transfer Function from file");
-	
-	TransferFunction* t = TransferFunction::loadFromFile(is, dParams);
-	if (!t){//Report error if can't load
-		QString str("Error loading transfer function. /nFailed to convert input file: \n ");
-		str += s;
-		MessageReporter::errorMsg(str.ascii());
-		//Don't put this into history!
-		delete cmd;
-		return;
-	}
-
-	dParams->hookupTF(t, varNum);
-	//Remember the path to the file:
-	if(savePath) Session::getInstance()->updateTFFilePath(&s);
-	PanelCommand::captureEnd(cmd, dParams);
-	
-	setEditorDirty();
-	setDatarangeDirty(dParams);
-	VizWinMgr::getInstance()->setClutDirty(dParams);
-}
-*/
 //Insert values from params into tab panel
 //
 void DvrEventRouter::updateTab(){

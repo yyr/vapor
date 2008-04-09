@@ -58,9 +58,8 @@ public:
 	virtual void makeCurrent(Params* prev, Params* next, bool newWin, int instance = -1);
 	virtual void cleanParams(Params* p); 
 	
-	//void fileLoadTF(FlowParams* dParams);
+	
 	void sessionLoadTF(QString*) {assert(0);}  
-	//void fileSaveTF(FlowParams* dParams);
 		
 	//There are multiple notions of "dirty" here!
 	virtual void setEditorDirty(RenderParams* p = 0);

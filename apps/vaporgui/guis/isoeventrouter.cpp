@@ -326,12 +326,7 @@ void IsoEventRouter::confirmText(bool /*render*/){
 		(iParams->getIsoControl())->setMinHistoValue(bnds[0]);
 		(iParams->getIsoControl())->setMaxHistoValue(bnds[1]);
 	}
-	const float* oldMapBnds = iParams->GetMapBounds();
-	bnds[0] = leftMappingEdit->text().toFloat();
-	bnds[1] = rightMappingEdit->text().toFloat();
-	if (bnds[0] != oldMapBnds[0] || bnds[1] != oldMapBnds[1]){
-		iParams->SetMapBounds(bnds);
-	}
+	
 	if (iParams->getMapperFunc()&& iParams->GetMapVariableNum()>=0) {
 		((TransferFunction*)iParams->getMapperFunc())->setMinMapValue(leftMappingEdit->text().toFloat());
 		((TransferFunction*)iParams->getMapperFunc())->setMaxMapValue(rightMappingEdit->text().toFloat());
@@ -368,16 +363,18 @@ void IsoEventRouter::confirmText(bool /*render*/){
 
 void IsoEventRouter::isoLoadTF(){
 	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
-	
-	loadTF(iParams);
+	if (iParams->GetMapVariableNum() < 0) return;
+	loadTF(iParams, iParams->GetMapVariableNum());
 }
 void IsoEventRouter::isoLoadInstalledTF(){
 	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
-	loadInstalledTF(iParams);
+	if (iParams->GetMapVariableNum() < 0) return;
+	loadInstalledTF(iParams,iParams->GetMapVariableNum());
 }
 
 void IsoEventRouter::isoSaveTF(){
 	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
+	if (iParams->GetMapVariableNum() < 0) return;
 	saveTF(iParams);
 }
 //Respond to user request to load/save TF

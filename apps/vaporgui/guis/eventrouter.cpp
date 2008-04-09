@@ -293,14 +293,14 @@ fileSaveTF(RenderParams* rParams){
 	Session::getInstance()->updateTFFilePath(&s);
 }
 void EventRouter::
-loadInstalledTF(RenderParams* rParams){
+loadInstalledTF(RenderParams* rParams, int varnum){
 	//Get the path from the environment:
 	char *home = getenv("VAPOR_HOME");
 	QString installPath = QString(home)+ "/share/palettes";
-	fileLoadTF(rParams,installPath.ascii(),false);
+	fileLoadTF(rParams,varnum, installPath.ascii(),false);
 }
 void EventRouter::
-loadTF(RenderParams* rParams){
+loadTF(RenderParams* rParams, int varnum){
 	//If there are no TF's currently in Session, just launch file load dialog.
 	
 	if (Session::getInstance()->getNumTFs() > 0){
@@ -309,20 +309,20 @@ loadTF(RenderParams* rParams){
 		int rc = loadTFDialog->exec();
 		if (rc == 0) return;
 		if (rc == 1) {
-			fileLoadTF(rParams, Session::getInstance()->getTFFilePath().c_str(),true);
+			fileLoadTF(rParams, varnum, Session::getInstance()->getTFFilePath().c_str(),true);
 			
 		}
 		//if rc == 2, we already (probably) loaded a tf from the session
 	} else {
-		fileLoadTF(rParams, Session::getInstance()->getTFFilePath().c_str(),true);
+		fileLoadTF(rParams, varnum, Session::getInstance()->getTFFilePath().c_str(),true);
 	}
 	setEditorDirty(rParams);
 }
 
 void EventRouter::
-fileLoadTF(RenderParams* rParams, const char* startPath, bool savePath){
+fileLoadTF(RenderParams* rParams, int varnum, const char* startPath, bool savePath){
 	if (DataStatus::getInstance()->getNumSessionVariables()<=0) return;
-	int varNum = rParams->getSessionVarNum();
+	
 	//Open a file load dialog
 	
     QString s = QFileDialog::getOpenFileName(
@@ -363,7 +363,7 @@ fileLoadTF(RenderParams* rParams, const char* startPath, bool savePath){
 		return;
 	}
 
-	rParams->hookupTF(t, varNum);
+	rParams->hookupTF(t, varnum);
 	//Remember the path to the file:
 	if(savePath) Session::getInstance()->updateTFFilePath(&s);
 	PanelCommand::captureEnd(cmd, rParams);
