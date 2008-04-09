@@ -211,7 +211,14 @@ worldToStretchedCube(const float fromCoords[3], float toCoords[3]){
 	return;
 }
 
-
+void ViewpointParams::
+worldToCube(const float fromCoords[3], float toCoords[3]){
+	
+	for (int i = 0; i<3; i++){
+		toCoords[i] = (fromCoords[i]-minStretchedCubeCoord[i])/maxStretchedCubeSide;
+	}
+	return;
+}
 
 void ViewpointParams::
 worldFromStretchedCube(float fromCoords[3], float toCoords[3]){
@@ -275,9 +282,16 @@ getFarNearDist(RegionParams* rParams, float* fr, float* nr, float* boxFar, float
 	*fr = maxProj;
 	*nr = minProj;
 	//Find box coords of nearPt, farPt, camPos
-	worldToStretchedCube(nearPt, nearPtBox);
-	worldToStretchedCube(farPt, farPtBox);
-	worldToStretchedCube(getCameraPos(), camPosBox);
+	if (DataStatus::getInstance()->sphericalTransform())
+    {
+		worldToCube(nearPt, nearPtBox);
+		worldToCube(farPt, farPtBox);
+		worldToCube(getCameraPos(), camPosBox);
+	} else {
+		worldToStretchedCube(nearPt, nearPtBox);
+		worldToStretchedCube(farPt, farPtBox);
+		worldToStretchedCube(getCameraPos(), camPosBox);
+	}
 	vsub(camPosBox,nearPtBox,nearPtBox);
 	vsub(camPosBox,farPtBox,farPtBox);
 	minProj = vlength(farPtBox);

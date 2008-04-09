@@ -103,7 +103,7 @@ public:
 	
 	//Transformations to convert world coords to (unit)render cube and back
 	//
-	//static void worldToCube(const float fromCoords[3], float toCoords[3]);
+	static void worldToCube(const float fromCoords[3], float toCoords[3]);
 	static void worldToStretchedCube(const float fromCoords[3], float toCoords[3]);
 
 	static void worldFromCube(float fromCoords[3], float toCoords[3]);
