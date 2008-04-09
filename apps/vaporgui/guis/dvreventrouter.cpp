@@ -298,50 +298,7 @@ dvrSaveTF(void){
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);
 	saveTF(dParams);
 }
-/*
-void DvrEventRouter::
-fileSaveTF(DvrParams* dParams){
-	//Launch a file save dialog, open resulting file
-    QString s = QFileDialog::getSaveFileName(
-					Session::getInstance()->getTFFilePath().c_str(),
-                    "Vapor Transfer Functions (*.vtf)",
-                    0,
-                    "save TF dialog",
-                    "Choose a filename to save the transfer function" );
-	//Did the user cancel?
-	if (s.length()== 0) return;
-	//Force the name to end with .vtf
-	if (!s.endsWith(".vtf")){
-		s += ".vtf";
-	}
-	QFileInfo finfo(s);
-	if (finfo.exists()){
-		int rc = QMessageBox::warning(0, "Transfer Function File Exists", QString("OK to replace transfer function file \n%1 ?").arg(s), QMessageBox::Ok, 
-			QMessageBox::No);
-		if (rc != QMessageBox::Ok) return;
-	}
-	ofstream fileout;
-	fileout.open(s.ascii());
-	if (! fileout) {
-		QString str("Unable to save to file: \n");
-		str += s;
-		MessageReporter::errorMsg( str.ascii());
-		return;
-	}
-	
-	
-	
-	if (!((TransferFunction*)(dParams->getMapperFunc()))->saveToFile(fileout)){//Report error if can't save to file
-		QString str("Failed to write output file: \n");
-		str += s;
-		MessageReporter::errorMsg(str.ascii());
-		fileout.close();
-		return;
-	}
-	fileout.close();
-	Session::getInstance()->updateTFFilePath(&s);
-}
-*/
+
 void DvrEventRouter::
 dvrLoadInstalledTF(){
 	DvrParams* dParams = (DvrParams*)VizWinMgr::getInstance()->getApplicableParams(Params::DvrParamsType);

@@ -246,6 +246,7 @@ Histo* EventRouter::getHistogram(RenderParams* renParams, bool mustGet, bool ){
 //dialog, then sends the result to the DVR params
 void EventRouter::
 saveTF(RenderParams* rParams){
+	if (!DataStatus::getInstance()->getDataMgr()) return;
 	SaveTFDialog* saveTFDialog = new SaveTFDialog(rParams,0,
 		"Save TF Dialog", true);
 	int rc = saveTFDialog->exec();
