@@ -60,6 +60,7 @@ ParamsIso::ParamsIso(
 	
 	minIsoEditBounds = 0;
 	maxIsoEditBounds = 0;
+	numSessionVariables = 0;
 	restart();
 }
 
