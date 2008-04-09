@@ -1580,6 +1580,15 @@ bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
 	ibfvValid[timestep] = new unsigned char[textureSize[0]*textureSize[1]];
 	float sumMag = 0.f;
 	int numValidPoints = 0;
+	//Check on below terrain values if layered data;
+	float lowVal[3];
+	bool layeredData = false;
+	if (ds->getMetadata()->GetGridType().compare("layered") == 0) {
+		layeredData = true;
+		for (int i = 0; i< 3; i++){
+			lowVal[i] = ds->getBelowValue(sesVarNums[i]);
+		}
+	}
 	//Loop over pixels in texture
 	for (int iy = 0; iy < texHeight; iy++){
 		//Map iy to a value between -1 and 1
@@ -1618,14 +1627,28 @@ bool ProbeParams::buildIBFVFields(int timestep, int fullHeight){
 					if(volData[k]) vecField[k] = volData[k][xyzCoord];
 					else vecField[k] = 0.f;
 				}
-				//Project this vector to the probe plane, saving the magnitude:
-				numValidPoints++;
-				float uVal, vVal;
-				projToPlane(vecField, invMatrix, &uVal,&vVal);
-				if(ibfvMag < 0.f) sumMag += (uVal*uVal + vVal*vVal);
-				ibfvUField[timestep][texPos] = uVal;
-				ibfvVField[timestep][texPos] = vVal;
-				ibfvValid[timestep][texPos] = 1;
+				if (layeredData){//extra test for below terrain.
+					int coord;
+					for (coord = 0; coord<3; coord++){
+						if (!volData[coord]) continue;  //ignore zero fields
+						if (vecField[coord] != lowVal[coord]) break;
+					}
+					if(coord == 3) dataOK = false;//all coords are either zero or same as below terrain
+				}
+				if (dataOK){
+					//Project this vector to the probe plane, saving the magnitude:
+					numValidPoints++;
+					float uVal, vVal;
+					projToPlane(vecField, invMatrix, &uVal,&vVal);
+					if(ibfvMag < 0.f) sumMag += (uVal*uVal + vVal*vVal);
+					ibfvUField[timestep][texPos] = uVal;
+					ibfvVField[timestep][texPos] = vVal;
+					ibfvValid[timestep][texPos] = 1;
+				} else {
+					ibfvUField[timestep][texPos] = 0;
+					ibfvVField[timestep][texPos] = 0;
+					ibfvValid[timestep][texPos] = 0;
+				}
 			}
 			else {//point is out of region
 				ibfvUField[timestep][texPos] = 0;
