@@ -53,6 +53,8 @@ GLProbeWindow::GLProbeWindow( const QGLFormat& fmt, QWidget* parent, const char*
 	setAutoBufferSwap(true);
 	patternListNum = -1;
 	currentAnimationTimestep = 0;
+	capturing = false;
+	captureNum = 0;
 }
 
 
@@ -223,6 +225,7 @@ void GLProbeWindow::initializeGL()
 	//glBindTexture(GL_TEXTURE_2D, texName);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	capturing = false;
     
 }
 //
