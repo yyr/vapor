@@ -1099,6 +1099,7 @@ int	DataMgr::set_quantization_range(const char *varname, const float range[2]) {
 	return(1);
 }
 
+
 int DataMgr::get_cached_data_range(
 	size_t ts,
 	const char *varname,
@@ -1109,34 +1110,41 @@ int DataMgr::get_cached_data_range(
 	//
 
 	// Min value
-	if (_dataRangeMinMap.empty()) return(-1);
+	{
+		if (_dataRangeMinMap.empty()) return(-1);
 
-	map <size_t, map<string, float> >::iterator p;
+		map <size_t, map<string, float> >::iterator p;
 
 
-	p = _dataRangeMinMap.find(ts);
+		p = _dataRangeMinMap.find(ts);
 
-	if (p == _dataRangeMinMap.end()) return(-1);
+		if (p == _dataRangeMinMap.end()) return(-1);
 
-	map <string, float> &vmap = p->second;
-	map <string, float>::iterator t;
+		map <string, float> &vmap = p->second;
+		map <string, float>::iterator t;
 
-	t = vmap.find(varname);
-	if (t == vmap.end()) return(-1);
-	range[0] = t->second;
+		t = vmap.find(varname);
+		if (t == vmap.end()) return(-1);
+		range[0] = t->second;
+	}
 
 	// Max value
-	if (_dataRangeMaxMap.empty()) return(-1);
+	{
+		if (_dataRangeMaxMap.empty()) return(-1);
 
-	p = _dataRangeMaxMap.find(ts);
+		map <size_t, map<string, float> >::iterator p;
 
-	if (p == _dataRangeMaxMap.end()) return(-1);
+		p = _dataRangeMaxMap.find(ts);
 
-	vmap = p->second;
+		if (p == _dataRangeMaxMap.end()) return(-1);
 
-	t = vmap.find(varname);
-	if (t == vmap.end()) return(-1);
-	range[1] = t->second;
+		map <string, float> &vmap = p->second;
+		map <string, float>::iterator t;
+
+		t = vmap.find(varname);
+		if (t == vmap.end()) return(-1);
+		range[1] = t->second;
+	}
 
 	return(0);
 }
