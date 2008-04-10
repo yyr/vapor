@@ -257,7 +257,7 @@ void IsoEventRouter::updateTab(){
 		refinementCombo->setCurrentItem(numRefs);
 
 	int comboVarNum = DataStatus::getInstance()->getMetadataVarNum(
-		isoParams->GetVariableName());
+		isoParams->GetIsoVariableName());
 	variableCombo->setCurrentItem(comboVarNum);
 	lightingCheckbox->setChecked(isoParams->GetNormalOnOff());
 	histoScaleEdit->setText(QString::number(isoParams->GetIsoHistoStretch()));
@@ -279,7 +279,7 @@ void IsoEventRouter::updateTab(){
 	}
 	isoSelectionFrame->setMapperFunction(isoParams->getIsoControl());
 	
-    isoSelectionFrame->setVariableName(isoParams->GetVariableName());
+    isoSelectionFrame->setVariableName(isoParams->GetIsoVariableName());
 	updateHistoBounds(isoParams);
 	isoSelectionFrame->updateParams();
 
@@ -318,29 +318,21 @@ void IsoEventRouter::confirmText(bool /*render*/){
 		iParams->SetConstantColor(newColor);
 	}
 	float bnds[2];
-	//const float* oldBnds = iParams->GetHistoBounds();
 	bnds[0] = leftHistoEdit->text().toFloat();
 	bnds[1] = rightHistoEdit->text().toFloat();
-
-	if (iParams->getIsoControl()) {
-		(iParams->getIsoControl())->setMinHistoValue(bnds[0]);
-		(iParams->getIsoControl())->setMaxHistoValue(bnds[1]);
-	}
+	iParams->SetHistoBounds(bnds);
 	
-	if (iParams->getMapperFunc()&& iParams->GetMapVariableNum()>=0) {
-		((TransferFunction*)iParams->getMapperFunc())->setMinMapValue(leftMappingEdit->text().toFloat());
-		((TransferFunction*)iParams->getMapperFunc())->setMaxMapValue(rightMappingEdit->text().toFloat());
+	bnds[0] = leftMappingEdit->text().toFloat();
+	bnds[1] = rightMappingEdit->text().toFloat();
 	
-		setDatarangeDirty(iParams);
-		setEditorDirty();
-		update();
-	}
+	iParams->SetMapBounds(bnds);
+	
 	float coords[3];
 	coords[0] = selectedXEdit->text().toFloat();
 	coords[1] = selectedYEdit->text().toFloat();
 	coords[2] = selectedZEdit->text().toFloat();
 	iParams->SetSelectedPoint(coords);
-	if(iParams->getIsoControl())iParams->getIsoControl()->setIsoValue(isoValueEdit->text().toFloat());
+	if(iParams->getIsoControl())iParams->SetIsoValue(isoValueEdit->text().toFloat());
 
 	float val = evaluateSelectedPoint();
 	if (val != OUT_OF_BOUNDS)
@@ -352,6 +344,7 @@ void IsoEventRouter::confirmText(bool /*render*/){
 	setEditorDirty(iParams);
 	
 	PanelCommand::captureEnd(cmd, iParams);
+	update();
 	if (renderTextChanged)
 		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 		
@@ -490,7 +483,8 @@ guiEndChangeMapFcn(){
 	if (!savedCommand) return;
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	PanelCommand::captureEnd(savedCommand,iParams);
-	setDatarangeDirty(iParams);
+	iParams->SetFlagDirty(ParamsIso::_MapBoundsTag);
+	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
 	savedCommand = 0;
 }
 void IsoEventRouter::
@@ -509,10 +503,10 @@ guiEndChangeIsoSelection(){
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	iParams->updateHistoBounds();
 	PanelCommand::captureEnd(savedCommand,iParams);
-	iParams->SetNodeDirty(ParamsIso::_IsoControlTag);
+	iParams->SetFlagDirty(ParamsIso::_IsoValueTag);
+	iParams->SetFlagDirty(ParamsIso::_HistoBoundsTag);
 	
 	savedCommand = 0;
-	setDatarangeDirty(iParams);
 	updateTab();
 	
 }
@@ -752,7 +746,7 @@ updateHistoBounds(RenderParams* params){
 	//Find out what timestep is current:
 	int viznum = iParams->getVizNum();
 	DataStatus* ds = DataStatus::getInstance();
-	int varnum = ds->getSessionVariableNum(iParams->GetVariableName());
+	int varnum = ds->getSessionVariableNum(iParams->GetIsoVariableName());
 	int currentTimeStep = VizWinMgr::getInstance()->getAnimationParams(viznum)->getCurrentFrameNumber();
 	float minData = ds->getDataMin(varnum,currentTimeStep);
 	float maxData = ds->getDataMax(varnum,currentTimeStep);
@@ -784,7 +778,7 @@ guiSetComboVarNum(int val){
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	//The comboVarNum is the metadata num, but the ParamsIso keeps
 	//the session variable name
-	int comboVarNum = DataStatus::getInstance()->getMetadataVarNum(iParams->GetVariableName());
+	int comboVarNum = DataStatus::getInstance()->getMetadataVarNum(iParams->GetIsoVariableName());
 	if (val == comboVarNum) return;
 	
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set iso variable");
@@ -792,7 +786,7 @@ guiSetComboVarNum(int val){
 	//reset the display range shown on the histo window
 	//also set dirty flag
 	
-	iParams->SetVariableName(DataStatus::getInstance()->getMetadataVarName(val));
+	iParams->SetIsoVariableName(DataStatus::getInstance()->getMetadataVarName(val));
 	
 	updateHistoBounds(iParams);
 	
@@ -945,10 +939,6 @@ makeCurrent(Params* prevParams, Params* newParams, bool newWin, int instance) {
 	if (newWin || (formerParams->isEnabled() != iParams->isEnabled())){
 		updateRenderer(iParams, wasEnabled,  newWin);
 	}
-	//Set datarange dirty flag, so will need to check everything and rerender
-	
-	setDatarangeDirty(iParams);
-
 }
 
 
@@ -1025,7 +1015,7 @@ setEditorDirty(RenderParams* p){
 	if(!ip) ip = VizWinMgr::getInstance()->getActiveIsoParams();
 	if(ip->getIsoControl())ip->getIsoControl()->setParams(ip);
     isoSelectionFrame->setMapperFunction(ip->getIsoControl());
-	isoSelectionFrame->setVariableName(ip->GetVariableName());
+	isoSelectionFrame->setVariableName(ip->GetIsoVariableName());
 	isoSelectionFrame->setIsoValue(ip->GetIsoValue());
     isoSelectionFrame->updateParams();
 	if(ip->getMapperFunc()&& ip->GetMapVariableNum() >= 0){
@@ -1036,17 +1026,17 @@ setEditorDirty(RenderParams* p){
 
     Session *session = Session::getInstance();
 
-    if (session->getNumSessionVariables())
-    {
-      const std::string& varname = ip->GetMapVariableName();
-      
-      transferFunctionFrame->setVariableName(varname);
-    }
-    else
-    {
-      transferFunctionFrame->setVariableName("N/A");
-    }
-
+	if (session->getNumSessionVariables()){
+		const std::string& varname1 = ip->GetMapVariableName();
+		const std::string& varname2 = ip->GetIsoVariableName();
+		transferFunctionFrame->setVariableName(varname1);
+		isoSelectionFrame->setVariableName(varname2);
+	} else {
+		isoSelectionFrame->setVariableName("N/A");
+		transferFunctionFrame->setVariableName("N/A");
+	}
+	isoSelectionFrame->update();
+	transferFunctionFrame->update();
 }
 void IsoEventRouter::
 guiSetNumBits(int val){

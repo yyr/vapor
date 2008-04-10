@@ -102,13 +102,13 @@ public:
 
  string &SetElementString(const string &tag, const string &str);
 
- //! Set the dirty flag associated with a ParamNode sub node
- //! Has no effect if there the node is not registered.
+ //! Set the dirty flag not necessarily associated with xml node.
+ //! Has no effect if there the flag is not registered.
  //!
  //! \param[in] tag Name of the element to mark dirty
  //!
  
- void SetNodeDirty(const string &tag);
+ void SetFlagDirty(const string &tag);
 
  //! Add an existing node as a child of the current node.
  //!

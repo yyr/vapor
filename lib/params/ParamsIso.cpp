@@ -40,6 +40,7 @@ const string ParamsIso::_ColorMapTag = "ColorMap";
 const string ParamsIso::_NormalOnOffTag = "NormalOnOff";
 const string ParamsIso::_ConstantColorTag = "ConstantColor";
 const string ParamsIso::_HistoBoundsTag = "HistoBounds";
+const string ParamsIso::_MapBoundsTag = "MapBounds";
 const string ParamsIso::_HistoScaleTag = "HistoScale";
 const string ParamsIso::_MapHistoScaleTag = "MapHistoScale";
 const string ParamsIso::_SelectedPointTag = "SelectedPoint";
@@ -112,13 +113,13 @@ reinit(bool doOverride){
 	
 	int totNumVariables = ds->getNumSessionVariables();
 	if (totNumVariables <= 0) return false;
-	int varNum = ds->getMetadataVarNum(GetVariableName());
+	int varNum = ds->getMetadataVarNum(GetIsoVariableName());
 	int mapVarNum = ds->getMetadataVarNum(GetMapVariableName());
 	//See if current variable name is valid.  It needs to be in the metadata.
 	//if not, reset to first variable that is present in metadata:
 	if (varNum < 0) 
 	{
-		SetVariableName(ds->getMetadataVarName(0));
+		SetIsoVariableName(ds->getMetadataVarName(0));
 		varNum = 0;
 	}
 	//use constant if variable is not available
@@ -270,7 +271,7 @@ void ParamsIso::restart() {
 
 	SetVisualizerNum(vizNum);
 
-	SetVariableName("N/A");
+	SetIsoVariableName("N/A");
 
 	SetMapVariableName("Constant");
 
@@ -332,39 +333,48 @@ IsoControl* ParamsIso::getIsoControl(){
 
 void ParamsIso::setMinColorMapBound(float val){
 	getMapperFunc()->setMinColorMapValue(val);
-	_rootParamNode->SetNodeDirty(_IsoControlTag);
+	_rootParamNode->SetFlagDirty(_MapBoundsTag);
 }
 void ParamsIso::setMaxColorMapBound(float val){
 	getMapperFunc()->setMaxColorMapValue(val);
-	_rootParamNode->SetNodeDirty(_IsoControlTag);
+	_rootParamNode->SetFlagDirty(_MapBoundsTag);
 }
 
 
 void ParamsIso::setMinOpacMapBound(float val){
 	getMapperFunc()->setMinOpacMapValue(val);
-	_rootParamNode->SetNodeDirty(_IsoControlTag);
+	_rootParamNode->SetFlagDirty(_MapBoundsTag);
 }
 void ParamsIso::setMaxOpacMapBound(float val){
 	getMapperFunc()->setMaxOpacMapValue(val);
-	_rootParamNode->SetNodeDirty(_ColorMapTag);
+	_rootParamNode->SetFlagDirty(_MapBoundsTag);
 }
 
 
 void ParamsIso::SetIsoValue(double value) {
+	double oldVal = GetIsoValue();
+	if (oldVal == value) return;
 	getIsoControl()->setIsoValue(value);
-	_rootParamNode->SetNodeDirty(_IsoControlTag);
+	_rootParamNode->SetFlagDirty(_IsoValueTag);
 }
 
 double ParamsIso::GetIsoValue() {
 	return (isoControls.size()>0) ? getIsoControl()->getIsoValue() : 0.f;
 }
 
-void ParamsIso::RegisterIsoControlDirtyFlag(ParamNode::DirtyFlag *df) {
-	GetRootNode()->RegisterDirtyFlagNode(_IsoControlTag, df);
+//Note:  Following dirty flags are not actually associated with tags or nodes in the xml.
+//The flags must be set when appropriate changes are made in the isoControls or transfer functions
+void ParamsIso::RegisterIsoValueDirtyFlag(ParamNode::DirtyFlag *df) {
+	GetRootNode()->RegisterDirtyFlagNode(_IsoValueTag, df);
 }
-
 void ParamsIso::RegisterColorMapDirtyFlag(ParamNode::DirtyFlag *df) {
 	GetRootNode()->RegisterDirtyFlagNode(_ColorMapTag, df);
+}
+void ParamsIso::RegisterMapBoundsDirtyFlag(ParamNode::DirtyFlag *df) {
+	GetRootNode()->RegisterDirtyFlagNode(_MapBoundsTag, df);
+}
+void ParamsIso::RegisterHistoBoundsDirtyFlag(ParamNode::DirtyFlag *df) {
+	GetRootNode()->RegisterDirtyFlagNode(_HistoBoundsTag, df);
 }
 
 void ParamsIso::SetNormalOnOff(bool flag) {
@@ -399,12 +409,23 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	GetRootNode()->RegisterDirtyFlagDouble(_ConstantColorTag, df);
 }
 
-
  void ParamsIso::SetHistoBounds(float bnds[2]){
 	IsoControl* isoContr = getIsoControl();
+	if(isoContr->getMinHistoValue() == bnds[0] &&
+		isoContr->getMaxHistoValue() == bnds[1]) return;
 	isoContr->setMinHistoValue(bnds[0]);
 	isoContr->setMaxHistoValue(bnds[1]);
-	_rootParamNode->SetNodeDirty(_IsoControlTag);
+	_rootParamNode->SetFlagDirty(_HistoBoundsTag);
+ }
+ 
+ void ParamsIso::SetMapBounds(float bnds[2]){
+	MapperFunction* mapFunc = getMapperFunc();
+	if(!mapFunc) return;
+	if(mapFunc->getMinOpacMapValue() == bnds[0] &&
+		mapFunc->getMaxOpacMapValue() == bnds[1]) return;
+	mapFunc->setMinOpacMapValue(bnds[0]);
+	mapFunc->setMaxOpacMapValue(bnds[1]);
+	SetFlagDirty(_MapBoundsTag);
  }
  const float* ParamsIso::GetHistoBounds(){
 	 if (!getIsoControl()){
@@ -494,10 +515,10 @@ void ParamsIso::RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag *df){
 	GetRootNode()->RegisterDirtyFlagLong(_NumBitsTag, df);
 }
 
- void ParamsIso::SetVariableName(const string& varName){
+ void ParamsIso::SetIsoVariableName(const string& varName){
 	 GetRootNode()->SetElementString(_VariableNameTag, varName);
  }
- const string& ParamsIso::GetVariableName(){
+ const string& ParamsIso::GetIsoVariableName(){
 	 return GetRootNode()->GetElementString(_VariableNameTag);
  }
  void ParamsIso::RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df){

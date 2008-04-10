@@ -211,8 +211,8 @@ void ParamsBase::Clear() {
 	if(parent) parent->AddChild(_rootParamNode);
 
 }
-void ParamsBase::SetNodeDirty(const string& flag)
+void ParamsBase::SetFlagDirty(const string& flag)
 {
-	_rootParamNode->SetNodeDirty(flag);
+	_rootParamNode->SetFlagDirty(flag);
 }
 	

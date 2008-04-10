@@ -140,7 +140,7 @@ virtual XmlNode* buildNode() { return 0;}
 //! Method for manual setting of node flags
 //!
 
-void SetNodeDirty(const string& flag);
+void SetFlagDirty(const string& flag);
 
 virtual void restart() = 0;
 protected:

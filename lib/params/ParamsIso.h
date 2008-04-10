@@ -75,7 +75,7 @@ public:
 
  virtual int getSessionVarNum(){
 	 return DataStatus::getInstance()->getSessionVariableNum(
-		 GetVariableName());
+		 GetIsoVariableName());
  }
  virtual bool reinit(bool override);
 
@@ -84,6 +84,7 @@ public:
  void SetIsoHistoStretch(float scale);
  float GetIsoHistoStretch();
  
+ //Following is obsolete, left for compatibility
  virtual const float* getCurrentDatarange(){
 	 return GetHistoBounds();
  }
@@ -123,9 +124,11 @@ float getMaxIsoEditBound() {
 }
  void SetIsoValue(double value);
  double GetIsoValue();
- void RegisterIsoControlDirtyFlag(ParamNode::DirtyFlag *df);
-
+ 
+ void RegisterIsoValueDirtyFlag(ParamNode::DirtyFlag *df);
  void RegisterColorMapDirtyFlag(ParamNode::DirtyFlag *df);
+ void RegisterMapBoundsDirtyFlag(ParamNode::DirtyFlag *df);
+ void RegisterHistoBoundsDirtyFlag(ParamNode::DirtyFlag *df);
 
  void SetNormalOnOff(bool flag);
  bool GetNormalOnOff();
@@ -134,6 +137,7 @@ float getMaxIsoEditBound() {
  void SetConstantColor(float rgba[4]);
  const float *GetConstantColor();
  void RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df);
+
  bool getIsoEditMode(){return isoEditMode;}
  bool getMapEditMode(){return mapEditMode;}
  void setIsoEditMode(bool val){isoEditMode = val;}
@@ -146,11 +150,7 @@ float getMaxIsoEditBound() {
  
 
  void SetHistoBounds(float bnds[2]);
- void SetMapBounds(float bnds[2]){
-	 getMapperFunc()->setMinOpacMapValue(bnds[0]);
-	 getMapperFunc()->setMaxOpacMapValue(bnds[1]);
-	 _rootParamNode->SetNodeDirty(_ColorMapTag);
- }
+ void SetMapBounds(float bnds[2]);
  const float* GetHistoBounds();
  const float* GetMapBounds();
 
@@ -171,10 +171,10 @@ int GetMapVariableNum(){
 	return DataStatus::getInstance()->getSessionVariableNum(GetMapVariableName());
 }
 int GetIsoVariableNum(){
-	return DataStatus::getInstance()->getSessionVariableNum(GetVariableName());
+	return DataStatus::getInstance()->getSessionVariableNum(GetIsoVariableName());
 }
- void SetVariableName(const string& varName);
- const string& GetVariableName();
+ void SetIsoVariableName(const string& varName);
+ const string& GetIsoVariableName();
  void SetMapVariableName(const string& varName);
  const string& GetMapVariableName();
  void RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df);
@@ -196,6 +196,8 @@ int GetIsoVariableNum(){
  static const string _IsoValueTag;
  static const string _IsoControlTag;
  static const string _ColorMapTag;
+ static const string _HistoBoundsTag;
+ static const string _MapBoundsTag;
 
 protected:
 	
@@ -204,7 +206,7 @@ private:
  
  static const string _NormalOnOffTag;
  static const string _ConstantColorTag;
- static const string _HistoBoundsTag;//obsolete
+
  static const string _HistoScaleTag;
  static const string _MapHistoScaleTag;
  static const string _SelectedPointTag;

@@ -119,8 +119,8 @@ string &ParamNode::SetElementString(
 	return(vec);
 }
 
-void ParamNode::SetNodeDirty(const string &tag){
-	// see if a dirty node flag watcher is registered for this tag. If not
+void ParamNode::SetFlagDirty(const string &tag){
+	// see if a dirty flag watcher is registered for this tag. If not
 	// do nothing.
 	//
 	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyNodeFlags.find(tag);

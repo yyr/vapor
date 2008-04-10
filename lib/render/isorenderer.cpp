@@ -94,7 +94,7 @@ void IsoRenderer::setRenderParams(RenderParams* rp) {
 
     ParamsIso *myParamsIso = (ParamsIso *) rp;
 
-	myParamsIso->RegisterIsoControlDirtyFlag(&_isovalueDF);
+	myParamsIso->RegisterIsoValueDirtyFlag(&_isovalueDF);
 	myParamsIso->RegisterConstantColorDirtyFlag(&_isovalueDF);
 	myParamsIso->RegisterNormalOnOffDirtyFlag(&_lightOnOffDF);
 }
