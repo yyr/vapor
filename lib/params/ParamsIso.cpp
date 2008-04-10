@@ -209,6 +209,15 @@ reinit(bool doOverride){
 			delete isoControls[i];
 		}
 	} //end if(doOverride)
+	//Extend the histo ranges to include the isovalues:
+	for (int i = 0; i<totNumVariables; i++){
+		float leftside = newIsoControls[i]->getMinHistoValue();
+		float rightside = newIsoControls[i]->getMaxHistoValue();
+		float width = rightside - leftside;
+		float isoval = newIsoControls[i]->getIsoValue();
+		if (isoval < leftside + 0.01*width) newIsoControls[i]->setMinHistoValue(isoval - 0.01*width);
+		if (isoval > rightside - 0.01*width) newIsoControls[i]->setMaxHistoValue(isoval + 0.01*width);
+	}
 	//Now put the new transfer functions and isocontrols into
 	//the appropriate arrays:
 	transFunc.clear();
@@ -575,14 +584,6 @@ RenderParams* ParamsIso::deepRCopy(){
 		newParams->isoControls[i]->setParams(newParams);
 	}
 	return (RenderParams*)newParams;
-}
-
-void ParamsIso::updateHistoBounds(){
-	if(!getIsoControl()) return;
-	float newBnds[2];
-	newBnds[0] = getIsoControl()->getMinOpacMapValue();
-	newBnds[1] = getIsoControl()->getMaxOpacMapValue();
-	SetHistoBounds(newBnds);
 }
 
 //Parsing of Iso node needs to handle tags for Variable,

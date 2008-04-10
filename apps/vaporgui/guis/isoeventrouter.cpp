@@ -317,9 +317,21 @@ void IsoEventRouter::confirmText(bool /*render*/){
 		for (int i = 0; i< 3; i++) newColor[i] = clr[i];
 		iParams->SetConstantColor(newColor);
 	}
+	float isoval = isoValueEdit->text().toFloat();
+	if(iParams->getIsoControl())iParams->SetIsoValue(isoval);
 	float bnds[2];
 	bnds[0] = leftHistoEdit->text().toFloat();
 	bnds[1] = rightHistoEdit->text().toFloat();
+	float iwidth = bnds[1]-bnds[0];
+	if (isoval < bnds[0]+0.01*iwidth) {
+		bnds[0] = isoval - 0.01*iwidth;
+		leftHistoEdit->setText(QString::number(bnds[0]));
+	}
+	if (isoval > bnds[1]-0.01*iwidth) {
+		bnds[1] = isoval + 0.01*iwidth;
+		rightHistoEdit->setText(QString::number(bnds[1]));
+	}
+
 	iParams->SetHistoBounds(bnds);
 	
 	bnds[0] = leftMappingEdit->text().toFloat();
@@ -332,7 +344,7 @@ void IsoEventRouter::confirmText(bool /*render*/){
 	coords[1] = selectedYEdit->text().toFloat();
 	coords[2] = selectedZEdit->text().toFloat();
 	iParams->SetSelectedPoint(coords);
-	if(iParams->getIsoControl())iParams->SetIsoValue(isoValueEdit->text().toFloat());
+	
 
 	float val = evaluateSelectedPoint();
 	if (val != OUT_OF_BOUNDS)
@@ -501,7 +513,15 @@ void IsoEventRouter::
 guiEndChangeIsoSelection(){
 	if (!savedCommand) return;
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
-	iParams->updateHistoBounds();
+	// Make sure histo bounds are valid
+	IsoControl* icntrl = iParams->getIsoControl();
+	float minbnd = icntrl->getMinHistoValue();
+	float maxbnd = icntrl->getMaxHistoValue();
+	float isoval = icntrl->getIsoValue();
+	float wid = maxbnd - minbnd;
+	if (isoval < minbnd +0.01*wid) icntrl->setMinHistoValue(isoval - 0.01*wid);
+	if (isoval > maxbnd -0.01*wid) icntrl->setMaxHistoValue(isoval + 0.01*wid);
+
 	PanelCommand::captureEnd(savedCommand,iParams);
 	iParams->SetFlagDirty(ParamsIso::_IsoValueTag);
 	iParams->SetFlagDirty(ParamsIso::_HistoBoundsTag);

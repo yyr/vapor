@@ -145,10 +145,6 @@ float getMaxIsoEditBound() {
  float getOpacityScale(); 
  void setOpacityScale(float val); 
 
- //Force histo bounds to match IsoControl bounds
- void updateHistoBounds();
- 
-
  void SetHistoBounds(float bnds[2]);
  void SetMapBounds(float bnds[2]);
  const float* GetHistoBounds();
