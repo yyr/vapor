@@ -50,6 +50,7 @@ public:
       DVR_STRETCHED_GRID,
       DVR_SPHERICAL_SHADER,
       DVR_RAY_CASTER,
+	  DVR_RAY_CASTER_2_VAR,
 	  DVR_INVALID_TYPE
     };
 	 void setType(DvrType val) {type = val; }

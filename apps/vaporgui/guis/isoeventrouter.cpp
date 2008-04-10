@@ -908,9 +908,11 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
 
 	
 	if (nowEnabled && !prevEnabled ){//For case 2.:  create a renderer in the active window:
-
-		IsoRenderer* myIso = new IsoRenderer(viz->getGLWindow(), DvrParams::DVR_RAY_CASTER,iParams);
-
+		IsoRenderer* myIso;
+		if (iParams->GetMapVariableNum()< 0)
+			myIso = new IsoRenderer(viz->getGLWindow(), DvrParams::DVR_RAY_CASTER,iParams);
+		else
+			myIso = new IsoRenderer(viz->getGLWindow(), DvrParams::DVR_RAY_CASTER_2_VAR,iParams);
         
 		//Render order depends on whether opaque or not; 
 		//transparent isos get rendered later.
