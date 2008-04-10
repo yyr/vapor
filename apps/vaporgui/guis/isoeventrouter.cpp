@@ -238,7 +238,7 @@ void IsoEventRouter::updateTab(){
     transferFunctionFrame->updateParams();
 
 	
-    if (session->getNumSessionVariables())
+    if (session->getDataMgr())
     {
       
       transferFunctionFrame->setVariableName(varname);

@@ -228,6 +228,15 @@ private:
  int numSessionVariables;
  float ctab[256][4];
  
+ // The noIsoControlTags flag indicates that the last time we parsed a ParamsIso there
+ // were not Iso control tags in it (i.e., it was an obsolete ParamsIso that was parsed).
+ // In that situation, the isovalue and histo bounds were saved, so they will be used
+ // when new metadata is read.
+ bool noIsoControlTags; 
+ float oldIsoValue;
+ float oldHistoBounds[2];
+ 
+ 
 };
 
 };

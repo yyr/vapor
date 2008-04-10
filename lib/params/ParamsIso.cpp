@@ -61,6 +61,7 @@ ParamsIso::ParamsIso(
 	minIsoEditBounds = 0;
 	maxIsoEditBounds = 0;
 	numSessionVariables = 0;
+	noIsoControlTags = false;
 	restart();
 }
 
@@ -192,6 +193,12 @@ reinit(bool doOverride){
 				newMinIsoEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);
 				newMaxIsoEdit[i] = DataStatus::getInstance()->getDefaultDataMax(i);
 				newTransFunc[i]->setVarNum(i);
+				//For backwards compatibility, if we have read iso from an old session:
+				if (noIsoControlTags){
+					newIsoControls[i]->setIsoValue(oldIsoValue);
+					newIsoControls[i]->setMinHistoValue(oldHistoBounds[0]);
+					newIsoControls[i]->setMaxHistoValue(oldHistoBounds[1]);
+				}
 			}
 			
 		}
@@ -632,6 +639,7 @@ bool ParamsIso::elementStartHandler(
 		return true;
 	} else if (StrCmpNoCase(tag, _IsoControlTag) == 0){
 		_parseDepth++;
+		noIsoControlTags = false;
 		//Now create the iso control, and have it parse its state:
 		IsoControl* ic = new IsoControl(this, 8);
 		isoControls[parsingVarNum] = ic;
@@ -643,6 +651,7 @@ bool ParamsIso::elementStartHandler(
 		return true;
 	} else { //Defer to parent class for iso parameter parsing
 		numSessionVariables = 0;
+		noIsoControlTags = true;
 		return ParamsBase::elementStartHandler(pm, depth, tag, attrs);
 	}
 }
@@ -661,7 +670,18 @@ bool ParamsIso::elementEndHandler(ExpatParseMgr* pm, int depth, string& tag) {
 		
 	}
 
-	else return ParamsBase::elementEndHandler(pm, depth, tag);
+	else {
+		if (_parseDepth == 1 && noIsoControlTags) {//For backwards compatibility..
+				//Get the value of the isocontrol stuff from the obsolete tags:
+				
+			const vector <double> &histBnds = GetRootNode()->GetElementDouble(_HistoBoundsTag);
+			const vector <double> &isoval = GetRootNode()->GetElementDouble(_IsoValueTag);
+			oldIsoValue = isoval[0];
+			oldHistoBounds[0] = histBnds[0];
+			oldHistoBounds[1] = histBnds[1];
+		}
+		return ParamsBase::elementEndHandler(pm, depth, tag);
+	}
 
 }
 float ParamsIso::getOpacityScale() 
