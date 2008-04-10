@@ -370,11 +370,17 @@ void IsoEventRouter::isoLoadTF(){
 	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
 	if (iParams->GetMapVariableNum() < 0) return;
 	loadTF(iParams, iParams->GetMapVariableNum());
+	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
+	if (iParams->isEnabled())
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 void IsoEventRouter::isoLoadInstalledTF(){
 	ParamsIso* iParams = (ParamsIso*)VizWinMgr::getInstance()->getApplicableParams(Params::IsoParamsType);
 	if (iParams->GetMapVariableNum() < 0) return;
 	loadInstalledTF(iParams,iParams->GetMapVariableNum());
+	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
+	if (iParams->isEnabled())
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 
 void IsoEventRouter::isoSaveTF(){
@@ -400,7 +406,9 @@ sessionLoadTF(QString* name){
 	int varNum = iParams->GetMapVariableNum();
 	iParams->hookupTF(tf, varNum);
 	PanelCommand::captureEnd(cmd, iParams);
-	VizWinMgr::getInstance()->setClutDirty(iParams);
+	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
+	if (iParams->isEnabled())
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 	setEditorDirty();
 }
 
@@ -418,7 +426,9 @@ guiSetOpacityScale(int val){
 	float sliderVal = pi->getOpacityScale();
 	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
 	PanelCommand::captureEnd(cmd,pi);
-	VizWinMgr::getInstance()->setClutDirty(pi);
+	pi->SetFlagDirty(ParamsIso::_ColorMapTag);
+	if (pi->isEnabled())
+		VizWinMgr::getInstance()->getVizWin(pi->getVizNum())->updateGL();
 }
 void IsoEventRouter::guiBindColorToOpac(){
 	confirmText(false);
@@ -426,6 +436,9 @@ void IsoEventRouter::guiBindColorToOpac(){
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "bind Color to Opacity");
     transferFunctionFrame->bindColorToOpacity();
 	PanelCommand::captureEnd(cmd, iParams);
+	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
+	if (iParams->isEnabled())
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 void IsoEventRouter::guiBindOpacToColor(){
 	confirmText(false);
@@ -433,6 +446,9 @@ void IsoEventRouter::guiBindOpacToColor(){
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "bind Opacity to Color");
     transferFunctionFrame->bindOpacityToColor();
 	PanelCommand::captureEnd(cmd, iParams);
+	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
+	if (iParams->isEnabled())
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 void IsoEventRouter::setTFNavigateMode(bool mode){
 	TFeditButton->setOn(!mode);
@@ -497,6 +513,8 @@ guiEndChangeMapFcn(){
 	PanelCommand::captureEnd(savedCommand,iParams);
 	iParams->SetFlagDirty(ParamsIso::_MapBoundsTag);
 	iParams->SetFlagDirty(ParamsIso::_ColorMapTag);
+	if (iParams->isEnabled())
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 	savedCommand = 0;
 }
 void IsoEventRouter::
@@ -528,6 +546,8 @@ guiEndChangeIsoSelection(){
 	
 	savedCommand = 0;
 	updateTab();
+	if (iParams->isEnabled())
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 	
 }
 void IsoEventRouter::
@@ -836,8 +856,19 @@ guiSetMapComboVarNum(int val){
 	else iParams->SetMapVariableName("Constant");
 
 	PanelCommand::captureEnd(cmd, iParams);
+	//If the change is turning on or off the constant color, then disable and
+	//re-enable the renderer.
+	if(iParams->isEnabled()&&((val == 0 && comboVarNum != 0)||(val!=0 && comboVarNum == 0))){
+		//Disable and enable:
+		iParams->setEnabled(false);
+		updateRenderer(iParams,true,false);
+		iParams->setEnabled(true);
+		updateRenderer(iParams,false,false);
+	}
 	updateTab();
-	VizWinMgr::getInstance()->setClutDirty(iParams);
+	
+	if (iParams->isEnabled())
+		VizWinMgr::getInstance()->getVizWin(iParams->getVizNum())->updateGL();
 }
 
 void IsoEventRouter::
@@ -1064,14 +1095,17 @@ void IsoEventRouter::
 guiSetNumBits(int val){
 	ParamsIso* iParams = VizWinMgr::getActiveIsoParams();
 	confirmText(false);
-	if (iParams->isEnabled()){
-		MessageReporter::warningMsg("Renderer must be disabled before changing bits per voxel");
-		updateTab();
-		return;
-	}
+	
 	PanelCommand* cmd = PanelCommand::captureStart(iParams, "set iso voxel bits");
 	//Value is 0 or 1, corresponding to 8 or 16 bits
 	iParams->SetNumBits(1<<(val+3));
+	if(iParams->isEnabled()){
+		//Disable and enable:
+		iParams->setEnabled(false);
+		updateRenderer(iParams,true,false);
+		iParams->setEnabled(true);
+		updateRenderer(iParams,false,false);
+	}
 	PanelCommand::captureEnd(cmd, iParams);
 		
 	VizWinMgr::getInstance()->setVizDirty(iParams, RegionBit);

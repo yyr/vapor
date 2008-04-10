@@ -531,7 +531,7 @@ void ParamsIso::RegisterNumBitsDirtyFlag(ParamNode::DirtyFlag *df){
 	 return GetRootNode()->GetElementString(_VariableNameTag);
  }
  void ParamsIso::RegisterVariableDirtyFlag(ParamNode::DirtyFlag *df){
-	GetRootNode()->RegisterDirtyFlagLong(_VariableNameTag, df);
+	GetRootNode()->RegisterDirtyFlagString(_VariableNameTag, df);
 }
 void ParamsIso::SetMapVariableName(const string& varName){
 	 GetRootNode()->SetElementString(_MapVariableNameTag, varName);
@@ -540,7 +540,7 @@ void ParamsIso::SetMapVariableName(const string& varName){
 	 return GetRootNode()->GetElementString(_MapVariableNameTag);
  }
  void ParamsIso::RegisterMapVariableDirtyFlag(ParamNode::DirtyFlag *df){
-	GetRootNode()->RegisterDirtyFlagLong(_MapVariableNameTag, df);
+	GetRootNode()->RegisterDirtyFlagString(_MapVariableNameTag, df);
 }
 void ParamsIso::
 refreshCtab() {
