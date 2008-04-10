@@ -124,7 +124,7 @@ void ParamNode::SetFlagDirty(const string &tag){
 	// do nothing.
 	//
 	map <string, vector <DirtyFlag *> >::iterator p =  _dirtyNodeFlags.find(tag);
-	if (p != _dirtyStringFlags.end()) { 
+	if (p != _dirtyNodeFlags.end()) { 
 
 		vector <DirtyFlag *> &dirtyflags = p->second;
 		for(int i=0; i<dirtyflags.size(); i++) {
