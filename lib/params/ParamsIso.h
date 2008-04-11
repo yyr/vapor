@@ -217,7 +217,6 @@ private:
 
  float _constcolorbuf[4];
  float _histoBounds[2];
- float _mapperBounds[2];
  bool isoEditMode;
  bool mapEditMode;
  

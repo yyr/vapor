@@ -155,6 +155,7 @@ reinit(bool doOverride){
 			float dataMin = DataStatus::getInstance()->getDefaultDataMin(i);
 			float dataMax = DataStatus::getInstance()->getDefaultDataMax(i);
 			newTransFunc[i] = new TransferFunction(this, 8);
+			newTransFunc[i]->setOpaque();
 			newIsoControls[i] = new IsoControl(this, 8);
 			newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
 			newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
@@ -173,7 +174,7 @@ reinit(bool doOverride){
 		//delete any that are no longer referenced
 		//Copy tf bounds to edit bounds
 		for (int i = 0; i<totNumVariables; i++){
-			if(i<numSessionVariables){ //make copy of existing ones
+			if(i<isoControls.size()){ //make copy of existing ones
 				newTransFunc[i] = transFunc[i];
 				newIsoControls[i] = isoControls[i];
 				newMinMapEdit[i] = transFunc[i]->getMinMapValue();
@@ -204,7 +205,7 @@ reinit(bool doOverride){
 			
 		}
 			//Delete trans funcs that are not in the current session
-		for (int i = totNumVariables; i<numSessionVariables; i++){
+		for (int i = totNumVariables; i<isoControls.size(); i++){
 			delete transFunc[i];
 			delete isoControls[i];
 		}
@@ -420,6 +421,7 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 
  void ParamsIso::SetHistoBounds(float bnds[2]){
 	IsoControl* isoContr = getIsoControl();
+	if(!isoContr) return;
 	if(isoContr->getMinHistoValue() == bnds[0] &&
 		isoContr->getMaxHistoValue() == bnds[1]) return;
 	isoContr->setMinHistoValue(bnds[0]);
@@ -430,8 +432,10 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
  void ParamsIso::SetMapBounds(float bnds[2]){
 	MapperFunction* mapFunc = getMapperFunc();
 	if(!mapFunc) return;
-	if(mapFunc->getMinOpacMapValue() == bnds[0] &&
-		mapFunc->getMaxOpacMapValue() == bnds[1]) return;
+	if(mapFunc->getMinColorMapValue() == bnds[0] &&
+		mapFunc->getMaxColorMapValue() == bnds[1]) return;
+	mapFunc->setMinColorMapValue(bnds[0]);
+	mapFunc->setMaxColorMapValue(bnds[1]);
 	mapFunc->setMinOpacMapValue(bnds[0]);
 	mapFunc->setMaxOpacMapValue(bnds[1]);
 	SetFlagDirty(_MapBoundsTag);
@@ -446,16 +450,16 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	 }
 	return( _histoBounds);
  }
- //Use _mapperBounds to return tf bounds 
+ //Use _histoBounds to return tf bounds 
  const float* ParamsIso::GetMapBounds(){
 	 if (!getMapperFunc() || GetMapVariableNum() < 0){
-		 _mapperBounds[0] = 0.f;
-		 _mapperBounds[1] = 1.f;
+		 _histoBounds[0] = 0.f;
+		 _histoBounds[1] = 1.f;
 	 } else {
-		_mapperBounds[0]=getMapperFunc()->getMinOpacMapValue();
-		_mapperBounds[1]=getMapperFunc()->getMaxOpacMapValue();
+		_histoBounds[0]=getMapperFunc()->getMinColorMapValue();
+		_histoBounds[1]=getMapperFunc()->getMaxColorMapValue();
 	 }
-	return( _mapperBounds);
+	return( _histoBounds);
  }
 	
  void ParamsIso::SetIsoHistoStretch(float scale){
