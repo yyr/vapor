@@ -446,16 +446,16 @@ void ParamsIso::RegisterConstantColorDirtyFlag(ParamNode::DirtyFlag *df) {
 	 }
 	return( _histoBounds);
  }
- //Use _histoBounds to return tf bounds 
+ //Use _mapperBounds to return tf bounds 
  const float* ParamsIso::GetMapBounds(){
 	 if (!getMapperFunc() || GetMapVariableNum() < 0){
-		 _histoBounds[0] = 0.f;
-		 _histoBounds[1] = 1.f;
+		 _mapperBounds[0] = 0.f;
+		 _mapperBounds[1] = 1.f;
 	 } else {
-		_histoBounds[0]=getMapperFunc()->getMinOpacMapValue();
-		_histoBounds[1]=getMapperFunc()->getMaxOpacMapValue();
+		_mapperBounds[0]=getMapperFunc()->getMinOpacMapValue();
+		_mapperBounds[1]=getMapperFunc()->getMaxOpacMapValue();
 	 }
-	return( _histoBounds);
+	return( _mapperBounds);
  }
 	
  void ParamsIso::SetIsoHistoStretch(float scale){
