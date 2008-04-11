@@ -259,7 +259,7 @@ void IsoEventRouter::updateTab(){
 	int comboVarNum = DataStatus::getInstance()->getMetadataVarNum(
 		isoParams->GetIsoVariableName());
 	variableCombo->setCurrentItem(comboVarNum);
-	lightingCheckbox->setChecked(isoParams->GetNormalOnOff());
+	
 	histoScaleEdit->setText(QString::number(isoParams->GetIsoHistoStretch()));
 	TFHistoScaleEdit->setText(QString::number(isoParams->GetHistoStretch()));
 	isoValueEdit->setText(QString::number(isoParams->GetIsoValue()));
@@ -289,7 +289,9 @@ void IsoEventRouter::updateTab(){
 		variableValueLabel->setText(QString::number(val));
 	else variableValueLabel->setText("");
 	passThruButton->setEnabled((val!= OUT_OF_BOUNDS) && isoParams->isEnabled());
-   
+	guiSetTextChanged(false);
+	//Anything that can start an event should go after we turn off the textChanged flag:
+    lightingCheckbox->setChecked(isoParams->GetNormalOnOff());
 	update();
 	guiSetTextChanged(false);
 	//if (renderTextChanged)
