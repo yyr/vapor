@@ -33,6 +33,7 @@
 #include "vapor/ImpExp.h"
 #include "vapor/MyBase.h"
 #include "vapor/DataMgr.h"
+#include "vapor/Version.h"
 #include <qstring.h>
 #include <qapplication.h>
 #include <qcursor.h>
@@ -80,7 +81,7 @@ DataStatus()
 	}
 	
 	theDataStatus = this;
-	
+	sessionVersion = Version::GetVersionString();
 }
 
 // After a metadata::merge, call resetDataStatus to 

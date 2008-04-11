@@ -140,10 +140,10 @@ float MapperFunctionBase::opacityValue(float value)
 
   //
   // Using the square of the opacity scaling factor gives
-  // better control over low opacity values)
+  // better control over low opacity values.
+  // But this correction will be made in the GUI
   //
   float opacScale = opacityScaleFactor;
-  opacScale = opacScale*opacScale;
   
   float opacity = 0.0;
 

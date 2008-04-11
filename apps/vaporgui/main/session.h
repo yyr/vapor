@@ -298,6 +298,7 @@ protected:
 	static const string _variableNameAttr;
 	static const string _belowGridAttr;
 	static const string _aboveGridAttr;
+	static const string _VAPORVersionAttr;
 
 	XmlNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);
@@ -334,7 +335,7 @@ protected:
 
 	bool textureSizeSpecified;
 	int textureSize;
-	
+	const string& getSessionVersion(){return sessionVersionString;}
 	
 	bool dataExists;
 	bool newSession;
@@ -355,7 +356,7 @@ protected:
 	string currentMetadataFile;
 	string currentJpegDirectory;
 	string currentFlowDirectory;
-	
+	string sessionVersionString;
 
 	bool metadataSaved;
 

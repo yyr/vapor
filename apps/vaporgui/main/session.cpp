@@ -41,6 +41,7 @@
 #include "histo.h"
 #include "vapor/Metadata.h"
 #include "vapor/ImpExp.h"
+#include "vapor/Version.h"
 #include "animationcontroller.h"
 #include "transferfunction.h"
 #include "floweventrouter.h"
@@ -76,8 +77,10 @@ const string Session::_sessionVariableTag = "SessionVariable";
 const string Session::_variableNameAttr = "VariableName";
 const string Session::_aboveGridAttr = "AboveGridValue";
 const string Session::_belowGridAttr = "BelowGridValue";
+const string Session::_VAPORVersionAttr = "VaporVersion";
 Session::Session() {
-	
+	//Initialize version to current version
+	sessionVersionString = Version::GetVersionString();
 	MyBase::SetErrMsgCB(errorCallbackFcn);
 	MyBase::SetDiagMsgCB(infoCallbackFcn);
 	previousClass = 0;
@@ -225,6 +228,8 @@ buildNode() {
 		oss << "false";
 	attrs[_specifyTextureSizeAttr] = oss.str();
 
+	attrs[_VAPORVersionAttr] = Version::GetVersionString();
+
 	oss.str(empty);
 	oss << (long)textureSize;
 	attrs[_textureSizeAttr] = oss.str();
@@ -328,7 +333,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 	//Parse the global session parameters, depth = 0
 		case(0): 
 		{
+			
 			if (StrCmpNoCase(tag, _sessionTag) != 0) return false;
+			//Initialize session string to 1.2.2, didn't have session strings before that
+			sessionVersionString = "1.2.2";
 			MessageReporter* msgRpt = MessageReporter::getInstance();
 			//Start with default stretch factors
 			float stretchFac[3];
@@ -346,6 +354,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					ist >> boolVal;
 					if (boolVal == "true") textureSizeSpecified = true;
 					else textureSizeSpecified = false;
+				}
+				else if (StrCmpNoCase(attr, _VAPORVersionAttr) == 0){
+					ist >> sessionVersionString;
 				}
 				else if (StrCmpNoCase(attr, _textureSizeAttr) == 0){
 					ist >> textureSize;
@@ -908,6 +919,7 @@ setupDataStatus(){
 		currentDataStatus->stretchExtents(stretchFactors);
 		currentDataStatus->specifyTextureSize(textureSizeSpecified);
 		currentDataStatus->setTextureSize(textureSize);
+		currentDataStatus->setSessionVersion(sessionVersionString);
 	}
 	else dataExists = false;
 }

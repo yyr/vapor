@@ -218,6 +218,8 @@ public:
 		if (maxNumTransforms[sessionVarNum][timestep] >= refLevel)
 			maxNumTransforms[sessionVarNum][timestep] = refLevel -1;
 	}
+	const string& getSessionVersion(){return sessionVersion;}
+	void setSessionVersion(std::string& ver){sessionVersion = ver;}
 	
 private:
 	static DataStatus* theDataStatus;
@@ -267,7 +269,7 @@ private:
 	static std::vector<float> aboveValues;
 	static int numMetadataVariables;
 	static int* mapMetadataVars;
-
+	string sessionVersion;
 	int textureSize;
 	bool textureSizeSpecified;
 	

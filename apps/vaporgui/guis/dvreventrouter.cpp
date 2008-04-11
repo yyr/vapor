@@ -739,7 +739,7 @@ void DvrEventRouter::guiSetPreintegration(bool val)
     VizWinMgr::getInstance()->setVizDirty(dParams, LightingBit, true);		
 }
 
-//Respond to a change in histogram stretch factor
+//Respond to a change in opacity slider
 void DvrEventRouter::
 guiSetOpacityScale(int val){
 	DvrParams* dParams = VizWinMgr::getActiveDvrParams();
@@ -748,9 +748,12 @@ guiSetOpacityScale(int val){
 	
 	PanelCommand* cmd = PanelCommand::captureStart(dParams, "modify opacity scale slider");
 		
-	dParams->setOpacityScale(((float)(256-val))/256.f);
-	float sliderVal = dParams->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	float opacScale = (float)(256-val)/256.f;
+	//Square it, for better control over low opacities:
+	opacScale = opacScale*opacScale;
+	dParams->setOpacityScale(opacScale);
+	
+	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(opacScale));
 	
 	VizWinMgr::getInstance()->setClutDirty(dParams);
 	setEditorDirty();

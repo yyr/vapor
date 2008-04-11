@@ -1131,7 +1131,7 @@ guiSetOpacityScale(int val){
 	PanelCommand* cmd = PanelCommand::captureStart(pp, "modify opacity scale slider");
 	pp->setOpacityScale( ((float)(256-val))/256.f);
 	float sliderVal = pp->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal));
 	
 
 	setProbeDirty(pp);

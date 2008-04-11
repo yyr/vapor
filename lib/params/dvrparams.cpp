@@ -459,6 +459,9 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 			}
 			else if (StrCmpNoCase(attribName, _opacityScaleAttr) == 0){
 				ist >> opacFac;
+				//Prior to VAPOR 1.2.3, the square root of the actual opacity scale was saved
+				static const string& sesver = DataStatus::getInstance()->getSessionVersion();
+				if (sesver < "1.2.3") opacFac = opacFac*opacFac;
 			}
 			else return false;
 		}

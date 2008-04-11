@@ -263,6 +263,11 @@ void IsoEventRouter::updateTab(){
 	histoScaleEdit->setText(QString::number(isoParams->GetIsoHistoStretch()));
 	TFHistoScaleEdit->setText(QString::number(isoParams->GetHistoStretch()));
 	isoValueEdit->setText(QString::number(isoParams->GetIsoValue()));
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	if(pParams->isEnabled()){
+		const float* selectedpoint = pParams->getSelectedPoint();
+		isoParams->SetSelectedPoint(selectedpoint);
+	}
 	const vector<double>& coords = isoParams->GetSelectedPoint();
 	const float* bnds = isoParams->GetHistoBounds();
 	const float* clr = isoParams->GetConstantColor();
@@ -290,6 +295,7 @@ void IsoEventRouter::updateTab(){
 	else variableValueLabel->setText("");
 	passThruButton->setEnabled((val!= OUT_OF_BOUNDS) && isoParams->isEnabled());
 	guiSetTextChanged(false);
+	
 	//Anything that can start an event should go after we turn off the textChanged flag:
     lightingCheckbox->setChecked(isoParams->GetNormalOnOff());
 	update();
@@ -426,7 +432,7 @@ guiSetOpacityScale(int val){
 	PanelCommand* cmd = PanelCommand::captureStart(pi, "modify opacity scale slider");
 	pi->setOpacityScale( ((float)(256-val))/256.f);
 	float sliderVal = pi->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal));
 	PanelCommand::captureEnd(cmd,pi);
 	pi->SetFlagDirty(ParamsIso::_ColorMapTag);
 	if (pi->isEnabled())

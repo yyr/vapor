@@ -1682,7 +1682,7 @@ guiSetOpacityScale(int val){
 	PanelCommand* cmd = PanelCommand::captureStart(fParams, "modify opacity scale slider");
 	fParams->setOpacityScale(((float)(256-val))/256.f);
 	float sliderVal = fParams->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
+	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal));
 	if (!fParams->refreshIsAuto()) refreshButton->setEnabled(true);
 
 	VizWinMgr::getInstance()->setFlowGraphicsDirty(fParams);

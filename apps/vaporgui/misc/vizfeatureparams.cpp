@@ -109,7 +109,7 @@ void VizFeatureParams::launch(){
 	//Determine corresponding combo index for currentVizNum:
 	currentComboIndex = getComboIndex(vizNum);
 	
-	featureHolder = new ScrollContainer((QWidget*)MainForm::getInstance());
+	featureHolder = new ScrollContainer((QWidget*)MainForm::getInstance(), "Visualizer Feature Selection");
 	
 	QScrollView* sv = new QScrollView(featureHolder);
 	sv->setHScrollBarMode(QScrollView::AlwaysOff);

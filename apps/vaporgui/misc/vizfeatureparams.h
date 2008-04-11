@@ -33,7 +33,22 @@
 
 class QWidget;
 class VizFeatures;
+class ScrollContainer;
 namespace VAPoR{
+
+class ScrollContainer : public QDialog {
+public:
+	ScrollContainer(QWidget* parent, const char* name) : QDialog(parent, name) {
+		setCaption(name);}
+	void setScroller(QScrollView* sv){scroller = sv;}
+protected:
+	virtual void resizeEvent(QResizeEvent* event){
+		if (scroller) {
+			scroller->setGeometry(0,0, event->size().width(), event->size().height());
+		}
+	}
+	QScrollView* scroller;
+};
 class VizFeatureParams : public QObject  {
 	Q_OBJECT
 public: 
@@ -46,19 +61,7 @@ public:
 	//Launch a VizFeature dialog.  Put its values into visualizer(s) if it succeeds.
 	void launch();
 	void applyToViz(int viznum);
-	class ScrollContainer : public QDialog {
-	public:
-		ScrollContainer(QWidget* parent) : QDialog(parent) {
-			setCaption("Visualizer Feature Selection");}
-		void setScroller(QScrollView* sv){scroller = sv;}
-	protected:
-		virtual void resizeEvent(QResizeEvent* event){
-			if (scroller) {
-				scroller->setGeometry(0,0, event->size().width(), event->size().height());
-			}
-		}
-		QScrollView* scroller;
-	};
+	
 
 	
 signals: 
