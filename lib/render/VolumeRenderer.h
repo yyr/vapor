@@ -37,8 +37,9 @@ namespace VAPoR {
   public:
 	
 	virtual bool datarangeIsDirty() {return datarangeDirtyBit;}
-	
 	virtual void setDatarangeDirty(){datarangeDirtyBit = true;}
+	virtual void clearDatarangeDirty(){datarangeDirtyBit = false;}
+
     VolumeRenderer(GLWindow *w, DvrParams::DvrType type, RenderParams* rp);
     virtual ~VolumeRenderer();
     
@@ -57,7 +58,6 @@ namespace VAPoR {
     //#endif
 
   protected:
-    bool datarangeDirtyBit;
 
     virtual DVRBase* create_driver(DvrParams::DvrType type, int nthreads);
 
@@ -67,7 +67,12 @@ namespace VAPoR {
     virtual void DrawVoxelScene(unsigned fast);
     virtual void DrawVoxelWindow(unsigned fast);
 
-	virtual void UpdateDriverRenderParamsSpec(RenderParams *rp);
+	virtual void *_getRegion(
+		DataMgr *data_mgr, RenderParams *rp, RegionParams *reg_params,
+		size_t ts, const char *varname, int numxforms,
+		const size_t min[3], const size_t max[3]
+	);
+	virtual void _updateDriverRenderParamsSpec(RenderParams *rp);
 
     int    _frames;
     double _seconds;
@@ -76,6 +81,8 @@ namespace VAPoR {
 	bool _userTextureSizeIsSet;
     GLenum _voxelType;
 
+  private:
+    bool datarangeDirtyBit;
   };
 };
 

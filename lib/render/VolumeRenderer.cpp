@@ -59,6 +59,7 @@
 #include "DVRLookup.h"
 #include "DVRShader.h"
 #include "DVRRayCaster.h"
+#include "DVRRayCaster2Var.h"
 #include "DVRSpherical.h"
 #ifdef VOLUMIZER
 #include "DVRVolumizer.h"
@@ -205,6 +206,11 @@ bool VolumeRenderer::supported(DvrParams::DvrType type)
        return DVRRayCaster::supported();
      }
 
+     case DvrParams::DVR_RAY_CASTER_2_VAR:
+     {
+       return DVRRayCaster2Var::supported();
+     }
+
      case DvrParams::DVR_VOLUMIZER:
      {
 #    ifdef VOLUMIZER
@@ -274,6 +280,14 @@ DVRBase* VolumeRenderer::create_driver(DvrParams::DvrType dvrType, int)
     _voxelType = rp->GetNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
     GLenum internalFormat = rp->GetNumBits() == 8 ? GL_LUMINANCE8 : GL_LUMINANCE16;
     driver = new DVRRayCaster(internalFormat, format, _voxelType, 1);
+  }
+  else if (dvrType == DvrParams::DVR_RAY_CASTER_2_VAR)
+  {
+    GLenum format = GL_LUMINANCE_ALPHA;
+	ParamsIso *rp = (ParamsIso *) currentRenderParams;
+    _voxelType = rp->GetNumBits() == 8 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT;
+    GLenum internalFormat = rp->GetNumBits() == 8 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16;
+    driver = new DVRRayCaster2Var(internalFormat, format, _voxelType, 1);
   }
 
 #ifdef VOLUMIZER
@@ -451,7 +465,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 	  
 	if (myGLWindow->regionIsDirty() || forceReload
 		|| datarangeIsDirty() || myGLWindow->dvrRegionIsNavigating()
-		|| myGLWindow->animationIsDirty()) 
+		|| myGLWindow->animationIsDirty() || 1) 
 	{
 		//Check if the region/resolution is too big:
 		int numMBs = RegionParams::getMBStorageNeeded(extents, extents+3, numxforms);
@@ -472,31 +486,11 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		const char* varname = (DataStatus::getInstance()->getVariableName(currentRenderParams->getSessionVarNum()).c_str());
 
 
-		void* data;
-		if (_voxelType == GL_UNSIGNED_BYTE) {
-			data = (void*) myDataMgr->GetRegionUInt8(
-											timeStep,
-											varname,
-											numxforms,
-											min_bdim,
-											max_bdim,
-											myRegionParams->getFullGridHeight(),
-											currentRenderParams->getCurrentDatarange(),
-											0 //Don't lock!
-											);
-		}
-		else {
-			data = (void*) myDataMgr->GetRegionUInt16(
-											timeStep,
-											varname,
-											numxforms,
-											min_bdim,
-											max_bdim,
-											myRegionParams->getFullGridHeight(),
-											currentRenderParams->getCurrentDatarange(),
-											0 //Don't lock!
-											);
-		}
+		void* data = _getRegion(
+			myDataMgr, currentRenderParams, myRegionParams, timeStep,
+			varname, numxforms, min_bdim, max_bdim
+		);
+
 		//Turn it back on:
 	    
 		QApplication::restoreOverrideCursor();
@@ -618,7 +612,7 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		
 	}
 
-	UpdateDriverRenderParamsSpec(currentRenderParams);
+	_updateDriverRenderParamsSpec(currentRenderParams);
 
 	// Update the DVR's view
 	//
@@ -657,8 +651,8 @@ void VolumeRenderer::DrawVoxelScene(unsigned /*fast*/)
 		glMatrixMode(GL_MODELVIEW);
 	}
 	  
-	clutDirtyBit = false;
-	datarangeDirtyBit = false;
+	clearClutDirty();
+	clearDatarangeDirty();
 	  
 	myGLWindow->setDvrRegionNavigating(false);
 	myGLWindow->setLightingDirty(false);
@@ -721,8 +715,34 @@ void VolumeRenderer::DrawVoxelWindow(unsigned fast)
 #endif
 }
 
+void *VolumeRenderer::_getRegion(
+	DataMgr *data_mgr, RenderParams *rp, RegionParams *reg_params,
+	size_t ts, const char *varname, int numxforms, 
+	const size_t min[3], const size_t max[3]
+) {
+	void *data;
 
-void VolumeRenderer::UpdateDriverRenderParamsSpec(
+	if (_voxelType == GL_UNSIGNED_BYTE) {
+		data =  data_mgr->GetRegionUInt8(
+			ts, varname, numxforms, min, max,
+			reg_params->getFullGridHeight(),
+			rp->getCurrentDatarange(),
+			0 // Don't lock!
+		);
+	}
+	else {
+		data = data_mgr->GetRegionUInt16(
+			ts, varname, numxforms, min, max,
+			reg_params->getFullGridHeight(),
+			rp->getCurrentDatarange(),
+			0 // Don't lock!
+		);
+	}
+	return(data);
+}
+
+
+void VolumeRenderer::_updateDriverRenderParamsSpec(
 	RenderParams *rp
 ) {
 	DvrParams *myDVRParams = (DvrParams *) rp;

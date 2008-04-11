@@ -56,6 +56,7 @@ public:
 
 	virtual bool clutIsDirty() {return clutDirtyBit;}
 	virtual void setClutDirty(){clutDirtyBit = true;}
+	virtual void clearClutDirty(){clutDirtyBit = false;}
 	
 signals:
 
@@ -77,6 +78,7 @@ protected:
 	float subregionFrameColor[3];
 	int savedNumXForms;
 	bool initialized;
+private:
 	bool clutDirtyBit;
 };
 };

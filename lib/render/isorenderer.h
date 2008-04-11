@@ -36,9 +36,18 @@ namespace VAPoR {
       
   public:
 	
-	virtual bool datarangeIsDirty() {return datarangeDirtyBit;}
-	
-	virtual void setDatarangeDirty(){datarangeDirtyBit = true;}
+	bool IsoRenderer::datarangeIsDirty() { return(_dataDF.Test()); }
+
+	void IsoRenderer::setDatarangeDirty() { _dataDF.Set(); }
+
+	void IsoRenderer::clearDatarangeDirty() { _dataDF.Clear(); }
+
+	bool IsoRenderer::clutIsDirty() { return(_colorMapDF.Test()); }
+
+	void IsoRenderer::setClutDirty() { _colorMapDF.Set(); }
+
+	void IsoRenderer::clearClutDirty() { _colorMapDF.Clear(); }
+
     IsoRenderer(GLWindow *w, DvrParams::DvrType type, RenderParams* rp);
     virtual ~IsoRenderer();
     
@@ -55,13 +64,21 @@ namespace VAPoR {
 
   protected:
 
-	void UpdateDriverRenderParamsSpec(RenderParams *rp);
+ void *_getRegion(
+	DataMgr *data_mgr, RenderParams *rp, RegionParams *reg_params,
+	size_t ts, const char *varname, int numxforms,
+	const size_t min[3], const size_t max[3]
+ ); 
+
+ void _updateDriverRenderParamsSpec(RenderParams *rp);
     
 
   private:
 
 	ParamNode::DirtyFlag _lightOnOffDF;
 	ParamNode::DirtyFlag _isovalueDF;
+	ParamNode::DirtyFlag _colorMapDF;
+	ParamNode::DirtyFlag _dataDF;
 
   };
 };

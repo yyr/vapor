@@ -88,6 +88,7 @@ IsoRenderer::~IsoRenderer()
 {
  
 }
+
 void IsoRenderer::setRenderParams(RenderParams* rp) {
 
 	Renderer::setRenderParams(rp);
@@ -97,9 +98,67 @@ void IsoRenderer::setRenderParams(RenderParams* rp) {
 	myParamsIso->RegisterIsoValueDirtyFlag(&_isovalueDF);
 	myParamsIso->RegisterConstantColorDirtyFlag(&_isovalueDF);
 	myParamsIso->RegisterNormalOnOffDirtyFlag(&_lightOnOffDF);
+	myParamsIso->RegisterColorMapDirtyFlag(&_colorMapDF);
+	myParamsIso->RegisterMapVariableDirtyFlag(&_dataDF);
+	myParamsIso->RegisterVariableDirtyFlag(&_dataDF);
+	myParamsIso->RegisterMapBoundsDirtyFlag(&_dataDF);
+	myParamsIso->RegisterHistoBoundsDirtyFlag(&_dataDF);
+
 }
 
-void IsoRenderer::UpdateDriverRenderParamsSpec(RenderParams *rp) {
+void *IsoRenderer::_getRegion(
+    DataMgr *data_mgr, RenderParams *rp, RegionParams *reg_params,
+    size_t ts, const char *varname, int numxforms,
+    const size_t min[3], const size_t max[3]
+) {
+    ParamsIso *myParamsIso = (ParamsIso *) rp;
+	void *data;
+
+	assert (_type == DvrParams::DVR_RAY_CASTER || _type == DvrParams::DVR_RAY_CASTER_2_VAR);
+
+	if (_type == DvrParams::DVR_RAY_CASTER) {
+		if (_voxelType == GL_UNSIGNED_BYTE) {
+			data =  data_mgr->GetRegionUInt8(
+				ts, varname, numxforms, min, max,
+				reg_params->getFullGridHeight(),
+				myParamsIso->GetHistoBounds(),
+				0 // Don't lock!
+			);
+		}
+		else {
+			data = data_mgr->GetRegionUInt16(
+				ts, varname, numxforms, min, max,
+				reg_params->getFullGridHeight(),
+				myParamsIso->GetHistoBounds(),
+				0 // Don't lock!
+			);
+		}
+	}
+	else {
+		string map_varname = myParamsIso->GetMapVariableName();
+
+		if (_voxelType == GL_UNSIGNED_BYTE) {
+			data =  data_mgr->GetRegionUInt8(
+				ts, varname, map_varname.c_str(), numxforms, min, max,
+				reg_params->getFullGridHeight(),
+				myParamsIso->GetHistoBounds(), myParamsIso->GetMapBounds(),
+				0 // Don't lock!
+			);
+		}
+		else {
+			data = data_mgr->GetRegionUInt16(
+				ts, varname, map_varname.c_str(), numxforms, min, max,
+				reg_params->getFullGridHeight(),
+				myParamsIso->GetHistoBounds(), myParamsIso->GetMapBounds(),
+				0 // Don't lock!
+			);
+		}
+	}
+	return(data);
+}
+
+
+void IsoRenderer::_updateDriverRenderParamsSpec(RenderParams *rp) {
 
     ParamsIso *myParamsIso = (ParamsIso *) rp;
 	DVRRayCaster *driver = (DVRRayCaster *) _driver;
@@ -116,13 +175,19 @@ void IsoRenderer::UpdateDriverRenderParamsSpec(RenderParams *rp) {
 
 		driver->SetIsoValues(&isoval, color, 1);
 
-		_isovalueDF.Clear();
 	}
+
+	if (_type == DvrParams::DVR_RAY_CASTER_2_VAR && clutIsDirty()) {
+		// What the hell does this do?
+		myGLWindow->setRenderNew();
+
+		_driver->SetCLUT(myParamsIso->getClut());
+	}
+
 
 	bool lighting = myParamsIso->GetNormalOnOff();
 	if (_lightOnOffDF.Test()) {
 		driver->SetLightingOnOff(lighting);
-		_lightOnOffDF.Clear();
 	}
 
 	// No dirty flags for lighting parameters. Sigh.
@@ -139,4 +204,8 @@ void IsoRenderer::UpdateDriverRenderParamsSpec(RenderParams *rp) {
 			_driver->SetLightingLocation(vpParams->getLightDirection(0));
 		}
 	}
+	_isovalueDF.Clear();
+	_lightOnOffDF.Clear();
+	//_colorMapDF.Clear(); // cleared by parent class
+	//_dataDF.Clear(); // cleared by parent class
 }
