@@ -54,7 +54,6 @@ XmlNode::XmlNode(const XmlNode &node)
 {
 	*this = node;
 	this->_children.clear();
-	int foo = node._children.size();
 	for (int i=0; i<node._children.size(); i++) {
 		XmlNode *child = node._children[i];
 		XmlNode *newchild = child->XmlNode::Clone();
