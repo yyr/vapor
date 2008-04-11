@@ -2219,4 +2219,40 @@ bool GLWindow::startHandleSlide(float mouseCoords[2], int handleNum, Params* man
 
 
 
+GLWindow::OGLVendorType GLWindow::GetVendor()
+{
+	string ven_str((const char *) glGetString(GL_VENDOR));
+	string ren_str((const char *) glGetString(GL_RENDERER));
 
+	for (int i=0; i<ven_str.size(); i++) {
+		if (isupper(ven_str[i])) ven_str[i] = tolower(ven_str[i]);
+		if (isupper(ren_str[i])) ren_str[i] = tolower(ren_str[i]);
+	}
+
+	if (
+		(ven_str.find("mesa") != string::npos) || 
+		(ren_str.find("mesa") != string::npos))  {
+
+		return(MESA);
+	}
+	else if (
+		(ven_str.find("nvidia") != string::npos) || 
+		(ren_str.find("nvidia") != string::npos))  {
+
+		return(NVIDIA);
+	}
+	else if (
+		(ven_str.find("ati") != string::npos) || 
+		(ren_str.find("ati") != string::npos))  {
+
+		return(ATI);
+	}
+	else if (
+		(ven_str.find("intel") != string::npos) || 
+		(ren_str.find("intel") != string::npos))  {
+
+		return(INTEL);
+	}
+
+	return(UNKNOWN);
+}

@@ -342,6 +342,17 @@ public:
 	
 	const GLint* getViewport() {return viewport;}
 
+	enum OGLVendorType {
+		UNKNOWN = 0,
+		MESA,
+		NVIDIA,
+		ATI,
+		INTEL
+	};
+	static OGLVendorType GetVendor();
+
+
+
 protected:
 	int winNum;
 	static int jpegQuality;
