@@ -430,6 +430,10 @@ void GLWindow::initializeGL()
 {
     
 	glewInit();
+	//Check to see if we are using MESA:
+	if (GetVendor() == MESA){
+		SetErrMsg(VAPOR_ERROR_GL_VENDOR,"GL Vendor String is MESA.\nGraphics drivers may need to be reinstalled");
+	}
 	//VizWinMgr::getInstance()->getDvrRouter()->initTypes();
     qglClearColor(getBackgroundColor()); 		// Let OpenGL clear to black
 	//Initialize existing renderers:
