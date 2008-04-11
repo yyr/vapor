@@ -563,8 +563,8 @@ unsigned char	*DataMgr::GetRegionUInt16(
 	if (! ublks2) return (NULL);
 
 	for (size_t i = 0; i<size; i++) {
-		ublks[2*2*i+2] = ublks1[2*i+0];
-		ublks[2*2*i+3] = ublks1[2*i+1];
+		ublks[2*2*i+2] = ublks2[2*i+0];
+		ublks[2*2*i+3] = ublks2[2*i+1];
 	}
 	return(ublks);
 }
