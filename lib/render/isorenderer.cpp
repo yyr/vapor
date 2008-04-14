@@ -177,7 +177,8 @@ void IsoRenderer::_updateDriverRenderParamsSpec(RenderParams *rp) {
 
 	}
 
-	if (_type == DvrParams::DVR_RAY_CASTER_2_VAR && (clutIsDirty() || datarangeIsDirty())) {
+//	if (_type == DvrParams::DVR_RAY_CASTER_2_VAR && (clutIsDirty() || datarangeIsDirty())) {
+	if (_type == DvrParams::DVR_RAY_CASTER_2_VAR && clutIsDirty()) {
 		// What the hell does this do?
 		myGLWindow->setRenderNew();
 
