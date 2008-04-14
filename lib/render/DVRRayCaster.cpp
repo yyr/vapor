@@ -637,6 +637,28 @@ void DVRRayCaster::initShaderVariables() {
 
 void DVRRayCaster::Resize(int width, int height) {
 
+	if (GLEW_VERSION_2_0) {
+
+		glActiveTexture(_texcrd_texunit);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
+
+		glActiveTexture(_depth_texunit);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
+
+	} else {
+
+		glActiveTextureARB(_texcrd_texunit);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
+
+		glActiveTextureARB(_depth_texunit);
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, _backface_depth_texid);
+
+	}
+
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,_framebufferid);
 
 	glBindTexture(GL_TEXTURE_2D, _backface_texcrd_texid);
@@ -653,6 +675,26 @@ void DVRRayCaster::Resize(int width, int height) {
 
 	// Bind the default frame buffer
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+	if (GLEW_VERSION_2_0) {
+		glActiveTexture(_depth_texunit);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
+
+		glActiveTexture(_texcrd_texunit);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
+
+	} else {
+		glActiveTextureARB(_depth_texunit);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
+
+		glActiveTextureARB(_texcrd_texunit);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
+
+	}
 }
 
 
