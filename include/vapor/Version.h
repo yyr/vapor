@@ -74,6 +74,7 @@ public:
 	_dateString.assign("$Date$"); return(_dateString);
  }
  static int Compare(int major, int minor, int minorminor) ;
+ static int Compare(std::string ver1, std::string ver2);
 
 private:
  static const int _majorVersion = 1;
