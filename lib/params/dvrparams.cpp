@@ -462,7 +462,7 @@ elementStartHandler(ExpatParseMgr* pm, int depth , std::string& tagString, const
 				ist >> opacFac;
 				//Prior to VAPOR 1.2.3, the square root of the actual opacity scale was saved
 				DataStatus* ds = DataStatus::getInstance();
-				static const string& sesver = ds->getSessionVersion();
+				const string& sesver = ds->getSessionVersion();
 				if (Version::Compare(sesver, "1.2.2") <= 0) 
 					opacFac = opacFac*opacFac;
 			}
