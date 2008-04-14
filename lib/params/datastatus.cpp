@@ -371,3 +371,6 @@ bool DataStatus::fieldDataOK(int refLevel, int tstep, int varx, int vary, int va
 	if (varz >= 0 && (maxXFormPresent(varz, tstep) < testRefLevel)) return false;
 	return true;
 }
+const std::string& DataStatus::getSessionVersion(){
+	return sessionVersion;
+}

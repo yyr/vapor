@@ -412,7 +412,9 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 					pm->parseError("Invalid session tag attribute : \"%s\"", attr.c_str());
 				}
 			}
-			//After parsing all session attr's, set the stretched Extents:
+			//After parsing all session attr's, set the stretched Extents,
+			//And tell the datastatus the current version number:
+			DataStatus::getInstance()->setSessionVersion(sessionVersionString);
 			for (int i = 0; i<3; i++){
 				stretchFactors[i] = stretchFac[i];
 				stretchedExtents[i] = extents[i]*stretchFactors[i];

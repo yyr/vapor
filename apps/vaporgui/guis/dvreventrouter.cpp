@@ -417,8 +417,9 @@ void DvrEventRouter::updateTab(){
 	updateMapBounds(dvrParams);
 	
 	float sliderVal = dvrParams->getOpacityScale();
-	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal*sliderVal));
-	
+	QToolTip::add(opacityScaleSlider,"Opacity Scale Value = "+QString::number(sliderVal));
+	//Make slider posited based on square root of slider value, to make it easier to manipulate:
+	sliderVal = sqrt(sliderVal);
 	sliderVal = 256.f*(1.f -sliderVal);
 	opacityScaleSlider->setValue((int) sliderVal);
 	
