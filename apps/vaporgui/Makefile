@@ -23,14 +23,6 @@ endif
 
 MAKEFILE_INCLUDE_DIRS := -Iguis -Imain -Imisc -I../../lib/params -I../../lib/render
 
-ifdef   NETCDF_INC_PATH
-MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
-endif
-
-ifdef   EXPAT_INC_PATH
-MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
-endif
-
 LIBRARIES = vdf common vjpeg flow params render
 
 ifeq ($(BUILD_VOLUMIZER), 1)

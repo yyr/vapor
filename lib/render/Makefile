@@ -33,14 +33,6 @@ endif
 
 MAKEFILE_CXXFLAGS += -I../params
 
-ifdef   EXPAT_INC_PATH
-MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
-endif
-
-ifdef   NETCDF_INC_PATH
-MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
-endif
-
 LIBRARIES = common vdf flow params vjpeg
 
 ifeq ($(ARCH),WIN32)

@@ -29,14 +29,6 @@ MAKEFILE_CXXFLAGS += -Wno-unused-variable -Wno-non-virtual-dtor
 endif
 
 
-ifdef   EXPAT_INC_PATH
-MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
-endif
-
-ifdef   NETCDF_INC_PATH
-MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
-endif
-
 LIBRARIES = common vdf flow
 
 ifeq ($(ARCH),WIN32)

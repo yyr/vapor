@@ -6,14 +6,6 @@ PROGRAM = flashamr2vdf
 FILES = flashamr2vdf flashhdf5
 
 
-ifdef   NETCDF_INC_PATH
-MAKEFILE_CXXFLAGS += -I$(NETCDF_INC_PATH)
-endif
-
-ifdef   EXPAT_INC_PATH
-MAKEFILE_CXXFLAGS += -I$(EXPAT_INC_PATH)
-endif
-
 ifdef   HDF5_INC_PATH
 MAKEFILE_CXXFLAGS += -I$(HDF5_INC_PATH)
 endif
