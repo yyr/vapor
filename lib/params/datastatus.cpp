@@ -37,6 +37,7 @@
 #include <qstring.h>
 #include <qapplication.h>
 #include <qcursor.h>
+#include <qcolor.h>
 #include "vapor/errorcodes.h"
 
 using namespace VAPoR;
@@ -51,6 +52,23 @@ std::vector<float> DataStatus::aboveValues;
 std::vector<float> DataStatus::belowValues;
 int DataStatus::numMetadataVariables = 0;
 int* DataStatus::mapMetadataVars = 0;
+bool DataStatus::doWarnIfDataMissing = true;
+bool DataStatus::doUseLowerRefinementLevel = false;
+QColor DataStatus::backgroundColor =  Qt::black;
+QColor DataStatus::regionFrameColor = Qt::white;
+QColor DataStatus::subregionFrameColor = Qt::red;
+bool DataStatus::regionFrameEnabled = true;
+bool DataStatus::subregionFrameEnabled = false;
+bool DataStatus::textureSizeSpecified = false;
+int DataStatus::textureSize = 0;
+size_t DataStatus::cacheMB = 0;
+const string DataStatus::_backgroundColorAttr = "BackgroundColor";
+const string DataStatus::_regionFrameColorAttr = "DomainFrameColor";
+const string DataStatus::_subregionFrameColorAttr = "SubregionFrameColor";
+const string DataStatus::_regionFrameEnabledAttr = "DomainFrameEnabled";
+const string DataStatus::_subregionFrameEnabledAttr = "SubregionFrameEnabled";
+const string DataStatus::_useLowerRefinementAttr = "UseLowerRefinementLevel";
+const string DataStatus::_missingDataWarningAttr = "WarnDataMissing";
 //Default constructor
 //Whether or not it exists on disk, what's its max and min
 //What resolutions are available.
@@ -58,19 +76,17 @@ int* DataStatus::mapMetadataVars = 0;
 DataStatus::
 DataStatus()
 {
-	textureSizeSpecified = false;
-	textureSize = 0;
+	
 	dataMgr = 0;
     currentMetadata = 0;
 	renderOK = false;
 	myReader = 0;
-	cacheMB = 0;
+	
 	minTimeStep = 0;
 	maxTimeStep = 0;
 	numTimesteps = 0;
 	numTransforms = 0;
-	doWarnIfDataMissing = true;
-	doUseLowerRefinementLevel = false;
+	
 	for (int i = 0; i< 3; i++){
 		extents[i] = 0.f;
 		stretchedExtents[i] = 0.f;
@@ -82,6 +98,7 @@ DataStatus()
 	
 	theDataStatus = this;
 	sessionVersion = Version::GetVersionString();
+	
 }
 
 // After a metadata::merge, call resetDataStatus to 

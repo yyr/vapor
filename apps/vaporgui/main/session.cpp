@@ -45,6 +45,7 @@
 #include "animationcontroller.h"
 #include "transferfunction.h"
 #include "floweventrouter.h"
+#include "userpreferences.h"
 #include <qstring.h>
 #include "tabmanager.h"
 
@@ -78,7 +79,9 @@ const string Session::_variableNameAttr = "VariableName";
 const string Session::_aboveGridAttr = "AboveGridValue";
 const string Session::_belowGridAttr = "BelowGridValue";
 const string Session::_VAPORVersionAttr = "VaporVersion";
+string Session::prefFile = "";
 Session::Session() {
+
 	//Initialize version to current version
 	sessionVersionString = Version::GetVersionString();
 	MyBase::SetErrMsgCB(errorCallbackFcn);
@@ -153,10 +156,30 @@ void Session::init() {
 
 	textureSizeSpecified = false;
 	textureSize = 0;
+	//Set up default path for log file:
+	char buf[50];
+#ifdef WIN32
+	//Use the user name in the log file name
+	char buf2[50];
+	//WCHAR buf2[50];
+	DWORD size = 50;
+	//Don't Use QT to convert from unicode back to ascii
+	//WNetGetUserA(0,(LPWSTR)buf2,&size);
+	WNetGetUserA(0,(LPSTR)buf2,&size);
+	sprintf(buf, "C:/TEMP/vaporlog.%s.txt", buf2);
+	//QString qstr((QChar*)buf2, size);
+	//sprintf (buf, "C:/TEMP/vaporlog.%s.txt", qstr.latin1());
+#else
+	uid_t	uid = getuid();
+	sprintf (buf, "/tmp/vaporlog.%6.6d.txt", uid);
+#endif
 
+
+	currentLogfileName = buf;
 	currentMetadataFile = "";
-	currentJpegDirectory = "";	
-	currentFlowDirectory = "";
+	currentJpegDirectory = ".";	
+	currentFlowDirectory = ".";
+	currentMetadataDir = ".";
 	currentTFPath = "";
 	stretchFactors[0] = stretchFactors[1] = stretchFactors[2] = 1.f;
 	visualizeSpherically = false;
@@ -185,6 +208,7 @@ void Session::init() {
 	extents[3] = extents[4] = extents[5] = 1.f;
 	stretchedExtents[0] = stretchedExtents[1] = stretchedExtents[2] = 0.f;
 	stretchedExtents[3] = stretchedExtents[4] = stretchedExtents[5] = 1.f;
+	
 	DataStatus::removeMetadataVars();
 	
 }
@@ -213,39 +237,8 @@ buildNode() {
 	std::map <string, string> attrs;
 	attrs.clear();
 	ostringstream oss;
-
-	oss.str(empty);
-	oss << (long)cacheMB;
-	attrs[_cacheSizeAttr] = oss.str();
-	oss.str(empty);
-	oss << (long)GLWindow::getJpegQuality();
-	attrs[_jpegQualityAttr] = oss.str();
-
-	oss.str(empty);
-	if (textureSizeSpecified)
-		oss << "true";
-	else 
-		oss << "false";
-	attrs[_specifyTextureSizeAttr] = oss.str();
-
 	attrs[_VAPORVersionAttr] = Version::GetVersionString();
-
-	oss.str(empty);
-	oss << (long)textureSize;
-	attrs[_textureSizeAttr] = oss.str();
-
-	attrs[_metadataPathAttr] = currentMetadataFile;
-	attrs[_transferFunctionPathAttr] = currentTFPath;
-	attrs[_imageCapturePathAttr] = currentJpegDirectory;
-	attrs[_flowDirectoryPathAttr] = currentFlowDirectory;
-	attrs[_exportFileNameAttr] = currentExportFile;
-	MessageReporter* msgRpt = MessageReporter::getInstance();
-	attrs[_logFileNameAttr] = getLogfileName();
-	oss.str(empty);
-	oss << (long)msgRpt->getMaxPopup(MessageReporter::Info) << " " <<
-		(long)msgRpt->getMaxPopup(MessageReporter::Warning) << " " <<
-		(long)msgRpt->getMaxPopup(MessageReporter::Error);
-	attrs[_maxPopupAttr] = oss.str();
+	
 	oss.str(empty);
 	oss << (double)stretchFactors[0] << " " << (double)stretchFactors[1] << " " << (double)stretchFactors[2];
 	attrs[_stretchFactorsAttr] = oss.str();
@@ -253,12 +246,6 @@ buildNode() {
 	oss << extents[0]<<" "<<extents[1]<<" "<<extents[2]<<" "<<extents[3]<<" "<<extents[4]<<" "<<extents[5];
 	attrs[_dataExtentsAttr] = oss.str();
 	
-	oss.str(empty);
-	oss << (long)msgRpt->getMaxLog(MessageReporter::Info) << " "
-		<< (long)msgRpt->getMaxLog(MessageReporter::Warning) << " "
-		<< (long)msgRpt->getMaxLog(MessageReporter::Error);
-	attrs[_maxLogAttr] = oss.str();
-
 	int numSesVars = getNumSessionVariables();
 	XmlNode* mainNode = new XmlNode(_sessionTag, attrs, numSesVars+numTFs+2);
 
@@ -385,6 +372,10 @@ elementStartHandler(ExpatParseMgr* pm, int  depth, std::string& tag, const char 
 				}
 				else if (StrCmpNoCase(attr, _metadataPathAttr) == 0) {
 					currentMetadataFile = value;
+					int lastpos = currentMetadataFile.find_last_of("/\\");
+					if (lastpos >= 0)
+						currentMetadataDir = currentMetadataFile.substr(0,lastpos);
+					else currentMetadataDir = currentMetadataFile;
 				}
 				else if (StrCmpNoCase(attr, _exportFileNameAttr) == 0) {
 					currentExportFile = value;
@@ -683,8 +674,13 @@ resetMetadata(const char* fileBase, bool restoredSession, bool doMerge, int merg
 	//if (restoredSession) assert(defaultSession);
 	//The metadata is created by (and obtained from) the datamgr
 	//Don't update the currentMetadataFile if we are doing a merge
-	if (!defaultSession && !doMerge) currentMetadataFile = fileBase;
-	
+	if (!defaultSession && !doMerge) {
+		currentMetadataFile = fileBase;
+		int lastpos = currentMetadataFile.find_last_of("/\\");
+		if (lastpos >= 0)
+			currentMetadataDir = currentMetadataFile.substr(0,lastpos);
+		else currentMetadataDir = currentMetadataFile;
+	}
 	//If we don't already have a dataMgr, we can't really be merging:
 	if (!dataMgr) {
 		if (doMerge) {doMerge = false; }
@@ -1076,5 +1072,14 @@ infoCallbackFcn(const char* msg){
 	MessageReporter::infoMsg("%s",msg);
 }
 
+const string& Session::getPreferencesFile(){
+	char* prefPath = getenv("VAPOR_PREFS_DIR");
+	if (!prefPath)
+		prefPath = getenv("HOME");
+	if (!prefPath)
+		prefPath = getenv("VAPOR_HOME");
+	prefFile = std::string(prefPath)+"/.vapor_prefs";
+	return prefFile;
+}
 
 

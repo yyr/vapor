@@ -54,8 +54,7 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	vizName = vfParams.vizName;
 	showBar = vfParams.showBar;
 	showAxisArrows = vfParams.showAxisArrows;
-	showRegion = vfParams.showRegion;
-	showSubregion = vfParams.showSubregion;
+	
 	surfaceImageFilename = vfParams.surfaceImageFilename;
 	surfaceRotation = vfParams.surfaceRotation;
 	surfaceUpsideDown = vfParams.surfaceUpsideDown;
@@ -83,10 +82,9 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	colorbarURCoords[0] = vfParams.colorbarURCoords[0];
 	colorbarURCoords[1] = vfParams.colorbarURCoords[1];
 	numColorbarTics = vfParams.numColorbarTics;
-	backgroundColor = vfParams.backgroundColor;
+	
 	colorbarBackgroundColor = vfParams.colorbarBackgroundColor;
-	regionFrameColor = vfParams.regionFrameColor;
-	subregionFrameColor = vfParams.subregionFrameColor;
+	
 	elevGridColor = vfParams.elevGridColor;
 	showElevGrid = vfParams.showElevGrid;
 	elevGridRefinement =  vfParams.elevGridRefinement;
@@ -159,9 +157,7 @@ void VizFeatureParams::launch(){
 	
 	//Do connections.  
 	connect(vizFeatureDlg->currentNameCombo, SIGNAL(activated(int)), this, SLOT(visualizerSelected(int)));
-	connect (vizFeatureDlg->backgroundColorButton, SIGNAL(clicked()), this, SLOT(selectBackgroundColor()));
-	connect (vizFeatureDlg->regionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectRegionFrameColor()));
-	connect (vizFeatureDlg->subregionFrameColorButton, SIGNAL(clicked()), this, SLOT(selectSubregionFrameColor()));
+	
 	connect (vizFeatureDlg->surfaceColorButton,SIGNAL(clicked()), this, SLOT(selectElevGridColor()));
 	connect (vizFeatureDlg->vizNameEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->axisXEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
@@ -174,8 +170,6 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->numTicsEdit, SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarBackgroundButton, SIGNAL(clicked()), this, SLOT(selectColorbarBackgroundColor()));
 	connect (vizFeatureDlg->axisCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->regionCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
-	connect (vizFeatureDlg->subregionCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->colorbarCheckbox, SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->surfaceCheckbox,SIGNAL(clicked()), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->applyButton, SIGNAL(clicked()), this, SLOT(applySettings()));
@@ -258,32 +252,15 @@ visualizerSelected(int comboIndex){
 	//Show new values:
 	vizFeatureDlg->update();
 }
-//Slots to respond to color changes:
-void VizFeatureParams::
-selectRegionFrameColor(){
-	QColor frameColor = QColorDialog::getColor(regionFrameColor,0,0);
-	vizFeatureDlg->regionFrameColorButton->setPaletteBackgroundColor(frameColor);
-	dialogChanged = true;
-}
+
 void VizFeatureParams::
 selectTimeTextColor(){
 	QColor tColor = QColorDialog::getColor(timeAnnotColor,0,0);
 	vizFeatureDlg->timeColorButton->setPaletteBackgroundColor(tColor);
 	dialogChanged = true;
 }
-void VizFeatureParams::
-selectSubregionFrameColor(){
-	QColor frameColor = QColorDialog::getColor(subregionFrameColor,0,0);
-	vizFeatureDlg->subregionFrameColorButton->setPaletteBackgroundColor(frameColor);
-	dialogChanged = true;
-}
-void VizFeatureParams::
-selectBackgroundColor(){
-	//Launch colorselector, put result into the button
-	QColor bgColor = QColorDialog::getColor(backgroundColor,0,0);
-	vizFeatureDlg->backgroundColorButton->setPaletteBackgroundColor(bgColor);
-	dialogChanged = true;
-}
+
+
 void VizFeatureParams::
 selectColorbarBackgroundColor(){
 	//Launch colorselector, put result into the button
@@ -398,17 +375,7 @@ setDialog(){
 	vizFeatureDlg->colorbarCheckbox->setChecked(showBar);
 	showAxisArrows = vizWin->axisArrowsAreEnabled();
 	vizFeatureDlg->axisCheckbox->setChecked(showAxisArrows);
-	showRegion = vizWin->regionFrameIsEnabled();
-	vizFeatureDlg->regionCheckbox->setChecked(showRegion);
-	showSubregion = vizWin->subregionFrameIsEnabled();
-	vizFeatureDlg->subregionCheckbox->setChecked(showSubregion);
 	
-	backgroundColor = vizWin->getBackgroundColor();
-	vizFeatureDlg->backgroundColorButton->setPaletteBackgroundColor(backgroundColor);
-	regionFrameColor = vizWin->getRegionFrameColor();
-	vizFeatureDlg->regionFrameColorButton->setPaletteBackgroundColor(regionFrameColor);
-	subregionFrameColor = vizWin->getSubregionFrameColor();
-	vizFeatureDlg->subregionFrameColorButton->setPaletteBackgroundColor(subregionFrameColor);
 	colorbarBackgroundColor = vizWin->getColorbarBackgroundColor();
 	vizFeatureDlg->colorbarBackgroundButton->setPaletteBackgroundColor(colorbarBackgroundColor);
 
@@ -521,12 +488,7 @@ copyFromDialog(){
 	if (numColorbarTics > 50) numColorbarTics = 50;
 	showBar = vizFeatureDlg->colorbarCheckbox->isChecked();
 	showAxisArrows = vizFeatureDlg->axisCheckbox->isChecked();
-	showRegion = vizFeatureDlg->regionCheckbox->isChecked();
-	showSubregion = vizFeatureDlg->subregionCheckbox->isChecked();
 
-	regionFrameColor = vizFeatureDlg->regionFrameColorButton->paletteBackgroundColor();
-	subregionFrameColor = vizFeatureDlg->subregionFrameColorButton->paletteBackgroundColor();
-	backgroundColor = vizFeatureDlg->backgroundColorButton->paletteBackgroundColor();
 	colorbarBackgroundColor = vizFeatureDlg->colorbarBackgroundButton->paletteBackgroundColor();
 
 	elevGridColor = vizFeatureDlg->surfaceColorButton->paletteBackgroundColor();
@@ -570,13 +532,9 @@ applyToViz(int vizNum){
 	vizWin->enableColorbar(showBar);
 	vizWin->enableAxisArrows(showAxisArrows);
 	vizWin->enableAxisAnnotation(showAxisAnnotation);
-	vizWin->enableRegionFrame(showRegion);
-	vizWin->enableSubregionFrame(showSubregion);
+	
 	vizWin->setColorbarNumTics(numColorbarTics);
-	vizWin->setBackgroundColor(backgroundColor);
 	vizWin->setColorbarBackgroundColor(colorbarBackgroundColor);
-	vizWin->setRegionFrameColor(regionFrameColor);
-	vizWin->setSubregionFrameColor(subregionFrameColor);
 
 	vizWin->setTimeAnnotCoords(timeAnnotCoords);
 	vizWin->setTimeAnnotColor(timeAnnotColor);

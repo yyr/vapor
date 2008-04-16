@@ -48,23 +48,10 @@ MessageReporter::MessageReporter() {
 	logFile = 0;
 	
 	messageMutex = new QMutex();
-	char buf[50];
-#ifdef WIN32
-	//Use the user name in the log file name
-	char buf2[50];
-	//WCHAR buf2[50];
-	DWORD size = 50;
-	//Don't Use QT to convert from unicode back to ascii
-	//WNetGetUserA(0,(LPWSTR)buf2,&size);
-	WNetGetUserA(0,(LPSTR)buf2,&size);
-	sprintf(buf, "C:/TEMP/vaporlog.%s.txt", buf2);
-	//QString qstr((QChar*)buf2, size);
-	//sprintf (buf, "C:/TEMP/vaporlog.%s.txt", qstr.latin1());
-#else
-	uid_t	uid = getuid();
-	sprintf (buf, "/tmp/vaporlog.%6.6d.txt", uid);
-#endif
-	reset(buf);
+	
+
+
+	reset(Session::getInstance()->getLogfileName().c_str());
 	//setup defaults:
 	maxLogMsg[Fatal] = 1;
 	maxPopup[Fatal] = 1;

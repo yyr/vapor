@@ -82,6 +82,7 @@
 #include "command.h"
 #include "sessionparameters.h"
 #include "vizfeatureparams.h"
+#include "userpreferences.h"
 #include "sessionparams.h"
 #include "vapor/Version.h"
 
@@ -195,11 +196,16 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     fileSaveAsAction = new QAction( this, "fileSaveAsAction" );
 	fileSaveAsAction->setEnabled(true);
     fileExitAction = new QAction( this, "fileExitAction" );
+	loadPreferencesAction = new QAction(this, "preferencesLoadAction");
+	loadPreferencesAction->setEnabled(true);
+	savePreferencesAction = new QAction(this, "preferencesSaveAction");
+	savePreferencesAction->setEnabled(true);
 
 	editUndoAction = new QAction(this, "editUndoAction");
 	editRedoAction = new QAction(this, "editRedoAction");
 	editSessionParamsAction = new QAction(this, "editSessionParamsAction");
 	editVizFeaturesAction = new QAction(this, "editVizFeaturesAction");
+	editPreferencesAction = new QAction(this, "editUserPreferencesAction");
 	editUndoAction->setEnabled(false);
 	editRedoAction->setEnabled(false);
     
@@ -360,6 +366,8 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     fileOpenAction->addTo( File );
     fileSaveAction->addTo( File );
     fileSaveAsAction->addTo( File );
+	loadPreferencesAction->addTo(File);
+	savePreferencesAction->addTo(File);
     fileExitAction->addTo( File );
     Main_Form->insertItem( QString(""), File, 1 );
 
@@ -368,6 +376,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	editRedoAction->addTo(Edit);
 	editSessionParamsAction->addTo(Edit);
 	editVizFeaturesAction->addTo(Edit);
+	editPreferencesAction->addTo(Edit);
 	Main_Form->insertItem( QString(""), Edit, 2 );
 
     Data = new QPopupMenu( this );
@@ -429,11 +438,14 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
     connect( fileSaveAction, SIGNAL( activated() ), this, SLOT( fileSave() ) );
     connect( fileSaveAsAction, SIGNAL( activated() ), this, SLOT( fileSaveAs() ) );
     connect( fileExitAction, SIGNAL( activated() ), this, SLOT( fileExit() ) );
+	connect( loadPreferencesAction, SIGNAL( activated() ), this, SLOT( loadPrefs() ) );
+	connect( savePreferencesAction, SIGNAL( activated() ), this, SLOT( savePrefs() ) );
 
 	connect(editUndoAction, SIGNAL(activated()), this, SLOT (undo()));
 	connect(editRedoAction, SIGNAL(activated()), this, SLOT (redo()));
 	connect(editSessionParamsAction, SIGNAL(activated()), this, SLOT(editSessionParams()));
 	connect( editVizFeaturesAction, SIGNAL(activated()), this, SLOT(launchVizFeaturesPanel()));
+	connect( editPreferencesAction, SIGNAL(activated()), this, SLOT(launchPreferencesPanel()));
 	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
 	
 
@@ -514,6 +526,8 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 			//Remember file if load is successful:
 			if(Session::getInstance()->loadFromFile(is)){
 				sessionSaveFile = fileName;
+				QFileInfo fi(fileName);
+				Session::getInstance()->setSessionDirectory(fi.dirPath().ascii());
 			}
 		} else if (fileName.endsWith(".vdf")){
 #ifdef WIN32
@@ -565,7 +579,17 @@ void MainForm::languageChange()
     fileSaveAsAction->setMenuText( tr( "Save Session &As..." ) );
     fileSaveAsAction->setAccel( QString::null );
 	fileSaveAsAction->setToolTip("Launch a file-save dialog to save the state of this session in another session file");
-    fileExitAction->setText( tr( "Exit" ) );
+    
+	loadPreferencesAction->setText( tr( "Load Preferences" ) );
+    loadPreferencesAction->setMenuText( tr( "Load Preferences" ) );
+	loadPreferencesAction->setAccel( QString::null );
+	loadPreferencesAction->setToolTip("Load the user preferences from a specified file");
+    
+    savePreferencesAction->setText( tr( "Save Preferences" ) );
+    savePreferencesAction->setMenuText( tr( "Save Preferences" ) );
+	savePreferencesAction->setAccel( QString::null );
+	savePreferencesAction->setToolTip("Save the user preferences to a specified file");
+    
     fileExitAction->setMenuText( tr( "E&xit" ) );
     fileExitAction->setAccel( QString::null );
 
@@ -630,6 +654,10 @@ void MainForm::languageChange()
 	editVizFeaturesAction->setText(tr("Edit Visualizer Features"));
 	editVizFeaturesAction->setMenuText(tr("Edit Visualizer Features"));
 	editVizFeaturesAction->setToolTip(tr("View or change various visualizer settings"));
+
+	editPreferencesAction->setText(tr("Edit User Preferences "));
+	editPreferencesAction->setMenuText(tr("Edit User Preferences"));
+	editPreferencesAction->setToolTip(tr("View or change various user preference settings"));
 
 	viewStartCaptureAction->setText( tr( "Begin image capture sequence " ) );
     viewStartCaptureAction->setMenuText( tr( "&Begin image capture sequence " ) );
@@ -712,6 +740,8 @@ void MainForm::fileOpen()
 	//Remember file if load is successful:
 	if(Session::getInstance()->loadFromFile(is)){
 		sessionSaveFile = filename;
+		QFileInfo fi(filename);
+		Session::getInstance()->setSessionDirectory(fi.dirPath().ascii());
 	}
 }
 
@@ -929,6 +959,33 @@ void MainForm::browseData()
 	}
 	
 }
+void MainForm::loadPrefs(){
+	QString filename = QFileDialog::getOpenFileName(Session::getInstance()->getPreferencesFile().c_str(),
+		"Vapor Preferences Files (*.vapor_prefs)",
+		this,
+		"Load Preferences Dialog",
+		"Choose the Preferences File to load into current session");
+	if(filename != QString::null){
+		QFileInfo fInfo(filename);
+		if (fInfo.isReadable() && fInfo.isFile())
+			UserPreferences::loadPreferences(filename.ascii());
+		else MessageReporter::errorMsg("Unable to read preferences file %s", filename.ascii());
+	}
+	
+}
+void MainForm::savePrefs(){
+	QString filename = QFileDialog::getSaveFileName(Session::getInstance()->getPreferencesFile().c_str(),
+		"Vapor Preferences Files (*.vapor_prefs)",
+		this,
+		"Save Preferences Dialog",
+		"Choose the file name to save current preferences");
+	if(filename != QString::null){
+		QFileInfo fInfo(filename);
+		
+		if(!UserPreferences::savePreferences(filename.ascii()))
+			MessageReporter::errorMsg("Unable to save preferences file %s", filename.ascii());
+	}
+}
 //Load data into current session
 //
 void MainForm::loadData()
@@ -1005,8 +1062,8 @@ void MainForm::newSession()
 {
 
 	Session::getInstance()->resetMetadata(0, false);
-	//Reset to default cache size:
-	Session::getInstance()->setCacheMB(1024);
+	//Reload preferences:
+	UserPreferences::loadDefault();
 	MessageReporter::getInstance()->resetCounts();
 	
 }
@@ -1496,4 +1553,8 @@ void MainForm::endCapture(){
 void MainForm::launchVizFeaturesPanel(){
 	VizFeatureParams vFP;
 	vFP.launch();
+}
+void MainForm::launchPreferencesPanel(){
+	UserPreferences uPref;
+	uPref.launch();
 }

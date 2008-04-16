@@ -24,6 +24,7 @@
 #include "vizwinmgr.h"
 #include "vizwin.h"
 #include "vizfeatureparams.h"
+#include "userpreferences.h"
 #include "assert.h"
 #include <qaction.h>
 using namespace VAPoR;
@@ -214,7 +215,7 @@ tabName(Params::ParamType t){
 			return 0;
 	}
 }
-
+//VizFeatureCommand methods:
 
 VizFeatureCommand::VizFeatureCommand(VizFeatureParams* prevFeatures, const char* descr, int vizNum){
 	//Make a copy of previous features
@@ -259,6 +260,47 @@ captureEnd(VizFeatureCommand* vCom, VizFeatureParams *p) {
 	Session::getInstance()->addToHistory(vCom);
 }
 
+//PreferencesCommand methods
+PreferencesCommand::PreferencesCommand(UserPreferences* prevPrefs, const char* descr){
+	//Make a copy of previous Prefs
+	previousPrefs = prevPrefs->clone();
+	currentPrefs = 0;
+	description = QString(descr);	
+}
+
+PreferencesCommand::~PreferencesCommand(){
+	if (previousPrefs) delete previousPrefs;
+	if (currentPrefs) delete currentPrefs;
+}
+void PreferencesCommand::
+setNext(UserPreferences* nextPrefs){
+	currentPrefs = nextPrefs->clone();
+}
+void PreferencesCommand::unDo(){
+	Session::getInstance()->blockRecording();
+	previousPrefs->applyToState();
+	Session::getInstance()->unblockRecording();
+}
+
+void PreferencesCommand::reDo(){
+	Session::getInstance()->blockRecording();
+	currentPrefs->applyToState();
+	Session::getInstance()->unblockRecording();
+}
+
+PreferencesCommand* PreferencesCommand::
+captureStart(UserPreferences* p, char* description){
+	if (!Session::getInstance()->isRecording()) return 0;
+	PreferencesCommand* cmd = new PreferencesCommand(p, description);
+	return cmd;
+}
+void PreferencesCommand::
+captureEnd(PreferencesCommand* vCom, UserPreferences *p) {
+	if (!vCom) return;
+	if (!Session::getInstance()->isRecording()) return;
+	vCom->setNext(p);
+	Session::getInstance()->addToHistory(vCom);
+}
 
 
 

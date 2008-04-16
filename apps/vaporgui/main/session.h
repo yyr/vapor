@@ -110,6 +110,7 @@
 #include "vapor/MyBase.h"
 #include "vapor/ExpatParseMgr.h"
 #include "datastatus.h"
+#include "userpreferences.h"
 class QString;
 namespace VAPoR {
 class VizWinMgr;
@@ -134,6 +135,7 @@ public:
 	static Session* getInstance(){
 		if (!theSession){
 			theSession = new Session();
+			UserPreferences::loadDefault();
 		}
 		return theSession;
 	}
@@ -205,12 +207,23 @@ public:
 	bool saveToFile(ofstream&);
 	bool loadFromFile(ifstream&);
 	string& getTFFilePath() {return currentTFPath;}
+	void setTFFilePath(const char* path){currentTFPath = path;}
 	void updateTFFilePath(QString* newPath);
+	void setMetadataDirectory(const char* md){
+		if (currentMetadataDir != md){
+			currentMetadataDir = md;
+			currentMetadataFile = md;
+		}
+	}
 	string& getMetadataFile(){return currentMetadataFile;}
+	string& getMetadataDir(){return currentMetadataDir;}
 	string& getJpegDirectory() {return currentJpegDirectory;}
 	string& getFlowDirectory() {return currentFlowDirectory;}
+	string& getSessionDirectory() {return currentSessionDirectory;}
+	void setSessionDirectory(const char* dir) {currentSessionDirectory = dir;}
 	void setJpegDirectory(const char* dir) {currentJpegDirectory = dir;}
 	void setFlowDirectory(const char* dir) {currentFlowDirectory = dir;}
+	void setExportFile(const char* filename){currentExportFile = filename;}
 	string& getExportFile() {return currentExportFile;}
 	string& getLogfileName() {return currentLogfileName;}
 	void setLogfileName(const char* newname){currentLogfileName = newname;}
@@ -275,20 +288,23 @@ public:
 		DataStatus::getInstance()->specifyTextureSize(val);
 	}
 		
-	
-protected:
+	static const string& getPreferencesFile();
 	static const string _specifyTextureSizeAttr;
 	static const string _textureSizeAttr;
-	static const string _stretchFactorsAttr;
-	static const string _cacheSizeAttr;
 	static const string _jpegQualityAttr;
+	static const string _maxPopupAttr;
+	static const string _maxLogAttr;
+	static const string _VAPORVersionAttr;
+	static const string _cacheSizeAttr;
+protected:
+	
+	static const string _stretchFactorsAttr;
+	
 	static const string _metadataPathAttr;
 	static const string _transferFunctionPathAttr;
 	static const string _imageCapturePathAttr;
 	static const string _flowDirectoryPathAttr;
 	static const string _logFileNameAttr;
-	static const string _maxPopupAttr;
-	static const string _maxLogAttr;
 	static const string _exportFileNameAttr;
 	static const string _sessionTag;
 	static const string _sessionVariableTag;
@@ -298,7 +314,7 @@ protected:
 	static const string _variableNameAttr;
 	static const string _belowGridAttr;
 	static const string _aboveGridAttr;
-	static const string _VAPORVersionAttr;
+	
 
 	XmlNode* buildNode();
 	bool elementStartHandler(ExpatParseMgr*, int depth , std::string& tag, const char **attr);
@@ -354,10 +370,12 @@ protected:
 	// the most recent successfully accessed one is part of the state
 	string currentTFPath;
 	string currentMetadataFile;
+	string currentMetadataDir;
 	string currentJpegDirectory;
 	string currentFlowDirectory;
+	string currentSessionDirectory;
 	string sessionVersionString;
-
+	static string prefFile;
 	bool metadataSaved;
 
 };

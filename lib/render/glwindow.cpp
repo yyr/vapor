@@ -80,9 +80,7 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	timeAnnotTextSize = 10;
 	timeAnnotType = 0;
 
-	backgroundColor =  QColor(black);
-	regionFrameColor = QColor(white);
-	subregionFrameColor = QColor(red);
+	
 	colorbarBackgroundColor = QColor(black);
 	elevColor = QColor(150,75,0);
 	renderElevGrid = false;
@@ -94,8 +92,7 @@ GLWindow::GLWindow( const QGLFormat& fmt, QWidget* parent, const char* name, int
 	elevGridRefLevel = 0;
 	axisArrowsEnabled = false;
 	axisAnnotationEnabled = false;
-	regionFrameEnabled = true;
-	subregionFrameEnabled = false;
+	
 	colorbarEnabled = false;
 	for (int i = 0; i<3; i++){
 	    axisArrowCoord[i] = 0.f;
@@ -1572,7 +1569,7 @@ void GLWindow::drawTimeAnnotation(){
 		f.setPointSize(timeAnnotTextSize);
 		timeAnnotLabel = new QLabel(this);
 		timeAnnotLabel->setFont(f);
-		timeAnnotLabel->setPaletteBackgroundColor(backgroundColor);
+		timeAnnotLabel->setPaletteBackgroundColor(getBackgroundColor());
 		timeAnnotLabel->setPaletteForegroundColor(timeAnnotColor);
 	}
 	
@@ -1611,7 +1608,7 @@ void GLWindow::drawAxisLabels() {
 		for (int k = 0; k<numTics[i]; k++){
 			axisTextLabels[i][k]->setFont(f);
 			axisTextLabels[i][k]->setPaletteForegroundColor(axisColor);
-			axisTextLabels[i][k]->setPaletteBackgroundColor(backgroundColor);
+			axisTextLabels[i][k]->setPaletteBackgroundColor(getBackgroundColor());
 		}
 	}
 
@@ -1677,7 +1674,7 @@ void GLWindow::addAxisLabels(unsigned char* buff){
 				int wid = axisTextLabels[axis][n]->width();
 				int ht = axisTextLabels[axis][n]->height();
 				QPixmap myPixmap(wid,ht);
-				myPixmap.fill(backgroundColor);
+				myPixmap.fill(getBackgroundColor());
 				QPainter myPainter(&myPixmap);
 				myPainter.setPen(axisColor);
 
@@ -1720,7 +1717,7 @@ void GLWindow::addTimeToBuffer(unsigned char* buff){
 	int wid = timeAnnotLabel->width();
 	int ht = timeAnnotLabel->height();
 	QPixmap myPixmap(wid,ht);
-	myPixmap.fill(backgroundColor);
+	myPixmap.fill(getBackgroundColor());
 	QPainter myPainter(&myPixmap);
 	myPainter.setPen(timeAnnotColor);
 	QFont f;

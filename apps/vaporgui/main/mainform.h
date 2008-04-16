@@ -103,6 +103,8 @@ public:
     QAction* fileSaveAction;
     QAction* fileSaveAsAction;
     QAction* fileExitAction;
+	QAction* loadPreferencesAction;
+	QAction* savePreferencesAction;
 
 	//Edit menu:
 	//
@@ -110,6 +112,7 @@ public:
 	QAction* editRedoAction;
 	QAction* editSessionParamsAction;
 	QAction* editVizFeaturesAction;
+	QAction* editPreferencesAction;
     
     //Help menu
 	//
@@ -126,6 +129,7 @@ public:
 	QAction* dataLoad_DefaultMetafileAction;
 	QAction* dataSave_MetafileAction;
 	QAction* fileNew_SessionAction;
+	
     
    //View menu
     QAction* viewLaunch_visualizerAction;
@@ -188,6 +192,8 @@ public slots:
     virtual void fileSaveAs();
     virtual void filePrint();
     virtual void fileExit();
+	virtual void loadPrefs();
+	virtual void savePrefs();
 
 	virtual void undo();
 	virtual void redo();
@@ -205,6 +211,7 @@ public slots:
 	virtual void exportToIDL();
     virtual void launchVisualizer();
 	virtual void launchVizFeaturesPanel();
+	virtual void launchPreferencesPanel();
 	virtual void startCapture();
 	virtual void endCapture();
 	virtual void captureSingle();

@@ -955,7 +955,7 @@ updateRenderer(RenderParams* rParams, bool prevEnabled, bool newWindow){
         
 		//Render order depends on whether opaque or not; 
 		//transparent isos get rendered later.
-		int order = 4;
+		int order = 6;
 		if (iParams->GetConstantColor()[3] < 1.f) order = 6;
 		viz->getGLWindow()->insertRenderer(iParams, myIso, order);
 

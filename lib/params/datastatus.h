@@ -1,5 +1,5 @@
 //************************************************************************
-//																		*
+//																	*	
 //		     Copyright (C)  2004										*
 //     University Corporation for Atmospheric Research					*
 //		     All Rights Reserved										*
@@ -28,6 +28,7 @@
 
 #include "vapor/VDFIOBase.h"
 #include "vapor/MyBase.h"
+#include <qcolor.h>
 class QApplication;
 
 namespace VAPoR {
@@ -143,6 +144,18 @@ public:
 	DataMgr* getDataMgr() {return dataMgr;}
 	Metadata* getMetadata() {return currentMetadata;}
 
+	//Get/set methods for global vizfeatures
+	static const QColor getBackgroundColor() {return backgroundColor;}
+	static const QColor getRegionFrameColor() {return regionFrameColor;}
+	static const QColor getSubregionFrameColor() {return subregionFrameColor;}
+	static void setBackgroundColor(const QColor c) {backgroundColor = c;}
+	static void setRegionFrameColor(const QColor c) {regionFrameColor = c;}
+	static void setSubregionFrameColor(const QColor c) {subregionFrameColor = c;}
+	static void enableRegionFrame(bool enable) {regionFrameEnabled = enable;}
+	static void enableSubregionFrame(bool enable) {subregionFrameEnabled = enable;}
+	static bool regionFrameIsEnabled() {return regionFrameEnabled;}
+	static bool subregionFrameIsEnabled() {return subregionFrameEnabled;}
+
 	//find the *session* variable name associated with session index
 	static std::string& getVariableName(int varNum) {return variableNames[varNum];}
 	static float getBelowValue(int varNum) {return belowValues[varNum];}
@@ -204,15 +217,15 @@ public:
 	vector<float> getAboveValues() {return aboveValues;}
 
 	//used for specifying nondefault graphics hardware texture size:
-	void specifyTextureSize(bool val) {textureSizeSpecified = val;}
-	bool textureSizeIsSpecified(){return textureSizeSpecified;}
-	int getTextureSize() {return textureSize;}
-	void setTextureSize(int val) { textureSize = val;}
+	static void specifyTextureSize(bool val) {textureSizeSpecified = val;}
+	static bool textureSizeIsSpecified(){return textureSizeSpecified;}
+	static int getTextureSize() {return textureSize;}
+	static void setTextureSize(int val) { textureSize = val;}
 
-	bool warnIfDataMissing() {return doWarnIfDataMissing;}
-	bool useLowerRefinementLevel() {return doUseLowerRefinementLevel;}
-	void setWarnMissingData(bool val) {doWarnIfDataMissing = val;}
-	void setUseLowerRefinementLevel(bool val){doUseLowerRefinementLevel = val;}
+	static bool warnIfDataMissing() {return doWarnIfDataMissing;}
+	static bool useLowerRefinementLevel() {return doUseLowerRefinementLevel;}
+	static void setWarnMissingData(bool val) {doWarnIfDataMissing = val;}
+	static void setUseLowerRefinementLevel(bool val){doUseLowerRefinementLevel = val;}
 	//Note missing data if a request for the data fails:
 	void setDataMissing(int timestep, int refLevel, int sessionVarNum){
 		if (maxNumTransforms[sessionVarNum][timestep] >= refLevel)
@@ -220,11 +233,19 @@ public:
 	}
 	const string& getSessionVersion(){ return sessionVersion;}
 	void setSessionVersion(std::string& ver){sessionVersion = ver;}
+
+	//Attribute names:
+	static const string _backgroundColorAttr;
+	static const string _regionFrameColorAttr;
+	static const string _subregionFrameColorAttr;
+	static const string _regionFrameEnabledAttr;
+	static const string _subregionFrameEnabledAttr;
+	static const string _useLowerRefinementAttr;
+	static const string _missingDataWarningAttr;
 	
 private:
 	static DataStatus* theDataStatus;
-	//Cache size in megabytes
-	size_t cacheMB;
+	
 	void calcDataRange(int varnum, int ts);
 	//Identify if a session variable is active.  This requires it to be a metadata variable,
 	//and for there to be actual data behind it.
@@ -248,9 +269,7 @@ private:
 	//numTimeSteps may include lots of times that are not used. 
 	int numTimesteps;
 
-	//Specify how to handle missing data
-	bool doWarnIfDataMissing;
-	bool doUseLowerRefinementLevel;
+	
 	
 	size_t fullDataSize[3];
 	std::vector<size_t*> dataAtLevel;
@@ -270,8 +289,22 @@ private:
 	static int numMetadataVariables;
 	static int* mapMetadataVars;
 	string sessionVersion;
-	int textureSize;
-	bool textureSizeSpecified;
+	
+	
+	//User prefs are static:
+	static int textureSize;
+	static bool textureSizeSpecified;
+	//values from vizFeatures
+	static QColor backgroundColor;
+	static QColor regionFrameColor;
+	static QColor subregionFrameColor;
+	static bool regionFrameEnabled;
+	static bool subregionFrameEnabled;
+	//Specify how to handle missing data
+	static bool doWarnIfDataMissing;
+	static bool doUseLowerRefinementLevel;
+	//Cache size in megabytes
+	static size_t cacheMB;
 	
 };
 

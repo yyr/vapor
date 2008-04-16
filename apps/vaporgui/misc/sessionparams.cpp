@@ -38,19 +38,10 @@ using namespace VAPoR;
 SessionParams::SessionParams(){
 	Session* currentSession = Session::getInstance();
 	for (int i = 0; i< 3; i++) stretch[i] = currentSession->getStretch(i);
-	MessageReporter* mReporter = MessageReporter::getInstance();
-	jpegQuality = GLWindow::getJpegQuality();
-	cacheSize = currentSession->getCacheMB();
-	
-	for (int i = 0; i<3; i++){
-		MessageReporter::messagePriority mP = (MessageReporter::messagePriority) i;
-		maxPopup[i] = mReporter->getMaxPopup(mP);
-		maxLog[i] = mReporter->getMaxLog(mP);
-	}
 }
 void SessionParams::launch(){
     Session* currentSession = Session::getInstance();	
-	MessageReporter* mReporter = MessageReporter::getInstance();
+	
 	DataStatus* ds = DataStatus::getInstance();
 	
 	sessionParamsDlg = new SessionParameters((QWidget*)MainForm::getInstance());
@@ -63,25 +54,11 @@ void SessionParams::launch(){
     sessionParamsDlg->stretch1Edit->setEnabled(enableStretch);
     sessionParamsDlg->stretch2Edit->setEnabled(enableStretch);
 
-	sessionParamsDlg->missingDataCheckbox->setChecked(ds->warnIfDataMissing());
-	sessionParamsDlg->lowerRefinementCheckbox->setChecked(ds->useLowerRefinementLevel());
-
+	
 
 	QString str;
-	sessionParamsDlg->cacheSizeEdit->setText(str.setNum(cacheSize));
-	sessionParamsDlg->jpegQuality->setText(str.setNum(jpegQuality));
-	sessionParamsDlg->cacheSizeEdit->setText(str.setNum(cacheSize));
-	string logFileName = Session::getInstance()->getLogfileName();
-	sessionParamsDlg->logFileName->setText(logFileName.c_str());
 	
-	connect(sessionParamsDlg->logFileButton,SIGNAL(pressed()),this, SLOT(logFileChoose()));
-	sessionParamsDlg->maxErrorLog->setText(str.setNum(maxLog[2]));
-	sessionParamsDlg->maxWarnLog->setText(str.setNum(maxLog[1]));
-	sessionParamsDlg->maxInfoLog->setText(str.setNum(maxLog[0]));
-	sessionParamsDlg->maxErrorPopup->setText(str.setNum(maxPopup[2]));
-	sessionParamsDlg->maxWarnPopup->setText(str.setNum(maxPopup[1]));
-	sessionParamsDlg->maxInfoPopup->setText(str.setNum(maxPopup[0]));
-	connect(sessionParamsDlg->resetCountButton, SIGNAL(pressed()), this, SLOT(resetCounts()));
+	
 	connect(sessionParamsDlg->buttonHelp, SIGNAL(released()), this, SLOT(doHelp()));
 
 	//set the sessionVariables:
@@ -99,63 +76,21 @@ void SessionParams::launch(){
 			sessionParamsDlg->variableCombo->insertItem(ds->getVariableName(i).c_str());
 		}
 	}
-	sessionParamsDlg->textureSizeCheckbox->setChecked(currentSession->textureSizeIsSpecified());
-	if (currentSession->textureSizeIsSpecified()){
-		sessionParamsDlg->textureSizeEdit->setEnabled(true);
-		sessionParamsDlg->textureSizeEdit->setText(QString::number(currentSession->getTextureSize()));
-	} else {
-		sessionParamsDlg->textureSizeEdit->setEnabled(false);
-		sessionParamsDlg->textureSizeEdit->setText("");
-	}
+	
 	connect(sessionParamsDlg->variableCombo, SIGNAL(activated(int)), this, SLOT(setVariableNum(int)));
 	connect(sessionParamsDlg->lowValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
 	connect(sessionParamsDlg->highValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
 	connect(sessionParamsDlg->highValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
 	connect(sessionParamsDlg->lowValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
-	connect(sessionParamsDlg->textureSizeCheckbox, SIGNAL(toggled(bool)), this, SLOT(changeTextureSize(bool)));
 	outValsChanged = false;
 	newOutVals = false;
 	int rc = sessionParamsDlg->exec();
 	if (rc){
-		//see if the memory size changed:
-		int newVal = sessionParamsDlg->cacheSizeEdit->text().toInt();
-		if (newVal > 10 && newVal != currentSession->getCacheMB()){
-			currentSession->setCacheMB(newVal);
-			MessageReporter::warningMsg("%s","Cache size will change at next metadata loading"); 
-		}
-		//note the texture size
 		
-		currentSession->specifyTextureSize(sessionParamsDlg->textureSizeCheckbox->isChecked());
-		if (currentSession->textureSizeIsSpecified()){
-			currentSession->setTextureSize(sessionParamsDlg->textureSizeEdit->text().toInt());
-		}
-		//Set the image quality:
-		int newQual = sessionParamsDlg->jpegQuality->text().toInt();
-		if (newQual > 0 && newQual <= 100) GLWindow::setJpegQuality(newQual);
-
-		ds->setWarnMissingData(sessionParamsDlg->missingDataCheckbox->isChecked());
-		ds->setUseLowerRefinementLevel(sessionParamsDlg->lowerRefinementCheckbox->isChecked());
 		
-		//Did the popup numbers change?
-		//set the log/popup numbers:
-		maxPopup[0] = sessionParamsDlg->maxInfoPopup->text().toInt();
-		maxPopup[1] = sessionParamsDlg->maxWarnPopup->text().toInt();
-		maxPopup[2] = sessionParamsDlg->maxErrorPopup->text().toInt();
-		maxLog[0] = sessionParamsDlg->maxInfoLog->text().toInt();
-		maxLog[1] = sessionParamsDlg->maxWarnLog->text().toInt();
-		maxLog[2] = sessionParamsDlg->maxErrorLog->text().toInt();
-		bool changed = false;
-		for (int i = 0; i<3; i++){
-			if (maxPopup[i] >= 0 && maxPopup[i] != mReporter->getMaxPopup((MessageReporter::messagePriority)i)) {
-				mReporter->setMaxPopup((MessageReporter::messagePriority)i,maxPopup[i]);
-				changed = true;
-			}
-			if (maxLog[i] >= 0 && maxLog[i] != mReporter->getMaxLog((MessageReporter::messagePriority)i)){
-				mReporter->setMaxLog((MessageReporter::messagePriority)i,maxLog[i]);
-				changed = true;
-			}
-		}
-		if (changed) mReporter->resetCounts();
+		
+		
+		
 		bool stretchChanged = false;
 		float newStretch[3];
 		float ratio[3] = { 1.f, 1.f, 1.f };
@@ -230,29 +165,11 @@ void SessionParams::launch(){
 				ds->getAboveValues());
 		}
 
-
-
-		//see if the filename changed:
-		if (logFileName != sessionParamsDlg->logFileName->text().ascii())
-			mReporter->reset(sessionParamsDlg->logFileName->text().ascii());
 	}
 	delete sessionParamsDlg;
 	sessionParamsDlg = 0;
 }
-//Slot to launch a file-chooser dialog.  Save its results 
-void SessionParams::
-logFileChoose(){
-	QString s = QFileDialog::getSaveFileName (Session::getInstance()->getLogfileName().c_str(), "Text files (*.txt)", 0, 0, 
-		"Select Log File Name" );
-	if (s) {
-		sessionParamsDlg->logFileName->setText(s);
-		sessionParamsDlg->update();
-	}
-}
-void SessionParams::
-resetCounts(){
-	MessageReporter::getInstance()->resetCounts();
-}
+
 
 void SessionParams::
 setVariableNum(int varNum){
@@ -273,15 +190,7 @@ void SessionParams::
 changeOutsideVal(const QString&){
 	newOutVals = true;
 }
-void SessionParams::
-changeTextureSize(bool canChange){
-	sessionParamsDlg->textureSizeEdit->setEnabled(canChange);
-	if (canChange) 
-		sessionParamsDlg->textureSizeEdit->setText(
-			QString::number(Session::getInstance()->getTextureSize()));
-	else 
-		sessionParamsDlg->textureSizeEdit->setText("");
-}
+
 void SessionParams::
 doHelp(){
 	QWhatsThis::enterWhatsThisMode();

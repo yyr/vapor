@@ -113,9 +113,9 @@ public:
 
 	//Access visualizer features
 	
-	QColor& getBackgroundColor() {return myGLWindow->getBackgroundColor();}
-	QColor& getRegionFrameColor() {return myGLWindow->getRegionFrameColor();}
-	QColor& getSubregionFrameColor() {return myGLWindow->getSubregionFrameColor();}
+	const QColor getBackgroundColor() {return DataStatus::getInstance()->getBackgroundColor();}
+	const QColor getRegionFrameColor() {return DataStatus::getInstance()->getRegionFrameColor();}
+	const QColor getSubregionFrameColor() {return DataStatus::getInstance()->getSubregionFrameColor();}
 	QColor& getColorbarBackgroundColor() {return myGLWindow->getColorbarBackgroundColor();}
 	
 	//Pass get/set onto glwindow:

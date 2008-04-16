@@ -70,10 +70,9 @@ signals:
 protected slots:
 	void visualizerSelected(int comboIndex);
 	void panelChanged();
-	void selectRegionFrameColor();
+	
 	void selectTimeTextColor();
-	void selectSubregionFrameColor();
-	void selectBackgroundColor();
+
 	void selectColorbarBackgroundColor();
 	void selectElevGridColor();
 	void selectAxisColor();
@@ -102,9 +101,6 @@ protected:
 	bool showAxisArrows;
 	bool showElevGrid;
 	bool showAxisAnnotation;
-	bool showRegion;
-	bool showSubregion;
-
 	bool textureSurface;
 	int surfaceRotation;
 	bool surfaceUpsideDown;
@@ -125,10 +121,6 @@ protected:
 	float timeAnnotCoords[2];
 	int numColorbarTics;
 	int elevGridRefinement;
-	
-	QColor backgroundColor;
-	QColor regionFrameColor;
-	QColor subregionFrameColor;
 	QColor colorbarBackgroundColor;
 	QColor elevGridColor;
 	QColor timeAnnotColor;

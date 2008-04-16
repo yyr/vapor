@@ -1385,28 +1385,8 @@ XmlNode* VizWinMgr::buildNode() {
 			attrs.empty();
 			attrs[_vizWinNameAttr] = vizName[i].ascii();
 			oss.str(empty);
-			QColor clr = vizWin[i]->getBackgroundColor();
-			oss << (long)clr.red() << " "
-				<< (long)clr.green() << " "
-				<< (long)clr.blue();
-			attrs[_vizBgColorAttr] = oss.str();
 
-			oss.str(empty);
-			clr = vizWin[i]->getRegionFrameColor();
-			oss << (long)clr.red() << " "
-				<< (long)clr.green() << " "
-				<< (long)clr.blue();
-			attrs[_vizRegionColorAttr] = oss.str();
-
-			oss.str(empty);
-			clr = vizWin[i]->getSubregionFrameColor();
-			oss << (long)clr.red() << " "
-				<< (long)clr.green() << " "
-				<< (long)clr.blue();
-			attrs[_vizSubregionColorAttr] = oss.str();
-
-			oss.str(empty);
-			clr = vizWin[i]->getColorbarBackgroundColor();
+			QColor clr = vizWin[i]->getColorbarBackgroundColor();
 			oss << (long)clr.red() << " "
 				<< (long)clr.green() << " "
 				<< (long)clr.blue();
@@ -1467,16 +1447,6 @@ XmlNode* VizWinMgr::buildNode() {
 			oss << vizWin[i]->getTextureRotation();
 			attrs[_vizElevGridRotationAttr] = oss.str();
 
-			oss.str(empty);
-			if (vizWin[i]->regionFrameIsEnabled()) oss<<"true";
-				else oss<<"false";
-			attrs[_vizRegionFrameEnabledAttr] = oss.str();
-
-			oss.str(empty);
-			if (vizWin[i]->subregionFrameIsEnabled()) oss<<"true";
-				else oss<<"false";
-			attrs[_vizSubregionFrameEnabledAttr] = oss.str();
-			
 			oss.str(empty);
 			oss << vizWin[i]->getElevGridRefinementLevel();
 			attrs[_vizElevGridRefinementAttr] = oss.str();
@@ -1613,9 +1583,10 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		//Create a visualizer
 		//Get the name & num
 		string winName;
-		QColor winBgColor(black);
-		QColor winRgColor(white);
-		QColor winSubrgColor(red);
+		
+		QColor winBgColor = DataStatus::getBackgroundColor();
+		QColor winRgColor = DataStatus::getRegionFrameColor();
+		QColor winSubrgColor = DataStatus::getSubregionFrameColor();
 		QColor winColorbarColor(white);
 		QColor winElevGridColor(darkRed);
 		QColor winTimeAnnotColor(white);
@@ -1644,8 +1615,8 @@ elementStartHandler(ExpatParseMgr* pm, int depth, std::string& tag, const char *
 		bool axesEnabled = false;
 		bool axisAnnotationEnabled = false;
 		bool colorbarEnabled = false;
-		bool regionEnabled = false;
-		bool subregionEnabled = false;
+		bool regionEnabled = DataStatus::regionFrameIsEnabled();
+		bool subregionEnabled = DataStatus::subregionFrameIsEnabled();
 		bool elevGridEnabled = false;
 		int elevGridRefinement = 0;
 		bool elevGridInverted = false;

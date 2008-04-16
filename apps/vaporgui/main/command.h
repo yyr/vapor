@@ -14,8 +14,8 @@
 //
 //	Date:		October 2004
 //
-//	Description:	Defines the Command class, and three of its
-//		subclasses, TabChangeCommand MouseModeCommand and VizFeatureCommand  
+//	Description:	Defines the Command class, and four of its
+//		subclasses, TabChangeCommand MouseModeCommand, VizFeatureCommand, PreferencesCommand  
 //		Command class is abstract base class for user commands that can be
 //		Redone/Undone.  Each command must have enough info to support undo/redo.
 //		Also:  It is essential that the undo and redo operations not alter any of the
@@ -26,6 +26,7 @@
 //		The TabChangeCommand supports undo/redo of selection of the
 //		tabs in the tabmanager
 //		The VizFeatureCommand is for changing features of a visualizer window
+//		The PreferencesCommand is when user preferences change
 //
 #ifndef COMMAND_H
 #define COMMAND_H
@@ -38,6 +39,7 @@ namespace VAPoR{
 class Params;
 class Session;
 class VizFeatureParams;
+class UserPreferences;
 class Command {
 public:
 	virtual ~Command() {}
@@ -101,6 +103,22 @@ protected:
 	VizFeatureParams* previousFeatures;
 	VizFeatureParams* currentFeatures;
 	int windowNum;
+
+};
+//Subclass to deal with changes in preferences
+//
+class PreferencesCommand : public Command{
+public:
+	PreferencesCommand(UserPreferences* prefs, const char* descr);
+	void setNext(UserPreferences* nextPrefs);
+	virtual ~PreferencesCommand();
+	virtual void unDo();
+	virtual void reDo();
+	static PreferencesCommand* captureStart(UserPreferences* p,  char* description);
+	static void captureEnd(PreferencesCommand* pCom, UserPreferences *p);
+protected:
+	UserPreferences* previousPrefs;
+	UserPreferences* currentPrefs;
 
 };
 };

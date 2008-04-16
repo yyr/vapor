@@ -32,6 +32,7 @@
 #include "vapor/MyBase.h"
 #include "common.h"
 #include "vaporinternal/jpegapi.h"
+#include "datastatus.h"
 
 //No more than 10 renderers in a window:
 //Eventually this may be dynamic.
@@ -142,15 +143,15 @@ public:
 
 
 	//Get/set methods for vizfeatures
-	QColor& getBackgroundColor() {return backgroundColor;}
-	QColor& getRegionFrameColor() {return regionFrameColor;}
-	QColor& getSubregionFrameColor() {return subregionFrameColor;}
+	QColor getBackgroundColor() {return DataStatus::getInstance()->getBackgroundColor();}
+	QColor getRegionFrameColor() {return DataStatus::getInstance()->getRegionFrameColor();}
+	QColor getSubregionFrameColor() {return DataStatus::getInstance()->getSubregionFrameColor();}
 	QColor& getColorbarBackgroundColor() {return colorbarBackgroundColor;}
 	bool axisArrowsAreEnabled() {return axisArrowsEnabled;}
 	bool axisAnnotationIsEnabled() {return axisAnnotationEnabled;}
 	bool colorbarIsEnabled() {return colorbarEnabled;}
-	bool regionFrameIsEnabled() {return regionFrameEnabled;}
-	bool subregionFrameIsEnabled() {return subregionFrameEnabled;}
+	bool regionFrameIsEnabled() {return DataStatus::getInstance()->regionFrameIsEnabled();}
+	bool subregionFrameIsEnabled() {return DataStatus::getInstance()->subregionFrameIsEnabled();}
 	float getAxisArrowCoord(int i){return axisArrowCoord[i];}
 	float getAxisOriginCoord(int i){return axisOriginCoord[i];}
 	float getMinTic(int i){return minTic[i];}
@@ -193,15 +194,15 @@ public:
 
 	
 	bool elevGridRenderingEnabled() {return renderElevGrid;}
-	void setBackgroundColor(QColor& c) {backgroundColor = c;}
+	void setBackgroundColor(QColor& c) {DataStatus::getInstance()->setBackgroundColor(c);}
 	void setColorbarBackgroundColor(QColor& c) {colorbarBackgroundColor = c;}
-	void setRegionFrameColor(QColor& c) {regionFrameColor = c;}
-	void setSubregionFrameColor(QColor& c) {subregionFrameColor = c;}
+	void setRegionFrameColor(QColor& c) {DataStatus::getInstance()->setRegionFrameColor(c);}
+	void setSubregionFrameColor(QColor& c) {DataStatus::getInstance()->setSubregionFrameColor(c);}
 	void enableAxisArrows(bool enable) {axisArrowsEnabled = enable;}
 	void enableAxisAnnotation(bool enable) {axisAnnotationEnabled = enable;}
 	void enableColorbar(bool enable) {colorbarEnabled = enable;}
-	void enableRegionFrame(bool enable) {regionFrameEnabled = enable;}
-	void enableSubregionFrame(bool enable) {subregionFrameEnabled = enable;}
+	void enableRegionFrame(bool enable) {DataStatus::getInstance()->enableRegionFrame(enable);}
+	void enableSubregionFrame(bool enable) {DataStatus::getInstance()->enableSubregionFrame(enable);}
 	void setElevGridColor(QColor& c) {elevColor = c;}
 	void setElevGridRefinementLevel(int lev) {elevGridRefLevel = lev;}
 	void enableElevGridRendering(bool val) {renderElevGrid = val;}
@@ -463,9 +464,6 @@ protected:
 	TranslateStretchManip* myRegionManip;
 
 	//values in vizFeature
-	QColor backgroundColor;
-	QColor regionFrameColor;
-	QColor subregionFrameColor;
 	QColor colorbarBackgroundColor;
 	bool surfaceTextureEnabled;
 	int textureRotation;
@@ -479,8 +477,7 @@ protected:
 	
 	bool axisArrowsEnabled;
 	bool axisAnnotationEnabled;
-	bool regionFrameEnabled;
-	bool subregionFrameEnabled;
+	
 	bool colorbarEnabled;
 	float axisArrowCoord[3];
 	float axisOriginCoord[3];

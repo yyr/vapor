@@ -40,20 +40,15 @@ public:
 	void launch();
 	
 public slots:
-	void logFileChoose();
-	void resetCounts();
+	
 	void setVariableNum(int);
 	void setOutsideVal();
 	void changeOutsideVal(const QString&);
-	void changeTextureSize(bool);
+	
 	void doHelp();
 	
 protected:
 	
-	int jpegQuality;
-	int cacheSize;
-	int maxPopup[3];
-	int maxLog[3];
 	float stretch[3];
 	SessionParameters* sessionParamsDlg;
 	int sessionVariableNum;
