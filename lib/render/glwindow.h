@@ -392,8 +392,8 @@ protected:
 
 	//Methods to support drawing domain bounds, axes etc.
 	//Set colors to use in domain-bound rendering:
-	void setSubregionFrameColorFlt(QColor& c);
-	void setRegionFrameColorFlt(QColor& c);
+	void setSubregionFrameColorFlt(const QColor& c);
+	void setRegionFrameColorFlt(const QColor& c);
 	//Draw the region bounds and frame it in full domain.
 	//Arguments are in unit cube coordinates
 	void renderDomainFrame(float* extents, float* minFull, float* maxFull);

@@ -51,7 +51,7 @@ getBoxVertices(float vertices[8][3]){
 
 
 TranslateStretchManip::TranslateStretchManip(GLWindow* win, Params* p) : Manip(win) {
-	QColor& c = myGLWin->getSubregionFrameColor();
+	const QColor& c = DataStatus::getSubregionFrameColor();
 	subregionFrameColor[0]= (float)c.red()/255.;
 	subregionFrameColor[1]= (float)c.green()/255.;
 	subregionFrameColor[2]= (float)c.blue()/255.;

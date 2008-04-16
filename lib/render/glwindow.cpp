@@ -592,7 +592,7 @@ void GLWindow::renderDomainFrame(float* extents, float* minFull, float* maxFull)
 	int i; 
 	int numLines[3];
 	float regionSize, fullSize[3], modMin[3],modMax[3];
-	setRegionFrameColorFlt(getRegionFrameColor());
+	setRegionFrameColorFlt(DataStatus::getRegionFrameColor());
 	
 	
 	//Instead:  either have 2 or 1 lines in each dimension.  2 if the size is < 1/3
@@ -713,7 +713,7 @@ bool GLWindow::faceIsVisible(float* extents, float* viewerCoords, int faceNum){
 	}
 }
 void GLWindow::drawSubregionBounds(float* extents) {
-	setSubregionFrameColorFlt(getSubregionFrameColor());
+	setSubregionFrameColorFlt(DataStatus::getSubregionFrameColor());
 	glLineWidth( 2.0 );
 	glColor3fv(subregionFrameColorFlt);
 	glBegin(GL_LINE_LOOP);
@@ -1159,7 +1159,7 @@ void GLWindow::drawProbeFace(float* corners, int faceNum, bool isSelected){
 // then the back side (resp front side) of the corresponding cube side is rendered
 
 void GLWindow::renderRegionBounds(float* extents, int selectedFace,  float faceDisplacement){
-	setSubregionFrameColorFlt(getSubregionFrameColor());
+	setSubregionFrameColorFlt(DataStatus::getSubregionFrameColor());
 	//Copy the extents so they can be stretched
 	int i;
 	float cpExtents[6];
@@ -1184,12 +1184,12 @@ void GLWindow::renderRegionBounds(float* extents, int selectedFace,  float faceD
 }
 
 //Set colors to use in bound rendering:
-void GLWindow::setSubregionFrameColorFlt(QColor& c){
+void GLWindow::setSubregionFrameColorFlt(const QColor& c){
 	subregionFrameColorFlt[0]= (float)c.red()/255.;
 	subregionFrameColorFlt[1]= (float)c.green()/255.;
 	subregionFrameColorFlt[2]= (float)c.blue()/255.;
 }
-void GLWindow::setRegionFrameColorFlt(QColor& c){
+void GLWindow::setRegionFrameColorFlt(const QColor& c){
 	regionFrameColorFlt[0]= (float)c.red()/255.;
 	regionFrameColorFlt[1]= (float)c.green()/255.;
 	regionFrameColorFlt[2]= (float)c.blue()/255.;
