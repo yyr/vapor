@@ -119,12 +119,12 @@ MapperFunctionBase::MapperFunctionBase(const MapperFunctionBase &mapper) :
 MapperFunctionBase::~MapperFunctionBase() 
 {
 
-    delete _colormap;
+    if (_colormap) delete _colormap;
     _colormap = NULL;
 
     for (int i=0; i<_opacityMaps.size(); i++)
     {
-      delete _opacityMaps[i];
+      if (_opacityMaps[i]) delete _opacityMaps[i];
       _opacityMaps[i] = NULL;
     }
     
@@ -257,6 +257,7 @@ void MapperFunctionBase::deleteOpacityMap(OpacityMapBase *omap)
 
   if (iter != _opacityMaps.end())
   {
+	if (*iter) delete *iter;
     _opacityMaps.erase(iter);
   }
 }
@@ -278,7 +279,7 @@ void MapperFunctionBase::init()
     //
     for (int i=0; i<_opacityMaps.size(); i++)
     {
-      delete _opacityMaps[i];
+      if (_opacityMaps[i]) delete _opacityMaps[i];
       _opacityMaps[i] = NULL;
     }
     

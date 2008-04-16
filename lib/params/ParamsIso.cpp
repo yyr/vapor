@@ -69,11 +69,15 @@ ParamsIso::ParamsIso(
 
 ParamsIso::~ParamsIso() {
 	for (int i = 0; i<transFunc.size(); i++){
-		delete transFunc[i];
+		if (transFunc[i]) delete transFunc[i];
+		transFunc[i] = NULL;
 	}
+	transFunc.clear();
 	for (int i = 0; i<isoControls.size(); i++){
-		delete isoControls[i];
+		if (isoControls[i]) delete isoControls[i];
+		isoControls[i] = NULL;
 	}
+	isoControls.clear();
 }
 //clone the xml node, (since buildNode() will eventually
 //destroy the node it uses).  Then add isoControl and TF nodes
@@ -206,8 +210,10 @@ reinit(bool doOverride){
 		}
 			//Delete trans funcs that are not in the current session
 		for (int i = totNumVariables; i<isoControls.size(); i++){
-			delete transFunc[i];
-			delete isoControls[i];
+			if (transFunc[i]) delete transFunc[i];
+			transFunc[i] = NULL;
+			if (isoControls[i]) delete isoControls[i];
+			isoControls[i] = NULL;
 		}
 	} //end if(doOverride)
 	//Extend the histo ranges to include the isovalues:
@@ -260,10 +266,15 @@ reinit(bool doOverride){
 void ParamsIso::restart() {
 	
 	
-	for (int i = 0; i< numSessionVariables; i++){
-		delete transFunc[i];
-		delete isoControls[i];
+	for (int i = 0; i< transFunc.size(); i++) {
+		if (transFunc[i]) delete transFunc[i];
+		transFunc[i] = NULL;
 	}
+	for (int i = 0; i< isoControls.size(); i++) {
+		if (isoControls[i]) delete isoControls[i];
+		isoControls[i] = NULL;
+	}
+
 	transFunc.clear();
 	isoControls.clear();
 	numSessionVariables = 0;

@@ -220,8 +220,8 @@ void ColorMapBase::clear()
 {
   for(int i=0; i<_controlPoints.size(); i++)
   {
-    ControlPoint *cp = _controlPoints[i];
-    delete cp;
+    if (_controlPoints[i]) delete _controlPoints[i];
+	_controlPoints[i] = NULL;
   }
 
   _controlPoints.clear();
@@ -433,7 +433,7 @@ void ColorMapBase::deleteControlPoint(int index)
 
     _controlPoints.erase(iter);
     
-    delete cp;
+    if (cp) delete cp;
     cp = NULL;
   }
 }

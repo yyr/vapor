@@ -156,7 +156,7 @@ void OpacityMapBase::clear()
   for(int i=0; i<_controlPoints.size(); i++)
   {
     ControlPoint *cp = _controlPoints[i];
-    delete cp;
+    if (cp) delete cp;
   }
 
   _controlPoints.clear();
@@ -270,7 +270,7 @@ void OpacityMapBase::deleteControlPoint(int index)
 
     _controlPoints.erase(iter);
     
-    delete cp;
+    if (cp) delete cp;
     cp = NULL;
   }
 }
@@ -681,7 +681,7 @@ bool OpacityMapBase::elementStartHandler(ExpatParseMgr* pm, int depth, string& t
     for(int i=0; i<_controlPoints.size(); i++)
     {
       ControlPoint *cp = _controlPoints[i];
-      delete cp;
+      if (cp) delete cp;
     }
 
     _controlPoints.clear();

@@ -76,7 +76,7 @@ void TransferFunction::init()
 
     for (int i=0; i<_opacityMaps.size(); i++)
     {
-      delete _opacityMaps[i];
+      if (_opacityMaps[i]) delete _opacityMaps[i];
       _opacityMaps[i] = NULL;
     }    
 
