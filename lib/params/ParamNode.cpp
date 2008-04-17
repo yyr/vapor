@@ -353,7 +353,7 @@ void ParamNode::SetAllFlags(bool dirty){
 	
 	while (s != _dirtyNodeFlags.end()){
 
-		vector <DirtyFlag *> &dirtyflags = r->second;
+		vector <DirtyFlag *> &dirtyflags = s->second;
 		for(int i=0; i<dirtyflags.size(); i++) {
 			if (dirty) dirtyflags[i]->Set();
 			else dirtyflags[i]->Clear();
