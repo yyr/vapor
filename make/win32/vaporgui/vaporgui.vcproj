@@ -235,9 +235,6 @@
 				RelativePath="..\..\..\apps\vaporgui\main\session.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\misc\sessionparams.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\misc\sharedcontrollerthread.cpp">
 			</File>
 			<File
@@ -782,29 +779,6 @@
 				RelativePath="..\..\..\apps\vaporgui\main\session.h">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\misc\sessionparams.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing sessionparams.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\sessionparams.h -o ..\..\..\apps\vaporgui\moc\moc_sessionparams.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_sessionparams.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Moc&apos;ing sessionparams.h..."
-						CommandLine="$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\misc\sessionparams.h -o ..\..\..\apps\vaporgui\moc\moc_sessionparams.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe"
-						Outputs="..\..\..\apps\vaporgui\moc\moc_sessionparams.cpp"/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\main\tabmanager.h">
 				<FileConfiguration
 					Name="Release|Win32">
@@ -1063,12 +1037,6 @@
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_seedlisteditor.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\moc\moc_sessionparams.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\apps\vaporgui\moc\moc_setoffset.cpp">
 			</File>
 			<File
@@ -1149,12 +1117,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\regiontab.h">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\ui\sessionparameters.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\ui\sessionparameters.h">
 			</File>
 			<File
 				RelativePath="..\..\..\apps\vaporgui\guis\ui\setoffset.cpp">
@@ -1373,33 +1335,6 @@ $(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\regiontab.h -o ..\..\..\apps
 "
 						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
 						Outputs="..\..\..\apps\vaporgui\guis\ui\regiontab.h;..\..\..\apps\vaporgui\guis\ui\regiontab.cpp;..\..\..\apps\vaporgui\moc\moc_regiontab.cpp"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\..\apps\vaporgui\guis\ui\sessionparameters.ui">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Uic&apos;ing ..\..\..\apps\vaporgui\guis\ui\sessionparameters.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\sessionparameters.ui -o ..\..\..\apps\vaporgui\guis\ui\sessionparameters.h
-$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\sessionparameters.ui -i sessionparameters.h -o ..\..\..\apps\vaporgui\guis\ui\sessionparameters.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\sessionparameters.h -o ..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="..\..\..\apps\vaporgui\guis\ui\sessionparameters.h;..\..\..\apps\vaporgui\guis\ui\sessionparameters.cpp;..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Uic&apos;ing ..\..\..\apps\vaporgui\guis\ui\sessionparameters.ui..."
-						CommandLine="$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\sessionparameters.ui -o ..\..\..\apps\vaporgui\guis\ui\sessionparameters.h
-$(QTDIR)\bin\uic.exe ..\..\..\apps\vaporgui\guis\ui\sessionparameters.ui -i sessionparameters.h -o ..\..\..\apps\vaporgui\guis\ui\sessionparameters.cpp
-$(QTDIR)\bin\moc.exe ..\..\..\apps\vaporgui\guis\ui\sessionparameters.h -o ..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp
-"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;$(QTDIR)\bin\uic.exe"
-						Outputs="..\..\..\apps\vaporgui\guis\ui\sessionparameters.h;..\..\..\apps\vaporgui\guis\ui\sessionparameters.cpp;..\..\..\apps\vaporgui\moc\moc_sessionparameters.cpp"/>
 				</FileConfiguration>
 			</File>
 			<File

@@ -1,3 +1,3 @@
 UI_FILES := animationtab flowtab viztab regiontab isotab \
-	dvr sessionparameters vizfeatures probetab setoffset \
+	dvr vizfeatures probetab setoffset \
         ControlPointEditorBase preferences

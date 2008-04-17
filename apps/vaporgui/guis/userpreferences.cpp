@@ -133,6 +133,8 @@ void UserPreferences::launch(){
 	connect (regionCheckbox, SIGNAL(toggled(bool)), this, SLOT(regionChanged(bool)));
 	connect (subregionCheckbox, SIGNAL(toggled(bool)), this, SLOT(subregionChanged(bool)));
 	connect (textureSizeCheckbox, SIGNAL(toggled(bool)), this, SLOT(changeTextureSize(bool)));
+	connect (missingDataCheckbox, SIGNAL(toggled(bool)), this, SLOT(warningChanged(bool)));
+	connect (lowerRefinementCheckbox, SIGNAL(toggled(bool)), this, SLOT(lowerResChanged(bool)));
 	
 
 	//TextBoxes:
@@ -295,6 +297,14 @@ void UserPreferences::regionChanged(bool enabled){
 }
 void UserPreferences::subregionChanged(bool enabled){
 	subregionFrameEnabled = enabled;
+	dialogChanged = true;
+}
+void UserPreferences::warningChanged(bool enabled){
+	warnDataMissing = enabled;
+	dialogChanged = true;
+}
+void UserPreferences::lowerResChanged(bool enabled){
+	useLowerRefinement = enabled;
 	dialogChanged = true;
 }
 void UserPreferences::textChanged(){

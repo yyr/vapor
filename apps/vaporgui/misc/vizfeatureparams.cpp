@@ -23,6 +23,8 @@
 #include "vizwinmgr.h"
 #include "messagereporter.h"
 #include "mainform.h"
+#include "session.h"
+#include "datastatus.h"
 #include <qlineedit.h>
 #include <qfiledialog.h>
 #include <qpushbutton.h>
@@ -33,9 +35,10 @@
 #include <qscrollview.h>
 #include <qvbox.h>
 #include <qlayout.h>
+#include <vector>
 #include <qwhatsthis.h>
 
-
+int VizFeatureParams::sessionVariableNum = 0;
 using namespace VAPoR;
 //Create a new vizfeatureparams
 VizFeatureParams::VizFeatureParams(){
@@ -44,12 +47,32 @@ VizFeatureParams::VizFeatureParams(){
 	featureHolder = 0;
 	currentComboIndex = -1;
 	textureSurface = false;
+	
+	Session* currentSession = Session::getInstance();
+	for (int i = 0; i< 3; i++) stretch[i] = currentSession->getStretch(i);
+
+	
+	if (sessionVariableNum >= DataStatus::getInstance()->getNumSessionVariables())
+		sessionVariableNum = 0;
+
+	lowValues.clear();
+	highValues.clear();
+	tempLowValues.clear();
+	tempHighValues.clear();
+	
+	for (int i = 0; i< DataStatus::getInstance()->getNumSessionVariables(); i++){
+		lowValues.push_back(DataStatus::getInstance()->getBelowValue(i));
+		highValues.push_back(DataStatus::getInstance()->getAboveValue(i));
+		tempLowValues.push_back(DataStatus::getInstance()->getBelowValue(i));
+		tempHighValues.push_back(DataStatus::getInstance()->getAboveValue(i));
+	}
 }
 //Clone a new vizfeatureparams
 VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	dialogChanged = false;
 	vizFeatureDlg = 0;
 	featureHolder = 0;
+	for (int i = 0; i< 3; i++) stretch[i] = vfParams.stretch[i];
 	currentComboIndex = vfParams.currentComboIndex;
 	vizName = vfParams.vizName;
 	showBar = vfParams.showBar;
@@ -94,16 +117,28 @@ VizFeatureParams::VizFeatureParams(const VizFeatureParams& vfParams){
 	timeAnnotColor = vfParams.timeAnnotColor;
 	timeAnnotType = vfParams.timeAnnotType;
 	timeAnnotTextSize = vfParams.timeAnnotTextSize;
+	lowValues.clear();
+	highValues.clear();
+	tempLowValues.clear();
+	tempHighValues.clear();
+	int numvars = vfParams.lowValues.size();
+	for (int i = 0; i<numvars; i++){
+		lowValues.push_back(vfParams.lowValues[i]);
+		highValues.push_back(vfParams.highValues[i]);
+	}
+	newOutVals = false;
 }
 //Set up the dialog with current parameters from current active visualizer
 void VizFeatureParams::launch(){
 	//Determine current combo entry
 	int vizNum = VizWinMgr::getInstance()->getActiveViz();
-	if (vizNum < 0) {
-		QMessageBox::warning(vizFeatureDlg,"No visualizers",QString("No visualizers exist to be modified"),
+	if (vizNum < 0 || DataStatus::getInstance()->getNumSessionVariables() <=0){
+		QMessageBox::warning(vizFeatureDlg,"No visualizers or variables",
+			QString("No visualizers or variables exist to be modified"),
 			QMessageBox::Ok, QMessageBox::NoButton);
 		return;
 	}
+	
 	//Determine corresponding combo index for currentVizNum:
 	currentComboIndex = getComboIndex(vizNum);
 	
@@ -122,6 +157,10 @@ void VizFeatureParams::launch(){
 	//Copy values into dialog, using current comboIndex:
 	setDialog();
 	dialogChanged = false;
+	vizFeatureDlg->variableCombo->setCurrentItem(sessionVariableNum);
+	vizFeatureDlg->lowValEdit->setText(QString::number(lowValues[sessionVariableNum]));
+	vizFeatureDlg->highValEdit->setText(QString::number(highValues[sessionVariableNum]));
+	newOutVals = false;
 	if (vizFeatureDlg->axisAnnotationCheckbox->isChecked()){
 		vizFeatureDlg->axisAnnotationFrame->show();
 	} else {
@@ -210,10 +249,44 @@ void VizFeatureParams::launch(){
 	connect (vizFeatureDlg->timeSizeEdit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->timeCombo,SIGNAL(activated(int)), this, SLOT(panelChanged()));
 	connect (vizFeatureDlg->timeColorButton,SIGNAL(clicked()), this, SLOT(selectTimeTextColor()));
-	
+	connect(vizFeatureDlg->variableCombo, SIGNAL(activated(int)), this, SLOT(setVariableNum(int)));
+	connect(vizFeatureDlg->lowValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
+	connect(vizFeatureDlg->highValEdit, SIGNAL(returnPressed()), this, SLOT(setOutsideVal()));
+	connect(vizFeatureDlg->highValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
+	connect(vizFeatureDlg->lowValEdit,SIGNAL(textChanged(const QString&)), this, SLOT(changeOutsideVal(const QString&)));
+	connect(vizFeatureDlg->stretch0Edit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect(vizFeatureDlg->stretch1Edit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
+	connect(vizFeatureDlg->stretch2Edit,SIGNAL(textChanged(const QString&)), this, SLOT(panelChanged()));
 	featureHolder->exec();
 	
 }
+void VizFeatureParams::
+setVariableNum(int varNum){
+	//Save values from previous setting:
+	if(newOutVals){
+		setOutsideVal();
+	}
+	sessionVariableNum = varNum;
+	vizFeatureDlg->lowValEdit->setText(QString::number(tempLowValues[sessionVariableNum]));
+	vizFeatureDlg->highValEdit->setText(QString::number(tempHighValues[sessionVariableNum]));
+	
+	dialogChanged = true;
+}
+void VizFeatureParams::
+setOutsideVal(){
+	float aboveVal = vizFeatureDlg->highValEdit->text().toFloat();
+	float belowVal = vizFeatureDlg->lowValEdit->text().toFloat();
+	tempLowValues[sessionVariableNum] = belowVal;
+	tempHighValues[sessionVariableNum] = aboveVal;
+	dialogChanged = true;
+	
+}
+void VizFeatureParams::
+changeOutsideVal(const QString&){
+	newOutVals = true;
+	dialogChanged = true;
+}
+
 //Slots to identify that a change has occurred
 void VizFeatureParams::
 panelChanged(){
@@ -287,7 +360,31 @@ selectAxisColor(){
 //
 void VizFeatureParams::
 setDialog(){
+
 	int i;
+	vizFeatureDlg->stretch0Edit->setText(QString::number(stretch[0]));
+	vizFeatureDlg->stretch1Edit->setText(QString::number(stretch[1]));
+	vizFeatureDlg->stretch2Edit->setText(QString::number(stretch[2]));
+
+	Session* currentSession = Session::getInstance();
+	bool enableStretch = !currentSession->sphericalTransform();
+    vizFeatureDlg->stretch0Edit->setEnabled(enableStretch);
+    vizFeatureDlg->stretch1Edit->setEnabled(enableStretch);
+    vizFeatureDlg->stretch2Edit->setEnabled(enableStretch);
+
+	DataStatus* ds = DataStatus::getInstance();
+	bool isLayered = (ds->getMetadata() && (StrCmpNoCase(ds->getMetadata()->GetGridType(),"Layered") == 0));
+	vizFeatureDlg->outsideValFrame->setEnabled(isLayered);
+	vizFeatureDlg->variableCombo->setCurrentItem(sessionVariableNum);
+	if (isLayered) vizFeatureDlg->buttonOk->setDefault(false);
+	if (ds->getNumSessionVariables()>0){
+		vizFeatureDlg->lowValEdit->setText(QString::number(ds->getBelowValue(sessionVariableNum)));
+		vizFeatureDlg->highValEdit->setText(QString::number(ds->getAboveValue(sessionVariableNum)));
+		vizFeatureDlg->variableCombo->clear();
+		for (int i = 0; i<ds->getNumSessionVariables(); i++){
+			vizFeatureDlg->variableCombo->insertItem(ds->getVariableName(i).c_str());
+		}
+	}
 	int vizNum = getVizNum(currentComboIndex);
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	VizWin* vizWin = vizWinMgr->getVizWin(vizNum);
@@ -379,8 +476,6 @@ setDialog(){
 	colorbarBackgroundColor = vizWin->getColorbarBackgroundColor();
 	vizFeatureDlg->colorbarBackgroundButton->setPaletteBackgroundColor(colorbarBackgroundColor);
 
-	DataStatus* ds = DataStatus::getInstance();
-	bool isLayered = ds->dataIsLayered();
 	int numRefs = ds->getNumTransforms();
 	if (isLayered){
 		vizFeatureDlg->refinementCombo->setMaxCount(numRefs+1);
@@ -419,11 +514,30 @@ setDialog(){
 void VizFeatureParams::
 copyFromDialog(){
 	
+	
 	int vizNum = getVizNum(currentComboIndex);
 	//Make copy for history.  Note that the "currentComboIndex" is not part
 	//Of the state that will modify visualizer
 	VizFeatureCommand* cmd = VizFeatureCommand::captureStart(this, "Feature edit", vizNum);
 
+	if (newOutVals){
+		float aboveVal = vizFeatureDlg->highValEdit->text().toFloat();
+		float belowVal = vizFeatureDlg->lowValEdit->text().toFloat();
+		tempLowValues[sessionVariableNum] = belowVal;
+		tempHighValues[sessionVariableNum] = aboveVal;
+		//Now copy all temp values to perm values:
+		for (int i = 0; i<lowValues.size(); i++){
+			lowValues[i] = tempLowValues[i];
+			highValues[i] = tempHighValues[i];
+		}
+		newOutVals = false;
+	}
+	
+
+	stretch[0] = vizFeatureDlg->stretch0Edit->text().toFloat();
+	stretch[1] = vizFeatureDlg->stretch1Edit->text().toFloat();
+	stretch[2] = vizFeatureDlg->stretch2Edit->text().toFloat();
+	
 	if (vizFeatureDlg->vizNameEdit->text() != vizName){
 		vizName = vizFeatureDlg->vizNameEdit->text();
 	}
@@ -500,14 +614,93 @@ copyFromDialog(){
 	surfaceImageFilename = vizFeatureDlg->imageFilenameEdit->text();
 
 	applyToViz(vizNum);
-
+	
+	
+	
 	//Save the new visualizer state in the history
 	VizFeatureCommand::captureEnd(cmd, this);
+	
+	
 }
-//Apply these settings to specified visualizer
+//Apply these settings to specified visualizer, and to global state:
 void VizFeatureParams::
 applyToViz(int vizNum){
+	
 	int i;
+	DataStatus* ds = DataStatus::getInstance();
+	
+	bool changedOutVals = false;
+	for (i = 0; i<ds->getNumSessionVariables(); i++){
+		if(ds->getBelowValue(i) != lowValues[i] || ds->getAboveValue(i) != highValues[i]){
+			ds->setOutsideValues(i, lowValues[i],highValues[i]);
+			changedOutVals = true;
+		}
+	}
+	if (changedOutVals){
+		VizWinMgr* vizMgr = VizWinMgr::getInstance();
+		
+		for (int j = 0; j< MAXVIZWINS; j++) {
+			VizWin* win = vizMgr->getVizWin(j);
+			if (!win) continue;
+			//do each dvr
+			
+			DvrParams* dp = vizMgr->getDvrParams(j);
+			vizMgr->setDatarangeDirty(dp);
+		}
+		
+		ds->getDataMgr()->SetLowHighVals(
+			ds->getVariableNames(),
+			ds->getBelowValues(),
+			ds->getAboveValues());
+	}
+	bool stretchChanged = false;
+	float oldStretch[3];
+	float ratio[3] = { 1.f, 1.f, 1.f };
+	for (i = 0; i<3; i++) oldStretch[i] = ds->getStretchFactors()[i];
+	
+	float minStretch = 1.e30f;
+	for (i= 0; i<3; i++){
+		if (stretch[i] <= 0.f) stretch[i] = 1.f;
+		if (stretch[i] < minStretch) minStretch = stretch[i];
+	}
+	//Normalize so minimum stretch is 1
+	for ( i= 0; i<3; i++){
+		if (stretch[i] != 1.f) stretch[i] /= minStretch;
+		if (stretch[i] != oldStretch[i]){
+			ratio[i] = stretch[i]/oldStretch[i];
+			stretchChanged = true;
+			Session::getInstance()->setStretch(i, stretch[i]);
+		}
+	}
+	if (stretchChanged) {
+		
+		DataStatus* ds = DataStatus::getInstance();
+		ds->stretchExtents(stretch);
+		
+		VizWinMgr* vizMgr = VizWinMgr::getInstance();
+		//Set the region dirty bit in every window:
+		bool firstShared = false;
+		for (int j = 0; j< MAXVIZWINS; j++) {
+			VizWin* win = vizMgr->getVizWin(j);
+			if (!win) continue;
+			
+			//Only do each viewpoint params once
+			ViewpointParams* vpp = vizMgr->getViewpointParams(j);
+			
+			if (!vpp->isLocal()) {
+				if(firstShared) continue;
+				else firstShared = true;
+			}
+			vpp->rescale(ratio);
+			vpp->setCoordTrans();
+			win->setValuesFromGui(vpp);
+			vizMgr->resetViews(vizMgr->getRegionParams(j),vpp);
+			vizMgr->setViewerCoordsChanged(vpp);
+			win->setDirtyBit(RegionBit, true);
+		}
+		
+	}
+	
 	VizWinMgr* vizWinMgr = VizWinMgr::getInstance();
 	VizWin* vizWin = vizWinMgr->getVizWin(vizNum);
 	vizWinMgr->setVizWinName(vizNum, vizName);
@@ -553,6 +746,7 @@ applyToViz(int vizNum){
 	vizWin->getGLWindow()->invalidateTextInScene();
 	vizWin->setColorbarDirty(true);
 	vizWin->updateGL();
+	
 }
 int VizFeatureParams::
 getComboIndex(int vizNum){
@@ -596,6 +790,7 @@ void VizFeatureParams::okClicked(){
 	//save changes in history
 	if (dialogChanged) {
 		copyFromDialog();
+		dialogChanged = false;
 	} 
 	emit doneWithIt();
 	

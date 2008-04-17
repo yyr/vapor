@@ -30,10 +30,12 @@
 #include <qwidget.h>
 #include <qscrollview.h>
 #include <qdialog.h>
+#include <vector>
 
 class QWidget;
 class VizFeatures;
 class ScrollContainer;
+
 namespace VAPoR{
 
 class ScrollContainer : public QDialog {
@@ -81,6 +83,9 @@ protected slots:
 	void okClicked();
 	void doHelp();
 	void imageToggled(bool);
+	void setVariableNum(int);
+	void setOutsideVal();
+	void changeOutsideVal(const QString&);
 	
 protected:
 	//Copy data from vizwin to and from dialog (shadowed in this class)
@@ -124,6 +129,15 @@ protected:
 	QColor colorbarBackgroundColor;
 	QColor elevGridColor;
 	QColor timeAnnotColor;
+
+	float stretch[3];
+	static int sessionVariableNum;
+	bool newOutVals;
+	std::vector<float> lowValues;
+	std::vector<float> highValues;
+	std::vector<float> tempLowValues;
+	std::vector<float> tempHighValues;
+	
 	
 };
 

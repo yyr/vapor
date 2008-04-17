@@ -80,6 +80,8 @@ protected slots:
 	void changeTextureSize(bool);
 	void regionChanged(bool);
 	void subregionChanged(bool);
+	void warningChanged(bool);
+	void lowerResChanged(bool);
 	void textChanged();
 	void resetCounts();
 	void okClicked();

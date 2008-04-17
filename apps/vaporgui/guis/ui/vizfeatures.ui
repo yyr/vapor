@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>415</width>
-            <height>1290</height>
+            <height>1294</height>
         </rect>
     </property>
     <property name="minimumSize">
@@ -42,12 +42,344 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout53</cstring>
+                <cstring>layout47</cstring>
             </property>
             <vbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
+                <widget class="QFrame">
+                    <property name="name">
+                        <cstring>frame9</cstring>
+                    </property>
+                    <property name="frameShape">
+                        <enum>StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                        <enum>Raised</enum>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLayoutWidget">
+                            <property name="name">
+                                <cstring>layout46</cstring>
+                            </property>
+                            <vbox>
+                                <property name="name">
+                                    <cstring>unnamed</cstring>
+                                </property>
+                                <widget class="QLabel">
+                                    <property name="name">
+                                        <cstring>textLabel1_6</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Global settings (apply to all visualizers)</string>
+                                    </property>
+                                    <property name="alignment">
+                                        <set>AlignCenter</set>
+                                    </property>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer48_2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>20</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QLayoutWidget">
+                                    <property name="name">
+                                        <cstring>layout8</cstring>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLabel">
+                                            <property name="name">
+                                                <cstring>textLabel1_4_2</cstring>
+                                            </property>
+                                            <property name="text">
+                                                <string>Scene Stretch Factors X, Y, Z:</string>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignCenter</set>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>These three stretch factors provide a visual scaling of the data appearance, without changing the actual coordinates or the flow integration.</string>
+                                            </property>
+                                        </widget>
+                                        <spacer>
+                                            <property name="name">
+                                                <cstring>spacer20_3</cstring>
+                                            </property>
+                                            <property name="orientation">
+                                                <enum>Horizontal</enum>
+                                            </property>
+                                            <property name="sizeType">
+                                                <enum>Expanding</enum>
+                                            </property>
+                                            <property name="sizeHint">
+                                                <size>
+                                                    <width>31</width>
+                                                    <height>20</height>
+                                                </size>
+                                            </property>
+                                        </spacer>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>stretch0Edit</cstring>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Stretch factor in X direction</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>These three stretch factors provide a visual scaling of the data appearance, without changing the actual coordinates or the flow integration.</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>stretch1Edit</cstring>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Stretch factor in Y direction</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>These three stretch factors provide a visual scaling of the data appearance, without changing the actual coordinates or the flow integration.</string>
+                                            </property>
+                                        </widget>
+                                        <widget class="QLineEdit">
+                                            <property name="name">
+                                                <cstring>stretch2Edit</cstring>
+                                            </property>
+                                            <property name="alignment">
+                                                <set>AlignHCenter</set>
+                                            </property>
+                                            <property name="toolTip" stdset="0">
+                                                <string>Stretch factor in Z direction</string>
+                                            </property>
+                                            <property name="whatsThis" stdset="0">
+                                                <string>These three stretch factors provide a visual scaling of the data appearance, without changing the actual coordinates or the flow integration.</string>
+                                            </property>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                                <spacer>
+                                    <property name="name">
+                                        <cstring>spacer47_2</cstring>
+                                    </property>
+                                    <property name="orientation">
+                                        <enum>Vertical</enum>
+                                    </property>
+                                    <property name="sizeType">
+                                        <enum>Expanding</enum>
+                                    </property>
+                                    <property name="sizeHint">
+                                        <size>
+                                            <width>20</width>
+                                            <height>21</height>
+                                        </size>
+                                    </property>
+                                </spacer>
+                                <widget class="QFrame">
+                                    <property name="name">
+                                        <cstring>outsideValFrame</cstring>
+                                    </property>
+                                    <property name="enabled">
+                                        <bool>false</bool>
+                                    </property>
+                                    <property name="frameShape">
+                                        <enum>StyledPanel</enum>
+                                    </property>
+                                    <property name="frameShadow">
+                                        <enum>Raised</enum>
+                                    </property>
+                                    <property name="whatsThis" stdset="0">
+                                        <string>When visualizing layered data (such as WRF output) there can be points within the region that are above the highest layer or below the lowest layer in the dataset.  By default, the values of all variables are zero above or below the layered data..  Use this section to specify nonzero values above or below the layered data.</string>
+                                    </property>
+                                    <hbox>
+                                        <property name="name">
+                                            <cstring>unnamed</cstring>
+                                        </property>
+                                        <widget class="QLayoutWidget">
+                                            <property name="name">
+                                                <cstring>layout10_3</cstring>
+                                            </property>
+                                            <vbox>
+                                                <property name="name">
+                                                    <cstring>unnamed</cstring>
+                                                </property>
+                                                <widget class="QLabel">
+                                                    <property name="name">
+                                                        <cstring>textLabel1_5_2</cstring>
+                                                    </property>
+                                                    <property name="text">
+                                                        <string>&lt;b&gt;Variable values outside grid (for layered data)&lt;/b&gt;</string>
+                                                    </property>
+                                                    <property name="alignment">
+                                                        <set>WordBreak|AlignCenter</set>
+                                                    </property>
+                                                </widget>
+                                                <widget class="QLayoutWidget">
+                                                    <property name="name">
+                                                        <cstring>layout9</cstring>
+                                                    </property>
+                                                    <grid>
+                                                        <property name="name">
+                                                            <cstring>unnamed</cstring>
+                                                        </property>
+                                                        <widget class="QLabel" row="0" column="1">
+                                                            <property name="name">
+                                                                <cstring>textLabel2_2_2</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Value below grid</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel" row="0" column="2">
+                                                            <property name="name">
+                                                                <cstring>textLabel2_2_2_2</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Value above grid</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLabel" row="0" column="0">
+                                                            <property name="name">
+                                                                <cstring>textLabel2_2</cstring>
+                                                            </property>
+                                                            <property name="text">
+                                                                <string>Variable</string>
+                                                            </property>
+                                                            <property name="alignment">
+                                                                <set>AlignCenter</set>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit" row="1" column="2">
+                                                            <property name="name">
+                                                                <cstring>highValEdit</cstring>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QLineEdit" row="1" column="1">
+                                                            <property name="name">
+                                                                <cstring>lowValEdit</cstring>
+                                                            </property>
+                                                        </widget>
+                                                        <widget class="QComboBox" row="1" column="0">
+                                                            <property name="name">
+                                                                <cstring>variableCombo</cstring>
+                                                            </property>
+                                                        </widget>
+                                                    </grid>
+                                                </widget>
+                                            </vbox>
+                                        </widget>
+                                    </hbox>
+                                </widget>
+                            </vbox>
+                        </widget>
+                    </hbox>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer49_2</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>21</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout17</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer30</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>71</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel1</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Following apply to specific Visualizer:</string>
+                            </property>
+                        </widget>
+                        <widget class="QComboBox">
+                            <property name="name">
+                                <cstring>currentNameCombo</cstring>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>This visualizer's features are displayed and modified</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>spacer31</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>101</width>
+                                    <height>21</height>
+                                </size>
+                            </property>
+                        </spacer>
+                    </hbox>
+                </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
                         <cstring>layout2_2_2</cstring>
@@ -100,66 +432,6 @@
                         </widget>
                     </hbox>
                 </widget>
-                <widget class="QLayoutWidget">
-                    <property name="name">
-                        <cstring>layout17</cstring>
-                    </property>
-                    <hbox>
-                        <property name="name">
-                            <cstring>unnamed</cstring>
-                        </property>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer30</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>71</width>
-                                    <height>20</height>
-                                </size>
-                            </property>
-                        </spacer>
-                        <widget class="QLabel">
-                            <property name="name">
-                                <cstring>textLabel1</cstring>
-                            </property>
-                            <property name="text">
-                                <string>Apply to Visualizer</string>
-                            </property>
-                        </widget>
-                        <widget class="QComboBox">
-                            <property name="name">
-                                <cstring>currentNameCombo</cstring>
-                            </property>
-                            <property name="toolTip" stdset="0">
-                                <string>This visualizer's features are displayed and modified</string>
-                            </property>
-                        </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer31</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Horizontal</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Expanding</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>101</width>
-                                    <height>21</height>
-                                </size>
-                            </property>
-                        </spacer>
-                    </hbox>
-                </widget>
                 <spacer>
                     <property name="name">
                         <cstring>spacer28</cstring>
@@ -173,7 +445,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -1156,7 +1428,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -1490,7 +1762,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -1921,7 +2193,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>
@@ -2252,7 +2524,7 @@
                     <property name="sizeHint">
                         <size>
                             <width>20</width>
-                            <height>16</height>
+                            <height>20</height>
                         </size>
                     </property>
                 </spacer>

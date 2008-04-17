@@ -110,7 +110,6 @@ public:
 	//
 	QAction* editUndoAction;
 	QAction* editRedoAction;
-	QAction* editSessionParamsAction;
 	QAction* editVizFeaturesAction;
 	QAction* editPreferencesAction;
     
@@ -231,7 +230,6 @@ public slots:
 	virtual void setRake(bool);
 	virtual void setNavigate(bool);
 	virtual void setLights(bool);
-	virtual void editSessionParams();
 
 	//Whenever the UndoRedo menu is displayed, need to supply the right text:
 	//

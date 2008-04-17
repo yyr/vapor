@@ -80,10 +80,10 @@
 
 #include "assert.h"
 #include "command.h"
-#include "sessionparameters.h"
+
 #include "vizfeatureparams.h"
 #include "userpreferences.h"
-#include "sessionparams.h"
+
 #include "vapor/Version.h"
 
 //The following are pixmaps that are used in gui:
@@ -203,7 +203,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	editUndoAction = new QAction(this, "editUndoAction");
 	editRedoAction = new QAction(this, "editRedoAction");
-	editSessionParamsAction = new QAction(this, "editSessionParamsAction");
+	
 	editVizFeaturesAction = new QAction(this, "editVizFeaturesAction");
 	editPreferencesAction = new QAction(this, "editUserPreferencesAction");
 	editUndoAction->setEnabled(false);
@@ -374,7 +374,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 	Edit = new QPopupMenu(this);
 	editUndoAction->addTo(Edit);
 	editRedoAction->addTo(Edit);
-	editSessionParamsAction->addTo(Edit);
+	
 	editVizFeaturesAction->addTo(Edit);
 	editPreferencesAction->addTo(Edit);
 	Main_Form->insertItem( QString(""), Edit, 2 );
@@ -443,7 +443,7 @@ MainForm::MainForm(QString& fileName, QApplication* app, QWidget* parent, const 
 
 	connect(editUndoAction, SIGNAL(activated()), this, SLOT (undo()));
 	connect(editRedoAction, SIGNAL(activated()), this, SLOT (redo()));
-	connect(editSessionParamsAction, SIGNAL(activated()), this, SLOT(editSessionParams()));
+	
 	connect( editVizFeaturesAction, SIGNAL(activated()), this, SLOT(launchVizFeaturesPanel()));
 	connect( editPreferencesAction, SIGNAL(activated()), this, SLOT(launchPreferencesPanel()));
 	connect(Edit, SIGNAL(aboutToShow()), this, SLOT (setupUndoRedoText()));
@@ -601,11 +601,7 @@ void MainForm::languageChange()
     editRedoAction->setMenuText( tr( "&Redo" ) );
     editRedoAction->setAccel( tr( "Ctrl+Y" ) );
 	editRedoAction->setToolTip("Redo the last undone session state change");
-	editSessionParamsAction->setText( tr("Edit Session Parameters"));
-    editSessionParamsAction->setMenuText( tr("&Edit Session Parameters"));
-    editSessionParamsAction->setToolTip("Launch a panel for setting session parameters"); 
     
-   
 	
     helpAboutAction->setText( tr( "About VAPOR" ) );
     helpAboutAction->setMenuText( tr( "About VAPOR" ) );
@@ -1073,13 +1069,6 @@ void MainForm::launchVisualizer()
 		
 }
 
-
-//This creates the popup to edit session parameters
-void MainForm::editSessionParams()
-{
-	SessionParams sP;
-	sP.launch();
-}
 
 /*
  * Method to launch the viewpoint/lights tab into the tabbed dialog
