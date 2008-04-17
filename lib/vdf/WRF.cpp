@@ -222,24 +222,24 @@ int WRF::GetZSlice(
 	// for interpolation
 	if ( thisVar.stag[2] )
 	{
+		float *f1 = fbuffer;
+		float *f2 = fbufferAbove;
 		// If the vertical grid is staggered, save the slice above the one we
 		// just wrote as the one we are going to work on next time
 		if ( !needAnother )
 		{
-			float * tempPtr = fbuffer;
-			fbuffer = fbufferAbove;
-			fbufferAbove = tempPtr;
+			f1 = fbufferAbove;
+			f2 = fbuffer;
 		}
 
-		if (ReadZSlice4D(ncid, thisVar, wrfT, z+1, fbufferAbove, dim) < 0) return(-1);
+		if (ReadZSlice4D(ncid, thisVar, wrfT, z+1, f2, dim) < 0) return(-1);
 		// Iterpolate horizontally, if needed
 		if ( thisVar.stag[0] || thisVar.stag[1] )
 			InterpHorizSlice( fbufferAbove, thisVar, dim );
 		// Now do the vertical interpolation
 		for ( size_t l = 0 ; l < dim[0]*dim[1] ; l++ )
 		{
-			fbuffer[l] += fbufferAbove[l];
-			fbuffer[l] /= 2.0;
+			fbuffer[l] = (f1[l] + f2[l]) / 2.0;
 		}
 		// Now we no longer need to read two slices
 		if ( needAnother )
