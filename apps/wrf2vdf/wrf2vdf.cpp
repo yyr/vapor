@@ -184,7 +184,7 @@ int DoGeopotStuff(
 	Metadata *metadata, 
 	const WRF::atypVarNames_t &wrfNames,
 	vector<string> &varnames, 
-	float extents[2]
+	double extents[2]
 ) {
 
 	bool wantEle = find(varnames.begin(),varnames.end(),"ELEVATION")!=varnames.end();
@@ -1507,7 +1507,7 @@ int	main(int argc, char **argv) {
 		// Copy the current file, one timestep at a time
 		//
 		for (int t=0; t<copy_wrf_timesteps.size() && TotalTimeSteps < MaxTimeSteps; t++) {
-			float wrf_vexts[2];		// vertical extents of wrf time step
+			double wrf_vexts[2];		// vertical extents of wrf time step
 
 			int wrf_ts = copy_wrf_timesteps[t]; 
 			size_t vdf_ts = copy_vdf_timesteps[t]; 
@@ -1523,10 +1523,10 @@ int	main(int argc, char **argv) {
 				metadata, wrfNames, vars, wrf_vexts
 			);
 			if (rc<0) MyBase::SetErrCode(0);
-			if (wrf_vexts[0] < vdf_extents[2] && ! opt.quiet) {
+			if ((wrf_vexts[0] < (vdf_extents[2]-0.000001)) && ! opt.quiet) {
 				cerr << ProgName << " : Warning, extents of file " << argv[arg] << " out of range\n";
 			}
-			if (wrf_vexts[1] < vdf_extents[5] && ! opt.quiet) {
+			if ((wrf_vexts[1] < (vdf_extents[5]-0.000001)) && ! opt.quiet) {
 				cerr << ProgName << " : Warning, extents of file " << argv[arg] << " out of range\n";
 			}
 
