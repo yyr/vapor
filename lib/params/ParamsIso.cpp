@@ -192,6 +192,7 @@ reinit(bool doOverride){
 				newIsoControls[i]->setMaxHistoValue(DataStatus::getInstance()->getDefaultDataMax(i));
 				newIsoControls[i]->setVarNum(i);
 				newTransFunc[i] = new TransferFunction(this, 8);
+				newTransFunc[i]->setOpaque();
 				newTransFunc[i]->setMinMapValue(DataStatus::getInstance()->getDefaultDataMin(i));
 				newTransFunc[i]->setMaxMapValue(DataStatus::getInstance()->getDefaultDataMax(i));
 				newMinMapEdit[i] = DataStatus::getInstance()->getDefaultDataMin(i);

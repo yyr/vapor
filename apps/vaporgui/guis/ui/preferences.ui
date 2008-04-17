@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>491</width>
-            <height>1067</height>
+            <width>474</width>
+            <height>1154</height>
         </rect>
     </property>
     <property name="maximumSize">
@@ -33,12 +33,116 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout26</cstring>
+                <cstring>layout74</cstring>
             </property>
             <vbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>Layout1_2</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>0</number>
+                        </property>
+                        <property name="spacing">
+                            <number>6</number>
+                        </property>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>buttonHelp2</cstring>
+                            </property>
+                            <property name="enabled">
+                                <bool>true</bool>
+                            </property>
+                            <property name="text">
+                                <string>&amp;Help</string>
+                            </property>
+                            <property name="accel">
+                                <string>F1</string>
+                            </property>
+                            <property name="autoRepeat">
+                                <bool>false</bool>
+                            </property>
+                            <property name="autoDefault">
+                                <bool>false</bool>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Click to get context-sensitive help on this panel</string>
+                            </property>
+                        </widget>
+                        <spacer>
+                            <property name="name">
+                                <cstring>Horizontal Spacing2_2</cstring>
+                            </property>
+                            <property name="orientation">
+                                <enum>Horizontal</enum>
+                            </property>
+                            <property name="sizeType">
+                                <enum>Expanding</enum>
+                            </property>
+                            <property name="sizeHint">
+                                <size>
+                                    <width>20</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>buttonOk2</cstring>
+                            </property>
+                            <property name="text">
+                                <string>&amp;OK</string>
+                            </property>
+                            <property name="accel">
+                                <string></string>
+                            </property>
+                            <property name="autoDefault">
+                                <bool>true</bool>
+                            </property>
+                            <property name="default">
+                                <bool>true</bool>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton">
+                            <property name="name">
+                                <cstring>buttonCancel2</cstring>
+                            </property>
+                            <property name="text">
+                                <string>&amp;Cancel</string>
+                            </property>
+                            <property name="accel">
+                                <string></string>
+                            </property>
+                            <property name="autoDefault">
+                                <bool>false</bool>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer89</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>21</height>
+                        </size>
+                    </property>
+                </spacer>
                 <widget class="QLayoutWidget">
                     <property name="name">
                         <cstring>layout2</cstring>
@@ -1173,23 +1277,6 @@
                         </widget>
                     </hbox>
                 </widget>
-                <spacer>
-                    <property name="name">
-                        <cstring>spacer168</cstring>
-                    </property>
-                    <property name="orientation">
-                        <enum>Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                        <enum>Expanding</enum>
-                    </property>
-                    <property name="sizeHint">
-                        <size>
-                            <width>20</width>
-                            <height>16</height>
-                        </size>
-                    </property>
-                </spacer>
                 <widget class="QFrame">
                     <property name="name">
                         <cstring>frame12</cstring>
@@ -1611,7 +1698,7 @@
                 </widget>
                 <spacer>
                     <property name="name">
-                        <cstring>spacer17</cstring>
+                        <cstring>spacer168</cstring>
                     </property>
                     <property name="orientation">
                         <enum>Vertical</enum>

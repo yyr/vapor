@@ -159,6 +159,10 @@ void UserPreferences::launch(){
 	connect (buttonCancel,SIGNAL(clicked()), featureHolder, SLOT(reject()));
 	connect (this, SIGNAL(doneWithIt()), featureHolder, SLOT(reject()));
 	connect (buttonHelp, SIGNAL(released()), this, SLOT(doHelp()));	
+	connect (buttonHelp2, SIGNAL(released()), this, SLOT(doHelp()));	
+	connect (buttonOk2, SIGNAL(clicked()), this, SLOT(okClicked()));
+	connect (buttonCancel2,SIGNAL(clicked()), featureHolder, SLOT(reject()));
+
 	buttonOk->setDefault(true);
 
 	featureHolder->exec();

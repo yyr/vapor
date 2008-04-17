@@ -245,6 +245,10 @@ buildNode() {
 	oss.str(empty);
 	oss << extents[0]<<" "<<extents[1]<<" "<<extents[2]<<" "<<extents[3]<<" "<<extents[4]<<" "<<extents[5];
 	attrs[_dataExtentsAttr] = oss.str();
+	attrs[_transferFunctionPathAttr] = currentTFPath;
+	attrs[_imageCapturePathAttr] = currentJpegDirectory;
+	attrs[_flowDirectoryPathAttr] = currentFlowDirectory;
+	attrs[_metadataPathAttr] = currentMetadataFile;
 	
 	int numSesVars = getNumSessionVariables();
 	XmlNode* mainNode = new XmlNode(_sessionTag, attrs, numSesVars+numTFs+2);
