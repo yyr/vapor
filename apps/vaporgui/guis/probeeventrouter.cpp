@@ -242,8 +242,14 @@ void ProbeEventRouter::updateTab(){
 	int winnum = vizMgr->getActiveViz();
 	int pType = probeParams->getProbeType();
 	probeTypeCombo->setCurrentItem(pType);
-	if (pType == 1) ibfvFrame->show(); 
-	else ibfvFrame->hide();
+	if (pType == 1) {
+		ibfvFrame->show();
+		colorMergeCheckbox->setEnabled(true);
+	}
+	else {
+		ibfvFrame->hide();
+		colorMergeCheckbox->setEnabled(false);
+	}
 	captureFlowButton->setEnabled(pType==1);
 	//set ibfv parameters:
 	alphaEdit->setText(QString::number(probeParams->getAlpha()));
@@ -289,17 +295,24 @@ void ProbeEventRouter::updateTab(){
 
     transferFunctionFrame->setMapperFunction(probeParams->getMapperFunc());
     transferFunctionFrame->updateParams();
-
-    if (ses->getNumSessionVariables())
+	int numvars = 0;
+	QString varnames = getMappedVariableNames(&numvars);
+    if (numvars > 1)
     {
-      int varnum = probeParams->getSessionVarNum();
-      const std::string& varname = ses->getVariableName(varnum);
-      
-      transferFunctionFrame->setVariableName(varname);
+      transferFunctionFrame->setVariableName(varnames.ascii());
+	  QString labelString = "Magnitude of mapped variables("+varnames+") at selected point:";
+	  variableLabel->setText(labelString);
+    }
+	else if (numvars > 0)
+	{
+      transferFunctionFrame->setVariableName(varnames.ascii());
+	  QString labelString = "Value of mapped variable("+varnames+") at selected point:";
+	  variableLabel->setText(labelString);
     }
     else
     {
       transferFunctionFrame->setVariableName("");
+	  variableLabel->setText("");
     }
 	int numRefs = probeParams->getNumRefinements();
 	if(numRefs <= refinementCombo->count())
@@ -1087,10 +1100,8 @@ setEditorDirty(RenderParams* p){
 
     if (session->getNumSessionVariables())
     {
-      int varnum = dp->getSessionVarNum();
-      const std::string& varname = session->getVariableName(varnum);
-      
-      transferFunctionFrame->setVariableName(varname);
+	  int tmp;
+      transferFunctionFrame->setVariableName(getMappedVariableNames(&tmp).ascii());
     }
     else
     {
@@ -2516,4 +2527,18 @@ void ProbeThread::run(){
 		msleep(50);
 		router->probeTextureFrame->advanceAnimatingFrame();
 	}
+}
+QString ProbeEventRouter::getMappedVariableNames(int* numvars){
+	ProbeParams* pParams = VizWinMgr::getActiveProbeParams();
+	QString names("");
+	*numvars = 0;
+	for (int i = 0; i< DataStatus::getInstance()->getNumSessionVariables(); i++){
+		//Index by session variable num:
+		if (pParams->variableIsSelected(i)){
+			if (*numvars > 0) names = names + ",";
+			names = names + DataStatus::getInstance()->getVariableName(i).c_str();
+			(*numvars)++;
+		}
+	}
+	return names;
 }

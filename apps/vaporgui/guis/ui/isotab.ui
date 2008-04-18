@@ -1144,7 +1144,7 @@ specified range.</string>
                                                 <cstring>textLabel9</cstring>
                                             </property>
                                             <property name="text">
-                                                <string>Value of Variable at Point</string>
+                                                <string>Value of iso variable at point</string>
                                             </property>
                                             <property name="alignment">
                                                 <set>AlignCenter</set>

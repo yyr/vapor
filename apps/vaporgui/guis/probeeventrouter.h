@@ -196,6 +196,7 @@ protected:
 	void adjustBoxSize(ProbeParams*);
 	void resetTextureSize(ProbeParams*);
 	virtual void setDatarangeDirty(RenderParams*);
+	QString getMappedVariableNames(int* numvars);
 	bool seedAttached;
 	FlowParams* attachedFlow;
 	//Flag to enable resetting of the listbox without
